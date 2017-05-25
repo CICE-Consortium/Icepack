@@ -72,12 +72,12 @@ source/ice_step_mod.F90.
 
 Column Package Source Code:
 
-source_colpkg/
+/columnphysics
 
 constants/
-constants/cesm/ice_constants_colpkg.F90
-constants/cice/ice_constants_colpkg.F90
-constants/hadgem3/ice_constants_colpkg.F90
+constants/cesm/icepack_constants.F90
+constants/cice/icepack_constants.F90
+constants/hadgem3/icepack_constants.F90
 
 documentation/
 documentation/CollaborationAgreement.pdf
@@ -85,29 +85,29 @@ documentation/DocForChanges.pdf
 documentation/DocForChanges.rtf
 documentation/README
 
-*ice_kinds_mod.F90
-ice_aerosol.F90
-ice_age.F90
-ice_algae.F90
-ice_atmo.F90
-*ice_colpkg.F90
-*ice_colpkg_shared.F90
-*ice_colpkg_tracers.F90
-ice_firstyear.F90
-ice_flux_colpkg.F90
-ice_itd.F90
-ice_mechred.F90
-ice_meltpond_cesm.F90
-ice_meltpond_lvl.F90
-ice_meltpond_topo.F90
-ice_mushy_physics.F90
-ice_orbital.F90
-ice_shortwave.F90
-ice_therm_0layer.F90
-ice_therm_bl99.F90
-ice_therm_itd.F90
-ice_therm_mushy.F90
-ice_therm_shared.F90
-ice_therm_vertical.F90
-ice_zbgc.F90
-ice_zbgc_shared.F90
+*icepack_kinds_mod.F90
+icepack_aerosol.F90
+icepack_age.F90
+icepack_algae.F90
+icepack_atmo.F90
+*icepack_intfc.F90
+*icepack_intfc_shared.F90
+*icepack_intfc_tracers.F90
+icepack_firstyear.F90
+icepack_flux.F90
+icepack_itd.F90
+icepack_mechred.F90
+icepack_meltpond_cesm.F90
+icepack_meltpond_lvl.F90
+icepack_meltpond_topo.F90
+icepack_mushy_physics.F90
+icepack_orbital.F90
+icepack_shortwave.F90
+icepack_therm_0layer.F90
+icepack_therm_bl99.F90
+icepack_therm_itd.F90
+icepack_therm_mushy.F90
+icepack_therm_shared.F90
+icepack_therm_vertical.F90
+icepack_zbgc.F90
+icepack_zbgc_shared.F90
