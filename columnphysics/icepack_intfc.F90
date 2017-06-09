@@ -490,12 +490,9 @@
 
 !=======================================================================
 
-      subroutine icepack_init_bgc(dt, ncat, nblyr, nilyr, ntrcr_o, cgrid, igrid, &
-         restart_bgc, ntrcr, nbtrcr, sicen, trcrn, &
-         sss, nit, amm, sil, dmsp, dms, algalN, &
-         doc, don, dic, fed, fep, zaeros, hum,  &
-         ocean_bio_all, &
-         max_algae, max_doc, max_dic, max_don,  max_fe, max_nbtrcr, max_aero, &
+      subroutine icepack_init_bgc(dt, ncat, nblyr, nilyr, ntrcr_o, &
+         cgrid, igrid, ntrcr, nbtrcr, &
+         sicen, trcrn, sss, ocean_bio_all, &
          l_stop, stop_label)
 
       use icepack_constants, only: c0, c1, c2, p1, p15, p5
@@ -515,25 +512,15 @@
          ncat  , & ! number of thickness categories
          nilyr , & ! number of ice layers
          nblyr , & ! number of bio layers
-         ntrcr_o, & ! number of tracers not including bgc
+         ntrcr_o,& ! number of tracers not including bgc
          ntrcr , & ! number of tracers in use
-         nbtrcr, & ! number of bio tracers in use
-         max_algae, &
-         max_doc, &
-         max_dic, &
-         max_don, &
-         max_fe, &
-         max_nbtrcr, &
-         max_aero
+         nbtrcr    ! number of bio tracers in use
  
       real (kind=dbl_kind), dimension (nblyr+1), intent(inout) :: &
          igrid     ! biology vertical interface points
  
       real (kind=dbl_kind), dimension (nilyr+1), intent(inout) :: &
          cgrid     ! CICE vertical coordinate   
-
-      logical (kind=log_kind), intent(in) :: & 
-         restart_bgc ! if .true., read bgc restart file
 
       real (kind=dbl_kind), dimension(nilyr, ncat), intent(in) :: &
          sicen     ! salinity on the cice grid
@@ -543,32 +530,6 @@
 
       real (kind=dbl_kind), intent(in) :: &
          sss       ! sea surface salinity (ppt)
-
-      real (kind=dbl_kind), intent(inout) :: &
-         nit   , & ! ocean nitrate (mmol/m^3)          
-         amm   , & ! ammonia/um (mmol/m^3)
-         sil   , & ! silicate (mmol/m^3)
-         dmsp  , & ! dmsp (mmol/m^3)
-         dms   , & ! dms (mmol/m^3)
-         hum       ! hum (mmol/m^3)
-
-      real (kind=dbl_kind), dimension (max_algae), intent(inout) :: &
-         algalN    ! ocean algal nitrogen (mmol/m^3) (diatoms, pico, phaeocystis)
-
-      real (kind=dbl_kind), dimension (max_doc), intent(inout) :: &
-         doc       ! ocean doc (mmol/m^3)  (proteins, EPS, lipid)
-
-      real (kind=dbl_kind), dimension (max_don), intent(inout) :: &
-         don       ! ocean don (mmol/m^3) 
-
-      real (kind=dbl_kind), dimension (max_dic), intent(inout) :: &
-         dic       ! ocean dic (mmol/m^3) 
-
-      real (kind=dbl_kind), dimension (max_fe), intent(inout) :: &
-         fed, fep  ! ocean disolved and particulate fe (nM) 
-
-      real (kind=dbl_kind), dimension (max_aero), intent(inout) :: &
-         zaeros    ! ocean aerosols (mmol/m^3) 
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          ocean_bio_all   ! fixed order, all values even for tracers false
@@ -585,36 +546,14 @@
          n     , & ! category index 
          mm    , & ! bio tracer index
          ki    , & ! loop index
-         ks    , & ! 
-         ntrcr_bgc
+         ks        ! 
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: & 
          trtmp     ! temporary, remapped tracers   
       
-      real (kind=dbl_kind), dimension (nblyr+1) :: &
-         zspace    ! vertical grid spacing
-
       real (kind=dbl_kind) :: & 
          dvssl , & ! volume of snow surface layer (m)
-         dvint , & ! volume of snow interior      (m)
-         nit_dum, &!
-         sil_dum
-
-      zspace(:)       = c1/real(nblyr,kind=dbl_kind)
-      zspace(1)       = p5*zspace(1)
-      zspace(nblyr+1) = p5*zspace(nblyr+1)
-      ntrcr_bgc       = ntrcr-ntrcr_o
-
-      call icepack_init_OceanConcArray(max_nbtrcr,                &
-                                 max_algae, max_don,  max_doc,   &
-                                 max_dic,   max_aero, max_fe,    &
-                                 nit,       amm,      sil,       &
-                                 dmsp,      dms,      algalN,    &
-                                 doc,       don,      dic,       &  
-                                 fed,       fep,      zaeros,    &
-                                 ocean_bio_all,       hum)
-
-      if (.not. restart_bgc) then  ! not restarting
+         dvint     ! volume of snow interior      (m)
 
       !-----------------------------------------------------------------------------   
       !     Skeletal Layer Model
@@ -694,7 +633,6 @@
               
             endif  ! scale_bgc
          endif     ! skl_bgc
-      endif        ! restart
 
       end subroutine icepack_init_bgc
 
@@ -5442,7 +5380,7 @@
 
 !  Initialize zSalinity
 
-      subroutine icepack_init_zsalinity(nblyr,ntrcr_o, restart_zsal,  Rayleigh_criteria, &
+      subroutine icepack_init_zsalinity(nblyr,ntrcr_o,  Rayleigh_criteria, &
                Rayleigh_real, trcrn, nt_bgc_S, ncat, sss)
 
       use icepack_constants, only: c1,  c2, p5, c0, p1
@@ -5453,9 +5391,6 @@
        ntrcr_o, & ! number of non bio tracers
        ncat , & ! number of categories
        nt_bgc_S ! zsalinity index
-
-      logical (kind=log_kind), intent(in) :: &
-       restart_zsal
 
       logical (kind=log_kind), intent(inout) :: &
        Rayleigh_criteria
@@ -5470,7 +5405,7 @@
        trcrn ! bgc subset of trcrn
 
       integer (kind=int_kind) :: &
-        k , n
+        k, n
       
       if (nblyr .LE. 7) then
           dts_b = 300.0_dbl_kind
@@ -5478,15 +5413,13 @@
           dts_b = 50.0_dbl_kind 
       endif
 
-      if (.not. restart_zsal) then
-         Rayleigh_criteria = .false.    ! no ice initial condition 
-         Rayleigh_real     = c0
-         do n = 1,ncat
-             do k = 1,nblyr
-                trcrn(nt_bgc_S+k-1-ntrcr_o,n) = sss*salt_loss
-             enddo   ! k
-         enddo      ! n
-      endif
+      Rayleigh_criteria = .false.    ! no ice initial condition 
+      Rayleigh_real     = c0
+      do n = 1,ncat
+         do k = 1,nblyr
+            trcrn(nt_bgc_S+k-1-ntrcr_o,n) = sss*salt_loss
+         enddo   ! k
+      enddo      ! n
 
       end subroutine icepack_init_zsalinity
 
