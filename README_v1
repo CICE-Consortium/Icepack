@@ -2,7 +2,8 @@
 
 Until new scripts for Icepack are ready, use the old method to build and run:
 
-Copy your Macros file from the CICE repository into the icepack/bld directory.
+Copy your Macros file from the CICE repository into the icepack/configuration/bld/
+directory.
 Edit comp_ice for your machine, paths, source and executable directories.
 Edit the namelist file icepack_in as needed.
 ./comp_ice to build the code.
