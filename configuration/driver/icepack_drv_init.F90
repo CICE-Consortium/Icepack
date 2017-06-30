@@ -62,7 +62,7 @@
 !      use icepack_drv_forcing, only: &
 !          dbug, &
 !          atm_data_type,   atm_data_dir,  precip_units, &
-!          atm_data_format
+
       use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond, &
                              tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
                              tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
@@ -125,14 +125,14 @@
         rfracmin,       rfracmax,        pndaspect,     hs1,            &
         hp1
 
-!      namelist /forcing_nml/ &
-!        atmbndy,        atm_data_format,&
-!        atm_data_type,  atm_data_dir,    calc_strair,   calc_Tsfc,      &
-!        precip_units,   update_ocn_f,    l_mpond_fresh, ustar_min,      &
-!        fbot_xfer_type,                                                 &
-!        oceanmixed_ice, &
-!        formdrag,        highfreq,      natmiter,       &
-!        tfrz_option
+      namelist /forcing_nml/ &
+        atmbndy,        &
+        calc_strair,   calc_Tsfc,      &
+        update_ocn_f,    l_mpond_fresh, ustar_min,      &
+        fbot_xfer_type,                                                 &
+        oceanmixed_ice, &
+        formdrag,        highfreq,      natmiter,       &
+        tfrz_option
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -214,8 +214,8 @@
 !      atm_data_dir    = ' '
       calc_strair     = .true.    ! calculate wind stress
       formdrag        = .false.   ! calculate form drag
-!      highfreq        = .false.   ! calculate high frequency RASM coupling
-!      natmiter        = 5         ! number of iterations for atm boundary layer calcs
+      highfreq        = .false.   ! calculate high frequency RASM coupling
+      natmiter        = 5         ! number of iterations for atm boundary layer calcs
 !      precip_units    = 'mks'     ! 'mm_per_month' or
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       tfrz_option     = 'mushy'   ! freezing temp formulation
@@ -271,9 +271,9 @@
             print*,'Reading ponds_nml'
                read(nu_nml, nml=ponds_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-!            print*,'Reading forcing_nml'
-!               read(nu_nml, nml=forcing_nml,iostat=nml_error)
-!               if (nml_error /= 0) exit
+            print*,'Reading forcing_nml'
+               read(nu_nml, nml=forcing_nml,iostat=nml_error)
+               if (nml_error /= 0) exit
          end do
          if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then

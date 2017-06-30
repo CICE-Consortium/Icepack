@@ -231,30 +231,15 @@
 &forcing_nml
     formdrag        = .false.
   , atmbndy         = 'default'
-  , fyear_init      = 1981
-  , ycycle          = 1
-  , atm_data_format = 'nc'
-  , atm_data_type   = 'oned'
-  , atm_data_dir    = '/usr/projects/climate/eclare/DATA/column/'
   , calc_strair     = .true.
   , calc_Tsfc       = .true.
   , highfreq        = .false.
   , natmiter        = 5
-  , precip_units    = 'mm_per_sec'
   , ustar_min       = 0.0005
   , fbot_xfer_type  = 'constant'
   , update_ocn_f    = .false.
   , l_mpond_fresh   = .false.
   , tfrz_option     = 'mushy'
-  , oceanmixed_ice  = .true.
-  , ocn_data_format = 'nc'
-  , sss_data_type   = 'default'
-  , sst_data_type   = 'default'
-  , ocn_data_dir    = '/usr/projects/climate/eclare/DATA/gx1v3/gx1v3/forcing/'
-  , oceanmixed_file = 'oceanmixed_ice_depth.nc'
-  , restore_sst     = .false.
-  , trestore        =  90
-  , restore_ice     = .false.
 /
 
 &icefields_nml
