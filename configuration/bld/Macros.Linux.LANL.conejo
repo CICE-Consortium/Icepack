@@ -1,0 +1,46 @@
+#==============================================================================
+# Makefile macros for "conejo," Linux cluster at LANL
+#==============================================================================
+
+INCLDIR    := -I. -I/usr/include
+SLIBS      := -L/usr/lib
+ULIBS      := 
+CPP        := /usr/bin/cpp
+CPPFLAGS   := -P -traditional
+CPPDEFS    := -DLINUX
+CFLAGS     := -c -O2
+FC         := ifort
+FIXEDFLAGS := -132
+FREEFLAGS  := 
+#FFLAGS     := -r8 -i4 -O2 -align all -w -ftz -convert big_endian -assume byterecl -fp-model precise
+FFLAGS     := -r8 -i4  -align all -w -ftz -convert big_endian -assume byterecl -fp-model precise -g
+#FFLAGS     := -r8 -i4 -align all -w -ftz -convert big_endian -assume byterecl -fpe0 -CB -traceback 
+#FFLAGS     := -r8 -i4 -align all -w -ftz -convert big_endian -assume byterecl -fpe0 -CB -check uninit -traceback
+
+ifeq ($(THRD), yes)
+   FFLAGS  :=  $(FFLAGS) -openmp
+#cesm   CPPDEFS :=  $(CPPDEFS) -DTHREADED_OMP
+endif
+
+MOD_SUFFIX := mod
+LD         := $(FC)
+LDFLAGS    := $(FFLAGS) -v
+
+    CPPDEFS :=  $(CPPDEFS) -DNXGLOB=$(NXGLOB) \
+                -DNICELYR=$(NICELYR) -DNSNWLYR=$(NSNWLYR) -DNICECAT=$(NICECAT) \
+                -DTRAGE=$(TRAGE) -DTRFY=$(TRFY) -DTRLVL=$(TRLVL) -DTRPND=$(TRPND) \
+                -DTRBRI=$(TRBRI) -DNTRAERO=$(NTRAERO) -DTRZS=$(TRZS) \
+                -DNBGCLYR=$(NBGCLYR) -DTRALG=$(TRALG) -DTRBGCZ=$(TRBGCZ) \
+                -DTRDOC=$(TRDOC) -DTRDOC=$(TRDOC) -DTRDIC=$(TRDIC) \
+                -DTRDON=$(TRDON) -DTRFED=$(TRFED) -DTRFEP=$(TRFEP) \
+                -DTRZAERO=$(TRZAERO)  \
+                -DTRBGCS=$(TRBGCS) -DNUMIN=$(NUMIN) -DNUMAX=$(NUMAX)
+
+ifeq ($(IO_TYPE), netcdf)
+   CPPDEFS :=  $(CPPDEFS) -Dncdf
+#   INCLDIR := $(INCLDIR) $(NETCDF)/include
+#   SLIBS   := $(SLIBS) $(NETCDF)/lib -lnetcdf
+   INCLDIR := $(INCLDIR) -I/usr/projects/climate/SHARED_CLIMATE/software/conejo/netcdf/3.6.3/intel-13.0.1/include
+   SLIBS   := $(SLIBS) -L/usr/projects/climate/SHARED_CLIMATE/software/conejo/netcdf/3.6.3/intel-13.0.1/lib -lnetcdf
+endif
+
