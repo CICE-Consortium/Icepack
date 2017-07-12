@@ -1,0 +1,28 @@
+ --- Temporary information, 30 June 2017 --- 
+
+Until new scripts for Icepack are ready, use the old method to build and run:
+
+Copy your Macros file from the CICE repository into the icepack/configuration/bld/
+directory.
+Edit comp_ice for your machine, paths, source and executable directories.
+Edit the namelist file icepack_in as needed.
+./comp_ice to build the code.
+cd to your executable directory.
+./icepack to run the code.
+
+The code is currently set to run using default forcing (winter, spring and summer
+options are available in icepack/configuration/driver/icepack_drv_flux.F90). 
+Better forcing options will be implemented and tested.
+
+Restart functionality has not been implemented and what is here is a mess.
+
+Netcdf is not available.
+
+Naming convention:
+
+Driver modules are Icepack_drv_*.F90 or icepack_drv_*.F90, located in 
+icepack/configuration/driver/.  These modules can provide guidance for implementing 
+Icepack in a host sea ice model and are loosely based on modules and/or 
+functionality in the cicecore/ directory of CICE.
+
+The column physics modules are icepack_*.F90, located in icepack/columnphysics/.
