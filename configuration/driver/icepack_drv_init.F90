@@ -277,7 +277,7 @@
          end do
          if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
-         write(ice_stdout,*), 'error reading namelist'
+         write(ice_stdout,*) 'error reading namelist'
       endif
       close(nu_nml)
 
@@ -672,8 +672,8 @@
          TLAT(i) = TLAT(i-1) - p5*pi/180._dbl_kind ! half-deg increments
       enddo
 
-      tmask(:) = c1
-      tmask(nx) = c0  ! land in last grid cell
+      tmask(:) = .true.
+      tmask(nx) = .false.  ! land in last grid cell
 
       !-----------------------------------------------------------------
       ! create hemisphere masks

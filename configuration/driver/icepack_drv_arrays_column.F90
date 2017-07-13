@@ -84,7 +84,7 @@
          apeffn       ! effective pond area used for radiation calculation
 
       real (kind=dbl_kind), dimension (nx, ncat), &
-         public, save :: &
+         public :: &
          snowfracn    ! Category snow fraction used in radiation
 
       ! shortwave components
