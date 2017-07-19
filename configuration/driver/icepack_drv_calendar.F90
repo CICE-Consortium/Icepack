@@ -174,6 +174,8 @@
 
       subroutine calendar(ttime)
 
+      use icepack_drv_domain_size, only: nx !cn
+
       real (kind=dbl_kind), intent(in) :: &
          ttime                          ! time variable
 
@@ -246,9 +248,11 @@
 
       if (mod(istep,diagfreq) == 0 &
                                  .and. stop_now /= 1) then
-        write(nu_diag,*) ' '
-        write(nu_diag,'(a7,i10,4x,a6,i10,4x,a4,i10)') &
-             'istep1:', istep1, 'idate:', idate, 'sec:', sec
+        do ns = 1, nx
+          write(nu_diag+ns-1,*) ' '
+          write(nu_diag+ns-1,'(a7,i10,4x,a6,i10,4x,a4,i10)') &
+              'istep1:', istep1, 'idate:', idate, 'sec:', sec
+        end do
       endif
 
       end subroutine calendar
