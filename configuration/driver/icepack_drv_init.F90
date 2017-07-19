@@ -80,10 +80,14 @@
 
       integer (kind=int_kind) :: &
         nml_error, & ! namelist i/o error flag
-        n            ! loop index
+        n,         & ! loop index
+        diag_len     !cn length of diag file
+
+      character (len=char_len) :: diag_file_names !cn
 
       character (len=6) :: chartmp
       character (len=32) :: str
+      character (len=20) :: format_str !cn
 
       logical :: exists
 
@@ -285,13 +289,24 @@
       ! set up diagnostics output and resolve conflicts
       !-----------------------------------------------------------------
 
-            write(ice_stdout,*) 'Diagnostic output will be in file ',diag_file
-            open (nu_diag, file=diag_file, status='unknown')
+      !write(ice_stdout,*) 'Diagnostic output will be in file ',diag_file
+      write(ice_stdout,*) 'Diagnostic output will be in files '
 
-         write(nu_diag,*) '--------------------------------'
-         write(nu_diag,*) '  CICE model diagnostic output  '
-         write(nu_diag,*) '--------------------------------'
-         write(nu_diag,*) ' '
+      diag_len = len(trim(diag_file))
+      do n = 1,nx
+        diag_file_names=''
+        write(format_str,'(A2,I0,A7)'),'(A',diag_len,',A1,I0)'
+        write(diag_file_names,format_str)trim(diag_file),'.',n
+        write(ice_stdout,*)'    ',diag_file_names
+        open(nu_diag+n-1, file=diag_file_names, status='unknown')
+      end do
+
+      !cn open (nu_diag, file=diag_file, status='unknown')
+      
+      write(nu_diag,*) '--------------------------------'
+      write(nu_diag,*) '  CICE model diagnostic output  '
+      write(nu_diag,*) '--------------------------------'
+      write(nu_diag,*) ' '
 
 
 
