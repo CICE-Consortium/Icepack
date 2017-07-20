@@ -78,21 +78,17 @@
          n
 
       ! fields at diagnostic points
-      !cn real (kind=dbl_kind), dimension(npnt) :: &
-      real (kind=dbl_kind), dimension(nx) :: &                     !cn these don't need to be arrays anymore either
-          psalt
-
       real (kind=dbl_kind) :: & 
           pTair, pQa, pfsnow, pfrain, &
           pfsurf, pfcondtop, pflat, &
           pfsw, pflw, &
-          paice, hiavg, hsavg, hbravg, & 
+          paice, hiavg, hsavg, psalt, hbravg, & 
           pTsfc, pfswabs, pflwout, pfsens, &
           pevap, pmeltt, pmeltb, pmeltl, pfrazil, pcongel, psnoice, pdsnow, &
           psst, psss, pTf, pfhocn
 
       real (kind=dbl_kind), dimension (nx) :: &
-         work1 !cn, work2
+         work1, work2
 
       character (len=char_len), dimension(nx) :: nx_names !cn
 
@@ -109,14 +105,13 @@
       !-----------------------------------------------------------------
 
          call total_energy (work1)
-         !cn call total_salt   (work2) !cn there seems to be no work2 below...
+         call total_salt   (work2) !cn there seems to be no work2 below...
 
          do n = 1, nx
-!cn why do we copy all this data here?
-           pTair = Tair(n) - Tffresh ! air temperature
-           pQa = Qa(n)               ! specific humidity
-           pfsnow = fsnow(n)*dt/rhos ! snowfall
-           pfrain = frain(n)*dt/rhow ! rainfall
+           !pTair = Tair(n) - Tffresh ! air temperature
+           !pQa = Qa(n)               ! specific humidity
+           !pfsnow = fsnow(n)*dt/rhos ! snowfall
+           !pfrain = frain(n)*dt/rhow ! rainfall
            pfsw = fsw(n)             ! shortwave radiation
            pflw = flw(n)             ! longwave radiation
            paice = aice(n)           ! ice area
@@ -129,14 +124,16 @@
              hsavg = vsno(n)/paice
              if (tr_brine) hbravg = trcr(n,nt_fbri)* hiavg
            endif
+           if (vice(n) /= c0) psalt = work2(n)/vice(n)
            pTsfc = trcr(n,nt_Tsfc)   ! ice/snow sfc temperature
            pevap = evap(n)*dt/rhoi   ! sublimation/condensation
            pfswabs = fswabs(n)       ! absorbed solar flux
            pflwout = flwout(n)       ! outward longwave flux
+!cn makes no sense, memory error?
            pflat = flat(n)           ! latent heat flux
            pfsens = fsens(n)         ! sensible heat flux
-           pfsurf = fsurf(n)         ! total sfc heat flux
-           pfcondtop = fcondtop(n)   ! top sfc cond flux
+           !pfsurf = fsurf(n)         ! total sfc heat flux
+           !pfcondtop = fcondtop(n)   ! top sfc cond flux
            pmeltt = meltt(n)         ! top melt
            pmeltb = meltb(n)         ! bottom melt
            pmeltl = meltl(n)         ! lateral melt
@@ -160,14 +157,21 @@
            
            write(nu_diag+n-1,*) '                         '
            write(nu_diag+n-1,*) '----------atm----------'
-           write(nu_diag+n-1,900) 'air temperature (C)    = ',pTair
-           write(nu_diag+n-1,900) 'specific humidity      = ',pQa
-           write(nu_diag+n-1,900) 'snowfall (m)           = ',pfsnow
-           write(nu_diag+n-1,900) 'rainfall (m)           = ',pfrain
+           !write(nu_diag+n-1,900) 'air temperature (C)    = ',pTair
+           !write(nu_diag+n-1,900) 'specific humidity      = ',pQa
+           !write(nu_diag+n-1,900) 'snowfall (m)           = ',pfsnow
+           !write(nu_diag+n-1,900) 'rainfall (m)           = ',pfrain
+           write(nu_diag+n-1,900) 'air temperature (C)    = ',Tair(n) - Tffresh
+           write(nu_diag+n-1,900) 'specific humidity      = ',Qa(n)
+           write(nu_diag+n-1,900) 'snowfall (m)           = ',fsnow(n)*dt/rhos
+           write(nu_diag+n-1,900) 'rainfall (m)           = ',frain(n)*dt/rhow
            if (.not.calc_Tsfc) then
-             write(nu_diag+n-1,900) 'total surface heat flux= ',pfsurf
-             write(nu_diag+n-1,900) 'top sfc conductive flux= ',pfcondtop
-             write(nu_diag+n-1,900) 'latent heat flx        = ',pflat
+             !write(nu_diag+n-1,900) 'total surface heat flux= ',pfsurf
+             !write(nu_diag+n-1,900) 'top sfc conductive flux= ',pfcondtop
+             !write(nu_diag+n-1,900) 'latent heat flx        = ',pflat
+             write(nu_diag+n-1,900) 'total surface heat flux= ', fsurf(n)
+             write(nu_diag+n-1,900) 'top sfc conductive flux= ',fcondtop(n) 
+             write(nu_diag+n-1,900) 'latent heat flx        = ',flat(n) 
            else
              write(nu_diag+n-1,900) 'shortwave radiation sum= ',pfsw
              write(nu_diag+n-1,900) 'longwave radiation     = ',pflw
@@ -176,7 +180,7 @@
            write(nu_diag+n-1,900) 'area fraction          = ',paice
            write(nu_diag+n-1,900) 'avg ice thickness (m)  = ',hiavg
            write(nu_diag+n-1,900) 'avg snow depth (m)     = ',hsavg
-           write(nu_diag+n-1,900) 'avg salinity (ppt)     = ',psalt(n)
+           write(nu_diag+n-1,900) 'avg salinity (ppt)     = ',psalt
            write(nu_diag+n-1,900) 'avg brine thickness (m)= ',hbravg
            
            if (calc_Tsfc) then
