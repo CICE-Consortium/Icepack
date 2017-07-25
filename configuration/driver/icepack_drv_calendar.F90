@@ -8,7 +8,7 @@
 
       use icepack_kinds_mod
       use icepack_drv_constants, only: c0, c1, c100, c30, c360, c365, c3600, &
-          c4, c400, secday, nu_diag
+          c4, c400, secday, nu_diag, nu_diag_out
 
       implicit none
       private
@@ -174,7 +174,7 @@
 
       subroutine calendar(ttime)
 
-      use icepack_drv_domain_size, only: nx !cn
+      use icepack_drv_domain_size, only: nx
 
       real (kind=dbl_kind), intent(in) :: &
          ttime                          ! time variable
@@ -249,8 +249,8 @@
       if (mod(istep,diagfreq) == 0 &
                                  .and. stop_now /= 1) then
         do ns = 1, nx
-          write(nu_diag+ns-1,*) ' '
-          write(nu_diag+ns-1,'(a7,i10,4x,a6,i10,4x,a4,i10)') &
+          write(nu_diag_out+ns-1,*) ' '
+          write(nu_diag_out+ns-1,'(a7,i10,4x,a6,i10,4x,a4,i10)') &
               'istep1:', istep1, 'idate:', idate, 'sec:', sec
         end do
       endif
