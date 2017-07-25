@@ -75,7 +75,6 @@
           days_per_year, nextsw_cday, yday, sec
       use icepack_drv_constants, only: nu_diag
       use icepack_constants, only: c0, c1, puny
-      !cn use icepack_drv_diagnostics, only: npnt, print_points, &
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: n_aero, n_zaero, ncat, nilyr, nslyr, n_algae, nblyr
       use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr, &
@@ -316,7 +315,6 @@
           Rayleigh_criteria, Rayleigh_real
       use icepack_drv_calendar, only: dt, istep1
       use icepack_constants, only: c0
-      !cn use icepack_drv_diagnostics, only: npnt, print_points, &
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: nblyr, nilyr
       use icepack_drv_constants, only: nu_diag
