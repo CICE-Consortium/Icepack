@@ -79,7 +79,7 @@
       use icepack_drv_domain_size, only: nslyr
       use icepack_drv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
-!      use icepack_drv_restart, only: dumpfile, final_restart
+      use icepack_drv_restart, only: dumpfile !cn, final_restart
 !      use icepack_drv_restart_column, only: write_restart_age, write_restart_FY, &
 !          write_restart_lvl, write_restart_pond_cesm, write_restart_pond_lvl, &
 !          write_restart_pond_topo, write_restart_aero, &
@@ -164,8 +164,8 @@
             if (tr_brine) call hbrine_diags(dt)
          endif
 
-!         if (write_restart == 1) then
-!            call dumpfile     ! core variables for restarting
+         if (write_restart == 1) then
+           call dumpfile     ! core variables for restarting
 !            if (tr_iage)      call write_restart_age
 !            if (tr_FY)        call write_restart_FY
 !            if (tr_lvl)       call write_restart_lvl
@@ -178,7 +178,7 @@
 !            if (tr_brine)     call write_restart_hbrine
 !            if (kdyn == 2)    call write_restart_eap
 !            call final_restart
-!         endif
+         endif
 
       end subroutine ice_step
     

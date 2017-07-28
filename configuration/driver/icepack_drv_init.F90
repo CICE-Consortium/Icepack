@@ -51,13 +51,13 @@
                             rfracmin, rfracmax, pndaspect, hs1, hp1, &
                             ktherm, calc_Tsfc, conduct, oceanmixed_ice
       use icepack_drv_constants, only: c0, c1, puny, ice_stdout, nu_diag, nu_diag_out, nu_nml
-      use icepack_drv_diagnostics, only: diag_file, print_points
+      use icepack_drv_diagnostics, only: diag_file
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icepack_drv_calendar, only: year_init, istep0, &
-                              dumpfreq, dumpfreq_n, diagfreq, &
+                              dumpfreq, diagfreq, &
                               npt, dt, ndtd, days_per_year, use_leap_years
       use icepack_drv_restart_shared, only: &
-          restart, restart_dir, restart_file, pointer_file
+          restart, restart_dir, restart_file
       use icepack_drv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
 !      use icepack_drv_forcing, only: &
 !          dbug, &
@@ -101,9 +101,8 @@
         days_per_year,  use_leap_years, year_init,       istep0,        &
         dt,             npt,            ndtd,                           &
         ice_ic,         restart,   &!     restart_dir,     restart_file,  &
-        pointer_file,   dumpfreq,       dumpfreq_n,    &
+        dumpfreq,    &
         diagfreq,       diag_file,                      &
-        print_points,  &
         cpl_bgc
 
       namelist /grid_nml/ &
@@ -161,15 +160,12 @@
 #endif
       npt = 99999            ! total number of time steps (dt) 
       diagfreq = 24          ! how often diag output is written
-      print_points = .false. ! if true, print point data
       diag_file = 'ice_diag.d'
       cpl_bgc = .false.      ! history file name prefix
       dumpfreq='y'           ! restart frequency option
-      dumpfreq_n = 1         ! restart frequency
       restart = .false.      ! if true, read restart files for initialization
       restart_dir  = './'     ! write to executable dir for default
       restart_file = 'iced'  ! restart file name prefix
-      pointer_file = 'ice.restart_file'
       ice_ic       = 'default'      ! latitude and sst-dependent
 
       kitd = 1           ! type of itd conversions (0 = delta, 1 = linear)
@@ -453,17 +449,13 @@
          write(nu_diag,1000) ' dt                        = ', dt
          write(nu_diag,1020) ' npt                       = ', npt
          write(nu_diag,1020) ' diagfreq                  = ', diagfreq
-         write(nu_diag,1010) ' print_points              = ', print_points
          write(nu_diag,1030) ' dumpfreq                  = ', &
                                trim(dumpfreq)
-         write(nu_diag,1020) ' dumpfreq_n                = ', dumpfreq_n
          write(nu_diag,1010) ' restart                   = ', restart
          write(nu_diag,*)    ' restart_dir               = ', &
                                trim(restart_dir)
          write(nu_diag,*)    ' restart_file              = ', &
                                trim(restart_file)
-         write(nu_diag,*)    ' pointer_file              = ', &
-                               trim(pointer_file)
          write(nu_diag,*)    ' ice_ic                    = ', &
                                trim(ice_ic)
          write(nu_diag,1020) ' kitd                      = ', kitd

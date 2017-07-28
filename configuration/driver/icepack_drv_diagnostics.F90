@@ -93,92 +93,89 @@
       nx_names(3) = 'full ITD'
       nx_names(4) = '    land'
 
-      if (print_points) then
-
       !-----------------------------------------------------------------
       ! state of the ice and associated fluxes for 2 defined points
       ! NOTE these are computed for the last timestep only (not avg)
       !-----------------------------------------------------------------
 
-         call total_energy (work1)
-         call total_salt   (work2)
-
-         do n = 1, nx
-           pTair = Tair(n) - Tffresh ! air temperature
-           pfsnow = fsnow(n)*dt/rhos ! snowfall
-           pfrain = frain(n)*dt/rhow ! rainfall
-
-           paice = aice(n)           ! ice area           
-           hiavg = c0                ! avg snow/ice thickness
-           hsavg = c0
-           hbravg = c0               ! avg brine thickness
-           psalt = c0 
-           if (paice /= c0) then
-             hiavg = vice(n)/paice
-             hsavg = vsno(n)/paice
-             if (tr_brine) hbravg = trcr(n,nt_fbri)* hiavg
-           endif
-           if (vice(n) /= c0) psalt = work2(n)/vice(n)
-           pTsfc = trcr(n,nt_Tsfc)   ! ice/snow sfc temperature
-           pevap = evap(n)*dt/rhoi   ! sublimation/condensation
-           pdhi(n) = vice(n) - pdhi(n)  ! ice thickness change
-           pdhs(n) = vsno(n) - pdhs(n)  ! snow thickness change
-           pde(n) =-(work1(n)- pde(n))/dt ! ice/snow energy change
-           pfhocn = -fhocn(n)        ! ocean heat used by ice
-           
-           !-----------------------------------------------------------------
-           ! start spewing
-           !-----------------------------------------------------------------
-          
-           write(nu_diag_out+n-1,899) nx_names(n)
-           
-           write(nu_diag_out+n-1,*) '                         '
-           write(nu_diag_out+n-1,*) '----------atm----------'
-           write(nu_diag_out+n-1,900) 'air temperature (C)    = ',pTair  ! air temperature
-           write(nu_diag_out+n-1,900) 'specific humidity      = ',Qa(n)  ! specific humidity
-           write(nu_diag_out+n-1,900) 'snowfall (m)           = ',pfsnow ! snowfall
-           write(nu_diag_out+n-1,900) 'rainfall (m)           = ',pfrain ! rainfall
-           if (.not.calc_Tsfc) then
-             write(nu_diag_out+n-1,900) 'total surface heat flux= ', fsurf(n)  ! total sfc heat flux
-             write(nu_diag_out+n-1,900) 'top sfc conductive flux= ',fcondtop(n)! top sfc cond flux
-             write(nu_diag_out+n-1,900) 'latent heat flx        = ',flat(n)    ! latent heat flux
-           else
-             write(nu_diag_out+n-1,900) 'shortwave radiation sum= ',fsw(n)  ! shortwave radiation
-             write(nu_diag_out+n-1,900) 'longwave radiation     = ',flw(n)  ! longwave radiation
-           endif
-           write(nu_diag_out+n-1,*) '----------ice----------'
-           write(nu_diag_out+n-1,900) 'area fraction          = ',aice(n)  ! ice area    
-           write(nu_diag_out+n-1,900) 'avg ice thickness (m)  = ',hiavg  ! avg snow/ice thickness
-           write(nu_diag_out+n-1,900) 'avg snow depth (m)     = ',hsavg  ! avg snow/ice thickness
-           write(nu_diag_out+n-1,900) 'avg salinity (ppt)     = ',psalt  ! avg salinity 
-           write(nu_diag_out+n-1,900) 'avg brine thickness (m)= ',hbravg   ! avg brine thickness
-           
-           if (calc_Tsfc) then
-             write(nu_diag_out+n-1,900) 'surface temperature(C) = ',pTsfc ! ice/snow sfc temperature
-             write(nu_diag_out+n-1,900) 'absorbed shortwave flx = ',fswabs(n)! absorbed solar flux
-             write(nu_diag_out+n-1,900) 'outward longwave flx   = ',flwout(n)! outward longwave flux
-             write(nu_diag_out+n-1,900) 'sensible heat flx      = ',fsens(n) ! sensible heat flux
-             write(nu_diag_out+n-1,900) 'latent heat flx        = ',flat(n)  ! latent heat flux
-           endif
-           write(nu_diag_out+n-1,900) 'subl/cond (m ice)      = ',pevap   ! sublimation/condensation
-           write(nu_diag_out+n-1,900) 'top melt (m)           = ',meltt(n)! top melt
-           write(nu_diag_out+n-1,900) 'bottom melt (m)        = ',meltb(n)! bottom melt
-           write(nu_diag_out+n-1,900) 'lateral melt (m)       = ',meltl(n)! lateral melt
-           write(nu_diag_out+n-1,900) 'new ice (m)            = ',frazil(n) ! frazil ice
-           write(nu_diag_out+n-1,900) 'congelation (m)        = ',congel(n) ! congelation ice
-           write(nu_diag_out+n-1,900) 'snow-ice (m)           = ',snoice(n) ! snow ice
-           write(nu_diag_out+n-1,900) 'snow change (m)        = ',dsnow(n)  ! snow change
-           write(nu_diag_out+n-1,900) 'effective dhi (m)      = ',pdhi(n)   ! ice thickness change
-           write(nu_diag_out+n-1,900) 'effective dhs (m)      = ',pdhs(n)   ! snow thickness change
-           write(nu_diag_out+n-1,900) 'intnl enrgy chng(W/m^2)= ',pde (n)   ! ice/snow energy change
-           write(nu_diag_out+n-1,*) '----------ocn----------'
-           write(nu_diag_out+n-1,900) 'sst (C)                = ',sst(n)  ! sea surface temperature
-           write(nu_diag_out+n-1,900) 'sss (ppt)              = ',sss(n)  ! sea surface salinity
-           write(nu_diag_out+n-1,900) 'freezing temp (C)      = ',Tf(n)   ! freezing temperature
-           write(nu_diag_out+n-1,900) 'heat used (W/m^2)      = ',pfhocn  ! ocean heat used by ice
-           
-         end do
-       endif                    ! print_points
+      call total_energy (work1)
+      call total_salt   (work2)
+      
+      do n = 1, nx
+        pTair = Tair(n) - Tffresh ! air temperature
+        pfsnow = fsnow(n)*dt/rhos ! snowfall
+        pfrain = frain(n)*dt/rhow ! rainfall
+        
+        paice = aice(n)           ! ice area           
+        hiavg = c0                ! avg snow/ice thickness
+        hsavg = c0
+        hbravg = c0               ! avg brine thickness
+        psalt = c0 
+        if (paice /= c0) then
+          hiavg = vice(n)/paice
+          hsavg = vsno(n)/paice
+          if (tr_brine) hbravg = trcr(n,nt_fbri)* hiavg
+        endif
+        if (vice(n) /= c0) psalt = work2(n)/vice(n)
+        pTsfc = trcr(n,nt_Tsfc)   ! ice/snow sfc temperature
+        pevap = evap(n)*dt/rhoi   ! sublimation/condensation
+        pdhi(n) = vice(n) - pdhi(n)  ! ice thickness change
+        pdhs(n) = vsno(n) - pdhs(n)  ! snow thickness change
+        pde(n) =-(work1(n)- pde(n))/dt ! ice/snow energy change
+        pfhocn = -fhocn(n)        ! ocean heat used by ice
+        
+        !-----------------------------------------------------------------
+        ! start spewing
+        !-----------------------------------------------------------------
+        
+        write(nu_diag_out+n-1,899) nx_names(n)
+        
+        write(nu_diag_out+n-1,*) '                         '
+        write(nu_diag_out+n-1,*) '----------atm----------'
+        write(nu_diag_out+n-1,900) 'air temperature (C)    = ',pTair  ! air temperature
+        write(nu_diag_out+n-1,900) 'specific humidity      = ',Qa(n)  ! specific humidity
+        write(nu_diag_out+n-1,900) 'snowfall (m)           = ',pfsnow ! snowfall
+        write(nu_diag_out+n-1,900) 'rainfall (m)           = ',pfrain ! rainfall
+        if (.not.calc_Tsfc) then
+          write(nu_diag_out+n-1,900) 'total surface heat flux= ', fsurf(n)  ! total sfc heat flux
+          write(nu_diag_out+n-1,900) 'top sfc conductive flux= ',fcondtop(n)! top sfc cond flux
+          write(nu_diag_out+n-1,900) 'latent heat flx        = ',flat(n)    ! latent heat flux
+        else
+          write(nu_diag_out+n-1,900) 'shortwave radiation sum= ',fsw(n)  ! shortwave radiation
+          write(nu_diag_out+n-1,900) 'longwave radiation     = ',flw(n)  ! longwave radiation
+        endif
+        write(nu_diag_out+n-1,*) '----------ice----------'
+        write(nu_diag_out+n-1,900) 'area fraction          = ',aice(n)  ! ice area    
+        write(nu_diag_out+n-1,900) 'avg ice thickness (m)  = ',hiavg  ! avg snow/ice thickness
+        write(nu_diag_out+n-1,900) 'avg snow depth (m)     = ',hsavg  ! avg snow/ice thickness
+        write(nu_diag_out+n-1,900) 'avg salinity (ppt)     = ',psalt  ! avg salinity 
+        write(nu_diag_out+n-1,900) 'avg brine thickness (m)= ',hbravg   ! avg brine thickness
+        
+        if (calc_Tsfc) then
+          write(nu_diag_out+n-1,900) 'surface temperature(C) = ',pTsfc ! ice/snow sfc temperature
+          write(nu_diag_out+n-1,900) 'absorbed shortwave flx = ',fswabs(n)! absorbed solar flux
+          write(nu_diag_out+n-1,900) 'outward longwave flx   = ',flwout(n)! outward longwave flux
+          write(nu_diag_out+n-1,900) 'sensible heat flx      = ',fsens(n) ! sensible heat flux
+          write(nu_diag_out+n-1,900) 'latent heat flx        = ',flat(n)  ! latent heat flux
+        endif
+        write(nu_diag_out+n-1,900) 'subl/cond (m ice)      = ',pevap   ! sublimation/condensation
+        write(nu_diag_out+n-1,900) 'top melt (m)           = ',meltt(n)! top melt
+        write(nu_diag_out+n-1,900) 'bottom melt (m)        = ',meltb(n)! bottom melt
+        write(nu_diag_out+n-1,900) 'lateral melt (m)       = ',meltl(n)! lateral melt
+        write(nu_diag_out+n-1,900) 'new ice (m)            = ',frazil(n) ! frazil ice
+        write(nu_diag_out+n-1,900) 'congelation (m)        = ',congel(n) ! congelation ice
+        write(nu_diag_out+n-1,900) 'snow-ice (m)           = ',snoice(n) ! snow ice
+        write(nu_diag_out+n-1,900) 'snow change (m)        = ',dsnow(n)  ! snow change
+        write(nu_diag_out+n-1,900) 'effective dhi (m)      = ',pdhi(n)   ! ice thickness change
+        write(nu_diag_out+n-1,900) 'effective dhs (m)      = ',pdhs(n)   ! snow thickness change
+        write(nu_diag_out+n-1,900) 'intnl enrgy chng(W/m^2)= ',pde (n)   ! ice/snow energy change
+        write(nu_diag_out+n-1,*) '----------ocn----------'
+        write(nu_diag_out+n-1,900) 'sst (C)                = ',sst(n)  ! sea surface temperature
+        write(nu_diag_out+n-1,900) 'sss (ppt)              = ',sss(n)  ! sea surface salinity
+        write(nu_diag_out+n-1,900) 'freezing temp (C)      = ',Tf(n)   ! freezing temperature
+        write(nu_diag_out+n-1,900) 'heat used (W/m^2)      = ',pfhocn  ! ocean heat used by ice
+        
+      end do
        !  799 format (27x,a24)
        !  800 format (a25,2x,f24.17)
        !  801 format (a25,2x,1pe24.17)
@@ -208,14 +205,12 @@
          work1
 
       call total_energy (work1)
-      if (print_points) then
-         do n = 1, nx
-            i = n ! NOTE this must be the same as above (FIX THIS)
-               pdhi(n) = vice(i)
-               pdhs(n) = vsno(i)
-               pde (n) = work1(i)
-         enddo  ! npnt
-      endif                     ! print_points
+      do n = 1, nx
+        i = n ! NOTE this must be the same as above (FIX THIS)
+        pdhi(n) = vice(i)
+        pdhs(n) = vsno(i)
+        pde (n) = work1(i)
+      enddo  ! npnt
 
       end subroutine init_mass_diags
 

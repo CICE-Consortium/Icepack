@@ -10,7 +10,7 @@
       use icepack_drv_constants, only: nu_rst_pointer, nu_diag, nu_restart, nu_dump
 !      use icepack_drv_restart
       use icepack_drv_restart_shared, only: &
-          restart, restart_dir, restart_file, pointer_file, lenstr
+          restart, restart_dir, restart_file, lenstr
 
       implicit none
       private
@@ -40,7 +40,7 @@
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat, nx
       use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf, &
           sst, frzmlt, coszen
-!      use icepack_drv_read_write, only: ice_open, ice_write
+      !use icepack_drv_read_write, only: ice_open, ice_write
       use icepack_drv_state, only: aicen, vicen, vsnon, trcrn, uvel, vvel
       use icepack_intfc_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno
 
@@ -68,13 +68,11 @@
               restart_dir(1:lenstr(restart_dir)), &
               restart_file(1:lenstr(restart_file)),'.', &
               iyear,'-',month,'-',mday,'-',sec
-        
-      ! write pointer (path/file)
 
-         open(nu_rst_pointer,file=pointer_file)
-         write(nu_rst_pointer,'(a)') filename
-         close(nu_rst_pointer)
+!cn need to enable this call, it writes the binary restart file
+!cn corresponds to open(nu_dump,file=filename,form='unformatted')
 !            call ice_open(nu_dump,filename,0)
+         open(nu_dump,file=filename,form='unformatted')
          write(nu_dump) istep1,time,time_forc
          write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
 
@@ -175,11 +173,8 @@
       if (present(ice_ic)) then 
          filename = trim(ice_ic)
       else
-            open(nu_rst_pointer,file=pointer_file)
-            read(nu_rst_pointer,'(a)') filename0
-            filename = trim(filename0)
-            close(nu_rst_pointer)
-            write(nu_diag,*) 'Read ',pointer_file(1:lenstr(pointer_file))
+!cn need to do something here ....
+!cn probably make sure there is a default for ice_ic up stream and require it as an arg here
       endif
 
          write(nu_diag,*) 'Using restart dump=', trim(filename)

@@ -3,9 +3,10 @@
 ### Change these to your own site and user directory! 
 ### You will need to create a Makefile Macro in bld/ and a run_ice script 
 ### in input_templates/.
-setenv SITE LANL.conejo   # also works for mustang
-
-setenv SYSTEM_USERDIR /net/scratch3/eclare/CICE.v6.0  # conejo
+#setenv SITE LANL.conejo   # also works for mustang
+setenv SITE   # also works for mustang
+#setenv SYSTEM_USERDIR /net/scratch3/eclare/CICE.v6.0  # conejo
+setenv SYSTEM_USERDIR /Users/cnewman/work/icepack_restart  # conejo
 
 setenv RES col 
 setenv NXGLOB 4           # number of grid points
@@ -59,7 +60,8 @@ setenv NUMAX 99           # maximum file unit number
 
 ### Set SRCDIR and EXEDIR to your own paths!
 #setenv SRCDIR /usr/projects/climate/eclare/CICE.v6.0/svn/Icepack  # conejo
-setenv SRCDIR /usr/projects/climate/eclare/CICE.v6.0/github/cice.eclare/icepack  # conejo
+#setenv SRCDIR /usr/projects/climate/eclare/CICE.v6.0/github/cice.eclare/icepack  # conejo
+setenv SRCDIR /Users/cnewman/work/icepack_restart  # conejo
 
 setenv EXEDIR $SYSTEM_USERDIR/icepack_driver
                                           if !(-d $EXEDIR) mkdir -p $EXEDIR
@@ -76,7 +78,7 @@ else if ( $ARCH == 'Darwin' ) then
 else
    cp -f $CBLD/Makefile.std $CBLD/Makefile
 endif
-setenv ARCH $ARCH.$SITE
+#setenv ARCH $ARCH.$SITE
 
 cd $EXEDIR
 
