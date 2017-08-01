@@ -60,24 +60,24 @@
       character (len=3) :: nchar
 
       ! construct path/file
-         iyear = nyr + year_init - 1
-         imonth = month
-         iday = mday
+      iyear = nyr + year_init - 1
+      imonth = month
+      iday = mday
       
-         write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
-              restart_dir(1:lenstr(restart_dir)), &
-              restart_file(1:lenstr(restart_file)),'.', &
-              iyear,'-',month,'-',mday,'-',sec
-
-!cn need to enable this call, it writes the binary restart file
-!cn corresponds to open(nu_dump,file=filename,form='unformatted')
-!            call ice_open(nu_dump,filename,0)
-         open(nu_dump,file=filename,form='unformatted')
-         write(nu_dump) istep1,time,time_forc
-         write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
-
+      write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
+          restart_dir(1:lenstr(restart_dir)), &
+          restart_file(1:lenstr(restart_file)),'.', &
+          iyear,'-',month,'-',mday,'-',sec
+      
+      !cn need to enable this call, it writes the binary restart file
+      !cn corresponds to open(nu_dump,file=filename,form='unformatted')
+      !            call ice_open(nu_dump,filename,0)
+      open(nu_dump,file=filename,form='unformatted')
+      write(nu_dump) istep1,time,time_forc
+      write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
+      
       diag = .true.
-
+      
       !-----------------------------------------------------------------
       ! state variables
       ! Tsfc is the only tracer written to binary files.  All other
@@ -175,6 +175,7 @@
       else
 !cn need to do something here ....
 !cn probably make sure there is a default for ice_ic up stream and require it as an arg here
+        stop 'no ice_ic present'
       endif
 
          write(nu_diag,*) 'Using restart dump=', trim(filename)
@@ -308,6 +309,8 @@
            ndim3         , & ! third dimension
            nrec              ! record number (0 for sequential access)
 
+      integer (kind=int_kind) :: i !cn
+
       real (kind=dbl_kind), dimension(nx,ndim3), &
            intent(inout) :: &
            work              ! input array (real, 8-byte)
@@ -333,7 +336,10 @@
 
          write(nu_diag,*) 'vname ',trim(vname)
             do n=1,ndim3
-!                  call ice_read(nu,nrec,work2,atype,diag)
+!cn               read(nu) (((work_g4(i,j,k),i=1,nx_global),j=1,ny_global),&
+!cn                                                         k=1,nblyr+2)
+              read(nu) (work2(i),i=1,nx)
+!              call ice_read(nu,nrec,work2,atype,diag)
                work(:,n) = work2(:)
             enddo
 
@@ -373,12 +379,19 @@
         n,     &      ! dimension counter
         varid, &      ! variable id
         status        ! status variable from netCDF routine
+      
+      integer (kind=int_kind) :: i !cn
 
       real (kind=dbl_kind), dimension(nx) :: &
            work2              ! input array (real, 8-byte)
 
          do n=1,ndim3
             work2(:) = work(:,n)
+!cn need to enable this ice_write....
+!cn probably with something like the following copied from cice with atype=ruf8
+!cn if this is right, then we need to do a lot of clean up here...
+!cn            write(nu) ((work_g1(i,j),i=1,nx_global),j=1,ny_global)
+            write(nu) (work2(i),i=1,nx)
 !               call ice_write(nu,nrec,work2,atype,diag)
          enddo
 

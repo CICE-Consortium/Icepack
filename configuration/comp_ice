@@ -61,7 +61,8 @@ setenv NUMAX 99           # maximum file unit number
 ### Set SRCDIR and EXEDIR to your own paths!
 #setenv SRCDIR /usr/projects/climate/eclare/CICE.v6.0/svn/Icepack  # conejo
 #setenv SRCDIR /usr/projects/climate/eclare/CICE.v6.0/github/cice.eclare/icepack  # conejo
-setenv SRCDIR /Users/cnewman/work/icepack_restart  # conejo
+#setenv SRCDIR /Users/cnewman/work/icepack_restart
+setenv SRCDIR $SYSTEM_USERDIR
 
 setenv EXEDIR $SYSTEM_USERDIR/icepack_driver
                                           if !(-d $EXEDIR) mkdir -p $EXEDIR
