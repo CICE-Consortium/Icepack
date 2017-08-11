@@ -87,20 +87,22 @@
       call write_restart_field(nu_dump,0,aicen(:,:),'ruf8','aicen',ncat,diag)
       call write_restart_field(nu_dump,0,vicen(:,:),'ruf8','vicen',ncat,diag)
       call write_restart_field(nu_dump,0,vsnon(:,:),'ruf8','vsnon',ncat,diag)
+!cn this is surface temperature
       call write_restart_field(nu_dump,0,trcrn(:,nt_Tsfc,:),'ruf8','Tsfcn',ncat,diag)
-
+      !write(*,*) trcrn(:,nt_Tsfc,:) !cn
+!cn this is ice salinity in each nilyr
       do k=1,nilyr
          write(nchar,'(i3.3)') k
          call write_restart_field(nu_dump,0,trcrn(:,nt_sice+k-1,:),'ruf8', &
                                  'sice'//trim(nchar),ncat,diag)
       enddo
-
+!cn this is ice enthalpy in each nilyr
       do k=1,nilyr
          write(nchar,'(i3.3)') k
          call write_restart_field(nu_dump,0,trcrn(:,nt_qice+k-1,:),'ruf8', &
                                  'qice'//trim(nchar),ncat,diag)
       enddo
-
+!cn this is snow enthalpy in each nslyr
       do k=1,nslyr
          write(nchar,'(i3.3)') k
          call write_restart_field(nu_dump,0,trcrn(:,nt_qsno+k-1,:),'ruf8', &
@@ -114,11 +116,13 @@
       call write_restart_field(nu_dump,0,coszen,'ruf8','coszen',1,diag)
 #endif
       call write_restart_field(nu_dump,0,scale_factor,'ruf8','scale_factor',1,diag)
-
       call write_restart_field(nu_dump,0,swvdr,'ruf8','swvdr',1,diag)
       call write_restart_field(nu_dump,0,swvdf,'ruf8','swvdf',1,diag)
       call write_restart_field(nu_dump,0,swidr,'ruf8','swidr',1,diag)
       call write_restart_field(nu_dump,0,swidf,'ruf8','swidf',1,diag)
+
+!cn probably write all the tracers right here????
+
 
       !-----------------------------------------------------------------
       ! for mixed layer model
@@ -144,7 +148,7 @@
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat, &
           max_ntrcr, nx
       use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf, &
-          sst, frzmlt, coszen
+          sst, frzmlt, coszen, scale_factor
       use icepack_drv_init, only: tmask
 !      use icepack_drv_read_write, only: ice_open, ice_read, ice_read_global
       use icepack_drv_state, only: trcr_depend, aice, vice, vsno, trcr, &
@@ -175,13 +179,15 @@
       else
 !cn need to do something here ....
 !cn probably make sure there is a default for ice_ic up stream and require it as an arg here
+!cn it is probably iced
         stop 'no ice_ic present'
       endif
 
-         write(nu_diag,*) 'Using restart dump=', trim(filename)
-!            call ice_open(nu_restart,trim(filename),0)
-            read (nu_restart) istep0,time,time_forc
-         write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
+      write(nu_diag,*) 'Using restart dump=', trim(filename)
+      !            call ice_open(nu_restart,trim(filename),0)
+      open(nu_restart,file=filename,form='unformatted')
+      read (nu_restart) istep0,time,time_forc
+      write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
       istep1 = istep0
 
@@ -192,7 +198,7 @@
       ! Tsfc is the only tracer read in this file.  All other
       ! tracers are in their own dump/restart files.
       !-----------------------------------------------------------------
-           write(nu_diag,*) ' min/max area, vol ice, vol snow, Tsfc'
+      write(nu_diag,*) ' min/max area, vol ice, vol snow, Tsfc'
 
       call read_restart_field(nu_restart,0,aicen,'ruf8', &
               'aicen',ncat,diag)
@@ -203,37 +209,39 @@
       call read_restart_field(nu_restart,0,trcrn(:,nt_Tsfc,:),'ruf8', &
               'Tsfcn',ncat,diag)
 
-         write(nu_diag,*) 'min/max sice for each layer'
+      write(nu_diag,*) 'min/max sice for each layer'
       do k=1,nilyr
-         write(nchar,'(i3.3)') k
-         call read_restart_field(nu_restart,0,trcrn(:,nt_sice+k-1,:),'ruf8', &
-              'sice'//trim(nchar),ncat,diag)
+        write(nchar,'(i3.3)') k
+        call read_restart_field(nu_restart,0,trcrn(:,nt_sice+k-1,:),'ruf8', &
+            'sice'//trim(nchar),ncat,diag)
       enddo
-
-         write(nu_diag,*) 'min/max qice for each layer'
+      
+      write(nu_diag,*) 'min/max qice for each layer'
       do k=1,nilyr
-         write(nchar,'(i3.3)') k
-         call read_restart_field(nu_restart,0,trcrn(:,nt_qice+k-1,:),'ruf8', &
-              'qice'//trim(nchar),ncat,diag)
+        write(nchar,'(i3.3)') k
+        call read_restart_field(nu_restart,0,trcrn(:,nt_qice+k-1,:),'ruf8', &
+            'qice'//trim(nchar),ncat,diag)
       enddo
-
-         write(nu_diag,*) 'min/max qsno for each layer'
+      
+      write(nu_diag,*) 'min/max qsno for each layer'
       do k=1,nslyr
-         write(nchar,'(i3.3)') k
-         call read_restart_field(nu_restart,0,trcrn(:,nt_qsno+k-1,:),'ruf8', &
-              'qsno'//trim(nchar),ncat,diag)
+        write(nchar,'(i3.3)') k
+        call read_restart_field(nu_restart,0,trcrn(:,nt_qsno+k-1,:),'ruf8', &
+            'qsno'//trim(nchar),ncat,diag)
       enddo
 
       !-----------------------------------------------------------------
       ! radiation fields
       !-----------------------------------------------------------------
 
-         write(nu_diag,*) 'radiation fields'
+      write(nu_diag,*) 'radiation fields'
 
 #ifdef CCSMCOUPLED
       call read_restart_field(nu_restart,0,coszen,'ruf8', &
            'coszen',1,diag)
 #endif
+      call read_restart_field(nu_restart,0,scale_factor,'ruf8',&
+          'scale_factor',1,diag)
       call read_restart_field(nu_restart,0,swvdr,'ruf8', &
            'swvdr',1,diag)
       call read_restart_field(nu_restart,0,swvdf,'ruf8', &
@@ -249,12 +257,12 @@
 
       if (oceanmixed_ice) then
 
-              write(nu_diag,*) 'min/max sst, frzmlt'
+        write(nu_diag,*) 'min/max sst, frzmlt'
 
-         call read_restart_field(nu_restart,0,sst,'ruf8', &
-              'sst',1,diag)
-         call read_restart_field(nu_restart,0,frzmlt,'ruf8', &
-              'frzmlt',1,diag)
+        call read_restart_field(nu_restart,0,sst,'ruf8', &
+            'sst',1,diag)
+        call read_restart_field(nu_restart,0,frzmlt,'ruf8', &
+            'frzmlt',1,diag)
       endif
 
       !-----------------------------------------------------------------
@@ -309,7 +317,7 @@
            ndim3         , & ! third dimension
            nrec              ! record number (0 for sequential access)
 
-      integer (kind=int_kind) :: i !cn
+      integer (kind=int_kind) :: i
 
       real (kind=dbl_kind), dimension(nx,ndim3), &
            intent(inout) :: &
@@ -380,7 +388,7 @@
         varid, &      ! variable id
         status        ! status variable from netCDF routine
       
-      integer (kind=int_kind) :: i !cn
+      integer (kind=int_kind) :: i
 
       real (kind=dbl_kind), dimension(nx) :: &
            work2              ! input array (real, 8-byte)

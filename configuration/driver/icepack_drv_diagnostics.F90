@@ -94,13 +94,12 @@
       nx_names(4) = '    land'
 
       !-----------------------------------------------------------------
-      ! state of the ice and associated fluxes for 2 defined points
       ! NOTE these are computed for the last timestep only (not avg)
       !-----------------------------------------------------------------
 
       call total_energy (work1)
       call total_salt   (work2)
-      
+
       do n = 1, nx
         pTair = Tair(n) - Tffresh ! air temperature
         pfsnow = fsnow(n)*dt/rhos ! snowfall

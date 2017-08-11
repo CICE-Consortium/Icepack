@@ -245,49 +245,59 @@
       phi_i_mushy       =    0.85_dbl_kind ! liquid fraction of congelation ice
 
       !-----------------------------------------------------------------
+      ! read from input file name from command line if it exists,
+      ! otherwise the default is icepack_in
+      !-----------------------------------------------------------------
+
+      if ( command_argument_count() == 1 ) then
+        call get_command_argument(1,nml_filename)
+      endif
+
+      !-----------------------------------------------------------------
       ! read from input file
       !-----------------------------------------------------------------
 
-         open (nu_nml, file=nml_filename, status='old',iostat=nml_error)
-         if (nml_error /= 0) then
-            nml_error = -1
-         else
-            nml_error =  1
-         endif 
-
-         do while (nml_error > 0)
-            print*,'Reading setup_nml'
-               read(nu_nml, nml=setup_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading tracer_nml'
-               read(nu_nml, nml=tracer_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading thermo_nml'
-               read(nu_nml, nml=thermo_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading shortwave_nml'
-               read(nu_nml, nml=shortwave_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading ponds_nml'
-               read(nu_nml, nml=ponds_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading forcing_nml'
-               read(nu_nml, nml=forcing_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-         end do
-         if (nml_error == 0) close(nu_nml)
+      open (nu_nml, file=nml_filename, status='old',iostat=nml_error)
       if (nml_error /= 0) then
-         write(ice_stdout,*) 'error reading namelist'
+        nml_error = -1
+      else
+        nml_error =  1
+      endif
+      
+      do while (nml_error > 0)
+        print*,'Reading namelist file   ',nml_filename
+        print*,'Reading setup_nml'
+        read(nu_nml, nml=setup_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading tracer_nml'
+        read(nu_nml, nml=tracer_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading thermo_nml'
+        read(nu_nml, nml=thermo_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading shortwave_nml'
+        read(nu_nml, nml=shortwave_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading ponds_nml'
+        read(nu_nml, nml=ponds_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading forcing_nml'
+        read(nu_nml, nml=forcing_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+      end do
+      if (nml_error == 0) close(nu_nml)
+      if (nml_error /= 0) then
+        write(ice_stdout,*) 'error reading namelist'
       endif
       close(nu_nml)
-
+      
       !-----------------------------------------------------------------
       ! set up diagnostics output and resolve conflicts
       !-----------------------------------------------------------------
-
+      
       write(ice_stdout,*) 'Diagnostic output will be in files '
       write(ice_stdout,*)'    ',diag_file
-
+      
       diag_len = len(trim(diag_file))
       do n = 1,nx
         diag_file_names=''
@@ -844,13 +854,13 @@
       ! Set state variables
       !-----------------------------------------------------------------
 
-         call set_state_var (nx,          ice_ic,       &
-                             TLON  (:),   TLAT (:),     &
-                             Tair  (:),   sst  (:),     &
-                             Tf    (:),                 &
-                             salinz(:,:), Tmltz(:,:),   &
-                             aicen (:,:), trcrn(:,:,:), &
-                             vicen (:,:), vsnon(:,:))
+      call set_state_var (nx,          ice_ic,       &
+          TLON  (:),   TLAT (:),     &
+          Tair  (:),   sst  (:),     &
+          Tf    (:),                 &
+          salinz(:,:), Tmltz(:,:),   &
+          aicen (:,:), trcrn(:,:,:), &
+          vicen (:,:), vsnon(:,:))
 
       !-----------------------------------------------------------------
       ! compute aggregate ice state and open water area

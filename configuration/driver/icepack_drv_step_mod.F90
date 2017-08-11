@@ -160,120 +160,118 @@
       enddo ! i
 
       do i = 1, nx
-
-         if (tr_aero) then
-         ! trcrn(nt_aero) has units kg/m^3
-            do n=1,ncat
-               do k=1,n_aero
-                  aerosno (k,:,n) = &
-                     trcrn(i,nt_aero+(k-1)*4  :nt_aero+(k-1)*4+1,n) &
-                                  * vsnon_init(i,n)
-                  aeroice (k,:,n) = &
-                     trcrn(i,nt_aero+(k-1)*4+2:nt_aero+(k-1)*4+3,n) &
-                                  * vicen_init(i,n)
-               enddo
+        if (tr_aero) then
+          ! trcrn(nt_aero) has units kg/m^3
+          do n=1,ncat
+            do k=1,n_aero
+              aerosno (k,:,n) = &
+                  trcrn(i,nt_aero+(k-1)*4  :nt_aero+(k-1)*4+1,n) &
+                  * vsnon_init(i,n)
+              aeroice (k,:,n) = &
+                  trcrn(i,nt_aero+(k-1)*4+2:nt_aero+(k-1)*4+3,n) &
+                  * vicen_init(i,n)
             enddo
-         endif ! tr_aero
-
-         call icepack_clear_warnings()
-         
-         call icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero,                &
-                            aicen_init  (i,:),                           &
-                            vicen_init  (i,:), vsnon_init  (i,:), &
-                            aice        (i), aicen       (i,:), &
-                            vice        (i), vicen       (i,:), &
-                            vsno        (i), vsnon       (i,:), &
-                            uvel        (i), vvel        (i), &
-                            trcrn       (i,nt_Tsfc,:),                   &
-                            trcrn       (i,nt_qsno:nt_qsno+nslyr-1,:),   & 
-                            trcrn       (i,nt_qice:nt_qice+nilyr-1,:),   & 
-                            trcrn       (i,nt_sice:nt_sice+nilyr-1,:),   & 
-                            trcrn       (i,nt_alvl,:),                   & 
-                            trcrn       (i,nt_vlvl,:),                   & 
-                            trcrn       (i,nt_apnd,:),                   & 
-                            trcrn       (i,nt_hpnd,:),                   & 
-                            trcrn       (i,nt_ipnd,:),                   & 
-                            trcrn       (i,nt_iage,:),                   &
-                            trcrn       (i,nt_FY  ,:),                   & 
-                            aerosno     (:,:,:),      aeroice     (:,:,:),      &
-                            uatm        (i), vatm        (i), &
-                            wind        (i), zlvl        (i), &
-                            Qa          (i), rhoa        (i), &
-                            Tair        (i), Tref        (i), &
-                            Qref        (i), Uref        (i), &
-                            Cdn_atm_ratio(i),                           &
-                            Cdn_ocn     (i), Cdn_ocn_skin(i), &
-                            Cdn_ocn_floe(i), Cdn_ocn_keel(i), &
-                            Cdn_atm     (i), Cdn_atm_skin(i), &
-                            Cdn_atm_floe(i), Cdn_atm_pond(i), &
-                            Cdn_atm_rdg (i), hfreebd     (i), &
-                            hdraft      (i), hridge      (i), &
-                            distrdg     (i), hkeel       (i), &
-                            dkeel       (i), lfloe       (i), &
-                            dfloe       (i),                           &
-                            strax       (i), stray       (i), &
-                            strairxT    (i), strairyT    (i), &
-                            potT        (i), sst         (i), &
-                            sss         (i), Tf          (i), &
-                            strocnxT    (i), strocnyT    (i), &
-                            fbot        (i),                           &
-                            frzmlt      (i), rside       (i), &
-                            fsnow       (i), frain       (i), &
-                            fpond       (i),                           &
-                            fsurf       (i), fsurfn      (i,:), &
-                            fcondtop    (i), fcondtopn   (i,:), &
-                            fswsfcn     (i,:), fswintn     (i,:), &
-                            fswthrun    (i,:), fswabs      (i), &
-                            flwout      (i),                           &
-                            Sswabsn   (i,:,:), Iswabsn   (i,:,:), &
-                            flw         (i), coszen      (i), & 
-                            fsens       (i), fsensn      (i,:), &
-                            flat        (i), flatn       (i,:), &
-                            evap        (i),                           &
-                            fresh       (i), fsalt       (i), &
-                            fhocn       (i), fswthru     (i), &
-                            flatn_f     (i,:), fsensn_f    (i,:), &
-                            fsurfn_f    (i,:), fcondtopn_f (i,:), &
-                            faero_atm   (i,1:n_aero),                    &
-                            faero_ocn   (i,1:n_aero),                    &
-                            dhsn        (i,:), ffracn      (i,:), &
-                            meltt       (i), melttn      (i,:), &
-                            meltb       (i), meltbn      (i,:), &
-                            meltl       (i),                           &
-                            melts       (i), meltsn      (i,:), &
-                            congel      (i), congeln     (i,:), &
-                            snoice      (i), snoicen     (i,:), &
-                            dsnown      (i,:), frazil      (i), &
-                            lmask_n     (i), lmask_s     (i), &
-                            mlt_onset   (i), frz_onset   (i), &
-                            yday,                     l_stop,                   &
-                            stop_label,                                         &
-                            prescribed_ice)
-
-         call icepack_print_warnings(nu_diag)
-         
-         if (l_stop) then
-            call diagnostic_abort(i, istep1, stop_label)
-         endif
-
-         if (tr_aero) then
-            do n = 1, ncat
-               if (vicen(i,n) > puny) &
-                  aeroice(:,:,n) = aeroice(:,:,n)/vicen(i,n)
-               if (vsnon(i,n) > puny) &
-                  aerosno(:,:,n) = aerosno(:,:,n)/vsnon(i,n)
-               do k = 1, n_aero
-                  do kk = 1, 2
-                     trcrn(i,nt_aero+(k-1)*4+kk-1,n)=aerosno(k,kk,n)
-                     trcrn(i,nt_aero+(k-1)*4+kk+1,n)=aeroice(k,kk,n)
-                  enddo
-               enddo
+          enddo
+        endif ! tr_aero
+        
+        call icepack_clear_warnings()
+        call icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero,                &
+            aicen_init  (i,:),                           &
+            vicen_init  (i,:), vsnon_init  (i,:), &
+            aice        (i), aicen       (i,:), &
+            vice        (i), vicen       (i,:), &
+            vsno        (i), vsnon       (i,:), &
+            uvel        (i), vvel        (i), &
+            trcrn       (i,nt_Tsfc,:),                   &
+            trcrn       (i,nt_qsno:nt_qsno+nslyr-1,:),   & 
+            trcrn       (i,nt_qice:nt_qice+nilyr-1,:),   & 
+            trcrn       (i,nt_sice:nt_sice+nilyr-1,:),   & 
+            trcrn       (i,nt_alvl,:),                   & 
+            trcrn       (i,nt_vlvl,:),                   & 
+            trcrn       (i,nt_apnd,:),                   & 
+            trcrn       (i,nt_hpnd,:),                   & 
+            trcrn       (i,nt_ipnd,:),                   & 
+            trcrn       (i,nt_iage,:),                   &
+            trcrn       (i,nt_FY  ,:),                   & 
+            aerosno     (:,:,:),      aeroice     (:,:,:),      &
+            uatm        (i), vatm        (i), &
+            wind        (i), zlvl        (i), &
+            Qa          (i), rhoa        (i), &
+            Tair        (i), Tref        (i), &
+            Qref        (i), Uref        (i), &
+            Cdn_atm_ratio(i),                           &
+            Cdn_ocn     (i), Cdn_ocn_skin(i), &
+            Cdn_ocn_floe(i), Cdn_ocn_keel(i), &
+            Cdn_atm     (i), Cdn_atm_skin(i), &
+            Cdn_atm_floe(i), Cdn_atm_pond(i), &
+            Cdn_atm_rdg (i), hfreebd     (i), &
+            hdraft      (i), hridge      (i), &
+            distrdg     (i), hkeel       (i), &
+            dkeel       (i), lfloe       (i), &
+            dfloe       (i),                           &
+            strax       (i), stray       (i), &
+            strairxT    (i), strairyT    (i), &
+            potT        (i), sst         (i), &
+            sss         (i), Tf          (i), &
+            strocnxT    (i), strocnyT    (i), &
+            fbot        (i),                           &
+            frzmlt      (i), rside       (i), &
+            fsnow       (i), frain       (i), &
+            fpond       (i),                           &
+            fsurf       (i), fsurfn      (i,:), &
+            fcondtop    (i), fcondtopn   (i,:), &
+            fswsfcn     (i,:), fswintn     (i,:), &
+            fswthrun    (i,:), fswabs      (i), &
+            flwout      (i),                           &
+            Sswabsn   (i,:,:), Iswabsn   (i,:,:), &
+            flw         (i), coszen      (i), & 
+            fsens       (i), fsensn      (i,:), &
+            flat        (i), flatn       (i,:), &
+            evap        (i),                           &
+            fresh       (i), fsalt       (i), &
+            fhocn       (i), fswthru     (i), &
+            flatn_f     (i,:), fsensn_f    (i,:), &
+            fsurfn_f    (i,:), fcondtopn_f (i,:), &
+            faero_atm   (i,1:n_aero),                    &
+            faero_ocn   (i,1:n_aero),                    &
+            dhsn        (i,:), ffracn      (i,:), &
+            meltt       (i), melttn      (i,:), &
+            meltb       (i), meltbn      (i,:), &
+            meltl       (i),                           &
+            melts       (i), meltsn      (i,:), &
+            congel      (i), congeln     (i,:), &
+            snoice      (i), snoicen     (i,:), &
+            dsnown      (i,:), frazil      (i), &
+            lmask_n     (i), lmask_s     (i), &
+            mlt_onset   (i), frz_onset   (i), &
+            yday,                     l_stop,                   &
+            stop_label,                                         &
+            prescribed_ice)
+        
+        call icepack_print_warnings(nu_diag)
+        
+        if (l_stop) then
+          call diagnostic_abort(i, istep1, stop_label)
+        endif
+        
+        if (tr_aero) then
+          do n = 1, ncat
+            if (vicen(i,n) > puny) &
+                aeroice(:,:,n) = aeroice(:,:,n)/vicen(i,n)
+            if (vsnon(i,n) > puny) &
+                aerosno(:,:,n) = aerosno(:,:,n)/vsnon(i,n)
+            do k = 1, n_aero
+              do kk = 1, 2
+                trcrn(i,nt_aero+(k-1)*4+kk-1,n)=aerosno(k,kk,n)
+                trcrn(i,nt_aero+(k-1)*4+kk+1,n)=aeroice(k,kk,n)
+              enddo
             enddo
-         endif ! tr_aero
-
+          enddo
+        endif ! tr_aero
+        
       enddo ! i
-
-      end subroutine step_therm1
+      
+    end subroutine step_therm1
 
 !=======================================================================
 ! Driver for thermodynamic changes not needed for coupling:
@@ -749,10 +747,12 @@
       !-----------------------------------------------------------------
       ! Compute ocean fluxes and update SST
       !-----------------------------------------------------------------
-
+!cn not sure what this is and triggering compiler warnings
+#if 0 
 !DIR$ CONCURRENT !Cray
 !cdir nodep      !NEC
 !ocl novrec      !Fujitsu
+#endif
       do i = 1, nx
 
          call icepack_ocn_mixed_layer (alvdr_ocn(i), swvdr     (i), &
