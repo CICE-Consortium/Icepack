@@ -7,8 +7,7 @@
       module icepack_drv_restart
 
       use icepack_kinds_mod
-      use icepack_drv_constants, only: nu_rst_pointer, nu_diag, nu_restart, nu_dump
-!      use icepack_drv_restart
+      use icepack_drv_constants, only: nu_diag, nu_restart, nu_dump
       use icepack_drv_restart_shared, only: &
           restart, restart_dir, restart_file, lenstr
 
@@ -20,13 +19,10 @@
           write_restart_pond_cesm, read_restart_pond_cesm, & 
           write_restart_pond_lvl,  read_restart_pond_lvl, &
           write_restart_aero,      read_restart_aero
-                
-                
-                
-                
-                
+
       public :: dumpfile, restartfile, &
-                read_restart_field, write_restart_field, final_restart
+                read_restart_field, write_restart_field, final_restart, &
+                write_restart_field_cn, read_restart_field_cn
       save
 !cn future stuff for writing the number of tracers in file
 #if 0
@@ -52,7 +48,7 @@
       use icepack_drv_calendar, only: sec, month, mday, nyr, istep1, &
                               time, time_forc, year_init
       use icepack_intfc_shared, only: oceanmixed_ice
-      use icepack_drv_constants, only: c0, c1, nu_diag, nu_rst_pointer, nu_dump
+      use icepack_drv_constants, only: nu_diag, nu_dump
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat, nx
       use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf, &
           sst, frzmlt, coszen
@@ -67,11 +63,6 @@
           iyear, imonth, iday     ! year, month, day
 
       character(len=char_len_long) :: filename
-
-      logical (kind=log_kind) :: diag
-
-      real (kind=dbl_kind), dimension (nx) :: &
-         work1
 
       character (len=3) :: nchar
 
@@ -99,19 +90,16 @@
       ! level-ice melt ponds
       if (tr_pond_lvl)  f_trcr(5) = 1
       ! topographic melt ponds
-      if (tr_pond_topo) then
-      !  call write_restart_pond_topo()
-      endif
+      if (tr_pond_topo)   f_trcr(6) = 1
       ! ice aerosol
       if (tr_aero)   f_trcr(7) = 1
 #endif
 
       open(nu_dump,file=filename,form='unformatted')
+      !cn future stuff for writing the number of tracers in file
       !cn write(nu_dump) (f_trcr(i),i=1,f_ntrcr)
       write(nu_dump) istep1,time,time_forc
       write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
-      
-      diag = .true.
       
       !-----------------------------------------------------------------
       ! state variables
@@ -119,42 +107,38 @@
       ! tracers are written to their own dump/restart binary files.
       !-----------------------------------------------------------------
 
-      call write_restart_field(nu_dump,0,aicen(:,:),'ruf8','aicen',ncat,diag)
-      call write_restart_field(nu_dump,0,vicen(:,:),'ruf8','vicen',ncat,diag)
-      call write_restart_field(nu_dump,0,vsnon(:,:),'ruf8','vsnon',ncat,diag)
+      call write_restart_field_cn(nu_dump,aicen(:,:),ncat)
+      call write_restart_field_cn(nu_dump,vicen(:,:),ncat)
+      call write_restart_field_cn(nu_dump,vsnon(:,:),ncat)
 !this is surface temperature
-      call write_restart_field(nu_dump,0,trcrn(:,nt_Tsfc,:),'ruf8','Tsfcn',ncat,diag)
-      !write(*,*) trcrn(:,nt_Tsfc,:) !cn
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_Tsfc,:),ncat)
 !this is ice salinity in each nilyr
       do k=1,nilyr
          write(nchar,'(i3.3)') k
-         call write_restart_field(nu_dump,0,trcrn(:,nt_sice+k-1,:),'ruf8', &
-                                 'sice'//trim(nchar),ncat,diag)
+         call write_restart_field_cn(nu_dump,trcrn(:,nt_sice+k-1,:),ncat)
       enddo
 !this is ice enthalpy in each nilyr
       do k=1,nilyr
          write(nchar,'(i3.3)') k
-         call write_restart_field(nu_dump,0,trcrn(:,nt_qice+k-1,:),'ruf8', &
-                                 'qice'//trim(nchar),ncat,diag)
+         call write_restart_field_cn(nu_dump,trcrn(:,nt_qice+k-1,:),ncat)
       enddo
 !this is snow enthalpy in each nslyr
       do k=1,nslyr
          write(nchar,'(i3.3)') k
-         call write_restart_field(nu_dump,0,trcrn(:,nt_qsno+k-1,:),'ruf8', &
-                                 'qsno'//trim(nchar),ncat,diag)
+         call write_restart_field_cn(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
 
       !-----------------------------------------------------------------
       ! radiation fields
       !-----------------------------------------------------------------
 #ifdef CCSMCOUPLED
-      call write_restart_field(nu_dump,0,coszen,'ruf8','coszen',1,diag)
+      call write_restart_field_cn(nu_dump,coszen,1)
 #endif
-      call write_restart_field(nu_dump,0,scale_factor,'ruf8','scale_factor',1,diag)
-      call write_restart_field(nu_dump,0,swvdr,'ruf8','swvdr',1,diag)
-      call write_restart_field(nu_dump,0,swvdf,'ruf8','swvdf',1,diag)
-      call write_restart_field(nu_dump,0,swidr,'ruf8','swidr',1,diag)
-      call write_restart_field(nu_dump,0,swidf,'ruf8','swidf',1,diag)
+      call write_restart_field_cn(nu_dump,scale_factor,1)
+      call write_restart_field_cn(nu_dump,swvdr,1)
+      call write_restart_field_cn(nu_dump,swvdf,1)
+      call write_restart_field_cn(nu_dump,swidr,1)
+      call write_restart_field_cn(nu_dump,swidf,1)
 
       !-----------------------------------------------------------------
       ! for mixed layer model
@@ -205,12 +189,10 @@
 
       use icepack_drv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
       use icepack_intfc, only: icepack_aggregate
-      use icepack_intfc_shared, only: oceanmixed_ice,&
-          skl_bgc !cn
-      use icepack_drv_constants, only: c0, p5, nu_diag, nu_rst_pointer, nu_restart
+      use icepack_intfc_shared, only: oceanmixed_ice
+      use icepack_drv_constants, only: c0, p5, nu_diag, nu_restart
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat, &
-          max_ntrcr, nx,&
-          n_aero !cn
+          max_ntrcr, nx
       use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf, &
           sst, frzmlt, coszen, scale_factor
       use icepack_drv_init, only: tmask
@@ -218,11 +200,8 @@
           aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel, &
           trcr_base, nt_strata, n_trcr_strata
       use icepack_intfc_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno,&
-          tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, & !cn
-          tr_pond_cesm, nt_apnd, nt_hpnd, tr_pond_lvl, nt_ipnd, &
-          tr_pond_topo, tr_aero, tr_brine, nt_iage, nt_FY, nt_aero
-      use icepack_drv_arrays_column, only: dhsn !cn
-      use icepack_drv_init_column, only: init_hbrine !cn
+          tr_iage, tr_FY, tr_lvl, tr_pond_cesm, tr_pond_lvl, &
+          tr_pond_topo, tr_aero, tr_brine
 
       character (*), optional :: ice_ic
 
@@ -233,12 +212,6 @@
 
       character(len=char_len_long) :: &
          filename, filename0
-
-      logical (kind=log_kind) :: &
-         diag
-
-      real (kind=dbl_kind), dimension (nx) :: &
-         work1
 
       character (len=3) :: nchar
 
@@ -259,8 +232,6 @@
 
       istep1 = istep0
 
-      diag = .true.
-
       !-----------------------------------------------------------------
       ! state variables
       ! Tsfc is the only tracer read in this file.  All other
@@ -268,34 +239,27 @@
       !-----------------------------------------------------------------
       write(nu_diag,*) ' min/max area, vol ice, vol snow, Tsfc'
 
-      call read_restart_field(nu_restart,0,aicen,'ruf8', &
-              'aicen',ncat,diag)
-      call read_restart_field(nu_restart,0,vicen,'ruf8', &
-              'vicen',ncat,diag)
-      call read_restart_field(nu_restart,0,vsnon,'ruf8', &
-              'vsnon',ncat,diag)
-      call read_restart_field(nu_restart,0,trcrn(:,nt_Tsfc,:),'ruf8', &
-              'Tsfcn',ncat,diag)
+      call read_restart_field_cn(nu_restart,aicen,ncat)
+      call read_restart_field_cn(nu_restart,vicen,ncat)
+      call read_restart_field_cn(nu_restart,vsnon,ncat)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_Tsfc,:),ncat)
 
       write(nu_diag,*) 'min/max sice for each layer'
       do k=1,nilyr
         write(nchar,'(i3.3)') k
-        call read_restart_field(nu_restart,0,trcrn(:,nt_sice+k-1,:),'ruf8', &
-            'sice'//trim(nchar),ncat,diag)
+        call read_restart_field_cn(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
       enddo
       
       write(nu_diag,*) 'min/max qice for each layer'
       do k=1,nilyr
         write(nchar,'(i3.3)') k
-        call read_restart_field(nu_restart,0,trcrn(:,nt_qice+k-1,:),'ruf8', &
-            'qice'//trim(nchar),ncat,diag)
+        call read_restart_field_cn(nu_restart,trcrn(:,nt_qice+k-1,:),ncat)
       enddo
       
       write(nu_diag,*) 'min/max qsno for each layer'
       do k=1,nslyr
         write(nchar,'(i3.3)') k
-        call read_restart_field(nu_restart,0,trcrn(:,nt_qsno+k-1,:),'ruf8', &
-            'qsno'//trim(nchar),ncat,diag)
+        call read_restart_field_cn(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
 
       !-----------------------------------------------------------------
@@ -305,19 +269,14 @@
       write(nu_diag,*) 'radiation fields'
 
 #ifdef CCSMCOUPLED
-      call read_restart_field(nu_restart,0,coszen,'ruf8', &
+      call read_restart_field_cn(nu_restart,0,coszen,'ruf8', &
            'coszen',1,diag)
 #endif
-      call read_restart_field(nu_restart,0,scale_factor,'ruf8',&
-          'scale_factor',1,diag)
-      call read_restart_field(nu_restart,0,swvdr,'ruf8', &
-           'swvdr',1,diag)
-      call read_restart_field(nu_restart,0,swvdf,'ruf8', &
-           'swvdf',1,diag)
-      call read_restart_field(nu_restart,0,swidr,'ruf8', &
-           'swidr',1,diag)
-      call read_restart_field(nu_restart,0,swidf,'ruf8', &
-           'swidf',1,diag)
+      call read_restart_field_cn(nu_restart,scale_factor,1)
+      call read_restart_field_cn(nu_restart,swvdr,1)
+      call read_restart_field_cn(nu_restart,swvdf,1)
+      call read_restart_field_cn(nu_restart,swidr,1)
+      call read_restart_field_cn(nu_restart,swidf,1)
 
       !-----------------------------------------------------------------
       ! for mixed layer model
@@ -405,11 +364,42 @@
 ! Reads a single restart field
 ! author David A Bailey, NCAR
 
-      subroutine read_restart_field(nu,nrec,work,atype,vname,ndim3, &
-                                    diag)
+      subroutine read_restart_field_cn(nu,work,ndim3)
 
       use icepack_drv_domain_size, only: nx
-!      use icepack_drv_read_write, only: ice_read, ice_read_nc
+
+      integer (kind=int_kind), intent(in) :: &
+           nu            , & ! unit number (not used for netcdf)
+           ndim3             ! third dimension
+
+      real (kind=dbl_kind), dimension(nx,ndim3), &
+           intent(inout) :: &
+           work              ! input array (real, 8-byte)
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+        n,     &      ! number of dimensions for variable
+        i
+
+      real (kind=dbl_kind), dimension(nx) :: &
+           work2              ! input array (real, 8-byte)
+
+      do n=1,ndim3
+        read(nu) (work2(i),i=1,nx)
+        work(:,n) = work2(:)
+      enddo
+      
+    end subroutine read_restart_field_cn
+      
+!=======================================================================
+
+! Reads a single restart field
+! author David A Bailey, NCAR
+
+      subroutine read_restart_field(nu,nrec,work,atype,vname,ndim3, diag)
+
+      use icepack_drv_domain_size, only: nx
 
       integer (kind=int_kind), intent(in) :: &
            nu            , & ! unit number (not used for netcdf)
@@ -441,14 +431,47 @@
       real (kind=dbl_kind), dimension(nx) :: &
            work2              ! input array (real, 8-byte)
 
-         write(nu_diag,*) 'vname ',trim(vname)
-            do n=1,ndim3
-              read(nu) (work2(i),i=1,nx)
-               work(:,n) = work2(:)
-            enddo
-
-      end subroutine read_restart_field
+      write(nu_diag,*) 'vname ',trim(vname)
+      do n=1,ndim3
+        read(nu) (work2(i),i=1,nx)
+        work(:,n) = work2(:)
+      enddo
       
+    end subroutine read_restart_field
+      
+!=======================================================================
+
+! Writes a single restart field.
+! author David A Bailey, NCAR
+
+      subroutine write_restart_field_cn(nu,work,ndim3)
+
+      use icepack_drv_domain_size, only: nx
+
+      integer (kind=int_kind), intent(in) :: &
+           nu            , & ! unit number
+           ndim3         
+
+      real (kind=dbl_kind), dimension(nx,ndim3), &
+           intent(in) :: &
+           work              ! input array (real, 8-byte)
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+        n,     &      ! dimension counter
+        i
+      
+      real (kind=dbl_kind), dimension(nx) :: &
+          work2              ! input array (real, 8-byte)
+      
+      do n=1,ndim3
+        work2(:) = work(:,n)
+        write(nu) (work2(i),i=1,nx)
+      enddo
+      
+    end subroutine write_restart_field_cn
+     
 !=======================================================================
 
 ! Writes a single restart field.
@@ -457,7 +480,6 @@
       subroutine write_restart_field(nu,nrec,work,atype,vname,ndim3,diag)
 
       use icepack_drv_domain_size, only: nx
-!      use icepack_drv_read_write, only: ice_write, ice_write_nc
 
       integer (kind=int_kind), intent(in) :: &
            nu            , & ! unit number
@@ -487,14 +509,14 @@
       integer (kind=int_kind) :: i
 
       real (kind=dbl_kind), dimension(nx) :: &
-           work2              ! input array (real, 8-byte)
-
-         do n=1,ndim3
-            work2(:) = work(:,n)
-            write(nu) (work2(i),i=1,nx)
-         enddo
-
-      end subroutine write_restart_field
+          work2              ! input array (real, 8-byte)
+      
+      do n=1,ndim3
+        work2(:) = work(:,n)
+        write(nu) (work2(i),i=1,nx)
+      enddo
+      
+    end subroutine write_restart_field
 
 !=======================================================================
 
@@ -507,9 +529,9 @@
 
       integer (kind=int_kind) :: status
 
-         close(nu_dump)
+      close(nu_dump)
 
-         write(nu_diag,*) 'Restart read/written ',istep1,time,time_forc
+      write(nu_diag,*) 'Restart read/written ',istep1,time,time_forc
 
       end subroutine final_restart
 
@@ -526,20 +548,9 @@
       use icepack_intfc_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: diag
-
-      diag = .true.
-
-      !cn write(*,*)trcrn(:,nt_apnd,:)
-
-      call write_restart_field(nu_dump,0,trcrn(:,nt_apnd,:),'ruf8', &
-                               'apnd',ncat,diag)
-      call write_restart_field(nu_dump,0,trcrn(:,nt_hpnd,:),'ruf8', &
-                               'hpnd',ncat,diag)
-      call write_restart_field(nu_dump,0,trcrn(:,nt_ipnd,:),'ruf8', &
-                               'ipnd',ncat,diag)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_ipnd,:),ncat)
 
       end subroutine write_restart_pond_topo
 
@@ -556,23 +567,11 @@
       use icepack_intfc_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: &
-         diag
-
-      diag = .true.
-
       write(nu_diag,*) 'min/max topo ponds'
 
-      call read_restart_field(nu_restart,0,trcrn(:,nt_apnd,:),'ruf8', &
-                              'apnd',ncat,diag)
-      call read_restart_field(nu_restart,0,trcrn(:,nt_hpnd,:),'ruf8', &
-                              'hpnd',ncat,diag)
-      call read_restart_field(nu_restart,0,trcrn(:,nt_ipnd,:),'ruf8', &
-                              'ipnd',ncat,diag)
-
-      !cn write(*,*)trcrn(:,nt_apnd,:)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_apnd,:),ncat)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_hpnd,:),ncat)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_ipnd,:),ncat)
 
       end subroutine read_restart_pond_topo
 
@@ -587,17 +586,7 @@
       use icepack_intfc_tracers, only: nt_iage
       use icepack_drv_domain_size, only: ncat
 
-
-      ! local variables
-
-      logical (kind=log_kind) :: diag
-
-      diag = .true.
-
-      !-----------------------------------------------------------------
-
-      call write_restart_field(nu_dump,0,trcrn(:,nt_iage,:),'ruf8', &
-                               'iage',ncat,diag)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_iage,:),ncat)
 
       end subroutine write_restart_age
 
@@ -612,18 +601,9 @@
       use icepack_intfc_tracers, only: nt_iage
       use icepack_drv_domain_size, only: ncat
 
-
-      ! local variables
-
-      logical (kind=log_kind) :: &
-         diag
-
-      diag = .true.
-
       write(nu_diag,*) 'min/max age (s)'
 
-      call read_restart_field(nu_restart,0,trcrn(:,nt_iage,:),'ruf8', &
-                       'iage',ncat,diag)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_iage,:),ncat)
 
       end subroutine read_restart_age
 
@@ -639,18 +619,8 @@
       use icepack_intfc_tracers, only: nt_FY
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: diag
-
-      diag = .true.
-
-      !-----------------------------------------------------------------
-
-      call write_restart_field(nu_dump,0,trcrn(:,nt_FY,:),'ruf8', &
-                               'FY',ncat,diag)
-      call write_restart_field(nu_dump,0,frz_onset,'ruf8', &
-                               'frz_onset',1,diag)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_FY,:),ncat)
+      call write_restart_field_cn(nu_dump,frz_onset,1)
 
       end subroutine write_restart_FY
 
@@ -666,22 +636,13 @@
       use icepack_intfc_tracers, only: nt_FY
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: &
-         diag
-
-      diag = .true.
-
       write(nu_diag,*) 'min/max first-year ice area'
 
-      call read_restart_field(nu_restart,0,trcrn(:,nt_FY,:),'ruf8', &
-          'FY',ncat,diag)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_FY,:),ncat)
 
       write(nu_diag,*) 'min/max frz_onset'
 
-      call read_restart_field(nu_restart,0,frz_onset,'ruf8', &
-          'frz_onset',1,diag)
+      call read_restart_field_cn(nu_restart,frz_onset,1)
 
       end subroutine read_restart_FY
 
@@ -697,18 +658,8 @@
       use icepack_intfc_tracers, only: nt_alvl, nt_vlvl
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: diag
-
-      diag = .true.
-
-      !-----------------------------------------------------------------
-
-      call write_restart_field(nu_dump,0,trcrn(:,nt_alvl,:),'ruf8', &
-                               'alvl',ncat,diag)
-      call write_restart_field(nu_dump,0,trcrn(:,nt_vlvl,:),'ruf8', &
-                               'vlvl',ncat,diag)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_alvl,:),ncat)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_vlvl,:),ncat)
 
       end subroutine write_restart_lvl
 
@@ -724,19 +675,10 @@
       use icepack_intfc_tracers, only: nt_alvl, nt_vlvl
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: &
-         diag
-
-      diag = .true.
-
       write(nu_diag,*) 'min/max level ice area, volume'
 
-      call read_restart_field(nu_restart,0,trcrn(:,nt_alvl,:),'ruf8', &
-                       'alvl',ncat,diag)
-      call read_restart_field(nu_restart,0,trcrn(:,nt_vlvl,:),'ruf8', &
-                       'vlvl',ncat,diag)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_alvl,:),ncat)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_vlvl,:),ncat)
 
       end subroutine read_restart_lvl
 
@@ -753,16 +695,8 @@
       use icepack_intfc_tracers, only: nt_apnd, nt_hpnd
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: diag
-
-      diag = .true.
-
-      call write_restart_field(nu_dump,0,trcrn(:,nt_apnd,:),'ruf8', &
-                               'apnd',ncat,diag)
-      call write_restart_field(nu_dump,0,trcrn(:,nt_hpnd,:),'ruf8', &
-                               'hpnd',ncat,diag)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
 
       end subroutine write_restart_pond_cesm
 
@@ -779,19 +713,10 @@
       use icepack_intfc_tracers, only: nt_apnd, nt_hpnd
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: &
-         diag
-
-      diag = .true.
-
       write(nu_diag,*) 'min/max cesm ponds'
 
-      call read_restart_field(nu_restart,0,trcrn(:,nt_apnd,:),'ruf8', &
-                              'apnd',ncat,diag)
-      call read_restart_field(nu_restart,0,trcrn(:,nt_hpnd,:),'ruf8', &
-                              'hpnd',ncat,diag)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_apnd,:),ncat)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_hpnd,:),ncat)
 
       end subroutine read_restart_pond_cesm
 
@@ -809,24 +734,12 @@
       use icepack_intfc_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: diag
-
-      diag = .true.
-
-      call write_restart_field(nu_dump,0, trcrn(:,nt_apnd,:),'ruf8', &
-                               'apnd',ncat,diag)
-      call write_restart_field(nu_dump,0, trcrn(:,nt_hpnd,:),'ruf8', &
-                               'hpnd',ncat,diag)
-      call write_restart_field(nu_dump,0, trcrn(:,nt_ipnd,:),'ruf8', &
-                               'ipnd',ncat,diag)
-      call write_restart_field(nu_dump,0, fsnow(:),'ruf8', &
-                               'fsnow',1,diag)
-      call write_restart_field(nu_dump,0,  dhsn(:,:),'ruf8', &
-                               'dhs',ncat,diag)
-      call write_restart_field(nu_dump,0,ffracn(:,:),'ruf8', &
-                               'ffrac',ncat,diag)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
+      call write_restart_field_cn(nu_dump,trcrn(:,nt_ipnd,:),ncat)
+      call write_restart_field_cn(nu_dump,fsnow(:),1)
+      call write_restart_field_cn(nu_dump,dhsn(:,:),ncat)
+      call write_restart_field_cn(nu_dump,ffracn(:,:),ncat)
 
       end subroutine write_restart_pond_lvl
 
@@ -844,27 +757,14 @@
       use icepack_intfc_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icepack_drv_domain_size, only: ncat
 
-      ! local variables
-
-      logical (kind=log_kind) :: &
-         diag
-
-      diag = .true.
-
       write(nu_diag,*) 'min/max level-ice ponds'
 
-      call read_restart_field(nu_restart,0, trcrn(:,nt_apnd,:),'ruf8', &
-                              'apnd',ncat,diag)
-      call read_restart_field(nu_restart,0, trcrn(:,nt_hpnd,:),'ruf8', &
-                              'hpnd',ncat,diag)
-      call read_restart_field(nu_restart,0, trcrn(:,nt_ipnd,:),'ruf8', &
-                              'ipnd',ncat,diag)
-      call read_restart_field(nu_restart,0, fsnow(:),'ruf8', &
-                              'fsnow',1,diag)
-      call read_restart_field(nu_restart,0,  dhsn(:,:),'ruf8', &
-                              'dhs',ncat,diag)
-      call read_restart_field(nu_restart,0,ffracn(:,:),'ruf8', &
-                              'ffrac',ncat,diag)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_apnd,:),ncat)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_hpnd,:),ncat)
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_ipnd,:),ncat)
+      call read_restart_field_cn(nu_restart,fsnow(:),1)
+      call read_restart_field_cn(nu_restart,dhsn(:,:),ncat)
+      call read_restart_field_cn(nu_restart,ffracn(:,:),ncat)
 
       end subroutine read_restart_pond_lvl
 
@@ -888,30 +788,24 @@
       integer (kind=int_kind) :: &
          k                    ! loop indices
 
-      logical (kind=log_kind) :: diag
-
       character (len=3)       :: nchar
-
-      !-----------------------------------------------------------------
-
+    
       write(nu_diag,*) 'write_restart_aero (aerosols)'
-
-      diag = .true.
 
       do k = 1, n_aero
        write(nchar,'(i3.3)') k
-       call write_restart_field(nu_dump,0, &
-            trcrn(:,nt_aero  +(k-1)*4,:),'ruf8','aerosnossl'//nchar, &
-            ncat,diag)
-       call write_restart_field(nu_dump,0, &
-            trcrn(:,nt_aero+1+(k-1)*4,:),'ruf8','aerosnoint'//nchar, &
-            ncat,diag)
-       call write_restart_field(nu_dump,0, &
-            trcrn(:,nt_aero+2+(k-1)*4,:),'ruf8','aeroicessl'//nchar, &
-            ncat,diag)
-       call write_restart_field(nu_dump,0, &
-            trcrn(:,nt_aero+3+(k-1)*4,:),'ruf8','aeroiceint'//nchar, &
-            ncat,diag)
+       call write_restart_field_cn(nu_dump, &
+            trcrn(:,nt_aero  +(k-1)*4,:), &
+            ncat)
+       call write_restart_field_cn(nu_dump, &
+            trcrn(:,nt_aero+1+(k-1)*4,:), &
+            ncat)
+       call write_restart_field_cn(nu_dump, &
+            trcrn(:,nt_aero+2+(k-1)*4,:), &
+            ncat)
+       call write_restart_field_cn(nu_dump, &
+            trcrn(:,nt_aero+3+(k-1)*4,:), &
+            ncat)
       enddo
 
       end subroutine write_restart_aero
@@ -936,31 +830,18 @@
       integer (kind=int_kind) :: &
          k                    ! loop indices
 
-      logical (kind=log_kind) :: &
-         diag
-
       character (len=3)       :: nchar
 
       !-----------------------------------------------------------------
 
       write(nu_diag,*) 'read_restart_aero (aerosols)'
 
-      diag = .true.
-
       do k = 1, n_aero
        write(nchar,'(i3.3)') k
-       call read_restart_field(nu_restart,0, &
-            trcrn(:,nt_aero  +(k-1)*4,:),'ruf8','aerosnossl'//trim(nchar), &
-            ncat,diag)
-       call read_restart_field(nu_restart,0, &
-            trcrn(:,nt_aero+1+(k-1)*4,:),'ruf8','aerosnoint'//trim(nchar), &
-            ncat,diag)
-       call read_restart_field(nu_restart,0, &
-            trcrn(:,nt_aero+2+(k-1)*4,:),'ruf8','aeroicessl'//trim(nchar), &
-            ncat,diag)
-       call read_restart_field(nu_restart,0, &
-            trcrn(:,nt_aero+3+(k-1)*4,:),'ruf8','aeroiceint'//trim(nchar), &
-            ncat,diag)
+       call read_restart_field_cn(nu_restart, trcrn(:,nt_aero  +(k-1)*4,:), ncat)
+       call read_restart_field_cn(nu_restart, trcrn(:,nt_aero+1+(k-1)*4,:), ncat)
+       call read_restart_field_cn(nu_restart, trcrn(:,nt_aero+2+(k-1)*4,:), ncat)
+       call read_restart_field_cn(nu_restart, trcrn(:,nt_aero+3+(k-1)*4,:), ncat)
       enddo
 
       end subroutine read_restart_aero
