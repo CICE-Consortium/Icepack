@@ -127,34 +127,24 @@
 
       integer(kind=int_kind) :: &
          i                            ! horizontal indices
-  
+
       if (restart) then
          call restartfile (ice_ic)
       endif      
 
-      ! tracers
 
-      trcrn(:,nt_iage,:) = c0
-      trcrn(:,nt_FY  ,:) = c0
-      trcrn(:,nt_alvl,:) = c0
-      trcrn(:,nt_vlvl,:) = c0
-      trcrn(:,nt_apnd,:) = c0
-      trcrn(:,nt_hpnd,:) = c0
-      trcrn(:,nt_ipnd,:) = c0
-      dhsn (:,:) = c0
 
-!cn this and all other tracers need a wrapper to guard
-      !trcrn(:,nt_aero:nt_aero+4*n_aero-1,:) = c0
-
+      !in CICE, the following line:
       if (tr_brine .or. skl_bgc) call init_hbrine ! brine height tracer
+      !is called like this:
+      !if (tr_brine .or. skl_bgc) then ! brine height tracer
+      !    call init_hbrine
+      !    if (tr_brine .and. restart_hbrine) call read_restart_hbrine
+      ! endif
 
 
 
-!cn this is probably where to read in tracers
-      if (restart) then
-! call restarts  (see cicecore/drivers/cice/CICE_InitMod.F90)
-      endif
-
+      !the bgc restarts are contained in this subroutine
       if (solve_zsal .or. skl_bgc .or. z_tracers) call init_bgc ! biogeochemistry
 
       !-----------------------------------------------------------------

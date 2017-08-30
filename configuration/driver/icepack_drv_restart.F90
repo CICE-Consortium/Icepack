@@ -13,10 +13,26 @@
           restart, restart_dir, restart_file, lenstr
 
       implicit none
-      private
+      private :: write_restart_pond_topo, read_restart_pond_topo, &
+          write_restart_age,       read_restart_age, &
+          write_restart_FY,        read_restart_FY, &  
+          write_restart_lvl,       read_restart_lvl, & 
+          write_restart_pond_cesm, read_restart_pond_cesm, & 
+          write_restart_pond_lvl,  read_restart_pond_lvl, &
+          write_restart_aero,      read_restart_aero
+                
+                
+                
+                
+                
       public :: dumpfile, restartfile, &
                 read_restart_field, write_restart_field, final_restart
       save
+!cn future stuff for writing the number of tracers in file
+#if 0
+      integer (kind=int_kind), parameter :: f_ntrcr = 7 ! number of tracers !cn
+      integer (kind=int_kind), dimension(f_ntrcr) :: f_trcr !list of tracers in file !cn
+#endif
 
 !=======================================================================
 
@@ -40,9 +56,9 @@
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat, nx
       use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf, &
           sst, frzmlt, coszen
-      !use icepack_drv_read_write, only: ice_open, ice_write
       use icepack_drv_state, only: aicen, vicen, vsnon, trcrn, uvel, vvel
-      use icepack_intfc_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno
+      use icepack_intfc_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno,&
+          tr_iage, tr_FY, tr_lvl, tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_aero
 
       ! local variables
 
@@ -69,10 +85,29 @@
           restart_file(1:lenstr(restart_file)),'.', &
           iyear,'-',month,'-',mday,'-',sec
       
-      !cn need to enable this call, it writes the binary restart file
-      !cn corresponds to open(nu_dump,file=filename,form='unformatted')
-      !            call ice_open(nu_dump,filename,0)
+!cn future stuff for writing the number of tracers in file
+#if 0
+      f_trcr = 0
+      ! ice age tracer    
+      if (tr_iage)  f_trcr(1) = 1
+      ! first-year area tracer
+      if (tr_FY)   f_trcr(2) = 1 
+      ! level ice tracer
+      if (tr_lvl)   f_trcr(3) = 1 
+      ! CESM melt ponds
+      if (tr_pond_cesm)   f_trcr(4) = 1 
+      ! level-ice melt ponds
+      if (tr_pond_lvl)  f_trcr(5) = 1
+      ! topographic melt ponds
+      if (tr_pond_topo) then
+      !  call write_restart_pond_topo()
+      endif
+      ! ice aerosol
+      if (tr_aero)   f_trcr(7) = 1
+#endif
+
       open(nu_dump,file=filename,form='unformatted')
+      !cn write(nu_dump) (f_trcr(i),i=1,f_ntrcr)
       write(nu_dump) istep1,time,time_forc
       write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
       
@@ -87,22 +122,22 @@
       call write_restart_field(nu_dump,0,aicen(:,:),'ruf8','aicen',ncat,diag)
       call write_restart_field(nu_dump,0,vicen(:,:),'ruf8','vicen',ncat,diag)
       call write_restart_field(nu_dump,0,vsnon(:,:),'ruf8','vsnon',ncat,diag)
-!cn this is surface temperature
+!this is surface temperature
       call write_restart_field(nu_dump,0,trcrn(:,nt_Tsfc,:),'ruf8','Tsfcn',ncat,diag)
       !write(*,*) trcrn(:,nt_Tsfc,:) !cn
-!cn this is ice salinity in each nilyr
+!this is ice salinity in each nilyr
       do k=1,nilyr
          write(nchar,'(i3.3)') k
          call write_restart_field(nu_dump,0,trcrn(:,nt_sice+k-1,:),'ruf8', &
                                  'sice'//trim(nchar),ncat,diag)
       enddo
-!cn this is ice enthalpy in each nilyr
+!this is ice enthalpy in each nilyr
       do k=1,nilyr
          write(nchar,'(i3.3)') k
          call write_restart_field(nu_dump,0,trcrn(:,nt_qice+k-1,:),'ruf8', &
                                  'qice'//trim(nchar),ncat,diag)
       enddo
-!cn this is snow enthalpy in each nslyr
+!this is snow enthalpy in each nslyr
       do k=1,nslyr
          write(nchar,'(i3.3)') k
          call write_restart_field(nu_dump,0,trcrn(:,nt_qsno+k-1,:),'ruf8', &
@@ -121,15 +156,42 @@
       call write_restart_field(nu_dump,0,swidr,'ruf8','swidr',1,diag)
       call write_restart_field(nu_dump,0,swidf,'ruf8','swidf',1,diag)
 
-!cn probably write all the tracers right here????
-
-
       !-----------------------------------------------------------------
       ! for mixed layer model
       !-----------------------------------------------------------------
       if (oceanmixed_ice) then
 !         call write_restart_field(nu_dump,0,sst,'ruf8','sst',1,diag)
 !         call write_restart_field(nu_dump,0,frzmlt,'ruf8','frzmlt',1,diag)
+      endif
+
+      ! tracers
+      ! ice age tracer    
+      if (tr_iage) then 
+        call write_restart_age()
+      endif
+      ! first-year area tracer
+      if (tr_FY) then
+        call write_restart_FY()
+      endif
+      ! level ice tracer
+      if (tr_lvl) then
+        call write_restart_lvl()
+      endif
+      ! CESM melt ponds
+      if (tr_pond_cesm) then
+        call write_restart_pond_cesm()
+      endif
+      ! level-ice melt ponds
+      if (tr_pond_lvl) then
+        call write_restart_pond_lvl()
+      endif
+      ! topographic melt ponds
+      if (tr_pond_topo) then
+        call write_restart_pond_topo()
+      endif
+
+      if (tr_aero) then ! ice aerosol
+        call write_restart_aero()
       endif
 
       end subroutine dumpfile
@@ -143,18 +205,24 @@
 
       use icepack_drv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
       use icepack_intfc, only: icepack_aggregate
-      use icepack_intfc_shared, only: oceanmixed_ice
+      use icepack_intfc_shared, only: oceanmixed_ice,&
+          skl_bgc !cn
       use icepack_drv_constants, only: c0, p5, nu_diag, nu_rst_pointer, nu_restart
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat, &
-          max_ntrcr, nx
+          max_ntrcr, nx,&
+          n_aero !cn
       use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf, &
           sst, frzmlt, coszen, scale_factor
       use icepack_drv_init, only: tmask
-!      use icepack_drv_read_write, only: ice_open, ice_read, ice_read_global
       use icepack_drv_state, only: trcr_depend, aice, vice, vsno, trcr, &
           aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel, &
           trcr_base, nt_strata, n_trcr_strata
-      use icepack_intfc_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno
+      use icepack_intfc_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno,&
+          tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, & !cn
+          tr_pond_cesm, nt_apnd, nt_hpnd, tr_pond_lvl, nt_ipnd, &
+          tr_pond_topo, tr_aero, tr_brine, nt_iage, nt_FY, nt_aero
+      use icepack_drv_arrays_column, only: dhsn !cn
+      use icepack_drv_init_column, only: init_hbrine !cn
 
       character (*), optional :: ice_ic
 
@@ -184,8 +252,8 @@
       endif
 
       write(nu_diag,*) 'Using restart dump=', trim(filename)
-      !            call ice_open(nu_restart,trim(filename),0)
       open(nu_restart,file=filename,form='unformatted')
+      !cn read(nu_restart) (f_trcr(i),i=1,f_ntrcr)
       read (nu_restart) istep0,time,time_forc
       write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
@@ -257,12 +325,42 @@
 
       if (oceanmixed_ice) then
 
-        write(nu_diag,*) 'min/max sst, frzmlt'
+        !write(nu_diag,*) 'min/max sst, frzmlt'
 
-        call read_restart_field(nu_restart,0,sst,'ruf8', &
-            'sst',1,diag)
-        call read_restart_field(nu_restart,0,frzmlt,'ruf8', &
-            'frzmlt',1,diag)
+        !call read_restart_field(nu_restart,0,sst,'ruf8', &
+        !    'sst',1,diag)
+        !call read_restart_field(nu_restart,0,frzmlt,'ruf8', &
+        !    'frzmlt',1,diag)
+      endif
+
+      ! tracers
+      ! ice age tracer    
+      if (tr_iage) then 
+        call read_restart_age()
+      endif
+      ! first-year area tracer
+      if (tr_FY) then
+        call read_restart_FY()
+      endif
+      ! level ice tracer
+      if (tr_lvl) then
+        call read_restart_lvl()
+      endif
+      ! CESM melt ponds
+      if (tr_pond_cesm) then
+        call read_restart_pond_cesm()
+      endif
+      ! level-ice melt ponds
+      if (tr_pond_lvl) then
+        call read_restart_pond_lvl()
+      endif
+      ! topographic melt ponds
+      if (tr_pond_topo) then
+        call read_restart_pond_topo()
+      endif
+      
+      if (tr_aero) then ! ice aerosol
+        call read_restart_aero() 
       endif
 
       !-----------------------------------------------------------------
@@ -277,7 +375,8 @@
       !-----------------------------------------------------------------
       ! compute aggregate ice state and open water area
       !-----------------------------------------------------------------
-
+!cn this gets called again upon returning...
+#if 0
       do i = 1, nx
          if (tmask(i)) &
          call icepack_aggregate (ncat,               &
@@ -298,7 +397,7 @@
 
          aice_init(i) = aice(i)
       enddo
-
+#endif
       end subroutine restartfile
 
 !=======================================================================
@@ -344,10 +443,7 @@
 
          write(nu_diag,*) 'vname ',trim(vname)
             do n=1,ndim3
-!cn               read(nu) (((work_g4(i,j,k),i=1,nx_global),j=1,ny_global),&
-!cn                                                         k=1,nblyr+2)
               read(nu) (work2(i),i=1,nx)
-!              call ice_read(nu,nrec,work2,atype,diag)
                work(:,n) = work2(:)
             enddo
 
@@ -395,12 +491,7 @@
 
          do n=1,ndim3
             work2(:) = work(:,n)
-!cn need to enable this ice_write....
-!cn probably with something like the following copied from cice with atype=ruf8
-!cn if this is right, then we need to do a lot of clean up here...
-!cn            write(nu) ((work_g1(i,j),i=1,nx_global),j=1,ny_global)
             write(nu) (work2(i),i=1,nx)
-!               call ice_write(nu,nrec,work2,atype,diag)
          enddo
 
       end subroutine write_restart_field
@@ -421,6 +512,458 @@
          write(nu_diag,*) 'Restart read/written ',istep1,time,time_forc
 
       end subroutine final_restart
+
+!=======================================================================
+
+! Dumps all values needed for restarting
+!
+! authors Elizabeth C. Hunke, LANL
+!         David A. Bailey, NCAR
+
+      subroutine write_restart_pond_topo()
+
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: diag
+
+      diag = .true.
+
+      !cn write(*,*)trcrn(:,nt_apnd,:)
+
+      call write_restart_field(nu_dump,0,trcrn(:,nt_apnd,:),'ruf8', &
+                               'apnd',ncat,diag)
+      call write_restart_field(nu_dump,0,trcrn(:,nt_hpnd,:),'ruf8', &
+                               'hpnd',ncat,diag)
+      call write_restart_field(nu_dump,0,trcrn(:,nt_ipnd,:),'ruf8', &
+                               'ipnd',ncat,diag)
+
+      end subroutine write_restart_pond_topo
+
+!=======================================================================
+
+! Reads all values needed for a meltpond volume restart
+!
+! authors Elizabeth C. Hunke, LANL
+!         David A. Bailey, NCAR
+
+      subroutine read_restart_pond_topo()
+
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: &
+         diag
+
+      diag = .true.
+
+      write(nu_diag,*) 'min/max topo ponds'
+
+      call read_restart_field(nu_restart,0,trcrn(:,nt_apnd,:),'ruf8', &
+                              'apnd',ncat,diag)
+      call read_restart_field(nu_restart,0,trcrn(:,nt_hpnd,:),'ruf8', &
+                              'hpnd',ncat,diag)
+      call read_restart_field(nu_restart,0,trcrn(:,nt_ipnd,:),'ruf8', &
+                              'ipnd',ncat,diag)
+
+      !cn write(*,*)trcrn(:,nt_apnd,:)
+
+      end subroutine read_restart_pond_topo
+
+!=======================================================================
+
+! Dumps all values needed for restarting
+! author Elizabeth C. Hunke, LANL
+
+      subroutine write_restart_age()
+
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_iage
+      use icepack_drv_domain_size, only: ncat
+
+
+      ! local variables
+
+      logical (kind=log_kind) :: diag
+
+      diag = .true.
+
+      !-----------------------------------------------------------------
+
+      call write_restart_field(nu_dump,0,trcrn(:,nt_iage,:),'ruf8', &
+                               'iage',ncat,diag)
+
+      end subroutine write_restart_age
+
+!=======================================================================
+
+! Reads all values needed for an ice age restart
+! author Elizabeth C. Hunke, LANL
+
+      subroutine read_restart_age()
+
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_iage
+      use icepack_drv_domain_size, only: ncat
+
+
+      ! local variables
+
+      logical (kind=log_kind) :: &
+         diag
+
+      diag = .true.
+
+      write(nu_diag,*) 'min/max age (s)'
+
+      call read_restart_field(nu_restart,0,trcrn(:,nt_iage,:),'ruf8', &
+                       'iage',ncat,diag)
+
+      end subroutine read_restart_age
+
+!=======================================================================
+
+! Dumps all values needed for restarting
+! author Elizabeth C. Hunke, LANL
+
+      subroutine write_restart_FY()
+
+      use icepack_drv_flux, only: frz_onset
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_FY
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: diag
+
+      diag = .true.
+
+      !-----------------------------------------------------------------
+
+      call write_restart_field(nu_dump,0,trcrn(:,nt_FY,:),'ruf8', &
+                               'FY',ncat,diag)
+      call write_restart_field(nu_dump,0,frz_onset,'ruf8', &
+                               'frz_onset',1,diag)
+
+      end subroutine write_restart_FY
+
+!=======================================================================
+
+! Reads all values needed for an ice FY restart
+! author Elizabeth C. Hunke, LANL
+
+      subroutine read_restart_FY()
+
+      use icepack_drv_flux, only: frz_onset
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_FY
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: &
+         diag
+
+      diag = .true.
+
+      write(nu_diag,*) 'min/max first-year ice area'
+
+      call read_restart_field(nu_restart,0,trcrn(:,nt_FY,:),'ruf8', &
+          'FY',ncat,diag)
+
+      write(nu_diag,*) 'min/max frz_onset'
+
+      call read_restart_field(nu_restart,0,frz_onset,'ruf8', &
+          'frz_onset',1,diag)
+
+      end subroutine read_restart_FY
+
+!=======================================================================
+
+! Dumps all values needed for restarting
+!
+! author Elizabeth C. Hunke, LANL
+
+      subroutine write_restart_lvl()
+
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_alvl, nt_vlvl
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: diag
+
+      diag = .true.
+
+      !-----------------------------------------------------------------
+
+      call write_restart_field(nu_dump,0,trcrn(:,nt_alvl,:),'ruf8', &
+                               'alvl',ncat,diag)
+      call write_restart_field(nu_dump,0,trcrn(:,nt_vlvl,:),'ruf8', &
+                               'vlvl',ncat,diag)
+
+      end subroutine write_restart_lvl
+
+!=======================================================================
+
+! Reads all values needed for an ice lvl restart
+!
+! author Elizabeth C. Hunke, LANL
+
+      subroutine read_restart_lvl()
+
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_alvl, nt_vlvl
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: &
+         diag
+
+      diag = .true.
+
+      write(nu_diag,*) 'min/max level ice area, volume'
+
+      call read_restart_field(nu_restart,0,trcrn(:,nt_alvl,:),'ruf8', &
+                       'alvl',ncat,diag)
+      call read_restart_field(nu_restart,0,trcrn(:,nt_vlvl,:),'ruf8', &
+                       'vlvl',ncat,diag)
+
+      end subroutine read_restart_lvl
+
+!=======================================================================!
+
+! Dumps all values needed for restarting
+!
+! authors Elizabeth C. Hunke, LANL
+!         David A. Bailey, NCAR
+
+      subroutine write_restart_pond_cesm()
+
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_apnd, nt_hpnd
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: diag
+
+      diag = .true.
+
+      call write_restart_field(nu_dump,0,trcrn(:,nt_apnd,:),'ruf8', &
+                               'apnd',ncat,diag)
+      call write_restart_field(nu_dump,0,trcrn(:,nt_hpnd,:),'ruf8', &
+                               'hpnd',ncat,diag)
+
+      end subroutine write_restart_pond_cesm
+
+!=======================================================================
+
+! Reads all values needed for a meltpond volume restart
+!
+! authors Elizabeth C. Hunke, LANL
+!         David A. Bailey, NCAR
+
+      subroutine read_restart_pond_cesm()
+
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_apnd, nt_hpnd
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: &
+         diag
+
+      diag = .true.
+
+      write(nu_diag,*) 'min/max cesm ponds'
+
+      call read_restart_field(nu_restart,0,trcrn(:,nt_apnd,:),'ruf8', &
+                              'apnd',ncat,diag)
+      call read_restart_field(nu_restart,0,trcrn(:,nt_hpnd,:),'ruf8', &
+                              'hpnd',ncat,diag)
+
+      end subroutine read_restart_pond_cesm
+
+!=======================================================================
+!
+! Dumps all values needed for restarting
+!
+! authors Elizabeth C. Hunke, LANL
+
+      subroutine write_restart_pond_lvl()
+
+      use icepack_drv_arrays_column, only: dhsn, ffracn
+      use icepack_drv_flux, only: fsnow
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: diag
+
+      diag = .true.
+
+      call write_restart_field(nu_dump,0, trcrn(:,nt_apnd,:),'ruf8', &
+                               'apnd',ncat,diag)
+      call write_restart_field(nu_dump,0, trcrn(:,nt_hpnd,:),'ruf8', &
+                               'hpnd',ncat,diag)
+      call write_restart_field(nu_dump,0, trcrn(:,nt_ipnd,:),'ruf8', &
+                               'ipnd',ncat,diag)
+      call write_restart_field(nu_dump,0, fsnow(:),'ruf8', &
+                               'fsnow',1,diag)
+      call write_restart_field(nu_dump,0,  dhsn(:,:),'ruf8', &
+                               'dhs',ncat,diag)
+      call write_restart_field(nu_dump,0,ffracn(:,:),'ruf8', &
+                               'ffrac',ncat,diag)
+
+      end subroutine write_restart_pond_lvl
+
+!=======================================================================
+
+! Reads all values needed for a meltpond volume restart
+!
+! authors Elizabeth C. Hunke, LANL
+
+      subroutine read_restart_pond_lvl()
+
+      use icepack_drv_arrays_column, only: dhsn, ffracn
+      use icepack_drv_flux, only: fsnow
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      logical (kind=log_kind) :: &
+         diag
+
+      diag = .true.
+
+      write(nu_diag,*) 'min/max level-ice ponds'
+
+      call read_restart_field(nu_restart,0, trcrn(:,nt_apnd,:),'ruf8', &
+                              'apnd',ncat,diag)
+      call read_restart_field(nu_restart,0, trcrn(:,nt_hpnd,:),'ruf8', &
+                              'hpnd',ncat,diag)
+      call read_restart_field(nu_restart,0, trcrn(:,nt_ipnd,:),'ruf8', &
+                              'ipnd',ncat,diag)
+      call read_restart_field(nu_restart,0, fsnow(:),'ruf8', &
+                              'fsnow',1,diag)
+      call read_restart_field(nu_restart,0,  dhsn(:,:),'ruf8', &
+                              'dhs',ncat,diag)
+      call read_restart_field(nu_restart,0,ffracn(:,:),'ruf8', &
+                              'ffrac',ncat,diag)
+
+      end subroutine read_restart_pond_lvl
+
+!=======================================================================
+
+! Dumps all values needed for restarting
+!
+! authors Elizabeth Hunke, LANL (original version)
+!         David Bailey, NCAR
+!         Marika Holland, NCAR
+
+      subroutine write_restart_aero()
+
+      use icepack_drv_domain_size, only: n_aero
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_aero
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         k                    ! loop indices
+
+      logical (kind=log_kind) :: diag
+
+      character (len=3)       :: nchar
+
+      !-----------------------------------------------------------------
+
+      write(nu_diag,*) 'write_restart_aero (aerosols)'
+
+      diag = .true.
+
+      do k = 1, n_aero
+       write(nchar,'(i3.3)') k
+       call write_restart_field(nu_dump,0, &
+            trcrn(:,nt_aero  +(k-1)*4,:),'ruf8','aerosnossl'//nchar, &
+            ncat,diag)
+       call write_restart_field(nu_dump,0, &
+            trcrn(:,nt_aero+1+(k-1)*4,:),'ruf8','aerosnoint'//nchar, &
+            ncat,diag)
+       call write_restart_field(nu_dump,0, &
+            trcrn(:,nt_aero+2+(k-1)*4,:),'ruf8','aeroicessl'//nchar, &
+            ncat,diag)
+       call write_restart_field(nu_dump,0, &
+            trcrn(:,nt_aero+3+(k-1)*4,:),'ruf8','aeroiceint'//nchar, &
+            ncat,diag)
+      enddo
+
+      end subroutine write_restart_aero
+
+!=======================================================================
+
+! Reads all values needed for an ice aerosol restart
+!
+! authors Elizabeth Hunke, LANL (original version)
+!         David Bailey, NCAR
+!         Marika Holland, NCAR
+
+      subroutine read_restart_aero()
+
+      use icepack_drv_domain_size, only: n_aero
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_aero
+      use icepack_drv_domain_size, only: ncat
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         k                    ! loop indices
+
+      logical (kind=log_kind) :: &
+         diag
+
+      character (len=3)       :: nchar
+
+      !-----------------------------------------------------------------
+
+      write(nu_diag,*) 'read_restart_aero (aerosols)'
+
+      diag = .true.
+
+      do k = 1, n_aero
+       write(nchar,'(i3.3)') k
+       call read_restart_field(nu_restart,0, &
+            trcrn(:,nt_aero  +(k-1)*4,:),'ruf8','aerosnossl'//trim(nchar), &
+            ncat,diag)
+       call read_restart_field(nu_restart,0, &
+            trcrn(:,nt_aero+1+(k-1)*4,:),'ruf8','aerosnoint'//trim(nchar), &
+            ncat,diag)
+       call read_restart_field(nu_restart,0, &
+            trcrn(:,nt_aero+2+(k-1)*4,:),'ruf8','aeroicessl'//trim(nchar), &
+            ncat,diag)
+       call read_restart_field(nu_restart,0, &
+            trcrn(:,nt_aero+3+(k-1)*4,:),'ruf8','aeroiceint'//trim(nchar), &
+            ncat,diag)
+      enddo
+
+      end subroutine read_restart_aero
 
 !=======================================================================
 

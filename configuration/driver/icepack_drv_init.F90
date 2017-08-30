@@ -736,7 +736,6 @@
       !-----------------------------------------------------------------
       ! Check number of layers in ice and snow.
       !-----------------------------------------------------------------
-
          if (nilyr < 1) then
             write (nu_diag,*) 'nilyr =', nilyr
             write (nu_diag,*) 'Must have at least one ice layer'
@@ -1025,94 +1024,94 @@
       ainit(3) = c1  ! assumes we are using the default ITD boundaries
       hinit(3) = c2
 
-         do n = 1, ncat
-               ! ice volume, snow volume
-               aicen(i,n) = ainit(n)
-               vicen(i,n) = hinit(n) * ainit(n) ! m
-               vsnon(i,n) = c0
-               ! tracers
-               call icepack_init_trcr(Tair(i),     Tf(i),      &
-                                     salinz(i,:), Tmltz(i,:), &
-                                     Tsfc,                        &
-                                     nilyr,         nslyr,        &
-                                     qin(:),        qsn(:))
-
-               ! surface temperature
-               trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
-               ! ice enthalpy, salinity 
-               do k = 1, nilyr
-                  trcrn(i,nt_qice+k-1,n) = qin(k)
-                  trcrn(i,nt_sice+k-1,n) = salinz(i,k)
-               enddo
-               ! snow enthalpy
-               do k = 1, nslyr
-                  trcrn(i,nt_qsno+k-1,n) = qsn(k)
-               enddo               ! nslyr
-               ! brine fraction
-               if (tr_brine) trcrn(i,nt_fbri,n) = c1
-         enddo                  ! ncat
-
+      do n = 1, ncat
+        ! ice volume, snow volume
+        aicen(i,n) = ainit(n)
+        vicen(i,n) = hinit(n) * ainit(n) ! m
+        vsnon(i,n) = c0
+        ! tracers
+        call icepack_init_trcr(Tair(i),     Tf(i),      &
+            salinz(i,:), Tmltz(i,:), &
+            Tsfc,                        &
+            nilyr,         nslyr,        &
+            qin(:),        qsn(:))
+        
+        ! surface temperature
+        trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
+        ! ice enthalpy, salinity 
+        do k = 1, nilyr
+          trcrn(i,nt_qice+k-1,n) = qin(k)
+          trcrn(i,nt_sice+k-1,n) = salinz(i,k)
+        enddo
+        ! snow enthalpy
+        do k = 1, nslyr
+          trcrn(i,nt_qsno+k-1,n) = qsn(k)
+        enddo               ! nslyr
+        ! brine fraction
+        if (tr_brine) trcrn(i,nt_fbri,n) = c1
+      enddo                  ! ncat
+      
       !-----------------------------------------------------------------
 
       i = 3  ! full thickness distribution
       ! initial category areas in cells with ice
-         hbar = c3  ! initial ice thickness with greatest area
-                    ! Note: the resulting average ice thickness 
-                    ! tends to be less than hbar due to the
-                    ! nonlinear distribution of ice thicknesses 
-         sum = c0
-         do n = 1, ncat
-            if (n < ncat) then
-               hinit(n) = p5*(hin_max(n-1) + hin_max(n)) ! m
-            else                ! n=ncat
-               hinit(n) = (hin_max(n-1) + c1) ! m
-            endif
-            ! parabola, max at h=hbar, zero at h=0, 2*hbar
-            ainit(n) = max(c0, (c2*hbar*hinit(n) - hinit(n)**2))
-            sum = sum + ainit(n)
-         enddo
-         do n = 1, ncat
-            ainit(n) = ainit(n) / (sum + puny/ncat) ! normalize
-         enddo
-
-         do n = 1, ncat
-               ! ice volume, snow volume
-               aicen(i,n) = ainit(n)
-               vicen(i,n) = hinit(n) * ainit(n) ! m
-               vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
-               ! tracers
-               call icepack_init_trcr(Tair(i),     Tf(i),      &
-                                     salinz(i,:), Tmltz(i,:), &
-                                     Tsfc,                        &
-                                     nilyr,         nslyr,        &
-                                     qin(:),        qsn(:))
-
-               ! surface temperature
-               trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
-               ! ice enthalpy, salinity 
-               do k = 1, nilyr
-                  trcrn(i,nt_qice+k-1,n) = qin(k)
-                  trcrn(i,nt_sice+k-1,n) = salinz(i,k)
-               enddo
-               ! snow enthalpy
-               do k = 1, nslyr
-                  trcrn(i,nt_qsno+k-1,n) = qsn(k)
-               enddo               ! nslyr
-               ! brine fraction
-               if (tr_brine) trcrn(i,nt_fbri,n) = c1
-         enddo                  ! ncat
-
+      hbar = c3  ! initial ice thickness with greatest area
+      ! Note: the resulting average ice thickness 
+      ! tends to be less than hbar due to the
+      ! nonlinear distribution of ice thicknesses 
+      sum = c0
+      do n = 1, ncat
+        if (n < ncat) then
+          hinit(n) = p5*(hin_max(n-1) + hin_max(n)) ! m
+        else                ! n=ncat
+          hinit(n) = (hin_max(n-1) + c1) ! m
+        endif
+        ! parabola, max at h=hbar, zero at h=0, 2*hbar
+        ainit(n) = max(c0, (c2*hbar*hinit(n) - hinit(n)**2))
+        sum = sum + ainit(n)
+      enddo
+      do n = 1, ncat
+        ainit(n) = ainit(n) / (sum + puny/ncat) ! normalize
+      enddo
+      
+      do n = 1, ncat
+        ! ice volume, snow volume
+        aicen(i,n) = ainit(n)
+        vicen(i,n) = hinit(n) * ainit(n) ! m
+        vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
+        ! tracers
+        call icepack_init_trcr(Tair(i),     Tf(i),      &
+            salinz(i,:), Tmltz(i,:), &
+            Tsfc,                        &
+            nilyr,         nslyr,        &
+            qin(:),        qsn(:))
+        
+        ! surface temperature
+        trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
+        ! ice enthalpy, salinity 
+        do k = 1, nilyr
+          trcrn(i,nt_qice+k-1,n) = qin(k)
+          trcrn(i,nt_sice+k-1,n) = salinz(i,k)
+        enddo
+        ! snow enthalpy
+        do k = 1, nslyr
+          trcrn(i,nt_qsno+k-1,n) = qsn(k)
+        enddo               ! nslyr
+        ! brine fraction
+        if (tr_brine) trcrn(i,nt_fbri,n) = c1
+      enddo                  ! ncat
+      
       !-----------------------------------------------------------------
-
+      
       ! land
       ! already initialized above (tmask = 0)
-
-!      endif                     ! ice_ic
-
-      end subroutine set_state_var
+      
+      !      endif                     ! ice_ic
+      
+    end subroutine set_state_var
 
 !=======================================================================
 
-      end module icepack_drv_init
+  end module icepack_drv_init
 
 !=======================================================================
