@@ -747,12 +747,6 @@
       !-----------------------------------------------------------------
       ! Compute ocean fluxes and update SST
       !-----------------------------------------------------------------
-!cn not sure what this is and triggering compiler warnings
-#if 0 
-!DIR$ CONCURRENT !Cray
-!cdir nodep      !NEC
-!ocl novrec      !Fujitsu
-#endif
       do i = 1, nx
 
          call icepack_ocn_mixed_layer (alvdr_ocn(i), swvdr     (i), &
