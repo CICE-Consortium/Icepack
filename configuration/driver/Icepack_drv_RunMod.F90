@@ -79,7 +79,7 @@
       use icepack_drv_domain_size, only: nslyr
       use icepack_drv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
-!      use icepack_drv_restart, only: dumpfile, final_restart
+      use icepack_drv_restart, only: dumpfile, final_restart
 !      use icepack_drv_restart_column, only: write_restart_age, write_restart_FY, &
 !          write_restart_lvl, write_restart_pond_cesm, write_restart_pond_lvl, &
 !          write_restart_pond_topo, write_restart_aero, &
@@ -102,85 +102,85 @@
       ! initialize diagnostics
       !-----------------------------------------------------------------
 
-         call init_mass_diags   ! diagnostics per timestep
-         call init_history_therm
-         call init_history_bgc
+      call init_mass_diags   ! diagnostics per timestep
+      call init_history_therm
+      call init_history_bgc
 
       !-----------------------------------------------------------------
       ! Scale radiation fields
       !-----------------------------------------------------------------
-
-            if (calc_Tsfc) call prep_radiation (dt)
-
+      
+      if (calc_Tsfc) call prep_radiation (dt)
+      
       !-----------------------------------------------------------------
       ! thermodynamics and biogeochemistry
       !-----------------------------------------------------------------
-            
-            call step_therm1     (dt) ! vertical thermodynamics
-            call biogeochemistry (dt) ! biogeochemistry
-            call step_therm2     (dt) ! ice thickness distribution thermo
 
-         ! clean up, update tendency diagnostics
-         offset = dt
-         call update_state (dt, daidtt, dvidtt, dagedtt, offset)
-
+      call step_therm1     (dt) ! vertical thermodynamics
+      call biogeochemistry (dt) ! biogeochemistry
+      call step_therm2     (dt) ! ice thickness distribution thermo
+      
+      ! clean up, update tendency diagnostics
+      offset = dt
+      call update_state (dt, daidtt, dvidtt, dagedtt, offset)
+      
       !-----------------------------------------------------------------
       ! dynamics, transport, ridging
       !-----------------------------------------------------------------
-
-         call init_history_dyn
-
-         do k = 1, ndtd
-
-            ! ridging
-               call step_dyn_ridge (dt_dyn, ndtd)
-
-            ! clean up, update tendency diagnostics
-            offset = c0
-            call update_state (dt_dyn, daidtd, dvidtd, dagedtd, offset)
-
-         enddo
-
+      
+      call init_history_dyn
+      
+      do k = 1, ndtd
+        
+        ! ridging
+        call step_dyn_ridge (dt_dyn, ndtd)
+        
+        ! clean up, update tendency diagnostics
+        offset = c0
+        call update_state (dt_dyn, daidtd, dvidtd, dagedtd, offset)
+        
+      enddo
+      
       !-----------------------------------------------------------------
       ! albedo, shortwave radiation
       !-----------------------------------------------------------------
-
-            call step_radiation (dt)
-
+      
+      call step_radiation (dt)
+      
       !-----------------------------------------------------------------
       ! get ready for coupling and the next time step
       !-----------------------------------------------------------------
-
-            call coupling_prep
-
+      
+      call coupling_prep
+      
       !-----------------------------------------------------------------
       ! write data
       !-----------------------------------------------------------------
-
-         if (mod(istep,diagfreq) == 0) then
-            call runtime_diags(dt)          ! log file
-            if (solve_zsal) call zsal_diags(dt)  
-            if (skl_bgc .or. z_tracers)  call bgc_diags (dt)
-            if (tr_brine) call hbrine_diags(dt)
-         endif
-
-!         if (write_restart == 1) then
-!            call dumpfile     ! core variables for restarting
-!            if (tr_iage)      call write_restart_age
-!            if (tr_FY)        call write_restart_FY
-!            if (tr_lvl)       call write_restart_lvl
-!            if (tr_pond_cesm) call write_restart_pond_cesm
-!            if (tr_pond_lvl)  call write_restart_pond_lvl
-!            if (tr_pond_topo) call write_restart_pond_topo
-!            if (tr_aero)      call write_restart_aero
-!            if (solve_zsal .or. skl_bgc .or. z_tracers) &
-!                              call write_restart_bgc 
-!            if (tr_brine)     call write_restart_hbrine
-!            if (kdyn == 2)    call write_restart_eap
-!            call final_restart
-!         endif
-
-      end subroutine ice_step
+      
+      if (mod(istep,diagfreq) == 0) then
+        call runtime_diags(dt)          ! log file
+        if (solve_zsal) call zsal_diags(dt)  
+        if (skl_bgc .or. z_tracers)  call bgc_diags (dt)
+        if (tr_brine) call hbrine_diags(dt)
+      endif
+      
+      if (write_restart == 1) then
+        call dumpfile     ! core variables for restarting
+        !            if (tr_iage)      call write_restart_age
+        !            if (tr_FY)        call write_restart_FY
+        !            if (tr_lvl)       call write_restart_lvl
+        !            if (tr_pond_cesm) call write_restart_pond_cesm
+        !            if (tr_pond_lvl)  call write_restart_pond_lvl
+        !            if (tr_pond_topo) call write_restart_pond_topo
+        !            if (tr_aero)      call write_restart_aero
+        !            if (solve_zsal .or. skl_bgc .or. z_tracers) &
+        !                              call write_restart_bgc 
+        !            if (tr_brine)     call write_restart_hbrine
+        !            if (kdyn == 2)    call write_restart_eap
+        call final_restart
+      endif
+      
+    end subroutine ice_step
     
 !=======================================================================
 !

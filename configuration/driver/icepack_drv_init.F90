@@ -51,13 +51,13 @@
                             rfracmin, rfracmax, pndaspect, hs1, hp1, &
                             ktherm, calc_Tsfc, conduct, oceanmixed_ice
       use icepack_drv_constants, only: c0, c1, puny, ice_stdout, nu_diag, nu_diag_out, nu_nml
-      use icepack_drv_diagnostics, only: diag_file, print_points
+      use icepack_drv_diagnostics, only: diag_file
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icepack_drv_calendar, only: year_init, istep0, &
-                              dumpfreq, dumpfreq_n, diagfreq, &
+                              dumpfreq, diagfreq, &
                               npt, dt, ndtd, days_per_year, use_leap_years
       use icepack_drv_restart_shared, only: &
-          restart, restart_dir, restart_file, pointer_file
+          restart, restart_dir, restart_file
       use icepack_drv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
 !      use icepack_drv_forcing, only: &
 !          dbug, &
@@ -101,9 +101,8 @@
         days_per_year,  use_leap_years, year_init,       istep0,        &
         dt,             npt,            ndtd,                           &
         ice_ic,         restart,   &!     restart_dir,     restart_file,  &
-        pointer_file,   dumpfreq,       dumpfreq_n,    &
+        dumpfreq,    &
         diagfreq,       diag_file,                      &
-        print_points,  &
         cpl_bgc
 
       namelist /grid_nml/ &
@@ -161,15 +160,12 @@
 #endif
       npt = 99999            ! total number of time steps (dt) 
       diagfreq = 24          ! how often diag output is written
-      print_points = .false. ! if true, print point data
       diag_file = 'ice_diag.d'
       cpl_bgc = .false.      ! history file name prefix
       dumpfreq='y'           ! restart frequency option
-      dumpfreq_n = 1         ! restart frequency
       restart = .false.      ! if true, read restart files for initialization
       restart_dir  = './'     ! write to executable dir for default
       restart_file = 'iced'  ! restart file name prefix
-      pointer_file = 'ice.restart_file'
       ice_ic       = 'default'      ! latitude and sst-dependent
 
       kitd = 1           ! type of itd conversions (0 = delta, 1 = linear)
@@ -249,49 +245,59 @@
       phi_i_mushy       =    0.85_dbl_kind ! liquid fraction of congelation ice
 
       !-----------------------------------------------------------------
+      ! read from input file name from command line if it exists,
+      ! otherwise the default is icepack_in
+      !-----------------------------------------------------------------
+
+      if ( command_argument_count() == 1 ) then
+        call get_command_argument(1,nml_filename)
+      endif
+
+      !-----------------------------------------------------------------
       ! read from input file
       !-----------------------------------------------------------------
 
-         open (nu_nml, file=nml_filename, status='old',iostat=nml_error)
-         if (nml_error /= 0) then
-            nml_error = -1
-         else
-            nml_error =  1
-         endif 
-
-         do while (nml_error > 0)
-            print*,'Reading setup_nml'
-               read(nu_nml, nml=setup_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading tracer_nml'
-               read(nu_nml, nml=tracer_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading thermo_nml'
-               read(nu_nml, nml=thermo_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading shortwave_nml'
-               read(nu_nml, nml=shortwave_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading ponds_nml'
-               read(nu_nml, nml=ponds_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-            print*,'Reading forcing_nml'
-               read(nu_nml, nml=forcing_nml,iostat=nml_error)
-               if (nml_error /= 0) exit
-         end do
-         if (nml_error == 0) close(nu_nml)
+      open (nu_nml, file=nml_filename, status='old',iostat=nml_error)
       if (nml_error /= 0) then
-         write(ice_stdout,*) 'error reading namelist'
+        nml_error = -1
+      else
+        nml_error =  1
+      endif
+      
+      do while (nml_error > 0)
+        print*,'Reading namelist file   ',nml_filename
+        print*,'Reading setup_nml'
+        read(nu_nml, nml=setup_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading tracer_nml'
+        read(nu_nml, nml=tracer_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading thermo_nml'
+        read(nu_nml, nml=thermo_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading shortwave_nml'
+        read(nu_nml, nml=shortwave_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading ponds_nml'
+        read(nu_nml, nml=ponds_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+        print*,'Reading forcing_nml'
+        read(nu_nml, nml=forcing_nml,iostat=nml_error)
+        if (nml_error /= 0) exit
+      end do
+      if (nml_error == 0) close(nu_nml)
+      if (nml_error /= 0) then
+        write(ice_stdout,*) 'error reading namelist'
       endif
       close(nu_nml)
-
+      
       !-----------------------------------------------------------------
       ! set up diagnostics output and resolve conflicts
       !-----------------------------------------------------------------
-
+      
       write(ice_stdout,*) 'Diagnostic output will be in files '
       write(ice_stdout,*)'    ',diag_file
-
+      
       diag_len = len(trim(diag_file))
       do n = 1,nx
         diag_file_names=''
@@ -453,17 +459,13 @@
          write(nu_diag,1000) ' dt                        = ', dt
          write(nu_diag,1020) ' npt                       = ', npt
          write(nu_diag,1020) ' diagfreq                  = ', diagfreq
-         write(nu_diag,1010) ' print_points              = ', print_points
          write(nu_diag,1030) ' dumpfreq                  = ', &
                                trim(dumpfreq)
-         write(nu_diag,1020) ' dumpfreq_n                = ', dumpfreq_n
          write(nu_diag,1010) ' restart                   = ', restart
          write(nu_diag,*)    ' restart_dir               = ', &
                                trim(restart_dir)
          write(nu_diag,*)    ' restart_file              = ', &
                                trim(restart_file)
-         write(nu_diag,*)    ' pointer_file              = ', &
-                               trim(pointer_file)
          write(nu_diag,*)    ' ice_ic                    = ', &
                                trim(ice_ic)
          write(nu_diag,1020) ' kitd                      = ', kitd
@@ -734,7 +736,6 @@
       !-----------------------------------------------------------------
       ! Check number of layers in ice and snow.
       !-----------------------------------------------------------------
-
          if (nilyr < 1) then
             write (nu_diag,*) 'nilyr =', nilyr
             write (nu_diag,*) 'Must have at least one ice layer'
@@ -852,13 +853,13 @@
       ! Set state variables
       !-----------------------------------------------------------------
 
-         call set_state_var (nx,          ice_ic,       &
-                             TLON  (:),   TLAT (:),     &
-                             Tair  (:),   sst  (:),     &
-                             Tf    (:),                 &
-                             salinz(:,:), Tmltz(:,:),   &
-                             aicen (:,:), trcrn(:,:,:), &
-                             vicen (:,:), vsnon(:,:))
+      call set_state_var (nx,          ice_ic,       &
+          TLON  (:),   TLAT (:),     &
+          Tair  (:),   sst  (:),     &
+          Tf    (:),                 &
+          salinz(:,:), Tmltz(:,:),   &
+          aicen (:,:), trcrn(:,:,:), &
+          vicen (:,:), vsnon(:,:))
 
       !-----------------------------------------------------------------
       ! compute aggregate ice state and open water area
@@ -1023,94 +1024,94 @@
       ainit(3) = c1  ! assumes we are using the default ITD boundaries
       hinit(3) = c2
 
-         do n = 1, ncat
-               ! ice volume, snow volume
-               aicen(i,n) = ainit(n)
-               vicen(i,n) = hinit(n) * ainit(n) ! m
-               vsnon(i,n) = c0
-               ! tracers
-               call icepack_init_trcr(Tair(i),     Tf(i),      &
-                                     salinz(i,:), Tmltz(i,:), &
-                                     Tsfc,                        &
-                                     nilyr,         nslyr,        &
-                                     qin(:),        qsn(:))
-
-               ! surface temperature
-               trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
-               ! ice enthalpy, salinity 
-               do k = 1, nilyr
-                  trcrn(i,nt_qice+k-1,n) = qin(k)
-                  trcrn(i,nt_sice+k-1,n) = salinz(i,k)
-               enddo
-               ! snow enthalpy
-               do k = 1, nslyr
-                  trcrn(i,nt_qsno+k-1,n) = qsn(k)
-               enddo               ! nslyr
-               ! brine fraction
-               if (tr_brine) trcrn(i,nt_fbri,n) = c1
-         enddo                  ! ncat
-
+      do n = 1, ncat
+        ! ice volume, snow volume
+        aicen(i,n) = ainit(n)
+        vicen(i,n) = hinit(n) * ainit(n) ! m
+        vsnon(i,n) = c0
+        ! tracers
+        call icepack_init_trcr(Tair(i),     Tf(i),      &
+            salinz(i,:), Tmltz(i,:), &
+            Tsfc,                        &
+            nilyr,         nslyr,        &
+            qin(:),        qsn(:))
+        
+        ! surface temperature
+        trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
+        ! ice enthalpy, salinity 
+        do k = 1, nilyr
+          trcrn(i,nt_qice+k-1,n) = qin(k)
+          trcrn(i,nt_sice+k-1,n) = salinz(i,k)
+        enddo
+        ! snow enthalpy
+        do k = 1, nslyr
+          trcrn(i,nt_qsno+k-1,n) = qsn(k)
+        enddo               ! nslyr
+        ! brine fraction
+        if (tr_brine) trcrn(i,nt_fbri,n) = c1
+      enddo                  ! ncat
+      
       !-----------------------------------------------------------------
 
       i = 3  ! full thickness distribution
       ! initial category areas in cells with ice
-         hbar = c3  ! initial ice thickness with greatest area
-                    ! Note: the resulting average ice thickness 
-                    ! tends to be less than hbar due to the
-                    ! nonlinear distribution of ice thicknesses 
-         sum = c0
-         do n = 1, ncat
-            if (n < ncat) then
-               hinit(n) = p5*(hin_max(n-1) + hin_max(n)) ! m
-            else                ! n=ncat
-               hinit(n) = (hin_max(n-1) + c1) ! m
-            endif
-            ! parabola, max at h=hbar, zero at h=0, 2*hbar
-            ainit(n) = max(c0, (c2*hbar*hinit(n) - hinit(n)**2))
-            sum = sum + ainit(n)
-         enddo
-         do n = 1, ncat
-            ainit(n) = ainit(n) / (sum + puny/ncat) ! normalize
-         enddo
-
-         do n = 1, ncat
-               ! ice volume, snow volume
-               aicen(i,n) = ainit(n)
-               vicen(i,n) = hinit(n) * ainit(n) ! m
-               vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
-               ! tracers
-               call icepack_init_trcr(Tair(i),     Tf(i),      &
-                                     salinz(i,:), Tmltz(i,:), &
-                                     Tsfc,                        &
-                                     nilyr,         nslyr,        &
-                                     qin(:),        qsn(:))
-
-               ! surface temperature
-               trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
-               ! ice enthalpy, salinity 
-               do k = 1, nilyr
-                  trcrn(i,nt_qice+k-1,n) = qin(k)
-                  trcrn(i,nt_sice+k-1,n) = salinz(i,k)
-               enddo
-               ! snow enthalpy
-               do k = 1, nslyr
-                  trcrn(i,nt_qsno+k-1,n) = qsn(k)
-               enddo               ! nslyr
-               ! brine fraction
-               if (tr_brine) trcrn(i,nt_fbri,n) = c1
-         enddo                  ! ncat
-
+      hbar = c3  ! initial ice thickness with greatest area
+      ! Note: the resulting average ice thickness 
+      ! tends to be less than hbar due to the
+      ! nonlinear distribution of ice thicknesses 
+      sum = c0
+      do n = 1, ncat
+        if (n < ncat) then
+          hinit(n) = p5*(hin_max(n-1) + hin_max(n)) ! m
+        else                ! n=ncat
+          hinit(n) = (hin_max(n-1) + c1) ! m
+        endif
+        ! parabola, max at h=hbar, zero at h=0, 2*hbar
+        ainit(n) = max(c0, (c2*hbar*hinit(n) - hinit(n)**2))
+        sum = sum + ainit(n)
+      enddo
+      do n = 1, ncat
+        ainit(n) = ainit(n) / (sum + puny/ncat) ! normalize
+      enddo
+      
+      do n = 1, ncat
+        ! ice volume, snow volume
+        aicen(i,n) = ainit(n)
+        vicen(i,n) = hinit(n) * ainit(n) ! m
+        vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
+        ! tracers
+        call icepack_init_trcr(Tair(i),     Tf(i),      &
+            salinz(i,:), Tmltz(i,:), &
+            Tsfc,                        &
+            nilyr,         nslyr,        &
+            qin(:),        qsn(:))
+        
+        ! surface temperature
+        trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
+        ! ice enthalpy, salinity 
+        do k = 1, nilyr
+          trcrn(i,nt_qice+k-1,n) = qin(k)
+          trcrn(i,nt_sice+k-1,n) = salinz(i,k)
+        enddo
+        ! snow enthalpy
+        do k = 1, nslyr
+          trcrn(i,nt_qsno+k-1,n) = qsn(k)
+        enddo               ! nslyr
+        ! brine fraction
+        if (tr_brine) trcrn(i,nt_fbri,n) = c1
+      enddo                  ! ncat
+      
       !-----------------------------------------------------------------
-
+      
       ! land
       ! already initialized above (tmask = 0)
-
-!      endif                     ! ice_ic
-
-      end subroutine set_state_var
+      
+      !      endif                     ! ice_ic
+      
+    end subroutine set_state_var
 
 !=======================================================================
 
-      end module icepack_drv_init
+  end module icepack_drv_init
 
 !=======================================================================

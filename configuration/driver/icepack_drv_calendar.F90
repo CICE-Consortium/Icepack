@@ -65,8 +65,7 @@
          ndtd     , & ! number of dynamics subcycles: dt_dyn=dt/ndtd
          stop_now     , & ! if 1, end program execution
          write_restart, & ! if 1, write restart now
-         diagfreq     , & ! diagnostic output frequency (10 = once per 10 dt)
-         dumpfreq_n       ! restart output frequency (10 = once per 10 d,m,y)
+         diagfreq
 
       real (kind=dbl_kind), public :: &
          dt             , & ! thermodynamics timestep (s)
@@ -86,7 +85,6 @@
          new_hour       , & ! new hour = .true.
          use_leap_years , & ! use leap year functionality if true
          write_ic       , & ! write initial condition now
-         dump_last      , & ! write restart file on last time step
          force_restart_now  ! force a restart now
 
       character (len=1), public :: &
@@ -221,7 +219,6 @@
 
 #ifndef CCSMCOUPLED
       if (istep >= npt+1)  stop_now = 1
-      if (istep == npt .and. dump_last) write_restart = 1 ! last timestep
 #endif
       if (nyr   /= nyrp)   new_year = .true.
       if (month /= monthp) new_month = .true.
@@ -232,13 +229,13 @@
 
         select case (dumpfreq)
         case ("y", "Y")
-          if (new_year  .and. mod(nyr, dumpfreq_n)==0) &
+          if (new_year) &
                 write_restart = 1
         case ("m", "M")
-          if (new_month .and. mod(elapsed_months,dumpfreq_n)==0) &
+          if (new_month) &
                 write_restart = 1
         case ("d", "D")
-          if (new_day   .and. mod(elapsed_days, dumpfreq_n)==0) &
+          if (new_day) &
                 write_restart = 1
         end select
 

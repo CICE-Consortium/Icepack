@@ -8,12 +8,10 @@
   , ndtd           = 1
   , ice_ic         = 'none'
   , restart        = .false.
-  , pointer_file   = './restart/ice.restart_file'
   , dumpfreq       = 'y'
-  , dumpfreq_n     = 1
+  , dumpfreq     = 1
   , diagfreq       = 24
   , diag_file      = 'ice_diag.d'
-  , print_points   = .true.
   , cpl_bgc        = .false.
 /
 

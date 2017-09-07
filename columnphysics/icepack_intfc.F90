@@ -450,43 +450,43 @@
       real (kind=dbl_kind) :: &
          slope, Ti
 
-            ! surface temperature
-            Tsfc = Tf ! default
-            if (calc_Tsfc) Tsfc = min(Tsmelt, Tair - Tffresh) ! deg C
-
-            if (heat_capacity) then
-
-               ! ice enthalpy
-               do k = 1, nilyr
-                  ! assume linear temp profile and compute enthalpy
-                  slope = Tf - Tsfc
-                  Ti = Tsfc + slope*(real(k,kind=dbl_kind)-p5) &
-                                    /real(nilyr,kind=dbl_kind)
-                  if (ktherm == 2) then
-                     qin(k) = enthalpy_mush(Ti, Sprofile(k))
-                  else
-                     qin(k) = -(rhoi * (cp_ice*(Tprofile(k)-Ti) &
-                         + Lfresh*(c1-Tprofile(k)/Ti) - cp_ocn*Tprofile(k)))
-                  endif
-               enddo               ! nilyr
-
-               ! snow enthalpy
-               do k = 1, nslyr
-                  Ti = min(c0, Tsfc)
-                  qsn(k) = -rhos*(Lfresh - cp_ice*Ti)
-               enddo               ! nslyr
-
-            else  ! one layer with zero heat capacity
-
-               ! ice energy
-               qin(1) = -rhoi * Lfresh 
-
-               ! snow energy
-               qsn(1) = -rhos * Lfresh 
-
-            endif               ! heat_capacity
-
-      end subroutine icepack_init_trcr
+      ! surface temperature
+      Tsfc = Tf ! default
+      if (calc_Tsfc) Tsfc = min(Tsmelt, Tair - Tffresh) ! deg C
+      
+      if (heat_capacity) then
+        
+        ! ice enthalpy
+        do k = 1, nilyr
+          ! assume linear temp profile and compute enthalpy
+          slope = Tf - Tsfc
+          Ti = Tsfc + slope*(real(k,kind=dbl_kind)-p5) &
+              /real(nilyr,kind=dbl_kind)
+          if (ktherm == 2) then
+            qin(k) = enthalpy_mush(Ti, Sprofile(k))
+          else
+            qin(k) = -(rhoi * (cp_ice*(Tprofile(k)-Ti) &
+                + Lfresh*(c1-Tprofile(k)/Ti) - cp_ocn*Tprofile(k)))
+          endif
+        enddo               ! nilyr
+        
+        ! snow enthalpy
+        do k = 1, nslyr
+          Ti = min(c0, Tsfc)
+          qsn(k) = -rhos*(Lfresh - cp_ice*Ti)
+        enddo               ! nslyr
+        
+      else  ! one layer with zero heat capacity
+        
+        ! ice energy
+        qin(1) = -rhoi * Lfresh 
+        
+        ! snow energy
+        qsn(1) = -rhos * Lfresh 
+        
+      endif               ! heat_capacity
+      
+    end subroutine icepack_init_trcr
 
 !=======================================================================
 

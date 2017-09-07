@@ -125,6 +125,3 @@ echo $TRDON   = TRDON,   number of DON pools
 echo $TRFED   = TRFED,   number of dFe pools
 echo $TRFEP   = TRFEP,   number of pFe pools
 echo $TRZAERO = TRZAERO, number of z aerosol tracers
-
-
-

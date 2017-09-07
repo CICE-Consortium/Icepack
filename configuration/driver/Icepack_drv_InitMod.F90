@@ -63,15 +63,15 @@
          stop
       endif
 
-         call icepack_clear_warnings()
-         call icepack_init_itd_hist(ncat, hin_max, c_hi_range) ! output
-         call icepack_print_warnings(nu_diag)
+      call icepack_clear_warnings()
+      call icepack_init_itd_hist(ncat, hin_max, c_hi_range) ! output
+      call icepack_print_warnings(nu_diag)
 
       call calendar(time)       ! determine the initial date
 
 !      call init_forcing_ocn(dt) ! initialize sss and sst from data
       call init_state           ! initialize the ice state
-!      call init_restart         ! initialize restart variables
+      call init_restart         ! initialize restart variables
       call init_history_therm   ! initialize thermo history variables
 
 !      if (tr_aero .or. tr_zaero) call faero_optics !initialize aerosol optical 
@@ -99,7 +99,7 @@
 !      if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 !      if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
-         call init_shortwave    ! initialize radiative transfer using current swdn
+      call init_shortwave    ! initialize radiative transfer using current swdn
 
       call init_flux_atm_ocn    ! initialize atmosphere, ocean fluxes
 
@@ -130,32 +130,26 @@
 
       if (restart) then
          call restartfile (ice_ic)
-      endif         
+      endif      
 
-      ! tracers
 
-      trcrn(:,nt_iage,:) = c0
-      trcrn(:,nt_FY  ,:) = c0
-      trcrn(:,nt_alvl,:) = c0
-      trcrn(:,nt_vlvl,:) = c0
-      trcrn(:,nt_apnd,:) = c0
-      trcrn(:,nt_hpnd,:) = c0
-      trcrn(:,nt_ipnd,:) = c0
-      dhsn (:,:) = c0
-      trcrn(:,nt_aero:nt_aero+4*n_aero-1,:) = c0
 
+      !in CICE, the following line:
       if (tr_brine .or. skl_bgc) call init_hbrine ! brine height tracer
+      !is called like this:
+      !if (tr_brine .or. skl_bgc) then ! brine height tracer
+      !    call init_hbrine
+      !    if (tr_brine .and. restart_hbrine) call read_restart_hbrine
+      ! endif
 
-      if (restart) then
-! call restarts  (see cicecore/drivers/cice/CICE_InitMod.F90)
-      endif
 
+
+      !the bgc restarts are contained in this subroutine
       if (solve_zsal .or. skl_bgc .or. z_tracers) call init_bgc ! biogeochemistry
 
       !-----------------------------------------------------------------
       ! aggregate tracers
       !-----------------------------------------------------------------
-
       do i = 1, nx
          if (tmask(i)) &
          call icepack_aggregate (ncat,               &
@@ -174,7 +168,6 @@
                                 n_trcr_strata,      &
                                 nt_strata)
       enddo
-
       end subroutine init_restart
 
 !=======================================================================

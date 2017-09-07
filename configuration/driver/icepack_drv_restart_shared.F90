@@ -14,9 +14,6 @@
          restart_file  , & ! output file for restart dump
          restart_dir       ! directory name for restart dump
 
-      character (len=char_len_long), public :: &
-         pointer_file      ! input pointer file for restarts
-
 !=======================================================================
 
       contains
