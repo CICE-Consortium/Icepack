@@ -318,8 +318,8 @@
 
 #ifndef ncdf
       ! netcdf is unavailable
-      atm_data_format = 'bin'
-      ocn_data_format = 'bin' 
+!      atm_data_format = 'bin'
+!      ocn_data_format = 'bin' 
 #endif
 
       if (ncat == 1 .and. kitd == 1) then
