@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-CICE Documentation 
+Icepack Documentation 
 ===========================================
 
 Table of Contents:
