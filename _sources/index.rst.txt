@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-CICE Documentation 
+Icepack Documentation 
 ===========================================
 
 Table of Contents:
@@ -14,14 +14,14 @@ Table of Contents:
    :maxdepth: 3
    :numbered:
 
-   cice_1_introduction.rst
-   cice_2_coupling.rst
-   cice_3_model_components.rst
-   cice_4_numerical_implementation.rst
-   cice_5_troubleshooting.rst
-   cice_6_copyright.rst
-   cice_7_namelist_opts.rst
-   cice_8_index.rst
+   icepack_1_introduction.rst
+   icepack_2_coupling.rst
+   icepack_3_model_components.rst
+   icepack_4_numerical_implementation.rst
+   icepack_5_troubleshooting.rst
+   icepack_6_copyright.rst
+   icepack_7_namelist_opts.rst
+   icepack_8_index.rst
    zreferences.rst
  
 Useful tools

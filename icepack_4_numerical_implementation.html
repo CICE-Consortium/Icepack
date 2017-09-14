@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>4. Numerical implementation &#8212; CICE-Consortium 0.0.1 documentation</title>
+    <title>4. Numerical implementation &#8212; CICE-Consortium Icepack 0.0.1 documentation</title>
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -24,8 +24,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/bizstyle.js"></script>
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="5. Troubleshooting" href="cice_5_troubleshooting.html" />
-    <link rel="prev" title="3. Model components" href="cice_3_model_components.html" />
+    <link rel="next" title="5. Troubleshooting" href="icepack_5_troubleshooting.html" />
+    <link rel="prev" title="3. Model components" href="icepack_3_model_components.html" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <!--[if lt IE 9]>
     <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
@@ -36,12 +36,12 @@
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="cice_5_troubleshooting.html" title="5. Troubleshooting"
+          <a href="icepack_5_troubleshooting.html" title="5. Troubleshooting"
              accesskey="N">next</a></li>
         <li class="right" >
-          <a href="cice_3_model_components.html" title="3. Model components"
+          <a href="icepack_3_model_components.html" title="3. Model components"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -72,15 +72,15 @@
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="cice_3_model_components.html"
+  <p class="topless"><a href="icepack_3_model_components.html"
                         title="previous chapter">3. Model components</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="cice_5_troubleshooting.html"
+  <p class="topless"><a href="icepack_5_troubleshooting.html"
                         title="next chapter">5. Troubleshooting</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/cice_4_numerical_implementation.rst.txt"
+      <li><a href="_sources/icepack_4_numerical_implementation.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -172,7 +172,7 @@ category as a fourth dimension.</p>
 <span id="init"></span><h2>4.3. Initialization and coupling<a class="headerlink" href="#initialization-and-coupling" title="Permalink to this headline">¶</a></h2>
 <p>The ice model’s parameters and variables are initialized in several
 steps. Many constants and physical parameters are set in
-<strong>ice_constants.F90</strong>. Namelist variables (<a class="reference internal" href="cice_7_namelist_opts.html#tabnamelist"><span class="std std-ref">Table of namelist options</span></a>),
+<strong>ice_constants.F90</strong>. Namelist variables (<a class="reference internal" href="icepack_7_namelist_opts.html#tabnamelist"><span class="std std-ref">Table of namelist options</span></a>),
 whose values can be altered at run time, are handled in <em>input_data</em>
 and other initialization routines. These variables are given default
 values in the code, which may then be changed when the input file
@@ -184,7 +184,7 @@ previous run, core variables are read and reinitialized in
 are read in separate restart routines associated with each tracer or
 specialized parameterization. Finally, albedo and other quantities
 dependent on the initial ice state are set. Some of these parameters
-will be described in more detail in <a class="reference internal" href="cice_7_namelist_opts.html#tabnamelist"><span class="std std-ref">Table of namelist options</span></a>.</p>
+will be described in more detail in <a class="reference internal" href="icepack_7_namelist_opts.html#tabnamelist"><span class="std std-ref">Table of namelist options</span></a>.</p>
 <p>The restart files supplied with the code release include the core
 variables on the default configuration, that is, with seven vertical
 layers and the ice thickness distribution defined by <cite>kcatbound</cite> = 0.
@@ -208,7 +208,7 @@ regional grids, but can not be used with PIO.</p>
 <p>MPI is initialized in <em>init_communicate</em> for both coupled and
 stand-alone MPI runs. The ice component communicates with a flux coupler
 or other climate components via external routiines that handle the
-variables listed in <a class="reference internal" href="cice_2_coupling.html#tab-flux-cpl"><span class="std std-ref">Table 1</span></a>. For stand-alone runs,
+variables listed in <a class="reference internal" href="icepack_2_coupling.html#tab-flux-cpl"><span class="std std-ref">Table 1</span></a>. For stand-alone runs,
 routines in <strong>ice_forcing.F90</strong> read and interpolate data from files,
 and are intended merely to provide guidance for the user to write his or
 her own routines. Whether the code is to be run in stand-alone or
@@ -394,7 +394,7 @@ file)</li>
 <li><strong>ice_in</strong>: add namelist variables to <em>tracer_nml</em> and
 <em>icefields_nml</em></li>
 <li>If strict conservation is necessary, add diagnostics as noted for
-topo ponds in Section&nbsp;<a class="reference internal" href="cice_3_model_components.html#ponds"><span class="std std-ref">Melt ponds</span></a>.</li>
+topo ponds in Section&nbsp;<a class="reference internal" href="icepack_3_model_components.html#ponds"><span class="std std-ref">Melt ponds</span></a>.</li>
 </ol>
 </div>
 </div>
@@ -410,12 +410,12 @@ topo ponds in Section&nbsp;<a class="reference internal" href="cice_3_model_comp
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="cice_5_troubleshooting.html" title="5. Troubleshooting"
+          <a href="icepack_5_troubleshooting.html" title="5. Troubleshooting"
              >next</a></li>
         <li class="right" >
-          <a href="cice_3_model_components.html" title="3. Model components"
+          <a href="icepack_3_model_components.html" title="3. Model components"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

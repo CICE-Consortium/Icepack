@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2. Coupling with other climate model components &#8212; CICE-Consortium 0.0.1 documentation</title>
+    <title>2. Coupling with other climate model components &#8212; CICE-Consortium Icepack 0.0.1 documentation</title>
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -24,8 +24,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/bizstyle.js"></script>
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="3. Model components" href="cice_3_model_components.html" />
-    <link rel="prev" title="1. Introduction - Icepack" href="cice_1_introduction.html" />
+    <link rel="next" title="3. Model components" href="icepack_3_model_components.html" />
+    <link rel="prev" title="1. Introduction - Icepack" href="icepack_1_introduction.html" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <!--[if lt IE 9]>
     <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
@@ -36,12 +36,12 @@
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="cice_3_model_components.html" title="3. Model components"
+          <a href="icepack_3_model_components.html" title="3. Model components"
              accesskey="N">next</a></li>
         <li class="right" >
-          <a href="cice_1_introduction.html" title="1. Introduction - Icepack"
+          <a href="icepack_1_introduction.html" title="1. Introduction - Icepack"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -57,15 +57,15 @@
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="cice_1_introduction.html"
+  <p class="topless"><a href="icepack_1_introduction.html"
                         title="previous chapter">1. Introduction - Icepack</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="cice_3_model_components.html"
+  <p class="topless"><a href="icepack_3_model_components.html"
                         title="next chapter">3. Model components</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/cice_2_coupling.rst.txt"
+      <li><a href="_sources/icepack_2_coupling.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -324,7 +324,7 @@ stress and turbulent heat fluxes <span class="math">\(\vec\tau_a\)</span>, <span
 radiation, <span class="math">\(F_{sw\downarrow}\)</span>, <span class="math">\(F_{L\downarrow}\)</span>
 and <span class="math">\(F_{L\uparrow}\)</span>, are included in the flux balance that
 determines the ice or snow surface temperature when calc_Tsfc = true.
-As described in Section&nbsp;<a class="reference internal" href="cice_3_model_components.html#thermo"><span class="std std-ref">Thermodynamics</span></a>, these fluxes depend nonlinearly
+As described in Section&nbsp;<a class="reference internal" href="icepack_3_model_components.html#thermo"><span class="std std-ref">Thermodynamics</span></a>, these fluxes depend nonlinearly
 on the ice surface temperature <span class="math">\(T_{sfc}\)</span>. The balance
 equation is iterated until convergence, and the resulting fluxes and
 <span class="math">\(T_{sfc}\)</span> are then passed to the flux coupler.</p>
@@ -359,7 +359,7 @@ Q^*&amp;=&amp;c_q\left(Q_a-Q_{sfc}\right).\end{aligned}\end{split}\]</div>
 in <span class="math">\(u^*\)</span>, and <span class="math">\(T_{sfc}\)</span> and
 <span class="math">\(Q_{sfc}\)</span> are the surface temperature and specific
 humidity, respectively. The latter is calculated by assuming a saturated
-surface, as described in Section&nbsp;<a class="reference internal" href="cice_3_model_components.html#sfc-forcing"><span class="std std-ref">Thermodynamic surface forcing balance</span></a>.</p>
+surface, as described in Section&nbsp;<a class="reference internal" href="icepack_3_model_components.html#sfc-forcing"><span class="std std-ref">Thermodynamic surface forcing balance</span></a>.</p>
 <p>Neglecting form drag,the exchange coefficients <span class="math">\(c_u\)</span>,
 <span class="math">\(c_\theta\)</span> and <span class="math">\(c_q\)</span> are initialized as</p>
 <div class="math">
@@ -417,7 +417,7 @@ returned to the flux coupler as a climate diagnostic. The same is true
 for the reference humidity, <span class="math">\(Q_a^{ref}\)</span>.</p>
 <p>Additional details about the latent and sensible heat fluxes and other
 quantities referred to here can be found in
-Section&nbsp;<a class="reference internal" href="cice_3_model_components.html#sfc-forcing"><span class="std std-ref">Thermodynamic surface forcing balance</span></a>.</p>
+Section&nbsp;<a class="reference internal" href="icepack_3_model_components.html#sfc-forcing"><span class="std std-ref">Thermodynamic surface forcing balance</span></a>.</p>
 </div>
 <div class="section" id="ocean">
 <span id="id5"></span><h2>2.2. Ocean<a class="headerlink" href="#ocean" title="Permalink to this headline">¶</a></h2>
@@ -461,7 +461,7 @@ salinity used in the thermodynamic calculation has differing values in
 the ice layers.</p>
 <p>A fraction of the incoming shortwave <span class="math">\(F_{sw\Downarrow}\)</span>
 penetrates the snow and ice layers and passes into the ocean, as
-described in Section&nbsp;<a class="reference internal" href="cice_3_model_components.html#sfc-forcing"><span class="std std-ref">Thermodynamic surface forcing balance</span></a>.</p>
+described in Section&nbsp;<a class="reference internal" href="icepack_3_model_components.html#sfc-forcing"><span class="std std-ref">Thermodynamic surface forcing balance</span></a>.</p>
 <p>A thermodynamic slab ocean mixed-layer parameterization is available
 in <strong>ice_ocean.F90</strong> and can be run in the full CICE configuration.
 The turbulent fluxes are computed above the water surface using the same
@@ -593,12 +593,12 @@ coefficient is 0.006 (<cite>fbot_xfer_type = ’constant’</cite>).</p>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="cice_3_model_components.html" title="3. Model components"
+          <a href="icepack_3_model_components.html" title="3. Model components"
              >next</a></li>
         <li class="right" >
-          <a href="cice_1_introduction.html" title="1. Introduction - Icepack"
+          <a href="icepack_1_introduction.html" title="1. Introduction - Icepack"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

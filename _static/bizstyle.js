@@ -36,6 +36,6 @@ $(window).resize(function(){
         $("li.nav-item-0 a").text("Top");
     }
     else {
-        $("li.nav-item-0 a").text("CICE-Consortium 0.0.1 documentation");
+        $("li.nav-item-0 a").text("CICE-Consortium Icepack 0.0.1 documentation");
     }
 });

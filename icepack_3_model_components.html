@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3. Model components &#8212; CICE-Consortium 0.0.1 documentation</title>
+    <title>3. Model components &#8212; CICE-Consortium Icepack 0.0.1 documentation</title>
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -24,8 +24,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/bizstyle.js"></script>
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="4. Numerical implementation" href="cice_4_numerical_implementation.html" />
-    <link rel="prev" title="2. Coupling with other climate model components" href="cice_2_coupling.html" />
+    <link rel="next" title="4. Numerical implementation" href="icepack_4_numerical_implementation.html" />
+    <link rel="prev" title="2. Coupling with other climate model components" href="icepack_2_coupling.html" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <!--[if lt IE 9]>
     <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
@@ -36,12 +36,12 @@
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="cice_4_numerical_implementation.html" title="4. Numerical implementation"
+          <a href="icepack_4_numerical_implementation.html" title="4. Numerical implementation"
              accesskey="N">next</a></li>
         <li class="right" >
-          <a href="cice_2_coupling.html" title="2. Coupling with other climate model components"
+          <a href="icepack_2_coupling.html" title="2. Coupling with other climate model components"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -71,15 +71,15 @@
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="cice_2_coupling.html"
+  <p class="topless"><a href="icepack_2_coupling.html"
                         title="previous chapter">2. Coupling with other climate model components</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="cice_4_numerical_implementation.html"
+  <p class="topless"><a href="icepack_4_numerical_implementation.html"
                         title="next chapter">4. Numerical implementation</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/cice_3_model_components.rst.txt"
+      <li><a href="_sources/icepack_3_model_components.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -590,7 +590,7 @@ tracers will be defined only where brine is present. This region, from
 the ice–ocean interface to the brine height, defines the domain of the
 vertical bio-grid, whose resolution is independent of the sea ice
 vertical grid and is set at compile time (see
-Section&nbsp;<a class="reference internal" href="cice_4_numerical_implementation.html#bio-grid"><span class="std std-ref">Bio-grid</span></a>). The ice microstructural state,
+Section&nbsp;<a class="reference internal" href="icepack_4_numerical_implementation.html#bio-grid"><span class="std std-ref">Bio-grid</span></a>). The ice microstructural state,
 determined in <strong>ice_brine.F90</strong>, is computed from sea ice salinities
 and temperatures linearly interpolated to the bio-grid. When
 <span class="math">\(h_b &gt; h_i\)</span>, the upper surface brine is assumed to have the same
@@ -1699,7 +1699,7 @@ surface temperature of the snow or snow-free ice,</p>
 <div class="math">
 \[F_s = C_s \left(\Theta_a - T_{sf}^K\right).\]</div>
 <p><span class="math">\(C_s\)</span> and <span class="math">\(C_l\)</span> (below) are nonlinear turbulent heat
-transfer coefficients described in Section&nbsp;<a class="reference internal" href="cice_2_coupling.html#atmo"><span class="std std-ref">Atmosphere</span></a>. Similarly,
+transfer coefficients described in Section&nbsp;<a class="reference internal" href="icepack_2_coupling.html#atmo"><span class="std std-ref">Atmosphere</span></a>. Similarly,
 the latent heat flux is proportional to the difference between
 <span class="math">\(Q_a\)</span> and the surface saturation specific humidity <span class="math">\(Q_{sf}\)</span>:</p>
 <div class="math">
@@ -1957,7 +1957,7 @@ to Equation <a class="reference internal" href="#equation-tridiag-form">(72)</a>
 RHS.</p>
 <p>These equations are modified if <span class="math">\(T_{sf}\)</span> and
 <span class="math">\(F_{ct}\)</span> are computed within the atmospheric model and
-passed to CICE (calc_Tsfc = false; see Section <a class="reference internal" href="cice_2_coupling.html#atmo"><span class="std std-ref">Atmosphere</span></a>). In this case there
+passed to CICE (calc_Tsfc = false; see Section <a class="reference internal" href="icepack_2_coupling.html#atmo"><span class="std std-ref">Atmosphere</span></a>). In this case there
 is no surface flux equation. The top layer temperature is computed by an
 equation similar to Equation <a class="reference internal" href="#equation-tridiag-form">(72)</a> but with the first term on the
 LHS replaced by <span class="math">\(\eta_1 F_{ct}\)</span> and moved to the RHS. The
@@ -2479,12 +2479,12 @@ with the melt water.</td></tr>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="cice_4_numerical_implementation.html" title="4. Numerical implementation"
+          <a href="icepack_4_numerical_implementation.html" title="4. Numerical implementation"
              >next</a></li>
         <li class="right" >
-          <a href="cice_2_coupling.html" title="2. Coupling with other climate model components"
+          <a href="icepack_2_coupling.html" title="2. Coupling with other climate model components"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
