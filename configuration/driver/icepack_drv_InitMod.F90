@@ -5,7 +5,7 @@
 !
 !  authors Elizabeth C. Hunke, LANL
 
-      module Icepack_drv_InitMod
+      module icepack_drv_InitMod
 
       use icepack_kinds_mod
 
@@ -172,6 +172,6 @@
 
 !=======================================================================
 
-      end module Icepack_drv_InitMod
+      end module icepack_drv_InitMod
 
 !=======================================================================

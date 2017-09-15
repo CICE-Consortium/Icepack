@@ -4,7 +4,7 @@
 !
 !  authors Elizabeth C. Hunke, LANL
 
-      module Icepack_drv_RunMod
+      module icepack_drv_RunMod
 
       use icepack_kinds_mod
 
@@ -327,6 +327,6 @@
 
 !=======================================================================
 
-      end module Icepack_drv_RunMod
+      end module icepack_drv_RunMod
 
 !=======================================================================
