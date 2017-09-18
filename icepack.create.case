@@ -367,7 +367,7 @@ setenv ICE_DECOMP_NTASK ${task}
 setenv ICE_DECOMP_NTHRD ${thrd}
 
 source ${casescr}/icepack_decomp.csh
-if ($? != 0) then
+if ($status != 0) then
   echo "${0}: ERROR, icepack_decomp.csh aborted"
   exit -1
 endif
@@ -469,7 +469,7 @@ source ./icepack.settings
 source ./env.${mach} || exit 2
 
 ${casescr}/icepack.run.setup.csh
-if ($? != 0) then
+if ($status != 0) then
   echo "${0}: ERROR, icepack.run.setup.csh aborted"
   exit -1
 endif
@@ -482,7 +482,7 @@ if ($test != $spval) then
 
   # Generate test script
   ${casescr}/icepack.test.setup.csh 
-  if ($? != 0) then
+  if ($status != 0) then
     echo "${0}: ERROR, icepack.test.setup.csh aborted"
     exit -1
   endif
