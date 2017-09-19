@@ -296,22 +296,25 @@
       !-----------------------------------------------------------------
       
       write(ice_stdout,*) 'Diagnostic output will be in files '
-      write(ice_stdout,*)'    ',diag_file
+      write(ice_stdout,*)'    ','icepack.runlog.timestamp'
+! tcraig, see below, no longer opened, using icepack.runlog.timestamp for "6"
+!      write(ice_stdout,*)'    ',trim(diag_file)
       
       diag_len = len(trim(diag_file))
       do n = 1,nx
         diag_file_names=''
         write(format_str,'(A2,I0,A7)'),'(A',diag_len,',A1,I0)'
         write(diag_file_names,format_str)trim(diag_file),'.',n
-        write(ice_stdout,*)'    ',diag_file_names
+        write(ice_stdout,*)'    ',trim(diag_file_names)
         open(nu_diag_out+n-1, file=diag_file_names, status='unknown')
       end do
 
-      open (nu_diag, file=diag_file, status='unknown')
+! tcraig, want nu_diag == ice_stdout == 6 to go to the icepack.runlog file
+!      open (nu_diag, file=diag_file, status='unknown')
       
-      write(nu_diag,*) '--------------------------------'
-      write(nu_diag,*) '  CICE model diagnostic output  '
-      write(nu_diag,*) '--------------------------------'
+      write(nu_diag,*) '-----------------------------------'
+      write(nu_diag,*) '  ICEPACK model diagnostic output  '
+      write(nu_diag,*) '-----------------------------------'
       write(nu_diag,*) ' '
 
 

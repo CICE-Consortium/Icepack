@@ -1,0 +1,15 @@
+
+#----------------------------------------------------
+# Run the ICEPACK model
+# icepack.run returns -1 if run did not complete successfully
+
+./icepack.run
+
+if ( $? != 0 ) then
+  # Run failed
+  echo "FAIL ${ICE_TESTNAME} run" >> ${ICE_CASEDIR}/test_output
+  exit 99
+else
+  # Run succeeded
+  echo "PASS ${ICE_TESTNAME} run" >> ${ICE_CASEDIR}/test_output
+endif

@@ -1,0 +1,547 @@
+#!/bin/csh -f
+
+echo " "
+echo "${0}:"
+
+set ICE_SANDBOX = `pwd`
+set ICE_SCRIPTS = ${ICE_SANDBOX}/configuration/scripts
+set initargv = ( $argv[*] ) 
+
+set helpheader = 0
+set dash = "-"
+set spval = "UnDeFiNeD"
+set mach = $spval
+set case = $spval
+set test = $spval
+set grid = col
+set pesx = 1x1
+set sets = ""
+set bdir = $spval
+set testid = $spval
+set testsuite = $spval
+set baseCom = $spval  # Baseline compare
+set baseGen = $spval  # Baseline generate
+set bfbcomp = $spval  # BFB compare
+
+if ($#argv < 1) then
+  set helpheader = 1
+endif
+
+# check for -h
+while (1)
+  if ($#argv < 1) break;
+  if ("$argv[1]" =~ ${dash}h* ) then
+    set helpheader = 1
+  endif
+  shift argv
+end
+
+#------------------------------------------------------------
+# Help output
+
+if ( $helpheader ) then
+cat << EOF1
+
+NAME   
+      icepack.create.case - creates a ICEPACK case directory
+        -h help
+        -c case, case directory/name
+        -m machine, machine name (required)
+           Available -m options are in configuration/scripts/machines and include:
+EOF1
+      set soptions1 = `ls -1 configuration/scripts/machines | grep Macros | sed 's/Macros.//g' `
+      set soptions = `echo $soptions1 | fmt -1 | sort `
+      foreach sopt ($soptions)
+        echo "             $sopt"
+      end
+cat << EOF1
+        -p tasks x threads, mxn (default is 4x1)
+        -g grid, grid (default = gx3)
+        -s build and namelist mod files, comma separated with no spaces (default = " ")
+           Available -s options are in configuration/scripts/options and include:
+EOF1
+      set soptions1 = `ls -1 configuration/scripts/options | grep set_ | sed 's/set_nml.//g' | sed 's/set_env.//g' `
+      set soptions = `echo $soptions1 | fmt -1 | sort `
+      foreach sopt ($soptions)
+        echo "             $sopt"
+      end
+
+cat << EOF1
+
+        -- For testing purposes --
+        -t test, test name (cannot be selected if -c is selected)
+           Available tests are in configuration/scripts/tests and include:
+EOF1
+      set soptions1 = `ls -1 configuration/scripts/tests | grep test_ | sed 's/test_//g' | sed 's/.script//g' `
+      set soptions = `echo $soptions1 | fmt -1 | sort `
+      foreach sopt ($soptions)
+        echo "             $sopt"
+      end
+
+cat << EOF1
+        -bd baseline directory, high level directory where baselines are stored
+        -bg icepack version name for generate, directory under the baseline directory where baselines are stored
+        -bc icepack version name for compare, directory under the baseline directory where baselines are stored
+        -testid test ID, user-defined indentifier for test (REQUIRED if using -t or -ts)
+        -ts test suite, pre-defined set of tests to run in column text format.  Current set of predefined tests:
+             - "base_suite": runs general set of tests including smoke with debug, restart, etc.
+        -td difference output against another case
+
+      EXAMPLES:
+      icepack.create.case -h
+      icepack.create.case -c ~/caseA -m yellowstone 
+      icepack.create.case -p 32x4 -g gx1 -m gordon -c caseB
+      icepack.create.case -c ~/caseC -m spirit -s diag1,writeicf
+      icepack.create.case -t restart -p 8x1 -g gx1 -m cheyenne -s diag1,debug -testid myid
+
+      For more testing examples, please view README.test
+
+EOF1
+
+exit -1
+endif
+
+#------------------------------------------------------------
+# Read in command line arguments
+
+set argv = ( $initargv[*] )
+
+while (1)
+  if ( $#argv < 1 ) break;
+  set option = $argv[1];
+  shift argv
+  if ( $#argv < 1 ) then
+    echo "${0}: ERROR1 in $option"
+    exit -1
+  endif
+  if ($argv[1] =~ $dash* ) then
+    echo "${0}: ERROR2 in $option"
+    exit -1
+  endif
+
+  switch ( $option )
+    case "-m":
+      set mach = $argv[1]
+      breaksw
+    case "-c":
+      set case = $argv[1]
+      breaksw
+    case "-t":
+      set test = $argv[1]
+      breaksw
+    case "-g":
+      set grid = $argv[1]
+      breaksw
+    case "-p":
+      set pesx = $argv[1]
+      breaksw
+    case "-s":
+      set sets = $argv[1]
+      breaksw
+    case "-bd":
+      set bdir = $argv[1]
+      breaksw
+    case "-bc":
+      set baseCom = $argv[1]
+      breaksw
+    case "-bg":
+      set baseGen = $argv[1]
+      breaksw
+    case "-td":
+      set bfbcomp = $argv[1]
+      breaksw
+    case "-ts":
+      set testsuite = $argv[1]
+      breaksw
+    case "-testid":
+      set testid = $argv[1]
+      breaksw
+    default:
+      echo "${0}: ERROR unknown option $option, use -h for help"
+      exit -1
+      breaksw
+  endsw
+  shift argv
+end
+
+if ($mach == $spval) then
+  echo "${0}: ERROR in arguments, -m required"
+  exit -1
+endif
+
+if ($case == $spval && $test == $spval && $testsuite == $spval) then
+  echo "${0}: ERROR in arguments, -c, -t, or -ts required"
+  exit -1
+endif
+
+if ($case != $spval && $test != $spval) then
+  echo "${0}: ERROR in arguments, cannot use both -c and -t"
+  exit -1
+endif
+
+if ($case != $spval && $testsuite != $spval) then
+  echo "${0}: ERROR in arguments, cannot use both -c and -ts"
+  exit -1
+endif
+
+if ($testsuite != $spval && $test != $spval) then
+  echo "${0}: ERROR in arguments, cannot use both -ts and -t"
+  exit -1
+endif
+
+# tcraig, lets find another way to validate argument
+#if ($test != $spval && $test != 'smoke' && $test != '10day' && $test != 'annual' \
+# && $test != 'restart') then
+#  echo "${0}: ERROR in arguments.  $test is not a valid test"
+#  exit -1
+#endif
+
+if (($testsuite != $spval || $test != $spval) && $testid == $spval) then
+  echo "${0}: ERROR in arguments.  -testid must be passed if using -ts or -t"
+  exit -1
+endif
+
+# Check to see if this is a test-suite run.  If so, loop through the various
+#   tests and create a separate folder for each
+if ( $testsuite != $spval ) then
+  set tsdir = "${testsuite}.${testid}"
+  if (-e ${testsuite}) then
+    set tsfile = "${testsuite}"
+  else 
+    if (-e ${ICE_SCRIPTS}/tests/${testsuite}.ts) then
+      set tsfile = "${ICE_SCRIPTS}/tests/${testsuite}.ts"
+    else
+      echo "${0}: ERROR, cannot find testsuite file ${testsuite}, also checked ${ICE_SCRIPTS}/tests/${testsuite}.ts"
+      exit -1
+    endif
+  endif
+
+  mkdir ./${tsdir}
+  cp -f ${ICE_SCRIPTS}/tests/timeseries.csh ./${tsdir}
+
+cat >! ./${tsdir}/suite.run << EOF0
+#!/bin/csh -f
+EOF0
+
+cat >! ./${tsdir}/results.csh << EOF0
+#!/bin/csh -f
+rm -f results.log
+EOF0
+
+  chmod +x ./${tsdir}/suite.run
+  chmod +x ./${tsdir}/results.csh
+
+  foreach line ( "`cat $tsfile`" )
+    # Check if line is a comment line
+    if ( $line:q =~ '#'* || $line:q =~ '$'* || $line:q =~ '!'* ) then
+      echo "skipping line: $line"
+      continue
+    endif
+    # Obtain the test name, sets, grid, and PE information from .ts file
+    set test = `echo $line | cut -d' ' -f1`
+    set grid = `echo $line | cut -d' ' -f2`
+    set pesx = `echo $line | cut -d' ' -f3`
+    set sets_tmp = `echo $line | cut -d' ' -f4`
+    set bfbcomp_tmp = `echo $line | cut -d' ' -f5`
+    # Create a new sets_base variable to store sets passed to icepack.create.case
+    if (! $?sets_base ) then
+      set sets_base = "$sets"
+    endif
+    # Append sets from .ts file to the $sets variable
+    if ( $sets_tmp == "none" ) then
+      set sets = "$sets_base"
+    else
+      if ( $sets_base == "" ) then
+        set sets = "$sets_tmp"
+      else
+        set sets = "$sets_base,$sets_tmp"
+        # Remove duplictes in the sets variable
+        set sets = "`echo $sets | sed -e 's/\b\([a-z]\+\)[ ,\n]\1/\1/g'`"
+      endif
+    endif
+    # Create a new bfbcomp_base variable to store bfbcomp passed to icepack.create.case
+    if (! $?bfbcomp_base ) then
+      set bfbcomp_base = "$bfbcomp"
+    endif
+    # Use bfbcomp_base or bfbcomp_tmp
+    if ( $bfbcomp_tmp == "" ) then
+      set bfbcomp = "$bfbcomp_base"
+    else
+      set bfbcomp = "$bfbcomp_tmp"
+    endif
+endif
+
+if ($case =~ $spval) then
+  if ($sets != "") then
+    set soptions = `echo $sets | sed 's/,/_/g'`
+    # Only include $testid in testname if this is not a baseline-generating run
+    set testname_noid = "${mach}_${test}_${grid}_${pesx}_${soptions}"
+    set testname_base = "${mach}_${test}_${grid}_${pesx}_${soptions}.${testid}"
+  else
+    set testname_noid = "${mach}_${test}_${grid}_${pesx}"
+    set testname_base = "${mach}_${test}_${grid}_${pesx}.${testid}"
+  endif
+  if ($testsuite != $spval) then
+    set testname = "${tsdir}/$testname_base"
+  else
+    set testname = "$testname_base"
+  endif
+  set case = ${testname}
+endif
+
+if (-d $case) then
+  echo "${0}: ERROR, case $case already exists"
+  exit -1
+endif
+mkdir -p $case
+echo "`date`${0} $initargv[*]" > $case/README.case
+
+#------------------------------------------------------------
+# Setup case directory, copy files to case directory
+
+cd ${case}
+set casedir = `pwd`
+set casescr = "${casedir}/casescripts"
+if !( -d ${casescr}) mkdir ${casescr}
+
+# from basic script dir to case
+foreach file (icepack.build icepack.settings Makefile icepack_in makdep.c)
+  if !(-e ${ICE_SCRIPTS}/$file) then
+    echo "${0}: ERROR, ${ICE_SCRIPTS}/$file not found"
+    exit -1
+  endif
+  cp -f -p ${ICE_SCRIPTS}/$file ${casedir}
+end
+
+# from machines dir to case
+foreach file (env.${mach} Macros.${mach})
+  if !(-e ${ICE_SCRIPTS}/machines/$file) then
+    echo "${0}: ERROR, ${ICE_SCRIPTS}/machines/$file not found"
+    exit -1
+  endif
+  cp -f -p ${ICE_SCRIPTS}/machines/$file ${casedir}
+end
+
+# from basic script dir to casescr
+foreach file (parse_namelist.sh parse_settings.sh icepack_decomp.csh icepack.run.setup.csh icepack.test.setup.csh)
+  if !(-e ${ICE_SCRIPTS}/$file) then
+    echo "${0}: ERROR, ${ICE_SCRIPTS}/$file not found"
+    exit -1
+  endif
+  cp -f -p ${ICE_SCRIPTS}/$file ${casescr}
+end
+
+if ($case =~ */*) then
+  set casename = $case:t
+else
+  set casename = $case
+endif
+
+cd ${casedir}
+source ./env.${mach} || exit 2
+
+echo ICE_SANDBOX  = ${ICE_SANDBOX}
+echo ICE_CASENAME = ${casename}
+echo ICE_CASEDIR  = ${casedir}
+echo ICE_MACHINE  = ${mach}
+
+#------------------------------------------------------------
+# Compute a default blocksize
+
+if ($pesx != 1x1) then
+  echo "${0}: ERROR in arguments, -p must be 1x1 if set manually"
+  exit -1
+endif
+
+set chck = `echo ${pesx} | sed  's/^[0-9][0-9]*x[0-9][0-9]*$/OK/'`
+if (${chck} == OK) then
+  set task = `echo ${pesx} | sed s/x.\*//`
+  set thrd = `echo ${pesx} | sed s/.\*x//`
+else
+  echo "${0}: ERROR in -p argument, ${pesx}, must be mxn"
+  exit -1
+endif
+
+setenv ICE_DECOMP_GRID  ${grid}
+setenv ICE_DECOMP_NTASK ${task}
+setenv ICE_DECOMP_NTHRD ${thrd}
+
+source ${casescr}/icepack_decomp.csh
+if ($status != 0) then
+  echo "${0}: ERROR, icepack_decomp.csh aborted"
+  exit -1
+endif
+
+#------------------------------------------------------------
+# Copy in and update icepack.settings and icepack_in files
+
+set fimods = ${casescr}/icepack_in.mods
+set fsmods = ${casescr}/icepack.settings.mods
+
+cp icepack_in ${casescr}/icepack_in.base
+cp icepack.settings ${casescr}/icepack.settings.base
+if (-e ${fimods}) rm ${fimods}
+if (-e ${fsmods}) rm ${fsmods}
+
+cat >! ${fimods} << EOF1
+nprocs = ${task}
+atm_data_dir = '${ICE_MACHINE_INPUTDATA}/'
+EOF1
+
+# If this is a baseline-compare test, modify ICE_RUNDIR
+if ($bdir != $spval) then
+  setenv basedir_tmp ${bdir}
+else
+  setenv basedir_tmp ${ICE_MACHINE_BASELINE}
+endif
+
+cat >! ${fsmods} << EOF1
+setenv ICE_SANDBOX  ${ICE_SANDBOX}
+setenv ICE_SCRIPTS  ${ICE_SCRIPTS}
+setenv ICE_CASENAME ${casename}
+setenv ICE_CASEDIR  ${casedir}
+setenv ICE_MACHINE  ${mach}
+setenv ICE_RUNDIR   ${ICE_MACHINE_WKDIR}/${casename}
+setenv ICE_GRID     ${grid}
+setenv ICE_NXGLOB   ${ICE_DECOMP_NXGLOB}
+setenv ICE_NTASKS   ${task}
+setenv ICE_NTHRDS   ${thrd}
+setenv ICE_BASELINE ${basedir_tmp}
+setenv ICE_BASEGEN  ${baseGen}
+setenv ICE_BASECOM  ${baseCom}
+setenv ICE_SPVAL    ${spval}
+EOF1
+
+if ($bfbcomp != $spval) then
+  echo "setenv ICE_BFBCOMP  ${mach}_${bfbcomp}.${testid}" >> ${fsmods}
+else
+  echo "setenv ICE_BFBCOMP  ${spval}" >> ${fsmods}
+endif
+
+if ($test != $spval) then
+  echo "setenv ICE_TEST     ${test}" >> ${fsmods}
+  echo "setenv ICE_TESTNAME ${testname_noid}" >> ${fsmods}
+else
+  echo "setenv ICE_TEST     ${spval}" >> ${fsmods}
+  echo "setenv ICE_TESTNAME ${spval}" >> ${fsmods}
+endif
+
+if ($sets != "") then
+  set setsx = `echo $sets | sed 's/,/ /g'`
+else
+  set setsx = ""
+endif
+if ($test != $spval) then
+  set testx = ${test}
+  # from test options to casescr in case any test time changes are applied
+  cp -f -p ${ICE_SCRIPTS}/options/test_nml.${test}* ${casescr} >& /dev/null
+else
+  set testx = ""
+endif
+
+foreach name ($testx $grid $setsx)
+  set found = 0
+  if (-e ${ICE_SCRIPTS}/options/set_nml.${name}) then
+    cat ${ICE_SCRIPTS}/options/set_nml.${name} >> ${fimods}
+    echo "adding namelist mods set_nml.${name}"
+    echo "`date`${0} adding namelist modes set_nml.${name}" > ${casedir}/README.case
+    set found = 1
+  endif
+  if (-e ${ICE_SCRIPTS}/options/set_env.${name}) then
+    cat ${ICE_SCRIPTS}/options/set_env.${name} >> ${fsmods}
+    echo "adding env mods set_env.${name}"
+    echo "`date`${0} adding namelist modes set_env.${name}" > ${casedir}/README.case
+    set found = 1
+  endif
+  if (${found} == 0) then
+    echo "${0}: ERROR, ${ICE_SCRIPTS}/options/set_[nml,env].${name} not found"
+    exit -1
+  endif
+end
+
+${casescr}/parse_settings.sh icepack.settings ${fsmods}
+${casescr}/parse_namelist.sh icepack_in ${fimods}
+
+#------------------------------------------------------------
+# Generate run script
+
+source ./icepack.settings
+source ./env.${mach} || exit 2
+
+${casescr}/icepack.run.setup.csh
+if ($status != 0) then
+  echo "${0}: ERROR, icepack.run.setup.csh aborted"
+  exit -1
+endif
+
+#------------------------------------------------------------
+
+if ($test != $spval) then
+  # Print information to stdout
+  echo "Creating scripts for $test test"
+
+  # Generate test script
+  ${casescr}/icepack.test.setup.csh 
+  if ($status != 0) then
+    echo "${0}: ERROR, icepack.test.setup.csh aborted"
+    exit -1
+  endif
+
+  # Initial test_output file
+  echo "#---" >! test_output
+  echo "PEND ${testname_noid} " >> test_output
+
+endif
+
+if ( $testsuite != $spval ) then
+    cd ${ICE_SANDBOX}
+    # Write build and run commands to suite.run
+
+cat >> ./${tsdir}/results.csh << EOF
+cat $testname_base/test_output >> results.log
+EOF
+
+cat >> ./${tsdir}/suite.run << EOF
+cd $testname_base
+./icepack.build
+./icepack.submit
+cd ..
+EOF
+    
+    # Reset case for the next test in suite
+    set case = $spval
+
+    echo "" 
+    echo "---" 
+    echo "" 
+
+  # This is the foreach end for the testsuite
+  end
+
+  # Add code to results.csh to count the number of failures
+cat >> ./${tsdir}/results.csh << EOF
+cat ./results.log
+set pends = \`cat ./results.log | grep PEND | wc -l\`
+set failures = \`cat ./results.log | grep FAIL | wc -l\`
+set success = \`cat ./results.log | grep PASS | wc -l\`
+set comments = \`cat ./results.log | grep "#" | wc -l\`
+set alltotal = \`cat ./results.log | wc -l\`
+@ total = \$alltotal - \$comments
+echo ""
+echo "\$success of \$total tests PASSED"
+echo "\$failures of \$total tests FAILED"
+echo "\$pends of \$total tests PENDING"
+EOF
+
+# build and submit tests
+cd ${tsdir}
+./suite.run
+cd ${ICE_SANDBOX}
+
+endif
+
+echo " "
+echo "${0} done"
+echo " "
+exit 0
+

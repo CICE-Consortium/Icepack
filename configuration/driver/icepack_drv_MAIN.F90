@@ -25,8 +25,9 @@
 !
       program icepackdriver
 
-      use Icepack_drv_InitMod
-      use Icepack_drv_RunMod
+      use icepack_drv_InitMod
+      use icepack_drv_RunMod
+      use icepack_drv_constants, only: ice_stdout
 
       implicit none
 
@@ -41,6 +42,8 @@
       !-----------------------------------------------------------------
 
       call icepack_run
+
+      write(ice_stdout, *) "ICEPACK COMPLETED SUCCESSFULLY "
 
       end program icepackdriver
 
