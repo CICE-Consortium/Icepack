@@ -58,10 +58,13 @@
                               npt, dt, ndtd, days_per_year, use_leap_years
       use icepack_drv_restart_shared, only: &
           restart, restart_dir, restart_file
-      use icepack_drv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
-!      use icepack_drv_forcing, only: &
-!          dbug, &
-!          atm_data_type,   atm_data_dir,  precip_units, &
+      use icepack_drv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc, &
+          default_season
+      use icepack_drv_forcing, only: &
+          precip_units,    fyear_init,      ycycle,          &
+          atm_data_type,   ocn_data_type,   bgc_data_type,   &
+          atm_data_format, ocn_data_format, bgc_data_format, &
+          data_dir,        dbug
 
       use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond, &
                              tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
@@ -129,13 +132,15 @@
         hp1
 
       namelist /forcing_nml/ &
-        atmbndy,        &
-        calc_strair,   calc_Tsfc,      &
-        update_ocn_f,    l_mpond_fresh, ustar_min,      &
-        fbot_xfer_type,                                                 &
-        oceanmixed_ice, &
-        formdrag,        highfreq,      natmiter,       &
-        tfrz_option
+        atmbndy,         calc_strair,     calc_Tsfc,       &
+        update_ocn_f,    l_mpond_fresh,   ustar_min,       &
+        fbot_xfer_type,  oceanmixed_ice,                   &
+        formdrag,        highfreq,        natmiter,        &
+        tfrz_option,     default_season,                   &
+        precip_units,    fyear_init,      ycycle,          &
+        atm_data_type,   ocn_data_type,   bgc_data_type,   &
+        atm_data_format, ocn_data_format, bgc_data_format, &
+        data_dir
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -155,13 +160,11 @@
       year_init = 0          ! initial year
       istep0 = 0             ! no. of steps taken in previous integrations,
                              ! real (dumped) or imagined (to set calendar)
-#ifndef CCSMCOUPLED
       dt = 3600.0_dbl_kind   ! time step, s      
-#endif
       npt = 99999            ! total number of time steps (dt) 
       diagfreq = 24          ! how often diag output is written
-      diag_file = 'ice_diag.d'
-      cpl_bgc = .false.      ! history file name prefix
+      diag_file = 'ice_diag.d' ! history file name prefix
+      cpl_bgc = .false.      ! 
       dumpfreq='y'           ! restart frequency option
       restart = .false.      ! if true, read restart files for initialization
       restart_dir  = './'     ! write to executable dir for default
@@ -209,22 +212,25 @@
       ahmax     = 0.3_dbl_kind    ! thickness above which ice albedo is constant (m)
       atmbndy   = 'default'       ! or 'constant'
 
-!      atm_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
-!      atm_data_type   = 'default'
-!      atm_data_dir    = ' '
+      default_season = 'winter' ! default forcing data
+      fyear_init = 1998
+      ycycle = 1
+
+      atm_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
+      atm_data_type   = 'default'
       calc_strair     = .true.    ! calculate wind stress
       formdrag        = .false.   ! calculate form drag
       highfreq        = .false.   ! calculate high frequency RASM coupling
       natmiter        = 5         ! number of iterations for atm boundary layer calcs
-!      precip_units    = 'mks'     ! 'mm_per_month' or
+      precip_units    = 'mks'     ! 'mm_per_month' or
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       tfrz_option     = 'mushy'   ! freezing temp formulation
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
-!      ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
-!      sss_data_type   = 'default'
-!      sst_data_type   = 'default'
-!      ocn_data_dir    = ' '
-!      oceanmixed_file = 'unknown_oceanmixed_file' ! ocean forcing data
+      ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
+      ocn_data_type   = 'default'
+      bgc_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
+      bgc_data_type   = 'default'
+      data_dir    = ' '
 !      dbug      = .false.         ! true writes diagnostics for input forcing
 
       ! extra tracers
@@ -541,8 +547,12 @@
          write(nu_diag,1010) ' calc_strair               = ', calc_strair
          write(nu_diag,1010) ' calc_Tsfc                 = ', calc_Tsfc
 
-!         write(nu_diag,*)    ' atm_data_type             = ', &
-!                               trim(atm_data_type)
+         write(nu_diag,*)    ' atm_data_type             = ', &
+                               trim(atm_data_type)
+         write(nu_diag,*)    ' ocn_data_type             = ', &
+                               trim(ocn_data_type)
+         write(nu_diag,*)    ' bgc_data_type             = ', &
+                               trim(bgc_data_type)
 
          write(nu_diag,1010) ' update_ocn_f              = ', update_ocn_f
          write(nu_diag,1010) ' l_mpond_fresh             = ', l_mpond_fresh
@@ -928,15 +938,18 @@
          nx          ! number of grid cells
 
       character(len=char_len_long), intent(in) :: & 
-         ice_ic      ! method of ice cover initialization
+         ice_ic      ! method of ice cover initialization  ! not used for now
 
       real (kind=dbl_kind), dimension (nx), &
          intent(in) :: &
-         TLON   , & ! longitude of temperature pts (radians)
+         TLON   , & ! longitude of temperature pts (radians)  ! not used for now
          TLAT       ! latitude of temperature pts (radians)
 
       real (kind=dbl_kind), dimension (nx), intent(in) :: &
-         Tair    , & ! air temperature  (K)
+         Tair        ! air temperature  (K)
+
+      ! ocean values may be redefined here, unlike in CICE
+      real (kind=dbl_kind), dimension (nx), intent(inout) :: &
          Tf      , & ! freezing temperature (C) 
          sst         ! sea surface temperature (C) 
 
@@ -1009,8 +1022,6 @@
          hinit(n) = c0
       enddo
 
-!      if (trim(ice_ic) == 'default') then
-
       !-----------------------------------------------------------------
       ! For Icepack testing, the grid vector is populated with several
       ! different ice distributions, including ice-free, a single-
@@ -1026,7 +1037,6 @@
       i = 2  ! 2-m slab, no snow
       ainit(3) = c1  ! assumes we are using the default ITD boundaries
       hinit(3) = c2
-
       do n = 1, ncat
         ! ice volume, snow volume
         aicen(i,n) = ainit(n)
@@ -1062,6 +1072,7 @@
       ! Note: the resulting average ice thickness 
       ! tends to be less than hbar due to the
       ! nonlinear distribution of ice thicknesses 
+
       sum = c0
       do n = 1, ncat
         if (n < ncat) then
@@ -1108,9 +1119,10 @@
       
       ! land
       ! already initialized above (tmask = 0)
-      
-      !      endif                     ! ice_ic
-      
+      i = 4
+      sst(i) = c0
+      Tf(i) = c0
+
     end subroutine set_state_var
 
 !=======================================================================

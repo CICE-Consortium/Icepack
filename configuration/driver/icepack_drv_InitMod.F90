@@ -35,8 +35,7 @@
       use icepack_drv_constants, only: nu_diag
       use icepack_drv_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm_ocn
-!      use icepack_drv_forcing, only: init_forcing_ocn, init_forcing_atmo, &
-!          get_forcing_atmo, get_forcing_ocn
+      use icepack_drv_forcing, only: init_forcing, get_forcing
 !      use icepack_drv_forcing_bgc, only: get_forcing_bgc, get_atm_bgc, &
 !          faero_data, faero_default, faero_optics
       use icepack_drv_restart_shared, only: restart
@@ -69,7 +68,6 @@
 
       call calendar(time)       ! determine the initial date
 
-!      call init_forcing_ocn(dt) ! initialize sss and sst from data
       call init_state           ! initialize the ice state
       call init_restart         ! initialize restart variables
       call init_history_therm   ! initialize thermo history variables
@@ -86,7 +84,9 @@
    ! coupler communication or forcing data initialization
    !--------------------------------------------------------------------
 
-!      call init_forcing_atmo    ! initialize atmospheric forcing (standalone)
+      call init_forcing      ! initialize forcing (standalone)
+!?      call init_coupler_flux ! complete forcing initialization
+      call get_forcing(istep1)       ! get forcing from data arrays
 
 !      call get_forcing_atmo     ! atmospheric forcing from data
 !      call get_forcing_ocn(dt)  ! ocean forcing from data
