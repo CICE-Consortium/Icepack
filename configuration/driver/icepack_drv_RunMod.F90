@@ -26,7 +26,7 @@
       subroutine icepack_run
 
       use icepack_drv_calendar, only: istep, istep1, time, dt, stop_now, calendar
-!      use icepack_drv_forcing, only: get_forcing_atmo, get_forcing_ocn
+      use icepack_drv_forcing, only: get_forcing
 !      use icepack_drv_forcing_bgc, only: get_forcing_bgc, get_atm_bgc, fzaero_data, & 
 !          faero_default
       use icepack_drv_flux, only: init_flux_atm_ocn
@@ -49,6 +49,7 @@
 
          if (stop_now >= 1) exit timeLoop
 
+          call get_forcing(istep1)  ! get forcing from data arrays
 !         call get_forcing_atmo     ! atmospheric forcing from data
 !         call get_forcing_ocn(dt)  ! ocean forcing from data
 
