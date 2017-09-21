@@ -23,6 +23,7 @@
       save
 
       integer (kind=int_kind), public :: &
+         ntime           , & ! number of data points in time
          ycycle          , & ! number of years in forcing cycle
          fyear_init      , & ! first year of data in forcing cycle
          fyear           , & ! current year in forcing cycle
@@ -104,7 +105,6 @@
          fsnow, sst, sss, uocn, vocn
 
       integer (kind=int_kind) :: &
-         ntime        , & ! number of data points in time
          i                ! index
 
       fyear       = fyear_init + mod(nyr-1,ycycle) ! current year
@@ -146,10 +146,9 @@
 
           cldf_data(:) = c0     ! cloud fraction
 
-      if (trim(atm_data_type) == 'GOFS') call atm_GOFS(ntime)
+      if (trim(atm_data_type) == 'GOFS') call atm_GOFS
 
-      call prepare_forcing (ntime,              &
-                            Tair_data,     fsw_data,      &    
+      call prepare_forcing (Tair_data,     fsw_data,      &    
                             cldf_data,     flw_data,      &
                             frain_data,    fsnow_data,    &
                             Qa_data,       rhoa_data,     &
@@ -181,12 +180,12 @@
          timestep         ! time step index
 
       integer (kind=int_kind) :: &
-         ntime        , & ! number of data points in time
          i                ! data index
 
-      ! calculate data index corresponding to current timestep
+      if (trim(atm_data_type) == 'default') return
 
-      i = timestep
+      ! calculate data index corresponding to current timestep
+      i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
 
       ! fill all grid boxes with the same forcing data
       flw  (:) =   flw_data(i)
@@ -213,6 +212,9 @@
       flw  (:) = flw_data  (i)    ! incoming longwave radiation (W/m^2)
       frain(:) = frain_data(i)    ! rainfall rate (kg/m^2 s)
       fsnow(:) = fsnow_data(i)    ! snowfall rate (kg/m^2 s)
+
+      if (trim(ocn_data_type) == 'default') return
+
       sst  (:) = sst_data  (i)    ! sea surface temperature
       sss  (:) = sss_data  (i)    ! sea surface salinity
       uocn (:) = uocn_data (i)    ! wind velocity components (m/s)
@@ -247,10 +249,7 @@ endif
 
 !=======================================================================
 
-      subroutine atm_GOFS (ntime)
-
-      integer (kind=int_kind), intent(out) :: &
-         ntime          ! number of data points in time
+      subroutine atm_GOFS
 
       integer (kind=int_kind) :: &
          nu_navy, &     ! unit number
@@ -300,8 +299,7 @@ endif
 
 !=======================================================================
 
-      subroutine prepare_forcing (ntime,              &
-                                  Tair,     fsw,      &    
+      subroutine prepare_forcing (Tair,     fsw,      &    
                                   cldf,     flw,      &
                                   frain,    fsnow,    &
                                   Qa,       rhoa,     &
@@ -314,8 +312,6 @@ endif
 
       use icepack_constants, only: c0, c1, c10, secday, Tffresh
  
-      integer (kind=int_kind), intent(in) :: ntime
-
       real (kind=dbl_kind), dimension(ntime), &
          intent(inout) :: &
          Tair    , & ! air temperature  (K)
