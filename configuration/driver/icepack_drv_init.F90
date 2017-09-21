@@ -103,7 +103,7 @@
       namelist /setup_nml/ &
         days_per_year,  use_leap_years, year_init,       istep0,        &
         dt,             npt,            ndtd,                           &
-        ice_ic,         restart,   &!     restart_dir,     restart_file,  &
+        ice_ic,         restart,        restart_dir, &!    restart_file,  &
         dumpfreq,    &
         diagfreq,       diag_file,                      &
         cpl_bgc
@@ -309,8 +309,7 @@
       diag_len = len(trim(diag_file))
       do n = 1,nx
         diag_file_names=''
-        write(format_str,'(A2,I0,A7)'),'(A',diag_len,',A1,I0)'
-        write(diag_file_names,format_str)trim(diag_file),'.',n
+        write(diag_file_names,'(a,a,i0)') trim(diag_file),'.',n
         write(ice_stdout,*)'    ',trim(diag_file_names)
         open(nu_diag_out+n-1, file=diag_file_names, status='unknown')
       end do
