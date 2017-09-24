@@ -1,16 +1,54 @@
+****************
+Science Guide
+****************
+
+
 .. _coupl:
 
-Coupling with other climate model components
-============================================
+Coupling with host models
+==================================
 
-There is capability for the sea ice model to exchange information with 
+Sea ice models exchange information with 
 other components of the earth system via a flux coupler. This is done
 through the full CICE model and a thorough description of coupling sea
-ice through a flux coupler can be found in the full CICE model 
-documentation. Important information related to flux coupling that is 
-done in the Icepack submodule will be discussed below.
+ice through a flux coupler can be found in the CICE model 
+documentation. Important information related to flux coupling associated
+with the Icepack submodule will be discussed below, 
+along with information about the interface between Icepack and CICE or
+other host sea ice models.
 
-:ref:`tab-flux-cpl`: *Data exchanged between the CESM flux coupler and the sea ice model that is relevant to Icepack*
+The column physics code interface
+----------------------------------------
+
+Subroutine calls and other linkages into Icepack from the host model should only
+need to access the **icepack\_intfc\*.F90** interface modules within the 
+``columnphysics/`` directory.  
+The Icepack driver in the ``configuration/driver/`` directory is based on the CICE
+model and provides an example of the sea ice host model capabilities needed for inclusion
+of Icepack.  In particular, host models will need to include code equivalent to that
+in the modules **icepack\_drv\_\*_column.F90**.  Calls into the Icepack interface routines
+are primarily from **icepack\_drv\_step\_mod.F90** but there are others (search the code
+for ``intfc``).
+
+Guiding principles for the creation of Icepack include the following:
+ - The column physics modules shall be independent of all sea ice model infrastructural
+elements that may vary from model to model.  Examples include input/output, timers,
+references to CPUs or computational tasks, initialization other than that necessary for
+strictly physical reasons, and anything related to a horizontal grid.
+ - The column physics modules shall not call or reference any routines or code that 
+reside outside of the **columnphysics/** directory.
+ - Any capabilities required by a host sea ice model (e.g. calendar variables, tracer 
+flags, diagnostics) shall be implemented in the driver and passed into or out of the 
+column physics modules via array arguments.
+
+
+Atmosphere and ocean boundary forcing
+-------------------------------------
+
+:ref:`tab-flux-cpl`: *Data exchanged between the CESM flux coupler and the sea ice model that are relevant to Icepack*  
+NOTE this table should be divided into those variables used in the column physics and 
+those that are used by the driver to prepare for the column physics (e.g. wind components).
+*icepack\_drv\_flux.F90 needs to be cleaned up!*
 
 .. _tab-flux-cpl:
 

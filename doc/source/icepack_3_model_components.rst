@@ -13,16 +13,19 @@ The fundamental equation solved by CICE is :cite:`TRMC75`:
 
 .. math::
    \frac{\partial g}{\partial t} = -\nabla \cdot (g {\bf u}) 
-    - \frac{\partial}{\partial h} (f g) + \psi,
+    - \frac{\partial}{\partial h} (f g) + \psi - L,
    :label: transport-g
 
 where :math:`{\bf u}` is the horizontal ice velocity,
 :math:`\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})`,
 :math:`f` is the rate of thermodynamic ice growth, :math:`\psi` is a
-ridging redistribution function, and :math:`g` is the ice thickness
+ridging redistribution function, 
+:math:`L` is the lateral melt rate
+and :math:`g` is the ice thickness
 distribution function. We define :math:`g({\bf x},h,t)\,dh` as the
 fractional area covered by ice in the thickness range :math:`(h,h+dh)`
-at a given time and location.
+at a given time and location.  Icepack represents all of the terms in this
+equation except for the divergence (the first term on the right).
 
 Equation :eq:`transport-g` is solved by partitioning the ice pack in
 each grid cell into discrete thickness categories. The number of
@@ -53,8 +56,7 @@ thickness distribution is used if :math:`N_C` = 7; if :math:`N_C` = 5 or
 shown in :ref:`tab-itd` for the delta-function ITD. Users may
 substitute their own preferred boundaries in *init\_itd*.
 
-:ref:`tab-itd` : *Data exchanged between the CESM flux coupler and the sea ice model
-Lower boundary values for thickness categories, in meters, for 
+:ref:`tab-itd` : *Lower boundary values for thickness categories, in meters, for 
 the three distribution options (* `kcatbound` *) and linear remapping (* `kitd` = 1 *). 
 In the WMO case, the distribution used depends on the number of categories used.*
 

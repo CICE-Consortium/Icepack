@@ -1,98 +1,306 @@
+**********
+User Guide
+**********
 
 Numerical implementation
 ========================
 
 Icepack is written in FORTRAN90 and runs on platforms using UNIX, LINUX,
-and other operating systems. The code is parallelized via grid
-decomposition with MPI or OpenMP threads and includes some optimizations
-for vector architectures.
+and other operating systems. The code is not parallelized. (CHANGE IF OPENMP IS IMPLEMENTED)
 
 .. _dirstructure:
 
 Directory structure
 -------------------
 
-Need to update for Icepack.
-
-*old stuff*
 The present code distribution includes make files, several scripts and
-some input files. The main directory is **cice/**, and a run directory
-(**rundir/**) is created upon initial execution of the script
-**comp\_ice**. One year of atmospheric forcing data is also available
+some input files. One year of atmospheric forcing data is also available
 from the code distribution web site (see the **README** file for
 details).
 
-*incomplete former list*
+**LICENSE.pdf**
+**DistributionPolicy.pdf**
+    license and policy for using and sharing the code
 
- history and restart modules
+**README.md**
+RM? **README\_v1**
+    basic information and pointers
 
-**ice\_history\_write.F90**
-    subroutines with  output
+**columnphysics/**
+    the essential physics code
 
-**ice\_restart.F90**
-    read/write   restart files
+CHANGE    **constants**
+
+    **icepack\_aerosol.F90**
+        handles most work associated with the aerosol tracers
+
+    **icepack\_age.F90**
+        handles most work associated with the age tracer
+
+    **icepack\_algae.F90**
+        biogeochemistry
+
+    **icepack\_atmo.F90**
+        stability-based parameterization for calculation of turbulent ice–atmosphere fluxes
+
+    **icepack\_brine.F90**
+        evolves the brine height tracer
+
+    **icepack\_firstyear.F90**
+        handles most work associated with the first-year ice area tracer
+
+    **icepack\_flux.F90**
+        fluxes needed/produced by the model
+
+    **icepack\_intfc.F90**
+        interface routines for linking Icepack with a host sea ice model
+
+    **icepack\_intfc\_shared.F90**
+        interface routines for linking Icepack with a host sea ice model
+
+    **icepack\_intfc\_tracers.F90**
+        interface routines for linking Icepack with a host sea ice model
+
+    **icepack\_itd.F90**
+        utilities for managing ice thickness distribution
+
+    **icepack\_kinds\_mod.F90**
+        basic definitions of reals, integers, etc.
+
+    **icepack\_mechred.F90**
+        mechanical redistribution component (ridging)
+
+    **icepack\_meltpond\_cesm.F90**
+        CESM melt pond parameterization
+
+    **icepack\_meltpond\_lvl.F90**
+        level-ice melt pond parameterization
+
+    **icepack\_meltpond\_topo.F90**
+        topo melt pond parameterization
+
+CHECK THIS    **icepack\_ocean.F90**
+        mixed layer ocean model
+
+    **icepack\_mushy\_physics.F90**
+        physics routines for mushy thermodynamics
+
+    **icepack\_orbital.F90**
+        orbital parameters for Delta-Eddington shortwave parameterization
+
+    **icepack\_shortwave.F90**
+        shortwave and albedo parameterizations
+
+    **icepack\_therm\_0layer.F90**
+        zero-layer thermodynamics of :cite:`Semtner76`
+
+    **icepack\_therm\_bl99.F90**
+        multilayer thermodynamics of :cite:`BL99`
+
+    **icepack\_therm\_itd.F90**
+        thermodynamic changes mostly related to ice thickness distribution
+
+    **icepack\_therm\_mushy.F90**
+        mushy-theory thermodynamics of :cite:`THB13`
+
+    **icepack\_therm\_shared.F90**
+        code shared by all thermodynamics parameterizations
+
+    **icepack\_therm\_vertical.F90**
+        vertical growth rates and fluxes
+
+    **icepack\_warnings.F90**
+        utilities for writing warning and error messages
+
+    **icepack\_zbgc.F90**
+        driver for ice biogeochemistry and brine tracer motion
+
+    **icepack\_zbgc\_shared.F90**
+        parameters and shared code for biogeochemistry and brine height
+
+    **icepack\_zsalinity.F90**
+        vertical salinity parameterization of (CITE Jeffery)
+
+**configuration/**
+    drivers and scripts for testing Icepack in stand-alone mode
+    **drivers/**
+        **icepack\_drv\_MAIN.F90**
+            main program
+
+        **icepack\_drv\_InitMod.F90**
+            routines for initializing a run
+
+        **icepack\_drv\_RunMod.F90**
+            main driver routines for time stepping
+
+        **icepack\_drv\_arrays\_column.F90**
+            essential arrays to describe the state of the ice
+
+        **icepack\_drv\_calendar.F90**
+            keeps track of what time it is
+
+CHECK THIS        **icepack\_drv\_constants.F90**
+            physical and numerical constants and parameters
+
+        **icepack\_drv\_diagnostics.F90**
+            miscellaneous diagnostic and debugging routines
+
+        **icepack\_drv\_diagnostics\_bgc.F90**
+            diagnostic routines for biogeochemistry
+
+        **icepack\_drv\_domain\_size.F90**
+            domain sizes
+
+        **icepack\_drv\_flux.F90**
+            fluxes needed/produced by the model
+
+        **icepack\_drv\_forcing.F90**
+            routines to read and interpolate forcing data for stand-alone model runs
+
+        **icepack\_drv\_init.F90**
+            general initialization routines
+
+        **icepack\_drv\_init\_column.F90**
+            initialization routines specific to the column physics
+
+        **icepack\_drv\_restart.F90**
+            driver for reading/writing restart files
+
+RENAME bgc        **icepack\_drv\_restart\_column.F90**
+            restart routines specific to the column physics
+
+        **icepack\_drv\_restart\_shared.F90**
+            code shared by all restart options
+
+        **icepack\_drv\_state.F90**
+            essential arrays to describe the state of the ice
+
+        **icepack\_drv\_step\_mod.F90**
+            routines for time stepping the major code components
+
+    **scripts/**
+        **Makefile**
+            primary makefile
+
+        **icepack.batch.csh**
+            creates batch scripts for particular machines
+
+        **icepack.build**
+            compiles the code
+
+        **icepack.launch.csh**
+            creates script logic that runs the executable
+
+        **icepack.run.setup.csh**
+            sets up the run directory
+
+        **icepack.settings**
+            defines environment, model configuration and run settings
+
+        **icepack.test.setup.csh**
+            creates configurations for testing the model
+
+        **icepack\_decomp.csh**
+            defines the grid size
+
+        **icepack\_in**
+CHECK            namelist input data (data paths depend on particular system)
+
+        **machines/**
+            macro definitions for the given computers
+
+        **makdep.c**
+            determines module dependencies
+
+        **options/**
+            other namelist configurations available from the icepack.create.case command line
+
+        **parse\_namelist.sh**
+            replaces namelist with command-line configuration
+
+        **parse\_settings.sh**
+            replaces settings with command-line configuration
+
+        **tests/**
+ADD LINK            scripts for configuring and running basic tests
+
+**doc/**
+    documentation
+
+**icepack.create.case**
+    main script for setting up a test case
+
+ADD LINK 
+A case (compile) directory is created upon initial execution of the script 
+**icepack.create.case** at the user-specified location provided after the -c flag. 
+Executing the command ``./icepack.create.case -h`` provides helpful information for 
+this tool. Please refer to the (LINK)user guide for further information.
 
 
-Grid, boundary conditions and masks
+Grid and boundary conditions 
 -----------------------------------
 
-*Needs update for Icepack*
+The driver configures a collection of grid cells on which the column physics code 
+will be run. This "horizontal" grid is a vector of length ``nx``, with a minimum length 
+of 4.   
+The grid vector is initialized with different sea ice conditions, such as open 
+water, a uniform slab of ice, a multi-year ice thickness distribution with snow, 
+and land. For simplicity, the same forcing values are applied to all grid cells. 
 
-.. _bio-grid:
+Icepack includes two vertical grids.  The basic vertical grid contains 
+``nilyr`` equally spaced grid cells.  
+History variables available for column output are ice and snow
+temperature, ``Tinz`` and ``Tsnz``. These variables also include thickness
+category as a fourth dimension.
 
-Bio-grid
-~~~~~~~~
-
-The bio-grid is a vertical grid used for solving the brine height
-variable :math:`h_b`. In the future, it will also be used for
+In addition, there is a bio-grid that 
+can be more finely resolved and includes additional nodes for boundary conditions.
+It is used for solving the brine height variable :math:`h_b` and for
 discretizing the vertical transport equations of biogeochemical tracers.
 The bio-grid is a non-dimensional vertical grid which takes the value
 zero at :math:`h_b` and one at the ice–ocean interface. The number of
-grid levels is specified during compilation in **comp\_ice** by setting
-the variable `NBGCLYR` equal to an integer (:math:`n_b`) .
+grid levels is specified during compilation by setting
+the variable ``NBGCLYR`` equal to an integer (:math:`n_b`) .
 
 Ice tracers and microstructural properties defined on the bio-grid are
-referenced in two ways: as `bgrid` :math:`=n_b+2` points and as
+referenced in two ways: as ``bgrid`` :math:`=n_b+2` points and as
 igrid\ :math:`=n_b+1` points. For both bgrid and igrid, the first and
 last points reference :math:`h_b` and the ice–ocean interface,
 respectively, and so take the values :math:`0` and :math:`1`,
 respectively. For bgrid, the interior points :math:`[2, n_b+1]` are
 spaced at :math:`1/n_b` intervals beginning with `bgrid(2)` :math:` =
-1/(2n_b)`. The `igrid` interior points :math:`[2, n_b]` are also
+1/(2n_b)`. The ``igrid`` interior points :math:`[2, n_b]` are also
 equidistant with the same spacing, but physically coincide with points
-midway between those of `bgrid`.
+midway between those of ``bgrid``.
 
-Column configuration
-~~~~~~~~~~~~~~~~~~~~
 
-A column modeling capability is available. Because of the boundary
-conditions and other spatial assumptions in the model, this is not a
-single column, but a small array of columns (minimum grid size is 5x5).
-However, the code is set up so that only the single, central column is
-used (all other columns are designated as land). The column is located
+.. _testconfigs:
+
+Test configurations
+-------------------
+
+*UPDATE*
+
+The column is located
 near Barrow (71.35N, 156.5W). Options for choosing the column
 configuration are given in **comp\_ice** (choose `RES col`) and in the
-namelist file, **input\_templates/col/ice\_in**. Here, `istep0` and the
+namelist file, **input\_templates/col/ice\_in**. Here, ``istep0`` and the
 initial conditions are set such that the run begins September 1 with no
-ice. The grid type is rectangular, dynamics are turned off (`kdyn` = 0) and
-one processor is used.
+ice. 
 
-History variables available for column output are ice and snow
-temperature, `Tinz` and `Tsnz`. These variables also include thickness
-category as a fourth dimension.
 
 .. _init:
 
 Initialization and coupling
 ---------------------------
 
-The ice model’s parameters and variables are initialized in several
+Icepack’s parameters and variables are initialized in several
 steps. Many constants and physical parameters are set in
-**ice\_constants.F90**. Namelist variables (:ref:`tabnamelist`),
+**icepack\_constants.F90**. Namelist variables (:ref:`tabnamelist`),
 whose values can be altered at run time, are handled in *input\_data*
 and other initialization routines. These variables are given default
 values in the code, which may then be changed when the input file
-**ice\_in** is read. Other physical constants, numerical parameters, and
+**icepack\_in** is read. Other physical constants, numerical parameters, and
 variables are first set in initialization routines for each ice model
 component or module. Then, if the ice model is being restarted from a
 previous run, core variables are read and reinitialized in
@@ -102,58 +310,20 @@ specialized parameterization. Finally, albedo and other quantities
 dependent on the initial ice state are set. Some of these parameters
 will be described in more detail in :ref:`tabnamelist`.
 
-The restart files supplied with the code release include the core
-variables on the default configuration, that is, with seven vertical
-layers and the ice thickness distribution defined by `kcatbound` = 0.
-Restart information for some tracers is also included in the  restart
-files.
+Two namelist variables control model initialization, ``ice\_ic``
+and ``restart``.  Setting ``ice\_ic`` = default causes the model to run using
+constant forcing and initial values set in the code.  To start
+from a file **filename**, set 
+``restart`` = true and ``ice\_ic`` = **filename**.  When restarting using the Icepack
+driver, for simplicity the tracers are assumed to be set the same way (on/off) as in the
+run that created the restart file; i.e. that the restart file contains exactly the 
+information needed for the new run.  CICE is more flexible in this regard.
 
-Three namelist variables control model initialization, `ice\_ic`, `runtype`,
-and `restart`, as described in :ref:`tab-ic`. It is possible to do an
-initial run from a file **filename** in two ways: (1) set runtype =
-‘initial’, restart = true and ice\_ic = **filename**, or (2) runtype =
-‘continue’ and pointer\_file = **./restart/ice.restart\_file** where
-**./restart/ice.restart\_file** contains the line
-“./restart/[filename]". The first option is convenient when repeatedly
-starting from a given file when subsequent restart files have been
-written. With this arrangement, the tracer restart flags can be set to
-true or false, depending on whether the tracer restart data exist. With
-the second option, tracer restart flags are set to ‘continue’ for all
-active tracers.
+For stand-alone runs,
+routines in **icepack\_drv\_forcing.F90** read and interpolate data from files,
+and are intended merely for testing, although they can also provide guidance for 
+the user to write his or her own routines. 
 
-An additional namelist option, `restart\_ext` specifies whether halo cells
-are included in the restart files. This option is useful for tripole and
-regional grids, but can not be used with PIO.
-
-MPI is initialized in *init\_communicate* for both coupled and
-stand-alone MPI runs. The ice component communicates with a flux coupler
-or other climate components via external routiines that handle the
-variables listed in :ref:`tab-flux-cpl`. For stand-alone runs,
-routines in **ice\_forcing.F90** read and interpolate data from files,
-and are intended merely to provide guidance for the user to write his or
-her own routines. Whether the code is to be run in stand-alone or
-coupled mode is determined at compile time, as described below.
-
-:ref:`tab-ic` : *Ice initial state resulting from combinations of*
-`ice\_ic`, `runtype` and `restart`. :math:`^a`\ *If false, restart is reset to
-true.* :math:`^b`\ *restart is reset to false.* :math:`^c`\ ice\_ic *is
-reset to ‘none.’*
-
-.. _tab-ic:
-
-.. table:: Table 4
-
-   +----------------+--------------------------+--------------------------------------+----------------------------------------+
-   | ice\_ic        |                          |                                      |                                        |
-   +================+==========================+======================================+========================================+
-   |                | initial/false            | initial/true                         | continue/true (or false\ :math:`^a`)   |
-   +----------------+--------------------------+--------------------------------------+----------------------------------------+
-   | none           | no ice                   | no ice\ :math:`^b`                   | restart using **pointer\_file**        |
-   +----------------+--------------------------+--------------------------------------+----------------------------------------+
-   | default        | SST/latitude dependent   | SST/latitude dependent\ :math:`^b`   | restart using **pointer\_file**        |
-   +----------------+--------------------------+--------------------------------------+----------------------------------------+
-   | **filename**   | no ice\ :math:`^c`       | start from **filename**              | restart using **pointer\_file**        |
-   +----------------+--------------------------+--------------------------------------+----------------------------------------+
 
 .. _parameters:
 
@@ -175,81 +345,172 @@ Model output
 
 .. _history:
 
+History output from Icepack is not currently supported in the Icepack driver, except
+in restart files.
+
+(LINK)
+CICE provides extensive options for model output, including many derived output variables.
+
 Diagnostic files
 ~~~~~~~~~~~~~~~~
 
-*Needs specifics for icepack*
+Icepack writes diagnostic information for each grid cell as a separate file, 
+**ice\_diag.\***.
 
 
 Restart files
 ~~~~~~~~~~~~~
 
-CICE now provides restart data in binary unformatted or  formats, via
-the `IO\_TYPE` flag in **comp\_ice** and namelist variable
-`restart\_format`. Restart and history files must use the same format. As
-with the history output, there is also an option for writing parallel
-restart files using PIO.
+CHANGE as needed re netCDF
 
-The restart files created by CICE contain all of the variables needed
+CICE provides restart data in binary unformatted or netCDF formats, via
+the `IO\_TYPE` flag in **comp\_ice** and namelist variable
+`restart\_format`. 
+
+The restart files created by the Icepack driver contain all of the variables needed
 for a full, exact restart. The filename begins with the character string
 ‘iced.’, and the restart dump frequency is given by the namelist
-variables `dumpfreq` and `dumpfreq\_n`. The pointer to the filename from
-which the restart data is to be read for a continuation run is set in
-`pointer\_file`. The code assumes that auxiliary binary tracer restart
-files will be identified using the same pointer and file name prefix,
-but with an additional character string in the file name that is
-associated with each tracer set. All variables are included in  restart
-files.
+variable `dumpfreq`. The namelist variable `ice\_ic` contains the
+pointer to the filename from which the restart data is to be read.
 
-Additional namelist flags provide further control of restart behavior.
-`dump\_last` = true causes a set of restart files to be written at the end
-of a run when it is otherwise not scheduled to occur. The flag
-`use\_restart\_time` enables the user to choose to use the model date
-provided in the restart files. If `use\_restart\_time` = false then the
-initial model date stamp is determined from the namelist parameters.
-lcdf64 = true sets 64-bit  output, allowing larger file sizes with
-version 3.
-
-Routines for gathering, scattering and (unformatted) reading and writing
-of the “extended" global grid, including the physical domain and ghost
-(halo) cells around the outer edges, allow exact restarts on regional
-grids with open boundary conditions, and they will also simplify
-restarts on the various tripole grids. They are accessed by setting
-`restart\_ext` = true in namelist. Extended grid restarts are not
-available when using PIO; in this case extra halo update calls fill
-ghost cells for tripole grids (do not use PIO for regional grids).
-
-Two restart files are included with the CICE v5 code distribution, for
-the gx3 and gx1 grids. The were created using the default model
-configuration (settings as in **comp\_ice** and **ice\_in**), but
-initialized with no ice. The gx3 case was run for 1 year using the 1997
-forcing data provided with the code. The gx1 case was run for 20 years,
-so that the date of restart in the file is 1978-01-01. Note that the
-restart dates provided in the restart files can be overridden using the
-namelist variables `use\_restart\_time`, `year\_init` and `istep0`. The
-forcing time can also be overridden using `fyear\_init`.
 
 Execution procedures
---------------------
+====================
 
-* point to appropriate info online?*
+Quick-start instructions are provided in section :ref:`quickstart`
 
-
-Adding things
+Scripts
 -------------
+
+Most of the scripts that configure, build and run Icepack tests are contained in 
+the directory **configuration/scripts/**, except for **icepack.create.case**, which is
+in the main directory.  
+
+Users likely will need to create or edit some scripts for their computer's environment. 
+Specific instructions for porting are provided below.
+
+icepack.create.case generates a case. Use ``create.case -h`` for help with the tool.
+  -c is the case name and location (required)
+
+  -m is the machine name (required). Currently, there are working ports for NCAR yellowstone and cheyenne, AFRL thunder, NavyDSRC gordon and conrad, and LANL’s wolf machines.
+
+  -s are comma separated optional env or namelist settings (default is "null")
+
+  -t is the test name and location (cannot be used with -c).
+
+  -bd is used to specify the location of the baseline datasets (only used with -t)
+
+  -bg is used to specify the icepack version name for generating baseline datasets (only used with -t)
+
+  -bc is used to specify the icepack version name for comparison. I.e., the version name for the baseline dataset (only used with -t)
+
+  -testid is used to specify a test ID (used only with -t or -ts)
+
+  -ts is used to generate all test cases for a given test suite.
+
+
+Several files are placed in the case directory
+
+ - **env.**[machine] defines the environment
+
+ - **icepack.settings** defines many variables associated with building and running the model
+
+ - **makdep.c** is a tool that will automatically generate the make dependencies
+
+ - **Macros.**[machine] defines the Makefile macros
+
+ - **Makefile** is the makefile used to build the model
+
+ - **icepack.build** is a script that builds and compiles the model
+
+ - **icepack\_in** is the namelist file
+
+ - **icepack.run** is a batch run script
+
+ - **icepack.submit** is a simple script that submits the icepack.run script
+
+Once the case is created, all scripts and namelist are fully resolved.  Users can edit any
+of the files in the case directory manually to change the model configuration.  The file
+dependency is indicated in the above list.  For instance, if any of the files before
+**icepack.build** in the list are edited, **icepack.build** should be rerun.
+
+The **casescripts/** directory holds scripts used to create the case and can 
+largely be ignored.  
+In general, when **icepack.build** is executed, the model will build from scratch 
+due to extensive preprocessing dependencies.  To change this behavior, edit the 
+env variable ``ICE\_CLEANBUILD`` in **icepack.settings**.  
+
+The **icepack.submit** script simply submits the **icepack.run script**.  
+You can also submit the **icepack.run** script on the command line.
+
+To port, an **env.**[machine] and **Macros.**[machine] file have to be added to 
+**configuration/scripts/machines/** and the 
+**icepack.run.setup.csh** file needs to be modified.
+ - cd to **configuration/scripts/machines/**
+ - Copy existing env and Macros files to new names for your new machine
+ - Edit the env and Macros files
+ - cd .. to **configuration/scripts/**
+ - Edit the **icepack.run.setup.csh** script to add a section for your machine 
+with batch settings and job launch settings
+ - Download and untar a forcing dataset to the location defined by 
+``ICE\_MACHINE\_INPUTDATA`` in the env file
+ - Create a file in your home directory called .cice\_proj and add your preferred account name to the first line.
+
+
+Directories
+-------------
+
+CHECK
+
+The **icepack.create.case** script creates a case directory in the location specified 
+by the ``-c`` or ``-t`` flags.  The **icepack.build** (or equivalent test suite) script 
+creates the run directory defined by the env variable ``ICE\_RUNDIR`` in 
+**icepack.settings**, and it compiles the code there.  The run directory is further 
+populated by the **icepack.run** script, which also runs the executable.
+
+Build and run logs will be copied from the run directory into the case **logs/** 
+directory when complete.
+
+
+Local modifications
+--------------------------
+
+If there are problems, you can manually edit 
+the env, Macros, and **icepack.run** files in the case directory until things are 
+working properly.  Then you can copy the env and Macros files back to 
+**configuration/scripts/machines**.  You will have to manually modify the 
+**icepack.run.setup.csh** script if there any changes needed there.
+
+You can also directly modify the namelist files (**icepack\_in**) in the run directory and
+run the code by submitting the executable **icepack** directly.  Beware that any changes 
+make in the run directory will be overwritten if scripts are later run from the case
+directory.
+
+Forcing data
+------------
+
+FINISH:
+
+The code is currently configured to run in standalone mode on a 4-cell grid using 
+atmospheric data, available as detailed on the `wiki <https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack>`_.
+These data files are designed only for testing the code, not for use in production 
+runs or as observational data.  Please do not publish results based on these data
+sets.  Module **configuration/driver/icepack\_drv\_forcing.F90**
+can be modified to change the forcing data. 
+
+
+
+Adding Tracers
+====================
 
 .. _addtrcr:
 
-Tracers
-~~~~~~~
-
-*point to workflow online?*
-
-Each optional tracer has its own module, **ice\_[tracer].F90**, which
-also contains as much of the additional tracer code as possible, and for
-backward compatibility of binary restart files, each new tracer has its
-own binary restart file. We recommend that the logical namelist variable
-`tr\_[tracer]` be used for all calls involving the new tracer outside of
+Tracers added to Icepack will also require extensive modifications to the host
+sea ice model, including initialization on the horizontal grid, namelist flags 
+and restart capabilities.  Modifications to the Icepack driver should reflect
+the modifications needed in the host model but are not expected to match completely.
+We recommend that the logical namelist variable
+``tr\_[tracer]`` be used for all calls involving the new tracer outside of
 **ice\_[tracer].F90**, in case other users do not want to use that
 tracer.
 
@@ -279,54 +540,47 @@ dependencies (e.g., :math:`a_{lvl}` and :math:`a_{pnd}` in
 To add a tracer, follow these steps using one of the existing tracers as
 a pattern.
 
-#. **ice\_domain\_size.F90**: increase `max\_ntrcr` (can also add option
-   to **comp\_ice** and **bld/Macros.\***)
+#. **icepack\_drv\_domain\_size.F90**: increase ``max\_ntrcr`` (can also add option
+   to **icepack.settings** and **icepack.build**)
 
-#. **ice\_state.F90**: declare `nt\_[tracer]` and `tr\_[tracer]`
+#. **icepack\_drv\_state.F90**: declare `nt\_[tracer]` and `tr\_[tracer]`
 
-#. **ice\_[tracer].F90**: create initialization, physics, restart
-   routines
+#. **icepack\_[tracer].F90**: create initialization, physics routines
 
-#. **ice\_fileunits.F90**: add new dump and restart file units
-
-#. **ice\_init.F90**: (some of this may be done in **ice\_[tracer].F90**
+#. **ice\_drv\_init.F90**: (some of this may be done in **ice\_[tracer].F90**
    instead)
 
-   -  add new module and `tr\_[tracer]` to list of used modules and
+   -  add new module and ``tr\_[tracer]`` to list of used modules and
       variables
 
-   -  add logical namelist variable `tr\_[tracer]`
+   -  add logical namelist variable ``tr\_[tracer]``
 
    -  initialize namelist variable
 
-   -  broadcast namelist variable
-
    -  print namelist variable to diagnostic output file
 
-   -  increment number of tracers in use based on namelist input (`ntrcr`)
+   -  increment number of tracers in use based on namelist input (``ntrcr``)
 
-   -  define tracer types (`trcr\_depend` = 0 for ice area tracers, 1 for
-      ice volume, 2 for snow volume, 2+nt\_[tracer] for dependence on
+   -  define tracer types (``trcr\_depend`` = 0 for ice area tracers, 1 for
+      ice volume, 2 for snow volume, 2+``nt\_``[tracer] for dependence on
       other tracers)
 
-#. **ice\_itd.F90**, **ice\_mechred.F90**: Account for new dependencies
+#. **icepack\_itd.F90**, **icepack\_mechred.F90**: Account for new dependencies
    if needed.
 
-#. **CICE\_InitMod.F90**: initialize tracer (includes reading restart
+#. **icepack\_drv\_InitMod.F90**: initialize tracer (includes reading restart
    file)
 
-#. **CICE\_RunMod.F90**, **ice\_step\_mod.F90**:
+#. **icepack\_drv\_RunMod.F90**, **icepack\_drv\_step\_mod.F90**:
 
    -  call routine to write tracer restart data
 
-   -  call physics routines in **ice\_[tracer].F90** (often called from
-      **ice\_step\_mod.F90**)
+   -  call physics routines in **icepack\_[tracer].F90** (often called from
+      **icepack\_drv\_step\_mod.F90**)
 
-#. **ice\_restart.F90**: define restart variables (for binary,  and PIO)
+#. **icepack\_drv\_restart.F90**: define restart variables
 
-#. **ice\_history\_[tracer].F90**: add history variables
-
-#. **ice\_in**: add namelist variables to *tracer\_nml* and
+#. **icepack\_in**: add namelist variables to *tracer\_nml* and
    *icefields\_nml*
 
 #. If strict conservation is necessary, add diagnostics as noted for
