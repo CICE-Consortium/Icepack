@@ -1,22 +1,31 @@
-.. CICE-Consortium documentation master file, created by
-   sphinx-quickstart on Fri Jul  7 13:36:15 2017.
+.. CICE-Consoritum documentation master file, created by
+   sphinx-quickstart on Thu Jun 29 13:47:09 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CICE-Consortium's documentation!
+===========================================
+Icepack Documentation 
 ===========================================
 
-Contents:
+Table of Contents:
+------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
+   :numbered:
 
-
-
-Indices and tables
+   icepack_1_introduction.rst
+   icepack_2_coupling.rst
+   icepack_3_model_components.rst
+   icepack_4_numerical_implementation.rst
+   icepack_5_troubleshooting.rst
+   icepack_6_copyright.rst
+   icepack_7_namelist_opts.rst
+   icepack_8_index.rst
+   zreferences.rst
+ 
+Useful tools
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 
