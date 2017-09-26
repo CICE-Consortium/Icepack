@@ -1,16 +1,17 @@
 &setup_nml
     days_per_year  = 365
     use_leap_years = .false.
-    year_init      = 1981
-    istep0         = 5832
+    year_init      = 2015
+    istep0         = 1
     dt             = 3600.0
-    npt            = 43800
+    npt            = 8760
     ndtd           = 1
     ice_ic         = 'none'
     restart        = .false.
+    restart_dir    = 'restart/'
     dumpfreq       = 'y'
     diagfreq       = 24
-    diag_file      = 'ice_diag.d'
+    diag_file      = 'ice_diag'
     cpl_bgc        = .false.
 /
 
@@ -237,6 +238,17 @@
     update_ocn_f    = .false.
     l_mpond_fresh   = .false.
     tfrz_option     = 'mushy'
+    precip_units    = 'mks'
+    default_season  = 'spring'
+    atm_data_type   = 'GOFS'
+    ocn_data_type   = 'default'
+    bgc_data_type   = 'default'
+    fyear_init      = 2015
+    ycycle          = 1
+    data_dir        = '/Users/ftuser/Desktop/CICE-Consortium/code'
+    atm_data_format = 'bin'
+    ocn_data_format = 'bin'
+    bgc_data_format = 'bin'
 /
 
 &icefields_nml
