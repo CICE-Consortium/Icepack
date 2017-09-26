@@ -108,7 +108,9 @@
       !-----------------------------------------------------------------
 
       call write_restart_field_cn(nu_dump,aicen(:,:),ncat)
+      !write(*,*) aicen
       call write_restart_field_cn(nu_dump,vicen(:,:),ncat)
+      !write(*,*) vicen
       call write_restart_field_cn(nu_dump,vsnon(:,:),ncat)
 !this is surface temperature
       call write_restart_field_cn(nu_dump,trcrn(:,nt_Tsfc,:),ncat)
@@ -116,6 +118,7 @@
       do k=1,nilyr
          write(nchar,'(i3.3)') k
          call write_restart_field_cn(nu_dump,trcrn(:,nt_sice+k-1,:),ncat)
+      !write(*,*)trcrn(:,nt_sice+k-1,:)
       enddo
 !this is ice enthalpy in each nilyr
       do k=1,nilyr
@@ -127,6 +130,7 @@
          write(nchar,'(i3.3)') k
          call write_restart_field_cn(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
+      !write(*,*) trcrn
 
       !-----------------------------------------------------------------
       ! radiation fields
@@ -231,7 +235,7 @@
       write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
       istep1 = istep0
-
+ 
       !-----------------------------------------------------------------
       ! state variables
       ! Tsfc is the only tracer read in this file.  All other
@@ -240,7 +244,9 @@
       write(nu_diag,*) ' min/max area, vol ice, vol snow, Tsfc'
 
       call read_restart_field_cn(nu_restart,aicen,ncat)
+      !write(*,*) aicen
       call read_restart_field_cn(nu_restart,vicen,ncat)
+      !write(*,*)vicen
       call read_restart_field_cn(nu_restart,vsnon,ncat)
       call read_restart_field_cn(nu_restart,trcrn(:,nt_Tsfc,:),ncat)
 
@@ -248,6 +254,7 @@
       do k=1,nilyr
         write(nchar,'(i3.3)') k
         call read_restart_field_cn(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
+      !write(*,*)trcrn(:,nt_sice+k-1,:)
       enddo
       
       write(nu_diag,*) 'min/max qice for each layer'
@@ -261,6 +268,7 @@
         write(nchar,'(i3.3)') k
         call read_restart_field_cn(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
+      !write(*,*) trcrn
 
       !-----------------------------------------------------------------
       ! radiation fields
@@ -334,8 +342,9 @@
       !-----------------------------------------------------------------
       ! compute aggregate ice state and open water area
       !-----------------------------------------------------------------
+      !write(*,*) trcrn
+
 !cn this gets called again upon returning...
-#if 0
       do i = 1, nx
          if (tmask(i)) &
          call icepack_aggregate (ncat,               &
@@ -356,7 +365,6 @@
 
          aice_init(i) = aice(i)
       enddo
-#endif
       end subroutine restartfile
 
 !=======================================================================

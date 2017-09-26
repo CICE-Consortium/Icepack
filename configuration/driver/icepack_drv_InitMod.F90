@@ -135,7 +135,7 @@
 
 
       !in CICE, the following line:
-      if (tr_brine .or. skl_bgc) call init_hbrine ! brine height tracer
+      !if (tr_brine .or. skl_bgc) call init_hbrine ! brine height tracer
       !is called like this:
       !if (tr_brine .or. skl_bgc) then ! brine height tracer
       !    call init_hbrine
@@ -145,7 +145,7 @@
 
 
       !the bgc restarts are contained in this subroutine
-      if (solve_zsal .or. skl_bgc .or. z_tracers) call init_bgc ! biogeochemistry
+      !if (solve_zsal .or. skl_bgc .or. z_tracers) call init_bgc ! biogeochemistry
 
       !-----------------------------------------------------------------
       ! aggregate tracers
@@ -168,6 +168,7 @@
                                 n_trcr_strata,      &
                                 nt_strata)
       enddo
+      write(*,*) trcrn
       end subroutine init_restart
 
 !=======================================================================

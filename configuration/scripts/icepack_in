@@ -9,7 +9,6 @@
     ice_ic         = 'none'
     restart        = .false.
     dumpfreq       = 'y'
-    dumpfreq       = 1
     diagfreq       = 24
     diag_file      = 'ice_diag.d'
     cpl_bgc        = .false.

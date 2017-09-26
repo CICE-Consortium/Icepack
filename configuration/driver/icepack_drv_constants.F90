@@ -25,6 +25,7 @@
          nu_rst_pointer = 11, &      ! unit for restart pointer file
          nu_restart = 12, &          ! unit for restart file
          nu_dump    = 13, &          ! unit for dump file
+         nu_forcing    = 14, &          ! unit for forcing file
          nu_diag    = ice_stdout, &     ! unit for diagnostic output
          nu_diag_out = 100
 
