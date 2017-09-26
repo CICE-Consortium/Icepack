@@ -7,19 +7,21 @@
       module icepack_drv_forcing
 
       use icepack_kinds_mod
-      use icepack_drv_calendar, only: nyr, days_per_year
+      use icepack_drv_domain_size, only: ncat, nx
+      use icepack_drv_calendar, only: nyr, days_per_year, dayyr, month, &
+                              daymo, daycal
 !      use ice_calendar, only: istep, istep1, time, time_forc, year_init, &
-!                              sec, mday, month, nyr, yday, daycal, dayyr, &
-!                              daymo
-      use icepack_drv_constants, only: nu_diag
+!                              sec, mday, nyr, yday
+      use icepack_drv_constants, only: nu_diag, nu_forcing
       use icepack_intfc_shared, only: calc_strair
 
       implicit none
       private
-      public :: init_forcing, get_forcing
-!                read_clim_data, read_clim_data_nc, &
-!                interpolate_data, interp_coeff_monthly, &
-!                read_data_nc_point, interp_coeff
+      public :: init_forcing, get_forcing, read_clim_data, &
+          interpolate_data, interp_coeff, interp_coeff_monthly, &
+          read_data_point
+!                , read_clim_data_nc, &
+!                read_data_nc_point
       save
 
       integer (kind=int_kind), public :: &
@@ -63,6 +65,10 @@
           swvdf_data, &
           swidr_data, &
           swidf_data
+
+      real (kind=dbl_kind), public  :: &
+           c1intp, c2intp , & ! interpolation coefficients
+           ftime              ! forcing time (for restart)
 
       character(char_len), public :: & 
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
@@ -422,6 +428,420 @@ endif
       enddo ! ntime
 
       end subroutine prepare_forcing
+
+!=======================================================================
+      subroutine read_clim_data (readflag, recd, ixm, ixx, ixp, &
+                                 data_file, field_data)
+
+
+! Read data needed for interpolation, as in read_data.
+! Assume a one-year cycle of climatological data, so that there is
+!  no need to get data from other years or to extrapolate data beyond
+!  the forcing time period.
+
+#if 0
+      use ice_diagnostics, only: check_step
+      use ice_timers, only: ice_timer_start, ice_timer_stop, timer_readwrite
+#endif
+      logical (kind=log_kind),intent(in) :: readflag
+
+      integer (kind=int_kind), intent(in) :: &
+        recd            , & ! baseline record number
+        ixm,ixx,ixp         ! record numbers of 3 data values
+                            ! relative to recd
+
+      character (char_len_long), intent(in) ::  data_file
+
+!cn       integer (kind=int_kind), intent(in) :: &
+!cn            field_loc, &      ! location of field on staggered grid
+!cn            field_type        ! type of field (scalar, vector, angle)
+
+      !cn real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), &
+      real (kind=dbl_kind), dimension(nx,2), &
+        intent(out) :: &
+        field_data         ! 2 values needed for interpolation
+
+      ! local variables
+      integer (kind=int_kind) :: &
+        nbits          , & ! = 32 for single precision, 64 for double
+        nrec           , & ! record number to read
+        arg            , & ! value of time argument in field_data
+        i
+
+#if 0
+      call ice_timer_start(timer_readwrite)  ! reading/writing
+
+      nbits = 64                ! double precision data
+      if (istep1 > check_step) dbug = .true.  !! debugging
+
+      if (my_task==master_task .and. (dbug)) &
+        write(nu_diag,*) '  ', trim(data_file)
+#endif
+      if (readflag) then
+
+      !-----------------------------------------------------------------
+      ! read data
+      !-----------------------------------------------------------------
+
+         !cn call ice_open (nu_forcing, data_file, nbits)
+         open(nu_forcing,file=data_file,form='unformatted')
+!cn this is probably not going to work? We need to get rec straight...
+!         elseif (atype == 'rda4') then
+!            allocate(work_gr(nx_global,ny_global))
+!            read(nu,rec=nrec) work_gr
+!            work_g1 = work_gr
+!            deallocate(work_gr)
+!cn in restart we do:
+!            read(nu_forcing) (field_data(i,arg),i=1,nx) !cn
+
+
+
+
+
+         arg = 0
+         if (ixm /= -99) then
+            arg = 1
+            nrec = recd + ixm
+            !cn call ice_read (nu_forcing, nrec, field_data(:,:,arg,:), &
+            !cn               'rda8', dbug, field_loc, field_type)
+            read(nu_forcing,rec=nrec) field_data(:,arg) !cn
+         endif
+
+         arg = arg + 1
+         nrec = recd + ixx
+         !cn call ice_read (nu_forcing, nrec, field_data(:,:,arg,:), &
+         !cn               'rda8', dbug, field_loc, field_type)
+         read(nu_forcing,rec=nrec) field_data(:,arg) !cn
+            
+         if (ixp /= -99) then
+            arg = arg + 1
+            nrec = recd + ixp
+            !cn call ice_read (nu_forcing, nrec, field_data(:,:,arg,:), &
+            !cn               'rda8', dbug, field_loc, field_type)
+            read(nu_forcing,rec=nrec) field_data(:,arg) !cn
+         endif
+
+#if 0
+         if (my_task == master_task) close (nu_forcing)
+#endif
+      endif                     ! readflag
+
+#if 0
+
+      call ice_timer_stop(timer_readwrite)  ! reading/writing
+
+#endif
+      end subroutine read_clim_data
+
+!=======================================================================
+
+      subroutine interpolate_data (field_data, field)
+
+! Linear interpolation
+
+! author: Elizabeth C. Hunke, LANL
+
+      !cn use ice_domain, only: nblocks
+
+      !cn real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), &
+      real (kind=dbl_kind), dimension(nx,2), &
+        intent(in) :: &
+        field_data    ! 2 values used for interpolation
+
+      !cn real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks), &
+      real (kind=dbl_kind), dimension(nx), &
+        intent(out) :: &
+        field         ! interpolated field
+      ! local variables
+
+      integer (kind=int_kind) :: i
+      do i = 1, nx
+        field(i) = c1intp * field_data(i,1) &
+            + c2intp * field_data(i,2)
+      enddo
+#if 0
+      ! local variables
+
+      integer (kind=int_kind) :: i,j, iblk
+
+      do iblk = 1, nblocks
+         do j = 1, ny_block
+         do i = 1, nx_block
+            field(i,j,iblk) = c1intp * field_data(i,j,1,iblk) &
+                            + c2intp * field_data(i,j,2,iblk)
+         enddo
+         enddo
+      enddo
+#endif
+      end subroutine interpolate_data
+
+!=======================================================================
+      subroutine interp_coeff (recnum, recslot, secint, dataloc)
+
+! Compute coefficients for interpolating data to current time step.
+! Works for any data interval that divides evenly into a
+!  year (daily, 6-hourly, etc.)
+! Use interp_coef_monthly for monthly data.
+
+      use icepack_drv_constants, only: c1, p5, secday
+
+      integer (kind=int_kind), intent(in) :: &
+          recnum      , & ! record number for current data value
+          recslot     , & ! spline slot for current record
+          dataloc         ! = 1 for data located in middle of time interval
+                          ! = 2 for date located at end of time interval
+
+      real (kind=dbl_kind), intent(in) :: &
+          secint                    ! seconds in data interval
+
+      ! local variables
+
+      real (kind=dbl_kind) :: &
+          secyr            ! seconds in a year
+
+      real (kind=dbl_kind) :: &
+          tt           , & ! seconds elapsed in current year
+          t1, t2       , & ! seconds elapsed at data points
+          rcnum            ! recnum => dbl_kind
+
+      secyr = dayyr * secday         ! seconds in a year
+      tt = mod(ftime,secyr)
+
+      ! Find neighboring times
+      rcnum = real(recnum,kind=dbl_kind)
+      if (recslot==2) then           ! current record goes in slot 2
+         if (dataloc==1) then        ! data located at middle of interval
+            t2 = (rcnum-p5)*secint
+         else                        !  data located at end of interval
+            t2 = rcnum*secint
+         endif
+         t1 = t2 - secint            !  - 1 interval
+      else                           ! recslot = 1
+         if (dataloc==1) then        ! data located at middle of interval
+            t1 = (rcnum-p5)*secint
+         else                        
+            t1 = rcnum*secint        ! data located at end of interval
+         endif
+         t2 = t1 + secint            !  + 1 interval
+      endif
+
+      ! Compute coefficients
+      c1intp =  abs((t2 - tt) / (t2 - t1))
+      c2intp =  c1 - c1intp
+
+      end subroutine interp_coeff
+
+!=======================================================================
+
+      subroutine interp_coeff_monthly (recslot)
+! Compute coefficients for interpolating monthly data to current time step.
+
+      use icepack_drv_constants, only: c1, secday
+
+      integer (kind=int_kind), intent(in) :: &
+          recslot         ! slot (1 or 2) for current record
+
+      ! local variables
+
+      real (kind=dbl_kind) :: &
+          tt           , & ! seconds elapsed in current year
+          t1, t2           ! seconds elapsed at month midpoint
+
+      real (kind=dbl_kind) :: &
+          daymid(0:13)     ! month mid-points
+
+      daymid(1:13) = 14._dbl_kind   ! time frame ends 0 sec into day 15
+      daymid(0)    = 14._dbl_kind - daymo(12)  ! Dec 15, 0 sec
+
+      ! make time cyclic
+      tt = mod(ftime/secday,dayyr)
+
+      ! Find neighboring times
+
+      if (recslot==2) then      ! first half of month
+        t2 = daycal(month) + daymid(month)   ! midpoint, current month
+        if (month == 1) then
+          t1 = daymid(0)                 ! Dec 15 (0 sec)
+        else
+          t1 = daycal(month-1) + daymid(month-1) ! midpoint, previous month
+        endif
+      else                      ! second half of month
+        t1 = daycal(month) + daymid(month)    ! midpoint, current month
+        t2 = daycal(month+1) + daymid(month+1)! day 15 of next month (0 sec)
+      endif
+
+      ! Compute coefficients
+      c1intp = (t2 - tt) / (t2 - t1)
+      c2intp =  c1 - c1intp
+
+      end subroutine interp_coeff_monthly
+
+!=======================================================================
+
+      subroutine read_data_point (flag, recd, yr, ixm, ixx, ixp, &
+                            maxrec, data_file, fieldname, field_data, &
+                            field_loc, field_type)
+!
+! If data is at the beginning of a one-year record, get data from
+!  the previous year.
+! If data is at the end of a one-year record, get data from the
+!  following year.
+! If no earlier data exists (beginning of fyear_init), then
+!  (1) For monthly data, get data from the end of fyear_final.
+!  (2) For more frequent data, let the ixm value equal the
+!      first value of the year.
+! If no later data exists (end of fyear_final), then
+!  (1) For monthly data, get data from the beginning of fyear_init.
+!  (2) For more frequent data, let the ixp value
+!      equal the last value of the year.
+! In other words, we assume persistence when daily or 6-hourly
+!   data is missing, and we assume periodicity when monthly data
+!   is missing.
+!
+      use icepack_drv_constants, only: c0
+      !cn use icepack_drv_diagnostics, only: check_step
+      !cn use ice_timers, only: ice_timer_start, ice_timer_stop, timer_readwrite
+
+      logical (kind=log_kind), intent(in) :: flag
+
+      integer (kind=int_kind), intent(in) :: &
+         recd                , & ! baseline record number
+         yr                  , & ! year of forcing data
+         ixm, ixx, ixp       , & ! record numbers of 3 data values
+                                 ! relative to recd
+         maxrec                  ! maximum record value
+
+      character (char_len_long), intent(in) :: &
+         data_file               ! data file to be read
+
+      character (char_len), intent(in) :: &
+         fieldname               ! field name in netCDF file
+
+      integer (kind=int_kind), intent(in) :: &
+           field_loc, &      ! location of field on staggered grid
+           field_type        ! type of field (scalar, vector, angle)
+
+      real (kind=dbl_kind), dimension(2), &
+         intent(out) :: &
+         field_data              ! 2 values needed for interpolation
+#if 0
+
+#ifdef ncdf 
+      integer (kind=int_kind) :: &
+         nrec             , & ! record number to read
+         n2, n4           , & ! like ixm and ixp, but
+                              ! adjusted at beginning and end of data
+         arg              , & ! value of time argument in field_data
+         fid                  ! file id for netCDF routines
+
+      call ice_timer_start(timer_readwrite)  ! reading/writing
+
+      if (istep1 > check_step) dbug = .true.  !! debugging
+
+      if (my_task==master_task .and. (dbug)) then
+         write(nu_diag,*) '  ', trim(data_file)
+      endif
+
+      if (flag) then
+
+      !-----------------------------------------------------------------
+      ! Initialize record counters
+      ! (n2, n4 will change only at the very beginning or end of
+      !  a forcing cycle.)
+      !-----------------------------------------------------------------
+         n2 = ixm
+         n4 = ixp
+         arg = 0
+
+      !-----------------------------------------------------------------
+      ! read data
+      !-----------------------------------------------------------------
+
+         if (ixm /= -99) then
+         ! currently in first half of data interval
+            if (ixx <= 1) then
+               if (yr > fyear_init) then ! get data from previous year
+                  !call file_year (data_file, yr-1)
+               else             ! yr = fyear_init, no prior data exists
+                  if (maxrec > 12) then ! extrapolate from first record
+                     if (ixx == 1) n2 = ixx
+                  else          ! go to end of fyear_final
+                    ! call file_year (data_file, fyear_final)
+                  endif
+               endif            ! yr > fyear_init
+            endif               ! ixx <= 1
+
+      ! write(nu_diag,*) '!! read_data_nc !!!', trim(data_file)
+      ! write(nu_diag,*) 'istep  ', istep
+      ! write(nu_diag,*) 'fyear_final  ', fyear_final
+      ! write(nu_diag,*) 'fyear_init  ', fyear_init
+      ! write(nu_diag,*) 'ixm, ixx, ixp  ', ixm, ixx, ixp
+      ! write(nu_diag,*) 'maxrec ', maxrec
+      ! write(nu_diag,*) 'fieldname  ', fieldname
+ 
+            call ice_open_nc (data_file, fid)
+
+            arg = 1
+            nrec = recd + n2
+
+            call ice_read_nc & 
+                 (fid, nrec, fieldname, field_data(arg), dbug, &
+                  field_loc, field_type)
+
+            !if (ixx==1) call ice_close_nc(fid)
+            call ice_close_nc(fid)
+         endif                  ! ixm ne -99
+
+        ! always read ixx data from data file for current year
+        ! call file_year (data_file, yr)
+         call ice_open_nc (data_file, fid)
+
+         arg = arg + 1
+         nrec = recd + ixx
+
+         call ice_read_nc & 
+              (fid, nrec, fieldname, field_data(arg), dbug, &
+               field_loc, field_type)
+
+         if (ixp /= -99) then
+         ! currently in latter half of data interval
+            if (ixx==maxrec) then
+               if (yr < fyear_final) then ! get data from following year
+                  call ice_close_nc(fid)
+                  !call file_year (data_file, yr+1)
+                  call ice_open_nc (data_file, fid)
+               else             ! yr = fyear_final, no more data exists
+                  if (maxrec > 12) then ! extrapolate from ixx
+                     n4 = ixx
+                  else          ! go to beginning of fyear_init
+                     call ice_close_nc(fid)
+                    ! call file_year (data_file, fyear_init)
+                     call ice_open_nc (data_file, fid)
+
+                  endif
+               endif            ! yr < fyear_final
+            endif               ! ixx = maxrec
+
+            arg = arg + 1
+            nrec = recd + n4
+
+            call ice_read_nc & 
+                 (fid, nrec, fieldname, field_data(arg), dbug, &
+                  field_loc, field_type)
+         endif                  ! ixp /= -99
+
+         call ice_close_nc(fid)
+
+      endif                     ! flag
+
+      call ice_timer_stop(timer_readwrite)  ! reading/writing
+
+#else
+      field_data = c0 ! to satisfy intent(out) attribute
+#endif
+
+#endif
+      end subroutine read_data_point
 
 !=======================================================================
 

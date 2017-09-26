@@ -45,10 +45,10 @@
       use icepack_drv_constants, only: secday
       !cn use ice_domain, only: nblocks
       use icepack_drv_flux, only: sss, sil, nit
-#if 0
-      use icepack_drv_forcing, only: interp_coeff_monthly
       use icepack_drv_forcing, only: read_clim_data, interpolate_data, &
-          interp_coeff, c1intp, c2intp
+          interp_coeff, interp_coeff_monthly
+#if 0
+, c1intp, c2intp
       use ice_forcing, only: trestore, trest, fyear, &
           read_clim_data_nc, interpolate_data, &
           interp_coeff_monthly, interp_coeff,  &
@@ -151,9 +151,7 @@
           if (mday < midmonth) recslot = 2 ! first half of month
           
           ! Find interpolation coefficients
-#if 0
           call interp_coeff_monthly (recslot)
-#endif          
           readm = .false.
           if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
           
@@ -172,11 +170,9 @@
           !cn call read_clim_data_nc (readm, 0, ixm, month, ixp, &
           !cn    sil_file, fieldname, sil_data, &
           !cn    field_loc_center, field_type_scalar)
-#if 0
           call read_clim_data (readm, 0, ixm, month, ixp, &
               sil_file, sil_data)
           call interpolate_data (sil_data, sildat)
-#endif       
           if (istep == 1 .or. .NOT. restore_bgc) then
             do i = 1, nx
               sil(i) = sildat(i)
@@ -215,11 +211,9 @@
           !cn call read_clim_data_nc (readm, 0, ixm, month, ixp, &
           !cn     nit_file, fieldname, nit_data, &
            !cn    field_loc_center, field_type_scalar)
-#if 0
           call read_clim_data (readm, 0, ixm, month, ixp, &
               nit_file, nit_data)
           call interpolate_data (nit_data, nitdat)
-#endif       
           if (istep == 1 .or. .NOT. restore_bgc) then
             do i = 1, nx
               nit(i) = nitdat(i)
@@ -299,9 +293,7 @@
         
         recslot = 2
         ixp = -99
-#if 0
         call interp_coeff (recnum, recslot, sec1hr, dataloc)
-#endif             
         read1 = .false.
         if (istep==1 .or. bgcrecnum .ne. recnum) read1 = .true.
                  
