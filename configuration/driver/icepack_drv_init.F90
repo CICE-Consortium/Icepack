@@ -625,7 +625,7 @@
              endif
          endif
 
-         nt_aero = max_ntrcr
+         nt_aero = max_ntrcr - 4*n_aero
          if (tr_aero) then
              nt_aero = ntrcr + 1
              ntrcr = ntrcr + 4*n_aero ! 4 dEdd layers, n_aero species
@@ -638,14 +638,18 @@
          endif                               
 
          write(nu_diag,*) ' '
+         write(nu_diag,1020) 'max_ntrcr = ', max_ntrcr
          write(nu_diag,1020) 'ntrcr = ', ntrcr
          write(nu_diag,*) ' '
          write(nu_diag,1020)'nt_sice = ', nt_sice
          write(nu_diag,1020)'nt_qice = ', nt_qice
          write(nu_diag,1020)'nt_qsno = ', nt_qsno
          write(nu_diag,*)' '
+         write(nu_diag,1020)'ncat', ncat
          write(nu_diag,1020)'nilyr', nilyr
          write(nu_diag,1020)'nslyr', nslyr
+         write(nu_diag,*)' '
+         write(nu_diag,1020)'nx', nx
          write(nu_diag,*)' '
 
  1000    format (a30,2x,f9.2)  ! a30 to align formatted, unformatted statements
