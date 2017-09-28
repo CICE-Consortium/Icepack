@@ -35,18 +35,26 @@
       module icepack_mechred
 
       use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, c10, c20, c25, &
+      use icepack_constants, only: c0, c1, c2, c10, c20, c25, Cf, Cp, Pstar, Cstar, &
           p05, p15, p25, p333, p5, &
           puny, Lfresh, rhoi, rhos, rhow, gravit
+      use icepack_intfc_shared, only: kstrength, krdg_partic, krdg_redist, mu_rdg, &
+          heat_capacity
+      use icepack_intfc_tracers, only: tr_pond_topo, tr_aero, tr_brine, ntrcr, nbtrcr
       use icepack_itd, only: column_sum, &
-                         column_conservation_check
+          column_conservation_check, &
+          cleanup_itd
       use icepack_warnings, only: add_warning
 
       implicit none
       save
 
       private
-      public :: ridge_ice, asum_ridging, ridge_itd
+      public :: ridge_ice, &
+                asum_ridging, &
+                ridge_itd, &
+                icepack_ice_strength, &
+                icepack_step_ridge
 
       real (kind=dbl_kind), parameter :: & 
          Cs = p25         , & ! fraction of shear energy contrbtng to ridging 
@@ -1533,6 +1541,317 @@
       enddo
 
       end subroutine ridge_shift
+
+!=======================================================================
+
+! Compute the strength of the ice pack, defined as the energy (J m-2)
+! dissipated per unit area removed from the ice pack under compression,
+! and assumed proportional to the change in potential energy caused
+! by ridging.
+!
+! See Rothrock (1975) and Hibler (1980).
+!
+! For simpler strength parameterization, see this reference:
+! Hibler, W. D. III, 1979: A dynamic-thermodynamic sea ice model,
+!  J. Phys. Oceanog., 9, 817-846.
+!
+! authors: William H. Lipscomb, LANL
+!          Elizabeth C. Hunke, LANL
+
+      subroutine icepack_ice_strength (ncat,               &
+                                      aice,     vice,     &
+                                      aice0,    aicen,    &
+                                      vicen,    &
+                                      strength)
+
+      integer (kind=int_kind), intent(in) :: & 
+         ncat       ! number of thickness categories
+
+      real (kind=dbl_kind), intent(in) :: &
+         aice   , & ! concentration of ice
+         vice   , & ! volume per unit area of ice  (m)
+         aice0      ! concentration of open water
+
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         aicen  , & ! concentration of ice
+         vicen      ! volume per unit area of ice  (m)
+
+      real (kind=dbl_kind), intent(inout) :: &
+         strength   ! ice strength (N/m)
+
+      ! local variables
+
+      real (kind=dbl_kind) :: &
+         asum   , & ! sum of ice and open water area
+         aksum      ! ratio of area removed to area ridged
+
+      real (kind=dbl_kind), dimension (0:ncat) :: &
+         apartic    ! participation function; fraction of ridging
+                    ! and closing associated w/ category n
+
+      real (kind=dbl_kind), dimension (ncat) :: &
+         hrmin  , & ! minimum ridge thickness
+         hrmax  , & ! maximum ridge thickness (krdg_redist = 0)
+         hrexp  , & ! ridge e-folding thickness (krdg_redist = 1) 
+         krdg       ! mean ridge thickness/thickness of ridging ice
+
+      integer (kind=int_kind) :: &
+         n          ! thickness category index
+
+      real (kind=dbl_kind) :: &
+         hi     , & ! ice thickness (m)
+         h2rdg  , & ! mean value of h^2 for new ridge
+         dh2rdg     ! change in mean value of h^2 per unit area
+                    ! consumed by ridging 
+
+      if (kstrength == 1) then  ! Rothrock '75 formulation
+
+      !-----------------------------------------------------------------
+      ! Compute thickness distribution of ridging and ridged ice.
+      !-----------------------------------------------------------------
+
+         call asum_ridging (ncat, aicen, aice0, asum)
+
+         call ridge_itd (ncat,     aice0,      &
+                         aicen,    vicen,      &
+                         krdg_partic, krdg_redist, &
+                         mu_rdg,                   &
+                         aksum,    apartic,    &
+                         hrmin,    hrmax,      &
+                         hrexp,    krdg)   
+
+      !-----------------------------------------------------------------
+      ! Compute ice strength based on change in potential energy,
+      ! as in Rothrock (1975)
+      !-----------------------------------------------------------------
+
+         if (krdg_redist==0) then ! Hibler 1980 formulation
+
+            do n = 1, ncat
+               if (aicen(n) > puny .and. apartic(n) > c0)then
+                  hi = vicen(n) / aicen(n)
+                  h2rdg = p333 * (hrmax(n)**3 - hrmin(n)**3)  &
+                               / (hrmax(n) - hrmin(n)) 
+                  dh2rdg = -hi*hi + h2rdg/krdg(n)
+                  strength = strength + apartic(n) * dh2rdg
+               endif         ! aicen > puny
+            enddo               ! n
+
+         elseif (krdg_redist==1) then ! exponential formulation
+
+            do n = 1, ncat
+               if (aicen(n) > puny .and. apartic(n) > c0) then
+                  hi = vicen(n) / aicen(n)
+                  h2rdg =    hrmin(n)*hrmin(n) &
+                        + c2*hrmin(n)*hrexp(n) &
+                        + c2*hrexp(n)*hrexp(n)
+                  dh2rdg = -hi*hi + h2rdg/krdg(n)
+                  strength = strength + apartic(n) * dh2rdg
+               endif
+            enddo               ! n
+
+         endif                  ! krdg_redist
+
+         strength = Cf * Cp * strength / aksum
+                       ! Cp = (g/2)*(rhow-rhoi)*(rhoi/rhow)
+                       ! Cf accounts for frictional dissipation
+
+      else                      ! kstrength /= 1:  Hibler (1979) form
+
+      !-----------------------------------------------------------------
+      ! Compute ice strength as in Hibler (1979)
+      !-----------------------------------------------------------------
+
+         strength = Pstar*vice*exp(-Cstar*(c1-aice))
+
+      endif                     ! kstrength
+
+      end subroutine icepack_ice_strength
+
+!=======================================================================
+!
+! Computes sea ice mechanical deformation
+!
+! authors: William H. Lipscomb, LANL
+!          Elizabeth C. Hunke, LANL
+
+      subroutine icepack_step_ridge (dt,           ndtd,          &
+                                    nilyr,        nslyr,         &
+                                    nblyr,                       &
+                                    ncat,         hin_max,       &
+                                    rdg_conv,     rdg_shear,     &
+                                    aicen,                       &
+                                    trcrn,                       &
+                                    vicen,        vsnon,         &
+                                    aice0,        trcr_depend,   &
+                                    trcr_base,    n_trcr_strata, &
+                                    nt_strata,                   &
+                                    dardg1dt,     dardg2dt,      &
+                                    dvirdgdt,     opening,       &
+                                    fpond,                       &
+                                    fresh,        fhocn,         &
+                                    n_aero,                      &
+                                    faero_ocn,                   &
+                                    aparticn,     krdgn,         &
+                                    aredistn,     vredistn,      &
+                                    dardg1ndt,    dardg2ndt,     &
+                                    dvirdgndt,                   &
+                                    araftn,       vraftn,        &
+                                    aice,         fsalt,         &
+                                    first_ice,    fzsal,         &
+                                    flux_bio,                    &
+                                    l_stop,       stop_label)
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt           ! time step
+
+      integer (kind=int_kind), intent(in) :: &
+         ncat  , & ! number of thickness categories
+         ndtd  , & ! number of dynamics supercycles
+         nblyr , & ! number of bio layers
+         nilyr , & ! number of ice layers
+         nslyr , & ! number of snow layers
+         n_aero    ! number of aerosol tracers
+
+      real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
+         hin_max   ! category limits (m)
+
+      integer (kind=int_kind), dimension (:), intent(in) :: &
+         trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
+         n_trcr_strata  ! number of underlying tracer layers
+
+      real (kind=dbl_kind), dimension (:,:), intent(in) :: &
+         trcr_base      ! = 0 or 1 depending on tracer dependency
+                        ! argument 2:  (1) aice, (2) vice, (3) vsno
+
+      integer (kind=int_kind), dimension (:,:), intent(in) :: &
+         nt_strata      ! indices of underlying tracer layers
+
+      real (kind=dbl_kind), intent(inout) :: &
+         aice     , & ! sea ice concentration
+         aice0    , & ! concentration of open water
+         rdg_conv , & ! convergence term for ridging (1/s)
+         rdg_shear, & ! shear term for ridging (1/s)
+         dardg1dt , & ! rate of area loss by ridging ice (1/s)
+         dardg2dt , & ! rate of area gain by new ridges (1/s)
+         dvirdgdt , & ! rate of ice volume ridged (m/s)
+         opening  , & ! rate of opening due to divergence/shear (1/s)
+         fpond    , & ! fresh water flux to ponds (kg/m^2/s)
+         fresh    , & ! fresh water flux to ocean (kg/m^2/s)
+         fsalt    , & ! salt flux to ocean (kg/m^2/s)
+         fhocn    , & ! net heat flux to ocean (W/m^2)
+         fzsal        ! zsalinity flux to ocean(kg/m^2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         aicen    , & ! concentration of ice
+         vicen    , & ! volume per unit area of ice          (m)
+         vsnon    , & ! volume per unit area of snow         (m)
+         dardg1ndt, & ! rate of area loss by ridging ice (1/s)
+         dardg2ndt, & ! rate of area gain by new ridges (1/s)
+         dvirdgndt, & ! rate of ice volume ridged (m/s)
+         aparticn , & ! participation function
+         krdgn    , & ! mean ridge thickness/thickness of ridging ice
+         araftn   , & ! rafting ice area
+         vraftn   , & ! rafting ice volume 
+         aredistn , & ! redistribution function: fraction of new ridge area
+         vredistn , & ! redistribution function: fraction of new ridge volume
+         faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
+         flux_bio     ! all bio fluxes to ocean
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+         trcrn        ! tracers
+
+      !logical (kind=log_kind), intent(in) :: &
+         !tr_pond_topo,& ! if .true., use explicit topography-based ponds
+         !tr_aero     ,& ! if .true., use aerosol tracers
+         !tr_brine    !,& ! if .true., brine height differs from ice thickness
+         !heat_capacity  ! if true, ice has nonzero heat capacity
+
+      logical (kind=log_kind), dimension(:), intent(inout) :: &
+         first_ice    ! true until ice forms
+
+      logical (kind=log_kind), intent(out) :: &
+         l_stop       ! if true, abort the model
+
+      character (len=*), intent(out) :: &
+         stop_label   ! diagnostic information for abort
+
+      ! local variables
+
+      real (kind=dbl_kind) :: &
+         dtt      , & ! thermo time step
+         atmp     , & ! temporary ice area
+         atmp0        ! temporary open water area
+
+      l_stop = .false.
+
+      !-----------------------------------------------------------------
+      ! Identify ice-ocean cells.
+      ! Note:  We can not limit the loop here using aice>puny because
+      !        aice has not yet been updated since the transport (and
+      !        it may be out of whack, which the ridging helps fix).-ECH
+      !-----------------------------------------------------------------
+           
+         call ridge_ice (dt,           ndtd,           &
+                         ncat,         n_aero,         &
+                         nilyr,        nslyr,          &
+                         ntrcr,        hin_max,        &
+                         rdg_conv,     rdg_shear,      &
+                         aicen,                        &
+                         trcrn,                        &
+                         vicen,        vsnon,          &
+                         aice0,                        &
+                         trcr_depend,                  &
+                         trcr_base,                    &
+                         n_trcr_strata,                &
+                         nt_strata,                    &
+                         l_stop,                       &
+                         stop_label,                   &
+                         krdg_partic, krdg_redist, &
+                         mu_rdg,                   &
+                         dardg1dt,     dardg2dt,       &
+                         dvirdgdt,     opening,        &
+                         fpond,                        &
+                         fresh,        fhocn,          &
+                         tr_brine,     faero_ocn,      &
+                         aparticn,     krdgn,          &
+                         aredistn,     vredistn,       &
+                         dardg1ndt,    dardg2ndt,      &
+                         dvirdgndt,                    &
+                         araftn,       vraftn)        
+
+         if (l_stop) return
+
+      !-----------------------------------------------------------------
+      ! ITD cleanup: Rebin thickness categories if necessary, and remove
+      !  categories with very small areas.
+      !-----------------------------------------------------------------
+
+      dtt = dt * ndtd  ! for proper averaging over thermo timestep
+      call cleanup_itd (dtt,                  ntrcr,            &
+                        nilyr,                nslyr,            &
+                        ncat,                 hin_max,          &
+                        aicen,                trcrn,            &
+                        vicen,                vsnon,            &
+                        aice0,                aice,             &          
+                        n_aero,                                 &
+                        nbtrcr,               nblyr,            &
+                        l_stop,               stop_label,       &
+                        tr_aero,                                &
+                        tr_pond_topo,         heat_capacity,    &  
+                        first_ice,                              &                
+                        trcr_depend,          trcr_base,        &
+                        n_trcr_strata,        nt_strata,        &
+                        fpond,                fresh,            &
+                        fsalt,                fhocn,            &
+                        faero_ocn,            fzsal,            &
+                        flux_bio)
+
+      if (l_stop) then
+         stop_label = 'ice: ITD cleanup error in icepack_step_ridge'
+      endif
+
+      end subroutine icepack_step_ridge
 
 !=======================================================================
 

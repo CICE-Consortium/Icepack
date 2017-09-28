@@ -19,12 +19,17 @@
            cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn, &
            Lsub, Lvap, vonkar, Tffresh, zvir, gravit, &
            pih, dragio, rhoi, rhos, rhow
+      use icepack_intfc_shared, only: atmbndy, calc_strair, formdrag, &
+           highfreq, natmiter
 
       implicit none
       save
 
       private
-      public :: atmo_boundary_layer, atmo_boundary_const, neutral_drag_coeffs
+      public :: atmo_boundary_layer, &
+                atmo_boundary_const, &
+                neutral_drag_coeffs, &
+                icepack_atm_boundary
 
 !=======================================================================
 
@@ -818,6 +823,106 @@
       endif
 
       end subroutine neutral_drag_coeffs
+
+!=======================================================================
+
+      subroutine icepack_atm_boundary(sfctype,                    &
+                                     Tsf,         potT,          &
+                                     uatm,        vatm,          &
+                                     wind,        zlvl,          &
+                                     Qa,          rhoa,          &
+                                     strx,        stry,          &
+                                     Tref,        Qref,          &
+                                     delt,        delq,          &
+                                     lhcoef,      shcoef,        &
+                                     Cdn_atm,                    &
+                                     Cdn_atm_ratio_n,            &
+                                     uvel,        vvel,          &
+                                     Uref)
+
+      character (len=3), intent(in) :: &
+         sfctype      ! ice or ocean
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tsf      , & ! surface temperature of ice or ocean
+         potT     , & ! air potential temperature  (K)
+         uatm     , & ! x-direction wind speed (m/s)
+         vatm     , & ! y-direction wind speed (m/s)
+         wind     , & ! wind speed (m/s)
+         zlvl     , & ! atm level height (m)
+         Qa       , & ! specific humidity (kg/kg)
+         rhoa         ! air density (kg/m^3)
+
+      real (kind=dbl_kind), intent(inout) :: &
+         Cdn_atm  , &    ! neutral drag coefficient
+         Cdn_atm_ratio_n ! ratio drag coeff / neutral drag coeff
+
+      real (kind=dbl_kind), &
+         intent(inout) :: &
+         strx     , & ! x surface stress (N)
+         stry         ! y surface stress (N)
+
+      real (kind=dbl_kind), intent(inout) :: &
+         Tref     , & ! reference height temperature  (K)
+         Qref     , & ! reference height specific humidity (kg/kg)
+         delt     , & ! potential T difference   (K)
+         delq     , & ! humidity difference      (kg/kg)
+         shcoef   , & ! transfer coefficient for sensible heat
+         lhcoef       ! transfer coefficient for latent heat
+
+      real (kind=dbl_kind), optional, intent(in) :: &
+         uvel     , & ! x-direction ice speed (m/s)
+         vvel         ! y-direction ice speed (m/s)
+
+      real (kind=dbl_kind), optional, intent(out) :: &
+         Uref         ! reference height wind speed (m/s)
+
+      real (kind=dbl_kind) :: &
+         worku, workv, workr
+
+      worku = c0
+      workv = c0
+      workr = c0
+      if (present(uvel)) then
+         worku = uvel
+      endif
+      if (present(uvel)) then
+         worku = uvel
+      endif
+
+               if (trim(atmbndy) == 'constant') then
+                  call atmo_boundary_const (sfctype,  calc_strair, &
+                                            uatm,     vatm,     &
+                                            wind,     rhoa,     &
+                                            strx,     stry,     &
+                                            Tsf,      potT,     &
+                                            Qa,                 &
+                                            delt,     delq,     &
+                                            lhcoef,   shcoef,   &
+                                            Cdn_atm)
+               else ! default
+                  call atmo_boundary_layer (sfctype,                 &
+                                            calc_strair, formdrag,   &
+                                            highfreq, natmiter,      &
+                                            Tsf,      potT,          &
+                                            uatm,     vatm,          &
+                                            wind,     zlvl,          &
+                                            Qa,       rhoa,          &
+                                            strx,     stry,          &
+                                            Tref,     Qref,          &
+                                            delt,     delq,          &
+                                            lhcoef,   shcoef,        &
+                                            Cdn_atm,                 &
+                                            Cdn_atm_ratio_n,         &
+                                            worku,    workv,         &
+                                            workr)
+               endif ! atmbndy
+
+      if (present(Uref)) then
+         Uref = workr
+      endif
+
+      end subroutine icepack_atm_boundary
 
 !=======================================================================
 
