@@ -41,6 +41,10 @@ From your main Icepack directory, execute
 
 ``> ./icepack.submit``
 
+Note that it is necessary to have your computer set up for testmachine. Currently there are working ports for 
+NCAR yellowstone and cheyenne, AFRL thunder, NavyDSRC gordon and conrad, and LANL's wolf machines. To add 
+your own machine follow the instructions here (CHECK: LINK). 
+
 
 Major Icepack updates since CICE v5.1.2
 ============================================
@@ -72,7 +76,7 @@ Special thanks are due to the following people:
 
 -  Elizabeth Hunke, Nicole Jeffery, Adrian Turner and Chris Newman at Los Alamos National Laboratory
  
--  David Bailey, Alice Duvivier and Marika Holland at the National Center for Atmospheric Research
+-  David Bailey, Alice DuVivier and Marika Holland at the National Center for Atmospheric Research
 
 -  Rick Allard and Matt Turner at the Naval Research Laboratory, Stennis Space Center,
 

@@ -15,13 +15,9 @@ Table of Contents:
    :numbered:
 
    icepack_1_introduction.rst
-   icepack_2_coupling.rst
-   icepack_3_model_components.rst
-   icepack_4_numerical_implementation.rst
-   icepack_5_troubleshooting.rst
-   icepack_6_copyright.rst
-   icepack_7_namelist_opts.rst
-   icepack_8_index.rst
+   icepack_2_science_guide.rst
+   icepack_3_user_guide.rst
+   icepack_4_index.rst
    zreferences.rst
  
 Useful tools
