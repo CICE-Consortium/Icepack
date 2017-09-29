@@ -2,20 +2,20 @@
 
 # Check to see if test case directory was passed
 if ( $1 == "" ) then
-  echo "To generate timeseries plots, this script must be called with a directory."
-  echo "Example: ./timeseries.csh ./annual_gx3_conrad_4x1.t00"
+  echo "To generate timeseries plots, this script must be called with a filename."
+  echo "Example: ./timeseries.csh /work/username/case01/ice_diag.itd"
   exit -1
 endif
-set basename = `echo $1 | sed -e 's#/$##' | sed -e 's/^\.\///'`
 
-set fieldlist=("total ice area  (km^2)" \
-               "total ice extent(km^2)" \
-               "total ice volume (m^3)")
+#set basename = `echo $1:t`
+set basename = $1
+
+set fieldlist=("area fraction  " \
+               "avg ice thickness (m)" \
+               "avg snow depth (m)")
 
 # Get the filename for the latest log
-foreach file ($1/logs/icepack.runlog.*)
-  set logfile = $file
-end
+set logfile = $1
 
 # Loop through each field and create the plot
 foreach field ($fieldlist:q)
@@ -26,7 +26,7 @@ foreach field ($fieldlist:q)
       $logfile > data.txt
 
   set output = `echo $fieldname | sed 's/ /_/g'`
-  set output = "${output}_${basename}.png"
+  set output = "${basename}_${output}.png"
 
   echo "Plotting data for '$fieldname' and saving to $output"
 
