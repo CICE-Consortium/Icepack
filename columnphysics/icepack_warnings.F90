@@ -15,6 +15,9 @@ module icepack_warnings
        nWarnings
 
   public :: &
+       icepack_clear_warnings, & 
+       icepack_get_warnings, & 
+       icepack_print_warnings, &
        add_warning, &
        reset_warnings, &
        get_number_warnings, &
@@ -24,6 +27,49 @@ module icepack_warnings
 
 contains
 
+!=======================================================================
+
+      subroutine icepack_clear_warnings()
+
+        call reset_warnings()
+
+      end subroutine icepack_clear_warnings
+
+!=======================================================================
+      
+      subroutine icepack_get_warnings(warningsOut)
+
+        character(len=char_len_long), dimension(:), allocatable, intent(out) :: &
+             warningsOut
+
+        integer :: &
+             iWarning
+
+        if (allocated(warningsOut)) deallocate(warningsOut)
+        allocate(warningsOut(get_number_warnings()))
+
+        do iWarning = 1, get_number_warnings()
+           warningsOut(iWarning) = trim(get_warning(iWarning))
+        enddo
+
+      end subroutine icepack_get_warnings
+
+!=======================================================================
+
+      subroutine icepack_print_warnings(nu_diag)
+
+        integer, intent(in) :: nu_diag
+
+        integer :: &
+             iWarning
+
+        do iWarning = 1, get_number_warnings()
+           write(nu_diag,*) trim(get_warning(iWarning))
+        enddo
+
+      end subroutine icepack_print_warnings
+
+!=======================================================================
 !=======================================================================
 
   subroutine add_warning(warning)

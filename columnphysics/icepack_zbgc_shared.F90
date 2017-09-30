@@ -17,8 +17,12 @@
       implicit none 
 
       private
-      public :: calculate_qin_from_Sin, remap_zbgc, &
-                zap_small_bgc, regrid_stationary
+      public :: calculate_qin_from_Sin, &
+                remap_zbgc, &
+                zap_small_bgc, &
+                regrid_stationary, &
+                merge_bgc_fluxes, &
+                merge_bgc_fluxes_skl
 
       ! bio parameters for algal_dyn
  
@@ -522,6 +526,216 @@
       endif
 
       end subroutine regrid_stationary
+
+!=======================================================================
+!
+! Aggregate flux information from all ice thickness categories
+! for z layer biogeochemistry
+!
+      subroutine merge_bgc_fluxes (dt,       nblyr,      &
+                               bio_index,    n_algae,    &
+                               nbtrcr,       aicen,      &    
+                               vicen,        vsnon,      &
+                               ntrcr,        iphin,      &
+                               trcrn,      &
+                               flux_bion,    flux_bio,   &
+                               upNOn,        upNHn,      &
+                               upNO,         upNH,       &
+                               zbgc_snown,   zbgc_atmn,  &
+                               zbgc_snow,    zbgc_atm,   &
+                               PP_net,       ice_bio_net,&
+                               snow_bio_net, grow_alg,   &
+                               grow_net)
+ 
+      use icepack_constants, only: c1, c0, p5, secday, puny
+      use icepack_intfc_shared, only: solve_zbgc, max_nbtrcr, hs_ssl, R_C2N, &
+                             fr_resp
+      use icepack_intfc_tracers, only: nt_bgc_N, nt_fbri
+
+      real (kind=dbl_kind), intent(in) :: &          
+         dt             ! timestep (s)
+
+      integer (kind=int_kind), intent(in) :: &
+         nblyr, &
+         n_algae, &     !
+         ntrcr, &       ! number of tracers
+         nbtrcr         ! number of biology tracer tracers
+
+      integer (kind=int_kind), dimension(:), intent(in) :: &
+         bio_index      ! relates bio indices, ie.  nlt_bgc_N to nt_bgc_N 
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         trcrn     , &  ! input tracer fields
+         iphin          ! porosity
+
+      real (kind=dbl_kind), intent(in):: &          
+         aicen      , & ! concentration of ice
+         vicen      , & ! volume of ice (m)
+         vsnon          ! volume of snow(m)
+
+      ! single category rates
+      real (kind=dbl_kind), dimension(:), intent(in):: &
+         zbgc_snown , & ! bio flux from snow to ice per cat (mmol/m^3*m) 
+         zbgc_atmn  , & ! bio flux from atm to ice per cat (mmol/m^3*m)
+         flux_bion
+
+      ! single category rates
+      real (kind=dbl_kind), dimension(:,:), intent(in):: &
+         upNOn      , & ! nitrate uptake rate per cat (mmol/m^3/s)
+         upNHn      , & ! ammonium uptake rate per cat (mmol/m^3/s)   
+         grow_alg       ! algal growth rate per cat (mmolN/m^3/s)
+
+      ! cumulative fluxes
+      real (kind=dbl_kind), dimension(:), intent(inout):: &     
+         flux_bio   , & ! 
+         zbgc_snow  , & ! bio flux from snow to ice per cat (mmol/m^2/s) 
+         zbgc_atm   , & ! bio flux from atm to ice per cat (mmol/m^2/s)
+         ice_bio_net, & ! integrated ice tracers mmol or mg/m^2)
+         snow_bio_net   ! integrated snow tracers mmol or mg/m^2)
+
+      ! cumulative variables and rates
+      real (kind=dbl_kind), intent(inout):: & 
+         PP_net     , & ! net PP (mg C/m^2/d)  times aice
+         grow_net   , & ! net specific growth (m/d) times vice
+         upNO       , & ! tot nitrate uptake rate (mmol/m^2/d) times aice 
+         upNH           ! tot ammonium uptake rate (mmol/m^2/d) times aice
+
+      ! local variables
+
+      real (kind=dbl_kind) :: &
+         tmp        , & ! temporary
+         dvssl      , & ! volume of snow surface layer (m)
+         dvint          ! volume of snow interior      (m)
+
+      integer (kind=int_kind) :: &
+         k, mm         ! tracer indice
+
+      real (kind=dbl_kind), dimension (nblyr+1) :: & 
+         zspace
+
+      !-----------------------------------------------------------------
+      ! Column summation
+      !-----------------------------------------------------------------
+      zspace(:) = c1/real(nblyr,kind=dbl_kind)
+      zspace(1) = p5/real(nblyr,kind=dbl_kind)
+      zspace(nblyr+1) =  p5/real(nblyr,kind=dbl_kind)
+
+      do mm = 1, nbtrcr
+         do k = 1, nblyr+1
+            ice_bio_net(mm) = ice_bio_net(mm) &
+                            + trcrn(bio_index(mm)+k-1) &
+                            * trcrn(nt_fbri) &
+                            * vicen*zspace(k)
+         enddo    ! k
+      
+      !-----------------------------------------------------------------
+      ! Merge fluxes
+      !-----------------------------------------------------------------
+         dvssl  = min(p5*vsnon, hs_ssl*aicen) ! snow surface layer
+         dvint  = vsnon - dvssl               ! snow interior
+         snow_bio_net(mm) = snow_bio_net(mm) &
+                          + trcrn(bio_index(mm)+nblyr+1)*dvssl &
+                          + trcrn(bio_index(mm)+nblyr+2)*dvint
+         flux_bio    (mm) = flux_bio (mm) + flux_bion (mm)*aicen
+         zbgc_snow   (mm) = zbgc_snow(mm) + zbgc_snown(mm)*aicen/dt
+         zbgc_atm    (mm) = zbgc_atm (mm) + zbgc_atmn (mm)*aicen/dt
+      enddo     ! mm
+
+      if (solve_zbgc) then
+         do mm = 1, n_algae
+            do k = 1, nblyr+1
+               tmp      = iphin(k)*trcrn(nt_fbri)*vicen*zspace(k)*secday 
+               PP_net   = PP_net   + grow_alg(k,mm)*tmp &
+                        * (c1-fr_resp)* R_C2N(mm)*R_gC2molC 
+               grow_net = grow_net + grow_alg(k,mm)*tmp &
+                        / (trcrn(nt_bgc_N(mm)+k-1)+puny)
+               upNO     = upNO     + upNOn   (k,mm)*tmp 
+               upNH     = upNH     + upNHn   (k,mm)*tmp
+            enddo   ! k
+         enddo      ! mm
+      endif
+
+      end subroutine merge_bgc_fluxes
+
+!=======================================================================
+
+! Aggregate flux information from all ice thickness categories
+! for skeletal layer biogeochemistry
+!
+! author: Elizabeth C. Hunke and William H. Lipscomb, LANL
+
+      subroutine merge_bgc_fluxes_skl (ntrcr,           &
+                               nbtrcr,    n_algae,         &
+                               aicen,     trcrn,           &
+                               flux_bion, flux_bio,        &
+                               PP_net,    upNOn,           &
+                               upNHn,     upNO,            &
+                               upNH,      grow_net,        &
+                               grow_alg)
+
+      use icepack_constants, only: c1, secday, puny
+      use icepack_intfc_tracers, only: nt_bgc_N
+      use icepack_intfc_shared, only: sk_l, R_C2N, fr_resp
+
+      integer (kind=int_kind), intent(in) :: &
+         ntrcr   , & ! number of cells with aicen > puny
+         nbtrcr  , & ! number of bgc tracers
+         n_algae     ! number of autotrophs
+
+      ! single category fluxes
+      real (kind=dbl_kind), intent(in):: &          
+         aicen       ! category ice area fraction
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         trcrn       ! Bulk tracer concentration (mmol N or mg/m^3)
+     
+      real (kind=dbl_kind), dimension(:), intent(in):: &
+         flux_bion   ! all bio fluxes to ocean, on categories
+
+      real (kind=dbl_kind), dimension(:), intent(inout):: &
+         flux_bio    ! all bio fluxes to ocean, aggregated
+
+      real (kind=dbl_kind), dimension(:), intent(in):: & 
+         grow_alg, & ! algal growth rate (mmol/m^3/s) 
+         upNOn   , & ! nitrate uptake rate per cat (mmol/m^3/s)
+         upNHn       ! ammonium uptake rate per cat (mmol/m^3/s)   
+
+      ! history output
+      real (kind=dbl_kind), intent(inout):: & 
+         PP_net  , & ! Bulk net PP (mg C/m^2/s)
+         grow_net, & ! net specific growth (/s)
+         upNO    , & ! tot nitrate uptake rate (mmol/m^2/s) 
+         upNH        ! tot ammonium uptake rate (mmol/m^2/s)
+      
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         k, mm       ! tracer indices
+
+      real (kind=dbl_kind) :: &
+         tmp         ! temporary
+    
+      !-----------------------------------------------------------------
+      ! Merge fluxes
+      !-----------------------------------------------------------------
+
+      do k = 1,nbtrcr
+         flux_bio (k) = flux_bio(k) + flux_bion(k)*aicen
+      enddo
+
+      do mm = 1, n_algae
+         tmp = phi_sk * sk_l * aicen * secday 
+         PP_net   = PP_net   &
+                  + grow_alg(mm) * tmp &
+                  * R_C2N(mm) * R_gC2molC * (c1-fr_resp) 
+         grow_net = grow_net &
+                  + grow_alg(mm) * tmp &
+                  / (trcrn(nt_bgc_N(mm))+puny)
+         upNO     = upNO  + upNOn(mm) * tmp
+         upNH     = upNH  + upNHn(mm) * tmp
+      enddo
+
+      end subroutine merge_bgc_fluxes_skl
 
 !=======================================================================
 

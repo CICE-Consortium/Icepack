@@ -16,17 +16,20 @@ else
   echo "PASS ${ICE_TESTNAME} run-initial" >> ${ICE_CASEDIR}/test_output
 endif
 
-# Prepend 'baseline_' to the final restart file to save for comparison
+# Copy restart files to baseline directory 
 set test_file = `ls -t1 ${ICE_RUNDIR}/restart | head -1`
+mv ${ICE_RUNDIR}/restart ${ICE_RUNDIR}/restart_baseline
+mkdir ${ICE_RUNDIR}/diags_baseline
+mv ${ICE_RUNDIR}/ice_diag.* ${ICE_RUNDIR}/diags_baseline/
+
+mkdir ${ICE_RUNDIR}/restart
+cp -f ${ICE_RUNDIR}/restart_baseline/iced.2015-03-01-00000 ${ICE_RUNDIR}/restart/
+
+set base_data = ${ICE_RUNDIR}/restart_baseline/${test_file}
 set test_data = ${ICE_RUNDIR}/restart/${test_file}
-set base_data = ${ICE_RUNDIR}/restart/base_${test_file}
-mv ${test_data} ${base_data}
 
 #-----------------------------------------------------------
 # Run the ICEPACK model for the restart simulation
-
-# Modify the contents of the pointer file for restart
-perl -i -pe's/(\d{4})-(\d{2})-(\d{2})/sprintf("%04d-%02d-%02d",$1,$2,$3-5)/e' ${ICE_RUNDIR}/ice.restart_file
 
 ${ICE_CASEDIR}/casescripts/parse_namelist.sh icepack_in ${ICE_CASEDIR}/casescripts/test_nml.restart2
 cp icepack_in icepack_in.2

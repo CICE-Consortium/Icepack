@@ -51,7 +51,7 @@
                             rfracmin, rfracmax, pndaspect, hs1, hp1, &
                             ktherm, calc_Tsfc, conduct, oceanmixed_ice
       use icepack_drv_constants, only: c0, c1, puny, ice_stdout, nu_diag, nu_diag_out, nu_nml
-      use icepack_drv_diagnostics, only: diag_file
+      use icepack_drv_diagnostics, only: diag_file, nx_names
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icepack_drv_calendar, only: year_init, istep0, &
                               dumpfreq, diagfreq, &
@@ -305,11 +305,19 @@
       write(ice_stdout,*)'    ','icepack.runlog.timestamp'
 ! tcraig, see below, no longer opened, using icepack.runlog.timestamp for "6"
 !      write(ice_stdout,*)'    ',trim(diag_file)
-      
+
+      do n = 1,nx
+        write(nx_names(n),'(a,i2.2)') 'point_',n
+      enddo      
+      nx_names(1) = 'icefree'
+      nx_names(2) = 'slab'
+      nx_names(3) = 'full_ITD'
+      nx_names(4) = 'land'
+
       diag_len = len(trim(diag_file))
       do n = 1,nx
         diag_file_names=''
-        write(diag_file_names,'(a,a,i0)') trim(diag_file),'.',n
+        write(diag_file_names,'(a,a,a)') trim(diag_file),'.',trim(nx_names(n))
         write(ice_stdout,*)'    ',trim(diag_file_names)
         open(nu_diag_out+n-1, file=diag_file_names, status='unknown')
       end do

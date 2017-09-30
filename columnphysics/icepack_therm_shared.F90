@@ -8,16 +8,26 @@
       module icepack_therm_shared
 
       use icepack_kinds_mod
-      use icepack_constants, only:  c1, c2, c4, &
-          cp_ocn, cp_ice, rhoi, Tffresh, TTTice, qqqice, &
-          stefan_boltzmann, emissivity, Lfresh
+      use icepack_constants, only: c0, c1, c2, c4, p5, pi, &
+          cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice, &
+          stefan_boltzmann, emissivity, Lfresh, Tsmelt
+      use icepack_intfc_shared, only: saltmax, ktherm, heat_capacity, &
+          min_salin, calc_Tsfc
     
       implicit none
       save
 
       private
       public :: calculate_Tin_from_qin, &
-                surface_heat_flux, dsurface_heat_flux_dTsf
+                surface_heat_flux, &
+                dsurface_heat_flux_dTsf, &
+                icepack_init_thermo, &
+                icepack_init_trcr, &
+                icepack_ice_temperature, &
+                icepack_snow_temperature, &
+                icepack_liquidus_temperature, &
+                icepack_sea_freezing_temperature, &
+                icepack_enthalpy_snow
 
       real (kind=dbl_kind), parameter, public :: &
          ferrmax = 1.0e-3_dbl_kind    ! max allowed energy flux error (W m-2)
@@ -195,6 +205,248 @@
       dfsurfn_dTsf = dflwoutn_dTsf + dfsensn_dTsf + dflatn_dTsf
     
       end subroutine dsurface_heat_flux_dTsf
+
+!=======================================================================
+!
+! Initialize the vertical profile of ice salinity and melting temperature.
+!
+! authors: C. M. Bitz, UW
+!          William H. Lipscomb, LANL
+
+      subroutine icepack_init_thermo(nilyr, sprofile)
+
+      integer (kind=int_kind), intent(in) :: &
+         nilyr                            ! number of ice layers
+
+      real (kind=dbl_kind), dimension(:), intent(out) :: &
+         sprofile                         ! vertical salinity profile
+
+      real (kind=dbl_kind), parameter :: &
+         nsal    = 0.407_dbl_kind, &
+         msal    = 0.573_dbl_kind
+
+      integer (kind=int_kind) :: k        ! ice layer index
+      real (kind=dbl_kind)    :: zn       ! normalized ice thickness
+
+      !-----------------------------------------------------------------
+      ! Determine l_brine based on saltmax.
+      ! Thermodynamic solver will not converge if l_brine is true and
+      !  saltmax is close to zero.
+      ! Set l_brine to false for zero layer thermodynamics
+      !-----------------------------------------------------------------
+
+      heat_capacity = .true.      
+      if (ktherm == 0) heat_capacity = .false. ! 0-layer thermodynamics
+
+      l_brine = .false.
+      if (saltmax > min_salin .and. heat_capacity) l_brine = .true.
+
+      !-----------------------------------------------------------------
+      ! Prescibe vertical profile of salinity and melting temperature.
+      ! Note this profile is only used for BL99 thermodynamics.
+      !-----------------------------------------------------------------
+
+      if (l_brine) then
+         do k = 1, nilyr
+            zn = (real(k,kind=dbl_kind)-p5) /  &
+                  real(nilyr,kind=dbl_kind)
+            sprofile(k)=(saltmax/c2)*(c1-cos(pi*zn**(nsal/(msal+zn))))
+            sprofile(k) = max(sprofile(k), min_salin)
+         enddo ! k
+         sprofile(nilyr+1) = saltmax
+
+      else ! .not. l_brine
+         do k = 1, nilyr+1
+            sprofile(k) = c0
+         enddo
+      endif ! l_brine
+
+      end subroutine icepack_init_thermo
+
+!=======================================================================
+
+      subroutine icepack_init_trcr(Tair,     Tf,       &
+                                  Sprofile, Tprofile, &
+                                  Tsfc,               &
+                                  nilyr,    nslyr,    &
+                                  qin,      qsn)
+
+      use icepack_mushy_physics, only: enthalpy_mush
+
+      integer (kind=int_kind), intent(in) :: &
+         nilyr, &    ! number of ice layers
+         nslyr       ! number of snow layers
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tair, &     ! air temperature (C)
+         Tf          ! freezing temperature (C)
+
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         Sprofile, & ! vertical salinity profile (ppt)
+         Tprofile    ! vertical temperature profile (C)
+
+      real (kind=dbl_kind), intent(out) :: &
+         Tsfc        ! surface temperature (C)
+
+      real (kind=dbl_kind), dimension(:), intent(out) :: &
+         qin, &      ! ice enthalpy profile (J/m3)
+         qsn         ! snow enthalpy profile (J/m3)
+
+      ! local variables
+
+      integer (kind=int_kind) :: k
+
+      real (kind=dbl_kind) :: &
+         slope, Ti
+
+      ! surface temperature
+      Tsfc = Tf ! default
+      if (calc_Tsfc) Tsfc = min(Tsmelt, Tair - Tffresh) ! deg C
+      
+      if (heat_capacity) then
+        
+        ! ice enthalpy
+        do k = 1, nilyr
+          ! assume linear temp profile and compute enthalpy
+          slope = Tf - Tsfc
+          Ti = Tsfc + slope*(real(k,kind=dbl_kind)-p5) &
+              /real(nilyr,kind=dbl_kind)
+          if (ktherm == 2) then
+            qin(k) = enthalpy_mush(Ti, Sprofile(k))
+          else
+            qin(k) = -(rhoi * (cp_ice*(Tprofile(k)-Ti) &
+                + Lfresh*(c1-Tprofile(k)/Ti) - cp_ocn*Tprofile(k)))
+          endif
+        enddo               ! nilyr
+        
+        ! snow enthalpy
+        do k = 1, nslyr
+          Ti = min(c0, Tsfc)
+          qsn(k) = -rhos*(Lfresh - cp_ice*Ti)
+        enddo               ! nslyr
+        
+      else  ! one layer with zero heat capacity
+        
+        ! ice energy
+        qin(1) = -rhoi * Lfresh 
+        
+        ! snow energy
+        qsn(1) = -rhos * Lfresh 
+        
+      endif               ! heat_capacity
+      
+    end subroutine icepack_init_trcr
+
+!=======================================================================
+
+      function icepack_liquidus_temperature(Sin) result(Tmlt)
+
+        use icepack_intfc_shared, only: ktherm
+        use icepack_constants, only: depressT
+        use icepack_mushy_physics, only: liquidus_temperature_mush
+
+        real(dbl_kind), intent(in) :: Sin
+        real(dbl_kind) :: Tmlt
+
+        if (ktherm == 2) then
+
+           Tmlt = liquidus_temperature_mush(Sin)
+
+        else
+
+           Tmlt = -depressT * Sin
+
+        endif
+
+      end function icepack_liquidus_temperature
+
+!=======================================================================
+
+      function icepack_sea_freezing_temperature(sss) result(Tf)
+
+        use icepack_intfc_shared, only: tfrz_option
+        use icepack_constants, only: depressT
+
+        real(dbl_kind), intent(in) :: sss
+        real(dbl_kind) :: Tf
+
+        if (trim(tfrz_option) == 'mushy') then
+
+           Tf = icepack_liquidus_temperature(sss) ! deg C
+           
+        elseif (trim(tfrz_option) == 'linear_salt') then
+
+           Tf = -depressT * sss ! deg C
+
+        else
+
+           Tf = -1.8_dbl_kind
+
+        endif
+
+      end function icepack_sea_freezing_temperature
+
+!=======================================================================
+
+      function icepack_ice_temperature(qin, Sin) result(Tin)
+
+        use icepack_intfc_shared, only: ktherm
+        use icepack_constants, only: depressT
+        use icepack_mushy_physics, only: temperature_mush
+
+        real(kind=dbl_kind), intent(in) :: qin, Sin
+        real(kind=dbl_kind) :: Tin
+
+        real(kind=dbl_kind) :: Tmlts
+
+        if (ktherm == 2) then
+
+           Tin = temperature_mush(qin, Sin)
+
+        else
+
+           Tmlts = -depressT * Sin
+           Tin = calculate_Tin_from_qin(qin,Tmlts)
+
+        endif
+
+      end function icepack_ice_temperature
+
+!=======================================================================
+
+      function icepack_snow_temperature(qin) result(Tsn)
+
+        use icepack_intfc_shared, only: ktherm
+        use icepack_mushy_physics, only: temperature_snow
+        use icepack_constants, only: Lfresh, rhos, cp_ice
+
+        real(kind=dbl_kind), intent(in) :: qin
+        real(kind=dbl_kind) :: Tsn
+
+        if (ktherm == 2) then
+
+           Tsn = temperature_snow(qin)
+
+        else
+
+           Tsn = (Lfresh + qin/rhos)/cp_ice
+
+        endif
+
+      end function icepack_snow_temperature
+
+!=======================================================================
+
+      function icepack_enthalpy_snow(zTsn) result(qsn)
+
+        use icepack_mushy_physics, only: enthalpy_snow
+
+        real(kind=dbl_kind), intent(in) :: zTsn
+        real(kind=dbl_kind) :: qsn
+
+        qsn = enthalpy_snow(zTsn)
+
+      end function icepack_enthalpy_snow
 
 !=======================================================================
 

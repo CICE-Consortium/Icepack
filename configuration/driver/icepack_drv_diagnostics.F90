@@ -29,6 +29,8 @@
       integer (kind=int_kind), parameter, public :: &
          npnt = 2             ! total number of points to be printed
 
+      character (len=char_len), dimension(nx), public :: nx_names
+
       ! for water and heat budgets
       real (kind=dbl_kind), dimension(nx) :: &
          pdhi             , & ! change in mean ice thickness (m)
@@ -85,13 +87,6 @@
 
       real (kind=dbl_kind), dimension (nx) :: &
          work1, work2
-
-      character (len=char_len), dimension(nx) :: nx_names
-
-      nx_names(1) = ' icefree'
-      nx_names(2) = '    slab'
-      nx_names(3) = 'full ITD'
-      nx_names(4) = '    land'
 
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)

@@ -1,4 +1,5 @@
-npt            = 120
-dumpfreq       = 'd'
-dumpfreq_n     = 5
-runtype        = 'continue'
+npt            = 8760
+ice_ic         = './restart/iced.2015-03-01-00000'
+restart        = .true.
+dumpfreq       = 'm'
+
