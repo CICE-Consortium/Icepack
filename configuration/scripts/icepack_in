@@ -9,7 +9,7 @@
     ice_ic         = 'none'
     restart        = .false.
     restart_dir    = './restart/'
-    dumpfreq       = 'm'
+    dumpfreq       = 'y'
     diagfreq       = 24
     diag_file      = 'ice_diag'
     cpl_bgc        = .false.
