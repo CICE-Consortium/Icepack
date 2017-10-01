@@ -1,0 +1,72 @@
+!  SVN:$Id: icepack_intfc.F90 1227 2017-05-22 22:49:10Z tcraig $
+!=========================================================================
+!
+! flags and interface routines for the column package
+!
+! authors: Elizabeth C. Hunke, LANL
+
+      module icepack_intfc
+
+      use icepack_itd, only: icepack_intfc_init_itd      => icepack_init_itd
+      use icepack_itd, only: icepack_intfc_init_itd_hist => icepack_init_itd_hist
+      use icepack_itd, only: icepack_intfc_aggregate     => icepack_aggregate
+
+      use icepack_mechred, only: icepack_intfc_step_ridge   => icepack_step_ridge
+      use icepack_mechred, only: icepack_intfc_ice_strength => icepack_ice_strength
+
+      use icepack_shortwave, only: icepack_intfc_prep_radiation => icepack_prep_radiation
+      use icepack_shortwave, only: icepack_intfc_step_radiation => icepack_step_radiation
+
+      use icepack_brine, only: icepack_intfc_init_hbrine    => icepack_init_hbrine
+      use icepack_brine, only: icepack_intfc_init_zsalinity => icepack_init_zsalinity
+
+      use icepack_zbgc , only: icepack_intfc_init_bgc            => icepack_init_bgc
+      use icepack_zbgc , only: icepack_intfc_init_zbgc           => icepack_init_zbgc
+      use icepack_zbgc , only: icepack_intfc_init_bgc_trcr       => icepack_init_bgc_trcr
+      use icepack_zbgc , only: icepack_intfc_biogeochemistry     => icepack_biogeochemistry
+      use icepack_zbgc , only: icepack_intfc_init_OceanConcArray => icepack_init_OceanConcArray
+      use icepack_zbgc , only: icepack_intfc_init_ocean_conc     => icepack_init_ocean_conc
+
+      use icepack_atmo , only: icepack_intfc_atm_boundary    => icepack_atm_boundary
+      use icepack_ocean, only: icepack_intfc_ocn_mixed_layer => icepack_ocn_mixed_layer
+
+      use icepack_therm_vertical, only: icepack_intfc_step_therm1          => icepack_step_therm1
+      use icepack_therm_itd     , only: icepack_intfc_step_therm2          => icepack_step_therm2
+      use icepack_therm_shared  , only: icepack_intfc_ice_temperature      => icepack_ice_temperature
+      use icepack_therm_shared  , only: icepack_intfc_snow_temperature     => icepack_snow_temperature
+      use icepack_therm_shared  , only: icepack_intfc_liquidus_temperature => icepack_liquidus_temperature
+      use icepack_therm_shared  , only: icepack_intfc_sea_freezing_temperature => icepack_sea_freezing_temperature
+      use icepack_therm_shared  , only: icepack_intfc_enthalpy_snow        => icepack_enthalpy_snow
+      use icepack_therm_shared  , only: icepack_intfc_init_thermo          => icepack_init_thermo
+      use icepack_therm_shared  , only: icepack_intfc_init_trcr            => icepack_init_trcr
+
+      use icepack_orbital , only: icepack_intfc_init_orbit => icepack_init_orbit
+
+      use icepack_warnings, only: icepack_intfc_clear_warnings => icepack_clear_warnings
+      use icepack_warnings, only: icepack_intfc_get_warnings   => icepack_get_warnings
+      use icepack_warnings, only: icepack_intfc_print_warnings => icepack_print_warnings
+
+      use icepack_parameters, only: icepack_intfc_init_parameters  => icepack_init_parameters
+      use icepack_parameters, only: icepack_intfc_query_parameters => icepack_query_parameters
+      use icepack_parameters, only: icepack_intfc_write_parameters => icepack_write_parameters
+
+      use icepack_param_tracers, only: icepack_intfc_init_tracer_flags    => icepack_init_tracer_flags
+      use icepack_param_tracers, only: icepack_intfc_query_tracer_flags   => icepack_query_tracer_flags
+      use icepack_param_tracers, only: icepack_intfc_write_tracer_flags   => icepack_write_tracer_flags
+      use icepack_param_tracers, only: icepack_intfc_init_tracer_indices  => icepack_init_tracer_indices
+      use icepack_param_tracers, only: icepack_intfc_query_tracer_indices => icepack_query_tracer_indices
+      use icepack_param_tracers, only: icepack_intfc_write_tracer_indices => icepack_write_tracer_indices
+      use icepack_param_tracers, only: icepack_intfc_init_tracer_numbers  => icepack_init_tracer_numbers
+      use icepack_param_tracers, only: icepack_intfc_query_tracer_numbers => icepack_query_tracer_numbers
+      use icepack_param_tracers, only: icepack_intfc_write_tracer_numbers => icepack_write_tracer_numbers
+      use icepack_param_tracers, only: icepack_intfc_compute_tracers      => icepack_compute_tracers
+
+      implicit none
+
+      public
+
+!=======================================================================
+
+      end module icepack_intfc
+
+!=======================================================================
