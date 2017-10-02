@@ -63,7 +63,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#execution-procedures">3.2. Execution procedures</a><ul>
-<li><a class="reference internal" href="#scripts">3.2.1. Scripts</a></li>
+<li><a class="reference internal" href="#id6">3.2.1. Scripts</a></li>
 <li><a class="reference internal" href="#directories">3.2.2. Directories</a></li>
 <li><a class="reference internal" href="#local-modifications">3.2.3. Local modifications</a></li>
 <li><a class="reference internal" href="#forcing-data">3.2.4. Forcing data</a></li>
@@ -277,7 +277,7 @@ details).</p>
 <dt><strong>parse_settings.sh</strong></dt>
 <dd>replaces settings with command-line configuration</dd>
 <dt><strong>tests/</strong></dt>
-<dd>(CHECK: ADD LINK) scripts for configuring and running basic tests</dd>
+<dd>(CHECK) <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/tree/master/configuration/scripts/tests">scripts</a> for configuring and running basic tests</dd>
 </dl>
 </dd>
 </dl>
@@ -285,13 +285,14 @@ details).</p>
 <dt><strong>doc/</strong></dt>
 <dd>documentation</dd>
 <dt><strong>icepack.create.case</strong></dt>
-<dd>main script for setting up a test case</dd>
+<dd>main <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/blob/master/icepack.create.case">script</a> for setting up a test case</dd>
 </dl>
-<p>(CHECK: ADD LINK)</p>
+<p>(CHECK)</p>
 <p>A case (compile) directory is created upon initial execution of the script
 <strong>icepack.create.case</strong> at the user-specified location provided after the -c flag.
 Executing the command <code class="docutils literal"><span class="pre">./icepack.create.case</span> <span class="pre">-h</span></code> provides helpful information for
-this tool. Please refer to the (LINK)user guide for further information.</p>
+this tool. Please refer to the <a class="reference external" href="https://CICE-Consortium.github.io/Icepack/index.html">user guide</a>
+for further information.</p>
 </div>
 <div class="section" id="grid-and-boundary-conditions">
 <span id="grids"></span><h3>3.1.2. Grid and boundary conditions<a class="headerlink" href="#grid-and-boundary-conditions" title="Permalink to this headline">¶</a></h3>
@@ -380,7 +381,7 @@ default in this distribution, this is not a stringent limitation:
 <h3>3.1.6. Model output<a class="headerlink" href="#model-output" title="Permalink to this headline">¶</a></h3>
 <p id="history">History output from Icepack is not currently supported in the Icepack driver, except
 in restart files.</p>
-<p>(CHECK: LINK) CICE provides extensive options for model output, including many derived output variables.</p>
+<p>(CHECK) <a class="reference external" href="https://github.com/CICE-Consortium/CICE">CICE</a> provides extensive options for model output, including many derived output variables.</p>
 <div class="section" id="diagnostic-files">
 <h4>3.1.6.1. Diagnostic files<a class="headerlink" href="#diagnostic-files" title="Permalink to this headline">¶</a></h4>
 <p>Icepack writes diagnostic information for each grid cell as a separate file,
@@ -403,8 +404,8 @@ pointer to the filename from which the restart data is to be read.</p>
 <div class="section" id="execution-procedures">
 <h2>3.2. Execution procedures<a class="headerlink" href="#execution-procedures" title="Permalink to this headline">¶</a></h2>
 <p>Quick-start instructions are provided in section <a class="reference internal" href="icepack_1_introduction.html#quickstart"><span class="std std-ref">Quick Start</span></a></p>
-<div class="section" id="scripts">
-<h3>3.2.1. Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>3.2.1. Scripts<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>Most of the scripts that configure, build and run Icepack tests are contained in
 the directory <strong>configuration/scripts/</strong>, except for <strong>icepack.create.case</strong>, which is
 in the main directory.</p>
@@ -580,7 +581,7 @@ topo ponds in Section&nbsp;<a class="reference internal" href="icepack_2_science
 radiation is absorbed at the surface but should be penetrating into
 the ice interior instead. This is due to use of the aggregated,
 effective albedo rather than the bare ice albedo when
-<a href="#id5"><span class="problematic" id="id6">``</span></a>snowpatch``&nbsp;<span class="math">\(&lt; 1\)</span>.</li>
+<a href="#id7"><span class="problematic" id="id8">``</span></a>snowpatch``&nbsp;<span class="math">\(&lt; 1\)</span>.</li>
 </ul>
 </div>
 <div class="section" id="interpretation-of-albedos">
@@ -622,8 +623,8 @@ possibly unified in the future.</p>
 </div>
 <div class="section" id="table-of-namelist-options">
 <span id="tabnamelist"></span><h2>3.5. Table of namelist options<a class="headerlink" href="#table-of-namelist-options" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils" id="id14">
-<span id="tab-namelist"></span><caption><span class="caption-text">Table 7</span><a class="headerlink" href="#id14" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id16">
+<span id="tab-namelist"></span><caption><span class="caption-text">Table 7</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="20%" />
 <col width="20%" />
@@ -1258,12 +1259,12 @@ possibly unified in the future.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">conduct</span></code></td>
 <td><code class="docutils literal"><span class="pre">MU71</span></code></td>
-<td>conductivity <a class="reference internal" href="zreferences.html#mu71" id="id7">[38]</a></td>
+<td>conductivity <a class="reference internal" href="zreferences.html#mu71" id="id9">[38]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">bubbly</span></code></td>
-<td>conductivity <a class="reference internal" href="zreferences.html#petb07" id="id8">[41]</a></td>
+<td>conductivity <a class="reference internal" href="zreferences.html#petb07" id="id10">[41]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">a_rapid_mode</span></code></td>
@@ -1348,12 +1349,12 @@ possibly unified in the future.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">kstrength</span></code></td>
 <td><code class="docutils literal"><span class="pre">0</span></code></td>
-<td>ice strength formulation <a class="reference internal" href="zreferences.html#hibler79" id="id9">[20]</a></td>
+<td>ice strength formulation <a class="reference internal" href="zreferences.html#hibler79" id="id11">[20]</a></td>
 <td>1</td>
 </tr>
 <tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">1</span></code></td>
-<td>ice strength formulation <a class="reference internal" href="zreferences.html#rothrock75" id="id10">[42]</a></td>
+<td>ice strength formulation <a class="reference internal" href="zreferences.html#rothrock75" id="id12">[42]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">krdg_partic</span></code></td>
@@ -1571,7 +1572,7 @@ possibly unified in the future.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">bgc_flux_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">Jin2006</span></code></td>
-<td>ice–ocean flux velocity of <a class="reference internal" href="zreferences.html#jdwstwlg06" id="id11">[26]</a></td>
+<td>ice–ocean flux velocity of <a class="reference internal" href="zreferences.html#jdwstwlg06" id="id13">[26]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>&#160;</td>
@@ -1601,7 +1602,7 @@ possibly unified in the future.</p>
 </tr>
 <tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">clim</span></code></td>
-<td>silicate forcing from ocean climatology <a class="reference internal" href="zreferences.html#glba06" id="id12">[18]</a></td>
+<td>silicate forcing from ocean climatology <a class="reference internal" href="zreferences.html#glba06" id="id14">[18]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">nit_data_type</span></code></td>
@@ -1611,7 +1612,7 @@ possibly unified in the future.</p>
 </tr>
 <tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">clim</span></code></td>
-<td>nitrate forcing from ocean climatology <a class="reference internal" href="zreferences.html#glba06" id="id13">[18]</a></td>
+<td>nitrate forcing from ocean climatology <a class="reference internal" href="zreferences.html#glba06" id="id15">[18]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>&#160;</td>
