@@ -65,7 +65,7 @@
 
       use icepack_aerosol, only: update_snow_bgc
       use icepack_constants, only: c0, c1, puny
-      use icepack_zbgc, only: merge_bgc_fluxes
+      use icepack_zbgc_shared, only: merge_bgc_fluxes
  
       integer (kind=int_kind), intent(in) :: &
          nblyr,              & ! number of bio layers
@@ -354,7 +354,7 @@
                                upNH,     grow_net,   &
                                l_stop,   stop_label)
 
-      use icepack_zbgc, only: merge_bgc_fluxes_skl
+      use icepack_zbgc_shared, only: merge_bgc_fluxes_skl
       use icepack_intfc_tracers, only: nt_bgc_N
  
       integer (kind=int_kind), intent(in) :: &

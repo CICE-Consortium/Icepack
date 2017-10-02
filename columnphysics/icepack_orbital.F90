@@ -15,15 +15,41 @@
 
       implicit none
       private
-#ifdef CCSMCOUPLED
-      public :: compute_coszen
-#else
-      public :: shr_orb_params, compute_coszen
-#endif
+      public :: compute_coszen, &
+                icepack_init_orbit
 
 !=======================================================================
  
       contains
+ 
+!=======================================================================
+
+! Compute orbital parameters for the specified date.
+!
+! author:  Bruce P. Briegleb, NCAR 
+
+      subroutine icepack_init_orbit(l_stop, stop_label)
+
+      use icepack_constants, only: iyear_AD, eccen, obliqr, lambm0, &
+         mvelpp, obliq, mvelp, decln, eccf, log_print
+
+      logical (kind=log_kind), intent(out) :: &
+         l_stop          ! if true, abort the model
+
+      character (len=*), intent(out) :: stop_label
+
+      l_stop = .false.      ! initialized for CCSMCOUPLED
+      stop_label = ''       ! initialized for CCSMCOUPLED
+      iyear_AD  = 1950
+      log_print = .false.   ! if true, write out orbital parameters
+
+#ifndef CCSMCOUPLED
+      call shr_orb_params( iyear_AD, eccen , obliq , mvelp    , &
+                           obliqr  , lambm0, mvelpp, log_print, &
+                           l_stop, stop_label)
+#endif
+
+      end subroutine icepack_init_orbit
  
 !=======================================================================
 
