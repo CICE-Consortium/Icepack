@@ -230,20 +230,21 @@ details).
             replaces settings with command-line configuration
 
         **tests/**
-            (CHECK: ADD LINK) scripts for configuring and running basic tests
+            (CHECK) `scripts <https://github.com/CICE-Consortium/Icepack/tree/master/configuration/scripts/tests>`_ for configuring and running basic tests
 
 **doc/**
     documentation
 
 **icepack.create.case**
-    main script for setting up a test case
+    main `script <https://github.com/CICE-Consortium/Icepack/blob/master/icepack.create.case>`_ for setting up a test case
 
-(CHECK: ADD LINK) 
+(CHECK) 
 
 A case (compile) directory is created upon initial execution of the script 
 **icepack.create.case** at the user-specified location provided after the -c flag. 
 Executing the command ``./icepack.create.case -h`` provides helpful information for 
-this tool. Please refer to the (LINK)user guide for further information.
+this tool. Please refer to the `user guide <https://CICE-Consortium.github.io/Icepack/index.html>`_ 
+for further information.
 
 .. _grids:
 
@@ -358,7 +359,7 @@ Model output
 History output from Icepack is not currently supported in the Icepack driver, except
 in restart files.
 
-(CHECK: LINK) CICE provides extensive options for model output, including many derived output variables.
+(CHECK) `CICE <https://github.com/CICE-Consortium/CICE>`_ provides extensive options for model output, including many derived output variables.
 
 Diagnostic files
 ~~~~~~~~~~~~~~~~
