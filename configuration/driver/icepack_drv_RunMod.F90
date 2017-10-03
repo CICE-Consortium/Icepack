@@ -27,8 +27,8 @@
 
       use icepack_drv_calendar, only: istep, istep1, time, dt, stop_now, calendar
       use icepack_drv_forcing, only: get_forcing
-!      use icepack_drv_forcing_bgc, only: get_forcing_bgc, get_atm_bgc, fzaero_data, & 
-!          faero_default
+      use icepack_drv_forcing_bgc, only: faero_default, get_forcing_bgc
+!      use icepack_drv_forcing_bgc, only: , get_atm_bgc, fzaero_data, & 
       use icepack_drv_flux, only: init_flux_atm_ocn
       use icepack_intfc_tracers, only: tr_aero, tr_zaero
       use icepack_intfc_shared, only: skl_bgc, z_tracers
@@ -54,9 +54,9 @@
 !         call get_forcing_ocn(dt)  ! ocean forcing from data
 
          ! aerosols
-!         if (tr_aero .or. tr_zaero)  call faero_default    ! default values
+          if (tr_aero .or. tr_zaero)  call faero_default    ! default values
 
-!         if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
+         if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 !         if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
          call init_flux_atm_ocn ! initialize atmosphere, ocean fluxes
@@ -80,7 +80,7 @@
       use icepack_drv_domain_size, only: nslyr
       use icepack_drv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
-      use icepack_drv_restart, only: dumpfile, final_restart
+      use icepack_drv_restart, only: dumpfile, final_restart, write_restart_hbrine
 !      use icepack_drv_restart_column, only: write_restart_age, write_restart_FY, &
 !          write_restart_lvl, write_restart_pond_cesm, write_restart_pond_lvl, &
 !          write_restart_pond_topo, write_restart_aero, &
@@ -176,7 +176,7 @@
         !            if (tr_aero)      call write_restart_aero
         !            if (solve_zsal .or. skl_bgc .or. z_tracers) &
         !                              call write_restart_bgc 
-        !            if (tr_brine)     call write_restart_hbrine
+        if (tr_brine)     call write_restart_hbrine
         !            if (kdyn == 2)    call write_restart_eap
         call final_restart
       endif

@@ -9,10 +9,10 @@
       use icepack_kinds_mod
       use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_calendar, only: nyr, days_per_year, dayyr, month, &
-                              daymo, daycal
+                              daymo, daycal, dt
 !      use ice_calendar, only: istep, istep1, time, time_forc, year_init, &
 !                              sec, mday, nyr, yday
-      use icepack_drv_constants, only: nu_diag, nu_forcing
+      use icepack_drv_constants, only: nu_diag, nu_forcing, secday
       use icepack_intfc_shared, only: calc_strair
 
       implicit none
@@ -91,6 +91,14 @@
          frcidr = 0.31_dbl_kind, & ! frac of incoming sw in near IR direct band
          frcidf = 0.17_dbl_kind    ! frac of incoming sw in near IR diffuse band
 
+      logical (kind=log_kind), public :: &
+         restore_sst                 ! restore sst if true
+
+      integer (kind=int_kind), public :: &
+         trestore                    ! restoring time scale (days)
+
+      real (kind=dbl_kind), public :: & 
+         trest                       ! restoring time scale (sec)
       logical (kind=log_kind), public :: &
          dbug             ! prints debugging output if true
 
@@ -181,6 +189,7 @@
       use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn
+      use icepack_intfc_shared, only: restore_bgc
 
       integer (kind=int_kind), intent(in) :: &
          timestep         ! time step index
@@ -225,6 +234,17 @@
       sss  (:) = sss_data  (i)    ! sea surface salinity
       uocn (:) = uocn_data (i)    ! wind velocity components (m/s)
       vocn (:) = vocn_data (i) 
+
+
+!cn we need trest here...
+!cn it is set in init_forcing_ocn
+      if (restore_sst .or. restore_bgc) then
+         if (trestore == 0) then
+            trest = dt        ! use data instantaneously
+         else
+            trest = real(trestore,kind=dbl_kind) * secday ! seconds
+         endif
+      endif
 
 !for debugging, for now
 if (i==8760) then

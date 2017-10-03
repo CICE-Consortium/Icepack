@@ -15,93 +15,11 @@
       save
 
       private
-      public ::  write_restart_bgc,       read_restart_bgc,  &
-                 write_restart_hbrine,    read_restart_hbrine
+      public ::  write_restart_bgc, read_restart_bgc 
 
 !=======================================================================
 
       contains
-
-!=======================================================================
-
-      subroutine read_restart_hbrine()
-
-! Reads all values needed for hbrine
-! author Elizabeth C. Hunke, LANL
-
-      use icepack_drv_arrays_column, only: first_ice_real, first_ice
-!      use icepack_drv_fileunits, only: nu_diag, nu_restart_hbrine
-      use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: nt_fbri
-      use icepack_drv_restart, only: read_restart_field
-
-      ! local variables
-
-      integer (kind=int_kind) :: &
-         i, n ! horizontal indices
-
-      logical (kind=log_kind) :: &
-         diag
-
-      diag = .true.
-
-      write(nu_diag,*) 'brine restart'
-
-!      call read_restart_field(nu_restart_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
-!                              'fbrn',ncat,diag,field_loc_center,field_type_scalar)
-!      call read_restart_field(nu_restart_hbrine,0,first_ice_real(:,:),'ruf8', &
-!                              'first_ice',ncat,diag,field_loc_center,field_type_scalar)
-
-         do i = 1, nx
-            do n = 1, ncat
-               if (first_ice_real(i,n) >= p5) then
-                   first_ice     (i,n) = .true.
-               else
-                   first_ice     (i,n) = .false.
-               endif
-            enddo ! ncat
-         enddo    ! i 
-
-      end subroutine read_restart_hbrine
-
-!=======================================================================
-
-      subroutine write_restart_hbrine()
-
-! Dumps all values needed for a hbrine restart
-! author Elizabeth C. Hunke, LANL
-
-      use icepack_drv_arrays_column, only: first_ice, first_ice_real
-!      use icepack_drv_fileunits, only: nu_diag, nu_dump_hbrine
-      use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: nt_fbri
-      use icepack_drv_restart, only: write_restart_field
-
-      ! local variables
-
-      integer (kind=int_kind) :: &
-         i, n ! horizontal indices
-
-      logical (kind=log_kind) :: diag
-
-      diag = .true.
-
-        do i = 1, nx  
-           do n = 1, ncat
-              if (first_ice     (i,n)) then
-                  first_ice_real(i,n) = c1
-              else
-                  first_ice_real(i,n) = c0
-              endif
-           enddo ! n
-        enddo    ! i
-
-!      call write_restart_field(nu_dump_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
-!                               'fbrn',ncat,diag)
-!      call write_restart_field(nu_dump_hbrine,0,first_ice_real(:,:),'ruf8', &
-!                               'first_ice',ncat,diag)
-
-      end subroutine write_restart_hbrine
 
 !=======================================================================
 !

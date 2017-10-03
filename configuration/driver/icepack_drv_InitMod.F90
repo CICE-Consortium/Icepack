@@ -36,8 +36,8 @@
       use icepack_drv_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm_ocn
       use icepack_drv_forcing, only: init_forcing, get_forcing
-!      use icepack_drv_forcing_bgc, only: get_forcing_bgc, get_atm_bgc, &
-!          faero_data, faero_default, faero_optics
+      use icepack_drv_forcing_bgc, only: get_forcing_bgc, faero_default !, get_atm_bgc, &
+!          faero_data, faero_optics
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_init, only: input_data, init_state, init_grid2
       use icepack_drv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
@@ -94,9 +94,9 @@
       ! aerosols
       ! if (tr_aero)  call faero_data                   ! data file
       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
-!      if (tr_aero .or. tr_zaero)  call faero_default    ! default values
+      if (tr_aero .or. tr_zaero)  call faero_default    ! default values
 
-!      if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
+      if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 !      if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
       call init_shortwave    ! initialize radiative transfer using current swdn
@@ -117,7 +117,7 @@
       use icepack_drv_flux, only: sss
       use icepack_drv_init, only: ice_ic, tmask
       use icepack_drv_init_column, only: init_hbrine, init_bgc
-      use icepack_drv_restart, only: restartfile
+      use icepack_drv_restart, only: restartfile, read_restart_hbrine
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_state ! almost everything
       use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, &
@@ -137,10 +137,11 @@
       !in CICE, the following line:
       !if (tr_brine .or. skl_bgc) call init_hbrine ! brine height tracer
       !is called like this:
-      !if (tr_brine .or. skl_bgc) then ! brine height tracer
-      !    call init_hbrine
-      !    if (tr_brine .and. restart_hbrine) call read_restart_hbrine
-      ! endif
+      if (tr_brine .or. skl_bgc) then ! brine height tracer
+        call init_hbrine
+        !if (tr_brine .and. restart_hbrine) call read_restart_hbrine
+        if (tr_brine .and. restart) call read_restart_hbrine
+      endif
 
 
 
@@ -168,7 +169,6 @@
                                 n_trcr_strata,      &
                                 nt_strata)
       enddo
-      write(*,*) trcrn
       end subroutine init_restart
 
 !=======================================================================

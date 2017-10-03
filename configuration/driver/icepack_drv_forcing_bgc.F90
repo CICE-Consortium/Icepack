@@ -19,8 +19,8 @@
 
       implicit none
       private
-      public :: get_forcing_bgc !cn, get_atm_bgc, fzaero_data, &
-                !cn init_bgc_data, faero_data, faero_default, faero_optics
+      public :: get_forcing_bgc, faero_default !cn, get_atm_bgc, fzaero_data, &
+                !cn init_bgc_data, faero_data, faero_optics
       save
 
       integer (kind=int_kind) :: &
@@ -46,14 +46,10 @@
       !cn use ice_domain, only: nblocks
       use icepack_drv_flux, only: sss, sil, nit
       use icepack_drv_forcing, only: read_clim_data, interpolate_data, &
-          interp_coeff, interp_coeff_monthly
-#if 0
-, c1intp, c2intp
-      use ice_forcing, only: trestore, trest, fyear, &
-          read_clim_data_nc, interpolate_data, &
-          interp_coeff_monthly, interp_coeff,  &
-          read_data_nc_point, c1intp, c2intp
-#endif
+          interp_coeff, interp_coeff_monthly, trestore, trest, c1intp, c2intp
+
+      !use ice_forcing, only:  fyear, read_clim_data_nc, read_data_nc_point
+
       use icepack_intfc_shared, only: nit_data_type, sil_data_type, bgc_data_dir, &
           max_algae, max_doc, max_dic, restore_bgc
       use icepack_intfc_tracers, only: tr_bgc_Sil, tr_bgc_Nit
@@ -107,7 +103,6 @@
           sil_file = trim(bgc_data_dir)//'silicate_climatologyWOA_gx1v6f.nc'
           !'silicate_WOA2005_surface_monthly' ! gx1 only
           
-          !cn if (my_task == master_task .and. istep == 1) then
           if (istep == 1) then
             if (trim(sil_data_type)=='clim' .AND. tr_bgc_Sil) then
               write (nu_diag,*) ' '
@@ -118,12 +113,12 @@
               write (nu_diag,*) ' '
               write (nu_diag,*) 'nitrate data interpolated to timestep:'
               write (nu_diag,*) trim(nit_file)
-#if 0  
+ 
               if (restore_bgc) write (nu_diag,*) &
                   'bgc restoring timescale (days) =', trestore
-#endif
+
             endif
-          endif                     ! my_task, istep
+          endif                     !  istep
          
           !-------------------------------------------------------------------
           ! monthly data
@@ -156,7 +151,7 @@
           if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
           
         endif   ! 'clim prep' sil/nit_data_type
-
+        
     !-------------------------------------------------------------------
     ! Read two monthly silicate values and interpolate.
     ! Restore toward interpolated value.
@@ -180,11 +175,9 @@
               ocean_bio_all(i,ks) = sil(i) 
             enddo
           elseif (restore_bgc) then
-            do i = 1, nx
-#if 0  
+            do i = 1, nx 
               sil(i) = sil(i)  &
                   + (sildat(i)-sil(i))*dt/trest
-#endif
               ks = 2*max_algae + max_doc + 3 + max_dic
               ocean_bio_all(i,ks) = sil(i)                       !Sil
             enddo
@@ -224,10 +217,8 @@
             enddo
           elseif (restore_bgc ) then
             do i = 1, nx
-#if 0
               nit(i) = nit(i)  &
-                  + (nitdat(i)-nit(i))*dt/trest
-#endif     
+                  + (nitdat(i)-nit(i))*dt/trest    
               ks = max_algae + 1
               ocean_bio_all(i,ks) = nit(i)                       !nit
               ks =  2*max_algae + max_doc + 7 + max_dic
@@ -262,7 +253,7 @@
         nit_file = trim(bgc_data_dir)//'nutrients_daily_ISPOL_WOA_field3.nc'
         sil_file = trim(bgc_data_dir)//'nutrients_daily_ISPOL_WOA_field3.nc' 
         
-        !cn if (my_task == master_task .and. istep == 1) then
+        !if (my_task == master_task .and. istep == 1) then
         if (istep == 1) then
           if (tr_bgc_Sil) then
             write (nu_diag,*) ' '
@@ -273,10 +264,10 @@
             write (nu_diag,*) ' '
             write (nu_diag,*) 'nitrate data interpolated to timestep:'
             write (nu_diag,*) trim(nit_file)
-#if 0        
+        
             if (restore_bgc) write (nu_diag,*) &
                 'bgc restoring timescale (days) =', trestore
-#endif
+
           endif
         endif                     ! my_task, istep
         
@@ -305,9 +296,9 @@
           call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
               maxrec, met_file, fieldname, sil_data_p, &
               field_loc_center, field_type_scalar)
+#endif          
           sil(:) =  c1intp * sil_data_p(1) &
               + c2intp * sil_data_p(2)
-#endif          
         endif
 
         if (tr_bgc_Nit) then
@@ -318,10 +309,10 @@
           call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
               maxrec, met_file, fieldname, nit_data_p, &
               field_loc_center, field_type_scalar)
+#endif          
           
           nit(:) =  c1intp * nit_data_p(1) &
               + c2intp * nit_data_p(2)
-#endif          
         endif
 
         do i = 1, nx
@@ -391,7 +382,7 @@
       endif
 
       end subroutine get_atm_bgc
-
+#endif
 !=======================================================================
 
 ! constant values for atmospheric aerosols
@@ -399,23 +390,23 @@
 ! authors: Elizabeth Hunke, LANL
 
       subroutine faero_default
-
-      use ice_flux_bgc, only: faero_atm
-      use icepack_constants, only: nspint
-      use icepack_intfc_shared, only: max_aero
-      use icepack_intfc_tracers, only: tr_aero
-
-        faero_atm(:,:,1,:) = 1.e-12_dbl_kind ! kg/m^2 s
-        faero_atm(:,:,2,:) = 1.e-13_dbl_kind
-        faero_atm(:,:,3,:) = 1.e-14_dbl_kind 
-        faero_atm(:,:,4,:) = 1.e-14_dbl_kind 
-        faero_atm(:,:,5,:) = 1.e-14_dbl_kind 
-        faero_atm(:,:,6,:) = 1.e-14_dbl_kind 
-
+        
+        use icepack_drv_flux, only: faero_atm
+        !use icepack_constants, only: nspint
+        !use icepack_intfc_shared, only: max_aero
+        !use icepack_intfc_tracers, only: tr_aero
+        
+        faero_atm(:,1) = 1.e-12_dbl_kind ! kg/m^2 s
+        faero_atm(:,2) = 1.e-13_dbl_kind
+        faero_atm(:,3) = 1.e-14_dbl_kind 
+        faero_atm(:,4) = 1.e-14_dbl_kind 
+        faero_atm(:,5) = 1.e-14_dbl_kind 
+        faero_atm(:,6) = 1.e-14_dbl_kind 
+        
       end subroutine faero_default
-
+      
 !=======================================================================
-
+#if 0
 ! read atmospheric aerosols
 !
 ! authors: Elizabeth Hunke, LANL

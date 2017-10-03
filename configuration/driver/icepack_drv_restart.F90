@@ -22,7 +22,8 @@
 
       public :: dumpfile, restartfile, &
                 read_restart_field, write_restart_field, final_restart, &
-                write_restart_field_cn, read_restart_field_cn
+                write_restart_field_cn, read_restart_field_cn, &
+                write_restart_hbrine, read_restart_hbrine
       save
 !cn future stuff for writing the number of tracers in file
 #if 0
@@ -108,9 +109,7 @@
       !-----------------------------------------------------------------
 
       call write_restart_field_cn(nu_dump,aicen(:,:),ncat)
-      !write(*,*) aicen
       call write_restart_field_cn(nu_dump,vicen(:,:),ncat)
-      !write(*,*) vicen
       call write_restart_field_cn(nu_dump,vsnon(:,:),ncat)
 !this is surface temperature
       call write_restart_field_cn(nu_dump,trcrn(:,nt_Tsfc,:),ncat)
@@ -118,7 +117,6 @@
       do k=1,nilyr
          write(nchar,'(i3.3)') k
          call write_restart_field_cn(nu_dump,trcrn(:,nt_sice+k-1,:),ncat)
-      !write(*,*)trcrn(:,nt_sice+k-1,:)
       enddo
 !this is ice enthalpy in each nilyr
       do k=1,nilyr
@@ -130,7 +128,6 @@
          write(nchar,'(i3.3)') k
          call write_restart_field_cn(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
-      !write(*,*) trcrn
 
       !-----------------------------------------------------------------
       ! radiation fields
@@ -244,9 +241,7 @@
       write(nu_diag,*) ' min/max area, vol ice, vol snow, Tsfc'
 
       call read_restart_field_cn(nu_restart,aicen,ncat)
-      !write(*,*) aicen
       call read_restart_field_cn(nu_restart,vicen,ncat)
-      !write(*,*)vicen
       call read_restart_field_cn(nu_restart,vsnon,ncat)
       call read_restart_field_cn(nu_restart,trcrn(:,nt_Tsfc,:),ncat)
 
@@ -254,7 +249,6 @@
       do k=1,nilyr
         write(nchar,'(i3.3)') k
         call read_restart_field_cn(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
-      !write(*,*)trcrn(:,nt_sice+k-1,:)
       enddo
       
       write(nu_diag,*) 'min/max qice for each layer'
@@ -268,7 +262,6 @@
         write(nchar,'(i3.3)') k
         call read_restart_field_cn(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
-      !write(*,*) trcrn
 
       !-----------------------------------------------------------------
       ! radiation fields
@@ -325,8 +318,8 @@
       if (tr_pond_topo) then
         call read_restart_pond_topo()
       endif
-      
-      if (tr_aero) then ! ice aerosol
+      ! ice aerosol
+      if (tr_aero) then
         call read_restart_aero() 
       endif
 
@@ -342,7 +335,6 @@
       !-----------------------------------------------------------------
       ! compute aggregate ice state and open water area
       !-----------------------------------------------------------------
-      !write(*,*) trcrn
 
 !cn this gets called again upon returning...
       do i = 1, nx
@@ -853,6 +845,91 @@
       enddo
 
       end subroutine read_restart_aero
+
+!=======================================================================
+
+      subroutine write_restart_hbrine()
+
+! Dumps all values needed for a hbrine restart
+! author Elizabeth C. Hunke, LANL
+
+      use icepack_drv_arrays_column, only: first_ice, first_ice_real
+!      use icepack_drv_fileunits, only: nu_diag, nu_dump_hbrine
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_fbri
+      !cn use icepack_drv_restart, only: write_restart_field
+      use icepack_drv_constants, only: c1, c0
+      use icepack_drv_domain_size, only: ncat, nx
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, n ! horizontal indices
+
+      logical (kind=log_kind) :: diag
+
+      diag = .true.
+
+        do i = 1, nx  
+           do n = 1, ncat
+              if (first_ice     (i,n)) then
+                  first_ice_real(i,n) = c1
+              else
+                  first_ice_real(i,n) = c0
+              endif
+           enddo ! n
+        enddo    ! i
+
+!      call write_restart_field(nu_dump_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
+!                               'fbrn',ncat,diag)
+!      call write_restart_field(nu_dump_hbrine,0,first_ice_real(:,:),'ruf8', &
+!                               'first_ice',ncat,diag)
+
+      end subroutine write_restart_hbrine
+
+!=======================================================================
+
+      subroutine read_restart_hbrine()
+
+! Reads all values needed for hbrine
+! author Elizabeth C. Hunke, LANL
+
+      use icepack_drv_arrays_column, only: first_ice_real, first_ice
+!      use icepack_drv_fileunits, only: nu_diag, nu_restart_hbrine
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_fbri
+      use icepack_drv_constants, only: p5
+      use icepack_drv_domain_size, only: ncat, nx
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, n ! horizontal indices
+
+      logical (kind=log_kind) :: &
+         diag
+
+      diag = .true.
+
+      write(nu_diag,*) 'brine restart'
+
+!      call read_restart_field(nu_restart_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
+!                              'fbrn',ncat,diag,field_loc_center,field_type_scalar)
+!      call read_restart_field(nu_restart_hbrine,0,first_ice_real(:,:),'ruf8', &
+!                              'first_ice',ncat,diag,field_loc_center,field_type_scalar)
+
+         do i = 1, nx
+            do n = 1, ncat
+               if (first_ice_real(i,n) >= p5) then
+                   first_ice     (i,n) = .true.
+               else
+                   first_ice     (i,n) = .false.
+               endif
+            enddo ! ncat
+         enddo    ! i 
+
+      end subroutine read_restart_hbrine
+
 
 !=======================================================================
 
