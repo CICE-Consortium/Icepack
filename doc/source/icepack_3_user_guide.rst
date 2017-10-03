@@ -23,13 +23,13 @@ details).
 **DistributionPolicy.pdf**
     license and policy for using and sharing the code
 
-**README.md**  (CHECK: RM?) **README\_v1**
+**README.md**
     basic information and pointers
 
 **columnphysics/**
     the essential physics code
 
-    **constants**  (CHECK))
+    **constants**  (CHECK - this will change)
       physical and numerical constants required for column package
 
       **cesm/icepack_constants.F90**
@@ -75,7 +75,7 @@ details).
         basic definitions of reals, integers, etc.
 
     **icepack\_mechred.F90**
-        mechanical redistribution component (ridging)
+        mechanical redistribution (ridging)
 
     **icepack\_meltpond\_cesm.F90**
         CESM melt pond parameterization
@@ -212,7 +212,7 @@ details).
             defines the grid size
 
         **icepack\_in**
-            (CHECK) namelist input data (data paths depend on particular system)
+            namelist input data
 
         **machines/**
             macro definitions for the given computers
