@@ -27,10 +27,11 @@ The Icepack driver in the ``configuration/driver/`` directory is based on the CI
 model and provides an example of the sea ice host model capabilities needed for inclusion
 of Icepack.  In particular, host models will need to include code equivalent to that
 in the modules **icepack\_drv\_\*_column.F90**.  Calls into the Icepack interface routines
-are primarily from **icepack\_drv\_step\_mod.F90** but there are others (search the code
+are primarily from **icepack\_drv\_step\_mod.F90** but there are others (search the driver code
 for ``intfc``).
 
-Guiding principles for the creation of Icepack include the following:
+Guiding principles for the creation of Icepack include the following: 
+CHECK THAT THESE ARE TRUE
 
 - The column physics modules shall be independent of all sea ice model infrastructural
   elements that may vary from model to model.  Examples include input/output, timers,
@@ -47,9 +48,6 @@ Atmosphere and ocean boundary forcing
 -------------------------------------
 
 :ref:`tab-flux-cpl`: *Data exchanged between the CESM flux coupler and the sea ice model that are relevant to Icepack*  
-NOTE this table should be divided into those variables used in the column physics and 
-those that are used by the driver to prepare for the column physics (e.g. wind components).
-*icepack\_drv\_flux.F90 needs to be cleaned up!*
 
 .. _tab-flux-cpl:
 
@@ -70,8 +68,7 @@ those that are used by the driver to prepare for the column physics (e.g. wind c
    ":math:`F_{frzmlt}`", "Freezing/melting potential", "From *ocean model* via flux coupler **to** *sea ice model*", ""
    ":math:`T_w`", "Sea surface temperature", "From *ocean model* via flux coupler **to** *sea ice model*", ""
    ":math:`S`", "Sea surface salinity", "From *ocean model* via flux coupler **to** *sea ice model*", ""
-   ":math:`\nabla H_o`", "Sea surface slope", "From *ocean model* via flux coupler **to** *sea ice model*", ""
-   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model* via flux coupler **to** *sea ice model*", ""
+   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model* via flux coupler **to** *sea ice model* (available in Icepack driver, not used directly in column physics)", ""
    ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
    ":math:`F_s`", "Sensible heat flux", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
    ":math:`F_l`", "Latent heat flux", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
@@ -107,7 +104,7 @@ from the ice model with fluxes from the other components. For example,
 the penetrating shortwave radiation flux, weighted by :math:`a_i`, is
 combined with the net shortwave radiation flux through ice-free leads,
 weighted by (:math:`1-a_i`), to obtain the net shortwave flux into the
-ocean over the entire grid cell. The flux coupler requires the fluxes to
+ocean over the entire grid cell. The CESM flux coupler requires the fluxes to
 be divided by the total ice area so that the ice and land models are
 treated identically (land also may occupy less than 100% of an
 atmospheric grid cell). These fluxes are “per unit ice area" rather than
@@ -148,7 +145,7 @@ stress and turbulent heat fluxes :math:`\vec\tau_a`, :math:`F_s`, and
 radiation, :math:`F_{sw\downarrow}`, :math:`F_{L\downarrow}`
 and :math:`F_{L\uparrow}`, are included in the flux balance that
 determines the ice or snow surface temperature when calc\_Tsfc = true.
-As described in Section :ref:`thermo`, these fluxes depend nonlinearly
+As described in the :ref:`thermo` section, these fluxes depend nonlinearly
 on the ice surface temperature :math:`T_{sfc}`. The balance
 equation is iterated until convergence, and the resulting fluxes and
 :math:`T_{sfc}` are then passed to the flux coupler.
@@ -191,7 +188,7 @@ The wind speed has a minimum value of 1 m/s. We have ignored ice motion
 in :math:`u^*`, and :math:`T_{sfc}` and
 :math:`Q_{sfc}` are the surface temperature and specific
 humidity, respectively. The latter is calculated by assuming a saturated
-surface, as described in Section :ref:`sfc-forcing`.
+surface, as described in the :ref:`sfc-forcing` section.
 
 Neglecting form drag,the exchange coefficients :math:`c_u`,
 :math:`c_\theta` and :math:`c_q` are initialized as
@@ -201,7 +198,7 @@ Neglecting form drag,the exchange coefficients :math:`c_u`,
 
 and updated during a short iteration, as they depend upon the turbulent
 scales. The number of iterations is set by the namelist variable
-`natmiter`. (For the case with form drag, see section :ref:`formdrag`.)
+``natmiter``. (For the case with form drag, see the :ref:`formdrag` section.)
 Here, :math:`z_{ref}` is a reference height of 10m and
 :math:`z_{ice}` is the roughness length scale for the given
 sea ice category. :math:`\Upsilon` is constrained to have magnitude less
@@ -262,7 +259,7 @@ for the reference humidity, :math:`Q_a^{ref}`.
 
 Additional details about the latent and sensible heat fluxes and other
 quantities referred to here can be found in
-Section :ref:`sfc-forcing`.
+the :ref:`sfc-forcing` section.
 
 .. _ocean:
 
@@ -313,7 +310,7 @@ the ice layers.
 
 A fraction of the incoming shortwave :math:`F_{sw\Downarrow}`
 penetrates the snow and ice layers and passes into the ocean, as
-described in Section :ref:`sfc-forcing`.
+described in the :ref:`sfc-forcing` section.
 
 A thermodynamic slab ocean mixed-layer parameterization is available 
 in **ice\_ocean.F90** and can be run in the full CICE configuration.
@@ -372,8 +369,8 @@ obstacle,
 with :math:`D` the distance between two obstacles and :math:`s_l` an
 attenuation parameter.
 
-As in the original drag formulation in CICE (sections :ref:`atmo` and
-:ref:`ocean`), :math:`c_u` and :math:`c_w` along with the transfer
+As in the original drag formulation in CICE (:ref:`atmo` and
+:ref:`ocean` sections), :math:`c_u` and :math:`c_w` along with the transfer
 coefficients for sensible heat, :math:`c_{\theta}`, and latent heat,
 :math:`c_{q}`, are initialized to a situation corresponding to neutral
 atmosphere–ice and ocean–ice boundary layers. The corresponding neutral
@@ -443,7 +440,7 @@ as the ocean surface surrounding the floes
 :math:`L_P` we use the parameterizations of :cite:`LGHA12`
 to relate these quantities to the ice and pond concentrations. All of
 these intermediate quantities are available as history output, along
-with `Cdn\_atm`, `Cdn\_ocn` and the ratio `Cdn\_atm\_ratio\_n` between the
+with ``Cdn_atm``, ``Cdn_ocn`` and the ratio ``Cdn_atm_ratio_n`` between the
 total atmospheric drag and the atmospheric neutral drag coefficient.
 
 We assume that the total neutral drag coefficients are thickness
@@ -451,16 +448,16 @@ category independent, but through their dependance on the diagnostic
 variables described above, they vary both spatially and temporally. The
 total drag coefficients and heat transfer coefficients will also depend
 on the type of stratification of the atmosphere and the ocean, and we
-use the parameterization described in section :ref:`atmo` that accounts
+use the parameterization described in the :ref:`atmo` section that accounts
 for both stable and unstable atmosphere–ice boundary layers. In contrast
 to the neutral drag coefficients the stability effect of the atmospheric
 boundary layer is calculated separately for each ice thickness category.
 
 The transfer coefficient for oceanic heat flux to the bottom of the ice
 may be varied based on form drag considerations by setting the namelist
-variable `fbot\_xfer\_type` to `Cdn\_ocn`; this is recommended when using
+variable ``fbot_xfer_type`` to ``Cdn_ocn``; this is recommended when using
 the form drag parameterization. Its default value of the transfer
-coefficient is 0.006 (`fbot\_xfer\_type = ’constant’`).
+coefficient is 0.006 (``fbot_xfer_type = ’constant’``).
 
 
 .. _model_comp:
@@ -511,19 +508,19 @@ by definition.
 
 Category boundaries are computed in *init\_itd* using one of several
 formulas, summarized in :ref:`tab-itd`. 
-Setting the namelist variable `kcatbound` equal to 0 or 1 gives lower 
+Setting the namelist variable ``kcatbound`` equal to 0 or 1 gives lower 
 thickness boundaries for any number of thickness categories :math:`N_C`.
 :ref:`tab-itd` shows the boundary values for :math:`N_C` = 5 and linear remapping 
 of the ice thickness distribution. A third option specifies the boundaries 
 based on the World Meteorological Organization classification; the full WMO
 thickness distribution is used if :math:`N_C` = 7; if :math:`N_C` = 5 or
 6, some of the thinner categories are combined. The original formula
-(`kcatbound` = 0) is the default. Category boundaries differ from those
+(``kcatbound`` = 0) is the default. Category boundaries differ from those
 shown in :ref:`tab-itd` for the delta-function ITD. Users may
 substitute their own preferred boundaries in *init\_itd*.
 
 :ref:`tab-itd` : *Lower boundary values for thickness categories, in meters, for 
-the three distribution options (* `kcatbound` *) and linear remapping (* `kitd` = 1 *). 
+the three distribution options (* ``kcatbound`` *) and linear remapping (* `kitd` = 1 *). 
 In the WMO case, the distribution used depends on the number of categories used.*
 
 .. _tab-itd:
@@ -559,6 +556,13 @@ In the WMO case, the distribution used depends on the number of categories used.
 
 Tracers
 -------
+
+Numerous tracers are available with the column physics.  Several of these are 
+required (surface temperature and thickness, salinity and enthalpy of ice and snow layers),
+and many others are options.  For instance, there are tracers to track the age of the ice;
+the area of first-year ice, fractions of ice area and volume that are level, from which
+the amount of deformed ice can be calculated; pond area, volume and ice-covered volume;
+aerosols and numerous other biogeochemical tracers.
 
 .. _pondtr:
 
@@ -649,7 +653,7 @@ Thus,
    = {a_{pnd}^t(m)a_i^t(m) + \sum_{n\ne m} \Delta \left(a_{pnd}a_i\right)^{t+\Delta t} \over a_i^{t+\Delta t}(m)  }\end{aligned}
 
 This is more complicated because of the :math:`\Delta` term on the
-right-hand side, which is handled manually in **ice\_itd.F90**. Such
+right-hand side, which is handled in subroutine *icepack\_compute\_tracers*. Such
 tracer calculations are scattered throughout the code, wherever there
 are changes to the ice thickness distribution.
 
@@ -659,8 +663,8 @@ become zero. If a tracer should be conserved (e.g., aerosols and the
 liquid water in topo ponds), additional code must be added to track
 changes in the conserved quantity.
 
-More information about the melt pond schemes is in
-section :ref:`ponds`.
+More information about the melt pond schemes is in the
+:ref:`ponds` section.
 
 .. _ice-age:
 
@@ -668,7 +672,7 @@ Ice age
 ~~~~~~~
 
 The age of the ice, :math:`\tau_{age}`, is treated as an
-ice-volume tracer (`trcr\_depend` = 1). It is initialized at 0 when ice
+ice-volume tracer (``trcr_depend``= 1). It is initialized at 0 when ice
 forms as frazil, and the ice ages the length of the timestep during each
 timestep. Freezing directly onto the bottom of the ice does not affect
 the age, nor does melting. Mechanical redistribution processes and
@@ -680,7 +684,7 @@ Another age-related tracer, the area covered by first-year ice
 :math:`a_{FY}`, is an area tracer (`trcr\_depend` = 0) that corresponds
 more closely to satellite-derived ice age data for first-year ice than
 does :math:`\tau_{age}`. It is re-initialized each year on 15
-September (`yday` = 259) in the northern hemisphere and 15 March (`yday` =
+September (``yday`` = 259) in the northern hemisphere and 15 March (``yday`` =
 75) in the southern hemisphere, in non-leap years. This tracer is
 increased when new ice forms in open water, in subroutine
 *add\_new\_ice* in **ice\_therm\_itd.F90**. The first-year area tracer
@@ -690,6 +694,8 @@ is discussed in :cite:`ABTH11`.
 
 Sea ice biogeochemistry
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+CHECK:  *This section is for the skeletal layer bgc.  Vertical bgc doc needs to be added!*
 
 Ice algal photosynthesis leads to carbon fixation and pigment buildup
 throughout much of the pack ice in springtime, including warm layers in
@@ -780,20 +786,20 @@ buildup and release during the spring thaw.
 
 Biogeochemical processing is modelled as a single layer of reactive
 tracers attached to the sea ice bottom. Optional settings are available
-via the *zbgc\_nml* namelist in **ice\_in**. The prefix `tr\_bgc`
-signifies a biogeochemical tracer, while the postscript `\_sk` indicates
+via the *zbgc\_nml* namelist in **ice\_in**. The prefix ``tr_bgc``
+signifies a biogeochemical tracer, while the postscript ``_sk`` indicates
 that a particular quantity is restricted to the band of bottom or
 skeletal ice material. History fields are controlled in the
 *icefields\_bgc\_nml* namelist. As with other CICE history fields, the
-suffix `\_ai` indicates that the field is multiplied by ice area and is
+suffix ``_ai`` indicates that the field is multiplied by ice area and is
 therefore a grid-cell-mean quantity.
 
-Setting the flag `skl\_bgc` to true turns on a reduced ‘NP’
+Setting the flag ``skl_bgc`` to true turns on a reduced ‘NP’
 (Nitrogen-Plankton) biogeochemistry consisting of nitrate and one algal
-tracer. Ammonium (`tr\_bgc\_Am\_sk`), silicate (`tr\_bgc\_Sil\_sk`),
+tracer. Ammonium (``tr_bgc_Am_sk``), silicate (``tr_bgc_Sil_sk``),
 dimethyl sulfoniopropionate (DMSP) in particulate form
-(`tr\_bgc\_DMSPp\_sk`), DMSP in dissolved form (`tr\_bgc\_DMSPd\_sk`), and
-volatile dimethyl sulfide (`tr\_bgc\_DMS\_sk`) may also be included by
+(``tr_bgc_DMSPp_sk``), DMSP in dissolved form (``tr_bgc_DMSPd_sk``), and
+volatile dimethyl sulfide (``tr_bgc_DMS_sk``) may also be included by
 setting the respective flags to true in **ice\_in**.
 
 All biogeochemical tracers (:math:`T_b`) are brine concentrations
@@ -804,16 +810,16 @@ skeletal layer porosity. Both :math:`h_{sk}` and :math:`\phi_{sk}` are
 defined in **ice\_zbgc\_shared.F90**.
 
 Tracers :math:`T_b` are area conserved and follow the horizontal
-transport equation ([eq:transport\_aT]). The initial concentrations of
+transport equation (:eq:`transport\_aT`). The initial concentrations of
 tracers are specified in subroutine **init\_bgc** in **ice\_zbgc.F90**.
 Silicate and nitrate may be initialized and forced with climatology.
-Parameters `sil\_data\_type` and `nit\_data\_type` are set in **ice\_in**
+Parameters ``sil_data_type`` and ``nit_data_type`` are set in **ice\_in**
 and take the values ‘clim’ (climatology) and ‘default’ (constant).
-`nit\_data\_type` may also take the value ‘sss’ which sets nitrate to the
-ocean salinity value. For climatology, the data directory `bgc\_data\_dir`
+``nit_data_type`` may also take the value ‘sss’ which sets nitrate to the
+ocean salinity value. For climatology, the data directory ``bgc_data_dir``
 must also be specified. If `restore\_bgc` is true, then values are
 linearly restored to climatology according to the restoring timescale
-`trestore`.
+``trestore``.
 
 For each horizontal grid point, local biogeochemical tracer equations
 are solved in **ice\_algae.F90**. There are two types of ice–ocean
@@ -929,14 +935,14 @@ each aerosol species, one in the surface scattering layer
 Rather than updating aerosols for each change to ice/snow thickness due
 to evaporation, melting, snow–ice formation, etc., during the
 thermodynamics calculation, these changes are deduced from the
-diagnostic variables (`melts`, `meltb`, `snoice`, etc) in
+diagnostic variables (``melts``, ``meltb``, ``snoice``, etc) in
 **ice\_aerosol.F90**. Three processes change the volume of ice or snow
 but do not change the total amount of aerosol, thus causing the aerosol
 concentration (the value of the tracer itself) to increase: evaporation,
 snow deposition and basal ice growth. Basal and lateral melting remove
 all aerosols in the melted portion. Surface ice and snow melt leave a
 significant fraction of the aerosols behind, but they do “scavenge" a
-fraction of them given by the parameter `kscav` = [0.03, 0.2, 0.02, 0.02,
+fraction of them given by the parameter ``kscav`` = [0.03, 0.2, 0.02, 0.02,
 0.01, 0.01] (only the first 3 are used in CESM, for their 3 aerosol
 species). Scavenging also applies to snow–ice formation. When sea ice
 ridges, a fraction of the snow on the ridging ice is thrown into the
@@ -944,15 +950,15 @@ ocean, and any aerosols in that fraction are also lost to the ocean.
 
 As upper SSL or interior layers disappear from the snow or ice, aerosols
 are transferred to the next lower layer, or into the ocean when no ice
-remains. The atmospheric flux `faero\_atm` contains the rates of aerosol
-deposition for each species, while `faero\_ocn` has the rate at which the
+remains. The atmospheric flux ``faero_atm`` contains the rates of aerosol
+deposition for each species, while ``faero_ocn`` has the rate at which the
 aerosols are transferred to the ocean.
 
-The aerosol tracer flag `tr\_aero` must be set to true in **ice\_in**, and
+The aerosol tracer flag ``tr_aero`` must be set to true in **ice\_in**, and
 the number of aerosol species is set in **comp\_ice**; CESM uses 3.
 Results using the aerosol code in the context of CESM are documented in
 :cite:`HBBLH12`. Global diagnostics are available when
-`print\_global` is true, and history variables include the mass density
+``print_global`` is true, and history variables include the mass density
 for each layer (snow and ice SSL and interior), and atmospheric and
 oceanic fluxes, for each species.
 
@@ -968,7 +974,7 @@ surface can move relative to the ice surface. Physically, this occurs
 when the ice is permeable and there is a nonzero pressure head: the
 difference between the brine height and the equilibrium sea surface.
 Brine height motion is computed in **ice\_brine.F90** from thermodynamic
-variables (`melts`, `meltb`, `meltt`, etc) and the ice microstructural state
+variables (``melts``, ``meltb``, ``meltt``, etc) and the ice microstructural state
 deduced from internal bulk salinities and temperature. In the current
 release, this tracer is for diagnostic purposes only; it is driven by
 the prognostic salinity parameterization but is not used for computing
@@ -986,7 +992,7 @@ tracers will be defined only where brine is present. This region, from
 the ice–ocean interface to the brine height, defines the domain of the
 vertical bio-grid, whose resolution is independent of the sea ice
 vertical grid and is set at compile time (see
-Section :ref:`grids`). The ice microstructural state,
+the :ref:`grids` section). The ice microstructural state,
 determined in **ice\_brine.F90**, is computed from sea ice salinities
 and temperatures linearly interpolated to the bio-grid. When
 :math:`h_b > h_i`, the upper surface brine is assumed to have the same
@@ -1040,9 +1046,9 @@ g/(h_i\mu\phi_{top})` and :math:`\phi_{top}` is the upper surface
 porosity. When the Darcy flow is downward into the ice
 (:math:`w_o < 0`), then :math:`\phi_{top}` equals the sea ice porosity
 in the uppermost layer. However, when the flow is upwards into the snow,
-then :math:`\phi_{top}` equals the snow porosity `phi\_snow` specified in
-**ice\_in**. If a negative number is specified for `phi\_snow`, then the
-default value is used: phi\_snow :math:`=1 - \rho_s/\rho_w`.
+then :math:`\phi_{top}` equals the snow porosity ``phi_snow`` specified in
+**ice\_in**. If a negative number is specified for ``phi_snow``, then the
+default value is used: ``phi_snow`` :math:`=1 - \rho_s/\rho_w`.
 
 Since :math:`h_{sl}` remains relatively unchanged during Darcy flow,
 Equation :eq:`h-p` has the approximate solution
@@ -1076,7 +1082,7 @@ snow melt and ice thickness changes is
    :label: dzdt-meltwater
 
 The above brine height calculation is used only when :math:`h_i` and
-:math:`h_b` exceed a minimum thickness, `thinS`, specified in
+:math:`h_b` exceed a minimum thickness, ``thinS``, specified in
 **ice\_zbgc\_shared**. Otherwise
 
 .. math::
@@ -1084,16 +1090,16 @@ The above brine height calculation is used only when :math:`h_i` and
    :label: thinbrine
 
 provided that :math:`|h_{sl}-h_b| \leq 0.001`. This formulation ensures
-small Darcy velocities when :math:`h_b` first exceeds `thinS`.
+small Darcy velocities when :math:`h_b` first exceeds ``thinS``.
 
 Both the volume fraction :math:`f_{bri}` and the area-weighted brine
 height :math:`h_b` can be written to the history file. The history
-variable `fbri` contains the volume-averaged brine fraction tracer
+variable ``fbri`` contains the volume-averaged brine fraction tracer
 
 .. math:: 
    {{\sum f_{bri} v_i} \over {\sum v_i}},
 
-while hbri is comparable to hi (:math:`h_i`)
+while ``hbri`` is comparable to hi (:math:`h_i`)
 
 .. math:: 
    {{\sum f_{bri} h_i a_i} \over {\sum a_i}},
@@ -1128,7 +1134,7 @@ We first compute the displacement of category boundaries in thickness
 space. Assume that at time :math:`m` the ice areas :math:`a_n^m` and
 mean ice thicknesses :math:`h_n^m` are known for each thickness
 category. (For now we omit the subscript :math:`i` that distinguishes
-ice from snow.) We use a thermodynamic model (Section :ref:`thermo`)
+ice from snow.) We use a thermodynamic model (:ref:`thermo`)
 to compute the new mean thicknesses :math:`h_n^{m+1}` at time
 :math:`m+1`. The time step must be small enough that trajectories do not
 cross; i.e., :math:`h_n^{m+1} < h_{n+1}^{m+1}` for each pair of adjacent
@@ -1332,7 +1338,7 @@ use “ridging” as shorthand for all forms of mechanical redistribution,
 including rafting.) The weighting function :math:`b(h)` favors ridging
 of thin ice and closing of open water in preference to ridging of
 thicker ice. There are two options for the form of :math:`b(h)`. If
-`krdg\_partic` = 0 in the namelist, we follow :cite:`TRMC75`
+``krdg_partic`` = 0 in the namelist, we follow :cite:`TRMC75`
 and set
 
 .. math::
@@ -1392,19 +1398,19 @@ implies
                   {1 - \exp(-1/a^*)}
    :label: partic-new-discrete
 
-This weighting function is used if `krdg\_partic` = 1 in the namelist.
+This weighting function is used if ``krdg_partic`` = 1 in the namelist.
 From Equation :eq:`partic-new-contin`, the mean value of :math:`G` for ice
 participating in ridging is :math:`a^*`, as compared to :math:`G^*/3`
 for Equation :eq:`partic-old-contin`. For typical ice thickness distributions,
-setting :math:`a^* = 0.05` with `krdg\_partic` = 1 gives participation
-fractions similar to those given by :math:`G^* = 0.15` with `krdg\_partic`
+setting :math:`a^* = 0.05` with ``krdg_partic`` = 1 gives participation
+fractions similar to those given by :math:`G^* = 0.15` with ``krdg_partic``
 = 0. See :cite:`LHMJ07` for a detailed comparison of these
 two participation functions.
 
 Thin ice is converted to thick, ridged ice in a way that reduces the
 total ice area while conserving ice volume and internal energy. There
 are two namelist options for redistributing ice among thickness
-categories. If `krdg\_redist` = 0, ridging ice of thickness :math:`h_n`
+categories. If ``krdg_redist`` = 0, ridging ice of thickness :math:`h_n`
 forms ridges whose area is distributed uniformly between
 :math:`H_{\min} = 2 h_n` and :math:`H_{\max} = 2 \sqrt{H^* h_n}`, as in
 :cite:`Hibler80`. The default value of :math:`H^*` is 25 m, as
@@ -1440,7 +1446,7 @@ to category :math:`m` is
 This uniform redistribution function tends to produce too little ice in
 the 3–5 m range and too much ice thicker than 10 m
 :cite:`AMI04`. Observations show that the ITD of ridges is
-better approximated by a negative exponential. Setting `krdg\_redist` = 1
+better approximated by a negative exponential. Setting ``krdg_redist`` = 1
 gives ridges with an exponential ITD :cite:`LHMJ07`:
 
 .. math::
@@ -1455,8 +1461,8 @@ ridging ice). We assume that :math:`\lambda = \mu h_n^{1/2}`, where
 ridge thickness increases in proportion to :math:`h_n^{1/2}`, as in
 :cite:`Hibler80`. The value :math:`\mu = 4.0`  gives
 :math:`\lambda` in the range 1–4 m for most ridged ice. Ice strengths
-with :math:`\mu = 4.0`  and `krdg\_redist` = 1 are roughly comparable to
-the strengths with :math:`H^* = 50` m and `krdg\_redist` = 0.
+with :math:`\mu = 4.0`  and ``krdg_redist`` = 1 are roughly comparable to
+the strengths with :math:`H^* = 50` m and ``krdg_redist`` = 0.
 
 From Equation :eq:`redist-new` it can be shown that the fractional area going
 to category :math:`m` as a result of ridging is
@@ -1475,7 +1481,7 @@ The fractional volume going to category :math:`m` is
    :label: ridge-volume-new
 
 Equations :eq:`ridge-area-new` and :eq:`ridge-volume-new` replace
-Equations :eq:`ridge-area-old` and :eq:`ridge-volume-old` when `krdg\_redist`
+Equations :eq:`ridge-area-old` and :eq:`ridge-volume-old` when ``krdg_redist``
 = 1.
 
 Internal ice energy is transferred between categories in proportion to
@@ -1567,7 +1573,7 @@ Alternatively, setting kstrength = 1 gives an ice strength closely
 related to the ridging scheme. Following
 :cite:`Rothrock75`, the strength is assumed proportional
 to the change in ice potential energy :math:`\Delta E_P` per unit area
-of compressive deformation. Given uniform ridge ITDs (krdg\_redist = 0),
+of compressive deformation. Given uniform ridge ITDs (``krdg_redist`` = 0),
 we have
 
 .. math::
@@ -1587,7 +1593,7 @@ larger term is the potential energy of the resulting ridges. The factor
 of :math:`\beta` is included because :math:`a_{Pn}` is normalized with
 respect to the total area of ice ridging, not the net area removed.
 Recall that more than one unit area of ice must be ridged to reduce the
-net ice area by one unit. For exponential ridge ITDs (`krdg\_redist` = 1),
+net ice area by one unit. For exponential ridge ITDs (``krdg_redist`` = 1),
 the ridge potential energy is modified:
 
 .. math::
@@ -1610,14 +1616,14 @@ Thermodynamics
 
 The current CICE version includes three thermodynamics
 options, the “zero-layer" thermodynamics of :cite:`Semtner76`
-(`ktherm` = 0), the Bitz and Lipscomb model :cite:`BL99`
-(`ktherm` = 1) that assumes a fixed salinity profile, and a new “mushy"
-formulation (`ktherm` = 2) in which salinity evolves
+(``ktherm`` = 0), the Bitz and Lipscomb model :cite:`BL99`
+(``ktherm`` = 1) that assumes a fixed salinity profile, and a new “mushy"
+formulation (``ktherm`` = 2) in which salinity evolves
 :cite:`THB13`. For each thickness category, CICE computes
 changes in the ice and snow thickness and vertical temperature profile
 resulting from radiative, turbulent, and conductive heat fluxes. The ice
 has a temperature-dependent specific heam to simulate the effect of
-brine pocket melting and freezing, for `ktherm` = 1 and 2.
+brine pocket melting and freezing, for ``ktherm`` = 1 and 2.
 
 Each thickness category :math:`n` in each grid cell is treated as a
 horizontally uniform column with ice thickness
@@ -1644,12 +1650,12 @@ function of temperature and salinity. We can also define a snow enthalpy
 Given surface forcing at the atmosphere–ice and ice–ocean interfaces
 along with the ice and snow thicknesses and temperatures/enthalpies at
 time \ :math:`m`, the thermodynamic model advances these quantities to
-time \ :math:`m+1` (ktherm=2 also advances salinity). The calculation
+time \ :math:`m+1` (``ktherm``=2 also advances salinity). The calculation
 proceeds in two steps. First we solve a set of equations for the new
-temperatures, as discussed in Section :ref:`thermo-temp`. Then we
+temperatures, as discussed in the :ref:`thermo-temp` section. Then we
 compute the melting, if any, of ice or snow at the top surface, and the
 growth or melting of ice at the bottom surface, as described in
-Section :ref:`thermo-growth`. We begin by describing the surface
+the :ref:`thermo-growth` section. We begin by describing the surface
 forcing parameterizations, which are closely related to the ice and snow
 surface temperatures.
 
@@ -1679,7 +1685,7 @@ is the fraction of the total melt water available that is added to the
 ponds, :math:`\rho_i` and :math:`\rho_s` are ice and snow densities,
 :math:`\Delta h_i` and :math:`\Delta h_s` are the thicknesses of ice and
 snow that melted, and :math:`F_{rain}` is the rainfall rate. Namelist
-parameters are set for the level-ice (`tr\_pond\_lvl`) parameterization;
+parameters are set for the level-ice (``tr_pond_lvl``) parameterization;
 in the cesm and topo pond schemes the standard values of :math:`r_{max}`
 and :math:`r_{min}` are 0.7 and 0.15, respectively.
 
@@ -1695,12 +1701,12 @@ calculation.
 
 In addition to the physical processes discussed below, tracer equations
 and definitions for melt ponds are also described in
-Section :ref:`tracers` and :ref:`fig-tracers`.
+the :ref:`tracers` and :ref:`fig-tracers` sections.
 
-**CESM formulation** (`tr\_pond\_cesm` = true)
+**CESM formulation** (``tr_pond_cesm`` = true)
 
 Melt pond area and thickness tracers are carried on each ice thickness
-category as in Section :ref:`tracers`. Defined simply as the product
+category as in the :ref:`tracers` section. Defined simply as the product
 of pond area, :math:`a_p`, and depth, :math:`h_p`, the melt pond volume,
 :math:`V_{p}`, grows through addition of ice or snow melt water or rain
 water, and shrinks when the ice surface temperature becomes cold,
@@ -1715,7 +1721,7 @@ the top surface of each thickness category and :math:`r_2=0.01`. Here,
 :math:`T_p` is a reference temperature equal to -2 :math:`^\circ`\ C.
 Pond depth is assumed to be a linear function of the pond fraction
 (:math:`h_p=\delta_p a_p`) and is limited by the category ice thickness
-(:math:`h_p \le 0.9 h_i`). The pond shape (`pndaspect`)
+(:math:`h_p \le 0.9 h_i`). The pond shape (``pndaspect``)
 :math:`\delta_p = 0.8` in the standard CESM pond configuration. The area
 and thickness are computed according to the assumed pond shape, and the
 pond area is then reduced in the presence of snow for the radiation
@@ -1723,7 +1729,7 @@ calculation. Ponds are allowed only on ice at least 1 cm thick. This
 formulation differs slightly from that documented in
 :cite:`HBBLH12`.
 
-**Topographic formulation** (`tr\_pond\_topo` = true)
+**Topographic formulation** (``tr_pond_topo`` = true)
 
 The principle concept of this scheme is that melt water runs downhill
 under the influence of gravity and collects on sea ice with increasing
@@ -1863,8 +1869,8 @@ water becomes more porous owing to a reduction in solid fraction
 :cite:`EGPRF04`. The hydraulic head of melt water on sea
 ice (i.e., its height above sea level) drives flushing of melt water
 through the porous sea ice and into the underlying ocean. The mushy
-thermodynamics scheme (`ktherm` :math:`= 2`) handles flushing. For
-ktherm :math:`\ne 2` we model the vertical flushing rate using Darcy’s
+thermodynamics scheme (``ktherm`` :math:`= 2`) handles flushing. For
+``ktherm`` :math:`\ne 2` we model the vertical flushing rate using Darcy’s
 law for flow through a porous medium
 
 .. math::
@@ -1964,12 +1970,12 @@ over the lost area is released to the ocean immediately. In
 :cite:`FFT10`, the pond volume was carried as an ice area
 tracer, but in :cite:`FSFH12` and here, pond area and
 thickness are carried as separate tracers, as in
-Section :ref:`tracers`.
+the :ref:`tracers` section.
 
 Unlike the cesm and level-ice melt pond schemes, the liquid pond water
 in the topo parameterization is not necessarily virtual; it can be
 withheld from being passed to the ocean model until the ponds drain by
-setting the namelist variable `l\_mpond\_fresh` = .true. The refrozen pond
+setting the namelist variable ``l_mpond_fresh`` = .true. The refrozen pond
 lids are still virtual. Extra code needed to track and enforce
 conservation of water has been added to **ice\_itd.F90** (subroutine
 *zap\_small\_areas*), **ice\_mechred.F90** (subroutine *ridge\_shift*),
@@ -1977,7 +1983,7 @@ conservation of water has been added to **ice\_itd.F90** (subroutine
 and **ice\_therm\_vertical.F90** (subroutine *thermo\_vertical*), along
 with global diagnostics in **ice\_diagnostics.F90**.
 
-**Level-ice formulation** (`tr\_pond\_lvl` = true)
+**Level-ice formulation** (``tr_pond_lvl`` = true)
 
 This meltpond parameterization represents a combination of ideas from
 the empirical CESM melt pond scheme and the topo approach, and is
@@ -2014,7 +2020,7 @@ The level-ice formulation assumes a thickness-area ratio for *changes*
 in pond volume, while the CESM scheme assumes this ratio for the total
 pond volume. Pond volume changes are distributed as changes to the area
 and to the depth of the ponds using an assumed aspect ratio, or shape,
-given by the parameter :math:`\delta_p` (`pndaspect`),
+given by the parameter :math:`\delta_p` (``pndaspect``),
 :math:`\delta_p = {\Delta h_p / \Delta a_{p}}` and
 :math:`\Delta V = \Delta h_p \Delta a_{p} = \delta_p\Delta a_p^2  = \Delta h_{p}^2/\delta_p`.
 Here, :math:`a_{p} = a_{pnd} a_{lvl}`, the mean pond area over the ice.
@@ -2057,7 +2063,7 @@ pond ice. Only option A tracks the thickness of the lid ice using the
 tracer :math:`h_{ipnd}` and includes the radiative effect of snow on top
 of the lid.
 
-A. The `frzpnd` = ‘hlid’ option uses a Stefan approximation for growth of
+A. The ``frzpnd`` = ‘hlid’ option uses a Stefan approximation for growth of
 fresh ice and is invoked only when :math:`\Delta V_{melt}=0`.
 
 The basic thermodynamic equation governing ice growth is
@@ -2098,7 +2104,7 @@ of pond ice is
 
 where :math:`\rho_0` is the density of fresh water.
 
-B. The `frzpnd` = ‘cesm’ option uses the same empirical function as in the
+B. The ``frzpnd`` = ‘cesm’ option uses the same empirical function as in the
 CESM melt pond parameterization.
 
 *Radiative effects.* Freshwater ice that has formed on top of a melt
@@ -2214,8 +2220,8 @@ have a radiative influence, we do not allow the pond mass to change the
 sea ice and snow masses at this time, although this issue may need to be
 reconsidered in the future, especially for the Antarctic.
 
-The mushy thermodynamics scheme (`ktherm` :math:`= 2`) handles flushing.
-For `ktherm` :math:`\ne 2`, the permeability of the sea ice is calculated
+The mushy thermodynamics scheme (``ktherm`` :math:`= 2`) handles flushing.
+For ``ktherm`` :math:`\ne 2`, the permeability of the sea ice is calculated
 using the internal ice temperatures :math:`T_i` (computed from the
 enthalpies as in the sea ice thermodynamics). The brine salinity and
 liquid fraction are given by :cite:`Notz05` [eq 3.6]
@@ -2283,7 +2289,7 @@ shortwave scheme, described below.
 *Shortwave radiation: Delta-Eddington*
 
 Two methods for computing albedo and shortwave fluxes are available, the
-default (“ccsm3") method, described below, and a multiple scattering
+“ccsm3" method, described below, and a multiple scattering
 radiative transfer scheme that uses a Delta-Eddington approach.
 “Inherent" optical properties (IOPs) for snow and sea ice, such as
 extinction coefficient and single scattering albedo, are prescribed
@@ -2300,16 +2306,16 @@ including a surface scattering layer and internal shortwave absorption
 for snow, generalization for multiple snow layers and more than four
 layers of ice, and updated IOP values.
 
-The namelist parameters `R\_ice` and `R\_pnd` adjust the albedo of bare or
+The namelist parameters ``R_ice`` and ``R_pnd`` adjust the albedo of bare or
 ponded ice by the product of the namelist value and one standard
-deviation. For example, if `R\_ice` = 0.1, the albedo increases by
-:math:`0.1\sigma`. Similarly, setting `R\_snw` = 0.1 decreases the snow
+deviation. For example, if ``R_ice`` = 0.1, the albedo increases by
+:math:`0.1\sigma`. Similarly, setting ``R_snw`` = 0.1 decreases the snow
 grain radius by :math:`0.1\sigma` (thus increasing the albedo). Two
-additional tuning parameters are available for this scheme, `dT\_mlt` and
-`rsnw\_mlt`. `dT\_mlt` is the temperature change needed for a change in snow
-grain radius from non-melting to melting, and `rsnw\_mlt` is the maximum
+additional tuning parameters are available for this scheme, ``dT_mlt`` and
+``rsnw_mlt``. ``dT_mlt`` is the temperature change needed for a change in snow
+grain radius from non-melting to melting, and ``rsnw_mlt`` is the maximum
 snow grain radius when melting. An absorption coefficient for algae
-(`kalg`) may also be set. See :cite:`BL07` for details; the
+(``kalg``) may also be set. See :cite:`BL07` for details; the
 CESM melt pond and Delta-Eddington parameterizations are further
 explained and validated in :cite:`HBBLH12`.
 
@@ -2320,17 +2326,17 @@ Climate System Model (CCSM3), the albedo depends on the temperature and
 thickness of ice and snow and on the spectral distribution of the
 incoming solar radiation. Albedo parameters have been chosen to fit
 observations from the SHEBA field experiment. For
-:math:`T_{sf} < -1^{circ}C` and :math:`h_i > ` `ahmax`, the bare ice
+:math:`T_{sf} < -1^{\circ}C` and :math:`h_i > ` ``ahmax``, the bare ice
 albedo is 0.78 for visible wavelengths (:math:`<700`\ nm) and 0.36 for
 near IR wavelengths (:math:`>700`\ nm). As :math:`h_i` decreases from
 ahmax to zero, the ice albedo decreases smoothly (using an arctangent
 function) to the ocean albedo, 0.06. The ice albedo in both spectral
 bands decreases by 0.075 as :math:`T_{sf}` rises from
-:math:`-1^{circ}C` to . The albedo of cold snow (:math:`T_{sf} <
--1^{circ}C`) is 0.98 for visible wavelengths and 0.70 for near IR
+:math:`-1^{\circ}C` to . The albedo of cold snow (:math:`T_{sf} <
+-1^{\circ}C`) is 0.98 for visible wavelengths and 0.70 for near IR
 wavelengths. The visible snow albedo decreases by 0.10 and the near IR
-albedo by 0.15 as :math:`T_{sf}` increases from :math:`-1^{circ}C`
-to . The total albedo is an area-weighted average of the ice and snow
+albedo by 0.15 as :math:`T_{sf}` increases from :math:`-1^{\circ}C`
+to :math:`0^{\circ}C`. The total albedo is an area-weighted average of the ice and snow
 albedos, where the fractional snow-covered area is
 
 .. math:: 
@@ -2396,7 +2402,7 @@ surface temperature of the snow or snow-free ice,
    F_s = C_s \left(\Theta_a - T_{sf}^K\right).
 
 :math:`C_s` and :math:`C_l` (below) are nonlinear turbulent heat
-transfer coefficients described in Section :ref:`atmo`. Similarly,
+transfer coefficients described in the :ref:`atmo` section. Similarly,
 the latent heat flux is proportional to the difference between
 :math:`Q_a` and the surface saturation specific humidity :math:`Q_{sf}`:
 
@@ -2431,23 +2437,23 @@ the ocean, :math:`F_{frzmlt}`. Additional heat,
 :cite:`MP87` and :cite:`Steele92`.
 :math:`F_{bot}` and the fraction of ice melting laterally are scaled so
 that :math:`F_{bot} + F_{side} \ge F_{frzmlt}` in the case that
-:math:` F_{frzmlt}<0` (melting; see
-Section :ref:`thermo-growth`).
+:math:`F_{frzmlt}<0` (melting; see
+:ref:`thermo-growth`).
 
 .. _thermo-temp:
 
 New temperatures
 ~~~~~~~~~~~~~~~~
 
-**Zero-layer thermodynamics** (`ktherm` = 0)
+**Zero-layer thermodynamics** (``ktherm`` = 0)
 An option for zero-layer thermodynamics :cite:`Semtner76` is
 available in this version of CICE by setting the namelist parameter
-ktherm to 0 and changing the number of ice layers, nilyr, in
+``ktherm`` to 0 and changing the number of ice layers, nilyr, in
 **ice\_domain\_size.F90** to 1. In the zero-layer case, the ice is
 fresh and the thermodynamic calculations are much simpler than in the
 other configurations, which we describe here.
 
-**Bitz and Lipscomb thermodynamics** (`ktherm` = 1)
+**Bitz and Lipscomb thermodynamics** (``ktherm`` = 1)
 
 The “BL99" thermodynamic sea ice model is based on
 :cite:`MU71` and :cite:`BL99`, and is
@@ -2495,17 +2501,17 @@ column vector whose components are the unknown new temperatures, and
 :math:`{\bf b}`, we can compute :math:`{\bf x}` with a standard
 tridiagonal solver.
 
-There are four general cases: (1) :math:`T_{sf} < 0^{circ}C`, snow
-present; (2) :math:`T_{sf} = 0^{circ}C`, snow present;
-(3) :math:`T_{sf} < 0^{circ}C`, snow absent; and
-(4) :math:`T_{sf} = 0^{circ}C`, snow absent. For case 1 we have
+There are four general cases: (1) :math:`T_{sf} < 0^{\circ}C`, snow
+present; (2) :math:`T_{sf} = 0^{\circ}C`, snow present;
+(3) :math:`T_{sf} < 0^{\circ}C`, snow absent; and
+(4) :math:`T_{sf} = 0^{\circ}C`, snow absent. For case 1 we have
 one equation (the top row of the matrix) for the new surface
 temperature, :math:`N_s` equations for the new snow temperatures, and
 :math:`N_i` equations for the new ice temperatures. For cases 2 and 4 we
 omit the equation for the surface temperature, which is held at , and
 for cases 3 and 4 we omit the snow temperature equations. Snow is
 considered absent if the snow depth is less than a user-specified
-minimum value, `hs\_min`. (Very thin snow layers are still transported
+minimum value, ``hs_min``. (Very thin snow layers are still transported
 conservatively by the transport modules; they are simply ignored by the
 thermodynamics.)
 
@@ -2523,14 +2529,14 @@ where :math:`\rho_i = 917 \ \mathrm {kg/m^{3}}` is the sea ice density
 ice, :math:`K_i(T,S)` is the thermal conductivity of sea ice,
 :math:`I_{pen}` is the flux of penetrating solar radiation at
 depth :math:`z`, and :math:`z` is the vertical coordinate, defined to be
-positive downward with :math:`z = 0` at the top surface. If shortwave =
+positive downward with :math:`z = 0` at the top surface. If ``shortwave`` =
 ‘default’, the penetrating radiation is given by Beer’s Law:
 
 .. math:: 
    I_{pen}(z) = I_0 \exp(-\kappa_i z),
 
 where :math:`I_0` is the penetrating solar flux at the top ice surface
-and :math:`\kappa_i` is an extinction coefficient. If shortwave =
+and :math:`\kappa_i` is an extinction coefficient. If ``shortwave`` =
 ‘dEdd’, then solar absorption is computed by the Delta-Eddington scheme.
 
 The specific heat of sea ice is given to an excellent approximation by
@@ -2547,7 +2553,7 @@ between the freezing temperature and salinity of brine.
 
 Following :cite:`Untersteiner64` and
 :cite:`MU71`, the standard thermal conductivity
-(`conduct` = ‘MU71’) is given by
+(``conduct`` = ‘MU71’) is given by
 
 .. math::
    K_i(T,S) = K_0 + \frac{\beta S}{T},
@@ -2558,12 +2564,12 @@ where :math:`K_0 = 2.03` W/m/deg is the conductivity of fresh ice and
 results :cite:`TWMH01` suggest that Equation :eq:`conductivity` may
 not be a good description of the thermal conductivity of sea ice. In
 particular, the measured conductivity does not markedly decrease as
-:math:`T` approaches , but does decrease near the top surface
+:math:`T` approaches :math:`0^{\circ}C`, but does decrease near the top surface
 (regardless of temperature).
 
 An alternative parameterization based on the “bubbly brine" model of
 :cite:`PETB07` for conductivity is available
-(`conduct` = ‘bubbly’):
+(``conduct`` = ‘bubbly’):
 
 .. math::
     K_i={\rho_i\over\rho_0}\left(2.11-0.011T+0.09 S/T\right),
@@ -2588,9 +2594,9 @@ It is possible that more shortwave penetrates into an ice layer than is
 needed to completely melt the layer, or else it causes the computed
 temperature to be greater than the melting temperature, which until now
 has caused the vertical thermodynamics code to abort. A parameter
-`frac` = 0.9 sets the fraction of the ice layer than can be melted through.
+``frac`` = 0.9 sets the fraction of the ice layer than can be melted through.
 A minimum temperature difference for absorption of radiation is also
-set, currently `dTemp` = 0.02 (K). The limiting occurs in
+set, currently ``dTemp`` = 0.02 (K). The limiting occurs in
 **ice\_therm\_vertical.F90**, for both the default and delta Eddington
 radiation schemes. If the available energy would melt through a layer,
 then penetrating shortwave is first reduced, possibly to zero, and if
@@ -2667,7 +2673,7 @@ where :math:`\tau_k` is the fraction of the penetrating solar radiation
 absorbed.
 
 We now construct a system of equations for the new temperatures. For
-:math:`T_{sf}<0^{circ}C` we require
+:math:`T_{sf}<0^{\circ}C` we require
 
 .. math::
    F_0 = F_{ct},
@@ -2721,14 +2727,14 @@ where :math:`\eta_k = \Delta t/(\rho_k c_k \Delta h_k)`. In the
 equation for the bottom ice layer, the temperature at the ice–ocean
 interface is held fixed at :math:`T_f`, the freezing temperature of the
 mixed layer; thus the last term on the LHS is known and is moved to the
-RHS. If :math:`T_{sf} = 0^{circ}C` , then there is no surface flux
+RHS. If :math:`T_{sf} = 0^{\circ}C` , then there is no surface flux
 equation. In this case the first equation in Equation :eq:`tridiag` is similar
 to Equation :eq:`tridiag-form`, but with the first term on the LHS moved to the
 RHS.
 
 These equations are modified if :math:`T_{sf}` and
 :math:`F_{ct}` are computed within the atmospheric model and
-passed to CICE (calc\_Tsfc = false; see Section :ref:`atmo`). In this case there
+passed to CICE (calc\_Tsfc = false; see :ref:`atmo`). In this case there
 is no surface flux equation. The top layer temperature is computed by an
 equation similar to Equation :eq:`tridiag-form` but with the first term on the
 LHS replaced by :math:`\eta_1 F_{ct}` and moved to the RHS. The
@@ -2746,9 +2752,9 @@ via the coupler. Otherwise, the fluxes that are returned to CICE may
 result in oscillating, highly inaccurate temperatures. The effect of
 limiting is to treat the ice as a poor heat conductor. As a result,
 winter growth rates are reduced, and the ice is likely to be too thin
-(other things being equal). The values of `hs\_min` and :math:`\Delta t`
-must therefore be chosen with care. If `hs\_min` is too small, frequent
-limiting is required, but if `hs\_min` is too large, snow will be ignored
+(other things being equal). The values of ``hs_min`` and :math:`\Delta t`
+must therefore be chosen with care. If ``hs_min`` is too small, frequent
+limiting is required, but if ``hs_min`` is too large, snow will be ignored
 when its thermodynamic effects are significant. Likewise, infrequent
 coupling requires more limiting, whereas frequent coupling is
 computationally expensive.
@@ -2757,7 +2763,7 @@ This completes the specification of the matrix equations for the four
 cases. We compute the new temperatures using a tridiagonal solver. After
 each iteration we check to see whether the following conditions hold:
 
-#. :math:`T_{sf} \leq 0^{circ}C`.
+#. :math:`T_{sf} \leq 0^{\circ}C`.
 
 #. The change in :math:`T_{sf}` since the previous iteration is
    less than a prescribed limit, :math:`\Delta T_{\max}`.
@@ -2773,10 +2779,10 @@ We also check the convergence rate of :math:`T_{sf}`. If :math:`T_{sf}`
 is oscillating and failing to converge, we average temperatures from
 successive iterations to improve convergence. When all these conditions
 are satisfied—usually within two to four iterations for
-:math:`\Delta T_{\max} \approx 0.01^{circ}C` and :math:`\Delta F_{max}
+:math:`\Delta T_{\max} \approx 0.01^{\circ}C` and :math:`\Delta F_{max}
 \approx 0.01 \ \mathrm{W/m^2}`—the calculation is complete.
 
-To compute growth and melt rates (Section :ref:`thermo-growth`,
+To compute growth and melt rates (:ref:`thermo-growth`,
 we derive expressions for the enthalpy :math:`q`. The enthalpy of snow
 (or fresh ice) is given by
 
@@ -2833,7 +2839,7 @@ where
 
 The other root is unphysical.
 
-**Mushy thermodynamics** (`ktherm` = 2)
+**Mushy thermodynamics** (``ktherm`` = 2)
 
 The “mushy" thermodynamics option treats the sea ice as a mushy layer
 :cite:`FUWW06` in which the ice is assumed to be composed
@@ -2865,7 +2871,7 @@ fixed at the values of cp\_ice and cp\_ocn, respectively. The enthalpy
 is the energy required to raise the temperature of the sea ice to ,
 including both sensible and latent heat changes. Since the sea ice
 contains salt, it usually will be fully melted at a temperature below
-:math:`0^{circ}C`.
+:math:`0^{\circ}C`.
 Equations :eq:`ice-enthalpy` and :eq:`enth-def` are
 equivalent except for the density used in the term representing the
 energy required to bring the melt water temperature to (:math:`\rho_i`
@@ -2991,9 +2997,9 @@ The conductivity of the mush is given by
 .. math:: 
    K = \phi K_{br} + (1-\phi) K_{i}
 
-where :math:`K_i = 2.3` Wm:math:`^{-1}`\ K\ :math:`^{-1}` is the
+where :math:`K_i = 2.3` Wm:math:`^{-1}`K:math:`^{-1}` is the
 conductivity of pure ice and
-:math:`K_{br}=0.5375` Wm:math:`^{-1}`\ K\ :math:`^{-1}` is the
+:math:`K_{br}=0.5375` Wm:math:`^{-1}`K:math:`^{-1}` is the
 conductivity of the brine. The thermal conductivity of brine is a
 function of temperature and salinity, but here we take it as a constant
 value for the middle of the temperature range experienced by sea ice,
@@ -3043,7 +3049,7 @@ iteration, the surface heat flux is calculated with the new surface
 temperature until convergence is achieved. Convergence normally occurs
 after a few iterations once the temperature changes during an iteration
 fall below :math:`5\times10^{-4}\;^\circ\mathrm{C}` and the energy
-conservation error falls below 0.9ferrmax.
+conservation error falls below 0.9``ferrmax``.
 
 *Salinity updates.* 
 
@@ -3150,8 +3156,8 @@ channel which we take to be the density of brine in the mush at the
 level that the brine is draining from. :math:`l` is the thickness of
 mush from the ice base to the top of the layer in question. We assume
 that :math:`\Delta x` is proportional to :math:`l` so that
-:math:`\Delta x = 2 \beta l`. :math:`a` (`a\_rapid\_mode`), :math:`\beta`
-(`aspect\_rapid\_mode`) and :math:`Ra_c` (`Ra\_c\_rapid\_mode`) are all
+:math:`\Delta x = 2 \beta l`. :math:`a` (``a_rapid_mode``), :math:`\beta`
+(``aspect_rapid_mode``) and :math:`Ra_c` (``Ra_c_rapid_mode``) are all
 namelist parameters with default values of :math:`0.5\;\mathrm{mm}`, 1
 and 10, respectively. The value :math:`\beta=1` gives a square aspect
 ratio for the convective flow in the mush.
@@ -3178,8 +3184,8 @@ salinity relaxes to a value, :math:`S_c(z)`, given by
 where :math:`S_{br}(z)` is the brine salinity at depth :math:`z` and
 :math:`\phi_c` is a critical liquid fraction. Both :math:`S^\ast` and
 :math:`\phi_c` are namelist parameters,
-`dSdt\_slow\_mode` :math:`=1.5\times10^{-7}\;\mathrm{m}\;\mathrm{s}^{-1}\;\mathrm{K}^{-1}`
-and `phi\_c\_slow\_mode` :math:`=0.05`.
+``dSdt_slow_mode`` :math:`=1.5\times10^{-7}\;\mathrm{m}\;\mathrm{s}^{-1}\;\mathrm{K}^{-1}`
+and ``phi_c_slow_mode`` :math:`=0.05`.
 
 B. Downwards flushing. Melt pond water drains through sea ice and
 flushes out brine, reducing the bulk salinity of the sea ice. This is
@@ -3221,7 +3227,7 @@ mushy layers there is usually no discontinuity in solid fraction across
 the interface, so :math:`\phi_i=1` and Equation :eq:`growth-stefan`
 cannot be used explicitly. To circumvent this problem we set the
 interface solid fraction to be 0.15, a value that reproduces
-observations. :math:`\phi_i` is a namelist parameter (`phi\_i\_mushy` =
+observations. :math:`\phi_i` is a namelist parameter (``phi_i_mushy`` =
 0.85). The basal ice temperature is set to the liquidus temperature
 :math:`T_f` of the ocean surface salinity.
 
@@ -3283,8 +3289,8 @@ conductive heat flux at the bottom surface:
 If ice is melting at the bottom surface, :math:`q`
 in Equation :eq:`bottom-melting` is the enthalpy of the bottom ice layer. If
 ice is growing, :math:`q` is the enthalpy of new ice with temperature
-:math:`T_f` and salinity :math:`S_{max}` (`ktherm` = 1) or ocean surface
-salinity (`ktherm` = 2). This ice is added to the bottom layer.
+:math:`T_f` and salinity :math:`S_{max}` (``ktherm`` = 1) or ocean surface
+salinity (``ktherm`` = 2). This ice is added to the bottom layer.
 
 In general, frazil ice formed in the ocean is added to the thinnest ice
 category. The new ice is grown in the open water area of the grid cell
@@ -3345,7 +3351,7 @@ Thus the snow base lies below sea level when
 .. math:: 
    h^* \equiv h_s - \frac {(\rho_w-\rho_i) h_i}{\rho_s} > 0.
 
-In this case, for `ktherm` = 1 (BL99) we raise the snow base to sea level
+In this case, for ``ktherm`` = 1 (BL99) we raise the snow base to sea level
 by converting some snow to ice:
 
 .. math::
@@ -3356,10 +3362,10 @@ by converting some snow to ice:
 In rare cases this process can increase the ice thickness
 substantially. For this reason snow–ice conversions are postponed until
 after the remapping in thickness space
-(Section :ref:`itd-trans`), which assumes that ice growth during
+(:ref:`itd-trans`), which assumes that ice growth during
 a single time step is fairly small.
 
-For `ktherm` = 2 (mushy), we model the snow–ice formation process as
+For ``ktherm`` = 2 (mushy), we model the snow–ice formation process as
 follows: If the ice surface is below sea level then we replace some snow
 with the same thickness of sea ice. The thickness change chosen is that
 which brings the ice surface to sea level. The new ice has a porosity of

@@ -52,11 +52,10 @@ This model release is Icepack version 1.0.
 
 The column physics code was separated from CICE version 5.1.2 by removing all references to
 the horizontal grid and other infrastructural CICE elements (e.g. MPI tasks, calendar).  
-A simplified driver was developed for Icepack, for testing purposes. 
 
-
-- if there are any major changes
--  
+- A simplified driver was developed for Icepack, for testing purposes. 
+- Additional tests for the column physics are now available.
+- This release includes the full vertical biogeochemistry code.
 
 Acknowledgments and Copyright
 =============================
@@ -83,9 +82,9 @@ Special thanks are due to the following people:
 
 -  Jean-Francois Lemieux and Frederic Dupont of Environment and Climate Change Canada,
 
--  Tony Craig and his supporters at the National Center for Atmospheric Research, the Naval Postgraduate School (and NOAA????),
+-  Tony Craig and his supporters at the National Center for Atmospheric Research, the Naval Postgraduate School...CHECK,
 
--  Cecilia Bitz at the University of Washington, for her column forcing data
+-  Cecilia Bitz at the University of Washington, for her column forcing data,
 
 -  and many others who contributed to previous versions of CICE.
 
