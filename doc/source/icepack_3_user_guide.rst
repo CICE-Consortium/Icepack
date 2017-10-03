@@ -357,7 +357,8 @@ Model output
 History output from Icepack is not currently supported in the Icepack driver, except
 in restart files.
 
-The sea ice model `CICE <https://github.com/CICE-Consortium/CICE>`_ provides extensive options for model output, including many derived output variables.
+The sea ice model `CICE <https://github.com/CICE-Consortium/CICE>`_ provides extensive 
+options for model output, including many derived output variables.
 
 Diagnostic files
 ~~~~~~~~~~~~~~~~
@@ -613,10 +614,42 @@ Check the FAQ: https://github.com/CICE-Consortium/Icepack/wiki
 Initial setup
 -------------
 
+- Changes made directly in the run directory, e.g. to the namelist file, will be overwritten
+if scripts in the case directory are run again later.
+
 .. _restarttrouble:
 
 Restarts
 --------
+
+- Manual restart tests require the path to the restart file be included in ``ice_in`` in the 
+namelist file.
+
+- Ensure that ``kcatbound`` is the same as that used to create the restart file.  
+Other configuration parameters, such as ``NICELYR``, must also be consistent between runs.
+
+.. _testtrouble:
+
+Testing
+--------
+
+- Tests using a debug flag that traps underflows will fail unless a "flush-to-zero" flag 
+is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
+radiation scheme.
+
+Debugging hints
+---------------
+
+A printing utility is available that can be helpful when debugging the
+code. Not all of these will work everywhere in the code, due to possible
+conflicts in module dependencies.
+
+*debug\_icepack* (**configuration/driver/ice\_diagnostics.F90**)
+    A wrapper for *print\_state* that is easily called from numerous
+    points during initialization and the timestepping loop
+
+*print\_state* (**configuration/driver/ice\_diagnostics.F90**)
+    Print the ice state and forcing fields for a given grid cell.
 
 Known bugs
 ----------
@@ -671,6 +704,8 @@ possibly unified in the future.
 
 Table of namelist options
 =========================
+
+CHECK
 
 .. _tab-namelist:
 
