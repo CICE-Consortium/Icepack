@@ -230,15 +230,13 @@ details).
             replaces settings with command-line configuration
 
         **tests/**
-            (CHECK) `scripts <https://github.com/CICE-Consortium/Icepack/tree/master/configuration/scripts/tests>`_ for configuring and running basic tests
+            scripts for configuring and running basic tests
 
 **doc/**
     documentation
 
 **icepack.create.case**
-    main `script <https://github.com/CICE-Consortium/Icepack/blob/master/icepack.create.case>`_ for setting up a test case
-
-(CHECK) 
+    main script for setting up a test case
 
 A case (compile) directory is created upon initial execution of the script 
 **icepack.create.case** at the user-specified location provided after the -c flag. 
@@ -290,7 +288,7 @@ midway between those of ``bgrid``.
 Test configurations
 -------------------
 
-*(CHECK) UPDATE*
+*(CHECK) UPDATE with similar, correct information*
 
 The column is located
 near Barrow (71.35N, 156.5W). Options for choosing the column
@@ -319,13 +317,13 @@ previous run, core variables are read and reinitialized in
 are read in separate restart routines associated with each tracer or
 specialized parameterization. Finally, albedo and other quantities
 dependent on the initial ice state are set. Some of these parameters
-will be described in more detail in :ref:`tabnamelist`.
+will be described in more detail in the :ref:`tabnamelist`.
 
-Two namelist variables control model initialization, ``ice\_ic``
-and ``restart``.  Setting ``ice\_ic`` = default causes the model to run using
+Two namelist variables control model initialization, ``ice_ic``
+and ``restart``.  Setting ``ice_ic`` = 'default' causes the model to run using
 constant forcing and initial values set in the code.  To start
 from a file **filename**, set 
-``restart`` = true and ``ice\_ic`` = **filename**.  When restarting using the Icepack
+``restart`` = .true. and ``ice_ic`` = **filename**.  When restarting using the Icepack
 driver, for simplicity the tracers are assumed to be set the same way (on/off) as in the
 run that created the restart file; i.e. that the restart file contains exactly the 
 information needed for the new run.  CICE is more flexible in this regard.
@@ -359,35 +357,35 @@ Model output
 History output from Icepack is not currently supported in the Icepack driver, except
 in restart files.
 
-(CHECK) `CICE <https://github.com/CICE-Consortium/CICE>`_ provides extensive options for model output, including many derived output variables.
+The sea ice model `CICE <https://github.com/CICE-Consortium/CICE>`_ provides extensive options for model output, including many derived output variables.
 
 Diagnostic files
 ~~~~~~~~~~~~~~~~
 
 Icepack writes diagnostic information for each grid cell as a separate file, 
-**ice\_diag.\***.
+**ice\_diag.\***, identified by the initial ice state of the grid cell (no ice, slab, land, etc).
 
 
 Restart files
 ~~~~~~~~~~~~~
 
-CHANGE as needed re netCDF
+CHECK and CHANGE as needed re netCDF
 
 CICE provides restart data in binary unformatted or netCDF formats, via
-the `IO\_TYPE` flag in **comp\_ice** and namelist variable
-`restart\_format`. 
+the ``IO_TYPE`` flag in **comp\_ice** and namelist variable
+``restart_format``. 
 
 The restart files created by the Icepack driver contain all of the variables needed
 for a full, exact restart. The filename begins with the character string
 ‘iced.’, and the restart dump frequency is given by the namelist
-variable `dumpfreq`. The namelist variable `ice\_ic` contains the
+variable ``dumpfreq``. The namelist variable ``ice_ic`` contains the
 pointer to the filename from which the restart data is to be read.
 
 
 Execution procedures
 ====================
 
-Quick-start instructions are provided in section :ref:`quickstart`
+Quick-start instructions are provided in the :ref:`quickstart` section.
 
 Scripts
 -------------
@@ -404,7 +402,7 @@ icepack.create.case generates a case. Use ``create.case -h`` for help with the t
 
   -m is the machine name (required). Currently, there are working ports for NCAR yellowstone and cheyenne, AFRL thunder, NavyDSRC gordon and conrad, and LANL’s wolf machines.
 
-  -s are comma separated optional env or namelist settings (default is "null")
+  -s are comma separated optional env or namelist settings (default is 'null')
 
   -t is the test name and location (cannot be used with -c).
 
@@ -448,20 +446,20 @@ The **casescripts/** directory holds scripts used to create the case and can
 largely be ignored.  
 In general, when **icepack.build** is executed, the model will build from scratch 
 due to extensive preprocessing dependencies.  To change this behavior, edit the 
-env variable ``ICE\_CLEANBUILD`` in **icepack.settings**.  
+env variable ``ICE_CLEANBUILD`` in **icepack.settings**.  
 
 The **icepack.submit** script simply submits the **icepack.run script**.  
 You can also submit the **icepack.run** script on the command line.
 
-To port, an **env.**[machine] and **Macros.**[machine] file have to be added to 
+To port, an **env.[machine]** and **Macros.[machine]** file have to be added to 
 **configuration/scripts/machines/** and the 
 **icepack.run.setup.csh** file needs to be modified.
  
 - cd to **configuration/scripts/machines/**
 
-- Copy existing env and Macros files to new names for your new machine
+- Copy an existing env and a Macros file to new names for your new machine
 
-- Edit the env and Macros files
+- Edit your env and Macros files
 
 - cd .. to **configuration/scripts/**
 
@@ -469,9 +467,9 @@ To port, an **env.**[machine] and **Macros.**[machine] file have to be added to
   with batch settings and job launch settings
 
 - Download and untar a forcing dataset to the location defined by 
-  ``ICE\_MACHINE\_INPUTDATA`` in the env file
+  ``ICE_MACHINE_INPUTDATA`` in the env file
 
-- Create a file in your home directory called .cice\_proj and add your preferred account name to the first line.
+- Create a file in your home directory called **.cice\_proj** and add your preferred account name to the first line.
 
 
 Directories
@@ -480,10 +478,11 @@ Directories
 CHECK
 
 The **icepack.create.case** script creates a case directory in the location specified 
-by the ``-c`` or ``-t`` flags.  The **icepack.build** (or equivalent test suite) script 
-creates the run directory defined by the env variable ``ICE\_RUNDIR`` in 
+by the ``-c`` or ``-t`` flags.  The **icepack.build** script 
+creates the run directory defined by the env variable ``ICE_RUNDIR`` in 
 **icepack.settings**, and it compiles the code there.  The run directory is further 
-populated by the **icepack.run** script, which also runs the executable.
+populated by the **icepack.run** script, which also runs the executable.  Specifying 
+the test suite creates a directory containing subdirectories for each test.
 
 Build and run logs will be copied from the run directory into the case **logs/** 
 directory when complete.
@@ -500,13 +499,13 @@ working properly.  Then you can copy the env and Macros files back to
 
 You can also directly modify the namelist files (**icepack\_in**) in the run directory and
 run the code by submitting the executable **icepack** directly.  Beware that any changes 
-make in the run directory will be overwritten if scripts are later run from the case
+made in the run directory will be overwritten if scripts are later run from the case
 directory.
 
 Forcing data
 ------------
 
-FINISH:
+CHECK once we've settled on a forcing suite:
 
 The code is currently configured to run in standalone mode on a 4-cell grid using 
 atmospheric data, available as detailed on the `wiki <https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack>`_.
@@ -527,7 +526,7 @@ sea ice model, including initialization on the horizontal grid, namelist flags
 and restart capabilities.  Modifications to the Icepack driver should reflect
 the modifications needed in the host model but are not expected to match completely.
 We recommend that the logical namelist variable
-``tr\_[tracer]`` be used for all calls involving the new tracer outside of
+``tr_[tracer]`` be used for all calls involving the new tracer outside of
 **ice\_[tracer].F90**, in case other users do not want to use that
 tracer.
 
@@ -557,20 +556,20 @@ dependencies (e.g., :math:`a_{lvl}` and :math:`a_{pnd}` in
 To add a tracer, follow these steps using one of the existing tracers as
 a pattern.
 
-#. **icepack\_drv\_domain\_size.F90**: increase ``max\_ntrcr`` (can also add option
+#. **icepack\_drv\_domain\_size.F90**: increase ``max_ntrcr`` (can also add option
    to **icepack.settings** and **icepack.build**)
 
-#. **icepack\_drv\_state.F90**: declare `nt\_[tracer]` and `tr\_[tracer]`
+#. **icepack\_drv\_state.F90**: declare ``nt_[tracer]`` and ``tr_[tracer]``
 
 #. **icepack\_[tracer].F90**: create initialization, physics routines
 
 #. **ice\_drv\_init.F90**: (some of this may be done in **ice\_[tracer].F90**
    instead)
 
-   -  add new module and ``tr\_[tracer]`` to list of used modules and
+   -  add new module and ``tr_[tracer]`` to list of used modules and
       variables
 
-   -  add logical namelist variable ``tr\_[tracer]``
+   -  add logical namelist variable ``tr_[tracer]``
 
    -  initialize namelist variable
 
@@ -578,8 +577,8 @@ a pattern.
 
    -  increment number of tracers in use based on namelist input (``ntrcr``)
 
-   -  define tracer types (``trcr\_depend`` = 0 for ice area tracers, 1 for
-      ice volume, 2 for snow volume, 2+``nt\_``[tracer] for dependence on
+   -  define tracer types (``trcr_depend`` = 0 for ice area tracers, 1 for
+      ice volume, 2 for snow volume, 2+``nt_``[tracer] for dependence on
       other tracers)
 
 #. **icepack\_itd.F90**, **icepack\_mechred.F90**: Account for new dependencies
