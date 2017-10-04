@@ -75,7 +75,7 @@
 
       use icepack_drv_calendar, only: dt, dt_dyn, ndtd, diagfreq, write_restart, istep
       use icepack_drv_constants, only: c0
-      use icepack_drv_diagnostics, only: runtime_diags, init_mass_diags
+      use icepack_drv_diagnostics, only: runtime_diags, init_mass_diags, debug_icepack
       use icepack_drv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
       use icepack_drv_domain_size, only: nslyr
       use icepack_drv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
@@ -99,6 +99,8 @@
       real (kind=dbl_kind) :: &
          offset          ! d(age)/dt time offset
 
+!      call debug_icepack ('beginning time step')
+
       !-----------------------------------------------------------------
       ! initialize diagnostics
       !-----------------------------------------------------------------
@@ -113,6 +115,8 @@
       
       if (calc_Tsfc) call prep_radiation (dt)
       
+!      call debug_icepack ('post prep_radiation')
+
       !-----------------------------------------------------------------
       ! thermodynamics and biogeochemistry
       !-----------------------------------------------------------------
@@ -120,10 +124,12 @@
       call step_therm1     (dt) ! vertical thermodynamics
       call biogeochemistry (dt) ! biogeochemistry
       call step_therm2     (dt) ! ice thickness distribution thermo
-      
+
       ! clean up, update tendency diagnostics
       offset = dt
       call update_state (dt, daidtt, dvidtt, dagedtt, offset)
+
+!      call debug_icepack ('post thermo')
       
       !-----------------------------------------------------------------
       ! dynamics, transport, ridging
@@ -141,19 +147,23 @@
         call update_state (dt_dyn, daidtd, dvidtd, dagedtd, offset)
         
       enddo
+
+!      call debug_icepack ('post dynamics')
       
       !-----------------------------------------------------------------
       ! albedo, shortwave radiation
       !-----------------------------------------------------------------
       
       call step_radiation (dt)
-      
+
       !-----------------------------------------------------------------
       ! get ready for coupling and the next time step
       !-----------------------------------------------------------------
       
       call coupling_prep
-      
+
+!      call debug_icepack ('post step_rad, cpl')
+
       !-----------------------------------------------------------------
       ! write data
       !-----------------------------------------------------------------
@@ -167,13 +177,6 @@
       
       if (write_restart == 1) then
         call dumpfile     ! core variables for restarting
-        !            if (tr_iage)      call write_restart_age
-        !            if (tr_FY)        call write_restart_FY
-        !            if (tr_lvl)       call write_restart_lvl
-        !            if (tr_pond_cesm) call write_restart_pond_cesm
-        !            if (tr_pond_lvl)  call write_restart_pond_lvl
-        !            if (tr_pond_topo) call write_restart_pond_topo
-        !            if (tr_aero)      call write_restart_aero
         !            if (solve_zsal .or. skl_bgc .or. z_tracers) &
         !                              call write_restart_bgc 
         if (tr_brine)     call write_restart_hbrine
@@ -321,7 +324,6 @@
                      + swvdf(i)*(c1 - alvdf_ai(i)) &
                      + swidr(i)*(c1 - alidr_ai(i)) &
                      + swidf(i)*(c1 - alidf_ai(i))
-
          enddo
 
       end subroutine coupling_prep

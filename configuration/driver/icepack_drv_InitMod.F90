@@ -33,6 +33,7 @@
           icepack_clear_warnings, icepack_print_warnings
       use icepack_drv_domain_size, only: ncat
       use icepack_drv_constants, only: nu_diag
+      use icepack_drv_diagnostics, only: debug_icepack
       use icepack_drv_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm_ocn
       use icepack_drv_forcing, only: init_forcing, get_forcing
@@ -75,6 +76,9 @@
 !      if (tr_aero .or. tr_zaero) call faero_optics !initialize aerosol optical 
                                                    !property tables
 
+      if (restart) &
+         call init_shortwave    ! initialize radiative transfer
+
       istep  = istep  + 1    ! update time step counters
       istep1 = istep1 + 1
       time = time + dt       ! determine the time and date
@@ -99,7 +103,8 @@
       if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 !      if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
-      call init_shortwave    ! initialize radiative transfer using current swdn
+      if (.not. restart) &
+         call init_shortwave    ! initialize radiative transfer using current swdn
 
       call init_flux_atm_ocn    ! initialize atmosphere, ocean fluxes
 
@@ -130,6 +135,7 @@
 
       if (restart) then
          call restartfile (ice_ic)
+         call calendar (time)
       endif      
 
 
