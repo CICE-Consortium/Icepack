@@ -161,6 +161,8 @@
           cldf_data(:) = c0     ! cloud fraction
 
       if (trim(atm_data_type) == 'GOFS') call atm_GOFS
+      if (trim(atm_data_type) == 'ISPOL') call atm_ISPOL
+
 
       call prepare_forcing (Tair_data,     fsw_data,      &    
                             cldf_data,     flw_data,      &
@@ -237,7 +239,7 @@
 
 
 !cn we need trest here...
-!cn it is set in init_forcing_ocn
+!cn it is normally read from forcing_nml
       if (restore_sst .or. restore_bgc) then
          if (trestore == 0) then
             trest = dt        ! use data instantaneously
@@ -324,6 +326,269 @@ endif
       end subroutine atm_GOFS
 
 !=======================================================================
+
+    subroutine atm_ISPOL             ! current forcing year
+
+      character (char_len_long) filename
+      
+      filename = &
+          trim(data_dir)//'ISPOL_atm_forcing.ascii'
+      
+      !write (nu_diag,*) ' '
+      !write (nu_diag,*) 'Atmospheric data file:'
+      !write (nu_diag,*) trim(filename)
+
+#if 0
+!this is from nicoles subroutine ISPOL_data
+! Defines atmospheric data fields for Antarctic Weddell sea location 
+
+! authors: Nicole Jeffery, LANL
+!
+      use ice_global_reductions, only: global_minval, global_maxval
+      use ice_domain, only: nblocks, distrb_info, blocks_ice
+      use ice_constants, only: c0, c1, c2, c4, p001, p01, p1, secday, &
+          field_loc_center, field_type_scalar, p5
+      use ice_flux, only: uatm, vatm, Tair, fsw,  Qa, qdp, rhoa, &
+          frain, fsnow, flw
+      use ice_grid, only:  tmask
+      use ice_diagnostics, only: latpnt, lonpnt 
+#ifdef ncdf
+      use netcdf
+#endif
+
+!local parameters
+
+      character (char_len_long) :: & 
+         met_file,   &    ! netcdf filename
+         fieldname        ! field name in netcdf file
+
+      integer (kind=int_kind) :: &
+         fid              ! file id for netCDF file 
+
+      real (kind=dbl_kind):: &
+         work             ! temporary variable
+ 
+      real (kind=dbl_kind) :: &
+          vmin, vmax
+
+      logical (kind=log_kind) :: diag
+
+      integer (kind=int_kind) :: &
+         status           ! status flag
+
+      integer (kind=int_kind) :: &
+         iblk             ! block index
+
+      real (kind=dbl_kind) :: & ! used to determine specific humidity
+         Temp               , & ! air temperature (K)
+         rh                 , & ! relative humidity (%)
+         Psat               , & ! saturation vapour pressure (hPa)
+         ws                     ! saturation mixing ratio
+
+      real (kind=dbl_kind), dimension(2), save :: &
+         Tair_data_p      , &      ! air temperature (K) for interpolation
+         Qa_data_p,  fsnow_data_p, &
+         fsw_data_p, flw_data_p, &
+         uatm_data_p, vatm_data_p
+         
+      real (kind=dbl_kind), parameter :: & ! coefficients for Hyland-Wexler Qa 
+         ps1 = 0.58002206e4_dbl_kind,    & ! (K) 
+         ps2 = 1.3914993_dbl_kind,       & !
+         ps3 = 0.48640239e-1_dbl_kind,   & ! (K^-1) 
+         ps4 = 0.41764768e-4_dbl_kind,   & ! (K^-2)
+         ps5 = 0.14452093e-7_dbl_kind,   & ! (K^-3)
+         ps6 = 6.5459673_dbl_kind,       & !
+         ws1 = 621.97_dbl_kind,          & ! for saturation mixing ratio 
+         Pair = 1020._dbl_kind,          & ! Sea level pressure (hPa) 
+         lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
+    
+      ! for interpolation of hourly data                
+      integer (kind=int_kind) :: &
+          i, j, k     , &
+          ixm,ixx,ixp , & ! record numbers for neighboring months
+          recnum      , & ! record number
+          recnum4X    , & ! record number
+          maxrec      , & ! maximum record number
+          recslot     , & ! spline slot for current record
+          dataloc     , & ! = 1 for data located in middle of time interval
+                          ! = 2 for date located at end of time interval
+          sec_day        !  fix time to noon
+
+       real (kind=dbl_kind) :: &
+         hour_angle, &
+         solar_time, &
+         declin    , &
+         cosZ      , &
+         year_day  , &
+         e, d      , &
+         sw0       , &
+         deg2rad   , &
+         fsw_pnt   , &
+         sumsw0    , &
+         Qa_pnt                
+
+      real (kind=dbl_kind) :: &
+          sec1hr              ! number of seconds in 1 hour
+
+      logical (kind=log_kind) :: readm, read1
+                  
+      diag = .false.   ! write diagnostic information 
+   
+#ifdef ncdf 
+      if (trim(atm_data_format) == 'nc') then     ! read nc file
+      
+     !-------------------------------------------------------------------
+     ! data from NCEP_DOE Reanalysis 2 and Bareiss et al 2008
+     ! daily data located at the end of the 24-hour period. 
+     !-------------------------------------------------------------------
+
+      dataloc = 2                          ! data located at end of interval
+      sec1hr = secday                      ! seconds in day
+      maxrec = 366                         ! 
+
+      ! current record number
+      recnum = int(yday)   
+
+      ! Compute record numbers for surrounding data (2 on each side)
+      ixm = mod(recnum+maxrec-2,maxrec) + 1
+      ixx = mod(recnum-1,       maxrec) + 1
+!     ixp = mod(recnum,         maxrec) + 1
+
+      ! Compute interpolation coefficients
+      ! If data is located at the end of the time interval, then the
+      !  data value for the current record goes in slot 2
+
+      recslot = 2
+      ixp = -99
+      call interp_coeff (recnum, recslot, sec1hr, dataloc)
+
+      read1 = .false.
+      if (istep==1 .or. oldrecnum .ne. recnum) read1 = .true.
+      
+      ! Daily 2m Air temperature 1991
+                                                
+        met_file = atm_file 
+        fieldname='Tair' 
+
+        call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
+                    maxrec, met_file, fieldname, Tair_data_p, &
+                    field_loc_center, field_type_scalar)
+
+        Tair(:,:,:) =  c1intp * Tair_data_p(1) &
+                       + c2intp * Tair_data_p(2) &
+                     - lapse_rate*8.0_dbl_kind
+
+        fieldname='Qa'
+
+        call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
+                    maxrec, met_file, fieldname, Qa_data_p, &
+                    field_loc_center, field_type_scalar)
+
+        Qa_pnt= c1intp * Qa_data_p(1) &
+                          + c2intp * Qa_data_p(2) 
+        Qa(:,:,:) = Qa_pnt
+
+        fieldname='uatm'
+
+        call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
+                    maxrec, met_file, fieldname, uatm_data_p, &
+                    field_loc_center, field_type_scalar)
+
+        uatm(:,:,:) =  c1intp * uatm_data_p(1) &
+                          + c2intp * uatm_data_p(2) 
+
+        fieldname='vatm'
+ 
+        call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
+                    maxrec, met_file, fieldname, vatm_data_p, &
+                    field_loc_center, field_type_scalar)
+
+        vatm(:,:,:) =  c1intp * vatm_data_p(1) &
+                          + c2intp * vatm_data_p(2)
+ 
+        fieldname='fsnow'
+
+        call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
+                    maxrec, met_file, fieldname, fsnow_data_p, &
+                    field_loc_center, field_type_scalar)
+
+        fsnow(:,:,:) =  (c1intp * fsnow_data_p(1) + &
+                          + c2intp * fsnow_data_p(2)) 
+      
+        !-----------------------------
+        !fsw and flw are every 6 hours
+        !------------------------------
+        dataloc = 2                          ! data located at end of interval
+        sec1hr = secday/c4                   ! seconds in 6 hours
+        maxrec = 1464                        ! 366*4
+
+      ! current record number
+        recnum4X = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec1hr)   
+
+      ! Compute record numbers for surrounding data (2 on each side)
+      ixm = mod(recnum4X+maxrec-2,maxrec) + 1
+      ixx = mod(recnum4X-1,       maxrec) + 1
+
+      ! Compute interpolation coefficients
+      ! If data is located at the end of the time interval, then the
+      !  data value for the current record goes in slot 2
+
+      recslot = 2
+      ixp = -99
+      call interp_coeff (recnum4X, recslot, sec1hr, dataloc)
+
+      read1 = .false.
+      if (istep==1 .or. oldrecnum4X .ne. recnum4X) read1 = .true.
+
+        fieldname='fsw'
+
+        call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
+                    maxrec, met_file, fieldname, fsw_data_p, &
+                    field_loc_center, field_type_scalar)
+
+        fsw(:,:,:) =  c1intp * fsw_data_p(1) &
+                          + c2intp * fsw_data_p(2)
+
+        fieldname='flw' 
+
+        call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
+                    maxrec, met_file, fieldname, flw_data_p, &
+                    field_loc_center, field_type_scalar)
+
+        flw(:,:,:) =  c1intp * flw_data_p(1) &
+                          + c2intp * flw_data_p(2) 
+     endif  !nc
+#else      
+    
+      uatm(:,:,:) = c0              !wind velocity (m/s)
+      vatm(:,:,:) = c0
+      fsw(:,:,:)  = c0 
+      fsnow (:,:,:) = c0          
+
+#endif
+
+      !flw   given cldf and Tair  calculated in prepare_forcing
+
+      !-----------------------------
+      ! fixed data
+      ! May not be needed
+      !-----------------------------
+        rhoa (:,:,:) = 1.3_dbl_kind ! air density (kg/m^3)
+        cldf(:,:,:) =  c1  !0.25_dbl_kind ! cloud fraction
+        frain(:,:,:) = c0            ! this is available in hourlymet_rh file
+  
+      ! Save record number for next time step
+      oldrecnum = recnum
+      oldrecnum4X = recnum4X
+
+
+#endif
+
+      
+    end subroutine atm_ISPOL
+    
+!=======================================================================
+
 
       subroutine prepare_forcing (Tair,     fsw,      &    
                                   cldf,     flw,      &

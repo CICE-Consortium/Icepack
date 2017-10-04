@@ -294,6 +294,7 @@
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
         write(ice_stdout,*) 'error reading namelist'
+        stop !cn
       endif
       close(nu_nml)
       
@@ -506,44 +507,44 @@
           endif
 
          if (trim(shortwave) == 'dEdd') then
-         write(nu_diag,1000) ' R_ice                     = ', R_ice
-         write(nu_diag,1000) ' R_pnd                     = ', R_pnd
-         write(nu_diag,1000) ' R_snw                     = ', R_snw
-         write(nu_diag,1000) ' dT_mlt                    = ', dT_mlt
-         write(nu_diag,1000) ' rsnw_mlt                  = ', rsnw_mlt
-         write(nu_diag,1000) ' kalg                      = ', kalg
-         write(nu_diag,1000) ' hp1                       = ', hp1
-         write(nu_diag,1000) ' hs0                       = ', hs0
+           write(nu_diag,1000) ' R_ice                     = ', R_ice
+           write(nu_diag,1000) ' R_pnd                     = ', R_pnd
+           write(nu_diag,1000) ' R_snw                     = ', R_snw
+           write(nu_diag,1000) ' dT_mlt                    = ', dT_mlt
+           write(nu_diag,1000) ' rsnw_mlt                  = ', rsnw_mlt
+           write(nu_diag,1000) ' kalg                      = ', kalg
+           write(nu_diag,1000) ' hp1                       = ', hp1
+           write(nu_diag,1000) ' hs0                       = ', hs0
          else
-         write(nu_diag,1030) ' albedo_type               = ', &
-                               trim(albedo_type)
-         write(nu_diag,1000) ' albicev                   = ', albicev
-         write(nu_diag,1000) ' albicei                   = ', albicei
-         write(nu_diag,1000) ' albsnowv                  = ', albsnowv
-         write(nu_diag,1000) ' albsnowi                  = ', albsnowi
-         write(nu_diag,1000) ' ahmax                     = ', ahmax
+           write(nu_diag,1030) ' albedo_type               = ', &
+               trim(albedo_type)
+           write(nu_diag,1000) ' albicev                   = ', albicev
+           write(nu_diag,1000) ' albicei                   = ', albicei
+           write(nu_diag,1000) ' albsnowv                  = ', albsnowv
+           write(nu_diag,1000) ' albsnowi                  = ', albsnowi
+           write(nu_diag,1000) ' ahmax                     = ', ahmax
          endif
-
+       
          write(nu_diag,1000) ' rfracmin                  = ', rfracmin
          write(nu_diag,1000) ' rfracmax                  = ', rfracmax
          if (tr_pond_lvl) then
-         write(nu_diag,1000) ' hs1                       = ', hs1
-         write(nu_diag,1000) ' dpscale                   = ', dpscale
-         write(nu_diag,1030) ' frzpnd                    = ', trim(frzpnd)
+           write(nu_diag,1000) ' hs1                       = ', hs1
+           write(nu_diag,1000) ' dpscale                   = ', dpscale
+           write(nu_diag,1030) ' frzpnd                    = ', trim(frzpnd)
          endif
          if (tr_pond .and. .not. tr_pond_lvl) &
-         write(nu_diag,1000) ' pndaspect                 = ', pndaspect
+             write(nu_diag,1000) ' pndaspect                 = ', pndaspect
 
          write(nu_diag,1020) ' ktherm                    = ', ktherm
          if (ktherm == 1) &
-         write(nu_diag,1030) ' conduct                   = ', conduct
+             write(nu_diag,1030) ' conduct                   = ', conduct
          if (ktherm == 2) then
-         write(nu_diag,1005) ' a_rapid_mode              = ', a_rapid_mode
-         write(nu_diag,1005) ' Rac_rapid_mode            = ', Rac_rapid_mode
-         write(nu_diag,1005) ' aspect_rapid_mode         = ', aspect_rapid_mode
-         write(nu_diag,1005) ' dSdt_slow_mode            = ', dSdt_slow_mode
-         write(nu_diag,1005) ' phi_c_slow_mode           = ', phi_c_slow_mode
-         write(nu_diag,1005) ' phi_i_mushy               = ', phi_i_mushy
+           write(nu_diag,1005) ' a_rapid_mode              = ', a_rapid_mode
+           write(nu_diag,1005) ' Rac_rapid_mode            = ', Rac_rapid_mode
+           write(nu_diag,1005) ' aspect_rapid_mode         = ', aspect_rapid_mode
+           write(nu_diag,1005) ' dSdt_slow_mode            = ', dSdt_slow_mode
+           write(nu_diag,1005) ' phi_c_slow_mode           = ', phi_c_slow_mode
+           write(nu_diag,1005) ' phi_i_mushy               = ', phi_i_mushy
          endif
 
          write(nu_diag,1030) ' atmbndy                   = ', &

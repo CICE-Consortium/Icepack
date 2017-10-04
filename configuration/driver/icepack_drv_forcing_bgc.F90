@@ -19,8 +19,8 @@
 
       implicit none
       private
-      public :: get_forcing_bgc, faero_default !cn, get_atm_bgc, fzaero_data, &
-                !cn init_bgc_data, faero_data, faero_optics
+      public :: get_forcing_bgc, faero_default, init_bgc_data !cn, get_atm_bgc, fzaero_data, &
+                !cn , faero_data, faero_optics
       save
 
       integer (kind=int_kind) :: &
@@ -93,8 +93,13 @@
          nit_file   , & ! nitrate input file
          sil_file       ! silicate input file
 
+      write(*,*) nit_data_type
+
+
       if (.not. trim(nit_data_type)=='ISPOL' .AND. &
-          .not. trim(sil_data_type)=='ISPOL') then
+          .not. trim(sil_data_type)=='ISPOL' .AND. &
+          .not. trim(nit_data_type)=='INICE' .AND. &
+          .not. trim(sil_data_type)=='NICE') then
         if (trim(nit_data_type) == 'clim'.or. &
             trim(sil_data_type) == 'clim') then
           
@@ -584,24 +589,24 @@
 #endif
 
       end subroutine fzaero_data
-
+#endif
 !=======================================================================
 
 ! Initialize ocean iron from file
 !
 ! authors: Nicole Jeffery, LANL
-
       subroutine init_bgc_data (fed1,fep1)
 
-      use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
-      use ice_constants, only: c0, p1
-      use icepack_intfc_shared, only: fe_data_type, bgc_data_dir
+      !cn use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
+      use icepack_drv_constants, only: c0, p1 !, nu_forcing
+      use icepack_intfc_shared, only: fe_data_type, bgc_data_dir, max_fe
 
 #ifdef ncdf
       use netcdf
 #endif
            
-      real (kind=dbl_kind), dimension(nx_block, ny_block, max_blocks), intent(out) :: &
+      !real (kind=dbl_kind), dimension(nx_block, ny_block, max_blocks), intent(out) :: &
+      real (kind=dbl_kind), dimension(nx, max_fe), intent(out) :: &
            fed1, &  ! first dissolved iron pool (nM)
            fep1    ! first particulate iron pool (nM)
 
@@ -628,41 +633,45 @@
        	diag = .true.   ! write diagnostic information 
         iron_file = trim(bgc_data_dir)//'dFe_50m_annual_Tagliabue_gx1.nc'
 
-        if (my_task == master_task) then
-            write (nu_diag,*) ' '
-            write (nu_diag,*) 'Dissolved iron ocean concentrations from:'
-            write (nu_diag,*) trim(iron_file)
-            call ice_open_nc(iron_file,fid)
-        endif
+        write (nu_diag,*) ' '
+        write (nu_diag,*) 'Dissolved iron ocean concentrations from:'
+        write (nu_diag,*) trim(iron_file)
+        !cn call ice_open_nc(iron_file,fid)
+        open(fid,file=iron_file,form='unformatted')
 
-        fieldname='dFe'
+        !cn fieldname='dFe'
+        !cn Not sure what this comment means, do we not need an implied do ver nx, max_fe within the read?
         ! Currently only first fed  value is read
-        call ice_read_nc(fid,1,fieldname,fed1,diag) 
-        where ( fed1(:,:,:) > 1.e20) fed1(:,:,:) = p1  
+        !cn call ice_read_nc(fid,1,fieldname,fed1,diag)
+        read(fid,fed1(:,:))
 
-        if (my_task == master_task) call ice_close_nc(fid)  
+        where ( fed1(:,:) > 1.e20) fed1(:,:) = p1  
+
+        !cn call ice_close_nc(fid)  
+        close(fid)
 
        	diag = .true.   ! write diagnostic information 
         iron_file = trim(bgc_data_dir)//'pFe_bathy_gx1.nc'
 
-        if (my_task == master_task) then
-            write (nu_diag,*) ' '
-            write (nu_diag,*) 'Particulate iron ocean concentrations from:'
-            write (nu_diag,*) trim(iron_file)
-            call ice_open_nc(iron_file,fid)
-        endif
+        write (nu_diag,*) ' '
+        write (nu_diag,*) 'Particulate iron ocean concentrations from:'
+        write (nu_diag,*) trim(iron_file)
+        !cn call ice_open_nc(iron_file,fid)
+        open(fid, file = iron_file,form='unformatted')
 
-        fieldname='pFe'
+        !cn fieldname='pFe'
+        !cn Not sure what this comment means, do we not need an implied do within the read?
         ! Currently only first fep value is read
-        call ice_read_nc(fid,1,fieldname,fep1,diag) 
-        where ( fep1(:,:,:) > 1.e20) fep1(:,:,:) = p1  
+        !cn call ice_read_nc(fid,1,fieldname,fep1,diag) 
+        read(fid,fep1(:,:)) 
+        where ( fep1(:,:) > 1.e20) fep1(:,:) = p1  
 
-        if (my_task == master_task) call ice_close_nc(fid)  
-    
+        close(fid)  
+
       endif
-    
-      end subroutine init_bgc_data
 
+      end subroutine init_bgc_data
+#if 0
 !=======================================================================
 !
 ! Aerosol optical properties for bulk and modal aerosol formulation

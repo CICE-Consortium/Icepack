@@ -146,7 +146,7 @@
 
 
       !the bgc restarts are contained in this subroutine
-      !if (solve_zsal .or. skl_bgc .or. z_tracers) call init_bgc ! biogeochemistry
+      if (solve_zsal .or. skl_bgc .or. z_tracers) call init_bgc ! biogeochemistry
 
       !-----------------------------------------------------------------
       ! aggregate tracers
