@@ -51,68 +51,6 @@ module icepack_mushy_physics
        az2p_liq = az2_liq / c1000, &
        bz2p_liq = bz2_liq / c1000
   
-  ! quadratic constants - higher temperature region
-  real(kind=dbl_kind), parameter :: &
-       AS1_liq = az1p_liq * (rhow * cp_ocn - rhoi * cp_ice)       , &
-       AC1_liq = rhoi * cp_ice * az1_liq                          , & 
-       BS1_liq = (c1 + bz1p_liq) * (rhow * cp_ocn - rhoi * cp_ice)  &
-               + rhoi * Lfresh * az1p_liq                         , &
-       BQ1_liq = -az1_liq                                         , &
-       BC1_liq = rhoi * cp_ice * bz1_liq - rhoi * Lfresh * az1_liq, &
-       CS1_liq = rhoi * Lfresh * (c1 + bz1p_liq)                  , &
-       CQ1_liq = -bz1_liq                                         , &
-       CC1_liq = -rhoi * Lfresh * bz1_liq
-  
-  ! quadratic constants - lower temperature region
-  real(kind=dbl_kind), parameter :: &
-       AS2_liq = az2p_liq * (rhow * cp_ocn - rhoi * cp_ice)       , &
-       AC2_liq = rhoi * cp_ice * az2_liq                          , &
-       BS2_liq = (c1 + bz2p_liq) * (rhow * cp_ocn - rhoi * cp_ice)  &
-               + rhoi * Lfresh * az2p_liq                         , &
-       BQ2_liq = -az2_liq                                         , &
-       BC2_liq = rhoi * cp_ice * bz2_liq - rhoi * Lfresh * az2_liq, &
-       CS2_liq = rhoi * Lfresh * (c1 + bz2p_liq)                  , &
-       CQ2_liq = -bz2_liq                                         , &
-       CC2_liq = -rhoi * Lfresh * bz2_liq
-  
-  ! break enthalpy constants
-  real(kind=dbl_kind), parameter :: &
-       D_liq = ((c1 + az1p_liq*Tb_liq + bz1p_liq) &
-             / (       az1_liq*Tb_liq + bz1_liq)) &
-             * ((cp_ocn*rhow - cp_ice*rhoi)*Tb_liq + Lfresh*rhoi), &
-       E_liq = cp_ice*rhoi*Tb_liq - Lfresh*rhoi
-  
-  ! just fully melted enthapy constants
-  real(kind=dbl_kind), parameter :: &
-       F1_liq = (  -c1000 * cp_ocn * rhow) / az1_liq , &
-       G1_liq =    -c1000                            , &
-       H1_liq = (-bz1_liq * cp_ocn * rhow) / az1_liq , &
-       F2_liq = (  -c1000 * cp_ocn * rhow) / az2_liq , &
-       G2_liq =    -c1000                            , &
-       H2_liq = (-bz2_liq * cp_ocn * rhow) / az2_liq
-  
-  ! warmer than fully melted constants
-  real(kind=dbl_kind), parameter :: &
-       I_liq = c1 / (cp_ocn * rhow)
-
-  ! temperature to brine salinity
-  real(kind=dbl_kind), parameter :: &
-       J1_liq = bz1_liq / az1_liq         , &
-       K1_liq = c1 / c1000                , &
-       L1_liq = (c1 + bz1p_liq) / az1_liq , &
-       J2_liq = bz2_liq  / az2_liq        , &
-       K2_liq = c1 / c1000                , &
-       L2_liq = (c1 + bz2p_liq) / az2_liq
-
-  ! brine salinity to temperature
-  real(kind=dbl_kind), parameter :: &
-       M1_liq = az1_liq            , &
-       N1_liq = -az1p_liq          , &
-       O1_liq = -bz1_liq / az1_liq , &
-       M2_liq = az2_liq            , &
-       N2_liq = -az2p_liq          , &
-       O2_liq = -bz2_liq / az2_liq
-
   !-----------------------------------------------------------------
   ! Other parameters
   !-----------------------------------------------------------------
@@ -220,12 +158,11 @@ contains
          zqsn ! snow layer enthalpy (J m-3) 
 
     real(kind=dbl_kind) :: &
-         zTsn ! snow layer temperature (C)
-    
-    real(kind=dbl_kind), parameter :: &
-         A = c1 / (rhos * cp_ice) , &
-         B = Lfresh / cp_ice
-    
+         zTsn, & ! snow layer temperature (C)
+         A, B
+
+    A = c1 / (rhos * cp_ice)
+    B = Lfresh / cp_ice
     zTsn = A * zqsn + B
 
   end function temperature_snow
@@ -248,6 +185,18 @@ contains
     real(kind=dbl_kind) :: &
          t_high   , & ! mask for high temperature liquidus region
          lsubzero     ! mask for sub-zero temperatures
+
+    real(kind=dbl_kind) :: &
+         J1_liq, K1_liq, L1_liq, & ! temperature to brine salinity
+         J2_liq, K2_liq, L2_liq
+
+    ! temperature to brine salinity
+    J1_liq = bz1_liq / az1_liq         
+    K1_liq = c1 / c1000                
+    L1_liq = (c1 + bz1p_liq) / az1_liq 
+    J2_liq = bz2_liq  / az2_liq        
+    K2_liq = c1 / c1000                
+    L2_liq = (c1 + bz2p_liq) / az2_liq
 
     t_high   = merge(c1, c0, (zTin > Tb_liq))
     lsubzero = merge(c1, c0, (zTin <= c0))
@@ -274,6 +223,22 @@ contains
 
     real(kind=dbl_kind) :: &
          t_high ! mask for high temperature liquidus region
+
+    real(kind=dbl_kind) :: &
+       M1_liq, &! brine salinity to temperature
+       N1_liq, &
+       O1_liq, &
+       M2_liq, &
+       N2_liq, &
+       O2_liq
+
+    ! brine salinity to temperature
+    M1_liq = az1_liq
+    N1_liq = -az1p_liq
+    O1_liq = -bz1_liq / az1_liq
+    M2_liq = az2_liq
+    N2_liq = -az2p_liq
+    O2_liq = -bz2_liq / az2_liq
 
     t_high = merge(c1, c0, (Sbr <= Sb_liq))
 
@@ -379,6 +344,60 @@ contains
          t_high , & ! mask for high temperature liquidus region
          t_low  , & ! mask for low temperature liquidus region
          q_melt     ! mask for all mush melted
+
+    ! quadratic constants - higher temperature region
+    real(kind=dbl_kind) :: &
+         AS1_liq, AC1_liq,          & ! quadratic constants - higher temperature region
+         BS1_liq, BC1_liq, BQ1_liq, & ! "
+         CS1_liq, CC1_liq, CQ1_liq, & ! "
+         AS2_liq, AC2_liq,          & ! quadratic constants - lower temperature region
+         BS2_liq, BC2_liq, BQ2_liq, & ! "
+         CS2_liq, CC2_liq, CQ2_liq, & ! "
+         D_liq, E_liq,              & ! break enthalpy constants
+         F1_liq, G1_liq, H1_liq,    & ! just fully melted enthapy constants
+         F2_liq, G2_liq, H2_liq,    & ! "
+         I_liq                        ! warmer than fully melted constants
+
+  !--------------------------------------------------------
+
+  ! quadratic constants - higher temperature region
+    AS1_liq = az1p_liq * (rhow * cp_ocn - rhoi * cp_ice)       
+    AC1_liq = rhoi * cp_ice * az1_liq                           
+    BS1_liq = (c1 + bz1p_liq) * (rhow * cp_ocn - rhoi * cp_ice)  &
+            + rhoi * Lfresh * az1p_liq                         
+    BQ1_liq = -az1_liq                                         
+    BC1_liq = rhoi * cp_ice * bz1_liq - rhoi * Lfresh * az1_liq
+    CS1_liq = rhoi * Lfresh * (c1 + bz1p_liq)                  
+    CQ1_liq = -bz1_liq                                         
+    CC1_liq = -rhoi * Lfresh * bz1_liq
+  
+  ! quadratic constants - lower temperature region
+    AS2_liq = az2p_liq * (rhow * cp_ocn - rhoi * cp_ice)       
+    AC2_liq = rhoi * cp_ice * az2_liq                          
+    BS2_liq = (c1 + bz2p_liq) * (rhow * cp_ocn - rhoi * cp_ice)  &
+            + rhoi * Lfresh * az2p_liq                         
+    BQ2_liq = -az2_liq                                         
+    BC2_liq = rhoi * cp_ice * bz2_liq - rhoi * Lfresh * az2_liq
+    CS2_liq = rhoi * Lfresh * (c1 + bz2p_liq)                  
+    CQ2_liq = -bz2_liq                                         
+    CC2_liq = -rhoi * Lfresh * bz2_liq
+  
+  ! break enthalpy constants
+    D_liq = ((c1 + az1p_liq*Tb_liq + bz1p_liq) &
+          / (       az1_liq*Tb_liq + bz1_liq)) &
+          * ((cp_ocn*rhow - cp_ice*rhoi)*Tb_liq + Lfresh*rhoi)
+    E_liq = cp_ice*rhoi*Tb_liq - Lfresh*rhoi
+  
+  ! just fully melted enthapy constants
+    F1_liq = (  -c1000 * cp_ocn * rhow) / az1_liq 
+    G1_liq =    -c1000                            
+    H1_liq = (-bz1_liq * cp_ocn * rhow) / az1_liq 
+    F2_liq = (  -c1000 * cp_ocn * rhow) / az2_liq 
+    G2_liq =    -c1000                            
+    H2_liq = (-bz2_liq * cp_ocn * rhow) / az2_liq
+  
+  ! warmer than fully melted constants
+    I_liq = c1 / (cp_ocn * rhow)
 
     ! just melted enthalpy
     S_low = merge(c1, c0, (zSin < Sb_liq))

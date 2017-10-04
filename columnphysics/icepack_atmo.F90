@@ -148,10 +148,10 @@
          cp    , & ! specific heat of moist air
          hol   , & ! H (at zlvl  ) over L
          stable, & ! stability factor
+         cpvir , & ! defined as cp_wv/cp_air - 1.
          psixh     ! stability function at zlvl   (heat and water)
 
       real (kind=dbl_kind), parameter :: &
-         cpvir = cp_wv/cp_air-c1, & ! defined as cp_wv/cp_air - 1.
          zTrf  = c2                 ! reference height for air temp (m)
 
       ! local functions
@@ -175,6 +175,8 @@
       !------------------------------------------------------------
       ! Initialize
       !------------------------------------------------------------
+
+      cpvir = cp_wv/cp_air-c1   ! defined as cp_wv/cp_air - 1.
 
       if (highfreq) then       
        umin  = p5 ! minumum allowable wind-ice speed difference of 0.5 m/s
@@ -598,6 +600,8 @@
          ctecar,    &
          ctecwk,    &
          ai, aii,   & ! ice area and its inverse
+         ocnrufi,   & ! inverse ocean roughness
+         icerufi,   & ! inverse ice roughness
          tmp1         ! temporary
 
       real (kind=dbl_kind) :: &
@@ -608,9 +612,7 @@
          vrdg         ! ridged ice mean thickness  
 
       real (kind=dbl_kind), parameter :: &
-         ocnruf   = 0.000327_dbl_kind, & ! ocean surface roughness (m)
-         ocnrufi  = c1/ocnruf, & ! inverse ocean roughness
-         icerufi  = c1/iceruf    ! inverse ice roughness
+         ocnruf   = 0.000327_dbl_kind ! ocean surface roughness (m)
 
       real (kind=dbl_kind), parameter :: &
          camax    = 0.02_dbl_kind , & ! Maximum for atmospheric drag
@@ -618,11 +620,12 @@
 
       astar = c1/(c1-(Lmin/Lmax)**(c1/beta))
 
-
       !-----------------------------------------------------------------
       ! Initialize across entire grid
       !-----------------------------------------------------------------
 
+      ocnrufi  = c1/ocnruf    ! inverse ocean roughness
+      icerufi  = c1/iceruf    ! inverse ice roughness
       hfreebd=c0
       hdraft =c0       
       hridge =c0       

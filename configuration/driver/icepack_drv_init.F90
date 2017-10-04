@@ -66,6 +66,7 @@
           atm_data_format, ocn_data_format, bgc_data_format, &
           data_dir,        dbug
 
+      use icepack_intfc, only: icepack_init_constants
       use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond, &
                              tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
                              tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
@@ -687,6 +688,8 @@
          endif
       endif
 
+      call icepack_init_constants()
+
       end subroutine input_data
 
 !=======================================================================
@@ -939,7 +942,7 @@
       use icepack_drv_arrays_column, only: hin_max
       use icepack_intfc, only: icepack_init_trcr
       use icepack_drv_constants, only: c0, c1, c2, c3, p2, p5, rhoi, rhos, Lfresh, &
-           cp_ice, cp_ocn, Tsmelt, Tffresh, rad_to_deg, puny
+           cp_ice, cp_ocn, Tsmelt, Tffresh, puny
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat
       use icepack_intfc_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
            nt_fbri, tr_brine, tr_lvl, nt_alvl, nt_vlvl

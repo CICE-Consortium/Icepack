@@ -120,6 +120,7 @@
          dvice, & ! change in ice volume (m)
          Tavg,  & ! mean surface temperature across categories (C)
          Tp,    & ! pond freezing temperature (C)
+         rhoi_L,& ! (J/m^3)
          dvn      ! change in melt pond volume for fresh water budget
 
       integer (kind=int_kind) :: n ! loop indices
@@ -127,7 +128,6 @@
       real (kind=dbl_kind), parameter :: &
          hicemin = p1           , & ! minimum ice thickness with ponds (m) 
          Td      = p15          , & ! temperature difference for freeze-up (C)
-         rhoi_L  = Lfresh * rhoi, & ! (J/m^3)
          min_volp = 1.e-4_dbl_kind  ! minimum pond volume (m)
 
       !---------------------------------------------------------------
@@ -135,6 +135,7 @@
       !---------------------------------------------------------------
    
       volp = c0
+      rhoi_L  = Lfresh * rhoi   ! (J/m^3)
 
       do n = 1, ncat
          ! load tracers

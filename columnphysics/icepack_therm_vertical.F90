@@ -1092,9 +1092,6 @@
 
       ! local variables
 
-      real (kind=dbl_kind), parameter :: &
-         qbotmax = -p5*rhoi*Lfresh  ! max enthalpy of ice growing at bottom
-
       integer (kind=int_kind) :: &
          k               ! vertical index
 
@@ -1108,6 +1105,7 @@
          emlt_ocn        ! total energy of brine, to ocean        (J m-2)
 
       real (kind=dbl_kind) :: &
+         qbotmax     , & ! max enthalpy of ice growing at bottom
          dhi         , & ! change in ice thickness
          dhs         , & ! change in snow thickness
          Ti          , & ! ice temperature
@@ -1256,6 +1254,7 @@
          ! enthalpy of new ice growing at bottom surface
          if (heat_capacity) then
             if (l_brine) then
+               qbotmax = -p5*rhoi*Lfresh  ! max enthalpy of ice growing at bottom
                qbot = -rhoi * (cp_ice * (Tmlts-Tbot) &
                     + Lfresh * (c1-Tmlts/Tbot) &
                     - cp_ocn * Tmlts)

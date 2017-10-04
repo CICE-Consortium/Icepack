@@ -2882,7 +2882,6 @@ contains
 
     real(kind=dbl_kind), parameter :: &
          kappal        = 8.824e-8_dbl_kind, & ! heat diffusivity of liquid
-         ra_constants  = gravit / (viscosity_dyn * kappal), & ! for Rayleigh number
          fracmax       = p2               , & ! limiting advective layer fraction
          zSin_min      = p1               , & ! minimum bulk salinity (ppt)
          safety_factor = c10                  ! to prevent negative salinities
@@ -2913,7 +2912,8 @@ contains
          Bp        , & ! B parameter for channel
          qlimit    , & ! limit to vertical Darcy flow for numerical stability
          dS_guess  , & ! expected bulk salinity without limits
-         alpha         ! desalination limiting factor
+         alpha     , & ! desalination limiting factor
+         ra_constants  ! for Rayleigh number
 
     integer(kind=int_kind) :: &
          k             ! ice layer index
@@ -2946,6 +2946,7 @@ contains
     ! no flow through ice top surface
     q(0) = c0
 
+    ra_constants  = gravit / (viscosity_dyn * kappal)
     ! first iterate over layers going up
     do k = nilyr, 1, -1
 

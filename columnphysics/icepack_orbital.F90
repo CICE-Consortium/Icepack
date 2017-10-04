@@ -18,6 +18,20 @@
       public :: compute_coszen, &
                 icepack_init_orbit
 
+      ! orbital parameters
+      integer (kind=int_kind)  :: iyear_AD  ! Year to calculate orbit for
+      real(kind=dbl_kind) :: eccen  ! Earth's orbital eccentricity
+      real(kind=dbl_kind) :: obliqr ! Earth's obliquity in radians
+      real(kind=dbl_kind) :: lambm0 ! Mean longitude of perihelion at the
+                                           ! vernal equinox (radians)
+      real(kind=dbl_kind) :: mvelpp ! Earth's moving vernal equinox longitude
+                                           ! of perihelion + pi (radians)
+      real(kind=dbl_kind) :: obliq  ! obliquity in degrees
+      real(kind=dbl_kind) :: mvelp  ! moving vernal equinox long
+      real(kind=dbl_kind) :: decln  ! solar declination angle in radians
+      real(kind=dbl_kind) :: eccf   ! earth orbit eccentricity factor
+      logical(kind=log_kind) :: log_print ! Flags print of status/error
+
 !=======================================================================
  
       contains
@@ -29,9 +43,6 @@
 ! author:  Bruce P. Briegleb, NCAR 
 
       subroutine icepack_init_orbit(l_stop, stop_label)
-
-      use icepack_constants, only: iyear_AD, eccen, obliqr, lambm0, &
-         mvelpp, obliq, mvelp, decln, eccf, log_print
 
       logical (kind=log_kind), intent(out) :: &
          l_stop          ! if true, abort the model
@@ -63,7 +74,6 @@
                                  nextsw_cday,   yday,  sec, &
                                  coszen,        dt)
 
-      use icepack_constants, only: eccen, mvelpp, lambm0, obliqr, decln, eccf
 #ifdef CCSMCOUPLED
       use shr_orb_mod, only: shr_orb_decl
 #endif
@@ -165,7 +175,6 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    integer(int_kind),parameter :: pmvelen=78 ! # of elements in series wrt vernal equinox
    real   (dbl_kind),parameter :: psecdeg = 1.0_dbl_kind/3600.0_dbl_kind ! arc sec to deg conversion
 
-   real   (dbl_kind) :: degrad = pi/180._dbl_kind   ! degree to radian conversion factor
    real   (dbl_kind) :: yb4_1950AD         ! number of years before 1950 AD
 
    real   (dbl_kind),parameter :: SHR_ORB_ECCEN_MIN  =   0.0_dbl_kind ! min value for eccen
@@ -363,6 +372,7 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    real   (dbl_kind) :: years   ! Years to time of interest ( pos <=> future)
    real   (dbl_kind) :: eccen2  ! eccentricity squared
    real   (dbl_kind) :: eccen3  ! eccentricity cubed
+   real   (dbl_kind) :: degrad  ! degrees to rad conversion
    integer (int_kind), parameter :: s_loglev    = 0         
    character(len=char_len_long) :: warning ! warning message
 
@@ -382,6 +392,7 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
 
    l_stop = .false.
    stop_label = ' '
+   degrad = pi/180._dbl_kind   ! degree to radian conversion factor
  
    if ( log_print .and. s_loglev > 0 ) then
      write(warning,F00) 'Calculate characteristics of the orbit:'
