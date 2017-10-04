@@ -313,7 +313,7 @@ ice.
 Initialization and coupling
 ---------------------------
 
-CHECK:  add information about the column physics interface
+CHECK:  link to information about the column physics interface in section 2
 
 Icepack’s parameters and variables are initialized in several
 steps. Many constants and physical parameters are set in
@@ -524,9 +524,18 @@ sets.  Module **configuration/driver/icepack\_drv\_forcing.F90**
 can be modified to change the forcing data. 
 
 
-
-Adding Tracers
+Adding things
 ====================
+
+We require that any changes made to the code be implemented in such a way that they can
+be "turned off" through namelist flags.  In most cases, code run with such changes should 
+be bit-for-bit identical with the unmodified code.  Occasionally, non-bit-for-bit changes
+are necessary, e.g. associated with an unavoidable change in the order of operations. In
+these cases, changes should be made in stages to isolate the non-bit-for-bit changes, 
+so that those that should be bit-for-bit can be tested separately.
+
+Tracers
+--------------
 
 .. _addtrcr:
 

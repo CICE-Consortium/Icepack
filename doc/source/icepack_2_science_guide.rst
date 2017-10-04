@@ -2,7 +2,6 @@
 Science Guide
 ****************
 
-
 .. _coupl:
 
 Coupling with host models
@@ -17,6 +16,8 @@ Important information related to flux coupling associated
 with the Icepack submodule will be discussed below, 
 along with information about the interface between Icepack and CICE or
 other host sea ice models.
+
+.. _intfc:
 
 The column physics code interface
 ----------------------------------------
