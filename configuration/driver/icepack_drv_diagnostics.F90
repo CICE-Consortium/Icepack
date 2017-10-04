@@ -14,7 +14,8 @@
 
       implicit none
       private
-      public :: runtime_diags, diagnostic_abort, init_mass_diags
+      public :: runtime_diags, diagnostic_abort, init_mass_diags, &
+                debug_icepack, print_state
 
       save
 
@@ -324,6 +325,171 @@
       stop
 
       end subroutine diagnostic_abort
+
+!=======================================================================
+!
+! Wrapper for the print_state debugging routine.
+! Useful for debugging in the main driver (see ice.F_debug)
+!
+! author Elizabeth C. Hunke, LANL
+!
+      subroutine debug_icepack (plabeld)
+
+      use icepack_drv_calendar, only: istep1
+
+      character (*), intent(in) :: plabeld
+
+      ! printing info for routine print_state
+      character (char_len) :: plabel
+      integer (kind=int_kind), parameter :: &
+         check_step = 1439, & ! begin printing at istep1=check_step
+         ip = 3               ! i index
+
+      if (istep1 >= check_step) then
+         call print_state(plabeld,ip)
+      endif
+
+      end subroutine debug_icepack
+
+!=======================================================================
+
+! This routine is useful for debugging.
+! Calls to it should be inserted in the form (after thermo, for example)
+!     plabel = 'post thermo'
+!     if (istep1 >= check_step) call print_state(plabel,ip)
+! 'use ice_diagnostics' may need to be inserted also
+! author: Elizabeth C. Hunke, LANL
+
+      subroutine print_state(plabel,i)
+
+      use icepack_drv_calendar, only: istep1, time
+      use icepack_drv_constants, only: puny, rhoi, rhos, Lfresh, cp_ice
+      use icepack_drv_domain_size, only: ncat, nilyr, nslyr
+      use icepack_drv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
+      use icepack_intfc_tracers, only: nt_Tsfc, nt_qice, nt_qsno
+      use icepack_drv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow, &
+          fsens, flat, evap, flwout, swvdr, swvdf, swidr, swidf, rhoa, &
+          frzmlt, sst, sss, Tf, Tref, Qref, Uref, uocn, vocn, strtltx, strtlty, &
+          fsw, fswabs, fswint_ai, fswthru, scale_factor, alvdr_ai, alvdf_ai, &
+          alidf_ai, alidr_ai
+
+      character (*), intent(in) :: plabel
+
+      integer (kind=int_kind), intent(in) :: & 
+          i              ! horizontal index
+
+      ! local variables
+
+      real (kind=dbl_kind) :: &
+           eidebug, esdebug, &
+           qi, qs, Tsnow
+
+      integer (kind=int_kind) :: n, k
+
+      write(nu_diag,*) trim(plabel)
+      write(nu_diag,*) 'istep1, i, time', &
+                        istep1, i, time
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'aice0', aice0(i)
+      do n = 1, ncat
+         write(nu_diag,*) ' '
+         write(nu_diag,*) 'n =',n
+         write(nu_diag,*) 'aicen', aicen(i,n)
+         write(nu_diag,*) 'vicen', vicen(i,n)
+         write(nu_diag,*) 'vsnon', vsnon(i,n)
+         if (aicen(i,n) > puny) then
+            write(nu_diag,*) 'hin', vicen(i,n)/aicen(i,n)
+            write(nu_diag,*) 'hsn', vsnon(i,n)/aicen(i,n)
+         endif
+         write(nu_diag,*) 'Tsfcn',trcrn(i,nt_Tsfc,n)
+         write(nu_diag,*) ' '
+      enddo                     ! n
+
+      eidebug = c0
+      do n = 1,ncat
+         do k = 1,nilyr
+            qi = trcrn(i,nt_qice+k-1,n)
+            write(nu_diag,*) 'qice, cat ',n,' layer ',k, qi
+            eidebug = eidebug + qi
+            if (aicen(i,n) > puny) then
+               write(nu_diag,*)  'qi/rhoi', qi/rhoi
+            endif
+         enddo
+         write(nu_diag,*) ' '
+      enddo
+      write(nu_diag,*) 'qice(i)',eidebug
+      write(nu_diag,*) ' '
+
+      esdebug = c0
+      do n = 1,ncat
+         if (vsnon(i,n) > puny) then
+            do k = 1,nslyr
+               qs = trcrn(i,nt_qsno+k-1,n)
+               write(nu_diag,*) 'qsnow, cat ',n,' layer ',k, qs
+               esdebug = esdebug + qs
+               Tsnow = (Lfresh + qs/rhos) / cp_ice
+               write(nu_diag,*) 'qs/rhos', qs/rhos
+               write(nu_diag,*) 'Tsnow', Tsnow
+            enddo
+            write(nu_diag,*) ' '
+         endif
+      enddo
+      write(nu_diag,*) 'qsnow(i)',esdebug
+      write(nu_diag,*) ' '
+
+      write(nu_diag,*) 'uvel(i)',uvel(i)
+      write(nu_diag,*) 'vvel(i)',vvel(i)
+
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'atm states and fluxes'
+      write(nu_diag,*) '            uatm    = ',uatm (i)
+      write(nu_diag,*) '            vatm    = ',vatm (i)
+      write(nu_diag,*) '            potT    = ',potT (i)
+      write(nu_diag,*) '            Tair    = ',Tair (i)
+      write(nu_diag,*) '            Qa      = ',Qa   (i)
+      write(nu_diag,*) '            rhoa    = ',rhoa (i)
+      write(nu_diag,*) '            swvdr   = ',swvdr(i)
+      write(nu_diag,*) '            swvdf   = ',swvdf(i)
+      write(nu_diag,*) '            swidr   = ',swidr(i)
+      write(nu_diag,*) '            swidf   = ',swidf(i)
+      write(nu_diag,*) '            flw     = ',flw  (i)
+      write(nu_diag,*) '            frain   = ',frain(i)
+      write(nu_diag,*) '            fsnow   = ',fsnow(i)
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'ocn states and fluxes'
+      write(nu_diag,*) '            frzmlt  = ',frzmlt (i)
+      write(nu_diag,*) '            sst     = ',sst    (i)
+      write(nu_diag,*) '            sss     = ',sss    (i)
+      write(nu_diag,*) '            Tf      = ',Tf     (i)
+      write(nu_diag,*) '            uocn    = ',uocn   (i)
+      write(nu_diag,*) '            vocn    = ',vocn   (i)
+      write(nu_diag,*) '            strtltx = ',strtltx(i)
+      write(nu_diag,*) '            strtlty = ',strtlty(i)
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'srf states and fluxes'
+      write(nu_diag,*) '            Tref    = ',Tref  (i)
+      write(nu_diag,*) '            Qref    = ',Qref  (i)
+      write(nu_diag,*) '            Uref    = ',Uref  (i)
+      write(nu_diag,*) '            fsens   = ',fsens (i)
+      write(nu_diag,*) '            flat    = ',flat  (i)
+      write(nu_diag,*) '            evap    = ',evap  (i)
+      write(nu_diag,*) '            flwout  = ',flwout(i)
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'shortwave'
+      write(nu_diag,*) '            fsw          = ',fsw         (i)
+      write(nu_diag,*) '            fswabs       = ',fswabs      (i)
+      write(nu_diag,*) '            fswint_ai    = ',fswint_ai   (i)
+      write(nu_diag,*) '            fswthru      = ',fswthru     (i)
+      write(nu_diag,*) '            scale_factor = ',scale_factor(i)
+      write(nu_diag,*) '            alvdr        = ',alvdr_ai    (i)
+      write(nu_diag,*) '            alvdf        = ',alvdf_ai    (i)
+      write(nu_diag,*) '            alidr        = ',alidr_ai    (i)
+      write(nu_diag,*) '            alidf        = ',alidf_ai    (i)
+      write(nu_diag,*) ' '
+
+!      call flush(nu_diag)
+
+      end subroutine print_state
 
 !=======================================================================
 
