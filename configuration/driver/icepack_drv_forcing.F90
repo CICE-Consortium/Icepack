@@ -224,13 +224,6 @@
       frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
       fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
 
-      if (trim(ocn_data_type) == 'default') return
-
-        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
-        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
-       uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
-       vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
-
 !for debugging, for now
 if (i==8760) then
 write (nu_diag,*) flw
@@ -250,7 +243,19 @@ write (nu_diag,*) swvdr
 write (nu_diag,*) swvdf
 write (nu_diag,*) swidr
 write (nu_diag,*) swidf
+endif
+
+      if (trim(ocn_data_type) == 'default') return
+
+        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
+        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
+       uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
+       vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
+
+!for debugging, for now
+if (i==8760) then
 write (nu_diag,*) sst
+write (nu_diag,*) sss
 write (nu_diag,*) uocn
 write (nu_diag,*) vocn
 endif
