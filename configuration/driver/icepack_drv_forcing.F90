@@ -12,7 +12,7 @@
 !                              sec, mday, month, nyr, yday, daycal, dayyr, &
 !                              daymo
       use icepack_drv_constants, only: nu_diag
-      use icepack_intfc_shared, only: calc_strair
+      use icepack_parameters, only: calc_strair
 
       implicit none
       private

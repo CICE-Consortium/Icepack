@@ -33,8 +33,8 @@
       use icepack_drv_diagnostics, only: npnt, print_points
       use icepack_drv_domain_size, only: ncat, nltrcr, nilyr
       use icepack_drv_state, only: aice, aicen, vicen, vice, trcr, trcrn
-      use icepack_intfc_tracers, only: nt_sice, nt_fbri
-      use icepack_intfc_shared, only: ktherm
+      use icepack_tracers, only: nt_sice, nt_fbri
+      use icepack_parameters, only: ktherm
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -124,7 +124,7 @@
 
       use icepack_drv_arrays_column, only: ocean_bio, zfswin, fbio_atmice, fbio_snoice, &
           Zoo, grow_net, ice_bio_net, trcrn_sw
-      use icepack_intfc_shared, only: skl_bgc, z_tracers, &
+      use icepack_parameters, only: skl_bgc, z_tracers, &
           max_algae, max_aero, max_dic, max_doc, max_don, max_fe, dEdd_algae
       use icepack_drv_constants, only: c0, mps_to_cmpdy, c100, p5, c1, secday
       use icepack_drv_diagnostics, only: npnt, print_points
@@ -132,7 +132,7 @@
           n_dic, n_doc, n_don, n_fed, n_fep, nilyr, nslyr
       use icepack_drv_flux, only: flux_bio, flux_bio_atm
       use icepack_drv_state, only:aice, vicen, vice, trcr
-      use icepack_intfc_tracers, only: nt_bgc_N, nt_bgc_C, nt_bgc_chl, nt_bgc_Am, &
+      use icepack_tracers, only: nt_bgc_N, nt_bgc_C, nt_bgc_chl, nt_bgc_Am, &
           nt_bgc_DMS, nt_bgc_DMSPd, nt_bgc_DMSPp, nt_bgc_Nit, nt_bgc_Sil, &
           nt_bgc_PON, nt_bgc_DON, nt_bgc_DIC, nt_bgc_DOC, nt_zaero, nt_bgc_Fed, &
           nt_bgc_Fep, tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil,&
@@ -722,8 +722,8 @@
       use icepack_drv_diagnostics, only: npnt, print_points
       use icepack_drv_domain_size, only: nblyr, ncat, nilyr
       use icepack_drv_state, only: aicen, aice, vice, trcr, trcrn, vicen, vsno
-      use icepack_intfc_shared, only: rhosi
-      use icepack_intfc_tracers, only: tr_brine, nt_fbri, nt_bgc_S, nt_sice
+      use icepack_parameters, only: rhosi
+      use icepack_tracers, only: tr_brine, nt_fbri, nt_bgc_S, nt_sice
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step

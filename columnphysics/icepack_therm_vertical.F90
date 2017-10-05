@@ -24,7 +24,7 @@
       use icepack_constants, only: c0, c1, c3, p001, p5, puny, &
           pi, depressT, Lvap, hs_min, cp_ice, &
           cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
-      use icepack_intfc_shared, only: ktherm, heat_capacity, calc_Tsfc, min_salin, &
+      use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc, min_salin, &
           ustar_min, fbot_xfer_type, formdrag, calc_strair, &
           rfracmin, rfracmax, pndaspect, dpscale, frzpnd
       use icepack_therm_shared, only: ferrmax, l_brine, &
@@ -1025,7 +1025,7 @@
                                     zSin,      sss,      &
                                     dsnow)
 
-      use icepack_intfc_shared, only: phi_i_mushy
+      use icepack_parameters, only: phi_i_mushy
       use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting, &
                            temperature_mush, liquidus_temperature_mush, &
                            liquid_fraction
@@ -2074,7 +2074,7 @@
       use icepack_meltpond_lvl, only: compute_ponds_lvl
       use icepack_meltpond_topo, only: compute_ponds_topo
       use icepack_therm_shared, only: hi_min
-      use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, &
+      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, &
           tr_pond_cesm, tr_pond_lvl, tr_pond_topo
 
       integer (kind=int_kind), intent(in) :: &

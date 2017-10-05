@@ -46,11 +46,11 @@
           p01, p1, p15, p25, p5, p75, puny, &
           albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf, &
           kappav, hs_min, rhofresh, rhos, nspint
-      use icepack_intfc_shared, only: hi_ssl, hs_ssl, modal_aero, &
+      use icepack_parameters, only: hi_ssl, hs_ssl, modal_aero, &
           z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity, &
           r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1, &
           pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
-      use icepack_intfc_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
+      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
           tr_bgc_N, tr_aero
       use icepack_warnings, only: add_warning
 
@@ -3588,9 +3588,9 @@
                                     l_stop,       stop_label)
       
       use icepack_constants, only: c0, c1, c2, p5
-      use icepack_intfc_tracers, only: nt_bgc_N, nt_zaero, tr_bgc_N, &
+      use icepack_tracers, only: nt_bgc_N, nt_zaero, tr_bgc_N, &
           tr_zaero, nlt_chl_sw, nlt_zaero_sw
-      use icepack_intfc_shared, only: dEdd_algae, bgc_flux_type, sk_l, &
+      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l, &
            R_chl2N, min_bgc, F_abs_chl,  hi_ssl
       use icepack_zbgc_shared, only: remap_zbgc
 

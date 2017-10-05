@@ -32,7 +32,7 @@
       use icepack_drv_arrays_column, only: first_ice_real, first_ice
 !      use icepack_drv_fileunits, only: nu_diag, nu_restart_hbrine
       use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: nt_fbri
+      use icepack_tracers, only: nt_fbri
       use icepack_drv_restart, only: read_restart_field
 
       ! local variables
@@ -74,7 +74,7 @@
       use icepack_drv_arrays_column, only: first_ice, first_ice_real
 !      use icepack_drv_fileunits, only: nu_diag, nu_dump_hbrine
       use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: nt_fbri
+      use icepack_tracers, only: nt_fbri
       use icepack_drv_restart, only: write_restart_field
 
       ! local variables
@@ -119,7 +119,7 @@
           doc, don, dic, fed, fep, zaeros, hum
       use icepack_drv_state, only: trcrn
       use icepack_drv_restart, only:  write_restart_field
-      use icepack_intfc_tracers, only: nt_bgc_S, nt_bgc_Am, &
+      use icepack_tracers, only: nt_bgc_S, nt_bgc_Am, &
           nt_bgc_DMS, nt_bgc_DMSPd, nt_bgc_C, nt_bgc_chl, &
           nt_bgc_DMSPp, nt_bgc_Nit, nt_bgc_Sil, &
           nt_bgc_PON, nt_bgc_DON, nt_bgc_DOC, nt_bgc_DIC, &
@@ -129,7 +129,7 @@
           tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C, &
           tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl, &
           nt_bgc_hum, tr_bgc_hum
-      use icepack_intfc_shared, only: skl_bgc, solve_zsal
+      use icepack_parameters, only: skl_bgc, solve_zsal
 
       ! local variables
 
@@ -472,7 +472,7 @@
           doc, don, dic, fed, fep, zaeros, hum
       use icepack_drv_state, only: trcrn
       use icepack_drv_restart, only: read_restart_field
-      use icepack_intfc_tracers, only: nt_bgc_S, nt_bgc_Am, &
+      use icepack_tracers, only: nt_bgc_S, nt_bgc_Am, &
           nt_bgc_DMS, nt_bgc_DMSPd, nt_bgc_C, nt_bgc_chl, &
           nt_bgc_DMSPp, nt_bgc_Nit, nt_bgc_Sil, &
           nt_bgc_PON, nt_bgc_DON, nt_bgc_DOC, nt_bgc_DIC, &
@@ -482,7 +482,7 @@
           tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C, &
           tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl, &
           nt_bgc_hum, tr_bgc_hum
-      use icepack_intfc_shared, only: skl_bgc
+      use icepack_parameters, only: skl_bgc
 
       ! local variables
 

@@ -5,10 +5,10 @@
 !
 ! author Elizabeth C. Hunke, LANL
 
-      module icepack_intfc_tracers
+      module icepack_tracers
 
       use icepack_kinds_mod
-      use icepack_intfc_shared, only: max_algae, max_dic, max_doc, max_don, &
+      use icepack_parameters, only: max_algae, max_dic, max_doc, max_don, &
           max_fe, max_aero, max_nbtrcr
 
       implicit none
@@ -18,9 +18,10 @@
       public :: icepack_compute_tracers
       public :: icepack_init_tracer_flags
       public :: icepack_query_tracer_flags
-      public :: icepack_write_tracer_indices
+      public :: icepack_write_tracer_flags
       public :: icepack_init_tracer_indices
       public :: icepack_query_tracer_indices
+      public :: icepack_write_tracer_indices
       public :: icepack_init_tracer_numbers
       public :: icepack_query_tracer_numbers
       public :: icepack_write_tracer_numbers
@@ -929,6 +930,6 @@
 
 !=======================================================================
 
-      end module icepack_intfc_tracers
+      end module icepack_tracers
 
 !=======================================================================

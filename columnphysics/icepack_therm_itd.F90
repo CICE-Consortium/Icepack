@@ -24,9 +24,9 @@
       use icepack_constants, only: c0, c1, c2, c3, c4, c6, c10, &
           p001, p1, p333, p5, p666, puny, bignum, &
           rhos, rhoi, Lfresh, ice_ref_salinity
-      use icepack_intfc_shared, only: kitd, ktherm, phi_init, dsin0_frazil, &
+      use icepack_parameters, only: kitd, ktherm, phi_init, dsin0_frazil, &
           heat_capacity
-      use icepack_intfc_tracers, only: ntrcr, nbtrcr, tr_aero, tr_pond_topo
+      use icepack_tracers, only: ntrcr, nbtrcr, tr_aero, tr_pond_topo
       use icepack_itd, only: aggregate_area, reduce_area, cleanup_itd
       use icepack_warnings, only: add_warning
      
@@ -86,7 +86,7 @@
 
       use icepack_itd, only: aggregate_area, shift_ice, & 
                          column_sum, column_conservation_check
-      use icepack_intfc_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice, &
+      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice, &
                              tr_pond_topo, nt_apnd, nt_hpnd, tr_brine
       use icepack_therm_shared, only: hi_min
 
@@ -843,9 +843,9 @@
                                fzsal,      flux_bio,   &
                                nbtrcr,     nblyr)
 
-      use icepack_intfc_tracers, only: nt_qice, nt_qsno, nt_aero, tr_aero, &
+      use icepack_tracers, only: nt_qice, nt_qsno, nt_aero, tr_aero, &
                              tr_pond_topo, nt_apnd, nt_hpnd, bio_index
-      use icepack_intfc_shared, only: z_tracers , hs_ssl, solve_zsal
+      use icepack_parameters, only: z_tracers , hs_ssl, solve_zsal
       use icepack_zbgc, only: lateral_melt_bgc               
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1032,11 +1032,11 @@
 
       use icepack_itd, only: column_sum, &
                          column_conservation_check 
-      use icepack_intfc_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_sice, nt_qice, &
+      use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_sice, nt_qice, &
                              nt_alvl, nt_vlvl, nt_aero, nt_apnd, &
                              tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
                              tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine
-      use icepack_intfc_shared, only: solve_zsal, skl_bgc, initbio_frac, salt_loss, rhosi
+      use icepack_parameters, only: solve_zsal, skl_bgc, initbio_frac, salt_loss, rhosi
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
       use icepack_therm_shared, only: hfrazilmin
       use icepack_zbgc, only: add_new_ice_bgc

@@ -17,6 +17,7 @@
       public :: icepack_init_constants
       public :: icepack_query_constants
       public :: icepack_write_constants
+      public :: icepack_recompute_constants
 
       !-----------------------------------------------------------------
       ! parameter constants

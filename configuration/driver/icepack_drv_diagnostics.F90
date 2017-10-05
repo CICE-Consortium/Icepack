@@ -9,7 +9,7 @@
       use icepack_kinds_mod
       use icepack_drv_constants, only: c0, nu_diag, nu_diag_out
       use icepack_drv_calendar, only: diagfreq, istep1, istep
-      use icepack_intfc_shared, only: max_aero
+      use icepack_parameters, only: max_aero
       use icepack_drv_domain_size, only: nx
 
       implicit none
@@ -52,7 +52,7 @@
 
       subroutine runtime_diags (dt)
 
-      use icepack_intfc_shared, only: calc_Tsfc, ktherm
+      use icepack_parameters, only: calc_Tsfc, ktherm
       use icepack_drv_constants, only: c1, c1000, c2, p001, p5, puny, rhoi, rhos, rhow, &
           rhofresh, Tffresh, Lfresh, Lvap, ice_ref_salinity, &
           m2_to_km2, awtvdr, awtidr, awtvdf, awtidf
@@ -65,7 +65,7 @@
           swvdr, swvdf, swidr, swidf, &
           alvdr_init, alvdf_init, alidr_init, alidf_init, faero_atm, faero_ocn
       use icepack_drv_state   ! everything
-      use icepack_intfc_tracers ! everything
+      use icepack_tracers ! everything
 #ifdef CCSMCOUPLED
       use icepack_drv_prescribed_mod, only: prescribed_ice
 #endif
@@ -219,7 +219,7 @@
 
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
       use icepack_drv_state, only: vicen, vsnon, trcrn
-      use icepack_intfc_tracers, only: nt_qice, nt_qsno
+      use icepack_tracers, only: nt_qice, nt_qsno
 
       real (kind=dbl_kind), dimension (nx),  &
          intent(out) :: &
@@ -269,7 +269,7 @@
 
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
       use icepack_drv_state, only: vicen, trcrn
-      use icepack_intfc_tracers, only: nt_sice
+      use icepack_tracers, only: nt_sice
 
       real (kind=dbl_kind), dimension (nx),  &
          intent(out) :: &
@@ -366,7 +366,7 @@
       use icepack_drv_constants, only: puny, rhoi, rhos, Lfresh, cp_ice
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr
       use icepack_drv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
-      use icepack_intfc_tracers, only: nt_Tsfc, nt_qice, nt_qsno
+      use icepack_tracers, only: nt_Tsfc, nt_qice, nt_qsno
       use icepack_drv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow, &
           fsens, flat, evap, flwout, swvdr, swvdf, swidr, swidf, rhoa, &
           frzmlt, sst, sss, Tf, Tref, Qref, Uref, uocn, vocn, strtltx, strtlty, &

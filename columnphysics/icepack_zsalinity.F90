@@ -206,8 +206,8 @@
                                    fzsaln,                           &
                                    fzsaln_g,           bphi_min)
 
-      use icepack_intfc_tracers, only: nt_sice
-      use icepack_intfc_shared, only: solve_zsal, min_salin, dts_b, rhosi
+      use icepack_tracers, only: nt_sice
+      use icepack_parameters, only: solve_zsal, min_salin, dts_b, rhosi
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
       integer (kind=int_kind), intent(in) :: &
@@ -448,7 +448,7 @@
                                       stop_label)    
 
       use icepack_brine, only: calculate_drho
-      use icepack_intfc_shared, only: l_skS, grid_oS, l_sk, min_salin, rhosi, salt_loss
+      use icepack_parameters, only: l_skS, grid_oS, l_sk, min_salin, rhosi, salt_loss
 
       integer (kind=int_kind), intent(in) :: &
          nblyr            , & ! number of bio layers
@@ -894,7 +894,7 @@
                                    C_s,F_s,Ssum_corr,fzsaln_g,fzsaln,Ssum_old, &
                                    fluxcorr,dts, Ssum_new)
 
-      use icepack_intfc_shared, only: rhosi
+      use icepack_parameters, only: rhosi
 
       integer(kind=int_kind), intent(in) :: &
          nblyr,          & ! number of bio layers
@@ -1031,7 +1031,7 @@
                                       fluxcorr, fluxb,    fluxg,     fluxm, &
                                       hbrin,    hbri_old, l_stop)
 
-      use icepack_intfc_shared, only: rhosi
+      use icepack_parameters, only: rhosi
 
       integer(kind=int_kind), intent(in) :: &
          mint      , & ! current iteration
@@ -1147,7 +1147,7 @@
       subroutine column_sum_zsal (zsal_totn, nblyr,   &
                                   vicenS, trcrn_S, fbri)
 
-      use icepack_intfc_shared, only: rhosi
+      use icepack_parameters, only: rhosi
 
       integer (kind=int_kind), intent(in) :: &
          nblyr         ! number of layers

@@ -42,12 +42,14 @@
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_init, only: input_data, init_state, init_grid2
       use icepack_drv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
-      use icepack_intfc_tracers, only: tr_aero, tr_zaero
-      use icepack_intfc_shared, only: skl_bgc, z_tracers
+      use icepack_intfc, only: icepack_configure
+      use icepack_tracers, only: tr_aero, tr_zaero
+      use icepack_parameters, only: skl_bgc, z_tracers
 
       logical(kind=log_kind) :: l_stop
       character(char_len) :: stop_label
 
+      call icepack_configure()  ! initialize icepack
       call input_data           ! namelist variables
       call init_zbgc            ! vertical biogeochemistry namelist
 
@@ -125,10 +127,10 @@
       use icepack_drv_restart, only: restartfile
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_state ! almost everything
-      use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, &
+      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, &
           tr_pond_cesm, nt_apnd, nt_hpnd, tr_pond_lvl, nt_ipnd, &
           tr_pond_topo, tr_aero, tr_brine, nt_iage, nt_FY, nt_aero
-      use icepack_intfc_shared, only: skl_bgc, z_tracers, solve_zsal
+      use icepack_parameters, only: skl_bgc, z_tracers, solve_zsal
 
       integer(kind=int_kind) :: &
          i                            ! horizontal indices

@@ -88,8 +88,8 @@
       ! column package includes
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit, &
            icepack_clear_warnings, icepack_print_warnings
-      use icepack_intfc_shared, only: shortwave, dEdd_algae, modal_aero
-      use icepack_intfc_tracers, only: nt_Tsfc, &
+      use icepack_parameters, only: shortwave, dEdd_algae, modal_aero
+      use icepack_tracers, only: nt_Tsfc, &
           nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, tr_bgc_N, &
           tr_zaero, nlt_chl_sw, nlt_zaero_sw, ntrcr, nbtrcr, nbtrcr_sw, nt_fbri, tr_brine, &
           nt_zaero
@@ -324,14 +324,14 @@
 !      use icepack_drv_restart_column, only: restart_zsal, &
 !          read_restart_bgc, restart_bgc
       use icepack_drv_state, only: trcrn, aicen, vicen, vsnon
-      use icepack_intfc_shared, only: solve_zsal, &
+      use icepack_parameters, only: solve_zsal, &
          max_algae, max_don, max_doc, max_dic, max_aero, max_fe, &
          max_nbtrcr
 
       ! column package includes
       use icepack_intfc, only: icepack_init_bgc, icepack_init_zsalinity, &
           icepack_init_ocean_conc, icepack_init_OceanConcArray
-      use icepack_intfc_tracers, only: nbtrcr, ntrcr, nt_bgc_S, ntrcr_o, &
+      use icepack_tracers, only: nbtrcr, ntrcr, nt_bgc_S, ntrcr_o, &
           nt_sice, nt_fbri
 
       ! local variables
@@ -480,8 +480,8 @@
       use icepack_drv_domain_size, only: nblyr
       use icepack_drv_state, only: trcrn
       use icepack_intfc, only: icepack_init_hbrine
-      use icepack_intfc_tracers, only: nt_fbri, tr_brine
-      use icepack_intfc_shared, only: phi_snow
+      use icepack_tracers, only: nt_fbri, tr_brine
+      use icepack_parameters, only: phi_snow
 
       call icepack_init_hbrine(bgrid, igrid, cgrid, icgrid, &
             swgrid, nblyr, nilyr, phi_snow)
@@ -512,7 +512,7 @@
 
       use icepack_intfc, only:icepack_init_bgc_trcr,  icepack_init_zbgc
 
-      use icepack_intfc_tracers, only: tr_brine, &
+      use icepack_tracers, only: tr_brine, &
           ntrcr,         nbtrcr,       nbtrcr_sw,    &
           ntrcr_o, &
           tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil,   &
@@ -533,7 +533,7 @@
           nlt_bgc_DON, nlt_bgc_Fed, nlt_bgc_Fep, nlt_zaero, &
           nt_bgc_hum,  nlt_bgc_hum, bio_index_o, bio_index
  
-      use icepack_intfc_shared, only: ktherm, shortwave, solve_zsal, &
+      use icepack_parameters, only: ktherm, shortwave, solve_zsal, &
           skl_bgc, z_tracers, scale_bgc, dEdd_algae, solve_zbgc, &
           bgc_data_dir, sil_data_type, nit_data_type, fe_data_type, &
           bgc_flux_type, grid_o, l_sk, grid_o_t, initbio_frac, &
@@ -595,7 +595,7 @@
       !  1 : retention time scale is tau_max, release time scale is tau_min
       ! 0.5: retention time scale is tau_min, release time scale is tau_min
       !  2 : retention time scale is tau_max, release time scale is tau_max
-      ! tau_min and tau_max are defined in icepack_intfc_shared.f90
+      ! tau_min and tau_max are defined in icepack_parameters.f90
       !------------------------------------------------------------
 
       !-----------------------------------------------------------------

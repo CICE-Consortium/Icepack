@@ -355,7 +355,7 @@
                                l_stop,   stop_label)
 
       use icepack_zbgc_shared, only: merge_bgc_fluxes_skl
-      use icepack_intfc_tracers, only: nt_bgc_N
+      use icepack_tracers, only: nt_bgc_N
  
       integer (kind=int_kind), intent(in) :: &
          nilyr,              & ! number of ice layers
@@ -459,8 +459,8 @@
                                       stop_label)
 
       use icepack_constants, only: p5, p05, p1, c1, c0, puny, c10
-      use icepack_intfc_tracers, only: nt_bgc_N,  ntrcr, bio_index 
-      use icepack_intfc_shared, only: dEdd_algae, bgc_flux_type, sk_l, R_chl2N
+      use icepack_tracers, only: nt_bgc_N,  ntrcr, bio_index 
+      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l, R_chl2N
 
       integer (kind=int_kind), intent(in) :: &
          nilyr             , & ! number of ice layers
@@ -767,12 +767,12 @@
                                     congel,       l_stop,    &   
                                     stop_label)
 
-      use icepack_intfc_tracers, only: nt_fbri, nt_zbgc_frac, &
+      use icepack_tracers, only: nt_fbri, nt_zbgc_frac, &
                                     ntrcr, nlt_bgc_Nit, tr_bgc_Fe, tr_zaero, &
                                     nlt_bgc_Fed, nlt_zaero, bio_index, tr_bgc_N, &
                                     nlt_bgc_N
       use icepack_constants, only: c0, c1, c2, p5, puny, pi
-      use icepack_intfc_shared, only: hi_ssl, dEdd_algae, solve_zbgc, &
+      use icepack_parameters, only: hi_ssl, dEdd_algae, solve_zbgc, &
                                    R_dFe2dust, dustFe_sol, algal_vel
 
       integer (kind=int_kind), intent(in) :: &
@@ -1430,7 +1430,7 @@
                             Nerror,       conserve_N)      
 
       use icepack_constants, only: p1, p5, c0, c1, secday, puny
-      use icepack_intfc_shared, only: max_algae, max_DON, max_DOC, R_C2N, R_chl2N, &
+      use icepack_parameters, only: max_algae, max_DON, max_DOC, R_C2N, R_chl2N, &
       	  		     	   T_max, fsal      , fr_resp          , & 
                                    op_dep_min       , fr_graze_s       , & 
                                    fr_graze_e       , fr_mort2min      , & 
@@ -1446,7 +1446,7 @@
                                    f_don, kn_bac, f_don_Am, & 
                                    f_doc, f_exude, k_bac
 
-      use icepack_intfc_tracers, only: tr_brine, nt_fbri, &
+      use icepack_tracers, only: tr_brine, nt_fbri, &
           tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil,    &
           tr_bgc_DMS,    tr_bgc_PON,   tr_bgc_S,      &
           tr_bgc_N,      tr_bgc_C,     tr_bgc_chl,    &
@@ -2231,7 +2231,7 @@
                                       D_sbdiag, D_spdiag, ML)
 
        use icepack_constants, only: c1, c0, p5, c2, puny
-       use icepack_intfc_shared, only: grid_o
+       use icepack_parameters, only: grid_o
 
       integer (kind=int_kind), intent(in) :: &
          nblyr           ! number of bio layers
@@ -2708,7 +2708,7 @@
 
       subroutine bgc_column_sum (nblyr, nslyr, hsnow, hbrine, xin, xout)
 
-      use icepack_intfc_shared, only: hs_ssl 
+      use icepack_parameters, only: hs_ssl 
       use icepack_constants, only: p5, c1, c0
 
       integer (kind=int_kind), intent(in) :: &

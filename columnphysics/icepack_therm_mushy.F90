@@ -8,7 +8,7 @@ module icepack_therm_mushy
       p001, p01, p05, p1, p2, p5, pi, bignum, puny, ice_ref_salinity, &
       viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit, &
       hs_min, ksno
-  use icepack_intfc_shared, only: a_rapid_mode, Rac_rapid_mode, &
+  use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode, &
       aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy
 
   use icepack_therm_shared, only: ferrmax
@@ -3028,7 +3028,7 @@ contains
          density_brine, &
          liquidus_brine_salinity_mush
 
-    use icepack_intfc_tracers, only: &
+    use icepack_tracers, only: &
          tr_pond
 
     integer (kind=int_kind), intent(in) :: &
@@ -3137,7 +3137,7 @@ contains
 
   subroutine flush_pond(w, hin, hpond, apond, dt)
 
-    use icepack_intfc_tracers, only: &
+    use icepack_tracers, only: &
          tr_pond
 
     ! given a flushing velocity drain the meltponds

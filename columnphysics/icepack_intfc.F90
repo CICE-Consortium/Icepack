@@ -19,14 +19,20 @@
       use icepack_constants, only: icepack_query_constants
       use icepack_constants, only: icepack_write_constants
 
-      use icepack_intfc_shared, only: icepack_init_parameters
-      use icepack_intfc_shared, only: icepack_query_parameters
-      use icepack_intfc_shared, only: icepack_write_parameters
+      use icepack_parameters, only: icepack_init_parameters
+      use icepack_parameters, only: icepack_query_parameters
+      use icepack_parameters, only: icepack_write_parameters
 
-      use icepack_intfc_tracers, only: icepack_compute_tracers
-      use icepack_intfc_tracers, only: icepack_init_tracer_flags
-      use icepack_intfc_tracers, only: icepack_init_tracer_indices
-      use icepack_intfc_tracers, only: icepack_init_tracer_numbers
+      use icepack_tracers, only: icepack_compute_tracers
+      use icepack_tracers, only: icepack_init_tracer_flags
+      use icepack_tracers, only: icepack_query_tracer_flags
+      use icepack_tracers, only: icepack_write_tracer_flags
+      use icepack_tracers, only: icepack_init_tracer_indices
+      use icepack_tracers, only: icepack_query_tracer_indices
+      use icepack_tracers, only: icepack_write_tracer_indices
+      use icepack_tracers, only: icepack_init_tracer_numbers
+      use icepack_tracers, only: icepack_query_tracer_numbers
+      use icepack_tracers, only: icepack_write_tracer_numbers
 
       use icepack_itd, only: icepack_init_itd
       use icepack_itd, only: icepack_init_itd_hist
@@ -69,7 +75,24 @@
 
       implicit none
 
-      public
+      public 
+
+      public :: icepack_configure
+
+!=======================================================================
+      contains
+!=======================================================================
+
+      ! This subroutine should be called before any part of columnphysics
+      ! is used.
+
+      subroutine icepack_configure()
+
+        use icepack_constants, only: icepack_recompute_constants
+
+        call icepack_recompute_constants()
+
+      end subroutine icepack_configure
 
 !=======================================================================
 

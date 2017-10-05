@@ -30,8 +30,8 @@
 !      use icepack_drv_forcing_bgc, only: get_forcing_bgc, get_atm_bgc, fzaero_data, & 
 !          faero_default
       use icepack_drv_flux, only: init_flux_atm_ocn
-      use icepack_intfc_tracers, only: tr_aero, tr_zaero
-      use icepack_intfc_shared, only: skl_bgc, z_tracers
+      use icepack_tracers, only: tr_aero, tr_zaero
+      use icepack_parameters, only: skl_bgc, z_tracers
 
    !--------------------------------------------------------------------
    ! timestep loop
@@ -86,12 +86,12 @@
 !          write_restart_pond_topo, write_restart_aero, &
 !          write_restart_bgc, write_restart_hbrine
       use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, &
+      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, &
           tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_brine, tr_aero
       use icepack_drv_step_mod, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_radiation, &
           biogeochemistry
-      use icepack_intfc_shared, only: calc_Tsfc, skl_bgc, solve_zsal, z_tracers
+      use icepack_parameters, only: calc_Tsfc, skl_bgc, solve_zsal, z_tracers
 
       integer (kind=int_kind) :: &
          k               ! dynamics supercycling index
@@ -197,8 +197,8 @@
       use icepack_drv_arrays_column, only: alvdfn, alidfn, alvdrn, alidrn, &
           albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
       use icepack_drv_calendar, only: dt
-      use icepack_intfc_shared, only: calc_Tsfc, oceanmixed_ice, max_aero
-      use icepack_intfc_tracers, only: nbtrcr
+      use icepack_parameters, only: calc_Tsfc, oceanmixed_ice, max_aero
+      use icepack_tracers, only: nbtrcr
       use icepack_drv_constants, only: c0, c1, puny, rhofresh
       use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &

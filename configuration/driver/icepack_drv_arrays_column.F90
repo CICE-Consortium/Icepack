@@ -10,7 +10,7 @@
       use icepack_constants, only: nspint
       use icepack_drv_domain_size, only: nx, ncat, nilyr, nslyr, &
            nblyr, max_nsw , max_ntrcr
-      use icepack_intfc_shared, only: max_nbtrcr, max_algae, max_aero, &
+      use icepack_parameters, only: max_nbtrcr, max_algae, max_aero, &
            nmodal1, nmodal2
 
       implicit none

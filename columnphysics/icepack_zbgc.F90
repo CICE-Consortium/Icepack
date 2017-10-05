@@ -11,7 +11,7 @@
 
       use icepack_kinds_mod
       use icepack_constants, only: c1,  c2, p5, c0, p1, puny
-      use icepack_intfc_shared, only:  R_C2N, R_chl2N, R_C2N_DON
+      use icepack_parameters, only:  R_C2N, R_chl2N, R_C2N_DON
       use icepack_zbgc_shared ! everything
 
       implicit none 
@@ -48,8 +48,8 @@
       use icepack_constants, only: c0, c1, puny, depressT
       use icepack_itd, only: column_sum, &
                          column_conservation_check
-      use icepack_intfc_tracers, only: tr_brine, nt_fbri, nt_sice, nt_qice, nt_Tsfc
-      use icepack_intfc_shared, only: solve_zsal
+      use icepack_tracers, only: tr_brine, nt_fbri, nt_sice, nt_qice, nt_Tsfc
+      use icepack_parameters, only: solve_zsal
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
       integer (kind=int_kind), intent(in) :: &
@@ -270,8 +270,8 @@
                                    trcrn,    fzsal,    &
                                    flux_bio, nbltrcr)
 
-      use icepack_intfc_tracers, only: nt_fbri, nt_bgc_S, bio_index
-      use icepack_intfc_shared, only: solve_zsal, rhosi
+      use icepack_tracers, only: nt_fbri, nt_bgc_S, bio_index
+      use icepack_parameters, only: solve_zsal, rhosi
       use icepack_constants, only: c1, p001
 
       integer (kind=int_kind), intent(in) :: &
@@ -349,8 +349,8 @@
                                         l_stop,     stop_label)
 
       use icepack_constants, only: c1, c0
-      use icepack_intfc_tracers, only: nt_sice, nt_bgc_S, bio_index 
-      use icepack_intfc_shared, only: min_salin, salt_loss
+      use icepack_tracers, only: nt_sice, nt_bgc_S, bio_index 
+      use icepack_parameters, only: min_salin, salt_loss
 
       integer (kind=int_kind), intent(in) :: &
          location          , & ! 1 (add frazil to bottom), 0 (add frazil throughout)
@@ -539,9 +539,9 @@
       use icepack_zbgc_shared, only: R_S2N, zbgc_frac_init, zbgc_init_frac, remap_zbgc
 
       ! column package includes
-      use icepack_intfc_tracers, only: nt_fbri, nt_bgc_S, nt_sice, nt_zbgc_frac, &
+      use icepack_tracers, only: nt_fbri, nt_bgc_S, nt_sice, nt_zbgc_frac, &
          bio_index_o,  bio_index  
-      use icepack_intfc_shared, only: solve_zsal, ktherm, hs_ssl,  &
+      use icepack_parameters, only: solve_zsal, ktherm, hs_ssl,  &
          skl_bgc, scale_bgc, grid_o_t,  fe_data_type, &
          R_C2N, R_chl2N
 
@@ -732,7 +732,7 @@
                     
       use icepack_constants, only: c1, p5, c0, c2
 
-      use icepack_intfc_shared, only: &
+      use icepack_parameters, only: &
          algaltype, doctype, dictype, dontype, fedtype, feptype, zaerotype, &
          R_C2N, R_chl2N, F_abs_chl, R_C2N_DON, max_aero
 
@@ -1595,8 +1595,8 @@
       use icepack_algae, only: zbio, sklbio
       use icepack_brine, only: preflushing_changes, compute_microS_mushy, &
                            update_hbrine, compute_microS 
-      use icepack_intfc_shared, only: solve_zsal, z_tracers, phi_snow
-      use icepack_intfc_tracers, only: nt_fbri, tr_brine, &
+      use icepack_parameters, only: solve_zsal, z_tracers, phi_snow
+      use icepack_tracers, only: nt_fbri, tr_brine, &
           nt_bgc_S, nt_qice, nt_sice, nt_zbgc_frac, bio_index 
       use icepack_constants, only: c0, c1, puny
       use icepack_zsalinity, only: zsalinity

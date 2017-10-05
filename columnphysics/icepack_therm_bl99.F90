@@ -15,7 +15,7 @@
       use icepack_kinds_mod
       use icepack_constants, only: c0, c1, c2, p01, p1, p5, puny, &
           rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
-      use icepack_intfc_shared, only: conduct, calc_Tsfc, solve_zsal
+      use icepack_parameters, only: conduct, calc_Tsfc, solve_zsal
       use icepack_therm_shared, only: ferrmax, l_brine, hfrazilmin
       use icepack_warnings, only: add_warning
 

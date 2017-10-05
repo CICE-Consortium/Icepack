@@ -1,11 +1,11 @@
-!  SVN:$Id: icepack_intfc_shared.F90 1226 2017-05-22 22:45:03Z tcraig $
+!  SVN:$Id: icepack_parameters.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! flags for the column package
 !
 ! authors: Elizabeth C. Hunke, LANL
 
-      module icepack_intfc_shared
+      module icepack_parameters
 
       use icepack_kinds_mod
       use icepack_constants, only: c3, c0, c1, p5, p1
@@ -958,6 +958,8 @@
 ! subroutine to query the column package internal parameters
 
       subroutine icepack_query_parameters(   &
+           max_algae_out, max_dic_out, max_doc_out, max_don_out, max_fe_out, &
+           nmodal1_out, nmodal2_out, max_aero_out, max_nbtrcr_out, &
            ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, ustar_min_out, a_rapid_mode_out, &
            Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, phi_c_slow_mode_out, &
            phi_i_mushy_out, shortwave_out, albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
@@ -1004,6 +1006,17 @@
 !-----------------------------------------------------------------------
 ! Parameters for thermodynamics
 !-----------------------------------------------------------------------
+
+        integer (kind=int_kind), intent(out), optional :: &
+             max_algae_out, & ! maximum number of algal types
+             max_dic_out,   & ! maximum number of dissolved inorganic carbon types
+             max_doc_out,   & ! maximum number of dissolved organic carbon types
+             max_don_out,   & ! maximum number of dissolved organic nitrogen types
+             max_fe_out,    & ! maximum number of iron types
+             nmodal1_out,   & ! dimension for modal aerosol radiation parameters
+             nmodal2_out,   & ! dimension for modal aerosol radiation parameters
+             max_aero_out,  & ! maximum number of aerosols
+             max_nbtrcr_out   !
 
         integer (kind=int_kind), intent(out), optional :: &
              ktherm_out         ! type of thermodynamics
@@ -1296,6 +1309,16 @@
         real (kind=dbl_kind), intent(out), optional :: &
              hp1_out             ! critical parameter for pond ice thickness
         
+        if (present(max_algae_out) ) max_algae_out  = max_algae
+        if (present(max_dic_out)   ) max_dic_out    = max_dic
+        if (present(max_doc_out)   ) max_doc_out    = max_doc
+        if (present(max_don_out)   ) max_don_out    = max_don
+        if (present(max_fe_out)    ) max_fe_out     = max_fe
+        if (present(nmodal1_out)   ) nmodal1_out    = nmodal1
+        if (present(nmodal2_out)   ) nmodal2_out    = nmodal2
+        if (present(max_aero_out)  ) max_aero_out   = max_aero
+        if (present(max_nbtrcr_out)) max_nbtrcr_out = max_nbtrcr
+
         if (present(ktherm_out)               ) ktherm_out        = ktherm
         if (present(conduct_out)              ) conduct_out       = conduct
         if (present(fbot_xfer_type_out)       ) fbot_xfer_type_out    = fbot_xfer_type
@@ -1492,6 +1515,15 @@
              iounit   ! unit number for output
 
         write(iounit,*) "icepack_write_parameters:"
+        write(iounit,*) "  max_algae  = ",max_algae
+        write(iounit,*) "  max_dic    = ",max_dic
+        write(iounit,*) "  max_doc    = ",max_doc
+        write(iounit,*) "  max_don    = ",max_don
+        write(iounit,*) "  max_fe     = ",max_fe
+        write(iounit,*) "  nmodal1    = ",nmodal1
+        write(iounit,*) "  nmodal2    = ",nmodal2
+        write(iounit,*) "  max_aero   = ",max_aero
+        write(iounit,*) "  max_nbtrcr = ",max_nbtrcr
         write(iounit,*) "  ktherm        = ", ktherm
         write(iounit,*) "  conduct       = ", conduct
         write(iounit,*) "  fbot_xfer_type    = ", fbot_xfer_type
@@ -1676,6 +1708,6 @@
 
 !=======================================================================
 
-    end module icepack_intfc_shared
+    end module icepack_parameters
 
 !=======================================================================

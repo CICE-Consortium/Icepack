@@ -42,7 +42,7 @@
 
       subroutine input_data
 
-      use icepack_intfc_shared, only: ustar_min, albicev, albicei, albsnowv, albsnowi, &
+      use icepack_parameters, only: ustar_min, albicev, albicei, albsnowv, albsnowi, &
                             ahmax, shortwave, albedo_type, R_ice, R_pnd, &
                             R_snw, dT_mlt, rsnw_mlt, &
                             kstrength, krdg_partic, krdg_redist, mu_rdg, &
@@ -66,13 +66,12 @@
           atm_data_format, ocn_data_format, bgc_data_format, &
           data_dir,        dbug
 
-      use icepack_intfc, only: icepack_init_constants
-      use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond, &
+      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond, &
                              tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
                              tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
                              nt_iage, nt_FY, nt_alvl, nt_vlvl, &
                              nt_apnd, nt_hpnd, nt_ipnd, nt_aero, ntrcr
-      use icepack_intfc_shared, only: a_rapid_mode, Rac_rapid_mode, &
+      use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode, &
                                    aspect_rapid_mode, dSdt_slow_mode, &
                                    phi_c_slow_mode, phi_i_mushy, &
                                    Cf, tfrz_option, kalg, fbot_xfer_type
@@ -688,8 +687,6 @@
          endif
       endif
 
-      call icepack_init_constants()
-
       end subroutine input_data
 
 !=======================================================================
@@ -743,14 +740,14 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-      use icepack_intfc_shared, only: heat_capacity
+      use icepack_parameters, only: heat_capacity
       use icepack_drv_constants, only: c0, c1, nu_diag
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero
       use icepack_drv_flux, only: sst, Tf, Tair, salinz, Tmltz
       use icepack_drv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon, &
           aice0, aice, vice, vsno, trcr, aice_init, &
           n_trcr_strata, nt_strata, trcr_base
-      use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, &
+      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, &
           tr_pond_cesm, nt_apnd, tr_pond_lvl, nt_alvl, tr_pond_topo, &
           nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY, nt_vlvl, &
           nt_hpnd, nt_ipnd, tr_aero, nt_aero, ntrcr
@@ -944,7 +941,7 @@
       use icepack_drv_constants, only: c0, c1, c2, c3, p2, p5, rhoi, rhos, Lfresh, &
            cp_ice, cp_ocn, Tsmelt, Tffresh, puny
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat
-      use icepack_intfc_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
+      use icepack_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
            nt_fbri, tr_brine, tr_lvl, nt_alvl, nt_vlvl
 !      use icepack_drv_forcing, only: atm_data_type
 

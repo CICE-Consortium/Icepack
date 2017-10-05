@@ -9,8 +9,8 @@
 
       use icepack_kinds_mod
       use icepack_constants
-      use icepack_intfc_shared, only: dts_b, salt_loss
-      use icepack_intfc_tracers, only: ntrcr, nt_qice, nt_sice, nt_bgc_S 
+      use icepack_parameters, only: dts_b, salt_loss
+      use icepack_tracers, only: ntrcr, nt_qice, nt_sice, nt_bgc_S 
       use icepack_zbgc_shared
       use icepack_warnings, only: add_warning
 
@@ -152,7 +152,7 @@
 
       use icepack_therm_mushy, only: permeability
       use icepack_mushy_physics, only: temperature_mush, liquid_fraction
-      use icepack_intfc_shared, only: l_sk, min_salin
+      use icepack_parameters, only: l_sk, min_salin
 
       integer (kind=int_kind), intent(in) :: &
          n_cat       , & ! ice category
@@ -337,7 +337,7 @@
                                  kperm,      bphi_min,  phi_snow, &
                                  i_grid,     sss)
 
-      use icepack_intfc_shared, only: rhosi
+      use icepack_parameters, only: rhosi
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
       integer (kind=int_kind), intent(in) :: &
@@ -477,7 +477,7 @@
                                 bphin,      aice0,       &
                                 dh_direct)
 
-      use icepack_intfc_shared, only: rhosi
+      use icepack_parameters, only: rhosi
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! timestep
@@ -607,8 +607,8 @@
                                    salinz,     l_stop,   stop_label)
  
       use icepack_therm_shared, only: calculate_Tin_from_qin
-      use icepack_intfc_tracers, only: nt_fbri, nt_Tsfc
-      use icepack_intfc_shared, only: min_salin, rhosi, salt_loss
+      use icepack_tracers, only: nt_fbri, nt_Tsfc
+      use icepack_parameters, only: min_salin, rhosi, salt_loss
 
       integer (kind=int_kind), intent(in) :: &
          n_cat       , & ! ice category

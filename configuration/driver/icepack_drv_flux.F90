@@ -12,7 +12,7 @@
       use icepack_drv_domain_size, only: ncat, nilyr, nx
       use icepack_drv_constants, only: c0, c1, c5, c10, c20, c180, dragio, &
           stefan_boltzmann, Tffresh, emissivity
-      use icepack_intfc_shared, only: max_aero, max_nbtrcr, &
+      use icepack_parameters, only: max_aero, max_nbtrcr, &
                 max_algae, max_doc, max_don, max_dic, max_fe
 
       implicit none
@@ -607,8 +607,8 @@
       subroutine init_history_therm
 
       use icepack_drv_state, only: aice, vice, trcr
-      use icepack_intfc_tracers, only: tr_iage, nt_iage
-      use icepack_intfc_shared, only: formdrag
+      use icepack_tracers, only: tr_iage, nt_iage
+      use icepack_parameters, only: formdrag
       use icepack_drv_arrays_column, only: &
           hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe, &
           Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_pond, Cdn_atm_rdg, &
@@ -686,7 +686,7 @@
       subroutine init_history_dyn
 
       use icepack_drv_state, only: aice, vice, trcr
-      use icepack_intfc_tracers, only: tr_iage, nt_iage
+      use icepack_tracers, only: tr_iage, nt_iage
 
       dardg1dt(:) = c0
       dardg2dt(:) = c0

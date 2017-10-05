@@ -19,7 +19,7 @@
            cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn, &
            Lsub, Lvap, vonkar, Tffresh, zvir, gravit, &
            pih, dragio, rhoi, rhos, rhow
-      use icepack_intfc_shared, only: atmbndy, calc_strair, formdrag, &
+      use icepack_parameters, only: atmbndy, calc_strair, formdrag, &
            highfreq, natmiter
 
       implicit none
@@ -509,7 +509,7 @@
                                       dkeel,    lfloe,           &
                                       dfloe,    ncat)
 
-        use icepack_intfc_tracers, only: &
+        use icepack_tracers, only: &
              tr_pond, tr_pond_lvl, tr_pond_topo
 
       integer (kind=int_kind), intent(in) :: &

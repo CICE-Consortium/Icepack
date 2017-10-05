@@ -38,9 +38,9 @@
       use icepack_constants, only: c0, c1, c2, c10, c20, c25, Cf, Cp, Pstar, Cstar, &
           p05, p15, p25, p333, p5, &
           puny, Lfresh, rhoi, rhos, rhow, gravit
-      use icepack_intfc_shared, only: kstrength, krdg_partic, krdg_redist, mu_rdg, &
+      use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg, &
           heat_capacity
-      use icepack_intfc_tracers, only: tr_pond_topo, tr_aero, tr_brine, ntrcr, nbtrcr
+      use icepack_tracers, only: tr_pond_topo, tr_aero, tr_brine, ntrcr, nbtrcr
       use icepack_itd, only: column_sum, &
           column_conservation_check, &
           cleanup_itd
@@ -110,7 +110,7 @@
                             dvirdgndt,               &
                             araftn,      vraftn)
 
-      use icepack_intfc_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
+      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
 
       integer (kind=int_kind), intent(in) :: &
          ndtd       , & ! number of dynamics subcycles
@@ -1053,7 +1053,7 @@
                               l_stop,      stop_label,      &
                               aredistn,    vredistn)
 
-      use icepack_intfc_tracers, only: nt_qsno, nt_fbri, &
+      use icepack_tracers, only: nt_qsno, nt_fbri, &
                              nt_alvl, nt_vlvl, nt_aero, tr_aero, &
                              nt_apnd, nt_hpnd, tr_pond_topo, &
                              icepack_compute_tracers

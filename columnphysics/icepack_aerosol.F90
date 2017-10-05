@@ -39,8 +39,8 @@
                                 vicen, vsnon, aicen,  &
                                 faero_atm, faero_ocn)
 
-      use icepack_intfc_shared, only: hi_ssl, hs_ssl, max_aero
-      use icepack_intfc_tracers, only: nt_aero 
+      use icepack_parameters, only: hi_ssl, hs_ssl, max_aero
+      use icepack_tracers, only: nt_aero 
 
       integer (kind=int_kind), intent(in) :: &
          nilyr, nslyr, n_aero
@@ -457,7 +457,7 @@
                                 aicen,    flux_bio_atm,&
                                 zbgc_atm, flux_bio)
 
-      use icepack_intfc_shared, only: hi_ssl, hs_ssl
+      use icepack_parameters, only: hi_ssl, hs_ssl
       use icepack_constants, only: c0, rhos, rhoi, hs_min, puny, &
                          c2, c1
       use icepack_zbgc_shared, only: kscavz 
