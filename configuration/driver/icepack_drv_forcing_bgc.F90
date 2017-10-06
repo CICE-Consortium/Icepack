@@ -151,7 +151,7 @@
           if (mday < midmonth) recslot = 2 ! first half of month
           
           ! Find interpolation coefficients
-          call interp_coeff_monthly (recslot)
+          !cn call interp_coeff_monthly (recslot)
           readm = .false.
           if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
           
@@ -472,7 +472,7 @@
       if (mday < midmonth) recslot = 2        ! first half of month
 
       ! Find interpolation coefficients
-      call interp_coeff_monthly (recslot)
+      !cn call interp_coeff_monthly (recslot)
 
       ! Read 2 monthly values 
       readm = .false.
@@ -566,7 +566,7 @@
       if (mday < midmonth) recslot = 2        ! first half of month
 
       ! Find interpolation coefficients
-      call interp_coeff_monthly (recslot)
+      !cn call interp_coeff_monthly (recslot)
 
       ! Read 2 monthly values 
       readm = .false.

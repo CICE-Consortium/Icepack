@@ -9,7 +9,8 @@
       use icepack_kinds_mod
       use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_calendar, only: nyr, days_per_year, dayyr, month, &
-                              daymo, daycal, dt
+                              daymo, daycal, dt, &
+                              yday,time !cn
 !      use ice_calendar, only: istep, istep1, time, time_forc, year_init, &
 !                              sec, mday, nyr, yday
       use icepack_drv_constants, only: nu_diag, nu_forcing, secday
@@ -60,7 +61,9 @@
           swvdr_data, &
           swvdf_data, &
           swidr_data, &
-          swidf_data
+          swidf_data, &
+          day_data, &  !cn
+          time_data    !cn
 
       real (kind=dbl_kind), public  :: &
            c1intp, c2intp , & ! interpolation coefficients
@@ -176,18 +179,18 @@
 
 !=======================================================================
 
-      subroutine get_forcing(timestep)
+subroutine get_forcing(timestep)
 
 !ECH notes
-! We will probably need to send in the time and working out what the data
+! We will probably need to send in the time and work out what the data
 ! time slice is, instead of sending in the timestep.  This currently assumes
 ! the time step and the data both start Jan 1.
-! Interpolate if necessary - for now, this assumes the data and timesteps match.
 
-!      use icepack_constants, only: c0
-      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
+      use icepack_constants, only: c0, c1
+      use icepack_drv_flux, only: Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn
+
       use icepack_intfc_shared, only: restore_bgc
 
       integer (kind=int_kind), intent(in) :: &
@@ -196,44 +199,19 @@
       integer (kind=int_kind) :: &
          i                ! data index
 
-      if (trim(atm_data_type) == 'default') return
+      integer (kind=int_kind) :: &
+         mlast, mnext     ! indices of bracketing time slices
 
-      ! calculate data index corresponding to current timestep
-      i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
+!      real (kind=dbl_kind) :: &
+!         c1intp, c2intp   ! interpolation coefficients
 
-      ! fill all grid boxes with the same forcing data
-      flw  (:) =   flw_data(i)
-      fsw  (:) =   fsw_data(i)
-      Tair (:) =  Tair_data(i)
-      Qa   (:) =    Qa_data(i)
-      fsnow(:) = fsnow_data(i)
+      integer (kind=int_kind) :: &  !cn ispol stuff
+          recnum, dataloc, maxrec, recslot
+      real (kind=dbl_kind) :: &
+          sec6hr  
 
-      zlvl (:) = zlvl_data (i)    ! atmospheric level height (m)
-      Tair (:) = Tair_data (i)    ! air temperature  (K)
-      potT (:) = potT_data (i)    ! air potential temperature  (K)
-      rhoa (:) = rhoa_data (i)    ! air density (kg/m^3)
-      uatm (:) = uatm_data (i)    ! wind velocity components (m/s)
-      vatm (:) = vatm_data (i)    
-      wind (:) = wind_data (i)    ! wind speed (m/s)
-      strax(:) = strax_data(i)    ! wind stress components (N/m^2)
-      stray(:) = stray_data(i)   
-      fsw  (:) = fsw_data  (i)    ! incoming shortwave radiation (W/m^2)
-      swvdr(:) = swvdr_data(i)    ! sw down, visible, direct  (W/m^2)
-      swvdf(:) = swvdf_data(i)    ! sw down, visible, diffuse (W/m^2)
-      swidf(:) = swidr_data(i)    ! sw down, near IR, direct  (W/m^2)
-      swidf(:) = swidf_data(i)    ! sw down, near IR, diffuse (W/m^2)
-      Qa   (:) = Qa_data   (i)    ! specific humidity (kg/kg)
-      flw  (:) = flw_data  (i)    ! incoming longwave radiation (W/m^2)
-      frain(:) = frain_data(i)    ! rainfall rate (kg/m^2 s)
-      fsnow(:) = fsnow_data(i)    ! snowfall rate (kg/m^2 s)
-
-      if (trim(ocn_data_type) == 'default') return
-
-      sst  (:) = sst_data  (i)    ! sea surface temperature
-      sss  (:) = sss_data  (i)    ! sea surface salinity
-      uocn (:) = uocn_data (i)    ! wind velocity components (m/s)
-      vocn (:) = vocn_data (i) 
-
+      real (kind=dbl_kind), parameter :: &    
+         lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
 
 !cn we need trest here...
 !cn it is normally read from forcing_nml
@@ -245,6 +223,79 @@
          endif
       endif
 
+      ftime = time
+
+      if (trim(atm_data_type) == 'default') then
+         return
+      elseif (trim(atm_data_type) == 'GOFS') then
+         ! calculate data index corresponding to current timestep
+         i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
+         mlast = i
+         mnext = mlast
+         c1intp = c1
+         c2intp = c0
+      elseif (trim(atm_data_type) == 'clim') then
+         call interp_coeff_monthly(c1intp, c2intp, mlast, mnext)
+      elseif (trim(atm_data_type) == 'ISPOL' .or. &
+          trim(atm_data_type) == 'NICE') then
+
+        !we have a years worth of data, some in days, some in 6hr or quarter day
+        !it also looks like the data Nicole starts on June 17, not Jan 1 ?????
+
+        dataloc = 2                          ! data located at end of interval
+        maxrec = 366  
+        recslot = 2
+        recnum = int(yday)   
+        mlast = mod(recnum+maxrec-2,maxrec) + 1
+        mnext = mod(recnum-1,       maxrec) + 1
+        call interp_coeff (recnum, recslot, secday, dataloc)
+
+        !write(*,*)time/60./60./24.,c1intp*day_data(mlast)+ c2intp*day_data(mnext)
+        Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext) &
+          - lapse_rate*8.0_dbl_kind
+        Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+        uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+        vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+        fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+        
+        sec6hr = secday/4;                      ! seconds in 6 hours
+        maxrec = 1464  
+        recnum = int(yday*4)
+        mlast = mod(recnum+maxrec-2,maxrec) + 1
+        mnext = mod(recnum-1,       maxrec) + 1
+        call interp_coeff (recnum, recslot, sec6hr, dataloc)
+
+        !write(*,*)time/60./60./24.,c1intp*time_data(mlast)+ c2intp*time_data(mnext)
+        fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+        flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+
+
+      endif
+      !stop
+
+
+!cn as written now, c1intp,c2intp,mlast,mnext are undefined
+#if 0
+      ! fill all grid boxes with the same forcing data
+      flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+      Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+      potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+      rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+      uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+      vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+      strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+      stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+      fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+      swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+      swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+      swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+      swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+      Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+      frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+      fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+
 !for debugging, for now
 if (i==8760) then
 write (nu_diag,*) flw
@@ -253,7 +304,6 @@ write (nu_diag,*) Tair
 write (nu_diag,*) Qa
 write (nu_diag,*) fsnow
 write (nu_diag,*) frain
-write (nu_diag,*) zlvl
 write (nu_diag,*) potT
 write (nu_diag,*) rhoa
 write (nu_diag,*) uatm
@@ -265,10 +315,24 @@ write (nu_diag,*) swvdr
 write (nu_diag,*) swvdf
 write (nu_diag,*) swidr
 write (nu_diag,*) swidf
+endif
+
+      if (trim(ocn_data_type) == 'default') return
+
+        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
+        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
+       uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
+       vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
+
+!for debugging, for now
+if (i==8760) then
 write (nu_diag,*) sst
+write (nu_diag,*) sss
 write (nu_diag,*) uocn
 write (nu_diag,*) vocn
 endif
+
+#endif
 
       end subroutine get_forcing
 
@@ -327,7 +391,8 @@ endif
     subroutine atm_ISPOL           
 
       integer (kind=int_kind) :: &
-         nu_ispol     ! unit number
+         nu_ispol,&     ! unit number
+         i
 
       real (kind=dbl_kind), dimension(366) :: &
           tair, &
@@ -346,6 +411,8 @@ endif
       filename = &
           trim(data_dir)//'ISPOL_atm_forcing.ascii'
 
+      ntime = 1464 ! 6hr, 1464/4=366 days
+
       write (nu_diag,*) 'Reading ',filename
 
       open (nu_ispol, file=filename, form='formatted')
@@ -359,6 +426,20 @@ endif
       read(nu_ispol,*) fsnow
       read(nu_ispol,*) aday
       read(nu_ispol,*) atime
+
+      do i = 1, 366
+        Tair_data(i) = tair(i)
+        Qa_data(i) = qa(i)
+        uatm_data(i) = uatm(i)
+        vatm_data(i) = vatm(i)
+        fsnow_data(i) = fsnow(i)
+        day_data(i) = aday(i)
+      end do
+      do i = 1, 1464
+        fsw_data(i) = fsw(i)
+        flw_data(i) = flw(i)
+        time_data(i) = atime(i)
+      end do
 
       !write(*,*) tair
       !write(*,*) qa
@@ -375,6 +456,12 @@ endif
       !write (nu_diag,*) ' '
       !write (nu_diag,*) 'Atmospheric data file:'
       !write (nu_diag,*) trim(filename)
+      
+    end subroutine atm_ISPOL
+
+!=======================================================================
+
+    subroutine get_forcing_ISPOL
 
 #if 0
 !this is from nicoles subroutine ISPOL_data
@@ -623,13 +710,14 @@ endif
 #endif
 
       
-    end subroutine atm_ISPOL
+    end subroutine get_forcing_ISPOL
 !=======================================================================
 
     subroutine atm_NICE
 
       integer (kind=int_kind) :: &
-         nu_nice     ! unit number
+         nu_nice,&     ! unit number
+         i
 
       real (kind=dbl_kind), dimension(366) :: &
           tair, &
@@ -661,6 +749,19 @@ endif
       read(nu_nice,*) fsnow
       read(nu_nice,*) aday
       read(nu_nice,*) atime
+      do i = 1, 366
+        Tair_data(i) = tair(i)
+        Qa_data(i) = qa(i)
+        uatm_data(i) = uatm(i)
+        vatm_data(i) = vatm(i)
+        fsnow_data(i) = fsnow(i)
+        day_data(i) = aday(i)
+      end do
+      do i = 1, 1464
+        fsw_data(i) = fsw(i)
+        flw_data(i) = flw(i)
+        time_data(i) = atime(i)
+      end do
 
       !write(*,*) tair
       !write(*,*) qa
@@ -907,7 +1008,6 @@ endif
     end subroutine atm_NICE
     
 !=======================================================================
-
 
       subroutine prepare_forcing (Tair,     fsw,      &    
                                   cldf,     flw,      &
@@ -1233,52 +1333,40 @@ endif
       c1intp =  abs((t2 - tt) / (t2 - t1))
       c2intp =  c1 - c1intp
 
+      !write(*,*)c1intp,c2intp,t2,t1,tt,ftime,secyr
+
       end subroutine interp_coeff
 
 !=======================================================================
 
-      subroutine interp_coeff_monthly (recslot)
-! Compute coefficients for interpolating monthly data to current time step.
+      subroutine interp_coeff_monthly(m1, m2, molast, monext)
 
-      use icepack_drv_constants, only: c1, secday
+      ! coefficients for interpolating monthly data
 
-      integer (kind=int_kind), intent(in) :: &
-          recslot         ! slot (1 or 2) for current record
+      use icepack_constants, only: c1, p5
+      use icepack_drv_calendar, only: yday, dayyr
 
-      ! local variables
+      real (kind=dbl_kind), intent(out) :: &
+         m1, m2 ! interpolation coefficients
+
+      integer (kind=int_kind), intent(out) :: &
+         molast, monext ! indices of months with middles bracketing now
 
       real (kind=dbl_kind) :: &
-          tt           , & ! seconds elapsed in current year
-          t1, t2           ! seconds elapsed at month midpoint
+         moreal, & ! today as a real month number
+         mofrac    ! month fraction since mid month
 
-      real (kind=dbl_kind) :: &
-          daymid(0:13)     ! month mid-points
+      moreal = 12._dbl_kind*yday/dayyr + p5
+      if (moreal < c1) moreal = moreal + 12._dbl_kind ! new years to mid jan.
+      molast = floor(moreal)
+      monext = molast + 1
+      if (monext > 12) monext = 1
+      mofrac = moreal - molast
 
-      daymid(1:13) = 14._dbl_kind   ! time frame ends 0 sec into day 15
-      daymid(0)    = 14._dbl_kind - daymo(12)  ! Dec 15, 0 sec
-
-      ! make time cyclic
-      tt = mod(ftime/secday,dayyr)
-
-      ! Find neighboring times
-
-      if (recslot==2) then      ! first half of month
-        t2 = daycal(month) + daymid(month)   ! midpoint, current month
-        if (month == 1) then
-          t1 = daymid(0)                 ! Dec 15 (0 sec)
-        else
-          t1 = daycal(month-1) + daymid(month-1) ! midpoint, previous month
-        endif
-      else                      ! second half of month
-        t1 = daycal(month) + daymid(month)    ! midpoint, current month
-        t2 = daycal(month+1) + daymid(month+1)! day 15 of next month (0 sec)
-      endif
-
-      ! Compute coefficients
-      c1intp = (t2 - tt) / (t2 - t1)
-      c2intp =  c1 - c1intp
-
-      end subroutine interp_coeff_monthly
+      m1 = c1 - mofrac
+      m2 =      mofrac
+   
+    end subroutine interp_coeff_monthly
 
 !=======================================================================
 

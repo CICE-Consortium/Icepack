@@ -103,7 +103,7 @@
       namelist /setup_nml/ &
         days_per_year,  use_leap_years, year_init,       istep0,        &
         dt,             npt,            ndtd,                           &
-        ice_ic,         restart,        restart_dir, &!    restart_file,  &
+        ice_ic,         restart,        restart_dir,     restart_file,  &
         dumpfreq,    &
         diagfreq,       diag_file,                      &
         cpl_bgc
