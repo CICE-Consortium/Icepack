@@ -1070,8 +1070,8 @@
 !   Compute snow/bare ice/ponded ice shortwave albedos, absorbed and transmitted 
 !   flux using the Delta-Eddington solar radiation method as described in:
 !
-!   "A Delta-Eddington Multiple Scattering Parameterization for Solar Radiation
-!        in the Sea Ice Component of the Community Climate System Model"
+!   A Delta-Eddington Multiple Scattering Parameterization for Solar Radiation
+!        in the Sea Ice Component of the Community Climate System Model
 !            B.P.Briegleb and B.Light   NCAR/TN-472+STR  February 2007
 !
 !   Compute shortwave albedos and fluxes for three surface types: 
