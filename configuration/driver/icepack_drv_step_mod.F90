@@ -664,6 +664,7 @@
       use icepack_drv_arrays_column, only: Cdn_atm, Cdn_atm_ratio
       use icepack_constants, only: c0, c1000, albocn
       use icepack_intfc, only: icepack_ocn_mixed_layer, icepack_atm_boundary
+      use icepack_drv_init, only: tmask
       use icepack_drv_domain_size, only: nx
       use icepack_drv_flux, only: sst, Tf, Qa, uatm, vatm, wind, potT, rhoa, zlvl, &
            frzmlt, fhocn, fswthru, flw, flwout_ocn, fsens_ocn, flat_ocn, evap_ocn, &
@@ -699,12 +700,14 @@
       !-----------------------------------------------------------------
 
          do i = 1, nx
+            if (.not.tmask(i)) then
                sst       (i) = c0
                frzmlt    (i) = c0
                flwout_ocn(i) = c0
                fsens_ocn (i) = c0
                flat_ocn  (i) = c0
                evap_ocn  (i) = c0
+            endif
          enddo                  ! i
 
       !-----------------------------------------------------------------
@@ -712,7 +715,7 @@
       !-----------------------------------------------------------------
 
             do i = 1, nx
-
+               if (tmask(i)) &
                call icepack_atm_boundary( 'ocn',                &
                                         sst        (i), &    
                                         potT       (i), &
@@ -748,7 +751,7 @@
       ! Compute ocean fluxes and update SST
       !-----------------------------------------------------------------
       do i = 1, nx
-
+         if (tmask(i)) &
          call icepack_ocn_mixed_layer (alvdr_ocn(i), swvdr     (i), &
                                       alidr_ocn(i), swidr     (i), &
                                       alvdf_ocn(i), swvdf     (i), &

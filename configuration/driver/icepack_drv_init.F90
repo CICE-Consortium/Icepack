@@ -1001,9 +1001,7 @@
          qsn             ! snow enthalpy (J/m3)
 
       real (kind=dbl_kind), parameter :: &
-         hsno_init = 0.20_dbl_kind   , & ! initial snow thickness (m)
-         edge_init_nh =  70._dbl_kind, & ! initial ice edge, N.Hem. (deg) 
-         edge_init_sh = -60._dbl_kind    ! initial ice edge, S.Hem. (deg)
+         hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
 
       ! Initialize state variables.
       ! If restarting, these values are overwritten.
