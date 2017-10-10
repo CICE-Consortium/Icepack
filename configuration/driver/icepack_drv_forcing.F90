@@ -248,7 +248,7 @@ subroutine get_forcing(timestep)
         recnum = int(yday)   
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (c1intp, c2intp, recnum, recslot, secday, dataloc)
+        call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
 
         !write(*,*)time/60./60./24.,c1intp*day_data(mlast)+ c2intp*day_data(mnext)
         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext) &
@@ -263,7 +263,7 @@ subroutine get_forcing(timestep)
         recnum = int(yday*4)
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (c1intp, c2intp, recnum, recslot, sec6hr, dataloc)
+        call interp_coeff (recnum, recslot, sec6hr, dataloc, c1intp, c2intp)
 
         !write(*,*)time/60./60./24.,c1intp*time_data(mlast)+ c2intp*time_data(mnext)
         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
@@ -1280,7 +1280,7 @@ endif
       end subroutine interpolate_data
 
 !=======================================================================
-      subroutine interp_coeff (m1, m2, recnum, recslot, secint, dataloc)
+      subroutine interp_coeff ( recnum, recslot, secint, dataloc, c1intp, c2intp)
 
 ! Compute coefficients for interpolating data to current time step.
 ! Works for any data interval that divides evenly into a
@@ -1299,7 +1299,7 @@ endif
           secint                    ! seconds in data interval
       
       real (kind=dbl_kind), intent(out) :: &
-          m1, m2                   
+          c1intp, c2intp             
 
 
       ! local variables
@@ -1334,8 +1334,8 @@ endif
       endif
 
       ! Compute coefficients
-      m1 =  abs((t2 - tt) / (t2 - t1))
-      m2 =  c1 - m1
+      c1intp =  abs((t2 - tt) / (t2 - t1))
+      c2intp =  c1 - c1intp
 
       !write(*,*)c1intp,c2intp,t2,t1,tt,ftime,secyr
 

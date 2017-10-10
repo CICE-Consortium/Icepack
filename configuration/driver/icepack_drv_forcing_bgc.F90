@@ -290,7 +290,7 @@
         
         recslot = 2
         ixp = -99
-        call interp_coeff (c1intp, c2intp, recnum, recslot, sec1hr, dataloc)
+        call interp_coeff (recnum, recslot, sec1hr, dataloc, c1intp, c2intp)
         read1 = .false.
         if (istep==1 .or. bgcrecnum .ne. recnum) read1 = .true.
                  
