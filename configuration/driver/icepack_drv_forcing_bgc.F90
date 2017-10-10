@@ -46,7 +46,7 @@
       !cn use ice_domain, only: nblocks
       use icepack_drv_flux, only: sss, sil, nit
       use icepack_drv_forcing, only: read_clim_data, interpolate_data, &
-          interp_coeff, interp_coeff_monthly, trestore, trest, c1intp, c2intp
+          interp_coeff, interp_coeff_monthly, trestore, trest
 
       !use ice_forcing, only:  fyear, read_clim_data_nc, read_data_nc_point
 
@@ -85,7 +85,8 @@
          nit_data_p           ! field values at 2 temporal data points
 
       real (kind=dbl_kind) :: &
-          sec1hr              ! number of seconds in 1 hour
+          sec1hr,&              ! number of seconds in 1 hour
+          c1intp, c2intp
 
       logical (kind=log_kind) :: readm, read1
 
@@ -289,7 +290,7 @@
         
         recslot = 2
         ixp = -99
-        call interp_coeff (recnum, recslot, sec1hr, dataloc)
+        call interp_coeff (c1intp, c2intp, recnum, recslot, sec1hr, dataloc)
         read1 = .false.
         if (istep==1 .or. bgcrecnum .ne. recnum) read1 = .true.
                  
