@@ -64,7 +64,8 @@
           precip_units,    fyear_init,      ycycle,          &
           atm_data_type,   ocn_data_type,   bgc_data_type,   &
           atm_data_format, ocn_data_format, bgc_data_format, &
-          data_dir,        dbug
+          data_dir,        dbug,            trestore, &
+          sss_data_type,   sst_data_type,   restore_sst
 
       use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond, &
                              tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
@@ -140,7 +141,8 @@
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         atm_data_format, ocn_data_format, bgc_data_format, &
-        data_dir
+        data_dir,        trestore,        sss_data_type,   &
+        sst_data_type,   restore_sst
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -228,10 +230,14 @@
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default'
+      sss_data_type   = 'default'
+      sst_data_type   = 'default'
       bgc_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       bgc_data_type   = 'default'
       data_dir    = ' '
 !      dbug      = .false.         ! true writes diagnostics for input forcing
+      restore_sst     = .false.   ! restore sst if true
+      trestore        = 90        ! restoring timescale, days (0 instantaneous)
 
       ! extra tracers
       tr_iage      = .false. ! ice age
@@ -573,6 +579,15 @@
                                trim(tfrz_option)
 
          write (nu_diag,*) ' '
+
+         write(nu_diag,*)    ' sss_data_type             = ', &
+                               trim(sss_data_type)
+         write(nu_diag,*)    ' sst_data_type             = ', &
+                               trim(sst_data_type)
+         write(nu_diag,1010) ' restore_sst               = ', &
+             restore_sst
+         !if (restore_ice .or. restore_sst) &
+         write(nu_diag,1010) ' trestore                  = ', trestore
 
          ! tracers
          write(nu_diag,1010) ' tr_iage                   = ', tr_iage

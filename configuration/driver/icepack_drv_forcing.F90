@@ -76,6 +76,9 @@
          atm_data_type,   & ! 'default', 'monthly', 'ncar', 
                             ! 'LYq' or 'hadgem' or 'oned'
          ocn_data_type,   & ! 'default', 'clim', 'ncar', 'oned'
+         sss_data_type, & ! 'default', 'clim', 'ncar', 'oned'
+         sst_data_type, & ! 'default', 'clim', 'ncar', 'oned',
+                          ! 'hadgem_sst' or 'hadgem_sst_uvocn'
          bgc_data_type,   & ! 'default', 'clim', 'ncar', 'oned',
                             ! 'hadgem_sst' or 'hadgem_sst_uvocn'
          precip_units       ! 'mm_per_month', 'mm_per_sec', 'mks'
@@ -1280,7 +1283,8 @@ endif
       end subroutine interpolate_data
 
 !=======================================================================
-      subroutine interp_coeff ( recnum, recslot, secint, dataloc, c1intp, c2intp)
+
+      subroutine interp_coeff (recnum, recslot, secint, dataloc, c1intp, c2intp)
 
 ! Compute coefficients for interpolating data to current time step.
 ! Works for any data interval that divides evenly into a
