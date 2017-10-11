@@ -10,7 +10,7 @@
       use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_calendar, only: nyr, days_per_year, dayyr, month, &
                               daymo, daycal, dt, &
-                              yday,time !cn
+                              yday,time, mday !cn   
 !      use ice_calendar, only: istep, istep1, time, time_forc, year_init, &
 !                              sec, mday, nyr, yday
       use icepack_drv_constants, only: nu_diag, nu_forcing, secday
@@ -51,6 +51,7 @@
            rhoa_data, &
            potT_data, &
             flw_data, &
+            qdp_data, &
             sst_data, &
             sss_data, & 
            uocn_data, &
@@ -62,8 +63,8 @@
           swvdf_data, &
           swidr_data, &
           swidf_data, &
-          day_data, &  !cn
-          time_data    !cn
+          day_data, &  !cn probably do not need this
+          time_data    !cn probably do not need this
 
       real (kind=dbl_kind), public  :: &
            !c1intp, c2intp , & ! interpolation coefficients
@@ -166,6 +167,19 @@
       if (trim(atm_data_type) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type) == 'NICE') call atm_NICE
 
+      !cn if (restore_sst .or. restore_bgc) then
+      if (restore_sst) then
+         if (trestore == 0) then
+            trest = dt        ! use data instantaneously
+         else
+            trest = real(trestore,kind=dbl_kind) * secday ! seconds
+         endif
+      endif
+
+      if (trim(sst_data_type) == 'ISPOL' .or. &
+          trim(sss_data_type) == 'ISPOL') then
+        call ocn_ISPOL
+      endif
 
       call prepare_forcing (Tair_data,     fsw_data,      &    
                             cldf_data,     flw_data,      &
@@ -209,22 +223,13 @@ subroutine get_forcing(timestep)
          c1intp, c2intp   ! interpolation coefficients
 
       integer (kind=int_kind) :: &  !cn ispol stuff
-          recnum, dataloc, maxrec, recslot
+          recnum, dataloc, maxrec, recslot, & ! spline slot for current record
+          midmonth ! middle day of month
       real (kind=dbl_kind) :: &
           sec6hr  
 
       real (kind=dbl_kind), parameter :: &    
          lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
-
-!cn we need trest here...
-!cn it is normally read from forcing_nml
-      if (restore_sst .or. restore_bgc) then
-         if (trestore == 0) then
-            trest = dt        ! use data instantaneously
-         else
-            trest = real(trestore,kind=dbl_kind) * secday ! seconds
-         endif
-      endif
 
       ftime = time
 
@@ -238,12 +243,26 @@ subroutine get_forcing(timestep)
          c1intp = c1
          c2intp = c0
       elseif (trim(atm_data_type) == 'clim') then
-         call interp_coeff_monthly(c1intp, c2intp, mlast, mnext)
+
+        midmonth = 15  ! assume data is given on 15th of every month
+        recslot = 1                             ! latter half of month
+        if (mday < midmonth) recslot = 2        ! first half of month
+        if (recslot == 1) then
+          mlast = month
+          mnext = mod(month   ,12) + 1
+        else ! recslot = 2
+          mlast = mod(month+10,12) + 1
+          mnext = month
+        endif
+        call interp_coeff_monthly(recslot, c1intp, c2intp)
+        
       elseif (trim(atm_data_type) == 'ISPOL' .or. &
           trim(atm_data_type) == 'NICE') then
 
         !we have a years worth of data, some in days, some in 6hr or quarter day
         !it also looks like the data Nicole starts on June 17, not Jan 1 ?????
+        !also need to repeat as above
+
 
         dataloc = 2                          ! data located at end of interval
         maxrec = 366  
@@ -273,6 +292,29 @@ subroutine get_forcing(timestep)
         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
 
 
+      endif
+
+      !if (trim(sst_data_type) == 'ncar' .or.  &
+       !       trim(sss_data_type) == 'ncar'.or.  &
+      if(trim(sst_data_type) == 'ISPOL' .or. & 
+              trim(sss_data_type) == 'ISPOL') then
+
+        midmonth = 15  ! assume data is given on 15th of every month
+        recslot = 1                             ! latter half of month
+        if (mday < midmonth) recslot = 2        ! first half of month
+        if (recslot == 1) then
+          mlast = month
+            mnext = mod(month   ,12) + 1
+          else ! recslot = 2
+            mlast = mod(month+10,12) + 1
+            mnext = month
+          endif
+          call interp_coeff_monthly(recslot, c1intp, c2intp)
+          sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
+          sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
+          uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
+          vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
+          
       endif
       !stop
 
@@ -778,6 +820,9 @@ endif
       
       close(nu_nice)
 
+!cn there is probably more to do here, see below...
+
+
 #if 0
       integer (kind=int_kind), intent(in) :: &
            yr                   ! current forcing year
@@ -1009,6 +1054,69 @@ endif
 #endif           
 
     end subroutine atm_NICE
+
+!=======================================================================
+
+    subroutine ocn_ISPOL
+!cn cice fills ocn_frc_m here, I am not sure what that does...
+
+
+      integer (kind=int_kind) :: &
+         nu_ispol,&     ! unit number
+         i
+
+      real (kind=dbl_kind), dimension(12) :: &
+          t, &  !probably temperature, Tf?
+          s, &  !probably sss_data
+          hblt, &  !probably hmix
+          u, &  !probably uocn_data seems to be zeroed out anyway??
+          v, &  !probably vocn_data seems to be zeroed out anyway??
+          dhdx, &  !probably ss_tltx
+          dhdy, &  !probably ss_tlty 
+          qdp  !probably heat flux
+
+      character (char_len_long) filename
+      
+      filename = &
+          trim(data_dir)//'pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.ascii'
+
+      write (nu_diag,*) 'Reading ',filename
+
+      ntime = 12 ! monthly
+
+      open (nu_ispol, file=filename, form='formatted')
+
+      read(nu_ispol,*) t
+      read(nu_ispol,*) s
+      read(nu_ispol,*) hblt
+      read(nu_ispol,*) u
+      read(nu_ispol,*) v
+      read(nu_ispol,*) dhdx
+      read(nu_ispol,*) dhdy
+      read(nu_ispol,*) qdp
+      do i = 1,ntime
+        !t(i)
+        sss_data(i) = s(i)
+        !hblt(i)
+        uocn_data(i) = u(i)
+        vocn_data(i) = v(i)
+        !dhdx(i)
+        !dhdy(1)
+        qdp_data(i) = qdp(i)
+      end do
+
+      !write(*,*) t
+      !write(*,*) s
+      !write(*,*) hblt
+      !write(*,*) u
+      !write(*,*) v
+      !write(*,*) dhdx
+      !write(*,*) dhdy
+      !write(*,*) qdp
+      
+      !stop
+
+    end subroutine ocn_ISPOL
     
 !=======================================================================
 
@@ -1347,33 +1455,51 @@ endif
 
 !=======================================================================
 
-      subroutine interp_coeff_monthly(m1, m2, molast, monext)
+      subroutine interp_coeff_monthly (recslot, c1intp, c2intp)
 
-      ! coefficients for interpolating monthly data
+! Compute coefficients for interpolating monthly data to current time step.
 
-      use icepack_constants, only: c1, p5
-      use icepack_drv_calendar, only: yday, dayyr
+      use icepack_constants, only: c1, secday
 
-      real (kind=dbl_kind), intent(out) :: &
-         m1, m2 ! interpolation coefficients
+      integer (kind=int_kind), intent(in) :: &
+          recslot         ! slot (1 or 2) for current record
 
-      integer (kind=int_kind), intent(out) :: &
-         molast, monext ! indices of months with middles bracketing now
+      real (kind=dbl_kind), intent(inout) :: &
+         c1intp, c2intp   ! interpolation coefficients
+
+      ! local variables
 
       real (kind=dbl_kind) :: &
-         moreal, & ! today as a real month number
-         mofrac    ! month fraction since mid month
+          tt           , & ! seconds elapsed in current year
+          t1, t2           ! seconds elapsed at month midpoint
 
-      moreal = 12._dbl_kind*yday/dayyr + p5
-      if (moreal < c1) moreal = moreal + 12._dbl_kind ! new years to mid jan.
-      molast = floor(moreal)
-      monext = molast + 1
-      if (monext > 12) monext = 1
-      mofrac = moreal - molast
+      real (kind=dbl_kind) :: &
+          daymid(0:13)     ! month mid-points
 
-      m1 = c1 - mofrac
-      m2 =      mofrac
-   
+      daymid(1:13) = 14._dbl_kind   ! time frame ends 0 sec into day 15
+      daymid(0)    = 14._dbl_kind - daymo(12)  ! Dec 15, 0 sec
+
+      ! make time cyclic
+      tt = mod(time/secday,dayyr)
+
+      ! Find neighboring times
+
+      if (recslot==2) then      ! first half of month
+        t2 = daycal(month) + daymid(month)   ! midpoint, current month
+        if (month == 1) then
+          t1 = daymid(0)                 ! Dec 15 (0 sec)
+        else
+          t1 = daycal(month-1) + daymid(month-1) ! midpoint, previous month
+        endif
+      else                      ! second half of month
+        t1 = daycal(month) + daymid(month)    ! midpoint, current month
+        t2 = daycal(month+1) + daymid(month+1)! day 15 of next month (0 sec)
+      endif
+
+      ! Compute coefficients
+      c1intp = (t2 - tt) / (t2 - t1)
+      c2intp =  c1 - c1intp
+
     end subroutine interp_coeff_monthly
 
 !=======================================================================

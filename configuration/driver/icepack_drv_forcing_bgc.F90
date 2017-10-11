@@ -19,9 +19,12 @@
 
       implicit none
       private
-      public :: get_forcing_bgc, faero_default, init_bgc_data !cn, get_atm_bgc, fzaero_data, &
+      public :: get_forcing_bgc, faero_default, init_bgc_data, init_forcing_bgc !cn, get_atm_bgc, fzaero_data, &
                 !cn , faero_data, faero_optics
       save
+
+      real (kind=dbl_kind), dimension(365) :: & ! hardwired for now
+          sil_data, nit_data
 
       integer (kind=int_kind) :: &
          bgcrecnum = 0   ! old record number (save between steps)
@@ -30,6 +33,48 @@
 
       contains
 
+!=======================================================================
+
+      subroutine init_forcing_bgc
+
+        use icepack_intfc_shared, only: nit_data_type, sil_data_type
+        use icepack_drv_forcing, only: data_dir
+      use icepack_drv_flux, only: sil, nit
+
+        integer (kind=int_kind) :: &
+            nu_bgc, &
+            ntime, &
+            i
+
+        
+        character (char_len_long) filename
+        
+        if (trim(nit_data_type) == 'ISPOL' .or. &
+            trim(sil_data_type) == 'ISPOL' .or. &
+            trim(nit_data_type) == 'NICE' .or. &
+            trim(sil_data_type) == 'NICE') then 
+          
+          filename = trim(data_dir)//'nutrients_daily_ISPOL_WOA_field3.ascii'
+          write (nu_diag,*) 'Reading ',filename
+
+          ntime = 365 !daily
+
+          open (nu_bgc, file=filename, form='formatted')
+          read(nu_bgc,*) sil_data
+          read(nu_bgc,*) nit_data
+
+          do i = 1, ntime
+            sil(i) = sil_data(i)
+            nit(i) = nit_data(i)
+          end do
+
+          !write(*,*)sil_data
+          !write(*,*)nit_data
+          
+        end if
+      !stop  
+      end subroutine init_forcing_bgc
+        
 !=======================================================================
 !
 ! Read and interpolate annual climatologies of silicate and nitrate.
@@ -76,9 +121,9 @@
           sildat          ! data value toward which silicate is restored
 
       !cn real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), save :: &
-      real (kind=dbl_kind), dimension(nx,2), save :: &
-         nit_data, & ! field values at 2 temporal data points
-         sil_data
+      !cn real (kind=dbl_kind), dimension(nx,2), save :: &
+      !cn    nit_data, & ! field values at 2 temporal data points
+      !cn    sil_data
           
       real (kind=dbl_kind), dimension(2), save :: &
          sil_data_p      , &  ! field values at 2 temporal data points
@@ -94,16 +139,16 @@
          nit_file   , & ! nitrate input file
          sil_file       ! silicate input file
 
-      write(*,*) nit_data_type
+      !cn write(*,*) nit_data_type
 
 
       if (.not. trim(nit_data_type)=='ISPOL' .AND. &
           .not. trim(sil_data_type)=='ISPOL' .AND. &
           .not. trim(nit_data_type)=='INICE' .AND. &
           .not. trim(sil_data_type)=='NICE') then
+#if 0         
         if (trim(nit_data_type) == 'clim'.or. &
             trim(sil_data_type) == 'clim') then
-          
           nit_file = trim(bgc_data_dir)//'nitrate_climatologyWOA_gx1v6f.nc'
           !'nitrate_WOA2005_surface_monthly'  ! gx1 only
           sil_file = trim(bgc_data_dir)//'silicate_climatologyWOA_gx1v6f.nc'
@@ -157,12 +202,12 @@
           if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
           
         endif   ! 'clim prep' sil/nit_data_type
-        
+#endif        
     !-------------------------------------------------------------------
     ! Read two monthly silicate values and interpolate.
     ! Restore toward interpolated value.
     !-------------------------------------------------------------------
-    
+#if 0    
         if (trim(sil_data_type)=='clim'  .AND. tr_bgc_Sil) then
           ! call read_clim_data (readm, 0, ixm, month, ixp, &
           !                      sil_file,  sil_data, &
@@ -197,11 +242,12 @@
           enddo
           
         endif  !tr_bgc_Sil
+#endif
         !-------------------------------------------------------------------
         ! Read two monthly nitrate values and interpolate.
         ! Restore toward interpolated value.
         !-------------------------------------------------------------------
-
+#if 0
         if (trim(nit_data_type)=='clim' .AND. tr_bgc_Nit) then 
           ! call read_clim_data (readm, 0, ixm, month, ixp, &
           !                      nit_file, nit_data, &
@@ -248,14 +294,15 @@
             ocean_bio_all(i,ks) = nit(i)                       !PON      
           enddo
         endif   !tr_bgc_Nit
+#endif
         !-------------------------------------------------------------------
         ! Data from Papdimitrious et al., 2007, Limnol. Oceanogr. 
         ! and WOA at 68oS, 304.5oE : 
         ! daily data located at the end of the 24-hour period. 
         !-------------------------------------------------------------------
-        
+       
       elseif (trim(nit_data_type) == 'ISPOL' .or. trim(sil_data_type) == 'ISPOL') then 
-        
+#if 0        
         nit_file = trim(bgc_data_dir)//'nutrients_daily_ISPOL_WOA_field3.nc'
         sil_file = trim(bgc_data_dir)//'nutrients_daily_ISPOL_WOA_field3.nc' 
         
@@ -276,7 +323,7 @@
 
           endif
         endif                     ! my_task, istep
-        
+#endif        
         dataloc = 2                          ! data located at end of interval
         sec1hr = secday                      ! seconds in day
         maxrec = 365                         ! 
@@ -295,30 +342,34 @@
         if (istep==1 .or. bgcrecnum .ne. recnum) read1 = .true.
                  
         if (tr_bgc_Sil) then
+#if 0 
           met_file = sil_file
           fieldname= 'silicate' 
-
-#if 0            
+           
           call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
               maxrec, met_file, fieldname, sil_data_p, &
               field_loc_center, field_type_scalar)
-#endif          
           sil(:) =  c1intp * sil_data_p(1) &
               + c2intp * sil_data_p(2)
+#endif    
+          sil(:) =  c1intp * sil_data(ixm) &
+              + c2intp * sil_data(ixx)
         endif
 
         if (tr_bgc_Nit) then
+#if 0 
           met_file = nit_file
           fieldname= 'nitrate' 
- 
-#if 0              
+              
           call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
               maxrec, met_file, fieldname, nit_data_p, &
               field_loc_center, field_type_scalar)
-#endif          
-          
           nit(:) =  c1intp * nit_data_p(1) &
               + c2intp * nit_data_p(2)
+#endif          
+          
+          nit(:) =  c1intp * nit_data(ixm) &
+              + c2intp * nit_data(ixx)
         endif
 
         do i = 1, nx
@@ -329,10 +380,10 @@
           ks =  2*max_algae + max_doc + 7 + max_dic
           ocean_bio_all(i,ks) = nit(i)                       !PON    
         enddo
-        
+#if 0        
         ! Save record number for next time step
         bgcrecnum = recnum
-
+#endif
       endif !ISPOL
       end subroutine get_forcing_bgc
 #if 0
@@ -597,7 +648,6 @@
 !
 ! authors: Nicole Jeffery, LANL
       subroutine init_bgc_data (fed1,fep1)
-
       !cn use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
       use icepack_drv_constants, only: c0, p1 !, nu_forcing
       use icepack_intfc_shared, only: fe_data_type, bgc_data_dir, max_fe
@@ -625,6 +675,7 @@
 
       nbits = 64              ! double precision data
 
+#if 0
     !-------------------------------------------------------------------
     ! Annual average data from Tagliabue, 2012 (top 50 m average
     ! poisson grid filled on gx1v6
@@ -670,7 +721,7 @@
         close(fid)  
 
       endif
-
+#endif
       end subroutine init_bgc_data
 #if 0
 !=======================================================================
