@@ -57,11 +57,8 @@ the horizontal grid and other infrastructural CICE elements (e.g. MPI tasks, cal
 - Additional tests for the column physics are now available.
 - This release includes the full vertical biogeochemistry code.
 
-Acknowledgments and Copyright
-=============================
-
 Acknowledgements
-----------------
+=============================
 
 This work has been completed through the CICE Consortium and its members with funding 
 through the 
@@ -89,7 +86,8 @@ Special thanks are due to the following people:
 -  and many others who contributed to previous versions of CICE.
 
 Copyright
------------
+=============================
+
 © Copyright 2017, Los Alamos National Security LLC. All rights reserved. 
 This software was produced under U.S. Government contract 
 DE-AC52-06NA25396 for Los Alamos National Laboratory (LANL), which is
