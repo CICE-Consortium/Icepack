@@ -316,7 +316,7 @@
 
       diag_len = len(trim(diag_file))
       do n = 1,nx
-        diag_file_names=''
+        diag_file_names=' '
         write(diag_file_names,'(a,a,a)') trim(diag_file),'.',trim(nx_names(n))
         write(ice_stdout,*)'    ',trim(diag_file_names)
         open(nu_diag_out+n-1, file=diag_file_names, status='unknown')
@@ -444,7 +444,7 @@
       endif
 
       if (tr_pond_cesm) then
-            write (nu_diag,*) 'ERROR: formdrag=T but frzpnd=''cesm''' 
+            write (nu_diag,*) 'ERROR: formdrag=T but frzpnd=cesm' 
          stop
       endif
 
@@ -1001,9 +1001,7 @@
          qsn             ! snow enthalpy (J/m3)
 
       real (kind=dbl_kind), parameter :: &
-         hsno_init = 0.20_dbl_kind   , & ! initial snow thickness (m)
-         edge_init_nh =  70._dbl_kind, & ! initial ice edge, N.Hem. (deg) 
-         edge_init_sh = -60._dbl_kind    ! initial ice edge, S.Hem. (deg)
+         hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
 
       ! Initialize state variables.
       ! If restarting, these values are overwritten.

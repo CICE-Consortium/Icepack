@@ -21,6 +21,12 @@ set logfile = $1
 foreach field ($fieldlist:q)
   set fieldname = `echo "$field" | sed -e 's/([^()]*)//g'`
   # Create the new data file that houses the timeseries data
+  # assumes daily output
+#  awk -v field="$fieldname" \
+#      '$0 ~ field {count++; print int(count/365)+1"-"count % 365 ","$(NF-1)","$NF}' \
+#      $logfile > data.txt
+
+  # assumes hourly output
   awk -v field="$fieldname" \
       '$0 ~ field {count++; print int(count/24)+1"-"count % 24 ","$(NF-1)","$NF}' \
       $logfile > data.txt
@@ -44,6 +50,7 @@ set terminal png size 1920,960
 set xdata time
 set timefmt "%j-%H"
 set format x "%Y/%m/%d"
+#set format x "%Y/%d"
 
 # Axis tick marks
 set xtics rotate
@@ -54,10 +61,10 @@ set xlabel "Simulation Day"
 
 set key left top
 
-plot "data.txt" using (timecolumn(1)-63072000):2 with lines lw 2 lt 3 title "Arctic", \
-     "" using (timecolumn(1)-63072000):3 with lines lw 2 lt 1 title "Antarctic"
+plot "data.txt" using (timecolumn(1)-63072000):3 with lines lw 2 lt 1 title " "
+
 EOF
 
 # Delete the data file
-rm data.txt
+/bin/rm data.txt
 end

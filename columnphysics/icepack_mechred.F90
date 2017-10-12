@@ -1604,7 +1604,7 @@
          dh2rdg     ! change in mean value of h^2 per unit area
                     ! consumed by ridging 
 
-      if (kstrength == 1) then  ! Rothrock '75 formulation
+      if (kstrength == 1) then  ! Rothrock 1975 formulation
 
       !-----------------------------------------------------------------
       ! Compute thickness distribution of ridging and ridged ice.
