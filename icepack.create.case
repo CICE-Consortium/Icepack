@@ -219,6 +219,12 @@ if ( $testsuite != $spval ) then
   mkdir ./${tsdir}
   cp -f ${ICE_SCRIPTS}/tests/timeseries.csh ./${tsdir}
 
+  if ("$testid" =~ reg*) then
+    cp -f ${ICE_SCRIPTS}/tests/CTest/CTestConfig.cmake ./${tsdir}
+    cp -f ${ICE_SCRIPTS}/tests/CTest/CTestTestfile.cmake ./${tsdir}
+    cp -f ${ICE_SCRIPTS}/tests/CTest/steer.cmake ./${tsdir}
+  endif
+
 cat >! ./${tsdir}/suite.run << EOF0
 #!/bin/csh -f
 EOF0
@@ -508,6 +514,12 @@ cd $testname_base
 cd ..
 EOF
     
+
+    # If results are to be posted to CDash, build CtestTestfile.cmake
+    if ("$testid" =~ reg*) then
+      ${ICE_SCRIPTS}/tests/CTest/gen_ctestfile.csh ./${tsdir} $testname_noid $bfbcomp $spval
+    endif
+
     # Reset case for the next test in suite
     set case = $spval
 
