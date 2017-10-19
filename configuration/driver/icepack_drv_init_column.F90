@@ -320,7 +320,7 @@
       use icepack_drv_constants, only: nu_diag
       use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, hum
-      use icepack_drv_forcing_bgc, only: init_bgc_data, get_forcing_bgc
+!      use icepack_drv_forcing_bgc, only: init_bgc_data, get_forcing_bgc
 !      use icepack_drv_restart_column, only: restart_zsal, &
 !          read_restart_bgc, restart_bgc
       use icepack_drv_state, only: trcrn, aicen, vicen, vsnon
@@ -413,8 +413,8 @@
                     zaeros(i,:), max_dic, max_don, max_fe, max_aero)
             enddo  ! i
 
-            call init_bgc_data(fed(:,:),fep(:,:)) ! input dFe from file
-            call get_forcing_bgc                          ! defines nit and sil
+            !call init_bgc_data(fed(:,:),fep(:,:)) ! input dFe from file
+            !call get_forcing_bgc                          ! defines nit and sil
 
 !      endif     ! .not. restart
 
@@ -596,7 +596,7 @@
       ! 0.5: retention time scale is tau_min, release time scale is tau_min
       !  2 : retention time scale is tau_max, release time scale is tau_max
       ! tau_min and tau_max are defined in icepack_intfc_shared.f90
-      !------------------------------------------------------------      
+      !------------------------------------------------------------
 
       !-----------------------------------------------------------------
       ! namelist variables
@@ -839,8 +839,8 @@
       end do
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
-        print*,'error reading zbgc namelist'
-        stop
+         print*,'error reading zbgc namelist'
+         stop
       endif
 
       !-----------------------------------------------------------------

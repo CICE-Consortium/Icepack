@@ -162,7 +162,7 @@
          dTsf        , & ! Tsf - Tsf_start
          dTi1        , & ! Ti1(1) - Tin_start(1)
          dfsurf_dT   , & ! derivative of fsurf wrt Tsf
-         avg_Tsi     , & ! = 1. if new snow/ice temps avg'd w/starting temps
+         avg_Tsi     , & ! = 1. if new snow/ice temps averaged w/starting temps
          enew            ! new energy of melting after temp change (J m-2)
 
       real (kind=dbl_kind) :: &

@@ -193,7 +193,7 @@
 ! the time step and the data both start Jan 1.
 
       use icepack_constants, only: c0, c1
-      use icepack_drv_flux, only: Tair, potT, rhoa, uatm, vatm, wind, &
+      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp
 
@@ -331,39 +331,34 @@
        uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
        vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
 
-!      if (.not. oceanmixed_ice) &
-!        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
-!        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
-!       uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
-!       vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
+      sst  (:) = sst_data  (i)    ! sea surface temperature
+      sss  (:) = sss_data  (i)    ! sea surface salinity
+      uocn (:) = uocn_data (i)    ! wind velocity components (m/s)
+      vocn (:) = vocn_data (i) 
 
-! for debugging
-!if (timestep==8760.or.timestep==8761) then
-if (0==1) then ! off
-write (nu_diag,*) 'timestep',timestep, mlast, mnext
-write (nu_diag,*) 'index',mlast,mnext
-write (nu_diag,*) 'flw',flw
-write (nu_diag,*) 'fsw',fsw
-write (nu_diag,*) 'Tair',Tair
-write (nu_diag,*) 'Qa',Qa
-write (nu_diag,*) 'fsnow',fsnow
-write (nu_diag,*) 'frain',frain
-write (nu_diag,*) 'potT',potT
-write (nu_diag,*) 'rhoa',rhoa
-write (nu_diag,*) 'uatm',uatm
-write (nu_diag,*) 'vatm',vatm
-write (nu_diag,*) 'wind',wind
-write (nu_diag,*) 'strax',strax
-write (nu_diag,*) 'stray',stray
-write (nu_diag,*) 'swvdr',swvdr
-write (nu_diag,*) 'swvdf',swvdf
-write (nu_diag,*) 'swidr',swidr
-write (nu_diag,*) 'swidf',swidf
-write (nu_diag,*) 'sst',sst
-write (nu_diag,*) 'sss',sss
-write (nu_diag,*) 'uocn',uocn
-write (nu_diag,*) 'vocn',vocn
-write (nu_diag,*) 'qdp',qdp
+!for debugging, for now
+if (i==8760) then
+write (nu_diag,*) flw
+write (nu_diag,*) fsw
+write (nu_diag,*) Tair
+write (nu_diag,*) Qa
+write (nu_diag,*) fsnow
+write (nu_diag,*) frain
+write (nu_diag,*) zlvl
+write (nu_diag,*) potT
+write (nu_diag,*) rhoa
+write (nu_diag,*) uatm
+write (nu_diag,*) vatm
+write (nu_diag,*) wind
+write (nu_diag,*) strax
+write (nu_diag,*) stray
+write (nu_diag,*) swvdr
+write (nu_diag,*) swvdf
+write (nu_diag,*) swidr
+write (nu_diag,*) swidf
+write (nu_diag,*) sst
+write (nu_diag,*) uocn
+write (nu_diag,*) vocn
 endif
 
       end subroutine get_forcing
