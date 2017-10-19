@@ -9,7 +9,7 @@
 
       module icepack_orbital
 
-      use icepack_kinds_mod
+      use icepack_kinds
       use icepack_constants, only: c2, p5, pi, secday
       use icepack_warnings, only: add_warning
 

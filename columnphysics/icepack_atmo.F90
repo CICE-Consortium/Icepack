@@ -13,14 +13,14 @@
 
       module icepack_atmo
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, c4, c5, c8, c10, &
-           c16, c20, p001, p01, p2, p4, p5, p75, puny, &
-           cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn, &
-           Lsub, Lvap, vonkar, Tffresh, zvir, gravit, &
-           pih, dragio, rhoi, rhos, rhow
-      use icepack_parameters, only: atmbndy, calc_strair, formdrag, &
-           highfreq, natmiter
+      use icepack_kinds
+      use icepack_constants,  only: c0, c1, c2, c4, c5, c8, c10
+      use icepack_constants,  only: c16, c20, p001, p01, p2, p4, p5, p75, puny
+      use icepack_constants,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
+      use icepack_constants,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
+      use icepack_constants,  only: pih, dragio, rhoi, rhos, rhow
+      use icepack_parameters, only: atmbndy, calc_strair, formdrag
+      use icepack_parameters, only: highfreq, natmiter
 
       implicit none
       save
@@ -509,8 +509,7 @@
                                       dkeel,    lfloe,           &
                                       dfloe,    ncat)
 
-        use icepack_tracers, only: &
-             tr_pond, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers, only: tr_pond, tr_pond_lvl, tr_pond_topo
 
       integer (kind=int_kind), intent(in) :: &
          ncat

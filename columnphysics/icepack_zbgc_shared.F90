@@ -9,10 +9,10 @@
 !
       module icepack_zbgc_shared
 
-      use icepack_kinds_mod
+      use icepack_kinds
       use icepack_constants, only: p01, p1, p5, c0, c1
-      use icepack_parameters, only: max_nbtrcr, max_algae, max_doc, &
-                                   max_dic, max_aero, max_don, max_fe
+      use icepack_parameters, only: max_nbtrcr, max_algae, max_doc
+      use icepack_parameters, only: max_dic, max_aero, max_don, max_fe
 
       implicit none 
 
@@ -548,8 +548,8 @@
                                grow_net)
  
       use icepack_constants, only: c1, c0, p5, secday, puny
-      use icepack_parameters, only: solve_zbgc, max_nbtrcr, hs_ssl, R_C2N, &
-                             fr_resp
+      use icepack_parameters, only: solve_zbgc, max_nbtrcr, hs_ssl, R_C2N
+      use icepack_parameters, only: fr_resp
       use icepack_tracers, only: nt_bgc_N, nt_fbri
 
       real (kind=dbl_kind), intent(in) :: &          

@@ -7,11 +7,13 @@
 !
       module icepack_brine
 
-      use icepack_kinds_mod
-      use icepack_constants
+      use icepack_kinds
+      use icepack_constants, only: p01, p001, p5, c0, c1, c2, c1p5, puny
+      use icepack_constants, only: gravit, rhoi, rhow, rhos, depressT
       use icepack_parameters, only: dts_b, salt_loss
       use icepack_tracers, only: ntrcr, nt_qice, nt_sice, nt_bgc_S 
-      use icepack_zbgc_shared
+      use icepack_zbgc_shared, only: k_o, exp_h, Dm, Ra_c, viscos_dynamic, thinS
+      use icepack_zbgc_shared, only: remap_zbgc
       use icepack_warnings, only: add_warning
 
       implicit none

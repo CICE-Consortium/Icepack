@@ -7,8 +7,15 @@
 
       module icepack_drv_constants
 
-      use icepack_kinds_mod
-      use icepack_constants ! all constants needed for column package
+      use icepack_drv_kinds
+      use icepack_constants, only: c0, c1, c2, c3, c4, c5, c10, c20, c100, c1000
+      use icepack_constants, only: p001, p1, p2, c6, p5, puny, pi
+      use icepack_constants, only: secday, dragio, stefan_boltzmann
+      use icepack_constants, only: tffresh, Tsmelt, depressT
+      use icepack_constants, only: emissivity, vonkar, zref, iceruf, albocn
+      use icepack_constants, only: rhoi, rhos, rhow, rhofresh
+      use icepack_constants, only: lfresh, lvap, ice_ref_salinity, cp_ice, cp_ocn
+      use icepack_constants, only: awtvdr, awtidr, awtvdf, awtidf
 
       implicit none
       save

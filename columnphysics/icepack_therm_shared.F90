@@ -7,12 +7,12 @@
 
       module icepack_therm_shared
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, c4, p5, pi, &
-          cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice, &
-          stefan_boltzmann, emissivity, Lfresh, Tsmelt
-      use icepack_parameters, only: saltmax, ktherm, heat_capacity, &
-          min_salin, calc_Tsfc
+      use icepack_kinds
+      use icepack_constants, only: c0, c1, c2, c4, p5, pi
+      use icepack_constants, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
+      use icepack_constants, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
+      use icepack_parameters, only: saltmax, ktherm, heat_capacity
+      use icepack_parameters, only: min_salin, calc_Tsfc
     
       implicit none
       save

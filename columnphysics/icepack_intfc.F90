@@ -7,17 +7,18 @@
 
       module icepack_intfc
 
-      use icepack_kinds_mod, only: icepack_char_len  => char_len
-      use icepack_kinds_mod, only: icepack_char_len_long  => char_len_long
-      use icepack_kinds_mod, only: icepack_log_kind  => log_kind
-      use icepack_kinds_mod, only: icepack_int_kind  => int_kind
-      use icepack_kinds_mod, only: icepack_real_kind => real_kind
-      use icepack_kinds_mod, only: icepack_dbl_kind  => dbl_kind
-      use icepack_kinds_mod, only: icepack_r16_kind  => r16_kind
+      use icepack_kinds, only: icepack_char_len  => char_len
+      use icepack_kinds, only: icepack_char_len_long  => char_len_long
+      use icepack_kinds, only: icepack_log_kind  => log_kind
+      use icepack_kinds, only: icepack_int_kind  => int_kind
+      use icepack_kinds, only: icepack_real_kind => real_kind
+      use icepack_kinds, only: icepack_dbl_kind  => dbl_kind
+      use icepack_kinds, only: icepack_r16_kind  => r16_kind
 
       use icepack_constants, only: icepack_init_constants
       use icepack_constants, only: icepack_query_constants
       use icepack_constants, only: icepack_write_constants
+      use icepack_constants, only: icepack_recompute_constants
 
       use icepack_parameters, only: icepack_init_parameters
       use icepack_parameters, only: icepack_query_parameters
@@ -87,8 +88,6 @@
       ! is used.
 
       subroutine icepack_configure()
-
-        use icepack_constants, only: icepack_recompute_constants
 
         call icepack_recompute_constants()
 

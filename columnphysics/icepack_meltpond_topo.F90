@@ -20,10 +20,10 @@
 
       module icepack_meltpond_topo
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, p01, p1, p15, p4, p6, &
-          puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh, &
-          gravit, depressT, kice, ice_ref_salinity
+      use icepack_kinds
+      use icepack_constants, only: c0, c1, c2, p01, p1, p15, p4, p6
+      use icepack_constants, only: puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh
+      use icepack_constants, only: gravit, depressT, kice, ice_ref_salinity
 
       implicit none
 

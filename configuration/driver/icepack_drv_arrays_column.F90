@@ -6,12 +6,12 @@
 
       module icepack_drv_arrays_column
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       use icepack_constants, only: nspint
-      use icepack_drv_domain_size, only: nx, ncat, nilyr, nslyr, &
-           nblyr, max_nsw , max_ntrcr
-      use icepack_parameters, only: max_nbtrcr, max_algae, max_aero, &
-           nmodal1, nmodal2
+      use icepack_drv_domain_size, only: nx, ncat, nilyr, nslyr
+      use icepack_drv_domain_size, only: nblyr, max_nsw , max_ntrcr
+      use icepack_drv_parameters, only: max_nbtrcr, max_algae, max_aero
+      use icepack_drv_parameters, only: nmodal1, nmodal2
 
       implicit none
       save

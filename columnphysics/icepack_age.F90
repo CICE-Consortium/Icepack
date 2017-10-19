@@ -5,7 +5,7 @@
 
       module icepack_age
 
-      use icepack_kinds_mod
+      use icepack_kinds
 
       implicit none
 

@@ -1,4 +1,4 @@
-!  SVN:$Id: icepack_kinds_mod.F90 1226 2017-05-22 22:45:03Z tcraig $
+!  SVN:$Id: icepack_kinds.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Defines variable precision for all common data types
@@ -7,7 +7,7 @@
 ! author: Elizabeth C. Hunke and William H. Lipscomb, LANL
 ! 2006: ECH converted to free source form (F90)
 
-      module icepack_kinds_mod
+      module icepack_kinds
 
 !=======================================================================
 
@@ -25,6 +25,6 @@
 
 !=======================================================================
 
-      end module icepack_kinds_mod
+      end module icepack_kinds
 
 !=======================================================================

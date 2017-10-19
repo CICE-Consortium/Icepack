@@ -7,7 +7,7 @@
 
       module icepack_parameters
 
-      use icepack_kinds_mod
+      use icepack_kinds
       use icepack_constants, only: c3, c0, c1, p5, p1
 
       implicit none

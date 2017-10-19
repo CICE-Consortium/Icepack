@@ -4,10 +4,10 @@
 !
 !  authors Elizabeth C. Hunke, LANL
 
-      module icepack_drv_step_mod
+      module icepack_drv_step
 
       use icepack_drv_constants
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       use icepack_intfc, only: icepack_clear_warnings
       use icepack_intfc, only: icepack_print_warnings
       use icepack_intfc, only: icepack_query_tracer_flags
@@ -36,11 +36,11 @@
       subroutine prep_radiation (dt)
 
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
-      use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf, &
-          alvdr_ai, alvdf_ai, alidr_ai, alidf_ai, fswfac, &
-          alvdr_init, alvdf_init, alidr_init, alidf_init
-      use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun, &
-           fswpenln, Sswabsn, Iswabsn
+      use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
+      use icepack_drv_flux, only: alvdr_ai, alvdf_ai, alidr_ai, alidf_ai, fswfac
+      use icepack_drv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init
+      use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun
+      use icepack_drv_arrays_column, only: fswpenln, Sswabsn, Iswabsn
       use icepack_drv_state, only: aice, aicen
 
       ! column package includes
@@ -91,26 +91,26 @@
 
       subroutine step_therm1 (dt)
 
-      use icepack_drv_arrays_column, only: ffracn, dhsn, &
-          Cdn_ocn, Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio, &
-          Cdn_atm, Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_rdg, Cdn_atm_pond, &
-          hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe, &
-          fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
+      use icepack_drv_arrays_column, only: ffracn, dhsn
+      use icepack_drv_arrays_column, only: Cdn_ocn, Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
+      use icepack_drv_arrays_column, only: Cdn_atm, Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_rdg, Cdn_atm_pond
+      use icepack_drv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
+      use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
       use icepack_drv_calendar, only: yday, istep1
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, n_aero, nx
-      use icepack_drv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot, &
-          meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm, &
-          wind, rhoa, potT, Qa, zlvl, strax, stray, flatn, fsensn, fsurfn, fcondtopn, &
-          flw, fsnow, fpond, sss, mlt_onset, frz_onset, &
-          frain, Tair, coszen, strairxT, strairyT, fsurf, fcondtop, fsens, &
-          flat, fswabs, flwout, evap, Tref, Qref, Uref, fresh, fsalt, fhocn, &
-          fswthru, meltt, melts, meltb, meltl, congel, snoice, frazil, &
-          flatn_f, fsensn_f, fsurfn_f, fcondtopn_f, &
-          dsnown, faero_atm, faero_ocn
+      use icepack_drv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot
+      use icepack_drv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
+      use icepack_drv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn, fsensn, fsurfn, fcondtopn
+      use icepack_drv_flux, only: flw, fsnow, fpond, sss, mlt_onset, frz_onset
+      use icepack_drv_flux, only: frain, Tair, coszen, strairxT, strairyT, fsurf, fcondtop, fsens
+      use icepack_drv_flux, only: flat, fswabs, flwout, evap, Tref, Qref, Uref, fresh, fsalt, fhocn
+      use icepack_drv_flux, only: fswthru, meltt, melts, meltb, meltl, congel, snoice, frazil
+      use icepack_drv_flux, only: flatn_f, fsensn_f, fsurfn_f, fcondtopn_f
+      use icepack_drv_flux, only: dsnown, faero_atm, faero_ocn
       use icepack_drv_init, only: lmask_n, lmask_s
-      use icepack_drv_state, only: aice, aicen, aice_init, aicen_init, vicen_init, &
-          vice, vicen, vsno, vsnon, trcrn, uvel, vvel, vsnon_init
+      use icepack_drv_state, only: aice, aicen, aice_init, aicen_init, vicen_init
+      use icepack_drv_state, only: vice, vicen, vsno, vsnon, trcrn, uvel, vvel, vsnon_init
 
       ! column packge includes
       use icepack_intfc, only: icepack_step_therm1
@@ -307,18 +307,18 @@
 
       subroutine step_therm2 (dt)
 
-      use icepack_drv_arrays_column, only: hin_max, fzsal, ocean_bio, &
-          first_ice, bgrid, cgrid, igrid
+      use icepack_drv_arrays_column, only: hin_max, fzsal, ocean_bio
+      use icepack_drv_arrays_column, only: first_ice, bgrid, cgrid, igrid
       use icepack_drv_calendar, only: istep1, yday
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nltrcr, nx
-      use icepack_drv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset, &
-          update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside, &
-          meltl, frazil_diag, flux_bio, faero_ocn 
+      use icepack_drv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
+      use icepack_drv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside
+      use icepack_drv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn 
       use icepack_drv_init, only: tmask
-      use icepack_drv_state, only: aice, aicen, aice0, trcr_depend, &
-          aicen_init, vicen_init, trcrn, vicen, vsnon, &
-          trcr_base, n_trcr_strata, nt_strata
+      use icepack_drv_state, only: aice, aicen, aice0, trcr_depend
+      use icepack_drv_state, only: aicen_init, vicen_init, trcrn, vicen, vsnon
+      use icepack_drv_state, only: trcr_base, n_trcr_strata, nt_strata
 
       ! column package_includes
       use icepack_intfc, only: icepack_step_therm2
@@ -397,9 +397,9 @@
 
       use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_init, only: tmask
-      use icepack_drv_state, only: aicen, trcrn, vicen, vsnon, &
-                           aice,  trcr,  vice,  vsno, aice0, trcr_depend, &
-                           trcr_base, nt_strata, n_trcr_strata
+      use icepack_drv_state, only: aicen, trcrn, vicen, vsnon
+      use icepack_drv_state, only: aice,  trcr,  vice,  vsno, aice0, trcr_depend
+      use icepack_drv_state, only: trcr_base, nt_strata, n_trcr_strata
 
       ! column package includes
       use icepack_intfc, only: icepack_aggregate
@@ -483,15 +483,14 @@
       use icepack_drv_calendar, only: istep1
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
-      use icepack_drv_flux, only: &
-          rdg_conv, rdg_shear, dardg1dt, dardg2dt, &
-          dvirdgdt, opening, fpond, fresh, fhocn, &
-          aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt, &
-          dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn
+      use icepack_drv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
+      use icepack_drv_flux, only: dvirdgdt, opening, fpond, fresh, fhocn
+      use icepack_drv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt
+      use icepack_drv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn
       use icepack_drv_init, only: tmask
-      use icepack_drv_state, only: trcrn, vsnon, aicen, vicen, &
-          aice, trcr, vice, vsno, aice0, trcr_depend, n_trcr_strata, &
-          trcr_base, nt_strata
+      use icepack_drv_state, only: trcrn, vsnon, aicen, vicen
+      use icepack_drv_state, only: aice, trcr, vice, vsno, aice0, trcr_depend, n_trcr_strata
+      use icepack_drv_state, only: trcr_base, nt_strata
 
       ! column package includes
       use icepack_intfc, only: icepack_step_ridge
@@ -576,12 +575,12 @@
 
       subroutine step_radiation (dt)
 
-      use icepack_drv_arrays_column, only: ffracn, dhsn, &
-          fswsfcn, fswintn, fswthrun, fswpenln, Sswabsn, Iswabsn, &
-          albicen, albsnon, albpndn, &
-          alvdrn, alidrn, alvdfn, alidfn, apeffn, trcrn_sw, snowfracn, &
-          kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab, &
-          gaer_bc_tab, bcenh, swgrid, igrid
+      use icepack_drv_arrays_column, only: ffracn, dhsn
+      use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun, fswpenln, Sswabsn, Iswabsn
+      use icepack_drv_arrays_column, only: albicen, albsnon, albpndn
+      use icepack_drv_arrays_column, only: alvdrn, alidrn, alvdfn, alidfn, apeffn, trcrn_sw, snowfracn
+      use icepack_drv_arrays_column, only: kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab
+      use icepack_drv_arrays_column, only: gaer_bc_tab, bcenh, swgrid, igrid
       use icepack_drv_calendar, only: calendar_type, days_per_year, nextsw_cday, yday, sec
       use icepack_drv_domain_size, only: ncat, n_aero, nilyr, nslyr, n_zaero, n_algae, nblyr, nx
       use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf, coszen, fsnow
@@ -734,13 +733,13 @@
       subroutine ocean_mixed_layer (dt)
 
       use icepack_drv_arrays_column, only: Cdn_atm, Cdn_atm_ratio
-      use icepack_constants, only: c0, c1000, albocn
+      use icepack_drv_constants, only: c0, c1000, albocn
       use icepack_intfc, only: icepack_ocn_mixed_layer, icepack_atm_boundary
       use icepack_drv_domain_size, only: nx
-      use icepack_drv_flux, only: sst, Tf, Qa, uatm, vatm, wind, potT, rhoa, zlvl, &
-           frzmlt, fhocn, fswthru, flw, flwout_ocn, fsens_ocn, flat_ocn, evap_ocn, &
-           alvdr_ocn, alidr_ocn, alvdf_ocn, alidf_ocn, swidf, swvdf, swidr, swvdr, &
-           qdp, hmix, strairx_ocn, strairy_ocn, Tref_ocn, Qref_ocn
+      use icepack_drv_flux, only: sst, Tf, Qa, uatm, vatm, wind, potT, rhoa, zlvl
+      use icepack_drv_flux, only: frzmlt, fhocn, fswthru, flw, flwout_ocn, fsens_ocn, flat_ocn, evap_ocn
+      use icepack_drv_flux, only: alvdr_ocn, alidr_ocn, alvdf_ocn, alidf_ocn, swidf, swvdf, swidr, swvdr
+      use icepack_drv_flux, only: qdp, hmix, strairx_ocn, strairy_ocn, Tref_ocn, Qref_ocn
       use icepack_drv_state, only: aice
 
       real (kind=dbl_kind), intent(in) :: &
@@ -842,25 +841,25 @@
 
       subroutine biogeochemistry (dt)
 
-      use icepack_drv_arrays_column, only: upNO, upNH, iDi, iki, zfswin, &
-                           trcrn_sw, zsal_tot, darcy_V, grow_net,  &
-                           PP_net, hbri,dhbr_bot, dhbr_top, Zoo,&
-                           fbio_snoice, fbio_atmice, ocean_bio,  &
-                           first_ice, fswpenln, bphi, bTiz, ice_bio_net,  &
-                           snow_bio_net, fswthrun, Rayleigh_criteria, &
-                           ocean_bio_all, sice_rho, fzsal, fzsal_g, &
-                           bgrid, igrid, icgrid, cgrid
+      use icepack_drv_arrays_column, only: upNO, upNH, iDi, iki, zfswin
+      use icepack_drv_arrays_column, only: trcrn_sw, zsal_tot, darcy_V, grow_net
+      use icepack_drv_arrays_column, only: PP_net, hbri,dhbr_bot, dhbr_top, Zoo
+      use icepack_drv_arrays_column, only: fbio_snoice, fbio_atmice, ocean_bio
+      use icepack_drv_arrays_column, only: first_ice, fswpenln, bphi, bTiz, ice_bio_net
+      use icepack_drv_arrays_column, only: snow_bio_net, fswthrun, Rayleigh_criteria
+      use icepack_drv_arrays_column, only: ocean_bio_all, sice_rho, fzsal, fzsal_g
+      use icepack_drv_arrays_column, only: bgrid, igrid, icgrid, cgrid
       use icepack_drv_calendar, only: istep1
       use icepack_intfc, only: icepack_biogeochemistry, icepack_init_OceanConcArray
       use icepack_drv_diagnostics, only: diagnostic_abort
-      use icepack_drv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat, &
-                                 n_doc, n_dic,  n_don, n_fed, n_fep, nx
-      use icepack_drv_flux, only: meltbn, melttn, congeln, snoicen, &
-                          sst, sss, fsnow, meltsn, hmix, salinz, &
-                          hin_old, flux_bio, flux_bio_atm, faero_atm, & 
-          nit, amm, sil, dmsp, dms, algalN, doc, don, dic, fed, fep, zaeros, hum
-      use icepack_drv_state, only: aicen_init, vicen_init, aicen, vicen, vsnon, &
-          trcrn, vsnon_init, aice0                    
+      use icepack_drv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat
+      use icepack_drv_domain_size, only: n_doc, n_dic,  n_don, n_fed, n_fep, nx
+      use icepack_drv_flux, only: meltbn, melttn, congeln, snoicen
+      use icepack_drv_flux, only: sst, sss, fsnow, meltsn, hmix, salinz
+      use icepack_drv_flux, only: hin_old, flux_bio, flux_bio_atm, faero_atm 
+      use icepack_drv_flux, only: nit, amm, sil, dmsp, dms, algalN, doc, don, dic, fed, fep, zaeros, hum
+      use icepack_drv_state, only: aicen_init, vicen_init, aicen, vicen, vsnon
+      use icepack_drv_state, only: trcrn, vsnon_init, aice0                    
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -1009,6 +1008,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_step_mod
+      end module icepack_drv_step
 
 !=======================================================================

@@ -9,10 +9,21 @@
 !
       module icepack_zbgc
 
-      use icepack_kinds_mod
+      use icepack_kinds
       use icepack_constants, only: c1,  c2, p5, c0, p1, puny
       use icepack_parameters, only:  R_C2N, R_chl2N, R_C2N_DON
-      use icepack_zbgc_shared ! everything
+      use icepack_zbgc_shared, only: zbgc_init_frac
+      use icepack_zbgc_shared, only: zbgc_frac_init
+      use icepack_zbgc_shared, only: bgc_tracer_type, remap_zbgc
+      use icepack_zbgc_shared, only: regrid_stationary
+      use icepack_zbgc_shared, only: R_S2N, R_Si2N, R_Fe2C, R_Fe2N, R_Fe2DON, R_Fe2DOC
+      use icepack_zbgc_shared, only: chlabs, alpha2max_low, beta2max
+      use icepack_zbgc_shared, only: mu_max, grow_Tdep, fr_graze
+      use icepack_zbgc_shared, only: mort_pre, mort_Tdep, k_exude
+      use icepack_zbgc_shared, only: K_Nit, K_Am, K_Sil, K_Fe
+      use icepack_zbgc_shared, only: f_don, kn_bac, f_don_Am
+      use icepack_zbgc_shared, only: f_exude, k_bac
+      use icepack_zbgc_shared, only: tau_ret, tau_rel
 
       implicit none 
 
@@ -46,8 +57,7 @@
                                   stop_label, l_conservation_check)
 
       use icepack_constants, only: c0, c1, puny, depressT
-      use icepack_itd, only: column_sum, &
-                         column_conservation_check
+      use icepack_itd, only: column_sum, column_conservation_check
       use icepack_tracers, only: tr_brine, nt_fbri, nt_sice, nt_qice, nt_Tsfc
       use icepack_parameters, only: solve_zsal
       use icepack_therm_shared, only: calculate_Tin_from_qin
@@ -536,14 +546,11 @@
          l_stop, stop_label)
 
       use icepack_constants, only: c0, c1, c2, p1, p15, p5
-      use icepack_zbgc_shared, only: R_S2N, zbgc_frac_init, zbgc_init_frac, remap_zbgc
-
-      ! column package includes
-      use icepack_tracers, only: nt_fbri, nt_bgc_S, nt_sice, nt_zbgc_frac, &
-         bio_index_o,  bio_index  
-      use icepack_parameters, only: solve_zsal, ktherm, hs_ssl,  &
-         skl_bgc, scale_bgc, grid_o_t,  fe_data_type, &
-         R_C2N, R_chl2N
+      use icepack_tracers, only: nt_fbri, nt_bgc_S, nt_sice, nt_zbgc_frac
+      use icepack_tracers, only: bio_index_o,  bio_index  
+      use icepack_parameters, only: solve_zsal, ktherm, hs_ssl
+      use icepack_parameters, only: skl_bgc, scale_bgc, grid_o_t,  fe_data_type
+      use icepack_parameters, only: R_C2N, R_chl2N
 
       real (kind=dbl_kind), intent(in) :: &
          dt        ! time step
@@ -730,24 +737,10 @@
                  nitratetype, ammoniumtype, dmspptype, dmspdtype, &
                  silicatetype, humtype, tau_min, tau_max)
                     
-      use icepack_constants, only: c1, p5, c0, c2
-
-      use icepack_parameters, only: &
-         algaltype, doctype, dictype, dontype, fedtype, feptype, zaerotype, &
-         R_C2N, R_chl2N, F_abs_chl, R_C2N_DON, max_aero
-
-      use icepack_zbgc_shared, only: zbgc_init_frac, &
-         bgc_tracer_type, zbgc_frac_init, &
-         tau_ret, tau_rel, R_Si2N, R_S2N, R_Fe2C, &
-         R_Fe2N, R_Fe2DON, R_Fe2DOC, &
-         chlabs, alpha2max_low, beta2max, &
-         mu_max, grow_Tdep, fr_graze, &
-         mort_pre, mort_Tdep, k_exude, &
-         K_Nit, K_Am, K_Sil, K_Fe, &
-         f_don, kn_bac, f_don_Am, &
-         f_doc, f_exude, k_bac
+      use icepack_constants,   only: c1, p5, c0, c2
+      use icepack_parameters,  only: algaltype, doctype, dictype, dontype, fedtype, feptype, zaerotype
+      use icepack_parameters,  only: R_C2N, R_chl2N, F_abs_chl, R_C2N_DON, max_aero
          
-
       integer (kind=int_kind), intent(in) :: &
          nblyr     , & ! number of bio/brine layers per category 
          nilyr     , & ! number of ice layers per category
@@ -1593,14 +1586,13 @@
                            l_stop, stop_label)
 
       use icepack_algae, only: zbio, sklbio
-      use icepack_brine, only: preflushing_changes, compute_microS_mushy, &
-                           update_hbrine, compute_microS 
+      use icepack_brine, only: preflushing_changes, compute_microS_mushy
+      use icepack_brine, only: update_hbrine, compute_microS 
       use icepack_parameters, only: solve_zsal, z_tracers, phi_snow
-      use icepack_tracers, only: nt_fbri, tr_brine, &
-          nt_bgc_S, nt_qice, nt_sice, nt_zbgc_frac, bio_index 
+      use icepack_tracers, only: nt_fbri, tr_brine
+      use icepack_tracers, only: nt_bgc_S, nt_qice, nt_sice, nt_zbgc_frac, bio_index 
       use icepack_constants, only: c0, c1, puny
       use icepack_zsalinity, only: zsalinity
-      use icepack_zbgc_shared, only:  zbgc_frac_init
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step

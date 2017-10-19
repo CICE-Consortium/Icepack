@@ -26,15 +26,15 @@
 
       module icepack_itd
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny, &
-          Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
-      use icepack_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_aero, &
-          nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
-      use icepack_parameters, only:  solve_zsal, skl_bgc, z_tracers, min_salin, &
-          sk_l, rhosi, hs_ssl, kcatbound, kitd
+      use icepack_kinds
+      use icepack_constants,  only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
+      use icepack_constants,  only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
+      use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero
+      use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
+      use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers, min_salin
+      use icepack_parameters, only: sk_l, rhosi, hs_ssl, kcatbound, kitd
       use icepack_therm_shared, only: Tmin, hi_min
-      use icepack_warnings, only: add_warning
+      use icepack_warnings,   only: add_warning
 
       implicit none
       save

@@ -7,7 +7,7 @@
 
       module icepack_drv_InitMod
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
 
       implicit none
       private
@@ -25,26 +25,26 @@
 
       subroutine icepack_initialize
 
-      use icepack_drv_arrays_column, only: hin_max, c_hi_range, zfswin, trcrn_sw, &
-          ocean_bio_all, ice_bio_net, snow_bio_net
-      use icepack_drv_calendar, only: dt, dt_dyn, time, istep, istep1, write_ic, &
-          init_calendar, calendar
-      use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist, &
-          icepack_clear_warnings, icepack_print_warnings
+      use icepack_drv_arrays_column, only: hin_max, c_hi_range, zfswin, trcrn_sw
+      use icepack_drv_arrays_column, only:    ocean_bio_all, ice_bio_net, snow_bio_net
+      use icepack_drv_calendar, only: dt, dt_dyn, time, istep, istep1, write_ic
+      use icepack_drv_calendar, only: init_calendar, calendar
+      use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
+      use icepack_intfc, only: icepack_clear_warnings, icepack_print_warnings
       use icepack_drv_domain_size, only: ncat
       use icepack_drv_constants, only: nu_diag
       use icepack_drv_diagnostics, only: debug_icepack
-      use icepack_drv_flux, only: init_coupler_flux, init_history_therm, &
-          init_history_dyn, init_flux_atm_ocn
+      use icepack_drv_flux, only: init_coupler_flux, init_history_therm
+      use icepack_drv_flux, only: init_history_dyn, init_flux_atm_ocn
       use icepack_drv_forcing, only: init_forcing, get_forcing
-!      use icepack_drv_forcing_bgc, only: get_forcing_bgc, get_atm_bgc, &
-!          faero_data, faero_default, faero_optics
+!      use icepack_drv_forcing_bgc, only: get_forcing_bgc, get_atm_bgc
+!      use icepack_drv_forcing_bgc, only: faero_data, faero_default, faero_optics
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_init, only: input_data, init_state, init_grid2
       use icepack_drv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
       use icepack_intfc, only: icepack_configure
-      use icepack_tracers, only: tr_aero, tr_zaero
-      use icepack_parameters, only: skl_bgc, z_tracers
+      !use icepack_drv_tracers, only: tr_aero, tr_zaero
+      use icepack_drv_parameters, only: skl_bgc, z_tracers
 
       logical(kind=log_kind) :: l_stop
       character(char_len) :: stop_label
@@ -118,7 +118,7 @@
 
       use icepack_drv_arrays_column, only: dhsn
       use icepack_drv_calendar, only: time, calendar
-      use icepack_constants, only: c0
+      use icepack_drv_constants, only: c0
       use icepack_intfc, only: icepack_aggregate
       use icepack_drv_domain_size, only: ncat, max_ntrcr, n_aero, nx
       use icepack_drv_flux, only: sss
@@ -127,10 +127,8 @@
       use icepack_drv_restart, only: restartfile
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_state ! almost everything
-      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, &
-          tr_pond_cesm, nt_apnd, nt_hpnd, tr_pond_lvl, nt_ipnd, &
-          tr_pond_topo, tr_aero, tr_brine, nt_iage, nt_FY, nt_aero
-      use icepack_parameters, only: skl_bgc, z_tracers, solve_zsal
+      use icepack_drv_tracers, only: tr_brine
+      use icepack_drv_parameters, only: skl_bgc, z_tracers, solve_zsal
 
       integer(kind=int_kind) :: &
          i                            ! horizontal indices

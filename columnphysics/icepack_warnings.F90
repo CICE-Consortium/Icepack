@@ -1,6 +1,6 @@
 module icepack_warnings
 
-  use icepack_kinds_mod
+  use icepack_kinds
 
   implicit none
 

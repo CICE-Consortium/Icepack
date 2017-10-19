@@ -2,7 +2,7 @@
 
       module icepack_drv_restart_shared
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       implicit none
       private
       public :: lenstr

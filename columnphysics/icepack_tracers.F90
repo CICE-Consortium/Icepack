@@ -7,9 +7,9 @@
 
       module icepack_tracers
 
-      use icepack_kinds_mod
-      use icepack_parameters, only: max_algae, max_dic, max_doc, max_don, &
-          max_fe, max_aero, max_nbtrcr
+      use icepack_kinds
+      use icepack_parameters, only: max_algae, max_dic, max_doc, max_don
+      use icepack_parameters, only: max_fe, max_aero, max_nbtrcr
 
       implicit none
       save
@@ -786,14 +786,16 @@
 ! set the number of column tracers
 
       subroutine icepack_init_tracer_numbers(&
-         ntrcr_in, nbtrcr_in, nbtrcr_sw_in)
+         ntrcr_in, ntrcr_o_in, nbtrcr_in, nbtrcr_sw_in)
 
       integer (kind=int_kind), intent(in), optional :: &
          ntrcr_in  , &! number of tracers in use
+         ntrcr_o_in, &! number of non-bio tracers in use
          nbtrcr_in , &! number of bio tracers in use
          nbtrcr_sw_in ! number of shortwave bio tracers in use
 
         if (present(ntrcr_in)    ) ntrcr     = ntrcr_in
+        if (present(ntrcr_o_in)  ) ntrcr_o   = ntrcr_o_in
         if (present(nbtrcr_in)   ) nbtrcr    = nbtrcr_in
         if (present(nbtrcr_sw_in)) nbtrcr_sw = nbtrcr_sw_in
 
@@ -803,14 +805,16 @@
 ! query the number of column tracers
 
       subroutine icepack_query_tracer_numbers(&
-         ntrcr_out, nbtrcr_out, nbtrcr_sw_out)
+         ntrcr_out, ntrcr_o_out, nbtrcr_out, nbtrcr_sw_out)
 
       integer (kind=int_kind), intent(out), optional :: &
          ntrcr_out  , &! number of tracers in use
+         ntrcr_o_out, &! number of non-bio tracers in use
          nbtrcr_out , &! number of bio tracers in use
          nbtrcr_sw_out ! number of shortwave bio tracers in use
 
         if (present(ntrcr_out)    ) ntrcr_out     = ntrcr
+        if (present(ntrcr_o_out)  ) ntrcr_o_out   = ntrcr_o
         if (present(nbtrcr_out)   ) nbtrcr_out    = nbtrcr
         if (present(nbtrcr_sw_out)) nbtrcr_sw_out = nbtrcr_sw
 

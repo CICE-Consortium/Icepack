@@ -41,18 +41,18 @@
 
       module icepack_shortwave
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c1p5, c2, c3, c4, c10, &
-          p01, p1, p15, p25, p5, p75, puny, &
-          albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf, &
-          kappav, hs_min, rhofresh, rhos, nspint
-      use icepack_parameters, only: hi_ssl, hs_ssl, modal_aero, &
-          z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity, &
-          r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1, &
-          pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
-      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
-          tr_bgc_N, tr_aero
-      use icepack_warnings, only: add_warning
+      use icepack_kinds
+      use icepack_constants,  only: c0, c1, c1p5, c2, c3, c4, c10
+      use icepack_constants,  only: p01, p1, p15, p25, p5, p75, puny
+      use icepack_constants,  only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
+      use icepack_constants,  only: kappav, hs_min, rhofresh, rhos, nspint
+      use icepack_parameters, only: hi_ssl, hs_ssl, modal_aero
+      use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
+      use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
+      use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
+      use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers,    only: tr_bgc_N, tr_aero
+      use icepack_warnings,   only: add_warning
 
       implicit none
 
@@ -3587,12 +3587,12 @@
                                     skl_bgc,      z_tracers, &
                                     l_stop,       stop_label)
       
-      use icepack_constants, only: c0, c1, c2, p5
-      use icepack_tracers, only: nt_bgc_N, nt_zaero, tr_bgc_N, &
-          tr_zaero, nlt_chl_sw, nlt_zaero_sw
-      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l, &
-           R_chl2N, min_bgc, F_abs_chl,  hi_ssl
-      use icepack_zbgc_shared, only: remap_zbgc
+      use icepack_constants,  only: c0, c1, c2, p5
+      use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
+      use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
+      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l
+      use icepack_parameters, only: R_chl2N, min_bgc, F_abs_chl,  hi_ssl
+      use icepack_zbgc_shared,only: remap_zbgc
 
       integer (kind=int_kind), intent(in) :: &
          nslyr, & ! number of snow layers

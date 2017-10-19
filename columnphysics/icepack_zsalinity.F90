@@ -13,9 +13,10 @@
 !
       module icepack_zsalinity
 
-      use icepack_kinds_mod
-      use icepack_constants
-      use icepack_zbgc_shared
+      use icepack_kinds
+      use icepack_constants, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
+      use icepack_zbgc_shared, only: remap_zbgc
+      use icepack_zbgc_shared, only: Ra_c, k_o, viscos_dynamic, thinS, Dm, exp_h
       use icepack_warnings, only: add_warning
 
       implicit none
