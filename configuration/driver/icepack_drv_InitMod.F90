@@ -37,8 +37,7 @@
       use icepack_drv_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm_ocn
       use icepack_drv_forcing, only: init_forcing, get_forcing
-      use icepack_drv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc !, get_atm_bgc, &
-!          faero_data, faero_optics
+      use icepack_drv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_init, only: input_data, init_state, init_grid2
       use icepack_drv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc

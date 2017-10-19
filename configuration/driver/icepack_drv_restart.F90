@@ -232,7 +232,7 @@
       write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
       istep1 = istep0
- 
+
       !-----------------------------------------------------------------
       ! state variables
       ! Tsfc is the only tracer read in this file.  All other

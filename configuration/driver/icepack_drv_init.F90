@@ -300,7 +300,7 @@
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
         write(ice_stdout,*) 'error reading namelist'
-        stop !cn
+        stop
       endif
       close(nu_nml)
       
@@ -323,7 +323,7 @@
 
       diag_len = len(trim(diag_file))
       do n = 1,nx
-        diag_file_names=''
+        diag_file_names=' '
         write(diag_file_names,'(a,a,a)') trim(diag_file),'.',trim(nx_names(n))
         write(ice_stdout,*)'    ',trim(diag_file_names)
         open(nu_diag_out+n-1, file=diag_file_names, status='unknown')

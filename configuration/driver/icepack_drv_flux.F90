@@ -486,6 +486,7 @@
       vocn  (:) = c0
       frzmlt(:) = c0              ! freezing/melting potential (W/m^2)
       sss   (:) = 34.0_dbl_kind   ! sea surface salinity (ppt)
+      sst   (:) = -1.8_dbl_kind   ! sea surface temperature (C)
 
       do i = 1, nx
          Tf (i) = icepack_liquidus_temperature(sss(i)) ! freezing temp (C)
