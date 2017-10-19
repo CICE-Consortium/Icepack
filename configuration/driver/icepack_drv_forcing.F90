@@ -63,8 +63,9 @@
           swvdf_data, &
           swidr_data, &
           swidf_data, &
-          day_data, &  !cn probably do not need this
-          time_data    !cn probably do not need this
+          hmix_data
+          !day_data, &  !cn probably do not need this
+          !time_data    !cn probably do not need this
 
       real (kind=dbl_kind), public  :: &
            !c1intp, c2intp , & ! interpolation coefficients
@@ -169,11 +170,11 @@
 
       !cn if (restore_sst .or. restore_bgc) then
       if (restore_sst) then
-         if (trestore == 0) then
-            trest = dt        ! use data instantaneously
-         else
-            trest = real(trestore,kind=dbl_kind) * secday ! seconds
-         endif
+        if (trestore == 0) then
+          trest = dt        ! use data instantaneously
+        else
+          trest = real(trestore,kind=dbl_kind) * secday ! seconds
+        end if
       endif
 
       if (trim(sst_data_type) == 'ISPOL' .or. &
@@ -478,12 +479,12 @@ endif
         uatm_data(i) = uatm(i)
         vatm_data(i) = vatm(i)
         fsnow_data(i) = fsnow(i)
-        day_data(i) = aday(i)
+        !day_data(i) = aday(i)
       end do
       do i = 1, 1464
         fsw_data(i) = fsw(i)
         flw_data(i) = flw(i)
-        time_data(i) = atime(i)
+        !time_data(i) = atime(i)
       end do
 
       !write(*,*) tair
@@ -800,12 +801,12 @@ endif
         uatm_data(i) = uatm(i)
         vatm_data(i) = vatm(i)
         fsnow_data(i) = fsnow(i)
-        day_data(i) = aday(i)
+        !day_data(i) = aday(i)
       end do
       do i = 1, 1464
         fsw_data(i) = fsw(i)
         flw_data(i) = flw(i)
-        time_data(i) = atime(i)
+        !time_data(i) = atime(i)
       end do
 
       !write(*,*) tair
@@ -1097,7 +1098,7 @@ endif
       do i = 1,ntime
         !t(i)
         sss_data(i) = s(i)
-        !hblt(i)
+        hmix_data(i) = hblt(i)
         uocn_data(i) = u(i)
         vocn_data(i) = v(i)
         !dhdx(i)
