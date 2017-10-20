@@ -60,6 +60,8 @@
           swidf_data, &
            zlvl_data, &
           hmix_data
+      real (kind=dbl_kind), dimension(nx) :: &
+          sst_temp
 
       character(char_len), public :: & 
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
@@ -195,7 +197,7 @@
       use icepack_constants, only: c0, c1
       use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp
+         fsnow, sst, sss, uocn, vocn, qdp, hmix
 
       use icepack_intfc_shared, only: restore_bgc
 
@@ -258,7 +260,6 @@
         mnext = mod(recnum-1,       maxrec) + 1
         call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
 
-        !write(*,*)time/60./60./24.,c1intp*day_data(mlast)+ c2intp*day_data(mnext)
         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext) &
           - lapse_rate*8.0_dbl_kind
         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
@@ -273,34 +274,80 @@
         mnext = mod(recnum-1,       maxrec) + 1
         call interp_coeff (recnum, recslot, sec6hr, dataloc, c1intp, c2intp)
 
-        !write(*,*)time/60./60./24.,c1intp*time_data(mlast)+ c2intp*time_data(mnext)
         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
 
 
       endif
 
-      !if (trim(sst_data_type) == 'ncar' .or.  &
-       !       trim(sss_data_type) == 'ncar'.or.  &
-      if(trim(sst_data_type) == 'ISPOL' .or. & 
-              trim(sss_data_type) == 'ISPOL') then
 
+!cn this is called from get_forcing_ocn in cice...
+      if(trim(sst_data_type) == 'ISPOL' .or. & 
+          trim(sss_data_type) == 'ISPOL') then
+        
         midmonth = 15  ! assume data is given on 15th of every month
         recslot = 1                             ! latter half of month
         if (mday < midmonth) recslot = 2        ! first half of month
         if (recslot == 1) then
           mlast = month
-            mnext = mod(month   ,12) + 1
-          else ! recslot = 2
-            mlast = mod(month+10,12) + 1
-            mnext = month
-          endif
-          call interp_coeff_monthly(recslot, c1intp, c2intp)
-          sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
-          sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
-          uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
-          vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
-          
+          mnext = mod(month   ,12) + 1
+        else ! recslot = 2
+          mlast = mod(month+10,12) + 1
+          mnext = month
+        endif
+        call interp_coeff_monthly(recslot, c1intp, c2intp)
+        sst_temp(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
+        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
+        uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
+        vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
+        do i = 1, nx
+          sss (i) = max (sss(i), c0) 
+          hmix(i) = max(hmix(i), c0)           
+        end do
+
+        call ocn_freezing_temperature
+
+        if (restore_sst) then
+          do i = 1, nx 
+            sst(i) = sst(i) + (sst_temp(i)-sst(i))*dt/trest 
+          enddo
+        endif
+        
+      elseif (trim(sst_data_type) == 'NICE' .or.  &
+          trim(sst_data_type) == 'NICE') then
+        
+!cn the nice stuff seems to be more complicated than ispol....        
+        midmonth = 15  ! assume data is given on 15th of every month
+        recslot = 1                             ! latter half of month
+        if (mday < midmonth) recslot = 2        ! first half of month
+        if (recslot == 1) then
+          mlast = month
+          mnext = mod(month   ,12) + 1
+        else ! recslot = 2
+          mlast = mod(month+10,12) + 1
+          mnext = month
+        endif
+        call interp_coeff_monthly(recslot, c1intp, c2intp)
+        sst_temp(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
+        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
+        uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
+        vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
+        do i = 1, nx
+          sss (i) = max (sss(i), c0) 
+          hmix(i) = max(hmix(i), c0)           
+        end do
+
+        call ocn_freezing_temperature
+
+        if (restore_sst) then
+          do i = 1, nx 
+            sst(i) = sst(i) + (sst_temp(i)-sst(i))*dt/trest 
+          enddo
+        endif
+      else
+        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
+        
+
       endif
 
       ! fill all grid boxes with the same forcing data
@@ -326,15 +373,16 @@
         qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
 
       if (trim(ocn_data_type) == 'default') return
-        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
+        !sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
         sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
        uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
        vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
 
-      sst  (:) = sst_data  (i)    ! sea surface temperature
-      sss  (:) = sss_data  (i)    ! sea surface salinity
-      uocn (:) = uocn_data (i)    ! wind velocity components (m/s)
-      vocn (:) = vocn_data (i) 
+!cn are these the default?
+      !sst  (:) = sst_data  (i)    ! sea surface temperature
+      !sss  (:) = sss_data  (i)    ! sea surface salinity
+      !uocn (:) = uocn_data (i)    ! wind velocity components (m/s)
+      !vocn (:) = vocn_data (i) 
 
 !for debugging, for now
 if (i==8760) then
@@ -763,12 +811,10 @@ endif
         uatm_data(i) = uatm(i)
         vatm_data(i) = vatm(i)
         fsnow_data(i) = fsnow(i)
-        !day_data(i) = aday(i)
       end do
       do i = 1, 1464 ! 6hr, 1464/4=366 days
         fsw_data(i) = fsw(i)
         flw_data(i) = flw(i)
-        !time_data(i) = atime(i)
       end do
 
       !write(*,*) tair
@@ -1085,12 +1131,10 @@ endif
         uatm_data(i) = uatm(i)
         vatm_data(i) = vatm(i)
         fsnow_data(i) = fsnow(i)
-        !day_data(i) = aday(i)
       end do
       do i = 1, 1464
         fsw_data(i) = fsw(i)
         flw_data(i) = flw(i)
-        !time_data(i) = atime(i)
       end do
 
       !write(*,*) tair
@@ -1713,6 +1757,31 @@ endif
 
 #endif
       end subroutine read_data_point
+!=======================================================================
+
+      subroutine ocn_freezing_temperature
+
+ ! Compute ocean freezing temperature Tf based on tfrz_option
+ ! 'minus1p8'         Tf = -1.8 C (default)
+ ! 'linear_salt'      Tf = -depressT * sss
+ ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
+
+      use icepack_therm_shared, only: icepack_sea_freezing_temperature
+      use icepack_drv_flux, only: sss, Tf
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, j, iblk           ! horizontal indices
+
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
+      do i = 1, nx
+        Tf(i) = icepack_sea_freezing_temperature(sss(i))
+      enddo
+      !$OMP END PARALLEL DO
+
+      end subroutine ocn_freezing_temperature
+
 
 !=======================================================================
 

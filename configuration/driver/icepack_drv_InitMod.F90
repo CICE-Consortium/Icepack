@@ -87,8 +87,8 @@
    ! coupler communication or forcing data initialization
    !--------------------------------------------------------------------
 
-      call init_forcing      ! initialize forcing (standalone)
-      call init_forcing_bgc !cn
+      call init_forcing      ! initialize forcing (standalone)     
+      if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
 !?      call init_coupler_flux ! complete forcing initialization
       call get_forcing(istep1)       ! get forcing from data arrays
 

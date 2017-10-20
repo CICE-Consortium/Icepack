@@ -39,15 +39,17 @@
 
         use icepack_intfc_shared, only: nit_data_type, sil_data_type
         use icepack_drv_forcing, only: data_dir
-      use icepack_drv_flux, only: sil, nit
 
         integer (kind=int_kind) :: &
             nu_bgc, &
             ntime, &
             i
 
-        
-        character (char_len_long) filename
+        real(kind=dbl_kind), dimension(365) :: &
+            sil, &
+            nit
+
+       character (char_len_long) filename
         
         if (trim(nit_data_type) == 'ISPOL' .or. &
             trim(sil_data_type) == 'ISPOL' .or. &
@@ -60,12 +62,12 @@
           ntime = 365 !daily
 
           open (nu_bgc, file=filename, form='formatted')
-          read(nu_bgc,*) sil_data
-          read(nu_bgc,*) nit_data
+          read(nu_bgc,*) sil
+          read(nu_bgc,*) nit
 
           do i = 1, ntime
-            sil(i) = sil_data(i)
-            nit(i) = nit_data(i)
+            sil_data(i) = sil(i)
+            nit_data(i) = nit(i)
           end do
 
           !write(*,*)sil_data

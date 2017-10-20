@@ -879,17 +879,17 @@
          tr_brine  = .false.
       endif 
 
-         write(nu_diag,1010) ' tr_brine                  = ', tr_brine
-         if (tr_brine) then
-!         write(nu_diag,1010) ' restart_hbrine            = ', restart_hbrine
-         write(nu_diag,1005) ' phi_snow                  = ', phi_snow
-         endif
-         if (solve_zsal) then
-         write(nu_diag,1010) ' solve_zsal                = ', solve_zsal
-!         write(nu_diag,1010) ' restart_zsal              = ', restart_zsal
-         write(nu_diag,1000) ' grid_oS                   = ', grid_oS
-         write(nu_diag,1005) ' l_skS                     = ', l_skS
-         endif
+      write(nu_diag,1010) ' tr_brine                  = ', tr_brine
+      if (tr_brine) then
+        !         write(nu_diag,1010) ' restart_hbrine            = ', restart_hbrine
+        write(nu_diag,1005) ' phi_snow                  = ', phi_snow
+      endif
+      if (solve_zsal) then
+        write(nu_diag,1010) ' solve_zsal                = ', solve_zsal
+        !         write(nu_diag,1010) ' restart_zsal              = ', restart_zsal
+        write(nu_diag,1000) ' grid_oS                   = ', grid_oS
+        write(nu_diag,1005) ' l_skS                     = ', l_skS
+      endif
 
       !-----------------------------------------------------------------
       ! biogeochemistry
