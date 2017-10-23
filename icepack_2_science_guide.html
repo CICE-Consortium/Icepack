@@ -1,13 +1,16 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
-<!doctype html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>2. Science Guide &#8212; CICE-Consortium Icepack 0.0.1 documentation</title>
-    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -21,17 +24,12 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="3. User Guide" href="icepack_3_user_guide.html" />
-    <link rel="prev" title="1. Introduction - Icepack" href="icepack_1_introduction.html" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <!--[if lt IE 9]>
-    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
-    <![endif]-->
+    <link rel="prev" title="1. Introduction - Icepack" href="icepack_1_introduction.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -43,106 +41,7 @@
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">2. Science Guide</a><ul>
-<li><a class="reference internal" href="#coupling-with-host-models">2.1. Coupling with host models</a><ul>
-<li><a class="reference internal" href="#the-column-physics-code-interface">2.1.1. The column physics code interface</a></li>
-<li><a class="reference internal" href="#atmosphere-and-ocean-boundary-forcing">2.1.2. Atmosphere and ocean boundary forcing</a><ul>
-<li><a class="reference internal" href="#atmosphere">2.1.2.1. Atmosphere</a></li>
-<li><a class="reference internal" href="#ocean">2.1.2.2. Ocean</a></li>
-<li><a class="reference internal" href="#variable-exchange-coefficients">2.1.2.3. Variable exchange coefficients</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#model-components">2.2. Model components</a><ul>
-<li><a class="reference internal" href="#tracers">2.2.1. Tracers</a><ul>
-<li><a class="reference internal" href="#tracers-that-depend-on-other-tracers">2.2.1.1. Tracers that depend on other tracers</a></li>
-<li><a class="reference internal" href="#ice-age">2.2.1.2. Ice age</a></li>
-<li><a class="reference internal" href="#brine-height">2.2.1.3. Brine height</a></li>
-<li><a class="reference internal" href="#biogeochemistry">2.2.1.4. Biogeochemistry</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#transport-in-thickness-space">2.2.2. Transport in thickness space</a></li>
-<li><a class="reference internal" href="#mechanical-redistribution">2.2.3. Mechanical redistribution</a></li>
-<li><a class="reference internal" href="#thermodynamics">2.2.4. Thermodynamics</a><ul>
-<li><a class="reference internal" href="#melt-ponds">2.2.4.1. Melt ponds</a></li>
-<li><a class="reference internal" href="#thermodynamic-surface-forcing-balance">2.2.4.2. Thermodynamic surface forcing balance</a></li>
-<li><a class="reference internal" href="#new-temperatures">2.2.4.3. New temperatures</a></li>
-<li><a class="reference internal" href="#growth-and-melting">2.2.4.4. Growth and melting</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#biogeochemistry-ech">2.2.5. Biogeochemistry - ECH</a><ul>
-<li><a class="reference internal" href="#bottom-layer">2.2.5.1. Bottom layer</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#biogeochemistry-nj">2.2.6. Biogeochemistry - NJ</a><ul>
-<li><a class="reference internal" href="#aerosols">2.2.6.1. Aerosols</a><ul>
-<li><a class="reference internal" href="#default-aerosols">2.2.6.1.1. Default Aerosols</a></li>
-<li><a class="reference internal" href="#z-aerosols">2.2.6.1.2. Z-Aerosols</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#brine-height-tracer">2.2.6.2. Brine height tracer</a></li>
-<li><a class="reference internal" href="#sea-ice-biogeochemistry">2.2.6.3. Sea Ice Biogeochemistry</a><ul>
-<li><a class="reference internal" href="#skeletal-layer-bgc">2.2.6.3.1. Skeletal Layer BGC</a></li>
-<li><a class="reference internal" href="#vertical-z-bgc">2.2.6.3.2. Vertical “Z” BGC</a><ul>
-<li><a class="reference internal" href="#bio-grid">2.2.6.3.2.1. Bio grid</a></li>
-<li><a class="reference internal" href="#transport-along-the-interface-bio-grid">2.2.6.3.2.2. Transport along the interface bio grid</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#splitting-tracers-zbgc-type">2.2.6.4. Splitting tracers: zbgc_type</a><ul>
-<li><a class="reference internal" href="#mobile-and-stationary-phases-in-code">2.2.6.4.1. Mobile and Stationary Phases in code</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#reaction-terms">2.2.6.5. Reaction Terms</a><ul>
-<li><a class="reference internal" href="#the-reaction-equations">2.2.6.5.1. The Reaction Equations</a><ul>
-<li><a class="reference internal" href="#algal-growth-and-nutrient-uptake">2.2.6.5.1.1. Algal Growth and Nutrient Uptake</a></li>
-<li><a class="reference internal" href="#bgc-tuning-parameters">2.2.6.5.1.2. BGC Tuning Parameters</a></li>
-<li><a class="reference internal" href="#biogeochemistry-history-fields">2.2.6.5.1.3. Biogeochemistry History Fields</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#flux-corrected-positive-definite-transport-scheme">2.2.6.6. Flux-Corrected, Positive Definite Transport Scheme</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="icepack_1_introduction.html"
-                        title="previous chapter">1. Introduction - Icepack</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="icepack_3_user_guide.html"
-                        title="next chapter">3. User Guide</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/icepack_2_science_guide.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -190,7 +89,7 @@ column physics modules via array arguments.</li>
 <div class="section" id="atmosphere-and-ocean-boundary-forcing">
 <h3>2.1.2. Atmosphere and ocean boundary forcing<a class="headerlink" href="#atmosphere-and-ocean-boundary-forcing" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="#tab-flux-cpl"><span class="std std-ref">Table 1</span></a>: <em>Data exchanged between the CESM flux coupler and the sea ice model that are relevant to Icepack</em></p>
-<table border="1" class="docutils" id="id119">
+<table border="1" class="colwidths-given docutils" id="id119">
 <span id="tab-flux-cpl"></span><caption><span class="caption-text">Table 1</span><a class="headerlink" href="#id119" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="25%" />
@@ -380,8 +279,8 @@ weighted by (<span class="math">\(1-a_i\)</span>), to obtain the net shortwave f
 ocean over the entire grid cell. The CESM flux coupler requires the fluxes to
 be divided by the total ice area so that the ice and land models are
 treated identically (land also may occupy less than 100% of an
-atmospheric grid cell). These fluxes are “per unit ice area” rather than
-“per unit grid cell area.”</p>
+atmospheric grid cell). These fluxes are &#8220;per unit ice area&#8221; rather than
+&#8220;per unit grid cell area.&#8221;</p>
 <p>In some coupled climate models (for example, recent versions of the U.K.
 Hadley Centre model) the surface air temperature and fluxes are computed
 within the atmosphere model and are passed to CICE for use in the column physics. In this case the
@@ -430,7 +329,7 @@ turbulent heat fluxes are computed in subroutine
 clarity, the equations are reproduced here in the present notation.</p>
 <p>The wind stress and turbulent heat flux calculation accounts for both
 stable and unstable atmosphere–ice boundary layers. Define the
-“stability”</p>
+&#8220;stability&#8221;</p>
 <div class="math">
 \[\Upsilon = {\kappa g z_\circ\over u^{*2}}
 \left({\Theta^*\over\Theta_a\left(1+0.606Q_a\right)}  +
@@ -461,7 +360,7 @@ Here, <span class="math">\(z_{ref}\)</span> is a reference height of 10m and
 sea ice category. <span class="math">\(\Upsilon\)</span> is constrained to have magnitude less
 than 10. Further, defining
 <span class="math">\(\chi = \left(1-16\Upsilon\right)^{0.25}\)</span> and <span class="math">\(\chi \geq 1\)</span>,
-the “integrated flux profiles” for momentum and stability in the
+the &#8220;integrated flux profiles&#8221; for momentum and stability in the
 unstable (<span class="math">\(\Upsilon &lt;0\)</span>) case are given by</p>
 <div class="math">
 \[\begin{split}\begin{aligned}
@@ -853,7 +752,7 @@ by the tracers. The chart on the left provides corresponding ice
 thickness and pond depth averages over the grid cell, sea ice and
 pond area fractions.</p>
 <p>Tracers may need to be modified for physical reasons outside of the
-“core” module or subroutine describing their evolution. For example,
+&#8220;core&#8221; module or subroutine describing their evolution. For example,
 when new ice forms in open water, the new ice does not yet have ponds on
 it. Likewise when sea ice deforms, we assume that pond water (and ice)
 on the portion of ice that ridges is lost to the ocean.</p>
@@ -1213,7 +1112,7 @@ converging, enough ice ridges to ensure that the ice area does not
 exceed the grid cell area.</p>
 <p>First we specify the participation function: the thickness distribution
 <span class="math">\(a_P(h) = b(h) \, g(h)\)</span> of the ice participating in ridging. (We
-use “ridging” as shorthand for all forms of mechanical redistribution,
+use &#8220;ridging&#8221; as shorthand for all forms of mechanical redistribution,
 including rafting.) The weighting function <span class="math">\(b(h)\)</span> favors ridging
 of thin ice and closing of open water in preference to ridging of
 thicker ice. There are two options for the form of <span class="math">\(b(h)\)</span>. If
@@ -1240,7 +1139,7 @@ categories with <span class="math">\(G_n &lt; G^*\)</span>. If <span class="math
 Equation <a class="reference internal" href="#equation-partic-old-discrete">(30)</a> is valid with <span class="math">\(G^*\)</span> replacing
 <span class="math">\(G_n\)</span>, and if <span class="math">\(G_{n-1} &gt; G^*\)</span>, then <span class="math">\(a_{Pn} = 0\)</span>. If
 the open water fraction <span class="math">\(a_0 &gt; G^*\)</span>, no ice can ridge, because
-“ridging” simply reduces the area of open water. As in
+&#8220;ridging&#8221; simply reduces the area of open water. As in
 <a class="reference internal" href="zreferences.html#trmc75" id="id35">[49]</a> we set <span class="math">\(G^* = 0.15\)</span>.</p>
 <p>If the spatial resolution is too fine for a given time step
 <span class="math">\(\Delta t\)</span>, the weighting function Equation <a class="reference internal" href="#equation-partic-old-contin">(29)</a> can
@@ -1435,9 +1334,9 @@ time step. See <a class="reference internal" href="zreferences.html#lhmj07" id="
 <div class="section" id="thermodynamics">
 <span id="thermo"></span><h3>2.2.4. Thermodynamics<a class="headerlink" href="#thermodynamics" title="Permalink to this headline">¶</a></h3>
 <p>The current Icepack version includes three thermodynamics
-options, the “zero-layer” thermodynamics of <a class="reference internal" href="zreferences.html#semtner76" id="id49">[44]</a>
+options, the &#8220;zero-layer&#8221; thermodynamics of <a class="reference internal" href="zreferences.html#semtner76" id="id49">[44]</a>
 (<code class="docutils literal"><span class="pre">ktherm</span></code> = 0), the Bitz and Lipscomb model <a class="reference internal" href="zreferences.html#bl99" id="id50">[7]</a>
-(<code class="docutils literal"><span class="pre">ktherm</span></code> = 1) that assumes a fixed salinity profile, and a new “mushy”
+(<code class="docutils literal"><span class="pre">ktherm</span></code> = 1) that assumes a fixed salinity profile, and a new &#8220;mushy&#8221;
 formulation (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2) in which salinity evolves
 <a class="reference internal" href="zreferences.html#thb13" id="id51">[52]</a>. For each thickness category, Icepack computes
 changes in the ice and snow thickness and vertical temperature profile
@@ -1502,7 +1401,7 @@ area and depth are maintained throughout the simulation according to the
 physical processes acting on it. However, snow on the sea ice and pond
 ice may shield the pond and ice below from solar radiation. These
 processes do not alter the actual pond volume; instead they are used to
-define an “effective pond fraction” (and likewise, effective pond depth,
+define an &#8220;effective pond fraction&#8221; (and likewise, effective pond depth,
 snow fraction and snow depth) used only for the shortwave radiation
 calculation.</p>
 <p>In addition to the physical processes discussed below, tracer equations
@@ -1850,7 +1749,7 @@ Equation&nbsp;<a class="reference internal" href="#equation-ipndmelt">(62)</a>)<
 <div class="math">
 \[f_{frac} = \min\left(-{\rho_i L\Delta h_i\over F_\circ \Delta t}, 1 \right) .\]</div>
 <p><em>Snow infiltration by pond water.</em> If there is snow on top of the sea
-ice, melt water may infiltrate the snow. It is a “virtual process” that
+ice, melt water may infiltrate the snow. It is a &#8220;virtual process&#8221; that
 affects the model’s thermodynamics through the input parameters of the
 radiation scheme; it does not melt the snow or affect the snow heat
 content.</p>
@@ -1909,7 +1808,7 @@ Principle written in terms of the draft <span class="math">\(d\)</span>,</p>
 \[\rho_i h_i + \rho_s h_s + \rho_0 h_p = \rho_w d \le \rho_w h_i.\]</div>
 <p>There is a separate freeboard calculation in the thermodynamics which
 considers only the ice and snow and converts flooded snow to sea ice.
-Because the current melt ponds are “virtual” in the sense that they only
+Because the current melt ponds are &#8220;virtual&#8221; in the sense that they only
 have a radiative influence, we do not allow the pond mass to change the
 sea ice and snow masses at this time, although this issue may need to be
 reconsidered in the future, especially for the Antarctic.</p>
@@ -1969,12 +1868,12 @@ level-ice ponds) should be used in conjunction with the Delta-Eddington
 shortwave scheme, described below.</p>
 <p><em>Shortwave radiation: Delta-Eddington</em></p>
 <p>Two methods for computing albedo and shortwave fluxes are available, the
-“ccsm3” method, described below, and a multiple scattering
+&#8220;ccsm3&#8221; method, described below, and a multiple scattering
 radiative transfer scheme that uses a Delta-Eddington approach.
-“Inherent” optical properties (IOPs) for snow and sea ice, such as
+&#8220;Inherent&#8221; optical properties (IOPs) for snow and sea ice, such as
 extinction coefficient and single scattering albedo, are prescribed
 based on physical measurements; reflected, absorbed and transmitted
-shortwave radiation (“apparent” optical properties) are then computed
+shortwave radiation (&#8220;apparent&#8221; optical properties) are then computed
 for each snow and ice layer in a self-consistent manner. Absorptive
 effects of inclusions in the ice/snow matrix such as dust and algae can
 also be included, along with radiative treatment of melt ponds and other
@@ -2105,7 +2004,7 @@ available in this version of Icepack by setting the namelist parameter
 fresh and the thermodynamic calculations are much simpler than in the
 other configurations, which we describe here.</p>
 <p><strong>Bitz and Lipscomb thermodynamics</strong> (<code class="docutils literal"><span class="pre">ktherm</span></code> = 1)</p>
-<p>The “BL99” thermodynamic sea ice model is based on
+<p>The &#8220;BL99&#8221; thermodynamic sea ice model is based on
 <a class="reference internal" href="zreferences.html#mu71" id="id72">[38]</a> and <a class="reference internal" href="zreferences.html#bl99" id="id73">[7]</a>, and is
 described more fully in <a class="reference internal" href="zreferences.html#lipscomb98" id="id74">[30]</a>. The vertical
 salinity profile is prescribed and is unchanging in time. The snow is
@@ -2193,7 +2092,7 @@ not be a good description of the thermal conductivity of sea ice. In
 particular, the measured conductivity does not markedly decrease as
 <span class="math">\(T\)</span> approaches <span class="math">\(0^{\circ}C\)</span>, but does decrease near the top surface
 (regardless of temperature).</p>
-<p>An alternative parameterization based on the “bubbly brine” model of
+<p>An alternative parameterization based on the &#8220;bubbly brine&#8221; model of
 <a class="reference internal" href="zreferences.html#petb07" id="id82">[41]</a> for conductivity is available
 (<code class="docutils literal"><span class="pre">conduct</span></code> = ‘bubbly’):</p>
 <div class="math" id="equation-Pringle">
@@ -2407,7 +2306,7 @@ b &amp; = &amp; (c_w - c_0) \, T_m - \frac{q_i}{\rho_i} - L_0, \\
 c &amp; = &amp; L_0 T_m.\end{aligned}\end{split}\]</div>
 <p>The other root is unphysical.</p>
 <p><strong>Mushy thermodynamics</strong> (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2)</p>
-<p>The “mushy” thermodynamics option treats the sea ice as a mushy layer
+<p>The &#8220;mushy&#8221; thermodynamics option treats the sea ice as a mushy layer
 <a class="reference internal" href="zreferences.html#fuww06" id="id83">[13]</a> in which the ice is assumed to be composed
 of microscopic brine inclusions surrounded by a matrix of pure water
 ice. Both enthalpy and salinity are prognostic variables. The size of
@@ -3050,7 +2949,7 @@ but do not change the total amount of aerosol, thus causing the aerosol
 concentration (the value of the tracer itself) to increase: evaporation,
 snow deposition and basal ice growth. Basal and lateral melting remove
 all aerosols in the melted portion. Surface ice and snow melt leave a
-significant fraction of the aerosols behind, but they do “scavenge” a
+significant fraction of the aerosols behind, but they do &#8220;scavenge&#8221; a
 fraction of them given by the parameter kscav = [0.03, 0.2, 0.02, 0.02,
 0.01, 0.01] (only the first 3 are used in CESM, for their 3 aerosol
 species). Scavenging also applies to snow-ice formation. When sea ice
@@ -3258,7 +3157,7 @@ specific to ice diatoms.</p>
 <p>The complexity of the algal ecosystem must be specified in both
 <strong>comp_ice</strong> during the build and in the namelist, <strong>ice_in</strong>. The
 procedure is equivalent for both the skl-model and zbgc. The namelist
-specification is described in detail in section <a class="reference internal" href="#zbgc"><span class="std std-ref">Vertical “Z” BGC</span></a></p>
+specification is described in detail in section <a class="reference internal" href="#zbgc"><span class="std std-ref">Vertical &#8220;Z&#8221; BGC</span></a></p>
 <p>Biogeochemical upper ocean concentrations are initialized in the
 subroutine <strong>colpkg_init_ocean_conc</strong> in <strong>ice_colpkg.F90</strong> unless
 coupled to the ocean biogeochemistry. Silicate and nitrate may be read
@@ -3355,7 +3254,7 @@ prescription</p>
 section&nbsp;<a class="reference internal" href="#reactions"><span class="std std-ref">Reaction Terms</span></a>.</p>
 </div>
 <div class="section" id="vertical-z-bgc">
-<span id="zbgc"></span><h5>2.2.6.3.2. Vertical “Z” BGC<a class="headerlink" href="#vertical-z-bgc" title="Permalink to this headline">¶</a></h5>
+<span id="zbgc"></span><h5>2.2.6.3.2. Vertical &#8220;Z&#8221; BGC<a class="headerlink" href="#vertical-z-bgc" title="Permalink to this headline">¶</a></h5>
 <p>In order to solve for the vertically resolved biogeochemistry, several
 flags in <strong>ice_in</strong> must be true: a) tr_brine, b) z_tracers, and c)
 solve_zbgc.</p>
@@ -3377,7 +3276,7 @@ by tr_zaero true.</li>
 <p>In addition, a halodynamics scheme must also be on. The default
 thermo-halodynamics is mushy layer ktherm set to 2. An alternative uses
 the Bitz and Lipscomb thermodynamics ktherm set to 1 and solve_zsal
-true (referred to as “zsalinity”).</p>
+true (referred to as &#8220;zsalinity&#8221;).</p>
 <p>With the above flags true, the default biochemistry is a simple
 algal-nitrate system: tr_bgc_N and tr_bgc_Nit equal true. Options
 exist in ice_in to use a more complicated ecosystem which includes up
@@ -3741,7 +3640,7 @@ increase or decrease retention. Another option is to alter the minimum
 tau_min and maximum tau_max timescales which would impact all the
 z-tracers.</p>
 <p><a class="reference internal" href="#tab-phases"><span class="std std-ref">Table 3</span></a>: <em>Types of Mobile and Stationary Transitions</em></p>
-<table border="1" class="docutils" id="id125">
+<table border="1" class="colwidths-given docutils" id="id125">
 <span id="tab-phases"></span><caption><span class="caption-text">Table 3</span><a class="headerlink" href="#id125" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="18%" />
@@ -3811,7 +3710,7 @@ equations is used for the bottom layer model (when sk_bgc is true) and
 the multi-layer biogeochemical model (when z_tracers and solve_zbgc
 are true).</p>
 <p><a class="reference internal" href="#tab-bio-tracer"><span class="std std-ref">Table 4</span></a>: <em>Biogeochemical Tracers</em></p>
-<table border="1" class="docutils" id="id126">
+<table border="1" class="colwidths-given docutils" id="id126">
 <span id="tab-bio-tracer"></span><caption><span class="caption-text">Table 4</span><a class="headerlink" href="#id126" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="10%" />
@@ -4107,7 +4006,7 @@ T<span class="math">\(_{max} = 0^o\)</span>C).</p>
 \tilde{U}_{{\mbox{fed}}} &amp; = &amp; R_{fe:n}\mu' \end{aligned}\end{split}\]</div>
 <p>For nitrogen uptake, we assume that ammonium is preferentially acquired
 by algae. To determine the nitrogen uptake needed for each algal growth
-rate of <span class="math">\(\mu\)</span>, first determine the “potential” uptake rate of
+rate of <span class="math">\(\mu\)</span>, first determine the &#8220;potential&#8221; uptake rate of
 ammonium:</p>
 <div class="math">
 \[U'_{{\mbox{NH$_4$}}} = {\mbox{NH$_4$}}_{lim}\mu_o\]</div>
@@ -4150,7 +4049,7 @@ used in the reaction equations, their representation in the code, a
 short description of each and the default values. Please keep in mind
 that there has only been minimal tuning of the model.</p>
 <p><a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Table 5</span></a> :<em>Biogeochemical Reaction Parameters</em></p>
-<table border="1" class="docutils" id="id127">
+<table border="1" class="colwidths-given docutils" id="id127">
 <span id="tab-bio-tracers2"></span><caption><span class="caption-text">Table 5</span><a class="headerlink" href="#id127" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="11%" />
@@ -4411,7 +4310,7 @@ the variable or variables saved. Not listed are flags appended with
 _ai, i.e.&nbsp;f_fbio_ai. These fields are identical to their counterpart.
 i.e.&nbsp;f_fbio, except they are averaged by ice area.</p>
 <p><a class="reference internal" href="#tab-bio-history"><span class="std std-ref">Table 6</span></a> :<em>Biogeochemical History variables</em></p>
-<table border="1" class="docutils" id="id128">
+<table border="1" class="colwidths-given docutils" id="id128">
 <span id="tab-bio-history"></span><caption><span class="caption-text">Table 6</span><a class="headerlink" href="#id128" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="15%" />
@@ -4588,7 +4487,7 @@ i.e.&nbsp;f_fbio, except they are averaged by ice area.</p>
 <td>mmol m<span class="math">\(^{-2}\)</span></td>
 </tr>
 <tr class="row-even"><td>f_biosnow</td>
-<td>snow integrated tracer concentration”</td>
+<td>snow integrated tracer concentration&#8221;</td>
 <td>algalN_snow, algalC_snow,chl_snow, pFe<span class="math">\(^c\)</span>_snow, dFe<span class="math">\(^c\)</span>_snow,Sil_snow, Nit_snow, Am_snow, hum_snow, PON_snow, DMS_snow, DMSPd_snow, DMSPp_snow, DOC_snow, zaero_snow, DON_snow</td>
 <td>mmol m<span class="math">\(^{-2}\)</span></td>
 </tr>
@@ -4624,7 +4523,7 @@ i.e.&nbsp;f_fbio, except they are averaged by ice area.</p>
 <span id="tracer-numerics"></span><h4>2.2.6.6. Flux-Corrected, Positive Definite Transport Scheme<a class="headerlink" href="#flux-corrected-positive-definite-transport-scheme" title="Permalink to this headline">¶</a></h4>
 <p>Numerical solution of the vertical tracer transport equation is
 accomplished using the finite element Galerkin discretization. Multiply
-[eqn:mobile_transport] by “w” and integrate by parts</p>
+[eqn:mobile_transport] by &#8220;w&#8221; and integrate by parts</p>
 <div class="math">
 \[\begin{split}\begin{aligned}
 &amp; &amp; \int_{h}\left[ w\frac{\partial C}{\partial t} -   \frac{\partial
@@ -4924,6 +4823,105 @@ f_{ij} &amp; = &amp; m_{ij}\left[\frac{\Delta c_i}{\Delta t} - \frac{\Delta
           </div>
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">2. Science Guide</a><ul>
+<li><a class="reference internal" href="#coupling-with-host-models">2.1. Coupling with host models</a><ul>
+<li><a class="reference internal" href="#the-column-physics-code-interface">2.1.1. The column physics code interface</a></li>
+<li><a class="reference internal" href="#atmosphere-and-ocean-boundary-forcing">2.1.2. Atmosphere and ocean boundary forcing</a><ul>
+<li><a class="reference internal" href="#atmosphere">2.1.2.1. Atmosphere</a></li>
+<li><a class="reference internal" href="#ocean">2.1.2.2. Ocean</a></li>
+<li><a class="reference internal" href="#variable-exchange-coefficients">2.1.2.3. Variable exchange coefficients</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#model-components">2.2. Model components</a><ul>
+<li><a class="reference internal" href="#tracers">2.2.1. Tracers</a><ul>
+<li><a class="reference internal" href="#tracers-that-depend-on-other-tracers">2.2.1.1. Tracers that depend on other tracers</a></li>
+<li><a class="reference internal" href="#ice-age">2.2.1.2. Ice age</a></li>
+<li><a class="reference internal" href="#brine-height">2.2.1.3. Brine height</a></li>
+<li><a class="reference internal" href="#biogeochemistry">2.2.1.4. Biogeochemistry</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#transport-in-thickness-space">2.2.2. Transport in thickness space</a></li>
+<li><a class="reference internal" href="#mechanical-redistribution">2.2.3. Mechanical redistribution</a></li>
+<li><a class="reference internal" href="#thermodynamics">2.2.4. Thermodynamics</a><ul>
+<li><a class="reference internal" href="#melt-ponds">2.2.4.1. Melt ponds</a></li>
+<li><a class="reference internal" href="#thermodynamic-surface-forcing-balance">2.2.4.2. Thermodynamic surface forcing balance</a></li>
+<li><a class="reference internal" href="#new-temperatures">2.2.4.3. New temperatures</a></li>
+<li><a class="reference internal" href="#growth-and-melting">2.2.4.4. Growth and melting</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#biogeochemistry-ech">2.2.5. Biogeochemistry - ECH</a><ul>
+<li><a class="reference internal" href="#bottom-layer">2.2.5.1. Bottom layer</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#biogeochemistry-nj">2.2.6. Biogeochemistry - NJ</a><ul>
+<li><a class="reference internal" href="#aerosols">2.2.6.1. Aerosols</a><ul>
+<li><a class="reference internal" href="#default-aerosols">2.2.6.1.1. Default Aerosols</a></li>
+<li><a class="reference internal" href="#z-aerosols">2.2.6.1.2. Z-Aerosols</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#brine-height-tracer">2.2.6.2. Brine height tracer</a></li>
+<li><a class="reference internal" href="#sea-ice-biogeochemistry">2.2.6.3. Sea Ice Biogeochemistry</a><ul>
+<li><a class="reference internal" href="#skeletal-layer-bgc">2.2.6.3.1. Skeletal Layer BGC</a></li>
+<li><a class="reference internal" href="#vertical-z-bgc">2.2.6.3.2. Vertical &#8220;Z&#8221; BGC</a><ul>
+<li><a class="reference internal" href="#bio-grid">2.2.6.3.2.1. Bio grid</a></li>
+<li><a class="reference internal" href="#transport-along-the-interface-bio-grid">2.2.6.3.2.2. Transport along the interface bio grid</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#splitting-tracers-zbgc-type">2.2.6.4. Splitting tracers: zbgc_type</a><ul>
+<li><a class="reference internal" href="#mobile-and-stationary-phases-in-code">2.2.6.4.1. Mobile and Stationary Phases in code</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reaction-terms">2.2.6.5. Reaction Terms</a><ul>
+<li><a class="reference internal" href="#the-reaction-equations">2.2.6.5.1. The Reaction Equations</a><ul>
+<li><a class="reference internal" href="#algal-growth-and-nutrient-uptake">2.2.6.5.1.1. Algal Growth and Nutrient Uptake</a></li>
+<li><a class="reference internal" href="#bgc-tuning-parameters">2.2.6.5.1.2. BGC Tuning Parameters</a></li>
+<li><a class="reference internal" href="#biogeochemistry-history-fields">2.2.6.5.1.3. Biogeochemistry History Fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#flux-corrected-positive-definite-transport-scheme">2.2.6.6. Flux-Corrected, Positive Definite Transport Scheme</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="icepack_1_introduction.html"
+                        title="previous chapter">1. Introduction - Icepack</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="icepack_3_user_guide.html"
+                        title="next chapter">3. User Guide</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/icepack_2_science_guide.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="clearer"></div>
     </div>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -4940,7 +4938,7 @@ f_{ij} &amp; = &amp; m_{ij}\left[\frac{\Delta c_i}{\Delta t} - \frac{\Delta
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
     </div>
   </body>
 </html>
