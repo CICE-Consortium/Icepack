@@ -173,6 +173,7 @@ stable and unstable atmosphere–ice boundary layers. Define the
    \Upsilon = {\kappa g z_\circ\over u^{*2}}
    \left({\Theta^*\over\Theta_a\left(1+0.606Q_a\right)}  +
    {Q^*\over 1/0.606 + Q_a}\right),
+   :label: upsilon
 
 where :math:`\kappa` is the von Karman constant, :math:`g` is
 gravitational acceleration, and :math:`u^*`, :math:`\Theta^*` and
@@ -181,8 +182,8 @@ respectively:
 
 .. math::
    \begin{aligned}
-   u^*&=&c_u \left|\vec{U}_a\right| \\
-   \Theta^*&=& c_\theta\left(\Theta_a-T_{sfc}\right) \\
+   u^*&=&c_u \left|\vec{U}_a\right|, \\
+   \Theta^*&=& c_\theta\left(\Theta_a-T_{sfc}\right), \\
    Q^*&=&c_q\left(Q_a-Q_{sfc}\right).\end{aligned}
    :label: stars
 
@@ -197,6 +198,7 @@ Neglecting form drag,the exchange coefficients :math:`c_u`,
 
 .. math:: 
    \kappa\over \ln(z_{ref}/z_{ice})
+   :label: kappa
 
 and updated during a short iteration, as they depend upon the turbulent
 scales. The number of iterations is set by the namelist variable
@@ -215,6 +217,7 @@ unstable (:math:`\Upsilon <0`) case are given by
             \ln\left[0.5(1+\chi^2)\right] -2\tan^{-1}\chi +
             {\pi\over 2}, \\
    \psi_s = &\mbox{}&2\ln\left[0.5(1+\chi^2)\right].\end{aligned}
+   :label: psi1
 
 In a departure from the parameterization used in
 :cite:`KL02`, we use profiles for the stable case
@@ -223,6 +226,7 @@ following :cite:`JAM99`,
 .. math::
    \psi_m = \psi_s = -\left[0.7\Upsilon + 0.75\left(\Upsilon-14.3\right)
             \exp\left(-0.35\Upsilon\right) + 10.7\right].
+   :label: psi2
 
 The coefficients are then updated as
 
@@ -231,6 +235,7 @@ The coefficients are then updated as
    c_u^\prime&=&{c_u\over 1+c_u\left(\lambda-\psi_m\right)/\kappa} \\
    c_\theta^\prime&=& {c_\theta\over 1+c_\theta\left(\lambda-\psi_s\right)/\kappa}\\
    c_q^\prime&=&c_\theta^\prime\end{aligned}
+   :label: coeff1
 
 where :math:`\lambda = \ln\left(z_\circ/z_{ref}\right)`. The
 first iteration ends with new turbulent scales from
@@ -239,10 +244,10 @@ heat flux coefficients are computed, along with the wind stress:
 
 .. math::
    \begin{aligned}
-   \nonumber
    C_l&=&\rho_a \left(L_{vap}+L_{ice}\right) u^* c_q \\
    C_s&=&\rho_a c_p u^* c_\theta^* + 1, \\
    \vec{\tau}_a&=&{\rho_a u^{*2}\vec{U}_a\over |\vec{U}_a|},\end{aligned}
+   :label: coeff2
 
 where :math:`L_{vap}` and :math:`L_{ice}` are
 latent heats of vaporization and fusion, :math:`\rho_a` is the density
@@ -637,6 +642,7 @@ tracer-on-tracer dependencies such as :math:`h_{pnd}`, when needed:
 
 .. math:: 
    h_{pnd}^{t+\Delta t}= {h_{pnd}^{t}a_{pnd}^{t}a_{i}^{t} \over a_{pnd}^{t+\Delta t}a_{i}^{t+\Delta t} }.
+   :label: hpnd
 
 In this case (adding new ice), :math:`h_{pnd}` does not change because
 :math:`a_{pnd}^{t+\Delta t}a_{i}^{t+\Delta t} = a_{pnd}^{t}a_{i}^{t}`.
@@ -646,14 +652,14 @@ the total pond area summed over categories :math:`n`,
 
 .. math:: 
    \sum_n a_{pnd}^{t+\Delta t}(n)a_{i}^{t+\Delta t}(n) = \sum_n a_{pnd}^{t}(n)a_{i}^{t}(n).
+   :label: apnd2
 
 Thus,
 
 .. math::
-   \begin{aligned}
-   \label{eq:xfer}
-   a_{pnd}^{t+\Delta t}(m)&=& {\sum_n a_{pnd}^{t}(n)a_{i}^{t}(n) - \sum_{n\ne m} a_{pnd}^{t+\Delta t}(n)a_{i}^{t+\Delta t}(n) \over a_i^{t+\Delta t}(m)  } \\
-   = {a_{pnd}^t(m)a_i^t(m) + \sum_{n\ne m} \Delta \left(a_{pnd}a_i\right)^{t+\Delta t} \over a_i^{t+\Delta t}(m)  }\end{aligned}
+   a_{pnd}^{t+\Delta t}(m) &= {\sum_n a_{pnd}^{t}(n)a_{i}^{t}(n) - \sum_{n\ne m} a_{pnd}^{t+\Delta t}(n)a_{i}^{t+\Delta t}(n) \over a_i^{t+\Delta t}(m)  } \\
+   &= {a_{pnd}^t(m)a_i^t(m) + \sum_{n\ne m} \Delta \left(a_{pnd}a_i\right)^{t+\Delta t} \over a_i^{t+\Delta t}(m)  }
+   :label: apnd3
 
 This is more complicated because of the :math:`\Delta` term on the
 right-hand side, which is handled in subroutine *icepack\_compute\_tracers*. Such
@@ -737,7 +743,7 @@ t` is a two step process. First, :math:`h_b` is updated from changes in
 ice and snow thickness, ie.
 
 .. math::
-   h_b'  =  h_b(t) + \Delta h_b|_{h_i,h_s} .
+   h_b'  =  h_b(t) + \Delta h_b|_{h_i,h_s}.
    :label: hb-thickness-changes
 
 Second, pressure driven adjustments arising from meltwater flushing and
@@ -746,7 +752,7 @@ forces are governed by Darcy’s equation
 
 .. math::
    w =  -\frac{\Pi^* \bar{\rho} g}{\mu}\frac{h_p}{h_i}.
-   :label: Darcy
+   :label: Darcy1
 
 The vertical component of the net permeability tensor :math:`\Pi^*` is
 computed as
@@ -754,7 +760,7 @@ computed as
 .. math::
    \Pi^*  =  \left(\frac{1}{h}\sum_{i=1}^N{\frac{\Delta
          z_i}{\Pi_i}}\right)^{-1}
-   :label: netPi
+   :label: netPi1
 
 where the sea ice is composed of :math:`N` vertical layers with
 :math:`i`\ th layer thickness :math:`\Delta z_i` and permeability
@@ -765,6 +771,7 @@ given by
 
 .. math:: 
    h_{sl}  =  \frac{\bar{\rho}}{\rho_w}h_i + \frac{\rho_s}{\rho_w}h_s.
+   :label: hsl
 
 Assuming constant :math:`h_i` and :math:`h_s` during Darcy flow, the
 rate of change of :math:`h_b` is
@@ -800,9 +807,10 @@ ice surface is melting, ie. :math:`(\Delta h_i)_{top} <
 
 .. math::
    \left(\Delta h_b\right)_{top}  =   \frac{\rho_i}{\rho_o} \cdot \left\{ \begin{array}{ll}
-    -(\Delta h_i)_{top} &  \mbox{if }
-    |(\Delta h_i)_{top}| < h_i-h_b  \\
-    h_i-h_b & \mbox{otherwise.}   \end{array} \right.
+   -(\Delta h_i)_{top} &  \mbox{if }
+   |(\Delta h_i)_{top}| < h_i-h_b  \\
+   h_i-h_b & \mbox{otherwise.}   \end{array} \right.
+   :label: delta-hb
 
 For snow melt (:math:`\Delta h_s < 0`), it is assumed that all snow
 melt water contributes a source of surface brine. The total change from
@@ -819,7 +827,7 @@ The above brine height calculation is used only when :math:`h_i` and
 
 .. math::
    h_b(t+\Delta t)  =  h_b(t) + \Delta h_i
-   :label: thinbrine
+   :label: thinbrine1
 
 provided that :math:`|h_{sl}-h_b| \leq 0.001`. This formulation ensures
 small Darcy velocities when :math:`h_b` first exceeds ``thinS``.
@@ -829,11 +837,13 @@ height :math:`h_b` are available for output.
 
 .. math:: 
    {{\sum f_{bri} v_i} \over {\sum v_i}},
+   :label: volume-frac
 
 while ``hbri`` is comparable to hi (:math:`h_i`)
 
 .. math:: 
    {{\sum f_{bri} h_i a_i} \over {\sum a_i}},
+   :label: volume-frac2
 
 where the sums are taken over thickness categories.
 
@@ -904,6 +914,7 @@ estimate the growth rate :math:`F_n` at the upper category boundary
 
 .. math:: 
    F_n = f_n + \frac{f_{n+1}-f_n}{h_{n+1}-h_n} \, (H_n - h_n).
+   :label: growth-rate
 
 If :math:`a_n` or :math:`a_{n+1} = 0`, :math:`F_n` is set to the growth
 rate in the nonzero category, and if :math:`a_n = a_{n+1} = 0`, we set
@@ -911,6 +922,7 @@ rate in the nonzero category, and if :math:`a_n = a_{n+1} = 0`, we set
 
 .. math:: 
    H_n^* = H_n + F_n \, \Delta t, \ n = 1 \ {\rm to} \ N-1
+   :label: displ
 
 The boundaries must not be displaced by more than one category to the
 left or right; that is, we require :math:`H_{n-1} < H_n^* < H_{n+1}`.
@@ -943,9 +955,11 @@ Equations :eq:`area-cons` and :eq:`volume-cons` can be written as
 
 .. math:: 
    g_1 \frac{\eta_R^2}{2} + g_0 \eta_R = a_n,
+  :label: g1
 
 .. math:: 
    g_1 \frac{\eta_R^3}{3} + g_0 \frac{\eta_R^2}{2} = a_n \eta_n,
+   :label: g1a
 
 where :math:`\eta_R = H_R - H_L` and :math:`\eta_n = h_n - H_L`. These
 equations have the solution
@@ -956,7 +970,7 @@ equations have the solution
 
 .. math::
    g_1 = \frac{12 a_n}{\eta_R^3} \left(\eta_n - \frac{\eta_R}{2}\right).
-   :label: g1
+   :label: g1b
 
 Since :math:`g` is linear, its maximum and minimum values lie at the
 boundaries, :math:`\eta = 0` and :math:`\eta_R`:
@@ -1054,6 +1068,7 @@ of new open water is
 
 .. math:: 
    \Delta a_0 = \int_{0}^{\Delta h_0} g \, dh.
+   :label: a0
 
 The right boundary :math:`H_N` is not fixed but varies with
 :math:`h_N`, the mean ice thickness in the thickest category. Given
@@ -1310,6 +1325,7 @@ They are simply related:
    \begin{aligned}
    a_{lvl} + a_{rdg} &=& a_i, \\
    v_{lvl} + v_{rdg} &=& v_i.\end{aligned}
+   :label: alvl
 
 Level ice area fraction and volume increase with new ice formation and
 decrease steadily via ridging processes. Without the formation of new
@@ -1434,11 +1450,13 @@ be added to the melt pond liquid volume:
 
 .. math:: 
    \Delta V_{melt} = {r\over\rho_w} \left({\rho_{i}}\Delta h_{i} + {\rho_{s}}\Delta h_{s} + F_{rain}{\Delta t}\right) a_i,
+   :label: meltvol
 
 where
 
 .. math:: 
    r = r_{min} + \left(r_{max} - r_{min}\right) a_i
+   :label: melt-retention
 
 is the fraction of the total melt water available that is added to the
 ponds, :math:`\rho_i` and :math:`\rho_s` are ice and snow densities,
@@ -1472,8 +1490,9 @@ water, and shrinks when the ice surface temperature becomes cold,
 
 .. math::
    \begin{aligned}
-   {\rm pond \ growth:\ } \ V_{p}^\prime &=& V_{p}(t) +\Delta V_{melt} , \\
-   {\rm pond \ contraction:\ } \ V_{p}(t+\Delta t) &=& V_{p}^\prime\exp\left[r_2\left( {\max\left(T_p-T_{sfc}, 0\right) \over T_p}\right)\right], \end{aligned}
+   {\rm pond \ growth:\ } \ V_{p}^\prime &= V_{p}(t) +\Delta V_{melt} , \\
+   {\rm pond \ contraction:\ } \ V_{p}(t+\Delta t) &= V_{p}^\prime\exp\left[r_2\left( {\max\left(T_p-T_{sfc}, 0\right) \over T_p}\right)\right], \end{aligned}
+   :label: meltpond-cesm
 
 where :math:`dh_{i}` and :math:`dh_{s}` represent ice and snow melt at
 the top surface of each thickness category and :math:`r_2=0.01`. Here,
@@ -1617,8 +1636,8 @@ ice class :math:`k + 1`,
 .. math::
    \begin{aligned}
    V_{P} - V_{Pk} & = & h_{par} \left( \sum^k_{m=1} a_{ik} + a_{i,k+1}(1-a_{s,k+1}) \right) 
-      + a_{i,k+1} a_{s,k+1} V_{sw} h_{s,k+1} 
-   & & + a_{i,k+1} a_{s,k+1} (h_{par}-h_{s,k+1}) 
+      + a_{i,k+1} a_{s,k+1} V_{sw} h_{s,k+1} \\ 
+   & + & a_{i,k+1} a_{s,k+1} (h_{par}-h_{s,k+1})
    & & {\rm for} \hspace{3mm} h_{par} > h_{s,k+1}.\end{aligned}
    :label: topo-satsnow2
 
@@ -1845,6 +1864,7 @@ where
 
 .. math:: 
    \beta = {2 k_i \Delta T \over \rho_i L} .
+   :label: beta
 
 When :math:`\Delta V_{melt}>0`, any existing pond ice may also melt. In
 this case,
@@ -1860,6 +1880,7 @@ of pond ice is
 
 .. math::
    \Delta V_{frz} = -\Delta h_i a_{pnd} a_{lvl} a_i {\rho_i/\rho_0},
+   :label: vfrz
 
 where :math:`\rho_0` is the density of fresh water.
 
@@ -1886,6 +1907,7 @@ its own parameter :math:`h_{s1}`:
 
 .. math:: 
    a_{pnd}^{eff} = \left(1 - \min\left(h_{ps}/h_{s1}, 1\right)\right) a_{pnd} a_{lvl}.
+   :label: apndeff
 
 If any of the pond ice melts, the radiative flux allowed to pass through
 the ice is reduced by the (roughly) equivalent flux required to melt
@@ -1895,6 +1917,7 @@ Equation :eq:`ipndmelt`)
 
 .. math:: 
    f_{frac} = \min\left(-{\rho_i L\Delta h_i\over F_\circ \Delta t}, 1 \right) .
+   :label: snowinf
 
 *Snow infiltration by pond water.* If there is snow on top of the sea
 ice, melt water may infiltrate the snow. It is a "virtual process" that
@@ -1909,6 +1932,7 @@ content
 
 .. math:: 
    r_p = {V_p\over V_p + V_s \rho_s / \rho_0} < 0.15,
+   :label: snowinf2
 
 then effectively there are no meltponds present, that is,
 :math:`a_{pnd}^{eff}=h_{pnd}^{eff}=0`. Otherwise, we
@@ -1924,6 +1948,7 @@ water is
 
 .. math:: 
    V_{mx}=h_{mx}a_{p} = {\left(\rho_0-\rho_s\over \rho_0\right)}h_s a_{p},
+   :label: volmelt
 
 and we compare :math:`V_p` with :math:`V_{mx}`.
 
@@ -1934,6 +1959,7 @@ terms of depths,
 
 .. math:: 
    h_p^{eff} = {\left(\rho_0  \over \rho_0 - \rho_s\right)}h_{pnd}.
+   :label: hpndeff
 
 The liquid water under the snow layer is not visible and therefore the
 ponds themselves have no direct impact on the radiation
@@ -1942,6 +1968,7 @@ effective snow thickness used for the radiation scheme is reduced to
 
 .. math:: 
    h_s^{eff} = h_s - h_p^{eff}a_p = h_s - {\rho_0 \over \rho_0 - \rho_s}h_{pnd} a_p.
+   :label: hseff
 
 Here, the factor :math:`a_p=a_{pnd}a_{lvl}` averages the reduced snow
 depth over the ponds with the full snow depth over the remainder of the
@@ -1952,6 +1979,7 @@ liquid is :math:`\rho_0 V_p + \rho_s V_s = \rho_0 V_p^{eff},` or
 
 .. math:: 
    h_p^{eff} = {\rho_0 h_{pnd} + \rho_s h_{s} \over \rho_0}.
+   :label: hpeff
 
 Thus the effective depth of the pond is the depth of the whole slush
 layer :math:`h_p^{eff}`. In this case,
@@ -1971,6 +1999,7 @@ Principle written in terms of the draft :math:`d`,
 
 .. math:: 
    \rho_i h_i + \rho_s h_s + \rho_0 h_p = \rho_w d \le \rho_w h_i.
+   :label: freeboard
 
 There is a separate freeboard calculation in the thermodynamics which
 considers only the ice and snow and converts flooded snow to sea ice.
@@ -1995,6 +2024,7 @@ given by
 
 .. math:: 
    \Delta V_{perm} = -a_{pnd} \min\left(h_{pnd}, {p P d_p \Delta t \over \mu h_i}\right),
+   :label: vperm
 
 where :math:`d_p` is a scaling factor (dpscale), and
 :math:`\mu=1.79\times 10^{-3}` kg m :math:`^{-1}` s :math:`^{-1}` is the
@@ -2019,6 +2049,7 @@ same mean pond area in a grid cell after the addition of new ice,
 
 .. math:: 
    a_{pnd}^\prime (a_{lvl}+\Delta a_{lvl}) (a_i+\Delta a_i)   = a_{pnd} a_{lvl} a_i,
+   :label: apndprime
 
 and solving for the new pond area tracer :math:`a_{pnd}^\prime` given
 the newly formed ice area :math:`\Delta a_i = \Delta a_{lvl}`.
@@ -2034,6 +2065,7 @@ fluxes defined as positive downward) is
 .. math::
    F_0 = F_s + F_l + F_{L\downarrow} + F_{L\uparrow} +
             (1-\alpha) (1-i_0) F_{sw},
+   :label: f0
 
 where :math:`F_s` is the sensible heat flux, :math:`F_l` is the latent
 heat flux, :math:`F_{L\downarrow}` is the incoming longwave flux,
@@ -2100,6 +2132,7 @@ albedos, where the fractional snow-covered area is
 
 .. math:: 
    f_{snow} = \frac{h_s}{h_s + h_{snowpatch}},
+   :label: snowfrac
 
 and :math:`h_{snowpatch} = 0.02 \ {\mathrm m}`. The envelope
 of albedo values is shown in :ref:`fig-albedo`. This albedo
@@ -2159,6 +2192,7 @@ surface temperature of the snow or snow-free ice,
 
 .. math:: 
    F_s = C_s \left(\Theta_a - T_{sf}^K\right).
+   :label: flux1
 
 :math:`C_s` and :math:`C_l` (below) are nonlinear turbulent heat
 transfer coefficients described in the :ref:`atmo` section. Similarly,
@@ -3339,12 +3373,12 @@ concentration according to
 .. math::
    w_b \frac{\Delta N_a}{\Delta z} = \frac{N_oh_{sk}/\phi_{sk} -
      N_a}{\Delta t}
-   :label: seed
+   :label: seed1
 
 The ‘constant’ formulation uses a fixed piston velocity (PVc) for
 positive ice growth rates for all tracers except :math:`N_a`. As in
 ‘Jin2006’, congelation ice growth seeds the sea ice algal population
-according to Equation :eq:`seed` when :math:`N_a < N_o
+according to Equation :eq:`seed1` when :math:`N_a < N_o
 h_{sk}/\phi_{sk}`. For bottom ice melt, all tracers follow the
 prescription
 
@@ -3524,7 +3558,7 @@ forces are governed by Darcy’s equation (see CICE.v5 documentation)
 
 .. math::
    w = -\frac{\Pi^* \bar{\rho} g}{\mu}\frac{h_p}{h_i}.
-   :label: Darcy
+   :label: Darcy2
 
 The vertical component of the net permeability tensor :math:`\Pi^*` is
 computed as
@@ -3532,7 +3566,7 @@ computed as
 .. math::
    \Pi^* = \left(\frac{1}{h}\sum_{i=1}^N{\frac{\Delta
          z_i}{\Pi_i}}\right)^{-1}
-   :label: netPi
+   :label: netPi2
 
 where the sea ice is composed of :math:`N` vertical layers with
 :math:`i`\ th layer thickness :math:`\Delta z_i` and permeability
@@ -3599,7 +3633,7 @@ The above brine height calculation is used only when :math:`h_i` and
 
 .. math::
    h_b(t+\Delta t) = h_b(t) + \Delta h_i
-   :label: thinbrine
+   :label: thinbrine2
 
 provided that :math:`|h_{sl}-h_b| \leq 0.001`. This formulation ensures
 small Darcy velocities when :math:`h_b` first exceeds thinS.
@@ -3757,12 +3791,12 @@ concentration according to
    \begin{aligned}
    w_b \frac{\Delta N_a}{\Delta z} = \frac{N_oh_{sk}/\phi_{sk} -
      N_a}{\Delta t}\end{aligned}
-   :label: seed
+   :label: seed2
 
 The ‘constant’ formulation uses a fixed piston velocity (PVc) for
 positive ice growth rates for all tracers except :math:`N_a`. As in
 ‘Jin2006’, congelation ice growth seeds the sea ice algal population
-according to :eq:`seed` when :math:`N_a < N_o
+according to :eq:`seed2` when :math:`N_a < N_o
 h_{sk}/\phi_{sk}`. For bottom ice melt, all tracers follow the
 prescription
 
