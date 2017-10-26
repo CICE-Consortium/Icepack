@@ -63,8 +63,6 @@
 
       character(len=char_len_long) :: filename
 
-      character (len=3) :: nchar
-
       ! construct path/file
       iyear = nyr + year_init - 1
       imonth = month
@@ -109,30 +107,20 @@
       call write_restart_field_cn(nu_dump,aicen(:,:),ncat)
       call write_restart_field_cn(nu_dump,vicen(:,:),ncat)
       call write_restart_field_cn(nu_dump,vsnon(:,:),ncat)
-!this is surface temperature
       call write_restart_field_cn(nu_dump,trcrn(:,nt_Tsfc,:),ncat)
-!this is ice salinity in each nilyr
       do k=1,nilyr
-         write(nchar,'(i3.3)') k
          call write_restart_field_cn(nu_dump,trcrn(:,nt_sice+k-1,:),ncat)
       enddo
-!this is ice enthalpy in each nilyr
       do k=1,nilyr
-         write(nchar,'(i3.3)') k
          call write_restart_field_cn(nu_dump,trcrn(:,nt_qice+k-1,:),ncat)
       enddo
-!this is snow enthalpy in each nslyr
       do k=1,nslyr
-         write(nchar,'(i3.3)') k
          call write_restart_field_cn(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
 
       !-----------------------------------------------------------------
       ! radiation fields
       !-----------------------------------------------------------------
-#ifdef CCSMCOUPLED
-      call write_restart_field_cn(nu_dump,coszen,1)
-#endif
       call write_restart_field_cn(nu_dump,scale_factor,1)
       call write_restart_field_cn(nu_dump,swvdr,1)
       call write_restart_field_cn(nu_dump,swvdf,1)
@@ -143,8 +131,8 @@
       ! for mixed layer model
       !-----------------------------------------------------------------
       if (oceanmixed_ice) then
-!         call write_restart_field(nu_dump,0,sst,'ruf8','sst',1,diag)
-!         call write_restart_field(nu_dump,0,frzmlt,'ruf8','frzmlt',1,diag)
+         call write_restart_field_cn(nu_dump,sst,1)
+         call write_restart_field_cn(nu_dump,frzmlt,1)
       endif
 
       ! tracers
@@ -212,8 +200,6 @@
       character(len=char_len_long) :: &
          filename, filename0
 
-      character (len=3) :: nchar
-
       if (present(ice_ic)) then 
          filename = trim(ice_ic)
       else
@@ -236,7 +222,7 @@
       ! Tsfc is the only tracer read in this file.  All other
       ! tracers are in their own dump/restart files.
       !-----------------------------------------------------------------
-      write(nu_diag,*) ' min/max area, vol ice, vol snow, Tsfc'
+      write(nu_diag,*) 'min/max area, vol ice, vol snow, Tsfc'
 
       call read_restart_field_cn(nu_restart,aicen,ncat)
       call read_restart_field_cn(nu_restart,vicen,ncat)
@@ -245,19 +231,16 @@
 
       write(nu_diag,*) 'min/max sice for each layer'
       do k=1,nilyr
-        write(nchar,'(i3.3)') k
         call read_restart_field_cn(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
       enddo
       
       write(nu_diag,*) 'min/max qice for each layer'
       do k=1,nilyr
-        write(nchar,'(i3.3)') k
         call read_restart_field_cn(nu_restart,trcrn(:,nt_qice+k-1,:),ncat)
       enddo
       
       write(nu_diag,*) 'min/max qsno for each layer'
       do k=1,nslyr
-        write(nchar,'(i3.3)') k
         call read_restart_field_cn(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
 
@@ -265,12 +248,8 @@
       ! radiation fields
       !-----------------------------------------------------------------
 
-      write(nu_diag,*) 'radiation fields'
+      write(nu_diag,*) 'min/max radiation fields'
 
-#ifdef CCSMCOUPLED
-      call read_restart_field_cn(nu_restart,0,coszen,'ruf8', &
-           'coszen',1,diag)
-#endif
       call read_restart_field_cn(nu_restart,scale_factor,1)
       call read_restart_field_cn(nu_restart,swvdr,1)
       call read_restart_field_cn(nu_restart,swvdf,1)
@@ -282,13 +261,9 @@
       !-----------------------------------------------------------------
 
       if (oceanmixed_ice) then
-
-        !write(nu_diag,*) 'min/max sst, frzmlt'
-
-        !call read_restart_field(nu_restart,0,sst,'ruf8', &
-        !    'sst',1,diag)
-        !call read_restart_field(nu_restart,0,frzmlt,'ruf8', &
-        !    'frzmlt',1,diag)
+        write(nu_diag,*) 'min/max sst, frzmlt'
+        call read_restart_field_cn(nu_restart,sst,1)
+        call read_restart_field_cn(nu_restart,frzmlt,1)
       endif
 
       ! tracers
@@ -787,12 +762,10 @@
       integer (kind=int_kind) :: &
          k                    ! loop indices
 
-      character (len=3)       :: nchar
     
       write(nu_diag,*) 'write_restart_aero (aerosols)'
 
       do k = 1, n_aero
-       write(nchar,'(i3.3)') k
        call write_restart_field_cn(nu_dump, &
             trcrn(:,nt_aero  +(k-1)*4,:), &
             ncat)
@@ -829,14 +802,11 @@
       integer (kind=int_kind) :: &
          k                    ! loop indices
 
-      character (len=3)       :: nchar
-
       !-----------------------------------------------------------------
 
       write(nu_diag,*) 'read_restart_aero (aerosols)'
 
       do k = 1, n_aero
-       write(nchar,'(i3.3)') k
        call read_restart_field_cn(nu_restart, trcrn(:,nt_aero  +(k-1)*4,:), ncat)
        call read_restart_field_cn(nu_restart, trcrn(:,nt_aero+1+(k-1)*4,:), ncat)
        call read_restart_field_cn(nu_restart, trcrn(:,nt_aero+2+(k-1)*4,:), ncat)
