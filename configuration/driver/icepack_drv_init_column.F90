@@ -993,8 +993,7 @@
       endif
 
       if ((skl_bgc .AND. solve_zbgc) .or. (skl_bgc .AND. z_tracers)) then
-              print*, 'error:skl_bgc &
-              and solve_zbgc or z_tracers are both true'
+         print*, 'ERROR: skl_bgc and (solve_zbgc or z_tracers) are both true'
          stop
       endif
 

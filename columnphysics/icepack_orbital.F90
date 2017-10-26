@@ -50,7 +50,7 @@
       character (len=*), intent(out) :: stop_label
 
       l_stop = .false.      ! initialized for CCSMCOUPLED
-      stop_label = ''       ! initialized for CCSMCOUPLED
+      stop_label = ' '      ! initialized for CCSMCOUPLED
       iyear_AD  = 1950
       log_print = .false.   ! if true, write out orbital parameters
 
@@ -141,8 +141,8 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
 !-------------------------------------------------------------------------------
 !
 ! Calculate earths orbital parameters using Dave Threshers formula which 
-! came from Berger, Andre.  1978  "A Simple Algorithm to Compute Long-Term 
-! Variations of Daily Insolation".  Contribution 18, Institute of Astronomy 
+! came from Berger, Andre.  1978  A Simple Algorithm to Compute Long-Term 
+! Variations of Daily Insolation.  Contribution 18, Institute of Astronomy 
 ! and Geophysics, Universite Catholique de Louvain, Louvain-la-Neuve, Belgium
 !
 !------------------------------Code history-------------------------------------
