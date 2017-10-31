@@ -746,7 +746,7 @@ forces are governed by Darcy’s equation
 
 .. math::
    w =  -\frac{\Pi^* \bar{\rho} g}{\mu}\frac{h_p}{h_i}.
-   :label: Darcy
+   :label: Darcy1
 
 The vertical component of the net permeability tensor :math:`\Pi^*` is
 computed as
@@ -754,7 +754,7 @@ computed as
 .. math::
    \Pi^*  =  \left(\frac{1}{h}\sum_{i=1}^N{\frac{\Delta
          z_i}{\Pi_i}}\right)^{-1}
-   :label: netPi
+   :label: netPi1
 
 where the sea ice is composed of :math:`N` vertical layers with
 :math:`i`\ th layer thickness :math:`\Delta z_i` and permeability
@@ -819,7 +819,7 @@ The above brine height calculation is used only when :math:`h_i` and
 
 .. math::
    h_b(t+\Delta t)  =  h_b(t) + \Delta h_i
-   :label: thinbrine
+   :label: thinbrine1
 
 provided that :math:`|h_{sl}-h_b| \leq 0.001`. This formulation ensures
 small Darcy velocities when :math:`h_b` first exceeds ``thinS``.
@@ -1358,7 +1358,7 @@ the ridge potential energy is modified:
 .. math::
    P = C_f \, C_p \, \beta \sum_{n=1}^{N_C}
      \left[ -a_{Pn} \, h_n^2  + \frac{a_{Pn}}{k_n}
-        \left( H_{\min}^2 + 2H_{\min}\lambda + 2 \lambda^2 \right) \right]  % CHECK BRACES
+        \left( H_{\min}^2 + 2H_{\min}\lambda + 2 \lambda^2 \right) \right]
    :label: roth-strength1
 
 The energy-based ice strength given by Equations :eq:`roth-strength0` or
@@ -2618,7 +2618,7 @@ to the temperature, :math:`T`, and the brine volume, :math:`\phi`, by
    \begin{aligned}
    q =& \phi q_{br} &+\, (1-\phi) q_{i}
    =& \phi \rho_{w} c_{w} T &+\, (1-\phi) (\rho_i c_i T - \rho_i L_0) 
-   \label{enthalpy_definition}\end{aligned}
+   \end{aligned}
    :label: enth-def
 
 where :math:`q_{br}` is the brine enthalpy, :math:`q_i` is the pure ice
@@ -3339,12 +3339,12 @@ concentration according to
 .. math::
    w_b \frac{\Delta N_a}{\Delta z} = \frac{N_oh_{sk}/\phi_{sk} -
      N_a}{\Delta t}
-   :label: seed
+   :label: seed1
 
 The ‘constant’ formulation uses a fixed piston velocity (PVc) for
 positive ice growth rates for all tracers except :math:`N_a`. As in
 ‘Jin2006’, congelation ice growth seeds the sea ice algal population
-according to Equation :eq:`seed` when :math:`N_a < N_o
+according to Equation :eq:`seed1` when :math:`N_a < N_o
 h_{sk}/\phi_{sk}`. For bottom ice melt, all tracers follow the
 prescription
 
@@ -3524,7 +3524,7 @@ forces are governed by Darcy’s equation (see CICE.v5 documentation)
 
 .. math::
    w = -\frac{\Pi^* \bar{\rho} g}{\mu}\frac{h_p}{h_i}.
-   :label: Darcy
+   :label: Darcy2
 
 The vertical component of the net permeability tensor :math:`\Pi^*` is
 computed as
@@ -3532,7 +3532,7 @@ computed as
 .. math::
    \Pi^* = \left(\frac{1}{h}\sum_{i=1}^N{\frac{\Delta
          z_i}{\Pi_i}}\right)^{-1}
-   :label: netPi
+   :label: netPi2
 
 where the sea ice is composed of :math:`N` vertical layers with
 :math:`i`\ th layer thickness :math:`\Delta z_i` and permeability
@@ -3599,7 +3599,7 @@ The above brine height calculation is used only when :math:`h_i` and
 
 .. math::
    h_b(t+\Delta t) = h_b(t) + \Delta h_i
-   :label: thinbrine
+   :label: thinbrine2
 
 provided that :math:`|h_{sl}-h_b| \leq 0.001`. This formulation ensures
 small Darcy velocities when :math:`h_b` first exceeds thinS.
@@ -3757,12 +3757,12 @@ concentration according to
    \begin{aligned}
    w_b \frac{\Delta N_a}{\Delta z} = \frac{N_oh_{sk}/\phi_{sk} -
      N_a}{\Delta t}\end{aligned}
-   :label: seed
+   :label: seed2
 
 The ‘constant’ formulation uses a fixed piston velocity (PVc) for
 positive ice growth rates for all tracers except :math:`N_a`. As in
 ‘Jin2006’, congelation ice growth seeds the sea ice algal population
-according to :eq:`seed` when :math:`N_a < N_o
+according to :eq:`seed2` when :math:`N_a < N_o
 h_{sk}/\phi_{sk}`. For bottom ice melt, all tracers follow the
 prescription
 
