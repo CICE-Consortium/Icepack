@@ -1374,7 +1374,7 @@ the ridge potential energy is modified:
 .. math::
    P = C_f \, C_p \, \beta \sum_{n=1}^{N_C}
      \left[ -a_{Pn} \, h_n^2  + \frac{a_{Pn}}{k_n}
-        \left( H_{\min}^2 + 2H_{\min}\lambda + 2 \lambda^2 \right) \right]  % CHECK BRACES
+        \left( H_{\min}^2 + 2H_{\min}\lambda + 2 \lambda^2 \right) \right]
    :label: roth-strength1
 
 The energy-based ice strength given by Equations :eq:`roth-strength0` or
@@ -2652,7 +2652,7 @@ to the temperature, :math:`T`, and the brine volume, :math:`\phi`, by
    \begin{aligned}
    q =& \phi q_{br} &+\, (1-\phi) q_{i}
    =& \phi \rho_{w} c_{w} T &+\, (1-\phi) (\rho_i c_i T - \rho_i L_0) 
-   \label{enthalpy_definition}\end{aligned}
+   \end{aligned}
    :label: enth-def
 
 where :math:`q_{br}` is the brine enthalpy, :math:`q_i` is the pure ice

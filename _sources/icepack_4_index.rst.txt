@@ -290,7 +290,7 @@ Comprehensive Alphabetical Index
    "iblkp","block on which to write debugging data", ""
    "i(j)block", "Cartesian i,j position of block", ""
    "ice_hist_field", "type for history variables", ""
-   "ice_ic", ":math:`\bullet` choice of initial conditions (see :ref:`tab-ic`)", ""
+   "ice_ic", ":math:`\bullet` choice of initial conditions", ""
    "ice_stdout", "unit number for standard output", ""
    "ice_stderr", "unit number for standard error output", ""
    "ice_ref_salinity", "reference salinity for ice–ocean exchanges", "4. ppt"

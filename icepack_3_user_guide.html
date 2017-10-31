@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>3. User Guide &#8212; CICE-Consortium Icepack 0.0.1 documentation</title>
-    
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,12 +21,12 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="4. Index of primary variables and parameters" href="icepack_4_index.html" />
     <link rel="prev" title="2. Science Guide" href="icepack_2_science_guide.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -239,7 +236,7 @@ for further information.</p>
 <div class="section" id="grid-and-boundary-conditions">
 <span id="grids"></span><h3>3.1.2. Grid and boundary conditions<a class="headerlink" href="#grid-and-boundary-conditions" title="Permalink to this headline">¶</a></h3>
 <p>The driver configures a collection of grid cells on which the column physics code
-will be run. This &#8220;horizontal&#8221; grid is a vector of length <code class="docutils literal"><span class="pre">nx</span></code>, with a minimum length
+will be run. This “horizontal” grid is a vector of length <code class="docutils literal"><span class="pre">nx</span></code>, with a minimum length
 of 4.
 The grid vector is initialized with different sea ice conditions, such as open
 water, a uniform slab of ice, a multi-year ice thickness distribution with snow,
@@ -297,7 +294,7 @@ specialized parameterization. Finally, albedo and other quantities
 dependent on the initial ice state are set. Some of these parameters
 will be described in more detail in the <a class="reference internal" href="#tabnamelist"><span class="std std-ref">Table of namelist options</span></a>.</p>
 <p>Two namelist variables control model initialization, <code class="docutils literal"><span class="pre">ice_ic</span></code>
-and <code class="docutils literal"><span class="pre">restart</span></code>.  Setting <code class="docutils literal"><span class="pre">ice_ic</span></code> = &#8216;default&#8217; causes the model to run using
+and <code class="docutils literal"><span class="pre">restart</span></code>.  Setting <code class="docutils literal"><span class="pre">ice_ic</span></code> = ‘default’ causes the model to run using
 constant forcing and initial values set in the code.  To start
 from a file <strong>filename</strong>, set
 <code class="docutils literal"><span class="pre">restart</span></code> = .true. and <code class="docutils literal"><span class="pre">ice_ic</span></code> = <strong>filename</strong>.  When restarting using the Icepack
@@ -353,13 +350,13 @@ pointer to the filename from which the restart data is to be read.</p>
 <p>Most of the scripts that configure, build and run Icepack tests are contained in
 the directory <strong>configuration/scripts/</strong>, except for <strong>icepack.create.case</strong>, which is
 in the main directory.</p>
-<p>Users likely will need to create or edit some scripts for their computer&#8217;s environment.
+<p>Users likely will need to create or edit some scripts for their computer’s environment.
 Specific instructions for porting are provided below.</p>
 <dl class="docutils">
 <dt>icepack.create.case generates a case. Use <code class="docutils literal"><span class="pre">create.case</span> <span class="pre">-h</span></code> for help with the tool.</dt>
 <dd><p class="first">-c is the case name and location (required)</p>
 <p>-m is the machine name (required). Currently, there are working ports for NCAR yellowstone and cheyenne, AFRL thunder, NavyDSRC gordon and conrad, and LANL’s wolf machines.</p>
-<p>-s are comma separated optional env or namelist settings (default is &#8216;null&#8217;)</p>
+<p>-s are comma separated optional env or namelist settings (default is ‘null’)</p>
 <p>-t is the test name and location (cannot be used with -c).</p>
 <p>-bd is used to specify the location of the baseline datasets (only used with -t)</p>
 <p>-bg is used to specify the icepack version name for generating baseline datasets (only used with -t)</p>
@@ -429,7 +426,7 @@ directory.</p>
 </div>
 <div class="section" id="forcing-data">
 <h3>3.2.4. Forcing data<a class="headerlink" href="#forcing-data" title="Permalink to this headline">¶</a></h3>
-<p>CHECK once we&#8217;ve settled on a forcing suite:</p>
+<p>CHECK once we’ve settled on a forcing suite:</p>
 <p>The code is currently configured to run in standalone mode on a 4-cell grid using
 atmospheric data, available as detailed on the <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack">wiki</a>.
 These data files are designed only for testing the code, not for use in production
@@ -441,7 +438,7 @@ can be modified to change the forcing data.</p>
 <div class="section" id="adding-things">
 <h2>3.3. Adding things<a class="headerlink" href="#adding-things" title="Permalink to this headline">¶</a></h2>
 <p>We require that any changes made to the code be implemented in such a way that they can
-be &#8220;turned off&#8221; through namelist flags.  In most cases, code run with such changes should
+be “turned off” through namelist flags.  In most cases, code run with such changes should
 be bit-for-bit identical with the unmodified code.  Occasionally, non-bit-for-bit changes
 are necessary, e.g. associated with an unavoidable change in the order of operations. In
 these cases, changes should be made in stages to isolate the non-bit-for-bit changes,
@@ -471,7 +468,7 @@ in particular, the concentration is unchanged when there is surface or
 basal melting. The proper units for a volume-weighted mass tracer in the
 tracer array are kg/m.</p>
 <p>In several places in the code, tracer computations must be performed on
-the conserved &#8220;tracer volume&#8221; rather than the tracer itself; for
+the conserved “tracer volume” rather than the tracer itself; for
 example, the conserved quantity is <span class="math">\(h_{pnd}a_{pnd}a_{lvl}a_{i}\)</span>,
 not <span class="math">\(h_{pnd}\)</span>. Conserved quantities are thus computed according to
 the tracer dependencies, and code must be included to account for new
@@ -542,7 +539,7 @@ Other configuration parameters, such as <code class="docutils literal"><span cla
 <div class="section" id="testing">
 <span id="testtrouble"></span><h3>3.4.3. Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Tests using a debug flag that traps underflows will fail unless a &#8220;flush-to-zero&#8221; flag
+<li>Tests using a debug flag that traps underflows will fail unless a “flush-to-zero” flag
 is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
 radiation scheme.</li>
 </ul>
@@ -676,21 +673,21 @@ results save before in <code class="docutils literal"><span class="pre">$SCRATCH
 </dl>
 <p><code class="docutils literal"><span class="pre">-bg</span></code>, <code class="docutils literal"><span class="pre">-bc</span></code>, and <code class="docutils literal"><span class="pre">-bd</span></code> are used for regression testing.  There is a default <code class="docutils literal"><span class="pre">-bd</span></code> on each machine.</p>
 <p><code class="docutils literal"><span class="pre">-td</span></code> allows a user to compare one test result to another.  For instance,</p>
-<p>CHECK provide example suitable for Icepack. This one doesn&#8217;t work because it relies on MPI</p>
+<p>CHECK provide example suitable for Icepack. This one doesn’t work because it relies on MPI</p>
 <blockquote>
 <div><p><code class="docutils literal"><span class="pre">&gt;</span> <span class="pre">icepack.create.case</span> <span class="pre">-t</span> <span class="pre">smoke</span> <span class="pre">-m</span> <span class="pre">wolf</span> <span class="pre">-s</span> <span class="pre">run5day</span> <span class="pre">-testid</span> <span class="pre">t01</span></code></p>
 <p><code class="docutils literal"><span class="pre">&gt;</span> <span class="pre">icepack.create.case</span> <span class="pre">-t</span> <span class="pre">smoke</span> <span class="pre">-m</span> <span class="pre">wolf</span> <span class="pre">-s</span> <span class="pre">run5day</span> <span class="pre">-testid</span> <span class="pre">t01</span> <span class="pre">-td</span> <span class="pre">smoke_gx3_8x2_run5day</span></code></p>
 <p>An additional check will be done for the second test (because of the <code class="docutils literal"><span class="pre">-td</span></code> argument), and it will compare
-the output from the first test &#8220;smoke_gx3_8x2_run5day&#8221; to the output from its test &#8220;smoke_gx3_4x2_run5day&#8221;
-and generate a result for that.  It&#8217;s important that the first test complete before the second test is done.  Also, the <code class="docutils literal"><span class="pre">-td</span></code> option works only if the testid and the machine are the same for the baseline run and the current run.</p>
+the output from the first test “smoke_gx3_8x2_run5day” to the output from its test “smoke_gx3_4x2_run5day”
+and generate a result for that.  It’s important that the first test complete before the second test is done.  Also, the <code class="docutils literal"><span class="pre">-td</span></code> option works only if the testid and the machine are the same for the baseline run and the current run.</p>
 </div></blockquote>
 </div>
 <div class="section" id="test-suite-format">
 <span id="format"></span><h3>3.5.3. Test suite format<a class="headerlink" href="#test-suite-format" title="Permalink to this headline">¶</a></h3>
 <p>The format for the test suite file is relatively simple.  It is a text file with white space delimited
 columns, e.g. <strong>base_suite.ts</strong></p>
-<table border="1" class="colwidths-given docutils" id="id15">
-<span id="tab-test"></span><caption><span class="caption-text">Table 7</span><a class="headerlink" href="#id15" title="Permalink to this table">¶</a></caption>
+<span id="tab-test"></span><table border="1" class="colwidths-given docutils" id="id15">
+<caption><span class="caption-text">Table 7</span><a class="headerlink" href="#id15" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="14%" />
 <col width="14%" />
@@ -782,7 +779,7 @@ will also look for the filename in <strong>configuration/scripts/tests/</strong>
 <p><code class="docutils literal"><span class="pre">cd</span> <span class="pre">base_suite.t02</span></code></p>
 <p>Once all jobs finish, concatenate all output</p>
 <p><code class="docutils literal"><span class="pre">./results.csh</span></code>   All tests results will be stored in results.log</p>
-<p>To plot a timeseries of &#8220;total ice extent&#8221;, &#8220;total ice area&#8221;, and &#8220;total ice volume&#8221;</p>
+<p>To plot a timeseries of “total ice extent”, “total ice area”, and “total ice volume”</p>
 <p><code class="docutils literal"><span class="pre">./timeseries.csh</span> <span class="pre">&lt;directory&gt;</span></code></p>
 <p><code class="docutils literal"><span class="pre">ls</span> <span class="pre">\*.png</span></code></p>
 </div>
@@ -792,7 +789,7 @@ will also look for the filename in <strong>configuration/scripts/tests/</strong>
 <p><code class="docutils literal"><span class="pre">cd</span> <span class="pre">base_suite.t03</span></code></p>
 <p>Once all jobs finish, concatenate all output</p>
 <p><code class="docutils literal"><span class="pre">./results.csh</span></code>   All tests results will be stored in results.log</p>
-<p>To plot a timeseries of &#8220;total ice extent&#8221;, &#8220;total ice area&#8221;, and &#8220;total ice volume&#8221;</p>
+<p>To plot a timeseries of “total ice extent”, “total ice area”, and “total ice volume”</p>
 <p><code class="docutils literal"><span class="pre">./timeseries.csh</span> <span class="pre">&lt;directory&gt;</span></code></p>
 <p><code class="docutils literal"><span class="pre">ls</span> <span class="pre">\*.png</span></code></p>
 </div>
@@ -851,8 +848,8 @@ creates the directory <strong>wolf_smoke_col_1x1.t12</strong>.  This flag is REQ
 <div class="section" id="table-of-namelist-options">
 <span id="tabnamelist"></span><h2>3.6. Table of namelist options<a class="headerlink" href="#table-of-namelist-options" title="Permalink to this headline">¶</a></h2>
 <p>CHECK</p>
-<table border="1" class="colwidths-given docutils" id="id16">
-<span id="tab-namelist"></span><caption><span class="caption-text">Table 8</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
+<span id="tab-namelist"></span><table border="1" class="colwidths-given docutils" id="id16">
+<caption><span class="caption-text">Table 8</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="20%" />
 <col width="20%" />
@@ -1685,12 +1682,12 @@ creates the directory <strong>wolf_smoke_col_1x1.t12</strong>.  This flag is REQ
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">R_pnd</span></code></td>
 <td>real</td>
-<td>... for ponded sea ice albedo …</td>
+<td>… for ponded sea ice albedo …</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">R_snw</span></code></td>
 <td>real</td>
-<td>... for snow (broadband albedo) …</td>
+<td>… for snow (broadband albedo) …</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">dT_mlt</span></code></td>
@@ -2297,7 +2294,7 @@ creates the directory <strong>wolf_smoke_col_1x1.t12</strong>.  This flag is REQ
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>
