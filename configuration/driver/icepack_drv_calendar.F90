@@ -6,9 +6,9 @@
 
       module icepack_drv_calendar
 
-      use icepack_kinds_mod
-      use icepack_drv_constants, only: c0, c1, c100, c30, c360, c365, c3600, &
-          c4, c400, secday, nu_diag, nu_diag_out
+      use icepack_drv_kinds
+      use icepack_drv_constants, only: c0, c1, c100, c30, c360, c365, c3600
+      use icepack_drv_constants, only: c4, c400, secday, nu_diag, nu_diag_out
 
       implicit none
       private

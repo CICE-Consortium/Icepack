@@ -6,11 +6,11 @@
 !
       module icepack_drv_forcing
 
-      use icepack_kinds_mod
-      use icepack_drv_calendar, only: time, nyr, dayyr, mday, month, &
-         daymo, daycal
+      use icepack_drv_kinds
+      use icepack_drv_calendar, only: time, nyr, dayyr, mday, month
+      use icepack_drv_calendar, only: daymo, daycal
       use icepack_drv_constants, only: nu_diag
-      use icepack_intfc_shared, only: calc_strair
+      use icepack_drv_parameters, only: calc_strair
 
       implicit none
       private
@@ -87,10 +87,10 @@
 ! Determine the current and final year of the forcing cycle based on
 ! namelist input; initialize the forcing data.
 
-      use icepack_constants, only: c0
-      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
-         strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp
+      use icepack_drv_constants, only: c0
+      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind
+      use icepack_drv_flux, only: strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain
+      use icepack_drv_flux, only: fsnow, sst, sss, uocn, vocn, qdp
 
       integer (kind=int_kind) :: &
          i                ! index
@@ -161,9 +161,9 @@
 ! the time step and the data both start Jan 1.
 
       use icepack_constants, only: c0, c1
-      use icepack_drv_flux, only: Tair, potT, rhoa, uatm, vatm, wind, &
-         strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp
+      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind
+      use icepack_drv_flux, only: strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain
+      use icepack_drv_flux, only: fsnow, sst, sss, uocn, vocn, qdp
 
       integer (kind=int_kind), intent(in) :: &
          timestep         ! time step index
