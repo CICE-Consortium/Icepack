@@ -53,29 +53,26 @@
       use icepack_drv_constants, only: c0, c1, puny, ice_stdout, nu_diag, nu_diag_out, nu_nml
       use icepack_drv_diagnostics, only: diag_file, nx_names
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
-      use icepack_drv_calendar, only: year_init, istep0, &
-                              dumpfreq, diagfreq, &
-                              npt, dt, ndtd, days_per_year, use_leap_years
-      use icepack_drv_restart_shared, only: &
-          restart, restart_dir, restart_file
-      use icepack_drv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc, &
-          default_season
-      use icepack_drv_forcing, only: &
-          precip_units,    fyear_init,      ycycle,          &
-          atm_data_type,   ocn_data_type,   bgc_data_type,   &
-          atm_data_format, ocn_data_format, bgc_data_format, &
-          data_dir,        dbug,            trestore, &
-          sss_data_type,   sst_data_type,   restore_sst
+      use icepack_drv_calendar, only: year_init, istep0
+      use icepack_drv_calendar, only: dumpfreq, diagfreq
+      use icepack_drv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
+      use icepack_drv_restart_shared, only: restart, restart_dir, restart_file
+      use icepack_drv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
+      use icepack_drv_flux, only: default_season
+      use icepack_drv_forcing, only: precip_units,    fyear_init,      ycycle
+      use icepack_drv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
+      use icepack_drv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
+      use icepack_drv_forcing, only: data_dir,        dbug
 
-      use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond, &
-                             tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
-                             tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
-                             nt_iage, nt_FY, nt_alvl, nt_vlvl, &
-                             nt_apnd, nt_hpnd, nt_ipnd, nt_aero, ntrcr
-      use icepack_intfc_shared, only: a_rapid_mode, Rac_rapid_mode, &
-                                   aspect_rapid_mode, dSdt_slow_mode, &
-                                   phi_c_slow_mode, phi_i_mushy, &
-                                   Cf, tfrz_option, kalg, fbot_xfer_type
+      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond
+      use icepack_drv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_drv_tracers, only: tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice
+      use icepack_drv_tracers, only: nt_iage, nt_FY, nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd
+      use icepack_drv_tracers, only: nt_aero, ntrcr
+      use icepack_drv_parameters, only: a_rapid_mode, Rac_rapid_mode
+      use icepack_drv_parameters, only: aspect_rapid_mode, dSdt_slow_mode
+      use icepack_drv_parameters, only: phi_c_slow_mode, phi_i_mushy
+      use icepack_drv_parameters, only: Cf, tfrz_option, kalg, fbot_xfer_type
 
       ! local variables
 
@@ -956,7 +953,7 @@
       use icepack_drv_arrays_column, only: hin_max
       use icepack_intfc, only: icepack_init_trcr
       use icepack_drv_constants, only: c0, c1, c2, c3, p2, p5, rhoi, rhos, Lfresh, &
-           cp_ice, cp_ocn, Tsmelt, Tffresh, rad_to_deg, puny
+           cp_ice, cp_ocn, Tsmelt, Tffresh, puny
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat
       use icepack_drv_tracers, only: tr_brine, tr_lvl
       use icepack_drv_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice
