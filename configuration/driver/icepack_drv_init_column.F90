@@ -320,7 +320,7 @@
       use icepack_drv_constants, only: nu_diag
       use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, hum
-!      use icepack_drv_forcing_bgc, only: init_bgc_data, get_forcing_bgc
+      use icepack_drv_forcing_bgc, only:  get_forcing_bgc !cn init_bgc_data
 !      use icepack_drv_restart_column, only: restart_zsal, &
 !          read_restart_bgc, restart_bgc
       use icepack_drv_state, only: trcrn, aicen, vicen, vsnon
@@ -413,8 +413,9 @@
                     zaeros(i,:), max_dic, max_don, max_fe, max_aero)
             enddo  ! i
 
+!cn right now, init_bgc_data would be a no-op since fe_data_type=default
             !call init_bgc_data(fed(:,:),fep(:,:)) ! input dFe from file
-            !call get_forcing_bgc                          ! defines nit and sil
+            call get_forcing_bgc                          ! defines nit and sil
 
 !      endif     ! .not. restart
 
