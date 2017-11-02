@@ -1,3 +1,5 @@
+:tocdepth: 3
+
 ****************
 Science Guide
 ****************
@@ -54,40 +56,40 @@ Atmosphere and ocean boundary forcing
 .. _tab-flux-cpl:
 
 .. csv-table:: Table 1
-   :header: "Variable", "Description", "Interaction with flux coupler", ""
-   :widths: 15, 15, 30, 1   
+   :header: "Variable", "Description", "Interaction with flux coupler"
+   :widths: 15, 15, 30
      
-   ":math:`z_o`", "Atmosphere level height", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`Q_a`", "Specific humidity", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`\rho_a`", "Air density", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`\Theta_a`", "Air potential temperature", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`T_a`", "Air temperature", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`F_{sw\downarrow}`", "Incoming shortwave radiation (4 bands)", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`F_{L\downarrow}`", "Incoming longwave radiation", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`F_{rain}`", "Rainfall rate", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`F_{snow}`", "Snowfall rate", "From *atmosphere model* via flux coupler **to** *sea ice model*", ""
-   ":math:`F_{frzmlt}`", "Freezing/melting potential", "From *ocean model* via flux coupler **to** *sea ice model*", ""
-   ":math:`T_w`", "Sea surface temperature", "From *ocean model* via flux coupler **to** *sea ice model*", ""
-   ":math:`S`", "Sea surface salinity", "From *ocean model* via flux coupler **to** *sea ice model*", ""
-   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model* via flux coupler **to** *sea ice model* (available in Icepack driver, not used directly in column physics)", ""
-   ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
-   ":math:`F_s`", "Sensible heat flux", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
-   ":math:`F_l`", "Latent heat flux", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
-   ":math:`F_{L\uparrow}`", "Outgoing longwave radiation", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
-   ":math:`F_{evap}`", "Evaporated water", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
-   ":math:`\alpha`", "Surface albedo (4 bands)", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
-   ":math:`T_{sfc}`", "Surface temperature", "From *sea ice model* via flux coupler **to** *atmosphere model*", ""
-   ":math:`F_{sw\Downarrow}`", "Penetrating shortwave radiation", "From *sea ice model* via flux coupler **to** *ocean model*", ""
-   ":math:`F_{water}`", "Fresh water flux", "From *sea ice model* via flux coupler **to** *ocean model*", ""
-   ":math:`F_{hocn}`", "Net heat flux to ocean", "From *sea ice model* via flux coupler **to** *ocean model*", ""
-   ":math:`F_{salt}`", "Salt flux", "From *sea ice model* via flux coupler **to** *ocean model*", ""
-   ":math:`\vec{\tau}_w`", "Ice-ocean stress", "From *sea ice model* via flux coupler **to** *ocean model*", ""
-   ":math:`F_{bio}`", "Biogeochemical fluxes", "From *sea ice model* via flux coupler **to** *ocean model*", ""
-   ":math:`a_{i}`", "Ice fraction", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*", ""
-   ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*", ""
-   ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*", ""
-   ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*", ""
+   ":math:`z_o`", "Atmosphere level height", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`Q_a`", "Specific humidity", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`\rho_a`", "Air density", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`\Theta_a`", "Air potential temperature", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`T_a`", "Air temperature", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`F_{sw\downarrow}`", "Incoming shortwave radiation (4 bands)", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`F_{L\downarrow}`", "Incoming longwave radiation", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`F_{rain}`", "Rainfall rate", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`F_{snow}`", "Snowfall rate", "From *atmosphere model* via flux coupler **to** *sea ice model*"
+   ":math:`F_{frzmlt}`", "Freezing/melting potential", "From *ocean model* via flux coupler **to** *sea ice model*"
+   ":math:`T_w`", "Sea surface temperature", "From *ocean model* via flux coupler **to** *sea ice model*"
+   ":math:`S`", "Sea surface salinity", "From *ocean model* via flux coupler **to** *sea ice model*"
+   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model* via flux coupler **to** *sea ice model* (available in Icepack driver, not used directly in column physics)"
+   ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model* via flux coupler **to** *atmosphere model*"
+   ":math:`F_s`", "Sensible heat flux", "From *sea ice model* via flux coupler **to** *atmosphere model*"
+   ":math:`F_l`", "Latent heat flux", "From *sea ice model* via flux coupler **to** *atmosphere model*"
+   ":math:`F_{L\uparrow}`", "Outgoing longwave radiation", "From *sea ice model* via flux coupler **to** *atmosphere model*"
+   ":math:`F_{evap}`", "Evaporated water", "From *sea ice model* via flux coupler **to** *atmosphere model*"
+   ":math:`\alpha`", "Surface albedo (4 bands)", "From *sea ice model* via flux coupler **to** *atmosphere model*"
+   ":math:`T_{sfc}`", "Surface temperature", "From *sea ice model* via flux coupler **to** *atmosphere model*"
+   ":math:`F_{sw\Downarrow}`", "Penetrating shortwave radiation", "From *sea ice model* via flux coupler **to** *ocean model*"
+   ":math:`F_{water}`", "Fresh water flux", "From *sea ice model* via flux coupler **to** *ocean model*"
+   ":math:`F_{hocn}`", "Net heat flux to ocean", "From *sea ice model* via flux coupler **to** *ocean model*"
+   ":math:`F_{salt}`", "Salt flux", "From *sea ice model* via flux coupler **to** *ocean model*"
+   ":math:`\vec{\tau}_w`", "Ice-ocean stress", "From *sea ice model* via flux coupler **to** *ocean model*"
+   ":math:`F_{bio}`", "Biogeochemical fluxes", "From *sea ice model* via flux coupler **to** *ocean model*"
+   ":math:`a_{i}`", "Ice fraction", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*"
+   ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*"
+   ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*"
+   ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*"
 
 
 The ice fraction :math:`a_i` (aice) is the total fractional ice
@@ -4230,23 +4232,28 @@ fedtype\_1, feptype\_1, zaerotype\_bc1 (black carbon class 1),
 zaerotype\_bc2 (black carbon class 2), and four dust classes,
 zaerotype\_dustj, where J takes values 1 to 4. These may be modified to
 increase or decrease retention. Another option is to alter the minimum
-tau\_min and maximum tau\_max timescales which would impact all the
+tau_min and maximum tau_max timescales which would impact all the
 z-tracers.
 
 :ref:`tab-phases`: *Types of Mobile and Stationary Transitions*
 
 .. _tab-phases:
 
-.. csv-table:: Table 3
-   :header: "bgc_tracer_type", " :math:`\tau_{ret}` ", " :math:`\tau_{rel}` ", "Description"
-   :widths: 10, 10, 10, 25
+.. table:: Table 3
 
-   "-1", ":math:`\infty`", "0", "entirely in the mobile phase"
-   "0", "min", "max", "retention dominated"
-   "1", "max", "min", "release dominated"
-   "0.5", "min", "min", "equal but rapid exchange"
-   "2", "max", "max", "equal but slow exchange"
-
+   +-----------------+--------------------+--------------------+------------------------------+
+   | bgc_tracer_type | :math:`\tau_{ret}` | :math:`\tau_{rel}` |        Description           |
+   +=================+====================+====================+==============================+
+   |     -1.0        | :math:`\infty`     |         0          | entirely in the mobile phase |
+   +-----------------+--------------------+--------------------+------------------------------+
+   |      0.0        |       min          |        max         |     retention dominated      |
+   +-----------------+--------------------+--------------------+------------------------------+
+   |      1.0        |       max          |        min         |      release dominated       |
+   +-----------------+--------------------+--------------------+------------------------------+
+   |      0.5        |       min          |        min         |  equal but rapid exchange    |
+   +-----------------+--------------------+--------------------+------------------------------+
+   |      2.0        |       max          |        max         |  equal but slow exchange     |
+   +-----------------+--------------------+--------------------+------------------------------+
 
 The fraction of a given tracer in the mobile phase is independent of ice
 depth and stored in the tracer variable zbgc\_frac. The horizontal
@@ -4570,7 +4577,7 @@ that there has only been minimal tuning of the model.
 
 .. csv-table:: Table 5
    :header: "Text Variable", "Variable in code", "Description", "Value", "units"
-   :widths: 7, 10, 15, 15, 15
+   :widths: 7, 20, 15, 15, 15
 
    ":math:`f_{graze}`", "fr\_graze(1:3)", "fraction of growth grazed", "0, 0.1, 0.1", "1"
    ":math:`f_{res}`", "fr\_resp", "fraction of growth respired", "0.05", "1"

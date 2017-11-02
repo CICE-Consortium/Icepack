@@ -11,8 +11,8 @@ Table of Contents:
 ------------------
 
 .. toctree::
-   :maxdepth: 3
    :numbered:
+   :maxdepth: 3
 
    icepack_1_introduction.rst
    icepack_2_science_guide.rst
