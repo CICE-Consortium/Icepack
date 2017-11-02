@@ -6,7 +6,7 @@
 
       module icepack_drv_RunMod
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
 
       implicit none
       private
@@ -211,7 +211,7 @@
           fsurfn_f, flatn_f, frzmlt_init, frzmlt, &
           faero_ocn, fzsal_ai, fzsal_g_ai, flux_bio, flux_bio_ai
       use icepack_drv_state, only: aicen, aice, aice_init
-      use icepack_drv_step_mod, only: ocean_mixed_layer
+      use icepack_drv_step, only: ocean_mixed_layer
 
       ! local variables
 

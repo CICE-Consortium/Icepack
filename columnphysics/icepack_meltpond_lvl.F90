@@ -15,10 +15,10 @@
 
       module icepack_meltpond_lvl
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, c10, p01, p5, puny, &
-          viscosity_dyn, rhoi, rhos, rhow, Timelt, Tffresh, Lfresh, &
-          gravit, depressT, rhofresh, kice
+      use icepack_kinds
+      use icepack_constants, only: c0, c1, c2, c10, p01, p5, puny
+      use icepack_constants, only: viscosity_dyn, rhoi, rhos, rhow, Timelt, Tffresh, Lfresh
+      use icepack_constants, only: gravit, depressT, rhofresh, kice
 
       implicit none
 

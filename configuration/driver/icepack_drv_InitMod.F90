@@ -7,7 +7,7 @@
 
       module icepack_drv_InitMod
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
 
       implicit none
       private
@@ -47,6 +47,7 @@
       logical(kind=log_kind) :: l_stop
       character(char_len) :: stop_label
 
+      call icepack_configure()  ! initialize icepack
       call input_data           ! namelist variables
       call init_zbgc            ! vertical biogeochemistry namelist
 
@@ -116,7 +117,7 @@
 
       use icepack_drv_arrays_column, only: dhsn
       use icepack_drv_calendar, only: time, calendar
-      use icepack_constants, only: c0
+      use icepack_drv_constants, only: c0
       use icepack_intfc, only: icepack_aggregate
       use icepack_drv_domain_size, only: ncat, max_ntrcr, n_aero, nx
       use icepack_drv_flux, only: sss

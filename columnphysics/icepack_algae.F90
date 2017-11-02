@@ -9,8 +9,15 @@
 !
       module icepack_algae
 
-      use icepack_kinds_mod
-      use icepack_zbgc_shared
+      use icepack_kinds
+      use icepack_zbgc_shared, only: remap_zbgc, regrid_stationary
+      use icepack_zbgc_shared, only: merge_bgc_fluxes
+      use icepack_zbgc_shared, only: merge_bgc_fluxes_skl
+      use icepack_zbgc_shared, only: phi_sk, bgc_tracer_type
+      use icepack_zbgc_shared, only: zbgc_init_frac
+      use icepack_zbgc_shared, only: zbgc_frac_init
+      use icepack_zbgc_shared, only: tau_rel, tau_ret, thinS
+      use icepack_zbgc_shared, only: r_Si2N, R_Fe2N, R_S2N
       use icepack_warnings, only: add_warning
 
       implicit none
@@ -65,7 +72,6 @@
 
       use icepack_aerosol, only: update_snow_bgc
       use icepack_constants, only: c0, c1, puny
-      use icepack_zbgc_shared, only: merge_bgc_fluxes
  
       integer (kind=int_kind), intent(in) :: &
          nblyr,              & ! number of bio layers
@@ -354,8 +360,7 @@
                                upNH,     grow_net,   &
                                l_stop,   stop_label)
 
-      use icepack_zbgc_shared, only: merge_bgc_fluxes_skl
-      use icepack_intfc_tracers, only: nt_bgc_N
+      use icepack_tracers, only: nt_bgc_N
  
       integer (kind=int_kind), intent(in) :: &
          nilyr,              & ! number of ice layers
@@ -459,8 +464,8 @@
                                       stop_label)
 
       use icepack_constants, only: p5, p05, p1, c1, c0, puny, c10
-      use icepack_intfc_tracers, only: nt_bgc_N,  ntrcr, bio_index 
-      use icepack_intfc_shared, only: dEdd_algae, bgc_flux_type, sk_l, R_chl2N
+      use icepack_tracers, only: nt_bgc_N,  ntrcr, bio_index 
+      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l, R_chl2N
 
       integer (kind=int_kind), intent(in) :: &
          nilyr             , & ! number of ice layers
@@ -767,13 +772,13 @@
                                     congel,       l_stop,    &   
                                     stop_label)
 
-      use icepack_intfc_tracers, only: nt_fbri, nt_zbgc_frac, &
-                                    ntrcr, nlt_bgc_Nit, tr_bgc_Fe, tr_zaero, &
-                                    nlt_bgc_Fed, nlt_zaero, bio_index, tr_bgc_N, &
-                                    nlt_bgc_N
+      use icepack_tracers, only: nt_fbri, nt_zbgc_frac
+      use icepack_tracers, only: ntrcr, nlt_bgc_Nit, tr_bgc_Fe, tr_zaero
+      use icepack_tracers, only: nlt_bgc_Fed, nlt_zaero, bio_index, tr_bgc_N
+      use icepack_tracers, only: nlt_bgc_N
       use icepack_constants, only: c0, c1, c2, p5, puny, pi
-      use icepack_intfc_shared, only: hi_ssl, dEdd_algae, solve_zbgc, &
-                                   R_dFe2dust, dustFe_sol, algal_vel
+      use icepack_parameters, only: hi_ssl, dEdd_algae, solve_zbgc
+      use icepack_parameters, only: R_dFe2dust, dustFe_sol, algal_vel
 
       integer (kind=int_kind), intent(in) :: &
          n_cat,              & ! category number
@@ -1430,33 +1435,33 @@
                             Nerror,       conserve_N)      
 
       use icepack_constants, only: p1, p5, c0, c1, secday, puny
-      use icepack_intfc_shared, only: max_algae, max_DON, max_DOC, R_C2N, R_chl2N, &
-      	  		     	   T_max, fsal      , fr_resp          , & 
-                                   op_dep_min       , fr_graze_s       , & 
-                                   fr_graze_e       , fr_mort2min      , & 
-                                   fr_dFe           , k_nitrif         , & 
-                                   t_iron_conv      , max_loss         , & 
-                                   max_dfe_doc1     , fr_resp_s        , & 
-                                   y_sk_DMS         , t_sk_conv        , & 
-                                   t_sk_ox              
+      use icepack_parameters, only: max_algae, max_DON, max_DOC, R_C2N, R_chl2N
+      use icepack_parameters, only: T_max, fsal      , fr_resp
+      use icepack_parameters, only: op_dep_min       , fr_graze_s
+      use icepack_parameters, only: fr_graze_e       , fr_mort2min
+      use icepack_parameters, only: fr_dFe           , k_nitrif
+      use icepack_parameters, only: t_iron_conv      , max_loss
+      use icepack_parameters, only: max_dfe_doc1     , fr_resp_s
+      use icepack_parameters, only: y_sk_DMS         , t_sk_conv
+      use icepack_parameters, only: t_sk_ox
 
-      use icepack_zbgc_shared, only:   chlabs, alpha2max_low, beta2max, mu_max, &
-                                   grow_Tdep, fr_graze, mort_pre, mort_Tdep, &
-                                   k_exude, K_Nit, K_Am, K_Sil, K_Fe, &   
-                                   f_don, kn_bac, f_don_Am, & 
-                                   f_doc, f_exude, k_bac
+      use icepack_zbgc_shared, only: chlabs, alpha2max_low, beta2max, mu_max
+      use icepack_zbgc_shared, only: k_exude, K_Nit, K_Am, K_Sil, K_Fe
+      use icepack_zbgc_shared, only: grow_Tdep, fr_graze, mort_pre, mort_Tdep
+      use icepack_zbgc_shared, only: f_don, kn_bac, f_don_Am
+      use icepack_zbgc_shared, only: f_doc, f_exude, k_bac
 
-      use icepack_intfc_tracers, only: tr_brine, nt_fbri, &
-          tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil,    &
-          tr_bgc_DMS,    tr_bgc_PON,   tr_bgc_S,      &
-          tr_bgc_N,      tr_bgc_C,     tr_bgc_chl,    &
-          tr_bgc_DON,    tr_bgc_Fe, &
-          nlt_bgc_Nit,   nlt_bgc_Am,   nlt_bgc_Sil,   &
-          nlt_bgc_DMS,   nlt_bgc_PON,  &
-          nlt_bgc_N,     nlt_bgc_C,    nlt_bgc_chl,   &
-          nlt_bgc_DOC,   nlt_bgc_DON,  nlt_bgc_DIC,   &
-          nlt_zaero  ,   nlt_bgc_DMSPp,nlt_bgc_DMSPd, &
-          nlt_bgc_Fed,   nlt_bgc_Fep,  nlt_zaero
+      use icepack_tracers, only: tr_brine, nt_fbri
+      use icepack_tracers, only: tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil
+      use icepack_tracers, only: tr_bgc_DMS,    tr_bgc_PON,   tr_bgc_S
+      use icepack_tracers, only: tr_bgc_N,      tr_bgc_C,     tr_bgc_chl
+      use icepack_tracers, only: tr_bgc_DON,    tr_bgc_Fe
+      use icepack_tracers, only: nlt_bgc_Nit,   nlt_bgc_Am,   nlt_bgc_Sil
+      use icepack_tracers, only: nlt_bgc_DMS,   nlt_bgc_PON
+      use icepack_tracers, only: nlt_bgc_N,     nlt_bgc_C,    nlt_bgc_chl
+      use icepack_tracers, only: nlt_bgc_DOC,   nlt_bgc_DON,  nlt_bgc_DIC
+      use icepack_tracers, only: nlt_zaero  ,   nlt_bgc_DMSPp,nlt_bgc_DMSPd
+      use icepack_tracers, only: nlt_bgc_Fed,   nlt_bgc_Fep,  nlt_zaero
 
       integer (kind=int_kind), intent(in) :: &
          nbtrcr,  & ! number of layer tracers,
@@ -2230,8 +2235,8 @@
                                       Sink_bot, Sink_top,         &
                                       D_sbdiag, D_spdiag, ML)
 
-       use icepack_constants, only: c1, c0, p5, c2, puny
-       use icepack_intfc_shared, only: grid_o
+      use icepack_constants, only: c1, c0, p5, c2, puny
+      use icepack_parameters, only: grid_o
 
       integer (kind=int_kind), intent(in) :: &
          nblyr           ! number of bio layers
@@ -2430,7 +2435,7 @@
                                      (C_in, C_low, dt,  nblyr, &
                                       D_sbdiag, D_spdiag, ML)
 
-       use icepack_constants, only: c1, c0, c6, puny
+      use icepack_constants, only: c1, c0, c6, puny
 
       integer (kind=int_kind), intent(in) :: &
          nblyr           ! number of bio layers
@@ -2708,7 +2713,7 @@
 
       subroutine bgc_column_sum (nblyr, nslyr, hsnow, hbrine, xin, xout)
 
-      use icepack_intfc_shared, only: hs_ssl 
+      use icepack_parameters, only: hs_ssl 
       use icepack_constants, only: p5, c1, c0
 
       integer (kind=int_kind), intent(in) :: &

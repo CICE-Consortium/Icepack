@@ -4,10 +4,17 @@
 !
 !  authors Elizabeth C. Hunke, LANL
 
-      module icepack_drv_step_mod
+      module icepack_drv_step
 
       use icepack_drv_constants
-      use icepack_kinds_mod
+      use icepack_drv_kinds
+      use icepack_intfc, only: icepack_clear_warnings
+      use icepack_intfc, only: icepack_print_warnings
+      use icepack_intfc, only: icepack_query_tracer_flags
+      use icepack_intfc, only: icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_query_tracer_numbers
+      use icepack_intfc, only: icepack_query_parameters
+
       implicit none
       private
       save
@@ -29,11 +36,11 @@
       subroutine prep_radiation (dt)
 
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
-      use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf, &
-          alvdr_ai, alvdf_ai, alidr_ai, alidf_ai, fswfac, &
-          alvdr_init, alvdf_init, alidr_init, alidf_init
-      use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun, &
-           fswpenln, Sswabsn, Iswabsn
+      use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
+      use icepack_drv_flux, only: alvdr_ai, alvdf_ai, alidr_ai, alidf_ai, fswfac
+      use icepack_drv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init
+      use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun
+      use icepack_drv_arrays_column, only: fswpenln, Sswabsn, Iswabsn
       use icepack_drv_state, only: aice, aicen
 
       ! column package includes
@@ -84,36 +91,29 @@
 
       subroutine step_therm1 (dt)
 
-      use icepack_drv_arrays_column, only: ffracn, dhsn, &
-          Cdn_ocn, Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio, &
-          Cdn_atm, Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_rdg, Cdn_atm_pond, &
-          hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe, &
-          fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
+      use icepack_drv_arrays_column, only: ffracn, dhsn
+      use icepack_drv_arrays_column, only: Cdn_ocn, Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
+      use icepack_drv_arrays_column, only: Cdn_atm, Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_rdg, Cdn_atm_pond
+      use icepack_drv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
+      use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
       use icepack_drv_calendar, only: yday, istep1
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, n_aero, nx
-      use icepack_drv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot, &
-          meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm, &
-          wind, rhoa, potT, Qa, zlvl, strax, stray, flatn, fsensn, fsurfn, fcondtopn, &
-          flw, fsnow, fpond, sss, mlt_onset, frz_onset, &
-          frain, Tair, coszen, strairxT, strairyT, fsurf, fcondtop, fsens, &
-          flat, fswabs, flwout, evap, Tref, Qref, Uref, fresh, fsalt, fhocn, &
-          fswthru, meltt, melts, meltb, meltl, congel, snoice, frazil, &
-          flatn_f, fsensn_f, fsurfn_f, fcondtopn_f, &
-          dsnown, faero_atm, faero_ocn
+      use icepack_drv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot
+      use icepack_drv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
+      use icepack_drv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn, fsensn, fsurfn, fcondtopn
+      use icepack_drv_flux, only: flw, fsnow, fpond, sss, mlt_onset, frz_onset
+      use icepack_drv_flux, only: frain, Tair, coszen, strairxT, strairyT, fsurf, fcondtop, fsens
+      use icepack_drv_flux, only: flat, fswabs, flwout, evap, Tref, Qref, Uref, fresh, fsalt, fhocn
+      use icepack_drv_flux, only: fswthru, meltt, melts, meltb, meltl, congel, snoice, frazil
+      use icepack_drv_flux, only: flatn_f, fsensn_f, fsurfn_f, fcondtopn_f
+      use icepack_drv_flux, only: dsnown, faero_atm, faero_ocn
       use icepack_drv_init, only: lmask_n, lmask_s
-      use icepack_drv_state, only: aice, aicen, aice_init, aicen_init, vicen_init, &
-          vice, vicen, vsno, vsnon, trcrn, uvel, vvel, vsnon_init
+      use icepack_drv_state, only: aice, aicen, aice_init, aicen_init, vicen_init
+      use icepack_drv_state, only: vice, vicen, vsno, vsnon, trcrn, uvel, vvel, vsnon_init
 
       ! column packge includes
-      use icepack_intfc_tracers, only: ntrcr, &
-          nt_apnd, nt_hpnd, nt_ipnd, nt_alvl, nt_vlvl, nt_Tsfc, &
-          tr_iage, nt_iage, tr_FY, nt_FY, tr_aero, tr_pond, tr_pond_cesm, &
-          tr_pond_lvl, nt_qice, nt_sice, tr_pond_topo, nt_aero, &
-          nt_qsno
-      use icepack_intfc, only: icepack_step_therm1, &
-          icepack_clear_warnings, icepack_print_warnings
-      use icepack_intfc_shared, only: calc_Tsfc
+      use icepack_intfc, only: icepack_step_therm1
 
       logical (kind=log_kind) :: & 
          prescribed_ice ! if .true., use prescribed ice instead of computed
@@ -128,6 +128,14 @@
          n              , & ! thickness category index
          k, kk              ! indices for aerosols
 
+      integer (kind=int_kind) :: &
+         ntrcr, nt_apnd, nt_hpnd, nt_ipnd, nt_alvl, nt_vlvl, nt_Tsfc, &
+         nt_iage, nt_FY, nt_qice, nt_sice, nt_aero, nt_qsno
+
+      logical (kind=log_kind) :: &
+         tr_iage, tr_FY, tr_aero, tr_pond, tr_pond_cesm, &
+         tr_pond_lvl, tr_pond_topo, calc_Tsfc
+
       real (kind=dbl_kind), dimension(n_aero,2,ncat) :: &
          aerosno,  aeroice    ! kg/m^2
 
@@ -135,6 +143,23 @@
          l_stop          ! if true, abort the model
 
       character (char_len) :: stop_label
+
+      !-----------------------------------------------------------------
+
+      call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
+
+      call icepack_query_tracer_numbers( &
+         ntrcr_out=ntrcr)
+      call icepack_query_tracer_flags( &
+         tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+         tr_aero_out=tr_aero, tr_pond_out=tr_pond, tr_pond_cesm_out=tr_pond_cesm, &
+         tr_pond_lvl_out=tr_pond_lvl, tr_pond_topo_out=tr_pond_topo)
+      call icepack_query_tracer_indices( &
+         nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, &
+         nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, nt_Tsfc_out=nt_Tsfc, &
+         nt_iage_out=nt_iage, nt_FY_out=nt_FY, &
+         nt_qice_out=nt_qice, nt_sice_out=nt_sice, &
+         nt_aero_out=nt_aero, nt_qsno_out=nt_qsno)
 
       prescribed_ice = .false.
       l_stop = .false.
@@ -282,23 +307,21 @@
 
       subroutine step_therm2 (dt)
 
-      use icepack_drv_arrays_column, only: hin_max, fzsal, ocean_bio, &
-          first_ice, bgrid, cgrid, igrid
+      use icepack_drv_arrays_column, only: hin_max, fzsal, ocean_bio
+      use icepack_drv_arrays_column, only: first_ice, bgrid, cgrid, igrid
       use icepack_drv_calendar, only: istep1, yday
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nltrcr, nx
-      use icepack_drv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset, &
-          update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside, &
-          meltl, frazil_diag, flux_bio, faero_ocn 
+      use icepack_drv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
+      use icepack_drv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside
+      use icepack_drv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn 
       use icepack_drv_init, only: tmask
-      use icepack_drv_state, only: aice, aicen, aice0, trcr_depend, &
-          aicen_init, vicen_init, trcrn, vicen, vsnon, &
-          trcr_base, n_trcr_strata, nt_strata
+      use icepack_drv_state, only: aice, aicen, aice0, trcr_depend
+      use icepack_drv_state, only: aicen_init, vicen_init, trcrn, vicen, vsnon
+      use icepack_drv_state, only: trcr_base, n_trcr_strata, nt_strata
 
       ! column package_includes
-      use icepack_intfc, only: icepack_step_therm2, &
-          icepack_clear_warnings, icepack_print_warnings
-      use icepack_intfc_tracers, only: ntrcr, nbtrcr
+      use icepack_intfc, only: icepack_step_therm2
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -311,7 +334,14 @@
       logical (kind=log_kind) :: &
          l_stop          ! if true, abort model
 
+      integer (kind=int_kind) :: &
+         ntrcr, nbtrcr
+
       character (char_len) :: stop_label
+
+      !-----------------------------------------------------------------
+
+      call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
 
       l_stop = .false.
       
@@ -367,25 +397,35 @@
 
       use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_init, only: tmask
-      use icepack_drv_state, only: aicen, trcrn, vicen, vsnon, &
-                           aice,  trcr,  vice,  vsno, aice0, trcr_depend, &
-                           trcr_base, nt_strata, n_trcr_strata
+      use icepack_drv_state, only: aicen, trcrn, vicen, vsnon
+      use icepack_drv_state, only: aice,  trcr,  vice,  vsno, aice0, trcr_depend
+      use icepack_drv_state, only: trcr_base, nt_strata, n_trcr_strata
 
       ! column package includes
       use icepack_intfc, only: icepack_aggregate
-      use icepack_intfc_tracers, only: ntrcr, tr_iage, nt_iage
 
       real (kind=dbl_kind), intent(in) :: &
          dt    , & ! time step
          offset    ! d(age)/dt time offset = dt for thermo, 0 for dyn
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
-          daidt, & ! change in ice area per time step
-          dvidt, & ! change in ice volume per time step
-          dagedt   ! change in ice age per time step
+         daidt, & ! change in ice area per time step
+         dvidt, & ! change in ice volume per time step
+         dagedt   ! change in ice age per time step
 
       integer (kind=int_kind) :: & 
-         i       ! horizontal indices
+         i,     & ! horizontal indices
+         ntrcr, & !
+         nt_iage  !
+
+      logical (kind=log_kind) :: &
+         tr_iage  !
+
+      !-----------------------------------------------------------------
+
+      call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
+      call icepack_query_tracer_indices(nt_iage_out=nt_iage)
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage)
 
       !$OMP PARALLEL DO PRIVATE(i)
       do i = 1, nx
@@ -443,20 +483,17 @@
       use icepack_drv_calendar, only: istep1
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
-      use icepack_drv_flux, only: &
-          rdg_conv, rdg_shear, dardg1dt, dardg2dt, &
-          dvirdgdt, opening, fpond, fresh, fhocn, &
-          aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt, &
-          dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn
+      use icepack_drv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
+      use icepack_drv_flux, only: dvirdgdt, opening, fpond, fresh, fhocn
+      use icepack_drv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt
+      use icepack_drv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn
       use icepack_drv_init, only: tmask
-      use icepack_drv_state, only: trcrn, vsnon, aicen, vicen, &
-          aice, trcr, vice, vsno, aice0, trcr_depend, n_trcr_strata, &
-          trcr_base, nt_strata
+      use icepack_drv_state, only: trcrn, vsnon, aicen, vicen
+      use icepack_drv_state, only: aice, trcr, vice, vsno, aice0, trcr_depend, n_trcr_strata
+      use icepack_drv_state, only: trcr_base, nt_strata
 
       ! column package includes
-      use icepack_intfc, only: icepack_step_ridge, &
-          icepack_clear_warnings, icepack_print_warnings
-      use icepack_intfc_tracers, only: ntrcr, nbtrcr
+      use icepack_intfc, only: icepack_step_ridge
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -467,7 +504,9 @@
       ! local variables
 
       integer (kind=int_kind) :: & 
-         i               ! horizontal indices
+         i,            & ! horizontal indices
+         ntrcr,        & !
+         nbtrcr          !
 
       logical (kind=log_kind) :: &
          l_stop          ! if true, abort the model
@@ -477,6 +516,8 @@
       !-----------------------------------------------------------------
       ! Ridging
       !-----------------------------------------------------------------
+
+         call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
 
          do i = 1, nx
 
@@ -534,12 +575,12 @@
 
       subroutine step_radiation (dt)
 
-      use icepack_drv_arrays_column, only: ffracn, dhsn, &
-          fswsfcn, fswintn, fswthrun, fswpenln, Sswabsn, Iswabsn, &
-          albicen, albsnon, albpndn, &
-          alvdrn, alidrn, alvdfn, alidfn, apeffn, trcrn_sw, snowfracn, &
-          kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab, &
-          gaer_bc_tab, bcenh, swgrid, igrid
+      use icepack_drv_arrays_column, only: ffracn, dhsn
+      use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun, fswpenln, Sswabsn, Iswabsn
+      use icepack_drv_arrays_column, only: albicen, albsnon, albpndn
+      use icepack_drv_arrays_column, only: alvdrn, alidrn, alvdfn, alidfn, apeffn, trcrn_sw, snowfracn
+      use icepack_drv_arrays_column, only: kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab
+      use icepack_drv_arrays_column, only: gaer_bc_tab, bcenh, swgrid, igrid
       use icepack_drv_calendar, only: calendar_type, days_per_year, nextsw_cday, yday, sec
       use icepack_drv_domain_size, only: ncat, n_aero, nilyr, nslyr, n_zaero, n_algae, nblyr, nx
       use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf, coszen, fsnow
@@ -547,12 +588,7 @@
       use icepack_drv_state, only: aicen, vicen, vsnon, trcrn
 
       ! column package includes
-      use icepack_intfc, only: icepack_step_radiation, &
-          icepack_clear_warnings, icepack_print_warnings
-      use icepack_intfc_tracers, only: nt_Tsfc, nt_alvl, tr_bgc_N, &
-          nt_apnd, nt_hpnd, nt_ipnd, nt_aero, nlt_chl_sw, nlt_zaero_sw, &
-          tr_zaero, ntrcr, nbtrcr, nbtrcr_sw, nt_fbri, tr_brine, nt_zaero
-      use icepack_intfc_shared, only: dEdd_algae, modal_aero
+      use icepack_intfc, only: icepack_step_radiation
 
       real (kind=dbl_kind), intent(in) :: &
          dt                 ! time step
@@ -563,17 +599,47 @@
          i, n,   k,    & ! horizontal indices
          ipoint             ! index for print diagnostic
 
+      integer (kind=int_kind) :: &
+         max_aero, nt_Tsfc, nt_alvl, &
+         nt_apnd, nt_hpnd, nt_ipnd, nt_aero, nlt_chl_sw, &
+         ntrcr, nbtrcr, nbtrcr_sw, nt_fbri
+
+      integer (kind=int_kind), dimension(:), allocatable :: &
+         nlt_zaero_sw, nt_zaero
+
+      logical (kind=log_kind) :: &
+         tr_bgc_N, tr_zaero, tr_brine, dEdd_algae, modal_aero
+
       real (kind=dbl_kind), dimension(ncat) :: &
          fbri                 ! brine height to ice thickness
 
-      real(kind= dbl_kind), dimension(ntrcr, ncat) :: &
-         ztrcr
-
-      real(kind= dbl_kind), dimension(ntrcr, ncat) :: &
+      real(kind= dbl_kind), dimension(:,:), allocatable :: &
+         ztrcr    , &
          ztrcr_sw
 
       logical (kind=log_kind) :: &
          l_print_point      ! flag for printing debugging information
+
+      !-----------------------------------------------------------------
+
+      call icepack_query_parameters( &
+         max_aero_out=max_aero)
+      allocate(nlt_zaero_sw(max_aero))
+      allocate(nt_zaero(max_aero))
+      call icepack_query_tracer_numbers( &
+         ntrcr_out=ntrcr, nbtrcr_out=nbtrcr, nbtrcr_sw_out=nbtrcr_sw)
+      call icepack_query_tracer_flags( &
+         tr_brine_out=tr_brine, tr_bgc_N_out=tr_bgc_N, tr_zaero_out=tr_zaero)
+      call icepack_query_tracer_indices( &
+         nt_Tsfc_out=nt_Tsfc, nt_alvl_out=nt_alvl, &
+         nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, &
+         nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw, &
+         nt_fbri_out=nt_fbri, nt_zaero_out=nt_zaero)
+
+      call icepack_query_parameters(dEdd_algae_out=dEdd_algae, modal_aero_out=modal_aero)
+
+      allocate(ztrcr(ntrcr,ncat))
+      allocate(ztrcr_sw(ntrcr,ncat))
 
       l_print_point = .false.
 
@@ -647,6 +713,11 @@
 
       enddo ! i
 
+      deallocate(ztrcr)
+      deallocate(ztrcr_sw)
+      deallocate(nlt_zaero_sw)
+      deallocate(nt_zaero)
+
       end subroutine step_radiation
 
 !=======================================================================
@@ -662,14 +733,14 @@
       subroutine ocean_mixed_layer (dt)
 
       use icepack_drv_arrays_column, only: Cdn_atm, Cdn_atm_ratio
-      use icepack_constants, only: c0, c1000, albocn
+      use icepack_drv_constants, only: c0, c1000, albocn
       use icepack_intfc, only: icepack_ocn_mixed_layer, icepack_atm_boundary
       use icepack_drv_init, only: tmask
       use icepack_drv_domain_size, only: nx
-      use icepack_drv_flux, only: sst, Tf, Qa, uatm, vatm, wind, potT, rhoa, zlvl, &
-           frzmlt, fhocn, fswthru, flw, flwout_ocn, fsens_ocn, flat_ocn, evap_ocn, &
-           alvdr_ocn, alidr_ocn, alvdf_ocn, alidf_ocn, swidf, swvdf, swidr, swvdr, &
-           qdp, hmix, strairx_ocn, strairy_ocn, Tref_ocn, Qref_ocn
+      use icepack_drv_flux, only: sst, Tf, Qa, uatm, vatm, wind, potT, rhoa, zlvl
+      use icepack_drv_flux, only: frzmlt, fhocn, fswthru, flw, flwout_ocn, fsens_ocn, flat_ocn, evap_ocn
+      use icepack_drv_flux, only: alvdr_ocn, alidr_ocn, alvdf_ocn, alidf_ocn, swidf, swvdf, swidr, swvdr
+      use icepack_drv_flux, only: qdp, hmix, strairx_ocn, strairy_ocn, Tref_ocn, Qref_ocn
       use icepack_drv_state, only: aice
 
       real (kind=dbl_kind), intent(in) :: &
@@ -710,7 +781,7 @@
              endif
          enddo                  ! i
 
-      !-----------------------------------------------------------------
+      !----------------------------------------------------------------- 
       ! Compute boundary layer quantities
       !-----------------------------------------------------------------
 
@@ -773,29 +844,25 @@
 
       subroutine biogeochemistry (dt)
 
-      use icepack_drv_arrays_column, only: upNO, upNH, iDi, iki, zfswin, &
-                           trcrn_sw, zsal_tot, darcy_V, grow_net,  &
-                           PP_net, hbri,dhbr_bot, dhbr_top, Zoo,&
-                           fbio_snoice, fbio_atmice, ocean_bio,  &
-                           first_ice, fswpenln, bphi, bTiz, ice_bio_net,  &
-                           snow_bio_net, fswthrun, Rayleigh_criteria, &
-                           ocean_bio_all, sice_rho, fzsal, fzsal_g, &
-                           bgrid, igrid, icgrid, cgrid
+      use icepack_drv_arrays_column, only: upNO, upNH, iDi, iki, zfswin
+      use icepack_drv_arrays_column, only: trcrn_sw, zsal_tot, darcy_V, grow_net
+      use icepack_drv_arrays_column, only: PP_net, hbri,dhbr_bot, dhbr_top, Zoo
+      use icepack_drv_arrays_column, only: fbio_snoice, fbio_atmice, ocean_bio
+      use icepack_drv_arrays_column, only: first_ice, fswpenln, bphi, bTiz, ice_bio_net
+      use icepack_drv_arrays_column, only: snow_bio_net, fswthrun, Rayleigh_criteria
+      use icepack_drv_arrays_column, only: ocean_bio_all, sice_rho, fzsal, fzsal_g
+      use icepack_drv_arrays_column, only: bgrid, igrid, icgrid, cgrid
       use icepack_drv_calendar, only: istep1
-      use icepack_intfc, only: icepack_biogeochemistry, icepack_init_OceanConcArray, &
-          icepack_clear_warnings, icepack_print_warnings
-      use icepack_intfc_shared, only: skl_bgc, max_algae, max_nbtrcr, max_don, &
-                             max_doc, max_dic, max_aero, max_fe
-      use icepack_intfc_tracers, only: tr_brine, nbtrcr, ntrcr, bio_index_o, nlt_zaero, tr_zaero
+      use icepack_intfc, only: icepack_biogeochemistry, icepack_init_OceanConcArray
       use icepack_drv_diagnostics, only: diagnostic_abort
-      use icepack_drv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat, &
-                                 n_doc, n_dic,  n_don, n_fed, n_fep, nx
-      use icepack_drv_flux, only: meltbn, melttn, congeln, snoicen, &
-                          sst, sss, fsnow, meltsn, hmix, salinz, &
-                          hin_old, flux_bio, flux_bio_atm, faero_atm, & 
-          nit, amm, sil, dmsp, dms, algalN, doc, don, dic, fed, fep, zaeros, hum
-      use icepack_drv_state, only: aicen_init, vicen_init, aicen, vicen, vsnon, &
-          trcrn, vsnon_init, aice0                    
+      use icepack_drv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat
+      use icepack_drv_domain_size, only: n_doc, n_dic,  n_don, n_fed, n_fep, nx
+      use icepack_drv_flux, only: meltbn, melttn, congeln, snoicen
+      use icepack_drv_flux, only: sst, sss, fsnow, meltsn, hmix, salinz
+      use icepack_drv_flux, only: hin_old, flux_bio, flux_bio_atm, faero_atm 
+      use icepack_drv_flux, only: nit, amm, sil, dmsp, dms, algalN, doc, don, dic, fed, fep, zaeros, hum
+      use icepack_drv_state, only: aicen_init, vicen_init, aicen, vicen, vsnon
+      use icepack_drv_state, only: trcrn, vsnon_init, aice0                    
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -810,9 +877,43 @@
       logical (kind=log_kind) :: &
          l_stop          ! if true, abort the model
 
+      integer (kind=int_kind) :: &
+         max_algae, max_nbtrcr, max_don, &
+         max_doc, max_dic, max_aero, max_fe, &
+         nbtrcr, ntrcr
+
+      integer (kind=int_kind), dimension(:), allocatable :: &
+         nlt_zaero
+
+      integer (kind=int_kind), allocatable :: &
+         bio_index_o(:)
+
+      logical (kind=log_kind) :: &
+         skl_bgc, tr_brine, tr_zaero
+
       character (char_len) :: stop_label
 
+      !-----------------------------------------------------------------
+
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine)
+      call icepack_query_parameters(skl_bgc_out=skl_bgc)
+
       if (tr_brine .or. skl_bgc) then
+
+      call icepack_query_parameters( &
+         max_algae_out=max_algae, max_nbtrcr_out=max_nbtrcr, max_don_out=max_don, &
+         max_doc_out=max_doc, max_dic_out=max_dic, max_aero_out=max_aero, max_fe_out=max_fe)
+      call icepack_query_tracer_numbers( &
+         ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_flags( &
+         tr_zaero_out=tr_zaero)
+      call icepack_query_parameters( &
+         max_aero_out=max_aero)
+      allocate(nlt_zaero(max_aero))
+      call icepack_query_tracer_indices( &
+         nlt_zaero_out=nlt_zaero)
+      allocate(bio_index_o(max_nbtrcr))
+      call icepack_query_tracer_indices(bio_index_o_out=bio_index_o)
 
       ! Define ocean concentrations for tracers used in simulation
       do i = 1, nx
@@ -901,12 +1002,15 @@
 
       enddo               ! i
 
+      deallocate(nlt_zaero)
+      deallocate(bio_index_o)
+
       endif  ! tr_brine .or. skl_bgc
 
       end subroutine biogeochemistry
 
 !=======================================================================
 
-      end module icepack_drv_step_mod
+      end module icepack_drv_step
 
 !=======================================================================

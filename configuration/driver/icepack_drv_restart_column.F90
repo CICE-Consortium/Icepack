@@ -6,7 +6,7 @@
 !
       module icepack_drv_restart_column
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       use icepack_drv_constants
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nblyr, nx
       use icepack_drv_restart, only: read_restart_field, write_restart_field
@@ -15,11 +15,93 @@
       save
 
       private
-      public ::  write_restart_bgc, read_restart_bgc 
+      public ::  write_restart_bgc,       read_restart_bgc,  &
+                 write_restart_hbrine,    read_restart_hbrine
 
 !=======================================================================
 
       contains
+
+!=======================================================================
+
+      subroutine read_restart_hbrine()
+
+! Reads all values needed for hbrine
+! author Elizabeth C. Hunke, LANL
+
+      use icepack_drv_arrays_column, only: first_ice_real, first_ice
+!      use icepack_drv_fileunits, only: nu_diag, nu_restart_hbrine
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_fbri
+      use icepack_drv_restart, only: read_restart_field
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, n ! horizontal indices
+
+      logical (kind=log_kind) :: &
+         diag
+
+      diag = .true.
+
+      write(nu_diag,*) 'brine restart'
+
+!      call read_restart_field(nu_restart_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
+!                              'fbrn',ncat,diag,field_loc_center,field_type_scalar)
+!      call read_restart_field(nu_restart_hbrine,0,first_ice_real(:,:),'ruf8', &
+!                              'first_ice',ncat,diag,field_loc_center,field_type_scalar)
+
+         do i = 1, nx
+            do n = 1, ncat
+               if (first_ice_real(i,n) >= p5) then
+                   first_ice     (i,n) = .true.
+               else
+                   first_ice     (i,n) = .false.
+               endif
+            enddo ! ncat
+         enddo    ! i 
+
+      end subroutine read_restart_hbrine
+
+!=======================================================================
+
+      subroutine write_restart_hbrine()
+
+! Dumps all values needed for a hbrine restart
+! author Elizabeth C. Hunke, LANL
+
+      use icepack_drv_arrays_column, only: first_ice, first_ice_real
+!      use icepack_drv_fileunits, only: nu_diag, nu_dump_hbrine
+      use icepack_drv_state, only: trcrn
+      use icepack_intfc_tracers, only: nt_fbri
+      use icepack_drv_restart, only: write_restart_field
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, n ! horizontal indices
+
+      logical (kind=log_kind) :: diag
+
+      diag = .true.
+
+        do i = 1, nx  
+           do n = 1, ncat
+              if (first_ice     (i,n)) then
+                  first_ice_real(i,n) = c1
+              else
+                  first_ice_real(i,n) = c0
+              endif
+           enddo ! n
+        enddo    ! i
+
+!      call write_restart_field(nu_dump_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
+!                               'fbrn',ncat,diag)
+!      call write_restart_field(nu_dump_hbrine,0,first_ice_real(:,:),'ruf8', &
+!                               'first_ice',ncat,diag)
+
+      end subroutine write_restart_hbrine
 
 !=======================================================================
 !
@@ -30,24 +112,18 @@
       subroutine write_restart_bgc()
 
       use icepack_drv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
-      use icepack_drv_domain_size, only: ncat, n_algae, n_doc, n_dic, &
-          n_don, n_zaero, n_fed, n_fep
+      use icepack_drv_domain_size, only: ncat, n_algae, n_doc, n_dic
+      use icepack_drv_domain_size, only: n_don, n_zaero, n_fed, n_fep
 !      use icepack_drv_fileunits, only: nu_diag, nu_dump_bgc
-      use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
-          doc, don, dic, fed, fep, zaeros, hum
+      use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
+      use icepack_drv_flux, only: doc, don, dic, fed, fep, zaeros, hum
       use icepack_drv_state, only: trcrn
       use icepack_drv_restart, only:  write_restart_field
-      use icepack_intfc_tracers, only: nt_bgc_S, nt_bgc_Am, &
-          nt_bgc_DMS, nt_bgc_DMSPd, nt_bgc_C, nt_bgc_chl, &
-          nt_bgc_DMSPp, nt_bgc_Nit, nt_bgc_Sil, &
-          nt_bgc_PON, nt_bgc_DON, nt_bgc_DOC, nt_bgc_DIC, &
-          nt_bgc_N, nt_zaero, nt_bgc_Fed, nt_bgc_Fep, &
-          nt_zbgc_frac, nbtrcr,  &
-          nt_bgc_Fep, tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil,&
-          tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C, &
-          tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl, &
-          nt_bgc_hum, tr_bgc_hum
-      use icepack_intfc_shared, only: skl_bgc, solve_zsal
+      use icepack_drv_tracers, only: nbtrcr
+      use icepack_drv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
+      use icepack_drv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
+      use icepack_drv_tracers, only: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
+      use icepack_drv_parameters, only: skl_bgc, solve_zsal
 
       ! local variables
 
@@ -383,24 +459,18 @@
       subroutine read_restart_bgc()
 
       use icepack_drv_arrays_column, only: Rayleigh_real, Rayleigh_criteria
-      use icepack_drv_domain_size, only: ncat, n_algae, n_doc, n_dic,&
-          n_don, n_zaero, n_fed, n_fep
+      use icepack_drv_domain_size, only: ncat, n_algae, n_doc, n_dic
+      use icepack_drv_domain_size, only: n_don, n_zaero, n_fed, n_fep
 !      use icepack_drv_fileunits, only: nu_diag, nu_restart_bgc
-      use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
-          doc, don, dic, fed, fep, zaeros, hum
+      use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
+      use icepack_drv_flux, only: doc, don, dic, fed, fep, zaeros, hum
       use icepack_drv_state, only: trcrn
       use icepack_drv_restart, only: read_restart_field
-      use icepack_intfc_tracers, only: nt_bgc_S, nt_bgc_Am, &
-          nt_bgc_DMS, nt_bgc_DMSPd, nt_bgc_C, nt_bgc_chl, &
-          nt_bgc_DMSPp, nt_bgc_Nit, nt_bgc_Sil, &
-          nt_bgc_PON, nt_bgc_DON, nt_bgc_DOC, nt_bgc_DIC, &
-          nt_bgc_N, nt_zaero, nt_bgc_Fed, nt_bgc_Fep, &
-          nt_zbgc_frac, nbtrcr,  &
-          nt_bgc_Fep, tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil,&
-          tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C, &
-          tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl, &
-          nt_bgc_hum, tr_bgc_hum
-      use icepack_intfc_shared, only: skl_bgc
+      use icepack_drv_tracers, only: nbtrcr
+      use icepack_drv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
+      use icepack_drv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
+      use icepack_drv_tracers, only: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
+      use icepack_drv_parameters, only: skl_bgc
 
       ! local variables
 

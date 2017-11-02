@@ -20,10 +20,10 @@
 
       module icepack_meltpond_topo
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, p01, p1, p15, p4, p6, &
-          puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh, &
-          gravit, depressT, kice, ice_ref_salinity
+      use icepack_kinds
+      use icepack_constants, only: c0, c1, c2, p01, p1, p15, p4, p6
+      use icepack_constants, only: puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh
+      use icepack_constants, only: gravit, depressT, kice, ice_ref_salinity
 
       implicit none
 
@@ -120,6 +120,7 @@
          dvice, & ! change in ice volume (m)
          Tavg,  & ! mean surface temperature across categories (C)
          Tp,    & ! pond freezing temperature (C)
+         rhoi_L,& ! (J/m^3)
          dvn      ! change in melt pond volume for fresh water budget
 
       integer (kind=int_kind) :: n ! loop indices
@@ -127,7 +128,6 @@
       real (kind=dbl_kind), parameter :: &
          hicemin = p1           , & ! minimum ice thickness with ponds (m) 
          Td      = p15          , & ! temperature difference for freeze-up (C)
-         rhoi_L  = Lfresh * rhoi, & ! (J/m^3)
          min_volp = 1.e-4_dbl_kind  ! minimum pond volume (m)
 
       !---------------------------------------------------------------
@@ -135,6 +135,7 @@
       !---------------------------------------------------------------
    
       volp = c0
+      rhoi_L  = Lfresh * rhoi   ! (J/m^3)
 
       do n = 1, ncat
          ! load tracers

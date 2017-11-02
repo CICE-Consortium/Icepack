@@ -6,7 +6,7 @@
 !
       module icepack_drv_init_column
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
 
       implicit none
@@ -29,7 +29,7 @@
 
       subroutine init_thermo_vertical
 
-      use icepack_constants, only: depressT
+      use icepack_drv_constants, only: depressT
       use icepack_intfc, only: icepack_init_thermo
       use icepack_drv_flux, only: salinz, Tmltz
 
@@ -66,34 +66,34 @@
 
       subroutine init_shortwave
 
-      use icepack_drv_arrays_column, only: fswpenln, Iswabsn, Sswabsn, albicen, &
-          albsnon, alvdrn, alidrn, alvdfn, alidfn, fswsfcn, fswthrun, &
-          fswintn, albpndn, apeffn, trcrn_sw, dhsn, ffracn, snowfracn, &
-          kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab, gaer_bc_tab, bcenh, &
-          swgrid, igrid
-      use icepack_drv_calendar, only: istep1, dt, calendar_type, &
-          days_per_year, nextsw_cday, yday, sec
+      use icepack_drv_arrays_column, only: fswpenln, Iswabsn, Sswabsn, albicen
+      use icepack_drv_arrays_column, only: albsnon, alvdrn, alidrn, alvdfn, alidfn, fswsfcn, fswthrun
+      use icepack_drv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn, ffracn, snowfracn
+      use icepack_drv_arrays_column, only: kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab, gaer_bc_tab, bcenh
+      use icepack_drv_arrays_column, only: swgrid, igrid
+      use icepack_drv_calendar, only: istep1, dt, calendar_type
+      use icepack_drv_calendar, only:    days_per_year, nextsw_cday, yday, sec
       use icepack_drv_constants, only: nu_diag
-      use icepack_constants, only: c0, c1, puny
+      use icepack_drv_constants, only: c0, c1, puny
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: n_aero, n_zaero, ncat, nilyr, nslyr, n_algae, nblyr
-      use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr, &
-                          alvdr_ai, alidr_ai, alvdf_ai, alidf_ai, &
-                          swvdr, swvdf, swidr, swidf, scale_factor, snowfrac, &
-                          albice, albsno, albpnd, apeff_ai, coszen, fsnow
+      use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr
+      use icepack_drv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
+      use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf, scale_factor, snowfrac
+      use icepack_drv_flux, only: albice, albsno, albpnd, apeff_ai, coszen, fsnow
       use icepack_drv_init, only: tlat, tlon, tmask
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_state, only: aicen, vicen, vsnon, trcrn
 
       ! column package includes
-      use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit, &
-           icepack_clear_warnings, icepack_print_warnings
-      use icepack_intfc_shared, only: shortwave, dEdd_algae, modal_aero
-      use icepack_intfc_tracers, only: nt_Tsfc, &
-          nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, tr_bgc_N, &
-          tr_zaero, nlt_chl_sw, nlt_zaero_sw, ntrcr, nbtrcr, nbtrcr_sw, nt_fbri, tr_brine, &
-          nt_zaero
-
+      use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
+      use icepack_intfc, only: icepack_clear_warnings, icepack_print_warnings
+      use icepack_drv_parameters, only: shortwave, dEdd_algae, modal_aero
+      use icepack_drv_tracers, only: tr_brine, tr_zaero, tr_bgc_n
+      use icepack_drv_tracers, only: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
+      use icepack_drv_tracers, only: nt_fbri, nt_tsfc
+      use icepack_drv_tracers, only: ntrcr, nbtrcr, nbtrcr_sw
+      use icepack_drv_tracers, only: nlt_chl_sw, nlt_zaero_sw
 
       integer (kind=int_kind) :: &
          i, k           , & ! horizontal indices
@@ -309,12 +309,12 @@
 
       subroutine init_bgc() 
 
-      use icepack_drv_arrays_column, only: zfswin, trcrn_sw, &
-          ocean_bio_all, ice_bio_net, snow_bio_net, &
-          cgrid, igrid, bphi, iDi, bTiz, iki, &
-          Rayleigh_criteria, Rayleigh_real
-      use icepack_drv_calendar, only: dt, istep1
-      use icepack_constants, only: c0
+      use icepack_drv_arrays_column, only: zfswin, trcrn_sw
+      use icepack_drv_arrays_column, only: ocean_bio_all, ice_bio_net, snow_bio_net
+      use icepack_drv_arrays_column, only: cgrid, igrid, bphi, iDi, bTiz, iki
+      use icepack_drv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
+      use icepack_drv_calendar,  only: dt, istep1
+      use icepack_drv_constants, only: c0
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: nblyr, nilyr
       use icepack_drv_constants, only: nu_diag
@@ -324,15 +324,15 @@
 !      use icepack_drv_restart_column, only: restart_zsal, &
 !          read_restart_bgc, restart_bgc
       use icepack_drv_state, only: trcrn, aicen, vicen, vsnon
-      use icepack_intfc_shared, only: solve_zsal, &
-         max_algae, max_don, max_doc, max_dic, max_aero, max_fe, &
-         max_nbtrcr
+      use icepack_drv_parameters, only: solve_zsal
+      use icepack_drv_parameters, only: max_algae, max_don, max_doc, max_dic, max_aero, max_fe
+      use icepack_drv_parameters, only: max_nbtrcr
 
       ! column package includes
-      use icepack_intfc, only: icepack_init_bgc, icepack_init_zsalinity, &
-          icepack_init_ocean_conc, icepack_init_OceanConcArray
-      use icepack_intfc_tracers, only: nbtrcr, ntrcr, nt_bgc_S, ntrcr_o, &
-          nt_sice, nt_fbri
+      use icepack_intfc,   only: icepack_init_bgc, icepack_init_zsalinity
+      use icepack_intfc,   only: icepack_init_ocean_conc, icepack_init_OceanConcArray
+      use icepack_drv_tracers, only: nbtrcr, ntrcr, ntrcr_o
+      use icepack_drv_tracers, only: nt_sice, nt_bgc_S
 
       ! local variables
 
@@ -475,14 +475,14 @@
 
       subroutine init_hbrine()
 
-      use icepack_drv_arrays_column, only: first_ice, bgrid, igrid, cgrid, &
-          icgrid, swgrid
-      use icepack_constants, only: c1
+      use icepack_drv_arrays_column, only: first_ice, bgrid, igrid, cgrid
+      use icepack_drv_arrays_column, only: icgrid, swgrid
+      use icepack_drv_constants, only: c1
       use icepack_drv_domain_size, only: nblyr
       use icepack_drv_state, only: trcrn
       use icepack_intfc, only: icepack_init_hbrine
-      use icepack_intfc_tracers, only: nt_fbri, tr_brine
-      use icepack_intfc_shared, only: phi_snow
+      use icepack_drv_tracers, only: nt_fbri, tr_brine
+      use icepack_drv_parameters, only: phi_snow
 
       call icepack_init_hbrine(bgrid, igrid, cgrid, icgrid, &
             swgrid, nblyr, nilyr, phi_snow)
@@ -502,45 +502,111 @@
       subroutine init_zbgc
 
       use icepack_drv_constants, only: nu_diag, nu_nml
-      use icepack_constants, only: c1, p5, c0, c5, rhos, rhoi, p1
-      use icepack_drv_domain_size, only: max_ntrcr, nblyr, nilyr, nslyr, &
-                           n_algae, n_zaero, n_doc, n_dic, n_don, &
-                           n_fed, n_fep, max_nsw, n_bgc
-!      use icepack_drv_restart_column, only: restart_bgc, restart_zsal, &
-!          restart_hbrine
-      use icepack_drv_state, only: trcr_base, trcr_depend, n_trcr_strata, &
-          nt_strata      
+      use icepack_drv_constants, only: c1, p5, c0, c5, rhos, rhoi, p1
+      use icepack_drv_domain_size, only: max_ntrcr, nblyr, nilyr, nslyr
+      use icepack_drv_domain_size, only: n_algae, n_zaero, n_doc, n_dic, n_don
+      use icepack_drv_domain_size, only: n_fed, n_fep, max_nsw, n_bgc
+!     use icepack_drv_restart_column, only: restart_bgc, restart_zsal
+!     use icepack_drv_restart_column, only: restart_hbrine
+      use icepack_drv_state, only: trcr_base, trcr_depend, n_trcr_strata
+      use icepack_drv_state, only: nt_strata
+      use icepack_drv_parameters, only: max_algae, max_don, max_doc, max_dic, max_aero
+      use icepack_drv_parameters, only: max_fe, max_nbtrcr, shortwave
 
-      use icepack_intfc, only:icepack_init_bgc_trcr,  icepack_init_zbgc
+      use icepack_intfc, only: icepack_init_tracer_numbers, icepack_init_tracer_flags
+      use icepack_intfc, only: icepack_init_tracer_indices
+      use icepack_intfc, only: icepack_query_tracer_numbers, icepack_query_tracer_flags
+      use icepack_intfc, only: icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_init_bgc_trcr,  icepack_init_zbgc
 
-      use icepack_intfc_tracers, only: tr_brine, &
+      integer (kind=int_kind) :: &
           ntrcr,         nbtrcr,       nbtrcr_sw,    &
-          ntrcr_o, &
+          ntrcr_o,       nt_fbri,      &  
+          nt_bgc_Nit,    nt_bgc_Am,    nt_bgc_Sil,   &
+          nt_bgc_DMS,    nt_bgc_PON,   nt_bgc_S,     &
+          nt_bgc_DMSPp,  nt_bgc_DMSPd, &
+          nt_zbgc_frac,  nlt_chl_sw, &
+          nlt_bgc_Nit,   nlt_bgc_Am, nlt_bgc_Sil, &
+          nlt_bgc_DMS,   nlt_bgc_DMSPp, nlt_bgc_DMSPd, &
+          nlt_bgc_PON, &
+          nt_bgc_hum,  nlt_bgc_hum
+
+      integer (kind=int_kind), dimension(max_aero) :: &
+         nlt_zaero_sw       ! points to aerosol in trcrn_sw
+
+      integer (kind=int_kind), dimension(max_algae) :: &
+         nlt_bgc_N      , & ! algae
+         nlt_bgc_C      , & !
+         nlt_bgc_chl
+
+      integer (kind=int_kind), dimension(max_doc) :: &
+         nlt_bgc_DOC        ! disolved organic carbon
+
+      integer (kind=int_kind), dimension(max_don) :: &
+         nlt_bgc_DON        !
+
+      integer (kind=int_kind), dimension(max_dic) :: &
+         nlt_bgc_DIC        ! disolved inorganic carbon
+
+      integer (kind=int_kind), dimension(max_fe) :: &
+         nlt_bgc_Fed    , & !
+         nlt_bgc_Fep        !
+
+      integer (kind=int_kind), dimension(max_aero) :: &
+         nlt_zaero          ! non-reacting layer aerosols
+
+      integer (kind=int_kind), dimension(max_algae) :: &
+         nt_bgc_N , & ! diatoms, phaeocystis, pico/small
+         nt_bgc_C , & ! diatoms, phaeocystis, pico/small
+         nt_bgc_chl   ! diatoms, phaeocystis, pico/small
+
+      integer (kind=int_kind), dimension(max_doc) :: &
+         nt_bgc_DOC      !  dissolved organic carbon
+
+      integer (kind=int_kind), dimension(max_don) :: &
+         nt_bgc_DON         !  dissolved organic nitrogen
+
+      integer (kind=int_kind), dimension(max_dic) :: &
+         nt_bgc_DIC         !  dissolved inorganic carbon
+
+      integer (kind=int_kind), dimension(max_fe) :: &
+         nt_bgc_Fed,     & !  dissolved iron
+         nt_bgc_Fep        !  particulate iron
+
+      integer (kind=int_kind), dimension(max_aero) :: &
+         nt_zaero       !  black carbon and other aerosols
+
+      integer (kind=int_kind), dimension(max_nbtrcr) :: &
+         bio_index_o         ! relates nlt_bgc_NO to ocean concentration index
+
+      integer (kind=int_kind), dimension(max_nbtrcr) :: &
+         bio_index           ! relates bio indices, ie.  nlt_bgc_N to nt_bgc_N
+
+      logical (kind=log_kind) :: &
+          tr_brine, &
           tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil,   &
           tr_bgc_DMS,    tr_bgc_PON,   tr_bgc_S,     &
           tr_bgc_N,      tr_bgc_C,     tr_bgc_chl,   &
           tr_bgc_DON,    tr_bgc_Fe,    tr_zaero,     &
-          tr_bgc_hum,    tr_aero,      nt_fbri,      &  
-          nt_bgc_Nit,    nt_bgc_Am,    nt_bgc_Sil,   &
-          nt_bgc_DMS,    nt_bgc_PON,   nt_bgc_S,     &
-          nt_bgc_N,      nt_bgc_C,     nt_bgc_chl,   &
-          nt_bgc_DOC,    nt_bgc_DON,   nt_bgc_DIC,   &
-          nt_zaero,      nt_bgc_DMSPp, nt_bgc_DMSPd, &
-          nt_bgc_Fed,    nt_bgc_Fep,  nt_zbgc_frac, &
-          nlt_zaero_sw,  nlt_chl_sw, &
-          nlt_bgc_N, nlt_bgc_Nit, nlt_bgc_Am, nlt_bgc_Sil, &
-          nlt_bgc_DMS, nlt_bgc_DMSPp, nlt_bgc_DMSPd, nlt_bgc_C, nlt_bgc_chl, &
-          nlt_bgc_DIC, nlt_bgc_DOC, nlt_bgc_PON, &
-          nlt_bgc_DON, nlt_bgc_Fed, nlt_bgc_Fep, nlt_zaero, &
-          nt_bgc_hum,  nlt_bgc_hum, bio_index_o, bio_index
+          tr_bgc_hum,    tr_aero
  
-      use icepack_intfc_shared, only: ktherm, shortwave, solve_zsal, &
-          skl_bgc, z_tracers, scale_bgc, dEdd_algae, solve_zbgc, &
-          bgc_data_dir, sil_data_type, nit_data_type, fe_data_type, &
-          bgc_flux_type, grid_o, l_sk, grid_o_t, initbio_frac, &
-          frazil_scav, grid_oS, l_skS, max_nbtrcr, max_algae, max_aero, &
-          max_doc, max_dic, max_don, max_fe, restore_bgc, phi_snow, &
-          modal_aero, &
+      integer (kind=int_kind) :: &
+          ktherm
+
+      character (char_len) :: &
+          sil_data_type, nit_data_type, fe_data_type, bgc_flux_type
+
+      character (char_len_long) :: &
+          bgc_data_dir
+
+      logical (kind=log_kind) :: &
+          solve_zsal, skl_bgc, z_tracers, scale_bgc, solve_zbgc, dEdd_algae, &
+          modal_aero, restore_bgc
+
+      real (kind=dbl_kind) :: &
+          grid_o, l_sk, grid_o_t, initbio_frac, &
+          frazil_scav, grid_oS, l_skS, &
+          phi_snow, &
           ratio_Si2N_diatoms , ratio_Si2N_sp      , ratio_Si2N_phaeo   ,  &
           ratio_S2N_diatoms  , ratio_S2N_sp       , ratio_S2N_phaeo    ,  &
           ratio_Fe2C_diatoms , ratio_Fe2C_sp      , ratio_Fe2C_phaeo   ,  &
@@ -596,7 +662,7 @@
       !  1 : retention time scale is tau_max, release time scale is tau_min
       ! 0.5: retention time scale is tau_min, release time scale is tau_min
       !  2 : retention time scale is tau_max, release time scale is tau_max
-      ! tau_min and tau_max are defined in icepack_intfc_shared.f90
+      ! tau_min and tau_max are defined in icepack_drv_parameters.f90
       !------------------------------------------------------------
 
       !-----------------------------------------------------------------
@@ -649,8 +715,35 @@
         zaerotype_dust3    , zaerotype_dust4    , ratio_C2N_diatoms  ,  &
         ratio_C2N_sp       , ratio_C2N_phaeo    , ratio_chl2N_diatoms,  & 
         ratio_chl2N_sp     , ratio_chl2N_phaeo  , F_abs_chl_diatoms  ,  &
-        F_abs_chl_sp       , F_abs_chl_phaeo      , ratio_C2N_proteins 
+        F_abs_chl_sp       , F_abs_chl_phaeo    , ratio_C2N_proteins 
 
+      call icepack_query_tracer_numbers( &
+          ntrcr_out=ntrcr, ntrcr_o_out=ntrcr_o, nbtrcr_out=nbtrcr, nbtrcr_sw_out=nbtrcr_sw)
+
+      call icepack_query_tracer_flags( &
+          tr_bgc_Nit_out=tr_bgc_Nit, tr_bgc_Am_out =tr_bgc_Am,  tr_bgc_Sil_out=tr_bgc_Sil,   &
+          tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, tr_bgc_S_out  =tr_bgc_S,     &
+          tr_bgc_N_out  =tr_bgc_N,   tr_bgc_C_out  =tr_bgc_C,   tr_bgc_chl_out=tr_bgc_chl,   &
+          tr_bgc_DON_out=tr_bgc_DON, tr_bgc_Fe_out =tr_bgc_Fe,  tr_zaero_out  =tr_zaero,     &
+          tr_bgc_hum_out=tr_bgc_hum, tr_aero_out   =tr_aero)
+
+      call icepack_query_tracer_indices( &
+          nt_fbri_out=nt_fbri,      &  
+          nt_bgc_Nit_out=nt_bgc_Nit,   nt_bgc_Am_out=nt_bgc_Am,       nt_bgc_Sil_out=nt_bgc_Sil,   &
+          nt_bgc_DMS_out=nt_bgc_DMS,   nt_bgc_PON_out=nt_bgc_PON,     nt_bgc_S_out=nt_bgc_S,     &
+          nt_bgc_N_out=nt_bgc_N,       nt_bgc_C_out=nt_bgc_C,         nt_bgc_chl_out=nt_bgc_chl,   &
+          nt_bgc_DOC_out=nt_bgc_DOC,   nt_bgc_DON_out=nt_bgc_DON,     nt_bgc_DIC_out=nt_bgc_DIC,   &
+          nt_zaero_out=nt_zaero,       nt_bgc_DMSPp_out=nt_bgc_DMSPp, nt_bgc_DMSPd_out=nt_bgc_DMSPd, &
+          nt_bgc_Fed_out=nt_bgc_Fed,   nt_bgc_Fep_out=nt_bgc_Fep,     nt_zbgc_frac_out=nt_zbgc_frac, &
+          nlt_zaero_sw_out=nlt_zaero_sw,  nlt_chl_sw_out=nlt_chl_sw,  nlt_bgc_Sil_out=nlt_bgc_Sil, &
+          nlt_bgc_N_out=nlt_bgc_N,     nlt_bgc_Nit_out=nlt_bgc_Nit,   nlt_bgc_Am_out=nlt_bgc_Am, &
+          nlt_bgc_DMS_out=nlt_bgc_DMS, nlt_bgc_DMSPp_out=nlt_bgc_DMSPp, nlt_bgc_DMSPd_out=nlt_bgc_DMSPd, &
+          nlt_bgc_C_out=nlt_bgc_C,     nlt_bgc_chl_out=nlt_bgc_chl,   nlt_zaero_out=nlt_zaero, &
+          nlt_bgc_DIC_out=nlt_bgc_DIC, nlt_bgc_DOC_out=nlt_bgc_DOC,   nlt_bgc_PON_out=nlt_bgc_PON, &
+          nlt_bgc_DON_out=nlt_bgc_DON, nlt_bgc_Fed_out=nlt_bgc_Fed,   nlt_bgc_Fep_out=nlt_bgc_Fep, &
+          nt_bgc_hum_out=nt_bgc_hum,   nlt_bgc_hum_out=nlt_bgc_hum, &
+          bio_index_o_out=bio_index_o, bio_index_out=bio_index)
+ 
       !-----------------------------------------------------------------
       ! default values
       !-----------------------------------------------------------------
@@ -827,18 +920,18 @@
       ! read from input file
       !-----------------------------------------------------------------
 
-      open (nu_nml, file=trim(nml_filename), status='old',iostat=nml_error)
-      if (nml_error /= 0) then
-        nml_error = -1
-      else
-        nml_error =  1
-      endif
+         open (nu_nml, file=trim(nml_filename), status='old',iostat=nml_error)
+         if (nml_error /= 0) then
+            nml_error = -1
+         else
+            nml_error =  1
+         endif 
 
-      print*,'Reading zbgc_nml'
-      do while (nml_error > 0)
-        read(nu_nml, nml=zbgc_nml,iostat=nml_error)
-      end do
-      if (nml_error == 0) close(nu_nml)
+         print*,'Reading zbgc_nml'
+         do while (nml_error > 0)
+            read(nu_nml, nml=zbgc_nml,iostat=nml_error)
+         end do
+         if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
          print*,'error reading zbgc namelist'
          stop
@@ -880,17 +973,17 @@
          tr_brine  = .false.
       endif 
 
-      write(nu_diag,1010) ' tr_brine                  = ', tr_brine
-      if (tr_brine) then
-        !         write(nu_diag,1010) ' restart_hbrine            = ', restart_hbrine
-        write(nu_diag,1005) ' phi_snow                  = ', phi_snow
-      endif
-      if (solve_zsal) then
-        write(nu_diag,1010) ' solve_zsal                = ', solve_zsal
-        !         write(nu_diag,1010) ' restart_zsal              = ', restart_zsal
-        write(nu_diag,1000) ' grid_oS                   = ', grid_oS
-        write(nu_diag,1005) ' l_skS                     = ', l_skS
-      endif
+         write(nu_diag,1010) ' tr_brine                  = ', tr_brine
+         if (tr_brine) then
+!         write(nu_diag,1010) ' restart_hbrine            = ', restart_hbrine
+         write(nu_diag,1005) ' phi_snow                  = ', phi_snow
+         endif
+         if (solve_zsal) then
+         write(nu_diag,1010) ' solve_zsal                = ', solve_zsal
+!         write(nu_diag,1010) ' restart_zsal              = ', restart_zsal
+         write(nu_diag,1000) ' grid_oS                   = ', grid_oS
+         write(nu_diag,1005) ' l_skS                     = ', l_skS
+         endif
 
       !-----------------------------------------------------------------
       ! biogeochemistry
@@ -910,7 +1003,7 @@
       endif
 
       if ((skl_bgc .AND. solve_zbgc) .or. (skl_bgc .AND. z_tracers)) then
-              print*, 'ERROR:skl_bgc and solve_zbgc or z_tracers are both true'
+         print*, 'ERROR: skl_bgc and (solve_zbgc or z_tracers) are both true'
          stop
       endif
 
@@ -1034,6 +1127,35 @@
       !-----------------------------------------------------------------
       ! initialize tracers etc in the column package
       !-----------------------------------------------------------------
+
+      call icepack_init_tracer_numbers( &
+          ntrcr_in=ntrcr, ntrcr_o_in=ntrcr_o, nbtrcr_in=nbtrcr, nbtrcr_sw_in=nbtrcr_sw)
+
+      call icepack_init_tracer_flags( &
+          tr_bgc_Nit_in=tr_bgc_Nit, tr_bgc_Am_in =tr_bgc_Am,  tr_bgc_Sil_in=tr_bgc_Sil,   &
+          tr_bgc_DMS_in=tr_bgc_DMS, tr_bgc_PON_in=tr_bgc_PON, tr_bgc_S_in  =tr_bgc_S,     &
+          tr_bgc_N_in  =tr_bgc_N,   tr_bgc_C_in  =tr_bgc_C,   tr_bgc_chl_in=tr_bgc_chl,   &
+          tr_bgc_DON_in=tr_bgc_DON, tr_bgc_Fe_in =tr_bgc_Fe,  tr_zaero_in  =tr_zaero,     &
+          tr_bgc_hum_in=tr_bgc_hum, tr_aero_in   =tr_aero)
+
+      call icepack_init_tracer_indices( &
+          nbtrcr_in=nbtrcr,        &
+          nt_fbri_in=nt_fbri,      &  
+          nt_bgc_Nit_in=nt_bgc_Nit,   nt_bgc_Am_in=nt_bgc_Am,       nt_bgc_Sil_in=nt_bgc_Sil,   &
+          nt_bgc_DMS_in=nt_bgc_DMS,   nt_bgc_PON_in=nt_bgc_PON,     nt_bgc_S_in=nt_bgc_S,     &
+          nt_bgc_N_in=nt_bgc_N,       nt_bgc_C_in=nt_bgc_C,         nt_bgc_chl_in=nt_bgc_chl,   &
+          nt_bgc_DOC_in=nt_bgc_DOC,   nt_bgc_DON_in=nt_bgc_DON,     nt_bgc_DIC_in=nt_bgc_DIC,   &
+          nt_zaero_in=nt_zaero,       nt_bgc_DMSPp_in=nt_bgc_DMSPp, nt_bgc_DMSPd_in=nt_bgc_DMSPd, &
+          nt_bgc_Fed_in=nt_bgc_Fed,   nt_bgc_Fep_in=nt_bgc_Fep,     nt_zbgc_frac_in=nt_zbgc_frac, &
+          nlt_zaero_sw_in=nlt_zaero_sw,  nlt_chl_sw_in=nlt_chl_sw,  nlt_bgc_Sil_in=nlt_bgc_Sil, &
+          nlt_bgc_N_in=nlt_bgc_N,     nlt_bgc_Nit_in=nlt_bgc_Nit,   nlt_bgc_Am_in=nlt_bgc_Am, &
+          nlt_bgc_DMS_in=nlt_bgc_DMS, nlt_bgc_DMSPp_in=nlt_bgc_DMSPp, nlt_bgc_DMSPd_in=nlt_bgc_DMSPd, &
+          nlt_bgc_C_in=nlt_bgc_C,     nlt_bgc_chl_in=nlt_bgc_chl,   nlt_zaero_in=nlt_zaero, &
+          nlt_bgc_DIC_in=nlt_bgc_DIC, nlt_bgc_DOC_in=nlt_bgc_DOC,   nlt_bgc_PON_in=nlt_bgc_PON, &
+          nlt_bgc_DON_in=nlt_bgc_DON, nlt_bgc_Fed_in=nlt_bgc_Fed,   nlt_bgc_Fep_in=nlt_bgc_Fep, &
+          nt_bgc_hum_in=nt_bgc_hum,   nlt_bgc_hum_in=nlt_bgc_hum, &
+          bio_index_o_in=bio_index_o, bio_index_in=bio_index)
+ 
       call icepack_init_zbgc (nblyr, nilyr, nslyr, &
                  n_algae, n_zaero, n_doc, n_dic, n_don, n_fed, n_fep, &
                  trcr_base, trcr_depend, n_trcr_strata, nt_strata, nbtrcr_sw, &

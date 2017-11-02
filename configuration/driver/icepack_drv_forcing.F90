@@ -6,13 +6,13 @@
 !
       module icepack_drv_forcing
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_calendar, only: time, nyr, dayyr, mday, month, &
          daymo, daycal, &
          dt, yday , days_per_year
       use icepack_drv_constants, only: nu_diag, nu_forcing, secday
-      use icepack_intfc_shared, only: calc_strair
+      use icepack_drv_parameters, only: calc_strair
 
       implicit none
       private
@@ -199,7 +199,7 @@
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp, hmix
 
-      use icepack_intfc_shared, only: restore_bgc
+      use icepack_drv_init_column, only: restore_bgc
 
       integer (kind=int_kind), intent(in) :: &
          timestep         ! time step index
@@ -378,35 +378,33 @@
        uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
        vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
 
-!cn are these the default?
-      !sst  (:) = sst_data  (i)    ! sea surface temperature
-      !sss  (:) = sss_data  (i)    ! sea surface salinity
-      !uocn (:) = uocn_data (i)    ! wind velocity components (m/s)
-      !vocn (:) = vocn_data (i) 
-
-!for debugging, for now
-if (i==8760) then
-write (nu_diag,*) flw
-write (nu_diag,*) fsw
-write (nu_diag,*) Tair
-write (nu_diag,*) Qa
-write (nu_diag,*) fsnow
-write (nu_diag,*) frain
-write (nu_diag,*) zlvl
-write (nu_diag,*) potT
-write (nu_diag,*) rhoa
-write (nu_diag,*) uatm
-write (nu_diag,*) vatm
-write (nu_diag,*) wind
-write (nu_diag,*) strax
-write (nu_diag,*) stray
-write (nu_diag,*) swvdr
-write (nu_diag,*) swvdf
-write (nu_diag,*) swidr
-write (nu_diag,*) swidf
-write (nu_diag,*) sst
-write (nu_diag,*) uocn
-write (nu_diag,*) vocn
+! for debugging
+!if (timestep==8760.or.timestep==8761) then
+if (0==1) then ! off
+write (nu_diag,*) 'timestep',timestep, mlast, mnext
+write (nu_diag,*) 'index',mlast,mnext
+write (nu_diag,*) 'flw',flw
+write (nu_diag,*) 'fsw',fsw
+write (nu_diag,*) 'Tair',Tair
+write (nu_diag,*) 'Qa',Qa
+write (nu_diag,*) 'fsnow',fsnow
+write (nu_diag,*) 'frain',frain
+write (nu_diag,*) 'potT',potT
+write (nu_diag,*) 'rhoa',rhoa
+write (nu_diag,*) 'uatm',uatm
+write (nu_diag,*) 'vatm',vatm
+write (nu_diag,*) 'wind',wind
+write (nu_diag,*) 'strax',strax
+write (nu_diag,*) 'stray',stray
+write (nu_diag,*) 'swvdr',swvdr
+write (nu_diag,*) 'swvdf',swvdf
+write (nu_diag,*) 'swidr',swidr
+write (nu_diag,*) 'swidf',swidf
+write (nu_diag,*) 'sst',sst
+write (nu_diag,*) 'sss',sss
+write (nu_diag,*) 'uocn',uocn
+write (nu_diag,*) 'vocn',vocn
+write (nu_diag,*) 'qdp',qdp
 endif
 
       end subroutine get_forcing
@@ -715,7 +713,7 @@ endif
 !  year (daily, 6-hourly, etc.)
 ! Use interp_coef_monthly for monthly data.
 
-      use icepack_drv_constants, only: c1, p5, secday
+      use icepack_constants, only: c1, p5, secday
 
       integer (kind=int_kind), intent(in) :: &
           recnum      , & ! record number for current data value

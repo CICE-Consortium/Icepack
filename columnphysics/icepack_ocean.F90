@@ -5,9 +5,9 @@
 
       module icepack_ocean
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c1000, &
-          cp_ocn, Tffresh, stefan_boltzmann, Lvap, cprho
+      use icepack_kinds
+      use icepack_constants, only: c0, c1, c1000
+      use icepack_constants, only: cp_ocn, Tffresh, stefan_boltzmann, Lvap, cprho
 
       implicit none
       save
