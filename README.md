@@ -1,5 +1,9 @@
 *This repository is under construction, and some resources listed here are not yet available*
 
+Documentation:
+
+https://duvivier.github.io/Icepack/
+
 ## Overview
 
 This repository contains files describing the column physics of the sea ice model CICE, which is now maintained by the CICE Consortium.  For testing purposes and guidance for including Icepack in other sea ice host models, this repository also includes a driver and basic test suite.
