@@ -91,171 +91,138 @@ column physics modules via array arguments.</li>
 <colgroup>
 <col width="25%" />
 <col width="25%" />
-<col width="49%" />
-<col width="2%" />
+<col width="50%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Variable</th>
 <th class="head">Description</th>
 <th class="head">Interaction with flux coupler</th>
-<th class="head">&#160;</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><span class="math">\(z_o\)</span></td>
 <td>Atmosphere level height</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\vec{U}_a\)</span></td>
 <td>Wind velocity</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(Q_a\)</span></td>
 <td>Specific humidity</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\rho_a\)</span></td>
 <td>Air density</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(\Theta_a\)</span></td>
 <td>Air potential temperature</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(T_a\)</span></td>
 <td>Air temperature</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{sw\downarrow}\)</span></td>
 <td>Incoming shortwave radiation (4 bands)</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{L\downarrow}\)</span></td>
 <td>Incoming longwave radiation</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{rain}\)</span></td>
 <td>Rainfall rate</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{snow}\)</span></td>
 <td>Snowfall rate</td>
 <td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{frzmlt}\)</span></td>
 <td>Freezing/melting potential</td>
 <td>From <em>ocean model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(T_w\)</span></td>
 <td>Sea surface temperature</td>
 <td>From <em>ocean model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(S\)</span></td>
 <td>Sea surface salinity</td>
 <td>From <em>ocean model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\vec{U}_w\)</span></td>
 <td>Surface ocean currents</td>
 <td>From <em>ocean model</em> via flux coupler <strong>to</strong> <em>sea ice model</em> (available in Icepack driver, not used directly in column physics)</td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(\vec{\tau}_a\)</span></td>
 <td>Wind stress</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_s\)</span></td>
 <td>Sensible heat flux</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_l\)</span></td>
 <td>Latent heat flux</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{L\uparrow}\)</span></td>
 <td>Outgoing longwave radiation</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{evap}\)</span></td>
 <td>Evaporated water</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\alpha\)</span></td>
 <td>Surface albedo (4 bands)</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(T_{sfc}\)</span></td>
 <td>Surface temperature</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{sw\Downarrow}\)</span></td>
 <td>Penetrating shortwave radiation</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{water}\)</span></td>
 <td>Fresh water flux</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{hocn}\)</span></td>
 <td>Net heat flux to ocean</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{salt}\)</span></td>
 <td>Salt flux</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\vec{\tau}_w\)</span></td>
 <td>Ice-ocean stress</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{bio}\)</span></td>
 <td>Biogeochemical fluxes</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(a_{i}\)</span></td>
 <td>Ice fraction</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> both <em>ocean and atmosphere models</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(T^{ref}_{a}\)</span></td>
 <td>2m reference temperature (diagnostic)</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> both <em>ocean and atmosphere models</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(Q^{ref}_{a}\)</span></td>
 <td>2m reference humidity (diagnostic)</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> both <em>ocean and atmosphere models</em></td>
-<td>&#160;</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{swabs}\)</span></td>
 <td>Absorbed shortwave (diagnostic)</td>
 <td>From <em>sea ice model</em> via flux coupler <strong>to</strong> both <em>ocean and atmosphere models</em></td>
-<td>&#160;</td>
 </tr>
 </tbody>
 </table>
@@ -3634,37 +3601,33 @@ increase or decrease retention. Another option is to alter the minimum
 tau_min and maximum tau_max timescales which would impact all the
 z-tracers.</p>
 <p><a class="reference internal" href="#tab-phases"><span class="std std-ref">Table 3</span></a>: <em>Types of Mobile and Stationary Transitions</em></p>
-<span id="tab-phases"></span><table border="1" class="colwidths-given docutils" id="id125">
+<span id="tab-phases"></span><table border="1" class="docutils" id="id125">
 <caption><span class="caption-text">Table 3</span><a class="headerlink" href="#id125" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="18%" />
-<col width="18%" />
-<col width="18%" />
-<col width="45%" />
+<col width="20%" />
+<col width="23%" />
+<col width="23%" />
+<col width="34%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">bgc_tracer_type</th>
-<th class="head"><blockquote class="first last">
-<div><span class="math">\(tau_{ret}\)</span></div></blockquote>
-</th>
-<th class="head"><blockquote class="first last">
-<div><span class="math">\(tau_{rel}\)</span></div></blockquote>
-</th>
+<th class="head"><span class="math">\(\tau_{ret}\)</span></th>
+<th class="head"><span class="math">\(\tau_{rel}\)</span></th>
 <th class="head">Description</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>-1</td>
+<tr class="row-even"><td>-1.0</td>
 <td><span class="math">\(\infty\)</span></td>
 <td>0</td>
 <td>entirely in the mobile phase</td>
 </tr>
-<tr class="row-odd"><td>0</td>
+<tr class="row-odd"><td>0.0</td>
 <td>min</td>
 <td>max</td>
 <td>retention dominated</td>
 </tr>
-<tr class="row-even"><td>1</td>
+<tr class="row-even"><td>1.0</td>
 <td>max</td>
 <td>min</td>
 <td>release dominated</td>
@@ -3674,7 +3637,7 @@ z-tracers.</p>
 <td>min</td>
 <td>equal but rapid exchange</td>
 </tr>
-<tr class="row-even"><td>2</td>
+<tr class="row-even"><td>2.0</td>
 <td>max</td>
 <td>max</td>
 <td>equal but slow exchange</td>
@@ -4046,11 +4009,11 @@ that there has only been minimal tuning of the model.</p>
 <span id="tab-bio-tracers2"></span><table border="1" class="colwidths-given docutils" id="id127">
 <caption><span class="caption-text">Table 5</span><a class="headerlink" href="#id127" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="11%" />
-<col width="16%" />
-<col width="24%" />
-<col width="24%" />
-<col width="24%" />
+<col width="10%" />
+<col width="28%" />
+<col width="21%" />
+<col width="21%" />
+<col width="21%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Text Variable</th>
@@ -4824,67 +4787,16 @@ f_{ij} &amp; = &amp; m_{ij}\left[\frac{\Delta c_i}{\Delta t} - \frac{\Delta
 <li><a class="reference internal" href="#">2. Science Guide</a><ul>
 <li><a class="reference internal" href="#coupling-with-host-models">2.1. Coupling with host models</a><ul>
 <li><a class="reference internal" href="#the-column-physics-code-interface">2.1.1. The column physics code interface</a></li>
-<li><a class="reference internal" href="#atmosphere-and-ocean-boundary-forcing">2.1.2. Atmosphere and ocean boundary forcing</a><ul>
-<li><a class="reference internal" href="#atmosphere">2.1.2.1. Atmosphere</a></li>
-<li><a class="reference internal" href="#ocean">2.1.2.2. Ocean</a></li>
-<li><a class="reference internal" href="#variable-exchange-coefficients">2.1.2.3. Variable exchange coefficients</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#atmosphere-and-ocean-boundary-forcing">2.1.2. Atmosphere and ocean boundary forcing</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#model-components">2.2. Model components</a><ul>
-<li><a class="reference internal" href="#tracers">2.2.1. Tracers</a><ul>
-<li><a class="reference internal" href="#tracers-that-depend-on-other-tracers">2.2.1.1. Tracers that depend on other tracers</a></li>
-<li><a class="reference internal" href="#ice-age">2.2.1.2. Ice age</a></li>
-<li><a class="reference internal" href="#brine-height">2.2.1.3. Brine height</a></li>
-<li><a class="reference internal" href="#biogeochemistry">2.2.1.4. Biogeochemistry</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#tracers">2.2.1. Tracers</a></li>
 <li><a class="reference internal" href="#transport-in-thickness-space">2.2.2. Transport in thickness space</a></li>
 <li><a class="reference internal" href="#mechanical-redistribution">2.2.3. Mechanical redistribution</a></li>
-<li><a class="reference internal" href="#thermodynamics">2.2.4. Thermodynamics</a><ul>
-<li><a class="reference internal" href="#melt-ponds">2.2.4.1. Melt ponds</a></li>
-<li><a class="reference internal" href="#thermodynamic-surface-forcing-balance">2.2.4.2. Thermodynamic surface forcing balance</a></li>
-<li><a class="reference internal" href="#new-temperatures">2.2.4.3. New temperatures</a></li>
-<li><a class="reference internal" href="#growth-and-melting">2.2.4.4. Growth and melting</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#biogeochemistry-ech">2.2.5. Biogeochemistry - ECH</a><ul>
-<li><a class="reference internal" href="#bottom-layer">2.2.5.1. Bottom layer</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#biogeochemistry-nj">2.2.6. Biogeochemistry - NJ</a><ul>
-<li><a class="reference internal" href="#aerosols">2.2.6.1. Aerosols</a><ul>
-<li><a class="reference internal" href="#default-aerosols">2.2.6.1.1. Default Aerosols</a></li>
-<li><a class="reference internal" href="#z-aerosols">2.2.6.1.2. Z-Aerosols</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#brine-height-tracer">2.2.6.2. Brine height tracer</a></li>
-<li><a class="reference internal" href="#sea-ice-biogeochemistry">2.2.6.3. Sea Ice Biogeochemistry</a><ul>
-<li><a class="reference internal" href="#skeletal-layer-bgc">2.2.6.3.1. Skeletal Layer BGC</a></li>
-<li><a class="reference internal" href="#vertical-z-bgc">2.2.6.3.2. Vertical “Z” BGC</a><ul>
-<li><a class="reference internal" href="#bio-grid">2.2.6.3.2.1. Bio grid</a></li>
-<li><a class="reference internal" href="#transport-along-the-interface-bio-grid">2.2.6.3.2.2. Transport along the interface bio grid</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#splitting-tracers-zbgc-type">2.2.6.4. Splitting tracers: zbgc_type</a><ul>
-<li><a class="reference internal" href="#mobile-and-stationary-phases-in-code">2.2.6.4.1. Mobile and Stationary Phases in code</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#reaction-terms">2.2.6.5. Reaction Terms</a><ul>
-<li><a class="reference internal" href="#the-reaction-equations">2.2.6.5.1. The Reaction Equations</a><ul>
-<li><a class="reference internal" href="#algal-growth-and-nutrient-uptake">2.2.6.5.1.1. Algal Growth and Nutrient Uptake</a></li>
-<li><a class="reference internal" href="#bgc-tuning-parameters">2.2.6.5.1.2. BGC Tuning Parameters</a></li>
-<li><a class="reference internal" href="#biogeochemistry-history-fields">2.2.6.5.1.3. Biogeochemistry History Fields</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#flux-corrected-positive-definite-transport-scheme">2.2.6.6. Flux-Corrected, Positive Definite Transport Scheme</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#thermodynamics">2.2.4. Thermodynamics</a></li>
+<li><a class="reference internal" href="#biogeochemistry-ech">2.2.5. Biogeochemistry - ECH</a></li>
+<li><a class="reference internal" href="#biogeochemistry-nj">2.2.6. Biogeochemistry - NJ</a></li>
 </ul>
 </li>
 </ul>
