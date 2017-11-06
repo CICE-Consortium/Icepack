@@ -30,6 +30,8 @@
       use icepack_tracers, only: nlt_bgc_Fed, nlt_bgc_Fep, nlt_bgc_hum
       use icepack_tracers, only: nlt_bgc_Nit, nlt_bgc_Am, nlt_bgc_Sil
 
+      use icepack_tracers, only: bio_index_o
+
 !=======================================================================
 
       end module icepack_drv_tracers

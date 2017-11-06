@@ -183,7 +183,7 @@
       use icepack_drv_domain_size, only: max_ntrcr, nx
       use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf
       use icepack_drv_flux, only: sst, frzmlt, coszen, scale_factor
-      use icepack_drv_init, only: tmask
+      use icepack_drv_arrays_column, only: tmask
       use icepack_drv_state, only: trcr_depend, aice, vice, vsno, trcr
       use icepack_drv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel
       use icepack_drv_state, only: trcr_base, nt_strata, n_trcr_strata
@@ -825,7 +825,7 @@
       use icepack_drv_arrays_column, only: first_ice, first_ice_real
 !      use icepack_drv_fileunits, only: nu_diag, nu_dump_hbrine
       use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: nt_fbri
+      use icepack_drv_tracers, only: nt_fbri
       !cn use icepack_drv_restart, only: write_restart_field
       use icepack_drv_constants, only: c1, c0
       use icepack_drv_domain_size, only: ncat, nx
@@ -866,7 +866,7 @@
       use icepack_drv_arrays_column, only: first_ice_real, first_ice
 !      use icepack_drv_fileunits, only: nu_diag, nu_restart_hbrine
       use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: nt_fbri
+      use icepack_drv_tracers, only: nt_fbri
       use icepack_drv_constants, only: p5
       use icepack_drv_domain_size, only: ncat, nx
 

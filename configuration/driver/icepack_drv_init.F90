@@ -19,13 +19,13 @@
                      ! 'none'     => no ice
                      ! note:  restart = .true. overwrites
 
-      real (kind=dbl_kind), dimension (nx), public, save :: &
-         TLON   , & ! longitude of temp pts (radians)
-         TLAT       ! latitude of temp pts (radians)
+!cn      real (kind=dbl_kind), dimension (nx), public, save :: &
+!cn         TLON   , & ! longitude of temp pts (radians)
+!cn         TLAT       ! latitude of temp pts (radians)
 
       logical (kind=log_kind), &
          dimension (nx), public, save :: &
-         tmask  , & ! land/boundary mask, thickness (T-cell)
+!cn         tmask  , & ! land/boundary mask, thickness (T-cell)
          lmask_n, & ! northern hemisphere mask
          lmask_s    ! southern hemisphere mask
 
@@ -60,9 +60,10 @@
       use icepack_drv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
       use icepack_drv_flux, only: default_season
       use icepack_drv_forcing, only: precip_units,    fyear_init,      ycycle
-      !cn use icepack_drv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
-      !cn use icepack_drv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
-      !cn use icepack_drv_forcing, only: data_dir,        dbug
+      use icepack_drv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
+      use icepack_drv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
+      use icepack_drv_forcing, only: data_dir,        dbug
+      use icepack_drv_forcing, only: restore_sst, sss_data_type, sst_data_type, trestore
 
       use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond
       use icepack_drv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
@@ -712,6 +713,7 @@
 
       use icepack_drv_constants, only: c0, puny
       use icepack_drv_constants, only: pi, p5, c1
+      use icepack_drv_arrays_column, only: tlat, tlon, tmask
 
       integer :: i
 
@@ -765,6 +767,7 @@
       use icepack_drv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_drv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
       use icepack_drv_tracers, only: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
+      use icepack_drv_arrays_column, only: tlat, tlon, tmask
 
       integer (kind=int_kind) :: &
          i           , & ! horizontal indes

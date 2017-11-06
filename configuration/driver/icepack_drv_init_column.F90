@@ -81,7 +81,8 @@
       use icepack_drv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
       use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf, scale_factor, snowfrac
       use icepack_drv_flux, only: albice, albsno, albpnd, apeff_ai, coszen, fsnow
-      use icepack_drv_init, only: tlat, tlon, tmask
+      !cn use icepack_drv_init, only: tlat, tlon, tmask
+      use icepack_drv_arrays_column, only: tlat, tlon, tmask
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_state, only: aicen, vicen, vsnon, trcrn
 

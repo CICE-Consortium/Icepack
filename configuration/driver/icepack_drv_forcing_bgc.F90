@@ -8,18 +8,16 @@
 !
       module icepack_drv_forcing_bgc
 
-      use icepack_kinds_mod
-      !cn use ice_blocks, only: nx_block, ny_block
-      !cn use ice_domain_size, only: max_blocks
+      use icepack_drv_kinds
       use icepack_drv_domain_size, only: nx
-      use icepack_intfc_tracers, only: bio_index_o
-      !cn use ice_communicate, only: my_task, master_task
+      use icepack_drv_tracers, only: bio_index_o
       use icepack_drv_calendar, only: dt, istep, sec, mday, month, daymo
       use icepack_drv_constants, only: nu_diag
 
       implicit none
       private
-      public :: get_forcing_bgc, faero_default, init_bgc_data, init_forcing_bgc !cn, get_atm_bgc, fzaero_data, &
+      public :: get_forcing_bgc, faero_default, init_bgc_data, init_forcing_bgc 
+      !cn, get_atm_bgc, fzaero_data, &
                 !cn , faero_data, faero_optics
       save
 
@@ -37,8 +35,9 @@
 
       subroutine init_forcing_bgc
 
-        use icepack_intfc_shared, only: nit_data_type, sil_data_type
-        use icepack_drv_forcing, only: data_dir
+        use icepack_drv_parameters, only: nit_data_type, sil_data_type
+        !use icepack_drv_forcing, only: data_dir !cn this causes circular dependency with drv_forcing
+      use icepack_drv_parameters, only: bgc_data_dir
 
         integer (kind=int_kind) :: &
             nu_bgc, &
@@ -56,7 +55,9 @@
             trim(nit_data_type) == 'NICE' .or. &
             trim(sil_data_type) == 'NICE') then 
           
-          filename = trim(data_dir)//'nutrients_daily_ISPOL_WOA_field3.ascii'
+          !cn filename = trim(data_dir)//'nutrients_daily_ISPOL_WOA_field3.ascii'
+          !cn we could also hardwire this
+          filename = trim(bgc_data_dir)//'nutrients_daily_ISPOL_WOA_field3.ascii'
           write (nu_diag,*) 'Reading ',filename
 
           ntime = 365 !daily
@@ -88,18 +89,13 @@
 
       use icepack_drv_arrays_column, only: ocean_bio_all
       use icepack_drv_calendar, only:  yday
-      !cn use ice_constants, only: field_loc_center, field_type_scalar, &
       use icepack_drv_constants, only: secday
-      !cn use ice_domain, only: nblocks
       use icepack_drv_flux, only: sss, sil, nit
-      use icepack_drv_forcing, only: read_clim_data, interpolate_data, &
-          interp_coeff, interp_coeff_monthly, trestore, trest
+      use icepack_drv_forcing, only: interp_coeff
 
-      !use ice_forcing, only:  fyear, read_clim_data_nc, read_data_nc_point
-
-      use icepack_intfc_shared, only: nit_data_type, sil_data_type, bgc_data_dir, &
-          max_algae, max_doc, max_dic, restore_bgc
-      use icepack_intfc_tracers, only: tr_bgc_Sil, tr_bgc_Nit
+      use icepack_drv_parameters, only: nit_data_type, sil_data_type, bgc_data_dir, &
+          max_algae, max_doc, max_dic !cn, restore_bgc
+      use icepack_drv_tracers, only: tr_bgc_Sil, tr_bgc_Nit
 
       integer (kind=int_kind) :: &
           i, j, k,iblk, & ! horizontal indices !cn remove
@@ -148,184 +144,10 @@
           .not. trim(sil_data_type)=='ISPOL' .AND. &
           .not. trim(nit_data_type)=='INICE' .AND. &
           .not. trim(sil_data_type)=='NICE') then
-#if 0         
-        if (trim(nit_data_type) == 'clim'.or. &
-            trim(sil_data_type) == 'clim') then
-          nit_file = trim(bgc_data_dir)//'nitrate_climatologyWOA_gx1v6f.nc'
-          !'nitrate_WOA2005_surface_monthly'  ! gx1 only
-          sil_file = trim(bgc_data_dir)//'silicate_climatologyWOA_gx1v6f.nc'
-          !'silicate_WOA2005_surface_monthly' ! gx1 only
-          
-          if (istep == 1) then
-            if (trim(sil_data_type)=='clim' .AND. tr_bgc_Sil) then
-              write (nu_diag,*) ' '
-              write (nu_diag,*) 'silicate data interpolated to timestep:'
-              write (nu_diag,*) trim(sil_file)
-            endif
-            if (trim(nit_data_type)=='clim' .AND. tr_bgc_Nit) then
-              write (nu_diag,*) ' '
-              write (nu_diag,*) 'nitrate data interpolated to timestep:'
-              write (nu_diag,*) trim(nit_file)
- 
-              if (restore_bgc) write (nu_diag,*) &
-                  'bgc restoring timescale (days) =', trestore
 
-            endif
-          endif                     !  istep
-         
-          !-------------------------------------------------------------------
-          ! monthly data
-          !
-          ! Assume that monthly data values are located in the middle of the
-          ! month.
-          !-------------------------------------------------------------------
-          
-          midmonth = 15          ! data is given on 15th of every month
-!!!      midmonth = fix(p5 * real(daymo(month)))  ! exact middle
-          
-          ! Compute record numbers for surrounding months
-          maxrec = 12
-          ixm  = mod(month+maxrec-2,maxrec) + 1
-          ixp  = mod(month,         maxrec) + 1
-          if (mday >= midmonth) ixm = -99 ! other two points will be used
-          if (mday <  midmonth) ixp = -99
-          
-          ! Determine whether interpolation will use values 1:2 or 2:3
-          ! recslot = 2 means we use values 1:2, with the current value (2)
-          !  in the second slot
-          ! recslot = 1 means we use values 2:3, with the current value (2)
-          !  in the first slot
-          recslot = 1            ! latter half of month
-          if (mday < midmonth) recslot = 2 ! first half of month
-          
-          ! Find interpolation coefficients
-          !cn call interp_coeff_monthly (recslot)
-          readm = .false.
-          if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
-          
-        endif   ! 'clim prep' sil/nit_data_type
-#endif        
-    !-------------------------------------------------------------------
-    ! Read two monthly silicate values and interpolate.
-    ! Restore toward interpolated value.
-    !-------------------------------------------------------------------
-#if 0    
-        if (trim(sil_data_type)=='clim'  .AND. tr_bgc_Sil) then
-          ! call read_clim_data (readm, 0, ixm, month, ixp, &
-          !                      sil_file,  sil_data, &
-          !                      field_loc_center, field_type_scalar)
-          fieldname = 'silicate'
-          !cn call read_clim_data_nc (readm, 0, ixm, month, ixp, &
-          !cn    sil_file, fieldname, sil_data, &
-          !cn    field_loc_center, field_type_scalar)
-          call read_clim_data (readm, 0, ixm, month, ixp, &
-              sil_file, sil_data)
-          call interpolate_data (sil_data, sildat)
-          if (istep == 1 .or. .NOT. restore_bgc) then
-            do i = 1, nx
-              sil(i) = sildat(i)
-              ks = 2*max_algae + max_doc + 3 + max_dic
-              ocean_bio_all(i,ks) = sil(i) 
-            enddo
-          elseif (restore_bgc) then
-            do i = 1, nx 
-              sil(i) = sil(i)  &
-                  + (sildat(i)-sil(i))*dt/trest
-              ks = 2*max_algae + max_doc + 3 + max_dic
-              ocean_bio_all(i,ks) = sil(i)                       !Sil
-            enddo
-          endif  !restore
 
-        elseif (tr_bgc_Sil) then
-          do i = 1, nx
-            sil(i) = 25.0_dbl_kind
-            ks = 2*max_algae + max_doc + 3 + max_dic
-            ocean_bio_all(i,ks) = sil(i) 
-          enddo
-          
-        endif  !tr_bgc_Sil
-#endif
-        !-------------------------------------------------------------------
-        ! Read two monthly nitrate values and interpolate.
-        ! Restore toward interpolated value.
-        !-------------------------------------------------------------------
-#if 0
-        if (trim(nit_data_type)=='clim' .AND. tr_bgc_Nit) then 
-          ! call read_clim_data (readm, 0, ixm, month, ixp, &
-          !                      nit_file, nit_data, &
-          !                      field_loc_center, field_type_scalar)
-          fieldname = 'nitrate'
-          !cn call read_clim_data_nc (readm, 0, ixm, month, ixp, &
-          !cn     nit_file, fieldname, nit_data, &
-           !cn    field_loc_center, field_type_scalar)
-          call read_clim_data (readm, 0, ixm, month, ixp, &
-              nit_file, nit_data)
-          call interpolate_data (nit_data, nitdat)
-          if (istep == 1 .or. .NOT. restore_bgc) then
-            do i = 1, nx
-              nit(i) = nitdat(i)
-              ks = max_algae + 1
-              ocean_bio_all(i,ks) = nit(i)                       !nit
-              ks =  2*max_algae + max_doc + 7 + max_dic
-              ocean_bio_all(i,ks) = nit(i)                       !PON
-            enddo
-          elseif (restore_bgc ) then
-            do i = 1, nx
-              nit(i) = nit(i)  &
-                  + (nitdat(i)-nit(i))*dt/trest    
-              ks = max_algae + 1
-              ocean_bio_all(i,ks) = nit(i)                       !nit
-              ks =  2*max_algae + max_doc + 7 + max_dic
-              ocean_bio_all(i,ks) = nit(i)                       !PON
-            enddo
-          endif  !restore_bgc
-        elseif (trim(nit_data_type) == 'sss'  .AND.  tr_bgc_Nit) then           
-          do i = 1, nx
-            nit(i) =  sss(i)      
-            ks = max_algae + 1
-            ocean_bio_all(i,ks) = nit(i)                       !nit 
-            ks =  2*max_algae + max_doc + 7 + max_dic
-            ocean_bio_all(i,ks) = nit(i)                       !PON      
-          enddo
-        elseif (tr_bgc_Nit) then 
-          do i = 1, nx
-            nit(i) = 12.0_dbl_kind
-            ks = max_algae + 1
-            ocean_bio_all(i,ks) = nit(i)                       !nit 
-            ks =  2*max_algae + max_doc + 7 + max_dic
-            ocean_bio_all(i,ks) = nit(i)                       !PON      
-          enddo
-        endif   !tr_bgc_Nit
-#endif
-        !-------------------------------------------------------------------
-        ! Data from Papdimitrious et al., 2007, Limnol. Oceanogr. 
-        ! and WOA at 68oS, 304.5oE : 
-        ! daily data located at the end of the 24-hour period. 
-        !-------------------------------------------------------------------
-       
       elseif (trim(nit_data_type) == 'ISPOL' .or. trim(sil_data_type) == 'ISPOL') then 
-#if 0        
-        nit_file = trim(bgc_data_dir)//'nutrients_daily_ISPOL_WOA_field3.nc'
-        sil_file = trim(bgc_data_dir)//'nutrients_daily_ISPOL_WOA_field3.nc' 
-        
-        !if (my_task == master_task .and. istep == 1) then
-        if (istep == 1) then
-          if (tr_bgc_Sil) then
-            write (nu_diag,*) ' '
-            write (nu_diag,*) 'silicate data interpolated to timestep:'
-            write (nu_diag,*) trim(sil_file)
-          endif
-          if (tr_bgc_Nit) then
-            write (nu_diag,*) ' '
-            write (nu_diag,*) 'nitrate data interpolated to timestep:'
-            write (nu_diag,*) trim(nit_file)
-        
-            if (restore_bgc) write (nu_diag,*) &
-                'bgc restoring timescale (days) =', trestore
-
-          endif
-        endif                     ! my_task, istep
-#endif        
+      
         dataloc = 2                          ! data located at end of interval
         sec1hr = secday                      ! seconds in day
         maxrec = 365                         ! 
@@ -344,32 +166,13 @@
         if (istep==1 .or. bgcrecnum .ne. recnum) read1 = .true.
                  
         if (tr_bgc_Sil) then
-#if 0 
-          met_file = sil_file
-          fieldname= 'silicate' 
-           
-          call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
-              maxrec, met_file, fieldname, sil_data_p, &
-              field_loc_center, field_type_scalar)
-          sil(:) =  c1intp * sil_data_p(1) &
-              + c2intp * sil_data_p(2)
-#endif    
+   
           sil(:) =  c1intp * sil_data(ixm) &
               + c2intp * sil_data(ixx)
         endif
 
         if (tr_bgc_Nit) then
-#if 0 
-          met_file = nit_file
-          fieldname= 'nitrate' 
-              
-          call read_data_nc_point(read1, 0, fyear, ixm, ixx, ixp, &
-              maxrec, met_file, fieldname, nit_data_p, &
-              field_loc_center, field_type_scalar)
-          nit(:) =  c1intp * nit_data_p(1) &
-              + c2intp * nit_data_p(2)
-#endif          
-          
+                   
           nit(:) =  c1intp * nit_data(ixm) &
               + c2intp * nit_data(ixx)
         endif
@@ -382,66 +185,10 @@
           ks =  2*max_algae + max_doc + 7 + max_dic
           ocean_bio_all(i,ks) = nit(i)                       !PON    
         enddo
-#if 0        
-        ! Save record number for next time step
-        bgcrecnum = recnum
-#endif
+
       endif !ISPOL
       end subroutine get_forcing_bgc
-#if 0
-!=======================================================================
-!
-! author: Nicole Jeffery, LANL
 
-      subroutine get_atm_bgc 
-
-      use ice_blocks, only: nx_block, ny_block, block, get_block
-      use ice_constants, only: p01, c0
-      use ice_domain, only: nblocks, distrb_info, blocks_ice
-      use ice_domain_size, only: n_zaero 
-      use icepack_intfc_tracers, only: tr_zaero, nlt_zaero
-      use icepack_intfc_shared, only: grid_o_t
-      use ice_flux_bgc, only: flux_bio_atm, faero_atm
-
-      !  local variables
-
-      integer (kind=int_kind) :: &
-         i, j, nn       , & ! horizontal indices
-         ilo,ihi,jlo,jhi, & ! beginning and end of physical domain
-         iblk               ! block index 
-
-      type (block) :: &
-         this_block      ! block information for current block
-
-      !-----------------------------------------------------------------
-      ! initialize
-      !-----------------------------------------------------------------
-
-      flux_bio_atm(:,:,:,:) = c0
-      if (tr_zaero) then
-      !$OMP PARALLEL DO PRIVATE(iblk,ilo,ihi,jlo,jhi,nn)
-      do iblk = 1, nblocks
-
-      this_block = get_block(blocks_ice(iblk),iblk)         
-      ilo = this_block%ilo
-      ihi = this_block%ihi
-      jlo = this_block%jlo
-      jhi = this_block%jhi
-             
-      do nn = 1, n_zaero 
-         do j = jlo, jhi
-         do i = ilo, ihi 
-            flux_bio_atm(i,j,nlt_zaero(nn),iblk) = faero_atm(i,j,nn,iblk)
-         enddo
-         enddo
-      enddo
-
-      enddo ! iblk
-      !$OMP END PARALLEL DO
-      endif
-
-      end subroutine get_atm_bgc
-#endif
 !=======================================================================
 
 ! constant values for atmospheric aerosols
@@ -465,186 +212,6 @@
       end subroutine faero_default
       
 !=======================================================================
-#if 0
-! read atmospheric aerosols
-!
-! authors: Elizabeth Hunke, LANL
-
-      subroutine faero_data
-
-      use ice_calendar, only: month, mday, istep, sec
-      use ice_constants, only: field_type_scalar, field_loc_center, c0
-      use ice_domain_size, only: max_blocks
-      use ice_blocks, only: nx_block, ny_block
-      use ice_flux_bgc, only: faero_atm
-      use ice_forcing, only: interp_coeff_monthly, read_clim_data_nc, interpolate_data
-
-#ifdef ncdf 
-      ! local parameters
-
-      real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), &
-         save :: &
-         aero1_data    , & ! field values at 2 temporal data points
-         aero2_data    , & ! field values at 2 temporal data points
-         aero3_data        ! field values at 2 temporal data points
-
-      character (char_len_long) :: & 
-         aero_file,   &   ! netcdf filename
-         fieldname        ! field name in netcdf file
-
-      integer (kind=int_kind) :: & 
-         ixm,ixp     , & ! record numbers for neighboring months
-         maxrec      , & ! maximum record number
-         recslot     , & ! spline slot for current record
-         midmonth        ! middle day of month
-
-      logical (kind=log_kind) :: readm
-
-    !-------------------------------------------------------------------
-    ! monthly data 
-    !
-    ! Assume that monthly data values are located in the middle of the 
-    ! month.
-    !-------------------------------------------------------------------
-
-      midmonth = 15  ! data is given on 15th of every month
-!      midmonth = fix(p5 * real(daymo(month)))  ! exact middle
-
-      ! Compute record numbers for surrounding months
-      maxrec = 12
-      ixm  = mod(month+maxrec-2,maxrec) + 1
-      ixp  = mod(month,         maxrec) + 1
-      if (mday >= midmonth) ixm = 99  ! other two points will be used
-      if (mday <  midmonth) ixp = 99
-
-      ! Determine whether interpolation will use values 1:2 or 2:3
-      ! recslot = 2 means we use values 1:2, with the current value (2)
-      !  in the second slot
-      ! recslot = 1 means we use values 2:3, with the current value (2)
-      !  in the first slot
-      recslot = 1                             ! latter half of month
-      if (mday < midmonth) recslot = 2        ! first half of month
-
-      ! Find interpolation coefficients
-      !cn call interp_coeff_monthly (recslot)
-
-      ! Read 2 monthly values 
-      readm = .false.
-      if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
-
-!      aero_file = trim(atm_data_dir)//'faero.nc'   
-      aero_file = '/usr/projects/climate/eclare/DATA/gx1v3/faero.nc'   
-
-      fieldname='faero_atm001'
-      call read_clim_data_nc (readm, 0,  ixm, month, ixp, &
-                              aero_file, fieldname, aero1_data, &
-                              field_loc_center, field_type_scalar)
-
-      fieldname='faero_atm002'
-      call read_clim_data_nc (readm, 0,  ixm, month, ixp, &
-                              aero_file, fieldname, aero2_data, &
-                              field_loc_center, field_type_scalar)
-
-      fieldname='faero_atm003'
-      call read_clim_data_nc (readm, 0,  ixm, month, ixp, &
-                              aero_file, fieldname, aero3_data, &
-                              field_loc_center, field_type_scalar)
-
-      call interpolate_data (aero1_data, faero_atm(:,:,1,:)) ! W/m^2 s
-      call interpolate_data (aero2_data, faero_atm(:,:,2,:))
-      call interpolate_data (aero3_data, faero_atm(:,:,3,:))
-
-      where (faero_atm(:,:,:,:) > 1.e20) faero_atm(:,:,:,:) = c0
-
-#endif
-
-      end subroutine faero_data
-
-!=======================================================================
-
-! read atmospheric aerosols
-!
-! authors: Elizabeth Hunke, LANL
-
-      subroutine fzaero_data
-
-      use ice_domain_size, only: n_zaero
-      use ice_blocks, only: nx_block, ny_block
-      use ice_flux_bgc, only: faero_atm
-      use ice_forcing, only: interp_coeff_monthly, read_clim_data_nc, interpolate_data
-      use ice_constants, only: c0, field_type_scalar, field_loc_center
-      use icepack_intfc_tracers, only: nlt_zaero
-
-#ifdef ncdf 
-      ! local parameters
-
-      real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), &
-         save :: &
-         aero_data    ! field values at 2 temporal data points
-
-      character (char_len_long) :: & 
-         aero_file,   &   ! netcdf filename
-         fieldname        ! field name in netcdf file
-
-      integer (kind=int_kind) :: & 
-         ixm,ixp     , & ! record numbers for neighboring months
-         maxrec      , & ! maximum record number
-         recslot     , & ! spline slot for current record
-         midmonth        ! middle day of month
-
-      logical (kind=log_kind) :: readm
-
-    !-------------------------------------------------------------------
-    ! monthly data 
-    !
-    ! Assume that monthly data values are located in the middle of the 
-    ! month.
-    !-------------------------------------------------------------------
-
-      midmonth = 15  ! data is given on 15th of every month
-!      midmonth = fix(p5 * real(daymo(month)))  ! exact middle
-
-      ! Compute record numbers for surrounding months
-      maxrec = 12
-      ixm  = mod(month+maxrec-2,maxrec) + 1
-      ixp  = mod(month,         maxrec) + 1
-      if (mday >= midmonth) ixm = -99  ! other two points will be used
-      if (mday <  midmonth) ixp = -99
-
-      ! Determine whether interpolation will use values 1:2 or 2:3
-      ! recslot = 2 means we use values 1:2, with the current value (2)
-      !  in the second slot
-      ! recslot = 1 means we use values 2:3, with the current value (2)
-      !  in the first slot
-      recslot = 1                             ! latter half of month
-      if (mday < midmonth) recslot = 2        ! first half of month
-
-      ! Find interpolation coefficients
-      !cn call interp_coeff_monthly (recslot)
-
-      ! Read 2 monthly values 
-      readm = .false.
-      if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
-
-!      aero_file = trim(atm_data_dir)//'faero.nc'   
-      ! Cam5 monthly total black carbon deposition on the gx1 grid"
-      aero_file = '/usr/projects/climate/njeffery/DATA/CAM/Hailong_Wang/Cam5_bc_monthly_popgrid.nc'   
-
-      fieldname='bcd'
-      call read_clim_data_nc (readm, 0,  ixm, month, ixp, &
-                              aero_file, fieldname, aero_data, &
-                              field_loc_center, field_type_scalar)
-
-
-      call interpolate_data (aero_data, faero_atm(:,:,nlt_zaero(1),:)) ! kg/m^2/s
-
-      where (faero_atm(:,:,nlt_zaero(1),:) > 1.e20) faero_atm(:,:,nlt_zaero(1),:) = c0
-
-#endif
-
-      end subroutine fzaero_data
-#endif
-!=======================================================================
 
 ! Initialize ocean iron from file
 !
@@ -652,7 +219,7 @@
       subroutine init_bgc_data (fed1,fep1)
       !cn use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
       use icepack_drv_constants, only: c0, p1 !, nu_forcing
-      use icepack_intfc_shared, only: fe_data_type, bgc_data_dir, max_fe
+      use icepack_drv_parameters, only: fe_data_type, bgc_data_dir, max_fe
 
 #ifdef ncdf
       use netcdf
@@ -725,169 +292,7 @@
       endif
 #endif
       end subroutine init_bgc_data
-#if 0
-!=======================================================================
-!
-! Aerosol optical properties for bulk and modal aerosol formulation
-! X_bc_tab properties are from snicar_optics_5bnd_mam_c140303 (Mark Flanner 2009)
-! ==> "Mie optical parameters for CLM snowpack treatment" Includes
-! ice (effective radii from 30-1500um), black carbon, organic carbon and dust
-!
-! authors: Elizabeth Hunke, LANL
 
-      subroutine faero_optics
-
-      use ice_broadcast, only: broadcast_array
-      use ice_fileunits,  only: nu_diag
-      use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
-      use ice_communicate, only: my_task, master_task
-      use icepack_constants, only: nspint, c0
-      use icepack_intfc_shared, only: max_aero, modal_aero
-      use ice_arrays_column, only: &
-         kaer_tab, & ! aerosol mass extinction cross section (m2/kg)
-         waer_tab, & ! aerosol single scatter albedo (fraction)
-         gaer_tab, & ! aerosol asymmetry parameter (cos(theta))
-         kaer_bc_tab, & ! BC mass extinction cross section (m2/kg)
-         waer_bc_tab, & ! BC single scatter albedo (fraction)
-         gaer_bc_tab, & ! BC aerosol asymmetry parameter (cos(theta))
-         bcenh          ! BC absorption enhancement facto
-      use ice_exit, only: abort_ice
-
-#ifdef ncdf
-      use netcdf
-#endif
-
-      ! local parameters
-
-      integer (kind=int_kind) :: & 
-         varid          , & ! variable id
-         status         , & ! status output from netcdf routines
-         n,  k              ! index
-
-      integer (kind=int_kind), dimension(4):: & 
-         start, count   
-
-      real (kind=dbl_kind) :: &
-         amin, amax, asum   ! min, max values and sum of input array
-
-      integer (kind=int_kind) :: &
-         fid                ! file id for netCDF file 
-
-      logical (kind=log_kind) :: diag
-
-      character (char_len_long) :: & 
-         optics_file,   &   ! netcdf filename
-         fieldname          ! field name in netcdf file
-
-      ! this data is used in bulk aerosol treatment in dEdd radiation
-      kaer_tab = reshape((/ &      ! aerosol mass extinction cross section (m2/kg)
-          11580.61872,   5535.41835,   2793.79690, &
-          25798.96479,  11536.03871,   4688.24207, &
-            196.49772,    204.14078,    214.42287, &
-           2665.85867,   2256.71027,    820.36024, &
-            840.78295,   1028.24656,   1163.03298, &
-            387.51211,    414.68808,    450.29814/), &
-            (/nspint,max_aero/))
-      waer_tab = reshape((/ &      ! aerosol single scatter albedo (fraction)
-              0.29003,      0.17349,      0.06613, &
-              0.51731,      0.41609,      0.21324, &
-              0.84467,      0.94216,      0.95666, &
-              0.97764,      0.99402,      0.98552, &
-              0.94146,      0.98527,      0.99093, &
-              0.90034,      0.96543,      0.97678/), &
-              (/nspint,max_aero/))
-      gaer_tab = reshape((/ &      ! aerosol asymmetry parameter (cos(theta))
-              0.35445,      0.19838,      0.08857, &
-              0.52581,      0.32384,      0.14970, &
-              0.83162,      0.78306,      0.74375, &
-              0.68861,      0.70836,      0.54171, &
-              0.70239,      0.66115,      0.71983, &
-              0.78734,      0.73580,      0.64411/), &
-              (/nspint,max_aero/))
-
-      ! this data is used in MODAL AEROSOL treatment in dEdd radiation
-      kaer_bc_tab = reshape((/ &      ! aerosol mass extinction cross section (m2/kg)
-             12955.44732,   5946.89461, 2772.33366, &
-             12085.30664,   7438.83131, 3657.13084, &
-              9753.99698,   7342.87139, 4187.79304, &
-              7815.74879,   6659.65096, 4337.98863, &
-              6381.28194,   5876.78408, 4254.65054, &
-              5326.93163,   5156.74532, 4053.66581, &
-              4538.09763,   4538.60875, 3804.10884, &
-              3934.17604,   4020.20799, 3543.27199, &
-              3461.20656,   3587.80962, 3289.98060, &
-              3083.03396,   3226.27231, 3052.91441/), &
-              (/nspint,10/))
-
-      waer_bc_tab = reshape((/ &      ! aerosol single scatter albedo (fraction)
-              0.26107,      0.15861,    0.06535, &
-              0.37559,      0.30318,    0.19483, &
-              0.42224,      0.36913,    0.27875, &
-              0.44777,      0.40503,    0.33026, &
-              0.46444,      0.42744,    0.36426, &
-              0.47667,      0.44285,    0.38827, &
-              0.48635,      0.45428,    0.40617, &
-              0.49440,      0.46328,    0.42008, &
-              0.50131,      0.47070,    0.43128, &
-              0.50736,      0.47704,    0.44056/), &
-              (/nspint,10/))
-
-      gaer_bc_tab = reshape((/ &      ! aerosol asymmetry parameter (cos(theta))
-              0.28328,      0.19644,      0.10498, &
-              0.44488,      0.32615,      0.19612, &
-              0.54724,      0.41611,      0.26390, &
-              0.61711,      0.48475,      0.31922, &
-              0.66673,      0.53923,      0.36632, &
-              0.70296,      0.58337,      0.40732, &
-              0.73002,      0.61960,      0.44344, &
-              0.75064,      0.64959,      0.47551, &
-              0.76663,      0.67461,      0.50415, &
-              0.77926,      0.69561,      0.52981/),&
-              (/nspint,10/))
-
-      bcenh(:,:,:)     = c0
-
-    if (modal_aero) then
-       diag = .true.   ! write diagnostic information 
-       optics_file =  &
-        '/usr/projects/climate/njeffery/DATA/CAM/snicar/snicar_optics_5bnd_mam_c140303.nc'
-
-        if (my_task == master_task) then
-            write (nu_diag,*) ' '
-            write (nu_diag,*) 'Read optics for modal aerosol treament in'
-            write (nu_diag,*) trim(optics_file)
-            call ice_open_nc(optics_file,fid)
-        endif
-
-        fieldname='bcint_enh_mam_cice'
-        if (my_task == master_task) then
-
-          status = nf90_inq_varid(fid, trim(fieldname), varid)
- 
-           if (status /= nf90_noerr) then
-             call abort_ice ( & 
-               'faero_optics: Cannot find variable '//trim(fieldname) )
-           endif
-           status = nf90_get_var( fid, varid, bcenh, &
-               start=(/1,1,1,1/), & 
-               count=(/3,10,8,1/) )
-           do n=1,10
-            amin = minval(bcenh(:,n,:))
-            amax = maxval(bcenh(:,n,:))
-            asum = sum   (bcenh(:,n,:))
-            write(nu_diag,*) ' min, max, sum =', amin, amax, asum
-           enddo
-           call ice_close_nc(fid)      
-         endif  !master_task
-         do n=1,3
-            do k=1,8
-                call broadcast_array(bcenh(n,:,k),      master_task)
-            enddo
-         enddo          
-      endif      ! modal_aero
-
-      end subroutine faero_optics
-#endif
 !=======================================================================
 
       end module icepack_drv_forcing_bgc

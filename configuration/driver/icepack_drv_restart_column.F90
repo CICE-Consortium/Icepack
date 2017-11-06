@@ -32,7 +32,7 @@
       use icepack_drv_arrays_column, only: first_ice_real, first_ice
 !      use icepack_drv_fileunits, only: nu_diag, nu_restart_hbrine
       use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: nt_fbri
+      use icepack_drv_tracers, only: nt_fbri
       use icepack_drv_restart, only: read_restart_field
 
       ! local variables
@@ -74,7 +74,7 @@
       use icepack_drv_arrays_column, only: first_ice, first_ice_real
 !      use icepack_drv_fileunits, only: nu_diag, nu_dump_hbrine
       use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: nt_fbri
+      use icepack_drv_tracers, only: nt_fbri
       use icepack_drv_restart, only: write_restart_field
 
       ! local variables

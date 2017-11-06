@@ -315,7 +315,8 @@
       use icepack_drv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
       use icepack_drv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside
       use icepack_drv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn 
-      use icepack_drv_init, only: tmask
+      !cn use icepack_drv_init, only: tmask
+      use icepack_drv_arrays_column, only: tmask
       use icepack_drv_state, only: aice, aicen, aice0, trcr_depend
       use icepack_drv_state, only: aicen_init, vicen_init, trcrn, vicen, vsnon
       use icepack_drv_state, only: trcr_base, n_trcr_strata, nt_strata
@@ -396,7 +397,8 @@
       subroutine update_state (dt, daidt, dvidt, dagedt, offset)
 
       use icepack_drv_domain_size, only: ncat, nx
-      use icepack_drv_init, only: tmask
+      !cn use icepack_drv_init, only: tmask
+      use icepack_drv_arrays_column, only: tmask
       use icepack_drv_state, only: aicen, trcrn, vicen, vsnon
       use icepack_drv_state, only: aice,  trcr,  vice,  vsno, aice0, trcr_depend
       use icepack_drv_state, only: trcr_base, nt_strata, n_trcr_strata
@@ -487,7 +489,8 @@
       use icepack_drv_flux, only: dvirdgdt, opening, fpond, fresh, fhocn
       use icepack_drv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt
       use icepack_drv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn
-      use icepack_drv_init, only: tmask
+      !cn use icepack_drv_init, only: tmask
+      use icepack_drv_arrays_column, only: tmask
       use icepack_drv_state, only: trcrn, vsnon, aicen, vicen
       use icepack_drv_state, only: aice, trcr, vice, vsno, aice0, trcr_depend, n_trcr_strata
       use icepack_drv_state, only: trcr_base, nt_strata
@@ -584,7 +587,8 @@
       use icepack_drv_calendar, only: calendar_type, days_per_year, nextsw_cday, yday, sec
       use icepack_drv_domain_size, only: ncat, n_aero, nilyr, nslyr, n_zaero, n_algae, nblyr, nx
       use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf, coszen, fsnow
-      use icepack_drv_init, only: TLAT, TLON, tmask
+      !cn use icepack_drv_init, only: TLAT, TLON, tmask
+      use icepack_drv_arrays_column, only: TLAT, TLON, tmask
       use icepack_drv_state, only: aicen, vicen, vsnon, trcrn
 
       ! column package includes
@@ -735,7 +739,8 @@
       use icepack_drv_arrays_column, only: Cdn_atm, Cdn_atm_ratio
       use icepack_drv_constants, only: c0, c1000, albocn
       use icepack_intfc, only: icepack_ocn_mixed_layer, icepack_atm_boundary
-      use icepack_drv_init, only: tmask
+      !cn use icepack_drv_init, only: tmask
+      use icepack_drv_arrays_column, only: tmask
       use icepack_drv_domain_size, only: nx
       use icepack_drv_flux, only: sst, Tf, Qa, uatm, vatm, wind, potT, rhoa, zlvl
       use icepack_drv_flux, only: frzmlt, fhocn, fswthru, flw, flwout_ocn, fsens_ocn, flat_ocn, evap_ocn
