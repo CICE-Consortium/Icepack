@@ -254,14 +254,6 @@
          ice_bio_net  , &   ! depth integrated tracer (mmol/m^2) 
          snow_bio_net       ! depth integrated snow tracer (mmol/m^2)
 
-      real (kind=dbl_kind), dimension (nx), public, save :: & !cn
-         TLON   , & ! longitude of temp pts (radians)
-         TLAT       ! latitude of temp pts (radians)
-
-      logical (kind=log_kind), &
-         dimension (nx), public, save :: & !cn
-         tmask  ! land/boundary mask, thickness (T-cell)
-
 !=======================================================================
 
       end module icepack_drv_arrays_column

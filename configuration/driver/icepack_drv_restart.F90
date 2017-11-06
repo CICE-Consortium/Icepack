@@ -183,7 +183,7 @@
       use icepack_drv_domain_size, only: max_ntrcr, nx
       use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf
       use icepack_drv_flux, only: sst, frzmlt, coszen, scale_factor
-      use icepack_drv_arrays_column, only: tmask
+      use icepack_drv_init, only: tmask
       use icepack_drv_state, only: trcr_depend, aice, vice, vsno, trcr
       use icepack_drv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel
       use icepack_drv_state, only: trcr_base, nt_strata, n_trcr_strata

@@ -123,7 +123,7 @@
       use icepack_drv_domain_size, only: ncat, max_ntrcr, n_aero, nx
       use icepack_drv_flux, only: sss
       use icepack_drv_init, only: ice_ic
-      use icepack_drv_arrays_column, only: tmask
+      use icepack_drv_init, only: tmask
       use icepack_drv_init_column, only: init_hbrine, init_bgc
       use icepack_drv_restart, only: restartfile, read_restart_hbrine
       use icepack_drv_restart_shared, only: restart
