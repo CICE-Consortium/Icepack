@@ -7,7 +7,7 @@
       module icepack_drv_forcing
 
       use icepack_drv_kinds
-      use icepack_drv_domain_size, only: ncat, nx
+      use icepack_drv_more domain_size, only: ncat, nx
       use icepack_drv_calendar, only: time, nyr, dayyr, mday, month, &
          daymo, daycal, &
          dt, yday , days_per_year

@@ -36,7 +36,7 @@
       use icepack_drv_diagnostics, only: debug_icepack
       use icepack_drv_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm_ocn
-      use icepack_drv_forcing, only: init_forcing, get_forcing
+      !cn use icepack_drv_forcing, only: init_forcing, get_forcing
       use icepack_drv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
       use icepack_drv_restart_shared, only: restart
       use icepack_drv_init, only: input_data, init_state, init_grid2
@@ -88,10 +88,10 @@
    ! coupler communication or forcing data initialization
    !--------------------------------------------------------------------
 
-      call init_forcing      ! initialize forcing (standalone)     
+      !cn call init_forcing      ! initialize forcing (standalone)     
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
 !?      call init_coupler_flux ! complete forcing initialization
-      call get_forcing(istep1)       ! get forcing from data arrays
+      !cn call get_forcing(istep1)       ! get forcing from data arrays
 
 !      call get_forcing_atmo     ! atmospheric forcing from data
 !      call get_forcing_ocn(dt)  ! ocean forcing from data
