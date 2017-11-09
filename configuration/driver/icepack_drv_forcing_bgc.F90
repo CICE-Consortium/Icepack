@@ -36,8 +36,7 @@
       subroutine init_forcing_bgc
 
         use icepack_drv_parameters, only: nit_data_type, sil_data_type
-        !use icepack_drv_forcing, only: data_dir !cn this causes circular dependency with drv_forcing
-      use icepack_drv_parameters, only: bgc_data_dir
+        use icepack_drv_forcing, only: data_dir 
 
         integer (kind=int_kind) :: &
             nu_bgc, &
@@ -57,7 +56,7 @@
           
           !cn filename = trim(data_dir)//'nutrients_daily_ISPOL_WOA_field3.ascii'
           !cn we could also hardwire this
-          filename = trim(bgc_data_dir)//'nutrients_daily_ISPOL_WOA_field3.ascii'
+          filename = trim(data_dir)//'nutrients_daily_ISPOL_WOA_field3.ascii'
           write (nu_diag,*) 'Reading ',filename
 
           ntime = 365 !daily

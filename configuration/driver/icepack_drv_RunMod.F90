@@ -81,10 +81,8 @@
       use icepack_drv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
       use icepack_drv_restart, only: dumpfile, final_restart, write_restart_hbrine
-!      use icepack_drv_restart_column, only: write_restart_age, write_restart_FY, &
-!          write_restart_lvl, write_restart_pond_cesm, write_restart_pond_lvl, &
-!          write_restart_pond_topo, write_restart_aero, &
-!          write_restart_bgc, write_restart_hbrine
+!      use icepack_drv_restart_column, only: &
+!          write_restart_bgc
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, &
           tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_brine, tr_aero

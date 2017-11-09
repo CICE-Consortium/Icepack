@@ -29,6 +29,11 @@
       use icepack_tracers, only: nlt_bgc_dms, nlt_bgc_dmspp
       use icepack_tracers, only: nlt_bgc_Fed, nlt_bgc_Fep, nlt_bgc_hum
       use icepack_tracers, only: nlt_bgc_Nit, nlt_bgc_Am, nlt_bgc_Sil
+      
+      use icepack_tracers, only: nt_bgc_chl, nt_bgc_C, nt_bgc_DOC, nt_bgc_DIC, nt_bgc_AM
+      use icepack_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
+      use icepack_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
+      use icepack_tracers, only: nt_zbgc_frac, nt_zaero
 
       use icepack_tracers, only: bio_index_o
 

@@ -823,10 +823,8 @@
 ! author Elizabeth C. Hunke, LANL
 
       use icepack_drv_arrays_column, only: first_ice, first_ice_real
-!      use icepack_drv_fileunits, only: nu_diag, nu_dump_hbrine
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_fbri
-      !cn use icepack_drv_restart, only: write_restart_field
       use icepack_drv_constants, only: c1, c0
       use icepack_drv_domain_size, only: ncat, nx
 
@@ -853,6 +851,8 @@
 !                               'fbrn',ncat,diag)
 !      call write_restart_field(nu_dump_hbrine,0,first_ice_real(:,:),'ruf8', &
 !                               'first_ice',ncat,diag)
+        call read_restart_field_cn(nu_restart,trcrn(:,nt_fbri,:),ncat)
+        call read_restart_field_cn(nu_restart,first_ice_real(:,:),ncat)
 
       end subroutine write_restart_hbrine
 
@@ -864,7 +864,6 @@
 ! author Elizabeth C. Hunke, LANL
 
       use icepack_drv_arrays_column, only: first_ice_real, first_ice
-!      use icepack_drv_fileunits, only: nu_diag, nu_restart_hbrine
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_fbri
       use icepack_drv_constants, only: p5
@@ -886,7 +885,9 @@
 !                              'fbrn',ncat,diag,field_loc_center,field_type_scalar)
 !      call read_restart_field(nu_restart_hbrine,0,first_ice_real(:,:),'ruf8', &
 !                              'first_ice',ncat,diag,field_loc_center,field_type_scalar)
-
+      call write_restart_field_cn(nu_restart,trcrn(:,nt_fbri,:),ncat)
+      call write_restart_field_cn(nu_restart,first_ice_real(:,:),ncat)
+      
          do i = 1, nx
             do n = 1, ncat
                if (first_ice_real(i,n) >= p5) then
@@ -898,7 +899,6 @@
          enddo    ! i 
 
       end subroutine read_restart_hbrine
-
 
 !=======================================================================
 

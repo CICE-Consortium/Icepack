@@ -12,7 +12,7 @@
          daymo, daycal, &
          dt, yday , days_per_year
       use icepack_drv_constants, only: nu_diag, nu_forcing, secday
-      use icepack_drv_parameters, only: calc_strair, bgc_data_dir
+      use icepack_drv_parameters, only: calc_strair
 
       implicit none
       private
@@ -57,6 +57,7 @@
           swidf_data, &
            zlvl_data, &
           hmix_data
+
       real (kind=dbl_kind), dimension(nx) :: &
           sst_temp
 
@@ -67,8 +68,6 @@
          atm_data_type,   & ! 'default', 'clim', 'GOFS'
          ocn_data_type,   & ! 'default'
          bgc_data_type,   & ! 'default'
-         sss_data_type,   & ! 'default', 'clim', 'ncar', 'oned'
-         sst_data_type,   & ! 'default', 'clim', 'ncar', 'oned',
          precip_units       ! 'mm_per_month', 'mm_per_sec', 'mks'
  
       character(char_len_long), public :: & 
@@ -85,7 +84,7 @@
          dbug             ! prints debugging output if true
 
       logical (kind=log_kind), public :: &
-         restore_sst               ! restore sst if true
+         restore_ocn               ! restore sst if true
 
       real (kind=dbl_kind), public :: & 
          trest, &                    ! restoring time scale (sec)
@@ -155,8 +154,8 @@
       if (trim(atm_data_type) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type) == 'NICE') call atm_NICE
 
-      !cn if (restore_sst .or. restore_bgc) then
-      if (restore_sst) then
+      !cn if (restore_ocn .or. restore_bgc) then
+      if (restore_ocn) then
         if (trestore == 0) then
           trest = dt        ! use data instantaneously
         else
@@ -164,8 +163,7 @@
         end if
       endif
 
-      if (trim(sst_data_type) == 'ISPOL' .or. &
-          trim(sss_data_type) == 'ISPOL') then
+      if (trim(ocn_data_type) == 'ISPOL') then
         call ocn_ISPOL
       endif
 
@@ -180,7 +178,6 @@
                             swidr_data,    swidf_data,    &
                             potT_data)
 
-      bgc_data_dir = trim(data_dir)
       end subroutine init_forcing
 
 !=======================================================================
@@ -217,9 +214,6 @@
       real (kind=dbl_kind) :: &
           sec6hr  
 
-      real (kind=dbl_kind), parameter :: &    
-         lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
-
       if (trim(atm_data_type) == 'GOFS') then
          ! calculate data index corresponding to current timestep
          i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
@@ -247,7 +241,6 @@
         !it also looks like the data Nicole starts on June 17, not Jan 1 ?????
         !also need to repeat as above
 
-
         dataloc = 2                          ! data located at end of interval
         maxrec = 366  
         recslot = 2
@@ -256,8 +249,7 @@
         mnext = mod(recnum-1,       maxrec) + 1
         call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
 
-        Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext) &
-          - lapse_rate*8.0_dbl_kind
+        Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
@@ -273,13 +265,11 @@
         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
 
-
       endif
 
 
 !cn this is called from get_forcing_ocn in cice...
-      if(trim(sst_data_type) == 'ISPOL' .or. & 
-          trim(sss_data_type) == 'ISPOL') then
+      if(trim(ocn_data_type) == 'ISPOL') then
         
         midmonth = 15  ! assume data is given on 15th of every month
         recslot = 1                             ! latter half of month
@@ -301,16 +291,9 @@
           hmix(i) = max(hmix(i), c0)           
         end do
 
-        call ocn_freezing_temperature
+        call finish_ocn_forcing(sst_temp)
 
-        if (restore_sst) then
-          do i = 1, nx 
-            sst(i) = sst(i) + (sst_temp(i)-sst(i))*dt/trest 
-          enddo
-        endif
-        
-      elseif (trim(sst_data_type) == 'NICE' .or.  &
-          trim(sst_data_type) == 'NICE') then
+      elseif (trim(ocn_data_type) == 'NICE') then
         
 !cn the nice stuff seems to be more complicated than ispol....        
         midmonth = 15  ! assume data is given on 15th of every month
@@ -333,13 +316,8 @@
           hmix(i) = max(hmix(i), c0)           
         end do
 
-        call ocn_freezing_temperature
+        call finish_ocn_forcing(sst_temp)
 
-        if (restore_sst) then
-          do i = 1, nx 
-            sst(i) = sst(i) + (sst_temp(i)-sst(i))*dt/trest 
-          enddo
-        endif
       else
         sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
         
@@ -470,7 +448,6 @@ endif
       subroutine atm_GOFS
 
       integer (kind=int_kind) :: &
-         nu_navy, &     ! unit number
          nt             ! loop index
 
       real (kind=dbl_kind) :: &
@@ -486,17 +463,16 @@ endif
       character (char_len_long) string1
       character (char_len_long) filename
 
-      nu_navy = 12
       filename = trim(data_dir)//'/CFS/cfsv2_2015_220_70_01hr.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
-      open (nu_navy, file=filename, form='formatted')
-      read (nu_navy, *) string1 ! headers
-      read (nu_navy, *) string1 ! units
+      open (nu_forcing, file=filename, form='formatted')
+      read (nu_forcing, *) string1 ! headers
+      read (nu_forcing, *) string1 ! units
 
       do nt = 1, ntime
-         read (nu_navy, '(6(f10.5,1x),2(f10.8,1x))') &
+         read (nu_forcing, '(6(f10.5,1x),2(f10.8,1x))') &
          dswsfc, dlwsfc, windu10, windv10, temp2m, spechum, precip
 
            flw_data(nt) = dlwsfc
@@ -509,7 +485,7 @@ endif
          fsnow_data(nt) = precip
       enddo
 
-      close (nu_navy)
+      close (nu_forcing)
 
 !      write(nu_diag,*), 'GOFS data', &
 !         dswsfc, dlwsfc, windu10, windv10, temp2m, spechum, precip
@@ -560,6 +536,9 @@ endif
       integer (kind=int_kind) :: &
          nt
 
+      real (kind=dbl_kind), parameter :: &    
+         lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
+
       real (kind=dbl_kind) :: workx, worky, &
          precip_factor, zlvl0
 
@@ -601,7 +580,12 @@ endif
          elseif (trim(atm_data_type) == 'clim') then
             ! precip is in kg/m^2/s
             zlvl0 = c2
-         endif                     ! atm_data_type
+
+          elseif (trim(atm_data_type) == 'ISPOL' .or. &
+              trim(atm_data_type) == 'NICE') then
+            Tair(nt) = Tair(nt) -  lapse_rate*8.0_dbl_kind
+
+          endif                     ! atm_data_type
 
 
 ! this longwave depends on the current ice aice and sst and so can not be
@@ -831,9 +815,9 @@ endif
 
 !=======================================================================
 
+#if 0
     subroutine get_forcing_ISPOL
 
-#if 0
 !this is from nicoles subroutine ISPOL_data
 ! Defines atmospheric data fields for Antarctic Weddell sea location 
 
@@ -1077,10 +1061,10 @@ endif
       oldrecnum4X = recnum4X
 
 
-#endif
 
       
     end subroutine get_forcing_ISPOL
+#endif
 !=======================================================================
 
     subroutine atm_NICE
@@ -1305,7 +1289,7 @@ endif
 
       call ocn_freezing_temperature
 
-      if (restore_sst) then
+      if (restore_ocn) then
         do j = 1, ny_block 
          do i = 1, nx_block 
            sst(i,j,:) = sst(i,j,:) + (work1(i,j,:)-sst(i,j,:))*dt/trest 
@@ -1441,7 +1425,7 @@ endif
 
 !=======================================================================
 
-      subroutine ocn_freezing_temperature
+      subroutine finish_ocn_forcing(sst_temp)
 
  ! Compute ocean freezing temperature Tf based on tfrz_option
  ! 'minus1p8'         Tf = -1.8 C (default)
@@ -1449,7 +1433,10 @@ endif
  ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
 
       use icepack_therm_shared, only: icepack_sea_freezing_temperature
-      use icepack_drv_flux, only: sss, Tf
+      use icepack_drv_flux, only: sss, Tf, sst
+
+      real (kind=dbl_kind), dimension(nx), intent(in)  :: &
+          sst_temp
 
       ! local variables
 
@@ -1459,10 +1446,13 @@ endif
       !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do i = 1, nx
         Tf(i) = icepack_sea_freezing_temperature(sss(i))
+        if (restore_ocn) then
+          sst(i) = sst(i) + (sst_temp(i)-sst(i))*dt/trest
+        endif
       enddo
       !$OMP END PARALLEL DO
 
-      end subroutine ocn_freezing_temperature
+    end subroutine finish_ocn_forcing
 
 
 !=======================================================================

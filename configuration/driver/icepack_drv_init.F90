@@ -63,7 +63,7 @@
       use icepack_drv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
       use icepack_drv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icepack_drv_forcing, only: data_dir,        dbug
-      use icepack_drv_forcing, only: restore_sst, sss_data_type, sst_data_type, trestore
+      use icepack_drv_forcing, only: restore_ocn, trestore
 
       use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond
       use icepack_drv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
@@ -139,8 +139,7 @@
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         atm_data_format, ocn_data_format, bgc_data_format, &
-        data_dir,        trestore,        sss_data_type,   &
-        sst_data_type,   restore_sst
+        data_dir,        trestore,        restore_ocn
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -228,13 +227,11 @@
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default'
-      sss_data_type   = 'default'
-      sst_data_type   = 'default'
       bgc_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       bgc_data_type   = 'default'
       data_dir    = ' '
 !      dbug      = .false.         ! true writes diagnostics for input forcing
-      restore_sst     = .false.   ! restore sst if true
+      restore_ocn     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
 
       ! extra tracers
@@ -578,13 +575,9 @@
 
          write (nu_diag,*) ' '
 
-         write(nu_diag,*)    ' sss_data_type             = ', &
-                               trim(sss_data_type)
-         write(nu_diag,*)    ' sst_data_type             = ', &
-                               trim(sst_data_type)
-         write(nu_diag,1010) ' restore_sst               = ', &
-             restore_sst
-         !if (restore_ice .or. restore_sst) &
+         write(nu_diag,1010) ' restore_ocn               = ', &
+             restore_ocn
+         !if (restore_ice .or. restore_ocn) &
          write(nu_diag,1010) ' trestore                  = ', trestore
 
          ! tracers
