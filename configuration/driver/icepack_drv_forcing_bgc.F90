@@ -54,9 +54,7 @@
             trim(nit_data_type) == 'NICE' .or. &
             trim(sil_data_type) == 'NICE') then 
           
-          !cn filename = trim(data_dir)//'nutrients_daily_ISPOL_WOA_field3.ascii'
-          !cn we could also hardwire this
-          filename = trim(data_dir)//'nutrients_daily_ISPOL_WOA_field3.ascii'
+          filename = trim(data_dir)//'nutrients_daily_ISPOL_WOA_field3.txt'
           write (nu_diag,*) 'Reading ',filename
 
           ntime = 365 !daily
