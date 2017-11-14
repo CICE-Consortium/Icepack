@@ -701,183 +701,6 @@ increased when new ice forms in open water, in subroutine
 *add\_new\_ice* in **icepack\_therm\_itd.F90**. The first-year area tracer
 is discussed in :cite:`ABTH11`.
 
-
-.. _brine-ht:
-
-Brine height
-~~~~~~~~~~~~
-
-The brine height, :math:`h_b`, is the distance from the ice–ocean
-interface to the brine surface. When `tr\_brine` is set true in
-**icepack\_in** and `TRBRI` is set equal to 1 in **comp\_ice**, the brine
-surface can move relative to the ice surface. Physically, this occurs
-when the ice is permeable and there is a nonzero pressure head: the
-difference between the brine height and the equilibrium sea surface.
-Brine height motion is computed in **icepack\_brine.F90** from thermodynamic
-variables (``melts``, ``meltb``, ``meltt``, etc) and the ice microstructural state
-deduced from internal bulk salinities and temperature. In the current
-release, this tracer is for diagnostic purposes only; it is driven by
-the prognostic salinity parameterization but is not used for computing
-salinity. In future releases it will be used for transporting
-biogeochemical tracers vertically through the ice.
-
-Brine height is transported horizontally as the fraction
-:math:`f_{bri} = h_b/h_i`, a volume conserved tracer
-Note that unlike the sea ice porosity, brine
-height fraction may be greater than 1 when :math:`h_b > h_i`.
-
-Vertical transport processes are, generally, a result of the brine
-motion. Therefore the vertical transport equations for biogeochemical
-tracers will be defined only where brine is present. This region, from
-the ice–ocean interface to the brine height, defines the domain of the
-vertical bio-grid, whose resolution is independent of the sea ice
-vertical grid and is set at compile time (see
-the :ref:`grids` section). The ice microstructural state,
-determined in **icepack\_brine.F90**, is computed from sea ice salinities
-and temperatures linearly interpolated to the bio-grid. When
-:math:`h_b > h_i`, the upper surface brine is assumed to have the same
-microstructural properties as the ice surface.
-
-Changes to :math:`h_b` occur from ice and snow melt, ice bottom boundary
-changes, and from pressure adjustments. The computation of :math:`h_b`
-at :math:`t+\Delta
-t` is a two step process. First, :math:`h_b` is updated from changes in
-ice and snow thickness, ie.
-
-.. math::
-   h_b'  =  h_b(t) + \Delta h_b|_{h_i,h_s}.
-   :label: hb-thickness-changes
-
-Second, pressure driven adjustments arising from meltwater flushing and
-snow loading are applied to :math:`h'_b`. Brine flow due to pressure
-forces are governed by Darcy’s equation
-
-.. math::
-   w =  -\frac{\Pi^* \bar{\rho} g}{\mu}\frac{h_p}{h_i}.
-   :label: Darcy1
-
-The vertical component of the net permeability tensor :math:`\Pi^*` is
-computed as
-
-.. math::
-   \Pi^*  =  \left(\frac{1}{h}\sum_{i=1}^N{\frac{\Delta
-         z_i}{\Pi_i}}\right)^{-1}
-   :label: netPi1
-
-where the sea ice is composed of :math:`N` vertical layers with
-:math:`i`\ th layer thickness :math:`\Delta z_i` and permeability
-:math:`\Pi_i` :eq:`topo-permea`. The average sea ice density is
-:math:`\bar{\rho}` specified in **icepack\_zbgc\_shared.F90**. The hydraulic
-head is :math:`h_p = h_b - h_{sl}` where :math:`h_{sl}` is the sea level
-given by
-
-.. math:: 
-   h_{sl}  =  \frac{\bar{\rho}}{\rho_w}h_i + \frac{\rho_s}{\rho_w}h_s.
-   :label: hsl
-
-Assuming constant :math:`h_i` and :math:`h_s` during Darcy flow, the
-rate of change of :math:`h_b` is
-
-.. math::
-   \frac{\partial h_b}{\partial t}   =  -w h_p
-   :label: h-p
-
-where :math:`w_o = \Pi^* \bar{\rho}
-g/(h_i\mu\phi_{top})` and :math:`\phi_{top}` is the upper surface
-porosity. When the Darcy flow is downward into the ice
-(:math:`w_o < 0`), then :math:`\phi_{top}` equals the sea ice porosity
-in the uppermost layer. However, when the flow is upwards into the snow,
-then :math:`\phi_{top}` equals the snow porosity ``phi_snow`` specified in
-**icepack\_in**. If a negative number is specified for ``phi_snow``, then the
-default value is used: ``phi_snow`` :math:`=1 - \rho_s/\rho_w`.
-
-Since :math:`h_{sl}` remains relatively unchanged during Darcy flow,
-Equation :eq:`h-p` has the approximate solution
-
-.. math::
-   h_b(t+\Delta t) \approx h_{sl}(t+\Delta t) +  [h'_b - h_{sl}(t+\Delta t)]\exp\left\{-w \Delta t\right\}.
-   :label: brine-height
-
-The contribution :math:`\Delta h_b|_{h_i,h_s}` arises from snow and ice
-melt and bottom ice changes. Since the ice and brine bottom boundaries
-coincide, changes in the ice bottom from growth or melt,
-:math:`(\Delta h_i)_{bot}`, equal the bottom brine boundary changes. The
-surface contribution from ice and snow melt, however, is opposite in
-sign. The ice contribution is as follows. If :math:`h_i > h_b` and the
-ice surface is melting, ie. :math:`(\Delta h_i)_{top} <
-0`), then melt water increases the brine height:
-
-.. math::
-   \left(\Delta h_b\right)_{top}  =   \frac{\rho_i}{\rho_o} \cdot \left\{ \begin{array}{ll}
-   -(\Delta h_i)_{top} &  \mbox{if }
-   |(\Delta h_i)_{top}| < h_i-h_b  \\
-   h_i-h_b & \mbox{otherwise.}   \end{array} \right.
-   :label: delta-hb
-
-For snow melt (:math:`\Delta h_s < 0`), it is assumed that all snow
-melt water contributes a source of surface brine. The total change from
-snow melt and ice thickness changes is
-
-.. math::
-   \Delta h_b|_{h_i,h_s}  =  \left( \Delta
-   h_b\right)_{top} -\left(\Delta h_i\right)_{bot} -\frac{\rho_s}{\rho_o}\Delta h_s.
-   :label: dzdt-meltwater
-
-The above brine height calculation is used only when :math:`h_i` and
-:math:`h_b` exceed a minimum thickness, ``thinS``, specified in
-**icepack\_zbgc\_shared**. Otherwise
-
-.. math::
-   h_b(t+\Delta t)  =  h_b(t) + \Delta h_i
-   :label: thinbrine1
-
-provided that :math:`|h_{sl}-h_b| \leq 0.001`. This formulation ensures
-small Darcy velocities when :math:`h_b` first exceeds ``thinS``.
-
-Both the volume fraction :math:`f_{bri}` and the area-weighted brine
-height :math:`h_b` are available for output.
-
-.. math:: 
-   {{\sum f_{bri} v_i} \over {\sum v_i}},
-   :label: volume-frac
-
-while ``hbri`` is comparable to hi (:math:`h_i`)
-
-.. math:: 
-   {{\sum f_{bri} h_i a_i} \over {\sum a_i}},
-   :label: volume-frac2
-
-where the sums are taken over thickness categories.
-
-.. _ice-bgc-tracers:
-
-Biogeochemistry
-~~~~~~~~~~~~~~~~~~~~~~~
-
-CHECK:  refer to section :ref:`ice-bgc` for science and configuration description.  
-This section is for explaining how the tracer stack works.
-
-All biogeochemical tracers (:math:`T_b`) are brine concentrations. (except cesm aerosols?)
-Tracers :math:`T_b` are area conserved and are expected to be transported horizontally in 
-a host sea ice model such as CICE.
-Bulk tracer concentrations are written to diagnostic files.
-
-*Bottom layer*
-
-Although biogeochemical activity occurs throughout the sea ice column,
-in the skeletal layer configuration we restrict ourselves to simulations of activity
-taking place in the lowest few vertical centimeters. 
-
-*Aerosols*
-
-Aerosols may be deposited on the ice and gradually work their way
-through it until the ice melts and they are passed into the ocean. They
-are defined as ice and snow volume tracers, 
-with the snow and ice each having two tracers for
-each aerosol species, one in the surface scattering layer
-(delta-Eddington SSL) and one in the snow or ice interior below the SSL.
-
-
 .. _itd-trans:
 
 Transport in thickness space
@@ -3184,240 +3007,11 @@ into equal thicknesses while conserving energy and salt.
 
 .. _ice-bgc:
 
-Biogeochemistry - ECH 
----------------------
-
-CHECK: refer to section :ref:`ice-bgc-tracers` for description
-of how tracers are carried (on brine volume, etc), units, tracer flags
-
-Provide broad overview of kinds of BGC configurations available, in intro paragraph.
-Bottom layer, vertical BGC, aerosols, connection (or not) with brine height tracer.
-
-Bottom layer
-~~~~~~~~~~~~~~~~
-
-Ice algal photosynthesis leads to carbon fixation and pigment buildup
-throughout much of the pack ice in springtime, including warm layers in
-contact with seawater and the central ice matrix. Turbulence moves seed
-organisms and trace elements upward across the ocean interface from the
-mixed layer :cite:`AKS93`, and convection allows them to
-penetrate deep into the brine channel network. Gravity drainage is
-strongly coupled to carbonate and alkalinity relationships; bio-active
-gases including molecular oxygen, dimethyl sulfide (DMS) and methane
-exhibit dynamic cycling within and around the ice matrix. All may
-ultimately be transferred across the upper interface, into snow cover
-and toward the atmosphere. Chlorophyll is often concentrated in thin
-layers, capable of absorbing downwelling radiation and redistributing
-the implied heat locally.
-
-Although biogeochemical activity occurs throughout the sea ice column,
-in the skeletal layer configuration we restrict ourselves to simulations of activity
-taking place in the lowest few vertical centimeters. A thin intermediate
-zone located in this vicinity can be considered distinct because it is
-relatively warm, extremely porous and necessarily in close contact with
-the seawater nutrient supply. The ecosystems supported are therefore
-especially intense, so that they constitute a logical starting point for
-code development. The resulting band of biological activity will be
-referred to most often in what follows as the ‘bottom zone.’ It
-constitutes the dominant habitat for ice algae across most of the
-noncoastal Arctic and among land fast ice systems of the Southern
-Hemisphere. In the literature and some portions of the code, however,
-the alternate term ‘skeletal layer’ is used. For many purposes, the two
-are interchangeable. But in fact, the latter is a reference to dendritic
-structures more typically observable in the wintertime; ‘bottom zone’ is
-the more general term.
-
-Ecological succession in the bottom zone interacts intimately with
-chemistry of the upper ocean–atmosphere system. Photosynthesis is
-constrained initially by light limitation but soon becomes a matter of
-resource availability :cite:`AKS93,DJEHMJ11`. Radiation
-intensity dictates the timing of bloom inception. The direct inflow of
-salt laden water can then be filtered immediately for the dissolved
-nutrient forms, which are converted locally into biomass. In association
-with the carbon storage, considerable DMS and molecular oxygen are
-generated :cite:`EDHHJJLS12`. Melt and flush periods cause
-bottom ice organisms to be rejected from the matrix mechanically. The
-dominant primary producers among them are pennate diatoms, a class
-subject to rapid sinking :cite:`LDM05`. Hence the amount of
-bottom layer biological activity dictates high latitude nutrient and
-trace gas levels in the early spring, then carbon drawdown moving into
-the period of breakup.
-
-Light transmission passes into the bottom zone through overlying layers
-of snow and ice. Attenuation by the ice algae is integrated and averaged
-over the bottom three centimeters in which they reside. Our current 
-release treats inflow of the primary Arctic nutrients nitrate and
-silicate, along with the major pathway for nitrogen recycling via
-ammonia. Both fertilizers and byproducts are permitted to exchange back
-out of the porous bottom volume on a time scale of order hours
-:cite:`AKS93,LDM05`. Biomass multiplies exponentially as
-light and nutrient restrictions are lifted, following the rising polar
-sun. Uptake accelerates until there is a transition to flux limitation
-:cite:`EDHHJJLS12`. At variable times and locations, a
-kinetic balance is often reached in which dissolved nitrogen is
-sequestered faster than it can leave the porous volume. Computational
-terms involved in the ecodynamic simulation resemble Michaelis-Menten
-enzyme kinetics, and have been adapted here from a series of pioneering
-ice biogeochemistry models
-:cite:`AKS93,JDWSTWLG06,LDM05`. 
-
-The bottom ice biogeochemistry module described here is designed for
-ready attachment of extra-nutrient cycling, including byproduct and
-detrital processing. Our own mechanism for the generation of DMS is
-included in the release as an example. For full details please see
-descriptions and schematics in :cite:`EDHHJJLS12`.
-Generally speaking, the primary nutrient flow as nitrogen simultaneously
-supports formation of silicate frustules by the ice diatoms, along with
-carbon biomass production and the implied chlorophyll buildup. Synthesis
-of organosulfur metabolites is handled simultaneously and in direct
-proportion. DMS spins off of this subsystem at much higher levels than
-those familiar from open water studies, since the ice algae are
-especially abundant and suffer strong cryological, osmotic and oxidant
-stress in an extreme environmental regime :cite:`SSTMB07`.
-The sulfur transformations are governed by a typical pattern of routing
-kinetics within and below the ice :cite:`EDHHJJLS12`, which
-reduces the net yield of volatile gas but still permits considerable
-buildup and release during the spring thaw.
-
-Biogeochemical processing is modelled as a single layer of reactive
-tracers attached to the sea ice bottom. Optional settings are available
-via the *zbgc\_nml* namelist in **icepack\_in**. The prefix ``tr_bgc``
-signifies a biogeochemical tracer, while the postscript ``_sk`` indicates
-that a particular quantity is restricted to the band of bottom or
-skeletal ice material. 
-
-Setting the flag ``skl_bgc`` to true turns on a reduced ‘NP’
-(Nitrogen-Plankton) biogeochemistry consisting of nitrate and one algal
-tracer. Ammonium (``tr_bgc_Am_sk``), silicate (``tr_bgc_Sil_sk``),
-dimethyl sulfoniopropionate (DMSP) in particulate form
-(``tr_bgc_DMSPp_sk``), DMSP in dissolved form (``tr_bgc_DMSPd_sk``), and
-volatile dimethyl sulfide (``tr_bgc_DMS_sk``) may also be included by
-setting the respective flags to true in **icepack\_in**.
-
-All bottom layer tracers (:math:`T_b`) are brine concentrations
-multiplied by the skeletal layer thickness (:math:`h_{sk}`). Bulk tracer
-concentrations are written to diagnostic files and are found by the
-expression :math:`T_b \phi_{sk}/h_{sk}` where :math:`\phi_{sk}` is the
-skeletal layer porosity. Both :math:`h_{sk}` and :math:`\phi_{sk}` are
-defined in **icepack\_zbgc\_shared.F90**.
-
-The initial concentrations of
-tracers are specified in subroutine **init\_bgc** in **icepack\_zbgc.F90**.
-Silicate and nitrate may be initialized and forced with climatology.
-Parameters ``sil_data_type`` and ``nit_data_type`` are set in **icepack\_in**
-and take the values ‘clim’ (climatology) and ‘default’ (constant).
-``nit_data_type`` may also take the value ‘sss’ which sets nitrate to the
-ocean salinity value. For climatology, the data directory ``bgc_data_dir``
-must also be specified. If `restore\_bgc` is true, then values are
-linearly restored to climatology according to the restoring timescale
-``trestore``.
-
-For each horizontal grid point, local biogeochemical tracer equations
-are solved in **icepack\_algae.F90**. There are two types of ice–ocean
-tracer flux formulations: ‘Jin2006’ modelled after the growth rate
-dependent piston velocity of :cite:`JDWSTWLG06`, and
-‘constant’ modelled after the constant piston velocity of
-:cite:`EDHHJJLS12`. The formulation is specified in
-**icepack\_in** by setting `bgc\_flux\_type` equal to ‘Jin2006’ or ‘constant’.
-
-In addition to horizontal advection and transport among thickness
-categories, biogeochemical tracers (:math:`T_b` where
-:math:`b = 1,\ldots, N_b`) satisfy a set of local coupled equations of
-the form
-
-.. math::
-   \frac{d T_b}{dt}  = w_b \frac{\Delta T_b}{\Delta z} +  R_b({T_j : j = 1,\ldots,N_b})
-
-where :math:`R_b` represents the nonlinear biochemical reaction terms
-detailed in :cite:`EDHHJJLS12` and :math:`\Delta z` is a
-length scale representing the molecular sublayer of the ice–ocean
-interface. Its value is absorbed in the piston velocity parameters. The
-piston velocity :math:`w_b` depends on the particular tracer and the
-flux formulation.
-
-For ‘Jin2006’, the piston velocity is a function of ice growth and melt
-rates. All tracers (algae included) flux with the same piston velocity
-during ice growth, :math:`dh/dt > 0`:
-
-.. math::
-   w_b   =   - p_g\left|m_1 + m_2 \frac{dh}{dt} - m_3
-     \left(\frac{dh}{dt} \right)^2\right|
-   :label: pwJin-growth
-
-with parameters :math:`m_1`, :math:`m_2`, :math:`m_3` and :math:`p_g`
-defined in **skl\_biogeochemistry**. For ice melt, :math:`dh/dt < 0`,
-all tracers with the exception of ice algae flux with
-
-.. math::
-   w_b  =  p_m\left|m_2 \frac{dh}{dt} - m_3
-       \left(\frac{dh}{dt}  \right)^2\right|
-   :label: pwJin-melt
-
-with :math:`p_m` defined in **skl\_biogeochemistry**. The ‘Jin2006’
-formulation also requires that for both expressions,
-:math:`|w_b| \leq 0.9
-h_{sk}/\Delta t`. The concentration difference at the ice–ocean boundary
-for each tracer, :math:`\Delta
-T_b`, depends on the sign of :math:`w_b`. For growing ice,
-:math:`w_b <0`, :math:`\Delta T_b  = T_b/h_{sk} - T_{io}`, where
-:math:`T_{io}` is the ocean concentration of tracer :math:`i`. For
-melting ice, :math:`w_b > 0`, :math:`\Delta T_b = T_b/h_{sk}`.
-
-In ‘Jin2006’, the algal tracer (:math:`N_a`) responds to ice melt in the
-same manner as the other tracers from Equation :eq:`pwJin-melt`. However, this is
-not the case for ice growth. Unlike dissolved nutrients, algae are able
-to cling to the ice matrix and resist expulsion during desalination. For
-this reason, algal tracers do not flux between ice and ocean during ice
-growth unless the ice algal brine concentration is less than the ocean
-algal concentration (:math:`N_o`). Then the ocean seeds the sea ice
-concentration according to
-
-.. math::
-   w_b \frac{\Delta N_a}{\Delta z} = \frac{N_oh_{sk}/\phi_{sk} -
-     N_a}{\Delta t}
-   :label: seed1
-
-The ‘constant’ formulation uses a fixed piston velocity (PVc) for
-positive ice growth rates for all tracers except :math:`N_a`. As in
-‘Jin2006’, congelation ice growth seeds the sea ice algal population
-according to Equation :eq:`seed1` when :math:`N_a < N_o
-h_{sk}/\phi_{sk}`. For bottom ice melt, all tracers follow the
-prescription
-
-.. math::
-   w_b \frac{\Delta T_b}{\Delta z} =  \left\{ \begin{array}{ll}
-      T_b   |dh_i/dt|/h_{sk} \ \ \ \ \ &   \mbox{if }
-    |dh_i/dt|\Delta t/h_{sk} < 1  \\
-    T_b/\Delta t & \mbox{otherwise.}   \end{array} \right.  
-   :label: constant-melt   
-
-All of the necessary fluxes required for coupling to an ocean model
-component are contained in a single array, `flux\_bio`.
-
-This bottom-specific biogeochemistry module necessarily simplifies the
-full sea ice ecosystem. For the moment, zooplankton comprise an
-imaginary tracer of indefinite mass that make their presence felt mainly
-through the recycling of ammonia
-:cite:`EDHHJJLS12,JDWSTWLG06`. Consumer organisms are
-essentially siphoned off of the standard primary production pathway as
-a fixed fraction of overall growth :cite:`AKS93`. Transfer
-velocities relating the upper water column to ice fluids and solutes are
-now parameterized as a function of off-line congelation rates, based on
-laboratory brine expulsion data
-:cite:`AKS93,EDHHJJLS12,JDWSTWLG06`. 
-
-
-
-Biogeochemistry - NJ
---------------------
-
-CHECK: refer to section :ref:`ice-bgc-tracers` for description
-of how tracers are carried (on brine volume, etc), units, tracer flags
-
-Provide broad overview of kinds of BGC configurations available, in intro paragraph.
-Bottom layer, vertical BGC, aerosols, connection (or not) with brine height tracer.
+Biogeochemistry
+---------------
 
 From: Nicole Jeffery, Scott Elliott, Elizabeth C. Hunke, William H. Lipscomb, and Adrian K. Turner
+default aerosols from: David Baily, Marika Holland... others?
 
 Aerosols
 ~~~~~~~~
@@ -3436,7 +3030,7 @@ Rather than updating aerosols for each change to ice/snow thickness due
 to evaporation, melting, snow-ice formation, etc., during the
 thermodynamics calculation, these changes are deduced from the
 diagnostic variables (melts, meltb, snoice, etc) in
-**ice\_aerosol.F90**. Three processes change the volume of ice or snow
+**icepack\_aerosol.F90**. Three processes change the volume of ice or snow
 but do not change the total amount of aerosol, thus causing the aerosol
 concentration (the value of the tracer itself) to increase: evaporation,
 snow deposition and basal ice growth. Basal and lateral melting remove
@@ -3454,8 +3048,8 @@ remains. The atmospheric flux faero\_atm contains the rates of aerosol
 deposition for each species, while faero\_ocn has the rate at which the
 aerosols are transferred to the ocean.
 
-The aerosol tracer flag tr\_aero must be set to true in **ice\_in**, and
-the number of aerosol species is set in **comp\_ice**; CESM uses 3.
+The aerosol tracer flag tr\_aero must be set to true in **icepack\_in**, and
+the number of aerosol species is set in **icepack.settings**; CESM uses 3.
 Global diagnostics are available when print\_global is true, and history
 variables include the mass density for each layer (snow and ice SSL and
 interior), and atmospheric and oceanic fluxes, for each species.
@@ -3477,7 +3071,7 @@ scavenging aerosols during snow melt is consistent with the default
 aerosol scheme, though parameters have been generalized to accomadate
 potential atmospheric deposition for all z-tracers. For an example, see
 the scavenging parameter kscavz for z-tracers defined in
-**ice\_zbgc\_shared**.
+**icepack\_zbgc\_shared**.
 
 Within the snow, z-tracers are defined as concentrations in the snow
 surface layer (:math:`h_{ssl}`) and the snow interior
@@ -3491,38 +3085,36 @@ One major difference in how the two schemes model snow aerosol transport
 is that the fraction scavenged from snow melt in the z-tracer scheme is
 not immediately fluxed into the ocean, but rather, enters the ice as a
 source of low salinity but potentially tracer rich brine. The snow melt
-source is included as a surface flux condition in **ice\_algae.F90**.
+source is included as a surface flux condition in **icepack\_algae.F90**.
 
 All the z-aerosols are nonreactive with the exception of the dust
 aerosols. We assume that a small fraction of the dust flux into the ice
-has soluble iron (dustFe\_sol in **ice\_zbgc\_shared.F90**) and so is
+has soluble iron (dustFe\_sol in **icepack\_in**) and so is
 passed to the dissolved iron tracer. The remaining dust passes through
 the ice without reactions.
 
-To use z-aerosols, tr\_zaero must be set to true in **ice\_in**, and the
-number of z-aerosol species is set in **comp\_ice**, TRZAERO. Note, the
-default tracers tr\_aero must be false and NTRAERO in **comp\_ice**
+To use z-aerosols, tr\_zaero must be set to true in **icepack\_in**, and the
+number of z-aerosol species is set in **icepack.settings**, TRZAERO. Note, the
+default tracers tr\_aero must be false and NTRAERO in **icepack.settings**
 should be 0. In addition, z-tracers and the brine height tracer must
-also be active. These are set in **ice\_in** with tr\_brine and
+also be active. These are set in **icepack\_in** with tr\_brine and
 z\_tracer equal to true. In addition, to turn on the radiative coupling
 between the aerosols and the Delta-Eddington radiative scheme, shortwave
-must equal ’dEdd’ and dEdd\_algae must be true in **ice\_in**.
+must equal ’dEdd’ and dEdd\_algae must be true in **icepack\_in**.
 
-**Caution**: For the time being, the flag dEdd\_algae should not be set
-true when solve\_zbgc or skl\_bgc is also true. This feature has not yet
-been implemented.
+.. _brine-ht:
 
-Brine height tracer
-~~~~~~~~~~~~~~~~~~~
+Brine height
+~~~~~~~~~~~~
 
 The brine height, :math:`h_b`, is the distance from the ice-ocean
 interface to the brine surface. When tr\_brine is set true in
-**ice\_in** and TRBRI is set equal to 1 in **comp\_ice**, the brine
+**icepack\_in** and TRBRI is set equal to 1 in **icepack.settings**, the brine
 surface can move relative to the ice surface. Physically, this occurs
 when the ice is permeable and there is a nonzero pressure head: the
 difference between the brine height and the equilibrium sea surface.
-Brine height motion is computed in **ice\_brine.F90** from thermodynamic
-variables ( melts, meltb, meltt etc) and the ice microstructural state
+Brine height motion is computed in **icepack\_brine.F90** from thermodynamic
+variables and the ice microstructural state
 deduced from internal bulk salinities and temperature. This tracer is
 required for the transport of vertically resolved biogeochemical tracers
 and is closely coupled to the z-salinity prognostic salinity model.
@@ -3532,16 +3124,15 @@ motion. Therefore the vertical transport equations for biogeochemical
 tracers will be defined only where brine is present. This region, from
 the ice-ocean interface to the brine height, defines the domain of the
 vertical bio-grid. The resolution of the bio-grid is specified in
-**comp\_ice** by setting the variable NBGCLYR. A detailed description of
+**icepack.settings** by setting the variable NBGCLYR. A detailed description of
 the bio-grid is given in section :ref:`bio-grid`. The ice
-microstructural state, determined in **ice\_brine.F90**, is computed
+microstructural state, determined in **icepack\_brine.F90**, is computed
 from sea ice salinities and temperatures linearly interpolated to the
 bio-grid. When :math:`h_b > h_i`, the upper surface brine is assumed to
 have the same temperature as the ice surface.
 
 Brine height is transported horizontally as the fraction
-:math:`f_{bri} = h_b/h_i`, a volume conserved tracer (Eq. 15 in CICE.v5
-documentation). Note that unlike the sea ice porosity, brine height
+:math:`f_{bri} = h_b/h_i`, a volume conserved tracer. Note that unlike the sea ice porosity, brine height
 fraction may be greater than 1 when :math:`h_b > h_i`.
 
 Changes to :math:`h_b` occur from ice and snow melt, ice bottom boundary
@@ -3556,11 +3147,11 @@ ice and snow thickness, ie.
 
 Second, pressure driven adjustments arising from meltwater flushing and
 snow loading are applied to :math:`h'_b`. Brine flow due to pressure
-forces are governed by Darcy’s equation (see CICE.v5 documentation)
+forces are governed by Darcy’s equation 
 
 .. math::
    w = -\frac{\Pi^* \bar{\rho} g}{\mu}\frac{h_p}{h_i}.
-   :label: Darcy2
+   :label: Darcy1
 
 The vertical component of the net permeability tensor :math:`\Pi^*` is
 computed as
@@ -3568,17 +3159,18 @@ computed as
 .. math::
    \Pi^* = \left(\frac{1}{h}\sum_{i=1}^N{\frac{\Delta
          z_i}{\Pi_i}}\right)^{-1}
-   :label: netPi2
+   :label: netPi1
 
 where the sea ice is composed of :math:`N` vertical layers with
 :math:`i`\ th layer thickness :math:`\Delta z_i` and permeability
 :math:`\Pi_i`. The average sea ice density is :math:`\bar{\rho}`
-specified in **ice\_zbgc\_shared.F90**. The hydraulic head is
+specified in **icepack\_zbgc\_shared.F90**. The hydraulic head is
 :math:`h_p = h_b - h_{sl}` where :math:`h_{sl}` is the sea level given
 by
 
 .. math::
    h_{sl} = \frac{\bar{\rho}}{\rho_w}h_i + \frac{\rho_s}{\rho_w}h_s .
+   :label: hsl
 
 Assuming constant :math:`h_i` and :math:`h_s` during Darcy flow, the
 rate of change of :math:`h_b` is
@@ -3593,7 +3185,7 @@ porosity. When the Darcy flow is downward into the ice
 (:math:`w_o < 0`), then :math:`\phi_{top}` equals the sea ice porosity
 in the uppermost layer. However, when the flow is upwards into the snow,
 then :math:`\phi_{top}` equals the snow porosity phi\_snow specified in
-**ice\_in**. If a negative number is specified for phi\_snow, then the
+**icepack\_in**. If a negative number is specified for phi\_snow, then the
 default value is used: phi\_snow :math:`=1 - \rho_s/\rho_w`.
 
 Since :math:`h_{sl}` remains relatively unchanged during Darcy flow,
@@ -3619,8 +3211,9 @@ ice surface is melting, ie. :math:`(\Delta h_i)_{top} <
     -(\Delta h_i)_{top} &  \mbox{if }
     |(\Delta h_i)_{top}| < h_i-h_b  \\
     h_i-h_b & \mbox{otherwise.}   \end{array} \right.  \end{aligned}
+    :label: delta-hb
 
-For snowmelt (:math:`\Delta h_s < 0`), it is assumed that all snow
+For snow melt (:math:`\Delta h_s < 0`), it is assumed that all snow
 meltwater contributes a source of surface brine. The total change from
 snow melt and ice thickness changes is
 
@@ -3631,14 +3224,30 @@ snow melt and ice thickness changes is
 
 The above brine height calculation is used only when :math:`h_i` and
 :math:`h_b` exceed a minimum thickness, thinS, specified in
-**ice\_zbgc\_shared**. Otherwise
+**icepack\_zbgc\_shared**. Otherwise
 
 .. math::
    h_b(t+\Delta t) = h_b(t) + \Delta h_i
-   :label: thinbrine2
+   :label: thinbrine1
 
 provided that :math:`|h_{sl}-h_b| \leq 0.001`. This formulation ensures
 small Darcy velocities when :math:`h_b` first exceeds thinS.
+
+
+Both the volume fraction :math:`f_{bri}` and the area-weighted brine
+height :math:`h_b` are available for output.
+
+.. math:: 
+   {{\sum f_{bri} v_i} \over {\sum v_i}},
+   :label: volume-frac
+
+while ``hbri`` is comparable to hi (:math:`h_i`)
+
+.. math:: 
+   {{\sum f_{bri} h_i a_i} \over {\sum a_i}},
+   :label: volume-frac2
+
+where the sums are taken over thickness categories.
 
 Sea Ice Biogeochemistry
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -3649,7 +3258,7 @@ and biological molecules are restricted to a single layer at the base of
 the sea ice; and 2) a vertically resolved model (zbgc) that allows for
 biogeochemical processes throughout the ice column. The two models may
 be run with the same suite of biogeochemical tracers and use the same
-module **algal\_dyn** in **ice\_algae.F90** to determine the biochemical
+module **algal\_dyn** in **icepack\_algae.F90** to determine the biochemical
 reaction terms for the tracers at each vertical grid level. In the case
 of the skl-model this is a single layer, while for zbgc there are
 NBGCLYR\ :math:`+1` vertical layers. The primary difference between the
@@ -3658,14 +3267,14 @@ biogeochemical tracer. This includes the parameterizations of fluxes
 between ocean and ice.
 
 In order to run with the skl-model, the code must be built with the
-following options in **comp\_ice**:
+following options in **icepack.settings**:
 
 ::
 
     setenv TRBGCS 1   # set to 1 for skeletal layer tracers
     setenv TRBGCZ 0   # set to 1 for zbgc tracers
 
-For zbgc,
+For zbgc with 8 vertical layers:
 
 ::
 
@@ -3674,7 +3283,7 @@ For zbgc,
     setenv TRBGCZ 1   # set to 1 for zbgc tracers
     setenv NBGCLYR 7  # number of zbgc layers 
 
-There are also environmental variables in **comp\_ice** that, in part,
+There are also environmental variables in **icepack.settings** that, in part,
 specify the complexity of the ecosystem and are used for both zbgc and
 the skl-model. These are 1) TRALG, the number of algal species; 2)
 TRDOC, the number of dissolved organic carbon groups, 3) TRDIC, the
@@ -3689,27 +3298,23 @@ respectively), 2 DOC tracers (polysaccharids and lipids, respectively),
 tracer and 1 dissolved iron tracer. Note, for tracers with multiple
 species/groups, the order is important. For example, specifying
 TRALG = 1 will compute reaction terms using parameters
-specific to ice diatoms.
+specific to ice diatoms.  However, many of these parameters can be modified in **icepack\_in**. 
 
 The complexity of the algal ecosystem must be specified in both
-**comp\_ice** during the build and in the namelist, **ice\_in**. The
+**icepack.settings** during the build and in the namelist, **icepack\_in**. The
 procedure is equivalent for both the skl-model and zbgc. The namelist
 specification is described in detail in section :ref:`zbgc`
 
 Biogeochemical upper ocean concentrations are initialized in the
-subroutine **colpkg\_init\_ocean\_conc** in **ice\_colpkg.F90** unless
+subroutine **icepack\_init\_ocean\_conc** in **icepack\_zbgc.F90** unless
 coupled to the ocean biogeochemistry. Silicate and nitrate may be read
 from a file. This option is specified in the namelist by setting the
-variables sil\_data\_type and nit\_data\_type to ‘ISPOL’ which is a
-rectangular grid option, ‘clim’ which is a monthly climatology on the
-gx1v6 grid and ‘default’ which uses the fixed value specified in
-**get\_forcing\_bgc** in **ice\_forcing\_bgc.F90**. nit\_data\_type also
+variables sil\_data\_type and nit\_data\_type to ‘ISPOL’  or 'NICE'. nit\_data\_type also
 has an option ‘sss’ which equates the upper ocean nitrate concentration
 with sea surface salinity. fe\_data\_type currently only has the
 ‘default’ option. The location of forcing files is specified in
-bgc\_data\_dir and the filename is indicated in **get\_forcing\_bgc**.
+bgc\_data\_dir and the filename is hardcoded in **icepack\_drv\_forcing** (NJ - needs to be updated).
 
-We are currently not supporting biogeochemical forcing data files.
 
 Skeletal Layer BGC
 ******************
@@ -3717,7 +3322,7 @@ Skeletal Layer BGC
 In the skeletal layer model, biogeochemical processing is modelled as a
 single layer of reactive tracers attached to the sea ice bottom.
 Optional settings are available via the *zbgc\_nml* namelist in
-**ice\_in**. In particular, skl\_bgc must be true and z\_tracers and
+**icepack\_in**. In particular, skl\_bgc must be true and z\_tracers and
 solve\_zbgc must both be false.
 
 History fields are controlled in the *icefields\_bgc\_nml* namelist and
@@ -3726,12 +3331,12 @@ history fields, the suffix \_ai indicates that the field is multiplied
 by ice area and is therefore a grid cell average.
 
 Skeletal tracers :math:`T_b` are ice area conserved and follow the
-horizontal transport Eq. 14 (In the CICE.v5 documentation). For each
+horizontal transport Equation :eq:`itd-transport`. For each
 horizontal grid point, local biogeochemical tracer equations are solved
-in **ice\_algae.F90**. There are two types of ice-ocean tracer flux
+in **icepack\_algae.F90**. There are two types of ice-ocean tracer flux
 formulations: 1) ‘Jin2006’ modeled after the growth rate dependent
 piston velocity and 2) ‘constant’ modeled after a constant piston
-velocity. The formulation is specified in **ice\_in** by setting
+velocity. The formulation is specified in **icepack\_in** by setting
 bgc\_flux\_type equal to ‘Jin2006’ or ‘constant’.
 
 In addition to horizontal advection and transport among thickness
@@ -3761,7 +3366,7 @@ during ice growth, :math:`dh/dt > 0`:
    :label: pwJin_growth
 
 with parameters :math:`m_1`, :math:`m_2`, :math:`m_3` and :math:`p_g`
-defined in **skl\_biogeochemistry** in **ice\_algae.F90**. For ice melt,
+defined in **skl\_biogeochemistry** in **icepack\_algae.F90**. For ice melt,
 :math:`dh/dt < 0`, all tracers with the exception of ice algae flux with
 
 .. math::
@@ -3820,7 +3425,7 @@ Vertical "Z" BGC
 ****************
 
 In order to solve for the vertically resolved biogeochemistry, several
-flags in **ice\_in** must be true: a) tr\_brine, b) z\_tracers, and c)
+flags in **icepack\_in** must be true: a) tr\_brine, b) z\_tracers, and c)
 solve\_zbgc.
 
 -  a) tr\_brine true, turns on the dynamic brine height tracer,
@@ -3839,19 +3444,19 @@ solve\_zbgc.
    This is appropriate for the black carbon and dust aerosols specified
    by tr\_zaero true.
 
-In addition, a halodynamics scheme must also be on. The default
+In addition, a halodynamics scheme must also be used. The default
 thermo-halodynamics is mushy layer ktherm set to 2. An alternative uses
 the Bitz and Lipscomb thermodynamics ktherm set to 1 and solve\_zsal
 true (referred to as "zsalinity").
 
 With the above flags true, the default biochemistry is a simple
 algal-nitrate system: tr\_bgc\_N and tr\_bgc\_Nit equal true. Options
-exist in ice\_in to use a more complicated ecosystem which includes up
+exist in icepack\_in to use a more complicated ecosystem which includes up
 to three algal classes, two DOC groups, one DON pool, limitation by
 nitrate, silicate and dissolved iron, sulfur chemistry plus refractory
 humic material.
 
-The **ice\_in** namelist options are described below.
+The **icepack\_in** namelist options are described below.
 
 ::
 
@@ -4088,8 +3693,9 @@ The **ice\_in** namelist options are described below.
 Vertically resolved z-tracers are brine volume conserved and thus depend
 on both the ice volume and the brine height fraction tracer
 (:math:`v_{in}f_b`). These tracers follow the conservation equations for
-multiply dependent tracers (see Eq. 18 in the CICE.v5 documentation
-where :math:`a_{pnd}a_{i}` is replaced with :math:`v_{in}f_b`) The
+multiply dependent tracers (see, for example Equation :eq:`transport-apnd-lvl` where :math:`a_{pnd}` is a tracer on :math:`a_{lvl}a_{i}`)  
+
+The
 following sections describe the vertical biological grid, the vertical
 transport equation for mobile tracers, the partitioning of tracers into
 mobile and stationary fractions and the biochemical reaction equations.
@@ -4104,7 +3710,7 @@ variable :math:`h_b` and descretizing the vertical transport equations
 of biogeochemical tracers. The bio grid is a non-dimensional vertical
 grid which takes the value zero at :math:`h_b` and one at the ice-ocean
 interface. The number of grid levels is specified during compilation in
-**comp\_ice** by setting the variable NBGCLYR equal to an integer
+**icepack.settings** by setting the variable NBGCLYR equal to an integer
 (:math:`n_b`) .
 
 Ice tracers and microstructural properties defined on the bio grid are
@@ -4276,7 +3882,7 @@ Reaction Terms
 
 The biogeochemical reaction terms for each biogeochemical tracer (see
 table :ref:`tab-bio-tracer` for tracer definitions) are defined in
-**ice\_algae.F90** in the subroutine algal\_dyn. The same set of
+**icepack\_algae.F90** in the subroutine algal\_dyn. The same set of
 equations is used for the bottom layer model (when sk\_bgc is true) and
 the multi-layer biogeochemical model (when z\_tracers and solve\_zbgc
 are true).
@@ -4566,7 +4172,7 @@ BGC Tuning Parameters
 `````````````````````
 
 Biogeochemical tuning parameters are specified as namelist options in
-**ice\_in**. Table :ref:`tab-bio-tracers2` provides a list of parameters
+**icepack\_in**. Table :ref:`tab-bio-tracers2` provides a list of parameters
 used in the reaction equations, their representation in the code, a
 short description of each and the default values. Please keep in mind
 that there has only been minimal tuning of the model.
@@ -4627,7 +4233,7 @@ The biogeochemical history fields specified in icefields\_bgc\_nml are
 written when ‘x’ is replaced with a time interval: step (‘1’), daily
 (‘d’), monthly (‘m’), or yearly (‘y’). Several of these flags turn on
 multiple history variables according to the particular ecosystem
-prescribed in **ice\_in**. For example, biogeochemical fluxes from the
+prescribed in **icepack\_in**. For example, biogeochemical fluxes from the
 ice to ocean will be saved monthly in the history output if
 
 ::
