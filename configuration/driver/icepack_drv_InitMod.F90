@@ -92,7 +92,7 @@
       call init_forcing      ! initialize forcing (standalone)     
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
 !?      call init_coupler_flux ! complete forcing initialization
-      !cn call get_forcing(istep1)       ! get forcing from data arrays
+      call get_forcing(istep1)       ! get forcing from data arrays
 
 !      call get_forcing_atmo     ! atmospheric forcing from data
 !      call get_forcing_ocn(dt)  ! ocean forcing from data
@@ -102,7 +102,7 @@
       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
       if (tr_aero .or. tr_zaero)  call faero_default    ! default values
 
-      if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
+!cn      if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 !      if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
       if (.not. restart) &
