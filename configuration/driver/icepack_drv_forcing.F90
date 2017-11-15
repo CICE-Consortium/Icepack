@@ -320,7 +320,7 @@
         call finish_ocn_forcing(sst_temp)
 #endif
       else
-        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
+        !sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
         
 
       endif
@@ -348,7 +348,7 @@
         qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
 #if 0
       if (trim(ocn_data_type) == 'default') return
-        !sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
+        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
         sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
        uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
        vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
