@@ -213,7 +213,14 @@
           recnum, dataloc, maxrec
 
       real (kind=dbl_kind) :: &
-          sec6hr  
+          sec6hr
+  
+      !values for default case
+      i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
+      mlast = i
+      mnext = mlast
+      c1intp = c1
+      c2intp = c0
 
       if (trim(atm_data_type) == 'GOFS') then
          ! calculate data index corresponding to current timestep
@@ -320,7 +327,6 @@
         call finish_ocn_forcing(sst_temp)
 
       else
-        !sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
         
 
       endif
@@ -346,12 +352,6 @@
       fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
 
         qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
-
-      if (trim(ocn_data_type) == 'default') return
-        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
-        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
-       uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
-       vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
 
 ! for debugging
 !if (timestep==8760.or.timestep==8761) then
