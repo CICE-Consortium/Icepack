@@ -53,7 +53,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'CICE-Consortium'
+project = u'CICE-Consortium Icepack'
 copyright = u'2017, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation)'
 author = u'Alice DuVivier'
 
@@ -116,19 +116,19 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'bizstyle'
+html_theme = 'classic'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {"stickysidebar": "true"}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
-#html_title = u'CICE-Consortium v0.0.1'
+#html_title = u'Icepack v0.0.1'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -210,7 +210,7 @@ html_use_index = False
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'CICE-Consoritumdoc'
+htmlhelp_basename = 'Icepackdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -232,7 +232,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'CICE-Consoritum.tex', u'CICE-Consoritum Documentation',
+    (master_doc, 'CICE-Consortium-Icepack.tex', u'CICE-Consortium Icepack Documentation',
      u'Alice DuVivier', 'manual'),
 ]
 
@@ -262,7 +262,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'cice-consortium', u'CICE-Consortium Documentation',
+    (master_doc, 'cice-consortium-icepack', u'CICE-Consortium Icepack Documentation',
      [author], 1)
 ]
 
@@ -276,8 +276,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'CICE-Consoritum', u'CICE-Consoritum Documentation',
-     author, 'CICE-Consoritum', 'One line description of project.',
+    (master_doc, 'CICE-Consortium-Icepack', u'CICE-Consortium Icepack Documentation',
+     author, 'CICE-Consortium Icepack', 'One line description of project.',
      'Miscellaneous'),
 ]
 
