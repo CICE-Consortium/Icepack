@@ -102,7 +102,7 @@
       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
       if (tr_aero .or. tr_zaero)  call faero_default    ! default values
 
-!cn      if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
+      if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 !      if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
       if (.not. restart) &

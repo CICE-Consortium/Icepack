@@ -151,7 +151,7 @@
 
       if (trim(atm_data_type(1:4)) == 'GOFS') call atm_GOFS
       if (trim(atm_data_type(1:4)) == 'clim') call atm_climatological
-#if 0
+
       if (trim(atm_data_type) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type) == 'NICE') call atm_NICE
 
@@ -168,7 +168,7 @@
         call ocn_ISPOL
       endif
 
-#endif
+
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     flw_data,      &
                             frain_data,    fsnow_data,    &
@@ -237,7 +237,7 @@
         
       elseif (trim(atm_data_type) == 'ISPOL' .or. &
           trim(atm_data_type) == 'NICE') then
-#if 0
+
         !we have a years worth of data, some in days, some in 6hr or quarter day
         !it also looks like the data Nicole starts on June 17, not Jan 1 ?????
         !also need to repeat as above
@@ -265,13 +265,13 @@
 
         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-#endif
+
       endif
 
 
 !cn this is called from get_forcing_ocn in cice...
       if(trim(ocn_data_type) == 'ISPOL') then
-#if 0        
+        
         midmonth = 15  ! assume data is given on 15th of every month
         recslot = 1                             ! latter half of month
         if (mday < midmonth) recslot = 2        ! first half of month
@@ -293,9 +293,9 @@
         end do
 
         call finish_ocn_forcing(sst_temp)
-#endif
+
       elseif (trim(ocn_data_type) == 'NICE') then
-#if 0        
+        
 !cn the nice stuff seems to be more complicated than ispol....        
         midmonth = 15  ! assume data is given on 15th of every month
         recslot = 1                             ! latter half of month
@@ -318,7 +318,7 @@
         end do
 
         call finish_ocn_forcing(sst_temp)
-#endif
+
       else
         !sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
         
@@ -346,13 +346,13 @@
       fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
 
         qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
-#if 0
+
       if (trim(ocn_data_type) == 'default') return
         sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
         sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
        uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
        vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
-#endif
+
 ! for debugging
 !if (timestep==8760.or.timestep==8761) then
 if (0==1) then ! off
