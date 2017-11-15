@@ -281,7 +281,7 @@
 
       subroutine icepack_write_tracer_flags(iounit)
 
-        logical, intent(in) :: iounit
+        integer, intent(in) :: iounit
 
         write(iounit,*) "icepack_write_tracer_flags:"
         write(iounit,*) "  tr_iage = ",tr_iage

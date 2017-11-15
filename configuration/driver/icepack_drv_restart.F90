@@ -21,7 +21,8 @@
 
       public :: dumpfile, restartfile, &
                 read_restart_field, write_restart_field, final_restart, &
-                write_restart_field_cn, read_restart_field_cn
+                write_restart_field_cn, read_restart_field_cn, &
+                write_restart_hbrine, read_restart_hbrine
       save
 !cn future stuff for writing the number of tracers in file
 #if 0
@@ -291,8 +292,8 @@
       if (tr_pond_topo) then
         call read_restart_pond_topo()
       endif
-      
-      if (tr_aero) then ! ice aerosol
+      ! ice aerosol
+      if (tr_aero) then
         call read_restart_aero() 
       endif
 
@@ -308,8 +309,8 @@
       !-----------------------------------------------------------------
       ! compute aggregate ice state and open water area
       !-----------------------------------------------------------------
+
 !cn this gets called again upon returning...
-#if 0
       do i = 1, nx
          if (tmask(i)) &
          call icepack_aggregate (ncat,               &
@@ -330,7 +331,6 @@
 
          aice_init(i) = aice(i)
       enddo
-#endif
       end subroutine restartfile
 
 !=======================================================================
@@ -814,6 +814,91 @@
       enddo
 
       end subroutine read_restart_aero
+
+!=======================================================================
+
+      subroutine write_restart_hbrine()
+
+! Dumps all values needed for a hbrine restart
+! author Elizabeth C. Hunke, LANL
+
+      use icepack_drv_arrays_column, only: first_ice, first_ice_real
+      use icepack_drv_state, only: trcrn
+      use icepack_drv_tracers, only: nt_fbri
+      use icepack_drv_constants, only: c1, c0
+      use icepack_drv_domain_size, only: ncat, nx
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, n ! horizontal indices
+
+      logical (kind=log_kind) :: diag
+
+      diag = .true.
+
+        do i = 1, nx  
+           do n = 1, ncat
+              if (first_ice     (i,n)) then
+                  first_ice_real(i,n) = c1
+              else
+                  first_ice_real(i,n) = c0
+              endif
+           enddo ! n
+        enddo    ! i
+
+!      call write_restart_field(nu_dump_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
+!                               'fbrn',ncat,diag)
+!      call write_restart_field(nu_dump_hbrine,0,first_ice_real(:,:),'ruf8', &
+!                               'first_ice',ncat,diag)
+        call read_restart_field_cn(nu_restart,trcrn(:,nt_fbri,:),ncat)
+        call read_restart_field_cn(nu_restart,first_ice_real(:,:),ncat)
+
+      end subroutine write_restart_hbrine
+
+!=======================================================================
+
+      subroutine read_restart_hbrine()
+
+! Reads all values needed for hbrine
+! author Elizabeth C. Hunke, LANL
+
+      use icepack_drv_arrays_column, only: first_ice_real, first_ice
+      use icepack_drv_state, only: trcrn
+      use icepack_drv_tracers, only: nt_fbri
+      use icepack_drv_constants, only: p5
+      use icepack_drv_domain_size, only: ncat, nx
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, n ! horizontal indices
+
+      logical (kind=log_kind) :: &
+         diag
+
+      diag = .true.
+
+      write(nu_diag,*) 'brine restart'
+
+!      call read_restart_field(nu_restart_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
+!                              'fbrn',ncat,diag,field_loc_center,field_type_scalar)
+!      call read_restart_field(nu_restart_hbrine,0,first_ice_real(:,:),'ruf8', &
+!                              'first_ice',ncat,diag,field_loc_center,field_type_scalar)
+      call write_restart_field_cn(nu_restart,trcrn(:,nt_fbri,:),ncat)
+      call write_restart_field_cn(nu_restart,first_ice_real(:,:),ncat)
+      
+         do i = 1, nx
+            do n = 1, ncat
+               if (first_ice_real(i,n) >= p5) then
+                   first_ice     (i,n) = .true.
+               else
+                   first_ice     (i,n) = .false.
+               endif
+            enddo ! ncat
+         enddo    ! i 
+
+      end subroutine read_restart_hbrine
 
 !=======================================================================
 

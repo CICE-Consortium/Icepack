@@ -63,6 +63,7 @@
       use icepack_drv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
       use icepack_drv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icepack_drv_forcing, only: data_dir,        dbug
+      use icepack_drv_forcing, only: restore_ocn, trestore
 
       use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond
       use icepack_drv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
@@ -101,7 +102,7 @@
       namelist /setup_nml/ &
         days_per_year,  use_leap_years, year_init,       istep0,        &
         dt,             npt,            ndtd,                           &
-        ice_ic,         restart,        restart_dir, &!    restart_file,  &
+        ice_ic,         restart,        restart_dir,     restart_file,  &
         dumpfreq,    &
         diagfreq,       diag_file,                      &
         cpl_bgc
@@ -138,7 +139,7 @@
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         atm_data_format, ocn_data_format, bgc_data_format, &
-        data_dir
+        data_dir,        trestore,        restore_ocn
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -230,6 +231,8 @@
       bgc_data_type   = 'default'
       data_dir    = ' '
 !      dbug      = .false.         ! true writes diagnostics for input forcing
+      restore_ocn     = .false.   ! restore sst if true
+      trestore        = 90        ! restoring timescale, days (0 instantaneous)
 
       ! extra tracers
       tr_iage      = .false. ! ice age
@@ -292,6 +295,7 @@
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
         write(ice_stdout,*) 'error reading namelist'
+        stop
       endif
       close(nu_nml)
       
@@ -570,6 +574,12 @@
                                trim(tfrz_option)
 
          write (nu_diag,*) ' '
+
+         write(nu_diag,1010) ' restore_ocn               = ', &
+             restore_ocn
+         !if (restore_ice .or. restore_ocn) &
+         if ( restore_ocn) &
+         write(nu_diag,1005) ' trestore                  = ', trestore
 
          ! tracers
          write(nu_diag,1010) ' tr_iage                   = ', tr_iage

@@ -28,6 +28,8 @@
       use icepack_parameters, only: dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy
       use icepack_parameters, only: dEdd_algae, solve_zsal, solve_zbgc, phi_snow
       use icepack_parameters, only: skl_bgc, z_tracers 
+      use icepack_parameters, only: nit_data_type, sil_data_type, bgc_data_dir, max_dic
+      use icepack_parameters, only: fe_data_type
 
 !=======================================================================
 

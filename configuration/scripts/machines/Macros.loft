@@ -3,6 +3,7 @@
 #==============================================================================
 
 CPP        := /usr/bin/cpp
+#CPP        := fpp
 CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
 CFLAGS     := -c -O2 -fp-model precise   -xHost
 
@@ -26,7 +27,7 @@ else
   FFLAGS     += -O2
 endif
 
-  FC         := gfortran
+ 	FC         := gfortran
 
 MPICC:= 
 

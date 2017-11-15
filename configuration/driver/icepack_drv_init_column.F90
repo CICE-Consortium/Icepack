@@ -318,11 +318,11 @@
       use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: nblyr, nilyr
       use icepack_drv_constants, only: nu_diag
-      use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
-      use icepack_drv_flux, only: doc, don, dic, fed, fep, zaeros, hum
-!      use icepack_drv_forcing_bgc,    only: init_bgc_data, get_forcing_bgc
-!      use icepack_drv_restart_column, only: restart_zsal
-!      use icepack_drv_restart_column, only: read_restart_bgc, restart_bgc
+      use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
+          doc, don, dic, fed, fep, zaeros, hum
+      use icepack_drv_forcing_bgc, only:  get_forcing_bgc !cn init_bgc_data
+!      use icepack_drv_restart_column, only: restart_zsal, &
+!          read_restart_bgc, restart_bgc
       use icepack_drv_state, only: trcrn, aicen, vicen, vsnon
       use icepack_drv_parameters, only: solve_zsal
       use icepack_drv_parameters, only: max_algae, max_don, max_doc, max_dic, max_aero, max_fe
@@ -413,8 +413,9 @@
                     zaeros(i,:), max_dic, max_don, max_fe, max_aero)
             enddo  ! i
 
-!         call init_bgc_data(fed(:,:,1,:),fep(:,:,1,:)) ! input dFe from file
-!         call get_forcing_bgc                          ! defines nit and sil
+!cn right now, init_bgc_data would be a no-op since fe_data_type=default
+            !call init_bgc_data(fed(:,:),fep(:,:)) ! input dFe from file
+            call get_forcing_bgc                          ! defines nit and sil
 
 !      endif     ! .not. restart
 
@@ -904,7 +905,16 @@
 
       ! z salinity  parameters
       grid_oS         = c5            ! for bottom flux         
-      l_skS           = 7.0_dbl_kind  ! characteristic diffusive scale (m)  
+      l_skS           = 7.0_dbl_kind  ! characteristic diffusive scale (m) 
+
+      !-----------------------------------------------------------------
+      ! read from input file name from command line if it exists,
+      ! otherwise the default is icepack_in
+      !-----------------------------------------------------------------
+
+      if ( command_argument_count() == 1 ) then
+        call get_command_argument(1,nml_filename)
+      endif 
 
       !-----------------------------------------------------------------
       ! read from input file

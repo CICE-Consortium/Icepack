@@ -778,7 +778,7 @@
                fsens_ocn (i) = c0
                flat_ocn  (i) = c0
                evap_ocn  (i) = c0
-            endif
+             endif
          enddo                  ! i
 
       !----------------------------------------------------------------- 
@@ -822,8 +822,8 @@
       ! Compute ocean fluxes and update SST
       !-----------------------------------------------------------------
       do i = 1, nx
-         if (tmask(i)) &
-         call icepack_ocn_mixed_layer (alvdr_ocn(i), swvdr     (i), &
+        if (tmask(i)) &
+        call icepack_ocn_mixed_layer (alvdr_ocn(i), swvdr     (i), &
                                       alidr_ocn(i), swidr     (i), &
                                       alvdf_ocn(i), swvdf     (i), &
                                       alidf_ocn(i), swidf     (i), &

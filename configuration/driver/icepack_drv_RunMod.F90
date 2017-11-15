@@ -27,9 +27,10 @@
 
       use icepack_drv_calendar, only: istep, istep1, time, dt, stop_now, calendar
       use icepack_drv_forcing, only: get_forcing
-!      use icepack_drv_forcing_bgc, only: get_forcing_bgc, get_atm_bgc, fzaero_data
-!      use icepack_drv_forcing_bgc, only: faero_default
+      use icepack_drv_forcing_bgc, only: faero_default, get_forcing_bgc
+!      use icepack_drv_forcing_bgc, only: , get_atm_bgc, fzaero_data, & 
       use icepack_drv_flux, only: init_flux_atm_ocn
+      use icepack_drv_tracers, only: tr_aero, tr_zaero
       use icepack_drv_parameters, only: skl_bgc, z_tracers
 
    !--------------------------------------------------------------------
@@ -53,9 +54,9 @@
 !         call get_forcing_ocn(dt)  ! ocean forcing from data
 
          ! aerosols
-!         if (tr_aero .or. tr_zaero)  call faero_default    ! default values
+          if (tr_aero .or. tr_zaero)  call faero_default    ! default values
 
-!         if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
+         if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 !         if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
          call init_flux_atm_ocn ! initialize atmosphere, ocean fluxes
@@ -77,18 +78,17 @@
       use icepack_drv_diagnostics, only: runtime_diags, init_mass_diags, debug_icepack
       use icepack_drv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
       use icepack_drv_domain_size, only: nslyr
-      use icepack_drv_flux, only: scale_factor, init_history_therm, init_history_bgc
-      use icepack_drv_flux, only: daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
-      use icepack_drv_restart, only: dumpfile, final_restart
-!      use icepack_drv_restart_column, only: write_restart_age, write_restart_FY
-!      use icepack_drv_restart_column, only: write_restart_lvl, write_restart_pond_cesm, write_restart_pond_lvl
-!      use icepack_drv_restart_column, only: write_restart_pond_topo, write_restart_aero
-!      use icepack_drv_restart_column, only: write_restart_bgc, write_restart_hbrine
+      use icepack_drv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
+          daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
+      use icepack_drv_restart, only: dumpfile, final_restart, write_restart_hbrine
+!      use icepack_drv_restart_column, only: &
+!          write_restart_bgc
       use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers,  only: tr_brine
-      use icepack_drv_step, only: prep_radiation, step_therm1, step_therm2
-      use icepack_drv_step, only: update_state, step_dyn_ridge, step_radiation
-      use icepack_drv_step, only: biogeochemistry
+      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, &
+          tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_brine, tr_aero
+      use icepack_drv_step, only: prep_radiation, step_therm1, step_therm2, &
+          update_state, step_dyn_ridge, step_radiation, &
+          biogeochemistry
       use icepack_drv_parameters, only: calc_Tsfc, skl_bgc, solve_zsal, z_tracers
 
       integer (kind=int_kind) :: &
@@ -177,7 +177,7 @@
         call dumpfile     ! core variables for restarting
         !            if (solve_zsal .or. skl_bgc .or. z_tracers) &
         !                              call write_restart_bgc 
-        !            if (tr_brine)     call write_restart_hbrine
+        if (tr_brine)     call write_restart_hbrine
         !            if (kdyn == 2)    call write_restart_eap
         call final_restart
       endif
@@ -192,22 +192,22 @@
 
       subroutine coupling_prep
 
-      use icepack_drv_arrays_column, only: alvdfn, alidfn, alvdrn, alidrn
-      use icepack_drv_arrays_column, only: albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
+      use icepack_drv_arrays_column, only: alvdfn, alidfn, alvdrn, alidrn, &
+          albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
       use icepack_drv_calendar, only: dt
       use icepack_drv_parameters, only: calc_Tsfc, oceanmixed_ice, max_aero
       use icepack_drv_tracers, only: nbtrcr
       use icepack_drv_constants, only: c0, c1, puny, rhofresh
       use icepack_drv_domain_size, only: ncat, nx
-      use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno
-      use icepack_drv_flux, only: albpnd, apeff_ai, coszen, fpond, fresh, l_mpond_fresh
-      use icepack_drv_flux, only: alvdf_ai, alidf_ai, alvdr_ai, alidr_ai, fhocn_ai
-      use icepack_drv_flux, only: fresh_ai, fsalt_ai, fsalt
-      use icepack_drv_flux, only: fswthru_ai, fhocn, fswthru, scale_factor, snowfrac
-      use icepack_drv_flux, only: swvdr, swidr, swvdf, swidf, Tf, Tair, Qa, strairxT, strairyt
-      use icepack_drv_flux, only: fsens, flat, fswabs, flwout, evap, Tref, Qref
-      use icepack_drv_flux, only: fsurfn_f, flatn_f, frzmlt_init, frzmlt
-      use icepack_drv_flux, only: faero_ocn, fzsal_ai, fzsal_g_ai, flux_bio, flux_bio_ai
+      use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &
+          albpnd, apeff_ai, coszen, fpond, fresh, l_mpond_fresh, &
+          alvdf_ai, alidf_ai, alvdr_ai, alidr_ai, fhocn_ai, &
+          fresh_ai, fsalt_ai, fsalt, &
+          fswthru_ai, fhocn, fswthru, scale_factor, snowfrac, &
+          swvdr, swidr, swvdf, swidf, Tf, Tair, Qa, strairxT, strairyt, &
+          fsens, flat, fswabs, flwout, evap, Tref, Qref, &
+          fsurfn_f, flatn_f, frzmlt_init, frzmlt, &
+          faero_ocn, fzsal_ai, fzsal_g_ai, flux_bio, flux_bio_ai
       use icepack_drv_state, only: aicen, aice, aice_init
       use icepack_drv_step, only: ocean_mixed_layer
 
