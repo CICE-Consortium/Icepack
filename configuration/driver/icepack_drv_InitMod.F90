@@ -92,7 +92,7 @@
       call init_forcing      ! initialize forcing (standalone)     
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
 !?      call init_coupler_flux ! complete forcing initialization
-      call get_forcing(istep1)       ! get forcing from data arrays
+      !cn call get_forcing(istep1)       ! get forcing from data arrays
 
 !      call get_forcing_atmo     ! atmospheric forcing from data
 !      call get_forcing_ocn(dt)  ! ocean forcing from data

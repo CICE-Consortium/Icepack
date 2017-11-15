@@ -578,7 +578,8 @@
          write(nu_diag,1010) ' restore_ocn               = ', &
              restore_ocn
          !if (restore_ice .or. restore_ocn) &
-         write(nu_diag,1010) ' trestore                  = ', trestore
+         if ( restore_ocn) &
+         write(nu_diag,1005) ' trestore                  = ', trestore
 
          ! tracers
          write(nu_diag,1010) ' tr_iage                   = ', tr_iage

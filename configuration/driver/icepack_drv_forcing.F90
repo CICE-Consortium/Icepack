@@ -148,9 +148,9 @@
           vocn_data(:) = vocn (i)
 
           cldf_data(:) = c0     ! cloud fraction
-
+#if 0
       if (trim(atm_data_type(1:4)) == 'GOFS') call atm_GOFS
-      if (trim(atm_data_type(1:4)) == 'clim') call atm_climatological
+      !cn if (trim(atm_data_type(1:4)) == 'clim') call atm_climatological
       if (trim(atm_data_type) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type) == 'NICE') call atm_NICE
 
@@ -177,7 +177,7 @@
                             swvdr_data,    swvdf_data,    &
                             swidr_data,    swidf_data,    &
                             potT_data)
-
+#endif
       end subroutine init_forcing
 
 !=======================================================================
