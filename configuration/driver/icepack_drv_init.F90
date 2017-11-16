@@ -6,7 +6,7 @@
 
       module icepack_drv_init
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       use icepack_drv_domain_size, only: nx
 
       implicit none
@@ -42,39 +42,38 @@
 
       subroutine input_data
 
-      use icepack_intfc_shared, only: ustar_min, albicev, albicei, albsnowv, albsnowi, &
-                            ahmax, shortwave, albedo_type, R_ice, R_pnd, &
-                            R_snw, dT_mlt, rsnw_mlt, &
-                            kstrength, krdg_partic, krdg_redist, mu_rdg, &
-                            atmbndy, calc_strair, formdrag, highfreq, natmiter, &
-                            kitd, kcatbound, hs0, dpscale, frzpnd, &
-                            rfracmin, rfracmax, pndaspect, hs1, hp1, &
-                            ktherm, calc_Tsfc, conduct, oceanmixed_ice
+      use icepack_drv_parameters, only: ustar_min, albicev, albicei, albsnowv, albsnowi
+      use icepack_drv_parameters, only: ahmax, shortwave, albedo_type, R_ice, R_pnd
+      use icepack_drv_parameters, only: R_snw, dT_mlt, rsnw_mlt
+      use icepack_drv_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
+      use icepack_drv_parameters, only: atmbndy, calc_strair, formdrag, highfreq, natmiter
+      use icepack_drv_parameters, only: kitd, kcatbound, hs0, dpscale, frzpnd
+      use icepack_drv_parameters, only: rfracmin, rfracmax, pndaspect, hs1, hp1
+      use icepack_drv_parameters, only: ktherm, calc_Tsfc, conduct, oceanmixed_ice
       use icepack_drv_constants, only: c0, c1, puny, ice_stdout, nu_diag, nu_diag_out, nu_nml
-      use icepack_drv_diagnostics, only: diag_file
+      use icepack_drv_diagnostics, only: diag_file, nx_names
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
-      use icepack_drv_calendar, only: year_init, istep0, &
-                              dumpfreq, diagfreq, &
-                              npt, dt, ndtd, days_per_year, use_leap_years
-      use icepack_drv_restart_shared, only: &
-          restart, restart_dir, restart_file
-      use icepack_drv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc, &
-          default_season
-      use icepack_drv_forcing, only: &
-          precip_units,    fyear_init,      ycycle,          &
-          atm_data_type,   ocn_data_type,   bgc_data_type,   &
-          atm_data_format, ocn_data_format, bgc_data_format, &
-          data_dir,        dbug
+      use icepack_drv_calendar, only: year_init, istep0
+      use icepack_drv_calendar, only: dumpfreq, diagfreq
+      use icepack_drv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
+      use icepack_drv_restart_shared, only: restart, restart_dir, restart_file
+      use icepack_drv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
+      use icepack_drv_flux, only: default_season
+      use icepack_drv_forcing, only: precip_units,    fyear_init,      ycycle
+      use icepack_drv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
+      use icepack_drv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
+      use icepack_drv_forcing, only: data_dir,        dbug
+      use icepack_drv_forcing, only: restore_ocn, trestore
 
-      use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond, &
-                             tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
-                             tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
-                             nt_iage, nt_FY, nt_alvl, nt_vlvl, &
-                             nt_apnd, nt_hpnd, nt_ipnd, nt_aero, ntrcr
-      use icepack_intfc_shared, only: a_rapid_mode, Rac_rapid_mode, &
-                                   aspect_rapid_mode, dSdt_slow_mode, &
-                                   phi_c_slow_mode, phi_i_mushy, &
-                                   Cf, tfrz_option, kalg, fbot_xfer_type
+      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond
+      use icepack_drv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_drv_tracers, only: tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice
+      use icepack_drv_tracers, only: nt_iage, nt_FY, nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd
+      use icepack_drv_tracers, only: nt_aero, ntrcr
+      use icepack_drv_parameters, only: a_rapid_mode, Rac_rapid_mode
+      use icepack_drv_parameters, only: aspect_rapid_mode, dSdt_slow_mode
+      use icepack_drv_parameters, only: phi_c_slow_mode, phi_i_mushy
+      use icepack_drv_parameters, only: Cf, tfrz_option, kalg, fbot_xfer_type
 
       ! local variables
 
@@ -103,7 +102,7 @@
       namelist /setup_nml/ &
         days_per_year,  use_leap_years, year_init,       istep0,        &
         dt,             npt,            ndtd,                           &
-        ice_ic,         restart,        restart_dir, &!    restart_file,  &
+        ice_ic,         restart,        restart_dir,     restart_file,  &
         dumpfreq,    &
         diagfreq,       diag_file,                      &
         cpl_bgc
@@ -140,7 +139,7 @@
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         atm_data_format, ocn_data_format, bgc_data_format, &
-        data_dir
+        data_dir,        trestore,        restore_ocn
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -232,6 +231,8 @@
       bgc_data_type   = 'default'
       data_dir    = ' '
 !      dbug      = .false.         ! true writes diagnostics for input forcing
+      restore_ocn     = .false.   ! restore sst if true
+      trestore        = 90        ! restoring timescale, days (0 instantaneous)
 
       ! extra tracers
       tr_iage      = .false. ! ice age
@@ -294,6 +295,7 @@
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
         write(ice_stdout,*) 'error reading namelist'
+        stop
       endif
       close(nu_nml)
       
@@ -305,11 +307,19 @@
       write(ice_stdout,*)'    ','icepack.runlog.timestamp'
 ! tcraig, see below, no longer opened, using icepack.runlog.timestamp for "6"
 !      write(ice_stdout,*)'    ',trim(diag_file)
-      
+
+      do n = 1,nx
+        write(nx_names(n),'(a,i2.2)') 'point_',n
+      enddo      
+      nx_names(1) = 'icefree'
+      nx_names(2) = 'slab'
+      nx_names(3) = 'full_ITD'
+      nx_names(4) = 'land'
+
       diag_len = len(trim(diag_file))
       do n = 1,nx
-        diag_file_names=''
-        write(diag_file_names,'(a,a,i0)') trim(diag_file),'.',n
+        diag_file_names=' '
+        write(diag_file_names,'(a,a,a)') trim(diag_file),'.',trim(nx_names(n))
         write(ice_stdout,*)'    ',trim(diag_file_names)
         open(nu_diag_out+n-1, file=diag_file_names, status='unknown')
       end do
@@ -436,7 +446,7 @@
       endif
 
       if (tr_pond_cesm) then
-            write (nu_diag,*) 'ERROR: formdrag=T but frzpnd=''cesm''' 
+            write (nu_diag,*) 'ERROR: formdrag=T but frzpnd=cesm' 
          stop
       endif
 
@@ -565,6 +575,12 @@
 
          write (nu_diag,*) ' '
 
+         write(nu_diag,1010) ' restore_ocn               = ', &
+             restore_ocn
+         !if (restore_ice .or. restore_ocn) &
+         if ( restore_ocn) &
+         write(nu_diag,1005) ' trestore                  = ', trestore
+
          ! tracers
          write(nu_diag,1010) ' tr_iage                   = ', tr_iage
          write(nu_diag,1010) ' tr_FY                     = ', tr_FY
@@ -690,7 +706,7 @@
       subroutine init_grid2
 
       use icepack_drv_constants, only: c0, puny
-      use icepack_constants, only: pi, p5, c1
+      use icepack_drv_constants, only: pi, p5, c1
 
       integer :: i
 
@@ -732,17 +748,18 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-      use icepack_intfc_shared, only: heat_capacity
+      use icepack_drv_parameters, only: heat_capacity
       use icepack_drv_constants, only: c0, c1, nu_diag
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero
       use icepack_drv_flux, only: sst, Tf, Tair, salinz, Tmltz
-      use icepack_drv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon, &
-          aice0, aice, vice, vsno, trcr, aice_init, &
-          n_trcr_strata, nt_strata, trcr_base
-      use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, &
-          tr_pond_cesm, nt_apnd, tr_pond_lvl, nt_alvl, tr_pond_topo, &
-          nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY, nt_vlvl, &
-          nt_hpnd, nt_ipnd, tr_aero, nt_aero, ntrcr
+      use icepack_drv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
+      use icepack_drv_state, only: aice0, aice, vice, vsno, trcr, aice_init
+      use icepack_drv_state, only: n_trcr_strata, nt_strata, trcr_base
+      use icepack_drv_tracers, only: ntrcr
+      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero
+      use icepack_drv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_drv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
+      use icepack_drv_tracers, only: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
 
       integer (kind=int_kind) :: &
          i           , & ! horizontal indes
@@ -930,11 +947,12 @@
 
       use icepack_drv_arrays_column, only: hin_max
       use icepack_intfc, only: icepack_init_trcr
-      use icepack_drv_constants, only: c0, c1, c2, c3, p2, p5, rhoi, rhos, Lfresh, &
-           cp_ice, cp_ocn, Tsmelt, Tffresh, rad_to_deg, puny
+      use icepack_drv_constants, only: c0, c1, c2, c3, p2, p5, rhoi, rhos, Lfresh
+      use icepack_drv_constants, only: cp_ice, cp_ocn, Tsmelt, Tffresh, puny
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat
-      use icepack_intfc_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
-           nt_fbri, tr_brine, tr_lvl, nt_alvl, nt_vlvl
+      use icepack_drv_tracers, only: tr_brine, tr_lvl
+      use icepack_drv_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice
+      use icepack_drv_tracers, only: nt_fbri, nt_alvl, nt_vlvl
 !      use icepack_drv_forcing, only: atm_data_type
 
       integer (kind=int_kind), intent(in) :: &
@@ -993,9 +1011,7 @@
          qsn             ! snow enthalpy (J/m3)
 
       real (kind=dbl_kind), parameter :: &
-         hsno_init = 0.20_dbl_kind   , & ! initial snow thickness (m)
-         edge_init_nh =  70._dbl_kind, & ! initial ice edge, N.Hem. (deg) 
-         edge_init_sh = -60._dbl_kind    ! initial ice edge, S.Hem. (deg)
+         hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
 
       ! Initialize state variables.
       ! If restarting, these values are overwritten.

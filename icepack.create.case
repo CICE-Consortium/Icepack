@@ -55,8 +55,8 @@ EOF1
         echo "             $sopt"
       end
 cat << EOF1
-        -p tasks x threads, mxn (default is 4x1)
-        -g grid, grid (default = gx3)
+        -p tasks x threads, mxn (default is 1x1)
+        -g grid, grid (default = col)
         -s build and namelist mod files, comma separated with no spaces (default = " ")
            Available -s options are in configuration/scripts/options and include:
 EOF1
@@ -90,9 +90,9 @@ cat << EOF1
       EXAMPLES:
       icepack.create.case -h
       icepack.create.case -c ~/caseA -m yellowstone 
-      icepack.create.case -p 32x4 -g gx1 -m gordon -c caseB
+      icepack.create.case -p 1x4 -m gordon -c caseB
       icepack.create.case -c ~/caseC -m spirit -s diag1,writeicf
-      icepack.create.case -t restart -p 8x1 -g gx1 -m cheyenne -s diag1,debug -testid myid
+      icepack.create.case -t restart -m cheyenne -s diag1,debug -testid myid
 
       For more testing examples, please view README.test
 
@@ -219,6 +219,12 @@ if ( $testsuite != $spval ) then
   mkdir ./${tsdir}
   cp -f ${ICE_SCRIPTS}/tests/timeseries.csh ./${tsdir}
 
+  if ("$testid" =~ reg*) then
+    cp -f ${ICE_SCRIPTS}/tests/CTest/CTestConfig.cmake ./${tsdir}
+    cp -f ${ICE_SCRIPTS}/tests/CTest/CTestTestfile.cmake ./${tsdir}
+    cp -f ${ICE_SCRIPTS}/tests/CTest/steer.cmake ./${tsdir}
+  endif
+
 cat >! ./${tsdir}/suite.run << EOF0
 #!/bin/csh -f
 EOF0
@@ -273,7 +279,15 @@ endif
 
 if ($case =~ $spval) then
   if ($sets != "") then
-    set soptions = `echo $sets | sed 's/,/_/g'`
+    set sarray = `echo $sets | sed 's/,/ /g' | fmt -1 | sort -n`
+    set soptions = "JustStartingNowOK"
+    foreach field ($sarray)
+      if (${soptions} =~ "JustStartingNowOK") then
+        set soptions = ${field}
+      else
+        set soptions = ${soptions}"_"${field}
+      endif
+    end
     # Only include $testid in testname if this is not a baseline-generating run
     set testname_noid = "${mach}_${test}_${grid}_${pesx}_${soptions}"
     set testname_base = "${mach}_${test}_${grid}_${pesx}_${soptions}.${testid}"
@@ -294,7 +308,7 @@ if (-d $case) then
   exit -1
 endif
 mkdir -p $case
-echo "`date`${0} $initargv[*]" > $case/README.case
+echo "`date`${0} $initargv[*]" >> $case/README.case
 
 #------------------------------------------------------------
 # Setup case directory, copy files to case directory
@@ -385,7 +399,7 @@ if (-e ${fsmods}) rm ${fsmods}
 
 cat >! ${fimods} << EOF1
 nprocs = ${task}
-atm_data_dir = '${ICE_MACHINE_INPUTDATA}/'
+data_dir = '${ICE_MACHINE_INPUTDATA}/'
 EOF1
 
 # If this is a baseline-compare test, modify ICE_RUNDIR
@@ -444,13 +458,13 @@ foreach name ($testx $grid $setsx)
   if (-e ${ICE_SCRIPTS}/options/set_nml.${name}) then
     cat ${ICE_SCRIPTS}/options/set_nml.${name} >> ${fimods}
     echo "adding namelist mods set_nml.${name}"
-    echo "`date`${0} adding namelist modes set_nml.${name}" > ${casedir}/README.case
+    echo "`date`${0} adding namelist modes set_nml.${name}" >> ${casedir}/README.case
     set found = 1
   endif
   if (-e ${ICE_SCRIPTS}/options/set_env.${name}) then
     cat ${ICE_SCRIPTS}/options/set_env.${name} >> ${fsmods}
     echo "adding env mods set_env.${name}"
-    echo "`date`${0} adding namelist modes set_env.${name}" > ${casedir}/README.case
+    echo "`date`${0} adding namelist modes set_env.${name}" >> ${casedir}/README.case
     set found = 1
   endif
   if (${found} == 0) then
@@ -508,6 +522,12 @@ cd $testname_base
 cd ..
 EOF
     
+
+    # If results are to be posted to CDash, build CtestTestfile.cmake
+    if ("$testid" =~ reg*) then
+      ${ICE_SCRIPTS}/tests/CTest/gen_ctestfile.csh ./${tsdir} $testname_noid $bfbcomp $spval
+    endif
+
     # Reset case for the next test in suite
     set case = $spval
 

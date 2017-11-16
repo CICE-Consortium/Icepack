@@ -20,18 +20,24 @@
 !
       module icepack_therm_itd
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, c3, c4, c6, c10, &
-          p001, p1, p333, p5, p666, puny, bignum, &
-          rhos, rhoi, Lfresh, ice_ref_salinity
+      use icepack_kinds
+      use icepack_constants,  only: c0, c1, c2, c3, c4, c6, c10
+      use icepack_constants,  only: p001, p1, p333, p5, p666, puny, bignum
+      use icepack_constants,  only: rhos, rhoi, Lfresh, ice_ref_salinity
+      use icepack_parameters, only: kitd, ktherm, phi_init, dsin0_frazil
+      use icepack_parameters, only: heat_capacity
+      use icepack_tracers,  only: ntrcr, nbtrcr, tr_aero, tr_pond_topo
+      use icepack_itd, only: aggregate_area, reduce_area, cleanup_itd
       use icepack_warnings, only: add_warning
-      
-      
+     
       implicit none
       save
       
       private
-      public :: linear_itd, add_new_ice, lateral_melt
+      public :: linear_itd, &
+                add_new_ice, &
+                lateral_melt, &
+                icepack_step_therm2
 
       logical (kind=log_kind), parameter :: &
          l_conservation_check = .false.   ! if true, check conservation
@@ -78,10 +84,10 @@
                              fpond,       l_stop,      &
                              stop_label)
 
-      use icepack_itd, only: aggregate_area, shift_ice, & 
-                         column_sum, column_conservation_check
-      use icepack_intfc_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice, &
-                             tr_pond_topo, nt_apnd, nt_hpnd, tr_brine
+      use icepack_itd, only: aggregate_area, shift_ice
+      use icepack_itd, only: column_sum, column_conservation_check
+      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
+      use icepack_tracers, only: tr_pond_topo, nt_apnd, nt_hpnd, tr_brine
       use icepack_therm_shared, only: hi_min
 
       integer (kind=int_kind), intent(in) :: &
@@ -837,9 +843,9 @@
                                fzsal,      flux_bio,   &
                                nbtrcr,     nblyr)
 
-      use icepack_intfc_tracers, only: nt_qice, nt_qsno, nt_aero, tr_aero, &
-                             tr_pond_topo, nt_apnd, nt_hpnd, bio_index
-      use icepack_intfc_shared, only: z_tracers , hs_ssl, solve_zsal
+      use icepack_tracers, only: nt_qice, nt_qsno, nt_aero, tr_aero
+      use icepack_tracers, only: tr_pond_topo, nt_apnd, nt_hpnd, bio_index
+      use icepack_parameters, only: z_tracers , hs_ssl, solve_zsal
       use icepack_zbgc, only: lateral_melt_bgc               
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1024,17 +1030,16 @@
                               frazil_diag,           &
                               l_stop,    stop_label)
 
-      use icepack_itd, only: column_sum, &
-                         column_conservation_check 
-      use icepack_intfc_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_sice, nt_qice, &
-                             nt_alvl, nt_vlvl, nt_aero, nt_apnd, &
-                             tr_pond_cesm, tr_pond_lvl, tr_pond_topo, &
-                             tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine
-      use icepack_intfc_shared, only: solve_zsal, skl_bgc, initbio_frac, salt_loss, rhosi
+      use icepack_itd, only: column_sum
+      use icepack_itd, only: column_conservation_check 
+      use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_sice, nt_qice
+      use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, nt_apnd
+      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine
+      use icepack_parameters, only: solve_zsal, skl_bgc, initbio_frac, salt_loss, rhosi
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
-      use icepack_therm_shared, only: hfrazilmin
+      use icepack_therm_shared,  only: hfrazilmin
       use icepack_zbgc, only: add_new_ice_bgc
-      use icepack_zbgc_shared, only: bgc_tracer_type
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1501,6 +1506,259 @@
                              l_conservation_check)
 
       end subroutine add_new_ice
+
+!=======================================================================
+! Driver for thermodynamic changes not needed for coupling:
+! transport in thickness space, lateral growth and melting.
+!
+! authors: William H. Lipscomb, LANL
+!          Elizabeth C. Hunke, LANL
+
+      subroutine icepack_step_therm2 (dt, ncat, n_aero, nltrcr,           &
+                                     nilyr,        nslyr,         &
+                                     hin_max,      nblyr,         &
+                                     aicen,                       &
+                                     vicen,        vsnon,         &
+                                     aicen_init,   vicen_init,    &
+                                     trcrn,                       &
+                                     aice0,        aice,          &
+                                     trcr_depend,                 &
+                                     trcr_base,    n_trcr_strata, &
+                                     nt_strata,                   &
+                                     Tf,           sss,           &
+                                     salinz,                      &
+                                     rside,        meltl,         &
+                                     frzmlt,       frazil,        &
+                                     frain,        fpond,         &
+                                     fresh,        fsalt,         &
+                                     fhocn,        update_ocn_f,  &
+                                     bgrid,        cgrid,         &
+                                     igrid,        faero_ocn,     &
+                                     first_ice,    fzsal,         &
+                                     flux_bio,     ocean_bio,     &
+                                     l_stop,       stop_label,    &
+                                     frazil_diag,                 &
+                                     frz_onset,    yday)
+
+      integer (kind=int_kind), intent(in) :: &
+         ncat     , & ! number of thickness categories
+         nltrcr   , & ! number of zbgc tracers
+         nblyr    , & ! number of bio layers
+         nilyr    , & ! number of ice layers
+         nslyr    , & ! number of snow layers
+         n_aero       ! number of aerosol tracers
+
+      logical (kind=log_kind), intent(in) :: &
+         update_ocn_f     ! if true, update fresh water and salt fluxes
+
+      real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
+         hin_max      ! category boundaries (m)
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt       , & ! time step
+         Tf       , & ! freezing temperature (C)
+         sss      , & ! sea surface salinity (ppt)
+         rside    , & ! fraction of ice that melts laterally
+         frzmlt       ! freezing/melting potential (W/m^2)
+
+      integer (kind=int_kind), dimension (:), intent(in) :: &
+         trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
+         n_trcr_strata  ! number of underlying tracer layers
+
+      real (kind=dbl_kind), dimension (:,:), intent(in) :: &
+         trcr_base      ! = 0 or 1 depending on tracer dependency
+                        ! argument 2:  (1) aice, (2) vice, (3) vsno
+
+      integer (kind=int_kind), dimension (:,:), intent(in) :: &
+         nt_strata      ! indices of underlying tracer layers
+
+      real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
+         bgrid              ! biology nondimensional vertical grid points
+
+      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
+         igrid              ! biology vertical interface points
+ 
+      real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
+         cgrid              ! CICE vertical coordinate   
+
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         salinz   , & ! initial salinity profile
+         ocean_bio    ! ocean concentration of biological tracer
+
+      real (kind=dbl_kind), intent(inout) :: &
+         aice     , & ! sea ice concentration
+         aice0    , & ! concentration of open water
+         frain    , & ! rainfall rate (kg/m^2 s)
+         fpond    , & ! fresh water flux to ponds (kg/m^2/s)
+         fresh    , & ! fresh water flux to ocean (kg/m^2/s)
+         fsalt    , & ! salt flux to ocean (kg/m^2/s)
+         fhocn    , & ! net heat flux to ocean (W/m^2)
+         fzsal    , & ! salt flux to ocean from zsalinity (kg/m^2/s)
+         meltl    , & ! lateral ice melt         (m/step-->cm/day)
+         frazil   , & ! frazil ice growth        (m/step-->cm/day)
+         frazil_diag  ! frazil ice growth diagnostic (m/step-->cm/day)
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         aicen_init,& ! initial concentration of ice
+         vicen_init,& ! initial volume per unit area of ice          (m)
+         aicen    , & ! concentration of ice
+         vicen    , & ! volume per unit area of ice          (m)
+         vsnon    , & ! volume per unit area of snow         (m)
+         faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
+         flux_bio     ! all bio fluxes to ocean
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+         trcrn        ! tracers
+ 
+      logical (kind=log_kind), dimension(:), intent(inout) :: &
+         first_ice      ! true until ice forms
+
+      logical (kind=log_kind), intent(out) :: &
+         l_stop         ! if true, abort model
+
+      character (len=*), intent(out) :: stop_label
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+         frz_onset    ! day of year that freezing begins (congel or frazil)
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         yday         ! day of year
+
+      l_stop = .false.
+
+      !-----------------------------------------------------------------
+      ! Let rain drain through to the ocean.
+      !-----------------------------------------------------------------
+
+      fresh  = fresh + frain * aice
+
+      !-----------------------------------------------------------------
+      ! Given thermodynamic growth rates, transport ice between
+      ! thickness categories.
+      !-----------------------------------------------------------------
+
+!      call ice_timer_start(timer_catconv)    ! category conversions
+
+      !-----------------------------------------------------------------
+      ! Compute fractional ice area in each grid cell.
+      !-----------------------------------------------------------------
+
+      call aggregate_area (ncat, aicen, aice, aice0)
+
+      if (kitd == 1) then
+
+      !-----------------------------------------------------------------
+      ! Identify grid cells with ice.
+      !-----------------------------------------------------------------
+
+         if (aice > puny) then
+
+            call linear_itd (ncat,     hin_max,        &
+                             nilyr,    nslyr,          &
+                             ntrcr,    trcr_depend,    &
+                             trcr_base,        & 
+                             n_trcr_strata,   &
+                             nt_strata,                &
+                             aicen_init,            &
+                             vicen_init,            &
+                             aicen,                 &
+                             trcrn,           & 
+                             vicen,                 &
+                             vsnon,                 &
+                             aice      ,         &
+                             aice0     ,         &
+                             fpond,       l_stop,      &
+                             stop_label)
+
+            if (l_stop) return
+
+         endif ! aice > puny
+
+      endif  ! kitd = 1
+
+!      call ice_timer_stop(timer_catconv)    ! category conversions
+
+      !-----------------------------------------------------------------
+      ! Add frazil ice growing in leads.
+      !-----------------------------------------------------------------
+
+      ! identify ice-ocean cells
+
+         call add_new_ice (ncat,          nilyr,        &
+                           nblyr,                       &
+                           n_aero,        dt,           &
+                           ntrcr,         nltrcr,       &
+                           hin_max,       ktherm,       &
+                           aicen,         trcrn,        &
+                           vicen,         vsnon(1),     &
+                           aice0,         aice,         &
+                           frzmlt,        frazil,       &
+                           frz_onset,     yday,         &
+                           update_ocn_f,                &
+                           fresh,         fsalt,        &
+                           Tf,            sss,          &
+                           salinz,        phi_init,     &
+                           dSin0_frazil,  bgrid,        &
+                           cgrid,         igrid,        &
+                           nbtrcr,        flux_bio,     &
+                           ocean_bio,     fzsal,        &
+                           frazil_diag,                 &
+                           l_stop,        stop_label)
+
+         if (l_stop) return
+
+      !-----------------------------------------------------------------
+      ! Melt ice laterally.
+      !-----------------------------------------------------------------
+
+      call lateral_melt (dt,        ncat,          &
+                         nilyr,     nslyr,         &
+                         n_aero,    fpond,         &
+                         fresh,     fsalt,         &
+                         fhocn,     faero_ocn,     &
+                         rside,     meltl,         &
+                         aicen,     vicen,         &
+                         vsnon,     trcrn,         &
+                         fzsal,     flux_bio,      &
+                         nbtrcr,    nblyr)
+
+      !-----------------------------------------------------------------
+      ! For the special case of a single category, adjust the area and
+      ! volume (assuming that half the volume change decreases the
+      ! thickness, and the other half decreases the area).  
+      !-----------------------------------------------------------------
+
+!echmod: test this
+      if (ncat==1) &
+          call reduce_area (hin_max   (0),                &
+                            aicen     (1), vicen     (1), &
+                            aicen_init(1), vicen_init(1))
+
+      !-----------------------------------------------------------------
+      ! ITD cleanup: Rebin thickness categories if necessary, and remove
+      !  categories with very small areas.
+      !-----------------------------------------------------------------
+
+      call cleanup_itd (dt,                   ntrcr,            &
+                        nilyr,                nslyr,            &
+                        ncat,                 hin_max,          &
+                        aicen,                trcrn(1:ntrcr,:), &
+                        vicen,                vsnon,            &
+                        aice0,                aice,             & 
+                        n_aero,                                 &
+                        nbtrcr,               nblyr,            &
+                        l_stop,               stop_label,       &
+                        tr_aero,                                &
+                        tr_pond_topo,         heat_capacity,    &
+                        first_ice,                              &
+                        trcr_depend,          trcr_base,        &
+                        n_trcr_strata,        nt_strata,        &
+                        fpond,                fresh,            &
+                        fsalt,                fhocn,            &
+                        faero_ocn,            fzsal,            &
+                        flux_bio)   
+
+      end subroutine icepack_step_therm2
 
 !=======================================================================
 

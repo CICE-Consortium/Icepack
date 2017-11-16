@@ -3,6 +3,8 @@
 Documentation:
 
 https://duvivier.github.io/Icepack/
+=======
+Please see the documentation here: https://duvivier.github.io/Icepack/
 
 ## Overview
 

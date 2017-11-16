@@ -14,7 +14,7 @@
 !
       module icepack_firstyear
 
-      use icepack_kinds_mod
+      use icepack_kinds
       use icepack_constants, only: secday, c0
 
       implicit none

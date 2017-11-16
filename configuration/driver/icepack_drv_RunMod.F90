@@ -6,7 +6,7 @@
 
       module icepack_drv_RunMod
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
 
       implicit none
       private
@@ -27,11 +27,11 @@
 
       use icepack_drv_calendar, only: istep, istep1, time, dt, stop_now, calendar
       use icepack_drv_forcing, only: get_forcing
-!      use icepack_drv_forcing_bgc, only: get_forcing_bgc, get_atm_bgc, fzaero_data, & 
-!          faero_default
+      use icepack_drv_forcing_bgc, only: faero_default, get_forcing_bgc
+!      use icepack_drv_forcing_bgc, only: , get_atm_bgc, fzaero_data, & 
       use icepack_drv_flux, only: init_flux_atm_ocn
-      use icepack_intfc_tracers, only: tr_aero, tr_zaero
-      use icepack_intfc_shared, only: skl_bgc, z_tracers
+      use icepack_drv_tracers, only: tr_aero, tr_zaero
+      use icepack_drv_parameters, only: skl_bgc, z_tracers
 
    !--------------------------------------------------------------------
    ! timestep loop
@@ -54,9 +54,9 @@
 !         call get_forcing_ocn(dt)  ! ocean forcing from data
 
          ! aerosols
-!         if (tr_aero .or. tr_zaero)  call faero_default    ! default values
+          if (tr_aero .or. tr_zaero)  call faero_default    ! default values
 
-!         if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
+         if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 !         if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
          call init_flux_atm_ocn ! initialize atmosphere, ocean fluxes
@@ -75,29 +75,29 @@
 
       use icepack_drv_calendar, only: dt, dt_dyn, ndtd, diagfreq, write_restart, istep
       use icepack_drv_constants, only: c0
-      use icepack_drv_diagnostics, only: runtime_diags, init_mass_diags
+      use icepack_drv_diagnostics, only: runtime_diags, init_mass_diags, debug_icepack
       use icepack_drv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
       use icepack_drv_domain_size, only: nslyr
       use icepack_drv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
-      use icepack_drv_restart, only: dumpfile, final_restart
-!      use icepack_drv_restart_column, only: write_restart_age, write_restart_FY, &
-!          write_restart_lvl, write_restart_pond_cesm, write_restart_pond_lvl, &
-!          write_restart_pond_topo, write_restart_aero, &
-!          write_restart_bgc, write_restart_hbrine
+      use icepack_drv_restart, only: dumpfile, final_restart, write_restart_hbrine
+!      use icepack_drv_restart_column, only: &
+!          write_restart_bgc
       use icepack_drv_state, only: trcrn
-      use icepack_intfc_tracers, only: tr_iage, tr_FY, tr_lvl, &
+      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, &
           tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_brine, tr_aero
-      use icepack_drv_step_mod, only: prep_radiation, step_therm1, step_therm2, &
+      use icepack_drv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_radiation, &
           biogeochemistry
-      use icepack_intfc_shared, only: calc_Tsfc, skl_bgc, solve_zsal, z_tracers
+      use icepack_drv_parameters, only: calc_Tsfc, skl_bgc, solve_zsal, z_tracers
 
       integer (kind=int_kind) :: &
          k               ! dynamics supercycling index
 
       real (kind=dbl_kind) :: &
          offset          ! d(age)/dt time offset
+
+!      call debug_icepack ('beginning time step')
 
       !-----------------------------------------------------------------
       ! initialize diagnostics
@@ -113,6 +113,8 @@
       
       if (calc_Tsfc) call prep_radiation (dt)
       
+!      call debug_icepack ('post prep_radiation')
+
       !-----------------------------------------------------------------
       ! thermodynamics and biogeochemistry
       !-----------------------------------------------------------------
@@ -120,10 +122,12 @@
       call step_therm1     (dt) ! vertical thermodynamics
       call biogeochemistry (dt) ! biogeochemistry
       call step_therm2     (dt) ! ice thickness distribution thermo
-      
+
       ! clean up, update tendency diagnostics
       offset = dt
       call update_state (dt, daidtt, dvidtt, dagedtt, offset)
+
+!      call debug_icepack ('post thermo')
       
       !-----------------------------------------------------------------
       ! dynamics, transport, ridging
@@ -141,19 +145,23 @@
         call update_state (dt_dyn, daidtd, dvidtd, dagedtd, offset)
         
       enddo
+
+!      call debug_icepack ('post dynamics')
       
       !-----------------------------------------------------------------
       ! albedo, shortwave radiation
       !-----------------------------------------------------------------
       
       call step_radiation (dt)
-      
+
       !-----------------------------------------------------------------
       ! get ready for coupling and the next time step
       !-----------------------------------------------------------------
       
       call coupling_prep
-      
+
+!      call debug_icepack ('post step_rad, cpl')
+
       !-----------------------------------------------------------------
       ! write data
       !-----------------------------------------------------------------
@@ -167,16 +175,9 @@
       
       if (write_restart == 1) then
         call dumpfile     ! core variables for restarting
-        !            if (tr_iage)      call write_restart_age
-        !            if (tr_FY)        call write_restart_FY
-        !            if (tr_lvl)       call write_restart_lvl
-        !            if (tr_pond_cesm) call write_restart_pond_cesm
-        !            if (tr_pond_lvl)  call write_restart_pond_lvl
-        !            if (tr_pond_topo) call write_restart_pond_topo
-        !            if (tr_aero)      call write_restart_aero
         !            if (solve_zsal .or. skl_bgc .or. z_tracers) &
         !                              call write_restart_bgc 
-        !            if (tr_brine)     call write_restart_hbrine
+        if (tr_brine)     call write_restart_hbrine
         !            if (kdyn == 2)    call write_restart_eap
         call final_restart
       endif
@@ -194,8 +195,8 @@
       use icepack_drv_arrays_column, only: alvdfn, alidfn, alvdrn, alidrn, &
           albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
       use icepack_drv_calendar, only: dt
-      use icepack_intfc_shared, only: calc_Tsfc, oceanmixed_ice, max_aero
-      use icepack_intfc_tracers, only: nbtrcr
+      use icepack_drv_parameters, only: calc_Tsfc, oceanmixed_ice, max_aero
+      use icepack_drv_tracers, only: nbtrcr
       use icepack_drv_constants, only: c0, c1, puny, rhofresh
       use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &
@@ -208,7 +209,7 @@
           fsurfn_f, flatn_f, frzmlt_init, frzmlt, &
           faero_ocn, fzsal_ai, fzsal_g_ai, flux_bio, flux_bio_ai
       use icepack_drv_state, only: aicen, aice, aice_init
-      use icepack_drv_step_mod, only: ocean_mixed_layer
+      use icepack_drv_step, only: ocean_mixed_layer
 
       ! local variables
 
@@ -321,7 +322,6 @@
                      + swvdf(i)*(c1 - alvdf_ai(i)) &
                      + swidr(i)*(c1 - alidr_ai(i)) &
                      + swidf(i)*(c1 - alidf_ai(i))
-
          enddo
 
       end subroutine coupling_prep

@@ -56,7 +56,7 @@ cat >> ${jobfile} << EOFB
 #PBS -j oe 
 #PBS -m ae 
 #PBS -V
-#PBS -q regular
+#PBS -q share
 #PBS -N ${ICE_CASENAME}
 #PBS -A ${ICE_ACCT}
 #PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
@@ -64,6 +64,18 @@ cat >> ${jobfile} << EOFB
 EOFB
 
 else if (${ICE_MACHINE} =~ thunder* || ${ICE_MACHINE} =~ gordon* || ${ICE_MACHINE} =~ conrad*) then
+cat >> ${jobfile} << EOFB
+#PBS -N ${ICE_CASENAME}
+#PBS -q debug
+#PBS -A ${acct}
+#PBS -l select=${nnodes}:ncpus=${maxtpn}:mpiprocs=${taskpernode}
+#PBS -l walltime=${ICE_RUNLENGTH}
+#PBS -j oe
+###PBS -M username@domain.com
+###PBS -m be
+EOFB
+
+else if (${ICE_MACHINE} =~ onyx*) then
 cat >> ${jobfile} << EOFB
 #PBS -N ${ICE_CASENAME}
 #PBS -q debug

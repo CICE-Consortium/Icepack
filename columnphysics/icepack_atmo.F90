@@ -13,18 +13,23 @@
 
       module icepack_atmo
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, c4, c5, c8, c10, &
-           c16, c20, p001, p01, p2, p4, p5, p75, puny, &
-           cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn, &
-           Lsub, Lvap, vonkar, Tffresh, zvir, gravit, &
-           pih, dragio, rhoi, rhos, rhow
+      use icepack_kinds
+      use icepack_constants,  only: c0, c1, c2, c4, c5, c8, c10
+      use icepack_constants,  only: c16, c20, p001, p01, p2, p4, p5, p75, puny
+      use icepack_constants,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
+      use icepack_constants,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
+      use icepack_constants,  only: pih, dragio, rhoi, rhos, rhow
+      use icepack_parameters, only: atmbndy, calc_strair, formdrag
+      use icepack_parameters, only: highfreq, natmiter
 
       implicit none
       save
 
       private
-      public :: atmo_boundary_layer, atmo_boundary_const, neutral_drag_coeffs
+      public :: atmo_boundary_layer, &
+                atmo_boundary_const, &
+                neutral_drag_coeffs, &
+                icepack_atm_boundary
 
 !=======================================================================
 
@@ -143,10 +148,10 @@
          cp    , & ! specific heat of moist air
          hol   , & ! H (at zlvl  ) over L
          stable, & ! stability factor
+         cpvir , & ! defined as cp_wv/cp_air - 1.
          psixh     ! stability function at zlvl   (heat and water)
 
       real (kind=dbl_kind), parameter :: &
-         cpvir = cp_wv/cp_air-c1, & ! defined as cp_wv/cp_air - 1.
          zTrf  = c2                 ! reference height for air temp (m)
 
       ! local functions
@@ -170,6 +175,8 @@
       !------------------------------------------------------------
       ! Initialize
       !------------------------------------------------------------
+
+      cpvir = cp_wv/cp_air-c1   ! defined as cp_wv/cp_air - 1.
 
       if (highfreq) then       
        umin  = p5 ! minumum allowable wind-ice speed difference of 0.5 m/s
@@ -502,8 +509,7 @@
                                       dkeel,    lfloe,           &
                                       dfloe,    ncat)
 
-        use icepack_intfc_tracers, only: &
-             tr_pond, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers, only: tr_pond, tr_pond_lvl, tr_pond_topo
 
       integer (kind=int_kind), intent(in) :: &
          ncat
@@ -593,6 +599,8 @@
          ctecar,    &
          ctecwk,    &
          ai, aii,   & ! ice area and its inverse
+         ocnrufi,   & ! inverse ocean roughness
+         icerufi,   & ! inverse ice roughness
          tmp1         ! temporary
 
       real (kind=dbl_kind) :: &
@@ -603,9 +611,7 @@
          vrdg         ! ridged ice mean thickness  
 
       real (kind=dbl_kind), parameter :: &
-         ocnruf   = 0.000327_dbl_kind, & ! ocean surface roughness (m)
-         ocnrufi  = c1/ocnruf, & ! inverse ocean roughness
-         icerufi  = c1/iceruf    ! inverse ice roughness
+         ocnruf   = 0.000327_dbl_kind ! ocean surface roughness (m)
 
       real (kind=dbl_kind), parameter :: &
          camax    = 0.02_dbl_kind , & ! Maximum for atmospheric drag
@@ -613,11 +619,12 @@
 
       astar = c1/(c1-(Lmin/Lmax)**(c1/beta))
 
-
       !-----------------------------------------------------------------
       ! Initialize across entire grid
       !-----------------------------------------------------------------
 
+      ocnrufi  = c1/ocnruf    ! inverse ocean roughness
+      icerufi  = c1/iceruf    ! inverse ice roughness
       hfreebd=c0
       hdraft =c0       
       hridge =c0       
@@ -818,6 +825,106 @@
       endif
 
       end subroutine neutral_drag_coeffs
+
+!=======================================================================
+
+      subroutine icepack_atm_boundary(sfctype,                    &
+                                     Tsf,         potT,          &
+                                     uatm,        vatm,          &
+                                     wind,        zlvl,          &
+                                     Qa,          rhoa,          &
+                                     strx,        stry,          &
+                                     Tref,        Qref,          &
+                                     delt,        delq,          &
+                                     lhcoef,      shcoef,        &
+                                     Cdn_atm,                    &
+                                     Cdn_atm_ratio_n,            &
+                                     uvel,        vvel,          &
+                                     Uref)
+
+      character (len=3), intent(in) :: &
+         sfctype      ! ice or ocean
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tsf      , & ! surface temperature of ice or ocean
+         potT     , & ! air potential temperature  (K)
+         uatm     , & ! x-direction wind speed (m/s)
+         vatm     , & ! y-direction wind speed (m/s)
+         wind     , & ! wind speed (m/s)
+         zlvl     , & ! atm level height (m)
+         Qa       , & ! specific humidity (kg/kg)
+         rhoa         ! air density (kg/m^3)
+
+      real (kind=dbl_kind), intent(inout) :: &
+         Cdn_atm  , &    ! neutral drag coefficient
+         Cdn_atm_ratio_n ! ratio drag coeff / neutral drag coeff
+
+      real (kind=dbl_kind), &
+         intent(inout) :: &
+         strx     , & ! x surface stress (N)
+         stry         ! y surface stress (N)
+
+      real (kind=dbl_kind), intent(inout) :: &
+         Tref     , & ! reference height temperature  (K)
+         Qref     , & ! reference height specific humidity (kg/kg)
+         delt     , & ! potential T difference   (K)
+         delq     , & ! humidity difference      (kg/kg)
+         shcoef   , & ! transfer coefficient for sensible heat
+         lhcoef       ! transfer coefficient for latent heat
+
+      real (kind=dbl_kind), optional, intent(in) :: &
+         uvel     , & ! x-direction ice speed (m/s)
+         vvel         ! y-direction ice speed (m/s)
+
+      real (kind=dbl_kind), optional, intent(out) :: &
+         Uref         ! reference height wind speed (m/s)
+
+      real (kind=dbl_kind) :: &
+         worku, workv, workr
+
+      worku = c0
+      workv = c0
+      workr = c0
+      if (present(uvel)) then
+         worku = uvel
+      endif
+      if (present(uvel)) then
+         worku = uvel
+      endif
+
+               if (trim(atmbndy) == 'constant') then
+                  call atmo_boundary_const (sfctype,  calc_strair, &
+                                            uatm,     vatm,     &
+                                            wind,     rhoa,     &
+                                            strx,     stry,     &
+                                            Tsf,      potT,     &
+                                            Qa,                 &
+                                            delt,     delq,     &
+                                            lhcoef,   shcoef,   &
+                                            Cdn_atm)
+               else ! default
+                  call atmo_boundary_layer (sfctype,                 &
+                                            calc_strair, formdrag,   &
+                                            highfreq, natmiter,      &
+                                            Tsf,      potT,          &
+                                            uatm,     vatm,          &
+                                            wind,     zlvl,          &
+                                            Qa,       rhoa,          &
+                                            strx,     stry,          &
+                                            Tref,     Qref,          &
+                                            delt,     delq,          &
+                                            lhcoef,   shcoef,        &
+                                            Cdn_atm,                 &
+                                            Cdn_atm_ratio_n,         &
+                                            worku,    workv,         &
+                                            workr)
+               endif ! atmbndy
+
+      if (present(Uref)) then
+         Uref = workr
+      endif
+
+      end subroutine icepack_atm_boundary
 
 !=======================================================================
 

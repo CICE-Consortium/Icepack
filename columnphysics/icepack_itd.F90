@@ -26,18 +26,29 @@
 
       module icepack_itd
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c2, p001, puny, p5, &
-          Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
-      use icepack_warnings, only: &
-          add_warning
+      use icepack_kinds
+      use icepack_constants,  only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
+      use icepack_constants,  only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
+      use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero
+      use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
+      use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers, min_salin
+      use icepack_parameters, only: sk_l, rhosi, hs_ssl, kcatbound, kitd
+      use icepack_therm_shared, only: Tmin, hi_min
+      use icepack_warnings,   only: add_warning
 
       implicit none
       save
 
       private
-      public :: aggregate_area, shift_ice, column_sum, &
-                column_conservation_check, cleanup_itd, reduce_area
+      public :: aggregate_area, &
+                shift_ice, &
+                column_sum, &
+                column_conservation_check, &
+                cleanup_itd, &
+                reduce_area, &
+                icepack_init_itd, &
+                icepack_init_itd_hist, &
+                icepack_aggregate
 
 !=======================================================================
 
@@ -352,7 +363,7 @@
                             daice,    dvice,       &
                             l_stop,   stop_label)
 
-      use icepack_intfc_tracers, only: icepack_compute_tracers
+      use icepack_tracers, only: icepack_compute_tracers
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1031,11 +1042,6 @@
                                   dfzsal,    dflux_bio,    &
                                   l_stop,    stop_label)
 
-      use icepack_intfc_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_aero, &
-                             nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, &
-                             bio_index
-      use icepack_intfc_shared, only:  solve_zsal, skl_bgc, z_tracers, min_salin, &
-                             sk_l, rhosi
       use icepack_zbgc_shared, only: zap_small_bgc
 
       integer (kind=int_kind), intent(in) :: &
@@ -1332,9 +1338,6 @@
                           n_aero,     ntrcr,    &
                           aicen,      nblyr)
 
-      use icepack_intfc_tracers, only: nt_qsno, nt_aero, bio_index
-      use icepack_intfc_shared, only: hs_ssl, z_tracers
-
       integer (kind=int_kind), intent(in) :: &
          nslyr    , & ! number of snow layers
          n_aero   , & ! number of aerosol tracers
@@ -1419,9 +1422,6 @@
                                       dfaero_ocn, tr_aero,  &
                                       dflux_bio,  nbtrcr,   &
                                       n_aero,     ntrcr)
-
-      use icepack_intfc_tracers, only: nt_qsno 
-      use icepack_therm_shared, only: Tmin
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1562,8 +1562,6 @@
                                   trcrn,       l_stop,     &
                                   stop_label)
 
-      use icepack_intfc_tracers, only: nt_qice, nt_qsno
-
       integer (kind=int_kind), intent(in) :: & 
          ncat  , & ! number of thickness categories
          nilyr , & ! number of ice layers
@@ -1588,9 +1586,9 @@
          k     , & ! vertical index
          n         ! category index
 
-      real (kind=dbl_kind), parameter :: &
-         max_error = puny*Lfresh*rhos ! max error in zero layer energy check
-                                      ! (so max volume error = puny)
+      real (kind=dbl_kind) :: &
+         max_error ! max error in zero layer energy check
+                   ! (so max volume error = puny)
 
       real (kind=dbl_kind), dimension (ncat) :: &
          eicen     ! energy of melting for each ice layer (J/m^2) 
@@ -1613,6 +1611,8 @@
       !-----------------------------------------------------------------
 
       l_stop = .false.
+      max_error = puny*Lfresh*rhos ! max error in zero layer energy check
+                                   ! (so max volume error = puny)
 
       !----------------------------------------------------------------
       ! Calculate difference between ice and snow energies and the
@@ -1694,6 +1694,360 @@
       enddo  ! ncat
 
       end subroutine zerolayer_check
+
+!=======================================================================
+! Initialize area fraction and thickness boundaries for the itd model
+!
+! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
+!          C. M. Bitz, UW
+
+      subroutine icepack_init_itd(ncat, hin_max, l_stop, stop_label)
+
+      integer (kind=int_kind), intent(in) :: &
+           ncat ! number of thickness categories
+
+      real (kind=dbl_kind), intent(out) :: &
+           hin_max(0:ncat)  ! category limits (m)
+
+      logical (kind=log_kind), intent(inout) :: &
+         l_stop          ! if true, print diagnostics and abort model
+
+      character (len=*), intent(out) :: &
+         stop_label   ! abort error message
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+           n    ! thickness category index
+
+      real (kind=dbl_kind) :: &
+           cc1, cc2, cc3, & ! parameters for kcatbound = 0
+           x1           , &
+           rn           , & ! real(n)
+           rncat        , & ! real(ncat)
+           d1           , & ! parameters for kcatbound = 1 (m)
+           d2           , & !
+           b1           , & ! parameters for kcatbound = 3
+           b2           , & !
+           b3
+
+      real (kind=dbl_kind), dimension(5) :: wmo5 ! data for wmo itd
+      real (kind=dbl_kind), dimension(6) :: wmo6 ! data for wmo itd
+      real (kind=dbl_kind), dimension(7) :: wmo7 ! data for wmo itd
+
+      l_stop = .false.
+
+      rncat = real(ncat, kind=dbl_kind)
+      d1 = 3.0_dbl_kind / rncat
+      d2 = 0.5_dbl_kind / rncat
+      b1 = p1         ! asymptotic category width (m)
+      b2 = c3         ! thickness for which participation function is small (m)
+      b3 = max(rncat*(rncat-1), c2*b2/b1)
+
+      hi_min = p01    ! minimum ice thickness allowed (m) for thermo
+                      ! note hi_min is reset to 0.1 for kitd=0, below
+
+      !-----------------------------------------------------------------
+      ! Choose category boundaries based on one of four options.
+      !
+      ! The first formula (kcatbound = 0) was used in Lipscomb (2001) 
+      !  and in CICE versions 3.0 and 3.1.
+      !
+      ! The second formula is more user-friendly in the sense that it
+      !  is easy to obtain round numbers for category boundaries:
+      !
+      !    H(n) = n * [d1 + d2*(n-1)] 
+      ! 
+      ! Default values are d1 = 300/ncat, d2 = 50/ncat.
+      ! For ncat = 5, boundaries in cm are 60, 140, 240, 360, which are 
+      !  close to the standard values given by the first formula.
+      ! For ncat = 10, boundaries in cm are 30, 70, 120, 180, 250, 330,
+      !  420, 520, 630.    
+      !
+      ! The third option provides support for World Meteorological
+      !  Organization classification based on thickness.  The full
+      !  WMO thickness distribution is used if ncat = 7;  if ncat=5 
+      !  or ncat = 6, some of the thinner categories are combined.
+      ! For ncat = 5,  boundaries are         30, 70, 120, 200, >200 cm.
+      ! For ncat = 6,  boundaries are     15, 30, 70, 120, 200, >200 cm.
+      ! For ncat = 7,  boundaries are 10, 15, 30, 70, 120, 200, >200 cm.
+      !
+      ! The fourth formula asymptotes to a particular category width as
+      ! the number of categories increases, given by the parameter b1.
+      ! The parameter b3 is computed so that the category boundaries
+      ! are even numbers.
+      !
+      !    H(n) = b1 * [n + b3*n*(n+1)/(2*N*(N-1))] for N=ncat
+      !
+      ! kcatbound=-1 is available only for 1-category runs, with
+      ! boundaries 0 and 100 m.
+      !-----------------------------------------------------------------
+
+      if (kcatbound == -1) then ! single category
+         hin_max(0) = c0
+         hin_max(1) = c100
+
+      elseif (kcatbound == 0) then   ! original scheme
+
+         if (kitd == 1) then
+            ! linear remapping itd category limits
+            cc1 = c3/rncat
+            cc2 = c15*cc1
+            cc3 = c3
+
+            hin_max(0) = c0     ! minimum ice thickness, m
+         else
+            ! delta function itd category limits
+#ifndef CCSMCOUPLED
+            hi_min = p1    ! minimum ice thickness allowed (m) for thermo
+#endif
+            cc1 = max(1.1_dbl_kind/rncat,hi_min)
+            cc2 = c25*cc1
+            cc3 = 2.25_dbl_kind
+
+            ! hin_max(0) should not be zero
+            ! use some caution in making it less than 0.10
+            hin_max(0) = hi_min ! minimum ice thickness, m
+         endif                  ! kitd
+
+         do n = 1, ncat
+            x1 = real(n-1,kind=dbl_kind) / rncat
+            hin_max(n) = hin_max(n-1) &
+                       + cc1 + cc2*(c1 + tanh(cc3*(x1-c1)))
+         enddo
+
+      elseif (kcatbound == 1) then  ! new scheme
+
+         hin_max(0) = c0
+         do n = 1, ncat
+            rn = real(n, kind=dbl_kind)
+            hin_max(n) = rn * (d1 + (rn-c1)*d2)
+         enddo
+
+      elseif (kcatbound == 2) then  ! WMO standard
+
+        if (ncat == 5) then
+         ! thinnest 3 categories combined
+         data wmo5 / 0.30_dbl_kind, 0.70_dbl_kind, &
+                    1.20_dbl_kind, 2.00_dbl_kind,  &
+                    999._dbl_kind  /
+         hin_max(0) = c0
+         do n = 1, ncat
+            hin_max(n) = wmo5(n)
+         enddo
+       elseif (ncat == 6) then
+         ! thinnest 2 categories combined
+         data wmo6 / 0.15_dbl_kind, &
+                    0.30_dbl_kind, 0.70_dbl_kind,  &
+                    1.20_dbl_kind, 2.00_dbl_kind,  &
+                    999._dbl_kind /
+!echmod wmo6a
+!         data wmo6 /0.30_dbl_kind, 0.70_dbl_kind,  &
+!                    1.20_dbl_kind, 2.00_dbl_kind,  &
+!                    4.56729_dbl_kind, &
+!                    999._dbl_kind /
+
+         hin_max(0) = c0
+         do n = 1, ncat
+            hin_max(n) = wmo6(n)
+         enddo
+       elseif (ncat == 7) then
+         ! all thickness categories 
+         data wmo7 / 0.10_dbl_kind, 0.15_dbl_kind, &
+                    0.30_dbl_kind, 0.70_dbl_kind,  &
+                    1.20_dbl_kind, 2.00_dbl_kind,  &
+                    999._dbl_kind  /
+         hin_max(0) = c0
+         do n = 1, ncat
+            hin_max(n) = wmo7(n)
+         enddo
+       else
+         stop_label = 'kcatbound=2 (WMO) must have ncat=5, 6 or 7'
+         l_stop = .true. 
+         return
+       endif
+
+      elseif (kcatbound == 3) then  ! asymptotic scheme
+
+         hin_max(0) = c0
+         do n = 1, ncat
+            rn = real(n, kind=dbl_kind)
+            hin_max(n) = b1 * (rn + b3*rn*(rn+c1)/(c2*rncat*(rncat-c1)))
+         enddo
+
+      endif ! kcatbound
+
+      end subroutine icepack_init_itd
+
+!=======================================================================
+
+! Initialize area fraction and thickness boundaries for the itd model
+!
+! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
+!          C. M. Bitz, UW
+
+      subroutine icepack_init_itd_hist (ncat, hin_max, c_hi_range)
+
+      integer (kind=int_kind), intent(in) :: &
+           ncat ! number of thickness categories
+
+      real (kind=dbl_kind), intent(in) :: &
+           hin_max(0:ncat)  ! category limits (m)
+
+      character (len=35), intent(out) :: &
+           c_hi_range(ncat) ! string for history output
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+           n    ! thickness category index
+
+      character(len=8) :: c_hinmax1,c_hinmax2
+      character(len=2) :: c_nc
+
+      character(len=char_len_long) :: &
+           warning ! warning message
+
+         write(warning,*) ' '
+         call add_warning(warning)
+         write(warning,*) 'hin_max(n-1) < Cat n < hin_max(n)'
+         call add_warning(warning)
+         do n = 1, ncat
+            write(warning,*) hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
+            call add_warning(warning)
+            ! Write integer n to character string
+            write (c_nc, '(i2)') n    
+
+            ! Write hin_max to character string
+            write (c_hinmax1, '(f6.3)') hin_max(n-1)
+            write (c_hinmax2, '(f6.3)') hin_max(n)
+
+            ! Save character string to write to history file
+            c_hi_range(n)=c_hinmax1//'m < hi Cat '//c_nc//' < '//c_hinmax2//'m'
+         enddo
+
+         write(warning,*) ' '
+         call add_warning(warning)
+
+      end subroutine icepack_init_itd_hist
+
+!=======================================================================
+
+! Aggregate ice state variables over thickness categories.
+!
+! authors: C. M. Bitz, UW
+!          W. H. Lipscomb, LANL
+
+      subroutine icepack_aggregate (ncat,               &
+                                   aicen,    trcrn,    &
+                                   vicen,    vsnon,    &
+                                   aice,     trcr,     &
+                                   vice,     vsno,     &
+                                   aice0,              &
+                                   ntrcr,              &
+                                   trcr_depend,        &
+                                   trcr_base,          & 
+                                   n_trcr_strata,      &
+                                   nt_strata)
+
+      use icepack_tracers, only: icepack_compute_tracers
+
+      integer (kind=int_kind), intent(in) :: &
+         ncat  , & ! number of thickness categories
+         ntrcr     ! number of tracers in use
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         aicen , & ! concentration of ice
+         vicen , & ! volume per unit area of ice          (m)
+         vsnon     ! volume per unit area of snow         (m)
+
+      real (kind=dbl_kind), dimension (:,:), &
+         intent(inout) :: &
+         trcrn     ! ice tracers
+
+      integer (kind=int_kind), dimension (:), intent(in) :: &
+         trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
+         n_trcr_strata  ! number of underlying tracer layers
+
+      real (kind=dbl_kind), dimension (:,:), intent(in) :: &
+         trcr_base      ! = 0 or 1 depending on tracer dependency
+                        ! argument 2:  (1) aice, (2) vice, (3) vsno
+
+      integer (kind=int_kind), dimension (:,:), intent(in) :: &
+         nt_strata      ! indices of underlying tracer layers
+
+      real (kind=dbl_kind), intent(out) :: &
+         aice  , & ! concentration of ice
+         vice  , & ! volume per unit area of ice          (m)
+         vsno  , & ! volume per unit area of snow         (m)
+         aice0     ! concentration of open water
+
+      real (kind=dbl_kind), dimension (:),  &
+         intent(out) :: &
+         trcr      ! ice tracers
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         n, it, itl, & ! loop indices
+         ntr           ! tracer index
+
+      real (kind=dbl_kind), dimension (:), allocatable :: &
+         atrcr     ! sum of aicen*trcrn or vicen*trcrn or vsnon*trcrn
+
+      real (kind=dbl_kind) :: &
+         atrcrn    ! category value
+
+      !-----------------------------------------------------------------
+      ! Initialize
+      !-----------------------------------------------------------------
+
+      aice0 = c1
+      aice  = c0
+      vice  = c0
+      vsno  = c0
+
+      allocate (atrcr(ntrcr))
+
+      !-----------------------------------------------------------------
+      ! Aggregate
+      !-----------------------------------------------------------------
+
+      atrcr(:) = c0
+
+      do n = 1, ncat
+
+            aice = aice + aicen(n)
+            vice = vice + vicen(n)
+            vsno = vsno + vsnon(n)
+
+         do it = 1, ntrcr
+            atrcrn = trcrn(it,n)*(trcr_base(it,1) * aicen(n) &
+                                + trcr_base(it,2) * vicen(n) &
+                                + trcr_base(it,3) * vsnon(n))
+            if (n_trcr_strata(it) > 0) then  ! additional tracer layers
+               do itl = 1, n_trcr_strata(it)
+                  ntr = nt_strata(it,itl)
+                  atrcrn = atrcrn * trcrn(ntr,n)
+               enddo
+            endif
+            atrcr(it) = atrcr(it) + atrcrn
+         enddo                  ! ntrcr
+      enddo                     ! ncat
+
+      ! Open water fraction
+      aice0 = max (c1 - aice, c0)
+
+      ! Tracers
+      call icepack_compute_tracers (ntrcr,     trcr_depend,   &
+                                   atrcr,     aice,          &
+                                   vice ,     vsno,          &
+                                   trcr_base, n_trcr_strata, &
+                                   nt_strata, trcr)   
+
+      deallocate (atrcr)
+
+      end subroutine icepack_aggregate
 
 !=======================================================================
 

@@ -6,15 +6,16 @@
 
       module icepack_drv_diagnostics
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       use icepack_drv_constants, only: c0, nu_diag, nu_diag_out
       use icepack_drv_calendar, only: diagfreq, istep1, istep
-      use icepack_intfc_shared, only: max_aero
+      use icepack_drv_parameters, only: max_aero
       use icepack_drv_domain_size, only: nx
 
       implicit none
       private
-      public :: runtime_diags, diagnostic_abort, init_mass_diags
+      public :: runtime_diags, diagnostic_abort, init_mass_diags, &
+                debug_icepack, print_state
 
       save
 
@@ -28,6 +29,8 @@
 
       integer (kind=int_kind), parameter, public :: &
          npnt = 2             ! total number of points to be printed
+
+      character (len=char_len), dimension(nx), public :: nx_names
 
       ! for water and heat budgets
       real (kind=dbl_kind), dimension(nx) :: &
@@ -49,20 +52,20 @@
 
       subroutine runtime_diags (dt)
 
-      use icepack_intfc_shared, only: calc_Tsfc, ktherm
-      use icepack_drv_constants, only: c1, c1000, c2, p001, p5, puny, rhoi, rhos, rhow, &
-          rhofresh, Tffresh, Lfresh, Lvap, ice_ref_salinity, &
-          m2_to_km2, awtvdr, awtidr, awtvdf, awtidf
+      use icepack_drv_parameters,  only: calc_Tsfc, ktherm
+      use icepack_drv_constants,   only: c1, c1000, c2, p001, p5, puny, rhoi, rhos, rhow
+      use icepack_drv_constants,   only: rhofresh, Tffresh, Lfresh, Lvap, ice_ref_salinity
+      use icepack_drv_constants,   only: m2_to_km2, awtvdr, awtidr, awtvdf, awtidf
       use icepack_drv_domain_size, only: ncat, n_aero
-      use icepack_drv_flux, only: alvdr, alidr, alvdf, alidf, evap, fsnow, frazil, &
-          fswabs, fswthru, flw, flwout, fsens, fsurf, flat, frzmlt_init, frain, fpond, &
-          coszen, fhocn_ai, fsalt_ai, fresh_ai, frazil_diag, &
-          update_ocn_f, Tair, Qa, fsw, fcondtop, meltt, meltb, meltl, snoice, &
-          dsnow, congel, sst, sss, Tf, fhocn, &
-          swvdr, swvdf, swidr, swidf, &
-          alvdr_init, alvdf_init, alidr_init, alidf_init, faero_atm, faero_ocn
-      use icepack_drv_state   ! everything
-      use icepack_intfc_tracers ! everything
+      use icepack_drv_flux, only: alvdr, alidr, alvdf, alidf, evap, fsnow, frazil
+      use icepack_drv_flux, only: fswabs, fswthru, flw, flwout, fsens, fsurf, flat, frzmlt_init, frain, fpond
+      use icepack_drv_flux, only: coszen, fhocn_ai, fsalt_ai, fresh_ai, frazil_diag
+      use icepack_drv_flux, only: update_ocn_f, Tair, Qa, fsw, fcondtop, meltt, meltb, meltl, snoice
+      use icepack_drv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
+      use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf
+      use icepack_drv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init, faero_atm, faero_ocn
+      use icepack_drv_state, only: aice, vice, vsno, trcr
+      use icepack_drv_tracers, only: tr_brine, nt_fbri, nt_Tsfc
 #ifdef CCSMCOUPLED
       use icepack_drv_prescribed_mod, only: prescribed_ice
 #endif
@@ -85,13 +88,6 @@
 
       real (kind=dbl_kind), dimension (nx) :: &
          work1, work2
-
-      character (len=char_len), dimension(nx) :: nx_names
-
-      nx_names(1) = ' icefree'
-      nx_names(2) = '    slab'
-      nx_names(3) = 'full ITD'
-      nx_names(4) = '    land'
 
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
@@ -223,7 +219,7 @@
 
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
       use icepack_drv_state, only: vicen, vsnon, trcrn
-      use icepack_intfc_tracers, only: nt_qice, nt_qsno
+      use icepack_drv_tracers, only: nt_qice, nt_qsno
 
       real (kind=dbl_kind), dimension (nx),  &
          intent(out) :: &
@@ -273,7 +269,7 @@
 
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
       use icepack_drv_state, only: vicen, trcrn
-      use icepack_intfc_tracers, only: nt_sice
+      use icepack_drv_tracers, only: nt_sice
 
       real (kind=dbl_kind), dimension (nx),  &
          intent(out) :: &
@@ -329,6 +325,171 @@
       stop
 
       end subroutine diagnostic_abort
+
+!=======================================================================
+!
+! Wrapper for the print_state debugging routine.
+! Useful for debugging in the main driver (see ice.F_debug)
+!
+! author Elizabeth C. Hunke, LANL
+!
+      subroutine debug_icepack (plabeld)
+
+      use icepack_drv_calendar, only: istep1
+
+      character (*), intent(in) :: plabeld
+
+      ! printing info for routine print_state
+      character (char_len) :: plabel
+      integer (kind=int_kind), parameter :: &
+         check_step = 1439, & ! begin printing at istep1=check_step
+         ip = 3               ! i index
+
+      if (istep1 >= check_step) then
+         call print_state(plabeld,ip)
+      endif
+
+      end subroutine debug_icepack
+
+!=======================================================================
+
+! This routine is useful for debugging.
+! Calls to it should be inserted in the form (after thermo, for example)
+!     plabel = 'post thermo'
+!     if (istep1 >= check_step) call print_state(plabel,ip)
+! 'use ice_diagnostics' may need to be inserted also
+! author: Elizabeth C. Hunke, LANL
+
+      subroutine print_state(plabel,i)
+
+      use icepack_drv_calendar,  only: istep1, time
+      use icepack_drv_constants, only: puny, rhoi, rhos, Lfresh, cp_ice
+      use icepack_drv_domain_size, only: ncat, nilyr, nslyr
+      use icepack_drv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
+      use icepack_drv_tracers,  only: nt_Tsfc, nt_qice, nt_qsno
+      use icepack_drv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow
+      use icepack_drv_flux, only: fsens, flat, evap, flwout, swvdr, swvdf, swidr, swidf, rhoa
+      use icepack_drv_flux, only: frzmlt, sst, sss, Tf, Tref, Qref, Uref, uocn, vocn, strtltx, strtlty
+      use icepack_drv_flux, only: fsw, fswabs, fswint_ai, fswthru, scale_factor, alvdr_ai, alvdf_ai
+      use icepack_drv_flux, only: alidf_ai, alidr_ai
+
+      character (*), intent(in) :: plabel
+
+      integer (kind=int_kind), intent(in) :: & 
+          i              ! horizontal index
+
+      ! local variables
+
+      real (kind=dbl_kind) :: &
+           eidebug, esdebug, &
+           qi, qs, Tsnow
+
+      integer (kind=int_kind) :: n, k
+
+      write(nu_diag,*) trim(plabel)
+      write(nu_diag,*) 'istep1, i, time', &
+                        istep1, i, time
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'aice0', aice0(i)
+      do n = 1, ncat
+         write(nu_diag,*) ' '
+         write(nu_diag,*) 'n =',n
+         write(nu_diag,*) 'aicen', aicen(i,n)
+         write(nu_diag,*) 'vicen', vicen(i,n)
+         write(nu_diag,*) 'vsnon', vsnon(i,n)
+         if (aicen(i,n) > puny) then
+            write(nu_diag,*) 'hin', vicen(i,n)/aicen(i,n)
+            write(nu_diag,*) 'hsn', vsnon(i,n)/aicen(i,n)
+         endif
+         write(nu_diag,*) 'Tsfcn',trcrn(i,nt_Tsfc,n)
+         write(nu_diag,*) ' '
+      enddo                     ! n
+
+      eidebug = c0
+      do n = 1,ncat
+         do k = 1,nilyr
+            qi = trcrn(i,nt_qice+k-1,n)
+            write(nu_diag,*) 'qice, cat ',n,' layer ',k, qi
+            eidebug = eidebug + qi
+            if (aicen(i,n) > puny) then
+               write(nu_diag,*)  'qi/rhoi', qi/rhoi
+            endif
+         enddo
+         write(nu_diag,*) ' '
+      enddo
+      write(nu_diag,*) 'qice(i)',eidebug
+      write(nu_diag,*) ' '
+
+      esdebug = c0
+      do n = 1,ncat
+         if (vsnon(i,n) > puny) then
+            do k = 1,nslyr
+               qs = trcrn(i,nt_qsno+k-1,n)
+               write(nu_diag,*) 'qsnow, cat ',n,' layer ',k, qs
+               esdebug = esdebug + qs
+               Tsnow = (Lfresh + qs/rhos) / cp_ice
+               write(nu_diag,*) 'qs/rhos', qs/rhos
+               write(nu_diag,*) 'Tsnow', Tsnow
+            enddo
+            write(nu_diag,*) ' '
+         endif
+      enddo
+      write(nu_diag,*) 'qsnow(i)',esdebug
+      write(nu_diag,*) ' '
+
+      write(nu_diag,*) 'uvel(i)',uvel(i)
+      write(nu_diag,*) 'vvel(i)',vvel(i)
+
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'atm states and fluxes'
+      write(nu_diag,*) '            uatm    = ',uatm (i)
+      write(nu_diag,*) '            vatm    = ',vatm (i)
+      write(nu_diag,*) '            potT    = ',potT (i)
+      write(nu_diag,*) '            Tair    = ',Tair (i)
+      write(nu_diag,*) '            Qa      = ',Qa   (i)
+      write(nu_diag,*) '            rhoa    = ',rhoa (i)
+      write(nu_diag,*) '            swvdr   = ',swvdr(i)
+      write(nu_diag,*) '            swvdf   = ',swvdf(i)
+      write(nu_diag,*) '            swidr   = ',swidr(i)
+      write(nu_diag,*) '            swidf   = ',swidf(i)
+      write(nu_diag,*) '            flw     = ',flw  (i)
+      write(nu_diag,*) '            frain   = ',frain(i)
+      write(nu_diag,*) '            fsnow   = ',fsnow(i)
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'ocn states and fluxes'
+      write(nu_diag,*) '            frzmlt  = ',frzmlt (i)
+      write(nu_diag,*) '            sst     = ',sst    (i)
+      write(nu_diag,*) '            sss     = ',sss    (i)
+      write(nu_diag,*) '            Tf      = ',Tf     (i)
+      write(nu_diag,*) '            uocn    = ',uocn   (i)
+      write(nu_diag,*) '            vocn    = ',vocn   (i)
+      write(nu_diag,*) '            strtltx = ',strtltx(i)
+      write(nu_diag,*) '            strtlty = ',strtlty(i)
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'srf states and fluxes'
+      write(nu_diag,*) '            Tref    = ',Tref  (i)
+      write(nu_diag,*) '            Qref    = ',Qref  (i)
+      write(nu_diag,*) '            Uref    = ',Uref  (i)
+      write(nu_diag,*) '            fsens   = ',fsens (i)
+      write(nu_diag,*) '            flat    = ',flat  (i)
+      write(nu_diag,*) '            evap    = ',evap  (i)
+      write(nu_diag,*) '            flwout  = ',flwout(i)
+      write(nu_diag,*) ' '
+      write(nu_diag,*) 'shortwave'
+      write(nu_diag,*) '            fsw          = ',fsw         (i)
+      write(nu_diag,*) '            fswabs       = ',fswabs      (i)
+      write(nu_diag,*) '            fswint_ai    = ',fswint_ai   (i)
+      write(nu_diag,*) '            fswthru      = ',fswthru     (i)
+      write(nu_diag,*) '            scale_factor = ',scale_factor(i)
+      write(nu_diag,*) '            alvdr        = ',alvdr_ai    (i)
+      write(nu_diag,*) '            alvdf        = ',alvdf_ai    (i)
+      write(nu_diag,*) '            alidr        = ',alidr_ai    (i)
+      write(nu_diag,*) '            alidf        = ',alidf_ai    (i)
+      write(nu_diag,*) ' '
+
+!      call flush(nu_diag)
+
+      end subroutine print_state
 
 !=======================================================================
 

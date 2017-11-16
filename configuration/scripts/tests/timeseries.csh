@@ -2,31 +2,59 @@
 
 # Check to see if test case directory was passed
 if ( $1 == "" ) then
-  echo "To generate timeseries plots, this script must be called with a directory."
-  echo "Example: ./timeseries.csh ./annual_gx3_conrad_4x1.t00"
+  echo "To generate timeseries plots, this script must be called with a filename."
+  echo "Example: ./timeseries.csh /work/username/case01/ice_diag.itd"
   exit -1
 endif
-set basename = `echo $1 | sed -e 's#/$##' | sed -e 's/^\.\///'`
 
-set fieldlist=("total ice area  (km^2)" \
-               "total ice extent(km^2)" \
-               "total ice volume (m^3)")
+#set basename = `echo $1:t`
+set basename = $1
+
+set fieldlist=("area fraction  " \
+               "avg ice thickness (m)" \
+               "avg snow depth (m)")
 
 # Get the filename for the latest log
-foreach file ($1/logs/icepack.runlog.*)
-  set logfile = $file
-end
+set logfile = $1
 
 # Loop through each field and create the plot
 foreach field ($fieldlist:q)
   set fieldname = `echo "$field" | sed -e 's/([^()]*)//g'`
+  set search = "'$fieldname'\|istep1"
+  rm -f data.txt
   # Create the new data file that houses the timeseries data
-  awk -v field="$fieldname" \
-      '$0 ~ field {count++; print int(count/24)+1"-"count % 24 ","$(NF-1)","$NF}' \
-      $logfile > data.txt
+  # assumes daily output
+  foreach line ("`egrep $search $logfile`")
+    if ("$line" =~ *"istep1"*) then
+      set argv = ( $line )
+      set date = $4
+      @ hour = ( $6 / 3600 )
+    else
+      set data1 = `echo $line | rev | cut -d ' ' -f1 | rev`
+      echo "$date-$hour,$data1" >> data.txt
+    endif
+  end
+  set format = "%Y%m%d-%H"
+
+  # Set x-axis limits
+    # User-defined x-axis limits
+  # set xrange = "set xrange ['20150301':'20150901']"
+    # ...Or let gnuplot determine x-axis limits
+  set xrange = ""
+
+  # Set y-axis limits
+  if ("$fieldname" =~ *"area fraction"*) then
+    set yrange = "set yrange [0:1]"
+  else if ("$fieldname" =~ *"avg ice thickness"*) then
+    set yrange = "set yrange [0:5]"  # in meters
+  else if ("$fieldname" =~ *"avg snow depth"*) then
+    set yrange = "set yrange [0:0.5]"  # in meters
+  else
+    set yrange = ""
+  endif
 
   set output = `echo $fieldname | sed 's/ /_/g'`
-  set output = "${output}_${basename}.png"
+  set output = "${basename}_${output}.png"
 
   echo "Plotting data for '$fieldname' and saving to $output"
 
@@ -42,7 +70,7 @@ set terminal png size 1920,960
 
 # x-axis 
 set xdata time
-set timefmt "%j-%H"
+set timefmt "$format"
 set format x "%Y/%m/%d"
 
 # Axis tick marks
@@ -52,12 +80,19 @@ set title "Annual ICEPACK Test $field (Diagnostic Print)"
 set ylabel "$field" 
 set xlabel "Simulation Day" 
 
-set key left top
+# Set y-axis limits
+$yrange
 
-plot "data.txt" using (timecolumn(1)-63072000):2 with lines lw 2 lt 3 title "Arctic", \
-     "" using (timecolumn(1)-63072000):3 with lines lw 2 lt 1 title "Antarctic"
+# Set x-axis limits
+$xrange
+
+# Since only 1 field is plotted, turn off legend
+set key off
+
+plot "data.txt" using (timecolumn(1)):2 with lines lw 2 lt 1 title " "
+
 EOF
 
 # Delete the data file
-rm data.txt
+/bin/rm data.txt
 end

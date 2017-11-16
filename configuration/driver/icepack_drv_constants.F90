@@ -7,8 +7,15 @@
 
       module icepack_drv_constants
 
-      use icepack_kinds_mod
-      use icepack_constants ! all constants needed for column package
+      use icepack_drv_kinds
+      use icepack_constants, only: c0, c1, c2, c3, c4, c5, c10, c20, c100, c1000
+      use icepack_constants, only: p001, p1, p2, c6, p5, puny, pi
+      use icepack_constants, only: secday, dragio, stefan_boltzmann
+      use icepack_constants, only: tffresh, Tsmelt, depressT
+      use icepack_constants, only: emissivity, vonkar, zref, iceruf, albocn
+      use icepack_constants, only: rhoi, rhos, rhow, rhofresh
+      use icepack_constants, only: lfresh, lvap, ice_ref_salinity, cp_ice, cp_ocn
+      use icepack_constants, only: awtvdr, awtidr, awtvdf, awtidf
 
       implicit none
       save
@@ -25,6 +32,7 @@
          nu_rst_pointer = 11, &      ! unit for restart pointer file
          nu_restart = 12, &          ! unit for restart file
          nu_dump    = 13, &          ! unit for dump file
+         nu_forcing    = 14, &          ! unit for forcing file
          nu_diag    = ice_stdout, &     ! unit for diagnostic output
          nu_diag_out = 100
 
@@ -67,9 +75,7 @@
         p027 = p055*p5, &
         p222 = c2/c9, &
         eps13  = 1.0e-13_dbl_kind, &
-        eps16  = 1.0e-16_dbl_kind, &
-        piq    = p5*pih, &
-        pi2    = c2*pi
+        eps16  = 1.0e-16_dbl_kind
 
       !-----------------------------------------------------------------
       ! conversion factors
@@ -80,8 +86,7 @@
         m_to_cm       = 100._dbl_kind   ,&! meters to cm
         m2_to_km2     = 1.e-6_dbl_kind  ,&! m^2 to km^2
         kg_to_g       = 1000._dbl_kind  ,&! kilograms to grams
-        mps_to_cmpdy  = 8.64e6_dbl_kind ,&! m per s to cm per day
-        rad_to_deg    = 180._dbl_kind/pi  ! degree-radian conversion
+        mps_to_cmpdy  = 8.64e6_dbl_kind   ! m per s to cm per day
 
 !=======================================================================
 

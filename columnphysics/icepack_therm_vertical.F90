@@ -20,14 +20,16 @@
 
       module icepack_therm_vertical
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, c3, p001, p5, puny, &
-          pi, depressT, Lvap, hs_min, cp_ice, &
-          cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
-      use icepack_intfc_shared, only: ktherm, heat_capacity, calc_Tsfc, min_salin
-      use icepack_therm_shared, only: ferrmax, l_brine, &
-                                  calculate_tin_from_qin, Tmin
-      use icepack_therm_bl99, only: temperature_changes
+      use icepack_kinds
+      use icepack_constants, only: c0, c1, c3, p001, p5, puny
+      use icepack_constants, only: pi, depressT, Lvap, hs_min, cp_ice
+      use icepack_constants, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
+      use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc, min_salin
+      use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
+      use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd
+      use icepack_therm_shared, only: ferrmax, l_brine
+      use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
+      use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_0layer, only: zerolayer_temperature
       use icepack_warnings, only: add_warning
 
@@ -35,7 +37,9 @@
       save
 
       private
-      public :: frzmlt_bottom_lateral, thermo_vertical
+      public :: frzmlt_bottom_lateral, &
+                thermo_vertical, &
+                icepack_step_therm1
 
 !=======================================================================
 
@@ -639,11 +643,9 @@
                                        einit,    Tbot,     &
                                        l_stop,   stop_label)
 
-      use icepack_mushy_physics, only: temperature_mush, &
-                                   liquidus_temperature_mush, &
-                                   enthalpy_of_melting
-
-      use icepack_constants, only: p1 !!!AKT Column!!!
+      use icepack_mushy_physics, only: temperature_mush
+      use icepack_mushy_physics, only: liquidus_temperature_mush
+      use icepack_mushy_physics, only: enthalpy_of_melting
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1021,10 +1023,10 @@
                                     zSin,      sss,      &
                                     dsnow)
 
-      use icepack_intfc_shared, only: phi_i_mushy
-      use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting, &
-                           temperature_mush, liquidus_temperature_mush, &
-                           liquid_fraction
+      use icepack_parameters, only: phi_i_mushy
+      use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
+      use icepack_mushy_physics, only: temperature_mush, liquidus_temperature_mush
+      use icepack_mushy_physics, only: liquid_fraction
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1088,9 +1090,6 @@
 
       ! local variables
 
-      real (kind=dbl_kind), parameter :: &
-         qbotmax = -p5*rhoi*Lfresh  ! max enthalpy of ice growing at bottom
-
       integer (kind=int_kind) :: &
          k               ! vertical index
 
@@ -1104,6 +1103,7 @@
          emlt_ocn        ! total energy of brine, to ocean        (J m-2)
 
       real (kind=dbl_kind) :: &
+         qbotmax     , & ! max enthalpy of ice growing at bottom
          dhi         , & ! change in ice thickness
          dhs         , & ! change in snow thickness
          Ti          , & ! ice temperature
@@ -1252,6 +1252,7 @@
          ! enthalpy of new ice growing at bottom surface
          if (heat_capacity) then
             if (l_brine) then
+               qbotmax = -p5*rhoi*Lfresh  ! max enthalpy of ice growing at bottom
                qbot = -rhoi * (cp_ice * (Tmlts-Tbot) &
                     + Lfresh * (c1-Tmlts/Tbot) &
                     - cp_ocn * Tmlts)
@@ -1987,6 +1988,576 @@
       endif
       
       end subroutine update_state_vthermo
+
+!=======================================================================
+
+! Driver for thermodynamic changes not needed for coupling:
+! transport in thickness space, lateral growth and melting.
+!
+! authors: William H. Lipscomb, LANL
+!          Elizabeth C. Hunke, LANL
+
+      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, &
+                                    aicen_init  ,               &
+                                    vicen_init  , vsnon_init  , &
+                                    aice        , aicen       , &
+                                    vice        , vicen       , &
+                                    vsno        , vsnon       , &
+                                    uvel        , vvel        , &
+                                    Tsfc        , zqsn        , &
+                                    zqin        , zSin        , &
+                                    alvl        , vlvl        , &
+                                    apnd        , hpnd        , &
+                                    ipnd        ,               &
+                                    iage        , FY          , &
+                                    aerosno     , aeroice     , &
+                                    uatm        , vatm        , &
+                                    wind        , zlvl        , &
+                                    Qa          , rhoa        , &
+                                    Tair        , Tref        , &
+                                    Qref        , Uref        , &
+                                    Cdn_atm_ratio,              &
+                                    Cdn_ocn     , Cdn_ocn_skin, &
+                                    Cdn_ocn_floe, Cdn_ocn_keel, &
+                                    Cdn_atm     , Cdn_atm_skin, &
+                                    Cdn_atm_floe, Cdn_atm_pond, &
+                                    Cdn_atm_rdg , hfreebd     , &
+                                    hdraft      , hridge      , &
+                                    distrdg     , hkeel       , &
+                                    dkeel       , lfloe       , &
+                                    dfloe       ,               &
+                                    strax       , stray       , &
+                                    strairxT    , strairyT    , &
+                                    potT        , sst         , &
+                                    sss         , Tf          , &
+                                    strocnxT    , strocnyT    , &
+                                    fbot        ,               &
+                                    frzmlt      , rside       , &
+                                    fsnow       , frain       , &
+                                    fpond       ,               &
+                                    fsurf       , fsurfn      , &
+                                    fcondtop    , fcondtopn   , &
+                                    fswsfcn     , fswintn     , &
+                                    fswthrun    , fswabs      , &
+                                    flwout      ,               &
+                                    Sswabsn     , Iswabsn     , &
+                                    flw         , coszen      , & 
+                                    fsens       , fsensn      , &
+                                    flat        , flatn       , &
+                                    evap        ,               &
+                                    fresh       , fsalt       , &
+                                    fhocn       , fswthru     , &
+                                    flatn_f     , fsensn_f    , &
+                                    fsurfn_f    , fcondtopn_f , &
+                                    faero_atm   , faero_ocn   , &
+                                    dhsn        , ffracn      , &
+                                    meltt       , melttn      , &
+                                    meltb       , meltbn      , &
+                                    meltl       ,               &
+                                    melts       , meltsn      , &
+                                    congel      , congeln     , &
+                                    snoice      , snoicen     , &
+                                    dsnown      , frazil      , &
+                                    lmask_n     , lmask_s     , &
+                                    mlt_onset   , frz_onset   , &
+                                    yday        , l_stop      , &
+                                    stop_label  , prescribed_ice)
+
+      use icepack_aerosol, only: update_aerosol
+      use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
+      use icepack_age, only: increment_age
+      use icepack_firstyear, only: update_FYarea
+      use icepack_flux, only: set_sfcflux, merge_fluxes
+      use icepack_meltpond_cesm, only: compute_ponds_cesm
+      use icepack_meltpond_lvl, only: compute_ponds_lvl
+      use icepack_meltpond_topo, only: compute_ponds_topo
+      use icepack_therm_shared, only: hi_min
+      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond
+      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+
+      integer (kind=int_kind), intent(in) :: &
+         ncat    , & ! number of thickness categories
+         nilyr   , & ! number of ice layers
+         nslyr   , & ! number of snow layers
+         n_aero      ! number of aerosol tracers in use
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt          , & ! time step
+         uvel        , & ! x-component of velocity (m/s)
+         vvel        , & ! y-component of velocity (m/s)
+         strax       , & ! wind stress components (N/m^2)
+         stray       , & ! 
+         yday            ! day of year
+
+      logical (kind=log_kind), intent(in) :: &
+         lmask_n     , & ! northern hemisphere mask
+         lmask_s         ! southern hemisphere mask
+
+      logical (kind=log_kind), intent(in), optional :: &
+         prescribed_ice  ! if .true., use prescribed ice instead of computed
+
+      real (kind=dbl_kind), intent(inout) :: &
+         aice        , & ! sea ice concentration
+         vice        , & ! volume per unit area of ice          (m)
+         vsno        , & ! volume per unit area of snow         (m)
+         zlvl        , & ! atm level height (m)
+         uatm        , & ! wind velocity components (m/s)
+         vatm        , &
+         wind        , & ! wind speed (m/s)
+         potT        , & ! air potential temperature  (K)
+         Tair        , & ! air temperature  (K)
+         Qa          , & ! specific humidity (kg/kg)
+         rhoa        , & ! air density (kg/m^3)
+         frain       , & ! rainfall rate (kg/m^2 s)
+         fsnow       , & ! snowfall rate (kg/m^2 s)
+         fpond       , & ! fresh water flux to ponds (kg/m^2/s)
+         fresh       , & ! fresh water flux to ocean (kg/m^2/s)
+         fsalt       , & ! salt flux to ocean (kg/m^2/s)
+         fhocn       , & ! net heat flux to ocean (W/m^2)
+         fswthru     , & ! shortwave penetrating to ocean (W/m^2)
+         fsurf       , & ! net surface heat flux (excluding fcondtop)(W/m^2)
+         fcondtop    , & ! top surface conductive flux        (W/m^2)
+         fsens       , & ! sensible heat flux (W/m^2)
+         flat        , & ! latent heat flux   (W/m^2)
+         fswabs      , & ! shortwave flux absorbed in ice and ocean (W/m^2)
+         coszen      , & ! cosine solar zenith angle, < 0 for sun below horizon 
+         flw         , & ! incoming longwave radiation (W/m^2)
+         flwout      , & ! outgoing longwave radiation (W/m^2)
+         evap        , & ! evaporative water flux (kg/m^2/s)
+         congel      , & ! basal ice growth         (m/step-->cm/day)
+         frazil      , & ! frazil ice growth        (m/step-->cm/day)
+         snoice      , & ! snow-ice formation       (m/step-->cm/day)
+         Tref        , & ! 2m atm reference temperature (K)
+         Qref        , & ! 2m atm reference spec humidity (kg/kg)
+         Uref        , & ! 10m atm reference wind speed (m/s)
+         Cdn_atm     , & ! atm drag coefficient
+         Cdn_ocn     , & ! ocn drag coefficient
+         hfreebd     , & ! freeboard (m)
+         hdraft      , & ! draft of ice + snow column (Stoessel1993)
+         hridge      , & ! ridge height
+         distrdg     , & ! distance between ridges
+         hkeel       , & ! keel depth
+         dkeel       , & ! distance between keels
+         lfloe       , & ! floe length
+         dfloe       , & ! distance between floes
+         Cdn_atm_skin, & ! neutral skin drag coefficient
+         Cdn_atm_floe, & ! neutral floe edge drag coefficient
+         Cdn_atm_pond, & ! neutral pond edge drag coefficient
+         Cdn_atm_rdg , & ! neutral ridge drag coefficient
+         Cdn_ocn_skin, & ! skin drag coefficient
+         Cdn_ocn_floe, & ! floe edge drag coefficient
+         Cdn_ocn_keel, & ! keel drag coefficient
+         Cdn_atm_ratio,& ! ratio drag atm / neutral drag atm
+         strairxT    , & ! stress on ice by air, x-direction
+         strairyT    , & ! stress on ice by air, y-direction
+         strocnxT    , & ! ice-ocean stress, x-direction
+         strocnyT    , & ! ice-ocean stress, y-direction
+         fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
+         frzmlt      , & ! freezing/melting potential (W/m^2)
+         rside       , & ! fraction of ice that melts laterally
+         sst         , & ! sea surface temperature (C)
+         Tf          , & ! freezing temperature (C)
+         sss         , & ! sea surface salinity (ppt)
+         meltt       , & ! top ice melt             (m/step-->cm/day)
+         melts       , & ! snow melt                (m/step-->cm/day)
+         meltb       , & ! basal ice melt           (m/step-->cm/day)
+         meltl       , & ! lateral ice melt         (m/step-->cm/day)
+         mlt_onset   , & ! day of year that sfc melting begins
+         frz_onset       ! day of year that freezing begins (congel or frazil)
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         aicen_init  , & ! fractional area of ice
+         vicen_init  , & ! volume per unit area of ice (m)
+         vsnon_init  , & ! volume per unit area of snow (m)
+         aicen       , & ! concentration of ice
+         vicen       , & ! volume per unit area of ice          (m)
+         vsnon       , & ! volume per unit area of snow         (m)
+         Tsfc        , & ! ice/snow surface temperature, Tsfcn
+         alvl        , & ! level ice area fraction
+         vlvl        , & ! level ice volume fraction
+         apnd        , & ! melt pond area fraction
+         hpnd        , & ! melt pond depth (m)
+         ipnd        , & ! melt pond refrozen lid thickness (m)
+         iage        , & ! volume-weighted ice age
+         FY          , & ! area-weighted first-year ice area
+         fsurfn      , & ! net flux to top surface, excluding fcondtop
+         fcondtopn   , & ! downward cond flux at top surface (W m-2)
+         flatn       , & ! latent heat flux (W m-2)
+         fsensn      , & ! sensible heat flux (W m-2)
+         fsurfn_f    , & ! net flux to top surface, excluding fcondtop
+         fcondtopn_f , & ! downward cond flux at top surface (W m-2)
+         flatn_f     , & ! latent heat flux (W m-2)
+         fsensn_f    , & ! sensible heat flux (W m-2)
+         fswsfcn     , & ! SW absorbed at ice/snow surface (W m-2)
+         fswthrun    , & ! SW through ice to ocean            (W/m^2)
+         fswintn     , & ! SW absorbed in ice interior, below surface (W m-2)
+         faero_atm   , & ! aerosol deposition rate (kg/m^2 s)
+         faero_ocn   , & ! aerosol flux to ocean  (kg/m^2/s)
+         dhsn        , & ! depth difference for snow on sea ice and pond ice
+         ffracn      , & ! fraction of fsurfn used to melt ipond
+         meltsn      , & ! snow melt                       (m)
+         melttn      , & ! top ice melt                    (m)
+         meltbn      , & ! bottom ice melt                 (m)
+         congeln     , & ! congelation ice growth          (m)
+         snoicen     , & ! snow-ice growth                 (m)
+         dsnown          ! change in snow thickness (m/step-->cm/day)
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+         zqsn        , & ! snow layer enthalpy (J m-3)
+         zqin        , & ! ice layer enthalpy (J m-3)
+         zSin        , & ! internal ice layer salinities
+         Sswabsn     , & ! SW radiation absorbed in snow layers (W m-2)
+         Iswabsn         ! SW radiation absorbed in ice layers (W m-2)
+
+      real (kind=dbl_kind), dimension(:,:,:), intent(inout) :: &
+         aerosno    , &  ! snow aerosol tracer (kg/m^2)
+         aeroice         ! ice aerosol tracer (kg/m^2)
+
+      logical (kind=log_kind), intent(out) :: &
+         l_stop          ! if true, abort model
+
+      character (len=*), intent(out) :: &
+         stop_label      ! abort error message
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         n               ! category index
+
+      real (kind=dbl_kind) :: &
+         worka, workb    ! temporary variables
+
+      ! 2D coupler variables (computed for each category, then aggregated)
+      real (kind=dbl_kind) :: &
+         fswabsn     , & ! shortwave absorbed by ice          (W/m^2)
+         flwoutn     , & ! upward LW at surface               (W/m^2)
+         evapn       , & ! flux of vapor, atmos to ice   (kg m-2 s-1)
+         freshn      , & ! flux of water, ice to ocean     (kg/m^2/s)
+         fsaltn      , & ! flux of salt, ice to ocean      (kg/m^2/s)
+         fhocnn      , & ! fbot corrected for leftover energy (W/m^2)
+         strairxn    , & ! air/ice zonal  stress,             (N/m^2)
+         strairyn    , & ! air/ice meridional stress,         (N/m^2)
+         Cdn_atm_ratio_n, & ! drag coefficient ratio
+         Trefn       , & ! air tmp reference level                (K)
+         Urefn       , & ! air speed reference level            (m/s)
+         Qrefn       , & ! air sp hum reference level         (kg/kg)
+         Tbot        , & ! ice bottom surface temperature (deg C)
+         shcoef      , & ! transfer coefficient for sensible heat
+         lhcoef      , & ! transfer coefficient for latent heat
+         rfrac           ! water fraction retained for melt ponds
+
+      real (kind=dbl_kind) :: &
+         raice       , & ! 1/aice
+         pond            ! water retained in ponds (m)
+
+      !-----------------------------------------------------------------
+      ! Adjust frzmlt to account for ice-ocean heat fluxes since last
+      !  call to coupler.
+      ! Compute lateral and bottom heat fluxes.
+      !-----------------------------------------------------------------
+
+      call frzmlt_bottom_lateral (dt,        ncat,      &
+                                  nilyr,     nslyr,     &
+                                  aice,      frzmlt,    &
+                                  vicen,     vsnon,     &
+                                  zqin,      zqsn,      &
+                                  sst,       Tf,        &
+                                  ustar_min,            &
+                                  fbot_xfer_type,       &
+                                  strocnxT,  strocnyT,  &
+                                  Tbot,      fbot,      &
+                                  rside,     Cdn_ocn)
+      
+      !-----------------------------------------------------------------
+      ! Update the neutral drag coefficients to account for form drag
+      ! Oceanic and atmospheric drag coefficients
+      !-----------------------------------------------------------------
+
+      if (formdrag) then
+         call neutral_drag_coeffs (apnd         , &
+                                   hpnd        , ipnd         , &
+                                   alvl        , vlvl         , &
+                                   aice        , vice,          &
+                                   vsno        , aicen        , &
+                                   vicen       , vsnon        , &
+                                   Cdn_ocn     , Cdn_ocn_skin, &
+                                   Cdn_ocn_floe, Cdn_ocn_keel, &
+                                   Cdn_atm     , Cdn_atm_skin, &
+                                   Cdn_atm_floe, Cdn_atm_pond, &
+                                   Cdn_atm_rdg , hfreebd     , &
+                                   hdraft      , hridge      , &
+                                   distrdg     , hkeel       , &
+                                   dkeel       , lfloe       , &
+                                   dfloe       , ncat)
+      endif
+
+      do n = 1, ncat
+
+         meltsn (n) = c0
+         melttn (n) = c0
+         meltbn (n) = c0
+         congeln(n) = c0
+         snoicen(n) = c0
+         dsnown (n) = c0
+
+         Trefn  = c0
+         Qrefn  = c0
+         Urefn  = c0
+         lhcoef = c0
+         shcoef = c0
+         worka  = c0
+         workb  = c0
+
+         if (aicen_init(n) > puny) then
+
+            if (calc_Tsfc .or. calc_strair) then 
+
+      !-----------------------------------------------------------------
+      ! Atmosphere boundary layer calculation; compute coefficients
+      ! for sensible and latent heat fluxes.
+      !
+      ! NOTE: The wind stress is computed here for later use if 
+      !       calc_strair = .true.   Otherwise, the wind stress
+      !       components are set to the data values.
+      !-----------------------------------------------------------------
+
+               call icepack_atm_boundary( 'ice',                  &
+                                        Tsfc(n),  potT,          &
+                                        uatm,     vatm,          &
+                                        wind,     zlvl,          &
+                                        Qa,       rhoa,          &
+                                        strairxn, strairyn,      &
+                                        Trefn,    Qrefn,         &
+                                        worka,    workb,         &
+                                        lhcoef,   shcoef,        &
+                                        Cdn_atm,                 &
+                                        Cdn_atm_ratio_n,         &
+                                        uvel,     vvel,          &
+                                        Uref=Urefn)
+
+            endif   ! calc_Tsfc or calc_strair
+
+            if (.not.(calc_strair)) then
+#ifndef CICE_IN_NEMO
+               ! Set to data values (on T points)
+               strairxn = strax
+               strairyn = stray
+#else
+               ! NEMO wind stress is supplied on u grid, multipied 
+               ! by ice concentration and set directly in evp, so
+               ! strairxT/yT = 0. Zero u-components here for safety.
+               strairxn = c0
+               strairyn = c0
+#endif
+            endif
+
+      !-----------------------------------------------------------------
+      ! Update ice age
+      ! This is further adjusted for freezing in the thermodynamics.
+      ! Melting does not alter the ice age.
+      !-----------------------------------------------------------------
+
+            if (tr_iage) call increment_age (dt, iage(n))
+            if (tr_FY)   call update_FYarea (dt,               &
+                                             lmask_n, lmask_s, &
+                                             yday,    FY(n))
+
+      !-----------------------------------------------------------------
+      ! Vertical thermodynamics: Heat conduction, growth and melting.
+      !----------------------------------------------------------------- 
+
+            if (.not.(calc_Tsfc)) then
+
+               ! If not calculating surface temperature and fluxes, set 
+               ! surface fluxes (flatn, fsurfn, and fcondtopn) to be used 
+               ! in thickness_changes
+ 
+               ! hadgem routine sets fluxes to default values in ice-only mode
+               call set_sfcflux(aicen      (n),                 &
+                                flatn_f    (n), fsensn_f   (n), &
+                                fcondtopn_f(n),                 &
+                                fsurfn_f   (n),                 &
+                                flatn      (n), fsensn     (n), &
+                                fsurfn     (n),                 &
+                                fcondtopn  (n))
+            endif
+
+            call thermo_vertical(nilyr,        nslyr,        &
+                                 dt,           aicen    (n), &
+                                 vicen    (n), vsnon    (n), &
+                                 Tsfc     (n), zSin   (:,n), &
+                                 zqin   (:,n), zqsn   (:,n), &
+                                 apnd     (n), hpnd     (n), &
+                                 iage     (n), tr_pond_topo, &
+                                 flw,          potT,         &
+                                 Qa,           rhoa,         &
+                                 fsnow,        fpond,        &
+                                 fbot,         Tbot,         &
+                                 sss,                        &
+                                 lhcoef,       shcoef,       &
+                                 fswsfcn  (n), fswintn  (n), &
+                                 Sswabsn(:,n), Iswabsn(:,n), &
+                                 fsurfn   (n), fcondtopn(n), &
+                                 fsensn   (n), flatn    (n), &
+                                 flwoutn,      evapn,        &
+                                 freshn,       fsaltn,       &
+                                 fhocnn,                     &
+                                 melttn   (n), meltsn   (n), &
+                                 meltbn   (n),               &
+                                 congeln  (n), snoicen  (n), &
+                                 mlt_onset,    frz_onset,    &
+                                 yday,         dsnown   (n), &
+                                 l_stop,       stop_label,   &
+                                 prescribed_ice)
+               
+            if (l_stop) then
+               stop_label = 'ice: Vertical thermo error: '//trim(stop_label)
+               return
+            endif
+               
+      !-----------------------------------------------------------------
+      ! Total absorbed shortwave radiation
+      !-----------------------------------------------------------------
+
+            fswabsn = fswsfcn(n) + fswintn(n) + fswthrun(n)
+
+      !-----------------------------------------------------------------
+      ! Aerosol update
+      !-----------------------------------------------------------------
+
+            if (tr_aero) then
+               call update_aerosol (dt,                             &
+                                    nilyr, nslyr, n_aero,           &
+                                    melttn     (n), meltsn     (n), &
+                                    meltbn     (n), congeln    (n), &
+                                    snoicen    (n), fsnow,          &
+                                    aerosno(:,:,n), aeroice(:,:,n), &
+                                    aicen_init (n), vicen_init (n), &
+                                    vsnon_init (n),                 &
+                                    vicen      (n), vsnon      (n), &
+                                    aicen      (n),                 &
+                                    faero_atm     ,  faero_ocn)
+            endif
+
+         endif   ! aicen_init
+
+      !-----------------------------------------------------------------
+      ! Melt ponds
+      ! If using tr_pond_cesm, the full calculation is performed here.
+      ! If using tr_pond_topo, the rest of the calculation is done after
+      ! the surface fluxes are merged, below.
+      !-----------------------------------------------------------------
+
+         !call ice_timer_start(timer_ponds)
+         if (tr_pond) then
+               
+            if (tr_pond_cesm) then
+               rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n) 
+               call compute_ponds_cesm(dt,        hi_min,    &
+                                       pndaspect, rfrac,     &
+                                       melttn(n), meltsn(n), &
+                                       frain,                &
+                                       aicen (n), vicen (n), &
+                                       vsnon (n), Tsfc  (n), &
+                                       apnd  (n), hpnd  (n))
+                  
+            elseif (tr_pond_lvl) then
+               rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
+               call compute_ponds_lvl(dt,        nilyr,     &
+                                      ktherm,               &
+                                      hi_min,               &
+                                      dpscale,   frzpnd,    &
+                                      pndaspect, rfrac,     &
+                                      melttn(n), meltsn(n), &
+                                      frain,     Tair,      &
+                                      fsurfn(n),            &
+                                      dhsn  (n), ffracn(n), &
+                                      aicen (n), vicen (n), &
+                                      vsnon (n),            &
+                                      zqin(:,n), zSin(:,n), &
+                                      Tsfc  (n), alvl  (n), &
+                                      apnd  (n), hpnd  (n), &
+                                      ipnd  (n))
+                  
+            elseif (tr_pond_topo) then
+               if (aicen_init(n) > puny) then
+                     
+                  ! collect liquid water in ponds
+                  ! assume salt still runs off
+                  rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
+                  pond = rfrac/rhofresh * (melttn(n)*rhoi &
+                       +                   meltsn(n)*rhos &
+                       +                   frain *dt)
+
+                  ! if pond does not exist, create new pond over full ice area
+                  ! otherwise increase pond depth without changing pond area
+                  if (apnd(n) < puny) then
+                     hpnd(n) = c0
+                     apnd(n) = c1
+                  endif
+                  hpnd(n) = (pond + hpnd(n)*apnd(n)) / apnd(n)
+                  fpond = fpond + pond * aicen(n) ! m
+               endif ! aicen_init
+            endif
+
+         endif ! tr_pond
+         !call ice_timer_stop(timer_ponds)
+
+      !-----------------------------------------------------------------
+      ! Increment area-weighted fluxes.
+      !-----------------------------------------------------------------
+
+         if (aicen_init(n) > puny) &
+            call merge_fluxes (aicen_init(n),            &
+                               flw,        coszen,       & 
+                               strairxn,   strairyn,     &
+                               Cdn_atm_ratio_n,          &
+                               fsurfn(n),  fcondtopn(n), &
+                               fsensn(n),  flatn(n),     &
+                               fswabsn,    flwoutn,      &
+                               evapn,                    &
+                               Trefn,      Qrefn,        &
+                               freshn,     fsaltn,       &
+                               fhocnn,     fswthrun(n),  &
+                               strairxT,   strairyT,     &
+                               Cdn_atm_ratio,            &
+                               fsurf,      fcondtop,     &
+                               fsens,      flat,         &
+                               fswabs,     flwout,       &
+                               evap,                     &
+                               Tref,       Qref,         &
+                               fresh,      fsalt,        &
+                               fhocn,      fswthru,      &
+                               melttn (n), meltsn(n),    &
+                               meltbn (n), congeln(n),   &
+                               snoicen(n),               &
+                               meltt,      melts,        &
+                               meltb,      congel,       &
+                               snoice,                   &
+                               Uref,       Urefn)
+
+      enddo                  ! ncat
+
+      !-----------------------------------------------------------------
+      ! Calculate ponds from the topographic scheme
+      !-----------------------------------------------------------------
+      !call ice_timer_start(timer_ponds)
+      if (tr_pond_topo) then
+         call compute_ponds_topo(dt,       ncat,      nilyr,     &
+                                 ktherm,   heat_capacity,        &
+                                 aice,     aicen,                &
+                                 vice,     vicen,                &
+                                 vsno,     vsnon,                &
+                                 potT,     meltt,                &
+                                 fsurf,    fpond,                &
+                                 Tsfc,     Tf,                   &
+                                 zqin,     zSin,                 &
+                                 apnd,     hpnd,      ipnd,      &
+                                 l_stop,   stop_label)
+      endif
+      !call ice_timer_stop(timer_ponds)
+
+      end subroutine icepack_step_therm1
 
 !=======================================================================
 

@@ -1,0 +1,47 @@
+#!/bin/csh -f
+
+if ($#argv < 1) then
+  echo "Usage: ./icepack.run.suite <platform>"
+  echo "Example: ./icepack.run.suite onyx"
+  exit -1
+endif
+
+setenv PLATFORM "$1"
+setenv host `uname -n`
+if ("$host" !~ *"$PLATFORM"*) then
+  echo "Hostname: $host"
+  echo "PLATFORM: $PLATFORM"
+  echo "Host and Platform should be similar.  Ensure that PLATFORM was set correctly"
+  exit -1
+endif
+
+echo " "
+echo "${0}:"
+
+#git checkout master
+
+git pull
+
+./icepack.create.case -m $PLATFORM -ts base_suite -testid reg99 -bc icepackv6.0.0
+
+cd base_suite.reg99
+
+# Get a list of subdirectories
+foreach dir (`ls -d */`)
+  # Check for log file in this directory
+  set dir_trimmed=`echo $dir | sed -e 's#/$##'`
+  echo "dir_trimmed $dir_trimmed"
+  while ( `find $dir -name "${dir_trimmed}.*" -print` == "")
+    echo "waiting on job $dir_trimmed to finish"
+    sleep 10
+  end
+  echo "---------           job $dir_trimmed FINISHED"
+end
+
+./results.csh
+
+ctest -S steer.cmake
+
+cd ..
+
+rm -rf base_suite.reg99

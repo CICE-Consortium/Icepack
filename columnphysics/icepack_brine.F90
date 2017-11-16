@@ -7,17 +7,25 @@
 !
       module icepack_brine
 
-      use icepack_kinds_mod
-      use icepack_constants
-      use icepack_intfc_tracers, only: ntrcr, nt_qice, nt_sice, nt_bgc_S 
-      use icepack_zbgc_shared
+      use icepack_kinds
+      use icepack_constants, only: p01, p001, p5, c0, c1, c2, c1p5, puny
+      use icepack_constants, only: gravit, rhoi, rhow, rhos, depressT
+      use icepack_parameters, only: dts_b, salt_loss
+      use icepack_tracers, only: ntrcr, nt_qice, nt_sice, nt_bgc_S 
+      use icepack_zbgc_shared, only: k_o, exp_h, Dm, Ra_c, viscos_dynamic, thinS
+      use icepack_zbgc_shared, only: remap_zbgc
       use icepack_warnings, only: add_warning
 
       implicit none
 
       private
-      public :: preflushing_changes, compute_microS_mushy, &
-                update_hbrine, compute_microS, calculate_drho
+      public :: preflushing_changes, &
+                compute_microS_mushy, &
+                update_hbrine, &
+                compute_microS, &
+                calculate_drho, &
+                icepack_init_hbrine, &
+                icepack_init_zsalinity
  
       real (kind=dbl_kind), parameter :: &   
          maxhbr  = 1.25_dbl_kind  , & ! brine overflows if hbr > maxhbr*hin
@@ -146,7 +154,7 @@
 
       use icepack_therm_mushy, only: permeability
       use icepack_mushy_physics, only: temperature_mush, liquid_fraction
-      use icepack_intfc_shared, only: l_sk, min_salin
+      use icepack_parameters, only: l_sk, min_salin
 
       integer (kind=int_kind), intent(in) :: &
          n_cat       , & ! ice category
@@ -331,7 +339,7 @@
                                  kperm,      bphi_min,  phi_snow, &
                                  i_grid,     sss)
 
-      use icepack_intfc_shared, only: rhosi
+      use icepack_parameters, only: rhosi
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
       integer (kind=int_kind), intent(in) :: &
@@ -471,7 +479,7 @@
                                 bphin,      aice0,       &
                                 dh_direct)
 
-      use icepack_intfc_shared, only: rhosi
+      use icepack_parameters, only: rhosi
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! timestep
@@ -601,8 +609,8 @@
                                    salinz,     l_stop,   stop_label)
  
       use icepack_therm_shared, only: calculate_Tin_from_qin
-      use icepack_intfc_tracers, only: nt_fbri, nt_Tsfc
-      use icepack_intfc_shared, only: min_salin, rhosi, salt_loss
+      use icepack_tracers, only: nt_fbri, nt_Tsfc
+      use icepack_parameters, only: min_salin, rhosi, salt_loss
 
       integer (kind=int_kind), intent(in) :: &
          n_cat       , & ! ice category
@@ -941,6 +949,141 @@
      enddo
 
      end subroutine calculate_drho
+
+!=======================================================================
+
+!  Initialize brine height tracer
+
+      subroutine icepack_init_hbrine(bgrid, igrid, cgrid, &
+          icgrid, swgrid, nblyr, nilyr, phi_snow)
+
+      integer (kind=int_kind), intent(in) :: &
+         nilyr, & ! number of ice layers
+         nblyr    ! number of bio layers
+
+      real (kind=dbl_kind), intent(inout) :: &
+         phi_snow           !porosity at the ice-snow interface
+
+      real (kind=dbl_kind), dimension (nblyr+2), intent(out) :: &
+         bgrid              ! biology nondimensional vertical grid points
+
+      real (kind=dbl_kind), dimension (nblyr+1), intent(out) :: &
+         igrid              ! biology vertical interface points
+ 
+      real (kind=dbl_kind), dimension (nilyr+1), intent(out) :: &
+         cgrid            , &  ! CICE vertical coordinate   
+         icgrid           , &  ! interface grid for CICE (shortwave variable)
+         swgrid                ! grid for ice tracers used in dEdd scheme
+
+      integer (kind=int_kind) :: &
+         k           , & ! vertical index
+         n               ! thickness category index
+
+      real (kind=dbl_kind) :: & 
+         zspace            ! grid spacing for CICE vertical grid
+
+
+      if (phi_snow .le. c0) phi_snow = c1-rhos/rhoi
+
+      !-----------------------------------------------------------------
+      ! Calculate bio gridn: 0 to 1 corresponds to ice top to bottom 
+      !-----------------------------------------------------------------
+
+      bgrid(:)       = c0 ! zsalinity grid points         
+      bgrid(nblyr+2) = c1 ! bottom value
+      igrid(:)       = c0 ! bgc interface grid points   
+      igrid(1)       = c0 ! ice top
+      igrid(nblyr+1) = c1 ! ice bottom
+      
+      zspace = c1/max(c1,(real(nblyr,kind=dbl_kind)))
+      do k = 2, nblyr+1
+         bgrid(k) = zspace*(real(k,kind=dbl_kind) - c1p5)
+      enddo
+      
+      do k = 2, nblyr
+         igrid(k) = p5*(bgrid(k+1)+bgrid(k))
+      enddo
+
+      !-----------------------------------------------------------------
+      ! Calculate CICE cgrid for interpolation ice top (0) to bottom (1) 
+      !-----------------------------------------------------------------
+       
+      cgrid(1) = c0                           ! CICE vertical grid top point
+      zspace = c1/(real(nilyr,kind=dbl_kind)) ! CICE grid spacing
+    
+      do k = 2, nilyr+1
+         cgrid(k) = zspace * (real(k,kind=dbl_kind) - c1p5) 
+      enddo 
+
+      !-----------------------------------------------------------------
+      ! Calculate CICE icgrid for ishortwave interpolation top(0) , bottom (1)
+      !-----------------------------------------------------------------
+       
+      icgrid(1) = c0                        
+      zspace = c1/(real(nilyr,kind=dbl_kind)) ! CICE grid spacing
+    
+      do k = 2, nilyr+1
+         icgrid(k) = zspace * (real(k,kind=dbl_kind)-c1)
+      enddo 
+
+      !------------------------------------------------------------------------
+      ! Calculate CICE swgrid for dEdd ice: top of ice (0) , bottom of ice (1)
+      ! Does not include snow
+      ! see icepack_shortwave.F90
+      ! swgrid represents the layer index of the delta-eddington ice layer index
+      !------------------------------------------------------------------------ 
+      zspace = c1/(real(nilyr,kind=dbl_kind)) ! CICE grid spacing
+      swgrid(1) = min(c1/60.0_dbl_kind, zspace/c2)      
+      swgrid(2) = zspace/c2                   !+ swgrid(1)
+      do k = 3, nilyr+1
+         swgrid(k) = zspace * (real(k,kind=dbl_kind)-c1p5)
+      enddo 
+
+      end subroutine icepack_init_hbrine
+
+!=======================================================================
+
+!  Initialize zSalinity
+
+      subroutine icepack_init_zsalinity(nblyr,ntrcr_o,  Rayleigh_criteria, &
+               Rayleigh_real, trcrn, nt_bgc_S, ncat, sss)
+
+      integer (kind=int_kind), intent(in) :: &
+       nblyr, & ! number of biolayers
+       ntrcr_o, & ! number of non bio tracers
+       ncat , & ! number of categories
+       nt_bgc_S ! zsalinity index
+
+      logical (kind=log_kind), intent(inout) :: &
+       Rayleigh_criteria
+
+      real (kind=dbl_kind), intent(inout):: &
+       Rayleigh_real
+
+      real (kind=dbl_kind), intent(in):: &
+       sss
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout):: &
+       trcrn ! bgc subset of trcrn
+
+      integer (kind=int_kind) :: &
+        k, n
+      
+      if (nblyr .LE. 7) then
+          dts_b = 300.0_dbl_kind
+      else
+          dts_b = 50.0_dbl_kind 
+      endif
+
+      Rayleigh_criteria = .false.    ! no ice initial condition 
+      Rayleigh_real     = c0
+      do n = 1,ncat
+         do k = 1,nblyr
+            trcrn(nt_bgc_S+k-1-ntrcr_o,n) = sss*salt_loss
+         enddo   ! k
+      enddo      ! n
+
+      end subroutine icepack_init_zsalinity
 
 !=======================================================================
 

@@ -9,7 +9,7 @@
 
       module icepack_flux
 
-      use icepack_kinds_mod
+      use icepack_kinds
       use icepack_constants, only: c1, emissivity
       use icepack_warnings, only: add_warning
 
