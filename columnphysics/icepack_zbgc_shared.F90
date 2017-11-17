@@ -33,7 +33,7 @@
       ! Algal types: Diatoms, flagellates, Phaeocycstis
       ! DOC        : Proteins, EPS, Lipids
       !-----------------------------------------------------------------
-      real (kind=dbl_kind), parameter, dimension(max_dic), public :: &
+      real (kind=dbl_kind), dimension(max_dic), public :: &
          dictype   = (/-c1/)  ! not in namelist
 
       real (kind=dbl_kind), dimension(max_algae), public :: &
