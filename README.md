@@ -1,5 +1,9 @@
 *This repository is under construction, and some resources listed here are not yet available*
 
+Documentation:
+
+https://duvivier.github.io/Icepack/
+=======
 Please see the documentation here: https://duvivier.github.io/Icepack/
 
 ## Overview
