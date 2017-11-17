@@ -8,14 +8,14 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_parameters, only: max_algae, max_dic, max_doc, max_don
-      use icepack_parameters, only: max_fe, max_aero, max_nbtrcr
 
       implicit none
       save
 
       private
       public :: icepack_compute_tracers
+      public :: icepack_query_tracer_sizes
+      public :: icepack_write_tracer_sizes
       public :: icepack_init_tracer_flags
       public :: icepack_query_tracer_flags
       public :: icepack_write_tracer_flags
@@ -25,6 +25,27 @@
       public :: icepack_init_tracer_numbers
       public :: icepack_query_tracer_numbers
       public :: icepack_write_tracer_numbers
+
+      !-----------------------------------------------------------------
+      ! dimensions
+      !-----------------------------------------------------------------
+      integer (kind=int_kind), parameter, public :: &
+         max_algae  =   3       , & ! maximum number of algal types
+         max_dic    =   1       , & ! maximum number of dissolved inorganic carbon types
+         max_doc    =   3       , & ! maximum number of dissolved organic carbon types
+         max_don    =   1       , & ! maximum number of dissolved organic nitrogen types
+         max_fe     =   2       , & ! maximum number of iron types
+         nmodal1    =   10      , & ! dimension for modal aerosol radiation parameters
+         nmodal2    =   8       , & ! dimension for modal aerosol radiation parameters
+         max_aero   =   6       , & ! maximum number of aerosols
+         max_nbtrcr = max_algae*2 & ! algal nitrogen and chlorophyll
+                    + max_dic     & ! dissolved inorganic carbon
+                    + max_doc     & ! dissolved organic carbon
+                    + max_don     & ! dissolved organic nitrogen
+                    + 5           & ! nitrate, ammonium, silicate, PON, and humics
+                    + 3           & ! DMSPp, DMSPd, DMS
+                    + max_fe*2    & ! dissolved Fe and  particulate Fe
+                    + max_aero      ! aerosols
 
       integer (kind=int_kind), public :: &
          ntrcr   , &  ! number of tracers in use
@@ -155,6 +176,57 @@
 !=======================================================================
 
       contains
+
+!=======================================================================
+! query tracer sizes
+
+      subroutine icepack_query_tracer_sizes( &
+           max_algae_out  , max_dic_out    , max_doc_out    , &
+           max_don_out    , max_fe_out     , nmodal1_out    , &
+           nmodal2_out    , max_aero_out   , max_nbtrcr_out )
+
+        integer (kind=int_kind), intent(out), optional :: &
+             max_algae_out  , & ! maximum number of algal types
+             max_dic_out    , & ! maximum number of dissolved inorganic carbon types
+             max_doc_out    , & ! maximum number of dissolved organic carbon types
+             max_don_out    , & ! maximum number of dissolved organic nitrogen types
+             max_fe_out     , & ! maximum number of iron types
+             nmodal1_out    , & ! dimension for modal aerosol radiation parameters
+             nmodal2_out    , & ! dimension for modal aerosol radiation parameters
+             max_aero_out   , & ! maximum number of aerosols
+             max_nbtrcr_out     ! algal nitrogen and chlorophyll
+
+        if (present(max_algae_out))  max_algae_out = max_algae
+        if (present(max_dic_out))    max_dic_out   = max_dic
+        if (present(max_doc_out))    max_doc_out   = max_doc
+        if (present(max_don_out))    max_don_out   = max_don
+        if (present(max_fe_out))     max_fe_out    = max_fe
+        if (present(nmodal1_out))    nmodal1_out   = nmodal1
+        if (present(nmodal2_out))    nmodal2_out   = nmodal2
+        if (present(max_aero_out))   max_aero_out  = max_aero
+        if (present(max_nbtrcr_out)) max_nbtrcr_out= max_nbtrcr
+
+      end subroutine icepack_query_tracer_sizes
+
+!=======================================================================
+! write tracer sizes
+
+      subroutine icepack_write_tracer_sizes(iounit)
+
+        integer, intent(in) :: iounit
+
+        write(iounit,*) "icepack_write_tracer_sizes:"
+        write(iounit,*) '  max_algae_out =', max_algae
+        write(iounit,*) '  max_dic_out   =', max_dic
+        write(iounit,*) '  max_doc_out   =', max_doc
+        write(iounit,*) '  max_don_out   =', max_don
+        write(iounit,*) '  max_fe_out    =', max_fe
+        write(iounit,*) '  nmodal1_out   =', nmodal1
+        write(iounit,*) '  nmodal2_out   =', nmodal2
+        write(iounit,*) '  max_aero_out  =', max_aero
+        write(iounit,*) '  max_nbtrcr_out=', max_nbtrcr
+
+      end subroutine icepack_write_tracer_sizes
 
 !=======================================================================
 ! set tracer active flags

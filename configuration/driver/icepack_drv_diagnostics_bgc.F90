@@ -124,14 +124,14 @@
 
       use icepack_drv_arrays_column, only: ocean_bio, zfswin, fbio_atmice, fbio_snoice
       use icepack_drv_arrays_column, only: Zoo, grow_net, ice_bio_net, trcrn_sw
-      use icepack_drv_parameters,    only: skl_bgc, z_tracers
-      use icepack_drv_parameters,    only:  max_algae, max_aero, max_dic, max_doc, max_don, max_fe, dEdd_algae
+      use icepack_drv_parameters,    only: skl_bgc, z_tracers, dEdd_algae
       use icepack_drv_constants,     only: c0, mps_to_cmpdy, c100, p5, c1, secday
       use icepack_drv_diagnostics,   only: npnt, print_points
       use icepack_drv_domain_size,   only: ncat, nltrcr, nblyr, n_algae, n_zaero
       use icepack_drv_domain_size,   only: n_dic, n_doc, n_don, n_fed, n_fep, nilyr, nslyr
       use icepack_drv_flux,  only: flux_bio, flux_bio_atm
       use icepack_drv_state, only: aice, vicen, vice, trcr
+      use icepack_drv_tracers, only: max_algae, max_aero, max_dic, max_doc, max_don, max_fe
       use icepack_drv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
       use icepack_drv_tracers, only: tr_bgc_DON, tr_zaero, tr_bgc_hum
       use icepack_drv_tracers, only: tr_bgc_Fe

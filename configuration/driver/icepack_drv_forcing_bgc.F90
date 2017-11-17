@@ -35,7 +35,7 @@
 
       subroutine init_forcing_bgc
 
-        use icepack_drv_parameters, only: nit_data_type, sil_data_type
+        use icepack_drv_arrays_column, only: nit_data_type, sil_data_type
         use icepack_drv_forcing, only: data_dir 
 
         integer (kind=int_kind) :: &
@@ -89,9 +89,8 @@
       use icepack_drv_constants, only: secday
       use icepack_drv_flux, only: sss, sil, nit
       use icepack_drv_forcing, only: interp_coeff
-
-      use icepack_drv_parameters, only: nit_data_type, sil_data_type, bgc_data_dir, &
-          max_algae, max_doc, max_dic !cn, restore_bgc
+      use icepack_drv_arrays_column, only: nit_data_type, sil_data_type, bgc_data_dir
+      use icepack_drv_tracers, only: max_algae, max_doc, max_dic
       use icepack_drv_tracers, only: tr_bgc_Sil, tr_bgc_Nit
 
       integer (kind=int_kind) :: &
@@ -216,7 +215,8 @@
       subroutine init_bgc_data (fed1,fep1)
       !cn use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
       use icepack_drv_constants, only: c0, p1 !, nu_forcing
-      use icepack_drv_parameters, only: fe_data_type, bgc_data_dir, max_fe
+      use icepack_drv_tracers, only: max_fe
+      use icepack_drv_arrays_column, only: fe_data_type, bgc_data_dir
 
 #ifdef ncdf
       use netcdf

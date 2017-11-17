@@ -12,8 +12,8 @@
       use icepack_drv_domain_size, only: ncat, nilyr, nx
       use icepack_drv_constants, only: c0, c1, c5, c10, c20, c180, dragio
       use icepack_drv_constants, only: stefan_boltzmann, Tffresh, emissivity
-      use icepack_drv_parameters, only: max_aero, max_nbtrcr
-      use icepack_drv_parameters, only: max_algae, max_doc, max_don, max_dic, max_fe
+      use icepack_drv_tracers, only: max_aero, max_nbtrcr
+      use icepack_drv_tracers, only: max_algae, max_doc, max_don, max_dic, max_fe
 
       implicit none
       private

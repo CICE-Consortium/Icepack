@@ -325,8 +325,8 @@
 !          read_restart_bgc, restart_bgc
       use icepack_drv_state, only: trcrn, aicen, vicen, vsnon
       use icepack_drv_parameters, only: solve_zsal
-      use icepack_drv_parameters, only: max_algae, max_don, max_doc, max_dic, max_aero, max_fe
-      use icepack_drv_parameters, only: max_nbtrcr
+      use icepack_drv_tracers, only: max_algae, max_don, max_doc, max_dic, max_aero, max_fe
+      use icepack_drv_tracers, only: max_nbtrcr
 
       ! column package includes
       use icepack_intfc,   only: icepack_init_bgc, icepack_init_zsalinity
@@ -510,13 +510,18 @@
 !     use icepack_drv_restart_column, only: restart_hbrine
       use icepack_drv_state, only: trcr_base, trcr_depend, n_trcr_strata
       use icepack_drv_state, only: nt_strata
-      use icepack_drv_parameters, only: max_algae, max_don, max_doc, max_dic, max_aero
-      use icepack_drv_parameters, only: max_fe, max_nbtrcr, shortwave
+      use icepack_drv_arrays_column, only: bgc_data_dir
+      use icepack_drv_arrays_column, only: sil_data_type, nit_data_type, fe_data_type
+      use icepack_drv_tracers, only: max_algae, max_don, max_doc, max_dic, max_aero
+      use icepack_drv_tracers, only: max_fe, max_nbtrcr
+      use icepack_drv_parameters, only: shortwave
 
       use icepack_intfc, only: icepack_init_tracer_numbers, icepack_init_tracer_flags
       use icepack_intfc, only: icepack_init_tracer_indices
+      use icepack_intfc, only: icepack_init_parameters
       use icepack_intfc, only: icepack_query_tracer_numbers, icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_init_bgc_trcr,  icepack_init_zbgc
 
       integer (kind=int_kind) :: &
@@ -593,15 +598,12 @@
       integer (kind=int_kind) :: &
           ktherm
 
-      character (char_len) :: &
-          sil_data_type, nit_data_type, fe_data_type, bgc_flux_type
-
-      character (char_len_long) :: &
-          bgc_data_dir
-
       logical (kind=log_kind) :: &
           solve_zsal, skl_bgc, z_tracers, scale_bgc, solve_zbgc, dEdd_algae, &
           modal_aero, restore_bgc
+
+      character (char_len) :: &
+          bgc_flux_type
 
       real (kind=dbl_kind) :: &
           grid_o, l_sk, grid_o_t, initbio_frac, &
@@ -744,6 +746,17 @@
           nt_bgc_hum_out=nt_bgc_hum,   nlt_bgc_hum_out=nlt_bgc_hum, &
           bio_index_o_out=bio_index_o, bio_index_out=bio_index)
  
+      call icepack_query_parameters( &
+          ktherm_out=ktherm, shortwave_out=shortwave, solve_zsal_out=solve_zsal, &
+          skl_bgc_out=skl_bgc, z_tracers_out=z_tracers, scale_bgc_out=scale_bgc, &
+          dEdd_algae_out=dEdd_algae, &
+          solve_zbgc_out=solve_zbgc, &
+          bgc_flux_type_out=bgc_flux_type, grid_o_out=grid_o, l_sk_out=l_sk, &
+          initbio_frac_out=initbio_frac, &
+          grid_oS_out=grid_oS, l_skS_out=l_skS, &
+          phi_snow_out=phi_snow, &
+          modal_aero_out=modal_aero)
+
       !-----------------------------------------------------------------
       ! default values
       !-----------------------------------------------------------------
@@ -1155,7 +1168,18 @@
           nlt_bgc_DON_in=nlt_bgc_DON, nlt_bgc_Fed_in=nlt_bgc_Fed,   nlt_bgc_Fep_in=nlt_bgc_Fep, &
           nt_bgc_hum_in=nt_bgc_hum,   nlt_bgc_hum_in=nlt_bgc_hum, &
           bio_index_o_in=bio_index_o, bio_index_in=bio_index)
- 
+
+      call icepack_init_parameters( &
+          ktherm_in=ktherm, shortwave_in=shortwave, solve_zsal_in=solve_zsal, &
+          skl_bgc_in=skl_bgc, z_tracers_in=z_tracers, scale_bgc_in=scale_bgc, &
+          dEdd_algae_in=dEdd_algae, &
+          solve_zbgc_in=solve_zbgc, &
+          bgc_flux_type_in=bgc_flux_type, grid_o_in=grid_o, l_sk_in=l_sk, &
+          initbio_frac_in=initbio_frac, &
+          grid_oS_in=grid_oS, l_skS_in=l_skS, &
+          phi_snow_in=phi_snow, &
+          modal_aero_in=modal_aero)
+
       call icepack_init_zbgc (nblyr, nilyr, nslyr, &
                  n_algae, n_zaero, n_doc, n_dic, n_don, n_fed, n_fep, &
                  trcr_base, trcr_depend, n_trcr_strata, nt_strata, nbtrcr_sw, &
@@ -1216,7 +1240,7 @@
          write (nu_diag,*) 'nbtrcr > max_nbtrcr'
          write (nu_diag,*) 'nbtrcr, max_nbtrcr:',nbtrcr, max_nbtrcr
          stop
-      endif
+      endif	
       if (.NOT. dEdd_algae) nbtrcr_sw = 1
 
       if (nbtrcr_sw > max_nsw) then

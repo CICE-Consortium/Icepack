@@ -47,7 +47,7 @@
 
       use icepack_drv_calendar, only: sec, month, mday, nyr, istep1
       use icepack_drv_calendar, only: time, time_forc, year_init
-      use icepack_drv_parameters, only: oceanmixed_ice
+      use icepack_drv_arrays_column, only: oceanmixed_ice
       use icepack_drv_constants, only: nu_diag, nu_dump
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat, nx
       use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
@@ -177,7 +177,7 @@
 
       use icepack_drv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
       use icepack_intfc, only: icepack_aggregate
-      use icepack_drv_parameters, only: oceanmixed_ice
+      use icepack_drv_arrays_column, only: oceanmixed_ice
       use icepack_drv_constants, only: c0, p5, nu_diag, nu_restart
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat
       use icepack_drv_domain_size, only: max_ntrcr, nx

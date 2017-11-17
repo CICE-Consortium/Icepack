@@ -11,8 +11,8 @@
 
       use icepack_kinds
       use icepack_constants, only: p01, p1, p5, c0, c1
-      use icepack_parameters, only: max_nbtrcr, max_algae, max_doc
-      use icepack_parameters, only: max_dic, max_aero, max_don, max_fe
+      use icepack_tracers, only: max_nbtrcr, max_algae, max_doc
+      use icepack_tracers, only: max_dic, max_aero, max_don, max_fe
 
       implicit none 
 
@@ -24,8 +24,53 @@
                 merge_bgc_fluxes, &
                 merge_bgc_fluxes_skl
 
+      !-----------------------------------------------------------------
+      ! Transport type
+      !-----------------------------------------------------------------
+      ! In delta Eddington, algal particles are assumed to cause no
+      ! significant scattering (Brieglib and Light), only absorption
+      ! in the visible spectral band (200-700 nm)
+      ! Algal types: Diatoms, flagellates, Phaeocycstis
+      ! DOC        : Proteins, EPS, Lipids
+      !-----------------------------------------------------------------
+      real (kind=dbl_kind), parameter, dimension(max_dic), public :: &
+         dictype   = (/-c1/)  ! not in namelist
+
+      real (kind=dbl_kind), dimension(max_algae), public :: &
+         algaltype   ! tau_min for both retention and release
+
+      real (kind=dbl_kind), dimension(max_doc), public :: &
+         doctype
+
+      real (kind=dbl_kind), dimension(max_don), public :: &
+         dontype
+
+      real (kind=dbl_kind), dimension(max_fe), public :: &
+         fedtype
+
+      real (kind=dbl_kind), dimension(max_fe), public :: &
+         feptype
+
+      !------------------------------------------------------------
+      ! Aerosol order and type should be consistent with order/type
+      ! specified in delta Eddington:  1) hydrophobic black carbon;
+      ! 2) hydrophilic black carbon; 3) dust (0.05-0.5 micron);
+      ! 4) dust (0.5-1.25 micron); 5) dust (1.25-2.5 micron);
+      ! 6) dust (2.5-5 micron)
+      !-------------------------------------------------------------
+      real (kind=dbl_kind), dimension(max_aero), public :: &
+         zaerotype
+
       ! bio parameters for algal_dyn
  
+      real (kind=dbl_kind), dimension(max_algae), public :: &
+         R_C2N     ,      & ! algal C to N (mole/mole)
+         R_chl2N   ,      & ! 3 algal chlorophyll to N (mg/mmol)
+         F_abs_chl          ! to scale absorption in Dedd
+
+      real (kind=dbl_kind), dimension(max_don), public :: &  ! increase compare to algal R_Fe2C
+         R_C2N_DON
+
        real (kind=dbl_kind),  dimension(max_algae), public :: &
          R_Si2N     , & ! algal Sil to N (mole/mole) 
          R_S2N      , & ! algal S to N (mole/mole)
@@ -548,7 +593,7 @@
                                grow_net)
  
       use icepack_constants, only: c1, c0, p5, secday, puny
-      use icepack_parameters, only: solve_zbgc, max_nbtrcr, hs_ssl, R_C2N
+      use icepack_parameters, only: solve_zbgc, hs_ssl
       use icepack_parameters, only: fr_resp
       use icepack_tracers, only: nt_bgc_N, nt_fbri
 
@@ -675,7 +720,7 @@
 
       use icepack_constants, only: c1, secday, puny
       use icepack_tracers, only: nt_bgc_N
-      use icepack_parameters, only: sk_l, R_C2N, fr_resp
+      use icepack_parameters, only: sk_l, fr_resp
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr   , & ! number of cells with aicen > puny

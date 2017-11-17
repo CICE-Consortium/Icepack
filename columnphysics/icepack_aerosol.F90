@@ -39,8 +39,8 @@
                                 vicen, vsnon, aicen,  &
                                 faero_atm, faero_ocn)
 
-      use icepack_parameters, only: hi_ssl, hs_ssl, max_aero
-      use icepack_tracers, only: nt_aero 
+      use icepack_parameters, only: hi_ssl, hs_ssl
+      use icepack_tracers, only: nt_aero, max_aero
 
       integer (kind=int_kind), intent(in) :: &
          nilyr, nslyr, n_aero
