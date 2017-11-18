@@ -52,7 +52,6 @@
 
       use icepack_zbgc , only: icepack_init_bgc
       use icepack_zbgc , only: icepack_init_zbgc
-      use icepack_zbgc , only: icepack_init_bgc_trcr
       use icepack_zbgc , only: icepack_biogeochemistry
       use icepack_zbgc , only: icepack_init_OceanConcArray
       use icepack_zbgc , only: icepack_init_ocean_conc

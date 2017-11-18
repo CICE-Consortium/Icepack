@@ -34,7 +34,6 @@
                 lateral_melt_bgc, &
                 icepack_init_bgc, &
                 icepack_init_zbgc, &
-                icepack_init_bgc_trcr, &
                 icepack_biogeochemistry, &
                 icepack_init_OceanConcArray, &
                 icepack_init_ocean_conc
@@ -789,110 +788,6 @@
 
 
       end subroutine icepack_init_zbgc
-
-!=======================================================================
-
-      subroutine icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc,          nlt_bgc,       &
-                                      bgctype,         nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
-
-      use icepack_constants, only: c0, c1
-
-      integer (kind=int_kind), intent(in) :: &
-         nk           , & ! counter
-         nt_depend    , & ! tracer dependency index
-         nt_fbri
-
-      integer (kind=int_kind), intent(inout) :: &
-         ntrcr        , & ! number of tracers
-         nbtrcr       , & ! number of bio tracers
-         nt_bgc       , & ! tracer index
-         nlt_bgc          ! bio tracer index
-
-      integer (kind=int_kind), dimension(:), intent(inout) :: &
-         trcr_depend  , & ! tracer dependencies
-         n_trcr_strata, & ! number of underlying tracer layers
-         bio_index        !
-
-      integer (kind=int_kind), dimension(:,:), intent(inout) :: &
-         nt_strata        ! indices of underlying tracer layers
-
-      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
-         trcr_base        ! = 0 or 1 depending on tracer dependency
-                          ! argument 2:  (1) aice, (2) vice, (3) vsno
-
-      real (kind=dbl_kind), intent(in) :: &
-         bgctype          ! bio tracer transport type (mobile vs stationary)
-
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
-         bgc_tracer_type  ! bio tracer transport type array
-
-      ! local variables
-
-      integer (kind=int_kind) :: &
-         k         , & ! loop index
-         n_strata  , & ! temporary values
-         nt_strata1, & ! 
-         nt_strata2
-
-      real (kind=dbl_kind) :: &
-         trcr_base1, & ! temporary values
-         trcr_base2, &
-         trcr_base3
-
-      !--------
-
-      nt_bgc = ntrcr + 1 
-      nbtrcr = nbtrcr + 1
-      nlt_bgc = nbtrcr
-      bgc_tracer_type(nbtrcr) = bgctype
-         
-      if (nk > 1) then 
-         ! include vertical bgc in snow
-         do k = nk, nk+1
-            ntrcr = ntrcr + 1
-            trcr_depend  (nt_bgc + k  ) = 2 ! snow volume
-            trcr_base    (nt_bgc + k,1) = c0
-            trcr_base    (nt_bgc + k,2) = c0
-            trcr_base    (nt_bgc + k,3) = c1
-            n_trcr_strata(nt_bgc + k  ) = 0
-            nt_strata    (nt_bgc + k,1) = 0
-            nt_strata    (nt_bgc + k,2) = 0
-         enddo
-
-         trcr_base1 = c0      
-         trcr_base2 = c1     
-         trcr_base3 = c0
-         n_strata = 1    
-         nt_strata1 = nt_fbri
-         nt_strata2 = 0
-      else  ! nk = 1
-         trcr_base1 = c1
-         trcr_base2 = c0
-         trcr_base3 = c0
-         n_strata = 0
-         nt_strata1 = 0
-         nt_strata2 = 0
-      endif ! nk
-
-      do k = 1, nk     !in ice
-         ntrcr = ntrcr + 1
-         trcr_depend  (nt_bgc + k - 1  ) = nt_depend
-         trcr_base    (nt_bgc + k - 1,1) = trcr_base1
-         trcr_base    (nt_bgc + k - 1,2) = trcr_base2
-         trcr_base    (nt_bgc + k - 1,3) = trcr_base3
-         n_trcr_strata(nt_bgc + k - 1  ) = n_strata
-         nt_strata    (nt_bgc + k - 1,1) = nt_strata1
-         nt_strata    (nt_bgc + k - 1,2) = nt_strata2
-      enddo
-
-      bio_index (nlt_bgc) = nt_bgc
-
-      end subroutine icepack_init_bgc_trcr
 
 !=======================================================================
 
