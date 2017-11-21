@@ -45,9 +45,9 @@
       use icepack_drv_tracers, only: nt_bgc_DIC, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
       use icepack_drv_tracers, only: nt_bgc_hum
       use icepack_drv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
-      use icepack_drv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
+      use icepack_drv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep, skl_bgc
       use icepack_tracers, only: nt_zbgc_frac, nt_zaero
-      use icepack_drv_parameters, only: skl_bgc, solve_zsal
+      use icepack_drv_parameters, only: solve_zsal
 
       ! local variables
 
@@ -449,8 +449,8 @@
       use icepack_drv_tracers, only: nt_bgc_hum
       use icepack_drv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
       use icepack_drv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
+      use icepack_drv_tracers, only: skl_bgc
       use icepack_tracers, only: nt_zbgc_frac, nt_zaero
-      use icepack_drv_parameters, only: skl_bgc
 
       ! local variables
 

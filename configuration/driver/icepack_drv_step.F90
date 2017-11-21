@@ -895,8 +895,7 @@
 
       !-----------------------------------------------------------------
 
-      call icepack_query_tracer_flags(tr_brine_out=tr_brine)
-      call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine, skl_bgc_out=skl_bgc)
 
       if (tr_brine .or. skl_bgc) then
 

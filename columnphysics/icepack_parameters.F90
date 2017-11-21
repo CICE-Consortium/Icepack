@@ -441,9 +441,9 @@
            atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
            oceanmixed_ice_in, tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
            dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
-         ! bgc_data_dir_in, sil_data_type_in, nit_data_type_in, fe_data_type_in, &
-           bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, dEdd_algae_in, &
-           modal_aero_in, skl_bgc_in, solve_zsal_in, grid_o_in, l_sk_in, &
+          ! bgc_data_dir_in, sil_data_type_in, nit_data_type_in, fe_data_type_in, &
+           bgc_flux_type_in, scale_bgc_in, solve_zbgc_in, dEdd_algae_in, &
+           modal_aero_in, solve_zsal_in, grid_o_in, l_sk_in, &
            grid_o_t_in, initbio_frac_in, frazil_scav_in, grid_oS_in, l_skS_in, &
            phi_snow_in, ratio_Si2N_diatoms_in, ratio_Si2N_sp_in, ratio_Si2N_phaeo_in, &
            ratio_S2N_diatoms_in, ratio_S2N_sp_in, ratio_S2N_phaeo_in, ratio_Fe2C_diatoms_in, & 
@@ -596,25 +596,23 @@
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
-   !  character(char_len_long), intent(in), optional :: & 
-   !     bgc_data_dir_in   ! directory for biogeochemistry data
+    ! character(char_len_long), intent(in), optional :: & 
+    !    bgc_data_dir_in   ! directory for biogeochemistry data
 
      character(char_len), intent(in), optional :: &     
-        bgc_flux_type_in    ! type of ocean-ice piston velocity 
-                            ! 'constant', 'Jin2006'      
-    !    sil_data_type_in  , & ! 'default', 'clim'
-    !    nit_data_type_in  , & ! 'default', 'clim'   
-    !    fe_data_type_in   , & ! 'default', 'clim'      
+        bgc_flux_type_in      ! type of ocean-ice piston velocity 
+                              ! 'constant', 'Jin2006'      
+     !  sil_data_type_in  , & ! 'default', 'clim'
+     !  nit_data_type_in  , & ! 'default', 'clim'   
+     !  fe_data_type_in       ! 'default', 'clim'      
 
       logical (kind=log_kind), intent(in), optional :: &
-         z_tracers_in,      & ! if .true., bgc or aerosol tracers are vertically resolved
          scale_bgc_in,      & ! if .true., initialize bgc tracers proportionally with salinity
          solve_zbgc_in,     & ! if .true., solve vertical biochemistry portion of code
          dEdd_algae_in,     & ! if .true., algal absorptionof Shortwave is computed in the
          modal_aero_in        ! if .true., use modal aerosol formulation in shortwave
         
       logical (kind=log_kind), intent(in), optional :: & 
-         skl_bgc_in,        &   ! if true, solve skeletal biochemistry
          solve_zsal_in          ! if true, update salinity profile from solve_S_dt
 
       real (kind=dbl_kind), intent(in), optional :: & 
@@ -817,16 +815,14 @@
         if (present(pndaspect_in)            ) pndaspect     = pndaspect_in
         if (present(hs1_in)                  ) hs1           = hs1_in
         if (present(hp1_in)                  ) hp1           = hp1_in
-     !  if (present(bgc_data_dir_in)         ) bgc_data_dir  = bgc_data_dir_in
-     !  if (present(sil_data_type_in)        ) sil_data_type = sil_data_type_in
-     !  if (present(nit_data_type_in)        ) nit_data_type = nit_data_type_in
-     !  if (present(fe_data_type_in)         ) fe_data_type  = fe_data_type_in
+      ! if (present(bgc_data_dir_in)         ) bgc_data_dir  = bgc_data_dir_in
+      ! if (present(sil_data_type_in)        ) sil_data_type = sil_data_type_in
+      ! if (present(nit_data_type_in)        ) nit_data_type = nit_data_type_in
+      ! if (present(fe_data_type_in)         ) fe_data_type  = fe_data_type_in
         if (present(bgc_flux_type_in)        ) bgc_flux_type = bgc_flux_type_in
-        if (present(z_tracers_in)            ) z_tracers     = z_tracers_in
         if (present(scale_bgc_in)            ) scale_bgc     = scale_bgc_in
         if (present(solve_zbgc_in)           ) solve_zbgc    = solve_zbgc_in
         if (present(dEdd_algae_in)           ) dEdd_algae    = dEdd_algae_in
-        if (present(skl_bgc_in)              ) skl_bgc       = skl_bgc_in
         if (present(grid_o_in)               ) grid_o        = grid_o_in
         if (present(l_sk_in)                 ) l_sk          = l_sk_in
         if (present(grid_o_t_in)             ) grid_o_t      = grid_o_t_in
@@ -969,8 +965,8 @@
            oceanmixed_ice_out, tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
            dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
          ! bgc_data_dir_out, sil_data_type_out, nit_data_type_out, fe_data_type_out, &
-           bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, dEdd_algae_out, &
-           modal_aero_out, skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
+           bgc_flux_type_out, scale_bgc_out, solve_zbgc_out, dEdd_algae_out, &
+           modal_aero_out, solve_zsal_out, grid_o_out, l_sk_out, &
            grid_o_t_out, initbio_frac_out, frazil_scav_out, grid_oS_out, l_skS_out, &
            phi_snow_out, ratio_Si2N_diatoms_out, ratio_Si2N_sp_out, ratio_Si2N_phaeo_out, &
            ratio_S2N_diatoms_out, ratio_S2N_sp_out, ratio_S2N_phaeo_out, ratio_Fe2C_diatoms_out, & 
@@ -1134,25 +1130,23 @@
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
-   !  character(char_len_long), intent(out), optional :: & 
-   !     bgc_data_dir_out   ! directory for biogeochemistry data
+    !character(char_len_long), intent(out), optional :: & 
+      ! bgc_data_dir_out   ! directory for biogeochemistry data
 
      character(char_len), intent(out), optional :: &     
-        bgc_flux_type_out    ! type of ocean-ice piston velocity 
-                            ! 'constant', 'Jin2006'      
-    !    sil_data_type_out  , & ! 'default', 'clim'
-    !    nit_data_type_out  , & ! 'default', 'clim'   
-    !    fe_data_type_out   , & ! 'default', 'clim'      
+        bgc_flux_type_out      ! type of ocean-ice piston velocity 
+                               ! constant', 'Jin2006'      
+      ! sil_data_type_out  , & ! 'default', 'clim'
+      ! nit_data_type_out  , & ! 'default', 'clim'   
+      ! fe_data_type_out       ! 'default', 'clim'      
 
       logical (kind=log_kind), intent(out), optional :: &
-         z_tracers_out,      & ! if .true., bgc or aerosol tracers are vertically resolved
          scale_bgc_out,      & ! if .true., initialize bgc tracers proportionally with salinity
          solve_zbgc_out,     & ! if .true., solve vertical biochemistry portion of code
          dEdd_algae_out,     & ! if .true., algal absorptionof Shortwave is computed in the
          modal_aero_out        ! if .true., use modal aerosol formulation in shortwave
         
-      logical (kind=log_kind), intent(out), optional :: & 
-         skl_bgc_out,        &   ! if true, solve skeletal biochemistry
+      logical (kind=log_kind), intent(out), optional :: &
          solve_zsal_out          ! if true, update salinity profile from solve_S_dt
 
       real (kind=dbl_kind), intent(out), optional :: & 
@@ -1365,18 +1359,18 @@
         if (present(pndaspect_out)            ) pndaspect_out     = pndaspect
         if (present(hs1_out)                  ) hs1_out           = hs1
         if (present(hp1_out)                  ) hp1_out           = hp1
-     !  if (present(bgc_data_dir_out)         ) bgc_data_dir_out  = bgc_data_dir
-     !  if (present(sil_data_type_out)        ) sil_data_type_out = sil_data_type
-     !  if (present(nit_data_type_out)        ) nit_data_type_out = nit_data_type
-     !  if (present(fe_data_type_out)         ) fe_data_type_out  = fe_data_type
+      ! if (present(bgc_data_dir_out)         ) bgc_data_dir_out  = bgc_data_dir
+      ! if (present(sil_data_type_out)        ) sil_data_type_out = sil_data_type
+      ! if (present(nit_data_type_out)        ) nit_data_type_out = nit_data_type
+      ! if (present(fe_data_type_out)         ) fe_data_type_out  = fe_data_type
         if (present(bgc_flux_type_out)        ) bgc_flux_type_out = bgc_flux_type
-        if (present(z_tracers_out)            ) z_tracers_out     = z_tracers
         if (present(scale_bgc_out)            ) scale_bgc_out     = scale_bgc
         if (present(solve_zbgc_out)           ) solve_zbgc_out    = solve_zbgc
         if (present(dEdd_algae_out)           ) dEdd_algae_out    = dEdd_algae
-        if (present(skl_bgc_out)              ) skl_bgc_out       = skl_bgc
         if (present(grid_o_out)               ) grid_o_out        = grid_o
         if (present(l_sk_out)                 ) l_sk_out          = l_sk
+        if (present(modal_aero_out)           ) modal_aero_out    = modal_aero
+        if (present(solve_zsal_out)           ) solve_zsal_out    = solve_zsal
         if (present(grid_o_t_out)             ) grid_o_t_out      = grid_o_t
         if (present(initbio_frac_out)         ) initbio_frac_out  = initbio_frac
         if (present(frazil_scav_out)          ) frazil_scav_out   = frazil_scav
@@ -1570,16 +1564,14 @@
         write(iounit,*) "  pndaspect     = ", pndaspect
         write(iounit,*) "  hs1           = ", hs1
         write(iounit,*) "  hp1           = ", hp1
-     !  write(iounit,*) "  bgc_data_dir  = ", bgc_data_dir
-     !  write(iounit,*) "  sil_data_type = ", sil_data_type
-     !  write(iounit,*) "  nit_data_type = ", nit_data_type
-     !  write(iounit,*) "  fe_data_type  = ", fe_data_type
+      ! write(iounit,*) "  bgc_data_dir  = ", bgc_data_dir
+      ! write(iounit,*) "  sil_data_type = ", sil_data_type
+      ! write(iounit,*) "  nit_data_type = ", nit_data_type
+      ! write(iounit,*) "  fe_data_type  = ", fe_data_type
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
-        write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc
         write(iounit,*) "  solve_zbgc    = ", solve_zbgc
         write(iounit,*) "  dEdd_algae    = ", dEdd_algae
-        write(iounit,*) "  skl_bgc       = ", skl_bgc
         write(iounit,*) "  grid_o        = ", grid_o
         write(iounit,*) "  l_sk          = ", l_sk
         write(iounit,*) "  grid_o_t      = ", grid_o_t

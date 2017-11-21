@@ -30,8 +30,7 @@
       use icepack_drv_forcing_bgc, only: faero_default, get_forcing_bgc
 !      use icepack_drv_forcing_bgc, only: , get_atm_bgc, fzaero_data, & 
       use icepack_drv_flux, only: init_flux_atm_ocn
-      use icepack_drv_tracers, only: tr_aero, tr_zaero
-      use icepack_drv_parameters, only: skl_bgc, z_tracers
+      use icepack_drv_tracers, only: tr_aero, tr_zaero, skl_bgc, z_tracers
 
    !--------------------------------------------------------------------
    ! timestep loop
@@ -84,12 +83,12 @@
 !      use icepack_drv_restart_column, only: &
 !          write_restart_bgc
       use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, &
-          tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_brine, tr_aero
+      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, z_tracers, &
+          tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_brine, tr_aero, skl_bgc
       use icepack_drv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_radiation, &
           biogeochemistry
-      use icepack_drv_parameters, only: calc_Tsfc, skl_bgc, solve_zsal, z_tracers
+      use icepack_drv_parameters, only: calc_Tsfc, solve_zsal
 
       integer (kind=int_kind) :: &
          k               ! dynamics supercycling index

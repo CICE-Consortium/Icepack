@@ -214,7 +214,7 @@
 
       real (kind=dbl_kind) :: &
           sec6hr
-  
+
       !values for default case
       i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
       mlast = i
@@ -229,6 +229,29 @@
          mnext = mlast
          c1intp = c1
          c2intp = c0
+
+         ! fill all grid boxes with the same forcing data
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+
+         qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
+
       elseif (trim(atm_data_type) == 'clim') then
          midmonth = 15  ! assume data is given on 15th of every month
          recslot = 1                             ! latter half of month
@@ -241,7 +264,29 @@
             mnext = month
          endif
          call interp_coeff_monthly(recslot, c1intp, c2intp)
-        
+
+         ! fill all grid boxes with the same forcing data
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+
+         qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
+
       elseif (trim(atm_data_type) == 'ISPOL' .or. &
           trim(atm_data_type) == 'NICE') then
 
@@ -250,9 +295,9 @@
         !also need to repeat as above
 
         dataloc = 2                          ! data located at end of interval
-        maxrec = 366  
+        maxrec = 366
         recslot = 2
-        recnum = int(yday)   
+        recnum = int(yday)
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
         call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
@@ -262,9 +307,9 @@
         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-        
+
         sec6hr = secday/4;                      ! seconds in 6 hours
-        maxrec = 1464  
+        maxrec = 1464
         recnum = int(yday*4)
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
@@ -273,12 +318,34 @@
         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
 
-      endif
+      else
 
+         ! fill all grid boxes with the same forcing data
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+         qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
+
+      endif
 
 !cn this is called from get_forcing_ocn in cice...
       if(trim(ocn_data_type) == 'ISPOL') then
-        
+
         midmonth = 15  ! assume data is given on 15th of every month
         recslot = 1                             ! latter half of month
         if (mday < midmonth) recslot = 2        ! first half of month
@@ -295,15 +362,15 @@
         uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
         vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
         do i = 1, nx
-          sss (i) = max (sss(i), c0) 
-          hmix(i) = max(hmix(i), c0)           
+          sss (i) = max (sss(i), c0)
+          hmix(i) = max(hmix(i), c0)
         end do
 
         call finish_ocn_forcing(sst_temp)
 
       elseif (trim(ocn_data_type) == 'NICE') then
-        
-!cn the nice stuff seems to be more complicated than ispol....        
+
+!cn the nice stuff seems to be more complicated than ispol....
         midmonth = 15  ! assume data is given on 15th of every month
         recslot = 1                             ! latter half of month
         if (mday < midmonth) recslot = 2        ! first half of month
@@ -320,44 +387,22 @@
         uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
         vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
         do i = 1, nx
-          sss (i) = max (sss(i), c0) 
-          hmix(i) = max(hmix(i), c0)           
+          sss (i) = max (sss(i), c0)
+          hmix(i) = max(hmix(i), c0)
         end do
 
         call finish_ocn_forcing(sst_temp)
 
       else
-        
 
       endif
 
-      ! fill all grid boxes with the same forcing data
-      flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-      Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
-      potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-      rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-      uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
-      vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
-      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-      strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-      stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-      fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
-      swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-      swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-      swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-      swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-      Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
-      frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-      fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-
-        qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
-
 ! for debugging
-!if (timestep==8760.or.timestep==8761) then
+!if (timestep==4009.or.timestep==4010) then
 if (0==1) then ! off
-write (nu_diag,*) 'timestep',timestep, mlast, mnext
-write (nu_diag,*) 'index',mlast,mnext
+write (nu_diag,*) 'timestep, mlast,mnext,yday',timestep, mlast, mnext, yday
+write (nu_diag,*) 'recnum',recnum
+write (nu_diag,*) 'c1intp, c2intp',c1intp, c2intp
 write (nu_diag,*) 'flw',flw
 write (nu_diag,*) 'fsw',fsw
 write (nu_diag,*) 'Tair',Tair

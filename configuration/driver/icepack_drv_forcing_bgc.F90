@@ -35,7 +35,7 @@
 
       subroutine init_forcing_bgc
 
-        use icepack_drv_parameters, only: nit_data_type, sil_data_type
+        use icepack_drv_parameters, only: nit_data_type, sil_data_type !, bgc_data_dir
         use icepack_drv_forcing, only: data_dir 
 
         integer (kind=int_kind) :: &
@@ -70,7 +70,8 @@
 
           !write(*,*)sil_data
           !write(*,*)nit_data
-          
+        else
+          write (nu_diag,*) 'Not Reading nit/sil from file, nit_data_type:',nit_data_type
         end if
       !stop  
       end subroutine init_forcing_bgc

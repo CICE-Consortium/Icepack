@@ -36,6 +36,7 @@
       use icepack_tracers, only: nt_zbgc_frac, nt_zaero
 
       use icepack_tracers, only: bio_index_o
+      use icepack_tracers, only: skl_bgc, z_tracers 
 
 !=======================================================================
 

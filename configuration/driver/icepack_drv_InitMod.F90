@@ -42,8 +42,7 @@
       use icepack_drv_init, only: input_data, init_state, init_grid2
       use icepack_drv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
       use icepack_intfc, only: icepack_configure
-      use icepack_drv_tracers, only: tr_aero, tr_zaero
-      use icepack_drv_parameters, only: skl_bgc, z_tracers
+      use icepack_drv_tracers, only: tr_aero, tr_zaero, skl_bgc, z_tracers
 
       logical(kind=log_kind) :: l_stop
       character(char_len) :: stop_label
@@ -130,8 +129,9 @@
       use icepack_drv_state ! almost everything
       use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, &
           tr_pond_cesm, nt_apnd, nt_hpnd, tr_pond_lvl, nt_ipnd, &
-          tr_pond_topo, tr_aero, tr_brine, nt_iage, nt_FY, nt_aero
-      use icepack_drv_parameters, only: skl_bgc, z_tracers, solve_zsal
+          tr_pond_topo, tr_aero, tr_brine, nt_iage, nt_FY, nt_aero, &
+          skl_bgc, z_tracers
+      use icepack_drv_parameters, only: solve_zsal
 
       integer(kind=int_kind) :: &
          i                            ! horizontal indices

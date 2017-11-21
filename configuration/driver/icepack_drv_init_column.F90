@@ -511,7 +511,8 @@
       use icepack_drv_state, only: trcr_base, trcr_depend, n_trcr_strata
       use icepack_drv_state, only: nt_strata
       use icepack_drv_parameters, only: max_algae, max_don, max_doc, max_dic, max_aero
-      use icepack_drv_parameters, only: max_fe, max_nbtrcr, shortwave
+      use icepack_drv_parameters, only: max_fe, max_nbtrcr, shortwave, sil_data_type,  &
+           nit_data_type, fe_data_type, bgc_data_dir 
 
       use icepack_intfc, only: icepack_init_tracer_numbers, icepack_init_tracer_flags
       use icepack_intfc, only: icepack_init_tracer_indices
@@ -594,10 +595,7 @@
           ktherm
 
       character (char_len) :: &
-          sil_data_type, nit_data_type, fe_data_type, bgc_flux_type
-
-      character (char_len_long) :: &
-          bgc_data_dir
+          bgc_flux_type
 
       logical (kind=log_kind) :: &
           solve_zsal, skl_bgc, z_tracers, scale_bgc, solve_zbgc, dEdd_algae, &
@@ -725,7 +723,8 @@
           tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, tr_bgc_S_out  =tr_bgc_S,     &
           tr_bgc_N_out  =tr_bgc_N,   tr_bgc_C_out  =tr_bgc_C,   tr_bgc_chl_out=tr_bgc_chl,   &
           tr_bgc_DON_out=tr_bgc_DON, tr_bgc_Fe_out =tr_bgc_Fe,  tr_zaero_out  =tr_zaero,     &
-          tr_bgc_hum_out=tr_bgc_hum, tr_aero_out   =tr_aero)
+          tr_bgc_hum_out=tr_bgc_hum, tr_aero_out   =tr_aero,    z_tracers_out =z_tracers,    &
+          skl_bgc_out   =skl_bgc)
 
       call icepack_query_tracer_indices( &
           nt_fbri_out=nt_fbri,      &  
@@ -1136,7 +1135,8 @@
           tr_bgc_DMS_in=tr_bgc_DMS, tr_bgc_PON_in=tr_bgc_PON, tr_bgc_S_in  =tr_bgc_S,     &
           tr_bgc_N_in  =tr_bgc_N,   tr_bgc_C_in  =tr_bgc_C,   tr_bgc_chl_in=tr_bgc_chl,   &
           tr_bgc_DON_in=tr_bgc_DON, tr_bgc_Fe_in =tr_bgc_Fe,  tr_zaero_in  =tr_zaero,     &
-          tr_bgc_hum_in=tr_bgc_hum, tr_aero_in   =tr_aero)
+          tr_bgc_hum_in=tr_bgc_hum, tr_aero_in   =tr_aero,    z_tracers_in =z_tracers,    &
+          skl_bgc_in=skl_bgc)
 
       call icepack_init_tracer_indices( &
           nbtrcr_in=nbtrcr,        &
