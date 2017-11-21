@@ -83,7 +83,9 @@
          tr_bgc_DMS,     & ! if .true., DMS as  tracer 
          tr_bgc_Fe,      & ! if .true., Fe as  tracer 
          tr_bgc_PON,     & ! if .true., PON as tracer 
-         tr_bgc_hum        ! if .true., humic material as tracer 
+         tr_bgc_hum,     & ! if .true., humic material as tracer 
+         z_tracers,      & ! if .true., use vertical bio tracers
+         skl_bgc           ! if .true., use bottom bio tracers
 
       integer (kind=int_kind), public :: &
          nbtrcr,         & ! number of bgc tracers in use
@@ -165,7 +167,7 @@
            tr_aero_in, tr_brine_in, tr_bgc_S_in, tr_zaero_in, &
            tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
            tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
-           tr_bgc_PON_in)
+           tr_bgc_PON_in, z_tracers_in, skl_bgc_in)
 
         logical, intent(in), optional :: &
              tr_iage_in      , & ! if .true., use age tracer
@@ -189,7 +191,9 @@
              tr_bgc_DMS_in   , & ! if .true., DMS as product tracer 
              tr_bgc_Fe_in    , & ! if .true., Fe as product tracer 
              tr_bgc_hum_in   , & ! if .true., hum as product tracer 
-             tr_bgc_PON_in       ! if .true., PON as product tracer 
+             tr_bgc_PON_in   , & ! if .true., PON as product tracer 
+             z_tracers_in    , & ! if .true., use vertical bio tracers
+             skl_bgc_in          ! if .true., use bottom layer bio tracers
 
         if (present(tr_iage_in)) tr_iage = tr_iage_in
         if (present(tr_FY_in)  ) tr_FY   = tr_FY_in
@@ -213,6 +217,8 @@
         if (present(tr_bgc_Fe_in )) tr_bgc_Fe  = tr_bgc_Fe_in 
         if (present(tr_bgc_hum_in)) tr_bgc_hum = tr_bgc_hum_in
         if (present(tr_bgc_PON_in)) tr_bgc_PON = tr_bgc_PON_in 
+        if (present(z_tracers_in))  z_tracers  = z_tracers_in 
+        if (present(skl_bgc_in))    skl_bgc    = skl_bgc_in 
 
       end subroutine icepack_init_tracer_flags
 
@@ -225,7 +231,7 @@
            tr_aero_out, tr_brine_out, tr_bgc_S_out, tr_zaero_out, &
            tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
            tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
-           tr_bgc_PON_out)
+           tr_bgc_PON_out, z_tracers_out, skl_bgc_out)
 
         logical, intent(out), optional :: &
              tr_iage_out      , & ! if .true., use age tracer
@@ -249,7 +255,9 @@
              tr_bgc_DMS_out   , & ! if .true., DMS as product tracer 
              tr_bgc_Fe_out    , & ! if .true., Fe as product tracer 
              tr_bgc_hum_out   , & ! if .true., hum as product tracer 
-             tr_bgc_PON_out       ! if .true., PON as product tracer 
+             tr_bgc_PON_out   , & ! if .true., PON as product tracer 
+             z_tracers_out    , & ! if .true., Use vertical bio tracers
+             skl_bgc_out          ! if .true. Use bottom layer bio tracers
 
         if (present(tr_iage_out)) tr_iage_out = tr_iage
         if (present(tr_FY_out)  ) tr_FY_out   = tr_FY
@@ -273,6 +281,8 @@
         if (present(tr_bgc_Fe_out )) tr_bgc_Fe_out  = tr_bgc_Fe
         if (present(tr_bgc_hum_out)) tr_bgc_hum_out = tr_bgc_hum
         if (present(tr_bgc_PON_out)) tr_bgc_PON_out = tr_bgc_PON
+        if (present(z_tracers_out))  z_tracers_out  = z_tracers
+        if (present(skl_bgc_out))    skl_bgc_out    = skl_bgc
 
       end subroutine icepack_query_tracer_flags
 
@@ -306,6 +316,8 @@
         write(iounit,*) "  tr_bgc_Fe  = ",tr_bgc_Fe 
         write(iounit,*) "  tr_bgc_hum = ",tr_bgc_hum
         write(iounit,*) "  tr_bgc_PON = ",tr_bgc_PON
+        write(iounit,*) "  z_tracers  = ",z_tracers
+        write(iounit,*) "  skl_bgc    = ",skl_bgc
 
       end subroutine icepack_write_tracer_flags
 
