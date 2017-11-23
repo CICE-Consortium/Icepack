@@ -514,7 +514,7 @@
       use icepack_drv_parameters, only: max_fe, max_nbtrcr, shortwave
 
       use icepack_intfc, only: icepack_init_tracer_numbers, icepack_init_tracer_flags
-      use icepack_intfc, only: icepack_init_tracer_indices
+      use icepack_intfc, only: icepack_init_tracer_indices, icepack_init_parameters
       use icepack_intfc, only: icepack_query_tracer_numbers, icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_init_bgc_trcr,  icepack_init_zbgc
@@ -717,33 +717,6 @@
         ratio_chl2N_sp     , ratio_chl2N_phaeo  , F_abs_chl_diatoms  ,  &
         F_abs_chl_sp       , F_abs_chl_phaeo    , ratio_C2N_proteins 
 
-      call icepack_query_tracer_numbers( &
-          ntrcr_out=ntrcr, ntrcr_o_out=ntrcr_o, nbtrcr_out=nbtrcr, nbtrcr_sw_out=nbtrcr_sw)
-
-      call icepack_query_tracer_flags( &
-          tr_bgc_Nit_out=tr_bgc_Nit, tr_bgc_Am_out =tr_bgc_Am,  tr_bgc_Sil_out=tr_bgc_Sil,   &
-          tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, tr_bgc_S_out  =tr_bgc_S,     &
-          tr_bgc_N_out  =tr_bgc_N,   tr_bgc_C_out  =tr_bgc_C,   tr_bgc_chl_out=tr_bgc_chl,   &
-          tr_bgc_DON_out=tr_bgc_DON, tr_bgc_Fe_out =tr_bgc_Fe,  tr_zaero_out  =tr_zaero,     &
-          tr_bgc_hum_out=tr_bgc_hum, tr_aero_out   =tr_aero)
-
-      call icepack_query_tracer_indices( &
-          nt_fbri_out=nt_fbri,      &  
-          nt_bgc_Nit_out=nt_bgc_Nit,   nt_bgc_Am_out=nt_bgc_Am,       nt_bgc_Sil_out=nt_bgc_Sil,   &
-          nt_bgc_DMS_out=nt_bgc_DMS,   nt_bgc_PON_out=nt_bgc_PON,     nt_bgc_S_out=nt_bgc_S,     &
-          nt_bgc_N_out=nt_bgc_N,       nt_bgc_C_out=nt_bgc_C,         nt_bgc_chl_out=nt_bgc_chl,   &
-          nt_bgc_DOC_out=nt_bgc_DOC,   nt_bgc_DON_out=nt_bgc_DON,     nt_bgc_DIC_out=nt_bgc_DIC,   &
-          nt_zaero_out=nt_zaero,       nt_bgc_DMSPp_out=nt_bgc_DMSPp, nt_bgc_DMSPd_out=nt_bgc_DMSPd, &
-          nt_bgc_Fed_out=nt_bgc_Fed,   nt_bgc_Fep_out=nt_bgc_Fep,     nt_zbgc_frac_out=nt_zbgc_frac, &
-          nlt_zaero_sw_out=nlt_zaero_sw,  nlt_chl_sw_out=nlt_chl_sw,  nlt_bgc_Sil_out=nlt_bgc_Sil, &
-          nlt_bgc_N_out=nlt_bgc_N,     nlt_bgc_Nit_out=nlt_bgc_Nit,   nlt_bgc_Am_out=nlt_bgc_Am, &
-          nlt_bgc_DMS_out=nlt_bgc_DMS, nlt_bgc_DMSPp_out=nlt_bgc_DMSPp, nlt_bgc_DMSPd_out=nlt_bgc_DMSPd, &
-          nlt_bgc_C_out=nlt_bgc_C,     nlt_bgc_chl_out=nlt_bgc_chl,   nlt_zaero_out=nlt_zaero, &
-          nlt_bgc_DIC_out=nlt_bgc_DIC, nlt_bgc_DOC_out=nlt_bgc_DOC,   nlt_bgc_PON_out=nlt_bgc_PON, &
-          nlt_bgc_DON_out=nlt_bgc_DON, nlt_bgc_Fed_out=nlt_bgc_Fed,   nlt_bgc_Fep_out=nlt_bgc_Fep, &
-          nt_bgc_hum_out=nt_bgc_hum,   nlt_bgc_hum_out=nlt_bgc_hum, &
-          bio_index_o_out=bio_index_o, bio_index_out=bio_index)
- 
       !-----------------------------------------------------------------
       ! default values
       !-----------------------------------------------------------------
@@ -906,15 +879,6 @@
       ! z salinity  parameters
       grid_oS         = c5            ! for bottom flux         
       l_skS           = 7.0_dbl_kind  ! characteristic diffusive scale (m) 
-
-      !-----------------------------------------------------------------
-      ! read from input file name from command line if it exists,
-      ! otherwise the default is icepack_in
-      !-----------------------------------------------------------------
-
-      if ( command_argument_count() == 1 ) then
-        call get_command_argument(1,nml_filename)
-      endif 
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -1125,37 +1089,149 @@
       endif
 
       !-----------------------------------------------------------------
-      ! initialize tracers etc in the column package
+      ! initialize parameters and tracers in the column package
       !-----------------------------------------------------------------
 
-      call icepack_init_tracer_numbers( &
-          ntrcr_in=ntrcr, ntrcr_o_in=ntrcr_o, nbtrcr_in=nbtrcr, nbtrcr_sw_in=nbtrcr_sw)
+      call icepack_init_parameters( &
+!          skl_bgc_in=skl_bgc, z_tracers_in=z_tracers)
+!echmod - put everything in here for now, may not be needed in the end?
+           ktherm_in=ktherm, &
+           bgc_flux_type_in=bgc_flux_type, &
+           z_tracers_in=z_tracers, &
+           scale_bgc_in=scale_bgc, &
+           solve_zbgc_in=solve_zbgc, &
+           dEdd_algae_in=dEdd_algae, &
+           modal_aero_in=modal_aero, &
+           skl_bgc_in=skl_bgc, &
+           solve_zsal_in=solve_zsal, &
+           grid_o_in=grid_o, &
+           l_sk_in=l_sk, &
+           grid_o_t_in=grid_o_t, &
+           initbio_frac_in=initbio_frac, &
+           frazil_scav_in=frazil_scav, &
+           grid_oS_in=grid_oS, &
+           l_skS_in=l_skS, &
+           phi_snow_in=phi_snow, &
+           ratio_Si2N_diatoms_in=ratio_Si2N_diatoms, &
+           ratio_Si2N_sp_in=ratio_Si2N_sp, &
+           ratio_Si2N_phaeo_in=ratio_Si2N_phaeo, &
+           ratio_S2N_diatoms_in=ratio_S2N_diatoms, &
+           ratio_S2N_sp_in=ratio_S2N_sp, &
+           ratio_S2N_phaeo_in=ratio_S2N_phaeo, &
+           ratio_Fe2C_diatoms_in=ratio_Fe2C_diatoms, &
+           ratio_Fe2C_sp_in=ratio_Fe2C_sp, &
+           ratio_Fe2C_phaeo_in=ratio_Fe2C_phaeo, &
+           ratio_Fe2N_diatoms_in=ratio_Fe2N_diatoms, &
+           ratio_Fe2N_sp_in=ratio_Fe2N_sp, &
+           ratio_Fe2N_phaeo_in=ratio_Fe2N_phaeo, &
+           ratio_Fe2DON_in=ratio_Fe2DON, &
+           ratio_Fe2DOC_s_in=ratio_Fe2DOC_s, &
+           ratio_Fe2DOC_l_in=ratio_Fe2DOC_l, &
+           fr_resp_in=fr_resp, &
+           tau_min_in=tau_min, &
+           tau_max_in=tau_max, &
+           algal_vel_in=algal_vel, &
+           R_dFe2dust_in=R_dFe2dust, &
+           dustFe_sol_in=dustFe_sol, &
+           chlabs_diatoms_in=chlabs_diatoms, &
+           chlabs_sp_in=chlabs_sp, &
+           chlabs_phaeo_in=chlabs_phaeo, &
+           alpha2max_low_diatoms_in=alpha2max_low_diatoms, &
+           alpha2max_low_sp_in=alpha2max_low_sp, &
+           alpha2max_low_phaeo_in=alpha2max_low_phaeo, &
+           beta2max_diatoms_in=beta2max_diatoms, &
+           beta2max_sp_in=beta2max_sp, &
+           beta2max_phaeo_in=beta2max_sp, &
+           mu_max_diatoms_in=mu_max_diatoms, &
+           mu_max_sp_in=mu_max_sp, &
+           mu_max_phaeo_in=mu_max_phaeo, &
+           grow_Tdep_diatoms_in=grow_Tdep_diatoms, &
+           grow_Tdep_sp_in=grow_Tdep_sp, &
+           grow_Tdep_phaeo_in=grow_Tdep_phaeo, &
+           fr_graze_diatoms_in=fr_graze_diatoms, &
+           fr_graze_sp_in=fr_graze_sp, &
+           fr_graze_phaeo_in=fr_graze_phaeo, &
+           mort_pre_diatoms_in=mort_pre_diatoms, &
+           mort_pre_sp_in=mort_pre_sp, &
+           mort_pre_phaeo_in=mort_pre_phaeo, &
+           mort_Tdep_diatoms_in=mort_Tdep_diatoms, &
+           mort_Tdep_sp_in=mort_Tdep_sp, &
+           mort_Tdep_phaeo_in=mort_Tdep_phaeo, &
+           k_exude_diatoms_in=k_exude_diatoms, &
+           k_exude_sp_in=k_exude_sp, &
+           k_exude_phaeo_in=k_exude_phaeo, &
+           K_Nit_diatoms_in=K_Nit_diatoms, &
+           K_Nit_sp_in=K_Nit_sp, &
+           K_Nit_phaeo_in=K_Nit_phaeo, &
+           K_Am_diatoms_in=K_Am_diatoms, &
+           K_Am_sp_in=K_Am_sp, &
+           K_Am_phaeo_in=K_Am_phaeo, &
+           K_Sil_diatoms_in=K_Sil_diatoms, &
+           K_Sil_sp_in=K_Sil_sp, &
+           K_Sil_phaeo_in=K_Sil_phaeo, &
+           K_Fe_diatoms_in=K_Fe_diatoms, &
+           K_Fe_sp_in=K_Fe_sp, &
+           K_Fe_phaeo_in=K_Fe_phaeo, &
+           f_don_protein_in=f_don_protein, &
+           kn_bac_protein_in=kn_bac_protein, &
+           f_don_Am_protein_in=f_don_Am_protein, &
+           f_doc_s_in=f_doc_s, &
+           f_doc_l_in=f_doc_l, &
+           f_exude_s_in=f_exude_s, &
+           f_exude_l_in=f_exude_l, &
+           k_bac_s_in=k_bac_s, &
+           k_bac_l_in=k_bac_l, &
+           T_max_in=T_max, &
+           fsal_in=fsal, &
+           op_dep_min_in=op_dep_min, &
+           fr_graze_s_in=fr_graze_s, &
+           fr_graze_e_in=fr_graze_e, &
+           fr_mort2min_in=fr_mort2min, &
+           fr_dFe_in=fr_dFe, &
+           k_nitrif_in=k_nitrif, &
+           t_iron_conv_in=t_iron_conv, &
+           max_loss_in=max_loss, &
+           max_dfe_doc1_in=max_dfe_doc1, &
+           fr_resp_s_in=fr_resp_s, &
+           y_sk_DMS_in=y_sk_DMS, &
+           t_sk_conv_in=t_sk_conv, &
+           t_sk_ox_in=t_sk_ox, &
+           algaltype_diatoms_in=algaltype_diatoms, &
+           algaltype_sp_in=algaltype_sp, &
+           algaltype_phaeo_in=algaltype_phaeo, &
+           nitratetype_in=nitratetype, &
+           ammoniumtype_in=ammoniumtype, &
+           silicatetype_in=silicatetype, &
+           dmspptype_in=dmspptype, &
+           dmspdtype_in=dmspdtype, &
+           humtype_in=humtype, &
+           doctype_s_in=doctype_s, &
+           doctype_l_in=doctype_l, &
+           dontype_protein_in=dontype_protein, &
+           fedtype_1_in=fedtype_1, &
+           feptype_1_in=feptype_1, &
+           zaerotype_bc1_in=zaerotype_bc1, &
+           zaerotype_bc2_in=zaerotype_bc2, &
+           zaerotype_dust1_in=zaerotype_dust1, &
+           zaerotype_dust2_in=zaerotype_dust2, &
+           zaerotype_dust3_in=zaerotype_dust3, &
+           zaerotype_dust4_in=zaerotype_dust4, &
+           ratio_C2N_diatoms_in=ratio_C2N_diatoms, &
+           ratio_C2N_sp_in=ratio_C2N_sp, &
+           ratio_C2N_phaeo_in=ratio_C2N_phaeo, &
+           ratio_chl2N_diatoms_in=ratio_chl2N_diatoms, &
+           ratio_chl2N_sp_in=ratio_chl2N_sp, &
+           ratio_chl2N_phaeo_in=ratio_chl2N_phaeo, &
+           F_abs_chl_diatoms_in=F_abs_chl_diatoms, &
+           F_abs_chl_sp_in=F_abs_chl_sp, &
+           F_abs_chl_phaeo_in=F_abs_chl_phaeo, &
+           ratio_C2N_proteins_in=ratio_C2N_proteins)
+           !restore_bgc_in=restore_bgc)
 
-      call icepack_init_tracer_flags( &
-          tr_bgc_Nit_in=tr_bgc_Nit, tr_bgc_Am_in =tr_bgc_Am,  tr_bgc_Sil_in=tr_bgc_Sil,   &
-          tr_bgc_DMS_in=tr_bgc_DMS, tr_bgc_PON_in=tr_bgc_PON, tr_bgc_S_in  =tr_bgc_S,     &
-          tr_bgc_N_in  =tr_bgc_N,   tr_bgc_C_in  =tr_bgc_C,   tr_bgc_chl_in=tr_bgc_chl,   &
-          tr_bgc_DON_in=tr_bgc_DON, tr_bgc_Fe_in =tr_bgc_Fe,  tr_zaero_in  =tr_zaero,     &
-          tr_bgc_hum_in=tr_bgc_hum, tr_aero_in   =tr_aero)
+      call icepack_query_tracer_numbers( &
+          ntrcr_out=ntrcr) 
 
-      call icepack_init_tracer_indices( &
-          nbtrcr_in=nbtrcr,        &
-          nt_fbri_in=nt_fbri,      &  
-          nt_bgc_Nit_in=nt_bgc_Nit,   nt_bgc_Am_in=nt_bgc_Am,       nt_bgc_Sil_in=nt_bgc_Sil,   &
-          nt_bgc_DMS_in=nt_bgc_DMS,   nt_bgc_PON_in=nt_bgc_PON,     nt_bgc_S_in=nt_bgc_S,     &
-          nt_bgc_N_in=nt_bgc_N,       nt_bgc_C_in=nt_bgc_C,         nt_bgc_chl_in=nt_bgc_chl,   &
-          nt_bgc_DOC_in=nt_bgc_DOC,   nt_bgc_DON_in=nt_bgc_DON,     nt_bgc_DIC_in=nt_bgc_DIC,   &
-          nt_zaero_in=nt_zaero,       nt_bgc_DMSPp_in=nt_bgc_DMSPp, nt_bgc_DMSPd_in=nt_bgc_DMSPd, &
-          nt_bgc_Fed_in=nt_bgc_Fed,   nt_bgc_Fep_in=nt_bgc_Fep,     nt_zbgc_frac_in=nt_zbgc_frac, &
-          nlt_zaero_sw_in=nlt_zaero_sw,  nlt_chl_sw_in=nlt_chl_sw,  nlt_bgc_Sil_in=nlt_bgc_Sil, &
-          nlt_bgc_N_in=nlt_bgc_N,     nlt_bgc_Nit_in=nlt_bgc_Nit,   nlt_bgc_Am_in=nlt_bgc_Am, &
-          nlt_bgc_DMS_in=nlt_bgc_DMS, nlt_bgc_DMSPp_in=nlt_bgc_DMSPp, nlt_bgc_DMSPd_in=nlt_bgc_DMSPd, &
-          nlt_bgc_C_in=nlt_bgc_C,     nlt_bgc_chl_in=nlt_bgc_chl,   nlt_zaero_in=nlt_zaero, &
-          nlt_bgc_DIC_in=nlt_bgc_DIC, nlt_bgc_DOC_in=nlt_bgc_DOC,   nlt_bgc_PON_in=nlt_bgc_PON, &
-          nlt_bgc_DON_in=nlt_bgc_DON, nlt_bgc_Fed_in=nlt_bgc_Fed,   nlt_bgc_Fep_in=nlt_bgc_Fep, &
-          nt_bgc_hum_in=nt_bgc_hum,   nlt_bgc_hum_in=nlt_bgc_hum, &
-          bio_index_o_in=bio_index_o, bio_index_in=bio_index)
- 
+!echmod this will move into driver eventually
       call icepack_init_zbgc (nblyr, nilyr, nslyr, &
                  n_algae, n_zaero, n_doc, n_dic, n_don, n_fed, n_fep, &
                  trcr_base, trcr_depend, n_trcr_strata, nt_strata, nbtrcr_sw, &
@@ -1207,6 +1283,63 @@
                  ratio_C2N_proteins, &
                  nitratetype, ammoniumtype, dmspptype, dmspdtype, &
                  silicatetype, humtype, tau_min, tau_max)
+
+! for now
+      call icepack_query_tracer_numbers( &
+          ntrcr_out=ntrcr, ntrcr_o_out=ntrcr_o, nbtrcr_out=nbtrcr, nbtrcr_sw_out=nbtrcr_sw)
+
+      call icepack_query_tracer_flags( &
+          tr_bgc_Nit_out=tr_bgc_Nit, tr_bgc_Am_out =tr_bgc_Am,  tr_bgc_Sil_out=tr_bgc_Sil,   &
+          tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, tr_bgc_S_out  =tr_bgc_S,     &
+          tr_bgc_N_out  =tr_bgc_N,   tr_bgc_C_out  =tr_bgc_C,   tr_bgc_chl_out=tr_bgc_chl,   &
+          tr_bgc_DON_out=tr_bgc_DON, tr_bgc_Fe_out =tr_bgc_Fe,  tr_zaero_out  =tr_zaero,     &
+          tr_bgc_hum_out=tr_bgc_hum, tr_aero_out   =tr_aero)
+
+      call icepack_query_tracer_indices( &
+          nt_fbri_out=nt_fbri,      &  
+          nt_bgc_Nit_out=nt_bgc_Nit,   nt_bgc_Am_out=nt_bgc_Am,       nt_bgc_Sil_out=nt_bgc_Sil,   &
+          nt_bgc_DMS_out=nt_bgc_DMS,   nt_bgc_PON_out=nt_bgc_PON,     nt_bgc_S_out=nt_bgc_S,     &
+          nt_bgc_N_out=nt_bgc_N,       nt_bgc_C_out=nt_bgc_C,         nt_bgc_chl_out=nt_bgc_chl,   &
+          nt_bgc_DOC_out=nt_bgc_DOC,   nt_bgc_DON_out=nt_bgc_DON,     nt_bgc_DIC_out=nt_bgc_DIC,   &
+          nt_zaero_out=nt_zaero,       nt_bgc_DMSPp_out=nt_bgc_DMSPp, nt_bgc_DMSPd_out=nt_bgc_DMSPd, &
+          nt_bgc_Fed_out=nt_bgc_Fed,   nt_bgc_Fep_out=nt_bgc_Fep,     nt_zbgc_frac_out=nt_zbgc_frac, &
+          nlt_zaero_sw_out=nlt_zaero_sw,  nlt_chl_sw_out=nlt_chl_sw,  nlt_bgc_Sil_out=nlt_bgc_Sil, &
+          nlt_bgc_N_out=nlt_bgc_N,     nlt_bgc_Nit_out=nlt_bgc_Nit,   nlt_bgc_Am_out=nlt_bgc_Am, &
+          nlt_bgc_DMS_out=nlt_bgc_DMS, nlt_bgc_DMSPp_out=nlt_bgc_DMSPp, nlt_bgc_DMSPd_out=nlt_bgc_DMSPd, &
+          nlt_bgc_C_out=nlt_bgc_C,     nlt_bgc_chl_out=nlt_bgc_chl,   nlt_zaero_out=nlt_zaero, &
+          nlt_bgc_DIC_out=nlt_bgc_DIC, nlt_bgc_DOC_out=nlt_bgc_DOC,   nlt_bgc_PON_out=nlt_bgc_PON, &
+          nlt_bgc_DON_out=nlt_bgc_DON, nlt_bgc_Fed_out=nlt_bgc_Fed,   nlt_bgc_Fep_out=nlt_bgc_Fep, &
+          nt_bgc_hum_out=nt_bgc_hum,   nlt_bgc_hum_out=nlt_bgc_hum, &
+          bio_index_o_out=bio_index_o, bio_index_out=bio_index)
+
+! eventually we will do this, when icepack_init_zbgc is part of driver - redundant here, for now
+      call icepack_init_tracer_numbers( &
+          ntrcr_in=ntrcr, ntrcr_o_in=ntrcr_o, nbtrcr_in=nbtrcr, nbtrcr_sw_in=nbtrcr_sw)
+
+      call icepack_init_tracer_flags( &
+          tr_bgc_Nit_in=tr_bgc_Nit, tr_bgc_Am_in =tr_bgc_Am,  tr_bgc_Sil_in=tr_bgc_Sil,   &
+          tr_bgc_DMS_in=tr_bgc_DMS, tr_bgc_PON_in=tr_bgc_PON, tr_bgc_S_in  =tr_bgc_S,     &
+          tr_bgc_N_in  =tr_bgc_N,   tr_bgc_C_in  =tr_bgc_C,   tr_bgc_chl_in=tr_bgc_chl,   &
+          tr_bgc_DON_in=tr_bgc_DON, tr_bgc_Fe_in =tr_bgc_Fe,  tr_zaero_in  =tr_zaero,     &
+          tr_bgc_hum_in=tr_bgc_hum, tr_aero_in   =tr_aero)
+
+      call icepack_init_tracer_indices( &
+          nbtrcr_in=nbtrcr,        &
+          nt_fbri_in=nt_fbri,      &  
+          nt_bgc_Nit_in=nt_bgc_Nit,   nt_bgc_Am_in=nt_bgc_Am,       nt_bgc_Sil_in=nt_bgc_Sil,   &
+          nt_bgc_DMS_in=nt_bgc_DMS,   nt_bgc_PON_in=nt_bgc_PON,     nt_bgc_S_in=nt_bgc_S,     &
+          nt_bgc_N_in=nt_bgc_N,       nt_bgc_C_in=nt_bgc_C,         nt_bgc_chl_in=nt_bgc_chl,   &
+          nt_bgc_DOC_in=nt_bgc_DOC,   nt_bgc_DON_in=nt_bgc_DON,     nt_bgc_DIC_in=nt_bgc_DIC,   &
+          nt_zaero_in=nt_zaero,       nt_bgc_DMSPp_in=nt_bgc_DMSPp, nt_bgc_DMSPd_in=nt_bgc_DMSPd, &
+          nt_bgc_Fed_in=nt_bgc_Fed,   nt_bgc_Fep_in=nt_bgc_Fep,     nt_zbgc_frac_in=nt_zbgc_frac, &
+          nlt_zaero_sw_in=nlt_zaero_sw,  nlt_chl_sw_in=nlt_chl_sw,  nlt_bgc_Sil_in=nlt_bgc_Sil, &
+          nlt_bgc_N_in=nlt_bgc_N,     nlt_bgc_Nit_in=nlt_bgc_Nit,   nlt_bgc_Am_in=nlt_bgc_Am, &
+          nlt_bgc_DMS_in=nlt_bgc_DMS, nlt_bgc_DMSPp_in=nlt_bgc_DMSPp, nlt_bgc_DMSPd_in=nlt_bgc_DMSPd, &
+          nlt_bgc_C_in=nlt_bgc_C,     nlt_bgc_chl_in=nlt_bgc_chl,   nlt_zaero_in=nlt_zaero, &
+          nlt_bgc_DIC_in=nlt_bgc_DIC, nlt_bgc_DOC_in=nlt_bgc_DOC,   nlt_bgc_PON_in=nlt_bgc_PON, &
+          nlt_bgc_DON_in=nlt_bgc_DON, nlt_bgc_Fed_in=nlt_bgc_Fed,   nlt_bgc_Fep_in=nlt_bgc_Fep, &
+          nt_bgc_hum_in=nt_bgc_hum,   nlt_bgc_hum_in=nlt_bgc_hum, &
+          bio_index_o_in=bio_index_o, bio_index_in=bio_index)
 
       !-----------------------------------------------------------------
       ! final consistency checks

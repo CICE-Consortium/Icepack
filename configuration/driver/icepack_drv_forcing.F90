@@ -760,7 +760,6 @@ endif
     subroutine atm_ISPOL           
 
       integer (kind=int_kind) :: &
-         nu_ispol,&     ! unit number
          i
 
       real (kind=dbl_kind), dimension(366) :: &
@@ -781,17 +780,17 @@ endif
 
       write (nu_diag,*) 'Reading ',filename
 
-      open (nu_ispol, file=filename, form='formatted')
+      open (nu_forcing, file=filename, form='formatted')
 
-      read(nu_ispol,*) tair
-      read(nu_ispol,*) qa
-      read(nu_ispol,*) fsw
-      read(nu_ispol,*) flw
-      read(nu_ispol,*) uatm
-      read(nu_ispol,*) vatm
-      read(nu_ispol,*) fsnow
-      read(nu_ispol,*) aday
-      read(nu_ispol,*) atime
+      read(nu_forcing,*) tair
+      read(nu_forcing,*) qa
+      read(nu_forcing,*) fsw
+      read(nu_forcing,*) flw
+      read(nu_forcing,*) uatm
+      read(nu_forcing,*) vatm
+      read(nu_forcing,*) fsnow
+      read(nu_forcing,*) aday
+      read(nu_forcing,*) atime
 
       do i = 1, 366 !daily
         Tair_data(i) = tair(i)
@@ -815,7 +814,7 @@ endif
       !write(*,*) aday
       !write(*,*) atime
       
-      close(nu_ispol)
+      close(nu_forcing)
 
       !write (nu_diag,*) ' '
       !write (nu_diag,*) 'Atmospheric data file:'
@@ -849,17 +848,17 @@ endif
 
       write (nu_diag,*) 'Reading ',filename
 
-      open (nu_nice, file=filename, form='formatted')
+      open (nu_forcing, file=filename, form='formatted')
 
-      read(nu_nice,*) tair
-      read(nu_nice,*) qa
-      read(nu_nice,*) fsw
-      read(nu_nice,*) flw
-      read(nu_nice,*) uatm
-      read(nu_nice,*) vatm
-      read(nu_nice,*) fsnow
-      read(nu_nice,*) aday
-      read(nu_nice,*) atime
+      read(nu_forcing,*) tair
+      read(nu_forcing,*) qa
+      read(nu_forcing,*) fsw
+      read(nu_forcing,*) flw
+      read(nu_forcing,*) uatm
+      read(nu_forcing,*) vatm
+      read(nu_forcing,*) fsnow
+      read(nu_forcing,*) aday
+      read(nu_forcing,*) atime
       do i = 1, 366
         Tair_data(i) = tair(i)
         Qa_data(i) = qa(i)
@@ -882,7 +881,7 @@ endif
       !write(*,*) aday
       !write(*,*) atime
       
-      close(nu_nice)
+      close(nu_forcing)
 
 !cn there is probably more to do here, see below...
 
@@ -1126,7 +1125,6 @@ endif
 
 
       integer (kind=int_kind) :: &
-         nu_ispol,&     ! unit number
          i
 
       real (kind=dbl_kind), dimension(12) :: &
@@ -1146,16 +1144,19 @@ endif
 
       write (nu_diag,*) 'Reading ',filename
 
-      open (nu_ispol, file=filename, form='formatted')
+      open (nu_forcing, file=filename, form='formatted')
 
-      read(nu_ispol,*) t
-      read(nu_ispol,*) s
-      read(nu_ispol,*) hblt
-      read(nu_ispol,*) u
-      read(nu_ispol,*) v
-      read(nu_ispol,*) dhdx
-      read(nu_ispol,*) dhdy
-      read(nu_ispol,*) qdp
+      read(nu_forcing,*) t
+      read(nu_forcing,*) s
+      read(nu_forcing,*) hblt
+      read(nu_forcing,*) u
+      read(nu_forcing,*) v
+      read(nu_forcing,*) dhdx
+      read(nu_forcing,*) dhdy
+      read(nu_forcing,*) qdp
+
+      close(nu_forcing)
+
       do i = 1, 12 ! monthly
         !t(i)
         sss_data(i) = s(i)
