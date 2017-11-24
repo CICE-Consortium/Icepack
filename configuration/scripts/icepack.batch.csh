@@ -104,7 +104,7 @@ EOFB
 
 else if (${ICE_MACHINE} =~ theia*) then
 cat >> ${jobfile} << EOFB
-#PBS -J ${ICE_CASENAME}
+#PBS -N ${ICE_CASENAME}
 #PBS -l walltime=${ICE_RUNLENGTH}
 #PBS -A omd
 #PBS -l nodes=${nnodes}
