@@ -102,6 +102,17 @@ cat >> ${jobfile} << EOFB
 ###SBATCH --mail-user username@domain.com
 EOFB
 
+else if (${ICE_MACHINE} =~ theia*) then
+cat >> ${jobfile} << EOFB
+#PBS -J ${ICE_CASENAME}
+#PBS -l walltime=${ICE_RUNLENGTH}
+#PBS -A omd
+#PBS -l nodes=${nnodes}
+#PBS -e $ICE_CASENAME.err
+#PBS -o $ICE_CASENAME.out
+#PBS -q batch
+EOFB
+
 else if (${ICE_MACHINE} =~ wolf*) then
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
