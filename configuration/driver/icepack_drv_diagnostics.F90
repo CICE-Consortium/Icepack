@@ -9,7 +9,7 @@
       use icepack_drv_kinds
       use icepack_drv_constants, only: c0, nu_diag, nu_diag_out
       use icepack_drv_calendar, only: diagfreq, istep1, istep
-      use icepack_drv_parameters, only: max_aero
+      use icepack_drv_tracers, only: max_aero
       use icepack_drv_domain_size, only: nx
 
       implicit none

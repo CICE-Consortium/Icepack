@@ -47,7 +47,7 @@
 
       use icepack_drv_calendar, only: sec, month, mday, nyr, istep1
       use icepack_drv_calendar, only: time, time_forc, year_init
-      use icepack_drv_parameters, only: oceanmixed_ice
+      use icepack_drv_arrays_column, only: oceanmixed_ice
       use icepack_drv_constants, only: nu_diag, nu_dump
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat, nx
       use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
@@ -177,7 +177,7 @@
 
       use icepack_drv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
       use icepack_intfc, only: icepack_aggregate
-      use icepack_drv_parameters, only: oceanmixed_ice
+      use icepack_drv_arrays_column, only: oceanmixed_ice
       use icepack_drv_constants, only: c0, p5, nu_diag, nu_restart
       use icepack_drv_domain_size, only: nilyr, nslyr, ncat
       use icepack_drv_domain_size, only: max_ntrcr, nx
@@ -847,12 +847,8 @@
            enddo ! n
         enddo    ! i
 
-!      call write_restart_field(nu_dump_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
-!                               'fbrn',ncat,diag)
-!      call write_restart_field(nu_dump_hbrine,0,first_ice_real(:,:),'ruf8', &
-!                               'first_ice',ncat,diag)
-        call read_restart_field_cn(nu_restart,trcrn(:,nt_fbri,:),ncat)
-        call read_restart_field_cn(nu_restart,first_ice_real(:,:),ncat)
+        call write_restart_field_cn(nu_dump,trcrn(:,nt_fbri,:),ncat)
+        call write_restart_field_cn(nu_dump,first_ice_real(:,:),ncat)
 
       end subroutine write_restart_hbrine
 
@@ -881,13 +877,9 @@
 
       write(nu_diag,*) 'brine restart'
 
-!      call read_restart_field(nu_restart_hbrine,0,trcrn(:,nt_fbri,:),'ruf8', &
-!                              'fbrn',ncat,diag,field_loc_center,field_type_scalar)
-!      call read_restart_field(nu_restart_hbrine,0,first_ice_real(:,:),'ruf8', &
-!                              'first_ice',ncat,diag,field_loc_center,field_type_scalar)
-      call write_restart_field_cn(nu_restart,trcrn(:,nt_fbri,:),ncat)
-      call write_restart_field_cn(nu_restart,first_ice_real(:,:),ncat)
-      
+      call read_restart_field_cn(nu_restart,trcrn(:,nt_fbri,:),ncat)
+      call read_restart_field_cn(nu_restart,first_ice_real(:,:),ncat)
+
          do i = 1, nx
             do n = 1, ncat
                if (first_ice_real(i,n) >= p5) then
