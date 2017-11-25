@@ -229,6 +229,18 @@
          flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
          fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
 
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
       elseif (trim(atm_data_type) == 'clim') then
          midmonth = 15  ! assume data is given on 15th of every month
          recslot = 1                             ! latter half of month
@@ -251,6 +263,18 @@
          flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
          fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
 
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
       elseif (trim(atm_data_type) == 'ISPOL' .or. &
           trim(atm_data_type) == 'NICE') then
 
@@ -272,6 +296,14 @@
         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
 
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+
         sec6hr = secday/4;                      ! seconds in 6 hours
         maxrec = 1464
         recnum = int(yday*4)
@@ -282,27 +314,13 @@
         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
 
+         ! derived
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
       endif
-
-      ! use default values for all other data fields
-      i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
-      mlast = i
-      mnext = mlast
-      c1intp = c1
-      c2intp = c0
-
-      potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-      rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-      strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-      stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-      swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-      swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-      swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-      swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-      frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-      qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
 
 !cn this is called from get_forcing_ocn in cice...
       if (trim(ocn_data_type) == 'ISPOL') then
@@ -323,6 +341,7 @@
          sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
          uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
          vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
+         qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
 
       elseif (trim(ocn_data_type) == 'NICE') then
 
@@ -343,6 +362,7 @@
          sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
          uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
          vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
+         qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
 
       else
 
@@ -357,6 +377,7 @@
          sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
          uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
          vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
+         qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
 
       endif
 
