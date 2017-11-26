@@ -513,7 +513,7 @@
       use icepack_drv_arrays_column, only: bgc_data_dir
       use icepack_drv_arrays_column, only: sil_data_type, nit_data_type, fe_data_type
       use icepack_drv_tracers, only: max_algae, max_don, max_doc, max_dic, max_aero
-      use icepack_drv_tracers, only: max_fe, max_nbtrcr
+      use icepack_drv_tracers, only: max_fe, max_nbtrcr, tr_aero
       use icepack_drv_parameters, only: shortwave
 
       use icepack_intfc, only: icepack_init_tracer_numbers, icepack_init_tracer_flags
@@ -593,7 +593,7 @@
           tr_bgc_DMS,    tr_bgc_PON,   tr_bgc_S,     &
           tr_bgc_N,      tr_bgc_C,     tr_bgc_chl,   &
           tr_bgc_DON,    tr_bgc_Fe,    tr_zaero,     &
-          tr_bgc_hum,    tr_aero
+          tr_bgc_hum
  
       integer (kind=int_kind) :: &
           ktherm
@@ -1730,7 +1730,7 @@
           tr_bgc_DMS_in=tr_bgc_DMS, tr_bgc_PON_in=tr_bgc_PON, tr_bgc_S_in  =tr_bgc_S,     &
           tr_bgc_N_in  =tr_bgc_N,   tr_bgc_C_in  =tr_bgc_C,   tr_bgc_chl_in=tr_bgc_chl,   &
           tr_bgc_DON_in=tr_bgc_DON, tr_bgc_Fe_in =tr_bgc_Fe,  tr_zaero_in  =tr_zaero,     &
-          tr_bgc_hum_in=tr_bgc_hum, tr_aero_in   =tr_aero)
+          tr_bgc_hum_in=tr_bgc_hum)
 
       call icepack_init_tracer_indices( &
           nbtrcr_in=nbtrcr,        &
