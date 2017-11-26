@@ -470,7 +470,7 @@ endif
       frain_data(1:12) = c0
 
       ! 6 W/m2 warming of mixed layer from deep ocean
-        qdp_data(1:12) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
+        qdp_data(:) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
                               ! SH+LH with bulk transfer than in MU 71
 
       end subroutine atm_climatological
