@@ -1631,9 +1631,9 @@ creates the directory <strong>wolf_smoke_col_1x1.t12</strong>.  This flag is REQ
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">shortwave</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code></td>
+<td><code class="docutils literal"><span class="pre">ccsm3</span></code></td>
 <td>NCAR CCSM3 distribution method</td>
-<td>&#160;</td>
+<td>‘dEdd’</td>
 </tr>
 <tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">dEdd</span></code></td>
@@ -1641,9 +1641,9 @@ creates the directory <strong>wolf_smoke_col_1x1.t12</strong>.  This flag is REQ
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">albedo_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code></td>
+<td><code class="docutils literal"><span class="pre">ccsm3</span></code></td>
 <td>NCAR CCSM3 albedos</td>
-<td>‘default’</td>
+<td>‘ccsm3’</td>
 </tr>
 <tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">constant</span></code></td>
@@ -2110,7 +2110,7 @@ creates the directory <strong>wolf_smoke_col_1x1.t12</strong>.  This flag is REQ
 <td>data file containing ocean forcing data</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">restore_sst</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">restore_ocn</span></code></td>
 <td>true/false</td>
 <td>restore sst to data</td>
 <td>&#160;</td>
@@ -2120,67 +2120,62 @@ creates the directory <strong>wolf_smoke_col_1x1.t12</strong>.  This flag is REQ
 <td>sst restoring time scale (days)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">restore_ice</span></code></td>
-<td>true/false</td>
-<td>restore ice state along lateral boundaries</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><em>icefields_tracer_nml</em></td>
+<tr class="row-odd"><td><em>icefields_tracer_nml</em></td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td>&#160;</td>
 <td><em>History Fields</em></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">f_&lt;var&gt;</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_&lt;var&gt;</span></code></td>
 <td>string</td>
 <td>frequency units for writing <code class="docutils literal"><span class="pre">&lt;var&gt;</span></code> to history</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">y</span></code></td>
 <td>write history every <code class="docutils literal"><span class="pre">histfreq_n</span></code> years</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">m</span></code></td>
 <td>write history every <code class="docutils literal"><span class="pre">histfreq_n</span></code> months</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">d</span></code></td>
 <td>write history every <code class="docutils literal"><span class="pre">histfreq_n</span></code> days</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">h</span></code></td>
 <td>write history every <code class="docutils literal"><span class="pre">histfreq_n</span></code> hours</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">1</span></code></td>
 <td>write history every time step</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">x</span></code></td>
 <td>do not write <code class="docutils literal"><span class="pre">&lt;var&gt;</span></code> to history</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">md</span></code></td>
 <td><em>e.g.,</em> write both monthly and daily files</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">f_&lt;var&gt;_ai</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_&lt;var&gt;_ai</span></code></td>
 <td>&#160;</td>
 <td>grid cell average of <code class="docutils literal"><span class="pre">&lt;var&gt;</span></code> (<span class="math">\(\times a_i\)</span>)</td>
 <td>&#160;</td>
