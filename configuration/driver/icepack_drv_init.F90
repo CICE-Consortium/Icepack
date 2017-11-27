@@ -8,6 +8,7 @@
 
       use icepack_drv_kinds
       use icepack_drv_domain_size, only: nx
+      use icepack_intfc, only: icepack_init_constants
 
       implicit none
       private
@@ -49,7 +50,8 @@
       use icepack_drv_parameters, only: atmbndy, calc_strair, formdrag, highfreq, natmiter
       use icepack_drv_parameters, only: kitd, kcatbound, hs0, dpscale, frzpnd
       use icepack_drv_parameters, only: rfracmin, rfracmax, pndaspect, hs1, hp1
-      use icepack_drv_parameters, only: ktherm, calc_Tsfc, conduct, oceanmixed_ice
+      use icepack_drv_parameters, only: ktherm, calc_Tsfc, conduct
+      use icepack_drv_arrays_column, only: oceanmixed_ice
       use icepack_drv_constants, only: c0, c1, puny, ice_stdout, nu_diag, nu_diag_out, nu_nml
       use icepack_drv_diagnostics, only: diag_file, nx_names
       use icepack_drv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
@@ -73,7 +75,7 @@
       use icepack_drv_parameters, only: a_rapid_mode, Rac_rapid_mode
       use icepack_drv_parameters, only: aspect_rapid_mode, dSdt_slow_mode
       use icepack_drv_parameters, only: phi_c_slow_mode, phi_i_mushy
-      use icepack_drv_parameters, only: Cf, tfrz_option, kalg, fbot_xfer_type
+      use icepack_drv_parameters, only: tfrz_option, kalg, fbot_xfer_type
 
       ! local variables
 
@@ -94,6 +96,7 @@
       logical :: exists
 
       real (kind=real_kind) :: rpcesm, rplvl, rptopo 
+      real (kind=dbl_kind) :: Cf
 
       !-----------------------------------------------------------------
       ! Namelist variables.
@@ -462,6 +465,8 @@
             write (nu_diag,*) 'WARNING: Setting fbot_xfer_type = constant'
          fbot_xfer_type = 'constant'
       endif
+
+      call icepack_init_constants(Cf_in=Cf)
 
       !-----------------------------------------------------------------
       ! spew

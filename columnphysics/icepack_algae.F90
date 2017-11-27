@@ -465,7 +465,8 @@
 
       use icepack_constants, only: p5, p05, p1, c1, c0, puny, c10
       use icepack_tracers, only: nt_bgc_N,  ntrcr, bio_index 
-      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l, R_chl2N
+      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l
+      use icepack_zbgc_shared, only: R_chl2N
 
       integer (kind=int_kind), intent(in) :: &
          nilyr             , & ! number of ice layers
@@ -1435,7 +1436,7 @@
                             Nerror,       conserve_N)      
 
       use icepack_constants, only: p1, p5, c0, c1, secday, puny
-      use icepack_parameters, only: max_algae, max_DON, max_DOC, R_C2N, R_chl2N
+
       use icepack_parameters, only: T_max, fsal      , fr_resp
       use icepack_parameters, only: op_dep_min       , fr_graze_s
       use icepack_parameters, only: fr_graze_e       , fr_mort2min
@@ -1449,8 +1450,9 @@
       use icepack_zbgc_shared, only: k_exude, K_Nit, K_Am, K_Sil, K_Fe
       use icepack_zbgc_shared, only: grow_Tdep, fr_graze, mort_pre, mort_Tdep
       use icepack_zbgc_shared, only: f_don, kn_bac, f_don_Am
-      use icepack_zbgc_shared, only: f_doc, f_exude, k_bac
+      use icepack_zbgc_shared, only: f_doc, f_exude, k_bac, R_chl2N, R_C2N
 
+      use icepack_tracers, only: max_algae, max_DON, max_DOC
       use icepack_tracers, only: tr_brine, nt_fbri
       use icepack_tracers, only: tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil
       use icepack_tracers, only: tr_bgc_DMS,    tr_bgc_PON,   tr_bgc_S
