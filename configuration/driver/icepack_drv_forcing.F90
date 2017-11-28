@@ -797,7 +797,7 @@ endif
 
       character (char_len_long) filename
       
-      filename = trim(data_dir)//'ISPOL_2004/ISPOL_atm_forcing.txt'
+      filename = trim(data_dir)//'/ISPOL_2004/ISPOL_atm_forcing.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -912,7 +912,7 @@ endif
            yr                   ! current forcing year
 
       atm_file = &
-          trim(atm_data_dir)//'NICE_atm_forcing.nc'
+          trim(atm_data_dir)//'/NICE_atm_forcing.nc'
 
 
       if (my_task == master_task) then
@@ -1161,7 +1161,7 @@ endif
       character (char_len_long) filename
       
       filename = &
-          trim(data_dir)//'ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+          trim(data_dir)//'/ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
 
       write (nu_diag,*) 'Reading ',filename
 

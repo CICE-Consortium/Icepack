@@ -54,7 +54,7 @@
             trim(nit_data_type) == 'NICE' .or. &
             trim(sil_data_type) == 'NICE') then 
           
-          filename = trim(data_dir)//'ISPOL_2004/nutrients_daily_ISPOL_WOA_field3.txt'
+          filename = trim(data_dir)//'/ISPOL_2004/nutrients_daily_ISPOL_WOA_field3.txt'
           write (nu_diag,*) 'Reading ',filename
 
           ntime = 365 !daily
@@ -250,7 +250,7 @@
 
       if (trim(fe_data_type) == 'clim') then
        	diag = .true.   ! write diagnostic information 
-        iron_file = trim(bgc_data_dir)//'dFe_50m_annual_Tagliabue_gx1.nc'
+        iron_file = trim(bgc_data_dir)//'/dFe_50m_annual_Tagliabue_gx1.nc'
 
         write (nu_diag,*) ' '
         write (nu_diag,*) 'Dissolved iron ocean concentrations from:'
@@ -270,7 +270,7 @@
         close(fid)
 
        	diag = .true.   ! write diagnostic information 
-        iron_file = trim(bgc_data_dir)//'pFe_bathy_gx1.nc'
+        iron_file = trim(bgc_data_dir)//'/pFe_bathy_gx1.nc'
 
         write (nu_diag,*) ' '
         write (nu_diag,*) 'Particulate iron ocean concentrations from:'
