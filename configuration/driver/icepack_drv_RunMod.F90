@@ -195,8 +195,9 @@
       use icepack_drv_arrays_column, only: alvdfn, alidfn, alvdrn, alidrn, &
           albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
       use icepack_drv_calendar, only: dt
-      use icepack_drv_parameters, only: calc_Tsfc, oceanmixed_ice, max_aero
-      use icepack_drv_tracers, only: nbtrcr
+      use icepack_drv_parameters, only: calc_Tsfc
+      use icepack_drv_arrays_column, only: oceanmixed_ice
+      use icepack_drv_tracers, only: nbtrcr, max_aero
       use icepack_drv_constants, only: c0, c1, puny, rhofresh
       use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &

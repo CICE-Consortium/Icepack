@@ -8,6 +8,9 @@
       module icepack_drv_tracers
 
       use icepack_drv_kinds
+      use icepack_tracers, only: max_nbtrcr, max_algae, max_aero
+      use icepack_tracers, only: nmodal1, nmodal2
+      use icepack_tracers, only: max_doc, max_don, max_dic, max_fe
       use icepack_tracers, only: ntrcr, ntrcr_o, nbtrcr, nbtrcr_sw
 
       use icepack_tracers, only: tr_brine, tr_iage, tr_fy, tr_lvl

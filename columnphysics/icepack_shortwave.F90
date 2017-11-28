@@ -3590,8 +3590,8 @@
       use icepack_constants,  only: c0, c1, c2, p5
       use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
-      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l
-      use icepack_parameters, only: R_chl2N, min_bgc, F_abs_chl,  hi_ssl
+      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l, hi_ssl, min_bgc
+      use icepack_zbgc_shared,only: R_chl2N, F_abs_chl
       use icepack_zbgc_shared,only: remap_zbgc
 
       integer (kind=int_kind), intent(in) :: &

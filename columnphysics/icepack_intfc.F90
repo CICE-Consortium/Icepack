@@ -25,6 +25,8 @@
       use icepack_parameters, only: icepack_write_parameters
 
       use icepack_tracers, only: icepack_compute_tracers
+      use icepack_tracers, only: icepack_query_tracer_sizes
+      use icepack_tracers, only: icepack_write_tracer_sizes
       use icepack_tracers, only: icepack_init_tracer_flags
       use icepack_tracers, only: icepack_query_tracer_flags
       use icepack_tracers, only: icepack_write_tracer_flags
@@ -50,7 +52,6 @@
 
       use icepack_zbgc , only: icepack_init_bgc
       use icepack_zbgc , only: icepack_init_zbgc
-      use icepack_zbgc , only: icepack_init_bgc_trcr
       use icepack_zbgc , only: icepack_biogeochemistry
       use icepack_zbgc , only: icepack_init_OceanConcArray
       use icepack_zbgc , only: icepack_init_ocean_conc
