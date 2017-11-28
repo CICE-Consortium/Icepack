@@ -10,6 +10,7 @@
       use icepack_drv_kinds
       use icepack_intfc, only: icepack_clear_warnings
       use icepack_intfc, only: icepack_print_warnings
+      use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_tracer_numbers
@@ -622,7 +623,7 @@
 
       !-----------------------------------------------------------------
 
-      call icepack_query_parameters( &
+      call icepack_query_tracer_sizes( &
          max_aero_out=max_aero)
       allocate(nlt_zaero_sw(max_aero))
       allocate(nt_zaero(max_aero))
@@ -900,18 +901,14 @@
 
       if (tr_brine .or. skl_bgc) then
 
-      call icepack_query_parameters( &
+      call icepack_query_tracer_sizes( &
          max_algae_out=max_algae, max_nbtrcr_out=max_nbtrcr, max_don_out=max_don, &
          max_doc_out=max_doc, max_dic_out=max_dic, max_aero_out=max_aero, max_fe_out=max_fe)
-      call icepack_query_tracer_numbers( &
-         ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
-      call icepack_query_tracer_flags( &
-         tr_zaero_out=tr_zaero)
-      call icepack_query_parameters( &
-         max_aero_out=max_aero)
+      call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
+      call icepack_query_tracer_sizes(max_aero_out=max_aero)
       allocate(nlt_zaero(max_aero))
-      call icepack_query_tracer_indices( &
-         nlt_zaero_out=nlt_zaero)
+      call icepack_query_tracer_indices(nlt_zaero_out=nlt_zaero)
       allocate(bio_index_o(max_nbtrcr))
       call icepack_query_tracer_indices(bio_index_o_out=bio_index_o)
 

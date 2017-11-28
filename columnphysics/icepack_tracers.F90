@@ -8,14 +8,14 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_parameters, only: max_algae, max_dic, max_doc, max_don
-      use icepack_parameters, only: max_fe, max_aero, max_nbtrcr
 
       implicit none
       save
 
       private
       public :: icepack_compute_tracers
+      public :: icepack_query_tracer_sizes
+      public :: icepack_write_tracer_sizes
       public :: icepack_init_tracer_flags
       public :: icepack_query_tracer_flags
       public :: icepack_write_tracer_flags
@@ -26,9 +26,38 @@
       public :: icepack_query_tracer_numbers
       public :: icepack_write_tracer_numbers
 
+      !-----------------------------------------------------------------
+      ! dimensions
+      !-----------------------------------------------------------------
+      integer (kind=int_kind), parameter, public :: &
+         max_algae  =   3       , & ! maximum number of algal types
+         max_dic    =   1       , & ! maximum number of dissolved inorganic carbon types
+         max_doc    =   3       , & ! maximum number of dissolved organic carbon types
+         max_don    =   1       , & ! maximum number of dissolved organic nitrogen types
+         max_fe     =   2       , & ! maximum number of iron types
+         nmodal1    =   10      , & ! dimension for modal aerosol radiation parameters
+         nmodal2    =   8       , & ! dimension for modal aerosol radiation parameters
+         max_aero   =   6       , & ! maximum number of aerosols
+         max_nbtrcr = max_algae*2 & ! algal nitrogen and chlorophyll
+                    + max_dic     & ! dissolved inorganic carbon
+                    + max_doc     & ! dissolved organic carbon
+                    + max_don     & ! dissolved organic nitrogen
+                    + 5           & ! nitrate, ammonium, silicate, PON, and humics
+                    + 3           & ! DMSPp, DMSPd, DMS
+                    + max_fe*2    & ! dissolved Fe and  particulate Fe
+                    + max_aero      ! aerosols
+
       integer (kind=int_kind), public :: &
-         ntrcr   , &  ! number of tracers in use
-         ntrcr_o      ! number of non-bio tracers in use
+         ntrcr   , & ! number of tracers in use
+         ntrcr_o , & ! number of non-bio tracers in use
+         n_aero  , & ! number of aerosols in use
+         n_zaero , & ! number of z aerosols in use 
+         n_algae , & ! number of algae in use 
+         n_doc   , & ! number of DOC pools in use
+         n_dic   , & ! number of DIC pools in use
+         n_don   , & ! number of DON pools in use
+         n_fed   , & ! number of Fe  pools in use dissolved Fe
+         n_fep       ! number of Fe  pools in use particulate Fe
 
       integer (kind=int_kind), public :: &
          nt_Tsfc  , & ! ice/snow temperature
@@ -155,6 +184,57 @@
 !=======================================================================
 
       contains
+
+!=======================================================================
+! query tracer sizes
+
+      subroutine icepack_query_tracer_sizes( &
+           max_algae_out  , max_dic_out    , max_doc_out    , &
+           max_don_out    , max_fe_out     , nmodal1_out    , &
+           nmodal2_out    , max_aero_out   , max_nbtrcr_out )
+
+        integer (kind=int_kind), intent(out), optional :: &
+             max_algae_out  , & ! maximum number of algal types
+             max_dic_out    , & ! maximum number of dissolved inorganic carbon types
+             max_doc_out    , & ! maximum number of dissolved organic carbon types
+             max_don_out    , & ! maximum number of dissolved organic nitrogen types
+             max_fe_out     , & ! maximum number of iron types
+             nmodal1_out    , & ! dimension for modal aerosol radiation parameters
+             nmodal2_out    , & ! dimension for modal aerosol radiation parameters
+             max_aero_out   , & ! maximum number of aerosols
+             max_nbtrcr_out     ! algal nitrogen and chlorophyll
+
+        if (present(max_algae_out))  max_algae_out = max_algae
+        if (present(max_dic_out))    max_dic_out   = max_dic
+        if (present(max_doc_out))    max_doc_out   = max_doc
+        if (present(max_don_out))    max_don_out   = max_don
+        if (present(max_fe_out))     max_fe_out    = max_fe
+        if (present(nmodal1_out))    nmodal1_out   = nmodal1
+        if (present(nmodal2_out))    nmodal2_out   = nmodal2
+        if (present(max_aero_out))   max_aero_out  = max_aero
+        if (present(max_nbtrcr_out)) max_nbtrcr_out= max_nbtrcr
+
+      end subroutine icepack_query_tracer_sizes
+
+!=======================================================================
+! write tracer sizes
+
+      subroutine icepack_write_tracer_sizes(iounit)
+
+        integer, intent(in) :: iounit
+
+        write(iounit,*) "icepack_write_tracer_sizes:"
+        write(iounit,*) '  max_algae_out =', max_algae
+        write(iounit,*) '  max_dic_out   =', max_dic
+        write(iounit,*) '  max_doc_out   =', max_doc
+        write(iounit,*) '  max_don_out   =', max_don
+        write(iounit,*) '  max_fe_out    =', max_fe
+        write(iounit,*) '  nmodal1_out   =', nmodal1
+        write(iounit,*) '  nmodal2_out   =', nmodal2
+        write(iounit,*) '  max_aero_out  =', max_aero
+        write(iounit,*) '  max_nbtrcr_out=', max_nbtrcr
+
+      end subroutine icepack_write_tracer_sizes
 
 !=======================================================================
 ! set tracer active flags
@@ -325,9 +405,8 @@
            nlt_bgc_Fep_in, nlt_bgc_Nit_in, nlt_bgc_Am_in, nlt_bgc_Sil_in, &
            nlt_bgc_DMSPp_in, nlt_bgc_DMSPd_in, nlt_bgc_DMS_in, nlt_bgc_hum_in, &
            nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
-           nlt_zaero_sw_in, &
-           n_algae_in, n_algalC_in, n_algalchl_in, n_DOC_in, &
-           n_DON_in, n_DIC_in, n_dFe_in, n_pFe_in, n_aerosols_in, &
+           nlt_zaero_sw_in, n_algae_in, n_DOC_in, &
+           n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
            bio_index_o_in, bio_index_in, nbtrcr_in)
 
         integer, intent(in), optional :: &
@@ -366,14 +445,12 @@
 
        integer, intent(in), optional :: &
              n_algae_in,    & !  Dimensions
-             n_algalC_in,   & !
-             n_algalchl_in, & !
              n_DOC_in,      & !
              n_DON_in,      & !
              n_DIC_in,      & !
-             n_dFe_in,      & !
-             n_pFe_in,      & ! 
-             n_aerosols_in, & !
+             n_fed_in,      & !
+             n_fep_in,      & ! 
+             n_zaero_in,    & !
              nbtrcr_in
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
@@ -470,6 +547,7 @@
         bio_index_o(:) = 0
 
         if (present(nbtrcr_in)) then
+           nbtrcr = nbtrcr_in
            do k = 1, nbtrcr_in
               if (present(bio_index_o_in)) bio_index_o(k)= bio_index_o_in(k)
               if (present(bio_index_in)  ) bio_index(k)  = bio_index_in(k)
@@ -477,27 +555,26 @@
         endif
 
         if (present(n_algae_in)) then
+           n_algae = n_algae_in
            do k = 1, n_algae_in
               if (present(nt_bgc_N_in) ) nt_bgc_N(k) = nt_bgc_N_in(k) 
               if (present(nlt_bgc_N_in)) nlt_bgc_N(k)= nlt_bgc_N_in(k) 
-           enddo
-        endif
-
-        if (present(n_algalC_in)) then
-           do k = 1, n_algalC_in
-              if (present(nt_bgc_C_in) ) nt_bgc_C(k) = nt_bgc_C_in(k) 
-              if (present(nlt_bgc_C_in)) nlt_bgc_C(k)= nlt_bgc_C_in(k) 
-           enddo
-        endif
-
-        if (present(n_algalchl_in)) then
-           do k = 1, n_algalchl_in
               if (present(nt_bgc_chl_in) ) nt_bgc_chl(k) = nt_bgc_chl_in(k) 
               if (present(nlt_bgc_chl_in)) nlt_bgc_chl(k)= nlt_bgc_chl_in(k) 
            enddo
         endif
 
+! algal C is not yet distinct from algal N
+!        if (present(n_algalC_in)) then
+!           n_algalC = n_algalC_in
+!           do k = 1, n_algalC_in
+!              if (present(nt_bgc_C_in) ) nt_bgc_C(k) = nt_bgc_C_in(k) 
+!              if (present(nlt_bgc_C_in)) nlt_bgc_C(k)= nlt_bgc_C_in(k) 
+!           enddo
+!        endif
+
         if (present(n_DOC_in)) then
+           n_DOC = n_DOC_in
            do k = 1, n_DOC_in
               if (present(nt_bgc_DOC_in) ) nt_bgc_DOC(k) = nt_bgc_DOC_in(k) 
               if (present(nlt_bgc_DOC_in)) nlt_bgc_DOC(k)= nlt_bgc_DOC_in(k) 
@@ -505,6 +582,7 @@
         endif
 
         if (present(n_DON_in)) then
+           n_DON = n_DON_in
            do k = 1, n_DON_in
               if (present(nt_bgc_DON_in) ) nt_bgc_DON(k) = nt_bgc_DON_in(k) 
               if (present(nlt_bgc_DON_in)) nlt_bgc_DON(k)= nlt_bgc_DON_in(k) 
@@ -512,28 +590,32 @@
         endif
 
         if (present(n_DIC_in)) then
+           n_DIC = n_DIC_in
            do k = 1, n_DIC_in
               if (present(nt_bgc_DIC_in) ) nt_bgc_DIC(k) = nt_bgc_DIC_in(k) 
               if (present(nlt_bgc_DIC_in)) nlt_bgc_DIC(k)= nlt_bgc_DIC_in(k) 
            enddo
         endif
 
-        if (present(n_dFe_in)) then
-           do k = 1, n_dFe_in
+        if (present(n_fed_in)) then
+           n_fed = n_fed
+           do k = 1, n_fed
               if (present(nt_bgc_Fed_in) ) nt_bgc_Fed(k) = nt_bgc_Fed_in(k) 
               if (present(nlt_bgc_Fed_in)) nlt_bgc_Fed(k)= nlt_bgc_Fed_in(k) 
            enddo
         endif
 
-        if (present(n_pFe_in)) then
-           do k = 1, n_pFe_in
+        if (present(n_fep_in)) then
+           n_fed = n_fep
+           do k = 1, n_fep
               if (present(nt_bgc_Fep_in) ) nt_bgc_Fep(k) = nt_bgc_Fep_in(k) 
               if (present(nlt_bgc_Fep_in)) nlt_bgc_Fep(k)= nlt_bgc_Fep_in(k) 
            enddo
         endif
 
-        if (present(n_aerosols_in)) then
-           do k = 1, n_aerosols_in
+        if (present(n_zaero_in)) then
+           n_zaero = n_zaero_in
+           do k = 1, n_zaero_in
               if (present(nt_zaero_in)    ) nt_zaero(k)    = nt_zaero_in(k)   
               if (present(nlt_zaero_in)   ) nlt_zaero(k)   = nlt_zaero_in(k)   
               if (present(nlt_zaero_sw_in)) nlt_zaero_sw(k)= nlt_zaero_sw_in(k)   

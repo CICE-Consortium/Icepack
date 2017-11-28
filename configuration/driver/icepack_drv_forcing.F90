@@ -164,10 +164,7 @@
         end if
       endif
 
-      if (trim(ocn_data_type) == 'ISPOL') then
-        call ocn_ISPOL
-      endif
-
+      if (trim(ocn_data_type) == 'ISPOL') call ocn_ISPOL
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     flw_data,      &
@@ -214,13 +211,6 @@
 
       real (kind=dbl_kind) :: &
           sec6hr
-  
-      !values for default case
-      i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
-      mlast = i
-      mnext = mlast
-      c1intp = c1
-      c2intp = c0
 
       if (trim(atm_data_type) == 'CFS') then
          ! calculate data index corresponding to current timestep
@@ -229,6 +219,28 @@
          mnext = mlast
          c1intp = c1
          c2intp = c0
+
+         ! fill all grid boxes with the same forcing data
+         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
       elseif (trim(atm_data_type) == 'clim') then
          midmonth = 15  ! assume data is given on 15th of every month
          recslot = 1                             ! latter half of month
@@ -241,7 +253,28 @@
             mnext = month
          endif
          call interp_coeff_monthly(recslot, c1intp, c2intp)
-        
+
+         ! fill all grid boxes with the same forcing data
+         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
       elseif (trim(atm_data_type) == 'ISPOL' .or. &
           trim(atm_data_type) == 'NICE') then
 
@@ -250,9 +283,9 @@
         !also need to repeat as above
 
         dataloc = 2                          ! data located at end of interval
-        maxrec = 366  
+        maxrec = 366
         recslot = 2
-        recnum = int(yday)   
+        recnum = int(yday)
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
         call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
@@ -262,9 +295,17 @@
         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-        
+
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+
         sec6hr = secday/4;                      ! seconds in 6 hours
-        maxrec = 1464  
+        maxrec = 1464
         recnum = int(yday*4)
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
@@ -273,91 +314,81 @@
         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
 
-      endif
+         ! derived
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
 
+      endif
 
 !cn this is called from get_forcing_ocn in cice...
-      if(trim(ocn_data_type) == 'ISPOL') then
-        
-        midmonth = 15  ! assume data is given on 15th of every month
-        recslot = 1                             ! latter half of month
-        if (mday < midmonth) recslot = 2        ! first half of month
-        if (recslot == 1) then
-          mlast = month
-          mnext = mod(month   ,12) + 1
-        else ! recslot = 2
-          mlast = mod(month+10,12) + 1
-          mnext = month
-        endif
-        call interp_coeff_monthly(recslot, c1intp, c2intp)
-        sst_temp(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
-        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
-        uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
-        vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
-        do i = 1, nx
-          sss (i) = max (sss(i), c0) 
-          hmix(i) = max(hmix(i), c0)           
-        end do
+      if (trim(ocn_data_type) == 'ISPOL') then
 
-        call finish_ocn_forcing(sst_temp)
+         midmonth = 15  ! assume data is given on 15th of every month
+         recslot = 1                             ! latter half of month
+         if (mday < midmonth) recslot = 2        ! first half of month
+         if (recslot == 1) then
+            mlast = month
+            mnext = mod(month   ,12) + 1
+         else ! recslot = 2
+            mlast = mod(month+10,12) + 1
+            mnext = month
+         endif
+         call interp_coeff_monthly(recslot, c1intp, c2intp)
+
+         sst_temp(:) = c1intp *  sst_data(mlast) + c2intp *  sst_data(mnext)
+         sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
+         uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
+         vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
+         qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
 
       elseif (trim(ocn_data_type) == 'NICE') then
-        
-!cn the nice stuff seems to be more complicated than ispol....        
-        midmonth = 15  ! assume data is given on 15th of every month
-        recslot = 1                             ! latter half of month
-        if (mday < midmonth) recslot = 2        ! first half of month
-        if (recslot == 1) then
-          mlast = month
-          mnext = mod(month   ,12) + 1
-        else ! recslot = 2
-          mlast = mod(month+10,12) + 1
-          mnext = month
-        endif
-        call interp_coeff_monthly(recslot, c1intp, c2intp)
-        sst_temp(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
-        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
-        uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
-        vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
-        do i = 1, nx
-          sss (i) = max (sss(i), c0) 
-          hmix(i) = max(hmix(i), c0)           
-        end do
 
-        call finish_ocn_forcing(sst_temp)
+!cn the nice stuff seems to be more complicated than ispol....
+         midmonth = 15  ! assume data is given on 15th of every month
+         recslot = 1                             ! latter half of month
+         if (mday < midmonth) recslot = 2        ! first half of month
+         if (recslot == 1) then
+            mlast = month
+            mnext = mod(month   ,12) + 1
+         else ! recslot = 2
+            mlast = mod(month+10,12) + 1
+            mnext = month
+         endif
+         call interp_coeff_monthly(recslot, c1intp, c2intp)
+
+         sst_temp(:) = c1intp *  sst_data(mlast) + c2intp *  sst_data(mnext)
+         sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
+         uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
+         vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
+         qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
 
       else
-        
+
+         ! use default values for all other data fields
+         i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
+         mlast = i
+         mnext = mlast
+         c1intp = c1
+         c2intp = c0
+
+         sst_temp(:) = c1intp *  sst_data(mlast) + c2intp *  sst_data(mnext)
+         sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
+         uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
+         vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
+         qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
 
       endif
 
-      ! fill all grid boxes with the same forcing data
-      flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-      Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
-      potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-      rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-      uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
-      vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
-      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-      strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-      stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-      fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
-      swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-      swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-      swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-      swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-      Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
-      frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-      fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-
-        qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
+      call finish_ocn_forcing(sst_temp)
 
 ! for debugging
-!if (timestep==8760.or.timestep==8761) then
+!if (timestep==4009.or.timestep==4010) then
 if (0==1) then ! off
-write (nu_diag,*) 'timestep',timestep, mlast, mnext
-write (nu_diag,*) 'index',mlast,mnext
+write (nu_diag,*) 'timestep, mlast,mnext,yday',timestep, mlast, mnext, yday
+write (nu_diag,*) 'recnum',recnum
+write (nu_diag,*) 'c1intp, c2intp',c1intp, c2intp
 write (nu_diag,*) 'flw',flw
 write (nu_diag,*) 'fsw',fsw
 write (nu_diag,*) 'Tair',Tair
@@ -439,7 +470,7 @@ endif
       frain_data(1:12) = c0
 
       ! 6 W/m2 warming of mixed layer from deep ocean
-        qdp_data(1:12) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
+        qdp_data(:) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
                               ! SH+LH with bulk transfer than in MU 71
 
       end subroutine atm_climatological
@@ -750,7 +781,6 @@ endif
     subroutine atm_ISPOL           
 
       integer (kind=int_kind) :: &
-         nu_ispol,&     ! unit number
          i
 
       real (kind=dbl_kind), dimension(366) :: &
@@ -767,22 +797,21 @@ endif
 
       character (char_len_long) filename
       
-      filename = &
-          trim(data_dir)//'ISPOL_atm_forcing.txt'
+      filename = trim(data_dir)//'ISPOL_2004/ISPOL_atm_forcing.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
-      open (nu_ispol, file=filename, form='formatted')
+      open (nu_forcing, file=filename, form='formatted')
 
-      read(nu_ispol,*) tair
-      read(nu_ispol,*) qa
-      read(nu_ispol,*) fsw
-      read(nu_ispol,*) flw
-      read(nu_ispol,*) uatm
-      read(nu_ispol,*) vatm
-      read(nu_ispol,*) fsnow
-      read(nu_ispol,*) aday
-      read(nu_ispol,*) atime
+      read(nu_forcing,*) tair
+      read(nu_forcing,*) qa
+      read(nu_forcing,*) fsw
+      read(nu_forcing,*) flw
+      read(nu_forcing,*) uatm
+      read(nu_forcing,*) vatm
+      read(nu_forcing,*) fsnow
+      read(nu_forcing,*) aday
+      read(nu_forcing,*) atime
 
       do i = 1, 366 !daily
         Tair_data(i) = tair(i)
@@ -806,7 +835,7 @@ endif
       !write(*,*) aday
       !write(*,*) atime
       
-      close(nu_ispol)
+      close(nu_forcing)
 
       !write (nu_diag,*) ' '
       !write (nu_diag,*) 'Atmospheric data file:'
@@ -836,22 +865,21 @@ endif
 
       character (char_len_long) filename
       
-      filename = &
-          trim(data_dir)//'NICE_atm_forcing.txt'
+      filename = trim(data_dir)//'/NICE_2015/NICEL_atm_forcing.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
-      open (nu_nice, file=filename, form='formatted')
+      open (nu_forcing, file=filename, form='formatted')
 
-      read(nu_nice,*) tair
-      read(nu_nice,*) qa
-      read(nu_nice,*) fsw
-      read(nu_nice,*) flw
-      read(nu_nice,*) uatm
-      read(nu_nice,*) vatm
-      read(nu_nice,*) fsnow
-      read(nu_nice,*) aday
-      read(nu_nice,*) atime
+      read(nu_forcing,*) tair
+      read(nu_forcing,*) qa
+      read(nu_forcing,*) fsw
+      read(nu_forcing,*) flw
+      read(nu_forcing,*) uatm
+      read(nu_forcing,*) vatm
+      read(nu_forcing,*) fsnow
+      read(nu_forcing,*) aday
+      read(nu_forcing,*) atime
       do i = 1, 366
         Tair_data(i) = tair(i)
         Qa_data(i) = qa(i)
@@ -874,7 +902,7 @@ endif
       !write(*,*) aday
       !write(*,*) atime
       
-      close(nu_nice)
+      close(nu_forcing)
 
 !cn there is probably more to do here, see below...
 
@@ -1118,7 +1146,6 @@ endif
 
 
       integer (kind=int_kind) :: &
-         nu_ispol,&     ! unit number
          i
 
       real (kind=dbl_kind), dimension(12) :: &
@@ -1134,20 +1161,23 @@ endif
       character (char_len_long) filename
       
       filename = &
-          trim(data_dir)//'pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+          trim(data_dir)//'ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
-      open (nu_ispol, file=filename, form='formatted')
+      open (nu_forcing, file=filename, form='formatted')
 
-      read(nu_ispol,*) t
-      read(nu_ispol,*) s
-      read(nu_ispol,*) hblt
-      read(nu_ispol,*) u
-      read(nu_ispol,*) v
-      read(nu_ispol,*) dhdx
-      read(nu_ispol,*) dhdy
-      read(nu_ispol,*) qdp
+      read(nu_forcing,*) t
+      read(nu_forcing,*) s
+      read(nu_forcing,*) hblt
+      read(nu_forcing,*) u
+      read(nu_forcing,*) v
+      read(nu_forcing,*) dhdx
+      read(nu_forcing,*) dhdy
+      read(nu_forcing,*) qdp
+
+      close(nu_forcing)
+
       do i = 1, 12 ! monthly
         !t(i)
         sss_data(i) = s(i)
@@ -1181,8 +1211,9 @@ endif
  ! 'linear_salt'      Tf = -depressT * sss
  ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
 
+      use icepack_constants, only: c0
       use icepack_therm_shared, only: icepack_sea_freezing_temperature
-      use icepack_drv_flux, only: sss, Tf, sst
+      use icepack_drv_flux, only: sss, Tf, sst, hmix
 
       real (kind=dbl_kind), dimension(nx), intent(in)  :: &
           sst_temp
@@ -1192,17 +1223,14 @@ endif
       integer (kind=int_kind) :: &
          i, j, iblk           ! horizontal indices
 
-      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do i = 1, nx
-        Tf(i) = icepack_sea_freezing_temperature(sss(i))
-        if (restore_ocn) then
-          sst(i) = sst(i) + (sst_temp(i)-sst(i))*dt/trest
-        endif
+         sss (i) = max (sss(i), c0)
+         hmix(i) = max(hmix(i), c0)
+         Tf  (i) = icepack_sea_freezing_temperature(sss(i))
+         if (restore_ocn) sst(i) = sst(i) + (sst_temp(i)-sst(i))*dt/trest
       enddo
-      !$OMP END PARALLEL DO
 
-    end subroutine finish_ocn_forcing
-
+      end subroutine finish_ocn_forcing
 
 !=======================================================================
 
