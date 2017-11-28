@@ -14,8 +14,11 @@
 
       implicit none
       private
-      public :: runtime_diags, diagnostic_abort, init_mass_diags, &
-                debug_icepack, print_state
+      public :: runtime_diags, &
+                diagnostic_abort, &
+                init_mass_diags, &
+                debug_icepack, &
+                print_state
 
       save
 
@@ -88,6 +91,8 @@
 
       real (kind=dbl_kind), dimension (nx) :: &
          work1, work2
+
+      character(len=*), parameter :: subname='(runtime_diags)'
 
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
@@ -199,6 +204,8 @@
       real (kind=dbl_kind), dimension (nx) :: &
          work1
 
+      character(len=*), parameter :: subname='(init_mass_diags)'
+
       call total_energy (work1)
       do n = 1, nx
         i = n ! NOTE this must be the same as above (FIX THIS)
@@ -229,6 +236,8 @@
 
       integer (kind=int_kind) :: &
         i, k, n
+
+      character(len=*), parameter :: subname='(total_energy)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -280,6 +289,8 @@
       integer (kind=int_kind) :: &
         i, k, n
 
+      character(len=*), parameter :: subname='(total_salt)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -310,18 +321,26 @@
 
       use icepack_drv_constants, only: nu_diag
       use icepack_drv_state, only: aice
+      use icepack_intfc, only: icepack_flush_warnings
 
-      integer (kind=int_kind), intent(in) :: &
+      integer (kind=int_kind), intent(in), optional :: &
          istop       , & ! indices of grid cell where model aborts
          istep1          ! time step number
 
-      character (char_len), intent(in) :: stop_label
+      character (len=*), intent(in), optional :: stop_label
 
       ! local variables
 
-      write (nu_diag,*) 'istep1, i, aice =', &
-                         istep1, istop, aice(istop)
-      write (nu_diag,*) stop_label
+      character(len=*), parameter :: subname='(diagnostic_abort)'
+
+      write(nu_diag,*) ' '
+
+      call icepack_flush_warnings(nu_diag)
+
+      write(nu_diag,*) subname,' ABORTING: '
+      if (present(istep1))     write (nu_diag,*) subname,' istep1 =', istep1
+      if (present(istop))      write (nu_diag,*) subname,' i, aice =', istop, aice(istop)
+      if (present(stop_label)) write (nu_diag,*) subname,' stop_label = ',trim(stop_label)
       stop
 
       end subroutine diagnostic_abort
@@ -338,6 +357,8 @@
       use icepack_drv_calendar, only: istep1
 
       character (*), intent(in) :: plabeld
+
+      character(len=*), parameter :: subname='(debug_icepack)'
 
       ! printing info for routine print_state
       character (char_len) :: plabel
@@ -385,6 +406,8 @@
            qi, qs, Tsnow
 
       integer (kind=int_kind) :: n, k
+
+      character(len=*), parameter :: subname='(print_state)'
 
       write(nu_diag,*) trim(plabel)
       write(nu_diag,*) 'istep1, i, time', &

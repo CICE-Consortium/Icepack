@@ -7,17 +7,20 @@ module icepack_warnings
   private
   save
 
-  ! private warning messages
-  character(len=char_len_long), dimension(:), allocatable :: &
-       warnings
+  ! warning messages
+  character(len=char_len_long), dimension(:), allocatable :: warnings
+  integer :: nWarnings = 0
 
-  integer :: &
-       nWarnings
+  ! abort flag, accessed via set_warning_abort and icepack_aborted
+  logical :: warning_abort = .false.
 
   public :: &
        icepack_clear_warnings, & 
        icepack_get_warnings, & 
        icepack_print_warnings, &
+       icepack_flush_warnings, &
+       icepack_aborted, &
+       set_warning_abort, &
        add_warning, &
        reset_warnings, &
        get_number_warnings, &
@@ -26,6 +29,24 @@ module icepack_warnings
 !=======================================================================
 
 contains
+
+!=======================================================================
+
+      logical function icepack_aborted()
+
+        icepack_aborted = warning_abort
+
+      end function icepack_aborted
+
+!=======================================================================
+
+      subroutine set_warning_abort(abortflag)
+
+        logical, intent(in) :: abortflag
+
+        warning_abort = abortflag
+
+      end subroutine set_warning_abort
 
 !=======================================================================
 
@@ -70,6 +91,19 @@ contains
       end subroutine icepack_print_warnings
 
 !=======================================================================
+
+      subroutine icepack_flush_warnings(nu_diag)
+
+        integer, intent(in) :: nu_diag
+
+        integer :: &
+             iWarning
+
+        call icepack_print_warnings(nu_diag)
+        call icepack_clear_warnings()
+
+      end subroutine icepack_flush_warnings
+
 !=======================================================================
 
   subroutine add_warning(warning)

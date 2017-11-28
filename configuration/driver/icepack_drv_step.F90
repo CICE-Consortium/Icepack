@@ -8,8 +8,10 @@
 
       use icepack_drv_constants
       use icepack_drv_kinds
+      use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_intfc, only: icepack_clear_warnings
-      use icepack_intfc, only: icepack_print_warnings
+      use icepack_intfc, only: icepack_flush_warnings
+      use icepack_intfc, only: icepack_aborted
       use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_indices
@@ -36,6 +38,7 @@
 
       subroutine prep_radiation (dt)
 
+      use icepack_drv_calendar, only: istep1
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
       use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
       use icepack_drv_flux, only: alvdr_ai, alvdf_ai, alidr_ai, alidf_ai, fswfac
@@ -56,6 +59,8 @@
          i               ! horizontal indices
 
       real (kind=dbl_kind) :: netsw 
+
+      character(len=*), parameter :: subname='(prep_radiation)'
 
       !-----------------------------------------------------------------
       ! Compute netsw scaling factor (new netsw / old netsw)
@@ -79,6 +84,9 @@
                         fswthrun(i,:), fswpenln(i,:,:), &
                         Sswabsn (i,:,:), Iswabsn (i,:,:))
 
+            call icepack_flush_warnings(nu_diag)
+            if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
+
          enddo               ! i
 
       end subroutine prep_radiation
@@ -98,7 +106,6 @@
       use icepack_drv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
       use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
       use icepack_drv_calendar, only: yday, istep1
-      use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, n_aero, nx
       use icepack_drv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot
       use icepack_drv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
@@ -144,6 +151,8 @@
          l_stop          ! if true, abort the model
 
       character (char_len) :: stop_label
+
+      character(len=*), parameter :: subname='(step_therm1)'
 
       !-----------------------------------------------------------------
 
@@ -274,7 +283,8 @@
             stop_label,                                         &
             prescribed_ice)
         
-        call icepack_print_warnings(nu_diag)
+        call icepack_flush_warnings(nu_diag)
+        if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
         
         if (l_stop) then
           call diagnostic_abort(i, istep1, stop_label)
@@ -311,7 +321,6 @@
       use icepack_drv_arrays_column, only: hin_max, fzsal, ocean_bio
       use icepack_drv_arrays_column, only: first_ice, bgrid, cgrid, igrid
       use icepack_drv_calendar, only: istep1, yday
-      use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nltrcr, nx
       use icepack_drv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
       use icepack_drv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside
@@ -339,6 +348,8 @@
          ntrcr, nbtrcr
 
       character (char_len) :: stop_label
+
+      character(len=*), parameter :: subname='(step_therm2)'
 
       !-----------------------------------------------------------------
 
@@ -378,7 +389,8 @@
                            frazil_diag(i),                         &
                            frz_onset (i), yday)
 
-         call icepack_print_warnings(nu_diag)
+         call icepack_flush_warnings(nu_diag)
+         if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
          
          if (l_stop) call diagnostic_abort(i, istep1, stop_label)
 
@@ -421,6 +433,8 @@
 
       logical (kind=log_kind) :: &
          tr_iage  !
+
+      character(len=*), parameter :: subname='(update_state)'
 
       !-----------------------------------------------------------------
 
@@ -482,7 +496,6 @@
 
       use icepack_drv_arrays_column, only: hin_max, fzsal, first_ice
       use icepack_drv_calendar, only: istep1
-      use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
       use icepack_drv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
       use icepack_drv_flux, only: dvirdgdt, opening, fpond, fresh, fhocn
@@ -513,6 +526,8 @@
          l_stop          ! if true, abort the model
 
       character (char_len) :: stop_label
+
+      character(len=*), parameter :: subname='(step_dyn_ridge)'
 
       !-----------------------------------------------------------------
       ! Ridging
@@ -557,7 +572,8 @@
                          flux_bio (i,1:nbtrcr),                 &
                          l_stop,                stop_label)
 
-         call icepack_print_warnings(nu_diag)
+         call icepack_flush_warnings(nu_diag)
+         if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
          
          if (l_stop) call diagnostic_abort(i, istep1, stop_label)
          endif ! tmask
@@ -576,6 +592,7 @@
 
       subroutine step_radiation (dt)
 
+      use icepack_drv_calendar, only: istep1
       use icepack_drv_arrays_column, only: ffracn, dhsn
       use icepack_drv_arrays_column, only: fswsfcn, fswintn, fswthrun, fswpenln, Sswabsn, Iswabsn
       use icepack_drv_arrays_column, only: albicen, albsnon, albpndn
@@ -620,6 +637,8 @@
 
       logical (kind=log_kind) :: &
          l_print_point      ! flag for printing debugging information
+
+      character(len=*), parameter :: subname='(step_radiation)'
 
       !-----------------------------------------------------------------
 
@@ -700,7 +719,8 @@
                           dhsn(i,:),      ffracn(i,:),      &
                           l_print_point)
 
-         call icepack_print_warnings(nu_diag)
+         call icepack_flush_warnings(nu_diag)
+         if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
 
          endif ! tmask
 
@@ -765,6 +785,8 @@
          delq  , & ! specific humidity difference   (kg/kg)
          shcoef, & ! transfer coefficient for sensible heat
          lhcoef    ! transfer coefficient for latent heat
+
+      character(len=*), parameter :: subname='(ocean_mixed_layer)'
 
       !-----------------------------------------------------------------
       ! Identify ocean cells.
@@ -855,7 +877,6 @@
       use icepack_drv_arrays_column, only: bgrid, igrid, icgrid, cgrid
       use icepack_drv_calendar, only: istep1
       use icepack_intfc, only: icepack_biogeochemistry, icepack_init_OceanConcArray
-      use icepack_drv_diagnostics, only: diagnostic_abort
       use icepack_drv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat
       use icepack_drv_domain_size, only: n_doc, n_dic,  n_don, n_fed, n_fep, nx
       use icepack_drv_flux, only: meltbn, melttn, congeln, snoicen
@@ -893,6 +914,8 @@
          skl_bgc, tr_brine, tr_zaero
 
       character (char_len) :: stop_label
+
+      character(len=*), parameter :: subname='(biogeochemistry)'
 
       !-----------------------------------------------------------------
 
@@ -993,7 +1016,8 @@
                               skl_bgc, max_algae, max_nbtrcr,          &
                               l_stop, stop_label)
 
-         call icepack_print_warnings(nu_diag)
+         call icepack_flush_warnings(nu_diag)
+         if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
          
          if (l_stop) call diagnostic_abort(i, istep1, stop_label)
 

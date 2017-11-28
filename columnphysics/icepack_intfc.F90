@@ -74,6 +74,8 @@
       use icepack_warnings, only: icepack_clear_warnings
       use icepack_warnings, only: icepack_get_warnings
       use icepack_warnings, only: icepack_print_warnings
+      use icepack_warnings, only: icepack_flush_warnings
+      use icepack_warnings, only: icepack_aborted
 
       implicit none
 
