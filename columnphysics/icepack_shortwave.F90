@@ -122,7 +122,7 @@
          heat_capacity! if true, ice has nonzero heat capacity
 
       character (len=char_len), intent(in) :: &
-         albedo_type  ! albedo parameterization, 'default' ('ccsm3') or 'constant'
+         albedo_type  ! albedo parameterization, 'ccsm3' or 'constant'
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          alvdrn   , & ! visible, direct, avg   (fraction)
@@ -216,7 +216,7 @@
                                    alidfn(n),            &
                                    albin(n),             &
                                    albsn(n))
-         else ! default
+         else ! ccsm3
 
             call compute_albedos (aicen(n),             &
                                   vicen(n),             &

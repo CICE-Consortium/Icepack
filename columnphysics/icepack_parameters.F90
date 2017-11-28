@@ -70,8 +70,8 @@
 !-----------------------------------------------------------------------
 
       character (len=char_len), public :: &
-         shortwave, & ! shortwave method, 'default' ('ccsm3') or 'dEdd'
-         albedo_type  ! albedo parameterization, 'default' ('ccsm3') or 'constant'
+         shortwave, & ! shortwave method, 'ccsm3' or 'dEdd'
+         albedo_type  ! albedo parameterization, 'ccsm3' or 'constant'
                       ! shortwave='dEdd' overrides this parameter
 
       ! baseline albedos for ccsm3 shortwave, set in namelist
@@ -294,8 +294,8 @@
 !-----------------------------------------------------------------------
 
         character (len=char_len), intent(in), optional :: &
-             shortwave_in, & ! shortwave method, 'default' ('ccsm3') or 'dEdd'
-             albedo_type_in  ! albedo parameterization, 'default' ('ccsm3') or 'constant'
+             shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd'
+             albedo_type_in  ! albedo parameterization, 'ccsm3' or 'constant'
                              ! shortwave='dEdd' overrides this parameter
 
         ! baseline albedos for ccsm3 shortwave, set in namelist
@@ -579,8 +579,8 @@
 !-----------------------------------------------------------------------
 
         character (len=char_len), intent(out), optional :: &
-             shortwave_out, & ! shortwave method, 'default' ('ccsm3') or 'dEdd'
-             albedo_type_out  ! albedo parameterization, 'default' ('ccsm3') or 'constant'
+             shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd'
+             albedo_type_out  ! albedo parameterization, 'ccsm3' or 'constant'
                              ! shortwave='dEdd' overrides this parameter
 
         ! baseline albedos for ccsm3 shortwave, set in namelist
