@@ -217,6 +217,8 @@
          bignum_in,     & !
          pi_in            !
 
+      character(len=*),parameter :: subname='(icepack_init_constants)'
+
          if (present(rhos_in))       rhos = rhos_in
          if (present(rhoi_in))       rhoi = rhoi_in
          if (present(rhow_in))       rhow = rhow_in
@@ -347,6 +349,8 @@
          p2_out, p4_out, p5_out, p6_out, p05_out, p15_out, p25_out, p75_out, &
          p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out
 
+      character(len=*),parameter :: subname='(icepack_query_constants)'
+
          if (present(rhos_out))       rhos_out = rhos
          if (present(rhoi_out))       rhoi_out = rhoi
          if (present(rhow_out))       rhow_out = rhow
@@ -443,7 +447,9 @@
       integer (kind=int_kind), intent(in) :: &
          iounit           ! file unit number
 
-         write(iounit,*) "icepack_write_constants:"
+      character(len=*),parameter :: subname='(icepack_write_constants)'
+
+         write(iounit,*) subname
          write(iounit,*) "  rhos   = ",rhos
          write(iounit,*) "  rhoi   = ",rhoi
          write(iounit,*) "  rhow   = ",rhow
@@ -502,6 +508,8 @@
 !=======================================================================
 
       subroutine icepack_recompute_constants()
+
+      character(len=*),parameter :: subname='(icepack_recompute_constants)'
 
         cprho  = cp_ocn*rhow
         Lfresh = Lsub-Lvap

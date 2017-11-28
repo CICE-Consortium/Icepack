@@ -101,6 +101,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
 
+      character(len=*),parameter :: subname='(preflushing_changes)'
+
       !-----------------------------------------------------------------
       ! initialize
       !-----------------------------------------------------------------
@@ -249,6 +251,8 @@
       real(kind=dbl_kind), parameter :: &
          Smin = p01
     
+      character(len=*),parameter :: subname='(compute_microS_mushy)'
+
       !-----------------------------------------------------------------
       ! Define ice salinity and temperature on bgrid
       !-----------------------------------------------------------------
@@ -383,6 +387,8 @@
 
       integer (kind=int_kind) :: &
            k   ! layer index
+
+      character(len=*),parameter :: subname='(prepare_hbrine)'
 
       !-----------------------------------------------------------------
       !  calculate equilibrium brine density and gradients 
@@ -529,6 +535,8 @@
          dh_min = p001  ! brine remains within dh_min of sea level
                         ! when ice thickness is less than thinS
  
+      character(len=*),parameter :: subname='(update_hbrine)'
+
          hbrocn      = c0
          darcy_V     = c0
          darcy_V_chl = c0  
@@ -696,6 +704,8 @@
      
       real (kind=dbl_kind) :: &
          Tmlts             ! melting temperature
+
+      character(len=*),parameter :: subname='(compute_microS)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -883,6 +893,8 @@
          rho_b   , &  ! brine density  above grid point (kg/m^3)
          rho_2b       ! brine density  above and below grid points (kg/m^3)
 
+      character(len=*),parameter :: subname='(calculate_drho)'
+
        rho_a (:) = c0
        rho_2a(:) = c0
        rho_b (:) = c0
@@ -982,6 +994,8 @@
       real (kind=dbl_kind) :: & 
          zspace            ! grid spacing for CICE vertical grid
 
+      character(len=*),parameter :: subname='(icepack_init_hbrine)'
+
 
       if (phi_snow .le. c0) phi_snow = c1-rhos/rhoi
 
@@ -1069,6 +1083,8 @@
       integer (kind=int_kind) :: &
         k, n
       
+      character(len=*),parameter :: subname='(icepack_init_zsalinity)'
+
       if (nblyr .LE. 7) then
           dts_b = 300.0_dbl_kind
       else

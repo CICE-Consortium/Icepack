@@ -263,6 +263,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
 
+      character(len=*),parameter :: subname='(ridge_ice)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -629,6 +631,8 @@
 
       integer (kind=int_kind) :: n
 
+      character(len=*),parameter :: subname='(asum_ridging)'
+
       asum = aice0
       do n = 1, ncat
             asum = asum + aicen(n)
@@ -674,6 +678,8 @@
 
       real (kind=dbl_kind), parameter :: &
          big = 1.0e+8_dbl_kind
+
+      character(len=*),parameter :: subname='(ridge_prep)'
 
       ! Set hin_max(ncat) to a big value to ensure that all ridged ice
       ! is thinner than hin_max(ncat).
@@ -808,6 +814,8 @@
          hi      , & ! ice thickness for each cat (m)
          hrmean  , & ! mean ridge thickness (m)
          xtmp        ! temporary variable
+
+      character(len=*),parameter :: subname='(ridge_itd)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -1187,6 +1195,8 @@
 
       character(len=char_len_long) :: &
          warning ! warning message
+
+      character(len=*),parameter :: subname='(ridge_shift)'
 
       do n = 1, ncat
 
@@ -1604,6 +1614,8 @@
          dh2rdg     ! change in mean value of h^2 per unit area
                     ! consumed by ridging 
 
+      character(len=*),parameter :: subname='(icepack_ice_strength)'
+
       if (kstrength == 1) then  ! Rothrock 1975 formulation
 
       !-----------------------------------------------------------------
@@ -1782,6 +1794,8 @@
          dtt      , & ! thermo time step
          atmp     , & ! temporary ice area
          atmp0        ! temporary open water area
+
+      character(len=*),parameter :: subname='(icepack_step_ridge)'
 
       l_stop = .false.
 

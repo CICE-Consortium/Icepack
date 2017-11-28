@@ -113,6 +113,8 @@
          Td       = c2          , & ! temperature difference for freeze-up (C)
          rexp     = p01             ! pond contraction scaling
 
+      character(len=*),parameter :: subname='(compute_ponds_lvl)'
+
       !-----------------------------------------------------------------
       ! Initialize 
       !-----------------------------------------------------------------
@@ -303,6 +305,8 @@
 
       integer (kind=int_kind) :: k
     
+      character(len=*),parameter :: subname='(brine_permeability)'
+
       !-----------------------------------------------------------------
       ! Compute ice temperatures from enthalpies using quadratic formula
       !-----------------------------------------------------------------

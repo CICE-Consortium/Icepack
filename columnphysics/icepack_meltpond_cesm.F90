@@ -76,6 +76,8 @@
          rexp     = p01         , & ! pond contraction scaling
          dpthhi   = 0.9_dbl_kind    ! ratio of pond depth to ice thickness
 
+      character(len=*),parameter :: subname='(compute_ponds_cesm)'
+
       !-----------------------------------------------------------------
       ! Initialize 
       !-----------------------------------------------------------------

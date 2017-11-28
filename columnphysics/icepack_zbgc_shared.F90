@@ -204,6 +204,8 @@
       real (kind=dbl_kind) :: &
          qin                    ! melting temperature at one level   
 
+      character(len=*),parameter :: subname='(calculate_qin_from_Sin)'
+
       qin =-rhoi*(cp_ice*(Tmltk-Tin) + Lfresh*(c1-Tmltk/Tin) - cp_ocn*Tmltk)
 
       end function calculate_qin_from_Sin
@@ -267,6 +269,8 @@
            tracer      , & ! temporary, ice tracers values
            dgrid       , & ! temporary, donor grid dimensional
            rgrid           ! temporary, receiver grid dimensional
+
+      character(len=*),parameter :: subname='(remap_zbgc)'
 
       if ((hinS < c0) .OR. (hice < c0)) then
          l_stop = .true.
@@ -406,6 +410,8 @@
       integer (kind=int_kind) :: &
          k          ! layer index
 
+      character(len=*),parameter :: subname='(zap_small_bgc)'
+
       do k = 1, zlevels
          dflux_bio = dflux_bio + btrcr(k)*zvol(k)/dt
       enddo
@@ -475,6 +481,8 @@
 
       real (kind=dbl_kind), dimension(nblyr+1):: &
          zspace
+
+      character(len=*),parameter :: subname='(regrid_stationary)'
 
       ! initialize
 
@@ -658,6 +666,8 @@
       real (kind=dbl_kind), dimension (nblyr+1) :: & 
          zspace
 
+      character(len=*),parameter :: subname='(merge_bgc_fluxes)'
+
       !-----------------------------------------------------------------
       ! Column summation
       !-----------------------------------------------------------------
@@ -760,6 +770,8 @@
       real (kind=dbl_kind) :: &
          tmp         ! temporary
     
+      character(len=*),parameter :: subname='(merge_bgc_fluxes_skl)'
+
       !-----------------------------------------------------------------
       ! Merge fluxes
       !-----------------------------------------------------------------

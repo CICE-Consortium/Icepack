@@ -79,6 +79,8 @@
          TsfK , & ! surface temperature (K)
          swabs    ! surface absorbed shortwave heat flux (W/m^2)
 
+      character(len=*),parameter :: subname='(icepack_ocn_mixed_layer)'
+
       ! shortwave radiative flux
       swabs = (c1-alvdr_ocn) * swvdr + (c1-alidr_ocn) * swidr &
             + (c1-alvdf_ocn) * swvdf + (c1-alidf_ocn) * swidf 

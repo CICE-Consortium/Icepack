@@ -69,6 +69,8 @@
       real (kind=dbl_kind) :: &
          aa1,bb1,cc1         ! quadratic solvers
 
+      character(len=*),parameter :: subname='(calculate_Tin_from_qin)'
+
       if (l_brine) then
          aa1 = cp_ice
          bb1 = (cp_ocn-cp_ice)*Tmltk - qin/rhoi - Lfresh 
@@ -124,6 +126,8 @@
          flwdabs     , & ! downward longwave absorbed heat flx (W/m^2)
          tmpvar          ! 1/TsfK
     
+      character(len=*),parameter :: subname='(surface_heat_flux)'
+
       ! ice surface temperature in Kelvin
       TsfK = Tsf + Tffresh
 !      TsfK = max(Tsf + Tffresh, c1)
@@ -185,6 +189,8 @@
          qsat          , & ! the saturation humidity of air (kg/m^3)
          tmpvar            ! 1/TsfK
     
+      character(len=*),parameter :: subname='(dsurface_heat_flux_dTsf)'
+
       ! ice surface temperature in Kelvin
 !      TsfK = max(Tsf + Tffresh, c1)
       TsfK = Tsf + Tffresh
@@ -227,6 +233,8 @@
 
       integer (kind=int_kind) :: k        ! ice layer index
       real (kind=dbl_kind)    :: zn       ! normalized ice thickness
+
+      character(len=*),parameter :: subname='(icepack_init_thermo)'
 
       !-----------------------------------------------------------------
       ! Determine l_brine based on saltmax.
@@ -299,6 +307,8 @@
       real (kind=dbl_kind) :: &
          slope, Ti
 
+      character(len=*),parameter :: subname='(icepack_init_trcr)'
+
       ! surface temperature
       Tsfc = Tf ! default
       if (calc_Tsfc) Tsfc = min(Tsmelt, Tair - Tffresh) ! deg C
@@ -348,6 +358,8 @@
         real(dbl_kind), intent(in) :: Sin
         real(dbl_kind) :: Tmlt
 
+        character(len=*),parameter :: subname='(icepack_liquidus_temperature)'
+
         if (ktherm == 2) then
 
            Tmlt = liquidus_temperature_mush(Sin)
@@ -369,6 +381,8 @@
 
         real(dbl_kind), intent(in) :: sss
         real(dbl_kind) :: Tf
+
+        character(len=*),parameter :: subname='(icepack_sea_freezing_temperature)'
 
         if (trim(tfrz_option) == 'mushy') then
 
@@ -399,6 +413,8 @@
 
         real(kind=dbl_kind) :: Tmlts
 
+        character(len=*),parameter :: subname='(icepack_ice_temperature)'
+
         if (ktherm == 2) then
 
            Tin = temperature_mush(qin, Sin)
@@ -423,6 +439,8 @@
         real(kind=dbl_kind), intent(in) :: qin
         real(kind=dbl_kind) :: Tsn
 
+        character(len=*),parameter :: subname='(icepack_snow_temperature)'
+
         if (ktherm == 2) then
 
            Tsn = temperature_snow(qin)
@@ -443,6 +461,8 @@
 
         real(kind=dbl_kind), intent(in) :: zTsn
         real(kind=dbl_kind) :: qsn
+
+        character(len=*),parameter :: subname='(icepack_enthalpy_snow)'
 
         qsn = enthalpy_snow(zTsn)
 

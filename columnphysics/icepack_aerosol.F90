@@ -110,6 +110,8 @@
       data kscavsi / .03_dbl_kind, .20_dbl_kind, .02_dbl_kind, &
                      .02_dbl_kind, .01_dbl_kind, .01_dbl_kind / 
 
+     character(len=*),parameter :: subname='(update_aerosol)'
+
     !-------------------------------------------------------------------
     ! initialize
     !-------------------------------------------------------------------
@@ -530,6 +532,8 @@
 
       character(len=char_len_long) :: &
          warning ! warning message
+
+      character(len=*),parameter :: subname='(update_snow_bgc)'
 
     !-------------------------------------------------------------------
     ! initialize

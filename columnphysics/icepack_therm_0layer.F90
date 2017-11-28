@@ -135,6 +135,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
       
+      character(len=*),parameter :: subname='(zerolayer_temperature)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------

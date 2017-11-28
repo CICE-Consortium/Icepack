@@ -155,6 +155,8 @@
       character (len=char_len) :: &
          fieldid         ! field identifier
 
+      character(len=*),parameter :: subname='(add_new_ice_bgc)'
+
       !-----------------------------------------------------------------     
       ! brine
       !-----------------------------------------------------------------
@@ -322,6 +324,8 @@
       real (kind=dbl_kind) :: &
          zspace    ! bio grid spacing
 
+      character(len=*),parameter :: subname='(lateral_melt_bgc)'
+
       zspace = c1/(real(nblyr,kind=dbl_kind))
 
       if (solve_zsal) then
@@ -437,6 +441,8 @@
          fluxb        , & ! needed for regrid (set to zero here)
          hbri_old     , & ! previous timestep brine height
          hbri             ! brine height 
+
+      character(len=*),parameter :: subname='(adjust_tracer_profile)'
 
       trtmp0(:) = c0
       trtmp(:) = c0
@@ -605,6 +611,8 @@
          dvssl , & ! volume of snow surface layer (m)
          dvint     ! volume of snow interior      (m)
 
+      character(len=*),parameter :: subname='(icepack_init_bgc)'
+
       !-----------------------------------------------------------------------------   
       !     Skeletal Layer Model
       !  All bgc tracers are Bulk quantities in units of mmol or mg per m^3
@@ -766,6 +774,8 @@
       real (kind=dbl_kind), optional :: zbgc_init_frac_in(:)  ! fraction of ocean tracer  concentration in new ice
       real (kind=dbl_kind), optional :: tau_ret_in(:)         ! retention timescale  (s), mobile to stationary phase
       real (kind=dbl_kind), optional :: tau_rel_in(:)         ! release timescale    (s), stationary to mobile phase
+
+      character(len=*),parameter :: subname='(icepack_init_zbgc)'
 
       !--------
 
@@ -998,6 +1008,8 @@
          dh_bot_chl  , & ! Chlorophyll may or may not flush
          dh_top_chl  , & ! Chlorophyll may or may not flush
          darcy_V_chl     
+
+      character(len=*),parameter :: subname='(icepack_biogeochemistry)'
 
       l_stop = .false.
 
@@ -1268,6 +1280,8 @@
       integer (kind=int_kind) :: &
          k, ks           ! tracer indices
 
+      character(len=*),parameter :: subname='(icepack_init_OceanConcArray)'
+
       ocean_bio_all(:) = c0
 
       do k = 1, max_algae           
@@ -1363,6 +1377,8 @@
 
       integer (kind=int_kind) :: &
         k 
+
+      character(len=*),parameter :: subname='(icepack_init_ocean_conc)'
 
        if (present(CToN)) then
          CToN(1) = R_C2N(1)

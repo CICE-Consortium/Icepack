@@ -110,6 +110,8 @@
       real (kind=dbl_kind), optional, intent(inout):: &
           Uref        ! air speed reference level       (m/s)
 
+      character(len=*),parameter :: subname='(merge_fluxes)'
+
       !-----------------------------------------------------------------
       ! Merge fluxes
       ! NOTE: The albedo is aggregated only in cells where ice exists
@@ -204,6 +206,8 @@
 
       character(len=char_len_long) :: &
          warning ! warning message
+
+      character(len=*),parameter :: subname='(set_sfcflux)'
 
       raicen        = c1
 

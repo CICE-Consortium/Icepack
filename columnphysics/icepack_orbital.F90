@@ -49,6 +49,8 @@
 
       character (len=*), intent(out) :: stop_label
 
+      character(len=*),parameter :: subname='(icepack_init_orbit)'
+
       l_stop = .false.      ! initialized for CCSMCOUPLED
       stop_label = ' '      ! initialized for CCSMCOUPLED
       iyear_AD  = 1950
@@ -103,6 +105,8 @@
 
       real (kind=dbl_kind) :: ydayp1 ! day of year plus one time step
  
+      character(len=*),parameter :: subname='(compute_coszen)'
+
 ! Solar declination for next time step
  
 #ifdef CCSMCOUPLED
@@ -184,8 +188,6 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    real   (dbl_kind),parameter :: SHR_ORB_MVELP_MIN  =   0.0_dbl_kind ! min value for mvelp
    real   (dbl_kind),parameter :: SHR_ORB_MVELP_MAX  = 360.0_dbl_kind ! max value for mvelp
 
-   character(len=*),parameter :: subname = '(shr_orb_params)'
- 
    ! Cosine series data for computation of obliquity: amplitude (arc seconds),
    ! rate (arc seconds/year), phase (degrees).
  
@@ -375,7 +377,8 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    real   (dbl_kind) :: degrad  ! degrees to rad conversion
    integer (int_kind), parameter :: s_loglev    = 0         
    character(len=char_len_long) :: warning ! warning message
-
+   character(len=*),parameter :: subname='(shr_orb_params)'
+ 
    !-------------------------- Formats -----------------------------------------
    character(*),parameter :: svnID  = "SVN " // &
    "$Id: icepack_orbital.F90 1226 2017-05-22 22:45:03Z tcraig $"
@@ -671,6 +674,8 @@ SUBROUTINE shr_orb_decl(calday ,eccen ,mvelpp ,lambm0 ,obliqr ,delta ,eccf)
    real   (dbl_kind) ::   invrho ! Inverse normalized sun/earth distance
    real   (dbl_kind) ::   sinl   ! Sine of lmm
  
+   character(len=*),parameter :: subname='(shr_orb_decl)'
+
    ! Compute eccentricity factor and solar declination using
    ! day value where a round day (such as 213.0) refers to 0z at
    ! Greenwich longitude.

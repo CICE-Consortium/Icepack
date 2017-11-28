@@ -130,6 +130,8 @@
          Td      = p15          , & ! temperature difference for freeze-up (C)
          min_volp = 1.e-4_dbl_kind  ! minimum pond volume (m)
 
+      character(len=*),parameter :: subname='(compute_ponds_topo)'
+
       !---------------------------------------------------------------
       ! initialize
       !---------------------------------------------------------------
@@ -372,6 +374,8 @@
          deltah, &
          perm, &
          apond
+
+      character(len=*),parameter :: subname='(pond_area)'
 
  !-----------|
  !           |
@@ -625,6 +629,8 @@
          vol, &
          tmp
     
+    character(len=*),parameter :: subname='(calc_hpond)'
+
     !----------------------------------------------------------------
     ! hpond is zero if volp is zero - have we fully drained? 
     !----------------------------------------------------------------
@@ -797,6 +803,8 @@
 
       integer (kind=int_kind) :: k
     
+      character(len=*),parameter :: subname='(permeability_phi)'
+
       !-----------------------------------------------------------------
       ! Compute ice temperatures from enthalpies using quadratic formula
       ! NOTE this assumes Tmlt = Si * depressT

@@ -197,6 +197,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
       
+      character(len=*),parameter :: subname='(linear_itd)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -706,6 +708,8 @@
          dhr         , & ! 1 / (hR - hL)
          wk1, wk2        ! temporary variables
 
+      character(len=*),parameter :: subname='(fit_line)'
+
       !-----------------------------------------------------------------
       ! Compute g0, g1, hL, and hR for each category to be remapped.
       !-----------------------------------------------------------------
@@ -778,6 +782,8 @@
          z2a, z2b, & ! upper, lower boundary of new cell
          overlap , & ! overlap between old and new cell
          rnilyr
+
+      character(len=*),parameter :: subname='(update_vertical_tracers)'
 
         rnilyr = real(nilyr,dbl_kind)
 
@@ -901,6 +907,8 @@
 
       real (kind=dbl_kind), dimension (ncat) :: &
          vicen_init   ! volume per unit area of ice (m)
+
+      character(len=*),parameter :: subname='(lateral_melt)'
 
       if (rside > c0) then ! grid cells with lateral melting.
 
@@ -1171,6 +1179,8 @@
 
       real (kind=dbl_kind), dimension (ncat) :: &
          vbrin           ! trcrn(nt_fbri,n)*vicen(n) 
+
+      character(len=*),parameter :: subname='(add_new_ice)'
 
       !-----------------------------------------------------------------
       ! initialize
@@ -1623,6 +1633,8 @@
 
       real (kind=dbl_kind), intent(in), optional :: &
          yday         ! day of year
+
+      character(len=*),parameter :: subname='(icepack_step_therm2)'
 
       l_stop = .false.
 

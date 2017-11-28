@@ -77,6 +77,8 @@
 
       integer (kind=int_kind) :: n
 
+      character(len=*),parameter :: subname='(aggregate_area)'
+
       !-----------------------------------------------------------------
       ! Aggregate
       !-----------------------------------------------------------------
@@ -152,6 +154,8 @@
          daice          , & ! ice area transferred
          dvice          , & ! ice volume transferred
          hicen              ! ice thickness for each cat (m)
+
+      character(len=*),parameter :: subname='(rebin)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -321,6 +325,8 @@
          hi1       , & ! current hi
          dhi           ! hi1 - hi0
 
+      character(len=*),parameter :: subname='(reduce_area)'
+
             hi0 = c0
             if (aicen_init > c0) &
                 hi0 = vicen_init / aicen_init
@@ -431,6 +437,8 @@
 
       character(len=char_len_long) :: &
         warning ! warning message
+
+      character(len=*),parameter :: subname='(shift_ice)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -691,6 +699,8 @@
       integer (kind=int_kind) :: &
          n                ! category/layer index
 
+      character(len=*),parameter :: subname='(column_sum)'
+
       xout = c0
       do n = 1, nsum
          xout = xout + xin(n)
@@ -726,6 +736,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
       
+      character(len=*),parameter :: subname='(column_conservation_check)'
+
       ! local variables
 
       if (abs (x2-x1) > max_err) then
@@ -871,6 +883,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
       
+      character(len=*),parameter :: subname='(cleanup_itd)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -1102,6 +1116,8 @@
       real (kind=dbl_kind) :: xtmp      ! temporary variables
       real (kind=dbl_kind) , dimension (1):: trcr_skl    
       real (kind=dbl_kind) , dimension (nblyr+1):: bvol     
+
+      character(len=*),parameter :: subname='(zap_small_areas)'
 
       l_stop = .false.
 
@@ -1375,6 +1391,8 @@
 
       real (kind=dbl_kind) :: xtmp, dvssl, dvint
 
+      character(len=*),parameter :: subname='(zap_snow)'
+
       ! aerosols
       if (tr_aero) then
          do it = 1, n_aero
@@ -1477,6 +1495,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
       
+      character(len=*),parameter :: subname='(zap_snow_temperature)'
+
       rnslyr = real(nslyr,kind=dbl_kind)
       
       do n = 1, ncat
@@ -1606,6 +1626,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
       
+      character(len=*),parameter :: subname='(zerolayer_check)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -1734,6 +1756,8 @@
       real (kind=dbl_kind), dimension(5) :: wmo5 ! data for wmo itd
       real (kind=dbl_kind), dimension(6) :: wmo6 ! data for wmo itd
       real (kind=dbl_kind), dimension(7) :: wmo7 ! data for wmo itd
+
+      character(len=*),parameter :: subname='(icepack_init_itd)'
 
       l_stop = .false.
 
@@ -1908,6 +1932,8 @@
       character(len=char_len_long) :: &
            warning ! warning message
 
+      character(len=*),parameter :: subname='(icepack_init_itd_hist)'
+
          write(warning,*) ' '
          call add_warning(warning)
          write(warning,*) 'hin_max(n-1) < Cat n < hin_max(n)'
@@ -1997,6 +2023,8 @@
 
       real (kind=dbl_kind) :: &
          atrcrn    ! category value
+
+      character(len=*),parameter :: subname='(icepack_aggregate)'
 
       !-----------------------------------------------------------------
       ! Initialize

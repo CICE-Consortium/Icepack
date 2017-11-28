@@ -216,6 +216,8 @@
       real (kind=dbl_kind) :: &
          fadvocn ! advective heat flux to ocean
 
+      character(len=*),parameter :: subname='(thermo_vertical)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -539,6 +541,8 @@
          m2 = 1.36_dbl_kind           ! constant from Maykut & Perovich
                                       ! (unitless)
 
+      character(len=*),parameter :: subname='(frzmlt_bottom_lateral)'
+
       !-----------------------------------------------------------------
       ! Identify grid cells where ice can melt.
       !-----------------------------------------------------------------
@@ -705,6 +709,8 @@
 
       character(len=char_len_long) :: &
          warning ! warning message
+
+      character(len=*),parameter :: subname='(init_vertical_profile)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -1138,6 +1144,8 @@
          qbotm       , &
          qbotp       , &
          qbot0
+
+      character(len=*),parameter :: subname='(thickness_changes)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -1657,6 +1665,8 @@
          wk1         , & ! temporary variable
          dhs             ! snow to remove from layer (m)
 
+      character(len=*),parameter :: subname='(freeboard)'
+
       !-----------------------------------------------------------------
       ! Determine whether snow lies below freeboard.
       !-----------------------------------------------------------------
@@ -1752,6 +1762,8 @@
       real (kind=dbl_kind), dimension (nlyr) :: &
          hq              ! h * q for a layer
 
+      character(len=*),parameter :: subname='(adjust_enthalpy)'
+
       !-----------------------------------------------------------------
       ! Compute reciprocal layer thickness.
       !-----------------------------------------------------------------
@@ -1842,6 +1854,8 @@
 
       character(len=char_len_long) :: &
          warning ! warning message
+
+      character(len=*),parameter :: subname='(conservation_check_vthermo)'
 
       !----------------------------------------------------------------
       ! If energy is not conserved, print diagnostics and exit.
@@ -1964,6 +1978,8 @@
 
       integer (kind=int_kind) :: &
          k               ! ice layer index
+
+      character(len=*),parameter :: subname='(update_state_vthermo)'
 
       if (hin <= c0) then
          aicen = c0
@@ -2249,6 +2265,8 @@
       real (kind=dbl_kind) :: &
          raice       , & ! 1/aice
          pond            ! water retained in ponds (m)
+
+      character(len=*),parameter :: subname='(icepack_step_therm1)'
 
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last

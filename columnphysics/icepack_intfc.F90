@@ -92,6 +92,8 @@
 
       subroutine icepack_configure()
 
+      character(len=*),parameter :: subname='(icepack_configure)'
+
         call icepack_recompute_constants()
 
       end subroutine icepack_configure

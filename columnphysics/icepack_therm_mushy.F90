@@ -163,6 +163,8 @@ contains
     character(len=char_len_long) :: &
          warning         ! warning message
     
+    character(len=*),parameter :: subname='(temperature_changes_salinity)'
+
     lstop = .false.
     fadvheat   = c0
     snoice     = c0
@@ -436,6 +438,8 @@ contains
          fcondtop1   , & ! first stage downward cond flux at top surface (W m-2)
          fsurfn1     , & ! first stage net flux to top surface, excluding fcondtop
          Tsf1            ! first stage ice surface temperature (C)
+
+    character(len=*),parameter :: subname='(two_stage_solver_snow)'
 
 
     ! determine if surface is initially cold or melting
@@ -753,6 +757,8 @@ contains
          fsurfn1     , & ! first stage net flux to top surface, excluding fcondtop
          Tsf1            ! first stage ice surface temperature (C)
 
+    character(len=*),parameter :: subname='(two_stage_solver_nosnow)'
+
     ! initial surface melting temperature
     Tmlt = liquidus_temperature_mush(zSin0(1))
 
@@ -972,6 +978,8 @@ contains
     character(len=char_len_long) :: &
          warning ! warning message
     
+    character(len=*),parameter :: subname='(two_stage_inconsistency)'
+
     write(warning,*) "icepack_therm_mushy: two stage inconsistency"
     call add_warning(warning)
     write(warning,*) "type:", type
@@ -1069,6 +1077,8 @@ contains
          einit      ! initial total energy (J)
 
     integer(kind=int_kind) :: k
+
+    character(len=*),parameter :: subname='(prep_picard)'
 
     ! calculate initial ice temperatures
     do k = 1, nilyr
@@ -1229,6 +1239,8 @@ contains
 
     integer, parameter :: &
          nit_max = 100     ! maximum number of Picard iterations
+
+    character(len=*),parameter :: subname='(picard_solver)'
 
     lconverged = .false.
 
@@ -1400,6 +1412,8 @@ contains
     character(len=char_len_long) :: &
          warning  ! warning message
     
+    character(len=*),parameter :: subname='(picard_nonconvergence)'
+
     write(warning,*) "-------------------------------------"
     call add_warning(warning)
 
@@ -1492,6 +1506,8 @@ contains
          dzTin    , & ! change in ice temperature (C) between iterations
          dTsf         ! change in surface temperature (C) between iterations
 
+    character(len=*),parameter :: subname='(check_picard_convergence)'
+
     call picard_final(lsnow,        &
                       nilyr, nslyr, &
                       zqin,  zqsn,  &
@@ -1551,6 +1567,8 @@ contains
     integer :: &
          k        ! vertical layer index
 
+    character(len=*),parameter :: subname='(picard_drainage_fluxes)'
+
     fadvheat = c0
 
     ! calculate fluxes from base upwards
@@ -1587,6 +1605,8 @@ contains
          qocn  , & ! ocean brine enthalpy (J m-3)
          qpond     ! melt pond brine enthalpy (J m-3)
 
+    character(len=*),parameter :: subname='(picard_flushing_fluxes)'
+
     fadvheat = fadvheat + w * (qbr(nilyr) - qpond)
 
   end subroutine picard_flushing_fluxes
@@ -1615,6 +1635,8 @@ contains
          dTsf     , & ! change in surface temperature (C) between iterations
          dzTsn    , & ! change in snow temperature (C) between iterations
          dzTin        ! change in surface temperature (C) between iterations
+
+    character(len=*),parameter :: subname='(maximum_variables_changes)'
 
     dTsf = abs(Tsf - Tsf_prev)
 
@@ -1657,6 +1679,8 @@ contains
     integer :: &
          k         ! vertical layer index
 
+    character(len=*),parameter :: subname='(total_energy_content)'
+
     energy = c0
     
     if (lsnow) then
@@ -1697,6 +1721,8 @@ contains
     integer :: &
          k       ! vertical layer index
 
+    character(len=*),parameter :: subname='(picard_updates)'
+
     do k = 1, nilyr
 
        Sbr(k) = liquidus_brine_salinity_mush(zTin(k))
@@ -1723,6 +1749,8 @@ contains
 
     integer :: &
          k    ! vertical layer index
+
+    character(len=*),parameter :: subname='(picard_updates_enthalpy)'
 
     do k = 1, nilyr
 
@@ -1759,6 +1787,8 @@ contains
     integer :: &
          k       ! vertical layer index
 
+    character(len=*),parameter :: subname='(picard_final)'
+
     do k = 1, nilyr
        zqin(k) = enthalpy_mush_liquid_fraction(zTin(k), phi(k))
     enddo ! k
@@ -1793,6 +1823,8 @@ contains
 
     integer :: &
          l         ! vertical index
+
+    character(len=*),parameter :: subname='(calc_intercell_thickness)'
 
     if (lsnow) then
 
@@ -1868,6 +1900,8 @@ contains
     integer :: &
          k, &       ! vertical layer index
          l          ! vertical index
+
+    character(len=*),parameter :: subname='(calc_intercell_conductivity)'
 
     if (lsnow) then
 
@@ -1985,6 +2019,8 @@ contains
     integer :: &
          nyn              ! matrix size
 
+    character(len=*),parameter :: subname='(solve_heat_conduction)'
+
     ! set up matrix and right hand side - snow
     if (lsnow) then
 
@@ -2096,6 +2132,8 @@ contains
          l     , & ! vertical index
          k         ! vertical layer index
 
+    character(len=*),parameter :: subname='(update_temperatures)'
+
     if (lsnow) then
        
        if (lcold) then
@@ -2205,6 +2243,8 @@ contains
          k            , & ! vertical layer index
          l                ! vertical index
     
+    character(len=*),parameter :: subname='(matrix_elements_nosnow_melt)'
+
     ! surface layer
     k = 1
     l = k
@@ -2313,6 +2353,8 @@ contains
     integer :: &
          k            , & ! vertical layer index
          l                ! vertical index
+
+    character(len=*),parameter :: subname='(matrix_elements_nosnow_cold)'
 
     ! surface temperature
     l = 1
@@ -2431,6 +2473,8 @@ contains
     integer :: &
          k            , & ! vertical layer index
          l                ! vertical index
+
+    character(len=*),parameter :: subname='(matrix_elements_snow_melt)'
 
     ! surface layer
     k = 1
@@ -2570,6 +2614,8 @@ contains
          l            , & ! matrix index
          m                ! vertical index
 
+    character(len=*),parameter :: subname='(matrix_elements_snow_cold)'
+
     ! surface temperature
     l = 1
     Ap(l) = dfsurfn_dTsf - kcstar(1) / dxp(1)
@@ -2697,6 +2743,8 @@ contains
     real(kind=dbl_kind), dimension(nilyr) :: &
          zSin0
 
+    character(len=*),parameter :: subname='(solve_salinity)'
+
     zSin0 = zSin
 
     k = 1
@@ -2769,6 +2817,8 @@ contains
     integer(kind=int_kind) :: &
          i      ! vector index
     
+    character(len=*),parameter :: subname='(tdma_solve_sparse)'
+
     ! forward sweep
     cp(1) = c(1) / b(1)
     do i = 2, n-1
@@ -2805,6 +2855,8 @@ contains
     
     real(kind=dbl_kind), parameter :: &
          phic = p05 ! critical liquid fraction for impermeability
+
+    character(len=*),parameter :: subname='(permeability)'
 
     perm = 3.0e-8_dbl_kind * max(phi - phic, c0)**3
 
@@ -2886,6 +2938,8 @@ contains
 
     integer(kind=int_kind) :: &
          k             ! ice layer index
+
+    character(len=*),parameter :: subname='(explicit_flow_velocities)'
 
     ! initial downward sweep - determine derived physical quantities
     do k = 1, nilyr
@@ -3030,6 +3084,8 @@ contains
     integer(kind=int_kind) :: &
          k              ! ice layer index
 
+    character(len=*),parameter :: subname='(flushing_velocity)'
+
     ! initialize
     w = c0
 
@@ -3113,6 +3169,8 @@ contains
     real(kind=dbl_kind), parameter :: &
          lambda_pond = c1 / (10.0_dbl_kind * 24.0_dbl_kind * 3600.0_dbl_kind), &
          hpond0 = 0.01_dbl_kind
+
+    character(len=*),parameter :: subname='(flush_pond)'
 
     if (tr_pond) then
        if (apond > c0 .and. hpond > c0) then
@@ -3198,6 +3256,8 @@ contains
 
     integer :: &
          k                     ! vertical index
+
+    character(len=*),parameter :: subname='(flood_ice)'
 
     snoice = c0
 
@@ -3300,6 +3360,8 @@ contains
          nlyr     , & ! no of snow layers completely converted to snowice
          k            ! snow layer index
 
+    character(len=*),parameter :: subname='(enthalpy_snow_snowice)'
+
     zqsn_snowice = c0
 
     ! snow depth and snow layers affected by snowice formation
@@ -3351,6 +3413,8 @@ contains
          z2b     , & ! upper boundary of new cell
          overlap     ! overlap between old and new cell
     
+    character(len=*),parameter :: subname='(update_vertical_tracers_snow)'
+
     ! loop over new grid cells
     do k2 = 1, nslyr
        
@@ -3420,6 +3484,8 @@ contains
          z2b     , & ! upper boundary of new cell
          overlap     ! overlap between old and new cell
     
+    character(len=*),parameter :: subname='(update_vertical_tracers_ice)'
+
     ! loop over new grid cells
     do k2 = 1, nilyr
        

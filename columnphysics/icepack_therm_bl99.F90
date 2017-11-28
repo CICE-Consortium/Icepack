@@ -218,6 +218,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
       
+      character(len=*),parameter :: subname='(temperature_changes)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -855,6 +857,8 @@
       real (kind=dbl_kind), dimension (nslyr) :: &
          kslyr           ! thermal cond at snow layer midpoints (W m-1 deg-1)
 
+      character(len=*),parameter :: subname='(conductivity)'
+
       ! interior snow layers (simple for now, but may be fancier later)
       do k = 1, nslyr
          kslyr(k) = ksno
@@ -961,6 +965,8 @@
          intent(inout) :: &
          dfsurf_dT       ! derivative of fsurfn wrt Tsf
 
+      character(len=*),parameter :: subname='(surface_fluxes)'
+
       ! surface heat flux
       call surface_heat_flux(Tsf,     fswsfc, &
                              rhoa,    flw,    &
@@ -1045,6 +1051,8 @@
 
       integer (kind=int_kind) :: &
          k, ki, kr       ! vertical indices and row counters
+
+      character(len=*),parameter :: subname='(get_matrix_elements_calc_Tsrf)'
 
       !-----------------------------------------------------------------
       ! Initialize matrix elements.
@@ -1289,6 +1297,8 @@
       integer (kind=int_kind) :: &
          k, ki, kr       ! vertical indices and row counters
 
+      character(len=*),parameter :: subname='(get_matrix_elements_know_Tsrf)'
+
       !-----------------------------------------------------------------
       ! Initialize matrix elements.
       ! Note: When we do not need to solve for the surface or snow
@@ -1480,6 +1490,8 @@
 
       real (kind=dbl_kind), dimension(nmat) :: &
          wgamma          ! temporary matrix variable
+
+      character(len=*),parameter :: subname='(tridiag_solver)'
 
       wbeta = diag(1)
       xout(1) = rhs(1) / wbeta

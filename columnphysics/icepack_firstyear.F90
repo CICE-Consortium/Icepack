@@ -49,6 +49,8 @@
          intent(inout) :: &
          FYarea
 
+      character(len=*),parameter :: subname='(update_FYarea)'
+
       if ((yday >= 259._dbl_kind) .and. &
           (yday <  259._dbl_kind+dt/secday)) then
          if (nhmask) FYarea = c0

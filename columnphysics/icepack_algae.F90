@@ -211,6 +211,8 @@
       character(len=char_len_long) :: &
          warning  
 
+      character(len=*),parameter :: subname='(zbio)'
+
       zbgc_snown(:) = c0
       zbgc_atmn (:) = c0
       flux_bion (:) = c0
@@ -418,6 +420,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
 
+      character(len=*),parameter :: subname='(sklbio)'
+
       call skl_biogeochemistry       (dt,        nilyr,     &
                                       n_zaero,   n_doc,     &
                                       n_dic,     n_don,     &
@@ -546,6 +550,8 @@
 
       character(len=char_len_long) :: &
          warning ! warning message
+
+      character(len=*),parameter :: subname='(skl_biogeochemistry)'
 
       !-----------------------------------------------------------------
       ! Initialize 
@@ -966,6 +972,8 @@
 
       character(len=char_len_long) :: &
          warning ! warning message  
+
+      character(len=*),parameter :: subname='(z_biogeochemistry)'
 
   !-------------------------------------
   ! Initialize 
@@ -1664,6 +1672,8 @@
       character(len=char_len_long) :: &
            warning ! warning message
       
+      character(len=*),parameter :: subname='(algal_dyn)'
+
       !-----------------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------------
@@ -2195,6 +2205,8 @@
          dC,        & ! added ocean bio mass (mmol/m^2)
          dh           ! change in thickness  (m)  
    
+     character(len=*),parameter :: subname='(thin_ice_flux)'
+
      zspace = c1/real(nblyr,kind=dbl_kind)
 
      dC = c0
@@ -2303,6 +2315,8 @@
 
       real (kind=dbl_kind), dimension (nblyr) :: &
          kvector1, kvectorn1
+
+      character(len=*),parameter :: subname='(compute_FCT_matrix)'
 
 !---------------------------------------------------------------------
 !  Diag (jj) solve for j = 1:nblyr+1
@@ -2474,6 +2488,8 @@
          Rplus, Rminus,              & !
          a_spdiag, a_sbdiag            ! weightings of F
 
+      character(len=*),parameter :: subname='(compute_FCT_corr)'
+
 !---------------------------------------------------------------------
 !  Diag (jj) solve for j = 1:nblyr+1
 !  spdiag(j) == (j,j+1) solve for j = 1:nblyr otherwise 0
@@ -2592,6 +2608,8 @@
       real (kind=dbl_kind), dimension(nmat):: &
          wgamma          ! temporary matrix variable
 
+      character(len=*),parameter :: subname='(tridiag_solverz)'
+
          wbeta = diag(1)
          xout(1) = rhs(1) / wbeta
 
@@ -2659,6 +2677,8 @@
       character(len=char_len_long) :: &
          warning ! warning message
      
+      character(len=*),parameter :: subname='(check_conservation_FCT)'
+
          zspace = c1/real(nblyr,kind=dbl_kind)
          l_stop = .false.
 
@@ -2742,6 +2762,8 @@
 
       integer (kind=int_kind) :: &
          n                ! category/layer index
+
+      character(len=*),parameter :: subname='(bgc_column_sum)'
 
       hslyr      = hsnow/real(nslyr,kind=dbl_kind)
       dzssl      = min(hslyr*p5, hs_ssl)

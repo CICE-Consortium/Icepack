@@ -149,6 +149,8 @@
          fzsaln_g      , & ! category gravity drainage flux of salt over timestep(kg/m^2/s)
          zsal_totn         ! total salt content
 
+      character(len=*),parameter :: subname='(zsalinity)'
+
       call solve_zsalinity        (nilyr, nblyr, n_cat, dt,          &
                                    bgrid,      cgrid,    igrid,      &
                                    trcrn_S,            trcrn_q,      &
@@ -314,6 +316,8 @@
 
       logical (kind=log_kind) :: &
          cflag
+
+      character(len=*),parameter :: subname='(solve_zsalinity)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -557,9 +561,11 @@
          lapA             , &
          lapB    
 
-         logical (kind=log_kind) :: &   
+      logical (kind=log_kind) :: &   
          write_flag       , &    ! set to true at each timestep        
          test_conservation       ! test that salt change is balanced by fluxes 
+
+      character(len=*),parameter :: subname='(solve_S_dt)'
 
       !-----------------------------------------------------------------
       !  Initialize
@@ -946,6 +952,8 @@
 
       real (kind=dbl_kind) :: hin_old, hin_next, dhtmp !, dh
 
+      character(len=*),parameter :: subname='(calc_salt_fluxes)'
+
       dhtmp = c1-dh/hbri_old
       hin_next = hbri_old +  real(mint,kind=dbl_kind)*dh
       hin_old  = hbri_old + (real(mint,kind=dbl_kind)-c1)*dh
@@ -1068,6 +1076,8 @@
      character(len=char_len_long) :: &
          warning ! warning message
      
+     character(len=*),parameter :: subname='(check_conserve_salt)'
+
          dh = (hbrin-hbri_old)/real(mmax,kind=dbl_kind)
 
          flux_tot = (fluxb + fluxg + fluxm + fluxcorr + Ssum_corr)*&
@@ -1128,6 +1138,8 @@
           fzsal   , & ! salt flux                       (kg/m**2/s)
           fzsal_g     ! gravity drainage salt flux      (kg/m**2/s)
 
+      character(len=*),parameter :: subname='(merge_zsal_fluxes)'
+
       !-----------------------------------------------------------------
       ! Merge fluxes
       !-----------------------------------------------------------------
@@ -1167,6 +1179,8 @@
 
       integer (kind=int_kind) :: &
            k           ! layer index
+
+      character(len=*),parameter :: subname='(column_sum_zsal)'
 
       do k = 1, nblyr
          zsal_totn = zsal_totn &
