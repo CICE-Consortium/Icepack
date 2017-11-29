@@ -12,23 +12,23 @@ module icepack_warnings
       character(len=char_len_long), dimension(:), allocatable :: warnings
       integer :: nWarnings = 0
 
-      ! abort flag, accessed via set_warning_abort and icepack_aborted
+      ! abort flag, accessed via icepack_warnings_setabort and icepack_warnings_aborted
       logical :: warning_abort = .false.
 
       ! public string for all subroutines to use
       character(len=char_len_long), public :: warnstr
 
       public :: &
-        icepack_clear_warnings, & ! icepack_warnings_clear, & 
-        icepack_get_warnings, &   ! icepack_warnings_getall, & 
-        icepack_print_warnings, & ! icepack_warnings_print, &
-        icepack_flush_warnings, & ! icepack_warnings_flush, &
-        icepack_aborted, &        ! icepack_warnings_aborted, &
-        set_warning_abort, &      ! icepack_warnings_setabort, &
-        add_warning, &            ! icepack_warnings_add, &
-        reset_warnings, &         ! icepack_warnings_reset, &
-        get_number_warnings, &    ! icepack_warnings_getnumber, &
-        get_warning               ! icepack_warnnigs_getone
+        icepack_warnings_clear,    &
+        icepack_warnings_getall,   &
+        icepack_warnings_print,    &
+        icepack_warnings_flush,    &
+        icepack_warnings_aborted,  &
+        icepack_warnings_setabort, &
+        icepack_warnings_add,      &
+        icepack_warnings_resets,   &
+        icepack_warnings_number,   &
+        icepack_warnings_getone
 
 !=======================================================================
 
@@ -36,90 +36,90 @@ contains
 
 !=======================================================================
 
-      logical function icepack_aborted(instring)
+      logical function icepack_warnings_aborted(instring)
 
         character(len=*),intent(in), optional :: instring
-        character(len=*),parameter :: subname='(icepack_aborted)'
+        character(len=*),parameter :: subname='(icepack_warnings_aborted)'
 
-        icepack_aborted = warning_abort
+        icepack_warnings_aborted = warning_abort
         if (warning_abort .and. present(instring)) then
-           call add_warning(subname//' ... '//trim(instring))
+           call icepack_warnings_add(subname//' ... '//trim(instring))
         endif
 
-      end function icepack_aborted
+      end function icepack_warnings_aborted
 
 !=======================================================================
 
-      subroutine set_warning_abort(abortflag)
+      subroutine icepack_warnings_setabort(abortflag)
 
         logical, intent(in) :: abortflag
-        character(len=*),parameter :: subname='(set_warning_abort)'
+        character(len=*),parameter :: subname='(icepack_warnings_setabort)'
 
         warning_abort = abortflag
 
-      end subroutine set_warning_abort
+      end subroutine icepack_warnings_setabort
 
 !=======================================================================
 
-      subroutine icepack_clear_warnings()
+      subroutine icepack_warnings_clear()
 
-        character(len=*),parameter :: subname='(icepack_clear_warnings)'
+        character(len=*),parameter :: subname='(icepack_warnings_clear)'
 
-        call reset_warnings()
+        call icepack_warnings_resets()
 
-      end subroutine icepack_clear_warnings
+      end subroutine icepack_warnings_clear
 
 !=======================================================================
       
-      subroutine icepack_get_warnings(warningsOut)
+      subroutine icepack_warnings_getall(warningsOut)
 
         character(len=char_len_long), dimension(:), allocatable, intent(out) :: &
              warningsOut
  
         integer :: iWarning
-        character(len=*),parameter :: subname='(icepack_get_warnings)'
+        character(len=*),parameter :: subname='(icepack_warnings_getall)'
 
         if (allocated(warningsOut)) deallocate(warningsOut)
-        allocate(warningsOut(get_number_warnings()))
+        allocate(warningsOut(icepack_warnings_number()))
 
-        do iWarning = 1, get_number_warnings()
-           warningsOut(iWarning) = trim(get_warning(iWarning))
+        do iWarning = 1, icepack_warnings_number()
+           warningsOut(iWarning) = trim(icepack_warnings_getone(iWarning))
         enddo
 
-      end subroutine icepack_get_warnings
+      end subroutine icepack_warnings_getall
 
 !=======================================================================
 
-      subroutine icepack_print_warnings(iounit)
+      subroutine icepack_warnings_print(iounit)
 
         integer, intent(in) :: iounit
 
         integer :: iWarning
-        character(len=*),parameter :: subname='(icepack_print_warnings)'
+        character(len=*),parameter :: subname='(icepack_warnings_print)'
 
-        do iWarning = 1, get_number_warnings()
-           write(iounit,*) trim(get_warning(iWarning))
+        do iWarning = 1, icepack_warnings_number()
+           write(iounit,*) trim(icepack_warnings_getone(iWarning))
         enddo
 
-      end subroutine icepack_print_warnings
+      end subroutine icepack_warnings_print
 
 !=======================================================================
 
-      subroutine icepack_flush_warnings(iounit)
+      subroutine icepack_warnings_flush(iounit)
 
         integer, intent(in) :: iounit
 
         integer :: iWarning
-        character(len=*),parameter :: subname='(icepack_flush_warnings)'
+        character(len=*),parameter :: subname='(icepack_warnings_flush)'
 
-        call icepack_print_warnings(iounit)
-        call icepack_clear_warnings()
+        call icepack_warnings_print(iounit)
+        call icepack_warnings_clear()
 
-      end subroutine icepack_flush_warnings
+      end subroutine icepack_warnings_flush
 
 !=======================================================================
 
-      subroutine add_warning(warning)
+      subroutine icepack_warnings_add(warning)
 
         character(len=*), intent(in) :: warning ! warning to add to array of warnings
 
@@ -130,7 +130,7 @@ contains
              nWarningsArray, & ! size of warnings array at start
              iWarning ! warning index
         integer, parameter :: nWarningsBuffer = 10
-        character(len=*),parameter :: subname='(add_warning)'
+        character(len=*),parameter :: subname='(icepack_warnings_add)'
 
         ! check if warnings array is not allocated
         if (.not. allocated(warnings)) then
@@ -180,39 +180,39 @@ contains
         ! add the new warning
         warnings(nWarnings) = trim(warning)
 
-      end subroutine add_warning
+      end subroutine icepack_warnings_add
 
 !=======================================================================
 
-      subroutine reset_warnings()
+      subroutine icepack_warnings_resets()
 
-        character(len=*),parameter :: subname='(reset_warnings)'
+        character(len=*),parameter :: subname='(icepack_warnings_resets)'
 
         nWarnings = 0
 
-      end subroutine reset_warnings
+      end subroutine icepack_warnings_resets
 
 !=======================================================================
 
-      function get_number_warnings() result(nWarningsOut)
+      function icepack_warnings_number() result(nWarningsOut)
 
         integer :: nWarningsOut
 
-        character(len=*),parameter :: subname='(get_number_warnings)'
+        character(len=*),parameter :: subname='(icepack_warnings_number)'
 
         nWarningsOut = nWarnings
 
-      end function get_number_warnings
+      end function icepack_warnings_number
 
 !=======================================================================
 
-      function get_warning(iWarning) result(warning)
+      function icepack_warnings_getone(iWarning) result(warning)
 
         integer, intent(in) :: iWarning
 
         character(len=char_len_long) :: warning
 
-        character(len=*),parameter :: subname='(get_warning)'
+        character(len=*),parameter :: subname='(icepack_warnings_getone)'
 
         if (iWarning <= nWarnings) then
            warning = warnings(iWarning)
@@ -220,7 +220,7 @@ contains
            warning = ""
         endif
 
-      end function get_warning
+      end function icepack_warnings_getone
 
 !=======================================================================
 

@@ -17,8 +17,8 @@
       use icepack_constants, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
       use icepack_parameters, only: conduct, calc_Tsfc, solve_zsal
       use icepack_therm_shared, only: ferrmax, l_brine, hfrazilmin
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
       save
@@ -263,6 +263,7 @@
                          nilyr,    nslyr,           &
                          hilyr,    hslyr,           &
                          zTin,     kh,      zSin)    
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Check for excessive absorbed solar radiation that may result in
@@ -388,6 +389,7 @@
                                       shcoef , lhcoef, &
                                       flwoutn, fsensn, &
                                       flatn  , fsurfn)
+               if (icepack_warnings_aborted(subname)) return
 
                ! derivative of heat flux with respect to surface temperature
                call dsurface_heat_flux_dTsf(Tsf      , fswsfc    , &
@@ -396,6 +398,7 @@
                                             shcoef   , lhcoef    , &
                                             dfsurf_dT, dflwout_dT, &
                                             dfsens_dT, dflat_dT  )
+               if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Compute conductive flux at top surface, fcondtopn.
@@ -438,6 +441,7 @@
                                    etai,        etas,        &
                                    sbdiag,      diag,        &
                                    spdiag,      rhs)   
+               if (icepack_warnings_aborted(subname)) return
 
             else
                
@@ -450,6 +454,7 @@
                                    sbdiag,      diag,        &
                                    spdiag,      rhs,         &
                                    fcondtopn)
+               if (icepack_warnings_aborted(subname)) return
 
             endif  ! calc_Tsfc
 
@@ -462,6 +467,7 @@
             call tridiag_solver (nmat,    sbdiag(:),   &
                                  diag(:), spdiag(:),   &
                                  rhs(:),  Tmat(:))
+            if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Determine whether the computation has converged to an acceptable
@@ -723,77 +729,77 @@
       !-----------------------------------------------------------------
       if (.not.converged) then
          write(warnstr,*) subname, 'Thermo iteration does not converge,'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Ice thickness:',  hilyr*nilyr
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Snow thickness:', hslyr*nslyr
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'dTsf, Tsf_errmax:',dTsf_prev, &
               Tsf_errmax
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Tsf:', Tsf
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fsurf:', fsurfn
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fcondtop, fcondbot, fswint', &
               fcondtopn, fcondbot, fswint
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fswsfc', fswsfc
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Iswabs',(Iswabs(k),k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Flux conservation error =', ferr
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Initial snow temperatures:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (Tsn_init(k),k=1,nslyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Initial ice temperatures:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (Tin_init(k),k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Matrix ice temperature diff:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (dTmat(k),k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'dqmat*hilyr/dt:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (hilyr*dqmat(k)/dt,k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Final snow temperatures:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (zTsn(k),k=1,nslyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Matrix ice temperature diff:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (dTmat(k),k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'dqmat*hilyr/dt:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (hilyr*dqmat(k)/dt,k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Final ice temperatures:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (zTin(k),k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Ice melting temperatures:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (Tmlts(k),k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Ice bottom temperature:', Tbot
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'dT initial:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (Tmlts(k)-Tin_init(k),k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'dT final:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (Tmlts(k)-zTin(k),k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'zSin'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (zSin(k),k=1,nilyr)
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          l_stop = .true.
          stop_label = "temperature_changes: Thermo iteration does not converge"
          return
@@ -972,6 +978,7 @@
                              shcoef,  lhcoef, &
                              flwoutn, fsensn, &
                              flatn,   fsurfn)
+      if (icepack_warnings_aborted(subname)) return
 
       ! derivative of heat flux with respect to surface temperature
       call dsurface_heat_flux_dTsf(Tsf,       fswsfc,     &
@@ -980,6 +987,7 @@
                                    shcoef,    lhcoef,     &
                                    dfsurf_dT, dflwout_dT, &
                                    dfsens_dT, dflat_dT)
+      if (icepack_warnings_aborted(subname)) return
 
       end subroutine surface_fluxes
 

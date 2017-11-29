@@ -9,8 +9,8 @@
       module icepack_constants
 
       use icepack_kinds
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
       save
@@ -269,6 +269,7 @@
          if (present(pi_in))         pi     = pi_in
 
          call icepack_recompute_constants()
+         if (icepack_warnings_aborted(subname)) return
 
       end subroutine icepack_init_constants
 
@@ -439,6 +440,7 @@
          if (present(pi2_out))  pi2_out = pi2
 
          call icepack_recompute_constants()
+         if (icepack_warnings_aborted(subname)) return
 
       end subroutine icepack_query_constants
 

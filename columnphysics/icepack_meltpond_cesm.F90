@@ -18,8 +18,8 @@
       use icepack_kinds
       use icepack_constants, only: c0, c1, c2, p01, puny
       use icepack_constants, only: rhofresh, rhoi, rhos, Timelt
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 

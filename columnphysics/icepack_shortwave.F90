@@ -52,8 +52,8 @@
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_tracers,    only: tr_bgc_N, tr_aero
-      use icepack_warnings,   only: warnstr, add_warning
-      use icepack_warnings,   only: set_warning_abort, icepack_aborted
+      use icepack_warnings,   only: warnstr, icepack_warnings_add
+      use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -219,7 +219,7 @@
                                    alidfn(n),            &
                                    albin(n),             &
                                    albsn(n))
-            if (icepack_aborted(subname)) return
+            if (icepack_warnings_aborted(subname)) return
 
          elseif (trim(albedo_type) == 'ccsm3') then
 
@@ -240,12 +240,12 @@
                                   alidfn(n),            &
                                   albin(n),             &
                                   albsn(n))
-            if (icepack_aborted(subname)) return
+            if (icepack_warnings_aborted(subname)) return
 
          else
 
-            call add_warning(subname//' ERROR: albedo_type '//trim(albedo_type)//' unknown')
-            call set_warning_abort(.true.)
+            call icepack_warnings_add(subname//' ERROR: albedo_type '//trim(albedo_type)//' unknown')
+            call icepack_warnings_setabort(.true.)
             return
 
          endif
@@ -270,7 +270,7 @@
                                fswthru(n),           &
                                fswpenl(:,n),         &
                                Iswabs(:,n))
-         if (icepack_aborted(subname)) return
+         if (icepack_warnings_aborted(subname)) return
 
       endif ! aicen > puny
 
@@ -916,7 +916,7 @@
                            calendar_type, days_per_year, &
                            nextsw_cday,   yday,  sec, &
                            coszen,        dt)
-      if (icepack_aborted(subname)) return
+      if (icepack_warnings_aborted(subname)) return
 
       do n = 1, ncat
 
@@ -939,7 +939,7 @@
                                          Tsfcn(n),   fsn,      &
                                          hs0,        hsn,      &
                                          rhosnwn,    rsnwn)    
-            if (icepack_aborted(subname)) return
+            if (icepack_warnings_aborted(subname)) return
 
             ! set pond properties
             if (tr_pond_cesm) then
@@ -1043,7 +1043,7 @@
                call shortwave_dEdd_set_pond(Tsfcn(n), &
                                             fsn, fpn,   &
                                             hpn)
-               if (icepack_aborted(subname)) return
+               if (icepack_warnings_aborted(subname)) return
                
                apeffn(n) = fpn ! for history
                fpn = c0
@@ -1083,7 +1083,7 @@
                              albsnon(n),    albpndn(n),     &
                              fswpenln(:,n), zbion(:,n),     &
                              l_print_point)
-         if (icepack_aborted(subname)) return
+         if (icepack_warnings_aborted(subname)) return
 
          endif ! aicen > puny
 
@@ -1352,7 +1352,7 @@
                       fswsfc,    fswint,                                &
                       fswthru,   Sswabs,                                &
                       Iswabs,    fswpenl)
-               if (icepack_aborted(subname)) return
+               if (icepack_warnings_aborted(subname)) return
                
                alvdr   = alvdr   + avdrl *fi
                alvdf   = alvdf   + avdfl *fi
@@ -1390,7 +1390,7 @@
                       fswsfc,    fswint,                                &
                       fswthru,   Sswabs,                                &
                       Iswabs,    fswpenl)
-               if (icepack_aborted(subname)) return
+               if (icepack_warnings_aborted(subname)) return
                
                alvdr   = alvdr   + avdrl *fs
                alvdf   = alvdf   + avdfl *fs
@@ -1433,7 +1433,7 @@
                       fswsfc,    fswint,                                &
                       fswthru,   Sswabs,                                &
                       Iswabs,    fswpenl)
-               if (icepack_aborted(subname)) return
+               if (icepack_warnings_aborted(subname)) return
                
                alvdr   = alvdr   + avdrl *fp
                alvdf   = alvdf   + avdfl *fp
@@ -1458,46 +1458,46 @@
       if (l_print_point .and. netsw > puny) then
 
          write(warnstr,*) subname, ' printing point = ',n
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' coszen = ', &
                             coszen
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' swvdr  swvdf = ', &
                             swvdr,swvdf
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' swidr  swidf = ', &
                             swidr,swidf
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' aice = ', &
                             aice
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' hs = ', &
                             hs
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' hp = ', &
                             hp
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' fs = ', &
                             fs
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' fi = ', &
                             fi
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' fp = ', &
                             fp
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' hi = ', &
                             hi
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' alvdr  alvdf = ', &
                             alvdr,alvdf
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' alidr  alidf = ', &
                             alidr,alidf
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' fswsfc fswint fswthru = ', &
                             fswsfc,fswint,fswthru
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          swdn  = swvdr+swvdf+swidr+swidf
          swab  = fswsfc+fswint+fswthru
          swalb = (1.-swab/(swdn+.0001))
@@ -1508,17 +1508,17 @@
                                rhosnw(k), &
                              ' rsnw = ', &
                                rsnw(k)
-            call add_warning(warnstr)
+            call icepack_warnings_add(warnstr)
          enddo
          do k = 1, nslyr               
             write(warnstr,*) subname, ' snow layer k    = ', k, &
                              ' Sswabs(k)       = ', Sswabs(k)
-            call add_warning(warnstr)
+            call icepack_warnings_add(warnstr)
          enddo
          do k = 1, nilyr               
             write(warnstr,*) subname, ' sea ice layer k = ', k, &
                              ' Iswabs(k)       = ', Iswabs(k)
-            call add_warning(warnstr)
+            call icepack_warnings_add(warnstr)
          enddo
 
       endif  ! l_print_point .and. coszen > .01
@@ -2286,7 +2286,7 @@
 
               ! print ice radius index:
               ! write(warnstr,*) subname, "MGFICE2:k, ice index= ",k,  k_bcini(k)
-              ! call add_warning(warnstr)
+              ! call icepack_warnings_add(warnstr)
             enddo   ! k
 
         if (tr_zaero .and. dEdd_algae) then ! compute kzaero for chlorophyll  
@@ -2787,7 +2787,7 @@
                 tau,        w0,         g,          albodr,     albodf,    &
                 trndir,     trntdr,     trndif,     rupdir,     rupdif,    &
                 rdndif)   
-         if (icepack_aborted(subname)) return
+         if (icepack_warnings_aborted(subname)) return
 
          ! the interface reflectivities and transmissivities required
          ! to evaluate interface fluxes are returned from solution_dEdd;
@@ -3714,8 +3714,8 @@
                           i_grid(1:nblyr+1), top_conc, & 
                           l_stop,            stop_label) 
 
+         if (icepack_warnings_aborted(subname)) return
          if (l_stop) return
-         if (icepack_aborted(subname)) return
 
          do k = 1, nilyr+1
             trcrn_sw(nlt_chl_sw+nslyr+k) = trtmp(nt_bgc_N(1) + k-1)
@@ -3753,8 +3753,8 @@
                              i_grid(1:nblyr+1), top_conc, &
                              l_stop,            stop_label) 
 
+            if (icepack_warnings_aborted(subname)) return
             if (l_stop) return
-            if (icepack_aborted(subname)) return
 
             do k = 1,nilyr+1
                trcrn_sw(nlt_zaero_sw(n)+nslyr+k) = trtmp(nt_zaero(n) + k-1)
@@ -4090,7 +4090,7 @@
                                      nbtrcr_sw,    n_zaero,   &
                                      skl_bgc,      z_tracers, &
                                      l_stop,       stop_label)
-                 if (icepack_aborted(subname)) return
+                 if (icepack_warnings_aborted(subname)) return
               endif
          enddo
          endif
@@ -4143,7 +4143,7 @@
                           dhsn,         ffracn,         &
                           l_print_point,                &
                           linitonly)
-            if (icepack_aborted(subname)) return
+            if (icepack_warnings_aborted(subname)) return
  
          elseif (trim(shortwave) == 'ccsm3') then
 
@@ -4166,12 +4166,12 @@
                                  Sswabsn,                &
                                  albicen,    albsnon,    &
                                  coszen,     ncat)
-            if (icepack_aborted(subname)) return
+            if (icepack_warnings_aborted(subname)) return
 
          else
 
-            call add_warning(subname//' ERROR: shortwave '//trim(shortwave)//' unknown')
-            call set_warning_abort(.true.)
+            call icepack_warnings_add(subname//' ERROR: shortwave '//trim(shortwave)//' unknown')
+            call icepack_warnings_setabort(.true.)
             return
 
          endif   ! shortwave

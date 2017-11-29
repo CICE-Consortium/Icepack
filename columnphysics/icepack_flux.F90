@@ -11,8 +11,8 @@
 
       use icepack_kinds
       use icepack_constants, only: c1, emissivity
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
       private
@@ -250,33 +250,33 @@
                  .or. fcondtopn > 20.0_dbl_kind) then
                write(warnstr,*) subname, & 
                     'Extreme forcing: -100 > fcondtopn > 20'
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, & 
                     'aicen,fcondtopn = ', & 
                     aicen,fcondtopn
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
             endif
             
             if (fsurfn < -100.0_dbl_kind & 
                  .or. fsurfn > 80.0_dbl_kind) then
                write(warnstr,*) subname, & 
                     'Extreme forcing: -100 > fsurfn > 40'
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, & 
                     'aicen,fsurfn = ', & 
                     aicen,fsurfn
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
             endif
             
             if (flatn < -20.0_dbl_kind & 
                  .or. flatn > 20.0_dbl_kind) then
                write(warnstr,*) subname, & 
                     'Extreme forcing: -20 > flatn > 20'
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, & 
                     'aicen,flatn = ', & 
                     aicen,flatn
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
             endif
             
          endif  ! extreme_flag

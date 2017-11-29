@@ -30,8 +30,8 @@
       use icepack_parameters, only: op_dep_min, fr_graze_s, fr_graze_e, fr_mort2min, fr_dFe
       use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
       use icepack_parameters, only: fr_resp_s, y_sk_DMS, t_sk_conv, t_sk_ox
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none 
 
@@ -169,6 +169,7 @@
       enddo
      
       call column_sum (ncat,  vbrin,  vbri_init)
+      if (icepack_warnings_aborted(subname)) return
 
       vbri_init = vbri_init + vi0_init
       do k = 1, nbtrcr  
@@ -216,6 +217,7 @@
                                        ocean_bio,    igrid, &
                                        location,            &
                                        l_stop,     stop_label)
+            if (icepack_warnings_aborted(subname)) return
             if (l_stop) return
          endif       ! nltrcr       
       endif          ! hsurp > 0
@@ -254,6 +256,7 @@
                                        ocean_bio,       igrid,  &
                                        location,                &
                                        l_stop,     stop_label)
+            if (icepack_warnings_aborted(subname)) return
             if (l_stop) return
 
             if (solve_zsal .and. vsnon1 .le. c0) then
@@ -265,11 +268,13 @@
 
       if (tr_brine .and. l_conservation_check) then
          call column_sum (ncat,   vbrin,  vbri_final)
+         if (icepack_warnings_aborted(subname)) return
 
          fieldid = 'vbrin, add_new_ice_bgc'
          call column_conservation_check (fieldid,                  &
                                          vbri_init, vbri_final,    &
                                          puny,      l_stop)
+         if (icepack_warnings_aborted(subname)) return
 
          if (l_stop) then
             stop_label = 'add_new_ice_bgc: Column conservation error'
@@ -465,6 +470,7 @@
                                     nblyr-1,      top_conc, &
                                     bgrid(2:nblyr+1), fluxb,&
                                     l_stop,       stop_label)
+            if (icepack_warnings_aborted(subname)) return
             if (l_stop) return
             do k = 1, nblyr 
                trcrn(nt_bgc_S+k-1) =  S_stationary(k)/hbri
@@ -483,6 +489,7 @@
                                     nblyr,        top_conc, &
                                     igrid,        fluxb,    &
                                     l_stop,       stop_label)
+            if (icepack_warnings_aborted(subname)) return
             if (l_stop) return
             do k = 1, nblyr+1 
                trcrn(bio_index(m) + k-1) =  C_stationary(k)/hbri
@@ -506,6 +513,7 @@
                             cgrid(2:nilyr+1),          &
                             bgrid(2:nblyr+1), temp_S,  &
                             l_stop,           stop_label)
+            if (icepack_warnings_aborted(subname)) return
             do k = 1, nilyr
                trcrn(nt_sice+k-1) = trtmp(nt_sice+k-1)   
             enddo        ! k
@@ -542,6 +550,7 @@
                          cgrid(2:nilyr+1),          &        
                          bgrid(2:nblyr+1),temp_S,   &
                          l_stop,           stop_label)
+            if (icepack_warnings_aborted(subname)) return
             do k = 1, nilyr
                trcrn(nt_sice+k-1) = trtmp(nt_sice+k-1)   
             enddo        !k
@@ -667,6 +676,7 @@
                                   igrid(1:nblyr+1),           &
                                   sicen(1,n),                 &
                                   l_stop,           stop_label)
+                  if (icepack_warnings_aborted(subname)) return
                   if (l_stop) return
 
                   do mm = 1,nbtrcr
@@ -1068,6 +1078,7 @@
                                  hbr_old,     hin,          &
                                  hsn,         first_ice(n), &
                                  l_stop,      stop_label)
+               if (icepack_warnings_aborted(subname)) return
 
                if (l_stop) return
 
@@ -1083,6 +1094,7 @@
                                 brine_rho,        iphin,       ibrine_rho,        &
                                 ibrine_sal,       sice_rho(n), sloss,             &
                                 salinz(1:nilyr),  l_stop,      stop_label)
+                  if (icepack_warnings_aborted(subname)) return
 
                   if (l_stop) return
                else     
@@ -1102,6 +1114,7 @@
                                    brine_sal(:),  brine_rho(:),  iphin(:),    &
                                    ibrine_rho(:), ibrine_sal(:), sice_rho(n), &
                                    iDi(:,n),      l_stop,        stop_label)
+                  if (icepack_warnings_aborted(subname)) return
 
                endif ! solve_zsal  
 
@@ -1119,6 +1132,7 @@
                                    darcy_V (n), darcy_V_chl, &  
                                    bphi(2,n),   aice0,       &
                                    dh_direct)
+               if (icepack_warnings_aborted(subname)) return
                
                hbri = hbri + hbrin * aicen(n)  
 
@@ -1148,6 +1162,7 @@
                                   bphi_o,        nblyr,               & 
                                   vicen(n),      aicen_init(n),       &
                                   zsal_tot) 
+                  if (icepack_warnings_aborted(subname)) return
 
                   if (l_stop) return
 
@@ -1197,6 +1212,7 @@
                           PP_net,                ice_bio_net (1:nbtrcr), &
                           snow_bio_net(1:nbtrcr),grow_net,               &
                           l_stop,                stop_label)
+               if (icepack_warnings_aborted(subname)) return
             
                if (l_stop) return
      
@@ -1216,6 +1232,7 @@
                             PP_net,                  upNO,                &
                             upNH,                    grow_net,            &
                             l_stop,                  stop_label)
+               if (icepack_warnings_aborted(subname)) return
 
                if (l_stop) return
 

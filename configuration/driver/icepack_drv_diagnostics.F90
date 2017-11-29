@@ -321,7 +321,7 @@
 
       use icepack_drv_constants, only: nu_diag
       use icepack_drv_state, only: aice
-      use icepack_intfc, only: icepack_flush_warnings
+      use icepack_intfc, only: icepack_warnings_flush
 
       integer (kind=int_kind), intent(in), optional :: &
          istop       , & ! indices of grid cell where model aborts
@@ -335,9 +335,10 @@
 
       write(nu_diag,*) ' '
 
-      call icepack_flush_warnings(nu_diag)
+      call icepack_warnings_flush(nu_diag)
 
-      write(nu_diag,*) subname,' ABORTING: '
+      write(nu_diag,*) ' '
+      write(nu_diag,*) subname,' ABORTED: '
       if (present(istep1))     write (nu_diag,*) subname,' istep1 =', istep1
       if (present(istop))      write (nu_diag,*) subname,' i, aice =', istop, aice(istop)
       if (present(stop_label)) write (nu_diag,*) subname,' stop_label = ',trim(stop_label)

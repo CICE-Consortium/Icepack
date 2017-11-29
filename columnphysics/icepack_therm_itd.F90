@@ -28,8 +28,8 @@
       use icepack_parameters, only: heat_capacity
       use icepack_tracers,  only: ntrcr, nbtrcr, tr_aero, tr_pond_topo
       use icepack_itd, only: aggregate_area, reduce_area, cleanup_itd
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
      
       implicit none
       save
@@ -247,11 +247,17 @@
       enddo ! n
 
       call column_sum (ncat, vicen, vice_init)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, vsnon, vsno_init)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, eicen, eice_init)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, esnon, esno_init)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, sicen, sice_init)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, vbrin, vbri_init)
+      if (icepack_warnings_aborted(subname)) return
 
       endif ! l_conservation_check
 
@@ -323,13 +329,13 @@
 
             if (print_diags) then
                write(warnstr,*) subname, 'ITD: hicen(n) > hbnew(n)'
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'cat ',n
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'hicen(n) =', hicen(n)
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'hbnew(n) =', hbnew(n)
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
             endif
 
          elseif (aicen(n+1) > puny .and. hicen(n+1) <= hbnew(n)) then
@@ -337,13 +343,13 @@
 
             if (print_diags) then
                write(warnstr,*) subname, 'ITD: hicen(n+1) < hbnew(n)'
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'cat ',n
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'hicen(n+1) =', hicen(n+1)
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'hbnew(n) =', hbnew(n)
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
             endif
          endif
 
@@ -360,13 +366,13 @@
 
             if (print_diags) then
                write(warnstr,*) subname, 'ITD hbnew(n) > hin_max(n+1)'
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'cat ',n
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'hbnew(n) =', hbnew(n)
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'hin_max(n+1) =', hin_max(n+1)
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
             endif
          endif
 
@@ -375,13 +381,13 @@
 
             if (print_diags) then
                write(warnstr,*) subname, 'ITD: hbnew(n) < hin_max(n-1)'
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'cat ',n
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'hbnew(n) =', hbnew(n)
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'hin_max(n-1) =', hin_max(n-1)
-               call add_warning(warnstr)
+               call icepack_warnings_add(warnstr)
             endif
          endif
 
@@ -413,6 +419,7 @@
                        hbnew(0),   hin_max   (1), &
                        g0   (1),   g1        (1), &
                        hL   (1),   hR        (1))
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Find area lost due to melting of thin (category 1) ice
@@ -466,6 +473,7 @@
                           hbnew(n-1), hbnew(n), &
                           g0   (n),   g1   (n), &
                           hL   (n),   hR   (n))
+            if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Compute area and volume to be shifted across each boundary.
@@ -559,6 +567,7 @@
                          hicen,    donor,       &
                          daice,    dvice,       &
                          l_stop,   stop_label)
+         if (icepack_warnings_aborted(subname)) return
          if (l_stop) return
 
          ! maintain qsno negative definiteness
@@ -590,6 +599,7 @@
       !-----------------------------------------------------------------
 
       call aggregate_area (ncat, aicen, aice, aice0)
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Check volume and energy conservation.
@@ -626,42 +636,54 @@
       enddo ! n
 
       call column_sum (ncat, vicen, vice_final)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, vsnon, vsno_final)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, eicen, eice_final)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, esnon, esno_final)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, sicen, sice_final)
+      if (icepack_warnings_aborted(subname)) return
       call column_sum (ncat, vbrin, vbri_final)
+      if (icepack_warnings_aborted(subname)) return
 
       fieldid = 'vice, ITD remap'
       call column_conservation_check (fieldid,               &
                                       vice_init, vice_final, &
                                       puny,                  &
                                       l_stop)
+      if (icepack_warnings_aborted(subname)) return
       fieldid = 'vsno, ITD remap'
       call column_conservation_check (fieldid,               &
                                       vsno_init, vsno_final, &
                                       puny,                  &
                                       l_stop)
+      if (icepack_warnings_aborted(subname)) return
       fieldid = 'eice, ITD remap'
       call column_conservation_check (fieldid,               &
                                       eice_init, eice_final, &
                                       puny*Lfresh*rhoi,      &
                                       l_stop)
+      if (icepack_warnings_aborted(subname)) return
       fieldid = 'esno, ITD remap'
       call column_conservation_check (fieldid,               &
                                       esno_init, esno_final, &
                                       puny*Lfresh*rhos,      &
                                       l_stop)
+      if (icepack_warnings_aborted(subname)) return
       fieldid = 'sicen, ITD remap'
       call column_conservation_check (fieldid,               &
                                       sice_init, sice_final, &
                                       puny,                  &
                                       l_stop)
+      if (icepack_warnings_aborted(subname)) return
       fieldid = 'vbrin, ITD remap'
       call column_conservation_check (fieldid,               &
                                       vbri_init, vbri_final, &
                                       puny*c10,              &
                                       l_stop)
+      if (icepack_warnings_aborted(subname)) return
          if (l_stop) then
             stop_label = 'linear_itd: Column conservation error'
             return
@@ -991,6 +1013,7 @@
                                   rside,       vicen_init,    &
                                   trcrn,       fzsal,         &
                                   flux_bio,    nbtrcr)
+            if (icepack_warnings_aborted(subname)) return
 
       endif          ! rside
 
@@ -1209,7 +1232,9 @@
          enddo
          enddo
          call column_sum (ncat, vicen, vice_init)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat, eicen, eice_init)
+         if (icepack_warnings_aborted(subname)) return
 
       endif ! l_conservation_check
 
@@ -1370,9 +1395,11 @@
                   call update_vertical_tracers(nilyr, &
                               trcrn(nt_qice:nt_qice+nilyr-1,n), &
                               vtmp, vicen(n), qi0new)
+                  if (icepack_warnings_aborted(subname)) return
                   call update_vertical_tracers(nilyr, &
                               trcrn(nt_sice:nt_sice+nilyr-1,n), &
                               vtmp, vicen(n), Si0new)
+                  if (icepack_warnings_aborted(subname)) return
                endif
             else
                do k = 1, nilyr
@@ -1479,18 +1506,22 @@
             enddo
          enddo
          call column_sum (ncat, vicen, vice_final)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat, eicen, eice_final)
+         if (icepack_warnings_aborted(subname)) return
 
          fieldid = 'vice, add_new_ice'
          call column_conservation_check (fieldid,               &
                                          vice_init, vice_final, &
                                          puny,                  &
                                          l_stop)
+         if (icepack_warnings_aborted(subname)) return
          fieldid = 'eice, add_new_ice'
          call column_conservation_check (fieldid,               &
                                          eice_init, eice_final, &
                                          puny*Lfresh*rhoi,      &
                                          l_stop)
+         if (icepack_warnings_aborted(subname)) return
          if (l_stop) then
             stop_label = 'add_new_ice: Column conservation error'
             return
@@ -1501,17 +1532,18 @@
       !-----------------------------------------------------------------
       ! Biogeochemistry
       !-----------------------------------------------------------------     
-     if (tr_brine .or. nbtrcr > 0) &
-        call add_new_ice_bgc(dt,         nblyr,                &
-                             ncat, nilyr, nltrcr, &
-                             bgrid,      cgrid,      igrid,    &
-                             aicen_init, vicen_init, vi0_init, &
-                             aicen,      vicen,      vsnon1,   &
-                             vi0new,     ntrcr,      trcrn,    &
-                             nbtrcr,     sss,        ocean_bio,&
-                             flux_bio,   hsurp,                &
-                             l_stop,     stop_label,           &
-                             l_conservation_check)
+      if (tr_brine .or. nbtrcr > 0) &
+         call add_new_ice_bgc(dt,         nblyr,                &
+                              ncat, nilyr, nltrcr, &
+                              bgrid,      cgrid,      igrid,    &
+                              aicen_init, vicen_init, vi0_init, &
+                              aicen,      vicen,      vsnon1,   &
+                              vi0new,     ntrcr,      trcrn,    &
+                              nbtrcr,     sss,        ocean_bio,&
+                              flux_bio,   hsurp,                &
+                              l_stop,     stop_label,           &
+                              l_conservation_check)
+         if (icepack_warnings_aborted(subname)) return
 
       end subroutine add_new_ice
 
@@ -1654,6 +1686,7 @@
       !-----------------------------------------------------------------
 
       call aggregate_area (ncat, aicen, aice, aice0)
+      if (icepack_warnings_aborted(subname)) return
 
       if (kitd == 1) then
 
@@ -1679,6 +1712,7 @@
                              aice0     ,         &
                              fpond,       l_stop,      &
                              stop_label)
+            if (icepack_warnings_aborted(subname)) return
 
             if (l_stop) return
 
@@ -1714,6 +1748,7 @@
                            ocean_bio,     fzsal,        &
                            frazil_diag,                 &
                            l_stop,        stop_label)
+         if (icepack_warnings_aborted(subname)) return
 
          if (l_stop) return
 
@@ -1731,6 +1766,7 @@
                          vsnon,     trcrn,         &
                          fzsal,     flux_bio,      &
                          nbtrcr,    nblyr)
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! For the special case of a single category, adjust the area and
@@ -1740,9 +1776,10 @@
 
 !echmod: test this
       if (ncat==1) &
-          call reduce_area (hin_max   (0),                &
-                            aicen     (1), vicen     (1), &
-                            aicen_init(1), vicen_init(1))
+         call reduce_area (hin_max   (0),                &
+                           aicen     (1), vicen     (1), &
+                           aicen_init(1), vicen_init(1))
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! ITD cleanup: Rebin thickness categories if necessary, and remove
@@ -1767,6 +1804,7 @@
                         fsalt,                fhocn,            &
                         faero_ocn,            fzsal,            &
                         flux_bio)   
+      if (icepack_warnings_aborted(subname)) return
 
       end subroutine icepack_step_therm2
 

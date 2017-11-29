@@ -24,8 +24,8 @@
       use icepack_constants, only: c0, c1, c2, p01, p1, p15, p4, p6
       use icepack_constants, only: puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh
       use icepack_constants, only: gravit, depressT, kice, ice_ref_salinity
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -180,6 +180,7 @@
                         Tsfcn,      Tf,                 & 
                         apondn,     hpondn,    dvn,     &
                         l_stop,     stop_label)
+         if (icepack_warnings_aborted(subname)) return
 
          fpond = fpond - dvn
          
@@ -497,6 +498,7 @@
 
       call calc_hpond(ncat, reduced_aicen, asnon, hsnon, &
                       alfan, volp, cum_max_vol, hpond, m_index)
+      if (icepack_warnings_aborted(subname)) return
     
       do n=1, m_index
          hpondn(n) = max((hpond - alfan(n) + alfan(1)), c0)
@@ -524,6 +526,7 @@
             call permeability_phi(heat_capacity, nilyr, &
                                   qicen(:,n), sicen(:,n), Tsfcn(n), Tf, &
                                   vicen(n),   perm,       l_stop,   stop_label)
+            if (icepack_warnings_aborted(subname)) return
             if (l_stop) return
             if (perm > c0) permflag = 1
             drain = perm*apondn(n)*pressure_head*dt / (viscosity_dyn*hicen(n))
@@ -541,6 +544,7 @@
          ! recompute pond depth    
          call calc_hpond(ncat, reduced_aicen, asnon, hsnon, &
                          alfan, volp, cum_max_vol, hpond, m_index)
+         if (icepack_warnings_aborted(subname)) return
          do n=1, m_index
             hpondn(n) = hpond - alfan(n) + alfan(1)
             apondn(n) = reduced_aicen(n) 

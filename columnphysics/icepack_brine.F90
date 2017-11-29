@@ -14,8 +14,8 @@
       use icepack_tracers, only: ntrcr, nt_qice, nt_sice, nt_bgc_S 
       use icepack_zbgc_shared, only: k_o, exp_h, Dm, Ra_c, viscos_dynamic, thinS
       use icepack_zbgc_shared, only: remap_zbgc
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -108,9 +108,9 @@
       l_stop = .false.
       if (fbri <= c0) then
          write(warnstr, *) subname,'fbri, hice_old', fbri, hice_old
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr, *) subname,'vicen, aicen', vicen, aicen
-         call add_warning(warnstr)         
+         call icepack_warnings_add(warnstr)         
          l_stop = .true.
          stop_label = 'icepack_brine preflushing: fbri <= c0'
       endif
@@ -278,6 +278,7 @@
                       cgrid(2:nilyr+1),                 &
                       bgrid(2:nblyr+1), surface_S,      &
                       l_stop,           stop_label)
+      if (icepack_warnings_aborted(subname)) return
       if (l_stop) return
      
       call remap_zbgc(ntrcr,            nilyr,          &
@@ -288,6 +289,7 @@
                       cgrid(2:nilyr+1),                 &
                       bgrid(2:nblyr+1), surface_S,      &
                       l_stop,           stop_label)
+      if (icepack_warnings_aborted(subname)) return
       if (l_stop) return
 
       do k = 1, nblyr
@@ -317,9 +319,11 @@
                            bphin,         iphin,                     &
                            kperm,         bphi_min,      phi_snow,   &
                            igrid,         sss)
+      if (icepack_warnings_aborted(subname)) return
 
       call calculate_drho(nblyr, igrid, bgrid,             &
                           brine_rho,    ibrine_rho, drho)   
+      if (icepack_warnings_aborted(subname)) return
 
       do k= 2, nblyr+1
          ikin(k) = k_o*iphin(k)**exp_h 
@@ -750,6 +754,7 @@
                             cgrid(2:nilyr+1),            &
                             bgrid(2:nblyr+1), surface_S, &
                             l_stop,           stop_label)
+            if (icepack_warnings_aborted(subname)) return
             if (l_stop) return
 
             do k = 1, nblyr    
@@ -772,6 +777,7 @@
                             bgrid(2:nblyr+1),           &
                             bgrid(2:nblyr+1), surface_S,&
                             l_stop,           stop_label)
+            if (icepack_warnings_aborted(subname)) return
             if (l_stop) return
       
             do k = 1, nblyr    
@@ -818,6 +824,7 @@
                        cgrid(2:nilyr+1),            & 
                        bgrid(2:nblyr+1), surface_S, &
                        l_stop,           stop_label)
+      if (icepack_warnings_aborted(subname)) return
       if (l_stop) return
 
       do k = 1, nblyr
@@ -842,7 +849,9 @@
                            bphin,         iphin,                     &
                            kperm,         bphi_min,      phi_snow,   &
                            igrid,         sss)
+      if (icepack_warnings_aborted(subname)) return
 
+! tcraig, this can't ever be hit, should be removed
       if (l_stop) then
          stop_label = 'CICE icepack_brine:zsalin < min_salin'
       endif

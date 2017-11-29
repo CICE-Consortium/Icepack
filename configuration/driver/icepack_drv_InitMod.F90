@@ -29,8 +29,8 @@
           ocean_bio_all, ice_bio_net, snow_bio_net
       use icepack_drv_calendar, only: dt, dt_dyn, time, istep, istep1, write_ic, &
           init_calendar, calendar
-      use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist, &
-          icepack_clear_warnings, icepack_print_warnings
+      use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
+      use icepack_intfc, only: icepack_warnings_flush
       use icepack_drv_domain_size, only: ncat
       use icepack_drv_constants, only: nu_diag
       use icepack_drv_diagnostics, only: debug_icepack
@@ -64,9 +64,9 @@
          stop
       endif
 
-      call icepack_clear_warnings()
+      call icepack_warnings_flush(nu_diag)
       call icepack_init_itd_hist(ncat, hin_max, c_hi_range) ! output
-      call icepack_print_warnings(nu_diag)
+      call icepack_warnings_flush(nu_diag)
 
       call calendar(time)       ! determine the initial date
 

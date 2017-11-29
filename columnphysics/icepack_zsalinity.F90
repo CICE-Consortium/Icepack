@@ -17,8 +17,8 @@
       use icepack_constants, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
       use icepack_zbgc_shared, only: remap_zbgc
       use icepack_zbgc_shared, only: Ra_c, k_o, viscos_dynamic, thinS, Dm, exp_h
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -152,7 +152,7 @@
 
       character(len=*),parameter :: subname='(zsalinity)'
 
-      call solve_zsalinity        (nilyr, nblyr, n_cat, dt,          &
+         call solve_zsalinity     (nilyr, nblyr, n_cat, dt,          &
                                    bgrid,      cgrid,    igrid,      &
                                    trcrn_S,            trcrn_q,      &
                                    trcrn_Si,           ntrcr,        &
@@ -171,17 +171,20 @@
                                    l_stop,             stop_label,   &
                                    fzsaln,                           &
                                    fzsaln_g,           bphi_min)
+         if (icepack_warnings_aborted(subname)) return
 
          zsal_totn = c0
 
          call column_sum_zsal    (zsal_totn,          nblyr,      &
                                   vicen,              trcrn_S,    &
                                   fbri)
+         if (icepack_warnings_aborted(subname)) return
 
          call merge_zsal_fluxes (aicen, &
                                  zsal_totn,          zsal_tot,       &
                                  fzsal,              fzsaln,         &
                                  fzsal_g,            fzsaln_g)            
+         if (icepack_warnings_aborted(subname)) return
 
       end subroutine zsalinity
 
@@ -394,6 +397,7 @@
                        fzsaln       , fzsaln_g     , &
                        S_bot        , l_stop       , &
                        stop_label) 
+      if (icepack_warnings_aborted(subname)) return
 
       if (l_stop) return
   
@@ -417,6 +421,7 @@
                          bgrid(2:nblyr+1), &
                          surface_S, l_stop,&
                          stop_label)
+      if (icepack_warnings_aborted(subname)) return
                
       do k = 1, nilyr
             Tmlts = -trcrn_Si(k)*depressT
@@ -603,6 +608,7 @@
 
       call calculate_drho(nblyr, igrid, bgrid,&
                           brine_rho, ibrine_rho, drho)   
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Calculate bphi diffusivity on the grid points
@@ -816,12 +822,14 @@
                  pre_sin,   fluxb,fluxg,fluxm,V_s,    &
                  C_s,   F_s,   Ssum_corr,fzsaln_g,fzsaln, &
                  Ssum_tmp,fluxcorr,dts, Ssum_new)
+            if (icepack_warnings_aborted(subname)) return
 
             if (test_conservation) then
                call check_conserve_salt(nint, m, dt, dts,&
                                 Ssum_tmp, Ssum_new, Ssum_corr,&
                                 fluxcorr, fluxb, fluxg, fluxm, &
                                 hbrin, hbri_old, l_stop)
+               if (icepack_warnings_aborted(subname)) return
                stop_label = 'check_conserve_salt fails'
                if (l_stop) return
             endif  ! test_conservation
@@ -1089,25 +1097,25 @@
            if (diff2 >  puny .AND. diff2 > order ) then 
               l_stop = .true.
               write(warnstr,*) subname, 'Poor salt conservation: check_conserve_salt'
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
               write(warnstr,*) subname, 'mint:', mint
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
               write(warnstr,*) subname, 'Ssum_corr',Ssum_corr
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
               write(warnstr,*) subname, 'fluxb,fluxg,fluxm,flux_tot,fluxcorr:'
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
               write(warnstr,*) subname,  fluxb,fluxg,fluxm,flux_tot,fluxcorr
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
               write(warnstr,*) subname, 'fluxg,',fluxg
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
               write(warnstr,*) subname, 'dsum_flux,',dsum_flux
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
               write(warnstr,*) subname, 'Ssum_new,Ssum_old,hbri_old,dh:'
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
               write(warnstr,*) subname,  Ssum_new,Ssum_old,hbri_old,dh
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
               write(warnstr,*) subname, 'diff2,order,puny',diff2,order,puny
-              call add_warning(warnstr)
+              call icepack_warnings_add(warnstr)
            endif
          endif
 

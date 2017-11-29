@@ -87,7 +87,7 @@
 
       ! column package includes
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
-      use icepack_intfc, only: icepack_clear_warnings, icepack_print_warnings
+      use icepack_intfc, only: icepack_warnings_flush
       use icepack_drv_parameters, only: shortwave, dEdd_algae, modal_aero
       use icepack_drv_tracers, only: tr_brine, tr_zaero, tr_bgc_n
       use icepack_drv_tracers, only: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
@@ -165,9 +165,9 @@
 #ifndef CCSMCOUPLED
                ! initialize orbital parameters
                ! These come from the driver in the coupled model.
-               call icepack_clear_warnings()
+               call icepack_warnings_flush(nu_diag)
                call icepack_init_orbit(l_stop, stop_label)
-               call icepack_print_warnings(nu_diag)
+               call icepack_warnings_flush(nu_diag)
 
                if (l_stop) then
                   call diagnostic_abort(i, istep1, stop_label)
@@ -185,7 +185,7 @@
          enddo
 
          if (tmask(i)) then
-            call icepack_clear_warnings()
+            call icepack_warnings_flush(nu_diag)
             call icepack_step_radiation (dt,         ncat,                    &
                           n_algae,   tr_zaero, nblyr,                     &
                           ntrcr,     nbtrcr,   nbtrcr_sw,                 &
@@ -227,7 +227,7 @@
                           dhsn(i,:),      ffracn(i,:),      &
                           l_print_point,                                  &
                           initonly = .true.)
-            call icepack_print_warnings(nu_diag)
+            call icepack_warnings_flush(nu_diag)
          endif
          
       !-----------------------------------------------------------------

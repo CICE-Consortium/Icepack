@@ -21,8 +21,8 @@
       use icepack_constants,  only: pih, dragio, rhoi, rhos, rhow
       use icepack_parameters, only: atmbndy, calc_strair, formdrag
       use icepack_parameters, only: highfreq, natmiter
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
       save
@@ -912,6 +912,7 @@
                                             delt,     delq,     &
                                             lhcoef,   shcoef,   &
                                             Cdn_atm)
+                  if (icepack_warnings_aborted(subname)) return
                else ! default
                   call atmo_boundary_layer (sfctype,                 &
                                             calc_strair, formdrag,   &
@@ -928,6 +929,7 @@
                                             Cdn_atm_ratio_n,         &
                                             worku,    workv,         &
                                             workr)
+                  if (icepack_warnings_aborted(subname)) return
                endif ! atmbndy
 
       if (present(Uref)) then

@@ -9,9 +9,8 @@
       use icepack_drv_constants
       use icepack_drv_kinds
       use icepack_drv_diagnostics, only: diagnostic_abort
-      use icepack_intfc, only: icepack_clear_warnings
-      use icepack_intfc, only: icepack_flush_warnings
-      use icepack_intfc, only: icepack_aborted
+      use icepack_intfc, only: icepack_warnings_flush
+      use icepack_intfc, only: icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_indices
@@ -84,8 +83,8 @@
                         fswthrun(i,:), fswpenln(i,:,:), &
                         Sswabsn (i,:,:), Iswabsn (i,:,:))
 
-            call icepack_flush_warnings(nu_diag)
-            if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
 
          enddo               ! i
 
@@ -209,7 +208,7 @@
           enddo
         endif ! tr_aero
         
-        call icepack_clear_warnings()
+        call icepack_warnings_flush(nu_diag)
         call icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero,                &
             aicen_init  (i,:),                           &
             vicen_init  (i,:), vsnon_init  (i,:), &
@@ -283,8 +282,8 @@
             stop_label,                                         &
             prescribed_ice)
         
-        call icepack_flush_warnings(nu_diag)
-        if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
+        call icepack_warnings_flush(nu_diag)
+        if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
         
         if (l_stop) then
           call diagnostic_abort(i, istep1, stop_label)
@@ -361,7 +360,7 @@
 
          if (tmask(i)) then
 
-         call icepack_clear_warnings()
+         call icepack_warnings_flush(nu_diag)
             
          call icepack_step_therm2(dt, ncat, n_aero, nltrcr,                 &
                            nilyr,                  nslyr,                  &
@@ -389,8 +388,8 @@
                            frazil_diag(i),                         &
                            frz_onset (i), yday)
 
-         call icepack_flush_warnings(nu_diag)
-         if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
          
          if (l_stop) call diagnostic_abort(i, istep1, stop_label)
 
@@ -543,7 +542,7 @@
 
          if (tmask(i)) then
 
-         call icepack_clear_warnings()
+         call icepack_warnings_flush(nu_diag)
                
          call icepack_step_ridge (dt,            ndtd,                  &
                          nilyr,                 nslyr,                 &
@@ -572,8 +571,8 @@
                          flux_bio (i,1:nbtrcr),                 &
                          l_stop,                stop_label)
 
-         call icepack_flush_warnings(nu_diag)
-         if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
          
          if (l_stop) call diagnostic_abort(i, istep1, stop_label)
          endif ! tmask
@@ -676,7 +675,7 @@
 
          if (tmask(i)) then
 
-         call icepack_clear_warnings()
+         call icepack_warnings_flush(nu_diag)
             
          call icepack_step_radiation (dt,         ncat,                    &
                           n_algae,   tr_zaero, nblyr,                     &
@@ -719,8 +718,8 @@
                           dhsn(i,:),      ffracn(i,:),      &
                           l_print_point)
 
-         call icepack_flush_warnings(nu_diag)
-         if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
 
          endif ! tmask
 
@@ -959,7 +958,7 @@
             enddo  ! mm
          endif
 
-         call icepack_clear_warnings()
+         call icepack_warnings_flush(nu_diag)
          
          call icepack_biogeochemistry(dt, ntrcr, nbtrcr,&
                               upNO        (i),        &
@@ -1016,8 +1015,8 @@
                               skl_bgc, max_algae, max_nbtrcr,          &
                               l_stop, stop_label)
 
-         call icepack_flush_warnings(nu_diag)
-         if (icepack_aborted()) call diagnostic_abort(i, istep1, subname)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
          
          if (l_stop) call diagnostic_abort(i, istep1, stop_label)
 

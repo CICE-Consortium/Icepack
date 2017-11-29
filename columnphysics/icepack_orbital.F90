@@ -11,8 +11,8 @@
 
       use icepack_kinds
       use icepack_constants, only: c2, p5, pi, secday
-      use icepack_warnings, only: warnstr, add_warning
-      use icepack_warnings, only: set_warning_abort, icepack_aborted
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
       private
@@ -61,6 +61,7 @@
       call shr_orb_params( iyear_AD, eccen , obliq , mvelp    , &
                            obliqr  , lambm0, mvelpp, log_print, &
                            l_stop, stop_label)
+      if (icepack_warnings_aborted(subname)) return
 #endif
 
       end subroutine icepack_init_orbit
@@ -125,6 +126,7 @@
  
       call shr_orb_decl(ydayp1, eccen, mvelpp, lambm0, &
                         obliqr, decln, eccf)
+      if (icepack_warnings_aborted(subname)) return
 
       coszen = sin(tlat)*sin(decln) &
              + cos(tlat)*cos(decln) &
@@ -399,11 +401,11 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
  
    if ( log_print .and. s_loglev > 0 ) then
      write(warnstr,F00) subname//'Calculate characteristics of the orbit:'
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
      write(warnstr,F00) subname//svnID
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
 !    write(warnstr,F00) subname//svnURL
-!    call add_warning(warnstr)
+!    call icepack_warnings_add(warnstr)
    end if
  
    ! Check for flag to use input orbit parameters
@@ -414,42 +416,42 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
  
       if( obliq == SHR_ORB_UNDEF_REAL )then
          write(warnstr,F00) subname//trim(subname)//' Have to specify orbital parameters:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//'Either set: iyear_AD, OR [obliq, eccen, and mvelp]:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//'iyear_AD is the year to simulate orbit for (ie. 1950): '
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//'obliq, eccen, mvelp specify the orbit directly:'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//'The AMIP II settings (for a 1995 orbit) are: '
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//' obliq =  23.4441'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//' eccen =   0.016715'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//' mvelp = 102.7'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable oblip'
       else if ( log_print ) then
          write(warnstr,F00) subname//'Use input orbital parameters: '
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
       end if
       if( (obliq < SHR_ORB_OBLIQ_MIN).or.(obliq > SHR_ORB_OBLIQ_MAX) ) then
          write(warnstr,F03) subname//'Input obliquity unreasonable: ', obliq
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable obliq'
       end if
       if( (eccen < SHR_ORB_ECCEN_MIN).or.(eccen > SHR_ORB_ECCEN_MAX) ) then
          write(warnstr,F03) subname//'Input eccentricity unreasonable: ', eccen
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable eccen'
       end if
       if( (mvelp < SHR_ORB_MVELP_MIN).or.(mvelp > SHR_ORB_MVELP_MAX) ) then
          write(warnstr,F03) subname//'Input mvelp unreasonable: ' , mvelp
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable mvelp'
       end if
@@ -460,18 +462,18 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
  
       if ( log_print .and. s_loglev > 0) then
          write(warnstr,F01) subname//'Calculate orbit for year: ' , iyear_AD
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
       end if
       yb4_1950AD = 1950.0_dbl_kind - real(iyear_AD,dbl_kind)
       if ( abs(yb4_1950AD) .gt. 1000000.0_dbl_kind )then
          write(warnstr,F00) subname//'orbit only valid for years+-1000000'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//'Relative to 1950 AD'
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F03) subname//'# of years before 1950: ',yb4_1950AD
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          write(warnstr,F01) subname//'Year to simulate was  : ',iyear_AD
-         call add_warning(warnstr)
+         call icepack_warnings_add(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable year'
       end if
@@ -617,21 +619,21 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
  
    if ( log_print ) then
      write(warnstr,F03) subname//'------ Computed Orbital Parameters ------'
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
      write(warnstr,F03) subname//'Eccentricity      = ',eccen
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
      write(warnstr,F03) subname//'Obliquity (deg)   = ',obliq
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
      write(warnstr,F03) subname//'Obliquity (rad)   = ',obliqr
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
      write(warnstr,F03) subname//'Long of perh(deg) = ',mvelp
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
      write(warnstr,F03) subname//'Long of perh(rad) = ',mvelpp
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
      write(warnstr,F03) subname//'Long at v.e.(rad) = ',lambm0
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
      write(warnstr,F03) subname//'-----------------------------------------'
-     call add_warning(warnstr)
+     call icepack_warnings_add(warnstr)
    end if
  
 END SUBROUTINE shr_orb_params
