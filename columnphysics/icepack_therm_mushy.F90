@@ -19,7 +19,8 @@ module icepack_therm_mushy
   use icepack_tracers, only: tr_pond
   use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
   use icepack_therm_shared, only: ferrmax
-  use icepack_warnings, only: add_warning
+  use icepack_warnings, only: warnstr, add_warning
+  use icepack_warnings, only: set_warning_abort, icepack_aborted
 
   implicit none
 
@@ -160,9 +161,6 @@ contains
     logical(kind=log_kind) :: &
          lsnow           ! snow presence: T: has snow, F: no snow
 
-    character(len=char_len_long) :: &
-         warning         ! warning message
-    
     character(len=*),parameter :: subname='(temperature_changes_salinity)'
 
     lstop = .false.
@@ -250,8 +248,8 @@ contains
                                   lstop,       stop_label)
 
        if (lstop) then
-          write(warning,*) "temperature_changes_salinity: Picard solver non-convergence (snow)"
-          call add_warning(warning)
+          write(warnstr,*) subname, "temperature_changes_salinity: Picard solver non-convergence (snow)"
+          call add_warning(warnstr)
           return
        endif
 
@@ -296,8 +294,8 @@ contains
                                     lstop,       stop_label)
 
        if (lstop) then
-          write(warning,*) "temperature_changes_salinity: Picard solver non-convergence (no snow)"
-          call add_warning(warning)
+          write(warnstr,*) subname, "temperature_changes_salinity: Picard solver non-convergence (no snow)"
+          call add_warning(warnstr)
           return
        endif
           
@@ -975,59 +973,56 @@ contains
          fcondtop, &
          fsurfn
 
-    character(len=char_len_long) :: &
-         warning ! warning message
-    
     character(len=*),parameter :: subname='(two_stage_inconsistency)'
 
-    write(warning,*) "icepack_therm_mushy: two stage inconsistency"
-    call add_warning(warning)
-    write(warning,*) "type:", type
-    call add_warning(warning)
+    write(warnstr,*) subname, "icepack_therm_mushy: two stage inconsistency"
+    call add_warning(warnstr)
+    write(warnstr,*) subname, "type:", type
+    call add_warning(warnstr)
 
     if (type == 1) then
 
-       write(warning,*) "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
-       call add_warning(warning)
-       write(warning,*) "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
-       call add_warning(warning)
-       write(warning,*) "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
-       call add_warning(warning)
-       write(warning,*) "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
-       call add_warning(warning)
+       write(warnstr,*) subname, "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
+       call add_warning(warnstr)
 
     else if (type == 2) then
 
-       write(warning,*) "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
-       call add_warning(warning)
-       write(warning,*) "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
-       call add_warning(warning)
-       write(warning,*) "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
-       call add_warning(warning)
-       write(warning,*) "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
-       call add_warning(warning)
+       write(warnstr,*) subname, "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
+       call add_warning(warnstr)
 
     else if (type == 3) then
 
-       write(warning,*) "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
-       call add_warning(warning)
-       write(warning,*) "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
-       call add_warning(warning)
-       write(warning,*) "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
-       call add_warning(warning)
-       write(warning,*) "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
-       call add_warning(warning)
+       write(warnstr,*) subname, "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
+       call add_warning(warnstr)
 
     else if (type == 4) then
        
-       write(warning,*) "First stage  : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
-       call add_warning(warning)
-       write(warning,*) "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
-       call add_warning(warning)
-       write(warning,*) "Second stage : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
-       call add_warning(warning)
-       write(warning,*) "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
-       call add_warning(warning)
+       write(warnstr,*) subname, "First stage  : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "Second stage : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
+       call add_warning(warnstr)
+       write(warnstr,*) subname, "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
+       call add_warning(warnstr)
 
     endif
 
@@ -1409,31 +1404,28 @@ contains
     integer :: &
          k        ! vertical layer index
 
-    character(len=char_len_long) :: &
-         warning  ! warning message
-    
     character(len=*),parameter :: subname='(picard_nonconvergence)'
 
-    write(warning,*) "-------------------------------------"
-    call add_warning(warning)
+    write(warnstr,*) subname, "-------------------------------------"
+    call add_warning(warnstr)
 
-    write(warning,*) "picard convergence failed!"
-    call add_warning(warning)
-    write(warning,*) 0, Tsf0, Tsf
-    call add_warning(warning)
+    write(warnstr,*) subname, "picard convergence failed!"
+    call add_warning(warnstr)
+    write(warnstr,*) subname, 0, Tsf0, Tsf
+    call add_warning(warnstr)
     
     do k = 1, nslyr
-       write(warning,*) k, zTsn0(k), zTsn(k), zqsn0(k)
-       call add_warning(warning)
+       write(warnstr,*) subname, k, zTsn0(k), zTsn(k), zqsn0(k)
+       call add_warning(warnstr)
     enddo ! k          
     
     do k = 1, nilyr
-       write(warning,*) k, zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin0(k)
-       call add_warning(warning)
+       write(warnstr,*) subname, k, zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin0(k)
+       call add_warning(warnstr)
     enddo ! k
 
-    write(warning,*) "-------------------------------------"
-    call add_warning(warning)
+    write(warnstr,*) subname, "-------------------------------------"
+    call add_warning(warnstr)
 
   end subroutine picard_nonconvergence
 
@@ -2772,17 +2764,20 @@ contains
     if (minval(zSin) < c0) then
 
 
-         write(*,*) (q(k)  * (Sbr(k+1) - Sbr(k))) / hilyr, &
+         write(warnstr,*) subname, (q(k)  * (Sbr(k+1) - Sbr(k))) / hilyr, &
           dSdt(k)                               , &
           (w * (Spond    - Sbr(k))) / hilyr
+         call add_warning(warnstr)
 
        do k = 1, nilyr
        
-          write(*,*) k, zSin(k), zSin0(k)
+          write(warnstr,*) subname, k, zSin(k), zSin0(k)
+          call add_warning(warnstr)
 
        enddo
 
-       stop
+       call set_warning_abort(.true.)
+       return
 
     endif
 

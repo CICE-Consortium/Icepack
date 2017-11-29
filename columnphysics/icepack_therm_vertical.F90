@@ -31,7 +31,8 @@
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_0layer, only: zerolayer_temperature
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
       save
@@ -707,9 +708,6 @@
          tsno_low    , & ! flag for zTsn < Tmin
          tice_low        ! flag for zTin < Tmin
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-
       character(len=*),parameter :: subname='(init_vertical_profile)'
 
       !-----------------------------------------------------------------
@@ -791,16 +789,16 @@
             endif
 
             if (zTsn(k) > Tmax) then
-               write(warning,*) ' '
-               call add_warning(warning)
-               write(warning,*) 'Starting thermo, zTsn > Tmax'
-               call add_warning(warning)
-               write(warning,*) 'zTsn=',zTsn(k)
-               call add_warning(warning)
-               write(warning,*) 'Tmax=',Tmax
-               call add_warning(warning)
-               write(warning,*) 'zqsn',zqsn(k),-Lfresh*rhos,zqsn(k)+Lfresh*rhos
-               call add_warning(warning)
+               write(warnstr,*) ' '
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'Starting thermo, zTsn > Tmax'
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zTsn=',zTsn(k)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'Tmax=',Tmax
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zqsn',zqsn(k),-Lfresh*rhos,zqsn(k)+Lfresh*rhos
+               call add_warning(warnstr)
                l_stop = .true.
                stop_label = "init_vertical_profile: Starting thermo, zTsn > Tmax"
                return
@@ -813,20 +811,20 @@
          do k = 1, nslyr
 
             if (zTsn(k) < Tmin) then ! allowing for roundoff error
-               write(warning,*) ' '
-               call add_warning(warning)
-               write(warning,*) 'Starting thermo, zTsn < Tmin'
-               call add_warning(warning)
-               write(warning,*) 'zTsn=', zTsn(k)
-               call add_warning(warning)
-               write(warning,*) 'Tmin=', Tmin
-               call add_warning(warning)
-               write(warning,*) 'zqsn', zqsn(k)
-               call add_warning(warning)
-               write(warning,*) hin
-               call add_warning(warning)
-               write(warning,*) hsn
-               call add_warning(warning)
+               write(warnstr,*) ' '
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'Starting thermo, zTsn < Tmin'
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zTsn=', zTsn(k)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'Tmin=', Tmin
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zqsn', zqsn(k)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, hin
+               call add_warning(warnstr)
+               write(warnstr,*) subname, hsn
+               call add_warning(warnstr)
                l_stop = .true.
                stop_label = "init_vertical_profile: Starting thermo, zTsn < Tmin"
                return
@@ -856,14 +854,14 @@
       !---------------------------------------------------------------------
 
          if (ktherm == 1 .and. zSin(k) < min_salin-puny) then
-            write(warning,*) ' '
-            call add_warning(warning)
-            write(warning,*) 'Starting zSin < min_salin, layer', k
-            call add_warning(warning)
-            write(warning,*) 'zSin =', zSin(k)
-            call add_warning(warning)
-            write(warning,*) 'min_salin =', min_salin
-            call add_warning(warning)
+            write(warnstr,*) ' '
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'Starting zSin < min_salin, layer', k
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'zSin =', zSin(k)
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'min_salin =', min_salin
+            call add_warning(warnstr)
             l_stop = .true.
             stop_label = "init_vertical_profile: Starting zSin < min_salin, layer"
             return
@@ -919,34 +917,34 @@
             endif
 
             if (zTin(k) > Tmax) then
-               write(warning,*) ' '
-               call add_warning(warning)
-               write(warning,*) 'Starting thermo, T > Tmax, layer', k
-               call add_warning(warning)
-               write(warning,*) 'k:', k
-               call add_warning(warning)
-               write(warning,*) 'zTin =',zTin(k),', Tmax=',Tmax
-               call add_warning(warning)
-               write(warning,*) 'zSin =',zSin(k)
-               call add_warning(warning)
-               write(warning,*) 'hin =',hin
-               call add_warning(warning)
-               write(warning,*) 'zqin =',zqin(k)
-               call add_warning(warning)
-               write(warning,*) 'qmlt=',enthalpy_of_melting(zSin(k))
-               call add_warning(warning)
-               write(warning,*) 'Tmlt=',Tmlts(k)
-               call add_warning(warning)
+               write(warnstr,*) ' '
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'Starting thermo, T > Tmax, layer', k
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'k:', k
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zTin =',zTin(k),', Tmax=',Tmax
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zSin =',zSin(k)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'hin =',hin
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zqin =',zqin(k)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'qmlt=',enthalpy_of_melting(zSin(k))
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'Tmlt=',Tmlts(k)
+               call add_warning(warnstr)
                
                if (ktherm == 2) then
                   zqin(k) = enthalpy_of_melting(zSin(k)) - c1
                   zTin(k) = temperature_mush(zqin(k),zSin(k))
-                  write(warning,*) 'Corrected quantities'
-                  call add_warning(warning)
-                  write(warning,*) 'zqin=',zqin(k)
-                  call add_warning(warning)
-                  write(warning,*) 'zTin=',zTin(k)
-                  call add_warning(warning)
+                  write(warnstr,*) subname, 'Corrected quantities'
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'zqin=',zqin(k)
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'zTin=',zTin(k)
+                  call add_warning(warnstr)
                else
                   l_stop = .true.
                   stop_label = "init_vertical_profile: Starting thermo, T > Tmax, layer"
@@ -958,14 +956,14 @@
          if (tice_low .and. heat_capacity) then
 
             if (zTin(k) < Tmin) then
-               write(warning,*) ' '
-               call add_warning(warning)
-               write(warning,*) 'Starting thermo T < Tmin, layer', k
-               call add_warning(warning)
-               write(warning,*) 'zTin =', zTin(k)
-               call add_warning(warning)
-               write(warning,*) 'Tmin =', Tmin
-               call add_warning(warning)
+               write(warnstr,*) ' '
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'Starting thermo T < Tmin, layer', k
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zTin =', zTin(k)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'Tmin =', Tmin
+               call add_warning(warnstr)
                l_stop = .true.
                stop_label = "init_vertical_profile: Starting thermo, T < Tmin, layer"
                return
@@ -1852,9 +1850,6 @@
          einp        , & ! energy input during timestep (J m-2)
          ferr            ! energy conservation error (W m-2)
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-
       character(len=*),parameter :: subname='(conservation_check_vthermo)'
 
       !----------------------------------------------------------------
@@ -1876,57 +1871,57 @@
          l_stop = .true.
          stop_label = "conservation_check_vthermo: Thermo energy conservation error"
 
-         write(warning,*) 'Thermo energy conservation error'
-         call add_warning(warning)
-         write(warning,*) 'Flux error (W/m^2) =', ferr
-         call add_warning(warning)
-         write(warning,*) 'Energy error (J) =', ferr*dt
-         call add_warning(warning)
-         write(warning,*) 'Initial energy =', einit
-         call add_warning(warning)
-         write(warning,*) 'Final energy   =', efinal
-         call add_warning(warning)
-         write(warning,*) 'efinal - einit  =', efinal-einit
-         call add_warning(warning)
-         write(warning,*) 'fsurfn,flatn,fswint,fhocn, fsnow*Lfresh:'
-         call add_warning(warning)
-         write(warning,*) fsurfn,flatn,fswint,fhocnn, fsnow*Lfresh
-         call add_warning(warning)
-         write(warning,*) 'Input energy =', einp
-         call add_warning(warning)
-         write(warning,*) 'fbot,fcondbot:'
-         call add_warning(warning)
-         write(warning,*) fbot,fcondbot
-         call add_warning(warning)
+         write(warnstr,*) subname, 'Thermo energy conservation error'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Flux error (W/m^2) =', ferr
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Energy error (J) =', ferr*dt
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Initial energy =', einit
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Final energy   =', efinal
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'efinal - einit  =', efinal-einit
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'fsurfn,flatn,fswint,fhocn, fsnow*Lfresh:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, fsurfn,flatn,fswint,fhocnn, fsnow*Lfresh
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Input energy =', einp
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'fbot,fcondbot:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, fbot,fcondbot
+         call add_warning(warnstr)
 
          !         if (ktherm == 2) then
-         write(warning,*) 'Intermediate energy =', einter
-         call add_warning(warning)
-         write(warning,*) 'efinal - einter =', &
+         write(warnstr,*) subname, 'Intermediate energy =', einter
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'efinal - einter =', &
               efinal-einter
-         call add_warning(warning)
-         write(warning,*) 'einter - einit  =', &
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'einter - einit  =', &
               einter-einit
-         call add_warning(warning)
-         write(warning,*) 'Conduction Error =', (einter-einit) &
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Conduction Error =', (einter-einit) &
               - (fcondtopn*dt - fcondbot*dt + fswint*dt)
-         call add_warning(warning)
-         write(warning,*) 'Melt/Growth Error =', (einter-einit) &
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Melt/Growth Error =', (einter-einit) &
               + ferr*dt - (fcondtopn*dt - fcondbot*dt + fswint*dt)
-         call add_warning(warning)
-         write(warning,*) 'Advection Error =', fadvocn*dt
-         call add_warning(warning)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Advection Error =', fadvocn*dt
+         call add_warning(warnstr)
          !         endif
 
-         !         write(warning,*) fsurfn,flatn,fswint,fhocnn
-         !         call add_warning(warning)
+         !         write(warnstr,*) subname, fsurfn,flatn,fswint,fhocnn
+         !         call add_warning(warnstr)
          
-         write(warning,*) 'dt*(fsurfn, flatn, fswint, fhocn, fsnow*Lfresh, fadvocn):'
-         call add_warning(warning)
-         write(warning,*) fsurfn*dt, flatn*dt, &
+         write(warnstr,*) subname, 'dt*(fsurfn, flatn, fswint, fhocn, fsnow*Lfresh, fadvocn):'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, fsurfn*dt, flatn*dt, &
               fswint*dt, fhocnn*dt, &
               fsnow*Lfresh*dt, fadvocn*dt
-         call add_warning(warning)
+         call add_warning(warnstr)
          return
       endif
 

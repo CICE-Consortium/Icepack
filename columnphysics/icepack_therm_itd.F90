@@ -28,7 +28,8 @@
       use icepack_parameters, only: heat_capacity
       use icepack_tracers,  only: ntrcr, nbtrcr, tr_aero, tr_pond_topo
       use icepack_itd, only: aggregate_area, reduce_area, cleanup_itd
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
      
       implicit none
       save
@@ -194,9 +195,6 @@
       logical (kind=log_kind), parameter :: &
          print_diags = .false.    ! if true, prints when remap_flag=F
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
       character(len=*),parameter :: subname='(linear_itd)'
 
       !-----------------------------------------------------------------
@@ -324,28 +322,28 @@
             remap_flag = .false.
 
             if (print_diags) then
-               write(warning,*) 'ITD: hicen(n) > hbnew(n)'
-               call add_warning(warning)
-               write(warning,*) 'cat ',n
-               call add_warning(warning)
-               write(warning,*) 'hicen(n) =', hicen(n)
-               call add_warning(warning)
-               write(warning,*) 'hbnew(n) =', hbnew(n)
-               call add_warning(warning)
+               write(warnstr,*) subname, 'ITD: hicen(n) > hbnew(n)'
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'cat ',n
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'hicen(n) =', hicen(n)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'hbnew(n) =', hbnew(n)
+               call add_warning(warnstr)
             endif
 
          elseif (aicen(n+1) > puny .and. hicen(n+1) <= hbnew(n)) then
             remap_flag = .false.
 
             if (print_diags) then
-               write(warning,*) 'ITD: hicen(n+1) < hbnew(n)'
-               call add_warning(warning)
-               write(warning,*) 'cat ',n
-               call add_warning(warning)
-               write(warning,*) 'hicen(n+1) =', hicen(n+1)
-               call add_warning(warning)
-               write(warning,*) 'hbnew(n) =', hbnew(n)
-               call add_warning(warning)
+               write(warnstr,*) subname, 'ITD: hicen(n+1) < hbnew(n)'
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'cat ',n
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'hicen(n+1) =', hicen(n+1)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'hbnew(n) =', hbnew(n)
+               call add_warning(warnstr)
             endif
          endif
 
@@ -361,14 +359,14 @@
             remap_flag = .false.
 
             if (print_diags) then
-               write(warning,*) 'ITD hbnew(n) > hin_max(n+1)'
-               call add_warning(warning)
-               write(warning,*) 'cat ',n
-               call add_warning(warning)
-               write(warning,*) 'hbnew(n) =', hbnew(n)
-               call add_warning(warning)
-               write(warning,*) 'hin_max(n+1) =', hin_max(n+1)
-               call add_warning(warning)
+               write(warnstr,*) subname, 'ITD hbnew(n) > hin_max(n+1)'
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'cat ',n
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'hbnew(n) =', hbnew(n)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'hin_max(n+1) =', hin_max(n+1)
+               call add_warning(warnstr)
             endif
          endif
 
@@ -376,14 +374,14 @@
             remap_flag = .false.
 
             if (print_diags) then
-               write(warning,*) 'ITD: hbnew(n) < hin_max(n-1)'
-               call add_warning(warning)
-               write(warning,*) 'cat ',n
-               call add_warning(warning)
-               write(warning,*) 'hbnew(n) =', hbnew(n)
-               call add_warning(warning)
-               write(warning,*) 'hin_max(n-1) =', hin_max(n-1)
-               call add_warning(warning)
+               write(warnstr,*) subname, 'ITD: hbnew(n) < hin_max(n-1)'
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'cat ',n
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'hbnew(n) =', hbnew(n)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'hin_max(n-1) =', hin_max(n-1)
+               call add_warning(warnstr)
             endif
          endif
 

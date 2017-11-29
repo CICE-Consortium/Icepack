@@ -15,17 +15,20 @@ module icepack_warnings
       ! abort flag, accessed via set_warning_abort and icepack_aborted
       logical :: warning_abort = .false.
 
+      ! public string for all subroutines to use
+      character(len=char_len_long), public :: warnstr
+
       public :: &
-        icepack_clear_warnings, & 
-        icepack_get_warnings, & 
-        icepack_print_warnings, &
-        icepack_flush_warnings, &
-        icepack_aborted, &
-        set_warning_abort, &
-        add_warning, &
-        reset_warnings, &
-        get_number_warnings, &
-        get_warning
+        icepack_clear_warnings, & ! icepack_warnings_clear, & 
+        icepack_get_warnings, &   ! icepack_warnings_getall, & 
+        icepack_print_warnings, & ! icepack_warnings_print, &
+        icepack_flush_warnings, & ! icepack_warnings_flush, &
+        icepack_aborted, &        ! icepack_warnings_aborted, &
+        set_warning_abort, &      ! icepack_warnings_setabort, &
+        add_warning, &            ! icepack_warnings_add, &
+        reset_warnings, &         ! icepack_warnings_reset, &
+        get_number_warnings, &    ! icepack_warnings_getnumber, &
+        get_warning               ! icepack_warnnigs_getone
 
 !=======================================================================
 
@@ -33,11 +36,15 @@ contains
 
 !=======================================================================
 
-      logical function icepack_aborted()
+      logical function icepack_aborted(instring)
 
+        character(len=*),intent(in), optional :: instring
         character(len=*),parameter :: subname='(icepack_aborted)'
 
         icepack_aborted = warning_abort
+        if (warning_abort .and. present(instring)) then
+           call add_warning(subname//' ... '//trim(instring))
+        endif
 
       end function icepack_aborted
 
@@ -83,29 +90,29 @@ contains
 
 !=======================================================================
 
-      subroutine icepack_print_warnings(nu_diag)
+      subroutine icepack_print_warnings(iounit)
 
-        integer, intent(in) :: nu_diag
+        integer, intent(in) :: iounit
 
         integer :: iWarning
         character(len=*),parameter :: subname='(icepack_print_warnings)'
 
         do iWarning = 1, get_number_warnings()
-           write(nu_diag,*) trim(get_warning(iWarning))
+           write(iounit,*) trim(get_warning(iWarning))
         enddo
 
       end subroutine icepack_print_warnings
 
 !=======================================================================
 
-      subroutine icepack_flush_warnings(nu_diag)
+      subroutine icepack_flush_warnings(iounit)
 
-        integer, intent(in) :: nu_diag
+        integer, intent(in) :: iounit
 
         integer :: iWarning
         character(len=*),parameter :: subname='(icepack_flush_warnings)'
 
-        call icepack_print_warnings(nu_diag)
+        call icepack_print_warnings(iounit)
         call icepack_clear_warnings()
 
       end subroutine icepack_flush_warnings

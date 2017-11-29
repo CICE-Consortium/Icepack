@@ -8,6 +8,8 @@
       use icepack_kinds
       use icepack_constants, only: c0, c1, c1000
       use icepack_constants, only: cp_ocn, Tffresh, stefan_boltzmann, Lvap, cprho
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
       save

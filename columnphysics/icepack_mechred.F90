@@ -44,7 +44,8 @@
       use icepack_itd, only: column_sum
       use icepack_itd, only: column_conservation_check
       use icepack_itd, only: cleanup_itd
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
       save
@@ -260,9 +261,6 @@
       character (len=char_len) :: &
          fieldid        ! field identifier
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-
       character(len=*),parameter :: subname='(ridge_ice)'
 
       !-----------------------------------------------------------------
@@ -409,19 +407,19 @@
       !-----------------------------------------------------------------
 
          if (iterate_ridging) then
-            write(warning,*) 'Repeat ridging, niter =', niter
-            call add_warning(warning)
+            write(warnstr,*) subname, 'Repeat ridging, niter =', niter
+            call add_warning(warnstr)
          else
             exit rdg_iteration
          endif
 
          if (niter == nitermax) then
-            write(warning,*) ' '
-            call add_warning(warning)
-            write(warning,*) 'Exceeded max number of ridging iterations'
-            call add_warning(warning)
-            write(warning,*) 'max =',nitermax
-            call add_warning(warning)
+            write(warnstr,*) ' '
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'Exceeded max number of ridging iterations'
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'max =',nitermax
+            call add_warning(warnstr)
             l_stop = .true.
             stop_label = "ridge_ice: Exceeded max number of ridging iterations"
             return
@@ -584,19 +582,19 @@
          l_stop = .true.
          stop_label = "ridge_ice: total area > 1"
 
-         write(warning,*) ' '
-         call add_warning(warning)
-         write(warning,*) 'Ridging error: total area > 1'
-         call add_warning(warning)
-         write(warning,*) 'area:', asum
-         call add_warning(warning)
-         write(warning,*) 'n, aicen:'
-         call add_warning(warning)
-         write(warning,*)  0, aice0
-         call add_warning(warning)
+         write(warnstr,*) ' '
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Ridging error: total area > 1'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'area:', asum
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'n, aicen:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname,  0, aice0
+         call add_warning(warnstr)
          do n = 1, ncat
-            write(warning,*) n, aicen(n)
-            call add_warning(warning)
+            write(warnstr,*) subname, n, aicen(n)
+            call add_warning(warnstr)
          enddo
          return
       endif
@@ -1193,9 +1191,6 @@
          tmpfac     , & ! factor by which opening/closing rates are cut
          wk1            ! work variable
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-
       character(len=*),parameter :: subname='(ridge_shift)'
 
       do n = 1, ncat
@@ -1272,10 +1267,10 @@
       if (aice0 < -puny) then
          l_stop = .true.
          stop_label = 'Ridging error: aice0 < 0'
-         write(warning,*) trim(stop_label)
-         call add_warning(warning)
-         write(warning,*) 'aice0:', aice0
-         call add_warning(warning)
+         write(warnstr,*) subname, trim(stop_label)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'aice0:', aice0
+         call add_warning(warnstr)
          return
 
       elseif (aice0 < c0) then    ! roundoff error
@@ -1309,11 +1304,11 @@
             if (ardg1n > aicen_init(n) + puny) then
                l_stop = .true.
                stop_label = 'Ridging error: ardg > aicen'
-               write(warning,*) trim(stop_label)
-               call add_warning(warning)
-               write(warning,*) 'n, ardg, aicen:', &
+               write(warnstr,*) subname, trim(stop_label)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'n, ardg, aicen:', &
                     n, ardg1n, aicen_init(n)
-               call add_warning(warning)
+               call add_warning(warnstr)
                return
             else
                ardg1n = min(aicen_init(n), ardg1n)

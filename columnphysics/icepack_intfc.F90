@@ -92,9 +92,13 @@
 
       subroutine icepack_configure()
 
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
+
       character(len=*),parameter :: subname='(icepack_configure)'
 
         call icepack_recompute_constants()
+        if (icepack_aborted(subname)) return
 
       end subroutine icepack_configure
 

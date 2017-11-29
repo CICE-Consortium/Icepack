@@ -11,7 +11,8 @@
 
       use icepack_kinds
       use icepack_constants, only: c2, p5, pi, secday
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
       private
@@ -376,7 +377,6 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    real   (dbl_kind) :: eccen3  ! eccentricity cubed
    real   (dbl_kind) :: degrad  ! degrees to rad conversion
    integer (int_kind), parameter :: s_loglev    = 0         
-   character(len=char_len_long) :: warning ! warning message
    character(len=*),parameter :: subname='(shr_orb_params)'
  
    !-------------------------- Formats -----------------------------------------
@@ -398,12 +398,12 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    degrad = pi/180._dbl_kind   ! degree to radian conversion factor
  
    if ( log_print .and. s_loglev > 0 ) then
-     write(warning,F00) 'Calculate characteristics of the orbit:'
-     call add_warning(warning)
-     write(warning,F00) svnID
-     call add_warning(warning)
-!    write(warning,F00) svnURL
-!    call add_warning(warning)
+     write(warnstr,F00) subname//'Calculate characteristics of the orbit:'
+     call add_warning(warnstr)
+     write(warnstr,F00) subname//svnID
+     call add_warning(warnstr)
+!    write(warnstr,F00) subname//svnURL
+!    call add_warning(warnstr)
    end if
  
    ! Check for flag to use input orbit parameters
@@ -413,43 +413,43 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
       ! Check input obliq, eccen, and mvelp to ensure reasonable
  
       if( obliq == SHR_ORB_UNDEF_REAL )then
-         write(warning,F00) trim(subname)//' Have to specify orbital parameters:'
-         call add_warning(warning)
-         write(warning,F00) 'Either set: iyear_AD, OR [obliq, eccen, and mvelp]:'
-         call add_warning(warning)
-         write(warning,F00) 'iyear_AD is the year to simulate orbit for (ie. 1950): '
-         call add_warning(warning)
-         write(warning,F00) 'obliq, eccen, mvelp specify the orbit directly:'
-         call add_warning(warning)
-         write(warning,F00) 'The AMIP II settings (for a 1995 orbit) are: '
-         call add_warning(warning)
-         write(warning,F00) ' obliq =  23.4441'
-         call add_warning(warning)
-         write(warning,F00) ' eccen =   0.016715'
-         call add_warning(warning)
-         write(warning,F00) ' mvelp = 102.7'
-         call add_warning(warning)
+         write(warnstr,F00) subname//trim(subname)//' Have to specify orbital parameters:'
+         call add_warning(warnstr)
+         write(warnstr,F00) subname//'Either set: iyear_AD, OR [obliq, eccen, and mvelp]:'
+         call add_warning(warnstr)
+         write(warnstr,F00) subname//'iyear_AD is the year to simulate orbit for (ie. 1950): '
+         call add_warning(warnstr)
+         write(warnstr,F00) subname//'obliq, eccen, mvelp specify the orbit directly:'
+         call add_warning(warnstr)
+         write(warnstr,F00) subname//'The AMIP II settings (for a 1995 orbit) are: '
+         call add_warning(warnstr)
+         write(warnstr,F00) subname//' obliq =  23.4441'
+         call add_warning(warnstr)
+         write(warnstr,F00) subname//' eccen =   0.016715'
+         call add_warning(warnstr)
+         write(warnstr,F00) subname//' mvelp = 102.7'
+         call add_warning(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable oblip'
       else if ( log_print ) then
-         write(warning,F00) 'Use input orbital parameters: '
-         call add_warning(warning)
+         write(warnstr,F00) subname//'Use input orbital parameters: '
+         call add_warning(warnstr)
       end if
       if( (obliq < SHR_ORB_OBLIQ_MIN).or.(obliq > SHR_ORB_OBLIQ_MAX) ) then
-         write(warning,F03) 'Input obliquity unreasonable: ', obliq
-         call add_warning(warning)
+         write(warnstr,F03) subname//'Input obliquity unreasonable: ', obliq
+         call add_warning(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable obliq'
       end if
       if( (eccen < SHR_ORB_ECCEN_MIN).or.(eccen > SHR_ORB_ECCEN_MAX) ) then
-         write(warning,F03) 'Input eccentricity unreasonable: ', eccen
-         call add_warning(warning)
+         write(warnstr,F03) subname//'Input eccentricity unreasonable: ', eccen
+         call add_warning(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable eccen'
       end if
       if( (mvelp < SHR_ORB_MVELP_MIN).or.(mvelp > SHR_ORB_MVELP_MAX) ) then
-         write(warning,F03) 'Input mvelp unreasonable: ' , mvelp
-         call add_warning(warning)
+         write(warnstr,F03) subname//'Input mvelp unreasonable: ' , mvelp
+         call add_warning(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable mvelp'
       end if
@@ -459,19 +459,19 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    ELSE  ! Otherwise calculate based on years before present
  
       if ( log_print .and. s_loglev > 0) then
-         write(warning,F01) 'Calculate orbit for year: ' , iyear_AD
-         call add_warning(warning)
+         write(warnstr,F01) subname//'Calculate orbit for year: ' , iyear_AD
+         call add_warning(warnstr)
       end if
       yb4_1950AD = 1950.0_dbl_kind - real(iyear_AD,dbl_kind)
       if ( abs(yb4_1950AD) .gt. 1000000.0_dbl_kind )then
-         write(warning,F00) 'orbit only valid for years+-1000000'
-         call add_warning(warning)
-         write(warning,F00) 'Relative to 1950 AD'
-         call add_warning(warning)
-         write(warning,F03) '# of years before 1950: ',yb4_1950AD
-         call add_warning(warning)
-         write(warning,F01) 'Year to simulate was  : ',iyear_AD
-         call add_warning(warning)
+         write(warnstr,F00) subname//'orbit only valid for years+-1000000'
+         call add_warning(warnstr)
+         write(warnstr,F00) subname//'Relative to 1950 AD'
+         call add_warning(warnstr)
+         write(warnstr,F03) subname//'# of years before 1950: ',yb4_1950AD
+         call add_warning(warnstr)
+         write(warnstr,F01) subname//'Year to simulate was  : ',iyear_AD
+         call add_warning(warnstr)
          l_stop = .true.
          stop_label = 'unreasonable year'
       end if
@@ -616,22 +616,22 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    &      + .125_dbl_kind*eccen3*(1._dbl_kind/3._dbl_kind + beta)*sin(3._dbl_kind*mvelpp))
  
    if ( log_print ) then
-     write(warning,F03) '------ Computed Orbital Parameters ------'
-     call add_warning(warning)
-     write(warning,F03) 'Eccentricity      = ',eccen
-     call add_warning(warning)
-     write(warning,F03) 'Obliquity (deg)   = ',obliq
-     call add_warning(warning)
-     write(warning,F03) 'Obliquity (rad)   = ',obliqr
-     call add_warning(warning)
-     write(warning,F03) 'Long of perh(deg) = ',mvelp
-     call add_warning(warning)
-     write(warning,F03) 'Long of perh(rad) = ',mvelpp
-     call add_warning(warning)
-     write(warning,F03) 'Long at v.e.(rad) = ',lambm0
-     call add_warning(warning)
-     write(warning,F03) '-----------------------------------------'
-     call add_warning(warning)
+     write(warnstr,F03) subname//'------ Computed Orbital Parameters ------'
+     call add_warning(warnstr)
+     write(warnstr,F03) subname//'Eccentricity      = ',eccen
+     call add_warning(warnstr)
+     write(warnstr,F03) subname//'Obliquity (deg)   = ',obliq
+     call add_warning(warnstr)
+     write(warnstr,F03) subname//'Obliquity (rad)   = ',obliqr
+     call add_warning(warnstr)
+     write(warnstr,F03) subname//'Long of perh(deg) = ',mvelp
+     call add_warning(warnstr)
+     write(warnstr,F03) subname//'Long of perh(rad) = ',mvelpp
+     call add_warning(warnstr)
+     write(warnstr,F03) subname//'Long at v.e.(rad) = ',lambm0
+     call add_warning(warnstr)
+     write(warnstr,F03) subname//'-----------------------------------------'
+     call add_warning(warnstr)
    end if
  
 END SUBROUTINE shr_orb_params

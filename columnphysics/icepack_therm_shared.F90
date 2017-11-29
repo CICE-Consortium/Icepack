@@ -13,6 +13,8 @@
       use icepack_constants, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
       use icepack_parameters, only: saltmax, ktherm, heat_capacity
       use icepack_parameters, only: min_salin, calc_Tsfc
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
     
       implicit none
       save

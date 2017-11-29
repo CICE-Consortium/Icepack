@@ -14,7 +14,8 @@
       use icepack_tracers, only: ntrcr, nt_qice, nt_sice, nt_bgc_S 
       use icepack_zbgc_shared, only: k_o, exp_h, Dm, Ra_c, viscos_dynamic, thinS
       use icepack_zbgc_shared, only: remap_zbgc
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
 
@@ -98,9 +99,6 @@
       real (kind=dbl_kind) :: &
          hin_old          ! ice thickness before current melt/growth (m)
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-
       character(len=*),parameter :: subname='(preflushing_changes)'
 
       !-----------------------------------------------------------------
@@ -109,10 +107,10 @@
 
       l_stop = .false.
       if (fbri <= c0) then
-         write(warning, *) 'fbri, hice_old', fbri, hice_old
-         call add_warning(warning)
-         write(warning, *) 'vicen, aicen', vicen, aicen
-         call add_warning(warning)         
+         write(warnstr, *) subname,'fbri, hice_old', fbri, hice_old
+         call add_warning(warnstr)
+         write(warnstr, *) subname,'vicen, aicen', vicen, aicen
+         call add_warning(warnstr)         
          l_stop = .true.
          stop_label = 'icepack_brine preflushing: fbri <= c0'
       endif

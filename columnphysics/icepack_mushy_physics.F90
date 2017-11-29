@@ -5,6 +5,8 @@ module icepack_mushy_physics
   use icepack_constants, only: p001, p01, p05, p1, p2, p5, pi, bignum, puny, ice_ref_salinity
   use icepack_constants, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
   use icepack_constants, only: hs_min, ksno
+  use icepack_warnings, only: warnstr, add_warning
+  use icepack_warnings, only: set_warning_abort, icepack_aborted
 
   implicit none
 

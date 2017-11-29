@@ -24,6 +24,8 @@
       use icepack_constants, only: c0, c1, c2, p01, p1, p15, p4, p6
       use icepack_constants, only: puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh
       use icepack_constants, only: gravit, depressT, kice, ice_ref_salinity
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
 

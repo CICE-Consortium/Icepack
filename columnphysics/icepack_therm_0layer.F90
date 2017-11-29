@@ -15,7 +15,8 @@
       use icepack_constants, only: c0, c1, p5, puny
       use icepack_constants, only: kseaice, ksno
       use icepack_therm_bl99, only: surface_fluxes
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
 
@@ -132,9 +133,6 @@
       logical (kind=log_kind) :: &
          converged      ! = true when local solution has converged
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
       character(len=*),parameter :: subname='(zerolayer_temperature)'
 
       !-----------------------------------------------------------------
@@ -297,22 +295,22 @@
       ! Check for convergence failures.
       !-----------------------------------------------------------------
       if (.not.converged) then
-         write(warning,*) 'Thermo iteration does not converge,'
-         call add_warning(warning)
-         write(warning,*) 'Ice thickness:',  hilyr*nilyr
-         call add_warning(warning)
-         write(warning,*) 'Snow thickness:', hslyr*nslyr
-         call add_warning(warning)
-         write(warning,*) 'dTsf, Tsf_errmax:',dTsf_prev, &
+         write(warnstr,*) subname, 'Thermo iteration does not converge,'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Ice thickness:',  hilyr*nilyr
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Snow thickness:', hslyr*nslyr
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'dTsf, Tsf_errmax:',dTsf_prev, &
                           Tsf_errmax
-         call add_warning(warning)
-         write(warning,*) 'Tsf:', Tsf
-         call add_warning(warning)
-         write(warning,*) 'fsurfn:', fsurfn
-         call add_warning(warning)
-         write(warning,*) 'fcondtopn, fcondbot', &
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Tsf:', Tsf
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'fsurfn:', fsurfn
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'fcondtopn, fcondbot', &
                           fcondtopn, fcondbot
-         call add_warning(warning)
+         call add_warning(warnstr)
          l_stop = .true.
          stop_label = "zerolayer_temperature: Thermo iteration does not converge"
          return
@@ -326,14 +324,14 @@
          if (Tsf < c0 .and. & 
               abs(fcondtopn-fsurfn) > puny) then
 
-            write(warning,*) 'fcondtopn does not equal fsurfn,'
-            call add_warning(warning)
-            write(warning,*) 'Tsf=',Tsf
-            call add_warning(warning)
-            write(warning,*) 'fcondtopn=',fcondtopn
-            call add_warning(warning)
-            write(warning,*) 'fsurfn=',fsurfn
-            call add_warning(warning)
+            write(warnstr,*) subname, 'fcondtopn does not equal fsurfn,'
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'Tsf=',Tsf
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'fcondtopn=',fcondtopn
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'fsurfn=',fsurfn
+            call add_warning(warnstr)
             l_stop = .true.
             stop_label = "zerolayer_temperature: fcondtopn /= fsurfn"
             return

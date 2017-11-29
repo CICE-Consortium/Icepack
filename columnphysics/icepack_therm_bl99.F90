@@ -17,7 +17,8 @@
       use icepack_constants, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
       use icepack_parameters, only: conduct, calc_Tsfc, solve_zsal
       use icepack_therm_shared, only: ferrmax, l_brine, hfrazilmin
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
       save
@@ -215,9 +216,6 @@
       logical (kind=log_kind) , dimension (nilyr) :: &
          reduce_kh       ! reduce conductivity when T exceeds Tmlt
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
       character(len=*),parameter :: subname='(temperature_changes)'
 
       !-----------------------------------------------------------------
@@ -724,78 +722,78 @@
       ! Check for convergence failures.
       !-----------------------------------------------------------------
       if (.not.converged) then
-         write(warning,*) 'Thermo iteration does not converge,'
-         call add_warning(warning)
-         write(warning,*) 'Ice thickness:',  hilyr*nilyr
-         call add_warning(warning)
-         write(warning,*) 'Snow thickness:', hslyr*nslyr
-         call add_warning(warning)
-         write(warning,*) 'dTsf, Tsf_errmax:',dTsf_prev, &
+         write(warnstr,*) subname, 'Thermo iteration does not converge,'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Ice thickness:',  hilyr*nilyr
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Snow thickness:', hslyr*nslyr
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'dTsf, Tsf_errmax:',dTsf_prev, &
               Tsf_errmax
-         call add_warning(warning)
-         write(warning,*) 'Tsf:', Tsf
-         call add_warning(warning)
-         write(warning,*) 'fsurf:', fsurfn
-         call add_warning(warning)
-         write(warning,*) 'fcondtop, fcondbot, fswint', &
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Tsf:', Tsf
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'fsurf:', fsurfn
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'fcondtop, fcondbot, fswint', &
               fcondtopn, fcondbot, fswint
-         call add_warning(warning)
-         write(warning,*) 'fswsfc', fswsfc
-         call add_warning(warning)
-         write(warning,*) 'Iswabs',(Iswabs(k),k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'Flux conservation error =', ferr
-         call add_warning(warning)
-         write(warning,*) 'Initial snow temperatures:'
-         call add_warning(warning)
-         write(warning,*) (Tsn_init(k),k=1,nslyr)
-         call add_warning(warning)
-         write(warning,*) 'Initial ice temperatures:'
-         call add_warning(warning)
-         write(warning,*) (Tin_init(k),k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'Matrix ice temperature diff:'
-         call add_warning(warning)
-         write(warning,*) (dTmat(k),k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'dqmat*hilyr/dt:'
-         call add_warning(warning)
-         write(warning,*) (hilyr*dqmat(k)/dt,k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'Final snow temperatures:'
-         call add_warning(warning)
-         write(warning,*) (zTsn(k),k=1,nslyr)
-         call add_warning(warning)
-         write(warning,*) 'Matrix ice temperature diff:'
-         call add_warning(warning)
-         write(warning,*) (dTmat(k),k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'dqmat*hilyr/dt:'
-         call add_warning(warning)
-         write(warning,*) (hilyr*dqmat(k)/dt,k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'Final ice temperatures:'
-         call add_warning(warning)
-         write(warning,*) (zTin(k),k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'Ice melting temperatures:'
-         call add_warning(warning)
-         write(warning,*) (Tmlts(k),k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'Ice bottom temperature:', Tbot
-         call add_warning(warning)
-         write(warning,*) 'dT initial:'
-         call add_warning(warning)
-         write(warning,*) (Tmlts(k)-Tin_init(k),k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'dT final:'
-         call add_warning(warning)
-         write(warning,*) (Tmlts(k)-zTin(k),k=1,nilyr)
-         call add_warning(warning)
-         write(warning,*) 'zSin'
-         call add_warning(warning)
-         write(warning,*) (zSin(k),k=1,nilyr)
-         call add_warning(warning)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'fswsfc', fswsfc
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Iswabs',(Iswabs(k),k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Flux conservation error =', ferr
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Initial snow temperatures:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (Tsn_init(k),k=1,nslyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Initial ice temperatures:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (Tin_init(k),k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Matrix ice temperature diff:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (dTmat(k),k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'dqmat*hilyr/dt:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (hilyr*dqmat(k)/dt,k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Final snow temperatures:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (zTsn(k),k=1,nslyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Matrix ice temperature diff:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (dTmat(k),k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'dqmat*hilyr/dt:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (hilyr*dqmat(k)/dt,k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Final ice temperatures:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (zTin(k),k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Ice melting temperatures:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (Tmlts(k),k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Ice bottom temperature:', Tbot
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'dT initial:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (Tmlts(k)-Tin_init(k),k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'dT final:'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (Tmlts(k)-zTin(k),k=1,nilyr)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'zSin'
+         call add_warning(warnstr)
+         write(warnstr,*) subname, (zSin(k),k=1,nilyr)
+         call add_warning(warnstr)
          l_stop = .true.
          stop_label = "temperature_changes: Thermo iteration does not converge"
          return

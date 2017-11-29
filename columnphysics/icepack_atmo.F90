@@ -21,6 +21,8 @@
       use icepack_constants,  only: pih, dragio, rhoi, rhos, rhow
       use icepack_parameters, only: atmbndy, calc_strair, formdrag
       use icepack_parameters, only: highfreq, natmiter
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
       save

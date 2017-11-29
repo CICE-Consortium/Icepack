@@ -13,6 +13,8 @@
       use icepack_constants, only: p01, p1, p5, c0, c1
       use icepack_tracers, only: max_nbtrcr, max_algae, max_doc
       use icepack_tracers, only: max_dic, max_aero, max_don, max_fe
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none 
 

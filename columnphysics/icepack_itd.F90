@@ -34,7 +34,8 @@
       use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers, min_salin
       use icepack_parameters, only: sk_l, rhosi, hs_ssl, kcatbound, kitd
       use icepack_therm_shared, only: Tmin, hi_min
-      use icepack_warnings,   only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
       save
@@ -435,9 +436,6 @@
       real (kind=dbl_kind) :: &
         worka, workb
 
-      character(len=char_len_long) :: &
-        warning ! warning message
-
       character(len=*),parameter :: subname='(shift_ice)'
 
       !-----------------------------------------------------------------
@@ -523,16 +521,16 @@
          if (daice_negative) then
                if (donor(n) > 0 .and.  &
                    daice(n) <= -puny*aicen(nd)) then
-                  write(warning,*) ' '
-                  call add_warning(warning)
-                  write(warning,*) 'shift_ice: negative daice'
-                  call add_warning(warning)
-                  write(warning,*) 'boundary, donor cat:', n, nd
-                  call add_warning(warning)
-                  write(warning,*) 'daice =', daice(n)
-                  call add_warning(warning)
-                  write(warning,*) 'dvice =', dvice(n)
-                  call add_warning(warning)
+                  write(warnstr,*) ' '
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'shift_ice: negative daice'
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'boundary, donor cat:', n, nd
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'daice =', daice(n)
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'dvice =', dvice(n)
+                  call add_warning(warnstr)
                   l_stop = .true.
                   stop_label = 'shift_ice: negative daice'
                endif
@@ -542,16 +540,16 @@
          if (dvice_negative) then
                if (donor(n) > 0 .and.  &
                    dvice(n) <= -puny*vicen(nd)) then
-                  write(warning,*) ' '
-                  call add_warning(warning)
-                  write(warning,*) 'shift_ice: negative dvice'
-                  call add_warning(warning)
-                  write(warning,*) 'boundary, donor cat:', n, nd
-                  call add_warning(warning)
-                  write(warning,*) 'daice =', daice(n)
-                  call add_warning(warning)
-                  write(warning,*) 'dvice =', dvice(n)
-                  call add_warning(warning)
+                  write(warnstr,*) ' '
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'shift_ice: negative dvice'
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'boundary, donor cat:', n, nd
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'daice =', daice(n)
+                  call add_warning(warnstr)
+                  write(warnstr,*) subname, 'dvice =', dvice(n)
+                  call add_warning(warnstr)
                   l_stop = .true.
                   stop_label = 'shift_ice: negative dvice'
                endif
@@ -562,16 +560,16 @@
                if (donor(n) > 0) then
                   nd = donor(n)
                   if (daice(n) >= aicen(nd)*(c1+puny)) then
-                     write(warning,*) ' '
-                     call add_warning(warning)
-                     write(warning,*) 'shift_ice: daice > aicen'
-                     call add_warning(warning)
-                     write(warning,*) 'boundary, donor cat:', n, nd
-                     call add_warning(warning)
-                     write(warning,*) 'daice =', daice(n)
-                     call add_warning(warning)
-                     write(warning,*) 'aicen =', aicen(nd)
-                     call add_warning(warning)
+                     write(warnstr,*) ' '
+                     call add_warning(warnstr)
+                     write(warnstr,*) subname, 'shift_ice: daice > aicen'
+                     call add_warning(warnstr)
+                     write(warnstr,*) subname, 'boundary, donor cat:', n, nd
+                     call add_warning(warnstr)
+                     write(warnstr,*) subname, 'daice =', daice(n)
+                     call add_warning(warnstr)
+                     write(warnstr,*) subname, 'aicen =', aicen(nd)
+                     call add_warning(warnstr)
                      l_stop = .true.
                      stop_label = 'shift_ice: daice > aicen'
                   endif
@@ -583,16 +581,16 @@
                if (donor(n) > 0) then
                   nd = donor(n)
                   if (dvice(n) >= vicen(nd)*(c1+puny)) then
-                     write(warning,*) ' '
-                     call add_warning(warning)
-                     write(warning,*) 'shift_ice: dvice > vicen'
-                     call add_warning(warning)
-                     write(warning,*) 'boundary, donor cat:', n, nd
-                     call add_warning(warning)
-                     write(warning,*) 'dvice =', dvice(n)
-                     call add_warning(warning)
-                     write(warning,*) 'vicen =', vicen(nd)
-                     call add_warning(warning)
+                     write(warnstr,*) ' '
+                     call add_warning(warnstr)
+                     write(warnstr,*) subname, 'shift_ice: dvice > vicen'
+                     call add_warning(warnstr)
+                     write(warnstr,*) subname, 'boundary, donor cat:', n, nd
+                     call add_warning(warnstr)
+                     write(warnstr,*) subname, 'dvice =', dvice(n)
+                     call add_warning(warnstr)
+                     write(warnstr,*) subname, 'vicen =', vicen(nd)
+                     call add_warning(warnstr)
                      l_stop = .true.
                      stop_label = 'shift_ice: dvice > vicen'
                   endif
@@ -733,25 +731,22 @@
       logical (kind=log_kind), intent(inout) :: &
          l_stop            ! if true, abort on return
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
       character(len=*),parameter :: subname='(column_conservation_check)'
 
       ! local variables
 
       if (abs (x2-x1) > max_err) then
          l_stop = .true.
-         write(warning,*) ' '
-         call add_warning(warning)
-         write(warning,*) 'Conservation error: ', trim(fieldid)
-         call add_warning(warning)
-         write(warning,*) 'Initial value =', x1
-         call add_warning(warning)
-         write(warning,*) 'Final value =',   x2
-         call add_warning(warning)
-         write(warning,*) 'Difference =', x2 - x1
-         call add_warning(warning)
+         write(warnstr,*) ' '
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Conservation error: ', trim(fieldid)
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Initial value =', x1
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Final value =',   x2
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'Difference =', x2 - x1
+         call add_warning(warnstr)
       endif
 
       end subroutine column_conservation_check
@@ -880,9 +875,6 @@
       logical (kind=log_kind) ::   &
          limit_aice         ! if true, check for aice out of bounds
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
       character(len=*),parameter :: subname='(cleanup_itd)'
 
       !-----------------------------------------------------------------
@@ -915,11 +907,11 @@
          if (aice > c1+puny .or. aice < -puny) then
             l_stop = .true.
             stop_label = 'aggregate ice area out of bounds'
-            write(warning,*) 'aice:', aice
-            call add_warning(warning)
+            write(warnstr,*) subname, 'aice:', aice
+            call add_warning(warnstr)
             do n = 1, ncat
-               write(warning,*) 'n, aicen:', n, aicen(n)
-               call add_warning(warning)
+               write(warnstr,*) subname, 'n, aicen:', n, aicen(n)
+               call add_warning(warnstr)
             enddo
             return
          endif
@@ -970,11 +962,11 @@
                                l_stop,       stop_label)
 
          if (l_stop) then
-            write(warning,*) 'aice:', aice
-            call add_warning(warning)
+            write(warnstr,*) subname, 'aice:', aice
+            call add_warning(warnstr)
             do n = 1, ncat
-               write(warning,*) 'n, aicen:', n, aicen(n)
-               call add_warning(warning)
+               write(warnstr,*) subname, 'n, aicen:', n, aicen(n)
+               call add_warning(warnstr)
             enddo
             return
          endif
@@ -1492,9 +1484,6 @@
       logical :: &
          l_zap        ! logical whether zap snow
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
       character(len=*),parameter :: subname='(zap_snow_temperature)'
 
       rnslyr = real(nslyr,kind=dbl_kind)
@@ -1531,18 +1520,18 @@
             ! check for zapping
             if (zTsn < Tmin .or. zTsn > Tmax) then
                l_zap = .true.
-               write(warning,*) "zap_snow_temperature: temperature out of bounds!"
-               call add_warning(warning)
-               write(warning,*) "k:"   , k
-               call add_warning(warning)
-               write(warning,*) "zTsn:", zTsn
-               call add_warning(warning)
-               write(warning,*) "Tmin:", Tmin
-               call add_warning(warning)
-               write(warning,*) "Tmax:", Tmax
-               call add_warning(warning)
-               write(warning,*) "zqsn:", zqsn
-               call add_warning(warning)
+               write(warnstr,*) subname, "zap_snow_temperature: temperature out of bounds!"
+               call add_warning(warnstr)
+               write(warnstr,*) subname, "k:"   , k
+               call add_warning(warnstr)
+               write(warnstr,*) subname, "zTsn:", zTsn
+               call add_warning(warnstr)
+               write(warnstr,*) subname, "Tmin:", Tmin
+               call add_warning(warnstr)
+               write(warnstr,*) subname, "Tmax:", Tmax
+               call add_warning(warnstr)
+               write(warnstr,*) subname, "zqsn:", zqsn
+               call add_warning(warnstr)
             endif
 
          enddo ! k
@@ -1623,9 +1612,6 @@
       real (kind=dbl_kind) :: &
          worka, workb
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
       character(len=*),parameter :: subname='(zerolayer_check)'
 
       !-----------------------------------------------------------------
@@ -1674,18 +1660,18 @@
             if (abs(worka) > max_error) then
                l_stop = .true.
                stop_label = 'zerolayer check - wrong ice energy'
-               write(warning,*) trim(stop_label)
-               call add_warning(warning)
-               write(warning,*) 'n:', n
-               call add_warning(warning)
-               write(warning,*) 'eicen =', eicen(n)
-               call add_warning(warning)
-               write(warning,*) 'error=',  worka
-               call add_warning(warning)
-               write(warning,*) 'vicen =', vicen(n)
-               call add_warning(warning)
-               write(warning,*) 'aicen =', aicen(n)
-               call add_warning(warning)
+               write(warnstr,*) subname, trim(stop_label)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'n:', n
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'eicen =', eicen(n)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'error=',  worka
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'vicen =', vicen(n)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'aicen =', aicen(n)
+               call add_warning(warnstr)
             endif
 
          endif
@@ -1696,18 +1682,18 @@
             if (abs(workb) > max_error) then
                l_stop = .true.
                stop_label = 'zerolayer check - wrong snow energy'
-               write(warning,*) trim(stop_label)
-               call add_warning(warning)
-               write(warning,*) 'n:', n
-               call add_warning(warning)
-               write(warning,*) 'esnon =', esnon(n)
-               call add_warning(warning)
-               write(warning,*) 'error=',  workb
-               call add_warning(warning)
-               write(warning,*) 'vsnon =', vsnon(n)
-               call add_warning(warning)
-               write(warning,*) 'aicen =', aicen(n)
-               call add_warning(warning)
+               write(warnstr,*) subname, trim(stop_label)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'n:', n
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'esnon =', esnon(n)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'error=',  workb
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'vsnon =', vsnon(n)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'aicen =', aicen(n)
+               call add_warning(warnstr)
                return
             endif
 
@@ -1929,18 +1915,15 @@
       character(len=8) :: c_hinmax1,c_hinmax2
       character(len=2) :: c_nc
 
-      character(len=char_len_long) :: &
-           warning ! warning message
-
       character(len=*),parameter :: subname='(icepack_init_itd_hist)'
 
-         write(warning,*) ' '
-         call add_warning(warning)
-         write(warning,*) 'hin_max(n-1) < Cat n < hin_max(n)'
-         call add_warning(warning)
+         write(warnstr,*) ' '
+         call add_warning(warnstr)
+         write(warnstr,*) subname, 'hin_max(n-1) < Cat n < hin_max(n)'
+         call add_warning(warnstr)
          do n = 1, ncat
-            write(warning,*) hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
-            call add_warning(warning)
+            write(warnstr,*) subname, hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
+            call add_warning(warnstr)
             ! Write integer n to character string
             write (c_nc, '(i2)') n    
 
@@ -1952,8 +1935,8 @@
             c_hi_range(n)=c_hinmax1//'m < hi Cat '//c_nc//' < '//c_hinmax2//'m'
          enddo
 
-         write(warning,*) ' '
-         call add_warning(warning)
+         write(warnstr,*) ' '
+         call add_warning(warnstr)
 
       end subroutine icepack_init_itd_hist
 

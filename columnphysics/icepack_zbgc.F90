@@ -30,6 +30,8 @@
       use icepack_parameters, only: op_dep_min, fr_graze_s, fr_graze_e, fr_mort2min, fr_dFe
       use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
       use icepack_parameters, only: fr_resp_s, y_sk_DMS, t_sk_conv, t_sk_ox
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none 
 

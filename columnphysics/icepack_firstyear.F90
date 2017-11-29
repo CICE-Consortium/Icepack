@@ -16,6 +16,8 @@
 
       use icepack_kinds
       use icepack_constants, only: secday, c0
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
 

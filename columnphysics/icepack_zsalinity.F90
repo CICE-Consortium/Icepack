@@ -17,7 +17,8 @@
       use icepack_constants, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
       use icepack_zbgc_shared, only: remap_zbgc
       use icepack_zbgc_shared, only: Ra_c, k_o, viscos_dynamic, thinS, Dm, exp_h
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
 
@@ -1073,9 +1074,6 @@
      real (kind=dbl_kind), parameter :: &
          accuracy = 1.0e-7_dbl_kind ! g/kg/m^2/s difference between boundary fluxes 
 
-     character(len=char_len_long) :: &
-         warning ! warning message
-     
      character(len=*),parameter :: subname='(check_conserve_salt)'
 
          dh = (hbrin-hbri_old)/real(mmax,kind=dbl_kind)
@@ -1090,26 +1088,26 @@
            diff2 = abs(dsum_flux - flux_tot)
            if (diff2 >  puny .AND. diff2 > order ) then 
               l_stop = .true.
-              write(warning,*) 'Poor salt conservation: check_conserve_salt'
-              call add_warning(warning)
-              write(warning,*) 'mint:', mint
-              call add_warning(warning)
-              write(warning,*) 'Ssum_corr',Ssum_corr
-              call add_warning(warning)
-              write(warning,*) 'fluxb,fluxg,fluxm,flux_tot,fluxcorr:'
-              call add_warning(warning)
-              write(warning,*)  fluxb,fluxg,fluxm,flux_tot,fluxcorr
-              call add_warning(warning)
-              write(warning,*) 'fluxg,',fluxg
-              call add_warning(warning)
-              write(warning,*) 'dsum_flux,',dsum_flux
-              call add_warning(warning)
-              write(warning,*) 'Ssum_new,Ssum_old,hbri_old,dh:'
-              call add_warning(warning)
-              write(warning,*)  Ssum_new,Ssum_old,hbri_old,dh
-              call add_warning(warning)
-              write(warning,*) 'diff2,order,puny',diff2,order,puny
-              call add_warning(warning)
+              write(warnstr,*) subname, 'Poor salt conservation: check_conserve_salt'
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'mint:', mint
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'Ssum_corr',Ssum_corr
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'fluxb,fluxg,fluxm,flux_tot,fluxcorr:'
+              call add_warning(warnstr)
+              write(warnstr,*) subname,  fluxb,fluxg,fluxm,flux_tot,fluxcorr
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'fluxg,',fluxg
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'dsum_flux,',dsum_flux
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'Ssum_new,Ssum_old,hbri_old,dh:'
+              call add_warning(warnstr)
+              write(warnstr,*) subname,  Ssum_new,Ssum_old,hbri_old,dh
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'diff2,order,puny',diff2,order,puny
+              call add_warning(warnstr)
            endif
          endif
 

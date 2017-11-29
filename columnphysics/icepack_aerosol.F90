@@ -10,7 +10,8 @@
 
       use icepack_kinds
       use icepack_constants, only: c0, c1, c2, puny, rhoi, rhos, hs_min
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, add_warning
+      use icepack_warnings, only: set_warning_abort, icepack_aborted
 
       implicit none
 
@@ -100,9 +101,6 @@
 
       real (kind=dbl_kind), dimension(n_aero,2) :: &
          aerosno0, aeroice0   ! for diagnostic prints
-
-      character(len=char_len_long) :: &
-         warning ! warning message
 
       ! echmod:  this assumes max_aero=6
       data kscav   / .03_dbl_kind, .20_dbl_kind, .02_dbl_kind, &
@@ -408,14 +406,14 @@
          if ((aerotot(k)-aerotot0(k)) &
               - (   faero_atm(k)*aicen &
               - (faero_ocn(k)-focn_old(k)) )*dt  > puny) then
-            
-            write(warning,*) 'aerosol tracer:  ',k
-            call add_warning(warning)
-            write(warning,*) 'aerotot-aerotot0 ',aerotot(k)-aerotot0(k)
-            call add_warning(warning)
-            write(warning,*) 'faero_atm-faero_ocn      ', &
+
+            write(warnstr,*) subname, 'aerosol tracer:  ',k
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'aerotot-aerotot0 ',aerotot(k)-aerotot0(k)
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'faero_atm-faero_ocn      ', &
                  (faero_atm(k)*aicen-(faero_ocn(k)-focn_old(k)))*dt
-            call add_warning(warning)
+            call add_warning(warnstr)
          endif
       enddo
 
@@ -429,8 +427,8 @@
           aerosno(1,1) < -puny .or. &
           aerosno(1,2) < -puny) then
 
-         write(warning,*) 'aerosol negative in aerosol code'
-         call add_warning(warning)
+         write(warnstr,*) subname, 'aerosol negative in aerosol code'
+         call add_warning(warnstr)
 
          aeroice(1,1) = max(aeroice(1,1), c0)
          aeroice(1,2) = max(aeroice(1,2), c0)
@@ -529,9 +527,6 @@
       real (kind=dbl_kind), dimension(nbtrcr,2) :: &
          aerosno,  & ! kg/m^2
          aerosno0    ! for diagnostic prints
-
-      character(len=char_len_long) :: &
-         warning ! warning message
 
       character(len=*),parameter :: subname='(update_snow_bgc)'
 
@@ -731,27 +726,27 @@
                           - (    flux_bio_atm(k) & 
                           - (flux_bio(k)-flux_bio_o(k))) * dt
             if (aero_cons(k)  > puny .or. zbgc_snow(k) + zbgc_atm(k) < c0) then             
-               write(warning,*) 'Conservation failure: aerosols in snow'
-               call add_warning(warning)
-               write(warning,*) 'test aerosol 1'
-               call add_warning(warning)
-               write(warning,*) 'aerosol tracer:  ',k
-               call add_warning(warning)
-               write(warning,*) 'aero_cons(k),puny:', aero_cons(k),puny
-               call add_warning(warning)
-               write(warning,*) 'aerotot,aerotot0 ',aerotot(k),aerotot0(k)
-               call add_warning(warning)
-               write(warning,*) ' aerosno(k,2),aerosno(k,1) ', aerosno(k,2),aerosno(k,1)
-               call add_warning(warning)
-               write(warning,*) 'flux_bio_atm(k)*aicen*dt', &
+               write(warnstr,*) subname, 'Conservation failure: aerosols in snow'
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'test aerosol 1'
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'aerosol tracer:  ',k
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'aero_cons(k),puny:', aero_cons(k),puny
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'aerotot,aerotot0 ',aerotot(k),aerotot0(k)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, ' aerosno(k,2),aerosno(k,1) ', aerosno(k,2),aerosno(k,1)
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'flux_bio_atm(k)*aicen*dt', &
                     flux_bio_atm(k)*aicen*dt
-               call add_warning(warning)
-               write(warning,*) 'zbgc_snow(k)', &
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zbgc_snow(k)', &
                     zbgc_snow(k)
-               call add_warning(warning)
-               write(warning,*) 'zbgc_atm(k)', &
+               call add_warning(warnstr)
+               write(warnstr,*) subname, 'zbgc_atm(k)', &
                     zbgc_atm(k)
-               call add_warning(warning)
+               call add_warning(warnstr)
             endif
          enddo
 
@@ -776,49 +771,49 @@
          if (minval(aerosno(:,1)) < -puny  .or. &
             minval(aerosno(:,2)) < -puny) then
 
-            write(warning,*) 'Snow aerosol negative in update_snow_bgc'
-            call add_warning(warning)
-            write(warning,*) 'aicen= '      ,aicen
-            call add_warning(warning)
-            write(warning,*) 'vicen= '      ,vicen
-            call add_warning(warning)
-            write(warning,*) 'vsnon= '      ,vsnon
-            call add_warning(warning)
-            write(warning,*) 'viceold= '    ,vice_old
-            call add_warning(warning)
-            write(warning,*) 'vsnoold= '    ,vsno_old
-            call add_warning(warning)
-            write(warning,*) 'melts= '      ,melts
-            call add_warning(warning)
-            write(warning,*) 'meltt= '      ,meltt
-            call add_warning(warning)
-            write(warning,*) 'meltb= '      ,meltb
-            call add_warning(warning)
-            write(warning,*) 'congel= '     ,congel
-            call add_warning(warning)
-            write(warning,*) 'snoice= '     ,snoice
-            call add_warning(warning)
-            write(warning,*) 'aero evap snow= '  ,dhs_evap
-            call add_warning(warning)
-            write(warning,*) 'fsnow= '      ,fsnow
-            call add_warning(warning)
+            write(warnstr,*) subname, 'Snow aerosol negative in update_snow_bgc'
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'aicen= '      ,aicen
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'vicen= '      ,vicen
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'vsnon= '      ,vsnon
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'viceold= '    ,vice_old
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'vsnoold= '    ,vsno_old
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'melts= '      ,melts
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'meltt= '      ,meltt
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'meltb= '      ,meltb
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'congel= '     ,congel
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'snoice= '     ,snoice
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'aero evap snow= '  ,dhs_evap
+            call add_warning(warnstr)
+            write(warnstr,*) subname, 'fsnow= '      ,fsnow
+            call add_warning(warnstr)
             do k = 1, nbtrcr
-              write(warning,*) 'NBTRCR value k = ', k
-              call add_warning(warning)
-              write(warning,*) 'aero snowssl (k)= '    ,aerosno0(k,1)
-              call add_warning(warning)
-              write(warning,*) 'aero new snowssl (k)= ',aerosno(k,1)
-              call add_warning(warning)
-              write(warning,*) 'aero snowint (k)= '    ,aerosno0(k,2)
-              call add_warning(warning)
-              write(warning,*) 'aero new snowint(k)= ',aerosno(k,2)
-              call add_warning(warning)
-              write(warning,*) 'flux_bio_atm(k)= ' , flux_bio_atm(k)
-              call add_warning(warning)
-              write(warning,*) 'zbgc_snow(k)= '  ,zbgc_snow(k)
-              call add_warning(warning)
-              write(warning,*) 'zbgc_atm(k)= '  ,zbgc_atm(k)
-              call add_warning(warning)
+              write(warnstr,*) subname, 'NBTRCR value k = ', k
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'aero snowssl (k)= '    ,aerosno0(k,1)
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'aero new snowssl (k)= ',aerosno(k,1)
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'aero snowint (k)= '    ,aerosno0(k,2)
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'aero new snowint(k)= ',aerosno(k,2)
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'flux_bio_atm(k)= ' , flux_bio_atm(k)
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'zbgc_snow(k)= '  ,zbgc_snow(k)
+              call add_warning(warnstr)
+              write(warnstr,*) subname, 'zbgc_atm(k)= '  ,zbgc_atm(k)
+              call add_warning(warnstr)
 
               do n = 1,2
                 trcrn(bio_index(k)+nblyr+n)=max(trcrn(bio_index(k)+nblyr+n), c0)
