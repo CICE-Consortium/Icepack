@@ -181,8 +181,8 @@
       krdg_redist = 1        ! 1 = new redistribution, 0 = Hibler 80
       mu_rdg = 3             ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
       Cf = 17.0_dbl_kind     ! ratio of ridging work to PE change in ridging 
-      shortwave = 'default'  ! 'default' or 'dEdd' (delta-Eddington)
-      albedo_type = 'default'! or 'constant'
+      shortwave = 'dEdd'     ! 'ccsm3' or 'dEdd' (delta-Eddington)
+      albedo_type = 'ccsm3'  ! or 'constant'
       ktherm = 1             ! 0 = 0-layer, 1 = BL99, 2 = mushy thermo
       conduct = 'bubbly'     ! 'MU71' or 'bubbly' (Pringle et al 2007)
       calc_Tsfc = .true.     ! calculate surface temperature

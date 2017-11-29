@@ -65,7 +65,7 @@
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
          ocn_data_format, & ! 'bin'=binary or 'nc'=netcdf
          bgc_data_format, & ! 'bin'=binary or 'nc'=netcdf
-         atm_data_type,   & ! 'default', 'clim', 'GOFS'
+         atm_data_type,   & ! 'default', 'clim', 'CFS'
          ocn_data_type,   & ! 'default'
          bgc_data_type,   & ! 'default'
          precip_units       ! 'mm_per_month', 'mm_per_sec', 'mks'
@@ -149,7 +149,7 @@
 
           cldf_data(:) = c0     ! cloud fraction
 
-      if (trim(atm_data_type(1:4)) == 'GOFS') call atm_GOFS
+      if (trim(atm_data_type(1:4)) == 'CFS') call atm_CFS
       if (trim(atm_data_type(1:4)) == 'clim') call atm_climatological
 
       if (trim(atm_data_type) == 'ISPOL') call atm_ISPOL
@@ -212,7 +212,7 @@
       real (kind=dbl_kind) :: &
           sec6hr
 
-      if (trim(atm_data_type) == 'GOFS') then
+      if (trim(atm_data_type) == 'CFS') then
          ! calculate data index corresponding to current timestep
          i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
          mlast = i
@@ -477,7 +477,7 @@ endif
 
 !=======================================================================
 
-      subroutine atm_GOFS
+      subroutine atm_CFS
 
       integer (kind=int_kind) :: &
          nt             ! loop index
@@ -519,10 +519,10 @@ endif
 
       close (nu_forcing)
 
-!      write(nu_diag,*), 'GOFS data', &
+!      write(nu_diag,*), 'CFS data', &
 !         dswsfc, dlwsfc, windu10, windv10, temp2m, spechum, precip
 
-      end subroutine atm_GOFS
+      end subroutine atm_CFS
 
 !=======================================================================
 
@@ -603,7 +603,7 @@ endif
       ! calculations specific to datasets
       !-----------------------------------------------------------------
 
-         if (trim(atm_data_type) == 'GOFS') then
+         if (trim(atm_data_type) == 'CFS') then
             ! precip is in kg/m^2/s
             zlvl0 = c10
             ! downward longwave as in Parkinson and Washington (1979)

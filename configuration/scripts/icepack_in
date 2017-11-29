@@ -51,7 +51,7 @@
 
 &shortwave_nml
     shortwave       = 'dEdd'
-    albedo_type     = 'default'
+    albedo_type     = 'ccsm3'
     albicev         = 0.78
     albicei         = 0.36
     albsnowv        = 0.98
@@ -239,6 +239,8 @@
     l_mpond_fresh   = .false.
     tfrz_option     = 'mushy'
     oceanmixed_ice  = .true.
+    restore_ocn     = .false.
+    trestore        = 90
     precip_units    = 'mks'
     default_season  = 'spring'
     atm_data_type   = 'clim'
