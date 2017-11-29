@@ -275,8 +275,8 @@
       character(len=*),parameter :: subname='(remap_zbgc)'
 
       if ((hinS < c0) .OR. (hice < c0)) then
-         l_stop = .true.
-         stop_label = 'ice: remap_layers_bgc error'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' ice: remap_layers_bgc error')
          return
       endif
          
@@ -557,7 +557,7 @@
                              igrid(1:nblyr+1), top_conc, &
                              l_stop,           stop_label)
           if (icepack_warnings_aborted(subname)) return
-          if (l_stop) return
+          if (icepack_warnings_aborted(subname)) return
     
           trtmp0(:) = c0
           do k = 1,nblyr+1

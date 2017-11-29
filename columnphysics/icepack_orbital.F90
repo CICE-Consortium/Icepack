@@ -52,8 +52,7 @@
 
       character(len=*),parameter :: subname='(icepack_init_orbit)'
 
-      l_stop = .false.      ! initialized for CCSMCOUPLED
-      stop_label = ' '      ! initialized for CCSMCOUPLED
+      call icepack_warnings_add(subname//'  ')
       iyear_AD  = 1950
       log_print = .false.   ! if true, write out orbital parameters
 
@@ -395,15 +394,14 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    !----------------------------------------------------------------------------
    ! radinp and algorithms below will need a degree to radian conversion factor
 
-   l_stop = .false.
-   stop_label = ' '
+   call icepack_warnings_add(subname//'  ')
    degrad = pi/180._dbl_kind   ! degree to radian conversion factor
  
    if ( log_print .and. s_loglev > 0 ) then
      write(warnstr,F00) subname//'Calculate characteristics of the orbit:'
      call icepack_warnings_add(warnstr)
-     write(warnstr,F00) subname//svnID
-     call icepack_warnings_add(warnstr)
+!     write(warnstr,F00) subname//svnID
+!     call icepack_warnings_add(warnstr)
 !    write(warnstr,F00) subname//svnURL
 !    call icepack_warnings_add(warnstr)
    end if
@@ -431,8 +429,8 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
          call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//' mvelp = 102.7'
          call icepack_warnings_add(warnstr)
-         l_stop = .true.
-         stop_label = 'unreasonable oblip'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' unreasonable oblip')
       else if ( log_print ) then
          write(warnstr,F00) subname//'Use input orbital parameters: '
          call icepack_warnings_add(warnstr)
@@ -440,20 +438,20 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
       if( (obliq < SHR_ORB_OBLIQ_MIN).or.(obliq > SHR_ORB_OBLIQ_MAX) ) then
          write(warnstr,F03) subname//'Input obliquity unreasonable: ', obliq
          call icepack_warnings_add(warnstr)
-         l_stop = .true.
-         stop_label = 'unreasonable obliq'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' unreasonable obliq')
       end if
       if( (eccen < SHR_ORB_ECCEN_MIN).or.(eccen > SHR_ORB_ECCEN_MAX) ) then
          write(warnstr,F03) subname//'Input eccentricity unreasonable: ', eccen
          call icepack_warnings_add(warnstr)
-         l_stop = .true.
-         stop_label = 'unreasonable eccen'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' unreasonable eccen')
       end if
       if( (mvelp < SHR_ORB_MVELP_MIN).or.(mvelp > SHR_ORB_MVELP_MAX) ) then
          write(warnstr,F03) subname//'Input mvelp unreasonable: ' , mvelp
          call icepack_warnings_add(warnstr)
-         l_stop = .true.
-         stop_label = 'unreasonable mvelp'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' unreasonable mvelp')
       end if
       eccen2 = eccen*eccen
       eccen3 = eccen2*eccen
@@ -474,8 +472,8 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
          call icepack_warnings_add(warnstr)
          write(warnstr,F01) subname//'Year to simulate was  : ',iyear_AD
          call icepack_warnings_add(warnstr)
-         l_stop = .true.
-         stop_label = 'unreasonable year'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' unreasonable year')
       end if
  
       ! The following calculates the earths obliquity, orbital eccentricity

@@ -223,8 +223,6 @@
       ! Initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
-
       flwoutn = c0
       evapn   = c0
       freshn  = c0
@@ -262,7 +260,7 @@
                                   l_stop,   stop_label)
       if (icepack_warnings_aborted(subname)) return
 
-      if (l_stop) return
+      if (icepack_warnings_aborted(subname)) return
 
       ! Save initial ice and snow thickness (for fresh and fsalt)
       worki = hin
@@ -299,7 +297,7 @@
                                               l_stop,    stop_label)
             if (icepack_warnings_aborted(subname)) return
                
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
 
@@ -322,7 +320,7 @@
                                      stop_label)
             if (icepack_warnings_aborted(subname)) return
 
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
 
          endif ! ktherm
             
@@ -344,7 +342,7 @@
                                        l_stop,    stop_label)
             if (icepack_warnings_aborted(subname)) return
 
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
 
          else
 
@@ -369,7 +367,7 @@
          einter = einter + hilyr * zqin(k)
       enddo ! k
 
-      if (l_stop) return
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Compute growth and/or melting at the top and bottom surfaces.
@@ -411,7 +409,7 @@
                                       l_stop,    stop_label)
       if (icepack_warnings_aborted(subname)) return
       
-      if (l_stop) return
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! If prescribed ice, set hi back to old values
@@ -806,8 +804,8 @@
                call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'zqsn',zqsn(k),-Lfresh*rhos,zqsn(k)+Lfresh*rhos
                call icepack_warnings_add(warnstr)
-               l_stop = .true.
-               stop_label = "init_vertical_profile: Starting thermo, zTsn > Tmax"
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTsn > Tmax" ) 
                return
             endif
 
@@ -832,8 +830,8 @@
                call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, hsn
                call icepack_warnings_add(warnstr)
-               l_stop = .true.
-               stop_label = "init_vertical_profile: Starting thermo, zTsn < Tmin"
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTsn < Tmin" ) 
                return
             endif
 
@@ -869,8 +867,8 @@
             call icepack_warnings_add(warnstr)
             write(warnstr,*) subname, 'min_salin =', min_salin
             call icepack_warnings_add(warnstr)
-            l_stop = .true.
-            stop_label = "init_vertical_profile: Starting zSin < min_salin, layer"
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//" init_vertical_profile: Starting zSin < min_salin, layer" ) 
             return
          endif
          
@@ -953,8 +951,8 @@
                   write(warnstr,*) subname, 'zTin=',zTin(k)
                   call icepack_warnings_add(warnstr)
                else
-                  l_stop = .true.
-                  stop_label = "init_vertical_profile: Starting thermo, T > Tmax, layer"
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, T > Tmax, layer" ) 
                   return
                endif
             endif
@@ -971,8 +969,8 @@
                call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'Tmin =', Tmin
                call icepack_warnings_add(warnstr)
-               l_stop = .true.
-               stop_label = "init_vertical_profile: Starting thermo, T < Tmin, layer"
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, T < Tmin, layer" ) 
                return
             endif
          endif                  ! tice_low
@@ -1879,8 +1877,8 @@
       ferr = abs(efinal-einit-einp) / dt
 
       if (ferr > ferrmax) then
-         l_stop = .true.
-         stop_label = "conservation_check_vthermo: Thermo energy conservation error"
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//" conservation_check_vthermo: Thermo energy conservation error" ) 
 
          write(warnstr,*) subname, 'Thermo energy conservation error'
          call icepack_warnings_add(warnstr)
@@ -2439,13 +2437,12 @@
                                  yday,         dsnown   (n), &
                                  l_stop,       stop_label,   &
                                  prescribed_ice)
-            if (icepack_warnings_aborted(subname)) return
-               
-            if (l_stop) then
-               stop_label = 'ice: Vertical thermo error: '//trim(stop_label)
+
+            if (icepack_warnings_aborted(subname)) then
+               call icepack_warnings_add(subname//' ice: Vertical thermo error: ')
                return
             endif
-               
+
       !-----------------------------------------------------------------
       ! Total absorbed shortwave radiation
       !-----------------------------------------------------------------

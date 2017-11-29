@@ -50,12 +50,20 @@ contains
 
 !=======================================================================
 
-      subroutine icepack_warnings_setabort(abortflag)
+      subroutine icepack_warnings_setabort(abortflag,file,line)
 
         logical, intent(in) :: abortflag
+        character(len=*), intent(in), optional :: file
+        integer, intent(in), optional :: line
+
         character(len=*),parameter :: subname='(icepack_warnings_setabort)'
 
         warning_abort = abortflag
+
+        write(warnstr,*) subname,abortflag
+        if (present(file)) write(warnstr,*) trim(warnstr)//' :file '//trim(file)
+        if (present(line)) write(warnstr,*) trim(warnstr)//' :line ',line
+        call icepack_warnings_add(warnstr)
 
       end subroutine icepack_warnings_setabort
 

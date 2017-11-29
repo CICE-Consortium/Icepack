@@ -162,8 +162,6 @@
       ! Initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
-
       do n = 1, ncat
          donor(n) = 0
          daice(n) = c0
@@ -441,12 +439,6 @@
       character(len=*),parameter :: subname='(shift_ice)'
 
       !-----------------------------------------------------------------
-      ! Initialize
-      !-----------------------------------------------------------------
-
-      l_stop = .false.
-
-      !-----------------------------------------------------------------
       ! Define variables equal to aicen*trcrn, vicen*trcrn, vsnon*trcrn
       !-----------------------------------------------------------------
 
@@ -533,11 +525,11 @@
                   call icepack_warnings_add(warnstr)
                   write(warnstr,*) subname, 'dvice =', dvice(n)
                   call icepack_warnings_add(warnstr)
-                  l_stop = .true.
-                  stop_label = 'shift_ice: negative daice'
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//' shift_ice: negative daice')
                endif
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          if (dvice_negative) then
                if (donor(n) > 0 .and.  &
@@ -552,11 +544,11 @@
                   call icepack_warnings_add(warnstr)
                   write(warnstr,*) subname, 'dvice =', dvice(n)
                   call icepack_warnings_add(warnstr)
-                  l_stop = .true.
-                  stop_label = 'shift_ice: negative dvice'
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//' shift_ice: negative dvice')
                endif
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          if (daice_greater_aicen) then
                if (donor(n) > 0) then
@@ -572,12 +564,12 @@
                      call icepack_warnings_add(warnstr)
                      write(warnstr,*) subname, 'aicen =', aicen(nd)
                      call icepack_warnings_add(warnstr)
-                     l_stop = .true.
-                     stop_label = 'shift_ice: daice > aicen'
+                     call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                     call icepack_warnings_add(subname//' shift_ice: daice > aicen')
                   endif
                endif
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          if (dvice_greater_vicen) then
                if (donor(n) > 0) then
@@ -593,12 +585,12 @@
                      call icepack_warnings_add(warnstr)
                      write(warnstr,*) subname, 'vicen =', vicen(nd)
                      call icepack_warnings_add(warnstr)
-                     l_stop = .true.
-                     stop_label = 'shift_ice: dvice > vicen'
+                     call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                     call icepack_warnings_add(subname//' shift_ice: dvice > vicen')
                   endif
                endif
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! transfer volume and energy between categories
@@ -739,7 +731,7 @@
       ! local variables
 
       if (abs (x2-x1) > max_err) then
-         l_stop = .true.
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Conservation error: ', trim(fieldid)
@@ -890,8 +882,6 @@
          limit_aice = .true.
       endif
 
-      l_stop = .false.
-
       dfpond = c0
       dfresh = c0
       dfsalt = c0
@@ -909,8 +899,8 @@
 
       if (limit_aice) then  ! check for aice out of bounds
          if (aice > c1+puny .or. aice < -puny) then
-            l_stop = .true.
-            stop_label = 'aggregate ice area out of bounds'
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//' aggregate ice area out of bounds')
             write(warnstr,*) subname, 'aice:', aice
             call icepack_warnings_add(warnstr)
             do n = 1, ncat
@@ -966,7 +956,7 @@
                                dfzsal,       dflux_bio,     & 
                                l_stop,       stop_label)
 
-         if (l_stop) then
+         if (icepack_warnings_aborted(subname)) then
             write(warnstr,*) subname, 'aice:', aice
             call icepack_warnings_add(warnstr)
             do n = 1, ncat
@@ -975,7 +965,6 @@
             enddo
             return
          endif
-         if (icepack_warnings_aborted(subname)) return
 
       endif   ! l_limit_aice
 
@@ -1119,8 +1108,6 @@
 
       character(len=*),parameter :: subname='(zap_small_areas)'
 
-      l_stop = .false.
-
       !-----------------------------------------------------------------
       ! I. Zap categories with very small areas.
       !-----------------------------------------------------------------
@@ -1133,8 +1120,8 @@
       !-----------------------------------------------------------------
 
          if (aicen(n) < -puny) then
-            l_stop = .true.
-            stop_label = 'Zap ice: negative ice area'
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//' Zap ice: negative ice area')
             return
          elseif (abs(aicen(n)) /= c0 .and. &
                  abs(aicen(n)) <= puny) then
@@ -1250,8 +1237,8 @@
       !-----------------------------------------------------------------
 
       if (aice > (c1+puny)) then
-         l_stop = .true.
-         stop_label = 'Zap ice: excess ice area'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' Zap ice: excess ice area')
          return
       elseif (aice > c1 .and. aice < (c1+puny)) then
 
@@ -1630,7 +1617,6 @@
       ! Initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
       max_error = puny*Lfresh*rhos ! max error in zero layer energy check
                                    ! (so max volume error = puny)
 
@@ -1670,10 +1656,8 @@
          if (.not. ice_energy_correct) then
 
             if (abs(worka) > max_error) then
-               l_stop = .true.
-               stop_label = 'zerolayer check - wrong ice energy'
-               write(warnstr,*) subname, trim(stop_label)
-               call icepack_warnings_add(warnstr)
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' zerolayer check - wrong ice energy')
                write(warnstr,*) subname, 'n:', n
                call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'eicen =', eicen(n)
@@ -1687,15 +1671,13 @@
             endif
 
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          if (.not. snow_energy_correct) then
 
             if (abs(workb) > max_error) then
-               l_stop = .true.
-               stop_label = 'zerolayer check - wrong snow energy'
-               write(warnstr,*) subname, trim(stop_label)
-               call icepack_warnings_add(warnstr)
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' zerolayer check - wrong snow energy')
                write(warnstr,*) subname, 'n:', n
                call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'esnon =', esnon(n)
@@ -1757,7 +1739,6 @@
 
       character(len=*),parameter :: subname='(icepack_init_itd)'
 
-      l_stop = .false.
 
       rncat = real(ncat, kind=dbl_kind)
       d1 = 3.0_dbl_kind / rncat
@@ -1884,8 +1865,8 @@
             hin_max(n) = wmo7(n)
          enddo
        else
-         stop_label = 'kcatbound=2 (WMO) must have ncat=5, 6 or 7'
-         l_stop = .true. 
+         call icepack_warnings_add(subname//' kcatbound=2 (WMO) must have ncat=5, 6 or 7')
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__) 
          return
        endif
 

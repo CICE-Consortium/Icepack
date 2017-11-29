@@ -218,7 +218,7 @@
                                        location,            &
                                        l_stop,     stop_label)
             if (icepack_warnings_aborted(subname)) return
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
          endif       ! nltrcr       
       endif          ! hsurp > 0
       enddo          ! n
@@ -257,7 +257,7 @@
                                        location,                &
                                        l_stop,     stop_label)
             if (icepack_warnings_aborted(subname)) return
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
 
             if (solve_zsal .and. vsnon1 .le. c0) then
                Tmlts = -trcrn(nt_sice,1)*depressT
@@ -276,10 +276,6 @@
                                          puny,      l_stop)
          if (icepack_warnings_aborted(subname)) return
 
-         if (l_stop) then
-            stop_label = 'add_new_ice_bgc: Column conservation error'
-            return
-         endif
       endif   ! l_conservation_check
 
       end subroutine add_new_ice_bgc
@@ -471,7 +467,7 @@
                                     bgrid(2:nblyr+1), fluxb,&
                                     l_stop,       stop_label)
             if (icepack_warnings_aborted(subname)) return
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
             do k = 1, nblyr 
                trcrn(nt_bgc_S+k-1) =  S_stationary(k)/hbri
                trtmp0(nt_sice+k-1) = trcrn(nt_bgc_S+k-1)
@@ -490,7 +486,7 @@
                                     igrid,        fluxb,    &
                                     l_stop,       stop_label)
             if (icepack_warnings_aborted(subname)) return
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
             do k = 1, nblyr+1 
                trcrn(bio_index(m) + k-1) =  C_stationary(k)/hbri
             enddo !k                  
@@ -677,7 +673,7 @@
                                   sicen(1,n),                 &
                                   l_stop,           stop_label)
                   if (icepack_warnings_aborted(subname)) return
-                  if (l_stop) return
+                  if (icepack_warnings_aborted(subname)) return
 
                   do mm = 1,nbtrcr
                   do k = 1, nblyr + 1            
@@ -1023,7 +1019,6 @@
 
       character(len=*),parameter :: subname='(icepack_biogeochemistry)'
 
-      l_stop = .false.
 
       do n = 1, ncat
 
@@ -1080,7 +1075,7 @@
                                  l_stop,      stop_label)
                if (icepack_warnings_aborted(subname)) return
 
-               if (l_stop) return
+               if (icepack_warnings_aborted(subname)) return
 
                if (solve_zsal)  then  
 
@@ -1096,7 +1091,7 @@
                                 salinz(1:nilyr),  l_stop,      stop_label)
                   if (icepack_warnings_aborted(subname)) return
 
-                  if (l_stop) return
+                  if (icepack_warnings_aborted(subname)) return
                else     
 
                  ! Requires the average ice permeability = kavg(:)
@@ -1164,7 +1159,7 @@
                                   zsal_tot) 
                   if (icepack_warnings_aborted(subname)) return
 
-                  if (l_stop) return
+                  if (icepack_warnings_aborted(subname)) return
 
                endif  ! solve_zsal
 
@@ -1214,7 +1209,7 @@
                           l_stop,                stop_label)
                if (icepack_warnings_aborted(subname)) return
             
-               if (l_stop) return
+               if (icepack_warnings_aborted(subname)) return
      
             elseif (skl_bgc) then
 
@@ -1234,7 +1229,7 @@
                             l_stop,                  stop_label)
                if (icepack_warnings_aborted(subname)) return
 
-               if (l_stop) return
+               if (icepack_warnings_aborted(subname)) return
 
             endif  ! skl_bgc
 

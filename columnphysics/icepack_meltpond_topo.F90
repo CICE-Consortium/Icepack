@@ -473,8 +473,8 @@
             cum_max_vol_tmp(n) = cum_max_vol_tmp(n-1)
          endif
          if (cum_max_vol_tmp(n) < c0) then
-            l_stop = .true.
-            stop_label =  'topo ponds: negative melt pond volume'
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//' topo ponds: negative melt pond volume')
             return
          endif
       enddo
@@ -527,7 +527,7 @@
                                   qicen(:,n), sicen(:,n), Tsfcn(n), Tf, &
                                   vicen(n),   perm,       l_stop,   stop_label)
             if (icepack_warnings_aborted(subname)) return
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
             if (perm > c0) permflag = 1
             drain = perm*apondn(n)*pressure_head*dt / (viscosity_dyn*hicen(n))
             dvolp = dvolp + min(drain, volp)
@@ -852,8 +852,8 @@
                   - 0.389_dbl_kind  * Tin(k)**2 &
                   - 0.00362_dbl_kind* Tin(k)**3
             if (Sbr == c0) then
-               l_stop = .true.
-               stop_label =  'topo ponds: zero brine salinity in permeability'
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' topo ponds: zero brine salinity in permeability')
                return
             endif
             if (heat_capacity) then

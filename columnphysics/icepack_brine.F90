@@ -105,14 +105,13 @@
       ! initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
       if (fbri <= c0) then
          write(warnstr, *) subname,'fbri, hice_old', fbri, hice_old
          call icepack_warnings_add(warnstr)
          write(warnstr, *) subname,'vicen, aicen', vicen, aicen
          call icepack_warnings_add(warnstr)         
-         l_stop = .true.
-         stop_label = 'icepack_brine preflushing: fbri <= c0'
+         call icepack_warnings_add(subname//' icepack_brine preflushing: fbri <= c0')
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
 
       hin = vicen / aicen
@@ -279,7 +278,6 @@
                       bgrid(2:nblyr+1), surface_S,      &
                       l_stop,           stop_label)
       if (icepack_warnings_aborted(subname)) return
-      if (l_stop) return
      
       call remap_zbgc(ntrcr,            nilyr,          &
                       nt_qice,                          &
@@ -290,7 +288,6 @@
                       bgrid(2:nblyr+1), surface_S,      &
                       l_stop,           stop_label)
       if (icepack_warnings_aborted(subname)) return
-      if (l_stop) return
 
       do k = 1, nblyr
          bqin (k+1) = min(c0,   trtmp_q(nt_qice+k-1))
@@ -713,8 +710,6 @@
       ! Initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
-
       sloss = c0  
       bTin(:) = c0
       bSin(:) = c0
@@ -755,12 +750,11 @@
                             bgrid(2:nblyr+1), surface_S, &
                             l_stop,           stop_label)
             if (icepack_warnings_aborted(subname)) return
-            if (l_stop) return
 
             do k = 1, nblyr    
                trcrn(nt_bgc_S+k-1) = max(min_salin,trtmp(nt_sice+k-1)) 
                bSin(k+1) = max(min_salin,trcrn(nt_bgc_S+k-1)) 
-               if (trcrn(nt_bgc_S+k-1) < min_salin-puny) l_stop = .true.
+               if (trcrn(nt_bgc_S+k-1) < min_salin-puny) call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             enddo ! k  
 
             bSin(1) = bSin(2) 
@@ -778,14 +772,13 @@
                             bgrid(2:nblyr+1), surface_S,&
                             l_stop,           stop_label)
             if (icepack_warnings_aborted(subname)) return
-            if (l_stop) return
       
             do k = 1, nblyr    
                bSin(k+1) = max(min_salin,trtmp(nt_bgc_S+k-1)) 
                sloss = sloss + rhosi*(hbr_old*trcrn(nt_bgc_S+k-1) &
                      - maxhbr*hice_old*bSin(k+1))*(igrid(k+1)-igrid(k))
                trcrn(nt_bgc_S+k-1) = bSin(k+1)                                           
-               if (trcrn(nt_bgc_S+k-1) < min_salin-puny) l_stop = .true.
+               if (trcrn(nt_bgc_S+k-1) < min_salin-puny) call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             enddo ! k
 
             bSin(1) = bSin(2)
@@ -825,7 +818,6 @@
                        bgrid(2:nblyr+1), surface_S, &
                        l_stop,           stop_label)
       if (icepack_warnings_aborted(subname)) return
-      if (l_stop) return
 
       do k = 1, nblyr
          Tmlts          = -bSin(k+1) * depressT
@@ -850,11 +842,6 @@
                            kperm,         bphi_min,      phi_snow,   &
                            igrid,         sss)
       if (icepack_warnings_aborted(subname)) return
-
-! tcraig, this can't ever be hit, should be removed
-      if (l_stop) then
-         stop_label = 'CICE icepack_brine:zsalin < min_salin'
-      endif
 
       end subroutine compute_microS
 

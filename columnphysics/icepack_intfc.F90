@@ -97,6 +97,7 @@
 
       character(len=*),parameter :: subname='(icepack_configure)'
 
+        call icepack_warnings_setabort(.false.,__FILE__,__LINE__)
         call icepack_recompute_constants()
         if (icepack_warnings_aborted(subname)) return
 

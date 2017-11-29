@@ -8,6 +8,7 @@
 
       use icepack_drv_kinds
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
 
       implicit none
       save
@@ -39,6 +40,8 @@
 
       real (kind=dbl_kind), dimension(nilyr+1) :: &
          sprofile                         ! vertical salinity profile
+
+      character(len=*), parameter :: subname='(init_thermo_vertical)'
 
       !-----------------------------------------------------------------
       ! initialize heat_capacity, l_brine, and salinity profile
@@ -87,7 +90,6 @@
 
       ! column package includes
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
-      use icepack_intfc, only: icepack_warnings_flush
       use icepack_drv_parameters, only: shortwave, dEdd_algae, modal_aero
       use icepack_drv_tracers, only: tr_brine, tr_zaero, tr_bgc_n
       use icepack_drv_tracers, only: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
@@ -121,6 +123,8 @@
 
       real(kind= dbl_kind), dimension(ntrcr, ncat) :: &
          ztrcr_sw
+
+      character(len=*), parameter :: subname='(init_shortwave)'
 
       !$OMP PARALLEL DO PRIVATE(i,n, &
       !$OMP                     cszn,l_print_point,debug,ipoint)
@@ -169,9 +173,8 @@
                call icepack_init_orbit(l_stop, stop_label)
                call icepack_warnings_flush(nu_diag)
 
-               if (l_stop) then
-                  call diagnostic_abort(i, istep1, stop_label)
-               endif
+               if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+                   __FILE__, __LINE__)
 #endif
             endif
 
@@ -356,6 +359,8 @@
       real(kind=dbl_kind), dimension(nilyr,ncat) :: &
          sicen    
 
+      character(len=*), parameter :: subname='(init_bgc)'
+
       ! Initialize
 
       l_stop = .false.
@@ -439,9 +444,9 @@
                                  fed(i,:),  fep(i,:), zaeros(i,:),  &
                                  ocean_bio_all(i,:),  hum(i))
 
-            if (l_stop) then
-               call diagnostic_abort(i, istep1, stop_label)
-            endif
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+                __FILE__, __LINE__)
 
          enddo  ! i
 
@@ -454,9 +459,9 @@
                sss(i), &
                ocean_bio_all(i,:), &
                l_stop, stop_label)
-            if (l_stop) then
-               call diagnostic_abort(i, istep1, stop_label)
-            endif
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+                __FILE__, __LINE__)
             enddo  ! i
 
 !      endif ! .not. restart
@@ -483,6 +488,8 @@
       use icepack_intfc, only: icepack_init_hbrine
       use icepack_drv_tracers, only: nt_fbri, tr_brine
       use icepack_drv_parameters, only: phi_snow
+
+      character(len=*), parameter :: subname='(init_hbrine)'
 
       call icepack_init_hbrine(bgrid, igrid, cgrid, icgrid, &
             swgrid, nblyr, nilyr, phi_snow)
@@ -736,6 +743,8 @@
 	ntd      , & ! for tracer dependency calculation
         nk       , & !
         nt_depend
+
+      character(len=*), parameter :: subname='(init_zbgc)'
 
       !------------------------------------------------------------
       !        Tracers have mobile and  stationary phases. 
@@ -1463,25 +1472,25 @@
 
       if (tr_bgc_N) then
          do mm = 1, n_algae      
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_N(mm),    nlt_bgc_N(mm), &
-                                      algaltype(mm),   nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_N(mm),    nlt_bgc_N(mm), &
+                               algaltype(mm),   nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_N(mm)) = mm
          enddo   ! mm
       endif ! tr_bgc_N
 
       if (tr_bgc_Nit) then
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_Nit,      nlt_bgc_Nit,   &
-                                      nitratetype,     nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_Nit,      nlt_bgc_Nit,   &
+                               nitratetype,     nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_Nit) = max_algae + 1
       endif ! tr_bgc_Nit
          
@@ -1492,154 +1501,154 @@
        ! for implementation
        !
        !  do mm = 1,n_algae      
-       !     call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-       !                               nt_bgc_C(mm),    nlt_bgc_C(mm), &
-       !                               algaltype(mm),   nt_depend,     &
-       !                               ntrcr,           nbtrcr,        &
-       !                               bgc_tracer_type, trcr_depend,   &
-       !                               trcr_base,       n_trcr_strata, &
-       !                               nt_strata,       bio_index)
+       !     call init_bgc_trcr(nk,              nt_fbri,       &
+       !                        nt_bgc_C(mm),    nlt_bgc_C(mm), &
+       !                        algaltype(mm),   nt_depend,     &
+       !                        ntrcr,           nbtrcr,        &
+       !                        bgc_tracer_type, trcr_depend,   &
+       !                        trcr_base,       n_trcr_strata, &
+       !                        nt_strata,       bio_index)
        !     bio_index_o(nlt_bgc_C(mm)) = max_algae + 1 + mm
        !  enddo   ! mm
 
          do mm = 1, n_doc
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_DOC(mm),  nlt_bgc_DOC(mm), &
-                                      doctype(mm),     nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_DOC(mm),  nlt_bgc_DOC(mm), &
+                               doctype(mm),     nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_DOC(mm)) = max_algae + 1 + mm
          enddo   ! mm
          do mm = 1, n_dic
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_DIC(mm),  nlt_bgc_DIC(mm), &
-                                      dictype(mm),     nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_DIC(mm),  nlt_bgc_DIC(mm), &
+                               dictype(mm),     nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_DIC(mm)) = max_algae + max_doc + 1 + mm
          enddo   ! mm
       endif      ! tr_bgc_C
 
       if (tr_bgc_chl) then
          do mm = 1, n_algae
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_chl(mm),  nlt_bgc_chl(mm), &
-                                      algaltype(mm),   nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_chl(mm),  nlt_bgc_chl(mm), &
+                               algaltype(mm),   nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_chl(mm)) = max_algae + 1 + max_doc + max_dic + mm
          enddo   ! mm
       endif      ! tr_bgc_chl
 
       if (tr_bgc_Am) then
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_Am,       nlt_bgc_Am,    &
-                                      ammoniumtype,    nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_Am,       nlt_bgc_Am,    &
+                               ammoniumtype,    nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_Am) = 2*max_algae + max_doc + max_dic + 2
       endif    
       if (tr_bgc_Sil) then
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_Sil,      nlt_bgc_Sil,   &
-                                      silicatetype,    nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_Sil,      nlt_bgc_Sil,   &
+                               silicatetype,    nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_Sil) = 2*max_algae + max_doc + max_dic + 3
       endif    
       if (tr_bgc_DMS) then   ! all together
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_DMSPp,    nlt_bgc_DMSPp, &
-                                      dmspptype,       nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_DMSPp,    nlt_bgc_DMSPp, &
+                               dmspptype,       nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_DMSPp) = 2*max_algae + max_doc + max_dic + 4
 
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_DMSPd,    nlt_bgc_DMSPd, &
-                                      dmspdtype,       nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_DMSPd,    nlt_bgc_DMSPd, &
+                               dmspdtype,       nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_DMSPd) = 2*max_algae + max_doc + max_dic + 5
 
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_DMS,      nlt_bgc_DMS,   &
-                                      dmspdtype,       nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_DMS,      nlt_bgc_DMS,   &
+                               dmspdtype,       nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_DMS) = 2*max_algae + max_doc + max_dic + 6
       endif    
       if (tr_bgc_PON) then
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_PON,      nlt_bgc_PON, &
-                                      nitratetype,     nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_PON,      nlt_bgc_PON, &
+                               nitratetype,     nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_PON) =  2*max_algae + max_doc + max_dic + 7
       endif
       if (tr_bgc_DON) then
          do mm = 1, n_don
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_DON(mm),  nlt_bgc_DON(mm), &
-                                      dontype(mm),     nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_DON(mm),  nlt_bgc_DON(mm), &
+                               dontype(mm),     nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_DON(mm)) = 2*max_algae + max_doc + max_dic + 7 + mm
          enddo   ! mm
       endif      ! tr_bgc_DON
       if (tr_bgc_Fe) then
          do mm = 1, n_fed
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_Fed(mm),  nlt_bgc_Fed(mm), &
-                                      fedtype(mm),     nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_Fed(mm),  nlt_bgc_Fed(mm), &
+                               fedtype(mm),     nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_Fed(mm)) = 2*max_algae + max_doc + max_dic &
                                          + max_don + 7 + mm
          enddo   ! mm
          do mm = 1, n_fep
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_Fep(mm),  nlt_bgc_Fep(mm), &
-                                      feptype(mm),     nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_Fep(mm),  nlt_bgc_Fep(mm), &
+                               feptype(mm),     nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_Fep(mm)) = 2*max_algae + max_doc + max_dic &
                                          + max_don + max_fe + 7 + mm
          enddo   ! mm
       endif      ! tr_bgc_Fe 
   
       if (tr_bgc_hum) then
-            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc_hum,      nlt_bgc_hum,   &
-                                      humtype,         nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+            call init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc_hum,      nlt_bgc_hum,   &
+                               humtype,         nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
             bio_index_o(nlt_bgc_hum) =   2*max_algae + max_doc + 8 + max_dic &
                                          + max_don + 2*max_fe + max_aero 
       endif
@@ -1658,13 +1667,13 @@
                   nlt_zaero_sw(mm) = nbtrcr_sw + 1
                   nbtrcr_sw = nbtrcr_sw + nilyr + nslyr+2
                endif
-               call icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                         nt_zaero(mm),    nlt_zaero(mm), &
-                                         zaerotype(mm),   nt_depend,     &
-                                         ntrcr,           nbtrcr,        &
-                                         bgc_tracer_type, trcr_depend,   &
-                                         trcr_base,       n_trcr_strata, &
-                                         nt_strata,       bio_index)
+               call init_bgc_trcr(nk,              nt_fbri,       &
+                                  nt_zaero(mm),    nlt_zaero(mm), &
+                                  zaerotype(mm),   nt_depend,     &
+                                  ntrcr,           nbtrcr,        &
+                                  bgc_tracer_type, trcr_depend,   &
+                                  trcr_base,       n_trcr_strata, &
+                                  nt_strata,       bio_index)
                bio_index_o(nlt_zaero(mm)) = 2*max_algae + max_doc + max_dic &
                                           + max_don + 2*max_fe + 7 + mm
             enddo   ! mm
@@ -1868,13 +1877,13 @@
 
 !=======================================================================
 
-      subroutine icepack_init_bgc_trcr(nk,              nt_fbri,       &
-                                      nt_bgc,          nlt_bgc,       &
-                                      bgctype,         nt_depend,     &
-                                      ntrcr,           nbtrcr,        &
-                                      bgc_tracer_type, trcr_depend,   &
-                                      trcr_base,       n_trcr_strata, &
-                                      nt_strata,       bio_index)
+      subroutine init_bgc_trcr(nk,              nt_fbri,       &
+                               nt_bgc,          nlt_bgc,       &
+                               bgctype,         nt_depend,     &
+                               ntrcr,           nbtrcr,        &
+                               bgc_tracer_type, trcr_depend,   &
+                               trcr_base,       n_trcr_strata, &
+                               nt_strata,       bio_index)
 
       use icepack_constants, only: c0, c1
 
@@ -1919,6 +1928,8 @@
          trcr_base1, & ! temporary values
          trcr_base2, &
          trcr_base3
+
+      character(len=*), parameter :: subname='(init_bgc_trcr)'
 
       !--------
 
@@ -1968,11 +1979,10 @@
 
       bio_index (nlt_bgc) = nt_bgc
 
-      end subroutine icepack_init_bgc_trcr
+      end subroutine init_bgc_trcr
 
 !=======================================================================
 
       end module icepack_drv_init_column
 
 !=======================================================================
-

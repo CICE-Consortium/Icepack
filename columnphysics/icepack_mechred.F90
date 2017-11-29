@@ -267,8 +267,6 @@
       ! Initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
-
       msnow_mlt = c0
       esnow_mlt = c0
       maero (:) = c0
@@ -391,7 +389,7 @@
                            aredistn,    vredistn)    
          if (icepack_warnings_aborted(subname)) return
 
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Make sure the new area = 1.  If not (because the closing
@@ -431,8 +429,8 @@
             call icepack_warnings_add(warnstr)
             write(warnstr,*) subname, 'max =',nitermax
             call icepack_warnings_add(warnstr)
-            l_stop = .true.
-            stop_label = "ridge_ice: Exceeded max number of ridging iterations"
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//" ridge_ice: Exceeded max number of ridging iterations" ) 
             return
          endif
 
@@ -523,10 +521,6 @@
                                          puny*c10,              &
                                          l_stop)
          if (icepack_warnings_aborted(subname)) return
-         if (l_stop) then
-            stop_label = 'ridge_ice: Column conservation error'
-            return
-         endif
 
       endif                     ! l_conservation_check            
 
@@ -602,8 +596,8 @@
       !-----------------------------------------------------------------
 
       if (abs(asum - c1) > puny) then
-         l_stop = .true.
-         stop_label = "ridge_ice: total area > 1"
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//" ridge_ice: total area > 1" ) 
 
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
@@ -1288,10 +1282,8 @@
       aice0 = aice0 - apartic(0)*closing_gross*dt + opning*dt
 
       if (aice0 < -puny) then
-         l_stop = .true.
-         stop_label = 'Ridging error: aice0 < 0'
-         write(warnstr,*) subname, trim(stop_label)
-         call icepack_warnings_add(warnstr)
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' Ridging error: aice0 < 0')
          write(warnstr,*) subname, 'aice0:', aice0
          call icepack_warnings_add(warnstr)
          return
@@ -1325,10 +1317,8 @@
             ardg1n = apartic(n)*closing_gross*dt
 
             if (ardg1n > aicen_init(n) + puny) then
-               l_stop = .true.
-               stop_label = 'Ridging error: ardg > aicen'
-               write(warnstr,*) subname, trim(stop_label)
-               call icepack_warnings_add(warnstr)
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' Ridging error: ardg > aicen')
                write(warnstr,*) subname, 'n, ardg, aicen:', &
                     n, ardg1n, aicen_init(n)
                call icepack_warnings_add(warnstr)
@@ -1818,8 +1808,6 @@
 
       character(len=*),parameter :: subname='(icepack_step_ridge)'
 
-      l_stop = .false.
-
       !-----------------------------------------------------------------
       ! Identify ice-ocean cells.
       ! Note:  We can not limit the loop here using aice>puny because
@@ -1855,7 +1843,7 @@
                          dvirdgndt,                    &
                          araftn,       vraftn)        
          if (icepack_warnings_aborted(subname)) return
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! ITD cleanup: Rebin thickness categories if necessary, and remove
@@ -1882,10 +1870,6 @@
                         faero_ocn,            fzsal,            &
                         flux_bio)
       if (icepack_warnings_aborted(subname)) return
-
-      if (l_stop) then
-         stop_label = 'ice: ITD cleanup error in icepack_step_ridge'
-      endif
 
       end subroutine icepack_step_ridge
 

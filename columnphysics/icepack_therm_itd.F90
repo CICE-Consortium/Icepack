@@ -201,8 +201,6 @@
       ! Initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
-
       hin_max(ncat) = 999.9_dbl_kind ! arbitrary big number
 
       do n = 1, ncat
@@ -568,7 +566,7 @@
                          daice,    dvice,       &
                          l_stop,   stop_label)
          if (icepack_warnings_aborted(subname)) return
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          ! maintain qsno negative definiteness
          do n = 1, ncat
@@ -684,10 +682,6 @@
                                       puny*c10,              &
                                       l_stop)
       if (icepack_warnings_aborted(subname)) return
-         if (l_stop) then
-            stop_label = 'linear_itd: Column conservation error'
-            return
-         endif
 
       endif                     ! conservation check
 
@@ -1207,8 +1201,6 @@
       ! initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
-
       rnilyr = real(nilyr,kind=dbl_kind)
 
       if (ncat > 1) then
@@ -1522,10 +1514,6 @@
                                          puny*Lfresh*rhoi,      &
                                          l_stop)
          if (icepack_warnings_aborted(subname)) return
-         if (l_stop) then
-            stop_label = 'add_new_ice: Column conservation error'
-            return
-         endif
 
       endif ! l_conservation_check
 
@@ -1666,8 +1654,6 @@
 
       character(len=*),parameter :: subname='(icepack_step_therm2)'
 
-      l_stop = .false.
-
       !-----------------------------------------------------------------
       ! Let rain drain through to the ocean.
       !-----------------------------------------------------------------
@@ -1714,7 +1700,7 @@
                              stop_label)
             if (icepack_warnings_aborted(subname)) return
 
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
 
          endif ! aice > puny
 
@@ -1750,7 +1736,7 @@
                            l_stop,        stop_label)
          if (icepack_warnings_aborted(subname)) return
 
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Melt ice laterally.

@@ -317,17 +317,18 @@
 
 ! prints error information prior to aborting
 
-      subroutine diagnostic_abort(istop, istep1, stop_label)
+      subroutine diagnostic_abort(icell, istep, string, file, line)
 
       use icepack_drv_constants, only: nu_diag
       use icepack_drv_state, only: aice
       use icepack_intfc, only: icepack_warnings_flush
 
       integer (kind=int_kind), intent(in), optional :: &
-         istop       , & ! indices of grid cell where model aborts
-         istep1          ! time step number
+         icell       , & ! indices of grid cell where model aborts
+         istep       , & ! time step number
+         line            ! line number
 
-      character (len=*), intent(in), optional :: stop_label
+      character (len=*), intent(in), optional :: string, file
 
       ! local variables
 
@@ -339,9 +340,11 @@
 
       write(nu_diag,*) ' '
       write(nu_diag,*) subname,' ABORTED: '
-      if (present(istep1))     write (nu_diag,*) subname,' istep1 =', istep1
-      if (present(istop))      write (nu_diag,*) subname,' i, aice =', istop, aice(istop)
-      if (present(stop_label)) write (nu_diag,*) subname,' stop_label = ',trim(stop_label)
+      if (present(file))   write (nu_diag,*) subname,' called from ',trim(file)
+      if (present(line))   write (nu_diag,*) subname,' line number ',line
+      if (present(istep))  write (nu_diag,*) subname,' istep =', istep
+      if (present(icell))  write (nu_diag,*) subname,' i, aice =', icell, aice(icell)
+      if (present(string)) write (nu_diag,*) subname,' string = ',trim(string)
       stop
 
       end subroutine diagnostic_abort

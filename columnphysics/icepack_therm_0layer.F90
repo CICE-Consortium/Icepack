@@ -312,8 +312,8 @@
          write(warnstr,*) subname, 'fcondtopn, fcondbot', &
                           fcondtopn, fcondbot
          call icepack_warnings_add(warnstr)
-         l_stop = .true.
-         stop_label = "zerolayer_temperature: Thermo iteration does not converge"
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//" zerolayer_temperature: Thermo iteration does not converge" ) 
          return
       endif
 
@@ -333,8 +333,8 @@
             call icepack_warnings_add(warnstr)
             write(warnstr,*) subname, 'fsurfn=',fsurfn
             call icepack_warnings_add(warnstr)
-            l_stop = .true.
-            stop_label = "zerolayer_temperature: fcondtopn /= fsurfn"
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//" zerolayer_temperature: fcondtopn /= fsurfn" ) 
             return
          endif
       endif                     ! l_zerolayerchecks

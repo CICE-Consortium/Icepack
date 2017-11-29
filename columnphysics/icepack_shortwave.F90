@@ -245,7 +245,7 @@
          else
 
             call icepack_warnings_add(subname//' ERROR: albedo_type '//trim(albedo_type)//' unknown')
-            call icepack_warnings_setabort(.true.)
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
 
          endif
@@ -3715,7 +3715,7 @@
                           l_stop,            stop_label) 
 
          if (icepack_warnings_aborted(subname)) return
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          do k = 1, nilyr+1
             trcrn_sw(nlt_chl_sw+nslyr+k) = trtmp(nt_bgc_N(1) + k-1)
@@ -3754,7 +3754,7 @@
                              l_stop,            stop_label) 
 
             if (icepack_warnings_aborted(subname)) return
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
 
             do k = 1,nilyr+1
                trcrn_sw(nlt_zaero_sw(n)+nslyr+k) = trtmp(nt_zaero(n) + k-1)
@@ -4171,7 +4171,7 @@
          else
 
             call icepack_warnings_add(subname//' ERROR: shortwave '//trim(shortwave)//' unknown')
-            call icepack_warnings_setabort(.true.)
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
 
          endif   ! shortwave

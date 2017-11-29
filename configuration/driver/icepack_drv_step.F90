@@ -84,7 +84,8 @@
                         Sswabsn (i,:,:), Iswabsn (i,:,:))
 
             call icepack_warnings_flush(nu_diag)
-            if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
+            if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+                __FILE__, __LINE__)
 
          enddo               ! i
 
@@ -283,11 +284,8 @@
             prescribed_ice)
         
         call icepack_warnings_flush(nu_diag)
-        if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
-        
-        if (l_stop) then
-          call diagnostic_abort(i, istep1, stop_label)
-        endif
+        if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+            __FILE__, __LINE__)
         
         if (tr_aero) then
           do n = 1, ncat
@@ -389,10 +387,9 @@
                            frz_onset (i), yday)
 
          call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
+         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+             __FILE__, __LINE__)
          
-         if (l_stop) call diagnostic_abort(i, istep1, stop_label)
-
          endif ! tmask
 
       enddo                     ! i
@@ -572,9 +569,9 @@
                          l_stop,                stop_label)
 
          call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
+         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+             __FILE__, __LINE__)
          
-         if (l_stop) call diagnostic_abort(i, istep1, stop_label)
          endif ! tmask
 
          enddo ! i
@@ -719,7 +716,8 @@
                           l_print_point)
 
          call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
+         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+             __FILE__, __LINE__)
 
          endif ! tmask
 
@@ -1016,10 +1014,9 @@
                               l_stop, stop_label)
 
          call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname)
+         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+             __FILE__, __LINE__)
          
-         if (l_stop) call diagnostic_abort(i, istep1, stop_label)
-
       enddo               ! i
 
       deallocate(nlt_zaero)

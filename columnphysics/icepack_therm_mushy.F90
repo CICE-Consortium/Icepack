@@ -58,7 +58,7 @@ contains
                                           fcondtop, fcondbot, &
                                           fadvheat, snoice,   &
                                           einit_old,          &
-                                          lstop,    stop_label)
+                                          l_stop,    stop_label)
 
     ! solve the enthalpy and bulk salinity of the ice for a single column
 
@@ -119,7 +119,7 @@ contains
          zTsn            ! internal snow layer temperatures
     
     logical (kind=log_kind), intent(inout) :: &
-         lstop           ! solver failure flag 
+         l_stop           ! solver failure flag 
 
     character (len=*), intent(out) :: &
          stop_label   ! abort error message
@@ -163,7 +163,6 @@ contains
 
     character(len=*),parameter :: subname='(temperature_changes_salinity)'
 
-    lstop = .false.
     fadvheat   = c0
     snoice     = c0
 
@@ -249,10 +248,9 @@ contains
                                   fadvheat,                &
                                   flwoutn,     fsensn,     &
                                   flatn,       fsurfn,     &
-                                  lstop,       stop_label)
-       if (icepack_warnings_aborted(subname)) return
+                                  l_stop,       stop_label)
 
-       if (lstop) then
+       if (icepack_warnings_aborted(subname)) then
           write(warnstr,*) subname, "temperature_changes_salinity: Picard solver non-convergence (snow)"
           call icepack_warnings_add(warnstr)
           return
@@ -296,10 +294,9 @@ contains
                                     fadvheat,                &
                                     flwoutn,     fsensn,     &
                                     flatn,       fsurfn,     &
-                                    lstop,       stop_label)
-       if (icepack_warnings_aborted(subname)) return
+                                    l_stop,       stop_label)
 
-       if (lstop) then
+       if (icepack_warnings_aborted(subname)) then
           write(warnstr,*) subname, "temperature_changes_salinity: Picard solver non-convergence (no snow)"
           call icepack_warnings_add(warnstr)
           return
@@ -313,10 +310,6 @@ contains
        enddo ! k
        
     endif
-
-    if (lstop) then
-       return
-    end if
 
     ! drain ponds from flushing 
     call flush_pond(w, hin, hpond, apond, dt)
@@ -360,7 +353,7 @@ contains
                                    fadvheat,                &
                                    flwoutn,     fsensn,     &
                                    flatn,       fsurfn,     &
-                                   lstop,       stop_label)
+                                   l_stop,       stop_label)
 
     ! solve the vertical temperature and salt change for case with snow
     ! 1) determine what type of surface condition existed previously - cold or melting
@@ -435,7 +428,7 @@ contains
          sss             ! sea surface salinity (PSU)
 
     logical(kind=log_kind), intent(inout) :: &
-         lstop           ! solver failure flag
+         l_stop           ! solver failure flag
 
     character(len=*), intent(out) :: &
          stop_label      ! fatal error message
@@ -476,11 +469,11 @@ contains
                           Spond,    sss,      &
                           q,        dSdt,     &
                           w,                  &
-                          lstop,    stop_label)
+                          l_stop,    stop_label)
        if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
-       if (lstop) return
+       if (icepack_warnings_aborted(subname)) return
 
        ! check if solution is consistent - surface should still be cold
        if (Tsf < dTemp_errmax) then
@@ -523,11 +516,11 @@ contains
                              Spond,    sss,      &
                              q,        dSdt,     &
                              w,                  &
-                             lstop,    stop_label)
+                             l_stop,    stop_label)
           if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
-          if (lstop) return
+          if (icepack_warnings_aborted(subname)) return
 
           ! check if solution is consistent 
           ! surface conductive heat flux should be less than 
@@ -542,8 +535,8 @@ contains
              ! solution is inconsistent
              call two_stage_inconsistency(1, Tsf1, c0, fcondtop, fsurfn)
              if (icepack_warnings_aborted(subname)) return
-             lstop = .true.
-             stop_label = "two_stage_solver_snow: two_stage_inconsistency: cold"
+             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+             call icepack_warnings_add(subname//" two_stage_solver_snow: two_stage_inconsistency: cold" ) 
              return
 
           endif ! surface flux consistency
@@ -578,11 +571,11 @@ contains
                           Spond,    sss,      &
                           q,        dSdt,     &
                           w,                  &
-                          lstop,    stop_label)
+                          l_stop,    stop_label)
        if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
-       if (lstop) return
+       if (icepack_warnings_aborted(subname)) return
        
        ! check if solution is consistent 
        ! surface conductive heat flux should be less than 
@@ -628,11 +621,11 @@ contains
                              Spond,    sss,      &
                              q,        dSdt,     &
                              w,                  &
-                             lstop,    stop_label)
+                             l_stop,    stop_label)
           if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
-          if (lstop) return
+          if (icepack_warnings_aborted(subname)) return
 
           ! check if solution is consistent - surface should be cold
           if (Tsf < dTemp_errmax) then
@@ -646,8 +639,8 @@ contains
              ! failed to find a solution so need to refine solutions until consistency found
              call two_stage_inconsistency(2, Tsf, c0, fcondtop1, fsurfn1)
              if (icepack_warnings_aborted(subname)) return
-             lstop = .true.
-             stop_label = "two_stage_solver_snow: two_stage_inconsistency: melting"
+             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+             call icepack_warnings_add(subname//" two_stage_solver_snow: two_stage_inconsistency: melting" ) 
              return
  
           endif ! surface temperature consistency
@@ -683,7 +676,7 @@ contains
                                      fadvheat,                &
                                      flwoutn,     fsensn,     &
                                      flatn,       fsurfn,     &
-                                     lstop,       stop_label)
+                                     l_stop,       stop_label)
     
     ! solve the vertical temperature and salt change for case with no snow
     ! 1) determine what type of surface condition existed previously - cold or melting
@@ -758,7 +751,7 @@ contains
          sss             ! sea surface salinity (PSU)
 
     logical, intent(inout) :: &
-         lstop           ! solver failure flag
+         l_stop           ! solver failure flag
 
     character(len=*), intent(out) :: &
          stop_label      ! fatal error message
@@ -802,11 +795,11 @@ contains
                           Spond,    sss,      &
                           q,        dSdt,     &
                           w,                  &
-                          lstop,    stop_label)
+                          l_stop,    stop_label)
        if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
-       if (lstop) return
+       if (icepack_warnings_aborted(subname)) return
 
        ! check if solution is consistent - surface should still be cold
        if (Tsf < Tmlt + dTemp_errmax) then
@@ -847,11 +840,11 @@ contains
                              Spond,    sss,      &
                              q,        dSdt,     &
                              w,                  &
-                             lstop,    stop_label)
+                             l_stop,    stop_label)
           if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
-          if (lstop) return
+          if (icepack_warnings_aborted(subname)) return
 
           ! check if solution is consistent 
           ! surface conductive heat flux should be less than 
@@ -866,8 +859,8 @@ contains
              ! solution is inconsistent
              call two_stage_inconsistency(3, Tsf1, Tmlt, fcondtop, fsurfn)
              if (icepack_warnings_aborted(subname)) return
-             lstop = .true.
-             stop_label = "two_stage_solver_nosnow: two_stage_inconsistency: cold"
+             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+             call icepack_warnings_add(subname//" two_stage_solver_nosnow: two_stage_inconsistency: cold" ) 
              return
 
           endif
@@ -902,11 +895,11 @@ contains
                           Spond,    sss,      &
                           q,        dSdt,     &
                           w,                  &
-                          lstop,    stop_label)
+                          l_stop,    stop_label)
        if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
-       if (lstop) return
+       if (icepack_warnings_aborted(subname)) return
 
        ! check if solution is consistent 
        ! surface conductive heat flux should be less than 
@@ -951,11 +944,11 @@ contains
                              Spond,    sss,      &
                              q,        dSdt,     &
                              w,                  &
-                             lstop,    stop_label)
+                             l_stop,    stop_label)
           if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
-          if (lstop) return
+          if (icepack_warnings_aborted(subname)) return
 
           ! check if solution is consistent - surface should be cold
           if (Tsf < Tmlt + dTemp_errmax) then
@@ -968,8 +961,8 @@ contains
              ! solution is inconsistent
              call two_stage_inconsistency(4, Tsf, Tmlt, fcondtop1, fsurfn1)
              if (icepack_warnings_aborted(subname)) return
-             lstop = .true.
-             stop_label = "two_stage_solver_nosnow: two_stage_inconsistency: melting"
+             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+             call icepack_warnings_add(subname//" two_stage_solver_nosnow: two_stage_inconsistency: melting" ) 
              return
 
           endif
@@ -1153,7 +1146,7 @@ contains
                            Spond,    sss,      &
                            q,        dSdt,     &
                            w,                  &
-                           lstop,    stop_label)
+                           l_stop,    stop_label)
 
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1217,7 +1210,7 @@ contains
          w                 ! vertical flushing Darcy velocity (m/s)
       
     logical(kind=log_kind), intent(inout) :: &
-         lstop             ! solver failure flag 
+         l_stop             ! solver failure flag 
 
     character(len=*), intent(out) :: &
          stop_label        ! fatal error message
@@ -1399,8 +1392,8 @@ contains
                                   zqsn0, zqsn, &
                                   zqin0, phi)
        if (icepack_warnings_aborted(subname)) return
-       lstop = .true.
-       stop_label = "picard_solver: Picard solver non-convergence"
+       call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+       call icepack_warnings_add(subname//" picard_solver: Picard solver non-convergence" ) 
 
     endif
 
@@ -2820,7 +2813,7 @@ contains
 
        enddo
 
-       call icepack_warnings_setabort(.true.)
+       call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
        return
 
     endif

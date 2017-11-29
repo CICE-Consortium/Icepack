@@ -331,8 +331,6 @@
       nint = max(1,INT(dt/dts))  
       dts = dt/nint
 
-      l_stop = .false.
-     
       !----------------------------------------------------------------
       ! Update boundary conditions
       !----------------------------------------------------------------
@@ -399,7 +397,7 @@
                        stop_label) 
       if (icepack_warnings_aborted(subname)) return
 
-      if (l_stop) return
+      if (icepack_warnings_aborted(subname)) return
   
       if (n_cat == 1)   Rayleigh_criteria = Rayleigh
 
@@ -577,7 +575,6 @@
       !  Initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
       cflag = .false.
       write_flag = .true.
       test_conservation = .false. 
@@ -802,8 +799,8 @@
                   flux_corr(k-1) = bSin(k)+bTin(k)/depressT !  flux into the ice
                   bSin(k) = -bTin(k)/depressT
                elseif (bSin(k) > max_salin) then
-                  l_stop = .true.
-                  stop_label = 'bSin(k) > max_salin'
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//' bSin(k) > max_salin')
                endif
             
                if (k == nblyr+1) bSin(nblyr+2) = S_bot(1)*bSin(nblyr+1) &
@@ -830,8 +827,8 @@
                                 fluxcorr, fluxb, fluxg, fluxm, &
                                 hbrin, hbri_old, l_stop)
                if (icepack_warnings_aborted(subname)) return
-               stop_label = 'check_conserve_salt fails'
-               if (l_stop) return
+               call icepack_warnings_add(subname//' check_conserve_salt fails')
+               if (icepack_warnings_aborted(subname)) return
             endif  ! test_conservation
 
          enddo !m
@@ -1095,7 +1092,7 @@
          if (abs(dsum_flux) > accuracy) then
            diff2 = abs(dsum_flux - flux_tot)
            if (diff2 >  puny .AND. diff2 > order ) then 
-              l_stop = .true.
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
               write(warnstr,*) subname, 'Poor salt conservation: check_conserve_salt'
               call icepack_warnings_add(warnstr)
               write(warnstr,*) subname, 'mint:', mint

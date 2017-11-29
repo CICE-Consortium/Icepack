@@ -800,8 +800,8 @@
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, (zSin(k),k=1,nilyr)
          call icepack_warnings_add(warnstr)
-         l_stop = .true.
-         stop_label = "temperature_changes: Thermo iteration does not converge"
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//" temperature_changes: Thermo iteration does not converge" ) 
          return
       endif
 
