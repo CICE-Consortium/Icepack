@@ -16,6 +16,7 @@ set nthrds = ${ICE_NTHRDS}
 set maxtpn = ${ICE_MACHINE_TPNODE}
 set acct   = ${ICE_MACHINE_ACCT}
 
+@ ncores = ${ntasks} * ${nthrds}
 @ taskpernode = ${maxtpn} / $nthrds
 @ nnodes = ${ntasks} / ${taskpernode}
 if (${nnodes} * ${taskpernode} < ${ntasks}) @ nnodes = $nnodes + 1
@@ -90,9 +91,9 @@ EOFB
 else if (${ICE_MACHINE} =~ cori*) then
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
-#SBATCH -p debug
+#SBATCH -p shared
 ###SBATCH -A ${acct}
-#SBATCH -N ${nnodes}
+#SBATCH -n ${ncores}
 #SBATCH -t ${ICE_RUNLENGTH}
 #SBATCH -L SCRATCH
 #SBATCH -C haswell
