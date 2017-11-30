@@ -26,6 +26,8 @@ if (${taskpernodelimit} > ${ntasks}) set taskpernodelimit = ${ntasks}
 set ptile = $taskpernode
 if ($ptile > ${maxtpn} / 2) @ ptile = ${maxtpn} / 2
 
+set shortcase = `echo ${ICE_CASENAME} | cut -c1-15`
+
 #==========================================
 
 cat >! ${jobfile} << EOF0
@@ -65,7 +67,7 @@ EOFB
 
 else if (${ICE_MACHINE} =~ thunder* || ${ICE_MACHINE} =~ gordon* || ${ICE_MACHINE} =~ conrad*) then
 cat >> ${jobfile} << EOFB
-#PBS -N ${ICE_CASENAME}
+#PBS -N ${shortcase}
 #PBS -q debug
 #PBS -A ${acct}
 #PBS -l select=${nnodes}:ncpus=${maxtpn}:mpiprocs=${taskpernode}
