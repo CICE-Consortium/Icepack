@@ -14,7 +14,6 @@
       implicit none
       private
       public :: icedrv_initialize
-      save
 
 !=======================================================================
 

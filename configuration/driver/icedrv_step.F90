@@ -19,7 +19,6 @@
 
       implicit none
       private
-      save
 
       public :: step_therm1, step_therm2, step_dyn_ridge, &
                 prep_radiation, step_radiation, ocean_mixed_layer, &

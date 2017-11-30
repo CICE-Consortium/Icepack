@@ -20,8 +20,6 @@
                 icedrv_diagnostics_debug, &
                 print_state
 
-      save
-
       ! diagnostic output file
       character (len=char_len), public :: diag_file
 

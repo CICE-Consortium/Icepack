@@ -12,7 +12,6 @@
 
       implicit none
       private
-      save
 
       integer (kind=int_kind), parameter, public :: &
         nx        = NXGLOB    , & ! vector length

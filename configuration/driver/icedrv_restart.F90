@@ -24,7 +24,7 @@
                 read_restart_field, write_restart_field, final_restart, &
                 write_restart_field_cn, read_restart_field_cn, &
                 write_restart_hbrine, read_restart_hbrine
-      save
+
 !cn future stuff for writing the number of tracers in file
 #if 0
       integer (kind=int_kind), parameter :: f_ntrcr = 7 ! number of tracers !cn

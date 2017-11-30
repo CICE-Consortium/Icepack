@@ -37,7 +37,6 @@
 
       implicit none
       private
-      save
 
       !-----------------------------------------------------------------
       ! state of the ice aggregated over all categories

@@ -11,7 +11,6 @@
       implicit none
       private
       public :: icedrv_run, ice_step
-      save
 
 !=======================================================================
 

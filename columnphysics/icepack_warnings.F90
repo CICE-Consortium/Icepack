@@ -6,7 +6,6 @@ module icepack_warnings
       implicit none
 
       private
-      save
 
       ! warning messages
       character(len=char_len_long), dimension(:), allocatable :: warnings

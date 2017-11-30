@@ -19,7 +19,6 @@
       private
       public :: init_coupler_flux, init_history_therm, init_history_dyn, &
                 init_flux_atm_ocn, init_history_bgc
-      save
 
       character (char_len), public :: &
          default_season ! seasonal default values for forcing

@@ -18,8 +18,6 @@
       private
       public :: init_forcing, get_forcing, interp_coeff, interp_coeff_monthly
 
-      save
-
       integer (kind=int_kind), parameter :: &
          ntime = 8760        ! number of data points in time
 

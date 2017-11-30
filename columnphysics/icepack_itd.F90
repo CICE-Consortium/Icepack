@@ -38,7 +38,6 @@
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
-      save
 
       private
       public :: aggregate_area, &

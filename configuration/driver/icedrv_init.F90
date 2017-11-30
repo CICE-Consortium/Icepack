@@ -15,18 +15,18 @@
       private
       public :: input_data, init_grid2, init_state
 
-      character(len=char_len_long), public, save :: &
+      character(len=char_len_long), public :: &
          ice_ic      ! method of ice cover initialization
                      ! 'default'  => latitude and sst dependent
                      ! 'none'     => no ice
                      ! note:  restart = .true. overwrites
 
-      real (kind=dbl_kind), dimension (nx), public, save :: &
+      real (kind=dbl_kind), dimension (nx), public :: &
          TLON   , & ! longitude of temp pts (radians)
          TLAT       ! latitude of temp pts (radians)
 
       logical (kind=log_kind), &
-         dimension (nx), public, save :: &
+         dimension (nx), public :: &
          tmask  , & ! land/boundary mask, thickness (T-cell)
          lmask_n, & ! northern hemisphere mask
          lmask_s    ! southern hemisphere mask

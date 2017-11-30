@@ -12,7 +12,6 @@
       use icedrv_diagnostics, only: icedrv_diagnostics_abort
 
       implicit none
-      save
 
       private
       public :: init_thermo_vertical, init_shortwave, &

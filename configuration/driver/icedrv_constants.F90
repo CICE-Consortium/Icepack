@@ -18,7 +18,6 @@
       use icepack_constants, only: awtvdr, awtidr, awtvdf, awtidf
 
       implicit none
-      save
 
       !-----------------------------------------------------------------
       ! file units

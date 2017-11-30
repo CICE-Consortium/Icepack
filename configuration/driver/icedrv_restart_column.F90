@@ -12,7 +12,6 @@
       use icedrv_restart, only: read_restart_field_cn, write_restart_field_cn
 
       implicit none
-      save
 
       private
       public ::  write_restart_bgc,       read_restart_bgc

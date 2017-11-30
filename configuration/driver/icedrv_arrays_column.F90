@@ -14,7 +14,6 @@
       use icedrv_tracers, only: nmodal1, nmodal2
 
       implicit none
-      save
 
       ! icepack_atmo.F90
       real (kind=dbl_kind), public, &

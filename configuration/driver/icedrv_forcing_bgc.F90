@@ -19,7 +19,6 @@
       public :: get_forcing_bgc, faero_default, init_bgc_data, init_forcing_bgc 
       !cn, get_atm_bgc, fzaero_data, &
                 !cn , faero_data, faero_optics
-      save
 
       real (kind=dbl_kind), dimension(365) :: & ! hardwired for now
           sil_data, nit_data
@@ -111,20 +110,6 @@
       character (char_len_long) :: & 
          met_file,   &    ! netcdf filename
          fieldname        ! field name in netcdf file
-
-      !cn real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks) :: &
-      real (kind=dbl_kind), dimension(nx) :: &
-          nitdat      , & ! data value toward which nitrate is restored
-          sildat          ! data value toward which silicate is restored
-
-      !cn real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), save :: &
-      !cn real (kind=dbl_kind), dimension(nx,2), save :: &
-      !cn    nit_data, & ! field values at 2 temporal data points
-      !cn    sil_data
-          
-      real (kind=dbl_kind), dimension(2), save :: &
-         sil_data_p      , &  ! field values at 2 temporal data points
-         nit_data_p           ! field values at 2 temporal data points
 
       real (kind=dbl_kind) :: &
           sec1hr,&              ! number of seconds in 1 hour
