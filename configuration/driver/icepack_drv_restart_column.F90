@@ -64,6 +64,8 @@
       integer (kind=int_kind) :: &
          ipoint
 
+      character(len=*), parameter :: subname='(write_restart_bgc)'
+
       diag = .true.
 
       !-----------------------------------------------------------------
@@ -461,6 +463,8 @@
       logical (kind=log_kind) :: diag
 
       character (len=3) :: nchar, ncharb
+
+      character(len=*), parameter :: subname='(read_restart_bgc)'
 
       diag = .true.
 

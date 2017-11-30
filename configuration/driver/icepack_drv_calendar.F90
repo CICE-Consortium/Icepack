@@ -105,6 +105,7 @@
 ! authors: Elizabeth C. Hunke, LANL
 
       subroutine init_calendar
+      character(len=*), parameter :: subname='(init_calendar)'
 
       istep = 0         ! local timestep number
       time=istep0*dt    ! s
@@ -186,6 +187,8 @@
          elapsed_months             , & ! since beginning this run
          elapsed_hours              , & ! since beginning this run
          month0
+
+      character(len=*), parameter :: subname='(calendar)'
 
       nyrp=nyr
       monthp=month
@@ -272,6 +275,7 @@
 
       real    (kind=dbl_kind) :: days_since_calz   ! days since calendar zero
       integer (kind=int_kind) :: years_since_calz  ! days since calendar zero
+      character(len=*), parameter :: subname='(time2sec)'
 
       if (dayyr == 360) then
          days_since_calz = c360*year + c30*(month-1) + day - c1
@@ -338,6 +342,7 @@
 
       real    (kind=dbl_kind) :: days_since_calz  ! days since calendar zero
       integer (kind=int_kind) :: k                ! counter
+      character(len=*), parameter :: subname='(sec2time)'
 
       days_since_calz = int(tsec/secday)
 
@@ -422,6 +427,7 @@
 
       ! Internal variable
       logical (kind=log_kind) :: isleap   ! Leap year logical
+      character(len=*), parameter :: subname='(set_calendar)'
 
       isleap = .false. ! not a leap year
       if (mod(year,  4) == 0) isleap = .true.

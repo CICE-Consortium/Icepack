@@ -409,6 +409,8 @@
       data fsurfn_d    /  0.20_dbl_kind, 0.15_dbl_kind, 0.10_dbl_kind, &
                           0.05_dbl_kind, 0.01_dbl_kind, 0.01_dbl_kind /
 
+      character(len=*), parameter :: subname='(init_coupler_flux)'
+
       !-----------------------------------------------------------------
       ! fluxes received from atmosphere
       !-----------------------------------------------------------------
@@ -566,6 +568,7 @@
 ! author: Elizabeth C. Hunke, LANL
 
       subroutine init_flux_atm_ocn
+      character(len=*), parameter :: subname='(init_flux_atm_ocn)'
 
       !-----------------------------------------------------------------
       ! initialize albedo and atmosphere fluxes
@@ -615,6 +618,7 @@
       use icepack_drv_arrays_column, only: Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
       use icepack_drv_arrays_column, only: Cdn_atm, Cdn_ocn
       use icepack_drv_constants, only: vonkar,zref,iceruf
+      character(len=*), parameter :: subname='(init_history_therm)'
 
       fsurf  (:) = c0
       fcondtop(:)= c0
@@ -687,6 +691,7 @@
 
       use icepack_drv_state, only: aice, vice, trcr
       use icepack_drv_tracers, only: tr_iage, nt_iage
+      character(len=*), parameter :: subname='(init_history_dyn)'
 
       dardg1dt(:) = c0
       dardg2dt(:) = c0
@@ -724,6 +729,7 @@
       use icepack_drv_arrays_column, only: PP_net, grow_net, hbri
       use icepack_drv_arrays_column, only: ice_bio_net, snow_bio_net, fbio_snoice, fbio_atmice
       use icepack_drv_arrays_column, only: fzsal, fzsal_g, zfswin 
+      character(len=*), parameter :: subname='(init_history_bgc)'
 
       PP_net        (:) = c0
       grow_net      (:) = c0

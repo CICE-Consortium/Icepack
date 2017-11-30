@@ -9,6 +9,7 @@
       use icepack_drv_kinds
       use icepack_drv_constants, only: nu_diag, nu_restart, nu_dump
       use icepack_drv_restart_shared, only: restart, restart_dir, restart_file, lenstr
+      use icepack_drv_diagnostics, only: diagnostic_abort
 
       implicit none
       private :: write_restart_pond_topo, read_restart_pond_topo, &
@@ -63,6 +64,7 @@
           iyear, imonth, iday     ! year, month, day
 
       character(len=char_len_long) :: filename
+      character(len=*), parameter :: subname='(dumpfile)'
 
       ! construct path/file
       iyear = nyr + year_init - 1
@@ -201,13 +203,15 @@
       character(len=char_len_long) :: &
          filename, filename0
 
+      character(len=*), parameter :: subname='(restartfile)'
+
       if (present(ice_ic)) then 
          filename = trim(ice_ic)
       else
 !cn need to do something here ....
 !cn probably make sure there is a default for ice_ic up stream and require it as an arg here
 !cn it is probably iced
-        stop 'no ice_ic present'
+        call diagnostic_abort(string=subname//'no ice_ic present',file=__FILE__,line=__LINE__)
       endif
 
       write(nu_diag,*) 'Using restart dump=', trim(filename)
@@ -359,6 +363,8 @@
       real (kind=dbl_kind), dimension(nx) :: &
            work2              ! input array (real, 8-byte)
 
+      character(len=*), parameter :: subname='(read_restart_field_cn)'
+
       do n=1,ndim3
         read(nu) (work2(i),i=1,nx)
         work(:,n) = work2(:)
@@ -405,6 +411,8 @@
       real (kind=dbl_kind), dimension(nx) :: &
            work2              ! input array (real, 8-byte)
 
+      character(len=*), parameter :: subname='(read_restart_field)'
+
       write(nu_diag,*) 'vname ',trim(vname)
       do n=1,ndim3
         read(nu) (work2(i),i=1,nx)
@@ -439,6 +447,8 @@
       real (kind=dbl_kind), dimension(nx) :: &
           work2              ! input array (real, 8-byte)
       
+      character(len=*), parameter :: subname='(write_restart_field_cn)'
+
       do n=1,ndim3
         work2(:) = work(:,n)
         write(nu) (work2(i),i=1,nx)
@@ -485,6 +495,8 @@
       real (kind=dbl_kind), dimension(nx) :: &
           work2              ! input array (real, 8-byte)
       
+      character(len=*), parameter :: subname='(write_restart_field)'
+
       do n=1,ndim3
         work2(:) = work(:,n)
         write(nu) (work2(i),i=1,nx)
@@ -502,6 +514,7 @@
       use icepack_drv_calendar, only: istep1, time, time_forc
 
       integer (kind=int_kind) :: status
+      character(len=*), parameter :: subname='(final_restart)'
 
       close(nu_dump)
 
@@ -521,6 +534,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(write_restart_pond_topo)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
       call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
@@ -540,6 +554,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(read_restart_pond_topo)'
 
       write(nu_diag,*) 'min/max topo ponds'
 
@@ -559,6 +574,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_iage
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(write_restart_age)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_iage,:),ncat)
 
@@ -574,6 +590,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_iage
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(read_restart_age)'
 
       write(nu_diag,*) 'min/max age (s)'
 
@@ -592,6 +609,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_FY
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(write_restart_FY)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_FY,:),ncat)
       call write_restart_field_cn(nu_dump,frz_onset,1)
@@ -609,6 +627,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_FY
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(read_restart_FY)'
 
       write(nu_diag,*) 'min/max first-year ice area'
 
@@ -631,6 +650,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_alvl, nt_vlvl
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(write_restart_lvl)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_alvl,:),ncat)
       call write_restart_field_cn(nu_dump,trcrn(:,nt_vlvl,:),ncat)
@@ -648,6 +668,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_alvl, nt_vlvl
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(read_restart_lvl)'
 
       write(nu_diag,*) 'min/max level ice area, volume'
 
@@ -668,6 +689,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_apnd, nt_hpnd
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(write_restart_pond_cesm)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
       call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
@@ -686,6 +708,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_apnd, nt_hpnd
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(read_restart_pond_cesm)'
 
       write(nu_diag,*) 'min/max cesm ponds'
 
@@ -707,6 +730,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(write_restart_pond_lvl)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
       call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
@@ -730,6 +754,7 @@
       use icepack_drv_state, only: trcrn
       use icepack_drv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icepack_drv_domain_size, only: ncat
+      character(len=*), parameter :: subname='(write_restart_pond_lvl)'
 
       write(nu_diag,*) 'min/max level-ice ponds'
 
@@ -761,7 +786,7 @@
 
       integer (kind=int_kind) :: &
          k                    ! loop indices
-
+      character(len=*), parameter :: subname='(write_restart_aero)'
     
       write(nu_diag,*) 'write_restart_aero (aerosols)'
 
@@ -801,6 +826,7 @@
 
       integer (kind=int_kind) :: &
          k                    ! loop indices
+      character(len=*), parameter :: subname='(read_restart_aero)'
 
       !-----------------------------------------------------------------
 
@@ -834,6 +860,7 @@
          i, n ! horizontal indices
 
       logical (kind=log_kind) :: diag
+      character(len=*), parameter :: subname='(write_restart_hbrine)'
 
       diag = .true.
 
@@ -872,6 +899,7 @@
 
       logical (kind=log_kind) :: &
          diag
+      character(len=*), parameter :: subname='(read_restart_hbrine)'
 
       diag = .true.
 

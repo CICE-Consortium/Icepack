@@ -47,7 +47,9 @@
             sil, &
             nit
 
-       character (char_len_long) filename
+        character (char_len_long) filename
+
+        character(len=*), parameter :: subname='(init_forcing_bgc)'
         
         if (trim(nit_data_type) == 'ISPOL' .or. &
             trim(sil_data_type) == 'ISPOL' .or. &
@@ -134,6 +136,8 @@
          nit_file   , & ! nitrate input file
          sil_file       ! silicate input file
 
+      character(len=*), parameter :: subname='(get_forcing_bgc)'
+
       !cn write(*,*) nit_data_type
 
 
@@ -198,6 +202,7 @@
         !use icepack_constants, only: nspint
         !use icepack_intfc_shared, only: max_aero
         !use icepack_intfc_tracers, only: tr_aero
+        character(len=*), parameter :: subname='(faero_default)'
         
         faero_atm(:,1) = 1.e-12_dbl_kind ! kg/m^2 s
         faero_atm(:,2) = 1.e-13_dbl_kind
@@ -239,6 +244,8 @@
       character (char_len_long) :: & 
          iron_file,   &   ! netcdf filename
          fieldname        ! field name in netcdf file
+
+      character(len=*), parameter :: subname='(init_bgc_data)'
 
       nbits = 64              ! double precision data
 

@@ -109,6 +109,8 @@
       integer (kind=int_kind) :: &
          i                ! index
 
+      character(len=*), parameter :: subname='(init_forcing)'
+
       fyear       = fyear_init + mod(nyr-1,ycycle) ! current year
       fyear_final = fyear_init + ycycle - 1 ! last year in forcing cycle
 
@@ -211,6 +213,8 @@
 
       real (kind=dbl_kind) :: &
           sec6hr
+
+      character(len=*), parameter :: subname='(get_forcing)'
 
       if (trim(atm_data_type) == 'CFS') then
          ! calculate data index corresponding to current timestep
@@ -430,6 +434,8 @@ endif
            rhum_clim, &
           fsnow_clim
 
+      character(len=*), parameter :: subname='(atm_climatological)'
+
       ! Ice station meteorology from Lindsay (1998, J. Climate), Table 1, p. 325
       ! zlvl = c2 ! 2-m temperatures and wind speed
 
@@ -494,6 +500,7 @@ endif
 
       character (char_len_long) string1
       character (char_len_long) filename
+      character(len=*), parameter :: subname='(atm_CFS)'
 
       filename = trim(data_dir)//'/CFS/cfsv2_2015_220_70_01hr.txt'
 
@@ -573,6 +580,8 @@ endif
 
       real (kind=dbl_kind) :: workx, worky, &
          precip_factor, zlvl0
+
+      character(len=*), parameter :: subname='(prepare_forcing)'
 
       zlvl0 = c10 ! default
 
@@ -689,6 +698,8 @@ endif
       real (kind=dbl_kind) :: &
           daymid(0:13)     ! month mid-points
 
+      character(len=*), parameter :: subname='(interp_coeff_monthly)'
+
       daymid(1:13) = 14._dbl_kind   ! time frame ends 0 sec into day 15
       daymid(0)    = 14._dbl_kind - daymo(12)  ! Dec 15, 0 sec
 
@@ -749,6 +760,8 @@ endif
           t1, t2       , & ! seconds elapsed at data points
           rcnum            ! recnum => dbl_kind
 
+      character(len=*), parameter :: subname='(interp_coeff)'
+
       secyr = dayyr * secday         ! seconds in a year
       tt = mod(time,secyr)
 
@@ -796,6 +809,8 @@ endif
           atime
 
       character (char_len_long) filename
+
+      character(len=*), parameter :: subname='(atm_ISPOL)'
       
       filename = trim(data_dir)//'/ISPOL_2004/ISPOL_atm_forcing.txt'
 
@@ -864,7 +879,9 @@ endif
           atime
 
       character (char_len_long) filename
-      
+
+      character(len=*), parameter :: subname='(atm_NICE)'
+
       filename = trim(data_dir)//'/NICE_2015/NICEL_atm_forcing.txt'
 
       write (nu_diag,*) 'Reading ',filename
@@ -1160,6 +1177,8 @@ endif
 
       character (char_len_long) filename
       
+      character(len=*), parameter :: subname='(ocn_ISPOL)'
+
       filename = &
           trim(data_dir)//'/ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
 
@@ -1222,6 +1241,8 @@ endif
 
       integer (kind=int_kind) :: &
          i, j, iblk           ! horizontal indices
+
+      character(len=*), parameter :: subname='(finish_ocn_forcing)'
 
       do i = 1, nx
          sss (i) = max (sss(i), c0)

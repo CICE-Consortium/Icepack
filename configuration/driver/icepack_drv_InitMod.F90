@@ -62,7 +62,6 @@
       call icepack_init_itd(ncat, hin_max)
       if (icepack_warnings_aborted(subname)) then
          call diagnostic_abort(file=__FILE__,line=__LINE__)
-         stop
       endif
 
       call icepack_warnings_flush(nu_diag)

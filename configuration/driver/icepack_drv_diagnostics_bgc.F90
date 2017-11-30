@@ -52,6 +52,8 @@
       real (kind=dbl_kind), dimension(nx,nilyr) :: &
          pSin, pSin1
 
+      character(len=*), parameter :: subname='(hbrine_diags)'
+
       !-----------------------------------------------------------------
       ! Dynamic brine height
       !-----------------------------------------------------------------
@@ -212,6 +214,8 @@
          pchlsw
       real (kind=dbl_kind), dimension(nx,nslyr+nilyr+2,max_aero) :: &
          pzaerosw
+
+      character(len=*), parameter :: subname='(bgc_diags)'
 
       zspace(:) = c1/real(nblyr,kind=dbl_kind)
       zspace(1) = zspace(1)*p5
@@ -742,6 +746,8 @@
 
       real (kind=dbl_kind), dimension(nx,nblyr+1) :: &
          pbTiz, piDin
+
+      character(len=*), parameter :: subname='(zsal_diags)'
 
       !-----------------------------------------------------------------
       ! salinity and microstructure  of the ice

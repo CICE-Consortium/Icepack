@@ -33,6 +33,8 @@
       use icepack_drv_tracers, only: tr_aero, tr_zaero
       use icepack_drv_parameters, only: skl_bgc, z_tracers
 
+      character(len=*), parameter :: subname='(icepack_drv_run)'
+
    !--------------------------------------------------------------------
    ! timestep loop
    !--------------------------------------------------------------------
@@ -96,6 +98,8 @@
 
       real (kind=dbl_kind) :: &
          offset          ! d(age)/dt time offset
+
+      character(len=*), parameter :: subname='(ice_step)'
 
 !      call debug_icepack ('beginning time step')
 
@@ -221,6 +225,8 @@
 
       real (kind=dbl_kind) :: &
          netsw           ! flag for shortwave radiation presence
+
+      character(len=*), parameter :: subname='(coupling_prep)'
 
       !-----------------------------------------------------------------
       ! Save current value of frzmlt for diagnostics.

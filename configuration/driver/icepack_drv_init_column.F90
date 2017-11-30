@@ -9,6 +9,7 @@
       use icepack_drv_kinds
       use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_drv_diagnostics, only: diagnostic_abort
 
       implicit none
       save
@@ -988,7 +989,7 @@
          if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
          print*,'error reading zbgc namelist'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       !-----------------------------------------------------------------
@@ -1060,7 +1061,7 @@
 
       if ((skl_bgc .AND. solve_zbgc) .or. (skl_bgc .AND. z_tracers)) then
          print*, 'ERROR: skl_bgc and (solve_zbgc or z_tracers) are both true'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (skl_bgc .AND. tr_zaero) then
@@ -1092,27 +1093,27 @@
       endif
       if (n_algae > max_algae) then
          print*, 'error:number of algal types exceeds max_algae'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_doc > max_doc) then
          print*, 'error:number of algal types exceeds max_doc'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_dic > max_dic) then
          print*, 'error:number of dic types exceeds max_dic'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_don > max_don) then
          print*, 'error:number of don types exceeds max_don'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fed > max_fe) then
          print*, 'error:number of dissolved fe types exceeds max_fe'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fep > max_fe) then
          print*, 'error:number of particulate fe types exceeds max_fe'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       if ((TRBGCS == 0 .and. skl_bgc) .or. (TRALG == 0 .and. skl_bgc)) then
@@ -1156,28 +1157,28 @@
 
       if (n_zaero > max_aero) then
          print*, 'error:number of z aerosols exceeds max_aero'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif         
 
       if (skl_bgc .and. n_bgc < 2) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'comp_ice must have number of bgc tracers >= 2'
          write (nu_diag,*) 'number of bgc tracers compiled:',n_bgc
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (solve_zbgc .and. n_bgc < 2) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'comp_ice must have number of zbgc tracers >= 2'
          write (nu_diag,*) 'number of bgc tracers compiled:',n_bgc
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_zaero .and. TRZAERO <  1) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'comp_ice must have number of TRZAERO > 0'
          write (nu_diag,*) 'in order to solve z aerosols:',TRZAERO
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       call icepack_init_tracer_indices( &
@@ -1760,7 +1761,7 @@
          write (nu_diag,*) ' '
          write (nu_diag,*) 'nbtrcr > max_nbtrcr'
          write (nu_diag,*) 'nbtrcr, max_nbtrcr:',nbtrcr, max_nbtrcr
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif	
       if (.NOT. dEdd_algae) nbtrcr_sw = 1
 
@@ -1768,13 +1769,13 @@
          write (nu_diag,*) ' '
          write (nu_diag,*) 'nbtrcr_sw > max_nsw'
          write (nu_diag,*) 'nbtrcr_sw, max_nsw:',nbtrcr_sw, max_nsw
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (ntrcr > max_ntrcr) then
          write(nu_diag,*) 'max_ntrcr < number of namelist tracers'
          write(nu_diag,*) 'max_ntrcr = ',max_ntrcr,' ntrcr = ',ntrcr
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif                               
 
       !-----------------------------------------------------------------

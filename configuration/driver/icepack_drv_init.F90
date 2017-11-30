@@ -9,6 +9,7 @@
       use icepack_drv_kinds
       use icepack_drv_domain_size, only: nx
       use icepack_intfc, only: icepack_init_constants
+      use icepack_drv_diagnostics, only: diagnostic_abort
 
       implicit none
       private
@@ -97,6 +98,7 @@
 
       real (kind=real_kind) :: rpcesm, rplvl, rptopo 
       real (kind=dbl_kind) :: Cf
+      character(len=*), parameter :: subname='(input_data)'
 
       !-----------------------------------------------------------------
       ! Namelist variables.
@@ -298,7 +300,7 @@
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
         write(ice_stdout,*) 'error reading namelist'
-        stop
+        call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
       
@@ -347,7 +349,7 @@
          write (nu_diag,*) 'Remapping the ITD is not allowed for ncat=1.'
          write (nu_diag,*) 'Use kitd = 0 (delta function ITD) with kcatbound = 0'
          write (nu_diag,*) 'or for column configurations use kcatbound = -1'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (ncat /= 1 .and. kcatbound == -1) then
@@ -371,7 +373,7 @@
 
       if (rpcesm + rplvl + rptopo > c1 + puny) then
             write (nu_diag,*) 'WARNING: Must use only one melt pond scheme'
-            stop
+            call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_pond_lvl .and. .not. tr_lvl) then
@@ -403,7 +405,7 @@
             write (nu_diag,*) 'WARNING: aerosols activated but'
             write (nu_diag,*) 'WARNING: not allocated in tracer array.'
             write (nu_diag,*) 'WARNING: Activate in compilation script.'
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_aero .and. trim(shortwave) /= 'dEdd') then
@@ -450,7 +452,7 @@
 
       if (tr_pond_cesm) then
             write (nu_diag,*) 'ERROR: formdrag=T but frzpnd=cesm' 
-         stop
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (.not. tr_lvl) then
@@ -655,7 +657,7 @@
          if (ntrcr > max_ntrcr-1) then
             write(nu_diag,*) 'max_ntrcr-1 < number of namelist tracers'
             write(nu_diag,*) 'max_ntrcr-1 = ',max_ntrcr-1,' ntrcr = ',ntrcr
-            stop
+            call diagnostic_abort(file=__FILE__,line=__LINE__)
          endif                               
 
          write(nu_diag,*) ' '
@@ -684,19 +686,19 @@
       if (formdrag) then
          if (nt_apnd==0) then
             write(nu_diag,*)'ERROR: nt_apnd:',nt_apnd
-            stop
+            call diagnostic_abort(file=__FILE__,line=__LINE__)
          elseif (nt_hpnd==0) then
             write(nu_diag,*)'ERROR: nt_hpnd:',nt_hpnd
-            stop
+            call diagnostic_abort(file=__FILE__,line=__LINE__)
          elseif (nt_ipnd==0) then
             write(nu_diag,*)'ERROR: nt_ipnd:',nt_ipnd
-            stop
+            call diagnostic_abort(file=__FILE__,line=__LINE__)
          elseif (nt_alvl==0) then
             write(nu_diag,*)'ERROR: nt_alvl:',nt_alvl
-            stop
+            call diagnostic_abort(file=__FILE__,line=__LINE__)
          elseif (nt_vlvl==0) then
             write(nu_diag,*)'ERROR: nt_vlvl:',nt_vlvl
-            stop
+            call diagnostic_abort(file=__FILE__,line=__LINE__)
          endif
       endif
 
@@ -714,6 +716,7 @@
       use icepack_drv_constants, only: pi, p5, c1
 
       integer :: i
+      character(len=*), parameter :: subname='(init_grid2)'
 
       !-----------------------------------------------------------------
       ! lat, lon, cell widths, angle, land mask
@@ -771,19 +774,21 @@
          k           , & ! vertical index
          it              ! tracer index
 
+      character(len=*), parameter :: subname='(init_state)'
+
       !-----------------------------------------------------------------
       ! Check number of layers in ice and snow.
       !-----------------------------------------------------------------
          if (nilyr < 1) then
             write (nu_diag,*) 'nilyr =', nilyr
             write (nu_diag,*) 'Must have at least one ice layer'
-            stop
+            call diagnostic_abort(file=__FILE__,line=__LINE__)
          endif
 
          if (nslyr < 1) then
             write (nu_diag,*) 'nslyr =', nslyr
             write (nu_diag,*) 'Must have at least one snow layer'
-            stop
+            call diagnostic_abort(file=__FILE__,line=__LINE__)
          endif
 
          if (.not.heat_capacity) then
@@ -794,14 +799,14 @@
                write (nu_diag,*) 'nilyr =', nilyr
                write (nu_diag,*)        &
                     'Must have nilyr = 1 if ktherm = 0'
-               stop
+               call diagnostic_abort(file=__FILE__,line=__LINE__)
             endif
 
             if (nslyr > 1) then
                write (nu_diag,*) 'nslyr =', nslyr
                write (nu_diag,*)        &
                     'Must have nslyr = 1 if heat_capacity = F'
-               stop
+               call diagnostic_abort(file=__FILE__,line=__LINE__)
             endif
 
          endif   ! heat_capacity = F
@@ -1017,6 +1022,8 @@
 
       real (kind=dbl_kind), parameter :: &
          hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
+
+      character(len=*), parameter :: subname='(set_state_var)'
 
       ! Initialize state variables.
       ! If restarting, these values are overwritten.

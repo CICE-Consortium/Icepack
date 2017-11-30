@@ -23,13 +23,15 @@
 !
 ! author Elizabeth C. Hunke, LANL
 !
-      program icepackdriver
+      program icedrv
 
       use icepack_drv_InitMod
       use icepack_drv_RunMod
       use icepack_drv_constants, only: ice_stdout
 
       implicit none
+
+      character(len=*), parameter :: subname='(icedrv)'
 
       !-----------------------------------------------------------------
       ! Initialize Icepack
@@ -45,6 +47,6 @@
 
       write(ice_stdout, *) "ICEPACK COMPLETED SUCCESSFULLY "
 
-      end program icepackdriver
+      end program icedrv
 
 !=======================================================================
