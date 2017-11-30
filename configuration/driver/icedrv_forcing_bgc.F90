@@ -6,13 +6,13 @@
 ! authors:  Nicole Jeffery, LANL
 !          Elizabeth C. Hunke, LANL
 !
-      module icepack_drv_forcing_bgc
+      module icedrv_forcing_bgc
 
-      use icepack_drv_kinds
-      use icepack_drv_domain_size, only: nx
-      use icepack_drv_tracers, only: bio_index_o
-      use icepack_drv_calendar, only: dt, istep, sec, mday, month, daymo
-      use icepack_drv_constants, only: nu_diag
+      use icedrv_kinds
+      use icedrv_domain_size, only: nx
+      use icedrv_tracers, only: bio_index_o
+      use icedrv_calendar, only: dt, istep, sec, mday, month, daymo
+      use icedrv_constants, only: nu_diag
 
       implicit none
       private
@@ -35,9 +35,9 @@
 
       subroutine init_forcing_bgc
 
-        use icepack_drv_constants, only: nu_forcing
-        use icepack_drv_arrays_column, only: nit_data_type, sil_data_type
-        use icepack_drv_forcing, only: data_dir 
+        use icedrv_constants, only: nu_forcing
+        use icedrv_arrays_column, only: nit_data_type, sil_data_type
+        use icedrv_forcing, only: data_dir 
 
         integer (kind=int_kind) :: &
             ntime, &
@@ -87,14 +87,14 @@
 
       subroutine get_forcing_bgc
 
-      use icepack_drv_arrays_column, only: ocean_bio_all
-      use icepack_drv_calendar, only:  yday
-      use icepack_drv_constants, only: secday
-      use icepack_drv_flux, only: sss, sil, nit
-      use icepack_drv_forcing, only: interp_coeff
-      use icepack_drv_arrays_column, only: nit_data_type, sil_data_type, bgc_data_dir
-      use icepack_drv_tracers, only: max_algae, max_doc, max_dic
-      use icepack_drv_tracers, only: tr_bgc_Sil, tr_bgc_Nit
+      use icedrv_arrays_column, only: ocean_bio_all
+      use icedrv_calendar, only:  yday
+      use icedrv_constants, only: secday
+      use icedrv_flux, only: sss, sil, nit
+      use icedrv_forcing, only: interp_coeff
+      use icedrv_arrays_column, only: nit_data_type, sil_data_type, bgc_data_dir
+      use icedrv_tracers, only: max_algae, max_doc, max_dic
+      use icedrv_tracers, only: tr_bgc_Sil, tr_bgc_Nit
 
       integer (kind=int_kind) :: &
           i, j, k,iblk, & ! horizontal indices !cn remove
@@ -198,7 +198,7 @@
 
       subroutine faero_default
         
-        use icepack_drv_flux, only: faero_atm
+        use icedrv_flux, only: faero_atm
         !use icepack_constants, only: nspint
         !use icepack_intfc_shared, only: max_aero
         !use icepack_intfc_tracers, only: tr_aero
@@ -220,9 +220,9 @@
 ! authors: Nicole Jeffery, LANL
       subroutine init_bgc_data (fed1,fep1)
       !cn use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
-      use icepack_drv_constants, only: c0, p1 !, nu_forcing
-      use icepack_drv_tracers, only: max_fe
-      use icepack_drv_arrays_column, only: fe_data_type, bgc_data_dir
+      use icedrv_constants, only: c0, p1 !, nu_forcing
+      use icedrv_tracers, only: max_fe
+      use icedrv_arrays_column, only: fe_data_type, bgc_data_dir
 
 #ifdef ncdf
       use netcdf
@@ -300,6 +300,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_forcing_bgc
+      end module icedrv_forcing_bgc
 
 !=======================================================================

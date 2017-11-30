@@ -4,12 +4,12 @@
 !
 ! authors Elizabeth C. Hunke, LANL
 
-      module icepack_drv_restart
+      module icedrv_restart
 
-      use icepack_drv_kinds
-      use icepack_drv_constants, only: nu_diag, nu_restart, nu_dump
-      use icepack_drv_restart_shared, only: restart, restart_dir, restart_file, lenstr
-      use icepack_drv_diagnostics, only: diagnostic_abort
+      use icedrv_kinds
+      use icedrv_constants, only: nu_diag, nu_restart, nu_dump
+      use icedrv_restart_shared, only: restart, restart_dir, restart_file, lenstr
+      use icedrv_diagnostics, only: icedrv_diagnostics_abort
 
       implicit none
       private :: write_restart_pond_topo, read_restart_pond_topo, &
@@ -46,16 +46,16 @@
 
       subroutine dumpfile
 
-      use icepack_drv_calendar, only: sec, month, mday, nyr, istep1
-      use icepack_drv_calendar, only: time, time_forc, year_init
-      use icepack_drv_arrays_column, only: oceanmixed_ice
-      use icepack_drv_constants, only: nu_diag, nu_dump
-      use icepack_drv_domain_size, only: nilyr, nslyr, ncat, nx
-      use icepack_drv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
-      use icepack_drv_flux, only: sst, frzmlt, coszen
-      use icepack_drv_state, only: aicen, vicen, vsnon, trcrn, uvel, vvel
-      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_aero
-      use icepack_drv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno
+      use icedrv_calendar, only: sec, month, mday, nyr, istep1
+      use icedrv_calendar, only: time, time_forc, year_init
+      use icedrv_arrays_column, only: oceanmixed_ice
+      use icedrv_constants, only: nu_diag, nu_dump
+      use icedrv_domain_size, only: nilyr, nslyr, ncat, nx
+      use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
+      use icedrv_flux, only: sst, frzmlt, coszen
+      use icedrv_state, only: aicen, vicen, vsnon, trcrn, uvel, vvel
+      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_aero
+      use icedrv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno
 
       ! local variables
 
@@ -177,21 +177,21 @@
 
       subroutine restartfile (ice_ic)
 
-      use icepack_drv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
+      use icedrv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
       use icepack_intfc, only: icepack_aggregate
-      use icepack_drv_arrays_column, only: oceanmixed_ice
-      use icepack_drv_constants, only: c0, p5, nu_diag, nu_restart
-      use icepack_drv_domain_size, only: nilyr, nslyr, ncat
-      use icepack_drv_domain_size, only: max_ntrcr, nx
-      use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf
-      use icepack_drv_flux, only: sst, frzmlt, coszen, scale_factor
-      use icepack_drv_init, only: tmask
-      use icepack_drv_state, only: trcr_depend, aice, vice, vsno, trcr
-      use icepack_drv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel
-      use icepack_drv_state, only: trcr_base, nt_strata, n_trcr_strata
-      use icepack_drv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno
-      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine
-      use icepack_drv_tracers, only: tr_pond_topo, tr_pond_cesm, tr_pond_lvl
+      use icedrv_arrays_column, only: oceanmixed_ice
+      use icedrv_constants, only: c0, p5, nu_diag, nu_restart
+      use icedrv_domain_size, only: nilyr, nslyr, ncat
+      use icedrv_domain_size, only: max_ntrcr, nx
+      use icedrv_flux, only: swvdr, swvdf, swidr, swidf
+      use icedrv_flux, only: sst, frzmlt, coszen, scale_factor
+      use icedrv_init, only: tmask
+      use icedrv_state, only: trcr_depend, aice, vice, vsno, trcr
+      use icedrv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel
+      use icedrv_state, only: trcr_base, nt_strata, n_trcr_strata
+      use icedrv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno
+      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine
+      use icedrv_tracers, only: tr_pond_topo, tr_pond_cesm, tr_pond_lvl
 
       character (*), optional :: ice_ic
 
@@ -211,7 +211,7 @@
 !cn need to do something here ....
 !cn probably make sure there is a default for ice_ic up stream and require it as an arg here
 !cn it is probably iced
-        call diagnostic_abort(string=subname//'no ice_ic present',file=__FILE__,line=__LINE__)
+        call icedrv_diagnostics_abort(string=subname//'no ice_ic present',file=__FILE__,line=__LINE__)
       endif
 
       write(nu_diag,*) 'Using restart dump=', trim(filename)
@@ -344,7 +344,7 @@
 
       subroutine read_restart_field_cn(nu,work,ndim3)
 
-      use icepack_drv_domain_size, only: nx
+      use icedrv_domain_size, only: nx
 
       integer (kind=int_kind), intent(in) :: &
            nu            , & ! unit number (not used for netcdf)
@@ -379,7 +379,7 @@
 
       subroutine read_restart_field(nu,nrec,work,atype,vname,ndim3, diag)
 
-      use icepack_drv_domain_size, only: nx
+      use icedrv_domain_size, only: nx
 
       integer (kind=int_kind), intent(in) :: &
            nu            , & ! unit number (not used for netcdf)
@@ -428,7 +428,7 @@
 
       subroutine write_restart_field_cn(nu,work,ndim3)
 
-      use icepack_drv_domain_size, only: nx
+      use icedrv_domain_size, only: nx
 
       integer (kind=int_kind), intent(in) :: &
            nu            , & ! unit number
@@ -463,7 +463,7 @@
 
       subroutine write_restart_field(nu,nrec,work,atype,vname,ndim3,diag)
 
-      use icepack_drv_domain_size, only: nx
+      use icedrv_domain_size, only: nx
 
       integer (kind=int_kind), intent(in) :: &
            nu            , & ! unit number
@@ -511,7 +511,7 @@
 
       subroutine final_restart()
 
-      use icepack_drv_calendar, only: istep1, time, time_forc
+      use icedrv_calendar, only: istep1, time, time_forc
 
       integer (kind=int_kind) :: status
       character(len=*), parameter :: subname='(final_restart)'
@@ -531,9 +531,9 @@
 
       subroutine write_restart_pond_topo()
 
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(write_restart_pond_topo)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
@@ -551,9 +551,9 @@
 
       subroutine read_restart_pond_topo()
 
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(read_restart_pond_topo)'
 
       write(nu_diag,*) 'min/max topo ponds'
@@ -571,9 +571,9 @@
 
       subroutine write_restart_age()
 
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_iage
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_iage
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(write_restart_age)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_iage,:),ncat)
@@ -587,9 +587,9 @@
 
       subroutine read_restart_age()
 
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_iage
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_iage
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(read_restart_age)'
 
       write(nu_diag,*) 'min/max age (s)'
@@ -605,10 +605,10 @@
 
       subroutine write_restart_FY()
 
-      use icepack_drv_flux, only: frz_onset
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_FY
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_flux, only: frz_onset
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_FY
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(write_restart_FY)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_FY,:),ncat)
@@ -623,10 +623,10 @@
 
       subroutine read_restart_FY()
 
-      use icepack_drv_flux, only: frz_onset
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_FY
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_flux, only: frz_onset
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_FY
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(read_restart_FY)'
 
       write(nu_diag,*) 'min/max first-year ice area'
@@ -647,9 +647,9 @@
 
       subroutine write_restart_lvl()
 
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_alvl, nt_vlvl
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_alvl, nt_vlvl
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(write_restart_lvl)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_alvl,:),ncat)
@@ -665,9 +665,9 @@
 
       subroutine read_restart_lvl()
 
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_alvl, nt_vlvl
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_alvl, nt_vlvl
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(read_restart_lvl)'
 
       write(nu_diag,*) 'min/max level ice area, volume'
@@ -686,9 +686,9 @@
 
       subroutine write_restart_pond_cesm()
 
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_apnd, nt_hpnd
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_apnd, nt_hpnd
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(write_restart_pond_cesm)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
@@ -705,9 +705,9 @@
 
       subroutine read_restart_pond_cesm()
 
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_apnd, nt_hpnd
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_apnd, nt_hpnd
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(read_restart_pond_cesm)'
 
       write(nu_diag,*) 'min/max cesm ponds'
@@ -725,11 +725,11 @@
 
       subroutine write_restart_pond_lvl()
 
-      use icepack_drv_arrays_column, only: dhsn, ffracn
-      use icepack_drv_flux, only: fsnow
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_arrays_column, only: dhsn, ffracn
+      use icedrv_flux, only: fsnow
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(write_restart_pond_lvl)'
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
@@ -749,11 +749,11 @@
 
       subroutine read_restart_pond_lvl()
 
-      use icepack_drv_arrays_column, only: dhsn, ffracn
-      use icepack_drv_flux, only: fsnow
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_arrays_column, only: dhsn, ffracn
+      use icedrv_flux, only: fsnow
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
+      use icedrv_domain_size, only: ncat
       character(len=*), parameter :: subname='(write_restart_pond_lvl)'
 
       write(nu_diag,*) 'min/max level-ice ponds'
@@ -777,10 +777,10 @@
 
       subroutine write_restart_aero()
 
-      use icepack_drv_domain_size, only: n_aero
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_aero
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_domain_size, only: n_aero
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_aero
+      use icedrv_domain_size, only: ncat
 
       ! local variables
 
@@ -817,10 +817,10 @@
 
       subroutine read_restart_aero()
 
-      use icepack_drv_domain_size, only: n_aero
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_aero
-      use icepack_drv_domain_size, only: ncat
+      use icedrv_domain_size, only: n_aero
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_aero
+      use icedrv_domain_size, only: ncat
 
       ! local variables
 
@@ -848,11 +848,11 @@
 ! Dumps all values needed for a hbrine restart
 ! author Elizabeth C. Hunke, LANL
 
-      use icepack_drv_arrays_column, only: first_ice, first_ice_real
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_fbri
-      use icepack_drv_constants, only: c1, c0
-      use icepack_drv_domain_size, only: ncat, nx
+      use icedrv_arrays_column, only: first_ice, first_ice_real
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_fbri
+      use icedrv_constants, only: c1, c0
+      use icedrv_domain_size, only: ncat, nx
 
       ! local variables
 
@@ -886,11 +886,11 @@
 ! Reads all values needed for hbrine
 ! author Elizabeth C. Hunke, LANL
 
-      use icepack_drv_arrays_column, only: first_ice_real, first_ice
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: nt_fbri
-      use icepack_drv_constants, only: p5
-      use icepack_drv_domain_size, only: ncat, nx
+      use icedrv_arrays_column, only: first_ice_real, first_ice
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: nt_fbri
+      use icedrv_constants, only: p5
+      use icedrv_domain_size, only: ncat, nx
 
       ! local variables
 
@@ -922,6 +922,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_restart
+      end module icedrv_restart
 
 !=======================================================================

@@ -1,8 +1,8 @@
 !=======================================================================
 
-      module icepack_drv_restart_shared
+      module icedrv_restart_shared
 
-      use icepack_drv_kinds
+      use icedrv_kinds
       implicit none
       private
       public :: lenstr
@@ -44,6 +44,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_restart_shared
+      end module icedrv_restart_shared
 
 !=======================================================================

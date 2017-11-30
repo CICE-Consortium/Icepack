@@ -4,9 +4,9 @@
 !
 ! author Elizabeth C. Hunke, LANL
 
-      module icepack_drv_domain_size
+      module icedrv_domain_size
 
-      use icepack_drv_kinds
+      use icedrv_kinds
 
 !=======================================================================
 
@@ -55,6 +55,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_domain_size
+      end module icedrv_domain_size
 
 !=======================================================================

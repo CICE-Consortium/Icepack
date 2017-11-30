@@ -4,11 +4,11 @@
 !
 ! authors: Elizabeth C. Hunke, LANL
 
-      module icepack_drv_calendar
+      module icedrv_calendar
 
-      use icepack_drv_kinds
-      use icepack_drv_constants, only: c0, c1, c100, c30, c360, c365, c3600
-      use icepack_drv_constants, only: c4, c400, secday, nu_diag, nu_diag_out
+      use icedrv_kinds
+      use icedrv_constants, only: c0, c1, c100, c30, c360, c365, c3600
+      use icedrv_constants, only: c4, c400, secday, nu_diag, nu_diag_out
 
       implicit none
       private
@@ -173,7 +173,7 @@
 
       subroutine calendar(ttime)
 
-      use icepack_drv_domain_size, only: nx
+      use icedrv_domain_size, only: nx
 
       real (kind=dbl_kind), intent(in) :: &
          ttime                          ! time variable
@@ -451,6 +451,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_calendar
+      end module icedrv_calendar
 
 !=======================================================================

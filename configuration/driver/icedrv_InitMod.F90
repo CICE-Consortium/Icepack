@@ -5,15 +5,15 @@
 !
 !  authors Elizabeth C. Hunke, LANL
 
-      module icepack_drv_InitMod
+      module icedrv_InitMod
 
-      use icepack_drv_kinds
+      use icedrv_kinds
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_drv_diagnostics, only: diagnostic_abort
+      use icedrv_diagnostics, only: icedrv_diagnostics_abort
 
       implicit none
       private
-      public :: icepack_drv_initialize
+      public :: icedrv_initialize
       save
 
 !=======================================================================
@@ -25,29 +25,29 @@
 
 !  Initialize Icepack
 
-      subroutine icepack_drv_initialize
+      subroutine icedrv_initialize
 
-      use icepack_drv_arrays_column, only: hin_max, c_hi_range, zfswin, trcrn_sw, &
+      use icedrv_arrays_column, only: hin_max, c_hi_range, zfswin, trcrn_sw, &
           ocean_bio_all, ice_bio_net, snow_bio_net
-      use icepack_drv_calendar, only: dt, dt_dyn, time, istep, istep1, write_ic, &
+      use icedrv_calendar, only: dt, dt_dyn, time, istep, istep1, write_ic, &
           init_calendar, calendar
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
       use icepack_intfc, only: icepack_warnings_flush
-      use icepack_drv_domain_size, only: ncat
-      use icepack_drv_constants, only: nu_diag
-      use icepack_drv_diagnostics, only: debug_icepack
-      use icepack_drv_flux, only: init_coupler_flux, init_history_therm, &
+      use icedrv_domain_size, only: ncat
+      use icedrv_constants, only: nu_diag
+      use icedrv_diagnostics, only: icedrv_diagnostics_debug
+      use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm_ocn
-      use icepack_drv_forcing, only: init_forcing, get_forcing
-      use icepack_drv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
-      use icepack_drv_restart_shared, only: restart
-      use icepack_drv_init, only: input_data, init_state, init_grid2
-      use icepack_drv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
+      use icedrv_forcing, only: init_forcing, get_forcing
+      use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
+      use icedrv_restart_shared, only: restart
+      use icedrv_init, only: input_data, init_state, init_grid2
+      use icedrv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
       use icepack_intfc, only: icepack_configure
-      use icepack_drv_tracers, only: tr_aero, tr_zaero
-      use icepack_drv_parameters, only: skl_bgc, z_tracers
+      use icedrv_tracers, only: tr_aero, tr_zaero
+      use icedrv_parameters, only: skl_bgc, z_tracers
 
-      character(len=*), parameter :: subname='(icepack_drv_initialize)'
+      character(len=*), parameter :: subname='(icedrv_initialize)'
 
       call icepack_configure()  ! initialize icepack
       call input_data           ! namelist variables
@@ -61,7 +61,7 @@
       call init_thermo_vertical ! initialize vertical thermodynamics
       call icepack_init_itd(ncat, hin_max)
       if (icepack_warnings_aborted(subname)) then
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
 
       call icepack_warnings_flush(nu_diag)
@@ -110,28 +110,28 @@
 
       call init_flux_atm_ocn    ! initialize atmosphere, ocean fluxes
 
-      end subroutine icepack_drv_initialize
+      end subroutine icedrv_initialize
 
 !=======================================================================
 
       subroutine init_restart
 
-      use icepack_drv_arrays_column, only: dhsn
-      use icepack_drv_calendar, only: time, calendar
-      use icepack_drv_constants, only: c0
+      use icedrv_arrays_column, only: dhsn
+      use icedrv_calendar, only: time, calendar
+      use icedrv_constants, only: c0
       use icepack_intfc, only: icepack_aggregate
-      use icepack_drv_domain_size, only: ncat, max_ntrcr, n_aero, nx
-      use icepack_drv_flux, only: sss
-      use icepack_drv_init, only: ice_ic
-      use icepack_drv_init, only: tmask
-      use icepack_drv_init_column, only: init_hbrine, init_bgc
-      use icepack_drv_restart, only: restartfile, read_restart_hbrine
-      use icepack_drv_restart_shared, only: restart
-      use icepack_drv_state ! almost everything
-      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, &
+      use icedrv_domain_size, only: ncat, max_ntrcr, n_aero, nx
+      use icedrv_flux, only: sss
+      use icedrv_init, only: ice_ic
+      use icedrv_init, only: tmask
+      use icedrv_init_column, only: init_hbrine, init_bgc
+      use icedrv_restart, only: restartfile, read_restart_hbrine
+      use icedrv_restart_shared, only: restart
+      use icedrv_state ! almost everything
+      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, &
           tr_pond_cesm, nt_apnd, nt_hpnd, tr_pond_lvl, nt_ipnd, &
           tr_pond_topo, tr_aero, tr_brine, nt_iage, nt_FY, nt_aero
-      use icepack_drv_parameters, only: skl_bgc, z_tracers, solve_zsal
+      use icedrv_parameters, only: skl_bgc, z_tracers, solve_zsal
 
       integer(kind=int_kind) :: &
          i                            ! horizontal indices
@@ -182,6 +182,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_InitMod
+      end module icedrv_InitMod
 
 !=======================================================================

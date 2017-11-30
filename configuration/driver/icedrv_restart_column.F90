@@ -4,12 +4,12 @@
 !
 ! author: Elizabeth C. Hunke, LANL
 !
-      module icepack_drv_restart_column
+      module icedrv_restart_column
 
-      use icepack_drv_kinds
-      use icepack_drv_constants
-      use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nblyr, nx
-      use icepack_drv_restart, only: read_restart_field_cn, write_restart_field_cn
+      use icedrv_kinds
+      use icedrv_constants
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, nx
+      use icedrv_restart, only: read_restart_field_cn, write_restart_field_cn
 
       implicit none
       save
@@ -29,25 +29,25 @@
 
       subroutine write_restart_bgc()
 
-      use icepack_drv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
-      use icepack_drv_domain_size, only: ncat, n_algae, n_doc, n_dic
-      use icepack_drv_domain_size, only: n_don, n_zaero, n_fed, n_fep
-!      use icepack_drv_fileunits, only: nu_diag, nu_dump_bgc
-      use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
-      use icepack_drv_flux, only: doc, don, dic, fed, fep, zaeros, hum
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_restart, only:  write_restart_field
-      use icepack_drv_tracers, only: nbtrcr
-      use icepack_drv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
-      use icepack_drv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
-      use icepack_drv_tracers, only: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
-      use icepack_drv_tracers, only: nt_bgc_S, nt_bgc_N, nt_bgc_chl, nt_bgc_C, nt_bgc_DOC
-      use icepack_drv_tracers, only: nt_bgc_DIC, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
-      use icepack_drv_tracers, only: nt_bgc_hum
-      use icepack_drv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
-      use icepack_drv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
-      use icepack_drv_tracers, only: nt_zbgc_frac, nt_zaero
-      use icepack_drv_parameters, only: skl_bgc, solve_zsal
+      use icedrv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
+      use icedrv_domain_size, only: ncat, n_algae, n_doc, n_dic
+      use icedrv_domain_size, only: n_don, n_zaero, n_fed, n_fep
+!      use icedrv_fileunits, only: nu_diag, nu_dump_bgc
+      use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
+      use icedrv_flux, only: doc, don, dic, fed, fep, zaeros, hum
+      use icedrv_state, only: trcrn
+      use icedrv_restart, only:  write_restart_field
+      use icedrv_tracers, only: nbtrcr
+      use icedrv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
+      use icedrv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
+      use icedrv_tracers, only: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
+      use icedrv_tracers, only: nt_bgc_S, nt_bgc_N, nt_bgc_chl, nt_bgc_C, nt_bgc_DOC
+      use icedrv_tracers, only: nt_bgc_DIC, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
+      use icedrv_tracers, only: nt_bgc_hum
+      use icedrv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
+      use icedrv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
+      use icedrv_tracers, only: nt_zbgc_frac, nt_zaero
+      use icedrv_parameters, only: skl_bgc, solve_zsal
 
       ! local variables
 
@@ -434,25 +434,25 @@
 
       subroutine read_restart_bgc()
 
-      use icepack_drv_arrays_column, only: Rayleigh_real, Rayleigh_criteria
-      use icepack_drv_domain_size, only: ncat, n_algae, n_doc, n_dic
-      use icepack_drv_domain_size, only: n_don, n_zaero, n_fed, n_fep
-!      use icepack_drv_fileunits, only: nu_diag, nu_restart_bgc
-      use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
-      use icepack_drv_flux, only: doc, don, dic, fed, fep, zaeros, hum
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_restart, only: read_restart_field
-      use icepack_drv_tracers, only: nbtrcr
-      use icepack_drv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
-      use icepack_drv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
-      use icepack_drv_tracers, only: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
-      use icepack_drv_tracers, only: nt_bgc_S, nt_bgc_N, nt_bgc_chl, nt_bgc_C, nt_bgc_DOC
-      use icepack_drv_tracers, only: nt_bgc_DIC, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
-      use icepack_drv_tracers, only: nt_bgc_hum
-      use icepack_drv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
-      use icepack_drv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
+      use icedrv_arrays_column, only: Rayleigh_real, Rayleigh_criteria
+      use icedrv_domain_size, only: ncat, n_algae, n_doc, n_dic
+      use icedrv_domain_size, only: n_don, n_zaero, n_fed, n_fep
+!      use icedrv_fileunits, only: nu_diag, nu_restart_bgc
+      use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
+      use icedrv_flux, only: doc, don, dic, fed, fep, zaeros, hum
+      use icedrv_state, only: trcrn
+      use icedrv_restart, only: read_restart_field
+      use icedrv_tracers, only: nbtrcr
+      use icedrv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
+      use icedrv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
+      use icedrv_tracers, only: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
+      use icedrv_tracers, only: nt_bgc_S, nt_bgc_N, nt_bgc_chl, nt_bgc_C, nt_bgc_DOC
+      use icedrv_tracers, only: nt_bgc_DIC, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
+      use icedrv_tracers, only: nt_bgc_hum
+      use icedrv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
+      use icedrv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
       use icepack_tracers, only: nt_zbgc_frac, nt_zaero
-      use icepack_drv_parameters, only: skl_bgc
+      use icedrv_parameters, only: skl_bgc
 
       ! local variables
 
@@ -863,6 +863,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_restart_column
+      end module icedrv_restart_column
 
 !=======================================================================

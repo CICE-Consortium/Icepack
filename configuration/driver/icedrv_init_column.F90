@@ -4,12 +4,12 @@
 !
 ! author: Elizabeth C. Hunke, LANL
 !
-      module icepack_drv_init_column
+      module icedrv_init_column
 
-      use icepack_drv_kinds
-      use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
+      use icedrv_kinds
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_drv_diagnostics, only: diagnostic_abort
+      use icedrv_diagnostics, only: icedrv_diagnostics_abort
 
       implicit none
       save
@@ -31,9 +31,9 @@
 
       subroutine init_thermo_vertical
 
-      use icepack_drv_constants, only: depressT
+      use icedrv_constants, only: depressT
       use icepack_intfc, only: icepack_init_thermo
-      use icepack_drv_flux, only: salinz, Tmltz
+      use icedrv_flux, only: salinz, Tmltz
 
       integer (kind=int_kind) :: &
          i,          &  ! horizontal indices
@@ -70,33 +70,33 @@
 
       subroutine init_shortwave
 
-      use icepack_drv_arrays_column, only: fswpenln, Iswabsn, Sswabsn, albicen
-      use icepack_drv_arrays_column, only: albsnon, alvdrn, alidrn, alvdfn, alidfn, fswsfcn, fswthrun
-      use icepack_drv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn, ffracn, snowfracn
-      use icepack_drv_arrays_column, only: kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab, gaer_bc_tab, bcenh
-      use icepack_drv_arrays_column, only: swgrid, igrid
-      use icepack_drv_calendar, only: istep1, dt, calendar_type
-      use icepack_drv_calendar, only:    days_per_year, nextsw_cday, yday, sec
-      use icepack_drv_constants, only: nu_diag
-      use icepack_drv_constants, only: c0, c1, puny
-      use icepack_drv_diagnostics, only: diagnostic_abort
-      use icepack_drv_domain_size, only: n_aero, n_zaero, ncat, nilyr, nslyr, n_algae, nblyr
-      use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr
-      use icepack_drv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
-      use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf, scale_factor, snowfrac
-      use icepack_drv_flux, only: albice, albsno, albpnd, apeff_ai, coszen, fsnow
-      use icepack_drv_init, only: tlat, tlon, tmask
-      use icepack_drv_restart_shared, only: restart
-      use icepack_drv_state, only: aicen, vicen, vsnon, trcrn
+      use icedrv_arrays_column, only: fswpenln, Iswabsn, Sswabsn, albicen
+      use icedrv_arrays_column, only: albsnon, alvdrn, alidrn, alvdfn, alidfn, fswsfcn, fswthrun
+      use icedrv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn, ffracn, snowfracn
+      use icedrv_arrays_column, only: kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab, gaer_bc_tab, bcenh
+      use icedrv_arrays_column, only: swgrid, igrid
+      use icedrv_calendar, only: istep1, dt, calendar_type
+      use icedrv_calendar, only:    days_per_year, nextsw_cday, yday, sec
+      use icedrv_constants, only: nu_diag
+      use icedrv_constants, only: c0, c1, puny
+      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icedrv_domain_size, only: n_aero, n_zaero, ncat, nilyr, nslyr, n_algae, nblyr
+      use icedrv_flux, only: alvdf, alidf, alvdr, alidr
+      use icedrv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
+      use icedrv_flux, only: swvdr, swvdf, swidr, swidf, scale_factor, snowfrac
+      use icedrv_flux, only: albice, albsno, albpnd, apeff_ai, coszen, fsnow
+      use icedrv_init, only: tlat, tlon, tmask
+      use icedrv_restart_shared, only: restart
+      use icedrv_state, only: aicen, vicen, vsnon, trcrn
 
       ! column package includes
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
-      use icepack_drv_parameters, only: shortwave, dEdd_algae, modal_aero
-      use icepack_drv_tracers, only: tr_brine, tr_zaero, tr_bgc_n
-      use icepack_drv_tracers, only: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
-      use icepack_drv_tracers, only: nt_fbri, nt_tsfc
-      use icepack_drv_tracers, only: ntrcr, nbtrcr, nbtrcr_sw
-      use icepack_drv_tracers, only: nlt_chl_sw, nlt_zaero_sw
+      use icedrv_parameters, only: shortwave, dEdd_algae, modal_aero
+      use icedrv_tracers, only: tr_brine, tr_zaero, tr_bgc_n
+      use icedrv_tracers, only: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
+      use icedrv_tracers, only: nt_fbri, nt_tsfc
+      use icedrv_tracers, only: ntrcr, nbtrcr, nbtrcr_sw
+      use icedrv_tracers, only: nlt_chl_sw, nlt_zaero_sw
 
       integer (kind=int_kind) :: &
          i, k           , & ! horizontal indices
@@ -171,7 +171,7 @@
                call icepack_init_orbit()
                call icepack_warnings_flush(nu_diag)
 
-               if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+               if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
                    __FILE__, __LINE__)
 #endif
             endif
@@ -310,30 +310,30 @@
 
       subroutine init_bgc() 
 
-      use icepack_drv_arrays_column, only: zfswin, trcrn_sw
-      use icepack_drv_arrays_column, only: ocean_bio_all, ice_bio_net, snow_bio_net
-      use icepack_drv_arrays_column, only: cgrid, igrid, bphi, iDi, bTiz, iki
-      use icepack_drv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
-      use icepack_drv_calendar,  only: dt, istep1
-      use icepack_drv_constants, only: c0
-      use icepack_drv_diagnostics, only: diagnostic_abort
-      use icepack_drv_domain_size, only: nblyr, nilyr
-      use icepack_drv_constants, only: nu_diag
-      use icepack_drv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
+      use icedrv_arrays_column, only: zfswin, trcrn_sw
+      use icedrv_arrays_column, only: ocean_bio_all, ice_bio_net, snow_bio_net
+      use icedrv_arrays_column, only: cgrid, igrid, bphi, iDi, bTiz, iki
+      use icedrv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
+      use icedrv_calendar,  only: dt, istep1
+      use icedrv_constants, only: c0
+      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icedrv_domain_size, only: nblyr, nilyr
+      use icedrv_constants, only: nu_diag
+      use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, hum
-      use icepack_drv_forcing_bgc, only:  get_forcing_bgc !cn init_bgc_data
-!      use icepack_drv_restart_column, only: restart_zsal, &
+      use icedrv_forcing_bgc, only:  get_forcing_bgc !cn init_bgc_data
+!      use icedrv_restart_column, only: restart_zsal, &
 !          read_restart_bgc, restart_bgc
-      use icepack_drv_state, only: trcrn, aicen, vicen, vsnon
-      use icepack_drv_parameters, only: solve_zsal
-      use icepack_drv_tracers, only: max_algae, max_don, max_doc, max_dic, max_aero, max_fe
-      use icepack_drv_tracers, only: max_nbtrcr
+      use icedrv_state, only: trcrn, aicen, vicen, vsnon
+      use icedrv_parameters, only: solve_zsal
+      use icedrv_tracers, only: max_algae, max_don, max_doc, max_dic, max_aero, max_fe
+      use icedrv_tracers, only: max_nbtrcr
 
       ! column package includes
       use icepack_intfc,   only: icepack_init_bgc, icepack_init_zsalinity
       use icepack_intfc,   only: icepack_init_ocean_conc, icepack_init_OceanConcArray
-      use icepack_drv_tracers, only: nbtrcr, ntrcr, ntrcr_o
-      use icepack_drv_tracers, only: nt_sice, nt_bgc_S
+      use icedrv_tracers, only: nbtrcr, ntrcr, ntrcr_o
+      use icedrv_tracers, only: nt_sice, nt_bgc_S
 
       ! local variables
 
@@ -438,7 +438,7 @@
                                  ocean_bio_all(i,:),  hum(i))
 
             call icepack_warnings_flush(nu_diag)
-            if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+            if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
                 __FILE__, __LINE__)
 
          enddo  ! i
@@ -452,7 +452,7 @@
                sss(i), &
                ocean_bio_all(i,:))
             call icepack_warnings_flush(nu_diag)
-            if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
+            if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
                 __FILE__, __LINE__)
             enddo  ! i
 
@@ -472,14 +472,14 @@
 
       subroutine init_hbrine()
 
-      use icepack_drv_arrays_column, only: first_ice, bgrid, igrid, cgrid
-      use icepack_drv_arrays_column, only: icgrid, swgrid
-      use icepack_drv_constants, only: c1
-      use icepack_drv_domain_size, only: nblyr
-      use icepack_drv_state, only: trcrn
+      use icedrv_arrays_column, only: first_ice, bgrid, igrid, cgrid
+      use icedrv_arrays_column, only: icgrid, swgrid
+      use icedrv_constants, only: c1
+      use icedrv_domain_size, only: nblyr
+      use icedrv_state, only: trcrn
       use icepack_intfc, only: icepack_init_hbrine
-      use icepack_drv_tracers, only: nt_fbri, tr_brine
-      use icepack_drv_parameters, only: phi_snow
+      use icedrv_tracers, only: nt_fbri, tr_brine
+      use icedrv_parameters, only: phi_snow
 
       character(len=*), parameter :: subname='(init_hbrine)'
 
@@ -500,20 +500,20 @@
 
       subroutine init_zbgc
 
-      use icepack_drv_constants, only: nu_diag, nu_nml
-      use icepack_drv_constants, only: c1, c2, p5, c0, c5, rhos, rhoi, p1
-      use icepack_drv_domain_size, only: max_ntrcr, nblyr, nilyr, nslyr
-      use icepack_drv_domain_size, only: n_algae, n_zaero, n_doc, n_dic, n_don
-      use icepack_drv_domain_size, only: n_fed, n_fep, max_nsw, n_bgc
-!     use icepack_drv_restart_column, only: restart_bgc, restart_zsal
-!     use icepack_drv_restart_column, only: restart_hbrine
-      use icepack_drv_state, only: trcr_base, trcr_depend, n_trcr_strata
-      use icepack_drv_state, only: nt_strata
-      use icepack_drv_arrays_column, only: bgc_data_dir
-      use icepack_drv_arrays_column, only: sil_data_type, nit_data_type, fe_data_type
-      use icepack_drv_tracers, only: max_algae, max_don, max_doc, max_dic, max_aero
-      use icepack_drv_tracers, only: max_fe, max_nbtrcr, tr_aero
-      use icepack_drv_parameters, only: shortwave
+      use icedrv_constants, only: nu_diag, nu_nml
+      use icedrv_constants, only: c1, c2, p5, c0, c5, rhos, rhoi, p1
+      use icedrv_domain_size, only: max_ntrcr, nblyr, nilyr, nslyr
+      use icedrv_domain_size, only: n_algae, n_zaero, n_doc, n_dic, n_don
+      use icedrv_domain_size, only: n_fed, n_fep, max_nsw, n_bgc
+!     use icedrv_restart_column, only: restart_bgc, restart_zsal
+!     use icedrv_restart_column, only: restart_hbrine
+      use icedrv_state, only: trcr_base, trcr_depend, n_trcr_strata
+      use icedrv_state, only: nt_strata
+      use icedrv_arrays_column, only: bgc_data_dir
+      use icedrv_arrays_column, only: sil_data_type, nit_data_type, fe_data_type
+      use icedrv_tracers, only: max_algae, max_don, max_doc, max_dic, max_aero
+      use icedrv_tracers, only: max_fe, max_nbtrcr, tr_aero
+      use icedrv_parameters, only: shortwave
 
       use icepack_intfc, only: icepack_init_tracer_numbers, icepack_init_tracer_flags
       use icepack_intfc, only: icepack_init_tracer_indices
@@ -747,7 +747,7 @@
       !  1 : retention time scale is tau_max, release time scale is tau_min
       ! 0.5: retention time scale is tau_min, release time scale is tau_min
       !  2 : retention time scale is tau_max, release time scale is tau_max
-      ! tau_min and tau_max are defined in icepack_drv_parameters.f90
+      ! tau_min and tau_max are defined in icedrv_parameters.f90
       !------------------------------------------------------------
 
       !-----------------------------------------------------------------
@@ -989,7 +989,7 @@
          if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
          print*,'error reading zbgc namelist'
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
 
       !-----------------------------------------------------------------
@@ -1061,7 +1061,7 @@
 
       if ((skl_bgc .AND. solve_zbgc) .or. (skl_bgc .AND. z_tracers)) then
          print*, 'ERROR: skl_bgc and (solve_zbgc or z_tracers) are both true'
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (skl_bgc .AND. tr_zaero) then
@@ -1093,27 +1093,27 @@
       endif
       if (n_algae > max_algae) then
          print*, 'error:number of algal types exceeds max_algae'
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_doc > max_doc) then
          print*, 'error:number of algal types exceeds max_doc'
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_dic > max_dic) then
          print*, 'error:number of dic types exceeds max_dic'
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_don > max_don) then
          print*, 'error:number of don types exceeds max_don'
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fed > max_fe) then
          print*, 'error:number of dissolved fe types exceeds max_fe'
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fep > max_fe) then
          print*, 'error:number of particulate fe types exceeds max_fe'
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
 
       if ((TRBGCS == 0 .and. skl_bgc) .or. (TRALG == 0 .and. skl_bgc)) then
@@ -1157,28 +1157,28 @@
 
       if (n_zaero > max_aero) then
          print*, 'error:number of z aerosols exceeds max_aero'
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif         
 
       if (skl_bgc .and. n_bgc < 2) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'comp_ice must have number of bgc tracers >= 2'
          write (nu_diag,*) 'number of bgc tracers compiled:',n_bgc
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (solve_zbgc .and. n_bgc < 2) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'comp_ice must have number of zbgc tracers >= 2'
          write (nu_diag,*) 'number of bgc tracers compiled:',n_bgc
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_zaero .and. TRZAERO <  1) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'comp_ice must have number of TRZAERO > 0'
          write (nu_diag,*) 'in order to solve z aerosols:',TRZAERO
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
 
       call icepack_init_tracer_indices( &
@@ -1761,7 +1761,7 @@
          write (nu_diag,*) ' '
          write (nu_diag,*) 'nbtrcr > max_nbtrcr'
          write (nu_diag,*) 'nbtrcr, max_nbtrcr:',nbtrcr, max_nbtrcr
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif	
       if (.NOT. dEdd_algae) nbtrcr_sw = 1
 
@@ -1769,13 +1769,13 @@
          write (nu_diag,*) ' '
          write (nu_diag,*) 'nbtrcr_sw > max_nsw'
          write (nu_diag,*) 'nbtrcr_sw, max_nsw:',nbtrcr_sw, max_nsw
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (ntrcr > max_ntrcr) then
          write(nu_diag,*) 'max_ntrcr < number of namelist tracers'
          write(nu_diag,*) 'max_ntrcr = ',max_ntrcr,' ntrcr = ',ntrcr
-         call diagnostic_abort(file=__FILE__,line=__LINE__)
+         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
       endif                               
 
       !-----------------------------------------------------------------
@@ -1975,6 +1975,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_init_column
+      end module icedrv_init_column
 
 !=======================================================================

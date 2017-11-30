@@ -30,10 +30,10 @@
 ! authors C. M. Bitz, UW
 !         Elizabeth C. Hunke and William H. Lipscomb, LANL
 
-      module icepack_drv_state
+      module icedrv_state
 
-      use icepack_drv_kinds
-      use icepack_drv_domain_size, only: nx, ncat, max_ntrcr, n_aero
+      use icedrv_kinds
+      use icedrv_domain_size, only: nx, ncat, max_ntrcr, n_aero
 
       implicit none
       private
@@ -120,6 +120,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_state
+      end module icedrv_state
 
 !=======================================================================

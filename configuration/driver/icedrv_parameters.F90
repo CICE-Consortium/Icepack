@@ -5,9 +5,9 @@
 !
 ! author Elizabeth C. Hunke, LANL
 
-      module icepack_drv_parameters
+      module icedrv_parameters
 
-      use icepack_drv_kinds
+      use icedrv_kinds
       use icepack_parameters, only: formdrag, calc_Tsfc, ktherm, calc_strair
 !      use icepack_parameters, only: ustar_min, oceanmixed_ice
       use icepack_parameters, only: modal_aero, ustar_min
@@ -31,6 +31,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_parameters
+      end module icedrv_parameters
 
 !=======================================================================

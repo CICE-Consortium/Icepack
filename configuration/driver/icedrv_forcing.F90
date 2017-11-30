@@ -4,15 +4,15 @@
 !
 ! authors: Elizabeth C. Hunke and William H. Lipscomb, LANL
 !
-      module icepack_drv_forcing
+      module icedrv_forcing
 
-      use icepack_drv_kinds
-      use icepack_drv_domain_size, only: ncat, nx
-      use icepack_drv_calendar, only: time, nyr, dayyr, mday, month, &
+      use icedrv_kinds
+      use icedrv_domain_size, only: ncat, nx
+      use icedrv_calendar, only: time, nyr, dayyr, mday, month, &
          daymo, daycal, &
          dt, yday , days_per_year
-      use icepack_drv_constants, only: nu_diag, nu_forcing, secday
-      use icepack_drv_parameters, only: calc_strair
+      use icedrv_constants, only: nu_diag, nu_forcing, secday
+      use icedrv_parameters, only: calc_strair
 
       implicit none
       private
@@ -102,7 +102,7 @@
 ! namelist input; initialize the forcing data.
 
       use icepack_constants, only: c0
-      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
+      use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp
 
@@ -190,7 +190,7 @@
 ! the time step and the data both start Jan 1.
 
       use icepack_constants, only: c0, c1
-      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
+      use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp, hmix
 
@@ -1232,7 +1232,7 @@ endif
 
       use icepack_constants, only: c0
       use icepack_therm_shared, only: icepack_sea_freezing_temperature
-      use icepack_drv_flux, only: sss, Tf, sst, hmix
+      use icedrv_flux, only: sss, Tf, sst, hmix
 
       real (kind=dbl_kind), dimension(nx), intent(in)  :: &
           sst_temp
@@ -1255,6 +1255,6 @@ endif
 
 !=======================================================================
 
-      end module icepack_drv_forcing
+      end module icedrv_forcing
 
 !=======================================================================
