@@ -6,15 +6,18 @@
 !
       module icepack_drv_forcing
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
+      use icepack_drv_domain_size, only: ncat, nx
       use icepack_drv_calendar, only: time, nyr, dayyr, mday, month, &
-         daymo, daycal
-      use icepack_drv_constants, only: nu_diag
-      use icepack_intfc_shared, only: calc_strair
+         daymo, daycal, &
+         dt, yday , days_per_year
+      use icepack_drv_constants, only: nu_diag, nu_forcing, secday
+      use icepack_drv_parameters, only: calc_strair
 
       implicit none
       private
-      public :: init_forcing, get_forcing
+      public :: init_forcing, get_forcing, interp_coeff, interp_coeff_monthly
+
       save
 
       integer (kind=int_kind), parameter :: &
@@ -52,15 +55,19 @@
           swvdf_data, &
           swidr_data, &
           swidf_data, &
-           zlvl_data
+           zlvl_data, &
+          hmix_data
+
+      real (kind=dbl_kind), dimension(nx) :: &
+          sst_temp
 
       character(char_len), public :: & 
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
          ocn_data_format, & ! 'bin'=binary or 'nc'=netcdf
          bgc_data_format, & ! 'bin'=binary or 'nc'=netcdf
-         atm_data_type,   & ! 'default', 'clim', 'GOFS'
+         atm_data_type,   & ! 'default', 'clim', 'CFS'
          ocn_data_type,   & ! 'default'
-         bgc_data_type,   & ! 'default', 
+         bgc_data_type,   & ! 'default'
          precip_units       ! 'mm_per_month', 'mm_per_sec', 'mks'
  
       character(char_len_long), public :: & 
@@ -75,6 +82,13 @@
 
       logical (kind=log_kind), public :: &
          dbug             ! prints debugging output if true
+
+      logical (kind=log_kind), public :: &
+         restore_ocn               ! restore sst if true
+
+      real (kind=dbl_kind), public :: & 
+         trest, &                    ! restoring time scale (sec)
+         trestore                    ! restoring time scale (days)
 
 !=======================================================================
 
@@ -135,8 +149,22 @@
 
           cldf_data(:) = c0     ! cloud fraction
 
-      if (trim(atm_data_type(1:4)) == 'GOFS') call atm_GOFS
+      if (trim(atm_data_type(1:4)) == 'CFS') call atm_CFS
       if (trim(atm_data_type(1:4)) == 'clim') call atm_climatological
+
+      if (trim(atm_data_type) == 'ISPOL') call atm_ISPOL
+      if (trim(atm_data_type) == 'NICE') call atm_NICE
+
+      !cn if (restore_ocn .or. restore_bgc) then
+      if (restore_ocn) then
+        if (trestore == 0) then
+          trest = dt        ! use data instantaneously
+        else
+          trest = real(trestore,kind=dbl_kind) * secday ! seconds
+        end if
+      endif
+
+      if (trim(ocn_data_type) == 'ISPOL') call ocn_ISPOL
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     flw_data,      &
@@ -148,7 +176,6 @@
                             swvdr_data,    swvdf_data,    &
                             swidr_data,    swidf_data,    &
                             potT_data)
-
       end subroutine init_forcing
 
 !=======================================================================
@@ -161,9 +188,9 @@
 ! the time step and the data both start Jan 1.
 
       use icepack_constants, only: c0, c1
-      use icepack_drv_flux, only: Tair, potT, rhoa, uatm, vatm, wind, &
+      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp
+         fsnow, sst, sss, uocn, vocn, qdp, hmix
 
       integer (kind=int_kind), intent(in) :: &
          timestep         ! time step index
@@ -179,13 +206,41 @@
       real (kind=dbl_kind) :: &
          c1intp, c2intp   ! interpolation coefficients
 
-      if (trim(atm_data_type) == 'GOFS') then
+      integer (kind=int_kind) :: &  !cn ispol stuff
+          recnum, dataloc, maxrec
+
+      real (kind=dbl_kind) :: &
+          sec6hr
+
+      if (trim(atm_data_type) == 'CFS') then
          ! calculate data index corresponding to current timestep
          i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
          mlast = i
          mnext = mlast
          c1intp = c1
          c2intp = c0
+
+         ! fill all grid boxes with the same forcing data
+         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
       elseif (trim(atm_data_type) == 'clim') then
          midmonth = 15  ! assume data is given on 15th of every month
          recslot = 1                             ! latter half of month
@@ -198,41 +253,142 @@
             mnext = month
          endif
          call interp_coeff_monthly(recslot, c1intp, c2intp)
+
+         ! fill all grid boxes with the same forcing data
+         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
+      elseif (trim(atm_data_type) == 'ISPOL' .or. &
+          trim(atm_data_type) == 'NICE') then
+
+        !we have a years worth of data, some in days, some in 6hr or quarter day
+        !it also looks like the data Nicole starts on June 17, not Jan 1 ?????
+        !also need to repeat as above
+
+        dataloc = 2                          ! data located at end of interval
+        maxrec = 366
+        recslot = 2
+        recnum = int(yday)
+        mlast = mod(recnum+maxrec-2,maxrec) + 1
+        mnext = mod(recnum-1,       maxrec) + 1
+        call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
+
+        Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+        Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+        uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+        vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+        fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+
+        sec6hr = secday/4;                      ! seconds in 6 hours
+        maxrec = 1464
+        recnum = int(yday*4)
+        mlast = mod(recnum+maxrec-2,maxrec) + 1
+        mnext = mod(recnum-1,       maxrec) + 1
+        call interp_coeff (recnum, recslot, sec6hr, dataloc, c1intp, c2intp)
+
+        fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+        flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+
+         ! derived
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
       endif
 
-      ! fill all grid boxes with the same forcing data
-      flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-      Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
-      potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-      rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-      uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
-      vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
-      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-      strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-      stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-      wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-      fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
-      swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-      swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-      swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-      swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-      Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
-      frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-      fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+!cn this is called from get_forcing_ocn in cice...
+      if (trim(ocn_data_type) == 'ISPOL') then
 
-        qdp(:) = c1intp *   qdp_data(mlast) + c2intp *   qdp_data(mnext)
+         midmonth = 15  ! assume data is given on 15th of every month
+         recslot = 1                             ! latter half of month
+         if (mday < midmonth) recslot = 2        ! first half of month
+         if (recslot == 1) then
+            mlast = month
+            mnext = mod(month   ,12) + 1
+         else ! recslot = 2
+            mlast = mod(month+10,12) + 1
+            mnext = month
+         endif
+         call interp_coeff_monthly(recslot, c1intp, c2intp)
 
-!      if (.not. oceanmixed_ice) &
-!        sst(:) = c1intp *   sst_data(mlast) + c2intp *   sst_data(mnext)
-!        sss(:) = c1intp *   sss_data(mlast) + c2intp *   sss_data(mnext)
-!       uocn(:) = c1intp *  uocn_data(mlast) + c2intp *  uocn_data(mnext)
-!       vocn(:) = c1intp *  vocn_data(mlast) + c2intp *  vocn_data(mnext)
+         sst_temp(:) = c1intp *  sst_data(mlast) + c2intp *  sst_data(mnext)
+         sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
+         uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
+         vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
+         qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
+
+      elseif (trim(ocn_data_type) == 'NICE') then
+
+!cn the nice stuff seems to be more complicated than ispol....
+         midmonth = 15  ! assume data is given on 15th of every month
+         recslot = 1                             ! latter half of month
+         if (mday < midmonth) recslot = 2        ! first half of month
+         if (recslot == 1) then
+            mlast = month
+            mnext = mod(month   ,12) + 1
+         else ! recslot = 2
+            mlast = mod(month+10,12) + 1
+            mnext = month
+         endif
+         call interp_coeff_monthly(recslot, c1intp, c2intp)
+
+         sst_temp(:) = c1intp *  sst_data(mlast) + c2intp *  sst_data(mnext)
+         sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
+         uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
+         vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
+         qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
+
+      else
+
+         ! use default values for all other data fields
+         i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
+         mlast = i
+         mnext = mlast
+         c1intp = c1
+         c2intp = c0
+
+         sst_temp(:) = c1intp *  sst_data(mlast) + c2intp *  sst_data(mnext)
+         sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
+         uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
+         vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
+         qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
+
+      endif
+
+      call finish_ocn_forcing(sst_temp)
 
 ! for debugging
-!if (timestep==8760.or.timestep==8761) then
+!if (timestep==4009.or.timestep==4010) then
 if (0==1) then ! off
-write (nu_diag,*) 'timestep',timestep, mlast, mnext
-write (nu_diag,*) 'index',mlast,mnext
+write (nu_diag,*) 'timestep, mlast,mnext,yday',timestep, mlast, mnext, yday
+write (nu_diag,*) 'recnum',recnum
+write (nu_diag,*) 'c1intp, c2intp',c1intp, c2intp
 write (nu_diag,*) 'flw',flw
 write (nu_diag,*) 'fsw',fsw
 write (nu_diag,*) 'Tair',Tair
@@ -314,17 +470,16 @@ endif
       frain_data(1:12) = c0
 
       ! 6 W/m2 warming of mixed layer from deep ocean
-        qdp_data(1:12) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
+        qdp_data(:) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
                               ! SH+LH with bulk transfer than in MU 71
 
       end subroutine atm_climatological
 
 !=======================================================================
 
-      subroutine atm_GOFS
+      subroutine atm_CFS
 
       integer (kind=int_kind) :: &
-         nu_navy, &     ! unit number
          nt             ! loop index
 
       real (kind=dbl_kind) :: &
@@ -340,17 +495,16 @@ endif
       character (char_len_long) string1
       character (char_len_long) filename
 
-      nu_navy = 12
       filename = trim(data_dir)//'/CFS/cfsv2_2015_220_70_01hr.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
-      open (nu_navy, file=filename, form='formatted')
-      read (nu_navy, *) string1 ! headers
-      read (nu_navy, *) string1 ! units
+      open (nu_forcing, file=filename, form='formatted')
+      read (nu_forcing, *) string1 ! headers
+      read (nu_forcing, *) string1 ! units
 
       do nt = 1, ntime
-         read (nu_navy, '(6(f10.5,1x),2(f10.8,1x))') &
+         read (nu_forcing, '(6(f10.5,1x),2(f10.8,1x))') &
          dswsfc, dlwsfc, windu10, windv10, temp2m, spechum, precip
 
            flw_data(nt) = dlwsfc
@@ -363,12 +517,12 @@ endif
          fsnow_data(nt) = precip
       enddo
 
-      close (nu_navy)
+      close (nu_forcing)
 
-!      write(nu_diag,*), 'GOFS data', &
+!      write(nu_diag,*), 'CFS data', &
 !         dswsfc, dlwsfc, windu10, windv10, temp2m, spechum, precip
 
-      end subroutine atm_GOFS
+      end subroutine atm_CFS
 
 !=======================================================================
 
@@ -414,6 +568,9 @@ endif
       integer (kind=int_kind) :: &
          nt
 
+      real (kind=dbl_kind), parameter :: &    
+         lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
+
       real (kind=dbl_kind) :: workx, worky, &
          precip_factor, zlvl0
 
@@ -446,7 +603,7 @@ endif
       ! calculations specific to datasets
       !-----------------------------------------------------------------
 
-         if (trim(atm_data_type) == 'GOFS') then
+         if (trim(atm_data_type) == 'CFS') then
             ! precip is in kg/m^2/s
             zlvl0 = c10
             ! downward longwave as in Parkinson and Washington (1979)
@@ -455,7 +612,12 @@ endif
          elseif (trim(atm_data_type) == 'clim') then
             ! precip is in kg/m^2/s
             zlvl0 = c2
-         endif                     ! atm_data_type
+
+          elseif (trim(atm_data_type) == 'ISPOL' .or. &
+              trim(atm_data_type) == 'NICE') then
+            Tair(nt) = Tair(nt) -  lapse_rate*8.0_dbl_kind
+
+          endif                     ! atm_data_type
 
 
 ! this longwave depends on the current ice aice and sst and so can not be
@@ -613,6 +775,462 @@ endif
       c2intp =  c1 - c1intp
 
       end subroutine interp_coeff
+
+!=======================================================================
+
+    subroutine atm_ISPOL           
+
+      integer (kind=int_kind) :: &
+         i
+
+      real (kind=dbl_kind), dimension(366) :: &
+          tair, &
+          qa, &
+          uatm, &
+          vatm, &
+          fsnow, &
+          aday
+      real (kind=dbl_kind), dimension(1464) :: &
+          fsw, &
+          flw, &
+          atime
+
+      character (char_len_long) filename
+      
+      filename = trim(data_dir)//'ISPOL_2004/ISPOL_atm_forcing.txt'
+
+      write (nu_diag,*) 'Reading ',filename
+
+      open (nu_forcing, file=filename, form='formatted')
+
+      read(nu_forcing,*) tair
+      read(nu_forcing,*) qa
+      read(nu_forcing,*) fsw
+      read(nu_forcing,*) flw
+      read(nu_forcing,*) uatm
+      read(nu_forcing,*) vatm
+      read(nu_forcing,*) fsnow
+      read(nu_forcing,*) aday
+      read(nu_forcing,*) atime
+
+      do i = 1, 366 !daily
+        Tair_data(i) = tair(i)
+        Qa_data(i) = qa(i)
+        uatm_data(i) = uatm(i)
+        vatm_data(i) = vatm(i)
+        fsnow_data(i) = fsnow(i)
+      end do
+      do i = 1, 1464 ! 6hr, 1464/4=366 days
+        fsw_data(i) = fsw(i)
+        flw_data(i) = flw(i)
+      end do
+
+      !write(*,*) tair
+      !write(*,*) qa
+      !write(*,*) fsw
+      !write(*,*) flw
+      !write(*,*) uatm
+      !write(*,*) vatm
+      !write(*,*) fsnow
+      !write(*,*) aday
+      !write(*,*) atime
+      
+      close(nu_forcing)
+
+      !write (nu_diag,*) ' '
+      !write (nu_diag,*) 'Atmospheric data file:'
+      !write (nu_diag,*) trim(filename)
+      
+    end subroutine atm_ISPOL
+
+!=======================================================================
+
+    subroutine atm_NICE
+
+      integer (kind=int_kind) :: &
+         nu_nice,&     ! unit number
+         i
+
+      real (kind=dbl_kind), dimension(366) :: &
+          tair, &
+          qa, &
+          uatm, &
+          vatm, &
+          fsnow, &
+          aday
+      real (kind=dbl_kind), dimension(1464) :: &
+          fsw, &
+          flw, &
+          atime
+
+      character (char_len_long) filename
+      
+      filename = trim(data_dir)//'/NICE_2015/NICEL_atm_forcing.txt'
+
+      write (nu_diag,*) 'Reading ',filename
+
+      open (nu_forcing, file=filename, form='formatted')
+
+      read(nu_forcing,*) tair
+      read(nu_forcing,*) qa
+      read(nu_forcing,*) fsw
+      read(nu_forcing,*) flw
+      read(nu_forcing,*) uatm
+      read(nu_forcing,*) vatm
+      read(nu_forcing,*) fsnow
+      read(nu_forcing,*) aday
+      read(nu_forcing,*) atime
+      do i = 1, 366
+        Tair_data(i) = tair(i)
+        Qa_data(i) = qa(i)
+        uatm_data(i) = uatm(i)
+        vatm_data(i) = vatm(i)
+        fsnow_data(i) = fsnow(i)
+      end do
+      do i = 1, 1464
+        fsw_data(i) = fsw(i)
+        flw_data(i) = flw(i)
+      end do
+
+      !write(*,*) tair
+      !write(*,*) qa
+      !write(*,*) fsw
+      !write(*,*) flw
+      !write(*,*) uatm
+      !write(*,*) vatm
+      !write(*,*) fsnow
+      !write(*,*) aday
+      !write(*,*) atime
+      
+      close(nu_forcing)
+
+!cn there is probably more to do here, see below...
+
+
+#if 0
+      integer (kind=int_kind), intent(in) :: &
+           yr                   ! current forcing year
+
+      atm_file = &
+          trim(atm_data_dir)//'NICE_atm_forcing.nc'
+
+
+      if (my_task == master_task) then
+         write (nu_diag,*) ' '
+         write (nu_diag,*) 'Atmospheric data file:'
+         write (nu_diag,*) trim(atm_file)
+      endif                     ! master_task
+
+
+!from nicoles      subroutine NICE_data(dt)
+
+! Defines ocean data fields for NICE-2015 Arctic location (Nansen Basin)
+
+! authors: Nicole Jeffery, LANL
+
+! Restore sst if desired. sst is updated with surface fluxes in ice_ocean.F.
+
+      use ice_blocks, only: nx_block, ny_block
+      use ice_constants, only: c0, c1, p5, secday, &
+          field_loc_center, field_type_scalar, p5
+      use ice_global_reductions, only: global_minval, global_maxval
+      use ice_domain, only: nblocks, distrb_info, blocks_ice
+      use ice_domain_size, only: max_blocks
+      use ice_flux, only: sss, sst, Tf, uocn, vocn, ss_tltx, ss_tlty, &
+            qdp, hmix
+      use ice_restart_shared, only: restart
+      use ice_grid, only: hm, tmask, umask
+      use ice_colpkg, only: colpkg_liquidus_temperature
+      use ice_diagnostics, only: latpnt, lonpnt
+#ifdef ncdf
+      use netcdf
+#endif
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt      ! time step
+
+!local parameters
+
+      character (char_len_long) :: &
+         met_file,   &    ! netcdf filename
+         fieldname        ! field name in netcdf file
+
+      integer (kind=int_kind) :: &
+         fid              ! file id for netCDF file
+
+      real (kind=dbl_kind):: &
+         work             ! temporary variable
+
+      real (kind=dbl_kind) :: &
+          vmin, vmax
+
+      real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks) :: &
+         work1
+
+      logical (kind=log_kind) :: diag
+
+      integer (kind=int_kind) :: &
+         status           ! status flag
+
+      integer (kind=int_kind) :: &
+         iblk             ! block index
+
+      ! for interpolation of hourly data
+      integer (kind=int_kind) :: &
+          i, j, k, n  , &
+          ixm,ixx,ixp , & ! record numbers
+          recnum      , & ! record number
+          recnum4X    , & ! record number
+          maxrec      , & ! maximum record number
+          recslot     , & ! spline slot for current record
+          dataloc     , & ! = 1 for data located in middle of time interval
+                          ! = 2 for date located at end of time interval
+          sec_day        !  fix time to noon
+
+      real (kind=dbl_kind) :: &
+          sec1hr              ! number of seconds in 1 hour
+
+      logical (kind=log_kind) :: readm, read1
+
+      diag = .false.   ! write diagnostic information
+     !-------------------------------------------------------------------
+     ! NICE_2015/oceanmixed_daily.nc
+     !-------------------------------------------------------------------
+
+      dataloc = 2                          ! data located at end of interval
+      sec1hr = secday                      ! seconds in day
+      maxrec = 366                         !
+
+      ! current record number
+      recnum = int(yday)   
+
+      ! Compute record numbers for surrounding data (2 on each side)
+      ixm = mod(recnum+maxrec-2,maxrec) + 1
+      ixx = mod(recnum-1,       maxrec) + 1
+!     ixp = mod(recnum,         maxrec) + 1
+
+      ! Compute interpolation coefficients
+      ! If data is located at the end of the time interval, then the
+      !  data value for the current record goes in slot 2
+
+      recslot = 2
+      ixp = -99
+      call interp_coeff (recnum, recslot, sec1hr, dataloc)
+
+      do n = nfld, 1, -1
+        !$OMP PARALLEL DO PRIVATE(iblk,i,j)
+        do iblk = 1, nblocks
+        ! use sst_data arrays as temporary work space until n=1
+        if (ixm /= -99) then
+          sst_data(:,:,1,iblk) = ocn_frc_d(:,:,iblk,n,ixm)
+          sst_data(:,:,2,iblk) = ocn_frc_d(:,:,iblk,n,recnum)
+        else
+          sst_data(:,:,1,iblk) = ocn_frc_d(:,:,iblk,n,recnum)
+          sst_data(:,:,2,iblk) = ocn_frc_d(:,:,iblk,n,ixp)
+        endif
+        enddo
+        !$OMP END PARALLEL DO
+
+        call interpolate_data (sst_data,work1)
+        ! masking by hm is necessary due to NaNs in the data file
+        do j = 1, ny_block 
+          do i = 1, nx_block 
+            if (n == 2) sss    (i,j,:) = c0
+            if (n == 3) hmix   (i,j,:) = c0
+            if (n == 4) uocn   (i,j,:) = c0
+            if (n == 5) vocn   (i,j,:) = c0
+            if (n == 6) ss_tltx(i,j,:) = c0
+            if (n == 7) ss_tlty(i,j,:) = c0
+            if (n == 8) qdp    (i,j,:) = c0
+            do iblk = 1, nblocks
+              if (hm(i,j,iblk) == c1) then
+                if (n == 2) sss    (i,j,iblk) = work1(i,j,iblk)
+                if (n == 3) hmix   (i,j,iblk) = work1(i,j,iblk)
+                if (n == 4) uocn   (i,j,iblk) = work1(i,j,iblk)
+                if (n == 5) vocn   (i,j,iblk) = work1(i,j,iblk)
+                if (n == 6) ss_tltx(i,j,iblk) = work1(i,j,iblk)
+                if (n == 7) ss_tlty(i,j,iblk) = work1(i,j,iblk)
+                if (n == 8) qdp    (i,j,iblk) = work1(i,j,iblk)
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+
+      do j = 1, ny_block 
+         do i = 1, nx_block 
+            sss (i,j,:) = max (sss(i,j,:), c0) 
+            hmix(i,j,:) = max(hmix(i,j,:), c0) 
+         enddo 
+      enddo 
+
+      call ocn_freezing_temperature
+
+      if (restore_ocn) then
+        do j = 1, ny_block 
+         do i = 1, nx_block 
+           sst(i,j,:) = sst(i,j,:) + (work1(i,j,:)-sst(i,j,:))*dt/trest 
+         enddo 
+        enddo 
+!     else sst is only updated in ice_ocean.F
+      endif
+
+      ! initialize sst properly on first step
+      if (istep1 <= 1 .and. .not. (restart)) then
+        call interpolate_data (sst_data,sst)
+        !$OMP PARALLEL DO PRIVATE(iblk,i,j)
+        do iblk = 1, nblocks
+         do j = 1, ny_block 
+          do i = 1, nx_block 
+            if (hm(i,j,iblk) == c1) then
+              sst(i,j,iblk) =  max (sst(i,j,iblk), Tf(i,j,iblk)) 
+            else
+              sst(i,j,iblk) = c0
+            endif
+          enddo 
+         enddo 
+        enddo 
+        !$OMP END PARALLEL DO
+      endif
+
+      if (dbug) then
+         if (my_task == master_task)  &
+               write (nu_diag,*) 'ocn_data_ncar'
+           vmin = global_minval(Tf,distrb_info,tmask)
+           vmax = global_maxval(Tf,distrb_info,tmask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) 'Tf',vmin,vmax
+           vmin = global_minval(sst,distrb_info,tmask)
+           vmax = global_maxval(sst,distrb_info,tmask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) 'sst',vmin,vmax
+           vmin = global_minval(sss,distrb_info,tmask)
+           vmax = global_maxval(sss,distrb_info,tmask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) 'sss',vmin,vmax
+           vmin = global_minval(hmix,distrb_info,tmask)
+           vmax = global_maxval(hmix,distrb_info,tmask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) 'hmix',vmin,vmax
+           vmin = global_minval(uocn,distrb_info,umask)
+           vmax = global_maxval(uocn,distrb_info,umask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) 'uocn',vmin,vmax
+           vmin = global_minval(vocn,distrb_info,umask)
+           vmax = global_maxval(vocn,distrb_info,umask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) 'vocn',vmin,vmax
+           vmin = global_minval(ss_tltx,distrb_info,umask)
+           vmax = global_maxval(ss_tltx,distrb_info,umask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) 'ss_tltx',vmin,vmax
+           vmin = global_minval(ss_tlty,distrb_info,umask)
+           vmax = global_maxval(ss_tlty,distrb_info,umask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) 'ss_tlty',vmin,vmax
+           vmin = global_minval(qdp,distrb_info,tmask)
+           vmax = global_maxval(qdp,distrb_info,tmask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) 'qdp',vmin,vmax
+      endif
+
+
+#endif           
+
+    end subroutine atm_NICE
+
+!=======================================================================
+
+    subroutine ocn_ISPOL
+!cn cice fills ocn_frc_m here, I am not sure what that does...
+
+
+      integer (kind=int_kind) :: &
+         i
+
+      real (kind=dbl_kind), dimension(12) :: &
+          t, &  !probably temperature, Tf?
+          s, &  !probably sss_data
+          hblt, &  !probably hmix
+          u, &  !probably uocn_data seems to be zeroed out anyway??
+          v, &  !probably vocn_data seems to be zeroed out anyway??
+          dhdx, &  !probably ss_tltx
+          dhdy, &  !probably ss_tlty 
+          qdp  !probably heat flux
+
+      character (char_len_long) filename
+      
+      filename = &
+          trim(data_dir)//'ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+
+      write (nu_diag,*) 'Reading ',filename
+
+      open (nu_forcing, file=filename, form='formatted')
+
+      read(nu_forcing,*) t
+      read(nu_forcing,*) s
+      read(nu_forcing,*) hblt
+      read(nu_forcing,*) u
+      read(nu_forcing,*) v
+      read(nu_forcing,*) dhdx
+      read(nu_forcing,*) dhdy
+      read(nu_forcing,*) qdp
+
+      close(nu_forcing)
+
+      do i = 1, 12 ! monthly
+        !t(i)
+        sss_data(i) = s(i)
+        hmix_data(i) = hblt(i)
+        uocn_data(i) = u(i)
+        vocn_data(i) = v(i)
+        !dhdx(i)
+        !dhdy(1)
+        qdp_data(i) = qdp(i)
+      end do
+
+      !write(*,*) t
+      !write(*,*) s
+      !write(*,*) hblt
+      !write(*,*) u
+      !write(*,*) v
+      !write(*,*) dhdx
+      !write(*,*) dhdy
+      !write(*,*) qdp
+      
+      !stop
+
+    end subroutine ocn_ISPOL
+
+!=======================================================================
+
+      subroutine finish_ocn_forcing(sst_temp)
+
+ ! Compute ocean freezing temperature Tf based on tfrz_option
+ ! 'minus1p8'         Tf = -1.8 C (default)
+ ! 'linear_salt'      Tf = -depressT * sss
+ ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
+
+      use icepack_constants, only: c0
+      use icepack_therm_shared, only: icepack_sea_freezing_temperature
+      use icepack_drv_flux, only: sss, Tf, sst, hmix
+
+      real (kind=dbl_kind), dimension(nx), intent(in)  :: &
+          sst_temp
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, j, iblk           ! horizontal indices
+
+      do i = 1, nx
+         sss (i) = max (sss(i), c0)
+         hmix(i) = max(hmix(i), c0)
+         Tf  (i) = icepack_sea_freezing_temperature(sss(i))
+         if (restore_ocn) sst(i) = sst(i) + (sst_temp(i)-sst(i))*dt/trest
+      enddo
+
+      end subroutine finish_ocn_forcing
 
 !=======================================================================
 

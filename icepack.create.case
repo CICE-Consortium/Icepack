@@ -286,7 +286,15 @@ endif
 
 if ($case =~ $spval) then
   if ($sets != "") then
-    set soptions = `echo $sets | sed 's/,/_/g'`
+    set sarray = `echo $sets | sed 's/,/ /g' | fmt -1 | sort -n`
+    set soptions = "JustStartingNowOK"
+    foreach field ($sarray)
+      if (${soptions} =~ "JustStartingNowOK") then
+        set soptions = ${field}
+      else
+        set soptions = ${soptions}"_"${field}
+      endif
+    end
     # Only include $testid in testname if this is not a baseline-generating run
     set testname_noid = "${mach}_${test}_${grid}_${pesx}_${soptions}"
     set testname_base = "${mach}_${test}_${grid}_${pesx}_${soptions}.${testid}"

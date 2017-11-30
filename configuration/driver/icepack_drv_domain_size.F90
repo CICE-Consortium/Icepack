@@ -6,7 +6,7 @@
 
       module icepack_drv_domain_size
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
 
 !=======================================================================
 

@@ -11,9 +11,9 @@
 
       module icepack_therm_0layer
 
-      use icepack_kinds_mod
-      use icepack_constants, only: c0, c1, p5, puny, &
-          kseaice, ksno
+      use icepack_kinds
+      use icepack_constants, only: c0, c1, p5, puny
+      use icepack_constants, only: kseaice, ksno
       use icepack_therm_bl99, only: surface_fluxes
       use icepack_warnings, only: add_warning
 

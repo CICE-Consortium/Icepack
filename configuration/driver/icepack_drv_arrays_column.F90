@@ -6,12 +6,12 @@
 
       module icepack_drv_arrays_column
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       use icepack_constants, only: nspint
-      use icepack_drv_domain_size, only: nx, ncat, nilyr, nslyr, &
-           nblyr, max_nsw , max_ntrcr
-      use icepack_intfc_shared, only: max_nbtrcr, max_algae, max_aero, &
-           nmodal1, nmodal2
+      use icepack_drv_domain_size, only: nx, ncat, nilyr, nslyr
+      use icepack_drv_domain_size, only: nblyr, max_nsw , max_ntrcr
+      use icepack_drv_tracers, only: max_nbtrcr, max_algae, max_aero
+      use icepack_drv_tracers, only: nmodal1, nmodal2
 
       implicit none
       save
@@ -253,6 +253,18 @@
          dimension (nx,max_nbtrcr), public :: &
          ice_bio_net  , &   ! depth integrated tracer (mmol/m^2) 
          snow_bio_net       ! depth integrated snow tracer (mmol/m^2)
+
+      !-------
+      logical (kind=log_kind), public :: &
+         oceanmixed_ice     ! if true, use internal ocean mixed layer
+
+      character(char_len_long), public :: &
+         bgc_data_dir   ! directory for biogeochemistry data
+
+      character(char_len), public :: &
+         sil_data_type  , & ! 'default', 'clim'
+         nit_data_type  , & ! 'default', 'clim'
+         fe_data_type       ! 'default', 'clim'
 
 !=======================================================================
 

@@ -3,14 +3,21 @@
 
 module icepack_therm_mushy
 
-  use icepack_kinds_mod
-  use icepack_constants, only: c0, c1, c2, c4, c8, c10, c1000, &
-      p001, p01, p05, p1, p2, p5, pi, bignum, puny, ice_ref_salinity, &
-      viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit, &
-      hs_min, ksno
-  use icepack_intfc_shared, only: a_rapid_mode, Rac_rapid_mode, &
-      aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy
-
+  use icepack_kinds
+  use icepack_constants, only: c0, c1, c2, c4, c8, c10, c1000
+  use icepack_constants, only: p001, p01, p05, p1, p2, p5, pi, bignum, puny, ice_ref_salinity
+  use icepack_constants, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
+  use icepack_constants, only: hs_min, ksno
+  use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode
+  use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy
+  use icepack_mushy_physics, only: density_brine, enthalpy_brine, enthalpy_snow
+  use icepack_mushy_physics, only: enthalpy_mush_liquid_fraction
+  use icepack_mushy_physics, only: temperature_mush, liquid_fraction
+  use icepack_mushy_physics, only: temperature_snow, temperature_mush_liquid_fraction
+  use icepack_mushy_physics, only: liquidus_brine_salinity_mush, liquidus_temperature_mush
+  use icepack_mushy_physics, only: conductivity_mush_array, conductivity_snow_array
+  use icepack_tracers, only: tr_pond
+  use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
   use icepack_therm_shared, only: ferrmax
   use icepack_warnings, only: add_warning
 
@@ -53,16 +60,6 @@ contains
                                           lstop,    stop_label)
 
     ! solve the enthalpy and bulk salinity of the ice for a single column
-
-    use icepack_mushy_physics, only: &
-         enthalpy_brine, &
-         temperature_mush, &
-         liquid_fraction, &
-         temperature_snow, &
-         temperature_mush_liquid_fraction, &
-         liquidus_brine_salinity_mush, &
-         conductivity_mush_array, &
-         conductivity_snow_array
 
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -679,9 +676,6 @@ contains
     ! 4) If the surface condition is inconsistent resolve for the other surface condition
     ! 5) If neither solution is consistent the resolve the inconsistency
 
-    use icepack_mushy_physics, only: &
-         liquidus_temperature_mush
-
     integer (kind=int_kind), intent(in) :: &
          nilyr      , &  ! number of ice layers
          nslyr           ! number of snow layers
@@ -1045,12 +1039,6 @@ contains
                          dxp,   kcstar, &
                          einit)
 
-    use icepack_mushy_physics, only: &
-         temperature_mush, &
-         liquidus_brine_salinity_mush, &
-         liquid_fraction, &
-         temperature_snow
-
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
@@ -1138,8 +1126,6 @@ contains
                            q,        dSdt,     &
                            w,                  &
                            lstop,    stop_label)
-
-    use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
 
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1698,10 +1684,6 @@ contains
 
     ! update brine salinity and liquid fraction based on new temperatures
 
-    use icepack_mushy_physics, only: &
-         liquidus_brine_salinity_mush, &
-         enthalpy_brine
-
     integer (kind=int_kind), intent(in) :: &
          nilyr   ! number of ice layers
 
@@ -1730,9 +1712,6 @@ contains
 
     ! update brine salinity and liquid fraction based on new temperatures
 
-    use icepack_mushy_physics, only: &
-         enthalpy_brine
-
     integer (kind=int_kind), intent(in) :: &
          nilyr   ! number of ice layers
 
@@ -1760,10 +1739,6 @@ contains
                           zqin,  zqsn,  &
                           zTin,  zTsn,  &
                           phi)
-
-    use icepack_mushy_physics, only: &
-         enthalpy_mush_liquid_fraction, &
-         enthalpy_snow
 
     integer (kind=int_kind), intent(in) :: &
          nilyr, & ! number of ice layers
@@ -2848,12 +2823,6 @@ contains
     ! calculate the rapid gravity drainage mode Darcy velocity and the
     ! slow mode drainage rate
 
-    use icepack_mushy_physics, only: &
-         liquidus_brine_salinity_mush, &
-         liquid_fraction, &
-         enthalpy_brine, &
-         density_brine
-
     integer (kind=int_kind), intent(in) :: &
          nilyr     ! number of ice layers
 
@@ -2882,7 +2851,6 @@ contains
 
     real(kind=dbl_kind), parameter :: &
          kappal        = 8.824e-8_dbl_kind, & ! heat diffusivity of liquid
-         ra_constants  = gravit / (viscosity_dyn * kappal), & ! for Rayleigh number
          fracmax       = p2               , & ! limiting advective layer fraction
          zSin_min      = p1               , & ! minimum bulk salinity (ppt)
          safety_factor = c10                  ! to prevent negative salinities
@@ -2913,7 +2881,8 @@ contains
          Bp        , & ! B parameter for channel
          qlimit    , & ! limit to vertical Darcy flow for numerical stability
          dS_guess  , & ! expected bulk salinity without limits
-         alpha         ! desalination limiting factor
+         alpha     , & ! desalination limiting factor
+         ra_constants  ! for Rayleigh number
 
     integer(kind=int_kind) :: &
          k             ! ice layer index
@@ -2946,6 +2915,7 @@ contains
     ! no flow through ice top surface
     q(0) = c0
 
+    ra_constants  = gravit / (viscosity_dyn * kappal)
     ! first iterate over layers going up
     do k = nilyr, 1, -1
 
@@ -3022,13 +2992,6 @@ contains
                                dt,     w)
    
     ! calculate the vertical flushing Darcy velocity (positive downward)
-
-    use icepack_mushy_physics, only: &
-         density_brine, &
-         liquidus_brine_salinity_mush
-
-    use icepack_intfc_tracers, only: &
-         tr_pond
 
     integer (kind=int_kind), intent(in) :: &
          nilyr         ! number of ice layers
@@ -3136,9 +3099,6 @@ contains
 
   subroutine flush_pond(w, hin, hpond, apond, dt)
 
-    use icepack_intfc_tracers, only: &
-         tr_pond
-
     ! given a flushing velocity drain the meltponds
 
     real(kind=dbl_kind), intent(in) :: &
@@ -3185,9 +3145,6 @@ contains
 
     ! given upwards flushing brine flow calculate amount of snow ice and
     ! convert snow to ice with appropriate properties
-
-    use icepack_mushy_physics, only: &
-         density_brine
 
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers

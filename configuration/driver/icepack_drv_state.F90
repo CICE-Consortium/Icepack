@@ -32,7 +32,7 @@
 
       module icepack_drv_state
 
-      use icepack_kinds_mod
+      use icepack_drv_kinds
       use icepack_drv_domain_size, only: nx, ncat, max_ntrcr, n_aero
 
       implicit none
