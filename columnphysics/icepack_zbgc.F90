@@ -60,8 +60,7 @@
                                   vi0new,                           &
                                   ntrcr,      trcrn,      nbtrcr,   &
                                   sss,        ocean_bio,  flux_bio, &
-                                  hsurp,      l_stop,   &
-                                  stop_label, l_conservation_check)
+                                  hsurp,      l_conservation_check)
 
       use icepack_constants, only: c0, c1, puny, depressT
       use icepack_itd, only: column_sum, column_conservation_check
@@ -123,11 +122,6 @@
 
       logical (kind=log_kind), intent(in) :: &
          l_conservation_check
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop     
-        
-      character (char_len), intent(inout) :: stop_label
 
 ! local
 
@@ -215,9 +209,7 @@
                                        solve_zsal,   bgrid, & 
                                        cgrid,               &
                                        ocean_bio,    igrid, &
-                                       location,            &
-                                       l_stop,     stop_label)
-            if (icepack_warnings_aborted(subname)) return
+                                       location)
             if (icepack_warnings_aborted(subname)) return
          endif       ! nltrcr       
       endif          ! hsurp > 0
@@ -254,9 +246,7 @@
                                        solve_zsal,      bgrid,  &
                                        cgrid,                   &
                                        ocean_bio,       igrid,  &
-                                       location,                &
-                                       l_stop,     stop_label)
-            if (icepack_warnings_aborted(subname)) return
+                                       location)
             if (icepack_warnings_aborted(subname)) return
 
             if (solve_zsal .and. vsnon1 .le. c0) then
@@ -273,7 +263,7 @@
          fieldid = 'vbrin, add_new_ice_bgc'
          call column_conservation_check (fieldid,                  &
                                          vbri_init, vbri_final,    &
-                                         puny,      l_stop)
+                                         puny)
          if (icepack_warnings_aborted(subname)) return
 
       endif   ! l_conservation_check
@@ -367,8 +357,7 @@
                                         nilyr,      nblyr, &
                                         solve_zsal, bgrid, &
                                         cgrid,      ocean_bio, &
-                                        igrid,      location, &
-                                        l_stop,     stop_label)
+                                        igrid,      location)
 
       use icepack_constants, only: c1, c0
       use icepack_tracers, only: nt_sice, nt_bgc_S, bio_index 
@@ -414,11 +403,6 @@
          intent(inout) :: &
          trcrn       ! ice tracers
       
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
-
       ! local variables
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: &
@@ -464,9 +448,7 @@
                                     hbri,         dt,       &
                                     ntrcr,                  &
                                     nblyr-1,      top_conc, &
-                                    bgrid(2:nblyr+1), fluxb,&
-                                    l_stop,       stop_label)
-            if (icepack_warnings_aborted(subname)) return
+                                    bgrid(2:nblyr+1), fluxb )
             if (icepack_warnings_aborted(subname)) return
             do k = 1, nblyr 
                trcrn(nt_bgc_S+k-1) =  S_stationary(k)/hbri
@@ -483,9 +465,7 @@
                                     hbri,         dt,       &
                                     ntrcr,                  &
                                     nblyr,        top_conc, &
-                                    igrid,        fluxb,    &
-                                    l_stop,       stop_label)
-            if (icepack_warnings_aborted(subname)) return
+                                    igrid,        fluxb )
             if (icepack_warnings_aborted(subname)) return
             do k = 1, nblyr+1 
                trcrn(bio_index(m) + k-1) =  C_stationary(k)/hbri
@@ -507,8 +487,7 @@
                             1,               nblyr,    &
                             hin,             hinS_new, &
                             cgrid(2:nilyr+1),          &
-                            bgrid(2:nblyr+1), temp_S,  &
-                            l_stop,           stop_label)
+                            bgrid(2:nblyr+1), temp_S   )
             if (icepack_warnings_aborted(subname)) return
             do k = 1, nilyr
                trcrn(nt_sice+k-1) = trtmp(nt_sice+k-1)   
@@ -544,8 +523,7 @@
                          1,               nblyr,    &
                          hin,             hinS_new, &
                          cgrid(2:nilyr+1),          &        
-                         bgrid(2:nblyr+1),temp_S,   &
-                         l_stop,           stop_label)
+                         bgrid(2:nblyr+1),temp_S    )
             if (icepack_warnings_aborted(subname)) return
             do k = 1, nilyr
                trcrn(nt_sice+k-1) = trtmp(nt_sice+k-1)   
@@ -560,8 +538,7 @@
 
       subroutine icepack_init_bgc(dt, ncat, nblyr, nilyr, ntrcr_o, &
          cgrid, igrid, ntrcr, nbtrcr, &
-         sicen, trcrn, sss, ocean_bio_all, &
-         l_stop, stop_label)
+         sicen, trcrn, sss, ocean_bio_all)
 
       use icepack_constants, only: c0, c1, c2, p1, p15, p5
       use icepack_tracers, only: nt_fbri, nt_bgc_S, nt_sice, nt_zbgc_frac
@@ -596,11 +573,6 @@
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          ocean_bio_all   ! fixed order, all values even for tracers false
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(inout) :: stop_label
 
       ! local variables
 
@@ -670,9 +642,7 @@
                                   c1,               c1,       &
                                   cgrid(2:nilyr+1),           &
                                   igrid(1:nblyr+1),           &
-                                  sicen(1,n),                 &
-                                  l_stop,           stop_label)
-                  if (icepack_warnings_aborted(subname)) return
+                                  sicen(1,n)                  )
                   if (icepack_warnings_aborted(subname)) return
 
                   do mm = 1,nbtrcr
@@ -873,8 +843,7 @@
                            hin_old, flux_bio, flux_bio_atm, &
                            aicen_init, vicen_init, aicen, vicen, vsnon, &
                            aice0, trcrn, vsnon_init, skl_bgc, &
-                           max_algae, max_nbtrcr, &
-                           l_stop, stop_label)
+                           max_algae, max_nbtrcr)
 
       use icepack_algae, only: zbio, sklbio
       use icepack_brine, only: preflushing_changes, compute_microS_mushy
@@ -974,11 +943,6 @@
       logical (kind=log_kind), intent(in) :: &
          skl_bgc       ! if true, solve skeletal biochemistry
 
-      logical (kind=log_kind), intent(inout) :: &  
-         l_stop          ! if true, abort the model
-
-      character (len=*), intent(inout) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -1071,10 +1035,7 @@
                                  trcrn(nt_fbri,n),          &
                                  dhbr_top(n), dhbr_bot(n),  &
                                  hbr_old,     hin,          &
-                                 hsn,         first_ice(n), &
-                                 l_stop,      stop_label)
-               if (icepack_warnings_aborted(subname)) return
-
+                                 hsn,         first_ice(n)  )
                if (icepack_warnings_aborted(subname)) return
 
                if (solve_zsal)  then  
@@ -1088,9 +1049,7 @@
                                 first_ice(n),     bSin,        brine_sal,         &
                                 brine_rho,        iphin,       ibrine_rho,        &
                                 ibrine_sal,       sice_rho(n), sloss,             &
-                                salinz(1:nilyr),  l_stop,      stop_label)
-                  if (icepack_warnings_aborted(subname)) return
-
+                                salinz(1:nilyr)   )
                   if (icepack_warnings_aborted(subname)) return
                else     
 
@@ -1108,7 +1067,7 @@
                                    bphi_o,        phi_snow,      bSin(:),     &
                                    brine_sal(:),  brine_rho(:),  iphin(:),    &
                                    ibrine_rho(:), ibrine_sal(:), sice_rho(n), &
-                                   iDi(:,n),      l_stop,        stop_label)
+                                   iDi(:,n)       )
                   if (icepack_warnings_aborted(subname)) return
 
                endif ! solve_zsal  
@@ -1152,13 +1111,10 @@
                                   first_ice(n),  sss,                 &
                                   sst,           dhbr_top(n),         &
                                   dhbr_bot(n),                        &
-                                  l_stop,        stop_label,          &
                                   fzsal,         fzsal_g,             &
                                   bphi_o,        nblyr,               & 
                                   vicen(n),      aicen_init(n),       &
                                   zsal_tot) 
-                  if (icepack_warnings_aborted(subname)) return
-
                   if (icepack_warnings_aborted(subname)) return
 
                endif  ! solve_zsal
@@ -1205,10 +1161,7 @@
                           upNO,                  upNH,                   &
                           fbio_snoice,           fbio_atmice,            &
                           PP_net,                ice_bio_net (1:nbtrcr), &
-                          snow_bio_net(1:nbtrcr),grow_net,               &
-                          l_stop,                stop_label)
-               if (icepack_warnings_aborted(subname)) return
-            
+                          snow_bio_net(1:nbtrcr),grow_net                )
                if (icepack_warnings_aborted(subname)) return
      
             elseif (skl_bgc) then
@@ -1225,10 +1178,7 @@
                             fswthrun (n),            first_ice(n),        &
                             trcrn    (1:ntrcr,n),    hin,                 &
                             PP_net,                  upNO,                &
-                            upNH,                    grow_net,            &
-                            l_stop,                  stop_label)
-               if (icepack_warnings_aborted(subname)) return
-
+                            upNH,                    grow_net             )
                if (icepack_warnings_aborted(subname)) return
 
             endif  ! skl_bgc

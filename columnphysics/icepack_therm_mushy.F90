@@ -57,8 +57,7 @@ contains
                                           flwoutn,  fsurfn,   &
                                           fcondtop, fcondbot, &
                                           fadvheat, snoice,   &
-                                          einit_old,          &
-                                          l_stop,    stop_label)
+                                          einit_old           )
 
     ! solve the enthalpy and bulk salinity of the ice for a single column
 
@@ -118,12 +117,6 @@ contains
          zqsn        , & ! snow layer enthalpy (J m-3)
          zTsn            ! internal snow layer temperatures
     
-    logical (kind=log_kind), intent(inout) :: &
-         l_stop           ! solver failure flag 
-
-    character (len=*), intent(out) :: &
-         stop_label   ! abort error message
-
     ! local variables
     real(kind=dbl_kind), dimension(1:nilyr) :: &
          zqin0       , & ! ice layer enthalpy (J m-3) at start of timestep
@@ -247,8 +240,7 @@ contains
                                   fcondtop,    fcondbot,   &
                                   fadvheat,                &
                                   flwoutn,     fsensn,     &
-                                  flatn,       fsurfn,     &
-                                  l_stop,       stop_label)
+                                  flatn,       fsurfn      )
 
        if (icepack_warnings_aborted(subname)) then
           write(warnstr,*) subname, "temperature_changes_salinity: Picard solver non-convergence (snow)"
@@ -293,8 +285,7 @@ contains
                                     fcondtop,    fcondbot,   &
                                     fadvheat,                &
                                     flwoutn,     fsensn,     &
-                                    flatn,       fsurfn,     &
-                                    l_stop,       stop_label)
+                                    flatn,       fsurfn      )
 
        if (icepack_warnings_aborted(subname)) then
           write(warnstr,*) subname, "temperature_changes_salinity: Picard solver non-convergence (no snow)"
@@ -352,8 +343,7 @@ contains
                                    fcondtop,    fcondbot,   &
                                    fadvheat,                &
                                    flwoutn,     fsensn,     &
-                                   flatn,       fsurfn,     &
-                                   l_stop,       stop_label)
+                                   flatn,       fsurfn      )
 
     ! solve the vertical temperature and salt change for case with snow
     ! 1) determine what type of surface condition existed previously - cold or melting
@@ -427,12 +417,6 @@ contains
          Spond       , & ! melt pond salinity (ppt)
          sss             ! sea surface salinity (PSU)
 
-    logical(kind=log_kind), intent(inout) :: &
-         l_stop           ! solver failure flag
-
-    character(len=*), intent(out) :: &
-         stop_label      ! fatal error message
-
     real(kind=dbl_kind) :: &
          fcondtop1   , & ! first stage downward cond flux at top surface (W m-2)
          fsurfn1     , & ! first stage net flux to top surface, excluding fcondtop
@@ -468,8 +452,7 @@ contains
                           qpond,    qocn,     &
                           Spond,    sss,      &
                           q,        dSdt,     &
-                          w,                  &
-                          l_stop,    stop_label)
+                          w                   )
        if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
@@ -515,8 +498,7 @@ contains
                              qpond,    qocn,     &
                              Spond,    sss,      &
                              q,        dSdt,     &
-                             w,                  &
-                             l_stop,    stop_label)
+                             w                   )
           if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
@@ -570,8 +552,8 @@ contains
                           qpond,    qocn,     &
                           Spond,    sss,      &
                           q,        dSdt,     &
-                          w,                  &
-                          l_stop,    stop_label)
+                          w                   )
+
        if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
@@ -620,8 +602,7 @@ contains
                              qpond,    qocn,     &
                              Spond,    sss,      &
                              q,        dSdt,     &
-                             w,                  &
-                             l_stop,    stop_label)
+                             w                   )
           if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
@@ -675,8 +656,7 @@ contains
                                      fcondtop,    fcondbot,   &
                                      fadvheat,                &
                                      flwoutn,     fsensn,     &
-                                     flatn,       fsurfn,     &
-                                     l_stop,       stop_label)
+                                     flatn,       fsurfn      )
     
     ! solve the vertical temperature and salt change for case with no snow
     ! 1) determine what type of surface condition existed previously - cold or melting
@@ -750,12 +730,6 @@ contains
          Spond       , & ! melt pond salinity (ppt)
          sss             ! sea surface salinity (PSU)
 
-    logical, intent(inout) :: &
-         l_stop           ! solver failure flag
-
-    character(len=*), intent(out) :: &
-         stop_label      ! fatal error message
-
     real(kind=dbl_kind) :: &
          Tmlt        , & ! upper ice layer melting temperature (C)
          fcondtop1   , & ! first stage downward cond flux at top surface (W m-2)
@@ -794,8 +768,7 @@ contains
                           qpond,    qocn,     &
                           Spond,    sss,      &
                           q,        dSdt,     &
-                          w,                  &
-                          l_stop,    stop_label)
+                          w                   )
        if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
@@ -839,8 +812,7 @@ contains
                              qpond,    qocn,     &
                              Spond,    sss,      &
                              q,        dSdt,     &
-                             w,                  &
-                             l_stop,    stop_label)
+                             w                   )
           if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
@@ -894,8 +866,7 @@ contains
                           qpond,    qocn,     &
                           Spond,    sss,      &
                           q,        dSdt,     &
-                          w,                  &
-                          l_stop,    stop_label)
+                          w                   )
        if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
@@ -943,8 +914,7 @@ contains
                              qpond,    qocn,     &
                              Spond,    sss,      &
                              q,        dSdt,     &
-                             w,                  &
-                             l_stop,    stop_label)
+                             w                   )
           if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
@@ -1145,8 +1115,7 @@ contains
                            qpond,    qocn,     &
                            Spond,    sss,      &
                            q,        dSdt,     &
-                           w,                  &
-                           l_stop,    stop_label)
+                           w                   )
 
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1209,12 +1178,6 @@ contains
          sss           , & ! sea surface salinity (ppt)
          w                 ! vertical flushing Darcy velocity (m/s)
       
-    logical(kind=log_kind), intent(inout) :: &
-         l_stop             ! solver failure flag 
-
-    character(len=*), intent(out) :: &
-         stop_label        ! fatal error message
-
     real(kind=dbl_kind), dimension(nilyr) :: &
          Sbr           , & ! ice layer brine salinity (ppt)
          qbr           , & ! ice layer brine enthalpy (J m-3)
@@ -1392,8 +1355,9 @@ contains
                                   zqsn0, zqsn, &
                                   zqin0, phi)
        if (icepack_warnings_aborted(subname)) return
-       call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
        call icepack_warnings_add(subname//" picard_solver: Picard solver non-convergence" ) 
+       call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+       if (icepack_warnings_aborted(subname)) return
 
     endif
 

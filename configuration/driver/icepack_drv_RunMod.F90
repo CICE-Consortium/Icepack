@@ -10,7 +10,7 @@
 
       implicit none
       private
-      public :: icepack_run, ice_step
+      public :: icepack_drv_run, ice_step
       save
 
 !=======================================================================
@@ -23,7 +23,7 @@
 !
 !  author Elizabeth C. Hunke, LANL
 
-      subroutine icepack_run
+      subroutine icepack_drv_run
 
       use icepack_drv_calendar, only: istep, istep1, time, dt, stop_now, calendar
       use icepack_drv_forcing, only: get_forcing
@@ -63,7 +63,7 @@
 
       enddo timeLoop
 
-      end subroutine icepack_run
+      end subroutine icepack_drv_run
 
 !=======================================================================
 !

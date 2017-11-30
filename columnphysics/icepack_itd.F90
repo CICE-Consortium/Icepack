@@ -106,8 +106,7 @@
                         nt_strata,                 &
                         aicen,    trcrn,           &
                         vicen,    vsnon,           &
-                        ncat,     hin_max,         &
-                        l_stop,   stop_label)
+                        ncat,     hin_max          )
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr , & ! number of tracers in use
@@ -134,11 +133,6 @@
 
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max   ! category limits (m)
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
 
       ! local variables
 
@@ -225,8 +219,7 @@
                             aicen,    trcrn,      &
                             vicen,    vsnon,      &
                             hicen,    donor,      &
-                            daice,    dvice,      &
-                            l_stop,   stop_label)
+                            daice,    dvice       )
             if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -274,8 +267,7 @@
                             aicen,    trcrn,      &
                             vicen,    vsnon,      &
                             hicen,    donor,      &
-                            daice,    dvice,      &
-                            l_stop,   stop_label)
+                            daice,    dvice       )
             if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -367,8 +359,7 @@
                             aicen,    trcrn,       &
                             vicen,    vsnon,       &
                             hicen,    donor,       &
-                            daice,    dvice,       &
-                            l_stop,   stop_label)
+                            daice,    dvice        )
 
       use icepack_tracers, only: icepack_compute_tracers
 
@@ -404,11 +395,6 @@
          daice         , & ! ice area transferred across boundary
          dvice         , & ! ice volume transferred across boundary
          hicen             ! ice thickness for each cat        (m)
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
 
       ! local variables
 
@@ -710,8 +696,7 @@
 
       subroutine column_conservation_check (fieldid,          &
                                             x1,       x2,     &
-                                            max_err,          &
-                                            l_stop)
+                                            max_err           )
 
       real (kind=dbl_kind), intent(in) :: &
          x1            , & ! initial field
@@ -722,9 +707,6 @@
 
       character (len=char_len), intent(in) :: &
          fieldid           ! field identifier
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, abort on return
 
       character(len=*),parameter :: subname='(column_conservation_check)'
 
@@ -765,7 +747,6 @@
                               aice0,       aice,       &   
                               n_aero,                  &
                               nbtrcr,      nblyr,      &
-                              l_stop,      stop_label, &
                               tr_aero,                 &
                               tr_pond_topo,            &
                               heat_capacity,           & 
@@ -822,11 +803,6 @@
 
       logical (kind=log_kind), dimension(ncat),intent(inout) :: &
          first_ice   ! For bgc and S tracers. set to true if zapping ice.
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
 
       ! ice-ocean fluxes (required for strict conservation)
 
@@ -930,8 +906,7 @@
                      nt_strata,               &
                      aicen,      trcrn,       &
                      vicen,      vsnon,       &
-                     ncat,       hin_max,     &
-                     l_stop,     stop_label)
+                     ncat,       hin_max      )
          if (icepack_warnings_aborted(subname)) return
 
       endif ! aice > puny
@@ -953,8 +928,7 @@
                                dfhocn,       dfaero_ocn,    &
                                tr_aero,      tr_pond_topo,  &
                                first_ice,    nbtrcr,        &
-                               dfzsal,       dflux_bio,     & 
-                               l_stop,       stop_label)
+                               dfzsal,       dflux_bio      )
 
          if (icepack_warnings_aborted(subname)) then
             write(warnstr,*) subname, 'aice:', aice
@@ -1016,8 +990,7 @@
          call zerolayer_check (ncat,       nilyr,    &
                                nslyr,      aicen,    &
                                vicen,      vsnon,    &
-                               trcrn,      l_stop,   &
-                               stop_label)
+                               trcrn)
          if (icepack_warnings_aborted(subname)) return
       endif
 
@@ -1042,8 +1015,7 @@
                                   dfhocn,    dfaero_ocn,   &
                                   tr_aero,   tr_pond_topo, &
                                   first_ice, nbtrcr,       &
-                                  dfzsal,    dflux_bio,    &
-                                  l_stop,    stop_label)
+                                  dfzsal,    dflux_bio     )
 
       use icepack_zbgc_shared, only: zap_small_bgc
 
@@ -1090,11 +1062,6 @@
 
       logical (kind=log_kind), dimension (:),intent(inout) :: &
          first_ice    ! For bgc tracers.  Set to true if zapping ice 
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop       ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
 
       ! local variables
 
@@ -1567,8 +1534,7 @@
       subroutine zerolayer_check (ncat,        nilyr,      &
                                   nslyr,       aicen,      &
                                   vicen,       vsnon,      &
-                                  trcrn,       l_stop,     &
-                                  stop_label)
+                                  trcrn)
 
       integer (kind=int_kind), intent(in) :: & 
          ncat  , & ! number of thickness categories
@@ -1583,11 +1549,6 @@
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn     ! ice tracers
       
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -1703,19 +1664,13 @@
 ! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
 !          C. M. Bitz, UW
 
-      subroutine icepack_init_itd(ncat, hin_max, l_stop, stop_label)
+      subroutine icepack_init_itd(ncat, hin_max)
 
       integer (kind=int_kind), intent(in) :: &
            ncat ! number of thickness categories
 
       real (kind=dbl_kind), intent(out) :: &
            hin_max(0:ncat)  ! category limits (m)
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop          ! if true, print diagnostics and abort model
-
-      character (len=*), intent(out) :: &
-         stop_label   ! abort error message
 
       ! local variables
 

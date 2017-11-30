@@ -106,11 +106,8 @@
          netsw           ! flag for shortwave radiation presence
 
       logical (kind=log_kind) :: &
-         l_stop       , & ! if true, abort the model
          l_print_point, & ! flag to print designated grid point diagnostics
          debug            ! if true, print diagnostics
-
-      character (char_len) :: stop_label
 
       integer (kind=int_kind) :: &
          ipoint
@@ -170,7 +167,7 @@
                ! initialize orbital parameters
                ! These come from the driver in the coupled model.
                call icepack_warnings_flush(nu_diag)
-               call icepack_init_orbit(l_stop, stop_label)
+               call icepack_init_orbit()
                call icepack_warnings_flush(nu_diag)
 
                if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
@@ -345,13 +342,10 @@
          n                    ! category index
 
       logical (kind=log_kind) :: &
-         l_stop           , & ! if true, print diagnostics and abort on return
          RayleighC
         
       real(kind=dbl_kind) :: &
          RayleighR
-
-      character (char_len) :: stop_label
 
       real(kind=dbl_kind), dimension(ntrcr,ncat) :: &
          trcrn_bgc 
@@ -362,8 +356,6 @@
       character(len=*), parameter :: subname='(init_bgc)'
 
       ! Initialize
-
-      l_stop = .false.
 
       bphi(:,:,:) = c0   ! initial porosity for no ice 
       iDi (:,:,:) = c0   ! interface diffusivity
@@ -457,8 +449,7 @@
                sicen(:,:), &
                trcrn_bgc(:,:), &
                sss(i), &
-               ocean_bio_all(i,:), &
-               l_stop, stop_label)
+               ocean_bio_all(i,:))
             call icepack_warnings_flush(nu_diag)
             if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
                 __FILE__, __LINE__)

@@ -8,10 +8,12 @@
       module icepack_drv_InitMod
 
       use icepack_drv_kinds
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_drv_diagnostics, only: diagnostic_abort
 
       implicit none
       private
-      public :: icepack_initialize
+      public :: icepack_drv_initialize
       save
 
 !=======================================================================
@@ -23,7 +25,7 @@
 
 !  Initialize Icepack
 
-      subroutine icepack_initialize
+      subroutine icepack_drv_initialize
 
       use icepack_drv_arrays_column, only: hin_max, c_hi_range, zfswin, trcrn_sw, &
           ocean_bio_all, ice_bio_net, snow_bio_net
@@ -45,8 +47,7 @@
       use icepack_drv_tracers, only: tr_aero, tr_zaero
       use icepack_drv_parameters, only: skl_bgc, z_tracers
 
-      logical(kind=log_kind) :: l_stop
-      character(char_len) :: stop_label
+      character(len=*), parameter :: subname='(icepack_drv_initialize)'
 
       call icepack_configure()  ! initialize icepack
       call input_data           ! namelist variables
@@ -58,9 +59,9 @@
 
       call init_coupler_flux    ! initialize fluxes exchanged with coupler
       call init_thermo_vertical ! initialize vertical thermodynamics
-      call icepack_init_itd(ncat, hin_max, l_stop, stop_label) ! ice thickness distribution
-      if (l_stop) then
-         write(nu_diag,*) trim(stop_label)
+      call icepack_init_itd(ncat, hin_max)
+      if (icepack_warnings_aborted(subname)) then
+         call diagnostic_abort(file=__FILE__,line=__LINE__)
          stop
       endif
 
@@ -110,7 +111,7 @@
 
       call init_flux_atm_ocn    ! initialize atmosphere, ocean fluxes
 
-      end subroutine icepack_initialize
+      end subroutine icepack_drv_initialize
 
 !=======================================================================
 
@@ -135,6 +136,7 @@
 
       integer(kind=int_kind) :: &
          i                            ! horizontal indices
+      character(len=*), parameter :: subname='(init_restart)'
 
       if (restart) then
          call restartfile (ice_ic)

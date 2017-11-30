@@ -82,8 +82,7 @@
                              aicen,       trcrn,       & 
                              vicen,       vsnon,       & 
                              aice,        aice0,       & 
-                             fpond,       l_stop,      &
-                             stop_label)
+                             fpond                     )
 
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
@@ -127,12 +126,6 @@
          aice  , & ! concentration of ice
          aice0 , & ! concentration of open water
          fpond     ! fresh water flux to ponds (kg/m^2/s)
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-     ! character (char_len), intent(out) :: stop_label
-      character (len=*), intent(out) :: stop_label
 
       ! local variables
 
@@ -563,9 +556,7 @@
                          aicen,    trcrn,       &
                          vicen,    vsnon,       &
                          hicen,    donor,       &
-                         daice,    dvice,       &
-                         l_stop,   stop_label)
-         if (icepack_warnings_aborted(subname)) return
+                         daice,    dvice        )
          if (icepack_warnings_aborted(subname)) return
 
          ! maintain qsno negative definiteness
@@ -649,38 +640,32 @@
       fieldid = 'vice, ITD remap'
       call column_conservation_check (fieldid,               &
                                       vice_init, vice_final, &
-                                      puny,                  &
-                                      l_stop)
+                                      puny)
       if (icepack_warnings_aborted(subname)) return
       fieldid = 'vsno, ITD remap'
       call column_conservation_check (fieldid,               &
                                       vsno_init, vsno_final, &
-                                      puny,                  &
-                                      l_stop)
+                                      puny)
       if (icepack_warnings_aborted(subname)) return
       fieldid = 'eice, ITD remap'
       call column_conservation_check (fieldid,               &
                                       eice_init, eice_final, &
-                                      puny*Lfresh*rhoi,      &
-                                      l_stop)
+                                      puny*Lfresh*rhoi)
       if (icepack_warnings_aborted(subname)) return
       fieldid = 'esno, ITD remap'
       call column_conservation_check (fieldid,               &
                                       esno_init, esno_final, &
-                                      puny*Lfresh*rhos,      &
-                                      l_stop)
+                                      puny*Lfresh*rhos)
       if (icepack_warnings_aborted(subname)) return
       fieldid = 'sicen, ITD remap'
       call column_conservation_check (fieldid,               &
                                       sice_init, sice_final, &
-                                      puny,                  &
-                                      l_stop)
+                                      puny)
       if (icepack_warnings_aborted(subname)) return
       fieldid = 'vbrin, ITD remap'
       call column_conservation_check (fieldid,               &
                                       vbri_init, vbri_final, &
-                                      puny*c10,              &
-                                      l_stop)
+                                      puny*c10)
       if (icepack_warnings_aborted(subname)) return
 
       endif                     ! conservation check
@@ -1050,8 +1035,7 @@
                               bgrid,      cgrid,      igrid,    &
                               nbtrcr,    flux_bio,   &
                               ocean_bio, fzsal,      &
-                              frazil_diag,           &
-                              l_stop,    stop_label)
+                              frazil_diag            )
 
       use icepack_itd, only: column_sum
       use icepack_itd, only: column_conservation_check 
@@ -1114,12 +1098,6 @@
 
       logical (kind=log_kind), intent(in) :: &
          update_ocn_f ! if true, update fresh water and salt fluxes
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-     ! character (char_len), intent(out) :: stop_label
-      character (len=*), intent(out) :: stop_label
 
       ! BGC
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
@@ -1505,14 +1483,12 @@
          fieldid = 'vice, add_new_ice'
          call column_conservation_check (fieldid,               &
                                          vice_init, vice_final, &
-                                         puny,                  &
-                                         l_stop)
+                                         puny)
          if (icepack_warnings_aborted(subname)) return
          fieldid = 'eice, add_new_ice'
          call column_conservation_check (fieldid,               &
                                          eice_init, eice_final, &
-                                         puny*Lfresh*rhoi,      &
-                                         l_stop)
+                                         puny*Lfresh*rhoi)
          if (icepack_warnings_aborted(subname)) return
 
       endif ! l_conservation_check
@@ -1529,7 +1505,6 @@
                               vi0new,     ntrcr,      trcrn,    &
                               nbtrcr,     sss,        ocean_bio,&
                               flux_bio,   hsurp,                &
-                              l_stop,     stop_label,           &
                               l_conservation_check)
          if (icepack_warnings_aborted(subname)) return
 
@@ -1564,7 +1539,6 @@
                                      igrid,        faero_ocn,     &
                                      first_ice,    fzsal,         &
                                      flux_bio,     ocean_bio,     &
-                                     l_stop,       stop_label,    &
                                      frazil_diag,                 &
                                      frz_onset,    yday)
 
@@ -1641,11 +1615,6 @@
       logical (kind=log_kind), dimension(:), intent(inout) :: &
          first_ice      ! true until ice forms
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop         ! if true, abort model
-
-      character (len=*), intent(out) :: stop_label
-
       real (kind=dbl_kind), intent(inout), optional :: &
          frz_onset    ! day of year that freezing begins (congel or frazil)
 
@@ -1696,10 +1665,7 @@
                              vsnon,                 &
                              aice      ,         &
                              aice0     ,         &
-                             fpond,       l_stop,      &
-                             stop_label)
-            if (icepack_warnings_aborted(subname)) return
-
+                             fpond       )
             if (icepack_warnings_aborted(subname)) return
 
          endif ! aice > puny
@@ -1732,10 +1698,7 @@
                            cgrid,         igrid,        &
                            nbtrcr,        flux_bio,     &
                            ocean_bio,     fzsal,        &
-                           frazil_diag,                 &
-                           l_stop,        stop_label)
-         if (icepack_warnings_aborted(subname)) return
-
+                           frazil_diag                  )
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1780,7 +1743,6 @@
                         aice0,                aice,             & 
                         n_aero,                                 &
                         nbtrcr,               nblyr,            &
-                        l_stop,               stop_label,       &
                         tr_aero,                                &
                         tr_pond_topo,         heat_capacity,    &
                         first_ice,                              &

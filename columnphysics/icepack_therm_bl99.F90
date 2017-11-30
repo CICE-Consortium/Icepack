@@ -66,8 +66,7 @@
                                       fsensn,   flatn,    &
                                       flwoutn,  fsurfn,   &
                                       fcondtopn,fcondbot, &
-                                      einit,    l_stop,   &
-                                      stop_label)
+                                      einit               )
 
       use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
 
@@ -134,12 +133,6 @@
          zqsn        , & ! snow layer enthalpy (J m-3)
          zTsn            ! internal snow layer temperatures
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop          ! if true, print diagnostics and abort model
-
-      character (len=*), intent(out) :: &
-         stop_label   ! abort error message
- 
      ! local variables
 
       integer (kind=int_kind), parameter :: &

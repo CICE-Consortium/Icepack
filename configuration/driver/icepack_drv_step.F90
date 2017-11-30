@@ -147,11 +147,6 @@
       real (kind=dbl_kind), dimension(n_aero,2,ncat) :: &
          aerosno,  aeroice    ! kg/m^2
 
-      logical (kind=log_kind) :: &
-         l_stop          ! if true, abort the model
-
-      character (char_len) :: stop_label
-
       character(len=*), parameter :: subname='(step_therm1)'
 
       !-----------------------------------------------------------------
@@ -172,7 +167,6 @@
          nt_aero_out=nt_aero, nt_qsno_out=nt_qsno)
 
       prescribed_ice = .false.
-      l_stop = .false.
       aerosno(:,:,:) = c0
       aeroice(:,:,:) = c0
 
@@ -279,10 +273,8 @@
             dsnown      (i,:), frazil      (i), &
             lmask_n     (i), lmask_s     (i), &
             mlt_onset   (i), frz_onset   (i), &
-            yday,                     l_stop,                   &
-            stop_label,                                         &
-            prescribed_ice)
-        
+            yday,  prescribed_ice)
+
         call icepack_warnings_flush(nu_diag)
         if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
             __FILE__, __LINE__)
@@ -338,13 +330,8 @@
       integer (kind=int_kind) :: &
          i               ! horizontal indices
 
-      logical (kind=log_kind) :: &
-         l_stop          ! if true, abort model
-
       integer (kind=int_kind) :: &
          ntrcr, nbtrcr
-
-      character (char_len) :: stop_label
 
       character(len=*), parameter :: subname='(step_therm2)'
 
@@ -352,8 +339,6 @@
 
       call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
 
-      l_stop = .false.
-      
       do i = 1, nx
 
          if (tmask(i)) then
@@ -382,7 +367,6 @@
                            first_ice (i,:), fzsal     (i), &
                            flux_bio  (i,1:nbtrcr),                  &
                            ocean_bio (i,1:nbtrcr),                  &
-                           l_stop,                 stop_label,             &
                            frazil_diag(i),                         &
                            frz_onset (i), yday)
 
@@ -518,11 +502,6 @@
          ntrcr,        & !
          nbtrcr          !
 
-      logical (kind=log_kind) :: &
-         l_stop          ! if true, abort the model
-
-      character (char_len) :: stop_label
-
       character(len=*), parameter :: subname='(step_dyn_ridge)'
 
       !-----------------------------------------------------------------
@@ -565,8 +544,7 @@
                          araftn   (i,:), vraftn   (i,:), &
                          aice     (i), fsalt    (i), &
                          first_ice(i,:), fzsal    (i), &
-                         flux_bio (i,1:nbtrcr),                 &
-                         l_stop,                stop_label)
+                         flux_bio (i,1:nbtrcr) )
 
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &
@@ -893,9 +871,6 @@
          k              , & ! vertical index
          n, mm              ! tracer index
 
-      logical (kind=log_kind) :: &
-         l_stop          ! if true, abort the model
-
       integer (kind=int_kind) :: &
          max_algae, max_nbtrcr, max_don, &
          max_doc, max_dic, max_aero, max_fe, &
@@ -909,8 +884,6 @@
 
       logical (kind=log_kind) :: &
          skl_bgc, tr_brine, tr_zaero
-
-      character (char_len) :: stop_label
 
       character(len=*), parameter :: subname='(biogeochemistry)'
 
@@ -1010,8 +983,7 @@
                               aice0       (i),        &
                               trcrn       (i,1:ntrcr,:),        &
                               vsnon_init  (i,:),        &
-                              skl_bgc, max_algae, max_nbtrcr,          &
-                              l_stop, stop_label)
+                              skl_bgc, max_algae, max_nbtrcr)
 
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call diagnostic_abort(i, istep1, subname, &

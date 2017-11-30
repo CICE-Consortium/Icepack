@@ -78,7 +78,6 @@
                                   congel,      snoice,    &
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
-                                  l_stop,      stop_label,&
                                   prescribed_ice)
 
       use icepack_therm_mushy, only: temperature_changes_salinity
@@ -174,12 +173,6 @@
       real (kind=dbl_kind), intent(in) :: &
          yday         ! day of year
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop       ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: &
-         stop_label   ! abort error message
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -256,10 +249,7 @@
                                   zqin,     zTin,    &
                                   zqsn,     zTsn,    &
                                   zSin,              &
-                                  einit,    Tbot,    &
-                                  l_stop,   stop_label)
-      if (icepack_warnings_aborted(subname)) return
-
+                                  einit,    Tbot     )
       if (icepack_warnings_aborted(subname)) return
 
       ! Save initial ice and snow thickness (for fresh and fsalt)
@@ -293,10 +283,7 @@
                                               flwoutn,   fsurfn,    &
                                               fcondtopn, fcondbot,  &
                                               fadvocn,   snoice,    &
-                                              einit,                &
-                                              l_stop,    stop_label)
-            if (icepack_warnings_aborted(subname)) return
-               
+                                              einit                 )
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
@@ -316,10 +303,7 @@
                                      fsensn,    flatn,     &
                                      flwoutn,   fsurfn,    &
                                      fcondtopn, fcondbot,  &
-                                     einit,     l_stop,    &
-                                     stop_label)
-            if (icepack_warnings_aborted(subname)) return
-
+                                     einit                 )
             if (icepack_warnings_aborted(subname)) return
 
          endif ! ktherm
@@ -338,10 +322,7 @@
                                        Tsf,       Tbot,     &
                                        fsensn,    flatn,    &
                                        flwoutn,   fsurfn,   &
-                                       fcondtopn, fcondbot, &
-                                       l_stop,    stop_label)
-            if (icepack_warnings_aborted(subname)) return
-
+                                       fcondtopn, fcondbot  )
             if (icepack_warnings_aborted(subname)) return
 
          else
@@ -405,10 +386,7 @@
                                       fsnow,     einit,    &
                                       einter,    efinal,   &
                                       fcondtopn, fcondbot, &
-                                      fadvocn,   fbot,     &
-                                      l_stop,    stop_label)
-      if (icepack_warnings_aborted(subname)) return
-      
+                                      fadvocn,   fbot      )
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -650,8 +628,7 @@
                                        zqin,     zTin,     &
                                        zqsn,     zTsn,     &
                                        zSin,               &
-                                       einit,    Tbot,     &
-                                       l_stop,   stop_label)
+                                       einit,    Tbot      )
 
       use icepack_mushy_physics, only: temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
@@ -689,12 +666,6 @@
          intent(out) :: &
          zqsn        , & ! snow enthalpy
          zTsn            ! snow temperature
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop          ! if true, print diagnostics and abort model
-
-      character (len=*), intent(out) :: &
-         stop_label      ! abort error message
 
       ! local variables
       real (kind=dbl_kind), dimension(nilyr) :: &
@@ -1825,8 +1796,7 @@
                                             einit,    einter,   &
                                             efinal,             &
                                             fcondtopn,fcondbot, &
-                                            fadvocn,  fbot,     &
-                                            l_stop,   stop_label)
+                                            fadvocn,  fbot      )
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
@@ -1846,12 +1816,6 @@
          einter      , & ! intermediate energy of melting (J m-2)
          efinal      , & ! final energy of melting (J m-2)
          fcondbot
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop          ! if true, print diagnostics and abort model
-
-      character (len=*), intent(out) :: &
-         stop_label   ! abort error message
 
       ! local variables
 
@@ -2080,8 +2044,7 @@
                                     dsnown      , frazil      , &
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
-                                    yday        , l_stop      , &
-                                    stop_label  , prescribed_ice)
+                                    yday        , prescribed_ice)
 
       use icepack_aerosol, only: update_aerosol
       use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
@@ -2232,12 +2195,6 @@
       real (kind=dbl_kind), dimension(:,:,:), intent(inout) :: &
          aerosno    , &  ! snow aerosol tracer (kg/m^2)
          aeroice         ! ice aerosol tracer (kg/m^2)
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, abort model
-
-      character (len=*), intent(out) :: &
-         stop_label      ! abort error message
 
       ! local variables
 
@@ -2435,7 +2392,6 @@
                                  congeln  (n), snoicen  (n), &
                                  mlt_onset,    frz_onset,    &
                                  yday,         dsnown   (n), &
-                                 l_stop,       stop_label,   &
                                  prescribed_ice)
 
             if (icepack_warnings_aborted(subname)) then
@@ -2584,8 +2540,7 @@
                                  fsurf,    fpond,                &
                                  Tsfc,     Tf,                   &
                                  zqin,     zSin,                 &
-                                 apnd,     hpnd,      ipnd,      &
-                                 l_stop,   stop_label)
+                                 apnd,     hpnd,      ipnd       )
          if (icepack_warnings_aborted(subname)) return
       endif
       !call ice_timer_stop(timer_ponds)

@@ -49,8 +49,7 @@
                                        Tsf,      Tbot,     &
                                        fsensn,   flatn,    &
                                        flwoutn,  fsurfn,   &
-                                       fcondtopn,fcondbot, &
-                                       l_stop,   stop_label)
+                                       fcondtopn,fcondbot  )
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -86,12 +85,6 @@
       real (kind=dbl_kind), &
          intent(inout) :: &
          Tsf             ! ice/snow surface temperature, Tsfcn
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop          ! if true, print diagnostics and abort model
-
-      character (len=*), intent(out) :: &
-         stop_label   ! abort error message
 
       ! local variables
 

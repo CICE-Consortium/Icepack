@@ -35,13 +35,13 @@
       ! Initialize Icepack
       !-----------------------------------------------------------------
 
-      call icepack_initialize
+      call icepack_drv_initialize
 
       !-----------------------------------------------------------------
       ! Run Icepack
       !-----------------------------------------------------------------
 
-      call icepack_run
+      call icepack_drv_run
 
       write(ice_stdout, *) "ICEPACK COMPLETED SUCCESSFULLY "
 

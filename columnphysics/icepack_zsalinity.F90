@@ -55,7 +55,6 @@
                             first_ice,          sss,          &
                             sst,                dh_top,       &
                             dh_bot,                           &
-                            l_stop,             stop_label,   &
                             fzsal,                            &
                             fzsal_g,            bphi_min,     &
                             nblyr,              vicen,        &
@@ -134,11 +133,6 @@
          ibrine_rho    , & ! brine rho on interface  
          ibrine_sal        ! brine sal on interface   
          
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-
-      character (char_len) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -168,7 +162,6 @@
                                    first_ice,          sss,          &
                                    sst,                dh_top,       &
                                    dh_bot,                           &
-                                   l_stop,             stop_label,   &
                                    fzsaln,                           &
                                    fzsaln_g,           bphi_min)
          if (icepack_warnings_aborted(subname)) return
@@ -209,7 +202,6 @@
                                    first_ice,          sss,          &
                                    sst,                dh_top,       &
                                    dh_bot,                           &  
-                                   l_stop,             stop_label,   &
                                    fzsaln,                           &
                                    fzsaln_g,           bphi_min)
 
@@ -288,11 +280,6 @@
          ibrine_rho    , & ! brine rho on interface  
          ibrine_sal        ! brine sal on interface   
          
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-
-      character (char_len) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -393,10 +380,7 @@
                        dh_bot       , brine_rho    , &
                        ibrine_sal   , ibrine_rho   , &
                        fzsaln       , fzsaln_g     , &
-                       S_bot        , l_stop       , &
-                       stop_label) 
-      if (icepack_warnings_aborted(subname)) return
-
+                       S_bot        )
       if (icepack_warnings_aborted(subname)) return
   
       if (n_cat == 1)   Rayleigh_criteria = Rayleigh
@@ -417,8 +401,7 @@
                          hin,       hbrin, &
                          cgrid(2:nilyr+1), &
                          bgrid(2:nblyr+1), &
-                         surface_S, l_stop,&
-                         stop_label)
+                         surface_S )
       if (icepack_warnings_aborted(subname)) return
                
       do k = 1, nilyr
@@ -453,8 +436,7 @@
                                       dhb,           brine_rho,     &
                                       ibrine_sal,    ibrine_rho,    &
                                       fzsaln,        fzsaln_g,      &
-                                      S_bot,         l_stop,        &
-                                      stop_label)    
+                                      S_bot          )
 
       use icepack_brine, only: calculate_drho
       use icepack_parameters, only: l_skS, grid_oS, l_sk, min_salin, rhosi, salt_loss
@@ -514,11 +496,6 @@
       real (kind=dbl_kind), dimension (2), intent(in) :: &
          S_bot
        
-      logical (kind=log_kind), intent(out) :: &
-         l_stop               ! if true, print diagnostics and abort on return
-
-      character (char_len) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -825,8 +802,7 @@
                call check_conserve_salt(nint, m, dt, dts,&
                                 Ssum_tmp, Ssum_new, Ssum_corr,&
                                 fluxcorr, fluxb, fluxg, fluxm, &
-                                hbrin, hbri_old, l_stop)
-               if (icepack_warnings_aborted(subname)) return
+                                hbrin, hbri_old)
                call icepack_warnings_add(subname//' check_conserve_salt fails')
                if (icepack_warnings_aborted(subname)) return
             endif  ! test_conservation
@@ -1044,7 +1020,7 @@
       subroutine check_conserve_salt (mmax, mint,     dt,       dts,        &
                                       Ssum_old, Ssum_new, Ssum_corr,        & 
                                       fluxcorr, fluxb,    fluxg,     fluxm, &
-                                      hbrin,    hbri_old, l_stop)
+                                      hbrin,    hbri_old)
 
       use icepack_parameters, only: rhosi
 
@@ -1063,9 +1039,6 @@
          fluxb          , &  ! total boundary salt flux into the ice (+ into ice)
          fluxg          , &  ! total gravity drainage salt flux into the ice (+ into ice)
          fluxm               ! 
-
-      logical (kind=log_kind), intent(inout) :: &   
-         l_stop              ! if false, conservation satisfied within error
 
      ! local variables
 

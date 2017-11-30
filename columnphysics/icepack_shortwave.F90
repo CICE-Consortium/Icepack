@@ -3618,8 +3618,7 @@
                                     nilyr,        nblyr,     &
                                     i_grid,                  &
                                     nbtrcr_sw,    n_zaero,   &
-                                    skl_bgc,      z_tracers, &
-                                    l_stop,       stop_label)
+                                    skl_bgc,      z_tracers  )
       
       use icepack_constants,  only: c0, c1, c2, p5
       use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
@@ -3656,11 +3655,6 @@
       logical (kind=log_kind), intent(in) :: &
          skl_bgc, & ! skeletal layer bgc  
          z_tracers  ! zbgc   
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
 
       !  local variables
 
@@ -3711,10 +3705,7 @@
                           1,                 nblyr+1, &
                           hin,               hbri,    &
                           icegrid(1:nilyr+1),         &
-                          i_grid(1:nblyr+1), top_conc, & 
-                          l_stop,            stop_label) 
-
-         if (icepack_warnings_aborted(subname)) return
+                          i_grid(1:nblyr+1), top_conc ) 
          if (icepack_warnings_aborted(subname)) return
 
          do k = 1, nilyr+1
@@ -3750,10 +3741,7 @@
                              1,                 nblyr+1, &
                              hin,               hbri,    &
                              icegrid(1:nilyr+1),         &
-                             i_grid(1:nblyr+1), top_conc, &
-                             l_stop,            stop_label) 
-
-            if (icepack_warnings_aborted(subname)) return
+                             i_grid(1:nblyr+1), top_conc )
             if (icepack_warnings_aborted(subname)) return
 
             do k = 1,nilyr+1
@@ -4041,10 +4029,7 @@
          n                  ! thickness category index
 
       logical (kind=log_kind) :: &
-         l_stop      ,&  ! if true, abort the model
          linitonly       ! local flag for initonly
-
-      character (char_len) :: stop_label
 
       real(kind=dbl_kind) :: &
         hin,         & ! Ice thickness (m)
@@ -4088,8 +4073,7 @@
                                      nilyr,        nblyr,     &
                                      igrid,                   &
                                      nbtrcr_sw,    n_zaero,   &
-                                     skl_bgc,      z_tracers, &
-                                     l_stop,       stop_label)
+                                     skl_bgc,      z_tracers  )
                  if (icepack_warnings_aborted(subname)) return
               endif
          enddo

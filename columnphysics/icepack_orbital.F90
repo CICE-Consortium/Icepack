@@ -43,12 +43,7 @@
 !
 ! author:  Bruce P. Briegleb, NCAR 
 
-      subroutine icepack_init_orbit(l_stop, stop_label)
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, abort the model
-
-      character (len=*), intent(out) :: stop_label
+      subroutine icepack_init_orbit()
 
       character(len=*),parameter :: subname='(icepack_init_orbit)'
 
@@ -58,8 +53,7 @@
 
 #ifndef CCSMCOUPLED
       call shr_orb_params( iyear_AD, eccen , obliq , mvelp    , &
-                           obliqr  , lambm0, mvelpp, log_print, &
-                           l_stop, stop_label)
+                           obliqr  , lambm0, mvelpp, log_print)
       if (icepack_warnings_aborted(subname)) return
 #endif
 
@@ -141,8 +135,7 @@
 
 #ifndef CCSMCOUPLED
 SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
-           &               obliqr   , lambm0, mvelpp, log_print, &
-                           l_stop, stop_label)
+           &               obliqr   , lambm0, mvelpp, log_print)
 
 !-------------------------------------------------------------------------------
 !
@@ -169,9 +162,6 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    real   (dbl_kind),intent(out)   :: mvelpp    ! moving vernal equinox long
                                                    ! of perihelion plus pi (rad)
    logical(log_kind),intent(in)    :: log_print ! Flags print of status/error
-
-   logical(log_kind),intent(out)   :: l_stop    ! if true, abort model
-   character (len=char_len), intent(out) :: stop_label
 
    !------------------------------ Parameters ----------------------------------
    real   (dbl_kind),parameter :: SHR_ORB_UNDEF_REAL = 1.e36_dbl_kind ! undefined real 

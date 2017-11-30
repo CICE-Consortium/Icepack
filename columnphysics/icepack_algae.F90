@@ -68,8 +68,7 @@
                          upNO,         upNH,        &
                          fbio_snoice,  fbio_atmice, &
                          PP_net,       ice_bio_net, &
-                         snow_bio_net, grow_net,    &
-                         l_stop,       stop_label)
+                         snow_bio_net, grow_net     )
 
       use icepack_aerosol, only: update_snow_bgc
       use icepack_constants, only: c0, c1, puny
@@ -170,11 +169,6 @@
       logical (kind=log_kind), intent(in) :: &
          first_ice      ! initialized values should be used
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -271,8 +265,7 @@
                                 dhice,        zbgc_atmn, &
                                 iTin,         dh_direct, &
                                 Zoo,          meltb,     &
-                                congel,       l_stop,    &
-                                stop_label)
+                                congel                   )
       if (icepack_warnings_aborted(subname)) return
       
       do mm = 1,nbtrcr
@@ -361,8 +354,7 @@
                                fswthru,  first_ice,  &
                                trcrn,    hin,        &
                                PP_net,   upNO,       &
-                               upNH,     grow_net,   &
-                               l_stop,   stop_label)
+                               upNH,     grow_net    )
 
       use icepack_tracers, only: nt_bgc_N
  
@@ -404,11 +396,6 @@
          upNO    , & ! tot nitrate uptake rate (mmol/m^2/s) 
          upNH        ! tot ammonium uptake rate (mmol/m^2/s)
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: stop_label
-
       ! local variables
 
       real (kind=dbl_kind), dimension (n_algae) :: &
@@ -432,19 +419,17 @@
                                       fswthru,   first_ice, &
                                       trcrn,     upNOn,     &
                                       upNHn,     grow_alg,  &
-                                      hin,       l_stop,    &
-                                      stop_label)
+                                      hin                   )
+      if (icepack_warnings_aborted(subname)) return
 
-     if (icepack_warnings_aborted(subname)) return
-
-     call merge_bgc_fluxes_skl    (ntrcr,                  &
-                                   nbtrcr,    n_algae,     &
-                                   aicen,     trcrn,       &
-                                   flux_bion, flux_bio,    &
-                                   PP_net,    upNOn,       &
-                                   upNHn,     upNO,        &
-                                   upNH,      grow_net,    &
-                                   grow_alg)
+      call merge_bgc_fluxes_skl    (ntrcr,                  &
+                                    nbtrcr,    n_algae,     &
+                                    aicen,     trcrn,       &
+                                    flux_bion, flux_bio,    &
+                                    PP_net,    upNOn,       &
+                                    upNHn,     upNO,        &
+                                    upNH,      grow_net,    &
+                                    grow_alg)
       if (icepack_warnings_aborted(subname)) return
  
       end subroutine sklbio    
@@ -464,8 +449,7 @@
                                       fswthru,    first_ice,    &
                                       trcrn,      upNOn,        &
                                       upNHn,      grow_alg_skl, &
-                                      hin,        l_stop,       &
-                                      stop_label)
+                                      hin                       )
 
       use icepack_constants, only: p5, p05, p1, c1, c0, puny, c10
       use icepack_tracers, only: nt_bgc_N,  ntrcr, bio_index 
@@ -504,11 +488,6 @@
          grow_alg_skl, & ! tot algal growth rate (mmol/m^3/s)  
          upNOn       , & !  algal NO uptake rate (mmol/m^3/s) 
          upNHn           !  algal NH uptake rate (mmol/m^3/s) 
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: stop_label
 
       ! local variables
 
@@ -774,8 +753,7 @@
                                     dhice,        zbgc_atm,  &
                                     iTin,         dh_direct, &
                                     Zoo,          meltb,     &
-                                    congel,       l_stop,    &   
-                                    stop_label)
+                                    congel                   )
 
       use icepack_tracers, only: nt_fbri, nt_zbgc_frac
       use icepack_tracers, only: ntrcr, nlt_bgc_Nit, tr_bgc_Fe, tr_zaero
@@ -843,11 +821,6 @@
          upNOn      , & ! algal nitrate uptake rate  (mmol/m^3/s)
          upNHn      , & ! algal ammonium uptake rate (mmol/m^3/s)
          grow_alg       ! algal growth rate          (mmol/m^3/s)
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: stop_label
 
       !-----------------------------------------------------------------------------
       ! algae absorption coefficient for 0.5 m thick layer
@@ -1126,8 +1099,7 @@
                       0,                nblyr+1,  &
                       hin,              hbri,     &
                       ic_grid(1:nilyr+1),         &
-                      i_grid(1:nblyr+1),ice_conc, &
-                      l_stop,           stop_label) 
+                      i_grid(1:nblyr+1),ice_conc  )
 
       if (icepack_warnings_aborted(subname)) return
 
@@ -1199,7 +1171,7 @@
                                 Sink_bot(mm),          &
                                 Sink_top(mm),          &
                                 dt, flux_bio(mm),     &
-                                l_stop, nblyr, &
+                                nblyr, &
                                 source(mm))
             if (icepack_warnings_aborted(subname)) return
 
@@ -1221,7 +1193,6 @@
                                  ntrcr,                               &
                                  nblyr,                  top_conc,    &
                                  i_grid,                 flux_bio(mm),&
-                                 l_stop,                 stop_label,  &
                                  meltb,                  congel)
                if (icepack_warnings_aborted(subname)) return
 
@@ -1234,7 +1205,6 @@
                                  ntrcr,                               &
                                  nblyr,                  top_conc,    &
                                  i_grid,                 flux_bio(mm),&
-                                 l_stop,                 stop_label,  &
                                  meltb,                  congel)       
                   if (icepack_warnings_aborted(subname)) return
 
@@ -2629,7 +2599,7 @@
       subroutine check_conservation_FCT &
                                      (C_init, C_new, C_low, S_top, &
                                       S_bot, L_bot, L_top, dt,     &
-                                      fluxbio, l_stop, nblyr, &
+                                      fluxbio, nblyr, &
                                       source) 
 
       use icepack_constants, only: p5, c1, c4, c0
@@ -2654,9 +2624,6 @@
 
       real (kind=dbl_kind), intent(inout) :: &
          fluxbio            ! (mmol/m^2/s)  positive down (into the ocean)
-
-      logical (kind=log_kind), intent(inout) :: &   
-         l_stop    ! false if conservation satisfied within error
 
       ! local variables
 

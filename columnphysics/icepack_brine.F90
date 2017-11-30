@@ -57,8 +57,7 @@
                                       meltb,    meltt,    congel,     &
                                       snoice,   hice_old, dhice,      &
                                       fbri,     dhbr_top, dhbr_bot,   &
-                                      hbr_old,  hin,hsn,  firstice,   &
-                                      l_stop,   stop_label)
+                                      hbr_old,  hin,hsn,  firstice    )
  
       integer (kind=int_kind), intent(in) :: &
          n_cat           ! category
@@ -88,11 +87,6 @@
 
       logical (kind=log_kind), intent(in) :: &
          firstice         ! if true, initialized values should be used     
-
-      logical (kind=log_kind), intent(out) :: &  
-         l_stop            ! if true, abort the model
-
-      character (char_len), intent(out) :: stop_label
 
       ! local variables
 
@@ -148,8 +142,7 @@
                                        kperm,    bphi_min,   phi_snow,   &
                                        bSin,     brine_sal,  brine_rho,  &
                                        iphin,    ibrine_rho, ibrine_sal, &
-                                       sice_rho, iDin,       l_stop,     &
-                                       stop_label)  
+                                       sice_rho, iDin                    )
 
       use icepack_therm_mushy, only: permeability
       use icepack_mushy_physics, only: temperature_mush, liquid_fraction
@@ -211,11 +204,6 @@
       real (kind=dbl_kind), intent(inout) :: &
          sice_rho        ! average ice density  
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
-
       ! local variables
 
       real (kind=dbl_kind), dimension (nilyr) :: &
@@ -275,8 +263,7 @@
                       0,                nblyr,          &
                       hinc_old,         hinc_old,       &
                       cgrid(2:nilyr+1),                 &
-                      bgrid(2:nblyr+1), surface_S,      &
-                      l_stop,           stop_label)
+                      bgrid(2:nblyr+1), surface_S       )
       if (icepack_warnings_aborted(subname)) return
      
       call remap_zbgc(ntrcr,            nilyr,          &
@@ -285,8 +272,7 @@
                       0,                nblyr,          &
                       hinc_old,         hinc_old,       &
                       cgrid(2:nilyr+1),                 &
-                      bgrid(2:nblyr+1), surface_S,      &
-                      l_stop,           stop_label)
+                      bgrid(2:nblyr+1), surface_S       )
       if (icepack_warnings_aborted(subname)) return
 
       do k = 1, nblyr
@@ -613,7 +599,7 @@
                                    bSin,                 brine_sal,  &
                                    brine_rho,  iphin,    ibrine_rho, &
                                    ibrine_sal, sice_rho, sloss,      &
-                                   salinz,     l_stop,   stop_label)
+                                   salinz                            )
  
       use icepack_therm_shared, only: calculate_Tin_from_qin
       use icepack_tracers, only: nt_fbri, nt_Tsfc
@@ -677,11 +663,6 @@
          iphin         , & ! porosity on the igrid 
          ibrine_rho    , & ! brine rho on interface  
          ibrine_sal        ! brine sal on interface   
-
-      logical (kind=log_kind), intent(out) :: &  
-         l_stop            ! if true, abort the model
-
-      character (char_len), intent(out) :: stop_label
 
       ! local variables
  
@@ -747,8 +728,7 @@
                             0,                nblyr,     &
                             hinc_old,         hinc_old,  &
                             cgrid(2:nilyr+1),            &
-                            bgrid(2:nblyr+1), surface_S, &
-                            l_stop,           stop_label)
+                            bgrid(2:nblyr+1), surface_S  )
             if (icepack_warnings_aborted(subname)) return
 
             do k = 1, nblyr    
@@ -769,8 +749,7 @@
                             hbr_old,                    &
                             maxhbr*hinc_old,            &
                             bgrid(2:nblyr+1),           &
-                            bgrid(2:nblyr+1), surface_S,&
-                            l_stop,           stop_label)
+                            bgrid(2:nblyr+1), surface_S )
             if (icepack_warnings_aborted(subname)) return
       
             do k = 1, nblyr    
@@ -815,8 +794,7 @@
                        0,                nblyr,     &
                        hinc_old,         hbr_old,   &
                        cgrid(2:nilyr+1),            & 
-                       bgrid(2:nblyr+1), surface_S, &
-                       l_stop,           stop_label)
+                       bgrid(2:nblyr+1), surface_S  )
       if (icepack_warnings_aborted(subname)) return
 
       do k = 1, nblyr

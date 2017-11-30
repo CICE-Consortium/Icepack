@@ -96,8 +96,7 @@
                             aice0,                   &
                             trcr_depend, trcr_base,  &
                             n_trcr_strata,           &
-                            nt_strata,   l_stop,     &
-                            stop_label,              &
+                            nt_strata,               &
                             krdg_partic, krdg_redist,&
                             mu_rdg,                  &
                             dardg1dt,    dardg2dt,   &
@@ -153,12 +152,6 @@
 
       integer (kind=int_kind), dimension (:,:), intent(in) :: &
          nt_strata      ! indices of underlying tracer layers
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop         ! if true, abort on return
-
-      character (len=*), intent(out) :: &
-         stop_label   ! diagnostic information for abort
 
       integer (kind=int_kind), intent(in) :: &
          krdg_partic  , & ! selects participation function
@@ -385,7 +378,6 @@
                            nslyr,       n_aero,      &
                            msnow_mlt,   esnow_mlt,   &
                            maero,       mpond,       &
-                           l_stop,      stop_label,  &
                            aredistn,    vredistn)    
          if (icepack_warnings_aborted(subname)) return
 
@@ -488,38 +480,32 @@
          fieldid = 'vice, ridging'
          call column_conservation_check (fieldid,               &
                                          vice_init, vice_final, &
-                                         puny,                  &
-                                         l_stop)
+                                         puny)
          if (icepack_warnings_aborted(subname)) return
          fieldid = 'vsno, ridging'
          call column_conservation_check (fieldid,               &
                                          vsno_init, vsno_final, &
-                                         puny,                  &
-                                         l_stop)
+                                         puny)
          if (icepack_warnings_aborted(subname)) return
          fieldid = 'eice, ridging'
          call column_conservation_check (fieldid,               &
                                          eice_init, eice_final, &
-                                         puny*Lfresh*rhoi,      &
-                                         l_stop)
+                                         puny*Lfresh*rhoi)
          if (icepack_warnings_aborted(subname)) return
          fieldid = 'esno, ridging'
          call column_conservation_check (fieldid,               &
                                          esno_init, esno_final, &
-                                         puny*Lfresh*rhos,      &
-                                         l_stop)
+                                         puny*Lfresh*rhos)
          if (icepack_warnings_aborted(subname)) return
          fieldid = 'sice, ridging'
          call column_conservation_check (fieldid,               &
                                          sice_init, sice_final, &
-                                         puny,                  &
-                                         l_stop)
+                                         puny)
          if (icepack_warnings_aborted(subname)) return
          fieldid = 'vbrin, ridging'
          call column_conservation_check (fieldid,               &
                                          vbri_init, vbri_final, &
-                                         puny*c10,              &
-                                         l_stop)
+                                         puny*c10)
          if (icepack_warnings_aborted(subname)) return
 
       endif                     ! l_conservation_check            
@@ -1073,7 +1059,6 @@
                               nslyr,       n_aero,          &
                               msnow_mlt,   esnow_mlt,       &
                               maero,       mpond,           &
-                              l_stop,      stop_label,      &
                               aredistn,    vredistn)
 
       use icepack_tracers, only: nt_qsno, nt_fbri
@@ -1149,12 +1134,6 @@
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          maero          ! aerosol mass added to ocean (kg m-2)
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop         ! if true, abort on return
-
-      character (len=*), intent(out) :: &
-         stop_label   ! diagnostic information for abort
 
       real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          aredistn   , & ! redistribution function: fraction of new ridge area
@@ -1722,8 +1701,7 @@
                                     araftn,       vraftn,        &
                                     aice,         fsalt,         &
                                     first_ice,    fzsal,         &
-                                    flux_bio,                    &
-                                    l_stop,       stop_label)
+                                    flux_bio                     )
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -1793,12 +1771,6 @@
       logical (kind=log_kind), dimension(:), intent(inout) :: &
          first_ice    ! true until ice forms
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop       ! if true, abort the model
-
-      character (len=*), intent(out) :: &
-         stop_label   ! diagnostic information for abort
-
       ! local variables
 
       real (kind=dbl_kind) :: &
@@ -1828,8 +1800,6 @@
                          trcr_base,                    &
                          n_trcr_strata,                &
                          nt_strata,                    &
-                         l_stop,                       &
-                         stop_label,                   &
                          krdg_partic, krdg_redist, &
                          mu_rdg,                   &
                          dardg1dt,     dardg2dt,       &
@@ -1859,7 +1829,6 @@
                         aice0,                aice,             &          
                         n_aero,                                 &
                         nbtrcr,               nblyr,            &
-                        l_stop,               stop_label,       &
                         tr_aero,                                &
                         tr_pond_topo,         heat_capacity,    &  
                         first_ice,                              &                

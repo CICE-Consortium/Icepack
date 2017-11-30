@@ -223,8 +223,7 @@
                             nr0,      nbyrn,    &
                             hice,     hinS,     &
                             ice_grid, bio_grid, &
-                            S_min,    l_stop,   &
-                            stop_label)
+                            S_min     )
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr         , & ! number of tracers in use
@@ -249,11 +248,6 @@
          hice          , & ! CICE ice thickness
          hinS          , & ! brine height 
          S_min             ! for salinity on CICE grid        
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
 
       ! local variables
 
@@ -429,7 +423,6 @@
                                     ntrcr,        nblyr,    &
                                     top_conc,     igrid,    &
                                     flux_bio,               &
-                                    l_stop,       stop_label, &
                                     melt_b,       con_gel)
       
       use icepack_constants, only: c0, c1, p5, puny
@@ -452,11 +445,6 @@
          top_conc     , & ! c0 or frazil concentration
          hbri_old     , & ! previous timestep brine height
          hbri             ! brine height 
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
 
       real(kind=dbl_kind), intent(in), optional :: &
          melt_b,         &  ! bottom melt (m)
@@ -554,9 +542,7 @@
                              nr,                nblyr+1, & 
                              hice,              hbio,    & 
                              igrid(1:nblyr+1),           &
-                             igrid(1:nblyr+1), top_conc, &
-                             l_stop,           stop_label)
-          if (icepack_warnings_aborted(subname)) return
+                             igrid(1:nblyr+1), top_conc  )
           if (icepack_warnings_aborted(subname)) return
     
           trtmp0(:) = c0

@@ -47,8 +47,7 @@
                                     fsurf, fpond,       &
                                     Tsfcn, Tf,          &
                                     qicen, sicen,       &
-                                    apnd,  hpnd, ipnd,  &
-                                    l_stop,stop_label)
+                                    apnd,  hpnd, ipnd   )
 
       integer (kind=int_kind), intent(in) :: &
          ncat , &   ! number of thickness categories
@@ -94,12 +93,6 @@
          potT,  &   ! air potential temperature
          meltt, &   ! total surface meltwater flux
          fsurf      ! thermodynamic heat flux at ice/snow surface (W/m^2)
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, abort model
-
-      character (len=char_len), intent(out) :: &
-         stop_label
 
       ! local variables
 
@@ -178,8 +171,7 @@
                         qicen,      sicen,              &
                         volpn,      volp,               &
                         Tsfcn,      Tf,                 & 
-                        apondn,     hpondn,    dvn,     &
-                        l_stop,     stop_label)
+                        apondn,     hpondn,    dvn      )
          if (icepack_warnings_aborted(subname)) return
 
          fpond = fpond - dvn
@@ -312,8 +304,7 @@
                            qicen, sicen,       &
                            volpn, volp,        &
                            Tsfcn,  Tf,         &
-                           apondn,hpondn,dvolp,&
-                           l_stop,stop_label)
+                           apondn,hpondn,dvolp )
 
       integer (kind=int_kind), intent(in) :: &
          ncat , & ! number of thickness categories
@@ -342,12 +333,6 @@
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          apondn, hpondn
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, abort model
-
-      character (len=char_len), intent(out) :: &
-         stop_label
 
       ! local variables
 
@@ -525,8 +510,7 @@
          if (hicen(n) > c0) then
             call permeability_phi(heat_capacity, nilyr, &
                                   qicen(:,n), sicen(:,n), Tsfcn(n), Tf, &
-                                  vicen(n),   perm,       l_stop,   stop_label)
-            if (icepack_warnings_aborted(subname)) return
+                                  vicen(n),   perm)
             if (icepack_warnings_aborted(subname)) return
             if (perm > c0) permflag = 1
             drain = perm*apondn(n)*pressure_head*dt / (viscosity_dyn*hicen(n))
@@ -768,7 +752,7 @@
 
       subroutine permeability_phi(heat_capacity, nilyr, &
                                   qicen, sicen, Tsfcn, Tf, &
-                                  vicen, perm,  l_stop, stop_label)
+                                  vicen, perm)
 
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
@@ -790,12 +774,6 @@
     
       real (kind=dbl_kind), intent(out) :: &
          perm      ! permeability
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, abort model
-
-      character (len=char_len), intent(out) :: &
-         stop_label
 
       ! local variables
 
