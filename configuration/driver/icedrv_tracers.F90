@@ -5,9 +5,9 @@
 !
 ! author Elizabeth C. Hunke, LANL
 
-      module icepack_drv_tracers
+      module icedrv_tracers
 
-      use icepack_drv_kinds
+      use icedrv_kinds
       use icepack_tracers, only: max_nbtrcr, max_algae, max_aero
       use icepack_tracers, only: nmodal1, nmodal2
       use icepack_tracers, only: max_doc, max_don, max_dic, max_fe
@@ -42,6 +42,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_tracers
+      end module icedrv_tracers
 
 !=======================================================================

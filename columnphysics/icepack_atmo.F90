@@ -21,9 +21,10 @@
       use icepack_constants,  only: pih, dragio, rhoi, rhos, rhow
       use icepack_parameters, only: atmbndy, calc_strair, formdrag
       use icepack_parameters, only: highfreq, natmiter
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
-      save
 
       private
       public :: atmo_boundary_layer, &
@@ -159,6 +160,8 @@
          xd    , & ! dummy argument
          psimhu, & ! unstable part of psimh
          psixhu    ! unstable part of psimx
+
+      character(len=*),parameter :: subname='(atm_boundary_layer)'
 
       !------------------------------------------------------------
       ! Define functions
@@ -426,6 +429,8 @@
          tau, &  ! stress at zlvl
          Lheat   ! Lvap or Lsub, depending on surface type
 
+      character(len=*),parameter :: subname='(atm_boundary_const)'
+
       !------------------------------------------------------------
       ! Initialize
       !------------------------------------------------------------
@@ -616,6 +621,8 @@
       real (kind=dbl_kind), parameter :: &
          camax    = 0.02_dbl_kind , & ! Maximum for atmospheric drag
          cwmax    = 0.06_dbl_kind     ! Maximum for ocean drag
+
+      character(len=*),parameter :: subname='(neutral_drag_coeffs)'
 
       astar = c1/(c1-(Lmin/Lmax)**(c1/beta))
 
@@ -882,6 +889,8 @@
       real (kind=dbl_kind) :: &
          worku, workv, workr
 
+      character(len=*),parameter :: subname='(icepack_atm_boundary)'
+
       worku = c0
       workv = c0
       workr = c0
@@ -902,6 +911,7 @@
                                             delt,     delq,     &
                                             lhcoef,   shcoef,   &
                                             Cdn_atm)
+                  if (icepack_warnings_aborted(subname)) return
                else ! default
                   call atmo_boundary_layer (sfctype,                 &
                                             calc_strair, formdrag,   &
@@ -918,6 +928,7 @@
                                             Cdn_atm_ratio_n,         &
                                             worku,    workv,         &
                                             workr)
+                  if (icepack_warnings_aborted(subname)) return
                endif ! atmbndy
 
       if (present(Uref)) then

@@ -4,20 +4,21 @@
 !
 ! authors: Elizabeth C. Hunke, LANL
 
-      module icepack_drv_diagnostics
+      module icedrv_diagnostics
 
-      use icepack_drv_kinds
-      use icepack_drv_constants, only: c0, nu_diag, nu_diag_out
-      use icepack_drv_calendar, only: diagfreq, istep1, istep
-      use icepack_drv_tracers, only: max_aero
-      use icepack_drv_domain_size, only: nx
+      use icedrv_kinds
+      use icedrv_constants, only: c0, nu_diag, nu_diag_out
+      use icedrv_calendar, only: diagfreq, istep1, istep
+      use icedrv_tracers, only: max_aero
+      use icedrv_domain_size, only: nx
 
       implicit none
       private
-      public :: runtime_diags, diagnostic_abort, init_mass_diags, &
-                debug_icepack, print_state
-
-      save
+      public :: runtime_diags, &
+                icedrv_diagnostics_abort, &
+                init_mass_diags, &
+                icedrv_diagnostics_debug, &
+                print_state
 
       ! diagnostic output file
       character (len=char_len), public :: diag_file
@@ -52,22 +53,22 @@
 
       subroutine runtime_diags (dt)
 
-      use icepack_drv_parameters,  only: calc_Tsfc, ktherm
-      use icepack_drv_constants,   only: c1, c1000, c2, p001, p5, puny, rhoi, rhos, rhow
-      use icepack_drv_constants,   only: rhofresh, Tffresh, Lfresh, Lvap, ice_ref_salinity
-      use icepack_drv_constants,   only: m2_to_km2, awtvdr, awtidr, awtvdf, awtidf
-      use icepack_drv_domain_size, only: ncat, n_aero
-      use icepack_drv_flux, only: alvdr, alidr, alvdf, alidf, evap, fsnow, frazil
-      use icepack_drv_flux, only: fswabs, fswthru, flw, flwout, fsens, fsurf, flat, frzmlt_init, frain, fpond
-      use icepack_drv_flux, only: coszen, fhocn_ai, fsalt_ai, fresh_ai, frazil_diag
-      use icepack_drv_flux, only: update_ocn_f, Tair, Qa, fsw, fcondtop, meltt, meltb, meltl, snoice
-      use icepack_drv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
-      use icepack_drv_flux, only: swvdr, swvdf, swidr, swidf
-      use icepack_drv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init, faero_atm, faero_ocn
-      use icepack_drv_state, only: aice, vice, vsno, trcr
-      use icepack_drv_tracers, only: tr_brine, nt_fbri, nt_Tsfc
+      use icedrv_parameters,  only: calc_Tsfc, ktherm
+      use icedrv_constants,   only: c1, c1000, c2, p001, p5, puny, rhoi, rhos, rhow
+      use icedrv_constants,   only: rhofresh, Tffresh, Lfresh, Lvap, ice_ref_salinity
+      use icedrv_constants,   only: m2_to_km2, awtvdr, awtidr, awtvdf, awtidf
+      use icedrv_domain_size, only: ncat, n_aero
+      use icedrv_flux, only: alvdr, alidr, alvdf, alidf, evap, fsnow, frazil
+      use icedrv_flux, only: fswabs, fswthru, flw, flwout, fsens, fsurf, flat, frzmlt_init, frain, fpond
+      use icedrv_flux, only: coszen, fhocn_ai, fsalt_ai, fresh_ai, frazil_diag
+      use icedrv_flux, only: update_ocn_f, Tair, Qa, fsw, fcondtop, meltt, meltb, meltl, snoice
+      use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
+      use icedrv_flux, only: swvdr, swvdf, swidr, swidf
+      use icedrv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init, faero_atm, faero_ocn
+      use icedrv_state, only: aice, vice, vsno, trcr
+      use icedrv_tracers, only: tr_brine, nt_fbri, nt_Tsfc
 #ifdef CCSMCOUPLED
-      use icepack_drv_prescribed_mod, only: prescribed_ice
+      use icedrv_prescribed_mod, only: prescribed_ice
 #endif
 
       real (kind=dbl_kind), intent(in) :: &
@@ -88,6 +89,8 @@
 
       real (kind=dbl_kind), dimension (nx) :: &
          work1, work2
+
+      character(len=*), parameter :: subname='(runtime_diags)'
 
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
@@ -191,13 +194,15 @@
 
       subroutine init_mass_diags
 
-      use icepack_drv_domain_size, only: nx
-      use icepack_drv_state, only: vice, vsno
+      use icedrv_domain_size, only: nx
+      use icedrv_state, only: vice, vsno
 
       integer (kind=int_kind) :: n, i
 
       real (kind=dbl_kind), dimension (nx) :: &
          work1
+
+      character(len=*), parameter :: subname='(init_mass_diags)'
 
       call total_energy (work1)
       do n = 1, nx
@@ -217,9 +222,9 @@
 
       subroutine total_energy (work)
 
-      use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
-      use icepack_drv_state, only: vicen, vsnon, trcrn
-      use icepack_drv_tracers, only: nt_qice, nt_qsno
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
+      use icedrv_state, only: vicen, vsnon, trcrn
+      use icedrv_tracers, only: nt_qice, nt_qsno
 
       real (kind=dbl_kind), dimension (nx),  &
          intent(out) :: &
@@ -229,6 +234,8 @@
 
       integer (kind=int_kind) :: &
         i, k, n
+
+      character(len=*), parameter :: subname='(total_energy)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -267,9 +274,9 @@
 
       subroutine total_salt (work)
 
-      use icepack_drv_domain_size, only: ncat, nilyr, nslyr, nx
-      use icepack_drv_state, only: vicen, trcrn
-      use icepack_drv_tracers, only: nt_sice
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
+      use icedrv_state, only: vicen, trcrn
+      use icedrv_tracers, only: nt_sice
 
       real (kind=dbl_kind), dimension (nx),  &
          intent(out) :: &
@@ -279,6 +286,8 @@
 
       integer (kind=int_kind) :: &
         i, k, n
+
+      character(len=*), parameter :: subname='(total_salt)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -306,25 +315,37 @@
 
 ! prints error information prior to aborting
 
-      subroutine diagnostic_abort(istop, istep1, stop_label)
+      subroutine icedrv_diagnostics_abort(icell, istep, string, file, line)
 
-      use icepack_drv_constants, only: nu_diag
-      use icepack_drv_state, only: aice
+      use icedrv_constants, only: nu_diag
+      use icedrv_state, only: aice
+      use icepack_intfc, only: icepack_warnings_flush
 
-      integer (kind=int_kind), intent(in) :: &
-         istop       , & ! indices of grid cell where model aborts
-         istep1          ! time step number
+      integer (kind=int_kind), intent(in), optional :: &
+         icell       , & ! indices of grid cell where model aborts
+         istep       , & ! time step number
+         line            ! line number
 
-      character (char_len), intent(in) :: stop_label
+      character (len=*), intent(in), optional :: string, file
 
       ! local variables
 
-      write (nu_diag,*) 'istep1, i, aice =', &
-                         istep1, istop, aice(istop)
-      write (nu_diag,*) stop_label
+      character(len=*), parameter :: subname='(icedrv_diagnostics_abort)'
+
+      write(nu_diag,*) ' '
+
+      call icepack_warnings_flush(nu_diag)
+
+      write(nu_diag,*) ' '
+      write(nu_diag,*) subname,' ABORTED: '
+      if (present(file))   write (nu_diag,*) subname,' called from ',trim(file)
+      if (present(line))   write (nu_diag,*) subname,' line number ',line
+      if (present(istep))  write (nu_diag,*) subname,' istep =', istep
+      if (present(icell))  write (nu_diag,*) subname,' i, aice =', icell, aice(icell)
+      if (present(string)) write (nu_diag,*) subname,' string = ',trim(string)
       stop
 
-      end subroutine diagnostic_abort
+      end subroutine icedrv_diagnostics_abort
 
 !=======================================================================
 !
@@ -333,11 +354,13 @@
 !
 ! author Elizabeth C. Hunke, LANL
 !
-      subroutine debug_icepack (plabeld)
+      subroutine icedrv_diagnostics_debug (plabeld)
 
-      use icepack_drv_calendar, only: istep1
+      use icedrv_calendar, only: istep1
 
       character (*), intent(in) :: plabeld
+
+      character(len=*), parameter :: subname='(icedrv_diagnostics_debug)'
 
       ! printing info for routine print_state
       character (char_len) :: plabel
@@ -349,7 +372,7 @@
          call print_state(plabeld,ip)
       endif
 
-      end subroutine debug_icepack
+      end subroutine icedrv_diagnostics_debug
 
 !=======================================================================
 
@@ -362,16 +385,16 @@
 
       subroutine print_state(plabel,i)
 
-      use icepack_drv_calendar,  only: istep1, time
-      use icepack_drv_constants, only: puny, rhoi, rhos, Lfresh, cp_ice
-      use icepack_drv_domain_size, only: ncat, nilyr, nslyr
-      use icepack_drv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
-      use icepack_drv_tracers,  only: nt_Tsfc, nt_qice, nt_qsno
-      use icepack_drv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow
-      use icepack_drv_flux, only: fsens, flat, evap, flwout, swvdr, swvdf, swidr, swidf, rhoa
-      use icepack_drv_flux, only: frzmlt, sst, sss, Tf, Tref, Qref, Uref, uocn, vocn, strtltx, strtlty
-      use icepack_drv_flux, only: fsw, fswabs, fswint_ai, fswthru, scale_factor, alvdr_ai, alvdf_ai
-      use icepack_drv_flux, only: alidf_ai, alidr_ai
+      use icedrv_calendar,  only: istep1, time
+      use icedrv_constants, only: puny, rhoi, rhos, Lfresh, cp_ice
+      use icedrv_domain_size, only: ncat, nilyr, nslyr
+      use icedrv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
+      use icedrv_tracers,  only: nt_Tsfc, nt_qice, nt_qsno
+      use icedrv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow
+      use icedrv_flux, only: fsens, flat, evap, flwout, swvdr, swvdf, swidr, swidf, rhoa
+      use icedrv_flux, only: frzmlt, sst, sss, Tf, Tref, Qref, Uref, uocn, vocn, strtltx, strtlty
+      use icedrv_flux, only: fsw, fswabs, fswint_ai, fswthru, scale_factor, alvdr_ai, alvdf_ai
+      use icedrv_flux, only: alidf_ai, alidr_ai
 
       character (*), intent(in) :: plabel
 
@@ -385,6 +408,8 @@
            qi, qs, Tsnow
 
       integer (kind=int_kind) :: n, k
+
+      character(len=*), parameter :: subname='(print_state)'
 
       write(nu_diag,*) trim(plabel)
       write(nu_diag,*) 'istep1, i, time', &
@@ -493,6 +518,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_diagnostics
+      end module icedrv_diagnostics
 
 !=======================================================================

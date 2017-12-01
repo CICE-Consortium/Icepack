@@ -4,15 +4,14 @@
 !
 ! authors: Elizabeth C. Hunke, LANL
 
-      module icepack_drv_calendar
+      module icedrv_calendar
 
-      use icepack_drv_kinds
-      use icepack_drv_constants, only: c0, c1, c100, c30, c360, c365, c3600
-      use icepack_drv_constants, only: c4, c400, secday, nu_diag, nu_diag_out
+      use icedrv_kinds
+      use icedrv_constants, only: c0, c1, c100, c30, c360, c365, c3600
+      use icedrv_constants, only: c4, c400, secday, nu_diag, nu_diag_out
 
       implicit none
       private
-      save
 
       public :: init_calendar, calendar, time2sec, sec2time
 
@@ -105,6 +104,7 @@
 ! authors: Elizabeth C. Hunke, LANL
 
       subroutine init_calendar
+      character(len=*), parameter :: subname='(init_calendar)'
 
       istep = 0         ! local timestep number
       time=istep0*dt    ! s
@@ -172,7 +172,7 @@
 
       subroutine calendar(ttime)
 
-      use icepack_drv_domain_size, only: nx
+      use icedrv_domain_size, only: nx
 
       real (kind=dbl_kind), intent(in) :: &
          ttime                          ! time variable
@@ -186,6 +186,8 @@
          elapsed_months             , & ! since beginning this run
          elapsed_hours              , & ! since beginning this run
          month0
+
+      character(len=*), parameter :: subname='(calendar)'
 
       nyrp=nyr
       monthp=month
@@ -272,6 +274,7 @@
 
       real    (kind=dbl_kind) :: days_since_calz   ! days since calendar zero
       integer (kind=int_kind) :: years_since_calz  ! days since calendar zero
+      character(len=*), parameter :: subname='(time2sec)'
 
       if (dayyr == 360) then
          days_since_calz = c360*year + c30*(month-1) + day - c1
@@ -338,6 +341,7 @@
 
       real    (kind=dbl_kind) :: days_since_calz  ! days since calendar zero
       integer (kind=int_kind) :: k                ! counter
+      character(len=*), parameter :: subname='(sec2time)'
 
       days_since_calz = int(tsec/secday)
 
@@ -422,6 +426,7 @@
 
       ! Internal variable
       logical (kind=log_kind) :: isleap   ! Leap year logical
+      character(len=*), parameter :: subname='(set_calendar)'
 
       isleap = .false. ! not a leap year
       if (mod(year,  4) == 0) isleap = .true.
@@ -445,6 +450,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_calendar
+      end module icedrv_calendar
 
 !=======================================================================

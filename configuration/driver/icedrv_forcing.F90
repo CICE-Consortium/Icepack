@@ -4,21 +4,19 @@
 !
 ! authors: Elizabeth C. Hunke and William H. Lipscomb, LANL
 !
-      module icepack_drv_forcing
+      module icedrv_forcing
 
-      use icepack_drv_kinds
-      use icepack_drv_domain_size, only: ncat, nx
-      use icepack_drv_calendar, only: time, nyr, dayyr, mday, month, &
+      use icedrv_kinds
+      use icedrv_domain_size, only: ncat, nx
+      use icedrv_calendar, only: time, nyr, dayyr, mday, month, &
          daymo, daycal, &
          dt, yday , days_per_year
-      use icepack_drv_constants, only: nu_diag, nu_forcing, secday
-      use icepack_drv_parameters, only: calc_strair
+      use icedrv_constants, only: nu_diag, nu_forcing, secday
+      use icedrv_parameters, only: calc_strair
 
       implicit none
       private
       public :: init_forcing, get_forcing, interp_coeff, interp_coeff_monthly
-
-      save
 
       integer (kind=int_kind), parameter :: &
          ntime = 8760        ! number of data points in time
@@ -102,12 +100,14 @@
 ! namelist input; initialize the forcing data.
 
       use icepack_constants, only: c0
-      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
+      use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp
 
       integer (kind=int_kind) :: &
          i                ! index
+
+      character(len=*), parameter :: subname='(init_forcing)'
 
       fyear       = fyear_init + mod(nyr-1,ycycle) ! current year
       fyear_final = fyear_init + ycycle - 1 ! last year in forcing cycle
@@ -188,7 +188,7 @@
 ! the time step and the data both start Jan 1.
 
       use icepack_constants, only: c0, c1
-      use icepack_drv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
+      use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp, hmix
 
@@ -211,6 +211,8 @@
 
       real (kind=dbl_kind) :: &
           sec6hr
+
+      character(len=*), parameter :: subname='(get_forcing)'
 
       if (trim(atm_data_type) == 'CFS') then
          ! calculate data index corresponding to current timestep
@@ -430,6 +432,8 @@ endif
            rhum_clim, &
           fsnow_clim
 
+      character(len=*), parameter :: subname='(atm_climatological)'
+
       ! Ice station meteorology from Lindsay (1998, J. Climate), Table 1, p. 325
       ! zlvl = c2 ! 2-m temperatures and wind speed
 
@@ -494,6 +498,7 @@ endif
 
       character (char_len_long) string1
       character (char_len_long) filename
+      character(len=*), parameter :: subname='(atm_CFS)'
 
       filename = trim(data_dir)//'/CFS/cfsv2_2015_220_70_01hr.txt'
 
@@ -573,6 +578,8 @@ endif
 
       real (kind=dbl_kind) :: workx, worky, &
          precip_factor, zlvl0
+
+      character(len=*), parameter :: subname='(prepare_forcing)'
 
       zlvl0 = c10 ! default
 
@@ -689,6 +696,8 @@ endif
       real (kind=dbl_kind) :: &
           daymid(0:13)     ! month mid-points
 
+      character(len=*), parameter :: subname='(interp_coeff_monthly)'
+
       daymid(1:13) = 14._dbl_kind   ! time frame ends 0 sec into day 15
       daymid(0)    = 14._dbl_kind - daymo(12)  ! Dec 15, 0 sec
 
@@ -749,6 +758,8 @@ endif
           t1, t2       , & ! seconds elapsed at data points
           rcnum            ! recnum => dbl_kind
 
+      character(len=*), parameter :: subname='(interp_coeff)'
+
       secyr = dayyr * secday         ! seconds in a year
       tt = mod(time,secyr)
 
@@ -796,8 +807,10 @@ endif
           atime
 
       character (char_len_long) filename
+
+      character(len=*), parameter :: subname='(atm_ISPOL)'
       
-      filename = trim(data_dir)//'ISPOL_2004/ISPOL_atm_forcing.txt'
+      filename = trim(data_dir)//'/ISPOL_2004/ISPOL_atm_forcing.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -864,7 +877,9 @@ endif
           atime
 
       character (char_len_long) filename
-      
+
+      character(len=*), parameter :: subname='(atm_NICE)'
+
       filename = trim(data_dir)//'/NICE_2015/NICEL_atm_forcing.txt'
 
       write (nu_diag,*) 'Reading ',filename
@@ -912,7 +927,7 @@ endif
            yr                   ! current forcing year
 
       atm_file = &
-          trim(atm_data_dir)//'NICE_atm_forcing.nc'
+          trim(atm_data_dir)//'/NICE_atm_forcing.nc'
 
 
       if (my_task == master_task) then
@@ -1160,8 +1175,10 @@ endif
 
       character (char_len_long) filename
       
+      character(len=*), parameter :: subname='(ocn_ISPOL)'
+
       filename = &
-          trim(data_dir)//'ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+          trim(data_dir)//'/ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -1213,7 +1230,7 @@ endif
 
       use icepack_constants, only: c0
       use icepack_therm_shared, only: icepack_sea_freezing_temperature
-      use icepack_drv_flux, only: sss, Tf, sst, hmix
+      use icedrv_flux, only: sss, Tf, sst, hmix
 
       real (kind=dbl_kind), dimension(nx), intent(in)  :: &
           sst_temp
@@ -1222,6 +1239,8 @@ endif
 
       integer (kind=int_kind) :: &
          i, j, iblk           ! horizontal indices
+
+      character(len=*), parameter :: subname='(finish_ocn_forcing)'
 
       do i = 1, nx
          sss (i) = max (sss(i), c0)
@@ -1234,6 +1253,6 @@ endif
 
 !=======================================================================
 
-      end module icepack_drv_forcing
+      end module icedrv_forcing
 
 !=======================================================================

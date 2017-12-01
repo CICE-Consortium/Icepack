@@ -39,7 +39,7 @@ set ICE_RUNLOG_FILE = "icepack.runlog.\${stamp}"
 #--------------------------------------------
 
 if !(-d \${ICE_RUNDIR}) mkdir -p \${ICE_RUNDIR}
-if !(-d \${ICE_HSTDIR}) mkdir -p \${ICE_HSTDIR}
+#if !(-d \${ICE_HSTDIR}) mkdir -p \${ICE_HSTDIR}
 if !(-d \${ICE_RSTDIR}) mkdir -p \${ICE_RSTDIR}
 
 #--------------------------------------------

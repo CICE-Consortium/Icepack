@@ -6,20 +6,19 @@
 !
 ! author Elizabeth C. Hunke, LANL
 !
-      module icepack_drv_flux
+      module icedrv_flux
 
-      use icepack_drv_kinds
-      use icepack_drv_domain_size, only: ncat, nilyr, nx
-      use icepack_drv_constants, only: c0, c1, c5, c10, c20, c180, dragio
-      use icepack_drv_constants, only: stefan_boltzmann, Tffresh, emissivity
-      use icepack_drv_tracers, only: max_aero, max_nbtrcr
-      use icepack_drv_tracers, only: max_algae, max_doc, max_don, max_dic, max_fe
+      use icedrv_kinds
+      use icedrv_domain_size, only: ncat, nilyr, nx
+      use icedrv_constants, only: c0, c1, c5, c10, c20, c180, dragio
+      use icedrv_constants, only: stefan_boltzmann, Tffresh, emissivity
+      use icedrv_tracers, only: max_aero, max_nbtrcr
+      use icedrv_tracers, only: max_algae, max_doc, max_don, max_dic, max_fe
 
       implicit none
       private
       public :: init_coupler_flux, init_history_therm, init_history_dyn, &
                 init_flux_atm_ocn, init_history_bgc
-      save
 
       character (char_len), public :: &
          default_season ! seasonal default values for forcing
@@ -394,9 +393,9 @@
 
       subroutine init_coupler_flux
 
-      use icepack_drv_arrays_column, only: Cdn_atm
+      use icedrv_arrays_column, only: Cdn_atm
       use icepack_intfc, only: icepack_liquidus_temperature
-      use icepack_drv_constants, only: p001,vonkar,zref,iceruf
+      use icedrv_constants, only: p001,vonkar,zref,iceruf
 
       integer (kind=int_kind) :: n
 
@@ -408,6 +407,8 @@
                           -9.0_dbl_kind, -7.0_dbl_kind, -3.0_dbl_kind /
       data fsurfn_d    /  0.20_dbl_kind, 0.15_dbl_kind, 0.10_dbl_kind, &
                           0.05_dbl_kind, 0.01_dbl_kind, 0.01_dbl_kind /
+
+      character(len=*), parameter :: subname='(init_coupler_flux)'
 
       !-----------------------------------------------------------------
       ! fluxes received from atmosphere
@@ -566,6 +567,7 @@
 ! author: Elizabeth C. Hunke, LANL
 
       subroutine init_flux_atm_ocn
+      character(len=*), parameter :: subname='(init_flux_atm_ocn)'
 
       !-----------------------------------------------------------------
       ! initialize albedo and atmosphere fluxes
@@ -607,14 +609,15 @@
 
       subroutine init_history_therm
 
-      use icepack_drv_state, only: aice, vice, trcr
-      use icepack_drv_tracers, only: tr_iage, nt_iage
-      use icepack_drv_parameters, only: formdrag
-      use icepack_drv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
-      use icepack_drv_arrays_column, only: Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_pond, Cdn_atm_rdg
-      use icepack_drv_arrays_column, only: Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
-      use icepack_drv_arrays_column, only: Cdn_atm, Cdn_ocn
-      use icepack_drv_constants, only: vonkar,zref,iceruf
+      use icedrv_state, only: aice, vice, trcr
+      use icedrv_tracers, only: tr_iage, nt_iage
+      use icedrv_parameters, only: formdrag
+      use icedrv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
+      use icedrv_arrays_column, only: Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_pond, Cdn_atm_rdg
+      use icedrv_arrays_column, only: Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
+      use icedrv_arrays_column, only: Cdn_atm, Cdn_ocn
+      use icedrv_constants, only: vonkar,zref,iceruf
+      character(len=*), parameter :: subname='(init_history_therm)'
 
       fsurf  (:) = c0
       fcondtop(:)= c0
@@ -685,8 +688,9 @@
 
       subroutine init_history_dyn
 
-      use icepack_drv_state, only: aice, vice, trcr
-      use icepack_drv_tracers, only: tr_iage, nt_iage
+      use icedrv_state, only: aice, vice, trcr
+      use icedrv_tracers, only: tr_iage, nt_iage
+      character(len=*), parameter :: subname='(init_history_dyn)'
 
       dardg1dt(:) = c0
       dardg2dt(:) = c0
@@ -720,10 +724,11 @@
 
       subroutine init_history_bgc
 
-      use icepack_drv_constants, only: c0
-      use icepack_drv_arrays_column, only: PP_net, grow_net, hbri
-      use icepack_drv_arrays_column, only: ice_bio_net, snow_bio_net, fbio_snoice, fbio_atmice
-      use icepack_drv_arrays_column, only: fzsal, fzsal_g, zfswin 
+      use icedrv_constants, only: c0
+      use icedrv_arrays_column, only: PP_net, grow_net, hbri
+      use icedrv_arrays_column, only: ice_bio_net, snow_bio_net, fbio_snoice, fbio_atmice
+      use icedrv_arrays_column, only: fzsal, fzsal_g, zfswin 
+      character(len=*), parameter :: subname='(init_history_bgc)'
 
       PP_net        (:) = c0
       grow_net      (:) = c0
@@ -755,6 +760,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_flux
+      end module icedrv_flux
 
 !=======================================================================

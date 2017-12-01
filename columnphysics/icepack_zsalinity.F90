@@ -17,7 +17,8 @@
       use icepack_constants, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
       use icepack_zbgc_shared, only: remap_zbgc
       use icepack_zbgc_shared, only: Ra_c, k_o, viscos_dynamic, thinS, Dm, exp_h
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -54,7 +55,6 @@
                             first_ice,          sss,          &
                             sst,                dh_top,       &
                             dh_bot,                           &
-                            l_stop,             stop_label,   &
                             fzsal,                            &
                             fzsal_g,            bphi_min,     &
                             nblyr,              vicen,        &
@@ -133,11 +133,6 @@
          ibrine_rho    , & ! brine rho on interface  
          ibrine_sal        ! brine sal on interface   
          
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-
-      character (char_len) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -149,7 +144,9 @@
          fzsaln_g      , & ! category gravity drainage flux of salt over timestep(kg/m^2/s)
          zsal_totn         ! total salt content
 
-      call solve_zsalinity        (nilyr, nblyr, n_cat, dt,          &
+      character(len=*),parameter :: subname='(zsalinity)'
+
+         call solve_zsalinity     (nilyr, nblyr, n_cat, dt,          &
                                    bgrid,      cgrid,    igrid,      &
                                    trcrn_S,            trcrn_q,      &
                                    trcrn_Si,           ntrcr,        &
@@ -165,20 +162,22 @@
                                    first_ice,          sss,          &
                                    sst,                dh_top,       &
                                    dh_bot,                           &
-                                   l_stop,             stop_label,   &
                                    fzsaln,                           &
                                    fzsaln_g,           bphi_min)
+         if (icepack_warnings_aborted(subname)) return
 
          zsal_totn = c0
 
          call column_sum_zsal    (zsal_totn,          nblyr,      &
                                   vicen,              trcrn_S,    &
                                   fbri)
+         if (icepack_warnings_aborted(subname)) return
 
          call merge_zsal_fluxes (aicen, &
                                  zsal_totn,          zsal_tot,       &
                                  fzsal,              fzsaln,         &
                                  fzsal_g,            fzsaln_g)            
+         if (icepack_warnings_aborted(subname)) return
 
       end subroutine zsalinity
 
@@ -203,7 +202,6 @@
                                    first_ice,          sss,          &
                                    sst,                dh_top,       &
                                    dh_bot,                           &  
-                                   l_stop,             stop_label,   &
                                    fzsaln,                           &
                                    fzsaln_g,           bphi_min)
 
@@ -282,11 +280,6 @@
          ibrine_rho    , & ! brine rho on interface  
          ibrine_sal        ! brine sal on interface   
          
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-
-      character (char_len) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -315,6 +308,8 @@
       logical (kind=log_kind) :: &
          cflag
 
+      character(len=*),parameter :: subname='(solve_zsalinity)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -323,8 +318,6 @@
       nint = max(1,INT(dt/dts))  
       dts = dt/nint
 
-      l_stop = .false.
-     
       !----------------------------------------------------------------
       ! Update boundary conditions
       !----------------------------------------------------------------
@@ -387,10 +380,8 @@
                        dh_bot       , brine_rho    , &
                        ibrine_sal   , ibrine_rho   , &
                        fzsaln       , fzsaln_g     , &
-                       S_bot        , l_stop       , &
-                       stop_label) 
-
-      if (l_stop) return
+                       S_bot        )
+      if (icepack_warnings_aborted(subname)) return
   
       if (n_cat == 1)   Rayleigh_criteria = Rayleigh
 
@@ -410,8 +401,8 @@
                          hin,       hbrin, &
                          cgrid(2:nilyr+1), &
                          bgrid(2:nblyr+1), &
-                         surface_S, l_stop,&
-                         stop_label)
+                         surface_S )
+      if (icepack_warnings_aborted(subname)) return
                
       do k = 1, nilyr
             Tmlts = -trcrn_Si(k)*depressT
@@ -445,8 +436,7 @@
                                       dhb,           brine_rho,     &
                                       ibrine_sal,    ibrine_rho,    &
                                       fzsaln,        fzsaln_g,      &
-                                      S_bot,         l_stop,        &
-                                      stop_label)    
+                                      S_bot          )
 
       use icepack_brine, only: calculate_drho
       use icepack_parameters, only: l_skS, grid_oS, l_sk, min_salin, rhosi, salt_loss
@@ -506,11 +496,6 @@
       real (kind=dbl_kind), dimension (2), intent(in) :: &
          S_bot
        
-      logical (kind=log_kind), intent(out) :: &
-         l_stop               ! if true, print diagnostics and abort on return
-
-      character (char_len) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -557,15 +542,16 @@
          lapA             , &
          lapB    
 
-         logical (kind=log_kind) :: &   
+      logical (kind=log_kind) :: &   
          write_flag       , &    ! set to true at each timestep        
          test_conservation       ! test that salt change is balanced by fluxes 
+
+      character(len=*),parameter :: subname='(solve_S_dt)'
 
       !-----------------------------------------------------------------
       !  Initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
       cflag = .false.
       write_flag = .true.
       test_conservation = .false. 
@@ -596,6 +582,7 @@
 
       call calculate_drho(nblyr, igrid, bgrid,&
                           brine_rho, ibrine_rho, drho)   
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Calculate bphi diffusivity on the grid points
@@ -789,8 +776,8 @@
                   flux_corr(k-1) = bSin(k)+bTin(k)/depressT !  flux into the ice
                   bSin(k) = -bTin(k)/depressT
                elseif (bSin(k) > max_salin) then
-                  l_stop = .true.
-                  stop_label = 'bSin(k) > max_salin'
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//' bSin(k) > max_salin')
                endif
             
                if (k == nblyr+1) bSin(nblyr+2) = S_bot(1)*bSin(nblyr+1) &
@@ -809,14 +796,15 @@
                  pre_sin,   fluxb,fluxg,fluxm,V_s,    &
                  C_s,   F_s,   Ssum_corr,fzsaln_g,fzsaln, &
                  Ssum_tmp,fluxcorr,dts, Ssum_new)
+            if (icepack_warnings_aborted(subname)) return
 
             if (test_conservation) then
                call check_conserve_salt(nint, m, dt, dts,&
                                 Ssum_tmp, Ssum_new, Ssum_corr,&
                                 fluxcorr, fluxb, fluxg, fluxm, &
-                                hbrin, hbri_old, l_stop)
-               stop_label = 'check_conserve_salt fails'
-               if (l_stop) return
+                                hbrin, hbri_old)
+               call icepack_warnings_add(subname//' check_conserve_salt fails')
+               if (icepack_warnings_aborted(subname)) return
             endif  ! test_conservation
 
          enddo !m
@@ -946,6 +934,8 @@
 
       real (kind=dbl_kind) :: hin_old, hin_next, dhtmp !, dh
 
+      character(len=*),parameter :: subname='(calc_salt_fluxes)'
+
       dhtmp = c1-dh/hbri_old
       hin_next = hbri_old +  real(mint,kind=dbl_kind)*dh
       hin_old  = hbri_old + (real(mint,kind=dbl_kind)-c1)*dh
@@ -1030,7 +1020,7 @@
       subroutine check_conserve_salt (mmax, mint,     dt,       dts,        &
                                       Ssum_old, Ssum_new, Ssum_corr,        & 
                                       fluxcorr, fluxb,    fluxg,     fluxm, &
-                                      hbrin,    hbri_old, l_stop)
+                                      hbrin,    hbri_old)
 
       use icepack_parameters, only: rhosi
 
@@ -1050,9 +1040,6 @@
          fluxg          , &  ! total gravity drainage salt flux into the ice (+ into ice)
          fluxm               ! 
 
-      logical (kind=log_kind), intent(inout) :: &   
-         l_stop              ! if false, conservation satisfied within error
-
      ! local variables
 
      real (kind=dbl_kind):: &
@@ -1065,9 +1052,8 @@
      real (kind=dbl_kind), parameter :: &
          accuracy = 1.0e-7_dbl_kind ! g/kg/m^2/s difference between boundary fluxes 
 
-     character(len=char_len_long) :: &
-         warning ! warning message
-     
+     character(len=*),parameter :: subname='(check_conserve_salt)'
+
          dh = (hbrin-hbri_old)/real(mmax,kind=dbl_kind)
 
          flux_tot = (fluxb + fluxg + fluxm + fluxcorr + Ssum_corr)*&
@@ -1079,27 +1065,27 @@
          if (abs(dsum_flux) > accuracy) then
            diff2 = abs(dsum_flux - flux_tot)
            if (diff2 >  puny .AND. diff2 > order ) then 
-              l_stop = .true.
-              write(warning,*) 'Poor salt conservation: check_conserve_salt'
-              call add_warning(warning)
-              write(warning,*) 'mint:', mint
-              call add_warning(warning)
-              write(warning,*) 'Ssum_corr',Ssum_corr
-              call add_warning(warning)
-              write(warning,*) 'fluxb,fluxg,fluxm,flux_tot,fluxcorr:'
-              call add_warning(warning)
-              write(warning,*)  fluxb,fluxg,fluxm,flux_tot,fluxcorr
-              call add_warning(warning)
-              write(warning,*) 'fluxg,',fluxg
-              call add_warning(warning)
-              write(warning,*) 'dsum_flux,',dsum_flux
-              call add_warning(warning)
-              write(warning,*) 'Ssum_new,Ssum_old,hbri_old,dh:'
-              call add_warning(warning)
-              write(warning,*)  Ssum_new,Ssum_old,hbri_old,dh
-              call add_warning(warning)
-              write(warning,*) 'diff2,order,puny',diff2,order,puny
-              call add_warning(warning)
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+              write(warnstr,*) subname, 'Poor salt conservation: check_conserve_salt'
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'mint:', mint
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'Ssum_corr',Ssum_corr
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'fluxb,fluxg,fluxm,flux_tot,fluxcorr:'
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname,  fluxb,fluxg,fluxm,flux_tot,fluxcorr
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'fluxg,',fluxg
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'dsum_flux,',dsum_flux
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'Ssum_new,Ssum_old,hbri_old,dh:'
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname,  Ssum_new,Ssum_old,hbri_old,dh
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'diff2,order,puny',diff2,order,puny
+              call icepack_warnings_add(warnstr)
            endif
          endif
 
@@ -1127,6 +1113,8 @@
           zsal_tot, & ! tot salinity (psu*rhosi*total vol ice)
           fzsal   , & ! salt flux                       (kg/m**2/s)
           fzsal_g     ! gravity drainage salt flux      (kg/m**2/s)
+
+      character(len=*),parameter :: subname='(merge_zsal_fluxes)'
 
       !-----------------------------------------------------------------
       ! Merge fluxes
@@ -1167,6 +1155,8 @@
 
       integer (kind=int_kind) :: &
            k           ! layer index
+
+      character(len=*),parameter :: subname='(column_sum_zsal)'
 
       do k = 1, nblyr
          zsal_totn = zsal_totn &

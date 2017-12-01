@@ -13,7 +13,6 @@
 
       implicit none
       public
-      save
 
       integer, parameter :: char_len  = 80, &
                             char_len_long  = 256, &

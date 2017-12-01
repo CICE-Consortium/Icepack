@@ -13,6 +13,8 @@
       use icepack_constants, only: p01, p1, p5, c0, c1
       use icepack_tracers, only: max_nbtrcr, max_algae, max_doc
       use icepack_tracers, only: max_dic, max_aero, max_don, max_fe
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none 
 
@@ -204,6 +206,8 @@
       real (kind=dbl_kind) :: &
          qin                    ! melting temperature at one level   
 
+      character(len=*),parameter :: subname='(calculate_qin_from_Sin)'
+
       qin =-rhoi*(cp_ice*(Tmltk-Tin) + Lfresh*(c1-Tmltk/Tin) - cp_ocn*Tmltk)
 
       end function calculate_qin_from_Sin
@@ -219,8 +223,7 @@
                             nr0,      nbyrn,    &
                             hice,     hinS,     &
                             ice_grid, bio_grid, &
-                            S_min,    l_stop,   &
-                            stop_label)
+                            S_min     )
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr         , & ! number of tracers in use
@@ -246,11 +249,6 @@
          hinS          , & ! brine height 
          S_min             ! for salinity on CICE grid        
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -268,9 +266,11 @@
            dgrid       , & ! temporary, donor grid dimensional
            rgrid           ! temporary, receiver grid dimensional
 
+      character(len=*),parameter :: subname='(remap_zbgc)'
+
       if ((hinS < c0) .OR. (hice < c0)) then
-         l_stop = .true.
-         stop_label = 'ice: remap_layers_bgc error'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' ice: remap_layers_bgc error')
          return
       endif
          
@@ -406,6 +406,8 @@
       integer (kind=int_kind) :: &
          k          ! layer index
 
+      character(len=*),parameter :: subname='(zap_small_bgc)'
+
       do k = 1, zlevels
          dflux_bio = dflux_bio + btrcr(k)*zvol(k)/dt
       enddo
@@ -421,7 +423,6 @@
                                     ntrcr,        nblyr,    &
                                     top_conc,     igrid,    &
                                     flux_bio,               &
-                                    l_stop,       stop_label, &
                                     melt_b,       con_gel)
       
       use icepack_constants, only: c0, c1, p5, puny
@@ -444,11 +445,6 @@
          top_conc     , & ! c0 or frazil concentration
          hbri_old     , & ! previous timestep brine height
          hbri             ! brine height 
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
 
       real(kind=dbl_kind), intent(in), optional :: &
          melt_b,         &  ! bottom melt (m)
@@ -475,6 +471,8 @@
 
       real (kind=dbl_kind), dimension(nblyr+1):: &
          zspace
+
+      character(len=*),parameter :: subname='(regrid_stationary)'
 
       ! initialize
 
@@ -544,9 +542,8 @@
                              nr,                nblyr+1, & 
                              hice,              hbio,    & 
                              igrid(1:nblyr+1),           &
-                             igrid(1:nblyr+1), top_conc, &
-                             l_stop,           stop_label)
-          if (l_stop) return
+                             igrid(1:nblyr+1), top_conc  )
+          if (icepack_warnings_aborted(subname)) return
     
           trtmp0(:) = c0
           do k = 1,nblyr+1
@@ -658,6 +655,8 @@
       real (kind=dbl_kind), dimension (nblyr+1) :: & 
          zspace
 
+      character(len=*),parameter :: subname='(merge_bgc_fluxes)'
+
       !-----------------------------------------------------------------
       ! Column summation
       !-----------------------------------------------------------------
@@ -760,6 +759,8 @@
       real (kind=dbl_kind) :: &
          tmp         ! temporary
     
+      character(len=*),parameter :: subname='(merge_bgc_fluxes_skl)'
+
       !-----------------------------------------------------------------
       ! Merge fluxes
       !-----------------------------------------------------------------

@@ -337,7 +337,7 @@ foreach file (env.${mach} Macros.${mach})
 end
 
 # from basic script dir to casescr
-foreach file (parse_namelist.sh parse_settings.sh icepack_decomp.csh icepack.run.setup.csh icepack.test.setup.csh)
+foreach file (parse_namelist.sh parse_settings.sh parse_namelist_from_settings.sh icepack_decomp.csh icepack.run.setup.csh icepack.test.setup.csh)
   if !(-e ${ICE_SCRIPTS}/$file) then
     echo "${0}: ERROR, ${ICE_SCRIPTS}/$file not found"
     exit -1
@@ -399,7 +399,7 @@ if (-e ${fsmods}) rm ${fsmods}
 
 cat >! ${fimods} << EOF1
 nprocs = ${task}
-data_dir = '${ICE_MACHINE_INPUTDATA}/'
+data_dir = '${ICE_MACHINE_INPUTDATA}/Icepack_data/forcing'
 EOF1
 
 # If this is a baseline-compare test, modify ICE_RUNDIR
@@ -475,6 +475,9 @@ end
 
 ${casescr}/parse_settings.sh icepack.settings ${fsmods}
 ${casescr}/parse_namelist.sh icepack_in ${fimods}
+source ./icepack.settings
+source ./env.${mach} || exit 2
+${casescr}/parse_namelist_from_settings.sh icepack_in icepack.settings
 
 #------------------------------------------------------------
 # Generate run script

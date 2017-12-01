@@ -9,6 +9,8 @@
 
       use icepack_kinds
       use icepack_constants, only: c3, c0, c1, p5, p1
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -443,6 +445,8 @@
         real (kind=dbl_kind), intent(in), optional :: &
              hp1_in             ! critical parameter for pond ice thickness
 
+        character(len=*),parameter :: subname='(icepack_init_parameters)'
+
         if (present(ktherm_in)               ) ktherm        = ktherm_in
         if (present(conduct_in)              ) conduct       = conduct_in
         if (present(fbot_xfer_type_in)       ) fbot_xfer_type    = fbot_xfer_type_in
@@ -728,6 +732,8 @@
         real (kind=dbl_kind), intent(out), optional :: &
              hp1_out             ! critical parameter for pond ice thickness
 
+        character(len=*),parameter :: subname='(icepack_query_parameters)'
+
         if (present(ktherm_out)               ) ktherm_out        = ktherm
         if (present(conduct_out)              ) conduct_out       = conduct
         if (present(fbot_xfer_type_out)       ) fbot_xfer_type_out    = fbot_xfer_type
@@ -819,7 +825,9 @@
         integer (kind=int_kind), intent(in) :: &
              iounit   ! unit number for output
 
-        write(iounit,*) "icepack_write_parameters:"
+        character(len=*),parameter :: subname='(icepack_write_parameters)'
+
+        write(iounit,*) subname
         write(iounit,*) "  ktherm        = ", ktherm
         write(iounit,*) "  conduct       = ", conduct
         write(iounit,*) "  fbot_xfer_type    = ", fbot_xfer_type

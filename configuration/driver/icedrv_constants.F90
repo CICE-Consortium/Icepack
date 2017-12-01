@@ -5,9 +5,9 @@
 !
 ! author Elizabeth C. Hunke, LANL
 
-      module icepack_drv_constants
+      module icedrv_constants
 
-      use icepack_drv_kinds
+      use icedrv_kinds
       use icepack_constants, only: c0, c1, c2, c3, c4, c5, c10, c20, c100, c1000
       use icepack_constants, only: p001, p1, p2, c6, p5, puny, pi
       use icepack_constants, only: secday, dragio, stefan_boltzmann
@@ -18,7 +18,6 @@
       use icepack_constants, only: awtvdr, awtidr, awtvdf, awtidf
 
       implicit none
-      save
 
       !-----------------------------------------------------------------
       ! file units
@@ -90,6 +89,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_constants
+      end module icedrv_constants
 
 !=======================================================================
