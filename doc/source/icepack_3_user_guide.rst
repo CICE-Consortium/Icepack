@@ -98,8 +98,8 @@ details).
     **icepack\_meltpond\_topo.F90**
         topo melt pond parameterization
 
-    **icepack\_ocean.F90**  (CHECK THIS, not in directory now)
-        mixed layer ocean model
+..    **icepack\_ocean.F90**  (CHECK THIS, not in directory now)
+..        mixed layer ocean model
 
     **icepack\_mushy\_physics.F90**
         physics routines for mushy thermodynamics
