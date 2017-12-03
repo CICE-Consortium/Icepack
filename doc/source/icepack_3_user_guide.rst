@@ -144,58 +144,58 @@ details).
     drivers and scripts for testing Icepack in stand-alone mode
     
     **driver/**
-        **icepack\_drv\_MAIN.F90**
+        **icedrv\_MAIN.F90**
             main program
 
-        **icepack\_drv\_InitMod.F90**
+        **icedrv\_InitMod.F90**
             routines for initializing a run
 
-        **icepack\_drv\_RunMod.F90**
+        **icedrv\_RunMod.F90**
             main driver routines for time stepping
 
-        **icepack\_drv\_arrays\_column.F90**
+        **icedrv\_arrays\_column.F90**
             essential arrays to describe the state of the ice
 
-        **icepack\_drv\_calendar.F90**
+        **icedrv\_calendar.F90**
             keeps track of what time it is
 
-        **icepack\_drv\_constants.F90**
+        **icedrv\_constants.F90**
             physical and numerical constants and parameters
 
-        **icepack\_drv\_diagnostics.F90**
+        **icedrv\_diagnostics.F90**
             miscellaneous diagnostic and debugging routines
 
-        **icepack\_drv\_diagnostics\_bgc.F90**
+        **icedrv\_diagnostics\_bgc.F90**
             diagnostic routines for biogeochemistry
 
-        **icepack\_drv\_domain\_size.F90**
+        **icedrv\_domain\_size.F90**
             domain sizes
 
-        **icepack\_drv\_flux.F90**
+        **icedrv\_flux.F90**
             fluxes needed/produced by the model
 
-        **icepack\_drv\_forcing.F90**
+        **icedrv\_forcing.F90**
             routines to read and interpolate forcing data for stand-alone model runs
 
-        **icepack\_drv\_init.F90**
+        **icedrv\_init.F90**
             general initialization routines
 
-        **icepack\_drv\_init\_column.F90**
+        **icedrv\_init\_column.F90**
             initialization routines specific to the column physics
 
-        **icepack\_drv\_restart.F90**
+        **icedrv\_restart.F90**
             driver for reading/writing restart files
 
-        **icepack\_drv\_restart\_column.F90**  (CHECK: RENAME bgc)
+        **icedrv\_restart\_column.F90**  (CHECK: RENAME bgc)
             restart routines specific to the column physics
 
-        **icepack\_drv\_restart\_shared.F90**
+        **icedrv\_restart\_shared.F90**
             code shared by all restart options
 
-        **icepack\_drv\_state.F90**
+        **icedrv\_state.F90**
             essential arrays to describe the state of the ice
 
-        **icepack\_drv\_step\_mod.F90**
+        **icedrv\_step\_mod.F90**
             routines for time stepping the major code components
 
     **scripts/**
@@ -343,7 +343,7 @@ run that created the restart file; i.e. that the restart file contains exactly t
 information needed for the new run.  CICE is more flexible in this regard.
 
 For stand-alone runs,
-routines in **icepack\_drv\_forcing.F90** read and interpolate data from files,
+routines in **icedrv\_forcing.F90** read and interpolate data from files,
 and are intended merely for testing, although they can also provide guidance for 
 the user to write his or her own routines. 
 
@@ -522,7 +522,7 @@ The code is currently configured to run in standalone mode on a 4-cell grid usin
 atmospheric data, available as detailed on the `wiki <https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack>`_.
 These data files are designed only for testing the code, not for use in production 
 runs or as observational data.  Please do not publish results based on these data
-sets.  Module **configuration/driver/icepack\_drv\_forcing.F90**
+sets.  Module **configuration/driver/icedrv\_forcing.F90**
 can be modified to change the forcing data. 
 
 
@@ -576,10 +576,10 @@ dependencies (e.g., :math:`a_{lvl}` and :math:`a_{pnd}` in
 To add a tracer, follow these steps using one of the existing tracers as
 a pattern.
 
-#. **icepack\_drv\_domain\_size.F90**: increase ``max_ntrcr`` (can also add option
+#. **icedrv\_domain\_size.F90**: increase ``max_ntrcr`` (can also add option
    to **icepack.settings** and **icepack.build**)
 
-#. **icepack\_drv\_state.F90**: declare ``nt_[tracer]`` and ``tr_[tracer]``
+#. **icedrv\_state.F90**: declare ``nt_[tracer]`` and ``tr_[tracer]``
 
 #. **icepack\_[tracer].F90**: create initialization, physics routines
 
@@ -604,17 +604,17 @@ a pattern.
 #. **icepack\_itd.F90**, **icepack\_mechred.F90**: Account for new dependencies
    if needed.
 
-#. **icepack\_drv\_InitMod.F90**: initialize tracer (includes reading restart
+#. **icedrv\_InitMod.F90**: initialize tracer (includes reading restart
    file)
 
-#. **icepack\_drv\_RunMod.F90**, **icepack\_drv\_step\_mod.F90**:
+#. **icedrv\_RunMod.F90**, **icedrv\_step\_mod.F90**:
 
    -  call routine to write tracer restart data
 
    -  call physics routines in **icepack\_[tracer].F90** (often called from
-      **icepack\_drv\_step\_mod.F90**)
+      **icedrv\_step\_mod.F90**)
 
-#. **icepack\_drv\_restart.F90**: define restart variables
+#. **icedrv\_restart.F90**: define restart variables
 
 #. **icepack\_in**: add namelist variables to *tracer\_nml* and
    *icefields\_nml*

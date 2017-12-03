@@ -30,8 +30,8 @@ need to access the **icepack\_intfc\*.F90** interface modules within the
 The Icepack driver in the ``configuration/driver/`` directory is based on the CICE
 model and provides an example of the sea ice host model capabilities needed for inclusion
 of Icepack.  In particular, host models will need to include code equivalent to that
-in the modules **icepack\_drv\_\*_column.F90**.  Calls into the Icepack interface routines
-are primarily from **icepack\_drv\_step\_mod.F90** but there are others (search the driver code
+in the modules **icedrv\_\*_column.F90**.  Calls into the Icepack interface routines
+are primarily from **icedrv\_step\_mod.F90** but there are others (search the driver code
 for ``intfc``).
 
 Guiding principles for the creation of Icepack include the following: 
@@ -3313,7 +3313,7 @@ variables sil\_data\_type and nit\_data\_type to ‘ISPOL’  or 'NICE'. nit\_da
 has an option ‘sss’ which equates the upper ocean nitrate concentration
 with sea surface salinity. fe\_data\_type currently only has the
 ‘default’ option. The location of forcing files is specified in
-bgc\_data\_dir and the filename is hardcoded in **icepack\_drv\_forcing** (NJ - needs to be updated).
+bgc\_data\_dir and the filename is hardcoded in **icedrv\_forcing** (NJ - needs to be updated).
 
 
 Skeletal Layer BGC
