@@ -4,14 +4,13 @@
 !
 !  authors Elizabeth C. Hunke, LANL
 
-      module icepack_drv_RunMod
+      module icedrv_RunMod
 
-      use icepack_drv_kinds
+      use icedrv_kinds
 
       implicit none
       private
-      public :: icepack_run, ice_step
-      save
+      public :: icedrv_run, ice_step
 
 !=======================================================================
 
@@ -23,15 +22,17 @@
 !
 !  author Elizabeth C. Hunke, LANL
 
-      subroutine icepack_run
+      subroutine icedrv_run
 
-      use icepack_drv_calendar, only: istep, istep1, time, dt, stop_now, calendar
-      use icepack_drv_forcing, only: get_forcing
-      use icepack_drv_forcing_bgc, only: faero_default, get_forcing_bgc
-!      use icepack_drv_forcing_bgc, only: , get_atm_bgc, fzaero_data, & 
-      use icepack_drv_flux, only: init_flux_atm_ocn
-      use icepack_drv_tracers, only: tr_aero, tr_zaero
-      use icepack_drv_parameters, only: skl_bgc, z_tracers
+      use icedrv_calendar, only: istep, istep1, time, dt, stop_now, calendar
+      use icedrv_forcing, only: get_forcing
+      use icedrv_forcing_bgc, only: faero_default, get_forcing_bgc
+!      use icedrv_forcing_bgc, only: , get_atm_bgc, fzaero_data, & 
+      use icedrv_flux, only: init_flux_atm_ocn
+      use icedrv_tracers, only: tr_aero, tr_zaero
+      use icedrv_parameters, only: skl_bgc, z_tracers
+
+      character(len=*), parameter :: subname='(icedrv_run)'
 
    !--------------------------------------------------------------------
    ! timestep loop
@@ -63,7 +64,7 @@
 
       enddo timeLoop
 
-      end subroutine icepack_run
+      end subroutine icedrv_run
 
 !=======================================================================
 !
@@ -73,23 +74,23 @@
 
       subroutine ice_step
 
-      use icepack_drv_calendar, only: dt, dt_dyn, ndtd, diagfreq, write_restart, istep
-      use icepack_drv_constants, only: c0
-      use icepack_drv_diagnostics, only: runtime_diags, init_mass_diags, debug_icepack
-      use icepack_drv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
-      use icepack_drv_domain_size, only: nslyr
-      use icepack_drv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
+      use icedrv_calendar, only: dt, dt_dyn, ndtd, diagfreq, write_restart, istep
+      use icedrv_constants, only: c0
+      use icedrv_diagnostics, only: runtime_diags, init_mass_diags, icedrv_diagnostics_debug
+      use icedrv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
+      use icedrv_domain_size, only: nslyr
+      use icedrv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
-      use icepack_drv_restart, only: dumpfile, final_restart, write_restart_hbrine
-!      use icepack_drv_restart_column, only: &
+      use icedrv_restart, only: dumpfile, final_restart, write_restart_hbrine
+!      use icedrv_restart_column, only: &
 !          write_restart_bgc
-      use icepack_drv_state, only: trcrn
-      use icepack_drv_tracers, only: tr_iage, tr_FY, tr_lvl, &
+      use icedrv_state, only: trcrn
+      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, &
           tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_brine, tr_aero
-      use icepack_drv_step, only: prep_radiation, step_therm1, step_therm2, &
+      use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_radiation, &
           biogeochemistry
-      use icepack_drv_parameters, only: calc_Tsfc, skl_bgc, solve_zsal, z_tracers
+      use icedrv_parameters, only: calc_Tsfc, skl_bgc, solve_zsal, z_tracers
 
       integer (kind=int_kind) :: &
          k               ! dynamics supercycling index
@@ -97,7 +98,9 @@
       real (kind=dbl_kind) :: &
          offset          ! d(age)/dt time offset
 
-!      call debug_icepack ('beginning time step')
+      character(len=*), parameter :: subname='(ice_step)'
+
+!      call icedrv_diagnostics_debug ('beginning time step')
 
       !-----------------------------------------------------------------
       ! initialize diagnostics
@@ -113,7 +116,7 @@
       
       if (calc_Tsfc) call prep_radiation (dt)
       
-!      call debug_icepack ('post prep_radiation')
+!      call icedrv_diagnostics_debug ('post prep_radiation')
 
       !-----------------------------------------------------------------
       ! thermodynamics and biogeochemistry
@@ -127,7 +130,7 @@
       offset = dt
       call update_state (dt, daidtt, dvidtt, dagedtt, offset)
 
-!      call debug_icepack ('post thermo')
+!      call icedrv_diagnostics_debug ('post thermo')
       
       !-----------------------------------------------------------------
       ! dynamics, transport, ridging
@@ -146,7 +149,7 @@
         
       enddo
 
-!      call debug_icepack ('post dynamics')
+!      call icedrv_diagnostics_debug ('post dynamics')
       
       !-----------------------------------------------------------------
       ! albedo, shortwave radiation
@@ -160,7 +163,7 @@
       
       call coupling_prep
 
-!      call debug_icepack ('post step_rad, cpl')
+!      call icedrv_diagnostics_debug ('post step_rad, cpl')
 
       !-----------------------------------------------------------------
       ! write data
@@ -192,15 +195,15 @@
 
       subroutine coupling_prep
 
-      use icepack_drv_arrays_column, only: alvdfn, alidfn, alvdrn, alidrn, &
+      use icedrv_arrays_column, only: alvdfn, alidfn, alvdrn, alidrn, &
           albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
-      use icepack_drv_calendar, only: dt
-      use icepack_drv_parameters, only: calc_Tsfc
-      use icepack_drv_arrays_column, only: oceanmixed_ice
-      use icepack_drv_tracers, only: nbtrcr, max_aero
-      use icepack_drv_constants, only: c0, c1, puny, rhofresh
-      use icepack_drv_domain_size, only: ncat, nx
-      use icepack_drv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &
+      use icedrv_calendar, only: dt
+      use icedrv_parameters, only: calc_Tsfc
+      use icedrv_arrays_column, only: oceanmixed_ice
+      use icedrv_tracers, only: nbtrcr, max_aero
+      use icedrv_constants, only: c0, c1, puny, rhofresh
+      use icedrv_domain_size, only: ncat, nx
+      use icedrv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &
           albpnd, apeff_ai, coszen, fpond, fresh, l_mpond_fresh, &
           alvdf_ai, alidf_ai, alvdr_ai, alidr_ai, fhocn_ai, &
           fresh_ai, fsalt_ai, fsalt, &
@@ -209,8 +212,8 @@
           fsens, flat, fswabs, flwout, evap, Tref, Qref, &
           fsurfn_f, flatn_f, frzmlt_init, frzmlt, &
           faero_ocn, fzsal_ai, fzsal_g_ai, flux_bio, flux_bio_ai
-      use icepack_drv_state, only: aicen, aice, aice_init
-      use icepack_drv_step, only: ocean_mixed_layer
+      use icedrv_state, only: aicen, aice, aice_init
+      use icedrv_step, only: ocean_mixed_layer
 
       ! local variables
 
@@ -221,6 +224,8 @@
 
       real (kind=dbl_kind) :: &
          netsw           ! flag for shortwave radiation presence
+
+      character(len=*), parameter :: subname='(coupling_prep)'
 
       !-----------------------------------------------------------------
       ! Save current value of frzmlt for diagnostics.
@@ -329,6 +334,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_RunMod
+      end module icedrv_RunMod
 
 !=======================================================================

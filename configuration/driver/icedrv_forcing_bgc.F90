@@ -6,20 +6,19 @@
 ! authors:  Nicole Jeffery, LANL
 !          Elizabeth C. Hunke, LANL
 !
-      module icepack_drv_forcing_bgc
+      module icedrv_forcing_bgc
 
-      use icepack_drv_kinds
-      use icepack_drv_domain_size, only: nx
-      use icepack_drv_tracers, only: bio_index_o
-      use icepack_drv_calendar, only: dt, istep, sec, mday, month, daymo
-      use icepack_drv_constants, only: nu_diag
+      use icedrv_kinds
+      use icedrv_domain_size, only: nx
+      use icedrv_tracers, only: bio_index_o
+      use icedrv_calendar, only: dt, istep, sec, mday, month, daymo
+      use icedrv_constants, only: nu_diag
 
       implicit none
       private
       public :: get_forcing_bgc, faero_default, init_bgc_data, init_forcing_bgc 
       !cn, get_atm_bgc, fzaero_data, &
                 !cn , faero_data, faero_optics
-      save
 
       real (kind=dbl_kind), dimension(365) :: & ! hardwired for now
           sil_data, nit_data
@@ -35,9 +34,9 @@
 
       subroutine init_forcing_bgc
 
-        use icepack_drv_constants, only: nu_forcing
-        use icepack_drv_arrays_column, only: nit_data_type, sil_data_type
-        use icepack_drv_forcing, only: data_dir 
+        use icedrv_constants, only: nu_forcing
+        use icedrv_arrays_column, only: nit_data_type, sil_data_type
+        use icedrv_forcing, only: data_dir 
 
         integer (kind=int_kind) :: &
             ntime, &
@@ -47,14 +46,16 @@
             sil, &
             nit
 
-       character (char_len_long) filename
+        character (char_len_long) filename
+
+        character(len=*), parameter :: subname='(init_forcing_bgc)'
         
         if (trim(nit_data_type) == 'ISPOL' .or. &
             trim(sil_data_type) == 'ISPOL' .or. &
             trim(nit_data_type) == 'NICE' .or. &
             trim(sil_data_type) == 'NICE') then 
           
-          filename = trim(data_dir)//'ISPOL_2004/nutrients_daily_ISPOL_WOA_field3.txt'
+          filename = trim(data_dir)//'/ISPOL_2004/nutrients_daily_ISPOL_WOA_field3.txt'
           write (nu_diag,*) 'Reading ',filename
 
           ntime = 365 !daily
@@ -85,14 +86,14 @@
 
       subroutine get_forcing_bgc
 
-      use icepack_drv_arrays_column, only: ocean_bio_all
-      use icepack_drv_calendar, only:  yday
-      use icepack_drv_constants, only: secday
-      use icepack_drv_flux, only: sss, sil, nit
-      use icepack_drv_forcing, only: interp_coeff
-      use icepack_drv_arrays_column, only: nit_data_type, sil_data_type, bgc_data_dir
-      use icepack_drv_tracers, only: max_algae, max_doc, max_dic
-      use icepack_drv_tracers, only: tr_bgc_Sil, tr_bgc_Nit
+      use icedrv_arrays_column, only: ocean_bio_all
+      use icedrv_calendar, only:  yday
+      use icedrv_constants, only: secday
+      use icedrv_flux, only: sss, sil, nit
+      use icedrv_forcing, only: interp_coeff
+      use icedrv_arrays_column, only: nit_data_type, sil_data_type, bgc_data_dir
+      use icedrv_tracers, only: max_algae, max_doc, max_dic
+      use icedrv_tracers, only: tr_bgc_Sil, tr_bgc_Nit
 
       integer (kind=int_kind) :: &
           i, j, k,iblk, & ! horizontal indices !cn remove
@@ -110,20 +111,6 @@
          met_file,   &    ! netcdf filename
          fieldname        ! field name in netcdf file
 
-      !cn real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks) :: &
-      real (kind=dbl_kind), dimension(nx) :: &
-          nitdat      , & ! data value toward which nitrate is restored
-          sildat          ! data value toward which silicate is restored
-
-      !cn real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), save :: &
-      !cn real (kind=dbl_kind), dimension(nx,2), save :: &
-      !cn    nit_data, & ! field values at 2 temporal data points
-      !cn    sil_data
-          
-      real (kind=dbl_kind), dimension(2), save :: &
-         sil_data_p      , &  ! field values at 2 temporal data points
-         nit_data_p           ! field values at 2 temporal data points
-
       real (kind=dbl_kind) :: &
           sec1hr,&              ! number of seconds in 1 hour
           c1intp, c2intp
@@ -133,6 +120,8 @@
       character (char_len_long) :: &        ! input data file names
          nit_file   , & ! nitrate input file
          sil_file       ! silicate input file
+
+      character(len=*), parameter :: subname='(get_forcing_bgc)'
 
       !cn write(*,*) nit_data_type
 
@@ -194,10 +183,11 @@
 
       subroutine faero_default
         
-        use icepack_drv_flux, only: faero_atm
+        use icedrv_flux, only: faero_atm
         !use icepack_constants, only: nspint
         !use icepack_intfc_shared, only: max_aero
         !use icepack_intfc_tracers, only: tr_aero
+        character(len=*), parameter :: subname='(faero_default)'
         
         faero_atm(:,1) = 1.e-12_dbl_kind ! kg/m^2 s
         faero_atm(:,2) = 1.e-13_dbl_kind
@@ -215,9 +205,9 @@
 ! authors: Nicole Jeffery, LANL
       subroutine init_bgc_data (fed1,fep1)
       !cn use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
-      use icepack_drv_constants, only: c0, p1 !, nu_forcing
-      use icepack_drv_tracers, only: max_fe
-      use icepack_drv_arrays_column, only: fe_data_type, bgc_data_dir
+      use icedrv_constants, only: c0, p1 !, nu_forcing
+      use icedrv_tracers, only: max_fe
+      use icedrv_arrays_column, only: fe_data_type, bgc_data_dir
 
 #ifdef ncdf
       use netcdf
@@ -240,6 +230,8 @@
          iron_file,   &   ! netcdf filename
          fieldname        ! field name in netcdf file
 
+      character(len=*), parameter :: subname='(init_bgc_data)'
+
       nbits = 64              ! double precision data
 
 #if 0
@@ -250,7 +242,7 @@
 
       if (trim(fe_data_type) == 'clim') then
        	diag = .true.   ! write diagnostic information 
-        iron_file = trim(bgc_data_dir)//'dFe_50m_annual_Tagliabue_gx1.nc'
+        iron_file = trim(bgc_data_dir)//'/dFe_50m_annual_Tagliabue_gx1.nc'
 
         write (nu_diag,*) ' '
         write (nu_diag,*) 'Dissolved iron ocean concentrations from:'
@@ -270,7 +262,7 @@
         close(fid)
 
        	diag = .true.   ! write diagnostic information 
-        iron_file = trim(bgc_data_dir)//'pFe_bathy_gx1.nc'
+        iron_file = trim(bgc_data_dir)//'/pFe_bathy_gx1.nc'
 
         write (nu_diag,*) ' '
         write (nu_diag,*) 'Particulate iron ocean concentrations from:'
@@ -293,6 +285,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_forcing_bgc
+      end module icedrv_forcing_bgc
 
 !=======================================================================

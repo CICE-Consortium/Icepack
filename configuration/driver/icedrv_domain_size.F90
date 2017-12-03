@@ -4,15 +4,14 @@
 !
 ! author Elizabeth C. Hunke, LANL
 
-      module icepack_drv_domain_size
+      module icedrv_domain_size
 
-      use icepack_drv_kinds
+      use icedrv_kinds
 
 !=======================================================================
 
       implicit none
       private
-      save
 
       integer (kind=int_kind), parameter, public :: &
         nx        = NXGLOB    , & ! vector length
@@ -55,6 +54,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_domain_size
+      end module icedrv_domain_size
 
 !=======================================================================

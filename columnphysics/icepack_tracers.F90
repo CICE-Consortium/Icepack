@@ -8,9 +8,10 @@
       module icepack_tracers
 
       use icepack_kinds
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
-      save
 
       private
       public :: icepack_compute_tracers
@@ -995,7 +996,7 @@
                   work = atrcrn(it) / divisor(k)
                endif
             enddo
-            trcrn(it) = work                ! save
+            trcrn(it) = work                ! save it
             if (n_trcr_strata(it) > 0) then          ! additional tracer layers
                do itl = 1, n_trcr_strata(it)
                   ntr = nt_strata(it,itl)

@@ -1,8 +1,8 @@
 !=======================================================================
 
-      module icepack_drv_restart_shared
+      module icedrv_restart_shared
 
-      use icepack_drv_kinds
+      use icedrv_kinds
       implicit none
       private
       public :: lenstr
@@ -32,6 +32,7 @@
       integer (kind=int_kind) :: &
          length, & ! length of character string
          n         ! loop index
+      character(len=*), parameter :: subname='(lenstr)'
 
       length = len(label)
       do n=length,1,-1
@@ -43,6 +44,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_restart_shared
+      end module icedrv_restart_shared
 
 !=======================================================================

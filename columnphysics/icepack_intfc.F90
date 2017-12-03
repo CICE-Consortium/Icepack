@@ -71,9 +71,11 @@
 
       use icepack_orbital , only: icepack_init_orbit
 
-      use icepack_warnings, only: icepack_clear_warnings
-      use icepack_warnings, only: icepack_get_warnings
-      use icepack_warnings, only: icepack_print_warnings
+      use icepack_warnings, only: icepack_warnings_clear
+      use icepack_warnings, only: icepack_warnings_getall
+      use icepack_warnings, only: icepack_warnings_print
+      use icepack_warnings, only: icepack_warnings_flush
+      use icepack_warnings, only: icepack_warnings_aborted
 
       implicit none
 
@@ -90,7 +92,14 @@
 
       subroutine icepack_configure()
 
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      character(len=*),parameter :: subname='(icepack_configure)'
+
+        call icepack_warnings_setabort(.false.,__FILE__,__LINE__)
         call icepack_recompute_constants()
+        if (icepack_warnings_aborted(subname)) return
 
       end subroutine icepack_configure
 

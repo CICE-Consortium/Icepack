@@ -4,17 +4,16 @@
 
 ! author: Elizabeth C. Hunke, LANL
 
-      module icepack_drv_arrays_column
+      module icedrv_arrays_column
 
-      use icepack_drv_kinds
+      use icedrv_kinds
       use icepack_constants, only: nspint
-      use icepack_drv_domain_size, only: nx, ncat, nilyr, nslyr
-      use icepack_drv_domain_size, only: nblyr, max_nsw , max_ntrcr
-      use icepack_drv_tracers, only: max_nbtrcr, max_algae, max_aero
-      use icepack_drv_tracers, only: nmodal1, nmodal2
+      use icedrv_domain_size, only: nx, ncat, nilyr, nslyr
+      use icedrv_domain_size, only: nblyr, max_nsw , max_ntrcr
+      use icedrv_tracers, only: max_nbtrcr, max_algae, max_aero
+      use icedrv_tracers, only: nmodal1, nmodal2
 
       implicit none
-      save
 
       ! icepack_atmo.F90
       real (kind=dbl_kind), public, &
@@ -268,6 +267,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_arrays_column
+      end module icedrv_arrays_column
 
 !=======================================================================

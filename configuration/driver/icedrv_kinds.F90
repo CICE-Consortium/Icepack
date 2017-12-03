@@ -4,7 +4,7 @@
 !
 ! author T. Craig
 
-      module icepack_drv_kinds
+      module icedrv_kinds
 
       use icepack_intfc, only: char_len  => icepack_char_len
       use icepack_intfc, only: char_len_long => icepack_char_len_long
@@ -16,6 +16,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_kinds
+      end module icedrv_kinds
 
 !=======================================================================

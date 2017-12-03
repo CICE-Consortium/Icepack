@@ -5,17 +5,16 @@
 ! authors: Elizabeth C. Hunke, LANL
 !          Nicole Jeffery, LANL
 
-      module icepack_drv_diagnostics_bgc
+      module icedrv_diagnostics_bgc
 
-      use icepack_drv_kinds
-      use icepack_drv_constants, only: c0, nu_diag, nu_diag_out
-      use icepack_drv_calendar, only: diagfreq, istep1, istep
-      use icepack_drv_domain_size, only: nx
+      use icedrv_kinds
+      use icedrv_constants, only: c0, nu_diag, nu_diag_out
+      use icedrv_calendar, only: diagfreq, istep1, istep
+      use icedrv_domain_size, only: nx
 
       implicit none
       private
       public :: hbrine_diags, bgc_diags, zsal_diags
-      save
 
 !=======================================================================
 
@@ -30,12 +29,12 @@
 
       subroutine hbrine_diags (dt)
               
-      use icepack_drv_arrays_column, only: darcy_V
-      use icepack_drv_diagnostics, only: nx_names
-      use icepack_drv_domain_size, only: ncat, nltrcr, nilyr
-      use icepack_drv_state, only: aice, aicen, vicen, vice, trcr, trcrn
-      use icepack_drv_tracers, only: nt_sice, nt_fbri
-      use icepack_drv_parameters, only: ktherm
+      use icedrv_arrays_column, only: darcy_V
+      use icedrv_diagnostics, only: nx_names
+      use icedrv_domain_size, only: ncat, nltrcr, nilyr
+      use icedrv_state, only: aice, aicen, vicen, vice, trcr, trcrn
+      use icedrv_tracers, only: nt_sice, nt_fbri
+      use icedrv_parameters, only: ktherm
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -51,6 +50,8 @@
 
       real (kind=dbl_kind), dimension(nx,nilyr) :: &
          pSin, pSin1
+
+      character(len=*), parameter :: subname='(hbrine_diags)'
 
       !-----------------------------------------------------------------
       ! Dynamic brine height
@@ -118,39 +119,39 @@
 
       subroutine bgc_diags (dt)
 
-      use icepack_drv_arrays_column, only: ocean_bio, zfswin, fbio_atmice, fbio_snoice
-      use icepack_drv_arrays_column, only: Zoo, grow_net, ice_bio_net, trcrn_sw
-      use icepack_drv_parameters,    only: skl_bgc, z_tracers, dEdd_algae
-      use icepack_drv_constants,     only: c0, mps_to_cmpdy, c100, p5, c1, secday
-      use icepack_drv_domain_size,   only: ncat, nltrcr, nblyr, n_algae, n_zaero
-      use icepack_drv_domain_size,   only: n_dic, n_doc, n_don, n_fed, n_fep, nilyr, nslyr
-      use icepack_drv_flux,  only: flux_bio, flux_bio_atm
-      use icepack_drv_state, only: aice, vicen, vice, trcr
-      use icepack_drv_tracers, only: max_algae, max_aero, max_dic, max_doc, max_don, max_fe
-      use icepack_drv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
-      use icepack_drv_tracers, only: tr_bgc_DON, tr_zaero, tr_bgc_hum
-      use icepack_drv_tracers, only: tr_bgc_Fe
+      use icedrv_arrays_column, only: ocean_bio, zfswin, fbio_atmice, fbio_snoice
+      use icedrv_arrays_column, only: Zoo, grow_net, ice_bio_net, trcrn_sw
+      use icedrv_parameters,    only: skl_bgc, z_tracers, dEdd_algae
+      use icedrv_constants,     only: c0, mps_to_cmpdy, c100, p5, c1, secday
+      use icedrv_domain_size,   only: ncat, nltrcr, nblyr, n_algae, n_zaero
+      use icedrv_domain_size,   only: n_dic, n_doc, n_don, n_fed, n_fep, nilyr, nslyr
+      use icedrv_flux,  only: flux_bio, flux_bio_atm
+      use icedrv_state, only: aice, vicen, vice, trcr
+      use icedrv_tracers, only: max_algae, max_aero, max_dic, max_doc, max_don, max_fe
+      use icedrv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
+      use icedrv_tracers, only: tr_bgc_DON, tr_zaero, tr_bgc_hum
+      use icedrv_tracers, only: tr_bgc_Fe
 
-      use icepack_drv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil
-      use icepack_drv_tracers, only: nt_fbri, nt_sice, nt_zaero
-      use icepack_drv_tracers, only: nt_bgc_n, nt_bgc_doc, nt_bgc_don, nt_bgc_fed, nt_bgc_fep
-      use icepack_drv_tracers, only: nt_bgc_nit, nt_bgc_am, nt_bgc_sil, nt_bgc_hum, nt_bgc_pon
-      use icepack_drv_tracers, only: nt_bgc_dmspp, nt_bgc_dmspd, nt_bgc_dms
-      use icepack_drv_tracers, only: nlt_bgc_N, nlt_zaero, nlt_chl_sw, nlt_zaero_sw
-      use icepack_drv_tracers, only: nlt_bgc_Fed, nlt_bgc_Fep  
-      use icepack_drv_tracers, only: nlt_bgc_hum
-      use icepack_drv_tracers, only: nlt_bgc_Nit, nlt_bgc_Am, nlt_bgc_Sil
-      use icepack_drv_tracers, only: nlt_bgc_DOC, nlt_bgc_DON, nlt_bgc_DMSPp, nlt_bgc_DMS
+      use icedrv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil
+      use icedrv_tracers, only: nt_fbri, nt_sice, nt_zaero
+      use icedrv_tracers, only: nt_bgc_n, nt_bgc_doc, nt_bgc_don, nt_bgc_fed, nt_bgc_fep
+      use icedrv_tracers, only: nt_bgc_nit, nt_bgc_am, nt_bgc_sil, nt_bgc_hum, nt_bgc_pon
+      use icedrv_tracers, only: nt_bgc_dmspp, nt_bgc_dmspd, nt_bgc_dms
+      use icedrv_tracers, only: nlt_bgc_N, nlt_zaero, nlt_chl_sw, nlt_zaero_sw
+      use icedrv_tracers, only: nlt_bgc_Fed, nlt_bgc_Fep  
+      use icedrv_tracers, only: nlt_bgc_hum
+      use icedrv_tracers, only: nlt_bgc_Nit, nlt_bgc_Am, nlt_bgc_Sil
+      use icedrv_tracers, only: nlt_bgc_DOC, nlt_bgc_DON, nlt_bgc_DMSPp, nlt_bgc_DMS
 
-      !use icepack_drv_tracers, only: nt_bgc_N, nt_bgc_C, nt_bgc_chl, nt_bgc_Am
-      !use icepack_drv_tracers, only: nt_bgc_DMS, nt_bgc_DMSPd, nt_bgc_DMSPp, nt_bgc_Nit, nt_bgc_Sil
-      !use icepack_drv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_DIC, nt_bgc_DOC, nt_zaero, nt_bgc_Fed
-      !use icepack_drv_tracers, only: nt_bgc_Fep
-      !use icepack_drv_tracers, only: nlt_bgc_DMS, nlt_bgc_DMSPp, nlt_bgc_DMSPd, nlt_bgc_C, nlt_bgc_chl
-      !use icepack_drv_tracers, only: nlt_bgc_DIC, nlt_bgc_DOC, nlt_bgc_PON
-      !use icepack_drv_tracers, only: nlt_bgc_DON, nlt_bgc_Fed, nlt_bgc_Fep, nlt_zaero
-      !use icepack_drv_tracers, only: nt_bgc_hum,  nlt_bgc_hum, nlt_chl_sw
-      !use icepack_drv_tracers, only: nlt_zaero_sw
+      !use icedrv_tracers, only: nt_bgc_N, nt_bgc_C, nt_bgc_chl, nt_bgc_Am
+      !use icedrv_tracers, only: nt_bgc_DMS, nt_bgc_DMSPd, nt_bgc_DMSPp, nt_bgc_Nit, nt_bgc_Sil
+      !use icedrv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_DIC, nt_bgc_DOC, nt_zaero, nt_bgc_Fed
+      !use icedrv_tracers, only: nt_bgc_Fep
+      !use icedrv_tracers, only: nlt_bgc_DMS, nlt_bgc_DMSPp, nlt_bgc_DMSPd, nlt_bgc_C, nlt_bgc_chl
+      !use icedrv_tracers, only: nlt_bgc_DIC, nlt_bgc_DOC, nlt_bgc_PON
+      !use icedrv_tracers, only: nlt_bgc_DON, nlt_bgc_Fed, nlt_bgc_Fep, nlt_zaero
+      !use icedrv_tracers, only: nt_bgc_hum,  nlt_bgc_hum, nlt_chl_sw
+      !use icedrv_tracers, only: nlt_zaero_sw
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -212,6 +213,8 @@
          pchlsw
       real (kind=dbl_kind), dimension(nx,nslyr+nilyr+2,max_aero) :: &
          pzaerosw
+
+      character(len=*), parameter :: subname='(bgc_diags)'
 
       zspace(:) = c1/real(nblyr,kind=dbl_kind)
       zspace(1) = zspace(1)*p5
@@ -712,13 +715,13 @@
 
       subroutine zsal_diags (dt)
 
-      use icepack_drv_arrays_column, only: fzsal, fzsal_g, sice_rho, bTiz
-      use icepack_drv_arrays_column, only: iDi, bphi, dhbr_top, dhbr_bot, darcy_V
-      use icepack_drv_constants, only: rhos, rhoi, rhow, c1
-      use icepack_drv_domain_size, only: nblyr, ncat, nilyr
-      use icepack_drv_state, only: aicen, aice, vice, trcr, trcrn, vicen, vsno
-      use icepack_drv_parameters, only: rhosi
-      use icepack_drv_tracers, only: tr_brine, nt_fbri, nt_bgc_S, nt_sice
+      use icedrv_arrays_column, only: fzsal, fzsal_g, sice_rho, bTiz
+      use icedrv_arrays_column, only: iDi, bphi, dhbr_top, dhbr_bot, darcy_V
+      use icedrv_constants, only: rhos, rhoi, rhow, c1
+      use icedrv_domain_size, only: nblyr, ncat, nilyr
+      use icedrv_state, only: aicen, aice, vice, trcr, trcrn, vicen, vsno
+      use icedrv_parameters, only: rhosi
+      use icedrv_tracers, only: tr_brine, nt_fbri, nt_bgc_S, nt_sice
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -742,6 +745,8 @@
 
       real (kind=dbl_kind), dimension(nx,nblyr+1) :: &
          pbTiz, piDin
+
+      character(len=*), parameter :: subname='(zsal_diags)'
 
       !-----------------------------------------------------------------
       ! salinity and microstructure  of the ice
@@ -874,6 +879,6 @@
 
 !=======================================================================
 
-      end module icepack_drv_diagnostics_bgc
+      end module icedrv_diagnostics_bgc
 
 !=======================================================================

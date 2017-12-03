@@ -11,7 +11,8 @@
 
       use icepack_kinds
       use icepack_constants, only: c1, emissivity
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
       private
@@ -110,6 +111,8 @@
       real (kind=dbl_kind), optional, intent(inout):: &
           Uref        ! air speed reference level       (m/s)
 
+      character(len=*),parameter :: subname='(merge_fluxes)'
+
       !-----------------------------------------------------------------
       ! Merge fluxes
       ! NOTE: The albedo is aggregated only in cells where ice exists
@@ -202,8 +205,7 @@
       logical (kind=log_kind), parameter :: & 
          extreme_test=.false. ! test and write out extreme forcing data
 
-      character(len=char_len_long) :: &
-         warning ! warning message
+      character(len=*),parameter :: subname='(set_sfcflux)'
 
       raicen        = c1
 
@@ -246,35 +248,35 @@
 
             if (fcondtopn < -100.0_dbl_kind & 
                  .or. fcondtopn > 20.0_dbl_kind) then
-               write(warning,*) & 
+               write(warnstr,*) subname, & 
                     'Extreme forcing: -100 > fcondtopn > 20'
-               call add_warning(warning)
-               write(warning,*) & 
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, & 
                     'aicen,fcondtopn = ', & 
                     aicen,fcondtopn
-               call add_warning(warning)
+               call icepack_warnings_add(warnstr)
             endif
             
             if (fsurfn < -100.0_dbl_kind & 
                  .or. fsurfn > 80.0_dbl_kind) then
-               write(warning,*) & 
+               write(warnstr,*) subname, & 
                     'Extreme forcing: -100 > fsurfn > 40'
-               call add_warning(warning)
-               write(warning,*) & 
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, & 
                     'aicen,fsurfn = ', & 
                     aicen,fsurfn
-               call add_warning(warning)
+               call icepack_warnings_add(warnstr)
             endif
             
             if (flatn < -20.0_dbl_kind & 
                  .or. flatn > 20.0_dbl_kind) then
-               write(warning,*) & 
+               write(warnstr,*) subname, & 
                     'Extreme forcing: -20 > flatn > 20'
-               call add_warning(warning)
-               write(warning,*) & 
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, & 
                     'aicen,flatn = ', & 
                     aicen,flatn
-               call add_warning(warning)
+               call icepack_warnings_add(warnstr)
             endif
             
          endif  ! extreme_flag
