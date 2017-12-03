@@ -16,9 +16,9 @@
 
       character(len=char_len_long), public, save :: &
          ice_ic      ! method of ice cover initialization
-                     ! 'default'  => latitude and sst dependent
-                     ! 'none'     => no ice
-                     ! note:  restart = .true. overwrites
+                     ! 'default' or 'none' => conditions specified in code
+                     ! restart = .true. overwrites default initial
+                     !    condition using filename given by ice_ic
 
       real (kind=dbl_kind), dimension (nx), public, save :: &
          TLON   , & ! longitude of temp pts (radians)
@@ -165,13 +165,13 @@
       dt = 3600.0_dbl_kind   ! time step, s      
       npt = 99999            ! total number of time steps (dt) 
       diagfreq = 24          ! how often diag output is written
-      diag_file = 'ice_diag.d' ! history file name prefix
+      diag_file = 'ice_diag' ! history file name prefix
       cpl_bgc = .false.      ! 
       dumpfreq='y'           ! restart frequency option
       restart = .false.      ! if true, read restart files for initialization
-      restart_dir  = './'     ! write to executable dir for default
+      restart_dir  = './'    ! write to executable dir for default
       restart_file = 'iced'  ! restart file name prefix
-      ice_ic       = 'default'      ! latitude and sst-dependent
+      ice_ic       = 'default'      ! specified in code
 
       kitd = 1           ! type of itd conversions (0 = delta, 1 = linear)
       kcatbound = 1      ! category boundary formula (0 = old, 1 = new, etc)
