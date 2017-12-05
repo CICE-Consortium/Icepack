@@ -717,9 +717,9 @@
                                upNH,      grow_net,        &
                                grow_alg)
 
-      use icepack_constants, only: c1, secday, puny
+      use icepack_constants, only: c1, secday, puny, sk_l
       use icepack_tracers, only: nt_bgc_N
-      use icepack_parameters, only: sk_l, fr_resp
+      use icepack_parameters, only: fr_resp
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr   , & ! number of cells with aicen > puny

@@ -281,8 +281,8 @@
                                    flux_bio, nbltrcr)
 
       use icepack_tracers, only: nt_fbri, nt_bgc_S, bio_index
-      use icepack_parameters, only: solve_zsal, rhosi
-      use icepack_constants, only: c1, p001
+      use icepack_parameters, only: solve_zsal
+      use icepack_constants, only: c1, p001, rhosi
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories

@@ -12,8 +12,8 @@
          daymo, daycal, &
          dt, yday , days_per_year
       use icedrv_constants, only: nu_diag, nu_forcing, secday
-      use icedrv_parameters, only: calc_strair
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -575,6 +575,8 @@ endif
       integer (kind=int_kind) :: &
          nt
 
+      logical (kind=log_kind) :: calc_strair
+
       real (kind=dbl_kind), parameter :: &    
          lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
 
@@ -584,6 +586,11 @@ endif
       character(len=*), parameter :: subname='(prepare_forcing)'
 
       zlvl0 = c10 ! default
+
+      call icepack_query_parameters(calc_strair_out=calc_strair)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       !-----------------------------------------------------------------
       ! convert precipitation units to kg/m^2 s

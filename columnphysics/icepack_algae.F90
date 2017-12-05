@@ -449,9 +449,9 @@
                                       upNHn,      grow_alg_skl, &
                                       hin                       )
 
-      use icepack_constants, only: p5, p05, p1, c1, c0, puny, c10
+      use icepack_constants, only: p5, p05, p1, c1, c0, puny, c10, sk_l
       use icepack_tracers, only: nt_bgc_N,  ntrcr, bio_index 
-      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l
+      use icepack_parameters, only: dEdd_algae, bgc_flux_type
       use icepack_zbgc_shared, only: R_chl2N
 
       integer (kind=int_kind), intent(in) :: &

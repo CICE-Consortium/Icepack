@@ -10,6 +10,7 @@
       use icedrv_kinds
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -44,7 +45,10 @@
       use icedrv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
       use icepack_intfc, only: icepack_configure
       use icedrv_tracers, only: tr_aero, tr_zaero
-      use icedrv_parameters, only: skl_bgc, z_tracers
+
+      logical (kind=log_kind) :: &
+         skl_bgc, &    ! from icepack
+         z_tracers     ! from icepack
 
       character(len=*), parameter :: subname='(icedrv_initialize)'
 
@@ -93,6 +97,11 @@
    !--------------------------------------------------------------------
    ! coupler communication or forcing data initialization
    !--------------------------------------------------------------------
+      call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_query_parameters(z_tracers_out=z_tracers)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call init_forcing      ! initialize forcing (standalone)     
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
@@ -136,10 +145,15 @@
       use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, nt_alvl, nt_vlvl, &
           tr_pond_cesm, nt_apnd, nt_hpnd, tr_pond_lvl, nt_ipnd, &
           tr_pond_topo, tr_aero, tr_brine, nt_iage, nt_FY, nt_aero
-      use icedrv_parameters, only: skl_bgc, z_tracers, solve_zsal
 
       integer(kind=int_kind) :: &
          i                            ! horizontal indices
+
+      logical (kind=log_kind) :: &
+         skl_bgc, &    ! from icepack
+         z_tracers, &  ! from icepack
+         solve_zsal    ! from icepack
+
       character(len=*), parameter :: subname='(init_restart)'
 
       if (restart) then
@@ -147,7 +161,12 @@
          call calendar (time)
       endif      
 
-
+      call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_query_parameters(z_tracers_out=z_tracers)
+      call icepack_query_parameters(solve_zsal_out=solve_zsal)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       !in CICE, the following line:
       !if (tr_brine .or. skl_bgc) call init_hbrine ! brine height tracer

@@ -12,6 +12,8 @@
       use icedrv_tracers, only: max_aero
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
@@ -53,7 +55,6 @@
 
       subroutine runtime_diags (dt)
 
-      use icedrv_parameters,  only: calc_Tsfc, ktherm
       use icedrv_constants,   only: c1, c1000, c2, p001, p5, puny, rhoi, rhos, rhow
       use icedrv_constants,   only: rhofresh, Tffresh, Lfresh, Lvap, ice_ref_salinity
       use icedrv_constants,   only: m2_to_km2, awtvdr, awtidr, awtvdf, awtidf
@@ -79,6 +80,9 @@
       integer (kind=int_kind) :: &
          n
 
+      logical (kind=log_kind) :: &
+         calc_Tsfc
+
       ! fields at diagnostic points
       real (kind=dbl_kind) :: & 
           pTair, &
@@ -95,6 +99,11 @@
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
       !-----------------------------------------------------------------
+
+      call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call total_energy (work1)
       call total_salt   (work2)

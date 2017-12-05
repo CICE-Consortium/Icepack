@@ -10,6 +10,18 @@
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_init_tracer_numbers, icepack_init_tracer_flags
+      use icepack_intfc, only: icepack_init_tracer_indices
+      use icepack_intfc, only: icepack_init_parameters
+      use icepack_intfc, only: icepack_query_tracer_numbers, icepack_query_tracer_flags
+      use icepack_intfc, only: icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_init_zbgc
+      use icepack_intfc, only: icepack_init_thermo
+      use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
+      use icepack_intfc, only: icepack_init_bgc, icepack_init_zsalinity
+      use icepack_intfc, only: icepack_init_ocean_conc, icepack_init_OceanConcArray
+      use icepack_intfc, only: icepack_init_hbrine
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -32,7 +44,6 @@
       subroutine init_thermo_vertical
 
       use icedrv_constants, only: depressT
-      use icepack_intfc, only: icepack_init_thermo
       use icedrv_flux, only: salinz, Tmltz
 
       integer (kind=int_kind) :: &
@@ -92,8 +103,6 @@
       use icedrv_state, only: aicen, vicen, vsnon, trcrn
 
       ! column package includes
-      use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
-      use icedrv_parameters, only: shortwave, dEdd_algae, modal_aero
       use icedrv_tracers, only: tr_brine, tr_zaero, tr_bgc_n
       use icedrv_tracers, only: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
       use icedrv_tracers, only: nt_fbri, nt_tsfc
@@ -110,7 +119,12 @@
 
       logical (kind=log_kind) :: &
          l_print_point, & ! flag to print designated grid point diagnostics
-         debug            ! if true, print diagnostics
+         debug,         & ! if true, print diagnostics
+         dEdd_algae,    & ! from icepack
+         modal_aero       ! from icepack
+
+      character (len=char_len) :: &
+         shortwave        ! from icepack
 
       integer (kind=int_kind) :: &
          ipoint
@@ -126,13 +140,20 @@
 
       character(len=*), parameter :: subname='(init_shortwave)'
 
-      !$OMP PARALLEL DO PRIVATE(i,n, &
-      !$OMP                     cszn,l_print_point,debug,ipoint)
          ! Initialize
          fswpenln(:,:,:) = c0
          Iswabsn(:,:,:) = c0
          Sswabsn(:,:,:) = c0
 
+         call icepack_query_parameters(shortwave_out=shortwave)
+         call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
+         call icepack_query_parameters(modal_aero_out=modal_aero)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
+
+      !$OMP PARALLEL DO PRIVATE(i,n, &
+      !$OMP                     cszn,l_print_point,debug,ipoint)
          do i = 1, nx
 
             l_print_point = .false.
@@ -326,13 +347,10 @@
 !      use icedrv_restart_column, only: restart_zsal, &
 !          read_restart_bgc, restart_bgc
       use icedrv_state, only: trcrn, aicen, vicen, vsnon
-      use icedrv_parameters, only: solve_zsal
       use icedrv_tracers, only: max_algae, max_don, max_doc, max_dic, max_aero, max_fe
       use icedrv_tracers, only: max_nbtrcr
 
       ! column package includes
-      use icepack_intfc,   only: icepack_init_bgc, icepack_init_zsalinity
-      use icepack_intfc,   only: icepack_init_ocean_conc, icepack_init_OceanConcArray
       use icedrv_tracers, only: nbtrcr, ntrcr, ntrcr_o
       use icedrv_tracers, only: nt_sice, nt_bgc_S
 
@@ -344,8 +362,9 @@
          n                    ! category index
 
       logical (kind=log_kind) :: &
-         RayleighC
-        
+         RayleighC, &
+         solve_zsal
+
       real(kind=dbl_kind) :: &
          RayleighR
 
@@ -370,6 +389,11 @@
       zfswin       (:,:,:) = c0 ! shortwave flux on bio grid
       trcrn_sw     (:,:,:) = c0 ! tracers active in the shortwave calculation
       trcrn_bgc    (:,:) = c0
+
+      call icepack_query_parameters(solve_zsal_out=solve_zsal)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       !-----------------------------------------------------------------
       ! zsalinity initialization
@@ -483,17 +507,26 @@
       use icedrv_constants, only: c1
       use icedrv_domain_size, only: nblyr
       use icedrv_state, only: trcrn
-      use icepack_intfc, only: icepack_init_hbrine
       use icedrv_tracers, only: nt_fbri, tr_brine
-      use icedrv_parameters, only: phi_snow
 
+      real (kind=dbl_kind) :: phi_snow
       character(len=*), parameter :: subname='(init_hbrine)'
+
+      call icepack_query_parameters(phi_snow_out=phi_snow)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call icepack_init_hbrine(bgrid, igrid, cgrid, icgrid, &
             swgrid, nblyr, nilyr, phi_snow)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
+
+      call icepack_init_parameters(phi_snow_in=phi_snow)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       first_ice(:,:) = .true.            
       if (tr_brine) trcrn(:,nt_fbri,:) = c1
@@ -522,15 +555,9 @@
       use icedrv_arrays_column, only: sil_data_type, nit_data_type, fe_data_type
       use icedrv_tracers, only: max_algae, max_don, max_doc, max_dic, max_aero
       use icedrv_tracers, only: max_fe, max_nbtrcr, tr_aero
-      use icedrv_parameters, only: shortwave
 
-      use icepack_intfc, only: icepack_init_tracer_numbers, icepack_init_tracer_flags
-      use icepack_intfc, only: icepack_init_tracer_indices
-      use icepack_intfc, only: icepack_init_parameters
-      use icepack_intfc, only: icepack_query_tracer_numbers, icepack_query_tracer_flags
-      use icepack_intfc, only: icepack_query_tracer_indices
-      use icepack_intfc, only: icepack_query_parameters
-      use icepack_intfc, only: icepack_init_zbgc
+      character (len=char_len) :: &
+         shortwave        ! from icepack
 
       integer (kind=int_kind) :: &
           ntrcr,         nbtrcr,       nbtrcr_sw,    &
@@ -756,7 +783,6 @@
       !  1 : retention time scale is tau_max, release time scale is tau_min
       ! 0.5: retention time scale is tau_min, release time scale is tau_min
       !  2 : retention time scale is tau_max, release time scale is tau_max
-      ! tau_min and tau_max are defined in icedrv_parameters.f90
       !------------------------------------------------------------
 
       !-----------------------------------------------------------------

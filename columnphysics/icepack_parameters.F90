@@ -224,15 +224,6 @@
          t_sk_conv        , & ! Stefels conversion time (d)
          t_sk_ox              ! DMS oxidation time (d)
 
-      !-----------------------------------------------------------------
-      ! Forcing input, history and diagnostic output
-      !-----------------------------------------------------------------
-
-      real (kind=dbl_kind), parameter, public :: &
-         rhosi     = 940.0_dbl_kind, & ! average sea ice density
-                                       ! Cox and Weeks, 1982: 919-974 kg/m^2
-         sk_l      = 0.03_dbl_kind     ! skeletal layer thickness (m)
-
 !=======================================================================
 !=======================================================================
 
@@ -243,7 +234,7 @@
 ! subroutine to set the column package internal parameters
 
       subroutine icepack_init_parameters(   &
-           ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, ustar_min_in, a_rapid_mode_in, &
+           ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, ustar_min_in, a_rapid_mode_in, &
            Rac_rapid_mode_in, aspect_rapid_mode_in, dSdt_slow_mode_in, phi_c_slow_mode_in, &
            phi_i_mushy_in, shortwave_in, albedo_type_in, albicev_in, albicei_in, albsnowv_in, &
            albsnowi_in, ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
@@ -254,10 +245,10 @@
            bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, dEdd_algae_in, &
            modal_aero_in, skl_bgc_in, solve_zsal_in, grid_o_in, l_sk_in, &
            initbio_frac_in, grid_oS_in, l_skS_in, &
-           phi_snow_in, &
-           fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &         
-           T_max_in, fsal_in, op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &        
-           fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, max_dfe_doc1_in, fr_resp_s_in, &          
+           phi_snow_in, heat_capacity_in, &
+           fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
+           T_max_in, fsal_in, op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
+           fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, max_dfe_doc1_in, fr_resp_s_in, &
            y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in)
 
 !-----------------------------------------------------------------------
@@ -275,11 +266,14 @@
              fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
         
         logical (kind=log_kind), intent(in), optional :: &
+             heat_capacity_in, &! if true, ice has nonzero heat capacity
+                                ! if false, use zero-layer thermodynamics
              calc_Tsfc_in       ! if true, calculate surface temperature
                                 ! if false, Tsfc is computed elsewhere and
                                 ! atmos-ice fluxes are provided to CICE
 
         real (kind=dbl_kind), intent(in), optional :: &
+             dts_b_in,   &      ! zsalinity timestep
              ustar_min_in       ! minimum friction velocity for ice-ocean heat flux
  
         ! mushy thermo
@@ -450,7 +444,9 @@
         if (present(ktherm_in)               ) ktherm        = ktherm_in
         if (present(conduct_in)              ) conduct       = conduct_in
         if (present(fbot_xfer_type_in)       ) fbot_xfer_type    = fbot_xfer_type_in
+        if (present(heat_capacity_in)        ) heat_capacity     = heat_capacity_in
         if (present(calc_Tsfc_in)            ) calc_Tsfc         = calc_Tsfc_in
+        if (present(dts_b_in)                ) dts_b             = dts_b_in
         if (present(ustar_min_in)            ) ustar_min         = ustar_min_in
         if (present(a_rapid_mode_in)         ) a_rapid_mode      = a_rapid_mode_in
         if (present(Rac_rapid_mode_in)       ) Rac_rapid_mode    = Rac_rapid_mode_in
@@ -496,32 +492,34 @@
         if (present(scale_bgc_in)            ) scale_bgc     = scale_bgc_in
         if (present(solve_zbgc_in)           ) solve_zbgc    = solve_zbgc_in
         if (present(dEdd_algae_in)           ) dEdd_algae    = dEdd_algae_in
+        if (present(modal_aero_in)           ) modal_aero    = modal_aero_in
         if (present(skl_bgc_in)              ) skl_bgc       = skl_bgc_in
+        if (present(solve_zsal_in)           ) solve_zsal    = solve_zsal_in
         if (present(grid_o_in)               ) grid_o        = grid_o_in
         if (present(l_sk_in)                 ) l_sk          = l_sk_in
         if (present(initbio_frac_in)         ) initbio_frac  = initbio_frac_in
         if (present(grid_oS_in)              ) grid_oS       = grid_oS_in
         if (present(l_skS_in)                ) l_skS         = l_skS_in
         if (present(phi_snow_in)             ) phi_snow      = phi_snow_in
-        if (present(fr_resp_in)              ) fr_resp          = fr_resp_in
-        if (present(algal_vel_in)            ) algal_vel        = algal_vel_in
-        if (present(R_dFe2dust_in)           ) R_dFe2dust       = R_dFe2dust_in
-        if (present(dustFe_sol_in)           ) dustFe_sol       = dustFe_sol_in
-        if (present(T_max_in)                ) T_max            = T_max_in
-        if (present(fsal_in)                 ) fsal             = fsal_in
-        if (present(op_dep_min_in)           ) op_dep_min       = op_dep_min_in
-        if (present(fr_graze_s_in)           ) fr_graze_s       = fr_graze_s_in
-        if (present(fr_graze_e_in)           ) fr_graze_e       = fr_graze_e_in
-        if (present(fr_mort2min_in)          ) fr_mort2min      = fr_mort2min_in
-        if (present(fr_dFe_in)               ) fr_dFe           = fr_dFe_in
-        if (present(k_nitrif_in)             ) k_nitrif         = k_nitrif_in
-        if (present(t_iron_conv_in)          ) t_iron_conv      = t_iron_conv_in
-        if (present(max_loss_in)             ) max_loss         = max_loss_in
-        if (present(max_dfe_doc1_in)         ) max_dfe_doc1     = max_dfe_doc1_in
-        if (present(fr_resp_s_in)            ) fr_resp_s        = fr_resp_s_in
-        if (present(y_sk_DMS_in)             ) y_sk_DMS         = y_sk_DMS_in
-        if (present(t_sk_conv_in)            ) t_sk_conv        = t_sk_conv_in
-        if (present(t_sk_ox_in)              ) t_sk_ox          = t_sk_ox_in
+        if (present(fr_resp_in)              ) fr_resp       = fr_resp_in
+        if (present(algal_vel_in)            ) algal_vel     = algal_vel_in
+        if (present(R_dFe2dust_in)           ) R_dFe2dust    = R_dFe2dust_in
+        if (present(dustFe_sol_in)           ) dustFe_sol    = dustFe_sol_in
+        if (present(T_max_in)                ) T_max         = T_max_in
+        if (present(fsal_in)                 ) fsal          = fsal_in
+        if (present(op_dep_min_in)           ) op_dep_min    = op_dep_min_in
+        if (present(fr_graze_s_in)           ) fr_graze_s    = fr_graze_s_in
+        if (present(fr_graze_e_in)           ) fr_graze_e    = fr_graze_e_in
+        if (present(fr_mort2min_in)          ) fr_mort2min   = fr_mort2min_in
+        if (present(fr_dFe_in)               ) fr_dFe        = fr_dFe_in
+        if (present(k_nitrif_in)             ) k_nitrif      = k_nitrif_in
+        if (present(t_iron_conv_in)          ) t_iron_conv   = t_iron_conv_in
+        if (present(max_loss_in)             ) max_loss      = max_loss_in
+        if (present(max_dfe_doc1_in)         ) max_dfe_doc1  = max_dfe_doc1_in
+        if (present(fr_resp_s_in)            ) fr_resp_s     = fr_resp_s_in
+        if (present(y_sk_DMS_in)             ) y_sk_DMS      = y_sk_DMS_in
+        if (present(t_sk_conv_in)            ) t_sk_conv     = t_sk_conv_in
+        if (present(t_sk_ox_in)              ) t_sk_ox       = t_sk_ox_in
 
       end subroutine icepack_init_parameters
 
@@ -530,7 +528,7 @@
 ! subroutine to query the column package internal parameters
 
       subroutine icepack_query_parameters(   &
-           ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, ustar_min_out, a_rapid_mode_out, &
+           ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, ustar_min_out, a_rapid_mode_out, &
            Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, phi_c_slow_mode_out, &
            phi_i_mushy_out, shortwave_out, albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
            albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, rsnw_mlt_out, &
@@ -541,7 +539,7 @@
            bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, dEdd_algae_out, &
            modal_aero_out, skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
            initbio_frac_out, grid_oS_out, l_skS_out, &
-           phi_snow_out, &
+           phi_snow_out, heat_capacity_out, &
            fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &         
            T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, fr_mort2min_out, &        
            fr_dFe_out, k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, fr_resp_s_out, &          
@@ -558,15 +556,18 @@
                                 ! 2 = mushy layer theory
 
         character (char_len), intent(out), optional :: &
-             conduct_out, &      ! 'MU71' or 'bubbly'
-             fbot_xfer_type_out  ! transfer coefficient type for ice-ocean heat flux
+             conduct_out, &     ! 'MU71' or 'bubbly'
+             fbot_xfer_type_out ! transfer coefficient type for ice-ocean heat flux
         
         logical (kind=log_kind), intent(out), optional :: &
-             calc_Tsfc_out       ! if true, calculate surface temperature
+             heat_capacity_out,&! if true, ice has nonzero heat capacity
+                                ! if false, use zero-layer thermodynamics
+             calc_Tsfc_out      ! if true, calculate surface temperature
                                 ! if false, Tsfc is computed elsewhere and
                                 ! atmos-ice fluxes are provided to CICE
 
         real (kind=dbl_kind), intent(out), optional :: &
+             dts_b_out,   &      ! zsalinity timestep
              ustar_min_out       ! minimum friction velocity for ice-ocean heat flux
  
         ! mushy thermo
@@ -737,7 +738,9 @@
         if (present(ktherm_out)               ) ktherm_out        = ktherm
         if (present(conduct_out)              ) conduct_out       = conduct
         if (present(fbot_xfer_type_out)       ) fbot_xfer_type_out    = fbot_xfer_type
+        if (present(heat_capacity_out)        ) heat_capacity_out     = heat_capacity
         if (present(calc_Tsfc_out)            ) calc_Tsfc_out         = calc_Tsfc
+        if (present(dts_b_out)                ) dts_b_out             = dts_b
         if (present(ustar_min_out)            ) ustar_min_out         = ustar_min
         if (present(a_rapid_mode_out)         ) a_rapid_mode_out      = a_rapid_mode
         if (present(Rac_rapid_mode_out)       ) Rac_rapid_mode_out    = Rac_rapid_mode
@@ -783,32 +786,34 @@
         if (present(scale_bgc_out)            ) scale_bgc_out     = scale_bgc
         if (present(solve_zbgc_out)           ) solve_zbgc_out    = solve_zbgc
         if (present(dEdd_algae_out)           ) dEdd_algae_out    = dEdd_algae
+        if (present(modal_aero_out)           ) modal_aero_out    = modal_aero
         if (present(skl_bgc_out)              ) skl_bgc_out       = skl_bgc
+        if (present(solve_zsal_out)           ) solve_zsal_out    = solve_zsal
         if (present(grid_o_out)               ) grid_o_out        = grid_o
         if (present(l_sk_out)                 ) l_sk_out          = l_sk
         if (present(initbio_frac_out)         ) initbio_frac_out  = initbio_frac
         if (present(grid_oS_out)              ) grid_oS_out       = grid_oS
         if (present(l_skS_out)                ) l_skS_out         = l_skS
         if (present(phi_snow_out)             ) phi_snow_out      = phi_snow
-        if (present(fr_resp_out)              ) fr_resp_out          = fr_resp
-        if (present(algal_vel_out)            ) algal_vel_out        = algal_vel
-        if (present(R_dFe2dust_out)           ) R_dFe2dust_out       = R_dFe2dust
-        if (present(dustFe_sol_out)           ) dustFe_sol_out       = dustFe_sol
-        if (present(T_max_out)                ) T_max_out            = T_max
-        if (present(fsal_out)                 ) fsal_out             = fsal
-        if (present(op_dep_min_out)           ) op_dep_min_out       = op_dep_min
-        if (present(fr_graze_s_out)           ) fr_graze_s_out       = fr_graze_s
-        if (present(fr_graze_e_out)           ) fr_graze_e_out       = fr_graze_e
-        if (present(fr_mort2min_out)          ) fr_mort2min_out      = fr_mort2min
-        if (present(fr_dFe_out)               ) fr_dFe_out           = fr_dFe
-        if (present(k_nitrif_out)             ) k_nitrif_out         = k_nitrif
-        if (present(t_iron_conv_out)          ) t_iron_conv_out      = t_iron_conv
-        if (present(max_loss_out)             ) max_loss_out         = max_loss
-        if (present(max_dfe_doc1_out)         ) max_dfe_doc1_out     = max_dfe_doc1
-        if (present(fr_resp_s_out)            ) fr_resp_s_out        = fr_resp_s
-        if (present(y_sk_DMS_out)             ) y_sk_DMS_out         = y_sk_DMS
-        if (present(t_sk_conv_out)            ) t_sk_conv_out        = t_sk_conv
-        if (present(t_sk_ox_out)              ) t_sk_ox_out          = t_sk_ox
+        if (present(fr_resp_out)              ) fr_resp_out       = fr_resp
+        if (present(algal_vel_out)            ) algal_vel_out     = algal_vel
+        if (present(R_dFe2dust_out)           ) R_dFe2dust_out    = R_dFe2dust
+        if (present(dustFe_sol_out)           ) dustFe_sol_out    = dustFe_sol
+        if (present(T_max_out)                ) T_max_out         = T_max
+        if (present(fsal_out)                 ) fsal_out          = fsal
+        if (present(op_dep_min_out)           ) op_dep_min_out    = op_dep_min
+        if (present(fr_graze_s_out)           ) fr_graze_s_out    = fr_graze_s
+        if (present(fr_graze_e_out)           ) fr_graze_e_out    = fr_graze_e
+        if (present(fr_mort2min_out)          ) fr_mort2min_out   = fr_mort2min
+        if (present(fr_dFe_out)               ) fr_dFe_out        = fr_dFe
+        if (present(k_nitrif_out)             ) k_nitrif_out      = k_nitrif
+        if (present(t_iron_conv_out)          ) t_iron_conv_out   = t_iron_conv
+        if (present(max_loss_out)             ) max_loss_out      = max_loss
+        if (present(max_dfe_doc1_out)         ) max_dfe_doc1_out  = max_dfe_doc1
+        if (present(fr_resp_s_out)            ) fr_resp_s_out     = fr_resp_s
+        if (present(y_sk_DMS_out)             ) y_sk_DMS_out      = y_sk_DMS
+        if (present(t_sk_conv_out)            ) t_sk_conv_out     = t_sk_conv
+        if (present(t_sk_ox_out)              ) t_sk_ox_out       = t_sk_ox
 
       end subroutine icepack_query_parameters
 
@@ -831,7 +836,9 @@
         write(iounit,*) "  ktherm        = ", ktherm
         write(iounit,*) "  conduct       = ", conduct
         write(iounit,*) "  fbot_xfer_type    = ", fbot_xfer_type
+        write(iounit,*) "  heat_capacity     = ", heat_capacity
         write(iounit,*) "  calc_Tsfc         = ", calc_Tsfc
+        write(iounit,*) "  dts_b             = ", dts_b
         write(iounit,*) "  ustar_min         = ", ustar_min
         write(iounit,*) "  a_rapid_mode      = ", a_rapid_mode
         write(iounit,*) "  Rac_rapid_mode    = ", Rac_rapid_mode
@@ -877,32 +884,34 @@
         write(iounit,*) "  scale_bgc     = ", scale_bgc
         write(iounit,*) "  solve_zbgc    = ", solve_zbgc
         write(iounit,*) "  dEdd_algae    = ", dEdd_algae
+        write(iounit,*) "  modal_aero    = ", modal_aero
         write(iounit,*) "  skl_bgc       = ", skl_bgc
+        write(iounit,*) "  solve_zsal    = ", solve_zsal
         write(iounit,*) "  grid_o        = ", grid_o
         write(iounit,*) "  l_sk          = ", l_sk
         write(iounit,*) "  initbio_frac  = ", initbio_frac
         write(iounit,*) "  grid_oS       = ", grid_oS
         write(iounit,*) "  l_skS         = ", l_skS
         write(iounit,*) "  phi_snow      = ", phi_snow
-        write(iounit,*) "  fr_resp          = ", fr_resp
-        write(iounit,*) "  algal_vel        = ", algal_vel
-        write(iounit,*) "  R_dFe2dust       = ", R_dFe2dust
-        write(iounit,*) "  dustFe_sol       = ", dustFe_sol
-        write(iounit,*) "  T_max            = ", T_max
-        write(iounit,*) "  fsal             = ", fsal
-        write(iounit,*) "  op_dep_min       = ", op_dep_min
-        write(iounit,*) "  fr_graze_s       = ", fr_graze_s
-        write(iounit,*) "  fr_graze_e       = ", fr_graze_e
-        write(iounit,*) "  fr_mort2min      = ", fr_mort2min
-        write(iounit,*) "  fr_dFe           = ", fr_dFe
-        write(iounit,*) "  k_nitrif         = ", k_nitrif
-        write(iounit,*) "  t_iron_conv      = ", t_iron_conv
-        write(iounit,*) "  max_loss         = ", max_loss
-        write(iounit,*) "  max_dfe_doc1     = ", max_dfe_doc1
-        write(iounit,*) "  fr_resp_s        = ", fr_resp_s
-        write(iounit,*) "  y_sk_DMS         = ", y_sk_DMS
-        write(iounit,*) "  t_sk_conv        = ", t_sk_conv
-        write(iounit,*) "  t_sk_ox          = ", t_sk_ox
+        write(iounit,*) "  fr_resp       = ", fr_resp
+        write(iounit,*) "  algal_vel     = ", algal_vel
+        write(iounit,*) "  R_dFe2dust    = ", R_dFe2dust
+        write(iounit,*) "  dustFe_sol    = ", dustFe_sol
+        write(iounit,*) "  T_max         = ", T_max
+        write(iounit,*) "  fsal          = ", fsal
+        write(iounit,*) "  op_dep_min    = ", op_dep_min
+        write(iounit,*) "  fr_graze_s    = ", fr_graze_s
+        write(iounit,*) "  fr_graze_e    = ", fr_graze_e
+        write(iounit,*) "  fr_mort2min   = ", fr_mort2min
+        write(iounit,*) "  fr_dFe        = ", fr_dFe
+        write(iounit,*) "  k_nitrif      = ", k_nitrif
+        write(iounit,*) "  t_iron_conv   = ", t_iron_conv
+        write(iounit,*) "  max_loss      = ", max_loss
+        write(iounit,*) "  max_dfe_doc1  = ", max_dfe_doc1
+        write(iounit,*) "  fr_resp_s     = ", fr_resp_s
+        write(iounit,*) "  y_sk_DMS      = ", y_sk_DMS
+        write(iounit,*) "  t_sk_conv     = ", t_sk_conv
+        write(iounit,*) "  t_sk_ox       = ", t_sk_ox
 
       end subroutine icepack_write_parameters
 

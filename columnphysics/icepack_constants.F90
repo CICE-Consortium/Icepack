@@ -28,37 +28,37 @@
          nspint = 3                ! number of solar spectral intervals
                     
       real (kind=dbl_kind), parameter, public :: &
-        secday = 86400.0_dbl_kind ,&! seconds in calendar day
-        c0   = 0.0_dbl_kind, &
-        c1   = 1.0_dbl_kind, &
-        c1p5 = 1.5_dbl_kind, &
-        c2   = 2.0_dbl_kind, &
-        c3   = 3.0_dbl_kind, &
-        c4   = 4.0_dbl_kind, &
-        c5   = 5.0_dbl_kind, &
-        c6   = 6.0_dbl_kind, &
-        c8   = 8.0_dbl_kind, &
-        c10  = 10.0_dbl_kind, &
-        c15  = 15.0_dbl_kind, &
-        c16  = 16.0_dbl_kind, &
-        c20  = 20.0_dbl_kind, &
-        c25  = 25.0_dbl_kind, &
-        c100 = 100.0_dbl_kind, &
-        c1000= 1000.0_dbl_kind, &
-        p001 = 0.001_dbl_kind, &
-        p01  = 0.01_dbl_kind, &
-        p1   = 0.1_dbl_kind, &
-        p2   = 0.2_dbl_kind, &
-        p4   = 0.4_dbl_kind, &
-        p5   = 0.5_dbl_kind, &
-        p6   = 0.6_dbl_kind, &
-        p05  = 0.05_dbl_kind, &
-        p15  = 0.15_dbl_kind, &
-        p25  = 0.25_dbl_kind, &
-        p75  = 0.75_dbl_kind, &
-        p333 = c1/c3, &
-        p666 = c2/c3, &
-        spval_const= -1.0e36_dbl_kind
+         secday = 86400.0_dbl_kind ,&! seconds in calendar day
+         c0   = 0.0_dbl_kind, &
+         c1   = 1.0_dbl_kind, &
+         c1p5 = 1.5_dbl_kind, &
+         c2   = 2.0_dbl_kind, &
+         c3   = 3.0_dbl_kind, &
+         c4   = 4.0_dbl_kind, &
+         c5   = 5.0_dbl_kind, &
+         c6   = 6.0_dbl_kind, &
+         c8   = 8.0_dbl_kind, &
+         c10  = 10.0_dbl_kind, &
+         c15  = 15.0_dbl_kind, &
+         c16  = 16.0_dbl_kind, &
+         c20  = 20.0_dbl_kind, &
+         c25  = 25.0_dbl_kind, &
+         c100 = 100.0_dbl_kind, &
+         c1000= 1000.0_dbl_kind, &
+         p001 = 0.001_dbl_kind, &
+         p01  = 0.01_dbl_kind, &
+         p1   = 0.1_dbl_kind, &
+         p2   = 0.2_dbl_kind, &
+         p4   = 0.4_dbl_kind, &
+         p5   = 0.5_dbl_kind, &
+         p6   = 0.6_dbl_kind, &
+         p05  = 0.05_dbl_kind, &
+         p15  = 0.15_dbl_kind, &
+         p25  = 0.25_dbl_kind, &
+         p75  = 0.75_dbl_kind, &
+         p333 = c1/c3, &
+         p666 = c2/c3, &
+         spval_const= -1.0e36_dbl_kind
 
       !-----------------------------------------------------------------
       ! derived physical constants
@@ -68,12 +68,12 @@
       !-----------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
-        pih    = spval_const, &
-        piq    = spval_const, &
-        pi2    = spval_const, &
-        Lfresh = spval_const, &! latent heat of melting of fresh ice (J/kg)
-        cprho  = spval_const, &! for ocean mixed layer (J kg / K m^3)
-        Cp     = spval_const   ! proport const for PE 
+         pih    = spval_const, &
+         piq    = spval_const, &
+         pi2    = spval_const, &
+         Lfresh = spval_const, &! latent heat of melting of fresh ice (J/kg)
+         cprho  = spval_const, &! for ocean mixed layer (J kg / K m^3)
+         Cp     = spval_const   ! proport const for PE 
 
       !-----------------------------------------------------------------
       ! settable physical constants
@@ -129,7 +129,10 @@
          ksno   = 0.30_dbl_kind  ,&! thermal conductivity of snow  (W/m/deg)
          zref   = 10._dbl_kind   ,&! reference height for stability (m)
          hs_min = 1.e-4_dbl_kind ,&! min snow thickness for computing zTsn (m)
-         snowpatch = 0.02_dbl_kind ! parameter for fractional snow area (m)
+         snowpatch = 0.02_dbl_kind, &  ! parameter for fractional snow area (m)
+         rhosi     = 940.0_dbl_kind, & ! average sea ice density
+                                       ! Cox and Weeks, 1982: 919-974 kg/m^2
+         sk_l      = 0.03_dbl_kind     ! skeletal layer thickness (m)
 
       ! weights for albedos 
       ! 4 Jan 2007 BPB  Following are appropriate for complete cloud
@@ -165,7 +168,7 @@
          Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
          iceruf_in, Cf_in, Pstar_in, Cstar_in, kappav_in, &
          kice_in, kseaice_in, ksno_in, &
-         zref_in, hs_min_in, snowpatch_in, &
+         zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          puny_in, bignum_in, pi_in )
@@ -206,6 +209,8 @@
          zref_in,       & ! reference height for stability (m)
          hs_min_in,     & ! min snow thickness for computing zTsn (m)
          snowpatch_in,  & ! parameter for fractional snow area (m)
+         rhosi_in,      & ! average sea ice density (kg/m2)
+         sk_l_in,       & ! skeletal layer thickness (m)
          awtvdr_in,     & ! visible, direct  ! for history and
          awtidr_in,     & ! near IR, direct  ! diagnostics
          awtvdf_in,     & ! visible, diffuse
@@ -255,6 +260,8 @@
          if (present(zref_in))       zref   = zref_in
          if (present(hs_min_in))     hs_min = hs_min_in
          if (present(snowpatch_in))  snowpatch = snowpatch_in
+         if (present(rhosi_in))      rhosi  = rhosi_in
+         if (present(sk_l_in))       sk_l   = sk_l_in
          if (present(awtvdr_in))     awtvdr = awtvdr_in
          if (present(awtidr_in))     awtidr = awtidr_in
          if (present(awtvdf_in))     awtvdf = awtvdf_in
@@ -283,7 +290,7 @@
          Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
          iceruf_out, Cf_out, Pstar_out, Cstar_out, kappav_out, &
          kice_out, kseaice_out, ksno_out, &
-         zref_out, hs_min_out, snowpatch_out, &
+         zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
          awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, &
          qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, &
          Lfresh_out, cprho_out, Cp_out, &
@@ -331,6 +338,8 @@
          zref_out,       & ! reference height for stability (m)
          hs_min_out,     & ! min snow thickness for computing zTsn (m)
          snowpatch_out,  & ! parameter for fractional snow area (m)
+         rhosi_out,      & ! average sea ice density (kg/m2)
+         sk_l_out,       & ! skeletal layer thickness (m)
          awtvdr_out,     & ! visible, direct  ! for history and
          awtidr_out,     & ! near IR, direct  ! diagnostics
          awtvdf_out,     & ! visible, diffuse
@@ -388,6 +397,8 @@
          if (present(zref_out))       zref_out   = zref
          if (present(hs_min_out))     hs_min_out = hs_min
          if (present(snowpatch_out))  snowpatch_out = snowpatch
+         if (present(rhosi_out))      rhosi_out  = rhosi
+         if (present(sk_l_out))       sk_l_out   = sk_l
          if (present(awtvdr_out))     awtvdr_out = awtvdr
          if (present(awtidr_out))     awtidr_out = awtidr
          if (present(awtvdf_out))     awtvdf_out = awtvdf
@@ -488,6 +499,8 @@
          write(iounit,*) "  zref   = ",zref
          write(iounit,*) "  hs_min = ",hs_min
          write(iounit,*) "  snowpatch = ",snowpatch
+         write(iounit,*) "  rhosi  = ",rhosi
+         write(iounit,*) "  sk_l   = ",sk_l
          write(iounit,*) "  awtvdr = ",awtvdr
          write(iounit,*) "  awtidr = ",awtidr
          write(iounit,*) "  awtvdf = ",awtvdf

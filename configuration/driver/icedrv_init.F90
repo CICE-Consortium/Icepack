@@ -9,8 +9,11 @@
       use icedrv_kinds
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_init_constants
+      use icepack_intfc, only: icepack_init_parameters
+      use icepack_intfc, only: icepack_init_trcr
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -46,14 +49,6 @@
 
       subroutine input_data
 
-      use icedrv_parameters, only: ustar_min, albicev, albicei, albsnowv, albsnowi
-      use icedrv_parameters, only: ahmax, shortwave, albedo_type, R_ice, R_pnd
-      use icedrv_parameters, only: R_snw, dT_mlt, rsnw_mlt
-      use icedrv_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
-      use icedrv_parameters, only: atmbndy, calc_strair, formdrag, highfreq, natmiter
-      use icedrv_parameters, only: kitd, kcatbound, hs0, dpscale, frzpnd
-      use icedrv_parameters, only: rfracmin, rfracmax, pndaspect, hs1, hp1
-      use icedrv_parameters, only: ktherm, calc_Tsfc, conduct
       use icedrv_arrays_column, only: oceanmixed_ice
       use icedrv_constants, only: c0, c1, puny, ice_stdout, nu_diag_out, nu_nml
       use icedrv_diagnostics, only: diag_file, nx_names
@@ -75,10 +70,6 @@
       use icedrv_tracers, only: tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice
       use icedrv_tracers, only: nt_iage, nt_FY, nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd
       use icedrv_tracers, only: nt_aero, ntrcr
-      use icedrv_parameters, only: a_rapid_mode, Rac_rapid_mode
-      use icedrv_parameters, only: aspect_rapid_mode, dSdt_slow_mode
-      use icedrv_parameters, only: phi_c_slow_mode, phi_i_mushy
-      use icedrv_parameters, only: tfrz_option, kalg, fbot_xfer_type
 
       ! local variables
 
@@ -97,6 +88,20 @@
       character (len=20) :: format_str
 
       logical :: exists
+
+      real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
+        ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
+        mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
+        a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
+        phi_c_slow_mode, phi_i_mushy, kalg
+
+      integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, natmiter, &
+        kitd, kcatbound
+
+      character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
+        tfrz_option, frzpnd, atmbndy
+
+      logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
 
       real (kind=real_kind) :: rpcesm, rplvl, rptopo 
       real (kind=dbl_kind) :: Cf
@@ -707,6 +712,24 @@
          endif
       endif
 
+      call icepack_init_parameters(ustar_min_in=ustar_min, albicev_in=albicev, albicei_in=albicei, &
+         albsnowv_in=albsnowv, albsnowi_in=albsnowi, natmiter_in=natmiter, &
+         ahmax_in=ahmax, shortwave_in=shortwave, albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &
+         R_snw_in=R_snw, dT_mlt_in=dT_mlt, rsnw_mlt_in=rsnw_mlt, &
+         kstrength_in=kstrength, krdg_partic_in=krdg_partic, krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
+         atmbndy_in=atmbndy, calc_strair_in=calc_strair, formdrag_in=formdrag, highfreq_in=highfreq, &
+         kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, dpscale_in=dpscale, frzpnd_in=frzpnd, &
+         rfracmin_in=rfracmin, rfracmax_in=rfracmax, pndaspect_in=pndaspect, hs1_in=hs1, hp1_in=hp1, &
+         ktherm_in=ktherm, calc_Tsfc_in=calc_Tsfc, conduct_in=conduct, &
+         a_rapid_mode_in=a_rapid_mode, Rac_rapid_mode_in=Rac_rapid_mode, &
+         aspect_rapid_mode_in=aspect_rapid_mode, dSdt_slow_mode_in=dSdt_slow_mode, &
+         phi_c_slow_mode_in=phi_c_slow_mode, phi_i_mushy_in=phi_i_mushy, &
+         tfrz_option_in=tfrz_option, kalg_in=kalg, fbot_xfer_type_in=fbot_xfer_type)
+
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       end subroutine input_data
 
 !=======================================================================
@@ -761,7 +784,6 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_parameters, only: heat_capacity
       use icedrv_constants, only: c0, c1
       use icedrv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero
       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
@@ -779,6 +801,9 @@
          k           , & ! vertical index
          it              ! tracer index
 
+      logical (kind=log_kind) :: &
+         heat_capacity   ! from icepack
+
       character(len=*), parameter :: subname='(init_state)'
 
       !-----------------------------------------------------------------
@@ -795,6 +820,11 @@
             write (nu_diag,*) 'Must have at least one snow layer'
             call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif
+
+         call icepack_query_parameters(heat_capacity_out=heat_capacity)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          if (.not.heat_capacity) then
 
@@ -964,7 +994,6 @@
                                 vicen,    vsnon)
 
       use icedrv_arrays_column, only: hin_max
-      use icepack_intfc, only: icepack_init_trcr
       use icedrv_constants, only: c0, c1, c2, c3, p2, p5, rhoi, rhos, Lfresh
       use icedrv_constants, only: cp_ice, cp_ocn, Tsmelt, Tffresh, puny
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat

@@ -328,7 +328,7 @@
                                  kperm,      bphi_min,  phi_snow, &
                                  i_grid,     sss)
 
-      use icepack_parameters, only: rhosi
+      use icepack_constants, only: rhosi
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
       integer (kind=int_kind), intent(in) :: &
@@ -470,7 +470,7 @@
                                 bphin,      aice0,       &
                                 dh_direct)
 
-      use icepack_parameters, only: rhosi
+      use icepack_constants, only: rhosi
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! timestep
@@ -603,7 +603,8 @@
  
       use icepack_therm_shared, only: calculate_Tin_from_qin
       use icepack_tracers, only: nt_fbri, nt_Tsfc
-      use icepack_parameters, only: min_salin, rhosi, salt_loss
+      use icepack_constants, only: rhosi
+      use icepack_parameters, only: min_salin, salt_loss
 
       integer (kind=int_kind), intent(in) :: &
          n_cat       , & ! ice category

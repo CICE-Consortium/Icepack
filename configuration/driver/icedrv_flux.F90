@@ -16,6 +16,7 @@
       use icedrv_tracers, only: max_algae, max_doc, max_don, max_dic, max_fe
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -617,13 +618,19 @@
 
       use icedrv_state, only: aice, vice, trcr
       use icedrv_tracers, only: tr_iage, nt_iage
-      use icedrv_parameters, only: formdrag
       use icedrv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
       use icedrv_arrays_column, only: Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_pond, Cdn_atm_rdg
       use icedrv_arrays_column, only: Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
       use icedrv_arrays_column, only: Cdn_atm, Cdn_ocn
       use icedrv_constants, only: vonkar,zref,iceruf
+
+      logical (kind=log_kind) :: formdrag
       character(len=*), parameter :: subname='(init_history_therm)'
+
+      call icepack_query_parameters(formdrag_out=formdrag)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       fsurf  (:) = c0
       fcondtop(:)= c0

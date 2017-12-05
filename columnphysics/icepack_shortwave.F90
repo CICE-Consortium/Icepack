@@ -3620,10 +3620,10 @@
                                     nbtrcr_sw,    n_zaero,   &
                                     skl_bgc,      z_tracers  )
       
-      use icepack_constants,  only: c0, c1, c2, p5
+      use icepack_constants,  only: c0, c1, c2, p5, sk_l
       use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
-      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l, hi_ssl, min_bgc
+      use icepack_parameters, only: dEdd_algae, bgc_flux_type, hi_ssl, min_bgc
       use icepack_zbgc_shared,only: R_chl2N, F_abs_chl
       use icepack_zbgc_shared,only: remap_zbgc
 

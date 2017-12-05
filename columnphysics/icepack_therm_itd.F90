@@ -1042,7 +1042,8 @@
       use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, nt_apnd
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine
-      use icepack_parameters, only: solve_zsal, skl_bgc, initbio_frac, salt_loss, rhosi
+      use icepack_parameters, only: solve_zsal, skl_bgc, initbio_frac, salt_loss
+      use icepack_constants, only: rhosi
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
       use icepack_therm_shared,  only: hfrazilmin
       use icepack_zbgc, only: add_new_ice_bgc

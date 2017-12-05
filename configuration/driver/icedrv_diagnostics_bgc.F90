@@ -12,6 +12,7 @@
       use icedrv_calendar, only: diagfreq, istep1, istep
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -36,7 +37,6 @@
       use icedrv_domain_size, only: ncat, nltrcr, nilyr
       use icedrv_state, only: aice, aicen, vicen, vice, trcr, trcrn
       use icedrv_tracers, only: nt_sice, nt_fbri
-      use icedrv_parameters, only: ktherm
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -45,6 +45,9 @@
 
       integer (kind=int_kind) :: &
          i, k, n
+
+      integer (kind=int_kind) :: &
+         ktherm
 
       ! fields at diagnostic points
       real (kind=dbl_kind), dimension(nx) :: &
@@ -85,6 +88,11 @@
       ! diagnostics for Arctic and Antarctic points
       !-----------------------------------------------------------------
 
+         call icepack_query_parameters(ktherm_out=ktherm)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
+
          write(nu_diag_out+n-1,899) nx_names(n)
         
          write(nu_diag_out+n-1,*) '------ hbrine ------'
@@ -123,7 +131,6 @@
 
       use icedrv_arrays_column, only: ocean_bio, zfswin, fbio_atmice, fbio_snoice
       use icedrv_arrays_column, only: Zoo, grow_net, ice_bio_net, trcrn_sw
-      use icedrv_parameters,    only: skl_bgc, z_tracers, dEdd_algae
       use icedrv_constants,     only: c0, mps_to_cmpdy, c100, p5, c1, secday
       use icedrv_domain_size,   only: ncat, nltrcr, nblyr, n_algae, n_zaero
       use icedrv_domain_size,   only: n_dic, n_doc, n_don, n_fed, n_fep, nilyr, nslyr
@@ -145,16 +152,6 @@
       use icedrv_tracers, only: nlt_bgc_Nit, nlt_bgc_Am, nlt_bgc_Sil
       use icedrv_tracers, only: nlt_bgc_DOC, nlt_bgc_DON, nlt_bgc_DMSPp, nlt_bgc_DMS
 
-      !use icedrv_tracers, only: nt_bgc_N, nt_bgc_C, nt_bgc_chl, nt_bgc_Am
-      !use icedrv_tracers, only: nt_bgc_DMS, nt_bgc_DMSPd, nt_bgc_DMSPp, nt_bgc_Nit, nt_bgc_Sil
-      !use icedrv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_DIC, nt_bgc_DOC, nt_zaero, nt_bgc_Fed
-      !use icedrv_tracers, only: nt_bgc_Fep
-      !use icedrv_tracers, only: nlt_bgc_DMS, nlt_bgc_DMSPp, nlt_bgc_DMSPd, nlt_bgc_C, nlt_bgc_chl
-      !use icedrv_tracers, only: nlt_bgc_DIC, nlt_bgc_DOC, nlt_bgc_PON
-      !use icedrv_tracers, only: nlt_bgc_DON, nlt_bgc_Fed, nlt_bgc_Fep, nlt_zaero
-      !use icedrv_tracers, only: nt_bgc_hum,  nlt_bgc_hum, nlt_chl_sw
-      !use icedrv_tracers, only: nlt_zaero_sw
-
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
 
@@ -162,6 +159,10 @@
 
       integer (kind=int_kind) :: &
          i, k, n, nn, kk, klev
+
+      logical (kind=log_kind) :: &
+         skl_bgc, z_tracers, dEdd_algae
+
       ! fields at diagnostic points
       real (kind=dbl_kind), dimension(nx) :: &
          pNit_sk, pAm_sk, pSil_sk, phum_sk, &
@@ -221,6 +222,11 @@
       zspace(:) = c1/real(nblyr,kind=dbl_kind)
       zspace(1) = zspace(1)*p5
       zspace(nblyr+1) = zspace(nblyr+1)*p5    
+
+      call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers, dEdd_algae_out=dEdd_algae)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       klev = 1+nilyr+nslyr
       !-----------------------------------------------------------------
@@ -722,7 +728,6 @@
       use icedrv_constants, only: rhos, rhoi, rhow, c1
       use icedrv_domain_size, only: nblyr, ncat, nilyr
       use icedrv_state, only: aicen, aice, vice, trcr, trcrn, vicen, vsno
-      use icedrv_parameters, only: rhosi
       use icedrv_tracers, only: tr_brine, nt_fbri, nt_bgc_S, nt_sice
 
       real (kind=dbl_kind), intent(in) :: &
@@ -748,12 +753,20 @@
       real (kind=dbl_kind), dimension(nx,nblyr+1) :: &
          pbTiz, piDin
 
+      real (kind=dbl_kind) :: &
+         rhosi
+
       character(len=*), parameter :: subname='(zsal_diags)'
 
       !-----------------------------------------------------------------
       ! salinity and microstructure  of the ice
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
+
+         call icepack_query_constants(rhosi_out=rhosi)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          do n = 1, nx
                i = n

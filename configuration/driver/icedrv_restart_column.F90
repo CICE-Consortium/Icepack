@@ -11,6 +11,7 @@
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, nx
       use icedrv_restart, only: read_restart_field_cn, write_restart_field_cn
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -48,7 +49,6 @@
       use icedrv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
       use icedrv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
       use icedrv_tracers, only: nt_zbgc_frac, nt_zaero
-      use icedrv_parameters, only: skl_bgc, solve_zsal
 
       ! local variables
 
@@ -58,7 +58,7 @@
 
       real (kind=dbl_kind) :: cszn ! counter for history averaging
 
-      logical (kind=log_kind) :: diag
+      logical (kind=log_kind) :: diag, skl_bgc, solve_zsal
 
       character (len=3) :: nchar, ncharb
 
@@ -68,6 +68,12 @@
       character(len=*), parameter :: subname='(write_restart_bgc)'
 
       diag = .true.
+
+      call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_query_parameters(solve_zsal_out=solve_zsal)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       !-----------------------------------------------------------------
       ! Salinity and extras
@@ -452,8 +458,7 @@
       use icedrv_tracers, only: nt_bgc_hum
       use icedrv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
       use icedrv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
-      use icepack_tracers, only: nt_zbgc_frac, nt_zaero
-      use icedrv_parameters, only: skl_bgc
+      use icedrv_tracers, only: nt_zbgc_frac, nt_zaero
 
       ! local variables
 
@@ -461,13 +466,18 @@
          i, k, & ! indices
          mm      ! n_algae
 
-      logical (kind=log_kind) :: diag
+      logical (kind=log_kind) :: diag, skl_bgc
 
       character (len=3) :: nchar, ncharb
 
       character(len=*), parameter :: subname='(read_restart_bgc)'
 
       diag = .true.
+
+      call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       !-----------------------------------------------------------------
       ! Salinity and extras
