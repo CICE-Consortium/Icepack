@@ -9,7 +9,9 @@
       use icedrv_kinds
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_init_constants
-      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icedrv_constants, only: nu_diag
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
@@ -53,7 +55,7 @@
       use icedrv_parameters, only: rfracmin, rfracmax, pndaspect, hs1, hp1
       use icedrv_parameters, only: ktherm, calc_Tsfc, conduct
       use icedrv_arrays_column, only: oceanmixed_ice
-      use icedrv_constants, only: c0, c1, puny, ice_stdout, nu_diag, nu_diag_out, nu_nml
+      use icedrv_constants, only: c0, c1, puny, ice_stdout, nu_diag_out, nu_nml
       use icedrv_diagnostics, only: diag_file, nx_names
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icedrv_calendar, only: year_init, istep0
@@ -300,7 +302,7 @@
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
         write(ice_stdout,*) 'error reading namelist'
-        call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+        call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
       
@@ -349,7 +351,7 @@
          write (nu_diag,*) 'Remapping the ITD is not allowed for ncat=1.'
          write (nu_diag,*) 'Use kitd = 0 (delta function ITD) with kcatbound = 0'
          write (nu_diag,*) 'or for column configurations use kcatbound = -1'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (ncat /= 1 .and. kcatbound == -1) then
@@ -373,7 +375,7 @@
 
       if (rpcesm + rplvl + rptopo > c1 + puny) then
             write (nu_diag,*) 'WARNING: Must use only one melt pond scheme'
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_pond_lvl .and. .not. tr_lvl) then
@@ -405,7 +407,7 @@
             write (nu_diag,*) 'WARNING: aerosols activated but'
             write (nu_diag,*) 'WARNING: not allocated in tracer array.'
             write (nu_diag,*) 'WARNING: Activate in compilation script.'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_aero .and. trim(shortwave) /= 'dEdd') then
@@ -452,7 +454,7 @@
 
       if (tr_pond_cesm) then
             write (nu_diag,*) 'ERROR: formdrag=T but frzpnd=cesm' 
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (.not. tr_lvl) then
@@ -469,6 +471,9 @@
       endif
 
       call icepack_init_constants(Cf_in=Cf)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
       ! spew
@@ -657,7 +662,7 @@
          if (ntrcr > max_ntrcr-1) then
             write(nu_diag,*) 'max_ntrcr-1 < number of namelist tracers'
             write(nu_diag,*) 'max_ntrcr-1 = ',max_ntrcr-1,' ntrcr = ',ntrcr
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif                               
 
          write(nu_diag,*) ' '
@@ -686,19 +691,19 @@
       if (formdrag) then
          if (nt_apnd==0) then
             write(nu_diag,*)'ERROR: nt_apnd:',nt_apnd
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          elseif (nt_hpnd==0) then
             write(nu_diag,*)'ERROR: nt_hpnd:',nt_hpnd
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          elseif (nt_ipnd==0) then
             write(nu_diag,*)'ERROR: nt_ipnd:',nt_ipnd
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          elseif (nt_alvl==0) then
             write(nu_diag,*)'ERROR: nt_alvl:',nt_alvl
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          elseif (nt_vlvl==0) then
             write(nu_diag,*)'ERROR: nt_vlvl:',nt_vlvl
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif
       endif
 
@@ -757,7 +762,7 @@
 
       use icepack_intfc, only: icepack_aggregate
       use icedrv_parameters, only: heat_capacity
-      use icedrv_constants, only: c0, c1, nu_diag
+      use icedrv_constants, only: c0, c1
       use icedrv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero
       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
@@ -782,13 +787,13 @@
          if (nilyr < 1) then
             write (nu_diag,*) 'nilyr =', nilyr
             write (nu_diag,*) 'Must have at least one ice layer'
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif
 
          if (nslyr < 1) then
             write (nu_diag,*) 'nslyr =', nslyr
             write (nu_diag,*) 'Must have at least one snow layer'
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif
 
          if (.not.heat_capacity) then
@@ -799,14 +804,14 @@
                write (nu_diag,*) 'nilyr =', nilyr
                write (nu_diag,*)        &
                     'Must have nilyr = 1 if ktherm = 0'
-               call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+               call icedrv_system_abort(file=__FILE__,line=__LINE__)
             endif
 
             if (nslyr > 1) then
                write (nu_diag,*) 'nslyr =', nslyr
                write (nu_diag,*)        &
                     'Must have nslyr = 1 if heat_capacity = F'
-               call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+               call icedrv_system_abort(file=__FILE__,line=__LINE__)
             endif
 
          endif   ! heat_capacity = F
@@ -938,6 +943,9 @@
 
       enddo
       !$OMP END PARALLEL DO
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       end subroutine init_state
 
@@ -1094,6 +1102,9 @@
         ! brine fraction
         if (tr_brine) trcrn(i,nt_fbri,n) = c1
       enddo                  ! ncat
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
       
       !-----------------------------------------------------------------
 
@@ -1145,6 +1156,9 @@
         ! brine fraction
         if (tr_brine) trcrn(i,nt_fbri,n) = c1
       enddo                  ! ncat
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
       
       !-----------------------------------------------------------------
       

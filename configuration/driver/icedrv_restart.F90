@@ -9,7 +9,8 @@
       use icedrv_kinds
       use icedrv_constants, only: nu_diag, nu_restart, nu_dump
       use icedrv_restart_shared, only: restart, restart_dir, restart_file, lenstr
-      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private :: write_restart_pond_topo, read_restart_pond_topo, &
@@ -211,7 +212,7 @@
 !cn need to do something here ....
 !cn probably make sure there is a default for ice_ic up stream and require it as an arg here
 !cn it is probably iced
-        call icedrv_diagnostics_abort(string=subname//'no ice_ic present',file=__FILE__,line=__LINE__)
+        call icedrv_system_abort(string=subname//'no ice_ic present',file=__FILE__,line=__LINE__)
       endif
 
       write(nu_diag,*) 'Using restart dump=', trim(filename)
@@ -335,6 +336,10 @@
 
          aice_init(i) = aice(i)
       enddo
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
+
       end subroutine restartfile
 
 !=======================================================================

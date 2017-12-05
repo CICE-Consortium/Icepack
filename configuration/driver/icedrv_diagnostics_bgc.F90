@@ -11,6 +11,8 @@
       use icedrv_constants, only: c0, nu_diag, nu_diag_out
       use icedrv_calendar, only: diagfreq, istep1, istep
       use icedrv_domain_size, only: nx
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private

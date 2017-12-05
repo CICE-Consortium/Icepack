@@ -8,8 +8,9 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
+      use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
 
@@ -48,6 +49,9 @@
       !-----------------------------------------------------------------
 
       call icepack_init_thermo(nilyr, sprofile)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
       ! Prescibe vertical profile of salinity and melting temperature.
@@ -76,9 +80,8 @@
       use icedrv_arrays_column, only: swgrid, igrid
       use icedrv_calendar, only: istep1, dt, calendar_type
       use icedrv_calendar, only:    days_per_year, nextsw_cday, yday, sec
-      use icedrv_constants, only: nu_diag
       use icedrv_constants, only: c0, c1, puny
-      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icedrv_system, only: icedrv_system_abort
       use icedrv_domain_size, only: n_aero, n_zaero, ncat, nilyr, nslyr, n_algae, nblyr
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr
       use icedrv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
@@ -169,8 +172,7 @@
                call icepack_warnings_flush(nu_diag)
                call icepack_init_orbit()
                call icepack_warnings_flush(nu_diag)
-
-               if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
+               if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
                    __FILE__, __LINE__)
 #endif
             endif
@@ -185,7 +187,6 @@
          enddo
 
          if (tmask(i)) then
-            call icepack_warnings_flush(nu_diag)
             call icepack_step_radiation (dt,         ncat,                    &
                           n_algae,   tr_zaero, nblyr,                     &
                           ntrcr,     nbtrcr,   nbtrcr_sw,                 &
@@ -227,8 +228,10 @@
                           dhsn(i,:),      ffracn(i,:),      &
                           l_print_point,                                  &
                           initonly = .true.)
-            call icepack_warnings_flush(nu_diag)
          endif
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__, line=__LINE__)
          
       !-----------------------------------------------------------------
       ! Define aerosol tracer on shortwave grid
@@ -315,9 +318,8 @@
       use icedrv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
       use icedrv_calendar,  only: dt, istep1
       use icedrv_constants, only: c0
-      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icedrv_system, only: icedrv_system_abort
       use icedrv_domain_size, only: nblyr, nilyr
-      use icedrv_constants, only: nu_diag
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, hum
       use icedrv_forcing_bgc, only:  get_forcing_bgc !cn init_bgc_data
@@ -388,6 +390,9 @@
                enddo
 !               endif   ! restart_zsal
             enddo      ! i
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                file=__FILE__, line=__LINE__)
       endif ! solve_zsal
 
 !      if (.not. solve_zsal) restart_zsal = .false.
@@ -409,6 +414,9 @@
                     hum   (i  ), nit (i  ), sil(i  ), &
                     zaeros(i,:), max_dic, max_don, max_fe, max_aero)
             enddo  ! i
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                file=__FILE__, line=__LINE__)
 
 !cn right now, init_bgc_data would be a no-op since fe_data_type=default
             !call init_bgc_data(fed(:,:),fep(:,:)) ! input dFe from file
@@ -435,9 +443,8 @@
                                  doc(i,:),  don(i,:), dic(i,:),     &  
                                  fed(i,:),  fep(i,:), zaeros(i,:),  &
                                  ocean_bio_all(i,:),  hum(i))
-
             call icepack_warnings_flush(nu_diag)
-            if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
+            if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
                 __FILE__, __LINE__)
 
          enddo  ! i
@@ -451,7 +458,7 @@
                sss(i), &
                ocean_bio_all(i,:))
             call icepack_warnings_flush(nu_diag)
-            if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
+            if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
                 __FILE__, __LINE__)
             enddo  ! i
 
@@ -484,6 +491,9 @@
 
       call icepack_init_hbrine(bgrid, igrid, cgrid, icgrid, &
             swgrid, nblyr, nilyr, phi_snow)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       first_ice(:,:) = .true.            
       if (tr_brine) trcrn(:,nt_fbri,:) = c1
@@ -499,7 +509,7 @@
 
       subroutine init_zbgc
 
-      use icedrv_constants, only: nu_diag, nu_nml
+      use icedrv_constants, only: nu_nml
       use icedrv_constants, only: c1, c2, p5, c0, c5, rhos, rhoi, p1
       use icedrv_domain_size, only: max_ntrcr, nblyr, nilyr, nslyr
       use icedrv_domain_size, only: n_algae, n_zaero, n_doc, n_dic, n_don
@@ -803,9 +813,15 @@
 
       call icepack_query_tracer_numbers( &
           ntrcr_out=ntrcr)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       call icepack_query_parameters( &
           ktherm_out=ktherm, shortwave_out=shortwave)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
       ! default values
@@ -988,7 +1004,7 @@
          if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
          print*,'error reading zbgc namelist'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       !-----------------------------------------------------------------
@@ -1060,7 +1076,7 @@
 
       if ((skl_bgc .AND. solve_zbgc) .or. (skl_bgc .AND. z_tracers)) then
          print*, 'ERROR: skl_bgc and (solve_zbgc or z_tracers) are both true'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (skl_bgc .AND. tr_zaero) then
@@ -1092,27 +1108,27 @@
       endif
       if (n_algae > max_algae) then
          print*, 'error:number of algal types exceeds max_algae'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_doc > max_doc) then
          print*, 'error:number of algal types exceeds max_doc'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_dic > max_dic) then
          print*, 'error:number of dic types exceeds max_dic'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_don > max_don) then
          print*, 'error:number of don types exceeds max_don'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fed > max_fe) then
          print*, 'error:number of dissolved fe types exceeds max_fe'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (n_fep > max_fe) then
          print*, 'error:number of particulate fe types exceeds max_fe'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if ((TRBGCS == 0 .and. skl_bgc) .or. (TRALG == 0 .and. skl_bgc)) then
@@ -1156,32 +1172,35 @@
 
       if (n_zaero > max_aero) then
          print*, 'error:number of z aerosols exceeds max_aero'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif         
 
       if (skl_bgc .and. n_bgc < 2) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'comp_ice must have number of bgc tracers >= 2'
          write (nu_diag,*) 'number of bgc tracers compiled:',n_bgc
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (solve_zbgc .and. n_bgc < 2) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'comp_ice must have number of zbgc tracers >= 2'
          write (nu_diag,*) 'number of bgc tracers compiled:',n_bgc
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_zaero .and. TRZAERO <  1) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'comp_ice must have number of TRZAERO > 0'
          write (nu_diag,*) 'in order to solve z aerosols:',TRZAERO
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       call icepack_init_tracer_indices( &
           nbtrcr_in=nbtrcr)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       call icepack_init_parameters( &
           ktherm_in=ktherm, shortwave_in=shortwave, solve_zsal_in=solve_zsal, &
@@ -1193,6 +1212,9 @@
           grid_oS_in=grid_oS, l_skS_in=l_skS, &
           phi_snow_in=phi_snow, &
           modal_aero_in=modal_aero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
       ! end conflict resolution
@@ -1427,6 +1449,9 @@
          op_dep_min_in=op_dep_min, fr_graze_s_in=fr_graze_s, fr_graze_e_in=fr_graze_e, &
          k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, &
          fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, t_sk_conv_in=t_sk_conv, t_sk_ox_in=t_sk_ox)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       if (skl_bgc) then
 
@@ -1717,12 +1742,18 @@
       ! set values in icepack
       !-----------------------------------------------------------------
 
-     call icepack_init_zbgc( &
+      call icepack_init_zbgc( &
          zbgc_init_frac_in=zbgc_init_frac, tau_ret_in=tau_ret, tau_rel_in=tau_rel, &
          zbgc_frac_init_in=zbgc_frac_init, bgc_tracer_type_in=bgc_tracer_type)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       call icepack_init_tracer_numbers( &
           ntrcr_in=ntrcr, ntrcr_o_in=ntrcr_o, nbtrcr_in=nbtrcr, nbtrcr_sw_in=nbtrcr_sw)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       call icepack_init_tracer_flags( &
           tr_brine_in  =tr_brine, &
@@ -1731,6 +1762,9 @@
           tr_bgc_N_in  =tr_bgc_N,   tr_bgc_C_in  =tr_bgc_C,   tr_bgc_chl_in=tr_bgc_chl,   &
           tr_bgc_DON_in=tr_bgc_DON, tr_bgc_Fe_in =tr_bgc_Fe,  tr_zaero_in  =tr_zaero,     &
           tr_bgc_hum_in=tr_bgc_hum)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       call icepack_init_tracer_indices( &
           nbtrcr_in=nbtrcr,        &
@@ -1752,6 +1786,9 @@
           n_DOC_in=n_DOC,             n_DON_in=n_DON,               n_DIC_in=n_DIC, &
           n_fed_in=n_fed,             n_fep_in=n_fep,               n_zaero_in=n_zaero, &
           bio_index_o_in=bio_index_o, bio_index_in=bio_index)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
       ! final consistency checks
@@ -1760,7 +1797,7 @@
          write (nu_diag,*) ' '
          write (nu_diag,*) 'nbtrcr > max_nbtrcr'
          write (nu_diag,*) 'nbtrcr, max_nbtrcr:',nbtrcr, max_nbtrcr
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif	
       if (.NOT. dEdd_algae) nbtrcr_sw = 1
 
@@ -1768,13 +1805,13 @@
          write (nu_diag,*) ' '
          write (nu_diag,*) 'nbtrcr_sw > max_nsw'
          write (nu_diag,*) 'nbtrcr_sw, max_nsw:',nbtrcr_sw, max_nsw
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (ntrcr > max_ntrcr) then
          write(nu_diag,*) 'max_ntrcr < number of namelist tracers'
          write(nu_diag,*) 'max_ntrcr = ',max_ntrcr,' ntrcr = ',ntrcr
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif                               
 
       !-----------------------------------------------------------------

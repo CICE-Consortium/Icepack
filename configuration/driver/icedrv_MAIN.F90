@@ -27,7 +27,9 @@
 
       use icedrv_InitMod
       use icedrv_RunMod
-      use icedrv_constants, only: ice_stdout
+      use icedrv_constants, only: ice_stdout, nu_diag
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
 
@@ -44,6 +46,10 @@
       !-----------------------------------------------------------------
 
       call icedrv_run
+
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       write(ice_stdout, *) "ICEPACK COMPLETED SUCCESSFULLY "
 

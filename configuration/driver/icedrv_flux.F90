@@ -14,6 +14,9 @@
       use icedrv_constants, only: stefan_boltzmann, Tffresh, emissivity
       use icedrv_tracers, only: max_aero, max_nbtrcr
       use icedrv_tracers, only: max_algae, max_doc, max_don, max_dic, max_fe
+      use icedrv_constants, only: nu_diag
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
@@ -492,6 +495,9 @@
       do i = 1, nx
          Tf (i) = icepack_liquidus_temperature(sss(i)) ! freezing temp (C)
       enddo
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       qdp   (:) = c0              ! deep ocean heat flux (W/m^2)
       hmix  (:) = c20             ! ocean mixed layer depth

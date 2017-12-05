@@ -8,8 +8,9 @@
       module icedrv_InitMod
 
       use icedrv_kinds
+      use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
@@ -33,7 +34,6 @@
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
       use icepack_intfc, only: icepack_warnings_flush
       use icedrv_domain_size, only: ncat
-      use icedrv_constants, only: nu_diag
       use icedrv_diagnostics, only: icedrv_diagnostics_debug
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm_ocn
@@ -49,6 +49,9 @@
       character(len=*), parameter :: subname='(icedrv_initialize)'
 
       call icepack_configure()  ! initialize icepack
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
       call input_data           ! namelist variables
       call init_zbgc            ! vertical biogeochemistry namelist
 
@@ -59,13 +62,16 @@
       call init_coupler_flux    ! initialize fluxes exchanged with coupler
       call init_thermo_vertical ! initialize vertical thermodynamics
       call icepack_init_itd(ncat, hin_max)
+      call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
-      call icepack_warnings_flush(nu_diag)
       call icepack_init_itd_hist(ncat, hin_max, c_hi_range) ! output
       call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted(subname)) then
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
 
       call calendar(time)       ! determine the initial date
 
@@ -116,7 +122,7 @@
       subroutine init_restart
 
       use icedrv_arrays_column, only: dhsn
-      use icedrv_calendar, only: time, calendar
+      use icedrv_calendar, only: time, calendar, istep1
       use icedrv_constants, only: c0
       use icepack_intfc, only: icepack_aggregate
       use icedrv_domain_size, only: ncat, max_ntrcr, n_aero, nx
@@ -177,6 +183,10 @@
                                 n_trcr_strata,      &
                                 nt_strata)
       enddo
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
+
       end subroutine init_restart
 
 !=======================================================================

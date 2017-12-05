@@ -13,6 +13,8 @@
       use icedrv_tracers, only: bio_index_o
       use icedrv_calendar, only: dt, istep, sec, mday, month, daymo
       use icedrv_constants, only: nu_diag
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private

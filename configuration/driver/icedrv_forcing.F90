@@ -13,6 +13,8 @@
          dt, yday , days_per_year
       use icedrv_constants, only: nu_diag, nu_forcing, secday
       use icedrv_parameters, only: calc_strair
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
@@ -1248,6 +1250,9 @@ endif
          Tf  (i) = icepack_sea_freezing_temperature(sss(i))
          if (restore_ocn) sst(i) = sst(i) + (sst_temp(i)-sst(i))*dt/trest
       enddo
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       end subroutine finish_ocn_forcing
 

@@ -10,6 +10,8 @@
       use icedrv_constants
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, nx
       use icedrv_restart, only: read_restart_field_cn, write_restart_field_cn
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
 

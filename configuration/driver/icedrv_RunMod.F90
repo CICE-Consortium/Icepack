@@ -7,6 +7,9 @@
       module icedrv_RunMod
 
       use icedrv_kinds
+      use icedrv_constants, only: nu_diag
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private

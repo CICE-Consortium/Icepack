@@ -12,6 +12,9 @@
       use icedrv_domain_size, only: nblyr, max_nsw , max_ntrcr
       use icedrv_tracers, only: max_nbtrcr, max_algae, max_aero
       use icedrv_tracers, only: nmodal1, nmodal2
+      use icedrv_constants, only: nu_diag
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
 
