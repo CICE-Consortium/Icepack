@@ -19,6 +19,7 @@ set sets = ""
 set bdir = $spval
 set testid = $spval
 set testsuite = $spval
+set acct = $spval
 set baseCom = $spval  # Baseline compare
 set baseGen = $spval  # Baseline generate
 set bfbcomp = $spval  # BFB compare
@@ -57,6 +58,8 @@ EOF1
       end
 cat << EOF1
         -p tasks x threads, mxn (default is 1x1)
+        -a account number for the queue manager (default is defined in env.<machine>
+           or in ~/.cice.proj)
         -g grid, grid (default = col)
         -s build and namelist mod files, comma separated with no spaces (default = " ")
            Available -s options are in configuration/scripts/options and include:
@@ -138,6 +141,9 @@ while (1)
       breaksw
     case "-g":
       set grid = $argv[1]
+      breaksw
+    case "-a":
+      set acct = $argv[1]
       breaksw
     case "-p":
       set pesx = $argv[1]
@@ -365,6 +371,10 @@ echo ICE_SANDBOX  = ${ICE_SANDBOX}
 echo ICE_CASENAME = ${casename}
 echo ICE_CASEDIR  = ${casedir}
 echo ICE_MACHINE  = ${mach}
+
+if ( $acct != $spval ) then
+  echo $acct > ~/.cice_proj
+endif
 
 #------------------------------------------------------------
 # Compute a default blocksize
