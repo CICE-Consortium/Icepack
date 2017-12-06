@@ -12,9 +12,9 @@
       use icedrv_domain_size, only: ncat, nilyr, nx
       use icedrv_constants, only: c0, c1, c5, c10, c20, c180, dragio
       use icedrv_constants, only: stefan_boltzmann, Tffresh, emissivity
-      use icedrv_tracers, only: max_aero, max_nbtrcr
-      use icedrv_tracers, only: max_algae, max_doc, max_don, max_dic, max_fe
       use icedrv_constants, only: nu_diag
+      use icepack_intfc, only: icepack_max_aero, icepack_max_nbtrcr, icepack_max_fe
+      use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don, icepack_max_dic
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
@@ -313,23 +313,23 @@
       ! in from atmosphere
 
       real (kind=dbl_kind), &   !coupling variable for both tr_aero and tr_zaero
-         dimension (nx,max_aero), public :: &
+         dimension (nx,icepack_max_aero), public :: &
          faero_atm   ! aerosol deposition rate (kg/m^2 s)   
 
       real (kind=dbl_kind), &
-         dimension (nx,max_nbtrcr), public :: &
+         dimension (nx,icepack_max_nbtrcr), public :: &
          flux_bio_atm  ! all bio fluxes to ice from atmosphere
 
       ! in from ocean
 
       real (kind=dbl_kind), &
-         dimension (nx,max_aero), public :: &
+         dimension (nx,icepack_max_aero), public :: &
          faero_ocn   ! aerosol flux to ocean  (kg/m^2/s)
 
       ! out to ocean 
 
       real (kind=dbl_kind), &
-         dimension (nx,max_nbtrcr), public :: &
+         dimension (nx,icepack_max_nbtrcr), public :: &
          flux_bio   , & ! all bio fluxes to ocean
          flux_bio_ai    ! all bio fluxes to ocean, averaged over grid cell
 
@@ -361,27 +361,27 @@
          fhum       , & ! ice-ocean humic material carbon (mmol/m^2/s), positive to ocean
          fdust          ! ice-ocean dust flux (kg/m^2/s), positive to ocean
 
-      real (kind=dbl_kind), dimension (nx,max_algae), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_algae), public :: &
          algalN     , & ! ocean algal nitrogen (mmol/m^3) (diatoms, pico, phaeo)
          falgalN        ! ice-ocean algal nitrogen flux (mmol/m^2/s) (diatoms, pico, phaeo)
 
-      real (kind=dbl_kind), dimension (nx,max_doc), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_doc), public :: &
          doc         , & ! ocean doc (mmol/m^3)  (saccharids, lipids, tbd )
          fdoc            ! ice-ocean doc flux (mmol/m^2/s)  (saccharids, lipids, tbd)
 
-      real (kind=dbl_kind), dimension (nx,max_don), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_don), public :: &
          don         , & ! ocean don (mmol/m^3) (proteins and amino acids)
          fdon            ! ice-ocean don flux (mmol/m^2/s) (proteins and amino acids)
 
-      real (kind=dbl_kind), dimension (nx,max_dic), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_dic), public :: &
          dic         , & ! ocean dic (mmol/m^3) 
          fdic            ! ice-ocean dic flux (mmol/m^2/s) 
 
-      real (kind=dbl_kind), dimension (nx,max_fe), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_fe), public :: &
          fed, fep    , & ! ocean dissolved and particulate fe (nM) 
          ffed, ffep      ! ice-ocean dissolved and particulate fe flux (umol/m^2/s) 
 
-      real (kind=dbl_kind), dimension (nx,max_aero), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_aero), public :: &
          zaeros          ! ocean aerosols (mmol/m^3) 
 
 !=======================================================================

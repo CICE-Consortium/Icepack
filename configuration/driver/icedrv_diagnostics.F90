@@ -9,7 +9,6 @@
       use icedrv_kinds
       use icedrv_constants, only: c0, nu_diag, nu_diag_out
       use icedrv_calendar, only: diagfreq, istep1, istep
-      use icedrv_tracers, only: max_aero
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters

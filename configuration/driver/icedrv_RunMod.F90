@@ -8,8 +8,11 @@
 
       use icedrv_kinds
       use icedrv_constants, only: nu_diag
-      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_warnings_flush
+      use icepack_intfc, only: icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_tracer_flags
+      use icepack_intfc, only: icepack_query_tracer_numbers
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -33,15 +36,19 @@
       use icedrv_forcing_bgc, only: faero_default, get_forcing_bgc
 !      use icedrv_forcing_bgc, only: , get_atm_bgc, fzaero_data, & 
       use icedrv_flux, only: init_flux_atm_ocn
-      use icedrv_tracers, only: tr_aero, tr_zaero
 
-      logical (kind=log_kind) :: skl_bgc, z_tracers
+      logical (kind=log_kind) :: skl_bgc, z_tracers, tr_aero, tr_zaero
 
       character(len=*), parameter :: subname='(icedrv_run)'
 
    !--------------------------------------------------------------------
    ! timestep loop
    !--------------------------------------------------------------------
+
+      call icepack_query_tracer_flags(tr_aero_out=tr_aero, tr_zaero_out=tr_zaero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       timeLoop: do
 
@@ -95,8 +102,6 @@
 !      use icedrv_restart_column, only: &
 !          write_restart_bgc
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, &
-          tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_brine, tr_aero
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_radiation, &
           biogeochemistry
@@ -105,7 +110,7 @@
          k               ! dynamics supercycling index
 
       logical (kind=log_kind) :: &
-         calc_Tsfc, skl_bgc, solve_zsal, z_tracers  ! from icepack
+         calc_Tsfc, skl_bgc, solve_zsal, z_tracers, tr_brine  ! from icepack
 
       real (kind=dbl_kind) :: &
          offset          ! d(age)/dt time offset
@@ -120,6 +125,7 @@
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
       call icepack_query_parameters(solve_zsal_out=solve_zsal, calc_Tsfc_out=calc_Tsfc)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -217,7 +223,6 @@
           albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
       use icedrv_calendar, only: dt
       use icedrv_arrays_column, only: oceanmixed_ice
-      use icedrv_tracers, only: nbtrcr, max_aero
       use icedrv_constants, only: c0, c1, puny, rhofresh
       use icedrv_domain_size, only: ncat, nx
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &
@@ -237,7 +242,8 @@
       integer (kind=int_kind) :: & 
          n           , & ! thickness category index
          i           , & ! horizontal index
-         k               ! tracer index
+         k           , & ! tracer index
+         nbtrcr
 
       real (kind=dbl_kind) :: &
          netsw           ! flag for shortwave radiation presence
@@ -248,6 +254,11 @@
       ! Save current value of frzmlt for diagnostics.
       ! Update mixed layer with heat and radiation from ice.
       !-----------------------------------------------------------------
+
+         call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          do i = 1, nx
             frzmlt_init  (i) = frzmlt(i)

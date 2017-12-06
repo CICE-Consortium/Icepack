@@ -10,8 +10,8 @@
       use icepack_constants, only: nspint
       use icedrv_domain_size, only: nx, ncat, nilyr, nslyr
       use icedrv_domain_size, only: nblyr, max_nsw , max_ntrcr
-      use icedrv_tracers, only: max_nbtrcr, max_algae, max_aero
-      use icedrv_tracers, only: nmodal1, nmodal2
+      use icepack_intfc, only: icepack_max_nbtrcr, icepack_max_algae, icepack_max_aero
+      use icepack_intfc, only: icepack_nmodal1, icepack_nmodal2
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
@@ -111,17 +111,17 @@
       ! aerosol optical properties   -> band  |
       !                                       v aerosol
       ! for combined dust category, use category 4 properties
-      real (kind=dbl_kind), dimension(nspint,max_aero), public :: & 
+      real (kind=dbl_kind), dimension(nspint,icepack_max_aero), public :: & 
          kaer_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_tab, & ! aerosol single scatter albedo (fraction)
          gaer_tab    ! aerosol asymmetry parameter (cos(theta))
 
-      real (kind=dbl_kind), dimension(nspint,nmodal1), public :: & 
+      real (kind=dbl_kind), dimension(nspint,icepack_nmodal1), public :: & 
           kaer_bc_tab, & ! BC mass extinction cross section (m2/kg)
           waer_bc_tab, & ! BC single scatter albedo (fraction)
           gaer_bc_tab    ! BC aerosol asymmetry parameter (cos(theta))
 
-      real (kind=dbl_kind), dimension (nspint,nmodal1,nmodal2), public :: &
+      real (kind=dbl_kind), dimension (nspint,icepack_nmodal1,icepack_nmodal2), public :: &
           bcenh           ! BC absorption enhancement factor
 
       ! biogeochemistry components
@@ -148,16 +148,16 @@
                         ! there the entire time step (true until ice forms)
 
       real (kind=dbl_kind), &
-         dimension (nx,max_nbtrcr), public :: &
+         dimension (nx,icepack_max_nbtrcr), public :: &
          ocean_bio      ! contains all the ocean bgc tracer concentrations
 
       ! diagnostic fluxes
       real (kind=dbl_kind), &
-         dimension (nx,max_nbtrcr), public :: &
+         dimension (nx,icepack_max_nbtrcr), public :: &
          fbio_snoice, & ! fluxes from snow to ice
          fbio_atmice    ! fluxes from atm to ice
 
-      real (kind=dbl_kind), dimension (nx,max_nbtrcr), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_nbtrcr), public :: &
          ocean_bio_all      ! fixed order, all values even for tracers false
                             ! N(1:max_algae) = 1:max_algae
                             ! Nit = max_algae + 1
@@ -183,7 +183,7 @@
                             ! humic ==  2*max_algae + max_doc + 8 + max_dic + max_don + 2*max_fe
                             !                     + max_aero 
 
-      integer (kind=int_kind), dimension(nx,max_algae), public :: &
+      integer (kind=int_kind), dimension(nx,icepack_max_algae), public :: &
         algal_peak          ! vertical location of algal maximum, 0 if no maximum 
 
       real (kind=dbl_kind), & 
@@ -252,7 +252,7 @@
                          ! calculation on the shortwave grid (swgrid)
 
       real (kind=dbl_kind), &
-         dimension (nx,max_nbtrcr), public :: &
+         dimension (nx,icepack_max_nbtrcr), public :: &
          ice_bio_net  , &   ! depth integrated tracer (mmol/m^2) 
          snow_bio_net       ! depth integrated snow tracer (mmol/m^2)
 

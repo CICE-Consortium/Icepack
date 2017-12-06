@@ -13,6 +13,8 @@
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_max_algae, icepack_max_aero, icepack_max_fe
+      use icepack_intfc, only: icepack_max_dic, icepack_max_doc, icepack_max_don
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -136,7 +138,6 @@
       use icedrv_domain_size,   only: n_dic, n_doc, n_don, n_fed, n_fep, nilyr, nslyr
       use icedrv_flux,  only: flux_bio, flux_bio_atm
       use icedrv_state, only: aice, vicen, vice, trcr
-      use icedrv_tracers, only: max_algae, max_aero, max_dic, max_doc, max_don, max_fe
       use icedrv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
       use icedrv_tracers, only: tr_bgc_DON, tr_zaero, tr_bgc_hum
       use icedrv_tracers, only: tr_bgc_Fe
@@ -173,48 +174,48 @@
          pflux_atm_NO, pflux_atm_Am,  pgrow_net, &
          pflux_hum
 
-      real (kind=dbl_kind), dimension(nx,max_algae) :: &
+      real (kind=dbl_kind), dimension(nx,icepack_max_algae) :: &
          pN_ac, pN_tot, pN_sk, pflux_N
-      real (kind=dbl_kind), dimension(nx,max_doc) :: &
+      real (kind=dbl_kind), dimension(nx,icepack_max_doc) :: &
          pDOC_ac, pDOC_sk
-      real (kind=dbl_kind), dimension(nx,max_don) :: &
+      real (kind=dbl_kind), dimension(nx,icepack_max_don) :: &
          pDON_ac, pDON_sk
-      real (kind=dbl_kind), dimension(nx,max_fe ) :: &
+      real (kind=dbl_kind), dimension(nx,icepack_max_fe ) :: &
          pFed_ac,  pFed_sk, pFep_ac, pFep_sk 
-      real (kind=dbl_kind), dimension(nx,max_aero) :: &
+      real (kind=dbl_kind), dimension(nx,icepack_max_aero) :: &
         pflux_zaero, pflux_snow_zaero, pflux_atm_zaero, &
         pflux_atm_zaero_s
 
       ! vertical  fields of category 1 at diagnostic points for bgc layer model
       real (kind=dbl_kind), dimension(nx,2) :: &
          pNOs, pAms, pPONs, phums
-      real (kind=dbl_kind), dimension(nx,2,max_algae) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_algae) :: &
          pNs
-      real (kind=dbl_kind), dimension(nx,2,max_doc) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_doc) :: &
          pDOCs
-      real (kind=dbl_kind), dimension(nx,2,max_don) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_don) :: &
          pDONs
-      real (kind=dbl_kind), dimension(nx,2,max_fe ) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_fe ) :: &
          pFeds, pFeps 
-      real (kind=dbl_kind), dimension(nx,2,max_aero) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_aero) :: &
          pzaeros
       real (kind=dbl_kind), dimension(nx,nblyr+1) :: &
          pNO, pAm, pPON, pzfswin, pZoo, phum
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_algae) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_algae) :: &
          pN
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_aero) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_aero) :: &
          pzaero
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_doc) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_doc) :: &
          pDOC
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_don) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_don) :: &
          pDON
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_fe ) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_fe ) :: &
          pFed, pFep 
       real (kind=dbl_kind), dimension (nblyr+1) :: & 
          zspace
       real (kind=dbl_kind), dimension (nx,nslyr+nilyr+2) :: & 
          pchlsw
-      real (kind=dbl_kind), dimension(nx,nslyr+nilyr+2,max_aero) :: &
+      real (kind=dbl_kind), dimension(nx,nslyr+nilyr+2,icepack_max_aero) :: &
          pzaerosw
 
       character(len=*), parameter :: subname='(bgc_diags)'

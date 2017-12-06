@@ -10,9 +10,9 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: nx
-      use icedrv_tracers, only: bio_index_o
       use icedrv_calendar, only: dt, istep, sec, mday, month, daymo
       use icedrv_constants, only: nu_diag
+      use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_dic, icepack_max_fe
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
 
@@ -94,7 +94,6 @@
       use icedrv_flux, only: sss, sil, nit
       use icedrv_forcing, only: interp_coeff
       use icedrv_arrays_column, only: nit_data_type, sil_data_type, bgc_data_dir
-      use icedrv_tracers, only: max_algae, max_doc, max_dic
       use icedrv_tracers, only: tr_bgc_Sil, tr_bgc_Nit
 
       integer (kind=int_kind) :: &
@@ -166,11 +165,11 @@
         endif
 
         do i = 1, nx
-          ks = 2*max_algae + max_doc + 3 + max_dic
+          ks = 2*icepack_max_algae + icepack_max_doc + 3 + icepack_max_dic
           ocean_bio_all(i,ks) = sil(i)                       !Sil  
-          ks = max_algae + 1
+          ks = icepack_max_algae + 1
           ocean_bio_all(i,ks) = nit(i)                       !nit
-          ks =  2*max_algae + max_doc + 7 + max_dic
+          ks =  2*icepack_max_algae + icepack_max_doc + 7 + icepack_max_dic
           ocean_bio_all(i,ks) = nit(i)                       !PON    
         enddo
 
@@ -186,9 +185,6 @@
       subroutine faero_default
         
         use icedrv_flux, only: faero_atm
-        !use icepack_constants, only: nspint
-        !use icepack_intfc_shared, only: max_aero
-        !use icepack_intfc_tracers, only: tr_aero
         character(len=*), parameter :: subname='(faero_default)'
         
         faero_atm(:,1) = 1.e-12_dbl_kind ! kg/m^2 s
@@ -208,7 +204,6 @@
       subroutine init_bgc_data (fed1,fep1)
       !cn use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
       use icedrv_constants, only: c0, p1 !, nu_forcing
-      use icedrv_tracers, only: max_fe
       use icedrv_arrays_column, only: fe_data_type, bgc_data_dir
 
 #ifdef ncdf
@@ -216,7 +211,7 @@
 #endif
            
       !real (kind=dbl_kind), dimension(nx_block, ny_block, max_blocks), intent(out) :: &
-      real (kind=dbl_kind), dimension(nx, max_fe), intent(out) :: &
+      real (kind=dbl_kind), dimension(nx, icepack_max_fe), intent(out) :: &
            fed1, &  ! first dissolved iron pool (nM)
            fep1    ! first particulate iron pool (nM)
 
