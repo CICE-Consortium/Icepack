@@ -132,7 +132,18 @@
          snowpatch = 0.02_dbl_kind, &  ! parameter for fractional snow area (m)
          rhosi     = 940.0_dbl_kind, & ! average sea ice density
                                        ! Cox and Weeks, 1982: 919-974 kg/m^2
-         sk_l      = 0.03_dbl_kind     ! skeletal layer thickness (m)
+         sk_l      = 0.03_dbl_kind, &  ! skeletal layer thickness (m)
+
+         ! from parameters
+         saltmax = 3.2_dbl_kind  , & ! max salinity at ice base for BL99 (ppt)
+         ! phi_init and dSin0_frazil are used for mushy thermo, ktherm=2
+         phi_init = 0.75_dbl_kind, & ! initial liquid fraction of frazil
+         min_salin = p1          , & ! threshold for brine pocket treatment
+         salt_loss =0.4_dbl_kind , & ! fraction of salt retained in zsalinity
+         min_bgc  = 0.01_dbl_kind, & ! fraction of ocean bgc concentration in surface melt
+         dSin0_frazil = c3,        & ! bulk salinity reduction of newly formed frazil
+         hi_ssl = 0.050_dbl_kind,  & ! ice surface scattering layer thickness (m)
+         hs_ssl = 0.040_dbl_kind     ! snow surface scattering layer thickness (m)
 
       ! weights for albedos 
       ! 4 Jan 2007 BPB  Following are appropriate for complete cloud
@@ -169,6 +180,8 @@
          iceruf_in, Cf_in, Pstar_in, Cstar_in, kappav_in, &
          kice_in, kseaice_in, ksno_in, &
          zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
+         saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
+         min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, &
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          puny_in, bignum_in, pi_in )
@@ -211,6 +224,14 @@
          snowpatch_in,  & ! parameter for fractional snow area (m)
          rhosi_in,      & ! average sea ice density (kg/m2)
          sk_l_in,       & ! skeletal layer thickness (m)
+         saltmax_in,    & ! max salinity at ice base for BL99 (ppt)
+         phi_init_in,   & ! initial liquid fraction of frazil
+         min_salin_in,  & ! threshold for brine pocket treatment
+         salt_loss_in,  & ! fraction of salt retained in zsalinity
+         min_bgc_in,    & ! fraction of ocean bgc concentration in surface melt
+         dSin0_frazil_in, & ! bulk salinity reduction of newly formed frazil
+         hi_ssl_in,     & ! ice surface scattering layer thickness (m)
+         hs_ssl_in,     & ! visible, direct 
          awtvdr_in,     & ! visible, direct  ! for history and
          awtidr_in,     & ! near IR, direct  ! diagnostics
          awtvdf_in,     & ! visible, diffuse
@@ -262,6 +283,14 @@
          if (present(snowpatch_in))  snowpatch = snowpatch_in
          if (present(rhosi_in))      rhosi  = rhosi_in
          if (present(sk_l_in))       sk_l   = sk_l_in
+         if (present(saltmax_in))    saltmax = saltmax_in
+         if (present(phi_init_in))   phi_init = phi_init_in
+         if (present(min_salin_in))  min_salin = min_salin_in
+         if (present(salt_loss_in))  salt_loss = salt_loss_in
+         if (present(min_bgc_in))    min_bgc = min_bgc_in
+         if (present(dSin0_frazil_in)) dSin0_frazil = dSin0_frazil_in
+         if (present(hi_ssl_in))     hi_ssl = hi_ssl_in
+         if (present(hs_ssl_in))     hs_ssl = hs_ssl_in
          if (present(awtvdr_in))     awtvdr = awtvdr_in
          if (present(awtidr_in))     awtidr = awtidr_in
          if (present(awtvdf_in))     awtvdf = awtvdf_in
@@ -291,6 +320,8 @@
          iceruf_out, Cf_out, Pstar_out, Cstar_out, kappav_out, &
          kice_out, kseaice_out, ksno_out, &
          zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
+         saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
+         min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
          awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, &
          qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, &
          Lfresh_out, cprho_out, Cp_out, &
@@ -340,6 +371,14 @@
          snowpatch_out,  & ! parameter for fractional snow area (m)
          rhosi_out,      & ! average sea ice density (kg/m2)
          sk_l_out,       & ! skeletal layer thickness (m)
+         saltmax_out,    & ! max salinity at ice base for BL99 (ppt)
+         phi_init_out,   & ! initial liquid fraction of frazil
+         min_salin_out,  & ! threshold for brine pocket treatment
+         salt_loss_out,  & ! fraction of salt retained in zsalinity
+         min_bgc_out,   & ! fraction of ocean bgc concentration in surface melt
+         dSin0_frazil_out, & ! bulk salinity reduction of newly formed frazil
+         hi_ssl_out,     & ! ice surface scattering layer thickness (m)
+         hs_ssl_out,     & ! visible, direct 
          awtvdr_out,     & ! visible, direct  ! for history and
          awtidr_out,     & ! near IR, direct  ! diagnostics
          awtvdf_out,     & ! visible, diffuse
@@ -399,6 +438,14 @@
          if (present(snowpatch_out))  snowpatch_out = snowpatch
          if (present(rhosi_out))      rhosi_out  = rhosi
          if (present(sk_l_out))       sk_l_out   = sk_l
+         if (present(saltmax_out))    saltmax_out = saltmax
+         if (present(phi_init_out))   phi_init_out = phi_init
+         if (present(min_salin_out))  min_salin_out = min_salin
+         if (present(salt_loss_out))  salt_loss_out = salt_loss
+         if (present(min_bgc_out))    min_bgc_out = min_bgc
+         if (present(dSin0_frazil_out)) dSin0_frazil_out = dSin0_frazil
+         if (present(hi_ssl_out))     hi_ssl_out = hi_ssl
+         if (present(hs_ssl_out))     hs_ssl_out = hs_ssl
          if (present(awtvdr_out))     awtvdr_out = awtvdr
          if (present(awtidr_out))     awtidr_out = awtidr
          if (present(awtvdf_out))     awtvdf_out = awtvdf
@@ -501,6 +548,14 @@
          write(iounit,*) "  snowpatch = ",snowpatch
          write(iounit,*) "  rhosi  = ",rhosi
          write(iounit,*) "  sk_l   = ",sk_l
+         write(iounit,*) "  saltmax   = ",saltmax
+         write(iounit,*) "  phi_init  = ",phi_init
+         write(iounit,*) "  min_salin = ",min_salin
+         write(iounit,*) "  salt_loss = ",salt_loss
+         write(iounit,*) "  min_bgc   = ",min_bgc
+         write(iounit,*) "  dSin0_frazil = ",dSin0_frazil
+         write(iounit,*) "  hi_ssl = ",hi_ssl
+         write(iounit,*) "  hs_ssl = ",hs_ssl
          write(iounit,*) "  awtvdr = ",awtvdr
          write(iounit,*) "  awtidr = ",awtidr
          write(iounit,*) "  awtvdf = ",awtvdf

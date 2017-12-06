@@ -10,9 +10,14 @@
       module icepack_zbgc_shared
 
       use icepack_kinds
-      use icepack_constants, only: p01, p1, p5, c0, c1
+      use icepack_constants, only: p01, p1, p5, c0, c1, secday, puny
+      use icepack_constants, only: hs_ssl, sk_l
+      use icepack_constants, only: rhoi, cp_ocn, cp_ice, Lfresh  
       use icepack_tracers, only: max_nbtrcr, max_algae, max_doc
       use icepack_tracers, only: max_dic, max_aero, max_don, max_fe
+      use icepack_tracers, only: nt_bgc_N, nt_fbri
+      use icepack_parameters, only: solve_zbgc
+      use icepack_parameters, only: fr_resp
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -195,8 +200,6 @@
       function calculate_qin_from_Sin (Tin, Tmltk) &
                result(qin)
             
-      use icepack_constants, only: c1, rhoi, cp_ocn, cp_ice, Lfresh  
-
       real (kind=dbl_kind), intent(in) :: &
          Tin                ,&  ! internal temperature
          Tmltk                  ! melting temperature at one level
@@ -425,8 +428,6 @@
                                     flux_bio,               &
                                     melt_b,       con_gel)
       
-      use icepack_constants, only: c0, c1, p5, puny
-
       integer (kind=int_kind), intent(in) :: &
          ntrcr,         & ! number of tracers
          nblyr            ! number of bio layers
@@ -589,11 +590,6 @@
                                snow_bio_net, grow_alg,   &
                                grow_net)
  
-      use icepack_constants, only: c1, c0, p5, secday, puny
-      use icepack_parameters, only: solve_zbgc, hs_ssl
-      use icepack_parameters, only: fr_resp
-      use icepack_tracers, only: nt_bgc_N, nt_fbri
-
       real (kind=dbl_kind), intent(in) :: &          
          dt             ! timestep (s)
 
@@ -716,10 +712,6 @@
                                upNHn,     upNO,            &
                                upNH,      grow_net,        &
                                grow_alg)
-
-      use icepack_constants, only: c1, secday, puny, sk_l
-      use icepack_tracers, only: nt_bgc_N
-      use icepack_parameters, only: fr_resp
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr   , & ! number of cells with aicen > puny

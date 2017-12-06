@@ -10,8 +10,12 @@
 
       use icepack_kinds
       use icepack_constants, only: c0, c1, c2, puny, rhoi, rhos, hs_min
+      use icepack_constants, only: hi_ssl, hs_ssl
+      use icepack_tracers, only: nt_aero, max_aero
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_zbgc_shared, only: kscavz 
 
       implicit none
 
@@ -39,9 +43,6 @@
                                 vice_old, vsno_old,   &
                                 vicen, vsnon, aicen,  &
                                 faero_atm, faero_ocn)
-
-      use icepack_parameters, only: hi_ssl, hs_ssl
-      use icepack_tracers, only: nt_aero, max_aero
 
       integer (kind=int_kind), intent(in) :: &
          nilyr, nslyr, n_aero
@@ -456,11 +457,6 @@
                                 vicen,    vsnon,       &
                                 aicen,    flux_bio_atm,&
                                 zbgc_atm, flux_bio)
-
-      use icepack_parameters, only: hi_ssl, hs_ssl
-      use icepack_constants, only: c0, rhos, rhoi, hs_min, puny
-      use icepack_constants, only: c2, c1
-      use icepack_zbgc_shared, only: kscavz 
 
       integer (kind=int_kind), intent(in) :: &
          nbtrcr,             & ! number of distinct snow tracers

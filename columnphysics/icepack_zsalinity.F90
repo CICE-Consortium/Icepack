@@ -15,11 +15,17 @@
 
       use icepack_kinds
       use icepack_constants, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
-      use icepack_constants, only: rhosi
+      use icepack_constants, only: rhosi, min_salin, salt_loss
+      use icepack_parameters, only: l_skS, grid_oS, l_sk
+      use icepack_parameters, only: solve_zsal, min_salin, dts_b
+      use icepack_tracers, only: nt_sice
       use icepack_zbgc_shared, only: remap_zbgc
       use icepack_zbgc_shared, only: Ra_c, k_o, viscos_dynamic, thinS, Dm, exp_h
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_brine, only: calculate_drho
+      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       implicit none
 
@@ -61,8 +67,6 @@
                             nblyr,              vicen,        &
                             aicen,              zsal_tot) 
              
-      use icepack_constants, only: c0, c1, puny
- 
       integer (kind=int_kind), intent(in) :: &
          nilyr         , & ! number of ice layers
          nblyr         , & ! number of bio layers
@@ -205,10 +209,6 @@
                                    dh_bot,                           &  
                                    fzsaln,                           &
                                    fzsaln_g,           bphi_min)
-
-      use icepack_tracers, only: nt_sice
-      use icepack_parameters, only: solve_zsal, min_salin, dts_b
-      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       integer (kind=int_kind), intent(in) :: &
          nilyr,          & ! number of ice layers
@@ -438,9 +438,6 @@
                                       ibrine_sal,    ibrine_rho,    &
                                       fzsaln,        fzsaln_g,      &
                                       S_bot          )
-
-      use icepack_brine, only: calculate_drho
-      use icepack_parameters, only: l_skS, grid_oS, l_sk, min_salin, salt_loss
 
       integer (kind=int_kind), intent(in) :: &
          nblyr            , & ! number of bio layers

@@ -8,13 +8,21 @@
       module icepack_therm_shared
 
       use icepack_kinds
+
       use icepack_constants, only: c0, c1, c2, c4, p5, pi
       use icepack_constants, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
       use icepack_constants, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
-      use icepack_parameters, only: saltmax, ktherm, heat_capacity
-      use icepack_parameters, only: min_salin, calc_Tsfc
+      use icepack_constants, only: saltmax, min_salin, depressT
+      use icepack_parameters, only: ktherm, heat_capacity, tfrz_option
+      use icepack_parameters, only: calc_Tsfc
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_mushy_physics, only: enthalpy_mush
+      use icepack_mushy_physics, only: temperature_snow
+      use icepack_mushy_physics, only: enthalpy_snow
+      use icepack_mushy_physics, only: temperature_mush
+      use icepack_mushy_physics, only: liquidus_temperature_mush
     
       implicit none
 
@@ -280,8 +288,6 @@
                                   nilyr,    nslyr,    &
                                   qin,      qsn)
 
-      use icepack_mushy_physics, only: enthalpy_mush
-
       integer (kind=int_kind), intent(in) :: &
          nilyr, &    ! number of ice layers
          nslyr       ! number of snow layers
@@ -352,10 +358,6 @@
 
       function icepack_liquidus_temperature(Sin) result(Tmlt)
 
-        use icepack_parameters, only: ktherm
-        use icepack_constants, only: depressT
-        use icepack_mushy_physics, only: liquidus_temperature_mush
-
         real(dbl_kind), intent(in) :: Sin
         real(dbl_kind) :: Tmlt
 
@@ -376,9 +378,6 @@
 !=======================================================================
 
       function icepack_sea_freezing_temperature(sss) result(Tf)
-
-        use icepack_parameters, only: tfrz_option
-        use icepack_constants, only: depressT
 
         real(dbl_kind), intent(in) :: sss
         real(dbl_kind) :: Tf
@@ -405,10 +404,6 @@
 
       function icepack_ice_temperature(qin, Sin) result(Tin)
 
-        use icepack_parameters, only: ktherm
-        use icepack_constants, only: depressT
-        use icepack_mushy_physics, only: temperature_mush
-
         real(kind=dbl_kind), intent(in) :: qin, Sin
         real(kind=dbl_kind) :: Tin
 
@@ -433,10 +428,6 @@
 
       function icepack_snow_temperature(qin) result(Tsn)
 
-        use icepack_parameters, only: ktherm
-        use icepack_mushy_physics, only: temperature_snow
-        use icepack_constants, only: Lfresh, rhos, cp_ice
-
         real(kind=dbl_kind), intent(in) :: qin
         real(kind=dbl_kind) :: Tsn
 
@@ -457,8 +448,6 @@
 !=======================================================================
 
       function icepack_enthalpy_snow(zTsn) result(qsn)
-
-        use icepack_mushy_physics, only: enthalpy_snow
 
         real(kind=dbl_kind), intent(in) :: zTsn
         real(kind=dbl_kind) :: qsn

@@ -44,15 +44,6 @@
          modal_aero      ! if true, use modal aerosal optical properties
                          ! only for use with tr_aero or tr_zaero
 
-      real (kind=dbl_kind), parameter, public :: &
-         saltmax = 3.2_dbl_kind  , & ! max salinity at ice base for BL99 (ppt)
-         ! phi_init and dSin0_frazil are used for mushy thermo, ktherm=2
-         phi_init = 0.75_dbl_kind, & ! initial liquid fraction of frazil
-         min_salin = p1          , & ! threshold for brine pocket treatment 
-         salt_loss =0.4_dbl_kind , & ! fraction of salt retained in zsalinity 
-         min_bgc  = 0.01_dbl_kind, & ! fraction of ocean bgc concentration in surface melt 
-         dSin0_frazil = c3           ! bulk salinity reduction of newly formed frazil
-
       real (kind=dbl_kind), public :: &
          dts_b,   &      ! zsalinity timestep
          ustar_min       ! minimum friction velocity for ice-ocean heat flux
@@ -93,10 +84,6 @@
                       ! radius change (C)
          rsnw_mlt , & ! maximum melting snow grain radius (10^-6 m)
          kalg         ! algae absorption coefficient for 0.5 m thick layer
-
-      real (kind=dbl_kind), parameter, public :: &
-         hi_ssl = 0.050_dbl_kind, & ! ice surface scattering layer thickness (m)
-         hs_ssl = 0.040_dbl_kind    ! snow surface scattering layer thickness (m)
 
 !-----------------------------------------------------------------------
 ! Parameters for ridging and strength
