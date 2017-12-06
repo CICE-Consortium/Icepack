@@ -182,7 +182,7 @@ cd base_suite.${testid}
 
 ./results.csh
 
-ctest -S steer.cmake
+./run_ctest.csh
 
 cd ..
 
