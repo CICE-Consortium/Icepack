@@ -416,6 +416,8 @@ icepack.create.case generates a case. Use ``create.case -h`` for help with the t
 
   -m is the machine name (required). Currently, there are working ports for NCAR yellowstone and cheyenne, AFRL thunder, NavyDSRC gordon and conrad, and LANL’s wolf machines.
 
+  -a is the account number for the queue manager (default is defined in env.<machine>)
+
   -s are comma separated optional env or namelist settings (default is 'null')
 
   -t is the test name and location (cannot be used with -c).
