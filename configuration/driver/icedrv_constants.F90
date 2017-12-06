@@ -16,6 +16,7 @@
       use icepack_constants, only: rhoi, rhos, rhow, rhofresh
       use icepack_constants, only: lfresh, lvap, ice_ref_salinity, cp_ice, cp_ocn
       use icepack_constants, only: awtvdr, awtidr, awtvdf, awtidf
+      use icepack_constants, only: qqqice, tttice
 
       implicit none
 

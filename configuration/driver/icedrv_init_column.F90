@@ -7,8 +7,13 @@
       module icedrv_init_column
 
       use icedrv_kinds
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
-      use icedrv_constants, only: nu_diag
+      use icedrv_domain_size, only: ncat, nx, ncat
+      use icedrv_domain_size, only: max_ntrcr, nblyr, nilyr, nslyr
+      use icedrv_domain_size, only: n_algae, n_zaero, n_doc, n_dic, n_don
+      use icedrv_domain_size, only: n_fed, n_fep, max_nsw, n_bgc, n_aero
+      use icedrv_constants, only: c1, c2, p5, c0, c5, puny, p1
+      use icedrv_constants, only: nu_diag, nu_nml
+      use icedrv_constants, only: depressT, rhos, rhoi
       use icepack_intfc, only: icepack_max_don, icepack_max_doc, icepack_max_dic
       use icepack_intfc, only: icepack_max_algae, icepack_max_aero, icepack_max_fe
       use icepack_intfc, only: icepack_max_nbtrcr
@@ -46,7 +51,6 @@
 
       subroutine init_thermo_vertical
 
-      use icedrv_constants, only: depressT
       use icedrv_flux, only: salinz, Tmltz
 
       integer (kind=int_kind) :: &
@@ -94,9 +98,7 @@
       use icedrv_arrays_column, only: swgrid, igrid
       use icedrv_calendar, only: istep1, dt, calendar_type
       use icedrv_calendar, only:    days_per_year, nextsw_cday, yday, sec
-      use icedrv_constants, only: c0, c1, puny
       use icedrv_system, only: icedrv_system_abort
-      use icedrv_domain_size, only: n_aero, n_zaero, ncat, nilyr, nslyr, n_algae, nblyr
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr
       use icedrv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, scale_factor, snowfrac
@@ -104,13 +106,6 @@
       use icedrv_init, only: tlat, tlon, tmask
       use icedrv_restart_shared, only: restart
       use icedrv_state, only: aicen, vicen, vsnon, trcrn
-
-      ! column package includes
-      use icedrv_tracers, only: tr_brine, tr_zaero, tr_bgc_n
-      use icedrv_tracers, only: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
-      use icedrv_tracers, only: nt_fbri, nt_tsfc
-      use icedrv_tracers, only: ntrcr, nbtrcr, nbtrcr_sw
-      use icedrv_tracers, only: nlt_chl_sw, nlt_zaero_sw
 
       integer (kind=int_kind) :: &
          i, k           , & ! horizontal indices
@@ -135,11 +130,16 @@
       real (kind=dbl_kind), dimension(ncat) :: &
          fbri                 ! brine height to ice thickness
 
-      real(kind= dbl_kind), dimension(ntrcr, ncat) :: &
+      real (kind=dbl_kind), dimension(max_ntrcr, ncat) :: &
          ztrcr
 
-      real(kind= dbl_kind), dimension(ntrcr, ncat) :: &
+      real (kind=dbl_kind), dimension(max_ntrcr, ncat) :: &
          ztrcr_sw
+
+      logical (kind=log_kind) :: tr_brine, tr_zaero, tr_bgc_n
+      integer (kind=int_kind) :: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, &
+         nt_fbri, nt_tsfc, ntrcr, nbtrcr, nbtrcr_sw, nlt_chl_sw
+      integer (kind=int_kind), dimension(icepack_max_aero) :: nlt_zaero_sw
 
       character(len=*), parameter :: subname='(init_shortwave)'
 
@@ -151,6 +151,12 @@
          call icepack_query_parameters(shortwave_out=shortwave)
          call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
          call icepack_query_parameters(modal_aero_out=modal_aero)
+         call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr, nbtrcr_sw_out=nbtrcr_sw)
+         call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_zaero_out=tr_zaero, &
+            tr_bgc_n_out=tr_bgc_n)
+         call icepack_query_tracer_indices(nt_alvl_out=nt_alvl, nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+            nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, nt_fbri_out=nt_fbri, nt_tsfc_out=nt_tsfc, &
+            nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
@@ -341,19 +347,13 @@
       use icedrv_arrays_column, only: cgrid, igrid, bphi, iDi, bTiz, iki
       use icedrv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
       use icedrv_calendar,  only: dt, istep1
-      use icedrv_constants, only: c0
       use icedrv_system, only: icedrv_system_abort
-      use icedrv_domain_size, only: nblyr, nilyr
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, hum
       use icedrv_forcing_bgc, only:  get_forcing_bgc !cn init_bgc_data
 !      use icedrv_restart_column, only: restart_zsal, &
 !          read_restart_bgc, restart_bgc
       use icedrv_state, only: trcrn, aicen, vicen, vsnon
-
-      ! column package includes
-      use icedrv_tracers, only: nbtrcr, ntrcr, ntrcr_o
-      use icedrv_tracers, only: nt_sice, nt_bgc_S
 
       ! local variables
 
@@ -372,11 +372,15 @@
       real(kind=dbl_kind) :: &
          RayleighR
 
-      real(kind=dbl_kind), dimension(ntrcr,ncat) :: &
+      real(kind=dbl_kind), dimension(max_ntrcr,ncat) :: &
          trcrn_bgc 
       
       real(kind=dbl_kind), dimension(nilyr,ncat) :: &
          sicen    
+
+      integer (kind=int_kind) :: &
+         nbtrcr, ntrcr, ntrcr_o, &
+         nt_sice, nt_bgc_S
 
       character(len=*), parameter :: subname='(init_bgc)'
 
@@ -395,6 +399,8 @@
       trcrn_bgc    (:,:) = c0
 
       call icepack_query_parameters(solve_zsal_out=solve_zsal)
+      call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr, ntrcr_out=ntrcr, ntrcr_o_out=ntrcr_o)
+      call icepack_query_tracer_indices(nt_sice_out=nt_sice, nt_bgc_S_out=nt_bgc_S)
       call icepack_query_tracer_sizes(max_nbtrcr_out=max_nbtrcr,         &
            max_algae_out=max_algae, max_don_out=max_don, max_doc_out=max_doc,   &
            max_dic_out=max_dic, max_aero_out=max_aero, max_fe_out=max_fe)
@@ -511,12 +517,11 @@
 
       use icedrv_arrays_column, only: first_ice, bgrid, igrid, cgrid
       use icedrv_arrays_column, only: icgrid, swgrid
-      use icedrv_constants, only: c1
-      use icedrv_domain_size, only: nblyr
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_fbri, tr_brine
 
       real (kind=dbl_kind) :: phi_snow
+      integer (kind=int_kind) :: nt_fbri
+      logical (kind=log_kind) :: tr_brine
       character(len=*), parameter :: subname='(init_hbrine)'
 
       call icepack_query_parameters(phi_snow_out=phi_snow)
@@ -535,6 +540,12 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine)
+      call icepack_query_tracer_indices(nt_fbri_out=nt_fbri)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       first_ice(:,:) = .true.            
       if (tr_brine) trcrn(:,nt_fbri,:) = c1
 
@@ -549,11 +560,6 @@
 
       subroutine init_zbgc
 
-      use icedrv_constants, only: nu_nml
-      use icedrv_constants, only: c1, c2, p5, c0, c5, rhos, rhoi, p1
-      use icedrv_domain_size, only: max_ntrcr, nblyr, nilyr, nslyr
-      use icedrv_domain_size, only: n_algae, n_zaero, n_doc, n_dic, n_don
-      use icedrv_domain_size, only: n_fed, n_fep, max_nsw, n_bgc
 !     use icedrv_restart_column, only: restart_bgc, restart_zsal
 !     use icedrv_restart_column, only: restart_hbrine
       use icedrv_state, only: trcr_base, trcr_depend, n_trcr_strata
@@ -1938,8 +1944,6 @@
                                bgc_tracer_type, trcr_depend,   &
                                trcr_base,       n_trcr_strata, &
                                nt_strata,       bio_index)
-
-      use icepack_constants, only: c0, c1
 
       integer (kind=int_kind), intent(in) :: &
          nk           , & ! counter

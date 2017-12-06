@@ -13,6 +13,7 @@
       use icedrv_calendar, only: dt, istep, sec, mday, month, daymo
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_dic, icepack_max_fe
+      use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
 
@@ -94,7 +95,6 @@
       use icedrv_flux, only: sss, sil, nit
       use icedrv_forcing, only: interp_coeff
       use icedrv_arrays_column, only: nit_data_type, sil_data_type, bgc_data_dir
-      use icedrv_tracers, only: tr_bgc_Sil, tr_bgc_Nit
 
       integer (kind=int_kind) :: &
           i, j, k,iblk, & ! horizontal indices !cn remove
@@ -118,6 +118,8 @@
 
       logical (kind=log_kind) :: readm, read1
 
+      logical (kind=log_kind) :: tr_bgc_Sil, tr_bgc_Nit
+
       character (char_len_long) :: &        ! input data file names
          nit_file   , & ! nitrate input file
          sil_file       ! silicate input file
@@ -126,6 +128,11 @@
 
       !cn write(*,*) nit_data_type
 
+
+      call icepack_query_tracer_flags(tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_Nit_out=tr_bgc_Nit)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       if (.not. trim(nit_data_type)=='ISPOL' .AND. &
           .not. trim(sil_data_type)=='ISPOL' .AND. &

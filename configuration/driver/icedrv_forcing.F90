@@ -8,13 +8,18 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: ncat, nx
-      use icedrv_calendar, only: time, nyr, dayyr, mday, month, &
-         daymo, daycal, &
-         dt, yday , days_per_year
+      use icedrv_calendar, only: time, nyr, dayyr, mday, month
+      use icedrv_calendar, only: daymo, daycal, dt, yday, days_per_year
       use icedrv_constants, only: nu_diag, nu_forcing, secday
+      use icedrv_constants, only: c0, c1, c2, c10, c100, p5
+      use icedrv_constants, only: secday, Tffresh, qqqice, TTTice, rhos
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
+      use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
+         strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
+         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf
+      use icepack_therm_shared, only: icepack_sea_freezing_temperature
 
       implicit none
       private
@@ -101,11 +106,6 @@
 ! Determine the current and final year of the forcing cycle based on
 ! namelist input; initialize the forcing data.
 
-      use icepack_constants, only: c0
-      use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
-         strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp
-
       integer (kind=int_kind) :: &
          i                ! index
 
@@ -188,11 +188,6 @@
 ! We will probably need to send in the time and work out what the data
 ! time slice is, instead of sending in the timestep.  This currently assumes
 ! the time step and the data both start Jan 1.
-
-      use icepack_constants, only: c0, c1
-      use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
-         strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp, hmix
 
       integer (kind=int_kind), intent(in) :: &
          timestep         ! time step index
@@ -423,9 +418,6 @@ endif
 
       subroutine atm_climatological
 
-      use icepack_constants, only: c0, c1, c2, c100, qqqice, TTTice, & 
-         rhos, Tffresh 
-
       real (kind=dbl_kind), dimension(12) :: &
             fsw_clim, & ! field values at temporal data points
             flw_clim, &
@@ -545,8 +537,6 @@ endif
                                   potT)
 
       ! this routine acts on the data fields prior to interpolation
-
-      use icepack_constants, only: c0, c1, c2, c10, secday, Tffresh
 
       real (kind=dbl_kind), dimension(ntime), &
          intent(inout) :: &
@@ -688,8 +678,6 @@ endif
 
 ! Compute coefficients for interpolating monthly data to current time step.
 
-      use icepack_constants, only: c1, secday
-
       integer (kind=int_kind), intent(in) :: &
           recslot         ! slot (1 or 2) for current record
 
@@ -742,8 +730,6 @@ endif
 ! Works for any data interval that divides evenly into a
 !  year (daily, 6-hourly, etc.)
 ! Use interp_coef_monthly for monthly data.
-
-      use icepack_constants, only: c1, p5, secday
 
       integer (kind=int_kind), intent(in) :: &
           recnum      , & ! record number for current data value
@@ -1236,10 +1222,6 @@ endif
  ! 'minus1p8'         Tf = -1.8 C (default)
  ! 'linear_salt'      Tf = -depressT * sss
  ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
-
-      use icepack_constants, only: c0
-      use icepack_therm_shared, only: icepack_sea_freezing_temperature
-      use icedrv_flux, only: sss, Tf, sst, hmix
 
       real (kind=dbl_kind), dimension(nx), intent(in)  :: &
           sst_temp

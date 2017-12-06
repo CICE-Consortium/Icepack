@@ -7,13 +7,19 @@
       module icedrv_init
 
       use icedrv_kinds
+      use icedrv_constants, only: nu_diag
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_init_constants
       use icepack_intfc, only: icepack_init_parameters
+      use icepack_intfc, only: icepack_init_tracer_flags
+      use icepack_intfc, only: icepack_init_tracer_numbers
+      use icepack_intfc, only: icepack_init_tracer_indices
       use icepack_intfc, only: icepack_init_trcr
-      use icedrv_constants, only: nu_diag
-      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_tracer_flags
+      use icepack_intfc, only: icepack_query_tracer_numbers
+      use icepack_intfc, only: icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -65,12 +71,6 @@
       use icedrv_forcing, only: data_dir,        dbug
       use icedrv_forcing, only: restore_ocn, trestore
 
-      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond
-      use icedrv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-      use icedrv_tracers, only: tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice
-      use icedrv_tracers, only: nt_iage, nt_FY, nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd
-      use icedrv_tracers, only: nt_aero, ntrcr
-
       ! local variables
 
       character (32) :: &
@@ -102,6 +102,12 @@
         tfrz_option, frzpnd, atmbndy
 
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
+
+      integer (kind=int_kind) :: ntrcr
+      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_aero
+      logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY
+      integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
 
       real (kind=real_kind) :: rpcesm, rplvl, rptopo 
       real (kind=dbl_kind) :: Cf
@@ -725,6 +731,14 @@
          aspect_rapid_mode_in=aspect_rapid_mode, dSdt_slow_mode_in=dSdt_slow_mode, &
          phi_c_slow_mode_in=phi_c_slow_mode, phi_i_mushy_in=phi_i_mushy, &
          tfrz_option_in=tfrz_option, kalg_in=kalg, fbot_xfer_type_in=fbot_xfer_type)
+      call icepack_init_tracer_numbers(ntrcr_in=ntrcr)
+      call icepack_init_tracer_flags(tr_iage_in=tr_iage, tr_FY_in=tr_FY, &
+         tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, tr_pond_in=tr_pond, &
+         tr_pond_cesm_in=tr_pond_cesm, tr_pond_lvl_in=tr_pond_lvl, tr_pond_topo_in=tr_pond_topo)
+      call icepack_init_tracer_indices(nt_Tsfc_in=nt_Tsfc, nt_sice_in=nt_sice, &
+         nt_qice_in=nt_qice, nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, nt_fy_in=nt_fy, &
+         nt_alvl_in=nt_alvl, nt_vlvl_in=nt_vlvl, nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, &
+         nt_ipnd_in=nt_ipnd, nt_aero_in=nt_aero)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -790,11 +804,6 @@
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
       use icedrv_state, only: aice0, aice, vice, vsno, trcr, aice_init
       use icedrv_state, only: n_trcr_strata, nt_strata, trcr_base
-      use icedrv_tracers, only: ntrcr
-      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero
-      use icedrv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-      use icedrv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
-      use icedrv_tracers, only: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
 
       integer (kind=int_kind) :: &
          i           , & ! horizontal indes
@@ -803,6 +812,12 @@
 
       logical (kind=log_kind) :: &
          heat_capacity   ! from icepack
+
+      integer (kind=int_kind) :: ntrcr
+      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero
+      logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
+      integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
 
       character(len=*), parameter :: subname='(init_state)'
 
@@ -822,6 +837,14 @@
          endif
 
          call icepack_query_parameters(heat_capacity_out=heat_capacity)
+         call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
+         call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
+           tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, tr_pond_topo_out=tr_pond_topo)
+         call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
+           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, nt_fy_out=nt_fy, &
+           nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+           nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
@@ -997,9 +1020,6 @@
       use icedrv_constants, only: c0, c1, c2, c3, p2, p5, rhoi, rhos, Lfresh
       use icedrv_constants, only: cp_ice, cp_ocn, Tsmelt, Tffresh, puny
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat
-      use icedrv_tracers, only: tr_brine, tr_lvl
-      use icedrv_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice
-      use icedrv_tracers, only: nt_fbri, nt_alvl, nt_vlvl
 !      use icedrv_forcing, only: atm_data_type
 
       integer (kind=int_kind), intent(in) :: &
@@ -1060,10 +1080,22 @@
       real (kind=dbl_kind), parameter :: &
          hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
 
+      logical (kind=log_kind) :: tr_brine, tr_lvl
+      integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_sice
+      integer (kind=int_kind) :: nt_fbri, nt_alvl, nt_vlvl
+
       character(len=*), parameter :: subname='(set_state_var)'
 
       ! Initialize state variables.
       ! If restarting, these values are overwritten.
+
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_lvl_out=tr_lvl)
+      call icepack_query_tracer_indices( nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
+        nt_qsno_out=nt_qsno, nt_sice_out=nt_sice, &
+        nt_fbri_out=nt_fbri, nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+         file=__FILE__,line= __LINE__)
 
       do n = 1, ncat
          do i = 1, nx

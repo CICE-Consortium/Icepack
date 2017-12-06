@@ -15,15 +15,16 @@
       use icepack_kinds, only: icepack_dbl_kind  => dbl_kind
       use icepack_kinds, only: icepack_r16_kind  => r16_kind
 
-      use icepack_tracers, only: icepack_max_nbtrcr => max_nbtrcr
-      use icepack_tracers, only: icepack_max_algae  => max_algae
-      use icepack_tracers, only: icepack_max_dic    => max_dic
-      use icepack_tracers, only: icepack_max_doc    => max_doc
-      use icepack_tracers, only: icepack_max_don    => max_don
-      use icepack_tracers, only: icepack_max_fe     => max_fe
-      use icepack_tracers, only: icepack_max_aero   => max_aero
-      use icepack_tracers, only: icepack_nmodal1    => nmodal1
-      use icepack_tracers, only: icepack_nmodal2    => nmodal2
+      use icepack_tracers,   only: icepack_max_nbtrcr => max_nbtrcr
+      use icepack_tracers,   only: icepack_max_algae  => max_algae
+      use icepack_tracers,   only: icepack_max_dic    => max_dic
+      use icepack_tracers,   only: icepack_max_doc    => max_doc
+      use icepack_tracers,   only: icepack_max_don    => max_don
+      use icepack_tracers,   only: icepack_max_fe     => max_fe
+      use icepack_tracers,   only: icepack_max_aero   => max_aero
+      use icepack_tracers,   only: icepack_nmodal1    => nmodal1
+      use icepack_tracers,   only: icepack_nmodal2    => nmodal2
+      use icepack_constants, only: icepack_nspint     => nspint
 
       use icepack_constants, only: icepack_init_constants
       use icepack_constants, only: icepack_query_constants

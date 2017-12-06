@@ -17,6 +17,7 @@
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don, icepack_max_dic
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -617,17 +618,19 @@
       subroutine init_history_therm
 
       use icedrv_state, only: aice, vice, trcr
-      use icedrv_tracers, only: tr_iage, nt_iage
       use icedrv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
       use icedrv_arrays_column, only: Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_pond, Cdn_atm_rdg
       use icedrv_arrays_column, only: Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
       use icedrv_arrays_column, only: Cdn_atm, Cdn_ocn
       use icedrv_constants, only: vonkar,zref,iceruf
 
-      logical (kind=log_kind) :: formdrag
+      logical (kind=log_kind) :: formdrag, tr_iage
+      integer (kind=int_kind) :: nt_iage
       character(len=*), parameter :: subname='(init_history_therm)'
 
       call icepack_query_parameters(formdrag_out=formdrag)
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage)
+      call icepack_query_tracer_indices(nt_iage_out=nt_iage)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -702,8 +705,15 @@
       subroutine init_history_dyn
 
       use icedrv_state, only: aice, vice, trcr
-      use icedrv_tracers, only: tr_iage, nt_iage
+      logical (kind=log_kind) :: tr_iage
+      integer (kind=int_kind) :: nt_iage
       character(len=*), parameter :: subname='(init_history_dyn)'
+
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage)
+      call icepack_query_tracer_indices(nt_iage_out=nt_iage)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       dardg1dt(:) = c0
       dardg2dt(:) = c0

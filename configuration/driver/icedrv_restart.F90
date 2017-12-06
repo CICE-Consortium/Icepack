@@ -10,6 +10,7 @@
       use icedrv_constants, only: nu_diag, nu_restart, nu_dump
       use icedrv_restart_shared, only: restart, restart_dir, restart_file, lenstr
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -55,14 +56,19 @@
       use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: sst, frzmlt, coszen
       use icedrv_state, only: aicen, vicen, vsnon, trcrn, uvel, vvel
-      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_aero
-      use icedrv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno
 
       ! local variables
 
       integer (kind=int_kind) :: &
           i, k, n, &              ! counting indices
           iyear, imonth, iday     ! year, month, day
+
+      integer (kind=int_kind) :: &
+         nt_Tsfc, nt_sice, nt_qice, nt_qsno
+
+      logical (kind=log_kind) :: &
+         tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine, &
+         tr_pond_topo, tr_pond_cesm, tr_pond_lvl
 
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(dumpfile)'
@@ -77,6 +83,15 @@
           restart_file(1:lenstr(restart_file)),'.', &
           iyear,'-',month,'-',mday,'-',sec
       
+      call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
+         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+      call icepack_query_tracer_flags( tr_iage_out=tr_iage, tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, &
+         tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
 !cn future stuff for writing the number of tracers in file
 #if 0
       f_trcr = 0
@@ -190,9 +205,6 @@
       use icedrv_state, only: trcr_depend, aice, vice, vsno, trcr
       use icedrv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel
       use icedrv_state, only: trcr_base, nt_strata, n_trcr_strata
-      use icedrv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno
-      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine
-      use icedrv_tracers, only: tr_pond_topo, tr_pond_cesm, tr_pond_lvl
 
       character (*), optional :: ice_ic
 
@@ -200,6 +212,13 @@
 
       integer (kind=int_kind) :: &
          i, k, n              ! counting indices
+
+      integer (kind=int_kind) :: &
+         nt_Tsfc, nt_sice, nt_qice, nt_qsno
+
+      logical (kind=log_kind) :: &
+         tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine, &
+         tr_pond_topo, tr_pond_cesm, tr_pond_lvl
 
       character(len=char_len_long) :: &
          filename, filename0
@@ -220,6 +239,15 @@
       !cn read(nu_restart) (f_trcr(i),i=1,f_ntrcr)
       read (nu_restart) istep0,time,time_forc
       write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
+
+      call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
+         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+      call icepack_query_tracer_flags( tr_iage_out=tr_iage, tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, &
+         tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       istep1 = istep0
 
@@ -537,9 +565,16 @@
       subroutine write_restart_pond_topo()
 
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icedrv_domain_size, only: ncat
+
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd 
       character(len=*), parameter :: subname='(write_restart_pond_topo)'
+
+      call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+           nt_ipnd_out=nt_ipnd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
       call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
@@ -557,9 +592,15 @@
       subroutine read_restart_pond_topo()
 
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd 
       character(len=*), parameter :: subname='(read_restart_pond_topo)'
+
+      call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+           nt_ipnd_out=nt_ipnd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       write(nu_diag,*) 'min/max topo ponds'
 
@@ -577,9 +618,14 @@
       subroutine write_restart_age()
 
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_iage
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_iage
       character(len=*), parameter :: subname='(write_restart_age)'
+
+      call icepack_query_tracer_indices(nt_iage_out=nt_iage)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_iage,:),ncat)
 
@@ -593,11 +639,16 @@
       subroutine read_restart_age()
 
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_iage
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_iage
       character(len=*), parameter :: subname='(read_restart_age)'
 
       write(nu_diag,*) 'min/max age (s)'
+
+      call icepack_query_tracer_indices(nt_iage_out=nt_iage)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call read_restart_field_cn(nu_restart,trcrn(:,nt_iage,:),ncat)
 
@@ -612,9 +663,14 @@
 
       use icedrv_flux, only: frz_onset
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_FY
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_FY
       character(len=*), parameter :: subname='(write_restart_FY)'
+
+      call icepack_query_tracer_indices(nt_FY_out=nt_FY)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_FY,:),ncat)
       call write_restart_field_cn(nu_dump,frz_onset,1)
@@ -630,9 +686,14 @@
 
       use icedrv_flux, only: frz_onset
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_FY
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_FY
       character(len=*), parameter :: subname='(read_restart_FY)'
+
+      call icepack_query_tracer_indices(nt_FY_out=nt_FY)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       write(nu_diag,*) 'min/max first-year ice area'
 
@@ -653,9 +714,14 @@
       subroutine write_restart_lvl()
 
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_alvl, nt_vlvl
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_alvl, nt_vlvl
       character(len=*), parameter :: subname='(write_restart_lvl)'
+
+      call icepack_query_tracer_indices(nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_alvl,:),ncat)
       call write_restart_field_cn(nu_dump,trcrn(:,nt_vlvl,:),ncat)
@@ -671,9 +737,14 @@
       subroutine read_restart_lvl()
 
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_alvl, nt_vlvl
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_alvl, nt_vlvl
       character(len=*), parameter :: subname='(read_restart_lvl)'
+
+      call icepack_query_tracer_indices(nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       write(nu_diag,*) 'min/max level ice area, volume'
 
@@ -692,9 +763,14 @@
       subroutine write_restart_pond_cesm()
 
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_apnd, nt_hpnd
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd
       character(len=*), parameter :: subname='(write_restart_pond_cesm)'
+
+      call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
       call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
@@ -711,9 +787,14 @@
       subroutine read_restart_pond_cesm()
 
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_apnd, nt_hpnd
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd
       character(len=*), parameter :: subname='(read_restart_pond_cesm)'
+
+      call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       write(nu_diag,*) 'min/max cesm ponds'
 
@@ -733,9 +814,15 @@
       use icedrv_arrays_column, only: dhsn, ffracn
       use icedrv_flux, only: fsnow
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
       character(len=*), parameter :: subname='(write_restart_pond_lvl)'
+
+      call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+           nt_ipnd_out=nt_ipnd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
       call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
@@ -757,9 +844,15 @@
       use icedrv_arrays_column, only: dhsn, ffracn
       use icedrv_flux, only: fsnow
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_apnd, nt_hpnd, nt_ipnd
       use icedrv_domain_size, only: ncat
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
       character(len=*), parameter :: subname='(write_restart_pond_lvl)'
+
+      call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+           nt_ipnd_out=nt_ipnd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       write(nu_diag,*) 'min/max level-ice ponds'
 
@@ -784,15 +877,20 @@
 
       use icedrv_domain_size, only: n_aero
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_aero
       use icedrv_domain_size, only: ncat
 
       ! local variables
 
       integer (kind=int_kind) :: &
          k                    ! loop indices
+      integer (kind=int_kind) :: nt_aero
       character(len=*), parameter :: subname='(write_restart_aero)'
     
+      call icepack_query_tracer_indices(nt_aero_out=nt_aero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       write(nu_diag,*) 'write_restart_aero (aerosols)'
 
       do k = 1, n_aero
@@ -824,16 +922,21 @@
 
       use icedrv_domain_size, only: n_aero
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_aero
       use icedrv_domain_size, only: ncat
 
       ! local variables
 
       integer (kind=int_kind) :: &
          k                    ! loop indices
+      integer (kind=int_kind) :: nt_aero
       character(len=*), parameter :: subname='(read_restart_aero)'
 
       !-----------------------------------------------------------------
+
+      call icepack_query_tracer_indices(nt_aero_out=nt_aero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       write(nu_diag,*) 'read_restart_aero (aerosols)'
 
@@ -855,7 +958,6 @@
 
       use icedrv_arrays_column, only: first_ice, first_ice_real
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_fbri
       use icedrv_constants, only: c1, c0
       use icedrv_domain_size, only: ncat, nx
 
@@ -863,11 +965,13 @@
 
       integer (kind=int_kind) :: &
          i, n ! horizontal indices
-
-      logical (kind=log_kind) :: diag
+      integer (kind=int_kind) :: nt_fbri
       character(len=*), parameter :: subname='(write_restart_hbrine)'
 
-      diag = .true.
+      call icepack_query_tracer_indices(nt_fbri_out=nt_fbri)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
         do i = 1, nx  
            do n = 1, ncat
@@ -893,7 +997,6 @@
 
       use icedrv_arrays_column, only: first_ice_real, first_ice
       use icedrv_state, only: trcrn
-      use icedrv_tracers, only: nt_fbri
       use icedrv_constants, only: p5
       use icedrv_domain_size, only: ncat, nx
 
@@ -901,12 +1004,13 @@
 
       integer (kind=int_kind) :: &
          i, n ! horizontal indices
-
-      logical (kind=log_kind) :: &
-         diag
+      integer (kind=int_kind) :: nt_fbri
       character(len=*), parameter :: subname='(read_restart_hbrine)'
 
-      diag = .true.
+      call icepack_query_tracer_indices(nt_fbri_out=nt_fbri)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       write(nu_diag,*) 'brine restart'
 
