@@ -58,8 +58,7 @@ EOF1
       end
 cat << EOF1
         -p tasks x threads, mxn (default is 1x1)
-        -a account number for the queue manager (default is defined in env.<machine>
-           or in ~/.cice.proj)
+        -a account number for the queue manager (default is defined in env.<machine>)
         -g grid, grid (default = col)
         -s build and namelist mod files, comma separated with no spaces (default = " ")
            Available -s options are in configuration/scripts/options and include:
