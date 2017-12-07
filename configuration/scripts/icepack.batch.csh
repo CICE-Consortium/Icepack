@@ -14,7 +14,7 @@ set jobfile = $1
 set ntasks = ${ICE_NTASKS}
 set nthrds = ${ICE_NTHRDS}
 set maxtpn = ${ICE_MACHINE_TPNODE}
-set acct   = ${ICE_MACHINE_ACCT}
+set acct   = ${ICE_ACCOUNT}
 
 @ ncores = ${ntasks} * ${nthrds}
 @ taskpernode = ${maxtpn} / $nthrds
@@ -61,7 +61,7 @@ cat >> ${jobfile} << EOFB
 #PBS -V
 #PBS -q share
 #PBS -N ${ICE_CASENAME}
-#PBS -A ${ICE_MACHINE_ACCT}
+#PBS -A ${acct}
 #PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
 #PBS -l walltime=${ICE_RUNLENGTH}
 EOFB
