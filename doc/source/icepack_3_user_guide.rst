@@ -416,6 +416,8 @@ icepack.create.case generates a case. Use ``create.case -h`` for help with the t
 
   -m is the machine name (required). Currently, there are working ports for NCAR yellowstone and cheyenne, AFRL thunder, NavyDSRC gordon and conrad, and LANL’s wolf machines.
 
+  -a is the account number for the queue manager.  The default is set in env.<machine>
+
   -s are comma separated optional env or namelist settings (default is 'null')
 
   -t is the test name and location (cannot be used with -c).
@@ -993,7 +995,7 @@ users need to copy and run the ``icepack.run.suite`` script:
 .. code-block:: bash
 
   cp configuration/scripts/icepack.run.suite .
-  ./icepack.run.suite -m <machine> -testid <test_id> -bc <baseline_to_compare> -bg <baseline_to_generate>
+  ./icepack.run.suite -m <machine> -testid <test_id> -bc <baseline_to_compare> -bg <baseline_to_generate> -a <account_number>
 
 The run.suite script does the following:
 
