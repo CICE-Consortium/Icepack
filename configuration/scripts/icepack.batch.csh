@@ -61,7 +61,7 @@ cat >> ${jobfile} << EOFB
 #PBS -V
 #PBS -q share
 #PBS -N ${ICE_CASENAME}
-#PBS -A ${ICE_ACCT}
+#PBS -A ${ICE_MACHINE_ACCT}
 #PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
 #PBS -l walltime=${ICE_RUNLENGTH}
 EOFB
