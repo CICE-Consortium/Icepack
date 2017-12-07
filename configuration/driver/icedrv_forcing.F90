@@ -165,6 +165,7 @@
       endif
 
       if (trim(ocn_data_type) == 'ISPOL') call ocn_ISPOL
+      if (trim(ocn_data_type) == 'NICE') call ocn_NICE
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     flw_data,      &
@@ -880,7 +881,7 @@ endif
 
       character(len=*), parameter :: subname='(atm_NICE)'
 
-      filename = trim(data_dir)//'/NICE_2015/NICEL_atm_forcing.txt'
+      filename = trim(data_dir)//'/NICE_2015/NICE_atm_forcing.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -919,7 +920,57 @@ endif
       
       close(nu_forcing)
 
-!cn there is probably more to do here, see below...
+    end subroutine atm_NICE
+
+!=======================================================================
+
+    subroutine ocn_NICE
+
+      integer (kind=int_kind) :: &
+         i
+
+      real (kind=dbl_kind), dimension(365) :: &
+          t, &  !probably temperature, Tf?
+          s, &  !probably sss_data
+          hblt, &  !probably hmix
+          u, &  !probably uocn_data seems to be zeroed out anyway??
+          v, &  !probably vocn_data seems to be zeroed out anyway??
+          dhdx, &  !probably ss_tltx
+          dhdy, &  !probably ss_tlty 
+          qdp  !probably heat flux
+
+      character (char_len_long) filename
+      
+      character(len=*), parameter :: subname='(ocn_NICE)'
+
+      filename = &
+          trim(data_dir)//'NICE_2015/oceanmixed_daily_3.txt'
+
+      write (nu_diag,*) 'Reading ',filename
+
+      open (nu_forcing, file=filename, form='formatted')
+
+      read(nu_forcing,*) t
+      read(nu_forcing,*) s
+      read(nu_forcing,*) hblt
+      read(nu_forcing,*) u
+      read(nu_forcing,*) v
+      read(nu_forcing,*) dhdx
+      read(nu_forcing,*) dhdy
+      read(nu_forcing,*) qdp
+
+      close(nu_forcing)
+
+      do i = 1, 365 ! daily
+        !t(i)
+        sss_data(i) = s(i)
+        hmix_data(i) = hblt(i)
+        uocn_data(i) = u(i)
+        vocn_data(i) = v(i)
+        !dhdx(i)
+        !dhdy(1)
+        qdp_data(i) = qdp(i)
+      end do
 
 
 #if 0
@@ -1108,51 +1159,11 @@ endif
         !$OMP END PARALLEL DO
       endif
 
-      if (dbug) then
-         if (my_task == master_task)  &
-               write (nu_diag,*) 'ocn_data_ncar'
-           vmin = global_minval(Tf,distrb_info,tmask)
-           vmax = global_maxval(Tf,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'Tf',vmin,vmax
-           vmin = global_minval(sst,distrb_info,tmask)
-           vmax = global_maxval(sst,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'sst',vmin,vmax
-           vmin = global_minval(sss,distrb_info,tmask)
-           vmax = global_maxval(sss,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'sss',vmin,vmax
-           vmin = global_minval(hmix,distrb_info,tmask)
-           vmax = global_maxval(hmix,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'hmix',vmin,vmax
-           vmin = global_minval(uocn,distrb_info,umask)
-           vmax = global_maxval(uocn,distrb_info,umask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'uocn',vmin,vmax
-           vmin = global_minval(vocn,distrb_info,umask)
-           vmax = global_maxval(vocn,distrb_info,umask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'vocn',vmin,vmax
-           vmin = global_minval(ss_tltx,distrb_info,umask)
-           vmax = global_maxval(ss_tltx,distrb_info,umask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'ss_tltx',vmin,vmax
-           vmin = global_minval(ss_tlty,distrb_info,umask)
-           vmax = global_maxval(ss_tlty,distrb_info,umask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'ss_tlty',vmin,vmax
-           vmin = global_minval(qdp,distrb_info,tmask)
-           vmax = global_maxval(qdp,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'qdp',vmin,vmax
-      endif
 
 
 #endif           
 
-    end subroutine atm_NICE
+    end subroutine ocn_NICE
 
 !=======================================================================
 
