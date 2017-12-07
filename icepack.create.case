@@ -19,6 +19,7 @@ set sets = ""
 set bdir = $spval
 set testid = $spval
 set testsuite = $spval
+set acct = $spval
 set baseCom = $spval  # Baseline compare
 set baseGen = $spval  # Baseline generate
 set bfbcomp = $spval  # BFB compare
@@ -57,6 +58,7 @@ EOF1
       end
 cat << EOF1
         -p tasks x threads, mxn (default is 1x1)
+        -a account number for the queue manager (default is defined in env.<machine>)
         -g grid, grid (default = col)
         -s build and namelist mod files, comma separated with no spaces (default = " ")
            Available -s options are in configuration/scripts/options and include:
@@ -141,6 +143,9 @@ while (1)
       breaksw
     case "-p":
       set pesx = $argv[1]
+      breaksw
+    case "-a":
+      set acct = $argv[1]
       breaksw
     case "-s":
       set sets = $argv[1]
@@ -342,6 +347,11 @@ foreach file (env.${mach} Macros.${mach})
   endif
   cp -f -p ${ICE_SCRIPTS}/machines/$file ${casedir}
 end
+
+# If account number is passed as argument, replace account number in env.<machine>
+if ( $acct != $spval ) then
+  sed -i "s/^\(.*\)\("'$'"{ICE_MACHINE_ACCT_D}\)/\1$acct /" ${casedir}/env.${mach}
+endif
 
 # from basic script dir to casescr
 foreach file (parse_namelist.sh parse_settings.sh parse_namelist_from_settings.sh icepack_decomp.csh icepack.run.setup.csh icepack.test.setup.csh)
