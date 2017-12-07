@@ -348,11 +348,6 @@ foreach file (env.${mach} Macros.${mach})
   cp -f -p ${ICE_SCRIPTS}/machines/$file ${casedir}
 end
 
-# If account number is passed as argument, replace account number in env.<machine>
-if ( $acct != $spval ) then
-  sed -i "s/^\(.*\)\("'$'"{ICE_MACHINE_ACCT_D}\)/\1$acct /" ${casedir}/env.${mach}
-endif
-
 # from basic script dir to casescr
 foreach file (parse_namelist.sh parse_settings.sh parse_namelist_from_settings.sh icepack_decomp.csh icepack.run.setup.csh icepack.test.setup.csh)
   if !(-e ${ICE_SCRIPTS}/$file) then
