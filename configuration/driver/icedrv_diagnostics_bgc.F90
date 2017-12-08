@@ -11,6 +11,12 @@
       use icedrv_constants, only: c0, nu_diag, nu_diag_out
       use icedrv_calendar, only: diagfreq, istep1, istep
       use icedrv_domain_size, only: nx
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_max_algae, icepack_max_aero, icepack_max_fe
+      use icepack_intfc, only: icepack_max_dic, icepack_max_doc, icepack_max_don
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
@@ -33,8 +39,6 @@
       use icedrv_diagnostics, only: nx_names
       use icedrv_domain_size, only: ncat, nltrcr, nilyr
       use icedrv_state, only: aice, aicen, vicen, vice, trcr, trcrn
-      use icedrv_tracers, only: nt_sice, nt_fbri
-      use icedrv_parameters, only: ktherm
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -43,6 +47,13 @@
 
       integer (kind=int_kind) :: &
          i, k, n
+
+      integer (kind=int_kind) :: &
+         ktherm
+
+      integer (kind=int_kind) :: &
+         nt_sice, &
+         nt_fbri
 
       ! fields at diagnostic points
       real (kind=dbl_kind), dimension(nx) :: &
@@ -57,6 +68,11 @@
       ! Dynamic brine height
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
+
+         call icepack_query_tracer_indices(nt_sice_out=nt_sice, nt_fbri_out=nt_fbri)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          do n = 1, nx
                i = n
@@ -82,6 +98,11 @@
       !-----------------------------------------------------------------
       ! diagnostics for Arctic and Antarctic points
       !-----------------------------------------------------------------
+
+         call icepack_query_parameters(ktherm_out=ktherm)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          write(nu_diag_out+n-1,899) nx_names(n)
         
@@ -121,37 +142,11 @@
 
       use icedrv_arrays_column, only: ocean_bio, zfswin, fbio_atmice, fbio_snoice
       use icedrv_arrays_column, only: Zoo, grow_net, ice_bio_net, trcrn_sw
-      use icedrv_parameters,    only: skl_bgc, z_tracers, dEdd_algae
       use icedrv_constants,     only: c0, mps_to_cmpdy, c100, p5, c1, secday
       use icedrv_domain_size,   only: ncat, nltrcr, nblyr, n_algae, n_zaero
       use icedrv_domain_size,   only: n_dic, n_doc, n_don, n_fed, n_fep, nilyr, nslyr
       use icedrv_flux,  only: flux_bio, flux_bio_atm
       use icedrv_state, only: aice, vicen, vice, trcr
-      use icedrv_tracers, only: max_algae, max_aero, max_dic, max_doc, max_don, max_fe
-      use icedrv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
-      use icedrv_tracers, only: tr_bgc_DON, tr_zaero, tr_bgc_hum
-      use icedrv_tracers, only: tr_bgc_Fe
-
-      use icedrv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil
-      use icedrv_tracers, only: nt_fbri, nt_sice, nt_zaero
-      use icedrv_tracers, only: nt_bgc_n, nt_bgc_doc, nt_bgc_don, nt_bgc_fed, nt_bgc_fep
-      use icedrv_tracers, only: nt_bgc_nit, nt_bgc_am, nt_bgc_sil, nt_bgc_hum, nt_bgc_pon
-      use icedrv_tracers, only: nt_bgc_dmspp, nt_bgc_dmspd, nt_bgc_dms
-      use icedrv_tracers, only: nlt_bgc_N, nlt_zaero, nlt_chl_sw, nlt_zaero_sw
-      use icedrv_tracers, only: nlt_bgc_Fed, nlt_bgc_Fep  
-      use icedrv_tracers, only: nlt_bgc_hum
-      use icedrv_tracers, only: nlt_bgc_Nit, nlt_bgc_Am, nlt_bgc_Sil
-      use icedrv_tracers, only: nlt_bgc_DOC, nlt_bgc_DON, nlt_bgc_DMSPp, nlt_bgc_DMS
-
-      !use icedrv_tracers, only: nt_bgc_N, nt_bgc_C, nt_bgc_chl, nt_bgc_Am
-      !use icedrv_tracers, only: nt_bgc_DMS, nt_bgc_DMSPd, nt_bgc_DMSPp, nt_bgc_Nit, nt_bgc_Sil
-      !use icedrv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_DIC, nt_bgc_DOC, nt_zaero, nt_bgc_Fed
-      !use icedrv_tracers, only: nt_bgc_Fep
-      !use icedrv_tracers, only: nlt_bgc_DMS, nlt_bgc_DMSPp, nlt_bgc_DMSPd, nlt_bgc_C, nlt_bgc_chl
-      !use icedrv_tracers, only: nlt_bgc_DIC, nlt_bgc_DOC, nlt_bgc_PON
-      !use icedrv_tracers, only: nlt_bgc_DON, nlt_bgc_Fed, nlt_bgc_Fep, nlt_zaero
-      !use icedrv_tracers, only: nt_bgc_hum,  nlt_bgc_hum, nlt_chl_sw
-      !use icedrv_tracers, only: nlt_zaero_sw
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -160,6 +155,10 @@
 
       integer (kind=int_kind) :: &
          i, k, n, nn, kk, klev
+
+      logical (kind=log_kind) :: &
+         skl_bgc, z_tracers, dEdd_algae
+
       ! fields at diagnostic points
       real (kind=dbl_kind), dimension(nx) :: &
          pNit_sk, pAm_sk, pSil_sk, phum_sk, &
@@ -170,48 +169,69 @@
          pflux_atm_NO, pflux_atm_Am,  pgrow_net, &
          pflux_hum
 
-      real (kind=dbl_kind), dimension(nx,max_algae) :: &
+      logical (kind=log_kind) :: &
+         tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, &
+         tr_bgc_N, tr_bgc_C, tr_bgc_DON, tr_zaero, tr_bgc_hum, &
+         tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_Fe
+
+      integer (kind=int_kind) :: &
+         nt_fbri, nt_sice, nt_bgc_nit, nt_bgc_am, nt_bgc_sil, &
+         nt_bgc_hum, nt_bgc_pon, nt_bgc_dmspp, nt_bgc_dmspd, nt_bgc_dms, &
+         nlt_bgc_hum, nlt_bgc_Nit, nlt_bgc_Am, nlt_bgc_Sil, nlt_chl_sw, &
+         nlt_bgc_DMSPp, nlt_bgc_DMS
+      integer (kind=int_kind), dimension(icepack_max_algae) :: &
+         nt_bgc_n, nlt_bgc_N
+      integer (kind=int_kind), dimension(icepack_max_doc) :: &
+         nt_bgc_doc, nlt_bgc_DOC
+      integer (kind=int_kind), dimension(icepack_max_don) :: &
+         nt_bgc_don, nlt_bgc_DON 
+      integer (kind=int_kind), dimension(icepack_max_aero) :: &
+         nt_zaero, nlt_zaero, nlt_zaero_sw
+      integer (kind=int_kind), dimension(icepack_max_fe) :: &
+         nt_bgc_fed, nt_bgc_fep, nlt_bgc_Fed, nlt_bgc_Fep
+
+      real (kind=dbl_kind), dimension(nx,icepack_max_algae) :: &
          pN_ac, pN_tot, pN_sk, pflux_N
-      real (kind=dbl_kind), dimension(nx,max_doc) :: &
+      real (kind=dbl_kind), dimension(nx,icepack_max_doc) :: &
          pDOC_ac, pDOC_sk
-      real (kind=dbl_kind), dimension(nx,max_don) :: &
+      real (kind=dbl_kind), dimension(nx,icepack_max_don) :: &
          pDON_ac, pDON_sk
-      real (kind=dbl_kind), dimension(nx,max_fe ) :: &
+      real (kind=dbl_kind), dimension(nx,icepack_max_fe ) :: &
          pFed_ac,  pFed_sk, pFep_ac, pFep_sk 
-      real (kind=dbl_kind), dimension(nx,max_aero) :: &
+      real (kind=dbl_kind), dimension(nx,icepack_max_aero) :: &
         pflux_zaero, pflux_snow_zaero, pflux_atm_zaero, &
         pflux_atm_zaero_s
 
       ! vertical  fields of category 1 at diagnostic points for bgc layer model
       real (kind=dbl_kind), dimension(nx,2) :: &
          pNOs, pAms, pPONs, phums
-      real (kind=dbl_kind), dimension(nx,2,max_algae) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_algae) :: &
          pNs
-      real (kind=dbl_kind), dimension(nx,2,max_doc) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_doc) :: &
          pDOCs
-      real (kind=dbl_kind), dimension(nx,2,max_don) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_don) :: &
          pDONs
-      real (kind=dbl_kind), dimension(nx,2,max_fe ) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_fe ) :: &
          pFeds, pFeps 
-      real (kind=dbl_kind), dimension(nx,2,max_aero) :: &
+      real (kind=dbl_kind), dimension(nx,2,icepack_max_aero) :: &
          pzaeros
       real (kind=dbl_kind), dimension(nx,nblyr+1) :: &
          pNO, pAm, pPON, pzfswin, pZoo, phum
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_algae) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_algae) :: &
          pN
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_aero) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_aero) :: &
          pzaero
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_doc) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_doc) :: &
          pDOC
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_don) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_don) :: &
          pDON
-      real (kind=dbl_kind), dimension(nx,nblyr+1,max_fe ) :: &
+      real (kind=dbl_kind), dimension(nx,nblyr+1,icepack_max_fe ) :: &
          pFed, pFep 
       real (kind=dbl_kind), dimension (nblyr+1) :: & 
          zspace
       real (kind=dbl_kind), dimension (nx,nslyr+nilyr+2) :: & 
          pchlsw
-      real (kind=dbl_kind), dimension(nx,nslyr+nilyr+2,max_aero) :: &
+      real (kind=dbl_kind), dimension(nx,nslyr+nilyr+2,icepack_max_aero) :: &
          pzaerosw
 
       character(len=*), parameter :: subname='(bgc_diags)'
@@ -219,6 +239,30 @@
       zspace(:) = c1/real(nblyr,kind=dbl_kind)
       zspace(1) = zspace(1)*p5
       zspace(nblyr+1) = zspace(nblyr+1)*p5    
+
+      call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers, dEdd_algae_out=dEdd_algae)
+      call icepack_query_tracer_flags( &
+         tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, tr_bgc_S_out=tr_bgc_S, &
+         tr_bgc_N_out=tr_bgc_N, tr_bgc_C_out=tr_bgc_C, &
+         tr_bgc_DON_out=tr_bgc_DON, tr_zaero_out=tr_zaero, tr_bgc_hum_out=tr_bgc_hum, &
+         tr_bgc_Nit_out=tr_bgc_Nit, tr_bgc_Am_out=tr_bgc_Am, tr_bgc_Sil_out=tr_bgc_Sil, &
+         tr_bgc_Fe_out=tr_bgc_Fe)
+      call icepack_query_tracer_indices( &
+         nt_fbri_out=nt_fbri, nt_sice_out=nt_sice, nt_zaero_out=nt_zaero, &
+         nt_bgc_n_out=nt_bgc_n, nt_bgc_doc_out=nt_bgc_doc, nt_bgc_don_out=nt_bgc_don, &
+         nt_bgc_fed_out=nt_bgc_fed, nt_bgc_fep_out=nt_bgc_fep, &
+         nt_bgc_nit_out=nt_bgc_nit, nt_bgc_am_out=nt_bgc_am, nt_bgc_sil_out=nt_bgc_sil, &
+         nt_bgc_hum_out=nt_bgc_hum, nt_bgc_pon_out=nt_bgc_pon, &
+         nt_bgc_dmspp_out=nt_bgc_dmspp, nt_bgc_dmspd_out=nt_bgc_dmspd, nt_bgc_dms_out=nt_bgc_dms, &
+         nlt_bgc_N_out=nlt_bgc_N, nlt_zaero_out=nlt_zaero, nlt_chl_sw_out=nlt_chl_sw, &
+         nlt_zaero_sw_out=nlt_zaero_sw, nlt_bgc_Fed_out=nlt_bgc_Fed, nlt_bgc_Fep_out=nlt_bgc_Fep, &
+         nlt_bgc_hum_out=nlt_bgc_hum, nlt_bgc_Nit_out=nlt_bgc_Nit, nlt_bgc_Am_out=nlt_bgc_Am, &
+         nlt_bgc_Sil_out=nlt_bgc_Sil, &
+         nlt_bgc_DOC_out=nlt_bgc_DOC, nlt_bgc_DON_out=nlt_bgc_DON, nlt_bgc_DMSPp_out=nlt_bgc_DMSPp, &
+         nlt_bgc_DMS_out=nlt_bgc_DMS)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       klev = 1+nilyr+nslyr
       !-----------------------------------------------------------------
@@ -720,8 +764,6 @@
       use icedrv_constants, only: rhos, rhoi, rhow, c1
       use icedrv_domain_size, only: nblyr, ncat, nilyr
       use icedrv_state, only: aicen, aice, vice, trcr, trcrn, vicen, vsno
-      use icedrv_parameters, only: rhosi
-      use icedrv_tracers, only: tr_brine, nt_fbri, nt_bgc_S, nt_sice
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -746,12 +788,26 @@
       real (kind=dbl_kind), dimension(nx,nblyr+1) :: &
          pbTiz, piDin
 
+      real (kind=dbl_kind) :: &
+         rhosi
+
+      logical (kind=log_kind) :: tr_brine
+      integer (kind=int_kind) :: nt_fbri, nt_bgc_S, nt_sice
+
       character(len=*), parameter :: subname='(zsal_diags)'
 
       !-----------------------------------------------------------------
       ! salinity and microstructure  of the ice
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
+
+         call icepack_query_constants(rhosi_out=rhosi)
+         call icepack_query_tracer_flags(tr_brine_out=tr_brine)
+         call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_bgc_S_out=nt_bgc_S, &
+             nt_sice_out=nt_sice)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          do n = 1, nx
                i = n

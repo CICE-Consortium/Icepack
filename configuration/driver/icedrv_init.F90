@@ -7,9 +7,20 @@
       module icedrv_init
 
       use icedrv_kinds
+      use icedrv_constants, only: nu_diag
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_init_constants
-      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icepack_intfc, only: icepack_init_parameters
+      use icepack_intfc, only: icepack_init_tracer_flags
+      use icepack_intfc, only: icepack_init_tracer_numbers
+      use icepack_intfc, only: icepack_init_tracer_indices
+      use icepack_intfc, only: icepack_init_trcr
+      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_tracer_flags
+      use icepack_intfc, only: icepack_query_tracer_numbers
+      use icepack_intfc, only: icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
@@ -44,16 +55,8 @@
 
       subroutine input_data
 
-      use icedrv_parameters, only: ustar_min, albicev, albicei, albsnowv, albsnowi
-      use icedrv_parameters, only: ahmax, shortwave, albedo_type, R_ice, R_pnd
-      use icedrv_parameters, only: R_snw, dT_mlt, rsnw_mlt
-      use icedrv_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
-      use icedrv_parameters, only: atmbndy, calc_strair, formdrag, highfreq, natmiter
-      use icedrv_parameters, only: kitd, kcatbound, hs0, dpscale, frzpnd
-      use icedrv_parameters, only: rfracmin, rfracmax, pndaspect, hs1, hp1
-      use icedrv_parameters, only: ktherm, calc_Tsfc, conduct
       use icedrv_arrays_column, only: oceanmixed_ice
-      use icedrv_constants, only: c0, c1, puny, ice_stdout, nu_diag, nu_diag_out, nu_nml
+      use icedrv_constants, only: c0, c1, puny, ice_stdout, nu_diag_out, nu_nml
       use icedrv_diagnostics, only: diag_file, nx_names
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icedrv_calendar, only: year_init, istep0
@@ -67,16 +70,6 @@
       use icedrv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icedrv_forcing, only: data_dir,        dbug
       use icedrv_forcing, only: restore_ocn, trestore
-
-      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_pond
-      use icedrv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-      use icedrv_tracers, only: tr_aero, nt_Tsfc, nt_qice, nt_qsno, nt_sice
-      use icedrv_tracers, only: nt_iage, nt_FY, nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd
-      use icedrv_tracers, only: nt_aero, ntrcr
-      use icedrv_parameters, only: a_rapid_mode, Rac_rapid_mode
-      use icedrv_parameters, only: aspect_rapid_mode, dSdt_slow_mode
-      use icedrv_parameters, only: phi_c_slow_mode, phi_i_mushy
-      use icedrv_parameters, only: tfrz_option, kalg, fbot_xfer_type
 
       ! local variables
 
@@ -95,6 +88,26 @@
       character (len=20) :: format_str
 
       logical :: exists
+
+      real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
+        ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
+        mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
+        a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
+        phi_c_slow_mode, phi_i_mushy, kalg
+
+      integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, natmiter, &
+        kitd, kcatbound
+
+      character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
+        tfrz_option, frzpnd, atmbndy
+
+      logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
+
+      integer (kind=int_kind) :: ntrcr
+      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_aero
+      logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY
+      integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
 
       real (kind=real_kind) :: rpcesm, rplvl, rptopo 
       real (kind=dbl_kind) :: Cf
@@ -300,7 +313,7 @@
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
         write(ice_stdout,*) 'error reading namelist'
-        call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+        call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
       
@@ -349,7 +362,7 @@
          write (nu_diag,*) 'Remapping the ITD is not allowed for ncat=1.'
          write (nu_diag,*) 'Use kitd = 0 (delta function ITD) with kcatbound = 0'
          write (nu_diag,*) 'or for column configurations use kcatbound = -1'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (ncat /= 1 .and. kcatbound == -1) then
@@ -373,7 +386,7 @@
 
       if (rpcesm + rplvl + rptopo > c1 + puny) then
             write (nu_diag,*) 'WARNING: Must use only one melt pond scheme'
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_pond_lvl .and. .not. tr_lvl) then
@@ -405,7 +418,7 @@
             write (nu_diag,*) 'WARNING: aerosols activated but'
             write (nu_diag,*) 'WARNING: not allocated in tracer array.'
             write (nu_diag,*) 'WARNING: Activate in compilation script.'
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_aero .and. trim(shortwave) /= 'dEdd') then
@@ -452,7 +465,7 @@
 
       if (tr_pond_cesm) then
             write (nu_diag,*) 'ERROR: formdrag=T but frzpnd=cesm' 
-         call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (.not. tr_lvl) then
@@ -469,6 +482,9 @@
       endif
 
       call icepack_init_constants(Cf_in=Cf)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
       ! spew
@@ -657,7 +673,7 @@
          if (ntrcr > max_ntrcr-1) then
             write(nu_diag,*) 'max_ntrcr-1 < number of namelist tracers'
             write(nu_diag,*) 'max_ntrcr-1 = ',max_ntrcr-1,' ntrcr = ',ntrcr
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif                               
 
          write(nu_diag,*) ' '
@@ -686,21 +702,47 @@
       if (formdrag) then
          if (nt_apnd==0) then
             write(nu_diag,*)'ERROR: nt_apnd:',nt_apnd
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          elseif (nt_hpnd==0) then
             write(nu_diag,*)'ERROR: nt_hpnd:',nt_hpnd
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          elseif (nt_ipnd==0) then
             write(nu_diag,*)'ERROR: nt_ipnd:',nt_ipnd
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          elseif (nt_alvl==0) then
             write(nu_diag,*)'ERROR: nt_alvl:',nt_alvl
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          elseif (nt_vlvl==0) then
             write(nu_diag,*)'ERROR: nt_vlvl:',nt_vlvl
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif
       endif
+
+      call icepack_init_parameters(ustar_min_in=ustar_min, albicev_in=albicev, albicei_in=albicei, &
+         albsnowv_in=albsnowv, albsnowi_in=albsnowi, natmiter_in=natmiter, &
+         ahmax_in=ahmax, shortwave_in=shortwave, albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &
+         R_snw_in=R_snw, dT_mlt_in=dT_mlt, rsnw_mlt_in=rsnw_mlt, &
+         kstrength_in=kstrength, krdg_partic_in=krdg_partic, krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
+         atmbndy_in=atmbndy, calc_strair_in=calc_strair, formdrag_in=formdrag, highfreq_in=highfreq, &
+         kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, dpscale_in=dpscale, frzpnd_in=frzpnd, &
+         rfracmin_in=rfracmin, rfracmax_in=rfracmax, pndaspect_in=pndaspect, hs1_in=hs1, hp1_in=hp1, &
+         ktherm_in=ktherm, calc_Tsfc_in=calc_Tsfc, conduct_in=conduct, &
+         a_rapid_mode_in=a_rapid_mode, Rac_rapid_mode_in=Rac_rapid_mode, &
+         aspect_rapid_mode_in=aspect_rapid_mode, dSdt_slow_mode_in=dSdt_slow_mode, &
+         phi_c_slow_mode_in=phi_c_slow_mode, phi_i_mushy_in=phi_i_mushy, &
+         tfrz_option_in=tfrz_option, kalg_in=kalg, fbot_xfer_type_in=fbot_xfer_type)
+      call icepack_init_tracer_numbers(ntrcr_in=ntrcr)
+      call icepack_init_tracer_flags(tr_iage_in=tr_iage, tr_FY_in=tr_FY, &
+         tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, tr_pond_in=tr_pond, &
+         tr_pond_cesm_in=tr_pond_cesm, tr_pond_lvl_in=tr_pond_lvl, tr_pond_topo_in=tr_pond_topo)
+      call icepack_init_tracer_indices(nt_Tsfc_in=nt_Tsfc, nt_sice_in=nt_sice, &
+         nt_qice_in=nt_qice, nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, nt_fy_in=nt_fy, &
+         nt_alvl_in=nt_alvl, nt_vlvl_in=nt_vlvl, nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, &
+         nt_ipnd_in=nt_ipnd, nt_aero_in=nt_aero)
+
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       end subroutine input_data
 
@@ -756,23 +798,26 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_parameters, only: heat_capacity
-      use icedrv_constants, only: c0, c1, nu_diag
+      use icedrv_constants, only: c0, c1
       use icedrv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero
       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
       use icedrv_state, only: aice0, aice, vice, vsno, trcr, aice_init
       use icedrv_state, only: n_trcr_strata, nt_strata, trcr_base
-      use icedrv_tracers, only: ntrcr
-      use icedrv_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero
-      use icedrv_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-      use icedrv_tracers, only: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
-      use icedrv_tracers, only: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
 
       integer (kind=int_kind) :: &
          i           , & ! horizontal indes
          k           , & ! vertical index
          it              ! tracer index
+
+      logical (kind=log_kind) :: &
+         heat_capacity   ! from icepack
+
+      integer (kind=int_kind) :: ntrcr
+      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero
+      logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
+      integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
 
       character(len=*), parameter :: subname='(init_state)'
 
@@ -782,14 +827,27 @@
          if (nilyr < 1) then
             write (nu_diag,*) 'nilyr =', nilyr
             write (nu_diag,*) 'Must have at least one ice layer'
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif
 
          if (nslyr < 1) then
             write (nu_diag,*) 'nslyr =', nslyr
             write (nu_diag,*) 'Must have at least one snow layer'
-            call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif
+
+         call icepack_query_parameters(heat_capacity_out=heat_capacity)
+         call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
+         call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
+           tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, tr_pond_topo_out=tr_pond_topo)
+         call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
+           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, nt_fy_out=nt_fy, &
+           nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+           nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          if (.not.heat_capacity) then
 
@@ -799,14 +857,14 @@
                write (nu_diag,*) 'nilyr =', nilyr
                write (nu_diag,*)        &
                     'Must have nilyr = 1 if ktherm = 0'
-               call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+               call icedrv_system_abort(file=__FILE__,line=__LINE__)
             endif
 
             if (nslyr > 1) then
                write (nu_diag,*) 'nslyr =', nslyr
                write (nu_diag,*)        &
                     'Must have nslyr = 1 if heat_capacity = F'
-               call icedrv_diagnostics_abort(file=__FILE__,line=__LINE__)
+               call icedrv_system_abort(file=__FILE__,line=__LINE__)
             endif
 
          endif   ! heat_capacity = F
@@ -938,6 +996,9 @@
 
       enddo
       !$OMP END PARALLEL DO
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       end subroutine init_state
 
@@ -956,13 +1017,9 @@
                                 vicen,    vsnon)
 
       use icedrv_arrays_column, only: hin_max
-      use icepack_intfc, only: icepack_init_trcr
       use icedrv_constants, only: c0, c1, c2, c3, p2, p5, rhoi, rhos, Lfresh
       use icedrv_constants, only: cp_ice, cp_ocn, Tsmelt, Tffresh, puny
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat
-      use icedrv_tracers, only: tr_brine, tr_lvl
-      use icedrv_tracers, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice
-      use icedrv_tracers, only: nt_fbri, nt_alvl, nt_vlvl
 !      use icedrv_forcing, only: atm_data_type
 
       integer (kind=int_kind), intent(in) :: &
@@ -1023,10 +1080,22 @@
       real (kind=dbl_kind), parameter :: &
          hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
 
+      logical (kind=log_kind) :: tr_brine, tr_lvl
+      integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_sice
+      integer (kind=int_kind) :: nt_fbri, nt_alvl, nt_vlvl
+
       character(len=*), parameter :: subname='(set_state_var)'
 
       ! Initialize state variables.
       ! If restarting, these values are overwritten.
+
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_lvl_out=tr_lvl)
+      call icepack_query_tracer_indices( nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
+        nt_qsno_out=nt_qsno, nt_sice_out=nt_sice, &
+        nt_fbri_out=nt_fbri, nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+         file=__FILE__,line= __LINE__)
 
       do n = 1, ncat
          do i = 1, nx
@@ -1094,6 +1163,9 @@
         ! brine fraction
         if (tr_brine) trcrn(i,nt_fbri,n) = c1
       enddo                  ! ncat
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
       
       !-----------------------------------------------------------------
 
@@ -1145,6 +1217,9 @@
         ! brine fraction
         if (tr_brine) trcrn(i,nt_fbri,n) = c1
       enddo                  ! ncat
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
       
       !-----------------------------------------------------------------
       

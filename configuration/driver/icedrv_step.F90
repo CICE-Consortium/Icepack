@@ -8,7 +8,8 @@
 
       use icedrv_constants
       use icedrv_kinds
-      use icedrv_diagnostics, only: icedrv_diagnostics_abort
+      use icedrv_calendar, only: istep1
+      use icedrv_system, only: icedrv_system_abort
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_tracer_sizes
@@ -36,7 +37,6 @@
 
       subroutine prep_radiation (dt)
 
-      use icedrv_calendar, only: istep1
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
       use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: alvdr_ai, alvdf_ai, alidr_ai, alidf_ai, fswfac
@@ -82,11 +82,10 @@
                         fswthrun(i,:), fswpenln(i,:,:), &
                         Sswabsn (i,:,:), Iswabsn (i,:,:))
 
-            call icepack_warnings_flush(nu_diag)
-            if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
-                __FILE__, __LINE__)
-
          enddo               ! i
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__, line=__LINE__)
 
       end subroutine prep_radiation
 
@@ -104,7 +103,7 @@
       use icedrv_arrays_column, only: Cdn_atm, Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_rdg, Cdn_atm_pond
       use icedrv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
       use icedrv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
-      use icedrv_calendar, only: yday, istep1
+      use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nx
       use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
@@ -151,19 +150,33 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call icepack_query_tracer_numbers( &
          ntrcr_out=ntrcr)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       call icepack_query_tracer_flags( &
          tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
          tr_aero_out=tr_aero, tr_pond_out=tr_pond, tr_pond_cesm_out=tr_pond_cesm, &
          tr_pond_lvl_out=tr_pond_lvl, tr_pond_topo_out=tr_pond_topo)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       call icepack_query_tracer_indices( &
          nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, &
          nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, nt_Tsfc_out=nt_Tsfc, &
          nt_iage_out=nt_iage, nt_FY_out=nt_FY, &
          nt_qice_out=nt_qice, nt_sice_out=nt_sice, &
          nt_aero_out=nt_aero, nt_qsno_out=nt_qsno)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       prescribed_ice = .false.
       aerosno(:,:,:) = c0
@@ -202,7 +215,6 @@
           enddo
         endif ! tr_aero
         
-        call icepack_warnings_flush(nu_diag)
         call icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero,                &
             aicen_init  (i,:),                           &
             vicen_init  (i,:), vsnon_init  (i,:), &
@@ -274,10 +286,6 @@
             mlt_onset   (i), frz_onset   (i), &
             yday,  prescribed_ice)
 
-        call icepack_warnings_flush(nu_diag)
-        if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
-            __FILE__, __LINE__)
-        
         if (tr_aero) then
           do n = 1, ncat
             if (vicen(i,n) > puny) &
@@ -294,6 +302,9 @@
         endif ! tr_aero
         
       enddo ! i
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
       
     end subroutine step_therm1
 
@@ -308,7 +319,7 @@
 
       use icedrv_arrays_column, only: hin_max, fzsal, ocean_bio
       use icedrv_arrays_column, only: first_ice, bgrid, cgrid, igrid
-      use icedrv_calendar, only: istep1, yday
+      use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nltrcr, nx
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
       use icedrv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside
@@ -337,14 +348,15 @@
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       do i = 1, nx
 
          if (tmask(i)) then
 
-         call icepack_warnings_flush(nu_diag)
-            
-         call icepack_step_therm2(dt, ncat, n_aero, nltrcr,                 &
+            call icepack_step_therm2(dt, ncat, n_aero, nltrcr,                 &
                            nilyr,                  nslyr,                  &
                            hin_max   (:),          nblyr,                  &   
                            aicen     (i,:),                         &
@@ -369,13 +381,12 @@
                            frazil_diag(i),                         &
                            frz_onset (i), yday)
 
-         call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
-             __FILE__, __LINE__)
-         
          endif ! tmask
 
       enddo                     ! i
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
          
       end subroutine step_therm2
 
@@ -418,8 +429,19 @@
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       call icepack_query_tracer_indices(nt_iage_out=nt_iage)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       call icepack_query_tracer_flags(tr_iage_out=tr_iage)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       !$OMP PARALLEL DO PRIVATE(i)
       do i = 1, nx
@@ -428,8 +450,8 @@
       ! Aggregate the updated state variables (includes ghost cells). 
       !----------------------------------------------------------------- 
  
-         if (tmask(i)) &
-         call icepack_aggregate (ncat,               aicen(i,:),   &
+         if (tmask(i)) then
+            call icepack_aggregate (ncat,               aicen(i,:),   &
                                trcrn(i,1:ntrcr,:),               &
                                vicen(i,:), vsnon(i,:),  &
                                aice (i),                       &
@@ -441,6 +463,7 @@
                                trcr_base    (1:ntrcr,:),                &
                                n_trcr_strata(1:ntrcr),                  &
                                nt_strata    (1:ntrcr,:))
+         endif
 
       !-----------------------------------------------------------------
       ! Compute thermodynamic area and volume tendencies.
@@ -461,6 +484,9 @@
 
       enddo ! i
       !$OMP END PARALLEL DO
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       end subroutine update_state
 
@@ -474,7 +500,6 @@
       subroutine step_dyn_ridge (dt, ndtd)
 
       use icedrv_arrays_column, only: hin_max, fzsal, first_ice
-      use icedrv_calendar, only: istep1
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
       use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
       use icedrv_flux, only: dvirdgdt, opening, fpond, fresh, fhocn
@@ -508,6 +533,9 @@
       !-----------------------------------------------------------------
 
          call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          do i = 1, nx
 
@@ -517,9 +545,7 @@
 
          if (tmask(i)) then
 
-         call icepack_warnings_flush(nu_diag)
-               
-         call icepack_step_ridge (dt,            ndtd,                  &
+            call icepack_step_ridge (dt,            ndtd,                  &
                          nilyr,                 nslyr,                 &
                          nblyr,                                        &
                          ncat,                  hin_max  (:),          &
@@ -545,13 +571,12 @@
                          first_ice(i,:), fzsal    (i), &
                          flux_bio (i,1:nbtrcr) )
 
-         call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
-             __FILE__, __LINE__)
-         
          endif ! tmask
 
          enddo ! i
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__, line=__LINE__)
 
       end subroutine step_dyn_ridge
 
@@ -565,7 +590,6 @@
 
       subroutine step_radiation (dt)
 
-      use icedrv_calendar, only: istep1
       use icedrv_arrays_column, only: ffracn, dhsn
       use icedrv_arrays_column, only: fswsfcn, fswintn, fswthrun, fswpenln, Sswabsn, Iswabsn
       use icedrv_arrays_column, only: albicen, albsnon, albpndn
@@ -617,19 +641,37 @@
 
       call icepack_query_tracer_sizes( &
          max_aero_out=max_aero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
       allocate(nlt_zaero_sw(max_aero))
       allocate(nt_zaero(max_aero))
+
       call icepack_query_tracer_numbers( &
          ntrcr_out=ntrcr, nbtrcr_out=nbtrcr, nbtrcr_sw_out=nbtrcr_sw)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       call icepack_query_tracer_flags( &
          tr_brine_out=tr_brine, tr_bgc_N_out=tr_bgc_N, tr_zaero_out=tr_zaero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       call icepack_query_tracer_indices( &
          nt_Tsfc_out=nt_Tsfc, nt_alvl_out=nt_alvl, &
          nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, &
          nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw, &
          nt_fbri_out=nt_fbri, nt_zaero_out=nt_zaero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call icepack_query_parameters(dEdd_algae_out=dEdd_algae, modal_aero_out=modal_aero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       allocate(ztrcr(ntrcr,ncat))
       allocate(ztrcr_sw(ntrcr,ncat))
@@ -649,9 +691,7 @@
 
          if (tmask(i)) then
 
-         call icepack_warnings_flush(nu_diag)
-            
-         call icepack_step_radiation (dt,         ncat,                    &
+            call icepack_step_radiation (dt,         ncat,                    &
                           n_algae,   tr_zaero, nblyr,                     &
                           ntrcr,     nbtrcr,   nbtrcr_sw,                 &
                           nilyr,    nslyr,       n_aero,                  &
@@ -692,10 +732,6 @@
                           dhsn(i,:),      ffracn(i,:),      &
                           l_print_point)
 
-         call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
-             __FILE__, __LINE__)
-
          endif ! tmask
 
       if (dEdd_algae .and. (tr_zaero .or. tr_bgc_N)) then
@@ -707,6 +743,9 @@
       endif
 
       enddo ! i
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       deallocate(ztrcr)
       deallocate(ztrcr_sw)
@@ -783,8 +822,8 @@
       !-----------------------------------------------------------------
 
             do i = 1, nx
-               if (tmask(i)) &
-               call icepack_atm_boundary( 'ocn',                &
+               if (tmask(i)) then
+                  call icepack_atm_boundary( 'ocn',                &
                                         sst        (i), &    
                                         potT       (i), &
                                         uatm       (i), &   
@@ -803,7 +842,11 @@
                                         shcoef     (i),      &
                                         Cdn_atm    (i), & 
                                         Cdn_atm_ratio(i))    
+               endif
             enddo ! i
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
       ! Ocean albedo
@@ -819,8 +862,8 @@
       ! Compute ocean fluxes and update SST
       !-----------------------------------------------------------------
       do i = 1, nx
-        if (tmask(i)) &
-        call icepack_ocn_mixed_layer (alvdr_ocn(i), swvdr     (i), &
+         if (tmask(i)) then
+            call icepack_ocn_mixed_layer (alvdr_ocn(i), swvdr     (i), &
                                       alidr_ocn(i), swidr     (i), &
                                       alvdf_ocn(i), swvdf     (i), &
                                       alidf_ocn(i), swidf     (i), &
@@ -833,7 +876,11 @@
                                       fswthru  (i), hmix      (i), &
                                       Tf       (i), qdp       (i), &
                                       frzmlt   (i), dt)
+         endif
       enddo                    ! i
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       end subroutine ocean_mixed_layer
 
@@ -849,7 +896,6 @@
       use icedrv_arrays_column, only: snow_bio_net, fswthrun, Rayleigh_criteria
       use icedrv_arrays_column, only: ocean_bio_all, sice_rho, fzsal, fzsal_g
       use icedrv_arrays_column, only: bgrid, igrid, icgrid, cgrid
-      use icedrv_calendar, only: istep1
       use icepack_intfc, only: icepack_biogeochemistry, icepack_init_OceanConcArray
       use icedrv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat
       use icedrv_domain_size, only: n_doc, n_dic,  n_don, n_fed, n_fep, nx
@@ -889,20 +935,34 @@
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_flags(tr_brine_out=tr_brine)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       if (tr_brine .or. skl_bgc) then
 
       call icepack_query_tracer_sizes( &
          max_algae_out=max_algae, max_nbtrcr_out=max_nbtrcr, max_don_out=max_don, &
          max_doc_out=max_doc, max_dic_out=max_dic, max_aero_out=max_aero, max_fe_out=max_fe)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
+      allocate(bio_index_o(max_nbtrcr))
+      allocate(nlt_zaero(max_aero))
+
       call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
-      call icepack_query_tracer_sizes(max_aero_out=max_aero)
-      allocate(nlt_zaero(max_aero))
       call icepack_query_tracer_indices(nlt_zaero_out=nlt_zaero)
-      allocate(bio_index_o(max_nbtrcr))
       call icepack_query_tracer_indices(bio_index_o_out=bio_index_o)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       ! Define ocean concentrations for tracers used in simulation
       do i = 1, nx
@@ -918,6 +978,9 @@
                 fep(i,:), zaeros(i,:), &
                 ocean_bio_all(i,:), &
                 hum(i))
+!         call icepack_warnings_flush(nu_diag)
+!         if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
+!             file=__FILE__,line= __LINE__)
         
          do mm = 1,nbtrcr
             ocean_bio(i,mm) = ocean_bio_all(i,bio_index_o(mm))  
@@ -928,8 +991,6 @@
             enddo  ! mm
          endif
 
-         call icepack_warnings_flush(nu_diag)
-         
          call icepack_biogeochemistry(dt, ntrcr, nbtrcr,&
                               upNO        (i),        &
                               upNH        (i),        &
@@ -984,11 +1045,14 @@
                               vsnon_init  (i,:),        &
                               skl_bgc, max_algae, max_nbtrcr)
 
-         call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call icedrv_diagnostics_abort(i, istep1, subname, &
-             __FILE__, __LINE__)
+!         call icepack_warnings_flush(nu_diag)
+!         if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
+!             __FILE__, __LINE__)
          
       enddo               ! i
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       deallocate(nlt_zaero)
       deallocate(bio_index_o)
