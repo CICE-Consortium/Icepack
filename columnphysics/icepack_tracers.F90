@@ -8,6 +8,7 @@
       module icepack_tracers
 
       use icepack_kinds
+      use icepack_constants, only: c0, c1, puny, Tocnfrz
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -929,8 +930,6 @@
                                          vicen,     vsnon,          &
                                          trcr_base, n_trcr_strata,  &
                                          nt_strata, trcrn)
-
-      use icepack_constants, only: c0, c1, puny, Tocnfrz
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr                 ! number of tracers in use

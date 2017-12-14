@@ -405,6 +405,8 @@ if (-e ${fimods}) rm ${fimods}
 if (-e ${fsmods}) rm ${fsmods}
 
 cat >! ${fimods} << EOF1
+# icepack.create.case settings
+
 nprocs = ${task}
 data_dir = '${ICE_MACHINE_INPUTDATA}/Icepack_data/forcing'
 EOF1
@@ -417,6 +419,8 @@ else
 endif
 
 cat >! ${fsmods} << EOF1
+# icepack.create.case settings
+
 setenv ICE_SANDBOX  ${ICE_SANDBOX}
 setenv ICE_SCRIPTS  ${ICE_SCRIPTS}
 setenv ICE_CASENAME ${casename}
@@ -463,13 +467,29 @@ endif
 foreach name ($testx $grid $setsx)
   set found = 0
   if (-e ${ICE_SCRIPTS}/options/set_nml.${name}) then
+cat >> ${fimods} << EOF2
+
+# set_nml.${name}
+
+EOF2
     cat ${ICE_SCRIPTS}/options/set_nml.${name} >> ${fimods}
+cat >> ${fimods} << EOF2
+
+EOF2
     echo "adding namelist mods set_nml.${name}"
     echo "`date`${0} adding namelist modes set_nml.${name}" >> ${casedir}/README.case
     set found = 1
   endif
   if (-e ${ICE_SCRIPTS}/options/set_env.${name}) then
+cat >> ${fsmods} << EOF2
+
+# set_env.${name}
+
+EOF2
     cat ${ICE_SCRIPTS}/options/set_env.${name} >> ${fsmods}
+cat >> ${fimods} << EOF2
+
+EOF2
     echo "adding env mods set_env.${name}"
     echo "`date`${0} adding namelist modes set_env.${name}" >> ${casedir}/README.case
     set found = 1
@@ -532,7 +552,6 @@ cd $testname_base
 cd ..
 EOF
     
-
     # If results are to be posted to CDash, build CtestTestfile.cmake
     if ($report == 1) then
       ${ICE_SCRIPTS}/tests/CTest/gen_ctestfile.csh ./${tsdir} $testname_noid $bfbcomp $spval

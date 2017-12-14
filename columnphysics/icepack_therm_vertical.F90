@@ -22,17 +22,40 @@
 
       use icepack_kinds
       use icepack_constants, only: c0, c1, c3, p001, p5, puny
-      use icepack_constants, only: pi, depressT, Lvap, hs_min, cp_ice
+      use icepack_constants, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
       use icepack_constants, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
-      use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc, min_salin
+
+      use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd
+      use icepack_parameters, only: phi_i_mushy
+
+      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond
+      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
+      use icepack_therm_shared, only: hi_min
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_0layer, only: zerolayer_temperature
+      use icepack_therm_mushy,  only: temperature_changes_salinity
+
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_mushy_physics, only: temperature_mush
+      use icepack_mushy_physics, only: liquidus_temperature_mush
+      use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
+      use icepack_mushy_physics, only: liquid_fraction
+
+      use icepack_aerosol, only: update_aerosol
+      use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
+      use icepack_age, only: increment_age
+      use icepack_firstyear, only: update_FYarea
+      use icepack_flux, only: set_sfcflux, merge_fluxes
+      use icepack_meltpond_cesm, only: compute_ponds_cesm
+      use icepack_meltpond_lvl, only: compute_ponds_lvl
+      use icepack_meltpond_topo, only: compute_ponds_topo
 
       implicit none
 
@@ -78,8 +101,6 @@
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
                                   prescribed_ice)
-
-      use icepack_therm_mushy, only: temperature_changes_salinity
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
@@ -629,10 +650,6 @@
                                        zSin,               &
                                        einit,    Tbot      )
 
-      use icepack_mushy_physics, only: temperature_mush
-      use icepack_mushy_physics, only: liquidus_temperature_mush
-      use icepack_mushy_physics, only: enthalpy_of_melting
-
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
@@ -1001,11 +1018,6 @@
                                     mlt_onset, frz_onset,&
                                     zSin,      sss,      &
                                     dsnow)
-
-      use icepack_parameters, only: phi_i_mushy
-      use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
-      use icepack_mushy_physics, only: temperature_mush, liquidus_temperature_mush
-      use icepack_mushy_physics, only: liquid_fraction
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -2044,18 +2056,6 @@
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice)
-
-      use icepack_aerosol, only: update_aerosol
-      use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
-      use icepack_age, only: increment_age
-      use icepack_firstyear, only: update_FYarea
-      use icepack_flux, only: set_sfcflux, merge_fluxes
-      use icepack_meltpond_cesm, only: compute_ponds_cesm
-      use icepack_meltpond_lvl, only: compute_ponds_lvl
-      use icepack_meltpond_topo, only: compute_ponds_topo
-      use icepack_therm_shared, only: hi_min
-      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond
-      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
 
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories

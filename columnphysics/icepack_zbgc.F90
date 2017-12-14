@@ -10,7 +10,21 @@
       module icepack_zbgc
 
       use icepack_kinds
-      use icepack_constants, only: c1,  c2, p5, c0, p1, puny
+      use icepack_constants, only: c0, c1, c2, p001, p1, p15, p5, puny
+      use icepack_constants, only: depressT, rhosi, min_salin, salt_loss
+
+      use icepack_parameters, only: fr_resp, algal_vel, R_dFe2dust, dustFe_sol, T_max
+      use icepack_parameters, only: op_dep_min, fr_graze_s, fr_graze_e, fr_mort2min, fr_dFe
+      use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
+      use icepack_parameters, only: fr_resp_s, y_sk_DMS, t_sk_conv, t_sk_ox
+      use icepack_parameters, only: scale_bgc, ktherm, skl_bgc, solve_zsal
+      use icepack_parameters, only: z_tracers, phi_snow
+
+      use icepack_tracers, only: nt_sice, nt_bgc_S, bio_index 
+      use icepack_tracers, only: tr_brine, nt_fbri, nt_qice, nt_Tsfc
+      use icepack_tracers, only: nt_zbgc_frac
+      use icepack_tracers, only: bio_index_o,  bio_index  
+
       use icepack_zbgc_shared, only: zbgc_init_frac
       use icepack_zbgc_shared, only: zbgc_frac_init
       use icepack_zbgc_shared, only: bgc_tracer_type, remap_zbgc
@@ -26,12 +40,16 @@
       use icepack_zbgc_shared, only: dictype, algaltype, doctype, dontype
       use icepack_zbgc_shared, only: fedtype, feptype, zaerotype
       use icepack_zbgc_shared, only: R_C2N, R_CHL2N, f_abs_chl, R_C2N_DON
-      use icepack_parameters, only: fr_resp, algal_vel, R_dFe2dust, dustFe_sol, T_max
-      use icepack_parameters, only: op_dep_min, fr_graze_s, fr_graze_e, fr_mort2min, fr_dFe
-      use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
-      use icepack_parameters, only: fr_resp_s, y_sk_DMS, t_sk_conv, t_sk_ox
+
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_brine, only: preflushing_changes, compute_microS_mushy
+      use icepack_brine, only: update_hbrine, compute_microS 
+      use icepack_algae, only: zbio, sklbio
+      use icepack_therm_shared, only: calculate_Tin_from_qin
+      use icepack_itd, only: column_sum, column_conservation_check
+      use icepack_zsalinity, only: zsalinity
 
       implicit none 
 
@@ -61,12 +79,6 @@
                                   ntrcr,      trcrn,      nbtrcr,   &
                                   sss,        ocean_bio,  flux_bio, &
                                   hsurp,      l_conservation_check)
-
-      use icepack_constants, only: c0, c1, puny, depressT
-      use icepack_itd, only: column_sum, column_conservation_check
-      use icepack_tracers, only: tr_brine, nt_fbri, nt_sice, nt_qice, nt_Tsfc
-      use icepack_parameters, only: solve_zsal
-      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       integer (kind=int_kind), intent(in) :: &
          nblyr   , & ! number of bio layers
@@ -280,10 +292,6 @@
                                    trcrn,    fzsal,    &
                                    flux_bio, nbltrcr)
 
-      use icepack_tracers, only: nt_fbri, nt_bgc_S, bio_index
-      use icepack_parameters, only: solve_zsal, rhosi
-      use icepack_constants, only: c1, p001
-
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
          nblyr , & ! number of bio layers
@@ -358,10 +366,6 @@
                                         solve_zsal, bgrid, &
                                         cgrid,      ocean_bio, &
                                         igrid,      location)
-
-      use icepack_constants, only: c1, c0
-      use icepack_tracers, only: nt_sice, nt_bgc_S, bio_index 
-      use icepack_parameters, only: min_salin, salt_loss
 
       integer (kind=int_kind), intent(in) :: &
          location          , & ! 1 (add frazil to bottom), 0 (add frazil throughout)
@@ -539,11 +543,6 @@
       subroutine icepack_init_bgc(dt, ncat, nblyr, nilyr, ntrcr_o, &
          cgrid, igrid, ntrcr, nbtrcr, &
          sicen, trcrn, sss, ocean_bio_all)
-
-      use icepack_constants, only: c0, c1, c2, p1, p15, p5
-      use icepack_tracers, only: nt_fbri, nt_bgc_S, nt_sice, nt_zbgc_frac
-      use icepack_tracers, only: bio_index_o,  bio_index  
-      use icepack_parameters, only: scale_bgc, ktherm, skl_bgc, solve_zsal
 
       real (kind=dbl_kind), intent(in) :: &
          dt        ! time step
@@ -844,15 +843,6 @@
                            aicen_init, vicen_init, aicen, vicen, vsnon, &
                            aice0, trcrn, vsnon_init, skl_bgc, &
                            max_algae, max_nbtrcr)
-
-      use icepack_algae, only: zbio, sklbio
-      use icepack_brine, only: preflushing_changes, compute_microS_mushy
-      use icepack_brine, only: update_hbrine, compute_microS 
-      use icepack_parameters, only: solve_zsal, z_tracers, phi_snow
-      use icepack_tracers, only: nt_fbri, tr_brine
-      use icepack_tracers, only: nt_bgc_S, nt_qice, nt_sice, nt_zbgc_frac, bio_index 
-      use icepack_constants, only: c0, c1, puny
-      use icepack_zsalinity, only: zsalinity
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -1199,8 +1189,6 @@
           nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, ocean_bio_all, hum)
 
-      use icepack_zbgc_shared, only: R_CHL2N
-
       integer (kind=int_kind), intent(in) :: &
          max_algae   , & ! maximum number of algal types 
          max_dic     , & ! maximum number of dissolved inorganic carbon types 
@@ -1309,8 +1297,6 @@
       subroutine icepack_init_ocean_conc (amm, dmsp, dms, algalN, doc, dic, don, &
              fed, fep, hum, nit, sil, zaeros, max_dic, max_don, max_fe, max_aero,&
              CToN, CToN_DON)
-
-      use icepack_zbgc_shared, only: R_C2N, R_C2N_DON
 
       integer (kind=int_kind), intent(in) :: &
         max_dic, &

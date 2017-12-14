@@ -9,13 +9,15 @@
       use icedrv_kinds
       use icedrv_constants, only: c0, nu_diag, nu_diag_out
       use icedrv_calendar, only: diagfreq, istep1, istep
-      use icedrv_tracers, only: max_aero
       use icedrv_domain_size, only: nx
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
       public :: runtime_diags, &
-                icedrv_diagnostics_abort, &
                 init_mass_diags, &
                 icedrv_diagnostics_debug, &
                 print_state
@@ -53,7 +55,6 @@
 
       subroutine runtime_diags (dt)
 
-      use icedrv_parameters,  only: calc_Tsfc, ktherm
       use icedrv_constants,   only: c1, c1000, c2, p001, p5, puny, rhoi, rhos, rhow
       use icedrv_constants,   only: rhofresh, Tffresh, Lfresh, Lvap, ice_ref_salinity
       use icedrv_constants,   only: m2_to_km2, awtvdr, awtidr, awtvdf, awtidf
@@ -66,7 +67,6 @@
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init, faero_atm, faero_ocn
       use icedrv_state, only: aice, vice, vsno, trcr
-      use icedrv_tracers, only: tr_brine, nt_fbri, nt_Tsfc
 #ifdef CCSMCOUPLED
       use icedrv_prescribed_mod, only: prescribed_ice
 #endif
@@ -79,6 +79,9 @@
       integer (kind=int_kind) :: &
          n
 
+      logical (kind=log_kind) :: &
+         calc_Tsfc
+
       ! fields at diagnostic points
       real (kind=dbl_kind) :: & 
           pTair, &
@@ -90,11 +93,21 @@
       real (kind=dbl_kind), dimension (nx) :: &
          work1, work2
 
+      logical (kind=log_kind) :: tr_brine
+      integer (kind=int_kind) :: nt_fbri, nt_Tsfc
+
       character(len=*), parameter :: subname='(runtime_diags)'
 
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
       !-----------------------------------------------------------------
+
+      call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine)
+      call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       call total_energy (work1)
       call total_salt   (work2)
@@ -224,7 +237,6 @@
 
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
       use icedrv_state, only: vicen, vsnon, trcrn
-      use icedrv_tracers, only: nt_qice, nt_qsno
 
       real (kind=dbl_kind), dimension (nx),  &
          intent(out) :: &
@@ -235,11 +247,18 @@
       integer (kind=int_kind) :: &
         i, k, n
 
+      integer (kind=int_kind) :: nt_qice, nt_qsno
+
       character(len=*), parameter :: subname='(total_energy)'
 
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
+
+         call icepack_query_tracer_indices(nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          work(:) = c0
 
@@ -276,7 +295,6 @@
 
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
       use icedrv_state, only: vicen, trcrn
-      use icedrv_tracers, only: nt_sice
 
       real (kind=dbl_kind), dimension (nx),  &
          intent(out) :: &
@@ -287,11 +305,18 @@
       integer (kind=int_kind) :: &
         i, k, n
 
+      integer (kind=int_kind) :: nt_sice
+
       character(len=*), parameter :: subname='(total_salt)'
 
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
+
+         call icepack_query_tracer_indices(nt_sice_out=nt_sice)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
 
          work(:) = c0
 
@@ -310,42 +335,6 @@
          enddo                  ! n
 
       end subroutine total_salt
-
-!=======================================================================
-
-! prints error information prior to aborting
-
-      subroutine icedrv_diagnostics_abort(icell, istep, string, file, line)
-
-      use icedrv_constants, only: nu_diag
-      use icedrv_state, only: aice
-      use icepack_intfc, only: icepack_warnings_flush
-
-      integer (kind=int_kind), intent(in), optional :: &
-         icell       , & ! indices of grid cell where model aborts
-         istep       , & ! time step number
-         line            ! line number
-
-      character (len=*), intent(in), optional :: string, file
-
-      ! local variables
-
-      character(len=*), parameter :: subname='(icedrv_diagnostics_abort)'
-
-      write(nu_diag,*) ' '
-
-      call icepack_warnings_flush(nu_diag)
-
-      write(nu_diag,*) ' '
-      write(nu_diag,*) subname,' ABORTED: '
-      if (present(file))   write (nu_diag,*) subname,' called from ',trim(file)
-      if (present(line))   write (nu_diag,*) subname,' line number ',line
-      if (present(istep))  write (nu_diag,*) subname,' istep =', istep
-      if (present(icell))  write (nu_diag,*) subname,' i, aice =', icell, aice(icell)
-      if (present(string)) write (nu_diag,*) subname,' string = ',trim(string)
-      stop
-
-      end subroutine icedrv_diagnostics_abort
 
 !=======================================================================
 !
@@ -389,7 +378,6 @@
       use icedrv_constants, only: puny, rhoi, rhos, Lfresh, cp_ice
       use icedrv_domain_size, only: ncat, nilyr, nslyr
       use icedrv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
-      use icedrv_tracers,  only: nt_Tsfc, nt_qice, nt_qsno
       use icedrv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow
       use icedrv_flux, only: fsens, flat, evap, flwout, swvdr, swvdf, swidr, swidf, rhoa
       use icedrv_flux, only: frzmlt, sst, sss, Tf, Tref, Qref, Uref, uocn, vocn, strtltx, strtlty
@@ -409,7 +397,15 @@
 
       integer (kind=int_kind) :: n, k
 
+      integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno
+
       character(len=*), parameter :: subname='(print_state)'
+
+      call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
+         nt_qsno_out=nt_qsno)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       write(nu_diag,*) trim(plabel)
       write(nu_diag,*) 'istep1, i, time', &

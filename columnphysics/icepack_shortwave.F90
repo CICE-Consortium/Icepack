@@ -46,14 +46,22 @@
       use icepack_constants,  only: p01, p1, p15, p25, p5, p75, puny
       use icepack_constants,  only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
       use icepack_constants,  only: kappav, hs_min, rhofresh, rhos, nspint
-      use icepack_parameters, only: hi_ssl, hs_ssl, modal_aero
+      use icepack_constants,  only: hi_ssl, hs_ssl, min_bgc, sk_l
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
-      use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
+      use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1, modal_aero
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
+      use icepack_parameters, only: dEdd_algae, bgc_flux_type
       use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_tracers,    only: tr_bgc_N, tr_aero
+      use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
+      use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
       use icepack_warnings,   only: warnstr, icepack_warnings_add
       use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_zbgc_shared,only: R_chl2N, F_abs_chl
+      use icepack_zbgc_shared,only: remap_zbgc
+      use icepack_orbital, only: compute_coszen
+
 
       implicit none
 
@@ -746,8 +754,6 @@
                           dhsn,     ffracn,    &
                           l_print_point,       &
                           initonly)
-
-      use icepack_orbital, only: compute_coszen
 
       integer (kind=int_kind), intent(in) :: &
          ncat   , & ! number of ice thickness categories
@@ -3620,13 +3626,6 @@
                                     nbtrcr_sw,    n_zaero,   &
                                     skl_bgc,      z_tracers  )
       
-      use icepack_constants,  only: c0, c1, c2, p5
-      use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
-      use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
-      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l, hi_ssl, min_bgc
-      use icepack_zbgc_shared,only: R_chl2N, F_abs_chl
-      use icepack_zbgc_shared,only: remap_zbgc
-
       integer (kind=int_kind), intent(in) :: &
          nslyr, & ! number of snow layers
          n_zaero    , & ! number of cells with aicen > puny 

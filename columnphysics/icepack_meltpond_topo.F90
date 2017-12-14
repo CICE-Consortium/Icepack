@@ -26,6 +26,7 @@
       use icepack_constants, only: gravit, depressT, kice, ice_ref_salinity
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       implicit none
 
@@ -753,8 +754,6 @@
       subroutine permeability_phi(heat_capacity, nilyr, &
                                   qicen, sicen, Tsfcn, Tf, &
                                   vicen, perm)
-
-      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if true, ice has nonzero heat capacity

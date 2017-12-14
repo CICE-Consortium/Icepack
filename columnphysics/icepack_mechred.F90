@@ -38,14 +38,22 @@
       use icepack_constants,  only: c0, c1, c2, c10, c20, c25, Cf, Cp, Pstar, Cstar
       use icepack_constants,  only: p05, p15, p25, p333, p5
       use icepack_constants,  only: puny, Lfresh, rhoi, rhos, rhow, gravit
+
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: heat_capacity
-      use icepack_tracers,    only: tr_pond_topo, tr_aero, tr_brine, ntrcr, nbtrcr
+
+      use icepack_tracers, only: tr_pond_topo, tr_aero, tr_brine, ntrcr, nbtrcr
+      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
+      use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero
+      use icepack_tracers, only: nt_apnd, nt_hpnd
+      use icepack_tracers, only: icepack_compute_tracers
+                           
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
       use icepack_itd, only: column_sum
       use icepack_itd, only: column_conservation_check
       use icepack_itd, only: cleanup_itd
-      use icepack_warnings, only: warnstr, icepack_warnings_add
-      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -108,8 +116,6 @@
                             dardg1ndt,   dardg2ndt,  &
                             dvirdgndt,               &
                             araftn,      vraftn)
-
-      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
 
       integer (kind=int_kind), intent(in) :: &
          ndtd       , & ! number of dynamics subcycles
@@ -1060,11 +1066,6 @@
                               maero,       mpond,           &
                               aredistn,    vredistn)
 
-      use icepack_tracers, only: nt_qsno, nt_fbri
-      use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, tr_aero
-      use icepack_tracers, only: nt_apnd, nt_hpnd, tr_pond_topo
-      use icepack_tracers, only: icepack_compute_tracers
-                           
       integer (kind=int_kind), intent(in) :: & 
          ncat  , & ! number of thickness categories
          nslyr , & ! number of snow layers

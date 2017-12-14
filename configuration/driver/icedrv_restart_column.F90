@@ -10,6 +10,12 @@
       use icedrv_constants
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, nx
       use icedrv_restart, only: read_restart_field_cn, write_restart_field_cn
+      use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don
+      use icepack_intfc, only: icepack_max_dic, icepack_max_aero, icepack_max_fe
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_numbers
+      use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
 
@@ -36,17 +42,6 @@
       use icedrv_flux, only: doc, don, dic, fed, fep, zaeros, hum
       use icedrv_state, only: trcrn
       use icedrv_restart, only:  write_restart_field
-      use icedrv_tracers, only: nbtrcr
-      use icedrv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
-      use icedrv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
-      use icedrv_tracers, only: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
-      use icedrv_tracers, only: nt_bgc_S, nt_bgc_N, nt_bgc_chl, nt_bgc_C, nt_bgc_DOC
-      use icedrv_tracers, only: nt_bgc_DIC, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
-      use icedrv_tracers, only: nt_bgc_hum
-      use icedrv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
-      use icedrv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
-      use icedrv_tracers, only: nt_zbgc_frac, nt_zaero
-      use icedrv_parameters, only: skl_bgc, solve_zsal
 
       ! local variables
 
@@ -56,7 +51,22 @@
 
       real (kind=dbl_kind) :: cszn ! counter for history averaging
 
-      logical (kind=log_kind) :: diag
+      logical (kind=log_kind) :: diag, skl_bgc, solve_zsal
+
+      integer (kind=int_kind) :: nbtrcr
+      logical (kind=log_kind) :: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
+      logical (kind=log_kind) :: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
+      logical (kind=log_kind) :: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
+      integer (kind=int_kind) :: nt_bgc_S, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
+      integer (kind=int_kind) :: nt_bgc_hum, nt_bgc_PON
+      integer (kind=int_kind) :: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
+      integer (kind=int_kind) :: nt_zbgc_frac
+      integer (kind=int_kind), dimension(icepack_max_algae) :: nt_bgc_N, nt_bgc_chl, nt_bgc_C
+      integer (kind=int_kind), dimension(icepack_max_doc)   :: nt_bgc_DOC
+      integer (kind=int_kind), dimension(icepack_max_don)   :: nt_bgc_DON
+      integer (kind=int_kind), dimension(icepack_max_dic)   :: nt_bgc_DIC
+      integer (kind=int_kind), dimension(icepack_max_aero)  :: nt_zaero
+      integer (kind=int_kind), dimension(icepack_max_fe)    :: nt_bgc_Fed, nt_bgc_Fep
 
       character (len=3) :: nchar, ncharb
 
@@ -66,6 +76,26 @@
       character(len=*), parameter :: subname='(write_restart_bgc)'
 
       diag = .true.
+
+      call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_query_parameters(solve_zsal_out=solve_zsal)
+      call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, tr_bgc_Am_out=tr_bgc_Am, &
+         tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_hum_out=tr_bgc_hum, &
+         tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, tr_bgc_S_out=tr_bgc_S, &
+         tr_bgc_N_out=tr_bgc_N, tr_bgc_C_out=tr_bgc_C, &
+         tr_bgc_DON_out=tr_bgc_DON, tr_bgc_Fe_out=tr_bgc_Fe,  &
+         tr_zaero_out=tr_zaero, tr_bgc_chl_out=tr_bgc_chl)
+      call icepack_query_tracer_indices( nt_bgc_S_out=nt_bgc_S, nt_bgc_N_out=nt_bgc_N, &
+         nt_bgc_chl_out=nt_bgc_chl, nt_bgc_C_out=nt_bgc_C, nt_bgc_DOC_out=nt_bgc_DOC, &
+         nt_bgc_DIC_out=nt_bgc_DIC, nt_bgc_Nit_out=nt_bgc_Nit, nt_bgc_AM_out=nt_bgc_AM, &
+         nt_bgc_Sil_out=nt_bgc_Sil, nt_bgc_hum_out=nt_bgc_hum, &
+         nt_bgc_DMSPp_out=nt_bgc_DMSPp, nt_bgc_DMSPd_out=nt_bgc_DMSPd, nt_bgc_DMS_out=nt_bgc_DMS, &
+         nt_bgc_PON_out=nt_bgc_PON, nt_bgc_DON_out=nt_bgc_DON, nt_bgc_Fed_out=nt_bgc_Fed, &
+         nt_bgc_Fep_out=nt_bgc_Fep, nt_zbgc_frac_out=nt_zbgc_frac, nt_zaero_out=nt_zaero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       !-----------------------------------------------------------------
       ! Salinity and extras
@@ -441,17 +471,6 @@
       use icedrv_flux, only: doc, don, dic, fed, fep, zaeros, hum
       use icedrv_state, only: trcrn
       use icedrv_restart, only: read_restart_field
-      use icedrv_tracers, only: nbtrcr
-      use icedrv_tracers, only: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
-      use icedrv_tracers, only: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
-      use icedrv_tracers, only: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
-      use icedrv_tracers, only: nt_bgc_S, nt_bgc_N, nt_bgc_chl, nt_bgc_C, nt_bgc_DOC
-      use icedrv_tracers, only: nt_bgc_DIC, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
-      use icedrv_tracers, only: nt_bgc_hum
-      use icedrv_tracers, only: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
-      use icedrv_tracers, only: nt_bgc_PON, nt_bgc_DON, nt_bgc_Fed, nt_bgc_Fep
-      use icepack_tracers, only: nt_zbgc_frac, nt_zaero
-      use icedrv_parameters, only: skl_bgc
 
       ! local variables
 
@@ -459,13 +478,47 @@
          i, k, & ! indices
          mm      ! n_algae
 
-      logical (kind=log_kind) :: diag
+      logical (kind=log_kind) :: diag, skl_bgc
+
+      integer (kind=int_kind) :: nbtrcr
+      logical (kind=log_kind) :: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
+      logical (kind=log_kind) :: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
+      logical (kind=log_kind) :: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
+      integer (kind=int_kind) :: nt_bgc_S, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
+      integer (kind=int_kind) :: nt_bgc_hum, nt_bgc_PON
+      integer (kind=int_kind) :: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
+      integer (kind=int_kind) :: nt_zbgc_frac
+      integer (kind=int_kind), dimension(icepack_max_algae) :: nt_bgc_N, nt_bgc_chl, nt_bgc_C
+      integer (kind=int_kind), dimension(icepack_max_doc)   :: nt_bgc_DOC
+      integer (kind=int_kind), dimension(icepack_max_don)   :: nt_bgc_DON
+      integer (kind=int_kind), dimension(icepack_max_dic)   :: nt_bgc_DIC
+      integer (kind=int_kind), dimension(icepack_max_aero)  :: nt_zaero
+      integer (kind=int_kind), dimension(icepack_max_fe)    :: nt_bgc_Fed, nt_bgc_Fep
 
       character (len=3) :: nchar, ncharb
 
       character(len=*), parameter :: subname='(read_restart_bgc)'
 
       diag = .true.
+
+      call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, tr_bgc_Am_out=tr_bgc_Am, &
+         tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_hum_out=tr_bgc_hum, &
+         tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, tr_bgc_S_out=tr_bgc_S, &
+         tr_bgc_N_out=tr_bgc_N, tr_bgc_C_out=tr_bgc_C, &
+         tr_bgc_DON_out=tr_bgc_DON, tr_bgc_Fe_out=tr_bgc_Fe,  &
+         tr_zaero_out=tr_zaero, tr_bgc_chl_out=tr_bgc_chl)
+      call icepack_query_tracer_indices( nt_bgc_S_out=nt_bgc_S, nt_bgc_N_out=nt_bgc_N, &
+         nt_bgc_chl_out=nt_bgc_chl, nt_bgc_C_out=nt_bgc_C, nt_bgc_DOC_out=nt_bgc_DOC, &
+         nt_bgc_DIC_out=nt_bgc_DIC, nt_bgc_Nit_out=nt_bgc_Nit, nt_bgc_AM_out=nt_bgc_AM, &
+         nt_bgc_Sil_out=nt_bgc_Sil, nt_bgc_hum_out=nt_bgc_hum, &
+         nt_bgc_DMSPp_out=nt_bgc_DMSPp, nt_bgc_DMSPd_out=nt_bgc_DMSPd, nt_bgc_DMS_out=nt_bgc_DMS, &
+         nt_bgc_PON_out=nt_bgc_PON, nt_bgc_DON_out=nt_bgc_DON, nt_bgc_Fed_out=nt_bgc_Fed, &
+         nt_bgc_Fep_out=nt_bgc_Fep, nt_zbgc_frac_out=nt_zbgc_frac, nt_zaero_out=nt_zaero)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       !-----------------------------------------------------------------
       ! Salinity and extras

@@ -98,8 +98,8 @@ details).
     **icepack\_meltpond\_topo.F90**
         topo melt pond parameterization
 
-    **icepack\_ocean.F90**  (CHECK THIS, not in directory now)
-        mixed layer ocean model
+..    **icepack\_ocean.F90**  (CHECK THIS, not in directory now)
+..        mixed layer ocean model
 
     **icepack\_mushy\_physics.F90**
         physics routines for mushy thermodynamics
@@ -144,58 +144,58 @@ details).
     drivers and scripts for testing Icepack in stand-alone mode
     
     **driver/**
-        **icepack\_drv\_MAIN.F90**
+        **icedrv\_MAIN.F90**
             main program
 
-        **icepack\_drv\_InitMod.F90**
+        **icedrv\_InitMod.F90**
             routines for initializing a run
 
-        **icepack\_drv\_RunMod.F90**
+        **icedrv\_RunMod.F90**
             main driver routines for time stepping
 
-        **icepack\_drv\_arrays\_column.F90**
+        **icedrv\_arrays\_column.F90**
             essential arrays to describe the state of the ice
 
-        **icepack\_drv\_calendar.F90**
+        **icedrv\_calendar.F90**
             keeps track of what time it is
 
-        **icepack\_drv\_constants.F90**
+        **icedrv\_constants.F90**
             physical and numerical constants and parameters
 
-        **icepack\_drv\_diagnostics.F90**
+        **icedrv\_diagnostics.F90**
             miscellaneous diagnostic and debugging routines
 
-        **icepack\_drv\_diagnostics\_bgc.F90**
+        **icedrv\_diagnostics\_bgc.F90**
             diagnostic routines for biogeochemistry
 
-        **icepack\_drv\_domain\_size.F90**
+        **icedrv\_domain\_size.F90**
             domain sizes
 
-        **icepack\_drv\_flux.F90**
+        **icedrv\_flux.F90**
             fluxes needed/produced by the model
 
-        **icepack\_drv\_forcing.F90**
+        **icedrv\_forcing.F90**
             routines to read and interpolate forcing data for stand-alone model runs
 
-        **icepack\_drv\_init.F90**
+        **icedrv\_init.F90**
             general initialization routines
 
-        **icepack\_drv\_init\_column.F90**
+        **icedrv\_init\_column.F90**
             initialization routines specific to the column physics
 
-        **icepack\_drv\_restart.F90**
+        **icedrv\_restart.F90**
             driver for reading/writing restart files
 
-        **icepack\_drv\_restart\_column.F90**  (CHECK: RENAME bgc)
+        **icedrv\_restart\_column.F90**  (CHECK: RENAME bgc)
             restart routines specific to the column physics
 
-        **icepack\_drv\_restart\_shared.F90**
+        **icedrv\_restart\_shared.F90**
             code shared by all restart options
 
-        **icepack\_drv\_state.F90**
+        **icedrv\_state.F90**
             essential arrays to describe the state of the ice
 
-        **icepack\_drv\_step\_mod.F90**
+        **icedrv\_step\_mod.F90**
             routines for time stepping the major code components
 
     **scripts/**
@@ -335,7 +335,7 @@ will be described in more detail in the :ref:`tabnamelist`.
 
 Two namelist variables control model initialization, ``ice_ic``
 and ``restart``.  Setting ``ice_ic`` = 'default' causes the model to run using
-constant forcing and initial values set in the code.  To start
+initial values set in the code.  To start
 from a file **filename**, set 
 ``restart`` = .true. and ``ice_ic`` = **filename**.  When restarting using the Icepack
 driver, for simplicity the tracers are assumed to be set the same way (on/off) as in the
@@ -343,7 +343,7 @@ run that created the restart file; i.e. that the restart file contains exactly t
 information needed for the new run.  CICE is more flexible in this regard.
 
 For stand-alone runs,
-routines in **icepack\_drv\_forcing.F90** read and interpolate data from files,
+routines in **icedrv\_forcing.F90** read and interpolate data from files,
 and are intended merely for testing, although they can also provide guidance for 
 the user to write his or her own routines. 
 
@@ -522,7 +522,7 @@ The code is currently configured to run in standalone mode on a 4-cell grid usin
 atmospheric data, available as detailed on the `wiki <https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack>`_.
 These data files are designed only for testing the code, not for use in production 
 runs or as observational data.  Please do not publish results based on these data
-sets.  Module **configuration/driver/icepack\_drv\_forcing.F90**
+sets.  Module **configuration/driver/icedrv\_forcing.F90**
 can be modified to change the forcing data. 
 
 
@@ -576,10 +576,10 @@ dependencies (e.g., :math:`a_{lvl}` and :math:`a_{pnd}` in
 To add a tracer, follow these steps using one of the existing tracers as
 a pattern.
 
-#. **icepack\_drv\_domain\_size.F90**: increase ``max_ntrcr`` (can also add option
+#. **icedrv\_domain\_size.F90**: increase ``max_ntrcr`` (can also add option
    to **icepack.settings** and **icepack.build**)
 
-#. **icepack\_drv\_state.F90**: declare ``nt_[tracer]`` and ``tr_[tracer]``
+#. **icedrv\_state.F90**: declare ``nt_[tracer]`` and ``tr_[tracer]``
 
 #. **icepack\_[tracer].F90**: create initialization, physics routines
 
@@ -604,17 +604,17 @@ a pattern.
 #. **icepack\_itd.F90**, **icepack\_mechred.F90**: Account for new dependencies
    if needed.
 
-#. **icepack\_drv\_InitMod.F90**: initialize tracer (includes reading restart
+#. **icedrv\_InitMod.F90**: initialize tracer (includes reading restart
    file)
 
-#. **icepack\_drv\_RunMod.F90**, **icepack\_drv\_step\_mod.F90**:
+#. **icedrv\_RunMod.F90**, **icedrv\_step\_mod.F90**:
 
    -  call routine to write tracer restart data
 
    -  call physics routines in **icepack\_[tracer].F90** (often called from
-      **icepack\_drv\_step\_mod.F90**)
+      **icedrv\_step\_mod.F90**)
 
-#. **icepack\_drv\_restart.F90**: define restart variables
+#. **icedrv\_restart.F90**: define restart variables
 
 #. **icepack\_in**: add namelist variables to *tracer\_nml* and
    *icefields\_nml*
@@ -1047,112 +1047,36 @@ CHECK
    "``npt``", "integer", "total number of time steps to take", ""
    "``ndtd``", "integer", "number of dynamics/advection/ridging/steps per thermo timestep", "1"
    "", "", "*Initialization/Restarting*", ""
-   "``runtype``", "``initial``", "start from ``ice_ic``", ""
-   "", "``continue``", "restart using ``pointer_file``", ""
    "``ice_ic``", "``default``", "latitude and sst dependent", "default"
    "", "``none``", "no ice", ""
    "", "path/file", "restart file name", ""
-   "``restart``", "true/false", "initialize using restart file", "``.true.``"
-   "``use_restart_time``", "true/false", "set initial date using restart file", "``.true.``"
-   "``restart_format``", "nc", "read/write  restart files (use with PIO)", ""
-   "", "bin", "read/write binary restart files", ""
-   "``lcdf64``", "true/false", "if true, use 64-bit  format", ""
    "``restart_dir``", "path/", "path to restart directory", ""
-   "``restart_ext``", "true/false", "read/write halo cells in restart files", ""
-   "``restart_file``", "filename prefix", "output file for restart dump", "‘iced’"
-   "``pointer_file``", "pointer filename", "contains restart filename", ""
    "``dumpfreq``", "``y``", "write restart every ``dumpfreq_n`` years", "y"
    "", "``m``", "write restart every ``dumpfreq_n`` months", ""
    "", "``d``", "write restart every ``dumpfreq_n`` days", ""
-   "``dumpfreq_n``", "integer", "frequency restart data is written", "1"
-   "``dump_last``", "true/false", "if true, write restart on last time step of simulation", ""
    "", "", "*Model Output*", ""
-   "``bfbflag``", "true/false", "for bit-for-bit diagnostic output", ""
    "``diagfreq``", "integer", "frequency of diagnostic output in ``dt``", "24"
    "", "*e.g.*, 10", "once every 10 time steps", ""
-   "``diag_type``", "``stdout``", "write diagnostic output to stdout", ""
-   "", "``file``", "write diagnostic output to file", ""
    "``diag_file``", "filename", "diagnostic output file (script may reset)", ""
-   "``print_global``", "true/false", "print diagnostic data, global sums", "``.false.``"
-   "``print_points``", "true/false", "print diagnostic data for two grid points", "``.false.``"
-   "``latpnt``", "real", "latitude of (2) diagnostic points", "" 
-   "``lonpnt``", "real", "longitude of (2) diagnostic points", ""
-   "``dbug``", "true/false", "if true, write extra diagnostics", "``.false.``"
-   "``histfreq``", "string array", "defines output frequencies", ""
-   "", "``y``", "write history every ``histfreq_n`` years", ""
-   "", "``m``", "write history every ``histfreq_n`` months", ""
-   "", "``d``", "write history every ``histfreq_n`` days", ""
-   "", "``h``", "write history every ``histfreq_n`` hours", ""
-   "", "``1``", "write history every time step", ""
-   "", "``x``", "unused frequency stream (not written)", ""
-   "``histfreq_n``", "integer array", "frequency history output is written", ""
-   "", "0", "do not write to history", ""
-   "``hist_avg``", "true", "write time-averaged data", "``.true.``"
-   "", "false", "write snapshots of data", ""
-   "``history\_dir``", "path/", "path to history output directory", ""
-   "``history\_file``", "filename prefix", "output file for history", "‘iceh’"
-   "``write\_ic``", "true/false", "write initial condition", ""
-   "``incond\_dir``", "path/", "path to initial condition directory", ""
-   "``incond\_file``", "filename prefix", "output file for initial condition", "‘iceh’"
-   "``runid``", "string", "label for run (currently CESM only)", ""
+..   "``dbug``", "true/false", "if true, write extra diagnostics", "``.false.``"
    "", "", "", ""
    "*grid_nml*", "", "", ""
    "", "", "*Grid*", ""
-   "``grid_format``", "``nc``", "read  grid and kmt files", "‘bin’"
-   "", "``bin``", "read direct access, binary file", ""
-   "``grid_type``", "``rectangular``", "defined in *rectgrid*", ""
-   "", "``displaced_pole``", "read from file in *popgrid*", ""
-   "", "``tripole``", "read from file in *popgrid*", ""
-   "", "``regional``", "read from file in *popgrid*", ""
-   "``grid_file``", "filename", "name of grid file to be read", "‘grid’"
-   "``kmt_file``", "filename", "name of land mask file to be read", "‘kmt’"
-   "``gridcpl_file``", "filename", "input file for coupling grid info", ""
    "``kcatbound``", "``0``", "original category boundary formula", "0"
    "", "``1``", "new formula with round numbers", ""
    "", "``2``", "WMO standard categories", ""
    "", "``-1``", "one category", ""
    "", "", "", ""
-   "*domain_nml*", "", "", ""
-   "", "", "*Domain*", ""
-   "``nprocs``", "integer", "number of processors to use", ""
-   "``processor_shape``", "``slenderX1``", "1 processor in the y direction (tall, thin)", ""
-   "", "``slenderX2``", "2 processors in the y direction (thin)", ""
-   "", "``square-ice``", "more processors in x than y, :math:`\sim` square", ""
-   "", "``square-pop``", "more processors in y than x, :math:`\sim` square", ""
-   "``distribution_type``", "``cartesian``", "distribute blocks in 2D Cartesian array", ""
-   "", "``roundrobin``", "1 block per proc until blocks are used", ""
-   "", "``sectcart``", "blocks distributed to domain quadrants", ""
-   "", "``sectrobin``", "several blocks per proc until used", ""
-   "", "``rake``", "redistribute blocks among neighbors", ""
-   "", "``spacecurve``", "distribute blocks via space-filling curves", ""
-   "``distribution_weight``", "``block``", "full block size sets ``work_per_block``", ""
-   "", "``latitude``", "latitude/ocean sets ``work_per_block``", ""
-   "``ew_boundary_type``", "``cyclic``", "periodic boundary conditions in x-direction", ""
-   "", "``open``", "Dirichlet boundary conditions in x", ""
-   "``ns_boundary_type``", "``cyclic``", "periodic boundary conditions in y-direction", ""
-   "", "``open``", "Dirichlet boundary conditions in y", ""
-   "", "``tripole``", "U-fold tripole boundary conditions in y", ""
-   "", "``tripoleT``", "T-fold tripole boundary conditions in y", ""
-   "``maskhalo_dyn``", "true/false", "mask unused halo cells for dynamics", ""
-   "``maskhalo_remap``", "true/false", "mask unused halo cells for transport", ""
-   "``maskhalo_bound``", "true/false", "mask unused halo cells for boundary updates", ""
-   "", "", "", ""
    "*tracer_nml*", "", "", ""
    "", "", "*Tracers*", ""
    "``tr_iage``", "true/false", "ice age", ""
-   "``restart_age``", "true/false", "restart tracer values from file", ""
    "``tr_FY``", "true/false", "first-year ice area", ""
-   "``restart_FY``", "true/false", "restart tracer values from file", ""
    "``tr_lvl``", "true/false", "level ice area and volume", ""
-   "``restart_lvl``", "true/false", "restart tracer values from file", ""
    "``tr_pond_cesm``", "true/false", "CESM melt ponds", ""
-   "``restart_pond_cesm``", "true/false", "restart tracer values from file", ""
    "``tr_pond_topo``", "true/false", "topo melt ponds", ""
-   "``restart_pond_topo``", "true/false", "restart tracer values from file", ""
    "``tr_pond_lvl``", "true/false", "level-ice melt ponds", ""
-   "``restart_pond_lvl``", "true/false", "restart tracer values from file", ""
    "``tr_aero``", "true/false", "aerosols", ""
-   "``restart_aero``", "true/false", "restart tracer values from file", ""
+   "", "", "", ""
    "*thermo_nml*", "", "", ""
    "", "", "*Thermodynamics*", ""
    "``kitd``", "``0``", "delta function ITD approximation", "1"
@@ -1171,13 +1095,6 @@ CHECK
    "", "", "", ""
    "*dynamics_nml*", "", "", ""
    "", "", "*Dynamics*", ""
-   "``kdyn``", "``0``", "dynamics OFF", "1"
-   "", "``1``", "EVP dynamics", ""
-   "", "``2``", "EAP dynamics", ""
-   "``revised_evp``", "true/false", "use revised EVP formulation", ""
-   "``ndte``", "integer", "number of EVP subcycles", "120"
-   "``advection``", "``remap``", "linear remapping advection", "‘remap’"
-   "", "``upwind``", "donor cell advection", ""
    "``kstrength``", "``0``", "ice strength formulation :cite:`Hibler79`", "1"
    "", "``1``", "ice strength formulation :cite:`Rothrock75`", ""
    "``krdg_partic``", "``0``", "old ridging participation function", "1"
@@ -1220,13 +1137,10 @@ CHECK
    "*zbgc_nml*", "", "", ""
    "", "", "*Biogeochemistry*", ""
    "``tr_brine``", "true/false", "brine height tracer", ""
-   "``restart_hbrine``", "true/false", "restart tracer values from file", ""
    "``skl_bgc``", "true/false", "biogeochemistry", ""
    "``bgc_flux_type``", "``Jin2006``", "ice–ocean flux velocity of :cite:`JDWSTWLG06`", ""
    "", "``constant``", "constant ice–ocean flux velocity", ""
-   "``restart_bgc``", "true/false", "restart tracer values from file", ""
    "``restore_bgc``", "true/false", "restore nitrate/silicate to data", ""
-   "``bgc_data_dir``", "path/", "data directory for bgc", ""
    "``sil_data_type``", "``default``", "default forcing value for silicate", ""
    "", "``clim``", "silicate forcing from ocean climatology :cite:`GLBA06`", ""
    "``nit_data_type``", "``default``", "default forcing value for nitrate", ""
@@ -1248,14 +1162,14 @@ CHECK
    "", "``constant``", "bulk transfer coefficients", ""
    "``fyear_init``", "yyyy", "first year of atmospheric forcing data", ""
    "``ycycle``", "integer", "number of years in forcing data cycle", ""
-   "``atm_data_format``", "``nc``", "read  atmo forcing files", ""
-   "", "``bin``", "read direct access, binary files", ""
+..   "``atm_data_format``", "``nc``", "read  atmo forcing files", ""
+..   "", "``bin``", "read direct access, binary files", ""
    "``atm_data_type``", "``default``", "constant values defined in the code", ""
-   "", "``LYq``", "AOMIP/Large-Yeager forcing data", ""
-   "", "``monthly``", "monthly forcing data", ""
-   "", "``ncar``", "NCAR bulk forcing data", ""
-   "", "``oned``", "column forcing data", ""
-   "``atm_data_dir``", "path/", "path to atmospheric forcing data directory", ""
+   "", "``clim``", "monthly climatology", ""
+   "", "``CFS``", "CFS model output", ""
+   "", "``ISPOL``", "ISPOL experiment data", ""
+..   "", "``NICE``", "N-ICE experiment data", ""
+   "``data_dir``", "path/", "path to forcing data directory", ""
    "``calc_strair``", "true", "calculate wind stress and speed", ""
    "", "false", "read wind stress and speed from files", ""
    "``highfreq``", "true/false", "high-frequency atmo coupling", ""
@@ -1266,37 +1180,23 @@ CHECK
    "", "``mm_per_sec``", "(same as MKS units)", ""
    "``tfrz_option``", "``minus1p8``", "constant ocean freezing temperature (:math:`-1.8^\circ C`)", ""
    "", "``linear_salt``", "linear function of salinity (ktherm=1)", ""
-   "", "``mushy_layer``", "matches mushy-layer thermo (ktherm=2)", ""
+   "", "``mushy``", "matches mushy-layer thermo (ktherm=2)", ""
    "``ustar_min``", "real", "minimum value of ocean friction velocity", "0.0005 m/s"
    "``fbot_xfer_type``", "``constant``", "constant ocean heat transfer coefficient", ""
-   "", "``Cdn\_ocn``", "variable ocean heat transfer coefficient", ""
+   "", "``Cdn_ocn``", "variable ocean heat transfer coefficient", ""
    "``update_ocn_f``", "true", "include frazil water/salt fluxes in ocn fluxes", ""
    "", "false", "do not include (when coupling with POP)", ""
    "``l_mpond_fresh``", "true", "retain (topo) pond water until ponds drain", ""
    "", "false", "release (topo) pond water immediately to ocean", ""
    "``oceanmixed_ice``", "true/false", "active ocean mixed layer calculation", "``.true.`` (if uncoupled)"
-   "``ocn_data_format``", "``nc``", "read  ocean forcing files", ""
-   "", "``bin``", "read direct access, binary files", ""
-   "``sss_data_type``", "``default``", "constant values defined in the code", ""
-   "", "``clim``", "climatological data", ""
-   "", "``near``", "POP ocean forcing data", ""
-   "``sst_data_type``", "``default``", "constant values defined in the code", ""
-   "", "``clim``", "climatological data", ""
-   "", "``ncar``", "POP ocean forcing data", ""
-   "``ocn_data_dir``", "path/", "path to oceanic forcing data directory", ""
+   "``ocn_data_type``", "``default``", "constant values defined in the code", ""
+   "", "``ISPOL``", "ISPOL experiment data", ""
+..   "", "``NICE``", "N-ICE experiment data", ""
+   "``bgc_data_type``", "``default``", "constant values defined in the code", ""
+   "", "``ISPOL``", "ISPOL experiment data", ""
+..   "", "``NICE``", "N-ICE experiment data", ""
    "``oceanmixed_file``", "filename", "data file containing ocean forcing data", ""
    "``restore_ocn``", "true/false", "restore sst to data", ""
    "``trestore``", "integer", "sst restoring time scale (days)", ""
    "", "", "", ""
-   "*icefields_tracer_nml*", "", "", ""
-   "", "", "*History Fields*", ""
-   "``f_<var>``", "string", "frequency units for writing ``<var>`` to history", ""
-   "", "``y``", "write history every ``histfreq_n`` years", ""
-   "", "``m``", "write history every ``histfreq_n`` months", ""
-   "", "``d``", "write history every ``histfreq_n`` days", ""
-   "", "``h``", "write history every ``histfreq_n`` hours", ""
-   "", "``1``", "write history every time step", ""
-   "", "``x``", "do not write ``<var>`` to history", ""
-   "", "``md``", "*e.g.,* write both monthly and daily files", ""
-   "``f_<var>_ai``", "", "grid cell average of ``<var>`` (:math:`\times a_i`)", ""
 

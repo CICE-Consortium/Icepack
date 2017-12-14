@@ -12,8 +12,13 @@
       use icedrv_domain_size, only: ncat, nilyr, nx
       use icedrv_constants, only: c0, c1, c5, c10, c20, c180, dragio
       use icedrv_constants, only: stefan_boltzmann, Tffresh, emissivity
-      use icedrv_tracers, only: max_aero, max_nbtrcr
-      use icedrv_tracers, only: max_algae, max_doc, max_don, max_dic, max_fe
+      use icedrv_constants, only: nu_diag
+      use icepack_intfc, only: icepack_max_aero, icepack_max_nbtrcr, icepack_max_fe
+      use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don, icepack_max_dic
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
+      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
@@ -309,23 +314,23 @@
       ! in from atmosphere
 
       real (kind=dbl_kind), &   !coupling variable for both tr_aero and tr_zaero
-         dimension (nx,max_aero), public :: &
+         dimension (nx,icepack_max_aero), public :: &
          faero_atm   ! aerosol deposition rate (kg/m^2 s)   
 
       real (kind=dbl_kind), &
-         dimension (nx,max_nbtrcr), public :: &
+         dimension (nx,icepack_max_nbtrcr), public :: &
          flux_bio_atm  ! all bio fluxes to ice from atmosphere
 
       ! in from ocean
 
       real (kind=dbl_kind), &
-         dimension (nx,max_aero), public :: &
+         dimension (nx,icepack_max_aero), public :: &
          faero_ocn   ! aerosol flux to ocean  (kg/m^2/s)
 
       ! out to ocean 
 
       real (kind=dbl_kind), &
-         dimension (nx,max_nbtrcr), public :: &
+         dimension (nx,icepack_max_nbtrcr), public :: &
          flux_bio   , & ! all bio fluxes to ocean
          flux_bio_ai    ! all bio fluxes to ocean, averaged over grid cell
 
@@ -357,27 +362,27 @@
          fhum       , & ! ice-ocean humic material carbon (mmol/m^2/s), positive to ocean
          fdust          ! ice-ocean dust flux (kg/m^2/s), positive to ocean
 
-      real (kind=dbl_kind), dimension (nx,max_algae), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_algae), public :: &
          algalN     , & ! ocean algal nitrogen (mmol/m^3) (diatoms, pico, phaeo)
          falgalN        ! ice-ocean algal nitrogen flux (mmol/m^2/s) (diatoms, pico, phaeo)
 
-      real (kind=dbl_kind), dimension (nx,max_doc), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_doc), public :: &
          doc         , & ! ocean doc (mmol/m^3)  (saccharids, lipids, tbd )
          fdoc            ! ice-ocean doc flux (mmol/m^2/s)  (saccharids, lipids, tbd)
 
-      real (kind=dbl_kind), dimension (nx,max_don), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_don), public :: &
          don         , & ! ocean don (mmol/m^3) (proteins and amino acids)
          fdon            ! ice-ocean don flux (mmol/m^2/s) (proteins and amino acids)
 
-      real (kind=dbl_kind), dimension (nx,max_dic), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_dic), public :: &
          dic         , & ! ocean dic (mmol/m^3) 
          fdic            ! ice-ocean dic flux (mmol/m^2/s) 
 
-      real (kind=dbl_kind), dimension (nx,max_fe), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_fe), public :: &
          fed, fep    , & ! ocean dissolved and particulate fe (nM) 
          ffed, ffep      ! ice-ocean dissolved and particulate fe flux (umol/m^2/s) 
 
-      real (kind=dbl_kind), dimension (nx,max_aero), public :: &
+      real (kind=dbl_kind), dimension (nx,icepack_max_aero), public :: &
          zaeros          ! ocean aerosols (mmol/m^3) 
 
 !=======================================================================
@@ -492,6 +497,9 @@
       do i = 1, nx
          Tf (i) = icepack_liquidus_temperature(sss(i)) ! freezing temp (C)
       enddo
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       qdp   (:) = c0              ! deep ocean heat flux (W/m^2)
       hmix  (:) = c20             ! ocean mixed layer depth
@@ -610,14 +618,22 @@
       subroutine init_history_therm
 
       use icedrv_state, only: aice, vice, trcr
-      use icedrv_tracers, only: tr_iage, nt_iage
-      use icedrv_parameters, only: formdrag
       use icedrv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
       use icedrv_arrays_column, only: Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_pond, Cdn_atm_rdg
       use icedrv_arrays_column, only: Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
       use icedrv_arrays_column, only: Cdn_atm, Cdn_ocn
       use icedrv_constants, only: vonkar,zref,iceruf
+
+      logical (kind=log_kind) :: formdrag, tr_iage
+      integer (kind=int_kind) :: nt_iage
       character(len=*), parameter :: subname='(init_history_therm)'
+
+      call icepack_query_parameters(formdrag_out=formdrag)
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage)
+      call icepack_query_tracer_indices(nt_iage_out=nt_iage)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       fsurf  (:) = c0
       fcondtop(:)= c0
@@ -689,8 +705,15 @@
       subroutine init_history_dyn
 
       use icedrv_state, only: aice, vice, trcr
-      use icedrv_tracers, only: tr_iage, nt_iage
+      logical (kind=log_kind) :: tr_iage
+      integer (kind=int_kind) :: nt_iage
       character(len=*), parameter :: subname='(init_history_dyn)'
+
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage)
+      call icepack_query_tracer_indices(nt_iage_out=nt_iage)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       dardg1dt(:) = c0
       dardg2dt(:) = c0
