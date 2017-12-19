@@ -1,4 +1,4 @@
-:tocdepth: 3
+:tocdepth: 4
 
 **********
 User Guide
@@ -404,34 +404,33 @@ Quick-start instructions are provided in the :ref:`quickstart` section.
 Scripts
 -------------
 
-Most of the scripts that configure, build and run Icepack tests are contained in 
+The icepack scripts are written to allow quick setup of cases and tests.  Once a case is 
+generated, users can manually modify the namelist and other files to custom configure
+the case.  Several settings are available via scripts as well.
+
+Most of the scripts that configure, build and run Icepack are contained in 
 the directory **configuration/scripts/**, except for **icepack.create.case**, which is
-in the main directory.  
+in the main directory.  icepack.create.case is the main script that generates a case. 
 
 Users likely will need to create or edit some scripts for their computer's environment. 
 Specific instructions for porting are provided below.
 
-icepack.create.case generates a case. Use ``create.case -h`` for help with the tool.
-  -c is the case name and location (required)
+``icepack.create.case -h`` will provide the latest information about how to use the tool.
+There are three usage modes,
 
-  -m is the machine name (required). Currently, there are working ports for NCAR yellowstone and cheyenne, AFRL thunder, NavyDSRC gordon and conrad, and LANL’s wolf machines.
+* -c creates individual stand alone cases.
+* -t creates individual tests.  Tests are just cases that have some extra automation in order to carry out particular tests such as exact restart.
+* -ts creates a test suite.  Test suites are predefined sets of tests and -ts provides the ability to quick setup, build, and run a full suite of tests.
 
-  -s are comma separated optional env or namelist settings (default is 'null')
+All modes will require use of -m to specify the machine and case and test modes 
+can use -s to define specific options.  -t and -ts will require -testid to be set 
+and both of the test modes can use -bd, -bg, -bc, and -td to compare with other results.
+Testing will be described in greater detail in the :ref:`testing` section.
 
-  -t is the test name and location (cannot be used with -c).
+Again, ``icepack.create.case -h`` will show the latest usage information including 
+the available -s options, the current ported machines, and the test choices.
 
-  -bd is used to specify the location of the baseline datasets (only used with -t)
-
-  -bg is used to specify the icepack version name for generating baseline datasets (only used with -t)
-
-  -bc is used to specify the icepack version name for comparison. I.e., the version name for the baseline dataset (only used with -t)
-
-  -testid is used to specify a test ID (used only with -t or -ts)
-
-  -ts is used to generate all test cases for a given test suite.
-
-
-Several files are placed in the case directory
+Once a case/test is created, several files are placed in the case directory
 
 - **env.[machine]** defines the environment
 
@@ -451,23 +450,29 @@ Several files are placed in the case directory
 
 - **icepack.submit** is a simple script that submits the icepack.run script
 
-Once the case is created, all scripts and namelist are fully resolved.  Users can edit any
+All scripts and namelist are fully resolved in the case.  Users can edit any
 of the files in the case directory manually to change the model configuration.  The file
 dependency is indicated in the above list.  For instance, if any of the files before
 **icepack.build** in the list are edited, **icepack.build** should be rerun.
 
 The **casescripts/** directory holds scripts used to create the case and can 
-largely be ignored.  
+largely be ignored.  Once a case is created, the **icepack.build** script should be run
+interactively and then the case should be submitted by executing the 
+**icepack.submit** script interactively.  The **icepack.submit** script
+simply submits the **icepack.run script**.  
+You can also submit the **icepack.run** script on the command line.
+
 In general, when **icepack.build** is executed, the model will build from scratch 
 due to extensive preprocessing dependencies.  To change this behavior, edit the 
 env variable ``ICE_CLEANBUILD`` in **icepack.settings**.  
 
-The **icepack.submit** script simply submits the **icepack.run script**.  
-You can also submit the **icepack.run** script on the command line.
 
-To port, an **env.[machine]** and **Macros.[machine]** file have to be added to 
-**configuration/scripts/machines/** and the 
-**icepack.run.setup.csh** file needs to be modified.
+Porting
+-------------
+
+To port, an **env.[machine]** and **Macros.[machine]** file have to be added to the
+**configuration/scripts/machines/** directory and the 
+**configuration/scripts/icepack.run.setup.csh** file needs to be modified.
  
 - cd to **configuration/scripts/machines/**
 
@@ -483,20 +488,33 @@ To port, an **env.[machine]** and **Macros.[machine]** file have to be added to
 - Download and untar a forcing dataset to the location defined by 
   ``ICE_MACHINE_INPUTDATA`` in the env file
 
-- Create a file in your home directory called **.cice\_proj** and add your preferred account name to the first line.
+In fact, this process almost certainly will require some iteration.  The easiest way to carry this out is to create an initial set of changes as described above, then create a case and manually modify the **env.[machine]** file and **Macros.[machine]** file until the case can build and run.  Then copy the files from the case directory back to **configuration/scripts/machines/** and update the **configuration/scripts/icepack.run.setup.csh** file, retest, and then add and commit the updated machine files to the repository.
+
+Input Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The input data space is defined on a per machine basis by the ``ICE_MACHINE_INPUTDATA`` variable in the **env.[machine]** file.  That file space is often shared among multiple users, and it can be desirable to consider using a common file space with group read and write permissions such that a set of users can update the inputdata area as new datasets are available.
+
+The latest input data will be available thru the CICE Consortium github wiki.
+
+Machine Account Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The machine account default is specified by the variable ``ICE_MACHINE_ACCT`` in 
+the **env.[machine]** file.  The easiest way to change a user's default is to 
+create a file in your home directory called **.cice\_proj** and add your 
+preferred account name to the first line.  
+There is also an option in **icepack.create.case** to define the account number.  
+The order of precedent is **icepack.create.case** command line option, 
+**.cice\_proj** setting, and then value in the **env.[machine]** file.
 
 
-Directories
--------------
+Run Directories
+-----------------
 
-CHECK
-
-The **icepack.create.case** script creates a case directory in the location specified 
-by the ``-c`` or ``-t`` flags.  The **icepack.build** script 
-creates the run directory defined by the env variable ``ICE_RUNDIR`` in 
-**icepack.settings**, and it compiles the code there.  The run directory is further 
-populated by the **icepack.run** script, which also runs the executable.  Specifying 
-the test suite creates a directory containing subdirectories for each test.
+The **icepack.create.case** script creates a case directory.  However, the model 
+is actually built and run under the ``ICE_OBJDIR`` and ``ICE_RUNDIR`` directories
+as defined in the **icepack.settings** file.
 
 Build and run logs will be copied from the run directory into the case **logs/** 
 directory when complete.
@@ -505,13 +523,13 @@ directory when complete.
 Local modifications
 --------------------------
 
-Scripts and files can be changed in the case directory and then built from there, without 
-changing them in your main directory.
+Scripts and other case settings can be changed manually in the case directory and
+used.  Source code can be modified in the main sandbox.  When changes are made, the code
+should be rebuilt before being resubmitted.  It is always recommended that users
+modify the scripts and input settings in the case directory, NOT the run directory.
+In general, files in the run directory are overwritten by versions in the case
+directory when the model is built, submitted, and run.
 
-You also can directly modify the namelist files (**icepack\_in**) in the run directory and
-run the code by submitting the executable **icepack** directly.  Beware that any changes 
-made in the run directory will be overwritten if scripts are later run from the case
-directory.
 
 Forcing data
 ------------
@@ -957,6 +975,7 @@ cat test_output
 
 Additional Details
 ------------------
+
 - In general, the baseline generation, baseline compare, and test diff are independent.
 - Use the ``-bd`` flag to specify the location where you want the baseline dataset
     to be written.  Without specifying ``-bd``, the baseline dataset will be written
@@ -974,18 +993,17 @@ Additional Details
     creates the directory **wolf_smoke_col_1x1.t12**.  This flag is REQUIRED if using ``-t`` or ``-ts``.
 
 
-~~~~~~~~~~~~~~~~~~~~~~~
 Icepack Test Reporting
-~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------
 
 The Icepack testing scripts have the capability of posting the test results
 to an online dashboard, located `on CDash <http://my.cdash.org/index.php?project=myICEPACK>`_.
 There are 2 options for posting Icepack results to CDash: 1) The automated
 script, 2) The manual method.
 
-*****************
+
 Automatic Script
-*****************
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To automatically run the Icepack tests, and post the results to the Icepack Cdash dashboard,
 users need to copy and run the ``icepack.run.suite`` script:
@@ -1007,9 +1025,9 @@ The run.suite script does the following:
 - Once all jobs complete, cd to base_suite directory and run ``./results.csh``
 - Run ``ctest -S steer.cmake`` in order to post the test results to the CDash dashboard
 
-*****************
+
 Manual Method
-*****************
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To manually run the Icepack tests and post the results to the Icepack CDash dashboard,
 users essentially just need to perform all steps available in run.suite, detailed below:
@@ -1058,7 +1076,6 @@ CHECK
    "``diagfreq``", "integer", "frequency of diagnostic output in ``dt``", "24"
    "", "*e.g.*, 10", "once every 10 time steps", ""
    "``diag_file``", "filename", "diagnostic output file (script may reset)", ""
-..   "``dbug``", "true/false", "if true, write extra diagnostics", "``.false.``"
    "", "", "", ""
    "*grid_nml*", "", "", ""
    "", "", "*Grid*", ""
@@ -1162,13 +1179,10 @@ CHECK
    "", "``constant``", "bulk transfer coefficients", ""
    "``fyear_init``", "yyyy", "first year of atmospheric forcing data", ""
    "``ycycle``", "integer", "number of years in forcing data cycle", ""
-..   "``atm_data_format``", "``nc``", "read  atmo forcing files", ""
-..   "", "``bin``", "read direct access, binary files", ""
    "``atm_data_type``", "``default``", "constant values defined in the code", ""
    "", "``clim``", "monthly climatology", ""
    "", "``CFS``", "CFS model output", ""
    "", "``ISPOL``", "ISPOL experiment data", ""
-..   "", "``NICE``", "N-ICE experiment data", ""
    "``data_dir``", "path/", "path to forcing data directory", ""
    "``calc_strair``", "true", "calculate wind stress and speed", ""
    "", "false", "read wind stress and speed from files", ""
@@ -1191,12 +1205,256 @@ CHECK
    "``oceanmixed_ice``", "true/false", "active ocean mixed layer calculation", "``.true.`` (if uncoupled)"
    "``ocn_data_type``", "``default``", "constant values defined in the code", ""
    "", "``ISPOL``", "ISPOL experiment data", ""
-..   "", "``NICE``", "N-ICE experiment data", ""
    "``bgc_data_type``", "``default``", "constant values defined in the code", ""
    "", "``ISPOL``", "ISPOL experiment data", ""
-..   "", "``NICE``", "N-ICE experiment data", ""
    "``oceanmixed_file``", "filename", "data file containing ocean forcing data", ""
    "``restore_ocn``", "true/false", "restore sst to data", ""
    "``trestore``", "integer", "sst restoring time scale (days)", ""
    "", "", "", ""
+
+
+.. commented out below
+..   "``dbug``", "true/false", "if true, write extra diagnostics", "``.false.``"
+..   "``atm_data_format``", "``nc``", "read  atmo forcing files", ""
+..   "", "``bin``", "read direct access, binary files", ""
+..   "", "``NICE``", "N-ICE experiment data", ""
+..   "", "``NICE``", "N-ICE experiment data", ""
+..   "", "``NICE``", "N-ICE experiment data", ""
+
+
+******************
+Developers Guide
+******************
+
+Scripts Implementation
+========================
+
+Directory structure under configure/scripts is
+
+The icepack scripts are implemented such that everything is resolved after
+``icepack.create.case`` is called.  This is done by both copying specific files
+into the case directory and running scripts as part of the ``icepack.create.case``
+command line to setup various files.
+
+The -s options
+
+The machine information
+
+icepack.settings stores
+
+``parse_namelist.sh``, ``parse_settings.sh``, and ``parse_namelist_from_settings.sh`` 
+are the three scripts that help setup ``icepack\_in`` and ``icepack.settings`` based 
+upon the ``icepack.create.case`` command line.
+
+
+Icepack Coding Standard
+========================
+
+No IO
+
+No abort capability
+
+No parallelization
+
+No communication required
+
+No internal storage of model state
+
+Arguments are optional in some cases and should be set via keyword=value arguments
+
+Handles one gridcell at a time, vertical column package of ice thermodynamics
+
+No calendar
+
+All public interfaces and data defined in icepack_intfc.F90
+
+Provide ability to avoid "use" statements of icepack data in driver
+
+
+Using Icepack
+========================
+
+In this section, the various public icepack interfaces will be defined and 
+how to use them will be described.
+
+Interfaces
+--------------------------------
+
+The following subroutines are public thru the icepack interface, ``icepack_intfc.F90``
+file.  icepack_kinds defines useful kinds::
+
+      use icepack_kinds, only: icepack_char_len  => char_len
+      use icepack_kinds, only: icepack_char_len_long  => char_len_long
+      use icepack_kinds, only: icepack_log_kind  => log_kind
+      use icepack_kinds, only: icepack_int_kind  => int_kind
+      use icepack_kinds, only: icepack_real_kind => real_kind
+      use icepack_kinds, only: icepack_dbl_kind  => dbl_kind
+      use icepack_kinds, only: icepack_r16_kind  => r16_kind
+
+icepack_tracers defines a handful of parameters constants that provide information
+about maximum array sizes for static dimensioning::
+
+      use icepack_tracers,   only: icepack_max_nbtrcr => max_nbtrcr
+      use icepack_tracers,   only: icepack_max_algae  => max_algae
+      use icepack_tracers,   only: icepack_max_dic    => max_dic
+      use icepack_tracers,   only: icepack_max_doc    => max_doc
+      use icepack_tracers,   only: icepack_max_don    => max_don
+      use icepack_tracers,   only: icepack_max_fe     => max_fe
+      use icepack_tracers,   only: icepack_max_aero   => max_aero
+      use icepack_tracers,   only: icepack_nmodal1    => nmodal1
+      use icepack_tracers,   only: icepack_nmodal2    => nmodal2
+      use icepack_constants, only: icepack_nspint     => nspint
+
+icepack_constants provides init, query, write, and recompute methods to
+define constant values.  These constants have defaults that the caller
+can query or reset::
+
+      use icepack_constants, only: icepack_init_constants
+      use icepack_constants, only: icepack_query_constants
+      use icepack_constants, only: icepack_write_constants
+      use icepack_constants, only: icepack_recompute_constants
+
+icepack_parameters provides init, query, and write methods to
+define model parameters.  These parameters have defaults that the caller
+can query or reset::
+
+      use icepack_parameters, only: icepack_init_parameters
+      use icepack_parameters, only: icepack_query_parameters
+      use icepack_parameters, only: icepack_write_parameters
+
+icepack_tracers provides init, query, and write methods to
+define various tracer sizes, flags, indices, and numbers.  The
+tracers have some defaults that the caller can query or reset::
+
+      use icepack_tracers, only: icepack_compute_tracers
+      use icepack_tracers, only: icepack_query_tracer_sizes
+      use icepack_tracers, only: icepack_write_tracer_sizes
+      use icepack_tracers, only: icepack_init_tracer_flags
+      use icepack_tracers, only: icepack_query_tracer_flags
+      use icepack_tracers, only: icepack_write_tracer_flags
+      use icepack_tracers, only: icepack_init_tracer_indices
+      use icepack_tracers, only: icepack_query_tracer_indices
+      use icepack_tracers, only: icepack_write_tracer_indices
+      use icepack_tracers, only: icepack_init_tracer_numbers
+      use icepack_tracers, only: icepack_query_tracer_numbers
+      use icepack_tracers, only: icepack_write_tracer_numbers
+
+icepack_itd provides three public interfaces::
+
+      use icepack_itd, only: icepack_init_itd
+      use icepack_itd, only: icepack_init_itd_hist
+      use icepack_itd, only: icepack_aggregate
+
+      use icepack_mechred, only: icepack_step_ridge
+      use icepack_mechred, only: icepack_ice_strength
+
+      use icepack_shortwave, only: icepack_prep_radiation
+      use icepack_shortwave, only: icepack_step_radiation
+
+      use icepack_brine, only: icepack_init_hbrine
+      use icepack_brine, only: icepack_init_zsalinity
+
+      use icepack_zbgc , only: icepack_init_bgc
+      use icepack_zbgc , only: icepack_init_zbgc
+      use icepack_zbgc , only: icepack_biogeochemistry
+      use icepack_zbgc , only: icepack_init_OceanConcArray
+      use icepack_zbgc , only: icepack_init_ocean_conc
+
+      use icepack_atmo , only: icepack_atm_boundary
+      use icepack_ocean, only: icepack_ocn_mixed_layer
+
+      use icepack_therm_vertical, only: icepack_step_therm1
+      use icepack_therm_itd     , only: icepack_step_therm2
+      use icepack_therm_shared  , only: icepack_ice_temperature
+      use icepack_therm_shared  , only: icepack_snow_temperature
+      use icepack_therm_shared  , only: icepack_liquidus_temperature
+      use icepack_therm_shared  , only: icepack_sea_freezing_temperature
+      use icepack_therm_shared  , only: icepack_enthalpy_snow
+      use icepack_therm_shared  , only: icepack_init_thermo
+      use icepack_therm_shared  , only: icepack_init_trcr
+
+      use icepack_orbital , only: icepack_init_orbit
+
+      use icepack_warnings, only: icepack_warnings_clear
+      use icepack_warnings, only: icepack_warnings_getall
+      use icepack_warnings, only: icepack_warnings_print
+      use icepack_warnings, only: icepack_warnings_flush
+      use icepack_warnings, only: icepack_warnings_aborted
+
+icepack_configure is a standalone icepack method that should always be called
+first::
+
+      public :: icepack_configure
+
+
+The Warning Package
+--------------------------------
+
+Icepack has no IO capabilities.  It does not have direct knowledge of
+any input or output files.  However, it can write output thru specific
+interfaces that pass in a fortran file unit number.  There are several 
+methods in icepack that support writing data to a file this way including
+the various icepack_write_* interfaces.
+
+Separately, the icepack warning package is where icepack stores internal output and
+error messages not directly set in the various write routines.  The warning package
+also contains an icepack_warnings_aborted function that will be set to true 
+if icepack detects an abort.  In that case, icepack will return to the driver.
+As a general rule, after each call to icepack, the driver should call::
+
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
+
+to flush (print and clear) the icepack warning buffer and to check whether icepack 
+aborted.  If icepack aborts, it's actually up to the driver to cleanly shut the
+model down.
+
+Alternatively, icepack_warnings_getall provides the saved icepack messages to
+the driver via an array of strings in the argument list.  This allows the driver
+to reformat that output as needed.  icepack_warnings_print
+writes out the messages but does not clear them, and icepack_warnings_clear zeros
+out the icepack warning messages.
+
+
+Calling Sequence
+--------------------------------
+
+Icepack has no direct input or output capabilities and icepack is called on a 
+gridpoint by gridpoint basis.  Icepack provides a warning module to relay 
+information back to the driver.  Icepack also provides the ability to initialize
+and set most internal variables.  In general, the icepack driver should call into 
+icepack as follows.
+
+start driver
+
+* call icepack_configure
+
+initialize driver and read in driver namelist
+
+* call icepack_init_constants
+* call icepack_init_parameters
+* call icepack_init_tracers_*
+* call
+* call 
+* call
+
+loop over timesteps
+
+* call
+
+loop over gridcells
+
+* call
+* call
+* call
+
+end loop over gridcells
+
+end loop over timesteps
+
+* call
+* call
+
+end driver
 
