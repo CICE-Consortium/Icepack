@@ -102,9 +102,11 @@
                                   fswthru,  fswpenl,  &
                                   Iswabs,   SSwabs,   &
                                   albin,    albsn,    &
-                                  coszen,   ncat)
+                                  coszen,   ncat,     &
+                                  nilyr)
 
       integer (kind=int_kind), intent(in) :: &
+         nilyr    , & ! number of ice layers
          ncat         ! number of ice thickness categories
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
@@ -263,7 +265,7 @@
       !-----------------------------------------------------------------
 
          call absorbed_solar  (heat_capacity,        &
-                               ncat,                 &
+                               nilyr,                &
                                aicen(n),             &
                                vicen(n),             &
                                vsnon(n),             &
@@ -4148,7 +4150,8 @@
                                  Iswabsn,                &
                                  Sswabsn,                &
                                  albicen,    albsnon,    &
-                                 coszen,     ncat)
+                                 coszen,     ncat,       &
+                                 nilyr)
             if (icepack_warnings_aborted(subname)) return
 
          else
