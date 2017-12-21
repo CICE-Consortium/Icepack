@@ -1509,6 +1509,7 @@ The file **icepack.settings** specifies a set of env defaults for the case.  The
 Preset Case Options
 ---------------------
 
+
 ``icepack.create.case -s`` option allows the user to choose some predetermined icepack
 settings and namelist.  Those options are defined in **configurations/scripts/options/**
 and the files are prefixed by either set_env, set_nml, or test_nml.  When **icepack.create.case**
