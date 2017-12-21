@@ -49,15 +49,10 @@
 <h1>2. Science Guide<a class="headerlink" href="#science-guide" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="coupling-with-host-models">
 <span id="coupl"></span><h2>2.1. Coupling with host models<a class="headerlink" href="#coupling-with-host-models" title="Permalink to this headline">¶</a></h2>
-<p>Sea ice models exchange information with
-other components of the earth system via a flux coupler. This is done
-through the full CICE model and a thorough description of coupling sea
-ice through a flux coupler can be found in the <a class="reference external" href="https://CICE-Consortium.github.io/CICE/index.html">CICE model
-documentation</a>.
-Important information related to flux coupling associated
-with the Icepack submodule will be discussed below,
-along with information about the interface between Icepack and CICE or
-other host sea ice models.</p>
+<p>The column physics is called from a host (driver) model
+on a gridpoint by gridpoint basis.  Each gridpoint is independent
+and the host model stores and passes the model state and forcing to
+the column physics.</p>
 <div class="section" id="the-column-physics-code-interface">
 <span id="intfc"></span><h3>2.1.1. The column physics code interface<a class="headerlink" href="#the-column-physics-code-interface" title="Permalink to this headline">¶</a></h3>
 <p>Subroutine calls and other linkages into Icepack from the host model should only
@@ -66,8 +61,8 @@ need to access the <strong>icepack_intfc*.F90</strong> interface modules within 
 The Icepack driver in the <code class="docutils literal"><span class="pre">configuration/driver/</span></code> directory is based on the CICE
 model and provides an example of the sea ice host model capabilities needed for inclusion
 of Icepack.  In particular, host models will need to include code equivalent to that
-in the modules <strong>icepack_drv_*_column.F90</strong>.  Calls into the Icepack interface routines
-are primarily from <strong>icepack_drv_step_mod.F90</strong> but there are others (search the driver code
+in the modules <strong>icedrv_*_column.F90</strong>.  Calls into the Icepack interface routines
+are primarily from <strong>icedrv_step_mod.F90</strong> but there are others (search the driver code
 for <code class="docutils literal"><span class="pre">intfc</span></code>).</p>
 <p>Guiding principles for the creation of Icepack include the following:
 CHECK THAT THESE ARE TRUE</p>
@@ -82,12 +77,13 @@ reside outside of the <strong>columnphysics/</strong> directory.</li>
 flags, diagnostics) shall be implemented in the driver and passed into or out of the
 column physics modules via array arguments.</li>
 </ul>
+<p>For more information, see the <a class="reference internal" href="icepack_3_user_guide.html#dev-colphys"><span class="std std-ref">Icepack Column Physics</span></a> section.</p>
 </div>
 <div class="section" id="atmosphere-and-ocean-boundary-forcing">
 <h3>2.1.2. Atmosphere and ocean boundary forcing<a class="headerlink" href="#atmosphere-and-ocean-boundary-forcing" title="Permalink to this headline">¶</a></h3>
-<p><a class="reference internal" href="#tab-flux-cpl"><span class="std std-ref">Table 1</span></a>: <em>Data exchanged between the CESM flux coupler and the sea ice model that are relevant to Icepack</em></p>
-<span id="tab-flux-cpl"></span><table border="1" class="colwidths-given docutils" id="id96">
-<caption><span class="caption-text">Table 1</span><a class="headerlink" href="#id96" title="Permalink to this table">¶</a></caption>
+<p><a class="reference internal" href="#tab-flux-cpl"><span class="std std-ref">Table 1</span></a>: <em>External forcing data that are relevant to Icepack</em></p>
+<table border="1" class="docutils" id="id96">
+<span id="tab-flux-cpl"></span><caption><span class="caption-text">Table 1</span><a class="headerlink" href="#id96" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="25%" />
 <col width="25%" />
@@ -96,133 +92,133 @@ column physics modules via array arguments.</li>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Variable</th>
 <th class="head">Description</th>
-<th class="head">Interaction with flux coupler</th>
+<th class="head">External Interactions</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><span class="math">\(z_o\)</span></td>
 <td>Atmosphere level height</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\vec{U}_a\)</span></td>
 <td>Wind velocity</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(Q_a\)</span></td>
 <td>Specific humidity</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\rho_a\)</span></td>
 <td>Air density</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(\Theta_a\)</span></td>
 <td>Air potential temperature</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(T_a\)</span></td>
 <td>Air temperature</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{sw\downarrow}\)</span></td>
 <td>Incoming shortwave radiation (4 bands)</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{L\downarrow}\)</span></td>
 <td>Incoming longwave radiation</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{rain}\)</span></td>
 <td>Rainfall rate</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{snow}\)</span></td>
 <td>Snowfall rate</td>
-<td>From <em>atmosphere model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>atmosphere model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{frzmlt}\)</span></td>
 <td>Freezing/melting potential</td>
-<td>From <em>ocean model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>ocean model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(T_w\)</span></td>
 <td>Sea surface temperature</td>
-<td>From <em>ocean model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>ocean model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(S\)</span></td>
 <td>Sea surface salinity</td>
-<td>From <em>ocean model</em> via flux coupler <strong>to</strong> <em>sea ice model</em></td>
+<td>From <em>ocean model</em>  <strong>to</strong> <em>sea ice model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\vec{U}_w\)</span></td>
 <td>Surface ocean currents</td>
-<td>From <em>ocean model</em> via flux coupler <strong>to</strong> <em>sea ice model</em> (available in Icepack driver, not used directly in column physics)</td>
+<td>From <em>ocean model</em>  <strong>to</strong> <em>sea ice model</em> (available in Icepack driver, not used directly in column physics)</td>
 </tr>
 <tr class="row-even"><td><span class="math">\(\vec{\tau}_a\)</span></td>
 <td>Wind stress</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>atmosphere model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_s\)</span></td>
 <td>Sensible heat flux</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>atmosphere model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_l\)</span></td>
 <td>Latent heat flux</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>atmosphere model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{L\uparrow}\)</span></td>
 <td>Outgoing longwave radiation</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>atmosphere model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{evap}\)</span></td>
 <td>Evaporated water</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>atmosphere model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\alpha\)</span></td>
 <td>Surface albedo (4 bands)</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>atmosphere model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(T_{sfc}\)</span></td>
 <td>Surface temperature</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>atmosphere model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>atmosphere model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{sw\Downarrow}\)</span></td>
 <td>Penetrating shortwave radiation</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>ocean model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{water}\)</span></td>
 <td>Fresh water flux</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>ocean model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(F_{hocn}\)</span></td>
 <td>Net heat flux to ocean</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>ocean model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{salt}\)</span></td>
 <td>Salt flux</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>ocean model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(\vec{\tau}_w\)</span></td>
 <td>Ice-ocean stress</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>ocean model</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{bio}\)</span></td>
 <td>Biogeochemical fluxes</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> <em>ocean model</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> <em>ocean model</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(a_{i}\)</span></td>
 <td>Ice fraction</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> both <em>ocean and atmosphere models</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> both <em>ocean and atmosphere models</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(T^{ref}_{a}\)</span></td>
 <td>2m reference temperature (diagnostic)</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> both <em>ocean and atmosphere models</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> both <em>ocean and atmosphere models</em></td>
 </tr>
 <tr class="row-odd"><td><span class="math">\(Q^{ref}_{a}\)</span></td>
 <td>2m reference humidity (diagnostic)</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> both <em>ocean and atmosphere models</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> both <em>ocean and atmosphere models</em></td>
 </tr>
 <tr class="row-even"><td><span class="math">\(F_{swabs}\)</span></td>
 <td>Absorbed shortwave (diagnostic)</td>
-<td>From <em>sea ice model</em> via flux coupler <strong>to</strong> both <em>ocean and atmosphere models</em></td>
+<td>From <em>sea ice model</em>  <strong>to</strong> both <em>ocean and atmosphere models</em></td>
 </tr>
 </tbody>
 </table>
@@ -587,8 +583,8 @@ substitute their own preferred boundaries in <em>init_itd</em>.</p>
 <p><a class="reference internal" href="#tab-itd"><span class="std std-ref">Table 2</span></a> : <em>Lower boundary values for thickness categories, in meters, for
 the three distribution options (</em> <code class="docutils literal"><span class="pre">kcatbound</span></code> <em>) and linear remapping (</em> <cite>kitd</cite> = 1 <em>).
 In the WMO case, the distribution used depends on the number of categories used.</em></p>
-<span id="tab-itd"></span><table border="1" class="docutils" id="id97">
-<caption><span class="caption-text">Table 2</span><a class="headerlink" href="#id97" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id97">
+<span id="tab-itd"></span><caption><span class="caption-text">Table 2</span><a class="headerlink" href="#id97" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="26%" />
 <col width="20%" />
@@ -2811,7 +2807,7 @@ variables sil_data_type and nit_data_type to ‘ISPOL’  or ‘NICE’. nit_dat
 has an option ‘sss’ which equates the upper ocean nitrate concentration
 with sea surface salinity. fe_data_type currently only has the
 ‘default’ option. The location of forcing files is specified in
-bgc_data_dir and the filename is hardcoded in <strong>icepack_drv_forcing</strong> (NJ - needs to be updated).</p>
+bgc_data_dir and the filename is hardcoded in <strong>icedrv_forcing</strong> (NJ - needs to be updated).</p>
 <div class="section" id="skeletal-layer-bgc">
 <h5>2.2.5.3.1. Skeletal Layer BGC<a class="headerlink" href="#skeletal-layer-bgc" title="Permalink to this headline">¶</a></h5>
 <p>In the skeletal layer model, biogeochemical processing is modelled as a
@@ -3281,8 +3277,8 @@ increase or decrease retention. Another option is to alter the minimum
 tau_min and maximum tau_max timescales which would impact all the
 z-tracers.</p>
 <p><a class="reference internal" href="#tab-phases"><span class="std std-ref">Table 3</span></a>: <em>Types of Mobile and Stationary Transitions</em></p>
-<span id="tab-phases"></span><table border="1" class="docutils" id="id102">
-<caption><span class="caption-text">Table 3</span><a class="headerlink" href="#id102" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id102">
+<span id="tab-phases"></span><caption><span class="caption-text">Table 3</span><a class="headerlink" href="#id102" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="20%" />
 <col width="23%" />
@@ -3347,8 +3343,8 @@ equations is used for the bottom layer model (when sk_bgc is true) and
 the multi-layer biogeochemical model (when z_tracers and solve_zbgc
 are true).</p>
 <p><a class="reference internal" href="#tab-bio-tracer"><span class="std std-ref">Table 4</span></a>: <em>Biogeochemical Tracers</em></p>
-<span id="tab-bio-tracer"></span><table border="1" class="colwidths-given docutils" id="id103">
-<caption><span class="caption-text">Table 4</span><a class="headerlink" href="#id103" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id103">
+<span id="tab-bio-tracer"></span><caption><span class="caption-text">Table 4</span><a class="headerlink" href="#id103" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="10%" />
 <col width="22%" />
@@ -3686,8 +3682,8 @@ used in the reaction equations, their representation in the code, a
 short description of each and the default values. Please keep in mind
 that there has only been minimal tuning of the model.</p>
 <p><a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Table 5</span></a> :<em>Biogeochemical Reaction Parameters</em></p>
-<span id="tab-bio-tracers2"></span><table border="1" class="colwidths-given docutils" id="id104">
-<caption><span class="caption-text">Table 5</span><a class="headerlink" href="#id104" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id104">
+<span id="tab-bio-tracers2"></span><caption><span class="caption-text">Table 5</span><a class="headerlink" href="#id104" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="10%" />
 <col width="28%" />
@@ -3947,8 +3943,8 @@ the variable or variables saved. Not listed are flags appended with
 _ai, i.e.&nbsp;f_fbio_ai. These fields are identical to their counterpart.
 i.e.&nbsp;f_fbio, except they are averaged by ice area.</p>
 <p><a class="reference internal" href="#tab-bio-history"><span class="std std-ref">Table 6</span></a> :<em>Biogeochemical History variables</em></p>
-<span id="tab-bio-history"></span><table border="1" class="colwidths-given docutils" id="id105">
-<caption><span class="caption-text">Table 6</span><a class="headerlink" href="#id105" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id105">
+<span id="tab-bio-history"></span><caption><span class="caption-text">Table 6</span><a class="headerlink" href="#id105" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="15%" />
 <col width="38%" />
