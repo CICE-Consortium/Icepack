@@ -9,15 +9,20 @@ Science Guide
 Coupling with host models
 ==================================
 
-Sea ice models exchange information with 
-other components of the earth system via a flux coupler. This is done
-through the full CICE model and a thorough description of coupling sea
-ice through a flux coupler can be found in the `CICE model 
-documentation <https://CICE-Consortium.github.io/CICE/index.html>`_. 
-Important information related to flux coupling associated
-with the Icepack submodule will be discussed below, 
-along with information about the interface between Icepack and CICE or
-other host sea ice models.
+.. Sea ice models exchange information with 
+.. other components of the earth system via a flux coupler. This is done
+.. through the full CICE model and a thorough description of coupling sea
+.. ice through a flux coupler can be found in the `CICE model 
+.. documentation <https://CICE-Consortium.github.io/CICE/index.html>`_. 
+.. Important information related to flux coupling associated
+.. with the Icepack submodule will be discussed below, 
+.. along with information about the interface between Icepack and CICE or
+.. other host sea ice models.
+
+The column physics is called from a host (driver) model
+on a gridpoint by gridpoint basis.  Each gridpoint is independent
+and the host model stores and passes the model state and forcing to
+the column physics.
 
 .. _intfc:
 
@@ -47,49 +52,50 @@ CHECK THAT THESE ARE TRUE
   flags, diagnostics) shall be implemented in the driver and passed into or out of the 
   column physics modules via array arguments.
 
+For more information, see the :ref:`dev_colphys` section.
 
 Atmosphere and ocean boundary forcing
 -------------------------------------
 
-:ref:`tab-flux-cpl`: *Data exchanged between the CESM flux coupler and the sea ice model that are relevant to Icepack*  
+:ref:`tab-flux-cpl`: *External forcing data that are relevant to Icepack*  
 
 .. _tab-flux-cpl:
 
 .. csv-table:: Table 1
-   :header: "Variable", "Description", "Interaction with flux coupler"
+   :header: "Variable", "Description", "External Interactions"
    :widths: 15, 15, 30
      
-   ":math:`z_o`", "Atmosphere level height", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`Q_a`", "Specific humidity", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`\rho_a`", "Air density", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`\Theta_a`", "Air potential temperature", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`T_a`", "Air temperature", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`F_{sw\downarrow}`", "Incoming shortwave radiation (4 bands)", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`F_{L\downarrow}`", "Incoming longwave radiation", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`F_{rain}`", "Rainfall rate", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`F_{snow}`", "Snowfall rate", "From *atmosphere model* via flux coupler **to** *sea ice model*"
-   ":math:`F_{frzmlt}`", "Freezing/melting potential", "From *ocean model* via flux coupler **to** *sea ice model*"
-   ":math:`T_w`", "Sea surface temperature", "From *ocean model* via flux coupler **to** *sea ice model*"
-   ":math:`S`", "Sea surface salinity", "From *ocean model* via flux coupler **to** *sea ice model*"
-   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model* via flux coupler **to** *sea ice model* (available in Icepack driver, not used directly in column physics)"
-   ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model* via flux coupler **to** *atmosphere model*"
-   ":math:`F_s`", "Sensible heat flux", "From *sea ice model* via flux coupler **to** *atmosphere model*"
-   ":math:`F_l`", "Latent heat flux", "From *sea ice model* via flux coupler **to** *atmosphere model*"
-   ":math:`F_{L\uparrow}`", "Outgoing longwave radiation", "From *sea ice model* via flux coupler **to** *atmosphere model*"
-   ":math:`F_{evap}`", "Evaporated water", "From *sea ice model* via flux coupler **to** *atmosphere model*"
-   ":math:`\alpha`", "Surface albedo (4 bands)", "From *sea ice model* via flux coupler **to** *atmosphere model*"
-   ":math:`T_{sfc}`", "Surface temperature", "From *sea ice model* via flux coupler **to** *atmosphere model*"
-   ":math:`F_{sw\Downarrow}`", "Penetrating shortwave radiation", "From *sea ice model* via flux coupler **to** *ocean model*"
-   ":math:`F_{water}`", "Fresh water flux", "From *sea ice model* via flux coupler **to** *ocean model*"
-   ":math:`F_{hocn}`", "Net heat flux to ocean", "From *sea ice model* via flux coupler **to** *ocean model*"
-   ":math:`F_{salt}`", "Salt flux", "From *sea ice model* via flux coupler **to** *ocean model*"
-   ":math:`\vec{\tau}_w`", "Ice-ocean stress", "From *sea ice model* via flux coupler **to** *ocean model*"
-   ":math:`F_{bio}`", "Biogeochemical fluxes", "From *sea ice model* via flux coupler **to** *ocean model*"
-   ":math:`a_{i}`", "Ice fraction", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*"
-   ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*"
-   ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*"
-   ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model* via flux coupler **to** both *ocean and atmosphere models*"
+   ":math:`z_o`", "Atmosphere level height", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`Q_a`", "Specific humidity", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`\rho_a`", "Air density", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`\Theta_a`", "Air potential temperature", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`T_a`", "Air temperature", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`F_{sw\downarrow}`", "Incoming shortwave radiation (4 bands)", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`F_{L\downarrow}`", "Incoming longwave radiation", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`F_{rain}`", "Rainfall rate", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`F_{snow}`", "Snowfall rate", "From *atmosphere model*  **to** *sea ice model*"
+   ":math:`F_{frzmlt}`", "Freezing/melting potential", "From *ocean model*  **to** *sea ice model*"
+   ":math:`T_w`", "Sea surface temperature", "From *ocean model*  **to** *sea ice model*"
+   ":math:`S`", "Sea surface salinity", "From *ocean model*  **to** *sea ice model*"
+   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model*  **to** *sea ice model* (available in Icepack driver, not used directly in column physics)"
+   ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model*  **to** *atmosphere model*"
+   ":math:`F_s`", "Sensible heat flux", "From *sea ice model*  **to** *atmosphere model*"
+   ":math:`F_l`", "Latent heat flux", "From *sea ice model*  **to** *atmosphere model*"
+   ":math:`F_{L\uparrow}`", "Outgoing longwave radiation", "From *sea ice model*  **to** *atmosphere model*"
+   ":math:`F_{evap}`", "Evaporated water", "From *sea ice model*  **to** *atmosphere model*"
+   ":math:`\alpha`", "Surface albedo (4 bands)", "From *sea ice model*  **to** *atmosphere model*"
+   ":math:`T_{sfc}`", "Surface temperature", "From *sea ice model*  **to** *atmosphere model*"
+   ":math:`F_{sw\Downarrow}`", "Penetrating shortwave radiation", "From *sea ice model*  **to** *ocean model*"
+   ":math:`F_{water}`", "Fresh water flux", "From *sea ice model*  **to** *ocean model*"
+   ":math:`F_{hocn}`", "Net heat flux to ocean", "From *sea ice model*  **to** *ocean model*"
+   ":math:`F_{salt}`", "Salt flux", "From *sea ice model*  **to** *ocean model*"
+   ":math:`\vec{\tau}_w`", "Ice-ocean stress", "From *sea ice model*  **to** *ocean model*"
+   ":math:`F_{bio}`", "Biogeochemical fluxes", "From *sea ice model*  **to** *ocean model*"
+   ":math:`a_{i}`", "Ice fraction", "From *sea ice model*  **to** both *ocean and atmosphere models*"
+   ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
+   ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
+   ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
 
 
 The ice fraction :math:`a_i` (aice) is the total fractional ice

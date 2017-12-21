@@ -1,10 +1,10 @@
-:tocdepth: 3
+:tocdepth: 4
 
 **********
 User Guide
 **********
 
-Numerical implementation
+Implementation
 ========================
 
 Icepack is written in FORTRAN90 and runs on platforms using UNIX, LINUX,
@@ -25,236 +25,39 @@ located in the :ref:`init` section.
 Directory structure
 -------------------
 
-The present code distribution includes make files, several scripts and
-some input files. One year of atmospheric forcing data is also available
-from the code distribution web site (see the **README** file for
-details).
+The present code distribution includes source code for the column physics,
+source code for the driver, and the scripts.  Forcing data is available from the ftp site.
+The directory structure of Icepack is as follows.  All columnphysics filename have a prefix
+of icepack\_ and all driver files are prefixed with icedrv\_*.
 
 **LICENSE.pdf**
+  license and policy for using and sharing the code
 
 **DistributionPolicy.pdf**
-    license and policy for using and sharing the code
+  license and policy for using and sharing the code
 
 **README.md**
-    basic information and pointers
+  basic information and pointers
 
 **columnphysics/**
-    the essential physics code
+   directory for columnphysics source code, see :ref:`dev_colphys`
 
-    **constants**  (CHECK - this will change)
-      physical and numerical constants required for column package
+**configuration/scripts/**
+   directory of support scripts, see :ref:`dev_scripts`
 
-      **cesm/icepack_constants.F90**
-
-      **cice/icepack_constants.F90**
-
-      **hadgem3/icepack_constants.F90**
-
-    **icepack\_aerosol.F90**
-        handles most work associated with the aerosol tracers
-
-    **icepack\_age.F90**
-        handles most work associated with the age tracer
-
-    **icepack\_algae.F90**
-        biogeochemistry
-
-    **icepack\_atmo.F90**
-        stability-based parameterization for calculation of turbulent ice–atmosphere fluxes
-
-    **icepack\_brine.F90**
-        evolves the brine height tracer
-
-    **icepack\_firstyear.F90**
-        handles most work associated with the first-year ice area tracer
-
-    **icepack\_flux.F90**
-        fluxes needed/produced by the model
-
-    **icepack\_intfc.F90**
-        interface routines for linking Icepack with a host sea ice model
-
-    **icepack\_intfc\_shared.F90**
-        interface routines for linking Icepack with a host sea ice model
-
-    **icepack\_intfc\_tracers.F90**
-        interface routines for linking Icepack with a host sea ice model
-
-    **icepack\_itd.F90**
-        utilities for managing ice thickness distribution
-
-    **icepack\_kinds\_mod.F90**
-        basic definitions of reals, integers, etc.
-
-    **icepack\_mechred.F90**
-        mechanical redistribution (ridging)
-
-    **icepack\_meltpond\_cesm.F90**
-        CESM melt pond parameterization
-
-    **icepack\_meltpond\_lvl.F90**
-        level-ice melt pond parameterization
-
-    **icepack\_meltpond\_topo.F90**
-        topo melt pond parameterization
-
-..    **icepack\_ocean.F90**  (CHECK THIS, not in directory now)
-..        mixed layer ocean model
-
-    **icepack\_mushy\_physics.F90**
-        physics routines for mushy thermodynamics
-
-    **icepack\_orbital.F90**
-        orbital parameters for Delta-Eddington shortwave parameterization
-
-    **icepack\_shortwave.F90**
-        shortwave and albedo parameterizations
-
-    **icepack\_therm\_0layer.F90**
-        zero-layer thermodynamics of :cite:`Semtner76`
-
-    **icepack\_therm\_bl99.F90**
-        multilayer thermodynamics of :cite:`BL99`
-
-    **icepack\_therm\_itd.F90**
-        thermodynamic changes mostly related to ice thickness distribution
-
-    **icepack\_therm\_mushy.F90**
-        mushy-theory thermodynamics of :cite:`THB13`
-
-    **icepack\_therm\_shared.F90**
-        code shared by all thermodynamics parameterizations
-
-    **icepack\_therm\_vertical.F90**
-        vertical growth rates and fluxes
-
-    **icepack\_warnings.F90**
-        utilities for writing warning and error messages
-
-    **icepack\_zbgc.F90**
-        driver for ice biogeochemistry and brine tracer motion
-
-    **icepack\_zbgc\_shared.F90**
-        parameters and shared code for biogeochemistry and brine height
-
-    **icepack\_zsalinity.F90**
-        vertical salinity parameterization of :cite:`JHE11`
-
-**configuration/**
-    drivers and scripts for testing Icepack in stand-alone mode
-    
-    **driver/**
-        **icedrv\_MAIN.F90**
-            main program
-
-        **icedrv\_InitMod.F90**
-            routines for initializing a run
-
-        **icedrv\_RunMod.F90**
-            main driver routines for time stepping
-
-        **icedrv\_arrays\_column.F90**
-            essential arrays to describe the state of the ice
-
-        **icedrv\_calendar.F90**
-            keeps track of what time it is
-
-        **icedrv\_constants.F90**
-            physical and numerical constants and parameters
-
-        **icedrv\_diagnostics.F90**
-            miscellaneous diagnostic and debugging routines
-
-        **icedrv\_diagnostics\_bgc.F90**
-            diagnostic routines for biogeochemistry
-
-        **icedrv\_domain\_size.F90**
-            domain sizes
-
-        **icedrv\_flux.F90**
-            fluxes needed/produced by the model
-
-        **icedrv\_forcing.F90**
-            routines to read and interpolate forcing data for stand-alone model runs
-
-        **icedrv\_init.F90**
-            general initialization routines
-
-        **icedrv\_init\_column.F90**
-            initialization routines specific to the column physics
-
-        **icedrv\_restart.F90**
-            driver for reading/writing restart files
-
-        **icedrv\_restart\_column.F90**  (CHECK: RENAME bgc)
-            restart routines specific to the column physics
-
-        **icedrv\_restart\_shared.F90**
-            code shared by all restart options
-
-        **icedrv\_state.F90**
-            essential arrays to describe the state of the ice
-
-        **icedrv\_step\_mod.F90**
-            routines for time stepping the major code components
-
-    **scripts/**
-        **Makefile**
-            primary makefile
-
-        **icepack.batch.csh**
-            creates batch scripts for particular machines
-
-        **icepack.build**
-            compiles the code
-
-        **icepack.launch.csh**
-            creates script logic that runs the executable
-
-        **icepack.run.setup.csh**
-            sets up the run directory
-
-        **icepack.settings**
-            defines environment, model configuration and run settings
-
-        **icepack.test.setup.csh**
-            creates configurations for testing the model
-
-        **icepack\_decomp.csh**
-            defines the grid size
-
-        **icepack\_in**
-            namelist input data
-
-        **machines/**
-            macro definitions for the given computers
-
-        **makdep.c**
-            determines module dependencies
-
-        **options/**
-            other namelist configurations available from the icepack.create.case command line
-
-        **parse\_namelist.sh**
-            replaces namelist with command-line configuration
-
-        **parse\_settings.sh**
-            replaces settings with command-line configuration
-
-        **tests/**
-            scripts for configuring and running basic tests
+**configuration/driver/**
+   directory of icepack driver code, see :ref:`dev_driver`
 
 **doc/**
     documentation
 
 **icepack.create.case**
-    main script for setting up a test case
+  main icepack script for creating cases
 
 A case (compile) directory is created upon initial execution of the script 
 **icepack.create.case** at the user-specified location provided after the -c flag. 
 Executing the command ``./icepack.create.case -h`` provides helpful information for 
-this tool. Please refer to the `user guide <https://CICE-Consortium.github.io/Icepack/index.html>`_ 
-for further information.
+this tool.
 
 .. _grids:
 
@@ -312,16 +115,14 @@ ice.
 
 .. _init:
 
-Initialization and coupling
+Initialization and Forcing
 ---------------------------
-
-CHECK:  link to information about the column physics interface in section 2
 
 Icepack’s parameters and variables are initialized in several
 steps. Many constants and physical parameters are set in
-**icepack\_constants.F90**. Namelist variables (:ref:`tabnamelist`),
-whose values can be altered at run time, are handled in *input\_data*
-and other initialization routines. These variables are given default
+**icepack\_constants.F90**. In the current driver implementation,
+a namelist file is read to setup the model.
+Namelist values are given default
 values in the code, which may then be changed when the input file
 **icepack\_in** is read. Other physical constants, numerical parameters, and
 variables are first set in initialization routines for each ice model
@@ -348,6 +149,7 @@ and are intended merely for testing, although they can also provide guidance for
 the user to write his or her own routines. 
 
 
+
 .. _parameters:
 
 Choosing an appropriate time step
@@ -363,10 +165,10 @@ default in this distribution, this is not a stringent limitation:
 :math:`\Delta t < 19.4` hr, assuming :math:`\max(f) = 40` cm/day.
 
 
+.. _history:
+
 Model output
 ------------
-
-.. _history:
 
 History output from Icepack is not currently supported in the Icepack driver, except
 in restart files.
@@ -396,80 +198,99 @@ variable ``dumpfreq``. The namelist variable ``ice_ic`` contains the
 pointer to the filename from which the restart data is to be read.
 
 
-Execution procedures
+Running Icepack
 ====================
 
 Quick-start instructions are provided in the :ref:`quickstart` section.
 
+.. _scripts:
+
 Scripts
 -------------
 
-Most of the scripts that configure, build and run Icepack tests are contained in 
+The icepack scripts are written to allow quick setup of cases and tests.  Once a case is 
+generated, users can manually modify the namelist and other files to custom configure
+the case.  Several settings are available via scripts as well.
+
+Most of the scripts that configure, build and run Icepack are contained in 
 the directory **configuration/scripts/**, except for **icepack.create.case**, which is
-in the main directory.  
+in the main directory.  **icepack.create.case** is the main script that generates a case. 
 
-Users likely will need to create or edit some scripts for their computer's environment. 
-Specific instructions for porting are provided below.
+Users may need to port the scripts to their local machine.
+Specific instructions for porting are provided in :ref:`porting`.
 
-icepack.create.case generates a case. Use ``create.case -h`` for help with the tool.
-  -c is the case name and location (required)
+``icepack.create.case -h`` will provide the latest information about how to use the tool.
+There are three usage modes,
 
-  -m is the machine name (required). Currently, there are working ports for NCAR yellowstone and cheyenne, AFRL thunder, NavyDSRC gordon and conrad, and LANL’s wolf machines.
+* ``-c`` creates individual stand alone cases.
+* ``-t`` creates individual tests.  Tests are just cases that have some extra automation in order to carry out particular tests such as exact restart.
+* ``-ts`` creates a test suite.  Test suites are predefined sets of tests and ``-ts`` provides the ability to quick setup, build, and run a full suite of tests.
 
-  -a is the account number for the queue manager.  The default is set in env.<machine>
+All modes will require use of ``-m`` to specify the machine and case and test modes 
+can use ``-s`` to define specific options.  ``-t`` and ``-ts`` will require ``-testid`` to be set 
+and both of the test modes can use ``-bd``, ``-bg``, ``-bc``, and ``-td`` to compare with other results.
+Testing will be described in greater detail in the :ref:`testing` section.
 
-  -s are comma separated optional env or namelist settings (default is 'null')
+Again, ``icepack.create.case -h`` will show the latest usage information including 
+the available ``-s`` options, the current ported machines, and the test choices.
 
-  -t is the test name and location (cannot be used with -c).
+To create a case, run **icepack.create.case**::
 
-  -bd is used to specify the location of the baseline datasets (only used with -t)
+  icepack.create.case -c mycase -m machine
+  cd mycase
 
-  -bg is used to specify the icepack version name for generating baseline datasets (only used with -t)
-
-  -bc is used to specify the icepack version name for comparison. I.e., the version name for the baseline dataset (only used with -t)
-
-  -testid is used to specify a test ID (used only with -t or -ts)
-
-  -ts is used to generate all test cases for a given test suite.
-
-
-Several files are placed in the case directory
+Once a case/test is created, several files are placed in the case directory
 
 - **env.[machine]** defines the environment
-
 - **icepack.settings** defines many variables associated with building and running the model
-
 - **makdep.c** is a tool that will automatically generate the make dependencies
-
 - **Macros.[machine]** defines the Makefile macros
-
 - **Makefile** is the makefile used to build the model
-
 - **icepack.build** is a script that builds and compiles the model
-
-- **icepack\_in** is the namelist file
-
+- **icepack\_in** is the namelist input file
 - **icepack.run** is a batch run script
-
 - **icepack.submit** is a simple script that submits the icepack.run script
 
-Once the case is created, all scripts and namelist are fully resolved.  Users can edit any
-of the files in the case directory manually to change the model configuration.  The file
+All scripts and namelist are fully resolved in the case.  Users can edit any
+of the files in the case directory manually to change the model configuration,
+build options, or batch settings.  The file
 dependency is indicated in the above list.  For instance, if any of the files before
 **icepack.build** in the list are edited, **icepack.build** should be rerun.
 
 The **casescripts/** directory holds scripts used to create the case and can 
-largely be ignored.  
-In general, when **icepack.build** is executed, the model will build from scratch 
-due to extensive preprocessing dependencies.  To change this behavior, edit the 
-env variable ``ICE_CLEANBUILD`` in **icepack.settings**.  
-
-The **icepack.submit** script simply submits the **icepack.run script**.  
+largely be ignored.  Once a case is created, the **icepack.build** script should be run
+interactively and then the case should be submitted by executing the 
+**icepack.submit** script interactively.  The **icepack.submit** script
+simply submits the **icepack.run script**.  
 You can also submit the **icepack.run** script on the command line.
 
-To port, an **env.[machine]** and **Macros.[machine]** file have to be added to 
-**configuration/scripts/machines/** and the 
-**icepack.run.setup.csh** file needs to be modified.
+Some hints:
+
+- To change namelist, manually edit the **icepack_in** file
+- To change batch settings, manually edit the top of the **icepack.run** file
+- To turn on the debug compiler flags, set ``ICE_BLDDEBUG`` in **icepack.setttings** to true
+- To change compiler options, manually edit the Macros file
+- To clean the build before each compile, set ``ICE_CLEANBUILD`` in **icepack.settings** to true
+  To not clean before the build, set ``ICE_CLEANBUILD`` in **icepack.settings** to false
+
+To build and run::
+
+  ./icepack.build
+  ./icepack.submit
+
+The build and run log files will be copied into the logs directory in the case directory.
+Other model output will be in the run directory.  The run directory is set in **icepack.settings**
+via the **ICE_RUNDIR** variable.  To modify the case setup, changes should be made in the
+case directory, NOT the run directory.
+
+.. _porting:
+
+Porting
+-------------
+
+To port, an **env.[machine]** and **Macros.[machine]** file have to be added to the
+**configuration/scripts/machines/** directory and the 
+**configuration/scripts/icepack.run.setup.csh** file needs to be modified.
  
 - cd to **configuration/scripts/machines/**
 
@@ -485,20 +306,43 @@ To port, an **env.[machine]** and **Macros.[machine]** file have to be added to
 - Download and untar a forcing dataset to the location defined by 
   ``ICE_MACHINE_INPUTDATA`` in the env file
 
-- Create a file in your home directory called **.cice\_proj** and add your preferred account name to the first line.
+In fact, this process almost certainly will require some iteration.  The easiest way 
+to carry this out is to create an initial set of changes as described above, then 
+create a case and manually modify the **env.[machine]** file and **Macros.[machine]** 
+file until the case can build and run.  Then copy the files from the case 
+directory back to **configuration/scripts/machines/** and update 
+the **configuration/scripts/icepack.run.setup.csh** file, retest, 
+and then add and commit the updated machine files to the repository.
+
+Input Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The input data space is defined on a per machine basis by the ``ICE_MACHINE_INPUTDATA`` 
+variable in the **env.[machine]** file.  That file space is often shared among multiple 
+users, and it can be desirable to consider using a common file space with group read 
+and write permissions such that a set of users can update the inputdata area as 
+new datasets are available.
+
+The latest input data will be available thru the CICE Consortium github wiki.
+
+Machine Account Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The machine account default is specified by the variable ``ICE_MACHINE_ACCT`` in 
+the **env.[machine]** file.  The easiest way to change a user's default is to 
+create a file in your home directory called **.cice\_proj** and add your 
+preferred account name to the first line.  
+There is also an option (``-a``) in **icepack.create.case** to define the account number.  
+The order of precedent is **icepack.create.case** command line option, 
+**.cice\_proj** setting, and then value in the **env.[machine]** file.
 
 
-Directories
--------------
+Run Directories
+-----------------
 
-CHECK
-
-The **icepack.create.case** script creates a case directory in the location specified 
-by the ``-c`` or ``-t`` flags.  The **icepack.build** script 
-creates the run directory defined by the env variable ``ICE_RUNDIR`` in 
-**icepack.settings**, and it compiles the code there.  The run directory is further 
-populated by the **icepack.run** script, which also runs the executable.  Specifying 
-the test suite creates a directory containing subdirectories for each test.
+The **icepack.create.case** script creates a case directory.  However, the model 
+is actually built and run under the ``ICE_OBJDIR`` and ``ICE_RUNDIR`` directories
+as defined in the **icepack.settings** file.
 
 Build and run logs will be copied from the run directory into the case **logs/** 
 directory when complete.
@@ -507,13 +351,13 @@ directory when complete.
 Local modifications
 --------------------------
 
-Scripts and files can be changed in the case directory and then built from there, without 
-changing them in your main directory.
+Scripts and other case settings can be changed manually in the case directory and
+used.  Source code can be modified in the main sandbox.  When changes are made, the code
+should be rebuilt before being resubmitted.  It is always recommended that users
+modify the scripts and input settings in the case directory, NOT the run directory.
+In general, files in the run directory are overwritten by versions in the case
+directory when the model is built, submitted, and run.
 
-You also can directly modify the namelist files (**icepack\_in**) in the run directory and
-run the code by submitting the executable **icepack** directly.  Beware that any changes 
-made in the run directory will be overwritten if scripts are later run from the case
-directory.
 
 Forcing data
 ------------
@@ -528,6 +372,525 @@ sets.  Module **configuration/driver/icedrv\_forcing.F90**
 can be modified to change the forcing data. 
 
 
+
+.. _testing:
+
+Testing Icepack
+================
+
+The section documents primarily how to use the Icepack scripts to carry 
+out icepack testing.  Exactly what to test is a separate question and
+depends on the kinds of code changes being made.  Prior to merging
+changes to the CICE Consortium master, changes will be reviewed and
+developers will need to provide a summary of the tests carried out.
+
+There is a base suite of tests provided by default with Icepack and this
+may be a good starting point for testing.
+
+
+.. _indtests:
+
+Individual Tests
+--------------------------------
+
+The Icepack scripts support both setup of individual tests as well as test suites.  Individual
+tests are run from the command line::
+
+  ./icepack.create.case -t smoke -m wolf -s diag1,debug -testid myid
+
+where ``-m`` designates a specific machine and testid is a user defined string that allows
+test cases to be uniquely identified.
+The format of the case directory name for a test will always be 
+``[machine]_[test]_[grid]_[pes]_[soptions].[testid]``
+
+To build and run a test, the process is the same as a case.  cd to the 
+test directory, run the build script, and run the submit script::
+
+ cd [test_case]
+ ./icepack.build
+ ./icepack.submit
+
+The test results will be copied into a local file called **test_output**.
+To check those results::
+
+ cat test_output
+
+Tests are defined under **configuration/scripts/tests/**.  The tests currently supported are:
+
+-  smoke   - Runs the model for default length.  The length and options can
+            be set with the ``-s`` command line option.  The test passes if the
+            model completes successfully.
+-  restart - Runs the model for 14 months, writing a restart file at month 3 and
+            again at the end of the run.  Runs the model a second time starting from the
+            month 3 restart and writing a restart at month 12 of the model run.
+            The test passes if both runs complete and
+            if the restart files at month 12 from both runs are bit-for-bit identical.
+
+Please run ``./icepack.create.case -h`` for the latest information.
+
+.. _testsuites:
+
+Test suites
+--------------------------------
+
+Test suites are multiple tests that are specified via
+an input file.  When invoking the test suite option (``-ts``) with **icepack.create.case**,
+all tests will be created, built, and submitted automatically under
+a directory called [suite_name].[testid]::
+
+  ./icepack.create.case -ts base_suite -m wolf -testid myid
+
+Like an individual test, the ``-testid`` option must be specified and can be any 
+string.  Once the tests are complete, results can be checked by running the
+results.csh script in the [suite_name].[testid]::
+
+  cd base_suite.[testid]
+  ./results.csh
+
+Please run ``./icepack.create.case -h`` for additional details.
+
+The predefined test suites are defined under **configuration/scripts/tests** and the files defining 
+the suites
+have a suffix of .ts in that directory.  The format for the test suite file is relatively simple.  
+It is a text file with white space delimited 
+columns, e.g. **base_suite.ts**
+
+.. _tab-test:
+
+.. csv-table:: Table 7
+   :header: "Test", "Grid", "PEs", "Sets", "BFB-compare"
+   :widths: 7, 7, 7, 15, 15
+
+   "smoke", "col", "1x1", "diag1", ""
+   "smoke", "col", "1x1", "diag1,run1year", "smoke_col_1x1_diag1_run1year"
+   "smoke", "col", "1x1", "debug,run1year", ""
+   "restart", "col", "1x1", "debug", ""
+   "restart", "col", "1x1", "diag1", ""
+   "restart", "col", "1x1", "pondcesm", ""
+   "restart", "col", "1x1", "pondlvl", ""
+   "restart", "col", "1x1", "pondtopo", ""
+
+The first column is the test name, the second the grid, the third the pe count, the fourth column is
+the ``-s`` options and the fifth column is the ``-td`` argument. (The grid and PEs columns are provided 
+for compatibility with the similar CICE scripts.)  The fourth and fifth columns are optional.
+The argument to ``-ts`` defines which filename to choose and that argument can contain a path.  
+**icepack.create.case** 
+will look for the filename in the local directory, in **configuration/scripts/tests/**, or in the path defined
+by the ``-ts`` option.
+
+.. _regtesting:
+
+Regression testing
+----------------------------------
+
+The **icepack.create.case** options ``-bg``, ``-bc``, and ``-bd`` are used for regression testing.
+There are several additional options on the **icepack.create.case** command line for testing that
+provide the ability to regression test and compare tests to each other.  These options only
+work in test (``-t``) or test suite (``-ts``) mode, not in case (``-c``) mode.
+
+  ``-bd`` defines a top level directory where tests can be stored for regression testing.  The
+  default is defined by ``ICE_MACHINE_BASELINE`` defined in ``env.[machine]``.
+  
+  ``-bg`` defines a directory name where the current tests can be saved for regression testing.  
+  It's handy for this name to be related to the model version.  This directory will be created
+  below the directory associated with ``-bd``.
+  
+  ``-bc`` defines the directory name that the current tests should be compared to for regression 
+  testing.  This directory will be added to the directory associated with ``-bd``.
+  
+To create a baseline, use ``-bg``::
+
+  icepack.create.case -ts base_suite -m wolf -testid v1 -bg version1 -bd $SCRATCH/ICEPACK_BASELINES
+
+will copy all the results from the test suite to ``$SCRATCH/ICEPACK_BASELINES/version1``.
+
+To compare to a prior result, use ``-bc``::
+
+  icepack.create.case -ts base_suite -m wolf -testid v2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES
+
+will compare all the results from this test suite to results saved before in $SCRATCH/ICEPACK_BASELINES/version1``.
+
+To both create and compare, ``-bc`` and ``-bg`` can be combined::
+
+  icepack.create.case -ts base_suite -m wolf -testid v2 -bg version2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES
+
+will save the current results to ``$SCRATCH/ICEPACK_BASELINES/version2`` and compare the current results to
+results save before in ``$SCRATCH/ICEPACK_BASELINES/version1``.
+
+In summary, 
+
+- an individual test will have a case name like 
+  ``[machine]_[test]_[grid]_[pes]_[soptions].[testid]``.
+- A test suite will generate the individual tests under a directory called ``[suite_name].[testid]``.
+- ``-bg`` will copy test results to the ``[bd_directory]/[bg_directory]/[test_name]``.
+- ``-bc`` will compare results from  ``[bd_directory]/[bc_directory]/[test_name]``.
+
+.. _comptesting:
+
+Comparison testing
+----------------------------------
+
+.. THIS IS NOT REALLY USED IN ICEPACK, should we leave this out of the icepack documentation
+
+This feature is primarily used in test suites and has limited use in icepack, but is being
+described for completeness.
+
+``-td`` provides a way to compare tests with each other.  The test is always compared relative to
+the current case directory.  For instance::
+
+  icepack.create.case -t smoke -m wolf -testid t01
+
+creates a test case named wolf_smoke_col_1x1.t01::
+
+  icepack.create.case -t smoke -m wolf -s run1year -testid t01 -td smoke_col_1x1
+
+will create a test case named wolf_smoke_col_1x1_run1year.t01.  
+An additional check will be done for the second test (because of the ``-td`` argument), and it will compare
+the output from the first test "smoke_col_1x1" to the output from its test "smoke_col_1x1_run1year"
+and generate a result for that.  It's important that the first test complete before the second test is done
+and that the tests are created in parallel directories.
+The ``-td`` option works only if the testid and the machine are the same for the baseline run and the 
+current run, a basic feature associated with test suites.
+
+Icepack Test Reporting
+------------------------------------
+
+The Icepack testing scripts have the capability of posting the test results
+to an online dashboard, located `on CDash <http://my.cdash.org/index.php?project=myICEPACK>`_.
+There are two ways to post Icepack results to CDash, an automated method and
+a manual method.
+
+To automatically post test suite results to CDash, add the ``-report`` option to **icepack.create.case**.
+The base_suite will attempt to post the test results on CDash when the suite is complete.
+
+To manually post the test results to the Icepack CDash dashboard,
+run a standard test suite.  Then once all the tests are complete::
+
+  cd [suite_name].[testid]
+  ./results.csh
+  ctest -S steer.cmake
+
+Examples
+--------------------------
+
+To generate a baseline dataset for a test case
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  ./icepack.create.case -t smoke -m wolf -bg icepackv6.0.0 -testid t00
+  cd wolf_smoke_col_1x1.t00
+  ./icepack.build
+  ./icepack.submit
+
+After job finishes, check output::
+
+  cat test_output
+
+To run a test case and compare to a baseline dataset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  ./icepack.create.case -t smoke -m wolf -bc icepackv6.0.0 -testid t01
+  cd wolf_smoke_col_1x1.t01
+  ./icepack.build
+  ./icepack.submit
+
+After job finishes, check output::
+
+  cat test_output
+
+To run a test suite to generate baseline data, review results, plot timeseries, and manually report results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  ./icepack.create.case -m wolf -ts base_suite -testid t02 -bg icepackv6.0.0bs
+
+Once all jobs finish, concatenate all output and manually report results::
+
+  cd base_suite.t02
+  ./results.csh
+  ctest -S steer.cmake
+
+To plot a timeseries of "total ice extent", "total ice area", and "total ice volume"::
+
+  ./timeseries.csh <directory>
+  ls *.png
+
+To run a test suite, compare to baseline data, generate a new baseline, and automatically report the results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  ./icepack.create.case -m wolf -ts base_suite -testid t03 -bc icepackv6.0.0bs -bg icepackv6.0.0new -report
+
+Once all jobs finish, concatenate all output::
+
+  cd base_suite.t03
+  ./results.csh
+
+
+Case Settings
+=====================
+
+There are two important files that define the case, **icepack.settings** and 
+**icepack_in**.  **icepack.settings** is a list of env variables that define many
+values used to setup, build and run the case.  **icepack_in** is the input namelist file
+for the icepack driver.  Variables in both files are described below.
+
+.. _tabsettings:
+
+Table of icepack settings
+--------------------------
+
+The **icepack.settings** file is reasonably well self documented.  Several of
+the variables defined in the file are not used in Icepack.  They exist
+to support the CICE model.
+
+.. csv-table:: Table 9
+   :header: "variable", "options/format", "description", "recommended value"
+   :widths: 15, 15, 25, 20
+
+   "ICE_MACHINE", " ", "machine name", "set by icepack.create.case"
+   "ICE_CASENAME", " ", "case name", "set by icepack.create.case"
+   "ICE_SANDBOX", " ", "sandbox directory", "set by icepack.create.case"
+   "ICE_SCRIPTS", " ", "scripts directory", "set by icepack.create.case"
+   "ICE_CASEDIR", " ", "case directory", "set by icepack.create.case"
+   "ICE_RUNDIR", " ", "run directory", "set by icepack.create.case"
+   "ICE_OBJDIR", " ", "compile directory", "${ICE_RUNDIR}/compile"
+   "ICE_RSTDIR", " ", "unused", "${ICE_RUNDIR}/restart"
+   "ICE_HSTDIR", " ", "unused", "${ICE_RUNDIR}/history"
+   "ICE_LOGDIR", " ", "log directory", "${ICE_CASEDIR}/logs"
+   "ICE_RSTPFILE", " ", "unused", "undefined"
+   "ICE_DRVOPT", " ", "unused", "icepack"
+   "ICE_CONSTOPT", " ", "unused", "cice"
+   "ICE_IOTYPE", " ", "unused", "none"
+   "ICE_CLEANBUILD", "true,false", "automatically clean before building", "true"
+   "ICE_GRID", "col", "grid", "col"
+   "ICE_NXGLOB", "4", "number of gridcells", "4"
+   "ICE_NTASKS", "1", "number of tasks, must be set to 1", "1"
+   "ICE_NTHRDS", "1", "number of threads per task, must be set to 1", "1"
+   "ICE_TEST", " ", "test setting if using a test", "set by icepack.create.case"
+   "ICE_TESTNAME", " ", "test name if using a test", "set by icepack.create.case"
+   "ICE_BASELINE", " ", "baseline directory name, associated with icepack.create.case -bd", "set by icepack.create.case"
+   "ICE_BASEGEN", " ", "baseline directory name for regression generation, associated with icepack.create.case -bg ", "set by icepack.create.case"
+   "ICE_BASECOM", " ", "baseline directory name for regression comparison, associated with icepack.create.case -bc ", "set by icepack.create.case"
+   "ICE_BFBCOMP", " ", "location of case for comparison, associated with icepack.create.case -td", "set by icepack.create.case"
+   "ICE_SPVAL", " ", "unused", "UnDeFiNeD"
+   "ICE_RUNLENGTH", " ", "batch run length default", "  00:10:00"
+   "ICE_THREADED", "true,false", "force threading in compile, will always compile threaded if NTHRDS is gt 1", "false"
+   "NICELYR", " ", "number of vertical layers in the ice", "7"
+   "NSNWLYR", " ", "number of vertical layers in the snow", "1"
+   "NICECAT", " ", "number of ice thickness categories", "5"
+   "TRAGE", "0,1", "ice age tracer", "1"
+   "TRFY", "0,1", "first-year ice area tracer", "1"
+   "TRLVL", "0,1", "deformed ice tracer", "1"
+   "TRPND", "0,1", "melt pond tracer", "1"
+   "NTRAERO", " ", "number of aerosol tracers", "1"
+   "TRBRI", "0,1", "brine height tracer", "0"
+   "TRZS", "0,1", "zsalinity tracer, needs TRBRI=1", "0"
+   "TRBGCS", "0,1", "skeletal layer tracer, needs TRBGCZ=0", "0"
+   "TRBGCZ", "0,1", "zbgc tracers, needs TRBGCS=0 and TRBRI=1", "0"
+   "NBGCLYR", " ", "number of zbgc layers", "7"
+   "TRZAERO", "0-6", "number of z aerosol tracers", "0"
+   "TRALG", "0,1,2,3", "number of algal tracers", "0"
+   "TRDOC", "0,1,2,3", "number of dissolved organic carbon", "0"
+   "TRDIC", "0,1", "number of dissolved inorganic carbon", "0"
+   "TRDON", "0,1", "number of dissolved organic nitrogen", "0"
+   "TRFEP", "0,1,2", "number of particulate iron tracers", "0"
+   "TRFED", "0,1,2", "number of dissolved iron tracers", "0"
+   "CAM_ICE", " ", "unused", "no"
+   "DITTO", " ", "unused", "no"
+   "BARRIERS", " ", "unused", "no"
+   "ICE_BLDDEBUG", "true,false", "turn on compile debug flags", "false"
+   "NUMIN", " ", "unused", "11"
+   "NUMAX", " ", "unused", "99"
+
+
+.. _tabnamelist:
+
+Table of namelist inputs
+--------------------------
+
+CHECK
+
+Namelist is part of the icepack driver code and is used to setup testing of the
+column physics.
+
+.. _tab-namelist:
+
+.. csv-table:: Table 8
+   :header: "variable", "options/format", "description", "recommended value"
+   :widths: 15, 15, 30, 15 
+
+   "*setup_nml*", "", "", ""
+   "", "", "*Time, Diagnostics*", ""
+   "``days_per_year``", "``360`` or ``365``", "number of days in a model year", "365"
+   "``use_leap_years``", "true/false", "if true, include leap days", ""
+   "``year_init``", "yyyy", "the initial year, if not using restart", ""
+   "``istep0``", "integer", "initial time step number", "0"
+   "``dt``", "seconds", "thermodynamics time step length", "3600."
+   "``npt``", "integer", "total number of time steps to take", ""
+   "``ndtd``", "integer", "number of dynamics/advection/ridging/steps per thermo timestep", "1"
+   "", "", "*Initialization/Restarting*", ""
+   "``ice_ic``", "``default``", "latitude and sst dependent", "default"
+   "", "``none``", "no ice", ""
+   "", "path/file", "restart file name", ""
+   "``restart_dir``", "path/", "path to restart directory", ""
+   "``dumpfreq``", "``y``", "write restart every ``dumpfreq_n`` years", "y"
+   "", "``m``", "write restart every ``dumpfreq_n`` months", ""
+   "", "``d``", "write restart every ``dumpfreq_n`` days", ""
+   "", "", "*Model Output*", ""
+   "``diagfreq``", "integer", "frequency of diagnostic output in ``dt``", "24"
+   "", "*e.g.*, 10", "once every 10 time steps", ""
+   "``diag_file``", "filename", "diagnostic output file (script may reset)", ""
+   "", "", "", ""
+   "*grid_nml*", "", "", ""
+   "", "", "*Grid*", ""
+   "``kcatbound``", "``0``", "original category boundary formula", "0"
+   "", "``1``", "new formula with round numbers", ""
+   "", "``2``", "WMO standard categories", ""
+   "", "``-1``", "one category", ""
+   "", "", "", ""
+   "*tracer_nml*", "", "", ""
+   "", "", "*Tracers*", ""
+   "``tr_iage``", "true/false", "ice age", ""
+   "``tr_FY``", "true/false", "first-year ice area", ""
+   "``tr_lvl``", "true/false", "level ice area and volume", ""
+   "``tr_pond_cesm``", "true/false", "CESM melt ponds", ""
+   "``tr_pond_topo``", "true/false", "topo melt ponds", ""
+   "``tr_pond_lvl``", "true/false", "level-ice melt ponds", ""
+   "``tr_aero``", "true/false", "aerosols", ""
+   "", "", "", ""
+   "*thermo_nml*", "", "", ""
+   "", "", "*Thermodynamics*", ""
+   "``kitd``", "``0``", "delta function ITD approximation", "1"
+   "", "``1``", "linear remapping ITD approximation", ""
+   "``ktherm``", "``0``", "zero-layer thermodynamic model", ""
+   "", "``1``", "Bitz and Lipscomb thermodynamic model", ""
+   "", "``2``", "mushy-layer thermodynamic model", ""
+   "``conduct``", "``MU71``", "conductivity :cite:`MU71`", ""
+   "", "``bubbly``", "conductivity :cite:`PETB07`", ""
+   "``a_rapid_mode``", "real", "brine channel diameter", "0.5x10 :math:`^{-3}` m"
+   "``Rac_rapid_mode``", "real", "critical Rayleigh number", "10"
+   "``aspect_rapid_mode``", "real", "brine convection aspect ratio", "1"
+   "``dSdt_slow_mode``", "real", "drainage strength parameter", "-1.5x10 :math:`^{-7}` m/s/K"
+   "``phi_c_slow_mode``", ":math:`0<\phi_c < 1`", "critical liquid fraction", "0.05"
+   "``phi_i_mushy``", ":math:`0<\phi_i < 1`", "solid fraction at lower boundary", "0.85"
+   "", "", "", ""
+   "*dynamics_nml*", "", "", ""
+   "", "", "*Dynamics*", ""
+   "``kstrength``", "``0``", "ice strength formulation :cite:`Hibler79`", "1"
+   "", "``1``", "ice strength formulation :cite:`Rothrock75`", ""
+   "``krdg_partic``", "``0``", "old ridging participation function", "1"
+   "", "``1``", "new ridging participation function", ""
+   "``krdg_redist``", "``0``", "old ridging redistribution function", "1"
+   "", "``1``", "new ridging redistribution function", ""
+   "``mu_rdg``", "real", "e-folding scale of ridged ice", ""
+   "``Cf``", "real", "ratio of ridging work to PE change in ridging", "17."
+   "", "", "", ""
+   "*shortwave_nml*", "", "", ""
+   "", "", "*Shortwave*", ""
+   "``shortwave``", "``ccsm3``", "NCAR CCSM3 distribution method", "'dEdd'"
+   "", "``dEdd``", "Delta-Eddington method", ""
+   "``albedo_type``", "``ccsm3``", "NCAR CCSM3 albedos", "‘ccsm3’"
+   "", "``constant``", "four constant albedos", ""
+   "``albicev``", ":math:`0<\alpha <1`", "visible ice albedo for thicker ice", ""
+   "``albicei``", ":math:`0<\alpha <1`", "near infrared ice albedo for thicker ice", ""
+   "``albsnowv``", ":math:`0<\alpha <1`", "visible, cold snow albedo", ""
+   "``albsnowi``", ":math:`0<\alpha <1`", "near infrared, cold snow albedo", ""
+   "``ahmax``", "real", "albedo is constant above this thickness", "0.3 m"
+   "``R_ice``", "real", "tuning parameter for sea ice albedo from Delta-Eddington shortwave", ""
+   "``R_pnd``", "real", "... for ponded sea ice albedo …", ""
+   "``R_snw``", "real", "... for snow (broadband albedo) …", ""
+   "``dT_mlt``", "real", ":math:`\Delta` temperature per :math:`\Delta` snow grain radius", ""
+   "``rsnw_mlt``", "real", "maximum melting snow grain radius", ""
+   "``kalg``", "real", "absorption coefficient for algae", ""
+   "", "", "", ""
+   "*ponds_nml*", "", "", ""
+   "", "", "*Melt Ponds*", ""
+   "``hp1``", "real", "critical ice lid thickness for topo ponds", "0.01 m"
+   "``hs0``", "real", "snow depth of transition to bare sea ice", "0.03 m"
+   "``hs1``", "real", "snow depth of transition to pond ice", "0.03 m"
+   "``dpscale``", "real", "time scale for flushing in permeable ice", ":math:`1\times 10^{-3}`"
+   "``frzpnd``", "``hlid``", "Stefan refreezing with pond ice thickness", "‘hlid’"
+   "", "``cesm``", "CESM refreezing empirical formula", ""
+   "``rfracmin``", ":math:`0 \le r_{min} \le 1`", "minimum melt water added to ponds", "0.15"
+   "``rfracmax``", ":math:`0 \le r_{max} \le 1`", "maximum melt water added to ponds", "1.0"
+   "``pndaspect``", "real", "aspect ratio of pond changes (depth:area)", "0.8"
+   "", "", "", ""
+   "*zbgc_nml*", "", "", ""
+   "", "", "*Biogeochemistry*", ""
+   "``tr_brine``", "true/false", "brine height tracer", ""
+   "``skl_bgc``", "true/false", "biogeochemistry", ""
+   "``bgc_flux_type``", "``Jin2006``", "ice–ocean flux velocity of :cite:`JDWSTWLG06`", ""
+   "", "``constant``", "constant ice–ocean flux velocity", ""
+   "``restore_bgc``", "true/false", "restore nitrate/silicate to data", ""
+   "``sil_data_type``", "``default``", "default forcing value for silicate", ""
+   "", "``clim``", "silicate forcing from ocean climatology :cite:`GLBA06`", ""
+   "``nit_data_type``", "``default``", "default forcing value for nitrate", ""
+   "", "``clim``", "nitrate forcing from ocean climatology :cite:`GLBA06`", ""
+   "", "``sss``", "nitrate forcing equals salinity", ""
+   "``tr_bgc_C_sk``", "true/false", "algal carbon tracer", ""
+   "``tr_bgc_chl_sk``", "true/false", "algal chlorophyll tracer", ""
+   "``tr_bgc_Am_sk``", "true/false", "ammonium tracer", ""
+   "``tr_bgc_Sil_sk``", "true/false", "silicate tracer", ""
+   "``tr_bgc_DMSPp_sk``", "true/false", "particulate DMSP tracer", ""
+   "``tr_bgc_DMSPd_sk``", "true/false", "dissolved DMSP tracer", ""
+   "``tr_bgc_DMS_sk``", "true/false", "DMS tracer", ""
+   "``phi_snow``", "real", "snow porosity for brine height tracer", ""
+   "", "", "", ""
+   "*forcing_nml*", "", "", ""
+   "", "", "*Forcing*", ""
+   "``formdrag``", "true/false", "calculate form drag", ""
+   "``atmbndy``", "``default``", "stability-based boundary layer", "‘default’"
+   "", "``constant``", "bulk transfer coefficients", ""
+   "``fyear_init``", "yyyy", "first year of atmospheric forcing data", ""
+   "``ycycle``", "integer", "number of years in forcing data cycle", ""
+   "``atm_data_type``", "``default``", "constant values defined in the code", ""
+   "", "``clim``", "monthly climatology", ""
+   "", "``CFS``", "CFS model output", ""
+   "", "``ISPOL``", "ISPOL experiment data", ""
+   "``data_dir``", "path/", "path to forcing data directory", ""
+   "``calc_strair``", "true", "calculate wind stress and speed", ""
+   "", "false", "read wind stress and speed from files", ""
+   "``highfreq``", "true/false", "high-frequency atmo coupling", ""
+   "``natmiter``", "integer", "number of atmo boundary layer iterations", ""
+   "``calc_Tsfc``", "true/false", "calculate surface temperature", "``.true.``"
+   "``precip_units``", "``mks``", "liquid precipitation data units", ""
+   "", "``mm_per_month``", "", ""
+   "", "``mm_per_sec``", "(same as MKS units)", ""
+   "``tfrz_option``", "``minus1p8``", "constant ocean freezing temperature (:math:`-1.8^\circ C`)", ""
+   "", "``linear_salt``", "linear function of salinity (ktherm=1)", ""
+   "", "``mushy``", "matches mushy-layer thermo (ktherm=2)", ""
+   "``ustar_min``", "real", "minimum value of ocean friction velocity", "0.0005 m/s"
+   "``fbot_xfer_type``", "``constant``", "constant ocean heat transfer coefficient", ""
+   "", "``Cdn_ocn``", "variable ocean heat transfer coefficient", ""
+   "``update_ocn_f``", "true", "include frazil water/salt fluxes in ocn fluxes", ""
+   "", "false", "do not include (when coupling with POP)", ""
+   "``l_mpond_fresh``", "true", "retain (topo) pond water until ponds drain", ""
+   "", "false", "release (topo) pond water immediately to ocean", ""
+   "``oceanmixed_ice``", "true/false", "active ocean mixed layer calculation", "``.true.`` (if uncoupled)"
+   "``ocn_data_type``", "``default``", "constant values defined in the code", ""
+   "", "``ISPOL``", "ISPOL experiment data", ""
+   "``bgc_data_type``", "``default``", "constant values defined in the code", ""
+   "", "``ISPOL``", "ISPOL experiment data", ""
+   "``oceanmixed_file``", "filename", "data file containing ocean forcing data", ""
+   "``restore_ocn``", "true/false", "restore sst to data", ""
+   "``trestore``", "integer", "sst restoring time scale (days)", ""
+   "", "", "", ""
+
+
+.. commented out below
+..   "``dbug``", "true/false", "if true, write extra diagnostics", "``.false.``"
+..   "``atm_data_format``", "``nc``", "read  atmo forcing files", ""
+..   "", "``bin``", "read direct access, binary files", ""
+..   "", "``NICE``", "N-ICE experiment data", ""
+..   "", "``NICE``", "N-ICE experiment data", ""
+..   "", "``NICE``", "N-ICE experiment data", ""
+
 Adding things
 ====================
 
@@ -538,10 +901,10 @@ are necessary, e.g. associated with an unavoidable change in the order of operat
 these cases, changes should be made in stages to isolate the non-bit-for-bit changes, 
 so that those that should be bit-for-bit can be tested separately.
 
+.. _addtrcr:
+
 Tracers
 --------------
-
-.. _addtrcr:
 
 Tracers added to Icepack will also require extensive modifications to the host
 sea ice model, including initialization on the horizontal grid, namelist flags 
@@ -658,8 +1021,8 @@ Restarts
 
 .. _testtrouble:
 
-Testing
---------
+Underflows
+-----------
 
 - Tests using a debug flag that traps underflows will fail unless a "flush-to-zero" flag 
   is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
@@ -731,480 +1094,472 @@ parameterizations will be compared and their subprocess descriptions
 possibly unified in the future.
 
 
-.. _testing:
+******************
+Developers Guide
+******************
+
+The Icepack model consists of three different parts, the column physics
+code, the icepack driver, and the scripts.  Development of each of these
+pieces will be described below separately.
+
+.. _dev_colphys:
+
+Icepack Column Physics
+========================
+
+File List
+------------------------------------
+
+The column physics source code contains the following files
+
+| **columnphysics/**   the column physics code
+|    **icepack_aerosol.F90**       handles most work associated with the aerosol tracers
+|    **icepack_age.F90**           handles most work associated with the age tracer
+|    **icepack_algae.F90**         biogeochemistry
+|    **icepack_atmo.F90**          stability-based parameterization for calculation of turbulent ice–atmosphere fluxes
+|    **icepack_brine.F90**         evolves the brine height tracer
+|    **icepack_constants.F90**     physical and numerical constants required for column package
+|    **icepack_firstyear.F90**     handles most work associated with the first-year ice area tracer
+|    **icepack_flux.F90**          fluxes needed/produced by the model
+|    **icepack_intfc.F90**         interface routines for linking Icepack with a host sea ice model
+|    **icepack_itd.F90**           utilities for managing ice thickness distribution
+|    **icepack_kinds.F90**         basic definitions of reals, integers, etc.
+|    **icepack_mechred.F90**       mechanical redistribution (ridging)
+|    **icepack_meltpond_cesm.F90** CESM melt pond parameterization
+|    **icepack_meltpond_lvl.F90**  level-ice melt pond parameterization
+|    **icepack_meltpond_topo.F90** topo melt pond parameterization
+|    **icepack_mushy_physics.F90** physics routines for mushy thermodynamics
+|    **icepack_ocean.F90**         mixed layer ocean model
+|    **icepack_orbital.F90**       orbital parameters for Delta-Eddington shortwave parameterization
+|    **icepack_parameters.F90**    basic model parameters
+|    **icepack_shortwave.F90**     shortwave and albedo parameterizations
+|    **icepack_therm_0layer.F90**  zero-layer thermodynamics of :cite:`Semtner76`
+|    **icepack_therm_bl99.F90**    multilayer thermodynamics of :cite:`BL99`
+|    **icepack_therm_itd.F90**     thermodynamic changes mostly related to ice thickness distribution
+|    **icepack_therm_mushy.F90**   mushy-theory thermodynamics of :cite:`THB13`
+|    **icepack_therm_shared.F90**  code shared by all thermodynamics parameterizations
+|    **icepack_therm_vertical.F90**  vertical growth rates and fluxes
+|    **icepack_tracers.F90**       tracer information
+|    **icepack_warnings.F90**      utilities for writing warning and error messages
+|    **icepack_zbgc.F90**          driver for ice biogeochemistry and brine tracer motion
+|    **icepack_zbgc_shared.F90**   parameters and shared code for biogeochemistry and brine height
+|    **icepack_zsalinity.F90**     vertical salinity parameterization of :cite:`JHE11`
+
+
+Coding Standard
+------------------------------------
+
+The column physics is a library that solves the sea ice column physics on a 
+timestep by timestep and gridpoint by gridpoint basis.  It consists of Fortran routines with 
+input and output arguments.  The model state is saved in the host model.  There is no 
+communication between gridcells so the underlying implementation
+supports no parallelization.  It however can be called in parallel by a driver
+that is running on multiple pes with a decomposed grid.
+
+The column physics does not have a time manager.  Calendaring is expected to be
+dealt with by the host model.  The column physics does not read any forcing data,
+that is passed into the column physics thru interfaces.  In fact, 
+there are no direct IO capabilities in the column physics.  That is to say, the
+column physics does not open files to read or write.  The column physics is able to write 
+data via several different routines that specifically have a fortran unit number as an input
+argument.  In addition, there is a warning package (see section :ref:`warning`) that
+provides the column package with the ability to store log output.  That output can
+be queried by the host model or it can be written directly via a specific routine.
+The warning package also provides access to an abort flag that the host model can
+query after each call to check for successful completion of the column physics package.
+
+All column physics public interfaces and public data are defined in the **icepack_intfc.F90**
+file.  Internal column physics settings should all be accessible thru interfaces.
+The internal constants, parameters, and tracer settings have init (set), query (get), and
+write interfaces that provides access to internal column physics settings.  The host model
+should not have to use "use" statements to access any of the column physics data outside
+of what is provided thru the icepack_intfc module.  
+The public column physics interfaces use optional arguments where it makes sense and
+there is an ongoing effort to make more of the interfaces support keyword=value arguments
+for clarity and backwards compatibility.
+
+
+Using Icepack
+------------------------------------
+
+In this section, the various public icepack interfaces will be defined and 
+how to use them will be described.
+
+Interfaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Column physics data and subroutines are made public thru the **icepack_intfc.F90**
+file.  That file contains the entire list of data and subroutines needed to
+initialize, setup, and run the column physics package.  That file points
+to other modules within the column physics where the interfaces are located.
+
+Within **icepack_intfc.F90**, internal icepack kinds are defined via the
+icepack_kinds module::
+
+      use icepack_kinds, only: icepack_char_len  => char_len
+      use icepack_kinds, only: icepack_char_len_long  => char_len_long
+      use icepack_kinds, only: icepack_log_kind  => log_kind
+      use icepack_kinds, only: icepack_int_kind  => int_kind
+      use icepack_kinds, only: icepack_real_kind => real_kind
+      use icepack_kinds, only: icepack_dbl_kind  => dbl_kind
+      use icepack_kinds, only: icepack_r16_kind  => r16_kind
+
+icepack_tracers defines a handful of parameters constants that provide information
+about maximum array sizes for static dimensioning::
+
+      use icepack_tracers,   only: icepack_max_nbtrcr => max_nbtrcr
+      use icepack_tracers,   only: icepack_max_algae  => max_algae
+      use icepack_tracers,   only: icepack_max_dic    => max_dic
+      use icepack_tracers,   only: icepack_max_doc    => max_doc
+      use icepack_tracers,   only: icepack_max_don    => max_don
+      use icepack_tracers,   only: icepack_max_fe     => max_fe
+      use icepack_tracers,   only: icepack_max_aero   => max_aero
+      use icepack_tracers,   only: icepack_nmodal1    => nmodal1
+      use icepack_tracers,   only: icepack_nmodal2    => nmodal2
+      use icepack_constants, only: icepack_nspint     => nspint
+
+icepack_constants provides a list of static parameter constants::
+
+      use icepack_constants, only: c0 => c0
+
+icepack_constants provides init, query, write, and recompute methods to
+define constant values.  These constants have defaults that the caller
+can query or reset::
+
+      use icepack_constants, only: icepack_init_constants
+      use icepack_constants, only: icepack_query_constants
+      use icepack_constants, only: icepack_write_constants
+      use icepack_constants, only: icepack_recompute_constants
+
+icepack_parameters provides init, query, and write methods to
+define model parameters.  These parameters have defaults that the caller
+can query or reset::
 
-Testing Icepack
-================
+      use icepack_parameters, only: icepack_init_parameters
+      use icepack_parameters, only: icepack_query_parameters
+      use icepack_parameters, only: icepack_write_parameters
 
-.. _basic:
+icepack_tracers provides init, query, and write methods to
+define various tracer sizes, flags, indices, and numbers.  The
+tracers have some defaults that the caller can query or reset::
 
-Individual tests and test suites
---------------------------------
+      use icepack_tracers, only: icepack_compute_tracers
+      use icepack_tracers, only: icepack_query_tracer_sizes
+      use icepack_tracers, only: icepack_write_tracer_sizes
+      use icepack_tracers, only: icepack_init_tracer_flags
+      use icepack_tracers, only: icepack_query_tracer_flags
+      use icepack_tracers, only: icepack_write_tracer_flags
+      use icepack_tracers, only: icepack_init_tracer_indices
+      use icepack_tracers, only: icepack_query_tracer_indices
+      use icepack_tracers, only: icepack_write_tracer_indices
+      use icepack_tracers, only: icepack_init_tracer_numbers
+      use icepack_tracers, only: icepack_query_tracer_numbers
+      use icepack_tracers, only: icepack_write_tracer_numbers
 
-The Icepack scripts support both setup of individual tests as well as test suites.  Individual
-tests are run from the command line,
+icepack_itd provides three public interfaces to compute the ice
+thickness distribution::
 
-  ``> ./icepack.create.case -t smoke -m wolf -s diag1,debug -testid myid``
+      use icepack_itd, only: icepack_init_itd
+      use icepack_itd, only: icepack_init_itd_hist
+      use icepack_itd, only: icepack_aggregate
 
-where -m designates a specific machine.  Test suites are multiple tests that are specified in 
-an input file and are started on the command line,
+icepack_mechred contains two public interfaces to compute ridging
+and ice strength::
 
-  ``> ./icepack.create.case -ts base_suite -m wolf -testid myid``
+      use icepack_mechred, only: icepack_step_ridge
+      use icepack_mechred, only: icepack_ice_strength
+
+icepack_shortwave provides a routine to initialize the radiation
+computation and an routine to update the radiation computation::
+
+      use icepack_shortwave, only: icepack_prep_radiation
+      use icepack_shortwave, only: icepack_step_radiation
+
+icepack_brine address brine and zsalinity computations::
+
+      use icepack_brine, only: icepack_init_hbrine
+      use icepack_brine, only: icepack_init_zsalinity
+
+icepack_zbgc contains several public interfaces to support initialization
+and computation for the skeletal layer bgc and zbgc options::
 
-Invoking **icepack.create.case** with -t or -ts requires a testid to uniquely name test directories.  The format
-of the case directory name for a test will always be 
-${machine}_${test}_${grid}_${pes}_${soptions}.${testid}
+      use icepack_zbgc , only: icepack_init_bgc
+      use icepack_zbgc , only: icepack_init_zbgc
+      use icepack_zbgc , only: icepack_biogeochemistry
+      use icepack_zbgc , only: icepack_init_OceanConcArray
+      use icepack_zbgc , only: icepack_init_ocean_conc
+
+There are a couple of routines to support computation of an atmosphere
+and ocean interaction::
+
+      use icepack_atmo , only: icepack_atm_boundary
+      use icepack_ocean, only: icepack_ocn_mixed_layer
+
+icepack_step_therm1 and icepack_step_therm2 compute the ice
+thermodynamics in two steps::
+
+      use icepack_therm_vertical, only: icepack_step_therm1
+      use icepack_therm_itd     , only: icepack_step_therm2
+
+icepack_therm_shared provides several methods to compute different
+internal terms::
+
+      use icepack_therm_shared  , only: icepack_ice_temperature
+      use icepack_therm_shared  , only: icepack_snow_temperature
+      use icepack_therm_shared  , only: icepack_liquidus_temperature
+      use icepack_therm_shared  , only: icepack_sea_freezing_temperature
+      use icepack_therm_shared  , only: icepack_enthalpy_snow
+      use icepack_therm_shared  , only: icepack_init_thermo
+      use icepack_therm_shared  , only: icepack_init_trcr
+
+icepack_orbital provides a routine to set orbital parameters needed
+for some albedo computations::
 
-To build and run a test, the process is the same as a case,
-  cd into the test directory,
-  
-  run icepack.build
-  
-  run icepack.submit
+      use icepack_orbital , only: icepack_init_orbit
 
-The test results will be generated in a local file called **test_output**.
+icepack_warnings provides several methods for getting, writing,
+and clearing messages.  There is also a function that returns
+a logical flag indicating whether the column physics has aborted::
 
-When running a test suite, the **icepack.create.case** command line automatically generates all the tests
-under a directory named ${test_suite}.${testid}.  It then automatically builds and submits all
-tests.  When the tests are complete, run the **results.csh** script to see the results from all the
-tests.
+      use icepack_warnings, only: icepack_warnings_clear
+      use icepack_warnings, only: icepack_warnings_getall
+      use icepack_warnings, only: icepack_warnings_print
+      use icepack_warnings, only: icepack_warnings_flush
+      use icepack_warnings, only: icepack_warnings_aborted
 
-Tests are defined under **configuration/scripts/tests/**.  The tests currently supported are:
-  smoke   - Runs the model for default length.  The length and options can
-            be set with the -s command line option.  The test passes if the
-            model completes successfully.
-  restart - Runs the model for 14 months, writing a restart file at month 3 and
-            again at the end of the run.  Runs the model a second time starting from the
-            month 3 restart and writing a restart at month 12 of the model run.
-            The test passes if both runs complete and
-            if the restart files at month 12 from both runs are bit-for-bit identical.
+icepack_configure is a standalone icepack method that should always be called
+first::
 
-Please run ``./icepack.create.case -h`` for additional details.
-
-.. _additional:
-
-Additional testing options
---------------------------
-
-There are several additional options on the ``icepack.create.case`` command line for testing that
-provide the ability to regression test and compare tests to each other.
-
-  ``-bd`` defines a baseline directory where tests can be stored for regression testing
-  
-  ``-bg`` defines a version name that where the current tests can be saved for regression testing
-  
-  ``-bc`` defines a version name that the current tests should be compared to for regression testing
-  
-  ``-td`` provides a way to compare tests with each other
-
-To use ``-bg``,
-  ``> icepack.create.case -ts base_suite -m wolf -testid v1 -bg version1 -bd $SCRATCH/ICEPACK_BASELINES``
-  will copy all the results from the test suite to ``$SCRATCH/ICEPACK_BASELINES/version1``.
-
-To use ``-bc``,
-  ``> icepack.create.case -ts base_suite -m wolf -testid v2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES``
-  will compare all the results from this test suite to results saved before in $SCRATCH/ICEPACK_BASELINES/version1``.
-
-``-bc`` and ``-bg`` can be combined,
-  ``>icepack.create.case -ts base_suite -m wolf -testid v2 -bg version2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES``
-  will save the current results to ``$SCRATCH/ICEPACK_BASELINES/version2`` and compare the current results to
-  results save before in ``$SCRATCH/ICEPACK_BASELINES/version1``.
-
-``-bg``, ``-bc``, and ``-bd`` are used for regression testing.  There is a default ``-bd`` on each machine.
-
-``-td`` allows a user to compare one test result to another.  For instance,
-
-CHECK provide example suitable for Icepack. This one doesn't work because it relies on MPI
-
-  ``> icepack.create.case -t smoke -m wolf -s run5day -testid t01``
-
-  ``> icepack.create.case -t smoke -m wolf -s run5day -testid t01 -td smoke_gx3_8x2_run5day``
-
-  An additional check will be done for the second test (because of the ``-td`` argument), and it will compare
-  the output from the first test "smoke_gx3_8x2_run5day" to the output from its test "smoke_gx3_4x2_run5day"
-  and generate a result for that.  It's important that the first test complete before the second test is done.  Also, the ``-td`` option works only if the testid and the machine are the same for the baseline run and the current run.
-
-.. _format:
-
-Test suite format
------------------
-
-The format for the test suite file is relatively simple.  It is a text file with white space delimited 
-columns, e.g. **base\_suite.ts**
-
-.. _tab-test:
-
-.. csv-table:: Table 7
-   :header: "#Test", "Grid", "PEs", "Sets", "BFB-compare"
-   :widths: 7, 7, 7, 15, 15
-
-   "smoke", "col", "1x1", "diag1,run1year", ""
-   "smoke", "col", "1x1", "debug,run1year", ""
-   "restart", "col", "1x1", "debug", ""
-   "restart", "col", "1x1", "diag1", ""
-   "restart", "col", "1x1", "pondcesm", ""
-   "restart", "col", "1x1", "pondlvl", ""
-   "restart", "col", "1x1", "pondtopo", ""
-
-
-The first column is the test name, the second the grid, the third the pe count, the fourth column is
-the ``-s`` options and the fifth column is the ``-td`` argument. (The grid and PEs columns are provided for compatibility with the similar CICE scripts.)  The fourth and fifth columns are optional.
-The argument to ``-ts`` defines which filename to choose and that argument can contain a path.  ``icepack.create.case`` 
-will also look for the filename in **configuration/scripts/tests/** where some preset test suites are defined.
-
-Example Tests (Quickstart)
---------------------------
-
-To generate a baseline dataset for a test case
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``./icepack.create.case -t smoke -m wolf -bg icepackv6.0.0 -testid t00``
-
-``cd wolf_smoke_col_1x1.t00``
-
-``./icepack.build``
-
-``./icepack.submit``
-
-After job finishes, check output
-
-``cat test_output``
-
-
-To run a test case and compare to a baseline dataset
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``./icepack.create.case -t smoke -m wolf -bc icepackv6.0.0 -testid t01``
-
-``cd wolf_smoke_col_1x1.t01``
-
-``./icepack.build``
-
-``./icepack.submit``
-
-After job finishes, check output
-
-``cat test_output``
-
-
-To run a test suite to generate baseline data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``./icepack.create.case -m wolf -ts base_suite -testid t02 -bg icepackv6.0.0bs``
-
-``cd base_suite.t02``
-
-Once all jobs finish, concatenate all output
-
-``./results.csh``   All tests results will be stored in results.log
-
-To plot a timeseries of "total ice extent", "total ice area", and "total ice volume"
-
-``./timeseries.csh <directory>``
-
-``ls \*.png``
-
-
-To run a test suite to compare to baseline data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``./icepack.create.case -m wolf -ts base_suite -testid t03 -bc icepackv6.0.0bs``
-
-``cd base_suite.t03``
-
-Once all jobs finish, concatenate all output
-
-``./results.csh``   All tests results will be stored in results.log
-
-To plot a timeseries of "total ice extent", "total ice area", and "total ice volume"
-
-``./timeseries.csh <directory>``
-
-``ls \*.png``
-
-
-To compare to another test
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-CHECK needs a different example for Icepack
-
-`First:`
-
-./icepack.create.case -m wolf -t smoke -testid t01 -p 8x2
-
-cd wolf_smoke_gx3_8x2.t01
-
-./icepack.build
-
-./icepack.submit
-
-# After job finishes, check output
-
-cat test_output
-
-`Then, do the comparison:` 
-
-./icepack.create.case -m wolf -t smoke -testid t01 -td smoke_gx3_8x2 -s thread -p 4x1
-
-cd wolf_smoke_gx3_4x1_thread.t01
-
-./icepack.build
-
-./icepack.submit
-
-# After job finishes, check output
-
-cat test_output
-
-
-Additional Details
-------------------
-- In general, the baseline generation, baseline compare, and test diff are independent.
-- Use the ``-bd`` flag to specify the location where you want the baseline dataset
-    to be written.  Without specifying ``-bd``, the baseline dataset will be written
-    to the default baseline directory found in the **env.<machine>** file (``ICE_MACHINE_BASELINE``).
-- If ``-bd`` is not passed, the scripts will look for baseline datasets in the default 
-    baseline directory found in the **env.<machine>** file (``ICE_MACHINE_BASELINE``).
-    If the ``-bd`` option is passed, the scripts will look for baseline datasets in the
-    location passed to the ``-bd`` argument.
-- To generate a baseline dataset for a specific version (for regression testing),
-    use ``-bg <version_name>``.  The scripts will then place the baseline dataset
-    in ``$ICE_MACHINE_BASELINE/<version_name>/``
-- The ``-testid`` flag allows users to specify a testing id that will be added to the
-    end of the case directory.  For example, 
-    ``./icepack.create.case -m wolf -t smoke -testid t12``
-    creates the directory **wolf_smoke_col_1x1.t12**.  This flag is REQUIRED if using ``-t`` or ``-ts``.
-
-
-~~~~~~~~~~~~~~~~~~~~~~~
-Icepack Test Reporting
-~~~~~~~~~~~~~~~~~~~~~~~
-
-The Icepack testing scripts have the capability of posting the test results
-to an online dashboard, located `on CDash <http://my.cdash.org/index.php?project=myICEPACK>`_.
-There are 2 options for posting Icepack results to CDash: 1) The automated
-script, 2) The manual method.
-
-*****************
-Automatic Script
-*****************
-
-To automatically run the Icepack tests, and post the results to the Icepack Cdash dashboard,
-users need to copy and run the ``icepack.run.suite`` script:
-
-.. code-block:: bash
-
-  cp configuration/scripts/icepack.run.suite .
-  ./icepack.run.suite -m <machine> -testid <test_id> -bc <baseline_to_compare> -bg <baseline_to_generate> -a <account_number>
-
-The run.suite script does the following:
-
-- Creates a fresh clone of the CICE-Consortium Icepack repository
-- ``cd`` to cloned repo
-- run ``icepack.create.case`` to generate the base_suite directories.  The output
-  is piped to ``log.suite``
-- Running ``icepack.create.case`` submits each individual job to the queue.
-- ``run.suite`` monitors the queue manager to determine when all jobs have
-  finished (pings the queue manager once every 5 minutes).
-- Once all jobs complete, cd to base_suite directory and run ``./results.csh``
-- Run ``./run_ctest.csh`` in order to post the test results to the CDash dashboard
-
-*****************
-Manual Method
-*****************
-
-To manually run the Icepack tests and post the results to the Icepack CDash dashboard,
-users essentially just need to perform all steps available in run.suite, detailed below:
-
-- Pass the ``-report`` flag to icepack.create.case when running the ``base_suite`` test suite.
-  The ``-report`` flag copies the required CTest / CDash scripts to the suite
-  directory.
-- ``icepack.create.case`` compiles the Icepack code, and submits all of the jobs to the
-  queue manager.
-- After every job has been submitted and completed, ``cd`` to the suite directory.
-- Parse the results, by running ``./results.csh``.
-- Run the CTest / CDash script ``./run_ctest.csh``.
-
-If the ``run_ctest.csh`` script is unable to post the testing results to the CDash
-server, a message will be printed to the screen detailing instructions on how to attempt
-to post the results from another server.  If ``run_ctest.csh`` fails to submit the results,
-it will generate a tarball ``icepack_ctest.tgz`` that contains the necessary files for
-submission.  Copy this file to another server (CMake version 2.8+ required), extract the
-archive, and run ``./run_ctest.csh -submit``.
-
-.. _tabnamelist:
-
-Table of namelist options
-=========================
-
-CHECK
-
-.. _tab-namelist:
-
-.. csv-table:: Table 8
-   :header: "variable", "options/format", "description", "recommended value"
-   :widths: 15, 15, 30, 15 
-
-   "*setup_nml*", "", "", ""
-   "", "", "*Time, Diagnostics*", ""
-   "``days_per_year``", "``360`` or ``365``", "number of days in a model year", "365"
-   "``use_leap_years``", "true/false", "if true, include leap days", ""
-   "``year_init``", "yyyy", "the initial year, if not using restart", ""
-   "``istep0``", "integer", "initial time step number", "0"
-   "``dt``", "seconds", "thermodynamics time step length", "3600."
-   "``npt``", "integer", "total number of time steps to take", ""
-   "``ndtd``", "integer", "number of dynamics/advection/ridging/steps per thermo timestep", "1"
-   "", "", "*Initialization/Restarting*", ""
-   "``ice_ic``", "``default``", "latitude and sst dependent", "default"
-   "", "``none``", "no ice", ""
-   "", "path/file", "restart file name", ""
-   "``restart_dir``", "path/", "path to restart directory", ""
-   "``dumpfreq``", "``y``", "write restart every ``dumpfreq_n`` years", "y"
-   "", "``m``", "write restart every ``dumpfreq_n`` months", ""
-   "", "``d``", "write restart every ``dumpfreq_n`` days", ""
-   "", "", "*Model Output*", ""
-   "``diagfreq``", "integer", "frequency of diagnostic output in ``dt``", "24"
-   "", "*e.g.*, 10", "once every 10 time steps", ""
-   "``diag_file``", "filename", "diagnostic output file (script may reset)", ""
-..   "``dbug``", "true/false", "if true, write extra diagnostics", "``.false.``"
-   "", "", "", ""
-   "*grid_nml*", "", "", ""
-   "", "", "*Grid*", ""
-   "``kcatbound``", "``0``", "original category boundary formula", "0"
-   "", "``1``", "new formula with round numbers", ""
-   "", "``2``", "WMO standard categories", ""
-   "", "``-1``", "one category", ""
-   "", "", "", ""
-   "*tracer_nml*", "", "", ""
-   "", "", "*Tracers*", ""
-   "``tr_iage``", "true/false", "ice age", ""
-   "``tr_FY``", "true/false", "first-year ice area", ""
-   "``tr_lvl``", "true/false", "level ice area and volume", ""
-   "``tr_pond_cesm``", "true/false", "CESM melt ponds", ""
-   "``tr_pond_topo``", "true/false", "topo melt ponds", ""
-   "``tr_pond_lvl``", "true/false", "level-ice melt ponds", ""
-   "``tr_aero``", "true/false", "aerosols", ""
-   "", "", "", ""
-   "*thermo_nml*", "", "", ""
-   "", "", "*Thermodynamics*", ""
-   "``kitd``", "``0``", "delta function ITD approximation", "1"
-   "", "``1``", "linear remapping ITD approximation", ""
-   "``ktherm``", "``0``", "zero-layer thermodynamic model", ""
-   "", "``1``", "Bitz and Lipscomb thermodynamic model", ""
-   "", "``2``", "mushy-layer thermodynamic model", ""
-   "``conduct``", "``MU71``", "conductivity :cite:`MU71`", ""
-   "", "``bubbly``", "conductivity :cite:`PETB07`", ""
-   "``a_rapid_mode``", "real", "brine channel diameter", "0.5x10 :math:`^{-3}` m"
-   "``Rac_rapid_mode``", "real", "critical Rayleigh number", "10"
-   "``aspect_rapid_mode``", "real", "brine convection aspect ratio", "1"
-   "``dSdt_slow_mode``", "real", "drainage strength parameter", "-1.5x10 :math:`^{-7}` m/s/K"
-   "``phi_c_slow_mode``", ":math:`0<\phi_c < 1`", "critical liquid fraction", "0.05"
-   "``phi_i_mushy``", ":math:`0<\phi_i < 1`", "solid fraction at lower boundary", "0.85"
-   "", "", "", ""
-   "*dynamics_nml*", "", "", ""
-   "", "", "*Dynamics*", ""
-   "``kstrength``", "``0``", "ice strength formulation :cite:`Hibler79`", "1"
-   "", "``1``", "ice strength formulation :cite:`Rothrock75`", ""
-   "``krdg_partic``", "``0``", "old ridging participation function", "1"
-   "", "``1``", "new ridging participation function", ""
-   "``krdg_redist``", "``0``", "old ridging redistribution function", "1"
-   "", "``1``", "new ridging redistribution function", ""
-   "``mu_rdg``", "real", "e-folding scale of ridged ice", ""
-   "``Cf``", "real", "ratio of ridging work to PE change in ridging", "17."
-   "", "", "", ""
-   "*shortwave_nml*", "", "", ""
-   "", "", "*Shortwave*", ""
-   "``shortwave``", "``ccsm3``", "NCAR CCSM3 distribution method", "'dEdd'"
-   "", "``dEdd``", "Delta-Eddington method", ""
-   "``albedo_type``", "``ccsm3``", "NCAR CCSM3 albedos", "‘ccsm3’"
-   "", "``constant``", "four constant albedos", ""
-   "``albicev``", ":math:`0<\alpha <1`", "visible ice albedo for thicker ice", ""
-   "``albicei``", ":math:`0<\alpha <1`", "near infrared ice albedo for thicker ice", ""
-   "``albsnowv``", ":math:`0<\alpha <1`", "visible, cold snow albedo", ""
-   "``albsnowi``", ":math:`0<\alpha <1`", "near infrared, cold snow albedo", ""
-   "``ahmax``", "real", "albedo is constant above this thickness", "0.3 m"
-   "``R_ice``", "real", "tuning parameter for sea ice albedo from Delta-Eddington shortwave", ""
-   "``R_pnd``", "real", "... for ponded sea ice albedo …", ""
-   "``R_snw``", "real", "... for snow (broadband albedo) …", ""
-   "``dT_mlt``", "real", ":math:`\Delta` temperature per :math:`\Delta` snow grain radius", ""
-   "``rsnw_mlt``", "real", "maximum melting snow grain radius", ""
-   "``kalg``", "real", "absorption coefficient for algae", ""
-   "", "", "", ""
-   "*ponds_nml*", "", "", ""
-   "", "", "*Melt Ponds*", ""
-   "``hp1``", "real", "critical ice lid thickness for topo ponds", "0.01 m"
-   "``hs0``", "real", "snow depth of transition to bare sea ice", "0.03 m"
-   "``hs1``", "real", "snow depth of transition to pond ice", "0.03 m"
-   "``dpscale``", "real", "time scale for flushing in permeable ice", ":math:`1\times 10^{-3}`"
-   "``frzpnd``", "``hlid``", "Stefan refreezing with pond ice thickness", "‘hlid’"
-   "", "``cesm``", "CESM refreezing empirical formula", ""
-   "``rfracmin``", ":math:`0 \le r_{min} \le 1`", "minimum melt water added to ponds", "0.15"
-   "``rfracmax``", ":math:`0 \le r_{max} \le 1`", "maximum melt water added to ponds", "1.0"
-   "``pndaspect``", "real", "aspect ratio of pond changes (depth:area)", "0.8"
-   "", "", "", ""
-   "*zbgc_nml*", "", "", ""
-   "", "", "*Biogeochemistry*", ""
-   "``tr_brine``", "true/false", "brine height tracer", ""
-   "``skl_bgc``", "true/false", "biogeochemistry", ""
-   "``bgc_flux_type``", "``Jin2006``", "ice–ocean flux velocity of :cite:`JDWSTWLG06`", ""
-   "", "``constant``", "constant ice–ocean flux velocity", ""
-   "``restore_bgc``", "true/false", "restore nitrate/silicate to data", ""
-   "``sil_data_type``", "``default``", "default forcing value for silicate", ""
-   "", "``clim``", "silicate forcing from ocean climatology :cite:`GLBA06`", ""
-   "``nit_data_type``", "``default``", "default forcing value for nitrate", ""
-   "", "``clim``", "nitrate forcing from ocean climatology :cite:`GLBA06`", ""
-   "", "``sss``", "nitrate forcing equals salinity", ""
-   "``tr_bgc_C_sk``", "true/false", "algal carbon tracer", ""
-   "``tr_bgc_chl_sk``", "true/false", "algal chlorophyll tracer", ""
-   "``tr_bgc_Am_sk``", "true/false", "ammonium tracer", ""
-   "``tr_bgc_Sil_sk``", "true/false", "silicate tracer", ""
-   "``tr_bgc_DMSPp_sk``", "true/false", "particulate DMSP tracer", ""
-   "``tr_bgc_DMSPd_sk``", "true/false", "dissolved DMSP tracer", ""
-   "``tr_bgc_DMS_sk``", "true/false", "DMS tracer", ""
-   "``phi_snow``", "real", "snow porosity for brine height tracer", ""
-   "", "", "", ""
-   "*forcing_nml*", "", "", ""
-   "", "", "*Forcing*", ""
-   "``formdrag``", "true/false", "calculate form drag", ""
-   "``atmbndy``", "``default``", "stability-based boundary layer", "‘default’"
-   "", "``constant``", "bulk transfer coefficients", ""
-   "``fyear_init``", "yyyy", "first year of atmospheric forcing data", ""
-   "``ycycle``", "integer", "number of years in forcing data cycle", ""
-..   "``atm_data_format``", "``nc``", "read  atmo forcing files", ""
-..   "", "``bin``", "read direct access, binary files", ""
-   "``atm_data_type``", "``default``", "constant values defined in the code", ""
-   "", "``clim``", "monthly climatology", ""
-   "", "``CFS``", "CFS model output", ""
-   "", "``ISPOL``", "ISPOL experiment data", ""
-..   "", "``NICE``", "N-ICE experiment data", ""
-   "``data_dir``", "path/", "path to forcing data directory", ""
-   "``calc_strair``", "true", "calculate wind stress and speed", ""
-   "", "false", "read wind stress and speed from files", ""
-   "``highfreq``", "true/false", "high-frequency atmo coupling", ""
-   "``natmiter``", "integer", "number of atmo boundary layer iterations", ""
-   "``calc_Tsfc``", "true/false", "calculate surface temperature", "``.true.``"
-   "``precip_units``", "``mks``", "liquid precipitation data units", ""
-   "", "``mm_per_month``", "", ""
-   "", "``mm_per_sec``", "(same as MKS units)", ""
-   "``tfrz_option``", "``minus1p8``", "constant ocean freezing temperature (:math:`-1.8^\circ C`)", ""
-   "", "``linear_salt``", "linear function of salinity (ktherm=1)", ""
-   "", "``mushy``", "matches mushy-layer thermo (ktherm=2)", ""
-   "``ustar_min``", "real", "minimum value of ocean friction velocity", "0.0005 m/s"
-   "``fbot_xfer_type``", "``constant``", "constant ocean heat transfer coefficient", ""
-   "", "``Cdn_ocn``", "variable ocean heat transfer coefficient", ""
-   "``update_ocn_f``", "true", "include frazil water/salt fluxes in ocn fluxes", ""
-   "", "false", "do not include (when coupling with POP)", ""
-   "``l_mpond_fresh``", "true", "retain (topo) pond water until ponds drain", ""
-   "", "false", "release (topo) pond water immediately to ocean", ""
-   "``oceanmixed_ice``", "true/false", "active ocean mixed layer calculation", "``.true.`` (if uncoupled)"
-   "``ocn_data_type``", "``default``", "constant values defined in the code", ""
-   "", "``ISPOL``", "ISPOL experiment data", ""
-..   "", "``NICE``", "N-ICE experiment data", ""
-   "``bgc_data_type``", "``default``", "constant values defined in the code", ""
-   "", "``ISPOL``", "ISPOL experiment data", ""
-..   "", "``NICE``", "N-ICE experiment data", ""
-   "``oceanmixed_file``", "filename", "data file containing ocean forcing data", ""
-   "``restore_ocn``", "true/false", "restore sst to data", ""
-   "``trestore``", "integer", "sst restoring time scale (days)", ""
-   "", "", "", ""
-
+      public :: icepack_configure
+
+.. _warning:
+
+
+Calling Sequence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The calling sequence required to setup and run the column physics is generally
+described below.  Several steps may be needed to be taken by the host between
+icepack calls in order to support the icepack interfaces.  
+The icepack driver and the CICE model provide working examples
+of how to do this in practice.  The sample below does not include bgc.
+
+start driver
+
+* call *icepack_configure*
+
+initialize driver and read in driver namelist
+
+* call *icepack_init_constants*
+* call *icepack_init_parameters*
+* call *icepack_init_tracers_*
+* call *icepack_init_trcr*
+* call *icepack_init_thermo*
+* call *icepack_init_itd*
+* call *icepack_init_itd_hist*
+* call *icepack_step_radiation*
+* call *icepack_init_zsalinity*
+* call *icepack_init_hbrine*
+* call *icepack_aggregate*
+
+loop over timesteps
+loop over gridcells
+
+* call *icepack_prep_radiation*
+* call *icepack_step_therm1*
+* call *icepack_step_therm2*
+* call *icepack_aggregate*
+* call *icepack_step_ridge*
+* call *icepack_step_radiation*
+* call *icepack_atm_boundary*
+* call *icepack_ocn_mixed_layer*
+
+end loop over gridcells
+end loop over timesteps
+
+end driver
+
+The Warning Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Icepack has no IO capabilities.  It does not have direct knowledge of
+any input or output files.  However, it can write output thru specific
+interfaces that pass in a fortran file unit number.  There are several 
+methods in icepack that support writing data to a file this way including
+the various *icepack_write_* interfaces.
+
+Separately, the icepack warning package is where icepack stores internal output and
+error messages not directly set in the various write routines.  The warning package
+also contains an *icepack_warnings_aborted* function that will be set to true 
+if icepack detects an abort.  In that case, icepack will return to the driver.
+As a general rule, after each call to icepack, the driver should call::
+
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
+
+to flush (print and clear) the icepack warning buffer and to check whether icepack 
+aborted.  If icepack aborts, it's actually up to the driver to cleanly shut the
+model down.
+
+Alternatively, *icepack_warnings_getall* provides the saved icepack messages to
+the driver via an array of strings in the argument list.  This allows the driver
+to reformat that output as needed.  *icepack_warnings_print*
+writes out the messages but does not clear them, and *icepack_warnings_clear* zeros
+out the icepack warning messages.
+
+
+
+.. _dev_driver:
+
+Driver Implementation
+========================
+
+The icepack driver is Fortran source code and exists to test the column physics
+in a stand-alone mode for some simple column configurations.
+
+File List
+-------------------
+
+The icepack driver consists of the following files 
+
+|  **configuration/driver/**       driver for testing Icepack in stand-alone mode
+|        **icedrv_MAIN.F90**        main program
+|        **icedrv_InitMod.F90**     routines for initializing a run
+|        **icedrv_RunMod.F90**      main driver routines for time stepping
+|        **icedrv_arrays_column.F90**    essential arrays to describe the state of the ice
+|        **icedrv_calendar.F90**    keeps track of what time it is
+|        **icedrv_constants.F90**   physical and numerical constants and parameters
+|        **icedrv_diagnostics.F90** miscellaneous diagnostic and debugging routines
+|        **icedrv_diagnostics_bgc.F90**  diagnostic routines for biogeochemistry
+|        **icedrv_domain_size.F90** domain sizes
+|        **icedrv_flux.F90**        fluxes needed/produced by the model
+|        **icedrv_forcing.F90**     routines to read and interpolate forcing data for stand-alone model runs
+|        **icedrv_forcing_bgc.F90** routines to read and interpolate forcing data for bgc stand-alone model runs
+|        **icedrv_init.F90**        general initialization routines
+|        **icedrv_init_column.F90** initialization routines specific to the column physics
+|        **icedrv_restart.F90**     driver for reading/writing restart files
+|        **icedrv_restart_column.F90**  (CHECK: RENAME bgc) restart routines specific to the column physics
+|        **icedrv_restart_shared.F90**  code shared by all restart options
+|        **icedrv_state.F90**       essential arrays to describe the state of the ice
+|        **icedrv_step.F90**        routines for time stepping the major code components
+|        **icedrv_system.F90**      overall system management calls
+
+Overview
+------------
+
+The icepack driver exists to test the column physics.  At the present time, it is hardwired
+to run 4 different gridcells on one processor with the same forcing used for all gridcells.  
+There is no MPI and no threading built into the icepack driver.  There is limited IO capabilities,
+no history files, and no netcdf restart files.  The model generally runs very quickly.
+
+There are a few different forcings available.
+
+
+.. _dev_scripts:
+
+Scripts Implementation
+========================
+
+The scripts are the third part of the icepack package.  They support setting up
+cases, building, and running the icepack stand-alone model.
+
+File List
+--------------
+
+The directory structure under configure/scripts is as follows.
+
+| **configuration/scripts/**
+|        **Makefile**              primary makefile
+|        **icepack.batch.csh**     creates batch scripts for particular machines
+|        **icepack.build**         compiles the code
+|        **icepack.launch.csh**    creates script logic that runs the executable
+|        **icepack.run.setup.csh** sets up the run scripts
+|        **icepack.run.suite.csh** sets up the test suite
+|        **icepack.settings**      defines environment, model configuration and run settings
+|        **icepack.test.setup.csh**   creates configurations for testing the model
+|        **icepack_decomp.csh**    defines the grid size
+|        **icepack_in**            namelist input data
+|        **machines/**             machine specific files to set env and Macros
+|        **makdep.c**              determines module dependencies
+|        **options/**              other namelist configurations available from the icepack.create.case command line
+|        **parse_namelist.sh**     replaces namelist with command-line configuration
+|        **parse_namelist_from_settings.sh**   replaces namelist with values from icepack.settings
+|        **parse_settings.sh**     replaces settings with command-line configuration
+|        **tests/**                scripts for configuring and running basic tests
+
+:: _dev_strategy:
+
+Strategy
+-----------
+
+The icepack scripts are implemented such that everything is resolved after
+**icepack.create.case** is called.  This is done by both copying specific files
+into the case directory and running scripts as part of the **icepack.create.case**
+command line to setup various files.
+
+**icepack.create.case** drives the case setup.  It is written in csh.  All supporting
+scripts are relatively simple csh or sh scripts.
+
+The file **icepack.settings** specifies a set of env defaults for the case.  The file
+**icepack_in** defines the namelist input for the icepack driver.
+
+:: _dev_options:
+
+Preset Case Options
+---------------------
+
+
+``icepack.create.case -s`` option allows the user to choose some predetermined icepack
+settings and namelist.  Those options are defined in **configurations/scripts/options/**
+and the files are prefixed by either set_env, set_nml, or test_nml.  When **icepack.create.case**
+is executed, the appropriate files are read from **configurations/scripts/options/**
+and the **icepack.settings** and/or **icepack_in** files are updated in the case directory
+based on the values in those files.
+
+The filename suffix determines the name of the -s option.  So, for instance, 
+
+  ``icepack.create.case -s diag1,debug,bgcISPOL``
+
+will search for option files with suffixes of diag1, debug, and bgcISPOL and then
+apply those settings.  
+
+**parse_namelist.sh**, **parse_settings.sh**, and **parse_namelist_from_settings.sh** 
+are the three scripts that modify **icepack_in** and **icepack.settings**.
+
+To add new options, just add new files to the **configurations/scripts/options/** directory
+with appropriate names and syntax.  The set_nml file syntax is the same as namelist
+syntax and the set_env files are consistent with csh setenv syntax.  See other files for
+examples of the syntax.
+
+:: _dev_machines:
+
+Machines
+-----------
+
+Machine specific information is contained in **configuration/scripts/machines**.  That
+directory contains a Macros file and an env file for each supported machine.
+One other files will need to be
+changed to support a port, that is **configuration/scripts/icepack.batch.csh**.
+To port to a new machine, see :ref:`porting`.  
+
+:: _dev_testing:
+
+Test scripts
+-------------
+
+Under **configuration/scripts/tests** are several files including the scripts to 
+setup the smoke and restart tests (**test_smoke.script**, **test_restart.script*).
+A baseline test script (**baseline.script**) is also there to setup the regression
+and comparison testing.  That directory also contains the preset test suites 
+(ie. **base_suite.ts**) and a file that supports post-processing on the model
+output (**timeseries.csh**).  
+
+There is a subdirectory, **configuration/scripts/tests/CTest**, that supports the
+CTest scripts.  These scripts allow test reporting to CDash.
+
+To add a new test, a file associated with that test will need to be added to the
+**configuration/scripts/tests** directory similar to **test_smoke.script** 
+and **test_restart.script**.  In addition, some new options files in 
+**configuration/scripts/options** may need to be added similar to **test_nml.restart1**,
+**test_nml.restart2**, and **set_nml.restart**.  
