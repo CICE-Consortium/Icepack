@@ -17,7 +17,8 @@ Table of Contents:
    icepack_1_introduction.rst
    icepack_2_science_guide.rst
    icepack_3_user_guide.rst
-   icepack_4_index.rst
+   icepack_4_developer_guide.rst
+   icepack_5_index.rst
    zreferences.rst
  
 Useful tools
