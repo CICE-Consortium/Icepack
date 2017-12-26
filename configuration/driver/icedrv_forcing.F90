@@ -167,6 +167,7 @@
       endif
 
       if (trim(ocn_data_type) == 'ISPOL') call ocn_ISPOL
+      if (trim(ocn_data_type) == 'NICE') call ocn_NICE
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     flw_data,      &
@@ -344,24 +345,22 @@
 
       elseif (trim(ocn_data_type) == 'NICE') then
 
-!cn the nice stuff seems to be more complicated than ispol....
-         midmonth = 15  ! assume data is given on 15th of every month
-         recslot = 1                             ! latter half of month
-         if (mday < midmonth) recslot = 2        ! first half of month
-         if (recslot == 1) then
-            mlast = month
-            mnext = mod(month   ,12) + 1
-         else ! recslot = 2
-            mlast = mod(month+10,12) + 1
-            mnext = month
-         endif
-         call interp_coeff_monthly(recslot, c1intp, c2intp)
+!cn nice ocn data is daily
+
+        dataloc = 2                          ! data located at end of interval
+        maxrec = 366
+        recslot = 2
+        recnum = int(yday)
+        mlast = mod(recnum+maxrec-2,maxrec) + 1
+        mnext = mod(recnum-1,       maxrec) + 1
+        call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
 
          sst_temp(:) = c1intp *  sst_data(mlast) + c2intp *  sst_data(mnext)
          sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
          uocn    (:) = c1intp * uocn_data(mlast) + c2intp * uocn_data(mnext)
          vocn    (:) = c1intp * vocn_data(mlast) + c2intp * vocn_data(mnext)
          qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
+         hmix    (:) = c1intp * hmix_data(mlast) + c2intp * hmix_data(mnext)
 
       else
 
@@ -875,7 +874,7 @@ endif
 
       character(len=*), parameter :: subname='(atm_NICE)'
 
-      filename = trim(data_dir)//'/NICE_2015/NICEL_atm_forcing.txt'
+      filename = trim(data_dir)//'/NICE_2015/NICE_atm_forcing.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -914,246 +913,63 @@ endif
       
       close(nu_forcing)
 
-!cn there is probably more to do here, see below...
-
-
-#if 0
-      integer (kind=int_kind), intent(in) :: &
-           yr                   ! current forcing year
-
-      atm_file = &
-          trim(atm_data_dir)//'/NICE_atm_forcing.nc'
-
-
-      if (my_task == master_task) then
-         write (nu_diag,*) ' '
-         write (nu_diag,*) 'Atmospheric data file:'
-         write (nu_diag,*) trim(atm_file)
-      endif                     ! master_task
-
-
-!from nicoles      subroutine NICE_data(dt)
-
-! Defines ocean data fields for NICE-2015 Arctic location (Nansen Basin)
-
-! authors: Nicole Jeffery, LANL
-
-! Restore sst if desired. sst is updated with surface fluxes in ice_ocean.F.
-
-      use ice_blocks, only: nx_block, ny_block
-      use ice_constants, only: c0, c1, p5, secday, &
-          field_loc_center, field_type_scalar, p5
-      use ice_global_reductions, only: global_minval, global_maxval
-      use ice_domain, only: nblocks, distrb_info, blocks_ice
-      use ice_domain_size, only: max_blocks
-      use ice_flux, only: sss, sst, Tf, uocn, vocn, ss_tltx, ss_tlty, &
-            qdp, hmix
-      use ice_restart_shared, only: restart
-      use ice_grid, only: hm, tmask, umask
-      use ice_colpkg, only: colpkg_liquidus_temperature
-      use ice_diagnostics, only: latpnt, lonpnt
-#ifdef ncdf
-      use netcdf
-#endif
-
-      real (kind=dbl_kind), intent(in) :: &
-         dt      ! time step
-
-!local parameters
-
-      character (char_len_long) :: &
-         met_file,   &    ! netcdf filename
-         fieldname        ! field name in netcdf file
-
-      integer (kind=int_kind) :: &
-         fid              ! file id for netCDF file
-
-      real (kind=dbl_kind):: &
-         work             ! temporary variable
-
-      real (kind=dbl_kind) :: &
-          vmin, vmax
-
-      real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks) :: &
-         work1
-
-      logical (kind=log_kind) :: diag
-
-      integer (kind=int_kind) :: &
-         status           ! status flag
-
-      integer (kind=int_kind) :: &
-         iblk             ! block index
-
-      ! for interpolation of hourly data
-      integer (kind=int_kind) :: &
-          i, j, k, n  , &
-          ixm,ixx,ixp , & ! record numbers
-          recnum      , & ! record number
-          recnum4X    , & ! record number
-          maxrec      , & ! maximum record number
-          recslot     , & ! spline slot for current record
-          dataloc     , & ! = 1 for data located in middle of time interval
-                          ! = 2 for date located at end of time interval
-          sec_day        !  fix time to noon
-
-      real (kind=dbl_kind) :: &
-          sec1hr              ! number of seconds in 1 hour
-
-      logical (kind=log_kind) :: readm, read1
-
-      diag = .false.   ! write diagnostic information
-     !-------------------------------------------------------------------
-     ! NICE_2015/oceanmixed_daily.nc
-     !-------------------------------------------------------------------
-
-      dataloc = 2                          ! data located at end of interval
-      sec1hr = secday                      ! seconds in day
-      maxrec = 366                         !
-
-      ! current record number
-      recnum = int(yday)   
-
-      ! Compute record numbers for surrounding data (2 on each side)
-      ixm = mod(recnum+maxrec-2,maxrec) + 1
-      ixx = mod(recnum-1,       maxrec) + 1
-!     ixp = mod(recnum,         maxrec) + 1
-
-      ! Compute interpolation coefficients
-      ! If data is located at the end of the time interval, then the
-      !  data value for the current record goes in slot 2
-
-      recslot = 2
-      ixp = -99
-      call interp_coeff (recnum, recslot, sec1hr, dataloc)
-
-      do n = nfld, 1, -1
-        !$OMP PARALLEL DO PRIVATE(iblk,i,j)
-        do iblk = 1, nblocks
-        ! use sst_data arrays as temporary work space until n=1
-        if (ixm /= -99) then
-          sst_data(:,:,1,iblk) = ocn_frc_d(:,:,iblk,n,ixm)
-          sst_data(:,:,2,iblk) = ocn_frc_d(:,:,iblk,n,recnum)
-        else
-          sst_data(:,:,1,iblk) = ocn_frc_d(:,:,iblk,n,recnum)
-          sst_data(:,:,2,iblk) = ocn_frc_d(:,:,iblk,n,ixp)
-        endif
-        enddo
-        !$OMP END PARALLEL DO
-
-        call interpolate_data (sst_data,work1)
-        ! masking by hm is necessary due to NaNs in the data file
-        do j = 1, ny_block 
-          do i = 1, nx_block 
-            if (n == 2) sss    (i,j,:) = c0
-            if (n == 3) hmix   (i,j,:) = c0
-            if (n == 4) uocn   (i,j,:) = c0
-            if (n == 5) vocn   (i,j,:) = c0
-            if (n == 6) ss_tltx(i,j,:) = c0
-            if (n == 7) ss_tlty(i,j,:) = c0
-            if (n == 8) qdp    (i,j,:) = c0
-            do iblk = 1, nblocks
-              if (hm(i,j,iblk) == c1) then
-                if (n == 2) sss    (i,j,iblk) = work1(i,j,iblk)
-                if (n == 3) hmix   (i,j,iblk) = work1(i,j,iblk)
-                if (n == 4) uocn   (i,j,iblk) = work1(i,j,iblk)
-                if (n == 5) vocn   (i,j,iblk) = work1(i,j,iblk)
-                if (n == 6) ss_tltx(i,j,iblk) = work1(i,j,iblk)
-                if (n == 7) ss_tlty(i,j,iblk) = work1(i,j,iblk)
-                if (n == 8) qdp    (i,j,iblk) = work1(i,j,iblk)
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
-
-      do j = 1, ny_block 
-         do i = 1, nx_block 
-            sss (i,j,:) = max (sss(i,j,:), c0) 
-            hmix(i,j,:) = max(hmix(i,j,:), c0) 
-         enddo 
-      enddo 
-
-      call ocn_freezing_temperature
-
-      if (restore_ocn) then
-        do j = 1, ny_block 
-         do i = 1, nx_block 
-           sst(i,j,:) = sst(i,j,:) + (work1(i,j,:)-sst(i,j,:))*dt/trest 
-         enddo 
-        enddo 
-!     else sst is only updated in ice_ocean.F
-      endif
-
-      ! initialize sst properly on first step
-      if (istep1 <= 1 .and. .not. (restart)) then
-        call interpolate_data (sst_data,sst)
-        !$OMP PARALLEL DO PRIVATE(iblk,i,j)
-        do iblk = 1, nblocks
-         do j = 1, ny_block 
-          do i = 1, nx_block 
-            if (hm(i,j,iblk) == c1) then
-              sst(i,j,iblk) =  max (sst(i,j,iblk), Tf(i,j,iblk)) 
-            else
-              sst(i,j,iblk) = c0
-            endif
-          enddo 
-         enddo 
-        enddo 
-        !$OMP END PARALLEL DO
-      endif
-
-      if (dbug) then
-         if (my_task == master_task)  &
-               write (nu_diag,*) 'ocn_data_ncar'
-           vmin = global_minval(Tf,distrb_info,tmask)
-           vmax = global_maxval(Tf,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'Tf',vmin,vmax
-           vmin = global_minval(sst,distrb_info,tmask)
-           vmax = global_maxval(sst,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'sst',vmin,vmax
-           vmin = global_minval(sss,distrb_info,tmask)
-           vmax = global_maxval(sss,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'sss',vmin,vmax
-           vmin = global_minval(hmix,distrb_info,tmask)
-           vmax = global_maxval(hmix,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'hmix',vmin,vmax
-           vmin = global_minval(uocn,distrb_info,umask)
-           vmax = global_maxval(uocn,distrb_info,umask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'uocn',vmin,vmax
-           vmin = global_minval(vocn,distrb_info,umask)
-           vmax = global_maxval(vocn,distrb_info,umask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'vocn',vmin,vmax
-           vmin = global_minval(ss_tltx,distrb_info,umask)
-           vmax = global_maxval(ss_tltx,distrb_info,umask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'ss_tltx',vmin,vmax
-           vmin = global_minval(ss_tlty,distrb_info,umask)
-           vmax = global_maxval(ss_tlty,distrb_info,umask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'ss_tlty',vmin,vmax
-           vmin = global_minval(qdp,distrb_info,tmask)
-           vmax = global_maxval(qdp,distrb_info,tmask)
-           if (my_task.eq.master_task)  &
-               write (nu_diag,*) 'qdp',vmin,vmax
-      endif
-
-
-#endif           
-
     end subroutine atm_NICE
 
 !=======================================================================
 
-    subroutine ocn_ISPOL
-!cn cice fills ocn_frc_m here, I am not sure what that does...
+    subroutine ocn_NICE
 
+      integer (kind=int_kind) :: &
+         i
+
+      real (kind=dbl_kind), dimension(365) :: &
+          t, &  !probably temperature, Tf?
+          s, &  !probably sss_data
+          hblt, &  !probably hmix
+          u, &  !probably uocn_data seems to be zeroed out anyway??
+          v, &  !probably vocn_data seems to be zeroed out anyway??
+          dhdx, &  !probably ss_tltx
+          dhdy, &  !probably ss_tlty 
+          qdp  !probably heat flux
+
+      character (char_len_long) filename
+      
+      character(len=*), parameter :: subname='(ocn_NICE)'
+
+      filename = &
+          trim(data_dir)//'NICE_2015/oceanmixed_daily_3.txt'
+
+      write (nu_diag,*) 'Reading ',filename
+
+      open (nu_forcing, file=filename, form='formatted')
+
+      read(nu_forcing,*) t
+      read(nu_forcing,*) s
+      read(nu_forcing,*) hblt
+      read(nu_forcing,*) u
+      read(nu_forcing,*) v
+      read(nu_forcing,*) dhdx
+      read(nu_forcing,*) dhdy
+      read(nu_forcing,*) qdp
+
+      close(nu_forcing)
+
+      do i = 1, 365 ! daily
+        !t(i)
+        sss_data(i) = s(i)
+        hmix_data(i) = hblt(i)
+        uocn_data(i) = u(i)
+        vocn_data(i) = v(i)
+        !dhdx(i)
+        !dhdy(1)
+        qdp_data(i) = qdp(i)
+      end do
+
+    end subroutine ocn_NICE
+
+!=======================================================================
+
+    subroutine ocn_ISPOL
 
       integer (kind=int_kind) :: &
          i

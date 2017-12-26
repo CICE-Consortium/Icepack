@@ -58,7 +58,13 @@
             trim(nit_data_type) == 'NICE' .or. &
             trim(sil_data_type) == 'NICE') then 
           
-          filename = trim(data_dir)//'/ISPOL_2004/nutrients_daily_ISPOL_WOA_field3.txt'
+           if (trim(nit_data_type) == 'ISPOL' .or. &
+               trim(sil_data_type) == 'ISPOL') &
+               filename = trim(data_dir)//'/ISPOL_2004/nutrients_daily_ISPOL_WOA_field3.txt'
+           if (trim(nit_data_type) == 'NICE' .or. &
+               trim(sil_data_type) == 'NICE') &
+               filename = trim(data_dir)//'/NICE_2015/nutrients_daily_ISPOL_WOA_field3.txt'
+
           write (nu_diag,*) 'Reading ',filename
 
           ntime = 365 !daily

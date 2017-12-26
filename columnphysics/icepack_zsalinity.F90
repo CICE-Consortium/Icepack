@@ -17,7 +17,7 @@
       use icepack_constants, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
       use icepack_constants, only: rhosi, min_salin, salt_loss
       use icepack_parameters, only: l_skS, grid_oS, l_sk
-      use icepack_parameters, only: solve_zsal, min_salin, dts_b
+      use icepack_parameters, only: solve_zsal, dts_b
       use icepack_tracers, only: nt_sice
       use icepack_zbgc_shared, only: remap_zbgc
       use icepack_zbgc_shared, only: Ra_c, k_o, viscos_dynamic, thinS, Dm, exp_h
