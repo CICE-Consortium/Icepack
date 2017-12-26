@@ -23,8 +23,7 @@
           write_restart_aero,      read_restart_aero
 
       public :: dumpfile, restartfile, &
-                write_restart_field, read_restart_field, &
-                write_restart_hbrine, read_restart_hbrine
+                write_restart_field, read_restart_field
 
 !=======================================================================
 

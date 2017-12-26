@@ -142,7 +142,7 @@
       use icedrv_init, only: ice_ic
       use icedrv_init, only: tmask
       use icedrv_init_column, only: init_hbrine, init_bgc
-      use icedrv_restart, only: restartfile, read_restart_hbrine
+      use icedrv_restart, only: restartfile
       use icedrv_restart_shared, only: restart
       use icedrv_state ! almost everything
 
@@ -170,15 +170,9 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      !in CICE, the following line:
-      !if (tr_brine .or. skl_bgc) call init_hbrine ! brine height tracer
-      !is called like this:
       if (tr_brine .or. skl_bgc) then ! brine height tracer
         call init_hbrine
-        !if (tr_brine .and. restart_hbrine) call read_restart_hbrine
-        if (tr_brine .and. restart) call read_restart_hbrine
       endif
-
 
       !the bgc restarts are contained in this subroutine
       if (solve_zsal .or. skl_bgc .or. z_tracers) call init_bgc ! biogeochemistry
