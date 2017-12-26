@@ -396,9 +396,10 @@ Individual Tests
 The Icepack scripts support both setup of individual tests as well as test suites.  Individual
 tests are run from the command line::
 
-  ./icepack.create.case -t smoke -m wolf -s diag1,debug -testid myid
+  ./icepack.create.case -t smoke -m wolf -s diag1,debug -testid myid -a P0000000
 
-where ``-m`` designates a specific machine and testid is a user defined string that allows
+where ``-m`` designates a specific machine, ``-a`` designates the account number 
+for the queue manager, and testid is a user defined string that allows
 test cases to be uniquely identified.
 The format of the case directory name for a test will always be 
 ``[machine]_[test]_[grid]_[pes]_[soptions].[testid]``
@@ -438,7 +439,7 @@ an input file.  When invoking the test suite option (``-ts``) with **icepack.cre
 all tests will be created, built, and submitted automatically under
 a directory called [suite_name].[testid]::
 
-  ./icepack.create.case -ts base_suite -m wolf -testid myid
+  ./icepack.create.case -ts base_suite -m wolf -testid myid -a P00000
 
 Like an individual test, the ``-testid`` option must be specified and can be any 
 string.  Once the tests are complete, results can be checked by running the
@@ -500,19 +501,19 @@ work in test (``-t``) or test suite (``-ts``) mode, not in case (``-c``) mode.
   
 To create a baseline, use ``-bg``::
 
-  icepack.create.case -ts base_suite -m wolf -testid v1 -bg version1 -bd $SCRATCH/ICEPACK_BASELINES
+  icepack.create.case -ts base_suite -m wolf -testid v1 -bg version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
 
 will copy all the results from the test suite to ``$SCRATCH/ICEPACK_BASELINES/version1``.
 
 To compare to a prior result, use ``-bc``::
 
-  icepack.create.case -ts base_suite -m wolf -testid v2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES
+  icepack.create.case -ts base_suite -m wolf -testid v2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
 
 will compare all the results from this test suite to results saved before in $SCRATCH/ICEPACK_BASELINES/version1``.
 
 To both create and compare, ``-bc`` and ``-bg`` can be combined::
 
-  icepack.create.case -ts base_suite -m wolf -testid v2 -bg version2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES
+  icepack.create.case -ts base_suite -m wolf -testid v2 -bg version2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
 
 will save the current results to ``$SCRATCH/ICEPACK_BASELINES/version2`` and compare the current results to
 results save before in ``$SCRATCH/ICEPACK_BASELINES/version1``.
@@ -557,18 +558,17 @@ Icepack Test Reporting
 
 The Icepack testing scripts have the capability of posting the test results
 to an online dashboard, located `on CDash <http://my.cdash.org/index.php?project=myICEPACK>`_.
-There are two ways to post Icepack results to CDash, an automated method and
-a manual method.
 
-To automatically post test suite results to CDash, add the ``-report`` option to **icepack.create.case**.
+To post test suite results to CDash, add the ``-report`` option to **icepack.create.case**.
 The base_suite will attempt to post the test results on CDash when the suite is complete.
 
-To manually post the test results to the Icepack CDash dashboard,
-run a standard test suite.  Then once all the tests are complete::
+If the results cannot be posted to CDash, the following information will be displayed::
 
-  cd [suite_name].[testid]
-  ./results.csh
-  ctest -S steer.cmake
+ CTest submission failed.  To try the submission again run 
+    ./run_ctest.csh -submit
+ If you wish to submit the test results from another server, copy the 
+ icepack_ctest.tgz file to another server and run 
+    ./run_ctest.csh -submit
 
 Examples
 --------------------------
@@ -601,36 +601,29 @@ After job finishes, check output::
 
   cat test_output
 
-To run a test suite to generate baseline data, review results, plot timeseries, and manually report results
+To run a test suite to generate baseline data, review results, plot timeseries, and report results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-  ./icepack.create.case -m wolf -ts base_suite -testid t02 -bg icepackv6.0.0bs
+  ./icepack.create.case -m wolf -ts base_suite -testid t02 -bg icepackv6.0.0bs -report
 
 Once all jobs finish, concatenate all output and manually report results::
 
   cd base_suite.t02
-  ./results.csh
-  ctest -S steer.cmake
+  cat results.log
 
 To plot a timeseries of "total ice extent", "total ice area", and "total ice volume"::
 
   ./timeseries.csh <directory>
   ls *.png
 
-To run a test suite, compare to baseline data, generate a new baseline, and automatically report the results
+To run a test suite, compare to baseline data, generate a new baseline, and report the results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
   ./icepack.create.case -m wolf -ts base_suite -testid t03 -bc icepackv6.0.0bs -bg icepackv6.0.0new -report
-
-Once all jobs finish, concatenate all output::
-
-  cd base_suite.t03
-  ./results.csh
-
 
 Case Settings
 =====================
