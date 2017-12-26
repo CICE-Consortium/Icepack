@@ -23,15 +23,8 @@
           write_restart_aero,      read_restart_aero
 
       public :: dumpfile, restartfile, &
-                read_restart_field, write_restart_field, final_restart, &
-                write_restart_field_cn, read_restart_field_cn, &
+                write_restart_field, read_restart_field, &
                 write_restart_hbrine, read_restart_hbrine
-
-!cn future stuff for writing the number of tracers in file
-#if 0
-      integer (kind=int_kind), parameter :: f_ntrcr = 7 ! number of tracers !cn
-      integer (kind=int_kind), dimension(f_ntrcr) :: f_trcr !list of tracers in file !cn
-#endif
 
 !=======================================================================
 
@@ -60,8 +53,8 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-          i, k, n, &              ! counting indices
-          iyear, imonth, iday     ! year, month, day
+         i, k, n, &              ! counting indices
+         iyear, imonth, iday     ! year, month, day
 
       integer (kind=int_kind) :: &
          nt_Tsfc, nt_sice, nt_qice, nt_qsno
@@ -79,41 +72,21 @@
       iday = mday
       
       write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
-          restart_dir(1:lenstr(restart_dir)), &
-          restart_file(1:lenstr(restart_file)),'.', &
-          iyear,'-',month,'-',mday,'-',sec
+         restart_dir(1:lenstr(restart_dir)), &
+         restart_file(1:lenstr(restart_file)),'.', &
+         iyear,'-',month,'-',mday,'-',sec
       
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
          nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
-      call icepack_query_tracer_flags( tr_iage_out=tr_iage, tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, &
-         tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
-         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl)
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+         tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
+         tr_pond_lvl_out=tr_pond_lvl)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-!cn future stuff for writing the number of tracers in file
-#if 0
-      f_trcr = 0
-      ! ice age tracer    
-      if (tr_iage)  f_trcr(1) = 1
-      ! first-year area tracer
-      if (tr_FY)   f_trcr(2) = 1 
-      ! level ice tracer
-      if (tr_lvl)   f_trcr(3) = 1 
-      ! CESM melt ponds
-      if (tr_pond_cesm)   f_trcr(4) = 1 
-      ! level-ice melt ponds
-      if (tr_pond_lvl)  f_trcr(5) = 1
-      ! topographic melt ponds
-      if (tr_pond_topo)   f_trcr(6) = 1
-      ! ice aerosol
-      if (tr_aero)   f_trcr(7) = 1
-#endif
-
       open(nu_dump,file=filename,form='unformatted')
-      !cn future stuff for writing the number of tracers in file
-      !cn write(nu_dump) (f_trcr(i),i=1,f_ntrcr)
       write(nu_dump) istep1,time,time_forc
       write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
       
@@ -123,66 +96,50 @@
       ! tracers are written to their own dump/restart binary files.
       !-----------------------------------------------------------------
 
-      call write_restart_field_cn(nu_dump,aicen(:,:),ncat)
-      call write_restart_field_cn(nu_dump,vicen(:,:),ncat)
-      call write_restart_field_cn(nu_dump,vsnon(:,:),ncat)
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_Tsfc,:),ncat)
+      call write_restart_field(nu_dump,aicen(:,:),ncat)
+      call write_restart_field(nu_dump,vicen(:,:),ncat)
+      call write_restart_field(nu_dump,vsnon(:,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_Tsfc,:),ncat)
       do k=1,nilyr
-         call write_restart_field_cn(nu_dump,trcrn(:,nt_sice+k-1,:),ncat)
+         call write_restart_field(nu_dump,trcrn(:,nt_sice+k-1,:),ncat)
       enddo
       do k=1,nilyr
-         call write_restart_field_cn(nu_dump,trcrn(:,nt_qice+k-1,:),ncat)
+         call write_restart_field(nu_dump,trcrn(:,nt_qice+k-1,:),ncat)
       enddo
       do k=1,nslyr
-         call write_restart_field_cn(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat)
+         call write_restart_field(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
 
       !-----------------------------------------------------------------
       ! radiation fields
       !-----------------------------------------------------------------
-      call write_restart_field_cn(nu_dump,scale_factor,1)
-      call write_restart_field_cn(nu_dump,swvdr,1)
-      call write_restart_field_cn(nu_dump,swvdf,1)
-      call write_restart_field_cn(nu_dump,swidr,1)
-      call write_restart_field_cn(nu_dump,swidf,1)
+      call write_restart_field(nu_dump,scale_factor,1)
+      call write_restart_field(nu_dump,swvdr,1)
+      call write_restart_field(nu_dump,swvdf,1)
+      call write_restart_field(nu_dump,swidr,1)
+      call write_restart_field(nu_dump,swidf,1)
 
       !-----------------------------------------------------------------
       ! for mixed layer model
       !-----------------------------------------------------------------
       if (oceanmixed_ice) then
-         call write_restart_field_cn(nu_dump,sst,1)
-         call write_restart_field_cn(nu_dump,frzmlt,1)
+         call write_restart_field(nu_dump,sst,1)
+         call write_restart_field(nu_dump,frzmlt,1)
       endif
 
       ! tracers
-      ! ice age tracer    
-      if (tr_iage) then 
-        call write_restart_age()
-      endif
-      ! first-year area tracer
-      if (tr_FY) then
-        call write_restart_FY()
-      endif
-      ! level ice tracer
-      if (tr_lvl) then
-        call write_restart_lvl()
-      endif
-      ! CESM melt ponds
-      if (tr_pond_cesm) then
-        call write_restart_pond_cesm()
-      endif
-      ! level-ice melt ponds
-      if (tr_pond_lvl) then
-        call write_restart_pond_lvl()
-      endif
-      ! topographic melt ponds
-      if (tr_pond_topo) then
-        call write_restart_pond_topo()
-      endif
+      if (tr_iage)      call write_restart_age()       ! ice age tracer
+      if (tr_FY)        call write_restart_FY()        ! first-year area tracer
+      if (tr_lvl)       call write_restart_lvl()       ! level ice tracer
+      if (tr_pond_cesm) call write_restart_pond_cesm() ! CESM melt ponds
+      if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
+      if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
+      if (tr_aero)      call write_restart_aero()      ! ice aerosol
+      if (tr_brine)     call write_restart_hbrine      ! brine height
 
-      if (tr_aero) then ! ice aerosol
-        call write_restart_aero()
-      endif
+      close(nu_dump)
+
+      write(nu_diag,*) 'Restart read/written ',istep1,time,time_forc
 
       end subroutine dumpfile
 
@@ -228,23 +185,21 @@
       if (present(ice_ic)) then 
          filename = trim(ice_ic)
       else
-!cn need to do something here ....
-!cn probably make sure there is a default for ice_ic up stream and require it as an arg here
-!cn it is probably iced
-        call icedrv_system_abort(string=subname//'no ice_ic present',file=__FILE__,line=__LINE__)
+         call icedrv_system_abort(string=subname//'no ice_ic present', &
+                                  file=__FILE__,line=__LINE__)
       endif
 
       write(nu_diag,*) 'Using restart dump=', trim(filename)
       open(nu_restart,file=filename,form='unformatted')
-      !cn read(nu_restart) (f_trcr(i),i=1,f_ntrcr)
       read (nu_restart) istep0,time,time_forc
       write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
          nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
-      call icepack_query_tracer_flags( tr_iage_out=tr_iage, tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, &
-         tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
-         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl)
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+         tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
+         tr_pond_lvl_out=tr_pond_lvl)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -258,24 +213,24 @@
       !-----------------------------------------------------------------
       write(nu_diag,*) 'min/max area, vol ice, vol snow, Tsfc'
 
-      call read_restart_field_cn(nu_restart,aicen,ncat)
-      call read_restart_field_cn(nu_restart,vicen,ncat)
-      call read_restart_field_cn(nu_restart,vsnon,ncat)
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_Tsfc,:),ncat)
+      call read_restart_field(nu_restart,aicen,ncat)
+      call read_restart_field(nu_restart,vicen,ncat)
+      call read_restart_field(nu_restart,vsnon,ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_Tsfc,:),ncat)
 
       write(nu_diag,*) 'min/max sice for each layer'
       do k=1,nilyr
-        call read_restart_field_cn(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
       enddo
       
       write(nu_diag,*) 'min/max qice for each layer'
       do k=1,nilyr
-        call read_restart_field_cn(nu_restart,trcrn(:,nt_qice+k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_qice+k-1,:),ncat)
       enddo
       
       write(nu_diag,*) 'min/max qsno for each layer'
       do k=1,nslyr
-        call read_restart_field_cn(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
       enddo
 
       !-----------------------------------------------------------------
@@ -284,51 +239,31 @@
 
       write(nu_diag,*) 'min/max radiation fields'
 
-      call read_restart_field_cn(nu_restart,scale_factor,1)
-      call read_restart_field_cn(nu_restart,swvdr,1)
-      call read_restart_field_cn(nu_restart,swvdf,1)
-      call read_restart_field_cn(nu_restart,swidr,1)
-      call read_restart_field_cn(nu_restart,swidf,1)
+      call read_restart_field(nu_restart,scale_factor,1)
+      call read_restart_field(nu_restart,swvdr,1)
+      call read_restart_field(nu_restart,swvdf,1)
+      call read_restart_field(nu_restart,swidr,1)
+      call read_restart_field(nu_restart,swidf,1)
 
       !-----------------------------------------------------------------
       ! for mixed layer model
       !-----------------------------------------------------------------
 
       if (oceanmixed_ice) then
-        write(nu_diag,*) 'min/max sst, frzmlt'
-        call read_restart_field_cn(nu_restart,sst,1)
-        call read_restart_field_cn(nu_restart,frzmlt,1)
+         write(nu_diag,*) 'min/max sst, frzmlt'
+         call read_restart_field(nu_restart,sst,1)
+         call read_restart_field(nu_restart,frzmlt,1)
       endif
 
       ! tracers
-      ! ice age tracer    
-      if (tr_iage) then 
-        call read_restart_age()
-      endif
-      ! first-year area tracer
-      if (tr_FY) then
-        call read_restart_FY()
-      endif
-      ! level ice tracer
-      if (tr_lvl) then
-        call read_restart_lvl()
-      endif
-      ! CESM melt ponds
-      if (tr_pond_cesm) then
-        call read_restart_pond_cesm()
-      endif
-      ! level-ice melt ponds
-      if (tr_pond_lvl) then
-        call read_restart_pond_lvl()
-      endif
-      ! topographic melt ponds
-      if (tr_pond_topo) then
-        call read_restart_pond_topo()
-      endif
-      ! ice aerosol
-      if (tr_aero) then
-        call read_restart_aero() 
-      endif
+      if (tr_iage)      call read_restart_age()       ! ice age tracer
+      if (tr_FY)        call read_restart_FY()        ! first-year area tracer
+      if (tr_lvl)       call read_restart_lvl()       ! level ice tracer
+      if (tr_pond_cesm) call read_restart_pond_cesm() ! CESM melt ponds
+      if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
+      if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
+      if (tr_aero)      call read_restart_aero()      ! ice aerosol
+      if (tr_brine)     call read_restart_hbrine      ! brine height
 
       !-----------------------------------------------------------------
       ! Ensure ice is binned in correct categories
@@ -373,187 +308,68 @@
 !=======================================================================
 
 ! Reads a single restart field
-! author David A Bailey, NCAR
+! author Chris Newman, LANL
 
-      subroutine read_restart_field_cn(nu,work,ndim3)
-
-      use icedrv_domain_size, only: nx
-
-      integer (kind=int_kind), intent(in) :: &
-           nu            , & ! unit number (not used for netcdf)
-           ndim3             ! third dimension
-
-      real (kind=dbl_kind), dimension(nx,ndim3), &
-           intent(inout) :: &
-           work              ! input array (real, 8-byte)
-
-      ! local variables
-
-      integer (kind=int_kind) :: &
-        n,     &      ! number of dimensions for variable
-        i
-
-      real (kind=dbl_kind), dimension(nx) :: &
-           work2              ! input array (real, 8-byte)
-
-      character(len=*), parameter :: subname='(read_restart_field_cn)'
-
-      do n=1,ndim3
-        read(nu) (work2(i),i=1,nx)
-        work(:,n) = work2(:)
-      enddo
-      
-    end subroutine read_restart_field_cn
-      
-!=======================================================================
-
-! Reads a single restart field
-! author David A Bailey, NCAR
-
-      subroutine read_restart_field(nu,nrec,work,atype,vname,ndim3, diag)
+      subroutine read_restart_field(nu,work,ndim)
 
       use icedrv_domain_size, only: nx
 
       integer (kind=int_kind), intent(in) :: &
-           nu            , & ! unit number (not used for netcdf)
-           ndim3         , & ! third dimension
-           nrec              ! record number (0 for sequential access)
+         nu            , & ! unit number (not used for netcdf)
+         ndim             ! number of dimensions
 
-      integer (kind=int_kind) :: i
-
-      real (kind=dbl_kind), dimension(nx,ndim3), &
-           intent(inout) :: &
-           work              ! input array (real, 8-byte)
-
-      character (len=4), intent(in) :: &
-           atype             ! format for output array
-                             ! (real/integer, 4-byte/8-byte)
-
-      logical (kind=log_kind), intent(in) :: &
-           diag              ! if true, write diagnostic output
-
-      character (len=*), intent(in) :: vname
+      real (kind=dbl_kind), dimension(nx,ndim), intent(inout) :: &
+         work              ! input array (real, 8-byte)
 
       ! local variables
 
       integer (kind=int_kind) :: &
-        n,     &      ! number of dimensions for variable
-        varid, &      ! variable id
-        status        ! status variable from netCDF routine
+         n, i               ! loop indices
 
       real (kind=dbl_kind), dimension(nx) :: &
-           work2              ! input array (real, 8-byte)
+         work2              ! input array (real, 8-byte)
 
       character(len=*), parameter :: subname='(read_restart_field)'
 
-      write(nu_diag,*) 'vname ',trim(vname)
-      do n=1,ndim3
-        read(nu) (work2(i),i=1,nx)
-        work(:,n) = work2(:)
+      do n = 1, ndim
+         read(nu) (work2(i), i=1,nx)
+         work(:,n) = work2(:)
       enddo
       
-    end subroutine read_restart_field
+      end subroutine read_restart_field
       
 !=======================================================================
 
 ! Writes a single restart field.
-! author David A Bailey, NCAR
+! author Chris Newman, LANL
 
-      subroutine write_restart_field_cn(nu,work,ndim3)
-
-      use icedrv_domain_size, only: nx
-
-      integer (kind=int_kind), intent(in) :: &
-           nu            , & ! unit number
-           ndim3         
-
-      real (kind=dbl_kind), dimension(nx,ndim3), &
-           intent(in) :: &
-           work              ! input array (real, 8-byte)
-
-      ! local variables
-
-      integer (kind=int_kind) :: &
-        n,     &      ! dimension counter
-        i
-      
-      real (kind=dbl_kind), dimension(nx) :: &
-          work2              ! input array (real, 8-byte)
-      
-      character(len=*), parameter :: subname='(write_restart_field_cn)'
-
-      do n=1,ndim3
-        work2(:) = work(:,n)
-        write(nu) (work2(i),i=1,nx)
-      enddo
-      
-    end subroutine write_restart_field_cn
-     
-!=======================================================================
-
-! Writes a single restart field.
-! author David A Bailey, NCAR
-
-      subroutine write_restart_field(nu,nrec,work,atype,vname,ndim3,diag)
+      subroutine write_restart_field(nu,work,ndim)
 
       use icedrv_domain_size, only: nx
 
       integer (kind=int_kind), intent(in) :: &
-           nu            , & ! unit number
-           ndim3         , & ! third dimension
-           nrec              ! record number (0 for sequential access)
+         nu            , & ! unit number
+         ndim              ! number of dimensions
 
-      real (kind=dbl_kind), dimension(nx,ndim3), &
-           intent(in) :: &
-           work              ! input array (real, 8-byte)
-
-      character (len=4), intent(in) :: &
-           atype             ! format for output array
-                             ! (real/integer, 4-byte/8-byte)
-
-      logical (kind=log_kind), intent(in) :: &
-           diag              ! if true, write diagnostic output
-
-      character (len=*), intent(in)  :: vname
+      real (kind=dbl_kind), dimension(nx,ndim), intent(in) :: &
+         work              ! input array (real, 8-byte)
 
       ! local variables
 
       integer (kind=int_kind) :: &
-        n,     &      ! dimension counter
-        varid, &      ! variable id
-        status        ! status variable from netCDF routine
+         n, i              ! loop indices
       
-      integer (kind=int_kind) :: i
-
       real (kind=dbl_kind), dimension(nx) :: &
-          work2              ! input array (real, 8-byte)
+         work2             ! input array (real, 8-byte)
       
       character(len=*), parameter :: subname='(write_restart_field)'
 
-      do n=1,ndim3
+      do n = 1, ndim
         work2(:) = work(:,n)
-        write(nu) (work2(i),i=1,nx)
+        write(nu) (work2(i), i=1,nx)
       enddo
       
-    end subroutine write_restart_field
-
-!=======================================================================
-
-! Finalize the restart file.
-! author David A Bailey, NCAR
-
-      subroutine final_restart()
-
-      use icedrv_calendar, only: istep1, time, time_forc
-
-      integer (kind=int_kind) :: status
-      character(len=*), parameter :: subname='(final_restart)'
-
-      close(nu_dump)
-
-      write(nu_diag,*) 'Restart read/written ',istep1,time,time_forc
-
-      end subroutine final_restart
+      end subroutine write_restart_field
 
 !=======================================================================
 
@@ -576,9 +392,9 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_ipnd,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_apnd,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_hpnd,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_ipnd,:),ncat)
 
       end subroutine write_restart_pond_topo
 
@@ -604,9 +420,9 @@
 
       write(nu_diag,*) 'min/max topo ponds'
 
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_apnd,:),ncat)
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_hpnd,:),ncat)
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_ipnd,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_apnd,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_ipnd,:),ncat)
 
       end subroutine read_restart_pond_topo
 
@@ -627,7 +443,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_iage,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_iage,:),ncat)
 
       end subroutine write_restart_age
 
@@ -650,7 +466,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_iage,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_iage,:),ncat)
 
       end subroutine read_restart_age
 
@@ -672,8 +488,8 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_FY,:),ncat)
-      call write_restart_field_cn(nu_dump,frz_onset,1)
+      call write_restart_field(nu_dump,trcrn(:,nt_FY,:),ncat)
+      call write_restart_field(nu_dump,frz_onset,1)
 
       end subroutine write_restart_FY
 
@@ -697,11 +513,11 @@
 
       write(nu_diag,*) 'min/max first-year ice area'
 
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_FY,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_FY,:),ncat)
 
       write(nu_diag,*) 'min/max frz_onset'
 
-      call read_restart_field_cn(nu_restart,frz_onset,1)
+      call read_restart_field(nu_restart,frz_onset,1)
 
       end subroutine read_restart_FY
 
@@ -723,8 +539,8 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_alvl,:),ncat)
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_vlvl,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_alvl,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_vlvl,:),ncat)
 
       end subroutine write_restart_lvl
 
@@ -748,8 +564,8 @@
 
       write(nu_diag,*) 'min/max level ice area, volume'
 
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_alvl,:),ncat)
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_vlvl,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_alvl,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_vlvl,:),ncat)
 
       end subroutine read_restart_lvl
 
@@ -772,8 +588,8 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_apnd,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_hpnd,:),ncat)
 
       end subroutine write_restart_pond_cesm
 
@@ -798,8 +614,8 @@
 
       write(nu_diag,*) 'min/max cesm ponds'
 
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_apnd,:),ncat)
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_hpnd,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_apnd,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat)
 
       end subroutine read_restart_pond_cesm
 
@@ -824,12 +640,12 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_apnd,:),ncat)
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_hpnd,:),ncat)
-      call write_restart_field_cn(nu_dump,trcrn(:,nt_ipnd,:),ncat)
-      call write_restart_field_cn(nu_dump,fsnow(:),1)
-      call write_restart_field_cn(nu_dump,dhsn(:,:),ncat)
-      call write_restart_field_cn(nu_dump,ffracn(:,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_apnd,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_hpnd,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_ipnd,:),ncat)
+      call write_restart_field(nu_dump,fsnow(:),1)
+      call write_restart_field(nu_dump,dhsn(:,:),ncat)
+      call write_restart_field(nu_dump,ffracn(:,:),ncat)
 
       end subroutine write_restart_pond_lvl
 
@@ -856,12 +672,12 @@
 
       write(nu_diag,*) 'min/max level-ice ponds'
 
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_apnd,:),ncat)
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_hpnd,:),ncat)
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_ipnd,:),ncat)
-      call read_restart_field_cn(nu_restart,fsnow(:),1)
-      call read_restart_field_cn(nu_restart,dhsn(:,:),ncat)
-      call read_restart_field_cn(nu_restart,ffracn(:,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_apnd,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_ipnd,:),ncat)
+      call read_restart_field(nu_restart,fsnow(:),1)
+      call read_restart_field(nu_restart,dhsn(:,:),ncat)
+      call read_restart_field(nu_restart,ffracn(:,:),ncat)
 
       end subroutine read_restart_pond_lvl
 
@@ -894,18 +710,10 @@
       write(nu_diag,*) 'write_restart_aero (aerosols)'
 
       do k = 1, n_aero
-       call write_restart_field_cn(nu_dump, &
-            trcrn(:,nt_aero  +(k-1)*4,:), &
-            ncat)
-       call write_restart_field_cn(nu_dump, &
-            trcrn(:,nt_aero+1+(k-1)*4,:), &
-            ncat)
-       call write_restart_field_cn(nu_dump, &
-            trcrn(:,nt_aero+2+(k-1)*4,:), &
-            ncat)
-       call write_restart_field_cn(nu_dump, &
-            trcrn(:,nt_aero+3+(k-1)*4,:), &
-            ncat)
+         call write_restart_field(nu_dump, trcrn(:,nt_aero  +(k-1)*4,:), ncat)
+         call write_restart_field(nu_dump, trcrn(:,nt_aero+1+(k-1)*4,:), ncat)
+         call write_restart_field(nu_dump, trcrn(:,nt_aero+2+(k-1)*4,:), ncat)
+         call write_restart_field(nu_dump, trcrn(:,nt_aero+3+(k-1)*4,:), ncat)
       enddo
 
       end subroutine write_restart_aero
@@ -941,10 +749,10 @@
       write(nu_diag,*) 'read_restart_aero (aerosols)'
 
       do k = 1, n_aero
-       call read_restart_field_cn(nu_restart, trcrn(:,nt_aero  +(k-1)*4,:), ncat)
-       call read_restart_field_cn(nu_restart, trcrn(:,nt_aero+1+(k-1)*4,:), ncat)
-       call read_restart_field_cn(nu_restart, trcrn(:,nt_aero+2+(k-1)*4,:), ncat)
-       call read_restart_field_cn(nu_restart, trcrn(:,nt_aero+3+(k-1)*4,:), ncat)
+         call read_restart_field(nu_restart, trcrn(:,nt_aero  +(k-1)*4,:), ncat)
+         call read_restart_field(nu_restart, trcrn(:,nt_aero+1+(k-1)*4,:), ncat)
+         call read_restart_field(nu_restart, trcrn(:,nt_aero+2+(k-1)*4,:), ncat)
+         call read_restart_field(nu_restart, trcrn(:,nt_aero+3+(k-1)*4,:), ncat)
       enddo
 
       end subroutine read_restart_aero
@@ -983,8 +791,8 @@
            enddo ! n
         enddo    ! i
 
-        call write_restart_field_cn(nu_dump,trcrn(:,nt_fbri,:),ncat)
-        call write_restart_field_cn(nu_dump,first_ice_real(:,:),ncat)
+        call write_restart_field(nu_dump,trcrn(:,nt_fbri,:),ncat)
+        call write_restart_field(nu_dump,first_ice_real(:,:),ncat)
 
       end subroutine write_restart_hbrine
 
@@ -1014,8 +822,8 @@
 
       write(nu_diag,*) 'brine restart'
 
-      call read_restart_field_cn(nu_restart,trcrn(:,nt_fbri,:),ncat)
-      call read_restart_field_cn(nu_restart,first_ice_real(:,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_fbri,:),ncat)
+      call read_restart_field(nu_restart,first_ice_real(:,:),ncat)
 
          do i = 1, nx
             do n = 1, ncat

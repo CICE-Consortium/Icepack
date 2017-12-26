@@ -98,7 +98,7 @@
       use icedrv_domain_size, only: nslyr
       use icedrv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
-      use icedrv_restart, only: dumpfile, final_restart, write_restart_hbrine
+      use icedrv_restart, only: dumpfile, write_restart_hbrine
 !      use icedrv_restart_column, only: &
 !          write_restart_bgc
       use icedrv_state, only: trcrn
@@ -205,8 +205,6 @@
         !            if (solve_zsal .or. skl_bgc .or. z_tracers) &
         !                              call write_restart_bgc 
         if (tr_brine)     call write_restart_hbrine
-        !            if (kdyn == 2)    call write_restart_eap
-        call final_restart
       endif
       
     end subroutine ice_step
