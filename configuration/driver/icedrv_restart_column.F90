@@ -37,7 +37,7 @@
       use icedrv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
       use icedrv_domain_size, only: ncat, n_algae, n_doc, n_dic
       use icedrv_domain_size, only: n_don, n_zaero, n_fed, n_fep
-!      use icedrv_fileunits, only: nu_diag, nu_dump_bgc
+!      use icedrv_fileunits, only: nu_diag
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
       use icedrv_flux, only: doc, don, dic, fed, fep, zaeros, hum
       use icedrv_state, only: trcrn
@@ -51,7 +51,7 @@
 
       real (kind=dbl_kind) :: cszn ! counter for history averaging
 
-      logical (kind=log_kind) :: diag, skl_bgc, solve_zsal
+      logical (kind=log_kind) :: diag, skl_bgc, solve_zsal, z_tracers
 
       integer (kind=int_kind) :: nbtrcr
       logical (kind=log_kind) :: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
@@ -68,17 +68,13 @@
       integer (kind=int_kind), dimension(icepack_max_aero)  :: nt_zaero
       integer (kind=int_kind), dimension(icepack_max_fe)    :: nt_bgc_Fed, nt_bgc_Fep
 
-      character (len=3) :: nchar, ncharb
-
-      integer (kind=int_kind) :: &
-         ipoint
-
       character(len=*), parameter :: subname='(write_restart_bgc)'
 
       diag = .true.
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(solve_zsal_out=solve_zsal)
+      call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, tr_bgc_Am_out=tr_bgc_Am, &
          tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_hum_out=tr_bgc_hum, &
@@ -100,17 +96,13 @@
       !-----------------------------------------------------------------
       ! Salinity and extras
       !-----------------------------------------------------------------
-      if (solve_zsal) then 
+      if (solve_zsal) then
 
       do k = 1,nblyr
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_S+k-1,:),'ruf8', &
-!                   'zSalinity'//trim(nchar),ncat,diag)
-        call write_restart_field(nu_restart,trcrn(:,nt_bgc_S+k-1,:),ncat) 
+        call write_restart_field(nu_dump,trcrn(:,nt_bgc_S+k-1,:),ncat) 
       enddo
     
-!      call write_restart_field(nu_dump_bgc,0,sss,'ruf8','sss',1,diag)
-      call write_restart_field(nu_restart,sss,1) 
+      call write_restart_field(nu_dump,sss,1) 
 
          do i = 1, nx
             if (Rayleigh_criteria(i)) then
@@ -120,8 +112,7 @@
             endif
          enddo
 
-!      call write_restart_field(nu_dump_bgc,0,Rayleigh_real,'ruf8','Rayleigh',1,diag)
-      call write_restart_field(nu_restart,Rayleigh_real,1) 
+      call write_restart_field(nu_dump,Rayleigh_real,1) 
 
       endif ! solve_zsal
 
@@ -131,259 +122,150 @@
 
       if (skl_bgc) then
          do k = 1, n_algae
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_N(k),:), &
-!                                  'ruf8','bgc_N'//trim(nchar),ncat,diag)
-           call write_restart_field(nu_restart,trcrn(:,nt_bgc_N(k),:),ncat) 
+           call write_restart_field(nu_dump,trcrn(:,nt_bgc_N(k),:),ncat) 
            if (tr_bgc_chl) &
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_chl(k),:), &
-!                                  'ruf8','bgc_chl'//trim(nchar),ncat,diag)
-           call write_restart_field(nu_restart,trcrn(:,nt_bgc_chl(k),:),ncat) 
+           call write_restart_field(nu_dump,trcrn(:,nt_bgc_chl(k),:),ncat) 
          enddo
         if (tr_bgc_C)  then
-           do k = 1, n_algae
-          !  write(nchar,'(i3.3)') k
-          !  call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_C(k),:), &
-          !                        'ruf8','bgc_C'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_C(k),:),ncat) 
-           enddo
+!           do k = 1, n_algae
+!             call write_restart_field(nu_dump,trcrn(:,nt_bgc_C(k),:),ncat) 
+!           enddo
            do k = 1, n_doc
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_DOC(k),:), &
-!                                  'ruf8','bgc_DOC'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DOC(k),:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DOC(k),:),ncat)
            enddo
            do k = 1, n_dic
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_DIC(k),:), &
-!                                  'ruf8','bgc_DIC'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DIC(k),:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DIC(k),:),ncat)
            enddo
          endif
          if (tr_bgc_Nit) &
-!         call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_Nit,:), &
-!                                  'ruf8','bgc_Nit',ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_Nit,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Nit,:),ncat)
          if (tr_bgc_Am) &
-!         call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_Am,:), &
-!                                  'ruf8','bgc_Am',ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_AM,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Am,:),ncat)
          if (tr_bgc_Sil) &
-!         call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_Sil,:), &
-!                                  'ruf8','bgc_Sil',ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_Sil,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Sil,:),ncat)
          if (tr_bgc_hum) &
-!         call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_hum,:), &
-!                                  'ruf8','bgc_hum',ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_hum,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_hum,:),ncat)
          if (tr_bgc_DMS) then
-!           call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_DMSPp,:), &
-!                                  'ruf8','bgc_DMSPp',ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DMSPp,:),ncat)
-!           call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_DMSPd,:), &
-!                                  'ruf8','bgc_DMSPd',ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DMSPd,:),ncat)
-!           call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_DMS,:), &
-!                                  'ruf8','bgc_DMS',ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DMS,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DMSPp,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DMSPd,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DMS,:),ncat)
          endif
          if (tr_bgc_PON) &
-!         call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_PON,:), &
-!                                  'ruf8','bgc_PON',ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_PON,:),ncat)
-      
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_PON,:),ncat)
         if (tr_bgc_DON)  then
            do k = 1, n_don
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_DON(k),:), &
-!                                  'ruf8','bgc_DON'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DON(k),:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DON(k),:),ncat)
            enddo
          endif
         if (tr_bgc_Fe )  then
            do k = 1, n_fed 
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_Fed (k),:), &
-!                                  'ruf8','bgc_Fed'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_Fed(k),:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Fed(k),:),ncat)
            enddo
            do k = 1, n_fep 
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_Fep (k),:), &
-!                                  'ruf8','bgc_Fep'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_Fep(k),:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Fep(k),:),ncat)
            enddo
          endif
 
-      else 
+      elseif (z_tracers) then
 
       !-----------------------------------------------------------------
       ! Z layer BGC
       !-----------------------------------------------------------------
 
          if (tr_bgc_Nit) then
+         write(nu_diag,*) 'z bgc restart: min/max Nitrate'
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_Nit+k-1,:),'ruf8', &
-!                                 'bgc_Nit'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_Nit+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Nit+k-1,:),ncat)
          enddo
          endif
          if (tr_bgc_N) then
          do mm = 1,n_algae
-         write(ncharb, '(i3.3)') mm
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0, &
-!                                  trcrn(:,nt_bgc_N(mm)+k-1,:),'ruf8', &
-!                                 'bgc_N'//trim(ncharb)//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_N(mm)+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_N(mm)+k-1,:),ncat)
          enddo
          if (tr_bgc_chl) then
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,  &
-!                                  trcrn(:,nt_bgc_chl(mm)+k-1,:),'ruf8', &
-!                                 'bgc_chl'//trim(ncharb)//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_chl(mm)+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_chl(mm)+k-1,:),ncat)
          enddo
          endif
          enddo   !n_algae
          endif   ! tr_bgc_N
          if (tr_bgc_C) then
-         do mm = 1,n_algae
-        ! write(ncharb, '(i3.3)') mm
-          do k = 1,nblyr+3
-        !    write(nchar,'(i3.3)') k
-        !    call write_restart_field(nu_dump_bgc,0,  &
-        !                          trcrn(:,nt_bgc_C(mm)+k-1,:),'ruf8', &
-        !                         'bgc_C'//trim(ncharb)//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_C(mm)+k-1,:),ncat)
-         enddo
-         enddo
+! algal C is not yet distinct from algal N
+!         do mm = 1,n_algae
+!         do k = 1,nblyr+3
+!             call write_restart_field(nu_dump,trcrn(:,nt_bgc_C(mm)+k-1,:),ncat)
+!         enddo
+!         enddo
          do mm = 1,n_doc
-         write(ncharb, '(i3.3)') mm
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,  &
-!                                  trcrn(:,nt_bgc_DOC(mm)+k-1,:),'ruf8', &
-!                                 'bgc_DOC'//trim(ncharb)//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DOC(mm)+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DOC(mm)+k-1,:),ncat)
          enddo
          enddo
          do mm = 1,n_dic
-         write(ncharb, '(i3.3)') mm
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,  &
-!                                  trcrn(:,nt_bgc_DIC(mm)+k-1,:),'ruf8', &
-!                                 'bgc_DIC'//trim(ncharb)//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DIC(mm)+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DIC(mm)+k-1,:),ncat)
          enddo
          enddo
          endif  !tr_bgc_C
          if (tr_bgc_Am) then
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_Am+k-1,:),'ruf8', &
-!                                 'bgc_Am'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_Am+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Am+k-1,:),ncat)
          enddo
          endif
          if (tr_bgc_Sil) then
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_Sil+k-1,:),'ruf8', &
-!                                 'bgc_Sil'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_Sil+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Sil+k-1,:),ncat)
          enddo
          endif
          if (tr_bgc_hum) then
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_hum+k-1,:),'ruf8', &
-!                                 'bgc_hum'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_hum+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_hum+k-1,:),ncat)
          enddo
          endif
          if (tr_bgc_DMS) then
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_DMSPp+k-1,:),'ruf8', &
-!                                 'bgc_DMSPp'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DMSPp+k-1,:),ncat)
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_DMSPd+k-1,:),'ruf8', &
-!                                 'bgc_DMSPd'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DMSPd+k-1,:),ncat)
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_DMS+k-1,:),'ruf8', &
-!                                 'bgc_DMS'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DMS+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DMSPp+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DMSPd+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DMS+k-1,:),ncat)
          enddo
          endif
          if (tr_bgc_PON) then
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,trcrn(:,nt_bgc_PON+k-1,:),'ruf8', &
-!                                 'bgc_PON'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_PON+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_PON+k-1,:),ncat)
          enddo
          endif
          if (tr_bgc_DON) then
          do mm = 1,n_don
-         write(ncharb, '(i3.3)') mm
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,  &
-!                                  trcrn(:,nt_bgc_DON(mm)+k-1,:),'ruf8', &
-!                                 'bgc_DON'//trim(ncharb)//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_DON(mm)+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_DON(mm)+k-1,:),ncat)
          enddo
          enddo
          endif
          if (tr_bgc_Fe ) then
          do mm = 1,n_fed
-         write(ncharb, '(i3.3)') mm
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,  &
-!                                  trcrn(:,nt_bgc_Fed(mm)+k-1,:),'ruf8', &
-!                                 'bgc_Fed'//trim(ncharb)//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_Fed(mm)+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Fed(mm)+k-1,:),ncat)
          enddo
          enddo
          do mm = 1,n_fep
-         write(ncharb, '(i3.3)') mm
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,  &
-!                                  trcrn(:,nt_bgc_Fep(mm)+k-1,:),'ruf8', &
-!                                 'bgc_Fep'//trim(ncharb)//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_bgc_Fep(mm)+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_bgc_Fep(mm)+k-1,:),ncat)
          enddo
          enddo
          endif
          if (tr_zaero) then
          do mm = 1,n_zaero
-         write(ncharb, '(i3.3)') mm
          do k = 1,nblyr+3
-!            write(nchar,'(i3.3)') k
-!            call write_restart_field(nu_dump_bgc,0,  &
-!                                  trcrn(:,nt_zaero(mm)+k-1,:),'ruf8', &
-!                                 'zaero'//trim(ncharb)//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_zaero(mm)+k-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_zaero(mm)+k-1,:),ncat)
          enddo
          enddo
          endif
+         if (nbtrcr > 0) then
          do mm = 1,nbtrcr
-          write(nchar,'(i3.3)') mm
-!          call write_restart_field(nu_dump_bgc,0,   &
-!                                trcrn(:,nt_zbgc_frac+mm-1,:),'ruf8', &
-!                                'zbgc_frac'//trim(nchar),ncat,diag)
-             call write_restart_field(nu_restart,trcrn(:,nt_zbgc_frac+mm-1,:),ncat)
+             call write_restart_field(nu_dump,trcrn(:,nt_zbgc_frac+mm-1,:),ncat)
          enddo
-      endif
+         endif
 
       !-----------------------------------------------------------------
       ! Ocean BGC
@@ -391,67 +273,49 @@
 
       if (tr_bgc_N) then
       do k = 1,n_algae
-!          write(nchar,'(i3.3)') k
-!          call write_restart_field(nu_dump_bgc,0,algalN(:,k),'ruf8','algalN'//trim(nchar),1,diag)
-             call write_restart_field(nu_restart,algalN(:,k),1)
+             call write_restart_field(nu_dump,algalN(:,k),1)
       enddo  !k
       endif
       if (tr_bgc_C) then
       do k = 1,n_doc
-!          write(nchar,'(i3.3)') k
-!          call write_restart_field(nu_dump_bgc,0,doc(:,k),'ruf8','doc'//trim(nchar),1,diag)
-             call write_restart_field(nu_restart,doc(:,k),1)
+             call write_restart_field(nu_dump,doc(:,k),1)
       enddo  !k
       do k = 1,n_dic
-!          write(nchar,'(i3.3)') k
-!          call write_restart_field(nu_dump_bgc,0,dic(:,k),'ruf8','dic'//trim(nchar),1,diag)
-             call write_restart_field(nu_restart,dic(:,k),1)
+             call write_restart_field(nu_dump,dic(:,k),1)
       enddo  !k
       endif      
       if (tr_bgc_Nit) &
-!      call write_restart_field(nu_dump_bgc,0,nit,   'ruf8','nit',   1,diag)
-             call write_restart_field(nu_restart,nit,1)
+             call write_restart_field(nu_dump,nit,1)
       if (tr_bgc_Am) &
-!      call write_restart_field(nu_dump_bgc,0,amm,   'ruf8','amm',   1,diag)
-             call write_restart_field(nu_restart,amm,1)
+             call write_restart_field(nu_dump,amm,1)
       if (tr_bgc_Sil) &
-!      call write_restart_field(nu_dump_bgc,0,sil,   'ruf8','sil',   1,diag)
-             call write_restart_field(nu_restart,sil,1)
+             call write_restart_field(nu_dump,sil,1)
       if (tr_bgc_hum) &
-!      call write_restart_field(nu_dump_bgc,0,hum,   'ruf8','hum',   1,diag)
-             call write_restart_field(nu_restart,hum,1)
+             call write_restart_field(nu_dump,hum,1)
       if (tr_bgc_DMS) then
-!        call write_restart_field(nu_dump_bgc,0,dmsp,  'ruf8','dmsp',  1,diag)
-             call write_restart_field(nu_restart,dmsp,1)
-!        call write_restart_field(nu_dump_bgc,0,dms,   'ruf8','dms',   1,diag)
-             call write_restart_field(nu_restart,dms,1)
+             call write_restart_field(nu_dump,dmsp,1)
+             call write_restart_field(nu_dump,dms,1)
       endif
       if (tr_bgc_DON) then
       do k = 1,n_don
-!          write(nchar,'(i3.3)') k
-!          call write_restart_field(nu_dump_bgc,0,don(:,k),'ruf8','don'//trim(nchar),1,diag)
-             call write_restart_field(nu_restart,don(:,k),1)
+             call write_restart_field(nu_dump,don(:,k),1)
       enddo  !k
       endif
       if (tr_bgc_Fe ) then
       do k = 1,n_fed
-!          write(nchar,'(i3.3)') k
-!          call write_restart_field(nu_dump_bgc,0,fed(:,k),'ruf8','fed'//trim(nchar),1,diag)
-             call write_restart_field(nu_restart,fed(:,k),1)
+             call write_restart_field(nu_dump,fed(:,k),1)
       enddo  !k
       do k = 1,n_fep
-!          write(nchar,'(i3.3)') k
-!          call write_restart_field(nu_dump_bgc,0,fep(:,k),'ruf8','fep'//trim(nchar),1,diag)
-             call write_restart_field(nu_restart,fep(:,k),1)
+             call write_restart_field(nu_dump,fep(:,k),1)
       enddo  !k
       endif
       if (tr_zaero) then
       do k = 1,n_zaero
-!          write(nchar,'(i3.3)') k
-!          call write_restart_field(nu_dump_bgc,0,zaeros(:,k),'ruf8','zaeros'//trim(nchar),1,diag)
-             call write_restart_field(nu_restart,zaeros(:,k),1)
+             call write_restart_field(nu_dump,zaeros(:,k),1)
       enddo  !k
       endif
+
+      endif  ! skl_bgc or z_tracers
 
       end subroutine write_restart_bgc
 
@@ -466,7 +330,7 @@
       use icedrv_arrays_column, only: Rayleigh_real, Rayleigh_criteria
       use icedrv_domain_size, only: ncat, n_algae, n_doc, n_dic
       use icedrv_domain_size, only: n_don, n_zaero, n_fed, n_fep
-!      use icedrv_fileunits, only: nu_diag, nu_restart_bgc
+!      use icedrv_fileunits, only: nu_diag
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
       use icedrv_flux, only: doc, don, dic, fed, fep, zaeros, hum
       use icedrv_state, only: trcrn
@@ -478,7 +342,7 @@
          i, k, & ! indices
          mm      ! n_algae
 
-      logical (kind=log_kind) :: diag, skl_bgc
+      logical (kind=log_kind) :: diag, skl_bgc, solve_zsal, z_tracers
 
       integer (kind=int_kind) :: nbtrcr
       logical (kind=log_kind) :: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
@@ -495,13 +359,13 @@
       integer (kind=int_kind), dimension(icepack_max_aero)  :: nt_zaero
       integer (kind=int_kind), dimension(icepack_max_fe)    :: nt_bgc_Fed, nt_bgc_Fep
 
-      character (len=3) :: nchar, ncharb
-
       character(len=*), parameter :: subname='(read_restart_bgc)'
 
       diag = .true.
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
+      call icepack_query_parameters(solve_zsal_out=solve_zsal)
+      call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, tr_bgc_Am_out=tr_bgc_Am, &
          tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_hum_out=tr_bgc_hum, &
@@ -524,20 +388,16 @@
       ! Salinity and extras
       !-----------------------------------------------------------------
 
-!      if (restart_zsal) then 
+      if (solve_zsal) then
 
       write(nu_diag,*)'zSalinity restart'
       do k = 1,nblyr
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_S+k-1,:),'ruf8', &
-!              'zSalinity'//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_S+k-1,:),ncat)
       enddo
  
-      write(nu_diag,*) 'sea surface salinity'
-!      call read_restart_field(nu_restart_bgc,0,sss,'ruf8','sss',1,diag)
+      write(nu_diag,*) 'min/max sea surface salinity'
              call read_restart_field(nu_restart,sss,1)
-!      call read_restart_field(nu_restart_bgc,0,Rayleigh_real,'ruf8','Rayleigh',1,diag)
+      write(nu_diag,*) 'min/max Rayleigh'
              call read_restart_field(nu_restart,Rayleigh_real,1)
 
          do i = 1, nx  
@@ -547,109 +407,70 @@
                 Rayleigh_criteria (i) = .false.
             endif
          enddo
-!      endif ! restart_zsal
+
+      endif ! solve_zsal
 
       !-----------------------------------------------------------------
       ! Skeletal Layer BGC
       !-----------------------------------------------------------------
-!      if (restart_bgc) then
 
       if (skl_bgc) then
        write(nu_diag,*) 'skl bgc restart'
 
+       write (nu_diag,*) 'min/max algal N, chl'
        do k = 1, n_algae
-!          write(nchar,'(i3.3)') k
-!          call read_restart_field(nu_restart_bgc,0, &
-!                 trcrn(:,nt_bgc_N(k),:), &
-!                 'ruf8','bgc_N'//trim(nchar),ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_N(k),:),ncat)
-!          if (tr_bgc_chl) &
-!          call read_restart_field(nu_restart_bgc,0,  &
-!                 trcrn(:,nt_bgc_chl(k),:), &
-!                 'ruf8','bgc_chl'//trim(nchar),ncat,diag)
+           if (tr_bgc_chl) &
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_chl(k),:),ncat)
        enddo   !k
        if (tr_bgc_C) then
-         do k = 1, n_algae
-         !     write(nchar,'(i3.3)') k
-         !     call read_restart_field(nu_restart_bgc,0,  &
-         !        trcrn(:,nt_bgc_C(k),:), &
-         !        'ruf8','bgc_C'//trim(nchar),ncat,diag)
-             call read_restart_field(nu_restart,trcrn(:,nt_bgc_C(k),:),ncat)
-         enddo
+!         write (nu_diag,*) 'min/max algal C, DOC, DIC'
+!         do k = 1, n_algae
+!             call read_restart_field(nu_restart,trcrn(:,nt_bgc_C(k),:),ncat)
+!         enddo
+         write (nu_diag,*) 'min/max DOC, DIC'
           do k = 1, n_doc
-!              write(nchar,'(i3.3)') k
-!              call read_restart_field(nu_restart_bgc,0,  &
-!                 trcrn(:,nt_bgc_DOC(k),:), &
-!                 'ruf8','bgc_DOC'//trim(nchar),ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DOC(k),:),ncat)
           enddo
           do k = 1, n_dic
-!              write(nchar,'(i3.3)') k
-!              call read_restart_field(nu_restart_bgc,0,  &
-!                 trcrn(:,nt_bgc_DIC(k),:), &
-!                 'ruf8','bgc_DIC'//trim(nchar),ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DIC(k),:),ncat)
           enddo
        endif
+       write (nu_diag,*) 'min/max Nit, Am, Sil, hum'
        if (tr_bgc_Nit) &
-!       call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_Nit,:), &
-!           'ruf8','bgc_Nit',ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Nit,:),ncat)
        if (tr_bgc_Am) &
-!       call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_Am,:), &
-!           'ruf8','bgc_Am',ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Am,:),ncat)
        if (tr_bgc_Sil) &
-!       call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_Sil,:), &
-!           'ruf8','bgc_Sil',ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Sil,:),ncat)
        if (tr_bgc_hum) &
-!       call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_hum,:), &
-!           'ruf8','bgc_hum',ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_hum,:),ncat)
        if(tr_bgc_DMS) then
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_DMSPp,:), &
-!           'ruf8','bgc_DMSPp',ncat,diag)
+         write (nu_diag,*) 'min/max pDMSP, dDMSP, DMS'
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DMSPp,:),ncat)
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_DMSPd,:), &
-!           'ruf8','bgc_DMSPd',ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DMSPd,:),ncat)
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_DMS,:), &
-!           'ruf8','bgc_DMS',ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DMS,:),ncat)
        endif
+         write (nu_diag,*) 'min/max PON'
        if (tr_bgc_PON) &
-!       call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_PON,:), &
-!           'ruf8','bgc_PON',ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_PON,:),ncat)
        if (tr_bgc_DON) then
+         write (nu_diag,*) 'min/max DON'
           do k = 1, n_don
-!              write(nchar,'(i3.3)') k
-!              call read_restart_field(nu_restart_bgc,0,  &
-!                 trcrn(:,nt_bgc_DON(k),:), &
-!                 'ruf8','bgc_DON'//trim(nchar),ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DON(k),:),ncat)
           enddo
        endif
        if (tr_bgc_Fe) then
+         write (nu_diag,*) 'min/max dFe, pFe'
           do k = 1, n_fed 
-!              write(nchar,'(i3.3)') k
-!              call read_restart_field(nu_restart_bgc,0,  &
-!                 trcrn(:,nt_bgc_Fed (k),:), &
-!                 'ruf8','bgc_Fed'//trim(nchar),ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Fed (k),:),ncat)
           enddo
           do k = 1, n_fep 
-!              write(nchar,'(i3.3)') k
-!              call read_restart_field(nu_restart_bgc,0,  &
-!                 trcrn(:,nt_bgc_Fep (k),:), &
-!                 'ruf8','bgc_Fep'//trim(nchar),ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Fep (k),:),ncat)
           enddo
        endif
 
-!      else
+      elseif (z_tracers) then
 
       !-----------------------------------------------------------------
       ! Z Layer BGC
@@ -658,66 +479,41 @@
       if (tr_bgc_Nit) then
       write(nu_diag,*) 'z bgc restart: min/max Nitrate'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_Nit+k-1,:),'ruf8', &
-!              'bgc_Nit'//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
+print*,'nt_bgc_nit',nt_bgc_Nit,nblyr,ncat,k
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Nit+k-1,:),ncat)
       enddo
       endif   !Nit
       if (tr_bgc_N) then
       do mm = 1,n_algae
-      write(ncharb,'(i3.3)') mm
-      write(nu_diag,*) ' min/max Algal N'
+      write(nu_diag,*) ' min/max Algal N',n_algae
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0, &
-!               trcrn(:,nt_bgc_N(mm)+k-1,:),'ruf8', &
-!              'bgc_N'//trim(ncharb)//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_N(mm)+k-1,:),ncat)
       enddo
       if (tr_bgc_chl) then
       write(nu_diag,*) ' min/max Algal chla'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,  &
-!               trcrn(:,nt_bgc_chl(mm)+k-1,:),'ruf8', &
-!              'bgc_chl'//trim(ncharb)//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_chl(mm)+k-1,:),ncat)
       enddo
       endif   ! tr_bgc_chl
       enddo   !n_algae
       endif   ! tr_bgc_N
       if (tr_bgc_C) then
-      do mm = 1,n_algae
-     ! write(ncharb,'(i3.3)') mm
-     ! write(nu_diag,*) ' min/max Algal C'
-      do k=1,nblyr+3
-     !    write(nchar,'(i3.3)') k
-     !    call read_restart_field(nu_restart_bgc,0,  &
-     !          trcrn(:,nt_bgc_C(mm)+k-1,:),'ruf8', &
-     !         'bgc_C'//trim(ncharb)//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
-             call read_restart_field(nu_restart,trcrn(:,nt_bgc_C(mm)+k-1,:),ncat)
-      enddo
-      enddo  !mm
+! algal C is not yet distinct from algal N
+!      do mm = 1,n_algae
+!      write(nu_diag,*) ' min/max algalC'
+!      do k=1,nblyr+3
+!             call read_restart_field(nu_restart,trcrn(:,nt_bgc_C(mm)+k-1,:),ncat)
+!      enddo
+!      enddo  !mm
       do mm = 1,n_doc
-      write(ncharb,'(i3.3)') mm
       write(nu_diag,*) ' min/max DOC'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,  &
-!               trcrn(:,nt_bgc_DOC(mm)+k-1,:),'ruf8', &
-!              'bgc_DOC'//trim(ncharb)//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DOC(mm)+k-1,:),ncat)
       enddo
       enddo  !mm
       do mm = 1,n_dic
-      write(ncharb,'(i3.3)') mm
       write(nu_diag,*) ' min/max DIC'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,  &
-!               trcrn(:,nt_bgc_DIC(mm)+k-1,:),'ruf8', &
-!              'bgc_DIC'//trim(ncharb)//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DIC(mm)+k-1,:),ncat)
       enddo
       enddo  !mm
@@ -725,116 +521,71 @@
       if (tr_bgc_Am) then
       write(nu_diag,*) ' min/max ammonium'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_Am+k-1,:),'ruf8', &
-!              'bgc_Am'//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Am+k-1,:),ncat)
       enddo
       endif
       if (tr_bgc_Sil) then
       write(nu_diag,*) ' min/max silicate'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_Sil+k-1,:),'ruf8', &
-!              'bgc_Sil'//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Sil+k-1,:),ncat)
       enddo
       endif
       if (tr_bgc_hum) then
       write(nu_diag,*) ' min/max humic material'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_hum+k-1,:),'ruf8', &
-!              'bgc_hum'//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_hum+k-1,:),ncat)
       enddo
       endif
       if (tr_bgc_DMS) then
+         write (nu_diag,*) 'min/max pDMSP, dDMSP, DMS'
       do k=1,nblyr+3
-!      write(nu_diag,*) ' min/max DMSPp'
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_DMSPp+k-1,:),'ruf8', &
-!              'bgc_DMSPp'//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DMSPp+k-1,:),ncat)
-!      write(nu_diag,*) ' min/max DMSPd'
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_DMSPd+k-1,:),'ruf8', &
-!              'bgc_DMSPd'//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DMSPd+k-1,:),ncat)
-!      write(nu_diag,*) ' min/max DMS'
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_DMS+k-1,:),'ruf8', &
-!              'bgc_DMS'//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DMS+k-1,:),ncat)
       enddo
       endif
       if (tr_bgc_PON) then
       write(nu_diag,*) ' min/max PON'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,trcrn(:,nt_bgc_PON+k-1,:),'ruf8', &
-!              'bgc_PON'//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_PON+k-1,:),ncat)
       enddo
       endif
       if (tr_bgc_DON) then
       do mm = 1,n_don
-      write(ncharb,'(i3.3)') mm
       write(nu_diag,*) ' min/max DON'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,  &
-!               trcrn(:,nt_bgc_DON(mm)+k-1,:),'ruf8', &
-!              'bgc_DON'//trim(ncharb)//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_DON(mm)+k-1,:),ncat)
       enddo
       enddo  !mm
       endif
       if (tr_bgc_Fe) then
       do mm = 1,n_fed
-      write(ncharb,'(i3.3)') mm
       write(nu_diag,*) ' min/max dFe '
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,  &
-!               trcrn(:,nt_bgc_Fed (mm)+k-1,:),'ruf8', &
-!              'bgc_Fed'//trim(ncharb)//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Fed (mm)+k-1,:),ncat)
       enddo
       enddo  !mm
       do mm = 1,n_fep
-      write(ncharb,'(i3.3)') mm
       write(nu_diag,*) ' min/max pFe '
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,  &
-!               trcrn(:,nt_bgc_Fep (mm)+k-1,:),'ruf8', &
-!              'bgc_Fep'//trim(ncharb)//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_bgc_Fep (mm)+k-1,:),ncat)
       enddo
       enddo  !mm
       endif
       if (tr_zaero) then
       do mm = 1,n_zaero
-      write(ncharb,'(i3.3)') mm
       write(nu_diag,*) ' min/max z aerosols'
       do k=1,nblyr+3
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,  &
-!               trcrn(:,nt_zaero(mm)+k-1,:),'ruf8', &
-!              'zaero'//trim(ncharb)//trim(nchar),ncat,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,trcrn(:,nt_zaero(mm)+k-1,:),ncat)
       enddo
       enddo  !mm
       endif
+      if (nbtrcr > 0) then
+         write (nu_diag,*) 'min/max zbgc_frac'
       do mm = 1,nbtrcr
-!          write(nchar,'(i3.3)') mm
-!          call read_restart_field(nu_restart_bgc,0, &
-!               trcrn(:,nt_zbgc_frac+mm-1,:),'ruf8', &
-!               'zbgc_frac'//trim(nchar),ncat,diag)
              call read_restart_field(nu_restart,trcrn(:,nt_zbgc_frac+mm-1,:),ncat)
       enddo
-!      endif
+      endif
 
       !-----------------------------------------------------------------
       ! Ocean BGC
@@ -842,74 +593,57 @@
 
       write(nu_diag,*) 'mixed layer ocean bgc restart'
       if (tr_bgc_N) then
+         write (nu_diag,*) 'min/max algalN'
       do k = 1,n_algae
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,algalN(:,k),'ruf8','algalN'//trim(nchar),1,diag)
              call read_restart_field(nu_restart,algalN(:,k),1)
       enddo  !k
       endif
       if (tr_bgc_C) then
+         write (nu_diag,*) 'min/max DOC, DIC'
       do k = 1,n_doc
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,doc(:,k),'ruf8','doc'//trim(nchar),1,diag)
              call read_restart_field(nu_restart,doc(:,k),1)
       enddo  !k
       do k = 1,n_dic
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,dic(:,k),'ruf8','dic'//trim(nchar),1,diag)
              call read_restart_field(nu_restart,dic(:,k),1)
       enddo  !k
       endif  !tr_bgc_C
 
+      write (nu_diag,*) 'min/max Nit, Am, Sil, hum, DMSP, DMS'
       if (tr_bgc_Nit) &
-!      call read_restart_field(nu_restart_bgc,0,nit   ,'ruf8','nit'   ,&
-!                              1,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,nit,1)
       if (tr_bgc_Am) &
-!      call read_restart_field(nu_restart_bgc,0,amm   ,'ruf8','amm'   ,&
-!                              1,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,amm ,1)
       if (tr_bgc_Sil) &
-!      call read_restart_field(nu_restart_bgc,0,sil   ,'ruf8','sil'   ,&
-!                              1,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,sil,1)
       if (tr_bgc_hum) &
-!      call read_restart_field(nu_restart_bgc,0,hum   ,'ruf8','hum'   ,&
-!                              1,diag,field_loc_center,field_type_scalar)
              call read_restart_field(nu_restart,hum,1)
       if (tr_bgc_DMS) then
-!        call read_restart_field(nu_restart_bgc,0,dmsp  ,'ruf8','dmsp'  ,1,diag)
              call read_restart_field(nu_restart,dmsp,1)
-!        call read_restart_field(nu_restart_bgc,0,dms   ,'ruf8','dms'   ,1,diag)
              call read_restart_field(nu_restart,dms,1)
       endif
       if (tr_bgc_DON) then
-      do k = 1,n_don
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,don(:,k),'ruf8','don'//trim(nchar),1,diag)
-             call read_restart_field(nu_restart,don(:,k),1)
-      enddo  !k
+         write (nu_diag,*) 'min/max DON'
+         do k = 1,n_don
+            call read_restart_field(nu_restart,don(:,k),1)
+         enddo  !k
       endif
       if (tr_bgc_Fe ) then
-      do k = 1,n_fed
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,fed(:,k),'ruf8','fed'//trim(nchar),1,diag)
-             call read_restart_field(nu_restart,fed(:,k),1)
-      enddo  !k
-      do k = 1,n_fep
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,fep(:,k),'ruf8','fep'//trim(nchar),1,diag)
-             call read_restart_field(nu_restart,fep(:,k),1)
-      enddo  !k
+         write (nu_diag,*) 'min/max dFe, pFe'
+         do k = 1,n_fed
+            call read_restart_field(nu_restart,fed(:,k),1)
+         enddo  !k
+         do k = 1,n_fep
+            call read_restart_field(nu_restart,fep(:,k),1)
+         enddo  !k
       endif
       if (tr_zaero) then
-      do k = 1,n_zaero
-!         write(nchar,'(i3.3)') k
-!         call read_restart_field(nu_restart_bgc,0,zaeros(:,k),'ruf8','zaeros'//trim(nchar),1,diag)
-             call read_restart_field(nu_restart,zaeros(:,k),1)
-      enddo  !k
+         write (nu_diag,*) 'min/max zaeros'
+         do k = 1,n_zaero
+            call read_restart_field(nu_restart,zaeros(:,k),1)
+         enddo  !k
       endif
-      endif  ! restart_bgc
+
+      endif  ! skl_bgc or z_tracers
    
       end subroutine read_restart_bgc
 

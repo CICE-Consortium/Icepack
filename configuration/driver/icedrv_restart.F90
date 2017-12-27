@@ -11,6 +11,7 @@
       use icedrv_restart_shared, only: restart, restart_dir, restart_file, lenstr
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -22,7 +23,7 @@
           write_restart_pond_lvl,  read_restart_pond_lvl, &
           write_restart_aero,      read_restart_aero
 
-      public :: dumpfile, restartfile, &
+      public :: dumpfile, restartfile, final_restart, &
                 write_restart_field, read_restart_field
 
 !=======================================================================
@@ -61,6 +62,7 @@
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine, &
          tr_pond_topo, tr_pond_cesm, tr_pond_lvl
+!         solve_zsal, skl_bgc, z_tracers
 
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(dumpfile)'
@@ -81,6 +83,8 @@
          tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
          tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
          tr_pond_lvl_out=tr_pond_lvl)
+!      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
+!         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -134,11 +138,10 @@
       if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
       if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
       if (tr_aero)      call write_restart_aero()      ! ice aerosol
-      if (tr_brine)     call write_restart_hbrine      ! brine height
-
-      close(nu_dump)
-
-      write(nu_diag,*) 'Restart read/written ',istep1,time,time_forc
+      if (tr_brine)     call write_restart_hbrine()    ! brine height
+! called in icedrv_RunMod.F90 to prevent circular dependencies
+!      if (solve_zsal .or. skl_bgc .or. z_tracers) &
+!                        call write_restart_bgc         ! biogeochemistry
 
       end subroutine dumpfile
 
@@ -369,6 +372,23 @@
       enddo
       
       end subroutine write_restart_field
+
+!=======================================================================
+
+! Finalize the restart file.
+! author David A Bailey, NCAR
+
+      subroutine final_restart()
+
+      use icedrv_calendar, only: istep1, time, time_forc
+
+      integer (kind=int_kind) :: status
+      character(len=*), parameter :: subname='(final_restart)'
+
+      close(nu_dump)
+      write(nu_diag,*) 'Restart read/written ',istep1,time,time_forc
+
+      end subroutine final_restart
 
 !=======================================================================
 
@@ -819,7 +839,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      write(nu_diag,*) 'brine restart'
+      write(nu_diag,*) 'read brine restart'
 
       call read_restart_field(nu_restart,trcrn(:,nt_fbri,:),ncat)
       call read_restart_field(nu_restart,first_ice_real(:,:),ncat)
