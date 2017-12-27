@@ -22,10 +22,10 @@ if ( -d ${ICE_RUNDIR}/restart_baseline ) then
   rm -rf ${ICE_RUNDIR}/restart_baseline
 endif
 mv ${ICE_RUNDIR}/restart ${ICE_RUNDIR}/restart_baseline
-mkdir ${ICE_RUNDIR}/diags_baseline
+mkdir -p ${ICE_RUNDIR}/diags_baseline
 mv ${ICE_RUNDIR}/ice_diag.* ${ICE_RUNDIR}/diags_baseline/
 
-mkdir ${ICE_RUNDIR}/restart
+mkdir -p ${ICE_RUNDIR}/restart
 # Determine the restart file to use
 set numfiles=`ls ${ICE_RUNDIR}/restart_baseline/iced.* | wc -l`
 @ halffiles = $numfiles / 2
