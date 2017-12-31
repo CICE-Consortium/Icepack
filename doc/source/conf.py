@@ -55,7 +55,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'CICE-Consortium Icepack'
 copyright = u'2017, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation)'
-author = u'Alice DuVivier'
+author = u'CICE Consortium'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
