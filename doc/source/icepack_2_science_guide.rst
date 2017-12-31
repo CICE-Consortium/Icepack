@@ -1865,7 +1865,8 @@ Each of the explicit melt pond parameterizations (CESM, topo and
 level-ice ponds) should be used in conjunction with the Delta-Eddington
 shortwave scheme, described below.
 
-**Shortwave radiation: Delta-Eddington**
+Shortwave radiation: Delta-Eddington
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Two methods for computing albedo and shortwave fluxes are available, the
 "ccsm3" method, described below, and a multiple scattering
@@ -1898,7 +1899,8 @@ snow grain radius when melting. An absorption coefficient for algae
 CESM melt pond and Delta-Eddington parameterizations are further
 explained and validated in :cite:`HBBLH12`.
 
-**Shortwave radiation: CCSM3**
+Shortwave radiation: CCSM3
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In the parameterization used in the previous version of the Community
 Climate System Model (CCSM3), the albedo depends on the temperature and
@@ -1962,7 +1964,8 @@ fraction :math:`\exp(-\kappa_i h_i)` of the penetrating solar radiation
 passes through the ice to the ocean
 (:math:`F_{sw\Downarrow}`). 
 
-*Longwave radiation, turbulent fluxes*
+Longwave radiation, turbulent fluxes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 While incoming shortwave and longwave radiation are obtained from the
 atmosphere, outgoing longwave radiation and the turbulent heat fluxes
