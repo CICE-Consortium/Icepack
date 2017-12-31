@@ -88,7 +88,7 @@ Special thanks are due to the following people:
  
 -  David Bailey, Alice DuVivier and Marika Holland at the National Center for Atmospheric Research
 
--  Rick Allard, Matt Turner and Devid Hebert at the Naval Research Laboratory, Stennis Space Center,
+-  Rick Allard, Matt Turner and David Hebert at the Naval Research Laboratory, Stennis Space Center,
 
 -  Andrew Roberts of the Naval Postgraduate School,
 
