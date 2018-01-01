@@ -421,7 +421,7 @@ The directory structure under configure/scripts is as follows.
 |        **parse_settings.sh**     replaces settings with command-line configuration
 |        **tests/**                scripts for configuring and running basic tests
 
-:: _dev_strategy:
+.. _dev_strategy:
 
 Strategy
 -----------
@@ -437,7 +437,7 @@ scripts are relatively simple csh or sh scripts.
 The file **icepack.settings** specifies a set of env defaults for the case.  The file
 **icepack_in** defines the namelist input for the icepack driver.
 
-:: _dev_options:
+.. _dev_options:
 
 Preset Case Options
 ---------------------
@@ -465,7 +465,7 @@ with appropriate names and syntax.  The set_nml file syntax is the same as namel
 syntax and the set_env files are consistent with csh setenv syntax.  See other files for
 examples of the syntax.
 
-:: _dev_machines:
+.. _dev_machines:
 
 Machines
 -----------
@@ -476,7 +476,7 @@ One other files will need to be
 changed to support a port, that is **configuration/scripts/icepack.batch.csh**.
 To port to a new machine, see :ref:`porting`.  
 
-:: _dev_testing:
+.. _dev_testing:
 
 Test scripts
 -------------

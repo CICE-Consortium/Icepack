@@ -236,7 +236,7 @@ Ocean
 New sea ice forms when the ocean temperature drops below its freezing
 temperature. In the Bitz and Lipscomb thermodynamics,
 :cite:`BL99` :math:`T_f=-\mu S`, where :math:`S` is the
-seawater salinity and :math:`\mu=0.054 \ ^\circ`/ppt is the ratio of the
+seawater salinity and :math:`\mu=0.054^\circ`/ppt is the ratio of the
 freezing temperature of brine to its salinity (linear liquidus
 approximation). For the mushy thermodynamics, :math:`T_f` is given by a
 piecewise linear liquidus relation. The ocean model calculates the new
@@ -1282,7 +1282,7 @@ water, and shrinks when the ice surface temperature becomes cold,
 
 where :math:`dh_{i}` and :math:`dh_{s}` represent ice and snow melt at
 the top surface of each thickness category and :math:`r_2=0.01`. Here,
-:math:`T_p` is a reference temperature equal to -2 :math:`^\circ`\ C.
+:math:`T_p` is a reference temperature equal to :math:`-2^\circ`\ C.
 Pond depth is assumed to be a linear function of the pond fraction
 (:math:`h_p=\delta_p a_p`) and is limited by the category ice thickness
 (:math:`h_p \le 0.9 h_i`). The pond shape (``pndaspect``)
@@ -1907,7 +1907,7 @@ Climate System Model (CCSM3), the albedo depends on the temperature and
 thickness of ice and snow and on the spectral distribution of the
 incoming solar radiation. Albedo parameters have been chosen to fit
 observations from the SHEBA field experiment. For
-:math:`T_{sf} < -1^{\circ}C` and :math:`h_i >` ``ahmax``, the bare ice
+:math:`T_{sf} < -1^{\circ}C` and :math:`h_i > `\ ``ahmax``, the bare ice
 albedo is 0.78 for visible wavelengths (:math:`<700`\ nm) and 0.36 for
 near IR wavelengths (:math:`>700`\ nm). As :math:`h_i` decreases from
 ahmax to zero, the ice albedo decreases smoothly (using an arctangent
@@ -2035,7 +2035,7 @@ Zero-layer thermodynamics (``ktherm`` = 0)
 An option for zero-layer thermodynamics :cite:`Semtner76` is
 available in this version of Icepack by setting the namelist parameter
 ``ktherm`` to 0 and changing the number of ice layers, nilyr, in
-**icepack\_domain\_size.F90** to 1. In the zero-layer case, the ice is
+**icedrv\_domain\_size.F90** to 1. In the zero-layer case, the ice is
 fresh and the thermodynamic calculations are much simpler than in the
 other configurations, which we describe here.
 
@@ -2260,7 +2260,7 @@ where :math:`\tau_k` is the fraction of the penetrating solar radiation
 absorbed.
 
 We now construct a system of equations for the new temperatures. For
-:math:`T_{sf}<0^{\circ}C` we require
+:math:`T_{sf} < 0^{\circ}C` we require
 
 .. math::
    F_0 = F_{ct},
@@ -2585,9 +2585,9 @@ The conductivity of the mush is given by
 .. math:: 
    K = \phi K_{br} + (1-\phi) K_{i}
 
-where :math:`K_i = 2.3` Wm\ :math:`^{-1}`K\ :math:`^{-1}` is the
+where :math:`K_i = 2.3 \mathrm{Wm}^{-1}\mathrm{K}^{-1}` is the
 conductivity of pure ice and
-:math:`K_{br}=0.5375` Wm :math:`^{-1}`K\ :math:`^{-1}` is the
+:math:`K_{br}=0.5375 \mathrm{Wm}^{-1}\mathrm{K}^{-1}` is the
 conductivity of the brine. The thermal conductivity of brine is a
 function of temperature and salinity, but here we take it as a constant
 value for the middle of the temperature range experienced by sea ice,
