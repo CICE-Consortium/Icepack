@@ -5,4 +5,5 @@ tr_pond_cesm = .false.
 tr_pond_topo = .false.
 tr_pond_lvl  = .true.
 tr_aero      = .false.
-
+rfracmax     = 1.0
+rfracmin     = 0.15
