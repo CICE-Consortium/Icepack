@@ -6,7 +6,7 @@
 
       module icedrv_step
 
-      use icedrv_constants
+      use icedrv_constants, only: c0, nu_diag, c1000
       use icedrv_kinds
       use icedrv_calendar, only: istep1
       use icedrv_system, only: icedrv_system_abort
@@ -17,6 +17,7 @@
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_tracer_numbers
       use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_constants
 
       implicit none
       private
@@ -145,10 +146,14 @@
       real (kind=dbl_kind), dimension(n_aero,2,ncat) :: &
          aerosno,  aeroice    ! kg/m^2
 
+      real (kind=dbl_kind) :: &
+         puny
+
       character(len=*), parameter :: subname='(step_therm1)'
 
       !-----------------------------------------------------------------
 
+      call icepack_query_constants(puny_out=puny)
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -767,7 +772,6 @@
       subroutine ocean_mixed_layer (dt)
 
       use icedrv_arrays_column, only: Cdn_atm, Cdn_atm_ratio
-      use icedrv_constants, only: c0, c1000, albocn
       use icepack_intfc, only: icepack_ocn_mixed_layer, icepack_atm_boundary
       use icedrv_init, only: tmask
       use icedrv_domain_size, only: nx
@@ -793,6 +797,9 @@
          i           , & ! horizontal indices
          ij                 ! combined ij index
 
+      real (kind=dbl_kind) :: &
+         albocn
+
       real (kind=dbl_kind), dimension(nx) :: &
          delt  , & ! potential temperature difference   (K)
          delq  , & ! specific humidity difference   (kg/kg)
@@ -800,6 +807,13 @@
          lhcoef    ! transfer coefficient for latent heat
 
       character(len=*), parameter :: subname='(ocean_mixed_layer)'
+
+      !-----------------------------------------------------------------
+
+         call icepack_query_constants(albocn_out=albocn)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
       ! Identify ocean cells.

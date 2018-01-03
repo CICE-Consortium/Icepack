@@ -8,6 +8,7 @@
 
       use icedrv_kinds
       use icedrv_constants, only: nu_diag, nu_restart, nu_dump
+      use icedrv_constants, only: c0, c1, p5
       use icedrv_restart_shared, only: restart, restart_dir, restart_file, lenstr
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
@@ -51,7 +52,6 @@
       use icedrv_calendar, only: sec, month, mday, nyr, istep1
       use icedrv_calendar, only: time, time_forc, year_init
       use icedrv_arrays_column, only: oceanmixed_ice
-      use icedrv_constants, only: nu_diag, nu_dump
       use icedrv_domain_size, only: nilyr, nslyr, ncat, nx
       use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: sst, frzmlt, coszen
@@ -196,7 +196,6 @@
       use icedrv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
       use icepack_intfc, only: icepack_aggregate
       use icedrv_arrays_column, only: oceanmixed_ice
-      use icedrv_constants, only: c0, p5, nu_diag, nu_restart
       use icedrv_domain_size, only: nilyr, nslyr, ncat
       use icedrv_domain_size, only: max_ntrcr, nx
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf
@@ -958,7 +957,6 @@
 
       use icedrv_arrays_column, only: first_ice, first_ice_real
       use icedrv_state, only: trcrn
-      use icedrv_constants, only: c1, c0
       use icedrv_domain_size, only: ncat, nx
 
       ! local variables
@@ -997,7 +995,6 @@
 
       use icedrv_arrays_column, only: first_ice_real, first_ice
       use icedrv_state, only: trcrn
-      use icedrv_constants, only: p5
       use icedrv_domain_size, only: ncat, nx
 
       ! local variables

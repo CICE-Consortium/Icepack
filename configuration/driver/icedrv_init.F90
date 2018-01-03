@@ -7,7 +7,8 @@
       module icedrv_init
 
       use icedrv_kinds
-      use icedrv_constants, only: nu_diag
+      use icedrv_constants, only: nu_diag, ice_stdout, nu_diag_out, nu_nml
+      use icedrv_constants, only: c0, c1, c2, c3, p2, p5
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_init_constants
       use icepack_intfc, only: icepack_init_parameters
@@ -19,6 +20,7 @@
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_numbers
       use icepack_intfc, only: icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_query_constants
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
 
@@ -56,7 +58,6 @@
       subroutine input_data
 
       use icedrv_arrays_column, only: oceanmixed_ice
-      use icedrv_constants, only: c0, c1, puny, ice_stdout, nu_diag_out, nu_nml
       use icedrv_diagnostics, only: diag_file, nx_names
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icedrv_calendar, only: year_init, istep0
@@ -110,7 +111,7 @@
       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
 
       real (kind=real_kind) :: rpcesm, rplvl, rptopo 
-      real (kind=dbl_kind) :: Cf
+      real (kind=dbl_kind) :: Cf, puny
       character(len=*), parameter :: subname='(input_data)'
 
       !-----------------------------------------------------------------
@@ -171,6 +172,11 @@
       !-----------------------------------------------------------------
       ! default values
       !-----------------------------------------------------------------
+
+      call icepack_query_constants(puny_out=puny)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       days_per_year = 365    ! number of days in a year
       use_leap_years= .false.! if true, use leap years (Feb 29)
@@ -754,15 +760,18 @@
 
       subroutine init_grid2
 
-      use icedrv_constants, only: c0, puny
-      use icedrv_constants, only: pi, p5, c1
-
       integer :: i
+      real (kind=dbl_kind) :: pi, puny
       character(len=*), parameter :: subname='(init_grid2)'
 
       !-----------------------------------------------------------------
       ! lat, lon, cell widths, angle, land mask
       !-----------------------------------------------------------------
+
+      call icepack_query_constants(pi_out=pi,puny_out=puny)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__, line=__LINE__)
 
       TLAT(:) = p5*pi  ! pi/2, North pole
       TLON(:) = c0
@@ -798,7 +807,6 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_constants, only: c0, c1
       use icedrv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero
       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
@@ -1017,8 +1025,6 @@
                                 vicen,    vsnon)
 
       use icedrv_arrays_column, only: hin_max
-      use icedrv_constants, only: c0, c1, c2, c3, p2, p5, rhoi, rhos, Lfresh
-      use icedrv_constants, only: cp_ice, cp_ocn, Tsmelt, Tffresh, puny
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat
 !      use icedrv_forcing, only: atm_data_type
 
@@ -1066,7 +1072,8 @@
          it              ! tracer index
 
       real (kind=dbl_kind) :: &
-         Tsfc, sum, hbar
+         Tsfc, sum, hbar, &
+         rhos, Lfresh, puny
 
       real (kind=dbl_kind), dimension(ncat) :: &
          ainit, hinit    ! initial area, thickness
@@ -1093,6 +1100,7 @@
       call icepack_query_tracer_indices( nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
         nt_qsno_out=nt_qsno, nt_sice_out=nt_sice, &
         nt_fbri_out=nt_fbri, nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
+      call icepack_query_constants(rhos_out=rhos, Lfresh_out=Lfresh, puny_out=puny)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
          file=__FILE__,line= __LINE__)

@@ -10,14 +10,14 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: ncat, nilyr, nx
-      use icedrv_constants, only: c0, c1, c5, c10, c20, c180, dragio
-      use icedrv_constants, only: stefan_boltzmann, Tffresh, emissivity
+      use icedrv_constants, only: c0, c1, c5, c10, c20, c180, p001
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_max_aero, icepack_max_nbtrcr, icepack_max_fe
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don, icepack_max_dic
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_query_constants
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -400,11 +400,13 @@
 
       use icedrv_arrays_column, only: Cdn_atm
       use icepack_intfc, only: icepack_liquidus_temperature
-      use icedrv_constants, only: p001,vonkar,zref,iceruf
 
       integer (kind=int_kind) :: n
 
       real (kind=dbl_kind) :: fcondtopn_d(6), fsurfn_d(6)
+
+      real (kind=dbl_kind) :: stefan_boltzmann, Tffresh
+      real (kind=dbl_kind) :: vonkar, zref, iceruf
 
       integer :: i
 
@@ -414,6 +416,14 @@
                           0.05_dbl_kind, 0.01_dbl_kind, 0.01_dbl_kind /
 
       character(len=*), parameter :: subname='(init_coupler_flux)'
+
+      !-----------------------------------------------------------------
+
+      call icepack_query_constants(stefan_boltzmann_out=stefan_boltzmann, &
+        Tffresh_out=Tffresh, vonkar_out=vonkar, zref_out=zref, iceruf_out=iceruf)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       !-----------------------------------------------------------------
       ! fluxes received from atmosphere
@@ -622,15 +632,19 @@
       use icedrv_arrays_column, only: Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_pond, Cdn_atm_rdg
       use icedrv_arrays_column, only: Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
       use icedrv_arrays_column, only: Cdn_atm, Cdn_ocn
-      use icedrv_constants, only: vonkar,zref,iceruf
 
       logical (kind=log_kind) :: formdrag, tr_iage
       integer (kind=int_kind) :: nt_iage
+      real (kind=dbl_kind) :: vonkar, zref, iceruf
+      real (kind=dbl_kind) :: dragio
       character(len=*), parameter :: subname='(init_history_therm)'
 
       call icepack_query_parameters(formdrag_out=formdrag)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage)
       call icepack_query_tracer_indices(nt_iage_out=nt_iage)
+      call icepack_query_constants(dragio_out=dragio, &
+           vonkar_out=vonkar, zref_out=zref, iceruf_out=iceruf)
+
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -747,7 +761,6 @@
 
       subroutine init_history_bgc
 
-      use icedrv_constants, only: c0
       use icedrv_arrays_column, only: PP_net, grow_net, hbri
       use icedrv_arrays_column, only: ice_bio_net, snow_bio_net, fbio_snoice, fbio_atmice
       use icedrv_arrays_column, only: fzsal, fzsal_g, zfswin 

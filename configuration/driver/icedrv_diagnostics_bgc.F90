@@ -8,7 +8,8 @@
       module icedrv_diagnostics_bgc
 
       use icedrv_kinds
-      use icedrv_constants, only: c0, nu_diag, nu_diag_out
+      use icedrv_constants, only: nu_diag, nu_diag_out
+      use icedrv_constants, only: c0, mps_to_cmpdy, c100, p5, c1, secday
       use icedrv_calendar, only: diagfreq, istep1, istep
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -142,7 +143,6 @@
 
       use icedrv_arrays_column, only: ocean_bio, zfswin, fbio_atmice, fbio_snoice
       use icedrv_arrays_column, only: Zoo, grow_net, ice_bio_net, trcrn_sw
-      use icedrv_constants,     only: c0, mps_to_cmpdy, c100, p5, c1, secday
       use icedrv_domain_size,   only: ncat, nltrcr, nblyr, n_algae, n_zaero
       use icedrv_domain_size,   only: n_dic, n_doc, n_don, n_fed, n_fep, nilyr, nslyr
       use icedrv_flux,  only: flux_bio, flux_bio_atm
@@ -761,7 +761,6 @@
 
       use icedrv_arrays_column, only: fzsal, fzsal_g, sice_rho, bTiz
       use icedrv_arrays_column, only: iDi, bphi, dhbr_top, dhbr_bot, darcy_V
-      use icedrv_constants, only: rhos, rhoi, rhow, c1
       use icedrv_domain_size, only: nblyr, ncat, nilyr
       use icedrv_state, only: aicen, aice, vice, trcr, trcrn, vicen, vsno
 
@@ -789,7 +788,7 @@
          pbTiz, piDin
 
       real (kind=dbl_kind) :: &
-         rhosi
+         rhosi, rhow, rhos
 
       logical (kind=log_kind) :: tr_brine
       integer (kind=int_kind) :: nt_fbri, nt_bgc_S, nt_sice
@@ -801,7 +800,7 @@
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
 
-         call icepack_query_constants(rhosi_out=rhosi)
+         call icepack_query_constants(rhosi_out=rhosi, rhow_out=rhow, rhos_out=rhos)
          call icepack_query_tracer_flags(tr_brine_out=tr_brine)
          call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_bgc_S_out=nt_bgc_S, &
              nt_sice_out=nt_sice)
