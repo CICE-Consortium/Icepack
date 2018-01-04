@@ -794,7 +794,7 @@ endif
 
 !=======================================================================
 
-    subroutine atm_ISPOL           
+      subroutine atm_ISPOL
 
       integer (kind=int_kind) :: &
          i
@@ -831,39 +831,25 @@ endif
       read(nu_forcing,*) aday
       read(nu_forcing,*) atime
 
-      do i = 1, 366 !daily
-        Tair_data(i) = tair(i)
-        Qa_data(i) = qa(i)
-        uatm_data(i) = uatm(i)
-        vatm_data(i) = vatm(i)
-        fsnow_data(i) = fsnow(i)
+      do i = 1, 366 ! daily
+         Tair_data (i) = tair(i)
+         Qa_data   (i) = qa(i)
+         uatm_data (i) = uatm(i)
+         vatm_data (i) = vatm(i)
+         fsnow_data(i) = fsnow(i)
       end do
       do i = 1, 1464 ! 6hr, 1464/4=366 days
-        fsw_data(i) = fsw(i)
-        flw_data(i) = flw(i)
+         fsw_data  (i) = fsw(i)
+         flw_data  (i) = flw(i)
       end do
 
-      !write(*,*) tair
-      !write(*,*) qa
-      !write(*,*) fsw
-      !write(*,*) flw
-      !write(*,*) uatm
-      !write(*,*) vatm
-      !write(*,*) fsnow
-      !write(*,*) aday
-      !write(*,*) atime
-      
       close(nu_forcing)
 
-      !write (nu_diag,*) ' '
-      !write (nu_diag,*) 'Atmospheric data file:'
-      !write (nu_diag,*) trim(filename)
-      
-    end subroutine atm_ISPOL
+      end subroutine atm_ISPOL
 
 !=======================================================================
 
-    subroutine atm_NICE
+      subroutine atm_NICE
 
       integer (kind=int_kind) :: &
          nu_nice,&     ! unit number
@@ -900,55 +886,46 @@ endif
       read(nu_forcing,*) fsnow
       read(nu_forcing,*) aday
       read(nu_forcing,*) atime
+
       do i = 1, 366
-        Tair_data(i) = tair(i)
-        Qa_data(i) = qa(i)
-        uatm_data(i) = uatm(i)
-        vatm_data(i) = vatm(i)
+        Tair_data (i) = tair(i)
+        Qa_data   (i) = qa(i)
+        uatm_data (i) = uatm(i)
+        vatm_data (i) = vatm(i)
         fsnow_data(i) = fsnow(i)
       end do
       do i = 1, 1464
-        fsw_data(i) = fsw(i)
-        flw_data(i) = flw(i)
+        fsw_data  (i) = fsw(i)
+        flw_data  (i) = flw(i)
       end do
 
-      !write(*,*) tair
-      !write(*,*) qa
-      !write(*,*) fsw
-      !write(*,*) flw
-      !write(*,*) uatm
-      !write(*,*) vatm
-      !write(*,*) fsnow
-      !write(*,*) aday
-      !write(*,*) atime
-      
       close(nu_forcing)
 
-    end subroutine atm_NICE
+      end subroutine atm_NICE
 
 !=======================================================================
 
-    subroutine ocn_NICE
+      subroutine ocn_NICE
 
       integer (kind=int_kind) :: &
          i
 
       real (kind=dbl_kind), dimension(365) :: &
-          t, &  !probably temperature, Tf?
-          s, &  !probably sss_data
-          hblt, &  !probably hmix
-          u, &  !probably uocn_data seems to be zeroed out anyway??
-          v, &  !probably vocn_data seems to be zeroed out anyway??
-          dhdx, &  !probably ss_tltx
-          dhdy, &  !probably ss_tlty 
-          qdp  !probably heat flux
+         t   , &  ! sea surface temperature
+         s   , &  ! sea surface salinity
+         hblt, &  ! mixed layer depth
+         u   , &  ! ocean current, x
+         v   , &  ! ocean current, y
+         dhdx, &  ! sea surface slope
+         dhdy, &  ! sea surface slope
+         qdp      ! deep ocean heat flux
 
       character (char_len_long) filename
       
       character(len=*), parameter :: subname='(ocn_NICE)'
 
       filename = &
-          trim(data_dir)//'NICE_2015/oceanmixed_daily_3.txt'
+         trim(data_dir)//'NICE_2015/oceanmixed_daily_3.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -959,48 +936,46 @@ endif
       read(nu_forcing,*) hblt
       read(nu_forcing,*) u
       read(nu_forcing,*) v
-      read(nu_forcing,*) dhdx
-      read(nu_forcing,*) dhdy
+      read(nu_forcing,*) dhdx  ! not used for Icepack
+      read(nu_forcing,*) dhdy  ! not used for Icepack
       read(nu_forcing,*) qdp
 
       close(nu_forcing)
 
       do i = 1, 365 ! daily
-        !t(i)
-        sss_data(i) = s(i)
-        hmix_data(i) = hblt(i)
-        uocn_data(i) = u(i)
-        vocn_data(i) = v(i)
-        !dhdx(i)
-        !dhdy(1)
-        qdp_data(i) = qdp(i)
+         sst_data (i) = t(i)
+         sss_data (i) = s(i)
+         hmix_data(i) = hblt(i)
+         uocn_data(i) = u(i)
+         vocn_data(i) = v(i)
+         qdp_data (i) = qdp(i)
       end do
 
-    end subroutine ocn_NICE
+      end subroutine ocn_NICE
 
 !=======================================================================
 
-    subroutine ocn_ISPOL
+      subroutine ocn_ISPOL
 
       integer (kind=int_kind) :: &
          i
 
       real (kind=dbl_kind), dimension(12) :: &
-          t, &  !probably temperature, Tf?
-          s, &  !probably sss_data
-          hblt, &  !probably hmix
-          u, &  !probably uocn_data seems to be zeroed out anyway??
-          v, &  !probably vocn_data seems to be zeroed out anyway??
-          dhdx, &  !probably ss_tltx
-          dhdy, &  !probably ss_tlty 
-          qdp  !probably heat flux
+         t   , &  ! sea surface temperature
+         s   , &  ! sea surface salinity
+         hblt, &  ! mixed layer depth
+         u   , &  ! ocean current, x
+         v   , &  ! ocean current, y
+         dhdx, &  ! sea surface slope
+         dhdy, &  ! sea surface slope
+         qdp      ! deep ocean heat flux
 
       character (char_len_long) filename
       
       character(len=*), parameter :: subname='(ocn_ISPOL)'
 
       filename = &
-          trim(data_dir)//'/ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+        trim(data_dir)//'/ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -1011,33 +986,20 @@ endif
       read(nu_forcing,*) hblt
       read(nu_forcing,*) u
       read(nu_forcing,*) v
-      read(nu_forcing,*) dhdx
-      read(nu_forcing,*) dhdy
+      read(nu_forcing,*) dhdx  ! not used for Icepack
+      read(nu_forcing,*) dhdy  ! not used for Icepack
       read(nu_forcing,*) qdp
 
       close(nu_forcing)
 
       do i = 1, 12 ! monthly
-        !t(i)
-        sss_data(i) = s(i)
-        hmix_data(i) = hblt(i)
-        uocn_data(i) = u(i)
-        vocn_data(i) = v(i)
-        !dhdx(i)
-        !dhdy(1)
-        qdp_data(i) = qdp(i)
+         sst_data (i) = t(i)
+         sss_data (i) = s(i)
+         hmix_data(i) = hblt(i)
+         uocn_data(i) = u(i)
+         vocn_data(i) = v(i)
+         qdp_data (i) = qdp(i)
       end do
-
-      !write(*,*) t
-      !write(*,*) s
-      !write(*,*) hblt
-      !write(*,*) u
-      !write(*,*) v
-      !write(*,*) dhdx
-      !write(*,*) dhdy
-      !write(*,*) qdp
-      
-      !stop
 
     end subroutine ocn_ISPOL
 

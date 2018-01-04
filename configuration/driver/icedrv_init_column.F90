@@ -356,8 +356,6 @@
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, hum
       use icedrv_forcing_bgc, only:  get_forcing_bgc !cn init_bgc_data
-!      use icedrv_restart_column, only: restart_zsal, &
-!          read_restart_bgc, restart_bgc
       use icedrv_state, only: trcrn, aicen, vicen, vsnon
 
       ! local variables
@@ -422,28 +420,22 @@
             do i = 1, nx
                call icepack_init_zsalinity(nblyr, ntrcr_o, RayleighC, &
                       RayleighR, trcrn_bgc, nt_bgc_S, ncat, sss(i))
-!               if (.not. restart_zsal) then
-                  Rayleigh_real    (i) = RayleighR
-                  Rayleigh_criteria(i) = RayleighC
+               Rayleigh_real    (i) = RayleighR
+               Rayleigh_criteria(i) = RayleighC
                do n = 1,ncat
                  do k  = 1, nblyr
                    trcrn(i,nt_bgc_S+k-1,n) = trcrn_bgc(nt_bgc_S-1+k-ntrcr_o,n)
                  enddo
                enddo
-!               endif   ! restart_zsal
             enddo      ! i
             call icepack_warnings_flush(nu_diag)
             if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                 file=__FILE__, line=__LINE__)
       endif ! solve_zsal
 
-!      if (.not. solve_zsal) restart_zsal = .false.
-
       !-----------------------------------------------------------------
       ! biogeochemistry initialization
       !-----------------------------------------------------------------
-
-!      if (.not. restart_bgc) then       
 
       !-----------------------------------------------------------------
       ! Initial Ocean Values if not coupled to the ocean bgc
@@ -463,8 +455,6 @@
 !cn right now, init_bgc_data would be a no-op since fe_data_type=default
             !call init_bgc_data(fed(:,:),fep(:,:)) ! input dFe from file
             call get_forcing_bgc                          ! defines nit and sil
-
-!      endif     ! .not. restart
 
          do i = 1, nx
 
@@ -491,7 +481,6 @@
 
          enddo  ! i
 
-!      if (.not. restart_bgc) then       
          do i = 1, nx
             call icepack_init_bgc(dt, ncat, nblyr, nilyr, ntrcr_o, &
                cgrid, igrid, ntrcr, nbtrcr, &
@@ -503,14 +492,6 @@
             if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
                 __FILE__, __LINE__)
             enddo  ! i
-
-!      endif ! .not. restart
-
-      !-----------------------------------------------------------------
-      ! read restart to complete BGC initialization
-      !-----------------------------------------------------------------
-
-!      if (restart_zsal .or. restart_bgc) call read_restart_bgc  
 
       end subroutine init_bgc
 
@@ -1898,7 +1879,6 @@
                                trim(fe_data_type)
          write(nu_diag,*)    ' bgc_data_dir              = ', &
                                trim(bgc_data_dir)
-!         write(nu_diag,1010) ' restart_bgc               = ', restart_bgc
          write(nu_diag,1010) ' dEdd_algae                = ', dEdd_algae  
          write(nu_diag,1010) ' modal_aero                = ', modal_aero  
          write(nu_diag,1010) ' scale_bgc                 = ', scale_bgc

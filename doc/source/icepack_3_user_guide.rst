@@ -62,7 +62,7 @@ this tool.
 .. _grids:
 
 Grid and boundary conditions 
------------------------------------
+----------------------------
 
 The driver configures a collection of grid cells on which the column physics code 
 will be run. This "horizontal" grid is a vector of length ``nx``, with a minimum length 
@@ -116,7 +116,7 @@ ice.
 .. _init:
 
 Initialization and Forcing
----------------------------
+--------------------------
 
 Icepack’s parameters and variables are initialized in several
 steps. Many constants and physical parameters are set in
@@ -147,8 +147,6 @@ For stand-alone runs,
 routines in **icedrv\_forcing.F90** read and interpolate data from files,
 and are intended merely for testing, although they can also provide guidance for 
 the user to write his or her own routines. 
-
-
 
 .. _parameters:
 
@@ -198,6 +196,94 @@ variable ``dumpfreq``. The namelist variable ``ice_ic`` contains the
 pointer to the filename from which the restart data is to be read.
 
 
+.. _bgc-hist:
+
+Biogeochemistry History Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Note:  History output is not provided with Icepack.  This documentation
+indicates what is available for output and is implemented in CICE.
+
+CHECK and FIX!
+
+The biogeochemical history fields specified in icefields\_bgc\_nml are
+written when ‘x’ is replaced with a time interval: step (‘1’), daily
+(‘d’), monthly (‘m’), or yearly (‘y’). Several of these flags turn on
+multiple history variables according to the particular ecosystem
+prescribed in **icepack\_in**. For example, biogeochemical fluxes from the
+ice to ocean will be saved monthly in the history output if
+
+::
+
+    f_fbio = 'm'
+
+However, only the biogeochemical tracers which are active will be saved.
+This includes at most fNit nitrate, fAm ammonium, fN algal nitrogen,
+fDOC dissolved organic carbon, fDON dissolved organic nitrogen, fFep
+particulate iron, fFed dissolved iron, fSil silicate, fhum humic matter,
+fPON passive mobile tracer, fDMS DMS, fDMSPd dissolved DMSP and fDMSPp
+particulate DMSP.
+
+:ref:`tab-bio-history` lists the
+biogeochemical tracer history flags along with a short description and
+the variable or variables saved. Not listed are flags appended with
+\_ai, i.e. f\_fbio\_ai. These fields are identical to their counterpart.
+i.e. f\_fbio, except they are averaged by ice area.
+
+:ref:`tab-bio-history` :*Biogeochemical History variables*
+
+.. _tab-bio-history:
+
+.. csv-table:: Table 6
+   :header: "History Flag", "Definition", "Variable(s)", "Units"
+   :widths: 10, 25, 20, 10
+
+   "f\_faero\_atm", "atmospheric aerosol deposition flux", "faero\_atm", "kg m\ :math:`^{-2}` s\ :math:`^{-1}`"
+   "f\_faero\_ocn", "aerosol flux from ice to ocean", "faero\_ocn", "kg m\ :math:`^{-2}` s\ :math:`^{-1}`"
+   "f\_aero", "aerosol mass (snow and ice ssl and int)", "aerosnossl, aerosnoint,aeroicessl, aeroiceint", "kg/kg"
+   "f\_fbio", "biological ice to ocean flux", "fN, fDOC, fNit, fAm,fDON,fFep\ :math:`^a`, fFed\ :math:`^a`, fSil,fhum, fPON, fDMSPd,fDMS, fDMSPp, fzaero", "mmol m\ :math:`^{-2}` s\ :math:`^{-1}`"
+   "f\_zaero", "bulk z-aerosol mass fraction", "zaero", "kg/kg"
+   "f\_bgc\_S", "bulk z-salinity", "bgc\_S", "ppt"
+   "f\_bgc\_N", "bulk algal N concentration", "bgc\_N", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_C", "bulk algal C concentration", "bgc\_C", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_DOC", "bulk DOC concentration", "bgc\_DOC", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_DON", "bulk DON concentration", "bgc\_DON", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_DIC", "bulk DIC concentration", "bgc\_DIC", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_chl", "bulk algal chlorophyll concentration", "bgc\_chl", "mg chl m\ :math:`^{-3}`"
+   "f\_bgc\_Nit", "bulk nitrate concentration", "bgc\_Nit", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_Am", "bulk ammonium concentration", "bgc\_Am", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_Sil", "bulk silicate concentration", "bgc\_Sil", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_DMSPp", "bulk particulate DMSP concentration", "bgc\_DMSPp", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_DMSPd", "bulk dissolved DMSP concentration", "bgc\_DMSPd", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_DMS", "bulk DMS concentration", "bgc\_DMS", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_Fe", "bulk dissolved and particulate iron conc.", "bgc\_Fed, bgc\_Fep", ":math:`\mu\,`\ mol m\ :math:`^{-3}`"
+   "f\_bgc\_hum", "bulk humic matter concentration", "bgc\_hum", "mmol m\ :math:`^{-3}`"
+   "f\_bgc\_PON", "bulk passive mobile tracer conc.", "bgc\_PON", "mmol m\ :math:`^{-3}`"
+   "f\_upNO", "Total algal :math:`{\mbox{NO$_3$}}` uptake rate", "upNO", "mmol m\ :math:`^{-2}` d\ :math:`^{-1}`"
+   "f\_upNH", "Total algal :math:`{\mbox{NH$_4$}}` uptake rate", "upNH", "mmol m\ :math:`^{-2}` d\ :math:`^{-1}`"
+   "f\_bgc\_ml", "upper ocean tracer concentrations", "ml\_N, ml\_DOC, ml\_Nit,ml\_Am, ml\_DON, ml\_Fep\ :math:`^b`,ml\_Fed\ :math:`^b`, ml\_Sil, ml\_hum, ml\_PON,ml\_DMS, ml\_DMSPd, ml\_DMSPp", "mmol m\ :math:`^{-3}`"
+   "f\_bTin", "ice temperature on the bio grid", "bTizn", ":math:`^o`\ C"
+   "f\_bphi", "ice porosity on the bio grid", "bphizn", "%"
+   "f\_iDin", "brine eddy diffusivity on the interface bio grid", "iDin", "m\ :math:`^{2}` d\ :math:`^{-1}`"
+   "f\_iki", "ice permeability on the interface bio grid", "ikin", "mm\ :math:`^{2}`"
+   "f\_fbri", "ratio of brine tracer height to ice thickness", "fbrine", "1"
+   "f\_hbri", "brine tracer height", "hbrine", "m"
+   "f\_zfswin", "internal ice PAR on the interface bio grid", "zfswin", "W m\ :math:`^{-2}`"
+   "f\_bionet", "brine height integrated tracer concentration", "algalN\_net, algalC\_net, chl\_net, pFe\ :math:`^c`\ \_net, dFe\ :math:`^c`\ \_net, Sil\_net, Nit\_net, Am\_net, hum\_net, PON\_net, DMS\_net, DMSPd\_net, DMSPp\_net, DOC\_net, zaero\_net, DON\_net", "mmol m\ :math:`^{-2}`"
+   "f\_biosnow", snow integrated tracer concentration", "algalN\_snow, algalC\_snow,chl\_snow, pFe\ :math:`^c`\ \_snow, dFe\ :math:`^c`\ \_snow,Sil\_snow, Nit\_snow, Am\_snow, hum\_snow, PON\_snow, DMS\_snow, DMSPd\_snow, DMSPp\_snow, DOC\_snow, zaero\_snow, DON\_snow", "mmol m\ :math:`^{-2}`"
+   "f\_grownet", "Net specific algal growth rate", "grow\_net", "m d\ :math:`^{-1}`"
+   "f\_PPnet", "Net primary production", "PP\_net", "mgC m\ :math:`^{-2}` d\ :math:`^{-1}`"
+   "f\_algalpeak", "interface bio grid level of peak chla", "peak\_loc", "1"
+   "f\_zbgc\_frac", "mobile fraction of tracer", "algalN\_frac, chl\_frac, pFe\_frac,dFe\_frac, Sil\_frac, Nit\_frac,Am\_frac, hum\_frac, PON\_frac,DMS\_frac, DMSPd\_frac, DMSPp\_frac,DOC\_frac, zaero\_frac, DON\_frac", "1"
+
+
+:math:`^a` units are :math:`\mu`\ mol m\ :math:`^{-2}` s\ :math:`^{-1}`
+
+:math:`^b` units are :math:`\mu`\ mol m\ :math:`^{-3}`
+
+:math:`^c` units are :math:`\mu`\ mol m\ :math:`^{-2}`
+
+
 Running Icepack
 ====================
 
@@ -206,7 +292,7 @@ Quick-start instructions are provided in the :ref:`quickstart` section.
 .. _scripts:
 
 Scripts
--------------
+-------
 
 The icepack scripts are written to allow quick setup of cases and tests.  Once a case is 
 generated, users can manually modify the namelist and other files to custom configure
@@ -286,7 +372,7 @@ case directory, NOT the run directory.
 .. _porting:
 
 Porting
--------------
+-------
 
 To port, an **env.[machine]** and **Macros.[machine]** file have to be added to the
 **configuration/scripts/machines/** directory and the 
@@ -314,19 +400,8 @@ directory back to **configuration/scripts/machines/** and update
 the **configuration/scripts/icepack.run.setup.csh** file, retest, 
 and then add and commit the updated machine files to the repository.
 
-Input Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The input data space is defined on a per machine basis by the ``ICE_MACHINE_INPUTDATA`` 
-variable in the **env.[machine]** file.  That file space is often shared among multiple 
-users, and it can be desirable to consider using a common file space with group read 
-and write permissions such that a set of users can update the inputdata area as 
-new datasets are available.
-
-The latest input data will be available thru the CICE Consortium github wiki.
-
 Machine Account Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The machine account default is specified by the variable ``ICE_MACHINE_ACCT`` in 
 the **env.[machine]** file.  The easiest way to change a user's default is to 
@@ -335,29 +410,6 @@ preferred account name to the first line.
 There is also an option (``-a``) in **icepack.create.case** to define the account number.  
 The order of precedent is **icepack.create.case** command line option, 
 **.cice\_proj** setting, and then value in the **env.[machine]** file.
-
-
-Run Directories
------------------
-
-The **icepack.create.case** script creates a case directory.  However, the model 
-is actually built and run under the ``ICE_OBJDIR`` and ``ICE_RUNDIR`` directories
-as defined in the **icepack.settings** file.
-
-Build and run logs will be copied from the run directory into the case **logs/** 
-directory when complete.
-
-
-Local modifications
---------------------------
-
-Scripts and other case settings can be changed manually in the case directory and
-used.  Source code can be modified in the main sandbox.  When changes are made, the code
-should be rebuilt before being resubmitted.  It is always recommended that users
-modify the scripts and input settings in the case directory, NOT the run directory.
-In general, files in the run directory are overwritten by versions in the case
-directory when the model is built, submitted, and run.
-
 
 Forcing data
 ------------
@@ -371,6 +423,33 @@ runs or as observational data.  Please do not publish results based on these dat
 sets.  Module **configuration/driver/icedrv\_forcing.F90**
 can be modified to change the forcing data. 
 
+The input data space is defined on a per machine basis by the ``ICE_MACHINE_INPUTDATA`` 
+variable in the **env.[machine]** file.  That file space is often shared among multiple 
+users, and it can be desirable to consider using a common file space with group read 
+and write permissions such that a set of users can update the inputdata area as 
+new datasets are available.
+
+
+Run Directories
+---------------
+
+The **icepack.create.case** script creates a case directory.  However, the model 
+is actually built and run under the ``ICE_OBJDIR`` and ``ICE_RUNDIR`` directories
+as defined in the **icepack.settings** file.
+
+Build and run logs will be copied from the run directory into the case **logs/** 
+directory when complete.
+
+
+Local modifications
+-------------------
+
+Scripts and other case settings can be changed manually in the case directory and
+used.  Source code can be modified in the main sandbox.  When changes are made, the code
+should be rebuilt before being resubmitted.  It is always recommended that users
+modify the scripts and input settings in the case directory, NOT the run directory.
+In general, files in the run directory are overwritten by versions in the case
+directory when the model is built, submitted, and run.
 
 
 .. _testing:
@@ -391,7 +470,7 @@ may be a good starting point for testing.
 .. _indtests:
 
 Individual Tests
---------------------------------
+----------------
 
 The Icepack scripts support both setup of individual tests as well as test suites.  Individual
 tests are run from the command line::
@@ -432,7 +511,7 @@ Please run ``./icepack.create.case -h`` for the latest information.
 .. _testsuites:
 
 Test suites
---------------------------------
+-----------
 
 Test suites are multiple tests that are specified via
 an input file.  When invoking the test suite option (``-ts``) with **icepack.create.case**,
@@ -482,7 +561,7 @@ by the ``-ts`` option.
 .. _regtesting:
 
 Regression testing
-----------------------------------
+------------------
 
 The **icepack.create.case** options ``-bg``, ``-bc``, and ``-bd`` are used for regression testing.
 There are several additional options on the **icepack.create.case** command line for testing that
@@ -529,12 +608,13 @@ In summary,
 .. _comptesting:
 
 Comparison testing
-----------------------------------
-
-.. THIS IS NOT REALLY USED IN ICEPACK, should we leave this out of the icepack documentation
+------------------
 
 This feature is primarily used in test suites and has limited use in icepack, but is being
-described for completeness.
+described for completeness.  If modifications to the column physics modules in
+Icepack code generate differences (i.e. results are not bit-for-bit), then full 
+comparisons tests will be necessary in CICE, comparing the modified column 
+physics with the current version.
 
 ``-td`` provides a way to compare tests with each other.  The test is always compared relative to
 the current case directory.  For instance::
@@ -553,8 +633,8 @@ and that the tests are created in parallel directories.
 The ``-td`` option works only if the testid and the machine are the same for the baseline run and the 
 current run, a basic feature associated with test suites.
 
-Icepack Test Reporting
-------------------------------------
+Test Reporting
+----------------------
 
 The Icepack testing scripts have the capability of posting the test results
 to an online dashboard, located `on CDash <http://my.cdash.org/index.php?project=myICEPACK>`_.
@@ -571,10 +651,10 @@ If the results cannot be posted to CDash, the following information will be disp
     ./run_ctest.csh -submit
 
 Examples
---------------------------
+---------
 
 To generate a baseline dataset for a test case
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -588,7 +668,7 @@ After job finishes, check output::
   cat test_output
 
 To run a test case and compare to a baseline dataset
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -884,101 +964,298 @@ column physics.
 ..   "", "``NICE``", "N-ICE experiment data", ""
 ..   "", "``NICE``", "N-ICE experiment data", ""
 
-Adding things
-====================
+BGC namelist options and tuning parameters
+------------------------------------------
 
-We require that any changes made to the code be implemented in such a way that they can
-be "turned off" through namelist flags.  In most cases, code run with such changes should 
-be bit-for-bit identical with the unmodified code.  Occasionally, non-bit-for-bit changes
-are necessary, e.g. associated with an unavoidable change in the order of operations. In
-these cases, changes should be made in stages to isolate the non-bit-for-bit changes, 
-so that those that should be bit-for-bit can be tested separately.
+**put the following into the namelist table format (or move it into the namelist)**
 
-.. _addtrcr:
+::
 
-Tracers
---------------
+    &zbgc_nml
+        tr_brine        = .true.     ! turns on the brine height tracer
+                                     ! (needs TRBRI 1 in comp_ice)
+      , restart_hbrine  = .false.    ! restart the brine height tracer
+                                     ! (will be automatically switched on 
+                                     ! if restart = .true.)
+      , tr_zaero        = .false.    ! turns on black carbon and
+                                     ! dust aerosols
+      , modal_aero      = .false.    ! turns on a modal aerosol option
+                                     ! (not well tested)
+      , skl_bgc         = .false.    ! turns on a single bottom layer
+                                     ! biogeochemistry.  z_tracers and
+                                     ! solve_zbgc must be false 
+                                     ! (needs TRBGCS 1 in comp_ice)
+      , z_tracers       = .true.     ! turns on vertically resolved transport
+                                     ! (needs TRBGCZ 1 in comp_ice)
+      , dEdd_algae      = .false.    ! Include radiative impact of algae
+                                     ! and aerosols in the delta-Eddington
+                                     ! shortwave scheme.  Requires
+                                     ! shortwave = 'dEdd'
+                                     ! (Should not be used when solve_zbgc
+                                     !  of skl_bgc are true*)
+      , solve_zbgc      = .true.     ! turns on the biochemistry using z_tracers
+                                     ! (specify algal numbers in comp_ice TRALG)
+      , bgc_flux_type   = 'Jin2006'  ! ice-ocean flux type for bottom
+                                     ! layer tracers only (skl_bgc = .true.)
+      , restore_bgc     = .false.    ! restores upper ocean concentration
+                                     ! fields to data values (nitrate and
+                                     ! silicate)
+      , restart_bgc     = .false.    ! restarts biogeochemical tracers
+                                     ! (will be automatically switched on
+                                     ! if restart = .true.)
+      , scale_bgc       = .false.    ! Initializes biogeochemical profiles
+                                     ! to scale with prognosed salinity profile
+      , solve_zsal      = .false.    ! prognostic salinity tracer used with 
+                                     ! ktherm = 1 (zsalinity)
+                                     ! (needs TRZS 1 in comp_ice)
+      , restart_zsal    = .false.    ! restarts zsalinity
+      , bgc_data_dir    = '/nitrate_and_silicate/forcing_directory/'                               
+      , sil_data_type   = 'default'  ! fixed, spatially homogenous
+                                     ! value. 'clim' data file 
+                                     ! (see ice_forcing_bgc.F90)
+      , nit_data_type   = 'default'  ! fixed, spatially homogenous
+                                     ! value. 'clim' data file 
+                                     ! (see ice_forcing_bgc.F90)
+      , fe_data_type    = 'default'  ! fixed, spatially homogenous
+      , tr_bgc_Nit      = .true.     ! nitrate tracer
+      , tr_bgc_C        = .true.     ! Dissolved organic carbon tracers
+                                     ! (numbers specified in comp_ice as
+                                     ! TRDOC) and dissolved inorganic
+                                     ! carbon tracers (not yet implemented, 
+                                     ! TRDIC 0 in comp_ice)
+      , tr_bgc_chl      = .false.    ! dummy variable for now.  Chl is
+                                     ! simply a fixed ratio of algal Nitrogen
+      , tr_bgc_Am       = .true.     ! Ammonium   
+      , tr_bgc_Sil      = .true.     ! Silicate
+      , tr_bgc_DMS      = .true.     ! Three tracers: DMS dimethyl sulfide, DMSPp
+                                     ! (assumed to be a fixed ratio of
+                                     ! sulfur to algal Nitrogen) and 
+                                     ! DMSPd
+      , tr_bgc_PON      = .false.    ! passive purely mobile ice tracer with
+                                     ! ocean concentration equivalent to nitrate
+      , tr_bgc_hum      = .true.     ! refractory DOC or DON (units depend
+                                     ! on the ocean source)
+      , tr_bgc_DON      = .true.     ! dissolved organic nitrogen (proteins)
+      , tr_bgc_Fe       = .true.     ! Dissolved iron (number in comp_ice TRFED)
+                                     ! particulate iron (number in comp_ice TRFEP)
+      , grid_o          = 0.006      ! ice-ocean surface layer thickness
+                                     ! (bgc transport scheme)
+      , grid_o_t        = 0.006      ! ice-atm surface layer thickeness
+                                     ! (bgc transport scheme)
+      , l_sk            = 0.024      ! length scale in gravity drainage
+                                     !  parameterization
+                                     ! (bgc transport scheme)
+      , grid_oS         = 0.0        ! ice-ocean surface layer thickness
+                                     ! (zsalinity transport scheme)
+      , l_skS           = 0.028      ! ice-atm surface layer thickeness
+                                     ! (zsalinity transport scheme)
+      , phi_snow        = -0.3       ! snow porosity at the ice-snow interface
+                                     ! if < 0 then phi_snow is computed
+                                     ! from snow density
+      , initbio_frac    = 0.8        ! For each bgc tracer, specifies the 
+                                     ! fraction of the ocean
+                                     ! concentration that is retained in
+                                     ! the ice during initial new ice formation.
+      , frazil_scav     = 0.8        ! For each bgc tracer, specifies the
+                                     ! fraction or multiple of the ocean
+                                     ! concentration that is retained in
+                                     ! the ice from frazil formation. 
+                                     !----------------------------------------
+                                     !  Notation used below: 
+                                     !  _diatoms  == diatoms
+                                     !  _sp       == small phytoplankton
+                                     !  _phaeo    == phaeocystis 
+                                     !  _s        == saccharids 
+                                     !       (unless otherwise indicated)
+                                     !  _l        == lipdids 
+                                     !       (unless otherwise indicated)
+                                     !---------------------------------------- 
+      , ratio_Si2N_diatoms = 1.8_dbl_kind    ! algal Si to N (mol/mol)                        
+      , ratio_Si2N_sp      = c0              
+      , ratio_Si2N_phaeo   = c0              
+      , ratio_S2N_diatoms  = 0.03_dbl_kind   ! algal S  to N (mol/mol) 
+      , ratio_S2N_sp       = 0.03_dbl_kind   
+      , ratio_S2N_phaeo    = 0.03_dbl_kind   
+      , ratio_Fe2C_diatoms = 0.0033_dbl_kind ! algal Fe to C  (umol/mol) 
+      , ratio_Fe2C_sp      = 0.0033_dbl_kind 
+      , ratio_Fe2C_phaeo   = p1              
+      , ratio_Fe2N_diatoms = 0.023_dbl_kind  ! algal Fe to N  (umol/mol) 
+      , ratio_Fe2N_sp      = 0.023_dbl_kind  
+      , ratio_Fe2N_phaeo   = 0.7_dbl_kind    
+      , ratio_Fe2DON       = 0.023_dbl_kind  ! Fe to N of DON (nmol/umol)
+      , ratio_Fe2DOC_s     = p1              ! Fe to C of DOC (nmol/umol)
+      , ratio_Fe2DOC_l     = 0.033_dbl_kind  ! Fe to C of DOC (nmol/umol) 
+      , fr_resp            = 0.05_dbl_kind   ! frac of algal growth lost 
+                                             ! due to respiration      
+      , tau_min            = 5200.0_dbl_kind ! rapid mobile to stationary 
+                                             ! exchanges (s)
+      , tau_max            = 1.73e5_dbl_kind ! long time mobile to
+                                             ! stationary exchanges (s)
+      , algal_vel          = 1.11e-8_dbl_kind! 0.5 cm/d(m/s)
+      , R_dFe2dust         = 0.035_dbl_kind  ! g/g (3.5% content)
+      , dustFe_sol         = 0.005_dbl_kind  ! solubility fraction
+      , chlabs_diatoms     = 0.03_dbl_kind   ! chl absorption (1/m/(mg/m^3)) 
+      , chlabs_sp          = 0.01_dbl_kind   
+      , chlabs_phaeo       = 0.05_dbl_kind   
+      , alpha2max_low_diatoms = 0.8_dbl_kind ! light limitation (1/(W/m^2))   
+      , alpha2max_low_sp      = 0.67_dbl_kind
+      , alpha2max_low_phaeo   = 0.67_dbl_kind
+      , beta2max_diatoms   = 0.018_dbl_kind  ! light inhibition (1/(W/m^2))   
+      , beta2max_sp        = 0.0025_dbl_kind 
+      , beta2max_phaeo     = 0.01_dbl_kind   
+      , mu_max_diatoms     = 1.2_dbl_kind    ! maximum growth rate (1/day) 
+      , mu_max_sp          = 0.851_dbl_kind  
+      , mu_max_phaeo       = 0.851_dbl_kind  
+      , grow_Tdep_diatoms  = 0.06_dbl_kind ! Temperature dependence of 
+                                           ! growth (1/C)
+      , grow_Tdep_sp       = 0.06_dbl_kind 
+      , grow_Tdep_phaeo    = 0.06_dbl_kind 
+      , fr_graze_diatoms   = 0.01_dbl_kind ! Fraction grazed 
+      , fr_graze_sp        = p1            
+      , fr_graze_phaeo     = p1            
+      , mort_pre_diatoms   = 0.007_dbl_kind! Mortality (1/day) 
+      , mort_pre_sp        = 0.007_dbl_kind
+      , mort_pre_phaeo     = 0.007_dbl_kind
+      , mort_Tdep_diatoms  = 0.03_dbl_kind ! T dependence of mortality (1/C) 
+      , mort_Tdep_sp       = 0.03_dbl_kind 
+      , mort_Tdep_phaeo    = 0.03_dbl_kind 
+      , k_exude_diatoms    = c0            ! algal exudation (1/d) 
+      , k_exude_sp         = c0            
+      , k_exude_phaeo      = c0            
+      , K_Nit_diatoms      = c1            ! nitrate half saturation 
+                                           ! (mmol/m^3) 
+      , K_Nit_sp           = c1            
+      , K_Nit_phaeo        = c1            
+      , K_Am_diatoms       = 0.3_dbl_kind  ! ammonium half saturation 
+                                           ! (mmol/m^3) 
+      , K_Am_sp            = 0.3_dbl_kind  
+      , K_Am_phaeo         = 0.3_dbl_kind  
+      , K_Sil_diatoms      = 4.0_dbl_kind  ! silicate half saturation 
+                                           ! (mmol/m^3) 
+      , K_Sil_sp           = c0            
+      , K_Sil_phaeo        = c0            
+      , K_Fe_diatoms       = c1            ! iron half saturation (nM) 
+      , K_Fe_sp            = 0.2_dbl_kind  
+      , K_Fe_phaeo         = p1            
+      , f_don_protein      = 0.6_dbl_kind  ! fraction of spilled grazing 
+                                           ! to proteins           
+      , kn_bac_protein     = 0.03_dbl_kind ! Bacterial degredation of DON (1/d)                
+      , f_don_Am_protein   = 0.25_dbl_kind ! fraction of remineralized 
+                                           ! DON to ammonium         
+      , f_doc_s            = 0.4_dbl_kind  ! fraction of mortality to DOC 
+      , f_doc_l            = 0.4_dbl_kind  ! 
+      , f_exude_s          = c1            ! fraction of exudation to DOC 
+      , f_exude_l          = c1            ! 
+      , k_bac_s            = 0.03_dbl_kind ! Bacterial degredation of DOC (1/d) 
+      , k_bac_l            = 0.03_dbl_kind ! 
+      , T_max              = c0            ! maximum temperature (C)
+      , fsal               = c1            ! Salinity limitation (ppt)
+      , op_dep_min         = p1            ! Light attenuates for optical 
+                                           ! depths exceeding min
+      , fr_graze_s         = p5            ! fraction of grazing spilled 
+                                           ! or slopped
+      , fr_graze_e         = p5            ! fraction of assimilation excreted 
+      , fr_mort2min        = p5            ! fractionation of mortality to Am
+      , fr_dFe             = 0.3_dbl_kind  ! fraction of remineralized nitrogen
+      ,                                    ! (in units of algal iron)
+      , k_nitrif           = c0            ! nitrification rate (1/day)           
+      , t_iron_conv        = 3065.0_dbl_kind ! desorption loss pFe to dFe (day)
+      , max_loss           = 0.9_dbl_kind  ! restrict uptake to % of remaining value 
+      , max_dfe_doc1       = 0.2_dbl_kind  ! max ratio of dFe to 
+                                           ! saccharides in the ice 
+                                           !(nM Fe/muM C)    
+      , fr_resp_s          = 0.75_dbl_kind ! DMSPd fraction of respiration 
+                                           ! loss as DMSPd
+      , y_sk_DMS           = p5            ! fraction conversion given high yield
+      , t_sk_conv          = 3.0_dbl_kind  ! Stefels conversion time (d)
+      , t_sk_ox            = 10.0_dbl_kind ! DMS oxidation time (d)
+      , algaltype_diatoms  = c0            ! ------------------
+      , algaltype_sp       = p5            !
+      , algaltype_phaeo    = p5            !
+      , nitratetype        = -c1           ! mobility type between
+      , ammoniumtype       = c1            ! stationary <-->  mobile
+      , silicatetype       = -c1           !
+      , dmspptype          = p5            !
+      , dmspdtype          = -c1           !
+      , humtype            = c1            !
+      , doctype_s          = p5            ! 
+      , doctype_l          = p5            ! 
+      , dontype_protein    = p5            !
+      , fedtype_1          = p5            !
+      , feptype_1          = p5            !
+      , zaerotype_bc1      = c1            !
+      , zaerotype_bc2      = c1            !
+      , zaerotype_dust1    = c1            !
+      , zaerotype_dust2    = c1            !
+      , zaerotype_dust3    = c1            !
+      , zaerotype_dust4    = c1            !--------------------
+      , ratio_C2N_diatoms  = 7.0_dbl_kind  ! algal C to N ratio (mol/mol)
+      , ratio_C2N_sp       = 7.0_dbl_kind  
+      , ratio_C2N_phaeo    = 7.0_dbl_kind  
+      , ratio_chl2N_diatoms= 2.1_dbl_kind  ! algal chlorophyll to N ratio (mg/mmol)
+      , ratio_chl2N_sp     = 1.1_dbl_kind  
+      , ratio_chl2N_phaeo  = 0.84_dbl_kind 
+      , F_abs_chl_diatoms  = 2.0_dbl_kind  ! scales absorbed radiation for dEdd
+      , F_abs_chl_sp       = 4.0_dbl_kind  
+      , F_abs_chl_phaeo    = 5.0           
+      , ratio_C2N_proteins = 7.0_dbl_kind  ! ratio of C to N in proteins (mol/mol)        
+.. _tuning:
 
-Tracers added to Icepack will also require extensive modifications to the host
-sea ice model, including initialization on the horizontal grid, namelist flags 
-and restart capabilities.  Modifications to the Icepack driver should reflect
-the modifications needed in the host model but are not expected to match completely.
-We recommend that the logical namelist variable
-``tr_[tracer]`` be used for all calls involving the new tracer outside of
-**ice\_[tracer].F90**, in case other users do not want to use that
-tracer.
+BGC Tuning Parameters
+~~~~~~~~~~~~~~~~~~~~~
 
-A number of optional tracers are available in the code, including ice
-age, first-year ice area, melt pond area and volume, brine height,
-aerosols, and level ice area and volume (from which ridged ice
-quantities are derived). Salinity, enthalpies, age, aerosols, level-ice
-volume, brine height and most melt pond quantities are volume-weighted
-tracers, while first-year area, pond area, level-ice area and all of the
-biogeochemistry tracers in this release are area-weighted tracers. In
-the absence of sources and sinks, the total mass of a volume-weighted
-tracer such as aerosol (kg) is conserved under transport in horizontal
-and thickness space (the mass in a given grid cell will change), whereas
-the aerosol concentration (kg/m) is unchanged following the motion, and
-in particular, the concentration is unchanged when there is surface or
-basal melting. The proper units for a volume-weighted mass tracer in the
-tracer array are kg/m.
+Biogeochemical tuning parameters are specified as namelist options in
+**icepack\_in**. Table :ref:`tab-bio-tracers2` provides a list of parameters
+used in the reaction equations, their representation in the code, a
+short description of each and the default values. Please keep in mind
+that there has only been minimal tuning of the model.
 
-In several places in the code, tracer computations must be performed on
-the conserved "tracer volume" rather than the tracer itself; for
-example, the conserved quantity is :math:`h_{pnd}a_{pnd}a_{lvl}a_{i}`,
-not :math:`h_{pnd}`. Conserved quantities are thus computed according to
-the tracer dependencies, and code must be included to account for new
-dependencies (e.g., :math:`a_{lvl}` and :math:`a_{pnd}` in
-**ice\_itd.F90** and **ice\_mechred.F90**).
+:ref:`tab-bio-tracers2` :*Biogeochemical Reaction Parameters*
 
-To add a tracer, follow these steps using one of the existing tracers as
-a pattern.
+.. _tab-bio-tracers2:
 
-#. **icedrv\_domain\_size.F90**: increase ``max_ntrcr`` (can also add option
-   to **icepack.settings** and **icepack.build**)
+.. csv-table:: Table 5
+   :header: "Text Variable", "Variable in code", "Description", "Value", "units"
+   :widths: 7, 20, 15, 15, 15
 
-#. **icedrv\_state.F90**: declare ``nt_[tracer]`` and ``tr_[tracer]``
+   ":math:`f_{graze}`", "fr\_graze(1:3)", "fraction of growth grazed", "0, 0.1, 0.1", "1"
+   ":math:`f_{res}`", "fr\_resp", "fraction of growth respired", "0.05", "1"
+   ":math:`l_{max}`", "max\_loss", "maximum tracer loss fraction", "0.9", "1"
+   ":math:`m_{pre}`", "mort\_pre(1:3)", "maximum mortality rate", "0.007, 0.007, 0.007", "day\ :math:`^{-1}`"
+   ":math:`m_{T}`", "mort\_Tdep(1:3)", "mortality temperature decay", "0.03, 0.03, 0.03", ":math:`^o`\ C\ :math:`^{-1}`"
+   ":math:`T_{max}`", "T\_max", "maximum brine temperature", "0", ":math:`^o`\ C"
+   ":math:`k_{nitr}`", "k\_nitrif", "nitrification rate", "0", "day\ :math:`^{-1}`"
+   ":math:`f_{ng}`", "fr\_graze\_e", "fraction of grazing excreted", "0.5", "1"
+   ":math:`f_{gs}`", "fr\_graze\_s", "fraction of grazing spilled", "0.5", "1"
+   ":math:`f_{nm}`", "fr\_mort2min", "fraction of mortality to :math:`{\mbox{NH$_4$}}`", "0.5", "1"
+   ":math:`f_{dg}`", "f\_don", "frac. spilled grazing to :math:`{\mbox{DON}}`", "0.6", "1"
+   ":math:`k_{nb}`", "kn\_bac :math:`^a`", "bacterial degradation of :math:`{\mbox{DON}}`", "0.03", "day\ :math:`^{-1}`"
+   ":math:`f_{cg}`", "f\_doc(1:3)", "fraction of mortality to :math:`{\mbox{DOC}}`", "0.4, 0.4, 0.2 ", "1"
+   ":math:`R_{c:n}^c`", "R\_C2N(1:3)", "algal carbon to nitrogen ratio", "7.0, 7.0, 7.0", "mol/mol"
+   ":math:`k_{cb}`", "k\_bac1:3\ :math:`^a`", "bacterial degradation of DOC", "0.03, 0.03, 0.03", "day\ :math:`^{-1}`"
+   ":math:`\tau_{fe}`", "t\_iron\_conv", "conversion time pFe :math:`\leftrightarrow` dFe", "3065.0 ", "day"
+   ":math:`r^{max}_{fed:doc}`", "max\_dfe\_doc1", "max ratio of dFe to saccharids", "0.1852", "nM Fe\ :math:`/\mu`\ M C"
+   ":math:`f_{fa}`", "fr\_dFe  ", "fraction of remin. N to dFe", "0.3", "1"
+   ":math:`R_{fe:n}`", "R\_Fe2N(1:3)", "algal Fe to N ratio", "0.023, 0.023, 0.7", "mmol/mol"
+   ":math:`R_{s:n}`", "R\_S2N(1:3)", "algal S to N ratio", "0.03, 0.03, 0.03", "mol/mol"
+   ":math:`f_{sr}`", "fr\_resp\_s", "resp. loss as DMSPd", "0.75", "1"
+   ":math:`\tau_{dmsp}`", "t\_sk\_conv", "Stefels rate", "3.0", "day"
+   ":math:`\tau_{dms}`", "t\_sk\_ox", "DMS oxidation rate", "10.0", "day"
+   ":math:`y_{dms}`", "y\_sk\_DMS", "yield for DMS conversion", "0.5", "1"
+   ":math:`K_{{\mbox{NO$_3$}}}`", "K\_Nit(1:3)", ":math:`{\mbox{NO$_3$}}` half saturation constant", "1,1,1", "mmol/m\ :math:`^{3}`"
+   ":math:`K_{{\mbox{NH$_4$}}}`", "K\_Am(1:3)", ":math:`{\mbox{NH$_4$}}` half saturation constant", "0.3, 0.3, 0.3", "mmol/m\ :math:`^{-3}`"
+   ":math:`K_{{\mbox{SiO$_3$}}}`", "K\_Sil(1:3)", "silicate half saturation constant", "4.0, 0, 0", "mmol/m\ :math:`^{-3}`"
+   ":math:`K_{{\mbox{fed}}}`", "K\_Fe(1:3)", "iron half saturation constant", "1.0, 0.2, 0.1", ":math:`\mu`\ mol/m\ :math:`^{-3}`"
+   ":math:`op_{min}`", "op\_dep\_min", "boundary for light attenuation", "0.1", "1"
+   ":math:`chlabs`", "chlabs(1:3)", "light absorption length per chla conc.", "0.03, 0.01, 0.05", "1\ :math:`/`\ m\ :math:`/`\ (mg\ :math:`/`\ m\ :math:`^{3}`)"
+   ":math:`\alpha`", "alpha2max\_low(1:3)", "light limitation factor", "0.25, 0.25, 0.25", "m\ :math:`^2`/W"
+   ":math:`\beta`", "beta2max(1:3)", "light inhibition factor", "0.018, 0.0025, 0.01", "m\ :math:`^2`/W"
+   ":math:`\mu_{max}`", "mu\_max(1:3)", "maximum algal growth rate", "1.44, 0.851, 0.851", "day\ :math:`^{-1}`"
+   ":math:`\mu_T`", "grow\_Tdep(1:3)", "temperature growth factor", "0.06, 0.06, 0.06", "day\ :math:`^{-1}`"
+   ":math:`f_{sal}`", "fsal", "salinity growth factor", "1", "1"
+   ":math:`R_{si:n}`", "R\_Si2N(1:3)", "algal silicate to nitrogen", "1.8, 0, 0", "mol/mol"
 
-#. **icepack\_[tracer].F90**: create initialization, physics routines
-
-#. **ice\_drv\_init.F90**: (some of this may be done in **ice\_[tracer].F90**
-   instead)
-
-   -  add new module and ``tr_[tracer]`` to list of used modules and
-      variables
-
-   -  add logical namelist variable ``tr_[tracer]``
-
-   -  initialize namelist variable
-
-   -  print namelist variable to diagnostic output file
-
-   -  increment number of tracers in use based on namelist input (``ntrcr``)
-
-   -  define tracer types (``trcr_depend`` = 0 for ice area tracers, 1 for
-      ice volume, 2 for snow volume, 2+``nt_``[tracer] for dependence on
-      other tracers)
-
-#. **icepack\_itd.F90**, **icepack\_mechred.F90**: Account for new dependencies
-   if needed.
-
-#. **icedrv\_InitMod.F90**: initialize tracer (includes reading restart
-   file)
-
-#. **icedrv\_RunMod.F90**, **icedrv\_step\_mod.F90**:
-
-   -  call routine to write tracer restart data
-
-   -  call physics routines in **icepack\_[tracer].F90** (often called from
-      **icedrv\_step\_mod.F90**)
-
-#. **icedrv\_restart.F90**: define restart variables
-
-#. **icepack\_in**: add namelist variables to *tracer\_nml* and
-   *icefields\_nml*
-
-#. If strict conservation is necessary, add diagnostics as noted for
-   topo ponds in Section :ref:`ponds`.
+:math:`^a` only (1:2) of DOC and DOC parameters have physical meaning
 
 
 Troubleshooting 
@@ -1037,8 +1314,8 @@ conflicts in module dependencies.
 *print\_state* (**configuration/driver/ice\_diagnostics.F90**)
     Print the ice state and forcing fields for a given grid cell.
 
-Known bugs
-----------
+Known bugs and other issues
+---------------------------
 
 -   With the old CCSM radiative scheme (``shortwave`` = ‘default’ or
     ‘ccsm3’), a sizable fraction (more than 10%) of the total shortwave
@@ -1046,6 +1323,8 @@ Known bugs
     the ice interior instead. This is due to use of the aggregated,
     effective albedo rather than the bare ice albedo 
     when ``snowpatch`` < 1.
+
+-   The linear remapping algorithm for thickness is not monotonic for tracers.
 
 Interpretation of albedos
 -------------------------
