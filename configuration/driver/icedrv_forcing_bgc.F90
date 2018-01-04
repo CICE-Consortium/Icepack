@@ -10,9 +10,9 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: nx
-      use icedrv_calendar, only: dt, istep, sec, mday, month, daymo
+      use icedrv_calendar, only: dt, istep, sec, mday, month, daymo, secday
       use icedrv_constants, only: nu_forcing, nu_diag
-      use icedrv_constants, only: secday, c0, p1
+      use icedrv_constants, only: c0, p1
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_dic, icepack_max_fe
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted

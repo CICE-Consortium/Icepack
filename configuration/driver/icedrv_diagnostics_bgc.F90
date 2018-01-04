@@ -9,7 +9,7 @@
 
       use icedrv_kinds
       use icedrv_constants, only: nu_diag, nu_diag_out
-      use icedrv_constants, only: c0, mps_to_cmpdy, c100, p5, c1, secday
+      use icedrv_constants, only: c0, mps_to_cmpdy, c100, p5, c1
       use icedrv_calendar, only: diagfreq, istep1, istep
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
