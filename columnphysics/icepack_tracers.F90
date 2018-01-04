@@ -825,8 +825,8 @@
         do k = 1, max_algae
            write(iounit,*) "  nt_bgc_N(k)  = ",k,nt_bgc_N(k)
            write(iounit,*) "  nlt_bgc_N(k) = ",k,nlt_bgc_N(k)
-           write(iounit,*) "  nt_bgc_C(k)  = ",k,nt_bgc_C(k) 
-           write(iounit,*) "  nlt_bgc_C(k) = ",k,nlt_bgc_C(k)
+!           write(iounit,*) "  nt_bgc_C(k)  = ",k,nt_bgc_C(k)
+!           write(iounit,*) "  nlt_bgc_C(k) = ",k,nlt_bgc_C(k)
            write(iounit,*) "  nt_bgc_chl(k)  = ",k,nt_bgc_chl(k) 
            write(iounit,*) "  nlt_bgc_chl(k) = ",k,nlt_bgc_chl(k)
         enddo
