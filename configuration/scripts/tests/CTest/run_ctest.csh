@@ -2,9 +2,36 @@
 
 set initargv = ( $argv[*] )
 
+set helpheader = 0
 set dash = "-"
 set submit_only=0
 
+# Check for -h
+while (1)
+  if ($#argv < 1) break;
+  if ("$argv[1]" =~ ${dash}h* ) then
+    set helpheader = 1
+  endif
+  shift argv
+end
+
+#---------------------------------------------------
+# Help Output
+
+if ( $helpheader ) then
+cat << EOF1
+
+NAME
+      run_ctest.csh - Attempts to post test suite results to CDash
+        -h help
+        -submit Post results to CDash WITHOUT parsing results.log.  This should
+                only be run if you already ran this script, and it failed to
+                post the results
+EOF1
+
+exit -1
+endif
+        
 # Check if any of the results could not find the baseline dataset
 grep --quiet 'baseline-does-not-exist' results.log
 if ($status == 0) then
