@@ -17,32 +17,10 @@ foreach line ( "`cat log.suite`" )
   endif
 end
 
-# Check if this server uses PBS or Slurm
-which qstat >&/dev/null
-if ( $? == 0 ) then
-  # PBS
-  set queue_check = 'qstat'
-else
-  which squeue
-  if ( $? == 0 ) then
-    # Slurm
-    set queue_check = 'squeue --jobs='
-  else
-    which bjobs
-    if ( $? == 0 ) then
-      # IBM LFS
-      set queue_check = 'bjobs -l '
-    else
-      echo "Unable to determine how to check status of jobs.  Once all jobs are "
-      echo "complete, cd to ${PWD} and run ./results.csh followed by ctest -S steer.cmake"
-    endif
-  endif
-endif
-
 # Wait for all jobs to finish
 foreach job ("`cat log.jobs`")
   while (1)
-    $queue_check $job >&/dev/null
+    ${ICE_MACHINE_QSTAT}$job >&/dev/null
     if ($? != 0) then
       echo "Job $job completed"
       break
