@@ -14,11 +14,11 @@
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_sea_freezing_temperature
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf
-      use icepack_therm_shared, only: icepack_sea_freezing_temperature
 
       implicit none
       private

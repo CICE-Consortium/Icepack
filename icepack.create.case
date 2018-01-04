@@ -113,11 +113,13 @@ set argv = ( $initargv[*] )
 while (1)
   if ( $#argv < 1 ) break;
   set option = $argv[1];
+
   if ("$option" == "${dash}report") then
     set report = 1
     shift argv
     continue
   endif
+
   shift argv
   if ( $#argv < 1 ) then
     echo "${0}: ERROR1 in $option"
