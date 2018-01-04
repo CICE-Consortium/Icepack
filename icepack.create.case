@@ -93,7 +93,7 @@ cat << EOF1
 
       EXAMPLES:
       icepack.create.case -h
-      icepack.create.case -c ~/caseA -m yellowstone 
+      icepack.create.case -c ~/caseA -m cheyenne
       icepack.create.case -p 1x4 -m gordon -c caseB
       icepack.create.case -c ~/caseC -m spirit -s diag1,writeicf
       icepack.create.case -t restart -m cheyenne -s diag1,debug -testid myid

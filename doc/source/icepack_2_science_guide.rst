@@ -497,7 +497,7 @@ In the WMO case, the distribution used depends on the number of categories used.
    +----------------+------------+---------+--------+--------+--------+
    | distribution   | original   | round   |           WMO            |
    +================+============+=========+========+========+========+
-   | ``kcatbound`   | 0          | 1       |            2             |
+   | ``kcatbound``  | 0          | 1       |            2             |
    +----------------+------------+---------+--------+--------+--------+
    | :math:`N_C`    | 5          | 5       | 5      | 6      | 7      |
    +----------------+------------+---------+--------+--------+--------+
@@ -2067,7 +2067,8 @@ the effects of salinity on heat capacity are small for temperatures
 well below freezing, so the salinity error does not lead to
 significant temperature errors.
 
-*Temperature updates* 
+Temperature updates
+^^^^^^^^^^^^^^^^^^^
 
 Given the temperatures :math:`T_{sf}^m`,
 :math:`T_s^m`, and :math:`T_{ik}^m` at time \ :math:`m`, we solve a set
@@ -2438,7 +2439,8 @@ the ice layers, allowing a continuum approximation: a bulk sea-ice
 quantity is taken to be the liquid-fraction-weighted average of that
 quantity in the ice and in the brine.
 
-*Enthalpy and mushy physics* 
+Enthalpy and mushy physics
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The mush enthalpy, :math:`q`, is related
 to the temperature, :math:`T`, and the brine volume, :math:`\phi`, by
@@ -2527,7 +2529,8 @@ Fitting to the data, :math:`T_0=-7.636^\circ`\ C,
 :math:`a_2=-10.3085\;\mathrm{g} \;\mathrm{kg}^{-1} \;\mathrm{K}^{-1}`,
 :math:`b_1=0` and :math:`b_2=62.4 \;\mathrm{g}\;\mathrm{kg}^{-1}`.
 
-*Two-stage outer iteration* 
+Two-stage outer iteration
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As for the BL99 thermodynamics
 :cite:`BL99` there are two qualitatively different
@@ -2557,7 +2560,8 @@ are more numerically robust than if both are solved together. The
 surface state rarely changes qualitatively during the solution so the
 method is also numerically efficient.
 
-*Temperature updates* 
+Temperature updates
+^^^^^^^^^^^^^^^^^^^
 
 During the calculation of the new temperatures
 and salinities, the liquid fraction is held fixed at the value from the
@@ -2639,7 +2643,8 @@ after a few iterations once the temperature changes during an iteration
 fall below :math:`5\times10^{-4}\;^\circ\mathrm{C}` and the energy
 conservation error falls below 0.9 ``ferrmax``.
 
-*Salinity updates* 
+Salinity updates
+^^^^^^^^^^^^^^^^
 
 Several physical processes alter the sea ice bulk
 salinity. New ice forms with the salinity of the sea water from which it
@@ -2797,7 +2802,8 @@ permeabilities and :math:`\Delta h` is the hydraulic head driving melt
 water through the sea ice. It is the difference in height between the
 top of the melt pond and sea level.
 
-*Basal boundary condition* 
+Basal boundary condition
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 In traditional Stefan problems the ice
 growth rate is calculated by determining the difference in heat flux on
@@ -2819,7 +2825,8 @@ observations. :math:`\phi_i` is a namelist parameter (``phi_i_mushy`` =
 0.85). The basal ice temperature is set to the liquidus temperature
 :math:`T_f` of the ocean surface salinity.
 
-*Tracer consistency* 
+Tracer consistency
+^^^^^^^^^^^^^^^^^^
 
 In order to ensure conservation of energy and salt
 content, the advection routines will occasionally limit changes to
@@ -3432,7 +3439,8 @@ The vertical bio-grid is described in the :ref:`grids` section.
 
 .. _mobile-and-stationary:
 
-*Mobile and stationary phases*
+Mobile and stationary phases
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Purely mobile tracers are tracers which move with the brine and thus, in
 the absence of biochemical reactions, evolve like salinity. For vertical
@@ -3544,7 +3552,7 @@ z-tracers.
 .. table:: Table 3
 
    +-----------------+--------------------+--------------------+------------------------------+
-   | ``bgc_tracer_type`` | :math:`\tau_{ret}` | :math:`\tau_{rel}` |        Description           |
+   | ``bgc_tracer_type`` | :math:`\tau_{ret}` | :math:`\tau_{rel}` |        Description       |
    +=================+====================+====================+==============================+
    |     -1.0        | :math:`\infty`     |         0          | entirely in the mobile phase |
    +-----------------+--------------------+--------------------+------------------------------+
@@ -3573,7 +3581,8 @@ in an unphysically large accumulation during the melt season.
 
 .. _tracer-numerics:
 
-*Flux-corrected, positive definite transport scheme*
+Flux-corrected, positive definite transport scheme
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Numerical solution of the vertical tracer transport equation is
 accomplished using the finite element Galerkin discretization. Multiply
