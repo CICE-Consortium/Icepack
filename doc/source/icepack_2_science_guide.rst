@@ -497,7 +497,7 @@ In the WMO case, the distribution used depends on the number of categories used.
    +----------------+------------+---------+--------+--------+--------+
    | distribution   | original   | round   |           WMO            |
    +================+============+=========+========+========+========+
-   | ``kcatbound`   | 0          | 1       |            2             |
+   | ``kcatbound``  | 0          | 1       |            2             |
    +----------------+------------+---------+--------+--------+--------+
    | :math:`N_C`    | 5          | 5       | 5      | 6      | 7      |
    +----------------+------------+---------+--------+--------+--------+
@@ -3432,7 +3432,8 @@ The vertical bio-grid is described in the :ref:`grids` section.
 
 .. _mobile-and-stationary:
 
-*Mobile and stationary phases*
+Mobile and stationary phases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Purely mobile tracers are tracers which move with the brine and thus, in
 the absence of biochemical reactions, evolve like salinity. For vertical
@@ -3544,7 +3545,7 @@ z-tracers.
 .. table:: Table 3
 
    +-----------------+--------------------+--------------------+------------------------------+
-   | ``bgc_tracer_type`` | :math:`\tau_{ret}` | :math:`\tau_{rel}` |        Description           |
+   | ``bgc_tracer_type`` | :math:`\tau_{ret}` | :math:`\tau_{rel}` |        Description       |
    +=================+====================+====================+==============================+
    |     -1.0        | :math:`\infty`     |         0          | entirely in the mobile phase |
    +-----------------+--------------------+--------------------+------------------------------+
@@ -3573,7 +3574,8 @@ in an unphysically large accumulation during the melt season.
 
 .. _tracer-numerics:
 
-*Flux-corrected, positive definite transport scheme*
+Flux-corrected, positive definite transport scheme
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Numerical solution of the vertical tracer transport equation is
 accomplished using the finite element Galerkin discretization. Multiply
