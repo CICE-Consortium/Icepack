@@ -236,6 +236,9 @@ if ( $testsuite != $spval ) then
   cp -f ${ICE_SCRIPTS}/tests/CTest/CTestTestfile.cmake ./${tsdir}
   cp -f ${ICE_SCRIPTS}/tests/CTest/steer.cmake ./${tsdir}
   cp -f ${ICE_SCRIPTS}/tests/CTest/run_ctest.csh ./${tsdir}
+  if ($report == 1) then
+    cp -f ${ICE_SCRIPTS}/tests/icepack.poll_queue ./${tsdir}
+  endif
 
 cat >! ./${tsdir}/suite.run << EOF0
 #!/bin/csh -f
@@ -601,7 +604,7 @@ EOF
   if ($report == 1) then
     echo "Running the suite and storing output in log.suite"
     ./suite.run >& log.suite
-    ../configuration/scripts/tests/icepack.poll_queue
+    ./icepack.poll_queue
     ./results.csh
     ./run_ctest.csh
   else
