@@ -4,58 +4,10 @@
 Science Guide
 ****************
 
-.. _coupl:
-
-Coupling with host models
-==================================
-
-.. Sea ice models exchange information with 
-.. other components of the earth system via a flux coupler. This is done
-.. through the full CICE model and a thorough description of coupling sea
-.. ice through a flux coupler can be found in the `CICE model 
-.. documentation <https://CICE-Consortium.github.io/CICE/index.html>`_. 
-.. Important information related to flux coupling associated
-.. with the Icepack submodule will be discussed below, 
-.. along with information about the interface between Icepack and CICE or
-.. other host sea ice models.
-
-The column physics is called from a host (driver) model
-on a gridpoint by gridpoint basis.  Each gridpoint is independent
-and the host model stores and passes the model state and forcing to
-the column physics.
-
-.. _intfc:
-
-The column physics code interface
-----------------------------------------
-
-Subroutine calls and other linkages into Icepack from the host model should only
-need to access the **icepack\_intfc\*.F90** interface modules within the 
-``columnphysics/`` directory.  
-The Icepack driver in the ``configuration/driver/`` directory is based on the CICE
-model and provides an example of the sea ice host model capabilities needed for inclusion
-of Icepack.  In particular, host models will need to include code equivalent to that
-in the modules **icedrv\_\*_column.F90**.  Calls into the Icepack interface routines
-are primarily from **icedrv\_step\_mod.F90** but there are others (search the driver code
-for ``intfc``).
-
-Guiding principles for the creation of Icepack include the following: 
-CHECK THAT THESE ARE TRUE
-
-- The column physics modules shall be independent of all sea ice model infrastructural
-  elements that may vary from model to model.  Examples include input/output, timers,
-  references to CPUs or computational tasks, initialization other than that necessary for
-  strictly physical reasons, and anything related to a horizontal grid.
-- The column physics modules shall not call or reference any routines or code that 
-  reside outside of the **columnphysics/** directory.
-- Any capabilities required by a host sea ice model (e.g. calendar variables, tracer 
-  flags, diagnostics) shall be implemented in the driver and passed into or out of the 
-  column physics modules via array arguments.
-
 For more information, see the :ref:`dev_colphys` section.
 
 Atmosphere and ocean boundary forcing
--------------------------------------
+=====================================
 
 :ref:`tab-flux-cpl`: *External forcing data that are relevant to Icepack*  
 
@@ -110,7 +62,7 @@ coverage of a grid cell. That is, in each cell,
 
 where :math:`a_{i}` is the sum of fractional ice areas for each category
 of ice. The ice fraction is used by the flux coupler to merge fluxes
-from the ice model with fluxes from the other components. For example,
+from the sea ice model with fluxes from the other earth system components. For example,
 the penetrating shortwave radiation flux, weighted by :math:`a_i`, is
 combined with the net shortwave radiation flux through ice-free leads,
 weighted by (:math:`1-a_i`), to obtain the net shortwave flux into the
@@ -144,7 +96,7 @@ different grids and/or processor sets.
 .. _atmo:
 
 Atmosphere
-~~~~~~~~~~
+----------
 
 The wind velocity, specific humidity, air density and potential
 temperature at the given level height :math:`z_\circ` are used to
@@ -154,7 +106,7 @@ stress and turbulent heat fluxes :math:`\vec\tau_a`, :math:`F_s`, and
 :math:`F_s` and :math:`F_l`, along with shortwave and longwave
 radiation, :math:`F_{sw\downarrow}`, :math:`F_{L\downarrow}`
 and :math:`F_{L\uparrow}`, are included in the flux balance that
-determines the ice or snow surface temperature when calc\_Tsfc = true.
+determines the ice or snow surface temperature when ``calc_Tsfc`` is true.
 As described in the :ref:`thermo` section, these fluxes depend nonlinearly
 on the ice surface temperature :math:`T_{sfc}`. The balance
 equation is iterated until convergence, and the resulting fluxes and
@@ -201,7 +153,7 @@ in :math:`u^*`, and :math:`T_{sfc}` and
 humidity, respectively. The latter is calculated by assuming a saturated
 surface, as described in the :ref:`sfc-forcing` section.
 
-Neglecting form drag,the exchange coefficients :math:`c_u`,
+Neglecting form drag, the exchange coefficients :math:`c_u`,
 :math:`c_\theta` and :math:`c_q` are initialized as
 
 .. math:: 
@@ -279,12 +231,12 @@ the :ref:`sfc-forcing` section.
 .. _ocean:
 
 Ocean
-~~~~~~
+-----
 
 New sea ice forms when the ocean temperature drops below its freezing
 temperature. In the Bitz and Lipscomb thermodynamics,
 :cite:`BL99` :math:`T_f=-\mu S`, where :math:`S` is the
-seawater salinity and :math:`\mu=0.054 \ ^\circ`/ppt is the ratio of the
+seawater salinity and :math:`\mu=0.054^\circ`/ppt is the ratio of the
 freezing temperature of brine to its salinity (linear liquidus
 approximation). For the mushy thermodynamics, :math:`T_f` is given by a
 piecewise linear liquidus relation. The ocean model calculates the new
@@ -310,7 +262,7 @@ and water frozen (a negative flux) or melted at the bottom surface of
 the ice. This flux is computed as the net change of fresh water in the
 ice and snow volume over the coupling time step, excluding frazil ice
 formation and newly accumulated snow. Setting the namelist option
-update\_ocn\_f to true causes frazil ice to be included in the fresh
+``update_ocn_f`` to true causes frazil ice to be included in the fresh
 water and salt fluxes.
 
 There is a flux of salt into the ocean under melting conditions, and a
@@ -319,15 +271,13 @@ ultimately freshens the top ocean layer, since the ocean is much more
 saline than the ice. The ice model passes the net flux of salt
 :math:`F_{salt}` to the flux coupler, based on the net change
 in salt for ice in all categories. In the present configuration,
-ice\_ref\_salinity is used for computing the salt flux, although the ice
+``ice_ref_salinity`` is used for computing the salt flux, although the ice
 salinity used in the thermodynamic calculation has differing values in
 the ice layers.
 
 A fraction of the incoming shortwave :math:`F_{sw\Downarrow}`
 penetrates the snow and ice layers and passes into the ocean, as
 described in the :ref:`sfc-forcing` section.
-
-CHECK icepack\_ocean.F90?
 
 A thermodynamic slab ocean mixed-layer parameterization is available 
 in **icepack\_ocean.F90** and can be run in the full CICE configuration.
@@ -343,7 +293,7 @@ Otherwise, heat is made available for melting the ice.
 .. _formdrag:
 
 Variable exchange coefficients
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 In the default configuration, atmospheric and oceanic neutral drag
 coefficients (:math:`c_u` and :math:`c_w`) are assumed constant in time
@@ -360,7 +310,7 @@ ridges, freeboard and floe draft, and size of floes and melt ponds. The
 new parameterization allows the drag coefficients to be coupled to the
 sea ice state and therefore to evolve spatially and temporally. This
 parameterization is contained in the subroutine *neutral\_drag\_coeffs*
-and is accessed by setting `formdrag` = true in the namelist.
+and is accessed by setting ``formdrag`` = true in the namelist.
 
 Following :cite:`TFSFFKLB14`, consider the general case of
 fluid flow obstructed by N randomly oriented obstacles of height
@@ -473,14 +423,14 @@ boundary layer is calculated separately for each ice thickness category.
 The transfer coefficient for oceanic heat flux to the bottom of the ice
 may be varied based on form drag considerations by setting the namelist
 variable ``fbot_xfer_type`` to ``Cdn_ocn``; this is recommended when using
-the form drag parameterization. Its default value of the transfer
+the form drag parameterization. The default value of the transfer
 coefficient is 0.006 (``fbot_xfer_type = ’constant’``).
 
 
 .. _model_comp:
 
-Model components
-================
+Ice thickness distribution
+=============================
 
 The Arctic and Antarctic sea ice packs are mixtures of open water, thin
 first-year ice, thicker multiyear ice, and thick pressure ridges. The
@@ -537,7 +487,7 @@ shown in :ref:`tab-itd` for the delta-function ITD. Users may
 substitute their own preferred boundaries in *init\_itd*.
 
 :ref:`tab-itd` : *Lower boundary values for thickness categories, in meters, for 
-the three distribution options (* ``kcatbound`` *) and linear remapping (* `kitd` = 1 *). 
+the three distribution options (*``kcatbound``*) and linear remapping (*``kitd`` *= 1). 
 In the WMO case, the distribution used depends on the number of categories used.*
 
 .. _tab-itd:
@@ -547,7 +497,7 @@ In the WMO case, the distribution used depends on the number of categories used.
    +----------------+------------+---------+--------+--------+--------+
    | distribution   | original   | round   |           WMO            |
    +================+============+=========+========+========+========+
-   | `kcatbound`    | 0          | 1       |            2             |
+   | ``kcatbound`   | 0          | 1       |            2             |
    +----------------+------------+---------+--------+--------+--------+
    | :math:`N_C`    | 5          | 5       | 5      | 6      | 7      |
    +----------------+------------+---------+--------+--------+--------+
@@ -571,24 +521,51 @@ In the WMO case, the distribution used depends on the number of categories used.
 .. _tracers:
 
 Tracers
--------
+=======
 
 Numerous tracers are available with the column physics.  Several of these are 
 required (surface temperature and thickness, salinity and enthalpy of ice and snow layers),
 and many others are options.  For instance, there are tracers to track the age of the ice;
 the area of first-year ice, fractions of ice area and volume that are level, from which
-the amount of deformed ice can be calculated; pond area, volume and ice-covered volume;
+the amount of deformed ice can be calculated; pond area, pond volume and volume of ice covering ponds;
 aerosols and numerous other biogeochemical tracers.
+Most of these tracers are presented in later sections.  Here we describe the ice age 
+tracers and how tracers may depend on other tracers, using the pond tracers as an 
+example.
+
+.. _ice-age:
+
+Ice age
+-------
+
+The age of the ice, :math:`\tau_{age}`, is treated as an
+ice-volume tracer (`trcr\_depend` = 1). It is initialized at 0 when ice
+forms as frazil, and the ice ages the length of the timestep during each
+timestep. Freezing directly onto the bottom of the ice does not affect
+the age, nor does melting. Mechanical redistribution processes and
+advection alter the age of ice in any given grid cell in a conservative
+manner following changes in ice area. The sea ice age tracer is
+validated in :cite:`HB09`.
+
+Another age-related tracer, the area covered by first-year ice
+:math:`a_{FY}`, is an area tracer (`trcr\_depend` = 0) that corresponds
+more closely to satellite-derived ice age data for first-year ice than
+does :math:`\tau_{age}`. It is re-initialized each year on 15
+September (``yday`` = 259) in the northern hemisphere and 15 March (``yday`` =
+75) in the southern hemisphere, in non-leap years. This tracer is
+increased when new ice forms in open water, in subroutine
+*add\_new\_ice* in **icepack\_therm\_itd.F90**. The first-year area tracer
+is discussed in :cite:`ABTH11`.
 
 .. _pondtr:
 
 Tracers that depend on other tracers 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------
 
 Tracers may be defined that depend on other tracers. Melt pond tracers
 provide an example (these equations pertain to cesm and topo tracers;
 level-ice tracers are similar with an extra factor of :math:`a_{lvl}`,
-see Equations :eq:`transport-lvl`–:eq:`transport-ipnd-lvl`. Conservation
+see Equations :eq:`transport-lvl`–:eq:`transport-ipnd-lvl`). Conservation
 equations for pond area fraction :math:`a_{pnd}a_i` and pond volume
 :math:`h_{pnd}a_{pnd}a_i`, given the ice velocity :math:`\bf u`, are
 
@@ -600,8 +577,8 @@ equations for pond area fraction :math:`a_{pnd}a_i` and pond volume
    {\partial\over\partial t} (h_{pnd}a_{pnd}a_{i}) + \nabla \cdot (h_{pnd}a_{pnd}a_{i} {\bf u}) = 0.
    :label: transport-hpnd
 
-(These equations represent quantities within one thickness category;
-all melt pond calculations are performed for each category, separately.)
+These equations represent quantities within one thickness category;
+all melt pond calculations are performed for each category, separately.
 Equation :eq:`transport-hpnd` expresses conservation of melt pond
 volume, but in this form highlights that the quantity tracked in the
 code is the pond depth tracer :math:`h_{pnd}`, which depends on the pond
@@ -683,34 +660,11 @@ changes in the conserved quantity.
 More information about the melt pond schemes is in the
 :ref:`ponds` section.
 
-.. _ice-age:
-
-Ice age
-~~~~~~~
-
-The age of the ice, :math:`\tau_{age}`, is treated as an
-ice-volume tracer (`trcr\_depend` = 1). It is initialized at 0 when ice
-forms as frazil, and the ice ages the length of the timestep during each
-timestep. Freezing directly onto the bottom of the ice does not affect
-the age, nor does melting. Mechanical redistribution processes and
-advection alter the age of ice in any given grid cell in a conservative
-manner following changes in ice area. The sea ice age tracer is
-validated in :cite:`HB09`.
-
-Another age-related tracer, the area covered by first-year ice
-:math:`a_{FY}`, is an area tracer (`trcr\_depend` = 0) that corresponds
-more closely to satellite-derived ice age data for first-year ice than
-does :math:`\tau_{age}`. It is re-initialized each year on 15
-September (``yday`` = 259) in the northern hemisphere and 15 March (``yday`` =
-75) in the southern hemisphere, in non-leap years. This tracer is
-increased when new ice forms in open water, in subroutine
-*add\_new\_ice* in **icepack\_therm\_itd.F90**. The first-year area tracer
-is discussed in :cite:`ABTH11`.
 
 .. _itd-trans:
 
 Transport in thickness space
-----------------------------
+============================
 
 Next we solve the equation for ice transport in thickness space due to
 thermodynamic growth and melt,
@@ -924,7 +878,7 @@ and tracer contents to the ocean.
 .. _mech-red:
 
 Mechanical redistribution
--------------------------
+=========================
 
 The last term on the right-hand side of Equation :eq:`transport-g`
 is :math:`\psi`, which describes the redistribution
@@ -1127,7 +1081,7 @@ where :math:`r_n = a_{Pn} R_{\mathrm{tot}}`. The area of new ridges is
 :math:`a_{rn} / k_n`, and the volume of new ridges is :math:`a_{rn} h_n`
 (since volume is conserved during ridging). We remove the ridging ice
 from category :math:`n` and use Equations :eq:`ridge-area-old`
-and :eq:`ridge-volume-old`: (or :eq:`ridge-area-new` and
+and :eq:`ridge-volume-old` (or :eq:`ridge-area-new` and
 :eq:`ridge-volume-new`) to redistribute the ice among thicker
 categories.
 
@@ -1166,7 +1120,7 @@ cell (in the spirit of the ridging calculation itself which does not
 prefer level ice over previously ridged ice).
 
 The ice strength :math:`P` may be computed in either of two ways. If the
-namelist parameter kstrength = 0, we use the strength formula from
+namelist parameter ``kstrength`` = 0, we use the strength formula from
 :cite:`Hibler79`:
 
 .. math::
@@ -1175,7 +1129,7 @@ namelist parameter kstrength = 0, we use the strength formula from
 
 where :math:`P^* = 27,500 \, \mathrm {N/m}` and :math:`C = 20` are
 empirical constants, and :math:`h` is the mean ice thickness.
-Alternatively, setting kstrength = 1 gives an ice strength closely
+Alternatively, setting ``kstrength`` = 1 gives an ice strength closely
 related to the ridging scheme. Following
 :cite:`Rothrock75`, the strength is assumed proportional
 to the change in ice potential energy :math:`\Delta E_P` per unit area
@@ -1218,17 +1172,17 @@ time step. See :cite:`LHMJ07` for more details.
 .. _thermo:
 
 Thermodynamics
---------------
+==============
 
 The current Icepack version includes three thermodynamics
 options, the "zero-layer" thermodynamics of :cite:`Semtner76`
 (``ktherm`` = 0), the Bitz and Lipscomb model :cite:`BL99`
-(``ktherm`` = 1) that assumes a fixed salinity profile, and a new "mushy"
+(``ktherm`` = 1) that assumes a fixed salinity profile, and a "mushy"
 formulation (``ktherm`` = 2) in which salinity evolves
 :cite:`THB13`. For each thickness category, Icepack computes
 changes in the ice and snow thickness and vertical temperature profile
 resulting from radiative, turbulent, and conductive heat fluxes. The ice
-has a temperature-dependent specific heam to simulate the effect of
+has a temperature-dependent specific heat to simulate the effect of
 brine pocket melting and freezing, for ``ktherm`` = 1 and 2.
 
 Each thickness category :math:`n` in each grid cell is treated as a
@@ -1261,18 +1215,18 @@ proceeds in two steps. First we solve a set of equations for the new
 temperatures, as discussed in the :ref:`thermo-temp` section. Then we
 compute the melting, if any, of ice or snow at the top surface, and the
 growth or melting of ice at the bottom surface, as described in
-the :ref:`thermo-growth` section. We begin by describing the surface
+the :ref:`thermo-growth` section. We begin by describing the melt ponds and surface
 forcing parameterizations, which are closely related to the ice and snow
 surface temperatures.
 
 .. _ponds:
 
 Melt ponds
-~~~~~~~~~~
+----------
 
 Three explicit melt pond parameterizations are available in Icepack, and
 all must use the delta-Eddington radiation scheme, described below. The
-default (ccsm3) shortwave parameterization incorporates melt ponds
+ccsm3 shortwave parameterization incorporates melt ponds
 implicitly by adjusting the albedo based on surface conditions.
 
 For each of the three explicit parameterizations, a volume
@@ -1309,9 +1263,10 @@ calculation.
 
 In addition to the physical processes discussed below, tracer equations
 and definitions for melt ponds are also described in
-the :ref:`tracers` and :ref:`fig-tracers` sections.
+the :ref:`tracers` section and :ref:`fig-tracers`.
 
-**CESM formulation** (``tr_pond_cesm`` = true)
+CESM formulation (``tr_pond_cesm`` = true)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Melt pond area and thickness tracers are carried on each ice thickness
 category as in the :ref:`tracers` section. Defined simply as the product
@@ -1327,7 +1282,7 @@ water, and shrinks when the ice surface temperature becomes cold,
 
 where :math:`dh_{i}` and :math:`dh_{s}` represent ice and snow melt at
 the top surface of each thickness category and :math:`r_2=0.01`. Here,
-:math:`T_p` is a reference temperature equal to -2 :math:`^\circ`\ C.
+:math:`T_p` is a reference temperature equal to :math:`-2^\circ`\ C.
 Pond depth is assumed to be a linear function of the pond fraction
 (:math:`h_p=\delta_p a_p`) and is limited by the category ice thickness
 (:math:`h_p \le 0.9 h_i`). The pond shape (``pndaspect``)
@@ -1338,7 +1293,8 @@ calculation. Ponds are allowed only on ice at least 1 cm thick. This
 formulation differs slightly from that documented in
 :cite:`HBBLH12`.
 
-**Topographic formulation** (``tr_pond_topo`` = true)
+Topographic formulation (``tr_pond_topo`` = true)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The principle concept of this scheme is that melt water runs downhill
 under the influence of gravity and collects on sea ice with increasing
@@ -1365,7 +1321,7 @@ hydrostatic equilibrium.
 height of the pond surface :math:`h_{pnd,tot}`, the volume of water
 :math:`V_{Pk}` required to completely fill up to category :math:`k`, the
 volume of water :math:`V_{P} - V_{Pk}`, and the depth to which this
-fills up category :math:`k + 1`. Ice and snow areas :math:`a_i` and
+fills category :math:`k + 1`. Ice and snow areas :math:`a_i` and
 :math:`a_s` are also depicted. The volume calculation takes account of
 the presence of snow, which may be partially or completely saturated.
 (b) Schematic illustration indicating pond surface height
@@ -1374,7 +1330,7 @@ to the thinnest surface height category :math:`h_{i1}`, the submerged
 portion of the floe :math:`h_{sub}`, and hydraulic head :math:`\Delta H`
 . A positive hydraulic head (pond surface above sea level) will flush
 melt water through the sea ice into the ocean; a negative hydraulic head
-can drive percolation of sea water up onto the ice surface. Here,
+can drive percolation of sea water onto the ice surface. Here,
 :math:`\alpha=0.6` and :math:`\beta=0.4` are the surface height and
 basal depth distribution fractions. The height of the steps is the
 height of the ice above the reference level, and the width of the steps
@@ -1389,17 +1345,17 @@ step, we construct a list of volumes of water
 :math:`\{V_{P1}, V_{P2}, . . . V_{P,k-1}, V_{Pk},`
 :math:`V_{P,k+1}, . . . \}`, where :math:`V_{Pk}` is the volume of water
 required to completely cover the ice and snow in the surface height
-categories from :math:`i = 1` up to :math:`i = k`. The volume
+categories from :math:`i = 1` to :math:`i = k`. The volume
 :math:`V_{Pk}` is defined so that if the volume of water :math:`V_{P}`
 is such that :math:`V_{Pk} < V_{P} < V_{P,k+1}` then the snow and ice in
-categories :math:`n = 1` up to :math:`n = k + 1` are covered in melt
+categories :math:`n = 1` to :math:`n = k + 1` are covered in melt
 water. :ref:`fig-topo` (a) depicts the areas covered in melt water and
 saturated snow on the surface height (rather than thickness) categories
 :math:`h_{top,k}`. Note in the code, we assume that
 :math:`h_{top,n}/h_{in} = 0.6` (an arbitrary choice). The fractional
 area of the :math:`n`\ th category covered in snow is :math:`a_{sn}`.
 The volume :math:`V_{P1}`, which is the region with vertical hatching,
-is the volume of water required to completely fill up the first
+is the volume of water required to completely fill the first
 thickness category, so that any extra melt water must occupy the second
 thickness category, and it is given by the expression
 
@@ -1409,7 +1365,7 @@ thickness category, and it is given by the expression
 
 where :math:`V_{sw}` is the fraction of the snow volume that can be
 occupied by water, and :math:`h_{s1}` is the snow depth on ice height
-class 1. In a similar way, the volume required to fill up the first and
+class 1. In a similar way, the volume required to fill the first and
 second surface categories, :math:`V_{P2}`, is given by
 
 .. math::
@@ -1446,7 +1402,7 @@ ice in class :math:`k` and partially fills the volume between
 that :math:`h_{top,k} - h_{top,1}` is the height of the melt water,
 which has volume :math:`V_{Pk}`, which completely fills the surface
 categories up to category :math:`k`. The remaining volume,
-:math:`V_{P} - V_{Pk}`, partially fills category :math:`k + 1` up to the
+:math:`V_{P} - V_{Pk}`, partially fills category :math:`k + 1` to the
 height :math:`h_{par}` and there are two cases to consider: either the
 snow cover on category :math:`k + 1`, with height :math:`h_{s,k+1}`, is
 completely covered in melt water (i.e., :math:`h_{par} > h_{s,k+1}`), or
@@ -1590,9 +1546,10 @@ conservation of water has been added to **icepack\_itd.F90** (subroutine
 *zap\_small\_areas*), **icepack\_mechred.F90** (subroutine *ridge\_shift*),
 **icepack\_therm\_itd.F90** (subroutines *linear\_itd* and *lateral\_melt*),
 and **icepack\_therm\_vertical.F90** (subroutine *thermo\_vertical*), along
-with global diagnostics in **icepack\_diagnostics.F90**.
+with global diagnostics in **icedrv\_diagnostics.F90**.
 
-**Level-ice formulation** (``tr_pond_lvl`` = true)
+Level-ice formulation (``tr_pond_lvl`` = true)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This meltpond parameterization represents a combination of ideas from
 the empirical CESM melt pond scheme and the topo approach, and is
@@ -1888,7 +1845,7 @@ the newly formed ice area :math:`\Delta a_i = \Delta a_{lvl}`.
 .. _sfc-forcing:
 
 Thermodynamic surface forcing balance
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------
 
 The net surface energy flux from the atmosphere to the ice (with all
 fluxes defined as positive downward) is
@@ -1908,7 +1865,8 @@ Each of the explicit melt pond parameterizations (CESM, topo and
 level-ice ponds) should be used in conjunction with the Delta-Eddington
 shortwave scheme, described below.
 
-*Shortwave radiation: Delta-Eddington*
+Shortwave radiation: Delta-Eddington
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Two methods for computing albedo and shortwave fluxes are available, the
 "ccsm3" method, described below, and a multiple scattering
@@ -1941,14 +1899,15 @@ snow grain radius when melting. An absorption coefficient for algae
 CESM melt pond and Delta-Eddington parameterizations are further
 explained and validated in :cite:`HBBLH12`.
 
-*Shortwave radiation: CCSM3*
+Shortwave radiation: CCSM3
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In the parameterization used in the previous version of the Community
 Climate System Model (CCSM3), the albedo depends on the temperature and
 thickness of ice and snow and on the spectral distribution of the
 incoming solar radiation. Albedo parameters have been chosen to fit
 observations from the SHEBA field experiment. For
-:math:`T_{sf} < -1^{\circ}C` and :math:`h_i > ` ``ahmax``, the bare ice
+:math:`T_{sf} < -1^{\circ}C` and :math:`h_i > `\ ``ahmax``, the bare ice
 albedo is 0.78 for visible wavelengths (:math:`<700`\ nm) and 0.36 for
 near IR wavelengths (:math:`>700`\ nm). As :math:`h_i` decreases from
 ahmax to zero, the ice albedo decreases smoothly (using an arctangent
@@ -1979,7 +1938,7 @@ explicit melt pond parameterization is not used in this case.
    Figure 7
 
 :ref:`fig-albedo` : Albedo as a function of ice thickness and temperature,
-for the two extrema in snow depth, for the default (CCSM3) shortwave
+for the two extrema in snow depth, for the ccsm3 shortwave
 option. Maximum snow depth is computed based on Archimedes’ Principle
 for the given ice thickness. These curves represent the envelope of
 possible albedo values. 
@@ -2005,7 +1964,8 @@ fraction :math:`\exp(-\kappa_i h_i)` of the penetrating solar radiation
 passes through the ice to the ocean
 (:math:`F_{sw\Downarrow}`). 
 
-*Longwave radiation, turbulent fluxes*
+Longwave radiation, turbulent fluxes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 While incoming shortwave and longwave radiation are obtained from the
 atmosphere, outgoing longwave radiation and the turbulent heat fluxes
@@ -2067,17 +2027,20 @@ that :math:`F_{bot} + F_{side} \ge F_{frzmlt}` in the case that
 .. _thermo-temp:
 
 New temperatures
-~~~~~~~~~~~~~~~~
+----------------
 
-**Zero-layer thermodynamics** (``ktherm`` = 0)
+Zero-layer thermodynamics (``ktherm`` = 0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 An option for zero-layer thermodynamics :cite:`Semtner76` is
 available in this version of Icepack by setting the namelist parameter
 ``ktherm`` to 0 and changing the number of ice layers, nilyr, in
-**icepack\_domain\_size.F90** to 1. In the zero-layer case, the ice is
+**icedrv\_domain\_size.F90** to 1. In the zero-layer case, the ice is
 fresh and the thermodynamic calculations are much simpler than in the
 other configurations, which we describe here.
 
-**Bitz and Lipscomb thermodynamics** (``ktherm`` = 1)
+Bitz and Lipscomb thermodynamics (``ktherm`` = 1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The "BL99" thermodynamic sea ice model is based on
 :cite:`MU71` and :cite:`BL99`, and is
@@ -2104,7 +2067,7 @@ the effects of salinity on heat capacity are small for temperatures
 well below freezing, so the salinity error does not lead to
 significant temperature errors.
 
-*Temperature updates.* 
+*Temperature updates* 
 
 Given the temperatures :math:`T_{sf}^m`,
 :math:`T_s^m`, and :math:`T_{ik}^m` at time \ :math:`m`, we solve a set
@@ -2154,7 +2117,7 @@ ice, :math:`K_i(T,S)` is the thermal conductivity of sea ice,
 :math:`I_{pen}` is the flux of penetrating solar radiation at
 depth :math:`z`, and :math:`z` is the vertical coordinate, defined to be
 positive downward with :math:`z = 0` at the top surface. If ``shortwave`` =
-‘default’, the penetrating radiation is given by Beer’s Law:
+‘ccsm3’, the penetrating radiation is given by Beer’s Law:
 
 .. math:: 
    I_{pen}(z) = I_0 \exp(-\kappa_i z),
@@ -2172,7 +2135,7 @@ The specific heat of sea ice is given to an excellent approximation by
 
 where :math:`c_0 = 2106` J/kg/deg is the specific heat of fresh ice at
 , :math:`L_0 = 3.34 \times 10^5` J/kg is the latent heat of fusion of
-fresh ice at , and :math:`\mu = 0.054` deg/ppt is the (liquidus) ratio
+fresh ice at , and :math:`\mu = 0.054` deg/ppt is the (liquidus) ratio
 between the freezing temperature and salinity of brine.
 
 Following :cite:`Untersteiner64` and
@@ -2199,7 +2162,7 @@ An alternative parameterization based on the "bubbly brine" model of
     K_i={\rho_i\over\rho_0}\left(2.11-0.011T+0.09 S/T\right),
    :label: Pringle
 
-where :math:`\rho_i` and :math:`\rho_0=917` kg/m :math:`^3` are
+where :math:`\rho_i` and :math:`\rho_0=917` kg/m\ :math:`^3` are
 densities of sea ice and pure ice. Whereas the parameterization in
 Equation :eq:`conductivity` asymptotes to a constant conductivity of
 2.03 W m\ :math:`^{-1}` K :math:`^{-1}` with decreasing :math:`T`,
@@ -2207,9 +2170,9 @@ Equation :eq:`conductivity` asymptotes to a constant conductivity of
 temperatures.
 
 The equation for temperature changes in snow is analogous to
-Equation :eq:`ice-temp-change`, with :math:`\rho_s = 330` kg/m :math:`^3`,
+Equation :eq:`ice-temp-change`, with :math:`\rho_s = 330` kg/m\ :math:`^3`,
 :math:`c_s = c_0`, and :math:`K_s = 0.30` W/m/deg replacing the
-corresponding ice values. If shortwave = ‘default’, then the penetrating
+corresponding ice values. If shortwave = ‘ccsm3’, then the penetrating
 solar radiation is equal to zero for snow-covered ice, since most of the
 incoming sunlight is absorbed near the top surface. If shortwave =
 ‘dEdd’, however, then :math:`I_{pen}` is nonzero in snow layers.
@@ -2221,7 +2184,7 @@ has caused the vertical thermodynamics code to abort. A parameter
 ``frac`` = 0.9 sets the fraction of the ice layer than can be melted through.
 A minimum temperature difference for absorption of radiation is also
 set, currently ``dTemp`` = 0.02 (K). The limiting occurs in
-**icepack\_therm\_vertical.F90**, for both the default and delta Eddington
+**icepack\_therm\_vertical.F90**, for both the ccsm3 and delta Eddington
 radiation schemes. If the available energy would melt through a layer,
 then penetrating shortwave is first reduced, possibly to zero, and if
 that is insufficient then the local conductivity is also reduced to
@@ -2297,7 +2260,7 @@ where :math:`\tau_k` is the fraction of the penetrating solar radiation
 absorbed.
 
 We now construct a system of equations for the new temperatures. For
-:math:`T_{sf}<0^{\circ}C` we require
+:math:`T_{sf} < 0^{\circ}C` we require
 
 .. math::
    F_0 = F_{ct},
@@ -2358,7 +2321,7 @@ RHS.
 
 These equations are modified if :math:`T_{sf}` and
 :math:`F_{ct}` are computed within the atmospheric model and
-passed to the host sea ice model (calc\_Tsfc = false; see :ref:`atmo`). In this case there
+passed to the host sea ice model (``calc_Tsfc`` = false; see :ref:`atmo`). In this case there
 is no surface flux equation. The top layer temperature is computed by an
 equation similar to Equation :eq:`tridiag-form` but with the first term on the
 LHS replaced by :math:`\eta_1 F_{ct}` and moved to the RHS. The
@@ -2406,7 +2369,7 @@ are satisfied—usually within two to four iterations for
 :math:`\Delta T_{\max} \approx 0.01^{\circ}C` and :math:`\Delta F_{max}
 \approx 0.01 \ \mathrm{W/m^2}`—the calculation is complete.
 
-To compute growth and melt rates (:ref:`thermo-growth`,
+To compute growth and melt rates (:ref:`thermo-growth`),
 we derive expressions for the enthalpy :math:`q`. The enthalpy of snow
 (or fresh ice) is given by
 
@@ -2463,7 +2426,8 @@ where
 
 The other root is unphysical.
 
-**Mushy thermodynamics** (``ktherm`` = 2)
+Mushy thermodynamics (``ktherm`` = 2)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The "mushy" thermodynamics option treats the sea ice as a mushy layer
 :cite:`FUWW06` in which the ice is assumed to be composed
@@ -2474,7 +2438,7 @@ the ice layers, allowing a continuum approximation: a bulk sea-ice
 quantity is taken to be the liquid-fraction-weighted average of that
 quantity in the ice and in the brine.
 
-*Enthalpy and mushy physics.* 
+*Enthalpy and mushy physics* 
 
 The mush enthalpy, :math:`q`, is related
 to the temperature, :math:`T`, and the brine volume, :math:`\phi`, by
@@ -2563,7 +2527,7 @@ Fitting to the data, :math:`T_0=-7.636^\circ`\ C,
 :math:`a_2=-10.3085\;\mathrm{g} \;\mathrm{kg}^{-1} \;\mathrm{K}^{-1}`,
 :math:`b_1=0` and :math:`b_2=62.4 \;\mathrm{g}\;\mathrm{kg}^{-1}`.
 
-*Two stage outer iteration.* 
+*Two-stage outer iteration* 
 
 As for the BL99 thermodynamics
 :cite:`BL99` there are two qualitatively different
@@ -2593,7 +2557,7 @@ are more numerically robust than if both are solved together. The
 surface state rarely changes qualitatively during the solution so the
 method is also numerically efficient.
 
-*Temperature updates.* 
+*Temperature updates* 
 
 During the calculation of the new temperatures
 and salinities, the liquid fraction is held fixed at the value from the
@@ -2621,9 +2585,9 @@ The conductivity of the mush is given by
 .. math:: 
    K = \phi K_{br} + (1-\phi) K_{i}
 
-where :math:`K_i = 2.3` Wm:math:`^{-1}`K:math:`^{-1}` is the
+where :math:`K_i = 2.3 \mathrm{Wm}^{-1}\mathrm{K}^{-1}` is the
 conductivity of pure ice and
-:math:`K_{br}=0.5375` Wm:math:`^{-1}`K:math:`^{-1}` is the
+:math:`K_{br}=0.5375 \mathrm{Wm}^{-1}\mathrm{K}^{-1}` is the
 conductivity of the brine. The thermal conductivity of brine is a
 function of temperature and salinity, but here we take it as a constant
 value for the middle of the temperature range experienced by sea ice,
@@ -2673,9 +2637,9 @@ iteration, the surface heat flux is calculated with the new surface
 temperature until convergence is achieved. Convergence normally occurs
 after a few iterations once the temperature changes during an iteration
 fall below :math:`5\times10^{-4}\;^\circ\mathrm{C}` and the energy
-conservation error falls below 0.9``ferrmax``.
+conservation error falls below 0.9 ``ferrmax``.
 
-*Salinity updates.* 
+*Salinity updates* 
 
 Several physical processes alter the sea ice bulk
 salinity. New ice forms with the salinity of the sea water from which it
@@ -2751,7 +2715,7 @@ where :math:`\Delta \rho` is the difference in density between the
 brine at :math:`z` and the ocean, :math:`\Pi` is the minimum
 permeability between :math:`z` and the ocean, :math:`h` is the ice
 thickness, :math:`\kappa` is the brine thermal diffusivity and
-:math:`\eta` is the brine dynamic viscosity. Equation ([eq:mushyvel])
+:math:`\eta` is the brine dynamic viscosity. Equation :eq:`mushyvel`
 reduces the flow rate for Rayleigh numbers below the critical Rayleigh
 number.
 
@@ -2833,7 +2797,7 @@ permeabilities and :math:`\Delta h` is the hydraulic head driving melt
 water through the sea ice. It is the difference in height between the
 top of the melt pond and sea level.
 
-*Basal boundary condition.* 
+*Basal boundary condition* 
 
 In traditional Stefan problems the ice
 growth rate is calculated by determining the difference in heat flux on
@@ -2855,7 +2819,7 @@ observations. :math:`\phi_i` is a namelist parameter (``phi_i_mushy`` =
 0.85). The basal ice temperature is set to the liquidus temperature
 :math:`T_f` of the ocean surface salinity.
 
-*Tracer consistency.* 
+*Tracer consistency* 
 
 In order to ensure conservation of energy and salt
 content, the advection routines will occasionally limit changes to
@@ -2867,7 +2831,8 @@ bulk salinity, the resulting temperature may be changed to be greater
 than the limit allowed in the thermodynamics routines. If this situation
 is detected, the code corrects the enthalpy so the temperature is below
 the limiting value. Conservation of energy is ensured by placing the
-excess energy in the ocean, and the code writes a warning that this has
+excess energy in the ocean, and the code writes a warning (see :ref:`warning`) 
+that this has
 occurred to the diagnostics file. This situation only occurs with the
 mushy thermodynamics, and it should only occur very infrequently and
 have a minimal effect on results. The addition of the heat to the ocean
@@ -2876,7 +2841,7 @@ may reduce ice formation by a small amount afterwards.
 .. _thermo-growth:
 
 Growth and melting
-~~~~~~~~~~~~~~~~~~
+------------------
 
 Melting at the top surface is given by
 
@@ -2960,7 +2925,8 @@ Lateral melting is accomplished by multiplying the state variables by
 laterally :cite:`MP87,Steele92`, and adjusting the ice
 energy and fluxes as appropriate. We assume a floe diameter of 300 m.
 
-*Snow ice formation.* 
+Snow-ice formation
+------------------
 
 At the end of the time step we check whether the
 snow is deep enough to lie partially below the surface of the ocean
@@ -3014,16 +2980,13 @@ into equal thicknesses while conserving energy and salt.
 .. _ice-bgc:
 
 Biogeochemistry
----------------
-
-From: Nicole Jeffery, Scott Elliott, Elizabeth C. Hunke, William H. Lipscomb, and Adrian K. Turner
-default aerosols from: David Baily, Marika Holland... others?
+===============
 
 Aerosols
-~~~~~~~~
+--------
 
-Default Aerosols
-****************
+Basic Aerosols
+~~~~~~~~~~~~~~
 
 Aerosols may be deposited on the ice and gradually work their way
 through it until the ice melts and they are passed into the ocean. They
@@ -3042,7 +3005,7 @@ concentration (the value of the tracer itself) to increase: evaporation,
 snow deposition and basal ice growth. Basal and lateral melting remove
 all aerosols in the melted portion. Surface ice and snow melt leave a
 significant fraction of the aerosols behind, but they do "scavenge" a
-fraction of them given by the parameter kscav = [0.03, 0.2, 0.02, 0.02,
+fraction of them given by the parameter ``kscav`` = [0.03, 0.2, 0.02, 0.02,
 0.01, 0.01] (only the first 3 are used in CESM, for their 3 aerosol
 species). Scavenging also applies to snow-ice formation. When sea ice
 ridges, a fraction of the snow on the ridging ice is thrown into the
@@ -3050,34 +3013,31 @@ ocean, and any aerosols in that fraction are also lost to the ocean.
 
 As upper SSL or interior layers disappear from the snow or ice, aerosols
 are transferred to the next lower layer, or into the ocean when no ice
-remains. The atmospheric flux faero\_atm contains the rates of aerosol
-deposition for each species, while faero\_ocn has the rate at which the
+remains. The atmospheric flux ``faero_atm`` contains the rates of aerosol
+deposition for each species, while ``faero_ocn`` has the rate at which the
 aerosols are transferred to the ocean.
 
-The aerosol tracer flag tr\_aero must be set to true in **icepack\_in**, and
+The aerosol tracer flag ``tr_aero`` must be set to true in **icepack\_in**, and
 the number of aerosol species is set in **icepack.settings**; CESM uses 3.
-Global diagnostics are available when print\_global is true, and history
-variables include the mass density for each layer (snow and ice SSL and
-interior), and atmospheric and oceanic fluxes, for each species.
 
 Z-Aerosols
-**********
+~~~~~~~~~~
 
-zbgc\_colpkg offers an alternate scheme for aerosols in sea ice using
+An alternate scheme for aerosols in sea ice is available using
 the brine motion based transport scheme of the biogeochemical tracers.
 All vertically resolved biogeochemical tracers (z-tracers), including
-zaerosols, have the potential to be atmospherically deposited onto the
+aerosols, have the potential to be atmospherically deposited onto the
 snow or ice, scavenged during snow melt, and passed into the brine. The
 mobile fraction (discussed in :ref:`mobile-and-stationary`) is
 then transported via brine drainage processes
-(Eq. :eq:`mobile-transport` in section :ref:`trans-bio-grid`) while a
+(Eq. :eq:`mobile-transport`) while a
 stationary fraction (discussed in :ref:`mobile-and-stationary`)
 adheres to the ice crystals. Snow deposition and the process of
-scavenging aerosols during snow melt is consistent with the default
-aerosol scheme, though parameters have been generalized to accomadate
+scavenging aerosols during snow melt is consistent with the basic
+aerosol scheme, though parameters have been generalized to accomodate
 potential atmospheric deposition for all z-tracers. For an example, see
-the scavenging parameter kscavz for z-tracers defined in
-**icepack\_zbgc\_shared**.
+the scavenging parameter ``kscavz`` for z-tracers defined in
+**icepack\_zbgc\_shared.F90**.
 
 Within the snow, z-tracers are defined as concentrations in the snow
 surface layer (:math:`h_{ssl}`) and the snow interior
@@ -3090,32 +3050,32 @@ per grid cell area, :math:`C_{snow}` is
 One major difference in how the two schemes model snow aerosol transport
 is that the fraction scavenged from snow melt in the z-tracer scheme is
 not immediately fluxed into the ocean, but rather, enters the ice as a
-source of low salinity but potentially tracer rich brine. The snow melt
+source of low salinity but potentially tracer-rich brine. The snow melt
 source is included as a surface flux condition in **icepack\_algae.F90**.
 
 All the z-aerosols are nonreactive with the exception of the dust
 aerosols. We assume that a small fraction of the dust flux into the ice
-has soluble iron (dustFe\_sol in **icepack\_in**) and so is
+has soluble iron (``dustFe_sol`` in **icepack\_in**) and so is
 passed to the dissolved iron tracer. The remaining dust passes through
 the ice without reactions.
 
-To use z-aerosols, tr\_zaero must be set to true in **icepack\_in**, and the
-number of z-aerosol species is set in **icepack.settings**, TRZAERO. Note, the
-default tracers tr\_aero must be false and NTRAERO in **icepack.settings**
+To use z-aerosols, ``tr_zaero`` must be set to true in **icepack\_in**, and the
+number of z-aerosol species is set in **icepack.settings**, ``TRZAERO``. Note, the
+basic tracers ``tr_aero`` must be false and ``NTRAERO`` in **icepack.settings**
 should be 0. In addition, z-tracers and the brine height tracer must
-also be active. These are set in **icepack\_in** with tr\_brine and
-z\_tracer equal to true. In addition, to turn on the radiative coupling
-between the aerosols and the Delta-Eddington radiative scheme, shortwave
-must equal ’dEdd’ and dEdd\_algae must be true in **icepack\_in**.
+also be active. These are set in **icepack\_in** with ``tr_brine`` and
+``z_tracer`` set to true. In addition, to turn on the radiative coupling
+between the aerosols and the Delta-Eddington radiative scheme, ``shortwave``
+must equal ’dEdd’ and ``dEdd_algae`` must be true in **icepack\_in**.
 
 .. _brine-ht:
 
 Brine height
-~~~~~~~~~~~~
+------------
 
 The brine height, :math:`h_b`, is the distance from the ice-ocean
-interface to the brine surface. When tr\_brine is set true in
-**icepack\_in** and TRBRI is set equal to 1 in **icepack.settings**, the brine
+interface to the brine surface. When ``tr_brine`` is set true in
+**icepack\_in** and ``TRBRI`` is set equal to 1 in **icepack.settings**, the brine
 surface can move relative to the ice surface. Physically, this occurs
 when the ice is permeable and there is a nonzero pressure head: the
 difference between the brine height and the equilibrium sea surface.
@@ -3130,8 +3090,8 @@ motion. Therefore the vertical transport equations for biogeochemical
 tracers will be defined only where brine is present. This region, from
 the ice-ocean interface to the brine height, defines the domain of the
 vertical bio-grid. The resolution of the bio-grid is specified in
-**icepack.settings** by setting the variable NBGCLYR. A detailed description of
-the bio-grid is given in section :ref:`bio-grid`. The ice
+**icepack.settings** by setting the variable ``NBGCLYR``. A detailed description of
+the bio-grid is given in section :ref:`grids`. The ice
 microstructural state, determined in **icepack\_brine.F90**, is computed
 from sea ice salinities and temperatures linearly interpolated to the
 bio-grid. When :math:`h_b > h_i`, the upper surface brine is assumed to
@@ -3216,8 +3176,8 @@ ice surface is melting, ie. :math:`(\Delta h_i)_{top} <
    \left(\Delta h_b\right)_{top} = \frac{\rho_i}{\rho_o} \cdot \left\{ \begin{array}{ll}
     -(\Delta h_i)_{top} &  \mbox{if }
     |(\Delta h_i)_{top}| < h_i-h_b  \\
-    h_i-h_b & \mbox{otherwise.}   \end{array} \right.  \end{aligned}
-    :label: delta-hb
+   h_i-h_b & \mbox{otherwise.}   \end{array} \right.  \end{aligned}
+   :label: delta-hb
 
 For snow melt (:math:`\Delta h_s < 0`), it is assumed that all snow
 meltwater contributes a source of surface brine. The total change from
@@ -3230,7 +3190,7 @@ snow melt and ice thickness changes is
 
 The above brine height calculation is used only when :math:`h_i` and
 :math:`h_b` exceed a minimum thickness, thinS, specified in
-**icepack\_zbgc\_shared**. Otherwise
+**icepack\_zbgc\_shared.F90**. Otherwise
 
 .. math::
    h_b(t+\Delta t) = h_b(t) + \Delta h_i
@@ -3255,24 +3215,24 @@ while ``hbri`` is comparable to hi (:math:`h_i`)
 
 where the sums are taken over thickness categories.
 
-Sea Ice Biogeochemistry
-~~~~~~~~~~~~~~~~~~~~~~~
+Sea ice ecosystem
+-----------------
 
 There are two options for modeling biogeochemistry in sea ice: 1) a
-skeletal layer or bottom layer model (skl-model) that assumes biology
+skeletal layer or bottom layer model that assumes biology
 and biological molecules are restricted to a single layer at the base of
 the sea ice; and 2) a vertically resolved model (zbgc) that allows for
 biogeochemical processes throughout the ice column. The two models may
 be run with the same suite of biogeochemical tracers and use the same
 module **algal\_dyn** in **icepack\_algae.F90** to determine the biochemical
 reaction terms for the tracers at each vertical grid level. In the case
-of the skl-model this is a single layer, while for zbgc there are
-NBGCLYR\ :math:`+1` vertical layers. The primary difference between the
+of the skeletal-layer model this is a single layer, while for zbgc there are
+``NBGCLYR``\ :math:`+1` vertical layers. The primary difference between the
 two schemes is in the vertical transport assumptions for each
 biogeochemical tracer. This includes the parameterizations of fluxes
 between ocean and ice.
 
-In order to run with the skl-model, the code must be built with the
+In order to run with the skeletal-layer model, the code must be built with the
 following options in **icepack.settings**:
 
 ::
@@ -3291,24 +3251,24 @@ For zbgc with 8 vertical layers:
 
 There are also environmental variables in **icepack.settings** that, in part,
 specify the complexity of the ecosystem and are used for both zbgc and
-the skl-model. These are 1) TRALG, the number of algal species; 2)
-TRDOC, the number of dissolved organic carbon groups, 3) TRDIC, the
+the skeletal-layer model. These are 1) ``TRALG``, the number of algal species; 2)
+``TRDOC``, the number of dissolved organic carbon groups, 3) ``TRDIC``, the
 number of dissolved inorganic carbon groups (this is currently not yet
-implemented and should be set to 0); 4) TRDON, the number of dissolved
-organic nitrogen groups, 5) TRFEP , the number of particulate iron
-groups; and 6) TRFED, the number of dissolved iron groups. The current
+implemented and should be set to 0); 4) ``TRDON``, the number of dissolved
+organic nitrogen groups, 5) ``TRFEP``, the number of particulate iron
+groups; and 6) ``TRFED``, the number of dissolved iron groups. The current
 version of **algal\_dyn** biochemistry has parameters for up to 3 algal
 species (diatoms, small phytoplankton and *Phaeocystis* sp,
 respectively), 2 DOC tracers (polysaccharids and lipids, respectively),
 0 DIC tracers, 1 DON tracer (proteins/amino acids), 1 particulate iron
 tracer and 1 dissolved iron tracer. Note, for tracers with multiple
 species/groups, the order is important. For example, specifying
-TRALG = 1 will compute reaction terms using parameters
+``TRALG`` = 1 will compute reaction terms using parameters
 specific to ice diatoms.  However, many of these parameters can be modified in **icepack\_in**. 
 
 The complexity of the algal ecosystem must be specified in both
 **icepack.settings** during the build and in the namelist, **icepack\_in**. The
-procedure is equivalent for both the skl-model and zbgc. The namelist
+procedure is equivalent for both the skeletal-layer model and zbgc. The namelist
 specification is described in detail in section :ref:`zbgc`
 
 Biogeochemical upper ocean concentrations are initialized in the
@@ -3323,18 +3283,13 @@ bgc\_data\_dir and the filename is hardcoded in **icedrv\_forcing** (NJ - needs 
 
 
 Skeletal Layer BGC
-******************
+~~~~~~~~~~~~~~~~~~
 
 In the skeletal layer model, biogeochemical processing is modelled as a
 single layer of reactive tracers attached to the sea ice bottom.
 Optional settings are available via the *zbgc\_nml* namelist in
-**icepack\_in**. In particular, skl\_bgc must be true and z\_tracers and
-solve\_zbgc must both be false.
-
-History fields are controlled in the *icefields\_bgc\_nml* namelist and
-will be discussed in section :ref:`bgc-hist`. As with other CICE
-history fields, the suffix \_ai indicates that the field is multiplied
-by ice area and is therefore a grid cell average.
+**icepack\_in**. In particular, ``skl_bgc`` must be true and ``z_tracers`` and
+``solve_zbgc`` must both be false.
 
 Skeletal tracers :math:`T_b` are ice area conserved and follow the
 horizontal transport Equation :eq:`itd-transport`. For each
@@ -3343,7 +3298,7 @@ in **icepack\_algae.F90**. There are two types of ice-ocean tracer flux
 formulations: 1) ‘Jin2006’ modeled after the growth rate dependent
 piston velocity and 2) ‘constant’ modeled after a constant piston
 velocity. The formulation is specified in **icepack\_in** by setting
-bgc\_flux\_type equal to ‘Jin2006’ or ‘constant’.
+``bgc_flux_type`` equal to ‘Jin2006’ or ‘constant’.
 
 In addition to horizontal advection and transport among thickness
 categories, biogeochemical tracers (:math:`T_b` where
@@ -3418,8 +3373,8 @@ prescription
     w_b \frac{\Delta T_b}{\Delta z} & = &  \left\{ \begin{array}{ll}
       T_b   |dh_i/dt|/h_{sk} \ \ \ \ \ &   \mbox{if }
     |dh_i/dt|\Delta t/h_{sk} < 1  \\
-    T_b/\Delta t & \mbox{otherwise.}   \end{array} \right. \end{aligned} 
-    :label: constant_melt
+   T_b/\Delta t & \mbox{otherwise.}   \end{array} \right. \end{aligned} 
+   :label: constant_melt
 
 A detailed description of the biogeochemistry reaction terms is given in
 section :ref:`reactions`.
@@ -3427,313 +3382,57 @@ section :ref:`reactions`.
 
 .. _zbgc:
 
-Vertical "Z" BGC
-****************
+Vertical BGC (''zbgc'')
+~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to solve for the vertically resolved biogeochemistry, several
-flags in **icepack\_in** must be true: a) tr\_brine, b) z\_tracers, and c)
-solve\_zbgc.
+flags in **icepack\_in** must be true: a) ``tr_brine``, b) ``z_tracers``, and c)
+``solve_zbgc``.
 
--  a) tr\_brine true, turns on the dynamic brine height tracer,
+-  ``tr_brine`` = true turns on the dynamic brine height tracer,
    :math:`h_b`, which defines the vertical domain of the biogeochemical
    tracers. z-Tracer horizontal transport is conserved on ice
    volume\ :math:`\times`\ brine height fraction.
 
--  b) z\_tracers true, indicates use of vertically resolved
+-  ``z_tracers`` = true indicates use of vertically resolved
    biogeochemical and z-aerosol tracers. This flag alone turns on the
    vertical transport scheme but not the biochemistry.
 
--  c) solve\_zbgc true, turns on the biochemistry for the vertically
+-  ``solve_zbgc`` = true turns on the biochemistry for the vertically
    resolved tracers and automatically turns on the algal nitrogen tracer
-   flag tr\_bgc\_N. If false, tr\_bgc\_N is set false and any other
+   flag tr\_bgc\_N. If false, ``tr_bgc_N`` is set false and any other
    biogeochemical tracers in use are transported as passive tracers.
    This is appropriate for the black carbon and dust aerosols specified
-   by tr\_zaero true.
+   by ``tr_zaero`` true.
 
 In addition, a halodynamics scheme must also be used. The default
-thermo-halodynamics is mushy layer ktherm set to 2. An alternative uses
-the Bitz and Lipscomb thermodynamics ktherm set to 1 and solve\_zsal
+thermo-halodynamics is mushy layer ``ktherm`` set to 2. An alternative uses
+the Bitz and Lipscomb thermodynamics ``ktherm`` set to 1 and ``solve_zsal``
 true (referred to as "zsalinity").
 
-With the above flags true, the default biochemistry is a simple
-algal-nitrate system: tr\_bgc\_N and tr\_bgc\_Nit equal true. Options
-exist in icepack\_in to use a more complicated ecosystem which includes up
+With the above flags, the default biochemistry is a simple
+algal-nitrate system: ``tr_bgc_N`` and ``tr_bgc_Nit`` are true. Options
+exist in **icepack\_in** to use a more complicated ecosystem which includes up
 to three algal classes, two DOC groups, one DON pool, limitation by
 nitrate, silicate and dissolved iron, sulfur chemistry plus refractory
 humic material.
 
-The **icepack\_in** namelist options are described below.
+The **icepack\_in** namelist options are described in the :ref:`tabnamelist`.
 
-::
 
-    &zbgc_nml
-        tr_brine        = .true.     ! turns on the brine height tracer
-                                     ! (needs TRBRI 1 in comp_ice)
-      , restart_hbrine  = .false.    ! restart the brine height tracer
-                                     ! (will be automatically switched on 
-                                     ! if restart = .true.)
-      , tr_zaero        = .false.    ! turns on black carbon and
-                                     ! dust aerosols
-      , modal_aero      = .false.    ! turns on a modal aerosol option
-                                     ! (not well tested)
-      , skl_bgc         = .false.    ! turns on a single bottom layer
-                                     ! biogeochemistry.  z_tracers and
-                                     ! solve_zbgc must be false 
-                                     ! (needs TRBGCS 1 in comp_ice)
-      , z_tracers       = .true.     ! turns on vertically resolved transport
-                                     ! (needs TRBGCZ 1 in comp_ice)
-      , dEdd_algae      = .false.    ! Include radiative impact of algae
-                                     ! and aerosols in the delta-Eddington
-                                     ! shortwave scheme.  Requires
-                                     ! shortwave = 'dEdd'
-                                     ! (Should not be used when solve_zbgc
-                                     !  of skl_bgc are true*)
-      , solve_zbgc      = .true.     ! turns on the biochemistry using z_tracers
-                                     ! (specify algal numbers in comp_ice TRALG)
-      , bgc_flux_type   = 'Jin2006'  ! ice-ocean flux type for bottom
-                                     ! layer tracers only (skl_bgc = .true.)
-      , restore_bgc     = .false.    ! restores upper ocean concentration
-                                     ! fields to data values (nitrate and
-                                     ! silicate)
-      , restart_bgc     = .false.    ! restarts biogeochemical tracers
-                                     ! (will be automatically switched on
-                                     ! if restart = .true.)
-      , scale_bgc       = .false.    ! Initializes biogeochemical profiles
-                                     ! to scale with prognosed salinity profile
-      , solve_zsal      = .false.    ! prognostic salinity tracer used with 
-                                     ! ktherm = 1 (zsalinity)
-                                     ! (needs TRZS 1 in comp_ice)
-      , restart_zsal    = .false.    ! restarts zsalinity
-      , bgc_data_dir    = '/nitrate_and_silicate/forcing_directory/'                               
-      , sil_data_type   = 'default'  ! fixed, spatially homogenous
-                                     ! value. 'clim' data file 
-                                     ! (see ice_forcing_bgc.F90)
-      , nit_data_type   = 'default'  ! fixed, spatially homogenous
-                                     ! value. 'clim' data file 
-                                     ! (see ice_forcing_bgc.F90)
-      , fe_data_type    = 'default'  ! fixed, spatially homogenous
-      , tr_bgc_Nit      = .true.     ! nitrate tracer
-      , tr_bgc_C        = .true.     ! Dissolved organic carbon tracers
-                                     ! (numbers specified in comp_ice as
-                                     ! TRDOC) and dissolved inorganic
-                                     ! carbon tracers (not yet implemented, 
-                                     ! TRDIC 0 in comp_ice)
-      , tr_bgc_chl      = .false.    ! dummy variable for now.  Chl is
-                                     ! simply a fixed ratio of algal Nitrogen
-      , tr_bgc_Am       = .true.     ! Ammonium   
-      , tr_bgc_Sil      = .true.     ! Silicate
-      , tr_bgc_DMS      = .true.     ! Three tracers: DMS dimethyl sulfide, DMSPp
-                                     ! (assumed to be a fixed ratio of
-                                     ! sulfur to algal Nitrogen) and 
-                                     ! DMSPd
-      , tr_bgc_PON      = .false.    ! passive purely mobile ice tracer with
-                                     ! ocean concentration equivalent to nitrate
-      , tr_bgc_hum      = .true.     ! refractory DOC or DON (units depend
-                                     ! on the ocean source)
-      , tr_bgc_DON      = .true.     ! dissolved organic nitrogen (proteins)
-      , tr_bgc_Fe       = .true.     ! Dissolved iron (number in comp_ice TRFED)
-                                     ! particulate iron (number in comp_ice TRFEP)
-      , grid_o          = 0.006      ! ice-ocean surface layer thickness
-                                     ! (bgc transport scheme)
-      , grid_o_t        = 0.006      ! ice-atm surface layer thickeness
-                                     ! (bgc transport scheme)
-      , l_sk            = 0.024      ! length scale in gravity drainage
-                                     !  parameterization
-                                     ! (bgc transport scheme)
-      , grid_oS         = 0.0        ! ice-ocean surface layer thickness
-                                     ! (zsalinity transport scheme)
-      , l_skS           = 0.028      ! ice-atm surface layer thickeness
-                                     ! (zsalinity transport scheme)
-      , phi_snow        = -0.3       ! snow porosity at the ice-snow interface
-                                     ! if < 0 then phi_snow is computed
-                                     ! from snow density
-      , initbio_frac    = 0.8        ! For each bgc tracer, specifies the 
-                                     ! fraction of the ocean
-                                     ! concentration that is retained in
-                                     ! the ice during initial new ice formation.
-      , frazil_scav     = 0.8        ! For each bgc tracer, specifies the
-                                     ! fraction or multiple of the ocean
-                                     ! concentration that is retained in
-                                     ! the ice from frazil formation. 
-                                     !----------------------------------------
-                                     !  Notation used below: 
-                                     !  _diatoms  == diatoms
-                                     !  _sp       == small phytoplankton
-                                     !  _phaeo    == phaeocystis 
-                                     !  _s        == saccharids 
-                                     !       (unless otherwise indicated)
-                                     !  _l        == lipdids 
-                                     !       (unless otherwise indicated)
-                                     !---------------------------------------- 
-      , ratio_Si2N_diatoms = 1.8_dbl_kind    ! algal Si to N (mol/mol)                        
-      , ratio_Si2N_sp      = c0              
-      , ratio_Si2N_phaeo   = c0              
-      , ratio_S2N_diatoms  = 0.03_dbl_kind   ! algal S  to N (mol/mol) 
-      , ratio_S2N_sp       = 0.03_dbl_kind   
-      , ratio_S2N_phaeo    = 0.03_dbl_kind   
-      , ratio_Fe2C_diatoms = 0.0033_dbl_kind ! algal Fe to C  (umol/mol) 
-      , ratio_Fe2C_sp      = 0.0033_dbl_kind 
-      , ratio_Fe2C_phaeo   = p1              
-      , ratio_Fe2N_diatoms = 0.023_dbl_kind  ! algal Fe to N  (umol/mol) 
-      , ratio_Fe2N_sp      = 0.023_dbl_kind  
-      , ratio_Fe2N_phaeo   = 0.7_dbl_kind    
-      , ratio_Fe2DON       = 0.023_dbl_kind  ! Fe to N of DON (nmol/umol)
-      , ratio_Fe2DOC_s     = p1              ! Fe to C of DOC (nmol/umol)
-      , ratio_Fe2DOC_l     = 0.033_dbl_kind  ! Fe to C of DOC (nmol/umol) 
-      , fr_resp            = 0.05_dbl_kind   ! frac of algal growth lost 
-                                             ! due to respiration      
-      , tau_min            = 5200.0_dbl_kind ! rapid mobile to stationary 
-                                             ! exchanges (s)
-      , tau_max            = 1.73e5_dbl_kind ! long time mobile to
-                                             ! stationary exchanges (s)
-      , algal_vel          = 1.11e-8_dbl_kind! 0.5 cm/d(m/s)
-      , R_dFe2dust         = 0.035_dbl_kind  ! g/g (3.5% content)
-      , dustFe_sol         = 0.005_dbl_kind  ! solubility fraction
-      , chlabs_diatoms     = 0.03_dbl_kind   ! chl absorption (1/m/(mg/m^3)) 
-      , chlabs_sp          = 0.01_dbl_kind   
-      , chlabs_phaeo       = 0.05_dbl_kind   
-      , alpha2max_low_diatoms = 0.8_dbl_kind ! light limitation (1/(W/m^2))   
-      , alpha2max_low_sp      = 0.67_dbl_kind
-      , alpha2max_low_phaeo   = 0.67_dbl_kind
-      , beta2max_diatoms   = 0.018_dbl_kind  ! light inhibition (1/(W/m^2))   
-      , beta2max_sp        = 0.0025_dbl_kind 
-      , beta2max_phaeo     = 0.01_dbl_kind   
-      , mu_max_diatoms     = 1.2_dbl_kind    ! maximum growth rate (1/day) 
-      , mu_max_sp          = 0.851_dbl_kind  
-      , mu_max_phaeo       = 0.851_dbl_kind  
-      , grow_Tdep_diatoms  = 0.06_dbl_kind ! Temperature dependence of 
-                                           ! growth (1/C)
-      , grow_Tdep_sp       = 0.06_dbl_kind 
-      , grow_Tdep_phaeo    = 0.06_dbl_kind 
-      , fr_graze_diatoms   = 0.01_dbl_kind ! Fraction grazed 
-      , fr_graze_sp        = p1            
-      , fr_graze_phaeo     = p1            
-      , mort_pre_diatoms   = 0.007_dbl_kind! Mortality (1/day) 
-      , mort_pre_sp        = 0.007_dbl_kind
-      , mort_pre_phaeo     = 0.007_dbl_kind
-      , mort_Tdep_diatoms  = 0.03_dbl_kind ! T dependence of mortality (1/C) 
-      , mort_Tdep_sp       = 0.03_dbl_kind 
-      , mort_Tdep_phaeo    = 0.03_dbl_kind 
-      , k_exude_diatoms    = c0            ! algal exudation (1/d) 
-      , k_exude_sp         = c0            
-      , k_exude_phaeo      = c0            
-      , K_Nit_diatoms      = c1            ! nitrate half saturation 
-                                           ! (mmol/m^3) 
-      , K_Nit_sp           = c1            
-      , K_Nit_phaeo        = c1            
-      , K_Am_diatoms       = 0.3_dbl_kind  ! ammonium half saturation 
-                                           ! (mmol/m^3) 
-      , K_Am_sp            = 0.3_dbl_kind  
-      , K_Am_phaeo         = 0.3_dbl_kind  
-      , K_Sil_diatoms      = 4.0_dbl_kind  ! silicate half saturation 
-                                           ! (mmol/m^3) 
-      , K_Sil_sp           = c0            
-      , K_Sil_phaeo        = c0            
-      , K_Fe_diatoms       = c1            ! iron half saturation (nM) 
-      , K_Fe_sp            = 0.2_dbl_kind  
-      , K_Fe_phaeo         = p1            
-      , f_don_protein      = 0.6_dbl_kind  ! fraction of spilled grazing 
-                                           ! to proteins           
-      , kn_bac_protein     = 0.03_dbl_kind ! Bacterial degredation of DON (1/d)                
-      , f_don_Am_protein   = 0.25_dbl_kind ! fraction of remineralized 
-                                           ! DON to ammonium         
-      , f_doc_s            = 0.4_dbl_kind  ! fraction of mortality to DOC 
-      , f_doc_l            = 0.4_dbl_kind  ! 
-      , f_exude_s          = c1            ! fraction of exudation to DOC 
-      , f_exude_l          = c1            ! 
-      , k_bac_s            = 0.03_dbl_kind ! Bacterial degredation of DOC (1/d) 
-      , k_bac_l            = 0.03_dbl_kind ! 
-      , T_max              = c0            ! maximum temperature (C)
-      , fsal               = c1            ! Salinity limitation (ppt)
-      , op_dep_min         = p1            ! Light attenuates for optical 
-                                           ! depths exceeding min
-      , fr_graze_s         = p5            ! fraction of grazing spilled 
-                                           ! or slopped
-      , fr_graze_e         = p5            ! fraction of assimilation excreted 
-      , fr_mort2min        = p5            ! fractionation of mortality to Am
-      , fr_dFe             = 0.3_dbl_kind  ! fraction of remineralized nitrogen
-      ,                                    ! (in units of algal iron)
-      , k_nitrif           = c0            ! nitrification rate (1/day)           
-      , t_iron_conv        = 3065.0_dbl_kind ! desorption loss pFe to dFe (day)
-      , max_loss           = 0.9_dbl_kind  ! restrict uptake to % of remaining value 
-      , max_dfe_doc1       = 0.2_dbl_kind  ! max ratio of dFe to 
-                                           ! saccharides in the ice 
-                                           !(nM Fe/muM C)    
-      , fr_resp_s          = 0.75_dbl_kind ! DMSPd fraction of respiration 
-                                           ! loss as DMSPd
-      , y_sk_DMS           = p5            ! fraction conversion given high yield
-      , t_sk_conv          = 3.0_dbl_kind  ! Stefels conversion time (d)
-      , t_sk_ox            = 10.0_dbl_kind ! DMS oxidation time (d)
-      , algaltype_diatoms  = c0            ! ------------------
-      , algaltype_sp       = p5            !
-      , algaltype_phaeo    = p5            !
-      , nitratetype        = -c1           ! mobility type between
-      , ammoniumtype       = c1            ! stationary <-->  mobile
-      , silicatetype       = -c1           !
-      , dmspptype          = p5            !
-      , dmspdtype          = -c1           !
-      , humtype            = c1            !
-      , doctype_s          = p5            ! 
-      , doctype_l          = p5            ! 
-      , dontype_protein    = p5            !
-      , fedtype_1          = p5            !
-      , feptype_1          = p5            !
-      , zaerotype_bc1      = c1            !
-      , zaerotype_bc2      = c1            !
-      , zaerotype_dust1    = c1            !
-      , zaerotype_dust2    = c1            !
-      , zaerotype_dust3    = c1            !
-      , zaerotype_dust4    = c1            !--------------------
-      , ratio_C2N_diatoms  = 7.0_dbl_kind  ! algal C to N ratio (mol/mol)
-      , ratio_C2N_sp       = 7.0_dbl_kind  
-      , ratio_C2N_phaeo    = 7.0_dbl_kind  
-      , ratio_chl2N_diatoms= 2.1_dbl_kind  ! algal chlorophyll to N ratio (mg/mmol)
-      , ratio_chl2N_sp     = 1.1_dbl_kind  
-      , ratio_chl2N_phaeo  = 0.84_dbl_kind 
-      , F_abs_chl_diatoms  = 2.0_dbl_kind  ! scales absorbed radiation for dEdd
-      , F_abs_chl_sp       = 4.0_dbl_kind  
-      , F_abs_chl_phaeo    = 5.0           
-      , ratio_C2N_proteins = 7.0_dbl_kind  ! ratio of C to N in proteins (mol/mol)        
-    /
-
-Vertically resolved z-tracers are brine volume conserved and thus depend
+Vertically resolved z-tracers are brine- volume conserved and thus depend
 on both the ice volume and the brine height fraction tracer
 (:math:`v_{in}f_b`). These tracers follow the conservation equations for
 multiply dependent tracers (see, for example Equation :eq:`transport-apnd-lvl` where :math:`a_{pnd}` is a tracer on :math:`a_{lvl}a_{i}`)  
 
-The
-following sections describe the vertical biological grid, the vertical
+The following sections describe the vertical
 transport equation for mobile tracers, the partitioning of tracers into
 mobile and stationary fractions and the biochemical reaction equations.
+The vertical bio-grid is described in the :ref:`grids` section.
 
-.. _bio-grid:
+.. _mobile-and-stationary:
 
-Bio grid
-````````
-
-The bio grid is a vertical grid used for solving the brine height
-variable :math:`h_b` and descretizing the vertical transport equations
-of biogeochemical tracers. The bio grid is a non-dimensional vertical
-grid which takes the value zero at :math:`h_b` and one at the ice-ocean
-interface. The number of grid levels is specified during compilation in
-**icepack.settings** by setting the variable NBGCLYR equal to an integer
-(:math:`n_b`) .
-
-Ice tracers and microstructural properties defined on the bio grid are
-referenced in two ways: as 1) :math:`n_b+2` bgrid points and 2)
-:math:`n_b+1` igrid points. For both bgrid and igrid, the first and last
-points reference :math:`h_b` and the ice-ocean interface and so take the
-values :math:`0` and :math:`1`, respectively. For bgrid, the interior
-points :math:`[2, n_b+1]` are spaced at :math:`1/n_b` intervals
-beginning with bgrid(2) = :math:`1/(2n_b)` . 
-The igrid interior points :math:`[2, n_b]` are also
-equidistant with the same spacing, but physically coincide with points
-midway between those of the bgrid.
-
-.. _trans-bio-grid:
-
-Transport along the interface bio grid
-``````````````````````````````````````
+*Mobile and stationary phases*
 
 Purely mobile tracers are tracers which move with the brine and thus, in
 the absence of biochemical reactions, evolve like salinity. For vertical
@@ -3746,9 +3445,7 @@ porosity, and :math:`[c]` is the tracer concentration in the brine.
 grid (igrid):
 
 .. math::
-   \mbox{igrid}(k) = \Delta (k-1) \ \ \ \mbox{for }k = 1:n_b+1
-
-and :math:`\Delta = 1/n_b`
+   \mbox{igrid}(k) = \Delta (k-1) \ \ \ \mbox{for }k = 1:n_b+1 \ \ \mbox{and }\Delta = 1/n_b.
 
 The biogeochemical module solves the following equation:
 
@@ -3766,16 +3463,13 @@ where :math:`D_{in} = \tilde{D}/h^2 =  (D + \phi D_m)/h^2` and
 :cite:`JHE11`).
 
 The solution to :eq:`mobile-transport` is flux-corrected and
-positive definite. This is accomplished using a finite element Gelerkin
-discretization. Details are in :ref:`tracer-numerics` .
-
-Splitting tracers: zbgc\_type
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+positive definite. This is accomplished using a finite element Galerkin
+discretization. Details are in :ref:`tracer-numerics`.
 
 In addition to purely mobile tracers, some tracers may also adsorb or
 otherwise adhere to the ice crystals. These tracers exist in both the
 mobile and stationary phases. In this case, their total brine
-concentration is a sum :math:`c_m + c_s` where :math:`c_m` is the moble
+concentration is a sum :math:`c_m + c_s` where :math:`c_m` is the mobile
 fraction transported by equation :eq:`mobile-transport` and :math:`c_s`
 is fixed vertically in the ice matrix. The algae are an exception,
 however. We assume that algae in the stationary phase resist brine
@@ -3799,13 +3493,13 @@ We use the exponential form of these equations:
 .. math::
    \begin{aligned}
    c_m^{t+dt} & = &
-   c_m^t\exp\left(\left\{-\frac{dt}{\tau_{ret}}\right)\right\} +
-   c^t_s\left(1- \exp\left[-\left\{\frac{dt}{\tau_{rel}}\right\}\right]\right)\end{aligned}
+   c_m^t\exp\left(-\frac{dt}{\tau_{ret}}\right) +
+   c^t_s\left(1- \exp\left[-{\frac{dt}{\tau_{rel}}\right]\right)\end{aligned}
 
 .. math::
    \begin{aligned}
-   c_s^{t+dt} & = & c_s^t\exp\left(\left\{-\frac{dt}{\tau_{rel}}\right)\right\} +
-   c_m^t\left(1-\exp\left[-\left\{\frac{dt}{\tau_{ret}}\right\}\right]\right) \end{aligned}
+   c_s^{t+dt} & = & c_s^t\exp\left(-\frac{dt}{\tau_{rel}}\right) +
+   c_m^t\left(1-\exp\left[-\frac{dt}{\tau_{ret}}\right]\right) \end{aligned}
 
 The time constants are functions of the ice growth and melt rates
 (:math:`dh/dt`). All tracers except algal nitrogen diatoms follow the
@@ -3820,31 +3514,27 @@ The exception is the diatom pool. We assume that diatoms, the first
 algal nitrogen group, can actively maintain their relative position
 within the ice, i.e. bottom (interior, upper) algae remain in the bottom
 (interior, upper) ice, unless melt rates exceed a threshold. The
-namelist parameter algal\_vel sets this threshold.
+namelist parameter ``algal_vel`` sets this threshold.
 
-.. _mobile-and-stationary:
-
-Mobile and Stationary Phases in code
-************************************
-
-The variable bgc\_tracer\_type determines the mobile to stationary
+The variable ``bgc_tracer_type`` determines the mobile to stationary
 transition timescales for each z-tracer. It is multi-dimensional with a
-value for each z-tracer. For bgc\_tracer\_type(k) equal to -1, the kth
-tracer remains solely in the mobile phase. For bgc\_tracer\_type(k)
+value for each z-tracer. For ``bgc_tracer_type``(k) equal to -1, the kth
+tracer remains solely in the mobile phase. For ``bgc_tracer_type``
 equal to 1, the tracer has maximal rates in the retention phase and
-minimal in the release. For bgc\_tracer\_type(k) equal to 0, the tracer
+minimal in the release. For ``bgc_tracer_type`` equal to 0, the tracer
 has maximal rates in the release phase and minimal in the retention.
-Finally for bgc\_tracer\_type(k) equal to 0.5, minimum timescales are
+Finally for ``bgc_tracer_type`` equal to 0.5, minimum timescales are
 used for both transitions. :ref:`tab-phases` summarizes the
-transition types. The tracer types are: algaltype\_diatoms,
-algaltype\_sp (small plankton), algaltype\_phaeo (*phaeocystis*),
-nitratetype, ammoniumtype, silicatetype, dmspptype, dmspdtype, humtype,
-doctype\_s (saccharids), doctype\_l (lipids), dontype\_protein,
-fedtype\_1, feptype\_1, zaerotype\_bc1 (black carbon class 1),
-zaerotype\_bc2 (black carbon class 2), and four dust classes,
-zaerotype\_dustj, where J takes values 1 to 4. These may be modified to
+transition types. The tracer types are: ``algaltype_diatoms``,
+``algaltype_sp`` (small plankton), ``algaltype_phaeo`` (*phaeocystis*),
+``nitratetype``, ``ammoniumtype``, ``silicatetype``, ``dmspptype``, 
+``dmspdtype``, ``humtype``,
+``doctype_s`` (saccharids), ``doctype_l`` (lipids), ``dontype_protein``,
+``fedtype_1``, ``feptype_1``, ``zaerotype_bc1`` (black carbon class 1),
+``zaerotype_bc2`` (black carbon class 2), and four dust classes,
+``zaerotype_dustj``, where j takes values 1 to 4. These may be modified to
 increase or decrease retention. Another option is to alter the minimum
-tau_min and maximum tau_max timescales which would impact all the
+``tau_min`` and maximum ``tau_max`` timescales which would impact all the
 z-tracers.
 
 :ref:`tab-phases`: *Types of Mobile and Stationary Transitions*
@@ -3854,7 +3544,7 @@ z-tracers.
 .. table:: Table 3
 
    +-----------------+--------------------+--------------------+------------------------------+
-   | bgc_tracer_type | :math:`\tau_{ret}` | :math:`\tau_{rel}` |        Description           |
+   | ``bgc_tracer_type`` | :math:`\tau_{ret}` | :math:`\tau_{rel}` |        Description           |
    +=================+====================+====================+==============================+
    |     -1.0        | :math:`\infty`     |         0          | entirely in the mobile phase |
    +-----------------+--------------------+--------------------+------------------------------+
@@ -3875,22 +3565,381 @@ volume (:math:`v_{in}`). The conservation equations are given by Eq. 18
 in the CICE.v5 documentation with :math:`a_{pnd}a_{i}` replaced by
 :math:`f_bv_{in}`.
 
-The tracer, zbgc\_frac, is initialized to 1 during new ice formation,
+The tracer, ``zbgc_frac``, is initialized to 1 during new ice formation,
 because all z-tracers are initially in the purely mobile phase.
 Similarly, as the ice melts, z-tracers return to the mobile phase. Very
 large release timescales will prevent this transition and could result
 in an unphysically large accumulation during the melt season.
 
+.. _tracer-numerics:
+
+*Flux-corrected, positive definite transport scheme*
+
+Numerical solution of the vertical tracer transport equation is
+accomplished using the finite element Galerkin discretization. Multiply
+[eqn:mobile_transport] by "w" and integrate by parts
+
+.. math::
+   \begin{aligned}
+   & & \int_{h}\left[ w\frac{\partial C}{\partial t} -   \frac{\partial
+       w}{\partial x} \left(-\left[\frac{v}{h} + \frac{w_f}{h\phi}\right]C + \frac{D_{in}}{\phi^2}\frac{\partial
+         \phi}{\partial x}C  -  \frac{D_{in}}{\phi}\frac{\partial C}{\partial
+         x} \right) \right]dx \nonumber \\
+   & + &  w\left.\left(
+       -\left[\frac{1}{h}\frac{dh_b}{dt}+  \frac{w_f}{h\phi}\right]C + \frac{D_{in}}{\phi^2}\frac{\partial \phi}{\partial
+       x}C -\frac{D_{in}}{\phi}\frac{\partial C}{\partial
+       x}\right)\right|_{bottom} + w\left[\frac{1}{h}\frac{dh_t}{dt} +
+   \frac{w_f}{h\phi}\right]C|_{top}  =  0\end{aligned}
+
+The bottom boundary condition indicated by :math:`|_{bottom}` satisfies
+
+.. math::
+   \begin{aligned}
+   -w\left.\left(
+       -\left[\frac{1}{h}\frac{dh_b}{dt}+  \frac{w_f}{h\phi}\right]C + \frac{D_{in}}{\phi^2}\frac{\partial \phi}{\partial
+       x}C -\frac{D_{in}}{\phi}\frac{\partial C}{\partial
+       x}\right)\right|_{bottom} & = & \nonumber \\
+    w\left[\frac{1}{h}\frac{dh_b}{dt} +
+   \frac{w_f}{h \phi_{N+1}}\right](C_{N+2} \mbox{ or }C_{N+1}) -
+   w\frac{D_{in}}{\phi_{N+1}(\Delta h+g_o)}\left(C_{N+1} - C_{N+2}\right) & & \end{aligned}
+
+where :math:`C_{N+2} = h\phi_{N+1}[c]_{ocean}` and :math:`w = 1` at the
+bottom boundary and the top. The component :math:`C_{N+2}` or
+:math:`C_{N+1}` depends on the sign of the advection boundary term. If
+:math:`dh_b + w_f/\phi > 0` then use :math:`C_{N+2}` otherwise
+:math:`C_{N+1}`.
+
+Define basis functions as linear piecewise, with two nodes (boundary
+nodes) in each element. Then for :math:`i > 1` and :math:`i < N+1`
+
+.. math::
+   \begin{aligned}
+   w_i(x) & = & \left\{ \begin{array}{llll}
+   0 & x < x_{i-1} \\
+   (x - x_{i-1})/\Delta & x_{i-1}< x \leq x_{i} \\
+   1 - (x-x_i)/\Delta & x_i \leq x < x_{i+1} \\
+   0, & x \geq x_{i+1} 
+   \end{array}
+   \right.\end{aligned}
+
+For :math:`i=1`
+
+.. math::
+   \begin{aligned}
+   w_1(x) & = & \left\{ \begin{array}{ll}
+   1 - x/\Delta & x < x_{2} \\
+   0, & x \geq x_{2} 
+   \end{array}
+   \right.\end{aligned}
+
+and :math:`i = N+1`
+
+.. math::
+   \begin{aligned}
+   w_{N+1}(x) & = & \left\{ \begin{array}{ll}
+   0, & x < x_{N} \\
+   (x-x_{N})/\Delta & x \geq x_{N}
+   \end{array}
+   \right.\end{aligned}
+
+Now assume a form
+
+.. math::
+   C_h =  \sum_j^{N+1} c_j w_j
+
+Then
+
+.. math::
+   \begin{aligned}
+   \int_h C_h dx & = & c_1\int_0^{x_{2}}\left(1-\frac{x}{\Delta}\right)dx
+     +  c_{N+1}\int_{x_N}^{x_{N+1}}\frac{x-x_{N}}{\Delta}dx  \nonumber \\
+   & + &
+     \sum_{j=2}^{N}c_j\left\{\int_{j-1}^{j}\frac{x-x_{j-1}}{\Delta}dx +
+       \int_{j}^{j+1}\left[1 - \frac{(x-x_j)}{\Delta}\right]dx\right\}
+     \nonumber \\
+   & = & \Delta \left[\frac{c_1}{2} + \frac{c_{N+1}}{2} + \sum_{j = 2}^{N}c_{j}\right]\end{aligned}
+
+Now this approximate solution form is substituted into the variational
+equation with :math:`w = w_h \in \{w_j\}`
+
+.. math::
+   \begin{aligned}
+   0 &= & \int_{h}\left[ w_h\frac{\partial C_h}{\partial t} -   \frac{\partial
+       w_h}{\partial x} \left(\left[-\frac{v}{h} - \frac{w_f}{h\phi}+ \frac{D_{in}}{\phi^2}\frac{\partial
+         \phi}{\partial x}\right]C_h  -  \frac{D_{in}}{\phi}\frac{\partial C_h}{\partial
+         x} \right) \right]dx \nonumber \\
+   & + &  w_h\left.\left(
+       -\left[\frac{1}{h}\frac{dh_b}{dt}+  \frac{w_f}{h\phi}\right]C_h + \frac{D_{in}}{\phi^2}\frac{\partial \phi}{\partial
+       x}C -\frac{D_{in}}{\phi}\frac{\partial C_h}{\partial
+       x}\right)\right|_{bottom} + w_h\left[\frac{1}{h}\frac{dh_t}{dt} +
+   \frac{w_f}{h\phi}\right]C_h|_{top} \end{aligned}
+
+The result is a linear matrix equation
+
+.. math::
+   M_{jk}\frac{\partial C_k(t)}{\partial t} = [K_{jk}+S_{jk}] C_k(t) + q_{in}
+
+where
+
+.. math::
+   \begin{aligned}
+   M_{jk} & = & \int_h w_j(x)w_k(x)dx \nonumber \\
+   K_{jk} & = & \left[-\frac{v}{h} - \frac{w_f}{h\phi}+ \frac{D_{in}}{\phi^2}\frac{\partial
+         \phi}{\partial x}\right]\int_h \frac{\partial w_j}{\partial x}
+     w_k dx \nonumber \\
+   &-&
+   \left. w_j\left(-\left[\frac{v}{h} + \frac{w_f}{h\phi_k}\right]w_k +
+       \frac{D_{in}}{\phi^2}\frac{\partial \phi_k}{\partial x} w_k - \frac{D_{in}}{\phi_k}\frac{\partial w_k}{\partial
+         x}\right)\right|_{bot} \nonumber \\
+   & = & -V_k\int_h \frac{\partial w_j}{\partial x} w_k dx -
+   \left. w_j\left(-V_kw_k - \frac{D_{in}}{\phi_k}\frac{\partial w_k}{\partial
+         x}\right)\right|_{bot} \nonumber \\
+   S_{jk} & = & -\frac{D_{in}}{\phi_k}\int_h \frac{\partial w_j}{\partial x} \cdot
+   \frac{\partial w_k}{\partial x}dx \nonumber \\
+   q_{in} & = & -V C_{t} w_j(x)|_{t}\end{aligned}
+
+and :math:`C_{N+2} = h\phi_{N+1}[c]_{ocean}`.
+
+For the top condition :math:`q_{in}` is applied to the upper value
+:math:`C_2` when :math:`VC_t < 0`, i.e. :math:`q_{in}` is a source.
+
+Compute the :math:`M_{jk}` integrals:
+
+.. math::
+   \begin{aligned}
+   M_{jj} & = & \int_{x_{j-1}}^{x_j}\frac{(x- x_{j-1})^2}{\Delta^2}dx +
+   \int_{x_{j}}^{x_{j+1}}\left[ 1-\frac{(x- x_{j})}{\Delta}\right]^2dx =
+   \frac{2\Delta}{3} \ \ \ \mbox{for }1 < j < N+1 \nonumber \\
+   M_{11} & = & \int_{x_{1}}^{x_{2}}\left[ 1-\frac{(x- x_{2})}{\Delta}\right]^2dx =
+   \frac{\Delta}{3}   \nonumber \\
+   M_{N+1,N+1} & = &\int_{x_{N}}^{x_{N+1}}\frac{(x- x_{N})^2}{\Delta^2}dx
+   = \frac{\Delta}{3}\nonumber \end{aligned}
+
+Off diagonal components:
+
+.. math::
+   \begin{aligned}
+   M_{j,j+1} & = &  \int_{x_{j}}^{x_{j+1}}\left[1 - \frac{(x-
+       x_{j})}{\Delta}\right]\left[ \frac{x-x_{j}}{\Delta}\right]dx =
+   \frac{\Delta}{6} \ \ \ \mbox{for }j < N+1 \nonumber \\
+   M_{j,j-1} & = &  \int_{x_{j-1}}^{x_{j}}\left[ \frac{x-x_{j-1}}{\Delta}\right]\left[1 - \frac{(x-
+       x_{j-1})}{\Delta}\right]dx =
+   \frac{\Delta}{6} \ \ \ \mbox{for }j > 1 \nonumber \\\end{aligned}
+
+Compute the :math:`K_{jk}` integrals:
+
+.. math::
+   \begin{aligned}
+   K_{jj} &=& k'_{jj}\left[ \int_{x_{j-1}}^{x_j} \frac{\partial w_j}{\partial x}
+   w_j dx + \int_{x_{j}}^{x_{j+1}} \frac{\partial w_j}{\partial x}
+   w_j dx \right] \nonumber \\
+   &  = &  \frac{1}{2} + -\frac{1}{2} = 0  \ \ \ \mbox{for } 1 < j < N+1 \nonumber \\ 
+   K_{11} & = &  -\frac{k'_{11}}{2} = \frac{1}{2}\left[\frac{v}{h} +
+     \frac{w_f}{h\phi}\right] \nonumber \\
+   K_{N+1,N+1}  & = & \frac{k'_{N+1,N+1}}{2} +\min\left[0, \left(\frac{1}{h}\frac{dh_b}{dt} +
+   \frac{w_f}{h \phi_{N+1}}\right)\right] -
+   \frac{D_{in}}{\phi_{N+1}(g_o/h)} \nonumber \\
+   & = & \left[-\frac{v}{h} - \frac{w_f}{h\phi}+ \frac{D_{in}}{\phi^2}\frac{\partial
+         \phi}{\partial x}\right]\frac{1}{2} +\min\left[0, \left(\frac{1}{h}\frac{dh_b}{dt} +
+   \frac{w_f}{h \phi_{N+1}}\right)\right] -
+   \frac{D_{in}}{\phi_{N+1}(g_o/h)} \end{aligned}
+
+Off diagonal components:
+
+.. math::
+   \begin{aligned}
+   K_{j(j+1)} &=& k'_{j(j+1)}\int_{x_{j}}^{x_{j+1}} \frac{\partial w_j}{\partial x}
+   w_{j+1} dx  =
+   -k'_{j(j+1)}\int_{x_{j}}^{x_{j+1}}\frac{(x-x_j)}{\Delta^2}dx \nonumber
+   \\
+   & = & -\frac{k'_{j(j+1)}}{\Delta^2}\frac{\Delta^2}{2} =
+   -\frac{k'_{j(j+1)}}{2}  = p5*\left[\frac{v}{h} + \frac{w_f}{h\phi}- \frac{D_{in}}{\phi^2}\frac{\partial
+         \phi}{\partial x}\right]_{(j+1)} \ \ \ \mbox{for }  j < N+1 \nonumber \\
+   K_{j(j-1)} &=& k'_{j(j-1)}\int_{x_{j-1}}^{x_{j}} \frac{\partial w_j}{\partial x}
+   w_{j-1} dx  =
+   k'_{j(j-1)}\int_{x_{j-1}}^{x_{j}}\left[1 -
+     \frac{(x-x_{j-1})}{\Delta^2}\right] dx \nonumber
+   \\
+   & = & \frac{k'_{j(j-1)}}{\Delta^2}\frac{\Delta^2}{2} =
+   \frac{k'_{j(j-1)}}{2}  = -p5*\left[\frac{v}{h} + \frac{w_f}{h\phi}- \frac{D_{in}}{\phi^2}\frac{\partial
+         \phi}{\partial x}\right]_{(j-1)} \ \ \ \ \ \mbox{for }  j > 1 \end{aligned}
+
+For :math:`K_{N+1,N}`, there is a boundary contribution:
+
+.. math::
+   K_{N+1,N} = \frac{k'_{N+1(N)}}{2} - \frac{D_N}{\Delta \phi_{N}}
+
+The bottom condition works if :math:`C_{bot} = h
+\phi_{N+2}[c]_{ocean}`, :math:`\phi^2` is :math:`\phi_{N+1}\phi_{N+2}`
+and
+
+.. math::
+   \begin{aligned}
+   \left. \frac{\partial \phi}{\partial x}\right|_{bot} & = &
+   \frac{\phi_{N+2} - \phi_{N}}{2\Delta};\end{aligned}
+
+then the :math:`D_{N+1}/\phi_{N+1}/\Delta` cancels properly with the
+porosity gradient. In general
+
+.. math::
+   \begin{aligned}
+   \left. \frac{\partial \phi}{\partial x}\right|_{k} & = &
+   \frac{\phi_{k+2} - \phi_{k}}{2\Delta}.\end{aligned}
+
+When evaluating the integrals for the diffusion term, we will assume
+that :math:`D/\phi` is constant in an element. For :math:`D_{in}/i\phi`
+defined on interface points, :math:`D_1 = 0` and for :math:`j = 2,...,N`
+:math:`D_j/b\phi_j = (D_{in}(j) + D_{in}(j+1))/(i\phi_j + i\phi_{j+1})`.
+Then the above integrals will be modified as follows:
+
+Compute the :math:`S_{jk}` integrals:
+
+.. math::
+   \begin{aligned}
+   S_{jj} & = & - \left[\frac{D_{j-1}}{b\phi_{j-1}} \int_{x_{j-1}}^{x_j}\left( \frac{\partial
+         w_j}{\partial x}\right)^2 dx + \frac{D_{j}}{b\phi_{j}} \int_{x_{j}}^{x_{j+1}}
+     \left(\frac{\partial w_j}{\partial x}\right)^2 dx \right] \nonumber
+   \\
+   & = & -\frac{1}{\Delta}\left[\frac{D_{j-1}}{b\phi_{j-1}} + \frac{D_{j}}{b\phi{j}}\right]\ \ \mbox{for }1 < j < N+1 \nonumber \\
+   S_{11} & = & \frac{s'_{11}}{\Delta}  = 0 \nonumber \\
+   S_{N+1,N+1} & = & \frac{s'_{N+1,N+1}}{\Delta} = -\frac{(D_{N})}{b\phi_{N}\Delta}\end{aligned}
+
+Compute the off-diagonal components of :math:`S_{jk}`:
+
+.. math::
+   \begin{aligned}
+   S_{j(j+1)} & = & s'_{j(j+1)}\int_{x_j}^{x_{j+1}}\frac{\partial
+     w_j}{\partial x} \frac{\partial w_{j+1}}{\partial x} dx =
+   -\frac{s'_{j(j+1)}}{\Delta} =
+   \frac{D_{j}}{b\phi_{j}\Delta} \ \ \ \mbox{for } j < N+1
+   \nonumber \\
+   S_{j(j-1)} & = & s'_{j(j-1)}\int_{x_{j-1}}^{x_{j}}\frac{\partial
+     w_j}{\partial x} \frac{\partial w_{j-1}}{\partial x} dx =
+   -\frac{s'_{j(j-1)}}{\Delta} =
+   \frac{D_{j-1}}{b\phi_{j-1}} \ \ \ \mbox{for } j > 1\end{aligned}
+
+We assume that :math:`D/\phi^2 \partial \phi/\partial x` is constant in
+the element :math:`i`. If :math:`D/\phi_j` is constant, and
+:math:`\partial \phi/\partial x` is constant then both the Darcy and
+:math:`D` terms go as :math:`\phi^{-1}`. Then :math:`\phi = (\phi_j -
+\phi_{j-1})(x-x_j)/\Delta + \phi_j` and :math:`m = (\phi_j -
+\phi_{j-1})/\Delta` and :math:`b = \phi_j - mx_j`.
+
+The first integral contribution to the Darcy term is:
+
+.. math::
+   \begin{aligned}
+   K^1_{jj} & = &
+   \frac{-1}{\Delta ^2}\left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
+       \phi}{\partial x}\right)\int_{j-1}^{j}(x-x_{j-1})\frac{1}{mx
+     + b}dx \nonumber \\
+   & = &-\left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
+       \phi}{\partial x}\right) \frac{1}{\Delta^2}\left[ \int_{j-1}^{j}\frac{x}{mx + b}dx - x_{j-1}\int_{j-1}^{j}\frac{1}{mx
+     + b}dx  \right] \nonumber \\
+   & = &- \left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
+       \phi}{\partial x}\right) \frac{1}{\Delta^2}\left[ \frac{mx - b\log(b + mx)}{m^2} -
+     x_{j-1}\frac{\log(b+mx)}{m}\right]^{x_j}_{x_{j-1}} \nonumber \\
+   & = & -\left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
+       \phi}{\partial x}\right)\frac{1}{\Delta_{\phi}}\left[ 1 + \log \left( \frac{\phi_j}{\phi_{j-1}} \right) -
+     \frac{\phi_j}{\Delta_{\phi_j}}\log \left(
+       \frac{\phi_j}{\phi_{j-1}} \right)\right] \nonumber \\
+   & = & -\left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
+       \phi}{\partial x}\right)\frac{1}{\Delta_{\phi}}\left[ 1 +  \frac{\phi_{j-1}}{\Delta_{\phi}}\log \left( \frac{\phi_j}{\phi_{j-1}} \right) \right]\end{aligned}
+
+.. math::
+   \begin{aligned}
+   K^2_{jj} & = & \left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
+       \phi}{\partial x}\right)\frac{1}{\Delta}\int_{x_{j}}^{x_{j+1}}\left[1 -
+     \frac{(x-x_{j})}{\Delta}\right]\frac{1}{mx+b} dx \nonumber \\
+   & = & \left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
+       \phi}{\partial x}\right)\frac{1}{\Delta}\left[\frac{
+       (b+m(x_j+\Delta))\log(b+mx)-mx}{\Delta
+       m^2}\right]_{x_{j}}^{x_{j+1}} \nonumber \\
+   & = & \left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
+       \phi}{\partial x}\right)\frac{1}{\Delta_{\phi}}\left[ 1 -  \frac{\phi_{j+1}}{\Delta_{\phi}}\log \left( \frac{\phi_{j+1}}{\phi_{j}} \right) \right]\end{aligned}
+
+Now :math:`m = (\phi_{j+1}-\phi_{j})/\Delta` and
+:math:`b = \phi_{j+1} -
+mx_{j+1}`.
+
+Source terms :math:`q_{bot} = q_{N+1}` and :math:`q_{top} = q_{1}` (both
+positive)
+
+.. math::
+   \begin{aligned}
+   q_{bot} & = &\max\left[0, \left(\frac{1}{h}\frac{dh_b}{dt} +
+   \frac{w_f}{h \phi_{N+1}}\right)\right]C|_{bot} +
+   \frac{D_{in}}{\phi_{N+1}(g_o/h)}C|_{bot} \nonumber \\
+     C|_{bot}&= & \phi_{N+1}[c]_{ocean}\end{aligned}
+
+where :math:`g_o` is not zero.
+
+.. math::
+   \begin{aligned}
+   q_{in}&  = & -\min\left[ 0, \left(\frac{1}{h}\frac{dh_t}{dt} +
+   \frac{w_f}{h\phi}\right)C|_{top} \right]  \nonumber \\
+   C|_{top}& = & h [c]_o\phi_{min}\end{aligned}
+
+Calculating the low order solution: 
+
+1) Find the lumped mass matrix
+:math:`M_l = diag\{m_i\}`
+
+.. math::
+   \begin{aligned}
+   m_j & = & \sum_i m_{ji} = m_{j(j+1)} + m_{j(j-1)} + m_{jj} \\
+    & = & \frac{\Delta}{6} + \frac{\Delta}{6} + \frac{2\Delta}{3} =
+    \Delta \ \ \ \mbox{for }1 < j < N+1 \\
+   m_1 & = & m_{11} + m_{12} = \frac{\Delta}{3} + \frac{\Delta}{6} =
+   \frac{\Delta}{2} \\
+   m_{N+1} & = & m_{N+1,N} + m_{N+1,N+1} = \frac{\Delta}{6} + \frac{\Delta}{3} =
+   \frac{\Delta}{2}\end{aligned}
+
+2) Define artificial diffusion :math:`D_a`
+
+.. math::
+   \begin{aligned}
+   d_{j,(j+1)} & = & \max\{ -k_{j(j+1)},0,-k_{(j+1)j}\} = d_{(j+1)j} \\
+   d_{jj} & = & -\sum_{i\neq j} d_{ji}\end{aligned}
+
+3) Add artificial diffusion to :math:`K`: :math:`L = K + D_a`. 
+
+4) Solve for the low order predictor solution:
+
+.. math::
+   (M_l -\Delta t [L+S])C^{n+1} = M_l C^{n} + \Delta t q
+
+Conservations terms for the low order solution are:
+
+.. math::
+   \begin{aligned}
+   \int \left[C^{n+1} -C^{n}\right] w(x)dx & = & 
+    \Delta \left[\frac{c^{n+1}_1-c^{n}_1}{2} +
+      \frac{c^{n+1}_{N+1}-c^{n}_{N+1}}{2} + \sum_{j =
+        2}^{N}(c^{n+1}_{j}-c^{n}_{j})\right] \nonumber \\
+   &  = &   \Delta t \left[ q_{bot} +
+   q_{in} + (K_{N+1,N+1}+ K_{N,N+1} )C^{n+1}_{N+1} + (K_{1,1} +
+   K_{2,1})C^{n+1}_{1}\right]  \nonumber \end{aligned}
+
+Now add the antidiffusive flux:  compute the F matrix using the low
+order solution :math:`c^{n+1}`. Diagonal components are zero. For
+:math:`i \neq j`
+
+.. math::
+   \begin{aligned}
+   f_{ij} & = & m_{ij}\left[\frac{\Delta c_i}{\Delta t} - \frac{\Delta
+       c_j}{\Delta t} + d_{ij}(c^{n+1}_i - c^{n+1}_j\right].\end{aligned}
+
 .. _reactions:
 
-Reaction Terms
-~~~~~~~~~~~~~~
+Reaction Equations
+~~~~~~~~~~~~~~~~~~
 
 The biogeochemical reaction terms for each biogeochemical tracer (see
 table :ref:`tab-bio-tracer` for tracer definitions) are defined in
-**icepack\_algae.F90** in the subroutine algal\_dyn. The same set of
-equations is used for the bottom layer model (when sk\_bgc is true) and
-the multi-layer biogeochemical model (when z\_tracers and solve\_zbgc
+**icepack\_algae.F90** in the subroutine *algal\_dyn*. The same set of
+equations is used for the bottom layer model (when ``skl_bgc`` is true) and
+the multi-layer biogeochemical model (when ``z_tracers`` and ``solve_zbgc``
 are true).
 
 :ref:`tab-bio-tracer`: *Biogeochemical Tracers*
@@ -3924,12 +3973,9 @@ are true).
    "dust (3)", "zaero(5) :math:`^a`", "`tr_zaero`", "dust species 3", ":math:`kg` :math:`/m^3`"
    "dust (4)", "zaero(6) :math:`^a`", "`tr_zaero`", "dust species 4", ":math:`kg` :math:`/m^3`"
 
-:math:`^a` not modified in ``algal_dyn``
+:math:`^a` not modified in *algal_dyn*
 
 :math:`^b` may be in C or N units depending on the ocean concentration
-
-The Reaction Equations
-**********************
 
 The biochemical reaction term for each algal species has the form:
 
@@ -3939,13 +3985,13 @@ The biochemical reaction term for each algal species has the form:
 where :math:`\mu` is the algal growth rate, :math:`M_{ort}` is a
 mortality loss, :math:`f_{graze}` is the fraction of algal growth that
 is lost to predatory grazing, and :math:`f_{res}` is the fraction of
-algal growth lost to respiration. Algal mortality is temperture
+algal growth lost to respiration. Algal mortality is temperature
 dependent and limited by a maximum loss rate fraction (:math:`l_{max}`):
 
 .. math::
    M_{ort} = \min( l_{max}[{\mbox{N}}], m_{pre} \exp\{m_{T}(T-T_{max})\}[{\mbox{N}}])
 
-Note, :math:`[\cdots]` denotes brine concentration.
+Note, :math:`[\cdot]` denotes brine concentration.
 
 Nitrate and ammonium reaction terms are given by
 
@@ -4068,15 +4114,15 @@ to the algal concentration, i.e.
    +f_{nm}M_{ort} ] - [{\mbox{DMSPd}}]/\tau_{dmsp} \nonumber \\
    \Delta {\mbox{DMS}}/dt & = & R_{{\mbox{DMS}}} =  y_{dms}[{\mbox{DMSPd}}]/\tau_{dmsp} - [{\mbox{DMS}}]/\tau_{dms}\end{aligned}
 
-See :ref:`tuning` and Table :ref:`tab-bio-tracers2` for a more
+See :ref:`tuning` and :ref:`tab-bio-tracers2` for a more
 complete list and description of biogeochemical parameters.
 
 .. _growth-uptake:
 
-Algal Growth and Nutrient Uptake
-`````````````````````````````````
+Algal growth and nutrient uptake
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Nutrient limitation terms are defined, in the simplest ecosystem, for
+Nutrient limitation terms are defined in the simplest ecosystem for
 :math:`{\mbox{NO$_3$}}`. If the appropriate tracer flags are true, then
 limitation terms may also be found for :math:`{\mbox{NH$_4$}}`,
 :math:`{\mbox{SiO$_3$}}`, and :math:`{\mbox{fed}}`
@@ -4093,7 +4139,7 @@ Light limitation :math:`L_{lim}` is defined in the following way:
 :math:`I
 _{sw}(z)` (in :math:`W/m^2`) is the shortwave radiation at the ice level
 and the optical depth is proportional to the chlorophyll concentration,
-:math:`op_{dep} = chlabs [{\mbox{Chl}a}]` . If ( :math:`op_{dep} > op_{min}`) then
+:math:`op_{dep} =` ``chlabs`` [Chl*a*]. If ( :math:`op_{dep} > op_{min}`) then
 
 .. math::
    I_{avg} = I_{sw}(1- \exp(-op_{dep}))/op_{dep}
@@ -4101,7 +4147,7 @@ and the optical depth is proportional to the chlorophyll concentration,
 otherwise :math:`I_{avg} = I_{sw}`.
 
 .. math::
-   L_{lim} = (1 - \exp(-\alpha\cdot I_{avg}))\exp(-\beta \cdot I_{avg})
+   L_{lim} = (1 - \exp(-\alpha I_{avg}))\exp(-\beta I_{avg})
 
 The maximal algal growth rate before limitation is
 
@@ -4138,7 +4184,7 @@ Then
    \tilde{U}_{{\mbox{NO$_3$}}} & = & \mu' - \tilde{U}_{{\mbox{NH$_4$}}}\end{aligned}
 
 We require that each rate not exceed a maximum loss rate
-:math:`l_{max}/dt`.This is particularly important when multiple species
+:math:`l_{max}/dt`. This is particularly important when multiple species
 are present. In this case, the accumulated uptake rate for each nutrient
 is found and the fraction (:math:`fU^i`) of uptake due to algal species
 :math:`i` is saved. Then the total uptake rate is compared with the
@@ -4172,502 +4218,6 @@ Preferential ammonium uptake is assumed once again and the remaining
 nitrogen is taken from the nitrate pool.
 
 
-.. _tuning:
 
-BGC Tuning Parameters
-`````````````````````
-
-Biogeochemical tuning parameters are specified as namelist options in
-**icepack\_in**. Table :ref:`tab-bio-tracers2` provides a list of parameters
-used in the reaction equations, their representation in the code, a
-short description of each and the default values. Please keep in mind
-that there has only been minimal tuning of the model.
-
-:ref:`tab-bio-tracers2` :*Biogeochemical Reaction Parameters*
-
-.. _tab-bio-tracers2:
-
-.. csv-table:: Table 5
-   :header: "Text Variable", "Variable in code", "Description", "Value", "units"
-   :widths: 7, 20, 15, 15, 15
-
-   ":math:`f_{graze}`", "fr\_graze(1:3)", "fraction of growth grazed", "0, 0.1, 0.1", "1"
-   ":math:`f_{res}`", "fr\_resp", "fraction of growth respired", "0.05", "1"
-   ":math:`l_{max}`", "max\_loss", "maximum tracer loss fraction", "0.9", "1"
-   ":math:`m_{pre}`", "mort\_pre(1:3)", "maximum mortality rate", "0.007, 0.007, 0.007", "day\ :math:`^{-1}`"
-   ":math:`m_{T}`", "mort\_Tdep(1:3)", "mortality temperature decay", "0.03, 0.03, 0.03", ":math:`^o`\ C\ :math:`^{-1}`"
-   ":math:`T_{max}`", "T\_max", "maximum brine temperature", "0", ":math:`^o`\ C"
-   ":math:`k_{nitr}`", "k\_nitrif", "nitrification rate", "0", "day\ :math:`^{-1}`"
-   ":math:`f_{ng}`", "fr\_graze\_e", "fraction of grazing excreted", "0.5", "1"
-   ":math:`f_{gs}`", "fr\_graze\_s", "fraction of grazing spilled", "0.5", "1"
-   ":math:`f_{nm}`", "fr\_mort2min", "fraction of mortality to :math:`{\mbox{NH$_4$}}`", "0.5", "1"
-   ":math:`f_{dg}`", "f\_don", "frac. spilled grazing to :math:`{\mbox{DON}}`", "0.6", "1"
-   ":math:`k_{nb}`", "kn\_bac :math:`^a`", "bacterial degradation of :math:`{\mbox{DON}}`", "0.03", "day\ :math:`^{-1}`"
-   ":math:`f_{cg}`", "f\_doc(1:3)", "fraction of mortality to :math:`{\mbox{DOC}}`", "0.4, 0.4, 0.2 ", "1"
-   ":math:`R_{c:n}^c`", "R\_C2N(1:3)", "algal carbon to nitrogen ratio", "7.0, 7.0, 7.0", "mol/mol"
-   ":math:`k_{cb}`", "k\_bac1:3\ :math:`^a`", "bacterial degradation of DOC", "0.03, 0.03, 0.03", "day\ :math:`^{-1}`"
-   ":math:`\tau_{fe}`", "t\_iron\_conv", "conversion time pFe :math:`\leftrightarrow` dFe", "3065.0 ", "day"
-   ":math:`r^{max}_{fed:doc}`", "max\_dfe\_doc1", "max ratio of dFe to saccharids", "0.1852", "nM Fe\ :math:`/\mu`\ M C"
-   ":math:`f_{fa}`", "fr\_dFe  ", "fraction of remin. N to dFe", "0.3", "1"
-   ":math:`R_{fe:n}`", "R\_Fe2N(1:3)", "algal Fe to N ratio", "0.023, 0.023, 0.7", "mmol/mol"
-   ":math:`R_{s:n}`", "R\_S2N(1:3)", "algal S to N ratio", "0.03, 0.03, 0.03", "mol/mol"
-   ":math:`f_{sr}`", "fr\_resp\_s", "resp. loss as DMSPd", "0.75", "1"
-   ":math:`\tau_{dmsp}`", "t\_sk\_conv", "Stefels rate", "3.0", "day"
-   ":math:`\tau_{dms}`", "t\_sk\_ox", "DMS oxidation rate", "10.0", "day"
-   ":math:`y_{dms}`", "y\_sk\_DMS", "yield for DMS conversion", "0.5", "1"
-   ":math:`K_{{\mbox{NO$_3$}}}`", "K\_Nit(1:3)", ":math:`{\mbox{NO$_3$}}` half saturation constant", "1,1,1", "mmol/m\ :math:`^{3}`"
-   ":math:`K_{{\mbox{NH$_4$}}}`", "K\_Am(1:3)", ":math:`{\mbox{NH$_4$}}` half saturation constant", "0.3, 0.3, 0.3", "mmol/m\ :math:`^{-3}`"
-   ":math:`K_{{\mbox{SiO$_3$}}}`", "K\_Sil(1:3)", "silicate half saturation constant", "4.0, 0, 0", "mmol/m\ :math:`^{-3}`"
-   ":math:`K_{{\mbox{fed}}}`", "K\_Fe(1:3)", "iron half saturation constant", "1.0, 0.2, 0.1", ":math:`\mu`\ mol/m\ :math:`^{-3}`"
-   ":math:`op_{min}`", "op\_dep\_min", "boundary for light attenuation", "0.1", "1"
-   ":math:`chlabs`", "chlabs(1:3)", "light absorption length per chla conc.", "0.03, 0.01, 0.05", "1\ :math:`/`\ m\ :math:`/`\ (mg:math:`/`\ m\ :math:`^{3}`)"
-   ":math:`\alpha`", "alpha2max\_low(1:3)", "light limitation factor", "0.25, 0.25, 0.25", "m\ :math:`^2`/W"
-   ":math:`\beta`", "beta2max(1:3)", "light inhibition factor", "0.018, 0.0025, 0.01", "m\ :math:`^2`/W"
-   ":math:`\mu_{max}`", "mu\_max(1:3)", "maximum algal growth rate", "1.44, 0.851, 0.851", "day\ :math:`^{-1}`"
-   ":math:`\mu_T`", "grow\_Tdep(1:3)", "temperature growth factor", "0.06, 0.06, 0.06", "day\ :math:`^{-1}`"
-   ":math:`f_{sal}`", "fsal", "salinity growth factor", "1", "1"
-   ":math:`R_{si:n}`", "R\_Si2N(1:3)", "algal silicate to nitrogen", "1.8, 0, 0", "mol/mol"
-
-:math:`^a` only (1:2) of DOC and DOC parameters have physical meaning
-
-.. _bgc-hist:
-
-Biogeochemistry History Fields
-``````````````````````````````
-
-The biogeochemical history fields specified in icefields\_bgc\_nml are
-written when ‘x’ is replaced with a time interval: step (‘1’), daily
-(‘d’), monthly (‘m’), or yearly (‘y’). Several of these flags turn on
-multiple history variables according to the particular ecosystem
-prescribed in **icepack\_in**. For example, biogeochemical fluxes from the
-ice to ocean will be saved monthly in the history output if
-
-::
-
-    f_fbio = 'm'
-
-However, only the biogeochemical tracers which are active will be saved.
-This includes at most fNit nitrate, fAm ammonium, fN algal nitrogen,
-fDOC dissolved organic carbon, fDON dissolved organic nitrogen, fFep
-particulate iron, fFed dissolved iron, fSil silicate, fhum humic matter,
-fPON passive mobile tracer, fDMS DMS, fDMSPd dissolved DMSP and fDMSPp
-particulate DMSP.
-
-:ref:`tab-bio-history` lists the
-biogeochemical tracer history flags along with a short description and
-the variable or variables saved. Not listed are flags appended with
-\_ai, i.e. f\_fbio\_ai. These fields are identical to their counterpart.
-i.e. f\_fbio, except they are averaged by ice area.
-
-:ref:`tab-bio-history` :*Biogeochemical History variables*
-
-.. _tab-bio-history:
-
-.. csv-table:: Table 6
-   :header: "History Flag", "Definition", "Variable(s)", "Units"
-   :widths: 10, 25, 20, 10
-
-   "f\_faero\_atm", "atmospheric aerosol deposition flux", "faero\_atm", "kg m\ :math:`^{-2}` s\ :math:`^{-1}`"
-   "f\_faero\_ocn", "aerosol flux from ice to ocean", "faero\_ocn", "kg m\ :math:`^{-2}` s\ :math:`^{-1}`"
-   "f\_aero", "aerosol mass (snow and ice ssl and int)", "aerosnossl, aerosnoint,aeroicessl, aeroiceint", "kg/kg"
-   "f\_fbio", "biological ice to ocean flux", "fN, fDOC, fNit, fAm,fDON,fFep\ :math:`^a`, fFed\ :math:`^a`, fSil,fhum, fPON, fDMSPd,fDMS, fDMSPp, fzaero", "mmol m\ :math:`^{-2}` s\ :math:`^{-1}`"
-   "f\_zaero", "bulk z-aerosol mass fraction", "zaero", "kg/kg"
-   "f\_bgc\_S", "bulk z-salinity", "bgc\_S", "ppt"
-   "f\_bgc\_N", "bulk algal N concentration", "bgc\_N", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_C", "bulk algal C concentration", "bgc\_C", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_DOC", "bulk DOC concentration", "bgc\_DOC", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_DON", "bulk DON concentration", "bgc\_DON", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_DIC", "bulk DIC concentration", "bgc\_DIC", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_chl", "bulk algal chlorophyll concentration", "bgc\_chl", "mg chl m\ :math:`^{-3}`"
-   "f\_bgc\_Nit", "bulk nitrate concentration", "bgc\_Nit", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_Am", "bulk ammonium concentration", "bgc\_Am", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_Sil", "bulk silicate concentration", "bgc\_Sil", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_DMSPp", "bulk particulate DMSP concentration", "bgc\_DMSPp", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_DMSPd", "bulk dissolved DMSP concentration", "bgc\_DMSPd", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_DMS", "bulk DMS concentration", "bgc\_DMS", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_Fe", "bulk dissolved and particulate iron conc.", "bgc\_Fed, bgc\_Fep", ":math:`\mu\,`\ mol m\ :math:`^{-3}`"
-   "f\_bgc\_hum", "bulk humic matter concentration", "bgc\_hum", "mmol m\ :math:`^{-3}`"
-   "f\_bgc\_PON", "bulk passive mobile tracer conc.", "bgc\_PON", "mmol m\ :math:`^{-3}`"
-   "f\_upNO", "Total algal :math:`{\mbox{NO$_3$}}` uptake rate", "upNO", "mmol m\ :math:`^{-2}` d\ :math:`^{-1}`"
-   "f\_upNH", "Total algal :math:`{\mbox{NH$_4$}}` uptake rate", "upNH", "mmol m\ :math:`^{-2}` d\ :math:`^{-1}`"
-   "f\_bgc\_ml", "upper ocean tracer concentrations", "ml\_N, ml\_DOC, ml\_Nit,ml\_Am, ml\_DON, ml\_Fep\ :math:`^b`,ml\_Fed\ :math:`^b`, ml\_Sil, ml\_hum, ml\_PON,ml\_DMS, ml\_DMSPd, ml\_DMSPp", "mmol m\ :math:`^{-3}`"
-   "f\_bTin", "ice temperature on the bio grid", "bTizn", ":math:`^o`\ C"
-   "f\_bphi", "ice porosity on the bio grid", "bphizn", "%"
-   "f\_iDin", "brine eddy diffusivity on the interface bio grid", "iDin", "m\ :math:`^{2}` d\ :math:`^{-1}`"
-   "f\_iki", "ice permeability on the interface bio grid", "ikin", "mm\ :math:`^{2}`"
-   "f\_fbri", "ratio of brine tracer height to ice thickness", "fbrine", "1"
-   "f\_hbri", "brine tracer height", "hbrine", "m"
-   "f\_zfswin", "internal ice PAR on the interface bio grid", "zfswin", "W m\ :math:`^{-2}`"
-   "f\_bionet", "brine height integrated tracer concentration", "algalN\_net, algalC\_net, chl\_net, pFe\ :math:`^c`\ \_net, dFe\ :math:`^c`\ \_net, Sil\_net, Nit\_net, Am\_net, hum\_net, PON\_net, DMS\_net, DMSPd\_net, DMSPp\_net, DOC\_net, zaero\_net, DON\_net", "mmol m\ :math:`^{-2}`"
-   "f\_biosnow", snow integrated tracer concentration", "algalN\_snow, algalC\_snow,chl\_snow, pFe\ :math:`^c`\ \_snow, dFe\ :math:`^c`\ \_snow,Sil\_snow, Nit\_snow, Am\_snow, hum\_snow, PON\_snow, DMS\_snow, DMSPd\_snow, DMSPp\_snow, DOC\_snow, zaero\_snow, DON\_snow", "mmol m\ :math:`^{-2}`"
-   "f\_grownet", "Net specific algal growth rate", "grow\_net", "m d\ :math:`^{-1}`"
-   "f\_PPnet", "Net primary production", "PP\_net", "mgC m\ :math:`^{-2}` d\ :math:`^{-1}`"
-   "f\_algalpeak", "interface bio grid level of peak chla", "peak\_loc", "1"
-   "f\_zbgc\_frac", "mobile fraction of tracer", "algalN\_frac, chl\_frac, pFe\_frac,dFe\_frac, Sil\_frac, Nit\_frac,Am\_frac, hum\_frac, PON\_frac,DMS\_frac, DMSPd\_frac, DMSPp\_frac,DOC\_frac, zaero\_frac, DON\_frac", "1"
-
-
-:math:`^a` units are :math:`\mu`\ mol m\ :math:`^{-2}` s\ :math:`^{-1}`
-
-:math:`^b` units are :math:`\mu`\ mol m\ :math:`^{-3}`
-
-:math:`^c` units are :math:`\mu`\ mol m\ :math:`^{-2}`
-
-
-.. _tracer-numerics:
-
-Flux-Corrected, Positive Definite Transport Scheme
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Numerical solution of the vertical tracer transport equation is
-accomplished using the finite element Galerkin discretization. Multiply
-[eqn:mobile\_transport] by "w" and integrate by parts
-
-.. math::
-   \begin{aligned}
-   & & \int_{h}\left[ w\frac{\partial C}{\partial t} -   \frac{\partial
-       w}{\partial x} \left(-\left[\frac{v}{h} + \frac{w_f}{h\phi}\right]C + \frac{D_{in}}{\phi^2}\frac{\partial
-         \phi}{\partial x}C  -  \frac{D_{in}}{\phi}\frac{\partial C}{\partial
-         x} \right) \right]dx \nonumber \\
-   & + &  w\left.\left(
-       -\left[\frac{1}{h}\frac{dh_b}{dt}+  \frac{w_f}{h\phi}\right]C + \frac{D_{in}}{\phi^2}\frac{\partial \phi}{\partial
-       x}C -\frac{D_{in}}{\phi}\frac{\partial C}{\partial
-       x}\right)\right|_{bottom} + w\left[\frac{1}{h}\frac{dh_t}{dt} +
-   \frac{w_f}{h\phi}\right]C|_{top}  =  0\end{aligned}
-
-The bottom boundary condition indicated by :math:`|_{bottom}` satisfies
-
-.. math::
-   \begin{aligned}
-   -w\left.\left(
-       -\left[\frac{1}{h}\frac{dh_b}{dt}+  \frac{w_f}{h\phi}\right]C + \frac{D_{in}}{\phi^2}\frac{\partial \phi}{\partial
-       x}C -\frac{D_{in}}{\phi}\frac{\partial C}{\partial
-       x}\right)\right|_{bottom} & = & \nonumber \\
-    w\left[\frac{1}{h}\frac{dh_b}{dt} +
-   \frac{w_f}{h \phi_{N+1}}\right](C_{N+2} \mbox{ or }C_{N+1}) -
-   w\frac{D_{in}}{\phi_{N+1}(\Delta h+g_o)}\left(C_{N+1} - C_{N+2}\right) & & \end{aligned}
-
-where :math:`C_{N+2} = h\phi_{N+1}[c]_{ocean}` and :math:`w = 1` at the
-bottom boundary and the top. The component :math:`C_{N+2}` or
-:math:`C_{N+1}` depends on the sign of the advection boundary term. If
-:math:`dh_b + w_f/\phi > 0` then use :math:`C_{N+2}` otherwise
-:math:`C_{N+1}`.
-
-Define basis functions as linear piecewise, with two nodes (boundary
-nodes) in each element. Then for :math:`i > 1` and :math:`i < N+1`
-
-.. math::
-   \begin{aligned}
-   w_i(x) & = & \left\{ \begin{array}{llll}
-   0 & x < x_{i-1} \\
-   (x - x_{i-1})/\Delta & x_{i-1}< x \leq x_{i} \\
-   1 - (x-x_i)/\Delta & x_i \leq x < x_{i+1} \\
-   0, & x \geq x_{i+1} 
-   \end{array}
-   \right.\end{aligned}
-
-For :math:`i=1`
-
-.. math::
-   \begin{aligned}
-   w_1(x) & = & \left\{ \begin{array}{ll}
-   1 - x/\Delta & x < x_{2} \\
-   0, & x \geq x_{2} 
-   \end{array}
-   \right.\end{aligned}
-
-and :math:`i = N+1`
-
-.. math::
-   \begin{aligned}
-   w_{N+1}(x) & = & \left\{ \begin{array}{ll}
-   0, & x < x_{N} \\
-   (x-x_{N})/\Delta & x \geq x_{N}
-   \end{array}
-   \right.\end{aligned}
-
-Now assume a form
-
-.. math::
-   C_h =  \sum_j^{N+1} c_j w_j
-
-Then
-
-.. math::
-   \begin{aligned}
-   \int_h C_h dx & = & c_1\int_0^{x_{2}}\left(1-\frac{x}{\Delta}\right)dx
-     +  c_{N+1}\int_{x_N}^{x_{N+1}}\frac{x-x_{N}}{\Delta}dx  \nonumber \\
-   & + &
-     \sum_{j=2}^{N}c_j\left\{\int_{j-1}^{j}\frac{x-x_{j-1}}{\Delta}dx +
-       \int_{j}^{j+1}\left[1 - \frac{(x-x_j)}{\Delta}\right]dx\right\}
-     \nonumber \\
-   & = & \Delta \left[\frac{c_1}{2} + \frac{c_{N+1}}{2} + \sum_{j = 2}^{N}c_{j}\right]\end{aligned}
-
-Now this approximate solution form is substituted into the variational
-equation with :math:`w = w_h \in \{w_j\}`
-
-.. math::
-   \begin{aligned}
-   0 &= & \int_{h}\left[ w_h\frac{\partial C_h}{\partial t} -   \frac{\partial
-       w_h}{\partial x} \left(\left[-\frac{v}{h} - \frac{w_f}{h\phi}+ \frac{D_{in}}{\phi^2}\frac{\partial
-         \phi}{\partial x}\right]C_h  -  \frac{D_{in}}{\phi}\frac{\partial C_h}{\partial
-         x} \right) \right]dx \nonumber \\
-   & + &  w_h\left.\left(
-       -\left[\frac{1}{h}\frac{dh_b}{dt}+  \frac{w_f}{h\phi}\right]C_h + \frac{D_{in}}{\phi^2}\frac{\partial \phi}{\partial
-       x}C -\frac{D_{in}}{\phi}\frac{\partial C_h}{\partial
-       x}\right)\right|_{bottom} + w_h\left[\frac{1}{h}\frac{dh_t}{dt} +
-   \frac{w_f}{h\phi}\right]C_h|_{top} \end{aligned}
-
-The result is a linear matrix equation
-
-.. math::
-   M_{jk}\frac{\partial C_k(t)}{\partial t} = [K_{jk}+S_{jk}] C_k(t) + q_{in}
-
-where
-
-.. math::
-   \begin{aligned}
-   M_{jk} & = & \int_h w_j(x)w_k(x)dx \nonumber \\
-   K_{jk} & = & \left[-\frac{v}{h} - \frac{w_f}{h\phi}+ \frac{D_{in}}{\phi^2}\frac{\partial
-         \phi}{\partial x}\right]\int_h \frac{\partial w_j}{\partial x}
-     w_k dx \nonumber \\
-   &-&
-   \left. w_j\left(-\left[\frac{v}{h} + \frac{w_f}{h\phi_k}\right]w_k +
-       \frac{D_{in}}{\phi^2}\frac{\partial \phi_k}{\partial x} w_k - \frac{D_{in}}{\phi_k}\frac{\partial w_k}{\partial
-         x}\right)\right|_{bot} \nonumber \\
-   & = & -V_k\int_h \frac{\partial w_j}{\partial x} w_k dx -
-   \left. w_j\left(-V_kw_k - \frac{D_{in}}{\phi_k}\frac{\partial w_k}{\partial
-         x}\right)\right|_{bot} \nonumber \\
-   S_{jk} & = & -\frac{D_{in}}{\phi_k}\int_h \frac{\partial w_j}{\partial x} \cdot
-   \frac{\partial w_k}{\partial x}dx \nonumber \\
-   q_{in} & = & -V C_{t} w_j(x)|_{t}\end{aligned}
-
-And :math:`C_{N+2} = h\phi_{N+1}[c]_{ocean}`
-
-For the top condition :math:`q_{in}` is applied to the upper value
-:math:`C_2` when :math:`VC_t < 0`, i.e. :math:`q_{in}` is a source.
-
-Compute the :math:`M_{jk}` integrals:
-
-.. math::
-   \begin{aligned}
-   M_{jj} & = & \int_{x_{j-1}}^{x_j}\frac{(x- x_{j-1})^2}{\Delta^2}dx +
-   \int_{x_{j}}^{x_{j+1}}\left[ 1-\frac{(x- x_{j})}{\Delta}\right]^2dx =
-   \frac{2\Delta}{3} \ \ \ \mbox{for }1 < j < N+1 \nonumber \\
-   M_{11} & = & \int_{x_{1}}^{x_{2}}\left[ 1-\frac{(x- x_{2})}{\Delta}\right]^2dx =
-   \frac{\Delta}{3}   \nonumber \\
-   M_{N+1,N+1} & = &\int_{x_{N}}^{x_{N+1}}\frac{(x- x_{N})^2}{\Delta^2}dx
-   = \frac{\Delta}{3}\nonumber \end{aligned}
-
-Off diagonal components:
-
-.. math::
-   \begin{aligned}
-   M_{j,j+1} & = &  \int_{x_{j}}^{x_{j+1}}\left[1 - \frac{(x-
-       x_{j})}{\Delta}\right]\left[ \frac{x-x_{j}}{\Delta}\right]dx =
-   \frac{\Delta}{6} \ \ \ \mbox{for }j < N+1 \nonumber \\
-   M_{j,j-1} & = &  \int_{x_{j-1}}^{x_{j}}\left[ \frac{x-x_{j-1}}{\Delta}\right]\left[1 - \frac{(x-
-       x_{j-1})}{\Delta}\right]dx =
-   \frac{\Delta}{6} \ \ \ \mbox{for }j > 1 \nonumber \\\end{aligned}
-
-Compute the :math:`K_{jk}` integrals:
-
-.. math::
-   \begin{aligned}
-   K_{jj} &=& k'_{jj}\left[ \int_{x_{j-1}}^{x_j} \frac{\partial w_j}{\partial x}
-   w_j dx + \int_{x_{j}}^{x_{j+1}} \frac{\partial w_j}{\partial x}
-   w_j dx \right] \nonumber \\
-   &  = &  \frac{1}{2} + -\frac{1}{2} = 0  \ \ \ \mbox{for } 1 < j < N+1 \nonumber \\ 
-   K_{11} & = &  -\frac{k'_{11}}{2} = \frac{1}{2}\left[\frac{v}{h} +
-     \frac{w_f}{h\phi}\right] \nonumber \\
-   K_{N+1,N+1}  & = & \frac{k'_{N+1,N+1}}{2} +\min\left[0, \left(\frac{1}{h}\frac{dh_b}{dt} +
-   \frac{w_f}{h \phi_{N+1}}\right)\right] -
-   \frac{D_{in}}{\phi_{N+1}(g_o/h)} \nonumber \\
-   & = & \left[-\frac{v}{h} - \frac{w_f}{h\phi}+ \frac{D_{in}}{\phi^2}\frac{\partial
-         \phi}{\partial x}\right]\frac{1}{2} +\min\left[0, \left(\frac{1}{h}\frac{dh_b}{dt} +
-   \frac{w_f}{h \phi_{N+1}}\right)\right] -
-   \frac{D_{in}}{\phi_{N+1}(g_o/h)} \end{aligned}
-
-Off diagonal components:
-
-.. math::
-   \begin{aligned}
-   K_{j(j+1)} &=& k'_{j(j+1)}\int_{x_{j}}^{x_{j+1}} \frac{\partial w_j}{\partial x}
-   w_{j+1} dx  =
-   -k'_{j(j+1)}\int_{x_{j}}^{x_{j+1}}\frac{(x-x_j)}{\Delta^2}dx \nonumber
-   \\
-   & = & -\frac{k'_{j(j+1)}}{\Delta^2}\frac{\Delta^2}{2} =
-   -\frac{k'_{j(j+1)}}{2}  = p5*\left[\frac{v}{h} + \frac{w_f}{h\phi}- \frac{D_{in}}{\phi^2}\frac{\partial
-         \phi}{\partial x}\right]_{(j+1)} \ \ \ \mbox{for }  j < N+1 \nonumber \\
-   K_{j(j-1)} &=& k'_{j(j-1)}\int_{x_{j-1}}^{x_{j}} \frac{\partial w_j}{\partial x}
-   w_{j-1} dx  =
-   k'_{j(j-1)}\int_{x_{j-1}}^{x_{j}}\left[1 -
-     \frac{(x-x_{j-1})}{\Delta^2}\right] dx \nonumber
-   \\
-   & = & \frac{k'_{j(j-1)}}{\Delta^2}\frac{\Delta^2}{2} =
-   \frac{k'_{j(j-1)}}{2}  = -p5*\left[\frac{v}{h} + \frac{w_f}{h\phi}- \frac{D_{in}}{\phi^2}\frac{\partial
-         \phi}{\partial x}\right]_{(j-1)} \ \ \ \ \ \mbox{for }  j > 1 \end{aligned}
-
-for :math:`K_{N+1,N}`, there’s a boundary contribution .
-
-.. math::
-   K_{N+1,N} = \frac{k'_{N+1(N)}}{2} - \frac{D_N}{\Delta \phi_{N}}
-
-Note. The bottom condition works if :math:`C_{bot} = h
-\phi_{N+2}[c]_{ocean}`, :math:`\phi^2` is :math:`\phi_{N+1}\phi_{N+2}`
-and
-
-.. math::
-   \begin{aligned}
-   \left. \frac{\partial \phi}{\partial x}\right|_{bot} & = &
-   \frac{\phi_{N+2} - \phi_{N}}{2\Delta}\end{aligned}
-
-Then the :math:`D_{N+1}/\phi_{N+1}/\Delta` cancels properly with the
-porosity gradient. In general
-
-.. math::
-   \begin{aligned}
-   \left. \frac{\partial \phi}{\partial x}\right|_{k} & = &
-   \frac{\phi_{k+2} - \phi_{k}}{2\Delta}\end{aligned}
-
-When evaluating the integrals for the diffusion term, we will assume
-that :math:`D/\phi` is constant in an element. For :math:`D_{in}/i\phi`
-defined on interface points, :math:`D_1 = 0` for :math:`j = 2,...,N`
-:math:`D_j/b\phi_j = (D_{in}(j) + D_{in}(j+1))/(i\phi_j + i\phi_{j+1})`.
-Then the above integrals will be modified as follows:
-
-Compute the :math:`S_{jk}` integrals:
-
-.. math::
-   \begin{aligned}
-   S_{jj} & = & - \left[\frac{D_{j-1}}{b\phi_{j-1}} \int_{x_{j-1}}^{x_j}\left( \frac{\partial
-         w_j}{\partial x}\right)^2 dx + \frac{D_{j}}{b\phi_{j}} \int_{x_{j}}^{x_{j+1}}
-     \left(\frac{\partial w_j}{\partial x}\right)^2 dx \right] \nonumber
-   \\
-   & = & -\frac{1}{\Delta}\left[\frac{D_{j-1}}{b\phi_{j-1}} + \frac{D_{j}}{b\phi{j}}\right]\ \ \mbox{for }1 < j < N+1 \nonumber \\
-   S_{11} & = & \frac{s'_{11}}{\Delta}  = 0 \nonumber \\
-   S_{N+1,N+1} & = & \frac{s'_{N+1,N+1}}{\Delta} = -\frac{(D_{N})}{b\phi_{N}\Delta}\end{aligned}
-
-Compute the off-diagonal components of :math:`S_{jk}`:
-
-.. math::
-   \begin{aligned}
-   S_{j(j+1)} & = & s'_{j(j+1)}\int_{x_j}^{x_{j+1}}\frac{\partial
-     w_j}{\partial x} \frac{\partial w_{j+1}}{\partial x} dx =
-   -\frac{s'_{j(j+1)}}{\Delta} =
-   \frac{D_{j}}{b\phi_{j}\Delta} \ \ \ \mbox{for } j < N+1
-   \nonumber \\
-   S_{j(j-1)} & = & s'_{j(j-1)}\int_{x_{j-1}}^{x_{j}}\frac{\partial
-     w_j}{\partial x} \frac{\partial w_{j-1}}{\partial x} dx =
-   -\frac{s'_{j(j-1)}}{\Delta} =
-   \frac{D_{j-1}}{b\phi_{j-1}} \ \ \ \mbox{for } j > 1\end{aligned}
-
-We assume that :math:`D/\phi^2 \partial \phi/\partial x` is constant in
-the element :math:`i`. If :math:`D/\phi_j` is constant, and
-:math:`\partial \phi/\partial x` is constant then both the Darcy and
-:math:`D` terms go as :math:`\phi^{-1}`. Then :math:`\phi = (\phi_j -
-\phi_{j-1})(x-x_j)/\Delta + \phi_j` and :math:`m = (\phi_j -
-\phi_{j-1})/\Delta` and :math:`b = \phi_j - mx_j`.
-
-The first integral contribution to the Darcy term is:
-
-.. math::
-   \begin{aligned}
-   K^1_{jj} & = &
-   \frac{-1}{\Delta ^2}\left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
-       \phi}{\partial x}\right)\int_{j-1}^{j}(x-x_{j-1})\frac{1}{mx
-     + b}dx \nonumber \\
-   & = &-\left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
-       \phi}{\partial x}\right) \frac{1}{\Delta^2}\left[ \int_{j-1}^{j}\frac{x}{mx + b}dx - x_{j-1}\int_{j-1}^{j}\frac{1}{mx
-     + b}dx  \right] \nonumber \\
-   & = &- \left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
-       \phi}{\partial x}\right) \frac{1}{\Delta^2}\left[ \frac{mx - b\log(b + mx)}{m^2} -
-     x_{j-1}\frac{\log(b+mx)}{m}\right]^{x_j}_{x_{j-1}} \nonumber \\
-   & = & -\left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
-       \phi}{\partial x}\right)\frac{1}{\Delta_{\phi}}\left[ 1 + \log \left( \frac{\phi_j}{\phi_{j-1}} \right) -
-     \frac{\phi_j}{\Delta_{\phi_j}}\log \left(
-       \frac{\phi_j}{\phi_{j-1}} \right)\right] \nonumber \\
-   & = & -\left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
-       \phi}{\partial x}\right)\frac{1}{\Delta_{\phi}}\left[ 1 +  \frac{\phi_{j-1}}{\Delta_{\phi}}\log \left( \frac{\phi_j}{\phi_{j-1}} \right) \right]\end{aligned}
-
-.. math::
-   \begin{aligned}
-   K^2_{jj} & = & \left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
-       \phi}{\partial x}\right)\frac{1}{\Delta}\int_{x_{j}}^{x_{j+1}}\left[1 -
-     \frac{(x-x_{j})}{\Delta}\right]\frac{1}{mx+b} dx \nonumber \\
-   & = & \left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
-       \phi}{\partial x}\right)\frac{1}{\Delta}\left[\frac{
-       (b+m(x_j+\Delta))\log(b+mx)-mx}{\Delta
-       m^2}\right]_{x_{j}}^{x_{j+1}} \nonumber \\
-   & = & \left(\frac{w_f}{h}-\frac{D}{\phi}\frac{\partial
-       \phi}{\partial x}\right)\frac{1}{\Delta_{\phi}}\left[ 1 -  \frac{\phi_{j+1}}{\Delta_{\phi}}\log \left( \frac{\phi_{j+1}}{\phi_{j}} \right) \right]\end{aligned}
-
-Now :math:`m = (\phi_{j+1}-\phi_{j})/\Delta` and
-:math:`b = \phi_{j+1} -
-mx_{j+1}`.
-
-Source terms :math:`q_{bot} = q_{N+1}` and :math:`q_{top} = q_{1}` (both
-positive)
-
-.. math::
-   \begin{aligned}
-   q_{bot} & = &\max\left[0, \left(\frac{1}{h}\frac{dh_b}{dt} +
-   \frac{w_f}{h \phi_{N+1}}\right)\right]C|_{bot} +
-   \frac{D_{in}}{\phi_{N+1}(g_o/h)}C|_{bot} \nonumber \\
-     C|_{bot}&= & \phi_{N+1}[c]_{ocean}\end{aligned}
-
-where :math:`g_o` is not zero.
-
-.. math::
-   \begin{aligned}
-   q_{in}&  = & -\min\left[ 0, \left(\frac{1}{h}\frac{dh_t}{dt} +
-   \frac{w_f}{h\phi}\right)C|_{top} \right]  \nonumber \\
-   C|_{top}& = & h [c]_o\phi_{min}\end{aligned}
-
-Calculating the low order solution: 1) Find the lumped mass matrix
-:math:`M_l = diag\{m_i\}`
-
-.. math::
-   \begin{aligned}
-   m_j & = & \sum_i m_{ji} = m_{j(j+1)} + m_{j(j-1)} + m_{jj} \\
-    & = & \frac{\Delta}{6} + \frac{\Delta}{6} + \frac{2\Delta}{3} =
-    \Delta \ \ \ \mbox{for }1 < j < N+1 \\
-   m_1 & = & m_{11} + m_{12} = \frac{\Delta}{3} + \frac{\Delta}{6} =
-   \frac{\Delta}{2} \\
-   m_{N+1} & = & m_{N+1,N} + m_{N+1,N+1} = \frac{\Delta}{6} + \frac{\Delta}{3} =
-   \frac{\Delta}{2}\end{aligned}
-
-2) Define artificial diffusion :math:`D_a`
-
-.. math::
-   \begin{aligned}
-   d_{j,(j+1)} & = & \max\{ -k_{j(j+1)},0,-k_{(j+1)j}\} = d_{(j+1)j} \\
-   d_{jj} & = & -\sum_{i\neq j} d_{ji}\end{aligned}
-
-3) Add artificial diffusion to :math:`K`: :math:`L = K + D_a`. 4) Solve
-for the low order predictor solution:
-
-.. math::
-   (M_l -\Delta t [L+S])C^{n+1} = M_l C^{n} + \Delta t q
-
-Conservations terms for the low order solution are:
-
-.. math::
-   \begin{aligned}
-   \int \left[C^{n+1} -C^{n}\right] w(x)dx & = & 
-    \Delta \left[\frac{c^{n+1}_1-c^{n}_1}{2} +
-      \frac{c^{n+1}_{N+1}-c^{n}_{N+1}}{2} + \sum_{j =
-        2}^{N}(c^{n+1}_{j}-c^{n}_{j})\right] \nonumber \\
-   &  = &   \Delta t \left[ q_{bot} +
-   q_{in} + (K_{N+1,N+1}+ K_{N,N+1} )C^{n+1}_{N+1} + (K_{1,1} +
-   K_{2,1})C^{n+1}_{1}\right]  \nonumber \end{aligned}
-
-Now add the antidiffusive flux: 1) compute the F matrix using the low
-order solution :math:`c^{n+1}`. Diagonal components are zero. For
-:math:`i \neq j`
-
-.. math::
-   \begin{aligned}
-   f_{ij} & = & m_{ij}\left[\frac{\Delta c_i}{\Delta t} - \frac{\Delta
-       c_j}{\Delta t} + d_{ij}(c^{n+1}_i - c^{n+1}_j\right]\end{aligned}
 
 
