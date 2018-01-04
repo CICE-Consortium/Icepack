@@ -231,12 +231,11 @@ if ( $testsuite != $spval ) then
   mkdir ./${tsdir}
   cp -f ${ICE_SCRIPTS}/tests/timeseries.csh ./${tsdir}
 
-  if ($report == 1) then
-    cp -f ${ICE_SCRIPTS}/tests/CTest/CTestConfig.cmake ./${tsdir}
-    cp -f ${ICE_SCRIPTS}/tests/CTest/CTestTestfile.cmake ./${tsdir}
-    cp -f ${ICE_SCRIPTS}/tests/CTest/steer.cmake ./${tsdir}
-    cp -f ${ICE_SCRIPTS}/tests/CTest/run_ctest.csh ./${tsdir}
-  endif
+  # Copy CTest files to the suite directory
+  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestConfig.cmake ./${tsdir}
+  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestTestfile.cmake ./${tsdir}
+  cp -f ${ICE_SCRIPTS}/tests/CTest/steer.cmake ./${tsdir}
+  cp -f ${ICE_SCRIPTS}/tests/CTest/run_ctest.csh ./${tsdir}
 
 cat >! ./${tsdir}/suite.run << EOF0
 #!/bin/csh -f
@@ -569,10 +568,8 @@ cd $testname_base
 cd ..
 EOF
     
-    # If results are to be posted to CDash, build CtestTestfile.cmake
-    if ($report == 1) then
-      ${ICE_SCRIPTS}/tests/CTest/gen_ctestfile.csh ./${tsdir} $testname_noid $bfbcomp $spval
-    endif
+    # Build CtestTestfile.cmake
+    ${ICE_SCRIPTS}/tests/CTest/gen_ctestfile.csh ./${tsdir} $testname_noid $bfbcomp $spval
 
     # Reset case for the next test in suite
     set case = $spval
