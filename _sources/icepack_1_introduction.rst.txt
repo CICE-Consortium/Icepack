@@ -4,7 +4,7 @@
 Introduction - Icepack
 **********************
 
-The column physics of the sea ice model CICE, "Icepack", is maintained by the
+The column physics package of the sea ice model CICE, "Icepack", is maintained by the
 CICE Consortium. This code includes several options for simulating sea ice
 thermodynamics, mechanical redistribution (ridging) and associated area and thickness
 changes.  In addition, the model supports a number of tracers, including
@@ -12,13 +12,18 @@ thickness, enthalpy, ice age, first-year ice area, deformed ice area and volume,
 melt ponds, and biogeochemistry.
 
 Icepack is implemented in CICE as a git submodule.
-Icepack basically consists of three independent parts, the column physics code,
-the icepack driver that supports stand-alone testing of the column physics code, and the
-icepack scripts that build and test the Icepack model.  
-The intent of Icepack is to provide the column physics model as a separate
-library for use in other models such as CICE.
+The purpose of Icepack is to provide the column physics model as a separate
+library for use in other host models such as CICE.
 Development and testing of CICE and Icepack may be done together,
 but the repositories are independent.
+
+Icepack consists of three independent parts, the column physics code,
+the icepack driver that supports stand-alone testing of the column physics code, and the
+icepack scripts that build and test the Icepack model.  
+The column physics is called from a host (driver) model
+on a gridpoint by gridpoint basis.  Each gridpoint is independent
+and the host model stores and passes the model state and forcing to
+the column physics.
 
 This document uses the following text conventions:
 Variable names used in the code are ``typewritten``.
@@ -46,8 +51,8 @@ From your main Icepack directory, execute::
   ./icepack.build
   ./icepack.submit
 
-Note that testmachine is a generic machine name included with the icepack scripts.
-The local machine name will have to be substituted for testmachine and currently,
+``testmachine`` is a generic machine name included with the icepack scripts.
+The local machine name will have to be substituted for ``testmachine`` and
 there are working ports for several different machines.  However, it may be necessary
 to port the model to a new machine.  See :ref:`porting` for 
 more information about how to port and :ref:`scripts` for more information about 
@@ -65,6 +70,7 @@ the horizontal grid and other infrastructural CICE elements (e.g. MPI tasks, cal
 - A simplified driver was developed for Icepack, for testing purposes. 
 - Additional tests for the column physics are now available.
 - This release includes the full vertical biogeochemistry code.
+- The ice velocity can optionally be included in the calculation of wind stress.
 
 Acknowledgements
 =============================
@@ -82,13 +88,13 @@ Special thanks are due to the following people:
  
 -  David Bailey, Alice DuVivier and Marika Holland at the National Center for Atmospheric Research
 
--  Rick Allard and Matt Turner at the Naval Research Laboratory, Stennis Space Center,
+-  Rick Allard, Matt Turner and David Hebert at the Naval Research Laboratory, Stennis Space Center,
 
 -  Andrew Roberts of the Naval Postgraduate School,
 
 -  Jean-Francois Lemieux and Frederic Dupont of Environment and Climate Change Canada,
 
--  Tony Craig and his supporters at the National Center for Atmospheric Research, the Naval Postgraduate School...CHECK,
+-  Tony Craig and his supporters at the National Center for Atmospheric Research, the Naval Postgraduate School, and NOAA National Weather Service,
 
 -  Cecilia Bitz at the University of Washington, for her column forcing data,
 

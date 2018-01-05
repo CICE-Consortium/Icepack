@@ -50,6 +50,28 @@
 <p>The Icepack model consists of three different parts, the column physics
 code, the icepack driver, and the scripts.  Development of each of these
 pieces will be described below separately.</p>
+<p>Subroutine calls and other linkages into Icepack from the host model should only
+need to access the <strong>icepack_intfc*.F90</strong> interface modules within the
+<code class="docutils literal"><span class="pre">columnphysics/</span></code> directory.
+The Icepack driver in the <code class="docutils literal"><span class="pre">configuration/driver/</span></code> directory is based on the CICE
+model and provides an example of the sea ice host model capabilities needed for inclusion
+of Icepack.  In particular, host models will need to include code equivalent to that
+in the modules <strong>icedrv_*_column.F90</strong>.  Calls into the Icepack interface routines
+are primarily from <strong>icedrv_step_mod.F90</strong> but there are others (search the driver code
+for <code class="docutils literal"><span class="pre">intfc</span></code>).</p>
+<p>Guiding principles for the creation of Icepack include the following:
+CHECK THAT THESE ARE TRUE</p>
+<ul class="simple">
+<li>The column physics modules shall be independent of all sea ice model infrastructural
+elements that may vary from model to model.  Examples include input/output, timers,
+references to CPUs or computational tasks, initialization other than that necessary for
+strictly physical reasons, and anything related to a horizontal grid.</li>
+<li>The column physics modules shall not call or reference any routines or code that
+reside outside of the <strong>columnphysics/</strong> directory.</li>
+<li>Any capabilities required by a host sea ice model (e.g. calendar variables, tracer
+flags, diagnostics) shall be implemented in the driver and passed into or out of the
+column physics modules via array arguments.</li>
+</ul>
 <div class="section" id="icepack-column-physics">
 <span id="dev-colphys"></span><h2>4.1. Icepack Column Physics<a class="headerlink" href="#icepack-column-physics" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="file-list">
@@ -106,7 +128,7 @@ that is passed into the column physics thru interfaces.  In fact,
 there are no direct IO capabilities in the column physics.  That is to say, the
 column physics does not open files to read or write.  The column physics is able to write
 data via several different routines that specifically have a fortran unit number as an input
-argument.  In addition, there is a warning package (see section <a class="reference internal" href="#warning"><span class="std std-ref">Calling Sequence</span></a>) that
+argument.  In addition, there is a warning package (see section <a class="reference internal" href="#warning"><span class="std std-ref">The Warning Package</span></a>) that
 provides the column package with the ability to store log output.  That output can
 be queried by the host model or it can be written directly via a specific routine.
 The warning package also provides access to an abort flag that the host model can
@@ -272,7 +294,7 @@ first:</p>
 </div>
 </div>
 <div class="section" id="calling-sequence">
-<span id="warning"></span><h4>4.1.3.2. Calling Sequence<a class="headerlink" href="#calling-sequence" title="Permalink to this headline">¶</a></h4>
+<h4>4.1.3.2. Calling Sequence<a class="headerlink" href="#calling-sequence" title="Permalink to this headline">¶</a></h4>
 <p>The calling sequence required to setup and run the column physics is generally
 described below.  Several steps may be needed to be taken by the host between
 icepack calls in order to support the icepack interfaces.
@@ -313,7 +335,7 @@ end loop over timesteps</p>
 <p>end driver</p>
 </div>
 <div class="section" id="the-warning-package">
-<h4>4.1.3.3. The Warning Package<a class="headerlink" href="#the-warning-package" title="Permalink to this headline">¶</a></h4>
+<span id="warning"></span><h4>4.1.3.3. The Warning Package<a class="headerlink" href="#the-warning-package" title="Permalink to this headline">¶</a></h4>
 <p>Icepack has no IO capabilities.  It does not have direct knowledge of
 any input or output files.  However, it can write output thru specific
 interfaces that pass in a fortran file unit number.  There are several
@@ -411,10 +433,9 @@ cases, building, and running the icepack stand-alone model.</p>
 <div class="line"><strong>tests/</strong>                scripts for configuring and running basic tests</div>
 </div>
 </div>
-<p>:: _dev_strategy:</p>
 </div>
 <div class="section" id="strategy">
-<h3>4.3.2. Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<span id="dev-strategy"></span><h3>4.3.2. Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
 <p>The icepack scripts are implemented such that everything is resolved after
 <strong>icepack.create.case</strong> is called.  This is done by both copying specific files
 into the case directory and running scripts as part of the <strong>icepack.create.case</strong>
@@ -423,10 +444,9 @@ command line to setup various files.</p>
 scripts are relatively simple csh or sh scripts.</p>
 <p>The file <strong>icepack.settings</strong> specifies a set of env defaults for the case.  The file
 <strong>icepack_in</strong> defines the namelist input for the icepack driver.</p>
-<p>:: _dev_options:</p>
 </div>
 <div class="section" id="preset-case-options">
-<h3>4.3.3. Preset Case Options<a class="headerlink" href="#preset-case-options" title="Permalink to this headline">¶</a></h3>
+<span id="dev-options"></span><h3>4.3.3. Preset Case Options<a class="headerlink" href="#preset-case-options" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-s</span></code> option allows the user to choose some predetermined icepack
 settings and namelist.  Those options are defined in <strong>configurations/scripts/options/</strong>
 and the files are prefixed by either set_env, set_nml, or test_nml.  When <strong>icepack.create.case</strong>
@@ -444,19 +464,17 @@ are the three scripts that modify <strong>icepack_in</strong> and <strong>icepac
 with appropriate names and syntax.  The set_nml file syntax is the same as namelist
 syntax and the set_env files are consistent with csh setenv syntax.  See other files for
 examples of the syntax.</p>
-<p>:: _dev_machines:</p>
 </div>
 <div class="section" id="machines">
-<h3>4.3.4. Machines<a class="headerlink" href="#machines" title="Permalink to this headline">¶</a></h3>
+<span id="dev-machines"></span><h3>4.3.4. Machines<a class="headerlink" href="#machines" title="Permalink to this headline">¶</a></h3>
 <p>Machine specific information is contained in <strong>configuration/scripts/machines</strong>.  That
 directory contains a Macros file and an env file for each supported machine.
 One other files will need to be
 changed to support a port, that is <strong>configuration/scripts/icepack.batch.csh</strong>.
 To port to a new machine, see <a class="reference internal" href="icepack_3_user_guide.html#porting"><span class="std std-ref">Porting</span></a>.</p>
-<p>:: _dev_testing:</p>
 </div>
 <div class="section" id="test-scripts">
-<h3>4.3.5. Test scripts<a class="headerlink" href="#test-scripts" title="Permalink to this headline">¶</a></h3>
+<span id="dev-testing"></span><h3>4.3.5. Test scripts<a class="headerlink" href="#test-scripts" title="Permalink to this headline">¶</a></h3>
 <p>Under <strong>configuration/scripts/tests</strong> are several files including the scripts to
 setup the smoke and restart tests (<strong>test_smoke.script</strong>, <strong>test_restart.script*).
 A baseline test script (**baseline.script</strong>) is also there to setup the regression
@@ -471,6 +489,80 @@ and <strong>test_restart.script</strong>.  In addition, some new options files i
 <strong>configuration/scripts/options</strong> may need to be added similar to <strong>test_nml.restart1</strong>,
 <strong>test_nml.restart2</strong>, and <strong>set_nml.restart</strong>.</p>
 </div>
+</div>
+<div class="section" id="adding-tracers">
+<span id="addtrcr"></span><h2>4.4. Adding tracers<a class="headerlink" href="#adding-tracers" title="Permalink to this headline">¶</a></h2>
+<p>We require that any changes made to the code be implemented in such a way that they can
+be “turned off” through namelist flags.  In most cases, code run with such changes should
+be bit-for-bit identical with the unmodified code.  Occasionally, non-bit-for-bit changes
+are necessary, e.g. associated with an unavoidable change in the order of operations. In
+these cases, changes should be made in stages to isolate the non-bit-for-bit changes,
+so that those that should be bit-for-bit can be tested separately.</p>
+<p>Tracers added to Icepack will also require extensive modifications to the host
+sea ice model, including initialization on the horizontal grid, namelist flags
+and restart capabilities.  Modifications to the Icepack driver should reflect
+the modifications needed in the host model but are not expected to match completely.
+We recommend that the logical namelist variable
+<code class="docutils literal"><span class="pre">tr_[tracer]</span></code> be used for all calls involving the new tracer outside of
+<strong>ice_[tracer].F90</strong>, in case other users do not want to use that
+tracer.</p>
+<p>A number of optional tracers are available in the code, including ice
+age, first-year ice area, melt pond area and volume, brine height,
+aerosols, and level ice area and volume (from which ridged ice
+quantities are derived). Salinity, enthalpies, age, aerosols, level-ice
+volume, brine height and most melt pond quantities are volume-weighted
+tracers, while first-year area, pond area, level-ice area and all of the
+biogeochemistry tracers in this release are area-weighted tracers. In
+the absence of sources and sinks, the total mass of a volume-weighted
+tracer such as aerosol (kg) is conserved under transport in horizontal
+and thickness space (the mass in a given grid cell will change), whereas
+the aerosol concentration (kg/m) is unchanged following the motion, and
+in particular, the concentration is unchanged when there is surface or
+basal melting. The proper units for a volume-weighted mass tracer in the
+tracer array are kg/m.</p>
+<p>In several places in the code, tracer computations must be performed on
+the conserved “tracer volume” rather than the tracer itself; for
+example, the conserved quantity is <span class="math">\(h_{pnd}a_{pnd}a_{lvl}a_{i}\)</span>,
+not <span class="math">\(h_{pnd}\)</span>. Conserved quantities are thus computed according to
+the tracer dependencies, and code must be included to account for new
+dependencies (e.g., <span class="math">\(a_{lvl}\)</span> and <span class="math">\(a_{pnd}\)</span> in
+<strong>ice_itd.F90</strong> and <strong>ice_mechred.F90</strong>).</p>
+<p>To add a tracer, follow these steps using one of the existing tracers as
+a pattern.</p>
+<ol class="arabic simple">
+<li><strong>icedrv_domain_size.F90</strong>: increase <code class="docutils literal"><span class="pre">max_ntrcr</span></code> (can also add option
+to <strong>icepack.settings</strong> and <strong>icepack.build</strong>)</li>
+<li><strong>icedrv_state.F90</strong>: declare <code class="docutils literal"><span class="pre">nt_[tracer]</span></code> and <code class="docutils literal"><span class="pre">tr_[tracer]</span></code></li>
+<li><strong>icepack_[tracer].F90</strong>: create initialization, physics routines</li>
+<li><strong>ice_drv_init.F90</strong>: (some of this may be done in <strong>ice_[tracer].F90</strong>
+instead)<ul>
+<li>add new module and <code class="docutils literal"><span class="pre">tr_[tracer]</span></code> to list of used modules and
+variables</li>
+<li>add logical namelist variable <code class="docutils literal"><span class="pre">tr_[tracer]</span></code></li>
+<li>initialize namelist variable</li>
+<li>print namelist variable to diagnostic output file</li>
+<li>increment number of tracers in use based on namelist input (<code class="docutils literal"><span class="pre">ntrcr</span></code>)</li>
+<li>define tracer types (<code class="docutils literal"><span class="pre">trcr_depend</span></code> = 0 for ice area tracers, 1 for
+ice volume, 2 for snow volume, 2+``nt_``[tracer] for dependence on
+other tracers)</li>
+</ul>
+</li>
+<li><strong>icepack_itd.F90</strong>, <strong>icepack_mechred.F90</strong>: Account for new dependencies
+if needed.</li>
+<li><strong>icedrv_InitMod.F90</strong>: initialize tracer (includes reading restart
+file)</li>
+<li><strong>icedrv_RunMod.F90</strong>, <strong>icedrv_step_mod.F90</strong>:<ul>
+<li>call routine to write tracer restart data</li>
+<li>call physics routines in <strong>icepack_[tracer].F90</strong> (often called from
+<strong>icedrv_step_mod.F90</strong>)</li>
+</ul>
+</li>
+<li><strong>icedrv_restart.F90</strong>: define restart variables</li>
+<li><strong>icepack_in</strong>: add namelist variables to <em>tracer_nml</em> and
+<em>icefields_nml</em></li>
+<li>If strict conservation is necessary, add diagnostics as noted for
+topo ponds in Section&nbsp;<a class="reference internal" href="icepack_2_science_guide.html#ponds"><span class="std std-ref">Melt ponds</span></a>.</li>
+</ol>
 </div>
 </div>
 
@@ -507,6 +599,7 @@ and <strong>test_restart.script</strong>.  In addition, some new options files i
 <li><a class="reference internal" href="#test-scripts">4.3.5. Test scripts</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#adding-tracers">4.4. Adding tracers</a></li>
 </ul>
 </li>
 </ul>

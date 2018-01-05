@@ -195,6 +195,239 @@ for a full, exact restart. The filename begins with the character string
 variable <code class="docutils literal"><span class="pre">dumpfreq</span></code>. The namelist variable <code class="docutils literal"><span class="pre">ice_ic</span></code> contains the
 pointer to the filename from which the restart data is to be read.</p>
 </div>
+<div class="section" id="biogeochemistry-history-fields">
+<span id="bgc-hist"></span><h4>3.1.6.3. Biogeochemistry History Fields<a class="headerlink" href="#biogeochemistry-history-fields" title="Permalink to this headline">¶</a></h4>
+<p>Note:  History output is not provided with Icepack.  This documentation
+indicates what is available for output and is implemented in CICE.</p>
+<p>CHECK and FIX!</p>
+<p>The biogeochemical history fields specified in icefields_bgc_nml are
+written when ‘x’ is replaced with a time interval: step (‘1’), daily
+(‘d’), monthly (‘m’), or yearly (‘y’). Several of these flags turn on
+multiple history variables according to the particular ecosystem
+prescribed in <strong>icepack_in</strong>. For example, biogeochemical fluxes from the
+ice to ocean will be saved monthly in the history output if</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">f_fbio</span> <span class="o">=</span> <span class="s1">&#39;m&#39;</span>
+</pre></div>
+</div>
+<p>However, only the biogeochemical tracers which are active will be saved.
+This includes at most fNit nitrate, fAm ammonium, fN algal nitrogen,
+fDOC dissolved organic carbon, fDON dissolved organic nitrogen, fFep
+particulate iron, fFed dissolved iron, fSil silicate, fhum humic matter,
+fPON passive mobile tracer, fDMS DMS, fDMSPd dissolved DMSP and fDMSPp
+particulate DMSP.</p>
+<p><a class="reference internal" href="#tab-bio-history"><span class="std std-ref">Table 5</span></a> lists the
+biogeochemical tracer history flags along with a short description and
+the variable or variables saved. Not listed are flags appended with
+_ai, i.e.&nbsp;f_fbio_ai. These fields are identical to their counterpart.
+i.e.&nbsp;f_fbio, except they are averaged by ice area.</p>
+<p><a class="reference internal" href="#tab-bio-history"><span class="std std-ref">Table 5</span></a> :<em>Biogeochemical History variables</em></p>
+<table border="1" class="docutils" id="id11">
+<span id="tab-bio-history"></span><caption><span class="caption-text">Table 5</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="15%" />
+<col width="38%" />
+<col width="31%" />
+<col width="15%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">History Flag</th>
+<th class="head">Definition</th>
+<th class="head">Variable(s)</th>
+<th class="head">Units</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>f_faero_atm</td>
+<td>atmospheric aerosol deposition flux</td>
+<td>faero_atm</td>
+<td>kg m<span class="math">\(^{-2}\)</span> s<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_faero_ocn</td>
+<td>aerosol flux from ice to ocean</td>
+<td>faero_ocn</td>
+<td>kg m<span class="math">\(^{-2}\)</span> s<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_aero</td>
+<td>aerosol mass (snow and ice ssl and int)</td>
+<td>aerosnossl, aerosnoint,aeroicessl, aeroiceint</td>
+<td>kg/kg</td>
+</tr>
+<tr class="row-odd"><td>f_fbio</td>
+<td>biological ice to ocean flux</td>
+<td>fN, fDOC, fNit, fAm,fDON,fFep<span class="math">\(^a\)</span>, fFed<span class="math">\(^a\)</span>, fSil,fhum, fPON, fDMSPd,fDMS, fDMSPp, fzaero</td>
+<td>mmol m<span class="math">\(^{-2}\)</span> s<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_zaero</td>
+<td>bulk z-aerosol mass fraction</td>
+<td>zaero</td>
+<td>kg/kg</td>
+</tr>
+<tr class="row-odd"><td>f_bgc_S</td>
+<td>bulk z-salinity</td>
+<td>bgc_S</td>
+<td>ppt</td>
+</tr>
+<tr class="row-even"><td>f_bgc_N</td>
+<td>bulk algal N concentration</td>
+<td>bgc_N</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_C</td>
+<td>bulk algal C concentration</td>
+<td>bgc_C</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_DOC</td>
+<td>bulk DOC concentration</td>
+<td>bgc_DOC</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_DON</td>
+<td>bulk DON concentration</td>
+<td>bgc_DON</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_DIC</td>
+<td>bulk DIC concentration</td>
+<td>bgc_DIC</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_chl</td>
+<td>bulk algal chlorophyll concentration</td>
+<td>bgc_chl</td>
+<td>mg chl m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_Nit</td>
+<td>bulk nitrate concentration</td>
+<td>bgc_Nit</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_Am</td>
+<td>bulk ammonium concentration</td>
+<td>bgc_Am</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_Sil</td>
+<td>bulk silicate concentration</td>
+<td>bgc_Sil</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_DMSPp</td>
+<td>bulk particulate DMSP concentration</td>
+<td>bgc_DMSPp</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_DMSPd</td>
+<td>bulk dissolved DMSP concentration</td>
+<td>bgc_DMSPd</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_DMS</td>
+<td>bulk DMS concentration</td>
+<td>bgc_DMS</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_Fe</td>
+<td>bulk dissolved and particulate iron conc.</td>
+<td>bgc_Fed, bgc_Fep</td>
+<td><span class="math">\(\mu\,\)</span>mol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_hum</td>
+<td>bulk humic matter concentration</td>
+<td>bgc_hum</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_PON</td>
+<td>bulk passive mobile tracer conc.</td>
+<td>bgc_PON</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_upNO</td>
+<td>Total algal <span class="math">\({\mbox{NO$_3$}}\)</span> uptake rate</td>
+<td>upNO</td>
+<td>mmol m<span class="math">\(^{-2}\)</span> d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_upNH</td>
+<td>Total algal <span class="math">\({\mbox{NH$_4$}}\)</span> uptake rate</td>
+<td>upNH</td>
+<td>mmol m<span class="math">\(^{-2}\)</span> d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_ml</td>
+<td>upper ocean tracer concentrations</td>
+<td>ml_N, ml_DOC, ml_Nit,ml_Am, ml_DON, ml_Fep<span class="math">\(^b\)</span>,ml_Fed<span class="math">\(^b\)</span>, ml_Sil, ml_hum, ml_PON,ml_DMS, ml_DMSPd, ml_DMSPp</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bTin</td>
+<td>ice temperature on the bio grid</td>
+<td>bTizn</td>
+<td><span class="math">\(^o\)</span>C</td>
+</tr>
+<tr class="row-odd"><td>f_bphi</td>
+<td>ice porosity on the bio grid</td>
+<td>bphizn</td>
+<td>%</td>
+</tr>
+<tr class="row-even"><td>f_iDin</td>
+<td>brine eddy diffusivity on the interface bio grid</td>
+<td>iDin</td>
+<td>m<span class="math">\(^{2}\)</span> d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_iki</td>
+<td>ice permeability on the interface bio grid</td>
+<td>ikin</td>
+<td>mm<span class="math">\(^{2}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_fbri</td>
+<td>ratio of brine tracer height to ice thickness</td>
+<td>fbrine</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td>f_hbri</td>
+<td>brine tracer height</td>
+<td>hbrine</td>
+<td>m</td>
+</tr>
+<tr class="row-even"><td>f_zfswin</td>
+<td>internal ice PAR on the interface bio grid</td>
+<td>zfswin</td>
+<td>W m<span class="math">\(^{-2}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bionet</td>
+<td>brine height integrated tracer concentration</td>
+<td>algalN_net, algalC_net, chl_net, pFe<span class="math">\(^c\)</span>_net, dFe<span class="math">\(^c\)</span>_net, Sil_net, Nit_net, Am_net, hum_net, PON_net, DMS_net, DMSPd_net, DMSPp_net, DOC_net, zaero_net, DON_net</td>
+<td>mmol m<span class="math">\(^{-2}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_biosnow</td>
+<td>snow integrated tracer concentration”</td>
+<td>algalN_snow, algalC_snow,chl_snow, pFe<span class="math">\(^c\)</span>_snow, dFe<span class="math">\(^c\)</span>_snow,Sil_snow, Nit_snow, Am_snow, hum_snow, PON_snow, DMS_snow, DMSPd_snow, DMSPp_snow, DOC_snow, zaero_snow, DON_snow</td>
+<td>mmol m<span class="math">\(^{-2}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_grownet</td>
+<td>Net specific algal growth rate</td>
+<td>grow_net</td>
+<td>m d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_PPnet</td>
+<td>Net primary production</td>
+<td>PP_net</td>
+<td>mgC m<span class="math">\(^{-2}\)</span> d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_algalpeak</td>
+<td>interface bio grid level of peak chla</td>
+<td>peak_loc</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td>f_zbgc_frac</td>
+<td>mobile fraction of tracer</td>
+<td>algalN_frac, chl_frac, pFe_frac,dFe_frac, Sil_frac, Nit_frac,Am_frac, hum_frac, PON_frac,DMS_frac, DMSPd_frac, DMSPp_frac,DOC_frac, zaero_frac, DON_frac</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p><span class="math">\(^a\)</span> units are <span class="math">\(\mu\)</span>mol m<span class="math">\(^{-2}\)</span> s<span class="math">\(^{-1}\)</span></p>
+<p><span class="math">\(^b\)</span> units are <span class="math">\(\mu\)</span>mol m<span class="math">\(^{-3}\)</span></p>
+<p><span class="math">\(^c\)</span> units are <span class="math">\(\mu\)</span>mol m<span class="math">\(^{-2}\)</span></p>
+</div>
 </div>
 </div>
 <div class="section" id="running-icepack">
@@ -292,17 +525,8 @@ file until the case can build and run.  Then copy the files from the case
 directory back to <strong>configuration/scripts/machines/</strong> and update
 the <strong>configuration/scripts/icepack.run.setup.csh</strong> file, retest,
 and then add and commit the updated machine files to the repository.</p>
-<div class="section" id="input-data">
-<h4>3.2.2.1. Input Data<a class="headerlink" href="#input-data" title="Permalink to this headline">¶</a></h4>
-<p>The input data space is defined on a per machine basis by the <code class="docutils literal"><span class="pre">ICE_MACHINE_INPUTDATA</span></code>
-variable in the <strong>env.[machine]</strong> file.  That file space is often shared among multiple
-users, and it can be desirable to consider using a common file space with group read
-and write permissions such that a set of users can update the inputdata area as
-new datasets are available.</p>
-<p>The latest input data will be available thru the CICE Consortium github wiki.</p>
-</div>
 <div class="section" id="machine-account-settings">
-<h4>3.2.2.2. Machine Account Settings<a class="headerlink" href="#machine-account-settings" title="Permalink to this headline">¶</a></h4>
+<h4>3.2.2.1. Machine Account Settings<a class="headerlink" href="#machine-account-settings" title="Permalink to this headline">¶</a></h4>
 <p>The machine account default is specified by the variable <code class="docutils literal"><span class="pre">ICE_MACHINE_ACCT</span></code> in
 the <strong>env.[machine]</strong> file.  The easiest way to change a user’s default is to
 create a file in your home directory called <strong>.cice_proj</strong> and add your
@@ -312,25 +536,8 @@ The order of precedent is <strong>icepack.create.case</strong> command line opti
 <strong>.cice_proj</strong> setting, and then value in the <strong>env.[machine]</strong> file.</p>
 </div>
 </div>
-<div class="section" id="run-directories">
-<h3>3.2.3. Run Directories<a class="headerlink" href="#run-directories" title="Permalink to this headline">¶</a></h3>
-<p>The <strong>icepack.create.case</strong> script creates a case directory.  However, the model
-is actually built and run under the <code class="docutils literal"><span class="pre">ICE_OBJDIR</span></code> and <code class="docutils literal"><span class="pre">ICE_RUNDIR</span></code> directories
-as defined in the <strong>icepack.settings</strong> file.</p>
-<p>Build and run logs will be copied from the run directory into the case <strong>logs/</strong>
-directory when complete.</p>
-</div>
-<div class="section" id="local-modifications">
-<h3>3.2.4. Local modifications<a class="headerlink" href="#local-modifications" title="Permalink to this headline">¶</a></h3>
-<p>Scripts and other case settings can be changed manually in the case directory and
-used.  Source code can be modified in the main sandbox.  When changes are made, the code
-should be rebuilt before being resubmitted.  It is always recommended that users
-modify the scripts and input settings in the case directory, NOT the run directory.
-In general, files in the run directory are overwritten by versions in the case
-directory when the model is built, submitted, and run.</p>
-</div>
 <div class="section" id="forcing-data">
-<h3>3.2.5. Forcing data<a class="headerlink" href="#forcing-data" title="Permalink to this headline">¶</a></h3>
+<h3>3.2.3. Forcing data<a class="headerlink" href="#forcing-data" title="Permalink to this headline">¶</a></h3>
 <p>CHECK once we’ve settled on a forcing suite:</p>
 <p>The code is currently configured to run in standalone mode on a 4-cell grid using
 atmospheric data, available as detailed on the <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack">wiki</a>.
@@ -338,6 +545,28 @@ These data files are designed only for testing the code, not for use in producti
 runs or as observational data.  Please do not publish results based on these data
 sets.  Module <strong>configuration/driver/icedrv_forcing.F90</strong>
 can be modified to change the forcing data.</p>
+<p>The input data space is defined on a per machine basis by the <code class="docutils literal"><span class="pre">ICE_MACHINE_INPUTDATA</span></code>
+variable in the <strong>env.[machine]</strong> file.  That file space is often shared among multiple
+users, and it can be desirable to consider using a common file space with group read
+and write permissions such that a set of users can update the inputdata area as
+new datasets are available.</p>
+</div>
+<div class="section" id="run-directories">
+<h3>3.2.4. Run Directories<a class="headerlink" href="#run-directories" title="Permalink to this headline">¶</a></h3>
+<p>The <strong>icepack.create.case</strong> script creates a case directory.  However, the model
+is actually built and run under the <code class="docutils literal"><span class="pre">ICE_OBJDIR</span></code> and <code class="docutils literal"><span class="pre">ICE_RUNDIR</span></code> directories
+as defined in the <strong>icepack.settings</strong> file.</p>
+<p>Build and run logs will be copied from the run directory into the case <strong>logs/</strong>
+directory when complete.</p>
+</div>
+<div class="section" id="local-modifications">
+<h3>3.2.5. Local modifications<a class="headerlink" href="#local-modifications" title="Permalink to this headline">¶</a></h3>
+<p>Scripts and other case settings can be changed manually in the case directory and
+used.  Source code can be modified in the main sandbox.  When changes are made, the code
+should be rebuilt before being resubmitted.  It is always recommended that users
+modify the scripts and input settings in the case directory, NOT the run directory.
+In general, files in the run directory are overwritten by versions in the case
+directory when the model is built, submitted, and run.</p>
 </div>
 </div>
 <div class="section" id="testing-icepack">
@@ -353,10 +582,11 @@ may be a good starting point for testing.</p>
 <span id="indtests"></span><h3>3.3.1. Individual Tests<a class="headerlink" href="#individual-tests" title="Permalink to this headline">¶</a></h3>
 <p>The Icepack scripts support both setup of individual tests as well as test suites.  Individual
 tests are run from the command line:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">s</span> <span class="n">diag1</span><span class="p">,</span><span class="n">debug</span> <span class="o">-</span><span class="n">testid</span> <span class="n">myid</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">s</span> <span class="n">diag1</span><span class="p">,</span><span class="n">debug</span> <span class="o">-</span><span class="n">testid</span> <span class="n">myid</span> <span class="o">-</span><span class="n">a</span> <span class="n">P0000000</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal"><span class="pre">-m</span></code> designates a specific machine and testid is a user defined string that allows
+<p>where <code class="docutils literal"><span class="pre">-m</span></code> designates a specific machine, <code class="docutils literal"><span class="pre">-a</span></code> designates the account number
+for the queue manager, and testid is a user defined string that allows
 test cases to be uniquely identified.
 The format of the case directory name for a test will always be
 <code class="docutils literal"><span class="pre">[machine]_[test]_[grid]_[pes]_[soptions].[testid]</span></code></p>
@@ -399,7 +629,7 @@ if the restart files at month 12 from both runs are bit-for-bit identical.</p>
 an input file.  When invoking the test suite option (<code class="docutils literal"><span class="pre">-ts</span></code>) with <strong>icepack.create.case</strong>,
 all tests will be created, built, and submitted automatically under
 a directory called [suite_name].[testid]:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">testid</span> <span class="n">myid</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">testid</span> <span class="n">myid</span> <span class="o">-</span><span class="n">a</span> <span class="n">P00000</span>
 </pre></div>
 </div>
 <p>Like an individual test, the <code class="docutils literal"><span class="pre">-testid</span></code> option must be specified and can be any
@@ -415,8 +645,8 @@ the suites
 have a suffix of .ts in that directory.  The format for the test suite file is relatively simple.
 It is a text file with white space delimited
 columns, e.g. <strong>base_suite.ts</strong></p>
-<table border="1" class="docutils" id="id11">
-<span id="tab-test"></span><caption><span class="caption-text">Table 7</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id12">
+<span id="tab-test"></span><caption><span class="caption-text">Table 6</span><a class="headerlink" href="#id12" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="14%" />
 <col width="14%" />
@@ -507,17 +737,17 @@ below the directory associated with <code class="docutils literal"><span class="
 testing.  This directory will be added to the directory associated with <code class="docutils literal"><span class="pre">-bd</span></code>.</p>
 </div></blockquote>
 <p>To create a baseline, use <code class="docutils literal"><span class="pre">-bg</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>icepack.create.case -ts base_suite -m wolf -testid v1 -bg version1 -bd $SCRATCH/ICEPACK_BASELINES
+<div class="highlight-default"><div class="highlight"><pre><span></span>icepack.create.case -ts base_suite -m wolf -testid v1 -bg version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
 </pre></div>
 </div>
 <p>will copy all the results from the test suite to <code class="docutils literal"><span class="pre">$SCRATCH/ICEPACK_BASELINES/version1</span></code>.</p>
 <p>To compare to a prior result, use <code class="docutils literal"><span class="pre">-bc</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>icepack.create.case -ts base_suite -m wolf -testid v2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES
+<div class="highlight-default"><div class="highlight"><pre><span></span>icepack.create.case -ts base_suite -m wolf -testid v2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
 </pre></div>
 </div>
 <p>will compare all the results from this test suite to results saved before in $SCRATCH/ICEPACK_BASELINES/version1``.</p>
 <p>To both create and compare, <code class="docutils literal"><span class="pre">-bc</span></code> and <code class="docutils literal"><span class="pre">-bg</span></code> can be combined:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>icepack.create.case -ts base_suite -m wolf -testid v2 -bg version2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES
+<div class="highlight-default"><div class="highlight"><pre><span></span>icepack.create.case -ts base_suite -m wolf -testid v2 -bg version2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
 </pre></div>
 </div>
 <p>will save the current results to <code class="docutils literal"><span class="pre">$SCRATCH/ICEPACK_BASELINES/version2</span></code> and compare the current results to
@@ -534,7 +764,10 @@ results save before in <code class="docutils literal"><span class="pre">$SCRATCH
 <div class="section" id="comparison-testing">
 <span id="comptesting"></span><h3>3.3.4. Comparison testing<a class="headerlink" href="#comparison-testing" title="Permalink to this headline">¶</a></h3>
 <p>This feature is primarily used in test suites and has limited use in icepack, but is being
-described for completeness.</p>
+described for completeness.  If modifications to the column physics modules in
+Icepack code generate differences (i.e. results are not bit-for-bit), then full
+comparisons tests will be necessary in CICE, comparing the modified column
+physics with the current version.</p>
 <p><code class="docutils literal"><span class="pre">-td</span></code> provides a way to compare tests with each other.  The test is always compared relative to
 the current case directory.  For instance:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t01</span>
@@ -552,19 +785,18 @@ and that the tests are created in parallel directories.
 The <code class="docutils literal"><span class="pre">-td</span></code> option works only if the testid and the machine are the same for the baseline run and the
 current run, a basic feature associated with test suites.</p>
 </div>
-<div class="section" id="icepack-test-reporting">
-<h3>3.3.5. Icepack Test Reporting<a class="headerlink" href="#icepack-test-reporting" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="test-reporting">
+<h3>3.3.5. Test Reporting<a class="headerlink" href="#test-reporting" title="Permalink to this headline">¶</a></h3>
 <p>The Icepack testing scripts have the capability of posting the test results
-to an online dashboard, located <a class="reference external" href="http://my.cdash.org/index.php?project=myICEPACK">on CDash</a>.
-There are two ways to post Icepack results to CDash, an automated method and
-a manual method.</p>
-<p>To automatically post test suite results to CDash, add the <code class="docutils literal"><span class="pre">-report</span></code> option to <strong>icepack.create.case</strong>.
+to an online dashboard, located <a class="reference external" href="http://my.cdash.org/index.php?project=myICEPACK">on CDash</a>.</p>
+<p>To post test suite results to CDash, add the <code class="docutils literal"><span class="pre">-report</span></code> option to <strong>icepack.create.case</strong>.
 The base_suite will attempt to post the test results on CDash when the suite is complete.</p>
-<p>To manually post the test results to the Icepack CDash dashboard,
-run a standard test suite.  Then once all the tests are complete:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="p">[</span><span class="n">suite_name</span><span class="p">]</span><span class="o">.</span><span class="p">[</span><span class="n">testid</span><span class="p">]</span>
-<span class="o">./</span><span class="n">results</span><span class="o">.</span><span class="n">csh</span>
-<span class="n">ctest</span> <span class="o">-</span><span class="n">S</span> <span class="n">steer</span><span class="o">.</span><span class="n">cmake</span>
+<p>If the results cannot be posted to CDash, the following information will be displayed:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CTest</span> <span class="n">submission</span> <span class="n">failed</span><span class="o">.</span>  <span class="n">To</span> <span class="k">try</span> <span class="n">the</span> <span class="n">submission</span> <span class="n">again</span> <span class="n">run</span>
+   <span class="o">./</span><span class="n">run_ctest</span><span class="o">.</span><span class="n">csh</span> <span class="o">-</span><span class="n">submit</span>
+<span class="n">If</span> <span class="n">you</span> <span class="n">wish</span> <span class="n">to</span> <span class="n">submit</span> <span class="n">the</span> <span class="n">test</span> <span class="n">results</span> <span class="kn">from</span> <span class="nn">another</span> <span class="n">server</span><span class="p">,</span> <span class="n">copy</span> <span class="n">the</span>
+<span class="n">icepack_ctest</span><span class="o">.</span><span class="n">tgz</span> <span class="n">file</span> <span class="n">to</span> <span class="n">another</span> <span class="n">server</span> <span class="ow">and</span> <span class="n">run</span>
+   <span class="o">./</span><span class="n">run_ctest</span><span class="o">.</span><span class="n">csh</span> <span class="o">-</span><span class="n">submit</span>
 </pre></div>
 </div>
 </div>
@@ -596,15 +828,14 @@ run a standard test suite.  Then once all the tests are complete:</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-manually-report-results">
-<h4>3.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and manually report results<a class="headerlink" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-manually-report-results" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t02</span> <span class="o">-</span><span class="n">bg</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">bs</span>
+<div class="section" id="to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results">
+<h4>3.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and report results<a class="headerlink" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t02</span> <span class="o">-</span><span class="n">bg</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">bs</span> <span class="o">-</span><span class="n">report</span>
 </pre></div>
 </div>
 <p>Once all jobs finish, concatenate all output and manually report results:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">base_suite</span><span class="o">.</span><span class="n">t02</span>
-<span class="o">./</span><span class="n">results</span><span class="o">.</span><span class="n">csh</span>
-<span class="n">ctest</span> <span class="o">-</span><span class="n">S</span> <span class="n">steer</span><span class="o">.</span><span class="n">cmake</span>
+<span class="n">cat</span> <span class="n">results</span><span class="o">.</span><span class="n">log</span>
 </pre></div>
 </div>
 <p>To plot a timeseries of “total ice extent”, “total ice area”, and “total ice volume”:</p>
@@ -613,14 +844,9 @@ run a standard test suite.  Then once all the tests are complete:</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-automatically-report-the-results">
-<h4>3.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and automatically report the results<a class="headerlink" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-automatically-report-the-results" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results">
+<h4>3.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and report the results<a class="headerlink" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t03</span> <span class="o">-</span><span class="n">bc</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">bs</span> <span class="o">-</span><span class="n">bg</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">new</span> <span class="o">-</span><span class="n">report</span>
-</pre></div>
-</div>
-<p>Once all jobs finish, concatenate all output:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">base_suite</span><span class="o">.</span><span class="n">t03</span>
-<span class="o">./</span><span class="n">results</span><span class="o">.</span><span class="n">csh</span>
 </pre></div>
 </div>
 </div>
@@ -637,8 +863,8 @@ for the icepack driver.  Variables in both files are described below.</p>
 <p>The <strong>icepack.settings</strong> file is reasonably well self documented.  Several of
 the variables defined in the file are not used in Icepack.  They exist
 to support the CICE model.</p>
-<table border="1" class="docutils" id="id12">
-<caption><span class="caption-text">Table 9</span><a class="headerlink" href="#id12" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id13">
+<caption><span class="caption-text">Table 7</span><a class="headerlink" href="#id13" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="20%" />
 <col width="20%" />
@@ -933,8 +1159,8 @@ to support the CICE model.</p>
 <p>CHECK</p>
 <p>Namelist is part of the icepack driver code and is used to setup testing of the
 column physics.</p>
-<table border="1" class="docutils" id="id13">
-<span id="tab-namelist"></span><caption><span class="caption-text">Table 8</span><a class="headerlink" href="#id13" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id14">
+<span id="tab-namelist"></span><caption><span class="caption-text">Table 8</span><a class="headerlink" href="#id14" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="20%" />
 <col width="20%" />
@@ -1435,300 +1661,960 @@ column physics.</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><em>zbgc_nml</em></td>
+<tr class="row-even"><td><em>forcing_nml</em></td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>&#160;</td>
-<td>&#160;</td>
-<td><em>Biogeochemistry</em></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_brine</span></code></td>
-<td>true/false</td>
-<td>brine height tracer</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">skl_bgc</span></code></td>
-<td>true/false</td>
-<td>biogeochemistry</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">bgc_flux_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">Jin2006</span></code></td>
-<td>ice–ocean flux velocity of <a class="reference internal" href="zreferences.html#jdwstwlg06" id="id8">[23]</a></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>&#160;</td>
-<td><code class="docutils literal"><span class="pre">constant</span></code></td>
-<td>constant ice–ocean flux velocity</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">restore_bgc</span></code></td>
-<td>true/false</td>
-<td>restore nitrate/silicate to data</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">sil_data_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code></td>
-<td>default forcing value for silicate</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal"><span class="pre">clim</span></code></td>
-<td>silicate forcing from ocean climatology <a class="reference internal" href="zreferences.html#glba06" id="id9">[15]</a></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">nit_data_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code></td>
-<td>default forcing value for nitrate</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal"><span class="pre">clim</span></code></td>
-<td>nitrate forcing from ocean climatology <a class="reference internal" href="zreferences.html#glba06" id="id10">[15]</a></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>&#160;</td>
-<td><code class="docutils literal"><span class="pre">sss</span></code></td>
-<td>nitrate forcing equals salinity</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_C_sk</span></code></td>
-<td>true/false</td>
-<td>algal carbon tracer</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_chl_sk</span></code></td>
-<td>true/false</td>
-<td>algal chlorophyll tracer</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_Am_sk</span></code></td>
-<td>true/false</td>
-<td>ammonium tracer</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_Sil_sk</span></code></td>
-<td>true/false</td>
-<td>silicate tracer</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_DMSPp_sk</span></code></td>
-<td>true/false</td>
-<td>particulate DMSP tracer</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_DMSPd_sk</span></code></td>
-<td>true/false</td>
-<td>dissolved DMSP tracer</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_DMS_sk</span></code></td>
-<td>true/false</td>
-<td>DMS tracer</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">phi_snow</span></code></td>
-<td>real</td>
-<td>snow porosity for brine height tracer</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>&#160;</td>
-<td>&#160;</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><em>forcing_nml</em></td>
-<td>&#160;</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>&#160;</td>
 <td>&#160;</td>
 <td><em>Forcing</em></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">formdrag</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">formdrag</span></code></td>
 <td>true/false</td>
 <td>calculate form drag</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">atmbndy</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">atmbndy</span></code></td>
 <td><code class="docutils literal"><span class="pre">default</span></code></td>
 <td>stability-based boundary layer</td>
 <td>‘default’</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">constant</span></code></td>
 <td>bulk transfer coefficients</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">fyear_init</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fyear_init</span></code></td>
 <td>yyyy</td>
 <td>first year of atmospheric forcing data</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ycycle</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ycycle</span></code></td>
 <td>integer</td>
 <td>number of years in forcing data cycle</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">atm_data_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">atm_data_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">default</span></code></td>
 <td>constant values defined in the code</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">clim</span></code></td>
 <td>monthly climatology</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">CFS</span></code></td>
 <td>CFS model output</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">ISPOL</span></code></td>
 <td>ISPOL experiment data</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">data_dir</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">data_dir</span></code></td>
 <td>path/</td>
 <td>path to forcing data directory</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">calc_strair</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">calc_strair</span></code></td>
 <td>true</td>
 <td>calculate wind stress and speed</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td>false</td>
 <td>read wind stress and speed from files</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">highfreq</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">highfreq</span></code></td>
 <td>true/false</td>
 <td>high-frequency atmo coupling</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">natmiter</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">natmiter</span></code></td>
 <td>integer</td>
 <td>number of atmo boundary layer iterations</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">calc_Tsfc</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">calc_Tsfc</span></code></td>
 <td>true/false</td>
 <td>calculate surface temperature</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">precip_units</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">precip_units</span></code></td>
 <td><code class="docutils literal"><span class="pre">mks</span></code></td>
 <td>liquid precipitation data units</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">mm_per_month</span></code></td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">mm_per_sec</span></code></td>
 <td>(same as MKS units)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tfrz_option</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tfrz_option</span></code></td>
 <td><code class="docutils literal"><span class="pre">minus1p8</span></code></td>
 <td>constant ocean freezing temperature (<span class="math">\(-1.8^\circ C\)</span>)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">linear_salt</span></code></td>
 <td>linear function of salinity (ktherm=1)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">mushy</span></code></td>
 <td>matches mushy-layer thermo (ktherm=2)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">ustar_min</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ustar_min</span></code></td>
 <td>real</td>
 <td>minimum value of ocean friction velocity</td>
 <td>0.0005 m/s</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fbot_xfer_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">fbot_xfer_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">constant</span></code></td>
 <td>constant ocean heat transfer coefficient</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">Cdn_ocn</span></code></td>
 <td>variable ocean heat transfer coefficient</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">update_ocn_f</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">update_ocn_f</span></code></td>
 <td>true</td>
 <td>include frazil water/salt fluxes in ocn fluxes</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td>false</td>
 <td>do not include (when coupling with POP)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">l_mpond_fresh</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">l_mpond_fresh</span></code></td>
 <td>true</td>
 <td>retain (topo) pond water until ponds drain</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td>false</td>
 <td>release (topo) pond water immediately to ocean</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">oceanmixed_ice</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">oceanmixed_ice</span></code></td>
 <td>true/false</td>
 <td>active ocean mixed layer calculation</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code> (if uncoupled)</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">ocn_data_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ocn_data_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">default</span></code></td>
 <td>constant values defined in the code</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">ISPOL</span></code></td>
 <td>ISPOL experiment data</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">bgc_data_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">bgc_data_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">default</span></code></td>
 <td>constant values defined in the code</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">ISPOL</span></code></td>
 <td>ISPOL experiment data</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">oceanmixed_file</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">oceanmixed_file</span></code></td>
 <td>filename</td>
 <td>data file containing ocean forcing data</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">restore_ocn</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">restore_ocn</span></code></td>
 <td>true/false</td>
 <td>restore sst to data</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">trestore</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">trestore</span></code></td>
 <td>integer</td>
 <td>sst restoring time scale (days)</td>
 <td>&#160;</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><em>zbgc_nml</em></td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td>&#160;</td>
+<td><em>Biogeochemistry</em></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_brine</span></code></td>
+<td>true/false</td>
+<td>brine height tracer (needs TRBRI 1 in comp_ice)</td>
+<td>.true.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">restart_hbrine</span></code></td>
+<td>true/false</td>
+<td>restart the brine height tracer (automatically turned on if restart = .true.)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_zero</span></code></td>
+<td>true/false</td>
+<td>turns on black carbon and dust aerosols</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">modal_aero</span></code></td>
+<td>true/false</td>
+<td>turns on a modal aerosol option</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">skl_bgc</span></code></td>
+<td>true/false</td>
+<td>turns on a single bottom layer biogeochemistry. z_tracers and solve_zbgc must be false</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">z_tracers</span></code></td>
+<td>true/false</td>
+<td>turns on a vertically resolved transport</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">dEdd_algae</span></code></td>
+<td>true/false</td>
+<td>Include radiative impact of algae and aerosols in the delta-Eddington shortwave scheme. Requires shortwave = ‘dEdd’. Should not be used when solve_zbgc or skl_bgc are true)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">solve_zbgc</span></code></td>
+<td>true/false</td>
+<td>turns on the biochemistry using z_tracers (specify algal numbers in comp_ice TRALG)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">bgc_flux_type</span></code></td>
+<td><code class="docutils literal"><span class="pre">Jin2006</span></code></td>
+<td>ice–ocean flux type for bottom layer tracers only <a class="reference internal" href="zreferences.html#jdwstwlg06" id="id8">[23]</a></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">restore_bgc</span></code></td>
+<td>true/false</td>
+<td>restores upper ocean concentration fields to data values for nitrate and silicate</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">restart_bgc</span></code></td>
+<td>true/false</td>
+<td>restarts biogeochemical tracers (automatically turned on if restart = .true.)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">scale_bgc</span></code></td>
+<td>true/false</td>
+<td>Initialize biogeochemical profiles to scale with prognosed salinity profile</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">solve_zsal</span></code></td>
+<td>true/false</td>
+<td>prognostic salinity tracer used with therm = 1</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">restart_zsal</span></code></td>
+<td>true/false</td>
+<td>restarts zsalinity</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">bgc_data_dir</span></code></td>
+<td><code class="docutils literal"><span class="pre">/nitrate_and_silicate/forcing_directory/</span></code></td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">sil_data_type</span></code></td>
+<td><code class="docutils literal"><span class="pre">default</span></code></td>
+<td>fixed, spatially homogeneous value for silicate. ‘clim’ data file (see ice_forcing_bgc.F90) <a class="reference internal" href="zreferences.html#glba06" id="id9">[15]</a></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">nit_data_type</span></code></td>
+<td><code class="docutils literal"><span class="pre">default</span></code></td>
+<td>fixed, spatially homogeneous value for nitrate. ‘clim’ data file (see ice_forcing_bgc.F90) <a class="reference internal" href="zreferences.html#glba06" id="id10">[15]</a></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">fe_data_type</span></code></td>
+<td><code class="docutils literal"><span class="pre">default</span></code></td>
+<td>fixed, spatially homogeneous value for iron</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_Nit</span></code></td>
+<td>true/false</td>
+<td>nitrate tracer</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_C</span></code></td>
+<td>true/false</td>
+<td>dissolved organic carbon tracers and dissolved inorganic carbon tracers (not yet implemented)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_chl</span></code></td>
+<td>true/false</td>
+<td>dummy variable for now. Chl is simply fixed ratio of algal Nitrogen</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_Am</span></code></td>
+<td>true/false</td>
+<td>Ammonium</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_Sil</span></code></td>
+<td>true/false</td>
+<td>Silicate</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_DMS</span></code></td>
+<td>true/false</td>
+<td>Three tracers: DMS dimethyl sulfide, DMSPp (particulate, assumed to be a fixed ratio of sulfur to algal nitrogen) and DMSPd (dissolved)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_PON</span></code></td>
+<td>true/false</td>
+<td>passive purely mobile ice tracer with ocean concentration equivalent to nitrate</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_hum</span></code></td>
+<td>true/false</td>
+<td>refractory DOC or DON (units depend on the ocean source)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_DON</span></code></td>
+<td>true/false</td>
+<td>dissolved organic nitrogen</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_Fe</span></code></td>
+<td>true/false</td>
+<td>dissolved iron and particulate iron</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">grid_o</span></code></td>
+<td>real</td>
+<td>ice-ocean surface layer thickness (bgc transport scheme)</td>
+<td>0.006</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">grid_o_t</span></code></td>
+<td>real</td>
+<td>ice-atmosphere surface layer thickness (bgc transport scheme)</td>
+<td>0.006</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">l_sk</span></code></td>
+<td>real</td>
+<td>length scale in gravity drainage parameterization (bgc transport scheme)</td>
+<td>0.024</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">grid_oS</span></code></td>
+<td>real</td>
+<td>ice-ocean surface layer thickness (zsalinity transport scheme)</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">l_skS</span></code></td>
+<td>real</td>
+<td>ice-atmosphere surface layer thickness (zsalinity transport scheme)</td>
+<td>0.028</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">phi_snow</span></code></td>
+<td>real</td>
+<td>snow porosity at the ice-snow interface. if &lt;0 then phi_snow is computed from snow density</td>
+<td>-0.3</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">initbio_frac</span></code></td>
+<td>real</td>
+<td>for each bgc tracer, specifies the fraction of the ocean concentration that is retained in the ice during initial new ice formation</td>
+<td>0.8</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">frazil_scav</span></code></td>
+<td>real</td>
+<td>for each bgc tracer, specifies the fraction or multiple of the ocean concentration that is retained in the ice from frail formation</td>
+<td>0.8</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_si2N_diatoms</span></code></td>
+<td>real</td>
+<td>algal Si to N (mol/mol) for diatoms</td>
+<td>1.8</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_si2N_sp</span></code></td>
+<td>real</td>
+<td>algal Si to N (mol/mol) for small phytoplankton</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_si2N_phaeo</span></code></td>
+<td>real</td>
+<td>algal Si to N (mol/mol) for phaeocystis</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_S2N_diatoms</span></code></td>
+<td>real</td>
+<td>algal S to N (mol/mol) for diatoms</td>
+<td>0.03</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_S2N_sp</span></code></td>
+<td>real</td>
+<td>algal S to N (mol/mol) for small phytoplankton</td>
+<td>0.03</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_S2N_phaeo</span></code></td>
+<td>real</td>
+<td>algal S to N (mol/mol) for phaeocystis</td>
+<td>0.03</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2C_diatoms</span></code></td>
+<td>real</td>
+<td>algal Fe to C (umol/mol) for diatoms</td>
+<td>0.0033</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_Fe2C_sp</span></code></td>
+<td>real</td>
+<td>algal Fe to C (umol/mol) for small phytoplankton</td>
+<td>0.0033</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2C_phaeo</span></code></td>
+<td>real</td>
+<td>algal Fe to C (umol/mol) for phaeocystis</td>
+<td>0.1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_Fe2N_diatoms</span></code></td>
+<td>real</td>
+<td>algal Fe to N (umol/mol) for diatoms</td>
+<td>0.023</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2N_sp</span></code></td>
+<td>real</td>
+<td>algal Fe to N (umol/mol) for small phytoplankton</td>
+<td>0.023</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_Fe2N_phaeo</span></code></td>
+<td>real</td>
+<td>algal Fe to N (umol/mol) for phaeocystis</td>
+<td>0.7</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2DON</span></code></td>
+<td>real</td>
+<td>Fe to N of DON (nmol/umol)</td>
+<td>0.023</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_Fe2DOC_s</span></code></td>
+<td>real</td>
+<td>Fe to C of DOC for saccharids (nmol/umol)</td>
+<td>0.1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2DOC_l</span></code></td>
+<td>real</td>
+<td>Fe to C of DOC for lipids (nmol/umol)</td>
+<td>0.033</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">fr_resp</span></code></td>
+<td>real</td>
+<td>fraction of algal growth lost due to respiration</td>
+<td>0.05</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tau_min</span></code></td>
+<td>real</td>
+<td>rapid mobile to stationary exchanges (s)</td>
+<td>5200.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tau_max</span></code></td>
+<td>real</td>
+<td>long time mobile to stationary exchanges (s)</td>
+<td>1.73e5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">algal_vel</span></code></td>
+<td>real</td>
+<td>0.5 cm/d(m/s)</td>
+<td>1.11e-8</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">R_dFe2dust</span></code></td>
+<td>real</td>
+<td>g/g (3.5% content)</td>
+<td>0.035</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">dustFe_sol</span></code></td>
+<td>real</td>
+<td>solubility fraction</td>
+<td>0.005</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">chlabs_diatoms</span></code></td>
+<td>real</td>
+<td>diatoms chl absorption (1/m/(mg/m^3))</td>
+<td>0.03</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">chlabs_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton chl absorption (1/m/(mg/m^3))</td>
+<td>0.01</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">chlabs_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis chl absorption (1/m/(mg/m^3))</td>
+<td>0.05</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">alpha2max_low_diatoms</span></code></td>
+<td>real</td>
+<td>diatoms light limitation (1/(W/m^2))</td>
+<td>0.8</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">alpha2max_low_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton light limitation (1/(W/m^2))</td>
+<td>0.67</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">alpha2max_low_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis light limitation (1/(W/m^2))</td>
+<td>0.67</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">beta2max_diatoms</span></code></td>
+<td>real</td>
+<td>diatoms light inhibition (1/(W/m^2))</td>
+<td>0.018</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">beta2max_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton light inhibition (1/(W/m^2))</td>
+<td>0.0025</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">beta2max_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis light inhibition (1/(W/m^2))</td>
+<td>0.01</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">mu_max_diatoms</span></code></td>
+<td>real</td>
+<td>diatoms maximum growth rate (1/day)</td>
+<td>1.2</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">mu_max_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton maximum growth rate (1/day)</td>
+<td>0.851</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">mu_max_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis maximum growth rate (1/day)</td>
+<td>0.851</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">grow_Tdep_diatoms</span></code></td>
+<td>real</td>
+<td>diatoms Temperature dependence of growth (1/C)</td>
+<td>0.06</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">grow_Tdep_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton Temperature dependence of growth (1/C)</td>
+<td>0.06</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">grow_Tdep_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis Temperature dependence of growth (1/C)</td>
+<td>0.06</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fr_graze_diatoms</span></code></td>
+<td>real</td>
+<td>diatoms fraction grazed</td>
+<td>0.01</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">fr_graze_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton fraction grazed</td>
+<td>0.1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fr_graze_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis fraction grazed</td>
+<td>0.1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">mort_pre_diatoms</span></code></td>
+<td>real</td>
+<td>diatoms mortality (1/day)</td>
+<td>0.007</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">mort_pre_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton mortality (1/day)</td>
+<td>0.007</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">mort_pre_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis mortality (1/day)</td>
+<td>0.007</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">mort_Tdep_diatoms</span></code></td>
+<td>real</td>
+<td>diatoms temperature dependence of mortality (1/C)</td>
+<td>0.03</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">mort_Tdep_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton temperature dependence of mortality (1/C)</td>
+<td>0.03</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">mort_Tdep_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis temperature dependence of mortality (1/C)</td>
+<td>0.03</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">k_exude_diatoms</span></code></td>
+<td>real</td>
+<td>diatoms algal exudation (1/d)</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">k_exude_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton algal exudation (1/d)</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">k_exude_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis algal exudation (1/d)</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Nit_diatoms</span></code></td>
+<td>real</td>
+<td>nitrate half saturation (mmol/m^3)</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Nit_sp</span></code></td>
+<td>real</td>
+<td>nitrate half saturation (mmol/m^3)</td>
+<td>1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Nit_phaeo</span></code></td>
+<td>real</td>
+<td>nitrate half saturation (mmol/m^3)</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Am_diatoms</span></code></td>
+<td>real</td>
+<td>ammonium half saturation (mmol/m^3)</td>
+<td>0.3</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Am_sp</span></code></td>
+<td>real</td>
+<td>ammonium half saturation (mmol/m^3)</td>
+<td>0.3</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Am_phaeo</span></code></td>
+<td>real</td>
+<td>ammonium half saturation (mmol/m^3)</td>
+<td>0.3</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Sil_diatoms</span></code></td>
+<td>real</td>
+<td>silicate half saturation (mmol/m^3)</td>
+<td>4.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Sil_sp</span></code></td>
+<td>real</td>
+<td>silicate half saturation (mmol/m^3)</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Sil_phaeo</span></code></td>
+<td>real</td>
+<td>silicate half saturation (mmol/m^3)</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Fe_diatoms</span></code></td>
+<td>real</td>
+<td>iron half saturation (nM)</td>
+<td>1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Fe_sp</span></code></td>
+<td>real</td>
+<td>iron half saturation (nM)</td>
+<td>0.2</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Fe_phaeo</span></code></td>
+<td>real</td>
+<td>iron half saturation (nM)</td>
+<td>0.1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_don_protein</span></code></td>
+<td>real</td>
+<td>fraction of spilled grazing to proteins</td>
+<td>0.6</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">kn_bac_protein</span></code></td>
+<td>real</td>
+<td>Bacterial degredation of DON (1/d)</td>
+<td>0.03</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_don_Am_protein</span></code></td>
+<td>real</td>
+<td>fraction of remineralized DON to ammonium</td>
+<td>0.25</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">f_doc_s</span></code></td>
+<td>real</td>
+<td>saccharids fraction of mortality to DOC</td>
+<td>0.4</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_doc_l</span></code></td>
+<td>real</td>
+<td>lipids fraction of mortality to DOC</td>
+<td>0.4</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">f_exude_s</span></code></td>
+<td>real</td>
+<td>saccharids fraction of exudation to DOC</td>
+<td>1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_exude_l</span></code></td>
+<td>real</td>
+<td>lipids fraction of exudation to DOC</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">k_bac_s</span></code></td>
+<td>real</td>
+<td>saccharids bacterial degredation of DOC (1/d)</td>
+<td>0.03</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">k_bac_l</span></code></td>
+<td>real</td>
+<td>lipids bacterial degredation of DOC (1/d)</td>
+<td>0.03</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">T_max</span></code></td>
+<td>real</td>
+<td>maximum temperature (C)</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fsal</span></code></td>
+<td>real</td>
+<td>Salinity limitation (ppt)</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">op_dep_min</span></code></td>
+<td>real</td>
+<td>Light attenuates for optical depths exceeding min</td>
+<td>0.1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fr_graze_s</span></code></td>
+<td>real</td>
+<td>fraction of grazing spilled or slopped</td>
+<td>0.5</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">fr_graze_e</span></code></td>
+<td>real</td>
+<td>fraction of assimilation excreted</td>
+<td>0.5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fr_mort2min</span></code></td>
+<td>real</td>
+<td>fractionation of mortality to Am</td>
+<td>0.5</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">fr_dFe</span></code></td>
+<td>real</td>
+<td>fraction of remineralized nitrogen (algal iron)</td>
+<td>0.3</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">k_nitrif</span></code></td>
+<td>real</td>
+<td>nitrification rate (1/day)</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">t_iron_conv</span></code></td>
+<td>real</td>
+<td>desorption loss pFe to dFe (day)</td>
+<td>3065.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">max_loss</span></code></td>
+<td>real</td>
+<td>restrict uptake to % of remaining value</td>
+<td>0.9</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">max_dfe_doc1</span></code></td>
+<td>real</td>
+<td>max ratio of dFe to saccharides in the ice (nM Fe/muM C)</td>
+<td>0.2</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fr_resp_s</span></code></td>
+<td>real</td>
+<td>DMSPd fraction of respiration loss as DMSPd</td>
+<td>0.75</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">y_sk_DMS</span></code></td>
+<td>real</td>
+<td>fraction conversion given high yield</td>
+<td>0.5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">t_sk_conv</span></code></td>
+<td>real</td>
+<td>Stefels conversion time (d)</td>
+<td>3.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">t_sk_ox</span></code></td>
+<td>real</td>
+<td>DMS oxidation time (d)</td>
+<td>10.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">algaltype_diatoms</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">algaltype_sp</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>0.5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">algaltype_phaeo</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>0.5</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">nitratetype</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>-1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ammoniumtype</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">silicatetype</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>-1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">dmspptype</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>0.5</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">dmspdtype</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>-1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">humtype</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">doctype_s</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>0.5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">doctype_l</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>0.5</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">dontype_protein</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>0.5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fedtype_1</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>0.5</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">feptype_1</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>0.5</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">zaerotype_bc1</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">zaerotype_bc2</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">zaerotype_dust1</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">zaerotype_dust2</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">zaerotype_dust3</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">zaerotype_dust4</span></code></td>
+<td>real</td>
+<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>1.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_C2N_diatoms</span></code></td>
+<td>real</td>
+<td>diatom algal C to N ratio (mol/mol)</td>
+<td>7.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_C2N_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton algal C to N ratio (mol/mol)</td>
+<td>7.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_C2N_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis algal C to N ratio (mol/mol)</td>
+<td>7.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_chl2N_diatoms</span></code></td>
+<td>real</td>
+<td>diatom algal chlorophyll to N ratio (mg/mmol)</td>
+<td>2.1</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_chl2N_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton algal chlorophyll to N ratio (mg/mmol)</td>
+<td>1.1</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_chl2N_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis algal chlorophyll to N ratio (mg/mmol)</td>
+<td>0.84</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">F_abs_chl_diatoms</span></code></td>
+<td>real</td>
+<td>diatom scales absorbed radiation for dEdd</td>
+<td>2.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">F_abs_chl_sp</span></code></td>
+<td>real</td>
+<td>small phytoplankton scales absorbed radiation for dEdd</td>
+<td>4.0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">F_abs_chl_phaeo</span></code></td>
+<td>real</td>
+<td>phaeocystis scales absorbed radiation for dEdd</td>
+<td>5.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_C2N_proteins</span></code></td>
+<td>real</td>
+<td>ratio of C to N in proteins (mol/mol)</td>
+<td>7.0</td>
 </tr>
 <tr class="row-odd"><td>&#160;</td>
 <td>&#160;</td>
@@ -1737,90 +2623,259 @@ column physics.</p>
 </tr>
 </tbody>
 </table>
+<div class="section" id="bgc-tuning-parameters">
+<span id="tuning"></span><h4>3.4.2.1. BGC Tuning Parameters<a class="headerlink" href="#bgc-tuning-parameters" title="Permalink to this headline">¶</a></h4>
+<p>Biogeochemical tuning parameters are specified as namelist options in
+<strong>icepack_in</strong>. Table&nbsp;<a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Table 9</span></a> provides a list of parameters
+used in the reaction equations, their representation in the code, a
+short description of each and the default values. Please keep in mind
+that there has only been minimal tuning of the model.</p>
+<p><a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Table 9</span></a> :<em>Biogeochemical Reaction Parameters</em></p>
+<table border="1" class="docutils" id="id15">
+<span id="tab-bio-tracers2"></span><caption><span class="caption-text">Table 9</span><a class="headerlink" href="#id15" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="10%" />
+<col width="28%" />
+<col width="21%" />
+<col width="21%" />
+<col width="21%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Text Variable</th>
+<th class="head">Variable in code</th>
+<th class="head">Description</th>
+<th class="head">Value</th>
+<th class="head">units</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(f_{graze}\)</span></td>
+<td>fr_graze(1:3)</td>
+<td>fraction of growth grazed</td>
+<td>0, 0.1, 0.1</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(f_{res}\)</span></td>
+<td>fr_resp</td>
+<td>fraction of growth respired</td>
+<td>0.05</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(l_{max}\)</span></td>
+<td>max_loss</td>
+<td>maximum tracer loss fraction</td>
+<td>0.9</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(m_{pre}\)</span></td>
+<td>mort_pre(1:3)</td>
+<td>maximum mortality rate</td>
+<td>0.007, 0.007, 0.007</td>
+<td>day<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(m_{T}\)</span></td>
+<td>mort_Tdep(1:3)</td>
+<td>mortality temperature decay</td>
+<td>0.03, 0.03, 0.03</td>
+<td><span class="math">\(^o\)</span>C<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(T_{max}\)</span></td>
+<td>T_max</td>
+<td>maximum brine temperature</td>
+<td>0</td>
+<td><span class="math">\(^o\)</span>C</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(k_{nitr}\)</span></td>
+<td>k_nitrif</td>
+<td>nitrification rate</td>
+<td>0</td>
+<td>day<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(f_{ng}\)</span></td>
+<td>fr_graze_e</td>
+<td>fraction of grazing excreted</td>
+<td>0.5</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(f_{gs}\)</span></td>
+<td>fr_graze_s</td>
+<td>fraction of grazing spilled</td>
+<td>0.5</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(f_{nm}\)</span></td>
+<td>fr_mort2min</td>
+<td>fraction of mortality to <span class="math">\({\mbox{NH$_4$}}\)</span></td>
+<td>0.5</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(f_{dg}\)</span></td>
+<td>f_don</td>
+<td>frac. spilled grazing to <span class="math">\({\mbox{DON}}\)</span></td>
+<td>0.6</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(k_{nb}\)</span></td>
+<td>kn_bac <span class="math">\(^a\)</span></td>
+<td>bacterial degradation of <span class="math">\({\mbox{DON}}\)</span></td>
+<td>0.03</td>
+<td>day<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(f_{cg}\)</span></td>
+<td>f_doc(1:3)</td>
+<td>fraction of mortality to <span class="math">\({\mbox{DOC}}\)</span></td>
+<td>0.4, 0.4, 0.2</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(R_{c:n}^c\)</span></td>
+<td>R_C2N(1:3)</td>
+<td>algal carbon to nitrogen ratio</td>
+<td>7.0, 7.0, 7.0</td>
+<td>mol/mol</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(k_{cb}\)</span></td>
+<td>k_bac1:3<span class="math">\(^a\)</span></td>
+<td>bacterial degradation of DOC</td>
+<td>0.03, 0.03, 0.03</td>
+<td>day<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\tau_{fe}\)</span></td>
+<td>t_iron_conv</td>
+<td>conversion time pFe <span class="math">\(\leftrightarrow\)</span> dFe</td>
+<td>3065.0</td>
+<td>day</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(r^{max}_{fed:doc}\)</span></td>
+<td>max_dfe_doc1</td>
+<td>max ratio of dFe to saccharids</td>
+<td>0.1852</td>
+<td>nM Fe<span class="math">\(/\mu\)</span>M C</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(f_{fa}\)</span></td>
+<td>fr_dFe</td>
+<td>fraction of remin. N to dFe</td>
+<td>0.3</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(R_{fe:n}\)</span></td>
+<td>R_Fe2N(1:3)</td>
+<td>algal Fe to N ratio</td>
+<td>0.023, 0.023, 0.7</td>
+<td>mmol/mol</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(R_{s:n}\)</span></td>
+<td>R_S2N(1:3)</td>
+<td>algal S to N ratio</td>
+<td>0.03, 0.03, 0.03</td>
+<td>mol/mol</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(f_{sr}\)</span></td>
+<td>fr_resp_s</td>
+<td>resp. loss as DMSPd</td>
+<td>0.75</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\tau_{dmsp}\)</span></td>
+<td>t_sk_conv</td>
+<td>Stefels rate</td>
+<td>3.0</td>
+<td>day</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\tau_{dms}\)</span></td>
+<td>t_sk_ox</td>
+<td>DMS oxidation rate</td>
+<td>10.0</td>
+<td>day</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(y_{dms}\)</span></td>
+<td>y_sk_DMS</td>
+<td>yield for DMS conversion</td>
+<td>0.5</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(K_{{\mbox{NO$_3$}}}\)</span></td>
+<td>K_Nit(1:3)</td>
+<td><span class="math">\({\mbox{NO$_3$}}\)</span> half saturation constant</td>
+<td>1,1,1</td>
+<td>mmol/m<span class="math">\(^{3}\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(K_{{\mbox{NH$_4$}}}\)</span></td>
+<td>K_Am(1:3)</td>
+<td><span class="math">\({\mbox{NH$_4$}}\)</span> half saturation constant</td>
+<td>0.3, 0.3, 0.3</td>
+<td>mmol/m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(K_{{\mbox{SiO$_3$}}}\)</span></td>
+<td>K_Sil(1:3)</td>
+<td>silicate half saturation constant</td>
+<td>4.0, 0, 0</td>
+<td>mmol/m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(K_{{\mbox{fed}}}\)</span></td>
+<td>K_Fe(1:3)</td>
+<td>iron half saturation constant</td>
+<td>1.0, 0.2, 0.1</td>
+<td><span class="math">\(\mu\)</span>mol/m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(op_{min}\)</span></td>
+<td>op_dep_min</td>
+<td>boundary for light attenuation</td>
+<td>0.1</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(chlabs\)</span></td>
+<td>chlabs(1:3)</td>
+<td>light absorption length per chla conc.</td>
+<td>0.03, 0.01, 0.05</td>
+<td>1<span class="math">\(/\)</span>m<span class="math">\(/\)</span>(mg<span class="math">\(/\)</span>m<span class="math">\(^{3}\)</span>)</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\alpha\)</span></td>
+<td>alpha2max_low(1:3)</td>
+<td>light limitation factor</td>
+<td>0.25, 0.25, 0.25</td>
+<td>m<span class="math">\(^2\)</span>/W</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\beta\)</span></td>
+<td>beta2max(1:3)</td>
+<td>light inhibition factor</td>
+<td>0.018, 0.0025, 0.01</td>
+<td>m<span class="math">\(^2\)</span>/W</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\mu_{max}\)</span></td>
+<td>mu_max(1:3)</td>
+<td>maximum algal growth rate</td>
+<td>1.44, 0.851, 0.851</td>
+<td>day<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\mu_T\)</span></td>
+<td>grow_Tdep(1:3)</td>
+<td>temperature growth factor</td>
+<td>0.06, 0.06, 0.06</td>
+<td>day<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(f_{sal}\)</span></td>
+<td>fsal</td>
+<td>salinity growth factor</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(R_{si:n}\)</span></td>
+<td>R_Si2N(1:3)</td>
+<td>algal silicate to nitrogen</td>
+<td>1.8, 0, 0</td>
+<td>mol/mol</td>
+</tr>
+</tbody>
+</table>
+<p><span class="math">\(^a\)</span> only (1:2) of DOC and DOC parameters have physical meaning</p>
 </div>
-</div>
-<div class="section" id="adding-things">
-<h2>3.5. Adding things<a class="headerlink" href="#adding-things" title="Permalink to this headline">¶</a></h2>
-<p>We require that any changes made to the code be implemented in such a way that they can
-be “turned off” through namelist flags.  In most cases, code run with such changes should
-be bit-for-bit identical with the unmodified code.  Occasionally, non-bit-for-bit changes
-are necessary, e.g. associated with an unavoidable change in the order of operations. In
-these cases, changes should be made in stages to isolate the non-bit-for-bit changes,
-so that those that should be bit-for-bit can be tested separately.</p>
-<div class="section" id="tracers">
-<span id="addtrcr"></span><h3>3.5.1. Tracers<a class="headerlink" href="#tracers" title="Permalink to this headline">¶</a></h3>
-<p>Tracers added to Icepack will also require extensive modifications to the host
-sea ice model, including initialization on the horizontal grid, namelist flags
-and restart capabilities.  Modifications to the Icepack driver should reflect
-the modifications needed in the host model but are not expected to match completely.
-We recommend that the logical namelist variable
-<code class="docutils literal"><span class="pre">tr_[tracer]</span></code> be used for all calls involving the new tracer outside of
-<strong>ice_[tracer].F90</strong>, in case other users do not want to use that
-tracer.</p>
-<p>A number of optional tracers are available in the code, including ice
-age, first-year ice area, melt pond area and volume, brine height,
-aerosols, and level ice area and volume (from which ridged ice
-quantities are derived). Salinity, enthalpies, age, aerosols, level-ice
-volume, brine height and most melt pond quantities are volume-weighted
-tracers, while first-year area, pond area, level-ice area and all of the
-biogeochemistry tracers in this release are area-weighted tracers. In
-the absence of sources and sinks, the total mass of a volume-weighted
-tracer such as aerosol (kg) is conserved under transport in horizontal
-and thickness space (the mass in a given grid cell will change), whereas
-the aerosol concentration (kg/m) is unchanged following the motion, and
-in particular, the concentration is unchanged when there is surface or
-basal melting. The proper units for a volume-weighted mass tracer in the
-tracer array are kg/m.</p>
-<p>In several places in the code, tracer computations must be performed on
-the conserved “tracer volume” rather than the tracer itself; for
-example, the conserved quantity is <span class="math">\(h_{pnd}a_{pnd}a_{lvl}a_{i}\)</span>,
-not <span class="math">\(h_{pnd}\)</span>. Conserved quantities are thus computed according to
-the tracer dependencies, and code must be included to account for new
-dependencies (e.g., <span class="math">\(a_{lvl}\)</span> and <span class="math">\(a_{pnd}\)</span> in
-<strong>ice_itd.F90</strong> and <strong>ice_mechred.F90</strong>).</p>
-<p>To add a tracer, follow these steps using one of the existing tracers as
-a pattern.</p>
-<ol class="arabic simple">
-<li><strong>icedrv_domain_size.F90</strong>: increase <code class="docutils literal"><span class="pre">max_ntrcr</span></code> (can also add option
-to <strong>icepack.settings</strong> and <strong>icepack.build</strong>)</li>
-<li><strong>icedrv_state.F90</strong>: declare <code class="docutils literal"><span class="pre">nt_[tracer]</span></code> and <code class="docutils literal"><span class="pre">tr_[tracer]</span></code></li>
-<li><strong>icepack_[tracer].F90</strong>: create initialization, physics routines</li>
-<li><strong>ice_drv_init.F90</strong>: (some of this may be done in <strong>ice_[tracer].F90</strong>
-instead)<ul>
-<li>add new module and <code class="docutils literal"><span class="pre">tr_[tracer]</span></code> to list of used modules and
-variables</li>
-<li>add logical namelist variable <code class="docutils literal"><span class="pre">tr_[tracer]</span></code></li>
-<li>initialize namelist variable</li>
-<li>print namelist variable to diagnostic output file</li>
-<li>increment number of tracers in use based on namelist input (<code class="docutils literal"><span class="pre">ntrcr</span></code>)</li>
-<li>define tracer types (<code class="docutils literal"><span class="pre">trcr_depend</span></code> = 0 for ice area tracers, 1 for
-ice volume, 2 for snow volume, 2+``nt_``[tracer] for dependence on
-other tracers)</li>
-</ul>
-</li>
-<li><strong>icepack_itd.F90</strong>, <strong>icepack_mechred.F90</strong>: Account for new dependencies
-if needed.</li>
-<li><strong>icedrv_InitMod.F90</strong>: initialize tracer (includes reading restart
-file)</li>
-<li><strong>icedrv_RunMod.F90</strong>, <strong>icedrv_step_mod.F90</strong>:<ul>
-<li>call routine to write tracer restart data</li>
-<li>call physics routines in <strong>icepack_[tracer].F90</strong> (often called from
-<strong>icedrv_step_mod.F90</strong>)</li>
-</ul>
-</li>
-<li><strong>icedrv_restart.F90</strong>: define restart variables</li>
-<li><strong>icepack_in</strong>: add namelist variables to <em>tracer_nml</em> and
-<em>icefields_nml</em></li>
-<li>If strict conservation is necessary, add diagnostics as noted for
-topo ponds in Section&nbsp;<a class="reference internal" href="icepack_2_science_guide.html#ponds"><span class="std std-ref">Melt ponds</span></a>.</li>
-</ol>
 </div>
 </div>
 <div class="section" id="troubleshooting">
-<h2>3.6. Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<h2>3.5. Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
 <p>Check the FAQ: <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki">https://github.com/CICE-Consortium/Icepack/wiki</a></p>
 <div class="section" id="initial-setup">
-<span id="setup"></span><h3>3.6.1. Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h3>
+<span id="setup"></span><h3>3.5.1. Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h3>
 <p>If there are problems, you can manually edit
 the env, Macros, and <strong>icepack.run</strong> files in the case directory until things are
 working properly.  Then you can copy the env and Macros files back to
@@ -1832,7 +2887,7 @@ if scripts in the case directory are run again later.</li>
 </ul>
 </div>
 <div class="section" id="restarts">
-<span id="restarttrouble"></span><h3>3.6.2. Restarts<a class="headerlink" href="#restarts" title="Permalink to this headline">¶</a></h3>
+<span id="restarttrouble"></span><h3>3.5.2. Restarts<a class="headerlink" href="#restarts" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Manual restart tests require the path to the restart file be included in <code class="docutils literal"><span class="pre">ice_in</span></code> in the
 namelist file.</li>
@@ -1841,7 +2896,7 @@ Other configuration parameters, such as <code class="docutils literal"><span cla
 </ul>
 </div>
 <div class="section" id="underflows">
-<span id="testtrouble"></span><h3>3.6.3. Underflows<a class="headerlink" href="#underflows" title="Permalink to this headline">¶</a></h3>
+<span id="testtrouble"></span><h3>3.5.3. Underflows<a class="headerlink" href="#underflows" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Tests using a debug flag that traps underflows will fail unless a “flush-to-zero” flag
 is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
@@ -1849,7 +2904,7 @@ radiation scheme.</li>
 </ul>
 </div>
 <div class="section" id="debugging-hints">
-<h3>3.6.4. Debugging hints<a class="headerlink" href="#debugging-hints" title="Permalink to this headline">¶</a></h3>
+<h3>3.5.4. Debugging hints<a class="headerlink" href="#debugging-hints" title="Permalink to this headline">¶</a></h3>
 <p>CHECK write utility in column physics interface, for checking parameter values</p>
 <p>A printing utility is available in the driver that can be helpful when debugging the
 code. Not all of these will work everywhere in the code, due to possible
@@ -1862,8 +2917,8 @@ points during initialization and the timestepping loop</dd>
 <dd>Print the ice state and forcing fields for a given grid cell.</dd>
 </dl>
 </div>
-<div class="section" id="known-bugs">
-<h3>3.6.5. Known bugs<a class="headerlink" href="#known-bugs" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="known-bugs-and-other-issues">
+<h3>3.5.5. Known bugs and other issues<a class="headerlink" href="#known-bugs-and-other-issues" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>With the old CCSM radiative scheme (<code class="docutils literal"><span class="pre">shortwave</span></code> = ‘default’ or
 ‘ccsm3’), a sizable fraction (more than 10%) of the total shortwave
@@ -1871,10 +2926,11 @@ radiation is absorbed at the surface but should be penetrating into
 the ice interior instead. This is due to use of the aggregated,
 effective albedo rather than the bare ice albedo
 when <code class="docutils literal"><span class="pre">snowpatch</span></code> &lt; 1.</li>
+<li>The linear remapping algorithm for thickness is not monotonic for tracers.</li>
 </ul>
 </div>
 <div class="section" id="interpretation-of-albedos">
-<h3>3.6.6. Interpretation of albedos<a class="headerlink" href="#interpretation-of-albedos" title="Permalink to this headline">¶</a></h3>
+<h3>3.5.6. Interpretation of albedos<a class="headerlink" href="#interpretation-of-albedos" title="Permalink to this headline">¶</a></h3>
 <p>The snow-and-ice albedo, <code class="docutils literal"><span class="pre">albsni</span></code>, and diagnostic albedos <code class="docutils literal"><span class="pre">albice</span></code>, <code class="docutils literal"><span class="pre">albsno</span></code>,
 and <code class="docutils literal"><span class="pre">albpnd</span></code> are merged over categories but not scaled (divided) by the
 total ice area. (This is a change from CICE v4.1 for <code class="docutils literal"><span class="pre">albsni</span></code>.) The latter
@@ -1895,7 +2951,7 @@ averaging that is incremented only when <span class="math">\(\cos\varphi &gt; 0\
 albedos will still be zero in the dark, polar winter hemisphere.</p>
 </div>
 <div class="section" id="proliferating-subprocess-parameterizations">
-<h3>3.6.7. Proliferating subprocess parameterizations<a class="headerlink" href="#proliferating-subprocess-parameterizations" title="Permalink to this headline">¶</a></h3>
+<h3>3.5.7. Proliferating subprocess parameterizations<a class="headerlink" href="#proliferating-subprocess-parameterizations" title="Permalink to this headline">¶</a></h3>
 <p>With the addition of several alternative parameterizations for sea ice
 processes, a number of subprocesses now appear in multiple parts of the
 code with differing descriptions. For instance, sea ice porosity and
@@ -1930,6 +2986,7 @@ possibly unified in the future.</p>
 <li><a class="reference internal" href="#model-output">3.1.6. Model output</a><ul>
 <li><a class="reference internal" href="#diagnostic-files">3.1.6.1. Diagnostic files</a></li>
 <li><a class="reference internal" href="#restart-files">3.1.6.2. Restart files</a></li>
+<li><a class="reference internal" href="#biogeochemistry-history-fields">3.1.6.3. Biogeochemistry History Fields</a></li>
 </ul>
 </li>
 </ul>
@@ -1937,13 +2994,12 @@ possibly unified in the future.</p>
 <li><a class="reference internal" href="#running-icepack">3.2. Running Icepack</a><ul>
 <li><a class="reference internal" href="#scripts">3.2.1. Scripts</a></li>
 <li><a class="reference internal" href="#porting">3.2.2. Porting</a><ul>
-<li><a class="reference internal" href="#input-data">3.2.2.1. Input Data</a></li>
-<li><a class="reference internal" href="#machine-account-settings">3.2.2.2. Machine Account Settings</a></li>
+<li><a class="reference internal" href="#machine-account-settings">3.2.2.1. Machine Account Settings</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#run-directories">3.2.3. Run Directories</a></li>
-<li><a class="reference internal" href="#local-modifications">3.2.4. Local modifications</a></li>
-<li><a class="reference internal" href="#forcing-data">3.2.5. Forcing data</a></li>
+<li><a class="reference internal" href="#forcing-data">3.2.3. Forcing data</a></li>
+<li><a class="reference internal" href="#run-directories">3.2.4. Run Directories</a></li>
+<li><a class="reference internal" href="#local-modifications">3.2.5. Local modifications</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#testing-icepack">3.3. Testing Icepack</a><ul>
@@ -1951,33 +3007,32 @@ possibly unified in the future.</p>
 <li><a class="reference internal" href="#test-suites">3.3.2. Test suites</a></li>
 <li><a class="reference internal" href="#regression-testing">3.3.3. Regression testing</a></li>
 <li><a class="reference internal" href="#comparison-testing">3.3.4. Comparison testing</a></li>
-<li><a class="reference internal" href="#icepack-test-reporting">3.3.5. Icepack Test Reporting</a></li>
+<li><a class="reference internal" href="#test-reporting">3.3.5. Test Reporting</a></li>
 <li><a class="reference internal" href="#examples">3.3.6. Examples</a><ul>
 <li><a class="reference internal" href="#to-generate-a-baseline-dataset-for-a-test-case">3.3.6.1. To generate a baseline dataset for a test case</a></li>
 <li><a class="reference internal" href="#to-run-a-test-case-and-compare-to-a-baseline-dataset">3.3.6.2. To run a test case and compare to a baseline dataset</a></li>
-<li><a class="reference internal" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-manually-report-results">3.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and manually report results</a></li>
-<li><a class="reference internal" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-automatically-report-the-results">3.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and automatically report the results</a></li>
+<li><a class="reference internal" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results">3.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and report results</a></li>
+<li><a class="reference internal" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results">3.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and report the results</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><a class="reference internal" href="#case-settings">3.4. Case Settings</a><ul>
 <li><a class="reference internal" href="#table-of-icepack-settings">3.4.1. Table of icepack settings</a></li>
-<li><a class="reference internal" href="#table-of-namelist-inputs">3.4.2. Table of namelist inputs</a></li>
+<li><a class="reference internal" href="#table-of-namelist-inputs">3.4.2. Table of namelist inputs</a><ul>
+<li><a class="reference internal" href="#bgc-tuning-parameters">3.4.2.1. BGC Tuning Parameters</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#adding-things">3.5. Adding things</a><ul>
-<li><a class="reference internal" href="#tracers">3.5.1. Tracers</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#troubleshooting">3.6. Troubleshooting</a><ul>
-<li><a class="reference internal" href="#initial-setup">3.6.1. Initial setup</a></li>
-<li><a class="reference internal" href="#restarts">3.6.2. Restarts</a></li>
-<li><a class="reference internal" href="#underflows">3.6.3. Underflows</a></li>
-<li><a class="reference internal" href="#debugging-hints">3.6.4. Debugging hints</a></li>
-<li><a class="reference internal" href="#known-bugs">3.6.5. Known bugs</a></li>
-<li><a class="reference internal" href="#interpretation-of-albedos">3.6.6. Interpretation of albedos</a></li>
-<li><a class="reference internal" href="#proliferating-subprocess-parameterizations">3.6.7. Proliferating subprocess parameterizations</a></li>
+<li><a class="reference internal" href="#troubleshooting">3.5. Troubleshooting</a><ul>
+<li><a class="reference internal" href="#initial-setup">3.5.1. Initial setup</a></li>
+<li><a class="reference internal" href="#restarts">3.5.2. Restarts</a></li>
+<li><a class="reference internal" href="#underflows">3.5.3. Underflows</a></li>
+<li><a class="reference internal" href="#debugging-hints">3.5.4. Debugging hints</a></li>
+<li><a class="reference internal" href="#known-bugs-and-other-issues">3.5.5. Known bugs and other issues</a></li>
+<li><a class="reference internal" href="#interpretation-of-albedos">3.5.6. Interpretation of albedos</a></li>
+<li><a class="reference internal" href="#proliferating-subprocess-parameterizations">3.5.7. Proliferating subprocess parameterizations</a></li>
 </ul>
 </li>
 </ul>

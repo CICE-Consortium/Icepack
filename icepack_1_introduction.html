@@ -47,26 +47,30 @@
             
   <div class="section" id="introduction-icepack">
 <h1>1. Introduction - Icepack<a class="headerlink" href="#introduction-icepack" title="Permalink to this headline">¶</a></h1>
-<p>The column physics of the sea ice model CICE, “Icepack”, is maintained by the
+<p>The column physics package of the sea ice model CICE, “Icepack”, is maintained by the
 CICE Consortium. This code includes several options for simulating sea ice
 thermodynamics, mechanical redistribution (ridging) and associated area and thickness
 changes.  In addition, the model supports a number of tracers, including
 thickness, enthalpy, ice age, first-year ice area, deformed ice area and volume,
 melt ponds, and biogeochemistry.</p>
 <p>Icepack is implemented in CICE as a git submodule.
-Icepack basically consists of three independent parts, the column physics code,
-the icepack driver that supports stand-alone testing of the column physics code, and the
-icepack scripts that build and test the Icepack model.
-The intent of Icepack is to provide the column physics model as a separate
-library for use in other models such as CICE.
+The purpose of Icepack is to provide the column physics model as a separate
+library for use in other host models such as CICE.
 Development and testing of CICE and Icepack may be done together,
 but the repositories are independent.</p>
+<p>Icepack consists of three independent parts, the column physics code,
+the icepack driver that supports stand-alone testing of the column physics code, and the
+icepack scripts that build and test the Icepack model.
+The column physics is called from a host (driver) model
+on a gridpoint by gridpoint basis.  Each gridpoint is independent
+and the host model stores and passes the model state and forcing to
+the column physics.</p>
 <p>This document uses the following text conventions:
 Variable names used in the code are <code class="docutils literal"><span class="pre">typewritten</span></code>.
 Subroutine names are given in <em>italic</em>.
 File and directory names are in <strong>boldface</strong>.
 Code and scripts are contained in a literal box or <code class="docutils literal"><span class="pre">typewritten</span></code>.
-A comprehensive <a class="reference internal" href="icepack_4_index.html#index"><span class="std std-ref">Index of primary variables and parameters</span></a>, including glossary of symbols with many of their values, appears
+A comprehensive <a class="reference internal" href="icepack_5_index.html#index"><span class="std std-ref">Index of primary variables and parameters</span></a>, including glossary of symbols with many of their values, appears
 at the end of this guide.</p>
 <div class="section" id="quick-start">
 <span id="quickstart"></span><h2>1.1. Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
@@ -83,8 +87,8 @@ found in the <a class="reference external" href="https://docs.google.com/documen
 <span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">submit</span>
 </pre></div>
 </div>
-<p>Note that testmachine is a generic machine name included with the icepack scripts.
-The local machine name will have to be substituted for testmachine and currently,
+<p><code class="docutils literal"><span class="pre">testmachine</span></code> is a generic machine name included with the icepack scripts.
+The local machine name will have to be substituted for <code class="docutils literal"><span class="pre">testmachine</span></code> and
 there are working ports for several different machines.  However, it may be necessary
 to port the model to a new machine.  See <a class="reference internal" href="icepack_3_user_guide.html#porting"><span class="std std-ref">Porting</span></a> for
 more information about how to port and <a class="reference internal" href="icepack_3_user_guide.html#scripts"><span class="std std-ref">Scripts</span></a> for more information about
@@ -99,6 +103,7 @@ the horizontal grid and other infrastructural CICE elements (e.g. MPI tasks, cal
 <li>A simplified driver was developed for Icepack, for testing purposes.</li>
 <li>Additional tests for the column physics are now available.</li>
 <li>This release includes the full vertical biogeochemistry code.</li>
+<li>The ice velocity can optionally be included in the calculation of wind stress.</li>
 </ul>
 </div>
 <div class="section" id="acknowledgements">
@@ -114,10 +119,10 @@ Special thanks are due to the following people:</p>
 <ul class="simple">
 <li>Elizabeth Hunke, Nicole Jeffery, Adrian Turner and Chris Newman at Los Alamos National Laboratory</li>
 <li>David Bailey, Alice DuVivier and Marika Holland at the National Center for Atmospheric Research</li>
-<li>Rick Allard and Matt Turner at the Naval Research Laboratory, Stennis Space Center,</li>
+<li>Rick Allard, Matt Turner and David Hebert at the Naval Research Laboratory, Stennis Space Center,</li>
 <li>Andrew Roberts of the Naval Postgraduate School,</li>
 <li>Jean-Francois Lemieux and Frederic Dupont of Environment and Climate Change Canada,</li>
-<li>Tony Craig and his supporters at the National Center for Atmospheric Research, the Naval Postgraduate School…CHECK,</li>
+<li>Tony Craig and his supporters at the National Center for Atmospheric Research, the Naval Postgraduate School, and NOAA National Weather Service,</li>
 <li>Cecilia Bitz at the University of Washington, for her column forcing data,</li>
 <li>and many others who contributed to previous versions of CICE.</li>
 </ul>
