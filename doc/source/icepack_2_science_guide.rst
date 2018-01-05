@@ -497,7 +497,7 @@ In the WMO case, the distribution used depends on the number of categories used.
    +----------------+------------+---------+--------+--------+--------+
    | distribution   | original   | round   |           WMO            |
    +================+============+=========+========+========+========+
-   | ``kcatbound`   | 0          | 1       |            2             |
+   | ``kcatbound``  | 0          | 1       |            2             |
    +----------------+------------+---------+--------+--------+--------+
    | :math:`N_C`    | 5          | 5       | 5      | 6      | 7      |
    +----------------+------------+---------+--------+--------+--------+
@@ -1193,7 +1193,7 @@ index \ :math:`n`.) Each column is divided into :math:`N_i` ice layers
 of thickness :math:`\Delta h_i = h_i/N_i` and :math:`N_s` snow layers of
 thickness :math:`\Delta h_s = h_s/N_s`. The surface temperature (i.e.,
 the temperature of ice or snow at the interface with the atmosphere) is
-:math:`T_{sf}`, which cannot exceed . The temperature at the
+:math:`T_{sf}`, which cannot exceed :math:`0^{\circ}C`. The temperature at the
 midpoint of the snow layer is :math:`T_s`, and the midpoint ice layer
 temperatures are :math:`T_{ik}`, where :math:`k` ranges from 1 to
 :math:`N_i`. The temperature at the bottom of the ice is held at
@@ -1202,7 +1202,7 @@ temperatures are in degrees Celsius unless stated otherwise.
 
 Each ice layer has an enthalpy :math:`q_{ik}`, defined as the negative
 of the energy required to melt a unit volume of ice and raise its
-temperature to . Because of internal melting and freezing in brine
+temperature to :math:`0^{\circ}C`. Because of internal melting and freezing in brine
 pockets, the ice enthalpy depends on the brine pocket volume and is a
 function of temperature and salinity. We can also define a snow enthalpy
 :math:`q_s`, which depends on temperature alone.
@@ -2095,7 +2095,7 @@ present; (2) :math:`T_{sf} = 0^{\circ}C`, snow present;
 one equation (the top row of the matrix) for the new surface
 temperature, :math:`N_s` equations for the new snow temperatures, and
 :math:`N_i` equations for the new ice temperatures. For cases 2 and 4 we
-omit the equation for the surface temperature, which is held at , and
+omit the equation for the surface temperature, which is held at :math:`0^{\circ}C`, and
 for cases 3 and 4 we omit the snow temperature equations. Snow is
 considered absent if the snow depth is less than a user-specified
 minimum value, ``hs_min``. (Very thin snow layers are still transported
@@ -2456,7 +2456,7 @@ of the ice, :math:`\rho_{w}` and :math:`c_{w}` are density and heat
 capacity of the brine and :math:`L_0` is the latent heat of melting of
 pure ice. We assume that the specific heats of the ice and brine are
 fixed at the values of cp\_ice and cp\_ocn, respectively. The enthalpy
-is the energy required to raise the temperature of the sea ice to ,
+is the energy required to raise the temperature of the sea ice to :math:`0^{\circ}C`,
 including both sensible and latent heat changes. Since the sea ice
 contains salt, it usually will be fully melted at a temperature below
 :math:`0^{\circ}C`.
@@ -2899,7 +2899,7 @@ change of the surface layer is given by
 
 where :math:`\rho` is the density of the surface material (snow or
 ice), and :math:`L_v = 2.501 \times 10^6 \ \mathrm{J/kg}` is the latent
-heat of vaporization of liquid water at . Note that :math:`\rho L_v` is
+heat of vaporization of liquid water at :math:`0^{\circ}C`. Note that :math:`\rho L_v` is
 nearly an order of magnitude larger than typical values of :math:`q`.
 For positive latent heat fluxes, the deposited snow or ice is assumed to
 have the same enthalpy as the existing surface layer.
@@ -3433,7 +3433,7 @@ The vertical bio-grid is described in the :ref:`grids` section.
 .. _mobile-and-stationary:
 
 *Mobile and stationary phases*
-
+``````````````````````````````
 Purely mobile tracers are tracers which move with the brine and thus, in
 the absence of biochemical reactions, evolve like salinity. For vertical
 tracer transport of purely mobile tracers, the flux conserved quantity
@@ -3492,9 +3492,8 @@ We use the exponential form of these equations:
 
 .. math::
    \begin{aligned}
-   c_m^{t+dt} & = &
-   c_m^t\exp\left(-\frac{dt}{\tau_{ret}}\right) +
-   c^t_s\left(1- \exp\left[-{\frac{dt}{\tau_{rel}}\right]\right)\end{aligned}
+   c_m^{t+dt} & = & c_m^t\exp\left(-\frac{dt}{\tau_{ret}}\right) +
+   c^t_s\left(1-\exp\left[-\frac{dt}{\tau_{rel}}\right]\right) \end{aligned}
 
 .. math::
    \begin{aligned}
@@ -3541,21 +3540,15 @@ z-tracers.
 
 .. _tab-phases:
 
-.. table:: Table 3
-
-   +-----------------+--------------------+--------------------+------------------------------+
-   | ``bgc_tracer_type`` | :math:`\tau_{ret}` | :math:`\tau_{rel}` |        Description           |
-   +=================+====================+====================+==============================+
-   |     -1.0        | :math:`\infty`     |         0          | entirely in the mobile phase |
-   +-----------------+--------------------+--------------------+------------------------------+
-   |      0.0        |       min          |        max         |     retention dominated      |
-   +-----------------+--------------------+--------------------+------------------------------+
-   |      1.0        |       max          |        min         |      release dominated       |
-   +-----------------+--------------------+--------------------+------------------------------+
-   |      0.5        |       min          |        min         |  equal but rapid exchange    |
-   +-----------------+--------------------+--------------------+------------------------------+
-   |      2.0        |       max          |        max         |  equal but slow exchange     |
-   +-----------------+--------------------+--------------------+------------------------------+
+.. csv-table:: Table 3
+   :header: "``bgc_tracer_type``", ":math:`\tau_{ret}`", ":math:`\tau_{rel}`", "Description"
+   :widths: 10, 10, 10, 30
+     
+   "-1.0", ":math:`\infty`", "0", "entirely in the mobile phase"
+   "0.0", "min", "max", "retention dominated"
+   "1.0", "max", "min", "release dominated"
+   "0.5", "min", "min", "equal but rapid exchange"
+   "2.0", "max", "max", "equal but slow exchange"
 
 The fraction of a given tracer in the mobile phase is independent of ice
 depth and stored in the tracer variable zbgc\_frac. The horizontal
@@ -3574,10 +3567,11 @@ in an unphysically large accumulation during the melt season.
 .. _tracer-numerics:
 
 *Flux-corrected, positive definite transport scheme*
+````````````````````````````````````````````````````
 
 Numerical solution of the vertical tracer transport equation is
 accomplished using the finite element Galerkin discretization. Multiply
-[eqn:mobile_transport] by "w" and integrate by parts
+:eq:`mobile-transport` by "w" and integrate by parts
 
 .. math::
    \begin{aligned}
