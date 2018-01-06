@@ -11,9 +11,8 @@
       use icedrv_domain_size, only: max_ntrcr, nblyr, nilyr, nslyr
       use icedrv_domain_size, only: n_algae, n_zaero, n_doc, n_dic, n_don
       use icedrv_domain_size, only: n_fed, n_fep, max_nsw, n_bgc, n_aero
-      use icedrv_constants, only: c1, c2, p5, c0, c5, puny, p1
+      use icedrv_constants, only: c1, c2, p5, c0, c5, p1
       use icedrv_constants, only: nu_diag, nu_nml
-      use icedrv_constants, only: depressT, rhos, rhoi
       use icepack_intfc, only: icepack_max_don, icepack_max_doc, icepack_max_dic
       use icepack_intfc, only: icepack_max_algae, icepack_max_aero, icepack_max_fe
       use icepack_intfc, only: icepack_max_nbtrcr
@@ -23,7 +22,7 @@
       use icepack_intfc, only: icepack_init_parameters
       use icepack_intfc, only: icepack_query_tracer_numbers, icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_indices, icepack_query_tracer_sizes
-      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
       use icepack_intfc, only: icepack_init_zbgc
       use icepack_intfc, only: icepack_init_thermo
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
@@ -60,12 +59,16 @@
       real (kind=dbl_kind), dimension(nilyr+1) :: &
          sprofile                         ! vertical salinity profile
 
+      real (kind=dbl_kind) :: &
+         depressT
+
       character(len=*), parameter :: subname='(init_thermo_vertical)'
 
       !-----------------------------------------------------------------
       ! initialize heat_capacity, l_brine, and salinity profile
       !-----------------------------------------------------------------
 
+      call icepack_query_constants(depressT_out=depressT)
       call icepack_init_thermo(nilyr, sprofile)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -140,6 +143,7 @@
       integer (kind=int_kind) :: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, &
          nt_fbri, nt_tsfc, ntrcr, nbtrcr, nbtrcr_sw, nlt_chl_sw
       integer (kind=int_kind), dimension(icepack_max_aero) :: nlt_zaero_sw
+      real (kind=dbl_kind) :: puny
 
       character(len=*), parameter :: subname='(init_shortwave)'
 
@@ -148,6 +152,7 @@
          Iswabsn(:,:,:) = c0
          Sswabsn(:,:,:) = c0
 
+         call icepack_query_constants(puny_out=puny)
          call icepack_query_parameters(shortwave_out=shortwave)
          call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
          call icepack_query_parameters(modal_aero_out=modal_aero)

@@ -7,11 +7,13 @@
       module icedrv_diagnostics
 
       use icedrv_kinds
-      use icedrv_constants, only: c0, nu_diag, nu_diag_out
+      use icedrv_constants, only: nu_diag, nu_diag_out
+      use icedrv_constants, only: c1, c1000, c2, p001, p5
       use icedrv_calendar, only: diagfreq, istep1, istep
       use icedrv_domain_size, only: nx
+      use icepack_intfc, only: c0
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icedrv_system, only: icedrv_system_abort
 
@@ -55,9 +57,6 @@
 
       subroutine runtime_diags (dt)
 
-      use icedrv_constants,   only: c1, c1000, c2, p001, p5, puny, rhoi, rhos, rhow
-      use icedrv_constants,   only: rhofresh, Tffresh, Lfresh, Lvap, ice_ref_salinity
-      use icedrv_constants,   only: m2_to_km2, awtvdr, awtidr, awtvdf, awtidf
       use icedrv_domain_size, only: ncat, n_aero
       use icedrv_flux, only: alvdr, alidr, alvdf, alidf, evap, fsnow, frazil
       use icedrv_flux, only: fswabs, fswthru, flw, flwout, fsens, fsurf, flat, frzmlt_init, frain, fpond
@@ -93,6 +92,9 @@
       real (kind=dbl_kind), dimension (nx) :: &
          work1, work2
 
+      real (kind=dbl_kind) :: &
+         Tffresh, rhos, rhow, rhoi
+
       logical (kind=log_kind) :: tr_brine
       integer (kind=int_kind) :: nt_fbri, nt_Tsfc
 
@@ -105,6 +107,8 @@
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
       call icepack_query_tracer_flags(tr_brine_out=tr_brine)
       call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc)
+      call icepack_query_constants(Tffresh_out=Tffresh, rhos_out=rhos, &
+           rhow_out=rhow, rhoi_out=rhoi)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -375,7 +379,6 @@
       subroutine print_state(plabel,i)
 
       use icedrv_calendar,  only: istep1, time
-      use icedrv_constants, only: puny, rhoi, rhos, Lfresh, cp_ice
       use icedrv_domain_size, only: ncat, nilyr, nslyr
       use icedrv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
       use icedrv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow
@@ -393,7 +396,9 @@
 
       real (kind=dbl_kind) :: &
            eidebug, esdebug, &
-           qi, qs, Tsnow
+           qi, qs, Tsnow, &
+           puny, Lfresh, cp_ice, &
+           rhoi, rhos
 
       integer (kind=int_kind) :: n, k
 
@@ -402,7 +407,9 @@
       character(len=*), parameter :: subname='(print_state)'
 
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
-         nt_qsno_out=nt_qsno)
+           nt_qsno_out=nt_qsno)
+      call icepack_query_constants(puny_out=puny, Lfresh_out=Lfresh, cp_ice_out=cp_ice, &
+           rhoi_out=rhoi, rhos_out=rhos)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
