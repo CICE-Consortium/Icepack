@@ -10,7 +10,7 @@
       use icedrv_domain_size, only: ncat, nx
       use icedrv_calendar, only: time, nyr, dayyr, mday, month
       use icedrv_calendar, only: daymo, daycal, dt, yday, days_per_year
-      use icedrv_constants, only: nu_diag, nu_forcing, secday
+      use icedrv_constants, only: nu_diag, nu_forcing
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4
       use icedrv_constants, only: secday, Tffresh, qqqice, TTTice, rhos
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
