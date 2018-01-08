@@ -11,7 +11,7 @@
       use icedrv_calendar, only: time, nyr, dayyr, mday, month
       use icedrv_calendar, only: daymo, daycal, dt, yday, days_per_year
       use icedrv_constants, only: nu_diag, nu_forcing, secday
-      use icedrv_constants, only: c0, c1, c2, c10, c100, p5
+      use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4
       use icedrv_constants, only: secday, Tffresh, qqqice, TTTice, rhos
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
@@ -304,9 +304,9 @@
          rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
          frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
 
-        sec6hr = secday/4;                      ! seconds in 6 hours
+        sec6hr = secday/c4;                      ! seconds in 6 hours
         maxrec = 1464
-        recnum = int(yday*4)
+        recnum = int(time/secday*c4); 
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
         call interp_coeff (recnum, recslot, sec6hr, dataloc, c1intp, c2intp)
@@ -382,13 +382,15 @@
       call finish_ocn_forcing(sst_temp)
 
 ! for debugging
-!if (timestep==4009.or.timestep==4010) then
+!if (timestep==2736.or.timestep==2742) then
 if (0==1) then ! off
 write (nu_diag,*) 'timestep, mlast,mnext,yday',timestep, mlast, mnext, yday
 write (nu_diag,*) 'recnum',recnum
 write (nu_diag,*) 'c1intp, c2intp',c1intp, c2intp
 write (nu_diag,*) 'flw',flw
 write (nu_diag,*) 'fsw',fsw
+write (nu_diag,*) 'flw_data(timestep)',flw_data(timestep)
+write (nu_diag,*) 'fsw_data(timestep)',fsw_data(timestep)
 write (nu_diag,*) 'Tair',Tair
 write (nu_diag,*) 'Qa',Qa
 write (nu_diag,*) 'fsnow',fsnow
@@ -914,7 +916,7 @@ endif
       character(len=*), parameter :: subname='(ocn_NICE)'
 
       filename = &
-         trim(data_dir)//'NICE_2015/oceanmixed_daily_3.txt'
+         trim(data_dir)//'/NICE_2015/oceanmixed_daily_3.txt'
 
       write (nu_diag,*) 'Reading ',filename
 

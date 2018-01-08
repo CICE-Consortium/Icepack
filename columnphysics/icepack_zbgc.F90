@@ -18,7 +18,7 @@
       use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
       use icepack_parameters, only: fr_resp_s, y_sk_DMS, t_sk_conv, t_sk_ox
       use icepack_parameters, only: scale_bgc, ktherm, skl_bgc, solve_zsal
-      use icepack_parameters, only: z_tracers, phi_snow
+      use icepack_parameters, only: z_tracers, phi_snow, fsal
 
       use icepack_tracers, only: nt_sice, nt_bgc_S, bio_index 
       use icepack_tracers, only: tr_brine, nt_fbri, nt_qice, nt_Tsfc
@@ -39,6 +39,8 @@
       use icepack_zbgc_shared, only: tau_ret, tau_rel
       use icepack_zbgc_shared, only: dictype, algaltype, doctype, dontype
       use icepack_zbgc_shared, only: fedtype, feptype, zaerotype
+      use icepack_zbgc_shared, only: nitratetype, silicatetype, ammoniumtype
+      use icepack_zbgc_shared, only: humtype, dmspptype, dmspdtype
       use icepack_zbgc_shared, only: R_C2N, R_CHL2N, f_abs_chl, R_C2N_DON
 
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -685,7 +687,9 @@
                  fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, T_max_in, &
                  op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, fr_dFe_in, &
                  k_nitrif_in, t_iron_conv_in, max_loss_in, max_dfe_doc1_in, &
-                 fr_resp_s_in, y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in)
+                 fr_resp_s_in, y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, &
+                 fsal_in, nitratetype_in, ammoniumtype_in, silicatetype_in, humtype_in, &
+                 dmspptype_in, dmspdtype_in)
 
       real (kind=dbl_kind), optional :: dictype_in(:)
       real (kind=dbl_kind), optional :: algaltype_in(:)
@@ -694,6 +698,13 @@
       real (kind=dbl_kind), optional :: fedtype_in(:)
       real (kind=dbl_kind), optional :: feptype_in(:)
       real (kind=dbl_kind), optional :: zaerotype_in(:)
+
+      real (kind=dbl_kind), optional :: nitratetype_in
+      real (kind=dbl_kind), optional :: ammoniumtype_in
+      real (kind=dbl_kind), optional :: silicatetype_in
+      real (kind=dbl_kind), optional :: humtype_in
+      real (kind=dbl_kind), optional :: dmspptype_in
+      real (kind=dbl_kind), optional :: dmspdtype_in
 
       real (kind=dbl_kind), optional :: R_C2N_in(:)        ! algal C to N (mole/mole)
       real (kind=dbl_kind), optional :: R_chl2N_in(:)      ! 3 algal chlorophyll to N (mg/mmol)
@@ -725,6 +736,7 @@
       real (kind=dbl_kind), optional :: y_sk_DMS_in        ! fraction conversion given high yield
       real (kind=dbl_kind), optional :: t_sk_conv_in       ! Stefels conversion time (d)
       real (kind=dbl_kind), optional :: t_sk_ox_in         ! DMS oxidation time (d)
+      real (kind=dbl_kind), optional :: fsal_in            ! salinity limitation factor (1)
 
       real (kind=dbl_kind), optional :: chlabs_in(:)       ! chla absorption 1/m/(mg/m^3)
       real (kind=dbl_kind), optional :: alpha2max_low_in(:)  ! light limitation (1/(W/m^2))
@@ -764,6 +776,13 @@
       if (present(feptype_in))   feptype(:)   = feptype_in(:)
       if (present(zaerotype_in)) zaerotype(:) = zaerotype_in(:)
 
+      if (present(nitratetype_in))  nitratetype  = nitratetype_in
+      if (present(silicatetype_in)) silicatetype = silicatetype_in
+      if (present(ammoniumtype_in)) ammoniumtype = ammoniumtype_in
+      if (present(humtype_in))      humtype      = humtype_in
+      if (present(dmspptype_in))    dmspptype    = dmspptype_in
+      if (present(dmspdtype_in))    dmspdtype    = dmspdtype_in
+
       if (present(R_C2N_in))     R_C2N(:)     = R_C2N_in(:)
       if (present(R_chl2N_in))   R_chl2N(:)   = R_chl2N_in(:)
       if (present(F_abs_chl_in)) F_abs_chl(:) = F_abs_chl_in(:)
@@ -793,6 +812,7 @@
       if (present(y_sk_DMS_in))     y_sk_DMS     = y_sk_DMS_in
       if (present(t_sk_conv_in))    t_sk_conv    = t_sk_conv_in
       if (present(t_sk_ox_in))      t_sk_ox      = t_sk_ox_in
+      if (present(fsal_in))         fsal         = fsal_in
 
       if (present(chlabs_in))    chlabs(:)    = chlabs_in(:)
       if (present(alpha2max_low_in)) alpha2max_low(:) = alpha2max_low_in(:)

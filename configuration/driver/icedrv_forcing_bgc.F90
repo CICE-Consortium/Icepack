@@ -142,12 +142,15 @@
 
       if (.not. trim(nit_data_type)=='ISPOL' .AND. &
           .not. trim(sil_data_type)=='ISPOL' .AND. &
-          .not. trim(nit_data_type)=='INICE' .AND. &
+          .not. trim(nit_data_type)=='NICE'  .AND. &
           .not. trim(sil_data_type)=='NICE') then
 
 
-      elseif (trim(nit_data_type) == 'ISPOL' .or. trim(sil_data_type) == 'ISPOL') then 
-      
+      elseif (trim(nit_data_type) == 'ISPOL' .or. &
+           trim(sil_data_type) == 'ISPOL' .or. &
+           trim(nit_data_type) == 'NICE' .or. &
+           trim(sil_data_type) == 'NICE') then
+
         dataloc = 2                          ! data located at end of interval
         sec1hr = secday                      ! seconds in day
         maxrec = 365                         ! 

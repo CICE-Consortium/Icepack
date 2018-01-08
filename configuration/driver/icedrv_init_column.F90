@@ -948,7 +948,7 @@
       k_bac_s            = 0.03_dbl_kind ! Bacterial degredation of DOC (1/d)
       k_bac_l            = 0.03_dbl_kind
       T_max              = c0            ! maximum temperature (C)
-      fsal               = c1            ! Salinity limitation (ppt)
+      fsal               = c1            ! Salinity limitation (1)
       op_dep_min         = p1            ! Light attenuates for optical depths exceeding min
       fr_graze_s         = p5            ! fraction of grazing spilled or slopped
       fr_graze_e         = p5            ! fraction of assimilation excreted 
@@ -1079,6 +1079,11 @@
             write(nu_diag,*) 'WARNING: tr_brine = F and solve_zbgc = T'
             write(nu_diag,*) 'WARNING: setting solve_zbgc = F'
             solve_zbgc = .false.
+         endif
+         if (skl_bgc) then
+            write(nu_diag,*) 'WARNING: tr_brine = F and skl_bgc = T'
+            write(nu_diag,*) 'WARNING: setting skl_bgc = F'
+            skl_bgc = .false.
          endif
          if (tr_zaero) then
             write(nu_diag,*) 'WARNING: tr_brine = F and tr_zaero = T'
@@ -1222,6 +1227,7 @@
           solve_zbgc_in=solve_zbgc, &
           bgc_flux_type_in=bgc_flux_type, grid_o_in=grid_o, l_sk_in=l_sk, &
           initbio_frac_in=initbio_frac, &
+          frazil_scav_in=frazil_scav, &
           grid_oS_in=grid_oS, l_skS_in=l_skS, &
           phi_snow_in=phi_snow, &
           modal_aero_in=modal_aero)
@@ -1359,7 +1365,7 @@
       F_abs_chl(3) = F_abs_chl_phaeo
 
       R_Fe2DON(1) = ratio_Fe2DON
-      R_C2N(1) = ratio_C2N_proteins
+      R_C2N_DON(1) = ratio_C2N_proteins
      
       R_Fe2DOC(1) = ratio_Fe2DOC_s
       R_Fe2DOC(2) = ratio_Fe2DOC_l
@@ -1450,8 +1456,14 @@
 
 !echmod types do not need to be in icepack for zbgc?
       call icepack_init_zbgc ( &
+         R_Si2N_in=R_Si2N, &
          R_S2N_in=R_S2N, R_Fe2C_in=R_Fe2C, R_Fe2N_in=R_Fe2N, R_C2N_in=R_C2N, &
-         R_chl2N_in=R_chl2N, F_abs_chl_in=F_abs_chl, R_Fe2DON_in=R_Fe2DON, R_Fe2DOC_in=R_Fe2DOC, &
+         R_chl2N_in=R_chl2N, F_abs_chl_in=F_abs_chl, R_Fe2DON_in=R_Fe2DON, &
+         R_C2N_DON_in=R_C2N_DON, &
+         R_Fe2DOC_in=R_Fe2DOC, &
+         chlabs_in=chlabs, alpha2max_low_in=alpha2max_low, beta2max_in=beta2max, &
+         mu_max_in=mu_max, grow_Tdep_in=grow_Tdep, fr_graze_in=fr_graze, &
+         mort_pre_in=mort_pre, &
          mort_Tdep_in=mort_Tdep, k_exude_in=k_exude, &
          K_Nit_in=K_Nit, K_Am_in=K_Am, K_sil_in=K_Sil, K_Fe_in=K_Fe, &
          f_don_in=f_don, kn_bac_in=k_bac, f_don_Am_in=f_don, f_exude_in=f_exude, k_bac_in=k_bac, &
@@ -1461,7 +1473,9 @@
          dustFe_sol_in=dustFe_sol, T_max_in=T_max, fr_mort2min_in=fr_mort2min, fr_dFe_in=fr_dFe, &
          op_dep_min_in=op_dep_min, fr_graze_s_in=fr_graze_s, fr_graze_e_in=fr_graze_e, &
          k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, &
-         fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, t_sk_conv_in=t_sk_conv, t_sk_ox_in=t_sk_ox)
+         fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, t_sk_conv_in=t_sk_conv, t_sk_ox_in=t_sk_ox, &
+         fsal_in=fsal, nitratetype_in=nitratetype, ammoniumtype_in=ammoniumtype, silicatetype_in=silicatetype, &
+         humtype_in=humtype, dmspptype_in=dmspptype, dmspdtype_in=dmspdtype)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
