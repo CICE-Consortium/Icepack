@@ -53,9 +53,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'CICE-Consortium Icepack'
-copyright = u'2017, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation)'
-author = u'CICE Consortium'
+project = u'CICE-Consortium_Icepack'
+copyright = u'2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation)'
+author = u'CICE-Consortium'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -232,8 +232,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'CICE-Consortium-Icepack.tex', u'CICE-Consortium Icepack Documentation',
-     u'Alice DuVivier', 'manual'),
+    (master_doc, 'CICE-Consortium_Icepack.tex', u'CICE-Consortium_Icepack Documentation',
+     u'CICE Consortium', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -262,7 +262,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'cice-consortium-icepack', u'CICE-Consortium Icepack Documentation',
+    (master_doc, 'cice-consortium-icepack', u'CICE-Consortium_Icepack Documentation',
      [author], 1)
 ]
 
@@ -276,8 +276,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'CICE-Consortium-Icepack', u'CICE-Consortium Icepack Documentation',
-     author, 'CICE-Consortium Icepack', 'One line description of project.',
+    (master_doc, 'CICE-Consortium_Icepack', u'CICE-Consortium_Icepack Documentation',
+     author, 'CICE-Consortium', 'One line description of project.',
      'Miscellaneous'),
 ]
 
