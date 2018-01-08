@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>4. Developers Guide &#8212; CICE-Consortium Icepack 0.0.1 documentation</title>
+    <title>1. Developers Guide &#8212; CICE-Consortium_Icepack 0.0.1 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -23,20 +23,20 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="5. Index of primary variables and parameters" href="icepack_5_index.html" />
-    <link rel="prev" title="3. User Guide" href="icepack_3_user_guide.html" /> 
+    <link rel="next" title="1. Index of primary variables and parameters" href="icepack_5_index.html" />
+    <link rel="prev" title="1. User Guide" href="icepack_3_user_guide.html" /> 
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="icepack_5_index.html" title="5. Index of primary variables and parameters"
+          <a href="icepack_5_index.html" title="1. Index of primary variables and parameters"
              accesskey="N">next</a></li>
         <li class="right" >
-          <a href="icepack_3_user_guide.html" title="3. User Guide"
+          <a href="icepack_3_user_guide.html" title="1. User Guide"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium_Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -46,7 +46,7 @@
           <div class="body" role="main">
             
   <div class="section" id="developers-guide">
-<h1>4. Developers Guide<a class="headerlink" href="#developers-guide" title="Permalink to this headline">¶</a></h1>
+<h1>1. Developers Guide<a class="headerlink" href="#developers-guide" title="Permalink to this headline">¶</a></h1>
 <p>The Icepack model consists of three different parts, the column physics
 code, the icepack driver, and the scripts.  Development of each of these
 pieces will be described below separately.</p>
@@ -73,9 +73,9 @@ flags, diagnostics) shall be implemented in the driver and passed into or out of
 column physics modules via array arguments.</li>
 </ul>
 <div class="section" id="icepack-column-physics">
-<span id="dev-colphys"></span><h2>4.1. Icepack Column Physics<a class="headerlink" href="#icepack-column-physics" title="Permalink to this headline">¶</a></h2>
+<span id="dev-colphys"></span><h2>1.1. Icepack Column Physics<a class="headerlink" href="#icepack-column-physics" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="file-list">
-<h3>4.1.1. File List<a class="headerlink" href="#file-list" title="Permalink to this headline">¶</a></h3>
+<h3>1.1.1. File List<a class="headerlink" href="#file-list" title="Permalink to this headline">¶</a></h3>
 <p>The column physics source code contains the following files</p>
 <div class="line-block">
 <div class="line"><strong>columnphysics/</strong>   the column physics code</div>
@@ -115,7 +115,7 @@ column physics modules via array arguments.</li>
 </div>
 </div>
 <div class="section" id="coding-standard">
-<h3>4.1.2. Coding Standard<a class="headerlink" href="#coding-standard" title="Permalink to this headline">¶</a></h3>
+<h3>1.1.2. Coding Standard<a class="headerlink" href="#coding-standard" title="Permalink to this headline">¶</a></h3>
 <p>The column physics is a library that solves the sea ice column physics on a
 timestep by timestep and gridpoint by gridpoint basis.  It consists of Fortran routines with
 input and output arguments.  The model state is saved in the host model.  There is no
@@ -144,11 +144,11 @@ there is an ongoing effort to make more of the interfaces support keyword=value 
 for clarity and backwards compatibility.</p>
 </div>
 <div class="section" id="using-icepack">
-<h3>4.1.3. Using Icepack<a class="headerlink" href="#using-icepack" title="Permalink to this headline">¶</a></h3>
+<h3>1.1.3. Using Icepack<a class="headerlink" href="#using-icepack" title="Permalink to this headline">¶</a></h3>
 <p>In this section, the various public icepack interfaces will be defined and
 how to use them will be described.</p>
 <div class="section" id="interfaces">
-<h4>4.1.3.1. Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h4>
+<h4>1.1.3.1. Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h4>
 <p>Column physics data and subroutines are made public thru the <strong>icepack_intfc.F90</strong>
 file.  That file contains the entire list of data and subroutines needed to
 initialize, setup, and run the column physics package.  That file points
@@ -294,7 +294,7 @@ first:</p>
 </div>
 </div>
 <div class="section" id="calling-sequence">
-<h4>4.1.3.2. Calling Sequence<a class="headerlink" href="#calling-sequence" title="Permalink to this headline">¶</a></h4>
+<h4>1.1.3.2. Calling Sequence<a class="headerlink" href="#calling-sequence" title="Permalink to this headline">¶</a></h4>
 <p>The calling sequence required to setup and run the column physics is generally
 described below.  Several steps may be needed to be taken by the host between
 icepack calls in order to support the icepack interfaces.
@@ -335,7 +335,7 @@ end loop over timesteps</p>
 <p>end driver</p>
 </div>
 <div class="section" id="the-warning-package">
-<span id="warning"></span><h4>4.1.3.3. The Warning Package<a class="headerlink" href="#the-warning-package" title="Permalink to this headline">¶</a></h4>
+<span id="warning"></span><h4>1.1.3.3. The Warning Package<a class="headerlink" href="#the-warning-package" title="Permalink to this headline">¶</a></h4>
 <p>Icepack has no IO capabilities.  It does not have direct knowledge of
 any input or output files.  However, it can write output thru specific
 interfaces that pass in a fortran file unit number.  There are several
@@ -363,11 +363,11 @@ out the icepack warning messages.</p>
 </div>
 </div>
 <div class="section" id="driver-implementation">
-<span id="dev-driver"></span><h2>4.2. Driver Implementation<a class="headerlink" href="#driver-implementation" title="Permalink to this headline">¶</a></h2>
+<span id="dev-driver"></span><h2>1.2. Driver Implementation<a class="headerlink" href="#driver-implementation" title="Permalink to this headline">¶</a></h2>
 <p>The icepack driver is Fortran source code and exists to test the column physics
 in a stand-alone mode for some simple column configurations.</p>
 <div class="section" id="id5">
-<h3>4.2.1. File List<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.1. File List<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>The icepack driver consists of the following files</p>
 <div class="line-block">
 <div class="line"><strong>configuration/driver/</strong>       driver for testing Icepack in stand-alone mode</div>
@@ -396,7 +396,7 @@ in a stand-alone mode for some simple column configurations.</p>
 </div>
 </div>
 <div class="section" id="overview">
-<h3>4.2.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
 <p>The icepack driver exists to test the column physics.  At the present time, it is hardwired
 to run 4 different gridcells on one processor with the same forcing used for all gridcells.
 There is no MPI and no threading built into the icepack driver.  There is limited IO capabilities,
@@ -405,11 +405,11 @@ no history files, and no netcdf restart files.  The model generally runs very qu
 </div>
 </div>
 <div class="section" id="scripts-implementation">
-<span id="dev-scripts"></span><h2>4.3. Scripts Implementation<a class="headerlink" href="#scripts-implementation" title="Permalink to this headline">¶</a></h2>
+<span id="dev-scripts"></span><h2>1.3. Scripts Implementation<a class="headerlink" href="#scripts-implementation" title="Permalink to this headline">¶</a></h2>
 <p>The scripts are the third part of the icepack package.  They support setting up
 cases, building, and running the icepack stand-alone model.</p>
 <div class="section" id="id6">
-<h3>4.3.1. File List<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>1.3.1. File List<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>The directory structure under configure/scripts is as follows.</p>
 <div class="line-block">
 <div class="line"><strong>configuration/scripts/</strong></div>
@@ -435,7 +435,7 @@ cases, building, and running the icepack stand-alone model.</p>
 </div>
 </div>
 <div class="section" id="strategy">
-<span id="dev-strategy"></span><h3>4.3.2. Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<span id="dev-strategy"></span><h3>1.3.2. Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
 <p>The icepack scripts are implemented such that everything is resolved after
 <strong>icepack.create.case</strong> is called.  This is done by both copying specific files
 into the case directory and running scripts as part of the <strong>icepack.create.case</strong>
@@ -446,7 +446,7 @@ scripts are relatively simple csh or sh scripts.</p>
 <strong>icepack_in</strong> defines the namelist input for the icepack driver.</p>
 </div>
 <div class="section" id="preset-case-options">
-<span id="dev-options"></span><h3>4.3.3. Preset Case Options<a class="headerlink" href="#preset-case-options" title="Permalink to this headline">¶</a></h3>
+<span id="dev-options"></span><h3>1.3.3. Preset Case Options<a class="headerlink" href="#preset-case-options" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-s</span></code> option allows the user to choose some predetermined icepack
 settings and namelist.  Those options are defined in <strong>configurations/scripts/options/</strong>
 and the files are prefixed by either set_env, set_nml, or test_nml.  When <strong>icepack.create.case</strong>
@@ -466,7 +466,7 @@ syntax and the set_env files are consistent with csh setenv syntax.  See other f
 examples of the syntax.</p>
 </div>
 <div class="section" id="machines">
-<span id="dev-machines"></span><h3>4.3.4. Machines<a class="headerlink" href="#machines" title="Permalink to this headline">¶</a></h3>
+<span id="dev-machines"></span><h3>1.3.4. Machines<a class="headerlink" href="#machines" title="Permalink to this headline">¶</a></h3>
 <p>Machine specific information is contained in <strong>configuration/scripts/machines</strong>.  That
 directory contains a Macros file and an env file for each supported machine.
 One other files will need to be
@@ -474,7 +474,7 @@ changed to support a port, that is <strong>configuration/scripts/icepack.batch.c
 To port to a new machine, see <a class="reference internal" href="icepack_3_user_guide.html#porting"><span class="std std-ref">Porting</span></a>.</p>
 </div>
 <div class="section" id="test-scripts">
-<span id="dev-testing"></span><h3>4.3.5. Test scripts<a class="headerlink" href="#test-scripts" title="Permalink to this headline">¶</a></h3>
+<span id="dev-testing"></span><h3>1.3.5. Test scripts<a class="headerlink" href="#test-scripts" title="Permalink to this headline">¶</a></h3>
 <p>Under <strong>configuration/scripts/tests</strong> are several files including the scripts to
 setup the smoke and restart tests (<strong>test_smoke.script</strong>, <strong>test_restart.script*).
 A baseline test script (**baseline.script</strong>) is also there to setup the regression
@@ -491,7 +491,7 @@ and <strong>test_restart.script</strong>.  In addition, some new options files i
 </div>
 </div>
 <div class="section" id="adding-tracers">
-<span id="addtrcr"></span><h2>4.4. Adding tracers<a class="headerlink" href="#adding-tracers" title="Permalink to this headline">¶</a></h2>
+<span id="addtrcr"></span><h2>1.4. Adding tracers<a class="headerlink" href="#adding-tracers" title="Permalink to this headline">¶</a></h2>
 <p>We require that any changes made to the code be implemented in such a way that they can
 be “turned off” through namelist flags.  In most cases, code run with such changes should
 be bit-for-bit identical with the unmodified code.  Occasionally, non-bit-for-bit changes
@@ -574,42 +574,42 @@ topo ponds in Section&nbsp;<a class="reference internal" href="icepack_2_science
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">4. Developers Guide</a><ul>
-<li><a class="reference internal" href="#icepack-column-physics">4.1. Icepack Column Physics</a><ul>
-<li><a class="reference internal" href="#file-list">4.1.1. File List</a></li>
-<li><a class="reference internal" href="#coding-standard">4.1.2. Coding Standard</a></li>
-<li><a class="reference internal" href="#using-icepack">4.1.3. Using Icepack</a><ul>
-<li><a class="reference internal" href="#interfaces">4.1.3.1. Interfaces</a></li>
-<li><a class="reference internal" href="#calling-sequence">4.1.3.2. Calling Sequence</a></li>
-<li><a class="reference internal" href="#the-warning-package">4.1.3.3. The Warning Package</a></li>
+<li><a class="reference internal" href="#">1. Developers Guide</a><ul>
+<li><a class="reference internal" href="#icepack-column-physics">1.1. Icepack Column Physics</a><ul>
+<li><a class="reference internal" href="#file-list">1.1.1. File List</a></li>
+<li><a class="reference internal" href="#coding-standard">1.1.2. Coding Standard</a></li>
+<li><a class="reference internal" href="#using-icepack">1.1.3. Using Icepack</a><ul>
+<li><a class="reference internal" href="#interfaces">1.1.3.1. Interfaces</a></li>
+<li><a class="reference internal" href="#calling-sequence">1.1.3.2. Calling Sequence</a></li>
+<li><a class="reference internal" href="#the-warning-package">1.1.3.3. The Warning Package</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#driver-implementation">4.2. Driver Implementation</a><ul>
-<li><a class="reference internal" href="#id5">4.2.1. File List</a></li>
-<li><a class="reference internal" href="#overview">4.2.2. Overview</a></li>
+<li><a class="reference internal" href="#driver-implementation">1.2. Driver Implementation</a><ul>
+<li><a class="reference internal" href="#id5">1.2.1. File List</a></li>
+<li><a class="reference internal" href="#overview">1.2.2. Overview</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#scripts-implementation">4.3. Scripts Implementation</a><ul>
-<li><a class="reference internal" href="#id6">4.3.1. File List</a></li>
-<li><a class="reference internal" href="#strategy">4.3.2. Strategy</a></li>
-<li><a class="reference internal" href="#preset-case-options">4.3.3. Preset Case Options</a></li>
-<li><a class="reference internal" href="#machines">4.3.4. Machines</a></li>
-<li><a class="reference internal" href="#test-scripts">4.3.5. Test scripts</a></li>
+<li><a class="reference internal" href="#scripts-implementation">1.3. Scripts Implementation</a><ul>
+<li><a class="reference internal" href="#id6">1.3.1. File List</a></li>
+<li><a class="reference internal" href="#strategy">1.3.2. Strategy</a></li>
+<li><a class="reference internal" href="#preset-case-options">1.3.3. Preset Case Options</a></li>
+<li><a class="reference internal" href="#machines">1.3.4. Machines</a></li>
+<li><a class="reference internal" href="#test-scripts">1.3.5. Test scripts</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#adding-tracers">4.4. Adding tracers</a></li>
+<li><a class="reference internal" href="#adding-tracers">1.4. Adding tracers</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="icepack_3_user_guide.html"
-                        title="previous chapter">3. User Guide</a></p>
+                        title="previous chapter">1. User Guide</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="icepack_5_index.html"
-                        title="next chapter">5. Index of primary variables and parameters</a></p>
+                        title="next chapter">1. Index of primary variables and parameters</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -635,16 +635,16 @@ topo ponds in Section&nbsp;<a class="reference internal" href="icepack_2_science
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="icepack_5_index.html" title="5. Index of primary variables and parameters"
+          <a href="icepack_5_index.html" title="1. Index of primary variables and parameters"
              >next</a></li>
         <li class="right" >
-          <a href="icepack_3_user_guide.html" title="3. User Guide"
+          <a href="icepack_3_user_guide.html" title="1. User Guide"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium_Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>

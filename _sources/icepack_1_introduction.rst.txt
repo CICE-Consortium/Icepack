@@ -103,7 +103,7 @@ Special thanks are due to the following people:
 Copyright
 =============================
 
-© Copyright 2017, Los Alamos National Security LLC. All rights reserved. 
+© Copyright 2018, Los Alamos National Security LLC. All rights reserved. 
 This software was produced under U.S. Government contract 
 DE-AC52-06NA25396 for Los Alamos National Laboratory (LANL), which is
 operated by Los Alamos National Security, LLC for the U.S. Department

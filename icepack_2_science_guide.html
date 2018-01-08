@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2. Science Guide &#8212; CICE-Consortium Icepack 0.0.1 documentation</title>
+    <title>1. Science Guide &#8212; CICE-Consortium_Icepack 0.0.1 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -23,20 +23,20 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="3. User Guide" href="icepack_3_user_guide.html" />
-    <link rel="prev" title="1. Introduction - Icepack" href="icepack_1_introduction.html" /> 
+    <link rel="next" title="2. User Guide" href="icepack_3_user_guide.html" />
+    <link rel="prev" title="Icepack Documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="icepack_3_user_guide.html" title="3. User Guide"
+          <a href="icepack_3_user_guide.html" title="2. User Guide"
              accesskey="N">next</a></li>
         <li class="right" >
-          <a href="icepack_1_introduction.html" title="1. Introduction - Icepack"
+          <a href="index.html" title="Icepack Documentation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium_Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -46,10 +46,10 @@
           <div class="body" role="main">
             
   <div class="section" id="science-guide">
-<h1>2. Science Guide<a class="headerlink" href="#science-guide" title="Permalink to this headline">¶</a></h1>
+<h1>1. Science Guide<a class="headerlink" href="#science-guide" title="Permalink to this headline">¶</a></h1>
 <p>For more information, see the <a class="reference internal" href="icepack_4_developer_guide.html#dev-colphys"><span class="std std-ref">Icepack Column Physics</span></a> section.</p>
 <div class="section" id="atmosphere-and-ocean-boundary-forcing">
-<h2>2.1. Atmosphere and ocean boundary forcing<a class="headerlink" href="#atmosphere-and-ocean-boundary-forcing" title="Permalink to this headline">¶</a></h2>
+<h2>1.1. Atmosphere and ocean boundary forcing<a class="headerlink" href="#atmosphere-and-ocean-boundary-forcing" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="#tab-flux-cpl"><span class="std std-ref">Table 1</span></a>: <em>External forcing data that are relevant to Icepack</em></p>
 <table border="1" class="docutils" id="id95">
 <span id="tab-flux-cpl"></span><caption><span class="caption-text">Table 1</span><a class="headerlink" href="#id95" title="Permalink to this table">¶</a></caption>
@@ -231,7 +231,7 @@ fluxes, in a single implicit calculation. This was judged impractical,
 however, given that the atmosphere and sea ice models generally exist on
 different grids and/or processor sets.</p>
 <div class="section" id="atmosphere">
-<span id="atmo"></span><h3>2.1.1. Atmosphere<a class="headerlink" href="#atmosphere" title="Permalink to this headline">¶</a></h3>
+<span id="atmo"></span><h3>1.1.1. Atmosphere<a class="headerlink" href="#atmosphere" title="Permalink to this headline">¶</a></h3>
 <p>The wind velocity, specific humidity, air density and potential
 temperature at the given level height <span class="math">\(z_\circ\)</span> are used to
 compute transfer coefficients used in formulas for the surface wind
@@ -336,7 +336,7 @@ quantities referred to here can be found in
 the&nbsp;<a class="reference internal" href="#sfc-forcing"><span class="std std-ref">Thermodynamic surface forcing balance</span></a> section.</p>
 </div>
 <div class="section" id="ocean">
-<span id="id5"></span><h3>2.1.2. Ocean<a class="headerlink" href="#ocean" title="Permalink to this headline">¶</a></h3>
+<span id="id5"></span><h3>1.1.2. Ocean<a class="headerlink" href="#ocean" title="Permalink to this headline">¶</a></h3>
 <p>New sea ice forms when the ocean temperature drops below its freezing
 temperature. In the Bitz and Lipscomb thermodynamics,
 <a class="reference internal" href="zreferences.html#bl99" id="id6">[6]</a> <span class="math">\(T_f=-\mu S\)</span>, where <span class="math">\(S\)</span> is the
@@ -390,7 +390,7 @@ salinity-dependent freezing point, then new ice (frazil) forms.
 Otherwise, heat is made available for melting the ice.</p>
 </div>
 <div class="section" id="variable-exchange-coefficients">
-<span id="formdrag"></span><h3>2.1.3. Variable exchange coefficients<a class="headerlink" href="#variable-exchange-coefficients" title="Permalink to this headline">¶</a></h3>
+<span id="formdrag"></span><h3>1.1.3. Variable exchange coefficients<a class="headerlink" href="#variable-exchange-coefficients" title="Permalink to this headline">¶</a></h3>
 <p>In the default configuration, atmospheric and oceanic neutral drag
 coefficients (<span class="math">\(c_u\)</span> and <span class="math">\(c_w\)</span>) are assumed constant in time
 and space. These constants are chosen to reflect friction associated
@@ -499,7 +499,7 @@ coefficient is 0.006 (<code class="docutils literal"><span class="pre">fbot_xfer
 </div>
 </div>
 <div class="section" id="ice-thickness-distribution">
-<span id="model-comp"></span><h2>2.2. Ice thickness distribution<a class="headerlink" href="#ice-thickness-distribution" title="Permalink to this headline">¶</a></h2>
+<span id="model-comp"></span><h2>1.2. Ice thickness distribution<a class="headerlink" href="#ice-thickness-distribution" title="Permalink to this headline">¶</a></h2>
 <p>The Arctic and Antarctic sea ice packs are mixtures of open water, thin
 first-year ice, thicker multiyear ice, and thick pressure ridges. The
 thermodynamic and dynamic properties of the ice pack depend on how much
@@ -636,7 +636,7 @@ In the WMO case, the distribution used depends on the number of categories used.
 </table>
 </div>
 <div class="section" id="tracers">
-<span id="id23"></span><h2>2.3. Tracers<a class="headerlink" href="#tracers" title="Permalink to this headline">¶</a></h2>
+<span id="id23"></span><h2>1.3. Tracers<a class="headerlink" href="#tracers" title="Permalink to this headline">¶</a></h2>
 <p>Numerous tracers are available with the column physics.  Several of these are
 required (surface temperature and thickness, salinity and enthalpy of ice and snow layers),
 and many others are options.  For instance, there are tracers to track the age of the ice;
@@ -647,7 +647,7 @@ Most of these tracers are presented in later sections.  Here we describe the ice
 tracers and how tracers may depend on other tracers, using the pond tracers as an
 example.</p>
 <div class="section" id="ice-age">
-<span id="id24"></span><h3>2.3.1. Ice age<a class="headerlink" href="#ice-age" title="Permalink to this headline">¶</a></h3>
+<span id="id24"></span><h3>1.3.1. Ice age<a class="headerlink" href="#ice-age" title="Permalink to this headline">¶</a></h3>
 <p>The age of the ice, <span class="math">\(\tau_{age}\)</span>, is treated as an
 ice-volume tracer (<cite>trcr_depend</cite> = 1). It is initialized at 0 when ice
 forms as frazil, and the ice ages the length of the timestep during each
@@ -667,7 +667,7 @@ increased when new ice forms in open water, in subroutine
 is discussed in <a class="reference internal" href="zreferences.html#abth11" id="id26">[2]</a>.</p>
 </div>
 <div class="section" id="tracers-that-depend-on-other-tracers">
-<span id="pondtr"></span><h3>2.3.2. Tracers that depend on other tracers<a class="headerlink" href="#tracers-that-depend-on-other-tracers" title="Permalink to this headline">¶</a></h3>
+<span id="pondtr"></span><h3>1.3.2. Tracers that depend on other tracers<a class="headerlink" href="#tracers-that-depend-on-other-tracers" title="Permalink to this headline">¶</a></h3>
 <p>Tracers may be defined that depend on other tracers. Melt pond tracers
 provide an example (these equations pertain to cesm and topo tracers;
 level-ice tracers are similar with an extra factor of <span class="math">\(a_{lvl}\)</span>,
@@ -740,7 +740,7 @@ changes in the conserved quantity.</p>
 </div>
 </div>
 <div class="section" id="transport-in-thickness-space">
-<span id="itd-trans"></span><h2>2.4. Transport in thickness space<a class="headerlink" href="#transport-in-thickness-space" title="Permalink to this headline">¶</a></h2>
+<span id="itd-trans"></span><h2>1.4. Transport in thickness space<a class="headerlink" href="#transport-in-thickness-space" title="Permalink to this headline">¶</a></h2>
 <p>Next we solve the equation for ice transport in thickness space due to
 thermodynamic growth and melt,</p>
 <div class="math" id="equation-itd-transport">
@@ -901,7 +901,7 @@ very small snow volumes. In this case we transfer the snow and its heat
 and tracer contents to the ocean.</p>
 </div>
 <div class="section" id="mechanical-redistribution">
-<span id="mech-red"></span><h2>2.5. Mechanical redistribution<a class="headerlink" href="#mechanical-redistribution" title="Permalink to this headline">¶</a></h2>
+<span id="mech-red"></span><h2>1.5. Mechanical redistribution<a class="headerlink" href="#mechanical-redistribution" title="Permalink to this headline">¶</a></h2>
 <p>The last term on the right-hand side of Equation <a class="reference internal" href="#equation-transport-g">(15)</a>
 is <span class="math">\(\psi\)</span>, which describes the redistribution
 of ice in thickness space due to ridging and other mechanical processes.
@@ -1134,7 +1134,7 @@ less likely to allow numerical instability at a given resolution and
 time step. See <a class="reference internal" href="zreferences.html#lhmj07" id="id48">[28]</a> for more details.</p>
 </div>
 <div class="section" id="thermodynamics">
-<span id="thermo"></span><h2>2.6. Thermodynamics<a class="headerlink" href="#thermodynamics" title="Permalink to this headline">¶</a></h2>
+<span id="thermo"></span><h2>1.6. Thermodynamics<a class="headerlink" href="#thermodynamics" title="Permalink to this headline">¶</a></h2>
 <p>The current Icepack version includes three thermodynamics
 options, the “zero-layer” thermodynamics of <a class="reference internal" href="zreferences.html#semtner76" id="id49">[40]</a>
 (<code class="docutils literal"><span class="pre">ktherm</span></code> = 0), the Bitz and Lipscomb model <a class="reference internal" href="zreferences.html#bl99" id="id50">[6]</a>
@@ -1177,7 +1177,7 @@ the&nbsp;<a class="reference internal" href="#thermo-growth"><span class="std st
 forcing parameterizations, which are closely related to the ice and snow
 surface temperatures.</p>
 <div class="section" id="melt-ponds">
-<span id="ponds"></span><h3>2.6.1. Melt ponds<a class="headerlink" href="#melt-ponds" title="Permalink to this headline">¶</a></h3>
+<span id="ponds"></span><h3>1.6.1. Melt ponds<a class="headerlink" href="#melt-ponds" title="Permalink to this headline">¶</a></h3>
 <p>Three explicit melt pond parameterizations are available in Icepack, and
 all must use the delta-Eddington radiation scheme, described below. The
 ccsm3 shortwave parameterization incorporates melt ponds
@@ -1210,7 +1210,7 @@ calculation.</p>
 and definitions for melt ponds are also described in
 the&nbsp;<a class="reference internal" href="#tracers"><span class="std std-ref">Tracers</span></a> section and <a class="reference internal" href="#fig-tracers"><span class="std std-ref">Figure 1</span></a>.</p>
 <div class="section" id="cesm-formulation-tr-pond-cesm-true">
-<h4>2.6.1.1. CESM formulation (<code class="docutils literal"><span class="pre">tr_pond_cesm</span></code> = true)<a class="headerlink" href="#cesm-formulation-tr-pond-cesm-true" title="Permalink to this headline">¶</a></h4>
+<h4>1.6.1.1. CESM formulation (<code class="docutils literal"><span class="pre">tr_pond_cesm</span></code> = true)<a class="headerlink" href="#cesm-formulation-tr-pond-cesm-true" title="Permalink to this headline">¶</a></h4>
 <p>Melt pond area and thickness tracers are carried on each ice thickness
 category as in the&nbsp;<a class="reference internal" href="#tracers"><span class="std std-ref">Tracers</span></a> section. Defined simply as the product
 of pond area, <span class="math">\(a_p\)</span>, and depth, <span class="math">\(h_p\)</span>, the melt pond volume,
@@ -1234,7 +1234,7 @@ formulation differs slightly from that documented in
 <a class="reference internal" href="zreferences.html#hbblh12" id="id52">[19]</a>.</p>
 </div>
 <div class="section" id="topographic-formulation-tr-pond-topo-true">
-<h4>2.6.1.2. Topographic formulation (<code class="docutils literal"><span class="pre">tr_pond_topo</span></code> = true)<a class="headerlink" href="#topographic-formulation-tr-pond-topo-true" title="Permalink to this headline">¶</a></h4>
+<h4>1.6.1.2. Topographic formulation (<code class="docutils literal"><span class="pre">tr_pond_topo</span></code> = true)<a class="headerlink" href="#topographic-formulation-tr-pond-topo-true" title="Permalink to this headline">¶</a></h4>
 <p>The principle concept of this scheme is that melt water runs downhill
 under the influence of gravity and collects on sea ice with increasing
 surface height starting at the lowest height
@@ -1438,7 +1438,7 @@ and <strong>icepack_therm_vertical.F90</strong> (subroutine <em>thermo_vertical<
 with global diagnostics in <strong>icedrv_diagnostics.F90</strong>.</p>
 </div>
 <div class="section" id="level-ice-formulation-tr-pond-lvl-true">
-<h4>2.6.1.3. Level-ice formulation (<code class="docutils literal"><span class="pre">tr_pond_lvl</span></code> = true)<a class="headerlink" href="#level-ice-formulation-tr-pond-lvl-true" title="Permalink to this headline">¶</a></h4>
+<h4>1.6.1.3. Level-ice formulation (<code class="docutils literal"><span class="pre">tr_pond_lvl</span></code> = true)<a class="headerlink" href="#level-ice-formulation-tr-pond-lvl-true" title="Permalink to this headline">¶</a></h4>
 <p>This meltpond parameterization represents a combination of ideas from
 the empirical CESM melt pond scheme and the topo approach, and is
 documented in <a class="reference internal" href="zreferences.html#hhl13" id="id62">[21]</a>. The ponds evolve according to
@@ -1659,7 +1659,7 @@ the newly formed ice area <span class="math">\(\Delta a_i = \Delta a_{lvl}\)</sp
 </div>
 </div>
 <div class="section" id="thermodynamic-surface-forcing-balance">
-<span id="sfc-forcing"></span><h3>2.6.2. Thermodynamic surface forcing balance<a class="headerlink" href="#thermodynamic-surface-forcing-balance" title="Permalink to this headline">¶</a></h3>
+<span id="sfc-forcing"></span><h3>1.6.2. Thermodynamic surface forcing balance<a class="headerlink" href="#thermodynamic-surface-forcing-balance" title="Permalink to this headline">¶</a></h3>
 <p>The net surface energy flux from the atmosphere to the ice (with all
 fluxes defined as positive downward) is</p>
 <div class="math" id="equation-f0">
@@ -1675,7 +1675,7 @@ Each of the explicit melt pond parameterizations (CESM, topo and
 level-ice ponds) should be used in conjunction with the Delta-Eddington
 shortwave scheme, described below.</p>
 <div class="section" id="shortwave-radiation-delta-eddington">
-<h4>2.6.2.1. Shortwave radiation: Delta-Eddington<a class="headerlink" href="#shortwave-radiation-delta-eddington" title="Permalink to this headline">¶</a></h4>
+<h4>1.6.2.1. Shortwave radiation: Delta-Eddington<a class="headerlink" href="#shortwave-radiation-delta-eddington" title="Permalink to this headline">¶</a></h4>
 <p>Two methods for computing albedo and shortwave fluxes are available, the
 “ccsm3” method, described below, and a multiple scattering
 radiative transfer scheme that uses a Delta-Eddington approach.
@@ -1707,7 +1707,7 @@ CESM melt pond and Delta-Eddington parameterizations are further
 explained and validated in <a class="reference internal" href="zreferences.html#hbblh12" id="id66">[19]</a>.</p>
 </div>
 <div class="section" id="shortwave-radiation-ccsm3">
-<h4>2.6.2.2. Shortwave radiation: CCSM3<a class="headerlink" href="#shortwave-radiation-ccsm3" title="Permalink to this headline">¶</a></h4>
+<h4>1.6.2.2. Shortwave radiation: CCSM3<a class="headerlink" href="#shortwave-radiation-ccsm3" title="Permalink to this headline">¶</a></h4>
 <p>In the parameterization used in the previous version of the Community
 Climate System Model (CCSM3), the albedo depends on the temperature and
 thickness of ice and snow and on the spectral distribution of the
@@ -1759,7 +1759,7 @@ passes through the ice to the ocean
 (<span class="math">\(F_{sw\Downarrow}\)</span>).</p>
 </div>
 <div class="section" id="longwave-radiation-turbulent-fluxes">
-<h4>2.6.2.3. Longwave radiation, turbulent fluxes<a class="headerlink" href="#longwave-radiation-turbulent-fluxes" title="Permalink to this headline">¶</a></h4>
+<h4>1.6.2.3. Longwave radiation, turbulent fluxes<a class="headerlink" href="#longwave-radiation-turbulent-fluxes" title="Permalink to this headline">¶</a></h4>
 <p>While incoming shortwave and longwave radiation are obtained from the
 atmosphere, outgoing longwave radiation and the turbulent heat fluxes
 are derived quantities. Outgoing longwave takes the standard blackbody
@@ -1809,9 +1809,9 @@ that <span class="math">\(F_{bot} + F_{side} \ge F_{frzmlt}\)</span> in the case
 </div>
 </div>
 <div class="section" id="new-temperatures">
-<span id="thermo-temp"></span><h3>2.6.3. New temperatures<a class="headerlink" href="#new-temperatures" title="Permalink to this headline">¶</a></h3>
+<span id="thermo-temp"></span><h3>1.6.3. New temperatures<a class="headerlink" href="#new-temperatures" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="zero-layer-thermodynamics-ktherm-0">
-<h4>2.6.3.1. Zero-layer thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 0)<a class="headerlink" href="#zero-layer-thermodynamics-ktherm-0" title="Permalink to this headline">¶</a></h4>
+<h4>1.6.3.1. Zero-layer thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 0)<a class="headerlink" href="#zero-layer-thermodynamics-ktherm-0" title="Permalink to this headline">¶</a></h4>
 <p>An option for zero-layer thermodynamics <a class="reference internal" href="zreferences.html#semtner76" id="id71">[40]</a> is
 available in this version of Icepack by setting the namelist parameter
 <code class="docutils literal"><span class="pre">ktherm</span></code> to 0 and changing the number of ice layers, nilyr, in
@@ -1820,7 +1820,7 @@ fresh and the thermodynamic calculations are much simpler than in the
 other configurations, which we describe here.</p>
 </div>
 <div class="section" id="bitz-and-lipscomb-thermodynamics-ktherm-1">
-<h4>2.6.3.2. Bitz and Lipscomb thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 1)<a class="headerlink" href="#bitz-and-lipscomb-thermodynamics-ktherm-1" title="Permalink to this headline">¶</a></h4>
+<h4>1.6.3.2. Bitz and Lipscomb thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 1)<a class="headerlink" href="#bitz-and-lipscomb-thermodynamics-ktherm-1" title="Permalink to this headline">¶</a></h4>
 <p>The “BL99” thermodynamic sea ice model is based on
 <a class="reference internal" href="zreferences.html#mu71" id="id72">[34]</a> and <a class="reference internal" href="zreferences.html#bl99" id="id73">[6]</a>, and is
 described more fully in <a class="reference internal" href="zreferences.html#lipscomb98" id="id74">[26]</a>. The vertical
@@ -2124,7 +2124,7 @@ c &amp; = &amp; L_0 T_m.\end{aligned}\end{split}\]</div>
 <p>The other root is unphysical.</p>
 </div>
 <div class="section" id="mushy-thermodynamics-ktherm-2">
-<h4>2.6.3.3. Mushy thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2)<a class="headerlink" href="#mushy-thermodynamics-ktherm-2" title="Permalink to this headline">¶</a></h4>
+<h4>1.6.3.3. Mushy thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2)<a class="headerlink" href="#mushy-thermodynamics-ktherm-2" title="Permalink to this headline">¶</a></h4>
 <p>The “mushy” thermodynamics option treats the sea ice as a mushy layer
 <a class="reference internal" href="zreferences.html#fuww06" id="id83">[10]</a> in which the ice is assumed to be composed
 of microscopic brine inclusions surrounded by a matrix of pure water
@@ -2445,7 +2445,7 @@ may reduce ice formation by a small amount afterwards.</p>
 </div>
 </div>
 <div class="section" id="growth-and-melting">
-<span id="thermo-growth"></span><h3>2.6.4. Growth and melting<a class="headerlink" href="#growth-and-melting" title="Permalink to this headline">¶</a></h3>
+<span id="thermo-growth"></span><h3>1.6.4. Growth and melting<a class="headerlink" href="#growth-and-melting" title="Permalink to this headline">¶</a></h3>
 <p>Melting at the top surface is given by</p>
 <div class="math" id="equation-top-melting">
 <span class="eqno">(108)<a class="headerlink" href="#equation-top-melting" title="Permalink to this equation">¶</a></span>\[\begin{split}q \, \delta h = \left\{\begin{array}{ll}
@@ -2509,7 +2509,7 @@ laterally <a class="reference internal" href="zreferences.html#mp87" id="id91">[
 energy and fluxes as appropriate. We assume a floe diameter of 300&nbsp;m.</p>
 </div>
 <div class="section" id="snow-ice-formation">
-<h3>2.6.5. Snow-ice formation<a class="headerlink" href="#snow-ice-formation" title="Permalink to this headline">¶</a></h3>
+<h3>1.6.5. Snow-ice formation<a class="headerlink" href="#snow-ice-formation" title="Permalink to this headline">¶</a></h3>
 <p>At the end of the time step we check whether the
 snow is deep enough to lie partially below the surface of the ocean
 (freeboard). From Archimedes’ principle, the base of the snow is at sea
@@ -2555,11 +2555,11 @@ with the melt water.</td></tr>
 </div>
 </div>
 <div class="section" id="biogeochemistry">
-<span id="ice-bgc"></span><h2>2.7. Biogeochemistry<a class="headerlink" href="#biogeochemistry" title="Permalink to this headline">¶</a></h2>
+<span id="ice-bgc"></span><h2>1.7. Biogeochemistry<a class="headerlink" href="#biogeochemistry" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="aerosols">
-<h3>2.7.1. Aerosols<a class="headerlink" href="#aerosols" title="Permalink to this headline">¶</a></h3>
+<h3>1.7.1. Aerosols<a class="headerlink" href="#aerosols" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="basic-aerosols">
-<h4>2.7.1.1. Basic Aerosols<a class="headerlink" href="#basic-aerosols" title="Permalink to this headline">¶</a></h4>
+<h4>1.7.1.1. Basic Aerosols<a class="headerlink" href="#basic-aerosols" title="Permalink to this headline">¶</a></h4>
 <p>Aerosols may be deposited on the ice and gradually work their way
 through it until the ice melts and they are passed into the ocean. They
 are defined as ice and snow volume tracers (Eq.&nbsp;15 and 16 in CICE.v5
@@ -2590,7 +2590,7 @@ aerosols are transferred to the ocean.</p>
 the number of aerosol species is set in <strong>icepack.settings</strong>; CESM uses 3.</p>
 </div>
 <div class="section" id="z-aerosols">
-<h4>2.7.1.2. Z-Aerosols<a class="headerlink" href="#z-aerosols" title="Permalink to this headline">¶</a></h4>
+<h4>1.7.1.2. Z-Aerosols<a class="headerlink" href="#z-aerosols" title="Permalink to this headline">¶</a></h4>
 <p>An alternate scheme for aerosols in sea ice is available using
 the brine motion based transport scheme of the biogeochemical tracers.
 All vertically resolved biogeochemical tracers (z-tracers), including
@@ -2633,7 +2633,7 @@ must equal ’dEdd’ and <code class="docutils literal"><span class="pre">dEdd_
 </div>
 </div>
 <div class="section" id="brine-height">
-<span id="brine-ht"></span><h3>2.7.2. Brine height<a class="headerlink" href="#brine-height" title="Permalink to this headline">¶</a></h3>
+<span id="brine-ht"></span><h3>1.7.2. Brine height<a class="headerlink" href="#brine-height" title="Permalink to this headline">¶</a></h3>
 <p>The brine height, <span class="math">\(h_b\)</span>, is the distance from the ice-ocean
 interface to the brine surface. When <code class="docutils literal"><span class="pre">tr_brine</span></code> is set true in
 <strong>icepack_in</strong> and <code class="docutils literal"><span class="pre">TRBRI</span></code> is set equal to 1 in <strong>icepack.settings</strong>, the brine
@@ -2738,7 +2738,7 @@ height <span class="math">\(h_b\)</span> are available for output.</p>
 <p>where the sums are taken over thickness categories.</p>
 </div>
 <div class="section" id="sea-ice-ecosystem">
-<h3>2.7.3. Sea ice ecosystem<a class="headerlink" href="#sea-ice-ecosystem" title="Permalink to this headline">¶</a></h3>
+<h3>1.7.3. Sea ice ecosystem<a class="headerlink" href="#sea-ice-ecosystem" title="Permalink to this headline">¶</a></h3>
 <p>There are two options for modeling biogeochemistry in sea ice: 1) a
 skeletal layer or bottom layer model that assumes biology
 and biological molecules are restricted to a single layer at the base of
@@ -2795,7 +2795,7 @@ with sea surface salinity. fe_data_type currently only has the
 ‘default’ option. The location of forcing files is specified in
 bgc_data_dir and the filename is hardcoded in <strong>icedrv_forcing</strong> (NJ - needs to be updated).</p>
 <div class="section" id="skeletal-layer-bgc">
-<h4>2.7.3.1. Skeletal Layer BGC<a class="headerlink" href="#skeletal-layer-bgc" title="Permalink to this headline">¶</a></h4>
+<h4>1.7.3.1. Skeletal Layer BGC<a class="headerlink" href="#skeletal-layer-bgc" title="Permalink to this headline">¶</a></h4>
 <p>In the skeletal layer model, biogeochemical processing is modelled as a
 single layer of reactive tracers attached to the sea ice bottom.
 Optional settings are available via the <em>zbgc_nml</em> namelist in
@@ -2872,7 +2872,7 @@ T_b/\Delta t &amp; \mbox{otherwise.}   \end{array} \right. \end{aligned}\end{spl
 section&nbsp;<a class="reference internal" href="#reactions"><span class="std std-ref">Reaction Equations</span></a>.</p>
 </div>
 <div class="section" id="vertical-bgc-zbgc">
-<span id="zbgc"></span><h4>2.7.3.2. Vertical BGC (‘’zbgc’‘)<a class="headerlink" href="#vertical-bgc-zbgc" title="Permalink to this headline">¶</a></h4>
+<span id="zbgc"></span><h4>1.7.3.2. Vertical BGC (‘’zbgc’‘)<a class="headerlink" href="#vertical-bgc-zbgc" title="Permalink to this headline">¶</a></h4>
 <p>In order to solve for the vertically resolved biogeochemistry, several
 flags in <strong>icepack_in</strong> must be true: a) <code class="docutils literal"><span class="pre">tr_brine</span></code>, b) <code class="docutils literal"><span class="pre">z_tracers</span></code>, and c)
 <code class="docutils literal"><span class="pre">solve_zbgc</span></code>.</p>
@@ -2911,7 +2911,7 @@ transport equation for mobile tracers, the partitioning of tracers into
 mobile and stationary fractions and the biochemical reaction equations.
 The vertical bio-grid is described in the <a class="reference internal" href="icepack_3_user_guide.html#grids"><span class="std std-ref">Grid and boundary conditions</span></a> section.</p>
 <div class="section" id="mobile-and-stationary-phases">
-<span id="mobile-and-stationary"></span><h5>2.7.3.2.1. <em>Mobile and stationary phases</em><a class="headerlink" href="#mobile-and-stationary-phases" title="Permalink to this headline">¶</a></h5>
+<span id="mobile-and-stationary"></span><h5>1.7.3.2.1. <em>Mobile and stationary phases</em><a class="headerlink" href="#mobile-and-stationary-phases" title="Permalink to this headline">¶</a></h5>
 <p>Purely mobile tracers are tracers which move with the brine and thus, in
 the absence of biochemical reactions, evolve like salinity. For vertical
 tracer transport of purely mobile tracers, the flux conserved quantity
@@ -3056,7 +3056,7 @@ large release timescales will prevent this transition and could result
 in an unphysically large accumulation during the melt season.</p>
 </div>
 <div class="section" id="flux-corrected-positive-definite-transport-scheme">
-<span id="tracer-numerics"></span><h5>2.7.3.2.2. <em>Flux-corrected, positive definite transport scheme</em><a class="headerlink" href="#flux-corrected-positive-definite-transport-scheme" title="Permalink to this headline">¶</a></h5>
+<span id="tracer-numerics"></span><h5>1.7.3.2.2. <em>Flux-corrected, positive definite transport scheme</em><a class="headerlink" href="#flux-corrected-positive-definite-transport-scheme" title="Permalink to this headline">¶</a></h5>
 <p>Numerical solution of the vertical tracer transport equation is
 accomplished using the finite element Galerkin discretization. Multiply
 <a class="reference internal" href="#equation-mobile-transport">(127)</a> by “w” and integrate by parts</p>
@@ -3356,7 +3356,7 @@ f_{ij} &amp; = &amp; m_{ij}\left[\frac{\Delta c_i}{\Delta t} - \frac{\Delta
 </div>
 </div>
 <div class="section" id="reaction-equations">
-<span id="reactions"></span><h4>2.7.3.3. Reaction Equations<a class="headerlink" href="#reaction-equations" title="Permalink to this headline">¶</a></h4>
+<span id="reactions"></span><h4>1.7.3.3. Reaction Equations<a class="headerlink" href="#reaction-equations" title="Permalink to this headline">¶</a></h4>
 <p>The biogeochemical reaction terms for each biogeochemical tracer (see
 table <a class="reference internal" href="#tab-bio-tracer"><span class="std std-ref">Table 4</span></a> for tracer definitions) are defined in
 <strong>icepack_algae.F90</strong> in the subroutine <em>algal_dyn</em>. The same set of
@@ -3617,11 +3617,11 @@ to the algal concentration, i.e.
 \Delta {\mbox{DMSPd}}/dt &amp; = &amp; R_{{\mbox{DMSPd}}} = R_{s:n}[ f_{sr}f_{res}\mu^{tot}
 +f_{nm}M_{ort} ] - [{\mbox{DMSPd}}]/\tau_{dmsp} \nonumber \\
 \Delta {\mbox{DMS}}/dt &amp; = &amp; R_{{\mbox{DMS}}} =  y_{dms}[{\mbox{DMSPd}}]/\tau_{dmsp} - [{\mbox{DMS}}]/\tau_{dms}\end{aligned}\end{split}\]</div>
-<p>See <a class="reference internal" href="icepack_3_user_guide.html#tuning"><span class="std std-ref">BGC Tuning Parameters</span></a> and <a class="reference internal" href="icepack_3_user_guide.html#tab-bio-tracers2"><span class="std std-ref">Table 5</span></a> for a more
+<p>See <a class="reference internal" href="icepack_3_user_guide.html#tuning"><span class="std std-ref">BGC Tuning Parameters</span></a> and <a class="reference internal" href="icepack_3_user_guide.html#tab-bio-tracers2"><span class="std std-ref">Table 9</span></a> for a more
 complete list and description of biogeochemical parameters.</p>
 </div>
 <div class="section" id="algal-growth-and-nutrient-uptake">
-<span id="growth-uptake"></span><h4>2.7.3.4. Algal growth and nutrient uptake<a class="headerlink" href="#algal-growth-and-nutrient-uptake" title="Permalink to this headline">¶</a></h4>
+<span id="growth-uptake"></span><h4>1.7.3.4. Algal growth and nutrient uptake<a class="headerlink" href="#algal-growth-and-nutrient-uptake" title="Permalink to this headline">¶</a></h4>
 <p>Nutrient limitation terms are defined in the simplest ecosystem for
 <span class="math">\({\mbox{NO$_3$}}\)</span>. If the appropriate tracer flags are true, then
 limitation terms may also be found for <span class="math">\({\mbox{NH$_4$}}\)</span>,
@@ -3706,33 +3706,33 @@ nitrogen is taken from the nitrate pool.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">2. Science Guide</a><ul>
-<li><a class="reference internal" href="#atmosphere-and-ocean-boundary-forcing">2.1. Atmosphere and ocean boundary forcing</a><ul>
-<li><a class="reference internal" href="#atmosphere">2.1.1. Atmosphere</a></li>
-<li><a class="reference internal" href="#ocean">2.1.2. Ocean</a></li>
-<li><a class="reference internal" href="#variable-exchange-coefficients">2.1.3. Variable exchange coefficients</a></li>
+<li><a class="reference internal" href="#">1. Science Guide</a><ul>
+<li><a class="reference internal" href="#atmosphere-and-ocean-boundary-forcing">1.1. Atmosphere and ocean boundary forcing</a><ul>
+<li><a class="reference internal" href="#atmosphere">1.1.1. Atmosphere</a></li>
+<li><a class="reference internal" href="#ocean">1.1.2. Ocean</a></li>
+<li><a class="reference internal" href="#variable-exchange-coefficients">1.1.3. Variable exchange coefficients</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ice-thickness-distribution">2.2. Ice thickness distribution</a></li>
-<li><a class="reference internal" href="#tracers">2.3. Tracers</a><ul>
-<li><a class="reference internal" href="#ice-age">2.3.1. Ice age</a></li>
-<li><a class="reference internal" href="#tracers-that-depend-on-other-tracers">2.3.2. Tracers that depend on other tracers</a></li>
+<li><a class="reference internal" href="#ice-thickness-distribution">1.2. Ice thickness distribution</a></li>
+<li><a class="reference internal" href="#tracers">1.3. Tracers</a><ul>
+<li><a class="reference internal" href="#ice-age">1.3.1. Ice age</a></li>
+<li><a class="reference internal" href="#tracers-that-depend-on-other-tracers">1.3.2. Tracers that depend on other tracers</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#transport-in-thickness-space">2.4. Transport in thickness space</a></li>
-<li><a class="reference internal" href="#mechanical-redistribution">2.5. Mechanical redistribution</a></li>
-<li><a class="reference internal" href="#thermodynamics">2.6. Thermodynamics</a><ul>
-<li><a class="reference internal" href="#melt-ponds">2.6.1. Melt ponds</a></li>
-<li><a class="reference internal" href="#thermodynamic-surface-forcing-balance">2.6.2. Thermodynamic surface forcing balance</a></li>
-<li><a class="reference internal" href="#new-temperatures">2.6.3. New temperatures</a></li>
-<li><a class="reference internal" href="#growth-and-melting">2.6.4. Growth and melting</a></li>
-<li><a class="reference internal" href="#snow-ice-formation">2.6.5. Snow-ice formation</a></li>
+<li><a class="reference internal" href="#transport-in-thickness-space">1.4. Transport in thickness space</a></li>
+<li><a class="reference internal" href="#mechanical-redistribution">1.5. Mechanical redistribution</a></li>
+<li><a class="reference internal" href="#thermodynamics">1.6. Thermodynamics</a><ul>
+<li><a class="reference internal" href="#melt-ponds">1.6.1. Melt ponds</a></li>
+<li><a class="reference internal" href="#thermodynamic-surface-forcing-balance">1.6.2. Thermodynamic surface forcing balance</a></li>
+<li><a class="reference internal" href="#new-temperatures">1.6.3. New temperatures</a></li>
+<li><a class="reference internal" href="#growth-and-melting">1.6.4. Growth and melting</a></li>
+<li><a class="reference internal" href="#snow-ice-formation">1.6.5. Snow-ice formation</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#biogeochemistry">2.7. Biogeochemistry</a><ul>
-<li><a class="reference internal" href="#aerosols">2.7.1. Aerosols</a></li>
-<li><a class="reference internal" href="#brine-height">2.7.2. Brine height</a></li>
-<li><a class="reference internal" href="#sea-ice-ecosystem">2.7.3. Sea ice ecosystem</a></li>
+<li><a class="reference internal" href="#biogeochemistry">1.7. Biogeochemistry</a><ul>
+<li><a class="reference internal" href="#aerosols">1.7.1. Aerosols</a></li>
+<li><a class="reference internal" href="#brine-height">1.7.2. Brine height</a></li>
+<li><a class="reference internal" href="#sea-ice-ecosystem">1.7.3. Sea ice ecosystem</a></li>
 </ul>
 </li>
 </ul>
@@ -3740,11 +3740,11 @@ nitrogen is taken from the nitrate pool.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="icepack_1_introduction.html"
-                        title="previous chapter">1. Introduction - Icepack</a></p>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Icepack Documentation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="icepack_3_user_guide.html"
-                        title="next chapter">3. User Guide</a></p>
+                        title="next chapter">2. User Guide</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -3770,16 +3770,16 @@ nitrogen is taken from the nitrate pool.</p>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="icepack_3_user_guide.html" title="3. User Guide"
+          <a href="icepack_3_user_guide.html" title="2. User Guide"
              >next</a></li>
         <li class="right" >
-          <a href="icepack_1_introduction.html" title="1. Introduction - Icepack"
+          <a href="index.html" title="Icepack Documentation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium_Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>

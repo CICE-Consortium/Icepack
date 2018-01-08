@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3. User Guide &#8212; CICE-Consortium Icepack 0.0.1 documentation</title>
+    <title>1. User Guide &#8212; CICE-Consortium_Icepack 0.0.1 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -23,20 +23,20 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="4. Developers Guide" href="icepack_4_developer_guide.html" />
-    <link rel="prev" title="2. Science Guide" href="icepack_2_science_guide.html" /> 
+    <link rel="next" title="1. Developers Guide" href="icepack_4_developer_guide.html" />
+    <link rel="prev" title="1. Science Guide" href="icepack_2_science_guide.html" /> 
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="icepack_4_developer_guide.html" title="4. Developers Guide"
+          <a href="icepack_4_developer_guide.html" title="1. Developers Guide"
              accesskey="N">next</a></li>
         <li class="right" >
-          <a href="icepack_2_science_guide.html" title="2. Science Guide"
+          <a href="icepack_2_science_guide.html" title="1. Science Guide"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium_Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -46,9 +46,9 @@
           <div class="body" role="main">
             
   <div class="section" id="user-guide">
-<h1>3. User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<h1>1. User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="implementation">
-<h2>3.1. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>1.1. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p>Icepack is written in FORTRAN90 and runs on platforms using UNIX, LINUX,
 and other operating systems. The code is not parallelized. (CHANGE IF OPENMP IS IMPLEMENTED)</p>
 <p>Icepack consists of the sea ice column physics code, contained in the
@@ -61,7 +61,7 @@ guidance when coupling the column physics code to the host sea ice model
 about the interface between the column physics and the driver or host sea ice model is
 located in the <a class="reference internal" href="#init"><span class="std std-ref">Initialization and Forcing</span></a> section.</p>
 <div class="section" id="directory-structure">
-<span id="dirstructure"></span><h3>3.1.1. Directory structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h3>
+<span id="dirstructure"></span><h3>1.1.1. Directory structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h3>
 <p>The present code distribution includes source code for the column physics,
 source code for the driver, and the scripts.  Forcing data is available from the ftp site.
 The directory structure of Icepack is as follows.  All columnphysics filename have a prefix
@@ -90,7 +90,7 @@ Executing the command <code class="docutils literal"><span class="pre">./icepack
 this tool.</p>
 </div>
 <div class="section" id="grid-and-boundary-conditions">
-<span id="grids"></span><h3>3.1.2. Grid and boundary conditions<a class="headerlink" href="#grid-and-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+<span id="grids"></span><h3>1.1.2. Grid and boundary conditions<a class="headerlink" href="#grid-and-boundary-conditions" title="Permalink to this headline">¶</a></h3>
 <p>The driver configures a collection of grid cells on which the column physics code
 will be run. This “horizontal” grid is a vector of length <code class="docutils literal"><span class="pre">nx</span></code>, with a minimum length
 of 4.
@@ -122,7 +122,7 @@ equidistant with the same spacing, but physically coincide with points
 midway between those of <code class="docutils literal"><span class="pre">bgrid</span></code>.</p>
 </div>
 <div class="section" id="test-configurations">
-<span id="testconfigs"></span><h3>3.1.3. Test configurations<a class="headerlink" href="#test-configurations" title="Permalink to this headline">¶</a></h3>
+<span id="testconfigs"></span><h3>1.1.3. Test configurations<a class="headerlink" href="#test-configurations" title="Permalink to this headline">¶</a></h3>
 <p><em>(CHECK) UPDATE with similar, correct information</em></p>
 <p>The column is located
 near Barrow (71.35N, 156.5W). Options for choosing the column
@@ -132,7 +132,7 @@ initial conditions are set such that the run begins September 1 with no
 ice.</p>
 </div>
 <div class="section" id="initialization-and-forcing">
-<span id="init"></span><h3>3.1.4. Initialization and Forcing<a class="headerlink" href="#initialization-and-forcing" title="Permalink to this headline">¶</a></h3>
+<span id="init"></span><h3>1.1.4. Initialization and Forcing<a class="headerlink" href="#initialization-and-forcing" title="Permalink to this headline">¶</a></h3>
 <p>Icepack’s parameters and variables are initialized in several
 steps. Many constants and physical parameters are set in
 <strong>icepack_constants.F90</strong>. In the current driver implementation,
@@ -162,7 +162,7 @@ and are intended merely for testing, although they can also provide guidance for
 the user to write his or her own routines.</p>
 </div>
 <div class="section" id="choosing-an-appropriate-time-step">
-<span id="parameters"></span><h3>3.1.5. Choosing an appropriate time step<a class="headerlink" href="#choosing-an-appropriate-time-step" title="Permalink to this headline">¶</a></h3>
+<span id="parameters"></span><h3>1.1.5. Choosing an appropriate time step<a class="headerlink" href="#choosing-an-appropriate-time-step" title="Permalink to this headline">¶</a></h3>
 <p>Transport in thickness space imposes a restraint on the time
 step, given by the ice growth/melt rate and the smallest range of
 thickness among the categories,
@@ -173,18 +173,18 @@ default in this distribution, this is not a stringent limitation:
 <span class="math">\(\Delta t &lt; 19.4\)</span>&nbsp;hr, assuming <span class="math">\(\max(f) = 40\)</span>&nbsp;cm/day.</p>
 </div>
 <div class="section" id="model-output">
-<span id="history"></span><h3>3.1.6. Model output<a class="headerlink" href="#model-output" title="Permalink to this headline">¶</a></h3>
+<span id="history"></span><h3>1.1.6. Model output<a class="headerlink" href="#model-output" title="Permalink to this headline">¶</a></h3>
 <p>History output from Icepack is not currently supported in the Icepack driver, except
 in restart files.
 The sea ice model <a class="reference external" href="https://github.com/CICE-Consortium/CICE">CICE</a> provides extensive
 options for model output, including many derived output variables.</p>
 <div class="section" id="diagnostic-files">
-<h4>3.1.6.1. Diagnostic files<a class="headerlink" href="#diagnostic-files" title="Permalink to this headline">¶</a></h4>
+<h4>1.1.6.1. Diagnostic files<a class="headerlink" href="#diagnostic-files" title="Permalink to this headline">¶</a></h4>
 <p>Icepack writes diagnostic information for each grid cell as a separate file,
 <strong>ice_diag.*</strong>, identified by the initial ice state of the grid cell (no ice, slab, land, etc).</p>
 </div>
 <div class="section" id="restart-files">
-<h4>3.1.6.2. Restart files<a class="headerlink" href="#restart-files" title="Permalink to this headline">¶</a></h4>
+<h4>1.1.6.2. Restart files<a class="headerlink" href="#restart-files" title="Permalink to this headline">¶</a></h4>
 <p>CHECK and CHANGE as needed re netCDF</p>
 <p>CICE provides restart data in binary unformatted or netCDF formats, via
 the <code class="docutils literal"><span class="pre">IO_TYPE</span></code> flag in <strong>comp_ice</strong> and namelist variable
@@ -196,7 +196,7 @@ variable <code class="docutils literal"><span class="pre">dumpfreq</span></code>
 pointer to the filename from which the restart data is to be read.</p>
 </div>
 <div class="section" id="biogeochemistry-history-fields">
-<span id="bgc-hist"></span><h4>3.1.6.3. Biogeochemistry History Fields<a class="headerlink" href="#biogeochemistry-history-fields" title="Permalink to this headline">¶</a></h4>
+<span id="bgc-hist"></span><h4>1.1.6.3. Biogeochemistry History Fields<a class="headerlink" href="#biogeochemistry-history-fields" title="Permalink to this headline">¶</a></h4>
 <p>Note:  History output is not provided with Icepack.  This documentation
 indicates what is available for output and is implemented in CICE.</p>
 <p>CHECK and FIX!</p>
@@ -431,10 +431,10 @@ i.e.&nbsp;f_fbio, except they are averaged by ice area.</p>
 </div>
 </div>
 <div class="section" id="running-icepack">
-<h2>3.2. Running Icepack<a class="headerlink" href="#running-icepack" title="Permalink to this headline">¶</a></h2>
+<h2>1.2. Running Icepack<a class="headerlink" href="#running-icepack" title="Permalink to this headline">¶</a></h2>
 <p>Quick-start instructions are provided in the <a class="reference internal" href="icepack_1_introduction.html#quickstart"><span class="std std-ref">Quick Start</span></a> section.</p>
 <div class="section" id="scripts">
-<span id="id2"></span><h3>3.2.1. Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>1.2.1. Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h3>
 <p>The icepack scripts are written to allow quick setup of cases and tests.  Once a case is
 generated, users can manually modify the namelist and other files to custom configure
 the case.  Several settings are available via scripts as well.</p>
@@ -504,7 +504,7 @@ via the <strong>ICE_RUNDIR</strong> variable.  To modify the case setup, changes
 case directory, NOT the run directory.</p>
 </div>
 <div class="section" id="porting">
-<span id="id3"></span><h3>3.2.2. Porting<a class="headerlink" href="#porting" title="Permalink to this headline">¶</a></h3>
+<span id="id3"></span><h3>1.2.2. Porting<a class="headerlink" href="#porting" title="Permalink to this headline">¶</a></h3>
 <p>To port, an <strong>env.[machine]</strong> and <strong>Macros.[machine]</strong> file have to be added to the
 <strong>configuration/scripts/machines/</strong> directory and the
 <strong>configuration/scripts/icepack.run.setup.csh</strong> file needs to be modified.</p>
@@ -526,7 +526,7 @@ directory back to <strong>configuration/scripts/machines/</strong> and update
 the <strong>configuration/scripts/icepack.run.setup.csh</strong> file, retest,
 and then add and commit the updated machine files to the repository.</p>
 <div class="section" id="machine-account-settings">
-<h4>3.2.2.1. Machine Account Settings<a class="headerlink" href="#machine-account-settings" title="Permalink to this headline">¶</a></h4>
+<h4>1.2.2.1. Machine Account Settings<a class="headerlink" href="#machine-account-settings" title="Permalink to this headline">¶</a></h4>
 <p>The machine account default is specified by the variable <code class="docutils literal"><span class="pre">ICE_MACHINE_ACCT</span></code> in
 the <strong>env.[machine]</strong> file.  The easiest way to change a user’s default is to
 create a file in your home directory called <strong>.cice_proj</strong> and add your
@@ -537,7 +537,7 @@ The order of precedent is <strong>icepack.create.case</strong> command line opti
 </div>
 </div>
 <div class="section" id="forcing-data">
-<h3>3.2.3. Forcing data<a class="headerlink" href="#forcing-data" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.3. Forcing data<a class="headerlink" href="#forcing-data" title="Permalink to this headline">¶</a></h3>
 <p>CHECK once we’ve settled on a forcing suite:</p>
 <p>The code is currently configured to run in standalone mode on a 4-cell grid using
 atmospheric data, available as detailed on the <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack">wiki</a>.
@@ -552,7 +552,7 @@ and write permissions such that a set of users can update the inputdata area as
 new datasets are available.</p>
 </div>
 <div class="section" id="run-directories">
-<h3>3.2.4. Run Directories<a class="headerlink" href="#run-directories" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.4. Run Directories<a class="headerlink" href="#run-directories" title="Permalink to this headline">¶</a></h3>
 <p>The <strong>icepack.create.case</strong> script creates a case directory.  However, the model
 is actually built and run under the <code class="docutils literal"><span class="pre">ICE_OBJDIR</span></code> and <code class="docutils literal"><span class="pre">ICE_RUNDIR</span></code> directories
 as defined in the <strong>icepack.settings</strong> file.</p>
@@ -560,7 +560,7 @@ as defined in the <strong>icepack.settings</strong> file.</p>
 directory when complete.</p>
 </div>
 <div class="section" id="local-modifications">
-<h3>3.2.5. Local modifications<a class="headerlink" href="#local-modifications" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.5. Local modifications<a class="headerlink" href="#local-modifications" title="Permalink to this headline">¶</a></h3>
 <p>Scripts and other case settings can be changed manually in the case directory and
 used.  Source code can be modified in the main sandbox.  When changes are made, the code
 should be rebuilt before being resubmitted.  It is always recommended that users
@@ -570,7 +570,7 @@ directory when the model is built, submitted, and run.</p>
 </div>
 </div>
 <div class="section" id="testing-icepack">
-<span id="testing"></span><h2>3.3. Testing Icepack<a class="headerlink" href="#testing-icepack" title="Permalink to this headline">¶</a></h2>
+<span id="testing"></span><h2>1.3. Testing Icepack<a class="headerlink" href="#testing-icepack" title="Permalink to this headline">¶</a></h2>
 <p>The section documents primarily how to use the Icepack scripts to carry
 out icepack testing.  Exactly what to test is a separate question and
 depends on the kinds of code changes being made.  Prior to merging
@@ -579,7 +579,7 @@ developers will need to provide a summary of the tests carried out.</p>
 <p>There is a base suite of tests provided by default with Icepack and this
 may be a good starting point for testing.</p>
 <div class="section" id="individual-tests">
-<span id="indtests"></span><h3>3.3.1. Individual Tests<a class="headerlink" href="#individual-tests" title="Permalink to this headline">¶</a></h3>
+<span id="indtests"></span><h3>1.3.1. Individual Tests<a class="headerlink" href="#individual-tests" title="Permalink to this headline">¶</a></h3>
 <p>The Icepack scripts support both setup of individual tests as well as test suites.  Individual
 tests are run from the command line:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">s</span> <span class="n">diag1</span><span class="p">,</span><span class="n">debug</span> <span class="o">-</span><span class="n">testid</span> <span class="n">myid</span> <span class="o">-</span><span class="n">a</span> <span class="n">P0000000</span>
@@ -624,7 +624,7 @@ if the restart files at month 12 from both runs are bit-for-bit identical.</p>
 <p>Please run <code class="docutils literal"><span class="pre">./icepack.create.case</span> <span class="pre">-h</span></code> for the latest information.</p>
 </div>
 <div class="section" id="test-suites">
-<span id="testsuites"></span><h3>3.3.2. Test suites<a class="headerlink" href="#test-suites" title="Permalink to this headline">¶</a></h3>
+<span id="testsuites"></span><h3>1.3.2. Test suites<a class="headerlink" href="#test-suites" title="Permalink to this headline">¶</a></h3>
 <p>Test suites are multiple tests that are specified via
 an input file.  When invoking the test suite option (<code class="docutils literal"><span class="pre">-ts</span></code>) with <strong>icepack.create.case</strong>,
 all tests will be created, built, and submitted automatically under
@@ -722,7 +722,7 @@ will look for the filename in the local directory, in <strong>configuration/scri
 by the <code class="docutils literal"><span class="pre">-ts</span></code> option.</p>
 </div>
 <div class="section" id="regression-testing">
-<span id="regtesting"></span><h3>3.3.3. Regression testing<a class="headerlink" href="#regression-testing" title="Permalink to this headline">¶</a></h3>
+<span id="regtesting"></span><h3>1.3.3. Regression testing<a class="headerlink" href="#regression-testing" title="Permalink to this headline">¶</a></h3>
 <p>The <strong>icepack.create.case</strong> options <code class="docutils literal"><span class="pre">-bg</span></code>, <code class="docutils literal"><span class="pre">-bc</span></code>, and <code class="docutils literal"><span class="pre">-bd</span></code> are used for regression testing.
 There are several additional options on the <strong>icepack.create.case</strong> command line for testing that
 provide the ability to regression test and compare tests to each other.  These options only
@@ -762,7 +762,7 @@ results save before in <code class="docutils literal"><span class="pre">$SCRATCH
 </ul>
 </div>
 <div class="section" id="comparison-testing">
-<span id="comptesting"></span><h3>3.3.4. Comparison testing<a class="headerlink" href="#comparison-testing" title="Permalink to this headline">¶</a></h3>
+<span id="comptesting"></span><h3>1.3.4. Comparison testing<a class="headerlink" href="#comparison-testing" title="Permalink to this headline">¶</a></h3>
 <p>This feature is primarily used in test suites and has limited use in icepack, but is being
 described for completeness.  If modifications to the column physics modules in
 Icepack code generate differences (i.e. results are not bit-for-bit), then full
@@ -786,7 +786,7 @@ The <code class="docutils literal"><span class="pre">-td</span></code> option wo
 current run, a basic feature associated with test suites.</p>
 </div>
 <div class="section" id="test-reporting">
-<h3>3.3.5. Test Reporting<a class="headerlink" href="#test-reporting" title="Permalink to this headline">¶</a></h3>
+<h3>1.3.5. Test Reporting<a class="headerlink" href="#test-reporting" title="Permalink to this headline">¶</a></h3>
 <p>The Icepack testing scripts have the capability of posting the test results
 to an online dashboard, located <a class="reference external" href="http://my.cdash.org/index.php?project=myICEPACK">on CDash</a>.</p>
 <p>To post test suite results to CDash, add the <code class="docutils literal"><span class="pre">-report</span></code> option to <strong>icepack.create.case</strong>.
@@ -801,9 +801,9 @@ The base_suite will attempt to post the test results on CDash when the suite is 
 </div>
 </div>
 <div class="section" id="examples">
-<h3>3.3.6. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<h3>1.3.6. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="to-generate-a-baseline-dataset-for-a-test-case">
-<h4>3.3.6.1. To generate a baseline dataset for a test case<a class="headerlink" href="#to-generate-a-baseline-dataset-for-a-test-case" title="Permalink to this headline">¶</a></h4>
+<h4>1.3.6.1. To generate a baseline dataset for a test case<a class="headerlink" href="#to-generate-a-baseline-dataset-for-a-test-case" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">bg</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t00</span>
 <span class="n">cd</span> <span class="n">wolf_smoke_col_1x1</span><span class="o">.</span><span class="n">t00</span>
 <span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">build</span>
@@ -816,7 +816,7 @@ The base_suite will attempt to post the test results on CDash when the suite is 
 </div>
 </div>
 <div class="section" id="to-run-a-test-case-and-compare-to-a-baseline-dataset">
-<h4>3.3.6.2. To run a test case and compare to a baseline dataset<a class="headerlink" href="#to-run-a-test-case-and-compare-to-a-baseline-dataset" title="Permalink to this headline">¶</a></h4>
+<h4>1.3.6.2. To run a test case and compare to a baseline dataset<a class="headerlink" href="#to-run-a-test-case-and-compare-to-a-baseline-dataset" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">bc</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t01</span>
 <span class="n">cd</span> <span class="n">wolf_smoke_col_1x1</span><span class="o">.</span><span class="n">t01</span>
 <span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">build</span>
@@ -829,7 +829,7 @@ The base_suite will attempt to post the test results on CDash when the suite is 
 </div>
 </div>
 <div class="section" id="to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results">
-<h4>3.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and report results<a class="headerlink" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results" title="Permalink to this headline">¶</a></h4>
+<h4>1.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and report results<a class="headerlink" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t02</span> <span class="o">-</span><span class="n">bg</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">bs</span> <span class="o">-</span><span class="n">report</span>
 </pre></div>
 </div>
@@ -845,7 +845,7 @@ The base_suite will attempt to post the test results on CDash when the suite is 
 </div>
 </div>
 <div class="section" id="to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results">
-<h4>3.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and report the results<a class="headerlink" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results" title="Permalink to this headline">¶</a></h4>
+<h4>1.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and report the results<a class="headerlink" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t03</span> <span class="o">-</span><span class="n">bc</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">bs</span> <span class="o">-</span><span class="n">bg</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">new</span> <span class="o">-</span><span class="n">report</span>
 </pre></div>
 </div>
@@ -853,13 +853,13 @@ The base_suite will attempt to post the test results on CDash when the suite is 
 </div>
 </div>
 <div class="section" id="case-settings">
-<h2>3.4. Case Settings<a class="headerlink" href="#case-settings" title="Permalink to this headline">¶</a></h2>
+<h2>1.4. Case Settings<a class="headerlink" href="#case-settings" title="Permalink to this headline">¶</a></h2>
 <p>There are two important files that define the case, <strong>icepack.settings</strong> and
 <strong>icepack_in</strong>.  <strong>icepack.settings</strong> is a list of env variables that define many
 values used to setup, build and run the case.  <strong>icepack_in</strong> is the input namelist file
 for the icepack driver.  Variables in both files are described below.</p>
 <div class="section" id="table-of-icepack-settings">
-<span id="tabsettings"></span><h3>3.4.1. Table of icepack settings<a class="headerlink" href="#table-of-icepack-settings" title="Permalink to this headline">¶</a></h3>
+<span id="tabsettings"></span><h3>1.4.1. Table of icepack settings<a class="headerlink" href="#table-of-icepack-settings" title="Permalink to this headline">¶</a></h3>
 <p>The <strong>icepack.settings</strong> file is reasonably well self documented.  Several of
 the variables defined in the file are not used in Icepack.  They exist
 to support the CICE model.</p>
@@ -1155,7 +1155,7 @@ to support the CICE model.</p>
 </table>
 </div>
 <div class="section" id="table-of-namelist-inputs">
-<span id="tabnamelist"></span><h3>3.4.2. Table of namelist inputs<a class="headerlink" href="#table-of-namelist-inputs" title="Permalink to this headline">¶</a></h3>
+<span id="tabnamelist"></span><h3>1.4.2. Table of namelist inputs<a class="headerlink" href="#table-of-namelist-inputs" title="Permalink to this headline">¶</a></h3>
 <p>CHECK</p>
 <p>Namelist is part of the icepack driver code and is used to setup testing of the
 column physics.</p>
@@ -2393,7 +2393,7 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">T_max</span></code></td>
 <td>real</td>
-<td>maximum temperature (<span class="math">\(^o\)</span>C`)</td>
+<td>maximum temperature (<span class="math">\(^o\)</span>C)</td>
 <td>0.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">fsal</span></code></td>
@@ -2624,7 +2624,7 @@ column physics.</p>
 </tbody>
 </table>
 <div class="section" id="bgc-tuning-parameters">
-<span id="tuning"></span><h4>3.4.2.1. BGC Tuning Parameters<a class="headerlink" href="#bgc-tuning-parameters" title="Permalink to this headline">¶</a></h4>
+<span id="tuning"></span><h4>1.4.2.1. BGC Tuning Parameters<a class="headerlink" href="#bgc-tuning-parameters" title="Permalink to this headline">¶</a></h4>
 <p>Biogeochemical tuning parameters are specified as namelist options in
 <strong>icepack_in</strong>. Table&nbsp;<a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Table 9</span></a> provides a list of parameters
 used in the reaction equations, their representation in the code, a
@@ -2872,10 +2872,10 @@ that there has only been minimal tuning of the model.</p>
 </div>
 </div>
 <div class="section" id="troubleshooting">
-<h2>3.5. Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<h2>1.5. Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
 <p>Check the FAQ: <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki">https://github.com/CICE-Consortium/Icepack/wiki</a></p>
 <div class="section" id="initial-setup">
-<span id="setup"></span><h3>3.5.1. Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h3>
+<span id="setup"></span><h3>1.5.1. Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h3>
 <p>If there are problems, you can manually edit
 the env, Macros, and <strong>icepack.run</strong> files in the case directory until things are
 working properly.  Then you can copy the env and Macros files back to
@@ -2887,7 +2887,7 @@ if scripts in the case directory are run again later.</li>
 </ul>
 </div>
 <div class="section" id="restarts">
-<span id="restarttrouble"></span><h3>3.5.2. Restarts<a class="headerlink" href="#restarts" title="Permalink to this headline">¶</a></h3>
+<span id="restarttrouble"></span><h3>1.5.2. Restarts<a class="headerlink" href="#restarts" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Manual restart tests require the path to the restart file be included in <code class="docutils literal"><span class="pre">ice_in</span></code> in the
 namelist file.</li>
@@ -2896,7 +2896,7 @@ Other configuration parameters, such as <code class="docutils literal"><span cla
 </ul>
 </div>
 <div class="section" id="underflows">
-<span id="testtrouble"></span><h3>3.5.3. Underflows<a class="headerlink" href="#underflows" title="Permalink to this headline">¶</a></h3>
+<span id="testtrouble"></span><h3>1.5.3. Underflows<a class="headerlink" href="#underflows" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Tests using a debug flag that traps underflows will fail unless a “flush-to-zero” flag
 is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
@@ -2904,7 +2904,7 @@ radiation scheme.</li>
 </ul>
 </div>
 <div class="section" id="debugging-hints">
-<h3>3.5.4. Debugging hints<a class="headerlink" href="#debugging-hints" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.4. Debugging hints<a class="headerlink" href="#debugging-hints" title="Permalink to this headline">¶</a></h3>
 <p>CHECK write utility in column physics interface, for checking parameter values</p>
 <p>A printing utility is available in the driver that can be helpful when debugging the
 code. Not all of these will work everywhere in the code, due to possible
@@ -2918,7 +2918,7 @@ points during initialization and the timestepping loop</dd>
 </dl>
 </div>
 <div class="section" id="known-bugs-and-other-issues">
-<h3>3.5.5. Known bugs and other issues<a class="headerlink" href="#known-bugs-and-other-issues" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.5. Known bugs and other issues<a class="headerlink" href="#known-bugs-and-other-issues" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>With the old CCSM radiative scheme (<code class="docutils literal"><span class="pre">shortwave</span></code> = ‘default’ or
 ‘ccsm3’), a sizable fraction (more than 10%) of the total shortwave
@@ -2930,7 +2930,7 @@ when <code class="docutils literal"><span class="pre">snowpatch</span></code> &l
 </ul>
 </div>
 <div class="section" id="interpretation-of-albedos">
-<h3>3.5.6. Interpretation of albedos<a class="headerlink" href="#interpretation-of-albedos" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.6. Interpretation of albedos<a class="headerlink" href="#interpretation-of-albedos" title="Permalink to this headline">¶</a></h3>
 <p>The snow-and-ice albedo, <code class="docutils literal"><span class="pre">albsni</span></code>, and diagnostic albedos <code class="docutils literal"><span class="pre">albice</span></code>, <code class="docutils literal"><span class="pre">albsno</span></code>,
 and <code class="docutils literal"><span class="pre">albpnd</span></code> are merged over categories but not scaled (divided) by the
 total ice area. (This is a change from CICE v4.1 for <code class="docutils literal"><span class="pre">albsni</span></code>.) The latter
@@ -2951,7 +2951,7 @@ averaging that is incremented only when <span class="math">\(\cos\varphi &gt; 0\
 albedos will still be zero in the dark, polar winter hemisphere.</p>
 </div>
 <div class="section" id="proliferating-subprocess-parameterizations">
-<h3>3.5.7. Proliferating subprocess parameterizations<a class="headerlink" href="#proliferating-subprocess-parameterizations" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.7. Proliferating subprocess parameterizations<a class="headerlink" href="#proliferating-subprocess-parameterizations" title="Permalink to this headline">¶</a></h3>
 <p>With the addition of several alternative parameterizations for sea ice
 processes, a number of subprocesses now appear in multiple parts of the
 code with differing descriptions. For instance, sea ice porosity and
@@ -2976,63 +2976,63 @@ possibly unified in the future.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">3. User Guide</a><ul>
-<li><a class="reference internal" href="#implementation">3.1. Implementation</a><ul>
-<li><a class="reference internal" href="#directory-structure">3.1.1. Directory structure</a></li>
-<li><a class="reference internal" href="#grid-and-boundary-conditions">3.1.2. Grid and boundary conditions</a></li>
-<li><a class="reference internal" href="#test-configurations">3.1.3. Test configurations</a></li>
-<li><a class="reference internal" href="#initialization-and-forcing">3.1.4. Initialization and Forcing</a></li>
-<li><a class="reference internal" href="#choosing-an-appropriate-time-step">3.1.5. Choosing an appropriate time step</a></li>
-<li><a class="reference internal" href="#model-output">3.1.6. Model output</a><ul>
-<li><a class="reference internal" href="#diagnostic-files">3.1.6.1. Diagnostic files</a></li>
-<li><a class="reference internal" href="#restart-files">3.1.6.2. Restart files</a></li>
-<li><a class="reference internal" href="#biogeochemistry-history-fields">3.1.6.3. Biogeochemistry History Fields</a></li>
+<li><a class="reference internal" href="#">1. User Guide</a><ul>
+<li><a class="reference internal" href="#implementation">1.1. Implementation</a><ul>
+<li><a class="reference internal" href="#directory-structure">1.1.1. Directory structure</a></li>
+<li><a class="reference internal" href="#grid-and-boundary-conditions">1.1.2. Grid and boundary conditions</a></li>
+<li><a class="reference internal" href="#test-configurations">1.1.3. Test configurations</a></li>
+<li><a class="reference internal" href="#initialization-and-forcing">1.1.4. Initialization and Forcing</a></li>
+<li><a class="reference internal" href="#choosing-an-appropriate-time-step">1.1.5. Choosing an appropriate time step</a></li>
+<li><a class="reference internal" href="#model-output">1.1.6. Model output</a><ul>
+<li><a class="reference internal" href="#diagnostic-files">1.1.6.1. Diagnostic files</a></li>
+<li><a class="reference internal" href="#restart-files">1.1.6.2. Restart files</a></li>
+<li><a class="reference internal" href="#biogeochemistry-history-fields">1.1.6.3. Biogeochemistry History Fields</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#running-icepack">3.2. Running Icepack</a><ul>
-<li><a class="reference internal" href="#scripts">3.2.1. Scripts</a></li>
-<li><a class="reference internal" href="#porting">3.2.2. Porting</a><ul>
-<li><a class="reference internal" href="#machine-account-settings">3.2.2.1. Machine Account Settings</a></li>
+<li><a class="reference internal" href="#running-icepack">1.2. Running Icepack</a><ul>
+<li><a class="reference internal" href="#scripts">1.2.1. Scripts</a></li>
+<li><a class="reference internal" href="#porting">1.2.2. Porting</a><ul>
+<li><a class="reference internal" href="#machine-account-settings">1.2.2.1. Machine Account Settings</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#forcing-data">3.2.3. Forcing data</a></li>
-<li><a class="reference internal" href="#run-directories">3.2.4. Run Directories</a></li>
-<li><a class="reference internal" href="#local-modifications">3.2.5. Local modifications</a></li>
+<li><a class="reference internal" href="#forcing-data">1.2.3. Forcing data</a></li>
+<li><a class="reference internal" href="#run-directories">1.2.4. Run Directories</a></li>
+<li><a class="reference internal" href="#local-modifications">1.2.5. Local modifications</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#testing-icepack">3.3. Testing Icepack</a><ul>
-<li><a class="reference internal" href="#individual-tests">3.3.1. Individual Tests</a></li>
-<li><a class="reference internal" href="#test-suites">3.3.2. Test suites</a></li>
-<li><a class="reference internal" href="#regression-testing">3.3.3. Regression testing</a></li>
-<li><a class="reference internal" href="#comparison-testing">3.3.4. Comparison testing</a></li>
-<li><a class="reference internal" href="#test-reporting">3.3.5. Test Reporting</a></li>
-<li><a class="reference internal" href="#examples">3.3.6. Examples</a><ul>
-<li><a class="reference internal" href="#to-generate-a-baseline-dataset-for-a-test-case">3.3.6.1. To generate a baseline dataset for a test case</a></li>
-<li><a class="reference internal" href="#to-run-a-test-case-and-compare-to-a-baseline-dataset">3.3.6.2. To run a test case and compare to a baseline dataset</a></li>
-<li><a class="reference internal" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results">3.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and report results</a></li>
-<li><a class="reference internal" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results">3.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and report the results</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#case-settings">3.4. Case Settings</a><ul>
-<li><a class="reference internal" href="#table-of-icepack-settings">3.4.1. Table of icepack settings</a></li>
-<li><a class="reference internal" href="#table-of-namelist-inputs">3.4.2. Table of namelist inputs</a><ul>
-<li><a class="reference internal" href="#bgc-tuning-parameters">3.4.2.1. BGC Tuning Parameters</a></li>
+<li><a class="reference internal" href="#testing-icepack">1.3. Testing Icepack</a><ul>
+<li><a class="reference internal" href="#individual-tests">1.3.1. Individual Tests</a></li>
+<li><a class="reference internal" href="#test-suites">1.3.2. Test suites</a></li>
+<li><a class="reference internal" href="#regression-testing">1.3.3. Regression testing</a></li>
+<li><a class="reference internal" href="#comparison-testing">1.3.4. Comparison testing</a></li>
+<li><a class="reference internal" href="#test-reporting">1.3.5. Test Reporting</a></li>
+<li><a class="reference internal" href="#examples">1.3.6. Examples</a><ul>
+<li><a class="reference internal" href="#to-generate-a-baseline-dataset-for-a-test-case">1.3.6.1. To generate a baseline dataset for a test case</a></li>
+<li><a class="reference internal" href="#to-run-a-test-case-and-compare-to-a-baseline-dataset">1.3.6.2. To run a test case and compare to a baseline dataset</a></li>
+<li><a class="reference internal" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results">1.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and report results</a></li>
+<li><a class="reference internal" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results">1.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and report the results</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#troubleshooting">3.5. Troubleshooting</a><ul>
-<li><a class="reference internal" href="#initial-setup">3.5.1. Initial setup</a></li>
-<li><a class="reference internal" href="#restarts">3.5.2. Restarts</a></li>
-<li><a class="reference internal" href="#underflows">3.5.3. Underflows</a></li>
-<li><a class="reference internal" href="#debugging-hints">3.5.4. Debugging hints</a></li>
-<li><a class="reference internal" href="#known-bugs-and-other-issues">3.5.5. Known bugs and other issues</a></li>
-<li><a class="reference internal" href="#interpretation-of-albedos">3.5.6. Interpretation of albedos</a></li>
-<li><a class="reference internal" href="#proliferating-subprocess-parameterizations">3.5.7. Proliferating subprocess parameterizations</a></li>
+<li><a class="reference internal" href="#case-settings">1.4. Case Settings</a><ul>
+<li><a class="reference internal" href="#table-of-icepack-settings">1.4.1. Table of icepack settings</a></li>
+<li><a class="reference internal" href="#table-of-namelist-inputs">1.4.2. Table of namelist inputs</a><ul>
+<li><a class="reference internal" href="#bgc-tuning-parameters">1.4.2.1. BGC Tuning Parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#troubleshooting">1.5. Troubleshooting</a><ul>
+<li><a class="reference internal" href="#initial-setup">1.5.1. Initial setup</a></li>
+<li><a class="reference internal" href="#restarts">1.5.2. Restarts</a></li>
+<li><a class="reference internal" href="#underflows">1.5.3. Underflows</a></li>
+<li><a class="reference internal" href="#debugging-hints">1.5.4. Debugging hints</a></li>
+<li><a class="reference internal" href="#known-bugs-and-other-issues">1.5.5. Known bugs and other issues</a></li>
+<li><a class="reference internal" href="#interpretation-of-albedos">1.5.6. Interpretation of albedos</a></li>
+<li><a class="reference internal" href="#proliferating-subprocess-parameterizations">1.5.7. Proliferating subprocess parameterizations</a></li>
 </ul>
 </li>
 </ul>
@@ -3041,10 +3041,10 @@ possibly unified in the future.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="icepack_2_science_guide.html"
-                        title="previous chapter">2. Science Guide</a></p>
+                        title="previous chapter">1. Science Guide</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="icepack_4_developer_guide.html"
-                        title="next chapter">4. Developers Guide</a></p>
+                        title="next chapter">1. Developers Guide</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -3070,16 +3070,16 @@ possibly unified in the future.</p>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="icepack_4_developer_guide.html" title="4. Developers Guide"
+          <a href="icepack_4_developer_guide.html" title="1. Developers Guide"
              >next</a></li>
         <li class="right" >
-          <a href="icepack_2_science_guide.html" title="2. Science Guide"
+          <a href="icepack_2_science_guide.html" title="1. Science Guide"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium Icepack 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium_Icepack 0.0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>

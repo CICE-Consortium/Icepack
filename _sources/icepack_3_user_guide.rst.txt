@@ -1040,7 +1040,7 @@ column physics.
    "``f_exude_l``", "real", "fraction of exudation to DOC lipids", "1.0"  
    "``k_bac_s``", "real", "bacterial degredation of DOC (:math:`day^{-1}`) saccharids", "0.03"
    "``k_bac_l``", "real", "bacterial degredation of DOC (:math:`day^{-1}`) lipids", "0.03"  
-   "``T_max``", "real", "maximum temperature (:math:`^o`\ C`)", "0.0"
+   "``T_max``", "real", "maximum temperature (:math:`^o`\ C)", "0.0"
    "``fsal``", "real", "Salinity limitation (ppt)", "1.0"
    "``op_dep_min``", "real", "Light attenuates for optical depths exceeding min", "0.1"
    "``fr_graze_s``", "real", "fraction of grazing spilled or slopped", "0.5"
