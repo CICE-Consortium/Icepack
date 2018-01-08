@@ -1876,7 +1876,7 @@ column physics.</p>
 <td>restart the brine height tracer (automatically turned on if restart = .true.)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_zero</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_zaero</span></code></td>
 <td>true/false</td>
 <td>turns on black carbon and dust aerosols</td>
 <td>&#160;</td>
@@ -1898,7 +1898,7 @@ column physics.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">dEdd_algae</span></code></td>
 <td>true/false</td>
-<td>Include radiative impact of algae and aerosols in the delta-Eddington shortwave scheme. Requires shortwave = ‘dEdd’. Should not be used when solve_zbgc or skl_bgc are true)</td>
+<td>Include radiative impact of algae and aerosols in the delta-Eddington shortwave scheme. Requires shortwave = ‘dEdd’.</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">solve_zbgc</span></code></td>
@@ -1928,7 +1928,7 @@ column physics.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">solve_zsal</span></code></td>
 <td>true/false</td>
-<td>prognostic salinity tracer used with therm = 1</td>
+<td>prognostic salinity tracer used with ktherm = 1</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">restart_zsal</span></code></td>
@@ -2033,7 +2033,7 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">phi_snow</span></code></td>
 <td>real</td>
-<td>snow porosity at the ice-snow interface. if &lt;0 then phi_snow is computed from snow density</td>
+<td>snow porosity at the ice-snow interface. if <span class="math">\(&lt;0\)</span> then phi_snow is computed from snow density</td>
 <td>-0.3</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">initbio_frac</span></code></td>
@@ -2043,82 +2043,82 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">frazil_scav</span></code></td>
 <td>real</td>
-<td>for each bgc tracer, specifies the fraction or multiple of the ocean concentration that is retained in the ice from frail formation</td>
+<td>for each bgc tracer, specifies the fraction or multiple of the ocean concentration that is retained in the ice from frazil ice formation</td>
 <td>0.8</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_si2N_diatoms</span></code></td>
 <td>real</td>
-<td>algal Si to N (mol/mol) for diatoms</td>
+<td>algal Si to N (<span class="math">\(mol/mol\)</span>) for diatoms</td>
 <td>1.8</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_si2N_sp</span></code></td>
 <td>real</td>
-<td>algal Si to N (mol/mol) for small phytoplankton</td>
+<td>algal Si to N (<span class="math">\(mol/mol\)</span>) for small phytoplankton</td>
 <td>0.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_si2N_phaeo</span></code></td>
 <td>real</td>
-<td>algal Si to N (mol/mol) for phaeocystis</td>
+<td>algal Si to N (<span class="math">\(mol/mol\)</span>) for phaeocystis</td>
 <td>0.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_S2N_diatoms</span></code></td>
 <td>real</td>
-<td>algal S to N (mol/mol) for diatoms</td>
+<td>algal S to N (<span class="math">\(mol/mol\)</span>) for diatoms</td>
 <td>0.03</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_S2N_sp</span></code></td>
 <td>real</td>
-<td>algal S to N (mol/mol) for small phytoplankton</td>
+<td>algal S to N (<span class="math">\(mol/mol\)</span>) for small phytoplankton</td>
 <td>0.03</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_S2N_phaeo</span></code></td>
 <td>real</td>
-<td>algal S to N (mol/mol) for phaeocystis</td>
+<td>algal S to N (<span class="math">\(mol/mol\)</span>) for phaeocystis</td>
 <td>0.03</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2C_diatoms</span></code></td>
 <td>real</td>
-<td>algal Fe to C (umol/mol) for diatoms</td>
+<td>algal Fe to C (<span class="math">\(\mu mol/mol\)</span>) for diatoms</td>
 <td>0.0033</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_Fe2C_sp</span></code></td>
 <td>real</td>
-<td>algal Fe to C (umol/mol) for small phytoplankton</td>
+<td>algal Fe to C (<span class="math">\(\mu mol/mol\)</span>) for small phytoplankton</td>
 <td>0.0033</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2C_phaeo</span></code></td>
 <td>real</td>
-<td>algal Fe to C (umol/mol) for phaeocystis</td>
+<td>algal Fe to C (<span class="math">\(\mu mol/mol\)</span>) for phaeocystis</td>
 <td>0.1</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_Fe2N_diatoms</span></code></td>
 <td>real</td>
-<td>algal Fe to N (umol/mol) for diatoms</td>
+<td>algal Fe to N (<span class="math">\(\mu mol/mol\)</span>) for diatoms</td>
 <td>0.023</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2N_sp</span></code></td>
 <td>real</td>
-<td>algal Fe to N (umol/mol) for small phytoplankton</td>
+<td>algal Fe to N (<span class="math">\(\mu mol/mol\)</span>) for small phytoplankton</td>
 <td>0.023</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_Fe2N_phaeo</span></code></td>
 <td>real</td>
-<td>algal Fe to N (umol/mol) for phaeocystis</td>
+<td>algal Fe to N (<span class="math">\(\mu mol/mol\)</span>) for phaeocystis</td>
 <td>0.7</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2DON</span></code></td>
 <td>real</td>
-<td>Fe to N of DON (nmol/umol)</td>
+<td>Fe to N of DON (<span class="math">\(nmol/mol\)</span>)</td>
 <td>0.023</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_Fe2DOC_s</span></code></td>
 <td>real</td>
-<td>Fe to C of DOC for saccharids (nmol/umol)</td>
+<td>Fe to C of DOC for saccharids (<span class="math">\(nmol/mol\)</span>)</td>
 <td>0.1</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_Fe2DOC_l</span></code></td>
 <td>real</td>
-<td>Fe to C of DOC for lipids (nmol/umol)</td>
+<td>Fe to C of DOC for lipids (<span class="math">\(nmol/mol\)</span>)</td>
 <td>0.033</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">fr_resp</span></code></td>
@@ -2128,17 +2128,17 @@ column physics.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">tau_min</span></code></td>
 <td>real</td>
-<td>rapid mobile to stationary exchanges (s)</td>
+<td>rapid mobile to stationary exchanges (<span class="math">\(s\)</span>)</td>
 <td>5200.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">tau_max</span></code></td>
 <td>real</td>
-<td>long time mobile to stationary exchanges (s)</td>
+<td>long time mobile to stationary exchanges (<span class="math">\(s\)</span>)</td>
 <td>1.73e5</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">algal_vel</span></code></td>
 <td>real</td>
-<td>0.5 cm/d(m/s)</td>
+<td>0.5 <span class="math">\(cm/day (m/s)\)</span></td>
 <td>1.11e-8</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">R_dFe2dust</span></code></td>
@@ -2153,77 +2153,77 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">chlabs_diatoms</span></code></td>
 <td>real</td>
-<td>diatoms chl absorption (1/m/(mg/m^3))</td>
+<td>diatoms chl absorption (<span class="math">\(1/m/(mg/m^3)\)</span>)</td>
 <td>0.03</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">chlabs_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton chl absorption (1/m/(mg/m^3))</td>
+<td>small phytoplankton chl absorption (<span class="math">\(1/m/(mg/m^3)\)</span>)</td>
 <td>0.01</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">chlabs_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis chl absorption (1/m/(mg/m^3))</td>
+<td>phaeocystis chl absorption (<span class="math">\(1/m/(mg/m^3)\)</span>)</td>
 <td>0.05</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">alpha2max_low_diatoms</span></code></td>
 <td>real</td>
-<td>diatoms light limitation (1/(W/m^2))</td>
+<td>diatoms light limitation (<span class="math">\((W/m^2)^{-1}\)</span>)</td>
 <td>0.8</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">alpha2max_low_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton light limitation (1/(W/m^2))</td>
+<td>small phytoplankton light limitation (<span class="math">\((W/m^2)^{-1}\)</span>)</td>
 <td>0.67</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">alpha2max_low_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis light limitation (1/(W/m^2))</td>
+<td>phaeocystis light limitation (<span class="math">\((W/m^2)^{-1}\)</span>)</td>
 <td>0.67</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">beta2max_diatoms</span></code></td>
 <td>real</td>
-<td>diatoms light inhibition (1/(W/m^2))</td>
+<td>diatoms light inhibition (<span class="math">\((W/m^2)^{-1}\)</span>)</td>
 <td>0.018</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">beta2max_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton light inhibition (1/(W/m^2))</td>
+<td>small phytoplankton light inhibition (<span class="math">\((W/m^2)^{-1}\)</span>)</td>
 <td>0.0025</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">beta2max_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis light inhibition (1/(W/m^2))</td>
+<td>phaeocystis light inhibition (<span class="math">\((W/m^2)^{-1}\)</span>)</td>
 <td>0.01</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">mu_max_diatoms</span></code></td>
 <td>real</td>
-<td>diatoms maximum growth rate (1/day)</td>
+<td>diatoms maximum growth rate (<span class="math">\(day^{-1}\)</span>)</td>
 <td>1.2</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">mu_max_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton maximum growth rate (1/day)</td>
+<td>small phytoplankton maximum growth rate (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.851</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">mu_max_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis maximum growth rate (1/day)</td>
+<td>phaeocystis maximum growth rate (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.851</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">grow_Tdep_diatoms</span></code></td>
 <td>real</td>
-<td>diatoms Temperature dependence of growth (1/C)</td>
+<td>diatoms Temperature dependence of growth (<span class="math">\(^o\)</span>C<span class="math">\(^{-1})\)</span></td>
 <td>0.06</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">grow_Tdep_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton Temperature dependence of growth (1/C)</td>
+<td>small phytoplankton Temperature dependence of growth <span class="math">\(^o\)</span>C<span class="math">\(^{-1}\)</span></td>
 <td>0.06</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">grow_Tdep_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis Temperature dependence of growth (1/C)</td>
+<td>phaeocystis Temperature dependence of growth <span class="math">\(^o\)</span>C<span class="math">\(^{-1}\)</span></td>
 <td>0.06</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">fr_graze_diatoms</span></code></td>
@@ -2243,107 +2243,107 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">mort_pre_diatoms</span></code></td>
 <td>real</td>
-<td>diatoms mortality (1/day)</td>
+<td>diatoms mortality (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.007</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">mort_pre_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton mortality (1/day)</td>
+<td>small phytoplankton mortality (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.007</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">mort_pre_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis mortality (1/day)</td>
+<td>phaeocystis mortality (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.007</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">mort_Tdep_diatoms</span></code></td>
 <td>real</td>
-<td>diatoms temperature dependence of mortality (1/C)</td>
+<td>diatoms temperature dependence of mortality <span class="math">\(^o\)</span>C<span class="math">\(^{-1}\)</span></td>
 <td>0.03</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">mort_Tdep_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton temperature dependence of mortality (1/C)</td>
+<td>small phytoplankton temperature dependence of mortality (<span class="math">\(^o\)</span>C<span class="math">\(^{-1}\)</span>)</td>
 <td>0.03</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">mort_Tdep_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis temperature dependence of mortality (1/C)</td>
+<td>phaeocystis temperature dependence of mortality (<span class="math">\(^o\)</span>C<span class="math">\(^{-1}\)</span>)</td>
 <td>0.03</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">k_exude_diatoms</span></code></td>
 <td>real</td>
-<td>diatoms algal exudation (1/d)</td>
+<td>diatoms algal exudation (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">k_exude_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton algal exudation (1/d)</td>
+<td>small phytoplankton algal exudation (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">k_exude_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis algal exudation (1/d)</td>
+<td>phaeocystis algal exudation (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Nit_diatoms</span></code></td>
 <td>real</td>
-<td>nitrate half saturation (mmol/m^3)</td>
+<td>datoms nitrate half saturation (<span class="math">\(mmol/m^3\)</span>)</td>
 <td>1.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Nit_sp</span></code></td>
 <td>real</td>
-<td>nitrate half saturation (mmol/m^3)</td>
+<td>small phytoplankton nitrate half saturation (<span class="math">\(mmol/m^3\)</span>)</td>
 <td>1.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Nit_phaeo</span></code></td>
 <td>real</td>
-<td>nitrate half saturation (mmol/m^3)</td>
+<td>phaeocystis nitrate half saturation (<span class="math">\(mmol/m^3\)</span>)</td>
 <td>1.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Am_diatoms</span></code></td>
 <td>real</td>
-<td>ammonium half saturation (mmol/m^3)</td>
+<td>diatoms ammonium half saturation (<span class="math">\(mmol/m^3\)</span>)</td>
 <td>0.3</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Am_sp</span></code></td>
 <td>real</td>
-<td>ammonium half saturation (mmol/m^3)</td>
+<td>small phytoplankton ammonium half saturation (<span class="math">\(mmol/m^3\)</span>)</td>
 <td>0.3</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Am_phaeo</span></code></td>
 <td>real</td>
-<td>ammonium half saturation (mmol/m^3)</td>
+<td>phaeocystis ammonium half saturation (<span class="math">\(mmol/m^3\)</span>)</td>
 <td>0.3</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Sil_diatoms</span></code></td>
 <td>real</td>
-<td>silicate half saturation (mmol/m^3)</td>
+<td>diatoms silicate half saturation (<span class="math">\(mmol/m^3\)</span>)</td>
 <td>4.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Sil_sp</span></code></td>
 <td>real</td>
-<td>silicate half saturation (mmol/m^3)</td>
+<td>small phytoplankton silicate half saturation (<span class="math">\(mmol/m^3\)</span>)</td>
 <td>0.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Sil_phaeo</span></code></td>
 <td>real</td>
-<td>silicate half saturation (mmol/m^3)</td>
+<td>phaeocystis silicate half saturation (<span class="math">\(mmol/m^3\)</span>)</td>
 <td>0.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Fe_diatoms</span></code></td>
 <td>real</td>
-<td>iron half saturation (nM)</td>
+<td>diatoms iron half saturation (<span class="math">\(nM\)</span>)</td>
 <td>1.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">K_Fe_sp</span></code></td>
 <td>real</td>
-<td>iron half saturation (nM)</td>
+<td>small phytoplankton iron half saturation (<span class="math">\(nM\)</span>)</td>
 <td>0.2</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">K_Fe_phaeo</span></code></td>
 <td>real</td>
-<td>iron half saturation (nM)</td>
+<td>phaeocystis iron half saturation (<span class="math">\(nM\)</span>)</td>
 <td>0.1</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_don_protein</span></code></td>
@@ -2353,7 +2353,7 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">kn_bac_protein</span></code></td>
 <td>real</td>
-<td>Bacterial degredation of DON (1/d)</td>
+<td>Bacterial degredation of DON (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.03</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_don_Am_protein</span></code></td>
@@ -2363,37 +2363,37 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">f_doc_s</span></code></td>
 <td>real</td>
-<td>saccharids fraction of mortality to DOC</td>
+<td>fraction of mortality to DOC saccharids</td>
 <td>0.4</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_doc_l</span></code></td>
 <td>real</td>
-<td>lipids fraction of mortality to DOC</td>
+<td>fraction of mortality to DOC lipids</td>
 <td>0.4</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">f_exude_s</span></code></td>
 <td>real</td>
-<td>saccharids fraction of exudation to DOC</td>
+<td>fraction of exudation to DOC saccharids</td>
 <td>1.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">f_exude_l</span></code></td>
 <td>real</td>
-<td>lipids fraction of exudation to DOC</td>
+<td>fraction of exudation to DOC lipids</td>
 <td>1.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">k_bac_s</span></code></td>
 <td>real</td>
-<td>saccharids bacterial degredation of DOC (1/d)</td>
+<td>bacterial degredation of DOC (<span class="math">\(day^{-1}\)</span>) saccharids</td>
 <td>0.03</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">k_bac_l</span></code></td>
 <td>real</td>
-<td>lipids bacterial degredation of DOC (1/d)</td>
+<td>bacterial degredation of DOC (<span class="math">\(day^{-1}\)</span>) lipids</td>
 <td>0.03</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">T_max</span></code></td>
 <td>real</td>
-<td>maximum temperature (C)</td>
+<td>maximum temperature (<span class="math">\(^o\)</span>C`)</td>
 <td>0.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">fsal</span></code></td>
@@ -2428,7 +2428,7 @@ column physics.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">k_nitrif</span></code></td>
 <td>real</td>
-<td>nitrification rate (1/day)</td>
+<td>nitrification rate (<span class="math">\(day^{-1}\)</span>)</td>
 <td>0.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">t_iron_conv</span></code></td>
@@ -2443,7 +2443,7 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">max_dfe_doc1</span></code></td>
 <td>real</td>
-<td>max ratio of dFe to saccharides in the ice (nM Fe/muM C)</td>
+<td>max ratio of dFe to saccharides in the ice (<span class="math">\(nM Fe/\mu M C\)</span>)</td>
 <td>0.2</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">fr_resp_s</span></code></td>
@@ -2458,142 +2458,142 @@ column physics.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">t_sk_conv</span></code></td>
 <td>real</td>
-<td>Stefels conversion time (d)</td>
+<td>Stefels conversion time (<span class="math">\(day\)</span>)</td>
 <td>3.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">t_sk_ox</span></code></td>
 <td>real</td>
-<td>DMS oxidation time (d)</td>
+<td>DMS oxidation time (<span class="math">\(day\)</span>)</td>
 <td>10.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">algaltype_diatoms</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for diatoms</td>
 <td>0.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">algaltype_sp</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for small phytoplankton</td>
 <td>0.5</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">algaltype_phaeo</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for phaeocystis</td>
 <td>0.5</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">nitratetype</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for nitrate</td>
 <td>-1.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ammoniumtype</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for ammonium</td>
 <td>1.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">silicatetype</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for silicate</td>
 <td>-1.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">dmspptype</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for DMSP particulate</td>
 <td>0.5</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">dmspdtype</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for DMSP dissolved</td>
 <td>-1.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">humtype</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for humic matter</td>
 <td>1.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">doctype_s</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for DOC saccharids</td>
 <td>0.5</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">doctype_l</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for DOC lipids</td>
 <td>0.5</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">dontype_protein</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for proteins</td>
 <td>0.5</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">fedtype_1</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for FeD</td>
 <td>0.5</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">feptype_1</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for FeP</td>
 <td>0.5</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">zaerotype_bc1</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for zaerotype_bc1</td>
 <td>1.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">zaerotype_bc2</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for zaerotype_bc2</td>
 <td>1.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">zaerotype_dust1</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for dust1</td>
 <td>1.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">zaerotype_dust2</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for dust2</td>
 <td>1.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">zaerotype_dust3</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for dust3</td>
 <td>1.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">zaerotype_dust4</span></code></td>
 <td>real</td>
-<td>mobility type between stationary &lt;–&gt; mobile</td>
+<td>mobility type between stationary &lt;–&gt; mobile for dust4</td>
 <td>1.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_C2N_diatoms</span></code></td>
 <td>real</td>
-<td>diatom algal C to N ratio (mol/mol)</td>
+<td>diatom algal C to N ratio (<span class="math">\(mol/mol\)</span>)</td>
 <td>7.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_C2N_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton algal C to N ratio (mol/mol)</td>
+<td>small phytoplankton algal C to N ratio (<span class="math">\(mol/mol\)</span>)</td>
 <td>7.0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_C2N_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis algal C to N ratio (mol/mol)</td>
+<td>phaeocystis algal C to N ratio (<span class="math">\(mol/mol\)</span>)</td>
 <td>7.0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_chl2N_diatoms</span></code></td>
 <td>real</td>
-<td>diatom algal chlorophyll to N ratio (mg/mmol)</td>
+<td>diatom algal chlorophyll to N ratio (<span class="math">\(mg/mmol\)</span>)</td>
 <td>2.1</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">ratio_chl2N_sp</span></code></td>
 <td>real</td>
-<td>small phytoplankton algal chlorophyll to N ratio (mg/mmol)</td>
+<td>small phytoplankton algal chlorophyll to N ratio (<span class="math">\(mg/mmol\)</span>)</td>
 <td>1.1</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_chl2N_phaeo</span></code></td>
 <td>real</td>
-<td>phaeocystis algal chlorophyll to N ratio (mg/mmol)</td>
+<td>phaeocystis algal chlorophyll to N ratio (<span class="math">\(mg/mmol\)</span>)</td>
 <td>0.84</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">F_abs_chl_diatoms</span></code></td>
@@ -2613,7 +2613,7 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">ratio_C2N_proteins</span></code></td>
 <td>real</td>
-<td>ratio of C to N in proteins (mol/mol)</td>
+<td>ratio of C to N in proteins (<span class="math">\(mol/mol\)</span>)</td>
 <td>7.0</td>
 </tr>
 <tr class="row-odd"><td>&#160;</td>
