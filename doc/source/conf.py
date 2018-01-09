@@ -53,7 +53,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'CICE-Consortium_Icepack'
+project = u'Icepack'
 copyright = u'2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation)'
 author = u'CICE-Consortium'
 
@@ -232,7 +232,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'CICE-Consortium_Icepack.tex', u'CICE-Consortium_Icepack Documentation',
+    (master_doc, 'Icepack.tex', u'Icepack Documentation',
      u'CICE Consortium', 'manual'),
 ]
 
@@ -262,7 +262,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'cice-consortium-icepack', u'CICE-Consortium_Icepack Documentation',
+    (master_doc, 'Icepack', u'Icepack Documentation',
      [author], 1)
 ]
 
@@ -276,7 +276,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'CICE-Consortium_Icepack', u'CICE-Consortium_Icepack Documentation',
+    (master_doc, 'Icepack', u'Icepack Documentation',
      author, 'CICE-Consortium', 'One line description of project.',
      'Miscellaneous'),
 ]
