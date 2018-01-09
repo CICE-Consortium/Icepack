@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="3.5. Troubleshooting" href="ug_troubleshooting.html" />
+    <link rel="next" title="3.6. Troubleshooting" href="ug_troubleshooting.html" />
     <link rel="prev" title="3.3. Testing Icepack" href="ug_testing.html" /> 
   </head>
   <body>
@@ -31,7 +31,7 @@
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="ug_troubleshooting.html" title="3.5. Troubleshooting"
+          <a href="ug_troubleshooting.html" title="3.6. Troubleshooting"
              accesskey="N">next</a></li>
         <li class="right" >
           <a href="ug_testing.html" title="3.3. Testing Icepack"
@@ -357,9 +357,9 @@ column physics.</p>
 <span id="tab-namelist"></span><caption><span class="caption-text"><em>Namelist Inputs</em></span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="31%" />
-<col width="9%" />
-<col width="40%" />
-<col width="20%" />
+<col width="15%" />
+<col width="38%" />
+<col width="15%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">variable</th>
@@ -1063,142 +1063,142 @@ column physics.</p>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_brine</span></code></td>
 <td>true/false</td>
 <td>brine height tracer (needs TRBRI 1 in comp_ice)</td>
-<td>.true.</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">restart_hbrine</span></code></td>
 <td>true/false</td>
 <td>restart the brine height tracer (automatically turned on if restart = .true.)</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_zaero</span></code></td>
 <td>true/false</td>
 <td>turns on black carbon and dust aerosols</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">modal_aero</span></code></td>
 <td>true/false</td>
 <td>turns on a modal aerosol option</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">skl_bgc</span></code></td>
 <td>true/false</td>
 <td>turns on a single bottom layer biogeochemistry. z_tracers and solve_zbgc must be false</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">z_tracers</span></code></td>
 <td>true/false</td>
 <td>turns on a vertically resolved transport</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">dEdd_algae</span></code></td>
 <td>true/false</td>
 <td>Include radiative impact of algae and aerosols in the delta-Eddington shortwave scheme. Requires shortwave = ‘dEdd’.</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">solve_zbgc</span></code></td>
 <td>true/false</td>
 <td>turns on the biochemistry using z_tracers (specify algal numbers in comp_ice TRALG)</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">bgc_flux_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">Jin2006</span></code>/<code class="docutils literal"><span class="pre">default</span></code></td>
+<td><code class="docutils literal"><span class="pre">Jin2006</span></code> or <code class="docutils literal"><span class="pre">default</span></code></td>
 <td>ice–ocean flux type for bottom layer tracers only <a class="reference internal" href="../zreferences.html#jdwstwlg06" id="id6">[23]</a></td>
 <td><code class="docutils literal"><span class="pre">Jin2006</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">restore_bgc</span></code></td>
 <td>true/false</td>
 <td>restores upper ocean concentration fields to data values for nitrate and silicate</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">restart_bgc</span></code></td>
 <td>true/false</td>
 <td>restarts biogeochemical tracers (automatically turned on if restart = .true.)</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">scale_bgc</span></code></td>
 <td>true/false</td>
 <td>Initialize biogeochemical profiles to scale with prognosed salinity profile</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">solve_zsal</span></code></td>
 <td>true/false</td>
 <td>prognostic salinity tracer used with ktherm = 1</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">restart_zsal</span></code></td>
 <td>true/false</td>
 <td>restarts zsalinity</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">bgc_data_dir</span></code></td>
 <td><code class="docutils literal"><span class="pre">/nitrate_and_silicate/forcing_directory/</span></code></td>
 <td>&#160;</td>
-<td>&#160;</td>
+<td>‘<code class="docutils literal"><span class="pre">/nitrate_and_silicate/forcing_directory/</span></code>’</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">sil_data_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code>/<code class="docutils literal"><span class="pre">NICE</span></code>/<code class="docutils literal"><span class="pre">ISPOL</span></code>/<code class="docutils literal"><span class="pre">clim</span></code></td>
+<td><code class="docutils literal"><span class="pre">default</span></code> or <code class="docutils literal"><span class="pre">NICE</span></code> or <code class="docutils literal"><span class="pre">ISPOL</span></code> or <code class="docutils literal"><span class="pre">clim</span></code></td>
 <td>fixed, spatially homogeneous value for silicate. ‘clim’ data file (see ice_forcing_bgc.F90) <a class="reference internal" href="../zreferences.html#glba06" id="id7">[15]</a></td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">'default'</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">nit_data_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code>/<code class="docutils literal"><span class="pre">NICE</span></code>/<code class="docutils literal"><span class="pre">ISPOL</span></code>/<code class="docutils literal"><span class="pre">clim</span></code></td>
+<td><code class="docutils literal"><span class="pre">default</span></code> or <code class="docutils literal"><span class="pre">NICE</span></code> or <code class="docutils literal"><span class="pre">ISPOL</span></code> or <code class="docutils literal"><span class="pre">clim</span></code></td>
 <td>fixed, spatially homogeneous value for nitrate. ‘clim’ data file (see ice_forcing_bgc.F90) <a class="reference internal" href="../zreferences.html#glba06" id="id8">[15]</a></td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">'default'</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">fe_data_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">default</span></code></td>
 <td>fixed, spatially homogeneous value for iron</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">'default'</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_Nit</span></code></td>
 <td>true/false</td>
 <td>nitrate tracer</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_C</span></code></td>
 <td>true/false</td>
 <td>dissolved organic carbon tracers and dissolved inorganic carbon tracers (not yet implemented)</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_chl</span></code></td>
 <td>true/false</td>
 <td>dummy variable for now. Chl is simply fixed ratio of algal Nitrogen</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_Am</span></code></td>
 <td>true/false</td>
 <td>Ammonium</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_Sil</span></code></td>
 <td>true/false</td>
 <td>Silicate</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_DMS</span></code></td>
 <td>true/false</td>
 <td>Three tracers: DMS dimethyl sulfide, DMSPp (particulate, assumed to be a fixed ratio of sulfur to algal nitrogen) and DMSPd (dissolved)</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_PON</span></code></td>
 <td>true/false</td>
 <td>passive purely mobile ice tracer with ocean concentration equivalent to nitrate</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_hum</span></code></td>
 <td>true/false</td>
 <td>refractory DOC or DON (units depend on the ocean source)</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_DON</span></code></td>
 <td>true/false</td>
 <td>dissolved organic nitrogen</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_Fe</span></code></td>
 <td>true/false</td>
 <td>dissolved iron and particulate iron</td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">grid_o</span></code></td>
 <td>real</td>
@@ -1817,8 +1817,10 @@ column physics.</p>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
 <div class="section" id="bgc-tuning-parameters">
-<span id="tuning"></span><h3>3.4.2.1. BGC Tuning Parameters<a class="headerlink" href="#bgc-tuning-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="tuning"></span><h1>3.5. BGC Tuning Parameters<a class="headerlink" href="#bgc-tuning-parameters" title="Permalink to this headline">¶</a></h1>
 <p>Biogeochemical tuning parameters are specified as namelist options in
 <strong>icepack_in</strong>. Table&nbsp;<a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Biogeochemical Reaction Parameters</span></a> provides a list of parameters
 used in the reaction equations, their representation in the code, a
@@ -2062,8 +2064,6 @@ that there has only been minimal tuning of the model.</p>
 </table>
 <p><span class="math">\(^a\)</span> only (1:2) of DOC and DOC parameters have physical meaning</p>
 </div>
-</div>
-</div>
 
 
           </div>
@@ -2075,12 +2075,10 @@ that there has only been minimal tuning of the model.</p>
   <ul>
 <li><a class="reference internal" href="#">3.4. Case Settings</a><ul>
 <li><a class="reference internal" href="#table-of-icepack-settings">3.4.1. Table of Icepack Settings</a></li>
-<li><a class="reference internal" href="#table-of-namelist-inputs">3.4.2. Table of Namelist Inputs</a><ul>
-<li><a class="reference internal" href="#bgc-tuning-parameters">3.4.2.1. BGC Tuning Parameters</a></li>
+<li><a class="reference internal" href="#table-of-namelist-inputs">3.4.2. Table of Namelist Inputs</a></li>
 </ul>
 </li>
-</ul>
-</li>
+<li><a class="reference internal" href="#bgc-tuning-parameters">3.5. BGC Tuning Parameters</a></li>
 </ul>
 
   <h4>Previous topic</h4>
@@ -2088,7 +2086,7 @@ that there has only been minimal tuning of the model.</p>
                         title="previous chapter">3.3. Testing Icepack</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="ug_troubleshooting.html"
-                        title="next chapter">3.5. Troubleshooting</a></p>
+                        title="next chapter">3.6. Troubleshooting</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -2114,7 +2112,7 @@ that there has only been minimal tuning of the model.</p>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="ug_troubleshooting.html" title="3.5. Troubleshooting"
+          <a href="ug_troubleshooting.html" title="3.6. Troubleshooting"
              >next</a></li>
         <li class="right" >
           <a href="ug_testing.html" title="3.3. Testing Icepack"
