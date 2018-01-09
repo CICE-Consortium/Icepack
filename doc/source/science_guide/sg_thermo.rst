@@ -94,7 +94,7 @@ calculation.
 
 In addition to the physical processes discussed below, tracer equations
 and definitions for melt ponds are also described in
-the :ref:`tracers` section and :ref:`fig-tracers`.
+the :ref:`tracers` section.
 
 CESM formulation (``tr_pond_cesm`` = true)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -146,10 +146,9 @@ hydrostatic equilibrium.
    :align: center
    :scale: 75%
 
-   Figure 6
+   *Melt Ponds*
 
-:ref:`fig-topo` : (a) Schematic illustration of the relationship between the
-height of the pond surface :math:`h_{pnd,tot}`, the volume of water
+Figure :ref:`fig-topo` illustrates (a) Schematic illustration of the relationship between the height of the pond surface :math:`h_{pnd,tot}`, the volume of water
 :math:`V_{Pk}` required to completely fill up to category :math:`k`, the
 volume of water :math:`V_{P} - V_{Pk}`, and the depth to which this
 fills category :math:`k + 1`. Ice and snow areas :math:`a_i` and
@@ -180,7 +179,7 @@ categories from :math:`i = 1` to :math:`i = k`. The volume
 :math:`V_{Pk}` is defined so that if the volume of water :math:`V_{P}`
 is such that :math:`V_{Pk} < V_{P} < V_{P,k+1}` then the snow and ice in
 categories :math:`n = 1` to :math:`n = k + 1` are covered in melt
-water. :ref:`fig-topo` (a) depicts the areas covered in melt water and
+water. Figure :ref:`fig-topo` (a) depicts the areas covered in melt water and
 saturated snow on the surface height (rather than thickness) categories
 :math:`h_{top,k}`. Note in the code, we assume that
 :math:`h_{top,n}/h_{in} = 0.6` (an arbitrary choice). The fractional
@@ -229,7 +228,7 @@ of melt water :math:`V_{P}` is such that
 
 where :math:`h_{par}` is the height of the pond above the level of the
 ice in class :math:`k` and partially fills the volume between
-:math:`V_{P,k}` and :math:`V_{P,k+1}`. From :ref:`fig-topo` (a) we see
+:math:`V_{P,k}` and :math:`V_{P,k+1}`. From Figure :ref:`fig-topo` (a) we see
 that :math:`h_{top,k} - h_{top,1}` is the height of the melt water,
 which has volume :math:`V_{Pk}`, which completely fills the surface
 categories up to category :math:`k`. The remaining volume,
@@ -238,7 +237,7 @@ height :math:`h_{par}` and there are two cases to consider: either the
 snow cover on category :math:`k + 1`, with height :math:`h_{s,k+1}`, is
 completely covered in melt water (i.e., :math:`h_{par} > h_{s,k+1}`), or
 it is not (i.e., :math:`h_{par} \le h_{s,k+1}`). From conservation of
-volume, we see from :ref:`fig-topo` (a) that for an incompletely to
+volume, we see from Figure :ref:`fig-topo` (a) that for an incompletely to
 completely saturated snow cover on surface ice class :math:`k + 1`,
 
 .. math::
@@ -314,7 +313,7 @@ from
 
 where :math:`0.4 \sum^{N}_{n=1} a_{in} h_{i,n}` is the mean thickness
 of the basal depth classes, and :math:`h_{sub}` is the depth of the
-submerged portion of the floe. :ref:`fig-topo` (b) depicts the
+submerged portion of the floe. Figure :ref:`fig-topo` (b) depicts the
 relationship between the hydraulic head and the depths and heights that
 appear in Equation :eq:`topo-hsl1`. The depth of the submerged portion
 of the floe is determined from hydrostatic equilibrium to be
@@ -756,7 +755,7 @@ albedos, where the fractional snow-covered area is
    :label: snowfrac
 
 and :math:`h_{snowpatch} = 0.02 \ {\mathrm m}`. The envelope
-of albedo values is shown in :ref:`fig-albedo`. This albedo
+of albedo values is shown in Figure :ref:`fig-albedo`. This albedo
 formulation incorporates the effects of melt ponds implicitly; the
 explicit melt pond parameterization is not used in this case.
 
@@ -766,10 +765,9 @@ explicit melt pond parameterization is not used in this case.
    :align: center
    :scale: 20%
  
-   Figure 7
+   *Albedo*
 
-:ref:`fig-albedo` : Albedo as a function of ice thickness and temperature,
-for the two extrema in snow depth, for the ccsm3 shortwave
+Figure :ref:`fig-albedo` illustrates Albedo as a function of ice thickness and temperature, for the two extrema in snow depth, for the ccsm3 shortwave
 option. Maximum snow depth is computed based on Archimedes’ Principle
 for the given ice thickness. These curves represent the envelope of
 possible albedo values. 

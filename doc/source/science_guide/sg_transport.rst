@@ -123,7 +123,7 @@ valid with :math:`\eta_R` redefined as :math:`H_C - H_L`. And if
 and :math:`H_C`. In this case, :eq:`g0` and :eq:`g1` apply with
 :math:`\eta_R = H_R - H_C` and :math:`\eta_n = h_n - H_C`.
 
-:ref:`fig-gplot` illustrates the linear reconstruction of :math:`g`
+Figure :ref:`fig-gplot` illustrates the linear reconstruction of :math:`g`
 for the simple cases :math:`H_L = 0`, :math:`H_R = 1`, :math:`a_n = 1`,
 and :math:`h_n =` 0.2, 0.4, 0.6, and 0.8. Note that :math:`g` slopes
 downward (:math:`g_1 < 0`) when :math:`h_n` is less than the midpoint
@@ -137,9 +137,9 @@ exceeds the midpoint thickness. For :math:`h_n = 0.2` and 0.8,
    :align: center
    :scale: 20%
 
-   Figure 4
+   *Linear approximation of thickness distribution function*
 
-:ref:`fig-gplot` : Linear approximation of the thickness distribution
+CHECK: Linear approximation of the thickness distribution
 function :math:`g(h)` for an ice category with left boundary
 :math:`H_L = 0`, right boundary :math:`H_R = 1`, fractional area
 :math:`a_n = 1`, and mean ice thickness :math:`h_n = 0.2, 0.4, 0.6,` and :math:`0.8`.

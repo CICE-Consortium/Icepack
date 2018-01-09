@@ -85,7 +85,7 @@ columns, e.g. **base_suite.ts**
 
 .. _tab-test:
 
-.. csv-table:: Table 6
+.. csv-table:: *Tests*
    :header: "Test", "Grid", "PEs", "Sets", "BFB-compare"
    :widths: 7, 7, 7, 15, 15
 

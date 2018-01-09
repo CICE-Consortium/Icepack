@@ -12,14 +12,14 @@ for the icepack driver.  Variables in both files are described below.
 
 .. _tabsettings:
 
-Table of icepack settings
+Table of Icepack Settings
 --------------------------
 
 The **icepack.settings** file is reasonably well self documented.  Several of
 the variables defined in the file are not used in Icepack.  They exist
 to support the CICE model.
 
-.. csv-table:: Table 7
+.. csv-table:: *Icepack settings*
    :header: "variable", "options/format", "description", "recommended value"
    :widths: 15, 15, 25, 20
 
@@ -81,7 +81,7 @@ to support the CICE model.
 
 .. _tabnamelist:
 
-Table of namelist inputs
+Table of Namelist Inputs
 --------------------------
 
 CHECK
@@ -91,9 +91,9 @@ column physics.
 
 .. _tab-namelist:
 
-.. csv-table:: Table 8
+.. csv-table:: *Namelist Inputs*
    :header: "variable", "options/format", "description", "recommended value"
-   :widths: 15, 15, 30, 15 
+   :widths: 23, 7, 30, 15 
 
    "*setup_nml*", "", "", ""
    "", "", "*Time, Diagnostics*", ""
@@ -240,15 +240,15 @@ column physics.
    "``z_tracers``", "true/false", "turns on a vertically resolved transport", ""
    "``dEdd_algae``", "true/false", "Include radiative impact of algae and aerosols in the delta-Eddington shortwave scheme. Requires shortwave = 'dEdd'.", ""
    "``solve_zbgc``", "true/false", "turns on the biochemistry using z_tracers (specify algal numbers in comp_ice TRALG)", ""
-   "``bgc_flux_type``", "``Jin2006``", "ice–ocean flux type for bottom layer tracers only :cite:`JDWSTWLG06`", ""
+   "``bgc_flux_type``", "``Jin2006``/``default``", "ice–ocean flux type for bottom layer tracers only :cite:`JDWSTWLG06`", "``Jin2006``"
    "``restore_bgc``", "true/false", "restores upper ocean concentration fields to data values for nitrate and silicate", ""
    "``restart_bgc``", "true/false", "restarts biogeochemical tracers (automatically turned on if restart = .true.)", ""
    "``scale_bgc``", "true/false", "Initialize biogeochemical profiles to scale with prognosed salinity profile", ""
    "``solve_zsal``", "true/false", "prognostic salinity tracer used with ktherm = 1", ""
    "``restart_zsal``", "true/false", "restarts zsalinity", ""
    "``bgc_data_dir``", "``/nitrate_and_silicate/forcing_directory/``", "", ""
-   "``sil_data_type``", "``default``", "fixed, spatially homogeneous value for silicate. 'clim' data file (see ice_forcing_bgc.F90) :cite:`GLBA06`", ""
-   "``nit_data_type``", "``default``", "fixed, spatially homogeneous value for nitrate. 'clim' data file (see ice_forcing_bgc.F90) :cite:`GLBA06`", ""
+   "``sil_data_type``", "``default``/``NICE``/``ISPOL``/``clim``", "fixed, spatially homogeneous value for silicate. 'clim' data file (see ice_forcing_bgc.F90) :cite:`GLBA06`", ""
+   "``nit_data_type``", "``default``/``NICE``/``ISPOL``/``clim``", "fixed, spatially homogeneous value for nitrate. 'clim' data file (see ice_forcing_bgc.F90) :cite:`GLBA06`", ""
    "``fe_data_type``", "``default``", "fixed, spatially homogeneous value for iron", ""
    "``tr_bgc_Nit``", "true/false", "nitrate tracer", ""
    "``tr_bgc_C``", "true/false", "dissolved organic carbon tracers and dissolved inorganic carbon tracers (not yet implemented)", ""
@@ -404,11 +404,9 @@ used in the reaction equations, their representation in the code, a
 short description of each and the default values. Please keep in mind
 that there has only been minimal tuning of the model.
 
-:ref:`tab-bio-tracers2` :*Biogeochemical Reaction Parameters*
-
 .. _tab-bio-tracers2:
 
-.. csv-table:: Table 9
+.. csv-table:: *Biogeochemical Reaction Parameters*
    :header: "Text Variable", "Variable in code", "Description", "Value", "units"
    :widths: 7, 20, 15, 15, 15
 

@@ -546,7 +546,7 @@ equal to 1, the tracer has maximal rates in the retention phase and
 minimal in the release. For ``bgc_tracer_type`` equal to 0, the tracer
 has maximal rates in the release phase and minimal in the retention.
 Finally for ``bgc_tracer_type`` equal to 0.5, minimum timescales are
-used for both transitions. :ref:`tab-phases` summarizes the
+used for both transitions. Table :ref:`tab-phases` summarizes the
 transition types. The tracer types are: ``algaltype_diatoms``,
 ``algaltype_sp`` (small plankton), ``algaltype_phaeo`` (*phaeocystis*),
 ``nitratetype``, ``ammoniumtype``, ``silicatetype``, ``dmspptype``, 
@@ -559,19 +559,23 @@ increase or decrease retention. Another option is to alter the minimum
 ``tau_min`` and maximum ``tau_max`` timescales which would impact all the
 z-tracers.
 
-:ref:`tab-phases`: *Types of Mobile and Stationary Transitions*
-
 .. _tab-phases:
 
-.. csv-table:: Table 3
-   :header: "``bgc_tracer_type``", ":math:`\tau_{ret}`", ":math:`\tau_{rel}`", "Description"
-   :widths: 10, 10, 10, 30
-     
-   "-1.0", ":math:`\infty`", "0", "entirely in the mobile phase"
-   "0.0", "min", "max", "retention dominated"
-   "1.0", "max", "min", "release dominated"
-   "0.5", "min", "min", "equal but rapid exchange"
-   "2.0", "max", "max", "equal but slow exchange"
+.. table:: *Types of Mobile and Stationary Transitions*
+
+   +-----------------+--------------------+--------------------+------------------------------+
+   | bgc_tracer_type | :math:`\tau_{ret}` | :math:`\tau_{rel}` |        Description           |
+   +=================+====================+====================+==============================+
+   |     -1.0        | :math:`\infty`     |         0          | entirely in the mobile phase |
+   +-----------------+--------------------+--------------------+------------------------------+
+   |      0.0        |       min          |        max         |     retention dominated      |
+   +-----------------+--------------------+--------------------+------------------------------+
+   |      1.0        |       max          |        min         |      release dominated       |
+   +-----------------+--------------------+--------------------+------------------------------+
+   |      0.5        |       min          |        min         |  equal but rapid exchange    |
+   +-----------------+--------------------+--------------------+------------------------------+
+   |      2.0        |       max          |        max         |  equal but slow exchange     |
+   +-----------------+--------------------+--------------------+------------------------------+
 
 The fraction of a given tracer in the mobile phase is independent of ice
 depth and stored in the tracer variable zbgc\_frac. The horizontal
@@ -953,17 +957,15 @@ Reaction Equations
 ~~~~~~~~~~~~~~~~~~
 
 The biogeochemical reaction terms for each biogeochemical tracer (see
-table :ref:`tab-bio-tracer` for tracer definitions) are defined in
+Table :ref:`tab-bio-tracer` for tracer definitions) are defined in
 **icepack\_algae.F90** in the subroutine *algal\_dyn*. The same set of
 equations is used for the bottom layer model (when ``skl_bgc`` is true) and
 the multi-layer biogeochemical model (when ``z_tracers`` and ``solve_zbgc``
 are true).
 
-:ref:`tab-bio-tracer`: *Biogeochemical Tracers*
-
 .. _tab-bio-tracer:
 
-.. csv-table:: Table 4
+.. csv-table:: *Biogeochemical Tracers*
    :header: "Text Variable", "Variable in code", "flag", "Description", "units"
    :widths: 7, 15, 15, 15, 15
 
@@ -1131,8 +1133,7 @@ to the algal concentration, i.e.
    +f_{nm}M_{ort} ] - [{\mbox{DMSPd}}]/\tau_{dmsp} \nonumber \\
    \Delta {\mbox{DMS}}/dt & = & R_{{\mbox{DMS}}} =  y_{dms}[{\mbox{DMSPd}}]/\tau_{dmsp} - [{\mbox{DMS}}]/\tau_{dms}\end{aligned}
 
-See :ref:`tuning` and :ref:`tab-bio-tracers2` for a more
-complete list and description of biogeochemical parameters.
+See :ref:`tuning` for a more complete list and description of biogeochemical parameters.
 
 .. _growth-uptake:
 
