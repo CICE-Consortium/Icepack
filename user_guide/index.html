@@ -1,0 +1,164 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>3. User Guide &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.1. Implementation" href="ug_implementation.html" />
+    <link rel="prev" title="2.7. Biogeochemistry" href="../science_guide/sg_bgc.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="ug_implementation.html" title="3.1. Implementation"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="../science_guide/sg_bgc.html" title="2.7. Biogeochemistry"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="user-guide">
+<span id="id1"></span><h1>3. User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ug_implementation.html">3.1. Implementation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ug_implementation.html#directory-structure">3.1.1. Directory structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_implementation.html#grid-and-boundary-conditions">3.1.2. Grid and boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_implementation.html#test-configurations">3.1.3. Test configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_implementation.html#initialization-and-forcing">3.1.4. Initialization and Forcing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_implementation.html#choosing-an-appropriate-time-step">3.1.5. Choosing an appropriate time step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_implementation.html#model-output">3.1.6. Model output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_implementation.html#diagnostic-files">3.1.6.1. Diagnostic files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_implementation.html#restart-files">3.1.6.2. Restart files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_implementation.html#biogeochemistry-history-fields">3.1.6.3. Biogeochemistry History Fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ug_running.html">3.2. Running Icepack</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ug_running.html#scripts">3.2.1. Scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_running.html#porting">3.2.2. Porting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_running.html#machine-account-settings">3.2.2.1. Machine Account Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ug_running.html#forcing-data">3.2.3. Forcing data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_running.html#run-directories">3.2.4. Run Directories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_running.html#local-modifications">3.2.5. Local modifications</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ug_testing.html">3.3. Testing Icepack</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ug_testing.html#individual-tests">3.3.1. Individual Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_testing.html#test-suites">3.3.2. Test suites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_testing.html#regression-testing">3.3.3. Regression testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_testing.html#comparison-testing">3.3.4. Comparison testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_testing.html#test-reporting">3.3.5. Test Reporting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_testing.html#examples">3.3.6. Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_testing.html#to-generate-a-baseline-dataset-for-a-test-case">3.3.6.1. To generate a baseline dataset for a test case</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_testing.html#to-run-a-test-case-and-compare-to-a-baseline-dataset">3.3.6.2. To run a test case and compare to a baseline dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_testing.html#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results">3.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and report results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ug_testing.html#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results">3.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and report the results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ug_case_settings.html">3.4. Case Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ug_case_settings.html#table-of-icepack-settings">3.4.1. Table of icepack settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_case_settings.html#table-of-namelist-inputs">3.4.2. Table of namelist inputs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ug_case_settings.html#bgc-tuning-parameters">3.4.2.1. BGC Tuning Parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ug_troubleshooting.html">3.5. Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ug_troubleshooting.html#initial-setup">3.5.1. Initial setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_troubleshooting.html#restarts">3.5.2. Restarts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_troubleshooting.html#underflows">3.5.3. Underflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_troubleshooting.html#debugging-hints">3.5.4. Debugging hints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_troubleshooting.html#known-bugs-and-other-issues">3.5.5. Known bugs and other issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_troubleshooting.html#interpretation-of-albedos">3.5.6. Interpretation of albedos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ug_troubleshooting.html#proliferating-subprocess-parameterizations">3.5.7. Proliferating subprocess parameterizations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../science_guide/sg_bgc.html"
+                        title="previous chapter">2.7. Biogeochemistry</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ug_implementation.html"
+                        title="next chapter">3.1. Implementation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/user_guide/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="ug_implementation.html" title="3.1. Implementation"
+             >next</a></li>
+        <li class="right" >
+          <a href="../science_guide/sg_bgc.html" title="2.7. Biogeochemistry"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

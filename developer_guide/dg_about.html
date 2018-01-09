@@ -1,0 +1,129 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>4.1. About Development &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4.2. Icepack Column Physics" href="dg_col_phys.html" />
+    <link rel="prev" title="4. Developer Guide" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="dg_col_phys.html" title="4.2. Icepack Column Physics"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="index.html" title="4. Developer Guide"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">4. Developer Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="about-development">
+<span id="about-dev"></span><h1>4.1. About Development<a class="headerlink" href="#about-development" title="Permalink to this headline">¶</a></h1>
+<p>The Icepack model consists of three different parts, the column physics
+code, the icepack driver, and the scripts.  Development of each of these
+pieces will be described below separately.</p>
+<p>Subroutine calls and other linkages into Icepack from the host model should only
+need to access the <strong>icepack_intfc*.F90</strong> interface modules within the
+<code class="docutils literal"><span class="pre">columnphysics/</span></code> directory.
+The Icepack driver in the <code class="docutils literal"><span class="pre">configuration/driver/</span></code> directory is based on the CICE
+model and provides an example of the sea ice host model capabilities needed for inclusion
+of Icepack.  In particular, host models will need to include code equivalent to that
+in the modules <strong>icedrv_*_column.F90</strong>.  Calls into the Icepack interface routines
+are primarily from <strong>icedrv_step_mod.F90</strong> but there are others (search the driver code
+for <code class="docutils literal"><span class="pre">intfc</span></code>).</p>
+<p>Guiding principles for the creation of Icepack include the following:
+CHECK THAT THESE ARE TRUE</p>
+<ul class="simple">
+<li>The column physics modules shall be independent of all sea ice model infrastructural
+elements that may vary from model to model.  Examples include input/output, timers,
+references to CPUs or computational tasks, initialization other than that necessary for
+strictly physical reasons, and anything related to a horizontal grid.</li>
+<li>The column physics modules shall not call or reference any routines or code that
+reside outside of the <strong>columnphysics/</strong> directory.</li>
+<li>Any capabilities required by a host sea ice model (e.g. calendar variables, tracer
+flags, diagnostics) shall be implemented in the driver and passed into or out of the
+column physics modules via array arguments.</li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">4. Developer Guide</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dg_col_phys.html"
+                        title="next chapter">4.2. Icepack Column Physics</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/developer_guide/dg_about.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="dg_col_phys.html" title="4.2. Icepack Column Physics"
+             >next</a></li>
+        <li class="right" >
+          <a href="index.html" title="4. Developer Guide"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >4. Developer Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

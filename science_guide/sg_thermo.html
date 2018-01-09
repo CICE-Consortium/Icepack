@@ -1,0 +1,1549 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.6. Thermodynamics &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.7. Biogeochemistry" href="sg_bgc.html" />
+    <link rel="prev" title="2.5. Mechanical redistribution" href="sg_mechanical.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="sg_bgc.html" title="2.7. Biogeochemistry"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="sg_mechanical.html" title="2.5. Mechanical redistribution"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="thermodynamics">
+<span id="thermo"></span><h1>2.6. Thermodynamics<a class="headerlink" href="#thermodynamics" title="Permalink to this headline">¶</a></h1>
+<p>The current Icepack version includes three thermodynamics
+options, the “zero-layer” thermodynamics of <a class="reference internal" href="../zreferences.html#semtner76" id="id1">[40]</a>
+(<code class="docutils literal"><span class="pre">ktherm</span></code> = 0), the Bitz and Lipscomb model <a class="reference internal" href="../zreferences.html#bl99" id="id2">[6]</a>
+(<code class="docutils literal"><span class="pre">ktherm</span></code> = 1) that assumes a fixed salinity profile, and a “mushy”
+formulation (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2) in which salinity evolves
+<a class="reference internal" href="../zreferences.html#thb13" id="id3">[47]</a>. For each thickness category, Icepack computes
+changes in the ice and snow thickness and vertical temperature profile
+resulting from radiative, turbulent, and conductive heat fluxes. The ice
+has a temperature-dependent specific heat to simulate the effect of
+brine pocket melting and freezing, for <code class="docutils literal"><span class="pre">ktherm</span></code> = 1 and 2.</p>
+<p>Each thickness category <span class="math">\(n\)</span> in each grid cell is treated as a
+horizontally uniform column with ice thickness
+<span class="math">\(h_{in} = v_{in}/a_{in}\)</span> and snow thickness
+<span class="math">\(h_{sn} = v_{sn}/a_{in}\)</span>. (Henceforth we omit the category
+index&nbsp;<span class="math">\(n\)</span>.) Each column is divided into <span class="math">\(N_i\)</span> ice layers
+of thickness <span class="math">\(\Delta h_i = h_i/N_i\)</span> and <span class="math">\(N_s\)</span> snow layers of
+thickness <span class="math">\(\Delta h_s = h_s/N_s\)</span>. The surface temperature (i.e.,
+the temperature of ice or snow at the interface with the atmosphere) is
+<span class="math">\(T_{sf}\)</span>, which cannot exceed <span class="math">\(0^{\circ}C\)</span>. The temperature at the
+midpoint of the snow layer is <span class="math">\(T_s\)</span>, and the midpoint ice layer
+temperatures are <span class="math">\(T_{ik}\)</span>, where <span class="math">\(k\)</span> ranges from 1 to
+<span class="math">\(N_i\)</span>. The temperature at the bottom of the ice is held at
+<span class="math">\(T_f\)</span>, the freezing temperature of the ocean mixed layer. All
+temperatures are in degrees Celsius unless stated otherwise.</p>
+<p>Each ice layer has an enthalpy <span class="math">\(q_{ik}\)</span>, defined as the negative
+of the energy required to melt a unit volume of ice and raise its
+temperature to <span class="math">\(0^{\circ}C\)</span>. Because of internal melting and freezing in brine
+pockets, the ice enthalpy depends on the brine pocket volume and is a
+function of temperature and salinity. We can also define a snow enthalpy
+<span class="math">\(q_s\)</span>, which depends on temperature alone.</p>
+<p>Given surface forcing at the atmosphere–ice and ice–ocean interfaces
+along with the ice and snow thicknesses and temperatures/enthalpies at
+time <span class="math">\(m\)</span>, the thermodynamic model advances these quantities to
+time <span class="math">\(m+1\)</span> (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2 also advances salinity). The calculation
+proceeds in two steps. First we solve a set of equations for the new
+temperatures, as discussed in the&nbsp;<a class="reference internal" href="#thermo-temp"><span class="std std-ref">New temperatures</span></a> section. Then we
+compute the melting, if any, of ice or snow at the top surface, and the
+growth or melting of ice at the bottom surface, as described in
+the&nbsp;<a class="reference internal" href="#thermo-growth"><span class="std std-ref">Growth and melting</span></a> section. We begin by describing the melt ponds and surface
+forcing parameterizations, which are closely related to the ice and snow
+surface temperatures.</p>
+<div class="section" id="melt-ponds">
+<span id="ponds"></span><h2>2.6.1. Melt ponds<a class="headerlink" href="#melt-ponds" title="Permalink to this headline">¶</a></h2>
+<p>Three explicit melt pond parameterizations are available in Icepack, and
+all must use the delta-Eddington radiation scheme, described below. The
+ccsm3 shortwave parameterization incorporates melt ponds
+implicitly by adjusting the albedo based on surface conditions.</p>
+<p>For each of the three explicit parameterizations, a volume
+<span class="math">\(\Delta V_{melt}\)</span> of melt water produced on a given category may
+be added to the melt pond liquid volume:</p>
+<div class="math" id="equation-meltvol">
+<span class="eqno">(1)<a class="headerlink" href="#equation-meltvol" title="Permalink to this equation">¶</a></span>\[\Delta V_{melt} = {r\over\rho_w} \left({\rho_{i}}\Delta h_{i} + {\rho_{s}}\Delta h_{s} + F_{rain}{\Delta t}\right) a_i,\]</div>
+<p>where</p>
+<div class="math" id="equation-melt-retention">
+<span class="eqno">(2)<a class="headerlink" href="#equation-melt-retention" title="Permalink to this equation">¶</a></span>\[r = r_{min} + \left(r_{max} - r_{min}\right) a_i\]</div>
+<p>is the fraction of the total melt water available that is added to the
+ponds, <span class="math">\(\rho_i\)</span> and <span class="math">\(\rho_s\)</span> are ice and snow densities,
+<span class="math">\(\Delta h_i\)</span> and <span class="math">\(\Delta h_s\)</span> are the thicknesses of ice and
+snow that melted, and <span class="math">\(F_{rain}\)</span> is the rainfall rate. Namelist
+parameters are set for the level-ice (<code class="docutils literal"><span class="pre">tr_pond_lvl</span></code>) parameterization;
+in the cesm and topo pond schemes the standard values of <span class="math">\(r_{max}\)</span>
+and <span class="math">\(r_{min}\)</span> are 0.7 and 0.15, respectively.</p>
+<p>Radiatively, the surface of an ice category is divided into fractions of
+snow, pond and bare ice. In these melt pond schemes, the actual pond
+area and depth are maintained throughout the simulation according to the
+physical processes acting on it. However, snow on the sea ice and pond
+ice may shield the pond and ice below from solar radiation. These
+processes do not alter the actual pond volume; instead they are used to
+define an “effective pond fraction” (and likewise, effective pond depth,
+snow fraction and snow depth) used only for the shortwave radiation
+calculation.</p>
+<p>In addition to the physical processes discussed below, tracer equations
+and definitions for melt ponds are also described in
+the&nbsp;<a class="reference internal" href="sg_tracers.html#tracers"><span class="std std-ref">Tracers</span></a> section and <a class="reference internal" href="sg_tracers.html#fig-tracers"><span class="std std-ref">Figure 1</span></a>.</p>
+<div class="section" id="cesm-formulation-tr-pond-cesm-true">
+<h3>2.6.1.1. CESM formulation (<code class="docutils literal"><span class="pre">tr_pond_cesm</span></code> = true)<a class="headerlink" href="#cesm-formulation-tr-pond-cesm-true" title="Permalink to this headline">¶</a></h3>
+<p>Melt pond area and thickness tracers are carried on each ice thickness
+category as in the&nbsp;<a class="reference internal" href="sg_tracers.html#tracers"><span class="std std-ref">Tracers</span></a> section. Defined simply as the product
+of pond area, <span class="math">\(a_p\)</span>, and depth, <span class="math">\(h_p\)</span>, the melt pond volume,
+<span class="math">\(V_{p}\)</span>, grows through addition of ice or snow melt water or rain
+water, and shrinks when the ice surface temperature becomes cold,</p>
+<div class="math" id="equation-meltpond-cesm">
+<span class="eqno">(3)<a class="headerlink" href="#equation-meltpond-cesm" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
+{\rm pond \ growth:\ } \ V_{p}^\prime &amp;= V_{p}(t) +\Delta V_{melt} , \\
+{\rm pond \ contraction:\ } \ V_{p}(t+\Delta t) &amp;= V_{p}^\prime\exp\left[r_2\left( {\max\left(T_p-T_{sfc}, 0\right) \over T_p}\right)\right], \end{aligned}\end{split}\]</div>
+<p>where <span class="math">\(dh_{i}\)</span> and <span class="math">\(dh_{s}\)</span> represent ice and snow melt at
+the top surface of each thickness category and <span class="math">\(r_2=0.01\)</span>. Here,
+<span class="math">\(T_p\)</span> is a reference temperature equal to <span class="math">\(-2^\circ\)</span>C.
+Pond depth is assumed to be a linear function of the pond fraction
+(<span class="math">\(h_p=\delta_p a_p\)</span>) and is limited by the category ice thickness
+(<span class="math">\(h_p \le 0.9 h_i\)</span>). The pond shape (<code class="docutils literal"><span class="pre">pndaspect</span></code>)
+<span class="math">\(\delta_p = 0.8\)</span> in the standard CESM pond configuration. The area
+and thickness are computed according to the assumed pond shape, and the
+pond area is then reduced in the presence of snow for the radiation
+calculation. Ponds are allowed only on ice at least 1&nbsp;cm thick. This
+formulation differs slightly from that documented in
+<a class="reference internal" href="../zreferences.html#hbblh12" id="id4">[19]</a>.</p>
+</div>
+<div class="section" id="topographic-formulation-tr-pond-topo-true">
+<h3>2.6.1.2. Topographic formulation (<code class="docutils literal"><span class="pre">tr_pond_topo</span></code> = true)<a class="headerlink" href="#topographic-formulation-tr-pond-topo-true" title="Permalink to this headline">¶</a></h3>
+<p>The principle concept of this scheme is that melt water runs downhill
+under the influence of gravity and collects on sea ice with increasing
+surface height starting at the lowest height
+<a class="reference internal" href="../zreferences.html#ff07" id="id5">[12]</a><a class="reference internal" href="../zreferences.html#fft10" id="id6">[13]</a><a class="reference internal" href="../zreferences.html#fsfh12" id="id7">[14]</a>. Thus, the topography of the
+ice cover plays a crucial role in determining the melt pond cover.
+However, Icepack does not explicitly represent the topography of sea ice.
+Therefore, we split the existing ice thickness distribution function
+into a surface height and basal depth distribution assuming that each
+sea ice thickness category is in hydrostatic equilibrium at the
+beginning of the melt season. We then calculate the position of sea
+level assuming that the ice in the whole grid cell is rigid and in
+hydrostatic equilibrium.</p>
+<div class="figure align-center" id="id46">
+<span id="fig-topo"></span><a class="reference internal image-reference" href="../_images/topo.png"><img alt="../_images/topo.png" src="../_images/topo.png" style="width: 569.25px; height: 661.5px;" /></a>
+<p class="caption"><span class="caption-text">Figure 6</span></p>
+</div>
+<p><a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> : (a) Schematic illustration of the relationship between the
+height of the pond surface <span class="math">\(h_{pnd,tot}\)</span>, the volume of water
+<span class="math">\(V_{Pk}\)</span> required to completely fill up to category <span class="math">\(k\)</span>, the
+volume of water <span class="math">\(V_{P} - V_{Pk}\)</span>, and the depth to which this
+fills category <span class="math">\(k + 1\)</span>. Ice and snow areas <span class="math">\(a_i\)</span> and
+<span class="math">\(a_s\)</span> are also depicted. The volume calculation takes account of
+the presence of snow, which may be partially or completely saturated.
+(b) Schematic illustration indicating pond surface height
+<span class="math">\(h_{pnd,tot}\)</span> and sea level <span class="math">\(h_{sl}\)</span> measured with respect
+to the thinnest surface height category <span class="math">\(h_{i1}\)</span>, the submerged
+portion of the floe <span class="math">\(h_{sub}\)</span>, and hydraulic head <span class="math">\(\Delta H\)</span>
+. A positive hydraulic head (pond surface above sea level) will flush
+melt water through the sea ice into the ocean; a negative hydraulic head
+can drive percolation of sea water onto the ice surface. Here,
+<span class="math">\(\alpha=0.6\)</span> and <span class="math">\(\beta=0.4\)</span> are the surface height and
+basal depth distribution fractions. The height of the steps is the
+height of the ice above the reference level, and the width of the steps
+is the area of ice of that height. The illustration does not imply a
+particular assumed topography, rather it is assumed that all thickness
+categories are present at the sub-grid scale so that water will always
+flow to the lowest surface height class.</p>
+<p>Once a volume of water is produced from ice and snow melting, we
+calculate the number of ice categories covered by water. At each time
+step, we construct a list of volumes of water
+<span class="math">\(\{V_{P1}, V_{P2}, . . . V_{P,k-1}, V_{Pk},\)</span>
+<span class="math">\(V_{P,k+1}, . . . \}\)</span>, where <span class="math">\(V_{Pk}\)</span> is the volume of water
+required to completely cover the ice and snow in the surface height
+categories from <span class="math">\(i = 1\)</span> to <span class="math">\(i = k\)</span>. The volume
+<span class="math">\(V_{Pk}\)</span> is defined so that if the volume of water <span class="math">\(V_{P}\)</span>
+is such that <span class="math">\(V_{Pk} &lt; V_{P} &lt; V_{P,k+1}\)</span> then the snow and ice in
+categories <span class="math">\(n = 1\)</span> to <span class="math">\(n = k + 1\)</span> are covered in melt
+water. <a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> (a) depicts the areas covered in melt water and
+saturated snow on the surface height (rather than thickness) categories
+<span class="math">\(h_{top,k}\)</span>. Note in the code, we assume that
+<span class="math">\(h_{top,n}/h_{in} = 0.6\)</span> (an arbitrary choice). The fractional
+area of the <span class="math">\(n\)</span>th category covered in snow is <span class="math">\(a_{sn}\)</span>.
+The volume <span class="math">\(V_{P1}\)</span>, which is the region with vertical hatching,
+is the volume of water required to completely fill the first
+thickness category, so that any extra melt water must occupy the second
+thickness category, and it is given by the expression</p>
+<div class="math" id="equation-topo-vol1">
+<span class="eqno">(4)<a class="headerlink" href="#equation-topo-vol1" title="Permalink to this equation">¶</a></span>\[V_{P1} = a_{i1} (h_{top,2}-h_{top,1}) - a_{s1} a_{i1} h_{s1} (1-V_{sw}),\]</div>
+<p>where <span class="math">\(V_{sw}\)</span> is the fraction of the snow volume that can be
+occupied by water, and <span class="math">\(h_{s1}\)</span> is the snow depth on ice height
+class 1. In a similar way, the volume required to fill the first and
+second surface categories, <span class="math">\(V_{P2}\)</span>, is given by</p>
+<div class="math" id="equation-topo-vol2">
+<span class="eqno">(5)<a class="headerlink" href="#equation-topo-vol2" title="Permalink to this equation">¶</a></span>\[V_{P2} = a_{i1} (h_{top,3}-h_{top,2}) + a_{i2} (h_{top,3}-h_{top,2}) - a_{s2} a_{i2} h_{s2} (1-V_{sw}) + V_{P1}.\]</div>
+<p>The general expression for volume <span class="math">\(V_{Pk}\)</span> is given by</p>
+<div class="math" id="equation-topo-vol">
+<span class="eqno">(6)<a class="headerlink" href="#equation-topo-vol" title="Permalink to this equation">¶</a></span>\[V_{Pk} = \sum^k_{m=0} a_{im} (h_{top,k+1}-h_{top,k}) - a_{sk} a_{ik} h_{sk} (1-V_{sw})
+          + \sum^{k-1}_{m=0} V_{Pm}.\]</div>
+<p>(Note that we have implicitly assumed that
+<span class="math">\(h_{si} &lt; h_{top,k+1} - h_{top,k}\)</span> for all <span class="math">\(k\)</span>.) No melt
+water can be stored on the thickest ice thickness category. If the melt
+water volume exceeds the volume calculated above, the remaining melt
+water is released to the ocean.</p>
+<p>At each time step, the pond height above the level of the thinnest
+surface height class, that is, the maximum pond depth, is diagnosed from
+the list of volumes <span class="math">\(V_{Pk}\)</span>. In particular, if the total volume
+of melt water <span class="math">\(V_{P}\)</span> is such that
+<span class="math">\(V_{Pk} &lt; V_{P} &lt; V_{P,k+1}\)</span> then the pond height
+<span class="math">\(h_{pnd,tot}\)</span> is</p>
+<div class="math" id="equation-topo_hpnd_tot">
+<span class="eqno">(7)<a class="headerlink" href="#equation-topo_hpnd_tot" title="Permalink to this equation">¶</a></span>\[h_{pnd,tot} = h_{par} + h_{top,k} - h_{top,1},\]</div>
+<p>where <span class="math">\(h_{par}\)</span> is the height of the pond above the level of the
+ice in class <span class="math">\(k\)</span> and partially fills the volume between
+<span class="math">\(V_{P,k}\)</span> and <span class="math">\(V_{P,k+1}\)</span>. From <a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> (a) we see
+that <span class="math">\(h_{top,k} - h_{top,1}\)</span> is the height of the melt water,
+which has volume <span class="math">\(V_{Pk}\)</span>, which completely fills the surface
+categories up to category <span class="math">\(k\)</span>. The remaining volume,
+<span class="math">\(V_{P} - V_{Pk}\)</span>, partially fills category <span class="math">\(k + 1\)</span> to the
+height <span class="math">\(h_{par}\)</span> and there are two cases to consider: either the
+snow cover on category <span class="math">\(k + 1\)</span>, with height <span class="math">\(h_{s,k+1}\)</span>, is
+completely covered in melt water (i.e., <span class="math">\(h_{par} &gt; h_{s,k+1}\)</span>), or
+it is not (i.e., <span class="math">\(h_{par} \le h_{s,k+1}\)</span>). From conservation of
+volume, we see from <a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> (a) that for an incompletely to
+completely saturated snow cover on surface ice class <span class="math">\(k + 1\)</span>,</p>
+<div class="math" id="equation-topo-satsnow1">
+<span class="eqno">(8)<a class="headerlink" href="#equation-topo-satsnow1" title="Permalink to this equation">¶</a></span>\[\begin{aligned}
+V_{P} - V_{Pk} &amp; = &amp; h_{par} \left( \sum^k_{m=1} a_{ik} + a_{i,k+1}(1-a_{s,k+1})
++ a_{i,k+1} a_{s,k+1} V_{sw} \right)
+&amp; &amp; {\rm for} \hspace{3mm} h_{par} \le h_{s,k+1},\end{aligned}\]</div>
+<p>and for a saturated snow cover with water on top of the snow on surface
+ice class <span class="math">\(k + 1\)</span>,</p>
+<div class="math" id="equation-topo-satsnow2">
+<span class="eqno">(9)<a class="headerlink" href="#equation-topo-satsnow2" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
+V_{P} - V_{Pk} &amp; = &amp; h_{par} \left( \sum^k_{m=1} a_{ik} + a_{i,k+1}(1-a_{s,k+1}) \right)
+   + a_{i,k+1} a_{s,k+1} V_{sw} h_{s,k+1} \\
+&amp; + &amp; a_{i,k+1} a_{s,k+1} (h_{par}-h_{s,k+1})
+&amp; &amp; {\rm for} \hspace{3mm} h_{par} &gt; h_{s,k+1}.\end{aligned}\end{split}\]</div>
+<p>As the melting season progresses, not only does melt water accumulate
+upon the upper surface of the sea ice, but the sea ice beneath the melt
+water becomes more porous owing to a reduction in solid fraction
+<a class="reference internal" href="../zreferences.html#egprf04" id="id8">[9]</a>. The hydraulic head of melt water on sea
+ice (i.e., its height above sea level) drives flushing of melt water
+through the porous sea ice and into the underlying ocean. The mushy
+thermodynamics scheme (<cite>ktherm</cite>&nbsp;= 2) handles flushing. For
+<cite>ktherm</cite>&nbsp;<span class="math">\(\ne 2\)</span> we model the vertical flushing rate using Darcy’s
+law for flow through a porous medium</p>
+<div class="math" id="equation-topo-darcy">
+<span class="eqno">(10)<a class="headerlink" href="#equation-topo-darcy" title="Permalink to this equation">¶</a></span>\[w = - \frac{\Pi_v}{\mu} \rho_o g \frac{\Delta H}{h_i},\]</div>
+<p>where <span class="math">\(w\)</span> is the vertical mass flux per unit perpendicular
+cross-sectional area (i.e., the vertical component of the Darcy
+velocity), <span class="math">\(\Pi_v\)</span> is the vertical component of the permeability
+tensor (assumed to be isotropic in the horizontal), <span class="math">\(\mu\)</span> is the
+viscosity of water, <span class="math">\(\rho_o\)</span> is the ocean density, <span class="math">\(g\)</span> is
+gravitational acceleration, <span class="math">\(\Delta H\)</span> is the the hydraulic head,
+and <span class="math">\(h_i\)</span> is the thickness of the ice through which the pond
+flushes. As proposed by <a class="reference internal" href="../zreferences.html#gehmpz07" id="id9">[16]</a> the vertical
+permeability of sea ice can be calculated from the liquid fraction
+<span class="math">\(\phi\)</span>:</p>
+<div class="math" id="equation-topo-permea">
+<span class="eqno">(11)<a class="headerlink" href="#equation-topo-permea" title="Permalink to this equation">¶</a></span>\[\Pi_v = 3 \times 10^{-8} \phi^3 \rm{m^2}.\]</div>
+<p>Since the solid fraction varies throughout the depth of the sea ice, so
+does the permeability. The rate of vertical drainage is determined by
+the lowest (least permeable) layer, corresponding to the highest solid
+fraction. From the equations describing sea ice as a mushy layer
+<a class="reference internal" href="../zreferences.html#fuww06" id="id10">[10]</a>, the solid fraction is determined by:</p>
+<div class="math" id="equation-topo-solid">
+<span class="eqno">(12)<a class="headerlink" href="#equation-topo-solid" title="Permalink to this equation">¶</a></span>\[\phi = \frac{c_i-S}{c_i-S_{br}(T)},\]</div>
+<p>where <span class="math">\(S\)</span> is the bulk salinity of the ice, <span class="math">\(S_{br}(T)\)</span> is
+the concentration of salt in the brine at temperature <span class="math">\(T\)</span> and
+<span class="math">\(c_i\)</span> is the concentration of salt in the ice crystals (set to
+zero).</p>
+<p>The hydraulic head is given by the difference in height between the
+upper surface of the melt pond <span class="math">\(h_{pnd,tot}\)</span> and the sea level
+<span class="math">\(h_{sl}\)</span>. The value of the sea level <span class="math">\(h_{sl}\)</span> is calculated
+from</p>
+<div class="math" id="equation-topo-hsl1">
+<span class="eqno">(13)<a class="headerlink" href="#equation-topo-hsl1" title="Permalink to this equation">¶</a></span>\[h_{sl} = h_{sub} - 0.4 \sum^{N}_{n=1} a_{in} h_{in} - \beta h_{i1},\]</div>
+<p>where <span class="math">\(0.4 \sum^{N}_{n=1} a_{in} h_{i,n}\)</span> is the mean thickness
+of the basal depth classes, and <span class="math">\(h_{sub}\)</span> is the depth of the
+submerged portion of the floe. <a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> (b) depicts the
+relationship between the hydraulic head and the depths and heights that
+appear in Equation <a class="reference internal" href="#equation-topo-hsl1">(13)</a>. The depth of the submerged portion
+of the floe is determined from hydrostatic equilibrium to be</p>
+<div class="math" id="equation-topo-hsl2">
+<span class="eqno">(14)<a class="headerlink" href="#equation-topo-hsl2" title="Permalink to this equation">¶</a></span>\[h_{sub} = \frac{\rho_m}{\rho_w} V_P + \frac{\rho_s}{\rho_w} V_s + \frac{\rho_i}{\rho_w} V_i,\]</div>
+<p>where <span class="math">\(\rho_m\)</span> is the density of melt water, <span class="math">\(V_P\)</span> is the
+total pond volume, <span class="math">\(V_s\)</span> is the total snow volume, and <span class="math">\(V_i\)</span>
+is the total ice volume.</p>
+<p>When the surface energy balance is negative, a layer of ice is formed at
+the upper surface of the ponds. The rate of growth of the ice lid is
+given by the Stefan energy budget at the lid-pond interface</p>
+<div class="math" id="equation-topo-lid">
+<span class="eqno">(15)<a class="headerlink" href="#equation-topo-lid" title="Permalink to this equation">¶</a></span>\[\rho_i L_0 \frac{d h_{ipnd}}{dt} = k_i \frac{\partial T_i}{\partial z} - k_p \frac{\partial T_p}{\partial z},\]</div>
+<p>where <span class="math">\(L_0\)</span> is the latent heat of fusion of pure ice per unit
+volume, <span class="math">\(T_i\)</span> and <span class="math">\(T_p\)</span> are the ice surface and pond
+temperatures, and <span class="math">\(k_i\)</span> and <span class="math">\(k_p\)</span> are the thermal
+conductivity of the ice lid and pond respectively. The second term on
+the right hand-side is close to zero since the pond is almost uniformly
+at the freezing temperature <a class="reference internal" href="../zreferences.html#tf04" id="id11">[43]</a>. Approximating the
+temperature gradient in the ice lid as linear, the Stefan condition
+yields the classic Stefan solution for ice lid depth</p>
+<div class="math" id="equation-topo-stefan">
+<span class="eqno">(16)<a class="headerlink" href="#equation-topo-stefan" title="Permalink to this equation">¶</a></span>\[h_{ipnd} = \sqrt{\frac{2k_i}{\rho_s L}\Delta T_i t},\]</div>
+<p>where <span class="math">\(\Delta T\)</span> is the temperature difference between the top
+and the bottom of the lid. Depending on the surface flux conditions the
+ice lid can grow, partially melt, or melt completely. Provided that the
+ice lid is thinner than a critical lid depth (1 cm is suggested) then
+the pond is regarded as effective, i.e. the pond affects the optical
+properties of the ice cover. Effective pond area and pond depth for each
+thickness category are passed to the radiation scheme for calculating
+albedo. Note that once the ice lid has exceeded the critical thickness,
+snow may accumulate on the lid causing a substantial increase in albedo.
+In the current CICE model, melt ponds only affect the thermodynamics of
+the ice through the albedo. To conserve energy, the ice lid is dismissed
+once the pond is completely refrozen.</p>
+<p>As the sea ice area shrinks due to melting and ridging, the pond volume
+over the lost area is released to the ocean immediately. In
+<a class="reference internal" href="../zreferences.html#fft10" id="id12">[13]</a>, the pond volume was carried as an ice area
+tracer, but in <a class="reference internal" href="../zreferences.html#fsfh12" id="id13">[14]</a> and here, pond area and
+thickness are carried as separate tracers, as in
+the&nbsp;<a class="reference internal" href="sg_tracers.html#tracers"><span class="std std-ref">Tracers</span></a> section.</p>
+<p>Unlike the cesm and level-ice melt pond schemes, the liquid pond water
+in the topo parameterization is not necessarily virtual; it can be
+withheld from being passed to the ocean model until the ponds drain by
+setting the namelist variable <code class="docutils literal"><span class="pre">l_mpond_fresh</span></code> = .true. The refrozen pond
+lids are still virtual. Extra code needed to track and enforce
+conservation of water has been added to <strong>icepack_itd.F90</strong> (subroutine
+<em>zap_small_areas</em>), <strong>icepack_mechred.F90</strong> (subroutine <em>ridge_shift</em>),
+<strong>icepack_therm_itd.F90</strong> (subroutines <em>linear_itd</em> and <em>lateral_melt</em>),
+and <strong>icepack_therm_vertical.F90</strong> (subroutine <em>thermo_vertical</em>), along
+with global diagnostics in <strong>icedrv_diagnostics.F90</strong>.</p>
+</div>
+<div class="section" id="level-ice-formulation-tr-pond-lvl-true">
+<h3>2.6.1.3. Level-ice formulation (<code class="docutils literal"><span class="pre">tr_pond_lvl</span></code> = true)<a class="headerlink" href="#level-ice-formulation-tr-pond-lvl-true" title="Permalink to this headline">¶</a></h3>
+<p>This meltpond parameterization represents a combination of ideas from
+the empirical CESM melt pond scheme and the topo approach, and is
+documented in <a class="reference internal" href="../zreferences.html#hhl13" id="id14">[21]</a>. The ponds evolve according to
+physically based process descriptions, assuming a thickness-area ratio
+for changes in pond volume. A novel aspect of the new scheme is that the
+ponds are carried as tracers on the level (undeformed) ice area of each
+thickness category, thus limiting their spatial extent based on the
+simulated sea ice topography. This limiting is meant to approximate the
+horizontal drainage of melt water into depressions in ice floes. (The
+primary difference between the level-ice and topo meltpond
+parameterizations lies in how sea ice topography is taken into account
+when determining the areal coverage of ponds.) Infiltration of the snow
+by melt water postpones the appearance of ponds and the subsequent
+acceleration of melting through albedo feedback, while snow on top of
+refrozen pond ice also reduces the ponds’ effect on the radiation
+budget.</p>
+<p>Melt pond processes, described in more detail below, include addition of
+liquid water from rain, melting snow and melting surface ice, drainage
+of pond water when its weight pushes the ice surface below sea level or
+when the ice interior becomes permeable, and refreezing of the pond
+water. If snow falls after a layer of ice has formed on the ponds, the
+snow may block sunlight from reaching the ponds below. When melt water
+forms with snow still on the ice, the water is assumed to infiltrate the
+snow. If there is enough water to fill the air spaces within the
+snowpack, then the pond becomes visible above the snow, thus decreasing
+the albedo and ultimately causing the snow to melt faster. The albedo
+also decreases as snow depth decreases, and thus a thin layer of snow
+remaining above a pond-saturated layer of snow will have a lower albedo
+than if the melt water were not present.</p>
+<p>The level-ice formulation assumes a thickness-area ratio for <em>changes</em>
+in pond volume, while the CESM scheme assumes this ratio for the total
+pond volume. Pond volume changes are distributed as changes to the area
+and to the depth of the ponds using an assumed aspect ratio, or shape,
+given by the parameter <span class="math">\(\delta_p\)</span> (<code class="docutils literal"><span class="pre">pndaspect</span></code>),
+<span class="math">\(\delta_p = {\Delta h_p / \Delta a_{p}}\)</span> and
+<span class="math">\(\Delta V = \Delta h_p \Delta a_{p} = \delta_p\Delta a_p^2  = \Delta h_{p}^2/\delta_p\)</span>.
+Here, <span class="math">\(a_{p} = a_{pnd} a_{lvl}\)</span>, the mean pond area over the ice.</p>
+<p>Given the ice velocity <span class="math">\(\bf u\)</span>, conservation equations for level
+ice fraction <span class="math">\(a_{lvl}a_i\)</span>, pond area fraction
+<span class="math">\(a_{pnd}a_{lvl}a_i\)</span>, pond volume <span class="math">\(h_{pnd}a_{pnd}a_{lvl}a_i\)</span>
+and pond ice volume <span class="math">\(h_{ipnd}a_{pnd}a_{lvl}a_i\)</span> are</p>
+<div class="math" id="equation-transport-lvl">
+<span class="eqno">(17)<a class="headerlink" href="#equation-transport-lvl" title="Permalink to this equation">¶</a></span>\[{\partial\over\partial t} (a_{lvl}a_{i}) + \nabla \cdot (a_{lvl}a_{i} {\bf u}) = 0,\]</div>
+<div class="math" id="equation-transport-apnd-lvl">
+<span class="eqno">(18)<a class="headerlink" href="#equation-transport-apnd-lvl" title="Permalink to this equation">¶</a></span>\[{\partial\over\partial t} (a_{pnd}a_{lvl}a_{i}) + \nabla \cdot (a_{pnd}a_{lvl}a_{i} {\bf u}) = 0,\]</div>
+<div class="math" id="equation-transport-hpnd-lvl">
+<span class="eqno">(19)<a class="headerlink" href="#equation-transport-hpnd-lvl" title="Permalink to this equation">¶</a></span>\[{\partial\over\partial t} (h_{pnd}a_{pnd}a_{lvl}a_{i}) + \nabla \cdot (h_{pnd}a_{pnd}a_{lvl}a_{i} {\bf u}) = 0,\]</div>
+<div class="math" id="equation-transport-ipnd-lvl">
+<span class="eqno">(20)<a class="headerlink" href="#equation-transport-ipnd-lvl" title="Permalink to this equation">¶</a></span>\[{\partial\over\partial t} (h_{ipnd}a_{pnd}a_{lvl}a_{i}) + \nabla \cdot (h_{ipnd}a_{pnd}a_{lvl}a_{i} {\bf u}) = 0.\]</div>
+<p>(We have dropped the category subscript here, for clarity.) Equations
+<a class="reference internal" href="#equation-transport-hpnd-lvl">(19)</a> and <a class="reference internal" href="#equation-transport-ipnd-lvl">(20)</a> express
+conservation of melt pond volume and pond ice volume, but in this form
+highlight that the quantities tracked in the code are the tracers
+<span class="math">\(h_{pnd}\)</span> and <span class="math">\(h_{ipnd}\)</span>, pond depth and pond ice thickness.
+Likewise, the level ice fraction <span class="math">\(a_{lvl}\)</span> is a tracer on ice area
+fraction (Equation&nbsp;<a class="reference internal" href="#equation-transport-lvl">(17)</a>), and pond fraction <span class="math">\(a_{pnd}\)</span> is
+a tracer on level ice (Equation&nbsp;<a class="reference internal" href="#equation-transport-apnd-lvl">(18)</a>).</p>
+<p><em>Pond ice.</em> The ponds are assumed to be well mixed fresh water, and
+therefore their temperature is 0<span class="math">\(^\circ\)</span>C. If the air
+temperature is cold enough, a layer of clear ice may form on top of the
+ponds. There are currently three options in the code for refreezing the
+pond ice. Only option A tracks the thickness of the lid ice using the
+tracer <span class="math">\(h_{ipnd}\)</span> and includes the radiative effect of snow on top
+of the lid.</p>
+<p>A. The <code class="docutils literal"><span class="pre">frzpnd</span></code> = ‘hlid’ option uses a Stefan approximation for growth of
+fresh ice and is invoked only when <span class="math">\(\Delta V_{melt}=0\)</span>.</p>
+<p>The basic thermodynamic equation governing ice growth is</p>
+<div class="math" id="equation-Stefanthermo1">
+<span class="eqno">(21)<a class="headerlink" href="#equation-Stefanthermo1" title="Permalink to this equation">¶</a></span>\[\rho_i L {\partial h_i\over\partial t} = k_i{\partial T_i\over\partial z} \sim k_i {\Delta T\over h_i}\]</div>
+<p>assuming a linear temperature profile through the ice thickness
+<span class="math">\(h_i\)</span>. In discrete form, the solution is</p>
+<div class="math" id="equation-hi">
+<span class="eqno">(22)<a class="headerlink" href="#equation-hi" title="Permalink to this equation">¶</a></span>\[\begin{split}\Delta h_i = \left\{
+\begin{array}{ll}    {\sqrt{\beta\Delta t}/2} &amp; \mbox {if $h_i=0$} \\
+                                {\beta\Delta t / 2 h_i} &amp; \mbox {if $h_i&gt;0,$}
+\end{array} \right.\end{split}\]</div>
+<p>where</p>
+<div class="math" id="equation-beta">
+<span class="eqno">(23)<a class="headerlink" href="#equation-beta" title="Permalink to this equation">¶</a></span>\[\beta = {2 k_i \Delta T \over \rho_i L} .\]</div>
+<p>When <span class="math">\(\Delta V_{melt}&gt;0\)</span>, any existing pond ice may also melt. In
+this case,</p>
+<div class="math" id="equation-ipndmelt">
+<span class="eqno">(24)<a class="headerlink" href="#equation-ipndmelt" title="Permalink to this equation">¶</a></span>\[\Delta h_i = -\min\left({\max(F_\circ, 0) \Delta t \over \rho_i L}, h_i\right),\]</div>
+<p>where <span class="math">\(F_\circ\)</span> is the net downward surface flux.</p>
+<p>In either case, the change in pond volume associated with growth or melt
+of pond ice is</p>
+<div class="math" id="equation-vfrz">
+<span class="eqno">(25)<a class="headerlink" href="#equation-vfrz" title="Permalink to this equation">¶</a></span>\[\Delta V_{frz} = -\Delta h_i a_{pnd} a_{lvl} a_i {\rho_i/\rho_0},\]</div>
+<p>where <span class="math">\(\rho_0\)</span> is the density of fresh water.</p>
+<p>B. The <code class="docutils literal"><span class="pre">frzpnd</span></code> = ‘cesm’ option uses the same empirical function as in the
+CESM melt pond parameterization.</p>
+<p><em>Radiative effects.</em> Freshwater ice that has formed on top of a melt
+pond is assumed to be perfectly clear. Snow may accumulate on top of the
+pond ice, however, shading the pond and ice below. The depth of the snow
+on the pond ice is initialized as <span class="math">\(h_{ps}^0 = F_{snow}\Delta t\)</span> at
+the first snowfall after the pond ice forms. From that time until either
+the pond ice or the pond snow disappears, the pond snow depth tracks the
+depth of snow on sea ice (<span class="math">\(h_s\)</span>) using a constant difference
+<span class="math">\(\Delta\)</span>. As <span class="math">\(h_s\)</span> melts, <span class="math">\(h_{ps}=h_s-\Delta\)</span> will be
+reduced to zero eventually, at which time the pond ice is fully
+uncovered and shortwave radiation passes through.</p>
+<p>To prevent a sudden change in the shortwave reaching the sea ice (which
+can prevent the thermodynamics from converging), thin layers of snow on
+pond ice are assumed to be patchy, thus allowing the shortwave flux to
+increase gradually as the layer thins. This is done using the same
+parameterization for patchy snow as is used elsewhere in Icepack, but with
+its own parameter <span class="math">\(h_{s1}\)</span>:</p>
+<div class="math" id="equation-apndeff">
+<span class="eqno">(26)<a class="headerlink" href="#equation-apndeff" title="Permalink to this equation">¶</a></span>\[a_{pnd}^{eff} = \left(1 - \min\left(h_{ps}/h_{s1}, 1\right)\right) a_{pnd} a_{lvl}.\]</div>
+<p>If any of the pond ice melts, the radiative flux allowed to pass through
+the ice is reduced by the (roughly) equivalent flux required to melt
+that ice. This is accomplished (approximately) with
+<span class="math">\(a_{pnd}^{eff} = (1-f_{frac})a_{pnd}a_{lvl}\)</span>, where (see
+Equation&nbsp;<a class="reference internal" href="#equation-ipndmelt">(24)</a>)</p>
+<div class="math" id="equation-snowinf">
+<span class="eqno">(27)<a class="headerlink" href="#equation-snowinf" title="Permalink to this equation">¶</a></span>\[f_{frac} = \min\left(-{\rho_i L\Delta h_i\over F_\circ \Delta t}, 1 \right) .\]</div>
+<p><em>Snow infiltration by pond water.</em> If there is snow on top of the sea
+ice, melt water may infiltrate the snow. It is a “virtual process” that
+affects the model’s thermodynamics through the input parameters of the
+radiation scheme; it does not melt the snow or affect the snow heat
+content.</p>
+<p>A snow pack is considered saturated when its percentage of liquid water
+content is greater or equal to 15% (Sturm and others, 2009). We assume
+that if the volume fraction of retained melt water to total liquid
+content</p>
+<div class="math" id="equation-snowinf2">
+<span class="eqno">(28)<a class="headerlink" href="#equation-snowinf2" title="Permalink to this equation">¶</a></span>\[r_p = {V_p\over V_p + V_s \rho_s / \rho_0} &lt; 0.15,\]</div>
+<p>then effectively there are no meltponds present, that is,
+<span class="math">\(a_{pnd}^{eff}=h_{pnd}^{eff}=0\)</span>. Otherwise, we
+assume that the snowpack is saturated with liquid water.</p>
+<p>We assume that all of the liquid water accumulates at the base of the
+snow pack and would eventually melt the surrounding snow. Two
+configurations are therefore possible, (1) the top of the liquid lies
+below the snow surface and (2) the liquid water volume overtops the
+snow, and all of the snow is assumed to have melted into the pond. The
+volume of void space within the snow that can be filled with liquid melt
+water is</p>
+<div class="math" id="equation-volmelt">
+<span class="eqno">(29)<a class="headerlink" href="#equation-volmelt" title="Permalink to this equation">¶</a></span>\[V_{mx}=h_{mx}a_{p} = {\left(\rho_0-\rho_s\over \rho_0\right)}h_s a_{p},\]</div>
+<p>and we compare <span class="math">\(V_p\)</span> with <span class="math">\(V_{mx}\)</span>.</p>
+<p>Case 1: For <span class="math">\(V_p &lt; V_{mx}\)</span>, we define <span class="math">\(V_p^{eff}\)</span> to
+be the volume of void space filled by the volume <span class="math">\(V_p\)</span> of melt
+water: <span class="math">\(\rho_0 V_p =  (\rho_0-\rho_s) V_p^{eff},\)</span> or in
+terms of depths,</p>
+<div class="math" id="equation-hpndeff">
+<span class="eqno">(30)<a class="headerlink" href="#equation-hpndeff" title="Permalink to this equation">¶</a></span>\[h_p^{eff} = {\left(\rho_0  \over \rho_0 - \rho_s\right)}h_{pnd}.\]</div>
+<p>The liquid water under the snow layer is not visible and therefore the
+ponds themselves have no direct impact on the radiation
+(<span class="math">\(a_{pnd}^{eff}=h_{pnd}^{eff}=0\)</span>), but the
+effective snow thickness used for the radiation scheme is reduced to</p>
+<div class="math" id="equation-hseff">
+<span class="eqno">(31)<a class="headerlink" href="#equation-hseff" title="Permalink to this equation">¶</a></span>\[h_s^{eff} = h_s - h_p^{eff}a_p = h_s - {\rho_0 \over \rho_0 - \rho_s}h_{pnd} a_p.\]</div>
+<p>Here, the factor <span class="math">\(a_p=a_{pnd}a_{lvl}\)</span> averages the reduced snow
+depth over the ponds with the full snow depth over the remainder of the
+ice; that is, <span class="math">\(h_s^{eff} = h_s(1-a_p) + (h_s -h_p^{eff})a_p.\)</span></p>
+<p>Case 2: Similarly, for <span class="math">\(V_p \ge V_{mx}\)</span>, the total mass in the
+liquid is <span class="math">\(\rho_0 V_p + \rho_s V_s = \rho_0 V_p^{eff},\)</span> or</p>
+<div class="math" id="equation-hpeff">
+<span class="eqno">(32)<a class="headerlink" href="#equation-hpeff" title="Permalink to this equation">¶</a></span>\[h_p^{eff} = {\rho_0 h_{pnd} + \rho_s h_{s} \over \rho_0}.\]</div>
+<p>Thus the effective depth of the pond is the depth of the whole slush
+layer <span class="math">\(h_p^{eff}\)</span>. In this case,
+<span class="math">\(a_{pnd}^{eff}=a_{pnd}a_{lvl}\)</span>.</p>
+<p><em>Drainage.</em> A portion <span class="math">\(1-r\)</span> of the available melt water drains
+immediately into the ocean. Once the volume changes described above have
+been applied and the resulting pond area and depth calculated, the pond
+depth may be further reduced if the top surface of the ice would be
+below sea level or if the sea ice becomes permeable.</p>
+<p>We require that the sea ice surface remain at or above sea level. If the
+weight of the pond water would push the mean ice–snow interface of a
+thickness category below sea level, some or all of the pond water is
+removed to bring the interface back to sea level via Archimedes’
+Principle written in terms of the draft <span class="math">\(d\)</span>,</p>
+<div class="math" id="equation-freeboard">
+<span class="eqno">(33)<a class="headerlink" href="#equation-freeboard" title="Permalink to this equation">¶</a></span>\[\rho_i h_i + \rho_s h_s + \rho_0 h_p = \rho_w d \le \rho_w h_i.\]</div>
+<p>There is a separate freeboard calculation in the thermodynamics which
+considers only the ice and snow and converts flooded snow to sea ice.
+Because the current melt ponds are “virtual” in the sense that they only
+have a radiative influence, we do not allow the pond mass to change the
+sea ice and snow masses at this time, although this issue may need to be
+reconsidered in the future, especially for the Antarctic.</p>
+<p>The mushy thermodynamics scheme (<cite>ktherm</cite>&nbsp;= 2) handles flushing.
+For <cite>ktherm</cite>&nbsp;<span class="math">\(\ne 2\)</span>, the permeability of the sea ice is calculated
+using the internal ice temperatures <span class="math">\(T_i\)</span> (computed from the
+enthalpies as in the sea ice thermodynamics). The brine salinity and
+liquid fraction are given by <a class="reference internal" href="../zreferences.html#notz05" id="id15">[35]</a> [eq 3.6]
+<span class="math">\(S_{br} = {1/ (10^{-3} - 0.054/T_i)}\)</span> and <span class="math">\(\phi = S/S_{br}\)</span>,
+where <span class="math">\(S\)</span> is the bulk salinity of the combined ice and brine. The
+ice is considered permeable if <span class="math">\(\phi \ge 0.05\)</span> with a permeability
+of <span class="math">\(p=3\times 10^{-8}\min(\phi^3)\)</span> (the minimum being taken over
+all of the ice layers). A hydraulic pressure head is computed as
+<span class="math">\(P=g\rho_w\Delta h\)</span> where <span class="math">\(\Delta h\)</span> is the height of the
+pond and sea ice above sea level. Then the volume of water drained is
+given by</p>
+<div class="math" id="equation-vperm">
+<span class="eqno">(34)<a class="headerlink" href="#equation-vperm" title="Permalink to this equation">¶</a></span>\[\Delta V_{perm} = -a_{pnd} \min\left(h_{pnd}, {p P d_p \Delta t \over \mu h_i}\right),\]</div>
+<p>where <span class="math">\(d_p\)</span> is a scaling factor (dpscale), and
+<span class="math">\(\mu=1.79\times 10^{-3}\)</span>&nbsp;kg&nbsp;m <span class="math">\(^{-1}\)</span>&nbsp;s <span class="math">\(^{-1}\)</span> is the
+dynamic viscosity.</p>
+<p><em>Conservation elsewhere.</em> When ice ridges and when new ice forms in open
+water, the level ice area changes and ponds must be handled
+appropriately. For example, when sea ice deforms, some of the level ice
+is transformed into ridged ice. We assume that pond water (and ice) on
+the portion of level ice that ridges is lost to the ocean. All of the
+tracer volumes are altered at this point in the code, even though
+<span class="math">\(h_{pnd}\)</span> and <span class="math">\(h_{ipnd}\)</span> should not change; compensating
+factors in the tracer volumes cancel out (subroutine <em>ridge_shift</em> in
+<strong>icepack_mechred.F90</strong>).</p>
+<p>When new ice forms in open water, level ice is added to the existing sea
+ice, but the new level ice does not yet have ponds on top of it.
+Therefore the fractional coverage of ponds on level ice decreases
+(thicknesses are unchanged). This is accomplished in
+<strong>icepack_therm_itd.F90</strong> (subroutine <em>add_new_ice</em>) by maintaining the
+same mean pond area in a grid cell after the addition of new ice,</p>
+<div class="math" id="equation-apndprime">
+<span class="eqno">(35)<a class="headerlink" href="#equation-apndprime" title="Permalink to this equation">¶</a></span>\[a_{pnd}^\prime (a_{lvl}+\Delta a_{lvl}) (a_i+\Delta a_i)   = a_{pnd} a_{lvl} a_i,\]</div>
+<p>and solving for the new pond area tracer <span class="math">\(a_{pnd}^\prime\)</span> given
+the newly formed ice area <span class="math">\(\Delta a_i = \Delta a_{lvl}\)</span>.</p>
+</div>
+</div>
+<div class="section" id="thermodynamic-surface-forcing-balance">
+<span id="sfc-forcing"></span><h2>2.6.2. Thermodynamic surface forcing balance<a class="headerlink" href="#thermodynamic-surface-forcing-balance" title="Permalink to this headline">¶</a></h2>
+<p>The net surface energy flux from the atmosphere to the ice (with all
+fluxes defined as positive downward) is</p>
+<div class="math" id="equation-f0">
+<span class="eqno">(36)<a class="headerlink" href="#equation-f0" title="Permalink to this equation">¶</a></span>\[F_0 = F_s + F_l + F_{L\downarrow} + F_{L\uparrow} +
+         (1-\alpha) (1-i_0) F_{sw},\]</div>
+<p>where <span class="math">\(F_s\)</span> is the sensible heat flux, <span class="math">\(F_l\)</span> is the latent
+heat flux, <span class="math">\(F_{L\downarrow}\)</span> is the incoming longwave flux,
+<span class="math">\(F_{L\uparrow}\)</span> is the outgoing longwave flux, <span class="math">\(F_{sw}\)</span> is
+the incoming shortwave flux, <span class="math">\(\alpha\)</span> is the shortwave albedo, and
+<span class="math">\(i_0\)</span> is the fraction of absorbed shortwave flux that penetrates
+into the ice. The albedo may be altered by the presence of melt ponds.
+Each of the explicit melt pond parameterizations (CESM, topo and
+level-ice ponds) should be used in conjunction with the Delta-Eddington
+shortwave scheme, described below.</p>
+<div class="section" id="shortwave-radiation-delta-eddington">
+<h3>2.6.2.1. Shortwave radiation: Delta-Eddington<a class="headerlink" href="#shortwave-radiation-delta-eddington" title="Permalink to this headline">¶</a></h3>
+<p>Two methods for computing albedo and shortwave fluxes are available, the
+“ccsm3” method, described below, and a multiple scattering
+radiative transfer scheme that uses a Delta-Eddington approach.
+“Inherent” optical properties (IOPs) for snow and sea ice, such as
+extinction coefficient and single scattering albedo, are prescribed
+based on physical measurements; reflected, absorbed and transmitted
+shortwave radiation (“apparent” optical properties) are then computed
+for each snow and ice layer in a self-consistent manner. Absorptive
+effects of inclusions in the ice/snow matrix such as dust and algae can
+also be included, along with radiative treatment of melt ponds and other
+changes in physical properties, for example granularization associated
+with snow aging. The Delta-Eddington formulation is described in detail
+in <a class="reference internal" href="../zreferences.html#bl07" id="id16">[7]</a>. Since publication of this technical paper,
+a number of improvements have been made to the Delta-Eddington scheme,
+including a surface scattering layer and internal shortwave absorption
+for snow, generalization for multiple snow layers and more than four
+layers of ice, and updated IOP values.</p>
+<p>The namelist parameters <code class="docutils literal"><span class="pre">R_ice</span></code> and <code class="docutils literal"><span class="pre">R_pnd</span></code> adjust the albedo of bare or
+ponded ice by the product of the namelist value and one standard
+deviation. For example, if <code class="docutils literal"><span class="pre">R_ice</span></code> = 0.1, the albedo increases by
+<span class="math">\(0.1\sigma\)</span>. Similarly, setting <code class="docutils literal"><span class="pre">R_snw</span></code> = 0.1 decreases the snow
+grain radius by <span class="math">\(0.1\sigma\)</span> (thus increasing the albedo). Two
+additional tuning parameters are available for this scheme, <code class="docutils literal"><span class="pre">dT_mlt</span></code> and
+<code class="docutils literal"><span class="pre">rsnw_mlt</span></code>. <code class="docutils literal"><span class="pre">dT_mlt</span></code> is the temperature change needed for a change in snow
+grain radius from non-melting to melting, and <code class="docutils literal"><span class="pre">rsnw_mlt</span></code> is the maximum
+snow grain radius when melting. An absorption coefficient for algae
+(<code class="docutils literal"><span class="pre">kalg</span></code>) may also be set. See <a class="reference internal" href="../zreferences.html#bl07" id="id17">[7]</a> for details; the
+CESM melt pond and Delta-Eddington parameterizations are further
+explained and validated in <a class="reference internal" href="../zreferences.html#hbblh12" id="id18">[19]</a>.</p>
+</div>
+<div class="section" id="shortwave-radiation-ccsm3">
+<h3>2.6.2.2. Shortwave radiation: CCSM3<a class="headerlink" href="#shortwave-radiation-ccsm3" title="Permalink to this headline">¶</a></h3>
+<p>In the parameterization used in the previous version of the Community
+Climate System Model (CCSM3), the albedo depends on the temperature and
+thickness of ice and snow and on the spectral distribution of the
+incoming solar radiation. Albedo parameters have been chosen to fit
+observations from the SHEBA field experiment. For
+<span class="math">\(T_{sf} &lt; -1^{\circ}C\)</span> and <span class="math">\(h_i &gt; `\ ``ahmax`\)</span>, the bare ice
+albedo is 0.78 for visible wavelengths (<span class="math">\(&lt;700\)</span>nm) and 0.36 for
+near IR wavelengths (<span class="math">\(&gt;700\)</span>nm). As <span class="math">\(h_i\)</span> decreases from
+ahmax to zero, the ice albedo decreases smoothly (using an arctangent
+function) to the ocean albedo, 0.06. The ice albedo in both spectral
+bands decreases by 0.075 as <span class="math">\(T_{sf}\)</span> rises from
+<span class="math">\(-1^{\circ}C\)</span> to . The albedo of cold snow (<span class="math">\(T_{sf} &lt;
+-1^{\circ}C\)</span>) is 0.98 for visible wavelengths and 0.70 for near IR
+wavelengths. The visible snow albedo decreases by 0.10 and the near IR
+albedo by 0.15 as <span class="math">\(T_{sf}\)</span> increases from <span class="math">\(-1^{\circ}C\)</span>
+to <span class="math">\(0^{\circ}C\)</span>. The total albedo is an area-weighted average of the ice and snow
+albedos, where the fractional snow-covered area is</p>
+<div class="math" id="equation-snowfrac">
+<span class="eqno">(37)<a class="headerlink" href="#equation-snowfrac" title="Permalink to this equation">¶</a></span>\[f_{snow} = \frac{h_s}{h_s + h_{snowpatch}},\]</div>
+<p>and <span class="math">\(h_{snowpatch} = 0.02 \ {\mathrm m}\)</span>. The envelope
+of albedo values is shown in <a class="reference internal" href="#fig-albedo"><span class="std std-ref">Figure 7</span></a>. This albedo
+formulation incorporates the effects of melt ponds implicitly; the
+explicit melt pond parameterization is not used in this case.</p>
+<div class="figure align-center" id="id47">
+<span id="fig-albedo"></span><a class="reference internal image-reference" href="../_images/albedo.png"><img alt="../_images/albedo.png" src="../_images/albedo.png" style="width: 586.6px; height: 441.6px;" /></a>
+<p class="caption"><span class="caption-text">Figure 7</span></p>
+</div>
+<p><a class="reference internal" href="#fig-albedo"><span class="std std-ref">Figure 7</span></a> : Albedo as a function of ice thickness and temperature,
+for the two extrema in snow depth, for the ccsm3 shortwave
+option. Maximum snow depth is computed based on Archimedes’ Principle
+for the given ice thickness. These curves represent the envelope of
+possible albedo values.</p>
+<p>The net absorbed shortwave flux is <span class="math">\(F_{swabs} = \sum
+(1-\alpha_j) F_{sw\downarrow}\)</span>, where the summation is over four
+radiative categories (direct and diffuse visible, direct and diffuse
+near infrared). The flux penetrating into the ice is <span class="math">\(I_0
+= i_0 \, F_{swabs}\)</span>, where <span class="math">\(i_0 = 0.70 \, (1-f_{snow})\)</span>
+for visible radiation and <span class="math">\(i_0 = 0\)</span> for near IR. Radiation
+penetrating into the ice is attenuated according to Beer’s Law:</p>
+<div class="math" id="equation-Beers-law">
+<span class="eqno">(38)<a class="headerlink" href="#equation-Beers-law" title="Permalink to this equation">¶</a></span>\[I(z) = I_0 \exp(-\kappa_i z),\]</div>
+<p>where <span class="math">\(I(z)\)</span> is the shortwave flux that reaches depth <span class="math">\(z\)</span>
+beneath the surface without being absorbed, and <span class="math">\(\kappa_i\)</span> is the
+bulk extinction coefficient for solar radiation in ice, set to
+<span class="math">\(1.4 \
+{\mathrm m^{-1}}\)</span> for visible wavelengths <a class="reference internal" href="../zreferences.html#esc95" id="id19">[8]</a>. A
+fraction <span class="math">\(\exp(-\kappa_i h_i)\)</span> of the penetrating solar radiation
+passes through the ice to the ocean
+(<span class="math">\(F_{sw\Downarrow}\)</span>).</p>
+</div>
+<div class="section" id="longwave-radiation-turbulent-fluxes">
+<h3>2.6.2.3. Longwave radiation, turbulent fluxes<a class="headerlink" href="#longwave-radiation-turbulent-fluxes" title="Permalink to this headline">¶</a></h3>
+<p>While incoming shortwave and longwave radiation are obtained from the
+atmosphere, outgoing longwave radiation and the turbulent heat fluxes
+are derived quantities. Outgoing longwave takes the standard blackbody
+form, <span class="math">\(F_{L\uparrow}=\epsilon\sigma
+\left(T_{sf}^{K}\right)^4\)</span>, where <span class="math">\(\epsilon=0.95\)</span> is the
+emissivity of snow or ice, <span class="math">\(\sigma\)</span> is the Stefan-Boltzmann
+constant and <span class="math">\(T_{sf}^{K}\)</span> is the surface temperature in
+Kelvin. (The longwave fluxes are partitioned such that
+<span class="math">\(\epsilon F_{L\downarrow}\)</span> is absorbed at the surface, the
+remaining <span class="math">\(\left(1-\epsilon\right)F_{L\downarrow}\)</span> being returned
+to the atmosphere via <span class="math">\(F_{L\uparrow}\)</span>.) The sensible heat flux is
+proportional to the difference between air potential temperature and the
+surface temperature of the snow or snow-free ice,</p>
+<div class="math" id="equation-flux1">
+<span class="eqno">(39)<a class="headerlink" href="#equation-flux1" title="Permalink to this equation">¶</a></span>\[F_s = C_s \left(\Theta_a - T_{sf}^K\right).\]</div>
+<p><span class="math">\(C_s\)</span> and <span class="math">\(C_l\)</span> (below) are nonlinear turbulent heat
+transfer coefficients described in the&nbsp;<a class="reference internal" href="sg_boundary_forcing.html#atmo"><span class="std std-ref">Atmosphere</span></a> section. Similarly,
+the latent heat flux is proportional to the difference between
+<span class="math">\(Q_a\)</span> and the surface saturation specific humidity <span class="math">\(Q_{sf}\)</span>:</p>
+<div class="math">
+\[\begin{split}\begin{aligned}
+F_l&amp;=&amp; C_l\left(Q_a - Q_{sf}\right),\\
+Q_{sf}&amp;=&amp;(q_1 / \rho_a)  \exp(-q_2 / T_{sf}^K),\end{aligned}\end{split}\]</div>
+<p>where <span class="math">\(q_1 = 1.16378 \times 10^7 \, \mathrm{kg/m^3}\)</span>,
+<span class="math">\(q_2 =
+5897.8 \, \mathrm{K}\)</span>, <span class="math">\(T_{sf}^K\)</span> is the surface temperature in
+Kelvin, and <span class="math">\(\rho_a\)</span> is the surface air density.</p>
+<p>The net downward heat flux from the ice to the ocean is given by
+<a class="reference internal" href="../zreferences.html#mm95" id="id20">[32]</a>:</p>
+<div class="math" id="equation-fbot">
+<span class="eqno">(40)<a class="headerlink" href="#equation-fbot" title="Permalink to this equation">¶</a></span>\[F_{bot} = -\rho_w c_w c_h u_* (T_w - T_f),\]</div>
+<p>where <span class="math">\(\rho_w\)</span> is the density of seawater, <span class="math">\(c_w\)</span> is the
+specific heat of seawater, <span class="math">\(c_h = 0.006\)</span> is a heat transfer
+coefficient, <span class="math">\(u_*=\sqrt{\left|\vec{\tau}_w\right|/\rho_w}\)</span> is the
+friction velocity, and <span class="math">\(T_w\)</span> is the sea surface temperature. A
+minimum value of <span class="math">\(u_*\)</span> is available; we recommend
+<span class="math">\(u_{*\min} = 5\times 10^{-4}\)</span>&nbsp;m/s, but the optimal value may
+depend on the ocean forcing used and can be as low as 0.</p>
+<p><span class="math">\(F_{bot}\)</span> is limited by the total amount of heat available from
+the ocean, <span class="math">\(F_{frzmlt}\)</span>. Additional heat,
+<span class="math">\(F_{side}\)</span>, is used to melt the ice laterally following
+<a class="reference internal" href="../zreferences.html#mp87" id="id21">[33]</a> and <a class="reference internal" href="../zreferences.html#steele92" id="id22">[42]</a>.
+<span class="math">\(F_{bot}\)</span> and the fraction of ice melting laterally are scaled so
+that <span class="math">\(F_{bot} + F_{side} \ge F_{frzmlt}\)</span> in the case that
+<span class="math">\(F_{frzmlt}&lt;0\)</span> (melting; see
+<a class="reference internal" href="#thermo-growth"><span class="std std-ref">Growth and melting</span></a>).</p>
+</div>
+</div>
+<div class="section" id="new-temperatures">
+<span id="thermo-temp"></span><h2>2.6.3. New temperatures<a class="headerlink" href="#new-temperatures" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="zero-layer-thermodynamics-ktherm-0">
+<h3>2.6.3.1. Zero-layer thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 0)<a class="headerlink" href="#zero-layer-thermodynamics-ktherm-0" title="Permalink to this headline">¶</a></h3>
+<p>An option for zero-layer thermodynamics <a class="reference internal" href="../zreferences.html#semtner76" id="id23">[40]</a> is
+available in this version of Icepack by setting the namelist parameter
+<code class="docutils literal"><span class="pre">ktherm</span></code> to 0 and changing the number of ice layers, nilyr, in
+<strong>icedrv_domain_size.F90</strong> to 1. In the zero-layer case, the ice is
+fresh and the thermodynamic calculations are much simpler than in the
+other configurations, which we describe here.</p>
+</div>
+<div class="section" id="bitz-and-lipscomb-thermodynamics-ktherm-1">
+<h3>2.6.3.2. Bitz and Lipscomb thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 1)<a class="headerlink" href="#bitz-and-lipscomb-thermodynamics-ktherm-1" title="Permalink to this headline">¶</a></h3>
+<p>The “BL99” thermodynamic sea ice model is based on
+<a class="reference internal" href="../zreferences.html#mu71" id="id24">[34]</a> and <a class="reference internal" href="../zreferences.html#bl99" id="id25">[6]</a>, and is
+described more fully in <a class="reference internal" href="../zreferences.html#lipscomb98" id="id26">[26]</a>. The vertical
+salinity profile is prescribed and is unchanging in time. The snow is
+assumed to be fresh, and the midpoint salinity <span class="math">\(S_{ik}\)</span> in each
+ice layer is given by</p>
+<div class="math" id="equation-salinity">
+<span class="eqno">(41)<a class="headerlink" href="#equation-salinity" title="Permalink to this equation">¶</a></span>\[S_{ik} = {1\over 2}S_{\max} [1-\cos(\pi z^{(\frac{a}{z+b})})],\]</div>
+<p>where <span class="math">\(z \equiv (k-1/2)/N_i\)</span>, <span class="math">\(S_{\max} = 3.2\)</span> ppt, and
+<span class="math">\(a=0.407\)</span> and <span class="math">\(b=0.573\)</span> are determined from a
+least-squares fit to the salinity profile observed in multiyear sea
+ice by <a class="reference internal" href="../zreferences.html#schwarzacher59" id="id27">[39]</a>. This profile varies from
+<span class="math">\(S=0\)</span> at the top surface (<span class="math">\(z = 0\)</span>) to <span class="math">\(S=S_{\max}\)</span>
+at the bottom surface (<span class="math">\(z=1\)</span>) and is similar to that used by
+<a class="reference internal" href="../zreferences.html#mu71" id="id28">[34]</a>. Equation <a class="reference internal" href="#equation-salinity">(41)</a> is fairly accurate
+for ice that has drained at the top surface due to summer melting. It
+is not a good approximation for cold first-year ice, which has a more
+vertically uniform salinity because it has not yet drained. However,
+the effects of salinity on heat capacity are small for temperatures
+well below freezing, so the salinity error does not lead to
+significant temperature errors.</p>
+<p><em>Temperature updates</em></p>
+<p>Given the temperatures <span class="math">\(T_{sf}^m\)</span>,
+<span class="math">\(T_s^m\)</span>, and <span class="math">\(T_{ik}^m\)</span> at time&nbsp;<span class="math">\(m\)</span>, we solve a set
+of finite-difference equations to obtain the new temperatures at
+time&nbsp;<span class="math">\(m+1\)</span>. Each temperature is coupled to the temperatures of
+the layers immediately above and below by heat conduction terms that are
+treated implicitly. For example, the rate of change of <span class="math">\(T_{ik}\)</span>
+depends on the new temperatures in layers <span class="math">\(k-1\)</span>, <span class="math">\(k\)</span>, and
+<span class="math">\(k+1\)</span>. Thus we have a set of equations of the form</p>
+<div class="math" id="equation-tridiag">
+<span class="eqno">(42)<a class="headerlink" href="#equation-tridiag" title="Permalink to this equation">¶</a></span>\[{\bf A} {\bf x} = {\bf b},\]</div>
+<p>where <span class="math">\({\bf A}\)</span> is a tridiagonal matrix, <span class="math">\({\bf x}\)</span> is a
+column vector whose components are the unknown new temperatures, and
+<span class="math">\({\bf b}\)</span> is another column vector. Given <span class="math">\({\bf A}\)</span> and
+<span class="math">\({\bf b}\)</span>, we can compute <span class="math">\({\bf x}\)</span> with a standard
+tridiagonal solver.</p>
+<p>There are four general cases: (1)&nbsp;<span class="math">\(T_{sf} &lt; 0^{\circ}C\)</span>, snow
+present; (2)&nbsp;<span class="math">\(T_{sf} = 0^{\circ}C\)</span>, snow present;
+(3)&nbsp;<span class="math">\(T_{sf} &lt; 0^{\circ}C\)</span>, snow absent; and
+(4)&nbsp;<span class="math">\(T_{sf} = 0^{\circ}C\)</span>, snow absent. For case 1 we have
+one equation (the top row of the matrix) for the new surface
+temperature, <span class="math">\(N_s\)</span> equations for the new snow temperatures, and
+<span class="math">\(N_i\)</span> equations for the new ice temperatures. For cases 2 and 4 we
+omit the equation for the surface temperature, which is held at <span class="math">\(0^{\circ}C\)</span>, and
+for cases 3 and 4 we omit the snow temperature equations. Snow is
+considered absent if the snow depth is less than a user-specified
+minimum value, <code class="docutils literal"><span class="pre">hs_min</span></code>. (Very thin snow layers are still transported
+conservatively by the transport modules; they are simply ignored by the
+thermodynamics.)</p>
+<p>The rate of temperature change in the ice interior is given by
+<a class="reference internal" href="../zreferences.html#mu71" id="id29">[34]</a>:</p>
+<div class="math" id="equation-ice-temp-change">
+<span class="eqno">(43)<a class="headerlink" href="#equation-ice-temp-change" title="Permalink to this equation">¶</a></span>\[\rho_i c_i \frac{\partial T_i}{\partial t} =
+ \frac{\partial}{\partial z} \left(K_i \frac{\partial T_i}{\partial z}\right)
+ - \frac{\partial}{\partial z} [I_{pen}(z)],\]</div>
+<p>where <span class="math">\(\rho_i = 917 \ \mathrm {kg/m^{3}}\)</span> is the sea ice density
+(assumed to be uniform), <span class="math">\(c_i(T,S)\)</span> is the specific heat of sea
+ice, <span class="math">\(K_i(T,S)\)</span> is the thermal conductivity of sea ice,
+<span class="math">\(I_{pen}\)</span> is the flux of penetrating solar radiation at
+depth <span class="math">\(z\)</span>, and <span class="math">\(z\)</span> is the vertical coordinate, defined to be
+positive downward with <span class="math">\(z = 0\)</span> at the top surface. If <code class="docutils literal"><span class="pre">shortwave</span></code> =
+‘ccsm3’, the penetrating radiation is given by Beer’s Law:</p>
+<div class="math">
+\[I_{pen}(z) = I_0 \exp(-\kappa_i z),\]</div>
+<p>where <span class="math">\(I_0\)</span> is the penetrating solar flux at the top ice surface
+and <span class="math">\(\kappa_i\)</span> is an extinction coefficient. If <code class="docutils literal"><span class="pre">shortwave</span></code> =
+‘dEdd’, then solar absorption is computed by the Delta-Eddington scheme.</p>
+<p>The specific heat of sea ice is given to an excellent approximation by
+<a class="reference internal" href="../zreferences.html#ono67" id="id30">[36]</a></p>
+<div class="math" id="equation-heat-capacity">
+<span class="eqno">(44)<a class="headerlink" href="#equation-heat-capacity" title="Permalink to this equation">¶</a></span>\[c_i(T,S) = c_0 + \frac{L_0 \mu S}{T^2},\]</div>
+<p>where <span class="math">\(c_0 = 2106\)</span>&nbsp;J/kg/deg is the specific heat of fresh ice at
+, <span class="math">\(L_0 = 3.34 \times 10^5\)</span>&nbsp;J/kg is the latent heat of fusion of
+fresh ice at , and <span class="math">\(\mu = 0.054\)</span> deg/ppt is the (liquidus) ratio
+between the freezing temperature and salinity of brine.</p>
+<p>Following <a class="reference internal" href="../zreferences.html#untersteiner64" id="id31">[48]</a> and
+<a class="reference internal" href="../zreferences.html#mu71" id="id32">[34]</a>, the standard thermal conductivity
+(<code class="docutils literal"><span class="pre">conduct</span></code> = ‘MU71’) is given by</p>
+<div class="math" id="equation-conductivity">
+<span class="eqno">(45)<a class="headerlink" href="#equation-conductivity" title="Permalink to this equation">¶</a></span>\[K_i(T,S) = K_0 + \frac{\beta S}{T},\]</div>
+<p>where <span class="math">\(K_0 = 2.03\)</span>&nbsp;W/m/deg is the conductivity of fresh ice and
+<span class="math">\(\beta = 0.13\)</span>&nbsp;W/m/ppt is an empirical constant. Experimental
+results <a class="reference internal" href="../zreferences.html#twmh01" id="id33">[45]</a> suggest that Equation <a class="reference internal" href="#equation-conductivity">(45)</a> may
+not be a good description of the thermal conductivity of sea ice. In
+particular, the measured conductivity does not markedly decrease as
+<span class="math">\(T\)</span> approaches <span class="math">\(0^{\circ}C\)</span>, but does decrease near the top surface
+(regardless of temperature).</p>
+<p>An alternative parameterization based on the “bubbly brine” model of
+<a class="reference internal" href="../zreferences.html#petb07" id="id34">[37]</a> for conductivity is available
+(<code class="docutils literal"><span class="pre">conduct</span></code> = ‘bubbly’):</p>
+<div class="math" id="equation-Pringle">
+<span class="eqno">(46)<a class="headerlink" href="#equation-Pringle" title="Permalink to this equation">¶</a></span>\[K_i={\rho_i\over\rho_0}\left(2.11-0.011T+0.09 S/T\right),\]</div>
+<p>where <span class="math">\(\rho_i\)</span> and <span class="math">\(\rho_0=917\)</span>&nbsp;kg/m<span class="math">\(^3\)</span> are
+densities of sea ice and pure ice. Whereas the parameterization in
+Equation <a class="reference internal" href="#equation-conductivity">(45)</a> asymptotes to a constant conductivity of
+2.03&nbsp;W&nbsp;m<span class="math">\(^{-1}\)</span>&nbsp;K <span class="math">\(^{-1}\)</span> with decreasing <span class="math">\(T\)</span>,
+<span class="math">\(K_i\)</span> in Equation <a class="reference internal" href="#equation-Pringle">(46)</a> continues to increase with colder
+temperatures.</p>
+<p>The equation for temperature changes in snow is analogous to
+Equation <a class="reference internal" href="#equation-ice-temp-change">(43)</a>, with <span class="math">\(\rho_s = 330\)</span>&nbsp;kg/m<span class="math">\(^3\)</span>,
+<span class="math">\(c_s = c_0\)</span>, and <span class="math">\(K_s = 0.30\)</span>&nbsp;W/m/deg replacing the
+corresponding ice values. If shortwave = ‘ccsm3’, then the penetrating
+solar radiation is equal to zero for snow-covered ice, since most of the
+incoming sunlight is absorbed near the top surface. If shortwave =
+‘dEdd’, however, then <span class="math">\(I_{pen}\)</span> is nonzero in snow layers.</p>
+<p>It is possible that more shortwave penetrates into an ice layer than is
+needed to completely melt the layer, or else it causes the computed
+temperature to be greater than the melting temperature, which until now
+has caused the vertical thermodynamics code to abort. A parameter
+<code class="docutils literal"><span class="pre">frac</span></code> = 0.9 sets the fraction of the ice layer than can be melted through.
+A minimum temperature difference for absorption of radiation is also
+set, currently <code class="docutils literal"><span class="pre">dTemp</span></code> = 0.02 (K). The limiting occurs in
+<strong>icepack_therm_vertical.F90</strong>, for both the ccsm3 and delta Eddington
+radiation schemes. If the available energy would melt through a layer,
+then penetrating shortwave is first reduced, possibly to zero, and if
+that is insufficient then the local conductivity is also reduced to
+bring the layer temperature just to the melting point.</p>
+<p>We now convert Equation <a class="reference internal" href="#equation-ice-temp-change">(43)</a> to finite-difference form. The
+resulting equations are second-order accurate in space, except possibly
+at material boundaries, and first-order accurate in time. Before writing
+the equations in full we give finite-difference expressions for some of
+the terms.</p>
+<p>First consider the terms on the left-hand side of
+Equation <a class="reference internal" href="#equation-ice-temp-change">(43)</a>. We write the time derivatives as</p>
+<div class="math">
+\[\frac{\partial T}{\partial t} =
+   \frac{T^{m+1} - T^m}{\Delta t},\]</div>
+<p>where <span class="math">\(T\)</span> is the temperature of either ice or snow and <span class="math">\(m\)</span>
+is a time index. The specific heat of ice layer <span class="math">\(k\)</span> is
+approximated as</p>
+<div class="math" id="equation-heat-capacity-fd">
+<span class="eqno">(47)<a class="headerlink" href="#equation-heat-capacity-fd" title="Permalink to this equation">¶</a></span>\[c_{ik} = c_0 + \frac{L_0 \mu S_{ik}} {T_{ik}^m \, T_{ik}^{m+1}},\]</div>
+<p>which ensures that energy is conserved during a change in temperature.
+This can be shown by using Equation <a class="reference internal" href="#equation-heat-capacity">(44)</a> to integrate
+<span class="math">\(c_i \, dT\)</span> from <span class="math">\(T_{ik}^m\)</span> to <span class="math">\(T_{ik}^{m+1}\)</span>; the
+result is <span class="math">\(c_{ik}(T_{ik}^{m+1} - T_{ik}^m)\)</span>, where <span class="math">\(c_{ik}\)</span>
+is given by Equation <a class="reference internal" href="#equation-heat-capacity-fd">(47)</a>. The specific heat is a nonlinear
+function of <span class="math">\(T_{ik}^{m+1}\)</span>, the unknown new temperature. We can
+retain a set of linear equations, however, by initially guessing
+<span class="math">\(T_{ik}^{m+1} = T_{ik}^m\)</span> and then iterating the solution,
+updating <span class="math">\(T_{ik}^{m+1}\)</span> in Equation <a class="reference internal" href="#equation-heat-capacity-fd">(47)</a> with each
+iteration until the solution converges.</p>
+<p>Next consider the first term on the right-hand side of
+Equation <a class="reference internal" href="#equation-ice-temp-change">(43)</a>. The first term describes heat diffusion and is
+discretized for a given ice or snow layer <span class="math">\(k\)</span> as</p>
+<div class="math" id="equation-ice-dT-dz">
+<span class="eqno">(48)<a class="headerlink" href="#equation-ice-dT-dz" title="Permalink to this equation">¶</a></span>\[\frac{\partial}{\partial z} \left(K \frac{\partial T}{\partial z}\right) =
+ \frac{1}{\Delta h}
+  \left[ {K_k^*(T_{k-1}^{m+1} - T_{k}^{m+1})} - K_{k+1}^*(T_{k}^{m+1} - T_{k+1}^{m+1}) \right],\]</div>
+<p>where <span class="math">\(\Delta h\)</span> is the layer thickness and <span class="math">\(K_{k}\)</span> is the
+effective conductivity at the upper boundary of layer <span class="math">\(k\)</span>. This
+discretization is centered and second-order accurate in space, except at
+the boundaries. The flux terms on the right-hand side (RHS) are treated
+implicitly; i.e., they depend on the temperatures at the new time
+<span class="math">\(m+1\)</span>. The resulting scheme is first-order accurate in time and
+unconditionally stable. The effective conductivity <span class="math">\(K^*\)</span> at the
+interface of layers <span class="math">\(k-1\)</span> and <span class="math">\(k\)</span> is defined as</p>
+<div class="math">
+\[K_k^* = {2K_{k-1}K_k\over{K_{k-1}h_k + K_k h_{k-1}}},\]</div>
+<p>which reduces to the appropriate values in the limits
+<span class="math">\(K_k \gg K_{k-1}\)</span> (or vice versa) and <span class="math">\(h_k \gg h_{k-1}\)</span> (or
+vice versa). The effective conductivity at the top (bottom) interface of
+the ice-snow column is given by <span class="math">\(K^*=2K/\Delta h\)</span>, where <span class="math">\(K\)</span>
+and <span class="math">\(\Delta h\)</span> are the thermal conductivity and thickness of the
+top (bottom) layer. The second term on the RHS of
+Equation <a class="reference internal" href="#equation-ice-temp-change">(43)</a> is discretized as</p>
+<div class="math">
+\[{\partial\over\partial z}\left[I_{pen}(z)\right] = I_0{{\tau_{k-1}-\tau_k}\over \Delta h} = {I_k\over\Delta h}\]</div>
+<p>where <span class="math">\(\tau_k\)</span> is the fraction of the penetrating solar radiation
+<span class="math">\(I_0\)</span> that is transmitted through layer <span class="math">\(k\)</span> without being
+absorbed.</p>
+<p>We now construct a system of equations for the new temperatures. For
+<span class="math">\(T_{sf} &lt; 0^{\circ}C\)</span> we require</p>
+<div class="math" id="equation-top-surface">
+<span class="eqno">(49)<a class="headerlink" href="#equation-top-surface" title="Permalink to this equation">¶</a></span>\[F_0 = F_{ct},\]</div>
+<p>where <span class="math">\(F_{ct}\)</span> is the conductive flux from the top surface to the
+ice interior, and both fluxes are evaluated at time <span class="math">\(m+1\)</span>.
+Although <span class="math">\(F_0\)</span> is a nonlinear function of <span class="math">\(T_{sf}\)</span>,
+we can make the linear approximation</p>
+<div class="math">
+\[F_0^{m+1} = F_0^* + \left( \frac{dF_0}{dT_{sf}} \right)^* \,
+                           (T_{sf}^{m+1} - T_{sf}^*),\]</div>
+<p>where <span class="math">\(T_{sf}^*\)</span> is the surface temperature from the
+most recent iteration, and <span class="math">\(F_0^*\)</span> and
+<span class="math">\((dF_0/dT_{sf})^*\)</span> are functions of
+<span class="math">\(T_{sf}^*\)</span>. We initialize
+<span class="math">\(T_{sf}^* = T_{sf}^m\)</span> and update it with each
+iteration. Thus we can rewrite&nbsp;Equation <a class="reference internal" href="#equation-top-surface">(49)</a> as</p>
+<div class="math">
+\[F_0^* + \left(\frac{dF_0}{dT_{sf}}\right)^* \, (T_
+{sf}^{m+1} - T_{sf}^*) =    K_1^* (T_{sf}^{m+1} - T_1^{m+1}),\]</div>
+<p>Rearranging terms, we obtain</p>
+<div class="math" id="equation-surface-case1">
+<span class="eqno">(50)<a class="headerlink" href="#equation-surface-case1" title="Permalink to this equation">¶</a></span>\[\left[ \left(\frac{dF_0}{dT_{sf}}\right)^* - K_1^* \right]
+T_{sf}^{m+1} +  K_1^* T_1^{m+1} =
+\left(\frac{dF_0}{dT_{sf}}\right)^* \, T_{sf}^* - F_0^*,\]</div>
+<p>the first equation in the set of equations&nbsp;<a class="reference internal" href="#equation-tridiag">(42)</a>. The
+temperature change in ice/snow layer <span class="math">\(k\)</span> is</p>
+<div class="math" id="equation-case1-prelim">
+<span class="eqno">(51)<a class="headerlink" href="#equation-case1-prelim" title="Permalink to this equation">¶</a></span>\[\rho_k c_k \frac{(T_k^{m+1} - T_k^m)}{\Delta t} =
+   \frac{1}{\Delta h_k} [K_k^*    (T_{k-1}^{m+1} - T_k^{m+1})
+                - K_{k+1}(T_k^{m+1} - T_{k+1}^{m+1})],\]</div>
+<p>where <span class="math">\(T_0 = T_{sf}\)</span> in the equation for layer 1. In
+tridiagonal matrix form, Equation <a class="reference internal" href="#equation-case1-prelim">(51)</a> becomes</p>
+<div class="math" id="equation-tridiag-form">
+<span class="eqno">(52)<a class="headerlink" href="#equation-tridiag-form" title="Permalink to this equation">¶</a></span>\[-\eta_k K_k T_{k-1}^{m+1} + \left[ 1 + \eta_k(K_k+K_{k+1}) \right]T_k^{m+1} -\eta_k K_{k+1} T_{k+1}^{m+1} = T_k^m + \eta_k I_k,\]</div>
+<p>where <span class="math">\(\eta_k = \Delta t/(\rho_k c_k \Delta h_k)\)</span>. In the
+equation for the bottom ice layer, the temperature at the ice–ocean
+interface is held fixed at <span class="math">\(T_f\)</span>, the freezing temperature of the
+mixed layer; thus the last term on the LHS is known and is moved to the
+RHS. If <span class="math">\(T_{sf} = 0^{\circ}C\)</span> , then there is no surface flux
+equation. In this case the first equation in Equation <a class="reference internal" href="#equation-tridiag">(42)</a> is similar
+to Equation <a class="reference internal" href="#equation-tridiag-form">(52)</a>, but with the first term on the LHS moved to the
+RHS.</p>
+<p>These equations are modified if <span class="math">\(T_{sf}\)</span> and
+<span class="math">\(F_{ct}\)</span> are computed within the atmospheric model and
+passed to the host sea ice model (<code class="docutils literal"><span class="pre">calc_Tsfc</span></code> = false; see <a class="reference internal" href="sg_boundary_forcing.html#atmo"><span class="std std-ref">Atmosphere</span></a>). In this case there
+is no surface flux equation. The top layer temperature is computed by an
+equation similar to Equation <a class="reference internal" href="#equation-tridiag-form">(52)</a> but with the first term on the
+LHS replaced by <span class="math">\(\eta_1 F_{ct}\)</span> and moved to the RHS. The
+main drawback of treating the surface temperature and fluxes explicitly
+is that the solution scheme is no longer unconditionally stable.
+Instead, the effective conductivity in the top layer must satisfy a
+diffusive CFL condition:</p>
+<div class="math">
+\[K^* \le {\rho ch \over \Delta t}.\]</div>
+<p>For thin layers and typical coupling intervals (<span class="math">\(\sim 1\)</span> hr),
+<span class="math">\(K^*\)</span> may need to be limited before being passed to the atmosphere
+via the coupler. Otherwise, the fluxes that are returned to the host sea ice model may
+result in oscillating, highly inaccurate temperatures. The effect of
+limiting is to treat the ice as a poor heat conductor. As a result,
+winter growth rates are reduced, and the ice is likely to be too thin
+(other things being equal). The values of <code class="docutils literal"><span class="pre">hs_min</span></code> and <span class="math">\(\Delta t\)</span>
+must therefore be chosen with care. If <code class="docutils literal"><span class="pre">hs_min</span></code> is too small, frequent
+limiting is required, but if <code class="docutils literal"><span class="pre">hs_min</span></code> is too large, snow will be ignored
+when its thermodynamic effects are significant. Likewise, infrequent
+coupling requires more limiting, whereas frequent coupling is
+computationally expensive.</p>
+<p>This completes the specification of the matrix equations for the four
+cases. We compute the new temperatures using a tridiagonal solver. After
+each iteration we check to see whether the following conditions hold:</p>
+<ol class="arabic simple">
+<li><span class="math">\(T_{sf} \leq 0^{\circ}C\)</span>.</li>
+<li>The change in <span class="math">\(T_{sf}\)</span> since the previous iteration is
+less than a prescribed limit, <span class="math">\(\Delta T_{\max}\)</span>.</li>
+<li><span class="math">\(F_0 \geq F_{ct}\)</span>. (If <span class="math">\(F_0 &lt; F_{ct}\)</span>, ice would be
+growing at the top surface, which is not allowed.)</li>
+<li>The rate at which energy is added to the ice by the external fluxes
+equals the rate at which the internal ice energy is changing, to
+within a prescribed limit <span class="math">\(\Delta F_{\max}\)</span>.</li>
+</ol>
+<p>We also check the convergence rate of <span class="math">\(T_{sf}\)</span>. If <span class="math">\(T_{sf}\)</span>
+is oscillating and failing to converge, we average temperatures from
+successive iterations to improve convergence. When all these conditions
+are satisfied—usually within two to four iterations for
+<span class="math">\(\Delta T_{\max} \approx 0.01^{\circ}C\)</span> and <span class="math">\(\Delta F_{max}
+\approx 0.01 \ \mathrm{W/m^2}\)</span>—the calculation is complete.</p>
+<p>To compute growth and melt rates (<a class="reference internal" href="#thermo-growth"><span class="std std-ref">Growth and melting</span></a>),
+we derive expressions for the enthalpy <span class="math">\(q\)</span>. The enthalpy of snow
+(or fresh ice) is given by</p>
+<div class="math">
+\[q_s(T) = - \rho_s (-c_0 T + L_0).\]</div>
+<p>Sea ice enthalpy is more complex, because of brine pockets whose
+salinity varies inversely with temperature. Since the salinity is
+prescribed, there is a one-to-one relationship between temperature and
+enthalpy. The specific heat of sea ice, given by
+Equation <a class="reference internal" href="#equation-heat-capacity">(44)</a>, includes not only the energy needed to warm or
+cool ice, but also the energy used to freeze or melt ice adjacent to
+brine pockets. Equation&nbsp;<a class="reference internal" href="#equation-heat-capacity">(44)</a> can be integrated to
+give the energy <span class="math">\(\delta_e\)</span> required to raise the temperature of
+a unit mass of sea ice of salinity <span class="math">\(S\)</span> from <span class="math">\(T\)</span> to
+<span class="math">\(T^\prime\)</span>:</p>
+<div class="math">
+\[\delta_e(T,T^\prime) = c_0 (T^\prime - T)
+          + L_0 \mu S \left(\frac{1}{T} - \frac{1}{T^\prime}\right).\]</div>
+<p>If we let <span class="math">\(T^\prime = T_{m} \equiv -\mu S\)</span>, the temperature at
+which the ice is completely melted, we have</p>
+<div class="math">
+\[\delta_e(T,T_m) = c_0 (T_{m} - T)
+                + L_0 \left(1 - \frac{T_m}{T}\right).\]</div>
+<p>Multiplying by <span class="math">\(\rho_i\)</span> to change the units from
+<span class="math">\(\mathrm {J/kg}\)</span> to <span class="math">\(\mathrm {J/m^{3}}\)</span> and adding a term
+for the energy needed to raise the meltwater temperature to , we
+obtain the sea ice enthalpy:</p>
+<div class="math" id="equation-ice-enthalpy">
+<span class="eqno">(53)<a class="headerlink" href="#equation-ice-enthalpy" title="Permalink to this equation">¶</a></span>\[q_i(T,S) = - \rho_i \left[ c_0(T_m-T)
+           + L_0 \left(1-\frac{T_m}{T}\right) - c_w T_m.
+                  \right]\]</div>
+<p>Note that Equation <a class="reference internal" href="#equation-ice-enthalpy">(53)</a> is a quadratic equation in <span class="math">\(T\)</span>.
+Given the layer enthalpies we can compute the temperatures using the
+quadratic formula:</p>
+<div class="math">
+\[T = \frac{-b - \sqrt{b^2 - 4 a c}} {2 a},\]</div>
+<p>where</p>
+<div class="math">
+\[\begin{split}\begin{aligned}
+a &amp; = &amp; c_0,  \\
+b &amp; = &amp; (c_w - c_0) \, T_m - \frac{q_i}{\rho_i} - L_0, \\
+c &amp; = &amp; L_0 T_m.\end{aligned}\end{split}\]</div>
+<p>The other root is unphysical.</p>
+</div>
+<div class="section" id="mushy-thermodynamics-ktherm-2">
+<h3>2.6.3.3. Mushy thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2)<a class="headerlink" href="#mushy-thermodynamics-ktherm-2" title="Permalink to this headline">¶</a></h3>
+<p>The “mushy” thermodynamics option treats the sea ice as a mushy layer
+<a class="reference internal" href="../zreferences.html#fuww06" id="id35">[10]</a> in which the ice is assumed to be composed
+of microscopic brine inclusions surrounded by a matrix of pure water
+ice. Both enthalpy and salinity are prognostic variables. The size of
+the brine inclusions is assumed to be much smaller than the size of
+the ice layers, allowing a continuum approximation: a bulk sea-ice
+quantity is taken to be the liquid-fraction-weighted average of that
+quantity in the ice and in the brine.</p>
+<p><em>Enthalpy and mushy physics</em></p>
+<p>The mush enthalpy, <span class="math">\(q\)</span>, is related
+to the temperature, <span class="math">\(T\)</span>, and the brine volume, <span class="math">\(\phi\)</span>, by</p>
+<div class="math" id="equation-enth-def">
+<span class="eqno">(54)<a class="headerlink" href="#equation-enth-def" title="Permalink to this equation">¶</a></span>\[\begin{aligned}
+q =&amp; \phi q_{br} &amp;+\, (1-\phi) q_{i}
+=&amp; \phi \rho_{w} c_{w} T &amp;+\, (1-\phi) (\rho_i c_i T - \rho_i L_0)
+\end{aligned}\]</div>
+<p>where <span class="math">\(q_{br}\)</span> is the brine enthalpy, <span class="math">\(q_i\)</span> is the pure ice
+enthalpy, <span class="math">\(\rho_i\)</span> and <span class="math">\(c_i\)</span> are density and heat capacity
+of the ice, <span class="math">\(\rho_{w}\)</span> and <span class="math">\(c_{w}\)</span> are density and heat
+capacity of the brine and <span class="math">\(L_0\)</span> is the latent heat of melting of
+pure ice. We assume that the specific heats of the ice and brine are
+fixed at the values of cp_ice and cp_ocn, respectively. The enthalpy
+is the energy required to raise the temperature of the sea ice to <span class="math">\(0^{\circ}C\)</span>,
+including both sensible and latent heat changes. Since the sea ice
+contains salt, it usually will be fully melted at a temperature below
+<span class="math">\(0^{\circ}C\)</span>.
+Equations <a class="reference internal" href="#equation-ice-enthalpy">(53)</a> and <a class="reference internal" href="#equation-enth-def">(54)</a> are
+equivalent except for the density used in the term representing the
+energy required to bring the melt water temperature to (<span class="math">\(\rho_i\)</span>
+and <span class="math">\(\rho_w\)</span> in equations&nbsp;<a class="reference internal" href="#equation-ice-enthalpy">(53)</a> and
+<a class="reference internal" href="#equation-enth-def">(54)</a>, respectively).</p>
+<p>The liquid fraction, <span class="math">\(\phi\)</span>, of sea ice is given by</p>
+<div class="math">
+\[\phi = \frac{S}{S_{br}}\]</div>
+<p>where the brine salinity, <span class="math">\(S_{br}\)</span>, is given by the liquidus
+relation using the ice temperature.</p>
+<p>Within the parameterizations of brine drainage the brine density is a
+function of brine salinity <a class="reference internal" href="../zreferences.html#notz05" id="id36">[35]</a>:</p>
+<div class="math">
+\[\rho(S_{br})=1000.3 + 0.78237 S_{br} + 2.8008\times10^{-4} S_{br}^2.\]</div>
+<p>Outside the parameterizations of brine drainage the densities of brine
+and ice are fixed at the values of <span class="math">\(\rho_w\)</span> and <span class="math">\(\rho_i\)</span>,
+respectively.</p>
+<p>The permeability of ice is computed from the liquid fraction as in
+<a class="reference internal" href="../zreferences.html#gehmpz07" id="id37">[16]</a>:</p>
+<div class="math">
+\[\Pi(\phi) = 3\times10^{-8} (\phi - \phi_\Pi)^3\]</div>
+<p>where <span class="math">\(\phi_\Pi\)</span> is 0.05.</p>
+<p>The liquidus relation used in the mushy layer module is based on
+observations of <a class="reference internal" href="../zreferences.html#assur58" id="id38">[4]</a>. A piecewise linear
+relation can be fitted to observations of Z (the ratio of mass of salt
+(in g) to mass of pure water (in kg) in brine) to the melting
+temperature: <span class="math">\(Z = aT + b\)</span>. Salinity is the mass of salt (in g) per
+mass of brine (in kg) so is related to Z by</p>
+<div class="math">
+\[\frac{1}{S} = \frac{1}{1000} + \frac{1}{Z}.\]</div>
+<p>The data is well fitted with two linear regions,</p>
+<div class="math">
+\[S_{br} = \frac{(T+J_1)}{(T/1000 + L_1)}l_0 + \frac{(T+J_2)}{(T/1000 + L_2)}(1-l_0)\]</div>
+<p>where</p>
+<div class="math">
+\[\begin{split}l_0 = \left\lbrace \begin{array}{lcl}
+1 &amp; \mathrm{if} &amp; T \ge T_0 \\
+0 &amp; \mathrm{if} &amp; T &lt;  T_0\end{array} \right.,\end{split}\]</div>
+<div class="math">
+\[J_{1,2} = \frac{b_{1,2}}{a_{1,2}},\]</div>
+<div class="math">
+\[L_{1,2} =  \frac{(1 + b_{1,2}/1000)}{a_{1,2}}.\]</div>
+<p><span class="math">\(T_0\)</span> is the temperature at which the two linear regions meet.
+Fitting to the data, <span class="math">\(T_0=-7.636^\circ\)</span>C,
+<span class="math">\(a_1=-18.48 \;\mathrm{g} \;\mathrm{kg}^{-1} \;\mathrm{K}^{-1}\)</span>,
+<span class="math">\(a_2=-10.3085\;\mathrm{g} \;\mathrm{kg}^{-1} \;\mathrm{K}^{-1}\)</span>,
+<span class="math">\(b_1=0\)</span> and <span class="math">\(b_2=62.4 \;\mathrm{g}\;\mathrm{kg}^{-1}\)</span>.</p>
+<p><em>Two-stage outer iteration</em></p>
+<p>As for the BL99 thermodynamics
+<a class="reference internal" href="../zreferences.html#bl99" id="id39">[6]</a> there are two qualitatively different
+situations that must be considered when solving for the vertical
+thermodynamics: the surface can be melting and at the melting
+temperature, or the surface can be colder than the melting temperature
+and not melting. In the BL99 thermodynamics these two situations were
+treated within the same iterative loop, but here they are dealt with
+separately. If at the beginning of the time step the ice surface is cold
+and not melting, we solve the ice temperatures assuming that this is
+also true at the end of the time step. Once we have solved for the new
+temperatures we test to see if the answer is consistent with this
+assumption. If the surface temperature is below the melting temperature
+then we have found the appropriate consistent solution. If the surface
+is above the melting temperature at the end of the initial solution
+attempt, we recalculate the new temperatures assuming the surface
+temperature is fixed at the melting temperature. Alternatively if the
+surface is at the melting temperature at the start of a time step, we
+assume initially that this is also the case at the end of the time step,
+solve for the new temperatures and then check that the surface
+conductive heat flux is less than the surface atmospheric heat flux as
+is required for a melting surface. If this is not the case, the
+temperatures are recalculated assuming the surface is colder than
+melting. We have found that solutions of the temperature equations that
+only treat one of the two qualitatively different solutions at a time
+are more numerically robust than if both are solved together. The
+surface state rarely changes qualitatively during the solution so the
+method is also numerically efficient.</p>
+<p><em>Temperature updates</em></p>
+<p>During the calculation of the new temperatures
+and salinities, the liquid fraction is held fixed at the value from the
+previous time step. Updating the liquid fraction during the Picard
+iteration described below was found to be numerically unstable. Keeping
+the liquid fraction fixed drastically improves the numerical stability
+of the method without significantly changing the solution.</p>
+<p>Temperatures are calculated in a similar way to BL99 with an outer
+Picard iteration of an inner tridiagonal matrix solve. The conservation
+equation for the internal ice temperatures is</p>
+<div class="math">
+\[\frac{\partial{q}}{\partial{t}}=\frac{\partial{}}{\partial{z}} \left( K \frac{\partial{T}}{\partial{z}} \right) + w \frac{\partial{q_{br}}}{\partial{z}} + F\]</div>
+<p>where <span class="math">\(q\)</span> is the sea ice enthalpy, <span class="math">\(K\)</span> is the bulk thermal
+conductivity of the ice, <span class="math">\(w\)</span> is the vertical Darcy velocity of the
+brine, <span class="math">\(q_{br}\)</span> is the brine enthalpy and <span class="math">\(F\)</span> is the
+internally absorbed shortwave radiation. The first term on the right
+represents heat conduction and the second term represents the vertical
+advection of heat by gravity drainage and flushing.</p>
+<p>The conductivity of the mush is given by</p>
+<div class="math">
+\[K = \phi K_{br} + (1-\phi) K_{i}\]</div>
+<p>where <span class="math">\(K_i = 2.3 \mathrm{Wm}^{-1}\mathrm{K}^{-1}\)</span> is the
+conductivity of pure ice and
+<span class="math">\(K_{br}=0.5375 \mathrm{Wm}^{-1}\mathrm{K}^{-1}\)</span> is the
+conductivity of the brine. The thermal conductivity of brine is a
+function of temperature and salinity, but here we take it as a constant
+value for the middle of the temperature range experienced by sea ice,
+<span class="math">\(-10^\circ\)</span>C <a class="reference internal" href="../zreferences.html#sp86" id="id40">[41]</a>, assuming the brine
+liquidus salinity at <span class="math">\(-10^\circ\)</span>C.</p>
+<p>We discretize the terms that include temperature in the heat
+conservation equation as</p>
+<div class="math" id="equation-mushyheat">
+<span class="eqno">(55)<a class="headerlink" href="#equation-mushyheat" title="Permalink to this equation">¶</a></span>\[\frac{q^{t}_k - q^{t_0}_k}{\Delta t} = \frac{\frac{K^*_{k+1}}{\Delta z^\prime_{k+1}} (T^t_{k+1} - T^t_k) - \frac{K^*_k}{\Delta z^\prime_k} (T^t_k - T^t_{k-1})}{\Delta h}\]</div>
+<p>where the superscript signifies whether the quantity is evaluated at
+the start (<span class="math">\(t_0\)</span>) or the end (<span class="math">\(t\)</span>) of the time step and the
+subscript indicates the vertical layer. Writing out the temperature
+dependence of the enthalpy term we have</p>
+<div class="math">
+\[\frac{\left(\phi (c_w \rho_w - c_i \rho_i) + c_i \rho_i\right) T^t_k - (1-\phi) \rho_i L - q^{t_0}_k}{\Delta t} = \frac{ \frac{K^*_{k+1}}{\Delta z^\prime_{k+1}} (T^t_{k+1} - T^t_k) - \frac{K^*_k}{\Delta z^\prime_k} (T^t_k - T^t_{k-1})}{\Delta h}.\]</div>
+<p>The mush thermal conductivities are fixed at the start of the timestep.
+For the lowest ice layer <span class="math">\(T_{k+1}\)</span> is replaced with
+<span class="math">\(T_{bot}\)</span>, the temperature of the ice base. <span class="math">\(\Delta h\)</span> is
+the layer thickness and <span class="math">\(z^\prime_k\)</span> is the distance between the
+<span class="math">\(k-1\)</span> and <span class="math">\(k\)</span> layer centers.</p>
+<p>Similarly, for the snow layer temperatures we have the following
+discretized equation:</p>
+<div class="math">
+\[\frac{c_i \rho_s T^t_k - \rho_s L_0- q^{t_0}_k}{\Delta t} = \frac{ \frac{K^*_{k+1}}{\Delta z^\prime_{k+1}} (T^t_{k+1} - T^t_k) - \frac{K^*_k}{\Delta z^\prime_k} (T^t_k - T^t_{k-1})}{\Delta h}.\]</div>
+<p>For the upper-most layer (either ice layer or snow layer if it present)
+<span class="math">\(T_{k-1}\)</span> is replaced with <span class="math">\(T_{sf}\)</span>, the temperature of the
+surface.</p>
+<p>If the surface is colder than the melting temperature then we also have
+to solve for the surface temperature, <span class="math">\(T_{sf}\)</span>. Here we follow the
+methodology of BL99 described above.</p>
+<p>These discretized temperature equations form a tridiagional matrix for
+the new temperatures and are solved with a standard tridiagonal solver.
+A Picard iteration is used to incorporate nonlinearity in the equations.
+The surface heat flux is a function of surface temperature and with each
+iteration, the surface heat flux is calculated with the new surface
+temperature until convergence is achieved. Convergence normally occurs
+after a few iterations once the temperature changes during an iteration
+fall below <span class="math">\(5\times10^{-4}\;^\circ\mathrm{C}\)</span> and the energy
+conservation error falls below 0.9 <code class="docutils literal"><span class="pre">ferrmax</span></code>.</p>
+<p><em>Salinity updates</em></p>
+<p>Several physical processes alter the sea ice bulk
+salinity. New ice forms with the salinity of the sea water from which it
+formed. Gravity drainage reduces the bulk salinity of newly formed sea
+ice, while flushing of melt water through the ice also alters the
+salinity profile.</p>
+<p>The salinity equation takes the form</p>
+<div class="math">
+\[\frac{\partial{S}}{\partial{t}} = w \frac{\partial{S_{br}}}{\partial{z}} + G\]</div>
+<p>where <span class="math">\(w\)</span> is a vertical Darcy velocity and <span class="math">\(G\)</span> is a source
+term. The right-hand side depends indirectly on the bulk salinity
+through the liquid fraction (<span class="math">\(S = \phi S_{br}\)</span>). Since
+<span class="math">\(\phi\)</span> is fixed for the time step, we solve the salinity equation
+explicitly after the temperature equation is solved.</p>
+<p>A. Gravity drainage. Sea ice initially retains all the salt present in
+the sea water from which it formed. Cold temperatures near the top
+surface of forming sea ice result in higher brine salinities there,
+because the brine is always at its melting temperature. This colder,
+saltier brine is denser than the underlying sea water and the brine
+undergoes convective overturning with the ocean. As the dense, cold
+brine drains out of the ice, it is replaced by fresher seawater,
+lowering the bulk salinity of the ice. Following
+<a class="reference internal" href="../zreferences.html#thb13" id="id41">[47]</a>, gravity drainage is assumed to occur as two
+simultaneously operating modes: a rapid mode operating principally near
+the ice base and a slow mode occurring everywhere.</p>
+<p><em>Rapid drainage</em> takes the form of a vertically varying upward Darcy
+flow. The contribution to the bulk salinity equation for the rapid mode
+is</p>
+<div class="math">
+\[\left. \frac{\partial{S}}{\partial{t}} \right|_{rapid} = w(z) \frac{\partial{S_{br}}}{\partial{z}}\]</div>
+<p>where <span class="math">\(S\)</span> is the bulk salinity and <span class="math">\(B_{br}\)</span> is the brine
+salinity, specified by the liquidus relation with ice temperature. This
+equation is discretized using an upwind advection scheme,</p>
+<div class="math">
+\[\frac{S_k^t - S_k^{t_0}}{\Delta t} = w_k \frac{S_{br k+1} - S_{br k}}{\Delta z}.\]</div>
+<p>The upward advective flow also carries heat, contributing a term to the
+heat conservation Equation <a class="reference internal" href="#equation-mushyheat">(55)</a>,</p>
+<div class="math">
+\[\left. \frac{\partial{q}}{\partial{t}}  \right|_{rapid} = w(z) \frac{\partial{q_{br}}}{\partial{z}}\]</div>
+<p>where <span class="math">\(q_{br}\)</span> is the brine enthalpy. This term is discretized as</p>
+<div class="math">
+\[\left.\frac{q_k^t - q_k^{t_0}}{\Delta t}  \right|_{rapid} = w_k \frac{q_{br\,k+1} - q_{br\,k}}{\Delta z}.\]</div>
+<div class="math">
+\[w_k = \max_{j=k,n}\left(\tilde{w}_j \right)\]</div>
+<p>where the maximum is taken over all the ice layers between layer
+<span class="math">\(k\)</span> and the ice base. <span class="math">\(\tilde{w}_j\)</span> is given by</p>
+<div class="math" id="equation-mushyvel">
+<span class="eqno">(56)<a class="headerlink" href="#equation-mushyvel" title="Permalink to this equation">¶</a></span>\[\tilde{w}(z) = w \left( \frac{Ra(z) - Ra_c}{Ra(z)} \right).\]</div>
+<p>where <span class="math">\(Ra_c\)</span> is a critical Rayleigh number and <span class="math">\(Ra(z)\)</span> is
+the local Rayleigh number at a particular level,</p>
+<div class="math">
+\[Ra(z) = \frac{g \Delta \rho \Pi (h-z)}{\kappa \eta}\]</div>
+<p>where <span class="math">\(\Delta \rho\)</span> is the difference in density between the
+brine at <span class="math">\(z\)</span> and the ocean, <span class="math">\(\Pi\)</span> is the minimum
+permeability between <span class="math">\(z\)</span> and the ocean, <span class="math">\(h\)</span> is the ice
+thickness, <span class="math">\(\kappa\)</span> is the brine thermal diffusivity and
+<span class="math">\(\eta\)</span> is the brine dynamic viscosity. Equation <a class="reference internal" href="#equation-mushyvel">(56)</a>
+reduces the flow rate for Rayleigh numbers below the critical Rayleigh
+number.</p>
+<p>The unmodified flow rate, <span class="math">\(w\)</span>, is determined from a hydraulic
+pressure balance argument for upward flow through the mush and returning
+downward flow through ice free channels:</p>
+<div class="math">
+\[w(z) \Delta x^2=A_m \left(-\frac{\Delta P}{l} + B_m\right)\]</div>
+<p>where</p>
+<div class="math">
+\[\begin{split}\begin{aligned}
+\frac{\Delta P}{l} &amp;=&amp; \frac{A_p B_p + A_mB_m}{A_m+A_p},\\
+A_m&amp;=&amp; \frac{\Delta x^2}{\eta} \frac{n}{\sum^n_{k=1}\frac{1}{\Pi(k)}},\\
+B_m&amp;=&amp; -\frac{g}{n}\sum_{k=1}^n \rho(k),\\
+A_p&amp;=&amp; \frac{\pi a^4}{8 \eta},\\
+B_p&amp;=&amp; -\rho_p g.\end{aligned}\end{split}\]</div>
+<p>There are three tunable parameters in the above parameterization,
+<span class="math">\(a\)</span>, the diameter of the channel, <span class="math">\(\Delta x\)</span>, the horizontal
+size of the mush draining through each channel, and <span class="math">\(Ra_c\)</span>, the
+critical Rayleigh number. <span class="math">\(\rho_p\)</span> is the density of brine in the
+channel which we take to be the density of brine in the mush at the
+level that the brine is draining from. <span class="math">\(l\)</span> is the thickness of
+mush from the ice base to the top of the layer in question. We assume
+that <span class="math">\(\Delta x\)</span> is proportional to <span class="math">\(l\)</span> so that
+<span class="math">\(\Delta x = 2 \beta l\)</span>. <span class="math">\(a\)</span> (<code class="docutils literal"><span class="pre">a_rapid_mode</span></code>), <span class="math">\(\beta\)</span>
+(<code class="docutils literal"><span class="pre">aspect_rapid_mode</span></code>) and <span class="math">\(Ra_c\)</span> (<code class="docutils literal"><span class="pre">Ra_c_rapid_mode</span></code>) are all
+namelist parameters with default values of <span class="math">\(0.5\;\mathrm{mm}\)</span>, 1
+and 10, respectively. The value <span class="math">\(\beta=1\)</span> gives a square aspect
+ratio for the convective flow in the mush.</p>
+<p>The <em>slow drainage</em> mode takes the form of a simple relaxation of bulk
+salinity:</p>
+<div class="math">
+\[\left.\frac{\partial{S(z)}}{\partial{t}}\right|_{slow} = -\lambda (S(z) - S_c).\]</div>
+<p>The decay constant, <span class="math">\(\lambda\)</span>, is modeled as</p>
+<div class="math">
+\[\lambda =S^\ast \max \left( \frac{T_{bot} - T_{sf}}{h},0\right)\]</div>
+<p>where <span class="math">\(S^\ast\)</span> is a tuning parameter for the drainage strength,
+<span class="math">\(T_{bot}\)</span> is the basal ice temperature, <span class="math">\(T_{sf}\)</span> is the
+upper surface temperature and <span class="math">\(h\)</span> is the ice thickness. The bulk
+salinity relaxes to a value, <span class="math">\(S_c(z)\)</span>, given by</p>
+<div class="math">
+\[S_c(z) = \phi_c S_{br}(z)\]</div>
+<p>where <span class="math">\(S_{br}(z)\)</span> is the brine salinity at depth <span class="math">\(z\)</span> and
+<span class="math">\(\phi_c\)</span> is a critical liquid fraction. Both <span class="math">\(S^\ast\)</span> and
+<span class="math">\(\phi_c\)</span> are namelist parameters,
+<code class="docutils literal"><span class="pre">dSdt_slow_mode</span></code> <span class="math">\(=1.5\times10^{-7}\;\mathrm{m}\;\mathrm{s}^{-1}\;\mathrm{K}^{-1}\)</span>
+and <code class="docutils literal"><span class="pre">phi_c_slow_mode</span></code> <span class="math">\(=0.05\)</span>.</p>
+<p>B. Downwards flushing. Melt pond water drains through sea ice and
+flushes out brine, reducing the bulk salinity of the sea ice. This is
+modeled with the mushy physics option as a vertical Darcy flow through
+the ice that affects both the enthalpy and bulk salinity of the sea ice:</p>
+<div class="math">
+\[\left.\frac{\partial{q}}{\partial{t}}\right|_{flush} = w_f \frac{\partial{q_{br}}}{\partial{z}}\]</div>
+<div class="math">
+\[\left.\frac{\partial{S}}{\partial{t}} \right|_{flush}= w_f \frac{\partial{S_{br}}}{\partial{z}}\]</div>
+<p>These equations are discretized with an upwind advection scheme. The
+flushing Darcy flow, <span class="math">\(w_f\)</span>, is given by</p>
+<div class="math">
+\[w_f=\frac{\overline{\Pi} \rho_w g \Delta h}{h \eta},\]</div>
+<p>where <span class="math">\(\overline{\Pi}\)</span> is the harmonic mean of the ice layer
+permeabilities and <span class="math">\(\Delta h\)</span> is the hydraulic head driving melt
+water through the sea ice. It is the difference in height between the
+top of the melt pond and sea level.</p>
+<p><em>Basal boundary condition</em></p>
+<p>In traditional Stefan problems the ice
+growth rate is calculated by determining the difference in heat flux on
+either side of the ice/ocean interface and equating this energy
+difference to the latent heat of new ice formed. Thus,</p>
+<div class="math" id="equation-growth-stefan">
+<span class="eqno">(57)<a class="headerlink" href="#equation-growth-stefan" title="Permalink to this equation">¶</a></span>\[(1-\phi_i) L_0 \rho_i \frac{\partial{h}}{\partial{t}} = K \left. \frac{\partial{T}}{\partial{z}} \right|_i - K_w \left. \frac{\partial{T}}{\partial{z}} \right|_w\]</div>
+<p>where <span class="math">\((1-\phi_i)\)</span> is the solid fraction of new ice formed and
+the right hand is the difference in heat flux at the ice–ocean interface
+between the ice side and the ocean side of the interface. However, with
+mushy layers there is usually no discontinuity in solid fraction across
+the interface, so <span class="math">\(\phi_i=1\)</span> and Equation <a class="reference internal" href="#equation-growth-stefan">(57)</a>
+cannot be used explicitly. To circumvent this problem we set the
+interface solid fraction to be 0.15, a value that reproduces
+observations. <span class="math">\(\phi_i\)</span> is a namelist parameter (<code class="docutils literal"><span class="pre">phi_i_mushy</span></code> =
+0.85). The basal ice temperature is set to the liquidus temperature
+<span class="math">\(T_f\)</span> of the ocean surface salinity.</p>
+<p><em>Tracer consistency</em></p>
+<p>In order to ensure conservation of energy and salt
+content, the advection routines will occasionally limit changes to
+either enthalpy or bulk salinity. The mushy thermodynamics routine
+determines temperature from both enthalpy and bulk salinity. Since the
+limiting changes performed in the advection routine are not applied
+consistently (from a mushy physics point of view) to both enthalpy and
+bulk salinity, the resulting temperature may be changed to be greater
+than the limit allowed in the thermodynamics routines. If this situation
+is detected, the code corrects the enthalpy so the temperature is below
+the limiting value. Conservation of energy is ensured by placing the
+excess energy in the ocean, and the code writes a warning (see <a class="reference internal" href="../developer_guide/dg_col_phys.html#warning"><span class="std std-ref">The Warning Package</span></a>)
+that this has
+occurred to the diagnostics file. This situation only occurs with the
+mushy thermodynamics, and it should only occur very infrequently and
+have a minimal effect on results. The addition of the heat to the ocean
+may reduce ice formation by a small amount afterwards.</p>
+</div>
+</div>
+<div class="section" id="growth-and-melting">
+<span id="thermo-growth"></span><h2>2.6.4. Growth and melting<a class="headerlink" href="#growth-and-melting" title="Permalink to this headline">¶</a></h2>
+<p>Melting at the top surface is given by</p>
+<div class="math" id="equation-top-melting">
+<span class="eqno">(58)<a class="headerlink" href="#equation-top-melting" title="Permalink to this equation">¶</a></span>\[\begin{split}q \, \delta h = \left\{\begin{array}{ll}
+(F_0-F_{ct}) \, \Delta t &amp; \mbox{if $F_0&gt;F_{ct}$} \\
+0                   &amp; \mbox{otherwise}
+         \end{array}
+         \right.\end{split}\]</div>
+<p>where <span class="math">\(q\)</span> is the enthalpy of the surface ice or snow layer <a class="footnote-reference" href="#id45" id="id42">[1]</a>
+(recall that <span class="math">\(q &lt; 0\)</span>) and <span class="math">\(\delta h\)</span> is the change in
+thickness. If the layer melts completely, the remaining flux is used to
+melt the layers beneath. Any energy left over when the ice and snow are
+gone is added to the ocean mixed layer. Ice cannot grow at the top
+surface due to conductive fluxes; however, snow–ice can form. New
+snowfall is added at the end of the thermodynamic time step.</p>
+<p>Growth and melting at the bottom ice surface are governed by</p>
+<div class="math" id="equation-bottom-melting">
+<span class="eqno">(59)<a class="headerlink" href="#equation-bottom-melting" title="Permalink to this equation">¶</a></span>\[q \, \delta h = (F_{cb} - F_{bot}) \,
+\Delta t,\]</div>
+<p>where <span class="math">\(F_{bot}\)</span> is given by Equation <a class="reference internal" href="#equation-fbot">(40)</a> and <span class="math">\(F_{cb}\)</span> is the
+conductive heat flux at the bottom surface:</p>
+<div class="math">
+\[F_{cb} =   \frac{K_{i,N+1}}{\Delta h_i}  (T_{iN} - T_f).\]</div>
+<p>If ice is melting at the bottom surface, <span class="math">\(q\)</span>
+in&nbsp;Equation <a class="reference internal" href="#equation-bottom-melting">(59)</a> is the enthalpy of the bottom ice layer. If
+ice is growing, <span class="math">\(q\)</span> is the enthalpy of new ice with temperature
+<span class="math">\(T_f\)</span> and salinity <span class="math">\(S_{max}\)</span> (<code class="docutils literal"><span class="pre">ktherm</span></code> = 1) or ocean surface
+salinity (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2). This ice is added to the bottom layer.</p>
+<p>In general, frazil ice formed in the ocean is added to the thinnest ice
+category. The new ice is grown in the open water area of the grid cell
+to a specified minimum thickness; if the open water area is nearly zero
+or if there is more new ice than will fit into the thinnest ice
+category, then the new ice is spread over the entire cell.</p>
+<p>If the latent heat flux is negative (i.e., latent heat is transferred
+from the ice to the atmosphere), snow or snow-free ice sublimates at the
+top surface. If the latent heat flux is positive, vapor from the
+atmosphere is deposited at the surface as snow or ice. The thickness
+change of the surface layer is given by</p>
+<div class="math" id="equation-latent-heat">
+<span class="eqno">(60)<a class="headerlink" href="#equation-latent-heat" title="Permalink to this equation">¶</a></span>\[(\rho L_v - q) \delta h = F_l \Delta t,\]</div>
+<p>where <span class="math">\(\rho\)</span> is the density of the surface material (snow or
+ice), and <span class="math">\(L_v = 2.501 \times 10^6 \ \mathrm{J/kg}\)</span> is the latent
+heat of vaporization of liquid water at <span class="math">\(0^{\circ}C\)</span>. Note that <span class="math">\(\rho L_v\)</span> is
+nearly an order of magnitude larger than typical values of <span class="math">\(q\)</span>.
+For positive latent heat fluxes, the deposited snow or ice is assumed to
+have the same enthalpy as the existing surface layer.</p>
+<p>After growth and melting, the various ice layers no longer have equal
+thicknesses. We therefore adjust the layer interfaces, conserving
+energy, so as to restore layers of equal thickness
+<span class="math">\(\Delta h_i = h_i / N_i\)</span>. This is done by computing the overlap
+<span class="math">\(\eta_{km}\)</span> of each new layer <span class="math">\(k\)</span> with each old layer
+<span class="math">\(m\)</span>:</p>
+<div class="math">
+\[\eta_{km} = \min(z_m,z_k) - \max(z_{m-1},z_{k-1}),\]</div>
+<p>where <span class="math">\(z_m\)</span> and <span class="math">\(z_k\)</span> are the vertical coordinates of the
+old and new layers, respectively. The enthalpies of the new layers are</p>
+<div class="math">
+\[q_k = \frac{1}{\Delta h_i} \sum_{m=1}^{N_i} \eta_{km} q_m.\]</div>
+<p>Lateral melting is accomplished by multiplying the state variables by
+<span class="math">\(1-r_{side}\)</span>, where <span class="math">\(r_{side}\)</span> is the fraction of ice melted
+laterally <a class="reference internal" href="../zreferences.html#mp87" id="id43">[33]</a><a class="reference internal" href="../zreferences.html#steele92" id="id44">[42]</a>, and adjusting the ice
+energy and fluxes as appropriate. We assume a floe diameter of 300&nbsp;m.</p>
+</div>
+<div class="section" id="snow-ice-formation">
+<h2>2.6.5. Snow-ice formation<a class="headerlink" href="#snow-ice-formation" title="Permalink to this headline">¶</a></h2>
+<p>At the end of the time step we check whether the
+snow is deep enough to lie partially below the surface of the ocean
+(freeboard). From Archimedes’ principle, the base of the snow is at sea
+level when</p>
+<div class="math">
+\[\rho_i h_i + \rho_s h_s = \rho_w h_i.\]</div>
+<p>Thus the snow base lies below sea level when</p>
+<div class="math">
+\[h^* \equiv h_s - \frac {(\rho_w-\rho_i) h_i}{\rho_s} &gt; 0.\]</div>
+<p>In this case, for <code class="docutils literal"><span class="pre">ktherm</span></code> = 1 (BL99) we raise the snow base to sea level
+by converting some snow to ice:</p>
+<div class="math">
+\[\begin{split}\begin{aligned}
+\delta h_s &amp; = &amp; \frac{-\rho_i h^*}{\rho_w},  \\
+\delta h_i &amp; = &amp; \frac{\rho_s h^*}{\rho_w}.\end{aligned}\end{split}\]</div>
+<p>In rare cases this process can increase the ice thickness
+substantially. For this reason snow–ice conversions are postponed until
+after the remapping in thickness space
+(<a class="reference internal" href="sg_transport.html#itd-trans"><span class="std std-ref">Transport in thickness space</span></a>), which assumes that ice growth during
+a single time step is fairly small.</p>
+<p>For <code class="docutils literal"><span class="pre">ktherm</span></code> = 2 (mushy), we model the snow–ice formation process as
+follows: If the ice surface is below sea level then we replace some snow
+with the same thickness of sea ice. The thickness change chosen is that
+which brings the ice surface to sea level. The new ice has a porosity of
+the snow, which is calculated as</p>
+<div class="math">
+\[\phi = 1 - \frac{\rho_s}{\rho_i}\]</div>
+<p>where <span class="math">\(\rho_s\)</span> is the density of snow and <span class="math">\(\rho_i\)</span> is the
+density of fresh ice. The salinity of the brine occupying the above
+porosity within the new ice is taken as the sea surface salinity. Once
+the new ice is formed, the vertical ice and snow layers are regridded
+into equal thicknesses while conserving energy and salt.</p>
+<table class="docutils footnote" frame="void" id="id45" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id42">[1]</a></td><td>The mushy thermodynamics option does not include the enthalpy
+associated with raising the meltwater temperature to in these
+calculations, unlike BL99, which does include it. This extra heat is
+returned to the ocean (or the atmosphere, in the case of evaporation)
+with the melt water.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">2.6. Thermodynamics</a><ul>
+<li><a class="reference internal" href="#melt-ponds">2.6.1. Melt ponds</a><ul>
+<li><a class="reference internal" href="#cesm-formulation-tr-pond-cesm-true">2.6.1.1. CESM formulation (<code class="docutils literal"><span class="pre">tr_pond_cesm</span></code> = true)</a></li>
+<li><a class="reference internal" href="#topographic-formulation-tr-pond-topo-true">2.6.1.2. Topographic formulation (<code class="docutils literal"><span class="pre">tr_pond_topo</span></code> = true)</a></li>
+<li><a class="reference internal" href="#level-ice-formulation-tr-pond-lvl-true">2.6.1.3. Level-ice formulation (<code class="docutils literal"><span class="pre">tr_pond_lvl</span></code> = true)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#thermodynamic-surface-forcing-balance">2.6.2. Thermodynamic surface forcing balance</a><ul>
+<li><a class="reference internal" href="#shortwave-radiation-delta-eddington">2.6.2.1. Shortwave radiation: Delta-Eddington</a></li>
+<li><a class="reference internal" href="#shortwave-radiation-ccsm3">2.6.2.2. Shortwave radiation: CCSM3</a></li>
+<li><a class="reference internal" href="#longwave-radiation-turbulent-fluxes">2.6.2.3. Longwave radiation, turbulent fluxes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#new-temperatures">2.6.3. New temperatures</a><ul>
+<li><a class="reference internal" href="#zero-layer-thermodynamics-ktherm-0">2.6.3.1. Zero-layer thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 0)</a></li>
+<li><a class="reference internal" href="#bitz-and-lipscomb-thermodynamics-ktherm-1">2.6.3.2. Bitz and Lipscomb thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 1)</a></li>
+<li><a class="reference internal" href="#mushy-thermodynamics-ktherm-2">2.6.3.3. Mushy thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#growth-and-melting">2.6.4. Growth and melting</a></li>
+<li><a class="reference internal" href="#snow-ice-formation">2.6.5. Snow-ice formation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sg_mechanical.html"
+                        title="previous chapter">2.5. Mechanical redistribution</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sg_bgc.html"
+                        title="next chapter">2.7. Biogeochemistry</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/science_guide/sg_thermo.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="sg_bgc.html" title="2.7. Biogeochemistry"
+             >next</a></li>
+        <li class="right" >
+          <a href="sg_mechanical.html" title="2.5. Mechanical redistribution"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

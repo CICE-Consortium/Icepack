@@ -1,0 +1,403 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>3.3. Testing Icepack &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.4. Case Settings" href="ug_case_settings.html" />
+    <link rel="prev" title="3.2. Running Icepack" href="ug_running.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="ug_case_settings.html" title="3.4. Case Settings"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="ug_running.html" title="3.2. Running Icepack"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="testing-icepack">
+<span id="testing"></span><h1>3.3. Testing Icepack<a class="headerlink" href="#testing-icepack" title="Permalink to this headline">¶</a></h1>
+<p>The section documents primarily how to use the Icepack scripts to carry
+out icepack testing.  Exactly what to test is a separate question and
+depends on the kinds of code changes being made.  Prior to merging
+changes to the CICE Consortium master, changes will be reviewed and
+developers will need to provide a summary of the tests carried out.</p>
+<p>There is a base suite of tests provided by default with Icepack and this
+may be a good starting point for testing.</p>
+<div class="section" id="individual-tests">
+<span id="indtests"></span><h2>3.3.1. Individual Tests<a class="headerlink" href="#individual-tests" title="Permalink to this headline">¶</a></h2>
+<p>The Icepack scripts support both setup of individual tests as well as test suites.  Individual
+tests are run from the command line:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">s</span> <span class="n">diag1</span><span class="p">,</span><span class="n">debug</span> <span class="o">-</span><span class="n">testid</span> <span class="n">myid</span> <span class="o">-</span><span class="n">a</span> <span class="n">P0000000</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">-m</span></code> designates a specific machine, <code class="docutils literal"><span class="pre">-a</span></code> designates the account number
+for the queue manager, and testid is a user defined string that allows
+test cases to be uniquely identified.
+The format of the case directory name for a test will always be
+<code class="docutils literal"><span class="pre">[machine]_[test]_[grid]_[pes]_[soptions].[testid]</span></code></p>
+<p>To build and run a test, the process is the same as a case.  cd to the
+test directory, run the build script, and run the submit script:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="p">[</span><span class="n">test_case</span><span class="p">]</span>
+<span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">build</span>
+<span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">submit</span>
+</pre></div>
+</div>
+<p>The test results will be copied into a local file called <strong>test_output</strong>.
+To check those results:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">test_output</span>
+</pre></div>
+</div>
+<p>Tests are defined under <strong>configuration/scripts/tests/</strong>.  The tests currently supported are:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>smoke   - Runs the model for default length.  The length and options can</dt>
+<dd><p class="first last">be set with the <code class="docutils literal"><span class="pre">-s</span></code> command line option.  The test passes if the
+model completes successfully.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>restart - Runs the model for 14 months, writing a restart file at month 3 and</dt>
+<dd><p class="first last">again at the end of the run.  Runs the model a second time starting from the
+month 3 restart and writing a restart at month 12 of the model run.
+The test passes if both runs complete and
+if the restart files at month 12 from both runs are bit-for-bit identical.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Please run <code class="docutils literal"><span class="pre">./icepack.create.case</span> <span class="pre">-h</span></code> for the latest information.</p>
+</div>
+<div class="section" id="test-suites">
+<span id="testsuites"></span><h2>3.3.2. Test suites<a class="headerlink" href="#test-suites" title="Permalink to this headline">¶</a></h2>
+<p>Test suites are multiple tests that are specified via
+an input file.  When invoking the test suite option (<code class="docutils literal"><span class="pre">-ts</span></code>) with <strong>icepack.create.case</strong>,
+all tests will be created, built, and submitted automatically under
+a directory called [suite_name].[testid]:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">testid</span> <span class="n">myid</span> <span class="o">-</span><span class="n">a</span> <span class="n">P00000</span>
+</pre></div>
+</div>
+<p>Like an individual test, the <code class="docutils literal"><span class="pre">-testid</span></code> option must be specified and can be any
+string.  Once the tests are complete, results can be checked by running the
+results.csh script in the [suite_name].[testid]:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">base_suite</span><span class="o">.</span><span class="p">[</span><span class="n">testid</span><span class="p">]</span>
+<span class="o">./</span><span class="n">results</span><span class="o">.</span><span class="n">csh</span>
+</pre></div>
+</div>
+<p>Please run <code class="docutils literal"><span class="pre">./icepack.create.case</span> <span class="pre">-h</span></code> for additional details.</p>
+<p>The predefined test suites are defined under <strong>configuration/scripts/tests</strong> and the files defining
+the suites
+have a suffix of .ts in that directory.  The format for the test suite file is relatively simple.
+It is a text file with white space delimited
+columns, e.g. <strong>base_suite.ts</strong></p>
+<table border="1" class="docutils" id="id1">
+<span id="tab-test"></span><caption><span class="caption-text">Table 6</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="29%" />
+<col width="29%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Test</th>
+<th class="head">Grid</th>
+<th class="head">PEs</th>
+<th class="head">Sets</th>
+<th class="head">BFB-compare</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>smoke</td>
+<td>col</td>
+<td>1x1</td>
+<td>diag1</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>smoke</td>
+<td>col</td>
+<td>1x1</td>
+<td>diag1,run1year</td>
+<td>smoke_col_1x1_diag1_run1year</td>
+</tr>
+<tr class="row-even"><td>smoke</td>
+<td>col</td>
+<td>1x1</td>
+<td>debug,run1year</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>restart</td>
+<td>col</td>
+<td>1x1</td>
+<td>debug</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>restart</td>
+<td>col</td>
+<td>1x1</td>
+<td>diag1</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>restart</td>
+<td>col</td>
+<td>1x1</td>
+<td>pondcesm</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>restart</td>
+<td>col</td>
+<td>1x1</td>
+<td>pondlvl</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>restart</td>
+<td>col</td>
+<td>1x1</td>
+<td>pondtopo</td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
+<p>The first column is the test name, the second the grid, the third the pe count, the fourth column is
+the <code class="docutils literal"><span class="pre">-s</span></code> options and the fifth column is the <code class="docutils literal"><span class="pre">-td</span></code> argument. (The grid and PEs columns are provided
+for compatibility with the similar CICE scripts.)  The fourth and fifth columns are optional.
+The argument to <code class="docutils literal"><span class="pre">-ts</span></code> defines which filename to choose and that argument can contain a path.
+<strong>icepack.create.case</strong>
+will look for the filename in the local directory, in <strong>configuration/scripts/tests/</strong>, or in the path defined
+by the <code class="docutils literal"><span class="pre">-ts</span></code> option.</p>
+</div>
+<div class="section" id="regression-testing">
+<span id="regtesting"></span><h2>3.3.3. Regression testing<a class="headerlink" href="#regression-testing" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>icepack.create.case</strong> options <code class="docutils literal"><span class="pre">-bg</span></code>, <code class="docutils literal"><span class="pre">-bc</span></code>, and <code class="docutils literal"><span class="pre">-bd</span></code> are used for regression testing.
+There are several additional options on the <strong>icepack.create.case</strong> command line for testing that
+provide the ability to regression test and compare tests to each other.  These options only
+work in test (<code class="docutils literal"><span class="pre">-t</span></code>) or test suite (<code class="docutils literal"><span class="pre">-ts</span></code>) mode, not in case (<code class="docutils literal"><span class="pre">-c</span></code>) mode.</p>
+<blockquote>
+<div><p><code class="docutils literal"><span class="pre">-bd</span></code> defines a top level directory where tests can be stored for regression testing.  The
+default is defined by <code class="docutils literal"><span class="pre">ICE_MACHINE_BASELINE</span></code> defined in <code class="docutils literal"><span class="pre">env.[machine]</span></code>.</p>
+<p><code class="docutils literal"><span class="pre">-bg</span></code> defines a directory name where the current tests can be saved for regression testing.
+It’s handy for this name to be related to the model version.  This directory will be created
+below the directory associated with <code class="docutils literal"><span class="pre">-bd</span></code>.</p>
+<p><code class="docutils literal"><span class="pre">-bc</span></code> defines the directory name that the current tests should be compared to for regression
+testing.  This directory will be added to the directory associated with <code class="docutils literal"><span class="pre">-bd</span></code>.</p>
+</div></blockquote>
+<p>To create a baseline, use <code class="docutils literal"><span class="pre">-bg</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>icepack.create.case -ts base_suite -m wolf -testid v1 -bg version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
+</pre></div>
+</div>
+<p>will copy all the results from the test suite to <code class="docutils literal"><span class="pre">$SCRATCH/ICEPACK_BASELINES/version1</span></code>.</p>
+<p>To compare to a prior result, use <code class="docutils literal"><span class="pre">-bc</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>icepack.create.case -ts base_suite -m wolf -testid v2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
+</pre></div>
+</div>
+<p>will compare all the results from this test suite to results saved before in $SCRATCH/ICEPACK_BASELINES/version1``.</p>
+<p>To both create and compare, <code class="docutils literal"><span class="pre">-bc</span></code> and <code class="docutils literal"><span class="pre">-bg</span></code> can be combined:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>icepack.create.case -ts base_suite -m wolf -testid v2 -bg version2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
+</pre></div>
+</div>
+<p>will save the current results to <code class="docutils literal"><span class="pre">$SCRATCH/ICEPACK_BASELINES/version2</span></code> and compare the current results to
+results save before in <code class="docutils literal"><span class="pre">$SCRATCH/ICEPACK_BASELINES/version1</span></code>.</p>
+<p>In summary,</p>
+<ul class="simple">
+<li>an individual test will have a case name like
+<code class="docutils literal"><span class="pre">[machine]_[test]_[grid]_[pes]_[soptions].[testid]</span></code>.</li>
+<li>A test suite will generate the individual tests under a directory called <code class="docutils literal"><span class="pre">[suite_name].[testid]</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">-bg</span></code> will copy test results to the <code class="docutils literal"><span class="pre">[bd_directory]/[bg_directory]/[test_name]</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">-bc</span></code> will compare results from  <code class="docutils literal"><span class="pre">[bd_directory]/[bc_directory]/[test_name]</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="comparison-testing">
+<span id="comptesting"></span><h2>3.3.4. Comparison testing<a class="headerlink" href="#comparison-testing" title="Permalink to this headline">¶</a></h2>
+<p>This feature is primarily used in test suites and has limited use in icepack, but is being
+described for completeness.  If modifications to the column physics modules in
+Icepack code generate differences (i.e. results are not bit-for-bit), then full
+comparisons tests will be necessary in CICE, comparing the modified column
+physics with the current version.</p>
+<p><code class="docutils literal"><span class="pre">-td</span></code> provides a way to compare tests with each other.  The test is always compared relative to
+the current case directory.  For instance:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t01</span>
+</pre></div>
+</div>
+<p>creates a test case named wolf_smoke_col_1x1.t01:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">s</span> <span class="n">run1year</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t01</span> <span class="o">-</span><span class="n">td</span> <span class="n">smoke_col_1x1</span>
+</pre></div>
+</div>
+<p>will create a test case named wolf_smoke_col_1x1_run1year.t01.
+An additional check will be done for the second test (because of the <code class="docutils literal"><span class="pre">-td</span></code> argument), and it will compare
+the output from the first test “smoke_col_1x1” to the output from its test “smoke_col_1x1_run1year”
+and generate a result for that.  It’s important that the first test complete before the second test is done
+and that the tests are created in parallel directories.
+The <code class="docutils literal"><span class="pre">-td</span></code> option works only if the testid and the machine are the same for the baseline run and the
+current run, a basic feature associated with test suites.</p>
+</div>
+<div class="section" id="test-reporting">
+<h2>3.3.5. Test Reporting<a class="headerlink" href="#test-reporting" title="Permalink to this headline">¶</a></h2>
+<p>The Icepack testing scripts have the capability of posting the test results
+to an online dashboard, located <a class="reference external" href="http://my.cdash.org/index.php?project=myICEPACK">on CDash</a>.</p>
+<p>To post test suite results to CDash, add the <code class="docutils literal"><span class="pre">-report</span></code> option to <strong>icepack.create.case</strong>.
+The base_suite will attempt to post the test results on CDash when the suite is complete.</p>
+<p>If the results cannot be posted to CDash, the following information will be displayed:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CTest</span> <span class="n">submission</span> <span class="n">failed</span><span class="o">.</span>  <span class="n">To</span> <span class="k">try</span> <span class="n">the</span> <span class="n">submission</span> <span class="n">again</span> <span class="n">run</span>
+   <span class="o">./</span><span class="n">run_ctest</span><span class="o">.</span><span class="n">csh</span> <span class="o">-</span><span class="n">submit</span>
+<span class="n">If</span> <span class="n">you</span> <span class="n">wish</span> <span class="n">to</span> <span class="n">submit</span> <span class="n">the</span> <span class="n">test</span> <span class="n">results</span> <span class="kn">from</span> <span class="nn">another</span> <span class="n">server</span><span class="p">,</span> <span class="n">copy</span> <span class="n">the</span>
+<span class="n">icepack_ctest</span><span class="o">.</span><span class="n">tgz</span> <span class="n">file</span> <span class="n">to</span> <span class="n">another</span> <span class="n">server</span> <span class="ow">and</span> <span class="n">run</span>
+   <span class="o">./</span><span class="n">run_ctest</span><span class="o">.</span><span class="n">csh</span> <span class="o">-</span><span class="n">submit</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>3.3.6. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="to-generate-a-baseline-dataset-for-a-test-case">
+<h3>3.3.6.1. To generate a baseline dataset for a test case<a class="headerlink" href="#to-generate-a-baseline-dataset-for-a-test-case" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">bg</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t00</span>
+<span class="n">cd</span> <span class="n">wolf_smoke_col_1x1</span><span class="o">.</span><span class="n">t00</span>
+<span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">build</span>
+<span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">submit</span>
+</pre></div>
+</div>
+<p>After job finishes, check output:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">test_output</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="to-run-a-test-case-and-compare-to-a-baseline-dataset">
+<h3>3.3.6.2. To run a test case and compare to a baseline dataset<a class="headerlink" href="#to-run-a-test-case-and-compare-to-a-baseline-dataset" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">t</span> <span class="n">smoke</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">bc</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t01</span>
+<span class="n">cd</span> <span class="n">wolf_smoke_col_1x1</span><span class="o">.</span><span class="n">t01</span>
+<span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">build</span>
+<span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">submit</span>
+</pre></div>
+</div>
+<p>After job finishes, check output:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">test_output</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results">
+<h3>3.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and report results<a class="headerlink" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t02</span> <span class="o">-</span><span class="n">bg</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">bs</span> <span class="o">-</span><span class="n">report</span>
+</pre></div>
+</div>
+<p>Once all jobs finish, concatenate all output and manually report results:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">base_suite</span><span class="o">.</span><span class="n">t02</span>
+<span class="n">cat</span> <span class="n">results</span><span class="o">.</span><span class="n">log</span>
+</pre></div>
+</div>
+<p>To plot a timeseries of “total ice extent”, “total ice area”, and “total ice volume”:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">timeseries</span><span class="o">.</span><span class="n">csh</span> <span class="o">&lt;</span><span class="n">directory</span><span class="o">&gt;</span>
+<span class="n">ls</span> <span class="o">*.</span><span class="n">png</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results">
+<h3>3.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and report the results<a class="headerlink" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">m</span> <span class="n">wolf</span> <span class="o">-</span><span class="n">ts</span> <span class="n">base_suite</span> <span class="o">-</span><span class="n">testid</span> <span class="n">t03</span> <span class="o">-</span><span class="n">bc</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">bs</span> <span class="o">-</span><span class="n">bg</span> <span class="n">icepackv6</span><span class="o">.</span><span class="mf">0.0</span><span class="n">new</span> <span class="o">-</span><span class="n">report</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">3.3. Testing Icepack</a><ul>
+<li><a class="reference internal" href="#individual-tests">3.3.1. Individual Tests</a></li>
+<li><a class="reference internal" href="#test-suites">3.3.2. Test suites</a></li>
+<li><a class="reference internal" href="#regression-testing">3.3.3. Regression testing</a></li>
+<li><a class="reference internal" href="#comparison-testing">3.3.4. Comparison testing</a></li>
+<li><a class="reference internal" href="#test-reporting">3.3.5. Test Reporting</a></li>
+<li><a class="reference internal" href="#examples">3.3.6. Examples</a><ul>
+<li><a class="reference internal" href="#to-generate-a-baseline-dataset-for-a-test-case">3.3.6.1. To generate a baseline dataset for a test case</a></li>
+<li><a class="reference internal" href="#to-run-a-test-case-and-compare-to-a-baseline-dataset">3.3.6.2. To run a test case and compare to a baseline dataset</a></li>
+<li><a class="reference internal" href="#to-run-a-test-suite-to-generate-baseline-data-review-results-plot-timeseries-and-report-results">3.3.6.3. To run a test suite to generate baseline data, review results, plot timeseries, and report results</a></li>
+<li><a class="reference internal" href="#to-run-a-test-suite-compare-to-baseline-data-generate-a-new-baseline-and-report-the-results">3.3.6.4. To run a test suite, compare to baseline data, generate a new baseline, and report the results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ug_running.html"
+                        title="previous chapter">3.2. Running Icepack</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ug_case_settings.html"
+                        title="next chapter">3.4. Case Settings</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/user_guide/ug_testing.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="ug_case_settings.html" title="3.4. Case Settings"
+             >next</a></li>
+        <li class="right" >
+          <a href="ug_running.html" title="3.2. Running Icepack"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

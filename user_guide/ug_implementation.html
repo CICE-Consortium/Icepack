@@ -1,0 +1,502 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>3.1. Implementation &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.2. Running Icepack" href="ug_running.html" />
+    <link rel="prev" title="3. User Guide" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="ug_running.html" title="3.2. Running Icepack"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="index.html" title="3. User Guide"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="implementation">
+<span id="id1"></span><h1>3.1. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h1>
+<p>Icepack is written in FORTRAN90 and runs on platforms using UNIX, LINUX,
+and other operating systems. The code is not parallelized. (CHANGE IF OPENMP IS IMPLEMENTED)</p>
+<p>Icepack consists of the sea ice column physics code, contained in the
+<strong>columnphysics/</strong> directory, and a <strong>configuration/</strong> directory that includes
+a driver for testing the column physics and a set of scripts for configuring the tests.
+Icepack is designed such that the column physics code may be used by a host sea ice
+model without direct reference to the driver or scripts, although these may be consulted for
+guidance when coupling the column physics code to the host sea ice model
+(<a class="reference external" href="https://github.com/CICE-Consortium/CICE">CICE</a> may also be useful for this.)  Information
+about the interface between the column physics and the driver or host sea ice model is
+located in the <a class="reference internal" href="#init"><span class="std std-ref">Initialization and Forcing</span></a> section.</p>
+<div class="section" id="directory-structure">
+<span id="dirstructure"></span><h2>3.1.1. Directory structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h2>
+<p>The present code distribution includes source code for the column physics,
+source code for the driver, and the scripts.  Forcing data is available from the ftp site.
+The directory structure of Icepack is as follows.  All columnphysics filename have a prefix
+of icepack_ and all driver files are prefixed with icedrv_*.</p>
+<dl class="docutils">
+<dt><strong>LICENSE.pdf</strong></dt>
+<dd>license and policy for using and sharing the code</dd>
+<dt><strong>DistributionPolicy.pdf</strong></dt>
+<dd>license and policy for using and sharing the code</dd>
+<dt><strong>README.md</strong></dt>
+<dd>basic information and pointers</dd>
+<dt><strong>columnphysics/</strong></dt>
+<dd>directory for columnphysics source code, see <a class="reference internal" href="../developer_guide/dg_col_phys.html#dev-colphys"><span class="std std-ref">Icepack Column Physics</span></a></dd>
+<dt><strong>configuration/scripts/</strong></dt>
+<dd>directory of support scripts, see <a class="reference internal" href="../developer_guide/dg_scripts.html#dev-scripts"><span class="std std-ref">Scripts Implementation</span></a></dd>
+<dt><strong>configuration/driver/</strong></dt>
+<dd>directory of icepack driver code, see <a class="reference internal" href="../developer_guide/dg_driver.html#dev-driver"><span class="std std-ref">Driver Implementation</span></a></dd>
+<dt><strong>doc/</strong></dt>
+<dd>documentation</dd>
+<dt><strong>icepack.create.case</strong></dt>
+<dd>main icepack script for creating cases</dd>
+</dl>
+<p>A case (compile) directory is created upon initial execution of the script
+<strong>icepack.create.case</strong> at the user-specified location provided after the -c flag.
+Executing the command <code class="docutils literal"><span class="pre">./icepack.create.case</span> <span class="pre">-h</span></code> provides helpful information for
+this tool.</p>
+</div>
+<div class="section" id="grid-and-boundary-conditions">
+<span id="grids"></span><h2>3.1.2. Grid and boundary conditions<a class="headerlink" href="#grid-and-boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<p>The driver configures a collection of grid cells on which the column physics code
+will be run. This “horizontal” grid is a vector of length <code class="docutils literal"><span class="pre">nx</span></code>, with a minimum length
+of 4.
+The grid vector is initialized with different sea ice conditions, such as open
+water, a uniform slab of ice, a multi-year ice thickness distribution with snow,
+and land. For simplicity, the same forcing values are applied to all grid cells.</p>
+<p>Icepack includes two vertical grids.  The basic vertical grid contains
+<code class="docutils literal"><span class="pre">nilyr</span></code> equally spaced grid cells.
+History variables available for column output are ice and snow
+temperature, <code class="docutils literal"><span class="pre">Tinz</span></code> and <code class="docutils literal"><span class="pre">Tsnz</span></code>. These variables also include thickness
+category as a fourth dimension.</p>
+<p>In addition, there is a bio-grid that
+can be more finely resolved and includes additional nodes for boundary conditions.
+It is used for solving the brine height variable <span class="math">\(h_b\)</span> and for
+discretizing the vertical transport equations of biogeochemical tracers.
+The bio-grid is a non-dimensional vertical grid which takes the value
+zero at <span class="math">\(h_b\)</span> and one at the ice–ocean interface. The number of
+grid levels is specified during compilation by setting
+the variable <code class="docutils literal"><span class="pre">NBGCLYR</span></code> equal to an integer (<span class="math">\(n_b\)</span>) .</p>
+<p>Ice tracers and microstructural properties defined on the bio-grid are
+referenced in two ways: as <code class="docutils literal"><span class="pre">bgrid</span></code> <span class="math">\(=n_b+2\)</span> points and as
+igrid<span class="math">\(=n_b+1\)</span> points. For both bgrid and igrid, the first and
+last points reference <span class="math">\(h_b\)</span> and the ice–ocean interface,
+respectively, and so take the values <span class="math">\(0\)</span> and <span class="math">\(1\)</span>,
+respectively. For bgrid, the interior points <span class="math">\([2, n_b+1]\)</span> are
+spaced at <span class="math">\(1/n_b\)</span> intervals beginning with <cite>bgrid(2)</cite> =
+<span class="math">\(1/(2n_b)\)</span>. The <code class="docutils literal"><span class="pre">igrid</span></code> interior points <span class="math">\([2, n_b]\)</span> are also
+equidistant with the same spacing, but physically coincide with points
+midway between those of <code class="docutils literal"><span class="pre">bgrid</span></code>.</p>
+</div>
+<div class="section" id="test-configurations">
+<span id="testconfigs"></span><h2>3.1.3. Test configurations<a class="headerlink" href="#test-configurations" title="Permalink to this headline">¶</a></h2>
+<p><em>(CHECK) UPDATE with similar, correct information</em></p>
+<p>The column is located
+near Barrow (71.35N, 156.5W). Options for choosing the column
+configuration are given in <strong>comp_ice</strong> (choose <cite>RES col</cite>) and in the
+namelist file, <strong>input_templates/col/ice_in</strong>. Here, <code class="docutils literal"><span class="pre">istep0</span></code> and the
+initial conditions are set such that the run begins September 1 with no
+ice.</p>
+</div>
+<div class="section" id="initialization-and-forcing">
+<span id="init"></span><h2>3.1.4. Initialization and Forcing<a class="headerlink" href="#initialization-and-forcing" title="Permalink to this headline">¶</a></h2>
+<p>Icepack’s parameters and variables are initialized in several
+steps. Many constants and physical parameters are set in
+<strong>icepack_constants.F90</strong>. In the current driver implementation,
+a namelist file is read to setup the model.
+Namelist values are given default
+values in the code, which may then be changed when the input file
+<strong>icepack_in</strong> is read. Other physical constants, numerical parameters, and
+variables are first set in initialization routines for each ice model
+component or module. Then, if the ice model is being restarted from a
+previous run, core variables are read and reinitialized in
+<em>restartfile</em>, while tracer variables needed for specific configurations
+are read in separate restart routines associated with each tracer or
+specialized parameterization. Finally, albedo and other quantities
+dependent on the initial ice state are set. Some of these parameters
+will be described in more detail in the <a class="reference internal" href="ug_case_settings.html#tabnamelist"><span class="std std-ref">Table of namelist inputs</span></a>.</p>
+<p>Two namelist variables control model initialization, <code class="docutils literal"><span class="pre">ice_ic</span></code>
+and <code class="docutils literal"><span class="pre">restart</span></code>.  Setting <code class="docutils literal"><span class="pre">ice_ic</span></code> = ‘default’ causes the model to run using
+initial values set in the code.  To start
+from a file <strong>filename</strong>, set
+<code class="docutils literal"><span class="pre">restart</span></code> = .true. and <code class="docutils literal"><span class="pre">ice_ic</span></code> = <strong>filename</strong>.  When restarting using the Icepack
+driver, for simplicity the tracers are assumed to be set the same way (on/off) as in the
+run that created the restart file; i.e. that the restart file contains exactly the
+information needed for the new run.  CICE is more flexible in this regard.</p>
+<p>For stand-alone runs,
+routines in <strong>icedrv_forcing.F90</strong> read and interpolate data from files,
+and are intended merely for testing, although they can also provide guidance for
+the user to write his or her own routines.</p>
+</div>
+<div class="section" id="choosing-an-appropriate-time-step">
+<span id="parameters"></span><h2>3.1.5. Choosing an appropriate time step<a class="headerlink" href="#choosing-an-appropriate-time-step" title="Permalink to this headline">¶</a></h2>
+<p>Transport in thickness space imposes a restraint on the time
+step, given by the ice growth/melt rate and the smallest range of
+thickness among the categories,
+<span class="math">\(\Delta t&lt;\min(\Delta H)/2\max(f)\)</span>, where <span class="math">\(\Delta H\)</span> is the
+distance between category boundaries and <span class="math">\(f\)</span> is the thermodynamic
+growth rate. For the 5-category ice thickness distribution used as the
+default in this distribution, this is not a stringent limitation:
+<span class="math">\(\Delta t &lt; 19.4\)</span>&nbsp;hr, assuming <span class="math">\(\max(f) = 40\)</span>&nbsp;cm/day.</p>
+</div>
+<div class="section" id="model-output">
+<span id="history"></span><h2>3.1.6. Model output<a class="headerlink" href="#model-output" title="Permalink to this headline">¶</a></h2>
+<p>History output from Icepack is not currently supported in the Icepack driver, except
+in restart files.
+The sea ice model <a class="reference external" href="https://github.com/CICE-Consortium/CICE">CICE</a> provides extensive
+options for model output, including many derived output variables.</p>
+<div class="section" id="diagnostic-files">
+<h3>3.1.6.1. Diagnostic files<a class="headerlink" href="#diagnostic-files" title="Permalink to this headline">¶</a></h3>
+<p>Icepack writes diagnostic information for each grid cell as a separate file,
+<strong>ice_diag.*</strong>, identified by the initial ice state of the grid cell (no ice, slab, land, etc).</p>
+</div>
+<div class="section" id="restart-files">
+<h3>3.1.6.2. Restart files<a class="headerlink" href="#restart-files" title="Permalink to this headline">¶</a></h3>
+<p>CHECK and CHANGE as needed re netCDF</p>
+<p>CICE provides restart data in binary unformatted or netCDF formats, via
+the <code class="docutils literal"><span class="pre">IO_TYPE</span></code> flag in <strong>comp_ice</strong> and namelist variable
+<code class="docutils literal"><span class="pre">restart_format</span></code>.</p>
+<p>The restart files created by the Icepack driver contain all of the variables needed
+for a full, exact restart. The filename begins with the character string
+‘iced.’, and the restart dump frequency is given by the namelist
+variable <code class="docutils literal"><span class="pre">dumpfreq</span></code>. The namelist variable <code class="docutils literal"><span class="pre">ice_ic</span></code> contains the
+pointer to the filename from which the restart data is to be read.</p>
+</div>
+<div class="section" id="biogeochemistry-history-fields">
+<span id="bgc-hist"></span><h3>3.1.6.3. Biogeochemistry History Fields<a class="headerlink" href="#biogeochemistry-history-fields" title="Permalink to this headline">¶</a></h3>
+<p>Note:  History output is not provided with Icepack.  This documentation
+indicates what is available for output and is implemented in CICE.</p>
+<p>CHECK and FIX!</p>
+<p>The biogeochemical history fields specified in icefields_bgc_nml are
+written when ‘x’ is replaced with a time interval: step (‘1’), daily
+(‘d’), monthly (‘m’), or yearly (‘y’). Several of these flags turn on
+multiple history variables according to the particular ecosystem
+prescribed in <strong>icepack_in</strong>. For example, biogeochemical fluxes from the
+ice to ocean will be saved monthly in the history output if</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">f_fbio</span> <span class="o">=</span> <span class="s1">&#39;m&#39;</span>
+</pre></div>
+</div>
+<p>However, only the biogeochemical tracers which are active will be saved.
+This includes at most fNit nitrate, fAm ammonium, fN algal nitrogen,
+fDOC dissolved organic carbon, fDON dissolved organic nitrogen, fFep
+particulate iron, fFed dissolved iron, fSil silicate, fhum humic matter,
+fPON passive mobile tracer, fDMS DMS, fDMSPd dissolved DMSP and fDMSPp
+particulate DMSP.</p>
+<p><a class="reference internal" href="#tab-bio-history"><span class="std std-ref">Table 5</span></a> lists the
+biogeochemical tracer history flags along with a short description and
+the variable or variables saved. Not listed are flags appended with
+_ai, i.e.&nbsp;f_fbio_ai. These fields are identical to their counterpart.
+i.e.&nbsp;f_fbio, except they are averaged by ice area.</p>
+<p><a class="reference internal" href="#tab-bio-history"><span class="std std-ref">Table 5</span></a> :<em>Biogeochemical History variables</em></p>
+<table border="1" class="docutils" id="id3">
+<span id="tab-bio-history"></span><caption><span class="caption-text">Table 5</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="15%" />
+<col width="38%" />
+<col width="31%" />
+<col width="15%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">History Flag</th>
+<th class="head">Definition</th>
+<th class="head">Variable(s)</th>
+<th class="head">Units</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>f_faero_atm</td>
+<td>atmospheric aerosol deposition flux</td>
+<td>faero_atm</td>
+<td>kg m<span class="math">\(^{-2}\)</span> s<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_faero_ocn</td>
+<td>aerosol flux from ice to ocean</td>
+<td>faero_ocn</td>
+<td>kg m<span class="math">\(^{-2}\)</span> s<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_aero</td>
+<td>aerosol mass (snow and ice ssl and int)</td>
+<td>aerosnossl, aerosnoint,aeroicessl, aeroiceint</td>
+<td>kg/kg</td>
+</tr>
+<tr class="row-odd"><td>f_fbio</td>
+<td>biological ice to ocean flux</td>
+<td>fN, fDOC, fNit, fAm,fDON,fFep<span class="math">\(^a\)</span>, fFed<span class="math">\(^a\)</span>, fSil,fhum, fPON, fDMSPd,fDMS, fDMSPp, fzaero</td>
+<td>mmol m<span class="math">\(^{-2}\)</span> s<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_zaero</td>
+<td>bulk z-aerosol mass fraction</td>
+<td>zaero</td>
+<td>kg/kg</td>
+</tr>
+<tr class="row-odd"><td>f_bgc_S</td>
+<td>bulk z-salinity</td>
+<td>bgc_S</td>
+<td>ppt</td>
+</tr>
+<tr class="row-even"><td>f_bgc_N</td>
+<td>bulk algal N concentration</td>
+<td>bgc_N</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_C</td>
+<td>bulk algal C concentration</td>
+<td>bgc_C</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_DOC</td>
+<td>bulk DOC concentration</td>
+<td>bgc_DOC</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_DON</td>
+<td>bulk DON concentration</td>
+<td>bgc_DON</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_DIC</td>
+<td>bulk DIC concentration</td>
+<td>bgc_DIC</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_chl</td>
+<td>bulk algal chlorophyll concentration</td>
+<td>bgc_chl</td>
+<td>mg chl m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_Nit</td>
+<td>bulk nitrate concentration</td>
+<td>bgc_Nit</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_Am</td>
+<td>bulk ammonium concentration</td>
+<td>bgc_Am</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_Sil</td>
+<td>bulk silicate concentration</td>
+<td>bgc_Sil</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_DMSPp</td>
+<td>bulk particulate DMSP concentration</td>
+<td>bgc_DMSPp</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_DMSPd</td>
+<td>bulk dissolved DMSP concentration</td>
+<td>bgc_DMSPd</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_DMS</td>
+<td>bulk DMS concentration</td>
+<td>bgc_DMS</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_Fe</td>
+<td>bulk dissolved and particulate iron conc.</td>
+<td>bgc_Fed, bgc_Fep</td>
+<td><span class="math">\(\mu\,\)</span>mol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_hum</td>
+<td>bulk humic matter concentration</td>
+<td>bgc_hum</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bgc_PON</td>
+<td>bulk passive mobile tracer conc.</td>
+<td>bgc_PON</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_upNO</td>
+<td>Total algal <span class="math">\({\mbox{NO$_3$}}\)</span> uptake rate</td>
+<td>upNO</td>
+<td>mmol m<span class="math">\(^{-2}\)</span> d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_upNH</td>
+<td>Total algal <span class="math">\({\mbox{NH$_4$}}\)</span> uptake rate</td>
+<td>upNH</td>
+<td>mmol m<span class="math">\(^{-2}\)</span> d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bgc_ml</td>
+<td>upper ocean tracer concentrations</td>
+<td>ml_N, ml_DOC, ml_Nit,ml_Am, ml_DON, ml_Fep<span class="math">\(^b\)</span>,ml_Fed<span class="math">\(^b\)</span>, ml_Sil, ml_hum, ml_PON,ml_DMS, ml_DMSPd, ml_DMSPp</td>
+<td>mmol m<span class="math">\(^{-3}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_bTin</td>
+<td>ice temperature on the bio grid</td>
+<td>bTizn</td>
+<td><span class="math">\(^o\)</span>C</td>
+</tr>
+<tr class="row-odd"><td>f_bphi</td>
+<td>ice porosity on the bio grid</td>
+<td>bphizn</td>
+<td>%</td>
+</tr>
+<tr class="row-even"><td>f_iDin</td>
+<td>brine eddy diffusivity on the interface bio grid</td>
+<td>iDin</td>
+<td>m<span class="math">\(^{2}\)</span> d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_iki</td>
+<td>ice permeability on the interface bio grid</td>
+<td>ikin</td>
+<td>mm<span class="math">\(^{2}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_fbri</td>
+<td>ratio of brine tracer height to ice thickness</td>
+<td>fbrine</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td>f_hbri</td>
+<td>brine tracer height</td>
+<td>hbrine</td>
+<td>m</td>
+</tr>
+<tr class="row-even"><td>f_zfswin</td>
+<td>internal ice PAR on the interface bio grid</td>
+<td>zfswin</td>
+<td>W m<span class="math">\(^{-2}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_bionet</td>
+<td>brine height integrated tracer concentration</td>
+<td>algalN_net, algalC_net, chl_net, pFe<span class="math">\(^c\)</span>_net, dFe<span class="math">\(^c\)</span>_net, Sil_net, Nit_net, Am_net, hum_net, PON_net, DMS_net, DMSPd_net, DMSPp_net, DOC_net, zaero_net, DON_net</td>
+<td>mmol m<span class="math">\(^{-2}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_biosnow</td>
+<td>snow integrated tracer concentration”</td>
+<td>algalN_snow, algalC_snow,chl_snow, pFe<span class="math">\(^c\)</span>_snow, dFe<span class="math">\(^c\)</span>_snow,Sil_snow, Nit_snow, Am_snow, hum_snow, PON_snow, DMS_snow, DMSPd_snow, DMSPp_snow, DOC_snow, zaero_snow, DON_snow</td>
+<td>mmol m<span class="math">\(^{-2}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_grownet</td>
+<td>Net specific algal growth rate</td>
+<td>grow_net</td>
+<td>m d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-even"><td>f_PPnet</td>
+<td>Net primary production</td>
+<td>PP_net</td>
+<td>mgC m<span class="math">\(^{-2}\)</span> d<span class="math">\(^{-1}\)</span></td>
+</tr>
+<tr class="row-odd"><td>f_algalpeak</td>
+<td>interface bio grid level of peak chla</td>
+<td>peak_loc</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td>f_zbgc_frac</td>
+<td>mobile fraction of tracer</td>
+<td>algalN_frac, chl_frac, pFe_frac,dFe_frac, Sil_frac, Nit_frac,Am_frac, hum_frac, PON_frac,DMS_frac, DMSPd_frac, DMSPp_frac,DOC_frac, zaero_frac, DON_frac</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p><span class="math">\(^a\)</span> units are <span class="math">\(\mu\)</span>mol m<span class="math">\(^{-2}\)</span> s<span class="math">\(^{-1}\)</span></p>
+<p><span class="math">\(^b\)</span> units are <span class="math">\(\mu\)</span>mol m<span class="math">\(^{-3}\)</span></p>
+<p><span class="math">\(^c\)</span> units are <span class="math">\(\mu\)</span>mol m<span class="math">\(^{-2}\)</span></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">3.1. Implementation</a><ul>
+<li><a class="reference internal" href="#directory-structure">3.1.1. Directory structure</a></li>
+<li><a class="reference internal" href="#grid-and-boundary-conditions">3.1.2. Grid and boundary conditions</a></li>
+<li><a class="reference internal" href="#test-configurations">3.1.3. Test configurations</a></li>
+<li><a class="reference internal" href="#initialization-and-forcing">3.1.4. Initialization and Forcing</a></li>
+<li><a class="reference internal" href="#choosing-an-appropriate-time-step">3.1.5. Choosing an appropriate time step</a></li>
+<li><a class="reference internal" href="#model-output">3.1.6. Model output</a><ul>
+<li><a class="reference internal" href="#diagnostic-files">3.1.6.1. Diagnostic files</a></li>
+<li><a class="reference internal" href="#restart-files">3.1.6.2. Restart files</a></li>
+<li><a class="reference internal" href="#biogeochemistry-history-fields">3.1.6.3. Biogeochemistry History Fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">3. User Guide</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ug_running.html"
+                        title="next chapter">3.2. Running Icepack</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/user_guide/ug_implementation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="ug_running.html" title="3.2. Running Icepack"
+             >next</a></li>
+        <li class="right" >
+          <a href="index.html" title="3. User Guide"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

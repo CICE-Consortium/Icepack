@@ -1,0 +1,255 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>3.2. Running Icepack &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.3. Testing Icepack" href="ug_testing.html" />
+    <link rel="prev" title="3.1. Implementation" href="ug_implementation.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="ug_testing.html" title="3.3. Testing Icepack"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="ug_implementation.html" title="3.1. Implementation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="running-icepack">
+<span id="id1"></span><h1>3.2. Running Icepack<a class="headerlink" href="#running-icepack" title="Permalink to this headline">¶</a></h1>
+<p>Quick-start instructions are provided in the <a class="reference internal" href="../intro/quickstart.html#quickstart"><span class="std std-ref">Quick Start</span></a> section.</p>
+<div class="section" id="scripts">
+<span id="id2"></span><h2>3.2.1. Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h2>
+<p>The icepack scripts are written to allow quick setup of cases and tests.  Once a case is
+generated, users can manually modify the namelist and other files to custom configure
+the case.  Several settings are available via scripts as well.</p>
+<p>Most of the scripts that configure, build and run Icepack are contained in
+the directory <strong>configuration/scripts/</strong>, except for <strong>icepack.create.case</strong>, which is
+in the main directory.  <strong>icepack.create.case</strong> is the main script that generates a case.</p>
+<p>Users may need to port the scripts to their local machine.
+Specific instructions for porting are provided in <a class="reference internal" href="#porting"><span class="std std-ref">Porting</span></a>.</p>
+<p><code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-h</span></code> will provide the latest information about how to use the tool.
+There are three usage modes,</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">-c</span></code> creates individual stand alone cases.</li>
+<li><code class="docutils literal"><span class="pre">-t</span></code> creates individual tests.  Tests are just cases that have some extra automation in order to carry out particular tests such as exact restart.</li>
+<li><code class="docutils literal"><span class="pre">-ts</span></code> creates a test suite.  Test suites are predefined sets of tests and <code class="docutils literal"><span class="pre">-ts</span></code> provides the ability to quick setup, build, and run a full suite of tests.</li>
+</ul>
+<p>All modes will require use of <code class="docutils literal"><span class="pre">-m</span></code> to specify the machine and case and test modes
+can use <code class="docutils literal"><span class="pre">-s</span></code> to define specific options.  <code class="docutils literal"><span class="pre">-t</span></code> and <code class="docutils literal"><span class="pre">-ts</span></code> will require <code class="docutils literal"><span class="pre">-testid</span></code> to be set
+and both of the test modes can use <code class="docutils literal"><span class="pre">-bd</span></code>, <code class="docutils literal"><span class="pre">-bg</span></code>, <code class="docutils literal"><span class="pre">-bc</span></code>, and <code class="docutils literal"><span class="pre">-td</span></code> to compare with other results.
+Testing will be described in greater detail in the <a class="reference internal" href="ug_testing.html#testing"><span class="std std-ref">Testing Icepack</span></a> section.</p>
+<p>Again, <code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-h</span></code> will show the latest usage information including
+the available <code class="docutils literal"><span class="pre">-s</span></code> options, the current ported machines, and the test choices.</p>
+<p>To create a case, run <strong>icepack.create.case</strong>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">c</span> <span class="n">mycase</span> <span class="o">-</span><span class="n">m</span> <span class="n">machine</span>
+<span class="n">cd</span> <span class="n">mycase</span>
+</pre></div>
+</div>
+<p>Once a case/test is created, several files are placed in the case directory</p>
+<ul class="simple">
+<li><strong>env.[machine]</strong> defines the environment</li>
+<li><strong>icepack.settings</strong> defines many variables associated with building and running the model</li>
+<li><strong>makdep.c</strong> is a tool that will automatically generate the make dependencies</li>
+<li><strong>Macros.[machine]</strong> defines the Makefile macros</li>
+<li><strong>Makefile</strong> is the makefile used to build the model</li>
+<li><strong>icepack.build</strong> is a script that builds and compiles the model</li>
+<li><strong>icepack_in</strong> is the namelist input file</li>
+<li><strong>icepack.run</strong> is a batch run script</li>
+<li><strong>icepack.submit</strong> is a simple script that submits the icepack.run script</li>
+</ul>
+<p>All scripts and namelist are fully resolved in the case.  Users can edit any
+of the files in the case directory manually to change the model configuration,
+build options, or batch settings.  The file
+dependency is indicated in the above list.  For instance, if any of the files before
+<strong>icepack.build</strong> in the list are edited, <strong>icepack.build</strong> should be rerun.</p>
+<p>The <strong>casescripts/</strong> directory holds scripts used to create the case and can
+largely be ignored.  Once a case is created, the <strong>icepack.build</strong> script should be run
+interactively and then the case should be submitted by executing the
+<strong>icepack.submit</strong> script interactively.  The <strong>icepack.submit</strong> script
+simply submits the <strong>icepack.run script</strong>.
+You can also submit the <strong>icepack.run</strong> script on the command line.</p>
+<p>Some hints:</p>
+<ul class="simple">
+<li>To change namelist, manually edit the <strong>icepack_in</strong> file</li>
+<li>To change batch settings, manually edit the top of the <strong>icepack.run</strong> file</li>
+<li>To turn on the debug compiler flags, set <code class="docutils literal"><span class="pre">ICE_BLDDEBUG</span></code> in <strong>icepack.setttings</strong> to true</li>
+<li>To change compiler options, manually edit the Macros file</li>
+<li>To clean the build before each compile, set <code class="docutils literal"><span class="pre">ICE_CLEANBUILD</span></code> in <strong>icepack.settings</strong> to true
+To not clean before the build, set <code class="docutils literal"><span class="pre">ICE_CLEANBUILD</span></code> in <strong>icepack.settings</strong> to false</li>
+</ul>
+<p>To build and run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">build</span>
+<span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">submit</span>
+</pre></div>
+</div>
+<p>The build and run log files will be copied into the logs directory in the case directory.
+Other model output will be in the run directory.  The run directory is set in <strong>icepack.settings</strong>
+via the <strong>ICE_RUNDIR</strong> variable.  To modify the case setup, changes should be made in the
+case directory, NOT the run directory.</p>
+</div>
+<div class="section" id="porting">
+<span id="id3"></span><h2>3.2.2. Porting<a class="headerlink" href="#porting" title="Permalink to this headline">¶</a></h2>
+<p>To port, an <strong>env.[machine]</strong> and <strong>Macros.[machine]</strong> file have to be added to the
+<strong>configuration/scripts/machines/</strong> directory and the
+<strong>configuration/scripts/icepack.run.setup.csh</strong> file needs to be modified.</p>
+<ul class="simple">
+<li>cd to <strong>configuration/scripts/machines/</strong></li>
+<li>Copy an existing env and a Macros file to new names for your new machine</li>
+<li>Edit your env and Macros files</li>
+<li>cd .. to <strong>configuration/scripts/</strong></li>
+<li>Edit the <strong>icepack.run.setup.csh</strong> script to add a section for your machine
+with batch settings and job launch settings</li>
+<li>Download and untar a forcing dataset to the location defined by
+<code class="docutils literal"><span class="pre">ICE_MACHINE_INPUTDATA</span></code> in the env file</li>
+</ul>
+<p>In fact, this process almost certainly will require some iteration.  The easiest way
+to carry this out is to create an initial set of changes as described above, then
+create a case and manually modify the <strong>env.[machine]</strong> file and <strong>Macros.[machine]</strong>
+file until the case can build and run.  Then copy the files from the case
+directory back to <strong>configuration/scripts/machines/</strong> and update
+the <strong>configuration/scripts/icepack.run.setup.csh</strong> file, retest,
+and then add and commit the updated machine files to the repository.</p>
+<div class="section" id="machine-account-settings">
+<h3>3.2.2.1. Machine Account Settings<a class="headerlink" href="#machine-account-settings" title="Permalink to this headline">¶</a></h3>
+<p>The machine account default is specified by the variable <code class="docutils literal"><span class="pre">ICE_MACHINE_ACCT</span></code> in
+the <strong>env.[machine]</strong> file.  The easiest way to change a user’s default is to
+create a file in your home directory called <strong>.cice_proj</strong> and add your
+preferred account name to the first line.
+There is also an option (<code class="docutils literal"><span class="pre">-a</span></code>) in <strong>icepack.create.case</strong> to define the account number.
+The order of precedent is <strong>icepack.create.case</strong> command line option,
+<strong>.cice_proj</strong> setting, and then value in the <strong>env.[machine]</strong> file.</p>
+</div>
+</div>
+<div class="section" id="forcing-data">
+<h2>3.2.3. Forcing data<a class="headerlink" href="#forcing-data" title="Permalink to this headline">¶</a></h2>
+<p>CHECK once we’ve settled on a forcing suite:</p>
+<p>The code is currently configured to run in standalone mode on a 4-cell grid using
+atmospheric data, available as detailed on the <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack">wiki</a>.
+These data files are designed only for testing the code, not for use in production
+runs or as observational data.  Please do not publish results based on these data
+sets.  Module <strong>configuration/driver/icedrv_forcing.F90</strong>
+can be modified to change the forcing data.</p>
+<p>The input data space is defined on a per machine basis by the <code class="docutils literal"><span class="pre">ICE_MACHINE_INPUTDATA</span></code>
+variable in the <strong>env.[machine]</strong> file.  That file space is often shared among multiple
+users, and it can be desirable to consider using a common file space with group read
+and write permissions such that a set of users can update the inputdata area as
+new datasets are available.</p>
+</div>
+<div class="section" id="run-directories">
+<h2>3.2.4. Run Directories<a class="headerlink" href="#run-directories" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>icepack.create.case</strong> script creates a case directory.  However, the model
+is actually built and run under the <code class="docutils literal"><span class="pre">ICE_OBJDIR</span></code> and <code class="docutils literal"><span class="pre">ICE_RUNDIR</span></code> directories
+as defined in the <strong>icepack.settings</strong> file.</p>
+<p>Build and run logs will be copied from the run directory into the case <strong>logs/</strong>
+directory when complete.</p>
+</div>
+<div class="section" id="local-modifications">
+<h2>3.2.5. Local modifications<a class="headerlink" href="#local-modifications" title="Permalink to this headline">¶</a></h2>
+<p>Scripts and other case settings can be changed manually in the case directory and
+used.  Source code can be modified in the main sandbox.  When changes are made, the code
+should be rebuilt before being resubmitted.  It is always recommended that users
+modify the scripts and input settings in the case directory, NOT the run directory.
+In general, files in the run directory are overwritten by versions in the case
+directory when the model is built, submitted, and run.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">3.2. Running Icepack</a><ul>
+<li><a class="reference internal" href="#scripts">3.2.1. Scripts</a></li>
+<li><a class="reference internal" href="#porting">3.2.2. Porting</a><ul>
+<li><a class="reference internal" href="#machine-account-settings">3.2.2.1. Machine Account Settings</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#forcing-data">3.2.3. Forcing data</a></li>
+<li><a class="reference internal" href="#run-directories">3.2.4. Run Directories</a></li>
+<li><a class="reference internal" href="#local-modifications">3.2.5. Local modifications</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ug_implementation.html"
+                        title="previous chapter">3.1. Implementation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ug_testing.html"
+                        title="next chapter">3.3. Testing Icepack</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/user_guide/ug_running.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="ug_testing.html" title="3.3. Testing Icepack"
+             >next</a></li>
+        <li class="right" >
+          <a href="ug_implementation.html" title="3.1. Implementation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

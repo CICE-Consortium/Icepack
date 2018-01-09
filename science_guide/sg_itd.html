@@ -1,0 +1,238 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.2. Ice thickness distribution &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.3. Tracers" href="sg_tracers.html" />
+    <link rel="prev" title="2.1. Atmosphere and ocean boundary forcing" href="sg_boundary_forcing.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="sg_tracers.html" title="2.3. Tracers"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="sg_boundary_forcing.html" title="2.1. Atmosphere and ocean boundary forcing"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="ice-thickness-distribution">
+<span id="model-comp"></span><h1>2.2. Ice thickness distribution<a class="headerlink" href="#ice-thickness-distribution" title="Permalink to this headline">¶</a></h1>
+<p>The Arctic and Antarctic sea ice packs are mixtures of open water, thin
+first-year ice, thicker multiyear ice, and thick pressure ridges. The
+thermodynamic and dynamic properties of the ice pack depend on how much
+ice lies in each thickness range. Thus the basic problem in sea ice
+modeling is to describe the evolution of the ice thickness distribution
+(ITD) in time and space.</p>
+<p>The fundamental equation solved by CICE is <a class="reference internal" href="../zreferences.html#trmc75" id="id1">[44]</a>:</p>
+<div class="math" id="equation-transport-g">
+<span class="eqno">(1)<a class="headerlink" href="#equation-transport-g" title="Permalink to this equation">¶</a></span>\[\frac{\partial g}{\partial t} = -\nabla \cdot (g {\bf u})
+ - \frac{\partial}{\partial h} (f g) + \psi - L,\]</div>
+<p>where <span class="math">\({\bf u}\)</span> is the horizontal ice velocity,
+<span class="math">\(\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y})\)</span>,
+<span class="math">\(f\)</span> is the rate of thermodynamic ice growth, <span class="math">\(\psi\)</span> is a
+ridging redistribution function,
+<span class="math">\(L\)</span> is the lateral melt rate
+and <span class="math">\(g\)</span> is the ice thickness
+distribution function. We define <span class="math">\(g({\bf x},h,t)\,dh\)</span> as the
+fractional area covered by ice in the thickness range <span class="math">\((h,h+dh)\)</span>
+at a given time and location.  Icepack represents all of the terms in this
+equation except for the divergence (the first term on the right).</p>
+<p>Equation&nbsp;<a class="reference internal" href="#equation-transport-g">(1)</a> is solved by partitioning the ice pack in
+each grid cell into discrete thickness categories. The number of
+categories can be set by the user, with a default value <span class="math">\(N_C = 5\)</span>.
+(Five categories, plus open water, are generally sufficient to simulate
+the annual cycles of ice thickness, ice strength, and surface fluxes
+<a class="reference internal" href="../zreferences.html#bhwe01" id="id2">[5]</a><a class="reference internal" href="../zreferences.html#lipscomb01" id="id3">[27]</a>.) Each category <span class="math">\(n\)</span> has
+lower thickness bound <span class="math">\(H_{n-1}\)</span> and upper bound <span class="math">\(H_n\)</span>. The
+lower bound of the thinnest ice category, <span class="math">\(H_0\)</span>, is set to zero.
+The other boundaries are chosen with greater resolution for small
+<span class="math">\(h\)</span>, since the properties of the ice pack are especially sensitive
+to the amount of thin ice <a class="reference internal" href="../zreferences.html#maykut82" id="id4">[31]</a>. The continuous
+function <span class="math">\(g(h)\)</span> is replaced by the discrete variable
+<span class="math">\(a_{in}\)</span>, defined as the fractional area covered by ice in the
+open water by <span class="math">\(a_{i0}\)</span>, giving <span class="math">\(\sum_{n=0}^{N_C} a_{in} = 1\)</span>
+by definition.</p>
+<p>Category boundaries are computed in <em>init_itd</em> using one of several
+formulas, summarized in&nbsp;<a class="reference internal" href="#tab-itd"><span class="std std-ref">Table 2</span></a>.
+Setting the namelist variable <code class="docutils literal"><span class="pre">kcatbound</span></code> equal to 0 or 1 gives lower
+thickness boundaries for any number of thickness categories <span class="math">\(N_C\)</span>.
+<a class="reference internal" href="#tab-itd"><span class="std std-ref">Table 2</span></a> shows the boundary values for <span class="math">\(N_C\)</span> = 5 and linear remapping
+of the ice thickness distribution. A third option specifies the boundaries
+based on the World Meteorological Organization classification; the full WMO
+thickness distribution is used if <span class="math">\(N_C\)</span> = 7; if <span class="math">\(N_C\)</span> = 5 or
+6, some of the thinner categories are combined. The original formula
+(<code class="docutils literal"><span class="pre">kcatbound</span></code> = 0) is the default. Category boundaries differ from those
+shown in <a class="reference internal" href="#tab-itd"><span class="std std-ref">Table 2</span></a> for the delta-function ITD. Users may
+substitute their own preferred boundaries in <em>init_itd</em>.</p>
+<p><a class="reference internal" href="#tab-itd"><span class="std std-ref">Table 2</span></a> : <em>Lower boundary values for thickness categories, in meters, for
+the three distribution options (*``kcatbound``</em>) and linear remapping (<em>``kitd`` *= 1).
+In the WMO case, the distribution used depends on the number of categories used.</em></p>
+<table border="1" class="docutils" id="id5">
+<span id="tab-itd"></span><caption><span class="caption-text">Table 2</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="26%" />
+<col width="20%" />
+<col width="15%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">distribution</th>
+<th class="head">original</th>
+<th class="head">round</th>
+<th class="head" colspan="3">WMO</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">kcatbound</span></code></td>
+<td>0</td>
+<td>1</td>
+<td colspan="3">2</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(N_C\)</span></td>
+<td>5</td>
+<td>5</td>
+<td>5</td>
+<td>6</td>
+<td>7</td>
+</tr>
+<tr class="row-even"><td>categories</td>
+<td colspan="5">lower bound (m)</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.00</td>
+</tr>
+<tr class="row-even"><td>2</td>
+<td>0.64</td>
+<td>0.60</td>
+<td>0.30</td>
+<td>0.15</td>
+<td>0.10</td>
+</tr>
+<tr class="row-odd"><td>3</td>
+<td>1.39</td>
+<td>1.40</td>
+<td>0.70</td>
+<td>0.30</td>
+<td>0.15</td>
+</tr>
+<tr class="row-even"><td>4</td>
+<td>2.47</td>
+<td>2.40</td>
+<td>1.20</td>
+<td>0.70</td>
+<td>0.30</td>
+</tr>
+<tr class="row-odd"><td>5</td>
+<td>4.57</td>
+<td>3.60</td>
+<td>2.00</td>
+<td>1.20</td>
+<td>0.70</td>
+</tr>
+<tr class="row-even"><td>6</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>2.00</td>
+<td>1.20</td>
+</tr>
+<tr class="row-odd"><td>7</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>2.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sg_boundary_forcing.html"
+                        title="previous chapter">2.1. Atmosphere and ocean boundary forcing</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sg_tracers.html"
+                        title="next chapter">2.3. Tracers</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/science_guide/sg_itd.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="sg_tracers.html" title="2.3. Tracers"
+             >next</a></li>
+        <li class="right" >
+          <a href="sg_boundary_forcing.html" title="2.1. Atmosphere and ocean boundary forcing"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

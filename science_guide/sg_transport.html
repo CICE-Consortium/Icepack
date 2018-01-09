@@ -1,0 +1,262 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.4. Transport in thickness space &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.5. Mechanical redistribution" href="sg_mechanical.html" />
+    <link rel="prev" title="2.3. Tracers" href="sg_tracers.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="sg_mechanical.html" title="2.5. Mechanical redistribution"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="sg_tracers.html" title="2.3. Tracers"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="transport-in-thickness-space">
+<span id="itd-trans"></span><h1>2.4. Transport in thickness space<a class="headerlink" href="#transport-in-thickness-space" title="Permalink to this headline">¶</a></h1>
+<p>Next we solve the equation for ice transport in thickness space due to
+thermodynamic growth and melt,</p>
+<div class="math" id="equation-itd-transport">
+<span class="eqno">(1)<a class="headerlink" href="#equation-itd-transport" title="Permalink to this equation">¶</a></span>\[\frac{\partial g}{\partial t} + \frac{\partial}{\partial h} (f g) = 0,\]</div>
+<p>which is obtained from Equation <a class="reference internal" href="sg_itd.html#equation-transport-g">(1)</a> by neglecting the first and
+third terms on the right-hand side. We use the remapping method of
+<a class="reference internal" href="../zreferences.html#lipscomb01" id="id1">[27]</a>, in which thickness categories are
+represented as Lagrangian grid cells whose boundaries are projected
+forward in time. The thickness distribution function <span class="math">\(g\)</span> is
+approximated as a linear function of <span class="math">\(h\)</span> in each displaced
+category and is then remapped onto the original thickness categories.
+This method is numerically smooth and is not too diffusive. It can be
+viewed as a 1D simplification of the 2D incremental remapping scheme
+described above.</p>
+<p>We first compute the displacement of category boundaries in thickness
+space. Assume that at time <span class="math">\(m\)</span> the ice areas <span class="math">\(a_n^m\)</span> and
+mean ice thicknesses <span class="math">\(h_n^m\)</span> are known for each thickness
+category. (For now we omit the subscript <span class="math">\(i\)</span> that distinguishes
+ice from snow.) We use a thermodynamic model (<a class="reference internal" href="sg_thermo.html#thermo"><span class="std std-ref">Thermodynamics</span></a>)
+to compute the new mean thicknesses <span class="math">\(h_n^{m+1}\)</span> at time
+<span class="math">\(m+1\)</span>. The time step must be small enough that trajectories do not
+cross; i.e., <span class="math">\(h_n^{m+1} &lt; h_{n+1}^{m+1}\)</span> for each pair of adjacent
+categories. The growth rate at <span class="math">\(h = h_n\)</span> is given by
+<span class="math">\(f_n = (h_n^{m+1} - h_n^m) / \Delta t\)</span>. By linear interpolation we
+estimate the growth rate <span class="math">\(F_n\)</span> at the upper category boundary
+<span class="math">\(H_n\)</span>:</p>
+<div class="math" id="equation-growth-rate">
+<span class="eqno">(2)<a class="headerlink" href="#equation-growth-rate" title="Permalink to this equation">¶</a></span>\[F_n = f_n + \frac{f_{n+1}-f_n}{h_{n+1}-h_n} \, (H_n - h_n).\]</div>
+<p>If <span class="math">\(a_n\)</span> or <span class="math">\(a_{n+1} = 0\)</span>, <span class="math">\(F_n\)</span> is set to the growth
+rate in the nonzero category, and if <span class="math">\(a_n = a_{n+1} = 0\)</span>, we set
+<span class="math">\(F_n = 0\)</span>. The temporary displaced boundaries are given by</p>
+<div class="math" id="equation-displ">
+<span class="eqno">(3)<a class="headerlink" href="#equation-displ" title="Permalink to this equation">¶</a></span>\[H_n^* = H_n + F_n \, \Delta t, \ n = 1 \ {\rm to} \ N-1\]</div>
+<p>The boundaries must not be displaced by more than one category to the
+left or right; that is, we require <span class="math">\(H_{n-1} &lt; H_n^* &lt; H_{n+1}\)</span>.
+Without this requirement we would need to do a general remapping rather
+than an incremental remapping, at the cost of added complexity.</p>
+<p>Next we construct <span class="math">\(g(h)\)</span> in the displaced thickness categories.
+The ice areas in the displaced categories are <span class="math">\(a_n^{m+1} = a_n^m\)</span>,
+since area is conserved following the motion in thickness space (i.e.,
+during vertical ice growth or melting). The new ice volumes are
+<span class="math">\(v_n^{m+1} = (a_n h_n)^{m+1} = a_n^m h_n^{m+1}\)</span>. For conciseness,
+define <span class="math">\(H_L = H_{n-1}^*\)</span> and <span class="math">\(H_R = H_{n}^*\)</span> and drop the
+time index <span class="math">\(m+1\)</span>. We wish to construct a continuous function
+<span class="math">\(g(h)\)</span> within each category such that the total area and volume at
+time <span class="math">\(m+1\)</span> are <span class="math">\(a_n\)</span> and <span class="math">\(v_n\)</span>, respectively:</p>
+<div class="math" id="equation-area-cons">
+<span class="eqno">(4)<a class="headerlink" href="#equation-area-cons" title="Permalink to this equation">¶</a></span>\[\int_{H_L}^{H_R} g \, dh = a_n,\]</div>
+<div class="math" id="equation-volume-cons">
+<span class="eqno">(5)<a class="headerlink" href="#equation-volume-cons" title="Permalink to this equation">¶</a></span>\[\int_{H_L}^{H_R} h \, g \, dh = v_n.\]</div>
+<p>The simplest polynomial that can satisfy both equations is a line. It
+is convenient to change coordinates, writing
+<span class="math">\(g(\eta) = g_1 \eta + g_0\)</span>, where <span class="math">\(\eta = h - H_L\)</span> and the
+coefficients <span class="math">\(g_0\)</span> and <span class="math">\(g_1\)</span> are to be determined. Then
+Equations <a class="reference internal" href="#equation-area-cons">(4)</a> and <a class="reference internal" href="#equation-volume-cons">(5)</a> can be written as</p>
+<div class="math" id="equation-g1">
+<span class="eqno">(6)<a class="headerlink" href="#equation-g1" title="Permalink to this equation">¶</a></span>\[g_1 \frac{\eta_R^2}{2} + g_0 \eta_R = a_n,\]</div>
+<div class="math" id="equation-g1a">
+<span class="eqno">(7)<a class="headerlink" href="#equation-g1a" title="Permalink to this equation">¶</a></span>\[g_1 \frac{\eta_R^3}{3} + g_0 \frac{\eta_R^2}{2} = a_n \eta_n,\]</div>
+<p>where <span class="math">\(\eta_R = H_R - H_L\)</span> and <span class="math">\(\eta_n = h_n - H_L\)</span>. These
+equations have the solution</p>
+<div class="math" id="equation-g0">
+<span class="eqno">(8)<a class="headerlink" href="#equation-g0" title="Permalink to this equation">¶</a></span>\[g_0 = \frac{6 a_n}{\eta_R^2} \left(\frac{2 \eta_R}{3} - \eta_n\right),\]</div>
+<div class="math" id="equation-g1b">
+<span class="eqno">(9)<a class="headerlink" href="#equation-g1b" title="Permalink to this equation">¶</a></span>\[g_1 = \frac{12 a_n}{\eta_R^3} \left(\eta_n - \frac{\eta_R}{2}\right).\]</div>
+<p>Since <span class="math">\(g\)</span> is linear, its maximum and minimum values lie at the
+boundaries, <span class="math">\(\eta = 0\)</span> and <span class="math">\(\eta_R\)</span>:</p>
+<div class="math" id="equation-gmin">
+<span class="eqno">(10)<a class="headerlink" href="#equation-gmin" title="Permalink to this equation">¶</a></span>\[g(0)=\frac{6 a_n}{\eta_R^2} \, \left(\frac{2 \eta_R}{3} - \eta_n\right) = g_0,\]</div>
+<div class="math" id="equation-gmax">
+<span class="eqno">(11)<a class="headerlink" href="#equation-gmax" title="Permalink to this equation">¶</a></span>\[g(\eta_R) = \frac{6 a_n}{\eta_R^2} \, \left(\eta_n - \frac{\eta_R}{3}\right).\]</div>
+<p>Equation <a class="reference internal" href="#equation-gmin">(10)</a> implies that <span class="math">\(g(0) &lt; 0\)</span> when
+<span class="math">\(\eta_n &gt; 2 \eta_R/3\)</span>, i.e., when <span class="math">\(h_n\)</span> lies in the right
+third of the thickness range <span class="math">\((H_L, H_R)\)</span>. Similarly, Equation <a class="reference internal" href="#equation-gmax">(11)</a>
+implies that <span class="math">\(g(\eta_R) &lt; 0\)</span> when <span class="math">\(\eta_n &lt; \eta_R/3\)</span>, i.e.,
+when <span class="math">\(h_n\)</span> is in the left third of the range. Since negative
+values of <span class="math">\(g\)</span> are unphysical, a different solution is needed when
+<span class="math">\(h_n\)</span> lies outside the central third of the thickness range. If
+<span class="math">\(h_n\)</span> is in the left third of the range, we define a cutoff
+thickness, <span class="math">\(H_C = 3 h_n - 2 H_L\)</span>, and set <span class="math">\(g = 0\)</span> between
+<span class="math">\(H_C\)</span> and <span class="math">\(H_R\)</span>. Equations <a class="reference internal" href="#equation-g0">(8)</a> and <a class="reference internal" href="#equation-g1">(6)</a> are then
+valid with <span class="math">\(\eta_R\)</span> redefined as <span class="math">\(H_C - H_L\)</span>. And if
+<span class="math">\(h_n\)</span> is in the right third of the range, we define
+<span class="math">\(H_C = 3 h_n - 2 H_R\)</span> and set <span class="math">\(g = 0\)</span> between <span class="math">\(H_L\)</span>
+and <span class="math">\(H_C\)</span>. In this case, <a class="reference internal" href="#equation-g0">(8)</a> and <a class="reference internal" href="#equation-g1">(6)</a> apply with
+<span class="math">\(\eta_R = H_R - H_C\)</span> and <span class="math">\(\eta_n = h_n - H_C\)</span>.</p>
+<p><a class="reference internal" href="#fig-gplot"><span class="std std-ref">Figure 4</span></a> illustrates the linear reconstruction of <span class="math">\(g\)</span>
+for the simple cases <span class="math">\(H_L = 0\)</span>, <span class="math">\(H_R = 1\)</span>, <span class="math">\(a_n = 1\)</span>,
+and <span class="math">\(h_n =\)</span> 0.2, 0.4, 0.6, and 0.8. Note that <span class="math">\(g\)</span> slopes
+downward (<span class="math">\(g_1 &lt; 0\)</span>) when <span class="math">\(h_n\)</span> is less than the midpoint
+thickness, <span class="math">\((H_L + H_R)/2 = 1/2\)</span>, and upward when <span class="math">\(h_n\)</span>
+exceeds the midpoint thickness. For <span class="math">\(h_n = 0.2\)</span> and 0.8,
+<span class="math">\(g = 0\)</span> over part of the range.</p>
+<div class="figure align-center" id="id3">
+<span id="fig-gplot"></span><a class="reference internal image-reference" href="../_images/gplot.png"><img alt="../_images/gplot.png" src="../_images/gplot.png" style="width: 657.4px; height: 504.6px;" /></a>
+<p class="caption"><span class="caption-text">Figure 4</span></p>
+</div>
+<p><a class="reference internal" href="#fig-gplot"><span class="std std-ref">Figure 4</span></a> : Linear approximation of the thickness distribution
+function <span class="math">\(g(h)\)</span> for an ice category with left boundary
+<span class="math">\(H_L = 0\)</span>, right boundary <span class="math">\(H_R = 1\)</span>, fractional area
+<span class="math">\(a_n = 1\)</span>, and mean ice thickness <span class="math">\(h_n = 0.2, 0.4, 0.6,\)</span> and <span class="math">\(0.8\)</span>.</p>
+<p>Finally, we remap the thickness distribution to the original boundaries
+by transferring area and volume between categories. We compute the ice
+area <span class="math">\(\Delta a_n\)</span> and volume <span class="math">\(\Delta v_n\)</span> between each
+original boundary <span class="math">\(H_n\)</span> and displaced boundary <span class="math">\(H_n^*\)</span>. If
+<span class="math">\(H_n^* &gt; H_n\)</span>, ice moves from category <span class="math">\(n\)</span> to <span class="math">\(n+1\)</span>.
+The area and volume transferred are</p>
+<div class="math" id="equation-move-area">
+<span class="eqno">(12)<a class="headerlink" href="#equation-move-area" title="Permalink to this equation">¶</a></span>\[\Delta a_n = \int_{H_n}^{H_n^*} g \, dh,\]</div>
+<div class="math" id="equation-move-volume">
+<span class="eqno">(13)<a class="headerlink" href="#equation-move-volume" title="Permalink to this equation">¶</a></span>\[\Delta v_n = \int_{H_n}^{H_n^*} h \, g \, dh.\]</div>
+<p>If <span class="math">\(H_n^* &lt; H_N\)</span>, ice area and volume are transferred from
+category <span class="math">\(n+1\)</span> to <span class="math">\(n\)</span> using Equations <a class="reference internal" href="#equation-move-area">(12)</a> and
+<a class="reference internal" href="#equation-move-volume">(13)</a> with the limits of integration reversed. To evaluate
+the integrals we change coordinates from <span class="math">\(h\)</span> to
+<span class="math">\(\eta = h - H_L\)</span>, where <span class="math">\(H_L\)</span> is the left limit of the range
+over which <span class="math">\(g &gt; 0\)</span>, and write <span class="math">\(g(\eta)\)</span> using Equations <a class="reference internal" href="#equation-g0">(8)</a> and
+<a class="reference internal" href="#equation-g1">(6)</a>. In this way we obtain the new areas <span class="math">\(a_n\)</span> and volumes
+<span class="math">\(v_n\)</span> between the original boundaries <span class="math">\(H_{n-1}\)</span> and
+<span class="math">\(H_n\)</span> in each category. The new thicknesses,
+<span class="math">\(h_n = v_n/a_n\)</span>, are guaranteed to lie in the range
+<span class="math">\((H_{n-1}, H_n)\)</span>. If <span class="math">\(g = 0\)</span> in the part of a category that
+is remapped to a neighboring category, no ice is transferred.</p>
+<p>Other conserved quantities are transferred in proportion to the ice
+volume <span class="math">\(\Delta v_{in}\)</span>. For example, the transferred ice energy in
+layer <span class="math">\(k\)</span> is
+<span class="math">\(\Delta e_{ink} = e_{ink} (\Delta v_{in} / v_{in})\)</span>.</p>
+<p>The left and right boundaries of the domain require special treatment.
+If ice is growing in open water at a rate <span class="math">\(F_0\)</span>, the left boundary
+<span class="math">\(H_0\)</span> is shifted to the right by <span class="math">\(F_0 \Delta t\)</span> before
+<span class="math">\(g\)</span> is constructed in category 1, then reset to zero after the
+remapping is complete. New ice is then added to the grid cell,
+conserving area, volume, and energy. If ice cannot grow in open water
+(because the ocean is too warm or the net surface energy flux is
+downward), <span class="math">\(H_0\)</span> is fixed at zero, and the growth rate at the left
+boundary is estimated as <span class="math">\(F_0 = f_1\)</span>. If <span class="math">\(F_0 &lt; 0\)</span>, all ice
+thinner than <span class="math">\(\Delta h_0 = -F_0 \Delta t\)</span> is assumed to have
+melted, and the ice area in category 1 is reduced accordingly. The area
+of new open water is</p>
+<div class="math" id="equation-a0">
+<span class="eqno">(14)<a class="headerlink" href="#equation-a0" title="Permalink to this equation">¶</a></span>\[\Delta a_0 = \int_{0}^{\Delta h_0} g \, dh.\]</div>
+<p>The right boundary <span class="math">\(H_N\)</span> is not fixed but varies with
+<span class="math">\(h_N\)</span>, the mean ice thickness in the thickest category. Given
+<span class="math">\(h_N\)</span>, we set <span class="math">\(H_N = 3 h_N - 2 H_{N-1}\)</span>, which ensures that
+<span class="math">\(g(h) &gt; 0\)</span> for <span class="math">\(H_{N-1} &lt; h &lt; H_N\)</span> and <span class="math">\(g(h) = 0\)</span> for
+<span class="math">\(h \geq H_N\)</span>. No ice crosses the right boundary. If the ice growth
+or melt rates in a given grid cell are too large, the thickness
+remapping scheme will not work. Instead, the thickness categories in
+that grid cell are treated as delta functions following
+<a class="reference internal" href="../zreferences.html#bhwe01" id="id2">[5]</a>, and categories outside their prescribed
+boundaries are merged with neighboring categories as needed. For time
+steps of less than a day and category thickness ranges of 10 cm or more,
+this simplification is needed rarely, if ever.</p>
+<p>The linear remapping algorithm for thickness is not monotonic for
+tracers, although significant errors rarely occur. Usually they appear
+as snow temperatures (enthalpy) outside the physical range of values in
+very small snow volumes. In this case we transfer the snow and its heat
+and tracer contents to the ocean.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sg_tracers.html"
+                        title="previous chapter">2.3. Tracers</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sg_mechanical.html"
+                        title="next chapter">2.5. Mechanical redistribution</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/science_guide/sg_transport.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="sg_mechanical.html" title="2.5. Mechanical redistribution"
+             >next</a></li>
+        <li class="right" >
+          <a href="sg_tracers.html" title="2.3. Tracers"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

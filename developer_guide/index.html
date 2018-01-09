@@ -1,0 +1,132 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>4. Developer Guide &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4.1. About Development" href="dg_about.html" />
+    <link rel="prev" title="3.5. Troubleshooting" href="../user_guide/ug_troubleshooting.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="dg_about.html" title="4.1. About Development"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="../user_guide/ug_troubleshooting.html" title="3.5. Troubleshooting"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="developer-guide">
+<span id="id1"></span><h1>4. Developer Guide<a class="headerlink" href="#developer-guide" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dg_about.html">4.1. About Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dg_col_phys.html">4.2. Icepack Column Physics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dg_col_phys.html#file-list">4.2.1. File List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dg_col_phys.html#coding-standard">4.2.2. Coding Standard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dg_col_phys.html#using-icepack">4.2.3. Using Icepack</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dg_col_phys.html#interfaces">4.2.3.1. Interfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dg_col_phys.html#calling-sequence">4.2.3.2. Calling Sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dg_col_phys.html#the-warning-package">4.2.3.3. The Warning Package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dg_driver.html">4.3. Driver Implementation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dg_driver.html#file-list">4.3.1. File List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dg_driver.html#overview">4.3.2. Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dg_scripts.html">4.4. Scripts Implementation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dg_scripts.html#file-list">4.4.1. File List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dg_scripts.html#strategy">4.4.2. Strategy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dg_scripts.html#preset-case-options">4.4.3. Preset Case Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dg_scripts.html#machines">4.4.4. Machines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dg_scripts.html#test-scripts">4.4.5. Test scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dg_adding_tracers.html">4.5. Adding tracers</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../user_guide/ug_troubleshooting.html"
+                        title="previous chapter">3.5. Troubleshooting</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dg_about.html"
+                        title="next chapter">4.1. About Development</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/developer_guide/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="dg_about.html" title="4.1. About Development"
+             >next</a></li>
+        <li class="right" >
+          <a href="../user_guide/ug_troubleshooting.html" title="3.5. Troubleshooting"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

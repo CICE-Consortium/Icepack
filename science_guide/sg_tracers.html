@@ -1,0 +1,214 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.3. Tracers &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.4. Transport in thickness space" href="sg_transport.html" />
+    <link rel="prev" title="2.2. Ice thickness distribution" href="sg_itd.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="sg_transport.html" title="2.4. Transport in thickness space"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="sg_itd.html" title="2.2. Ice thickness distribution"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tracers">
+<span id="id1"></span><h1>2.3. Tracers<a class="headerlink" href="#tracers" title="Permalink to this headline">¶</a></h1>
+<p>Numerous tracers are available with the column physics.  Several of these are
+required (surface temperature and thickness, salinity and enthalpy of ice and snow layers),
+and many others are options.  For instance, there are tracers to track the age of the ice;
+the area of first-year ice, fractions of ice area and volume that are level, from which
+the amount of deformed ice can be calculated; pond area, pond volume and volume of ice covering ponds;
+aerosols and numerous other biogeochemical tracers.
+Most of these tracers are presented in later sections.  Here we describe the ice age
+tracers and how tracers may depend on other tracers, using the pond tracers as an
+example.</p>
+<div class="section" id="ice-age">
+<span id="id2"></span><h2>2.3.1. Ice age<a class="headerlink" href="#ice-age" title="Permalink to this headline">¶</a></h2>
+<p>The age of the ice, <span class="math">\(\tau_{age}\)</span>, is treated as an
+ice-volume tracer (<cite>trcr_depend</cite> = 1). It is initialized at 0 when ice
+forms as frazil, and the ice ages the length of the timestep during each
+timestep. Freezing directly onto the bottom of the ice does not affect
+the age, nor does melting. Mechanical redistribution processes and
+advection alter the age of ice in any given grid cell in a conservative
+manner following changes in ice area. The sea ice age tracer is
+validated in <a class="reference internal" href="../zreferences.html#hb09" id="id3">[20]</a>.</p>
+<p>Another age-related tracer, the area covered by first-year ice
+<span class="math">\(a_{FY}\)</span>, is an area tracer (<cite>trcr_depend</cite> = 0) that corresponds
+more closely to satellite-derived ice age data for first-year ice than
+does <span class="math">\(\tau_{age}\)</span>. It is re-initialized each year on 15
+September (<code class="docutils literal"><span class="pre">yday</span></code> = 259) in the northern hemisphere and 15 March (<code class="docutils literal"><span class="pre">yday</span></code> =
+75) in the southern hemisphere, in non-leap years. This tracer is
+increased when new ice forms in open water, in subroutine
+<em>add_new_ice</em> in <strong>icepack_therm_itd.F90</strong>. The first-year area tracer
+is discussed in <a class="reference internal" href="../zreferences.html#abth11" id="id4">[2]</a>.</p>
+</div>
+<div class="section" id="tracers-that-depend-on-other-tracers">
+<span id="pondtr"></span><h2>2.3.2. Tracers that depend on other tracers<a class="headerlink" href="#tracers-that-depend-on-other-tracers" title="Permalink to this headline">¶</a></h2>
+<p>Tracers may be defined that depend on other tracers. Melt pond tracers
+provide an example (these equations pertain to cesm and topo tracers;
+level-ice tracers are similar with an extra factor of <span class="math">\(a_{lvl}\)</span>,
+see Equations&nbsp;<a class="reference internal" href="sg_thermo.html#equation-transport-lvl">(17)</a>–<a class="reference internal" href="sg_thermo.html#equation-transport-ipnd-lvl">(20)</a>). Conservation
+equations for pond area fraction <span class="math">\(a_{pnd}a_i\)</span> and pond volume
+<span class="math">\(h_{pnd}a_{pnd}a_i\)</span>, given the ice velocity <span class="math">\(\bf u\)</span>, are</p>
+<div class="math" id="equation-transport-apnd">
+<span class="eqno">(1)<a class="headerlink" href="#equation-transport-apnd" title="Permalink to this equation">¶</a></span>\[{\partial\over\partial t} (a_{pnd}a_{i}) + \nabla \cdot (a_{pnd}a_{i} {\bf u}) = 0,\]</div>
+<div class="math" id="equation-transport-hpnd">
+<span class="eqno">(2)<a class="headerlink" href="#equation-transport-hpnd" title="Permalink to this equation">¶</a></span>\[{\partial\over\partial t} (h_{pnd}a_{pnd}a_{i}) + \nabla \cdot (h_{pnd}a_{pnd}a_{i} {\bf u}) = 0.\]</div>
+<p>These equations represent quantities within one thickness category;
+all melt pond calculations are performed for each category, separately.
+Equation <a class="reference internal" href="#equation-transport-hpnd">(2)</a> expresses conservation of melt pond
+volume, but in this form highlights that the quantity tracked in the
+code is the pond depth tracer <span class="math">\(h_{pnd}\)</span>, which depends on the pond
+area tracer <span class="math">\(a_{pnd}\)</span>. Likewise, <span class="math">\(a_{pnd}\)</span> is a tracer on
+ice area (Equation&nbsp;<a class="reference internal" href="#equation-transport-apnd">(1)</a>), which is a state variable, not a
+tracer.</p>
+<p>For a generic quantity <span class="math">\(q\)</span> that represents a mean value over the
+ice fraction, <span class="math">\(q a_i\)</span> is the average value over the grid cell.
+Thus for cesm or topo melt ponds, <span class="math">\(h_{pnd}\)</span> can be considered the
+actual pond depth, <span class="math">\(h_{pnd}a_{pnd}\)</span> is the mean pond depth over
+the sea ice, and <span class="math">\(h_{pnd}a_{pnd}a_i\)</span> is the mean pond depth over
+the grid cell. These quantities are illustrated in <a class="reference internal" href="#fig-tracers"><span class="std std-ref">Figure 1</span></a>.</p>
+<div class="figure align-center" id="id5">
+<span id="fig-tracers"></span><a class="reference internal image-reference" href="../_images/tracergraphic.png"><img alt="../_images/tracergraphic.png" src="../_images/tracergraphic.png" style="width: 588.5px; height: 324.5px;" /></a>
+<p class="caption"><span class="caption-text">Figure 1</span></p>
+</div>
+<p><a class="reference internal" href="#fig-tracers"><span class="std std-ref">Figure 1</span></a> : Melt pond tracer definitions. The graphic on the right
+illustrates the <em>grid cell</em> fraction of ponds or level ice as defined
+by the tracers. The chart on the left provides corresponding ice
+thickness and pond depth averages over the grid cell, sea ice and
+pond area fractions.</p>
+<p>Tracers may need to be modified for physical reasons outside of the
+“core” module or subroutine describing their evolution. For example,
+when new ice forms in open water, the new ice does not yet have ponds on
+it. Likewise when sea ice deforms, we assume that pond water (and ice)
+on the portion of ice that ridges is lost to the ocean.</p>
+<p>When new ice is added to a grid cell, the <em>grid cell</em> total area of melt
+ponds is preserved within each category gaining ice,
+<span class="math">\(a_{pnd}^{t+\Delta t}a_{i}^{t+\Delta t} = a_{pnd}^{t}a_{i}^{t}\)</span>,
+or</p>
+<div class="math" id="equation-apnd">
+<span class="eqno">(3)<a class="headerlink" href="#equation-apnd" title="Permalink to this equation">¶</a></span>\[a_{pnd}^{t+\Delta t}= {a_{pnd}^{t}a_{i}^{t} \over a_{i}^{t+\Delta t} }.\]</div>
+<p>Similar calculations are performed for all tracer types, for example
+tracer-on-tracer dependencies such as <span class="math">\(h_{pnd}\)</span>, when needed:</p>
+<div class="math" id="equation-hpnd">
+<span class="eqno">(4)<a class="headerlink" href="#equation-hpnd" title="Permalink to this equation">¶</a></span>\[h_{pnd}^{t+\Delta t}= {h_{pnd}^{t}a_{pnd}^{t}a_{i}^{t} \over a_{pnd}^{t+\Delta t}a_{i}^{t+\Delta t} }.\]</div>
+<p>In this case (adding new ice), <span class="math">\(h_{pnd}\)</span> does not change because
+<span class="math">\(a_{pnd}^{t+\Delta t}a_{i}^{t+\Delta t} = a_{pnd}^{t}a_{i}^{t}\)</span>.</p>
+<p>When ice is transferred between two thickness categories, we conserve
+the total pond area summed over categories <span class="math">\(n\)</span>,</p>
+<div class="math" id="equation-apnd2">
+<span class="eqno">(5)<a class="headerlink" href="#equation-apnd2" title="Permalink to this equation">¶</a></span>\[\sum_n a_{pnd}^{t+\Delta t}(n)a_{i}^{t+\Delta t}(n) = \sum_n a_{pnd}^{t}(n)a_{i}^{t}(n).\]</div>
+<p>Thus,</p>
+<div class="math" id="equation-apnd3">
+<span class="eqno">(6)<a class="headerlink" href="#equation-apnd3" title="Permalink to this equation">¶</a></span>\[\begin{split}a_{pnd}^{t+\Delta t}(m) &amp;= {\sum_n a_{pnd}^{t}(n)a_{i}^{t}(n) - \sum_{n\ne m} a_{pnd}^{t+\Delta t}(n)a_{i}^{t+\Delta t}(n) \over a_i^{t+\Delta t}(m)  } \\
+&amp;= {a_{pnd}^t(m)a_i^t(m) + \sum_{n\ne m} \Delta \left(a_{pnd}a_i\right)^{t+\Delta t} \over a_i^{t+\Delta t}(m)  }\end{split}\]</div>
+<p>This is more complicated because of the <span class="math">\(\Delta\)</span> term on the
+right-hand side, which is handled in subroutine <em>icepack_compute_tracers</em>. Such
+tracer calculations are scattered throughout the code, wherever there
+are changes to the ice thickness distribution.</p>
+<p>Note that if a quantity such as <span class="math">\(a_{pnd}\)</span> becomes zero in a grid
+cell’s thickness category, then all tracers that depend on it also
+become zero. If a tracer should be conserved (e.g., aerosols and the
+liquid water in topo ponds), additional code must be added to track
+changes in the conserved quantity.</p>
+<p>More information about the melt pond schemes is in the
+<a class="reference internal" href="sg_thermo.html#ponds"><span class="std std-ref">Melt ponds</span></a> section.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">2.3. Tracers</a><ul>
+<li><a class="reference internal" href="#ice-age">2.3.1. Ice age</a></li>
+<li><a class="reference internal" href="#tracers-that-depend-on-other-tracers">2.3.2. Tracers that depend on other tracers</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sg_itd.html"
+                        title="previous chapter">2.2. Ice thickness distribution</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sg_transport.html"
+                        title="next chapter">2.4. Transport in thickness space</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/science_guide/sg_tracers.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="sg_transport.html" title="2.4. Transport in thickness space"
+             >next</a></li>
+        <li class="right" >
+          <a href="sg_itd.html" title="2.2. Ice thickness distribution"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

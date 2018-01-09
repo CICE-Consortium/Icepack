@@ -1,0 +1,210 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>3.5. Troubleshooting &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4. Developer Guide" href="../developer_guide/index.html" />
+    <link rel="prev" title="3.4. Case Settings" href="ug_case_settings.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../developer_guide/index.html" title="4. Developer Guide"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="ug_case_settings.html" title="3.4. Case Settings"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="troubleshooting">
+<span id="id1"></span><h1>3.5. Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h1>
+<p>Check the FAQ: <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki">https://github.com/CICE-Consortium/Icepack/wiki</a></p>
+<div class="section" id="initial-setup">
+<span id="setup"></span><h2>3.5.1. Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h2>
+<p>If there are problems, you can manually edit
+the env, Macros, and <strong>icepack.run</strong> files in the case directory until things are
+working properly.  Then you can copy the env and Macros files back to
+<strong>configuration/scripts/machines</strong>.</p>
+<ul class="simple">
+<li>Changes made directly in the run directory, e.g. to the namelist file, will be overwritten
+if scripts in the case directory are run again later.</li>
+<li>If changes are needed in the <strong>icepack.run.setup.csh</strong> script, it must be manually modified.</li>
+</ul>
+</div>
+<div class="section" id="restarts">
+<span id="restarttrouble"></span><h2>3.5.2. Restarts<a class="headerlink" href="#restarts" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Manual restart tests require the path to the restart file be included in <code class="docutils literal"><span class="pre">ice_in</span></code> in the
+namelist file.</li>
+<li>Ensure that <code class="docutils literal"><span class="pre">kcatbound</span></code> is the same as that used to create the restart file.
+Other configuration parameters, such as <code class="docutils literal"><span class="pre">NICELYR</span></code>, must also be consistent between runs.</li>
+</ul>
+</div>
+<div class="section" id="underflows">
+<span id="testtrouble"></span><h2>3.5.3. Underflows<a class="headerlink" href="#underflows" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Tests using a debug flag that traps underflows will fail unless a “flush-to-zero” flag
+is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
+radiation scheme.</li>
+</ul>
+</div>
+<div class="section" id="debugging-hints">
+<h2>3.5.4. Debugging hints<a class="headerlink" href="#debugging-hints" title="Permalink to this headline">¶</a></h2>
+<p>CHECK write utility in column physics interface, for checking parameter values</p>
+<p>A printing utility is available in the driver that can be helpful when debugging the
+code. Not all of these will work everywhere in the code, due to possible
+conflicts in module dependencies.</p>
+<dl class="docutils">
+<dt><em>debug_icepack</em> (<strong>configuration/driver/ice_diagnostics.F90</strong>)</dt>
+<dd>A wrapper for <em>print_state</em> that is easily called from numerous
+points during initialization and the timestepping loop</dd>
+<dt><em>print_state</em> (<strong>configuration/driver/ice_diagnostics.F90</strong>)</dt>
+<dd>Print the ice state and forcing fields for a given grid cell.</dd>
+</dl>
+</div>
+<div class="section" id="known-bugs-and-other-issues">
+<h2>3.5.5. Known bugs and other issues<a class="headerlink" href="#known-bugs-and-other-issues" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>With the old CCSM radiative scheme (<code class="docutils literal"><span class="pre">shortwave</span></code> = ‘default’ or
+‘ccsm3’), a sizable fraction (more than 10%) of the total shortwave
+radiation is absorbed at the surface but should be penetrating into
+the ice interior instead. This is due to use of the aggregated,
+effective albedo rather than the bare ice albedo
+when <code class="docutils literal"><span class="pre">snowpatch</span></code> &lt; 1.</li>
+<li>The linear remapping algorithm for thickness is not monotonic for tracers.</li>
+</ul>
+</div>
+<div class="section" id="interpretation-of-albedos">
+<h2>3.5.6. Interpretation of albedos<a class="headerlink" href="#interpretation-of-albedos" title="Permalink to this headline">¶</a></h2>
+<p>The snow-and-ice albedo, <code class="docutils literal"><span class="pre">albsni</span></code>, and diagnostic albedos <code class="docutils literal"><span class="pre">albice</span></code>, <code class="docutils literal"><span class="pre">albsno</span></code>,
+and <code class="docutils literal"><span class="pre">albpnd</span></code> are merged over categories but not scaled (divided) by the
+total ice area. (This is a change from CICE v4.1 for <code class="docutils literal"><span class="pre">albsni</span></code>.) The latter
+three history variables represent completely bare or completely snow- or
+melt-pond-covered ice; that is, they do not take into account the snow
+or melt pond fraction (<code class="docutils literal"><span class="pre">albsni</span></code> does, as does the code itself during
+thermodyamic computations). This is to facilitate comparison with
+typical values in measurements or other albedo parameterizations. The
+melt pond albedo <code class="docutils literal"><span class="pre">albpnd</span></code> is only computed for the Delta-Eddington
+shortwave case.</p>
+<p>With the Delta-Eddington parameterization, the albedo depends on the
+cosine of the zenith angle (<span class="math">\(\cos\varphi\)</span>, <code class="docutils literal"><span class="pre">coszen</span></code>) and is zero if
+the sun is below the horizon (<span class="math">\(\cos\varphi &lt; 0\)</span>). Therefore
+time-averaged albedo fields would be low if a diurnal solar cycle is
+used, because zero values would be included in the average for half of
+each 24-hour period. To rectify this, a separate counter is used for the
+averaging that is incremented only when <span class="math">\(\cos\varphi &gt; 0\)</span>. The
+albedos will still be zero in the dark, polar winter hemisphere.</p>
+</div>
+<div class="section" id="proliferating-subprocess-parameterizations">
+<h2>3.5.7. Proliferating subprocess parameterizations<a class="headerlink" href="#proliferating-subprocess-parameterizations" title="Permalink to this headline">¶</a></h2>
+<p>With the addition of several alternative parameterizations for sea ice
+processes, a number of subprocesses now appear in multiple parts of the
+code with differing descriptions. For instance, sea ice porosity and
+permeability, along with associated flushing and flooding, are
+calculated separately for mushy thermodynamics, topo and level-ice melt
+ponds, and for the brine height tracer, each employing its own
+equations. Likewise, the BL99 and mushy thermodynamics compute freeboard
+and snow–ice formation differently, and the topo and level-ice melt pond
+schemes both allow fresh ice to grow atop melt ponds, using slightly
+different formulations for Stefan freezing. These various process
+parameterizations will be compared and their subprocess descriptions
+possibly unified in the future.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">3.5. Troubleshooting</a><ul>
+<li><a class="reference internal" href="#initial-setup">3.5.1. Initial setup</a></li>
+<li><a class="reference internal" href="#restarts">3.5.2. Restarts</a></li>
+<li><a class="reference internal" href="#underflows">3.5.3. Underflows</a></li>
+<li><a class="reference internal" href="#debugging-hints">3.5.4. Debugging hints</a></li>
+<li><a class="reference internal" href="#known-bugs-and-other-issues">3.5.5. Known bugs and other issues</a></li>
+<li><a class="reference internal" href="#interpretation-of-albedos">3.5.6. Interpretation of albedos</a></li>
+<li><a class="reference internal" href="#proliferating-subprocess-parameterizations">3.5.7. Proliferating subprocess parameterizations</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ug_case_settings.html"
+                        title="previous chapter">3.4. Case Settings</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../developer_guide/index.html"
+                        title="next chapter">4. Developer Guide</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/user_guide/ug_troubleshooting.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../developer_guide/index.html" title="4. Developer Guide"
+             >next</a></li>
+        <li class="right" >
+          <a href="ug_case_settings.html" title="3.4. Case Settings"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,175 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>4.5. Adding tracers &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="5. Index of primary variables and parameters" href="../icepack_index.html" />
+    <link rel="prev" title="4.4. Scripts Implementation" href="dg_scripts.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../icepack_index.html" title="5. Index of primary variables and parameters"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="dg_scripts.html" title="4.4. Scripts Implementation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">4. Developer Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="adding-tracers">
+<span id="addtrcr"></span><h1>4.5. Adding tracers<a class="headerlink" href="#adding-tracers" title="Permalink to this headline">¶</a></h1>
+<p>We require that any changes made to the code be implemented in such a way that they can
+be “turned off” through namelist flags.  In most cases, code run with such changes should
+be bit-for-bit identical with the unmodified code.  Occasionally, non-bit-for-bit changes
+are necessary, e.g. associated with an unavoidable change in the order of operations. In
+these cases, changes should be made in stages to isolate the non-bit-for-bit changes,
+so that those that should be bit-for-bit can be tested separately.</p>
+<p>Tracers added to Icepack will also require extensive modifications to the host
+sea ice model, including initialization on the horizontal grid, namelist flags
+and restart capabilities.  Modifications to the Icepack driver should reflect
+the modifications needed in the host model but are not expected to match completely.
+We recommend that the logical namelist variable
+<code class="docutils literal"><span class="pre">tr_[tracer]</span></code> be used for all calls involving the new tracer outside of
+<strong>ice_[tracer].F90</strong>, in case other users do not want to use that
+tracer.</p>
+<p>A number of optional tracers are available in the code, including ice
+age, first-year ice area, melt pond area and volume, brine height,
+aerosols, and level ice area and volume (from which ridged ice
+quantities are derived). Salinity, enthalpies, age, aerosols, level-ice
+volume, brine height and most melt pond quantities are volume-weighted
+tracers, while first-year area, pond area, level-ice area and all of the
+biogeochemistry tracers in this release are area-weighted tracers. In
+the absence of sources and sinks, the total mass of a volume-weighted
+tracer such as aerosol (kg) is conserved under transport in horizontal
+and thickness space (the mass in a given grid cell will change), whereas
+the aerosol concentration (kg/m) is unchanged following the motion, and
+in particular, the concentration is unchanged when there is surface or
+basal melting. The proper units for a volume-weighted mass tracer in the
+tracer array are kg/m.</p>
+<p>In several places in the code, tracer computations must be performed on
+the conserved “tracer volume” rather than the tracer itself; for
+example, the conserved quantity is <span class="math">\(h_{pnd}a_{pnd}a_{lvl}a_{i}\)</span>,
+not <span class="math">\(h_{pnd}\)</span>. Conserved quantities are thus computed according to
+the tracer dependencies, and code must be included to account for new
+dependencies (e.g., <span class="math">\(a_{lvl}\)</span> and <span class="math">\(a_{pnd}\)</span> in
+<strong>ice_itd.F90</strong> and <strong>ice_mechred.F90</strong>).</p>
+<p>To add a tracer, follow these steps using one of the existing tracers as
+a pattern.</p>
+<ol class="arabic simple">
+<li><strong>icedrv_domain_size.F90</strong>: increase <code class="docutils literal"><span class="pre">max_ntrcr</span></code> (can also add option
+to <strong>icepack.settings</strong> and <strong>icepack.build</strong>)</li>
+<li><strong>icedrv_state.F90</strong>: declare <code class="docutils literal"><span class="pre">nt_[tracer]</span></code> and <code class="docutils literal"><span class="pre">tr_[tracer]</span></code></li>
+<li><strong>icepack_[tracer].F90</strong>: create initialization, physics routines</li>
+<li><strong>ice_drv_init.F90</strong>: (some of this may be done in <strong>ice_[tracer].F90</strong>
+instead)<ul>
+<li>add new module and <code class="docutils literal"><span class="pre">tr_[tracer]</span></code> to list of used modules and
+variables</li>
+<li>add logical namelist variable <code class="docutils literal"><span class="pre">tr_[tracer]</span></code></li>
+<li>initialize namelist variable</li>
+<li>print namelist variable to diagnostic output file</li>
+<li>increment number of tracers in use based on namelist input (<code class="docutils literal"><span class="pre">ntrcr</span></code>)</li>
+<li>define tracer types (<code class="docutils literal"><span class="pre">trcr_depend</span></code> = 0 for ice area tracers, 1 for
+ice volume, 2 for snow volume, 2+``nt_``[tracer] for dependence on
+other tracers)</li>
+</ul>
+</li>
+<li><strong>icepack_itd.F90</strong>, <strong>icepack_mechred.F90</strong>: Account for new dependencies
+if needed.</li>
+<li><strong>icedrv_InitMod.F90</strong>: initialize tracer (includes reading restart
+file)</li>
+<li><strong>icedrv_RunMod.F90</strong>, <strong>icedrv_step_mod.F90</strong>:<ul>
+<li>call routine to write tracer restart data</li>
+<li>call physics routines in <strong>icepack_[tracer].F90</strong> (often called from
+<strong>icedrv_step_mod.F90</strong>)</li>
+</ul>
+</li>
+<li><strong>icedrv_restart.F90</strong>: define restart variables</li>
+<li><strong>icepack_in</strong>: add namelist variables to <em>tracer_nml</em> and
+<em>icefields_nml</em></li>
+<li>If strict conservation is necessary, add diagnostics as noted for
+topo ponds in Section&nbsp;<a class="reference internal" href="../science_guide/sg_thermo.html#ponds"><span class="std std-ref">Melt ponds</span></a>.</li>
+</ol>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dg_scripts.html"
+                        title="previous chapter">4.4. Scripts Implementation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../icepack_index.html"
+                        title="next chapter">5. Index of primary variables and parameters</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/developer_guide/dg_adding_tracers.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../icepack_index.html" title="5. Index of primary variables and parameters"
+             >next</a></li>
+        <li class="right" >
+          <a href="dg_scripts.html" title="4.4. Scripts Implementation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >4. Developer Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

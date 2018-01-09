@@ -1,0 +1,152 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>4.3. Driver Implementation &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4.4. Scripts Implementation" href="dg_scripts.html" />
+    <link rel="prev" title="4.2. Icepack Column Physics" href="dg_col_phys.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="dg_scripts.html" title="4.4. Scripts Implementation"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="dg_col_phys.html" title="4.2. Icepack Column Physics"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">4. Developer Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="driver-implementation">
+<span id="dev-driver"></span><h1>4.3. Driver Implementation<a class="headerlink" href="#driver-implementation" title="Permalink to this headline">¶</a></h1>
+<p>The icepack driver is Fortran source code and exists to test the column physics
+in a stand-alone mode for some simple column configurations.</p>
+<div class="section" id="file-list">
+<h2>4.3.1. File List<a class="headerlink" href="#file-list" title="Permalink to this headline">¶</a></h2>
+<p>The icepack driver consists of the following files</p>
+<div class="line-block">
+<div class="line"><strong>configuration/driver/</strong>       driver for testing Icepack in stand-alone mode</div>
+<div class="line-block">
+<div class="line"><strong>icedrv_MAIN.F90</strong>        main program</div>
+<div class="line"><strong>icedrv_InitMod.F90</strong>     routines for initializing a run</div>
+<div class="line"><strong>icedrv_RunMod.F90</strong>      main driver routines for time stepping</div>
+<div class="line"><strong>icedrv_arrays_column.F90</strong>    essential arrays to describe the state of the ice</div>
+<div class="line"><strong>icedrv_calendar.F90</strong>    keeps track of what time it is</div>
+<div class="line"><strong>icedrv_constants.F90</strong>   physical and numerical constants and parameters</div>
+<div class="line"><strong>icedrv_diagnostics.F90</strong> miscellaneous diagnostic and debugging routines</div>
+<div class="line"><strong>icedrv_diagnostics_bgc.F90</strong>  diagnostic routines for biogeochemistry</div>
+<div class="line"><strong>icedrv_domain_size.F90</strong> domain sizes</div>
+<div class="line"><strong>icedrv_flux.F90</strong>        fluxes needed/produced by the model</div>
+<div class="line"><strong>icedrv_forcing.F90</strong>     routines to read and interpolate forcing data for stand-alone model runs</div>
+<div class="line"><strong>icedrv_forcing_bgc.F90</strong> routines to read and interpolate forcing data for bgc stand-alone model runs</div>
+<div class="line"><strong>icedrv_init.F90</strong>        general initialization routines</div>
+<div class="line"><strong>icedrv_init_column.F90</strong> initialization routines specific to the column physics</div>
+<div class="line"><strong>icedrv_restart.F90</strong>     driver for reading/writing restart files</div>
+<div class="line"><strong>icedrv_restart_column.F90</strong>  (CHECK: RENAME bgc) restart routines specific to the column physics</div>
+<div class="line"><strong>icedrv_restart_shared.F90</strong>  code shared by all restart options</div>
+<div class="line"><strong>icedrv_state.F90</strong>       essential arrays to describe the state of the ice</div>
+<div class="line"><strong>icedrv_step.F90</strong>        routines for time stepping the major code components</div>
+<div class="line"><strong>icedrv_system.F90</strong>      overall system management calls</div>
+</div>
+</div>
+</div>
+<div class="section" id="overview">
+<h2>4.3.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The icepack driver exists to test the column physics.  At the present time, it is hardwired
+to run 4 different gridcells on one processor with the same forcing used for all gridcells.
+There is no MPI and no threading built into the icepack driver.  There is limited IO capabilities,
+no history files, and no netcdf restart files.  The model generally runs very quickly.</p>
+<p>There are a few different forcings available.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">4.3. Driver Implementation</a><ul>
+<li><a class="reference internal" href="#file-list">4.3.1. File List</a></li>
+<li><a class="reference internal" href="#overview">4.3.2. Overview</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dg_col_phys.html"
+                        title="previous chapter">4.2. Icepack Column Physics</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dg_scripts.html"
+                        title="next chapter">4.4. Scripts Implementation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/developer_guide/dg_driver.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="dg_scripts.html" title="4.4. Scripts Implementation"
+             >next</a></li>
+        <li class="right" >
+          <a href="dg_col_phys.html" title="4.2. Icepack Column Physics"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >4. Developer Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Los Alamos National Security, LLC (code) and National Center for Atmospheric Research (documentation).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

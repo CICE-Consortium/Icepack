@@ -5,12 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>1. Developers Guide &#8212; CICE-Consortium_Icepack 0.0.1 documentation</title>
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <title>4.2. Icepack Column Physics &#8212; Icepack 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
+        URL_ROOT:    '../',
         VERSION:     '0.0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
@@ -18,25 +18,26 @@
         SOURCELINK_SUFFIX: '.txt'
       };
     </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="1. Index of primary variables and parameters" href="icepack_5_index.html" />
-    <link rel="prev" title="1. User Guide" href="icepack_3_user_guide.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4.3. Driver Implementation" href="dg_driver.html" />
+    <link rel="prev" title="4.1. About Development" href="dg_about.html" /> 
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="icepack_5_index.html" title="1. Index of primary variables and parameters"
+          <a href="dg_driver.html" title="4.3. Driver Implementation"
              accesskey="N">next</a></li>
         <li class="right" >
-          <a href="icepack_3_user_guide.html" title="1. User Guide"
+          <a href="dg_about.html" title="4.1. About Development"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium_Icepack 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">4. Developer Guide</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -45,37 +46,10 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="developers-guide">
-<h1>1. Developers Guide<a class="headerlink" href="#developers-guide" title="Permalink to this headline">¶</a></h1>
-<p>The Icepack model consists of three different parts, the column physics
-code, the icepack driver, and the scripts.  Development of each of these
-pieces will be described below separately.</p>
-<p>Subroutine calls and other linkages into Icepack from the host model should only
-need to access the <strong>icepack_intfc*.F90</strong> interface modules within the
-<code class="docutils literal"><span class="pre">columnphysics/</span></code> directory.
-The Icepack driver in the <code class="docutils literal"><span class="pre">configuration/driver/</span></code> directory is based on the CICE
-model and provides an example of the sea ice host model capabilities needed for inclusion
-of Icepack.  In particular, host models will need to include code equivalent to that
-in the modules <strong>icedrv_*_column.F90</strong>.  Calls into the Icepack interface routines
-are primarily from <strong>icedrv_step_mod.F90</strong> but there are others (search the driver code
-for <code class="docutils literal"><span class="pre">intfc</span></code>).</p>
-<p>Guiding principles for the creation of Icepack include the following:
-CHECK THAT THESE ARE TRUE</p>
-<ul class="simple">
-<li>The column physics modules shall be independent of all sea ice model infrastructural
-elements that may vary from model to model.  Examples include input/output, timers,
-references to CPUs or computational tasks, initialization other than that necessary for
-strictly physical reasons, and anything related to a horizontal grid.</li>
-<li>The column physics modules shall not call or reference any routines or code that
-reside outside of the <strong>columnphysics/</strong> directory.</li>
-<li>Any capabilities required by a host sea ice model (e.g. calendar variables, tracer
-flags, diagnostics) shall be implemented in the driver and passed into or out of the
-column physics modules via array arguments.</li>
-</ul>
-<div class="section" id="icepack-column-physics">
-<span id="dev-colphys"></span><h2>1.1. Icepack Column Physics<a class="headerlink" href="#icepack-column-physics" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="icepack-column-physics">
+<span id="dev-colphys"></span><h1>4.2. Icepack Column Physics<a class="headerlink" href="#icepack-column-physics" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="file-list">
-<h3>1.1.1. File List<a class="headerlink" href="#file-list" title="Permalink to this headline">¶</a></h3>
+<h2>4.2.1. File List<a class="headerlink" href="#file-list" title="Permalink to this headline">¶</a></h2>
 <p>The column physics source code contains the following files</p>
 <div class="line-block">
 <div class="line"><strong>columnphysics/</strong>   the column physics code</div>
@@ -100,22 +74,22 @@ column physics modules via array arguments.</li>
 <div class="line"><strong>icepack_orbital.F90</strong>       orbital parameters for Delta-Eddington shortwave parameterization</div>
 <div class="line"><strong>icepack_parameters.F90</strong>    basic model parameters</div>
 <div class="line"><strong>icepack_shortwave.F90</strong>     shortwave and albedo parameterizations</div>
-<div class="line"><strong>icepack_therm_0layer.F90</strong>  zero-layer thermodynamics of <a class="reference internal" href="zreferences.html#semtner76" id="id1">[40]</a></div>
-<div class="line"><strong>icepack_therm_bl99.F90</strong>    multilayer thermodynamics of <a class="reference internal" href="zreferences.html#bl99" id="id2">[6]</a></div>
+<div class="line"><strong>icepack_therm_0layer.F90</strong>  zero-layer thermodynamics of <a class="reference internal" href="../zreferences.html#semtner76" id="id1">[40]</a></div>
+<div class="line"><strong>icepack_therm_bl99.F90</strong>    multilayer thermodynamics of <a class="reference internal" href="../zreferences.html#bl99" id="id2">[6]</a></div>
 <div class="line"><strong>icepack_therm_itd.F90</strong>     thermodynamic changes mostly related to ice thickness distribution</div>
-<div class="line"><strong>icepack_therm_mushy.F90</strong>   mushy-theory thermodynamics of <a class="reference internal" href="zreferences.html#thb13" id="id3">[47]</a></div>
+<div class="line"><strong>icepack_therm_mushy.F90</strong>   mushy-theory thermodynamics of <a class="reference internal" href="../zreferences.html#thb13" id="id3">[47]</a></div>
 <div class="line"><strong>icepack_therm_shared.F90</strong>  code shared by all thermodynamics parameterizations</div>
 <div class="line"><strong>icepack_therm_vertical.F90</strong>  vertical growth rates and fluxes</div>
 <div class="line"><strong>icepack_tracers.F90</strong>       tracer information</div>
 <div class="line"><strong>icepack_warnings.F90</strong>      utilities for writing warning and error messages</div>
 <div class="line"><strong>icepack_zbgc.F90</strong>          driver for ice biogeochemistry and brine tracer motion</div>
 <div class="line"><strong>icepack_zbgc_shared.F90</strong>   parameters and shared code for biogeochemistry and brine height</div>
-<div class="line"><strong>icepack_zsalinity.F90</strong>     vertical salinity parameterization of <a class="reference internal" href="zreferences.html#jhe11" id="id4">[22]</a></div>
+<div class="line"><strong>icepack_zsalinity.F90</strong>     vertical salinity parameterization of <a class="reference internal" href="../zreferences.html#jhe11" id="id4">[22]</a></div>
 </div>
 </div>
 </div>
 <div class="section" id="coding-standard">
-<h3>1.1.2. Coding Standard<a class="headerlink" href="#coding-standard" title="Permalink to this headline">¶</a></h3>
+<h2>4.2.2. Coding Standard<a class="headerlink" href="#coding-standard" title="Permalink to this headline">¶</a></h2>
 <p>The column physics is a library that solves the sea ice column physics on a
 timestep by timestep and gridpoint by gridpoint basis.  It consists of Fortran routines with
 input and output arguments.  The model state is saved in the host model.  There is no
@@ -144,11 +118,11 @@ there is an ongoing effort to make more of the interfaces support keyword=value 
 for clarity and backwards compatibility.</p>
 </div>
 <div class="section" id="using-icepack">
-<h3>1.1.3. Using Icepack<a class="headerlink" href="#using-icepack" title="Permalink to this headline">¶</a></h3>
+<h2>4.2.3. Using Icepack<a class="headerlink" href="#using-icepack" title="Permalink to this headline">¶</a></h2>
 <p>In this section, the various public icepack interfaces will be defined and
 how to use them will be described.</p>
 <div class="section" id="interfaces">
-<h4>1.1.3.1. Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h4>
+<h3>4.2.3.1. Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h3>
 <p>Column physics data and subroutines are made public thru the <strong>icepack_intfc.F90</strong>
 file.  That file contains the entire list of data and subroutines needed to
 initialize, setup, and run the column physics package.  That file points
@@ -294,7 +268,7 @@ first:</p>
 </div>
 </div>
 <div class="section" id="calling-sequence">
-<h4>1.1.3.2. Calling Sequence<a class="headerlink" href="#calling-sequence" title="Permalink to this headline">¶</a></h4>
+<h3>4.2.3.2. Calling Sequence<a class="headerlink" href="#calling-sequence" title="Permalink to this headline">¶</a></h3>
 <p>The calling sequence required to setup and run the column physics is generally
 described below.  Several steps may be needed to be taken by the host between
 icepack calls in order to support the icepack interfaces.
@@ -335,7 +309,7 @@ end loop over timesteps</p>
 <p>end driver</p>
 </div>
 <div class="section" id="the-warning-package">
-<span id="warning"></span><h4>1.1.3.3. The Warning Package<a class="headerlink" href="#the-warning-package" title="Permalink to this headline">¶</a></h4>
+<span id="warning"></span><h3>4.2.3.3. The Warning Package<a class="headerlink" href="#the-warning-package" title="Permalink to this headline">¶</a></h3>
 <p>Icepack has no IO capabilities.  It does not have direct knowledge of
 any input or output files.  However, it can write output thru specific
 interfaces that pass in a fortran file unit number.  There are several
@@ -362,209 +336,6 @@ out the icepack warning messages.</p>
 </div>
 </div>
 </div>
-<div class="section" id="driver-implementation">
-<span id="dev-driver"></span><h2>1.2. Driver Implementation<a class="headerlink" href="#driver-implementation" title="Permalink to this headline">¶</a></h2>
-<p>The icepack driver is Fortran source code and exists to test the column physics
-in a stand-alone mode for some simple column configurations.</p>
-<div class="section" id="id5">
-<h3>1.2.1. File List<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<p>The icepack driver consists of the following files</p>
-<div class="line-block">
-<div class="line"><strong>configuration/driver/</strong>       driver for testing Icepack in stand-alone mode</div>
-<div class="line-block">
-<div class="line"><strong>icedrv_MAIN.F90</strong>        main program</div>
-<div class="line"><strong>icedrv_InitMod.F90</strong>     routines for initializing a run</div>
-<div class="line"><strong>icedrv_RunMod.F90</strong>      main driver routines for time stepping</div>
-<div class="line"><strong>icedrv_arrays_column.F90</strong>    essential arrays to describe the state of the ice</div>
-<div class="line"><strong>icedrv_calendar.F90</strong>    keeps track of what time it is</div>
-<div class="line"><strong>icedrv_constants.F90</strong>   physical and numerical constants and parameters</div>
-<div class="line"><strong>icedrv_diagnostics.F90</strong> miscellaneous diagnostic and debugging routines</div>
-<div class="line"><strong>icedrv_diagnostics_bgc.F90</strong>  diagnostic routines for biogeochemistry</div>
-<div class="line"><strong>icedrv_domain_size.F90</strong> domain sizes</div>
-<div class="line"><strong>icedrv_flux.F90</strong>        fluxes needed/produced by the model</div>
-<div class="line"><strong>icedrv_forcing.F90</strong>     routines to read and interpolate forcing data for stand-alone model runs</div>
-<div class="line"><strong>icedrv_forcing_bgc.F90</strong> routines to read and interpolate forcing data for bgc stand-alone model runs</div>
-<div class="line"><strong>icedrv_init.F90</strong>        general initialization routines</div>
-<div class="line"><strong>icedrv_init_column.F90</strong> initialization routines specific to the column physics</div>
-<div class="line"><strong>icedrv_restart.F90</strong>     driver for reading/writing restart files</div>
-<div class="line"><strong>icedrv_restart_column.F90</strong>  (CHECK: RENAME bgc) restart routines specific to the column physics</div>
-<div class="line"><strong>icedrv_restart_shared.F90</strong>  code shared by all restart options</div>
-<div class="line"><strong>icedrv_state.F90</strong>       essential arrays to describe the state of the ice</div>
-<div class="line"><strong>icedrv_step.F90</strong>        routines for time stepping the major code components</div>
-<div class="line"><strong>icedrv_system.F90</strong>      overall system management calls</div>
-</div>
-</div>
-</div>
-<div class="section" id="overview">
-<h3>1.2.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
-<p>The icepack driver exists to test the column physics.  At the present time, it is hardwired
-to run 4 different gridcells on one processor with the same forcing used for all gridcells.
-There is no MPI and no threading built into the icepack driver.  There is limited IO capabilities,
-no history files, and no netcdf restart files.  The model generally runs very quickly.</p>
-<p>There are a few different forcings available.</p>
-</div>
-</div>
-<div class="section" id="scripts-implementation">
-<span id="dev-scripts"></span><h2>1.3. Scripts Implementation<a class="headerlink" href="#scripts-implementation" title="Permalink to this headline">¶</a></h2>
-<p>The scripts are the third part of the icepack package.  They support setting up
-cases, building, and running the icepack stand-alone model.</p>
-<div class="section" id="id6">
-<h3>1.3.1. File List<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
-<p>The directory structure under configure/scripts is as follows.</p>
-<div class="line-block">
-<div class="line"><strong>configuration/scripts/</strong></div>
-<div class="line-block">
-<div class="line"><strong>Makefile</strong>              primary makefile</div>
-<div class="line"><strong>icepack.batch.csh</strong>     creates batch scripts for particular machines</div>
-<div class="line"><strong>icepack.build</strong>         compiles the code</div>
-<div class="line"><strong>icepack.launch.csh</strong>    creates script logic that runs the executable</div>
-<div class="line"><strong>icepack.run.setup.csh</strong> sets up the run scripts</div>
-<div class="line"><strong>icepack.run.suite.csh</strong> sets up the test suite</div>
-<div class="line"><strong>icepack.settings</strong>      defines environment, model configuration and run settings</div>
-<div class="line"><strong>icepack.test.setup.csh</strong>   creates configurations for testing the model</div>
-<div class="line"><strong>icepack_decomp.csh</strong>    defines the grid size</div>
-<div class="line"><strong>icepack_in</strong>            namelist input data</div>
-<div class="line"><strong>machines/</strong>             machine specific files to set env and Macros</div>
-<div class="line"><strong>makdep.c</strong>              determines module dependencies</div>
-<div class="line"><strong>options/</strong>              other namelist configurations available from the icepack.create.case command line</div>
-<div class="line"><strong>parse_namelist.sh</strong>     replaces namelist with command-line configuration</div>
-<div class="line"><strong>parse_namelist_from_settings.sh</strong>   replaces namelist with values from icepack.settings</div>
-<div class="line"><strong>parse_settings.sh</strong>     replaces settings with command-line configuration</div>
-<div class="line"><strong>tests/</strong>                scripts for configuring and running basic tests</div>
-</div>
-</div>
-</div>
-<div class="section" id="strategy">
-<span id="dev-strategy"></span><h3>1.3.2. Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
-<p>The icepack scripts are implemented such that everything is resolved after
-<strong>icepack.create.case</strong> is called.  This is done by both copying specific files
-into the case directory and running scripts as part of the <strong>icepack.create.case</strong>
-command line to setup various files.</p>
-<p><strong>icepack.create.case</strong> drives the case setup.  It is written in csh.  All supporting
-scripts are relatively simple csh or sh scripts.</p>
-<p>The file <strong>icepack.settings</strong> specifies a set of env defaults for the case.  The file
-<strong>icepack_in</strong> defines the namelist input for the icepack driver.</p>
-</div>
-<div class="section" id="preset-case-options">
-<span id="dev-options"></span><h3>1.3.3. Preset Case Options<a class="headerlink" href="#preset-case-options" title="Permalink to this headline">¶</a></h3>
-<p><code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-s</span></code> option allows the user to choose some predetermined icepack
-settings and namelist.  Those options are defined in <strong>configurations/scripts/options/</strong>
-and the files are prefixed by either set_env, set_nml, or test_nml.  When <strong>icepack.create.case</strong>
-is executed, the appropriate files are read from <strong>configurations/scripts/options/</strong>
-and the <strong>icepack.settings</strong> and/or <strong>icepack_in</strong> files are updated in the case directory
-based on the values in those files.</p>
-<p>The filename suffix determines the name of the -s option.  So, for instance,</p>
-<blockquote>
-<div><code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-s</span> <span class="pre">diag1,debug,bgcISPOL</span></code></div></blockquote>
-<p>will search for option files with suffixes of diag1, debug, and bgcISPOL and then
-apply those settings.</p>
-<p><strong>parse_namelist.sh</strong>, <strong>parse_settings.sh</strong>, and <strong>parse_namelist_from_settings.sh</strong>
-are the three scripts that modify <strong>icepack_in</strong> and <strong>icepack.settings</strong>.</p>
-<p>To add new options, just add new files to the <strong>configurations/scripts/options/</strong> directory
-with appropriate names and syntax.  The set_nml file syntax is the same as namelist
-syntax and the set_env files are consistent with csh setenv syntax.  See other files for
-examples of the syntax.</p>
-</div>
-<div class="section" id="machines">
-<span id="dev-machines"></span><h3>1.3.4. Machines<a class="headerlink" href="#machines" title="Permalink to this headline">¶</a></h3>
-<p>Machine specific information is contained in <strong>configuration/scripts/machines</strong>.  That
-directory contains a Macros file and an env file for each supported machine.
-One other files will need to be
-changed to support a port, that is <strong>configuration/scripts/icepack.batch.csh</strong>.
-To port to a new machine, see <a class="reference internal" href="icepack_3_user_guide.html#porting"><span class="std std-ref">Porting</span></a>.</p>
-</div>
-<div class="section" id="test-scripts">
-<span id="dev-testing"></span><h3>1.3.5. Test scripts<a class="headerlink" href="#test-scripts" title="Permalink to this headline">¶</a></h3>
-<p>Under <strong>configuration/scripts/tests</strong> are several files including the scripts to
-setup the smoke and restart tests (<strong>test_smoke.script</strong>, <strong>test_restart.script*).
-A baseline test script (**baseline.script</strong>) is also there to setup the regression
-and comparison testing.  That directory also contains the preset test suites
-(ie. <strong>base_suite.ts</strong>) and a file that supports post-processing on the model
-output (<strong>timeseries.csh</strong>).</p>
-<p>There is a subdirectory, <strong>configuration/scripts/tests/CTest</strong>, that supports the
-CTest scripts.  These scripts allow test reporting to CDash.</p>
-<p>To add a new test, a file associated with that test will need to be added to the
-<strong>configuration/scripts/tests</strong> directory similar to <strong>test_smoke.script</strong>
-and <strong>test_restart.script</strong>.  In addition, some new options files in
-<strong>configuration/scripts/options</strong> may need to be added similar to <strong>test_nml.restart1</strong>,
-<strong>test_nml.restart2</strong>, and <strong>set_nml.restart</strong>.</p>
-</div>
-</div>
-<div class="section" id="adding-tracers">
-<span id="addtrcr"></span><h2>1.4. Adding tracers<a class="headerlink" href="#adding-tracers" title="Permalink to this headline">¶</a></h2>
-<p>We require that any changes made to the code be implemented in such a way that they can
-be “turned off” through namelist flags.  In most cases, code run with such changes should
-be bit-for-bit identical with the unmodified code.  Occasionally, non-bit-for-bit changes
-are necessary, e.g. associated with an unavoidable change in the order of operations. In
-these cases, changes should be made in stages to isolate the non-bit-for-bit changes,
-so that those that should be bit-for-bit can be tested separately.</p>
-<p>Tracers added to Icepack will also require extensive modifications to the host
-sea ice model, including initialization on the horizontal grid, namelist flags
-and restart capabilities.  Modifications to the Icepack driver should reflect
-the modifications needed in the host model but are not expected to match completely.
-We recommend that the logical namelist variable
-<code class="docutils literal"><span class="pre">tr_[tracer]</span></code> be used for all calls involving the new tracer outside of
-<strong>ice_[tracer].F90</strong>, in case other users do not want to use that
-tracer.</p>
-<p>A number of optional tracers are available in the code, including ice
-age, first-year ice area, melt pond area and volume, brine height,
-aerosols, and level ice area and volume (from which ridged ice
-quantities are derived). Salinity, enthalpies, age, aerosols, level-ice
-volume, brine height and most melt pond quantities are volume-weighted
-tracers, while first-year area, pond area, level-ice area and all of the
-biogeochemistry tracers in this release are area-weighted tracers. In
-the absence of sources and sinks, the total mass of a volume-weighted
-tracer such as aerosol (kg) is conserved under transport in horizontal
-and thickness space (the mass in a given grid cell will change), whereas
-the aerosol concentration (kg/m) is unchanged following the motion, and
-in particular, the concentration is unchanged when there is surface or
-basal melting. The proper units for a volume-weighted mass tracer in the
-tracer array are kg/m.</p>
-<p>In several places in the code, tracer computations must be performed on
-the conserved “tracer volume” rather than the tracer itself; for
-example, the conserved quantity is <span class="math">\(h_{pnd}a_{pnd}a_{lvl}a_{i}\)</span>,
-not <span class="math">\(h_{pnd}\)</span>. Conserved quantities are thus computed according to
-the tracer dependencies, and code must be included to account for new
-dependencies (e.g., <span class="math">\(a_{lvl}\)</span> and <span class="math">\(a_{pnd}\)</span> in
-<strong>ice_itd.F90</strong> and <strong>ice_mechred.F90</strong>).</p>
-<p>To add a tracer, follow these steps using one of the existing tracers as
-a pattern.</p>
-<ol class="arabic simple">
-<li><strong>icedrv_domain_size.F90</strong>: increase <code class="docutils literal"><span class="pre">max_ntrcr</span></code> (can also add option
-to <strong>icepack.settings</strong> and <strong>icepack.build</strong>)</li>
-<li><strong>icedrv_state.F90</strong>: declare <code class="docutils literal"><span class="pre">nt_[tracer]</span></code> and <code class="docutils literal"><span class="pre">tr_[tracer]</span></code></li>
-<li><strong>icepack_[tracer].F90</strong>: create initialization, physics routines</li>
-<li><strong>ice_drv_init.F90</strong>: (some of this may be done in <strong>ice_[tracer].F90</strong>
-instead)<ul>
-<li>add new module and <code class="docutils literal"><span class="pre">tr_[tracer]</span></code> to list of used modules and
-variables</li>
-<li>add logical namelist variable <code class="docutils literal"><span class="pre">tr_[tracer]</span></code></li>
-<li>initialize namelist variable</li>
-<li>print namelist variable to diagnostic output file</li>
-<li>increment number of tracers in use based on namelist input (<code class="docutils literal"><span class="pre">ntrcr</span></code>)</li>
-<li>define tracer types (<code class="docutils literal"><span class="pre">trcr_depend</span></code> = 0 for ice area tracers, 1 for
-ice volume, 2 for snow volume, 2+``nt_``[tracer] for dependence on
-other tracers)</li>
-</ul>
-</li>
-<li><strong>icepack_itd.F90</strong>, <strong>icepack_mechred.F90</strong>: Account for new dependencies
-if needed.</li>
-<li><strong>icedrv_InitMod.F90</strong>: initialize tracer (includes reading restart
-file)</li>
-<li><strong>icedrv_RunMod.F90</strong>, <strong>icedrv_step_mod.F90</strong>:<ul>
-<li>call routine to write tracer restart data</li>
-<li>call physics routines in <strong>icepack_[tracer].F90</strong> (often called from
-<strong>icedrv_step_mod.F90</strong>)</li>
-</ul>
-</li>
-<li><strong>icedrv_restart.F90</strong>: define restart variables</li>
-<li><strong>icepack_in</strong>: add namelist variables to <em>tracer_nml</em> and
-<em>icefields_nml</em></li>
-<li>If strict conservation is necessary, add diagnostics as noted for
-topo ponds in Section&nbsp;<a class="reference internal" href="icepack_2_science_guide.html#ponds"><span class="std std-ref">Melt ponds</span></a>.</li>
-</ol>
-</div>
-</div>
 
 
           </div>
@@ -572,54 +343,37 @@ topo ponds in Section&nbsp;<a class="reference internal" href="icepack_2_science
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">1. Developers Guide</a><ul>
-<li><a class="reference internal" href="#icepack-column-physics">1.1. Icepack Column Physics</a><ul>
-<li><a class="reference internal" href="#file-list">1.1.1. File List</a></li>
-<li><a class="reference internal" href="#coding-standard">1.1.2. Coding Standard</a></li>
-<li><a class="reference internal" href="#using-icepack">1.1.3. Using Icepack</a><ul>
-<li><a class="reference internal" href="#interfaces">1.1.3.1. Interfaces</a></li>
-<li><a class="reference internal" href="#calling-sequence">1.1.3.2. Calling Sequence</a></li>
-<li><a class="reference internal" href="#the-warning-package">1.1.3.3. The Warning Package</a></li>
+<li><a class="reference internal" href="#">4.2. Icepack Column Physics</a><ul>
+<li><a class="reference internal" href="#file-list">4.2.1. File List</a></li>
+<li><a class="reference internal" href="#coding-standard">4.2.2. Coding Standard</a></li>
+<li><a class="reference internal" href="#using-icepack">4.2.3. Using Icepack</a><ul>
+<li><a class="reference internal" href="#interfaces">4.2.3.1. Interfaces</a></li>
+<li><a class="reference internal" href="#calling-sequence">4.2.3.2. Calling Sequence</a></li>
+<li><a class="reference internal" href="#the-warning-package">4.2.3.3. The Warning Package</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="reference internal" href="#driver-implementation">1.2. Driver Implementation</a><ul>
-<li><a class="reference internal" href="#id5">1.2.1. File List</a></li>
-<li><a class="reference internal" href="#overview">1.2.2. Overview</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#scripts-implementation">1.3. Scripts Implementation</a><ul>
-<li><a class="reference internal" href="#id6">1.3.1. File List</a></li>
-<li><a class="reference internal" href="#strategy">1.3.2. Strategy</a></li>
-<li><a class="reference internal" href="#preset-case-options">1.3.3. Preset Case Options</a></li>
-<li><a class="reference internal" href="#machines">1.3.4. Machines</a></li>
-<li><a class="reference internal" href="#test-scripts">1.3.5. Test scripts</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#adding-tracers">1.4. Adding tracers</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="icepack_3_user_guide.html"
-                        title="previous chapter">1. User Guide</a></p>
+  <p class="topless"><a href="dg_about.html"
+                        title="previous chapter">4.1. About Development</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="icepack_5_index.html"
-                        title="next chapter">1. Index of primary variables and parameters</a></p>
+  <p class="topless"><a href="dg_driver.html"
+                        title="next chapter">4.3. Driver Implementation</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/icepack_4_developer_guide.rst.txt"
+      <li><a href="../_sources/developer_guide/dg_col_phys.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
+    <form class="search" action="../search.html" method="get">
       <div><input type="text" name="q" /></div>
       <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
@@ -635,12 +389,13 @@ topo ponds in Section&nbsp;<a class="reference internal" href="icepack_2_science
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="icepack_5_index.html" title="1. Index of primary variables and parameters"
+          <a href="dg_driver.html" title="4.3. Driver Implementation"
              >next</a></li>
         <li class="right" >
-          <a href="icepack_3_user_guide.html" title="1. User Guide"
+          <a href="dg_about.html" title="4.1. About Development"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">CICE-Consortium_Icepack 0.0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >4. Developer Guide</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
