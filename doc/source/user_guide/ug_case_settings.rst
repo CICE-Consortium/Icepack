@@ -93,7 +93,7 @@ column physics.
 
 .. csv-table:: *Namelist Inputs*
    :header: "variable", "options/format", "description", "recommended value"
-   :widths: 23, 7, 30, 15 
+   :widths: 20, 10, 25, 10 
 
    "*setup_nml*", "", "", ""
    "", "", "*Time, Diagnostics*", ""
@@ -232,34 +232,34 @@ column physics.
    "", "", "", ""
    "*zbgc_nml*", "", "", ""
    "", "", "*Biogeochemistry*", ""
-   "``tr_brine``", "true/false", "brine height tracer (needs TRBRI 1 in comp_ice)", ".true."
-   "``restart_hbrine``", "true/false", "restart the brine height tracer (automatically turned on if restart = .true.)", ""
-   "``tr_zaero``", "true/false", "turns on black carbon and dust aerosols", ""
-   "``modal_aero``", "true/false", "turns on a modal aerosol option", ""
-   "``skl_bgc``", "true/false", "turns on a single bottom layer biogeochemistry. z_tracers and solve_zbgc must be false", ""
-   "``z_tracers``", "true/false", "turns on a vertically resolved transport", ""
-   "``dEdd_algae``", "true/false", "Include radiative impact of algae and aerosols in the delta-Eddington shortwave scheme. Requires shortwave = 'dEdd'.", ""
-   "``solve_zbgc``", "true/false", "turns on the biochemistry using z_tracers (specify algal numbers in comp_ice TRALG)", ""
-   "``bgc_flux_type``", "``Jin2006``/``default``", "ice–ocean flux type for bottom layer tracers only :cite:`JDWSTWLG06`", "``Jin2006``"
-   "``restore_bgc``", "true/false", "restores upper ocean concentration fields to data values for nitrate and silicate", ""
-   "``restart_bgc``", "true/false", "restarts biogeochemical tracers (automatically turned on if restart = .true.)", ""
-   "``scale_bgc``", "true/false", "Initialize biogeochemical profiles to scale with prognosed salinity profile", ""
-   "``solve_zsal``", "true/false", "prognostic salinity tracer used with ktherm = 1", ""
-   "``restart_zsal``", "true/false", "restarts zsalinity", ""
-   "``bgc_data_dir``", "``/nitrate_and_silicate/forcing_directory/``", "", ""
-   "``sil_data_type``", "``default``/``NICE``/``ISPOL``/``clim``", "fixed, spatially homogeneous value for silicate. 'clim' data file (see ice_forcing_bgc.F90) :cite:`GLBA06`", ""
-   "``nit_data_type``", "``default``/``NICE``/``ISPOL``/``clim``", "fixed, spatially homogeneous value for nitrate. 'clim' data file (see ice_forcing_bgc.F90) :cite:`GLBA06`", ""
-   "``fe_data_type``", "``default``", "fixed, spatially homogeneous value for iron", ""
-   "``tr_bgc_Nit``", "true/false", "nitrate tracer", ""
-   "``tr_bgc_C``", "true/false", "dissolved organic carbon tracers and dissolved inorganic carbon tracers (not yet implemented)", ""
-   "``tr_bgc_chl``", "true/false", "dummy variable for now. Chl is simply fixed ratio of algal Nitrogen", ""
-   "``tr_bgc_Am``", "true/false", "Ammonium", ""
-   "``tr_bgc_Sil``", "true/false", "Silicate", ""
-   "``tr_bgc_DMS``", "true/false", "Three tracers: DMS dimethyl sulfide, DMSPp (particulate, assumed to be a fixed ratio of sulfur to algal nitrogen) and DMSPd (dissolved)", ""
-   "``tr_bgc_PON``", "true/false", "passive purely mobile ice tracer with ocean concentration equivalent to nitrate", ""
-   "``tr_bgc_hum``", "true/false", "refractory DOC or DON (units depend on the ocean source)", ""
-   "``tr_bgc_DON``", "true/false", "dissolved organic nitrogen", ""
-   "``tr_bgc_Fe``", "true/false", "dissolved iron and particulate iron", ""
+   "``tr_brine``", "true/false", "brine height tracer (needs TRBRI 1 in comp_ice)", "``.true.``"
+   "``restart_hbrine``", "true/false", "restart the brine height tracer (automatically turned on if restart = .true.)", "``.false.``"
+   "``tr_zaero``", "true/false", "turns on black carbon and dust aerosols", "``.false.``"
+   "``modal_aero``", "true/false", "turns on a modal aerosol option", "``.false.``"
+   "``skl_bgc``", "true/false", "turns on a single bottom layer biogeochemistry. z_tracers and solve_zbgc must be false", "``.false.``"
+   "``z_tracers``", "true/false", "turns on a vertically resolved transport", "``.true.``"
+   "``dEdd_algae``", "true/false", "Include radiative impact of algae and aerosols in the delta-Eddington shortwave scheme. Requires shortwave = 'dEdd'.", "``.false.``"
+   "``solve_zbgc``", "true/false", "turns on the biochemistry using z_tracers (specify algal numbers in comp_ice TRALG)", "``.true.``"
+   "``bgc_flux_type``", "``Jin2006`` or ``default``", "ice–ocean flux type for bottom layer tracers only :cite:`JDWSTWLG06`", "``Jin2006``"
+   "``restore_bgc``", "true/false", "restores upper ocean concentration fields to data values for nitrate and silicate", "``.false.``"
+   "``restart_bgc``", "true/false", "restarts biogeochemical tracers (automatically turned on if restart = .true.)", "``.false.``"
+   "``scale_bgc``", "true/false", "Initialize biogeochemical profiles to scale with prognosed salinity profile", "``.false.``"
+   "``solve_zsal``", "true/false", "prognostic salinity tracer used with ktherm = 1", "``.false.``"
+   "``restart_zsal``", "true/false", "restarts zsalinity", "``.false.``"
+   "``bgc_data_dir``", "``/nitrate_and_silicate/forcing_directory/``", "", "'``/nitrate_and_silicate/forcing_directory/``'"
+   "``sil_data_type``", "``default`` or ``NICE`` or ``ISPOL`` or ``clim``", "fixed, spatially homogeneous value for silicate. 'clim' data file (see ice_forcing_bgc.F90) :cite:`GLBA06`", "``'default'``"
+   "``nit_data_type``", "``default`` or ``NICE`` or ``ISPOL`` or ``clim``", "fixed, spatially homogeneous value for nitrate. 'clim' data file (see ice_forcing_bgc.F90) :cite:`GLBA06`", "``'default'``"
+   "``fe_data_type``", "``default``", "fixed, spatially homogeneous value for iron", "``'default'``"
+   "``tr_bgc_Nit``", "true/false", "nitrate tracer", "``.true.``"
+   "``tr_bgc_C``", "true/false", "dissolved organic carbon tracers and dissolved inorganic carbon tracers (not yet implemented)", "``.true.``"
+   "``tr_bgc_chl``", "true/false", "dummy variable for now. Chl is simply fixed ratio of algal Nitrogen", "``.false.``"
+   "``tr_bgc_Am``", "true/false", "Ammonium", "``.true.``"
+   "``tr_bgc_Sil``", "true/false", "Silicate", "``.true.``"
+   "``tr_bgc_DMS``", "true/false", "Three tracers: DMS dimethyl sulfide, DMSPp (particulate, assumed to be a fixed ratio of sulfur to algal nitrogen) and DMSPd (dissolved)", "``.true.``"
+   "``tr_bgc_PON``", "true/false", "passive purely mobile ice tracer with ocean concentration equivalent to nitrate", "``.false.``"
+   "``tr_bgc_hum``", "true/false", "refractory DOC or DON (units depend on the ocean source)", "``.true.``"
+   "``tr_bgc_DON``", "true/false", "dissolved organic nitrogen", "``.true.``"
+   "``tr_bgc_Fe``", "true/false", "dissolved iron and particulate iron", "``.true.``"
    "``grid_o``", "real", "ice-ocean surface layer thickness (bgc transport scheme)", "0.006"
    "``grid_o_t``", "real", "ice-atmosphere surface layer thickness (bgc transport scheme)", "0.006"
    "``l_sk``", "real", "length scale in gravity drainage parameterization (bgc transport scheme)", "0.024"
@@ -396,7 +396,7 @@ column physics.
 .. _tuning:
 
 BGC Tuning Parameters
-~~~~~~~~~~~~~~~~~~~~~
+========================
 
 Biogeochemical tuning parameters are specified as namelist options in
 **icepack\_in**. Table :ref:`tab-bio-tracers2` provides a list of parameters

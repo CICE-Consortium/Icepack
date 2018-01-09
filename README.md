@@ -25,9 +25,15 @@ where "branch name" can also be a version name
 
 ## More information
 
-Detailed and searchable online documentation of Icepack can be found at https://cice-consortium.github.io/Icepack. In this documentation, a [CHECK LINKS] [“Quick Start”](https://duvivier.github.io/Icepack/icepack_1_introduction.html#quick-start) subsection is available with instructions for running the model. A [“Testing”](https://duvivier.github.io/Icepack/icepack_3_user_guide.html#testing-icepack) subsection with instructions for setting up standard tests (e.g. regression, restart) is also available.
+Detailed and searchable online documentation of Icepack can be found at https://cice-consortium.github.io/Icepack with the following sections:
+- [Quick Start](https://cice-consortium.github.io/Icepack/intro/quickstart.html), which has instructions for running the model. 
+- [Science guide](https://cice-consortium.github.io/Icepack/science_guide/index.html)
+- [User guide](https://cice-consortium.github.io/Icepack/user_guide/index.html) with a [“Testing”](https://cice-consoritum.github.io/Icepack/user_guide/ug_testing.html) subsection with instructions for setting up standard tests (e.g. regression, restart).
+- [Developer guide](https://cice-consortium.github.io/Icepack/developer_guide/index.html)
+- [Index](https://cice-consortium.github.io/Icepack/icepack_index.html)
+* Note that the documentation Table of Contents can be accessed at any point by clicking the upper left hand "Icepack 1.0 documentation" link.
 
-[CHECK this]   The [wiki](https://github.com/CICE-Consortium/Icepack/wiki) page contains links to additional information, e.g.    
+The [Icepack wiki](https://github.com/CICE-Consortium/Icepack/wiki) page contains links to additional information, e.g.    
 - complete documentation 
 - larger files such as the gx1 grid, land mask, and forcing files
 - testing data
