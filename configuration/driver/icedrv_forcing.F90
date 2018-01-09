@@ -8,18 +8,17 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: ncat, nx
-      use icedrv_calendar, only: time, nyr, dayyr, mday, month
+      use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday
       use icedrv_calendar, only: daymo, daycal, dt, yday, days_per_year
-      use icedrv_constants, only: nu_diag, nu_forcing, secday
+      use icedrv_constants, only: nu_diag, nu_forcing
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5
-      use icedrv_constants, only: secday, Tffresh, qqqice, TTTice, rhos
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_sea_freezing_temperature
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf
-      use icepack_therm_shared, only: icepack_sea_freezing_temperature
 
       implicit none
       private
@@ -425,6 +424,9 @@ endif
            rhum_clim, &
           fsnow_clim
 
+      real (kind=dbl_kind) :: &
+          Tffresh, qqqice, TTTice, rhos
+
       character(len=*), parameter :: subname='(atm_climatological)'
 
       ! Ice station meteorology from Lindsay (1998, J. Climate), Table 1, p. 325
@@ -448,6 +450,12 @@ endif
       ! Semtner (1976, JPO) snowfall spec., p. 383 in m/s snow volume (.4 m/yr)
       data fsnow_clim/ 3.17e-9, 3.17e-9, 3.17e-9, 3.17e-9, 1.90e-8,    0.0, &
                            0.0, 1.63e-8, 4.89e-8, 4.89e-8, 3.17e-9, 3.17e-9 /
+
+      call icepack_query_constants(Tffresh_out=Tffresh, qqqice_out=qqqice, &
+           TTTice_out=TTTice, rhos_out=rhos)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
        fsw_data (1:12) =  fsw_clim (1:12)
        flw_data (1:12) =  flw_clim (1:12)
@@ -564,19 +572,22 @@ endif
       integer (kind=int_kind) :: &
          nt
 
-      logical (kind=log_kind) :: calc_strair
+      logical (kind=log_kind) :: &
+         calc_strair
 
       real (kind=dbl_kind), parameter :: &    
          lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
 
       real (kind=dbl_kind) :: workx, worky, &
-         precip_factor, zlvl0
+         precip_factor, zlvl0, &
+         Tffresh
 
       character(len=*), parameter :: subname='(prepare_forcing)'
 
       zlvl0 = c10 ! default
 
       call icepack_query_parameters(calc_strair_out=calc_strair)
+      call icepack_query_constants(Tffresh_out=Tffresh)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)

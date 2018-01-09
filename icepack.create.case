@@ -93,7 +93,7 @@ cat << EOF1
 
       EXAMPLES:
       icepack.create.case -h
-      icepack.create.case -c ~/caseA -m yellowstone 
+      icepack.create.case -c ~/caseA -m cheyenne
       icepack.create.case -p 1x4 -m gordon -c caseB
       icepack.create.case -c ~/caseC -m spirit -s diag1,writeicf
       icepack.create.case -t restart -m cheyenne -s diag1,debug -testid myid
@@ -113,11 +113,13 @@ set argv = ( $initargv[*] )
 while (1)
   if ( $#argv < 1 ) break;
   set option = $argv[1];
+
   if ("$option" == "${dash}report") then
     set report = 1
     shift argv
     continue
   endif
+
   shift argv
   if ( $#argv < 1 ) then
     echo "${0}: ERROR1 in $option"

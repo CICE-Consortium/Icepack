@@ -7,8 +7,11 @@
       module icedrv_calendar
 
       use icedrv_kinds
+      use icepack_intfc, only: icepack_query_constants
+      use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_constants, only: c0, c1, c100, c30, c360, c365, c3600
-      use icedrv_constants, only: c4, c400, secday, nu_diag, nu_diag_out
+      use icedrv_constants, only: c4, c400, nu_diag, nu_diag_out
+      use icedrv_system, only: icedrv_system_abort
 
       implicit none
       private
@@ -75,7 +78,8 @@
          tday           , & ! absolute day number
          dayyr          , & ! number of days per year
          nextsw_cday    , & ! julian day of next shortwave calculation
-         basis_seconds      ! Seconds since calendar zero
+         basis_seconds  , & ! Seconds since calendar zero
+         secday             ! seconds per day
 
       logical (kind=log_kind), public :: &
          new_year       , & ! new year = .true.
@@ -105,6 +109,11 @@
 
       subroutine init_calendar
       character(len=*), parameter :: subname='(init_calendar)'
+
+      call icepack_query_constants(secday_out=secday)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       istep = 0         ! local timestep number
       time=istep0*dt    ! s

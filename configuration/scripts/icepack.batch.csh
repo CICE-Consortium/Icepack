@@ -37,23 +37,6 @@ EOF0
 
 #==========================================
 
-if (${ICE_MACHINE} =~ yellowstone*) then
-cat >> ${jobfile} << EOFB
-#BSUB -n ${ntasks}
-#BSUB -R "span[ptile=${ptile}]"
-#BSUB -q caldera
-#BSUB -N
-###BSUB -x
-#BSUB -a poe
-#BSUB -o poe.stdout.%J
-#BSUB -e poe.stderr.%J
-#BSUB -J ${ICE_CASENAME}
-#BSUB -W ${ICE_RUNLENGTH}
-#BSUB -P ${acct}
-EOFB
-
-#==========================================
-
 else if (${ICE_MACHINE} =~ cheyenne*) then
 cat >> ${jobfile} << EOFB
 #PBS -j oe 
