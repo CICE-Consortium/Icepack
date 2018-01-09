@@ -639,8 +639,9 @@ Test Reporting
 The Icepack testing scripts have the capability of posting the test results
 to an online dashboard, located `on CDash <http://my.cdash.org/index.php?project=myICEPACK>`_.
 
-To post test suite results to CDash, add the ``-report`` option to **icepack.create.case**.
-The base_suite will attempt to post the test results on CDash when the suite is complete.
+To automaticalyl post test suite results to CDash, add the ``-report`` option to 
+**icepack.create.case**.  The base_suite will attempt to post the test results on 
+CDash when the suite is complete.
 
 If the results cannot be posted to CDash, the following information will be displayed::
 
@@ -649,6 +650,11 @@ If the results cannot be posted to CDash, the following information will be disp
  If you wish to submit the test results from another server, copy the 
  icepack_ctest.tgz file to another server and run 
     ./run_ctest.csh -submit
+
+To manually post the results to CDash (if you forgot to include `-report` when running
+**icepack.create.case**), from the suite directory just run:
+
+ ./run_ctest.csh
 
 Examples
 ---------
