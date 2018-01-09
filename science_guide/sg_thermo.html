@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.6. Thermodynamics &#8212; Icepack 0.0.1 documentation</title>
+    <title>2.6. Thermodynamics &#8212; Icepack 1.0 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.1',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="sg_mechanical.html" title="2.5. Mechanical redistribution"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -121,7 +121,7 @@ snow fraction and snow depth) used only for the shortwave radiation
 calculation.</p>
 <p>In addition to the physical processes discussed below, tracer equations
 and definitions for melt ponds are also described in
-the&nbsp;<a class="reference internal" href="sg_tracers.html#tracers"><span class="std std-ref">Tracers</span></a> section and <a class="reference internal" href="sg_tracers.html#fig-tracers"><span class="std std-ref">Figure 1</span></a>.</p>
+the&nbsp;<a class="reference internal" href="sg_tracers.html#tracers"><span class="std std-ref">Tracers</span></a> section.</p>
 <div class="section" id="cesm-formulation-tr-pond-cesm-true">
 <h3>2.6.1.1. CESM formulation (<code class="docutils literal"><span class="pre">tr_pond_cesm</span></code> = true)<a class="headerlink" href="#cesm-formulation-tr-pond-cesm-true" title="Permalink to this headline">¶</a></h3>
 <p>Melt pond area and thickness tracers are carried on each ice thickness
@@ -162,10 +162,9 @@ level assuming that the ice in the whole grid cell is rigid and in
 hydrostatic equilibrium.</p>
 <div class="figure align-center" id="id46">
 <span id="fig-topo"></span><a class="reference internal image-reference" href="../_images/topo.png"><img alt="../_images/topo.png" src="../_images/topo.png" style="width: 569.25px; height: 661.5px;" /></a>
-<p class="caption"><span class="caption-text">Figure 6</span></p>
+<p class="caption"><span class="caption-text"><em>Melt Ponds</em></span></p>
 </div>
-<p><a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> : (a) Schematic illustration of the relationship between the
-height of the pond surface <span class="math">\(h_{pnd,tot}\)</span>, the volume of water
+<p>Figure <a class="reference internal" href="#fig-topo"><span class="std std-ref">Melt Ponds</span></a> illustrates (a) Schematic illustration of the relationship between the height of the pond surface <span class="math">\(h_{pnd,tot}\)</span>, the volume of water
 <span class="math">\(V_{Pk}\)</span> required to completely fill up to category <span class="math">\(k\)</span>, the
 volume of water <span class="math">\(V_{P} - V_{Pk}\)</span>, and the depth to which this
 fills category <span class="math">\(k + 1\)</span>. Ice and snow areas <span class="math">\(a_i\)</span> and
@@ -195,7 +194,7 @@ categories from <span class="math">\(i = 1\)</span> to <span class="math">\(i = 
 <span class="math">\(V_{Pk}\)</span> is defined so that if the volume of water <span class="math">\(V_{P}\)</span>
 is such that <span class="math">\(V_{Pk} &lt; V_{P} &lt; V_{P,k+1}\)</span> then the snow and ice in
 categories <span class="math">\(n = 1\)</span> to <span class="math">\(n = k + 1\)</span> are covered in melt
-water. <a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> (a) depicts the areas covered in melt water and
+water. Figure <a class="reference internal" href="#fig-topo"><span class="std std-ref">Melt Ponds</span></a> (a) depicts the areas covered in melt water and
 saturated snow on the surface height (rather than thickness) categories
 <span class="math">\(h_{top,k}\)</span>. Note in the code, we assume that
 <span class="math">\(h_{top,n}/h_{in} = 0.6\)</span> (an arbitrary choice). The fractional
@@ -231,7 +230,7 @@ of melt water <span class="math">\(V_{P}\)</span> is such that
 <span class="eqno">(7)<a class="headerlink" href="#equation-topo_hpnd_tot" title="Permalink to this equation">¶</a></span>\[h_{pnd,tot} = h_{par} + h_{top,k} - h_{top,1},\]</div>
 <p>where <span class="math">\(h_{par}\)</span> is the height of the pond above the level of the
 ice in class <span class="math">\(k\)</span> and partially fills the volume between
-<span class="math">\(V_{P,k}\)</span> and <span class="math">\(V_{P,k+1}\)</span>. From <a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> (a) we see
+<span class="math">\(V_{P,k}\)</span> and <span class="math">\(V_{P,k+1}\)</span>. From Figure <a class="reference internal" href="#fig-topo"><span class="std std-ref">Melt Ponds</span></a> (a) we see
 that <span class="math">\(h_{top,k} - h_{top,1}\)</span> is the height of the melt water,
 which has volume <span class="math">\(V_{Pk}\)</span>, which completely fills the surface
 categories up to category <span class="math">\(k\)</span>. The remaining volume,
@@ -240,7 +239,7 @@ height <span class="math">\(h_{par}\)</span> and there are two cases to consider
 snow cover on category <span class="math">\(k + 1\)</span>, with height <span class="math">\(h_{s,k+1}\)</span>, is
 completely covered in melt water (i.e., <span class="math">\(h_{par} &gt; h_{s,k+1}\)</span>), or
 it is not (i.e., <span class="math">\(h_{par} \le h_{s,k+1}\)</span>). From conservation of
-volume, we see from <a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> (a) that for an incompletely to
+volume, we see from Figure <a class="reference internal" href="#fig-topo"><span class="std std-ref">Melt Ponds</span></a> (a) that for an incompletely to
 completely saturated snow cover on surface ice class <span class="math">\(k + 1\)</span>,</p>
 <div class="math" id="equation-topo-satsnow1">
 <span class="eqno">(8)<a class="headerlink" href="#equation-topo-satsnow1" title="Permalink to this equation">¶</a></span>\[\begin{aligned}
@@ -297,7 +296,7 @@ from</p>
 <span class="eqno">(13)<a class="headerlink" href="#equation-topo-hsl1" title="Permalink to this equation">¶</a></span>\[h_{sl} = h_{sub} - 0.4 \sum^{N}_{n=1} a_{in} h_{in} - \beta h_{i1},\]</div>
 <p>where <span class="math">\(0.4 \sum^{N}_{n=1} a_{in} h_{i,n}\)</span> is the mean thickness
 of the basal depth classes, and <span class="math">\(h_{sub}\)</span> is the depth of the
-submerged portion of the floe. <a class="reference internal" href="#fig-topo"><span class="std std-ref">Figure 6</span></a> (b) depicts the
+submerged portion of the floe. Figure <a class="reference internal" href="#fig-topo"><span class="std std-ref">Melt Ponds</span></a> (b) depicts the
 relationship between the hydraulic head and the depths and heights that
 appear in Equation <a class="reference internal" href="#equation-topo-hsl1">(13)</a>. The depth of the submerged portion
 of the floe is determined from hydrostatic equilibrium to be</p>
@@ -641,15 +640,14 @@ albedos, where the fractional snow-covered area is</p>
 <div class="math" id="equation-snowfrac">
 <span class="eqno">(37)<a class="headerlink" href="#equation-snowfrac" title="Permalink to this equation">¶</a></span>\[f_{snow} = \frac{h_s}{h_s + h_{snowpatch}},\]</div>
 <p>and <span class="math">\(h_{snowpatch} = 0.02 \ {\mathrm m}\)</span>. The envelope
-of albedo values is shown in <a class="reference internal" href="#fig-albedo"><span class="std std-ref">Figure 7</span></a>. This albedo
+of albedo values is shown in Figure <a class="reference internal" href="#fig-albedo"><span class="std std-ref">Albedo</span></a>. This albedo
 formulation incorporates the effects of melt ponds implicitly; the
 explicit melt pond parameterization is not used in this case.</p>
 <div class="figure align-center" id="id47">
 <span id="fig-albedo"></span><a class="reference internal image-reference" href="../_images/albedo.png"><img alt="../_images/albedo.png" src="../_images/albedo.png" style="width: 586.6px; height: 441.6px;" /></a>
-<p class="caption"><span class="caption-text">Figure 7</span></p>
+<p class="caption"><span class="caption-text"><em>Albedo</em></span></p>
 </div>
-<p><a class="reference internal" href="#fig-albedo"><span class="std std-ref">Figure 7</span></a> : Albedo as a function of ice thickness and temperature,
-for the two extrema in snow depth, for the ccsm3 shortwave
+<p>Figure <a class="reference internal" href="#fig-albedo"><span class="std std-ref">Albedo</span></a> illustrates Albedo as a function of ice thickness and temperature, for the two extrema in snow depth, for the ccsm3 shortwave
 option. Maximum snow depth is computed based on Archimedes’ Principle
 for the given ice thickness. These curves represent the envelope of
 possible albedo values.</p>
@@ -1537,7 +1535,7 @@ with the melt water.</td></tr>
         <li class="right" >
           <a href="sg_mechanical.html" title="2.5. Mechanical redistribution"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

@@ -73,7 +73,11 @@ ice fraction, :math:`q a_i` is the average value over the grid cell.
 Thus for cesm or topo melt ponds, :math:`h_{pnd}` can be considered the
 actual pond depth, :math:`h_{pnd}a_{pnd}` is the mean pond depth over
 the sea ice, and :math:`h_{pnd}a_{pnd}a_i` is the mean pond depth over
-the grid cell. These quantities are illustrated in :ref:`fig-tracers`.
+the grid cell. These quantities are illustrated in Figure :ref:`fig-tracers`.
+The graphic on the right illustrates the *grid cell* fraction of ponds or 
+level ice as defined by the tracers. The chart on the left provides 
+corresponding ice thickness and pond depth averages over the grid cell, 
+sea ice and pond area fractions. 
 
 .. _fig-tracers:
 
@@ -81,13 +85,7 @@ the grid cell. These quantities are illustrated in :ref:`fig-tracers`.
    :align: center
    :scale: 50%  
 
-   Figure 1
-
-:ref:`fig-tracers` : Melt pond tracer definitions. The graphic on the right
-illustrates the *grid cell* fraction of ponds or level ice as defined
-by the tracers. The chart on the left provides corresponding ice
-thickness and pond depth averages over the grid cell, sea ice and
-pond area fractions. 
+   *Melt pond tracer definitions*
 
 Tracers may need to be modified for physical reasons outside of the
 "core" module or subroutine describing their evolution. For example,

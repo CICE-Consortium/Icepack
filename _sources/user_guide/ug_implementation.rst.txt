@@ -222,17 +222,15 @@ particulate iron, fFed dissolved iron, fSil silicate, fhum humic matter,
 fPON passive mobile tracer, fDMS DMS, fDMSPd dissolved DMSP and fDMSPp
 particulate DMSP.
 
-:ref:`tab-bio-history` lists the
+Table :ref:`tab-bio-history` lists the
 biogeochemical tracer history flags along with a short description and
 the variable or variables saved. Not listed are flags appended with
 \_ai, i.e. f\_fbio\_ai. These fields are identical to their counterpart.
 i.e. f\_fbio, except they are averaged by ice area.
 
-:ref:`tab-bio-history` :*Biogeochemical History variables*
-
 .. _tab-bio-history:
 
-.. csv-table:: Table 5
+.. csv-table:: *Biogeochemical History variables*
    :header: "History Flag", "Definition", "Variable(s)", "Units"
    :widths: 10, 25, 20, 10
 

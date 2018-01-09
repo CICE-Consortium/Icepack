@@ -47,25 +47,25 @@ open water by :math:`a_{i0}`, giving :math:`\sum_{n=0}^{N_C} a_{in} = 1`
 by definition.
 
 Category boundaries are computed in *init\_itd* using one of several
-formulas, summarized in :ref:`tab-itd`. 
+formulas, summarized in Table :ref:`tab-itd`. 
 Setting the namelist variable ``kcatbound`` equal to 0 or 1 gives lower 
 thickness boundaries for any number of thickness categories :math:`N_C`.
-:ref:`tab-itd` shows the boundary values for :math:`N_C` = 5 and linear remapping 
+Table :ref:`tab-itd` shows the boundary values for :math:`N_C` = 5 and linear remapping 
 of the ice thickness distribution. A third option specifies the boundaries 
 based on the World Meteorological Organization classification; the full WMO
 thickness distribution is used if :math:`N_C` = 7; if :math:`N_C` = 5 or
 6, some of the thinner categories are combined. The original formula
 (``kcatbound`` = 0) is the default. Category boundaries differ from those
-shown in :ref:`tab-itd` for the delta-function ITD. Users may
+shown in Table :ref:`tab-itd` for the delta-function ITD. Users may
 substitute their own preferred boundaries in *init\_itd*.
 
-:ref:`tab-itd` : *Lower boundary values for thickness categories, in meters, for 
-the three distribution options (*``kcatbound``*) and linear remapping (*``kitd`` *= 1). 
-In the WMO case, the distribution used depends on the number of categories used.*
+Table :ref:`tab-itd` shows lower boundary values for thickness categories, in meters, for 
+the three distribution options (*``kcatbound``*) and linear remapping (*``kitd``* = 1). 
+In the WMO case, the distribution used depends on the number of categories used.
 
 .. _tab-itd:
 
-.. table:: Table 2 
+.. table:: *Lower boundary values* 
 
    +----------------+------------+---------+--------+--------+--------+
    | distribution   | original   | round   |           WMO            |

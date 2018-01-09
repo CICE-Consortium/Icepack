@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.7. Biogeochemistry &#8212; Icepack 0.0.1 documentation</title>
+    <title>2.7. Biogeochemistry &#8212; Icepack 1.0 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.1',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="sg_thermo.html" title="2.6. Thermodynamics"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -393,7 +393,7 @@ exist in <strong>icepack_in</strong> to use a more complicated ecosystem which i
 to three algal classes, two DOC groups, one DON pool, limitation by
 nitrate, silicate and dissolved iron, sulfur chemistry plus refractory
 humic material.</p>
-<p>The <strong>icepack_in</strong> namelist options are described in the <a class="reference internal" href="../user_guide/ug_case_settings.html#tabnamelist"><span class="std std-ref">Table of namelist inputs</span></a>.</p>
+<p>The <strong>icepack_in</strong> namelist options are described in the <a class="reference internal" href="../user_guide/ug_case_settings.html#tabnamelist"><span class="std std-ref">Table of Namelist Inputs</span></a>.</p>
 <p>Vertically resolved z-tracers are brine- volume conserved and thus depend
 on both the ice volume and the brine height fraction tracer
 (<span class="math">\(v_{in}f_b\)</span>). These tracers follow the conservation equations for
@@ -478,7 +478,7 @@ equal to 1, the tracer has maximal rates in the retention phase and
 minimal in the release. For <code class="docutils literal"><span class="pre">bgc_tracer_type</span></code> equal to 0, the tracer
 has maximal rates in the release phase and minimal in the retention.
 Finally for <code class="docutils literal"><span class="pre">bgc_tracer_type</span></code> equal to 0.5, minimum timescales are
-used for both transitions. <a class="reference internal" href="#tab-phases"><span class="std std-ref">Table 3</span></a> summarizes the
+used for both transitions. Table <a class="reference internal" href="#tab-phases"><span class="std std-ref">Types of Mobile and Stationary Transitions</span></a> summarizes the
 transition types. The tracer types are: <code class="docutils literal"><span class="pre">algaltype_diatoms</span></code>,
 <code class="docutils literal"><span class="pre">algaltype_sp</span></code> (small plankton), <code class="docutils literal"><span class="pre">algaltype_phaeo</span></code> (<em>phaeocystis</em>),
 <code class="docutils literal"><span class="pre">nitratetype</span></code>, <code class="docutils literal"><span class="pre">ammoniumtype</span></code>, <code class="docutils literal"><span class="pre">silicatetype</span></code>, <code class="docutils literal"><span class="pre">dmspptype</span></code>,
@@ -490,19 +490,18 @@ transition types. The tracer types are: <code class="docutils literal"><span cla
 increase or decrease retention. Another option is to alter the minimum
 <code class="docutils literal"><span class="pre">tau_min</span></code> and maximum <code class="docutils literal"><span class="pre">tau_max</span></code> timescales which would impact all the
 z-tracers.</p>
-<p><a class="reference internal" href="#tab-phases"><span class="std std-ref">Table 3</span></a>: <em>Types of Mobile and Stationary Transitions</em></p>
 <table border="1" class="docutils" id="id2">
-<span id="tab-phases"></span><caption><span class="caption-text">Table 3</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<span id="tab-phases"></span><caption><span class="caption-text"><em>Types of Mobile and Stationary Transitions</em></span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="17%" />
-<col width="17%" />
-<col width="17%" />
-<col width="50%" />
+<col width="20%" />
+<col width="23%" />
+<col width="23%" />
+<col width="34%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head"><code class="docutils literal"><span class="pre">bgc_tracer_type</span></code></th>
-<th class="head"><span class="math">\(tau_{ret}\)</span></th>
-<th class="head"><span class="math">\(tau_{rel}\)</span></th>
+<tr class="row-odd"><th class="head">bgc_tracer_type</th>
+<th class="head"><span class="math">\(\tau_{ret}\)</span></th>
+<th class="head"><span class="math">\(\tau_{rel}\)</span></th>
 <th class="head">Description</th>
 </tr>
 </thead>
@@ -850,14 +849,13 @@ f_{ij} &amp; = &amp; m_{ij}\left[\frac{\Delta c_i}{\Delta t} - \frac{\Delta
 <div class="section" id="reaction-equations">
 <span id="reactions"></span><h3>2.7.3.3. Reaction Equations<a class="headerlink" href="#reaction-equations" title="Permalink to this headline">¶</a></h3>
 <p>The biogeochemical reaction terms for each biogeochemical tracer (see
-table <a class="reference internal" href="#tab-bio-tracer"><span class="std std-ref">Table 4</span></a> for tracer definitions) are defined in
+Table <a class="reference internal" href="#tab-bio-tracer"><span class="std std-ref">Biogeochemical Tracers</span></a> for tracer definitions) are defined in
 <strong>icepack_algae.F90</strong> in the subroutine <em>algal_dyn</em>. The same set of
 equations is used for the bottom layer model (when <code class="docutils literal"><span class="pre">skl_bgc</span></code> is true) and
 the multi-layer biogeochemical model (when <code class="docutils literal"><span class="pre">z_tracers</span></code> and <code class="docutils literal"><span class="pre">solve_zbgc</span></code>
 are true).</p>
-<p><a class="reference internal" href="#tab-bio-tracer"><span class="std std-ref">Table 4</span></a>: <em>Biogeochemical Tracers</em></p>
 <table border="1" class="docutils" id="id3">
-<span id="tab-bio-tracer"></span><caption><span class="caption-text">Table 4</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<span id="tab-bio-tracer"></span><caption><span class="caption-text"><em>Biogeochemical Tracers</em></span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="10%" />
 <col width="22%" />
@@ -1109,8 +1107,7 @@ to the algal concentration, i.e.
 \Delta {\mbox{DMSPd}}/dt &amp; = &amp; R_{{\mbox{DMSPd}}} = R_{s:n}[ f_{sr}f_{res}\mu^{tot}
 +f_{nm}M_{ort} ] - [{\mbox{DMSPd}}]/\tau_{dmsp} \nonumber \\
 \Delta {\mbox{DMS}}/dt &amp; = &amp; R_{{\mbox{DMS}}} =  y_{dms}[{\mbox{DMSPd}}]/\tau_{dmsp} - [{\mbox{DMS}}]/\tau_{dms}\end{aligned}\end{split}\]</div>
-<p>See <a class="reference internal" href="../user_guide/ug_case_settings.html#tuning"><span class="std std-ref">BGC Tuning Parameters</span></a> and <a class="reference internal" href="../user_guide/ug_case_settings.html#tab-bio-tracers2"><span class="std std-ref">Table 9</span></a> for a more
-complete list and description of biogeochemical parameters.</p>
+<p>See <a class="reference internal" href="../user_guide/ug_case_settings.html#tuning"><span class="std std-ref">BGC Tuning Parameters</span></a> for a more complete list and description of biogeochemical parameters.</p>
 </div>
 <div class="section" id="algal-growth-and-nutrient-uptake">
 <span id="growth-uptake"></span><h3>2.7.3.4. Algal growth and nutrient uptake<a class="headerlink" href="#algal-growth-and-nutrient-uptake" title="Permalink to this headline">¶</a></h3>
@@ -1251,7 +1248,7 @@ nitrogen is taken from the nitrate pool.</p>
         <li class="right" >
           <a href="sg_thermo.html" title="2.6. Thermodynamics"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3.4. Case Settings &#8212; Icepack 0.0.1 documentation</title>
+    <title>3.4. Case Settings &#8212; Icepack 1.0 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.1',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="ug_testing.html" title="3.3. Testing Icepack"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -53,12 +53,12 @@
 values used to setup, build and run the case.  <strong>icepack_in</strong> is the input namelist file
 for the icepack driver.  Variables in both files are described below.</p>
 <div class="section" id="table-of-icepack-settings">
-<span id="tabsettings"></span><h2>3.4.1. Table of icepack settings<a class="headerlink" href="#table-of-icepack-settings" title="Permalink to this headline">¶</a></h2>
+<span id="tabsettings"></span><h2>3.4.1. Table of Icepack Settings<a class="headerlink" href="#table-of-icepack-settings" title="Permalink to this headline">¶</a></h2>
 <p>The <strong>icepack.settings</strong> file is reasonably well self documented.  Several of
 the variables defined in the file are not used in Icepack.  They exist
 to support the CICE model.</p>
 <table border="1" class="docutils" id="id9">
-<caption><span class="caption-text">Table 7</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-text"><em>Icepack settings</em></span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="20%" />
 <col width="20%" />
@@ -349,15 +349,15 @@ to support the CICE model.</p>
 </table>
 </div>
 <div class="section" id="table-of-namelist-inputs">
-<span id="tabnamelist"></span><h2>3.4.2. Table of namelist inputs<a class="headerlink" href="#table-of-namelist-inputs" title="Permalink to this headline">¶</a></h2>
+<span id="tabnamelist"></span><h2>3.4.2. Table of Namelist Inputs<a class="headerlink" href="#table-of-namelist-inputs" title="Permalink to this headline">¶</a></h2>
 <p>CHECK</p>
 <p>Namelist is part of the icepack driver code and is used to setup testing of the
 column physics.</p>
 <table border="1" class="docutils" id="id10">
-<span id="tab-namelist"></span><caption><span class="caption-text">Table 8</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
+<span id="tab-namelist"></span><caption><span class="caption-text"><em>Namelist Inputs</em></span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="20%" />
-<col width="20%" />
+<col width="31%" />
+<col width="9%" />
 <col width="40%" />
 <col width="20%" />
 </colgroup>
@@ -1101,9 +1101,9 @@ column physics.</p>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">bgc_flux_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">Jin2006</span></code></td>
+<td><code class="docutils literal"><span class="pre">Jin2006</span></code>/<code class="docutils literal"><span class="pre">default</span></code></td>
 <td>ice–ocean flux type for bottom layer tracers only <a class="reference internal" href="../zreferences.html#jdwstwlg06" id="id6">[23]</a></td>
-<td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">Jin2006</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">restore_bgc</span></code></td>
 <td>true/false</td>
@@ -1136,12 +1136,12 @@ column physics.</p>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">sil_data_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code></td>
+<td><code class="docutils literal"><span class="pre">default</span></code>/<code class="docutils literal"><span class="pre">NICE</span></code>/<code class="docutils literal"><span class="pre">ISPOL</span></code>/<code class="docutils literal"><span class="pre">clim</span></code></td>
 <td>fixed, spatially homogeneous value for silicate. ‘clim’ data file (see ice_forcing_bgc.F90) <a class="reference internal" href="../zreferences.html#glba06" id="id7">[15]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">nit_data_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code></td>
+<td><code class="docutils literal"><span class="pre">default</span></code>/<code class="docutils literal"><span class="pre">NICE</span></code>/<code class="docutils literal"><span class="pre">ISPOL</span></code>/<code class="docutils literal"><span class="pre">clim</span></code></td>
 <td>fixed, spatially homogeneous value for nitrate. ‘clim’ data file (see ice_forcing_bgc.F90) <a class="reference internal" href="../zreferences.html#glba06" id="id8">[15]</a></td>
 <td>&#160;</td>
 </tr>
@@ -1820,13 +1820,12 @@ column physics.</p>
 <div class="section" id="bgc-tuning-parameters">
 <span id="tuning"></span><h3>3.4.2.1. BGC Tuning Parameters<a class="headerlink" href="#bgc-tuning-parameters" title="Permalink to this headline">¶</a></h3>
 <p>Biogeochemical tuning parameters are specified as namelist options in
-<strong>icepack_in</strong>. Table&nbsp;<a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Table 9</span></a> provides a list of parameters
+<strong>icepack_in</strong>. Table&nbsp;<a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Biogeochemical Reaction Parameters</span></a> provides a list of parameters
 used in the reaction equations, their representation in the code, a
 short description of each and the default values. Please keep in mind
 that there has only been minimal tuning of the model.</p>
-<p><a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Table 9</span></a> :<em>Biogeochemical Reaction Parameters</em></p>
 <table border="1" class="docutils" id="id11">
-<span id="tab-bio-tracers2"></span><caption><span class="caption-text">Table 9</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<span id="tab-bio-tracers2"></span><caption><span class="caption-text"><em>Biogeochemical Reaction Parameters</em></span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="10%" />
 <col width="28%" />
@@ -2075,8 +2074,8 @@ that there has only been minimal tuning of the model.</p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">3.4. Case Settings</a><ul>
-<li><a class="reference internal" href="#table-of-icepack-settings">3.4.1. Table of icepack settings</a></li>
-<li><a class="reference internal" href="#table-of-namelist-inputs">3.4.2. Table of namelist inputs</a><ul>
+<li><a class="reference internal" href="#table-of-icepack-settings">3.4.1. Table of Icepack Settings</a></li>
+<li><a class="reference internal" href="#table-of-namelist-inputs">3.4.2. Table of Namelist Inputs</a><ul>
 <li><a class="reference internal" href="#bgc-tuning-parameters">3.4.2.1. BGC Tuning Parameters</a></li>
 </ul>
 </li>
@@ -2120,7 +2119,7 @@ that there has only been minimal tuning of the model.</p>
         <li class="right" >
           <a href="ug_testing.html" title="3.3. Testing Icepack"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
       </ul>
     </div>

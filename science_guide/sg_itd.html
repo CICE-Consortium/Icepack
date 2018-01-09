@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.2. Ice thickness distribution &#8212; Icepack 0.0.1 documentation</title>
+    <title>2.2. Ice thickness distribution &#8212; Icepack 1.0 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.1',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="sg_boundary_forcing.html" title="2.1. Atmosphere and ocean boundary forcing"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -84,22 +84,22 @@ function <span class="math">\(g(h)\)</span> is replaced by the discrete variable
 open water by <span class="math">\(a_{i0}\)</span>, giving <span class="math">\(\sum_{n=0}^{N_C} a_{in} = 1\)</span>
 by definition.</p>
 <p>Category boundaries are computed in <em>init_itd</em> using one of several
-formulas, summarized in&nbsp;<a class="reference internal" href="#tab-itd"><span class="std std-ref">Table 2</span></a>.
+formulas, summarized in&nbsp;Table <a class="reference internal" href="#tab-itd"><span class="std std-ref">Lower boundary values</span></a>.
 Setting the namelist variable <code class="docutils literal"><span class="pre">kcatbound</span></code> equal to 0 or 1 gives lower
 thickness boundaries for any number of thickness categories <span class="math">\(N_C\)</span>.
-<a class="reference internal" href="#tab-itd"><span class="std std-ref">Table 2</span></a> shows the boundary values for <span class="math">\(N_C\)</span> = 5 and linear remapping
+Table <a class="reference internal" href="#tab-itd"><span class="std std-ref">Lower boundary values</span></a> shows the boundary values for <span class="math">\(N_C\)</span> = 5 and linear remapping
 of the ice thickness distribution. A third option specifies the boundaries
 based on the World Meteorological Organization classification; the full WMO
 thickness distribution is used if <span class="math">\(N_C\)</span> = 7; if <span class="math">\(N_C\)</span> = 5 or
 6, some of the thinner categories are combined. The original formula
 (<code class="docutils literal"><span class="pre">kcatbound</span></code> = 0) is the default. Category boundaries differ from those
-shown in <a class="reference internal" href="#tab-itd"><span class="std std-ref">Table 2</span></a> for the delta-function ITD. Users may
+shown in Table <a class="reference internal" href="#tab-itd"><span class="std std-ref">Lower boundary values</span></a> for the delta-function ITD. Users may
 substitute their own preferred boundaries in <em>init_itd</em>.</p>
-<p><a class="reference internal" href="#tab-itd"><span class="std std-ref">Table 2</span></a> : <em>Lower boundary values for thickness categories, in meters, for
-the three distribution options (*``kcatbound``</em>) and linear remapping (<em>``kitd`` *= 1).
-In the WMO case, the distribution used depends on the number of categories used.</em></p>
+<p>Table <a class="reference internal" href="#tab-itd"><span class="std std-ref">Lower boundary values</span></a> shows lower boundary values for thickness categories, in meters, for
+the three distribution options (<em>``kcatbound``</em>) and linear remapping (<em>``kitd``</em> = 1).
+In the WMO case, the distribution used depends on the number of categories used.</p>
 <table border="1" class="docutils" id="id5">
-<span id="tab-itd"></span><caption><span class="caption-text">Table 2</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<span id="tab-itd"></span><caption><span class="caption-text"><em>Lower boundary values</em></span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="26%" />
 <col width="20%" />
@@ -226,7 +226,7 @@ In the WMO case, the distribution used depends on the number of categories used.
         <li class="right" >
           <a href="sg_boundary_forcing.html" title="2.1. Atmosphere and ocean boundary forcing"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

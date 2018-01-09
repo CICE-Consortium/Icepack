@@ -5,13 +5,11 @@
 Atmosphere and ocean boundary forcing
 =====================================
 
-:ref:`tab-flux-cpl`: *External forcing data that are relevant to Icepack*  
-
 .. _tab-flux-cpl:
 
-.. csv-table:: Table 1
+.. csv-table:: *External forcing data that are relevant to Icepack*
    :header: "Variable", "Description", "External Interactions"
-   :widths: 15, 15, 30
+   :widths: 10, 25, 25
      
    ":math:`z_o`", "Atmosphere level height", "From *atmosphere model*  **to** *sea ice model*"
    ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model*  **to** *sea ice model*"
@@ -44,7 +42,6 @@ Atmosphere and ocean boundary forcing
    ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
    ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
    ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
-
 
 The ice fraction :math:`a_i` (aice) is the total fractional ice
 coverage of a grid cell. That is, in each cell,
