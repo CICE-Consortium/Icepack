@@ -20,7 +20,7 @@ end
 # Wait for all jobs to finish
 foreach job ("`cat log.jobs`")
   while (1)
-    ${ICE_MACHINE_QSTAT}$job >&/dev/null
+    ${ICE_MACHINE_QSTAT} $job >&/dev/null
     if ($? != 0) then
       echo "Job $job completed"
       break

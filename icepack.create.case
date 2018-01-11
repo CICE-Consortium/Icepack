@@ -231,13 +231,14 @@ if ( $testsuite != $spval ) then
   endif
 
   mkdir ./${tsdir}
+  cp -f ${ICE_SCRIPTS}/tests/report_results.csh ./${tsdir}
   cp -f ${ICE_SCRIPTS}/tests/timeseries.csh ./${tsdir}
 
   # Copy CTest files to the suite directory
-  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestConfig.cmake ./${tsdir}
-  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestTestfile.cmake ./${tsdir}
-  cp -f ${ICE_SCRIPTS}/tests/CTest/steer.cmake ./${tsdir}
-  cp -f ${ICE_SCRIPTS}/tests/CTest/run_ctest.csh ./${tsdir}
+#  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestConfig.cmake ./${tsdir}
+#  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestTestfile.cmake ./${tsdir}
+#  cp -f ${ICE_SCRIPTS}/tests/CTest/steer.cmake ./${tsdir}
+#  cp -f ${ICE_SCRIPTS}/tests/CTest/run_ctest.csh ./${tsdir}
   if ($report == 1) then
     cp -f ${ICE_SCRIPTS}/tests/icepack.poll_queue ./${tsdir}
   endif
@@ -246,9 +247,29 @@ cat >! ./${tsdir}/suite.run << EOF0
 #!/bin/csh -f
 EOF0
 
+set remote = `git remote -v | grep -i origin | grep -i push | sed "s|.*\(https.*\)\s.*|\1|g"`
+set branch = `git status | grep -i "on branch" | sed 's|^.*ranch\s*\(\S*\)$|\1|g'`
+set hash = `git log | grep commit | head -1 | cut -c 8-`
+set cdate = `date -u "+%Y-%m-%d"`
+set ctime = `date -u "+%H:%M:%S"`
+set vers = "unknown"
+if (-e columnphysics/version.txt) then
+  set vers = `head -1 columnphysics/version.txt`
+endif
+
 cat >! ./${tsdir}/results.csh << EOF0
 #!/bin/csh -f
 rm -f results.log
+echo "#------- " >> results.log
+echo "#repo = ${remote}" >> results.log
+echo "#bran = ${branch}" >> results.log
+echo "#hash = ${hash}" >> results.log
+echo "#date = ${cdate}" >> results.log
+echo "#time = ${ctime}" >> results.log
+echo "#mach = ${mach}" >> results.log
+echo "#user = ${user}" >> results.log
+echo "#vers = ${vers}" >> results.log
+echo "#------- " >> results.log
 EOF0
 
   chmod +x ./${tsdir}/suite.run
@@ -595,6 +616,14 @@ set success = \`cat ./results.log | grep PASS | wc -l\`
 set comments = \`cat ./results.log | grep "#" | wc -l\`
 set alltotal = \`cat ./results.log | wc -l\`
 @ total = \$alltotal - \$comments
+
+echo "#------- " >> results.log
+echo " " >> results.log
+echo "#totl = \$total" >> results.log
+echo "#pass = \$success" >> results.log
+echo "#fail = \$failures" >> results.log
+echo "#pend = \$pends" >> results.log
+
 echo ""
 echo "\$success of \$total tests PASSED"
 echo "\$failures of \$total tests FAILED"
@@ -608,7 +637,8 @@ EOF
     ./suite.run >& log.suite
     ./icepack.poll_queue
     ./results.csh
-    ./run_ctest.csh
+#    ./run_ctest.csh
+    ./report_results.csh
   else
     ./suite.run
   endif
