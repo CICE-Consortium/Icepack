@@ -185,10 +185,11 @@
          l_skS           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
 
       real (kind=dbl_kind), public :: &
-         fr_resp            , &   ! fraction of algal growth lost due to respiration        
+         fr_resp           , &   ! fraction of algal growth lost due to respiration        
          algal_vel         , &   ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
          R_dFe2dust        , &   !  g/g (3.5% content) Tagliabue 2009
-         dustFe_sol              ! solubility fraction
+         dustFe_sol        , &   ! solubility fraction
+         frazil_scav             ! fraction or multiple of bgc concentrated in frazil ice
 
       !-----------------------------------------------------------------
       ! From algal_dyn in icepack_algae.F90
@@ -236,7 +237,7 @@
            fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
            T_max_in, fsal_in, op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
            fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, max_dfe_doc1_in, fr_resp_s_in, &
-           y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in)
+           y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in)
 
 !-----------------------------------------------------------------------
 ! Parameters for thermodynamics
@@ -402,7 +403,8 @@
          fr_resp_s_in        , & ! DMSPd fraction of respiration loss as DMSPd
          y_sk_DMS_in         , & ! fraction conversion given high yield
          t_sk_conv_in        , & ! Stefels conversion time (d)
-         t_sk_ox_in              ! DMS oxidation time (d)
+         t_sk_ox_in          , & ! DMS oxidation time (d)
+         frazil_scav_in          ! scavenging fraction or multiple in frazil ice
 
 !-----------------------------------------------------------------------
 ! Parameters for melt ponds
@@ -507,6 +509,7 @@
         if (present(y_sk_DMS_in)             ) y_sk_DMS      = y_sk_DMS_in
         if (present(t_sk_conv_in)            ) t_sk_conv     = t_sk_conv_in
         if (present(t_sk_ox_in)              ) t_sk_ox       = t_sk_ox_in
+        if (present(frazil_scav_in)          ) frazil_scav   = frazil_scav_in
 
       end subroutine icepack_init_parameters
 
@@ -530,7 +533,7 @@
            fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &         
            T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, fr_mort2min_out, &        
            fr_dFe_out, k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, fr_resp_s_out, &          
-           y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out)
+           y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out)
 
 !-----------------------------------------------------------------------
 ! Parameters for thermodynamics
@@ -696,7 +699,8 @@
          fr_resp_s_out        , & ! DMSPd fraction of respiration loss as DMSPd
          y_sk_DMS_out         , & ! fraction conversion given high yield
          t_sk_conv_out        , & ! Stefels conversion time (d)
-         t_sk_ox_out              ! DMS oxidation time (d)
+         t_sk_ox_out          , & ! DMS oxidation time (d)
+         frazil_scav_out          ! scavenging fraction or multiple in frazil ice
 
 !-----------------------------------------------------------------------
 ! Parameters for melt ponds
@@ -801,6 +805,7 @@
         if (present(y_sk_DMS_out)             ) y_sk_DMS_out      = y_sk_DMS
         if (present(t_sk_conv_out)            ) t_sk_conv_out     = t_sk_conv
         if (present(t_sk_ox_out)              ) t_sk_ox_out       = t_sk_ox
+        if (present(frazil_scav_out)          ) frazil_scav_out   = frazil_scav
 
       end subroutine icepack_query_parameters
 
@@ -899,6 +904,7 @@
         write(iounit,*) "  y_sk_DMS      = ", y_sk_DMS
         write(iounit,*) "  t_sk_conv     = ", t_sk_conv
         write(iounit,*) "  t_sk_ox       = ", t_sk_ox
+        write(iounit,*) "  frazil_scav   = ", frazil_scav
 
       end subroutine icepack_write_parameters
 

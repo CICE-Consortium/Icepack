@@ -1,6 +1,6 @@
  year_init      = 2015
- istep0         = 21888
- npt            = 8256
+ istep0         = 2736
+ npt            = 1032
  fyear_init      = 2015
  restore_ocn     = .true.
  trestore        =  1
@@ -15,8 +15,11 @@
  sil_data_type   = 'NICE'
  nit_data_type   = 'NICE'
  tr_bgc_Nit      = .true.
+ tr_bgc_C        = .true.
  tr_bgc_Am       = .true.
  tr_bgc_Sil      = .true.
+ tr_bgc_DMS      = .true.
  tr_bgc_PON      = .true.
  tr_bgc_hum      = .true.
- tr_bgc_Fe       = .true. 
+ tr_bgc_DON      = .true.
+ tr_bgc_Fe       = .true.

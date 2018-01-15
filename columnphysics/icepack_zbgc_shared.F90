@@ -58,6 +58,10 @@
       real (kind=dbl_kind), dimension(max_fe), public :: &
          feptype
 
+      real (kind=dbl_kind), public :: &
+         nitratetype, ammoniumtype, silicatetype, &
+         dmspptype, dmspdtype, humtype
+
       !------------------------------------------------------------
       ! Aerosol order and type should be consistent with order/type
       ! specified in delta Eddington:  1) hydrophobic black carbon;
