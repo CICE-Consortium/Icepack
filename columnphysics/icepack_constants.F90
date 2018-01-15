@@ -26,9 +26,8 @@
 
       integer (kind=int_kind), parameter, public :: & 
          nspint = 3                ! number of solar spectral intervals
-                    
+
       real (kind=dbl_kind), parameter, public :: &
-         secday = 86400.0_dbl_kind ,&! seconds in calendar day
          c0   = 0.0_dbl_kind, &
          c1   = 1.0_dbl_kind, &
          c1p5 = 1.5_dbl_kind, &
@@ -80,6 +79,7 @@
       !-----------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
+         secday    = 86400.0_dbl_kind ,&! seconds in calendar day
          rhos      = 330.0_dbl_kind   ,&! density of snow (kg/m^3)
          rhoi      = 917.0_dbl_kind   ,&! density of ice (kg/m^3)
          rhow      = 1026.0_dbl_kind  ,&! density of seawater (kg/m^3)
@@ -184,7 +184,7 @@
          min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, &
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
-         puny_in, bignum_in, pi_in )
+         puny_in, bignum_in, pi_in, secday_in )
 
       real (kind=dbl_kind), intent(in), optional :: &
          rhos_in,       & ! density of snow (kg/m^3)
@@ -242,7 +242,8 @@
          TTTocn_in,     & ! for qsat over ocn
          puny_in,       & !
          bignum_in,     & !
-         pi_in            !
+         pi_in,         & !
+         secday_in        !
 
       character(len=*),parameter :: subname='(icepack_init_constants)'
 
@@ -302,6 +303,7 @@
          if (present(puny_in))       puny   = puny_in
          if (present(bignum_in))     bignum = bignum_in
          if (present(pi_in))         pi     = pi_in
+         if (present(secday_in))     secday = secday_in
 
          call icepack_recompute_constants()
          if (icepack_warnings_aborted(subname)) return
@@ -566,6 +568,7 @@
          write(iounit,*) "  TTTocn = ",TTTocn
          write(iounit,*) "  puny   = ",puny
          write(iounit,*) "  bignum = ",bignum
+         write(iounit,*) "  secday = ",secday
          write(iounit,*) "  pi     = ",pi
          write(iounit,*) "  pih    = ",pih
          write(iounit,*) "  piq    = ",piq

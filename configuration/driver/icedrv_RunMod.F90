@@ -7,10 +7,11 @@
       module icedrv_RunMod
 
       use icedrv_kinds
-      use icedrv_constants, only: nu_diag
+      use icedrv_constants, only: c0, c1, nu_diag
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_constants
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_numbers
       use icedrv_system, only: icedrv_system_abort
@@ -92,7 +93,6 @@
       subroutine ice_step
 
       use icedrv_calendar, only: dt, dt_dyn, ndtd, diagfreq, write_restart, istep
-      use icedrv_constants, only: c0
       use icedrv_diagnostics, only: runtime_diags, init_mass_diags, icedrv_diagnostics_debug
       use icedrv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
       use icedrv_domain_size, only: nslyr
@@ -220,7 +220,6 @@
           albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
       use icedrv_calendar, only: dt
       use icedrv_arrays_column, only: oceanmixed_ice
-      use icedrv_constants, only: c0, c1, puny, rhofresh
       use icedrv_domain_size, only: ncat, nx
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &
           albpnd, apeff_ai, coszen, fpond, fresh, l_mpond_fresh, &
@@ -243,7 +242,9 @@
          nbtrcr
 
       real (kind=dbl_kind) :: &
-         netsw           ! flag for shortwave radiation presence
+         netsw, &        ! flag for shortwave radiation presence
+         rhofresh, &     !
+         puny            !
 
       character(len=*), parameter :: subname='(coupling_prep)'
 
@@ -252,6 +253,7 @@
       ! Update mixed layer with heat and radiation from ice.
       !-----------------------------------------------------------------
 
+         call icepack_query_constants(puny_out=puny, rhofresh_out=rhofresh)
          call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

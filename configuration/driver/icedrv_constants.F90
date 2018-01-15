@@ -8,15 +8,6 @@
       module icedrv_constants
 
       use icedrv_kinds
-      use icepack_constants, only: c0, c1, c2, c3, c4, c5, c10, c20, c100, c1000
-      use icepack_constants, only: p001, p1, p2, c6, p5, puny, pi
-      use icepack_constants, only: secday, dragio, stefan_boltzmann
-      use icepack_constants, only: tffresh, Tsmelt, depressT
-      use icepack_constants, only: emissivity, vonkar, zref, iceruf, albocn
-      use icepack_constants, only: rhoi, rhos, rhow, rhofresh
-      use icepack_constants, only: lfresh, lvap, ice_ref_salinity, cp_ice, cp_ocn
-      use icepack_constants, only: awtvdr, awtidr, awtvdf, awtidf
-      use icepack_constants, only: qqqice, tttice
 
       implicit none
 
@@ -35,6 +26,41 @@
          nu_forcing    = 14, &          ! unit for forcing file
          nu_diag    = ice_stdout, &     ! unit for diagnostic output
          nu_diag_out = 100
+
+      !-----------------------------------------------------------------
+      ! numerical constants
+      !-----------------------------------------------------------------
+
+      real (kind=dbl_kind), parameter, public :: &
+         c0   = 0.0_dbl_kind, &
+         c1   = 1.0_dbl_kind, &
+         c1p5 = 1.5_dbl_kind, &
+         c2   = 2.0_dbl_kind, &
+         c3   = 3.0_dbl_kind, &
+         c4   = 4.0_dbl_kind, &
+         c5   = 5.0_dbl_kind, &
+         c6   = 6.0_dbl_kind, &
+         c8   = 8.0_dbl_kind, &
+         c10  = 10.0_dbl_kind, &
+         c15  = 15.0_dbl_kind, &
+         c16  = 16.0_dbl_kind, &
+         c20  = 20.0_dbl_kind, &
+         c25  = 25.0_dbl_kind, &
+         c100 = 100.0_dbl_kind, &
+         c1000= 1000.0_dbl_kind, &
+         p001 = 0.001_dbl_kind, &
+         p01  = 0.01_dbl_kind, &
+         p1   = 0.1_dbl_kind, &
+         p2   = 0.2_dbl_kind, &
+         p4   = 0.4_dbl_kind, &
+         p5   = 0.5_dbl_kind, &
+         p6   = 0.6_dbl_kind, &
+         p05  = 0.05_dbl_kind, &
+         p15  = 0.15_dbl_kind, &
+         p25  = 0.25_dbl_kind, &
+         p75  = 0.75_dbl_kind, &
+         p333 = c1/c3, &
+         p666 = c2/c3
 
       !-----------------------------------------------------------------
       ! physical constants

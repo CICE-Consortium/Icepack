@@ -30,6 +30,11 @@
       use icepack_constants, only: icepack_query_constants
       use icepack_constants, only: icepack_write_constants
       use icepack_constants, only: icepack_recompute_constants
+      use icepack_constants, only: nspint, secday, spval_const
+      use icepack_constants, only: c0, c1, c1p5, c2, c3, c4, c5, c6, c8
+      use icepack_constants, only: c10, c15, c16, c20, c25, c100, c1000
+      use icepack_constants, only: p001, p01, p1, p2, p4, p5, p6, p05
+      use icepack_constants, only: p15, p25, p75, p333, p666
 
       use icepack_parameters, only: icepack_init_parameters
       use icepack_parameters, only: icepack_query_parameters

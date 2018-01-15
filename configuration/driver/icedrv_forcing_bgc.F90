@@ -10,8 +10,9 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: nx
-      use icedrv_calendar, only: dt, istep, sec, mday, month, daymo
-      use icedrv_constants, only: nu_diag
+      use icedrv_calendar, only: dt, istep, sec, mday, month, daymo, secday
+      use icedrv_constants, only: nu_forcing, nu_diag
+      use icedrv_constants, only: c0, p1
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_dic, icepack_max_fe
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -37,7 +38,6 @@
 
       subroutine init_forcing_bgc
 
-        use icedrv_constants, only: nu_forcing
         use icedrv_arrays_column, only: nit_data_type, sil_data_type
         use icedrv_forcing, only: data_dir 
 
@@ -97,7 +97,6 @@
 
       use icedrv_arrays_column, only: ocean_bio_all
       use icedrv_calendar, only:  yday
-      use icedrv_constants, only: secday
       use icedrv_flux, only: sss, sil, nit
       use icedrv_forcing, only: interp_coeff
       use icedrv_arrays_column, only: nit_data_type, sil_data_type, bgc_data_dir
@@ -219,7 +218,6 @@
 ! authors: Nicole Jeffery, LANL
       subroutine init_bgc_data (fed1,fep1)
       !cn use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
-      use icedrv_constants, only: c0, p1 !, nu_forcing
       use icedrv_arrays_column, only: fe_data_type, bgc_data_dir
 
 #ifdef ncdf
