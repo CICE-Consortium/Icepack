@@ -279,7 +279,6 @@
       ! compute aggregate ice state and open water area
       !-----------------------------------------------------------------
 
-!cn this gets called again upon returning...
       do i = 1, nx
          if (tmask(i)) &
          call icepack_aggregate (ncat,               &
@@ -330,12 +329,19 @@
       real (kind=dbl_kind), dimension(nx) :: &
          work2              ! input array (real, 8-byte)
 
+      real (kind=dbl_kind) :: &
+        minw, maxw          ! diagnostics
+
       character(len=*), parameter :: subname='(read_restart_field)'
 
       do n = 1, ndim
          read(nu) (work2(i), i=1,nx)
          work(:,n) = work2(:)
       enddo
+
+      minw = minval(work)
+      maxw = maxval(work)
+      write(nu_diag,*) minw, maxw
       
       end subroutine read_restart_field
       
@@ -375,7 +381,7 @@
 !=======================================================================
 
 ! Finalize the restart file.
-! author David A Bailey, NCAR
+! author David A. Bailey, NCAR
 
       subroutine final_restart()
 
@@ -703,7 +709,7 @@
 
 ! Dumps all values needed for restarting
 !
-! authors Elizabeth Hunke, LANL (original version)
+! authors Elizabeth Hunke, LANL
 !         David Bailey, NCAR
 !         Marika Holland, NCAR
 
@@ -740,7 +746,7 @@
 
 ! Reads all values needed for an ice aerosol restart
 !
-! authors Elizabeth Hunke, LANL (original version)
+! authors Elizabeth Hunke, LANL
 !         David Bailey, NCAR
 !         Marika Holland, NCAR
 
