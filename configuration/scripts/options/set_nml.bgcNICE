@@ -12,8 +12,6 @@
  z_tracers       = .true.
  solve_zbgc      = .true.
  bgc_flux_type   = 'Jin2006'
- sil_data_type   = 'NICE'
- nit_data_type   = 'NICE'
  tr_bgc_Nit      = .true.
  tr_bgc_C        = .true.
  tr_bgc_Am       = .true.

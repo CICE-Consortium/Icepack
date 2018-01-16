@@ -260,13 +260,8 @@
       logical (kind=log_kind), public :: &
          oceanmixed_ice     ! if true, use internal ocean mixed layer
 
-      character(char_len_long), public :: &
-         bgc_data_dir   ! directory for biogeochemistry data
-
       character(char_len), public :: &
-         sil_data_type  , & ! 'default', 'clim'
-         nit_data_type  , & ! 'default', 'clim'
-         fe_data_type       ! 'default', 'clim'
+         bgc_data_type  ! 'default', 'clim'
 
 !=======================================================================
 

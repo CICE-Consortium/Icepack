@@ -355,7 +355,7 @@
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, hum
-      use icedrv_forcing_bgc, only:  get_forcing_bgc !cn init_bgc_data
+      use icedrv_forcing_bgc, only:  get_forcing_bgc
       use icedrv_state, only: trcrn, aicen, vicen, vsnon
 
       ! local variables
@@ -452,8 +452,6 @@
             if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                 file=__FILE__, line=__LINE__)
 
-!cn right now, init_bgc_data would be a no-op since fe_data_type=default
-            !call init_bgc_data(fed(:,:),fep(:,:)) ! input dFe from file
             call get_forcing_bgc                          ! defines nit and sil
 
          do i = 1, nx
@@ -546,12 +544,9 @@
 
       subroutine init_zbgc
 
-!     use icedrv_restart_column, only: restart_bgc, restart_zsal
-!     use icedrv_restart_column, only: restart_hbrine
       use icedrv_state, only: trcr_base, trcr_depend, n_trcr_strata
       use icedrv_state, only: nt_strata
-      use icedrv_arrays_column, only: bgc_data_dir
-      use icedrv_arrays_column, only: sil_data_type, nit_data_type, fe_data_type
+      use icedrv_arrays_column, only: bgc_data_type
 
       character (len=char_len) :: &
          shortwave        ! from icepack
@@ -789,8 +784,7 @@
       namelist /zbgc_nml/  &
         tr_brine, tr_zaero, modal_aero, skl_bgc, &
         z_tracers, dEdd_algae, solve_zbgc, bgc_flux_type, &
-        restore_bgc, scale_bgc, solve_zsal, &
-        bgc_data_dir, sil_data_type, nit_data_type,  fe_data_type, &
+        restore_bgc, scale_bgc, solve_zsal, bgc_data_type, &
         tr_bgc_Nit, tr_bgc_C, tr_bgc_chl, tr_bgc_Am, tr_bgc_Sil, &
         tr_bgc_DMS, tr_bgc_PON, tr_bgc_hum, tr_bgc_DON, tr_bgc_Fe, &
         grid_o, grid_o_t, l_sk, grid_oS, &   
@@ -849,10 +843,7 @@
       modal_aero      = .false.  ! use modal aerosol treatment of aerosols
       restore_bgc     = .false.  ! restore bgc if true
       solve_zsal      = .false.  ! update salinity tracer profile from solve_S_dt
-      bgc_data_dir    = 'unknown_bgc_data_dir'
-      sil_data_type   = 'default'
-      nit_data_type   = 'default'
-      fe_data_type    = 'default'
+      bgc_data_type   = 'default'! source of bgc data
       scale_bgc       = .false.  ! initial bgc tracers proportional to S  
       skl_bgc         = .false.  ! solve skeletal biochemistry 
       z_tracers       = .false.  ! solve vertically resolved tracers
@@ -1065,12 +1056,10 @@
 
          write(nu_diag,1010) ' tr_brine                  = ', tr_brine
          if (tr_brine) then
-!         write(nu_diag,1010) ' restart_hbrine            = ', restart_hbrine
          write(nu_diag,1005) ' phi_snow                  = ', phi_snow
          endif
          if (solve_zsal) then
          write(nu_diag,1010) ' solve_zsal                = ', solve_zsal
-!         write(nu_diag,1010) ' restart_zsal              = ', restart_zsal
          write(nu_diag,1000) ' grid_oS                   = ', grid_oS
          write(nu_diag,1005) ' l_skS                     = ', l_skS
          endif
@@ -1853,16 +1842,9 @@
 
          write(nu_diag,1010) ' skl_bgc                   = ', skl_bgc
          write(nu_diag,1030) ' bgc_flux_type             = ', bgc_flux_type
-!         write(nu_diag,1010) ' restart_bgc               = ', restart_bgc
          write(nu_diag,1010) ' restore_bgc               = ', restore_bgc
-         write(nu_diag,*)    ' bgc_data_dir              = ', &
-                               trim(bgc_data_dir)
-         write(nu_diag,*)    ' sil_data_type             = ', &
-                               trim(sil_data_type)
-         write(nu_diag,*)    ' nit_data_type             = ', &
-                               trim(nit_data_type)
-         write(nu_diag,*)    ' fe_data_type              = ', &
-                               trim(fe_data_type)
+         write(nu_diag,*)    ' bgc_data_type             = ', &
+                               trim(bgc_data_type)
          write(nu_diag,1020) ' number of bio tracers     = ', nbtrcr
          write(nu_diag,1020) ' number of Isw tracers     = ', nbtrcr_sw
          write(nu_diag,1020) ' number of autotrophs      = ', n_algae
@@ -1885,14 +1867,8 @@
         
       elseif (z_tracers) then
 
-         write(nu_diag,*)    ' sil_data_type             = ', &
-                               trim(sil_data_type)
-         write(nu_diag,*)    ' nit_data_type             = ', &
-                               trim(nit_data_type)
-         write(nu_diag,*)    ' fe_data_type              = ', &
-                               trim(fe_data_type)
-         write(nu_diag,*)    ' bgc_data_dir              = ', &
-                               trim(bgc_data_dir)
+         write(nu_diag,*)    ' bgc_data_type             = ', &
+                               trim(bgc_data_type)
          write(nu_diag,1010) ' dEdd_algae                = ', dEdd_algae  
          write(nu_diag,1010) ' modal_aero                = ', modal_aero  
          write(nu_diag,1010) ' scale_bgc                 = ', scale_bgc
