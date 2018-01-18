@@ -47,7 +47,7 @@
 
       character(len=*),parameter :: subname='(icepack_init_orbit)'
 
-      call icepack_warnings_add(subname//'  ')
+      !call icepack_warnings_add(subname//'  ')
       iyear_AD  = 1950
       log_print = .false.   ! if true, write out orbital parameters
 
@@ -384,7 +384,7 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    !----------------------------------------------------------------------------
    ! radinp and algorithms below will need a degree to radian conversion factor
 
-   call icepack_warnings_add(subname//'  ')
+   !call icepack_warnings_add(subname//'  ')
    degrad = pi/180._dbl_kind   ! degree to radian conversion factor
  
    if ( log_print .and. s_loglev > 0 ) then
@@ -403,7 +403,7 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
       ! Check input obliq, eccen, and mvelp to ensure reasonable
  
       if( obliq == SHR_ORB_UNDEF_REAL )then
-         write(warnstr,F00) subname//trim(subname)//' Have to specify orbital parameters:'
+         write(warnstr,F00) subname//' Have to specify orbital parameters:'
          call icepack_warnings_add(warnstr)
          write(warnstr,F00) subname//'Either set: iyear_AD, OR [obliq, eccen, and mvelp]:'
          call icepack_warnings_add(warnstr)
