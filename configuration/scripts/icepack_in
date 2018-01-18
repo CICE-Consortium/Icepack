@@ -88,10 +88,6 @@
     restore_bgc     = .false.
     scale_bgc       = .false.
     solve_zsal      = .false.
-    bgc_data_dir    = '/usr/projects/climate/eclare/DATA/gx1v3/gx1v3/forcing/'
-    sil_data_type   = 'default'
-    nit_data_type   = 'default'
-    fe_data_type    = 'default'
     tr_bgc_Nit      = .false.
     tr_bgc_C        = .false.
     tr_bgc_chl      = .false.

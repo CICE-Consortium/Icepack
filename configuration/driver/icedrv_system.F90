@@ -2,7 +2,7 @@
 
 ! Diagnostic information output during run
 !
-! authors: Elizabeth C. Hunke, LANL
+! author: Tony Craig
 
       module icedrv_system
 

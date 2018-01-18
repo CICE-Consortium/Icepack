@@ -85,9 +85,6 @@
          frcidf = 0.17_dbl_kind    ! frac of incoming sw in near IR diffuse band
 
       logical (kind=log_kind), public :: &
-         dbug             ! prints debugging output if true
-
-      logical (kind=log_kind), public :: &
          restore_ocn               ! restore sst if true
 
       real (kind=dbl_kind), public :: & 

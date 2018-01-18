@@ -51,7 +51,7 @@
       real (kind=dbl_kind), &
          dimension(nx,max_ntrcr), public :: &
          trcr      ! ice tracers
-                   ! 1: surface temperature of ice/snow (C)
+                   ! 1: surface temperature of ice/snow   (C)
 
       !-----------------------------------------------------------------
       ! state of the ice for each category
@@ -70,10 +70,10 @@
       real (kind=dbl_kind), public, &
          dimension (nx,max_ntrcr,ncat) :: &
          trcrn     ! tracers
-                   ! 1: surface temperature of ice/snow (C)
+                   ! 1: surface temperature of ice/snow   (C)
 
       !-----------------------------------------------------------------
-      ! tracers infrastructure arrays
+      ! tracer infrastructure arrays
       !-----------------------------------------------------------------
 
       integer (kind=int_kind), dimension (max_ntrcr), public :: &
