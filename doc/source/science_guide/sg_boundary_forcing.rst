@@ -304,6 +304,7 @@ new parameterization allows the drag coefficients to be coupled to the
 sea ice state and therefore to evolve spatially and temporally. This
 parameterization is contained in the subroutine *neutral\_drag\_coeffs*
 and is accessed by setting ``formdrag`` = true in the namelist.
+(Note:  see also :ref:`bugs`.)
 
 Following :cite:`TFSFFKLB14`, consider the general case of
 fluid flow obstructed by N randomly oriented obstacles of height

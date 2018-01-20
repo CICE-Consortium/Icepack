@@ -70,6 +70,15 @@ Known bugs and other issues
 
 -   The linear remapping algorithm for thickness is not monotonic for tracers.
 
+-   The form drag parameterization assumes a fixed ridge shape where both the 
+    macroscopic ridge porosity and the angle of repose are specified parameters.  
+    One high-resolution coupled model that uses the CICE column physics package
+    has been unable to make this parameterization work in its current form.
+    Development of a new, variational approach for ridging is underway 
+    that will generate ridge shapes differently from
+    the current parameterization, and is expected to alleviate the reported
+    problem (Roberts, A., et al, in prep. 2018). 
+
 Interpretation of albedos
 -------------------------
 
