@@ -25,7 +25,7 @@
          nu_dump    = 13, &          ! unit for dump file
          nu_forcing    = 14, &          ! unit for forcing file
          nu_diag    = ice_stdout, &     ! unit for diagnostic output
-         nu_diag_out = 100
+         nu_diag_out = 103
 
       !-----------------------------------------------------------------
       ! numerical constants
