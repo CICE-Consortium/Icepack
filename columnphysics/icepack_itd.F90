@@ -1866,10 +1866,12 @@
 
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'hin_max(n-1) < Cat n < hin_max(n)'
+         write(warnstr,*) subname
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) 'hin_max(n-1) < Cat n < hin_max(n)'
          call icepack_warnings_add(warnstr)
          do n = 1, ncat
-            write(warnstr,*) subname, hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
+            write(warnstr,*) hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
             call icepack_warnings_add(warnstr)
             ! Write integer n to character string
             write (c_nc, '(i2)') n    
