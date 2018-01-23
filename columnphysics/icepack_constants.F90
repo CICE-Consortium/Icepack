@@ -43,6 +43,7 @@
          c20  = 20.0_dbl_kind, &
          c25  = 25.0_dbl_kind, &
          c100 = 100.0_dbl_kind, &
+         c180 = 180.0_dbl_kind, &
          c1000= 1000.0_dbl_kind, &
          p001 = 0.001_dbl_kind, &
          p01  = 0.01_dbl_kind, &
@@ -70,6 +71,7 @@
          pih    = spval_const, &
          piq    = spval_const, &
          pi2    = spval_const, &
+         rad_to_deg = spval_const, &
          Lfresh = spval_const, &! latent heat of melting of fresh ice (J/kg)
          cprho  = spval_const, &! for ocean mixed layer (J kg / K m^3)
          Cp     = spval_const   ! proport const for PE 
@@ -330,9 +332,10 @@
          puny_out, bignum_out, pi_out, &
          secday_out, c0_out, c1_out, c1p5_out, c2_out, c3_out, c4_out, &
          c5_out, c6_out, c8_out, c10_out, c15_out, c16_out, c20_out, &
-         c25_out, c100_out, c1000_out, p001_out, p01_out, p1_out, &
+         c25_out, c100_out, c180_out, c1000_out, p001_out, p01_out, p1_out, &
          p2_out, p4_out, p5_out, p6_out, p05_out, p15_out, p25_out, p75_out, &
-         p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out)
+         p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
+         rad_to_deg_out)
 
 
       real (kind=dbl_kind), intent(out), optional :: &
@@ -397,9 +400,10 @@
          pi_out,         & !
          secday_out, c0_out, c1_out, c1p5_out, c2_out, c3_out, c4_out, &
          c5_out, c6_out, c8_out, c10_out, c15_out, c16_out, c20_out, &
-         c25_out, c100_out, c1000_out, p001_out, p01_out, p1_out, &
+         c25_out, c180_out, c100_out, c1000_out, p001_out, p01_out, p1_out, &
          p2_out, p4_out, p5_out, p6_out, p05_out, p15_out, p25_out, p75_out, &
-         p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out
+         p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
+         rad_to_deg_out
 
       character(len=*),parameter :: subname='(icepack_query_constants)'
 
@@ -479,6 +483,7 @@
          if (present(c20_out))  c20_out = c20
          if (present(c25_out))  c25_out = c25
          if (present(c100_out)) c100_out = c100
+         if (present(c180_out)) c180_out = c180
          if (present(c1000_out)) c1000_out = c1000
          if (present(p001_out)) p001_out = p001
          if (present(p01_out))  p01_out = p01
@@ -497,6 +502,7 @@
          if (present(pih_out))  pih_out = pih
          if (present(piq_out))  piq_out = piq
          if (present(pi2_out))  pi2_out = pi2
+         if (present(rad_to_deg_out))  rad_to_deg_out = rad_to_deg
 
          call icepack_recompute_constants()
          if (icepack_warnings_aborted(subname)) return
@@ -573,6 +579,7 @@
          write(iounit,*) "  pih    = ",pih
          write(iounit,*) "  piq    = ",piq
          write(iounit,*) "  pi2    = ",pi2
+         write(iounit,*) "  rad_to_deg = ",rad_to_deg
          write(iounit,*) "  Lfresh = ",Lfresh
          write(iounit,*) "  cprho  = ",cprho
          write(iounit,*) "  Cp     = ",Cp
@@ -591,6 +598,7 @@
         pih    = p5*pi
         piq    = p5*p5*pi
         pi2    = c2*pi
+        rad_to_deg = c180/pi
 
       end subroutine icepack_recompute_constants
 
