@@ -7,7 +7,7 @@ set tsubdir = icepack_testing
 set hfile = "icepack_by_hash"
 set mfile = "icepack_by_mach"
 set vfile = "icepack_by_vers"
-set bfile = "icepack_by_branch"
+set bfile = "icepack_by_bran"
 
 rm -r -f ${wikiname}
 git clone ${wikirepo} ${wikiname}
