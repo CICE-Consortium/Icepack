@@ -179,28 +179,8 @@ the namelist flat ``restart`` must be set to ``.true.`` to use the file.
 Biogeochemistry History Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note:  History output is not provided with Icepack.  This documentation
+History output is not provided with Icepack.  This documentation
 indicates what is available for output and is implemented in CICE.
-
-CHECK and FIX!
-
-The biogeochemical history fields specified in icefields\_bgc\_nml are
-written when ‘x’ is replaced with a time interval: step (‘1’), daily
-(‘d’), monthly (‘m’), or yearly (‘y’). Several of these flags turn on
-multiple history variables according to the particular ecosystem
-prescribed in **icepack\_in**. For example, biogeochemical fluxes from the
-ice to ocean will be saved monthly in the history output if
-
-::
-
-    f_fbio = 'm'
-
-However, only the biogeochemical tracers which are active will be saved.
-This includes at most fNit nitrate, fAm ammonium, fN algal nitrogen,
-fDOC dissolved organic carbon, fDON dissolved organic nitrogen, fFep
-particulate iron, fFed dissolved iron, fSil silicate, fhum humic matter,
-fPON passive mobile tracer, fDMS DMS, fDMSPd dissolved DMSP and fDMSPp
-particulate DMSP.
 
 Table :ref:`tab-bio-history` lists the
 biogeochemical tracer history flags along with a short description and
