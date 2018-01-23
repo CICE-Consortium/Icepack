@@ -23,7 +23,7 @@ set acct = $spval
 set baseCom = $spval  # Baseline compare
 set baseGen = $spval  # Baseline generate
 set bfbcomp = $spval  # BFB compare
-set report  = 0       # include CTest files?
+set report  = 0       # test results reporting
 
 if ($#argv < 1) then
   set helpheader = 1
@@ -89,7 +89,7 @@ cat << EOF1
         -ts test suite, pre-defined set of tests to run in column text format.  Current set of predefined tests:
              - "base_suite": runs general set of tests including smoke with debug, restart, etc.
         -td difference output against another case
-        -report include the CTest / CDash files in the suite directory (only used with -ts)
+        -report automatically report results to the Test-Results wiki (only used with -ts)
 
       EXAMPLES:
       icepack.create.case -h
@@ -234,11 +234,6 @@ if ( $testsuite != $spval ) then
   cp -f ${ICE_SCRIPTS}/tests/report_results.csh ./${tsdir}
   cp -f ${ICE_SCRIPTS}/tests/timeseries.csh ./${tsdir}
 
-  # Copy CTest files to the suite directory
-#  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestConfig.cmake ./${tsdir}
-#  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestTestfile.cmake ./${tsdir}
-#  cp -f ${ICE_SCRIPTS}/tests/CTest/steer.cmake ./${tsdir}
-#  cp -f ${ICE_SCRIPTS}/tests/CTest/run_ctest.csh ./${tsdir}
   if ($report == 1) then
     cp -f ${ICE_SCRIPTS}/tests/poll_queue.csh ./${tsdir}
   endif
@@ -598,9 +593,6 @@ cd $testname_base
 cd ..
 EOF
     
-    # Build CtestTestfile.cmake
-    ${ICE_SCRIPTS}/tests/CTest/gen_ctestfile.csh ./${tsdir} $testname_noid $bfbcomp $spval
-
     # Reset case for the next test in suite
     set case = $spval
 
@@ -641,7 +633,6 @@ EOF
     echo "Reporting results"
     ./poll_queue.csh
     ./results.csh
-#    ./run_ctest.csh
     ./report_results.csh
   endif
   cd ${ICE_SANDBOX}
