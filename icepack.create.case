@@ -638,7 +638,7 @@ EOF
   cd ${tsdir}
   ./suite.run | tee suite.log
   if ($report == 1) then
-    echo "Running the suite and storing output in log.suite"
+    echo "Reporting results"
     ./icepack.poll_queue
     ./results.csh
 #    ./run_ctest.csh
