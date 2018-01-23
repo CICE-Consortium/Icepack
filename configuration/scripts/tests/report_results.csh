@@ -7,6 +7,7 @@ set tsubdir = icepack_testing
 set hfile = "icepack_by_hash"
 set mfile = "icepack_by_mach"
 set vfile = "icepack_by_vers"
+set bfile = "icepack_by_branch"
 
 rm -r -f ${wikiname}
 git clone ${wikirepo} ${wikiname}
@@ -14,6 +15,8 @@ git clone ${wikirepo} ${wikiname}
 set repo = `grep "#repo = " results.log | cut -c 9-`
 set bran = `grep "#bran = " results.log | cut -c 9-`
 set hash = `grep "#hash = " results.log | cut -c 9-`
+set hshu = `grep "#hshu = " results.log | cut -c 9-`
+set hshd = `grep "#hshd = " results.log | cut -c 9-`
 set cdat = `grep "#date = " results.log | cut -c 9-`
 set ctim = `grep "#time = " results.log | cut -c 9-`
 set user = `grep "#user = " results.log | cut -c 9-`
@@ -27,6 +30,8 @@ set fail = `grep "#fail = " results.log | cut -c 9-`
 #echo "debug ${repo}"
 #echo "debug ${bran}"
 #echo "debug ${hash}"
+#echo "debug ${hshu}"
+#echo "debug ${hshd}"
 #echo "debug ${cdat}"
 #echo "debug ${ctim}"
 #echo "debug ${user}"
@@ -40,6 +45,14 @@ set fail = `grep "#fail = " results.log | cut -c 9-`
 set xcdat = `echo $cdat | sed 's|-||g' | cut -c 3-`
 set xctim = `echo $ctim | sed 's|:||g'`
 set shhash = `echo $hash | cut -c 1-10`
+set shrepo = `echo $repo | tr '[A-Z]' '[a-z]'`
+
+if ("${shrepo}" !~ "*cice-consortium*") then
+  set hfile = {$hfile}_forks
+  set mfile = {$mfile}_forks
+  set vfile = {$vfile}_forks
+  set bfile = {$bfile}_forks
+endif
 
 #==============================================================
 # Create results table
@@ -145,10 +158,11 @@ unset noglob
 
 mv ${outfile} ${outfile}.hold
 cat >! ${outfile} << EOF
-- **${repo}** : **${bran}**
-- **${hash}**
-- **${vers}**
-- **${mach}**, ${user}, ${cdat} ${ctim} UTC
+- repo = **${repo}** : **${bran}**
+- hash = ${hash}
+- hash created by ${hshu} ${hshd}
+- vers = ${vers}
+- tested on ${mach}, ${user}, ${cdat} ${ctim} UTC
 - raw results: ${totl} total tests: ${pass} pass, ${fail} fail
 - ${ttotl} total tests: ${tpass} pass, ${tfail} fail
 EOF
@@ -165,8 +179,9 @@ EOF
 set hashfile = "${wikiname}/${tsubdir}/${hfile}.md"
 set machfile = "${wikiname}/${tsubdir}/${mfile}.md"
 set versfile = "${wikiname}/${tsubdir}/${vfile}.md"
+set branfile = "${wikiname}/${tsubdir}/${bfile}.md"
 
-foreach xfile ($hashfile $machfile $versfile)
+foreach xfile ($hashfile $machfile $versfile $branfile)
   if (-e ${xfile}) then
     cp -f ${xfile} ${xfile}.prev
   endif
@@ -184,7 +199,7 @@ cat >! ${hashfile} << EOF
 
 | machine | version | date/time | pass | fail | total |
 | ------ | ------ | ------ | ------  | ------ | ------ |
-| ${mach} | ${vers} | ${cdat} ${ctim} | ${tcolor} [${tpass}](${ofile}) | ${tcolor} [${tfail}](${ofile}) | ${tcolor} [${ttotl}](${ofile}) |
+| ${mach} | ${vers} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${hashfile}.prev) cat ${hashfile}.prev >> ${hashfile}
@@ -192,7 +207,7 @@ if (-e ${hashfile}.prev) cat ${hashfile}.prev >> ${hashfile}
 else
   set oline = `grep -n "\*\*${hash}" ${hashfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${vers} | ${cdat} ${ctim} | ${tcolor} [${tpass}](${ofile}) | ${tcolor} [${tfail}](${ofile}) | ${tcolor} [${ttotl}](${ofile}) | " ${hashfile}
+  sed -i "$nline a | ${mach} | ${vers} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${hashfile}
 endif
 
 #=====================
@@ -207,7 +222,7 @@ cat >! ${versfile} << EOF
 
 | machine | hash | date/time | pass | fail | total |
 | ------ | ------ | ------ | ------  | ------ | ------ |
-| ${mach} | ${shhash} | ${cdat} ${ctim} | ${tcolor} [${tpass}](${ofile}) | ${tcolor} [${tfail}](${ofile}) | ${tcolor} [${ttotl}](${ofile}) |
+| ${mach} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${versfile}.prev) cat ${versfile}.prev >> ${versfile}
@@ -215,7 +230,7 @@ if (-e ${versfile}.prev) cat ${versfile}.prev >> ${versfile}
 else
   set oline = `grep -n "\*\*${vers}" ${versfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${shhash} | ${cdat} ${ctim} | ${tcolor} [${tpass}](${ofile}) | ${tcolor} [${tfail}](${ofile}) | ${tcolor} [${ttotl}](${ofile}) | " ${versfile}
+  sed -i "$nline a | ${mach} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${versfile}
 endif
 
 #=====================
@@ -230,7 +245,7 @@ cat >! ${machfile} << EOF
 
 | version | hash | date/time | pass | fail | total |
 | ------ | ------ | ------ | ------  | ------ | ------ |
-| ${vers} | ${shhash} | ${cdat} ${ctim} | ${tcolor} [${tpass}](${ofile}) | ${tcolor} [${tfail}](${ofile}) | ${tcolor} [${ttotl}](${ofile}) |
+| ${vers} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${machfile}.prev) cat ${machfile}.prev >> ${machfile}
@@ -238,7 +253,30 @@ if (-e ${machfile}.prev) cat ${machfile}.prev >> ${machfile}
 else
   set oline = `grep -n "\*\*${mach}" ${machfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${vers} | ${shhash} | ${cdat} ${ctim} | ${tcolor} [${tpass}](${ofile}) | ${tcolor} [${tfail}](${ofile}) | ${tcolor} [${ttotl}](${ofile}) | " ${machfile}
+  sed -i "$nline a | ${vers} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${machfile}
+endif
+
+#=====================
+# update branfile
+#=====================
+
+set chk = 0
+if (-e ${branfile}) set chk = `grep "\*\*${bran}" ${branfile} | wc -l`
+if ($chk == 0) then
+cat >! ${branfile} << EOF
+**${bran}** **${repo}**:
+
+| machine | hash | date/time | pass | fail | total |
+| ------ | ------ | ------ | ------  | ------ | ------ |
+| ${mach} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
+
+EOF
+if (-e ${branfile}.prev) cat ${branfile}.prev >> ${branfile}
+
+else
+  set oline = `grep -n "\*\*${bran}" ${branfile} | head -1 | cut -d : -f 1`
+  @ nline = ${oline} + 3
+  sed -i "$nline a | ${mach} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${branfile}
 endif
 
 #=====================
@@ -250,6 +288,7 @@ git add ${tsubdir}/${ofile}.md
 git add ${tsubdir}/${hfile}.md
 git add ${tsubdir}/${mfile}.md
 git add ${tsubdir}/${vfile}.md
+git add ${tsubdir}/${bfile}.md
 git commit -a -m "update $hash $mach"
 git push origin master
 cd ../

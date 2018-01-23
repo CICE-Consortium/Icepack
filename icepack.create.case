@@ -250,6 +250,8 @@ EOF0
 set remote = `git remote -v | grep -i origin | grep -i push | sed "s|.*\(https.*\)\s.*|\1|g"`
 set branch = `git status | grep -i "on branch" | sed 's|^.*ranch\s*\(\S*\)$|\1|g'`
 set hash = `git log | grep commit | head -1 | cut -c 8-`
+set hashuser = `git log | grep commit | head -2 | tail -1 | cut -c 8-`
+set hashdate = `git log | grep commit | head -3 | tail -1 | cut -c 8-`
 set cdate = `date -u "+%Y-%m-%d"`
 set ctime = `date -u "+%H:%M:%S"`
 set vers = "unknown"
@@ -264,6 +266,8 @@ echo "#------- " >> results.log
 echo "#repo = ${remote}" >> results.log
 echo "#bran = ${branch}" >> results.log
 echo "#hash = ${hash}" >> results.log
+echo "#hshu = ${hashuser} >> results.log
+echo "#hshd = ${hashdate} >> results.log
 echo "#date = ${cdate}" >> results.log
 echo "#time = ${ctime}" >> results.log
 echo "#mach = ${mach}" >> results.log
