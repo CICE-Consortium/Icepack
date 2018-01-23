@@ -20,14 +20,12 @@ are primarily from **icedrv\_step\_mod.F90** but there are others (search the dr
 for ``intfc``).
 
 Guiding principles for the creation of Icepack include the following: 
-CHECK THAT THESE ARE TRUE
-
-- The column physics modules shall be independent of all sea ice model infrastructural
-  elements that may vary from model to model.  Examples include input/output, timers,
-  references to CPUs or computational tasks, initialization other than that necessary for
-  strictly physical reasons, and anything related to a horizontal grid.
-- The column physics modules shall not call or reference any routines or code that 
-  reside outside of the **columnphysics/** directory.
-- Any capabilities required by a host sea ice model (e.g. calendar variables, tracer 
-  flags, diagnostics) shall be implemented in the driver and passed into or out of the 
-  column physics modules via array arguments.
+  - The column physics modules shall be independent of all sea ice model infrastructural
+    elements that may vary from model to model.  Examples include input/output, timers,
+    references to CPUs or computational tasks, initialization other than that necessary for
+    strictly physical reasons, and anything related to a horizontal grid.
+  - The column physics modules shall not call or reference any routines or code that 
+    reside outside of the **columnphysics/** directory.
+  - Any capabilities required by a host sea ice model (e.g. calendar variables, tracer 
+    flags, diagnostics) shall be implemented in the driver and passed into or out of the 
+    column physics modules via array arguments.

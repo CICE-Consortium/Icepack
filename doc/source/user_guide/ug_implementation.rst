@@ -95,22 +95,6 @@ spaced at :math:`1/n_b` intervals beginning with `bgrid(2)` =
 equidistant with the same spacing, but physically coincide with points
 midway between those of ``bgrid``.
 
-
-.. _testconfigs:
-
-Test configurations
--------------------
-
-*(CHECK) UPDATE with similar, correct information*
-
-The column is located
-near Barrow (71.35N, 156.5W). Options for choosing the column
-configuration are given in **comp\_ice** (choose `RES col`) and in the
-namelist file, **input\_templates/col/ice\_in**. Here, ``istep0`` and the
-initial conditions are set such that the run begins September 1 with no
-ice. 
-
-
 .. _init:
 
 Initialization and Forcing
@@ -181,18 +165,14 @@ Icepack writes diagnostic information for each grid cell as a separate file,
 Restart files
 ~~~~~~~~~~~~~
 
-CHECK and CHANGE as needed re netCDF
-
-CICE provides restart data in binary unformatted or netCDF formats, via
-the ``IO_TYPE`` flag in **comp\_ice** and namelist variable
-``restart_format``. 
-
-The restart files created by the Icepack driver contain all of the variables needed
+Icepack provides restart data in binary unformatted format. The restart files 
+created by the Icepack driver contain all of the variables needed
 for a full, exact restart. The filename begins with the character string
-‘iced.’, and the restart dump frequency is given by the namelist
+‘iced.’ and is placed in the directory specified by the namelist variable
+``restart_dir``. The restart dump frequency is given by the namelist
 variable ``dumpfreq``. The namelist variable ``ice_ic`` contains the
-pointer to the filename from which the restart data is to be read.
-
+pointer to the filename from which the restart data is to be read and 
+the namelist flat ``restart`` must be set to ``.true.`` to use the file.
 
 .. _bgc-hist:
 

@@ -56,7 +56,7 @@ that is running on multiple pes with a decomposed grid.
 
 The column physics does not have a time manager.  Calendaring is expected to be
 dealt with by the host model.  The column physics does not read any forcing data,
-that is passed into the column physics thru interfaces.  In fact, 
+that is passed into the column physics though interfaces.  In fact, 
 there are no direct IO capabilities in the column physics.  That is to say, the
 column physics does not open files to read or write.  The column physics is able to write 
 data via several different routines that specifically have a fortran unit number as an input
@@ -67,11 +67,11 @@ The warning package also provides access to an abort flag that the host model ca
 query after each call to check for successful completion of the column physics package.
 
 All column physics public interfaces and public data are defined in the **icepack_intfc.F90**
-file.  Internal column physics settings should all be accessible thru interfaces.
+file.  Internal column physics settings should all be accessible through interfaces.
 The internal constants, parameters, and tracer settings have init (set), query (get), and
 write interfaces that provides access to internal column physics settings.  The host model
 should not have to use "use" statements to access any of the column physics data outside
-of what is provided thru the icepack_intfc module.  
+of what is provided through the icepack_intfc module.  
 The public column physics interfaces use optional arguments where it makes sense and
 there is an ongoing effort to make more of the interfaces support keyword=value arguments
 for clarity and backwards compatibility.
@@ -88,7 +88,7 @@ how to use them will be described.
 Interfaces
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Column physics data and subroutines are made public thru the **icepack_intfc.F90**
+Column physics data and subroutines are made public through the **icepack_intfc.F90**
 file.  That file contains the entire list of data and subroutines needed to
 initialize, setup, and run the column physics package.  That file points
 to other modules within the column physics where the interfaces are located.
@@ -283,7 +283,7 @@ The Warning Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Icepack has no IO capabilities.  It does not have direct knowledge of
-any input or output files.  However, it can write output thru specific
+any input or output files.  However, it can write output through specific
 interfaces that pass in a fortran file unit number.  There are several 
 methods in icepack that support writing data to a file this way including
 the various *icepack_write_* interfaces.
