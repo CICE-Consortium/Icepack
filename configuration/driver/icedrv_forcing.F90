@@ -9,7 +9,7 @@
       use icedrv_kinds
       use icedrv_domain_size, only: ncat, nx
       use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday
-      use icedrv_calendar, only: daymo, daycal, dt, yday, days_per_year
+      use icedrv_calendar, only: daymo, daycal, dt, yday, days_per_year, sec
       use icedrv_constants, only: nu_diag, nu_forcing
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -272,14 +272,10 @@
          swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
 
       elseif (trim(atm_data_type) == 'ISPOL' .or. &
-          trim(atm_data_type) == 'NICE') then
-
-        !we have a years worth of data, some in days, some in 6hr or quarter day
-        !it also looks like the data Nicole starts on June 17, not Jan 1 ?????
-        !also need to repeat as above
+              trim(atm_data_type) == 'NICE') then
 
         dataloc = 2                          ! data located at end of interval
-        maxrec = 366
+        maxrec = 365
         recslot = 2
         recnum = int(yday)
         mlast = mod(recnum+maxrec-2,maxrec) + 1
@@ -301,8 +297,8 @@
          frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
 
         sec6hr = secday/c4;                      ! seconds in 6 hours
-        maxrec = 1464
-        recnum = int(time/secday*c4); 
+        maxrec = 1460
+        recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
         call interp_coeff (recnum, recslot, sec6hr, dataloc, c1intp, c2intp)
@@ -318,7 +314,6 @@
 
       endif
 
-!cn this is called from get_forcing_ocn in cice...
       if (trim(ocn_data_type) == 'ISPOL') then
 
          midmonth = 15  ! assume data is given on 15th of every month
@@ -341,10 +336,8 @@
 
       elseif (trim(ocn_data_type) == 'NICE') then
 
-!cn nice ocn data is daily
-
         dataloc = 2                          ! data located at end of interval
-        maxrec = 366
+        maxrec = 365
         recslot = 2
         recnum = int(yday)
         mlast = mod(recnum+maxrec-2,maxrec) + 1
@@ -794,6 +787,7 @@ endif
 !=======================================================================
 
       subroutine atm_ISPOL
+      ! there is data for 366 days, but we only use 365
 
       integer (kind=int_kind) :: &
          i
@@ -849,9 +843,9 @@ endif
 !=======================================================================
 
       subroutine atm_NICE
+      ! there is data for 366 days, but we only use 365
 
       integer (kind=int_kind) :: &
-         nu_nice,&     ! unit number
          i
 
       real (kind=dbl_kind), dimension(366) :: &
