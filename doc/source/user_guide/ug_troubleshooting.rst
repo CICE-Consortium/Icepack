@@ -42,10 +42,14 @@ Underflows
   is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
   radiation scheme.
 
+.. _debugging:
+
 Debugging hints
 ---------------
 
-CHECK write utility in column physics interface, for checking parameter values
+Icepack has a warning package (**/columnphysics/icepack_warnings.F90**) where icepack 
+stores information not set in write routines. Details about the package can be found 
+in :ref:`warning`. This package can be useful to detect an abort  
 
 A printing utility is available in the driver that can be helpful when debugging the
 code. Not all of these will work everywhere in the code, due to possible
@@ -57,6 +61,8 @@ conflicts in module dependencies.
 
 *print\_state* (**configuration/driver/ice\_diagnostics.F90**)
     Print the ice state and forcing fields for a given grid cell.
+
+.. _bugs:
 
 Known bugs and other issues
 ---------------------------

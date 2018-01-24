@@ -515,7 +515,7 @@
       write(nu_diag,*) '            alidf        = ',alidf_ai    (i)
       write(nu_diag,*) ' '
 
-!      call flush(nu_diag)
+      call icepack_warnings_flush(nu_diag)
 
       end subroutine print_state
 

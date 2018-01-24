@@ -84,8 +84,6 @@ to support the CICE model.
 Table of Namelist Inputs
 --------------------------
 
-CHECK
-
 Namelist is part of the icepack driver code and is used to setup testing of the
 column physics.
 

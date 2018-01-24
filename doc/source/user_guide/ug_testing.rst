@@ -14,6 +14,22 @@ developers will need to provide a summary of the tests carried out.
 There is a base suite of tests provided by default with Icepack and this
 may be a good starting point for testing.
 
+.. _testforce:
+
+Test forcing
+------------
+
+Icepack requires near surface data at a single point. The required fields to 
+force icepack include: downwelling long wave and shortwave radiative fluxes, 
+latent and sensible heat fluxes, precipitation rate, and near surface potential temperature and specific humidity.
+
+The CICE Consortium provides data for testing a single column located in the 
+Beaufort Sea (70N, 220W) derived from the CFSRv2 :cite:`SAHA14` dataset. 
+These column forcing data are 1 hourly and correspond to the year 
+period of January 1, 2015 (00:00UTC) to December 31, 2015 (23:00UTC).  
+
+Links to an FTP for Icepack forcing data are available on the
+CICE Consortium GitHub `wiki <https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack>`_.
 
 .. _indtests:
 

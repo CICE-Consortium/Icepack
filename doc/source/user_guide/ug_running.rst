@@ -132,10 +132,8 @@ The order of precedent is **icepack.create.case** command line option,
 Forcing data
 ------------
 
-CHECK once we've settled on a forcing suite:
-
 The code is currently configured to run in standalone mode on a 4-cell grid using 
-atmospheric data, available as detailed on the `wiki <https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack>`_.
+atmospheric data, available as detailed in :ref:`testforce` and on the `wiki <https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack>`_.
 These data files are designed only for testing the code, not for use in production 
 runs or as observational data.  Please do not publish results based on these data
 sets.  Module **configuration/driver/icedrv\_forcing.F90**
