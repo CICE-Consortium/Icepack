@@ -23,7 +23,7 @@ set acct = $spval
 set baseCom = $spval  # Baseline compare
 set baseGen = $spval  # Baseline generate
 set bfbcomp = $spval  # BFB compare
-set report  = 0       # include CTest files?
+set report  = 0       # test results reporting
 
 if ($#argv < 1) then
   set helpheader = 1
@@ -89,7 +89,7 @@ cat << EOF1
         -ts test suite, pre-defined set of tests to run in column text format.  Current set of predefined tests:
              - "base_suite": runs general set of tests including smoke with debug, restart, etc.
         -td difference output against another case
-        -report include the CTest / CDash files in the suite directory (only used with -ts)
+        -report automatically report results to the Test-Results wiki (only used with -ts)
 
       EXAMPLES:
       icepack.create.case -h
@@ -231,24 +231,44 @@ if ( $testsuite != $spval ) then
   endif
 
   mkdir ./${tsdir}
+  cp -f ${ICE_SCRIPTS}/tests/report_results.csh ./${tsdir}
   cp -f ${ICE_SCRIPTS}/tests/timeseries.csh ./${tsdir}
 
-  # Copy CTest files to the suite directory
-  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestConfig.cmake ./${tsdir}
-  cp -f ${ICE_SCRIPTS}/tests/CTest/CTestTestfile.cmake ./${tsdir}
-  cp -f ${ICE_SCRIPTS}/tests/CTest/steer.cmake ./${tsdir}
-  cp -f ${ICE_SCRIPTS}/tests/CTest/run_ctest.csh ./${tsdir}
   if ($report == 1) then
-    cp -f ${ICE_SCRIPTS}/tests/icepack.poll_queue ./${tsdir}
+    cp -f ${ICE_SCRIPTS}/tests/poll_queue.csh ./${tsdir}
   endif
 
 cat >! ./${tsdir}/suite.run << EOF0
 #!/bin/csh -f
 EOF0
 
+set remote = `git remote -v | grep -i origin | grep -i push | sed "s|.*\(https.*\)\s.*|\1|g"`
+set branch = `git status | grep -i "on branch" | sed 's|^.*ranch\s*\(\S*\)$|\1|g'`
+set hash     = `git log | grep -i commit | head -1 | cut -d " " -f 2-`
+set hashuser = `git log | grep -i author | head -1 | cut -d : -f 2-`
+set hashdate = `git log | grep -i date   | head -1 | cut -d : -f 2-`
+set cdate = `date -u "+%Y-%m-%d"`
+set ctime = `date -u "+%H:%M:%S"`
+set vers = "unknown"
+if (-e columnphysics/version.txt) then
+  set vers = `head -1 columnphysics/version.txt`
+endif
+
 cat >! ./${tsdir}/results.csh << EOF0
 #!/bin/csh -f
 rm -f results.log
+echo "#------- " >> results.log
+echo "#repo = ${remote}" >> results.log
+echo "#bran = ${branch}" >> results.log
+echo "#hash = ${hash}" >> results.log
+echo "#hshu = ${hashuser}" >> results.log
+echo "#hshd = ${hashdate}" >> results.log
+echo "#date = ${cdate}" >> results.log
+echo "#time = ${ctime}" >> results.log
+echo "#mach = ${mach}" >> results.log
+echo "#user = ${user}" >> results.log
+echo "#vers = ${vers}" >> results.log
+echo "#------- " >> results.log
 EOF0
 
   chmod +x ./${tsdir}/suite.run
@@ -573,9 +593,6 @@ cd $testname_base
 cd ..
 EOF
     
-    # Build CtestTestfile.cmake
-    ${ICE_SCRIPTS}/tests/CTest/gen_ctestfile.csh ./${tsdir} $testname_noid $bfbcomp $spval
-
     # Reset case for the next test in suite
     set case = $spval
 
@@ -595,6 +612,14 @@ set success = \`cat ./results.log | grep PASS | wc -l\`
 set comments = \`cat ./results.log | grep "#" | wc -l\`
 set alltotal = \`cat ./results.log | wc -l\`
 @ total = \$alltotal - \$comments
+
+echo "#------- " >> results.log
+echo " " >> results.log
+echo "#totl = \$total" >> results.log
+echo "#pass = \$success" >> results.log
+echo "#fail = \$failures" >> results.log
+echo "#pend = \$pends" >> results.log
+
 echo ""
 echo "\$success of \$total tests PASSED"
 echo "\$failures of \$total tests FAILED"
@@ -603,14 +628,12 @@ EOF
 
   # build and submit tests
   cd ${tsdir}
+  ./suite.run | tee suite.log
   if ($report == 1) then
-    echo "Running the suite and storing output in log.suite"
-    ./suite.run >& log.suite
-    ./icepack.poll_queue
+    echo "Reporting results"
+    ./poll_queue.csh
     ./results.csh
-    ./run_ctest.csh
-  else
-    ./suite.run
+    ./report_results.csh
   endif
   cd ${ICE_SANDBOX}
 
