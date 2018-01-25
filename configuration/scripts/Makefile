@@ -114,14 +114,14 @@ $(EXEC): $(OBJS)
 
 .F.o:
 	$(CPP) $(CPPFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $< > $*.f 
-	@if [ "$(COMPILER)" == "cray" ]; then \
+	@if [ "$(COMPILER)" == "cray" ] || [ "$(COMPILER)" == "pgi" ]; then \
 	  mv $*.i $*.f; \
 	fi
 	$(FC) -c $(FFLAGS) $(FIXEDFLAGS) $(INCS) $(INCLDIR) $*.f  
 
 .F90.o:
 	$(CPP) $(CPPFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $< > $*.f90
-	@if [ "$(COMPILER)" == "cray" ]; then \
+	@if [ "$(COMPILER)" == "cray" ] || [ "$(COMPILER)" == "pgi" ]; then \
 	  mv $*.i $*.f90; \
 	fi
 	$(FC) -c $(FFLAGS) $(FREEFLAGS) $(INCS) $(INCLDIR) $*.f90  
