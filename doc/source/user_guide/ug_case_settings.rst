@@ -245,7 +245,7 @@ column physics.
    "``solve_zsal``", "true/false", "prognostic salinity tracer used with ktherm = 1", "``.false.``"
    "``restart_zsal``", "true/false", "restarts zsalinity", "``.false.``"
    "``bgc_data_dir``", "``/nitrate_and_silicate/forcing_directory/``", "", "'``/nitrate_and_silicate/forcing_directory/``'"
-   "``bgc_data_type``", "``default`` or ``NICE`` or ``ISPOL`` or ``clim``", "fixed, spatially homogeneous value for nitrate. 'clim' data file (see ice_forcing_bgc.F90) :cite:`GLBA06`", "``'default'``"
+   "``bgc_data_type``", "``default`` or ``NICE`` or ``ISPOL`` or ``clim``", "fixed, spatially homogeneous value for nitrate. 'clim' data file (see icedrv_forcing_bgc.F90) :cite:`GLBA06`", "``'default'``"
    "``tr_bgc_Nit``", "true/false", "nitrate tracer", "``.true.``"
    "``tr_bgc_C``", "true/false", "dissolved organic carbon tracers and dissolved inorganic carbon tracers (not yet implemented)", "``.true.``"
    "``tr_bgc_chl``", "true/false", "dummy variable for now. Chl is simply fixed ratio of algal Nitrogen", "``.false.``"
