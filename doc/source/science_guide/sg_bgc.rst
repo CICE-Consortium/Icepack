@@ -581,9 +581,10 @@ The fraction of a given tracer in the mobile phase is independent of ice
 depth and stored in the tracer variable zbgc\_frac. The horizontal
 transport of this tracer is conserved on brine volume and so is
 dependent on two tracers: brine height fraction (:math:`f_b`) and ice
-volume (:math:`v_{in}`). The conservation equations are given by Eq. 18
-in the CICE.v5 documentation with :math:`a_{pnd}a_{i}` replaced by
-:math:`f_bv_{in}`.
+volume (:math:`v_{in}`). The conservation equations are given by
+
+.. math::
+   {\partial\over\partial t} (f_{b}v_{in}) + \nabla \cdot (f_{b}v_{in} {\bf u}) = 0.
 
 The tracer, ``zbgc_frac``, is initialized to 1 during new ice formation,
 because all z-tracers are initially in the purely mobile phase.
@@ -1099,7 +1100,8 @@ For values less than :math:`r^{max}_{fed:doc}`
 
 Very long timescales :math:`\tau_{fe}` will remove this source/sink
 term. The default value is currently set at 3065 days to turn off this
-dependency. 61-65 days is a more realistic option (Parekh et al., 2004).
+dependency (any large number will do to turn it off). 
+61-65 days is a more realistic option (Parekh et al., 2004).
 
 The full equation for :math:`{\mbox{fed}}` including uptake and
 remineralization is
