@@ -546,7 +546,7 @@
 
       use icedrv_state, only: trcr_base, trcr_depend, n_trcr_strata
       use icedrv_state, only: nt_strata
-      use icedrv_arrays_column, only: bgc_data_type
+      use icedrv_forcing, only: bgc_data_type
 
       character (len=char_len) :: &
          shortwave        ! from icepack

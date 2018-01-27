@@ -37,8 +37,7 @@
 
       subroutine init_forcing_bgc
 
-        use icedrv_arrays_column, only: bgc_data_type
-        use icedrv_forcing, only: data_dir 
+        use icedrv_forcing, only: data_dir, bgc_data_type
 
         integer (kind=int_kind) :: &
            ntime, &
@@ -90,8 +89,7 @@
       use icedrv_arrays_column, only: ocean_bio_all
       use icedrv_calendar, only:  yday
       use icedrv_flux, only: sss, sil, nit
-      use icedrv_forcing, only: interp_coeff
-      use icedrv_arrays_column, only: bgc_data_type
+      use icedrv_forcing, only: interp_coeff, bgc_data_type
 
       integer (kind=int_kind) :: &
          i,            & ! horizontal indices
