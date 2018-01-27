@@ -254,10 +254,6 @@
          ice_bio_net, & ! depth integrated tracer (mmol/m^2)
          snow_bio_net   ! depth integrated snow tracer (mmol/m^2)
 
-      !-------
-      logical (kind=log_kind), public :: &
-         oceanmixed_ice     ! if true, use internal ocean mixed layer
-
 !=======================================================================
 
       end module icedrv_arrays_column

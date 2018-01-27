@@ -85,6 +85,7 @@
          frcidf = 0.17_dbl_kind    ! frac of incoming sw in near IR diffuse band
 
       logical (kind=log_kind), public :: &
+         oceanmixed_ice        , & ! if true, use internal ocean mixed layer
          restore_ocn               ! restore sst if true
 
       real (kind=dbl_kind), public :: & 

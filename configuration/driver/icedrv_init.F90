@@ -57,7 +57,6 @@
 
       subroutine input_data
 
-      use icedrv_arrays_column, only: oceanmixed_ice
       use icedrv_diagnostics, only: diag_file, nx_names
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icedrv_calendar, only: year_init, istep0
@@ -70,7 +69,7 @@
       use icedrv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
       use icedrv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icedrv_forcing, only: data_dir
-      use icedrv_forcing, only: restore_ocn, trestore
+      use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
 
       ! local variables
 

@@ -219,7 +219,6 @@
       use icedrv_arrays_column, only: alvdfn, alidfn, alvdrn, alidrn, &
           albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
       use icedrv_calendar, only: dt
-      use icedrv_arrays_column, only: oceanmixed_ice
       use icedrv_domain_size, only: ncat, nx
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &
           albpnd, apeff_ai, coszen, fpond, fresh, l_mpond_fresh, &
@@ -230,6 +229,7 @@
           fsens, flat, fswabs, flwout, evap, Tref, Qref, &
           fsurfn_f, flatn_f, frzmlt_init, frzmlt, &
           faero_ocn, fzsal_ai, fzsal_g_ai, flux_bio, flux_bio_ai
+      use icedrv_forcing, only: oceanmixed_ice
       use icedrv_state, only: aicen, aice, aice_init
       use icedrv_step, only: ocean_mixed_layer
 

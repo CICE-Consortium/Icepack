@@ -44,8 +44,8 @@
 
       use icedrv_calendar, only: sec, month, mday, nyr, istep1
       use icedrv_calendar, only: time, time_forc, year_init
-      use icedrv_arrays_column, only: oceanmixed_ice
       use icedrv_domain_size, only: nilyr, nslyr, ncat, nx
+      use icedrv_forcing, only: oceanmixed_ice
       use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: sst, frzmlt, coszen
       use icedrv_state, only: aicen, vicen, vsnon, trcrn, uvel, vvel
@@ -154,11 +154,11 @@
 
       use icedrv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_arrays_column, only: oceanmixed_ice
       use icedrv_domain_size, only: nilyr, nslyr, ncat
       use icedrv_domain_size, only: max_ntrcr, nx
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: sst, frzmlt, coszen, scale_factor
+      use icedrv_forcing, only: oceanmixed_ice
       use icedrv_init, only: tmask
       use icedrv_state, only: trcr_depend, aice, vice, vsno, trcr
       use icedrv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel
