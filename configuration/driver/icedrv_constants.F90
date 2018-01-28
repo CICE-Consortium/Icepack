@@ -20,11 +20,10 @@
          ice_stdout =  6, & ! reserved unit for standard output
          ice_stderr =  6, & ! reserved unit for standard error
          nu_nml     = 10, &          ! unit for namelist
-         nu_rst_pointer = 11, &      ! unit for restart pointer file
          nu_restart = 12, &          ! unit for restart file
          nu_dump    = 13, &          ! unit for dump file
-         nu_forcing    = 14, &          ! unit for forcing file
-         nu_diag    = ice_stdout, &     ! unit for diagnostic output
+         nu_forcing = 14, &          ! unit for forcing file
+         nu_diag    = ice_stdout, &  ! unit for diagnostic output
          nu_diag_out = 103
 
       !-----------------------------------------------------------------
@@ -67,20 +66,9 @@
       !-----------------------------------------------------------------
 
       real (kind=dbl_kind), parameter, public :: &
-         omega     = 7.292e-5_dbl_kind   ,&! angular velocity of earth (rad/sec)
-         radius    = 6.37e6_dbl_kind       ! earth radius (m)
+         omega     = 7.292e-5_dbl_kind, & ! angular velocity of earth (rad/sec)
+         radius    = 6.37e6_dbl_kind      ! earth radius (m)
 
-      real (kind=dbl_kind), parameter, public :: &
-         spval_dbl = 1.0e30_dbl_kind    ! special value (double precision)
-
-      real (kind=real_kind), parameter, public :: &
-         spval     = 1.0e30_real_kind   ! special value for netCDF output
-
-      ! these are currently set so as to have no effect on the decomposition
-      real (kind=dbl_kind), parameter, public :: &
-         shlat  =  30.0_dbl_kind   ,&! artificial masking edge (deg)
-         nhlat  = -30.0_dbl_kind     ! artificial masking edge (deg)
-   
       !-----------------------------------------------------------------
       ! numbers used outside the column package
       !-----------------------------------------------------------------
@@ -108,10 +96,6 @@
       !-----------------------------------------------------------------
 
       real (kind=dbl_kind), parameter, public :: &
-        cm_to_m       = 0.01_dbl_kind   ,&! cm to meters
-        m_to_cm       = 100._dbl_kind   ,&! meters to cm
-        m2_to_km2     = 1.e-6_dbl_kind  ,&! m^2 to km^2
-        kg_to_g       = 1000._dbl_kind  ,&! kilograms to grams
         mps_to_cmpdy  = 8.64e6_dbl_kind   ! m per s to cm per day
 
 !=======================================================================

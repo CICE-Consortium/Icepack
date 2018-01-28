@@ -143,18 +143,16 @@
            qdp_data(:) = qdp  (i)    ! deep ocean heat flux (W/m^2)
            sst_data(:) = sst  (i)    ! sea surface temperature
            sss_data(:) = sss  (i)    ! sea surface salinity
-          uocn_data(:) = uocn (i)    ! wind velocity components (m/s)
+          uocn_data(:) = uocn (i)    ! ocean current components (m/s)
           vocn_data(:) = vocn (i)
 
           cldf_data(:) = c0     ! cloud fraction
 
-      if (trim(atm_data_type(1:4)) == 'CFS') call atm_CFS
-      if (trim(atm_data_type(1:4)) == 'clim') call atm_climatological
+      if (trim(atm_data_type(1:4)) == 'CFS')   call atm_CFS
+      if (trim(atm_data_type(1:4)) == 'clim')  call atm_climatological
+      if (trim(atm_data_type(1:5)) == 'ISPOL') call atm_ISPOL
+      if (trim(atm_data_type(1:4)) == 'NICE')  call atm_NICE
 
-      if (trim(atm_data_type) == 'ISPOL') call atm_ISPOL
-      if (trim(atm_data_type) == 'NICE') call atm_NICE
-
-      !cn if (restore_ocn .or. restore_bgc) then
       if (restore_ocn) then
         if (trestore == 0) then
           trest = dt        ! use data instantaneously
@@ -163,8 +161,8 @@
         end if
       endif
 
-      if (trim(ocn_data_type) == 'ISPOL') call ocn_ISPOL
-      if (trim(ocn_data_type) == 'NICE') call ocn_NICE
+      if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
+      if (trim(ocn_data_type(1:4)) == 'NICE')  call ocn_NICE
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     flw_data,      &

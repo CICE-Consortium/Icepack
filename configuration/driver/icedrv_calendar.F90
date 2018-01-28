@@ -65,9 +65,9 @@
          sec      , & ! elapsed seconds into date
          npt      , & ! total number of time steps (dt)
          ndtd     , & ! number of dynamics subcycles: dt_dyn=dt/ndtd
-         stop_now     , & ! if 1, end program execution
-         write_restart, & ! if 1, write restart now
-         diagfreq
+         stop_now       , & ! if 1, end program execution
+         write_restart  , & ! if 1, write restart now
+         diagfreq           ! diagnostic output frequency (once per diagfreq*dt)
 
       real (kind=dbl_kind), public :: &
          dt             , & ! thermodynamics timestep (s)
@@ -91,11 +91,11 @@
          force_restart_now  ! force a restart now
 
       character (len=1), public :: &
-         dumpfreq               ! restart frequency, 'y','m','d'
+         dumpfreq           ! restart frequency, 'y','m','d'
 
       character (len=char_len), public :: &
-         calendar_type       ! differentiates Gregorian from other calendars
-                             ! default = ' '
+         calendar_type      ! differentiates Gregorian from other calendars
+                            ! default = ' '
 
 !=======================================================================
 
@@ -110,10 +110,16 @@
       subroutine init_calendar
       character(len=*), parameter :: subname='(init_calendar)'
 
+      !-----------------------------------------------------------------
+      ! query Icepack values
+      !-----------------------------------------------------------------
+
       call icepack_query_constants(secday_out=secday)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
 
       istep = 0         ! local timestep number
       time=istep0*dt    ! s
@@ -137,12 +143,8 @@
               ' because use_leap_years = .true.'
       end if
 
-#ifdef CCSMCOUPLED
-      ! calendar_type set by coupling
-#else
       calendar_type = ' '
       if (use_leap_years .and. days_per_year == 365) calendar_type = 'Gregorian'
-#endif
       
       dayyr = real(days_per_year, kind=dbl_kind)
       if (days_per_year == 360) then
@@ -228,9 +230,7 @@
 
       idate = (nyr+year_init-1)*10000 + month*100 + mday ! date (yyyymmdd) 
 
-#ifndef CCSMCOUPLED
       if (istep >= npt+1)  stop_now = 1
-#endif
       if (nyr   /= nyrp)   new_year = .true.
       if (month /= monthp) new_month = .true.
       if (mday  /= mdayp)  new_day = .true.
@@ -254,8 +254,7 @@
       
       endif !  istep > 1
 
-      if (mod(istep,diagfreq) == 0 &
-                                 .and. stop_now /= 1) then
+      if (mod(istep,diagfreq) == 0 .and. stop_now /= 1) then
         do ns = 1, nx
           write(nu_diag_out+ns-1,*) ' '
           write(nu_diag_out+ns-1,'(a7,i10,4x,a6,i10,4x,a4,i10)') &
@@ -344,7 +343,7 @@
       integer (kind=int_kind), intent(out) :: year     ! year
       integer (kind=int_kind), intent(out) :: month    ! month
       integer (kind=int_kind), intent(out) :: day      ! year
-      real (kind=dbl_kind),    intent(in)  :: tsec     ! seconds since calendar zero      
+      real (kind=dbl_kind),    intent(in)  :: tsec     ! seconds since calendar zero
 
       ! local variables
 
