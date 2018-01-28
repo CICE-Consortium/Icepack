@@ -385,7 +385,7 @@
       use icedrv_flux, only: fsens, flat, evap, flwout
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, rhoa
       use icedrv_flux, only: frzmlt, sst, sss, Tf, Tref, Qref, Uref
-      use icedrv_flux, only: uocn, vocn, strtltx, strtlty
+      use icedrv_flux, only: uocn, vocn
       use icedrv_flux, only: fsw, fswabs, fswint_ai, fswthru, scale_factor
       use icedrv_flux, only: alvdr_ai, alvdf_ai, alidf_ai, alidr_ai
 
@@ -501,8 +501,6 @@
       write(nu_diag,*) '            Tf      = ',Tf     (i)
       write(nu_diag,*) '            uocn    = ',uocn   (i)
       write(nu_diag,*) '            vocn    = ',vocn   (i)
-      write(nu_diag,*) '            strtltx = ',strtltx(i)
-      write(nu_diag,*) '            strtlty = ',strtlty(i)
       write(nu_diag,*) ' '
       write(nu_diag,*) 'srf states and fluxes'
       write(nu_diag,*) '            Tref    = ',Tref  (i)
