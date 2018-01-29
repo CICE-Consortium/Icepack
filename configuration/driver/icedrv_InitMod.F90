@@ -57,22 +57,22 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
       call input_data           ! namelist variables
       call init_zbgc            ! vertical biogeochemistry namelist
-
       call init_grid2           ! grid variables
-
       call init_calendar        ! initialize some calendar stuff
-
       call init_coupler_flux    ! initialize fluxes exchanged with coupler
       call init_thermo_vertical ! initialize vertical thermodynamics
       call icepack_init_itd(ncat, hin_max)
+
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       call icepack_init_itd_hist(ncat, hin_max, c_hi_range) ! output
+
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
@@ -83,9 +83,6 @@
       call init_state           ! initialize the ice state
       call init_restart         ! initialize restart variables
       call init_history_therm   ! initialize thermo history variables
-
-!      if (tr_aero .or. tr_zaero) call faero_optics !initialize aerosol optical 
-                                                   !property tables
 
       if (restart) &
          call init_shortwave    ! initialize radiative transfer
@@ -108,19 +105,13 @@
 
       call init_forcing      ! initialize forcing (standalone)     
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
-!?      call init_coupler_flux ! complete forcing initialization
       call get_forcing(istep1)       ! get forcing from data arrays
-
-!      call get_forcing_atmo     ! atmospheric forcing from data
-!      call get_forcing_ocn(dt)  ! ocean forcing from data
 
       ! aerosols
       ! if (tr_aero)  call faero_data                   ! data file
       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
       if (tr_aero .or. tr_zaero)  call faero_default    ! default values
-
       if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
-!      if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
       if (.not. restart) &
          call init_shortwave    ! initialize radiative transfer using current swdn
@@ -158,10 +149,9 @@
 
       character(len=*), parameter :: subname='(init_restart)'
 
-      if (restart) then
-         call restartfile (ice_ic)
-         call calendar (time)
-      endif      
+      !-----------------------------------------------------------------
+      ! query Icepack values
+      !-----------------------------------------------------------------
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
@@ -171,12 +161,17 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-!echmod - move this call above restartfile
+      !-----------------------------------------------------------------
+
       if (tr_brine .or. skl_bgc) then ! brine height tracer
         call init_hbrine
       endif
 
-      ! initialize biogeochemistry, including reading restarts
+      if (restart) then
+         call restartfile (ice_ic)
+         call calendar (time)
+      endif
+
       if (solve_zsal .or. skl_bgc .or. z_tracers) then
          call init_bgc
          if (restart) call read_restart_bgc ! complete BGC initialization
@@ -187,20 +182,20 @@
       !-----------------------------------------------------------------
       do i = 1, nx
          if (tmask(i)) &
-         call icepack_aggregate (ncat,               &
-                                aicen(i,:),  &
-                                trcrn(i,:,:),&
-                                vicen(i,:),  &
-                                vsnon(i,:),  &
-                                aice (i),  &
-                                trcr (i,:),  &
-                                vice (i),  &
-                                vsno (i),  &
-                                aice0(i),  &
-                                max_ntrcr,          &
-                                trcr_depend,        &
-                                trcr_base,          &
-                                n_trcr_strata,      &
+         call icepack_aggregate(ncat,          &
+                                aicen(i,:),    &
+                                trcrn(i,:,:),  &
+                                vicen(i,:),    &
+                                vsnon(i,:),    &
+                                aice (i),      &
+                                trcr (i,:),    &
+                                vice (i),      &
+                                vsno (i),      &
+                                aice0(i),      &
+                                max_ntrcr,     &
+                                trcr_depend,   &
+                                trcr_base,     &
+                                n_trcr_strata, &
                                 nt_strata)
       enddo
       call icepack_warnings_flush(nu_diag)

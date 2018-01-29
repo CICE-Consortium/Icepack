@@ -77,12 +77,11 @@
          nml_filename = 'icepack_in' ! namelist input file name
 
       integer (kind=int_kind) :: &
-        nml_error, & ! namelist i/o error flag
-        n,         & ! loop index
-        diag_len     ! length of diag file
+         nml_error, & ! namelist i/o error flag
+         n,         & ! loop index
+         diag_len     ! length of diag file
 
       character (len=char_len) :: diag_file_names
-
       character (len=6) :: chartmp
       character (len=32) :: str
       character (len=20) :: format_str
@@ -90,16 +89,16 @@
       logical :: exists
 
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
-        ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
-        mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
-        a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
-        phi_c_slow_mode, phi_i_mushy, kalg
+         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
+         mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
+         a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
+         phi_c_slow_mode, phi_i_mushy, kalg
 
-      integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, natmiter, &
-        kitd, kcatbound
+      integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, &
+         natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
-        tfrz_option, frzpnd, atmbndy
+         tfrz_option, frzpnd, atmbndy
 
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
 
@@ -114,7 +113,7 @@
       character(len=*), parameter :: subname='(input_data)'
 
       !-----------------------------------------------------------------
-      ! Namelist variables.
+      ! Namelist variables
       !-----------------------------------------------------------------
 
       namelist /setup_nml/ &
@@ -201,7 +200,7 @@
       kstrength = 1          ! 1 = Rothrock 75 strength, 0 = Hibler 79
       krdg_partic = 1        ! 1 = new participation, 0 = Thorndike et al 75
       krdg_redist = 1        ! 1 = new redistribution, 0 = Hibler 80
-      mu_rdg = 3             ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
+      mu_rdg = 3.0_dbl_kind  ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
       Cf = 17.0_dbl_kind     ! ratio of ridging work to PE change in ridging 
       shortwave = 'dEdd'     ! 'ccsm3' or 'dEdd' (delta-Eddington)
       albedo_type = 'ccsm3'  ! or 'constant'
@@ -313,8 +312,8 @@
       end do
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
-        write(ice_stdout,*) 'error reading namelist'
-        call icedrv_system_abort(file=__FILE__,line=__LINE__)
+         write(ice_stdout,*) 'error reading namelist'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
       
@@ -783,13 +782,13 @@
       ! create hemisphere masks
       !-----------------------------------------------------------------
 
-         lmask_n(:) = .false.
-         lmask_s(:) = .false.
+      lmask_n(:) = .false.
+      lmask_s(:) = .false.
 
-         do i = 1, nx
-            if (TLAT(i) >= -puny) lmask_n(i) = .true. ! N. Hem.
-            if (TLAT(i) <  -puny) lmask_s(i) = .true. ! S. Hem.
-         enddo
+      do i = 1, nx
+         if (TLAT(i) >= -puny) lmask_n(i) = .true. ! N. Hem.
+         if (TLAT(i) <  -puny) lmask_s(i) = .true. ! S. Hem.
+      enddo
 
       end subroutine init_grid2
 

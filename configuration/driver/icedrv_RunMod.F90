@@ -35,7 +35,6 @@
       use icedrv_calendar, only: istep, istep1, time, dt, stop_now, calendar
       use icedrv_forcing, only: get_forcing
       use icedrv_forcing_bgc, only: faero_default, get_forcing_bgc
-!      use icedrv_forcing_bgc, only: , get_atm_bgc, fzaero_data, & 
       use icedrv_flux, only: init_flux_atm_ocn
 
       logical (kind=log_kind) :: skl_bgc, z_tracers, tr_aero, tr_zaero
@@ -64,8 +63,6 @@
          if (stop_now >= 1) exit timeLoop
 
          call get_forcing(istep1)  ! get forcing from data arrays
-!         call get_forcing_atmo     ! atmospheric forcing from data
-!         call get_forcing_ocn(dt)  ! ocean forcing from data
 
          ! aerosols
          if (tr_aero .or. tr_zaero)  call faero_default    ! default values
@@ -76,7 +73,6 @@
              file=__FILE__,line= __LINE__)
 
          if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
-!         if (z_tracers) call get_atm_bgc                   ! biogeochemistry
 
          call init_flux_atm_ocn ! initialize atmosphere, ocean fluxes
 
@@ -119,7 +115,7 @@
 !      call icedrv_diagnostics_debug ('beginning time step')
 
       !-----------------------------------------------------------------
-      ! initialize diagnostics
+      ! query Icepack values
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
@@ -128,6 +124,10 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
+      ! initialize diagnostics
+      !-----------------------------------------------------------------
 
       call init_mass_diags   ! diagnostics per timestep
       call init_history_therm
@@ -193,17 +193,17 @@
       !-----------------------------------------------------------------
       
       if (mod(istep,diagfreq) == 0) then
-        call runtime_diags(dt)          ! log file
-        if (solve_zsal) call zsal_diags(dt)  
-        if (skl_bgc .or. z_tracers)  call bgc_diags (dt)
-        if (tr_brine) call hbrine_diags(dt)
+         call runtime_diags(dt)       ! log file
+         if (solve_zsal)              call zsal_diags(dt)
+         if (skl_bgc .or. z_tracers)  call bgc_diags (dt)
+         if (tr_brine)                call hbrine_diags(dt)
       endif
       
       if (write_restart == 1) then
-        call dumpfile     ! core variables for restarting
-        if (solve_zsal .or. skl_bgc .or. z_tracers) &
+         call dumpfile     ! core variables for restarting
+         if (solve_zsal .or. skl_bgc .or. z_tracers) &
             call write_restart_bgc         ! biogeochemistry
-        call final_restart
+         call final_restart
       endif
       
     end subroutine ice_step
@@ -286,30 +286,20 @@
          do i = 1, nx
             if (aicen(i,n) > puny) then
                   
-            alvdf(i) = alvdf(i) &
-               + alvdfn(i,n)*aicen(i,n)
-            alidf(i) = alidf(i) &
-               + alidfn(i,n)*aicen(i,n)
-            alvdr(i) = alvdr(i) &
-               + alvdrn(i,n)*aicen(i,n)
-            alidr(i) = alidr(i) &
-               + alidrn(i,n)*aicen(i,n)
+            alvdf(i) = alvdf(i) + alvdfn(i,n)*aicen(i,n)
+            alidf(i) = alidf(i) + alidfn(i,n)*aicen(i,n)
+            alvdr(i) = alvdr(i) + alvdrn(i,n)*aicen(i,n)
+            alidr(i) = alidr(i) + alidrn(i,n)*aicen(i,n)
 
-            netsw = swvdr(i) + swidr(i) &
-                  + swvdf(i) + swidf(i)
+            netsw = swvdr(i) + swidr(i) + swvdf(i) + swidf(i)
             if (netsw > puny) then ! sun above horizon
-            albice(i) = albice(i) &
-               + albicen(i,n)*aicen(i,n)
-            albsno(i) = albsno(i) &
-               + albsnon(i,n)*aicen(i,n)
-            albpnd(i) = albpnd(i) &
-               + albpndn(i,n)*aicen(i,n)
+               albice(i) = albice(i) + albicen(i,n)*aicen(i,n)
+               albsno(i) = albsno(i) + albsnon(i,n)*aicen(i,n)
+               albpnd(i) = albpnd(i) + albpndn(i,n)*aicen(i,n)
             endif
 
-            apeff_ai(i) = apeff_ai(i) &       ! for history
-               + apeffn(i,n)*aicen(i,n)
-            snowfrac(i) = snowfrac(i) &       ! for history
-               + snowfracn(i,n)*aicen(i,n)
+            apeff_ai(i) = apeff_ai(i) + apeffn(i,n)*aicen(i,n) ! for history
+            snowfrac(i) = snowfrac(i) + snowfracn(i,n)*aicen(i,n) ! for history
                
             endif ! aicen > puny
          enddo
@@ -343,7 +333,7 @@
 
             if (nbtrcr > 0) then
             do k = 1, nbtrcr
-              flux_bio_ai  (i,k) = flux_bio  (i,k)
+               flux_bio_ai  (i,k) = flux_bio  (i,k)
             enddo
             endif
 

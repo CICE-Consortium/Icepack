@@ -3,7 +3,7 @@
 !
 ! Reads and interpolates forcing data for biogeochemistry
 !
-! authors:  Nicole Jeffery, LANL
+! authors: Nicole Jeffery, LANL
 !          Elizabeth C. Hunke, LANL
 !
       module icedrv_forcing_bgc
