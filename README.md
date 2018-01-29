@@ -1,5 +1,3 @@
-*This repository is under construction, and some resources listed here are not yet available*
-
 ## Overview
 
 This repository contains files describing the column physics of the sea ice model CICE, which is now maintained by the CICE Consortium.  For testing purposes and guidance for including Icepack in other sea ice host models, this repository also includes a driver and basic test suite.
@@ -16,9 +14,13 @@ Icepack may be obtained in several different ways:  [not yet tested]
 See [Git and Workflow Guide](https://docs.google.com/document/d/1rR6WAvZQT9iAMUp-m_HZ06AUCCI19mguFialsMCYs9o/edit?usp=sharing)    
 2.  check out only a particular branch, version or tag    
 In the workflow for step 1 above, substitute    
-  [check this] git clone -b branch_name https://github.com/CICE-Consortium/Icepack.git local_directory_name   
+
+  > git clone -b branch_name https://github.com/CICE-Consortium/Icepack.git local_directory_name   
+  
 or use svn    
-  svn co https://github.com/CICE-Consortium/Icepack/branch_name    
+
+  > svn co https://github.com/CICE-Consortium/Icepack/branch_name    
+  
 where "branch name" can also be a version name    
 3.  download a tarball for a particular version    
 [how]
@@ -37,6 +39,7 @@ The [Icepack wiki](https://github.com/CICE-Consortium/Icepack/wiki) page contain
 - complete documentation 
 - larger files such as the gx1 grid, land mask, and forcing files
 - testing data
-- test results
+
+Test results for both CICE and Icepack can be found in the ["Test-Results" repository](https://github.com/CICE-Consortium/Test-Results).
 
 The ["About-Us" repository](https://github.com/CICE-Consortium/About-Us) includes background and supporting information about the CICE Consortium, including how to interact with it.    
