@@ -768,10 +768,12 @@
          uatm , & ! wind velocity components
          vatm , &
          fsnow    ! snowfall rate
+         ! aday   ! not used
 
       real (kind=dbl_kind), dimension(1464) :: &
          fsw  , & ! shortwave
          flw      ! longwave
+         ! atime  ! not used
 
       character (char_len_long) filename
 
@@ -790,6 +792,8 @@
       read(nu_forcing,*) uatm
       read(nu_forcing,*) vatm
       read(nu_forcing,*) fsnow
+!      read(nu_forcing,*) aday
+!      read(nu_forcing,*) atime
 
       do i = 1, 366 ! daily
          Tair_data (i) = tair (i)
@@ -821,10 +825,12 @@
          uatm , & ! wind velocity components
          vatm , &
          fsnow    ! snowfall rate
+         ! aday   ! not used
 
       real (kind=dbl_kind), dimension(1464) :: &
          fsw  , & ! shortwave
          flw      ! longwave
+         ! atime  ! not used
 
       character (char_len_long) filename
 
@@ -843,6 +849,8 @@
       read(nu_forcing,*) uatm
       read(nu_forcing,*) vatm
       read(nu_forcing,*) fsnow
+!      read(nu_forcing,*) aday
+!      read(nu_forcing,*) atime
 
       do i = 1, 366
          Tair_data (i) = tair (i)
