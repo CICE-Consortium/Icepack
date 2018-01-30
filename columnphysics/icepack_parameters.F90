@@ -110,7 +110,7 @@
          Lvap      = 2.501e6_dbl_kind ,&! latent heat, vaporization freshwater (J/kg)
          Timelt    = 0.0_dbl_kind     ,&! melting temperature, ice top surface  (C)
          Tsmelt    = 0.0_dbl_kind     ,&! melting temperature, snow top surface (C)
-         ice_ref_salinity = 4._dbl_kind ,&! (ppt)
+         ice_ref_salinity =4._dbl_kind,&! (ppt)
                                         ! kice is not used for mushy thermo
          kice      = 2.03_dbl_kind    ,&! thermal conductivity of fresh ice(W/m/deg)
                                         ! kseaice is used only for zero-layer thermo
@@ -123,43 +123,41 @@
          phi_init  = 0.75_dbl_kind    ,&! initial liquid fraction of frazil
          min_salin = p1               ,&! threshold for brine pocket treatment
          salt_loss = 0.4_dbl_kind     ,&! fraction of salt retained in zsalinity
-         dSin0_frazil = c3              ! bulk salinity reduction of newly formed frazil
+         dSin0_frazil = c3            ,&! bulk salinity reduction of newly formed frazil
+         dts_b     = 50._dbl_kind     ,&! zsalinity timestep
+         ustar_min = 0.005_dbl_kind   ,&! minimum friction velocity for ocean heat flux (m/s)
+         ! mushy thermo
+         a_rapid_mode      =  0.5e-3_dbl_kind,&! channel radius for rapid drainage mode (m)
+         Rac_rapid_mode    =    10.0_dbl_kind,&! critical Rayleigh number
+         aspect_rapid_mode =     1.0_dbl_kind,&! aspect ratio (larger is wider)
+         dSdt_slow_mode    = -1.5e-7_dbl_kind,&! slow mode drainage strength (m s-1 K-1)
+         phi_c_slow_mode   =    0.05_dbl_kind,&! critical liquid fraction porosity cutoff
+         phi_i_mushy       =    0.85_dbl_kind  ! liquid fraction of congelation ice
+
 
       integer (kind=int_kind), public :: &
-         ktherm          ! type of thermodynamics
+         ktherm = 1      ! type of thermodynamics
                          ! 0 = 0-layer approximation
                          ! 1 = Bitz and Lipscomb 1999
                          ! 2 = mushy layer theory
 
       character (char_len), public :: &
-         conduct, &      ! 'MU71' or 'bubbly'
-         fbot_xfer_type  ! transfer coefficient type for ice-ocean heat flux
+         conduct = 'bubbly', &      ! 'MU71' or 'bubbly'
+         fbot_xfer_type = 'constant' ! transfer coefficient type for ice-ocean heat flux
 
       logical (kind=log_kind), public :: &
-         heat_capacity, &! if true, ice has nonzero heat capacity
-                         ! if false, use zero-layer thermodynamics
-         calc_Tsfc   ,  &! if true, calculate surface temperature
-                         ! if false, Tsfc is computed elsewhere and
-                         ! atmos-ice fluxes are provided to CICE
-         solve_zsal  ,  &! if true, update salinity profile from solve_S_dt
-         modal_aero      ! if true, use modal aerosal optical properties
-                         ! only for use with tr_aero or tr_zaero
-
-      real (kind=dbl_kind), public :: &
-         dts_b,   &      ! zsalinity timestep
-         ustar_min       ! minimum friction velocity for ice-ocean heat flux
-
-      ! mushy thermo
-      real(kind=dbl_kind), public :: &
-         a_rapid_mode      , & ! channel radius for rapid drainage mode (m)
-         Rac_rapid_mode    , & ! critical Rayleigh number for rapid drainage mode
-         aspect_rapid_mode , & ! aspect ratio for rapid drainage mode (larger=wider)
-         dSdt_slow_mode    , & ! slow mode drainage strength (m s-1 K-1)
-         phi_c_slow_mode   , & ! liquid fraction porosity cutoff for slow mode
-         phi_i_mushy           ! liquid fraction of congelation ice
+         heat_capacity = .true. ,&! if true, ice has nonzero heat capacity
+                                  ! if false, use zero-layer thermodynamics
+         calc_Tsfc     = .true. ,&! if true, calculate surface temperature
+                                  ! if false, Tsfc is computed elsewhere and
+                                  ! atmos-ice fluxes are provided to CICE
+         update_ocn_f = .false. ,&! include fresh water and salt fluxes for frazil
+         solve_zsal   = .false. ,&! if true, update salinity profile from solve_S_dt
+         modal_aero   = .false.   ! if true, use modal aerosal optical properties
+                                  ! only for use with tr_aero or tr_zaero
 
       character(len=char_len), public :: &
-         tfrz_option              ! form of ocean freezing temperature
+         tfrz_option  = 'mushy'   ! form of ocean freezing temperature
                                   ! 'minus1p8' = -1.8 C
                                   ! 'linear_salt' = -depressT * sss
                                   ! 'mushy' conforms with ktherm=2
@@ -170,109 +168,102 @@
 
       real (kind=dbl_kind), public :: &
          ! (Briegleb JGR 97 11475-11485  July 1992)
-         emissivity= 0.95_dbl_kind    ,&! emissivity of snow and ice
-         albocn    = 0.06_dbl_kind    ,&! ocean albedo
-         vonkar    = 0.4_dbl_kind     ,&! von Karman constant
+         emissivity = 0.95_dbl_kind ,&! emissivity of snow and ice
+         albocn     = 0.06_dbl_kind ,&! ocean albedo
+         vonkar     = 0.4_dbl_kind  ,&! von Karman constant
          stefan_boltzmann = 567.0e-10_dbl_kind,&!  W/m^2/K^4
          ! (Ebert, Schramm and Curry JGR 100 15965-15975 Aug 1995)
-         kappav = 1.4_dbl_kind     ,&! vis extnctn coef in ice, wvlngth<700nm (1/m)
-         hi_ssl = 0.050_dbl_kind   ,&! ice surface scattering layer thickness (m)
-         hs_ssl = 0.040_dbl_kind     ! snow surface scattering layer thickness (m)
-
+         kappav     = 1.4_dbl_kind  ,&! vis extnctn coef in ice, wvlngth<700nm (1/m)
+         hi_ssl     = 0.050_dbl_kind,&! ice surface scattering layer thickness (m)
+         hs_ssl     = 0.040_dbl_kind,&! snow surface scattering layer thickness (m)
+         ! baseline albedos for ccsm3 shortwave, set in namelist
+         albicev    = 0.78_dbl_kind ,&! visible ice albedo for h > ahmax
+         albicei    = 0.36_dbl_kind ,&! near-ir ice albedo for h > ahmax
+         albsnowv   = 0.98_dbl_kind ,&! cold snow albedo, visible
+         albsnowi   = 0.70_dbl_kind ,&! cold snow albedo, near IR
+         ahmax      = 0.3_dbl_kind  ,&! thickness above which ice albedo is constant (m)
+         ! dEdd tuning parameters, set in namelist
+         R_ice      = c0   ,&! sea ice tuning parameter; +1 > 1sig increase in albedo
+         R_pnd      = c0   ,&! ponded ice tuning parameter; +1 > 1sig increase in albedo
+         R_snw      = c1p5 ,&! snow tuning parameter; +1 > ~.01 change in broadband albedo
+         dT_mlt     = c1p5 ,&! change in temp for non-melt to melt snow grain 
+                             ! radius change (C)
+         rsnw_mlt   = 1500._dbl_kind,&! maximum melting snow grain radius (10^-6 m)
+         kalg       = 0.60_dbl_kind   ! algae absorption coefficient for 0.5 m thick layer
+                                      ! 0.5 m path of 75 mg Chl a / m2
       ! weights for albedos 
       ! 4 Jan 2007 BPB  Following are appropriate for complete cloud
       ! in a summer polar atmosphere with 1.5m bare sea ice surface:
       ! .636/.364 vis/nir with only 0.5% direct for each band.
-      real (kind=dbl_kind), public :: &           ! currently used only
+      real (kind=dbl_kind), public :: &                 ! currently used only
          awtvdr = 0.00318_dbl_kind, &! visible, direct  ! for history and
          awtidr = 0.00182_dbl_kind, &! near IR, direct  ! diagnostics
          awtvdf = 0.63282_dbl_kind, &! visible, diffuse
          awtidf = 0.36218_dbl_kind   ! near IR, diffuse
 
       character (len=char_len), public :: &
-         shortwave, & ! shortwave method, 'ccsm3' or 'dEdd'
-         albedo_type  ! albedo parameterization, 'ccsm3' or 'constant'
-                      ! shortwave='dEdd' overrides this parameter
-
-      ! baseline albedos for ccsm3 shortwave, set in namelist
-      real (kind=dbl_kind), public :: &
-         albicev  , & ! visible ice albedo for h > ahmax
-         albicei  , & ! near-ir ice albedo for h > ahmax
-         albsnowv , & ! cold snow albedo, visible
-         albsnowi , & ! cold snow albedo, near IR
-         ahmax        ! thickness above which ice albedo is constant (m)
-
-      ! dEdd tuning parameters, set in namelist
-      real (kind=dbl_kind), public :: &
-         R_ice    , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
-         R_pnd    , & ! ponded ice tuning parameter; +1 > 1sig increase in albedo
-         R_snw    , & ! snow tuning parameter; +1 > ~.01 change in broadband albedo
-         dT_mlt   , & ! change in temp for non-melt to melt snow grain 
-                      ! radius change (C)
-         rsnw_mlt , & ! maximum melting snow grain radius (10^-6 m)
-         kalg         ! algae absorption coefficient for 0.5 m thick layer
+         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd'
+         albedo_type = 'ccsm3'   ! albedo parameterization, 'ccsm3' or 'constant'
+                                 ! shortwave='dEdd' overrides this parameter
 
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
 !-----------------------------------------------------------------------
 
       integer (kind=int_kind), public :: & ! defined in namelist 
-         kstrength  , & ! 0 for simple Hibler (1979) formulation 
-                        ! 1 for Rothrock (1975) pressure formulation 
-         krdg_partic, & ! 0 for Thorndike et al. (1975) formulation 
-                        ! 1 for exponential participation function 
-         krdg_redist    ! 0 for Hibler (1980) formulation 
-                        ! 1 for exponential redistribution function 
+         kstrength   = 1, & ! 0 for simple Hibler (1979) formulation
+                            ! 1 for Rothrock (1975) pressure formulation
+         krdg_partic = 1, & ! 0 for Thorndike et al. (1975) formulation
+                            ! 1 for exponential participation function
+         krdg_redist = 1    ! 0 for Hibler (1980) formulation
+                            ! 1 for exponential redistribution function
 
       real (kind=dbl_kind), public :: &  
-         Cf       = 17._dbl_kind      ,&! ratio of ridging work to PE change in ridging 
-         Pstar    = 2.75e4_dbl_kind   ,&! constant in Hibler strength formula 
-                                        ! (kstrength = 0) 
-         Cstar    = 20._dbl_kind      ,&! constant in Hibler strength formula 
-                                        ! (kstrength = 0) 
-         dragio    = 0.00536_dbl_kind ,&! ice-ocn drag coefficient
-
-         gravit    = 9.80616_dbl_kind ,&! gravitational acceleration (m/s^2)
-         iceruf   = 0.0005_dbl_kind     ! ice surface roughness (m)
-
-      real (kind=dbl_kind), public :: &  
-         mu_rdg         ! gives e-folding scale of ridged ice (m^.5) 
-                        ! (krdg_redist = 1) 
+         Cf       = 17._dbl_kind     ,&! ratio of ridging work to PE change in ridging
+         Pstar    = 2.75e4_dbl_kind  ,&! constant in Hibler strength formula
+                                       ! (kstrength = 0)
+         Cstar    = 20._dbl_kind     ,&! constant in Hibler strength formula
+                                       ! (kstrength = 0)
+         dragio   = 0.00536_dbl_kind ,&! ice-ocn drag coefficient
+         gravit   = 9.80616_dbl_kind ,&! gravitational acceleration (m/s^2)
+         mu_rdg = 3.0_dbl_kind ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
+                                       ! (krdg_redist = 1)
 
 !-----------------------------------------------------------------------
 ! Parameters for atmosphere
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
-         cp_air  = 1005.0_dbl_kind  ,&! specific heat of air (J/kg/K)
-         cp_wv   = 1.81e3_dbl_kind  ,&! specific heat of water vapor (J/kg/K)
-         zvir    = 0.606_dbl_kind   ,&! rh2o/rair - 1.0
-         zref    = 10._dbl_kind   ,&! reference height for stability (m)
-         qqqice  = 11637800._dbl_kind   ,&! for qsat over ice
-         TTTice  = 5897.8_dbl_kind      ,&! for qsat over ice
-         qqqocn  = 627572.4_dbl_kind    ,&! for qsat over ocn
-         TTTocn  = 5107.4_dbl_kind        ! for qsat over ocn
+         cp_air = 1005.0_dbl_kind    ,&! specific heat of air (J/kg/K)
+         cp_wv  = 1.81e3_dbl_kind    ,&! specific heat of water vapor (J/kg/K)
+         zvir   = 0.606_dbl_kind     ,&! rh2o/rair - 1.0
+         zref   = 10._dbl_kind       ,&! reference height for stability (m)
+         iceruf = 0.0005_dbl_kind    ,&! ice surface roughness (m)
+         qqqice = 11637800._dbl_kind ,&! for qsat over ice
+         TTTice = 5897.8_dbl_kind    ,&! for qsat over ice
+         qqqocn = 627572.4_dbl_kind  ,&! for qsat over ocn
+         TTTocn = 5107.4_dbl_kind      ! for qsat over ocn
 
       character (len=char_len), public :: &
-         atmbndy ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+         atmbndy = 'default' ! atmo boundary method, 'default' ('ccsm3') or 'constant'
 
       logical (kind=log_kind), public :: &
-         calc_strair, &  ! if true, calculate wind stress components
-         formdrag,    &  ! if true, calculate form drag
-         highfreq        ! if true, use high frequency coupling
+         calc_strair     = .true.  , & ! if true, calculate wind stress
+         formdrag        = .false. , & ! if true, calculate form drag
+         highfreq        = .false.     ! if true, calculate high frequency coupling
 
       integer (kind=int_kind), public :: &
-         natmiter        ! number of iterations for boundary layer calculations
+         natmiter        = 5 ! number of iterations for atm boundary layer calcs
 
 !-----------------------------------------------------------------------
 ! Parameters for the ice thickness distribution
 !-----------------------------------------------------------------------
 
       integer (kind=int_kind), public :: &
-         kitd        , & ! type of itd conversions
+         kitd      = 1 ,&! type of itd conversions
                          !   0 = delta function
                          !   1 = linear remap
-         kcatbound       !   0 = old category boundary formula
+         kcatbound = 1   !   0 = old category boundary formula
                          !   1 = new formula giving round numbers
                          !   2 = WMO standard
                          !   3 = asymptotic formula
@@ -282,22 +273,22 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
-         hs0             ! snow depth for transition to bare sea ice (m)
+         hs0       = 0.03_dbl_kind    ! snow depth for transition to bare sea ice (m)
 
       ! level-ice ponds
       character (len=char_len), public :: &
-         frzpnd          ! pond refreezing parameterization
+         frzpnd    = 'cesm'           ! pond refreezing parameterization
 
       real (kind=dbl_kind), public :: &
-         dpscale, &      ! alter e-folding time scale for flushing 
-         rfracmin, &     ! minimum retained fraction of meltwater
-         rfracmax, &     ! maximum retained fraction of meltwater
-         pndaspect, &    ! ratio of pond depth to pond fraction
-         hs1             ! tapering parameter for snow on pond ice
+         dpscale   = c1, &            ! alter e-folding time scale for flushing 
+         rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
+         rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
+         pndaspect = 0.8_dbl_kind, &  ! ratio of pond depth to area fraction
+         hs1       = 0.03_dbl_kind    ! snow depth for transition to bare pond ice (m)
 
       ! topo ponds
       real (kind=dbl_kind), public :: &
-         hp1             ! critical parameter for pond ice thickness
+         hp1       = 0.01_dbl_kind ! critical pond lid thickness for topo ponds
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
@@ -311,7 +302,7 @@
          z_tracers,      & ! if .true., bgc or aerosol tracers are vertically resolved
          scale_bgc,      & ! if .true., initialize bgc tracers proportionally with salinity
          solve_zbgc,     & ! if .true., solve vertical biochemistry portion of code
-         dEdd_algae        ! if .true., algal absorption of Shortwave is computed in the
+         dEdd_algae        ! if .true., algal absorption of shortwave is computed in the
 
       logical (kind=log_kind), public :: & 
          skl_bgc         ! if true, solve skeletal biochemistry
@@ -382,7 +373,7 @@
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
-         ustar_min_in, a_rapid_mode_in, &
+         update_ocn_f_in, ustar_min_in, a_rapid_mode_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
          phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
@@ -463,9 +454,10 @@
       logical (kind=log_kind), intent(in), optional :: &
          heat_capacity_in, &! if true, ice has nonzero heat capacity
                             ! if false, use zero-layer thermodynamics
-         calc_Tsfc_in       ! if true, calculate surface temperature
+         calc_Tsfc_in    , &! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
+         update_ocn_f_in    ! include fresh water and salt fluxes for frazil
 
       real (kind=dbl_kind), intent(in), optional :: &
          dts_b_in,   &      ! zsalinity timestep
@@ -521,7 +513,7 @@
          R_ice_in    , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
          R_pnd_in    , & ! ponded ice tuning parameter; +1 > 1sig increase in albedo
          R_snw_in    , & ! snow tuning parameter; +1 > ~.01 change in broadband albedo
-         dT_mlt_in   , & ! change in temp for non-melt to melt snow grain 
+         dT_mlt_in   , & ! change in temp for non-melt to melt snow grain
                          ! radius change (C)
          rsnw_mlt_in , & ! maximum melting snow grain radius (10^-6 m)
          kalg_in         ! algae absorption coefficient for 0.5 m thick layer
@@ -730,6 +722,7 @@
       if (present(fbot_xfer_type_in)    ) fbot_xfer_type   = fbot_xfer_type_in
       if (present(heat_capacity_in)     ) heat_capacity    = heat_capacity_in
       if (present(calc_Tsfc_in)         ) calc_Tsfc        = calc_Tsfc_in
+      if (present(update_ocn_f_in)      ) update_ocn_f     = update_ocn_f_in
       if (present(dts_b_in)             ) dts_b            = dts_b_in
       if (present(ustar_min_in)         ) ustar_min        = ustar_min_in
       if (present(a_rapid_mode_in)      ) a_rapid_mode     = a_rapid_mode_in
@@ -834,23 +827,26 @@
          saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
          min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
          awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, &
-         qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, &
+         qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
          Lfresh_out, cprho_out, Cp_out, ustar_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
-         Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, phi_c_slow_mode_out, &
-         phi_i_mushy_out, shortwave_out, albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
-         albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, rsnw_mlt_out, &
+         Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
+         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
+         albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
+         albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
+         rsnw_mlt_out, dEdd_algae_out, &
          kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
          dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
-         bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, dEdd_algae_out, &
+         bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
          modal_aero_out, skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
          initbio_frac_out, grid_oS_out, l_skS_out, &
          phi_snow_out, heat_capacity_out, &
          fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &
-         T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, fr_mort2min_out, &
-         fr_dFe_out, k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, fr_resp_s_out, &
+         T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
+         fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
+         k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, &
          y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out)
 
       !-----------------------------------------------------------------
@@ -863,11 +859,11 @@
          c25_out, c180_out, c100_out, c1000_out, p001_out, p01_out, p1_out, &
          p2_out, p4_out, p5_out, p6_out, p05_out, p15_out, p25_out, p75_out, &
          p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
-         secday_out,     & !
-         puny_out,       & !
-         bignum_out,     & !
-         pi_out,         & !
-         rad_to_deg_out, & !
+         secday_out,     & ! number of seconds per day
+         puny_out,       & ! a small number
+         bignum_out,     & ! a big number
+         pi_out,         & ! pi
+         rad_to_deg_out, & ! conversion factor from radians to degrees
          Lfresh_out,     & ! latent heat of melting of fresh ice (J/kg)
          cprho_out,      & ! for ocean mixed layer (J kg / K m^3)
          Cp_out            ! proport const for PE 
@@ -923,9 +919,10 @@
       logical (kind=log_kind), intent(out), optional :: &
          heat_capacity_out,&! if true, ice has nonzero heat capacity
                             ! if false, use zero-layer thermodynamics
-         calc_Tsfc_out      ! if true, calculate surface temperature
+         calc_Tsfc_out    ,&! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
+         update_ocn_f_out   ! include fresh water and salt fluxes for frazil
 
       real (kind=dbl_kind), intent(out), optional :: &
          dts_b_out,   &      ! zsalinity timestep
@@ -1169,143 +1166,144 @@
       if (present(secday_out)            ) secday_out       = secday
       if (present(rad_to_deg_out)        ) rad_to_deg_out   = rad_to_deg
 
-      if (present(rhos_out)              ) rhos             = rhos_out
-      if (present(rhoi_out)              ) rhoi             = rhoi_out
-      if (present(rhow_out)              ) rhow             = rhow_out
-      if (present(cp_air_out)            ) cp_air           = cp_air_out
-      if (present(emissivity_out)        ) emissivity       = emissivity_out
-      if (present(cp_ice_out)            ) cp_ice           = cp_ice_out
-      if (present(cp_ocn_out)            ) cp_ocn           = cp_ocn_out
-      if (present(depressT_out)          ) depressT         = depressT_out
-      if (present(dragio_out)            ) dragio           = dragio_out
-      if (present(albocn_out)            ) albocn           = albocn_out
-      if (present(gravit_out)            ) gravit           = gravit_out
-      if (present(viscosity_dyn_out)     ) viscosity_dyn    = viscosity_dyn_out
-      if (present(Tocnfrz_out)           ) Tocnfrz          = Tocnfrz_out
-      if (present(rhofresh_out)          ) rhofresh         = rhofresh_out
-      if (present(zvir_out)              ) zvir             = zvir_out
-      if (present(vonkar_out)            ) vonkar           = vonkar_out
-      if (present(cp_wv_out)             ) cp_wv            = cp_wv_out
-      if (present(stefan_boltzmann_out)  ) stefan_boltzmann = stefan_boltzmann_out
-      if (present(Tffresh_out)           ) Tffresh          = Tffresh_out
-      if (present(Lsub_out)              ) Lsub             = Lsub_out
-      if (present(Lvap_out)              ) Lvap             = Lvap_out
-      if (present(Timelt_out)            ) Timelt           = Timelt_out
-      if (present(Tsmelt_out)            ) Tsmelt           = Tsmelt_out
-      if (present(ice_ref_salinity_out)  ) ice_ref_salinity = ice_ref_salinity_out
-      if (present(iceruf_out)            ) iceruf           = iceruf_out
-      if (present(Cf_out)                ) Cf               = Cf_out
-      if (present(Pstar_out)             ) Pstar            = Pstar_out
-      if (present(Cstar_out)             ) Cstar            = Cstar_out
-      if (present(kappav_out)            ) kappav           = kappav_out
-      if (present(kice_out)              ) kice             = kice_out
-      if (present(kseaice_out)           ) kseaice          = kseaice_out
-      if (present(ksno_out)              ) ksno             = ksno_out
-      if (present(zref_out)              ) zref             = zref_out
-      if (present(hs_min_out)            ) hs_min           = hs_min_out
-      if (present(snowpatch_out)         ) snowpatch        = snowpatch_out
-      if (present(rhosi_out)             ) rhosi            = rhosi_out
-      if (present(sk_l_out)              ) sk_l             = sk_l_out
-      if (present(saltmax_out)           ) saltmax          = saltmax_out
+      if (present(rhos_out)              ) rhos_out         = rhos
+      if (present(rhoi_out)              ) rhoi_out         = rhoi
+      if (present(rhow_out)              ) rhow_out         = rhow
+      if (present(cp_air_out)            ) cp_air_out       = cp_air
+      if (present(emissivity_out)        ) emissivity_out   = emissivity
+      if (present(cp_ice_out)            ) cp_ice_out       = cp_ice
+      if (present(cp_ocn_out)            ) cp_ocn_out       = cp_ocn
+      if (present(depressT_out)          ) depressT_out     = depressT
+      if (present(dragio_out)            ) dragio_out       = dragio
+      if (present(albocn_out)            ) albocn_out       = albocn
+      if (present(gravit_out)            ) gravit_out       = gravit
+      if (present(viscosity_dyn_out)     ) viscosity_dyn_out= viscosity_dyn
+      if (present(Tocnfrz_out)           ) Tocnfrz_out      = Tocnfrz
+      if (present(rhofresh_out)          ) rhofresh_out     = rhofresh
+      if (present(zvir_out)              ) zvir_out         = zvir
+      if (present(vonkar_out)            ) vonkar_out       = vonkar
+      if (present(cp_wv_out)             ) cp_wv_out        = cp_wv
+      if (present(stefan_boltzmann_out)  ) stefan_boltzmann_out = stefan_boltzmann
+      if (present(Tffresh_out)           ) Tffresh_out      = Tffresh
+      if (present(Lsub_out)              ) Lsub_out         = Lsub
+      if (present(Lvap_out)              ) Lvap_out         = Lvap
+      if (present(Timelt_out)            ) Timelt_out       = Timelt
+      if (present(Tsmelt_out)            ) Tsmelt_out       = Tsmelt
+      if (present(ice_ref_salinity_out)  ) ice_ref_salinity_out = ice_ref_salinity
+      if (present(iceruf_out)            ) iceruf_out       = iceruf
+      if (present(Cf_out)                ) Cf_out           = Cf
+      if (present(Pstar_out)             ) Pstar_out        = Pstar
+      if (present(Cstar_out)             ) Cstar_out        = Cstar
+      if (present(kappav_out)            ) kappav_out       = kappav
+      if (present(kice_out)              ) kice_out         = kice
+      if (present(kseaice_out)           ) kseaice_out      = kseaice
+      if (present(ksno_out)              ) ksno_out         = ksno
+      if (present(zref_out)              ) zref_out         = zref
+      if (present(hs_min_out)            ) hs_min_out       = hs_min
+      if (present(snowpatch_out)         ) snowpatch_out    = snowpatch
+      if (present(rhosi_out)             ) rhosi_out        = rhosi
+      if (present(sk_l_out)              ) sk_l_out         = sk_l
+      if (present(saltmax_out)           ) saltmax_out      = saltmax
       if (present(phi_init_out)          ) phi_init_out     = phi_init
-      if (present(min_salin_out)         ) min_salin        = min_salin_out
-      if (present(salt_loss_out)         ) salt_loss        = salt_loss_out
-      if (present(min_bgc_out)           ) min_bgc          = min_bgc_out
-      if (present(dSin0_frazil_out)      ) dSin0_frazil     = dSin0_frazil_out
-      if (present(hi_ssl_out)            ) hi_ssl           = hi_ssl_out
-      if (present(hs_ssl_out)            ) hs_ssl           = hs_ssl_out
-      if (present(awtvdr_out)            ) awtvdr           = awtvdr_out
-      if (present(awtidr_out)            ) awtidr           = awtidr_out
-      if (present(awtvdf_out)            ) awtvdf           = awtvdf_out
-      if (present(awtidf_out)            ) awtidf           = awtidf_out
-      if (present(qqqice_out)            ) qqqice           = qqqice_out
-      if (present(TTTice_out)            ) TTTice           = TTTice_out
-      if (present(qqqocn_out)            ) qqqocn           = qqqocn_out
-      if (present(TTTocn_out)            ) TTTocn           = TTTocn_out
-      if (present(puny_out)              ) puny             = puny_out
-      if (present(bignum_out)            ) bignum           = bignum_out
-      if (present(pi_out)                ) pi               = pi_out
-      if (present(secday_out)            ) secday           = secday_out
-      if (present(ktherm_out)            ) ktherm           = ktherm_out
-      if (present(conduct_out)           ) conduct          = conduct_out
-      if (present(fbot_xfer_type_out)    ) fbot_xfer_type   = fbot_xfer_type_out
-      if (present(heat_capacity_out)     ) heat_capacity    = heat_capacity_out
-      if (present(calc_Tsfc_out)         ) calc_Tsfc        = calc_Tsfc_out
-      if (present(dts_b_out)             ) dts_b            = dts_b_out
-      if (present(ustar_min_out)         ) ustar_min        = ustar_min_out
-      if (present(a_rapid_mode_out)      ) a_rapid_mode     = a_rapid_mode_out
-      if (present(Rac_rapid_mode_out)    ) Rac_rapid_mode   = Rac_rapid_mode_out
-      if (present(aspect_rapid_mode_out) ) aspect_rapid_mode= aspect_rapid_mode_out
-      if (present(dSdt_slow_mode_out)    ) dSdt_slow_mode   = dSdt_slow_mode_out
-      if (present(phi_c_slow_mode_out)   ) phi_c_slow_mode  = phi_c_slow_mode_out
-      if (present(phi_i_mushy_out)       ) phi_i_mushy      = phi_i_mushy_out
-      if (present(shortwave_out)         ) shortwave        = shortwave_out
-      if (present(albedo_type_out)       ) albedo_type      = albedo_type_out
-      if (present(albicev_out)           ) albicev          = albicev_out
-      if (present(albicei_out)           ) albicei          = albicei_out
-      if (present(albsnowv_out)          ) albsnowv         = albsnowv_out
-      if (present(albsnowi_out)          ) albsnowi         = albsnowi_out
-      if (present(ahmax_out)             ) ahmax            = ahmax_out
-      if (present(R_ice_out)             ) R_ice            = R_ice_out
-      if (present(R_pnd_out)             ) R_pnd            = R_pnd_out
-      if (present(R_snw_out)             ) R_snw            = R_snw_out
-      if (present(dT_mlt_out)            ) dT_mlt           = dT_mlt_out
-      if (present(rsnw_mlt_out)          ) rsnw_mlt         = rsnw_mlt_out
-      if (present(kalg_out)              ) kalg             = kalg_out
-      if (present(kstrength_out)         ) kstrength        = kstrength_out
-      if (present(krdg_partic_out)       ) krdg_partic      = krdg_partic_out
-      if (present(krdg_redist_out)       ) krdg_redist      = krdg_redist_out
-      if (present(mu_rdg_out)            ) mu_rdg           = mu_rdg_out
-      if (present(atmbndy_out)           ) atmbndy          = atmbndy_out
-      if (present(calc_strair_out)       ) calc_strair      = calc_strair_out
-      if (present(formdrag_out)          ) formdrag         = formdrag_out
-      if (present(highfreq_out)          ) highfreq         = highfreq_out
-      if (present(natmiter_out)          ) natmiter         = natmiter_out
-      if (present(tfrz_option_out)       ) tfrz_option      = tfrz_option_out
-      if (present(kitd_out)              ) kitd             = kitd_out
-      if (present(kcatbound_out)         ) kcatbound        = kcatbound_out
-      if (present(hs0_out)               ) hs0              = hs0_out
-      if (present(frzpnd_out)            ) frzpnd           = frzpnd_out
-      if (present(dpscale_out)           ) dpscale          = dpscale_out
-      if (present(rfracmin_out)          ) rfracmin         = rfracmin_out
-      if (present(rfracmax_out)          ) rfracmax         = rfracmax_out
-      if (present(pndaspect_out)         ) pndaspect        = pndaspect_out
-      if (present(hs1_out)               ) hs1              = hs1_out
-      if (present(hp1_out)               ) hp1              = hp1_out
-      if (present(bgc_flux_type_out)     ) bgc_flux_type    = bgc_flux_type_out
-      if (present(z_tracers_out)         ) z_tracers        = z_tracers_out
-      if (present(scale_bgc_out)         ) scale_bgc        = scale_bgc_out
-      if (present(solve_zbgc_out)        ) solve_zbgc       = solve_zbgc_out
-      if (present(dEdd_algae_out)        ) dEdd_algae       = dEdd_algae_out
-      if (present(modal_aero_out)        ) modal_aero       = modal_aero_out
-      if (present(skl_bgc_out)           ) skl_bgc          = skl_bgc_out
-      if (present(solve_zsal_out)        ) solve_zsal       = solve_zsal_out
-      if (present(grid_o_out)            ) grid_o           = grid_o_out
-      if (present(l_sk_out)              ) l_sk             = l_sk_out
-      if (present(initbio_frac_out)      ) initbio_frac     = initbio_frac_out
-      if (present(grid_oS_out)           ) grid_oS          = grid_oS_out
-      if (present(l_skS_out)             ) l_skS            = l_skS_out
-      if (present(phi_snow_out)          ) phi_snow         = phi_snow_out
-      if (present(fr_resp_out)           ) fr_resp          = fr_resp_out
-      if (present(algal_vel_out)         ) algal_vel        = algal_vel_out
-      if (present(R_dFe2dust_out)        ) R_dFe2dust       = R_dFe2dust_out
-      if (present(dustFe_sol_out)        ) dustFe_sol       = dustFe_sol_out
-      if (present(T_max_out)             ) T_max            = T_max_out
-      if (present(fsal_out)              ) fsal             = fsal_out
-      if (present(op_dep_min_out)        ) op_dep_min       = op_dep_min_out
-      if (present(fr_graze_s_out)        ) fr_graze_s       = fr_graze_s_out
-      if (present(fr_graze_e_out)        ) fr_graze_e       = fr_graze_e_out
-      if (present(fr_mort2min_out)       ) fr_mort2min      = fr_mort2min_out
-      if (present(fr_dFe_out)            ) fr_dFe           = fr_dFe_out
-      if (present(k_nitrif_out)          ) k_nitrif         = k_nitrif_out
-      if (present(t_iron_conv_out)       ) t_iron_conv      = t_iron_conv_out
-      if (present(max_loss_out)          ) max_loss         = max_loss_out
-      if (present(max_dfe_doc1_out)      ) max_dfe_doc1     = max_dfe_doc1_out
-      if (present(fr_resp_s_out)         ) fr_resp_s        = fr_resp_s_out
-      if (present(y_sk_DMS_out)          ) y_sk_DMS         = y_sk_DMS_out
-      if (present(t_sk_conv_out)         ) t_sk_conv        = t_sk_conv_out
-      if (present(t_sk_ox_out)           ) t_sk_ox          = t_sk_ox_out
-      if (present(frazil_scav_out)       ) frazil_scav      = frazil_scav_out
+      if (present(min_salin_out)         ) min_salin_out    = min_salin
+      if (present(salt_loss_out)         ) salt_loss_out    = salt_loss
+      if (present(min_bgc_out)           ) min_bgc_out      = min_bgc
+      if (present(dSin0_frazil_out)      ) dSin0_frazil_out = dSin0_frazil
+      if (present(hi_ssl_out)            ) hi_ssl_out       = hi_ssl
+      if (present(hs_ssl_out)            ) hs_ssl_out       = hs_ssl
+      if (present(awtvdr_out)            ) awtvdr_out       = awtvdr
+      if (present(awtidr_out)            ) awtidr_out       = awtidr
+      if (present(awtvdf_out)            ) awtvdf_out       = awtvdf
+      if (present(awtidf_out)            ) awtidf_out       = awtidf
+      if (present(qqqice_out)            ) qqqice_out       = qqqice
+      if (present(TTTice_out)            ) TTTice_out       = TTTice
+      if (present(qqqocn_out)            ) qqqocn_out       = qqqocn
+      if (present(TTTocn_out)            ) TTTocn_out       = TTTocn
+      if (present(puny_out)              ) puny_out         = puny
+      if (present(bignum_out)            ) bignum_out       = bignum
+      if (present(pi_out)                ) pi_out           = pi
+      if (present(secday_out)            ) secday_out       = secday
+      if (present(ktherm_out)            ) ktherm_out       = ktherm
+      if (present(conduct_out)           ) conduct_out      = conduct
+      if (present(fbot_xfer_type_out)    ) fbot_xfer_type_out = fbot_xfer_type
+      if (present(heat_capacity_out)     ) heat_capacity_out= heat_capacity
+      if (present(calc_Tsfc_out)         ) calc_Tsfc_out    = calc_Tsfc
+      if (present(update_ocn_f_out)      ) update_ocn_f_out = update_ocn_f
+      if (present(dts_b_out)             ) dts_b_out        = dts_b
+      if (present(ustar_min_out)         ) ustar_min_out    = ustar_min
+      if (present(a_rapid_mode_out)      ) a_rapid_mode_out = a_rapid_mode
+      if (present(Rac_rapid_mode_out)    ) Rac_rapid_mode_out = Rac_rapid_mode
+      if (present(aspect_rapid_mode_out) ) aspect_rapid_mode_out = aspect_rapid_mode
+      if (present(dSdt_slow_mode_out)    ) dSdt_slow_mode_out = dSdt_slow_mode
+      if (present(phi_c_slow_mode_out)   ) phi_c_slow_mode_out = phi_c_slow_mode
+      if (present(phi_i_mushy_out)       ) phi_i_mushy_out  = phi_i_mushy
+      if (present(shortwave_out)         ) shortwave_out    = shortwave
+      if (present(albedo_type_out)       ) albedo_type_out  = albedo_type
+      if (present(albicev_out)           ) albicev_out      = albicev
+      if (present(albicei_out)           ) albicei_out      = albicei
+      if (present(albsnowv_out)          ) albsnowv_out     = albsnowv
+      if (present(albsnowi_out)          ) albsnowi_out     = albsnowi
+      if (present(ahmax_out)             ) ahmax_out        = ahmax
+      if (present(R_ice_out)             ) R_ice_out        = R_ice
+      if (present(R_pnd_out)             ) R_pnd_out        = R_pnd
+      if (present(R_snw_out)             ) R_snw_out        = R_snw
+      if (present(dT_mlt_out)            ) dT_mlt_out       = dT_mlt
+      if (present(rsnw_mlt_out)          ) rsnw_mlt_out     = rsnw_mlt
+      if (present(kalg_out)              ) kalg_out         = kalg
+      if (present(kstrength_out)         ) kstrength_out    = kstrength
+      if (present(krdg_partic_out)       ) krdg_partic_out  = krdg_partic
+      if (present(krdg_redist_out)       ) krdg_redist_out  = krdg_redist
+      if (present(mu_rdg_out)            ) mu_rdg_out       = mu_rdg
+      if (present(atmbndy_out)           ) atmbndy_out      = atmbndy
+      if (present(calc_strair_out)       ) calc_strair_out  = calc_strair
+      if (present(formdrag_out)          ) formdrag_out     = formdrag
+      if (present(highfreq_out)          ) highfreq_out     = highfreq
+      if (present(natmiter_out)          ) natmiter_out     = natmiter
+      if (present(tfrz_option_out)       ) tfrz_option_out  = tfrz_option
+      if (present(kitd_out)              ) kitd_out         = kitd
+      if (present(kcatbound_out)         ) kcatbound_out    = kcatbound
+      if (present(hs0_out)               ) hs0_out          = hs0
+      if (present(frzpnd_out)            ) frzpnd_out       = frzpnd
+      if (present(dpscale_out)           ) dpscale_out      = dpscale
+      if (present(rfracmin_out)          ) rfracmin_out     = rfracmin
+      if (present(rfracmax_out)          ) rfracmax_out     = rfracmax
+      if (present(pndaspect_out)         ) pndaspect_out    = pndaspect
+      if (present(hs1_out)               ) hs1_out          = hs1
+      if (present(hp1_out)               ) hp1_out          = hp1
+      if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
+      if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
+      if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
+      if (present(solve_zbgc_out)        ) solve_zbgc_out   = solve_zbgc
+      if (present(dEdd_algae_out)        ) dEdd_algae_out   = dEdd_algae
+      if (present(modal_aero_out)        ) modal_aero_out   = modal_aero
+      if (present(skl_bgc_out)           ) skl_bgc_out      = skl_bgc
+      if (present(solve_zsal_out)        ) solve_zsal_out   = solve_zsal
+      if (present(grid_o_out)            ) grid_o_out       = grid_o
+      if (present(l_sk_out)              ) l_sk_out         = l_sk
+      if (present(initbio_frac_out)      ) initbio_frac_out = initbio_frac
+      if (present(grid_oS_out)           ) grid_oS_out      = grid_oS
+      if (present(l_skS_out)             ) l_skS_out        = l_skS
+      if (present(phi_snow_out)          ) phi_snow_out     = phi_snow
+      if (present(fr_resp_out)           ) fr_resp_out      = fr_resp
+      if (present(algal_vel_out)         ) algal_vel_out    = algal_vel
+      if (present(R_dFe2dust_out)        ) R_dFe2dust_out   = R_dFe2dust
+      if (present(dustFe_sol_out)        ) dustFe_sol_out   = dustFe_sol
+      if (present(T_max_out)             ) T_max_out        = T_max
+      if (present(fsal_out)              ) fsal_out         = fsal
+      if (present(op_dep_min_out)        ) op_dep_min_out   = op_dep_min
+      if (present(fr_graze_s_out)        ) fr_graze_s_out   = fr_graze_s
+      if (present(fr_graze_e_out)        ) fr_graze_e_out   = fr_graze_e
+      if (present(fr_mort2min_out)       ) fr_mort2min_out  = fr_mort2min
+      if (present(fr_dFe_out)            ) fr_dFe_out       = fr_dFe
+      if (present(k_nitrif_out)          ) k_nitrif_out     = k_nitrif
+      if (present(t_iron_conv_out)       ) t_iron_conv_out  = t_iron_conv
+      if (present(max_loss_out)          ) max_loss_out     = max_loss
+      if (present(max_dfe_doc1_out)      ) max_dfe_doc1_out = max_dfe_doc1
+      if (present(fr_resp_s_out)         ) fr_resp_s_out    = fr_resp_s
+      if (present(y_sk_DMS_out)          ) y_sk_DMS_out     = y_sk_DMS
+      if (present(t_sk_conv_out)         ) t_sk_conv_out    = t_sk_conv
+      if (present(t_sk_ox_out)           ) t_sk_ox_out      = t_sk_ox
+      if (present(frazil_scav_out)       ) frazil_scav_out  = frazil_scav
       if (present(Lfresh_out)            ) Lfresh_out       = Lfresh
       if (present(cprho_out)             ) cprho_out        = cprho
       if (present(Cp_out)                ) Cp_out           = Cp
@@ -1396,6 +1394,7 @@
         write(iounit,*) "  fbot_xfer_type    = ", fbot_xfer_type
         write(iounit,*) "  heat_capacity     = ", heat_capacity
         write(iounit,*) "  calc_Tsfc         = ", calc_Tsfc
+        write(iounit,*) "  update_ocn_f      = ", update_ocn_f
         write(iounit,*) "  dts_b             = ", dts_b
         write(iounit,*) "  ustar_min         = ", ustar_min
         write(iounit,*) "  a_rapid_mode      = ", a_rapid_mode
