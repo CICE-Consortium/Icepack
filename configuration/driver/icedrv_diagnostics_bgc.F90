@@ -13,7 +13,7 @@
       use icedrv_calendar, only: diagfreq, istep1, istep
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icepack_intfc, only: icepack_max_algae, icepack_max_aero, icepack_max_fe
       use icepack_intfc, only: icepack_max_dic, icepack_max_doc, icepack_max_don
@@ -790,7 +790,7 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-         call icepack_query_constants(rhosi_out=rhosi, rhow_out=rhow, rhos_out=rhos)
+         call icepack_query_parameters(rhosi_out=rhosi, rhow_out=rhow, rhos_out=rhos)
          call icepack_query_tracer_flags(tr_brine_out=tr_brine)
          call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, &
              nt_bgc_S_out=nt_bgc_S, nt_sice_out=nt_sice)

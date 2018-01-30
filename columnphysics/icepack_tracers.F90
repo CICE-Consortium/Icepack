@@ -8,7 +8,7 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, puny, Tocnfrz
+      use icepack_parameters, only: c0, c1, puny, Tocnfrz
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 

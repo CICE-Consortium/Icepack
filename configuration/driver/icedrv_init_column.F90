@@ -22,7 +22,7 @@
       use icepack_intfc, only: icepack_init_parameters
       use icepack_intfc, only: icepack_query_tracer_numbers, icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_indices, icepack_query_tracer_sizes
-      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_init_zbgc
       use icepack_intfc, only: icepack_init_thermo
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
@@ -68,7 +68,7 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_constants(depressT_out=depressT)
+      call icepack_query_parameters(depressT_out=depressT)
       call icepack_init_thermo(nilyr, sprofile)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -153,7 +153,7 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-         call icepack_query_constants(puny_out=puny)
+         call icepack_query_parameters(puny_out=puny)
          call icepack_query_parameters(shortwave_out=shortwave)
          call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
          call icepack_query_parameters(modal_aero_out=modal_aero)

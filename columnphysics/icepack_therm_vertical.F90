@@ -21,10 +21,9 @@
       module icepack_therm_vertical
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c3, p001, p5, puny
-      use icepack_constants, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
-      use icepack_constants, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
-
+      use icepack_parameters, only: c0, c1, c3, p001, p5, puny
+      use icepack_parameters, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
+      use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
       use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd

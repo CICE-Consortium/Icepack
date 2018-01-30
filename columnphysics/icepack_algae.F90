@@ -11,9 +11,9 @@
 
       use icepack_kinds
 
-      use icepack_constants, only: p05, p1, p5, c0, c1, c2, c4, c6, c10
-      use icepack_constants, only: pi, secday, puny
-      use icepack_constants, only: hi_ssl, hs_ssl, sk_l
+      use icepack_parameters, only: p05, p1, p5, c0, c1, c2, c4, c6, c10
+      use icepack_parameters, only: pi, secday, puny
+      use icepack_parameters, only: hi_ssl, hs_ssl, sk_l
 
       use icepack_parameters, only: dEdd_algae, solve_zbgc
       use icepack_parameters, only: R_dFe2dust, dustFe_sol, algal_vel

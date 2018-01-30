@@ -10,9 +10,8 @@
       module icepack_zbgc
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, p001, p1, p15, p5, puny
-      use icepack_constants, only: depressT, rhosi, min_salin, salt_loss
-
+      use icepack_parameters, only: c0, c1, c2, p001, p1, p15, p5, puny
+      use icepack_parameters, only: depressT, rhosi, min_salin, salt_loss
       use icepack_parameters, only: fr_resp, algal_vel, R_dFe2dust, dustFe_sol, T_max
       use icepack_parameters, only: op_dep_min, fr_graze_s, fr_graze_e, fr_mort2min, fr_dFe
       use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1

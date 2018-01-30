@@ -11,7 +11,6 @@
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
-      use icepack_intfc, only: icepack_query_constants
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_numbers
       use icedrv_system, only: icedrv_system_abort
@@ -253,7 +252,7 @@
       ! Update mixed layer with heat and radiation from ice.
       !-----------------------------------------------------------------
 
-         call icepack_query_constants(puny_out=puny, rhofresh_out=rhofresh)
+         call icepack_query_parameters(puny_out=puny, rhofresh_out=rhofresh)
          call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

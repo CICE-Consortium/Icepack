@@ -13,7 +13,7 @@
       use icedrv_constants, only: nu_diag, nu_forcing
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_sea_freezing_temperature
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
@@ -411,7 +411,7 @@
       ! query icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_constants(Tffresh_out=Tffresh, qqqice_out=qqqice, &
+      call icepack_query_parameters(Tffresh_out=Tffresh, qqqice_out=qqqice, &
            TTTice_out=TTTice, rhos_out=rhos)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -550,7 +550,7 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(calc_strair_out=calc_strair)
-      call icepack_query_constants(Tffresh_out=Tffresh)
+      call icepack_query_parameters(Tffresh_out=Tffresh)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
