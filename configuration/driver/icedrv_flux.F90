@@ -18,7 +18,7 @@
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
-      use icepack_intfc, only: icepack_query_constants
+      use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -380,7 +380,7 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_constants(stefan_boltzmann_out=stefan_boltzmann, &
+      call icepack_query_parameters(stefan_boltzmann_out=stefan_boltzmann, &
         Tffresh_out=Tffresh, vonkar_out=vonkar, zref_out=zref, iceruf_out=iceruf)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -600,7 +600,7 @@
       call icepack_query_parameters(formdrag_out=formdrag)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage)
       call icepack_query_tracer_indices(nt_iage_out=nt_iage)
-      call icepack_query_constants(dragio_out=dragio, &
+      call icepack_query_parameters(dragio_out=dragio, &
            vonkar_out=vonkar, zref_out=zref, iceruf_out=iceruf)
 
       call icepack_warnings_flush(nu_diag)

@@ -7,7 +7,7 @@
       module icedrv_calendar
 
       use icedrv_kinds
-      use icepack_intfc, only: icepack_query_constants
+      use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_constants, only: c0, c1, c100, c30, c360, c365, c3600
       use icedrv_constants, only: c4, c400, nu_diag, nu_diag_out
@@ -114,7 +114,7 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_constants(secday_out=secday)
+      call icepack_query_parameters(secday_out=secday)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)

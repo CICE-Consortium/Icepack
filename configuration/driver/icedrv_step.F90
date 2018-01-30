@@ -17,7 +17,6 @@
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_tracer_numbers
       use icepack_intfc, only: icepack_query_parameters
-      use icepack_intfc, only: icepack_query_constants
 
       implicit none
       private
@@ -160,7 +159,7 @@
       ! query icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_constants(puny_out=puny)
+      call icepack_query_parameters(puny_out=puny)
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -835,7 +834,7 @@
       ! query icepack values
       !-----------------------------------------------------------------
 
-         call icepack_query_constants(albocn_out=albocn)
+         call icepack_query_parameters(albocn_out=albocn)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__, line=__LINE__)

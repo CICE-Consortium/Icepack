@@ -10,7 +10,7 @@
       module icepack_flux
 
       use icepack_kinds
-      use icepack_constants, only: c1, emissivity
+      use icepack_parameters, only: c1, emissivity
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 

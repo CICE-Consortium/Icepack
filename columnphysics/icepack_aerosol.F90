@@ -9,8 +9,8 @@
       module icepack_aerosol
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, puny, rhoi, rhos, hs_min
-      use icepack_constants, only: hi_ssl, hs_ssl
+      use icepack_parameters, only: c0, c1, c2, puny, rhoi, rhos, hs_min
+      use icepack_parameters, only: hi_ssl, hs_ssl
       use icepack_tracers, only: nt_aero, max_aero
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted

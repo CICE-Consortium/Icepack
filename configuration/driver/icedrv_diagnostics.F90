@@ -13,7 +13,7 @@
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: c0
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icedrv_system, only: icedrv_system_abort
 
@@ -105,7 +105,7 @@
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
       call icepack_query_tracer_flags(tr_brine_out=tr_brine)
       call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc)
-      call icepack_query_constants(Tffresh_out=Tffresh, rhos_out=rhos, &
+      call icepack_query_parameters(Tffresh_out=Tffresh, rhos_out=rhos, &
            rhow_out=rhow, rhoi_out=rhoi)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -414,7 +414,7 @@
 
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
            nt_qsno_out=nt_qsno)
-      call icepack_query_constants(puny_out=puny, Lfresh_out=Lfresh, cp_ice_out=cp_ice, &
+      call icepack_query_parameters(puny_out=puny, Lfresh_out=Lfresh, cp_ice_out=cp_ice, &
            rhoi_out=rhoi, rhos_out=rhos)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

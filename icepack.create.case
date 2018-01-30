@@ -89,7 +89,7 @@ cat << EOF1
         -ts test suite, pre-defined set of tests to run in column text format.  Current set of predefined tests:
              - "base_suite": runs general set of tests including smoke with debug, restart, etc.
         -td difference output against another case
-        -report automatically report results to the Test-Results wiki (only used with -ts)
+        -report automatically report results to github.com/CICE-Consortium/Test-Results/wiki (only used with -ts)
 
       EXAMPLES:
       icepack.create.case -h
