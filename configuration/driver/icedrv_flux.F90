@@ -13,7 +13,8 @@
       use icedrv_constants, only: c0, c1, c5, c10, c20, c180, p001
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_max_aero, icepack_max_nbtrcr, icepack_max_fe
-      use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don, icepack_max_dic
+      use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don
+      use icepack_intfc, only: icepack_max_dic
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
@@ -41,31 +42,20 @@
        ! in from ocean
          uocn    , & ! ocean current, x-direction (m/s)
          vocn    , & ! ocean current, y-direction (m/s)
-         ss_tltx , & ! sea surface slope, x-direction (m/m)
-         ss_tlty , & ! sea surface slope, y-direction
 
        ! out to atmosphere
          strairxT, & ! stress on ice by air, x-direction
          strairyT, & ! stress on ice by air, y-direction
 
        ! out to ocean          T-cell (kg/m s^2)
-       ! Note, CICE_IN_NEMO uses strocnx and strocny for coupling
          strocnxT, & ! ice-ocean stress, x-direction
          strocnyT    ! ice-ocean stress, y-direction
 
        ! diagnostic
 
       real (kind=dbl_kind), dimension (nx), public :: &
-         sig1    , & ! principal stress component
-         sig2    , & ! principal stress component
          strairx , & ! stress on ice by air, x-direction
          strairy , & ! stress on ice by air, y-direction
-         strocnx , & ! ice-ocean stress, x-direction
-         strocny , & ! ice-ocean stress, y-direction
-         strtltx , & ! stress due to sea surface slope, x-direction
-         strtlty , & ! stress due to sea surface slope, y-direction
-         strintx , & ! divergence of internal ice stress, x (N/m^2)
-         strinty , & ! divergence of internal ice stress, y (N/m^2)
          daidtd  , & ! ice area tendency due to transport   (1/s)
          dvidtd  , & ! ice volume tendency due to transport (m/s)
          dagedtd , & ! ice age tendency due to transport (s/s)
@@ -89,24 +79,6 @@
          aredistn,  & ! redistribution function: fraction of new ridge area
          vredistn     ! redistribution function: fraction of new ridge volume
 
-       ! restart
-
-      real (kind=dbl_kind), dimension (nx), public :: &
-       ! ice stress tensor in each corner of T cell (kg/s^2)
-         stressp_1, stressp_2, stressp_3, stressp_4 , & ! sigma11+sigma22
-         stressm_1, stressm_2, stressm_3, stressm_4 , & ! sigma11-sigma22
-         stress12_1,stress12_2,stress12_3,stress12_4    ! sigma12
-
-      logical (kind=log_kind), &
-         dimension (nx), public :: &
-         iceumask   ! ice extent mask (U-cell)
-
-       ! internal
-
-      real (kind=dbl_kind), dimension (nx), public :: &
-         prs_sig  , & ! replacement pressure, for stress calc
-         fm           ! Coriolis param. * mass in U-cell (kg/s)
-
       !-----------------------------------------------------------------
       ! Thermodynamic component
       !-----------------------------------------------------------------
@@ -128,10 +100,8 @@
          swidf   , & ! sw down, near IR, diffuse (W/m^2)
          flw         ! incoming longwave radiation (W/m^2)
 
-       ! in from atmosphere (if .not. Tsfc_calc)
-       ! required for coupling to HadGEM3
-       ! NOTE: when in CICE_IN_NEMO mode, these are gridbox mean fields,
-       ! not per ice area. When in standalone mode, these are per ice area.
+       ! in from atmosphere (if .not. calc_Tsfc)
+       ! These are per ice area
 
       real (kind=dbl_kind), & 
          dimension (nx,ncat), public :: &
@@ -155,9 +125,7 @@
          frzmlt_init, & ! frzmlt used in current time step (W/m^2)
          Tf      , & ! freezing temperature (C)
          qdp     , & ! deep ocean heat flux (W/m^2), negative upward
-         hmix    , & ! mixed layer depth (m)
-         daice_da    ! data assimilation concentration increment rate 
-                     ! (concentration s-1)(only used in hadgem drivers)
+         hmix        ! mixed layer depth (m)
 
        ! out to atmosphere (if calc_Tsfc)
        ! note Tsfc is in ice_state.F
@@ -166,7 +134,7 @@
          fsens   , & ! sensible heat flux (W/m^2)
          flat    , & ! latent heat flux   (W/m^2)
          fswabs  , & ! shortwave flux absorbed in ice and ocean (W/m^2)
-         fswint_ai, & ! SW absorbed in ice interior below surface (W/m^2)
+         fswint_ai,& ! SW absorbed in ice interior below surface (W/m^2)
          flwout  , & ! outgoing longwave radiation (W/m^2)
          Tref    , & ! 2m atm reference temperature (K)
          Qref    , & ! 2m atm reference spec humidity (kg/kg)
@@ -197,8 +165,6 @@
          alidf_init    ! near-ir, diffuse  (fraction)
 
        ! out to ocean 
-       ! (Note CICE_IN_NEMO does not use these for coupling.  
-       !  It uses fresh_ai,fsalt_ai,fhocn_ai and fswthru_ai)
       real (kind=dbl_kind), dimension (nx), public :: &
          fpond   , & ! fresh water flux to ponds (kg/m^2/s)
          fresh   , & ! fresh water flux to ocean (kg/m^2/s)
@@ -230,7 +196,6 @@
                          ! on categories (W/m^2/K)
 
       ! quantities passed from ocean mixed layer to atmosphere
-      ! (for running with CAM)
 
       real (kind=dbl_kind), dimension (nx), public :: &
          strairx_ocn , & ! stress on ocean by air, x-direction
@@ -275,9 +240,9 @@
          flatn       ! category latent heat flux
 
       ! As above but these remain grid box mean values i.e. they are not
-      ! divided by aice at end of ice_dynamics.  These are used in
-      ! CICE_IN_NEMO for coupling and also for generating
-      ! ice diagnostics and history files as these are more accurate. 
+      ! divided by aice at end of ice_dynamics.
+      ! These are used for generating
+      ! ice diagnostics as these are more accurate. 
       ! (The others suffer from problem of incorrect values at grid boxes
       !  that change from an ice free state to an icy state.)
     
@@ -286,11 +251,6 @@
          fsalt_ai, & ! salt flux to ocean (kg/m^2/s)
          fhocn_ai, & ! net heat flux to ocean (W/m^2)
          fswthru_ai  ! shortwave penetrating to ocean (W/m^2)
-
-      ! Used with data assimilation in hadgem drivers
-      real (kind=dbl_kind), dimension (nx) :: &
-         fresh_da, & ! fresh water flux to ocean due to data assim (kg/m^2/s)
-         fsalt_da    ! salt flux to ocean due to data assimilation(kg/m^2/s)
 
       !-----------------------------------------------------------------
       ! internal
@@ -304,8 +264,8 @@
          rdg_shear   ! shear term for ridging (1/s)
  
       real (kind=dbl_kind), dimension(nx,nilyr+1), public :: &
-         salinz    ,&   ! initial salinity  profile (ppt)   
-         Tmltz          ! initial melting temperature (^oC)
+         salinz  , & ! initial salinity  profile (ppt)   
+         Tmltz       ! initial melting temperature (C)
 
       !-----------------------------------------------------------------
       ! biogeochemistry
@@ -404,7 +364,6 @@
       integer (kind=int_kind) :: n
 
       real (kind=dbl_kind) :: fcondtopn_d(6), fsurfn_d(6)
-
       real (kind=dbl_kind) :: stefan_boltzmann, Tffresh
       real (kind=dbl_kind) :: vonkar, zref, iceruf
 
@@ -418,6 +377,8 @@
       character(len=*), parameter :: subname='(init_coupler_flux)'
 
       !-----------------------------------------------------------------
+      ! query Icepack values
+      !-----------------------------------------------------------------
 
       call icepack_query_constants(stefan_boltzmann_out=stefan_boltzmann, &
         Tffresh_out=Tffresh, vonkar_out=vonkar, zref_out=zref, iceruf_out=iceruf)
@@ -428,14 +389,14 @@
       !-----------------------------------------------------------------
       ! fluxes received from atmosphere
       !-----------------------------------------------------------------
-      zlvl  (:) = c10             ! atm level height (m)
-      rhoa  (:) = 1.3_dbl_kind    ! air density (kg/m^3)
-      uatm  (:) = c5              ! wind velocity    (m/s)
+      zlvl  (:) = c10                ! atm level height (m)
+      rhoa  (:) = 1.3_dbl_kind       ! air density (kg/m^3)
+      uatm  (:) = c5                 ! wind velocity    (m/s)
       vatm  (:) = c5
       strax (:) = 0.05_dbl_kind
       stray (:) = 0.05_dbl_kind
-      fsnow (:) = c0              ! snowfall rate (kg/m2/s)
-                                      ! fsnow must be 0 for exact restarts
+      fsnow (:) = c0                 ! snowfall rate (kg/m2/s)
+                                     ! fsnow must be 0 for exact restarts
       if (trim(default_season) == 'winter') then
          ! typical winter values
          potT  (:) = 253.0_dbl_kind  ! air potential temp (K)
@@ -447,12 +408,12 @@
          swidf (:) = c0              ! shortwave radiation (W/m^2)
          flw   (:) = c180            ! incoming longwave rad (W/m^2)
          frain (:) = c0              ! rainfall rate (kg/m2/s)
-         do n = 1, ncat                  ! conductive heat flux (W/m^2)
+         do n = 1, ncat              ! conductive heat flux (W/m^2)
             fcondtopn_f(:,n) = fcondtopn_d(n)
          enddo
-         fsurfn_f = fcondtopn_f          ! surface heat flux (W/m^2)
-         flatn_f(:,:) = c0           ! latent heat flux (kg/m2/s)
-         fsensn_f(:,:) = c0              ! sensible heat flux (W/m^2)
+         fsurfn_f = fcondtopn_f      ! surface heat flux (W/m^2)
+         flatn_f (:,:) = c0          ! latent heat flux (kg/m2/s)
+         fsensn_f(:,:) = c0          ! sensible heat flux (W/m^2)
       elseif (trim(default_season) == 'summer') then
          ! typical summer values
          potT  (:) = 273.0_dbl_kind  ! air potential temp (K)
@@ -464,12 +425,12 @@
          swidf (:) = 50._dbl_kind    ! shortwave radiation (W/m^2)
          flw   (:) = 280.0_dbl_kind  ! incoming longwave rad (W/m^2)
          frain (:) = c0              ! rainfall rate (kg/m2/s)
-         do n = 1, ncat                  ! surface heat flux (W/m^2)
+         do n = 1, ncat                   ! surface heat flux (W/m^2)
             fsurfn_f(:,n) = fsurfn_d(n)
          enddo
-         fcondtopn_f(:,:) = 0.0_dbl_kind ! conductive heat flux (W/m^2)
-         flatn_f(:,:) = -2.0_dbl_kind    ! latent heat flux (W/m^2)
-         fsensn_f(:,:) = c0              ! sensible heat flux (W/m^2)
+         fcondtopn_f(:,:) =  0.0_dbl_kind ! conductive heat flux (W/m^2)
+         flatn_f    (:,:) = -2.0_dbl_kind ! latent heat flux (W/m^2)
+         fsensn_f   (:,:) =  c0           ! sensible heat flux (W/m^2)
       else
          ! typical spring values
          potT  (:) = 263.15_dbl_kind ! air potential temp (K)
@@ -481,28 +442,26 @@
          swidf (:) = 25._dbl_kind    ! shortwave radiation (W/m^2)
          flw   (:) = 230.0_dbl_kind  ! incoming longwave rad (W/m^2)
          frain (:) = c0              ! rainfall rate (kg/m2/s)
-         do n = 1, ncat                  ! surface heat flux (W/m^2)
+         do n = 1, ncat                   ! surface heat flux (W/m^2)
             fsurfn_f(:,n) = fsurfn_d(n)
          enddo
-         fcondtopn_f(:,:) = 0.0_dbl_kind ! conductive heat flux (W/m^2)
-         flatn_f(:,:) = -1.0_dbl_kind    ! latent heat flux (W/m^2)
-         fsensn_f(:,:) = c0              ! sensible heat flux (W/m^2)
+         fcondtopn_f(:,:) =  c0           ! conductive heat flux (W/m^2)
+         flatn_f    (:,:) = -1.0_dbl_kind ! latent heat flux (W/m^2)
+         fsensn_f   (:,:) =  c0           ! sensible heat flux (W/m^2)
       endif !     l_winter
 
-      faero_atm (:,:) = c0           ! aerosol deposition rate (kg/m2/s)
+      faero_atm    (:,:) = c0        ! aerosol deposition rate (kg/m2/s)
       flux_bio_atm (:,:) = c0        ! zaero and bio deposition rate (kg/m2/s)
 
       !-----------------------------------------------------------------
       ! fluxes received from ocean
       !-----------------------------------------------------------------
 
-      ss_tltx(:)= c0              ! sea surface tilt (m/m)
-      ss_tlty(:)= c0
-      uocn  (:) = c0              ! surface ocean currents (m/s)
-      vocn  (:) = c0
-      frzmlt(:) = c0              ! freezing/melting potential (W/m^2)
-      sss   (:) = 34.0_dbl_kind   ! sea surface salinity (ppt)
-      sst   (:) = -1.8_dbl_kind   ! sea surface temperature (C)
+      uocn   (:) = c0              ! surface ocean currents (m/s)
+      vocn   (:) = c0
+      frzmlt (:) = c0              ! freezing/melting potential (W/m^2)
+      sss    (:) = 34.0_dbl_kind   ! sea surface salinity (ppt)
+      sst    (:) = -1.8_dbl_kind   ! sea surface temperature (C)
 
       do i = 1, nx
          Tf (i) = icepack_liquidus_temperature(sss(i)) ! freezing temp (C)
@@ -511,9 +470,8 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      qdp   (:) = c0              ! deep ocean heat flux (W/m^2)
-      hmix  (:) = c20             ! ocean mixed layer depth
-      daice_da(:) = c0            ! data assimilation increment rate
+      qdp     (:) = c0             ! deep ocean heat flux (W/m^2)
+      hmix    (:) = c20            ! ocean mixed layer depth
 
       !-----------------------------------------------------------------
       ! fluxes sent to atmosphere
@@ -526,7 +484,7 @@
       flat    (:) = c0
       fswabs  (:) = c0
       flwout  (:) = -stefan_boltzmann*Tffresh**4   
-                        ! in case atm model diagnoses Tsfc from flwout
+                     ! in case atm model diagnoses Tsfc from flwout
       evap    (:) = c0
       Tref    (:) = c0
       Qref    (:) = c0
@@ -546,9 +504,7 @@
       fsalt   (:) = c0
       fhocn   (:) = c0
       fswthru (:) = c0
-      fresh_da(:) = c0    ! data assimilation
-      fsalt_da(:) = c0
-      flux_bio (:,:) = c0 ! bgc
+      flux_bio(:,:) = c0 ! bgc
       fnit    (:) = c0
       fsil    (:) = c0
       famm    (:) = c0
@@ -571,10 +527,9 @@
 !      fsw     (:) = c0            ! shortwave radiation (W/m^2)
       fsw     (:) = swvdr(:) + swvdf(:) + swidr(:) + swidf(:)
       scale_factor(:) = c1        ! shortwave scaling factor 
-      wind    (:) = sqrt(uatm(:)**2 &
-                           + vatm(:)**2)  ! wind speed, (m/s)
+      wind    (:) = sqrt(uatm(:)**2 + vatm(:)**2)  ! wind speed, (m/s)
       Cdn_atm(:) = (vonkar/log(zref/iceruf)) &
-                     * (vonkar/log(zref/iceruf)) ! atmo drag for RASM
+                 * (vonkar/log(zref/iceruf)) ! atmo drag for RASM
 
       end subroutine init_coupler_flux
 
@@ -593,10 +548,6 @@
 
       strairxT(:) = c0      ! wind stress, T grid
       strairyT(:) = c0
-      ! for rectangular grid tests without thermo
-      ! strairxT(:) = 0.15_dbl_kind
-      ! strairyT(:) = 0.15_dbl_kind
-
       fsens   (:) = c0
       flat    (:) = c0
       fswabs  (:) = c0
@@ -628,9 +579,12 @@
       subroutine init_history_therm
 
       use icedrv_state, only: aice, vice, trcr
-      use icedrv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
-      use icedrv_arrays_column, only: Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_pond, Cdn_atm_rdg
-      use icedrv_arrays_column, only: Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
+      use icedrv_arrays_column, only: hfreebd, hdraft, hridge, distrdg
+      use icedrv_arrays_column, only: hkeel, dkeel, lfloe, dfloe
+      use icedrv_arrays_column, only: Cdn_atm_skin, Cdn_atm_floe
+      use icedrv_arrays_column, only: Cdn_atm_pond, Cdn_atm_rdg
+      use icedrv_arrays_column, only: Cdn_ocn_skin, Cdn_ocn_floe
+      use icedrv_arrays_column, only: Cdn_ocn_keel, Cdn_atm_ratio
       use icedrv_arrays_column, only: Cdn_atm, Cdn_ocn
 
       logical (kind=log_kind) :: formdrag, tr_iage
@@ -638,6 +592,10 @@
       real (kind=dbl_kind) :: vonkar, zref, iceruf
       real (kind=dbl_kind) :: dragio
       character(len=*), parameter :: subname='(init_history_therm)'
+
+      !-----------------------------------------------------------------
+      ! query Icepack values
+      !-----------------------------------------------------------------
 
       call icepack_query_parameters(formdrag_out=formdrag)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage)
@@ -648,6 +606,8 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
 
       fsurf  (:) = c0
       fcondtop(:)= c0
@@ -686,7 +646,7 @@
       ! during the thermodynamics section 
       Cdn_ocn(:) = dragio
       Cdn_atm(:) = (vonkar/log(zref/iceruf)) &
-                     * (vonkar/log(zref/iceruf)) ! atmo drag for RASM
+                 * (vonkar/log(zref/iceruf)) ! atmo drag for RASM
 
       if (formdrag) then
         Cdn_atm_rdg (:) = c0
@@ -723,11 +683,17 @@
       integer (kind=int_kind) :: nt_iage
       character(len=*), parameter :: subname='(init_history_dyn)'
 
+      !-----------------------------------------------------------------
+      ! query Icepack values
+      !-----------------------------------------------------------------
+
       call icepack_query_tracer_flags(tr_iage_out=tr_iage)
       call icepack_query_tracer_indices(nt_iage_out=nt_iage)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
 
       dardg1dt(:) = c0
       dardg2dt(:) = c0
