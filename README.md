@@ -1,4 +1,5 @@
 ## Overview
+[![Build Status](https://travis-ci.org/anders-dc/Icepack.svg?branch=master)](https://travis-ci.org/anders-dc/Icepack)
 
 This repository contains files describing the column physics of the sea ice model CICE, which is now maintained by the CICE Consortium.  For testing purposes and guidance for including Icepack in other sea ice host models, this repository also includes a driver and basic test suite.
 
