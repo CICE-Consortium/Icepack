@@ -541,8 +541,12 @@ EOF2
   endif
 end
 
+echo ${casescr}/parse_settings.sh icepack.settings ${fsmods}
 ${casescr}/parse_settings.sh icepack.settings ${fsmods}
+
+echo ${casescr}/parse_namelist.sh icepack_in ${fimods}
 ${casescr}/parse_namelist.sh icepack_in ${fimods}
+
 source ./icepack.settings
 source ./env.${mach} || exit 2
 ${casescr}/parse_namelist_from_settings.sh icepack_in icepack.settings
@@ -624,6 +628,7 @@ echo ""
 echo "\$success of \$total tests PASSED"
 echo "\$failures of \$total tests FAILED"
 echo "\$pends of \$total tests PENDING"
+exit \$failures
 EOF
 
   # build and submit tests
