@@ -1466,7 +1466,7 @@
          mort_pre_in=mort_pre, &
          mort_Tdep_in=mort_Tdep, k_exude_in=k_exude, &
          K_Nit_in=K_Nit, K_Am_in=K_Am, K_sil_in=K_Sil, K_Fe_in=K_Fe, &
-         f_don_in=f_don, kn_bac_in=k_bac, f_don_Am_in=f_don, f_exude_in=f_exude, &
+         f_don_in=f_don, kn_bac_in=kn_bac, f_don_Am_in=f_don, f_exude_in=f_exude, &
          k_bac_in=k_bac, &
          algaltype_in=algaltype, doctype_in=doctype, dontype_in=dontype, &
          dictype_in=dictype, &
