@@ -2,6 +2,9 @@ language: c
 
 sudo: false
 
+compiler:
+    - clang
+
 env:
     - CC=clang5.0 CXX=clang++-5.0
 
