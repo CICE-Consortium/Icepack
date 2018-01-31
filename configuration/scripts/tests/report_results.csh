@@ -158,9 +158,9 @@ end
 set noglob
 set tcolor = ${green}
 if (${tfail} > 0) set tcolor = ${yellow}
-@ chk = (${ttotl} / 10)
+@ chk = ((${ttotl} + 9)/ 10)
 if (${tfail} >= ${chk}) set tcolor = ${orange}
-@ chk = (${ttotl} / 5)
+@ chk = ((${ttotl} + 4) / 5)
 if (${tfail} >= ${chk}) set tcolor = ${red}
 unset noglob
 
