@@ -1,18 +1,18 @@
 #==============================================================================
-# Macros file for NAVYDSRC conrad, intel compiler
+# Macros file for NAVYDSRC gordon, gnu compiler
 #==============================================================================
 
-CPP        := pgcc -Mcpp
+CPP        := ftn -E
 CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
-CFLAGS     := -c -O2 -Kieee
+CFLAGS     := -c -O2 -ffloat-store -march=native
 
-FIXEDFLAGS := -Mextend
-FREEFLAGS  := -Mfree
-FFLAGS     := -Kieee -Mbyteswapio -traceback 
+FIXEDFLAGS := -ffixed-line-length-132
+FREEFLAGS  := -ffree-form
+FFLAGS     := -ffloat-store -fconvert=swap -fbacktrace -march=native -ffree-line-length-none
 FFLAGS_NOOPT:= -O0
 
 ifeq ($(ICE_BLDDEBUG), true)
-  FFLAGS     += -O0 -g -Mbounds -Mchkptr
+  FFLAGS     += -O0 -g -Wuninitialized -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow
 else
   FFLAGS     += -O2
 endif
@@ -44,14 +44,14 @@ INCLDIR := $(INCLDIR)
 #LIB_MPI := $(IMPILIBDIR)
 #SLIBS   := -L$(LIB_NETCDF) -lnetcdf -lnetcdff
 
-SCC:= cc
+SCC:= icc 
 
-SFC:= ftn
+SFC:= ifort 
 
 ifeq ($(ICE_THREADED), true) 
-   LDFLAGS += -mp
-   CFLAGS += -mp
-   FFLAGS += -mp
+   LDFLAGS += -fopenmp
+   CFLAGS += -fopenmp
+   FFLAGS += -fopenmp
 endif
 
 ### if using parallel I/O, load all 3 libraries.  PIO must be first!

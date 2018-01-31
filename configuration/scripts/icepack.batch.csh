@@ -7,7 +7,7 @@ else
 endif
 
 source ./icepack.settings
-source ${ICE_CASEDIR}/env.${ICE_MACHINE} || exit 2
+source ${ICE_CASEDIR}/env.${ICE_MACHCOMP} || exit 2
 
 set jobfile = $1
 

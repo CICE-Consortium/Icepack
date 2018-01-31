@@ -1,6 +1,6 @@
 #!/bin/csh -f
 
-set wikirepo = "https://github.com/CICE-Consortium/Test-Results.wiki.git"
+set wikirepo = "https://github.com/CICE-Consortium/XX-Test-Results.wiki.git"
 set wikiname = Test-Results.wiki
 
 set tsubdir = icepack_testing
@@ -22,10 +22,11 @@ set ctim = `grep "#time = " results.log | cut -c 9-`
 set user = `grep "#user = " results.log | cut -c 9-`
 set mach = `grep "#mach = " results.log | cut -c 9-`
 set vers = `grep "#vers = " results.log | cut -c 9-`
-set cases = `grep ${mach}_ results.log | cut -d " " -f 2 | sort -u`
 set totl = `grep "#totl = " results.log | cut -c 9-`
 set pass = `grep "#pass = " results.log | cut -c 9-`
 set fail = `grep "#fail = " results.log | cut -c 9-`
+set cases = `grep -v "#" results.log | grep ${mach}_ | cut -d " " -f 2 | sort -u`
+set compilers = `grep -v "#" results.log | grep ${mach}_ | cut -d "_" -f 2 | sort -u`
 
 #echo "debug ${repo}"
 #echo "debug ${bran}"
@@ -54,16 +55,26 @@ if ("${shrepo}" !~ "*cice-consortium*") then
   set bfile = {$bfile}_forks
 endif
 
+set noglob
+set green  = "\![#00C000](https://placehold.it/15/00C000/000000?text=+)"
+set red    = "\![#F00000](https://placehold.it/15/F00000/000000?text=+)"
+set orange = "\![#FFA500](https://placehold.it/15/FFA500/000000?text=+)"
+set yellow = "\![#FFE600](https://placehold.it/15/FFE600/000000?text=+)"
+set gray   = "\![#AAAAAA](https://placehold.it/15/AAAAAA/000000?text=+)"
+unset noglob
+
 #==============================================================
 # Create results table
 #==============================================================
 
-set ofile = "${hash}.${xcdat}${xctim}"
-set outfile = "${wikiname}/${tsubdir}/${ofile}.md"
-mkdir -p ${wikiname}/${tsubdir}
-echo "${0}: writing to ${outfile}"
+foreach compiler ( ${compilers} )
 
-if (-e ${outfile}) rm -f ${outfile}
+  set ofile = "${shhash}.${mach}.${compiler}.${xcdat}${xctim}"
+  set outfile = "${wikiname}/${tsubdir}/${ofile}.md"
+  mkdir -p ${wikiname}/${tsubdir}
+  echo "${0}: writing to ${outfile}"
+
+  if (-e ${outfile}) rm -f ${outfile}
 
 cat >! ${outfile} << EOF
 
@@ -71,18 +82,12 @@ cat >! ${outfile} << EOF
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 EOF
 
-set noglob
-set green  = "\![#00C000](https://placehold.it/15/00C000/000000?text=+)"
-set red    = "\![#F00000](https://placehold.it/15/F00000/000000?text=+)"
-set orange = "\![#FFA500](https://placehold.it/15/FFA500/000000?text=+)"
-set yellow = "\![#FFE600](https://placehold.it/15/FFE600/000000?text=+)"
-set gray   = "\![#AAAAAA](https://placehold.it/15/AAAAAA/000000?text=+)"
-
 @ ttotl = 0
 @ tpass = 0
 @ tfail = 0
 
 foreach case ( ${cases} )
+if ( ${case} =~ *_${compiler}_* ) then
 
   @ ttotl = $ttotl + 1
 
@@ -104,6 +109,7 @@ foreach case ( ${cases} )
     set ftest  = `grep " ${case} " results.log | grep " run" | cut -c 1-4`
   endif
 
+  set noglob
   set rbuild = ${yellow}
   set rrun   = ${yellow}
   set rtest  = ${yellow}
@@ -133,6 +139,7 @@ foreach case ( ${cases} )
   if (${rbuild} == ${red}) set chkpass = 0
   if (${rrun}   == ${red}) set chkpass = 0
   if (${rtest}  == ${red}) set chkpass = 0
+  unset noglob
 
   if (${chkpass} == 1) then
      @ tpass = $tpass + 1
@@ -145,15 +152,16 @@ foreach case ( ${cases} )
   #echo "debug | ${rbuild} | ${rrun} | ${rtest} | ${rregr} ${vregr} | ${rcomp} ${vcomp} | ${case} |" 
   echo "| ${rbuild} | ${rrun} | ${rtest} | ${rregr} ${vregr} | ${rcomp} ${xvcomp} | ${rtime} | ${xcase} |" >> ${outfile}
 
+endif
 end
 
+set noglob
 set tcolor = ${green}
 if (${tfail} > 0) set tcolor = ${yellow}
 @ chk = (${ttotl} / 10)
 if (${tfail} >= ${chk}) set tcolor = ${orange}
 @ chk = (${ttotl} / 5)
 if (${tfail} >= ${chk}) set tcolor = ${red}
-
 unset noglob
 
 mv ${outfile} ${outfile}.hold
@@ -162,7 +170,7 @@ cat >! ${outfile} << EOF
 - hash = ${hash}
 - hash created by ${hshu} ${hshd}
 - vers = ${vers}
-- tested on ${mach}, ${user}, ${cdat} ${ctim} UTC
+- tested on ${mach}, ${compiler}, ${user}, ${cdat} ${ctim} UTC
 - raw results: ${totl} total tests: ${pass} pass, ${fail} fail
 - ${ttotl} total tests: ${tpass} pass, ${tfail} fail
 EOF
@@ -197,9 +205,9 @@ if ($chk == 0) then
 cat >! ${hashfile} << EOF
 **${hash}** :
 
-| machine | version | date/time | pass | fail | total |
-| ------ | ------ | ------ | ------  | ------ | ------ |
-| ${mach} | ${vers} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
+| machine | compiler | version | date | pass | fail | total |
+| ------ | ------ | ------ | ------  | ------ | ------ | ------ |
+| ${mach} | ${compiler} | ${vers} | ${cdat} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${hashfile}.prev) cat ${hashfile}.prev >> ${hashfile}
@@ -207,7 +215,7 @@ if (-e ${hashfile}.prev) cat ${hashfile}.prev >> ${hashfile}
 else
   set oline = `grep -n "\*\*${hash}" ${hashfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${vers} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${hashfile}
+  sed -i "$nline a | ${mach} | ${compiler} | ${vers} | ${cdat} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${hashfile}
 endif
 
 #=====================
@@ -220,9 +228,9 @@ if ($chk == 0) then
 cat >! ${versfile} << EOF
 **${vers}** :
 
-| machine | hash | date/time | pass | fail | total |
-| ------ | ------ | ------ | ------  | ------ | ------ |
-| ${mach} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
+| machine | compiler | hash | date | pass | fail | total |
+| ------ | ------ | ------ | ------  | ------ | ------ | ------ |
+| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${versfile}.prev) cat ${versfile}.prev >> ${versfile}
@@ -230,7 +238,7 @@ if (-e ${versfile}.prev) cat ${versfile}.prev >> ${versfile}
 else
   set oline = `grep -n "\*\*${vers}" ${versfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${versfile}
+  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${versfile}
 endif
 
 #=====================
@@ -243,9 +251,9 @@ if ($chk == 0) then
 cat >! ${machfile} << EOF
 **${mach}** :
 
-| version | hash | date/time | pass | fail | total |
-| ------ | ------ | ------ | ------  | ------ | ------ |
-| ${vers} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
+| version | hash | compiler | date | pass | fail | total |
+| ------ | ------ | ------ | ------ | ------  | ------ | ------ |
+| ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${machfile}.prev) cat ${machfile}.prev >> ${machfile}
@@ -253,7 +261,7 @@ if (-e ${machfile}.prev) cat ${machfile}.prev >> ${machfile}
 else
   set oline = `grep -n "\*\*${mach}" ${machfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${vers} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${machfile}
+  sed -i "$nline a | ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${machfile}
 endif
 
 #=====================
@@ -266,9 +274,9 @@ if ($chk == 0) then
 cat >! ${branfile} << EOF
 **${bran}** **${repo}**:
 
-| machine | hash | date/time | pass | fail | total |
-| ------ | ------ | ------ | ------  | ------ | ------ |
-| ${mach} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
+| machine | compiler | hash | date | pass | fail | total |
+| ------ | ------ | ------ | ------  | ------ | ------ | ------ |
+| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${branfile}.prev) cat ${branfile}.prev >> ${branfile}
@@ -276,14 +284,18 @@ if (-e ${branfile}.prev) cat ${branfile}.prev >> ${branfile}
 else
   set oline = `grep -n "\*\*${bran}" ${branfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${shhash} | ${cdat} ${ctim} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${branfile}
+  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tpass} | ${tfail} | ${tcolor} [${ttotl}](${ofile}) | " ${branfile}
 endif
+
+#foreach compiler
+end
 
 #=====================
 # update wiki
 #=====================
 
 cd ${wikiname}
+git add ${tsubdir}/${shhash}.${mach}*.md
 git add ${tsubdir}/${ofile}.md
 git add ${tsubdir}/${hfile}.md
 git add ${tsubdir}/${mfile}.md

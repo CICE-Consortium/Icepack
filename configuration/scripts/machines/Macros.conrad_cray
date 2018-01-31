@@ -1,18 +1,18 @@
 #==============================================================================
-# Macros file for NAVYDSRC conrad, intel compiler
+# Macros file for NAVYDSRC conrad, cray compiler
 #==============================================================================
 
-CPP        := pgcc -Mcpp
+CPP        := ftn -e P
 CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
-CFLAGS     := -c -O2 -Kieee
+CFLAGS     := -c -O2 -h fp0 
 
-FIXEDFLAGS := -Mextend
-FREEFLAGS  := -Mfree
-FFLAGS     := -Kieee -Mbyteswapio -traceback 
+FIXEDFLAGS := -132
+FREEFLAGS  := 
+FFLAGS     := -h fp0 -h byteswapio 
 FFLAGS_NOOPT:= -O0
 
 ifeq ($(ICE_BLDDEBUG), true)
-  FFLAGS     += -O0 -g -Mbounds -Mchkptr
+  FFLAGS     += -O0 -g -Rbcdps
 else
   FFLAGS     += -O2
 endif
@@ -48,10 +48,10 @@ SCC:= cc
 
 SFC:= ftn
 
-ifeq ($(ICE_THREADED), true) 
-   LDFLAGS += -mp
-   CFLAGS += -mp
-   FFLAGS += -mp
+ifeq ($(ICE_THREADED), false) 
+   LDFLAGS += -hnoomp
+   CFLAGS += -hnoomp
+   FFLAGS += -hnoomp
 endif
 
 ### if using parallel I/O, load all 3 libraries.  PIO must be first!
