@@ -3,8 +3,7 @@ language: c
 sudo: false
 
 env:
-    - CC=clang5.0
-    - CXX=clang++-5.0
+    - CC=clang5.0 CXX=clang++-5.0
 
 addons:
     apt:
