@@ -1,0 +1,16 @@
+language: c
+
+sudo: false
+
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - tcsh pkg-config netcdf-bin libnetcdf-dev gcc-7 gfortran-7
+
+script:
+    - ./icepack.create.case -ts base_suite -m travisCI -testid travisCItest -a P00000 && cd base_suite.travisCItest && ./results.csh
+
+notifications:
+    email: false
