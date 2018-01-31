@@ -3,7 +3,7 @@ language: cpp
 sudo: false
 
 compiler:
-    - clang++
+    - clang
 
 env:
     - CC=clang5.0 CXX=clang++-5.0
