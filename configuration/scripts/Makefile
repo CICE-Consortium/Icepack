@@ -26,6 +26,9 @@
 #   % gmake MACFILE=Macros.SUN SRCS="test.F"
 #-------------------------------------------------------------------------------
 
+# Make sure that bash is chosen over /bin/sh, which may only be dash compatible
+SHELL=/bin/bash
+
 #-------------------------------------------------------------------------------
 # parse cmd-line and establish values for EXEC, VPATH, SRCS, OBJS, etc
 #-------------------------------------------------------------------------------
