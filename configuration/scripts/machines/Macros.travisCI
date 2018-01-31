@@ -1,5 +1,5 @@
 #==============================================================================
-# Makefile macros for NCAR cheyenne, intel compiler
+# Makefile macros for Travis-CI - gfortran and llvm (clang) compilers
 #==============================================================================
 
 CPP        := clang++-5.0
