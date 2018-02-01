@@ -1,13 +1,13 @@
 language: cpp 
 sudo: false
 
-compiler:
-    - clang
+compiler: clang
 
 addons:
     apt:
         sources:
             - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
         packages:
             - tcsh
             - pkg-config
@@ -15,10 +15,10 @@ addons:
             - libnetcdf-dev
             - gfortran
             - gfortran-7
-            - gcc-multilib
-            - g++-multilib
-            - clang
-            - libstdc++-5-dev
+            - clang-5.0
+            - libc++-dev
+env:
+    - CC=clang-5.0 CXX=clang++-5.0
 
 script:
     - ./icepack.create.case -ts base_suite -m travisCI -testid travisCItest -a P00000 && cd base_suite.travisCItest && ./results.csh
