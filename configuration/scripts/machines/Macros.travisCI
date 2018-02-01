@@ -27,7 +27,6 @@ MPICC:=
 MPIFC:= 
 #LD:= $(MPIFC)
 LD:= $(FC)
-LDFLAGS += -stdlib=libc++
 
 NETCDF_PATH := $(NETCDF)
 
