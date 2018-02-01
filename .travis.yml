@@ -15,6 +15,8 @@ addons:
             - netcdf-bin
             - libnetcdf-dev
             - gfortran-7
+            - gcc-multilib
+            - g++-multilib
             - clang
 
 script:
