@@ -14,7 +14,7 @@ addons:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-5.0
         packages:
-            - tcsh pkg-config netcdf-bin libnetcdf-dev gcc-7 gfortran-7 clang-5.0
+            - tcsh pkg-config netcdf-bin libnetcdf-dev gcc-7 gfortran gfortran-7 clang-5.0
 
 script:
     - ./icepack.create.case -ts base_suite -m travisCI -testid travisCItest -a P00000 && cd base_suite.travisCItest && ./results.csh
