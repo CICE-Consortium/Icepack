@@ -14,6 +14,7 @@ addons:
             - pkg-config
             - netcdf-bin
             - libnetcdf-dev
+            - gfortran
             - gfortran-7
             - gcc-multilib
             - g++-multilib
