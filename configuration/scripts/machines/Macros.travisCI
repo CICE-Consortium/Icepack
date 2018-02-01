@@ -2,8 +2,8 @@
 # Makefile macros for Travis-CI - gfortran and llvm (clang) compilers
 #==============================================================================
 
-CPP        := clang++ -v
-CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
+CPP        := clang++
+CPPDEFS    := -v -stdlib=libc++ -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
 CFLAGS     := -c -O2 -fp-model precise   -xHost
 
 FIXEDFLAGS := -132
