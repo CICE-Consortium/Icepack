@@ -1,5 +1,4 @@
-language: cpp
-
+language: cpp 
 sudo: false
 
 compiler:
@@ -19,6 +18,7 @@ addons:
             - gcc-multilib
             - g++-multilib
             - clang
+            - libstdc++-5-dev
 
 script:
     - ./icepack.create.case -ts base_suite -m travisCI -testid travisCItest -a P00000 && cd base_suite.travisCItest && ./results.csh
