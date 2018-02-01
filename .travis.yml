@@ -9,9 +9,13 @@ addons:
     apt:
         sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-5.0
         packages:
-            - build-essential tcsh pkg-config netcdf-bin libnetcdf-dev gfortran clang
+            - tcsh
+            - pkg-config
+            - netcdf-bin
+            - libnetcdf-dev
+            - gfortran
+            - clang
 
 script:
     - ./icepack.create.case -ts base_suite -m travisCI -testid travisCItest -a P00000 && cd base_suite.travisCItest && ./results.csh
