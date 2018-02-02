@@ -564,12 +564,8 @@ EOF2
   endif
 end
 
-echo ${casescr}/parse_settings.sh icepack.settings ${fsmods}
 ${casescr}/parse_settings.sh icepack.settings ${fsmods}
-
-echo ${casescr}/parse_namelist.sh icepack_in ${fimods}
 ${casescr}/parse_namelist.sh icepack_in ${fimods}
-
 source ./icepack.settings
 source ./env.${machcomp} || exit 2
 ${casescr}/parse_namelist_from_settings.sh icepack_in icepack.settings
