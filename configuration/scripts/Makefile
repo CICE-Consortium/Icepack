@@ -72,7 +72,7 @@ RM    := rm
 .SUFFIXES:
 .SUFFIXES: .F90 .F .c .o
 
-all: db_flags db_files $(EXEC)
+all: $(EXEC)
 
 #-------------------------------------------------------------------------------
 # include the file that provides macro definitions required by build rules
