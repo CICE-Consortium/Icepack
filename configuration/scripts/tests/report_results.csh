@@ -1,6 +1,6 @@
 #!/bin/csh -f
 
-set wikirepo = "https://github.com/CICE-Consortium/XX-Test-Results.wiki.git"
+set wikirepo = "https://github.com/CICE-Consortium/Test-Results.wiki.git"
 set wikiname = Test-Results.wiki
 
 set tsubdir = icepack_testing
