@@ -231,6 +231,9 @@ if (($testsuite != $spval || $test != $spval) && $testid == $spval) then
   exit -1
 endif
 
+#Update version.txt
+grep "release =" doc/source/conf.py | cut -d \' -f 2 >! columnphysics/version.txt
+
 # Check to see if this is a test-suite run.  If so, loop through the various
 #   tests and create a separate folder for each
 if ( $testsuite != $spval ) then
@@ -266,6 +269,7 @@ EOF0
   set cdate = `date -u "+%Y-%m-%d"`
   set ctime = `date -u "+%H:%M:%S"`
   set vers = "unknown"
+  set shhash = `echo ${hash} | cut -c 1-10`
   if (-e columnphysics/version.txt) then
     set vers = `head -1 columnphysics/version.txt`
   endif
@@ -277,6 +281,7 @@ echo "#------- " >> results.log
 echo "#repo = ${remote}" >> results.log
 echo "#bran = ${branch}" >> results.log
 echo "#hash = ${hash}" >> results.log
+echo "#hshs = ${shhash}" >> results.log
 echo "#hshu = ${hashuser}" >> results.log
 echo "#hshd = ${hashdate}" >> results.log
 echo "#date = ${cdate}" >> results.log
@@ -468,6 +473,13 @@ if ($bdir != $spval) then
 else
   setenv basedir_tmp ${ICE_MACHINE_BASELINE}
 endif
+if ("$baseGen" =~ "default") then
+  set baseGen = icepack.${shhash}.${cdate}.${ctime}
+endif
+if ("$baseCom" =~ "default") then
+  set baseCom = `ls -t $basedir_tmp | head -1`
+endif
+
 
 cat >! ${fsmods} << EOF1
 # icepack.create.case settings

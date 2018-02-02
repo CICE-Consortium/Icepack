@@ -15,8 +15,9 @@ git clone ${wikirepo} ${wikiname}
 set repo = `grep "#repo = " results.log | cut -c 9-`
 set bran = `grep "#bran = " results.log | cut -c 9-`
 set hash = `grep "#hash = " results.log | cut -c 9-`
-set hshu = `grep "#hshu = " results.log | cut -c 9-`
-set hshd = `grep "#hshd = " results.log | cut -c 9-`
+set shhash   = `grep "#hshs = " results.log | cut -c 9-`
+set hashuser = `grep "#hshu = " results.log | cut -c 9-`
+set hashdate = `grep "#hshd = " results.log | cut -c 9-`
 set cdat = `grep "#date = " results.log | cut -c 9-`
 set ctim = `grep "#time = " results.log | cut -c 9-`
 set user = `grep "#user = " results.log | cut -c 9-`
@@ -31,8 +32,9 @@ set compilers = `grep -v "#" results.log | grep ${mach}_ | cut -d "_" -f 2 | sor
 #echo "debug ${repo}"
 #echo "debug ${bran}"
 #echo "debug ${hash}"
-#echo "debug ${hshu}"
-#echo "debug ${hshd}"
+#echo "debug ${shhash}"
+#echo "debug ${hashuser}"
+#echo "debug ${hashdate}"
 #echo "debug ${cdat}"
 #echo "debug ${ctim}"
 #echo "debug ${user}"
@@ -45,7 +47,6 @@ set compilers = `grep -v "#" results.log | grep ${mach}_ | cut -d "_" -f 2 | sor
 
 set xcdat = `echo $cdat | sed 's|-||g' | cut -c 3-`
 set xctim = `echo $ctim | sed 's|:||g'`
-set shhash = `echo $hash | cut -c 1-10`
 set shrepo = `echo $repo | tr '[A-Z]' '[a-z]'`
 
 if ("${shrepo}" !~ "*cice-consortium*") then
@@ -191,7 +192,7 @@ mv ${outfile} ${outfile}.hold
 cat >! ${outfile} << EOF
 - repo = **${repo}** : **${bran}**
 - hash = ${hash}
-- hash created by ${hshu} ${hshd}
+- hash created by ${hashuser} ${hashdate}
 - vers = ${vers}
 - tested on ${mach}, ${compiler}, ${user}, ${cdat} ${ctim} UTC
 - raw results: ${totl} total tests: ${pass} pass, ${fail} fail
