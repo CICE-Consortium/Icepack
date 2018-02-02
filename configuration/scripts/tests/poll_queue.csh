@@ -28,7 +28,7 @@ foreach job ("`cat suite.jobs`")
       break
     endif
     echo "Waiting for $job to complete"
-    sleep 300   # Sleep for 5 minutes, so as not to overwhelm the queue manager
+    sleep 60   # Sleep for 1 minute, so as not to overwhelm the queue manager
   end
 end
 

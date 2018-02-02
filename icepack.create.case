@@ -10,7 +10,9 @@ set initargv = ( $argv[*] )
 set helpheader = 0
 set dash = "-"
 set spval = "UnDeFiNeD"
-set mach = $spval
+set machcomp = $spval
+set machine = $spval
+set compilers = intel
 set case = $spval
 set test = $spval
 set grid = col
@@ -49,7 +51,8 @@ NAME
         -h help
         -c case, case directory/name
         -m machine, machine name (required)
-           Available -m options are in configuration/scripts/machines and include:
+        -e compiler(s), comma separated with no spaces (default = "intel"), multiple compilers only supported with -ts
+           Available -m and -e combinations are in configuration/scripts/machines and include:
 EOF1
       set soptions1 = `ls -1 configuration/scripts/machines | grep Macros | sed 's/Macros.//g' `
       set soptions = `echo $soptions1 | fmt -1 | sort `
@@ -58,7 +61,7 @@ EOF1
       end
 cat << EOF1
         -p tasks x threads, mxn (default is 1x1)
-        -a account number for the queue manager (default is defined in env.<machine>)
+        -a account number for the queue manager (default is defined in env machine file)
         -g grid, grid (default = col)
         -s build and namelist mod files, comma separated with no spaces (default = " ")
            Available -s options are in configuration/scripts/options and include:
@@ -132,7 +135,10 @@ while (1)
 
   switch ( $option )
     case "-m":
-      set mach = $argv[1]
+      set machine = $argv[1]
+      breaksw
+    case "-e":
+      set compilers = $argv[1]
       breaksw
     case "-c":
       set case = $argv[1]
@@ -178,7 +184,7 @@ while (1)
   shift argv
 end
 
-if ($mach == $spval) then
+if ($machine == $spval) then
   echo "${0}: ERROR in arguments, -m required"
   exit -1
 endif
@@ -201,6 +207,16 @@ endif
 if ($testsuite != $spval && $test != $spval) then
   echo "${0}: ERROR in arguments, cannot use both -ts and -t"
   exit -1
+endif
+
+if ($testsuite == $spval) then
+  if ("$compilers" =~ "*,*") then
+    echo "${0}: ERROR in arguments, cannot set multiple compilers without -ts"
+    exit -1
+  else
+    set compiler = ${compilers}
+    set machcomp = ${machine}_${compiler}
+  endif
 endif
 
 # tcraig, lets find another way to validate argument
@@ -242,17 +258,17 @@ cat >! ./${tsdir}/suite.run << EOF0
 #!/bin/csh -f
 EOF0
 
-set remote = `git remote -v | grep -i origin | grep -i push | sed "s|.*\(https.*\)\s.*|\1|g"`
-set branch = `git status | grep -i "on branch" | sed 's|^.*ranch\s*\(\S*\)$|\1|g'`
-set hash     = `git log | grep -i commit | head -1 | cut -d " " -f 2-`
-set hashuser = `git log | grep -i author | head -1 | cut -d : -f 2-`
-set hashdate = `git log | grep -i date   | head -1 | cut -d : -f 2-`
-set cdate = `date -u "+%Y-%m-%d"`
-set ctime = `date -u "+%H:%M:%S"`
-set vers = "unknown"
-if (-e columnphysics/version.txt) then
-  set vers = `head -1 columnphysics/version.txt`
-endif
+  set remote = `git remote -v | grep -i origin | grep -i push | sed "s|.*\(https.*\)\s.*|\1|g"`
+  set branch = `git status | grep -i "on branch" | sed 's|^.*ranch\s*\(\S*\)$|\1|g'`
+  set hash     = `git log | grep -i commit | head -1 | cut -d " " -f 2-`
+  set hashuser = `git log | grep -i author | head -1 | cut -d : -f 2-`
+  set hashdate = `git log | grep -i date   | head -1 | cut -d : -f 2-`
+  set cdate = `date -u "+%Y-%m-%d"`
+  set ctime = `date -u "+%H:%M:%S"`
+  set vers = "unknown"
+  if (-e columnphysics/version.txt) then
+    set vers = `head -1 columnphysics/version.txt`
+  endif
 
 cat >! ./${tsdir}/results.csh << EOF0
 #!/bin/csh -f
@@ -265,7 +281,7 @@ echo "#hshu = ${hashuser}" >> results.log
 echo "#hshd = ${hashdate}" >> results.log
 echo "#date = ${cdate}" >> results.log
 echo "#time = ${ctime}" >> results.log
-echo "#mach = ${mach}" >> results.log
+echo "#mach = ${machine}" >> results.log
 echo "#user = ${user}" >> results.log
 echo "#vers = ${vers}" >> results.log
 echo "#------- " >> results.log
@@ -274,6 +290,10 @@ EOF0
   chmod +x ./${tsdir}/suite.run
   chmod +x ./${tsdir}/results.csh
 
+  set ncompilers = "`echo $compilers | sed -e 's/,/ /g'`"
+
+  foreach compiler ( $ncompilers )
+  set machcomp = ${machine}_${compiler}
   foreach line ( "`cat $tsfile`" )
     # Check if line is a comment line
     if ( $line:q =~ '#'* || $line:q =~ '$'* || $line:q =~ '!'* ) then
@@ -326,11 +346,11 @@ if ($case =~ $spval) then
       endif
     end
     # Only include $testid in testname if this is not a baseline-generating run
-    set testname_noid = "${mach}_${test}_${grid}_${pesx}_${soptions}"
-    set testname_base = "${mach}_${test}_${grid}_${pesx}_${soptions}.${testid}"
+    set testname_noid = "${machcomp}_${test}_${grid}_${pesx}_${soptions}"
+    set testname_base = "${machcomp}_${test}_${grid}_${pesx}_${soptions}.${testid}"
   else
-    set testname_noid = "${mach}_${test}_${grid}_${pesx}"
-    set testname_base = "${mach}_${test}_${grid}_${pesx}.${testid}"
+    set testname_noid = "${machcomp}_${test}_${grid}_${pesx}"
+    set testname_base = "${machcomp}_${test}_${grid}_${pesx}.${testid}"
   endif
   if ($testsuite != $spval) then
     set testname = "${tsdir}/$testname_base"
@@ -365,7 +385,7 @@ foreach file (icepack.build icepack.settings Makefile icepack_in makdep.c)
 end
 
 # from machines dir to case
-foreach file (env.${mach} Macros.${mach})
+foreach file (env.${machcomp} Macros.${machcomp})
   if !(-e ${ICE_SCRIPTS}/machines/$file) then
     echo "${0}: ERROR, ${ICE_SCRIPTS}/machines/$file not found"
     exit -1
@@ -389,12 +409,13 @@ else
 endif
 
 cd ${casedir}
-source ./env.${mach} || exit 2
+source ./env.${machcomp} || exit 2
 
 echo ICE_SANDBOX  = ${ICE_SANDBOX}
 echo ICE_CASENAME = ${casename}
 echo ICE_CASEDIR  = ${casedir}
-echo ICE_MACHINE  = ${mach}
+echo ICE_MACHINE  = ${machine}
+echo ICE_COMPILER = ${compiler}
 
 #------------------------------------------------------------
 # Compute a default blocksize
@@ -455,7 +476,9 @@ setenv ICE_SANDBOX  ${ICE_SANDBOX}
 setenv ICE_SCRIPTS  ${ICE_SCRIPTS}
 setenv ICE_CASENAME ${casename}
 setenv ICE_CASEDIR  ${casedir}
-setenv ICE_MACHINE  ${mach}
+setenv ICE_MACHINE  ${machine}
+setenv ICE_COMPILER ${compiler}
+setenv ICE_MACHCOMP ${machcomp}
 setenv ICE_RUNDIR   ${ICE_MACHINE_WKDIR}/${casename}
 setenv ICE_GRID     ${grid}
 setenv ICE_NXGLOB   ${ICE_DECOMP_NXGLOB}
@@ -468,7 +491,7 @@ setenv ICE_SPVAL    ${spval}
 EOF1
 
 if ($bfbcomp != $spval) then
-  echo "setenv ICE_BFBCOMP  ${mach}_${bfbcomp}.${testid}" >> ${fsmods}
+  echo "setenv ICE_BFBCOMP  ${machcomp}_${bfbcomp}.${testid}" >> ${fsmods}
 else
   echo "setenv ICE_BFBCOMP  ${spval}" >> ${fsmods}
 endif
@@ -548,14 +571,14 @@ echo ${casescr}/parse_namelist.sh icepack_in ${fimods}
 ${casescr}/parse_namelist.sh icepack_in ${fimods}
 
 source ./icepack.settings
-source ./env.${mach} || exit 2
+source ./env.${machcomp} || exit 2
 ${casescr}/parse_namelist_from_settings.sh icepack_in icepack.settings
 
 #------------------------------------------------------------
 # Generate run script
 
 source ./icepack.settings
-source ./env.${mach} || exit 2
+source ./env.${machcomp} || exit 2
 
 ${casescr}/icepack.run.setup.csh
 if ($status != 0) then
@@ -583,8 +606,8 @@ if ($test != $spval) then
 endif
 
 if ( $testsuite != $spval ) then
-    cd ${ICE_SANDBOX}
-    # Write build and run commands to suite.run
+  cd ${ICE_SANDBOX}
+  # Write build and run commands to suite.run
 
 cat >> ./${tsdir}/results.csh << EOF
 cat $testname_base/test_output >> results.log
@@ -597,14 +620,16 @@ cd $testname_base
 cd ..
 EOF
     
-    # Reset case for the next test in suite
-    set case = $spval
+  # Reset case for the next test in suite
+  set case = $spval
 
-    echo "" 
-    echo "---" 
-    echo "" 
+  echo "" 
+  echo "---" 
+  echo "" 
 
   # This is the foreach end for the testsuite
+  end
+  # This is the foreach end for the compilers
   end
 
   # Add code to results.csh to count the number of failures
