@@ -1,5 +1,5 @@
 #==============================================================================
-# Macros file for NAVYDSRC conrad, intel compiler
+# Macros file for NAVYDSRC conrad, gnu compiler
 #==============================================================================
 
 CPP        := ftn -E

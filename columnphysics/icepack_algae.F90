@@ -853,7 +853,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k, m, mm, nn    ! vertical biology layer index 
+         k, m, mm        ! vertical biology layer index 
 
       real (kind=dbl_kind) :: &
          hin         , & ! ice thickness (m)        
@@ -1248,7 +1248,7 @@
             if (abs(sum_new-sum_old) > accuracy*sum_old .or. &
                 minval(biocons(:)) < c0  .or. minval(initcons_stationary(:)) < c0 &
                 .or. icepack_warnings_aborted()) then
-                write(warnstr,*) subname,'zbgc FCT tracer solution failed,nn', nn
+                write(warnstr,*) subname,'zbgc FCT tracer solution failed'
                 call icepack_warnings_add(warnstr)
                 write(warnstr,*) subname,'sum_new,sum_old:',sum_new,sum_old
                 call icepack_warnings_add(warnstr)

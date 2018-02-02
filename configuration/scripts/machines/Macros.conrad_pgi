@@ -1,8 +1,8 @@
 #==============================================================================
-# Macros file for NAVYDSRC conrad, intel compiler
+# Macros file for NAVYDSRC conrad, pgi compiler
 #==============================================================================
 
-CPP        := pgcc -Mcpp
+CPP        := pgcc -E 
 CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
 CFLAGS     := -c -O2 -Kieee
 

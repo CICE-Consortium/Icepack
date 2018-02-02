@@ -1465,7 +1465,7 @@
 
       if (l_print_point .and. netsw > puny) then
 
-         write(warnstr,*) subname, ' printing point = ',n
+         write(warnstr,*) subname, ' printing point'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' coszen = ', &
                             coszen
