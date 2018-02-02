@@ -8,7 +8,7 @@
 
       use icedrv_constants, only: c0, nu_diag, c1000
       use icedrv_kinds
-      use icedrv_calendar, only: istep1
+!      use icedrv_calendar, only: istep1
       use icedrv_system, only: icedrv_system_abort
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
@@ -17,7 +17,6 @@
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_tracer_numbers
       use icepack_intfc, only: icepack_query_parameters
-      use icepack_intfc, only: icepack_query_constants
 
       implicit none
       private
@@ -100,18 +99,23 @@
       subroutine step_therm1 (dt)
 
       use icedrv_arrays_column, only: ffracn, dhsn
-      use icedrv_arrays_column, only: Cdn_ocn, Cdn_ocn_skin, Cdn_ocn_floe, Cdn_ocn_keel, Cdn_atm_ratio
-      use icedrv_arrays_column, only: Cdn_atm, Cdn_atm_skin, Cdn_atm_floe, Cdn_atm_rdg, Cdn_atm_pond
-      use icedrv_arrays_column, only: hfreebd, hdraft, hridge, distrdg, hkeel, dkeel, lfloe, dfloe
+      use icedrv_arrays_column, only: Cdn_ocn, Cdn_ocn_skin, Cdn_ocn_floe
+      use icedrv_arrays_column, only: Cdn_ocn_keel, Cdn_atm_ratio
+      use icedrv_arrays_column, only: Cdn_atm, Cdn_atm_skin, Cdn_atm_floe
+      use icedrv_arrays_column, only: Cdn_atm_rdg, Cdn_atm_pond
+      use icedrv_arrays_column, only: hfreebd, hdraft, hridge, distrdg
+      use icedrv_arrays_column, only: hkeel, dkeel, lfloe, dfloe
       use icedrv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nx
       use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
-      use icedrv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn, fsensn, fsurfn, fcondtopn
+      use icedrv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn
+      use icedrv_flux, only: fsensn, fsurfn, fcondtopn
       use icedrv_flux, only: flw, fsnow, fpond, sss, mlt_onset, frz_onset
-      use icedrv_flux, only: frain, Tair, coszen, strairxT, strairyT, fsurf, fcondtop, fsens
-      use icedrv_flux, only: flat, fswabs, flwout, evap, Tref, Qref, Uref, fresh, fsalt, fhocn
+      use icedrv_flux, only: frain, Tair, coszen, strairxT, strairyT, fsurf
+      use icedrv_flux, only: fcondtop, fsens, fresh, fsalt, fhocn
+      use icedrv_flux, only: flat, fswabs, flwout, evap, Tref, Qref, Uref
       use icedrv_flux, only: fswthru, meltt, melts, meltb, meltl, congel, snoice, frazil
       use icedrv_flux, only: flatn_f, fsensn_f, fsurfn_f, fcondtopn_f
       use icedrv_flux, only: dsnown, faero_atm, faero_ocn
@@ -152,8 +156,10 @@
       character(len=*), parameter :: subname='(step_therm1)'
 
       !-----------------------------------------------------------------
+      ! query icepack values
+      !-----------------------------------------------------------------
 
-      call icepack_query_constants(puny_out=puny)
+      call icepack_query_parameters(puny_out=puny)
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -182,6 +188,8 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
 
       prescribed_ice = .false.
       aerosno(:,:,:) = c0
@@ -351,11 +359,15 @@
       character(len=*), parameter :: subname='(step_therm2)'
 
       !-----------------------------------------------------------------
+      ! query icepack values
+      !-----------------------------------------------------------------
 
       call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
 
       do i = 1, nx
 
@@ -431,6 +443,8 @@
 
       character(len=*), parameter :: subname='(update_state)'
 
+      !-----------------------------------------------------------------
+      ! query icepack values
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
@@ -534,13 +548,17 @@
       character(len=*), parameter :: subname='(step_dyn_ridge)'
 
       !-----------------------------------------------------------------
-      ! Ridging
+      ! query icepack values
       !-----------------------------------------------------------------
 
          call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
+      ! Ridging
+      !-----------------------------------------------------------------
 
          do i = 1, nx
 
@@ -643,6 +661,8 @@
       character(len=*), parameter :: subname='(step_radiation)'
 
       !-----------------------------------------------------------------
+      ! query icepack values
+      !-----------------------------------------------------------------
 
       call icepack_query_tracer_sizes( &
          max_aero_out=max_aero)
@@ -677,6 +697,8 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
 
       allocate(ztrcr(ntrcr,ncat))
       allocate(ztrcr_sw(ntrcr,ncat))
@@ -809,8 +831,10 @@
       character(len=*), parameter :: subname='(ocean_mixed_layer)'
 
       !-----------------------------------------------------------------
+      ! query icepack values
+      !-----------------------------------------------------------------
 
-         call icepack_query_constants(albocn_out=albocn)
+         call icepack_query_parameters(albocn_out=albocn)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__, line=__LINE__)
@@ -947,6 +971,8 @@
       character(len=*), parameter :: subname='(biogeochemistry)'
 
       !-----------------------------------------------------------------
+      ! query icepack values
+      !-----------------------------------------------------------------
 
       call icepack_query_tracer_flags(tr_brine_out=tr_brine)
       call icepack_warnings_flush(nu_diag)
@@ -958,7 +984,11 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
+      !-----------------------------------------------------------------
+
       if (tr_brine .or. skl_bgc) then
+
+      !-----------------------------------------------------------------
 
       call icepack_query_tracer_sizes( &
          max_algae_out=max_algae, max_nbtrcr_out=max_nbtrcr, max_don_out=max_don, &
@@ -967,8 +997,12 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
+      !-----------------------------------------------------------------
+
       allocate(bio_index_o(max_nbtrcr))
       allocate(nlt_zaero(max_aero))
+
+      !-----------------------------------------------------------------
 
       call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
@@ -977,6 +1011,8 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
 
       ! Define ocean concentrations for tracers used in simulation
       do i = 1, nx

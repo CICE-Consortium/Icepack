@@ -1,7 +1,7 @@
 #! /bin/csh -f
 
 source ./icepack.settings
-source ${ICE_CASEDIR}/env.${ICE_MACHINE} || exit 2
+source ${ICE_CASEDIR}/env.${ICE_MACHCOMP} || exit 2
 
 set jobfile = icepack.test
 set subfile = icepack.submit
@@ -31,7 +31,7 @@ cat >> ${jobfile} << EOF2
 
 cd ${ICE_CASEDIR}
 source ./icepack.settings || exit 2
-source ./env.\${ICE_MACHINE} || exit 2
+source ./env.\${ICE_MACHCOMP} || exit 2
 
 # Check to see if executable exists in ICE_RUNDIR
 if ( ! -f ${ICE_RUNDIR}/icepack ) then

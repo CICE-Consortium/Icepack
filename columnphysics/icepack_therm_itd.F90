@@ -21,12 +21,11 @@
       module icepack_therm_itd
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, c3, c4, c6, c10
-      use icepack_constants, only: p001, p1, p333, p5, p666, puny, bignum
-      use icepack_constants, only: rhos, rhoi, Lfresh, ice_ref_salinity
-      use icepack_constants, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
-      use icepack_constants, only: rhosi
-
+      use icepack_parameters, only: c0, c1, c2, c3, c4, c6, c10
+      use icepack_parameters, only: p001, p1, p333, p5, p666, puny, bignum
+      use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
+      use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
+      use icepack_parameters, only: rhosi
       use icepack_parameters, only: kitd, ktherm, heat_capacity
       use icepack_parameters, only: z_tracers, solve_zsal, skl_bgc, initbio_frac
 

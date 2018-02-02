@@ -27,9 +27,9 @@
       module icepack_itd
 
       use icepack_kinds
-      use icepack_constants,  only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
-      use icepack_constants,  only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
-      use icepack_constants,  only: rhosi, sk_l, hs_ssl, min_salin
+      use icepack_parameters,  only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
+      use icepack_parameters,  only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
+      use icepack_parameters,  only: rhosi, sk_l, hs_ssl, min_salin
       use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
       use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers
@@ -1866,10 +1866,12 @@
 
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'hin_max(n-1) < Cat n < hin_max(n)'
+         write(warnstr,*) subname
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) 'hin_max(n-1) < Cat n < hin_max(n)'
          call icepack_warnings_add(warnstr)
          do n = 1, ncat
-            write(warnstr,*) subname, hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
+            write(warnstr,*) hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
             call icepack_warnings_add(warnstr)
             ! Write integer n to character string
             write (c_nc, '(i2)') n    

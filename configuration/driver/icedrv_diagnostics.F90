@@ -13,7 +13,7 @@
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: c0
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icedrv_system, only: icedrv_system_abort
 
@@ -59,16 +59,16 @@
 
       use icedrv_domain_size, only: ncat, n_aero
       use icedrv_flux, only: alvdr, alidr, alvdf, alidf, evap, fsnow, frazil
-      use icedrv_flux, only: fswabs, fswthru, flw, flwout, fsens, fsurf, flat, frzmlt_init, frain, fpond
+      use icedrv_flux, only: fswabs, fswthru, flw, flwout, fsens, fsurf, flat
+      use icedrv_flux, only: frzmlt_init, frain, fpond
       use icedrv_flux, only: coszen, fhocn_ai, fsalt_ai, fresh_ai, frazil_diag
-      use icedrv_flux, only: update_ocn_f, Tair, Qa, fsw, fcondtop, meltt, meltb, meltl, snoice
+      use icedrv_flux, only: update_ocn_f, Tair, Qa, fsw, fcondtop
+      use icedrv_flux, only: meltt, meltb, meltl, snoice
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf
-      use icedrv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init, faero_atm, faero_ocn
+      use icedrv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init
+      use icedrv_flux, only: faero_atm, faero_ocn
       use icedrv_state, only: aice, vice, vsno, trcr
-#ifdef CCSMCOUPLED
-      use icedrv_prescribed_mod, only: prescribed_ice
-#endif
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -83,11 +83,9 @@
 
       ! fields at diagnostic points
       real (kind=dbl_kind) :: & 
-          pTair, &
-          pfsnow, pfrain, &
-          paice, hiavg, hsavg, hbravg, psalt, pTsfc, &
-          pevap, &
-          pfhocn
+         pTair, pfsnow, pfrain, &
+         paice, hiavg, hsavg, hbravg, psalt, pTsfc, &
+         pevap, pfhocn
 
       real (kind=dbl_kind), dimension (nx) :: &
          work1, work2
@@ -101,17 +99,21 @@
       character(len=*), parameter :: subname='(runtime_diags)'
 
       !-----------------------------------------------------------------
-      ! NOTE these are computed for the last timestep only (not avg)
+      ! query Icepack values
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
       call icepack_query_tracer_flags(tr_brine_out=tr_brine)
       call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc)
-      call icepack_query_constants(Tffresh_out=Tffresh, rhos_out=rhos, &
+      call icepack_query_parameters(Tffresh_out=Tffresh, rhos_out=rhos, &
            rhow_out=rhow, rhoi_out=rhoi)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
+      ! NOTE these are computed for the last timestep only (not avg)
+      !-----------------------------------------------------------------
 
       call total_energy (work1)
       call total_salt   (work2)
@@ -147,40 +149,40 @@
         
         write(nu_diag_out+n-1,*) '                         '
         write(nu_diag_out+n-1,*) '----------atm----------'
-        write(nu_diag_out+n-1,900) 'air temperature (C)    = ',pTair  ! air temperature
-        write(nu_diag_out+n-1,900) 'specific humidity      = ',Qa(n)  ! specific humidity
-        write(nu_diag_out+n-1,900) 'snowfall (m)           = ',pfsnow ! snowfall
-        write(nu_diag_out+n-1,900) 'rainfall (m)           = ',pfrain ! rainfall
+        write(nu_diag_out+n-1,900) 'air temperature (C)    = ',pTair
+        write(nu_diag_out+n-1,900) 'specific humidity      = ',Qa(n)
+        write(nu_diag_out+n-1,900) 'snowfall (m)           = ',pfsnow
+        write(nu_diag_out+n-1,900) 'rainfall (m)           = ',pfrain
         if (.not.calc_Tsfc) then
-          write(nu_diag_out+n-1,900) 'total surface heat flux= ', fsurf(n)  ! total sfc heat flux
-          write(nu_diag_out+n-1,900) 'top sfc conductive flux= ',fcondtop(n)! top sfc cond flux
-          write(nu_diag_out+n-1,900) 'latent heat flx        = ',flat(n)    ! latent heat flux
+          write(nu_diag_out+n-1,900) 'total surface heat flux= ', fsurf(n)
+          write(nu_diag_out+n-1,900) 'top sfc conductive flux= ',fcondtop(n)
+          write(nu_diag_out+n-1,900) 'latent heat flux       = ',flat(n)
         else
-          write(nu_diag_out+n-1,900) 'shortwave radiation sum= ',fsw(n)  ! shortwave radiation
-          write(nu_diag_out+n-1,900) 'longwave radiation     = ',flw(n)  ! longwave radiation
+          write(nu_diag_out+n-1,900) 'shortwave radiation sum= ',fsw(n)
+          write(nu_diag_out+n-1,900) 'longwave radiation     = ',flw(n)
         endif
         write(nu_diag_out+n-1,*) '----------ice----------'
-        write(nu_diag_out+n-1,900) 'area fraction          = ',aice(n)  ! ice area    
-        write(nu_diag_out+n-1,900) 'avg ice thickness (m)  = ',hiavg  ! avg snow/ice thickness
-        write(nu_diag_out+n-1,900) 'avg snow depth (m)     = ',hsavg  ! avg snow/ice thickness
-        write(nu_diag_out+n-1,900) 'avg salinity (ppt)     = ',psalt  ! avg salinity 
-        write(nu_diag_out+n-1,900) 'avg brine thickness (m)= ',hbravg   ! avg brine thickness
+        write(nu_diag_out+n-1,900) 'area fraction          = ',aice(n)! ice area
+        write(nu_diag_out+n-1,900) 'avg ice thickness (m)  = ',hiavg
+        write(nu_diag_out+n-1,900) 'avg snow depth (m)     = ',hsavg
+        write(nu_diag_out+n-1,900) 'avg salinity (ppt)     = ',psalt
+        write(nu_diag_out+n-1,900) 'avg brine thickness (m)= ',hbravg
         
         if (calc_Tsfc) then
-          write(nu_diag_out+n-1,900) 'surface temperature(C) = ',pTsfc ! ice/snow sfc temperature
-          write(nu_diag_out+n-1,900) 'absorbed shortwave flx = ',fswabs(n)! absorbed solar flux
-          write(nu_diag_out+n-1,900) 'outward longwave flx   = ',flwout(n)! outward longwave flux
-          write(nu_diag_out+n-1,900) 'sensible heat flx      = ',fsens(n) ! sensible heat flux
-          write(nu_diag_out+n-1,900) 'latent heat flx        = ',flat(n)  ! latent heat flux
+          write(nu_diag_out+n-1,900) 'surface temperature(C) = ',pTsfc ! ice/snow
+          write(nu_diag_out+n-1,900) 'absorbed shortwave flx = ',fswabs(n)
+          write(nu_diag_out+n-1,900) 'outward longwave flx   = ',flwout(n)
+          write(nu_diag_out+n-1,900) 'sensible heat flx      = ',fsens(n)
+          write(nu_diag_out+n-1,900) 'latent heat flx        = ',flat(n)
         endif
         write(nu_diag_out+n-1,900) 'subl/cond (m ice)      = ',pevap   ! sublimation/condensation
-        write(nu_diag_out+n-1,900) 'top melt (m)           = ',meltt(n)! top melt
-        write(nu_diag_out+n-1,900) 'bottom melt (m)        = ',meltb(n)! bottom melt
-        write(nu_diag_out+n-1,900) 'lateral melt (m)       = ',meltl(n)! lateral melt
-        write(nu_diag_out+n-1,900) 'new ice (m)            = ',frazil(n) ! frazil ice
-        write(nu_diag_out+n-1,900) 'congelation (m)        = ',congel(n) ! congelation ice
-        write(nu_diag_out+n-1,900) 'snow-ice (m)           = ',snoice(n) ! snow ice
-        write(nu_diag_out+n-1,900) 'snow change (m)        = ',dsnow(n)  ! snow change
+        write(nu_diag_out+n-1,900) 'top melt (m)           = ',meltt(n)
+        write(nu_diag_out+n-1,900) 'bottom melt (m)        = ',meltb(n)
+        write(nu_diag_out+n-1,900) 'lateral melt (m)       = ',meltl(n)
+        write(nu_diag_out+n-1,900) 'new ice (m)            = ',frazil(n) ! frazil
+        write(nu_diag_out+n-1,900) 'congelation (m)        = ',congel(n)
+        write(nu_diag_out+n-1,900) 'snow-ice (m)           = ',snoice(n)
+        write(nu_diag_out+n-1,900) 'snow change (m)        = ',dsnow(n)
         write(nu_diag_out+n-1,900) 'effective dhi (m)      = ',pdhi(n)   ! ice thickness change
         write(nu_diag_out+n-1,900) 'effective dhs (m)      = ',pdhs(n)   ! snow thickness change
         write(nu_diag_out+n-1,900) 'intnl enrgy chng(W/m^2)= ',pde (n)   ! ice/snow energy change
@@ -191,15 +193,8 @@
         write(nu_diag_out+n-1,900) 'heat used (W/m^2)      = ',pfhocn  ! ocean heat used by ice
         
       end do
-       !  799 format (27x,a24)
-       !  800 format (a25,2x,f24.17)
-       !  801 format (a25,2x,1pe24.17)
-       !  899 format (27x,a24,2x,a24)
-899    format (43x,a24)
-900    format (a25,2x,f24.17)
-       !  901 format (a25,2x,1pe24.17,2x,1pe24.17)
-       !  902 format (a25,10x,f6.1,1x,f6.1,9x,f6.1,1x,f6.1)
-       !  903 format (a25,5x,i4,1x,i4,1x,i4,1x,i4,7x,i4,1x,i4,1x,i4,1x,i4)
+899   format (43x,a24)
+900   format (a25,2x,f24.17)
 
       end subroutine runtime_diags
 
@@ -214,20 +209,18 @@
       use icedrv_domain_size, only: nx
       use icedrv_state, only: vice, vsno
 
-      integer (kind=int_kind) :: n, i
+      integer (kind=int_kind) :: i
 
-      real (kind=dbl_kind), dimension (nx) :: &
-         work1
+      real (kind=dbl_kind), dimension (nx) :: work1
 
       character(len=*), parameter :: subname='(init_mass_diags)'
 
       call total_energy (work1)
-      do n = 1, nx
-        i = n ! NOTE this must be the same as above (FIX THIS)
-        pdhi(n) = vice(i)
-        pdhs(n) = vsno(i)
-        pde (n) = work1(i)
-      enddo  ! npnt
+      do i = 1, nx
+         pdhi(i) = vice (i)
+         pdhs(i) = vsno (i)
+         pde (i) = work1(i)
+      enddo
 
       end subroutine init_mass_diags
 
@@ -242,8 +235,7 @@
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
       use icedrv_state, only: vicen, vsnon, trcrn
 
-      real (kind=dbl_kind), dimension (nx),  &
-         intent(out) :: &
+      real (kind=dbl_kind), dimension (nx), intent(out) :: &
          work      ! total energy
 
       ! local variables
@@ -256,13 +248,17 @@
       character(len=*), parameter :: subname='(total_energy)'
 
       !-----------------------------------------------------------------
-      ! Initialize
+      ! query Icepack values
       !-----------------------------------------------------------------
 
          call icepack_query_tracer_indices(nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
+      ! Initialize
+      !-----------------------------------------------------------------
 
          work(:) = c0
 
@@ -274,16 +270,16 @@
             do k = 1, nilyr
                do i = 1, nx
                   work(i) = work(i) &
-                                 + trcrn(i,nt_qice+k-1,n) &
-                                 * vicen(i,n) / real(nilyr,kind=dbl_kind)
+                          + trcrn(i,nt_qice+k-1,n) &
+                          * vicen(i,n) / real(nilyr,kind=dbl_kind)
                enddo            ! i
             enddo               ! k
 
             do k = 1, nslyr
                do i = 1, nx
                   work(i) = work(i) &
-                                 + trcrn(i,nt_qsno+k-1,n) &
-                                 * vsnon(i,n) / real(nslyr,kind=dbl_kind)
+                          + trcrn(i,nt_qsno+k-1,n) &
+                          * vsnon(i,n) / real(nslyr,kind=dbl_kind)
                enddo            ! i
             enddo               ! k
          enddo                  ! n
@@ -314,13 +310,17 @@
       character(len=*), parameter :: subname='(total_salt)'
 
       !-----------------------------------------------------------------
-      ! Initialize
+      ! query Icepack values
       !-----------------------------------------------------------------
 
          call icepack_query_tracer_indices(nt_sice_out=nt_sice)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
+      ! Initialize
+      !-----------------------------------------------------------------
 
          work(:) = c0
 
@@ -332,8 +332,8 @@
             do k = 1, nilyr
                do i = 1, nx
                   work(i) = work(i) &
-                                 + trcrn(i,nt_sice+k-1,n) &
-                                 * vicen(i,n) / real(nilyr,kind=dbl_kind)
+                          + trcrn(i,nt_sice+k-1,n) &
+                          * vicen(i,n) / real(nilyr,kind=dbl_kind)
                enddo            ! i
             enddo               ! k
          enddo                  ! n
@@ -382,10 +382,12 @@
       use icedrv_domain_size, only: ncat, nilyr, nslyr
       use icedrv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
       use icedrv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow
-      use icedrv_flux, only: fsens, flat, evap, flwout, swvdr, swvdf, swidr, swidf, rhoa
-      use icedrv_flux, only: frzmlt, sst, sss, Tf, Tref, Qref, Uref, uocn, vocn, strtltx, strtlty
-      use icedrv_flux, only: fsw, fswabs, fswint_ai, fswthru, scale_factor, alvdr_ai, alvdf_ai
-      use icedrv_flux, only: alidf_ai, alidr_ai
+      use icedrv_flux, only: fsens, flat, evap, flwout
+      use icedrv_flux, only: swvdr, swvdf, swidr, swidf, rhoa
+      use icedrv_flux, only: frzmlt, sst, sss, Tf, Tref, Qref, Uref
+      use icedrv_flux, only: uocn, vocn
+      use icedrv_flux, only: fsw, fswabs, fswint_ai, fswthru, scale_factor
+      use icedrv_flux, only: alvdr_ai, alvdf_ai, alidf_ai, alidr_ai
 
       character (*), intent(in) :: plabel
 
@@ -395,10 +397,10 @@
       ! local variables
 
       real (kind=dbl_kind) :: &
-           eidebug, esdebug, &
-           qi, qs, Tsnow, &
-           puny, Lfresh, cp_ice, &
-           rhoi, rhos
+          eidebug, esdebug, &
+          qi, qs, Tsnow, &
+          puny, Lfresh, cp_ice, &
+          rhoi, rhos
 
       integer (kind=int_kind) :: n, k
 
@@ -406,13 +408,21 @@
 
       character(len=*), parameter :: subname='(print_state)'
 
+      !-----------------------------------------------------------------
+      ! query Icepack values
+      !-----------------------------------------------------------------
+
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
            nt_qsno_out=nt_qsno)
-      call icepack_query_constants(puny_out=puny, Lfresh_out=Lfresh, cp_ice_out=cp_ice, &
+      call icepack_query_parameters(puny_out=puny, Lfresh_out=Lfresh, cp_ice_out=cp_ice, &
            rhoi_out=rhoi, rhos_out=rhos)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
+      ! write diagnostics
+      !-----------------------------------------------------------------
 
       write(nu_diag,*) trim(plabel)
       write(nu_diag,*) 'istep1, i, time', &
@@ -491,8 +501,6 @@
       write(nu_diag,*) '            Tf      = ',Tf     (i)
       write(nu_diag,*) '            uocn    = ',uocn   (i)
       write(nu_diag,*) '            vocn    = ',vocn   (i)
-      write(nu_diag,*) '            strtltx = ',strtltx(i)
-      write(nu_diag,*) '            strtlty = ',strtlty(i)
       write(nu_diag,*) ' '
       write(nu_diag,*) 'srf states and fluxes'
       write(nu_diag,*) '            Tref    = ',Tref  (i)
@@ -515,7 +523,7 @@
       write(nu_diag,*) '            alidf        = ',alidf_ai    (i)
       write(nu_diag,*) ' '
 
-!      call flush(nu_diag)
+      call icepack_warnings_flush(nu_diag)
 
       end subroutine print_state
 

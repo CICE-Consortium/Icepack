@@ -32,11 +32,12 @@
       integer (kind=int_kind) :: &
          length, & ! length of character string
          n         ! loop index
+
       character(len=*), parameter :: subname='(lenstr)'
 
       length = len(label)
-      do n=length,1,-1
-        if( label(n:n) /= ' ' ) exit
+      do n=length, 1, -1
+         if( label(n:n) /= ' ' ) exit
       enddo
       lenstr = n
 

@@ -44,8 +44,8 @@
 
       use icedrv_calendar, only: sec, month, mday, nyr, istep1
       use icedrv_calendar, only: time, time_forc, year_init
-      use icedrv_arrays_column, only: oceanmixed_ice
       use icedrv_domain_size, only: nilyr, nslyr, ncat, nx
+      use icedrv_forcing, only: oceanmixed_ice
       use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: sst, frzmlt, coszen
       use icedrv_state, only: aicen, vicen, vsnon, trcrn, uvel, vvel
@@ -154,11 +154,11 @@
 
       use icedrv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_arrays_column, only: oceanmixed_ice
       use icedrv_domain_size, only: nilyr, nslyr, ncat
       use icedrv_domain_size, only: max_ntrcr, nx
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: sst, frzmlt, coszen, scale_factor
+      use icedrv_forcing, only: oceanmixed_ice
       use icedrv_init, only: tmask
       use icedrv_state, only: trcr_depend, aice, vice, vsno, trcr
       use icedrv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel
@@ -279,7 +279,6 @@
       ! compute aggregate ice state and open water area
       !-----------------------------------------------------------------
 
-!cn this gets called again upon returning...
       do i = 1, nx
          if (tmask(i)) &
          call icepack_aggregate (ncat,               &
@@ -330,12 +329,19 @@
       real (kind=dbl_kind), dimension(nx) :: &
          work2              ! input array (real, 8-byte)
 
+      real (kind=dbl_kind) :: &
+        minw, maxw          ! diagnostics
+
       character(len=*), parameter :: subname='(read_restart_field)'
 
       do n = 1, ndim
          read(nu) (work2(i), i=1,nx)
          work(:,n) = work2(:)
       enddo
+
+      minw = minval(work)
+      maxw = maxval(work)
+      write(nu_diag,*) minw, maxw
       
       end subroutine read_restart_field
       
@@ -375,7 +381,7 @@
 !=======================================================================
 
 ! Finalize the restart file.
-! author David A Bailey, NCAR
+! author David A. Bailey, NCAR
 
       subroutine final_restart()
 
@@ -703,7 +709,7 @@
 
 ! Dumps all values needed for restarting
 !
-! authors Elizabeth Hunke, LANL (original version)
+! authors Elizabeth Hunke, LANL
 !         David Bailey, NCAR
 !         Marika Holland, NCAR
 
@@ -740,7 +746,7 @@
 
 ! Reads all values needed for an ice aerosol restart
 !
-! authors Elizabeth Hunke, LANL (original version)
+! authors Elizabeth Hunke, LANL
 !         David Bailey, NCAR
 !         Marika Holland, NCAR
 

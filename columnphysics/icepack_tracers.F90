@@ -8,7 +8,7 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, puny, Tocnfrz
+      use icepack_parameters, only: c0, c1, puny, Tocnfrz
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -600,16 +600,16 @@
         endif
 
         if (present(n_fed_in)) then
-           n_fed = n_fed
-           do k = 1, n_fed
+           n_fed = n_fed_in
+           do k = 1, n_fed_in
               if (present(nt_bgc_Fed_in) ) nt_bgc_Fed(k) = nt_bgc_Fed_in(k) 
               if (present(nlt_bgc_Fed_in)) nlt_bgc_Fed(k)= nlt_bgc_Fed_in(k) 
            enddo
         endif
 
         if (present(n_fep_in)) then
-           n_fed = n_fep
-           do k = 1, n_fep
+           n_fed = n_fep_in
+           do k = 1, n_fep_in
               if (present(nt_bgc_Fep_in) ) nt_bgc_Fep(k) = nt_bgc_Fep_in(k) 
               if (present(nlt_bgc_Fep_in)) nlt_bgc_Fep(k)= nlt_bgc_Fep_in(k) 
            enddo

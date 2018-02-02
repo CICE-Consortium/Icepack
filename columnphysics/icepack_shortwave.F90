@@ -42,11 +42,11 @@
       module icepack_shortwave
 
       use icepack_kinds
-      use icepack_constants,  only: c0, c1, c1p5, c2, c3, c4, c10
-      use icepack_constants,  only: p01, p1, p15, p25, p5, p75, puny
-      use icepack_constants,  only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
-      use icepack_constants,  only: kappav, hs_min, rhofresh, rhos, nspint
-      use icepack_constants,  only: hi_ssl, hs_ssl, min_bgc, sk_l
+      use icepack_parameters, only: c0, c1, c1p5, c2, c3, c4, c10
+      use icepack_parameters, only: p01, p1, p15, p25, p5, p75, puny
+      use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
+      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint
+      use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1, modal_aero
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
@@ -1465,7 +1465,7 @@
 
       if (l_print_point .and. netsw > puny) then
 
-         write(warnstr,*) subname, ' printing point = ',n
+         write(warnstr,*) subname, ' printing point'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' coszen = ', &
                             coszen

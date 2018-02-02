@@ -4,7 +4,7 @@
 echo "running icepack.run.setup.csh"
 
 source ./icepack.settings
-source ${ICE_CASEDIR}/env.${ICE_MACHINE} || exit 2
+source ${ICE_CASEDIR}/env.${ICE_MACHCOMP} || exit 2
 
 set jobfile = icepack.run
 set subfile = icepack.submit
@@ -28,7 +28,7 @@ cat >> ${jobfile} << EOF1
 
 cd ${ICE_CASEDIR}
 source ./icepack.settings || exit 2
-source ./env.\${ICE_MACHINE} || exit 2
+source ./env.\${ICE_MACHCOMP} || exit 2
 
 echo " "
 echo "\${0}:"
