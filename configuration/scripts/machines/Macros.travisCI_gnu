@@ -7,8 +7,6 @@ CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPR
 CFLAGS     := -c -O2 -fp-model precise   -xHost
 
 FIXEDFLAGS := -132
-#FREEFLAGS  := -FR
-#FFLAGS     := -fp-model precise -convert big_endian -assume byterecl -ftz -traceback   -xHost
 FFLAGS     :=  -O2 -ffree-line-length-none -fconvert=big-endian -finit-real=nan
 FFLAGS_NOOPT:= -O0
 
@@ -20,12 +18,9 @@ endif
 
 FC := gfortran
 
-#MPICC:= mpicc
 MPICC:= 
 
-#MPIFC:= mpif90
 MPIFC:= 
-#LD:= $(MPIFC)
 LD:= $(FC)
 
 NETCDF_PATH := $(NETCDF)
