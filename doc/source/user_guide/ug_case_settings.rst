@@ -257,7 +257,6 @@ column physics.
    "``tr_bgc_DON``", "true/false", "dissolved organic nitrogen", "``.true.``"
    "``tr_bgc_Fe``", "true/false", "dissolved iron and particulate iron", "``.true.``"
    "``grid_o``", "real", "ice-ocean surface layer thickness (bgc transport scheme)", "0.006"
-   "``grid_o_t``", "real", "ice-atmosphere surface layer thickness (bgc transport scheme)", "0.006"
    "``l_sk``", "real", "length scale in gravity drainage parameterization (bgc transport scheme)", "0.024"
    "``grid_oS``", "real", "ice-ocean surface layer thickness (zsalinity transport scheme)", "0.0"
    "``l_skS``", "real", "ice-atmosphere surface layer thickness (zsalinity transport scheme)", "0.028"
