@@ -70,7 +70,7 @@ unset noglob
 
 foreach compiler ( ${compilers} )
 
-  set ofile = "${shhash}.${mach}.${compiler}.${xcdat}${xctim}"
+  set ofile = "${shhash}.${mach}.${compiler}.${xcdat}.${xctim}"
   set outfile = "${wikiname}/${tsubdir}/${ofile}.md"
   mkdir -p ${wikiname}/${tsubdir}
   echo "${0}: writing to ${outfile}"
@@ -100,7 +100,7 @@ if ( ${case} =~ *_${compiler}_* ) then
   set fbuild = `grep " ${case} " results.log | grep " build" | cut -c 1-4`
   set fregr  = `grep " ${case} " results.log | grep " compare" | cut -c 1-4`
   set fcomp  = `grep " ${case} " results.log | grep " bfbcomp" | cut -c 1-4`
-  set vregr  = `grep " ${case} " results.log | grep " compare" | cut -d " " -f 4`
+  set vregr  = `grep " ${case} " results.log | grep " compare" | cut -d " " -f 4 | sed 's/\./ /g' `
   set vcomp  = `grep " ${case} " results.log | grep " bfbcomp" | cut -d " " -f 4`
   set ftime  = ""
   if (vregr != "") then
