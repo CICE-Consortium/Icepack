@@ -23,9 +23,11 @@ to support the CICE model.
    :header: "variable", "options/format", "description", "recommended value"
    :widths: 15, 15, 25, 20
 
-   "ICE_MACHINE", " ", "machine name", "set by icepack.create.case"
    "ICE_CASENAME", " ", "case name", "set by icepack.create.case"
    "ICE_SANDBOX", " ", "sandbox directory", "set by icepack.create.case"
+   "ICE_MACHINE", " ", "machine name", "set by icepack.create.case"
+   "ICE_COMPILER", " ", "environment name", "set by icepack.create.case"
+   "ICE_MACHCOMP", " ", "machine_environment name", "set by icepack.create.case"
    "ICE_SCRIPTS", " ", "scripts directory", "set by icepack.create.case"
    "ICE_CASEDIR", " ", "case directory", "set by icepack.create.case"
    "ICE_RUNDIR", " ", "run directory", "set by icepack.create.case"
@@ -50,6 +52,7 @@ to support the CICE model.
    "ICE_BFBCOMP", " ", "location of case for comparison, associated with icepack.create.case -td", "set by icepack.create.case"
    "ICE_SPVAL", " ", "unused", "UnDeFiNeD"
    "ICE_RUNLENGTH", " ", "batch run length default", "  00:10:00"
+   "ICE_ACCOUNT", " ", "batch account number", "set by icepack.create.case or by default"
    "ICE_THREADED", "true,false", "force threading in compile, will always compile threaded if NTHRDS is gt 1", "false"
    "NICELYR", " ", "number of vertical layers in the ice", "7"
    "NSNWLYR", " ", "number of vertical layers in the snow", "1"
@@ -392,7 +395,7 @@ column physics.
 .. _tuning:
 
 BGC Tuning Parameters
-========================
+------------------------
 
 Biogeochemical tuning parameters are specified as namelist options in
 **icepack\_in**. Table :ref:`tab-bio-tracers2` provides a list of parameters

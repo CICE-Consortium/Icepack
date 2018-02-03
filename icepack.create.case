@@ -277,6 +277,8 @@ if ( $testsuite != $spval ) then
   set tsdir = "${testsuite}.${testid}"
   if (-e ${testsuite}) then
     set tsfile = "${testsuite}"
+  else if (-e ${testsuite}.ts) then
+    set tsfile = "${testsuite}.ts"
   else 
     if (-e ${ICE_SCRIPTS}/tests/${testsuite}.ts) then
       set tsfile = "${ICE_SCRIPTS}/tests/${testsuite}.ts"

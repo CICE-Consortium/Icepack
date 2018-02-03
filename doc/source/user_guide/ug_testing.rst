@@ -5,7 +5,7 @@
 Testing Icepack
 ================
 
-The section documents primarily how to use the Icepack scripts to carry 
+This section documents primarily how to use the Icepack scripts to carry 
 out icepack testing.  Exactly what to test is a separate question and
 depends on the kinds of code changes being made.  Prior to merging
 changes to the CICE Consortium master, changes will be reviewed and
@@ -13,6 +13,15 @@ developers will need to provide a summary of the tests carried out.
 
 There is a base suite of tests provided by default with Icepack and this
 may be a good starting point for testing.
+
+The testing scripts support several features
+ - Ability to test individual (via ``--test``)or multiple tests (via ``--suite``)
+   using an input file to define the suite
+ - Ability to use test suite defined in the package or test suites defined by the user
+ - Ability to store test results for regresssion testing (``--bgen``)
+ - Ability to compare results to prior baselines to verify bit-for-bit (``--bcmp``)
+ - Ability to define where baseline tests are stored
+ - Ability to compare tests against each other (``--diff``)
 
 .. _testforce:
 
@@ -39,13 +48,54 @@ Individual Tests
 The Icepack scripts support both setup of individual tests as well as test suites.  Individual
 tests are run from the command line::
 
-  ./icepack.create.case -t smoke -m wolf -s diag1,debug -testid myid -a P0000000
+  ./icepack.create.case --test smoke --mach conrad --env cray --set diag1,debug --testid myid 
 
-where ``-m`` designates a specific machine, ``-a`` designates the account number 
-for the queue manager, and testid is a user defined string that allows
-test cases to be uniquely identified.
+Tests are just like cases but have some additional scripting around them.  Individual
+tests can be created and manually modified just like cases.
+Many of the command line arguments for individual tests
+are similar to :ref:`case_options` for ``--case``.  
+For individual tests, the following command line options can be set
+
+``--test`` TESTNAME
+     specifies the test type.  This is probably either smoke or restart but see `icepack.create.case --help` for the latest.  This is required instead of ``--case``.
+
+``--testid`` ID
+     specifies the testid.  This is required for every use of ``--test`` and ``--suite``.  This is a user defined string that will allow each test to have a unique case and run directory name.  This is also required.
+
+``--mach`` MACHINE (see :ref:`case_options`)
+
+``--env`` ENVIRONMENT1 (see :ref:`case_options`)
+
+``--set`` SET1,SET2,SET3 (see :ref:`case_options`)
+
+``--acct`` ACCOUNT (see :ref:`case_options`)
+
+``--grid`` GRID (see :ref:`case_options`)
+
+``--pes`` MxN (see :ref:`case_options`)
+
+Like ``--case``, ``--grid`` and ``--pes`` are not particularly
+useful right now within Icepack since the model can only run serially and only
+with the col grid setting.  
+There are several additional options that come with ``--test`` that are not available
+with ``--case`` for regression and comparision testing,
+
+``--bdir`` DIR
+     specifies the top level location of the baseline results.  This is used in conjuction with ``--bgen`` and ``--bcmp``.  The default is set by ICE_MACHINE_BASELINE in the env.[machine]_[environment] file.
+
+``--bgen`` DIR
+     specifies the name of the directory under [bdir] where test results will be stored.  When this flag is set, it automatically creates that directory and stores results from the test under that directory.  If DIR is set to ``default``, then the scripts will automatically generate a directory name based on the Icepack hash and the date and time.  This can be useful for tracking the baselines by hash.
+
+``--bcmp`` DIR
+     specifies the name of the directory under [bdir] that the current tests will be compared to.  When this flag is set, it automatically invokes regression testing and compares results from the current test to those prior results.  If DIR is set to ``default``, then the script will automatically generate the last directory name in the [bdir] directory.  This can be useful for automated regression testing.
+
+``--diff`` LONG_TESTNAME
+     invokes a comparison against another local test.  This allows different tests to be compared to each other.  The restrictions are that the test has to already be completed and the testid has to match.
+
 The format of the case directory name for a test will always be 
-``[machine]_[test]_[grid]_[pes]_[soptions].[testid]``
+``[machine]_[env]_[test]_[grid]_[pes]_[sets].[testid]``
+The [sets] will always be sorted alphabetically by the script so ``--set debug,diag1`` and
+``--set diag1,debug`` produces the same testname and test with _debug_diag1 in that order.
 
 To build and run a test, the process is the same as a case.  cd to the 
 test directory, run the build script, and run the submit script::
@@ -54,7 +104,7 @@ test directory, run the build script, and run the submit script::
  ./icepack.build
  ./icepack.submit
 
-The test results will be copied into a local file called **test_output**.
+The test results will be generated in a local file called **test_output**.
 To check those results::
 
  cat test_output
@@ -62,7 +112,7 @@ To check those results::
 Tests are defined under **configuration/scripts/tests/**.  The tests currently supported are:
 
 -  smoke   - Runs the model for default length.  The length and options can
-            be set with the ``-s`` command line option.  The test passes if the
+            be set with the ``--set`` command line option.  The test passes if the
             model completes successfully.
 -  restart - Runs the model for 14 months, writing a restart file at month 3 and
             again at the end of the run.  Runs the model a second time starting from the
@@ -70,201 +120,385 @@ Tests are defined under **configuration/scripts/tests/**.  The tests currently s
             The test passes if both runs complete and
             if the restart files at month 12 from both runs are bit-for-bit identical.
 
-Please run ``./icepack.create.case -h`` for the latest information.
+Please run ``./icepack.create.case --help`` for the latest information.
+
+
+Example.  Basic default single test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Define the test, mach, env, and testid.
+::
+
+  ./icepack.create.case --test smoke --mach wolf --env gnu --testid t00
+  cd wolf_gnu_smoke_col_1x1.t00
+  ./icepack.build
+  ./icepack.submit
+  ./cat test_output
+
+
+Example. Simple test with some options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add ``--set``
+::
+
+  ./icepack.create.case --test smoke --mach wolf --env gnu --set diag1,debug --testid t00
+  cd wolf_gnu_smoke_col_1x1_debug_diag1.t00
+  ./icepack.build
+  ./icepack.submit
+  ./cat test_output
+
+
+Example. Single test, generate a baseline dataset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add ``--bgen``
+::
+
+  ./icepack.create.case --test smoke --mach wolf -env gnu --bgen icepack.v01 --testid t00 --set diag1
+  cd wolf_gnu_smoke_col_1x1_diag1.t00
+  ./icepack.build
+  ./icepack.submit
+  ./cat test_output
+
+
+Example. Single test, compare results to a prior baseline.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add ``--bcmp``.  For this to work,
+the prior baseline must exist and have the exact same base testname 
+[machine]_[env]_[test]_[grid]_[pes]_[sets] 
+::
+
+  ./icepack.create.case --test smoke --mach wolf -env gnu --bcmp icepack.v01 --testid t01 --set diag1
+  cd wolf_gnu_smoke_col_1x1_diag1.t01
+  ./icepack.build
+  ./icepack.submit
+  ./cat test_output
+
+
+Example. Simple test, generate a baseline dataset and compare to a prior baseline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``--bgen`` and ``--bcmp``.  The prior baseline must exist already.
+::
+
+  ./icepack.create.case --test smoke --mach wolf -env gnu --bgen icepack.v02 --bcmp icepack.v01 --testid t02 --set diag1
+  cd wolf_gnu_smoke_col_1x1_diag1.t02
+  ./icepack.build
+  ./icepack.submit
+  ./cat test_output
+
+
+Example. Simple test, comparison against another test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``--diff``.  This feature is primarily used in test suites and has 
+limited use in icepack, but is being described for completeness.
+
+``--diff`` provides a way to compare tests with each other.  
+For this to work, the tests have to be run in a specific order and
+the testids need to match.  The test 
+is always compared relative to the current case directory.
+
+To run the first test,
+::
+
+  ./icepack.create.case --test smoke --mach wolf -env gnu --testid tx01 --set debug
+  cd wolf_gnu_smoke_col_1x1_debug.tx01
+  ./icepack.build
+  ./icepack.submit
+  ./cat test_output
+
+Then to run the second test and compare to the results from the first test
+::
+
+  ./icepack.create.case --test smoke --mach wolf -env gnu --testid tx01 --diff smoke_col_1x1_debug
+  cd wolf_gnu_smoke_col_1x1.tx01
+  ./icepack.build
+  ./icepack.submit
+  ./cat test_output
+
+The scripts will add a [machine]_[environment] to the beginning of the diff 
+argument and the same testid to the end of the diff argument.  Then the runs 
+will be compared for bit-for-bit and a result will be produced in test_output.  
+This is really more useful in CICE and for test suites right now.  For example, 
+CICE uses this feature to compare results from different pe counts or 
+decompositions, single threaded vs multi-threaded, and so forth.
 
 .. _testsuites:
 
 Test suites
------------
+------------
 
-Test suites are multiple tests that are specified via
-an input file.  When invoking the test suite option (``-ts``) with **icepack.create.case**,
+Test suites support running multiple tests specified via
+an input file.  When invoking the test suite option (``--suite``) with **icepack.create.case**,
 all tests will be created, built, and submitted automatically under
-a directory called [suite_name].[testid]::
+a directory called [suite_name].[testid] as part of involing the suite.
+Because the tests are built and submitted automatically, 
+this feature does not allow for customization of cases or tests like
+individual cases and tests do::
 
-  ./icepack.create.case -ts base_suite -m wolf -testid myid -a P00000
+  ./icepack.create.case --suite base_suite --mach wolf --env gnu --testid myid
 
-Like an individual test, the ``-testid`` option must be specified and can be any 
+Like an individual test, the ``--testid`` option must be specified and can be any 
 string.  Once the tests are complete, results can be checked by running the
 results.csh script in the [suite_name].[testid]::
 
   cd base_suite.[testid]
   ./results.csh
 
-Please run ``./icepack.create.case -h`` for additional details.
-
-The predefined test suites are defined under **configuration/scripts/tests** and the files defining 
-the suites
-have a suffix of .ts in that directory.  The format for the test suite file is relatively simple.  
+The predefined test suites are defined under **configuration/scripts/tests** and 
+the files defining the suites
+have a suffix of .ts in that directory.  The format for the test suite file 
+is relatively simple.  
 It is a text file with white space delimited 
-columns, e.g. **base_suite.ts**
+columns that define a handful of values in a specific order.  
+The first column is the test name, the second the grid, the third the pe count, 
+the fourth column is
+the ``--set`` options and the fifth column is the ``--diff`` argument. 
+(The grid and PEs columns are provided 
+for compatibility with the similar CICE scripts.)  The fourth and fifth columns are 
+optional.
+Lines that begin with # or are blank are ignored.  For example,
+::
 
-.. _tab-test:
+   #Test   Grid  PEs  Sets                Diff
+    smoke   col  1x1  diag1  
+    smoke   col  1x1  diag1,run1year  smoke_col_1x1_diag1
+    smoke   col  1x1  debug,run1year  
+   restart  col  1x1  debug  
+   restart  col  1x1  diag1  
+   restart  col  1x1  pondcesm  
+   restart  col  1x1  pondlvl  
+   restart  col  1x1  pondtopo  
 
-.. csv-table:: *Tests*
-   :header: "Test", "Grid", "PEs", "Sets", "BFB-compare"
-   :widths: 7, 7, 7, 15, 15
-
-   "smoke", "col", "1x1", "diag1", ""
-   "smoke", "col", "1x1", "diag1,run1year", "smoke_col_1x1_diag1_run1year"
-   "smoke", "col", "1x1", "debug,run1year", ""
-   "restart", "col", "1x1", "debug", ""
-   "restart", "col", "1x1", "diag1", ""
-   "restart", "col", "1x1", "pondcesm", ""
-   "restart", "col", "1x1", "pondlvl", ""
-   "restart", "col", "1x1", "pondtopo", ""
-
-The first column is the test name, the second the grid, the third the pe count, the fourth column is
-the ``-s`` options and the fifth column is the ``-td`` argument. (The grid and PEs columns are provided 
-for compatibility with the similar CICE scripts.)  The fourth and fifth columns are optional.
-The argument to ``-ts`` defines which filename to choose and that argument can contain a path.  
+The argument to ``--suite`` defines the test suite (.ts) filename and that argument 
+can contain a path.  
 **icepack.create.case** 
-will look for the filename in the local directory, in **configuration/scripts/tests/**, or in the path defined
-by the ``-ts`` option.
+will look for the filename in the local directory, in **configuration/scripts/tests/**, 
+or in the path defined by the ``--suite`` option.
 
-.. _regtesting:
+Because many of the command line options are specified in the input file, ONLY the
+following options are valid for suites,
 
-Regression testing
-------------------
+``--suite`` filename
+  required, input filename with list of suites
 
-The **icepack.create.case** options ``-bg``, ``-bc``, and ``-bd`` are used for regression testing.
-There are several additional options on the **icepack.create.case** command line for testing that
-provide the ability to regression test and compare tests to each other.  These options only
-work in test (``-t``) or test suite (``-ts``) mode, not in case (``-c``) mode.
+``--mach`` MACHINE
+  required
 
-  ``-bd`` defines a top level directory where tests can be stored for regression testing.  The
-  default is defined by ``ICE_MACHINE_BASELINE`` defined in ``env.[machine]``.
-  
-  ``-bg`` defines a directory name where the current tests can be saved for regression testing.  
-  It's handy for this name to be related to the model version.  This directory will be created
-  below the directory associated with ``-bd``.
-  
-  ``-bc`` defines the directory name that the current tests should be compared to for regression 
-  testing.  This directory will be added to the directory associated with ``-bd``.
-  
-To create a baseline, use ``-bg``::
+``--env`` ENVIRONMENT1,ENVIRONMENT2
+  strongly recommended
 
-  icepack.create.case -ts base_suite -m wolf -testid v1 -bg version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
+``--acct`` ACCOUNT
+  optional
 
-will copy all the results from the test suite to ``$SCRATCH/ICEPACK_BASELINES/version1``.
+``--testid`` ID
+  required
 
-To compare to a prior result, use ``-bc``::
+``--bdir`` DIR
+  optional, top level baselines directory and defined by default by ICE_MACHINE_BASELINE in **env.[machine]_[environment]**.
 
-  icepack.create.case -ts base_suite -m wolf -testid v2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
+``--bgen`` DIR
+  recommended, test output is copied to this directory under [bdir]
 
-will compare all the results from this test suite to results saved before in $SCRATCH/ICEPACK_BASELINES/version1``.
+``--bcmp`` DIR
+  recommended, test output are compared to prior results in this directory under [bdir]
 
-To both create and compare, ``-bc`` and ``-bg`` can be combined::
+``--report``
+  This is only used by ``--suite`` and when set, invokes a script that sends the test results to the results page when all tests are complete.  Please see :ref:`testreporting` for more information.
 
-  icepack.create.case -ts base_suite -m wolf -testid v2 -bg version2 -bc version1 -bd $SCRATCH/ICEPACK_BASELINES -a P000000
+Please see :ref:`case_options` and :ref:`indtests` for more details about how these options are used.
 
-will save the current results to ``$SCRATCH/ICEPACK_BASELINES/version2`` and compare the current results to
-results save before in ``$SCRATCH/ICEPACK_BASELINES/version1``.
 
-In summary, 
+Example. Basic test suite
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- an individual test will have a case name like 
-  ``[machine]_[test]_[grid]_[pes]_[soptions].[testid]``.
-- A test suite will generate the individual tests under a directory called ``[suite_name].[testid]``.
-- ``-bg`` will copy test results to the ``[bd_directory]/[bg_directory]/[test_name]``.
-- ``-bc`` will compare results from  ``[bd_directory]/[bc_directory]/[test_name]``.
+Specify suite, mach, env, testid.
+::
 
-.. _comptesting:
+  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a
+  cd base_suite.v01a
+  #wait for runs to complete
+  ./results.csh
 
-Comparison testing
-------------------
 
-This feature is primarily used in test suites and has limited use in icepack, but is being
-described for completeness.  If modifications to the column physics modules in
-Icepack code generate differences (i.e. results are not bit-for-bit), then full 
-comparisons tests will be necessary in CICE, comparing the modified column 
-physics with the current version.
+Example. Basic test suite on multiple environments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``-td`` provides a way to compare tests with each other.  The test is always compared relative to
-the current case directory.  For instance::
+Specify multiple envs.
+::
 
-  icepack.create.case -t smoke -m wolf -testid t01
+  ./icepack.create.case --suite base_suite --mach conrad --env cray,pgi,intel,gnu --testid v01a
+  cd base_suite.v01a
+  #wait for runs to complete
+  ./results.csh
 
-creates a test case named wolf_smoke_col_1x1.t01::
+Each env can be run as a separate invokation of `icepack.create.case` but if that
+approach is taken, it is recommended that different testids be used.
 
-  icepack.create.case -t smoke -m wolf -s run1year -testid t01 -td smoke_col_1x1
 
-will create a test case named wolf_smoke_col_1x1_run1year.t01.  
-An additional check will be done for the second test (because of the ``-td`` argument), and it will compare
-the output from the first test "smoke_col_1x1" to the output from its test "smoke_col_1x1_run1year"
-and generate a result for that.  It's important that the first test complete before the second test is done
-and that the tests are created in parallel directories.
-The ``-td`` option works only if the testid and the machine are the same for the baseline run and the 
-current run, a basic feature associated with test suites.
+Example. Basic test suite, store baselines in user defined name
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add ``--bgen``
+::
+
+  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a
+  cd base_suite.v01a
+  #wait for runs to complete
+  ./results.csh
+
+This will store the results in the default [bdir] directory under the subdirectory icepack.v01a.
+
+Example. Basic test suite, store baselines in user defined top level directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add ``--bgen`` and ``--bdir``
+::
+
+  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a --bdir /tmp/user/ICEPACK_BASELINES
+  cd base_suite.v01a
+  #wait for runs to complete
+  ./results.csh
+
+This will store the results in /tmp/user/ICEPACK_BASELINES/icepack.v01a.
+
+
+Example. Basic test suite, store baselines in auto-generated directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add ``--bgen default``
+::
+
+  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a --bgen default
+  cd base_suite.v01a
+  #wait for runs to complete
+  ./results.csh
+
+This will store the results in the default [bdir] directory under a directory name generated by the script that includes the hash and date.
+
+
+Example. Basic test suite, compare to prior baselines
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add ``--bcmp``
+::
+
+  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v02a --bcmp icepack.v01a
+  cd base_suite.v02a
+  #wait for runs to complete
+  ./results.csh
+
+This will compare to results saved in the baseline [bdir] directory under
+the subdirectory icepack.v01a.  You can use other regression options as well
+(``--bdir`` and ``--bgen``)
+
+
+Example. Basic test suite, use of default string in regression testing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+default is a special argument to ``--bgen`` and ``--bcmp``.  When used, the
+scripts will automate generation of the directories.  In the case of ``--bgen``,
+a unique directory name consisting of the hash and a date will be created.
+In the case of ``--bcmp``, the latest directory in [bdir] will automatically
+be specified.  This provides a number of useful features
+
+ - the ``--bgen`` directory will be named after the hash automatically
+ - the ``--bcmp`` will always find the most recent set of baselines
+ - the ``--bcmp`` reporting will include information about the comparison directory
+   name which will include hash information
+ - automation can be invoked easily, especially if ``--bdir`` is used to separate
+   results
+
+Imagine the case where the default settings are used and ``--bdir`` is used to 
+create a unique location.  You could easily carry out regular builds automatically via,
+::
+
+  set mydate = `date -u "+%Y%m%d"`
+  git clone https://github.com/myfork/icepack icepack.$mydate
+  cd icepack.$mydate
+  ./icepack.create.case --suite base_suite --mach conrad --env cray,gnu,intel,pgi --testid $mydate --bcmp default --bgen default --bdir /tmp/work/user/ICEPACK_BASELINES_MASTER
+
+When this is invoked, a new set of baselines will be generated and compared to the prior
+results each time without having to change the arguments.
+
+
+Example. Create and test a custom suite
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create your own input text file consisting of 5 columns of data,
+ - Test
+ - Grid
+ - pes
+ - sets (optional)
+ - diff test (optional)
+
+such as
+::
+
+   > cat mysuite
+   smoke    col  1x1  diag1,debug
+   restart  col  1x1
+   restart  col  1x1  diag1,debug    restart_col_1x1
+   restart  col  1x1  mynewoption,diag1,debug
+
+then use that input file, mysuite
+::
+
+  ./icepack.create.case --suite mysuite --mach conrad --env cray --testid v01a --bgen default
+  cd mysuite.v01a
+  #wait for runs to complete
+  ./results.csh
+
+You can use all the standard regression testing options (``--bgen``, ``--bcmp``, 
+``--bdir``).  Make sure any "diff" testing that goes on is on tests that
+are created earlier in the test list, as early as possible.  Unfortunately,
+there is still no absolute guarantee the tests will be completed in the correct 
+sequence.
+
+
+.. _testreporting:
 
 Test Reporting
-----------------------
+---------------
 
-The Icepack testing scripts have the capability of posting the test results
-to an online dashboard, located `on CDash <http://my.cdash.org/index.php?project=myICEPACK>`_.
+The Icepack testing scripts have the capability to post test results
+to the official `wiki page <https://github.com/CICE-Consortium/Test-Results/wiki>`_.
+You may need write permission on the wiki.  If you are interested in using the
+wiki, please contact the consortium.
 
-To post test suite results to CDash, add the ``-report`` option to **icepack.create.case**.
-The base_suite will attempt to post the test results on CDash when the suite is complete.
-
-If the results cannot be posted to CDash, the following information will be displayed::
-
- CTest submission failed.  To try the submission again run 
-    ./run_ctest.csh -submit
- If you wish to submit the test results from another server, copy the 
- icepack_ctest.tgz file to another server and run 
-    ./run_ctest.csh -submit
-
-Examples
----------
-
-To generate a baseline dataset for a test case
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+To post results, once a test suite is complete, run ``results.csh`` and
+``report_results.csh`` from the suite directory,
 ::
 
-  ./icepack.create.case -t smoke -m wolf -bg icepackv6.0.0 -testid t00
-  cd wolf_smoke_col_1x1.t00
-  ./icepack.build
-  ./icepack.submit
+  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a
+  cd base_suite.v01a
+  #wait for runs to complete
+  ./results.csh
+  ./report_results.csh
 
-After job finishes, check output::
-
-  cat test_output
-
-To run a test case and compare to a baseline dataset
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+The reporting can also be automated by adding ``--report``
 ::
 
-  ./icepack.create.case -t smoke -m wolf -bc icepackv6.0.0 -testid t01
-  cd wolf_smoke_col_1x1.t01
-  ./icepack.build
-  ./icepack.submit
+  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a --report
 
-After job finishes, check output::
+With ``--report``, the suite will create all the tests, build and submit them,
+wait for all runs to be complete, and run the results and report_results scripts.
 
-  cat test_output
 
-To run a test suite to generate baseline data, review results, plot timeseries, and report results
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test Plotting
+----------------
 
+Icepack comes with some tools that support plotting of output.
+This is done on a test by test basis.  Several fields are hardwired
+into the scripts at the present time.
+To plot a timeseries of "total ice extent", "total ice area", and "total ice volume"
+after completing a test run or a test suite
 ::
 
-  ./icepack.create.case -m wolf -ts base_suite -testid t02 -bg icepackv6.0.0bs -report
-
-Once all jobs finish, concatenate all output and manually report results::
-
-  cd base_suite.t02
-  cat results.log
-
-To plot a timeseries of "total ice extent", "total ice area", and "total ice volume"::
-
+  cd test_case_directory
   ./timeseries.csh <directory>
   ls *.png
 
-To run a test suite, compare to baseline data, generate a new baseline, and report the results
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-  ./icepack.create.case -m wolf -ts base_suite -testid t03 -bc icepackv6.0.0bs -bg icepackv6.0.0new -report
