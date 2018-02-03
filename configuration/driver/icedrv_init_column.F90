@@ -632,7 +632,7 @@
           bgc_flux_type
 
       real (kind=dbl_kind) :: &
-          grid_o, l_sk, grid_o_t, initbio_frac, &
+          grid_o, l_sk, initbio_frac, &
           frazil_scav, grid_oS, l_skS, &
           phi_snow, &
           ratio_Si2N_diatoms , ratio_Si2N_sp      , ratio_Si2N_phaeo   ,  &
@@ -786,7 +786,7 @@
         restore_bgc, scale_bgc, solve_zsal, bgc_data_type, &
         tr_bgc_Nit, tr_bgc_C, tr_bgc_chl, tr_bgc_Am, tr_bgc_Sil, &
         tr_bgc_DMS, tr_bgc_PON, tr_bgc_hum, tr_bgc_DON, tr_bgc_Fe, &
-        grid_o, grid_o_t, l_sk, grid_oS, &   
+        grid_o, l_sk, grid_oS, &
         l_skS, phi_snow,  initbio_frac, frazil_scav, &
         ratio_Si2N_diatoms , ratio_Si2N_sp      , ratio_Si2N_phaeo   ,  &
         ratio_S2N_diatoms  , ratio_S2N_sp       , ratio_S2N_phaeo    ,  &
@@ -872,7 +872,6 @@
       tr_bgc_N        = .true.   !
 
       ! z biology parameters  
-      grid_o_t        = c5           ! for top flux        
       ratio_Si2N_diatoms = 1.8_dbl_kind    ! algal Si to N (mol/mol)                       
       ratio_Si2N_sp      = c0              ! diatoms, small plankton, phaeocystis
       ratio_Si2N_phaeo   = c0
@@ -1423,7 +1422,6 @@
       zaerotype(5) = zaerotype_dust3
       zaerotype(6) = zaerotype_dust4
 
-!echmod types do not need to be in icepack for zbgc?
       call icepack_init_zbgc ( &
          R_Si2N_in=R_Si2N, &
          R_S2N_in=R_S2N, R_Fe2C_in=R_Fe2C, R_Fe2N_in=R_Fe2N, R_C2N_in=R_C2N, &
@@ -1437,9 +1435,6 @@
          K_Nit_in=K_Nit, K_Am_in=K_Am, K_sil_in=K_Sil, K_Fe_in=K_Fe, &
          f_don_in=f_don, kn_bac_in=kn_bac, f_don_Am_in=f_don, f_exude_in=f_exude, &
          k_bac_in=k_bac, &
-         algaltype_in=algaltype, doctype_in=doctype, dontype_in=dontype, &
-         dictype_in=dictype, &
-         fedtype_in=fedtype, feptype_in=feptype, zaerotype_in=zaerotype, &
          fr_resp_in=fr_resp, algal_vel_in=algal_vel, R_dFe2dust_in=R_dFe2dust, &
          dustFe_sol_in=dustFe_sol, T_max_in=T_max, fr_mort2min_in=fr_mort2min, &
          fr_dFe_in=fr_dFe, op_dep_min_in=op_dep_min, &
@@ -1447,10 +1442,7 @@
          k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, &
          max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, &
          fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, &
-         t_sk_conv_in=t_sk_conv, t_sk_ox_in=t_sk_ox, fsal_in=fsal, &
-         nitratetype_in=nitratetype, ammoniumtype_in=ammoniumtype, &
-         silicatetype_in=silicatetype, &
-         humtype_in=humtype, dmspptype_in=dmspptype, dmspdtype_in=dmspdtype)
+         t_sk_conv_in=t_sk_conv, t_sk_ox_in=t_sk_ox, fsal_in=fsal)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -1873,9 +1865,7 @@
          write(nu_diag,1010) ' tr_bgc_PON                = ', tr_bgc_PON
          write(nu_diag,1010) ' tr_bgc_DON                = ', tr_bgc_DON
          write(nu_diag,1010) ' tr_bgc_Fe                 = ', tr_bgc_Fe 
-         !bio parameters
          write(nu_diag,1000) ' grid_o                    = ', grid_o
-         write(nu_diag,1000) ' grid_o_t                  = ', grid_o_t
          write(nu_diag,1005) ' l_sk                      = ', l_sk
          write(nu_diag,1000) ' initbio_frac              = ', initbio_frac
          write(nu_diag,1000) ' frazil_scav               = ', frazil_scav  

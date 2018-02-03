@@ -99,7 +99,6 @@
     tr_bgc_DON      = .false.
     tr_bgc_Fe       = .false. 
     grid_o          = 0.006
-    grid_o_t        = 0.006
     l_sk            = 0.024
     grid_oS         = 0.0
     l_skS           = 0.028
