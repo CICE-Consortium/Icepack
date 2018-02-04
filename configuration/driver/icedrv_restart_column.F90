@@ -52,7 +52,7 @@
 
       integer (kind=int_kind) :: nbtrcr
       logical (kind=log_kind) :: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
-      logical (kind=log_kind) :: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
+      logical (kind=log_kind) :: tr_bgc_DMS, tr_bgc_PON, tr_bgc_N, tr_bgc_C
       logical (kind=log_kind) :: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
       integer (kind=int_kind) :: nt_bgc_S, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
       integer (kind=int_kind) :: nt_bgc_hum, nt_bgc_PON
@@ -79,7 +79,7 @@
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, & 
-         tr_bgc_Am_out=tr_bgc_Am, tr_bgc_S_out=tr_bgc_S, &
+         tr_bgc_Am_out=tr_bgc_Am, &
          tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_hum_out=tr_bgc_hum, &
          tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, &
          tr_bgc_N_out=tr_bgc_N, tr_bgc_C_out=tr_bgc_C, &
@@ -352,7 +352,7 @@
 
       integer (kind=int_kind) :: nbtrcr
       logical (kind=log_kind) :: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
-      logical (kind=log_kind) :: tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, tr_bgc_N, tr_bgc_C
+      logical (kind=log_kind) :: tr_bgc_DMS, tr_bgc_PON, tr_bgc_N, tr_bgc_C
       logical (kind=log_kind) :: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
       integer (kind=int_kind) :: nt_bgc_S, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
       integer (kind=int_kind) :: nt_bgc_hum, nt_bgc_PON
@@ -381,7 +381,7 @@
 
 
       call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, & 
-         tr_bgc_Am_out=tr_bgc_Am, tr_bgc_S_out=tr_bgc_S, &
+         tr_bgc_Am_out=tr_bgc_Am, &
          tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_hum_out=tr_bgc_hum, &
          tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, &
          tr_bgc_N_out=tr_bgc_N, tr_bgc_C_out=tr_bgc_C, &
