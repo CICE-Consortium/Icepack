@@ -88,7 +88,7 @@ EOF
 @ tfail = 0
 @ rpass = 0
 @ rfail = 0
-set tvregr = ""
+@ rothr = 0
 
 foreach case ( ${cases} )
 if ( ${case} =~ *_${compiler}_* ) then
@@ -103,9 +103,6 @@ if ( ${case} =~ *_${compiler}_* ) then
   set vregr  = `grep " ${case} " results.log | grep " compare" | cut -d " " -f 4 | sed 's/\./ /g' `
   set vcomp  = `grep " ${case} " results.log | grep " bfbcomp" | cut -d " " -f 4`
   set ftime  = ""
-  if (vregr != "") then
-     set tvregr = ${vregr}
-  endif
 
   if (${case} =~ *_restart_*) then
     set frun   = `grep " ${case} " results.log | grep " run-initial" | cut -c 1-4`
@@ -143,6 +140,9 @@ if ( ${case} =~ *_${compiler}_* ) then
   if (${fcomp}  == "") set rcomp  = ${gray}
   if (${ftime}  == "") set rtime  = ${gray}
 
+  set fcomp  = `grep " ${case} " results.log | grep " bfbcomp" | grep "baseline-does-not-exist" | wc -l `
+  if ($fcomp > 1) set rcomp = ${gray}
+
   if (${rbuild} == ${red}) set tchkpass = 0
   if (${rrun}   == ${red}) set tchkpass = 0
   if (${rtest}  == ${red}) set tchkpass = 0
@@ -157,6 +157,8 @@ if ( ${case} =~ *_${compiler}_* ) then
      @ rpass = $rpass + 1
   else if (${rregr} == ${red}) then
      @ rfail = $rfail + 1
+  else
+     @ rothr = $rothr + 1
   endif
 
   unset noglob
@@ -179,12 +181,15 @@ if (${tfail} >= ${chk}) set tcolor = ${red}
 
 set rcolor = ${gray}
 if (${rfail} > 0 || ${rpass} > 0) then
-  if (${rfail} == 0) set rcolor = ${green}
+  if (${rfail} == 0) then
+     set rcolor = ${green}
+     if (${rothr} > 0) set rcolor = ${yellow}
+  endif
   if (${rfail} > 0) set rcolor = ${yellow}
   @ chk = ((${ttotl} + 9)/ 10)
   if (${rfail} >= ${chk}) set rcolor = ${orange}
   @ chk = ((${ttotl} + 4) / 5)
-if (${rfail} >= ${chk}) set rcolor = ${red}
+  if (${rfail} >= ${chk}) set rcolor = ${red}
 endif
 unset noglob
 
@@ -197,7 +202,7 @@ cat >! ${outfile} << EOF
 - tested on ${mach}, ${compiler}, ${user}, ${cdat} ${ctim} UTC
 - raw results: ${totl} total tests: ${pass} pass, ${fail} fail
 - ${ttotl} total tests: ${tpass} pass, ${tfail} fail
-- ${ttotl} total regressions: ${rpass} pass, ${rfail} fail
+- ${ttotl} total regressions: ${rpass} pass, ${rfail} fail, ${rothr} other
 EOF
 cat ${outfile}.hold >> ${outfile}
 
@@ -230,9 +235,9 @@ if ($chk == 0) then
 cat >! ${hashfile} << EOF
 **${hash}** :
 
-| machine | compiler | version | date | test fail | comp fail| total |
+| machine | compiler | version | date | test fail | comp fail | total |
 | ------ | ------ | ------ | ------  | ------ | ------ | ------ |
-| ${mach} | ${compiler} | ${vers} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) |
+| ${mach} | ${compiler} | ${vers} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${hashfile}.prev) cat ${hashfile}.prev >> ${hashfile}
@@ -240,7 +245,7 @@ if (-e ${hashfile}.prev) cat ${hashfile}.prev >> ${hashfile}
 else
   set oline = `grep -n "\*\*${hash}" ${hashfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${compiler} | ${vers} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) | " ${hashfile}
+  sed -i "$nline a | ${mach} | ${compiler} | ${vers} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) | " ${hashfile}
 endif
 
 #=====================
@@ -253,9 +258,9 @@ if ($chk == 0) then
 cat >! ${versfile} << EOF
 **${vers}** :
 
-| machine | compiler | hash | date | test fail | comp fail| total |
+| machine | compiler | hash | date | test fail | comp fail | total |
 | ------ | ------ | ------ | ------  | ------ | ------ | ------ |
-| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) |
+| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${versfile}.prev) cat ${versfile}.prev >> ${versfile}
@@ -263,7 +268,7 @@ if (-e ${versfile}.prev) cat ${versfile}.prev >> ${versfile}
 else
   set oline = `grep -n "\*\*${vers}" ${versfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) | " ${versfile}
+  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) | " ${versfile}
 endif
 
 #=====================
@@ -276,9 +281,9 @@ if ($chk == 0) then
 cat >! ${machfile} << EOF
 **${mach}** :
 
-| version | hash | compiler | date | test fail | comp fail| total |
+| version | hash | compiler | date | test fail | comp fail | total |
 | ------ | ------ | ------ | ------ | ------  | ------ | ------ |
-| ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) |
+| ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${machfile}.prev) cat ${machfile}.prev >> ${machfile}
@@ -286,7 +291,7 @@ if (-e ${machfile}.prev) cat ${machfile}.prev >> ${machfile}
 else
   set oline = `grep -n "\*\*${mach}" ${machfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) | " ${machfile}
+  sed -i "$nline a | ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) | " ${machfile}
 endif
 
 #=====================
@@ -299,9 +304,9 @@ if ($chk == 0) then
 cat >! ${branfile} << EOF
 **${bran}** **${repo}**:
 
-| machine | compiler | hash | date | test fail | comp fail| total |
+| machine | compiler | hash | date | test fail | comp fail | total |
 | ------ | ------ | ------ | ------  | ------ | ------ | ------ |
-| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) |
+| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${branfile}.prev) cat ${branfile}.prev >> ${branfile}
@@ -309,7 +314,7 @@ if (-e ${branfile}.prev) cat ${branfile}.prev >> ${branfile}
 else
   set oline = `grep -n "\*\*${bran}" ${branfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) | " ${branfile}
+  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) | " ${branfile}
 endif
 
 #foreach compiler
