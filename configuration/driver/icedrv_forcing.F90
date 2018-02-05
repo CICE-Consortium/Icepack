@@ -18,7 +18,7 @@
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf
+         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing
 
       implicit none
       private
@@ -64,6 +64,10 @@
 
       real (kind=dbl_kind), dimension(nx) :: &
           sst_temp
+
+      real (kind=dbl_kind), dimension(8760) :: &
+           open_data, &
+           clos_data
 
       character(char_len), public :: & 
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
@@ -160,6 +164,7 @@
 
       if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
       if (trim(ocn_data_type(1:4)) == 'NICE')  call ocn_NICE
+      if (trim(ocn_data_type(1:5)) == 'SHEBA')  call ice_open_clos
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     flw_data,      &
@@ -200,7 +205,7 @@
           recnum, dataloc, maxrec
 
       real (kind=dbl_kind) :: &
-          sec6hr
+          sec6hr, sec1hr
 
       character(len=*), parameter :: subname='(get_forcing)'
 
@@ -365,6 +370,57 @@
       endif
 
       call finish_ocn_forcing(sst_temp)
+
+      ! Lindsay SHEBA open/close dataset is hourly
+      if (trim(ocn_data_type) == 'SHEBA') then
+
+        sec1hr = secday/24                      ! seconds in 1 hour
+        maxrec = 8760
+        recnum = 24*int(yday) - 23 + int(real(sec,kind=dbl_kind)/sec1hr)
+        recslot = 2
+        dataloc = 2                          ! data located at end of interval
+        mlast = mod(recnum+maxrec-2,maxrec) + 1
+        mnext = mod(recnum-1,       maxrec) + 1
+        call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
+
+        write(nu_diag,*) 'recnum,mlast,mnext',recnum,mlast,mnext
+        write(nu_diag,*) 'c1intp,c2intp',c1intp,c2intp
+        opening(:) = c1intp *  open_data(mlast) + c2intp *  open_data(mnext)
+        closing(:) = c1intp *  clos_data(mlast) + c2intp *  clos_data(mnext)
+        write(nu_diag,*) 'opening',opening(1),open_data(mlast),open_data(mnext)
+        write(nu_diag,*) 'closing',closing(1),clos_data(mlast),clos_data(mnext)
+
+      endif
+
+! for debugging
+!if (timestep==4009.or.timestep==4010) then
+if (0==1) then ! off
+write (nu_diag,*) 'timestep, mlast,mnext,yday',timestep, mlast, mnext, yday
+write (nu_diag,*) 'recnum',recnum
+write (nu_diag,*) 'c1intp, c2intp',c1intp, c2intp
+write (nu_diag,*) 'flw',flw
+write (nu_diag,*) 'fsw',fsw
+write (nu_diag,*) 'Tair',Tair
+write (nu_diag,*) 'Qa',Qa
+write (nu_diag,*) 'fsnow',fsnow
+write (nu_diag,*) 'frain',frain
+write (nu_diag,*) 'potT',potT
+write (nu_diag,*) 'rhoa',rhoa
+write (nu_diag,*) 'uatm',uatm
+write (nu_diag,*) 'vatm',vatm
+write (nu_diag,*) 'wind',wind
+write (nu_diag,*) 'strax',strax
+write (nu_diag,*) 'stray',stray
+write (nu_diag,*) 'swvdr',swvdr
+write (nu_diag,*) 'swvdf',swvdf
+write (nu_diag,*) 'swidr',swidr
+write (nu_diag,*) 'swidf',swidf
+write (nu_diag,*) 'sst',sst
+write (nu_diag,*) 'sss',sss
+write (nu_diag,*) 'uocn',uocn
+write (nu_diag,*) 'vocn',vocn
+write (nu_diag,*) 'qdp',qdp
+endif
 
       end subroutine get_forcing
 
@@ -998,6 +1054,33 @@
           file=__FILE__,line= __LINE__)
 
       end subroutine finish_ocn_forcing
+
+!=======================================================================
+
+    subroutine ice_open_clos
+
+
+      integer (kind=int_kind) :: &
+         nu_open_clos,&     ! unit number
+         i
+
+      real (kind=dbl_kind) :: xtime
+
+      character (char_len_long) filename
+
+      filename = &
+          trim(data_dir)//'/SHEBA/open_clos_lindsay.dat'
+
+      write (nu_diag,*) 'Reading ',filename
+
+      open (nu_open_clos, file=filename, form='formatted')
+
+      ! hourly data
+      do i=1,8760
+         read(nu_open_clos,*) xtime, open_data(i), clos_data(i)
+      enddo
+
+    end subroutine ice_open_clos
 
 !=======================================================================
 

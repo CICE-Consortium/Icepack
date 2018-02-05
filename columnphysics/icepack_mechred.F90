@@ -105,17 +105,17 @@
                             n_trcr_strata,           &
                             nt_strata,               &
                             krdg_partic, krdg_redist,&
-                            mu_rdg,                  &
+                            mu_rdg, tr_brine,        &
                             dardg1dt,    dardg2dt,   &
                             dvirdgdt,    opening,    &
                             fpond,                   &
                             fresh,       fhocn,      &
-                            tr_brine,    faero_ocn,  &
+                            faero_ocn,  &
                             aparticn,    krdgn,      &
                             aredistn,    vredistn,   &
                             dardg1ndt,   dardg2ndt,  &
                             dvirdgndt,               &
-                            araftn,      vraftn)
+                            araftn,      vraftn, closing )
 
       integer (kind=int_kind), intent(in) :: &
          ndtd       , & ! number of dynamics subcycles
@@ -171,6 +171,7 @@
          dardg2dt   , & ! rate of fractional area gain by new ridges (1/s)
          dvirdgdt   , & ! rate of ice volume ridged (m/s)
          opening    , & ! rate of opening due to divergence/shear (1/s)
+         closing    , & ! rate of closing due to divergence/shear (1/s)
          fpond      , & ! fresh water flux to ponds (kg/m^2/s)
          fresh      , & ! fresh water flux to ocean (kg/m^2/s)
          fhocn          ! net heat flux to ocean (W/m^2)
@@ -289,11 +290,23 @@
       ! Compute the area opening and closing.
       !-----------------------------------------------------------------
 
+      ! Ignore ridge_prep if reading in opening and closing
+
+      if (present(closing)) then
+
+         opning = opening
+         closing_net = closing
+
+      else
+
       call ridge_prep (dt,                      &
                        ncat,      hin_max,      &
                        rdg_conv,  rdg_shear,    &
                        asum,      closing_net,  &
                        divu_adv,  opning)
+
+      endif
+
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1701,7 +1714,7 @@
                                     araftn,       vraftn,        &
                                     aice,         fsalt,         &
                                     first_ice,    fzsal,         &
-                                    flux_bio                     )
+                                    flux_bio, closing            )
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -1759,6 +1772,9 @@
          faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
          flux_bio     ! all bio fluxes to ocean
 
+      real (kind=dbl_kind), intent(inout), optional :: &
+         closing      ! rate of closing due to divergence/shear (1/s)
+
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          trcrn        ! tracers
 
@@ -1787,6 +1803,8 @@
       !        it may be out of whack, which the ridging helps fix).-ECH
       !-----------------------------------------------------------------
            
+         if (present(closing)) then
+
          call ridge_ice (dt,           ndtd,           &
                          ncat,         n_aero,         &
                          nilyr,        nslyr,          &
@@ -1801,17 +1819,48 @@
                          n_trcr_strata,                &
                          nt_strata,                    &
                          krdg_partic, krdg_redist, &
-                         mu_rdg,                   &
+                         mu_rdg, tr_brine,             &
                          dardg1dt,     dardg2dt,       &
                          dvirdgdt,     opening,        &
-                         fpond,                        &
+                         fpond,          &
                          fresh,        fhocn,          &
-                         tr_brine,     faero_ocn,      &
+                         faero_ocn,      &
                          aparticn,     krdgn,          &
                          aredistn,     vredistn,       &
                          dardg1ndt,    dardg2ndt,      &
                          dvirdgndt,                    &
-                         araftn,       vraftn)        
+                         araftn,       vraftn, closing )
+
+         else
+
+         call ridge_ice (dt,           ndtd,           &
+                         ncat,         n_aero,         &
+                         nilyr,        nslyr,          &
+                         ntrcr,        hin_max,        &
+                         rdg_conv,     rdg_shear,      &
+                         aicen,                        &
+                         trcrn,                        &
+                         vicen,        vsnon,          &
+                         aice0,                        &
+                         trcr_depend,                  &
+                         trcr_base,                    &
+                         n_trcr_strata,                &
+                         nt_strata,                    &
+                         krdg_partic, krdg_redist, &
+                         mu_rdg, tr_brine,             &
+                         dardg1dt,     dardg2dt,       &
+                         dvirdgdt,     opening,        &
+                         fpond,          &
+                         fresh,        fhocn,          &
+                         faero_ocn,      &
+                         aparticn,     krdgn,          &
+                         aredistn,     vredistn,       &
+                         dardg1ndt,    dardg2ndt,      &
+                         dvirdgndt,                    &
+                         araftn,       vraftn)
+
+         endif
+
          if (icepack_warnings_aborted(subname)) return
          if (icepack_warnings_aborted(subname)) return
 
