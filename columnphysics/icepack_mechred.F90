@@ -105,12 +105,12 @@
                             n_trcr_strata,           &
                             nt_strata,               &
                             krdg_partic, krdg_redist,&
-                            mu_rdg, tr_brine,        &
+                            mu_rdg,                  &
                             dardg1dt,    dardg2dt,   &
                             dvirdgdt,    opening,    &
                             fpond,                   &
                             fresh,       fhocn,      &
-                            faero_ocn,  &
+                            tr_brine,    faero_ocn,  &
                             aparticn,    krdgn,      &
                             aredistn,    vredistn,   &
                             dardg1ndt,   dardg2ndt,  &
@@ -1819,12 +1819,12 @@
                          n_trcr_strata,                &
                          nt_strata,                    &
                          krdg_partic, krdg_redist, &
-                         mu_rdg, tr_brine,             &
+                         mu_rdg,                       &
                          dardg1dt,     dardg2dt,       &
                          dvirdgdt,     opening,        &
-                         fpond,          &
+                         fpond,                        &
                          fresh,        fhocn,          &
-                         faero_ocn,      &
+                         tr_brine,     faero_ocn,      &
                          aparticn,     krdgn,          &
                          aredistn,     vredistn,       &
                          dardg1ndt,    dardg2ndt,      &
@@ -1847,12 +1847,12 @@
                          n_trcr_strata,                &
                          nt_strata,                    &
                          krdg_partic, krdg_redist, &
-                         mu_rdg, tr_brine,             &
+                         mu_rdg,                       &
                          dardg1dt,     dardg2dt,       &
                          dvirdgdt,     opening,        &
                          fpond,          &
                          fresh,        fhocn,          &
-                         faero_ocn,      &
+                         tr_brine,     faero_ocn,      &
                          aparticn,     krdgn,          &
                          aredistn,     vredistn,       &
                          dardg1ndt,    dardg2ndt,      &
