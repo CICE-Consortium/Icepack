@@ -143,7 +143,7 @@
 
       logical (kind=log_kind) :: tr_brine, tr_zaero, tr_bgc_n
       integer (kind=int_kind) :: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, &
-         nt_fbri, nt_tsfc, ntrcr, nbtrcr, nbtrcr_sw, nlt_chl_sw
+         nt_fbri, nt_tsfc, ntrcr, nbtrcr_sw, nlt_chl_sw
       integer (kind=int_kind), dimension(icepack_max_aero) :: nlt_zaero_sw
       real (kind=dbl_kind) :: puny
 
@@ -158,7 +158,7 @@
          call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
          call icepack_query_parameters(modal_aero_out=modal_aero)
          call icepack_query_tracer_numbers(ntrcr_out=ntrcr, &
-            nbtrcr_out=nbtrcr, nbtrcr_sw_out=nbtrcr_sw)
+            nbtrcr_sw_out=nbtrcr_sw)
          call icepack_query_tracer_flags(tr_brine_out=tr_brine, &
             tr_zaero_out=tr_zaero, tr_bgc_n_out=tr_bgc_n)
          call icepack_query_tracer_indices(nt_alvl_out=nt_alvl, &
@@ -235,7 +235,7 @@
             if (tmask(i)) then
             call icepack_step_radiation ( dt,         ncat,        &
                           n_algae,        tr_zaero,   nblyr,       &
-                          ntrcr,          nbtrcr,     nbtrcr_sw,   &
+                          ntrcr,          nbtrcr_sw,               &
                           nilyr,          nslyr,      n_aero,      &
                           n_zaero,        dEdd_algae, nlt_chl_sw,  &
                           nlt_zaero_sw(:),                         &
@@ -616,7 +616,7 @@
       logical (kind=log_kind) :: &
           tr_brine, &
           tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil,   &
-          tr_bgc_DMS,    tr_bgc_PON,   tr_bgc_S,     &
+          tr_bgc_DMS,    tr_bgc_PON,                 &
           tr_bgc_N,      tr_bgc_C,     tr_bgc_chl,   &
           tr_bgc_DON,    tr_bgc_Fe,    tr_zaero,     &
           tr_bgc_hum,    tr_aero
@@ -1751,7 +1751,7 @@
       call icepack_init_tracer_flags( &
           tr_brine_in  =tr_brine, &
           tr_bgc_Nit_in=tr_bgc_Nit, tr_bgc_Am_in =tr_bgc_Am,  tr_bgc_Sil_in=tr_bgc_Sil,   &
-          tr_bgc_DMS_in=tr_bgc_DMS, tr_bgc_PON_in=tr_bgc_PON, tr_bgc_S_in  =tr_bgc_S,     &
+          tr_bgc_DMS_in=tr_bgc_DMS, tr_bgc_PON_in=tr_bgc_PON,                             &
           tr_bgc_N_in  =tr_bgc_N,   tr_bgc_C_in  =tr_bgc_C,   tr_bgc_chl_in=tr_bgc_chl,   &
           tr_bgc_DON_in=tr_bgc_DON, tr_bgc_Fe_in =tr_bgc_Fe,  tr_zaero_in  =tr_zaero,     &
           tr_bgc_hum_in=tr_bgc_hum)

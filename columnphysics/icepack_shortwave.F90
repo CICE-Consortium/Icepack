@@ -3872,10 +3872,10 @@
 !          David Bailey, NCAR
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_radiation (dt,       ncat,      & 
+      subroutine icepack_step_radiation (dt,       ncat,     &
                                         n_algae,  tr_zaero,  &
                                         nblyr,    ntrcr,     &
-                                        nbtrcr,   nbtrcr_sw, &
+                                        nbtrcr_sw,           &
                                         nilyr,    nslyr,     &
                                         n_aero,   n_zaero,   &
                                         dEdd_algae,          &
@@ -3926,7 +3926,6 @@
          nlt_chl_sw, & ! index for chla
          nblyr     , &
          ntrcr     , &
-         nbtrcr    , &
          nbtrcr_sw , &
          n_algae
 

@@ -33,7 +33,7 @@
       use icepack_tracers, only: max_algae, max_DON, max_DOC
       use icepack_tracers, only: tr_brine
       use icepack_tracers, only: tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil
-      use icepack_tracers, only: tr_bgc_DMS,    tr_bgc_PON,   tr_bgc_S
+      use icepack_tracers, only: tr_bgc_DMS,    tr_bgc_PON
       use icepack_tracers, only: tr_bgc_N,      tr_bgc_C,     tr_bgc_chl
       use icepack_tracers, only: tr_bgc_DON,    tr_bgc_Fe,    tr_zaero
       use icepack_tracers, only: nlt_bgc_Nit,   nlt_bgc_Am,   nlt_bgc_Sil

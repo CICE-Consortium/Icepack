@@ -102,8 +102,7 @@
       !-----------------------------------------------------------------
 
       logical (kind=log_kind), public :: & 
-         tr_bgc_S,       & ! if .true., use zsalinity
-         tr_zaero,       & ! if .true., black carbon is tracers  (n_zaero)
+         tr_zaero,       & ! if .true., black carbon as tracers  (n_zaero)
          tr_bgc_Nit,     & ! if .true. Nitrate tracer in ice 
          tr_bgc_N,       & ! if .true., algal nitrogen tracers  (n_algae)
          tr_bgc_DON,     & ! if .true., DON pools are tracers  (n_don)
@@ -244,7 +243,7 @@
       subroutine icepack_init_tracer_flags(&
            tr_iage_in, tr_FY_in, tr_lvl_in, &
            tr_pond_in, tr_pond_cesm_in, tr_pond_lvl_in, tr_pond_topo_in, &
-           tr_aero_in, tr_brine_in, tr_bgc_S_in, tr_zaero_in, &
+           tr_aero_in, tr_brine_in, tr_zaero_in, &
            tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
            tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
            tr_bgc_PON_in)
@@ -259,7 +258,6 @@
              tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
              tr_aero_in      , & ! if .true., use aerosol tracers
              tr_brine_in     , & ! if .true., brine height differs from ice thickness
-             tr_bgc_S_in     , & ! if .true., use zsalinity
              tr_zaero_in     , & ! if .true., black carbon is tracers  (n_zaero)
              tr_bgc_Nit_in   , & ! if .true., Nitrate tracer in ice 
              tr_bgc_N_in     , & ! if .true., algal nitrogen tracers  (n_algae)
@@ -282,7 +280,6 @@
         if (present(tr_pond_topo_in)) tr_pond_topo = tr_pond_topo_in
         if (present(tr_aero_in)   ) tr_aero    = tr_aero_in
         if (present(tr_brine_in)  ) tr_brine   = tr_brine_in
-        if (present(tr_bgc_S_in)  ) tr_bgc_S   = tr_bgc_S_in
         if (present(tr_zaero_in)  ) tr_zaero   = tr_zaero_in 
         if (present(tr_bgc_Nit_in)) tr_bgc_Nit = tr_bgc_Nit_in
         if (present(tr_bgc_N_in)  ) tr_bgc_N   = tr_bgc_N_in 
@@ -304,7 +301,7 @@
       subroutine icepack_query_tracer_flags(&
            tr_iage_out, tr_FY_out, tr_lvl_out, &
            tr_pond_out, tr_pond_cesm_out, tr_pond_lvl_out, tr_pond_topo_out, &
-           tr_aero_out, tr_brine_out, tr_bgc_S_out, tr_zaero_out, &
+           tr_aero_out, tr_brine_out, tr_zaero_out, &
            tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
            tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
            tr_bgc_PON_out)
@@ -319,7 +316,6 @@
              tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
              tr_aero_out      , & ! if .true., use aerosol tracers
              tr_brine_out     , & ! if .true., brine height differs from ice thickness
-             tr_bgc_S_out     , & ! if .true., use zsalinity
              tr_zaero_out     , & ! if .true., black carbon is tracers  (n_zaero)
              tr_bgc_Nit_out   , & ! if .true., Nitrate tracer in ice 
              tr_bgc_N_out     , & ! if .true., algal nitrogen tracers  (n_algae)
@@ -342,7 +338,6 @@
         if (present(tr_pond_topo_out)) tr_pond_topo_out = tr_pond_topo
         if (present(tr_aero_out)   ) tr_aero_out    = tr_aero
         if (present(tr_brine_out)  ) tr_brine_out   = tr_brine
-        if (present(tr_bgc_S_out)  ) tr_bgc_S_out   = tr_bgc_S
         if (present(tr_zaero_out)  ) tr_zaero_out   = tr_zaero
         if (present(tr_bgc_Nit_out)) tr_bgc_Nit_out = tr_bgc_Nit
         if (present(tr_bgc_N_out)  ) tr_bgc_N_out   = tr_bgc_N
@@ -375,7 +370,6 @@
         write(iounit,*) "  tr_pond_topo = ",tr_pond_topo
         write(iounit,*) "  tr_aero    = ",tr_aero   
         write(iounit,*) "  tr_brine   = ",tr_brine  
-        write(iounit,*) "  tr_bgc_S   = ",tr_bgc_S  
         write(iounit,*) "  tr_zaero   = ",tr_zaero  
         write(iounit,*) "  tr_bgc_Nit = ",tr_bgc_Nit
         write(iounit,*) "  tr_bgc_N   = ",tr_bgc_N  

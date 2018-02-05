@@ -161,7 +161,7 @@
          pflux_hum
 
       logical (kind=log_kind) :: &
-         tr_bgc_DMS, tr_bgc_PON, tr_bgc_S, &
+         tr_bgc_DMS, tr_bgc_PON, &
          tr_bgc_N, tr_bgc_C, tr_bgc_DON, tr_zaero, tr_bgc_hum, &
          tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_Fe
 
@@ -233,7 +233,7 @@
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc, &
          z_tracers_out=z_tracers, dEdd_algae_out=dEdd_algae)
-      call icepack_query_tracer_flags(tr_bgc_S_out=tr_bgc_S, &
+      call icepack_query_tracer_flags( &
          tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, &
          tr_bgc_N_out=tr_bgc_N, tr_bgc_C_out=tr_bgc_C, &
          tr_bgc_DON_out=tr_bgc_DON, tr_zaero_out=tr_zaero, &
