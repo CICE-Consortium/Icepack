@@ -814,7 +814,7 @@
          Gsum        ! Gsum(n) = sum of areas in categories 0 to n
 
       real (kind=dbl_kind) :: &
-         work        ! temporary work array
+         work        ! temporary work variable
 
       real (kind=dbl_kind) :: &
          hi      , & ! ice thickness for each cat (m)
@@ -827,9 +827,9 @@
       ! Initialize
       !-----------------------------------------------------------------
 
-      Gsum   (-1) = c0        ! by definition
-!      Gsum   (0)  = c1         ! to avoid divzero below
+      Gsum   (-1:ncat) = c0  ! initialize
 
+      Gsum   (-1) = c0     ! by definition
       if (aice0 > puny) then
          Gsum(0) = aice0
       else
@@ -838,7 +838,6 @@
       apartic(0)  = c0
 
       do n = 1, ncat
-         Gsum   (n) = c1    ! to avoid divzero below
          apartic(n) = c0
          hrmin  (n) = c0
          hrmax  (n) = c0
@@ -864,10 +863,12 @@
 
       ! normalize
 
-      work = c1 / Gsum(ncat)
-      do n = 0, ncat
-         Gsum(n) = Gsum(n) * work
-      enddo
+      if (Gsum(ncat) > c0) then
+         work = c1 / Gsum(ncat)
+         do n = 0, ncat
+            Gsum(n) = Gsum(n) * work
+         enddo
+      endif
 
       !-----------------------------------------------------------------
       ! Compute the participation function apartic; this is analogous to
