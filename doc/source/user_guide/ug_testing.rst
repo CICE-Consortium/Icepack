@@ -48,7 +48,7 @@ Individual Tests
 The Icepack scripts support both setup of individual tests as well as test suites.  Individual
 tests are run from the command line::
 
-  ./icepack.create.case --test smoke --mach conrad --env cray --set diag1,debug --testid myid 
+  ./icepack.setup --test smoke --mach conrad --env cray --set diag1,debug --testid myid 
 
 Tests are just like cases but have some additional scripting around them.  Individual
 tests can be created and manually modified just like cases.
@@ -57,7 +57,7 @@ are similar to :ref:`case_options` for ``--case``.
 For individual tests, the following command line options can be set
 
 ``--test`` TESTNAME
-     specifies the test type.  This is probably either smoke or restart but see `icepack.create.case --help` for the latest.  This is required instead of ``--case``.
+     specifies the test type.  This is probably either smoke or restart but see `icepack.setup --help` for the latest.  This is required instead of ``--case``.
 
 ``--testid`` ID
      specifies the testid.  This is required for every use of ``--test`` and ``--suite``.  This is a user defined string that will allow each test to have a unique case and run directory name.  This is also required.
@@ -120,7 +120,7 @@ Tests are defined under **configuration/scripts/tests/**.  The tests currently s
             The test passes if both runs complete and
             if the restart files at month 12 from both runs are bit-for-bit identical.
 
-Please run ``./icepack.create.case --help`` for the latest information.
+Please run ``./icepack.setup --help`` for the latest information.
 
 
 Example.  Basic default single test
@@ -129,7 +129,7 @@ Example.  Basic default single test
 Define the test, mach, env, and testid.
 ::
 
-  ./icepack.create.case --test smoke --mach wolf --env gnu --testid t00
+  ./icepack.setup --test smoke --mach wolf --env gnu --testid t00
   cd wolf_gnu_smoke_col_1x1.t00
   ./icepack.build
   ./icepack.submit
@@ -142,7 +142,7 @@ Example. Simple test with some options
 Add ``--set``
 ::
 
-  ./icepack.create.case --test smoke --mach wolf --env gnu --set diag1,debug --testid t00
+  ./icepack.setup --test smoke --mach wolf --env gnu --set diag1,debug --testid t00
   cd wolf_gnu_smoke_col_1x1_debug_diag1.t00
   ./icepack.build
   ./icepack.submit
@@ -155,7 +155,7 @@ Example. Single test, generate a baseline dataset
 Add ``--bgen``
 ::
 
-  ./icepack.create.case --test smoke --mach wolf -env gnu --bgen icepack.v01 --testid t00 --set diag1
+  ./icepack.setup --test smoke --mach wolf -env gnu --bgen icepack.v01 --testid t00 --set diag1
   cd wolf_gnu_smoke_col_1x1_diag1.t00
   ./icepack.build
   ./icepack.submit
@@ -170,7 +170,7 @@ the prior baseline must exist and have the exact same base testname
 [machine]_[env]_[test]_[grid]_[pes]_[sets] 
 ::
 
-  ./icepack.create.case --test smoke --mach wolf -env gnu --bcmp icepack.v01 --testid t01 --set diag1
+  ./icepack.setup --test smoke --mach wolf -env gnu --bcmp icepack.v01 --testid t01 --set diag1
   cd wolf_gnu_smoke_col_1x1_diag1.t01
   ./icepack.build
   ./icepack.submit
@@ -183,7 +183,7 @@ Example. Simple test, generate a baseline dataset and compare to a prior baselin
 Use ``--bgen`` and ``--bcmp``.  The prior baseline must exist already.
 ::
 
-  ./icepack.create.case --test smoke --mach wolf -env gnu --bgen icepack.v02 --bcmp icepack.v01 --testid t02 --set diag1
+  ./icepack.setup --test smoke --mach wolf -env gnu --bgen icepack.v02 --bcmp icepack.v01 --testid t02 --set diag1
   cd wolf_gnu_smoke_col_1x1_diag1.t02
   ./icepack.build
   ./icepack.submit
@@ -204,7 +204,7 @@ is always compared relative to the current case directory.
 To run the first test,
 ::
 
-  ./icepack.create.case --test smoke --mach wolf -env gnu --testid tx01 --set debug
+  ./icepack.setup --test smoke --mach wolf -env gnu --testid tx01 --set debug
   cd wolf_gnu_smoke_col_1x1_debug.tx01
   ./icepack.build
   ./icepack.submit
@@ -213,7 +213,7 @@ To run the first test,
 Then to run the second test and compare to the results from the first test
 ::
 
-  ./icepack.create.case --test smoke --mach wolf -env gnu --testid tx01 --diff smoke_col_1x1_debug
+  ./icepack.setup --test smoke --mach wolf -env gnu --testid tx01 --diff smoke_col_1x1_debug
   cd wolf_gnu_smoke_col_1x1.tx01
   ./icepack.build
   ./icepack.submit
@@ -232,14 +232,14 @@ Test suites
 ------------
 
 Test suites support running multiple tests specified via
-an input file.  When invoking the test suite option (``--suite``) with **icepack.create.case**,
+an input file.  When invoking the test suite option (``--suite``) with **icepack.setup**,
 all tests will be created, built, and submitted automatically under
 a directory called [suite_name].[testid] as part of involing the suite.
 Because the tests are built and submitted automatically, 
 this feature does not allow for customization of cases or tests like
 individual cases and tests do::
 
-  ./icepack.create.case --suite base_suite --mach wolf --env gnu --testid myid
+  ./icepack.setup --suite base_suite --mach wolf --env gnu --testid myid
 
 Like an individual test, the ``--testid`` option must be specified and can be any 
 string.  Once the tests are complete, results can be checked by running the
@@ -275,7 +275,7 @@ Lines that begin with # or are blank are ignored.  For example,
 
 The argument to ``--suite`` defines the test suite (.ts) filename and that argument 
 can contain a path.  
-**icepack.create.case** 
+**icepack.setup** 
 will look for the filename in the local directory, in **configuration/scripts/tests/**, 
 or in the path defined by the ``--suite`` option.
 
@@ -318,7 +318,7 @@ Example. Basic test suite
 Specify suite, mach, env, testid.
 ::
 
-  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a
+  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a
   cd base_suite.v01a
   #wait for runs to complete
   ./results.csh
@@ -330,12 +330,12 @@ Example. Basic test suite on multiple environments
 Specify multiple envs.
 ::
 
-  ./icepack.create.case --suite base_suite --mach conrad --env cray,pgi,intel,gnu --testid v01a
+  ./icepack.setup --suite base_suite --mach conrad --env cray,pgi,intel,gnu --testid v01a
   cd base_suite.v01a
   #wait for runs to complete
   ./results.csh
 
-Each env can be run as a separate invokation of `icepack.create.case` but if that
+Each env can be run as a separate invokation of `icepack.setup` but if that
 approach is taken, it is recommended that different testids be used.
 
 
@@ -345,7 +345,7 @@ Example. Basic test suite, store baselines in user defined name
 Add ``--bgen``
 ::
 
-  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a
+  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a
   cd base_suite.v01a
   #wait for runs to complete
   ./results.csh
@@ -358,7 +358,7 @@ Example. Basic test suite, store baselines in user defined top level directory
 Add ``--bgen`` and ``--bdir``
 ::
 
-  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a --bdir /tmp/user/ICEPACK_BASELINES
+  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a --bdir /tmp/user/ICEPACK_BASELINES
   cd base_suite.v01a
   #wait for runs to complete
   ./results.csh
@@ -372,7 +372,7 @@ Example. Basic test suite, store baselines in auto-generated directory
 Add ``--bgen default``
 ::
 
-  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a --bgen default
+  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --bgen default
   cd base_suite.v01a
   #wait for runs to complete
   ./results.csh
@@ -386,7 +386,7 @@ Example. Basic test suite, compare to prior baselines
 Add ``--bcmp``
 ::
 
-  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v02a --bcmp icepack.v01a
+  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v02a --bcmp icepack.v01a
   cd base_suite.v02a
   #wait for runs to complete
   ./results.csh
@@ -419,7 +419,7 @@ create a unique location.  You could easily carry out regular builds automatical
   set mydate = `date -u "+%Y%m%d"`
   git clone https://github.com/myfork/icepack icepack.$mydate
   cd icepack.$mydate
-  ./icepack.create.case --suite base_suite --mach conrad --env cray,gnu,intel,pgi --testid $mydate --bcmp default --bgen default --bdir /tmp/work/user/ICEPACK_BASELINES_MASTER
+  ./icepack.setup --suite base_suite --mach conrad --env cray,gnu,intel,pgi --testid $mydate --bcmp default --bgen default --bdir /tmp/work/user/ICEPACK_BASELINES_MASTER
 
 When this is invoked, a new set of baselines will be generated and compared to the prior
 results each time without having to change the arguments.
@@ -447,7 +447,7 @@ such as
 then use that input file, mysuite
 ::
 
-  ./icepack.create.case --suite mysuite --mach conrad --env cray --testid v01a --bgen default
+  ./icepack.setup --suite mysuite --mach conrad --env cray --testid v01a --bgen default
   cd mysuite.v01a
   #wait for runs to complete
   ./results.csh
@@ -473,7 +473,7 @@ To post results, once a test suite is complete, run ``results.csh`` and
 ``report_results.csh`` from the suite directory,
 ::
 
-  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a
+  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a
   cd base_suite.v01a
   #wait for runs to complete
   ./results.csh
@@ -482,7 +482,7 @@ To post results, once a test suite is complete, run ``results.csh`` and
 The reporting can also be automated by adding ``--report``
 ::
 
-  ./icepack.create.case --suite base_suite --mach conrad --env cray --testid v01a --report
+  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --report
 
 With ``--report``, the suite will create all the tests, build and submit them,
 wait for all runs to be complete, and run the results and report_results scripts.

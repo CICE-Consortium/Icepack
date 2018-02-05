@@ -20,14 +20,14 @@ Overview
 ~~~~~~~~
 
 Most of the scripts that configure, build and run Icepack are contained in 
-the directory **configuration/scripts/**, except for **icepack.create.case**, which is
-in the main directory.  **icepack.create.case** is the main script that generates a case. 
+the directory **configuration/scripts/**, except for **icepack.setup**, which is
+in the main directory.  **icepack.setup** is the main script that generates a case. 
 
 Users may need to port the scripts to their local machine.
 Specific instructions for porting are provided in :ref:`porting`.
 
-``icepack.create.case -h`` will provide the latest information about how to use the tool.
-``icepack.create.case --help`` will provide an extended version of the help.
+``icepack.setup -h`` will provide the latest information about how to use the tool.
+``icepack.setup --help`` will provide an extended version of the help.
 There are three usage modes,
 
 * ``--case`` or ``-c`` creates individual stand alone cases.
@@ -39,12 +39,12 @@ can use ``--set`` or ``-s`` to define specific options.  ``--test`` and ``--suit
 and both of the test modes can use ``--bdir``, ``--bgen``, ``--bcmp``, and ``--diff`` to generate (save) results and compare results with prior results.
 Testing will be described in greater detail in the :ref:`testing` section.
 
-Again, ``icepack.create.case --help`` will show the latest usage information including 
+Again, ``icepack.setup --help`` will show the latest usage information including 
 the available ``--set`` options, the current ported machines, and the test choices.
 
-To create a case, run **icepack.create.case**::
+To create a case, run **icepack.setup**::
 
-  icepack.create.case -c mycase -m machine
+  icepack.setup -c mycase -m machine
   cd mycase
 
 Once a case/test is created, several files are placed in the case directory
@@ -95,11 +95,11 @@ case directory, NOT the run directory.
 Command Line Options
 ~~~~~~~~~~~~~~~~~~~~
 
-``icepack.create.case -h`` provides a summary of the command line options.  There are three different modes, ``--case``, ``--test``, and ``--suite``.  This section provides details about the relevant options for setting up cases with examples.
+``icepack.setup -h`` provides a summary of the command line options.  There are three different modes, ``--case``, ``--test``, and ``--suite``.  This section provides details about the relevant options for setting up cases with examples.
 Testing will be described in greater detail in the :ref:`testing` section.
 
 ``--help``, ``-h`` 
-  prints ``icepack.create.case`` help information to the terminal and exits.
+  prints ``icepack.setup`` help information to the terminal and exits.
 
 ``--version``
   prints the Icepack version to the terminal and exits.
@@ -123,7 +123,7 @@ Testing will be described in greater detail in the :ref:`testing` section.
   specifies the grid.  This is a string and for the current icepack driver, only col is supported. (default = col)
 
 ``--set``,  ``-s`` SET1,SET2,SET3
-  specifies the optional settings for the case.  This is only used with ``--case`` or ``--test``.  The settings for ``--suite`` are defined in the suite file.  Multiple settings can be specified by providing a comma deliminated set of values without spaces between settings.  The available settings are in **configurations/scripts/options** and ``icepack.create.case --help`` will also list them.  These settings files can change either the namelist values or overall case settings (such as the debug flag).
+  specifies the optional settings for the case.  This is only used with ``--case`` or ``--test``.  The settings for ``--suite`` are defined in the suite file.  Multiple settings can be specified by providing a comma deliminated set of values without spaces between settings.  The available settings are in **configurations/scripts/options** and ``icepack.setup --help`` will also list them.  These settings files can change either the namelist values or overall case settings (such as the debug flag).
 
 For Icepack, when setting up cases, the ``--case`` and ``--mach`` must be specified.  
 It's also recommended that ``--env`` be set explicitly as well.  
@@ -140,13 +140,13 @@ Preset Options
 There are several preset options.  These are hardwired in 
 **configurations/scripts/options** and are specfied for a case or test by 
 the ``--set`` command line option.  You can see the full list of settings 
-by doing ``icepack.create.case --help``.  
+by doing ``icepack.setup --help``.  
 
 The default icepack namelist and icepack settings are specified in the 
 files **configuration/scripts/icepack_in** and 
 **configuration/scripts/icepack.settings** respectively.  When picking a 
 preset setting (option), the set_env.setting and set_nml.setting will be used to 
-change the defaults.  This is done as part of the ``icepack.create.case`` and the
+change the defaults.  This is done as part of the ``icepack.setup`` and the
 modifications are resolved in the **icepack.settings** and **icepack_in** file placed in 
 the case directory.  If multiple options are chosen and then conflict, then the last
 option chosen takes precedent.  Not all options are compatible with each other.
@@ -179,11 +179,11 @@ Examples
 The simplest case is just to setup a default configurations specifying the
 case name, machine, and environment::
 
-  icepack.create.case --case mycase1 --mach spirit --env intel
+  icepack.setup --case mycase1 --mach spirit --env intel
 
 To add some optional settings, one might do::
 
-  icepack.create.case --case mycase2 --mach spirit --env intel --set debug,diag1,run1year,pondtopo
+  icepack.setup --case mycase2 --mach spirit --env intel --set debug,diag1,run1year,pondtopo
 
 Once the cases are created, users are free to modify the icepack.settings and icepack_in namelist to further modify their setup.
 
@@ -195,7 +195,7 @@ Porting
 To port, an **env.[machine]_[environment]** and **Macros.[machine]_[environment}** file have to be added to the
 **configuration/scripts/machines/** directory and the 
 **configuration/scripts/icepack.batch.csh** file needs to be modified.
-In general, the machine is specified in ``icepack.create.case`` with ``--mach``
+In general, the machine is specified in ``icepack.setup`` with ``--mach``
 and the environment (compiler) is specified with ``--env``.
  
 - cd to **configuration/scripts/machines/**
@@ -229,8 +229,8 @@ The machine account default is specified by the variable ``ICE_MACHINE_ACCT`` in
 the **env.[machine]** file.  The easiest way to change a user's default is to 
 create a file in your home directory called **.cice\_proj** and add your 
 preferred account name to the first line.  
-There is also an option (``--acct``) in **icepack.create.case** to define the account number.  
-The order of precedent is **icepack.create.case** command line option, 
+There is also an option (``--acct``) in **icepack.setup** to define the account number.  
+The order of precedent is **icepack.setup** command line option, 
 **.cice\_proj** setting, and then value in the **env.[machine]** file.
 
 Forcing data
@@ -253,7 +253,7 @@ new datasets are available.
 Run Directories
 ---------------
 
-The **icepack.create.case** script creates a case directory.  However, the model 
+The **icepack.setup** script creates a case directory.  However, the model 
 is actually built and run under the ``ICE_OBJDIR`` and ``ICE_RUNDIR`` directories
 as defined in the **icepack.settings** file.
 

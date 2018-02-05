@@ -60,7 +60,7 @@ if ( $helpheader > 0) then
 cat << EOF1
 
 NAME   
-  icepack.create.case
+  icepack.setup
 
 SYNOPSIS
     --case CASE -m MACH 
@@ -97,15 +97,15 @@ DESCRIPTION
     --report   : automatically post results when tests are complete
 
 EXAMPLES
-    icepack.create.case -c caseB -m gordon -e cray -s diag1,debug
-    icepack.create.case --case ~/caseA --mach cheyenne --env intel --set diag24
-    icepack.create.case --test restart -m onyx -e gnu -s debug -testid myid
-    icepack.create.case --suite base_suite -m conrad --env intel,cray --testid myv1 --bgen myv1
-    icepack.create.case --suite quick_suite -m cheyenne --testid myv1 --bgen myv1
-    icepack.create.case --suite quick_suite -m cheyenne --testid myv2 --bgen myv2 --bcmp myv1
+    icepack.setup -c caseB -m gordon -e cray -s diag1,debug
+    icepack.setup --case ~/caseA --mach cheyenne --env intel --set diag24
+    icepack.setup --test restart -m onyx -e gnu -s debug -testid myid
+    icepack.setup --suite base_suite -m conrad --env intel,cray --testid myv1 --bgen myv1
+    icepack.setup --suite quick_suite -m cheyenne --testid myv1 --bgen myv1
+    icepack.setup --suite quick_suite -m cheyenne --testid myv2 --bgen myv2 --bcmp myv1
 
 SEE ALSO
-    icepack.create.case --help or
+    icepack.setup --help or
     User Documentation at https://cice-consortium.github.io/Icepack/
 
 EOF1
@@ -350,7 +350,7 @@ EOF0
     set pesx = `echo $line | cut -d' ' -f3`
     set sets_tmp = `echo $line | cut -d' ' -f4`
     set bfbcomp_tmp = `echo $line | cut -d' ' -f5`
-    # Create a new sets_base variable to store sets passed to icepack.create.case
+    # Create a new sets_base variable to store sets passed to icepack.setup
     if (! $?sets_base ) then
       set sets_base = "$sets"
     endif
@@ -366,7 +366,7 @@ EOF0
         set sets = "`echo $sets | sed -e 's/\b\([a-z]\+\)[ ,\n]\1/\1/g'`"
       endif
     endif
-    # Create a new bfbcomp_base variable to store bfbcomp passed to icepack.create.case
+    # Create a new bfbcomp_base variable to store bfbcomp passed to icepack.setup
     if (! $?bfbcomp_base ) then
       set bfbcomp_base = "$bfbcomp"
     endif
@@ -500,7 +500,7 @@ if (-e ${fimods}) rm ${fimods}
 if (-e ${fsmods}) rm ${fsmods}
 
 cat >! ${fimods} << EOF1
-# icepack.create.case settings
+# icepack.setup settings
 
 nprocs = ${task}
 data_dir = '${ICE_MACHINE_INPUTDATA}/Icepack_data/forcing'
@@ -523,7 +523,7 @@ endif
 
 
 cat >! ${fsmods} << EOF1
-# icepack.create.case settings
+# icepack.setup settings
 
 setenv ICE_SANDBOX  ${ICE_SANDBOX}
 setenv ICE_SCRIPTS  ${ICE_SCRIPTS}
