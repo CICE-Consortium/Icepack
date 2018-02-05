@@ -296,6 +296,7 @@
 
          opning = opening
          closing_net = closing
+         divu_adv = opening-closing
 
       else
 
@@ -397,7 +398,6 @@
                            msnow_mlt,   esnow_mlt,   &
                            maero,       mpond,       &
                            aredistn,    vredistn)    
-         if (icepack_warnings_aborted(subname)) return
 
          if (icepack_warnings_aborted(subname)) return
 

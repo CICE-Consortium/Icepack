@@ -11,7 +11,7 @@
       use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday
       use icedrv_calendar, only: daymo, daycal, dt, yday, days_per_year, sec
       use icedrv_constants, only: nu_diag, nu_forcing
-      use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4
+      use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_sea_freezing_temperature
@@ -374,21 +374,17 @@
       ! Lindsay SHEBA open/close dataset is hourly
       if (trim(ocn_data_type) == 'SHEBA') then
 
-        sec1hr = secday/24                      ! seconds in 1 hour
+        sec1hr = secday/c24                      ! seconds in 1 hour
         maxrec = 8760
         recnum = 24*int(yday) - 23 + int(real(sec,kind=dbl_kind)/sec1hr)
         recslot = 2
-        dataloc = 2                          ! data located at end of interval
+        dataloc = 1                          ! data located at end of interval
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
+        call interp_coeff ( recnum, recslot, sec1hr, dataloc, c1intp, c2intp)
 
-        write(nu_diag,*) 'recnum,mlast,mnext',recnum,mlast,mnext
-        write(nu_diag,*) 'c1intp,c2intp',c1intp,c2intp
         opening(:) = c1intp *  open_data(mlast) + c2intp *  open_data(mnext)
-        closing(:) = c1intp *  clos_data(mlast) + c2intp *  clos_data(mnext)
-        write(nu_diag,*) 'opening',opening(1),open_data(mlast),open_data(mnext)
-        write(nu_diag,*) 'closing',closing(1),clos_data(mlast),clos_data(mnext)
+        closing(:) = -(c1intp *  clos_data(mlast) + c2intp *  clos_data(mnext))
 
       endif
 

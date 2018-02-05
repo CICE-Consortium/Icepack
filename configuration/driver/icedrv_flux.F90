@@ -699,7 +699,6 @@
       dardg1dt(:) = c0
       dardg2dt(:) = c0
       dvirdgdt(:) = c0
-      opening (:) = c0
       daidtd  (:) = aice(:) ! temporary initial area
       dvidtd  (:) = vice(:) ! temporary initial volume
       if (tr_iage) &
