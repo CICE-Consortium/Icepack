@@ -74,6 +74,7 @@ echo " "
 
 if !(-d \${ICE_LOGDIR}) mkdir -p \${ICE_LOGDIR}
 cp -p \${ICE_RUNLOG_FILE} \${ICE_LOGDIR}
+cp -p ice_diag.* \${ICE_LOGDIR}
 
 grep ' ICEPACK COMPLETED SUCCESSFULLY' \${ICE_RUNLOG_FILE}
 if ( \$status != 0 ) then
