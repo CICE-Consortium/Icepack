@@ -40,28 +40,6 @@
       ! Algal types: Diatoms, flagellates, Phaeocycstis
       ! DOC        : Proteins, EPS, Lipids
       !-----------------------------------------------------------------
-      real (kind=dbl_kind), dimension(max_dic), public :: &
-         dictype   = (/-c1/)  ! not in namelist
-
-      real (kind=dbl_kind), dimension(max_algae), public :: &
-         algaltype   ! tau_min for both retention and release
-
-      real (kind=dbl_kind), dimension(max_doc), public :: &
-         doctype
-
-      real (kind=dbl_kind), dimension(max_don), public :: &
-         dontype
-
-      real (kind=dbl_kind), dimension(max_fe), public :: &
-         fedtype
-
-      real (kind=dbl_kind), dimension(max_fe), public :: &
-         feptype
-
-      real (kind=dbl_kind), public :: &
-         nitratetype, ammoniumtype, silicatetype, &
-         dmspptype, dmspdtype, humtype
-
       !------------------------------------------------------------
       ! Aerosol order and type should be consistent with order/type
       ! specified in delta Eddington:  1) hydrophobic black carbon;
@@ -69,8 +47,6 @@
       ! 4) dust (0.5-1.25 micron); 5) dust (1.25-2.5 micron);
       ! 6) dust (2.5-5 micron)
       !-------------------------------------------------------------
-      real (kind=dbl_kind), dimension(max_aero), public :: &
-         zaerotype
 
       ! bio parameters for algal_dyn
  

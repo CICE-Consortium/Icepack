@@ -71,6 +71,8 @@
       use icepack_atmo , only: icepack_atm_boundary
       use icepack_ocean, only: icepack_ocn_mixed_layer
 
+      use icepack_orbital       , only: icepack_init_orbit
+
       use icepack_therm_vertical, only: icepack_step_therm1
       use icepack_therm_itd     , only: icepack_step_therm2
       use icepack_therm_shared  , only: icepack_ice_temperature
@@ -80,8 +82,6 @@
       use icepack_therm_shared  , only: icepack_enthalpy_snow
       use icepack_therm_shared  , only: icepack_init_thermo
       use icepack_therm_shared  , only: icepack_init_trcr
-
-      use icepack_orbital , only: icepack_init_orbit
 
       use icepack_warnings, only: icepack_warnings_clear
       use icepack_warnings, only: icepack_warnings_getall

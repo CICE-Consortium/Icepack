@@ -632,7 +632,7 @@
           bgc_flux_type
 
       real (kind=dbl_kind) :: &
-          grid_o, l_sk, grid_o_t, initbio_frac, &
+          grid_o, l_sk, initbio_frac, &
           frazil_scav, grid_oS, l_skS, &
           phi_snow, &
           ratio_Si2N_diatoms , ratio_Si2N_sp      , ratio_Si2N_phaeo   ,  &
@@ -786,7 +786,7 @@
         restore_bgc, scale_bgc, solve_zsal, bgc_data_type, &
         tr_bgc_Nit, tr_bgc_C, tr_bgc_chl, tr_bgc_Am, tr_bgc_Sil, &
         tr_bgc_DMS, tr_bgc_PON, tr_bgc_hum, tr_bgc_DON, tr_bgc_Fe, &
-        grid_o, grid_o_t, l_sk, grid_oS, &   
+        grid_o, l_sk, grid_oS, &
         l_skS, phi_snow,  initbio_frac, frazil_scav, &
         ratio_Si2N_diatoms , ratio_Si2N_sp      , ratio_Si2N_phaeo   ,  &
         ratio_S2N_diatoms  , ratio_S2N_sp       , ratio_S2N_phaeo    ,  &
@@ -833,7 +833,19 @@
 
       call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
-      call icepack_query_parameters(ktherm_out=ktherm, shortwave_out=shortwave)
+      call icepack_query_parameters(ktherm_out=ktherm, shortwave_out=shortwave, &
+         scale_bgc_out=scale_bgc, skl_bgc_out=skl_bgc, z_tracers_out=z_tracers, &
+         dEdd_algae_out=dEdd_algae, solve_zbgc_out=solve_zbgc, phi_snow_out=phi_snow, &
+         bgc_flux_type_out=bgc_flux_type, grid_o_out=grid_o, l_sk_out=l_sk, &
+         initbio_frac_out=initbio_frac, frazil_scav_out=frazil_scav, &
+         algal_vel_out=algal_vel, R_dFe2dust_out=R_dFe2dust, &
+         dustFe_sol_out=dustFe_sol, T_max_out=T_max, fsal_out=fsal, &
+         op_dep_min_out=op_dep_min, fr_graze_s_out=fr_graze_s, &
+         fr_graze_e_out=fr_graze_e, fr_mort2min_out=fr_mort2min, &
+         fr_dFe_out=fr_dFe, k_nitrif_out=k_nitrif, t_iron_conv_out=t_iron_conv, &
+         max_loss_out=max_loss, max_dfe_doc1_out=max_dfe_doc1, &
+         fr_resp_s_out=fr_resp_s, y_sk_DMS_out=y_sk_DMS, t_sk_conv_out=t_sk_conv, &
+         t_sk_ox_out=t_sk_ox)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -847,12 +859,6 @@
       restore_bgc     = .false.  ! restore bgc if true
       solve_zsal      = .false.  ! update salinity tracer profile from solve_S_dt
       bgc_data_type   = 'default'! source of bgc data
-      scale_bgc       = .false.  ! initial bgc tracers proportional to S  
-      skl_bgc         = .false.  ! solve skeletal biochemistry 
-      z_tracers       = .false.  ! solve vertically resolved tracers
-      dEdd_algae      = .false.  ! dynamic algae contributes to shortwave absorption
-                                 ! in delta-Eddington calculation
-      solve_zbgc      = .false.  ! turn on z layer biochemistry 
       tr_bgc_PON      = .false.  !---------------------------------------------   
       tr_bgc_Nit      = .false.  ! biogeochemistry (skl or zbgc)
       tr_bgc_C        = .false.  ! if skl_bgc = .true. then skl
@@ -865,18 +871,7 @@
       tr_bgc_Fe       = .false.  ! 
       tr_bgc_N        = .true.   !
 
-      ! brine height parameter
-      phi_snow        = p5       ! snow porosity
-
-      ! skl biology parameters
-      bgc_flux_type   = 'Jin2006'! type of ocean-ice poston velocity ('constant')
-
       ! z biology parameters  
-      grid_o          = c5           ! for bottom flux        
-      grid_o_t        = c5           ! for top flux        
-      l_sk            = 7.0_dbl_kind ! characteristic diffusive scale (m)   
-      initbio_frac    = c1           ! fraction of ocean trcr concentration in bio trcrs
-      frazil_scav     = c1           ! increase in initial bio tracer from ocean scavenging 
       ratio_Si2N_diatoms = 1.8_dbl_kind    ! algal Si to N (mol/mol)                       
       ratio_Si2N_sp      = c0              ! diatoms, small plankton, phaeocystis
       ratio_Si2N_phaeo   = c0
@@ -892,12 +887,8 @@
       ratio_Fe2DON       = 0.023_dbl_kind  ! Fe to N of DON (nmol/umol)
       ratio_Fe2DOC_s     = p1              ! Fe to C of DOC (nmol/umol) saccharids
       ratio_Fe2DOC_l     = 0.033_dbl_kind  ! Fe to C of DOC (nmol/umol) lipids
-      fr_resp            = 0.05_dbl_kind   ! frac of algal growth lost due to respiration      
       tau_min            = 5200.0_dbl_kind ! rapid mobile to stationary exchanges (s)
       tau_max            = 1.73e5_dbl_kind ! long time mobile to stationary exchanges (s)
-      algal_vel          = 1.11e-8_dbl_kind! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
-      R_dFe2dust         = 0.035_dbl_kind  !  g/g (3.5% content) Tagliabue 2009
-      dustFe_sol         = 0.005_dbl_kind  ! solubility fraction
       chlabs_diatoms     = 0.03_dbl_kind   ! chl absorption (1/m/(mg/m^3))
       chlabs_sp          = 0.01_dbl_kind
       chlabs_phaeo       = 0.05_dbl_kind
@@ -946,23 +937,6 @@
       f_exude_l          = c1
       k_bac_s            = 0.03_dbl_kind ! Bacterial degredation of DOC (1/d)
       k_bac_l            = 0.03_dbl_kind
-      T_max              = c0            ! maximum temperature (C)
-      fsal               = c1            ! Salinity limitation (1)
-      op_dep_min         = p1            ! Light attenuates for optical depths exceeding min
-      fr_graze_s         = p5            ! fraction of grazing spilled or slopped
-      fr_graze_e         = p5            ! fraction of assimilation excreted 
-      fr_mort2min        = p5            ! fractionation of mortality to Am
-      fr_dFe             = 0.3_dbl_kind  ! fraction of remineralized nitrogen
-                                         ! (in units of algal iron)
-      k_nitrif           = c0            ! nitrification rate (1/day)           
-      t_iron_conv        = 3065.0_dbl_kind ! desorption loss pFe to dFe (day)
-      max_loss           = 0.9_dbl_kind ! restrict uptake to % of remaining value 
-      max_dfe_doc1       = 0.2_dbl_kind ! max ratio of dFe to saccharides in the ice 
-                                         !(nM Fe/muM C)    
-      fr_resp_s          = 0.75_dbl_kind ! DMSPd fraction of respiration loss as DMSPd
-      y_sk_DMS           = p5            ! fraction conversion given high yield
-      t_sk_conv          = 3.0_dbl_kind  ! Stefels conversion time (d)
-      t_sk_ox            = 10.0_dbl_kind ! DMS oxidation time (d)
       algaltype_diatoms  = c0            ! ------------------
       algaltype_sp       = p5            !
       algaltype_phaeo    = p5            !
@@ -993,10 +967,6 @@
       F_abs_chl_sp       = 4.0_dbl_kind
       F_abs_chl_phaeo    = 5.0_dbl_kind
       ratio_C2N_proteins = 7.0_dbl_kind  ! ratio of C to N in proteins (mol/mol)       
-
-      ! z salinity  parameters
-      grid_oS         = c5            ! for bottom flux         
-      l_skS           = 7.0_dbl_kind  ! characteristic diffusive scale (m) 
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -1218,23 +1188,21 @@
       ! set Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_init_tracer_indices( &
-          nbtrcr_in=nbtrcr)
-      call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-          file=__FILE__, line=__LINE__)
-
-      call icepack_init_parameters( &
-          ktherm_in=ktherm, shortwave_in=shortwave, solve_zsal_in=solve_zsal, &
-          skl_bgc_in=skl_bgc, z_tracers_in=z_tracers, scale_bgc_in=scale_bgc, &
-          dEdd_algae_in=dEdd_algae, &
-          solve_zbgc_in=solve_zbgc, &
-          bgc_flux_type_in=bgc_flux_type, grid_o_in=grid_o, l_sk_in=l_sk, &
-          initbio_frac_in=initbio_frac, &
-          frazil_scav_in=frazil_scav, &
-          grid_oS_in=grid_oS, l_skS_in=l_skS, &
-          phi_snow_in=phi_snow, &
-          modal_aero_in=modal_aero)
+      call icepack_init_tracer_indices(nbtrcr_in=nbtrcr)
+      call icepack_init_parameters(ktherm_in=ktherm, shortwave_in=shortwave, &
+         scale_bgc_in=scale_bgc, skl_bgc_in=skl_bgc, z_tracers_in=z_tracers, &
+         dEdd_algae_in=dEdd_algae, solve_zbgc_in=solve_zbgc, &
+         bgc_flux_type_in=bgc_flux_type, grid_o_in=grid_o, l_sk_in=l_sk, &
+         initbio_frac_in=initbio_frac, frazil_scav_in=frazil_scav, &
+         grid_oS_in=grid_oS, l_skS_in=l_skS, phi_snow_in=phi_snow, &
+         algal_vel_in=algal_vel, R_dFe2dust_in=R_dFe2dust, &
+         dustFe_sol_in=dustFe_sol, T_max_in=T_max, fsal_in=fsal, &
+         op_dep_min_in=op_dep_min, fr_graze_s_in=fr_graze_s, &
+         fr_graze_e_in=fr_graze_e, fr_mort2min_in=fr_mort2min, &
+         fr_dFe_in=fr_dFe, k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, &
+         max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, fr_resp_in=fr_resp, &
+         fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, t_sk_conv_in=t_sk_conv, &
+         t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -1454,7 +1422,6 @@
       zaerotype(5) = zaerotype_dust3
       zaerotype(6) = zaerotype_dust4
 
-!echmod types do not need to be in icepack for zbgc?
       call icepack_init_zbgc ( &
          R_Si2N_in=R_Si2N, &
          R_S2N_in=R_S2N, R_Fe2C_in=R_Fe2C, R_Fe2N_in=R_Fe2N, R_C2N_in=R_C2N, &
@@ -1468,9 +1435,6 @@
          K_Nit_in=K_Nit, K_Am_in=K_Am, K_sil_in=K_Sil, K_Fe_in=K_Fe, &
          f_don_in=f_don, kn_bac_in=kn_bac, f_don_Am_in=f_don, f_exude_in=f_exude, &
          k_bac_in=k_bac, &
-         algaltype_in=algaltype, doctype_in=doctype, dontype_in=dontype, &
-         dictype_in=dictype, &
-         fedtype_in=fedtype, feptype_in=feptype, zaerotype_in=zaerotype, &
          fr_resp_in=fr_resp, algal_vel_in=algal_vel, R_dFe2dust_in=R_dFe2dust, &
          dustFe_sol_in=dustFe_sol, T_max_in=T_max, fr_mort2min_in=fr_mort2min, &
          fr_dFe_in=fr_dFe, op_dep_min_in=op_dep_min, &
@@ -1478,10 +1442,7 @@
          k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, &
          max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, &
          fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, &
-         t_sk_conv_in=t_sk_conv, t_sk_ox_in=t_sk_ox, fsal_in=fsal, &
-         nitratetype_in=nitratetype, ammoniumtype_in=ammoniumtype, &
-         silicatetype_in=silicatetype, &
-         humtype_in=humtype, dmspptype_in=dmspptype, dmspdtype_in=dmspdtype)
+         t_sk_conv_in=t_sk_conv, t_sk_ox_in=t_sk_ox, fsal_in=fsal)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -1904,9 +1865,7 @@
          write(nu_diag,1010) ' tr_bgc_PON                = ', tr_bgc_PON
          write(nu_diag,1010) ' tr_bgc_DON                = ', tr_bgc_DON
          write(nu_diag,1010) ' tr_bgc_Fe                 = ', tr_bgc_Fe 
-         !bio parameters
          write(nu_diag,1000) ' grid_o                    = ', grid_o
-         write(nu_diag,1000) ' grid_o_t                  = ', grid_o_t
          write(nu_diag,1005) ' l_sk                      = ', l_sk
          write(nu_diag,1000) ' initbio_frac              = ', initbio_frac
          write(nu_diag,1000) ' frazil_scav               = ', frazil_scav  
