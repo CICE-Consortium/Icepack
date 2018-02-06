@@ -161,7 +161,7 @@
          psimhu, & ! unstable part of psimh
          psixhu    ! unstable part of psimx
 
-      character(len=*),parameter :: subname='(atm_boundary_layer)'
+      character(len=*),parameter :: subname='(atmo_boundary_layer)'
 
       !------------------------------------------------------------
       ! Define functions
@@ -389,8 +389,7 @@
                                       Tsf,      potT,     &
                                       Qa,                 &
                                       delt,     delq,     &
-                                      lhcoef,   shcoef,   &
-                                      Cdn_atm)  
+                                      lhcoef,   shcoef    )
 
       character (len=3), intent(in) :: &
          sfctype      ! ice or ocean
@@ -406,9 +405,6 @@
          vatm     , & ! y-direction wind speed (m/s)
          wind     , & ! wind speed (m/s)
          rhoa         ! air density (kg/m^3)
-
-      real (kind=dbl_kind), intent(in) :: &
-         Cdn_atm      ! neutral drag coefficient
 
       real (kind=dbl_kind), intent(inout):: &
          strx     , & ! x surface stress (N)
@@ -429,7 +425,7 @@
          tau, &  ! stress at zlvl
          Lheat   ! Lvap or Lsub, depending on surface type
 
-      character(len=*),parameter :: subname='(atm_boundary_const)'
+      character(len=*),parameter :: subname='(atmo_boundary_const)'
 
       !------------------------------------------------------------
       ! Initialize
@@ -901,6 +897,8 @@
          worku = uvel
       endif
 
+      Cdn_atm_ratio_n = c1
+
                if (trim(atmbndy) == 'constant') then
                   call atmo_boundary_const (sfctype,  calc_strair, &
                                             uatm,     vatm,     &
@@ -909,8 +907,7 @@
                                             Tsf,      potT,     &
                                             Qa,                 &
                                             delt,     delq,     &
-                                            lhcoef,   shcoef,   &
-                                            Cdn_atm)
+                                            lhcoef,   shcoef    )
                   if (icepack_warnings_aborted(subname)) return
                else ! default
                   call atmo_boundary_layer (sfctype,                 &

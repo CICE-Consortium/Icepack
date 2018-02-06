@@ -29,7 +29,7 @@ The icepack driver consists of the following files
 |        **icedrv_init.F90**        general initialization routines
 |        **icedrv_init_column.F90** initialization routines specific to the column physics
 |        **icedrv_restart.F90**     driver for reading/writing restart files
-|        **icedrv_restart_column.F90**  restart routines specific to the column physics
+|        **icedrv_restart_bgc.F90**  restart routines specific to the column physics
 |        **icedrv_restart_shared.F90**  code shared by all restart options
 |        **icedrv_state.F90**       essential arrays to describe the state of the ice
 |        **icedrv_step.F90**        routines for time stepping the major code components

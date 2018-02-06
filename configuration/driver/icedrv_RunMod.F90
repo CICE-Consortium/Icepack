@@ -94,7 +94,7 @@
       use icedrv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
       use icedrv_restart, only: dumpfile, final_restart
-      use icedrv_restart_column, only: write_restart_bgc
+      use icedrv_restart_bgc, only: write_restart_bgc
       use icedrv_state, only: trcrn
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_radiation, &
