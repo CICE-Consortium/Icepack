@@ -288,66 +288,54 @@
 
       ! topo ponds
       real (kind=dbl_kind), public :: &
-         hp1       = 0.01_dbl_kind ! critical pond lid thickness for topo ponds
+         hp1       = 0.01_dbl_kind    ! critical pond lid thickness for topo ponds
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
       character(char_len), public :: &          
-         bgc_flux_type      ! type of ocean-ice piston velocity 
-                            ! 'constant', 'Jin2006' 
+      ! skl biology parameters
+         bgc_flux_type = 'Jin2006'  ! type of ocean-ice poston velocity (or 'constant')
 
       logical (kind=log_kind), public :: &
-         z_tracers,      & ! if .true., bgc or aerosol tracers are vertically resolved
-         scale_bgc,      & ! if .true., initialize bgc tracers proportionally with salinity
-         solve_zbgc,     & ! if .true., solve vertical biochemistry portion of code
-         dEdd_algae        ! if .true., algal absorption of shortwave is computed in the
-
-      logical (kind=log_kind), public :: & 
-         skl_bgc         ! if true, solve skeletal biochemistry
+         z_tracers  = .false.,    & ! if .true., bgc or aerosol tracers are vertically resolved
+         scale_bgc  = .false.,    & ! if .true., initialize bgc tracers proportionally with salinity
+         solve_zbgc = .false.,    & ! if .true., solve vertical biochemistry portion of code
+         dEdd_algae = .false.,    & ! if .true., algal absorption of shortwave is computed in the
+         skl_bgc    = .false.       ! if true, solve skeletal biochemistry
 
       real (kind=dbl_kind), public :: & 
-         grid_o      , & ! for bottom flux        
-         l_sk        , & ! characteristic diffusive scale (zsalinity) (m)
-         phi_snow    , & ! porosity of snow
-         initbio_frac    ! fraction of ocean tracer concentration used to initialize tracer 
-
-      real (kind=dbl_kind), public :: & 
-         grid_oS     , & ! for bottom flux (zsalinity)
-         l_skS           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
-
-      real (kind=dbl_kind), public :: &
-         fr_resp           , &   ! fraction of algal growth lost due to respiration        
-         algal_vel         , &   ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
-         R_dFe2dust        , &   !  g/g (3.5% content) Tagliabue 2009
-         dustFe_sol        , &   ! solubility fraction
-         frazil_scav             ! fraction or multiple of bgc concentrated in frazil ice
-
-      real (kind=dbl_kind), public :: &
-         sk_l      = 0.03_dbl_kind, & ! skeletal layer thickness (m)
-         min_bgc  = 0.01_dbl_kind     ! fraction of ocean bgc concentration in surface melt
-
-      !-----------------------------------------------------------------
-      ! From algal_dyn in icepack_algae.F90
-      !-----------------------------------------------------------------
-
-      real (kind=dbl_kind), public :: &
-         T_max            , & ! maximum temperature (C)
-         fsal             , & ! Salinity limitation (ppt)
-         op_dep_min       , & ! Light attenuates for optical depths exceeding min
-         fr_graze_s       , & ! fraction of grazing spilled or slopped
-         fr_graze_e       , & ! fraction of assimilation excreted 
-         fr_mort2min      , & ! fractionation of mortality to Am
-         fr_dFe           , & ! fraction of remineralized nitrogen (in units of algal iron)
-         k_nitrif         , & ! nitrification rate (1/day)           
-         t_iron_conv      , & ! desorption loss pFe to dFe (day)
-         max_loss         , & ! restrict uptake to % of remaining value 
-         max_dfe_doc1     , & ! max ratio of dFe to saccharides in the ice (nM Fe/muM C)    
-         fr_resp_s        , & ! DMSPd fraction of respiration loss as DMSPd
-         y_sk_DMS         , & ! fraction conversion given high yield
-         t_sk_conv        , & ! Stefels conversion time (d)
-         t_sk_ox              ! DMS oxidation time (d)
+         phi_snow     = p5              , & ! snow porosity
+         grid_o       = c5              , & ! for bottom flux
+         initbio_frac = c1              , & ! fraction of ocean trcr concentration in bio trcrs
+         l_sk         = 7.0_dbl_kind    , & ! characteristic diffusive scale (m)
+         grid_oS      = c5              , & ! for bottom flux
+         l_skS        = 7.0_dbl_kind    , & ! characteristic skeletal layer thickness (m) (zsalinity)
+         algal_vel    = 1.11e-8_dbl_kind, & ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
+         R_dFe2dust   = 0.035_dbl_kind  , & !  g/g (3.5% content) Tagliabue 2009
+         dustFe_sol   = 0.005_dbl_kind  , & ! solubility fraction
+         frazil_scav  = c1              , & ! fraction or multiple of bgc concentrated in frazil ice
+         sk_l         = 0.03_dbl_kind   , & ! skeletal layer thickness (m)
+         min_bgc      = 0.01_dbl_kind   , & ! fraction of ocean bgc concentration in surface melt
+         T_max        = c0              , & ! maximum temperature (C)
+         fsal         = c1              , & ! Salinity limitation (1)
+         op_dep_min   = p1              , & ! light attenuates for optical depths exceeding min
+         fr_graze_s   = p5              , & ! fraction of grazing spilled or slopped
+         fr_graze_e   = p5              , & ! fraction of assimilation excreted
+         fr_mort2min  = p5              , & ! fractionation of mortality to Am
+         fr_dFe       = 0.3_dbl_kind    , & ! fraction of remineralized nitrogen
+                                            ! (in units of algal iron)
+         k_nitrif     = c0              , & ! nitrification rate (1/day)
+         t_iron_conv  = 3065.0_dbl_kind , & ! desorption loss pFe to dFe (day)
+         max_loss     = 0.9_dbl_kind    , & ! restrict uptake to % of remaining value
+         max_dfe_doc1 = 0.2_dbl_kind    , & ! max ratio of dFe to saccharides in the ice
+                                            ! (nM Fe/muM C)
+         fr_resp      = 0.05_dbl_kind   , & ! fraction of algal growth lost due to respiration
+         fr_resp_s    = 0.75_dbl_kind   , & ! DMSPd fraction of respiration loss as DMSPd
+         y_sk_DMS     = p5              , & ! fraction conversion given high yield
+         t_sk_conv    = 3.0_dbl_kind    , & ! Stefels conversion time (d)
+         t_sk_ox      = 10.0_dbl_kind       ! DMS oxidation time (d)
 
 !=======================================================================
 

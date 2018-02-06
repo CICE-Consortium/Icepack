@@ -640,7 +640,7 @@
       integer (kind=int_kind) :: &
          max_aero, nt_Tsfc, nt_alvl, &
          nt_apnd, nt_hpnd, nt_ipnd, nt_aero, nlt_chl_sw, &
-         ntrcr, nbtrcr, nbtrcr_sw, nt_fbri
+         ntrcr, nbtrcr_sw, nt_fbri
 
       integer (kind=int_kind), dimension(:), allocatable :: &
          nlt_zaero_sw, nt_zaero
@@ -672,8 +672,7 @@
       allocate(nlt_zaero_sw(max_aero))
       allocate(nt_zaero(max_aero))
 
-      call icepack_query_tracer_numbers( &
-         ntrcr_out=ntrcr, nbtrcr_out=nbtrcr, nbtrcr_sw_out=nbtrcr_sw)
+      call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_sw_out=nbtrcr_sw)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -718,15 +717,16 @@
 
          if (tmask(i)) then
 
-            call icepack_step_radiation (dt,         ncat,                    &
-                          n_algae,   tr_zaero, nblyr,                     &
-                          ntrcr,     nbtrcr,   nbtrcr_sw,                 &
-                          nilyr,    nslyr,       n_aero,                  &
-                          n_zaero,  dEdd_algae,  nlt_chl_sw,              &
-                          nlt_zaero_sw(:),                                &
-                          swgrid(:),           igrid(:),                  &
-                          fbri(:),                                        &
-                          aicen(i,:),     vicen(i,:),       &
+            call icepack_step_radiation (dt,     ncat,             &
+                          n_algae,               tr_zaero,         &
+                          nblyr,                 ntrcr,            &
+                          nbtrcr_sw,             nilyr,            &
+                          nslyr,                 n_aero,           &
+                          n_zaero,               dEdd_algae,       &
+                          nlt_chl_sw,            nlt_zaero_sw(:),  &
+                          swgrid(:),             igrid(:),         &
+                          fbri(:),                                 &
+                          aicen(i,:),            vicen(i,:),       &
                           vsnon(i,:),                              &
                           trcrn(i,nt_Tsfc,:),                      &
                           trcrn(i,nt_alvl,:),                      &
@@ -734,29 +734,27 @@
                           trcrn(i,nt_hpnd,:),                      &
                           trcrn(i,nt_ipnd,:),                      &
                           trcrn(i,nt_aero:nt_aero+4*n_aero-1,:),   &
-                          ztrcr_sw,                                       &
-                          ztrcr,                                          &
-                          TLAT(i),        TLON(i),          &
-                          calendar_type,         days_per_year,           &
-                          nextsw_cday,           yday,                    &
-                          sec,                                            &
-                          kaer_tab, waer_tab,                             &
-                          gaer_tab,                                       &
-                          kaer_bc_tab(:,:),      waer_bc_tab(:,:),        &
-                          gaer_bc_tab(:,:),      bcenh(:,:,:),            &
-                          modal_aero,                                     &
-                          swvdr(i),       swvdf(i),         &
-                          swidr(i),       swidf(i),         &
-                          coszen(i),      fsnow(i),         &
-                          alvdrn(i,:),    alvdfn(i,:),      &
-                          alidrn(i,:),    alidfn(i,:),      &
-                          fswsfcn(i,:),   fswintn(i,:),     &
-                          fswthrun(i,:),  fswpenln(i,:,:),  &
-                          Sswabsn(i,:,:), Iswabsn(i,:,:),   &
-                          albicen(i,:),   albsnon(i,:),     &
-                          albpndn(i,:),   apeffn(i,:),      &
+                          ztrcr_sw,              ztrcr,            &
+                          TLAT(i),               TLON(i),          &
+                          calendar_type,         days_per_year,    &
+                          nextsw_cday,           yday,             &
+                          sec,                   kaer_tab,         &
+                          waer_tab,              gaer_tab,         &
+                          kaer_bc_tab(:,:),      waer_bc_tab(:,:), &
+                          gaer_bc_tab(:,:),      bcenh(:,:,:),     &
+                          modal_aero,                              &
+                          swvdr(i),              swvdf(i),         &
+                          swidr(i),              swidf(i),         &
+                          coszen(i),             fsnow(i),         &
+                          alvdrn(i,:),           alvdfn(i,:),      &
+                          alidrn(i,:),           alidfn(i,:),      &
+                          fswsfcn(i,:),          fswintn(i,:),     &
+                          fswthrun(i,:),         fswpenln(i,:,:),  &
+                          Sswabsn(i,:,:),        Iswabsn(i,:,:),   &
+                          albicen(i,:),          albsnon(i,:),     &
+                          albpndn(i,:),          apeffn(i,:),      &
                           snowfracn(i,:),                          &
-                          dhsn(i,:),      ffracn(i,:),      &
+                          dhsn(i,:),             ffracn(i,:),      &
                           l_print_point)
 
          endif ! tmask

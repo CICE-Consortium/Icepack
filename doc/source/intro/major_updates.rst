@@ -3,31 +3,24 @@
 .. _updates:
 
 
-Major Icepack updates since CICE v5.1.2
+Major Icepack updates
 ============================================
 
 This model release is Icepack version 1.0.
 
-The column physics code was separated from CICE version 5.1.2 by removing all references to
+Modern sea ice models have evolved into highly complex collections of physical parameterizations and
+infrastructural elements to support various configurations and computational approaches.  In particular,
+numerical models may now be implemented for unstructured grids, requiring new approaches for referencing
+information in neighboring grid cells and communication information across grid elements.  However, a
+large portion of the physics in sea ice models can be described in a vertical column, without reference
+to neighboring grid cells.  This part of the CICE model has been separated into its own modular software
+package, Icepack.  The column physics code was separated from CICE version 5.1.2 by removing all references to
 the horizontal grid and other infrastructural CICE elements (e.g. MPI tasks, calendar).  
 
 To allow the column physics to be developed and maintained as a software package independent of CICE,
 a simplified driver was created along with a full test suite and scripts for building and running
-the code.
+the code.  Icepack includes the simplified driver and scripts for configuring various tests of the 
+column physics code in columnphysics/.
 
-Additional enhancements:
-- This release includes the full vertical biogeochemistry code, including particulate iron, humic material, modal aerosols, proteins, stationary and mobile phases
-- Biogeochemistry can now feed back on sea ice physics through the shortwave formulation
-- The ice velocity can optionally be included in the calculation of wind stress
-- A warning package captures diagnostic and error information from within the column physics, for printing by the driver
-
-Bug fixes:
-- Use net shortwave sum instead of cosine of the zenith angle to limit shortwave calculation for low-/no-light conditions
-- Correct roundoff errors in the delta-Eddington shortwave calculation
-- Define interface temperature in the brine height parameterization
-- Provide flexibility for tracking frazil ice salt/water in the ice or ocean model component
-- When ponds are very thin, ignore them in the radiation calculation
-- Ensure fractions of snow, ponds and bare ice sum to 1
-- Wrap pond tracers in conditional blocks in mushy thermodynamics and form drag parameterization
-- Miscellaneous bug fixes for biogeochemistry and brine height tracer (hbrine)
-
+Enhancements and bug fixes made to Icepack since the last numbered release can be found on the
+Icepack wiki https://github.com/CICE-Consortium/Icepack/wiki/Recent-changes.
