@@ -76,8 +76,8 @@
          hpmin  = 0.005_dbl_kind, & ! minimum allowed melt pond depth (m)
          hp0    = 0.200_dbl_kind    ! pond depth below which transition to bare ice
 
-      real (kind=dbl_kind) :: &
-         exp_min                    ! minimum exponential value
+      real (kind=dbl_kind), parameter :: & 
+         exp_argmax = c10    ! maximum argument of exponential
 
 !=======================================================================
 
@@ -907,17 +907,12 @@
       logical (kind=log_kind) :: &
          linitonly       ! local initonly value
 
-      real (kind=dbl_kind), parameter :: & 
-         argmax = c10    ! maximum argument of exponential
-
       character(len=*),parameter :: subname='(run_dEdd)'
 
       linitonly = .false.
       if (present(initonly)) then
          linitonly = initonly
       endif
-
-      exp_min = exp(-argmax)
 
       ! cosine of the zenith angle
       call compute_coszen (tlat,          tlon, &
@@ -3223,6 +3218,9 @@
          smr      , & ! accumulator for rdif gaussian integration
          smt          ! accumulator for tdif gaussian integration
  
+      real (kind=dbl_kind) :: &
+         exp_min                    ! minimum exponential value
+
       character(len=*),parameter :: subname='(solution_dEdd)'
 
       ! Delta-Eddington solution expressions
@@ -3311,7 +3309,8 @@
             ! non-refracted beam instead
             if( srftyp < 2 .and. k < kfrsnl ) mu0n = mu0
 
-            extins = max(exp_min, exp(-lm*ts))
+            exp_min = min(exp_argmax,lm*ts)
+            extins = exp(-exp_min)
             ne = n(ue,extins)
 
             ! first calculation of rdif, tdif using Delta-Eddington formulas
@@ -3320,7 +3319,8 @@
             tdif_a(k) = c4*ue/ne
 
             ! evaluate rdir,tdir for direct beam
-            trnlay(k) = max(exp_min, exp(-ts/mu0n))
+            exp_min = min(exp_argmax,ts/mu0n)
+            trnlay(k) = exp(-exp_min)
             alp = alpha(ws,mu0n,gs,lm)
             gam = agamm(ws,mu0n,gs,lm)
             apg = alp + gam
@@ -3341,7 +3341,8 @@
                mu  = gauspt(ng)
                gwt = gauswt(ng)
                swt = swt + mu*gwt
-               trn = max(exp_min, exp(-ts/mu))
+               exp_min = min(exp_argmax,ts/mu)
+               trn = exp(-exp_min)
                alp = alpha(ws,mu,gs,lm)
                gam = agamm(ws,mu,gs,lm)
                apg = alp + gam
