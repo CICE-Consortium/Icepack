@@ -17,7 +17,7 @@ addons:
             - clang-5.0
 
 script:
-    - ./icepack.setup -ts base_suite -m travisCI -testid travisCItest -e gnu && cd base_suite.travisCItest && ./results.csh
+    - ./icepack.setup --suite base_suite --testid travisCItest --mach travisCI --env gnu && cd base_suite.travisCItest && ./results.csh
 
 notifications:
     email: false
