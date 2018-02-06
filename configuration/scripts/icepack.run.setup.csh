@@ -4,7 +4,7 @@
 echo "running icepack.run.setup.csh"
 
 source ./icepack.settings
-source ${ICE_CASEDIR}/env.${ICE_MACHINE} || exit 2
+source ${ICE_CASEDIR}/env.${ICE_MACHCOMP} || exit 2
 
 set jobfile = icepack.run
 set subfile = icepack.submit
@@ -28,7 +28,7 @@ cat >> ${jobfile} << EOF1
 
 cd ${ICE_CASEDIR}
 source ./icepack.settings || exit 2
-source ./env.\${ICE_MACHINE} || exit 2
+source ./env.\${ICE_MACHCOMP} || exit 2
 
 echo " "
 echo "\${0}:"
@@ -74,6 +74,7 @@ echo " "
 
 if !(-d \${ICE_LOGDIR}) mkdir -p \${ICE_LOGDIR}
 cp -p \${ICE_RUNLOG_FILE} \${ICE_LOGDIR}
+cp -p ice_diag.* \${ICE_LOGDIR}
 
 grep ' ICEPACK COMPLETED SUCCESSFULLY' \${ICE_RUNLOG_FILE}
 if ( \$status != 0 ) then

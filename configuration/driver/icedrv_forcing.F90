@@ -13,7 +13,7 @@
       use icedrv_constants, only: nu_diag, nu_forcing
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters, icepack_query_constants
+      use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_sea_freezing_temperature
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
@@ -60,7 +60,7 @@
           swidr_data, &
           swidf_data, &
            zlvl_data, &
-          hmix_data
+           hmix_data
 
       real (kind=dbl_kind), dimension(nx) :: &
           sst_temp
@@ -77,7 +77,6 @@
       character(char_len_long), public :: & 
          data_dir           ! top directory for forcing data
 
-      ! as in the dummy atm (latm)
       real (kind=dbl_kind), parameter, public :: &
          frcvdr = 0.28_dbl_kind, & ! frac of incoming sw in vis direct band
          frcvdf = 0.24_dbl_kind, & ! frac of incoming sw in vis diffuse band
@@ -85,11 +84,12 @@
          frcidf = 0.17_dbl_kind    ! frac of incoming sw in near IR diffuse band
 
       logical (kind=log_kind), public :: &
+         oceanmixed_ice        , & ! if true, use internal ocean mixed layer
          restore_ocn               ! restore sst if true
 
       real (kind=dbl_kind), public :: & 
-         trest, &                    ! restoring time scale (sec)
-         trestore                    ! restoring time scale (days)
+         trest, &                  ! restoring time scale (sec)
+         trestore                  ! restoring time scale (days)
 
 !=======================================================================
 
@@ -116,11 +116,10 @@
     !-------------------------------------------------------------------
     ! Initialize forcing data to default values
     !-------------------------------------------------------------------
-! maybe these should all be zero, and set defaults in particular source 
-! routines to be clear which ones are defaults and which are being read in
 
       ! many default forcing values are set in init_flux_atm
       i = 1 ! use first grid box value
+
           zlvl_data(:) = zlvl (i)    ! atmospheric data level (m)
           Tair_data(:) = Tair (i)    ! air temperature  (K)
           potT_data(:) = potT (i)    ! air potential temperature  (K)
@@ -142,18 +141,15 @@
            qdp_data(:) = qdp  (i)    ! deep ocean heat flux (W/m^2)
            sst_data(:) = sst  (i)    ! sea surface temperature
            sss_data(:) = sss  (i)    ! sea surface salinity
-          uocn_data(:) = uocn (i)    ! wind velocity components (m/s)
+          uocn_data(:) = uocn (i)    ! ocean current components (m/s)
           vocn_data(:) = vocn (i)
+          cldf_data(:) = c0          ! cloud fraction
 
-          cldf_data(:) = c0     ! cloud fraction
+      if (trim(atm_data_type(1:4)) == 'CFS')   call atm_CFS
+      if (trim(atm_data_type(1:4)) == 'clim')  call atm_climatological
+      if (trim(atm_data_type(1:5)) == 'ISPOL') call atm_ISPOL
+      if (trim(atm_data_type(1:4)) == 'NICE')  call atm_NICE
 
-      if (trim(atm_data_type(1:4)) == 'CFS') call atm_CFS
-      if (trim(atm_data_type(1:4)) == 'clim') call atm_climatological
-
-      if (trim(atm_data_type) == 'ISPOL') call atm_ISPOL
-      if (trim(atm_data_type) == 'NICE') call atm_NICE
-
-      !cn if (restore_ocn .or. restore_bgc) then
       if (restore_ocn) then
         if (trestore == 0) then
           trest = dt        ! use data instantaneously
@@ -162,8 +158,8 @@
         end if
       endif
 
-      if (trim(ocn_data_type) == 'ISPOL') call ocn_ISPOL
-      if (trim(ocn_data_type) == 'NICE') call ocn_NICE
+      if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
+      if (trim(ocn_data_type(1:4)) == 'NICE')  call ocn_NICE
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     flw_data,      &
@@ -370,38 +366,6 @@
 
       call finish_ocn_forcing(sst_temp)
 
-! for debugging
-!if (timestep==2736.or.timestep==2742) then
-if (0==1) then ! off
-write (nu_diag,*) 'timestep, mlast,mnext,yday',timestep, mlast, mnext, yday
-write (nu_diag,*) 'recnum',recnum
-write (nu_diag,*) 'c1intp, c2intp',c1intp, c2intp
-write (nu_diag,*) 'flw',flw
-write (nu_diag,*) 'fsw',fsw
-write (nu_diag,*) 'flw_data(timestep)',flw_data(timestep)
-write (nu_diag,*) 'fsw_data(timestep)',fsw_data(timestep)
-write (nu_diag,*) 'Tair',Tair
-write (nu_diag,*) 'Qa',Qa
-write (nu_diag,*) 'fsnow',fsnow
-write (nu_diag,*) 'frain',frain
-write (nu_diag,*) 'potT',potT
-write (nu_diag,*) 'rhoa',rhoa
-write (nu_diag,*) 'uatm',uatm
-write (nu_diag,*) 'vatm',vatm
-write (nu_diag,*) 'wind',wind
-write (nu_diag,*) 'strax',strax
-write (nu_diag,*) 'stray',stray
-write (nu_diag,*) 'swvdr',swvdr
-write (nu_diag,*) 'swvdf',swvdf
-write (nu_diag,*) 'swidr',swidr
-write (nu_diag,*) 'swidf',swidf
-write (nu_diag,*) 'sst',sst
-write (nu_diag,*) 'sss',sss
-write (nu_diag,*) 'uocn',uocn
-write (nu_diag,*) 'vocn',vocn
-write (nu_diag,*) 'qdp',qdp
-endif
-
       end subroutine get_forcing
 
 !=======================================================================
@@ -443,11 +407,17 @@ endif
       data fsnow_clim/ 3.17e-9, 3.17e-9, 3.17e-9, 3.17e-9, 1.90e-8,    0.0, &
                            0.0, 1.63e-8, 4.89e-8, 4.89e-8, 3.17e-9, 3.17e-9 /
 
-      call icepack_query_constants(Tffresh_out=Tffresh, qqqice_out=qqqice, &
+      !-----------------------------------------------------------------
+      ! query icepack values
+      !-----------------------------------------------------------------
+
+      call icepack_query_parameters(Tffresh_out=Tffresh, qqqice_out=qqqice, &
            TTTice_out=TTTice, rhos_out=rhos)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
 
        fsw_data (1:12) =  fsw_clim (1:12)
        flw_data (1:12) =  flw_clim (1:12)
@@ -517,9 +487,6 @@ endif
 
       close (nu_forcing)
 
-!      write(nu_diag,*), 'CFS data', &
-!         dswsfc, dlwsfc, windu10, windv10, temp2m, spechum, precip
-
       end subroutine atm_CFS
 
 !=======================================================================
@@ -578,8 +545,12 @@ endif
 
       zlvl0 = c10 ! default
 
+      !-----------------------------------------------------------------
+      ! query icepack values
+      !-----------------------------------------------------------------
+
       call icepack_query_parameters(calc_strair_out=calc_strair)
-      call icepack_query_constants(Tffresh_out=Tffresh)
+      call icepack_query_parameters(Tffresh_out=Tffresh)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -621,12 +592,11 @@ endif
             ! precip is in kg/m^2/s
             zlvl0 = c2
 
-          elseif (trim(atm_data_type) == 'ISPOL' .or. &
-              trim(atm_data_type) == 'NICE') then
+         elseif (trim(atm_data_type) == 'ISPOL' .or. &
+                 trim(atm_data_type) == 'NICE') then
             Tair(nt) = Tair(nt) -  lapse_rate*8.0_dbl_kind
 
-          endif                     ! atm_data_type
-
+         endif                     ! atm_data_type
 
 ! this longwave depends on the current ice aice and sst and so can not be
 ! computed ahead of time
@@ -790,19 +760,20 @@ endif
       ! there is data for 366 days, but we only use 365
 
       integer (kind=int_kind) :: &
-         i
+         i        ! index
 
       real (kind=dbl_kind), dimension(366) :: &
-          tair, &
-          qa, &
-          uatm, &
-          vatm, &
-          fsnow, &
-          aday
+         tair , & ! air temperature
+         qa   , & ! specific humidity
+         uatm , & ! wind velocity components
+         vatm , &
+         fsnow    ! snowfall rate
+         ! aday   ! not used
+
       real (kind=dbl_kind), dimension(1464) :: &
-          fsw, &
-          flw, &
-          atime
+         fsw  , & ! shortwave
+         flw      ! longwave
+         ! atime  ! not used
 
       character (char_len_long) filename
 
@@ -821,19 +792,19 @@ endif
       read(nu_forcing,*) uatm
       read(nu_forcing,*) vatm
       read(nu_forcing,*) fsnow
-      read(nu_forcing,*) aday
-      read(nu_forcing,*) atime
+!      read(nu_forcing,*) aday
+!      read(nu_forcing,*) atime
 
       do i = 1, 366 ! daily
-         Tair_data (i) = tair(i)
-         Qa_data   (i) = qa(i)
-         uatm_data (i) = uatm(i)
-         vatm_data (i) = vatm(i)
+         Tair_data (i) = tair (i)
+         Qa_data   (i) = qa   (i)
+         uatm_data (i) = uatm (i)
+         vatm_data (i) = vatm (i)
          fsnow_data(i) = fsnow(i)
       end do
       do i = 1, 1464 ! 6hr, 1464/4=366 days
-         fsw_data  (i) = fsw(i)
-         flw_data  (i) = flw(i)
+         fsw_data  (i) = fsw  (i)
+         flw_data  (i) = flw  (i)
       end do
 
       close(nu_forcing)
@@ -846,19 +817,20 @@ endif
       ! there is data for 366 days, but we only use 365
 
       integer (kind=int_kind) :: &
-         i
+         i        ! index
 
       real (kind=dbl_kind), dimension(366) :: &
-          tair, &
-          qa, &
-          uatm, &
-          vatm, &
-          fsnow, &
-          aday
+         tair , & ! air temperature
+         qa   , & ! specific humidity
+         uatm , & ! wind velocity components
+         vatm , &
+         fsnow    ! snowfall rate
+         ! aday   ! not used
+
       real (kind=dbl_kind), dimension(1464) :: &
-          fsw, &
-          flw, &
-          atime
+         fsw  , & ! shortwave
+         flw      ! longwave
+         ! atime  ! not used
 
       character (char_len_long) filename
 
@@ -877,19 +849,19 @@ endif
       read(nu_forcing,*) uatm
       read(nu_forcing,*) vatm
       read(nu_forcing,*) fsnow
-      read(nu_forcing,*) aday
-      read(nu_forcing,*) atime
+!      read(nu_forcing,*) aday
+!      read(nu_forcing,*) atime
 
       do i = 1, 366
-        Tair_data (i) = tair(i)
-        Qa_data   (i) = qa(i)
-        uatm_data (i) = uatm(i)
-        vatm_data (i) = vatm(i)
-        fsnow_data(i) = fsnow(i)
+         Tair_data (i) = tair (i)
+         Qa_data   (i) = qa   (i)
+         uatm_data (i) = uatm (i)
+         vatm_data (i) = vatm (i)
+         fsnow_data(i) = fsnow(i)
       end do
       do i = 1, 1464
-        fsw_data  (i) = fsw(i)
-        flw_data  (i) = flw(i)
+         fsw_data  (i) = fsw  (i)
+         flw_data  (i) = flw  (i)
       end do
 
       close(nu_forcing)
@@ -936,12 +908,12 @@ endif
       close(nu_forcing)
 
       do i = 1, 365 ! daily
-         sst_data (i) = t(i)
-         sss_data (i) = s(i)
+         sst_data (i) = t   (i)
+         sss_data (i) = s   (i)
          hmix_data(i) = hblt(i)
-         uocn_data(i) = u(i)
-         vocn_data(i) = v(i)
-         qdp_data (i) = qdp(i)
+         uocn_data(i) = u   (i)
+         vocn_data(i) = v   (i)
+         qdp_data (i) = qdp (i)
       end do
 
       end subroutine ocn_NICE
@@ -986,12 +958,12 @@ endif
       close(nu_forcing)
 
       do i = 1, 12 ! monthly
-         sst_data (i) = t(i)
-         sss_data (i) = s(i)
+         sst_data (i) = t   (i)
+         sss_data (i) = s   (i)
          hmix_data(i) = hblt(i)
-         uocn_data(i) = u(i)
-         vocn_data(i) = v(i)
-         qdp_data (i) = qdp(i)
+         uocn_data(i) = u   (i)
+         vocn_data(i) = v   (i)
+         qdp_data (i) = qdp (i)
       end do
 
     end subroutine ocn_ISPOL

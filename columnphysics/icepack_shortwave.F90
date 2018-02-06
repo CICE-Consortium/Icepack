@@ -42,11 +42,11 @@
       module icepack_shortwave
 
       use icepack_kinds
-      use icepack_constants,  only: c0, c1, c1p5, c2, c3, c4, c10
-      use icepack_constants,  only: p01, p1, p15, p25, p5, p75, puny
-      use icepack_constants,  only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
-      use icepack_constants,  only: kappav, hs_min, rhofresh, rhos, nspint
-      use icepack_constants,  only: hi_ssl, hs_ssl, min_bgc, sk_l
+      use icepack_parameters, only: c0, c1, c1p5, c2, c3, c4, c10
+      use icepack_parameters, only: p01, p1, p15, p25, p5, p75, puny
+      use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
+      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint
+      use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1, modal_aero
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
@@ -76,8 +76,8 @@
          hpmin  = 0.005_dbl_kind, & ! minimum allowed melt pond depth (m)
          hp0    = 0.200_dbl_kind    ! pond depth below which transition to bare ice
 
-      real (kind=dbl_kind) :: &
-         exp_min                    ! minimum exponential value
+      real (kind=dbl_kind), parameter :: & 
+         exp_argmax = c10    ! maximum argument of exponential
 
 !=======================================================================
 
@@ -907,17 +907,12 @@
       logical (kind=log_kind) :: &
          linitonly       ! local initonly value
 
-      real (kind=dbl_kind), parameter :: & 
-         argmax = c10    ! maximum argument of exponential
-
       character(len=*),parameter :: subname='(run_dEdd)'
 
       linitonly = .false.
       if (present(initonly)) then
          linitonly = initonly
       endif
-
-      exp_min = exp(-argmax)
 
       ! cosine of the zenith angle
       call compute_coszen (tlat,          tlon, &
@@ -1465,7 +1460,7 @@
 
       if (l_print_point .and. netsw > puny) then
 
-         write(warnstr,*) subname, ' printing point = ',n
+         write(warnstr,*) subname, ' printing point'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, ' coszen = ', &
                             coszen
@@ -3223,6 +3218,9 @@
          smr      , & ! accumulator for rdif gaussian integration
          smt          ! accumulator for tdif gaussian integration
  
+      real (kind=dbl_kind) :: &
+         exp_min                    ! minimum exponential value
+
       character(len=*),parameter :: subname='(solution_dEdd)'
 
       ! Delta-Eddington solution expressions
@@ -3311,7 +3309,8 @@
             ! non-refracted beam instead
             if( srftyp < 2 .and. k < kfrsnl ) mu0n = mu0
 
-            extins = max(exp_min, exp(-lm*ts))
+            exp_min = min(exp_argmax,lm*ts)
+            extins = exp(-exp_min)
             ne = n(ue,extins)
 
             ! first calculation of rdif, tdif using Delta-Eddington formulas
@@ -3320,7 +3319,8 @@
             tdif_a(k) = c4*ue/ne
 
             ! evaluate rdir,tdir for direct beam
-            trnlay(k) = max(exp_min, exp(-ts/mu0n))
+            exp_min = min(exp_argmax,ts/mu0n)
+            trnlay(k) = exp(-exp_min)
             alp = alpha(ws,mu0n,gs,lm)
             gam = agamm(ws,mu0n,gs,lm)
             apg = alp + gam
@@ -3341,7 +3341,8 @@
                mu  = gauspt(ng)
                gwt = gauswt(ng)
                swt = swt + mu*gwt
-               trn = max(exp_min, exp(-ts/mu))
+               exp_min = min(exp_argmax,ts/mu)
+               trn = exp(-exp_min)
                alp = alpha(ws,mu,gs,lm)
                gam = agamm(ws,mu,gs,lm)
                apg = alp + gam
@@ -3872,10 +3873,10 @@
 !          David Bailey, NCAR
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_radiation (dt,       ncat,      & 
+      subroutine icepack_step_radiation (dt,       ncat,     &
                                         n_algae,  tr_zaero,  &
                                         nblyr,    ntrcr,     &
-                                        nbtrcr,   nbtrcr_sw, &
+                                        nbtrcr_sw,           &
                                         nilyr,    nslyr,     &
                                         n_aero,   n_zaero,   &
                                         dEdd_algae,          &
@@ -3926,7 +3927,6 @@
          nlt_chl_sw, & ! index for chla
          nblyr     , &
          ntrcr     , &
-         nbtrcr    , &
          nbtrcr_sw , &
          n_algae
 

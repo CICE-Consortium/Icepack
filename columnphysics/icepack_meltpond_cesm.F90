@@ -16,8 +16,8 @@
       module icepack_meltpond_cesm
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, p01, puny
-      use icepack_constants, only: rhofresh, rhoi, rhos, Timelt
+      use icepack_parameters, only: c0, c1, c2, p01, puny
+      use icepack_parameters, only: rhofresh, rhoi, rhos, Timelt
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 

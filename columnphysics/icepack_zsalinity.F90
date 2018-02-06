@@ -14,8 +14,8 @@
       module icepack_zsalinity
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
-      use icepack_constants, only: rhosi, min_salin, salt_loss
+      use icepack_parameters, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
+      use icepack_parameters, only: rhosi, min_salin, salt_loss
       use icepack_parameters, only: l_skS, grid_oS, l_sk
       use icepack_parameters, only: solve_zsal, dts_b
       use icepack_tracers, only: nt_sice

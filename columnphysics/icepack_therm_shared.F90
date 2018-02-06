@@ -9,10 +9,10 @@
 
       use icepack_kinds
 
-      use icepack_constants, only: c0, c1, c2, c4, p5, pi
-      use icepack_constants, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
-      use icepack_constants, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
-      use icepack_constants, only: saltmax, min_salin, depressT
+      use icepack_parameters, only: c0, c1, c2, c4, p5, pi
+      use icepack_parameters, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
+      use icepack_parameters, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
+      use icepack_parameters, only: saltmax, min_salin, depressT
       use icepack_parameters, only: ktherm, heat_capacity, tfrz_option
       use icepack_parameters, only: calc_Tsfc
       use icepack_warnings, only: warnstr, icepack_warnings_add

@@ -15,7 +15,7 @@
       module icepack_firstyear
 
       use icepack_kinds
-      use icepack_constants, only: secday, c0
+      use icepack_parameters, only: secday, c0
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 

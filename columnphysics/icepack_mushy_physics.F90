@@ -1,10 +1,10 @@
 module icepack_mushy_physics
 
   use icepack_kinds
-  use icepack_constants, only: c0, c1, c2, c4, c8, c10, c1000
-  use icepack_constants, only: p001, p01, p05, p1, p2, p5, pi, bignum, puny, ice_ref_salinity
-  use icepack_constants, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
-  use icepack_constants, only: hs_min, ksno
+  use icepack_parameters, only: c0, c1, c2, c4, c8, c10, c1000
+  use icepack_parameters, only: p001, p01, p05, p1, p2, p5, pi, bignum, puny, ice_ref_salinity
+  use icepack_parameters, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
+  use icepack_parameters, only: hs_min, ksno
   use icepack_warnings, only: warnstr, icepack_warnings_add
   use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 

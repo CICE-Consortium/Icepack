@@ -10,7 +10,6 @@
       use icedrv_constants, only: nu_diag, ice_stdout, nu_diag_out, nu_nml
       use icedrv_constants, only: c0, c1, c2, c3, p2, p5
       use icedrv_domain_size, only: nx
-      use icepack_intfc, only: icepack_init_constants
       use icepack_intfc, only: icepack_init_parameters
       use icepack_intfc, only: icepack_init_tracer_flags
       use icepack_intfc, only: icepack_init_tracer_numbers
@@ -20,7 +19,6 @@
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_numbers
       use icepack_intfc, only: icepack_query_tracer_indices
-      use icepack_intfc, only: icepack_query_constants
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
 
@@ -57,7 +55,6 @@
 
       subroutine input_data
 
-      use icedrv_arrays_column, only: oceanmixed_ice
       use icedrv_diagnostics, only: diag_file, nx_names
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icedrv_calendar, only: year_init, istep0
@@ -70,7 +67,7 @@
       use icedrv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
       use icedrv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icedrv_forcing, only: data_dir
-      use icedrv_forcing, only: restore_ocn, trestore
+      use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
 
       ! local variables
 
@@ -78,12 +75,11 @@
          nml_filename = 'icepack_in' ! namelist input file name
 
       integer (kind=int_kind) :: &
-        nml_error, & ! namelist i/o error flag
-        n,         & ! loop index
-        diag_len     ! length of diag file
+         nml_error, & ! namelist i/o error flag
+         n,         & ! loop index
+         diag_len     ! length of diag file
 
       character (len=char_len) :: diag_file_names
-
       character (len=6) :: chartmp
       character (len=32) :: str
       character (len=20) :: format_str
@@ -91,16 +87,16 @@
       logical :: exists
 
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
-        ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
-        mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
-        a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
-        phi_c_slow_mode, phi_i_mushy, kalg
+         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
+         mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
+         a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
+         phi_c_slow_mode, phi_i_mushy, kalg
 
-      integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, natmiter, &
-        kitd, kcatbound
+      integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, &
+         natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
-        tfrz_option, frzpnd, atmbndy
+         tfrz_option, frzpnd, atmbndy
 
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
 
@@ -115,7 +111,7 @@
       character(len=*), parameter :: subname='(input_data)'
 
       !-----------------------------------------------------------------
-      ! Namelist variables.
+      ! Namelist variables
       !-----------------------------------------------------------------
 
       namelist /setup_nml/ &
@@ -171,7 +167,30 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_constants(puny_out=puny)
+      call icepack_query_parameters(ustar_min_out=ustar_min, Cf_out=Cf, &
+         albicev_out=albicev, albicei_out=albicei, &
+         albsnowv_out=albsnowv, albsnowi_out=albsnowi, &
+         natmiter_out=natmiter, ahmax_out=ahmax, shortwave_out=shortwave, &
+         albedo_type_out=albedo_type, R_ice_out=R_ice, R_pnd_out=R_pnd, &
+         R_snw_out=R_snw, dT_mlt_out=dT_mlt, rsnw_mlt_out=rsnw_mlt, &
+         kstrength_out=kstrength, krdg_partic_out=krdg_partic, &
+         krdg_redist_out=krdg_redist, mu_rdg_out=mu_rdg, &
+         atmbndy_out=atmbndy, calc_strair_out=calc_strair, &
+         formdrag_out=formdrag, highfreq_out=highfreq, &
+         kitd_out=kitd, kcatbound_out=kcatbound, hs0_out=hs0, & 
+         dpscale_out=dpscale, frzpnd_out=frzpnd, &
+         rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
+         pndaspect_out=pndaspect, hs1_out=hs1, hp1_out=hp1, &
+         ktherm_out=ktherm, calc_Tsfc_out=calc_Tsfc, &
+         update_ocn_f_out = update_ocn_f, &
+         conduct_out=conduct, a_rapid_mode_out=a_rapid_mode, &
+         Rac_rapid_mode_out=Rac_rapid_mode, &
+         aspect_rapid_mode_out=aspect_rapid_mode, &
+         dSdt_slow_mode_out=dSdt_slow_mode, &
+         phi_c_slow_mode_out=phi_c_slow_mode, &
+         phi_i_mushy_out=phi_i_mushy, &
+         tfrz_option_out=tfrz_option, kalg_out=kalg, &
+         fbot_xfer_type_out=fbot_xfer_type, puny_out=puny)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -196,58 +215,16 @@
       restart_file = 'iced'  ! restart file name prefix
       ice_ic       = 'default'      ! initial conditions are specified in the code
                                     ! otherwise, the filename for reading restarts
-      kitd = 1               ! type of itd conversions (0 = delta, 1 = linear)
-      kcatbound = 1          ! category boundary formula (0 = old, 1 = new, etc)
       ndtd = 1               ! dynamic time steps per thermodynamic time step
-      kstrength = 1          ! 1 = Rothrock 75 strength, 0 = Hibler 79
-      krdg_partic = 1        ! 1 = new participation, 0 = Thorndike et al 75
-      krdg_redist = 1        ! 1 = new redistribution, 0 = Hibler 80
-      mu_rdg = 3             ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
-      Cf = 17.0_dbl_kind     ! ratio of ridging work to PE change in ridging 
-      shortwave = 'dEdd'     ! 'ccsm3' or 'dEdd' (delta-Eddington)
-      albedo_type = 'ccsm3'  ! or 'constant'
-      ktherm = 1             ! 0 = 0-layer, 1 = BL99, 2 = mushy thermo
-      conduct = 'bubbly'     ! 'MU71' or 'bubbly' (Pringle et al 2007)
-      calc_Tsfc = .true.     ! calculate surface temperature
-      update_ocn_f = .false. ! include fresh water and salt fluxes for frazil
-      ustar_min = 0.005_dbl_kind  ! minimum friction velocity for ocean heat flux (m/s)
       l_mpond_fresh = .false.     ! logical switch for including meltpond freshwater
                                   ! flux feedback to ocean model
-      fbot_xfer_type = 'constant' ! transfer coefficient type for ocn heat flux
-      R_ice     = 0.00_dbl_kind   ! tuning parameter for sea ice
-      R_pnd     = 0.00_dbl_kind   ! tuning parameter for ponded sea ice
-      R_snw     = 1.50_dbl_kind   ! tuning parameter for snow over sea ice
-      dT_mlt    = 1.5_dbl_kind    ! change in temp to give non-melt to melt change
-                                  ! in snow grain radius
-      rsnw_mlt  = 1500._dbl_kind  ! maximum melting snow grain radius
-      kalg      = 0.60_dbl_kind   ! algae absorption coefficient for 0.5 m thick layer
-                                  ! 0.5 m path of 75 mg Chl a / m2
-      hp1       = 0.01_dbl_kind   ! critical pond lid thickness for topo ponds
-      hs0       = 0.03_dbl_kind   ! snow depth for transition to bare sea ice (m)
-      hs1       = 0.03_dbl_kind   ! snow depth for transition to bare pond ice (m)
-      dpscale   = c1              ! alter e-folding time scale for flushing 
-      frzpnd    = 'cesm'          ! melt pond refreezing parameterization
-      rfracmin  = 0.15_dbl_kind   ! minimum retained fraction of meltwater
-      rfracmax  = 0.85_dbl_kind   ! maximum retained fraction of meltwater
-      pndaspect = 0.8_dbl_kind    ! ratio of pond depth to area fraction
-      albicev   = 0.78_dbl_kind   ! visible ice albedo for h > ahmax
-      albicei   = 0.36_dbl_kind   ! near-ir ice albedo for h > ahmax
-      albsnowv  = 0.98_dbl_kind   ! cold snow albedo, visible
-      albsnowi  = 0.70_dbl_kind   ! cold snow albedo, near IR
-      ahmax     = 0.3_dbl_kind    ! thickness above which ice albedo is constant (m)
-      atmbndy   = 'default'       ! or 'constant'
       default_season  = 'winter'  ! default forcing data, if data is not read in
       fyear_init      = 1998      ! initial forcing year
       ycycle          = 1         ! number of years in forcing cycle
       atm_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       atm_data_type   = 'default' ! source of atmospheric forcing data
-      calc_strair     = .true.    ! calculate wind stress
-      formdrag        = .false.   ! calculate form drag
-      highfreq        = .false.   ! calculate high frequency RASM coupling
-      natmiter        = 5         ! number of iterations for atm boundary layer calcs
       precip_units    = 'mks'     ! 'mm_per_month' or
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
-      tfrz_option     = 'mushy'   ! freezing temp formulation
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default' ! source of ocean forcing data
@@ -265,14 +242,6 @@
       tr_pond_lvl  = .false. ! level-ice melt ponds
       tr_pond_topo = .false. ! explicit melt ponds (topographic)
       tr_aero      = .false. ! aerosols
-
-      ! mushy layer gravity drainage physics
-      a_rapid_mode      =  0.5e-3_dbl_kind ! channel radius for rapid drainage mode (m)
-      Rac_rapid_mode    =    10.0_dbl_kind ! critical Rayleigh number
-      aspect_rapid_mode =     1.0_dbl_kind ! aspect ratio (larger is wider)
-      dSdt_slow_mode    = -1.5e-7_dbl_kind ! slow mode drainage strength (m s-1 K-1)
-      phi_c_slow_mode   =    0.05_dbl_kind ! critical liquid fraction porosity cutoff
-      phi_i_mushy       =    0.85_dbl_kind ! liquid fraction of congelation ice
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -314,8 +283,8 @@
       end do
       if (nml_error == 0) close(nu_nml)
       if (nml_error /= 0) then
-        write(ice_stdout,*) 'error reading namelist'
-        call icedrv_system_abort(file=__FILE__,line=__LINE__)
+         write(ice_stdout,*) 'error reading namelist'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
       
@@ -467,11 +436,6 @@
          write (nu_diag,*) 'WARNING: Setting fbot_xfer_type = constant'
          fbot_xfer_type = 'constant'
       endif
-
-      call icepack_init_constants(Cf_in=Cf)
-      call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-          file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
       ! spew
@@ -703,7 +667,7 @@
       ! set Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_init_parameters(ustar_min_in=ustar_min, &
+      call icepack_init_parameters(ustar_min_in=ustar_min, Cf_in=Cf, &
          albicev_in=albicev, albicei_in=albicei, &
          albsnowv_in=albsnowv, albsnowi_in=albsnowi, &
          natmiter_in=natmiter, ahmax_in=ahmax, shortwave_in=shortwave, &
@@ -713,7 +677,7 @@
          krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
          atmbndy_in=atmbndy, calc_strair_in=calc_strair, &
          formdrag_in=formdrag, highfreq_in=highfreq, &
-         kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, & 
+         kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, &
          dpscale_in=dpscale, frzpnd_in=frzpnd, &
          rfracmin_in=rfracmin, rfracmax_in=rfracmax, &
          pndaspect_in=pndaspect, hs1_in=hs1, hp1_in=hp1, &
@@ -761,7 +725,7 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_constants(pi_out=pi,puny_out=puny)
+      call icepack_query_parameters(pi_out=pi,puny_out=puny)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -784,13 +748,13 @@
       ! create hemisphere masks
       !-----------------------------------------------------------------
 
-         lmask_n(:) = .false.
-         lmask_s(:) = .false.
+      lmask_n(:) = .false.
+      lmask_s(:) = .false.
 
-         do i = 1, nx
-            if (TLAT(i) >= -puny) lmask_n(i) = .true. ! N. Hem.
-            if (TLAT(i) <  -puny) lmask_s(i) = .true. ! S. Hem.
-         enddo
+      do i = 1, nx
+         if (TLAT(i) >= -puny) lmask_n(i) = .true. ! N. Hem.
+         if (TLAT(i) <  -puny) lmask_s(i) = .true. ! S. Hem.
+      enddo
 
       end subroutine init_grid2
 
@@ -1105,7 +1069,7 @@
       call icepack_query_tracer_indices( nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
         nt_qsno_out=nt_qsno, nt_sice_out=nt_sice, &
         nt_fbri_out=nt_fbri, nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
-      call icepack_query_constants(rhos_out=rhos, Lfresh_out=Lfresh, puny_out=puny)
+      call icepack_query_parameters(rhos_out=rhos, Lfresh_out=Lfresh, puny_out=puny)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
          file=__FILE__,line= __LINE__)

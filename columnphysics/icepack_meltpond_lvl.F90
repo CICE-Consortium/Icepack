@@ -16,9 +16,9 @@
       module icepack_meltpond_lvl
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, c10, p01, p5, puny
-      use icepack_constants, only: viscosity_dyn, rhoi, rhos, rhow, Timelt, Tffresh, Lfresh
-      use icepack_constants, only: gravit, depressT, rhofresh, kice
+      use icepack_parameters, only: c0, c1, c2, c10, p01, p5, puny
+      use icepack_parameters, only: viscosity_dyn, rhoi, rhos, rhow, Timelt, Tffresh, Lfresh
+      use icepack_parameters, only: gravit, depressT, rhofresh, kice
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 

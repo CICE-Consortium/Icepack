@@ -10,14 +10,14 @@
       module icepack_zbgc_shared
 
       use icepack_kinds
-      use icepack_constants, only: p01, p1, p5, c0, c1, secday, puny
-      use icepack_constants, only: hs_ssl, sk_l
-      use icepack_constants, only: rhoi, cp_ocn, cp_ice, Lfresh  
+      use icepack_parameters, only: p01, p1, p5, c0, c1, secday, puny
+      use icepack_parameters, only: hs_ssl, sk_l
+      use icepack_parameters, only: rhoi, cp_ocn, cp_ice, Lfresh  
+      use icepack_parameters, only: solve_zbgc
+      use icepack_parameters, only: fr_resp
       use icepack_tracers, only: max_nbtrcr, max_algae, max_doc
       use icepack_tracers, only: max_dic, max_aero, max_don, max_fe
       use icepack_tracers, only: nt_bgc_N, nt_fbri
-      use icepack_parameters, only: solve_zbgc
-      use icepack_parameters, only: fr_resp
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -40,28 +40,6 @@
       ! Algal types: Diatoms, flagellates, Phaeocycstis
       ! DOC        : Proteins, EPS, Lipids
       !-----------------------------------------------------------------
-      real (kind=dbl_kind), dimension(max_dic), public :: &
-         dictype   = (/-c1/)  ! not in namelist
-
-      real (kind=dbl_kind), dimension(max_algae), public :: &
-         algaltype   ! tau_min for both retention and release
-
-      real (kind=dbl_kind), dimension(max_doc), public :: &
-         doctype
-
-      real (kind=dbl_kind), dimension(max_don), public :: &
-         dontype
-
-      real (kind=dbl_kind), dimension(max_fe), public :: &
-         fedtype
-
-      real (kind=dbl_kind), dimension(max_fe), public :: &
-         feptype
-
-      real (kind=dbl_kind), public :: &
-         nitratetype, ammoniumtype, silicatetype, &
-         dmspptype, dmspdtype, humtype
-
       !------------------------------------------------------------
       ! Aerosol order and type should be consistent with order/type
       ! specified in delta Eddington:  1) hydrophobic black carbon;
@@ -69,8 +47,6 @@
       ! 4) dust (0.5-1.25 micron); 5) dust (1.25-2.5 micron);
       ! 6) dust (2.5-5 micron)
       !-------------------------------------------------------------
-      real (kind=dbl_kind), dimension(max_aero), public :: &
-         zaerotype
 
       ! bio parameters for algal_dyn
  

@@ -10,9 +10,8 @@
       module icepack_zbgc
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, p001, p1, p15, p5, puny
-      use icepack_constants, only: depressT, rhosi, min_salin, salt_loss
-
+      use icepack_parameters, only: c0, c1, c2, p001, p1, p15, p5, puny
+      use icepack_parameters, only: depressT, rhosi, min_salin, salt_loss
       use icepack_parameters, only: fr_resp, algal_vel, R_dFe2dust, dustFe_sol, T_max
       use icepack_parameters, only: op_dep_min, fr_graze_s, fr_graze_e, fr_mort2min, fr_dFe
       use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
@@ -37,10 +36,6 @@
       use icepack_zbgc_shared, only: f_don, kn_bac, f_don_Am, f_doc
       use icepack_zbgc_shared, only: f_exude, k_bac
       use icepack_zbgc_shared, only: tau_ret, tau_rel
-      use icepack_zbgc_shared, only: dictype, algaltype, doctype, dontype
-      use icepack_zbgc_shared, only: fedtype, feptype, zaerotype
-      use icepack_zbgc_shared, only: nitratetype, silicatetype, ammoniumtype
-      use icepack_zbgc_shared, only: humtype, dmspptype, dmspdtype
       use icepack_zbgc_shared, only: R_C2N, R_CHL2N, f_abs_chl, R_C2N_DON
 
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -681,30 +676,12 @@
                  alpha2max_low_in, beta2max_in, mu_max_in, fr_graze_in, mort_pre_in, &
                  mort_Tdep_in, k_exude_in, K_Nit_in, K_Am_in, K_sil_in, K_Fe_in, &
                  f_don_in, kn_bac_in, f_don_Am_in, f_doc_in, f_exude_in, k_bac_in, &
-                 algaltype_in, doctype_in, dontype_in, fedtype_in, feptype_in, &
-                 zaerotype_in, dictype_in, grow_Tdep_in, zbgc_frac_init_in, &
+                 grow_Tdep_in, zbgc_frac_init_in, &
                  zbgc_init_frac_in, tau_ret_in, tau_rel_in, bgc_tracer_type_in, &
                  fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, T_max_in, &
                  op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, fr_dFe_in, &
                  k_nitrif_in, t_iron_conv_in, max_loss_in, max_dfe_doc1_in, &
-                 fr_resp_s_in, y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, &
-                 fsal_in, nitratetype_in, ammoniumtype_in, silicatetype_in, humtype_in, &
-                 dmspptype_in, dmspdtype_in)
-
-      real (kind=dbl_kind), optional :: dictype_in(:)
-      real (kind=dbl_kind), optional :: algaltype_in(:)
-      real (kind=dbl_kind), optional :: doctype_in(:)
-      real (kind=dbl_kind), optional :: dontype_in(:)
-      real (kind=dbl_kind), optional :: fedtype_in(:)
-      real (kind=dbl_kind), optional :: feptype_in(:)
-      real (kind=dbl_kind), optional :: zaerotype_in(:)
-
-      real (kind=dbl_kind), optional :: nitratetype_in
-      real (kind=dbl_kind), optional :: ammoniumtype_in
-      real (kind=dbl_kind), optional :: silicatetype_in
-      real (kind=dbl_kind), optional :: humtype_in
-      real (kind=dbl_kind), optional :: dmspptype_in
-      real (kind=dbl_kind), optional :: dmspdtype_in
+                 fr_resp_s_in, y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, fsal_in)
 
       real (kind=dbl_kind), optional :: R_C2N_in(:)        ! algal C to N (mole/mole)
       real (kind=dbl_kind), optional :: R_chl2N_in(:)      ! 3 algal chlorophyll to N (mg/mmol)
@@ -767,21 +744,6 @@
       character(len=*),parameter :: subname='(icepack_init_zbgc)'
 
       !--------
-
-      if (present(dictype_in))   dictype(:)   = dictype_in(:)
-      if (present(algaltype_in)) algaltype(:) = algaltype_in(:)
-      if (present(doctype_in))   doctype(:)   = doctype_in(:)
-      if (present(dontype_in))   dontype(:)   = dontype_in(:)
-      if (present(fedtype_in))   fedtype(:)   = fedtype_in(:)
-      if (present(feptype_in))   feptype(:)   = feptype_in(:)
-      if (present(zaerotype_in)) zaerotype(:) = zaerotype_in(:)
-
-      if (present(nitratetype_in))  nitratetype  = nitratetype_in
-      if (present(silicatetype_in)) silicatetype = silicatetype_in
-      if (present(ammoniumtype_in)) ammoniumtype = ammoniumtype_in
-      if (present(humtype_in))      humtype      = humtype_in
-      if (present(dmspptype_in))    dmspptype    = dmspptype_in
-      if (present(dmspdtype_in))    dmspdtype    = dmspdtype_in
 
       if (present(R_C2N_in))     R_C2N(:)     = R_C2N_in(:)
       if (present(R_chl2N_in))   R_chl2N(:)   = R_chl2N_in(:)

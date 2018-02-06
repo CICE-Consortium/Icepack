@@ -49,12 +49,12 @@ of icepack\_ and all driver files are prefixed with icedrv\_*.
 **doc/**
     documentation
 
-**icepack.create.case**
+**icepack.setup**
   main icepack script for creating cases
 
 A case (compile) directory is created upon initial execution of the script 
-**icepack.create.case** at the user-specified location provided after the -c flag. 
-Executing the command ``./icepack.create.case -h`` provides helpful information for 
+**icepack.setup** at the user-specified location provided after the -c flag. 
+Executing the command ``./icepack.setup -h`` provides helpful information for 
 this tool.
 
 .. _grids:

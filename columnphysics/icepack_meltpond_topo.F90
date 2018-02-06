@@ -21,9 +21,9 @@
       module icepack_meltpond_topo
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, p01, p1, p15, p4, p6
-      use icepack_constants, only: puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh
-      use icepack_constants, only: gravit, depressT, kice, ice_ref_salinity
+      use icepack_parameters, only: c0, c1, c2, p01, p1, p15, p4, p6
+      use icepack_parameters, only: puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh
+      use icepack_parameters, only: gravit, depressT, kice, ice_ref_salinity
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
       use icepack_therm_shared, only: calculate_Tin_from_qin

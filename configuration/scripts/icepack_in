@@ -16,7 +16,7 @@
 /
 
 &grid_nml
-    kcatbound    = 1
+    kcatbound    = 0
 /
 
 &tracer_nml
@@ -24,8 +24,8 @@
     tr_FY        = .false.
     tr_lvl       = .false.
     tr_pond_cesm = .false.
-    tr_pond_topo = .true.
-    tr_pond_lvl  = .false.
+    tr_pond_topo = .false.
+    tr_pond_lvl  = .true.
     tr_aero      = .false.
 /
 
@@ -99,7 +99,6 @@
     tr_bgc_DON      = .false.
     tr_bgc_Fe       = .false. 
     grid_o          = 0.006
-    grid_o_t        = 0.006
     l_sk            = 0.024
     grid_oS         = 0.0
     l_skS           = 0.028
