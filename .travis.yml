@@ -1,0 +1,23 @@
+language: cpp 
+sudo: false
+
+compiler: clang
+
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
+        packages:
+            - tcsh
+            - pkg-config
+            - netcdf-bin
+            - libnetcdf-dev
+            - gfortran
+            - clang-5.0
+
+script:
+    - ./icepack.setup --suite base_suite --testid travisCItest --mach travisCI --env gnu && cd base_suite.travisCItest && ./results.csh
+
+notifications:
+    email: false
