@@ -46,7 +46,7 @@
          b2      = 0.8_dbl_kind       ! (kg/m^3/ppt)
 
       real (kind=dbl_kind), parameter :: & 
-         exp_argmax = c10    ! maximum argument of exponential
+         exp_argmax = 30.0_dbl_kind    ! maximum argument of exponential for underflow
 
 !=======================================================================
 
@@ -514,7 +514,7 @@
          darcy_coeff, & ! magnitude of the Darcy velocity/hbrocn (1/s)
          hbrocn_new , & ! hbrocn after flushing
          dhflood    , & ! surface flooding by ocean
-         exp_min    , & ! temporary exp value
+         exp_arg    , & ! temporary exp value
          dhrunoff       ! direct runoff to ocean
 
       real (kind=dbl_kind), parameter :: &
@@ -544,8 +544,12 @@
                bphi_min   = bphin  
                dhrunoff  = -dhS_top*aice0
                hbrocn    = max(c0,hbrocn - dhrunoff)
-               exp_min = min(darcy_coeff/bphi_min*dt,exp_argmax)
-               hbrocn_new = hbrocn*exp(-exp_min)
+               exp_arg = darcy_coeff/bphi_min*dt
+               if (exp_arg > exp_argmax) then
+                  hbrocn_new = c0
+               else
+                  hbrocn_new = hbrocn*exp(-exp_arg)
+               endif
                hbr = max(hbrmin, h_ocn + hbrocn_new)
                hbrocn_new = hbr-h_ocn
                darcy_V = -SIGN((hbrocn-hbrocn_new)/dt*bphi_min, hbrocn)
