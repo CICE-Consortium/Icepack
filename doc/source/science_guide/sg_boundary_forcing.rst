@@ -115,8 +115,8 @@ parameterizations. Rain and all melted snow end up in the ocean.
 
 Wind stress and transfer coefficients for the
 turbulent heat fluxes are computed in subroutine
-*atmo\_boundary\_layer* following :cite:`KL02`. For
-clarity, the equations are reproduced here in the present notation.
+*atmo\_boundary\_layer* following :cite:`KL02`, with additions and changes as detailed in Appendix A of :cite:`Roberts2015` for high frequency coupling (namelist variable ``highfreq``).
+The resulting equations are provided here.
 
 The wind stress and turbulent heat flux calculation accounts for both
 stable and unstable atmosphere–ice boundary layers. Define the
@@ -130,20 +130,28 @@ stable and unstable atmosphere–ice boundary layers. Define the
 
 where :math:`\kappa` is the von Karman constant, :math:`g` is
 gravitational acceleration, and :math:`u^*`, :math:`\Theta^*` and
-:math:`Q^*` are turbulent scales for velocity, temperature, and humidity,
-respectively:
+:math:`Q^*` are turbulent scales for velocity difference, temperature, and humidity,
+respectively, given the ice velocity :math:`\vec{U}_i`:
 
 .. math::
    \begin{aligned}
-   u^*&=&c_u \left|\vec{U}_a\right|, \\
+   u^*&=&c_u\;\textrm{max}\left(U_{\Delta\textrm{min}}, \left|\vec{U}_a - \vec{U}_i \right|\right), \\
    \Theta^*&=& c_\theta\left(\Theta_a-T_{sfc}\right), \\
-   Q^*&=&c_q\left(Q_a-Q_{sfc}\right).\end{aligned}
+   Q^*&=&c_q\left(Q_a-Q_{sfc}\right).
+   \end{aligned}
    :label: stars
 
-The wind speed has a minimum value of 1 m/s. We have ignored ice motion
-in :math:`u^*`, and :math:`T_{sfc}` and
-:math:`Q_{sfc}` are the surface temperature and specific
-humidity, respectively. The latter is calculated by assuming a saturated
+Within the :math:`u^*` expression, :math:`U_{\Delta\textrm{min}}` is the minimum allowable value of :math:`|\vec{U}_{a} - \vec{U}_{i}|` , which is set to of 0.5 m/s for high frequency coupling (``highfreq`` =.true.). 
+When high frequency coupling is turned off (``highfreq`` =.false.), it is assumed in equation :eq:`stars` that:
+
+.. math::
+ \vec{U}_{a} - \vec{U}_{i} \approx  \vec{U}_{a} 
+ :label: lowfreq 
+
+and a higher threshold is taken for :math:`U_{\Delta\textrm{min}}` of 1m/s. Equation :eq:`lowfreq` is a poor assumption when resolving inertial oscillations in ice-ocean configurations where the ice velocity vector may make a complete rotation over a period of :math:`\ge` 11.96 hours, as discussed in :cite:`Roberts2015`.
+However, :eq:`lowfreq`  is acceptable for low frequency ice-ocean coupling on the order of a day or more, when transient ice-ocean Ekman transport is effectively filtered from the model solution.
+For the :math:`\Theta^*` and :math:`Q^*` terms in :eq:`stars`, :math:`T_{sfc}` and :math:`Q_{sfc}` are the surface temperature and specific
+humidity, respectively.  The latter is calculated by assuming a saturated
 surface, as described in the :ref:`sfc-forcing` section.
 
 Neglecting form drag, the exchange coefficients :math:`c_u`,
@@ -155,7 +163,7 @@ Neglecting form drag, the exchange coefficients :math:`c_u`,
 
 and updated during a short iteration, as they depend upon the turbulent
 scales. The number of iterations is set by the namelist variable
-``natmiter``. (For the case with form drag, see the :ref:`formdrag` section.)
+``natmiter``, nominally set to five but sometimes increased by users employing the ``highfreq`` option.
 Here, :math:`z_{ref}` is a reference height of 10m and
 :math:`z_{ice}` is the roughness length scale for the given
 sea ice category. :math:`\Upsilon` is constrained to have magnitude less
@@ -192,14 +200,15 @@ The coefficients are then updated as
 
 where :math:`\lambda = \ln\left(z_\circ/z_{ref}\right)`. The
 first iteration ends with new turbulent scales from
-equations :eq:`stars`. After five iterations the latent and sensible
+equations :eq:`stars`. After ``natmiter`` iterations the latent and sensible
 heat flux coefficients are computed, along with the wind stress:
 
 .. math::
    \begin{aligned}
    C_l&=&\rho_a \left(L_{vap}+L_{ice}\right) u^* c_q \\
-   C_s&=&\rho_a c_p u^* c_\theta^* + 1, \\
-   \vec{\tau}_a&=&{\rho_a u^{*2}\vec{U}_a\over |\vec{U}_a|},\end{aligned}
+   C_s&=&\rho_a c_p u^* c_\theta^* + 1 \\
+   \vec{\tau}_a&=&{\rho_a (u^{*})^2 \left( \vec{U}_{a} - \vec{U}_{i} \right) \over  \left| \vec{U}_{a} - \vec{U}_{i} \right|}
+   \end{aligned}
    :label: coeff2
 
 where :math:`L_{vap}` and :math:`L_{ice}` are
@@ -207,7 +216,8 @@ latent heats of vaporization and fusion, :math:`\rho_a` is the density
 of air and :math:`c_p` is its specific heat. Again following
 :cite:`JAM99`, we have added a constant to the sensible
 heat flux coefficient in order to allow some heat to pass between the
-atmosphere and the ice surface in stable, calm conditions.
+atmosphere and the ice surface in stable, calm conditions. 
+For the atmospheric stress term in :eq:`coeff2`, we make the assumption in :eq:`lowfreq` when ``highfreq`` =.false..
 
 The atmospheric reference temperature :math:`T_a^{ref}` is computed from
 :math:`T_a` and :math:`T_{sfc}` using the coefficients
