@@ -214,6 +214,17 @@ cat >! ${outfile} << EOF
 EOF
 cat ${outfile}.hold >> ${outfile}
 
+
+# If command line argument "--travisCI" is set when running this script, add
+# links to Travis build page and the raw build log.
+if ( "$1" == "--travisCI" ) then
+    cat >> ${outfile} << EOF
+- Travis-CI build page: https://travis-ci.org/${TRAVIS_REPO_SLUG}/builds/${TRAVIS_BUILD_ID}
+- Travis-CI raw log: https://api.travis-ci.org/v3/job/${TRAVIS_BUILD_ID}/log.txt
+EOF
+
+endif
+
 cat >> ${outfile} << EOF
 
 --------
