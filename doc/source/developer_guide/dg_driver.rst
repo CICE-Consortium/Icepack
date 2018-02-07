@@ -43,4 +43,4 @@ to run 4 different gridcells on one processor with the same forcing used for all
 There is no MPI and no threading built into the icepack driver.  There is limited IO capabilities,
 no history files, and no netcdf restart files.  The model generally runs very quickly.
 
-Forcing data and details on these data are available in :ref:`testforce`.
+Forcing data and details on these data are available in :ref:`force`.
