@@ -29,8 +29,7 @@ notifications:
 after_script:
   - "git config --global user.email 'travis@travis-ci.org' &&
     git config --global user.name 'ciceconsortium' &&
-    pwd && cd $TRAVIS_BUILD_DIR &&
-    cd base_suite.travisCItest && ./report_results.csh --travisCI"
+    ./report_results.csh --travisCI"
 
 env:
   global:
