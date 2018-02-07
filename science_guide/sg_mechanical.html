@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.5. Mechanical redistribution &#8212; Icepack 1.0 documentation</title>
+    <title>2.5. Mechanical redistribution &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="sg_transport.html" title="2.4. Transport in thickness space"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -52,9 +52,9 @@
 is <span class="math">\(\psi\)</span>, which describes the redistribution
 of ice in thickness space due to ridging and other mechanical processes.
 The mechanical redistribution scheme in Icepack is based on
-<a class="reference internal" href="../zreferences.html#trmc75" id="id1">[44]</a>, <a class="reference internal" href="../zreferences.html#rothrock75" id="id2">[38]</a>,
-<a class="reference internal" href="../zreferences.html#hibler80" id="id3">[18]</a>, <a class="reference internal" href="../zreferences.html#fh95" id="id4">[11]</a>, and
-<a class="reference internal" href="../zreferences.html#lhmj07" id="id5">[28]</a>. This scheme converts thinner ice to thicker
+<a class="reference internal" href="../zreferences.html#trmc75" id="id1">[50]</a>, <a class="reference internal" href="../zreferences.html#rothrock75" id="id2">[43]</a>,
+<a class="reference internal" href="../zreferences.html#hibler80" id="id3">[20]</a>, <a class="reference internal" href="../zreferences.html#fh95" id="id4">[12]</a>, and
+<a class="reference internal" href="../zreferences.html#lhmj07" id="id5">[32]</a>. This scheme converts thinner ice to thicker
 ice and is applied after horizontal transport. When the ice is
 converging, enough ice ridges to ensure that the ice area does not
 exceed the grid cell area.</p>
@@ -64,7 +64,7 @@ use “ridging” as shorthand for all forms of mechanical redistribution,
 including rafting.) The weighting function <span class="math">\(b(h)\)</span> favors ridging
 of thin ice and closing of open water in preference to ridging of
 thicker ice. There are two options for the form of <span class="math">\(b(h)\)</span>. If
-<code class="docutils literal"><span class="pre">krdg_partic</span></code> = 0 in the namelist, we follow <a class="reference internal" href="../zreferences.html#trmc75" id="id6">[44]</a>
+<code class="docutils literal"><span class="pre">krdg_partic</span></code> = 0 in the namelist, we follow <a class="reference internal" href="../zreferences.html#trmc75" id="id6">[50]</a>
 and set</p>
 <div class="math" id="equation-partic-old-contin">
 <span class="eqno">(1)<a class="headerlink" href="#equation-partic-old-contin" title="Permalink to this equation">¶</a></span>\[\begin{split}b(h) = \left\{\begin{array}{ll}
@@ -88,7 +88,7 @@ Equation <a class="reference internal" href="#equation-partic-old-discrete">(2)<
 <span class="math">\(G_n\)</span>, and if <span class="math">\(G_{n-1} &gt; G^*\)</span>, then <span class="math">\(a_{Pn} = 0\)</span>. If
 the open water fraction <span class="math">\(a_0 &gt; G^*\)</span>, no ice can ridge, because
 “ridging” simply reduces the area of open water. As in
-<a class="reference internal" href="../zreferences.html#trmc75" id="id7">[44]</a> we set <span class="math">\(G^* = 0.15\)</span>.</p>
+<a class="reference internal" href="../zreferences.html#trmc75" id="id7">[50]</a> we set <span class="math">\(G^* = 0.15\)</span>.</p>
 <p>If the spatial resolution is too fine for a given time step
 <span class="math">\(\Delta t\)</span>, the weighting function Equation <a class="reference internal" href="#equation-partic-old-contin">(1)</a> can
 promote numerical instability. For <span class="math">\(\Delta t = \mbox{1 hour}\)</span>,
@@ -101,7 +101,7 @@ sometimes oscillatory. As a result, the fields of ice area, thickness,
 velocity, strength, divergence, and shear can become noisy and
 unphysical.</p>
 <p>A more stable weighting function was suggested by
-<a class="reference internal" href="../zreferences.html#lhmj07" id="id8">[28]</a>:</p>
+<a class="reference internal" href="../zreferences.html#lhmj07" id="id8">[32]</a>:</p>
 <div class="math" id="equation-partic-new-contin">
 <span class="eqno">(3)<a class="headerlink" href="#equation-partic-new-contin" title="Permalink to this equation">¶</a></span>\[b(h) = \frac{\exp[-G(h)/a^*]}
             {a^*[1-\exp(-1/a^*)]}\]</div>
@@ -116,7 +116,7 @@ participating in ridging is <span class="math">\(a^*\)</span>, as compared to <s
 for Equation <a class="reference internal" href="#equation-partic-old-contin">(1)</a>. For typical ice thickness distributions,
 setting <span class="math">\(a^* = 0.05\)</span> with <code class="docutils literal"><span class="pre">krdg_partic</span></code> = 1 gives participation
 fractions similar to those given by <span class="math">\(G^* = 0.15\)</span> with <code class="docutils literal"><span class="pre">krdg_partic</span></code>
-= 0. See <a class="reference internal" href="../zreferences.html#lhmj07" id="id9">[28]</a> for a detailed comparison of these
+= 0. See <a class="reference internal" href="../zreferences.html#lhmj07" id="id9">[32]</a> for a detailed comparison of these
 two participation functions.</p>
 <p>Thin ice is converted to thick, ridged ice in a way that reduces the
 total ice area while conserving ice volume and internal energy. There
@@ -124,11 +124,11 @@ are two namelist options for redistributing ice among thickness
 categories. If <code class="docutils literal"><span class="pre">krdg_redist</span></code> = 0, ridging ice of thickness <span class="math">\(h_n\)</span>
 forms ridges whose area is distributed uniformly between
 <span class="math">\(H_{\min} = 2 h_n\)</span> and <span class="math">\(H_{\max} = 2 \sqrt{H^* h_n}\)</span>, as in
-<a class="reference internal" href="../zreferences.html#hibler80" id="id10">[18]</a>. The default value of <span class="math">\(H^*\)</span> is 25&nbsp;m, as
+<a class="reference internal" href="../zreferences.html#hibler80" id="id10">[20]</a>. The default value of <span class="math">\(H^*\)</span> is 25&nbsp;m, as
 in earlier versions of CICE. Observations suggest that
 <span class="math">\(H^* = 50\)</span>&nbsp;m gives a better fit to first-year ridges
 <a class="reference internal" href="../zreferences.html#ami04" id="id11">[1]</a>, although the lower value may be appropriate
-for multiyear ridges <a class="reference internal" href="../zreferences.html#fh95" id="id12">[11]</a>. The ratio of the mean
+for multiyear ridges <a class="reference internal" href="../zreferences.html#fh95" id="id12">[12]</a>. The ratio of the mean
 ridge thickness to the thickness of ridging ice is
 <span class="math">\(k_n = (H_{\min} + H_{\max}) / (2 h_n)\)</span>. If the area of category
 <span class="math">\(n\)</span> is reduced by ridging at the rate <span class="math">\(r_n\)</span>, the area of
@@ -151,7 +151,7 @@ to category <span class="math">\(m\)</span> is</p>
 the 3–5&nbsp;m range and too much ice thicker than 10&nbsp;m
 <a class="reference internal" href="../zreferences.html#ami04" id="id13">[1]</a>. Observations show that the ITD of ridges is
 better approximated by a negative exponential. Setting <code class="docutils literal"><span class="pre">krdg_redist</span></code> = 1
-gives ridges with an exponential ITD <a class="reference internal" href="../zreferences.html#lhmj07" id="id14">[28]</a>:</p>
+gives ridges with an exponential ITD <a class="reference internal" href="../zreferences.html#lhmj07" id="id14">[32]</a>:</p>
 <div class="math" id="equation-redist-new">
 <span class="eqno">(7)<a class="headerlink" href="#equation-redist-new" title="Permalink to this equation">¶</a></span>\[g_R(h) \propto \exp[-(h - H_{\min})/\lambda]\]</div>
 <p>for <span class="math">\(h \ge H_{\min}\)</span>, with <span class="math">\(g_R(h) = 0\)</span> for
@@ -160,7 +160,7 @@ scale and <span class="math">\(H_{\min}=2h_n\)</span> (where <span class="math">
 ridging ice). We assume that <span class="math">\(\lambda = \mu h_n^{1/2}\)</span>, where
 <span class="math">\(\mu\)</span> (mu_rdg) is a tunable parameter with units . Thus the mean
 ridge thickness increases in proportion to <span class="math">\(h_n^{1/2}\)</span>, as in
-<a class="reference internal" href="../zreferences.html#hibler80" id="id15">[18]</a>. The value <span class="math">\(\mu = 4.0\)</span>&nbsp; gives
+<a class="reference internal" href="../zreferences.html#hibler80" id="id15">[20]</a>. The value <span class="math">\(\mu = 4.0\)</span>&nbsp; gives
 <span class="math">\(\lambda\)</span> in the range 1–4 m for most ridged ice. Ice strengths
 with <span class="math">\(\mu = 4.0\)</span>&nbsp; and <code class="docutils literal"><span class="pre">krdg_redist</span></code> = 1 are roughly comparable to
 the strengths with <span class="math">\(H^* = 50\)</span>&nbsp;m and <code class="docutils literal"><span class="pre">krdg_redist</span></code> = 0.</p>
@@ -184,7 +184,7 @@ instead of added to the new ridge.</p>
 <p>The net area removed by ridging and closing is a function of the strain
 rates. Let <span class="math">\(R_{\mathrm{net}}\)</span> be the net rate of area loss for the
 ice pack (i.e., the rate of open water area closing, plus the net rate
-of ice area loss due to ridging). Following <a class="reference internal" href="../zreferences.html#fh95" id="id16">[11]</a>,
+of ice area loss due to ridging). Following <a class="reference internal" href="../zreferences.html#fh95" id="id16">[12]</a>,
 <span class="math">\(R_{\mathrm{net}}\)</span> is given by</p>
 <div class="math" id="equation-Rnet">
 <span class="eqno">(10)<a class="headerlink" href="#equation-Rnet" title="Permalink to this equation">¶</a></span>\[R_{\mathrm{net}} = \frac{C_s}{2}
@@ -241,14 +241,14 @@ cell (in the spirit of the ridging calculation itself which does not
 prefer level ice over previously ridged ice).</p>
 <p>The ice strength <span class="math">\(P\)</span> may be computed in either of two ways. If the
 namelist parameter <code class="docutils literal"><span class="pre">kstrength</span></code> = 0, we use the strength formula from
-<a class="reference internal" href="../zreferences.html#hibler79" id="id17">[17]</a>:</p>
+<a class="reference internal" href="../zreferences.html#hibler79" id="id17">[19]</a>:</p>
 <div class="math" id="equation-hib-strength">
 <span class="eqno">(13)<a class="headerlink" href="#equation-hib-strength" title="Permalink to this equation">¶</a></span>\[P = P^* h \exp[-C(1-a_i)],\]</div>
 <p>where <span class="math">\(P^* = 27,500 \, \mathrm {N/m}\)</span> and <span class="math">\(C = 20\)</span> are
 empirical constants, and <span class="math">\(h\)</span> is the mean ice thickness.
 Alternatively, setting <code class="docutils literal"><span class="pre">kstrength</span></code> = 1 gives an ice strength closely
 related to the ridging scheme. Following
-<a class="reference internal" href="../zreferences.html#rothrock75" id="id18">[38]</a>, the strength is assumed proportional
+<a class="reference internal" href="../zreferences.html#rothrock75" id="id18">[43]</a>, the strength is assumed proportional
 to the change in ice potential energy <span class="math">\(\Delta E_P\)</span> per unit area
 of compressive deformation. Given uniform ridge ITDs (<code class="docutils literal"><span class="pre">krdg_redist</span></code> = 0),
 we have</p>
@@ -261,7 +261,7 @@ we have</p>
 <span class="math">\(\beta =R_{\mathrm{tot}}/R_{\mathrm{net}} &gt; 1\)</span>
 from&nbsp;Equation <a class="reference internal" href="#equation-Rtot-Rnet">(11)</a>, and <span class="math">\(C_f\)</span> is an empirical parameter that
 accounts for frictional energy dissipation. Following
-<a class="reference internal" href="../zreferences.html#fh95" id="id19">[11]</a>, we set <span class="math">\(C_f = 17\)</span>. The first term in
+<a class="reference internal" href="../zreferences.html#fh95" id="id19">[12]</a>, we set <span class="math">\(C_f = 17\)</span>. The first term in
 the summation is the potential energy of ridging ice, and the second,
 larger term is the potential energy of the resulting ridges. The factor
 of <span class="math">\(\beta\)</span> is included because <span class="math">\(a_{Pn}\)</span> is normalized with
@@ -277,7 +277,7 @@ the ridge potential energy is modified:</p>
 <a class="reference internal" href="#equation-roth-strength1">(15)</a> is more physically realistic than the strength
 given by Equation <a class="reference internal" href="#equation-hib-strength">(13)</a>. However, use of Equation <a class="reference internal" href="#equation-hib-strength">(13)</a> is
 less likely to allow numerical instability at a given resolution and
-time step. See <a class="reference internal" href="../zreferences.html#lhmj07" id="id20">[28]</a> for more details.</p>
+time step. See <a class="reference internal" href="../zreferences.html#lhmj07" id="id20">[32]</a> for more details.</p>
 </div>
 
 
@@ -322,7 +322,7 @@ time step. See <a class="reference internal" href="../zreferences.html#lhmj07" i
         <li class="right" >
           <a href="sg_transport.html" title="2.4. Transport in thickness space"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

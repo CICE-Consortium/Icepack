@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>4.4. Scripts Implementation &#8212; Icepack 1.0 documentation</title>
+    <title>4.4. Scripts Implementation &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="dg_driver.html" title="4.3. Driver Implementation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">4. Developer Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -68,7 +68,7 @@ cases, building, and running the icepack stand-alone model.</p>
 <div class="line"><strong>icepack_in</strong>            namelist input data</div>
 <div class="line"><strong>machines/</strong>             machine specific files to set env and Macros</div>
 <div class="line"><strong>makdep.c</strong>              determines module dependencies</div>
-<div class="line"><strong>options/</strong>              other namelist configurations available from the icepack.create.case command line</div>
+<div class="line"><strong>options/</strong>              other namelist configurations available from the icepack.setup command line</div>
 <div class="line"><strong>parse_namelist.sh</strong>     replaces namelist with command-line configuration</div>
 <div class="line"><strong>parse_namelist_from_settings.sh</strong>   replaces namelist with values from icepack.settings</div>
 <div class="line"><strong>parse_settings.sh</strong>     replaces settings with command-line configuration</div>
@@ -79,25 +79,25 @@ cases, building, and running the icepack stand-alone model.</p>
 <div class="section" id="strategy">
 <span id="dev-strategy"></span><h2>4.4.2. Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h2>
 <p>The icepack scripts are implemented such that everything is resolved after
-<strong>icepack.create.case</strong> is called.  This is done by both copying specific files
-into the case directory and running scripts as part of the <strong>icepack.create.case</strong>
+<strong>icepack.setup</strong> is called.  This is done by both copying specific files
+into the case directory and running scripts as part of the <strong>icepack.setup</strong>
 command line to setup various files.</p>
-<p><strong>icepack.create.case</strong> drives the case setup.  It is written in csh.  All supporting
+<p><strong>icepack.setup</strong> drives the case setup.  It is written in csh.  All supporting
 scripts are relatively simple csh or sh scripts.</p>
 <p>The file <strong>icepack.settings</strong> specifies a set of env defaults for the case.  The file
 <strong>icepack_in</strong> defines the namelist input for the icepack driver.</p>
 </div>
 <div class="section" id="preset-case-options">
 <span id="dev-options"></span><h2>4.4.3. Preset Case Options<a class="headerlink" href="#preset-case-options" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-s</span></code> option allows the user to choose some predetermined icepack
+<p><code class="docutils literal"><span class="pre">icepack.setup</span> <span class="pre">-s</span></code> option allows the user to choose some predetermined icepack
 settings and namelist.  Those options are defined in <strong>configurations/scripts/options/</strong>
-and the files are prefixed by either set_env, set_nml, or test_nml.  When <strong>icepack.create.case</strong>
+and the files are prefixed by either set_env, set_nml, or test_nml.  When <strong>icepack.setup</strong>
 is executed, the appropriate files are read from <strong>configurations/scripts/options/</strong>
 and the <strong>icepack.settings</strong> and/or <strong>icepack_in</strong> files are updated in the case directory
 based on the values in those files.</p>
 <p>The filename suffix determines the name of the -s option.  So, for instance,</p>
 <blockquote>
-<div><code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-s</span> <span class="pre">diag1,debug,bgcISPOL</span></code></div></blockquote>
+<div><code class="docutils literal"><span class="pre">icepack.setup</span> <span class="pre">-s</span> <span class="pre">diag1,debug,bgcISPOL</span></code></div></blockquote>
 <p>will search for option files with suffixes of diag1, debug, and bgcISPOL and then
 apply those settings.</p>
 <p><strong>parse_namelist.sh</strong>, <strong>parse_settings.sh</strong>, and <strong>parse_namelist_from_settings.sh</strong>
@@ -187,7 +187,7 @@ and <strong>test_restart.script</strong>.  In addition, some new options files i
         <li class="right" >
           <a href="dg_driver.html" title="4.3. Driver Implementation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >4. Developer Guide</a> &#187;</li> 
       </ul>
     </div>

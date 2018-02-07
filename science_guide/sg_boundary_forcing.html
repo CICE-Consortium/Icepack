@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.1. Atmosphere and ocean boundary forcing &#8212; Icepack 1.0 documentation</title>
+    <title>2.1. Atmosphere and ocean boundary forcing &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="index.html" title="2. Science Guide"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -48,8 +48,8 @@
             
   <div class="section" id="atmosphere-and-ocean-boundary-forcing">
 <span id="boundary-forcing"></span><h1>2.1. Atmosphere and ocean boundary forcing<a class="headerlink" href="#atmosphere-and-ocean-boundary-forcing" title="Permalink to this headline">¶</a></h1>
-<table border="1" class="docutils" id="id19">
-<span id="tab-flux-cpl"></span><caption><span class="caption-text"><em>External forcing data that are relevant to Icepack</em></span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id21">
+<span id="tab-flux-cpl"></span><caption><span class="caption-text"><em>External forcing data that are relevant to Icepack</em></span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="17%" />
 <col width="42%" />
@@ -251,8 +251,8 @@ heat budget of the ice; this version includes two new melt pond
 parameterizations. Rain and all melted snow end up in the ocean.</p>
 <p>Wind stress and transfer coefficients for the
 turbulent heat fluxes are computed in subroutine
-<em>atmo_boundary_layer</em> following <a class="reference internal" href="../zreferences.html#kl02" id="id1">[25]</a>. For
-clarity, the equations are reproduced here in the present notation.</p>
+<em>atmo_boundary_layer</em> following <a class="reference internal" href="../zreferences.html#kl02" id="id1">[28]</a>, with additions and changes as detailed in Appendix A of <a class="reference internal" href="../zreferences.html#roberts2015" id="id2">[42]</a> for high frequency coupling (namelist variable <code class="docutils literal"><span class="pre">highfreq</span></code>).
+The resulting equations are provided here.</p>
 <p>The wind stress and turbulent heat flux calculation accounts for both
 stable and unstable atmosphere–ice boundary layers. Define the
 “stability”</p>
@@ -262,25 +262,30 @@ stable and unstable atmosphere–ice boundary layers. Define the
 {Q^*\over 1/0.606 + Q_a}\right),\]</div>
 <p>where <span class="math">\(\kappa\)</span> is the von Karman constant, <span class="math">\(g\)</span> is
 gravitational acceleration, and <span class="math">\(u^*\)</span>, <span class="math">\(\Theta^*\)</span> and
-<span class="math">\(Q^*\)</span> are turbulent scales for velocity, temperature, and humidity,
-respectively:</p>
+<span class="math">\(Q^*\)</span> are turbulent scales for velocity difference, temperature, and humidity,
+respectively, given the ice velocity <span class="math">\(\vec{U}_i\)</span>:</p>
 <div class="math" id="equation-stars">
 <span class="eqno">(2)<a class="headerlink" href="#equation-stars" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
-u^*&amp;=&amp;c_u \left|\vec{U}_a\right|, \\
+u^*&amp;=&amp;c_u\;\textrm{max}\left(U_{\Delta\textrm{min}}, \left|\vec{U}_a - \vec{U}_i \right|\right), \\
 \Theta^*&amp;=&amp; c_\theta\left(\Theta_a-T_{sfc}\right), \\
-Q^*&amp;=&amp;c_q\left(Q_a-Q_{sfc}\right).\end{aligned}\end{split}\]</div>
-<p>The wind speed has a minimum value of 1 m/s. We have ignored ice motion
-in <span class="math">\(u^*\)</span>, and <span class="math">\(T_{sfc}\)</span> and
-<span class="math">\(Q_{sfc}\)</span> are the surface temperature and specific
-humidity, respectively. The latter is calculated by assuming a saturated
+Q^*&amp;=&amp;c_q\left(Q_a-Q_{sfc}\right).
+\end{aligned}\end{split}\]</div>
+<p>Within the <span class="math">\(u^*\)</span> expression, <span class="math">\(U_{\Delta\textrm{min}}\)</span> is the minimum allowable value of <span class="math">\(|\vec{U}_{a} - \vec{U}_{i}|\)</span> , which is set to of 0.5 m/s for high frequency coupling (<code class="docutils literal"><span class="pre">highfreq</span></code> =.true.).
+When high frequency coupling is turned off (<code class="docutils literal"><span class="pre">highfreq</span></code> =.false.), it is assumed in equation <a class="reference internal" href="#equation-stars">(2)</a> that:</p>
+<div class="math" id="equation-lowfreq">
+<span class="eqno">(3)<a class="headerlink" href="#equation-lowfreq" title="Permalink to this equation">¶</a></span>\[\vec{U}_{a} - \vec{U}_{i} \approx  \vec{U}_{a}\]</div>
+<p>and a higher threshold is taken for <span class="math">\(U_{\Delta\textrm{min}}\)</span> of 1m/s. Equation <a class="reference internal" href="#equation-lowfreq">(3)</a> is a poor assumption when resolving inertial oscillations in ice-ocean configurations where the ice velocity vector may make a complete rotation over a period of <span class="math">\(\ge\)</span> 11.96 hours, as discussed in <a class="reference internal" href="../zreferences.html#roberts2015" id="id3">[42]</a>.
+However, <a class="reference internal" href="#equation-lowfreq">(3)</a>  is acceptable for low frequency ice-ocean coupling on the order of a day or more, when transient ice-ocean Ekman transport is effectively filtered from the model solution.
+For the <span class="math">\(\Theta^*\)</span> and <span class="math">\(Q^*\)</span> terms in <a class="reference internal" href="#equation-stars">(2)</a>, <span class="math">\(T_{sfc}\)</span> and <span class="math">\(Q_{sfc}\)</span> are the surface temperature and specific
+humidity, respectively.  The latter is calculated by assuming a saturated
 surface, as described in the&nbsp;<a class="reference internal" href="sg_thermo.html#sfc-forcing"><span class="std std-ref">Thermodynamic surface forcing balance</span></a> section.</p>
 <p>Neglecting form drag, the exchange coefficients <span class="math">\(c_u\)</span>,
 <span class="math">\(c_\theta\)</span> and <span class="math">\(c_q\)</span> are initialized as</p>
 <div class="math" id="equation-kappa">
-<span class="eqno">(3)<a class="headerlink" href="#equation-kappa" title="Permalink to this equation">¶</a></span>\[\kappa\over \ln(z_{ref}/z_{ice})\]</div>
+<span class="eqno">(4)<a class="headerlink" href="#equation-kappa" title="Permalink to this equation">¶</a></span>\[\kappa\over \ln(z_{ref}/z_{ice})\]</div>
 <p>and updated during a short iteration, as they depend upon the turbulent
 scales. The number of iterations is set by the namelist variable
-<code class="docutils literal"><span class="pre">natmiter</span></code>. (For the case with form drag, see the&nbsp;<a class="reference internal" href="#formdrag"><span class="std std-ref">Variable exchange coefficients</span></a> section.)
+<code class="docutils literal"><span class="pre">natmiter</span></code>, nominally set to five but sometimes increased by users employing the <code class="docutils literal"><span class="pre">highfreq</span></code> option.
 Here, <span class="math">\(z_{ref}\)</span> is a reference height of 10m and
 <span class="math">\(z_{ice}\)</span> is the roughness length scale for the given
 sea ice category. <span class="math">\(\Upsilon\)</span> is constrained to have magnitude less
@@ -289,38 +294,40 @@ than 10. Further, defining
 the “integrated flux profiles” for momentum and stability in the
 unstable (<span class="math">\(\Upsilon &lt;0\)</span>) case are given by</p>
 <div class="math" id="equation-psi1">
-<span class="eqno">(4)<a class="headerlink" href="#equation-psi1" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
+<span class="eqno">(5)<a class="headerlink" href="#equation-psi1" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
 \psi_m = &amp;\mbox{}&amp;2\ln\left[0.5(1+\chi)\right] +
          \ln\left[0.5(1+\chi^2)\right] -2\tan^{-1}\chi +
          {\pi\over 2}, \\
 \psi_s = &amp;\mbox{}&amp;2\ln\left[0.5(1+\chi^2)\right].\end{aligned}\end{split}\]</div>
 <p>In a departure from the parameterization used in
-<a class="reference internal" href="../zreferences.html#kl02" id="id2">[25]</a>, we use profiles for the stable case
-following <a class="reference internal" href="../zreferences.html#jam99" id="id3">[24]</a>,</p>
+<a class="reference internal" href="../zreferences.html#kl02" id="id4">[28]</a>, we use profiles for the stable case
+following <a class="reference internal" href="../zreferences.html#jam99" id="id5">[27]</a>,</p>
 <div class="math" id="equation-psi2">
-<span class="eqno">(5)<a class="headerlink" href="#equation-psi2" title="Permalink to this equation">¶</a></span>\[\psi_m = \psi_s = -\left[0.7\Upsilon + 0.75\left(\Upsilon-14.3\right)
+<span class="eqno">(6)<a class="headerlink" href="#equation-psi2" title="Permalink to this equation">¶</a></span>\[\psi_m = \psi_s = -\left[0.7\Upsilon + 0.75\left(\Upsilon-14.3\right)
          \exp\left(-0.35\Upsilon\right) + 10.7\right].\]</div>
 <p>The coefficients are then updated as</p>
 <div class="math" id="equation-coeff1">
-<span class="eqno">(6)<a class="headerlink" href="#equation-coeff1" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
+<span class="eqno">(7)<a class="headerlink" href="#equation-coeff1" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
 c_u^\prime&amp;=&amp;{c_u\over 1+c_u\left(\lambda-\psi_m\right)/\kappa} \\
 c_\theta^\prime&amp;=&amp; {c_\theta\over 1+c_\theta\left(\lambda-\psi_s\right)/\kappa}\\
 c_q^\prime&amp;=&amp;c_\theta^\prime\end{aligned}\end{split}\]</div>
 <p>where <span class="math">\(\lambda = \ln\left(z_\circ/z_{ref}\right)\)</span>. The
 first iteration ends with new turbulent scales from
-equations&nbsp;<a class="reference internal" href="#equation-stars">(2)</a>. After five iterations the latent and sensible
+equations&nbsp;<a class="reference internal" href="#equation-stars">(2)</a>. After <code class="docutils literal"><span class="pre">natmiter</span></code> iterations the latent and sensible
 heat flux coefficients are computed, along with the wind stress:</p>
 <div class="math" id="equation-coeff2">
-<span class="eqno">(7)<a class="headerlink" href="#equation-coeff2" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
+<span class="eqno">(8)<a class="headerlink" href="#equation-coeff2" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
 C_l&amp;=&amp;\rho_a \left(L_{vap}+L_{ice}\right) u^* c_q \\
-C_s&amp;=&amp;\rho_a c_p u^* c_\theta^* + 1, \\
-\vec{\tau}_a&amp;=&amp;{\rho_a u^{*2}\vec{U}_a\over |\vec{U}_a|},\end{aligned}\end{split}\]</div>
+C_s&amp;=&amp;\rho_a c_p u^* c_\theta^* + 1 \\
+\vec{\tau}_a&amp;=&amp;{\rho_a (u^{*})^2 \left( \vec{U}_{a} - \vec{U}_{i} \right) \over  \left| \vec{U}_{a} - \vec{U}_{i} \right|}
+\end{aligned}\end{split}\]</div>
 <p>where <span class="math">\(L_{vap}\)</span> and <span class="math">\(L_{ice}\)</span> are
 latent heats of vaporization and fusion, <span class="math">\(\rho_a\)</span> is the density
 of air and <span class="math">\(c_p\)</span> is its specific heat. Again following
-<a class="reference internal" href="../zreferences.html#jam99" id="id4">[24]</a>, we have added a constant to the sensible
+<a class="reference internal" href="../zreferences.html#jam99" id="id6">[27]</a>, we have added a constant to the sensible
 heat flux coefficient in order to allow some heat to pass between the
-atmosphere and the ice surface in stable, calm conditions.</p>
+atmosphere and the ice surface in stable, calm conditions.
+For the atmospheric stress term in <a class="reference internal" href="#equation-coeff2">(8)</a>, we make the assumption in <a class="reference internal" href="#equation-lowfreq">(3)</a> when <code class="docutils literal"><span class="pre">highfreq</span></code> =.false..</p>
 <p>The atmospheric reference temperature <span class="math">\(T_a^{ref}\)</span> is computed from
 <span class="math">\(T_a\)</span> and <span class="math">\(T_{sfc}\)</span> using the coefficients
 <span class="math">\(c_u\)</span>, <span class="math">\(c_\theta\)</span> and <span class="math">\(c_q\)</span>. Although the sea ice
@@ -333,10 +340,10 @@ quantities referred to here can be found in
 the&nbsp;<a class="reference internal" href="sg_thermo.html#sfc-forcing"><span class="std std-ref">Thermodynamic surface forcing balance</span></a> section.</p>
 </div>
 <div class="section" id="ocean">
-<span id="id5"></span><h2>2.1.2. Ocean<a class="headerlink" href="#ocean" title="Permalink to this headline">¶</a></h2>
+<span id="id7"></span><h2>2.1.2. Ocean<a class="headerlink" href="#ocean" title="Permalink to this headline">¶</a></h2>
 <p>New sea ice forms when the ocean temperature drops below its freezing
 temperature. In the Bitz and Lipscomb thermodynamics,
-<a class="reference internal" href="../zreferences.html#bl99" id="id6">[6]</a> <span class="math">\(T_f=-\mu S\)</span>, where <span class="math">\(S\)</span> is the
+<a class="reference internal" href="../zreferences.html#bl99" id="id8">[6]</a> <span class="math">\(T_f=-\mu S\)</span>, where <span class="math">\(S\)</span> is the
 seawater salinity and <span class="math">\(\mu=0.054^\circ\)</span>/ppt is the ratio of the
 freezing temperature of brine to its salinity (linear liquidus
 approximation). For the mushy thermodynamics, <span class="math">\(T_f\)</span> is given by a
@@ -395,30 +402,31 @@ with an effective sea ice surface roughness at the ice–atmosphere and
 ice–ocean interfaces. Sea ice (in both Arctic and Antarctic) contains
 pressure ridges as well as floe and melt pond edges that act as discrete
 obstructions to the flow of air or water past the ice, and are a source
-of form drag. Following <a class="reference internal" href="../zreferences.html#tfsffklb14" id="id7">[46]</a> and based on
-recent theoretical developments <a class="reference internal" href="../zreferences.html#lgha12" id="id8">[30]</a><a class="reference internal" href="../zreferences.html#llcl11" id="id9">[29]</a>, the
+of form drag. Following <a class="reference internal" href="../zreferences.html#tfsffklb14" id="id9">[52]</a> and based on
+recent theoretical developments <a class="reference internal" href="../zreferences.html#lgha12" id="id10">[34]</a><a class="reference internal" href="../zreferences.html#llcl11" id="id11">[33]</a>, the
 neutral drag coefficients can now be estimated from properties of the
 ice cover such as ice concentration, vertical extent and area of the
 ridges, freeboard and floe draft, and size of floes and melt ponds. The
 new parameterization allows the drag coefficients to be coupled to the
 sea ice state and therefore to evolve spatially and temporally. This
 parameterization is contained in the subroutine <em>neutral_drag_coeffs</em>
-and is accessed by setting <code class="docutils literal"><span class="pre">formdrag</span></code> = true in the namelist.</p>
-<p>Following <a class="reference internal" href="../zreferences.html#tfsffklb14" id="id10">[46]</a>, consider the general case of
+and is accessed by setting <code class="docutils literal"><span class="pre">formdrag</span></code> = true in the namelist.
+(Note:  see also <a class="reference internal" href="../user_guide/ug_troubleshooting.html#bugs"><span class="std std-ref">Known bugs and other issues</span></a>.)</p>
+<p>Following <a class="reference internal" href="../zreferences.html#tfsffklb14" id="id12">[52]</a>, consider the general case of
 fluid flow obstructed by N randomly oriented obstacles of height
 <span class="math">\(H\)</span> and transverse length <span class="math">\(L_y\)</span>, distributed on a domain
 surface area <span class="math">\(S_T\)</span>. Under the assumption of a logarithmic fluid
 velocity profile, the general formulation of the form drag coefficient
 can be expressed as</p>
 <div class="math" id="equation-formdrag">
-<span class="eqno">(8)<a class="headerlink" href="#equation-formdrag" title="Permalink to this equation">¶</a></span>\[C_d=\frac{N c S_c^2 \gamma L_y  H}{2 S_T}\left[\frac{\ln(H/z_0)}{\ln(z_{ref}/z_0)}\right]^2,\]</div>
+<span class="eqno">(9)<a class="headerlink" href="#equation-formdrag" title="Permalink to this equation">¶</a></span>\[C_d=\frac{N c S_c^2 \gamma L_y  H}{2 S_T}\left[\frac{\ln(H/z_0)}{\ln(z_{ref}/z_0)}\right]^2,\]</div>
 <p>where <span class="math">\(z_0\)</span> is a roughness length parameter at the top or bottom
 surface of the ice, <span class="math">\(\gamma\)</span> is a geometric factor, <span class="math">\(c\)</span> is
 the resistance coefficient of a single obstacle, and <span class="math">\(S_c\)</span> is a
 sheltering function that takes into account the shielding effect of the
 obstacle,</p>
 <div class="math" id="equation-shelter">
-<span class="eqno">(9)<a class="headerlink" href="#equation-shelter" title="Permalink to this equation">¶</a></span>\[S_{c}=\left(1-\exp(-s_l D/H)\right)^{1/2},\]</div>
+<span class="eqno">(10)<a class="headerlink" href="#equation-shelter" title="Permalink to this equation">¶</a></span>\[S_{c}=\left(1-\exp(-s_l D/H)\right)^{1/2},\]</div>
 <p>with <span class="math">\(D\)</span> the distance between two obstacles and <span class="math">\(s_l\)</span> an
 attenuation parameter.</p>
 <p>As in the original drag formulation in CICE (<a class="reference internal" href="#atmo"><span class="std std-ref">Atmosphere</span></a> and
@@ -429,17 +437,17 @@ atmosphere–ice and ocean–ice boundary layers. The corresponding neutral
 exchange coefficients are then replaced by coefficients that explicitly
 account for form drag, expressed in terms of various contributions as</p>
 <div class="math" id="equation-Cda">
-<span class="eqno">(10)<a class="headerlink" href="#equation-Cda" title="Permalink to this equation">¶</a></span>\[\tt{Cdn\_atm}  = \tt{Cdn\_atm\_rdg} + \tt{Cdn\_atm\_floe} + \tt{Cdn\_atm\_skin} + \tt{Cdn\_atm\_pond} ,\]</div>
+<span class="eqno">(11)<a class="headerlink" href="#equation-Cda" title="Permalink to this equation">¶</a></span>\[\tt{Cdn\_atm}  = \tt{Cdn\_atm\_rdg} + \tt{Cdn\_atm\_floe} + \tt{Cdn\_atm\_skin} + \tt{Cdn\_atm\_pond} ,\]</div>
 <div class="math" id="equation-Cdw">
-<span class="eqno">(11)<a class="headerlink" href="#equation-Cdw" title="Permalink to this equation">¶</a></span>\[\tt{Cdn\_ocn}  =  \tt{Cdn\_ocn\_rdg} + \tt{Cdn\_ocn\_floe} + \tt{Cdn\_ocn\_skin}.\]</div>
+<span class="eqno">(12)<a class="headerlink" href="#equation-Cdw" title="Permalink to this equation">¶</a></span>\[\tt{Cdn\_ocn}  =  \tt{Cdn\_ocn\_rdg} + \tt{Cdn\_ocn\_floe} + \tt{Cdn\_ocn\_skin}.\]</div>
 <p>The contributions to form drag from ridges (and keels underneath the
 ice), floe edges and melt pond edges can be expressed using the general
-formulation of equation <a class="reference internal" href="#equation-formdrag">(8)</a> (see <a class="reference internal" href="../zreferences.html#tfsffklb14" id="id11">[46]</a> for
-details). Individual terms in equation <a class="reference internal" href="#equation-Cdw">(11)</a> are fully described in
-<a class="reference internal" href="../zreferences.html#tfsffklb14" id="id12">[46]</a>. Following <a class="reference internal" href="../zreferences.html#arya75" id="id13">[3]</a>
+formulation of equation <a class="reference internal" href="#equation-formdrag">(9)</a> (see <a class="reference internal" href="../zreferences.html#tfsffklb14" id="id13">[52]</a> for
+details). Individual terms in equation <a class="reference internal" href="#equation-Cdw">(12)</a> are fully described in
+<a class="reference internal" href="../zreferences.html#tfsffklb14" id="id14">[52]</a>. Following <a class="reference internal" href="../zreferences.html#arya75" id="id15">[3]</a>
 the skin drag coefficient is parametrized as</p>
 <div class="math" id="equation-skindrag">
-<span class="eqno">(12)<a class="headerlink" href="#equation-skindrag" title="Permalink to this equation">¶</a></span>\[{ \tt{Cdn\_(atm/ocn)\_skin}}=a_{i} \left(1-m_{(s/k)} \frac{H_{(s/k)}}{D_{(s/k)}}\right)c_{s(s/k)}, \mbox{       if  $\displaystyle\frac{H_{(s/k)}}{D_{(s/k)}}\ge\frac{1}{m_{(s/k)}}$,}\]</div>
+<span class="eqno">(13)<a class="headerlink" href="#equation-skindrag" title="Permalink to this equation">¶</a></span>\[{ \tt{Cdn\_(atm/ocn)\_skin}}=a_{i} \left(1-m_{(s/k)} \frac{H_{(s/k)}}{D_{(s/k)}}\right)c_{s(s/k)}, \mbox{       if  $\displaystyle\frac{H_{(s/k)}}{D_{(s/k)}}\ge\frac{1}{m_{(s/k)}}$,}\]</div>
 <p>where <span class="math">\(m_s\)</span> (<span class="math">\(m_k\)</span>) is a sheltering parameter that depends
 on the average sail (keel) height, <span class="math">\(H_s\)</span> (<span class="math">\(H_k\)</span>), but is
 often assumed constant, <span class="math">\(D_s\)</span> (<span class="math">\(D_k\)</span>) is the average
@@ -447,16 +455,16 @@ distance between sails (keels), and <span class="math">\(c_{ss}\)</span> (<span 
 the unobstructed atmospheric (oceanic) skin drag that would be attained
 in the absence of sails (keels) and with complete ice coverage,
 <span class="math">\(a_{ice}=1\)</span>.</p>
-<p>Calculation of equations <a class="reference internal" href="#equation-formdrag">(8)</a> – <a class="reference internal" href="#equation-skindrag">(12)</a> requires that small-scale geometrical
+<p>Calculation of equations <a class="reference internal" href="#equation-formdrag">(9)</a> – <a class="reference internal" href="#equation-skindrag">(13)</a> requires that small-scale geometrical
 properties of the ice cover be related to average grid cell quantities
 already computed in the sea ice model. These intermediate quantities are
 briefly presented here and described in more detail in
-<a class="reference internal" href="../zreferences.html#tfsffklb14" id="id14">[46]</a>. The sail height is given by</p>
+<a class="reference internal" href="../zreferences.html#tfsffklb14" id="id16">[52]</a>. The sail height is given by</p>
 <div class="math" id="equation-Hs">
-<span class="eqno">(13)<a class="headerlink" href="#equation-Hs" title="Permalink to this equation">¶</a></span>\[H_{s} = \displaystyle 2\frac{v_{rdg}}{a_{rdg}}\left(\frac{\alpha\tan \alpha_{k} R_d+\beta \tan \alpha_{s} R_h}{\phi_r\tan \alpha_{k} R_d+\phi_k \tan \alpha_{s} R_h^2}\right),\]</div>
+<span class="eqno">(14)<a class="headerlink" href="#equation-Hs" title="Permalink to this equation">¶</a></span>\[H_{s} = \displaystyle 2\frac{v_{rdg}}{a_{rdg}}\left(\frac{\alpha\tan \alpha_{k} R_d+\beta \tan \alpha_{s} R_h}{\phi_r\tan \alpha_{k} R_d+\phi_k \tan \alpha_{s} R_h^2}\right),\]</div>
 <p>and the distance between sails</p>
 <div class="math" id="equation-Ds">
-<span class="eqno">(14)<a class="headerlink" href="#equation-Ds" title="Permalink to this equation">¶</a></span>\[D_{s} = \displaystyle 2 H_s\frac{a_{i}}{a_{rdg}} \left(\frac{\alpha}{\tan \alpha_s}+\frac{\beta}{\tan \alpha_k}\frac{R_h}{R_d}\right),\]</div>
+<span class="eqno">(15)<a class="headerlink" href="#equation-Ds" title="Permalink to this equation">¶</a></span>\[D_{s} = \displaystyle 2 H_s\frac{a_{i}}{a_{rdg}} \left(\frac{\alpha}{\tan \alpha_s}+\frac{\beta}{\tan \alpha_k}\frac{R_h}{R_d}\right),\]</div>
 <p>where <span class="math">\(0&lt;\alpha&lt;1\)</span> and <span class="math">\(0&lt;\beta&lt;1\)</span> are weight functions,
 <span class="math">\(\alpha_{s}\)</span> and <span class="math">\(\alpha_{k}\)</span> are the sail and keel slope,
 <span class="math">\(\phi_s\)</span> and <span class="math">\(\phi_k\)</span> are constant porosities for the sails
@@ -471,10 +479,10 @@ is the mean ice thickness and <span class="math">\(\bar{h_s}\)</span> is the mea
 thickness (means taken over the ice covered regions). For the melt pond
 edge elevation we assume that the melt pond surface is at the same level
 as the ocean surface surrounding the floes
-<a class="reference internal" href="../zreferences.html#ff07" id="id15">[12]</a><a class="reference internal" href="../zreferences.html#fft10" id="id16">[13]</a><a class="reference internal" href="../zreferences.html#fsfh12" id="id17">[14]</a> and use the simplification
+<a class="reference internal" href="../zreferences.html#ff07" id="id17">[13]</a><a class="reference internal" href="../zreferences.html#fft10" id="id18">[14]</a><a class="reference internal" href="../zreferences.html#fsfh12" id="id19">[15]</a> and use the simplification
 <span class="math">\(H_p = H_f\)</span>. Finally to estimate the typical floe size
 <span class="math">\(L_A\)</span>, distance between floes, <span class="math">\(D_F\)</span>, and melt pond size,
-<span class="math">\(L_P\)</span> we use the parameterizations of <a class="reference internal" href="../zreferences.html#lgha12" id="id18">[30]</a>
+<span class="math">\(L_P\)</span> we use the parameterizations of <a class="reference internal" href="../zreferences.html#lgha12" id="id20">[34]</a>
 to relate these quantities to the ice and pond concentrations. All of
 these intermediate quantities are available for output, along
 with <code class="docutils literal"><span class="pre">Cdn_atm</span></code>, <code class="docutils literal"><span class="pre">Cdn_ocn</span></code> and the ratio <code class="docutils literal"><span class="pre">Cdn_atm_ratio_n</span></code> between the
@@ -548,7 +556,7 @@ coefficient is 0.006 (<code class="docutils literal"><span class="pre">fbot_xfer
         <li class="right" >
           <a href="index.html" title="2. Science Guide"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

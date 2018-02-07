@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>5. Index of primary variables and parameters &#8212; Icepack 1.0 documentation</title>
+    <title>5. Index of primary variables and parameters &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="developer_guide/dg_adding_tracers.html" title="4.5. Adding tracers"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Icepack 1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Icepack 0.0.01 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -74,59 +74,9 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>a11,a12</td>
-<td>structure tensor components</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>a2D</td>
-<td>history field accumulations, 2d</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>a3Dz</td>
-<td>history field accumulations, 3D vertical</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>a3Db</td>
-<td>history field accumulations, 3D bio grid</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>a3Dc</td>
-<td>history field accumulations, 3D categories</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>a4Di</td>
-<td>history field accumulations, 4D categories, vertical ice</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>a4Db</td>
-<td>history field accumulations, 4D categories, vertical bio grid</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>a4Ds</td>
-<td>history field accumulations, 4D categories, vertical snow</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>a_min</td>
-<td>minimum area concentration for computing velocity</td>
-<td>0.001</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>a_rapid_mode</td>
+<tr class="row-odd"><td>a_rapid_mode</td>
 <td><span class="math">\(\bullet\)</span> brine channel diameter</td>
 <td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>advection</td>
-<td><span class="math">\(\bullet\)</span> type of advection algorithm used (‘remap’ or ‘upwind’)</td>
-<td>remap</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>ahmax</td>
@@ -134,33 +84,23 @@ either Celsius or Kelvin units).</p>
 <td>0.3m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>aice_extmin</td>
-<td>minimum value for ice extent diagnostic</td>
-<td>0.15</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>aice_init</td>
+<tr class="row-odd"><td>aice_init</td>
 <td>concentration of ice at beginning of timestep</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>aice0</td>
+<tr class="row-even"><td>aice0</td>
 <td>fractional open water area</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>aice(n)</td>
+<tr class="row-odd"><td>aice(n)</td>
 <td>total concentration of ice in grid cell (in category n)</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>albedo_type</td>
+<tr class="row-even"><td>albedo_type</td>
 <td><span class="math">\(\bullet\)</span> type of albedo parameterization (‘default’ or ‘constant’)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>albcnt</td>
-<td>counter for averaging albedo</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -209,29 +149,49 @@ either Celsius or Kelvin units).</p>
 <td>mmol/m<span class="math">\(^3\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>alv(n)dr(f)</td>
-<td>albedo: visible (near IR), direct (diffuse)</td>
+<tr class="row-even"><td>alndf</td>
+<td>albedo: near IR, diffuse</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>alv(n)dr(f)_ai</td>
-<td>grid-box-mean value of alv(n)dr(f)</td>
+<tr class="row-odd"><td>alndr</td>
+<td>albedo: near IR, direct</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>alvdf</td>
+<td>albedo: visible, diffuse</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>alvdr</td>
+<td>albedo: visible, direct</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>alndf_ai</td>
+<td>grid-box-mean value of alndf</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>alndr_ai</td>
+<td>grid-box-mean value of alndr</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>alvdf_ai</td>
+<td>grid-box-mean value of alvdf</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>alvdr_ai</td>
+<td>grid-box-mean value of alvdr</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>amm</td>
 <td>ammonia/um concentration</td>
 <td>mmol/m<span class="math">\(^3\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>ANGLE</td>
-<td>for conversions between the POP grid and latitude-longitude grids</td>
-<td>radians</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ANGLET</td>
-<td>ANGLE converted to T-cells</td>
-<td>radians</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>aparticn</td>
@@ -249,18 +209,8 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>arlx1i</td>
-<td>relaxation constant for dynamics (stress)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>araftn</td>
+<tr class="row-even"><td>araftn</td>
 <td>area fraction of rafted ice</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>aredistrn</td>
-<td>redistribution function: fraction of new ridge area</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -279,28 +229,18 @@ either Celsius or Kelvin units).</p>
 <td>0.05</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>atm_data_dir</td>
-<td><span class="math">\(\bullet\)</span> directory for atmospheric forcing data</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>atm_data_format</td>
+<tr class="row-even"><td>atm_data_format</td>
 <td><span class="math">\(\bullet\)</span> format of atmospheric forcing files</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>atm_data_type</td>
+<tr class="row-odd"><td>atm_data_type</td>
 <td><span class="math">\(\bullet\)</span> type of atmospheric forcing</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>atmbndy</td>
+<tr class="row-even"><td>atmbndy</td>
 <td><span class="math">\(\bullet\)</span> atmo boundary layer parameterization (‘default’ or ‘constant’)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>avail_hist_fields</td>
-<td>type for history field data</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -329,18 +269,18 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>bfb_flag</td>
-<td><span class="math">\(\bullet\)</span> for bit-for-bit reproducible diagnostics</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>bgc_data_dir</td>
+<tr class="row-even"><td>bgc_data_dir</td>
 <td><span class="math">\(\bullet\)</span> data directory for bgc</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
+<tr class="row-odd"><td>bgc_data_type</td>
+<td><span class="math">\(\bullet\)</span> forcing type for biogeochemistry</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
 <tr class="row-even"><td>bgc_flux_type</td>
-<td><span class="math">\(\bullet\)</span> ice–ocean flux velocity</td>
+<td><span class="math">\(\bullet\)</span> ice-ocean flux velocity type</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -359,48 +299,8 @@ either Celsius or Kelvin units).</p>
 <td><span class="math">\(10^{30}\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>block</td>
-<td>data type for blocks</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>block_id</td>
-<td>global block number</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>block_size_x(y)</td>
-<td>number of cells along x(y) direction of block</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>blockGlobalID</td>
-<td>global block IDs</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>blockLocalID</td>
-<td>local block IDs</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>blockLocation</td>
-<td>processor location of block</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>blocks_ice</td>
-<td>local block IDs</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>bphi</td>
+<tr class="row-even"><td>bphi</td>
 <td>porosity of ice layers on bio grid</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>brlx</td>
-<td>relaxation constant for dynamics (momentum)</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -414,32 +314,27 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>c&lt;n&gt;</td>
-<td>real(<span class="math">\(n\)</span>)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>calc_strair</td>
+<tr class="row-odd"><td>calc_strair</td>
 <td><span class="math">\(\bullet\)</span> if true, calculate wind stress</td>
 <td>T</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>calc_Tsfc</td>
+<tr class="row-even"><td>calc_Tsfc</td>
 <td><span class="math">\(\bullet\)</span> if true, calculate surface temperature</td>
 <td>T</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>Cdn_atm</td>
+<tr class="row-odd"><td>Cdn_atm</td>
 <td>atmospheric drag coefficient</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>Cdn_ocn</td>
+<tr class="row-even"><td>Cdn_ocn</td>
 <td>ocean drag coefficient</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>Cf</td>
+<tr class="row-odd"><td>Cf</td>
 <td><span class="math">\(\bullet\)</span> ratio of ridging work to PE change in ridging</td>
 <td><ol class="first last arabic simple" start="17">
 <li></li>
@@ -447,28 +342,23 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>cgrid</td>
+<tr class="row-even"><td>cgrid</td>
 <td>vertical grid points for ice grid (compare bgrid)</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>char_len</td>
+<tr class="row-odd"><td>char_len</td>
 <td>length of character variable strings</td>
 <td>80</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>char_len_long</td>
+<tr class="row-even"><td>char_len_long</td>
 <td>length of longer character variable strings</td>
 <td>256</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>check_step</td>
+<tr class="row-odd"><td>check_step</td>
 <td>time step on which to begin writing debugging data</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>check_umax</td>
-<td>if true, check for ice speed <span class="math">\(&gt;\)</span> umax_stab</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -502,30 +392,22 @@ either Celsius or Kelvin units).</p>
 <td>m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>cosw</td>
-<td>cosine of the turning angle in water</td>
-<td><ol class="first last arabic simple">
-<li></li>
-</ol>
-</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>coszen</td>
+<tr class="row-even"><td>coszen</td>
 <td>cosine of the zenith angle</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>Cp</td>
+<tr class="row-odd"><td>Cp</td>
 <td>proportionality constant for potential energy</td>
 <td>kg/m<span class="math">\(^2\)</span>/s<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>cp_air</td>
+<tr class="row-even"><td>cp_air</td>
 <td>specific heat of air</td>
 <td>1005.0 J/kg/K</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>cp_ice</td>
+<tr class="row-odd"><td>cp_ice</td>
 <td>specific heat of fresh ice</td>
 <td><ol class="first last arabic simple" start="2106">
 <li>J/kg/K</li>
@@ -533,7 +415,7 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>cp_ocn</td>
+<tr class="row-even"><td>cp_ocn</td>
 <td>specific heat of sea water</td>
 <td><ol class="first last arabic simple" start="4218">
 <li>J/kg/K</li>
@@ -541,27 +423,27 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>cp_wv</td>
+<tr class="row-odd"><td>cp_wv</td>
 <td>specific heat of water vapor</td>
 <td>1.81x<span class="math">\(10^3\)</span> J/kg/K</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>cp063</td>
+<tr class="row-even"><td>cp063</td>
 <td>diffuse fresnel reflectivity (above)</td>
 <td>0.063</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>cp455</td>
+<tr class="row-odd"><td>cp455</td>
 <td>diffuse fresnel reflectivity (below)</td>
 <td>0.455</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>Cs</td>
+<tr class="row-even"><td>Cs</td>
 <td>fraction of shear energy contributing to ridging</td>
 <td>0.25</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>Cstar</td>
+<tr class="row-odd"><td>Cstar</td>
 <td>constant in Hibler ice strength formula</td>
 <td><ol class="first last arabic simple" start="20">
 <li></li>
@@ -569,163 +451,108 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>cxm</td>
-<td>combination of HTN values</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>cxp</td>
-<td>combination of HTN values</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>cym</td>
-<td>combination of HTE values</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>cyp</td>
-<td>combination of HTE values</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><strong>D</strong></td>
+<tr class="row-even"><td><strong>D</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>daice_da</td>
+<tr class="row-odd"><td>daice_da</td>
 <td>data assimilation concentration increment rate</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>daidtd</td>
+<tr class="row-even"><td>daidtd</td>
 <td>ice area tendency due to dynamics/transport</td>
 <td>1/s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>daidtt</td>
+<tr class="row-odd"><td>daidtt</td>
 <td>ice area tendency due to thermodynamics</td>
 <td>1/s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>dalb_mlt</td>
+<tr class="row-even"><td>dalb_mlt</td>
 <td>[see <strong>ice_shortwave.F90</strong>]</td>
 <td>-0.075</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>dalb_mlti</td>
+<tr class="row-odd"><td>dalb_mlti</td>
 <td>[see <strong>ice_shortwave.F90</strong>]</td>
 <td>-0.100</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>dalb_mltv</td>
+<tr class="row-even"><td>dalb_mltv</td>
 <td>[see <strong>ice_shortwave.F90</strong>]</td>
 <td>-0.150</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>darcy_V</td>
+<tr class="row-odd"><td>darcy_V</td>
 <td>Darcy velocity used for brine height tracer</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>dardg1(n)dt</td>
+<tr class="row-even"><td>dardg1(n)dt</td>
 <td>rate of fractional area loss by ridging ice (category n)</td>
 <td>1/s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>dardg2(n)dt</td>
+<tr class="row-odd"><td>dardg2(n)dt</td>
 <td>rate of fractional area gain by new ridges (category n)</td>
 <td>1/s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>daymo</td>
+<tr class="row-even"><td>daymo</td>
 <td>number of days in one month</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>daycal</td>
+<tr class="row-odd"><td>daycal</td>
 <td>day number at end of month</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>days_per_year</td>
+<tr class="row-even"><td>days_per_year</td>
 <td><span class="math">\(\bullet\)</span> number of days in one year</td>
 <td>365</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>dbl_kind</td>
+<tr class="row-odd"><td>dbl_kind</td>
 <td>definition of double precision</td>
 <td>selected_real_kind(13)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>dbug</td>
+<tr class="row-even"><td>dbug</td>
 <td><span class="math">\(\bullet\)</span> write extra diagnostics</td>
 <td>.false.</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>Delta</td>
-<td>function of strain rates</td>
-<td>1/s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>denom1</td>
-<td>combination of constants for stress equation</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>depressT</td>
+<tr class="row-odd"><td>depressT</td>
 <td>ratio of freezing temperature to salinity of brine</td>
 <td>0.054 deg/ppt</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>dhbr_bt</td>
+<tr class="row-even"><td>dhbr_bt</td>
 <td>change in brine height at the bottom of the column</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>dhbr_top</td>
+<tr class="row-odd"><td>dhbr_top</td>
 <td>change in brine height at the top of the column</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>dhsn</td>
+<tr class="row-even"><td>dhsn</td>
 <td>depth difference for snow on sea ice and pond ice</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>diag_file</td>
+<tr class="row-odd"><td>diag_file</td>
 <td><span class="math">\(\bullet\)</span> diagnostic output file (alternative to standard out)</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>diag_type</td>
-<td><span class="math">\(\bullet\)</span> where diagnostic output is written</td>
-<td>stdout</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-even"><td>diagfreq</td>
 <td><span class="math">\(\bullet\)</span> how often diagnostic output is written (10 = once per 10 dt)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>distrb</td>
-<td>distribution data type</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>distrb_info</td>
-<td>block distribution information</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>distribution_type</td>
-<td><span class="math">\(\bullet\)</span> method used to distribute blocks on processors</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>distribution_weight</td>
-<td><span class="math">\(\bullet\)</span> weighting method used to compute work per block</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -790,26 +617,6 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>dte</td>
-<td>subcycling time step for EVP dynamics (<span class="math">\(\Delta t_e\)</span>)</td>
-<td>s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>dte2T</td>
-<td>dte / 2(damping time scale)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>dtei</td>
-<td>1/dte, where dte is the EVP subcycling time step</td>
-<td>1/s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>dump_file</td>
-<td><span class="math">\(\bullet\)</span> output file for restart dump</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-even"><td>dumpfreq</td>
 <td><span class="math">\(\bullet\)</span> dump frequency for restarts, y, m or d</td>
 <td>&#160;</td>
@@ -818,46 +625,6 @@ either Celsius or Kelvin units).</p>
 <tr class="row-odd"><td>dumpfreq_n</td>
 <td><span class="math">\(\bullet\)</span> restart output frequency</td>
 <td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>dump_last</td>
-<td><span class="math">\(\bullet\)</span> if true, write restart on last time step of simulation</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>dxhy</td>
-<td>combination of HTE values</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>dxt</td>
-<td>width of T cell (<span class="math">\(\Delta x\)</span>) through the middle</td>
-<td>m</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>dxu</td>
-<td>width of U cell (<span class="math">\(\Delta x\)</span>) through the middle</td>
-<td>m</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>dyhx</td>
-<td>combination of HTN values</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>dyn_dt</td>
-<td>dynamics and transport time step (<span class="math">\(\Delta t_{dyn}\)</span>)</td>
-<td>s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>dyt</td>
-<td>height of T cell (<span class="math">\(\Delta y\)</span>) through the middle</td>
-<td>m</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>dyu</td>
-<td>height of U cell (<span class="math">\(\Delta y\)</span>) through the middle</td>
-<td>m</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>dvidtd</td>
@@ -878,16 +645,6 @@ either Celsius or Kelvin units).</p>
 <tr class="row-odd"><td><strong>E</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>e11, e12, e22</td>
-<td>strain rate tensor components</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>ecci</td>
-<td>yield curve minor/major axis ratio, squared</td>
-<td>1/4</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>eice(n)</td>
@@ -920,16 +677,6 @@ either Celsius or Kelvin units).</p>
 <td>kg/m<span class="math">\(^2\)</span>/s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>ew_boundary_type</td>
-<td><span class="math">\(\bullet\)</span> type of east-west boundary condition</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>eyc</td>
-<td>coefficient for calculating the parameter E, 0<span class="math">\(&lt;\)</span> eyc <span class="math">\(&lt;\)</span>1</td>
-<td>0.36</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-even"><td><strong>F</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
@@ -955,102 +702,37 @@ either Celsius or Kelvin units).</p>
 <td>W/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>fcor_blk</td>
-<td>Coriolis parameter</td>
-<td>1/s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ferrmax</td>
+<tr class="row-odd"><td>ferrmax</td>
 <td>max allowed energy flux error (thermodynamics)</td>
 <td>1x <span class="math">\(10^{-3}\)</span> W/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>ffracn</td>
+<tr class="row-even"><td>ffracn</td>
 <td>fraction of fsurfn used to melt pond ice</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>fhocn</td>
+<tr class="row-odd"><td>fhocn</td>
 <td>net heat flux to ocean</td>
 <td>W/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>fhocn_ai</td>
+<tr class="row-even"><td>fhocn_ai</td>
 <td>grid-box-mean net heat flux to ocean (fhocn)</td>
 <td>W/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>field_loc_center</td>
-<td>field centered on grid cell</td>
-<td>1</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>field_loc_Eface</td>
-<td>field centered on east face</td>
-<td>4</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>field_loc_NEcorner</td>
-<td>field on northeast corner</td>
-<td>2</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>field_loc_Nface</td>
-<td>field centered on north face</td>
-<td>3</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>field_loc_noupdate</td>
-<td>ignore location of field</td>
-<td>-1</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>field_loc_unknown</td>
-<td>unknown location of field</td>
-<td>0</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>field_loc_Wface</td>
-<td>field centered on west face</td>
-<td>5</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>field_type_angle</td>
-<td>angle field type</td>
-<td>3</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>field_type_noupdate</td>
-<td>ignore field type</td>
-<td>-1</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>field_type_scalar</td>
-<td>scalar field type</td>
-<td>1</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>field_type_unknown</td>
-<td>unknown field type</td>
-<td>0</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>field_type_vector</td>
-<td>vector field type</td>
-<td>2</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>first_ice</td>
+<tr class="row-odd"><td>first_ice</td>
 <td>flag for initial ice formation</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>flat</td>
+<tr class="row-even"><td>flat</td>
 <td>latent heat flux</td>
 <td>W/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>floediam</td>
+<tr class="row-odd"><td>floediam</td>
 <td>effective floe diameter for lateral melt</td>
 <td><ol class="first last arabic simple" start="300">
 <li>m</li>
@@ -1058,34 +740,29 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>floeshape</td>
+<tr class="row-even"><td>floeshape</td>
 <td>floe shape constant for lateral melt</td>
 <td>0.66</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>flux_bio</td>
+<tr class="row-odd"><td>flux_bio</td>
 <td>all biogeochemistry fluxes passed to ocean</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>flux_bio_ai</td>
+<tr class="row-even"><td>flux_bio_ai</td>
 <td>all biogeochemistry fluxes passed to ocean, grid cell mean</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>flw</td>
+<tr class="row-odd"><td>flw</td>
 <td>incoming longwave radiation</td>
 <td>W/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>flwout</td>
+<tr class="row-even"><td>flwout</td>
 <td>outgoing longwave radiation</td>
 <td>W/m<span class="math">\(^2\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>fm</td>
-<td>Coriolis parameter * mass in U cell</td>
-<td>kg/s</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>formdrag</td>
@@ -1241,26 +918,6 @@ either Celsius or Kelvin units).</p>
 <td>9.80616 m/s<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>grid_file</td>
-<td><span class="math">\(\bullet\)</span> input file for grid info</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>grid_format</td>
-<td><span class="math">\(\bullet\)</span> format of grid files</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>grid_type</td>
-<td><span class="math">\(\bullet\)</span> ‘rectangular’, ‘displaced_pole’, ‘column’ or ‘regional’</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>gridcpl_file</td>
-<td><span class="math">\(\bullet\)</span> input file for coupling grid info</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-odd"><td>grow_net</td>
 <td>specific biogeochemistry growth rate per grid cell</td>
 <td>s <span class="math">\(^{-1}\)</span></td>
@@ -1276,82 +933,47 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>halo_info</td>
-<td>information for updating ghost cells</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>heat_capacity</td>
+<tr class="row-even"><td>heat_capacity</td>
 <td><span class="math">\(\bullet\)</span> if true, use salinity-dependent thermodynamics</td>
 <td>T</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>hfrazilmin</td>
+<tr class="row-odd"><td>hfrazilmin</td>
 <td>minimum thickness of new frazil ice</td>
 <td>0.05 m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>hi_min</td>
+<tr class="row-even"><td>hi_min</td>
 <td>minimum ice thickness for thinnest ice category</td>
 <td>0.01 m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>hi_ssl</td>
+<tr class="row-odd"><td>hi_ssl</td>
 <td>ice surface scattering layer thickness</td>
 <td>0.05 m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>hicen</td>
+<tr class="row-even"><td>hicen</td>
 <td>ice thickness in category n</td>
 <td>m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>highfreq</td>
+<tr class="row-odd"><td>highfreq</td>
 <td><span class="math">\(\bullet\)</span> high-frequency atmo coupling</td>
 <td>F</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>hin_old</td>
+<tr class="row-even"><td>hin_old</td>
 <td>ice thickness prior to growth/melt</td>
 <td>m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>hin_max</td>
+<tr class="row-odd"><td>hin_max</td>
 <td>category thickness limits</td>
 <td>m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>hist_avg</td>
-<td><span class="math">\(\bullet\)</span> if true, write averaged data instead of snapshots</td>
-<td>T</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>histfreq</td>
-<td><span class="math">\(\bullet\)</span> units of history output frequency: y, m, w, d or 1</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>histfreq_n</td>
-<td><span class="math">\(\bullet\)</span> integer output frequency in histfreq units</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>history_dir</td>
-<td><span class="math">\(\bullet\)</span> path to history output files</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>history_file</td>
-<td><span class="math">\(\bullet\)</span> history output file prefix</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>hm</td>
-<td>land/boundary mask, thickness (T-cell)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>hmix</td>
+<tr class="row-even"><td>hmix</td>
 <td>ocean mixed layer depth</td>
 <td><ol class="first last arabic simple" start="20">
 <li>m</li>
@@ -1359,52 +981,52 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>hour</td>
+<tr class="row-odd"><td>hour</td>
 <td>hour of the year</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>hp0</td>
+<tr class="row-even"><td>hp0</td>
 <td>pond depth at which shortwave transition to bare ice occurs</td>
 <td>0.2 m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>hp1</td>
+<tr class="row-odd"><td>hp1</td>
 <td><span class="math">\(\bullet\)</span> critical ice lid thickness for topo ponds (dEdd)</td>
 <td>0.01 m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>hpmin</td>
+<tr class="row-even"><td>hpmin</td>
 <td>minimum melt pond depth (shortwave)</td>
 <td>0.005 m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>hpondn</td>
+<tr class="row-odd"><td>hpondn</td>
 <td>melt pond depth</td>
 <td>m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>hs_min</td>
+<tr class="row-even"><td>hs_min</td>
 <td>minimum thickness for which <span class="math">\(T_s\)</span> is computed</td>
 <td>1.<span class="math">\(\times\)</span>10<span class="math">\(^{-4}\)</span> m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>hs0</td>
+<tr class="row-odd"><td>hs0</td>
 <td><span class="math">\(\bullet\)</span> snow depth at which transition to ice occurs (dEdd)</td>
 <td>0.03 m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>hs1</td>
+<tr class="row-even"><td>hs1</td>
 <td><span class="math">\(\bullet\)</span> snow depth of transition to pond ice</td>
 <td>0.03 m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>hs_ssl</td>
+<tr class="row-odd"><td>hs_ssl</td>
 <td>snow surface scattering layer thickness</td>
 <td>0.04 m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>Hstar</td>
+<tr class="row-even"><td>Hstar</td>
 <td>determines mean thickness of ridged ice</td>
 <td><ol class="first last arabic simple" start="25">
 <li>m</li>
@@ -1412,33 +1034,8 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>HTE</td>
-<td>length of eastern edge (<span class="math">\(\Delta y\)</span>) of T-cell</td>
-<td>m</td>
+<tr class="row-odd"><td><strong>I</strong></td>
 <td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>HTN</td>
-<td>length of northern edge (<span class="math">\(\Delta x\)</span>) of T-cell</td>
-<td>m</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>HTS</td>
-<td>length of southern edge (<span class="math">\(\Delta x\)</span>) of T-cell</td>
-<td>m</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>HTW</td>
-<td>length of western edge of (<span class="math">\(\Delta y\)</span>) T-cell</td>
-<td>m</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><strong>I</strong></td>
-<td>&#160;</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>i(j)_glob</td>
-<td>global domain location for each grid cell</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -1447,37 +1044,22 @@ either Celsius or Kelvin units).</p>
 <td>0.70</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>iblkp</td>
-<td>block on which to write debugging data</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>i(j)block</td>
-<td>Cartesian i,j position of block</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>ice_hist_field</td>
-<td>type for history variables</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ice_ic</td>
+<tr class="row-odd"><td>ice_ic</td>
 <td><span class="math">\(\bullet\)</span> choice of initial conditions</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>ice_stdout</td>
+<tr class="row-even"><td>ice_stdout</td>
 <td>unit number for standard output</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>ice_stderr</td>
+<tr class="row-odd"><td>ice_stderr</td>
 <td>unit number for standard error output</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>ice_ref_salinity</td>
+<tr class="row-even"><td>ice_ref_salinity</td>
 <td>reference salinity for ice–ocean exchanges</td>
 <td><ol class="first last arabic simple" start="4">
 <li>ppt</li>
@@ -1485,24 +1067,9 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>icells</td>
-<td>number of grid cells with specified property (for vectorization)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-odd"><td>iceruf</td>
 <td>ice surface roughness</td>
 <td>5.<span class="math">\(\times\)</span>10<span class="math">\(^{-4}\)</span> m</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>icetmask</td>
-<td>ice extent mask (T-cell)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>iceumask</td>
-<td>ice extent mask (U-cell)</td>
-<td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>idate</td>
@@ -1515,99 +1082,59 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>ierr</td>
-<td>general-use error flag</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>igrid</td>
+<tr class="row-even"><td>igrid</td>
 <td>interface points for vertical bio grid</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>i(j)hi</td>
-<td>last i(j) index of physical domain (local)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>i(j)lo</td>
-<td>first i(j) index of physical domain (local)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>incond_dir</td>
-<td><span class="math">\(\bullet\)</span> directory to write snapshot of initial condition</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>incond_file</td>
-<td><span class="math">\(\bullet\)</span> prefix for initial condition file name</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>int_kind</td>
+<tr class="row-odd"><td>int_kind</td>
 <td>definition of an integer</td>
 <td>selected_real_kind(6)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>integral_order</td>
-<td>polynomial order of quadrature integrals in remapping</td>
-<td>3</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ip, jp</td>
-<td>local processor coordinates on which to write debugging data</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>istep</td>
+<tr class="row-even"><td>istep</td>
 <td>local step counter for time loop</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>istep0</td>
+<tr class="row-odd"><td>istep0</td>
 <td><span class="math">\(\bullet\)</span> number of steps taken in previous run</td>
 <td>0</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>istep1</td>
+<tr class="row-even"><td>istep1</td>
 <td>total number of steps at current time step</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>Iswabs</td>
+<tr class="row-odd"><td>Iswabs</td>
 <td>shortwave radiation absorbed in ice layers</td>
 <td>W/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><strong>J</strong></td>
+<tr class="row-even"><td><strong>J</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><strong>K</strong></td>
+<tr class="row-odd"><td><strong>K</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>kalg</td>
+<tr class="row-even"><td>kalg</td>
 <td><span class="math">\(\bullet\)</span> absorption coefficient for algae</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>kappav</td>
+<tr class="row-odd"><td>kappav</td>
 <td>visible extinction coefficient in ice, wavelength<span class="math">\(&lt;\)</span>700nm</td>
 <td>1.4 m<span class="math">\(^{-1}\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>kcatbound</td>
+<tr class="row-even"><td>kcatbound</td>
 <td><span class="math">\(\bullet\)</span> category boundary formula</td>
 <td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>kdyn</td>
-<td><span class="math">\(\bullet\)</span> type of dynamics (1 = EVP, 0 = off)</td>
-<td>1</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>kg_to_g</td>
@@ -1628,63 +1155,53 @@ either Celsius or Kelvin units).</p>
 <td>1</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>kmt_file</td>
-<td><span class="math">\(\bullet\)</span> input file for land mask info</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>krdg_partic</td>
+<tr class="row-even"><td>krdg_partic</td>
 <td><span class="math">\(\bullet\)</span> ridging participation function</td>
 <td>1</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>krdg_redist</td>
+<tr class="row-odd"><td>krdg_redist</td>
 <td><span class="math">\(\bullet\)</span> ridging redistribution function</td>
 <td>1</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>krgdn</td>
+<tr class="row-even"><td>krdgn</td>
 <td>mean ridge thickness per thickness of ridging ice</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>kseaice</td>
+<tr class="row-odd"><td>kseaice</td>
 <td>thermal conductivity of ice for zero-layer thermodynamics</td>
 <td>2.0 W/m/deg</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>ksno</td>
+<tr class="row-even"><td>ksno</td>
 <td>thermal conductivity of snow</td>
 <td>0.30 W/m/deg</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>kstrength</td>
-<td><span class="math">\(\bullet\)</span> ice stength formulation (1= <a class="reference internal" href="zreferences.html#rothrock75" id="id2">[38]</a>, 0 = <a class="reference internal" href="zreferences.html#hibler79" id="id3">[17]</a>)</td>
+<tr class="row-odd"><td>kstrength</td>
+<td><span class="math">\(\bullet\)</span> ice stength formulation (1= <a class="reference internal" href="zreferences.html#rothrock75" id="id2">[43]</a>, 0 = <a class="reference internal" href="zreferences.html#hibler79" id="id3">[19]</a>)</td>
 <td>1</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>ktherm</td>
+<tr class="row-even"><td>ktherm</td>
 <td><span class="math">\(\bullet\)</span> thermodynamic formulation (0 = zero-layer, 1 = <a class="reference internal" href="zreferences.html#bl99" id="id4">[6]</a>, 2 = mushy)</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><strong>L</strong></td>
+<tr class="row-odd"><td><strong>L</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>l_brine</td>
+<tr class="row-even"><td>l_brine</td>
 <td>flag for brine pocket effects</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>l_conservation_check</td>
+<tr class="row-odd"><td>l_conservation_check</td>
 <td>if true, check conservation when ridging</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>l_fixed_area</td>
-<td>flag for prescribing remapping fluxes</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -1693,38 +1210,18 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>latpnt</td>
-<td><span class="math">\(\bullet\)</span> desired latitude of diagnostic points</td>
-<td>degrees N</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>latt(u)_bounds</td>
-<td>latitude of T(U) grid cell corners</td>
-<td>degrees N</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>lcdf64</td>
-<td><span class="math">\(\bullet\)</span> if true, use 64-bit &nbsp;format</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>Lfresh</td>
+<tr class="row-odd"><td>Lfresh</td>
 <td>latent heat of melting of fresh ice = Lsub - Lvap</td>
 <td>J/kg</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>lhcoef</td>
+<tr class="row-even"><td>lhcoef</td>
 <td>transfer coefficient for latent heat</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>lmask_n(s)</td>
+<tr class="row-odd"><td>lmask_n(s)</td>
 <td>northern (southern) hemisphere mask</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>local_id</td>
-<td>local address of block in current distribution</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -1733,39 +1230,19 @@ either Celsius or Kelvin units).</p>
 <td>kind(.true.)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>lonpnt</td>
-<td><span class="math">\(\bullet\)</span> desired longitude of diagnostic points</td>
-<td>degrees E</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>lont(u)_bounds</td>
-<td>longitude of T(U) grid cell corners</td>
-<td>degrees E</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-odd"><td>Lsub</td>
 <td>latent heat of sublimation for fresh water</td>
 <td>2.835<span class="math">\(\times\)</span> 10<span class="math">\(^6\)</span> J/kg</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>ltripole_grid</td>
-<td>flag to signal use of tripole grid</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>Lvap</td>
+<tr class="row-even"><td>Lvap</td>
 <td>latent heat of vaporization for fresh water</td>
 <td>2.501<span class="math">\(\times\)</span> 10<span class="math">\(^6\)</span> J/kg</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><strong>M</strong></td>
+<tr class="row-odd"><td><strong>M</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>m_min</td>
-<td>minimum mass for computing velocity</td>
-<td>0.01 kg/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>m_to_cm</td>
@@ -1789,26 +1266,6 @@ either Celsius or Kelvin units).</p>
 <tr class="row-odd"><td>m2_to_km2</td>
 <td>m<span class="math">\(^2\)</span> to km<span class="math">\(^2\)</span> conversion</td>
 <td>1<span class="math">\(\times\)</span>10<span class="math">\(^{-6}\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>maskhalo_bound</td>
-<td><span class="math">\(\bullet\)</span> turns on <em>bound_state</em> halo masking</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>maskhalo_dyn</td>
-<td><span class="math">\(\bullet\)</span> turns on dynamics halo masking</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>maskhalo_remap</td>
-<td><span class="math">\(\bullet\)</span> turns on transport halo masking</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>master_task</td>
-<td>task ID for the controlling processor</td>
-<td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>max_blocks</td>
@@ -1879,18 +1336,8 @@ either Celsius or Kelvin units).</p>
 <td>8.64<span class="math">\(\times\)</span>10<span class="math">\(^6\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>mtask</td>
-<td>local processor number that writes debugging data</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>mu_rdg</td>
+<tr class="row-odd"><td>mu_rdg</td>
 <td><span class="math">\(\bullet\)</span> e-folding scale of ridged ice</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>my_task</td>
-<td>task ID for the current processor</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -1909,94 +1356,54 @@ either Celsius or Kelvin units).</p>
 <td>5</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>nblocks</td>
-<td>number of blocks on current processor</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>nblocks_tot</td>
-<td>total number of blocks in decomposition</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>nblocks_x(y)</td>
-<td>total number of blocks in x(y) direction</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>nbtrcr</td>
+<tr class="row-odd"><td>nbtrcr</td>
 <td>number of biology tracers</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>ncat</td>
+<tr class="row-even"><td>ncat</td>
 <td>number of ice categories</td>
 <td>5</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>ncat_hist</td>
-<td>number of categories written to history</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>ndte</td>
-<td><span class="math">\(\bullet\)</span> number of subcycles</td>
-<td>120</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ndtd</td>
+<tr class="row-odd"><td>ndtd</td>
 <td><span class="math">\(\bullet\)</span> number of dynamics/advection steps under thermo</td>
 <td>1</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>new_day</td>
+<tr class="row-even"><td>new_day</td>
 <td>flag for beginning new day</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>new_hour</td>
+<tr class="row-odd"><td>new_hour</td>
 <td>flag for beginning new hour</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>new_month</td>
+<tr class="row-even"><td>new_month</td>
 <td>flag for beginning new month</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>new_year</td>
+<tr class="row-odd"><td>new_year</td>
 <td>flag for beginning new year</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>nghost</td>
-<td>number of rows of ghost cells surrounding each subdomain</td>
-<td>1</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ngroups</td>
-<td>number of groups of flux triangles in remapping</td>
-<td>5</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>nhlat</td>
+<tr class="row-even"><td>nhlat</td>
 <td>northern latitude of artificial mask edge</td>
 <td>30<span class="math">\(^\circ\)</span>S</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>nilyr</td>
+<tr class="row-odd"><td>nilyr</td>
 <td>number of ice layers in each category</td>
-<td>4</td>
+<td>7</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>nit</td>
+<tr class="row-even"><td>nit</td>
 <td>nitrate concentration</td>
 <td>mmol/m<span class="math">\(^3\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>nit_data_type</td>
-<td><span class="math">\(\bullet\)</span> forcing type for nitrate</td>
-<td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>nlt_bgc_[chem]</td>
@@ -2009,18 +1416,8 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>nprocs</td>
-<td><span class="math">\(\bullet\)</span> total number of processors</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>npt</td>
+<tr class="row-odd"><td>npt</td>
 <td><span class="math">\(\bullet\)</span> total number of time steps (dt)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>ns_boundary_type</td>
-<td><span class="math">\(\bullet\)</span> type of north-south boundary condition</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -2034,18 +1431,8 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>nstreams</td>
-<td>number of history output streams (frequencies)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>nt_&lt;trcr&gt;</td>
+<tr class="row-even"><td>nt_&lt;trcr&gt;</td>
 <td>tracer index</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ntrace</td>
-<td>number of fields being transported</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -2064,38 +1451,8 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>nu_dump_eap</td>
-<td>unit number for EAP dynamics dump file for restarting</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>nu_dump_[tracer]</td>
-<td>unit number for tracer dump file for restarting</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-even"><td>nu_forcing</td>
 <td>unit number for forcing data file</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>nu_grid</td>
-<td>unit number for grid file</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>nu_hdr</td>
-<td>unit number for binary history header file</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>nu_history</td>
-<td>unit number for history file</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>nu_kmt</td>
-<td>unit number for land mask file</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -2109,43 +1466,13 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>nu_restart_eap</td>
-<td>unit number for EAP dynamics restart input file</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>nu_restart_[tracer]</td>
-<td>unit number for tracer restart input file</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-odd"><td>nu_rst_pointer</td>
 <td>unit number for pointer to latest restart file</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>num_avail_hist_fields_[shape]</td>
-<td>number of history fields of each array shape</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>nvar</td>
-<td>number of horizontal grid fields written to history</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>nvarz</td>
-<td>number of category, vertical grid fields written to history</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>nx(y)_block</td>
+<tr class="row-even"><td>nx(y)_block</td>
 <td>total number of gridpoints on block in x(y) direction</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>nx(y)_global</td>
-<td>number of physical gridpoints in x(y) direction, global domain</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -2164,18 +1491,8 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>oceanmixed_file</td>
-<td><span class="math">\(\bullet\)</span> data file containing ocean forcing data</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>oceanmixed_ice</td>
+<tr class="row-even"><td>oceanmixed_ice</td>
 <td><span class="math">\(\bullet\)</span> if true, use internal ocean mixed layer</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ocn_data_dir</td>
-<td><span class="math">\(\bullet\)</span> directory for ocean forcing data</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -2184,178 +1501,168 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>omega</td>
+<tr class="row-even"><td>ocn_data_type</td>
+<td><span class="math">\(\bullet\)</span> source of ocean surface data</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>omega</td>
 <td>angular velocity of Earth</td>
 <td>7.292<span class="math">\(\times\)</span>10<span class="math">\(^{-5}\)</span> rad/s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>opening</td>
+<tr class="row-even"><td>opening</td>
 <td>rate of ice opening due to divergence and shear</td>
 <td>1/s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><strong>P</strong></td>
+<tr class="row-odd"><td><strong>P</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p001</td>
+<tr class="row-even"><td>p001</td>
 <td>1/1000</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p01</td>
+<tr class="row-odd"><td>p01</td>
 <td>1/100</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p025</td>
+<tr class="row-even"><td>p025</td>
 <td>1/40</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p027</td>
+<tr class="row-odd"><td>p027</td>
 <td>1/36</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p05</td>
+<tr class="row-even"><td>p05</td>
 <td>1/20</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p055</td>
+<tr class="row-odd"><td>p055</td>
 <td>1/18</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p1</td>
+<tr class="row-even"><td>p1</td>
 <td>1/10</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p111</td>
+<tr class="row-odd"><td>p111</td>
 <td>1/9</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p15</td>
+<tr class="row-even"><td>p15</td>
 <td>15/100</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p166</td>
+<tr class="row-odd"><td>p166</td>
 <td>1/6</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p2</td>
+<tr class="row-even"><td>p2</td>
 <td>1/5</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p222</td>
+<tr class="row-odd"><td>p222</td>
 <td>2/9</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p25</td>
+<tr class="row-even"><td>p25</td>
 <td>1/4</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p333</td>
+<tr class="row-odd"><td>p333</td>
 <td>1/3</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p4</td>
+<tr class="row-even"><td>p4</td>
 <td>2/5</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p5</td>
+<tr class="row-odd"><td>p5</td>
 <td>1/2</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p52083</td>
+<tr class="row-even"><td>p52083</td>
 <td>25/48</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p5625m</td>
+<tr class="row-odd"><td>p5625m</td>
 <td>-9/16</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p6</td>
+<tr class="row-even"><td>p6</td>
 <td>3/5</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>p666</td>
+<tr class="row-odd"><td>p666</td>
 <td>2/3</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>p75</td>
+<tr class="row-even"><td>p75</td>
 <td>3/4</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>phi_c_slow_mode</td>
+<tr class="row-odd"><td>phi_c_slow_mode</td>
 <td><span class="math">\(\bullet\)</span> critical liquid fraction</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>phi_i_mushy</td>
+<tr class="row-even"><td>phi_i_mushy</td>
 <td><span class="math">\(\bullet\)</span> solid fraction at lower boundary</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>phi_sk</td>
+<tr class="row-odd"><td>phi_sk</td>
 <td>skeletal layer porosity</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>phi_snow</td>
+<tr class="row-even"><td>phi_snow</td>
 <td><span class="math">\(\bullet\)</span> snow porosity for brine height tracer</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>pi</td>
+<tr class="row-odd"><td>pi</td>
 <td><span class="math">\(\pi\)</span></td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>pi2</td>
+<tr class="row-even"><td>pi2</td>
 <td><span class="math">\(2\pi\)</span></td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>pih</td>
+<tr class="row-odd"><td>pih</td>
 <td><span class="math">\(\pi /2\)</span></td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>piq</td>
+<tr class="row-even"><td>piq</td>
 <td><span class="math">\(\pi /4\)</span></td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>pi(j,b,m)loc</td>
-<td>x (y, block, task) location of diagnostic points</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>plat</td>
-<td>grid latitude of diagnostic points</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>plon</td>
-<td>grid longitude of diagnostic points</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -2364,44 +1671,24 @@ either Celsius or Kelvin units).</p>
 <td>0.8</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>pointer_file</td>
-<td><span class="math">\(\bullet\)</span> input file for restarting</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>potT</td>
+<tr class="row-even"><td>potT</td>
 <td>atmospheric potential temperature</td>
 <td>K</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>PP_net</td>
+<tr class="row-odd"><td>PP_net</td>
 <td>total primary productivity per grid cell</td>
 <td>mg C/m<span class="math">\(^2\)</span>/s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>precip_units</td>
+<tr class="row-even"><td>precip_units</td>
 <td><span class="math">\(\bullet\)</span> liquid precipitation data units</td>
 <td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>print_global</td>
-<td><span class="math">\(\bullet\)</span> if true, print global data</td>
-<td>F</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>print_points</td>
 <td><span class="math">\(\bullet\)</span> if true, print point data</td>
 <td>F</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>processor_shape</td>
-<td><span class="math">\(\bullet\)</span> descriptor for processor aspect ratio</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>prs_sig</td>
-<td>replacement pressure</td>
-<td>N/m</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>Pstar</td>
@@ -2500,16 +1787,6 @@ either Celsius or Kelvin units).</p>
 <td>10</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>rad_to_deg</td>
-<td>degree-radian conversion</td>
-<td><span class="math">\(180/\pi\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>radius</td>
-<td>earth radius</td>
-<td>6.37<span class="math">\(\times\)</span>10<span class="math">\(^6\)</span> m</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-even"><td>rdg_conv</td>
 <td>convergence for ridging</td>
 <td>1/s</td>
@@ -2530,38 +1807,28 @@ either Celsius or Kelvin units).</p>
 <td>1.310</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>revp</td>
-<td>real(revised_evp)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>restart</td>
+<tr class="row-even"><td>restart</td>
 <td><span class="math">\(\bullet\)</span> if true, initialize using restart file instead of defaults</td>
 <td>T</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>restart_age</td>
+<tr class="row-odd"><td>restart_age</td>
 <td><span class="math">\(\bullet\)</span> if true, read age restart file</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>restart_bgc</td>
+<tr class="row-even"><td>restart_bgc</td>
 <td><span class="math">\(\bullet\)</span> if true, read bgc restart file</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>restart_dir</td>
+<tr class="row-odd"><td>restart_dir</td>
 <td><span class="math">\(\bullet\)</span> path to restart/dump files</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>restart_file</td>
+<tr class="row-even"><td>restart_file</td>
 <td><span class="math">\(\bullet\)</span> restart file prefix</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>restart_format</td>
-<td><span class="math">\(\bullet\)</span> restart file format</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -2570,28 +1837,18 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>restart_ext</td>
-<td><span class="math">\(\bullet\)</span> if true, read/write halo cells in restart file</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>restore_bgc</td>
+<tr class="row-even"><td>restore_bgc</td>
 <td><span class="math">\(\bullet\)</span> if true, restore nitrate/silicate to data</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>restore_ice</td>
+<tr class="row-odd"><td>restore_ice</td>
 <td><span class="math">\(\bullet\)</span> if true, restore ice state along lateral boundaries</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>restore_sst</td>
+<tr class="row-even"><td>restore_ocn</td>
 <td><span class="math">\(\bullet\)</span> restore sst to data</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>revised_evp</td>
-<td><span class="math">\(\bullet\)</span> if true, use revised EVP parameters and approach</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -2665,7 +1922,7 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>rsnw_melt</td>
+<tr class="row-even"><td>rsnw_mlt</td>
 <td><span class="math">\(\bullet\)</span> melting snow grain radius</td>
 <td><ol class="first last arabic simple" start="1000">
 <li><span class="math">\(\times\)</span> 10<span class="math">\(^{-6}\)</span> m</li>
@@ -2689,47 +1946,32 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>runid</td>
-<td><span class="math">\(\bullet\)</span> identifier for run</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>runtype</td>
-<td><span class="math">\(\bullet\)</span> type of initialization used</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-odd"><td><strong>S</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>s11, s12, s22</td>
-<td>stress tensor components</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>salinz</td>
+<tr class="row-even"><td>salinz</td>
 <td>ice salinity profile</td>
 <td>ppt</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>saltmax</td>
+<tr class="row-odd"><td>saltmax</td>
 <td>max salinity, at ice base (<a class="reference internal" href="zreferences.html#bl99" id="id5">[6]</a>)</td>
 <td>3.2 ppt</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>scale_factor</td>
+<tr class="row-even"><td>scale_factor</td>
 <td>scaling factor for shortwave radiation components</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>sec</td>
+<tr class="row-odd"><td>sec</td>
 <td>seconds elasped into idate</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>secday</td>
+<tr class="row-even"><td>secday</td>
 <td>number of seconds in a day</td>
 <td><ol class="first last arabic simple" start="86400">
 <li></li>
@@ -2737,28 +1979,23 @@ either Celsius or Kelvin units).</p>
 </td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>shcoef</td>
+<tr class="row-odd"><td>shcoef</td>
 <td>transfer coefficient for sensible heat</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>shear</td>
+<tr class="row-even"><td>shear</td>
 <td>strain rate II component</td>
 <td>1/s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>shlat</td>
+<tr class="row-odd"><td>shlat</td>
 <td>southern latitude of artificial mask edge</td>
 <td>30<span class="math">\(^\circ\)</span>N</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>shortwave</td>
+<tr class="row-even"><td>shortwave</td>
 <td><span class="math">\(\bullet\)</span> flag for shortwave parameterization (‘default’ or ‘dEdd’)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>sig1(2)</td>
-<td>principal stress components (diagnostic)</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -2767,26 +2004,13 @@ either Celsius or Kelvin units).</p>
 <td>mmol/m<span class="math">\(^3\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>sil_data_type</td>
-<td><span class="math">\(\bullet\)</span> forcing type for silicate</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>sinw</td>
-<td>sine of the turning angle in water</td>
-<td><ol class="first last arabic simple" start="0">
-<li></li>
-</ol>
-</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-even"><td>sk_l</td>
 <td>skeletal layer thickness</td>
 <td>0.03 m</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>snoice</td>
-<td>snow–ice formation</td>
+<td>snow-ice formation</td>
 <td>m</td>
 <td>&#160;</td>
 </tr>
@@ -2820,19 +2044,9 @@ either Celsius or Kelvin units).</p>
 <td>ppt</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>sss_data_type</td>
-<td><span class="math">\(\bullet\)</span> source of surface salinity data</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>sst</td>
+<tr class="row-even"><td>sst</td>
 <td>sea surface temperature</td>
 <td>C</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>sst_data_type</td>
-<td><span class="math">\(\bullet\)</span> source of surface temperature data</td>
-<td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>Sswabs</td>
@@ -2905,44 +2119,34 @@ either Celsius or Kelvin units).</p>
 <td>N/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>swv(n)dr(f)</td>
-<td>incoming shortwave radiation, visible (near IR), direct (diffuse)</td>
+<tr class="row-odd"><td>swndf</td>
+<td>incoming shortwave radiation, near IR, diffuse</td>
 <td>W/m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><strong>T</strong></td>
+<tr class="row-even"><td>swndr</td>
+<td>incoming shortwave radiation, near IR, direct</td>
+<td>W/m<span class="math">\(^2\)</span></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>swvdf</td>
+<td>incoming shortwave radiation, visible, diffuse</td>
+<td>W/m<span class="math">\(^2\)</span></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>swvdr</td>
+<td>incoming shortwave radiation, visible, direct</td>
+<td>W/m<span class="math">\(^2\)</span></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><strong>T</strong></td>
 <td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>Tair</td>
+<tr class="row-even"><td>Tair</td>
 <td>air temperature at 10 m</td>
 <td>K</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>tarea</td>
-<td>area of T-cell</td>
-<td>m<span class="math">\(^2\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>tarean</td>
-<td>area of northern hemisphere T-cells</td>
-<td>m<span class="math">\(^2\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>tarear</td>
-<td>1/tarea</td>
-<td>1/m<span class="math">\(^2\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>tareas</td>
-<td>area of southern hemisphere T-cells</td>
-<td>m<span class="math">\(^2\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>tcstr</td>
-<td>string identifying T grid for history variables</td>
-<td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>tday</td>
@@ -2975,37 +2179,17 @@ either Celsius or Kelvin units).</p>
 <td>s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>time_beg</td>
-<td>beginning time for history averages</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>time_bounds</td>
-<td>beginning and ending time for history averages</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>time_end</td>
-<td>ending time for history averages</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>time_forc</td>
+<tr class="row-odd"><td>time_forc</td>
 <td>time of last forcing update</td>
 <td>s</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>Timelt</td>
+<tr class="row-even"><td>Timelt</td>
 <td>melting temperature of ice top surface</td>
 <td><ol class="first last arabic simple" start="0">
 <li>C</li>
 </ol>
 </td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>tinyarea</td>
-<td>puny * tarea</td>
-<td>m<span class="math">\(^2\)</span></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>TLAT</td>
@@ -3108,16 +2292,6 @@ either Celsius or Kelvin units).</p>
 <td>days</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>tripole</td>
-<td>if true, block lies along tripole boundary</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>tripoleT</td>
-<td>if true, tripole boundary is T-fold; if false, U-fold</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-odd"><td>Tsf_errmax</td>
 <td>max allowed <span class="math">\(T_{\mathit sf}\)</span> error (thermodynamics)</td>
 <td>5.<span class="math">\(\times\)</span>10<span class="math">\(^{-4}\)</span>deg</td>
@@ -3151,42 +2325,9 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>uarea</td>
-<td>area of U-cell</td>
-<td>m <span class="math">\(^2\)</span></td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>uarear</td>
-<td>1/uarea</td>
-<td>m <span class="math">\(^{-2}\)</span></td>
-<td>&#160;</td>
-</tr>
 <tr class="row-odd"><td>uatm</td>
 <td>wind velocity in the x direction</td>
 <td>m/s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ULAT</td>
-<td>latitude of U-cell centers</td>
-<td>radians</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>ULON</td>
-<td>longitude of U-cell centers</td>
-<td>radians</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>umask</td>
-<td>land/boundary mask, velocity (U-cell)</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>umax_stab</td>
-<td>ice speed threshold (diagnostics)</td>
-<td><ol class="first last arabic simple">
-<li>m/s</li>
-</ol>
-</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>umin</td>
@@ -3212,34 +2353,14 @@ either Celsius or Kelvin units).</p>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>use_restart_time</td>
-<td><span class="math">\(\bullet\)</span> if true, use date from restart file</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>ustar_min</td>
+<tr class="row-even"><td>ustar_min</td>
 <td><span class="math">\(\bullet\)</span> minimum friction velocity under ice</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>ucstr</td>
-<td>string identifying U grid for history variables</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>uvel</td>
 <td>x-component of ice velocity</td>
 <td>m/s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>uvel_init</td>
-<td>x-component of ice velocity at beginning of time step</td>
-<td>m/s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>uvm</td>
-<td>land/boundary mask, velocity (U-cell)</td>
-<td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><strong>V</strong></td>
@@ -3287,23 +2408,13 @@ either Celsius or Kelvin units).</p>
 <td>m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>vredistrn</td>
-<td>redistribution function: fraction of new ridge volume</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>vsno(n)</td>
+<tr class="row-odd"><td>vsno(n)</td>
 <td>volume per unit area of snow (in category n)</td>
 <td>m</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>vvel</td>
+<tr class="row-even"><td>vvel</td>
 <td>y-component of ice velocity</td>
-<td>m/s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>vvel_init</td>
-<td>y-component of ice velocity at beginning of time step</td>
 <td>m/s</td>
 <td>&#160;</td>
 </tr>
@@ -3325,16 +2436,6 @@ either Celsius or Kelvin units).</p>
 <tr class="row-even"><td>wind</td>
 <td>wind speed</td>
 <td>m/s</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>write_history</td>
-<td>if true, write history now</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>write_ic</td>
-<td><span class="math">\(\bullet\)</span> if true, write initial conditions</td>
-<td>&#160;</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>write_restart</td>
@@ -3359,16 +2460,6 @@ either Celsius or Kelvin units).</p>
 </tr>
 <tr class="row-odd"><td>yday</td>
 <td>day of the year</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>yield_curve</td>
-<td>type of yield curve</td>
-<td>ellipse</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td>yieldstress11(12, 22)</td>
-<td>yield stress tensor components</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
@@ -3454,7 +2545,7 @@ either Celsius or Kelvin units).</p>
         <li class="right" >
           <a href="developer_guide/dg_adding_tracers.html" title="4.5. Adding tracers"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Icepack 1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Icepack 0.0.01 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

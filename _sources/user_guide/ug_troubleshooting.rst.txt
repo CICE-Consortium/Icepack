@@ -42,10 +42,14 @@ Underflows
   is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
   radiation scheme.
 
+.. _debugging:
+
 Debugging hints
 ---------------
 
-CHECK write utility in column physics interface, for checking parameter values
+Icepack has a warning package (**/columnphysics/icepack_warnings.F90**) where icepack 
+stores information not set in write routines. Details about the package can be found 
+in :ref:`warning`. This package can be useful to detect an abort  
 
 A printing utility is available in the driver that can be helpful when debugging the
 code. Not all of these will work everywhere in the code, due to possible
@@ -58,6 +62,8 @@ conflicts in module dependencies.
 *print\_state* (**configuration/driver/ice\_diagnostics.F90**)
     Print the ice state and forcing fields for a given grid cell.
 
+.. _bugs:
+
 Known bugs and other issues
 ---------------------------
 
@@ -69,6 +75,15 @@ Known bugs and other issues
     when ``snowpatch`` < 1.
 
 -   The linear remapping algorithm for thickness is not monotonic for tracers.
+
+-   The form drag parameterization assumes a fixed ridge shape where both the 
+    macroscopic ridge porosity and the angle of repose are specified parameters.  
+    One high-resolution coupled model that uses the CICE column physics package
+    has been unable to make this parameterization work in its current form.
+    Development of a new, variational approach for ridging is underway 
+    that will generate ridge shapes differently from
+    the current parameterization, and is expected to alleviate the reported
+    problem (Roberts, A., et al, in prep. 2018). 
 
 Interpretation of albedos
 -------------------------

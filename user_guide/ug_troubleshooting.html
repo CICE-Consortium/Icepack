@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3.6. Troubleshooting &#8212; Icepack 1.0 documentation</title>
+    <title>3.5. Troubleshooting &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="ug_case_settings.html" title="3.4. Case Settings"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -47,10 +47,10 @@
           <div class="body" role="main">
             
   <div class="section" id="troubleshooting">
-<span id="id1"></span><h1>3.6. Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1>3.5. Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h1>
 <p>Check the FAQ: <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki">https://github.com/CICE-Consortium/Icepack/wiki</a></p>
 <div class="section" id="initial-setup">
-<span id="setup"></span><h2>3.6.1. Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h2>
+<span id="setup"></span><h2>3.5.1. Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h2>
 <p>If there are problems, you can manually edit
 the env, Macros, and <strong>icepack.run</strong> files in the case directory until things are
 working properly.  Then you can copy the env and Macros files back to
@@ -62,7 +62,7 @@ if scripts in the case directory are run again later.</li>
 </ul>
 </div>
 <div class="section" id="restarts">
-<span id="restarttrouble"></span><h2>3.6.2. Restarts<a class="headerlink" href="#restarts" title="Permalink to this headline">¶</a></h2>
+<span id="restarttrouble"></span><h2>3.5.2. Restarts<a class="headerlink" href="#restarts" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Manual restart tests require the path to the restart file be included in <code class="docutils literal"><span class="pre">ice_in</span></code> in the
 namelist file.</li>
@@ -71,7 +71,7 @@ Other configuration parameters, such as <code class="docutils literal"><span cla
 </ul>
 </div>
 <div class="section" id="underflows">
-<span id="testtrouble"></span><h2>3.6.3. Underflows<a class="headerlink" href="#underflows" title="Permalink to this headline">¶</a></h2>
+<span id="testtrouble"></span><h2>3.5.3. Underflows<a class="headerlink" href="#underflows" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Tests using a debug flag that traps underflows will fail unless a “flush-to-zero” flag
 is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
@@ -79,8 +79,10 @@ radiation scheme.</li>
 </ul>
 </div>
 <div class="section" id="debugging-hints">
-<h2>3.6.4. Debugging hints<a class="headerlink" href="#debugging-hints" title="Permalink to this headline">¶</a></h2>
-<p>CHECK write utility in column physics interface, for checking parameter values</p>
+<span id="debugging"></span><h2>3.5.4. Debugging hints<a class="headerlink" href="#debugging-hints" title="Permalink to this headline">¶</a></h2>
+<p>Icepack has a warning package (<strong>/columnphysics/icepack_warnings.F90</strong>) where icepack
+stores information not set in write routines. Details about the package can be found
+in <a class="reference internal" href="../developer_guide/dg_col_phys.html#warning"><span class="std std-ref">The Warning Package</span></a>. This package can be useful to detect an abort</p>
 <p>A printing utility is available in the driver that can be helpful when debugging the
 code. Not all of these will work everywhere in the code, due to possible
 conflicts in module dependencies.</p>
@@ -93,7 +95,7 @@ points during initialization and the timestepping loop</dd>
 </dl>
 </div>
 <div class="section" id="known-bugs-and-other-issues">
-<h2>3.6.5. Known bugs and other issues<a class="headerlink" href="#known-bugs-and-other-issues" title="Permalink to this headline">¶</a></h2>
+<span id="bugs"></span><h2>3.5.5. Known bugs and other issues<a class="headerlink" href="#known-bugs-and-other-issues" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>With the old CCSM radiative scheme (<code class="docutils literal"><span class="pre">shortwave</span></code> = ‘default’ or
 ‘ccsm3’), a sizable fraction (more than 10%) of the total shortwave
@@ -102,10 +104,18 @@ the ice interior instead. This is due to use of the aggregated,
 effective albedo rather than the bare ice albedo
 when <code class="docutils literal"><span class="pre">snowpatch</span></code> &lt; 1.</li>
 <li>The linear remapping algorithm for thickness is not monotonic for tracers.</li>
+<li>The form drag parameterization assumes a fixed ridge shape where both the
+macroscopic ridge porosity and the angle of repose are specified parameters.
+One high-resolution coupled model that uses the CICE column physics package
+has been unable to make this parameterization work in its current form.
+Development of a new, variational approach for ridging is underway
+that will generate ridge shapes differently from
+the current parameterization, and is expected to alleviate the reported
+problem (Roberts, A., et al, in prep. 2018).</li>
 </ul>
 </div>
 <div class="section" id="interpretation-of-albedos">
-<h2>3.6.6. Interpretation of albedos<a class="headerlink" href="#interpretation-of-albedos" title="Permalink to this headline">¶</a></h2>
+<h2>3.5.6. Interpretation of albedos<a class="headerlink" href="#interpretation-of-albedos" title="Permalink to this headline">¶</a></h2>
 <p>The snow-and-ice albedo, <code class="docutils literal"><span class="pre">albsni</span></code>, and diagnostic albedos <code class="docutils literal"><span class="pre">albice</span></code>, <code class="docutils literal"><span class="pre">albsno</span></code>,
 and <code class="docutils literal"><span class="pre">albpnd</span></code> are merged over categories but not scaled (divided) by the
 total ice area. (This is a change from CICE v4.1 for <code class="docutils literal"><span class="pre">albsni</span></code>.) The latter
@@ -126,7 +136,7 @@ averaging that is incremented only when <span class="math">\(\cos\varphi &gt; 0\
 albedos will still be zero in the dark, polar winter hemisphere.</p>
 </div>
 <div class="section" id="proliferating-subprocess-parameterizations">
-<h2>3.6.7. Proliferating subprocess parameterizations<a class="headerlink" href="#proliferating-subprocess-parameterizations" title="Permalink to this headline">¶</a></h2>
+<h2>3.5.7. Proliferating subprocess parameterizations<a class="headerlink" href="#proliferating-subprocess-parameterizations" title="Permalink to this headline">¶</a></h2>
 <p>With the addition of several alternative parameterizations for sea ice
 processes, a number of subprocesses now appear in multiple parts of the
 code with differing descriptions. For instance, sea ice porosity and
@@ -150,14 +160,14 @@ possibly unified in the future.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">3.6. Troubleshooting</a><ul>
-<li><a class="reference internal" href="#initial-setup">3.6.1. Initial setup</a></li>
-<li><a class="reference internal" href="#restarts">3.6.2. Restarts</a></li>
-<li><a class="reference internal" href="#underflows">3.6.3. Underflows</a></li>
-<li><a class="reference internal" href="#debugging-hints">3.6.4. Debugging hints</a></li>
-<li><a class="reference internal" href="#known-bugs-and-other-issues">3.6.5. Known bugs and other issues</a></li>
-<li><a class="reference internal" href="#interpretation-of-albedos">3.6.6. Interpretation of albedos</a></li>
-<li><a class="reference internal" href="#proliferating-subprocess-parameterizations">3.6.7. Proliferating subprocess parameterizations</a></li>
+<li><a class="reference internal" href="#">3.5. Troubleshooting</a><ul>
+<li><a class="reference internal" href="#initial-setup">3.5.1. Initial setup</a></li>
+<li><a class="reference internal" href="#restarts">3.5.2. Restarts</a></li>
+<li><a class="reference internal" href="#underflows">3.5.3. Underflows</a></li>
+<li><a class="reference internal" href="#debugging-hints">3.5.4. Debugging hints</a></li>
+<li><a class="reference internal" href="#known-bugs-and-other-issues">3.5.5. Known bugs and other issues</a></li>
+<li><a class="reference internal" href="#interpretation-of-albedos">3.5.6. Interpretation of albedos</a></li>
+<li><a class="reference internal" href="#proliferating-subprocess-parameterizations">3.5.7. Proliferating subprocess parameterizations</a></li>
 </ul>
 </li>
 </ul>
@@ -198,7 +208,7 @@ possibly unified in the future.</p>
         <li class="right" >
           <a href="ug_case_settings.html" title="3.4. Case Settings"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
       </ul>
     </div>

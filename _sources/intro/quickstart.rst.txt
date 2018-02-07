@@ -14,7 +14,7 @@ found in the `CICE Git and Workflow Guide <https://docs.google.com/document/d/1r
 
 From your main Icepack directory, execute::
 
-  ./icepack.create.case -c ~/mycase1 -m testmachine
+  ./icepack.setup -c ~/mycase1 -m testmachine
   cd ~/mycase1
   ./icepack.build
   ./icepack.submit
@@ -24,5 +24,5 @@ The local machine name will have to be substituted for ``testmachine`` and
 there are working ports for several different machines.  However, it may be necessary
 to port the model to a new machine.  See :ref:`porting` for 
 more information about how to port and :ref:`scripts` for more information about 
-how to use the icepack.create.case script.
+how to use the icepack.setup script.
 

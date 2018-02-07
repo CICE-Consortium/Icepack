@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.6. Thermodynamics &#8212; Icepack 1.0 documentation</title>
+    <title>2.6. Thermodynamics &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="sg_mechanical.html" title="2.5. Mechanical redistribution"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -49,11 +49,11 @@
   <div class="section" id="thermodynamics">
 <span id="thermo"></span><h1>2.6. Thermodynamics<a class="headerlink" href="#thermodynamics" title="Permalink to this headline">¶</a></h1>
 <p>The current Icepack version includes three thermodynamics
-options, the “zero-layer” thermodynamics of <a class="reference internal" href="../zreferences.html#semtner76" id="id1">[40]</a>
+options, the “zero-layer” thermodynamics of <a class="reference internal" href="../zreferences.html#semtner76" id="id1">[46]</a>
 (<code class="docutils literal"><span class="pre">ktherm</span></code> = 0), the Bitz and Lipscomb model <a class="reference internal" href="../zreferences.html#bl99" id="id2">[6]</a>
 (<code class="docutils literal"><span class="pre">ktherm</span></code> = 1) that assumes a fixed salinity profile, and a “mushy”
 formulation (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2) in which salinity evolves
-<a class="reference internal" href="../zreferences.html#thb13" id="id3">[47]</a>. For each thickness category, Icepack computes
+<a class="reference internal" href="../zreferences.html#thb13" id="id3">[53]</a>. For each thickness category, Icepack computes
 changes in the ice and snow thickness and vertical temperature profile
 resulting from radiative, turbulent, and conductive heat fluxes. The ice
 has a temperature-dependent specific heat to simulate the effect of
@@ -144,14 +144,14 @@ and thickness are computed according to the assumed pond shape, and the
 pond area is then reduced in the presence of snow for the radiation
 calculation. Ponds are allowed only on ice at least 1&nbsp;cm thick. This
 formulation differs slightly from that documented in
-<a class="reference internal" href="../zreferences.html#hbblh12" id="id4">[19]</a>.</p>
+<a class="reference internal" href="../zreferences.html#hbblh12" id="id4">[21]</a>.</p>
 </div>
 <div class="section" id="topographic-formulation-tr-pond-topo-true">
 <h3>2.6.1.2. Topographic formulation (<code class="docutils literal"><span class="pre">tr_pond_topo</span></code> = true)<a class="headerlink" href="#topographic-formulation-tr-pond-topo-true" title="Permalink to this headline">¶</a></h3>
 <p>The principle concept of this scheme is that melt water runs downhill
 under the influence of gravity and collects on sea ice with increasing
 surface height starting at the lowest height
-<a class="reference internal" href="../zreferences.html#ff07" id="id5">[12]</a><a class="reference internal" href="../zreferences.html#fft10" id="id6">[13]</a><a class="reference internal" href="../zreferences.html#fsfh12" id="id7">[14]</a>. Thus, the topography of the
+<a class="reference internal" href="../zreferences.html#ff07" id="id5">[13]</a><a class="reference internal" href="../zreferences.html#fft10" id="id6">[14]</a><a class="reference internal" href="../zreferences.html#fsfh12" id="id7">[15]</a>. Thus, the topography of the
 ice cover plays a crucial role in determining the melt pond cover.
 However, Icepack does not explicitly represent the topography of sea ice.
 Therefore, we split the existing ice thickness distribution function
@@ -257,7 +257,7 @@ V_{P} - V_{Pk} &amp; = &amp; h_{par} \left( \sum^k_{m=1} a_{ik} + a_{i,k+1}(1-a_
 <p>As the melting season progresses, not only does melt water accumulate
 upon the upper surface of the sea ice, but the sea ice beneath the melt
 water becomes more porous owing to a reduction in solid fraction
-<a class="reference internal" href="../zreferences.html#egprf04" id="id8">[9]</a>. The hydraulic head of melt water on sea
+<a class="reference internal" href="../zreferences.html#egprf04" id="id8">[10]</a>. The hydraulic head of melt water on sea
 ice (i.e., its height above sea level) drives flushing of melt water
 through the porous sea ice and into the underlying ocean. The mushy
 thermodynamics scheme (<cite>ktherm</cite>&nbsp;= 2) handles flushing. For
@@ -272,7 +272,7 @@ tensor (assumed to be isotropic in the horizontal), <span class="math">\(\mu\)</
 viscosity of water, <span class="math">\(\rho_o\)</span> is the ocean density, <span class="math">\(g\)</span> is
 gravitational acceleration, <span class="math">\(\Delta H\)</span> is the the hydraulic head,
 and <span class="math">\(h_i\)</span> is the thickness of the ice through which the pond
-flushes. As proposed by <a class="reference internal" href="../zreferences.html#gehmpz07" id="id9">[16]</a> the vertical
+flushes. As proposed by <a class="reference internal" href="../zreferences.html#gehmpz07" id="id9">[18]</a> the vertical
 permeability of sea ice can be calculated from the liquid fraction
 <span class="math">\(\phi\)</span>:</p>
 <div class="math" id="equation-topo-permea">
@@ -281,7 +281,7 @@ permeability of sea ice can be calculated from the liquid fraction
 does the permeability. The rate of vertical drainage is determined by
 the lowest (least permeable) layer, corresponding to the highest solid
 fraction. From the equations describing sea ice as a mushy layer
-<a class="reference internal" href="../zreferences.html#fuww06" id="id10">[10]</a>, the solid fraction is determined by:</p>
+<a class="reference internal" href="../zreferences.html#fuww06" id="id10">[11]</a>, the solid fraction is determined by:</p>
 <div class="math" id="equation-topo-solid">
 <span class="eqno">(12)<a class="headerlink" href="#equation-topo-solid" title="Permalink to this equation">¶</a></span>\[\phi = \frac{c_i-S}{c_i-S_{br}(T)},\]</div>
 <p>where <span class="math">\(S\)</span> is the bulk salinity of the ice, <span class="math">\(S_{br}(T)\)</span> is
@@ -315,7 +315,7 @@ volume, <span class="math">\(T_i\)</span> and <span class="math">\(T_p\)</span> 
 temperatures, and <span class="math">\(k_i\)</span> and <span class="math">\(k_p\)</span> are the thermal
 conductivity of the ice lid and pond respectively. The second term on
 the right hand-side is close to zero since the pond is almost uniformly
-at the freezing temperature <a class="reference internal" href="../zreferences.html#tf04" id="id11">[43]</a>. Approximating the
+at the freezing temperature <a class="reference internal" href="../zreferences.html#tf04" id="id11">[49]</a>. Approximating the
 temperature gradient in the ice lid as linear, the Stefan condition
 yields the classic Stefan solution for ice lid depth</p>
 <div class="math" id="equation-topo-stefan">
@@ -334,8 +334,8 @@ the ice through the albedo. To conserve energy, the ice lid is dismissed
 once the pond is completely refrozen.</p>
 <p>As the sea ice area shrinks due to melting and ridging, the pond volume
 over the lost area is released to the ocean immediately. In
-<a class="reference internal" href="../zreferences.html#fft10" id="id12">[13]</a>, the pond volume was carried as an ice area
-tracer, but in <a class="reference internal" href="../zreferences.html#fsfh12" id="id13">[14]</a> and here, pond area and
+<a class="reference internal" href="../zreferences.html#fft10" id="id12">[14]</a>, the pond volume was carried as an ice area
+tracer, but in <a class="reference internal" href="../zreferences.html#fsfh12" id="id13">[15]</a> and here, pond area and
 thickness are carried as separate tracers, as in
 the&nbsp;<a class="reference internal" href="sg_tracers.html#tracers"><span class="std std-ref">Tracers</span></a> section.</p>
 <p>Unlike the cesm and level-ice melt pond schemes, the liquid pond water
@@ -353,7 +353,7 @@ with global diagnostics in <strong>icedrv_diagnostics.F90</strong>.</p>
 <h3>2.6.1.3. Level-ice formulation (<code class="docutils literal"><span class="pre">tr_pond_lvl</span></code> = true)<a class="headerlink" href="#level-ice-formulation-tr-pond-lvl-true" title="Permalink to this headline">¶</a></h3>
 <p>This meltpond parameterization represents a combination of ideas from
 the empirical CESM melt pond scheme and the topo approach, and is
-documented in <a class="reference internal" href="../zreferences.html#hhl13" id="id14">[21]</a>. The ponds evolve according to
+documented in <a class="reference internal" href="../zreferences.html#hhl13" id="id14">[23]</a>. The ponds evolve according to
 physically based process descriptions, assuming a thickness-area ratio
 for changes in pond volume. A novel aspect of the new scheme is that the
 ponds are carried as tracers on the level (undeformed) ice area of each
@@ -535,7 +535,7 @@ reconsidered in the future, especially for the Antarctic.</p>
 For <cite>ktherm</cite>&nbsp;<span class="math">\(\ne 2\)</span>, the permeability of the sea ice is calculated
 using the internal ice temperatures <span class="math">\(T_i\)</span> (computed from the
 enthalpies as in the sea ice thermodynamics). The brine salinity and
-liquid fraction are given by <a class="reference internal" href="../zreferences.html#notz05" id="id15">[35]</a> [eq 3.6]
+liquid fraction are given by <a class="reference internal" href="../zreferences.html#notz05" id="id15">[39]</a> [eq 3.6]
 <span class="math">\(S_{br} = {1/ (10^{-3} - 0.054/T_i)}\)</span> and <span class="math">\(\phi = S/S_{br}\)</span>,
 where <span class="math">\(S\)</span> is the bulk salinity of the combined ice and brine. The
 ice is considered permeable if <span class="math">\(\phi \ge 0.05\)</span> with a permeability
@@ -616,7 +616,7 @@ grain radius from non-melting to melting, and <code class="docutils literal"><sp
 snow grain radius when melting. An absorption coefficient for algae
 (<code class="docutils literal"><span class="pre">kalg</span></code>) may also be set. See <a class="reference internal" href="../zreferences.html#bl07" id="id17">[7]</a> for details; the
 CESM melt pond and Delta-Eddington parameterizations are further
-explained and validated in <a class="reference internal" href="../zreferences.html#hbblh12" id="id18">[19]</a>.</p>
+explained and validated in <a class="reference internal" href="../zreferences.html#hbblh12" id="id18">[21]</a>.</p>
 </div>
 <div class="section" id="shortwave-radiation-ccsm3">
 <h3>2.6.2.2. Shortwave radiation: CCSM3<a class="headerlink" href="#shortwave-radiation-ccsm3" title="Permalink to this headline">¶</a></h3>
@@ -664,7 +664,7 @@ penetrating into the ice is attenuated according to Beer’s Law:</p>
 beneath the surface without being absorbed, and <span class="math">\(\kappa_i\)</span> is the
 bulk extinction coefficient for solar radiation in ice, set to
 <span class="math">\(1.4 \
-{\mathrm m^{-1}}\)</span> for visible wavelengths <a class="reference internal" href="../zreferences.html#esc95" id="id19">[8]</a>. A
+{\mathrm m^{-1}}\)</span> for visible wavelengths <a class="reference internal" href="../zreferences.html#esc95" id="id19">[9]</a>. A
 fraction <span class="math">\(\exp(-\kappa_i h_i)\)</span> of the penetrating solar radiation
 passes through the ice to the ocean
 (<span class="math">\(F_{sw\Downarrow}\)</span>).</p>
@@ -699,7 +699,7 @@ Q_{sf}&amp;=&amp;(q_1 / \rho_a)  \exp(-q_2 / T_{sf}^K),\end{aligned}\end{split}\
 5897.8 \, \mathrm{K}\)</span>, <span class="math">\(T_{sf}^K\)</span> is the surface temperature in
 Kelvin, and <span class="math">\(\rho_a\)</span> is the surface air density.</p>
 <p>The net downward heat flux from the ice to the ocean is given by
-<a class="reference internal" href="../zreferences.html#mm95" id="id20">[32]</a>:</p>
+<a class="reference internal" href="../zreferences.html#mm95" id="id20">[36]</a>:</p>
 <div class="math" id="equation-fbot">
 <span class="eqno">(40)<a class="headerlink" href="#equation-fbot" title="Permalink to this equation">¶</a></span>\[F_{bot} = -\rho_w c_w c_h u_* (T_w - T_f),\]</div>
 <p>where <span class="math">\(\rho_w\)</span> is the density of seawater, <span class="math">\(c_w\)</span> is the
@@ -712,7 +712,7 @@ depend on the ocean forcing used and can be as low as 0.</p>
 <p><span class="math">\(F_{bot}\)</span> is limited by the total amount of heat available from
 the ocean, <span class="math">\(F_{frzmlt}\)</span>. Additional heat,
 <span class="math">\(F_{side}\)</span>, is used to melt the ice laterally following
-<a class="reference internal" href="../zreferences.html#mp87" id="id21">[33]</a> and <a class="reference internal" href="../zreferences.html#steele92" id="id22">[42]</a>.
+<a class="reference internal" href="../zreferences.html#mp87" id="id21">[37]</a> and <a class="reference internal" href="../zreferences.html#steele92" id="id22">[48]</a>.
 <span class="math">\(F_{bot}\)</span> and the fraction of ice melting laterally are scaled so
 that <span class="math">\(F_{bot} + F_{side} \ge F_{frzmlt}\)</span> in the case that
 <span class="math">\(F_{frzmlt}&lt;0\)</span> (melting; see
@@ -723,7 +723,7 @@ that <span class="math">\(F_{bot} + F_{side} \ge F_{frzmlt}\)</span> in the case
 <span id="thermo-temp"></span><h2>2.6.3. New temperatures<a class="headerlink" href="#new-temperatures" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="zero-layer-thermodynamics-ktherm-0">
 <h3>2.6.3.1. Zero-layer thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 0)<a class="headerlink" href="#zero-layer-thermodynamics-ktherm-0" title="Permalink to this headline">¶</a></h3>
-<p>An option for zero-layer thermodynamics <a class="reference internal" href="../zreferences.html#semtner76" id="id23">[40]</a> is
+<p>An option for zero-layer thermodynamics <a class="reference internal" href="../zreferences.html#semtner76" id="id23">[46]</a> is
 available in this version of Icepack by setting the namelist parameter
 <code class="docutils literal"><span class="pre">ktherm</span></code> to 0 and changing the number of ice layers, nilyr, in
 <strong>icedrv_domain_size.F90</strong> to 1. In the zero-layer case, the ice is
@@ -733,8 +733,8 @@ other configurations, which we describe here.</p>
 <div class="section" id="bitz-and-lipscomb-thermodynamics-ktherm-1">
 <h3>2.6.3.2. Bitz and Lipscomb thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 1)<a class="headerlink" href="#bitz-and-lipscomb-thermodynamics-ktherm-1" title="Permalink to this headline">¶</a></h3>
 <p>The “BL99” thermodynamic sea ice model is based on
-<a class="reference internal" href="../zreferences.html#mu71" id="id24">[34]</a> and <a class="reference internal" href="../zreferences.html#bl99" id="id25">[6]</a>, and is
-described more fully in <a class="reference internal" href="../zreferences.html#lipscomb98" id="id26">[26]</a>. The vertical
+<a class="reference internal" href="../zreferences.html#mu71" id="id24">[38]</a> and <a class="reference internal" href="../zreferences.html#bl99" id="id25">[6]</a>, and is
+described more fully in <a class="reference internal" href="../zreferences.html#lipscomb98" id="id26">[30]</a>. The vertical
 salinity profile is prescribed and is unchanging in time. The snow is
 assumed to be fresh, and the midpoint salinity <span class="math">\(S_{ik}\)</span> in each
 ice layer is given by</p>
@@ -743,10 +743,10 @@ ice layer is given by</p>
 <p>where <span class="math">\(z \equiv (k-1/2)/N_i\)</span>, <span class="math">\(S_{\max} = 3.2\)</span> ppt, and
 <span class="math">\(a=0.407\)</span> and <span class="math">\(b=0.573\)</span> are determined from a
 least-squares fit to the salinity profile observed in multiyear sea
-ice by <a class="reference internal" href="../zreferences.html#schwarzacher59" id="id27">[39]</a>. This profile varies from
+ice by <a class="reference internal" href="../zreferences.html#schwarzacher59" id="id27">[45]</a>. This profile varies from
 <span class="math">\(S=0\)</span> at the top surface (<span class="math">\(z = 0\)</span>) to <span class="math">\(S=S_{\max}\)</span>
 at the bottom surface (<span class="math">\(z=1\)</span>) and is similar to that used by
-<a class="reference internal" href="../zreferences.html#mu71" id="id28">[34]</a>. Equation <a class="reference internal" href="#equation-salinity">(41)</a> is fairly accurate
+<a class="reference internal" href="../zreferences.html#mu71" id="id28">[38]</a>. Equation <a class="reference internal" href="#equation-salinity">(41)</a> is fairly accurate
 for ice that has drained at the top surface due to summer melting. It
 is not a good approximation for cold first-year ice, which has a more
 vertically uniform salinity because it has not yet drained. However,
@@ -783,7 +783,7 @@ minimum value, <code class="docutils literal"><span class="pre">hs_min</span></c
 conservatively by the transport modules; they are simply ignored by the
 thermodynamics.)</p>
 <p>The rate of temperature change in the ice interior is given by
-<a class="reference internal" href="../zreferences.html#mu71" id="id29">[34]</a>:</p>
+<a class="reference internal" href="../zreferences.html#mu71" id="id29">[38]</a>:</p>
 <div class="math" id="equation-ice-temp-change">
 <span class="eqno">(43)<a class="headerlink" href="#equation-ice-temp-change" title="Permalink to this equation">¶</a></span>\[\rho_i c_i \frac{\partial T_i}{\partial t} =
  \frac{\partial}{\partial z} \left(K_i \frac{\partial T_i}{\partial z}\right)
@@ -801,27 +801,27 @@ positive downward with <span class="math">\(z = 0\)</span> at the top surface. I
 and <span class="math">\(\kappa_i\)</span> is an extinction coefficient. If <code class="docutils literal"><span class="pre">shortwave</span></code> =
 ‘dEdd’, then solar absorption is computed by the Delta-Eddington scheme.</p>
 <p>The specific heat of sea ice is given to an excellent approximation by
-<a class="reference internal" href="../zreferences.html#ono67" id="id30">[36]</a></p>
+<a class="reference internal" href="../zreferences.html#ono67" id="id30">[40]</a></p>
 <div class="math" id="equation-heat-capacity">
 <span class="eqno">(44)<a class="headerlink" href="#equation-heat-capacity" title="Permalink to this equation">¶</a></span>\[c_i(T,S) = c_0 + \frac{L_0 \mu S}{T^2},\]</div>
 <p>where <span class="math">\(c_0 = 2106\)</span>&nbsp;J/kg/deg is the specific heat of fresh ice at
 , <span class="math">\(L_0 = 3.34 \times 10^5\)</span>&nbsp;J/kg is the latent heat of fusion of
 fresh ice at , and <span class="math">\(\mu = 0.054\)</span> deg/ppt is the (liquidus) ratio
 between the freezing temperature and salinity of brine.</p>
-<p>Following <a class="reference internal" href="../zreferences.html#untersteiner64" id="id31">[48]</a> and
-<a class="reference internal" href="../zreferences.html#mu71" id="id32">[34]</a>, the standard thermal conductivity
+<p>Following <a class="reference internal" href="../zreferences.html#untersteiner64" id="id31">[54]</a> and
+<a class="reference internal" href="../zreferences.html#mu71" id="id32">[38]</a>, the standard thermal conductivity
 (<code class="docutils literal"><span class="pre">conduct</span></code> = ‘MU71’) is given by</p>
 <div class="math" id="equation-conductivity">
 <span class="eqno">(45)<a class="headerlink" href="#equation-conductivity" title="Permalink to this equation">¶</a></span>\[K_i(T,S) = K_0 + \frac{\beta S}{T},\]</div>
 <p>where <span class="math">\(K_0 = 2.03\)</span>&nbsp;W/m/deg is the conductivity of fresh ice and
 <span class="math">\(\beta = 0.13\)</span>&nbsp;W/m/ppt is an empirical constant. Experimental
-results <a class="reference internal" href="../zreferences.html#twmh01" id="id33">[45]</a> suggest that Equation <a class="reference internal" href="#equation-conductivity">(45)</a> may
+results <a class="reference internal" href="../zreferences.html#twmh01" id="id33">[51]</a> suggest that Equation <a class="reference internal" href="#equation-conductivity">(45)</a> may
 not be a good description of the thermal conductivity of sea ice. In
 particular, the measured conductivity does not markedly decrease as
 <span class="math">\(T\)</span> approaches <span class="math">\(0^{\circ}C\)</span>, but does decrease near the top surface
 (regardless of temperature).</p>
 <p>An alternative parameterization based on the “bubbly brine” model of
-<a class="reference internal" href="../zreferences.html#petb07" id="id34">[37]</a> for conductivity is available
+<a class="reference internal" href="../zreferences.html#petb07" id="id34">[41]</a> for conductivity is available
 (<code class="docutils literal"><span class="pre">conduct</span></code> = ‘bubbly’):</p>
 <div class="math" id="equation-Pringle">
 <span class="eqno">(46)<a class="headerlink" href="#equation-Pringle" title="Permalink to this equation">¶</a></span>\[K_i={\rho_i\over\rho_0}\left(2.11-0.011T+0.09 S/T\right),\]</div>
@@ -1037,7 +1037,7 @@ c &amp; = &amp; L_0 T_m.\end{aligned}\end{split}\]</div>
 <div class="section" id="mushy-thermodynamics-ktherm-2">
 <h3>2.6.3.3. Mushy thermodynamics (<code class="docutils literal"><span class="pre">ktherm</span></code> = 2)<a class="headerlink" href="#mushy-thermodynamics-ktherm-2" title="Permalink to this headline">¶</a></h3>
 <p>The “mushy” thermodynamics option treats the sea ice as a mushy layer
-<a class="reference internal" href="../zreferences.html#fuww06" id="id35">[10]</a> in which the ice is assumed to be composed
+<a class="reference internal" href="../zreferences.html#fuww06" id="id35">[11]</a> in which the ice is assumed to be composed
 of microscopic brine inclusions surrounded by a matrix of pure water
 ice. Both enthalpy and salinity are prognostic variables. The size of
 the brine inclusions is assumed to be much smaller than the size of
@@ -1073,14 +1073,14 @@ and <span class="math">\(\rho_w\)</span> in equations&nbsp;<a class="reference i
 <p>where the brine salinity, <span class="math">\(S_{br}\)</span>, is given by the liquidus
 relation using the ice temperature.</p>
 <p>Within the parameterizations of brine drainage the brine density is a
-function of brine salinity <a class="reference internal" href="../zreferences.html#notz05" id="id36">[35]</a>:</p>
+function of brine salinity <a class="reference internal" href="../zreferences.html#notz05" id="id36">[39]</a>:</p>
 <div class="math">
 \[\rho(S_{br})=1000.3 + 0.78237 S_{br} + 2.8008\times10^{-4} S_{br}^2.\]</div>
 <p>Outside the parameterizations of brine drainage the densities of brine
 and ice are fixed at the values of <span class="math">\(\rho_w\)</span> and <span class="math">\(\rho_i\)</span>,
 respectively.</p>
 <p>The permeability of ice is computed from the liquid fraction as in
-<a class="reference internal" href="../zreferences.html#gehmpz07" id="id37">[16]</a>:</p>
+<a class="reference internal" href="../zreferences.html#gehmpz07" id="id37">[18]</a>:</p>
 <div class="math">
 \[\Pi(\phi) = 3\times10^{-8} (\phi - \phi_\Pi)^3\]</div>
 <p>where <span class="math">\(\phi_\Pi\)</span> is 0.05.</p>
@@ -1164,7 +1164,7 @@ conductivity of pure ice and
 conductivity of the brine. The thermal conductivity of brine is a
 function of temperature and salinity, but here we take it as a constant
 value for the middle of the temperature range experienced by sea ice,
-<span class="math">\(-10^\circ\)</span>C <a class="reference internal" href="../zreferences.html#sp86" id="id40">[41]</a>, assuming the brine
+<span class="math">\(-10^\circ\)</span>C <a class="reference internal" href="../zreferences.html#sp86" id="id40">[47]</a>, assuming the brine
 liquidus salinity at <span class="math">\(-10^\circ\)</span>C.</p>
 <p>We discretize the terms that include temperature in the heat
 conservation equation as</p>
@@ -1222,7 +1222,7 @@ saltier brine is denser than the underlying sea water and the brine
 undergoes convective overturning with the ocean. As the dense, cold
 brine drains out of the ice, it is replaced by fresher seawater,
 lowering the bulk salinity of the ice. Following
-<a class="reference internal" href="../zreferences.html#thb13" id="id41">[47]</a>, gravity drainage is assumed to occur as two
+<a class="reference internal" href="../zreferences.html#thb13" id="id41">[53]</a>, gravity drainage is assumed to occur as two
 simultaneously operating modes: a rapid mode operating principally near
 the ice base and a slow mode occurring everywhere.</p>
 <p><em>Rapid drainage</em> takes the form of a vertically varying upward Darcy
@@ -1416,7 +1416,7 @@ old and new layers, respectively. The enthalpies of the new layers are</p>
 \[q_k = \frac{1}{\Delta h_i} \sum_{m=1}^{N_i} \eta_{km} q_m.\]</div>
 <p>Lateral melting is accomplished by multiplying the state variables by
 <span class="math">\(1-r_{side}\)</span>, where <span class="math">\(r_{side}\)</span> is the fraction of ice melted
-laterally <a class="reference internal" href="../zreferences.html#mp87" id="id43">[33]</a><a class="reference internal" href="../zreferences.html#steele92" id="id44">[42]</a>, and adjusting the ice
+laterally <a class="reference internal" href="../zreferences.html#mp87" id="id43">[37]</a><a class="reference internal" href="../zreferences.html#steele92" id="id44">[48]</a>, and adjusting the ice
 energy and fluxes as appropriate. We assume a floe diameter of 300&nbsp;m.</p>
 </div>
 <div class="section" id="snow-ice-formation">
@@ -1535,7 +1535,7 @@ with the melt water.</td></tr>
         <li class="right" >
           <a href="sg_mechanical.html" title="2.5. Mechanical redistribution"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

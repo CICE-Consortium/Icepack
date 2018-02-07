@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.3. Tracers &#8212; Icepack 1.0 documentation</title>
+    <title>2.3. Tracers &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="sg_itd.html" title="2.2. Ice thickness distribution"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -66,7 +66,7 @@ timestep. Freezing directly onto the bottom of the ice does not affect
 the age, nor does melting. Mechanical redistribution processes and
 advection alter the age of ice in any given grid cell in a conservative
 manner following changes in ice area. The sea ice age tracer is
-validated in <a class="reference internal" href="../zreferences.html#hb09" id="id3">[20]</a>.</p>
+validated in <a class="reference internal" href="../zreferences.html#hb09" id="id3">[22]</a>.</p>
 <p>Another age-related tracer, the area covered by first-year ice
 <span class="math">\(a_{FY}\)</span>, is an area tracer (<cite>trcr_depend</cite> = 0) that corresponds
 more closely to satellite-derived ice age data for first-year ice than
@@ -145,6 +145,12 @@ cell’s thickness category, then all tracers that depend on it also
 become zero. If a tracer should be conserved (e.g., aerosols and the
 liquid water in topo ponds), additional code must be added to track
 changes in the conserved quantity.</p>
+<p>Tracer dependencies and conserved quantities associated with tracers are tracked
+using the arrays <code class="docutils literal"><span class="pre">trcr_depend</span></code>, which defines the type of dependency (area, volume, snow, etc),
+<code class="docutils literal"><span class="pre">n_trcr_strata</span></code>, the number of underlying layers, <code class="docutils literal"><span class="pre">nt_strata</span></code>, the indices of the underlying
+layers, and <code class="docutils literal"><span class="pre">trcr_base</span></code>, a mask that is one for the tracer dependency and zero otherwise.
+These arrays are used to convert between the tracer values themselves and the conserved
+forms.</p>
 <p>More information about the melt pond schemes is in the
 <a class="reference internal" href="sg_thermo.html#ponds"><span class="std std-ref">Melt ponds</span></a> section.</p>
 </div>
@@ -201,7 +207,7 @@ changes in the conserved quantity.</p>
         <li class="right" >
           <a href="sg_itd.html" title="2.2. Ice thickness distribution"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

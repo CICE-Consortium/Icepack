@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3.1. Implementation &#8212; Icepack 1.0 documentation</title>
+    <title>3.1. Implementation &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="index.html" title="3. User Guide"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -80,12 +80,12 @@ of icepack_ and all driver files are prefixed with icedrv_*.</p>
 <dd>directory of icepack driver code, see <a class="reference internal" href="../developer_guide/dg_driver.html#dev-driver"><span class="std std-ref">Driver Implementation</span></a></dd>
 <dt><strong>doc/</strong></dt>
 <dd>documentation</dd>
-<dt><strong>icepack.create.case</strong></dt>
+<dt><strong>icepack.setup</strong></dt>
 <dd>main icepack script for creating cases</dd>
 </dl>
 <p>A case (compile) directory is created upon initial execution of the script
-<strong>icepack.create.case</strong> at the user-specified location provided after the -c flag.
-Executing the command <code class="docutils literal"><span class="pre">./icepack.create.case</span> <span class="pre">-h</span></code> provides helpful information for
+<strong>icepack.setup</strong> at the user-specified location provided after the -c flag.
+Executing the command <code class="docutils literal"><span class="pre">./icepack.setup</span> <span class="pre">-h</span></code> provides helpful information for
 this tool.</p>
 </div>
 <div class="section" id="grid-and-boundary-conditions">
@@ -120,21 +120,11 @@ spaced at <span class="math">\(1/n_b\)</span> intervals beginning with <cite>bgr
 equidistant with the same spacing, but physically coincide with points
 midway between those of <code class="docutils literal"><span class="pre">bgrid</span></code>.</p>
 </div>
-<div class="section" id="test-configurations">
-<span id="testconfigs"></span><h2>3.1.3. Test configurations<a class="headerlink" href="#test-configurations" title="Permalink to this headline">¶</a></h2>
-<p><em>(CHECK) UPDATE with similar, correct information</em></p>
-<p>The column is located
-near Barrow (71.35N, 156.5W). Options for choosing the column
-configuration are given in <strong>comp_ice</strong> (choose <cite>RES col</cite>) and in the
-namelist file, <strong>input_templates/col/ice_in</strong>. Here, <code class="docutils literal"><span class="pre">istep0</span></code> and the
-initial conditions are set such that the run begins September 1 with no
-ice.</p>
-</div>
 <div class="section" id="initialization-and-forcing">
-<span id="init"></span><h2>3.1.4. Initialization and Forcing<a class="headerlink" href="#initialization-and-forcing" title="Permalink to this headline">¶</a></h2>
+<span id="init"></span><h2>3.1.3. Initialization and Forcing<a class="headerlink" href="#initialization-and-forcing" title="Permalink to this headline">¶</a></h2>
 <p>Icepack’s parameters and variables are initialized in several
 steps. Many constants and physical parameters are set in
-<strong>icepack_constants.F90</strong>. In the current driver implementation,
+<strong>icepack_parameters.F90</strong>. In the current driver implementation,
 a namelist file is read to setup the model.
 Namelist values are given default
 values in the code, which may then be changed when the input file
@@ -161,7 +151,7 @@ and are intended merely for testing, although they can also provide guidance for
 the user to write his or her own routines.</p>
 </div>
 <div class="section" id="choosing-an-appropriate-time-step">
-<span id="parameters"></span><h2>3.1.5. Choosing an appropriate time step<a class="headerlink" href="#choosing-an-appropriate-time-step" title="Permalink to this headline">¶</a></h2>
+<span id="parameters"></span><h2>3.1.4. Choosing an appropriate time step<a class="headerlink" href="#choosing-an-appropriate-time-step" title="Permalink to this headline">¶</a></h2>
 <p>Transport in thickness space imposes a restraint on the time
 step, given by the ice growth/melt rate and the smallest range of
 thickness among the categories,
@@ -172,48 +162,31 @@ default in this distribution, this is not a stringent limitation:
 <span class="math">\(\Delta t &lt; 19.4\)</span>&nbsp;hr, assuming <span class="math">\(\max(f) = 40\)</span>&nbsp;cm/day.</p>
 </div>
 <div class="section" id="model-output">
-<span id="history"></span><h2>3.1.6. Model output<a class="headerlink" href="#model-output" title="Permalink to this headline">¶</a></h2>
+<span id="history"></span><h2>3.1.5. Model output<a class="headerlink" href="#model-output" title="Permalink to this headline">¶</a></h2>
 <p>History output from Icepack is not currently supported in the Icepack driver, except
 in restart files.
 The sea ice model <a class="reference external" href="https://github.com/CICE-Consortium/CICE">CICE</a> provides extensive
 options for model output, including many derived output variables.</p>
 <div class="section" id="diagnostic-files">
-<h3>3.1.6.1. Diagnostic files<a class="headerlink" href="#diagnostic-files" title="Permalink to this headline">¶</a></h3>
+<h3>3.1.5.1. Diagnostic files<a class="headerlink" href="#diagnostic-files" title="Permalink to this headline">¶</a></h3>
 <p>Icepack writes diagnostic information for each grid cell as a separate file,
 <strong>ice_diag.*</strong>, identified by the initial ice state of the grid cell (no ice, slab, land, etc).</p>
 </div>
 <div class="section" id="restart-files">
-<h3>3.1.6.2. Restart files<a class="headerlink" href="#restart-files" title="Permalink to this headline">¶</a></h3>
-<p>CHECK and CHANGE as needed re netCDF</p>
-<p>CICE provides restart data in binary unformatted or netCDF formats, via
-the <code class="docutils literal"><span class="pre">IO_TYPE</span></code> flag in <strong>comp_ice</strong> and namelist variable
-<code class="docutils literal"><span class="pre">restart_format</span></code>.</p>
-<p>The restart files created by the Icepack driver contain all of the variables needed
+<h3>3.1.5.2. Restart files<a class="headerlink" href="#restart-files" title="Permalink to this headline">¶</a></h3>
+<p>Icepack provides restart data in binary unformatted format. The restart files
+created by the Icepack driver contain all of the variables needed
 for a full, exact restart. The filename begins with the character string
-‘iced.’, and the restart dump frequency is given by the namelist
+‘iced.’ and is placed in the directory specified by the namelist variable
+<code class="docutils literal"><span class="pre">restart_dir</span></code>. The restart dump frequency is given by the namelist
 variable <code class="docutils literal"><span class="pre">dumpfreq</span></code>. The namelist variable <code class="docutils literal"><span class="pre">ice_ic</span></code> contains the
-pointer to the filename from which the restart data is to be read.</p>
+pointer to the filename from which the restart data is to be read and
+the namelist option <code class="docutils literal"><span class="pre">restart</span></code> must be set to <code class="docutils literal"><span class="pre">.true.</span></code> to use the file.</p>
 </div>
 <div class="section" id="biogeochemistry-history-fields">
-<span id="bgc-hist"></span><h3>3.1.6.3. Biogeochemistry History Fields<a class="headerlink" href="#biogeochemistry-history-fields" title="Permalink to this headline">¶</a></h3>
-<p>Note:  History output is not provided with Icepack.  This documentation
+<span id="bgc-hist"></span><h3>3.1.5.3. Biogeochemistry History Fields<a class="headerlink" href="#biogeochemistry-history-fields" title="Permalink to this headline">¶</a></h3>
+<p>History output is not provided with Icepack.  This documentation
 indicates what is available for output and is implemented in CICE.</p>
-<p>CHECK and FIX!</p>
-<p>The biogeochemical history fields specified in icefields_bgc_nml are
-written when ‘x’ is replaced with a time interval: step (‘1’), daily
-(‘d’), monthly (‘m’), or yearly (‘y’). Several of these flags turn on
-multiple history variables according to the particular ecosystem
-prescribed in <strong>icepack_in</strong>. For example, biogeochemical fluxes from the
-ice to ocean will be saved monthly in the history output if</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">f_fbio</span> <span class="o">=</span> <span class="s1">&#39;m&#39;</span>
-</pre></div>
-</div>
-<p>However, only the biogeochemical tracers which are active will be saved.
-This includes at most fNit nitrate, fAm ammonium, fN algal nitrogen,
-fDOC dissolved organic carbon, fDON dissolved organic nitrogen, fFep
-particulate iron, fFed dissolved iron, fSil silicate, fhum humic matter,
-fPON passive mobile tracer, fDMS DMS, fDMSPd dissolved DMSP and fDMSPp
-particulate DMSP.</p>
 <p>Table <a class="reference internal" href="#tab-bio-history"><span class="std std-ref">Biogeochemical History variables</span></a> lists the
 biogeochemical tracer history flags along with a short description and
 the variable or variables saved. Not listed are flags appended with
@@ -440,13 +413,12 @@ i.e.&nbsp;f_fbio, except they are averaged by ice area.</p>
 <li><a class="reference internal" href="#">3.1. Implementation</a><ul>
 <li><a class="reference internal" href="#directory-structure">3.1.1. Directory structure</a></li>
 <li><a class="reference internal" href="#grid-and-boundary-conditions">3.1.2. Grid and boundary conditions</a></li>
-<li><a class="reference internal" href="#test-configurations">3.1.3. Test configurations</a></li>
-<li><a class="reference internal" href="#initialization-and-forcing">3.1.4. Initialization and Forcing</a></li>
-<li><a class="reference internal" href="#choosing-an-appropriate-time-step">3.1.5. Choosing an appropriate time step</a></li>
-<li><a class="reference internal" href="#model-output">3.1.6. Model output</a><ul>
-<li><a class="reference internal" href="#diagnostic-files">3.1.6.1. Diagnostic files</a></li>
-<li><a class="reference internal" href="#restart-files">3.1.6.2. Restart files</a></li>
-<li><a class="reference internal" href="#biogeochemistry-history-fields">3.1.6.3. Biogeochemistry History Fields</a></li>
+<li><a class="reference internal" href="#initialization-and-forcing">3.1.3. Initialization and Forcing</a></li>
+<li><a class="reference internal" href="#choosing-an-appropriate-time-step">3.1.4. Choosing an appropriate time step</a></li>
+<li><a class="reference internal" href="#model-output">3.1.5. Model output</a><ul>
+<li><a class="reference internal" href="#diagnostic-files">3.1.5.1. Diagnostic files</a></li>
+<li><a class="reference internal" href="#restart-files">3.1.5.2. Restart files</a></li>
+<li><a class="reference internal" href="#biogeochemistry-history-fields">3.1.5.3. Biogeochemistry History Fields</a></li>
 </ul>
 </li>
 </ul>
@@ -489,7 +461,7 @@ i.e.&nbsp;f_fbio, except they are averaged by ice area.</p>
         <li class="right" >
           <a href="index.html" title="3. User Guide"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
       </ul>
     </div>

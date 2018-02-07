@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>4.2. Icepack Column Physics &#8212; Icepack 1.0 documentation</title>
+    <title>4.2. Icepack Column Physics &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="dg_about.html" title="4.1. About Development"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">4. Developer Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -59,7 +59,6 @@
 <div class="line"><strong>icepack_algae.F90</strong>         biogeochemistry</div>
 <div class="line"><strong>icepack_atmo.F90</strong>          stability-based parameterization for calculation of turbulent ice–atmosphere fluxes</div>
 <div class="line"><strong>icepack_brine.F90</strong>         evolves the brine height tracer</div>
-<div class="line"><strong>icepack_constants.F90</strong>     physical and numerical constants required for column package</div>
 <div class="line"><strong>icepack_firstyear.F90</strong>     handles most work associated with the first-year ice area tracer</div>
 <div class="line"><strong>icepack_flux.F90</strong>          fluxes needed/produced by the model</div>
 <div class="line"><strong>icepack_intfc.F90</strong>         interface routines for linking Icepack with a host sea ice model</div>
@@ -72,19 +71,19 @@
 <div class="line"><strong>icepack_mushy_physics.F90</strong> physics routines for mushy thermodynamics</div>
 <div class="line"><strong>icepack_ocean.F90</strong>         mixed layer ocean model</div>
 <div class="line"><strong>icepack_orbital.F90</strong>       orbital parameters for Delta-Eddington shortwave parameterization</div>
-<div class="line"><strong>icepack_parameters.F90</strong>    basic model parameters</div>
+<div class="line"><strong>icepack_parameters.F90</strong>    basic model parameters including physical and numerical constants requried for column package</div>
 <div class="line"><strong>icepack_shortwave.F90</strong>     shortwave and albedo parameterizations</div>
-<div class="line"><strong>icepack_therm_0layer.F90</strong>  zero-layer thermodynamics of <a class="reference internal" href="../zreferences.html#semtner76" id="id1">[40]</a></div>
+<div class="line"><strong>icepack_therm_0layer.F90</strong>  zero-layer thermodynamics of <a class="reference internal" href="../zreferences.html#semtner76" id="id1">[46]</a></div>
 <div class="line"><strong>icepack_therm_bl99.F90</strong>    multilayer thermodynamics of <a class="reference internal" href="../zreferences.html#bl99" id="id2">[6]</a></div>
 <div class="line"><strong>icepack_therm_itd.F90</strong>     thermodynamic changes mostly related to ice thickness distribution</div>
-<div class="line"><strong>icepack_therm_mushy.F90</strong>   mushy-theory thermodynamics of <a class="reference internal" href="../zreferences.html#thb13" id="id3">[47]</a></div>
+<div class="line"><strong>icepack_therm_mushy.F90</strong>   mushy-theory thermodynamics of <a class="reference internal" href="../zreferences.html#thb13" id="id3">[53]</a></div>
 <div class="line"><strong>icepack_therm_shared.F90</strong>  code shared by all thermodynamics parameterizations</div>
 <div class="line"><strong>icepack_therm_vertical.F90</strong>  vertical growth rates and fluxes</div>
 <div class="line"><strong>icepack_tracers.F90</strong>       tracer information</div>
 <div class="line"><strong>icepack_warnings.F90</strong>      utilities for writing warning and error messages</div>
 <div class="line"><strong>icepack_zbgc.F90</strong>          driver for ice biogeochemistry and brine tracer motion</div>
 <div class="line"><strong>icepack_zbgc_shared.F90</strong>   parameters and shared code for biogeochemistry and brine height</div>
-<div class="line"><strong>icepack_zsalinity.F90</strong>     vertical salinity parameterization of <a class="reference internal" href="../zreferences.html#jhe11" id="id4">[22]</a></div>
+<div class="line"><strong>icepack_zsalinity.F90</strong>     vertical salinity parameterization of <a class="reference internal" href="../zreferences.html#jhe11" id="id4">[25]</a></div>
 </div>
 </div>
 </div>
@@ -98,7 +97,7 @@ supports no parallelization.  It however can be called in parallel by a driver
 that is running on multiple pes with a decomposed grid.</p>
 <p>The column physics does not have a time manager.  Calendaring is expected to be
 dealt with by the host model.  The column physics does not read any forcing data,
-that is passed into the column physics thru interfaces.  In fact,
+that is passed into the column physics though interfaces.  In fact,
 there are no direct IO capabilities in the column physics.  That is to say, the
 column physics does not open files to read or write.  The column physics is able to write
 data via several different routines that specifically have a fortran unit number as an input
@@ -108,11 +107,11 @@ be queried by the host model or it can be written directly via a specific routin
 The warning package also provides access to an abort flag that the host model can
 query after each call to check for successful completion of the column physics package.</p>
 <p>All column physics public interfaces and public data are defined in the <strong>icepack_intfc.F90</strong>
-file.  Internal column physics settings should all be accessible thru interfaces.
+file.  Internal column physics settings should all be accessible through interfaces.
 The internal constants, parameters, and tracer settings have init (set), query (get), and
 write interfaces that provides access to internal column physics settings.  The host model
 should not have to use “use” statements to access any of the column physics data outside
-of what is provided thru the icepack_intfc module.
+of what is provided through the icepack_intfc module.
 The public column physics interfaces use optional arguments where it makes sense and
 there is an ongoing effort to make more of the interfaces support keyword=value arguments
 for clarity and backwards compatibility.</p>
@@ -123,7 +122,7 @@ for clarity and backwards compatibility.</p>
 how to use them will be described.</p>
 <div class="section" id="interfaces">
 <h3>4.2.3.1. Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h3>
-<p>Column physics data and subroutines are made public thru the <strong>icepack_intfc.F90</strong>
+<p>Column physics data and subroutines are made public through the <strong>icepack_intfc.F90</strong>
 file.  That file contains the entire list of data and subroutines needed to
 initialize, setup, and run the column physics package.  That file points
 to other modules within the column physics where the interfaces are located.</p>
@@ -138,7 +137,7 @@ icepack_kinds module:</p>
 <span class="n">use</span> <span class="n">icepack_kinds</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_r16_kind</span>  <span class="o">=&gt;</span> <span class="n">r16_kind</span>
 </pre></div>
 </div>
-<p>icepack_tracers defines a handful of parameters constants that provide information
+<p>icepack_tracers defines a handful of parameters that provide information
 about maximum array sizes for static dimensioning:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">icepack_tracers</span><span class="p">,</span>   <span class="n">only</span><span class="p">:</span> <span class="n">icepack_max_nbtrcr</span> <span class="o">=&gt;</span> <span class="n">max_nbtrcr</span>
 <span class="n">use</span> <span class="n">icepack_tracers</span><span class="p">,</span>   <span class="n">only</span><span class="p">:</span> <span class="n">icepack_max_algae</span>  <span class="o">=&gt;</span> <span class="n">max_algae</span>
@@ -149,28 +148,16 @@ about maximum array sizes for static dimensioning:</p>
 <span class="n">use</span> <span class="n">icepack_tracers</span><span class="p">,</span>   <span class="n">only</span><span class="p">:</span> <span class="n">icepack_max_aero</span>   <span class="o">=&gt;</span> <span class="n">max_aero</span>
 <span class="n">use</span> <span class="n">icepack_tracers</span><span class="p">,</span>   <span class="n">only</span><span class="p">:</span> <span class="n">icepack_nmodal1</span>    <span class="o">=&gt;</span> <span class="n">nmodal1</span>
 <span class="n">use</span> <span class="n">icepack_tracers</span><span class="p">,</span>   <span class="n">only</span><span class="p">:</span> <span class="n">icepack_nmodal2</span>    <span class="o">=&gt;</span> <span class="n">nmodal2</span>
-<span class="n">use</span> <span class="n">icepack_constants</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_nspint</span>     <span class="o">=&gt;</span> <span class="n">nspint</span>
+<span class="n">use</span> <span class="n">icepack_parameters</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_nspint</span>     <span class="o">=&gt;</span> <span class="n">nspint</span>
 </pre></div>
 </div>
-<p>icepack_constants provides a list of static parameter constants:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">icepack_constants</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">c0</span> <span class="o">=&gt;</span> <span class="n">c0</span>
-</pre></div>
-</div>
-<p>icepack_constants provides init, query, write, and recompute methods to
-define constant values.  These constants have defaults that the caller
-can query or reset:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">icepack_constants</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_init_constants</span>
-<span class="n">use</span> <span class="n">icepack_constants</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_query_constants</span>
-<span class="n">use</span> <span class="n">icepack_constants</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_write_constants</span>
-<span class="n">use</span> <span class="n">icepack_constants</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_recompute_constants</span>
-</pre></div>
-</div>
-<p>icepack_parameters provides init, query, and write methods to
-define model parameters.  These parameters have defaults that the caller
-can query or reset:</p>
+<p>icepack_parameters provides init, query, write, and recompute methods to
+define constant values and model parameters.  These constants have defaults
+that the caller can query or reset:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">icepack_parameters</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_init_parameters</span>
 <span class="n">use</span> <span class="n">icepack_parameters</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_query_parameters</span>
 <span class="n">use</span> <span class="n">icepack_parameters</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_write_parameters</span>
+<span class="n">use</span> <span class="n">icepack_parameters</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">icepack_recompute_constants</span>
 </pre></div>
 </div>
 <p>icepack_tracers provides init, query, and write methods to
@@ -280,7 +267,6 @@ of how to do this in practice.  The sample below does not include bgc.</p>
 </ul>
 <p>initialize driver and read in driver namelist</p>
 <ul class="simple">
-<li>call <em>icepack_init_constants</em></li>
 <li>call <em>icepack_init_parameters</em></li>
 <li>call <em>icepack_init_tracers_</em></li>
 <li>call <em>icepack_init_trcr</em></li>
@@ -311,7 +297,7 @@ end loop over timesteps</p>
 <div class="section" id="the-warning-package">
 <span id="warning"></span><h3>4.2.3.3. The Warning Package<a class="headerlink" href="#the-warning-package" title="Permalink to this headline">¶</a></h3>
 <p>Icepack has no IO capabilities.  It does not have direct knowledge of
-any input or output files.  However, it can write output thru specific
+any input or output files.  However, it can write output through specific
 interfaces that pass in a fortran file unit number.  There are several
 methods in icepack that support writing data to a file this way including
 the various <em>icepack_write_</em> interfaces.</p>
@@ -394,7 +380,7 @@ out the icepack warning messages.</p>
         <li class="right" >
           <a href="dg_about.html" title="4.1. About Development"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >4. Developer Guide</a> &#187;</li> 
       </ul>
     </div>

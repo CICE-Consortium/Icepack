@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3.4. Case Settings &#8212; Icepack 1.0 documentation</title>
+    <title>3.4. Case Settings &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="3.6. Troubleshooting" href="ug_troubleshooting.html" />
+    <link rel="next" title="3.5. Troubleshooting" href="ug_troubleshooting.html" />
     <link rel="prev" title="3.3. Testing Icepack" href="ug_testing.html" /> 
   </head>
   <body>
@@ -31,12 +31,12 @@
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="ug_troubleshooting.html" title="3.6. Troubleshooting"
+          <a href="ug_troubleshooting.html" title="3.5. Troubleshooting"
              accesskey="N">next</a></li>
         <li class="right" >
           <a href="ug_testing.html" title="3.3. Testing Icepack"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -57,8 +57,8 @@ for the icepack driver.  Variables in both files are described below.</p>
 <p>The <strong>icepack.settings</strong> file is reasonably well self documented.  Several of
 the variables defined in the file are not used in Icepack.  They exist
 to support the CICE model.</p>
-<table border="1" class="docutils" id="id9">
-<caption><span class="caption-text"><em>Icepack settings</em></span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id8">
+<caption><span class="caption-text"><em>Icepack settings</em></span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="20%" />
 <col width="20%" />
@@ -73,35 +73,45 @@ to support the CICE model.</p>
 </tr>
 </thead>
 <tbody valign="top">
+<tr class="row-even"><td>ICE_CASENAME</td>
+<td>&#160;</td>
+<td>case name</td>
+<td>set by icepack.setup</td>
+</tr>
+<tr class="row-odd"><td>ICE_SANDBOX</td>
+<td>&#160;</td>
+<td>sandbox directory</td>
+<td>set by icepack.setup</td>
+</tr>
 <tr class="row-even"><td>ICE_MACHINE</td>
 <td>&#160;</td>
 <td>machine name</td>
-<td>set by icepack.create.case</td>
+<td>set by icepack.setup</td>
 </tr>
-<tr class="row-odd"><td>ICE_CASENAME</td>
+<tr class="row-odd"><td>ICE_COMPILER</td>
 <td>&#160;</td>
-<td>case name</td>
-<td>set by icepack.create.case</td>
+<td>environment name</td>
+<td>set by icepack.setup</td>
 </tr>
-<tr class="row-even"><td>ICE_SANDBOX</td>
+<tr class="row-even"><td>ICE_MACHCOMP</td>
 <td>&#160;</td>
-<td>sandbox directory</td>
-<td>set by icepack.create.case</td>
+<td>machine_environment name</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-odd"><td>ICE_SCRIPTS</td>
 <td>&#160;</td>
 <td>scripts directory</td>
-<td>set by icepack.create.case</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-even"><td>ICE_CASEDIR</td>
 <td>&#160;</td>
 <td>case directory</td>
-<td>set by icepack.create.case</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-odd"><td>ICE_RUNDIR</td>
 <td>&#160;</td>
 <td>run directory</td>
-<td>set by icepack.create.case</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-even"><td>ICE_OBJDIR</td>
 <td>&#160;</td>
@@ -171,32 +181,32 @@ to support the CICE model.</p>
 <tr class="row-odd"><td>ICE_TEST</td>
 <td>&#160;</td>
 <td>test setting if using a test</td>
-<td>set by icepack.create.case</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-even"><td>ICE_TESTNAME</td>
 <td>&#160;</td>
 <td>test name if using a test</td>
-<td>set by icepack.create.case</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-odd"><td>ICE_BASELINE</td>
 <td>&#160;</td>
-<td>baseline directory name, associated with icepack.create.case -bd</td>
-<td>set by icepack.create.case</td>
+<td>baseline directory name, associated with icepack.setup -bd</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-even"><td>ICE_BASEGEN</td>
 <td>&#160;</td>
-<td>baseline directory name for regression generation, associated with icepack.create.case -bg</td>
-<td>set by icepack.create.case</td>
+<td>baseline directory name for regression generation, associated with icepack.setup -bg</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-odd"><td>ICE_BASECOM</td>
 <td>&#160;</td>
-<td>baseline directory name for regression comparison, associated with icepack.create.case -bc</td>
-<td>set by icepack.create.case</td>
+<td>baseline directory name for regression comparison, associated with icepack.setup -bc</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-even"><td>ICE_BFBCOMP</td>
 <td>&#160;</td>
-<td>location of case for comparison, associated with icepack.create.case -td</td>
-<td>set by icepack.create.case</td>
+<td>location of case for comparison, associated with icepack.setup -td</td>
+<td>set by icepack.setup</td>
 </tr>
 <tr class="row-odd"><td>ICE_SPVAL</td>
 <td>&#160;</td>
@@ -210,137 +220,142 @@ to support the CICE model.</p>
 <div>00:10:00</div></blockquote>
 </td>
 </tr>
-<tr class="row-odd"><td>ICE_THREADED</td>
+<tr class="row-odd"><td>ICE_ACCOUNT</td>
+<td>&#160;</td>
+<td>batch account number</td>
+<td>set by icepack.setup or by default</td>
+</tr>
+<tr class="row-even"><td>ICE_THREADED</td>
 <td>true,false</td>
 <td>force threading in compile, will always compile threaded if NTHRDS is gt 1</td>
 <td>false</td>
 </tr>
-<tr class="row-even"><td>NICELYR</td>
+<tr class="row-odd"><td>NICELYR</td>
 <td>&#160;</td>
 <td>number of vertical layers in the ice</td>
 <td>7</td>
 </tr>
-<tr class="row-odd"><td>NSNWLYR</td>
+<tr class="row-even"><td>NSNWLYR</td>
 <td>&#160;</td>
 <td>number of vertical layers in the snow</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td>NICECAT</td>
+<tr class="row-odd"><td>NICECAT</td>
 <td>&#160;</td>
 <td>number of ice thickness categories</td>
 <td>5</td>
 </tr>
-<tr class="row-odd"><td>TRAGE</td>
+<tr class="row-even"><td>TRAGE</td>
 <td>0,1</td>
 <td>ice age tracer</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td>TRFY</td>
+<tr class="row-odd"><td>TRFY</td>
 <td>0,1</td>
 <td>first-year ice area tracer</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td>TRLVL</td>
+<tr class="row-even"><td>TRLVL</td>
 <td>0,1</td>
 <td>deformed ice tracer</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td>TRPND</td>
+<tr class="row-odd"><td>TRPND</td>
 <td>0,1</td>
 <td>melt pond tracer</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td>NTRAERO</td>
+<tr class="row-even"><td>NTRAERO</td>
 <td>&#160;</td>
 <td>number of aerosol tracers</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td>TRBRI</td>
+<tr class="row-odd"><td>TRBRI</td>
 <td>0,1</td>
 <td>brine height tracer</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td>TRZS</td>
+<tr class="row-even"><td>TRZS</td>
 <td>0,1</td>
 <td>zsalinity tracer, needs TRBRI=1</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td>TRBGCS</td>
+<tr class="row-odd"><td>TRBGCS</td>
 <td>0,1</td>
 <td>skeletal layer tracer, needs TRBGCZ=0</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td>TRBGCZ</td>
+<tr class="row-even"><td>TRBGCZ</td>
 <td>0,1</td>
 <td>zbgc tracers, needs TRBGCS=0 and TRBRI=1</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td>NBGCLYR</td>
+<tr class="row-odd"><td>NBGCLYR</td>
 <td>&#160;</td>
 <td>number of zbgc layers</td>
 <td>7</td>
 </tr>
-<tr class="row-odd"><td>TRZAERO</td>
+<tr class="row-even"><td>TRZAERO</td>
 <td>0-6</td>
 <td>number of z aerosol tracers</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td>TRALG</td>
+<tr class="row-odd"><td>TRALG</td>
 <td>0,1,2,3</td>
 <td>number of algal tracers</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td>TRDOC</td>
+<tr class="row-even"><td>TRDOC</td>
 <td>0,1,2,3</td>
 <td>number of dissolved organic carbon</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td>TRDIC</td>
+<tr class="row-odd"><td>TRDIC</td>
 <td>0,1</td>
 <td>number of dissolved inorganic carbon</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td>TRDON</td>
+<tr class="row-even"><td>TRDON</td>
 <td>0,1</td>
 <td>number of dissolved organic nitrogen</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td>TRFEP</td>
+<tr class="row-odd"><td>TRFEP</td>
 <td>0,1,2</td>
 <td>number of particulate iron tracers</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td>TRFED</td>
+<tr class="row-even"><td>TRFED</td>
 <td>0,1,2</td>
 <td>number of dissolved iron tracers</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td>CAM_ICE</td>
+<tr class="row-odd"><td>CAM_ICE</td>
 <td>&#160;</td>
 <td>unused</td>
 <td>no</td>
 </tr>
-<tr class="row-odd"><td>DITTO</td>
+<tr class="row-even"><td>DITTO</td>
 <td>&#160;</td>
 <td>unused</td>
 <td>no</td>
 </tr>
-<tr class="row-even"><td>BARRIERS</td>
+<tr class="row-odd"><td>BARRIERS</td>
 <td>&#160;</td>
 <td>unused</td>
 <td>no</td>
 </tr>
-<tr class="row-odd"><td>ICE_BLDDEBUG</td>
+<tr class="row-even"><td>ICE_BLDDEBUG</td>
 <td>true,false</td>
 <td>turn on compile debug flags</td>
 <td>false</td>
 </tr>
-<tr class="row-even"><td>NUMIN</td>
+<tr class="row-odd"><td>NUMIN</td>
 <td>&#160;</td>
 <td>unused</td>
 <td>11</td>
 </tr>
-<tr class="row-odd"><td>NUMAX</td>
+<tr class="row-even"><td>NUMAX</td>
 <td>&#160;</td>
 <td>unused</td>
 <td>99</td>
@@ -350,11 +365,10 @@ to support the CICE model.</p>
 </div>
 <div class="section" id="table-of-namelist-inputs">
 <span id="tabnamelist"></span><h2>3.4.2. Table of Namelist Inputs<a class="headerlink" href="#table-of-namelist-inputs" title="Permalink to this headline">¶</a></h2>
-<p>CHECK</p>
 <p>Namelist is part of the icepack driver code and is used to setup testing of the
 column physics.</p>
-<table border="1" class="docutils" id="id10">
-<span id="tab-namelist"></span><caption><span class="caption-text"><em>Namelist Inputs</em></span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id9">
+<span id="tab-namelist"></span><caption><span class="caption-text"><em>Namelist Inputs</em></span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="31%" />
 <col width="15%" />
@@ -604,12 +618,12 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">conduct</span></code></td>
 <td><code class="docutils literal"><span class="pre">MU71</span></code></td>
-<td>conductivity <a class="reference internal" href="../zreferences.html#mu71" id="id2">[34]</a></td>
+<td>conductivity <a class="reference internal" href="../zreferences.html#mu71" id="id2">[38]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">bubbly</span></code></td>
-<td>conductivity <a class="reference internal" href="../zreferences.html#petb07" id="id3">[37]</a></td>
+<td>conductivity <a class="reference internal" href="../zreferences.html#petb07" id="id3">[41]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">a_rapid_mode</span></code></td>
@@ -659,12 +673,12 @@ column physics.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">kstrength</span></code></td>
 <td><code class="docutils literal"><span class="pre">0</span></code></td>
-<td>ice strength formulation <a class="reference internal" href="../zreferences.html#hibler79" id="id4">[17]</a></td>
+<td>ice strength formulation <a class="reference internal" href="../zreferences.html#hibler79" id="id4">[19]</a></td>
 <td>1</td>
 </tr>
 <tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">1</span></code></td>
-<td>ice strength formulation <a class="reference internal" href="../zreferences.html#rothrock75" id="id5">[38]</a></td>
+<td>ice strength formulation <a class="reference internal" href="../zreferences.html#rothrock75" id="id5">[43]</a></td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">krdg_partic</span></code></td>
@@ -1020,16 +1034,6 @@ column physics.</p>
 <td>ISPOL experiment data</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">bgc_data_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code></td>
-<td>constant values defined in the code</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal"><span class="pre">ISPOL</span></code></td>
-<td>ISPOL experiment data</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">oceanmixed_file</span></code></td>
 <td>filename</td>
 <td>data file containing ocean forcing data</td>
@@ -1102,7 +1106,7 @@ column physics.</p>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">bgc_flux_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">Jin2006</span></code> or <code class="docutils literal"><span class="pre">default</span></code></td>
-<td>ice–ocean flux type for bottom layer tracers only <a class="reference internal" href="../zreferences.html#jdwstwlg06" id="id6">[23]</a></td>
+<td>ice–ocean flux type for bottom layer tracers only <a class="reference internal" href="../zreferences.html#jdwstwlg06" id="id6">[26]</a></td>
 <td><code class="docutils literal"><span class="pre">Jin2006</span></code></td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal"><span class="pre">restore_bgc</span></code></td>
@@ -1135,79 +1139,79 @@ column physics.</p>
 <td>&#160;</td>
 <td>‘<code class="docutils literal"><span class="pre">/nitrate_and_silicate/forcing_directory/</span></code>’</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">sil_data_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code> or <code class="docutils literal"><span class="pre">NICE</span></code> or <code class="docutils literal"><span class="pre">ISPOL</span></code> or <code class="docutils literal"><span class="pre">clim</span></code></td>
-<td>fixed, spatially homogeneous value for silicate. ‘clim’ data file (see ice_forcing_bgc.F90) <a class="reference internal" href="../zreferences.html#glba06" id="id7">[15]</a></td>
-<td><code class="docutils literal"><span class="pre">'default'</span></code></td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">nit_data_type</span></code></td>
-<td><code class="docutils literal"><span class="pre">default</span></code> or <code class="docutils literal"><span class="pre">NICE</span></code> or <code class="docutils literal"><span class="pre">ISPOL</span></code> or <code class="docutils literal"><span class="pre">clim</span></code></td>
-<td>fixed, spatially homogeneous value for nitrate. ‘clim’ data file (see ice_forcing_bgc.F90) <a class="reference internal" href="../zreferences.html#glba06" id="id8">[15]</a></td>
-<td><code class="docutils literal"><span class="pre">'default'</span></code></td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">fe_data_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">bgc_data_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">default</span></code></td>
-<td>fixed, spatially homogeneous value for iron</td>
-<td><code class="docutils literal"><span class="pre">'default'</span></code></td>
+<td>fixed, spatially homogeneous constant values defined in the code</td>
+<td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_Nit</span></code></td>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">clim</span></code></td>
+<td>monthly climatology data file (see icedrv_forcing_bgc.F90) <a class="reference internal" href="../zreferences.html#glba06" id="id7">[17]</a></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">NICE</span></code></td>
+<td>NICE experiment data</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">ISPOL</span></code></td>
+<td>ISPOL experiment data</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_Nit</span></code></td>
 <td>true/false</td>
 <td>nitrate tracer</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_C</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_C</span></code></td>
 <td>true/false</td>
 <td>dissolved organic carbon tracers and dissolved inorganic carbon tracers (not yet implemented)</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_chl</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_chl</span></code></td>
 <td>true/false</td>
 <td>dummy variable for now. Chl is simply fixed ratio of algal Nitrogen</td>
 <td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_Am</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_Am</span></code></td>
 <td>true/false</td>
 <td>Ammonium</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_Sil</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_Sil</span></code></td>
 <td>true/false</td>
 <td>Silicate</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_DMS</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_DMS</span></code></td>
 <td>true/false</td>
 <td>Three tracers: DMS dimethyl sulfide, DMSPp (particulate, assumed to be a fixed ratio of sulfur to algal nitrogen) and DMSPd (dissolved)</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_PON</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_PON</span></code></td>
 <td>true/false</td>
 <td>passive purely mobile ice tracer with ocean concentration equivalent to nitrate</td>
 <td><code class="docutils literal"><span class="pre">.false.</span></code></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_hum</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_hum</span></code></td>
 <td>true/false</td>
 <td>refractory DOC or DON (units depend on the ocean source)</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_DON</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_DON</span></code></td>
 <td>true/false</td>
 <td>dissolved organic nitrogen</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tr_bgc_Fe</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tr_bgc_Fe</span></code></td>
 <td>true/false</td>
 <td>dissolved iron and particulate iron</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">grid_o</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">grid_o</span></code></td>
 <td>real</td>
 <td>ice-ocean surface layer thickness (bgc transport scheme)</td>
-<td>0.006</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">grid_o_t</span></code></td>
-<td>real</td>
-<td>ice-atmosphere surface layer thickness (bgc transport scheme)</td>
 <td>0.006</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">l_sk</span></code></td>
@@ -1818,16 +1822,15 @@ column physics.</p>
 </tbody>
 </table>
 </div>
-</div>
 <div class="section" id="bgc-tuning-parameters">
-<span id="tuning"></span><h1>3.5. BGC Tuning Parameters<a class="headerlink" href="#bgc-tuning-parameters" title="Permalink to this headline">¶</a></h1>
+<span id="tuning"></span><h2>3.4.3. BGC Tuning Parameters<a class="headerlink" href="#bgc-tuning-parameters" title="Permalink to this headline">¶</a></h2>
 <p>Biogeochemical tuning parameters are specified as namelist options in
 <strong>icepack_in</strong>. Table&nbsp;<a class="reference internal" href="#tab-bio-tracers2"><span class="std std-ref">Biogeochemical Reaction Parameters</span></a> provides a list of parameters
 used in the reaction equations, their representation in the code, a
 short description of each and the default values. Please keep in mind
 that there has only been minimal tuning of the model.</p>
-<table border="1" class="docutils" id="id11">
-<span id="tab-bio-tracers2"></span><caption><span class="caption-text"><em>Biogeochemical Reaction Parameters</em></span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id10">
+<span id="tab-bio-tracers2"></span><caption><span class="caption-text"><em>Biogeochemical Reaction Parameters</em></span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="10%" />
 <col width="28%" />
@@ -2064,6 +2067,7 @@ that there has only been minimal tuning of the model.</p>
 </table>
 <p><span class="math">\(^a\)</span> only (1:2) of DOC and DOC parameters have physical meaning</p>
 </div>
+</div>
 
 
           </div>
@@ -2076,9 +2080,9 @@ that there has only been minimal tuning of the model.</p>
 <li><a class="reference internal" href="#">3.4. Case Settings</a><ul>
 <li><a class="reference internal" href="#table-of-icepack-settings">3.4.1. Table of Icepack Settings</a></li>
 <li><a class="reference internal" href="#table-of-namelist-inputs">3.4.2. Table of Namelist Inputs</a></li>
+<li><a class="reference internal" href="#bgc-tuning-parameters">3.4.3. BGC Tuning Parameters</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#bgc-tuning-parameters">3.5. BGC Tuning Parameters</a></li>
 </ul>
 
   <h4>Previous topic</h4>
@@ -2086,7 +2090,7 @@ that there has only been minimal tuning of the model.</p>
                         title="previous chapter">3.3. Testing Icepack</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="ug_troubleshooting.html"
-                        title="next chapter">3.6. Troubleshooting</a></p>
+                        title="next chapter">3.5. Troubleshooting</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -2112,12 +2116,12 @@ that there has only been minimal tuning of the model.</p>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="ug_troubleshooting.html" title="3.6. Troubleshooting"
+          <a href="ug_troubleshooting.html" title="3.5. Troubleshooting"
              >next</a></li>
         <li class="right" >
           <a href="ug_testing.html" title="3.3. Testing Icepack"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
       </ul>
     </div>

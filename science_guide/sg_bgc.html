@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.7. Biogeochemistry &#8212; Icepack 1.0 documentation</title>
+    <title>2.7. Biogeochemistry &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="sg_thermo.html" title="2.6. Thermodynamics"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -425,7 +425,7 @@ grid (igrid):</p>
 \right\} + h\phi R([c])\end{aligned}\]</div>
 <p>where <span class="math">\(D_{in} = \tilde{D}/h^2 =  (D + \phi D_m)/h^2\)</span> and
 <span class="math">\(R([c])\)</span> is the nonlinear biogeochemical interaction term (see
-<a class="reference internal" href="../zreferences.html#jhe11" id="id1">[22]</a>).</p>
+<a class="reference internal" href="../zreferences.html#jhe11" id="id1">[25]</a>).</p>
 <p>The solution to <a class="reference internal" href="#equation-mobile-transport">(17)</a> is flux-corrected and
 positive definite. This is accomplished using a finite element Galerkin
 discretization. Details are in <a class="reference internal" href="#tracer-numerics"><span class="std std-ref">Flux-corrected, positive definite transport scheme</span></a>.</p>
@@ -537,9 +537,9 @@ z-tracers.</p>
 depth and stored in the tracer variable zbgc_frac. The horizontal
 transport of this tracer is conserved on brine volume and so is
 dependent on two tracers: brine height fraction (<span class="math">\(f_b\)</span>) and ice
-volume (<span class="math">\(v_{in}\)</span>). The conservation equations are given by Eq.&nbsp;18
-in the CICE.v5 documentation with <span class="math">\(a_{pnd}a_{i}\)</span> replaced by
-<span class="math">\(f_bv_{in}\)</span>.</p>
+volume (<span class="math">\(v_{in}\)</span>). The conservation equations are given by</p>
+<div class="math">
+\[{\partial\over\partial t} (f_{b}v_{in}) + \nabla \cdot (f_{b}v_{in} {\bf u}) = 0.\]</div>
 <p>The tracer, <code class="docutils literal"><span class="pre">zbgc_frac</span></code>, is initialized to 1 during new ice formation,
 because all z-tracers are initially in the purely mobile phase.
 Similarly, as the ice melts, z-tracers return to the mobile phase. Very
@@ -1083,7 +1083,8 @@ and particulate iron is</p>
 \Delta_{fe}{\mbox{fep}}/dt &amp; = &amp; -[{\mbox{fep}}]/\tau_{fe}\end{aligned}\end{split}\]</div>
 <p>Very long timescales <span class="math">\(\tau_{fe}\)</span> will remove this source/sink
 term. The default value is currently set at 3065 days to turn off this
-dependency. 61-65 days is a more realistic option (Parekh et al., 2004).</p>
+dependency (any large number will do to turn it off).
+61-65 days is a more realistic option (Parekh et al., 2004).</p>
 <p>The full equation for <span class="math">\({\mbox{fed}}\)</span> including uptake and
 remineralization is</p>
 <div class="math">
@@ -1248,7 +1249,7 @@ nitrogen is taken from the nitrate pool.</p>
         <li class="right" >
           <a href="sg_thermo.html" title="2.6. Thermodynamics"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.4. Transport in thickness space &#8212; Icepack 1.0 documentation</title>
+    <title>2.4. Transport in thickness space &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="sg_tracers.html" title="2.3. Tracers"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -54,7 +54,7 @@ thermodynamic growth and melt,</p>
 <span class="eqno">(1)<a class="headerlink" href="#equation-itd-transport" title="Permalink to this equation">¶</a></span>\[\frac{\partial g}{\partial t} + \frac{\partial}{\partial h} (f g) = 0,\]</div>
 <p>which is obtained from Equation <a class="reference internal" href="sg_itd.html#equation-transport-g">(1)</a> by neglecting the first and
 third terms on the right-hand side. We use the remapping method of
-<a class="reference internal" href="../zreferences.html#lipscomb01" id="id1">[27]</a>, in which thickness categories are
+<a class="reference internal" href="../zreferences.html#lipscomb01" id="id1">[31]</a>, in which thickness categories are
 represented as Lagrangian grid cells whose boundaries are projected
 forward in time. The thickness distribution function <span class="math">\(g\)</span> is
 approximated as a linear function of <span class="math">\(h\)</span> in each displaced
@@ -145,10 +145,6 @@ exceeds the midpoint thickness. For <span class="math">\(h_n = 0.2\)</span> and 
 <span id="fig-gplot"></span><a class="reference internal image-reference" href="../_images/gplot.png"><img alt="../_images/gplot.png" src="../_images/gplot.png" style="width: 657.4px; height: 504.6px;" /></a>
 <p class="caption"><span class="caption-text"><em>Linear approximation of thickness distribution function</em></span></p>
 </div>
-<p>CHECK: Linear approximation of the thickness distribution
-function <span class="math">\(g(h)\)</span> for an ice category with left boundary
-<span class="math">\(H_L = 0\)</span>, right boundary <span class="math">\(H_R = 1\)</span>, fractional area
-<span class="math">\(a_n = 1\)</span>, and mean ice thickness <span class="math">\(h_n = 0.2, 0.4, 0.6,\)</span> and <span class="math">\(0.8\)</span>.</p>
 <p>Finally, we remap the thickness distribution to the original boundaries
 by transferring area and volume between categories. We compute the ice
 area <span class="math">\(\Delta a_n\)</span> and volume <span class="math">\(\Delta v_n\)</span> between each
@@ -250,7 +246,7 @@ and tracer contents to the ocean.</p>
         <li class="right" >
           <a href="sg_tracers.html" title="2.3. Tracers"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

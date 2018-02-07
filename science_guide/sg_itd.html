@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>2.2. Ice thickness distribution &#8212; Icepack 1.0 documentation</title>
+    <title>2.2. Ice thickness distribution &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="sg_boundary_forcing.html" title="2.1. Atmosphere and ocean boundary forcing"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Science Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -54,7 +54,7 @@ thermodynamic and dynamic properties of the ice pack depend on how much
 ice lies in each thickness range. Thus the basic problem in sea ice
 modeling is to describe the evolution of the ice thickness distribution
 (ITD) in time and space.</p>
-<p>The fundamental equation solved by CICE is <a class="reference internal" href="../zreferences.html#trmc75" id="id1">[44]</a>:</p>
+<p>The fundamental equation solved by CICE is <a class="reference internal" href="../zreferences.html#trmc75" id="id1">[50]</a>:</p>
 <div class="math" id="equation-transport-g">
 <span class="eqno">(1)<a class="headerlink" href="#equation-transport-g" title="Permalink to this equation">¶</a></span>\[\frac{\partial g}{\partial t} = -\nabla \cdot (g {\bf u})
  - \frac{\partial}{\partial h} (f g) + \psi - L,\]</div>
@@ -73,12 +73,12 @@ each grid cell into discrete thickness categories. The number of
 categories can be set by the user, with a default value <span class="math">\(N_C = 5\)</span>.
 (Five categories, plus open water, are generally sufficient to simulate
 the annual cycles of ice thickness, ice strength, and surface fluxes
-<a class="reference internal" href="../zreferences.html#bhwe01" id="id2">[5]</a><a class="reference internal" href="../zreferences.html#lipscomb01" id="id3">[27]</a>.) Each category <span class="math">\(n\)</span> has
+<a class="reference internal" href="../zreferences.html#bhwe01" id="id2">[5]</a><a class="reference internal" href="../zreferences.html#lipscomb01" id="id3">[31]</a>.) Each category <span class="math">\(n\)</span> has
 lower thickness bound <span class="math">\(H_{n-1}\)</span> and upper bound <span class="math">\(H_n\)</span>. The
 lower bound of the thinnest ice category, <span class="math">\(H_0\)</span>, is set to zero.
 The other boundaries are chosen with greater resolution for small
 <span class="math">\(h\)</span>, since the properties of the ice pack are especially sensitive
-to the amount of thin ice <a class="reference internal" href="../zreferences.html#maykut82" id="id4">[31]</a>. The continuous
+to the amount of thin ice <a class="reference internal" href="../zreferences.html#maykut82" id="id4">[35]</a>. The continuous
 function <span class="math">\(g(h)\)</span> is replaced by the discrete variable
 <span class="math">\(a_{in}\)</span>, defined as the fractional area covered by ice in the
 open water by <span class="math">\(a_{i0}\)</span>, giving <span class="math">\(\sum_{n=0}^{N_C} a_{in} = 1\)</span>
@@ -226,7 +226,7 @@ In the WMO case, the distribution used depends on the number of categories used.
         <li class="right" >
           <a href="sg_boundary_forcing.html" title="2.1. Atmosphere and ocean boundary forcing"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >2. Science Guide</a> &#187;</li> 
       </ul>
     </div>

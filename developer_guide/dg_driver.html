@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>4.3. Driver Implementation &#8212; Icepack 1.0 documentation</title>
+    <title>4.3. Driver Implementation &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="dg_col_phys.html" title="4.2. Icepack Column Physics"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">4. Developer Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -71,7 +71,7 @@ in a stand-alone mode for some simple column configurations.</p>
 <div class="line"><strong>icedrv_init.F90</strong>        general initialization routines</div>
 <div class="line"><strong>icedrv_init_column.F90</strong> initialization routines specific to the column physics</div>
 <div class="line"><strong>icedrv_restart.F90</strong>     driver for reading/writing restart files</div>
-<div class="line"><strong>icedrv_restart_column.F90</strong>  (CHECK: RENAME bgc) restart routines specific to the column physics</div>
+<div class="line"><strong>icedrv_restart_column.F90</strong>  restart routines specific to the column physics</div>
 <div class="line"><strong>icedrv_restart_shared.F90</strong>  code shared by all restart options</div>
 <div class="line"><strong>icedrv_state.F90</strong>       essential arrays to describe the state of the ice</div>
 <div class="line"><strong>icedrv_step.F90</strong>        routines for time stepping the major code components</div>
@@ -85,7 +85,7 @@ in a stand-alone mode for some simple column configurations.</p>
 to run 4 different gridcells on one processor with the same forcing used for all gridcells.
 There is no MPI and no threading built into the icepack driver.  There is limited IO capabilities,
 no history files, and no netcdf restart files.  The model generally runs very quickly.</p>
-<p>There are a few different forcings available.</p>
+<p>Forcing data and details on these data are available in <a class="reference internal" href="../user_guide/ug_running.html#force"><span class="std std-ref">Forcing data</span></a>.</p>
 </div>
 </div>
 
@@ -140,7 +140,7 @@ no history files, and no netcdf restart files.  The model generally runs very qu
         <li class="right" >
           <a href="dg_col_phys.html" title="4.2. Icepack Column Physics"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >4. Developer Guide</a> &#187;</li> 
       </ul>
     </div>

@@ -137,5 +137,12 @@ become zero. If a tracer should be conserved (e.g., aerosols and the
 liquid water in topo ponds), additional code must be added to track
 changes in the conserved quantity.
 
+Tracer dependencies and conserved quantities associated with tracers are tracked
+using the arrays ``trcr_depend``, which defines the type of dependency (area, volume, snow, etc),
+``n_trcr_strata``, the number of underlying layers, ``nt_strata``, the indices of the underlying
+layers, and ``trcr_base``, a mask that is one for the tracer dependency and zero otherwise.
+These arrays are used to convert between the tracer values themselves and the conserved
+forms.
+
 More information about the melt pond schemes is in the
 :ref:`ponds` section.

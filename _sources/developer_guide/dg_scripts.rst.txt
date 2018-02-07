@@ -26,7 +26,7 @@ The directory structure under configure/scripts is as follows.
 |        **icepack_in**            namelist input data
 |        **machines/**             machine specific files to set env and Macros
 |        **makdep.c**              determines module dependencies
-|        **options/**              other namelist configurations available from the icepack.create.case command line
+|        **options/**              other namelist configurations available from the icepack.setup command line
 |        **parse_namelist.sh**     replaces namelist with command-line configuration
 |        **parse_namelist_from_settings.sh**   replaces namelist with values from icepack.settings
 |        **parse_settings.sh**     replaces settings with command-line configuration
@@ -38,11 +38,11 @@ Strategy
 -----------
 
 The icepack scripts are implemented such that everything is resolved after
-**icepack.create.case** is called.  This is done by both copying specific files
-into the case directory and running scripts as part of the **icepack.create.case**
+**icepack.setup** is called.  This is done by both copying specific files
+into the case directory and running scripts as part of the **icepack.setup**
 command line to setup various files.
 
-**icepack.create.case** drives the case setup.  It is written in csh.  All supporting
+**icepack.setup** drives the case setup.  It is written in csh.  All supporting
 scripts are relatively simple csh or sh scripts.
 
 The file **icepack.settings** specifies a set of env defaults for the case.  The file
@@ -54,16 +54,16 @@ Preset Case Options
 ---------------------
 
 
-``icepack.create.case -s`` option allows the user to choose some predetermined icepack
+``icepack.setup -s`` option allows the user to choose some predetermined icepack
 settings and namelist.  Those options are defined in **configurations/scripts/options/**
-and the files are prefixed by either set_env, set_nml, or test_nml.  When **icepack.create.case**
+and the files are prefixed by either set_env, set_nml, or test_nml.  When **icepack.setup**
 is executed, the appropriate files are read from **configurations/scripts/options/**
 and the **icepack.settings** and/or **icepack_in** files are updated in the case directory
 based on the values in those files.
 
 The filename suffix determines the name of the -s option.  So, for instance, 
 
-  ``icepack.create.case -s diag1,debug,bgcISPOL``
+  ``icepack.setup -s diag1,debug,bgcISPOL``
 
 will search for option files with suffixes of diag1, debug, and bgcISPOL and then
 apply those settings.  

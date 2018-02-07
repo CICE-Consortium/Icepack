@@ -49,12 +49,12 @@ of icepack\_ and all driver files are prefixed with icedrv\_*.
 **doc/**
     documentation
 
-**icepack.create.case**
+**icepack.setup**
   main icepack script for creating cases
 
 A case (compile) directory is created upon initial execution of the script 
-**icepack.create.case** at the user-specified location provided after the -c flag. 
-Executing the command ``./icepack.create.case -h`` provides helpful information for 
+**icepack.setup** at the user-specified location provided after the -c flag. 
+Executing the command ``./icepack.setup -h`` provides helpful information for 
 this tool.
 
 .. _grids:
@@ -95,22 +95,6 @@ spaced at :math:`1/n_b` intervals beginning with `bgrid(2)` =
 equidistant with the same spacing, but physically coincide with points
 midway between those of ``bgrid``.
 
-
-.. _testconfigs:
-
-Test configurations
--------------------
-
-*(CHECK) UPDATE with similar, correct information*
-
-The column is located
-near Barrow (71.35N, 156.5W). Options for choosing the column
-configuration are given in **comp\_ice** (choose `RES col`) and in the
-namelist file, **input\_templates/col/ice\_in**. Here, ``istep0`` and the
-initial conditions are set such that the run begins September 1 with no
-ice. 
-
-
 .. _init:
 
 Initialization and Forcing
@@ -118,7 +102,7 @@ Initialization and Forcing
 
 Icepack’s parameters and variables are initialized in several
 steps. Many constants and physical parameters are set in
-**icepack\_constants.F90**. In the current driver implementation,
+**icepack\_parameters.F90**. In the current driver implementation,
 a namelist file is read to setup the model.
 Namelist values are given default
 values in the code, which may then be changed when the input file
@@ -181,46 +165,22 @@ Icepack writes diagnostic information for each grid cell as a separate file,
 Restart files
 ~~~~~~~~~~~~~
 
-CHECK and CHANGE as needed re netCDF
-
-CICE provides restart data in binary unformatted or netCDF formats, via
-the ``IO_TYPE`` flag in **comp\_ice** and namelist variable
-``restart_format``. 
-
-The restart files created by the Icepack driver contain all of the variables needed
+Icepack provides restart data in binary unformatted format. The restart files 
+created by the Icepack driver contain all of the variables needed
 for a full, exact restart. The filename begins with the character string
-‘iced.’, and the restart dump frequency is given by the namelist
+‘iced.’ and is placed in the directory specified by the namelist variable
+``restart_dir``. The restart dump frequency is given by the namelist
 variable ``dumpfreq``. The namelist variable ``ice_ic`` contains the
-pointer to the filename from which the restart data is to be read.
-
+pointer to the filename from which the restart data is to be read and 
+the namelist option ``restart`` must be set to ``.true.`` to use the file.
 
 .. _bgc-hist:
 
 Biogeochemistry History Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note:  History output is not provided with Icepack.  This documentation
+History output is not provided with Icepack.  This documentation
 indicates what is available for output and is implemented in CICE.
-
-CHECK and FIX!
-
-The biogeochemical history fields specified in icefields\_bgc\_nml are
-written when ‘x’ is replaced with a time interval: step (‘1’), daily
-(‘d’), monthly (‘m’), or yearly (‘y’). Several of these flags turn on
-multiple history variables according to the particular ecosystem
-prescribed in **icepack\_in**. For example, biogeochemical fluxes from the
-ice to ocean will be saved monthly in the history output if
-
-::
-
-    f_fbio = 'm'
-
-However, only the biogeochemical tracers which are active will be saved.
-This includes at most fNit nitrate, fAm ammonium, fN algal nitrogen,
-fDOC dissolved organic carbon, fDON dissolved organic nitrogen, fFep
-particulate iron, fFed dissolved iron, fSil silicate, fhum humic matter,
-fPON passive mobile tracer, fDMS DMS, fDMSPd dissolved DMSP and fDMSPp
-particulate DMSP.
 
 Table :ref:`tab-bio-history` lists the
 biogeochemical tracer history flags along with a short description and

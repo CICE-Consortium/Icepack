@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3.2. Running Icepack &#8212; Icepack 1.0 documentation</title>
+    <title>3.2. Running Icepack &#8212; Icepack 0.0.01 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '0.0.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="ug_implementation.html" title="3.1. Implementation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -54,26 +54,29 @@
 <p>The icepack scripts are written to allow quick setup of cases and tests.  Once a case is
 generated, users can manually modify the namelist and other files to custom configure
 the case.  Several settings are available via scripts as well.</p>
+<div class="section" id="overview">
+<h3>3.2.1.1. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
 <p>Most of the scripts that configure, build and run Icepack are contained in
-the directory <strong>configuration/scripts/</strong>, except for <strong>icepack.create.case</strong>, which is
-in the main directory.  <strong>icepack.create.case</strong> is the main script that generates a case.</p>
+the directory <strong>configuration/scripts/</strong>, except for <strong>icepack.setup</strong>, which is
+in the main directory.  <strong>icepack.setup</strong> is the main script that generates a case.</p>
 <p>Users may need to port the scripts to their local machine.
 Specific instructions for porting are provided in <a class="reference internal" href="#porting"><span class="std std-ref">Porting</span></a>.</p>
-<p><code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-h</span></code> will provide the latest information about how to use the tool.
+<p><code class="docutils literal"><span class="pre">icepack.setup</span> <span class="pre">-h</span></code> will provide the latest information about how to use the tool.
+<code class="docutils literal"><span class="pre">icepack.setup</span> <span class="pre">--help</span></code> will provide an extended version of the help.
 There are three usage modes,</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">-c</span></code> creates individual stand alone cases.</li>
-<li><code class="docutils literal"><span class="pre">-t</span></code> creates individual tests.  Tests are just cases that have some extra automation in order to carry out particular tests such as exact restart.</li>
-<li><code class="docutils literal"><span class="pre">-ts</span></code> creates a test suite.  Test suites are predefined sets of tests and <code class="docutils literal"><span class="pre">-ts</span></code> provides the ability to quick setup, build, and run a full suite of tests.</li>
+<li><code class="docutils literal"><span class="pre">--case</span></code> or <code class="docutils literal"><span class="pre">-c</span></code> creates individual stand alone cases.</li>
+<li><code class="docutils literal"><span class="pre">--test</span></code> creates individual tests.  Tests are just cases that have some extra automation in order to carry out particular tests such as exact restart.</li>
+<li><code class="docutils literal"><span class="pre">--suite</span></code> creates a test suite.  Test suites are predefined sets of tests and <code class="docutils literal"><span class="pre">--suite</span></code> provides the ability to quick setup, build, and run a full suite of tests.</li>
 </ul>
-<p>All modes will require use of <code class="docutils literal"><span class="pre">-m</span></code> to specify the machine and case and test modes
-can use <code class="docutils literal"><span class="pre">-s</span></code> to define specific options.  <code class="docutils literal"><span class="pre">-t</span></code> and <code class="docutils literal"><span class="pre">-ts</span></code> will require <code class="docutils literal"><span class="pre">-testid</span></code> to be set
-and both of the test modes can use <code class="docutils literal"><span class="pre">-bd</span></code>, <code class="docutils literal"><span class="pre">-bg</span></code>, <code class="docutils literal"><span class="pre">-bc</span></code>, and <code class="docutils literal"><span class="pre">-td</span></code> to compare with other results.
+<p>All modes will require use of <code class="docutils literal"><span class="pre">--mach</span></code> or <code class="docutils literal"><span class="pre">-m</span></code> to specify the machine and case and test modes
+can use <code class="docutils literal"><span class="pre">--set</span></code> or <code class="docutils literal"><span class="pre">-s</span></code> to define specific options.  <code class="docutils literal"><span class="pre">--test</span></code> and <code class="docutils literal"><span class="pre">--suite</span></code> will require <code class="docutils literal"><span class="pre">--testid</span></code> to be set
+and both of the test modes can use <code class="docutils literal"><span class="pre">--bdir</span></code>, <code class="docutils literal"><span class="pre">--bgen</span></code>, <code class="docutils literal"><span class="pre">--bcmp</span></code>, and <code class="docutils literal"><span class="pre">--diff</span></code> to generate (save) results and compare results with prior results.
 Testing will be described in greater detail in the <a class="reference internal" href="ug_testing.html#testing"><span class="std std-ref">Testing Icepack</span></a> section.</p>
-<p>Again, <code class="docutils literal"><span class="pre">icepack.create.case</span> <span class="pre">-h</span></code> will show the latest usage information including
-the available <code class="docutils literal"><span class="pre">-s</span></code> options, the current ported machines, and the test choices.</p>
-<p>To create a case, run <strong>icepack.create.case</strong>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">icepack</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">case</span> <span class="o">-</span><span class="n">c</span> <span class="n">mycase</span> <span class="o">-</span><span class="n">m</span> <span class="n">machine</span>
+<p>Again, <code class="docutils literal"><span class="pre">icepack.setup</span> <span class="pre">--help</span></code> will show the latest usage information including
+the available <code class="docutils literal"><span class="pre">--set</span></code> options, the current ported machines, and the test choices.</p>
+<p>To create a case, run <strong>icepack.setup</strong>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">icepack</span><span class="o">.</span><span class="n">setup</span> <span class="o">-</span><span class="n">c</span> <span class="n">mycase</span> <span class="o">-</span><span class="n">m</span> <span class="n">machine</span>
 <span class="n">cd</span> <span class="n">mycase</span>
 </pre></div>
 </div>
@@ -103,11 +106,10 @@ You can also submit the <strong>icepack.run</strong> script on the command line.
 <p>Some hints:</p>
 <ul class="simple">
 <li>To change namelist, manually edit the <strong>icepack_in</strong> file</li>
-<li>To change batch settings, manually edit the top of the <strong>icepack.run</strong> file</li>
+<li>To change batch settings, manually edit the top of the <strong>icepack.run</strong> or <strong>icepack.test</strong> (if running a test) file</li>
 <li>To turn on the debug compiler flags, set <code class="docutils literal"><span class="pre">ICE_BLDDEBUG</span></code> in <strong>icepack.setttings</strong> to true</li>
 <li>To change compiler options, manually edit the Macros file</li>
-<li>To clean the build before each compile, set <code class="docutils literal"><span class="pre">ICE_CLEANBUILD</span></code> in <strong>icepack.settings</strong> to true
-To not clean before the build, set <code class="docutils literal"><span class="pre">ICE_CLEANBUILD</span></code> in <strong>icepack.settings</strong> to false</li>
+<li>To clean the build before each compile, set <code class="docutils literal"><span class="pre">ICE_CLEANBUILD</span></code> in <strong>icepack.settings</strong> to true.  To not clean before the build, set <code class="docutils literal"><span class="pre">ICE_CLEANBUILD</span></code> in <strong>icepack.settings</strong> to false</li>
 </ul>
 <p>To build and run:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">icepack</span><span class="o">.</span><span class="n">build</span>
@@ -119,17 +121,90 @@ Other model output will be in the run directory.  The run directory is set in <s
 via the <strong>ICE_RUNDIR</strong> variable.  To modify the case setup, changes should be made in the
 case directory, NOT the run directory.</p>
 </div>
+<div class="section" id="command-line-options">
+<span id="case-options"></span><h3>3.2.1.2. Command Line Options<a class="headerlink" href="#command-line-options" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">icepack.setup</span> <span class="pre">-h</span></code> provides a summary of the command line options.  There are three different modes, <code class="docutils literal"><span class="pre">--case</span></code>, <code class="docutils literal"><span class="pre">--test</span></code>, and <code class="docutils literal"><span class="pre">--suite</span></code>.  This section provides details about the relevant options for setting up cases with examples.
+Testing will be described in greater detail in the <a class="reference internal" href="ug_testing.html#testing"><span class="std std-ref">Testing Icepack</span></a> section.</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">--help</span></code>, <code class="docutils literal"><span class="pre">-h</span></code></dt>
+<dd>prints <code class="docutils literal"><span class="pre">icepack.setup</span></code> help information to the terminal and exits.</dd>
+<dt><code class="docutils literal"><span class="pre">--version</span></code></dt>
+<dd>prints the Icepack version to the terminal and exits.</dd>
+<dt><code class="docutils literal"><span class="pre">--case</span></code>, <code class="docutils literal"><span class="pre">-c</span></code> CASE</dt>
+<dd>specifies the case name.  This can be either a relative path of an absolute path.  This cannot be used with –test or –suite.  Either <code class="docutils literal"><span class="pre">--case</span></code>, <code class="docutils literal"><span class="pre">--test</span></code>, or <code class="docutils literal"><span class="pre">--suite</span></code> is required.</dd>
+<dt><code class="docutils literal"><span class="pre">--mach</span></code>, <code class="docutils literal"><span class="pre">-m</span></code> MACHINE</dt>
+<dd>specifies the machine name.  This should be consistent with the name defined in the Macros and env files in <strong>configurations/scripts/machines</strong>.  This is required in all modes.</dd>
+<dt><code class="docutils literal"><span class="pre">--env</span></code>,  <code class="docutils literal"><span class="pre">-e</span></code> ENVIRONMENT1,ENVIRONMENT2,ENVIRONMENT3</dt>
+<dd>specifies the environment or compiler associated with the machine.  This should be consistent with the name defined in the Macros and env files in <strong>configurations/scripts/machines</strong>.  Each machine can have multiple supported environments including support for different compilers or other system setups.  When used with <code class="docutils literal"><span class="pre">--suite</span></code> or <code class="docutils literal"><span class="pre">--test</span></code>, the ENVIRONMENT can be a set of comma deliminated values with no spaces and the tests will then be run for all of those environments.  With <code class="docutils literal"><span class="pre">--case</span></code>, only one ENVIRONMENT should be specified. (default is intel)</dd>
+<dt><code class="docutils literal"><span class="pre">--pes</span></code>,  <code class="docutils literal"><span class="pre">-p</span></code> MxN</dt>
+<dd>specifies the number of tasks and threads the case should be run on.  This only works with <code class="docutils literal"><span class="pre">--case</span></code>.  The format is tasks x threads or “M”x”N” where M is tasks and N is threads and both are integers. The current icepack driver is purely serial so setting multiple tasks or multiple threads will have no impact.  (default is 1x1)</dd>
+<dt><code class="docutils literal"><span class="pre">--acct</span></code>  ACCOUNT</dt>
+<dd>specifies a batch account number.  This is optional.  See <a class="reference internal" href="#account"><span class="std std-ref">Machine Account Settings</span></a> for more information.</dd>
+<dt><code class="docutils literal"><span class="pre">--grid</span></code>, <code class="docutils literal"><span class="pre">-g</span></code> GRID</dt>
+<dd>specifies the grid.  This is a string and for the current icepack driver, only col is supported. (default = col)</dd>
+<dt><code class="docutils literal"><span class="pre">--set</span></code>,  <code class="docutils literal"><span class="pre">-s</span></code> SET1,SET2,SET3</dt>
+<dd>specifies the optional settings for the case.  This is only used with <code class="docutils literal"><span class="pre">--case</span></code> or <code class="docutils literal"><span class="pre">--test</span></code>.  The settings for <code class="docutils literal"><span class="pre">--suite</span></code> are defined in the suite file.  Multiple settings can be specified by providing a comma deliminated set of values without spaces between settings.  The available settings are in <strong>configurations/scripts/options</strong> and <code class="docutils literal"><span class="pre">icepack.setup</span> <span class="pre">--help</span></code> will also list them.  These settings files can change either the namelist values or overall case settings (such as the debug flag).</dd>
+</dl>
+<p>For Icepack, when setting up cases, the <code class="docutils literal"><span class="pre">--case</span></code> and <code class="docutils literal"><span class="pre">--mach</span></code> must be specified.
+It’s also recommended that <code class="docutils literal"><span class="pre">--env</span></code> be set explicitly as well.
+At the present time, <code class="docutils literal"><span class="pre">--pes</span></code> and <code class="docutils literal"><span class="pre">--grid</span></code> cannot vary from 1x1 and col respectively
+which are the defaults.  <code class="docutils literal"><span class="pre">--acct</span></code> is not normally used.  A more convenient method
+is to use the <strong>~/cice_proj</strong> file, see <a class="reference internal" href="#account"><span class="std std-ref">Machine Account Settings</span></a>.  The <code class="docutils literal"><span class="pre">--set</span></code> option can be
+extremely handy.  The <code class="docutils literal"><span class="pre">--set</span></code> options are documented in <a class="reference internal" href="#settings"><span class="std std-ref">Preset Options</span></a>.</p>
+</div>
+<div class="section" id="preset-options">
+<span id="settings"></span><h3>3.2.1.3. Preset Options<a class="headerlink" href="#preset-options" title="Permalink to this headline">¶</a></h3>
+<p>There are several preset options.  These are hardwired in
+<strong>configurations/scripts/options</strong> and are specfied for a case or test by
+the <code class="docutils literal"><span class="pre">--set</span></code> command line option.  You can see the full list of settings
+by doing <code class="docutils literal"><span class="pre">icepack.setup</span> <span class="pre">--help</span></code>.</p>
+<p>The default icepack namelist and icepack settings are specified in the
+files <strong>configuration/scripts/icepack_in</strong> and
+<strong>configuration/scripts/icepack.settings</strong> respectively.  When picking a
+preset setting (option), the set_env.setting and set_nml.setting will be used to
+change the defaults.  This is done as part of the <code class="docutils literal"><span class="pre">icepack.setup</span></code> and the
+modifications are resolved in the <strong>icepack.settings</strong> and <strong>icepack_in</strong> file placed in
+the case directory.  If multiple options are chosen and then conflict, then the last
+option chosen takes precedent.  Not all options are compatible with each other.</p>
+<p>Some of the options are</p>
+<p><code class="docutils literal"><span class="pre">debug</span></code> which turns on the compiler debug flags</p>
+<p><code class="docutils literal"><span class="pre">short</span></code>, <code class="docutils literal"><span class="pre">medium</span></code>, <code class="docutils literal"><span class="pre">long</span></code> which change the batch time limit</p>
+<p><code class="docutils literal"><span class="pre">diag1</span></code> which turns on diagnostics each timestep</p>
+<p><code class="docutils literal"><span class="pre">leap</span></code> which turns on the leap year</p>
+<p><code class="docutils literal"><span class="pre">pondcesm</span></code>, <code class="docutils literal"><span class="pre">pondlvl</span></code>, <code class="docutils literal"><span class="pre">pondtopo</span></code> which turn on the various pond schemes</p>
+<p><code class="docutils literal"><span class="pre">run10day</span></code>, <code class="docutils literal"><span class="pre">run1year</span></code>, etc which specifies a run length</p>
+<p><code class="docutils literal"><span class="pre">swccsm3</span></code> which turns on the ccsm3 shortwave and albedo computation</p>
+<p><code class="docutils literal"><span class="pre">thermo1</span></code> which on turns on the Bitz-Lipscomb thermodynamics model (default is mushy-layer)</p>
+<p><code class="docutils literal"><span class="pre">bgc*</span></code> which turns of various bgc configurations</p>
+<p>and there are others.  To add a new option, just add the appropriate file in <strong>configuration/scripts/options</strong>.  Some of the options settings like <code class="docutils literal"><span class="pre">smoke</span></code> and <code class="docutils literal"><span class="pre">restart</span></code> are specifically geared toward setting up tests.  For more information, see <a class="reference internal" href="../developer_guide/dg_scripts.html#dev-options"><span class="std std-ref">Preset Case Options</span></a></p>
+</div>
+<div class="section" id="examples">
+<h3>3.2.1.4. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>The simplest case is just to setup a default configurations specifying the
+case name, machine, and environment:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">icepack</span><span class="o">.</span><span class="n">setup</span> <span class="o">--</span><span class="n">case</span> <span class="n">mycase1</span> <span class="o">--</span><span class="n">mach</span> <span class="n">spirit</span> <span class="o">--</span><span class="n">env</span> <span class="n">intel</span>
+</pre></div>
+</div>
+<p>To add some optional settings, one might do:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">icepack</span><span class="o">.</span><span class="n">setup</span> <span class="o">--</span><span class="n">case</span> <span class="n">mycase2</span> <span class="o">--</span><span class="n">mach</span> <span class="n">spirit</span> <span class="o">--</span><span class="n">env</span> <span class="n">intel</span> <span class="o">--</span><span class="nb">set</span> <span class="n">debug</span><span class="p">,</span><span class="n">diag1</span><span class="p">,</span><span class="n">run1year</span><span class="p">,</span><span class="n">pondtopo</span>
+</pre></div>
+</div>
+<p>Once the cases are created, users are free to modify the icepack.settings and icepack_in namelist to further modify their setup.</p>
+</div>
+</div>
 <div class="section" id="porting">
 <span id="id3"></span><h2>3.2.2. Porting<a class="headerlink" href="#porting" title="Permalink to this headline">¶</a></h2>
-<p>To port, an <strong>env.[machine]</strong> and <strong>Macros.[machine]</strong> file have to be added to the
+<p>To port, an <strong>env.[machine]_[environment]</strong> and <strong>Macros.[machine]_[environment}</strong> file have to be added to the
 <strong>configuration/scripts/machines/</strong> directory and the
-<strong>configuration/scripts/icepack.run.setup.csh</strong> file needs to be modified.</p>
+<strong>configuration/scripts/icepack.batch.csh</strong> file needs to be modified.
+In general, the machine is specified in <code class="docutils literal"><span class="pre">icepack.setup</span></code> with <code class="docutils literal"><span class="pre">--mach</span></code>
+and the environment (compiler) is specified with <code class="docutils literal"><span class="pre">--env</span></code>.</p>
 <ul class="simple">
 <li>cd to <strong>configuration/scripts/machines/</strong></li>
 <li>Copy an existing env and a Macros file to new names for your new machine</li>
 <li>Edit your env and Macros files</li>
 <li>cd .. to <strong>configuration/scripts/</strong></li>
-<li>Edit the <strong>icepack.run.setup.csh</strong> script to add a section for your machine
+<li>Edit the <strong>icepack.batch.csh</strong> script to add a section for your machine
 with batch settings and job launch settings</li>
 <li>Download and untar a forcing dataset to the location defined by
 <code class="docutils literal"><span class="pre">ICE_MACHINE_INPUTDATA</span></code> in the env file</li>
@@ -139,37 +214,120 @@ to carry this out is to create an initial set of changes as described above, the
 create a case and manually modify the <strong>env.[machine]</strong> file and <strong>Macros.[machine]</strong>
 file until the case can build and run.  Then copy the files from the case
 directory back to <strong>configuration/scripts/machines/</strong> and update
-the <strong>configuration/scripts/icepack.run.setup.csh</strong> file, retest,
+the <strong>configuration/scripts/icepack.batch.csh</strong> file, retest,
 and then add and commit the updated machine files to the repository.</p>
 <div class="section" id="machine-account-settings">
-<h3>3.2.2.1. Machine Account Settings<a class="headerlink" href="#machine-account-settings" title="Permalink to this headline">¶</a></h3>
+<span id="account"></span><h3>3.2.2.1. Machine Account Settings<a class="headerlink" href="#machine-account-settings" title="Permalink to this headline">¶</a></h3>
 <p>The machine account default is specified by the variable <code class="docutils literal"><span class="pre">ICE_MACHINE_ACCT</span></code> in
 the <strong>env.[machine]</strong> file.  The easiest way to change a user’s default is to
 create a file in your home directory called <strong>.cice_proj</strong> and add your
 preferred account name to the first line.
-There is also an option (<code class="docutils literal"><span class="pre">-a</span></code>) in <strong>icepack.create.case</strong> to define the account number.
-The order of precedent is <strong>icepack.create.case</strong> command line option,
+There is also an option (<code class="docutils literal"><span class="pre">--acct</span></code>) in <strong>icepack.setup</strong> to define the account number.
+The order of precedent is <strong>icepack.setup</strong> command line option,
 <strong>.cice_proj</strong> setting, and then value in the <strong>env.[machine]</strong> file.</p>
 </div>
 </div>
 <div class="section" id="forcing-data">
-<h2>3.2.3. Forcing data<a class="headerlink" href="#forcing-data" title="Permalink to this headline">¶</a></h2>
-<p>CHECK once we’ve settled on a forcing suite:</p>
-<p>The code is currently configured to run in standalone mode on a 4-cell grid using
-atmospheric data, available as detailed on the <a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack">wiki</a>.
-These data files are designed only for testing the code, not for use in production
-runs or as observational data.  Please do not publish results based on these data
-sets.  Module <strong>configuration/driver/icedrv_forcing.F90</strong>
-can be modified to change the forcing data.</p>
+<span id="force"></span><h2>3.2.3. Forcing data<a class="headerlink" href="#forcing-data" title="Permalink to this headline">¶</a></h2>
 <p>The input data space is defined on a per machine basis by the <code class="docutils literal"><span class="pre">ICE_MACHINE_INPUTDATA</span></code>
 variable in the <strong>env.[machine]</strong> file.  That file space is often shared among multiple
 users, and it can be desirable to consider using a common file space with group read
 and write permissions such that a set of users can update the inputdata area as
 new datasets are available.</p>
+<p>The code is currently configured to run in standalone mode on a 4-cell grid using
+atmospheric data, available as detailed on the
+<a class="reference external" href="https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack">wiki</a>.
+These data files are designed only for testing the code, not for use in production
+runs or as observational data.  Please do not publish results based on these data
+sets.  Module <strong>configuration/driver/icedrv_forcing.F90</strong>
+can be modified to change the forcing data.</p>
+<p>Icepack requires near surface atmospheric data at a single point which are set
+in <code class="docutils literal"><span class="pre">forcing_nml</span></code> with the <code class="docutils literal"><span class="pre">atm_data_type</span></code> in the namelist (see <a class="reference internal" href="ug_case_settings.html#tabsettings"><span class="std std-ref">Table of Icepack Settings</span></a>).
+The required fields to force icepack include: downwelling long wave and shortwave
+radiative fluxes, latent and sensible heat fluxes, precipitation rate, and near
+surface potential temperature and specific humidity.</p>
+<ol class="arabic">
+<li><p class="first"><strong>Climate Forecast System (CFS)</strong></p>
+<p>Hourly atmospheric forcing from the National Centers for Environmental Prediction’s (NCEP)
+Climate Forecast System, version 2 (CFSv2) <a class="reference internal" href="../zreferences.html#saha14" id="id4">[44]</a> were utilized to generate
+a one-year time series for Icepack testing. These data were used to create the annual cycle at a
+point in the Beaufort Sea (70N, 220W) for the period of January 1 00:00UTC - December 31 23:00UTC, 2015.
+Additional locations can be provided for both hemispheres for the period of 1999-2015 for
+future testing. This dataset can be used to run for several years to reach equilibrium of the annual
+cycle.</p>
+<p>Atmospheric forcing fields consist of 2-m air temperature (K), specific humidity (kg/kg),
+10-m wind velocity in the x and y directions (m/s), downward solar radiation (<span class="math">\(W/m^2\)</span>),
+downward longwave radiation (<span class="math">\(W/m^2\)</span>), and precipitation (<span class="math">\(kg/m^2/s\)</span>).
+Icepack’s boundary layer calculation is used to derive sensible and latent heat fluxes.
+In the namelist, set <code class="docutils literal"><span class="pre">atm_data_type</span> <span class="pre">=</span> <span class="pre">CFS</span></code> to use CFS atmospheric forcing.</p>
+</li>
+<li><p class="first"><strong>Field campaign derived</strong></p>
+<ol class="loweralpha simple">
+<li><strong>Norwegian Young Sea Ice cruise (N-ICE)</strong></li>
+</ol>
+<blockquote>
+<div><p>Atmospheric, oceanic, and biogeochemical forcing are available from the 2015 Norwegian Young Sea Ice Cruise
+(N-ICE) <a class="reference internal" href="../zreferences.html#duarte17" id="id5">[8]</a>. These data are available daily, except for incoming atmospheric radiative forcing,
+which are available 6-hourly. The data correspond to the Arctic Ocean north of Svalbard along the N-ICE drift
+track (83N, 16E to 80N, 5E) from April 24, 2015 to June 6, 2015.</p>
+<p>Atmospheric forcing fields from <a class="reference internal" href="../zreferences.html#duarte17" id="id6">[8]</a> consist of 2-m air temperature (K), 2-m specific humidity (kg/kg),
+10-m wind velocity in the x and y directions (m/s), downward solar radiation (<span class="math">\(W/m^2\)</span>), and precipitation
+(<span class="math">\(kg/m^2/s\)</span>). Icepack’s boundary layer calculation is used to derive sensible and latent heat fluxes.
+In the namelist, set <code class="docutils literal"><span class="pre">atm_data_type</span> <span class="pre">=</span> <span class="pre">NICE</span></code> to use N-ICE atmospheric forcing.</p>
+<p>Oceanic forcing fields are available from a Parallel Ocean Program (POP) 1-degree (gx1v3) simulation run 01/08/15.
+These fields consist of sea surface temperature (K), sea surface salinity (ppt), boundary layer depth (m),
+ocean velocity in the x and y direction (m/s), and deep ocean heat flux (<span class="math">\(W/m^2\)</span>).
+In the namelist, set <code class="docutils literal"><span class="pre">ocn_data_type</span> <span class="pre">=</span> <span class="pre">NICE</span></code> to use N-ICE oceanic forcing.</p>
+<p>Biogeochemical forcing fields are available from the World Ocean Atlas <a class="reference internal" href="../zreferences.html#woa13" id="id7">[16]</a>. The biogeochemical fields provided
+are nitrate concentration (<span class="math">\(mmol/m^3\)</span>) and silicate concentration (<span class="math">\(mmol/m^3\)</span>). In the namelist, set
+<code class="docutils literal"><span class="pre">bgc_data_type</span> <span class="pre">=</span> <span class="pre">NICE</span></code> to use N-ICE biogeochemical forcing.</p>
+</div></blockquote>
+<ol class="loweralpha simple" start="2">
+<li><strong>Ice Station Polarstern (ISPOL)</strong></li>
+</ol>
+<blockquote>
+<div><p>Atmospheric, oceanic, and biogeochemical forcing are available from the 2004 Ice Station Polarstern
+(ISPOL) <a class="reference internal" href="../zreferences.html#jh14" id="id8">[24]</a>. These data can be used with both <a class="reference internal" href="../zreferences.html#bl99" id="id9">[6]</a> and mushy layer thermodynamics.
+These data are available daily, except for incoming atmospheric radiative forcing,
+which are available 6-hourly. The data correspond to the Weddell Sea (67.9S, 54W) from June 16, 2004
+to December 31, 2004.</p>
+<p>Atmospheric forcing fields from <a class="reference internal" href="../zreferences.html#jh14" id="id10">[24]</a> consist of 2-m air temperature (K), 2-m specific humidity (kg/kg), 10-m wind
+velocity in the x and y directions (m/s), downward solar radiation (<span class="math">\(W/m^2\)</span>), and precipitation
+(<span class="math">\(kg/m^2/s\)</span>). Icepack’s boundary layer calculation is used to derive sensible and latent heat fluxes.
+In the namelist, set <code class="docutils literal"><span class="pre">atm_data_type</span> <span class="pre">=</span> <span class="pre">ISPOL</span></code> to use ISPOL atmospheric forcing.</p>
+<p>Oceanic forcing fields are available from <a class="reference internal" href="../zreferences.html#jh14" id="id11">[24]</a> and consist of sea surface temperature (K),
+sea surface salinity (ppt), boundary layer depth (m), ocean velocity in the x and y direction (m/s),
+and deep ocean heat flux (<span class="math">\(W/m^2\)</span>).
+In the namelist, set <code class="docutils literal"><span class="pre">ocn_data_type</span> <span class="pre">=</span> <span class="pre">ISPOL</span></code> to use ISPOL oceanic forcing.</p>
+<p>Biogeochemical forcing fields are available from the World Ocean Atlas <a class="reference internal" href="../zreferences.html#woa13" id="id12">[16]</a>. The biogeochemical fields provided
+are nitrate concentration (<span class="math">\(mmol/m^3\)</span>) and silicate concentration (<span class="math">\(mmol/m^3\)</span>). In the namelist, set
+<code class="docutils literal"><span class="pre">bgc_data_type</span> <span class="pre">=</span> <span class="pre">ISPOL</span></code> to use ISPOL biogeochemical forcing.</p>
+</div></blockquote>
+<ol class="loweralpha simple" start="3">
+<li><strong>Surface HEat Budget of the Arctic (SHEBA)</strong></li>
+</ol>
+<blockquote>
+<div><p><a class="reference external" href="https://atmos.washington.edu/~bitz/column_model/">https://atmos.washington.edu/~bitz/column_model/</a></p>
+<p><a class="reference external" href="https://atmos.washington.edu/~bitz/column_model/notes_forcing_data">https://atmos.washington.edu/~bitz/column_model/notes_forcing_data</a></p>
+<p>includes opening and closing rates, solar zenith angle</p>
+<p>ocn_data_type</p>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>Climatological</strong> - Maykut and Untersteiner 1971 <a class="reference internal" href="../zreferences.html#mu71" id="id13">[38]</a></p>
+<p>The climatological forcing consists of a monthly climatology of downward radiative fluxes, air temperature,
+relative humidity and wind speed compiled from Arctic ice station observations shown in Table 1 from
+<a class="reference internal" href="../zreferences.html#lind98" id="id14">[29]</a>. Icepack’s boundary layer calculation is used to derive sensible and latent heat fluxes.
+The snowfall follows the idealized specification used by <a class="reference internal" href="../zreferences.html#semtner76" id="id15">[46]</a> .
+To adjust the ice thickness a fixed heating of 6 <span class="math">\(W/m^2\)</span> is applied to the bottom of the ice.
+This may be thought of as containing about 2 <span class="math">\(W/m^2\)</span> of ocean heating and an adjustment of
+about 4 <span class="math">\(W/m^2\)</span> for biases in the forcings or the model. In the namelist, set <code class="docutils literal"><span class="pre">atm_data_type</span> <span class="pre">=</span> <span class="pre">clim</span></code>
+to use climatological atmospheric forcing.</p>
+</li>
+</ol>
 </div>
 <div class="section" id="run-directories">
 <h2>3.2.4. Run Directories<a class="headerlink" href="#run-directories" title="Permalink to this headline">¶</a></h2>
-<p>The <strong>icepack.create.case</strong> script creates a case directory.  However, the model
+<p>The <strong>icepack.setup</strong> script creates a case directory.  However, the model
 is actually built and run under the <code class="docutils literal"><span class="pre">ICE_OBJDIR</span></code> and <code class="docutils literal"><span class="pre">ICE_RUNDIR</span></code> directories
 as defined in the <strong>icepack.settings</strong> file.</p>
 <p>Build and run logs will be copied from the run directory into the case <strong>logs/</strong>
@@ -195,7 +353,13 @@ directory when the model is built, submitted, and run.</p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">3.2. Running Icepack</a><ul>
-<li><a class="reference internal" href="#scripts">3.2.1. Scripts</a></li>
+<li><a class="reference internal" href="#scripts">3.2.1. Scripts</a><ul>
+<li><a class="reference internal" href="#overview">3.2.1.1. Overview</a></li>
+<li><a class="reference internal" href="#command-line-options">3.2.1.2. Command Line Options</a></li>
+<li><a class="reference internal" href="#preset-options">3.2.1.3. Preset Options</a></li>
+<li><a class="reference internal" href="#examples">3.2.1.4. Examples</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#porting">3.2.2. Porting</a><ul>
 <li><a class="reference internal" href="#machine-account-settings">3.2.2.1. Machine Account Settings</a></li>
 </ul>
@@ -243,7 +407,7 @@ directory when the model is built, submitted, and run.</p>
         <li class="right" >
           <a href="ug_implementation.html" title="3.1. Implementation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
       </ul>
     </div>
