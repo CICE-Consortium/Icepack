@@ -220,9 +220,8 @@ cat ${outfile}.hold >> ${outfile}
 if ( "$1" == "--travisCI" ) then
     cat >> ${outfile} << EOF
 - Travis-CI build page: https://travis-ci.org/${TRAVIS_REPO_SLUG}/builds/${TRAVIS_BUILD_ID}
-- Travis-CI raw log: https://api.travis-ci.org/v3/job/${TRAVIS_BUILD_ID}/log.txt
+- Travis-CI raw log: https://api.travis-ci.org/v3/job/${TRAVIS_JOB_ID}/log.txt
 EOF
-
 endif
 
 cat >> ${outfile} << EOF
