@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_firstyear.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! First year concentration tracer for sea ice

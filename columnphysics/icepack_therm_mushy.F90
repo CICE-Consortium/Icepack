@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_mushy.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 module icepack_therm_mushy
@@ -3215,6 +3214,9 @@ contains
          hadded            , & ! thickness rate of water used from ocean (m/s)
          wadded            , & ! mass rate of water used from ocean (kg/m^2/s)
          eadded                ! energy rate of water used from ocean (W/m^2) 
+
+!   real(kind=dbl_kind) :: &
+!        sadded                ! salt rate of water used from ocean (kg/m^2/s)
 
     integer :: &
          k                     ! vertical index

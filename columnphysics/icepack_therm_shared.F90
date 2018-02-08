@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_shared.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! Shared thermo variables, subroutines

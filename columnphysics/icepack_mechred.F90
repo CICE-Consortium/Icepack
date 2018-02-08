@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_mechred.F90 1227 2017-05-22 22:49:10Z tcraig $
 !=======================================================================
 
 ! Driver for ice mechanical redistribution (ridging)

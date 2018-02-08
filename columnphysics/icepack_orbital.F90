@@ -1,4 +1,3 @@
-!  icepack_orbital.F90 1226 2017-05-22 22:45:03Z tcraig 
 !=======================================================================
 
 ! Orbital parameters computed from date

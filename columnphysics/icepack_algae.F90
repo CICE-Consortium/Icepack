@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_algae.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! Compute sea ice biogeochemistry (vertical or skeletal layer)
@@ -11,7 +10,7 @@
 
       use icepack_kinds
 
-      use icepack_parameters, only: p05, p5, c0, c1, c2, c6
+      use icepack_parameters, only: p05, p5, c0, c1, c2, c6, c10
       use icepack_parameters, only: pi, secday, puny
       use icepack_parameters, only: hs_ssl, sk_l
 
@@ -65,6 +64,9 @@
 
       private 
       public :: zbio, sklbio
+
+      real (kind=dbl_kind), parameter :: & 
+         exp_argmax = c10    ! maximum argument of exponential
 
 !=======================================================================
 
@@ -877,8 +879,8 @@
          Source_bot,    & ! For cons: (+) bottom tracer source into ice (mmol/m^2/s)
          Sink_bot,      & ! For cons: (+ or -) remaining bottom flux into ice(mmol/m^2/s)
          Sink_top,      & ! For cons: (+ or -) remaining bottom flux into ice(mmol/m^2/s)
-         rtau_ret,      & ! retention frequency (s^-1)
-         rtau_rel     , & ! release frequency   (s^-1)
+         exp_ret,       & ! exp dt/retention frequency
+         exp_rel,       & ! exp dt/release frequency
          atm_add_cons , & ! zbgc_snow+zbgc_atm (mmol/m^3*m)
          dust_Fe      , & ! contribution of dust surface flux to dFe (umol/m*3*m)
          source           ! mmol/m^2 surface input from snow/atmosphere
@@ -903,7 +905,8 @@
                           ! when hin > hbri:  just used in sw calculation
 
       real (kind=dbl_kind):: &
-         bio_tmp          ! temporary variable
+         bio_tmp, &       ! temporary variable
+         exp_min          ! temporary exp var
 
       real (kind=dbl_kind):: &
          Sat_conc   , & ! adsorbing saturation concentration  (mmols/m^3)
@@ -1027,21 +1030,27 @@
       !-----------------------------------------------------------------
       !   time constants for mobile/stationary phase changes
       !-----------------------------------------------------------------
-       
+
+         exp_rel(m) = c0
+         exp_ret(m) = c0
+         if (tau_ret(m) > c0) then
+            exp_min = min(dt/tau_ret(m),exp_argmax)
+            exp_ret(m) = exp(-exp_min)
+         endif
+         if (tau_rel(m) > c0) then
+            exp_min = min(dt/tau_rel(m),exp_argmax)
+            exp_rel(m) = exp(-exp_min)
+         endif
          if (m .ne. nlt_bgc_N(1)) then  
             if (hin_old  > hin) then  !melting
-               rtau_rel(m) = c1/tau_rel(m)
-               rtau_ret(m) = c0
+               exp_ret(m) = c1
             else                              !not melting
-               rtau_ret(m) = c1/tau_ret(m)
-               rtau_rel(m) = c0
+               exp_rel(m) = c1
             endif  
          elseif (tr_bgc_N .and. hin_old > hin + algal_vel*dt) then
-               rtau_rel(m) = c1/tau_rel(m)
-               rtau_ret(m) = c0
+               exp_ret(m) = c1
          elseif (tr_bgc_N) then
-               rtau_ret(m) = c1/tau_ret(m)
-               rtau_rel(m) = c0
+               exp_rel(m) = c1
          endif
 
          dhtop      = dh_top
@@ -1119,8 +1128,8 @@
             do k = 1,nblyr+1
                initcons_mobile(k) = in_init_cons(k,mm)*trcrn(nt_zbgc_frac+mm-1)
                initcons_stationary(k) = mobile(mm)*(in_init_cons(k,mm)-initcons_mobile(k))
-               dmobile(k) = mobile(mm)*(initcons_mobile(k)*(exp(-dt*rtau_ret( mm))-c1) + &
-                                 initcons_stationary(k)*(c1-exp(-dt*rtau_rel(mm))))
+               dmobile(k) = mobile(mm)*(initcons_mobile(k)*(exp_ret(mm)-c1) + &
+                                    initcons_stationary(k)*(c1-exp_rel(mm)))
                initcons_mobile(k) = max(c0,initcons_mobile(k) + dmobile(k))
                initcons_stationary(k) = max(c0,initcons_stationary(k) - dmobile(k))
                if (initcons_stationary(k)/hbri_old > Sat_conc) then
@@ -1237,7 +1246,7 @@
                 call icepack_warnings_add(warnstr)
                 write(warnstr,*) subname, 'in_init_cons(:,mm):',in_init_cons(:,mm)
                 call icepack_warnings_add(warnstr)
-                write(warnstr,*) subname, 'rtau_ret( mm),rtau_rel( mm)',rtau_ret( mm),rtau_rel( mm)
+                write(warnstr,*) subname, 'exp_ret( mm),exp_rel( mm)',exp_ret( mm),exp_rel( mm)
                 call icepack_warnings_add(warnstr)
                 write(warnstr,*) subname,'darcyV,dhtop,dhbot'
                 call icepack_warnings_add(warnstr)
@@ -1337,7 +1346,7 @@
                 call icepack_warnings_add(warnstr)
                 write(warnstr,*) subname,  react(k,m),iphin_N(k),biomat_brine(k,m)
                 call icepack_warnings_add(warnstr)
-                write(warnstr,*) subname, 'rtau_ret( m),rtau_ret( m)',rtau_ret( m),rtau_ret( m)
+                write(warnstr,*) subname, 'exp_ret( m),exp_ret( m)',exp_ret( m),exp_ret( m)
                 call icepack_warnings_add(warnstr)
                 call icepack_warnings_add(subname//'negative bgc')
                 call icepack_warnings_setabort(.true.,__FILE__,__LINE__)

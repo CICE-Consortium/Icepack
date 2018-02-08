@@ -89,11 +89,12 @@
 
       use icedrv_calendar, only: dt, dt_dyn, ndtd, diagfreq, write_restart, istep
       use icedrv_diagnostics, only: runtime_diags, init_mass_diags
+!     use icedrv_diagnostics, only: icedrv_diagnostics_debug
       use icedrv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
       use icedrv_flux, only: init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
       use icedrv_restart, only: dumpfile, final_restart
-      use icedrv_restart_column, only: write_restart_bgc
+      use icedrv_restart_bgc, only: write_restart_bgc
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_radiation, &
           biogeochemistry

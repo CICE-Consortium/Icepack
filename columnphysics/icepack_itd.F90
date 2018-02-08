@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_itd.F90 1227 2017-05-22 22:49:10Z tcraig $
 !=======================================================================
 
 ! Routines to initialize the ice thickness distribution and

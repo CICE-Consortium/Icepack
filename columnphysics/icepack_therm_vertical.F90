@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_vertical.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! Update ice and snow internal temperatures and compute
@@ -672,7 +671,7 @@
          zSin            ! internal ice layer salinities
         
       real (kind=dbl_kind), dimension (:), &
-         intent(out) :: &
+         intent(inout) :: &
          zqsn        , & ! snow enthalpy
          zTsn            ! snow temperature
 
