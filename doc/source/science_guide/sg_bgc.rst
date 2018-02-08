@@ -298,11 +298,9 @@ Biogeochemical upper ocean concentrations are initialized in the
 subroutine **icepack\_init\_ocean\_conc** in **icepack\_zbgc.F90** unless
 coupled to the ocean biogeochemistry. Silicate and nitrate may be read
 from a file. This option is specified in the namelist by setting the
-variables sil\_data\_type and nit\_data\_type to ‘ISPOL’  or 'NICE'. nit\_data\_type also
-has an option ‘sss’ which equates the upper ocean nitrate concentration
-with sea surface salinity. fe\_data\_type currently only has the
-‘default’ option. The location of forcing files is specified in
-bgc\_data\_dir and the filename is hardcoded in **icedrv\_forcing** (NJ - needs to be updated).
+variables ``bgc_data_type`` to ``ISPOL``  or ``NICE``. The location of 
+forcing files is specified in ``bgc_data_dir`` and the filename is hardcoded 
+in **icedrv\_forcing** (NJ - needs to be updated).
 
 
 Skeletal Layer BGC
