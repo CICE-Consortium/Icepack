@@ -8,7 +8,7 @@
       module icepack_brine
 
       use icepack_kinds
-      use icepack_parameters, only: p01, p001, p5, c0, c1, c2, c1p5, puny
+      use icepack_parameters, only: p01, p001, p5, c0, c1, c2, c1p5, c10, puny
       use icepack_parameters, only: gravit, rhoi, rhow, rhos, depressT
       use icepack_parameters, only: salt_loss, min_salin, rhosi
       use icepack_parameters, only: dts_b, l_sk
@@ -44,6 +44,9 @@
          ! Brine density as a quadratic of brine salinity
          b1      = 1000.0_dbl_kind, & ! (kg/m^3)  
          b2      = 0.8_dbl_kind       ! (kg/m^3/ppt)
+
+      real (kind=dbl_kind), parameter :: & 
+         exp_argmax = 30.0_dbl_kind    ! maximum argument of exponential for underflow
 
 !=======================================================================
 
@@ -511,6 +514,7 @@
          darcy_coeff, & ! magnitude of the Darcy velocity/hbrocn (1/s)
          hbrocn_new , & ! hbrocn after flushing
          dhflood    , & ! surface flooding by ocean
+         exp_arg    , & ! temporary exp value
          dhrunoff       ! direct runoff to ocean
 
       real (kind=dbl_kind), parameter :: &
@@ -540,7 +544,13 @@
                bphi_min   = bphin  
                dhrunoff  = -dhS_top*aice0
                hbrocn    = max(c0,hbrocn - dhrunoff)
-               hbrocn_new = hbrocn*exp(-darcy_coeff/bphi_min*dt)
+               exp_arg = darcy_coeff/bphi_min*dt
+! tcx tcraig avoids underflows but is not bit-for-bit
+!               if (exp_arg > exp_argmax) then
+!                  hbrocn_new = c0
+!               else
+                  hbrocn_new = hbrocn*exp(-exp_arg)
+!               endif
                hbr = max(hbrmin, h_ocn + hbrocn_new)
                hbrocn_new = hbr-h_ocn
                darcy_V = -SIGN((hbrocn-hbrocn_new)/dt*bphi_min, hbrocn)

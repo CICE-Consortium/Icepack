@@ -678,7 +678,7 @@
          zSin            ! internal ice layer salinities
         
       real (kind=dbl_kind), dimension (:), &
-         intent(out) :: &
+         intent(inout) :: &
          zqsn        , & ! snow enthalpy
          zTsn            ! snow temperature
 
