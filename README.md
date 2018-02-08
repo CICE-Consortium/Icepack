@@ -19,24 +19,26 @@ In the workflow for step 1 above, substitute
 or use svn    
    svn co https://github.com/CICE-Consortium/Icepack/branch_name    
 where "branch name" can also be a version name    
-3.  download a tarball for a particular version    
-[how]
+3.  download a tarball for a particular version from the git releases: https://github.com/CICE-Consortium/Icepack/releases
 
-## More information
+## Documentation
 
 Detailed and searchable online documentation of Icepack can be found at https://cice-consortium.github.io/Icepack with the following sections:
 - [Quick Start](https://cice-consortium.github.io/Icepack/intro/quickstart.html), which has instructions for running the model. 
 - [Science guide](https://cice-consortium.github.io/Icepack/science_guide/index.html)
-- [User guide](https://cice-consortium.github.io/Icepack/user_guide/index.html) with a [“Testing”](https://cice-consoritum.github.io/Icepack/user_guide/ug_testing.html) subsection with instructions for setting up standard tests (e.g. regression, restart).
-- [Developer guide](https://cice-consortium.github.io/Icepack/developer_guide/index.html)
+- [User guide](https://cice-consortium.github.io/Icepack/user_guide/index.html) with a [“Testing”](https://cice-consortium.github.io/Icepack/user_guide/ug_testing.html) subsection with instructions for setting up standard tests (e.g. regression, restart).
+- [Developer guide](https://cice-consortium.github.io/Icepack/developer_guide/index.html) with a ["Documentation"](https://cice-consoritum.github.io/Icepack/developer_guide/dg_documentation.html) subsection with instructions on how to update documentation using Sphinx along with code development.
 - [Index](https://cice-consortium.github.io/Icepack/icepack_index.html)
-* Note that the documentation Table of Contents can be accessed at any point by clicking the upper left hand "Icepack 1.0 documentation" link.
+
+**Note that the documentation Table of Contents can be accessed at any point by clicking the upper left hand "Icepack x.x.xx documentation" link.**
+
+## More Information
 
 The [Icepack wiki](https://github.com/CICE-Consortium/Icepack/wiki) page contains links to additional information, e.g.    
 - complete documentation 
 - larger files such as the gx1 grid, land mask, and forcing files
 - testing data
 
-Test results for both CICE and Icepack can be found in the ["Test-Results" repository](https://github.com/CICE-Consortium/Test-Results).
+The ["Test-Results" repository](https://github.com/CICE-Consortium/Test-Results) has test results for both CICE and Icepack.
 
 The ["About-Us" repository](https://github.com/CICE-Consortium/About-Us) includes background and supporting information about the CICE Consortium, including how to interact with it.    
