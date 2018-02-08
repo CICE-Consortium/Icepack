@@ -1,4 +1,3 @@
-!  SVN:$Id: ice_tracers.F90 -1   $
 !=======================================================================
 ! Indices and flags associated with the tracer infrastructure. 
 ! Grid-dependent and max_trcr-dependent arrays are declared in ice_state.F90.
@@ -393,10 +392,10 @@
            nt_fbri_in, nt_iage_in, nt_FY_in, & 
            nt_alvl_in, nt_vlvl_in, nt_apnd_in, nt_hpnd_in, nt_ipnd_in, &
            nt_aero_in, nt_zaero_in, &
-           nt_bgc_N_in, nt_bgc_C_in, nt_bgc_chl_in, nt_bgc_DOC_in, nt_bgc_DON_in, &
+           nt_bgc_N_in, nt_bgc_chl_in, nt_bgc_DOC_in, nt_bgc_DON_in, &
            nt_bgc_DIC_in, nt_bgc_Fed_in, nt_bgc_Fep_in, nt_bgc_Nit_in, nt_bgc_Am_in, &
            nt_bgc_Sil_in, nt_bgc_DMSPp_in, nt_bgc_DMSPd_in, nt_bgc_DMS_in, nt_bgc_hum_in, &
-           nt_bgc_PON_in, nlt_zaero_in, nlt_bgc_N_in, nlt_bgc_C_in, nlt_bgc_chl_in, &
+           nt_bgc_PON_in, nlt_zaero_in, nlt_bgc_N_in, nlt_bgc_chl_in, &
            nlt_bgc_DOC_in, nlt_bgc_DON_in, nlt_bgc_DIC_in, nlt_bgc_Fed_in, &
            nlt_bgc_Fep_in, nlt_bgc_Nit_in, nlt_bgc_Am_in, nlt_bgc_Sil_in, &
            nlt_bgc_DMSPp_in, nlt_bgc_DMSPd_in, nlt_bgc_DMS_in, nlt_bgc_hum_in, &
@@ -455,10 +454,10 @@
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
              nt_bgc_N_in ,  & ! diatoms, phaeocystis, pico/small   
-             nt_bgc_C_in ,  & ! diatoms, phaeocystis, pico/small   
+!            nt_bgc_C_in ,  & ! diatoms, phaeocystis, pico/small   
              nt_bgc_chl_in, & ! diatoms, phaeocystis, pico/small 
              nlt_bgc_N_in , & ! diatoms, phaeocystis, pico/small   
-             nlt_bgc_C_in , & ! diatoms, phaeocystis, pico/small   
+!            nlt_bgc_C_in , & ! diatoms, phaeocystis, pico/small   
              nlt_bgc_chl_in   ! diatoms, phaeocystis, pico/small 
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &

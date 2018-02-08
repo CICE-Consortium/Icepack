@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_orbital.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Orbital parameters computed from date
@@ -51,7 +50,7 @@
       iyear_AD  = 1950
       log_print = .false.   ! if true, write out orbital parameters
 
-#ifndef CCSMCOUPLED
+#ifndef CESMCOUPLED
       call shr_orb_params( iyear_AD, eccen , obliq , mvelp    , &
                            obliqr  , lambm0, mvelpp, log_print)
       if (icepack_warnings_aborted(subname)) return
@@ -66,35 +65,36 @@
 !
 ! author:  Bruce P. Briegleb, NCAR 
 
-      subroutine compute_coszen (tlat,          tlon,     &
-                                 calendar_type, days_per_year, &
-                                 nextsw_cday,   yday,  sec, &
-                                 coszen,        dt)
+      subroutine compute_coszen (tlat,          tlon,        &
+                                 yday,  sec, coszen,     &
+                                 days_per_year, nextsw_cday, &
+                                 calendar_type)
 
-#ifdef CCSMCOUPLED
+#ifdef CESMCOUPLED
       use shr_orb_mod, only: shr_orb_decl
 #endif
  
       real (kind=dbl_kind), intent(in) :: &
          tlat, tlon          ! latitude and longitude (radians)
 
-      character (len=char_len), intent(in) :: &
-         calendar_type       ! differentiates Gregorian from other calendars
-
       integer (kind=int_kind), intent(in) :: &
-         days_per_year, &    ! number of days in one year
          sec                 ! elapsed seconds into date
 
       real (kind=dbl_kind), intent(in) :: &
-         nextsw_cday     , & ! julian day of next shortwave calculation
          yday                ! day of the year
 
       real (kind=dbl_kind), intent(inout) :: &
          coszen              ! cosine solar zenith angle 
                              ! negative for sun below horizon
  
-      real (kind=dbl_kind), intent(in) :: &
-         dt                  ! thermodynamic time step
+      integer (kind=int_kind), intent(in), optional :: &
+         days_per_year       ! number of days in one year
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         nextsw_cday         ! julian day of next shortwave calculation
+
+      character (len=char_len), intent(in), optional :: &
+         calendar_type       ! differentiates Gregorian from other calendars
 
       ! local variables
 
@@ -104,7 +104,7 @@
 
 ! Solar declination for next time step
  
-#ifdef CCSMCOUPLED
+#ifdef CESMCOUPLED
       if (calendar_type == "GREGORIAN") then
          ydayp1 = min(nextsw_cday, real(days_per_year,kind=dbl_kind))
       else
@@ -125,7 +125,7 @@
              + cos(tlat)*cos(decln) &
              *cos((sec/secday-p5)*c2*pi + tlon) !cos(hour angle)
  
-#ifdef CCSMCOUPLED
+#ifdef CESMCOUPLED
       endif
 #endif
 
@@ -133,7 +133,7 @@
  
 !===============================================================================
 
-#ifndef CCSMCOUPLED
+#ifndef CESMCOUPLED
 SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
            &               obliqr   , lambm0, mvelpp, log_print)
 
@@ -371,11 +371,6 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    character(len=*),parameter :: subname='(shr_orb_params)'
  
    !-------------------------- Formats -----------------------------------------
-   character(*),parameter :: svnID  = "SVN " // &
-   "$Id: icepack_orbital.F90 1226 2017-05-22 22:45:03Z tcraig $"
-   character(*),parameter :: svnURL = "SVN <unknown URL>" 
-!  character(*),parameter :: svnURL = "SVN " // &
-!  "$URL: https://svn-ccsm-models.cgd.ucar.edu/csm_share/trunk_tags/share3_121022/shr/shr_orb_mod.F90 $"
    character(len=*),parameter :: F00 = "('(shr_orb_params) ',4a)"
    character(len=*),parameter :: F01 = "('(shr_orb_params) ',a,i9)"
    character(len=*),parameter :: F02 = "('(shr_orb_params) ',a,f6.3)"
@@ -390,10 +385,6 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    if ( log_print .and. s_loglev > 0 ) then
      write(warnstr,F00) subname//'Calculate characteristics of the orbit:'
      call icepack_warnings_add(warnstr)
-!     write(warnstr,F00) subname//svnID
-!     call icepack_warnings_add(warnstr)
-!    write(warnstr,F00) subname//svnURL
-!    call icepack_warnings_add(warnstr)
    end if
  
    ! Check for flag to use input orbit parameters

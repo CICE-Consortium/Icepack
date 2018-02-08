@@ -1,4 +1,3 @@
- !  SVN:$Id: icepack_therm_bl99.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! Update ice and snow internal temperatures
@@ -19,7 +18,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_therm_shared, only: ferrmax, l_brine, hfrazilmin
+      use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
 
       implicit none
@@ -270,7 +269,7 @@
       !-----------------------------------------------------------------
 !mclaren: Should there be an if calc_Tsfc statement here then?? 
 
-#ifdef CCSMCOUPLED
+#ifdef CESMCOUPLED
       frac = c1
       dTemp = p01
 #else
@@ -302,7 +301,7 @@
 
       enddo
 
-#ifdef CCSMCOUPLED
+#ifdef CESMCOUPLED
       frac = 0.9_dbl_kind
 #endif
       do k = 1, nslyr
@@ -384,9 +383,7 @@
                if (icepack_warnings_aborted(subname)) return
 
                ! derivative of heat flux with respect to surface temperature
-               call dsurface_heat_flux_dTsf(Tsf      , fswsfc    , &
-                                            rhoa     , flw       , &
-                                            potT     , Qa        , &
+               call dsurface_heat_flux_dTsf(Tsf      , rhoa      , & 
                                             shcoef   , lhcoef    , &
                                             dfsurf_dT, dflwout_dT, &
                                             dfsens_dT, dflat_dT  )
@@ -971,9 +968,7 @@
       if (icepack_warnings_aborted(subname)) return
 
       ! derivative of heat flux with respect to surface temperature
-      call dsurface_heat_flux_dTsf(Tsf,       fswsfc,     &
-                                   rhoa,      flw,        &
-                                   potT,      Qa,         &
+      call dsurface_heat_flux_dTsf(Tsf,       rhoa,       &
                                    shcoef,    lhcoef,     &
                                    dfsurf_dT, dflwout_dT, &
                                    dfsens_dT, dflat_dT)

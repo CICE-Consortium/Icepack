@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_mechred.F90 1227 2017-05-22 22:49:10Z tcraig $
 !=======================================================================
 
 ! Driver for ice mechanical redistribution (ridging)
@@ -35,9 +34,9 @@
       module icepack_mechred
 
       use icepack_kinds
-      use icepack_parameters,  only: c0, c1, c2, c10, c20, c25, Cf, Cp, Pstar, Cstar
+      use icepack_parameters,  only: c0, c1, c2, c10, c25, Cf, Cp, Pstar, Cstar
       use icepack_parameters,  only: p05, p15, p25, p333, p5
-      use icepack_parameters,  only: puny, Lfresh, rhoi, rhos, rhow, gravit
+      use icepack_parameters,  only: puny, Lfresh, rhoi, rhos, rhow
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: heat_capacity
@@ -1775,9 +1774,7 @@
       ! local variables
 
       real (kind=dbl_kind) :: &
-         dtt      , & ! thermo time step
-         atmp     , & ! temporary ice area
-         atmp0        ! temporary open water area
+         dtt          ! thermo time step
 
       character(len=*),parameter :: subname='(icepack_step_ridge)'
 

@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_vertical.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! Update ice and snow internal temperatures and compute
@@ -21,7 +20,7 @@
       module icepack_therm_vertical
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, c3, p001, p5, puny
+      use icepack_parameters, only: c0, c1, p001, p5, puny
       use icepack_parameters, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
       use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc
@@ -45,7 +44,6 @@
       use icepack_mushy_physics, only: temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
       use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
-      use icepack_mushy_physics, only: liquid_fraction
 
       use icepack_aerosol, only: update_aerosol
       use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
@@ -81,7 +79,7 @@
                                   Tsf,         zSin,      &
                                   zqin,        zqsn,      &
                                   apond,       hpond,     &
-                                  iage,        tr_pond_topo,&
+                                  tr_pond_topo,&
                                   flw,         potT,      &
                                   Qa,          rhoa,      &
                                   fsnow,       fpond,     &
@@ -118,8 +116,8 @@
       real (kind=dbl_kind), intent(inout) :: &
          Tsf     , & ! ice/snow top surface temp, same as Tsfcn (deg C)
          apond   , & ! melt pond area fraction
-         hpond   , & ! melt pond depth (m)
-         iage        ! ice age (s)
+         hpond       ! melt pond depth (m)
+!        iage        ! ice age (s)
 
       logical (kind=log_kind), intent(in) :: &
          tr_pond_topo    ! if .true., use melt pond tracer
@@ -268,7 +266,7 @@
                                   zqin,     zTin,    &
                                   zqsn,     zTsn,    &
                                   zSin,              &
-                                  einit,    Tbot     )
+                                  einit )
       if (icepack_warnings_aborted(subname)) return
 
       ! Save initial ice and snow thickness (for fresh and fsalt)
@@ -301,8 +299,7 @@
                                               fsensn,    flatn,     &
                                               flwoutn,   fsurfn,    &
                                               fcondtopn, fcondbot,  &
-                                              fadvocn,   snoice,    &
-                                              einit                 )
+                                              fadvocn,   snoice)
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
@@ -331,8 +328,7 @@
 
          if (calc_Tsfc) then       
 
-            call zerolayer_temperature(dt,                  & 
-                                       nilyr,     nslyr,    &
+            call zerolayer_temperature(nilyr,     nslyr,    &
                                        rhoa,      flw,      &
                                        potT,      Qa,       &
                                        shcoef,    lhcoef,   &
@@ -387,7 +383,7 @@
                              fsnow,       hsn_new,   &
                              fhocnn,      evapn,     &
                              meltt,       melts,     &
-                             meltb,       iage,      &
+                             meltb,       &
                              congel,      snoice,    &
                              mlt_onset,   frz_onset, &
                              zSin,        sss,       &
@@ -412,7 +408,7 @@
       ! If prescribed ice, set hi back to old values
       !-----------------------------------------------------------------
 
-#ifdef CCSMCOUPLED
+#ifdef CESMCOUPLED
       if (present(prescribed_ice)) then
           if (prescribed_ice) then
             hin    = worki
@@ -647,7 +643,7 @@
                                        zqin,     zTin,     &
                                        zqsn,     zTsn,     &
                                        zSin,               &
-                                       einit,    Tbot      )
+                                       einit )
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -663,9 +659,6 @@
          hslyr       , & ! snow layer thickness
          einit           ! initial energy of melting (J m-2)
  
-      real (kind=dbl_kind), intent(in):: &
-         Tbot            ! bottom ice temp  (C)
-
       real (kind=dbl_kind), intent(out):: &
          hin         , & ! ice thickness (m)
          hsn             ! snow thickness (m)
@@ -1012,7 +1005,7 @@
                                     fsnow,     hsn_new,  &
                                     fhocnn,    evapn,    &
                                     meltt,     melts,    &
-                                    meltb,     iage,     &
+                                    meltb,     &
                                     congel,    snoice,   &  
                                     mlt_onset, frz_onset,&
                                     zSin,      sss,      &
@@ -1052,7 +1045,7 @@
          congel      , & ! basal ice growth         (m/step-->cm/day)
          snoice      , & ! snow-ice formation       (m/step-->cm/day)
          dsnow       , & ! snow  formation          (m/step-->cm/day)
-         iage        , & ! ice age (s)
+!        iage        , & ! ice age (s)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
@@ -1453,8 +1446,8 @@
     !-------------------------------------------------------------------
 
       if (ktherm /= 2) &
-         call freeboard (nslyr,    dt,       &
-                         snoice,   iage,     &
+         call freeboard (nslyr, &
+                         snoice, &
                          hin,      hsn,      &
                          zqin,     zqsn,     &
                          dzi,      dzs,      &
@@ -1606,9 +1599,8 @@
 ! authors William H. Lipscomb, LANL
 !         Elizabeth C. Hunke, LANL
 
-      subroutine freeboard (nslyr,    dt,       &
+      subroutine freeboard (nslyr, &
                             snoice,             &
-                            iage,               &
                             hin,      hsn,      &
                             zqin,     zqsn,     &
                             dzi,      dzs,      &
@@ -1617,14 +1609,14 @@
       integer (kind=int_kind), intent(in) :: &
          nslyr     ! number of snow layers
 
-      real (kind=dbl_kind), intent(in) :: &
-         dt      ! time step
+!     real (kind=dbl_kind), intent(in) :: &
+!        dt      ! time step
 
       real (kind=dbl_kind), &
          intent(inout) :: &
          snoice  , & ! snow-ice formation       (m/step-->cm/day)
-         dsnow   , & ! change in snow thickness after snow-ice formation (m)
-         iage        ! ice age (s)
+         dsnow       ! change in snow thickness after snow-ice formation (m)
+!        iage        ! ice age (s)
 
       real (kind=dbl_kind), &
          intent(inout) :: &
@@ -2035,7 +2027,7 @@
                                     fswthrun    , fswabs      , &
                                     flwout      ,               &
                                     Sswabsn     , Iswabsn     , &
-                                    flw         , coszen      , & 
+                                    flw         , & 
                                     fsens       , fsensn      , &
                                     flat        , flatn       , &
                                     evap        ,               &
@@ -2047,11 +2039,10 @@
                                     dhsn        , ffracn      , &
                                     meltt       , melttn      , &
                                     meltb       , meltbn      , &
-                                    meltl       ,               &
                                     melts       , meltsn      , &
                                     congel      , congeln     , &
                                     snoice      , snoicen     , &
-                                    dsnown      , frazil      , &
+                                    dsnown      , &
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice)
@@ -2101,12 +2092,10 @@
          fsens       , & ! sensible heat flux (W/m^2)
          flat        , & ! latent heat flux   (W/m^2)
          fswabs      , & ! shortwave flux absorbed in ice and ocean (W/m^2)
-         coszen      , & ! cosine solar zenith angle, < 0 for sun below horizon 
          flw         , & ! incoming longwave radiation (W/m^2)
          flwout      , & ! outgoing longwave radiation (W/m^2)
          evap        , & ! evaporative water flux (kg/m^2/s)
          congel      , & ! basal ice growth         (m/step-->cm/day)
-         frazil      , & ! frazil ice growth        (m/step-->cm/day)
          snoice      , & ! snow-ice formation       (m/step-->cm/day)
          Tref        , & ! 2m atm reference temperature (K)
          Qref        , & ! 2m atm reference spec humidity (kg/kg)
@@ -2142,7 +2131,6 @@
          meltt       , & ! top ice melt             (m/step-->cm/day)
          melts       , & ! snow melt                (m/step-->cm/day)
          meltb       , & ! basal ice melt           (m/step-->cm/day)
-         meltl       , & ! lateral ice melt         (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
@@ -2222,7 +2210,6 @@
          rfrac           ! water fraction retained for melt ponds
 
       real (kind=dbl_kind) :: &
-         raice       , & ! 1/aice
          pond            ! water retained in ponds (m)
 
       character(len=*),parameter :: subname='(icepack_step_therm1)'
@@ -2257,7 +2244,7 @@
                                    alvl        , vlvl         , &
                                    aice        , vice,          &
                                    vsno        , aicen        , &
-                                   vicen       , vsnon        , &
+                                   vicen       , &
                                    Cdn_ocn     , Cdn_ocn_skin, &
                                    Cdn_ocn_floe, Cdn_ocn_keel, &
                                    Cdn_atm     , Cdn_atm_skin, &
@@ -2371,7 +2358,7 @@
                                  Tsfc     (n), zSin   (:,n), &
                                  zqin   (:,n), zqsn   (:,n), &
                                  apnd     (n), hpnd     (n), &
-                                 iage     (n), tr_pond_topo, &
+                                 tr_pond_topo, &
                                  flw,          potT,         &
                                  Qa,           rhoa,         &
                                  fsnow,        fpond,        &
@@ -2441,7 +2428,7 @@
                                        melttn(n), meltsn(n), &
                                        frain,                &
                                        aicen (n), vicen (n), &
-                                       vsnon (n), Tsfc  (n), &
+                                       Tsfc  (n), &
                                        apnd  (n), hpnd  (n))
                if (icepack_warnings_aborted(subname)) return
                   
@@ -2494,7 +2481,7 @@
 
          if (aicen_init(n) > puny) &
             call merge_fluxes (aicen_init(n),            &
-                               flw,        coszen,       & 
+                               flw, & 
                                strairxn,   strairyn,     &
                                Cdn_atm_ratio_n,          &
                                fsurfn(n),  fcondtopn(n), &
@@ -2534,7 +2521,7 @@
                                  aice,     aicen,                &
                                  vice,     vicen,                &
                                  vsno,     vsnon,                &
-                                 potT,     meltt,                &
+                                 meltt,                &
                                  fsurf,    fpond,                &
                                  Tsfc,     Tf,                   &
                                  zqin,     zSin,                 &

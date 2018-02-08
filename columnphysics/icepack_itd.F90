@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_itd.F90 1227 2017-05-22 22:49:10Z tcraig $
 !=======================================================================
 
 ! Routines to initialize the ice thickness distribution and
@@ -954,7 +953,7 @@
                                 dfresh,        dfhocn,   &
                                 dfaero_ocn,    tr_aero,  &
                                 dflux_bio,     nbtrcr,   &
-                                n_aero,        ntrcr)
+                                n_aero)
       if (icepack_warnings_aborted(subname)) return
 
     !-------------------------------------------------------------------
@@ -1175,7 +1174,7 @@
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
                           dflux_bio,     nbtrcr,   &
-                          n_aero,        ntrcr,    &
+                          n_aero, &
                           aicen(n),      nblyr)
             if (icepack_warnings_aborted(subname)) return
 
@@ -1307,13 +1306,12 @@
                           dfresh,     dfhocn,   &
                           dfaero_ocn, tr_aero,  &
                           dflux_bio,  nbtrcr,   &
-                          n_aero,     ntrcr,    &
+                          n_aero, &      
                           aicen,      nblyr)
 
       integer (kind=int_kind), intent(in) :: &
          nslyr    , & ! number of snow layers
          n_aero   , & ! number of aerosol tracers
-         ntrcr    , & ! number of tracers in use
          nblyr    , & ! number of bio  layers
          nbtrcr
  
@@ -1395,15 +1393,14 @@
                                       dfresh,     dfhocn,   &
                                       dfaero_ocn, tr_aero,  &
                                       dflux_bio,  nbtrcr,   &
-                                      n_aero,     ntrcr)
+                                      n_aero)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
          nslyr , & ! number of snow layers
          n_aero, & ! number of aerosol tracers
          nbtrcr, & ! number of z-tracers in use
-         nblyr , & ! number of bio  layers in ice
-         ntrcr     ! number of tracers in use
+         nblyr     ! number of bio  layers in ice
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -1436,7 +1433,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         n, k, it     ! counting indices
+         n, k  ! counting indices
 
       real (kind=dbl_kind) :: &
          rnslyr   , & ! real(nslyr)
@@ -1511,7 +1508,7 @@
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
                           dflux_bio,     nbtrcr,   &
-                          n_aero,        ntrcr,    &
+                          n_aero, &
                           aicen(n),      nblyr)
             if (icepack_warnings_aborted(subname)) return
 
@@ -1693,6 +1690,25 @@
 
       character(len=*),parameter :: subname='(icepack_init_itd)'
 
+      ! thinnest 3 categories combined
+      data wmo5 / 0.30_dbl_kind, 0.70_dbl_kind, &
+                  1.20_dbl_kind, 2.00_dbl_kind,  &
+                  999._dbl_kind  /
+      ! thinnest 2 categories combined
+      data wmo6 / 0.15_dbl_kind, &
+                  0.30_dbl_kind, 0.70_dbl_kind,  &
+                  1.20_dbl_kind, 2.00_dbl_kind,  &
+                  999._dbl_kind /
+!echmod wmo6a
+!     data wmo6 /0.30_dbl_kind, 0.70_dbl_kind,  &
+!                1.20_dbl_kind, 2.00_dbl_kind,  &
+!                4.56729_dbl_kind, &
+!                 999._dbl_kind /
+      ! all thickness categories 
+      data wmo7 / 0.10_dbl_kind, 0.15_dbl_kind, &
+                  0.30_dbl_kind, 0.70_dbl_kind,  &
+                  1.20_dbl_kind, 2.00_dbl_kind,  &
+                  999._dbl_kind  /
 
       rncat = real(ncat, kind=dbl_kind)
       d1 = 3.0_dbl_kind / rncat
@@ -1755,7 +1771,7 @@
             hin_max(0) = c0     ! minimum ice thickness, m
          else
             ! delta function itd category limits
-#ifndef CCSMCOUPLED
+#ifndef CESMCOUPLED
             hi_min = p1    ! minimum ice thickness allowed (m) for thermo
 #endif
             cc1 = max(1.1_dbl_kind/rncat,hi_min)
@@ -1784,36 +1800,16 @@
       elseif (kcatbound == 2) then  ! WMO standard
 
         if (ncat == 5) then
-         ! thinnest 3 categories combined
-         data wmo5 / 0.30_dbl_kind, 0.70_dbl_kind, &
-                    1.20_dbl_kind, 2.00_dbl_kind,  &
-                    999._dbl_kind  /
          hin_max(0) = c0
          do n = 1, ncat
             hin_max(n) = wmo5(n)
          enddo
        elseif (ncat == 6) then
-         ! thinnest 2 categories combined
-         data wmo6 / 0.15_dbl_kind, &
-                    0.30_dbl_kind, 0.70_dbl_kind,  &
-                    1.20_dbl_kind, 2.00_dbl_kind,  &
-                    999._dbl_kind /
-!echmod wmo6a
-!         data wmo6 /0.30_dbl_kind, 0.70_dbl_kind,  &
-!                    1.20_dbl_kind, 2.00_dbl_kind,  &
-!                    4.56729_dbl_kind, &
-!                    999._dbl_kind /
-
          hin_max(0) = c0
          do n = 1, ncat
             hin_max(n) = wmo6(n)
          enddo
        elseif (ncat == 7) then
-         ! all thickness categories 
-         data wmo7 / 0.10_dbl_kind, 0.15_dbl_kind, &
-                    0.30_dbl_kind, 0.70_dbl_kind,  &
-                    1.20_dbl_kind, 2.00_dbl_kind,  &
-                    999._dbl_kind  /
          hin_max(0) = c0
          do n = 1, ncat
             hin_max(n) = wmo7(n)

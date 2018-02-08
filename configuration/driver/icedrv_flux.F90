@@ -10,7 +10,7 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: ncat, nilyr, nx
-      use icedrv_constants, only: c0, c1, c5, c10, c20, c180, p001
+      use icedrv_constants, only: c0, c1, c5, c10, c20, c180
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_max_aero, icepack_max_nbtrcr, icepack_max_fe
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don

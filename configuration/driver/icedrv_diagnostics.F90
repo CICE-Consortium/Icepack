@@ -8,8 +8,6 @@
 
       use icedrv_kinds
       use icedrv_constants, only: nu_diag, nu_diag_out
-      use icedrv_constants, only: c1, c1000, c2, p001, p5
-      use icedrv_calendar, only: diagfreq, istep1, istep
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: c0
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -57,17 +55,12 @@
 
       subroutine runtime_diags (dt)
 
-      use icedrv_domain_size, only: ncat, n_aero
-      use icedrv_flux, only: alvdr, alidr, alvdf, alidf, evap, fsnow, frazil
-      use icedrv_flux, only: fswabs, fswthru, flw, flwout, fsens, fsurf, flat
-      use icedrv_flux, only: frzmlt_init, frain, fpond
-      use icedrv_flux, only: coszen, fhocn_ai, fsalt_ai, fresh_ai, frazil_diag
-      use icedrv_flux, only: update_ocn_f, Tair, Qa, fsw, fcondtop
+      use icedrv_flux, only: evap, fsnow, frazil
+      use icedrv_flux, only: fswabs, flw, flwout, fsens, fsurf, flat
+      use icedrv_flux, only: frain
+      use icedrv_flux, only: Tair, Qa, fsw, fcondtop
       use icedrv_flux, only: meltt, meltb, meltl, snoice
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
-      use icedrv_flux, only: swvdr, swvdf, swidr, swidf
-      use icedrv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init
-      use icedrv_flux, only: faero_atm, faero_ocn
       use icedrv_state, only: aice, vice, vsno, trcr
 
       real (kind=dbl_kind), intent(in) :: &
@@ -293,7 +286,7 @@
 
       subroutine total_salt (work)
 
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
+      use icedrv_domain_size, only: ncat, nilyr, nx
       use icedrv_state, only: vicen, trcrn
 
       real (kind=dbl_kind), dimension (nx),  &
@@ -356,7 +349,7 @@
       character(len=*), parameter :: subname='(icedrv_diagnostics_debug)'
 
       ! printing info for routine print_state
-      character (char_len) :: plabel
+
       integer (kind=int_kind), parameter :: &
          check_step = 1439, & ! begin printing at istep1=check_step
          ip = 3               ! i index

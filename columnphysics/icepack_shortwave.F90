@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_shortwave.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! The albedo and absorbed/transmitted flux parameterizations for
@@ -48,9 +47,8 @@
       use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint
       use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
-      use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1, modal_aero
+      use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
-      use icepack_parameters, only: dEdd_algae, bgc_flux_type
       use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_tracers,    only: tr_bgc_N, tr_aero
       use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
@@ -890,8 +888,7 @@
          hpn             ! actual pond depth (m)
 
       integer (kind=int_kind) :: &
-         n           , & ! thickness category index
-         na              ! aerosol index               
+         n               ! thickness category index
 
       real (kind=dbl_kind) :: &
          ipn         , & ! refrozen pond ice thickness (m), mean over ice fraction
@@ -915,10 +912,14 @@
       endif
 
       ! cosine of the zenith angle
+#ifdef CESMCOUPLED
       call compute_coszen (tlat,          tlon, &
-                           calendar_type, days_per_year, &
-                           nextsw_cday,   yday,  sec, &
-                           coszen,        dt)
+                           yday,  sec, coszen,  &
+                           days_per_year, nextsw_cday, calendar_type)
+#else
+      call compute_coszen (tlat,          tlon, &
+                           yday,  sec, coszen)
+#endif
       if (icepack_warnings_aborted(subname)) return
 
       do n = 1, ncat
@@ -1254,10 +1255,6 @@
 
       real (kind=dbl_kind) :: &
          vsno         ! volume of snow 
-
-      ! for printing points
-      integer (kind=int_kind) :: &
-         n            ! point number for prints
 
       real (kind=dbl_kind) :: &
          swdn  , & ! swvdr(i,j)+swvdf(i,j)+swidr(i,j)+swidf(i,j)
@@ -1775,9 +1772,7 @@
  
       real (kind=dbl_kind), parameter :: & 
          cp67    = 0.67_dbl_kind   , & ! nir band weight parameter
-         cp33    = 0.33_dbl_kind   , & ! nir band weight parameter
          cp78    = 0.78_dbl_kind   , & ! nir band weight parameter
-         cp22    = 0.22_dbl_kind   , & ! nir band weight parameter
          cp01    = 0.01_dbl_kind       ! for ocean visible albedo
  
       real (kind=dbl_kind), dimension (0:klev) :: &
@@ -3700,7 +3695,7 @@
          enddo    ! k
  
          top_conc = trtmp0(nt_bgc_N(1))*min_bgc
-         call remap_zbgc (ntrcr,             nilyr+1, &
+         call remap_zbgc (nilyr+1, &
                           nt_bgc_N(1),                &
                           trtmp0(1:ntrcr  ),          &
                           trtmp (1:ntrcr+2),          &
@@ -3736,7 +3731,7 @@
             enddo
 
             top_conc = trtmp0(nt_zaero(n))*min_bgc
-            call remap_zbgc (ntrcr,             nilyr+1, &
+            call remap_zbgc (nilyr+1, &
                              nt_zaero(n),                &
                              trtmp0(1:ntrcr  ),          &
                              trtmp (1:ntrcr+2),          &

@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_parameters.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! flags for the column package

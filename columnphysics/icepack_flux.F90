@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_flux.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Flux manipulation routines for column package
@@ -29,7 +28,7 @@
 ! author: Elizabeth C. Hunke and William H. Lipscomb, LANL
 
       subroutine merge_fluxes (aicen,                &    
-                               flw,      coszn,      &
+                               flw, &
                                strairxn, strairyn,   &
                                Cdn_atm_ratio_n,      &
                                fsurfn,   fcondtopn,  &  
@@ -58,7 +57,6 @@
       real (kind=dbl_kind), intent(in) :: &
           aicen   , & ! concentration of ice
           flw     , & ! downward longwave flux          (W/m**2)
-          coszn   , & ! cosine of solar zenith angle 
           strairxn, & ! air/ice zonal  strss,           (N/m**2)
           strairyn, & ! air/ice merdnl strss,           (N/m**2)
           Cdn_atm_ratio_n, & ! ratio of total drag over neutral drag  

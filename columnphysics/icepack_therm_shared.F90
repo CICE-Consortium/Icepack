@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_shared.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! Shared thermo variables, subroutines
@@ -161,9 +160,7 @@
 
   !=======================================================================
   
-      subroutine dsurface_heat_flux_dTsf(Tsf,     fswsfc, &
-                                         rhoa,    flw,    &
-                                         potT,    Qa,     &
+      subroutine dsurface_heat_flux_dTsf(Tsf,  rhoa,      &
                                          shcoef,  lhcoef, &
                                          dfsurfn_dTsf, dflwoutn_dTsf, &
                                          dfsensn_dTsf, dflatn_dTsf)
@@ -174,11 +171,7 @@
     
       ! input variables
       real(kind=dbl_kind), intent(in) :: &
-         fswsfc        , & ! SW absorbed at ice/snow surface (W m-2)
          rhoa          , & ! air density (kg/m^3)
-         flw           , & ! incoming longwave radiation (W/m^2)
-         potT          , & ! air potential temperature  (K)
-         Qa            , & ! specific humidity (kg/kg)
          shcoef        , & ! transfer coefficient for sensible heat
          lhcoef            ! transfer coefficient for latent heat
     

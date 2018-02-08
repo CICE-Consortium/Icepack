@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_atmo.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Ocean boundary interface
@@ -7,7 +6,7 @@
 
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c1000
-      use icepack_parameters, only: cp_ocn, Tffresh, stefan_boltzmann, Lvap, cprho
+      use icepack_parameters, only: Tffresh, stefan_boltzmann, Lvap, cprho
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 

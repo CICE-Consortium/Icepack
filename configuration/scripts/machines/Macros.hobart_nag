@@ -1,0 +1,39 @@
+#==============================================================================
+# Makefile macros for NCAR cheyenne, intel compiler
+#==============================================================================
+
+CPP        := /usr/bin/cpp
+CPPFLAGS   := -P -traditional
+CPPDEFS    := -DFORTRANUNDERSCORE -DNO_CRAY_POINTERS -DNO_SHR_VMATH -DCPRNAG
+CFLAGS     := -std=gnu99
+
+FIXEDFLAGS :=
+FREEFLAGS  :=
+FFLAGS     := -Wp,-macro=no_com -convert=BIG_ENDIAN -ieee=full -O2
+FFLAGS_NOOPT:=
+
+ifeq ($(ICE_BLDDEBUG), true)
+  FFLAGS   := -C=all -g -time -f2003 -ieee=stop
+endif
+
+ifeq ($(ICE_COMMDIR), mpi)
+  FC         := nagfor
+else
+  FC         := nagfor
+endif
+
+NETCDF_PATH := /usr/local/netcdf_c-4.3.2_f-4.4.1-nag-6.1
+
+INCLDIR := -I/usr/local/netcdf_c-4.3.2_f-4.4.1-nag-6.1/include
+
+LIB_NETCDF := $(NETCDF_PATH)/lib
+
+SLIBS   := -L/usr/local/nag-6.1/lib/NAG_Fortran -lf61rts -L$(LIB_NETCDF) -lnetcdf -lnetcdff -L/cluster/mvapich2-2.2rc1-gcc-g++-4.8.5-nag-6.1/lib -lmpich -lm -lc
+
+ifeq ($(DITTO), yes)
+   CPPDEFS :=  $(CPPDEFS) -DREPRODUCIBLE
+endif
+
+ifeq ($(IO_TYPE), netcdf)
+   CPPDEFS :=  $(CPPDEFS) -Dncdf
+endif

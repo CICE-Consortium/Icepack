@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_0layer.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! Update ice and snow internal temperatures
@@ -39,8 +38,7 @@
 ! author:  Alison McLaren, Met Office
 !         (but largely taken from temperature_changes)
 
-      subroutine zerolayer_temperature(dt,                 & 
-                                       nilyr,    nslyr,    &
+      subroutine zerolayer_temperature(nilyr,    nslyr,    &
                                        rhoa,     flw,      &
                                        potT,     Qa,       &
                                        shcoef,   lhcoef,   &
@@ -54,9 +52,6 @@
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
-
-      real (kind=dbl_kind), intent(in) :: &
-         dt              ! time step
 
       real (kind=dbl_kind), intent(in) :: &
          rhoa        , & ! air density (kg/m^3)

@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_algae.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! Compute sea ice biogeochemistry (vertical or skeletal layer)
@@ -11,9 +10,9 @@
 
       use icepack_kinds
 
-      use icepack_parameters, only: p05, p1, p5, c0, c1, c2, c4, c6, c10
+      use icepack_parameters, only: p05, p5, c0, c1, c2, c6, c10
       use icepack_parameters, only: pi, secday, puny
-      use icepack_parameters, only: hi_ssl, hs_ssl, sk_l
+      use icepack_parameters, only: hs_ssl, sk_l
 
       use icepack_parameters, only: dEdd_algae, solve_zbgc
       use icepack_parameters, only: R_dFe2dust, dustFe_sol, algal_vel
@@ -30,7 +29,6 @@
 
       use icepack_tracers, only: ntrcr, bio_index 
       use icepack_tracers, only: nt_bgc_N, nt_fbri, nt_zbgc_frac
-      use icepack_tracers, only: max_algae, max_DON, max_DOC
       use icepack_tracers, only: tr_brine
       use icepack_tracers, only: tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil
       use icepack_tracers, only: tr_bgc_DMS,    tr_bgc_PON
@@ -94,17 +92,17 @@
                          n_zaero,      first_ice,   &
                          hice_old,     ocean_bio,   & 
                          bphin,        iphin,       &
-                         iDin,         sss,         &
+                         iDin, &
                          fswthrul,                  &
                          dh_top,       dh_bot,      &
-                         dh_top_chl,   dh_bot_chl,  &
                          zfswin,                    & 
                          hbri,         hbri_old,    &
-                         darcy_V,      darcy_V_chl, &
-                         bgrid,        cgrid,       &
+!                        darcy_V,      darcy_V_chl, &
+                         darcy_V, &
+                         bgrid,       &
                          igrid,        icgrid,      &
                          bphi_min,                  &
-                         dhice,        iTin,        &
+                         iTin,        &
                          Zoo,                       &
                          flux_bio,     dh_direct,   &
                          upNO,         upNH,        &
@@ -129,7 +127,6 @@
       real (kind=dbl_kind), intent(in) :: &
          dt,       &  ! time step
          hbri,     &  ! brine height  (m)
-         dhice,    &  ! change due to sublimation/condensation (m)
          bphi_min, &  ! surface porosity
          meltt,    &  ! thermodynamic melt/growth rates in dt (m)
          melts,    &
@@ -137,7 +134,6 @@
          congel,   &
          snoice,   &
          fsnow,    & ! snowfall rate (kg/m^2 s)
-         sss,      & ! ocean salinity (ppt)
          hice_old, & ! ice height (m)
          vicen,    & ! ice volume (m)
          vsnon,    & ! snow volume (m)
@@ -146,11 +142,9 @@
          vice_old, &
          vsno_old, &
          darcy_V,  & ! darcy velocity
-         darcy_V_chl,& ! darcy velocity for algae
+!        darcy_V_chl,& ! darcy velocity for algae
          dh_bot,     & ! change in brine bottom (m)
-         dh_bot_chl, & ! change in brine bottom (m) felt by algae
          dh_top,     & ! change in brine top (m)
-         dh_top_chl, & ! change in brine top (m) felt by algae
          dh_direct     ! surface flooding or surface runoff (m)
 
       real (kind=dbl_kind), dimension (nbtrcr), intent(inout) :: &
@@ -173,7 +167,6 @@
          iDin           ! Diffusivity/h on the igrid (1/s)
  
       real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         cgrid            , &  ! CICE vertical coordinate   
          icgrid     , & ! CICE interface coordinate   
          fswthrul       ! visible short wave radiation on icgrid (W/m^2)  
 
@@ -211,8 +204,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k              , & ! vertical index
-         n, mm              ! thickness category index
+         mm              ! thickness category index
 
       real (kind=dbl_kind), dimension (nblyr+1,n_algae) :: &
          upNOn      , & ! algal nitrate uptake rate  (mmol/m^3/s)
@@ -232,7 +224,6 @@
          flux_bio_sno !
 
       real (kind=dbl_kind) :: &
-         Tot_Nit, &  !
          hsnow_i,  & ! initial snow thickness (m)
          hsnow_f     ! final snow thickness (m)
 
@@ -281,7 +272,7 @@
       if (icepack_warnings_aborted(subname)) return
 
       call z_biogeochemistry   (n_cat,        dt,        &
-                                nilyr,        nslyr,     &
+                                nilyr,        &
                                 nblyr,        nbtrcr,    &
                                 n_algae,      n_doc,     & 
                                 n_dic,        n_don,     &
@@ -291,17 +282,17 @@
                                 hice_old,     ocean_bio, & 
                                 flux_bion,    bphin,     &
                                 iphin,        trcrn,     &  
-                                iDin,         sss,       &
+                                iDin,  &
                                 fswthrul,     grow_alg,  &
                                 upNOn,        upNHn,     &
                                 dh_top,       dh_bot,    &
-                                dh_top_chl,   dh_bot_chl,&
                                 zfswin,       hbri,      & 
                                 hbri_old,     darcy_V,   &
-                                darcy_V_chl,  bgrid,     &
+!                               darcy_V_chl,  bgrid,     &
+                                bgrid,     &
                                 igrid,        icgrid,    &
                                 bphi_min,     zbgc_snown,&
-                                dhice,        zbgc_atmn, &
+                                zbgc_atmn, &
                                 iTin,         dh_direct, &
                                 Zoo,          meltb,     &
                                 congel                   )
@@ -344,7 +335,7 @@
                                bio_index,    n_algae,    &
                                nbtrcr,       aicen,      &    
                                vicen,        vsnon,      &
-                               ntrcr,        iphin,      &
+                               iphin,      &
                                trcrn,                    &
                                flux_bion,    flux_bio,   &
                                upNOn,        upNHn,      &
@@ -382,24 +373,21 @@
 !=======================================================================
 
       subroutine sklbio       (dt,       ntrcr,      &
-                               nilyr,                &
                                nbtrcr,   n_algae,    &
-                               n_zaero,  n_doc,      &
+                               n_doc,      &
                                n_dic,    n_don,      &
                                n_fed,    n_fep,      &
                                flux_bio, ocean_bio,  &
-                               hmix,     aicen,      &
+                               aicen,      &
                                meltb,    congel,     &
                                fswthru,  first_ice,  &
-                               trcrn,    hin,        &
+                               trcrn,  &
                                PP_net,   upNO,       &
                                upNH,     grow_net    )
 
       integer (kind=int_kind), intent(in) :: &
-         nilyr,              & ! number of ice layers
          nbtrcr,             & ! number of distinct bio tracers
          n_algae,            & ! number of autotrophs
-         n_zaero,            & ! number of z aerosols
          n_doc, n_dic,       & ! number of dissolved organic, inorganic carbon
          n_don,              & ! number of dissolved organic nitrogen
          n_fed, n_fep,       & ! number of iron
@@ -410,12 +398,11 @@
 
       real (kind=dbl_kind), intent(in) :: &
          dt,       &  ! time step
-         hmix,     &  ! mixed layer depth (m)
+!        hmix,     &  ! mixed layer depth (m)
          aicen,    &  ! ice area fraction
          meltb,    &  ! bottom melt (m)
          congel,   &  ! bottom growth (m)
-         fswthru,  &  ! visible shortwave passing to ocean(W/m^2)  
-         hin          ! ice thickness (m)
+         fswthru      ! visible shortwave passing to ocean(W/m^2)  
 
       real (kind=dbl_kind), dimension(ntrcr), intent(inout) :: &
          trcrn      ! bulk concentration per m^3
@@ -445,22 +432,20 @@
 
       character(len=*),parameter :: subname='(sklbio)'
 
-      call skl_biogeochemistry       (dt,        nilyr,     &
-                                      n_zaero,   n_doc,     &
+      call skl_biogeochemistry       (dt, &
+                                      n_doc,     &
                                       n_dic,     n_don,     &
                                       n_fed,     n_fep,     &
                                       nbtrcr,    n_algae,   &
                                       flux_bion, ocean_bio, &
-                                      hmix,      aicen,     &
+!                                     hmix,      aicen,     &
                                       meltb,     congel,    &
                                       fswthru,   first_ice, &
                                       trcrn,     upNOn,     &
-                                      upNHn,     grow_alg,  &
-                                      hin                   )
+                                      upNHn,     grow_alg)
       if (icepack_warnings_aborted(subname)) return
 
-      call merge_bgc_fluxes_skl    (ntrcr,                  &
-                                    nbtrcr,    n_algae,     &
+      call merge_bgc_fluxes_skl    (nbtrcr,    n_algae,     &
                                     aicen,     trcrn,       &
                                     flux_bion, flux_bio,    &
                                     PP_net,    upNOn,       &
@@ -475,29 +460,26 @@
 !
 ! skeletal layer biochemistry
 ! 
-      subroutine skl_biogeochemistry (dt,         nilyr,        &
-                                      n_zaero,    n_doc,        &
+      subroutine skl_biogeochemistry (dt, &
+                                      n_doc,        &
                                       n_dic,      n_don,        &
                                       n_fed,      n_fep,        &
                                       nbtrcr,     n_algae,      &
                                       flux_bio,   ocean_bio,    &
-                                      hmix,       aicen,        &
+!                                     hmix,       aicen,        &
                                       meltb,      congel,       &
                                       fswthru,    first_ice,    &
                                       trcrn,      upNOn,        &
-                                      upNHn,      grow_alg_skl, &
-                                      hin                       )
+                                      upNHn,      grow_alg_skl)
 
       integer (kind=int_kind), intent(in) :: &
-         nilyr             , & ! number of ice layers
-         n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+         n_doc, n_dic,  n_don, n_fed, n_fep, &
          nbtrcr , n_algae      ! number of bgc tracers and number algae
 
       real (kind=dbl_kind), intent(in) :: &
          dt     , & ! time step 
-         hin    , & ! ice thickness (m)
-         hmix   , & ! mixed layer depth
-         aicen  , & ! ice area 
+!        hmix   , & ! mixed layer depth
+!        aicen  , & ! ice area 
          meltb  , & ! bottom ice melt
          congel , & ! bottom ice growth 
          fswthru    ! shortwave passing through ice to ocean
@@ -523,7 +505,7 @@
 
       ! local variables
 
-      integer (kind=int_kind) :: nn, mm
+      integer (kind=int_kind) :: nn
 
       real (kind=dbl_kind), dimension(nbtrcr):: &
          react        , & ! biological sources and sinks (mmol/m^3)
@@ -669,10 +651,10 @@
       !-----------------------------------------------------------------
 
       call algal_dyn (dt,              &
-                      n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+                      n_doc, n_dic,  n_don, n_fed, n_fep, &
                       dEdd_algae, &
                       fswthru,         react,     & 
-                      cinit_v,         nbtrcr,    &
+                      cinit_v, &
                       grow_alg_skl,    n_algae,   &
                       iTin,                       &
                       upNOn,           upNHn,     &
@@ -762,7 +744,7 @@
 ! 
 
       subroutine z_biogeochemistry (n_cat,        dt,        &
-                                    nilyr,        nslyr,     &
+                                    nilyr,        &
                                     nblyr,        nbtrcr,    &
                                     n_algae,      n_doc,     &
                                     n_dic,        n_don,     &
@@ -772,17 +754,17 @@
                                     hice_old,     ocean_bio, & 
                                     flux_bio,     bphin,     &
                                     iphin,        trcrn,     &  
-                                    iDin,         sss,       &
+                                    iDin,   &
                                     fswthrul,     grow_alg,  &
                                     upNOn,        upNHn,     &
                                     dh_top,       dh_bot,    &
-                                    dh_top_chl,   dh_bot_chl,&
                                     zfswin,       hbri,      & 
                                     hbri_old,     darcy_V,   &
-                                    darcy_V_chl,  bgrid,     &
+!                                   darcy_V_chl,  bgrid,     &
+                                    bgrid,     &
                                     i_grid,       ic_grid,   &
                                     bphi_min,     zbgc_snow, &
-                                    dhice,        zbgc_atm,  &
+                                    zbgc_atm,  &
                                     iTin,         dh_direct, &
                                     Zoo,          meltb,     &
                                     congel                   )
@@ -790,7 +772,6 @@
       integer (kind=int_kind), intent(in) :: &
          n_cat,              & ! category number
          nilyr,              & ! number of ice layers
-         nslyr,              & ! number of snow layers
          nblyr,              & ! number of bio layers
          nbtrcr, n_algae,    & ! number of bgc tracers, number of autotrophs
          n_zaero,            & ! number of aerosols
@@ -802,20 +783,16 @@
       real (kind=dbl_kind), intent(in) :: &
          dt         , & ! time step 
          hbri       , & ! brine height  (m)
-         dhice      , & ! change due to sublimation/condensation (m)
          bphi_min   , & ! surface porosity
          aicen      , & ! concentration of ice
          vicen      , & ! volume per unit area of ice  (m)
-         sss        , & ! ocean salinity (ppt)
          hice_old   , & ! ice height (m)
          meltb      , & ! bottom melt in dt (m)
          congel     , & ! bottom growth in dt (m)
          darcy_V    , & ! darcy velocity
-         darcy_V_chl, & ! darcy velocity for algae
+!        darcy_V_chl, & ! darcy velocity for algae
          dh_bot     , & ! change in brine bottom (m)
-         dh_bot_chl , & ! change in brine bottom (m) felt by algae
          dh_top     , & ! change in brine top (m)
-         dh_top_chl , & ! change in brine top (m) felt by algae
          dh_direct      ! surface flooding or runoff (m)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
@@ -869,8 +846,6 @@
          darcyV      , & !
          dhtop       , & !
          dhbot       , & !
-         dhmelt      , & ! >=0 (m) melt contribution to surface brine height
-         dhrunoff    , & ! >=0 (m) surface runoff to ocean
          dhflood         ! >=0 (m) surface flooding from the ocean
 
       real (kind=dbl_kind), dimension (nblyr+2) :: &
@@ -904,14 +879,11 @@
          Source_bot,    & ! For cons: (+) bottom tracer source into ice (mmol/m^2/s)
          Sink_bot,      & ! For cons: (+ or -) remaining bottom flux into ice(mmol/m^2/s)
          Sink_top,      & ! For cons: (+ or -) remaining bottom flux into ice(mmol/m^2/s)
-         ocean_b,       & ! ocean_bio
-         sum_react,     &
          exp_ret,       & ! exp dt/retention frequency
          exp_rel,       & ! exp dt/release frequency
          atm_add_cons , & ! zbgc_snow+zbgc_atm (mmol/m^3*m)
          dust_Fe      , & ! contribution of dust surface flux to dFe (umol/m*3*m)
-         source       , & ! mmol/m^2 surface input from snow/atmosphere
-         sum_stationary   ! sum of stationary tracer (mmol/m^2)
+         source           ! mmol/m^2 surface input from snow/atmosphere
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: &
          trtmp0       , & ! temporary, remapped tracers
@@ -928,9 +900,6 @@
          initcons_mobile,&!
          initcons_stationary
  
-      real (kind=dbl_kind), dimension (nilyr+1):: &
-         icegrid          ! correct for large ice surface layers
-
       real (kind=dbl_kind):: &
          top_conc         ! 1% (min_bgc) of surface concentration 
                           ! when hin > hbri:  just used in sw calculation
@@ -976,7 +945,6 @@
       zspace = c1/real(nblyr,kind=dbl_kind)
       in_init_cons(:,:) = c0
       atm_add_cons(:) = c0
-      sum_react(:) = c0
       dhtop = c0
       dhbot = c0
       darcyV = c0
@@ -1085,14 +1053,12 @@
                exp_rel(m) = c1
          endif
 
-         ocean_b(m) = ocean_bio(m)
          dhtop      = dh_top
          dhbot      = dh_bot
          darcyV     = darcy_V
          C_top(m)   = in_init_cons(1,m)*trcrn(nt_zbgc_frac+m-1)!mobile fraction
          source(m)  = abs(zbgc_snow(m) + zbgc_atm(m) + dust_Fe(m))
 	 dhflood  = max(c0,-dh_direct)                              ! ocean water flooding surface
-	 dhrunoff = max(c0,dh_direct)
 
 	 if (dhtop+darcyV/bphin_N(1)*dt < -puny) then !snow/top ice melt
 	     C_top(m) = (zbgc_snow(m)+zbgc_atm(m) + dust_Fe(m))/abs(dhtop &
@@ -1125,7 +1091,7 @@
          trtmp0(nt_zfswin+k-1) = fswthrul(k) 
       enddo   !k
 
-      call remap_zbgc(ntrcr,            nilyr+1,  &
+      call remap_zbgc(nilyr+1,  &
                       nt_zfswin,                  &
                       trtmp0(1:ntrcr),  trtmp(1:ntrcr+2), &
                       0,                nblyr+1,  &
@@ -1179,7 +1145,7 @@
             call compute_FCT_matrix &
                                 (initcons,sbdiagz, dt, nblyr,  &
                                 diagz, spdiagz, rhsz, bgrid,   & 
-                                i_grid, darcyV,    dhtop,      &
+                                darcyV,    dhtop,      &
                                 dhbot,   iphin_N,              &
                                 Diff, hbri_old,                &
                                 atm_add_cons(mm), bphin_N,     &
@@ -1295,9 +1261,9 @@
 
          else              
   
-            call thin_ice_flux(hbri,hbri_old,iphin_N, biomat_cons(:,mm), &
+            call thin_ice_flux(hbri,hbri_old,biomat_cons(:,mm), &
                                flux_bio(mm),source(mm), &
-                               i_grid, dt, nblyr,ocean_bio(mm))
+                               dt, nblyr,ocean_bio(mm))
             if (icepack_warnings_aborted(subname)) return
 
          endif ! thin or not
@@ -1313,10 +1279,10 @@
       if (solve_zbgc) then
          do k = 1, nblyr+1   
             call algal_dyn (dt,              &
-                         n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+                         n_doc, n_dic,  n_don, n_fed, n_fep, &
                          dEdd_algae, &
                          zfswin(k),        react(k,:),     & 
-                         biomat_brine(k,:), nbtrcr,        &
+                         biomat_brine(k,:), &
                          grow_alg(k,:),    n_algae,        &
                          iTin(k),                          &
                          upNOn(k,:),       upNHn(k,:),     &
@@ -1435,10 +1401,10 @@
 !          Nicole Jeffery, LANL
 
       subroutine algal_dyn (dt,           &
-                            n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+                            n_doc, n_dic,  n_don, n_fed, n_fep, &
                             dEdd_algae,   &
                             fswthru,      reactb,       & 
-                            ltrcrn,       nbtrcr,       &
+                            ltrcrn,       &
                             grow_alg,     n_algae,      &
                             T_bot,                      &
                             upNOn,        upNHn,        &
@@ -1446,8 +1412,7 @@
                             Nerror,       conserve_N)      
 
       integer (kind=int_kind), intent(in) :: &
-         nbtrcr,  & ! number of layer tracers,
-         n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+         n_doc, n_dic,  n_don, n_fed, n_fep, &
          n_algae    ! number of autotrophic types
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1488,24 +1453,24 @@
       !                        nt_bgc_Sil -> silicate, nt_bgc_Fe -> dissolved iron   
       ! --------------------------------------------------------------------------------------
 
-      real (kind=dbl_kind),  parameter, dimension(max_algae) :: &
-         alpha2max_high  = (/ 0.25_dbl_kind, 0.25_dbl_kind, 0.25_dbl_kind/) ! light limitation (1/(W/m^2))
+!     real (kind=dbl_kind),  parameter, dimension(max_algae) :: &
+!        alpha2max_high  = (/ 0.25_dbl_kind, 0.25_dbl_kind, 0.25_dbl_kind/) ! light limitation (1/(W/m^2))
 
       integer (kind=int_kind) :: k, n
 
       real (kind=dbl_kind), dimension(n_algae) :: &
          Nin        , &     ! algal nitrogen concentration on volume (mmol/m^3) 
-         Cin        , &     ! algal carbon concentration on volume (mmol/m^3)
+!        Cin        , &     ! algal carbon concentration on volume (mmol/m^3)
          chlin              ! algal chlorophyll concentration on volume (mg/m^3)
 
       real (kind=dbl_kind), dimension(n_doc) :: &
-         Docin              ! dissolved organic carbon concentration on volume (mmolC/m^3) 
+         DOCin              ! dissolved organic carbon concentration on volume (mmolC/m^3) 
 
-      real (kind=dbl_kind), dimension(n_dic) :: &
-         Dicin              ! dissolved inorganic carbon concentration on volume (mmolC/m^3) 
+!     real (kind=dbl_kind), dimension(n_dic) :: &
+!        DICin              ! dissolved inorganic carbon concentration on volume (mmolC/m^3) 
 
       real (kind=dbl_kind), dimension(n_don) :: &  !proteins
-         Donin              ! dissolved organic nitrogen concentration on volume (mmolN/m^3) 
+         DONin              ! dissolved organic nitrogen concentration on volume (mmolN/m^3) 
 
       real (kind=dbl_kind), dimension(n_fed) :: &  !iron
          Fedin              ! dissolved iron concentration on volume (umol/m^3) 
@@ -1517,10 +1482,10 @@
          Nitin      , &     ! nitrate concentration on volume (mmol/m^3) 
          Amin       , &     ! ammonia/um concentration on volume (mmol/m^3) 
          Silin      , &     ! silicon concentration on volume (mmol/m^3) 
-         DMSPpin    , &     ! DMSPp concentration on volume (mmol/m^3)
+!        DMSPpin    , &     ! DMSPp concentration on volume (mmol/m^3)
          DMSPdin    , &     ! DMSPd concentration on volume (mmol/m^3)
          DMSin      , &     ! DMS concentration on volume (mmol/m^3)
-         PONin      , &     ! PON concentration on volume (mmol/m^3)
+!        PONin      , &     ! PON concentration on volume (mmol/m^3)
          op_dep     , &     ! bottom layer attenuation exponent (optical depth)
          Iavg_loc           ! bottom layer attenuated Fswthru (W/m^2)
 
@@ -1535,7 +1500,7 @@
          fr_Am    , &  ! fraction of local ecological growth as ammonia
          growmax_N, &  ! maximum growth rate in N currency (mmol/m^3/s)
          grow_N   , &  ! true growth rate in N currency (mmol/m^3/s)
-         potU_Nit , &  ! potential nitrate uptake (mmol/m^3/s)
+!        potU_Nit , &  ! potential nitrate uptake (mmol/m^3/s)
          potU_Am  , &  ! potential ammonium uptake (mmol/m^3/s)
          U_Nit    , &  ! actual nitrate uptake (mmol/m^3/s)
          U_Am     , &  ! actual ammonium uptake (mmol/m^3/s)
@@ -1559,12 +1524,12 @@
          graze_C      , &  ! total algae grazed (mmol C/m^3)
          exude_C      , &  ! total carbon exuded by algae (mmol C/m^3)
          resp_N       , &  ! total N in respiration (mmol N/m^3)
-         growth_N     , &  ! total algal growth (mmol N/m^3)
-         fr_graze_p   , &  ! fraction of N grazed that becomes protein
-                           !  (rest is assimilated) < (1-fr_graze_a)
-                           !  and fr_graze_a*fr_graze_e becomes ammonia
-         fr_mort_p         ! fraction of N mortality that becomes protein 
-                           ! < (1-fr_mort2min)
+         growth_N          ! total algal growth (mmol N/m^3)
+!        fr_graze_p   , &  ! fraction of N grazed that becomes protein
+!                          !  (rest is assimilated) < (1-fr_graze_a)
+!                          !  and fr_graze_a*fr_graze_e becomes ammonia
+!        fr_mort_p         ! fraction of N mortality that becomes protein 
+!                          ! < (1-fr_mort2min)
 
       real (kind=dbl_kind), dimension(n_algae) :: &
          resp     , &  ! respiration (mmol/m^3/s)
@@ -1598,12 +1563,12 @@
 
       real (kind=dbl_kind) :: &
          dN        , &  ! change in N (mmol/m^3)
-         N_s_p     , &  ! algal nitrogen photosynthesis (mmol/m^3)
-         N_r_g     , &  ! algal nitrogen losses to grazing (mmol/m^3)
-         N_r_r     , &  ! algal nitrogen losses to respiration (mmol/m^3)
-         N_r_mo    , &  ! algal nitrogen losses to mortality (mmol/m^3)
+!        N_s_p     , &  ! algal nitrogen photosynthesis (mmol/m^3)
+!        N_r_g     , &  ! algal nitrogen losses to grazing (mmol/m^3)
+!        N_r_r     , &  ! algal nitrogen losses to respiration (mmol/m^3)
+!        N_r_mo    , &  ! algal nitrogen losses to mortality (mmol/m^3)
          Nit_s_n   , &  ! nitrate from nitrification (mmol/m^3)
-         Nit_s_r   , &  ! nitrate from respiration (mmol/m^3)
+!        Nit_s_r   , &  ! nitrate from respiration (mmol/m^3)
          Nit_r_p   , &  ! nitrate uptake by algae (mmol/m^3)
          Nit_s     , &  ! net nitrate sources (mmol/m^3)
          Nit_r     , &  ! net nitrate removal (mmol/m^3)
@@ -1611,15 +1576,14 @@
          Am_s_r    , &  ! ammonium source from respiration (mmol/m^3)
          Am_s_mo   , &  ! ammonium source from mort/remin (mmol/m^3) 
          Am_r_p    , &  ! ammonium uptake by algae (mmol/m^3)
-         Am_r_n    , &  ! ammonium removal to nitrification (mmol/m^3)
          Am_s      , &  ! net ammonium sources (mmol/m^3)
          Am_r      , &  ! net ammonium removal (mmol/m^3)
          Sil_r_p   , &  ! silicon uptake by algae (mmol/m^3)
          Sil_r     , &  ! net silicon removal (mmol/m^3)
-         Fe_r_p    , &  ! iron uptake by algae  (nM)
-         DOC_r_c   , &  ! net doc removal from bacterial consumption (mmol/m^3)
-         doc_s_m   , &  ! protein source due to algal mortality (mmol/m^3)
-         doc_s_g        ! protein source due to grazing (mmol/m^3)         
+         Fe_r_p         ! iron uptake by algae  (nM)
+!        DOC_r_c   , &  ! net doc removal from bacterial consumption (mmol/m^3)
+!        doc_s_m   , &  ! protein source due to algal mortality (mmol/m^3)
+!        doc_s_g        ! protein source due to grazing (mmol/m^3)         
 
       real (kind=dbl_kind) :: &
          DMSPd_s_r , &  ! skl dissolved DMSP from respiration (mmol/m^3)
@@ -1634,7 +1598,7 @@
          Fed_tot_r , &  ! total dissolved iron losses (nM)
          Fed_tot_s , &  ! total dissolved iron sources (nM)
          Fep_tot   , &  ! total particulate iron from all sources (nM)
-         Fep_tot_r , &  ! total particulate iron losses (nM)
+!        Fep_tot_r , &  ! total particulate iron losses (nM)
          Fep_tot_s , &  ! total particulate iron sources (nM)
          Zoo_s_a   , &  ! N Losses due to zooplankton assimilation (mmol/m^3)
          Zoo_s_s   , &  ! N Losses due to grazing spillage (mmol/m^3)
@@ -1649,20 +1613,19 @@
 
        conserve_N = .true.
        Nin(:)     = c0
-       Cin(:)     = c0
+!      Cin(:)     = c0
        chlin(:)   = c0
        DOCin(:)   = c0
-       DICin(:)   = c0
+!      DICin(:)   = c0
        DONin(:)   = c0
        Fedin(:)   = c0
        Fepin(:)   = c0
        Nitin      = c0
        Amin       = c0
        Silin      = c0
-       DMSPpin    = c0
+!      DMSPpin    = c0
        DMSPdin    = c0
        DMSin      = c0
-       PONin      = c0 
        U_Am_tot   = c0
        U_Nit_tot  = c0
        U_Sil_tot  = c0
@@ -1673,7 +1636,7 @@
        U_Fe_f(:)  = c0
        DOC_s(:)   = c0
        DOC_r(:)   = c0
-       DOC_r_c    = c0
+!      DOC_r_c    = c0
        nitrif     = c0 
        mort_N     = c0
        mort_C     = c0
@@ -1697,7 +1660,7 @@
        Fed_tot_s  = c0
        rFed(:)    = c0
        Fep_tot    = c0
-       Fep_tot_r  = c0
+!      Fep_tot_r  = c0
        Fep_tot_s  = c0
        rFep(:)    = c0
      
@@ -1715,9 +1678,9 @@
          do k = 1, n_doc
              DOCin(k)= ltrcrn(nlt_bgc_DOC(k))
          enddo
-         do k = 1, n_dic
-             DICin(k)= ltrcrn(nlt_bgc_DIC(k))
-         enddo
+!        do k = 1, n_dic
+!            DICin(k)= ltrcrn(nlt_bgc_DIC(k))
+!        enddo
        endif
        if (tr_bgc_Am)  Amin     = ltrcrn(nlt_bgc_Am)
        if (tr_bgc_Sil) Silin    = ltrcrn(nlt_bgc_Sil)
@@ -1726,7 +1689,10 @@
              DMSPdin  = ltrcrn(nlt_bgc_DMSPd)
              DMSin    = ltrcrn(nlt_bgc_DMS) 
        endif
-       if (tr_bgc_PON)       PONin    = ltrcrn(nlt_bgc_PON) 
+!      if (tr_bgc_PON) then
+!         PONin    = c0 
+!         PONin    = ltrcrn(nlt_bgc_PON) 
+!      endif
        if (tr_bgc_DON) then
          do k = 1, n_don
              DONin(k) = ltrcrn(nlt_bgc_DON(k))
@@ -1810,7 +1776,7 @@
 
           growmax_N(k) = mu_max(k) / secday * exp(grow_Tdep(k) * dTemp)* Nin(k) *fsal
           grow_N(k)    = min(L_lim(k), N_lim(k), Sil_lim(k), Fe_lim(k)) * growmax_N(k)
-          potU_Nit(k)  = Nit_lim(k)* growmax_N(k)
+!         potU_Nit(k)  = Nit_lim(k)* growmax_N(k)
           potU_Am(k)   = Am_lim(k)* growmax_N(k) 
           U_Am(k)      = min(grow_N(k), potU_Am(k))
           U_Nit(k)     = grow_N(k) - U_Am(k)
@@ -1883,12 +1849,12 @@
           upNOn(k) = U_Nit(k)
           upNHn(k) = U_Am(k)
 
-          N_s_p  = grow_N(k) * dt  
-          N_r_g  = graze(k)  * dt 
-          N_r_r  = resp(k)   * dt
-          N_r_mo = mort(k)   * dt
-          N_s(k)    = (c1- fr_resp - fr_graze(k)) * grow_N(k) *dt ! N_s_p
-          N_r(k)    = mort(k) * dt                                ! N_r_g + N_r_mo + N_r_r
+!         N_s_p  = grow_N(k) * dt  
+!         N_r_g  = graze(k)  * dt 
+!         N_r_r  = resp(k)   * dt
+!         N_r_mo = mort(k)   * dt
+          N_s(k)    = (c1- fr_resp - fr_graze(k)) * grow_N(k) *dt   !N_s_p
+          N_r(k)    = mort(k) * dt                                  !N_r_g  + N_r_mo + N_r_r 
 
           graze_N   = graze_N + graze(k)
           graze_C   = graze_C + R_C2N(k)*graze(k)
@@ -2136,15 +2102,12 @@
 !
 ! authors     Nicole Jeffery, LANL
 
-      subroutine thin_ice_flux (hin, hin_old, phin, Cin, flux_o_tot, &
-                                source, i_grid,dt, nblyr, &
+      subroutine thin_ice_flux (hin, hin_old, Cin, flux_o_tot, &
+                                source, dt, nblyr, &
                                 ocean_bio) 
 
       integer (kind=int_kind), intent(in) :: &
          nblyr    ! number of bio layers
-
-      real (kind=dbl_kind), dimension(nblyr+1), intent(in) :: &
-         phin
 
       real (kind=dbl_kind), dimension(nblyr+1), intent(inout) :: &
          Cin               ! initial concentration*hin_old*phin
@@ -2160,9 +2123,6 @@
          flux_o_tot        ! tracer flux, gravity+molecular drainage flux ,
                            ! and boundary flux to ocean (mmol/m^2/s)  
                            ! positive into the ocean  
-
-      real (kind=dbl_kind), dimension (nblyr + 1), intent(in) :: &
-         i_grid             ! biology nondimensional grid interface points 
 
      ! local variables
 
@@ -2211,7 +2171,7 @@
 !
       subroutine compute_FCT_matrix  (C_in, sbdiag, dt,  nblyr,     &
                                       diag, spdiag, rhs, bgrid,     &
-                                      i_grid, darcyV, dhtop, dhbot, &
+                                      darcyV, dhtop, dhbot, &
                                       iphin_N, iDin, hbri_old,      &
                                       atm_add, bphin_N,             &
                                       C_top, C_bot, Qbot, Qtop,     &
@@ -2237,9 +2197,6 @@
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
          bphin_N, &      ! Porosity with min condition on igrid
          bgrid 
-
-      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         i_grid           ! biology nondimensional grid layer points 
 
       real (kind=dbl_kind), dimension (nblyr+1), &
          intent(out) :: &
@@ -2268,7 +2225,7 @@
       ! local variables
 
       real (kind=dbl_kind) :: &
-         vel, vel2, dphi_dx, vel_tot, zspace, dphi
+         vel, vel2, dphi_dx, zspace
 
       integer (kind=int_kind) :: &
          k                ! vertical index

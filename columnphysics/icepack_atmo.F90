@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_atmo.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Atmospheric boundary interface (stability based flux calculations)
@@ -39,10 +38,10 @@
 !=======================================================================
 
 ! Compute coefficients for atm/ice fluxes, stress, and reference
-! temperature and humidity. NOTE: \\
-! (1) All fluxes are positive downward,  \\
-! (2) Here, tstar = (WT)/U*, and qstar = (WQ)/U*,  \\
-! (3a) wind speeds should all be above a minimum speed (eg. 1.0 m/s). \\
+! temperature and humidity. NOTE:
+! (1) All fluxes are positive downward, 
+! (2) Here, tstar = (WT)/U*, and qstar = (WQ)/U*,
+! (3a) wind speeds should all be above a minimum speed (eg. 1.0 m/s).
 !
 ! ASSUME:
 !  The saturation humidity of air at T(K): qsat(T)  (kg/m**3)
@@ -499,7 +498,7 @@
                                       alvl,     vlvl,     &
                                       aice,     vice,     &
                                       vsno,     aicen,    &
-                                      vicen,    vsnon,    &
+                                      vicen, &
                                       Cdn_ocn,  Cdn_ocn_skin,    &
                                       Cdn_ocn_floe, Cdn_ocn_keel,&
                                       Cdn_atm,  Cdn_atm_skin,    &
@@ -529,8 +528,7 @@
          
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen    , & ! concentration of ice
-         vicen    , & ! volume per unit area of ice (m)
-         vsnon        ! volume per unit area of snow (m)   
+         vicen        ! volume per unit area of ice (m)
      
       real (kind=dbl_kind), &
          intent(out) :: &
@@ -556,14 +554,12 @@
                                       ! [,] = range of values that can be tested 
          csw       = 0.002_dbl_kind ,&! ice-ocn drag coefficient [0.0005,0.005]
          csa       = 0.0005_dbl_kind,&! ice-air drag coefficient [0.0001,0.001] 
-         dragia    = 0.0012_dbl_kind,&! ice-air drag coefficient [0.0005,0.002] 
          mrdg      = c20            ,&! screening effect see Lu2011 [5,50]
          mrdgo     = c10            ,&! screening effect see Lu2011 [5,50]
          beta      = p5             ,&! power exponent appearing in astar and 
                                       ! L=Lmin(A*/(A*-A))**beta [0,1]
          Lmin      = c8             ,&! min length of floe (m) [5,100]
          Lmax      = 300._dbl_kind  ,&! max length of floe (m) [30,3000]
-         Lmoy      = 300._dbl_kind  ,&! average length of floe (m) [30,1000]
          cfa       = p2             ,&! Eq. 12 ratio of local from drag over 
                                       ! geometrical parameter [0,1] 
          cfw       = p2             ,&! Eq. 15 ratio of local from drag over 
@@ -577,7 +573,6 @@
          lpmax     = 24.63_dbl_kind ,&! max pond length (m) see Eq. 17 [10,100]
          tanar     = p4             ,&! 0.25 sail slope = 14 deg [0.4,1]
          tanak     = p4             ,&! 0.58 keel slope = 30 deg [0.4,1]
-         invsqrte  = 0.6065_dbl_kind,&!
          phir      = 0.8_dbl_kind   ,&! porosity of ridges [0.4,1]
          phik      = 0.8_dbl_kind   ,&! porosity of keels  [0.4,1]
          hkoverhr  = c4             ,&! hkeel/hridge ratio [4,8]
@@ -893,8 +888,8 @@
       if (present(uvel)) then
          worku = uvel
       endif
-      if (present(uvel)) then
-         worku = uvel
+      if (present(vvel)) then
+         workv = vvel
       endif
 
       Cdn_atm_ratio_n = c1

@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_meltpond_lvl.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Level-ice meltpond parameterization
@@ -249,7 +248,7 @@
                pressure_head = gravit * rhow * max(deltah, c0)
                Tmlt(:) = -sicen(:) * depressT
                call brine_permeability(nilyr, qicen, &
-                    vicen, sicen, Tmlt, perm)
+                    sicen, Tmlt, perm)
                if (icepack_warnings_aborted(subname)) return
                drain = perm*pressure_head*dt / (viscosity_dyn*hi) * dpscale
                deltah = min(drain, hpondn)
@@ -279,7 +278,7 @@
 
 ! determine the liquid fraction of brine in the ice and the permeability
 
-      subroutine brine_permeability(nilyr, qicen, vicen, salin, Tmlt, perm)
+      subroutine brine_permeability(nilyr, qicen, salin, Tmlt, perm)
 
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
@@ -290,9 +289,6 @@
          qicen, &  ! enthalpy for each ice layer (J m-3)
          salin, &  ! salinity (ppt)   
          Tmlt      ! melting temperature (C)
-    
-      real (kind=dbl_kind), intent(in) :: &
-         vicen     ! ice volume (m)
     
       real (kind=dbl_kind), intent(out) :: &
          perm      ! permeability (m^2)
