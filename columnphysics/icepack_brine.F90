@@ -545,11 +545,12 @@
                dhrunoff  = -dhS_top*aice0
                hbrocn    = max(c0,hbrocn - dhrunoff)
                exp_arg = darcy_coeff/bphi_min*dt
-               if (exp_arg > exp_argmax) then
-                  hbrocn_new = c0
-               else
+! tcx tcraig avoids underflows but is not bit-for-bit
+!               if (exp_arg > exp_argmax) then
+!                  hbrocn_new = c0
+!               else
                   hbrocn_new = hbrocn*exp(-exp_arg)
-               endif
+!               endif
                hbr = max(hbrmin, h_ocn + hbrocn_new)
                hbrocn_new = hbr-h_ocn
                darcy_V = -SIGN((hbrocn-hbrocn_new)/dt*bphi_min, hbrocn)
