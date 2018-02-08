@@ -102,7 +102,7 @@ Initialization and Forcing
 
 Icepack’s parameters and variables are initialized in several
 steps. Many constants and physical parameters are set in
-**icepack\_constants.F90**. In the current driver implementation,
+**icepack\_parameters.F90**. In the current driver implementation,
 a namelist file is read to setup the model.
 Namelist values are given default
 values in the code, which may then be changed when the input file

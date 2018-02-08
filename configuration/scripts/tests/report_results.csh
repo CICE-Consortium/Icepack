@@ -148,8 +148,8 @@ if ( ${case} =~ *_${compiler}_* ) then
   if (${fcomp}  == "") set rcomp  = ${gray}
   if (${ftime}  == "") set rtime  = ${gray}
 
-  set fcomp  = `grep " ${case} " results.log | grep " bfbcomp" | grep "baseline-does-not-exist" | wc -l `
-  if ($fcomp > 1) set rcomp = ${gray}
+  set fregrx  = `grep " ${case} " results.log | grep " compare" | grep "baseline-does-not-exist" | wc -l `
+  if ($fregrx > 0) set rregr = ${gray}
 
   if (${rbuild} == ${red}) set tchkpass = 0
   if (${rrun}   == ${red}) set tchkpass = 0

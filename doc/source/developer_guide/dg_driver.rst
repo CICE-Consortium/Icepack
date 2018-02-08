@@ -29,7 +29,7 @@ The icepack driver consists of the following files
 |        **icedrv_init.F90**        general initialization routines
 |        **icedrv_init_column.F90** initialization routines specific to the column physics
 |        **icedrv_restart.F90**     driver for reading/writing restart files
-|        **icedrv_restart_column.F90**  restart routines specific to the column physics
+|        **icedrv_restart_bgc.F90**  restart routines specific to the column physics
 |        **icedrv_restart_shared.F90**  code shared by all restart options
 |        **icedrv_state.F90**       essential arrays to describe the state of the ice
 |        **icedrv_step.F90**        routines for time stepping the major code components
@@ -43,4 +43,4 @@ to run 4 different gridcells on one processor with the same forcing used for all
 There is no MPI and no threading built into the icepack driver.  There is limited IO capabilities,
 no history files, and no netcdf restart files.  The model generally runs very quickly.
 
-Forcing data and details on these data are available in :ref:`testforce`.
+Forcing data and details on these data are available in :ref:`force`.

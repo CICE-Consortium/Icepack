@@ -4,7 +4,7 @@
 !
 ! author: Elizabeth C. Hunke, LANL
 !
-      module icedrv_restart_column
+      module icedrv_restart_bgc
 
       use icedrv_kinds
       use icedrv_constants
@@ -20,7 +20,8 @@
       implicit none
 
       private
-      public ::  write_restart_bgc,       read_restart_bgc
+      public ::  write_restart_bgc, &
+                 read_restart_bgc
 
 !=======================================================================
 
@@ -667,6 +668,6 @@
 
 !=======================================================================
 
-      end module icedrv_restart_column
+      end module icedrv_restart_bgc
 
 !=======================================================================

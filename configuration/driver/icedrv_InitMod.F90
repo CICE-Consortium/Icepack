@@ -135,7 +135,7 @@
       use icedrv_init_column, only: init_hbrine, init_bgc
       use icedrv_restart, only: restartfile
       use icedrv_restart_shared, only: restart
-      use icedrv_restart_column, only: read_restart_bgc
+      use icedrv_restart_bgc, only: read_restart_bgc
       use icedrv_state ! almost everything
 
       integer(kind=int_kind) :: &
