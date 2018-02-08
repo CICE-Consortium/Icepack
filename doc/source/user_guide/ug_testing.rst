@@ -470,18 +470,34 @@ The reporting can also be automated by adding ``--report``
 With ``--report``, the suite will create all the tests, build and submit them,
 wait for all runs to be complete, and run the results and report_results scripts.
 
+.. _testplotting:
 
 Test Plotting
 ----------------
 
-Icepack comes with some tools that support plotting of output.
-This is done on a test by test basis.  Several fields are hardwired
-into the scripts at the present time.
-To plot a timeseries of "total ice extent", "total ice area", and "total ice volume"
-after completing a test run or a test suite
-::
+The Icepack scripts include a script (``timeseries.csh``) that will generate a timeseries figure of 
+the area fraction, average ice thickness (m), and average snow depth (m) from the diagnostic output file.  
+When running a test suite, the ``timeseries.csh`` script is automatically copied to the suite directory.  
+If the ``timeseries.csh`` script is to be used on a test / case that is not a part of a test suite, 
+users will need to run the ``timeseries.csh`` script from the tests directory 
+(``./configuration/scripts/tests/timeseries.csh``), or copy it to a local directory and run it 
+locally (``cp configuration/scripts/tests/timeseries.csh .`` followed by 
+``./timeseries.csh /path/to/ice_diag.full_ITD``. The plotting script can be run
+on any of the output files - icefree, slab, full_ITD, land).  To generate the figure, 
+run the ``timeseries.csh`` script and pass the full path to the ice_diag file as an argument.  
 
-  cd test_case_directory
-  ./timeseries.csh <directory>
-  ls *.png
+For example:
 
+Run the test suite. ::
+
+$ ./icepack.setup -m conrad -e intel --suite base_suite -acct <account_number> --testid t00
+
+Wait for suite to finish then go to the directory. ::
+
+$ cd base_suite.t00
+
+Run the timeseries script on the desired case. ::
+
+$ ./timeseries.csh /p/work1/turner/ICEPACK_RUNS/conrad_intel_smoke_col_1x1_diag1_run1year.t00/ice_diag.full_ITD
+    
+The output figures are placed in the directory where the ice_diag file is located.
