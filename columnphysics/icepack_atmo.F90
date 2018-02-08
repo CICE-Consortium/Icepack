@@ -902,11 +902,7 @@
                                             Tsf,      potT,     &
                                             Qa,                 &
                                             delt,     delq,     &
-<<<<<<< HEAD
-                                            lhcoef,   shcoef)
-=======
                                             lhcoef,   shcoef    )
->>>>>>> 2ad4ace0b3f410c42f0ab7cfe75ca6cf830fe783
                   if (icepack_warnings_aborted(subname)) return
                else ! default
                   call atmo_boundary_layer (sfctype,                 &

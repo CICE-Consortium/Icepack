@@ -10,7 +10,7 @@
 
       use icepack_kinds
 
-      use icepack_parameters, only: p05, p5, c0, c1, c2, c6
+      use icepack_parameters, only: p05, p5, c0, c1, c2, c6, c10
       use icepack_parameters, only: pi, secday, puny
       use icepack_parameters, only: hs_ssl, sk_l
 
