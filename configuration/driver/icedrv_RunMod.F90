@@ -88,14 +88,12 @@
       subroutine ice_step
 
       use icedrv_calendar, only: dt, dt_dyn, ndtd, diagfreq, write_restart, istep
-      use icedrv_diagnostics, only: runtime_diags, init_mass_diags, icedrv_diagnostics_debug
+      use icedrv_diagnostics, only: runtime_diags, init_mass_diags
       use icedrv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
-      use icedrv_domain_size, only: nslyr
-      use icedrv_flux, only: scale_factor, init_history_therm, init_history_bgc, &
+      use icedrv_flux, only: init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
       use icedrv_restart, only: dumpfile, final_restart
       use icedrv_restart_column, only: write_restart_bgc
-      use icedrv_state, only: trcrn
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_radiation, &
           biogeochemistry
@@ -136,7 +134,7 @@
       ! Scale radiation fields
       !-----------------------------------------------------------------
       
-      if (calc_Tsfc) call prep_radiation (dt)
+      if (calc_Tsfc) call prep_radiation ()
 
 !      call icedrv_diagnostics_debug ('post prep_radiation')
 
@@ -193,9 +191,9 @@
       
       if (mod(istep,diagfreq) == 0) then
          call runtime_diags(dt)       ! log file
-         if (solve_zsal)              call zsal_diags(dt)
-         if (skl_bgc .or. z_tracers)  call bgc_diags (dt)
-         if (tr_brine)                call hbrine_diags(dt)
+         if (solve_zsal)              call zsal_diags
+         if (skl_bgc .or. z_tracers)  call bgc_diags
+         if (tr_brine)                call hbrine_diags
       endif
       
       if (write_restart == 1) then
@@ -220,16 +218,15 @@
       use icedrv_calendar, only: dt
       use icedrv_domain_size, only: ncat, nx
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &
-          albpnd, apeff_ai, coszen, fpond, fresh, l_mpond_fresh, &
+          albpnd, apeff_ai, fpond, fresh, l_mpond_fresh, &
           alvdf_ai, alidf_ai, alvdr_ai, alidr_ai, fhocn_ai, &
           fresh_ai, fsalt_ai, fsalt, &
           fswthru_ai, fhocn, fswthru, scale_factor, snowfrac, &
-          swvdr, swidr, swvdf, swidf, Tf, Tair, Qa, strairxT, strairyt, &
-          fsens, flat, fswabs, flwout, evap, Tref, Qref, &
-          fsurfn_f, flatn_f, frzmlt_init, frzmlt, &
-          faero_ocn, fzsal_ai, fzsal_g_ai, flux_bio, flux_bio_ai
+          swvdr, swidr, swvdf, swidf, &
+          frzmlt_init, frzmlt, &
+          fzsal_ai, fzsal_g_ai, flux_bio, flux_bio_ai
       use icedrv_forcing, only: oceanmixed_ice
-      use icedrv_state, only: aicen, aice, aice_init
+      use icedrv_state, only: aicen
       use icedrv_step, only: ocean_mixed_layer
 
       ! local variables

@@ -10,7 +10,7 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: ncat, nilyr, nx
-      use icedrv_constants, only: c0, c1, c5, c10, c20, c180, p001
+      use icedrv_constants, only: c0, c1, c5, c10, c20, c180
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_max_aero, icepack_max_nbtrcr, icepack_max_fe
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don
@@ -62,7 +62,6 @@
          dardg1dt, & ! rate of area loss by ridging ice (1/s)
          dardg2dt, & ! rate of area gain by new ridges (1/s)
          dvirdgdt, & ! rate of ice volume ridged (m/s)
-         closing , & ! rate of closing due to divergence/shear (1/s)
          opening     ! rate of opening due to divergence/shear (1/s)
 
       real (kind=dbl_kind), & 
@@ -699,6 +698,7 @@
       dardg1dt(:) = c0
       dardg2dt(:) = c0
       dvirdgdt(:) = c0
+      opening (:) = c0
       daidtd  (:) = aice(:) ! temporary initial area
       dvidtd  (:) = vice(:) ! temporary initial volume
       if (tr_iage) &

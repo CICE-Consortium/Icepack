@@ -6,7 +6,7 @@
 
       module icedrv_step
 
-      use icedrv_constants, only: c0, nu_diag, c1000
+      use icedrv_constants, only: c0, nu_diag
       use icedrv_kinds
 !      use icedrv_calendar, only: istep1
       use icedrv_system, only: icedrv_system_abort
@@ -35,11 +35,11 @@
 !
 ! authors: Elizabeth Hunke, LANL
 
-      subroutine prep_radiation (dt)
+      subroutine prep_radiation ()
 
       use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
       use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
-      use icedrv_flux, only: alvdr_ai, alvdf_ai, alidr_ai, alidf_ai, fswfac
+      use icedrv_flux, only: alvdr_ai, alvdf_ai, alidr_ai, alidf_ai
       use icedrv_flux, only: alvdr_init, alvdf_init, alidr_init, alidf_init
       use icedrv_arrays_column, only: fswsfcn, fswintn, fswthrun
       use icedrv_arrays_column, only: fswpenln, Sswabsn, Iswabsn
@@ -48,15 +48,10 @@
       ! column package includes
       use icepack_intfc, only: icepack_prep_radiation
 
-      real (kind=dbl_kind), intent(in) :: &
-         dt      ! time step
-
       ! local variables
 
       integer (kind=int_kind) :: &
          i               ! horizontal indices
-
-      real (kind=dbl_kind) :: netsw 
 
       character(len=*), parameter :: subname='(prep_radiation)'
 
@@ -113,10 +108,10 @@
       use icedrv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn
       use icedrv_flux, only: fsensn, fsurfn, fcondtopn
       use icedrv_flux, only: flw, fsnow, fpond, sss, mlt_onset, frz_onset
-      use icedrv_flux, only: frain, Tair, coszen, strairxT, strairyT, fsurf
+      use icedrv_flux, only: frain, Tair, strairxT, strairyT, fsurf
       use icedrv_flux, only: fcondtop, fsens, fresh, fsalt, fhocn
       use icedrv_flux, only: flat, fswabs, flwout, evap, Tref, Qref, Uref
-      use icedrv_flux, only: fswthru, meltt, melts, meltb, meltl, congel, snoice, frazil
+      use icedrv_flux, only: fswthru, meltt, melts, meltb, congel, snoice
       use icedrv_flux, only: flatn_f, fsensn_f, fsurfn_f, fcondtopn_f
       use icedrv_flux, only: dsnown, faero_atm, faero_ocn
       use icedrv_init, only: lmask_n, lmask_s
@@ -277,7 +272,7 @@
             fswthrun    (i,:), fswabs      (i), &
             flwout      (i),                           &
             Sswabsn   (i,:,:), Iswabsn   (i,:,:), &
-            flw         (i), coszen      (i), & 
+            flw         (i), &
             fsens       (i), fsensn      (i,:), &
             flat        (i), flatn       (i,:), &
             evap        (i),                           &
@@ -290,11 +285,10 @@
             dhsn        (i,:), ffracn      (i,:), &
             meltt       (i), melttn      (i,:), &
             meltb       (i), meltbn      (i,:), &
-            meltl       (i),                           &
             melts       (i), meltsn      (i,:), &
             congel      (i), congeln     (i,:), &
             snoice      (i), snoicen     (i,:), &
-            dsnown      (i,:), frazil      (i), &
+            dsnown      (i,:), &
             lmask_n     (i), lmask_s     (i), &
             mlt_onset   (i), frz_onset   (i), &
             yday,  prescribed_ice)
@@ -521,13 +515,12 @@
       use icedrv_arrays_column, only: hin_max, fzsal, first_ice
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
       use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
-      use icedrv_flux, only: dvirdgdt, opening, closing, fpond, fresh, fhocn
+      use icedrv_flux, only: dvirdgdt, opening, fpond, fresh, fhocn
       use icedrv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt
       use icedrv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn
       use icedrv_init, only: tmask
-      use icedrv_forcing, only: ocn_data_type
       use icedrv_state, only: trcrn, vsnon, aicen, vicen
-      use icedrv_state, only: aice, trcr, vice, vsno, aice0, trcr_depend, n_trcr_strata
+      use icedrv_state, only: aice, aice0, trcr_depend, n_trcr_strata
       use icedrv_state, only: trcr_base, nt_strata
 
       ! column package includes
@@ -560,48 +553,6 @@
       !-----------------------------------------------------------------
       ! Ridging
       !-----------------------------------------------------------------
-
-         if (trim(ocn_data_type) == "SHEBA") then
-
-         do i = 1, nx
-
-!echmod: this changes the answers, continue using tmask for now
-!      call aggregate_area (ncat, aicen(:), atmp, atmp0)
-!      if (atmp > c0) then
-
-         if (tmask(i)) then
-
-            call icepack_step_ridge (dt,            ndtd,                  &
-                         nilyr,                 nslyr,                 &
-                         nblyr,                                        &
-                         ncat,                  hin_max  (:),          &
-                         rdg_conv (i), rdg_shear(i), &
-                         aicen    (i,:),                        &
-                         trcrn    (i,1:ntrcr,:),                &
-                         vicen    (i,:), vsnon    (i,:), &
-                         aice0    (i), trcr_depend(1:ntrcr),  &
-                         trcr_base(1:ntrcr,:),  n_trcr_strata(1:ntrcr),&
-                         nt_strata(1:ntrcr,:),                         &
-                         dardg1dt (i), dardg2dt (i), &
-                         dvirdgdt (i), opening  (i), &
-                         fpond    (i),                        &
-                         fresh    (i), fhocn    (i), &
-                         n_aero,                                       &
-                         faero_ocn(i,:),                        &
-                         aparticn (i,:), krdgn    (i,:), &
-                         aredistn (i,:), vredistn (i,:), &
-                         dardg1ndt(i,:), dardg2ndt(i,:), &
-                         dvirdgndt(i,:),                        &
-                         araftn   (i,:), vraftn   (i,:), &
-                         aice     (i), fsalt    (i), &
-                         first_ice(i,:), fzsal    (i), &
-                         flux_bio (i,1:nbtrcr), closing(i) )
-
-         endif ! tmask
-
-         enddo ! i
-
-         else
 
          do i = 1, nx
 
@@ -640,8 +591,6 @@
          endif ! tmask
 
          enddo ! i
-
-         endif
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__, line=__LINE__)
@@ -679,8 +628,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         i, n,   k,    & ! horizontal indices
-         ipoint             ! index for print diagnostic
+         i, n,   k ! horizontal indices
 
       integer (kind=int_kind) :: &
          max_aero, nt_Tsfc, nt_alvl, &
@@ -851,16 +799,8 @@
 
       ! local variables
 
-      real (kind=dbl_kind) :: &
-         TsfK , & ! surface temperature (K)
-         swabs    ! surface absorbed shortwave heat flux (W/m^2)
-
-      real (kind=dbl_kind), parameter :: &
-         frzmlt_max = c1000   ! max magnitude of frzmlt (W/m^2)
-
       integer (kind=int_kind) :: &
-         i           , & ! horizontal indices
-         ij                 ! combined ij index
+         i           ! horizontal indices
 
       real (kind=dbl_kind) :: &
          albocn
@@ -970,7 +910,7 @@
       subroutine biogeochemistry (dt)
 
       use icedrv_arrays_column, only: upNO, upNH, iDi, iki, zfswin
-      use icedrv_arrays_column, only: trcrn_sw, zsal_tot, darcy_V, grow_net
+      use icedrv_arrays_column, only: zsal_tot, darcy_V, grow_net
       use icedrv_arrays_column, only: PP_net, hbri,dhbr_bot, dhbr_top, Zoo
       use icedrv_arrays_column, only: fbio_snoice, fbio_atmice, ocean_bio
       use icedrv_arrays_column, only: first_ice, fswpenln, bphi, bTiz, ice_bio_net
@@ -981,7 +921,7 @@
       use icedrv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat
       use icedrv_domain_size, only: n_doc, n_dic,  n_don, n_fed, n_fep, nx
       use icedrv_flux, only: meltbn, melttn, congeln, snoicen
-      use icedrv_flux, only: sst, sss, fsnow, meltsn, hmix, salinz
+      use icedrv_flux, only: sst, sss, fsnow, meltsn
       use icedrv_flux, only: hin_old, flux_bio, flux_bio_atm, faero_atm 
       use icedrv_flux, only: nit, amm, sil, dmsp, dms, algalN, doc, don, dic, fed, fep, zaeros, hum
       use icedrv_state, only: aicen_init, vicen_init, aicen, vicen, vsnon
@@ -994,8 +934,7 @@
 
       integer (kind=int_kind) :: &
          i           , & ! horizontal indices
-         k              , & ! vertical index
-         n, mm              ! tracer index
+         mm              ! tracer index
 
       integer (kind=int_kind) :: &
          max_algae, max_nbtrcr, max_don, &
@@ -1123,8 +1062,6 @@
                               sss         (i),        &
                               fsnow       (i),        &
                               meltsn      (i,:),        &
-                              hmix        (i),        &
-                              salinz      (i,1:nilyr),        &
                               hin_old     (i,:),        &
                               flux_bio    (i,1:nbtrcr),        &
                               flux_bio_atm(i,1:nbtrcr),        &
@@ -1136,7 +1073,7 @@
                               aice0       (i),        &
                               trcrn       (i,1:ntrcr,:),        &
                               vsnon_init  (i,:),        &
-                              skl_bgc, max_algae, max_nbtrcr)
+                              skl_bgc)
 
 !         call icepack_warnings_flush(nu_diag)
 !         if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &

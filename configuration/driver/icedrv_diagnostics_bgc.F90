@@ -10,13 +10,12 @@
       use icedrv_kinds
       use icedrv_constants, only: nu_diag, nu_diag_out
       use icedrv_constants, only: c0, mps_to_cmpdy, c100, p5, c1
-      use icedrv_calendar, only: diagfreq, istep1, istep
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icepack_intfc, only: icepack_max_algae, icepack_max_aero, icepack_max_fe
-      use icepack_intfc, only: icepack_max_dic, icepack_max_doc, icepack_max_don
+      use icepack_intfc, only: icepack_max_doc, icepack_max_don
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -34,15 +33,12 @@
 !
 ! authors: Nicole Jeffery, LANL
 
-      subroutine hbrine_diags (dt)
+      subroutine hbrine_diags ()
               
       use icedrv_arrays_column, only: darcy_V
       use icedrv_diagnostics, only: nx_names
-      use icedrv_domain_size, only: ncat, nltrcr, nilyr
+      use icedrv_domain_size, only: nilyr
       use icedrv_state, only: aice, aicen, vicen, vice, trcr, trcrn
-
-      real (kind=dbl_kind), intent(in) :: &
-         dt      ! time step
 
       ! local variables
 
@@ -130,22 +126,19 @@
 !
 ! authors: Nicole Jeffery, LANL
 
-      subroutine bgc_diags (dt)
+      subroutine bgc_diags ()
 
       use icedrv_arrays_column, only: ocean_bio, zfswin, fbio_atmice, fbio_snoice
       use icedrv_arrays_column, only: Zoo, grow_net, ice_bio_net, trcrn_sw
-      use icedrv_domain_size,   only: ncat, nltrcr, nblyr, n_algae, n_zaero
-      use icedrv_domain_size,   only: n_dic, n_doc, n_don, n_fed, n_fep, nilyr, nslyr
+      use icedrv_domain_size,   only: ncat, nblyr, n_algae, n_zaero
+      use icedrv_domain_size,   only: n_doc, n_don, n_fed, n_fep, nilyr, nslyr
       use icedrv_flux,  only: flux_bio, flux_bio_atm
-      use icedrv_state, only: aice, vicen, vice, trcr
-
-      real (kind=dbl_kind), intent(in) :: &
-         dt      ! time step
+      use icedrv_state, only: vicen, vice, trcr
 
       ! local variables
 
       integer (kind=int_kind) :: &
-         i, k, n, nn, kk, klev
+         k, n, nn, kk, klev
 
       logical (kind=log_kind) :: &
          skl_bgc, z_tracers, dEdd_algae
@@ -749,15 +742,12 @@
 !
 ! authors: Nicole Jeffery, LANL
 
-      subroutine zsal_diags (dt)
+      subroutine zsal_diags ()
 
       use icedrv_arrays_column, only: fzsal, fzsal_g, sice_rho, bTiz
       use icedrv_arrays_column, only: iDi, bphi, dhbr_top, dhbr_bot, darcy_V
       use icedrv_domain_size, only: nblyr, ncat, nilyr
       use icedrv_state, only: aicen, aice, vice, trcr, trcrn, vicen, vsno
-
-      real (kind=dbl_kind), intent(in) :: &
-         dt      ! time step
 
       ! local variables
 
@@ -772,7 +762,7 @@
 
       ! vertical  fields of category 1 at diagnostic points for bgc layer model
       real (kind=dbl_kind), dimension(nblyr+2) :: &
-         pphin, pgrid, pphin1
+         pphin, pphin1
       real (kind=dbl_kind), dimension(nblyr) :: &
          pSin, pSice, pSin1
       real (kind=dbl_kind), dimension(nblyr+1) :: &

@@ -27,7 +27,7 @@
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
       use icepack_parameters, only: rhosi
       use icepack_parameters, only: kitd, ktherm, heat_capacity
-      use icepack_parameters, only: z_tracers, solve_zsal, skl_bgc, initbio_frac
+      use icepack_parameters, only: z_tracers, solve_zsal, initbio_frac
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -1121,7 +1121,6 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         i, j         , & ! horizontal indices
          n            , & ! ice category index
          k            , & ! ice layer index
          it               ! aerosol tracer index
@@ -1137,7 +1136,6 @@
          vtmp         , & ! total volume of new and old ice
          area1        , & ! starting fractional area of existing ice
          alvl         , & ! starting level ice area
-         rnilyr       , & ! real(nilyr)
          dfresh       , & ! change in fresh
          dfsalt       , & ! change in fsalt
          vi0tmp       , & ! frzmlt part of frazil
@@ -1160,22 +1158,11 @@
          aicen_init, &    ! fractional area of ice
          vicen_init       ! volume per unit area of ice (m)
 
-      ! BGC
-      real (kind=dbl_kind) :: &
-         vbri1       , & ! starting volume of existing brine
-         vbri_init   , & ! brine volume summed over categories
-         vbri_final      ! brine volume summed over categories
-
-      real (kind=dbl_kind), dimension (ncat) :: &
-         vbrin           ! trcrn(nt_fbri,n)*vicen(n) 
-
       character(len=*),parameter :: subname='(add_new_ice)'
 
       !-----------------------------------------------------------------
       ! initialize
       !-----------------------------------------------------------------
-
-      rnilyr = real(nilyr,kind=dbl_kind)
 
       if (ncat > 1) then
          hi0max = hin_max(1)*0.9_dbl_kind  ! not too close to boundary

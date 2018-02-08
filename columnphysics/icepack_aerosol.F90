@@ -11,7 +11,7 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, puny, rhoi, rhos, hs_min
       use icepack_parameters, only: hi_ssl, hs_ssl
-      use icepack_tracers, only: nt_aero, max_aero
+      use icepack_tracers, only: max_aero
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -74,13 +74,13 @@
          aerosno,  aeroice    ! kg/m^2
 
       !  local variables
-      integer (kind=int_kind) :: k, n
+      integer (kind=int_kind) :: k
 
       real (kind=dbl_kind) :: &
          dzssl,  dzssl_new,      & ! snow ssl thickness
-         dzint,  dzint_new,      & ! snow interior thickness
+         dzint,                  & ! snow interior thickness
          dzssli, dzssli_new,     & ! ice ssl thickness
-         dzinti, dzinti_new,     & ! ice interior thickness
+         dzinti,                 & ! ice interior thickness
          dznew,                  & ! tracks thickness changes
          hs, hi,                 & ! snow/ice thickness (m)
          dhs_evap, dhi_evap,     & ! snow/ice thickness change due to evap
@@ -100,9 +100,6 @@
          aerotot, aerotot0, & ! for conservation check
          focn_old             ! for conservation check
 
-      real (kind=dbl_kind), dimension(n_aero,2) :: &
-         aerosno0, aeroice0   ! for diagnostic prints
-
       ! echmod:  this assumes max_aero=6
       data kscav   / .03_dbl_kind, .20_dbl_kind, .02_dbl_kind, &
                      .02_dbl_kind, .01_dbl_kind, .01_dbl_kind / 
@@ -115,8 +112,6 @@
     ! initialize
     !-------------------------------------------------------------------
       focn_old(:) = faero_ocn(:)
-      aerosno0(:,:) = c0
-      aeroice0(:,:) = c0
       
       hs_old    = vsno_old/aice_old
       hi_old    = vice_old/aice_old
@@ -155,8 +150,6 @@
                               + dhi_congel + dhi_snoice)
 
       do k = 1, n_aero
-         aerosno0(k,:) = aerosno(k,:)
-         aeroice0(k,:) = aeroice(k,:)
          aerotot0(k) = aerosno(k,2) + aerosno(k,1) &
                      + aeroice(k,2) + aeroice(k,1)
       enddo
@@ -360,8 +353,6 @@
       hilyr      = hi/real(nilyr,kind=dbl_kind)
       dzssl_new  = min(hslyr/c2, hs_ssl)
       dzssli_new = min(hilyr/c2, hi_ssl)
-      dzint_new  = hs - dzssl_new
-      dzinti_new = hi - dzssli_new
 
       if (hs > hs_min) then
          do k = 1, n_aero

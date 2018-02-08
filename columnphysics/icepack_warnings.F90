@@ -116,7 +116,6 @@ contains
 
         integer, intent(in) :: iounit
 
-        integer :: iWarning
         character(len=*),parameter :: subname='(icepack_warnings_flush)'
 
         call icepack_warnings_print(iounit)
