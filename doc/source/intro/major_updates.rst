@@ -23,4 +23,6 @@ the code.  Icepack includes the simplified driver and scripts for configuring va
 column physics code in columnphysics/.
 
 Enhancements and bug fixes made to Icepack since the last numbered release can be found on the
-Icepack wiki https://github.com/CICE-Consortium/Icepack/wiki/Recent-changes.
+Icepack wiki https://github.com/CICE-Consortium/Icepack/wiki/Recent-changes. Major changes with
+each Icepack release (found here: https://github.com/CICE-Consortium/Icepack/releases) will
+be included as release notes.
