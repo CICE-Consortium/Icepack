@@ -23,12 +23,14 @@ to support the CICE model.
    :header: "variable", "options/format", "description", "recommended value"
    :widths: 15, 15, 25, 20
 
-   "ICE_MACHINE", " ", "machine name", "set by icepack.create.case"
-   "ICE_CASENAME", " ", "case name", "set by icepack.create.case"
-   "ICE_SANDBOX", " ", "sandbox directory", "set by icepack.create.case"
-   "ICE_SCRIPTS", " ", "scripts directory", "set by icepack.create.case"
-   "ICE_CASEDIR", " ", "case directory", "set by icepack.create.case"
-   "ICE_RUNDIR", " ", "run directory", "set by icepack.create.case"
+   "ICE_CASENAME", " ", "case name", "set by icepack.setup"
+   "ICE_SANDBOX", " ", "sandbox directory", "set by icepack.setup"
+   "ICE_MACHINE", " ", "machine name", "set by icepack.setup"
+   "ICE_COMPILER", " ", "environment name", "set by icepack.setup"
+   "ICE_MACHCOMP", " ", "machine_environment name", "set by icepack.setup"
+   "ICE_SCRIPTS", " ", "scripts directory", "set by icepack.setup"
+   "ICE_CASEDIR", " ", "case directory", "set by icepack.setup"
+   "ICE_RUNDIR", " ", "run directory", "set by icepack.setup"
    "ICE_OBJDIR", " ", "compile directory", "${ICE_RUNDIR}/compile"
    "ICE_RSTDIR", " ", "unused", "${ICE_RUNDIR}/restart"
    "ICE_HSTDIR", " ", "unused", "${ICE_RUNDIR}/history"
@@ -42,14 +44,15 @@ to support the CICE model.
    "ICE_NXGLOB", "4", "number of gridcells", "4"
    "ICE_NTASKS", "1", "number of tasks, must be set to 1", "1"
    "ICE_NTHRDS", "1", "number of threads per task, must be set to 1", "1"
-   "ICE_TEST", " ", "test setting if using a test", "set by icepack.create.case"
-   "ICE_TESTNAME", " ", "test name if using a test", "set by icepack.create.case"
-   "ICE_BASELINE", " ", "baseline directory name, associated with icepack.create.case -bd", "set by icepack.create.case"
-   "ICE_BASEGEN", " ", "baseline directory name for regression generation, associated with icepack.create.case -bg ", "set by icepack.create.case"
-   "ICE_BASECOM", " ", "baseline directory name for regression comparison, associated with icepack.create.case -bc ", "set by icepack.create.case"
-   "ICE_BFBCOMP", " ", "location of case for comparison, associated with icepack.create.case -td", "set by icepack.create.case"
+   "ICE_TEST", " ", "test setting if using a test", "set by icepack.setup"
+   "ICE_TESTNAME", " ", "test name if using a test", "set by icepack.setup"
+   "ICE_BASELINE", " ", "baseline directory name, associated with icepack.setup -bd", "set by icepack.setup"
+   "ICE_BASEGEN", " ", "baseline directory name for regression generation, associated with icepack.setup -bg ", "set by icepack.setup"
+   "ICE_BASECOM", " ", "baseline directory name for regression comparison, associated with icepack.setup -bc ", "set by icepack.setup"
+   "ICE_BFBCOMP", " ", "location of case for comparison, associated with icepack.setup -td", "set by icepack.setup"
    "ICE_SPVAL", " ", "unused", "UnDeFiNeD"
    "ICE_RUNLENGTH", " ", "batch run length default", "  00:10:00"
+   "ICE_ACCOUNT", " ", "batch account number", "set by icepack.setup or by default"
    "ICE_THREADED", "true,false", "force threading in compile, will always compile threaded if NTHRDS is gt 1", "false"
    "NICELYR", " ", "number of vertical layers in the ice", "7"
    "NSNWLYR", " ", "number of vertical layers in the snow", "1"
@@ -391,7 +394,7 @@ column physics.
 .. _tuning:
 
 BGC Tuning Parameters
-========================
+------------------------
 
 Biogeochemical tuning parameters are specified as namelist options in
 **icepack\_in**. Table :ref:`tab-bio-tracers2` provides a list of parameters

@@ -1,6 +1,7 @@
 #!/bin/csh -f
 
-set wikirepo = "https://github.com/CICE-Consortium/Test-Results.wiki.git"
+set gh_repository = "CICE-Consortium/Test-Results.wiki.git"
+set wikirepo = "https://github.com/${gh_repository}"
 set wikiname = Test-Results.wiki
 
 set tsubdir = icepack_testing
@@ -10,13 +11,21 @@ set vfile = "icepack_by_vers"
 set bfile = "icepack_by_bran"
 
 rm -r -f ${wikiname}
-git clone ${wikirepo} ${wikiname}
+
+# If command line argument "--travisCI" is set when running this script, clone
+# the wiki repository using Github access token for the 'ciceconsortium' user.
+if ( "$1" == "--travisCI" ) then
+    git clone "https://ciceconsortium:${GH_TOKEN}@github.com/${gh_repository}" ${wikiname}
+else
+    git clone ${wikirepo} ${wikiname}
+endif
 
 set repo = `grep "#repo = " results.log | cut -c 9-`
 set bran = `grep "#bran = " results.log | cut -c 9-`
 set hash = `grep "#hash = " results.log | cut -c 9-`
-set hshu = `grep "#hshu = " results.log | cut -c 9-`
-set hshd = `grep "#hshd = " results.log | cut -c 9-`
+set shhash   = `grep "#hshs = " results.log | cut -c 9-`
+set hashuser = `grep "#hshu = " results.log | cut -c 9-`
+set hashdate = `grep "#hshd = " results.log | cut -c 9-`
 set cdat = `grep "#date = " results.log | cut -c 9-`
 set ctim = `grep "#time = " results.log | cut -c 9-`
 set user = `grep "#user = " results.log | cut -c 9-`
@@ -31,8 +40,9 @@ set compilers = `grep -v "#" results.log | grep ${mach}_ | cut -d "_" -f 2 | sor
 #echo "debug ${repo}"
 #echo "debug ${bran}"
 #echo "debug ${hash}"
-#echo "debug ${hshu}"
-#echo "debug ${hshd}"
+#echo "debug ${shhash}"
+#echo "debug ${hashuser}"
+#echo "debug ${hashdate}"
 #echo "debug ${cdat}"
 #echo "debug ${ctim}"
 #echo "debug ${user}"
@@ -45,7 +55,6 @@ set compilers = `grep -v "#" results.log | grep ${mach}_ | cut -d "_" -f 2 | sor
 
 set xcdat = `echo $cdat | sed 's|-||g' | cut -c 3-`
 set xctim = `echo $ctim | sed 's|:||g'`
-set shhash = `echo $hash | cut -c 1-10`
 set shrepo = `echo $repo | tr '[A-Z]' '[a-z]'`
 
 if ("${shrepo}" !~ "*cice-consortium*") then
@@ -69,7 +78,7 @@ unset noglob
 
 foreach compiler ( ${compilers} )
 
-  set ofile = "${shhash}.${mach}.${compiler}.${xcdat}${xctim}"
+  set ofile = "${shhash}.${mach}.${compiler}.${xcdat}.${xctim}"
   set outfile = "${wikiname}/${tsubdir}/${ofile}.md"
   mkdir -p ${wikiname}/${tsubdir}
   echo "${0}: writing to ${outfile}"
@@ -87,7 +96,7 @@ EOF
 @ tfail = 0
 @ rpass = 0
 @ rfail = 0
-set tvregr = ""
+@ rothr = 0
 
 foreach case ( ${cases} )
 if ( ${case} =~ *_${compiler}_* ) then
@@ -99,12 +108,9 @@ if ( ${case} =~ *_${compiler}_* ) then
   set fbuild = `grep " ${case} " results.log | grep " build" | cut -c 1-4`
   set fregr  = `grep " ${case} " results.log | grep " compare" | cut -c 1-4`
   set fcomp  = `grep " ${case} " results.log | grep " bfbcomp" | cut -c 1-4`
-  set vregr  = `grep " ${case} " results.log | grep " compare" | cut -d " " -f 4`
+  set vregr  = `grep " ${case} " results.log | grep " compare" | cut -d " " -f 4 | sed 's/\./ /g' `
   set vcomp  = `grep " ${case} " results.log | grep " bfbcomp" | cut -d " " -f 4`
   set ftime  = ""
-  if (vregr != "") then
-     set tvregr = ${vregr}
-  endif
 
   if (${case} =~ *_restart_*) then
     set frun   = `grep " ${case} " results.log | grep " run-initial" | cut -c 1-4`
@@ -142,6 +148,9 @@ if ( ${case} =~ *_${compiler}_* ) then
   if (${fcomp}  == "") set rcomp  = ${gray}
   if (${ftime}  == "") set rtime  = ${gray}
 
+  set fcomp  = `grep " ${case} " results.log | grep " bfbcomp" | grep "baseline-does-not-exist" | wc -l `
+  if ($fcomp > 1) set rcomp = ${gray}
+
   if (${rbuild} == ${red}) set tchkpass = 0
   if (${rrun}   == ${red}) set tchkpass = 0
   if (${rtest}  == ${red}) set tchkpass = 0
@@ -156,6 +165,8 @@ if ( ${case} =~ *_${compiler}_* ) then
      @ rpass = $rpass + 1
   else if (${rregr} == ${red}) then
      @ rfail = $rfail + 1
+  else
+     @ rothr = $rothr + 1
   endif
 
   unset noglob
@@ -178,12 +189,15 @@ if (${tfail} >= ${chk}) set tcolor = ${red}
 
 set rcolor = ${gray}
 if (${rfail} > 0 || ${rpass} > 0) then
-  if (${rfail} == 0) set rcolor = ${green}
+  if (${rfail} == 0) then
+     set rcolor = ${green}
+     if (${rothr} > 0) set rcolor = ${yellow}
+  endif
   if (${rfail} > 0) set rcolor = ${yellow}
   @ chk = ((${ttotl} + 9)/ 10)
   if (${rfail} >= ${chk}) set rcolor = ${orange}
   @ chk = ((${ttotl} + 4) / 5)
-if (${rfail} >= ${chk}) set rcolor = ${red}
+  if (${rfail} >= ${chk}) set rcolor = ${red}
 endif
 unset noglob
 
@@ -191,14 +205,24 @@ mv ${outfile} ${outfile}.hold
 cat >! ${outfile} << EOF
 - repo = **${repo}** : **${bran}**
 - hash = ${hash}
-- hash created by ${hshu} ${hshd}
+- hash created by ${hashuser} ${hashdate}
 - vers = ${vers}
 - tested on ${mach}, ${compiler}, ${user}, ${cdat} ${ctim} UTC
 - raw results: ${totl} total tests: ${pass} pass, ${fail} fail
 - ${ttotl} total tests: ${tpass} pass, ${tfail} fail
-- ${ttotl} total regressions: ${rpass} pass, ${rfail} fail
+- ${ttotl} total regressions: ${rpass} pass, ${rfail} fail, ${rothr} other
 EOF
 cat ${outfile}.hold >> ${outfile}
+
+
+# If command line argument "--travisCI" is set when running this script, add
+# links to Travis build page and the raw build log.
+if ( "$1" == "--travisCI" ) then
+    cat >> ${outfile} << EOF
+- Travis-CI build page: https://travis-ci.org/${TRAVIS_REPO_SLUG}/builds/${TRAVIS_BUILD_ID}
+- Travis-CI raw log: https://api.travis-ci.org/v3/job/${TRAVIS_JOB_ID}/log.txt
+EOF
+endif
 
 cat >> ${outfile} << EOF
 
@@ -229,9 +253,9 @@ if ($chk == 0) then
 cat >! ${hashfile} << EOF
 **${hash}** :
 
-| machine | compiler | version | date | test fail | comp fail| total |
+| machine | compiler | version | date | test fail | comp fail | total |
 | ------ | ------ | ------ | ------  | ------ | ------ | ------ |
-| ${mach} | ${compiler} | ${vers} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) |
+| ${mach} | ${compiler} | ${vers} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${hashfile}.prev) cat ${hashfile}.prev >> ${hashfile}
@@ -239,7 +263,7 @@ if (-e ${hashfile}.prev) cat ${hashfile}.prev >> ${hashfile}
 else
   set oline = `grep -n "\*\*${hash}" ${hashfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${compiler} | ${vers} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) | " ${hashfile}
+  sed -i "$nline a | ${mach} | ${compiler} | ${vers} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) | " ${hashfile}
 endif
 
 #=====================
@@ -252,9 +276,9 @@ if ($chk == 0) then
 cat >! ${versfile} << EOF
 **${vers}** :
 
-| machine | compiler | hash | date | test fail | comp fail| total |
+| machine | compiler | hash | date | test fail | comp fail | total |
 | ------ | ------ | ------ | ------  | ------ | ------ | ------ |
-| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) |
+| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${versfile}.prev) cat ${versfile}.prev >> ${versfile}
@@ -262,7 +286,7 @@ if (-e ${versfile}.prev) cat ${versfile}.prev >> ${versfile}
 else
   set oline = `grep -n "\*\*${vers}" ${versfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) | " ${versfile}
+  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) | " ${versfile}
 endif
 
 #=====================
@@ -275,9 +299,9 @@ if ($chk == 0) then
 cat >! ${machfile} << EOF
 **${mach}** :
 
-| version | hash | compiler | date | test fail | comp fail| total |
+| version | hash | compiler | date | test fail | comp fail | total |
 | ------ | ------ | ------ | ------ | ------  | ------ | ------ |
-| ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) |
+| ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${machfile}.prev) cat ${machfile}.prev >> ${machfile}
@@ -285,7 +309,7 @@ if (-e ${machfile}.prev) cat ${machfile}.prev >> ${machfile}
 else
   set oline = `grep -n "\*\*${mach}" ${machfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) | " ${machfile}
+  sed -i "$nline a | ${vers} | ${shhash} | ${compiler} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) | " ${machfile}
 endif
 
 #=====================
@@ -298,9 +322,9 @@ if ($chk == 0) then
 cat >! ${branfile} << EOF
 **${bran}** **${repo}**:
 
-| machine | compiler | hash | date | test fail | comp fail| total |
+| machine | compiler | hash | date | test fail | comp fail | total |
 | ------ | ------ | ------ | ------  | ------ | ------ | ------ |
-| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) |
+| ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) |
 
 EOF
 if (-e ${branfile}.prev) cat ${branfile}.prev >> ${branfile}
@@ -308,7 +332,7 @@ if (-e ${branfile}.prev) cat ${branfile}.prev >> ${branfile}
 else
   set oline = `grep -n "\*\*${bran}" ${branfile} | head -1 | cut -d : -f 1`
   @ nline = ${oline} + 3
-  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail} | [${ttotl}](${ofile}) | " ${branfile}
+  sed -i "$nline a | ${mach} | ${compiler} | ${shhash} | ${cdat} | ${tcolor} ${tfail} | ${rcolor} ${rfail}, ${rothr} | [${ttotl}](${ofile}) | " ${branfile}
 endif
 
 #foreach compiler

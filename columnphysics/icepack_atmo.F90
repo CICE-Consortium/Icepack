@@ -308,7 +308,7 @@
          if (highfreq .and. sfctype(1:3)=='ice') then
 
             !------------------------------------------------------------
-            ! momentum flux for RASM
+            ! momentum flux for high frequency coupling (RASM/CESM) 
             !------------------------------------------------------------
             ! tau = rhoa * rd * rd
             ! strx = tau * |Uatm-U| * (uatm-u)
