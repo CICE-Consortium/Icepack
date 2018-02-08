@@ -323,13 +323,16 @@ surface potential temperature and specific humidity.
 
    c) **Surface HEat Budget of the Arctic (SHEBA)**
 
+    The opening and closing rates as derived from the SHEBA data have been used in Cecilia Bitz's column model previously. 
+    For more information go here:
+
     https://atmos.washington.edu/~bitz/column_model/
 
     https://atmos.washington.edu/~bitz/column_model/notes_forcing_data
 
-    includes opening and closing rates, solar zenith angle
+    This forcing data includes opening and closing rates which is all that is used currently.
 
-    ocn_data_type
+    In the namelist, set ``ocn_data_type = SHEBA`` to use this forcing in Icepack.
 
 3) **Climatological** - Maykut and Untersteiner 1971 :cite:`MU71`
 
