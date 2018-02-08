@@ -76,15 +76,9 @@
 
       integer (kind=int_kind) :: &
          nml_error, & ! namelist i/o error flag
-         n,         & ! loop index
-         diag_len     ! length of diag file
+         n            ! loop index
 
       character (len=char_len) :: diag_file_names
-      character (len=6) :: chartmp
-      character (len=32) :: str
-      character (len=20) :: format_str
-
-      logical :: exists
 
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
          ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
@@ -303,7 +297,6 @@
       nx_names(3) = 'full_ITD'
       nx_names(4) = 'land'
 
-      diag_len = len(trim(diag_file))
       do n = 1,nx
          diag_file_names=' '
          write(diag_file_names,'(a,a,a)') trim(diag_file),'.',trim(nx_names(n))
@@ -930,8 +923,7 @@
       ! Set state variables
       !-----------------------------------------------------------------
 
-      call set_state_var (nx, ice_ic,&
-          TLON  (:),   TLAT (:),     &
+      call set_state_var (nx, &
           Tair  (:),   sst  (:),     &
           Tf    (:),                 &
           salinz(:,:), Tmltz(:,:),   &
@@ -985,8 +977,7 @@
 !
 ! authors: Elizabeth Hunke, LANL
 
-      subroutine set_state_var (nx,       ice_ic, &
-                                TLON,     TLAT,   &
+      subroutine set_state_var (nx, &
                                 Tair,     sst,    &
                                 Tf,               &
                                 salinz,   Tmltz,  &
@@ -998,14 +989,6 @@
 
       integer (kind=int_kind), intent(in) :: &
          nx          ! number of grid cells
-
-      character(len=char_len_long), intent(in) :: & 
-         ice_ic      ! method of ice cover initialization  ! not used for now
-
-      real (kind=dbl_kind), dimension (nx), &
-         intent(in) :: &
-         TLON   , & ! longitude of temperature pts (radians)  ! not used for now
-         TLAT       ! latitude of temperature pts (radians)
 
       real (kind=dbl_kind), dimension (nx), intent(in) :: &
          Tair       ! air temperature  (K)

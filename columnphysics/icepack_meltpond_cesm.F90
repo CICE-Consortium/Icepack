@@ -36,7 +36,7 @@
                                     pndaspect,           &
                                     rfrac, meltt,        &
                                     melts, frain,        &
-                                    aicen, vicen, vsnon, &
+                                    aicen, vicen, &
                                     Tsfcn, apnd,  hpnd)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -50,8 +50,7 @@
          melts, &
          frain, &
          aicen, &
-         vicen, &
-         vsnon
+         vicen
 
       real (kind=dbl_kind), intent(in) :: &
          Tsfcn
@@ -67,7 +66,6 @@
 
       real (kind=dbl_kind) :: &
          hi                     , & ! ice thickness (m)
-         hs                     , & ! snow depth (m)
          dTs                    , & ! surface temperature diff for freeze-up (C)
          Tp                     , & ! pond freezing temperature (C)
          apondn, &
@@ -92,7 +90,6 @@
       if (aicen > puny) then
 
          hi = vicen/aicen
-         hs = vsnon/aicen
 
          if (hi < hi_min) then
 

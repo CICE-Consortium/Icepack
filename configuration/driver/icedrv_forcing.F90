@@ -7,18 +7,18 @@
       module icedrv_forcing
 
       use icedrv_kinds
-      use icedrv_domain_size, only: ncat, nx
+      use icedrv_domain_size, only: nx
       use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday
-      use icedrv_calendar, only: daymo, daycal, dt, yday, days_per_year, sec
+      use icedrv_calendar, only: daymo, daycal, dt, yday, sec
       use icedrv_constants, only: nu_diag, nu_forcing
-      use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
+      use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_sea_freezing_temperature
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing
+         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf
 
       implicit none
       private
@@ -53,7 +53,6 @@
             sss_data, & 
            uocn_data, &
            vocn_data, &
-         sublim_data, &
           frain_data, &
           swvdr_data, &
           swvdf_data, &
@@ -64,10 +63,6 @@
 
       real (kind=dbl_kind), dimension(nx) :: &
           sst_temp
-
-      real (kind=dbl_kind), dimension(8760) :: &
-           open_data, &
-           clos_data
 
       character(char_len), public :: & 
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
@@ -164,10 +159,9 @@
 
       if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
       if (trim(ocn_data_type(1:4)) == 'NICE')  call ocn_NICE
-      if (trim(ocn_data_type(1:5)) == 'SHEBA')  call ice_open_clos
 
       call prepare_forcing (Tair_data,     fsw_data,      &
-                            cldf_data,     flw_data,      &
+                            cldf_data,     &
                             frain_data,    fsnow_data,    &
                             Qa_data,       rhoa_data,     &
                             uatm_data,     vatm_data,     &
@@ -205,7 +199,7 @@
           recnum, dataloc, maxrec
 
       real (kind=dbl_kind) :: &
-          sec6hr, sec1hr
+          sec6hr
 
       character(len=*), parameter :: subname='(get_forcing)'
 
@@ -371,53 +365,6 @@
 
       call finish_ocn_forcing(sst_temp)
 
-      ! Lindsay SHEBA open/close dataset is hourly
-      if (trim(ocn_data_type) == 'SHEBA') then
-
-        sec1hr = secday/c24                      ! seconds in 1 hour
-        maxrec = 8760
-        recnum = 24*int(yday) - 23 + int(real(sec,kind=dbl_kind)/sec1hr)
-        recslot = 2
-        dataloc = 1                          ! data located at end of interval
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff ( recnum, recslot, sec1hr, dataloc, c1intp, c2intp)
-
-        opening(:) = c1intp *  open_data(mlast) + c2intp *  open_data(mnext)
-        closing(:) = -(c1intp *  clos_data(mlast) + c2intp *  clos_data(mnext))
-
-      endif
-
-! for debugging
-!if (timestep==4009.or.timestep==4010) then
-if (0==1) then ! off
-write (nu_diag,*) 'timestep, mlast,mnext,yday',timestep, mlast, mnext, yday
-write (nu_diag,*) 'recnum',recnum
-write (nu_diag,*) 'c1intp, c2intp',c1intp, c2intp
-write (nu_diag,*) 'flw',flw
-write (nu_diag,*) 'fsw',fsw
-write (nu_diag,*) 'Tair',Tair
-write (nu_diag,*) 'Qa',Qa
-write (nu_diag,*) 'fsnow',fsnow
-write (nu_diag,*) 'frain',frain
-write (nu_diag,*) 'potT',potT
-write (nu_diag,*) 'rhoa',rhoa
-write (nu_diag,*) 'uatm',uatm
-write (nu_diag,*) 'vatm',vatm
-write (nu_diag,*) 'wind',wind
-write (nu_diag,*) 'strax',strax
-write (nu_diag,*) 'stray',stray
-write (nu_diag,*) 'swvdr',swvdr
-write (nu_diag,*) 'swvdf',swvdf
-write (nu_diag,*) 'swidr',swidr
-write (nu_diag,*) 'swidf',swidf
-write (nu_diag,*) 'sst',sst
-write (nu_diag,*) 'sss',sss
-write (nu_diag,*) 'uocn',uocn
-write (nu_diag,*) 'vocn',vocn
-write (nu_diag,*) 'qdp',qdp
-endif
-
       end subroutine get_forcing
 
 !=======================================================================
@@ -440,24 +387,24 @@ endif
       ! Ice station meteorology from Lindsay (1998, J. Climate), Table 1, p. 325
       ! zlvl = c2 ! 2-m temperatures and wind speed
 
-      data  fsw_clim /  0.0,   1.2,  31.5, 146.0, 263.3, 307.9, &
-                      230.6, 134.7,  44.2,   2.6,   0.0,   0.0  /
-      data  flw_clim /164.0, 160.5, 164.1, 188.1, 245.2, 291.2, &
-                      303.9, 297.0, 263.8, 210.9, 177.0, 166.0  /
-      data Tair_clim /-31.4, -32.8, -31.6, -24.1, -11.0,  -1.8, &
-                       -0.1,  -1.4,  -8.0, -19.5, -27.6, -31.1  /
-      data rhum_clim / 78.7,  78.4,  79.6,  82.1,  86.5,  91.7, &
-                       95.1,  94.3,  90.7,  83.8,  80.1,  78.7  /
-      data wind_clim /  4.4,   4.0,   4.0,   3.9,   3.9,   4.2, &
-                        4.1,   4.2,   4.5,   4.2,   3.9,   4.0  /
-!      data  shf_clim /  9.9,   8.4,   6.6,   0.1,  -5.8,  -1.6, &
-!                        2.2,   1.2,   0.5,   2.0,   5.6,   7.0  /
-!      data  lhf_clim /  1.3,   1.1,   1.1,   0.0,  -5.9, -10.3, &
-!                       -6.5,  -6.7,  -3.9,  -0.1,   1.0,   1.1  /
+      data  fsw_clim /  0.0d0,   1.2d0,  31.5d0, 146.0d0, 263.3d0, 307.9d0, &
+                      230.6d0, 134.7d0,  44.2d0,   2.6d0,   0.0d0,   0.0d0  /
+      data  flw_clim /164.0d0, 160.5d0, 164.1d0, 188.1d0, 245.2d0, 291.2d0, &
+                      303.9d0, 297.0d0, 263.8d0, 210.9d0, 177.0d0, 166.0d0  /
+      data Tair_clim /-31.4d0, -32.8d0, -31.6d0, -24.1d0, -11.0d0,  -1.8d0, &
+                       -0.1d0,  -1.4d0,  -8.0d0, -19.5d0, -27.6d0, -31.1d0  /
+      data rhum_clim / 78.7d0,  78.4d0,  79.6d0,  82.1d0,  86.5d0,  91.7d0, &
+                       95.1d0,  94.3d0,  90.7d0,  83.8d0,  80.1d0,  78.7d0  /
+      data wind_clim /  4.4d0,   4.0d0,   4.0d0,   3.9d0,   3.9d0,   4.2d0, &
+                        4.1d0,   4.2d0,   4.5d0,   4.2d0,   3.9d0,   4.0d0  /
+!      data  shf_clim /  9.9d0,   8.4d0,   6.6d0,   0.1d0,  -5.8d0,  -1.6d0, &
+!                        2.2d0,   1.2d0,   0.5d0,   2.0d0,   5.6d0,   7.0d0  /
+!      data  lhf_clim /  1.3d0,   1.1d0,   1.1d0,   0.0d0,  -5.9d0, -10.3d0, &
+!                       -6.5d0,  -6.7d0,  -3.9d0,  -0.1d0,   1.0d0,   1.1d0  /
 
       ! Semtner (1976, JPO) snowfall spec., p. 383 in m/s snow volume (.4 m/yr)
-      data fsnow_clim/ 3.17e-9, 3.17e-9, 3.17e-9, 3.17e-9, 1.90e-8,    0.0, &
-                           0.0, 1.63e-8, 4.89e-8, 4.89e-8, 3.17e-9, 3.17e-9 /
+      data fsnow_clim/ 3.17d-9, 3.17d-9, 3.17d-9, 3.17d-9, 1.90d-8,    0.0d0, &
+                           0.0d0, 1.63d-8, 4.89d-8, 4.89d-8, 3.17d-9, 3.17d-9 /
 
       !-----------------------------------------------------------------
       ! query icepack values
@@ -507,7 +454,6 @@ endif
          windu10, &     ! wind components (m/s)
          windv10, &     !
          temp2m,  &     ! 2m air temperature (K)
-         pottmp,  &     ! potential temperature (K) (=2m air temperature)
          spechum ,&     ! specific humidity (kg/kg)
          precip         ! precipitation (kg/m2/s)
 
@@ -544,7 +490,7 @@ endif
 !=======================================================================
 
       subroutine prepare_forcing (Tair,     fsw,      &
-                                  cldf,     flw,      &
+                                  cldf,     &
                                   frain,    fsnow,    &
                                   Qa,       rhoa,     &
                                   uatm,     vatm,     &
@@ -571,7 +517,7 @@ endif
          stray   , &
          zlvl    , & ! atm level height (m)
          wind    , & ! wind speed (m/s)
-         flw     , & ! incoming longwave radiation (W/m^2)
+!        flw     , & ! incoming longwave radiation (W/m^2)
          swvdr   , & ! sw down, visible, direct  (W/m^2)
          swvdf   , & ! sw down, visible, diffuse (W/m^2)
          swidr   , & ! sw down, near IR, direct  (W/m^2)
@@ -589,7 +535,7 @@ endif
       real (kind=dbl_kind), parameter :: &    
          lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
 
-      real (kind=dbl_kind) :: workx, worky, &
+      real (kind=dbl_kind) :: &
          precip_factor, zlvl0, &
          Tffresh
 
@@ -1035,7 +981,7 @@ endif
       ! local variables
 
       integer (kind=int_kind) :: &
-         i, j, iblk           ! horizontal indices
+         i           ! horizontal indices
 
       character(len=*), parameter :: subname='(finish_ocn_forcing)'
 
@@ -1050,33 +996,6 @@ endif
           file=__FILE__,line= __LINE__)
 
       end subroutine finish_ocn_forcing
-
-!=======================================================================
-
-    subroutine ice_open_clos
-
-
-      integer (kind=int_kind) :: &
-         nu_open_clos,&     ! unit number
-         i
-
-      real (kind=dbl_kind) :: xtime
-
-      character (char_len_long) filename
-
-      filename = &
-          trim(data_dir)//'/SHEBA/open_clos_lindsay.dat'
-
-      write (nu_diag,*) 'Reading ',filename
-
-      open (nu_open_clos, file=filename, form='formatted')
-
-      ! hourly data
-      do i=1,8760
-         read(nu_open_clos,*) xtime, open_data(i), clos_data(i)
-      enddo
-
-    end subroutine ice_open_clos
 
 !=======================================================================
 

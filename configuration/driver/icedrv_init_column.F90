@@ -11,7 +11,7 @@
       use icedrv_domain_size, only: max_ntrcr, nblyr, nilyr, nslyr
       use icedrv_domain_size, only: n_algae, n_zaero, n_doc, n_dic, n_don
       use icedrv_domain_size, only: n_fed, n_fep, max_nsw, n_bgc, n_aero
-      use icedrv_constants, only: c1, c2, p5, c0, c5, p1
+      use icedrv_constants, only: c1, c2, p5, c0, p1
       use icedrv_constants, only: nu_diag, nu_nml
       use icepack_intfc, only: icepack_max_don, icepack_max_doc, icepack_max_dic
       use icepack_intfc, only: icepack_max_algae, icepack_max_aero, icepack_max_fe
@@ -117,20 +117,15 @@
          n                  ! thickness category index
 
       real (kind=dbl_kind) :: &
-         cszn        , & ! counter for history averaging
          netsw           ! flag for shortwave radiation presence
 
       logical (kind=log_kind) :: &
          l_print_point, & ! flag to print designated grid point diagnostics
-         debug,         & ! if true, print diagnostics
          dEdd_algae,    & ! from icepack
          modal_aero       ! from icepack
 
       character (len=char_len) :: &
          shortwave        ! from icepack
-
-      integer (kind=int_kind) :: &
-         ipoint
 
       real (kind=dbl_kind), dimension(ncat) :: &
          fbri                 ! brine height to ice thickness
@@ -179,7 +174,7 @@
          Sswabsn(:,:,:) = c0
 
       !$OMP PARALLEL DO PRIVATE(i,n, &
-      !$OMP                     cszn,l_print_point,debug,ipoint)
+      !$OMP                     l_print_point)
          do i = 1, nx
 
             l_print_point = .false.
@@ -347,18 +342,18 @@
       use icedrv_arrays_column, only: ocean_bio_all, ice_bio_net, snow_bio_net
       use icedrv_arrays_column, only: cgrid, igrid, bphi, iDi, bTiz, iki
       use icedrv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
-      use icedrv_calendar,  only: dt, istep1
+      use icedrv_calendar,  only: istep1
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, hum
       use icedrv_forcing_bgc, only:  get_forcing_bgc
-      use icedrv_state, only: trcrn, aicen, vicen, vsnon
+      use icedrv_state, only: trcrn
 
       ! local variables
 
       integer (kind=int_kind) :: &
          i                , & ! horizontal indices
-         k,m              , & ! vertical index
+         k                , & ! vertical index
          n                    ! category index
 
       integer (kind=int_kind) :: &
@@ -480,7 +475,7 @@
       enddo  ! i
 
       do i = 1, nx
-         call icepack_init_bgc(dt, ncat, nblyr, nilyr, ntrcr_o, &
+         call icepack_init_bgc(ncat, nblyr, nilyr, ntrcr_o, &
                cgrid, igrid, ntrcr, nbtrcr, &
                sicen(:,:), trcrn_bgc(:,:),  &
                sss(i), ocean_bio_all(i,:))
@@ -737,7 +732,6 @@
          f_don_Am             ! fraction of remineralized DON to Am
 
       real (kind=dbl_kind), dimension(icepack_max_DOC) :: &
-         f_doc            , & ! fraction of mort_N that goes to each doc pool
          f_exude          , & ! fraction of exuded carbon to each DOC pool
          k_bac                ! Bacterial degredation of DOC (1/d)    
 
@@ -1433,7 +1427,7 @@
          mort_pre_in=mort_pre, &
          mort_Tdep_in=mort_Tdep, k_exude_in=k_exude, &
          K_Nit_in=K_Nit, K_Am_in=K_Am, K_sil_in=K_Sil, K_Fe_in=K_Fe, &
-         f_don_in=f_don, kn_bac_in=kn_bac, f_don_Am_in=f_don, f_exude_in=f_exude, &
+         f_don_in=f_don, kn_bac_in=kn_bac, f_don_Am_in=f_don_Am, f_exude_in=f_exude, &
          k_bac_in=k_bac, &
          fr_resp_in=fr_resp, algal_vel_in=algal_vel, R_dFe2dust_in=R_dFe2dust, &
          dustFe_sol_in=dustFe_sol, T_max_in=T_max, fr_mort2min_in=fr_mort2min, &
@@ -1764,14 +1758,14 @@
           nt_fbri_in=nt_fbri,      &  
           nt_bgc_Nit_in=nt_bgc_Nit,   nt_bgc_Am_in=nt_bgc_Am,       nt_bgc_Sil_in=nt_bgc_Sil,   &
           nt_bgc_DMS_in=nt_bgc_DMS,   nt_bgc_PON_in=nt_bgc_PON,     nt_bgc_S_in=nt_bgc_S,     &
-          nt_bgc_N_in=nt_bgc_N,       nt_bgc_C_in=nt_bgc_C,         nt_bgc_chl_in=nt_bgc_chl,   &
+          nt_bgc_N_in=nt_bgc_N,       nt_bgc_chl_in=nt_bgc_chl,   &
           nt_bgc_DOC_in=nt_bgc_DOC,   nt_bgc_DON_in=nt_bgc_DON,     nt_bgc_DIC_in=nt_bgc_DIC,   &
           nt_zaero_in=nt_zaero,       nt_bgc_DMSPp_in=nt_bgc_DMSPp, nt_bgc_DMSPd_in=nt_bgc_DMSPd, &
           nt_bgc_Fed_in=nt_bgc_Fed,   nt_bgc_Fep_in=nt_bgc_Fep,     nt_zbgc_frac_in=nt_zbgc_frac, &
           nlt_zaero_sw_in=nlt_zaero_sw,  nlt_chl_sw_in=nlt_chl_sw,  nlt_bgc_Sil_in=nlt_bgc_Sil, &
           nlt_bgc_N_in=nlt_bgc_N,     nlt_bgc_Nit_in=nlt_bgc_Nit,   nlt_bgc_Am_in=nlt_bgc_Am, &
           nlt_bgc_DMS_in=nlt_bgc_DMS, nlt_bgc_DMSPp_in=nlt_bgc_DMSPp, nlt_bgc_DMSPd_in=nlt_bgc_DMSPd, &
-          nlt_bgc_C_in=nlt_bgc_C,     nlt_bgc_chl_in=nlt_bgc_chl,   nlt_zaero_in=nlt_zaero, &
+          nlt_bgc_chl_in=nlt_bgc_chl,   nlt_zaero_in=nlt_zaero, &
           nlt_bgc_DIC_in=nlt_bgc_DIC, nlt_bgc_DOC_in=nlt_bgc_DOC,   nlt_bgc_PON_in=nlt_bgc_PON, &
           nlt_bgc_DON_in=nlt_bgc_DON, nlt_bgc_Fed_in=nlt_bgc_Fed,   nlt_bgc_Fep_in=nlt_bgc_Fep, &
           nt_bgc_hum_in=nt_bgc_hum,   nlt_bgc_hum_in=nlt_bgc_hum, &

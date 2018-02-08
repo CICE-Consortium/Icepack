@@ -44,7 +44,7 @@
                                     aice,  aicen,       &
                                     vice,  vicen,       &
                                     vsno,  vsnon,       &
-                                    potT,  meltt,       &
+                                    meltt,       &
                                     fsurf, fpond,       &
                                     Tsfcn, Tf,          &
                                     qicen, sicen,       &
@@ -91,7 +91,6 @@
          ipnd
 
       real (kind=dbl_kind), intent(in) :: &
-         potT,  &   ! air potential temperature
          meltt, &   ! total surface meltwater flux
          fsurf      ! thermodynamic heat flux at ice/snow surface (W/m^2)
 
@@ -361,8 +360,7 @@
          pressure_head, &
          hsl_rel, &
          deltah, &
-         perm, &
-         apond
+         perm
 
       character(len=*),parameter :: subname='(pond_area)'
 
@@ -490,7 +488,6 @@
          hpondn(n) = max((hpond - alfan(n) + alfan(1)), c0)
          apondn(n) = reduced_aicen(n) 
       enddo
-      apond = sum(apondn(1:m_index))
     
       !------------------------------------------------------------------------
       ! drainage due to ice permeability - Darcy's law
@@ -511,7 +508,7 @@
          if (hicen(n) > c0) then
             call permeability_phi(heat_capacity, nilyr, &
                                   qicen(:,n), sicen(:,n), Tsfcn(n), Tf, &
-                                  vicen(n),   perm)
+                                  perm)
             if (icepack_warnings_aborted(subname)) return
             if (perm > c0) permflag = 1
             drain = perm*apondn(n)*pressure_head*dt / (viscosity_dyn*hicen(n))
@@ -534,7 +531,6 @@
             hpondn(n) = hpond - alfan(n) + alfan(1)
             apondn(n) = reduced_aicen(n) 
          enddo
-         apond = sum(apondn(1:m_index))
       endif
       endif ! pressure_head
 
@@ -753,7 +749,7 @@
 
       subroutine permeability_phi(heat_capacity, nilyr, &
                                   qicen, sicen, Tsfcn, Tf, &
-                                  vicen, perm)
+                                  perm)
 
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if true, ice has nonzero heat capacity
@@ -767,7 +763,6 @@
          sicen     ! salinity (ppt)   
     
       real (kind=dbl_kind), intent(in) :: &
-         vicen, &  ! ice volume
          Tsfcn, &  ! sea ice surface skin temperature (degC)     
          Tf     ! ocean freezing temperature [= ice bottom temperature] (degC) 
     

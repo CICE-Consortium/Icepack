@@ -44,7 +44,6 @@
          c15  = 15.0_dbl_kind, &
          c16  = 16.0_dbl_kind, &
          c20  = 20.0_dbl_kind, &
-         c24  = 24.0_dbl_kind, &
          c25  = 25.0_dbl_kind, &
          c100 = 100.0_dbl_kind, &
          c1000= 1000.0_dbl_kind, &

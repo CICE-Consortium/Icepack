@@ -10,11 +10,10 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: nx
-      use icedrv_calendar, only: dt, istep, sec, mday, month, daymo, secday
+      use icedrv_calendar, only: secday
       use icedrv_constants, only: nu_forcing, nu_diag
-      use icedrv_constants, only: c0, p1
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc
-      use icepack_intfc, only: icepack_max_dic, icepack_max_fe
+      use icepack_intfc, only: icepack_max_dic
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
@@ -25,9 +24,6 @@
 
       real (kind=dbl_kind), dimension(365) :: & ! hardwired for now
          sil_data, nit_data
-
-      integer (kind=int_kind) :: &
-         bgcrecnum = 0   ! old record number (save between steps)
 
 !=======================================================================
 
@@ -88,34 +84,23 @@
 
       use icedrv_arrays_column, only: ocean_bio_all
       use icedrv_calendar, only:  yday
-      use icedrv_flux, only: sss, sil, nit
+      use icedrv_flux, only: sil, nit
       use icedrv_forcing, only: interp_coeff, bgc_data_type
 
       integer (kind=int_kind) :: &
          i,            & ! horizontal indices
-         ixm,ixp,ixx , & ! record numbers for neighboring months
+         ixm,ixx,      & ! record numbers for neighboring months
          maxrec      , & ! maximum record number
          recslot     , & ! spline slot for current record
-         midmonth    , & ! middle day of month
          recnum      , & ! record number
          dataloc     , & ! = 1 for data located in middle of time interval
                          ! = 2 for date located at end of time interval
          ks              ! bgc tracer index (bio_index_o)
 
-      character (char_len_long) :: & 
-         met_file    , & ! netcdf filename
-         fieldname       ! field name in netcdf file
-
       real (kind=dbl_kind) :: &
           c1intp, c2intp
 
-      logical (kind=log_kind) :: readm, read1
-
       logical (kind=log_kind) :: tr_bgc_Sil, tr_bgc_Nit
-
-      character (char_len_long) :: &        ! input data file names
-         nit_file   , & ! nitrate input file
-         sil_file       ! silicate input file
 
       character(len=*), parameter :: subname='(get_forcing_bgc)'
 
@@ -138,10 +123,7 @@
         ixx = mod(recnum-1,       maxrec) + 1
         
         recslot = 2
-        ixp = -99
         call interp_coeff (recnum, recslot, secday, dataloc, c1intp, c2intp)
-        read1 = .false.
-        if (istep==1 .or. bgcrecnum .ne. recnum) read1 = .true.
                  
         if (tr_bgc_Sil) then
            sil(:) =  c1intp * sil_data(ixm) + c2intp * sil_data(ixx)

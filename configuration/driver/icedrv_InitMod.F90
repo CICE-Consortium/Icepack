@@ -28,16 +28,14 @@
 
       subroutine icedrv_initialize
 
-      use icedrv_arrays_column, only: hin_max, c_hi_range, zfswin, trcrn_sw, &
-          ocean_bio_all, ice_bio_net, snow_bio_net
-      use icedrv_calendar, only: dt, dt_dyn, time, istep, istep1, write_ic, &
+      use icedrv_arrays_column, only: hin_max, c_hi_range
+      use icedrv_calendar, only: dt, time, istep, istep1, &
           init_calendar, calendar
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
       use icepack_intfc, only: icepack_warnings_flush
       use icedrv_domain_size, only: ncat
-      use icedrv_diagnostics, only: icedrv_diagnostics_debug
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
-          init_history_dyn, init_flux_atm_ocn
+          init_flux_atm_ocn
       use icedrv_forcing, only: init_forcing, get_forcing
       use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
       use icedrv_restart_shared, only: restart
@@ -124,12 +122,9 @@
 
       subroutine init_restart
 
-      use icedrv_arrays_column, only: dhsn
-      use icedrv_calendar, only: time, calendar, istep1
-      use icedrv_constants, only: c0
+      use icedrv_calendar, only: time, calendar
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_domain_size, only: ncat, max_ntrcr, n_aero, nx
-      use icedrv_flux, only: sss
+      use icedrv_domain_size, only: ncat, max_ntrcr, nx
       use icedrv_init, only: ice_ic
       use icedrv_init, only: tmask
       use icedrv_init_column, only: init_hbrine, init_bgc

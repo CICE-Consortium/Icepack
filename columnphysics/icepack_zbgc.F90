@@ -10,14 +10,14 @@
       module icepack_zbgc
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, c2, p001, p1, p15, p5, puny
+      use icepack_parameters, only: c0, c1, c2, p001, p1, p5, puny
       use icepack_parameters, only: depressT, rhosi, min_salin, salt_loss
       use icepack_parameters, only: fr_resp, algal_vel, R_dFe2dust, dustFe_sol, T_max
       use icepack_parameters, only: op_dep_min, fr_graze_s, fr_graze_e, fr_mort2min, fr_dFe
       use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
       use icepack_parameters, only: fr_resp_s, y_sk_DMS, t_sk_conv, t_sk_ox
       use icepack_parameters, only: scale_bgc, ktherm, skl_bgc, solve_zsal
-      use icepack_parameters, only: z_tracers, phi_snow, fsal
+      use icepack_parameters, only: z_tracers, fsal
 
       use icepack_tracers, only: nt_sice, nt_bgc_S, bio_index 
       use icepack_tracers, only: tr_brine, nt_fbri, nt_qice, nt_Tsfc
@@ -482,7 +482,7 @@
                hin       = c0
             endif                   ! aicen
             temp_S    = min_salin   ! bio to cice
-            call remap_zbgc(ntrcr,           nilyr,    &
+            call remap_zbgc(nilyr,    &
                             nt_sice,                   &
                             trtmp0(1:ntrcr), trtmp,    &
                             1,               nblyr,    &
@@ -518,7 +518,7 @@
                hin       = c0
             endif              !aicen
             temp_S    = min_salin   ! bio to cice
-            call remap_zbgc(ntrcr,        nilyr,    &
+            call remap_zbgc(nilyr,    &
                          nt_sice,                   &
                          trtmp0(1:ntrcr), trtmp,    &
                          1,               nblyr,    &
@@ -537,12 +537,9 @@
 
 !=======================================================================
 
-      subroutine icepack_init_bgc(dt, ncat, nblyr, nilyr, ntrcr_o, &
+      subroutine icepack_init_bgc(ncat, nblyr, nilyr, ntrcr_o, &
          cgrid, igrid, ntrcr, nbtrcr, &
          sicen, trcrn, sss, ocean_bio_all)
-
-      real (kind=dbl_kind), intent(in) :: &
-         dt        ! time step
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -575,17 +572,11 @@
       integer (kind=int_kind) :: &
          k     , & ! vertical index 
          n     , & ! category index 
-         mm    , & ! bio tracer index
-         ki    , & ! loop index
-         ks        ! 
+         mm        ! bio tracer index
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: & 
          trtmp     ! temporary, remapped tracers   
       
-      real (kind=dbl_kind) :: & 
-         dvssl , & ! volume of snow surface layer (m)
-         dvint     ! volume of snow interior      (m)
-
       character(len=*),parameter :: subname='(icepack_init_bgc)'
 
       !-----------------------------------------------------------------------------   
@@ -631,7 +622,7 @@
             elseif (scale_bgc .and. ktherm == 2) then
                trtmp(:) = c0
                do n = 1,ncat     
-                  call remap_zbgc(nilyr,            nilyr,    &
+                  call remap_zbgc(nilyr,    &
                                   1,                          &
                                   sicen(:,n),       trtmp,    &
                                   0,                nblyr+1,  &
@@ -820,11 +811,10 @@
                            nblyr, nilyr, nslyr, n_algae, n_zaero, ncat, &
                            n_doc, n_dic,  n_don, n_fed, n_fep,  &
                            meltbn, melttn, congeln, snoicen, &
-                           sst, sss, fsnow, meltsn, hmix, salinz, &
+                           sst, sss, fsnow, meltsn, &
                            hin_old, flux_bio, flux_bio_atm, &
                            aicen_init, vicen_init, aicen, vicen, vsnon, &
-                           aice0, trcrn, vsnon_init, skl_bgc, &
-                           max_algae, max_nbtrcr)
+                           aice0, trcrn, vsnon_init, skl_bgc)
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -837,8 +827,7 @@
          ntrcr, &
          nbtrcr, &
          n_algae, n_zaero, &
-         n_doc, n_dic,  n_don, n_fed, n_fep, &
-         max_algae, max_nbtrcr
+         n_doc, n_dic,  n_don, n_fed, n_fep
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          bgrid         , &  ! biology nondimensional vertical grid points
@@ -896,7 +885,6 @@
          meltbn      , & ! bottom melt in category n (m)
          congeln     , & ! congelation ice formation in category n (m)
          snoicen     , & ! snow-ice formation in category n (m)
-         salinz      , & ! initial salinity  profile (ppt) 
          flux_bio_atm, & ! all bio fluxes to ice from atmosphere  
          aicen_init  , & ! initial ice concentration, for linear ITD
          vicen_init  , & ! initial ice volume (m), for linear ITD
@@ -909,7 +897,6 @@
          aice0   , & ! open water area fraction
          sss     , & ! sea surface salinity (ppt)
          sst     , & ! sea surface temperature (C)
-         hmix    , & ! mixed layer depth (m)
          fsnow       ! snowfall rate (kg/m^2 s)
 
       logical (kind=log_kind), intent(in) :: &
@@ -918,7 +905,6 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k              , & ! vertical index
          n, mm              ! thickness category index
 
       real (kind=dbl_kind) :: &
@@ -999,7 +985,7 @@
                if (trcrn(nt_fbri,n) .le. c0) trcrn(nt_fbri,n) = c1
 
                dhice = c0
-               call preflushing_changes  (n,  aicen  (n),   &
+               call preflushing_changes  (aicen  (n),   &
                                  vicen   (n), vsnon  (n),   &
                                  meltbn  (n), melttn (n),   &
                                  congeln (n), snoicen(n),   &
@@ -1017,11 +1003,10 @@
                                 trcrn(1:ntrcr,n), hin_old(n),  hbr_old,           &
                                 sss,              sst,         bTiz(:,n),         &
                                 iTin,             bphi(:,n),   kavg,              &
-                                bphi_o,           phi_snow,    Rayleigh_criteria, &
+                                bphi_o,           Rayleigh_criteria, &
                                 first_ice(n),     bSin,        brine_sal,         &
                                 brine_rho,        iphin,       ibrine_rho,        &
-                                ibrine_sal,       sice_rho(n), sloss,             &
-                                salinz(1:nilyr)   )
+                                ibrine_sal,       sice_rho(n), sloss)
                   if (icepack_warnings_aborted(subname)) return
                else     
 
@@ -1031,12 +1016,12 @@
 
                   iDi(:,n) = c0
 
-                  call compute_microS_mushy (n,   nilyr,         nblyr,       &
+                  call compute_microS_mushy (nilyr,         nblyr,       &
                                    bgrid,         cgrid,         igrid,       &
                                    trcrn(:,n),    hin_old(n),    hbr_old,     &
                                    sss,           sst,           bTiz(:,n),   & 
                                    iTin(:),       bphi(:,n),     kavg,        &
-                                   bphi_o,        phi_snow,      bSin(:),     &
+                                   bphi_o,        bSin(:),     &
                                    brine_sal(:),  brine_rho(:),  iphin(:),    &
                                    ibrine_rho(:), ibrine_sal(:), sice_rho(n), &
                                    iDi(:,n)       )
@@ -1044,14 +1029,13 @@
 
                endif ! solve_zsal  
 
-               call update_hbrine (meltbn  (n), melttn(n),   &
+               call update_hbrine (melttn(n),   &
                                    meltsn  (n), dt,          &
                                    hin,         hsn,         &
                                    hin_old (n), hbrin,       &
 
-                                   hbr_old,     phi_snow,    &
+                                   hbr_old,     &
                                    trcrn(nt_fbri,n),         &
-                                   snoicen(n),               &
                                    dhbr_top(n), dhbr_bot(n), &
                                    dh_top_chl,  dh_bot_chl,  & 
                                    kavg,        bphi_o,      &
@@ -1117,17 +1101,17 @@
                           n_zaero,               first_ice(n),           &
                           hin_old(n),            ocean_bio(1:nbtrcr),    &
                           bphi(:,n),             iphin,                  &     
-                          iDi(:,n),              sss,                    &
+                          iDi(:,n),  &
                           fswpenln(:,n),                                 &
                           dhbr_top(n),           dhbr_bot(n),            &
-                          dh_top_chl,            dh_bot_chl,             &
                           zfswin(:,n),                                   &
                           hbrin,                 hbr_old,                &
-                          darcy_V(n),            darcy_V_chl,            &
-                          bgrid,                 cgrid,                  &
+!                         darcy_V(n),            darcy_V_chl,            &
+                          darcy_V(n),  &
+                          bgrid,   &
                           igrid,                 icgrid,                 &
                           bphi_o,                                        &
-                          dhice,                 iTin,                   &
+                          iTin,                   &
                           Zoo(:,n),                                      &
                           flux_bio(1:nbtrcr),    dh_direct,              &
                           upNO,                  upNH,                   &
@@ -1139,16 +1123,15 @@
             elseif (skl_bgc) then
 
                call sklbio (dt,                      ntrcr,               &
-                            nilyr,                                        &
                             nbtrcr,                  n_algae,             &
-                            n_zaero,                 n_doc,               &
+                            n_doc,               &
                             n_dic,                   n_don,               &
                             n_fed,                   n_fep,               &
                             flux_bio (1:nbtrcr),     ocean_bio(1:nbtrcr), &
-                            hmix,                    aicen    (n),        &
+                            aicen    (n),        &
                             meltbn   (n),            congeln  (n),        &
                             fswthrun (n),            first_ice(n),        &
-                            trcrn    (1:ntrcr,n),    hin,                 &
+                            trcrn    (1:ntrcr,n), &
                             PP_net,                  upNO,                &
                             upNH,                    grow_net             )
                if (icepack_warnings_aborted(subname)) return

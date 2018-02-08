@@ -10,13 +10,13 @@
       module icepack_zbgc_shared
 
       use icepack_kinds
-      use icepack_parameters, only: p01, p1, p5, c0, c1, secday, puny
+      use icepack_parameters, only: p5, c0, c1, secday, puny
       use icepack_parameters, only: hs_ssl, sk_l
       use icepack_parameters, only: rhoi, cp_ocn, cp_ice, Lfresh  
       use icepack_parameters, only: solve_zbgc
       use icepack_parameters, only: fr_resp
       use icepack_tracers, only: max_nbtrcr, max_algae, max_doc
-      use icepack_tracers, only: max_dic, max_aero, max_don, max_fe
+      use icepack_tracers, only: max_don
       use icepack_tracers, only: nt_bgc_N, nt_fbri
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -200,7 +200,7 @@
 ! Remaps tracer fields in a given category from one set of layers to another.
 ! Grids can be very different and  so can  vertical spaces.  
 
-      subroutine remap_zbgc(ntrcr,    nlyrn,    &
+      subroutine remap_zbgc(nlyrn,    &
                             it,                 &
                             trcrn,    trtmp,    &
                             nr0,      nbyrn,    &
@@ -209,7 +209,6 @@
                             S_min     )
 
       integer (kind=int_kind), intent(in) :: &
-         ntrcr         , & ! number of tracers in use
          it            , & ! tracer index in top layer
          nr0           , & ! receiver category
          nlyrn         , & ! number of ice layers
@@ -433,7 +432,7 @@
 
       !  local variables
 
-      integer (kind=int_kind) :: k, n, nt, nr
+      integer (kind=int_kind) :: k, nt, nr
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: &
          trtmp0,   &    ! temporary, remapped tracers
@@ -446,7 +445,6 @@
          dflux,    &    ! regrid flux correction (mmol/m^2)
          sum_i,    &    ! total tracer before melt loss
          sum_f,    &    ! total tracer after melt
-         neg_flux, & 
          hice,     & 
          hbio
 
@@ -516,7 +514,7 @@
       ! Regrid C_stationary to add or remove bottom layer(s)
       !-----------------------------------------------------------------
       if (htemp > c0) then
-          call remap_zbgc   (ntrcr,            nblyr+1,  &
+          call remap_zbgc   (nblyr+1,  &
                              nt,                         &
                              trtmp0(1:ntrcr),            &
                              trtmp,                      &
@@ -559,7 +557,7 @@
                                bio_index,    n_algae,    &
                                nbtrcr,       aicen,      &    
                                vicen,        vsnon,      &
-                               ntrcr,        iphin,      &
+                               iphin,      &
                                trcrn,      &
                                flux_bion,    flux_bio,   &
                                upNOn,        upNHn,      &
@@ -576,7 +574,6 @@
       integer (kind=int_kind), intent(in) :: &
          nblyr, &
          n_algae, &     !
-         ntrcr, &       ! number of tracers
          nbtrcr         ! number of biology tracer tracers
 
       integer (kind=int_kind), dimension(:), intent(in) :: &
@@ -684,8 +681,7 @@
 !
 ! author: Elizabeth C. Hunke and William H. Lipscomb, LANL
 
-      subroutine merge_bgc_fluxes_skl (ntrcr,           &
-                               nbtrcr,    n_algae,         &
+      subroutine merge_bgc_fluxes_skl (nbtrcr, n_algae,    &
                                aicen,     trcrn,           &
                                flux_bion, flux_bio,        &
                                PP_net,    upNOn,           &
@@ -694,7 +690,6 @@
                                grow_alg)
 
       integer (kind=int_kind), intent(in) :: &
-         ntrcr   , & ! number of cells with aicen > puny
          nbtrcr  , & ! number of bgc tracers
          n_algae     ! number of autotrophs
 

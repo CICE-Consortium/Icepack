@@ -17,7 +17,7 @@
       use icepack_parameters, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
       use icepack_parameters, only: rhosi, min_salin, salt_loss
       use icepack_parameters, only: l_skS, grid_oS, l_sk
-      use icepack_parameters, only: solve_zsal, dts_b
+      use icepack_parameters, only: dts_b
       use icepack_tracers, only: nt_sice
       use icepack_zbgc_shared, only: remap_zbgc
       use icepack_zbgc_shared, only: Ra_c, k_o, viscos_dynamic, thinS, Dm, exp_h
@@ -34,9 +34,9 @@
 
       real (kind=dbl_kind), parameter :: & 
          max_salin = 200.0_dbl_kind, & !(ppt) maximum bulk salinity
-         lapidus_g = 0.3_dbl_kind  , & ! constant for artificial 
+         lapidus_g = 0.3_dbl_kind      ! constant for artificial 
                                        ! viscosity/diffusion during growth
-         lapidus_m = 0.007_dbl_kind    ! constant for artificial diffusion during melt
+!        lapidus_m = 0.007_dbl_kind    ! constant for artificial diffusion during melt
 
 !=======================================================================
 
@@ -139,10 +139,6 @@
          ibrine_sal        ! brine sal on interface   
          
       ! local variables
-
-      integer (kind=int_kind) :: &
-         k              , & ! vertical index
-         n, mm              ! thickness category index
 
       real (kind=dbl_kind) :: &
          fzsaln        , & ! category flux of salt out of ice over timestep(kg/m^2/s)
@@ -284,7 +280,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k, m, nint        ! vertical biology layer index 
+         k, nint        ! vertical biology layer index 
 
       real (kind=dbl_kind) :: &
          surface_S         ! salinity of ice above hin > hbrin
@@ -373,7 +369,7 @@
                        igrid        , bgrid        , &
                        ikin         ,                &
                        hbr_old      , hbrin        , &
-                       hin          , hin_old      , &
+                       hin_old      , &
                        iDin         , darcy_V      , &
                        brine_sal    , Rayleigh     , &
                        first_ice    , sss          , &
@@ -394,7 +390,7 @@
             trtmp0(nt_sice+k-1) = trcrn_S(k)
       enddo           ! k
 
-      call remap_zbgc   (ntrcr,     nilyr, &
+      call remap_zbgc   (nilyr, &
                          nt_sice,          &
                          trtmp0(1:ntrcr),  &
                          trtmp,            &
@@ -429,7 +425,7 @@
                                       dts,    bSin,  bTin,          &
                                       bphin,  iphin, igrid,         &
                                       bgrid,  ikin,  hbri_old,      &
-                                      hbrin,  hice,  hice_old,      &
+                                      hbrin,  hice_old,      &
                                       iDin,          darcy_V,       &
                                       brine_sal,     Rayleigh,      &
                                       first_ice,     sss,           &
@@ -455,7 +451,6 @@
          hice_old         , & ! old ice thickness (m)
          hbri_old         , & ! brine thickness (m) 
          hbrin            , & ! new brine thickness (m)
-         hice             , & ! ice thickness (m
          darcy_V              ! Darcy velocity due to a pressure head (m/s) or melt      
 
       real (kind=dbl_kind), intent(out) :: &
@@ -497,15 +492,15 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k, m , mm            ! vertical biology layer index 
+         k, m       ! vertical biology layer index 
 
       real (kind=dbl_kind), dimension (nblyr+1) :: &
          iDin_p           , & ! Diffusivity on the igrid (1/s)/bphi^3 
          dSbdx            , & ! gradient of brine rho on grid
          drho             , & ! brine difference rho_a-rho_b  (kg/m^3)
-         Ci_s             , & !
+!        Ci_s             , & !
          Ui_s             , & ! interface function
-         Vi_s             , & ! for conservation check
+!        Vi_s             , & ! for conservation check
          ivel
 
       real (kind=dbl_kind), dimension (nblyr+2) :: &
@@ -541,7 +536,6 @@
          lapB    
 
       logical (kind=log_kind) :: &   
-         write_flag       , &    ! set to true at each timestep        
          test_conservation       ! test that salt change is balanced by fluxes 
 
       character(len=*),parameter :: subname='(solve_S_dt)'
@@ -551,7 +545,6 @@
       !-----------------------------------------------------------------
 
       cflag = .false.
-      write_flag = .true.
       test_conservation = .false. 
       iDin_p(:) = c0   
       Din_p(:) = c0 
@@ -563,10 +556,10 @@
       U_s(:) = c0
       Q_s(:) = c0
       C_s(:) = c0
-      Ci_s(:) = c0
+!     Ci_s(:) = c0
       F_s(:) = c0
       Ui_s(:) = c0
-      Vi_s(:) = c0
+!     Vi_s(:) = c0
       ivel(:) = c0
       vel(:) = c0
       dh = c0
@@ -628,7 +621,7 @@
          ivel(1) = dht/hbri_old
          U_s (1) = ivel(1)/dt*dts 
          Ui_s(1) = U_s(1) 
-         Ci_s(1) = c0
+!        Ci_s(1) = c0
          F_s (1) = brine_rho(2)*brine_sal(2)/rhosi*darcy_V*dts/hbri_old/bSin(1)
 
          !-----------------------------------
@@ -662,27 +655,27 @@
          V_s(nblyr+2) = Din_p(nblyr+2)/rhosi &
                       * (bphin(nblyr+1)/bSin(nblyr+2))**exp_h &
                       * dts*dSbdx(nblyr+1)
-         Ci_s(nblyr+1) = C_s(nblyr+2)
-         Vi_s(nblyr+1) = V_s(nblyr+2) 
+!        Ci_s(nblyr+1) = C_s(nblyr+2)
+!        Vi_s(nblyr+1) = V_s(nblyr+2) 
          dh = (dhb-dht)/dt*dts
 
          do k = 2, nblyr  
             ivel(k) =  (igrid(k)*dhb - (igrid(k)-c1)*dht)/hbri_old
             Ui_s(k) = ivel(k)/dt*dts   
-            Vi_s(k) = iDin_p(k)/rhosi &
-                    *(rhosi/ibrine_rho(k)/ibrine_sal(k))**exp_h*dts &
-                    * (brine_sal(k+1)*brine_rho(k+1) &
-                    -  brine_sal(k)*brine_rho(k)) &
-                    / (bgrid(k+1)-bgrid(k)) 
+!           Vi_s(k) = iDin_p(k)/rhosi &
+!                   *(rhosi/ibrine_rho(k)/ibrine_sal(k))**exp_h*dts &
+!                   * (brine_sal(k+1)*brine_rho(k+1) &
+!                   -  brine_sal(k)*brine_rho(k)) &
+!                   / (bgrid(k+1)-bgrid(k)) 
             dSbdx(k-1) = (ibrine_sal(k)*ibrine_rho(k) &
                        -  ibrine_sal(k-1)*ibrine_rho(k-1))/(igrid(k)-igrid(k-1))
             F_s(k) = darcy_V*dts/hbri_old/bphin(k)
             C_s(k) = Dm/brine_sal(k)/brine_rho(k)*dts/hbri_old**2 &
                    * (ibrine_sal(k)*ibrine_rho(k) &
                    -  ibrine_sal(k-1)*ibrine_rho(k-1))/(igrid(k)-igrid(k-1))
-            Ci_s(k) = Dm/ibrine_sal(k)/ibrine_rho(k)*dts/hbri_old**2 &
-                    * (brine_sal(k+1)*brine_rho(k+1) &
-                    -  brine_sal(k)*brine_rho(k))/(bgrid(k+1)-bgrid(k))
+!           Ci_s(k) = Dm/ibrine_sal(k)/ibrine_rho(k)*dts/hbri_old**2 &
+!                   * (brine_sal(k+1)*brine_rho(k+1) &
+!                   -  brine_sal(k)*brine_rho(k))/(bgrid(k+1)-bgrid(k))
             vel(k-1) = (bgrid(k)*(dhb) - (bgrid(k) - c1)* dht)/hbri_old
             U_s(k) = vel(k-1)/dt*dts 
             V_s(k) = Din_p(k)/rhosi &
@@ -789,15 +782,15 @@
 
             Ssum_tmp = Ssum_old
 
-            call calc_salt_fluxes (nint, m, nblyr, igrid, &
+            call calc_salt_fluxes (nint, nblyr, &
                  Ui_s,   dh,dbgrid,hbri_old,Sintemp,    &
                  pre_sin,   fluxb,fluxg,fluxm,V_s,    &
                  C_s,   F_s,   Ssum_corr,fzsaln_g,fzsaln, &
-                 Ssum_tmp,fluxcorr,dts, Ssum_new)
+                 Ssum_tmp,dts, Ssum_new)
             if (icepack_warnings_aborted(subname)) return
 
             if (test_conservation) then
-               call check_conserve_salt(nint, m, dt, dts,&
+               call check_conserve_salt(nint, m, dt, &
                                 Ssum_tmp, Ssum_new, Ssum_corr,&
                                 fluxcorr, fluxb, fluxg, fluxm, &
                                 hbrin, hbri_old)
@@ -875,27 +868,24 @@
 !
 ! Calculate salt fluxes
 ! 
-      subroutine calc_salt_fluxes (mmax, mint, nblyr, igrid, &
+      subroutine calc_salt_fluxes (mint, nblyr, &
                                    Ui_s,dh,dbgrid,hbri_old,Sintemp,pre_sin,&
                                    fluxb,fluxg,fluxm,V_s,&
                                    C_s,F_s,Ssum_corr,fzsaln_g,fzsaln,Ssum_old, &
-                                   fluxcorr,dts, Ssum_new)
+!                                  fluxcorr,dts, Ssum_new)
+                                   dts, Ssum_new)
 
       integer(kind=int_kind), intent(in) :: &
          nblyr,          & ! number of bio layers
-         mint ,          & ! current iteration
-         mmax              ! total number of iterations     
+         mint              ! current iteration
 
-      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         igrid              ! biology vertical interface points
- 
       real (kind=dbl_kind), intent(in) :: &
          dts      , & !  halodynamic timesteps (s)
         ! hbrin    , & ! new brine height after all iterations (m)
          dh       , &  ! (m) change in hbrine over dts
          dbgrid   , & ! ratio of grid space to spacing across boundary 
                       ! ie. 1/nilyr/(dbgrid(2)-dbgrid(1))
-         fluxcorr , & ! flux correction to ensure S >= min_salin
+!        fluxcorr , & ! flux correction to ensure S >= min_salin
          hbri_old     ! initial brine height (m)
 
       real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: & 
@@ -1013,7 +1003,7 @@
 ! 
 ! Test salt conservation:   flux conservative form d(hSin)/dt = -dF(x,Sin)/dx 
 !  
-      subroutine check_conserve_salt (mmax, mint,     dt,       dts,        &
+      subroutine check_conserve_salt (mmax, mint,     dt, &
                                       Ssum_old, Ssum_new, Ssum_corr,        & 
                                       fluxcorr, fluxb,    fluxg,     fluxm, &
                                       hbrin,    hbri_old)
@@ -1023,7 +1013,7 @@
          mmax          ! maximum number of iterations
 
       real (kind=dbl_kind), intent(in) :: &
-         dt, dts        , &  ! thermodynamic and halodynamic timesteps (s)
+         dt             , &  ! thermodynamic and halodynamic timesteps (s)
          hbrin          , &  ! (m) final brine height 
          hbri_old       , &  ! (m) initial brine height
          Ssum_old       , &  ! initial integrated salt content

@@ -192,11 +192,7 @@
 
       integer (kind=int_kind) :: &
          ns                         , & ! loop index
-         nyrp,mdayp,hourp           , & ! previous year, day, hour
-         elapsed_days               , & ! since beginning this run
-         elapsed_months             , & ! since beginning this run
-         elapsed_hours              , & ! since beginning this run
-         month0
+         nyrp,mdayp,hourp               ! previous year, day, hour
 
       character(len=*), parameter :: subname='(calendar)'
 
@@ -221,12 +217,6 @@
       nyr = nyr - year_init + 1     ! year number
       
       hour = int((ttime)/c3600) + c1 ! hour
-
-      month0 = int((idate0 - int(idate0 / 10000) * 10000) / 100)
-
-      elapsed_months = (nyr - 1)*12 + (month - month0)
-      elapsed_days = int((istep * dt) / secday)
-      elapsed_hours = int(ttime/3600)
 
       idate = (nyr+year_init-1)*10000 + month*100 + mday ! date (yyyymmdd) 
 

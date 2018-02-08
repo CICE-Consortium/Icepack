@@ -33,7 +33,7 @@
       module icedrv_state
 
       use icedrv_kinds
-      use icedrv_domain_size, only: nx, ncat, max_ntrcr, n_aero
+      use icedrv_domain_size, only: nx, ncat, max_ntrcr
 
       implicit none
       private
