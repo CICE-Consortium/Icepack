@@ -1,6 +1,7 @@
 #!/bin/csh -f
 
-set wikirepo = "https://github.com/CICE-Consortium/Test-Results.wiki.git"
+set gh_repository = "CICE-Consortium/Test-Results.wiki.git"
+set wikirepo = "https://github.com/${gh_repository}"
 set wikiname = Test-Results.wiki
 
 set tsubdir = icepack_testing
@@ -10,7 +11,14 @@ set vfile = "icepack_by_vers"
 set bfile = "icepack_by_bran"
 
 rm -r -f ${wikiname}
-git clone ${wikirepo} ${wikiname}
+
+# If command line argument "--travisCI" is set when running this script, clone
+# the wiki repository using Github access token for the 'ciceconsortium' user.
+if ( "$1" == "--travisCI" ) then
+    git clone "https://ciceconsortium:${GH_TOKEN}@github.com/${gh_repository}" ${wikiname}
+else
+    git clone ${wikirepo} ${wikiname}
+endif
 
 set repo = `grep "#repo = " results.log | cut -c 9-`
 set bran = `grep "#bran = " results.log | cut -c 9-`
@@ -205,6 +213,16 @@ cat >! ${outfile} << EOF
 - ${ttotl} total regressions: ${rpass} pass, ${rfail} fail, ${rothr} other
 EOF
 cat ${outfile}.hold >> ${outfile}
+
+
+# If command line argument "--travisCI" is set when running this script, add
+# links to Travis build page and the raw build log.
+if ( "$1" == "--travisCI" ) then
+    cat >> ${outfile} << EOF
+- Travis-CI build page: https://travis-ci.org/${TRAVIS_REPO_SLUG}/builds/${TRAVIS_BUILD_ID}
+- Travis-CI raw log: https://api.travis-ci.org/v3/job/${TRAVIS_JOB_ID}/log.txt
+EOF
+endif
 
 cat >> ${outfile} << EOF
 
