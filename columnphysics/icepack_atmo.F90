@@ -160,7 +160,7 @@
          psimhu, & ! unstable part of psimh
          psixhu    ! unstable part of psimx
 
-      character(len=*),parameter :: subname='(atm_boundary_layer)'
+      character(len=*),parameter :: subname='(atmo_boundary_layer)'
 
       !------------------------------------------------------------
       ! Define functions
@@ -388,7 +388,7 @@
                                       Tsf,      potT,     &
                                       Qa,                 &
                                       delt,     delq,     &
-                                      lhcoef,   shcoef)  
+                                      lhcoef,   shcoef    )
 
       character (len=3), intent(in) :: &
          sfctype      ! ice or ocean
@@ -424,7 +424,7 @@
          tau, &  ! stress at zlvl
          Lheat   ! Lvap or Lsub, depending on surface type
 
-      character(len=*),parameter :: subname='(atm_boundary_const)'
+      character(len=*),parameter :: subname='(atmo_boundary_const)'
 
       !------------------------------------------------------------
       ! Initialize
@@ -892,6 +892,8 @@
          workv = vvel
       endif
 
+      Cdn_atm_ratio_n = c1
+
                if (trim(atmbndy) == 'constant') then
                   call atmo_boundary_const (sfctype,  calc_strair, &
                                             uatm,     vatm,     &
@@ -900,7 +902,11 @@
                                             Tsf,      potT,     &
                                             Qa,                 &
                                             delt,     delq,     &
+<<<<<<< HEAD
                                             lhcoef,   shcoef)
+=======
+                                            lhcoef,   shcoef    )
+>>>>>>> 2ad4ace0b3f410c42f0ab7cfe75ca6cf830fe783
                   if (icepack_warnings_aborted(subname)) return
                else ! default
                   call atmo_boundary_layer (sfctype,                 &
