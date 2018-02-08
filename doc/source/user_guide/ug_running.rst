@@ -233,21 +233,114 @@ There is also an option (``--acct``) in **icepack.setup** to define the account 
 The order of precedent is **icepack.setup** command line option, 
 **.cice\_proj** setting, and then value in the **env.[machine]** file.
 
+.. _force:
+
 Forcing data
 ------------
-
-The code is currently configured to run in standalone mode on a 4-cell grid using 
-atmospheric data, available as detailed in :ref:`testforce` and on the `wiki <https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack>`_.
-These data files are designed only for testing the code, not for use in production 
-runs or as observational data.  Please do not publish results based on these data
-sets.  Module **configuration/driver/icedrv\_forcing.F90**
-can be modified to change the forcing data. 
 
 The input data space is defined on a per machine basis by the ``ICE_MACHINE_INPUTDATA`` 
 variable in the **env.[machine]** file.  That file space is often shared among multiple 
 users, and it can be desirable to consider using a common file space with group read 
 and write permissions such that a set of users can update the inputdata area as 
 new datasets are available.
+
+The code is currently configured to run in standalone mode on a 4-cell grid using 
+atmospheric data, available as detailed on the 
+`wiki <https://github.com/CICE-Consortium/Icepack/wiki/Testing-Icepack>`_.
+These data files are designed only for testing the code, not for use in production 
+runs or as observational data.  Please do not publish results based on these data
+sets.  Module **configuration/driver/icedrv\_forcing.F90**
+can be modified to change the forcing data. 
+
+Icepack requires near surface atmospheric data at a single point which are set
+in ``forcing_nml`` with the ``atm_data_type`` in the namelist (see :ref:`tabsettings`).
+The required fields to force icepack include: downwelling long wave and shortwave 
+radiative fluxes, latent and sensible heat fluxes, precipitation rate, and near 
+surface potential temperature and specific humidity.
+
+
+1) **Climate Forecast System (CFS)**
+
+   Hourly atmospheric forcing from the National Centers for Environmental Prediction's (NCEP) 
+   Climate Forecast System, version 2 (CFSv2) :cite:`SAHA14` were utilized to generate
+   a one-year time series for Icepack testing. These data were used to create the annual cycle at a 
+   point in the Beaufort Sea (70N, 220W) for the period of January 1 00:00UTC - December 31 23:00UTC, 2015. 
+   Additional locations can be provided for both hemispheres for the period of 1999-2015 for 
+   future testing. This dataset can be used to run for several years to reach equilibrium of the annual
+   cycle. 
+
+   Atmospheric forcing fields consist of 2-m air temperature (K), specific humidity (kg/kg),
+   10-m wind velocity in the x and y directions (m/s), downward solar radiation (:math:`W/m^2`), 
+   downward longwave radiation (:math:`W/m^2`), and precipitation (:math:`kg/m^2/s`). 
+   Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes.
+   In the namelist, set ``atm_data_type = CFS`` to use CFS atmospheric forcing.
+
+
+2) **Field campaign derived**
+
+   a) **Norwegian Young Sea Ice cruise (N-ICE)**
+
+    Atmospheric, oceanic, and biogeochemical forcing are available from the 2015 Norwegian Young Sea Ice Cruise 
+    (N-ICE) :cite:`DUARTE17`. These data are available daily, except for incoming atmospheric radiative forcing,
+    which are available 6-hourly. The data correspond to the Arctic Ocean north of Svalbard along the N-ICE drift 
+    track (83N, 16E to 80N, 5E) from April 24, 2015 to June 6, 2015.
+
+    Atmospheric forcing fields from :cite:`DUARTE17` consist of 2-m air temperature (K), 2-m specific humidity (kg/kg), 
+    10-m wind velocity in the x and y directions (m/s), downward solar radiation (:math:`W/m^2`), and precipitation
+    (:math:`kg/m^2/s`). Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes. 
+    In the namelist, set ``atm_data_type = NICE`` to use N-ICE atmospheric forcing.
+
+    Oceanic forcing fields are available from a Parallel Ocean Program (POP) 1-degree (gx1v3) simulation run 01/08/15.
+    These fields consist of sea surface temperature (K), sea surface salinity (ppt), boundary layer depth (m),
+    ocean velocity in the x and y direction (m/s), and deep ocean heat flux (:math:`W/m^2`). 
+    In the namelist, set ``ocn_data_type = NICE`` to use N-ICE oceanic forcing.
+
+    Biogeochemical forcing fields are available from the World Ocean Atlas :cite:`WOA13`. The biogeochemical fields provided
+    are nitrate concentration (:math:`mmol/m^3`) and silicate concentration (:math:`mmol/m^3`). In the namelist, set
+    ``bgc_data_type = NICE`` to use N-ICE biogeochemical forcing.
+
+   b) **Ice Station Polarstern (ISPOL)**
+
+    Atmospheric, oceanic, and biogeochemical forcing are available from the 2004 Ice Station Polarstern
+    (ISPOL) :cite:`JH14`. These data can be used with both :cite:`BL99` and mushy layer thermodynamics. 
+    These data are available daily, except for incoming atmospheric radiative forcing,
+    which are available 6-hourly. The data correspond to the Weddell Sea (67.9S, 54W) from June 16, 2004 
+    to December 31, 2004.
+
+    Atmospheric forcing fields from :cite:`JH14` consist of 2-m air temperature (K), 2-m specific humidity (kg/kg), 10-m wind 
+    velocity in the x and y directions (m/s), downward solar radiation (:math:`W/m^2`), and precipitation
+    (:math:`kg/m^2/s`). Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes. 
+    In the namelist, set ``atm_data_type = ISPOL`` to use ISPOL atmospheric forcing.
+
+    Oceanic forcing fields are available from :cite:`JH14` and consist of sea surface temperature (K), 
+    sea surface salinity (ppt), boundary layer depth (m), ocean velocity in the x and y direction (m/s), 
+    and deep ocean heat flux (:math:`W/m^2`). 
+    In the namelist, set ``ocn_data_type = ISPOL`` to use ISPOL oceanic forcing.
+
+    Biogeochemical forcing fields are available from the World Ocean Atlas :cite:`WOA13`. The biogeochemical fields provided
+    are nitrate concentration (:math:`mmol/m^3`) and silicate concentration (:math:`mmol/m^3`). In the namelist, set
+    ``bgc_data_type = ISPOL`` to use ISPOL biogeochemical forcing.
+
+   c) **Surface HEat Budget of the Arctic (SHEBA)**
+
+    https://atmos.washington.edu/~bitz/column_model/
+
+    https://atmos.washington.edu/~bitz/column_model/notes_forcing_data
+
+    includes opening and closing rates, solar zenith angle
+
+    ocn_data_type
+
+3) **Climatological** - Maykut and Untersteiner 1971 :cite:`MU71`
+
+   The climatological forcing consists of a monthly climatology of downward radiative fluxes, air temperature, 
+   relative humidity and wind speed compiled from Arctic ice station observations shown in Table 1 from
+   :cite:`LIND98`. Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes.  
+   The snowfall follows the idealized specification used by :cite:`Semtner76` . 
+   To adjust the ice thickness a fixed heating of 6 :math:`W/m^2` is applied to the bottom of the ice.
+   This may be thought of as containing about 2 :math:`W/m^2` of ocean heating and an adjustment of 
+   about 4 :math:`W/m^2` for biases in the forcings or the model. In the namelist, set ``atm_data_type = clim`` 
+   to use climatological atmospheric forcing.
 
 
 Run Directories

@@ -66,8 +66,7 @@
       !-----------------------------------------------------------------
 
       real (kind=dbl_kind), parameter, public :: &
-         omega     = 7.292e-5_dbl_kind, & ! angular velocity of earth (rad/sec)
-         radius    = 6.37e6_dbl_kind      ! earth radius (m)
+         omega     = 7.292e-5_dbl_kind   ! angular velocity of earth (rad/sec)
 
       !-----------------------------------------------------------------
       ! numbers used outside the column package

@@ -16,7 +16,6 @@ The column physics source code contains the following files
 |    **icepack_algae.F90**         biogeochemistry
 |    **icepack_atmo.F90**          stability-based parameterization for calculation of turbulent ice–atmosphere fluxes
 |    **icepack_brine.F90**         evolves the brine height tracer
-|    **icepack_constants.F90**     physical and numerical constants required for column package
 |    **icepack_firstyear.F90**     handles most work associated with the first-year ice area tracer
 |    **icepack_flux.F90**          fluxes needed/produced by the model
 |    **icepack_intfc.F90**         interface routines for linking Icepack with a host sea ice model
@@ -29,7 +28,7 @@ The column physics source code contains the following files
 |    **icepack_mushy_physics.F90** physics routines for mushy thermodynamics
 |    **icepack_ocean.F90**         mixed layer ocean model
 |    **icepack_orbital.F90**       orbital parameters for Delta-Eddington shortwave parameterization
-|    **icepack_parameters.F90**    basic model parameters
+|    **icepack_parameters.F90**    basic model parameters including physical and numerical constants requried for column package
 |    **icepack_shortwave.F90**     shortwave and albedo parameterizations
 |    **icepack_therm_0layer.F90**  zero-layer thermodynamics of :cite:`Semtner76`
 |    **icepack_therm_bl99.F90**    multilayer thermodynamics of :cite:`BL99`
@@ -104,7 +103,7 @@ icepack_kinds module::
       use icepack_kinds, only: icepack_dbl_kind  => dbl_kind
       use icepack_kinds, only: icepack_r16_kind  => r16_kind
 
-icepack_tracers defines a handful of parameters constants that provide information
+icepack_tracers defines a handful of parameters that provide information
 about maximum array sizes for static dimensioning::
 
       use icepack_tracers,   only: icepack_max_nbtrcr => max_nbtrcr
@@ -116,28 +115,16 @@ about maximum array sizes for static dimensioning::
       use icepack_tracers,   only: icepack_max_aero   => max_aero
       use icepack_tracers,   only: icepack_nmodal1    => nmodal1
       use icepack_tracers,   only: icepack_nmodal2    => nmodal2
-      use icepack_constants, only: icepack_nspint     => nspint
+      use icepack_parameters, only: icepack_nspint     => nspint
 
-icepack_constants provides a list of static parameter constants::
-
-      use icepack_constants, only: c0 => c0
-
-icepack_constants provides init, query, write, and recompute methods to
-define constant values.  These constants have defaults that the caller
-can query or reset::
-
-      use icepack_constants, only: icepack_init_constants
-      use icepack_constants, only: icepack_query_constants
-      use icepack_constants, only: icepack_write_constants
-      use icepack_constants, only: icepack_recompute_constants
-
-icepack_parameters provides init, query, and write methods to
-define model parameters.  These parameters have defaults that the caller
-can query or reset::
+icepack_parameters provides init, query, write, and recompute methods to
+define constant values and model parameters.  These constants have defaults 
+that the caller can query or reset::
 
       use icepack_parameters, only: icepack_init_parameters
       use icepack_parameters, only: icepack_query_parameters
       use icepack_parameters, only: icepack_write_parameters
+      use icepack_parameters, only: icepack_recompute_constants
 
 icepack_tracers provides init, query, and write methods to
 define various tracer sizes, flags, indices, and numbers.  The
@@ -248,7 +235,6 @@ start driver
 
 initialize driver and read in driver namelist
 
-* call *icepack_init_constants*
 * call *icepack_init_parameters*
 * call *icepack_init_tracers_*
 * call *icepack_init_trcr*
