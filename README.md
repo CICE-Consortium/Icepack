@@ -27,9 +27,10 @@ Detailed and searchable online documentation of Icepack can be found at https://
 - [Quick Start](https://cice-consortium.github.io/Icepack/intro/quickstart.html), which has instructions for running the model. 
 - [Science guide](https://cice-consortium.github.io/Icepack/science_guide/index.html)
 - [User guide](https://cice-consortium.github.io/Icepack/user_guide/index.html) with a [“Testing”](https://cice-consortium.github.io/Icepack/user_guide/ug_testing.html) subsection with instructions for setting up standard tests (e.g. regression, restart).
-- [Developer guide](https://cice-consortium.github.io/Icepack/developer_guide/index.html) with instructions for how to update the [Documentation](https://cice-consoritum.github.io/Icepack/developer_guide/dg_documentation.html) with code development using Sphinx.
+- [Developer guide](https://cice-consortium.github.io/Icepack/developer_guide/index.html) with a ["Documentation"](https://cice-consoritum.github.io/Icepack/developer_guide/dg_documentation.html) subsection with instructions on how to update documentation using Sphinx along with code development.
 - [Index](https://cice-consortium.github.io/Icepack/icepack_index.html)
-* Note that the documentation Table of Contents can be accessed at any point by clicking the upper left hand "Icepack 1.0 documentation" link.
+
+**Note that the documentation Table of Contents can be accessed at any point by clicking the upper left hand "Icepack x.x.xx documentation" link.**
 
 ## More Information
 
