@@ -1861,7 +1861,6 @@
       endif
 
       if (icepack_warnings_aborted(subname)) return
-      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! ITD cleanup: Rebin thickness categories if necessary, and remove
