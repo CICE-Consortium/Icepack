@@ -8,8 +8,7 @@
 
       use icedrv_kinds
       use icedrv_constants
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, nx
-      use icedrv_restart, only: read_restart_field, write_restart_field
+      use icedrv_domain_size, only: ncat, nblyr, nx
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don
       use icepack_intfc, only: icepack_max_dic, icepack_max_aero, icepack_max_fe
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -35,7 +34,7 @@
       subroutine write_restart_bgc()
 
       use icedrv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
-      use icedrv_domain_size, only: ncat, n_algae, n_doc, n_dic
+      use icedrv_domain_size, only: n_algae, n_doc, n_dic
       use icedrv_domain_size, only: n_don, n_zaero, n_fed, n_fep
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
       use icedrv_flux, only: doc, don, dic, fed, fep, zaeros, hum
@@ -335,7 +334,7 @@
       subroutine read_restart_bgc()
 
       use icedrv_arrays_column, only: Rayleigh_real, Rayleigh_criteria
-      use icedrv_domain_size, only: ncat, n_algae, n_doc, n_dic
+      use icedrv_domain_size, only: n_algae, n_doc, n_dic
       use icedrv_domain_size, only: n_don, n_zaero, n_fed, n_fep
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
       use icedrv_flux, only: doc, don, dic, fed, fep, zaeros, hum

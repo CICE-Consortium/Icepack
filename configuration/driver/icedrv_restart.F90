@@ -44,17 +44,17 @@
 
       use icedrv_calendar, only: sec, month, mday, nyr, istep1
       use icedrv_calendar, only: time, time_forc, year_init
-      use icedrv_domain_size, only: nilyr, nslyr, ncat, nx
+      use icedrv_domain_size, only: nilyr, nslyr, ncat
       use icedrv_forcing, only: oceanmixed_ice
       use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
-      use icedrv_flux, only: sst, frzmlt, coszen
-      use icedrv_state, only: aicen, vicen, vsnon, trcrn, uvel, vvel
+      use icedrv_flux, only: sst, frzmlt
+      use icedrv_state, only: aicen, vicen, vsnon, trcrn
 
       ! local variables
 
       integer (kind=int_kind) :: &
-         i, k, n, &              ! counting indices
-         iyear, imonth, iday     ! year, month, day
+         k, &              ! counting indices
+         iyear
 
       integer (kind=int_kind) :: &
          nt_Tsfc, nt_sice, nt_qice, nt_qsno
@@ -69,8 +69,6 @@
 
       ! construct path/file
       iyear = nyr + year_init - 1
-      imonth = month
-      iday = mday
       
       write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
          restart_dir(1:lenstr(restart_dir)), &
@@ -152,16 +150,16 @@
 
       subroutine restartfile (ice_ic)
 
-      use icedrv_calendar, only: istep0, istep1, time, time_forc, calendar, npt
+      use icedrv_calendar, only: istep0, istep1, time, time_forc
       use icepack_intfc, only: icepack_aggregate
       use icedrv_domain_size, only: nilyr, nslyr, ncat
       use icedrv_domain_size, only: max_ntrcr, nx
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf
-      use icedrv_flux, only: sst, frzmlt, coszen, scale_factor
+      use icedrv_flux, only: sst, frzmlt, scale_factor
       use icedrv_forcing, only: oceanmixed_ice
       use icedrv_init, only: tmask
       use icedrv_state, only: trcr_depend, aice, vice, vsno, trcr
-      use icedrv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init, uvel, vvel
+      use icedrv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init
       use icedrv_state, only: trcr_base, nt_strata, n_trcr_strata
 
       character (*), optional :: ice_ic
@@ -169,7 +167,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         i, k, n              ! counting indices
+         i, k              ! counting indices
 
       integer (kind=int_kind) :: &
          nt_Tsfc, nt_sice, nt_qice, nt_qsno
@@ -178,9 +176,7 @@
          tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine, &
          tr_pond_topo, tr_pond_cesm, tr_pond_lvl
 
-      character(len=char_len_long) :: &
-         filename, filename0
-
+      character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(restartfile)'
 
       if (present(ice_ic)) then 
@@ -387,7 +383,6 @@
 
       use icedrv_calendar, only: istep1, time, time_forc
 
-      integer (kind=int_kind) :: status
       character(len=*), parameter :: subname='(final_restart)'
 
       close(nu_dump)
