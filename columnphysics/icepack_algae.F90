@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_algae.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! Compute sea ice biogeochemistry (vertical or skeletal layer)

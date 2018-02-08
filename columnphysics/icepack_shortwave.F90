@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_shortwave.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! The albedo and absorbed/transmitted flux parameterizations for

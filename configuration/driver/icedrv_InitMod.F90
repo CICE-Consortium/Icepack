@@ -34,6 +34,7 @@
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
       use icepack_intfc, only: icepack_warnings_flush
       use icedrv_domain_size, only: ncat
+!     use icedrv_diagnostics, only: icedrv_diagnostics_debug
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
       use icedrv_forcing, only: init_forcing, get_forcing

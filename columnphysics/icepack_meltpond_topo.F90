@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_meltpond_topo.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Melt pond evolution based on the ice topography as inferred from

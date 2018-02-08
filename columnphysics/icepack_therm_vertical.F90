@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_vertical.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! Update ice and snow internal temperatures and compute

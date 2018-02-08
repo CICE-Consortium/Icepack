@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_intfc.F90 1227 2017-05-22 22:49:10Z tcraig $
 !=========================================================================
 !
 ! flags and interface routines for the column package

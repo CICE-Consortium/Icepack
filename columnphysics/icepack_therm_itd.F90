@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_itd.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! Thermo calculations after call to coupler, related to ITD:

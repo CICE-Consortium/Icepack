@@ -1,4 +1,3 @@
-!  SVN:$Id: ice_tracers.F90 -1   $
 !=======================================================================
 ! Indices and flags associated with the tracer infrastructure. 
 ! Grid-dependent and max_trcr-dependent arrays are declared in ice_state.F90.

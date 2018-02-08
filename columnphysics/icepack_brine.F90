@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_brine.F90 1008 2015-06-20 23:55:12Z eclare $
 !=======================================================================
 !
 ! Computes ice microstructural information for use in biogeochemistry
