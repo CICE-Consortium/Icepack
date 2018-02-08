@@ -9,6 +9,7 @@
       use icedrv_constants, only: c0, nu_diag
       use icedrv_kinds
 !      use icedrv_calendar, only: istep1
+      use icedrv_forcing, only: ocn_data_type
       use icedrv_system, only: icedrv_system_abort
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
@@ -515,7 +516,7 @@
       use icedrv_arrays_column, only: hin_max, fzsal, first_ice
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
       use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
-      use icedrv_flux, only: dvirdgdt, opening, fpond, fresh, fhocn
+      use icedrv_flux, only: dvirdgdt, opening, closing, fpond, fresh, fhocn
       use icedrv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt
       use icedrv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn
       use icedrv_init, only: tmask
@@ -554,6 +555,8 @@
       ! Ridging
       !-----------------------------------------------------------------
 
+         if (trim(ocn_data_type) == "SHEBA") then
+
          do i = 1, nx
 
 !echmod: this changes the answers, continue using tmask for now
@@ -586,11 +589,54 @@
                          araftn   (i,:), vraftn   (i,:), &
                          aice     (i), fsalt    (i), &
                          first_ice(i,:), fzsal    (i), &
-                         flux_bio (i,1:nbtrcr) )
+                         flux_bio (i,1:nbtrcr), &
+                         closing(i) )
 
          endif ! tmask
 
          enddo ! i
+
+         else ! closing not read in
+
+         do i = 1, nx
+
+!echmod: this changes the answers, continue using tmask for now
+!      call aggregate_area (ncat, aicen(:), atmp, atmp0)
+!      if (atmp > c0) then
+
+         if (tmask(i)) then
+
+            call icepack_step_ridge (dt,            ndtd,                  &
+                         nilyr,                 nslyr,                 &
+                         nblyr,                                        &
+                         ncat,                  hin_max  (:),          &
+                         rdg_conv (i), rdg_shear(i), &
+                         aicen    (i,:),                        &
+                         trcrn    (i,1:ntrcr,:),                &
+                         vicen    (i,:), vsnon    (i,:), &
+                         aice0    (i), trcr_depend(1:ntrcr),  &
+                         trcr_base(1:ntrcr,:),  n_trcr_strata(1:ntrcr),&
+                         nt_strata(1:ntrcr,:),                         &
+                         dardg1dt (i), dardg2dt (i), &
+                         dvirdgdt (i), opening  (i), &
+                         fpond    (i),                        &
+                         fresh    (i), fhocn    (i), &
+                         n_aero,                                       &
+                         faero_ocn(i,:),                        &
+                         aparticn (i,:), krdgn    (i,:), &
+                         aredistn (i,:), vredistn (i,:), &
+                         dardg1ndt(i,:), dardg2ndt(i,:), &
+                         dvirdgndt(i,:),                        &
+                         araftn   (i,:), vraftn   (i,:), &
+                         aice     (i), fsalt    (i), &
+                         first_ice(i,:), fzsal    (i), &
+                         flux_bio (i,1:nbtrcr))
+
+         endif ! tmask
+
+         enddo ! i
+
+         endif
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__, line=__LINE__)

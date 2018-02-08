@@ -62,6 +62,7 @@
          dardg1dt, & ! rate of area loss by ridging ice (1/s)
          dardg2dt, & ! rate of area gain by new ridges (1/s)
          dvirdgdt, & ! rate of ice volume ridged (m/s)
+         closing,  & ! rate of closing due to divergence/shear (1/s)
          opening     ! rate of opening due to divergence/shear (1/s)
 
       real (kind=dbl_kind), & 
@@ -698,7 +699,6 @@
       dardg1dt(:) = c0
       dardg2dt(:) = c0
       dvirdgdt(:) = c0
-      opening (:) = c0
       daidtd  (:) = aice(:) ! temporary initial area
       dvidtd  (:) = vice(:) ! temporary initial volume
       if (tr_iage) &
