@@ -281,11 +281,9 @@ specification is described in detail in section <a class="reference internal" hr
 subroutine <strong>icepack_init_ocean_conc</strong> in <strong>icepack_zbgc.F90</strong> unless
 coupled to the ocean biogeochemistry. Silicate and nitrate may be read
 from a file. This option is specified in the namelist by setting the
-variables sil_data_type and nit_data_type to ‘ISPOL’  or ‘NICE’. nit_data_type also
-has an option ‘sss’ which equates the upper ocean nitrate concentration
-with sea surface salinity. fe_data_type currently only has the
-‘default’ option. The location of forcing files is specified in
-bgc_data_dir and the filename is hardcoded in <strong>icedrv_forcing</strong> (NJ - needs to be updated).</p>
+variables <code class="docutils literal"><span class="pre">bgc_data_type</span></code> to <code class="docutils literal"><span class="pre">ISPOL</span></code>  or <code class="docutils literal"><span class="pre">NICE</span></code>. The location of
+forcing files is specified in <code class="docutils literal"><span class="pre">bgc_data_dir</span></code> and the filename is hardcoded
+in <strong>icedrv_forcing</strong> (NJ - needs to be updated).</p>
 <div class="section" id="skeletal-layer-bgc">
 <h3>2.7.3.1. Skeletal Layer BGC<a class="headerlink" href="#skeletal-layer-bgc" title="Permalink to this headline">¶</a></h3>
 <p>In the skeletal layer model, biogeochemical processing is modelled as a

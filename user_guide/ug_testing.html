@@ -457,17 +457,30 @@ wiki, please contact the consortium.</p>
 wait for all runs to be complete, and run the results and report_results scripts.</p>
 </div>
 <div class="section" id="test-plotting">
-<h2>3.3.4. Test Plotting<a class="headerlink" href="#test-plotting" title="Permalink to this headline">¶</a></h2>
-<p>Icepack comes with some tools that support plotting of output.
-This is done on a test by test basis.  Several fields are hardwired
-into the scripts at the present time.
-To plot a timeseries of “total ice extent”, “total ice area”, and “total ice volume”
-after completing a test run or a test suite</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">test_case_directory</span>
-<span class="o">./</span><span class="n">timeseries</span><span class="o">.</span><span class="n">csh</span> <span class="o">&lt;</span><span class="n">directory</span><span class="o">&gt;</span>
-<span class="n">ls</span> <span class="o">*.</span><span class="n">png</span>
+<span id="testplotting"></span><h2>3.3.4. Test Plotting<a class="headerlink" href="#test-plotting" title="Permalink to this headline">¶</a></h2>
+<p>The Icepack scripts include a script (<code class="docutils literal"><span class="pre">timeseries.csh</span></code>) that will generate a timeseries figure of
+the area fraction, average ice thickness (m), and average snow depth (m) from the diagnostic output file.
+When running a test suite, the <code class="docutils literal"><span class="pre">timeseries.csh</span></code> script is automatically copied to the suite directory.
+If the <code class="docutils literal"><span class="pre">timeseries.csh</span></code> script is to be used on a test / case that is not a part of a test suite,
+users will need to run the <code class="docutils literal"><span class="pre">timeseries.csh</span></code> script from the tests directory
+(<code class="docutils literal"><span class="pre">./configuration/scripts/tests/timeseries.csh</span></code>), or copy it to a local directory and run it
+locally (<code class="docutils literal"><span class="pre">cp</span> <span class="pre">configuration/scripts/tests/timeseries.csh</span> <span class="pre">.</span></code> followed by
+<code class="docutils literal"><span class="pre">./timeseries.csh</span> <span class="pre">/path/to/ice_diag.full_ITD</span></code>).  To generate the figure, run the <code class="docutils literal"><span class="pre">timeseries.csh</span></code>
+script and pass the full path to the ice_diag file as an argument.</p>
+<p>For example:</p>
+<p>Run the test suite.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ./icepack.setup -m conrad -e intel --suite base_suite -acct &lt;account_number&gt; --testid t00
 </pre></div>
 </div>
+<p>Wait for suite to finish then go to the directory.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ cd base_suite.t00
+</pre></div>
+</div>
+<p>Run the timeseries script on the desired case.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ./timeseries.csh /p/work1/turner/ICEPACK_RUNS/conrad_intel_smoke_col_1x1_diag1_run1year.t00/ice_diag.full_ITD
+</pre></div>
+</div>
+<p>The output figures are placed in the directory where the ice_diag file is located.</p>
 </div>
 </div>
 

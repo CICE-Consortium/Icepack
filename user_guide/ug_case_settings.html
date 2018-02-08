@@ -911,127 +911,137 @@ column physics.</p>
 </tr>
 <tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">clim</span></code></td>
-<td>monthly climatology</td>
+<td>monthly climatology (see <a class="reference internal" href="ug_running.html#force"><span class="std std-ref">Forcing data</span></a>)</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">CFS</span></code></td>
-<td>CFS model output</td>
+<td>CFS model output  (see <a class="reference internal" href="ug_running.html#force"><span class="std std-ref">Forcing data</span></a>)</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">ISPOL</span></code></td>
-<td>ISPOL experiment data</td>
+<td>ISPOL experiment data  (see <a class="reference internal" href="ug_running.html#force"><span class="std std-ref">Forcing data</span></a>)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">data_dir</span></code></td>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">NICE</span></code></td>
+<td>N-ICE experiment data  (see <a class="reference internal" href="ug_running.html#force"><span class="std std-ref">Forcing data</span></a>)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">data_dir</span></code></td>
 <td>path/</td>
 <td>path to forcing data directory</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">calc_strair</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">calc_strair</span></code></td>
 <td>true</td>
 <td>calculate wind stress and speed</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td>false</td>
 <td>read wind stress and speed from files</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">highfreq</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">highfreq</span></code></td>
 <td>true/false</td>
 <td>high-frequency atmo coupling</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">natmiter</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">natmiter</span></code></td>
 <td>integer</td>
 <td>number of atmo boundary layer iterations</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">calc_Tsfc</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">calc_Tsfc</span></code></td>
 <td>true/false</td>
 <td>calculate surface temperature</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">precip_units</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">precip_units</span></code></td>
 <td><code class="docutils literal"><span class="pre">mks</span></code></td>
 <td>liquid precipitation data units</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">mm_per_month</span></code></td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">mm_per_sec</span></code></td>
 <td>(same as MKS units)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">tfrz_option</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">tfrz_option</span></code></td>
 <td><code class="docutils literal"><span class="pre">minus1p8</span></code></td>
 <td>constant ocean freezing temperature (<span class="math">\(-1.8^\circ C\)</span>)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">linear_salt</span></code></td>
 <td>linear function of salinity (ktherm=1)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">mushy</span></code></td>
 <td>matches mushy-layer thermo (ktherm=2)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ustar_min</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ustar_min</span></code></td>
 <td>real</td>
 <td>minimum value of ocean friction velocity</td>
 <td>0.0005 m/s</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">fbot_xfer_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fbot_xfer_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">constant</span></code></td>
 <td>constant ocean heat transfer coefficient</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">Cdn_ocn</span></code></td>
 <td>variable ocean heat transfer coefficient</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">update_ocn_f</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">update_ocn_f</span></code></td>
 <td>true</td>
 <td>include frazil water/salt fluxes in ocn fluxes</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td>false</td>
 <td>do not include (when coupling with POP)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">l_mpond_fresh</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">l_mpond_fresh</span></code></td>
 <td>true</td>
 <td>retain (topo) pond water until ponds drain</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td>false</td>
 <td>release (topo) pond water immediately to ocean</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">oceanmixed_ice</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">oceanmixed_ice</span></code></td>
 <td>true/false</td>
 <td>active ocean mixed layer calculation</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code> (if uncoupled)</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ocn_data_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ocn_data_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">default</span></code></td>
 <td>constant values defined in the code</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">ISPOL</span></code></td>
-<td>ISPOL experiment data</td>
+<td>ISPOL experiment data  (see <a class="reference internal" href="ug_running.html#force"><span class="std std-ref">Forcing data</span></a>)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">NICE</span></code></td>
+<td>N-ICE experiment data  (see <a class="reference internal" href="ug_running.html#force"><span class="std std-ref">Forcing data</span></a>)</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">oceanmixed_file</span></code></td>
