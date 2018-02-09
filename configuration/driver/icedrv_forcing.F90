@@ -10,7 +10,7 @@
       use icedrv_domain_size, only: nx
       use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday
       use icedrv_calendar, only: daymo, daycal, dt, yday, sec
-      use icedrv_constants, only: nu_diag, nu_forcing
+      use icedrv_constants, only: nu_diag, nu_forcing, nu_open_clos
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
@@ -64,7 +64,7 @@
       real (kind=dbl_kind), dimension(nx) :: &
           sst_temp
 
-      real (kind=dbl_kind), dimension(8760) :: &
+      real (kind=dbl_kind), dimension(ntime) :: &
            open_data, &
            clos_data
 
@@ -374,7 +374,7 @@
       if (trim(ocn_data_type) == 'SHEBA') then
 
         sec1hr = secday/c24                      ! seconds in 1 hour
-        maxrec = 8760
+        maxrec = ntime
         recnum = 24*int(yday) - 23 + int(real(sec,kind=dbl_kind)/sec1hr)
         recslot = 2
         dataloc = 1                          ! data located at middle of interval
@@ -1024,9 +1024,7 @@
     subroutine ice_open_clos
 
 
-      integer (kind=int_kind) :: &
-         nu_open_clos,&     ! unit number
-         i
+      integer (kind=int_kind) :: i
 
       real (kind=dbl_kind) :: xtime
 
@@ -1040,7 +1038,7 @@
       open (nu_open_clos, file=filename, form='formatted')
 
       ! hourly data
-      do i=1,8760
+      do i=1,ntime
          read(nu_open_clos,*) xtime, open_data(i), clos_data(i)
       enddo
 
