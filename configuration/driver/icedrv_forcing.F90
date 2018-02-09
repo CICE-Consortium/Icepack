@@ -383,7 +383,7 @@
         call interp_coeff ( recnum, recslot, sec1hr, dataloc, c1intp, c2intp)
 
         opening(:) = c1intp *  open_data(mlast) + c2intp *  open_data(mnext)
-        closing(:) = c1intp *  clos_data(mlast) + c2intp *  clos_data(mnext)
+        closing(:) = -(c1intp *  clos_data(mlast) + c2intp *  clos_data(mnext))
 
       endif
 
