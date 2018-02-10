@@ -10,15 +10,15 @@
       use icedrv_domain_size, only: nx
       use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday
       use icedrv_calendar, only: daymo, daycal, dt, yday, sec
-      use icedrv_constants, only: nu_diag, nu_forcing
-      use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4
+      use icedrv_constants, only: nu_diag, nu_forcing, nu_open_clos
+      use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_sea_freezing_temperature
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf
+         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing
 
       implicit none
       private
@@ -63,6 +63,10 @@
 
       real (kind=dbl_kind), dimension(nx) :: &
           sst_temp
+
+      real (kind=dbl_kind), dimension(ntime) :: &
+           open_data, &
+           clos_data
 
       character(char_len), public :: & 
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
@@ -148,6 +152,7 @@
       if (trim(atm_data_type(1:4)) == 'clim')  call atm_climatological
       if (trim(atm_data_type(1:5)) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type(1:4)) == 'NICE')  call atm_NICE
+      if (trim(ocn_data_type(1:5)) == 'SHEBA')  call ice_open_clos
 
       if (restore_ocn) then
         if (trestore == 0) then
@@ -199,7 +204,7 @@
           recnum, dataloc, maxrec
 
       real (kind=dbl_kind) :: &
-          sec6hr
+          sec6hr, sec1hr
 
       character(len=*), parameter :: subname='(get_forcing)'
 
@@ -364,6 +369,23 @@
       endif
 
       call finish_ocn_forcing(sst_temp)
+
+      ! Lindsay SHEBA open/close dataset is hourly
+      if (trim(ocn_data_type) == 'SHEBA') then
+
+        sec1hr = secday/c24                      ! seconds in 1 hour
+        maxrec = ntime
+        recnum = 24*int(yday) - 23 + int(real(sec,kind=dbl_kind)/sec1hr)
+        recslot = 2
+        dataloc = 1                          ! data located at middle of interval
+        mlast = mod(recnum+maxrec-2,maxrec) + 1
+        mnext = mod(recnum-1,       maxrec) + 1
+        call interp_coeff ( recnum, recslot, sec1hr, dataloc, c1intp, c2intp)
+
+        opening(:) = c1intp *  open_data(mlast) + c2intp *  open_data(mnext)
+        closing(:) = -(c1intp *  clos_data(mlast) + c2intp *  clos_data(mnext))
+
+      endif
 
       end subroutine get_forcing
 
@@ -996,6 +1018,31 @@
           file=__FILE__,line= __LINE__)
 
       end subroutine finish_ocn_forcing
+
+!=======================================================================
+
+    subroutine ice_open_clos
+
+
+      integer (kind=int_kind) :: i
+
+      real (kind=dbl_kind) :: xtime
+
+      character (char_len_long) filename
+
+      filename = &
+          trim(data_dir)//'/SHEBA/open_clos_lindsay.dat'
+
+      write (nu_diag,*) 'Reading ',filename
+
+      open (nu_open_clos, file=filename, form='formatted')
+
+      ! hourly data
+      do i=1,ntime
+         read(nu_open_clos,*) xtime, open_data(i), clos_data(i)
+      enddo
+
+    end subroutine ice_open_clos
 
 !=======================================================================
 

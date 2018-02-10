@@ -23,6 +23,7 @@
          nu_restart = 12, &          ! unit for restart file
          nu_dump    = 13, &          ! unit for dump file
          nu_forcing = 14, &          ! unit for forcing file
+         nu_open_clos = 15, &        ! unit for SHEBA forcing file
          nu_diag    = ice_stdout, &  ! unit for diagnostic output
          nu_diag_out = 103
 
@@ -44,6 +45,7 @@
          c15  = 15.0_dbl_kind, &
          c16  = 16.0_dbl_kind, &
          c20  = 20.0_dbl_kind, &
+         c24  = 24.0_dbl_kind, &
          c25  = 25.0_dbl_kind, &
          c100 = 100.0_dbl_kind, &
          c1000= 1000.0_dbl_kind, &
