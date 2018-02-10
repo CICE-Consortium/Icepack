@@ -152,7 +152,7 @@
       if (trim(atm_data_type(1:4)) == 'clim')  call atm_climatological
       if (trim(atm_data_type(1:5)) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type(1:4)) == 'NICE')  call atm_NICE
-      if (trim(ocn_data_type(1:5)) == 'SHEBA')  call ice_open_clos
+      if (trim(ocn_data_type(1:5)) == 'SHEBA') call ice_open_clos
 
       if (restore_ocn) then
         if (trestore == 0) then
@@ -382,8 +382,8 @@
         mnext = mod(recnum-1,       maxrec) + 1
         call interp_coeff ( recnum, recslot, sec1hr, dataloc, c1intp, c2intp)
 
-        opening(:) = c1intp *  open_data(mlast) + c2intp *  open_data(mnext)
-        closing(:) = -(c1intp *  clos_data(mlast) + c2intp *  clos_data(mnext))
+        opening(:) =   c1intp * open_data(mlast) + c2intp * open_data(mnext)
+        closing(:) = -(c1intp * clos_data(mlast) + c2intp * clos_data(mnext))
 
       endif
 
