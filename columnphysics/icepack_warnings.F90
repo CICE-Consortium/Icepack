@@ -59,10 +59,12 @@ contains
 
         warning_abort = abortflag
 
-        write(warnstr,*) subname,abortflag
-        if (present(file)) write(warnstr,*) trim(warnstr)//' :file '//trim(file)
-        if (present(line)) write(warnstr,*) trim(warnstr)//' :line ',line
-        call icepack_warnings_add(warnstr)
+! tcx. tcraig,take this out as it tends to write from all pes in all runs
+! may want to consider separating info and error messages somehow
+!        write(warnstr,*) subname,abortflag
+!        if (present(file)) write(warnstr,*) trim(warnstr)//' :file '//trim(file)
+!        if (present(line)) write(warnstr,*) trim(warnstr)//' :line ',line
+!        call icepack_warnings_add(warnstr)
 
       end subroutine icepack_warnings_setabort
 
