@@ -518,12 +518,12 @@
                dhrunoff  = -dhS_top*aice0
                hbrocn    = max(c0,hbrocn - dhrunoff)
                exp_arg = darcy_coeff/bphi_min*dt
-! tcx tcraig avoids underflows but is not bit-for-bit
-!               if (exp_arg > exp_argmax) then
-!                  hbrocn_new = c0
-!               else
+! tcraig avoids underflows
+               if (exp_arg > exp_argmax) then
+                  hbrocn_new = c0
+               else
                   hbrocn_new = hbrocn*exp(-exp_arg)
-!               endif
+               endif
                hbr = max(hbrmin, h_ocn + hbrocn_new)
                hbrocn_new = hbr-h_ocn
                darcy_V = -SIGN((hbrocn-hbrocn_new)/dt*bphi_min, hbrocn)
@@ -532,7 +532,13 @@
                dh_top_chl = dh_top_chl - darcy_V_chl*dt/bphi_min + dhrunoff
                dh_direct  = dhrunoff
             elseif (hbrocn < c0 .AND. hbr > thinS) then
-               hbrocn_new = hbrocn*exp(-darcy_coeff/bphi_min*dt)
+               exp_arg = darcy_coeff/bphi_min*dt
+! tcraig avoids underflows
+               if (exp_arg > exp_argmax) then
+                  hbrocn_new = c0
+               else
+                  hbrocn_new = hbrocn*exp(-exp_arg)
+               endif
                dhflood  = max(c0,hbrocn_new - hbrocn)*aice0               
                hbr = max(hbrmin, h_ocn + hbrocn_new)
                darcy_V    = -SIGN((hbrocn-hbrocn_new + dhflood)/dt*bphi_min, hbrocn)
