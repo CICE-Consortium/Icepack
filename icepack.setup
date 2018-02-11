@@ -227,28 +227,33 @@ if ($machine == $spval) then
 endif
 
 if ($case == $spval && $test == $spval && $testsuite == $spval) then
-  echo "${0}: ERROR in arguments, -c, -t, or -ts required"
+  echo "${0}: ERROR in arguments, --case, --test, or --suite required"
   exit -1
 endif
 
 if ($case != $spval && $test != $spval) then
-  echo "${0}: ERROR in arguments, cannot use both -c and -t"
+  echo "${0}: ERROR in arguments, cannot use both --case and --test"
   exit -1
 endif
 
 if ($case != $spval && $testsuite != $spval) then
-  echo "${0}: ERROR in arguments, cannot use both -c and -ts"
+  echo "${0}: ERROR in arguments, cannot use both --case and --suite"
   exit -1
 endif
 
 if ($testsuite != $spval && $test != $spval) then
-  echo "${0}: ERROR in arguments, cannot use both -ts and -t"
+  echo "${0}: ERROR in arguments, cannot use both --suite and --test"
+  exit -1
+endif
+
+if ($report == 1 && $testsuite == $spval) then
+  echo "${0}: ERROR in arguments, must use --suite with --report"
   exit -1
 endif
 
 if ($testsuite == $spval) then
   if ("$compilers" =~ "*,*") then
-    echo "${0}: ERROR in arguments, cannot set multiple compilers without -ts"
+    echo "${0}: ERROR in arguments, cannot set multiple compilers without --suite"
     exit -1
   else
     set compiler = ${compilers}
@@ -264,7 +269,7 @@ endif
 #endif
 
 if (($testsuite != $spval || $test != $spval) && $testid == $spval) then
-  echo "${0}: ERROR in arguments.  -testid must be passed if using -ts or -t"
+  echo "${0}: ERROR in arguments.  -testid must be passed if using --suite or --test"
   exit -1
 endif
 
