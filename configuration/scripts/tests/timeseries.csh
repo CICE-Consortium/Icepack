@@ -28,7 +28,7 @@ set fieldlist=("area fraction  " \
                "lateral melt (m)" \
                "new ice (m)" \
                "congelation (m)" \
-               "snow-ice (m)" \
+#               "snow-ice (m)" \
                "intnl enrgy chng(W/m^2)")
 
 # Get the filename for the latest log
