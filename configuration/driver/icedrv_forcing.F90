@@ -200,11 +200,17 @@
       real (kind=dbl_kind) :: &
          c1intp, c2intp   ! interpolation coefficients
 
-      integer (kind=int_kind) :: &  !cn ispol stuff
-          recnum, dataloc, maxrec
+      integer (kind=int_kind) :: &
+          recnum      , & ! record number for current data value
+          maxrec      , & ! maximum number of data records
+          dataloc     , & ! = 1 for data located in middle of time interval
+                          ! = 2 for date located at end of time interval
+          offndy          ! Julian day of first data record
 
       real (kind=dbl_kind) :: &
-          sec6hr, sec1hr
+          sec6hr      , & ! number of seconds in 6 hours
+          sec1hr      , & ! number of seconds in 1 hour
+          offset          ! time to first data record since 1 Jan (s)
 
       character(len=*), parameter :: subname='(get_forcing)'
 
@@ -271,16 +277,65 @@
          swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
          swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
 
-      elseif (trim(atm_data_type) == 'ISPOL' .or. &
-              trim(atm_data_type) == 'NICE') then
+      elseif (trim(atm_data_type) == 'ISPOL') then
 
+        offndy = 167                         ! first data record (Julian day)
+        offset = real(offndy,dbl_kind)*secday
         dataloc = 2                          ! data located at end of interval
         maxrec = 365
         recslot = 2
-        recnum = int(yday)
+        recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
+        call interp_coeff (recnum, recslot, secday, dataloc, &
+                           c1intp, c2intp, offset)
+
+        Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+        Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+        uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+        vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+        fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+
+         ! derived (or not otherwise set)
+         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+
+        sec6hr = secday/c4;                      ! seconds in 6 hours
+        offndy = 167
+        maxrec = 1460
+        recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+        recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1 ! data begins on 16 June 2004
+        recslot = 2
+        mlast = mod(recnum+maxrec-2,maxrec) + 1
+        mnext = mod(recnum-1,       maxrec) + 1
+        call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+                           c1intp, c2intp, offset)
+
+        fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+        flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+
+         ! derived
+         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
+      elseif (trim(atm_data_type) == 'NICE') then
+
+        offndy = 114                         ! first data record (Julian day)
+        offset = real(offndy,dbl_kind)*secday
+        dataloc = 2                          ! data located at end of interval
+        maxrec = 365
+        recslot = 2
+        recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
+        mlast = mod(recnum+maxrec-2,maxrec) + 1
+        mnext = mod(recnum-1,       maxrec) + 1
+        call interp_coeff (recnum, recslot, secday, dataloc, &
+                           c1intp, c2intp, offset)
 
         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
@@ -299,9 +354,12 @@
         sec6hr = secday/c4;                      ! seconds in 6 hours
         maxrec = 1460
         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+        recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1
+        recslot = 2
         mlast = mod(recnum+maxrec-2,maxrec) + 1
         mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (recnum, recslot, sec6hr, dataloc, c1intp, c2intp)
+        call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+                           c1intp, c2intp, offset)
 
         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
@@ -313,6 +371,8 @@
          swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
 
       endif
+
+! possible bug:  is the ocean data also offset to the beginning of the field campaigns?
 
       if (trim(ocn_data_type) == 'ISPOL') then
 
@@ -336,13 +396,13 @@
 
       elseif (trim(ocn_data_type) == 'NICE') then
 
-        dataloc = 2                          ! data located at end of interval
-        maxrec = 365
-        recslot = 2
-        recnum = int(yday)
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
+         dataloc = 2                          ! data located at end of interval
+         maxrec = 365
+         recslot = 2
+         recnum = int(yday)
+         mlast = mod(recnum+maxrec-2,maxrec) + 1
+         mnext = mod(recnum-1,       maxrec) + 1
+         call interp_coeff ( recnum, recslot, secday, dataloc, c1intp, c2intp)
 
          sst_temp(:) = c1intp *  sst_data(mlast) + c2intp *  sst_data(mnext)
          sss     (:) = c1intp *  sss_data(mlast) + c2intp *  sss_data(mnext)
@@ -716,7 +776,7 @@
 !=======================================================================
 
       subroutine interp_coeff (recnum, recslot, secint, dataloc, &
-                               c1intp, c2intp)
+                               c1intp, c2intp, offset)
 
 ! Compute coefficients for interpolating data to current time step.
 ! Works for any data interval that divides evenly into a
@@ -730,10 +790,13 @@
                           ! = 2 for date located at end of time interval
 
       real (kind=dbl_kind), intent(in) :: &
-          secint                    ! seconds in data interval
+          secint          ! seconds in data interval
 
       real (kind=dbl_kind), intent(inout) :: &
          c1intp, c2intp   ! interpolation coefficients
+
+      real (kind=dbl_kind), intent(in), optional :: &
+          offset          ! amount of time data is offset (s)
 
       ! local variables
 
@@ -748,7 +811,7 @@
       character(len=*), parameter :: subname='(interp_coeff)'
 
       secyr = dayyr * secday         ! seconds in a year
-      tt = mod(time,secyr)
+      tt = mod(time-offset,secyr)
 
       ! Find neighboring times
       rcnum = real(recnum,kind=dbl_kind)
