@@ -10,8 +10,14 @@ endif
 #set basename = `echo $1:t`
 set basename = $1
 
-# Find the font file for an Arial font
-set font_full = `fc-list : file family style | grep Arial | head -n 1 | cut -d: -f 1`
+# Find the font file for (1) Arial, (2) Times, or (3) Courier
+set font_full = `fc-list : file family style | grep Arial | grep Regular | head -n 1 | cut -d: -f 1`
+if ( "$font_full" == "" ) then
+  set font_full = `fc-list : file family style | grep Times | grep Regular | head -n 1 | cut -d: -f 1`
+  if ( "$font_full" == "" ) then
+    set font_full = `fc-list : file family style | grep Courier | grep Regular | head -n 1 | cut -d: -f 1`
+  endif
+endif
 setenv GDFONTPATH `dirname $font_full`
 set fnt = `basename $font_full`
 
