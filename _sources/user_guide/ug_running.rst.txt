@@ -312,9 +312,9 @@ surface potential temperature and specific humidity.
     (:math:`kg/m^2/s`). Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes. 
     In the namelist, set ``atm_data_type = ISPOL`` to use ISPOL atmospheric forcing.
 
-    Oceanic forcing fields are available from :cite:`JH14` and consist of sea surface temperature (K), 
-    sea surface salinity (ppt), boundary layer depth (m), ocean velocity in the x and y direction (m/s), 
-    and deep ocean heat flux (:math:`W/m^2`). 
+    Oceanic forcing fields are available from :cite:`JH14` derived from a POP 1-degree (gx1v3 simulation). 
+    These consist of sea surface temperature (K), sea surface salinity (ppt), boundary layer depth (m), 
+    ocean velocity in the x and y direction (m/s), and deep ocean heat flux (:math:`W/m^2`). 
     In the namelist, set ``ocn_data_type = ISPOL`` to use ISPOL oceanic forcing.
 
     Biogeochemical forcing fields are available from the World Ocean Atlas :cite:`WOA13`. The biogeochemical fields provided
@@ -323,13 +323,14 @@ surface potential temperature and specific humidity.
 
    c) **Surface HEat Budget of the Arctic (SHEBA)**
 
-    https://atmos.washington.edu/~bitz/column_model/
+    The ice opening and closing rates (1/s) are derived from the SHEBA data and have been used 
+    previously in Cecilia Bitz's column model. For additional information see the following websites:
 
-    https://atmos.washington.edu/~bitz/column_model/notes_forcing_data
+    - https://atmos.washington.edu/~bitz/column_model/
+    - https://atmos.washington.edu/~bitz/column_model/notes_forcing_data
 
-    includes opening and closing rates, solar zenith angle
-
-    ocn_data_type
+    At present, only the opening and closing rates (1/s) are used from the forcing data. 
+    In the namelist, set ``ocn_data_type = SHEBA`` to use this forcing in Icepack.
 
 3) **Climatological** - Maykut and Untersteiner 1971 :cite:`MU71`
 

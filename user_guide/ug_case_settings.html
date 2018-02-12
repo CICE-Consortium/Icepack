@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3.4. Case Settings &#8212; Icepack 0.0.01 documentation</title>
+    <title>3.4. Case Settings &#8212; Icepack 1.0.0 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.01',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="ug_testing.html" title="3.3. Testing Icepack"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -989,59 +989,79 @@ column physics.</p>
 <td>matches mushy-layer thermo (ktherm=2)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">ustar_min</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">default_season</span></code></td>
+<td><code class="docutils literal"><span class="pre">winter</span></code></td>
+<td>Sets initial values of forcing and is overwritten when forcing read in. Default is winter</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">summer</span></code></td>
+<td>typical summer values</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">spring</span></code></td>
+<td>typical spring values</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ustar_min</span></code></td>
 <td>real</td>
 <td>minimum value of ocean friction velocity</td>
 <td>0.0005 m/s</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">fbot_xfer_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">fbot_xfer_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">constant</span></code></td>
 <td>constant ocean heat transfer coefficient</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">Cdn_ocn</span></code></td>
 <td>variable ocean heat transfer coefficient</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">update_ocn_f</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">update_ocn_f</span></code></td>
 <td>true</td>
 <td>include frazil water/salt fluxes in ocn fluxes</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td>false</td>
 <td>do not include (when coupling with POP)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">l_mpond_fresh</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">l_mpond_fresh</span></code></td>
 <td>true</td>
 <td>retain (topo) pond water until ponds drain</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td>false</td>
 <td>release (topo) pond water immediately to ocean</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal"><span class="pre">oceanmixed_ice</span></code></td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">oceanmixed_ice</span></code></td>
 <td>true/false</td>
 <td>active ocean mixed layer calculation</td>
 <td><code class="docutils literal"><span class="pre">.true.</span></code> (if uncoupled)</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal"><span class="pre">ocn_data_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ocn_data_type</span></code></td>
 <td><code class="docutils literal"><span class="pre">default</span></code></td>
 <td>constant values defined in the code</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">ISPOL</span></code></td>
 <td>ISPOL experiment data  (see <a class="reference internal" href="ug_running.html#force"><span class="std std-ref">Forcing data</span></a>)</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td><code class="docutils literal"><span class="pre">NICE</span></code></td>
 <td>N-ICE experiment data  (see <a class="reference internal" href="ug_running.html#force"><span class="std std-ref">Forcing data</span></a>)</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal"><span class="pre">SHEBA</span></code></td>
+<td>Opening/closing dataset from SHEBA</td>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal"><span class="pre">oceanmixed_file</span></code></td>
@@ -2131,7 +2151,7 @@ that there has only been minimal tuning of the model.</p>
         <li class="right" >
           <a href="ug_testing.html" title="3.3. Testing Icepack"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
       </ul>
     </div>

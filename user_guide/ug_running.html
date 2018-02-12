@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>3.2. Running Icepack &#8212; Icepack 0.0.01 documentation</title>
+    <title>3.2. Running Icepack &#8212; Icepack 1.0.0 documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.01',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="ug_implementation.html" title="3.1. Implementation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">3. User Guide</a> &#187;</li> 
       </ul>
     </div>  
@@ -295,9 +295,9 @@ to December 31, 2004.</p>
 velocity in the x and y directions (m/s), downward solar radiation (<span class="math">\(W/m^2\)</span>), and precipitation
 (<span class="math">\(kg/m^2/s\)</span>). Icepack’s boundary layer calculation is used to derive sensible and latent heat fluxes.
 In the namelist, set <code class="docutils literal"><span class="pre">atm_data_type</span> <span class="pre">=</span> <span class="pre">ISPOL</span></code> to use ISPOL atmospheric forcing.</p>
-<p>Oceanic forcing fields are available from <a class="reference internal" href="../zreferences.html#jh14" id="id11">[24]</a> and consist of sea surface temperature (K),
-sea surface salinity (ppt), boundary layer depth (m), ocean velocity in the x and y direction (m/s),
-and deep ocean heat flux (<span class="math">\(W/m^2\)</span>).
+<p>Oceanic forcing fields are available from <a class="reference internal" href="../zreferences.html#jh14" id="id11">[24]</a> derived from a POP 1-degree (gx1v3 simulation).
+These consist of sea surface temperature (K), sea surface salinity (ppt), boundary layer depth (m),
+ocean velocity in the x and y direction (m/s), and deep ocean heat flux (<span class="math">\(W/m^2\)</span>).
 In the namelist, set <code class="docutils literal"><span class="pre">ocn_data_type</span> <span class="pre">=</span> <span class="pre">ISPOL</span></code> to use ISPOL oceanic forcing.</p>
 <p>Biogeochemical forcing fields are available from the World Ocean Atlas <a class="reference internal" href="../zreferences.html#woa13" id="id12">[16]</a>. The biogeochemical fields provided
 are nitrate concentration (<span class="math">\(mmol/m^3\)</span>) and silicate concentration (<span class="math">\(mmol/m^3\)</span>). In the namelist, set
@@ -307,10 +307,14 @@ are nitrate concentration (<span class="math">\(mmol/m^3\)</span>) and silicate 
 <li><strong>Surface HEat Budget of the Arctic (SHEBA)</strong></li>
 </ol>
 <blockquote>
-<div><p><a class="reference external" href="https://atmos.washington.edu/~bitz/column_model/">https://atmos.washington.edu/~bitz/column_model/</a></p>
-<p><a class="reference external" href="https://atmos.washington.edu/~bitz/column_model/notes_forcing_data">https://atmos.washington.edu/~bitz/column_model/notes_forcing_data</a></p>
-<p>includes opening and closing rates, solar zenith angle</p>
-<p>ocn_data_type</p>
+<div><p>The ice opening and closing rates (1/s) are derived from the SHEBA data and have been used
+previously in Cecilia Bitz’s column model. For additional information see the following websites:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://atmos.washington.edu/~bitz/column_model/">https://atmos.washington.edu/~bitz/column_model/</a></li>
+<li><a class="reference external" href="https://atmos.washington.edu/~bitz/column_model/notes_forcing_data">https://atmos.washington.edu/~bitz/column_model/notes_forcing_data</a></li>
+</ul>
+<p>At present, only the opening and closing rates (1/s) are used from the forcing data.
+In the namelist, set <code class="docutils literal"><span class="pre">ocn_data_type</span> <span class="pre">=</span> <span class="pre">SHEBA</span></code> to use this forcing in Icepack.</p>
 </div></blockquote>
 </li>
 <li><p class="first"><strong>Climatological</strong> - Maykut and Untersteiner 1971 <a class="reference internal" href="../zreferences.html#mu71" id="id13">[38]</a></p>
@@ -407,7 +411,7 @@ directory when the model is built, submitted, and run.</p>
         <li class="right" >
           <a href="ug_implementation.html" title="3.1. Implementation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 0.0.01 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Icepack 1.0.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="index.html" >3. User Guide</a> &#187;</li> 
       </ul>
     </div>

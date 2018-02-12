@@ -475,8 +475,8 @@ wait for all runs to be complete, and run the results and report_results scripts
 Test Plotting
 ----------------
 
-The Icepack scripts include a script (``timeseries.csh``) that will generate a timeseries figure of 
-the area fraction, average ice thickness (m), and average snow depth (m) from the diagnostic output file.  
+The Icepack scripts include a script (``timeseries.csh``) that will generate a timeseries 
+figure from the diagnostic output file.  
 When running a test suite, the ``timeseries.csh`` script is automatically copied to the suite directory.  
 If the ``timeseries.csh`` script is to be used on a test / case that is not a part of a test suite, 
 users will need to run the ``timeseries.csh`` script from the tests directory 
@@ -501,3 +501,25 @@ Run the timeseries script on the desired case. ::
 $ ./timeseries.csh /p/work1/turner/ICEPACK_RUNS/conrad_intel_smoke_col_1x1_diag1_run1year.t00/ice_diag.full_ITD
     
 The output figures are placed in the directory where the ice_diag file is located.
+
+This plotting script can be used to plot the following variables:
+
+  - area fraction
+  - average ice thickness (m)
+  - average snow depth (m)
+  - air temperature (C)
+  - shortwave radiation (:math:`W/m^2`)
+  - longwave radiation (:math:`W/m^2`)
+  - snowfall
+  - average salinity (ppt)
+  - surface temperature (C)
+  - outward longwave flux (:math:`W/m^2`)
+  - sensible heat flux (:math:`W/m^2`)
+  - latent heat flux (:math:`W/m^2`)
+  - top melt (m)
+  - bottom melt (m)
+  - lateral melt (m)
+  - new ice (m)
+  - congelation (m)
+  - snow-ice (m)
+  - initial energy change (:math:`W/m^2`)

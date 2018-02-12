@@ -35,12 +35,13 @@ Restarts
 
 .. _testtrouble:
 
-Underflows
------------
-
-- Tests using a debug flag that traps underflows will fail unless a "flush-to-zero" flag 
+..
+      this is commented out now
+    Underflows
+    -----------
+    - Tests using a debug flag that traps underflows will fail unless a "flush-to-zero" flag 
   is set in the Macros file.  This is due to very small exponential values in the delta-Eddington
-  radiation scheme.
+      radiation scheme.
 
 .. _debugging:
 
@@ -107,6 +108,19 @@ used, because zero values would be included in the average for half of
 each 24-hour period. To rectify this, a separate counter is used for the
 averaging that is incremented only when :math:`\cos\varphi > 0`. The
 albedos will still be zero in the dark, polar winter hemisphere.
+
+Interpretation of general results
+---------------------------------
+
+Icepack releases are "functional releases" in the sense that the code runs, 
+does not crash, passes various tests, and requires further work to establish 
+its scientific validity.  In general, users are not encouraged to use any of the
+CICE Consortium's model configurations to obtain "scientific" results.  The
+test configurations are useful for model development, but sea ice models must
+be evaluated from a physical standpoint in a couple system because simplified
+configurations do not necessarily represent what is actually happening in the
+fully coupled system that includes interactive ocean and atmosphere components.
+
 
 Proliferating subprocess parameterizations
 ------------------------------------------
