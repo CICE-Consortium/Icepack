@@ -11,15 +11,12 @@ endif
 set basename = $1
 
 # Find the font file for (1) Arial, (2) Times, or (3) Courier
-set font_full = `fc-list : file family style | grep Arial | grep Regular | head -n 1 | cut -d: -f 1`
-if ( "$font_full" == "" ) then
-  set font_full = `fc-list : file family style | grep Times | grep Regular | head -n 1 | cut -d: -f 1`
-  if ( "$font_full" == "" ) then
-    set font_full = `fc-list : file family style | grep Courier | grep Regular | head -n 1 | cut -d: -f 1`
-  endif
-endif
+set font_full = `fc-list : file family style | grep "\.ttf\|\.pfa" | grep -P -v "[\x80-\xFF]"`
+set font_full = `echo $font_full | grep Regular | head -n 1 | cut -d: -f 1`
 setenv GDFONTPATH `echo $font_full | rev | cut -d / -f 2- | rev`
 set fnt = `echo $font_full | rev | cut -d / -f 1 | rev`
+
+echo "Font = $fnt"
 
 set fieldlist=("area fraction  " \
                "avg ice thickness (m)" \
