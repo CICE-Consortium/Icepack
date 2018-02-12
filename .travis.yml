@@ -16,6 +16,19 @@ addons:
       - libnetcdf-dev
       - gfortran
       - clang-5.0
+      - wget
+      #- lftp
+
+install:
+  # Fetch Icepack-specific dataset
+  - "mkdir -p ~/ICEPACK_INPUTDATA &&
+    wget ftp://ftp.cgd.ucar.edu/archive/Model-Data/CICE/Icepack_data.tar.gz &&
+    tar xvfz Icepack_data.tar.gz -C ~"
+
+  # Mirror entire data folder
+  #- "lftp ftp://anonymous:travis@travis-ci.org@ftp.cgd.ucar.edu 
+  #-e 'mirror /archive/Model-Data/CICE/ ~/ICEPACK_INPUTDATA; quit'"
+
 
 script:
   - "./icepack.setup --suite travis_suite --testid travisCItest 
