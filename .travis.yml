@@ -44,7 +44,3 @@ after_failure:
   - "git config --global user.email 'travis@travis-ci.org' &&
     git config --global user.name 'ciceconsortium' &&
     ./report_results.csh --travisCI"
-
-env:
-  global:
-    secure: QPjSeKZYTcyz1gLyW3ZsRKATb4ZwJxsXm4DKU7VxxKeDjK2pXNzzox0i6AgFzHn2QYE/+2nxwT9SF4WyaLYw0W5bYIb6Vc3nT99CPNx8cpmUNMzA1dzL7poy8nryK/Yk1ZCuK+0ZVAvEM4R2Fy5DKK06gIMXWsRTDJdEd0YYu1rd7qwpGdY2zTpRjd5BAx2W5YdxSXRU9Da6NYWIf70KAGDKArTC7xUcYdeib01lD0TQkaMh1wAnUzF6Jrjzwa3eQlSoR12qfjL5qJeXxyOoBbxUVPiCH3YVrLbFYBxO9hThIBhl6z/Q2JZkrguWXLBzflv3GYOBrAw6AsQ3VOIraufD39t66MQEjXUGzir9Pmx3UTSaNRK9pEL2gYZPlo9o4A0bDLqtX+XqEc/LvFbYR+Rg7gn/hNQd0uP7c+7zZHBXBEynUf0eyuZ3NYf9oPE671hKa6bl8nFO/BjzYZ8aB9c6bJ60qbiz/s+03Mx3UIoKOtkwIhJPOOiBRBKCuj9jTTw1QJf4cpUgsNm0D2ecKtwEcZhaEHDvDsT9/Zg4MazQvEXhZRyoo15gc5AV1x0Zil3tnhh/03h5iZ0yhKbH3mKWRURPREMmMCjTN60vGVBTSLfmBFIEAl6y657mFRhzKkEq8w+hqetFIfgq9IUhmh1ZQULTfxWaZomnPNmo/AA=
