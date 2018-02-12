@@ -112,10 +112,10 @@ albedos will still be zero in the dark, polar winter hemisphere.
 Interpretation of general results
 ---------------------------------
 
-Icepack releases are ``functional releases'' in the sense that the code runs, 
+Icepack releases are "functional releases" in the sense that the code runs, 
 does not crash, passes various tests, and requires further work to establish 
 its scientific validity.  In general, users are not encouraged to use any of the
-CICE Consortium's model configurations to obtain ``scientific'' results.  The
+CICE Consortium's model configurations to obtain "scientific" results.  The
 test configurations are useful for model development, but sea ice models must
 be evaluated from a physical standpoint in a couple system because simplified
 configurations do not necessarily represent what is actually happening in the
