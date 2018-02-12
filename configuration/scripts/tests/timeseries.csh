@@ -18,8 +18,8 @@ if ( "$font_full" == "" ) then
     set font_full = `fc-list : file family style | grep Courier | grep Regular | head -n 1 | cut -d: -f 1`
   endif
 endif
-setenv GDFONTPATH `dirname $font_full`
-set fnt = `basename $font_full`
+setenv GDFONTPATH `echo $font_full | rev | cut -d / -f 2- | rev`
+set fnt = `echo $font_full | rev | cut -d / -f 1 | rev`
 
 set fieldlist=("area fraction  " \
                "avg ice thickness (m)" \
