@@ -22,7 +22,7 @@
 &tracer_nml
     tr_iage      = .false.
     tr_FY        = .false.
-    tr_lvl       = .false.
+    tr_lvl       = .true.
     tr_pond_cesm = .false.
     tr_pond_topo = .false.
     tr_pond_lvl  = .true.
@@ -239,7 +239,7 @@
     precip_units    = 'mks'
     default_season  = 'spring'
     atm_data_type   = 'clim'
-    ocn_data_type   = 'default'
+    ocn_data_type   = 'SHEBA'
     bgc_data_type   = 'default'
     fyear_init      = 2015
     ycycle          = 1
