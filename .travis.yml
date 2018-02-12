@@ -21,8 +21,7 @@ addons:
 
 install:
   # Fetch Icepack-specific dataset
-  - "mkdir -p ~/ICEPACK_INPUTDATA &&
-    wget ftp://ftp.cgd.ucar.edu/archive/Model-Data/CICE/Icepack_data.tar.gz &&
+  - "wget ftp://ftp.cgd.ucar.edu/archive/Model-Data/CICE/Icepack_data.tar.gz &&
     tar xvfz Icepack_data.tar.gz -C ~"
 
   # Mirror entire data folder
