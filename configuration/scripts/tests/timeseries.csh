@@ -10,6 +10,11 @@ endif
 #set basename = `echo $1:t`
 set basename = $1
 
+# Find the font file for an Arial font
+set font_full = `fc-list : file family style | grep Arial | head -n 1 | cut -d: -f 1`
+setenv GDFONTPATH `dirname $font_full`
+set fnt = `basename $font_full`
+
 set fieldlist=("area fraction  " \
                "avg ice thickness (m)" \
                "avg snow depth (m)" \
@@ -71,12 +76,14 @@ foreach field ($fieldlist:q)
   endif
 
   set output = `echo $fieldname | sed 's/ /_/g'`
-  set output = "${basename}_${output}.png"
+  set casename = `echo $basename | rev | cut -d / -f 1-2 | rev | sed 's/\//, /'`
+  set fname_base = "${casename}_${output}"
+  set output_fname = "${basename}_${output}.png"
 
-  echo "Plotting data for '$fieldname' and saving to $output"
+  echo "Plotting data for '$fieldname' and saving to $output_fname"
 
 # Call the plotting routine, which uses the data in the data.txt file
-gnuplot << EOF > $output
+gnuplot << EOF > $output_fname
 # Plot style
 set style data points
 
@@ -91,11 +98,12 @@ set timefmt "$format"
 set format x "%Y/%m/%d"
 
 # Axis tick marks
-set xtics rotate
+set xtics rotate font "$fnt,12"
+set ytics font "$fnt,12"
 
-set title "Annual ICEPACK Test $field (Diagnostic Print)" 
-set ylabel "$field" 
-set xlabel "Simulation Day" 
+set title "$fname_base" font "$fnt,18"
+set ylabel "$field" font "$fnt,14" offset -1,0
+set xlabel "Simulation Day" font "$fnt,14" offset 0,-4
 
 # Set y-axis limits
 $yrange
