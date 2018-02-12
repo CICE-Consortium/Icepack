@@ -40,7 +40,7 @@ notifications:
 
 after_failure:
   - "for runlog in 
-    $(find travis_suite.travisCItest/*.travisCItest/logs/icepack.runlog.*)'; do
+    $(find travis_suite.travisCItest/*.travisCItest/logs/icepack.runlog.*); do
     echo \"### Contents of $runlog ###\" && cat $runlog; done"
   - "git config --global user.email 'travis@travis-ci.org' &&
     git config --global user.name 'ciceconsortium' &&
