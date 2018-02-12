@@ -811,7 +811,11 @@
       character(len=*), parameter :: subname='(interp_coeff)'
 
       secyr = dayyr * secday         ! seconds in a year
-      tt = mod(time-offset,secyr)
+      if (present(offset)) then
+         tt = mod(time-offset,secyr)
+      else
+         tt = mod(time,secyr)
+      endif
 
       ! Find neighboring times
       rcnum = real(recnum,kind=dbl_kind)
