@@ -71,12 +71,14 @@ foreach field ($fieldlist:q)
   endif
 
   set output = `echo $fieldname | sed 's/ /_/g'`
-  set output = "${basename}_${output}.png"
+  set casename = `echo $basename | rev | cut -d / -f 1-2 | rev | sed 's/\//, /'`
+  set fname_base = "${casename}_${output}"
+  set output_fname = "${basename}_${output}.png"
 
-  echo "Plotting data for '$fieldname' and saving to $output"
+  echo "Plotting data for '$fieldname' and saving to $output_fname"
 
 # Call the plotting routine, which uses the data in the data.txt file
-gnuplot << EOF > $output
+gnuplot << EOF > $output_fname
 # Plot style
 set style data points
 
@@ -93,9 +95,9 @@ set format x "%Y/%m/%d"
 # Axis tick marks
 set xtics rotate
 
-set title "Annual ICEPACK Test $field (Diagnostic Print)" 
-set ylabel "$field" 
-set xlabel "Simulation Day" 
+set title "$fname_base"
+set ylabel "$field"
+set xlabel "Simulation Day"
 
 # Set y-axis limits
 $yrange
