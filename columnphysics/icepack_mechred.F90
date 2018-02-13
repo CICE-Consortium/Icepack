@@ -64,6 +64,7 @@
                 icepack_step_ridge
 
       real (kind=dbl_kind), parameter :: & 
+         exp_argmax = 100.0_dbl_kind, &    ! maximum argument of exponential for underflow
          Cs = p25         , & ! fraction of shear energy contrbtng to ridging 
          fsnowrdg = p5    , & ! snow fraction that survives in ridging 
          Gstar  = p15     , & ! max value of G(h) that participates 
@@ -396,8 +397,6 @@
                            msnow_mlt,   esnow_mlt,   &
                            maero,       mpond,       &
                            aredistn,    vredistn)    
-         if (icepack_warnings_aborted(subname)) return
-
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1174,6 +1173,8 @@
 
       real (kind=dbl_kind) :: &
          work       , & ! temporary variable
+         expL_arg   , & ! temporary exp arg values
+         expR_arg   , & ! temporary exp arg values
          closing_gross  ! rate at which area removed, not counting
                         ! area of new ridges
 
@@ -1452,8 +1453,10 @@
                      else
                         hL = max (hi1, hin_max(nr-1))
                         hR = hin_max(nr)
-                        expL = exp(-(hL-hi1)/hexp)
-                        expR = exp(-(hR-hi1)/hexp)
+                        expL_arg = min(((hL-hi1)/hexp),exp_argmax)
+                        expR_arg = min(((hR-hi1)/hexp),exp_argmax)
+                        expL = exp(-(expL_arg))
+                        expR = exp(-(expR_arg))
                         farea = expL - expR
                         fvol  = ((hL + hexp)*expL  &
                                     - (hR + hexp)*expR) / (hi1 + hexp)
@@ -1465,7 +1468,8 @@
                      hexp = hrexp(n)
 
                      hL = max (hi1, hin_max(nr-1))
-                     expL = exp(-(hL-hi1)/hexp)
+                     expL_arg = min(((hL-hi1)/hexp),exp_argmax)
+                     expL = exp(-(expL_arg))
                      farea = expL
                      fvol  = (hL + hexp)*expL / (hi1 + hexp)
 
