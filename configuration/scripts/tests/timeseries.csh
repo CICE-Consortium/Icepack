@@ -10,14 +10,6 @@ endif
 #set basename = `echo $1:t`
 set basename = $1
 
-# Find the font file for (1) Arial, (2) Times, or (3) Courier
-set font_full = `fc-list : file family style | grep "\.ttf\|\.pfa" | grep -P -v "[\x80-\xFF]"`
-set font_full = `echo $font_full | grep Regular | head -n 1 | cut -d: -f 1`
-setenv GDFONTPATH `echo $font_full | rev | cut -d / -f 2- | rev`
-set fnt = `echo $font_full | rev | cut -d / -f 1 | rev`
-
-echo "Font = $fnt"
-
 set fieldlist=("area fraction  " \
                "avg ice thickness (m)" \
                "avg snow depth (m)" \
@@ -101,12 +93,11 @@ set timefmt "$format"
 set format x "%Y/%m/%d"
 
 # Axis tick marks
-set xtics rotate font "$fnt,12"
-set ytics font "$fnt,12"
+set xtics rotate
 
-set title "$fname_base" font "$fnt,18"
-set ylabel "$field" font "$fnt,14" offset -1,0
-set xlabel "Simulation Day" font "$fnt,14" offset 0,-4
+set title "$fname_base"
+set ylabel "$field"
+set xlabel "Simulation Day"
 
 # Set y-axis limits
 $yrange
