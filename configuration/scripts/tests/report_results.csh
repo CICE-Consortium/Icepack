@@ -352,6 +352,7 @@ end
 #=====================
 
 cd ${wikiname}
+git add ${tsubdir}/*.md
 git add ${tsubdir}/${ofile}.md
 git add ${tsubdir}/${hfile}.md
 git add ${tsubdir}/${mfile}.md
