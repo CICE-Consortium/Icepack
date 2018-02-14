@@ -56,13 +56,13 @@ set xcdat = `echo $cdat | sed 's|-||g' | cut -c 3-`
 set xctim = `echo $ctim | sed 's|:||g'`
 set shrepo = `echo $repo | tr '[A-Z]' '[a-z]'`
 
-set tsubdir = icepack_dev
+set tsubdir = icepack_master
 set hfile = "icepack_by_hash"
 set mfile = "icepack_by_mach"
 set vfile = "icepack_by_vers"
 set bfile = "icepack_by_bran"
 if ("${shrepo}" !~ "*cice-consortium*") then
-  set tsubdir = icepack_master
+  set tsubdir = icepack_dev
   set hfile = {$hfile}_forks
   set mfile = {$mfile}_forks
   set vfile = {$vfile}_forks

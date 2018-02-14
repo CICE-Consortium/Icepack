@@ -275,7 +275,7 @@ if (($testsuite != $spval || $test != $spval) && $testid == $spval) then
 endif
 
 #Update version.txt
-echo "Icepack ${versno}"  >! columnphysics/version.txt
+echo "${versno}"  >! columnphysics/version.txt
 
 # Check to see if this is a test-suite run.  If so, loop through the various
 #   tests and create a separate folder for each
