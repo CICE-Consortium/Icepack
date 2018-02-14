@@ -1,14 +1,8 @@
 #!/bin/csh -f
 
-set gh_repository = "CICE-Consortium/Test-Results.wiki.git"
+set gh_repository = "apcraig/XX-Test-Results.wiki.git"
 set wikirepo = "https://github.com/${gh_repository}"
 set wikiname = Test-Results.wiki
-
-set tsubdir = icepack_testing
-set hfile = "icepack_by_hash"
-set mfile = "icepack_by_mach"
-set vfile = "icepack_by_vers"
-set bfile = "icepack_by_bran"
 
 rm -r -f ${wikiname}
 
@@ -18,6 +12,11 @@ if ( "$1" == "--travisCI" ) then
     git clone "https://ciceconsortium:${GH_TOKEN}@github.com/${gh_repository}" ${wikiname}
 else
     git clone ${wikirepo} ${wikiname}
+endif
+
+if (! -e results.log) then
+  echo "report_results failure, results.log file missing"
+  exit -9
 endif
 
 set repo = `grep "#repo = " results.log | cut -c 9-`
@@ -57,7 +56,13 @@ set xcdat = `echo $cdat | sed 's|-||g' | cut -c 3-`
 set xctim = `echo $ctim | sed 's|:||g'`
 set shrepo = `echo $repo | tr '[A-Z]' '[a-z]'`
 
+set tsubdir = icepack_dev
+set hfile = "icepack_by_hash"
+set mfile = "icepack_by_mach"
+set vfile = "icepack_by_vers"
+set bfile = "icepack_by_bran"
 if ("${shrepo}" !~ "*cice-consortium*") then
+  set tsubdir = icepack_master
   set hfile = {$hfile}_forks
   set mfile = {$mfile}_forks
   set vfile = {$vfile}_forks
@@ -78,7 +83,7 @@ unset noglob
 
 foreach compiler ( ${compilers} )
 
-  set ofile = "${shhash}.${mach}.${compiler}.${xcdat}.${xctim}"
+  set ofile = "${vers}.${shhash}.${mach}.${compiler}.${xcdat}.${xctim}"
   set outfile = "${wikiname}/${tsubdir}/${ofile}.md"
   mkdir -p ${wikiname}/${tsubdir}
   echo "${0}: writing to ${outfile}"
