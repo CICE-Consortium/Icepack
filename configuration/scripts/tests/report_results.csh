@@ -1,8 +1,17 @@
 #!/bin/csh -f
 
-set gh_repository = "apcraig/XX-Test-Results.wiki.git"
+set gh_repository = "CICE-Consortium/Test-Results.wiki.git"
 set wikirepo = "https://github.com/${gh_repository}"
 set wikiname = Test-Results.wiki
+
+if (! -e results.log) then
+  echo " "
+  echo "ERROR report_results failure, results.log file missing"
+  echo "  Please run results.csh first"
+  echo "  ABORTING"
+  echo " "
+  exit -9
+endif
 
 rm -r -f ${wikiname}
 
@@ -12,11 +21,6 @@ if ( "$1" == "--travisCI" ) then
     git clone "https://ciceconsortium:${GH_TOKEN}@github.com/${gh_repository}" ${wikiname}
 else
     git clone ${wikirepo} ${wikiname}
-endif
-
-if (! -e results.log) then
-  echo "report_results failure, results.log file missing"
-  exit -9
 endif
 
 set repo = `grep "#repo = " results.log | cut -c 9-`
@@ -348,7 +352,6 @@ end
 #=====================
 
 cd ${wikiname}
-git add ${tsubdir}/${shhash}.${mach}*.md
 git add ${tsubdir}/${ofile}.md
 git add ${tsubdir}/${hfile}.md
 git add ${tsubdir}/${mfile}.md
