@@ -9,12 +9,12 @@ CFLAGS     := -std=gnu99
 
 FIXEDFLAGS := -fixed
 FREEFLAGS  := -free
-FFLAGS     := -Wp,-macro=no_com -convert=BIG_ENDIAN -ieee=full -O2
-FFLAGS_NOOPT:= -Wp,-macro=no_com -convert=BIG_ENDIAN -ieee=full
+FFLAGS     := -Wp,-macro=no_com -convert=BIG_ENDIAN -ieee=full -O2 -gline
+FFLAGS_NOOPT:= -Wp,-macro=no_com -convert=BIG_ENDIAN -ieee=full -gline
 FC_AUTO_R8 := -r8
 
 ifeq ($(ICE_BLDDEBUG), true)
-  FFLAGS   := -C=all -g -time -f2003 -ieee=stop
+  FFLAGS   := -C=all -g -gline -time -f2003 -ieee=stop
 endif
 
 ifeq ($(ICE_COMMDIR), mpi)
