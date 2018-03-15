@@ -26,7 +26,7 @@
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
       use icepack_parameters, only: rhosi
       use icepack_parameters, only: kitd, ktherm, heat_capacity
-      use icepack_parameters, only: z_tracers, solve_zsal, initbio_frac
+      use icepack_parameters, only: z_tracers, solve_zsal
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice

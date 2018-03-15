@@ -7,7 +7,7 @@
       module icepack_brine
 
       use icepack_kinds
-      use icepack_parameters, only: p01, p001, p5, c0, c1, c2, c1p5, c10, puny
+      use icepack_parameters, only: p01, p001, p5, c0, c1, c2, c1p5, puny
       use icepack_parameters, only: gravit, rhoi, rhow, rhos, depressT
       use icepack_parameters, only: salt_loss, min_salin, rhosi
       use icepack_parameters, only: dts_b, l_sk
@@ -649,8 +649,8 @@
          surface_S     , & ! salinity of ice above hin > hbr 
          hinc_old          ! ice thickness (cell quantity) before current melt/growth (m)
 
-      logical (kind=log_kind) :: &
-         Rayleigh          ! .true. if ice exceeded a minimum thickness hin >= Ra_c 
+!     logical (kind=log_kind) :: &
+!        Rayleigh          ! .true. if ice exceeded a minimum thickness hin >= Ra_c 
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: &
          trtmp0        , & ! temporary, remapped tracers  
@@ -681,10 +681,10 @@
       ! Turn off by putting Ra_c = 0 in ice_in namelist.
       !-----------------------------------------------------------------
 
-      Rayleigh = .true.
-      if (n_cat == 1 .AND. hbr_old < Ra_c) then
-         Rayleigh = Rayleigh_criteria ! only category 1 ice can be false 
-      endif
+!     Rayleigh = .true.
+!     if (n_cat == 1 .AND. hbr_old < Ra_c) then
+!        Rayleigh = Rayleigh_criteria ! only category 1 ice can be false 
+!     endif
                      
       !-----------------------------------------------------------------
       ! Define ice salinity on Sin

@@ -154,23 +154,7 @@
       real (kind=dbl_kind), parameter :: &
          zTrf  = c2                 ! reference height for air temp (m)
 
-      ! local functions
-      real (kind=dbl_kind) :: &
-         xd    , & ! dummy argument
-         psimhu, & ! unstable part of psimh
-         psixhu    ! unstable part of psimx
-
       character(len=*),parameter :: subname='(atmo_boundary_layer)'
-
-      !------------------------------------------------------------
-      ! Define functions
-      !------------------------------------------------------------
-
-      psimhu(xd) = log((c1+xd*(c2+xd))*(c1+xd*xd)/c8) &
-                 - c2*atan(xd) + pih
-!ech                 - c2*atan(xd) + 1.571_dbl_kind
-
-      psixhu(xd) =  c2 * log((c1 + xd*xd)/c2)
 
       al2 = log(zref/zTrf)
 
@@ -928,6 +912,28 @@
       endif
 
       end subroutine icepack_atm_boundary
+
+      !------------------------------------------------------------
+      ! Define functions
+      !------------------------------------------------------------
+
+      real(kind=dbl_kind) function psimhu(xd)
+
+      real(kind=dbl_kind), intent(in) :: xd
+
+      psimhu = log((c1+xd*(c2+xd))*(c1+xd*xd)/c8) &
+             - c2*atan(xd) + pih
+!ech         - c2*atan(xd) + 1.571_dbl_kind
+
+      end function psimhu
+
+      real(kind=dbl_kind) function psixhu(xd)
+
+      real(kind=dbl_kind), intent(in) :: xd
+
+      psixhu =  c2 * log((c1 + xd*xd)/c2)
+
+      end function psixhu
 
 !=======================================================================
 
