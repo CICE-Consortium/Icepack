@@ -36,7 +36,7 @@
       use icepack_kinds
       use icepack_parameters,  only: c0, c1, c2, c10, c25, Cf, Cp, Pstar, Cstar
       use icepack_parameters,  only: p05, p15, p25, p333, p5
-      use icepack_parameters,  only: puny, Lfresh, rhoi, rhos, rhow
+      use icepack_parameters,  only: puny, Lfresh, rhoi, rhos
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: heat_capacity
