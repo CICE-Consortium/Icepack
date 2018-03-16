@@ -917,6 +917,8 @@
       ! Define functions
       !------------------------------------------------------------
 
+!=======================================================================
+
       real(kind=dbl_kind) function psimhu(xd)
 
       real(kind=dbl_kind), intent(in) :: xd
@@ -926,6 +928,8 @@
 !ech         - c2*atan(xd) + 1.571_dbl_kind
 
       end function psimhu
+
+!=======================================================================
 
       real(kind=dbl_kind) function psixhu(xd)
 

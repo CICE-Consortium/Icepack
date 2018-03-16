@@ -3165,11 +3165,11 @@
          ue       , & ! temporary for u
          extins   , & ! extinction
          amg      , & ! alp - gam
-                 apg          ! alp + gam
-         
+         apg          ! alp + gam
+
       integer (kind=int_kind), parameter :: &
          ngmax = 8    ! number of gaussian angles in hemisphere
-         
+
       real (kind=dbl_kind), dimension (ngmax), parameter :: &
          gauspt     & ! gaussian angles (radians)
             = (/ .9894009_dbl_kind,  .9445750_dbl_kind, &
@@ -3181,10 +3181,10 @@
                  .0951585_dbl_kind,  .1246290_dbl_kind, &
                  .1495960_dbl_kind,  .1691565_dbl_kind, &
                  .1826034_dbl_kind,  .1894506_dbl_kind/)
-        
+
       integer (kind=int_kind) :: &
-           ng           ! gaussian integration index
-         
+         ng           ! gaussian integration index
+
       real (kind=dbl_kind) :: &
          gwt      , & ! gaussian weight
          swt      , & ! sum of weights
@@ -3193,7 +3193,7 @@
          tdr      , & ! tdir for gaussian integration
          smr      , & ! accumulator for rdif gaussian integration
          smt          ! accumulator for tdif gaussian integration
-         
+
       real (kind=dbl_kind) :: &
          exp_min                    ! minimum exponential value
 
@@ -3209,7 +3209,7 @@
          rupdif(k) = c0
          rdndif(k) = c0
       enddo
-         
+
       ! initialize top interface of top layer 
       trndir(0) =   c1
       trntdr(0) =   c1
@@ -3226,7 +3226,7 @@
       ! value below the fresnel level, i.e. the cosine solar zenith 
       ! angle below the fresnel level for the refracted solar beam:
       mu0nij = sqrt(c1-((c1-mu0**2)/(refindx*refindx)))
-         
+
       ! compute level of fresnel refraction
       ! if ponded sea ice, fresnel level is the top of the pond.
       kfrsnl = 0
@@ -3242,7 +3242,7 @@
 
       ! begin main level loop
       do k = 0, klev
-                 
+
          ! initialize all layer apparent optical properties to 0
          rdir  (k) = c0
          rdif_a(k) = c0
@@ -4167,6 +4167,8 @@
 
       ! Delta-Eddington solution expressions
 
+!=======================================================================
+
       real(kind=dbl_kind) function alpha(w,uu,gg,e)
 
       real(kind=dbl_kind), intent(in) :: w, uu, gg, e
@@ -4174,6 +4176,8 @@
       alpha = p75*w*uu*((c1 + gg*(c1-w))/(c1 - e*e*uu*uu))
 
       end function alpha
+
+!=======================================================================
 
       real(kind=dbl_kind) function agamm(w,uu,gg,e)
 
@@ -4183,6 +4187,8 @@
 
       end function agamm
 
+!=======================================================================
+
       real(kind=dbl_kind) function n(uu,et)
 
       real(kind=dbl_kind), intent(in) :: uu, et
@@ -4190,6 +4196,8 @@
       n = ((uu+c1)*(uu+c1)/et ) - ((uu-c1)*(uu-c1)*et)
 
       end function n
+
+!=======================================================================
 
       real(kind=dbl_kind) function u(w,gg,e)
 
@@ -4199,6 +4207,8 @@
 
       end function u
 
+!=======================================================================
+
       real(kind=dbl_kind) function el(w,gg)
 
       real(kind=dbl_kind), intent(in) :: w, gg
@@ -4206,6 +4216,8 @@
       el = sqrt(c3*(c1-w)*(c1 - w*gg))
 
       end function el
+
+!=======================================================================
 
       real(kind=dbl_kind) function taus(w,f,t)
 
@@ -4215,6 +4227,8 @@
 
       end function taus
 
+!=======================================================================
+
       real(kind=dbl_kind) function omgs(w,f)
 
       real(kind=dbl_kind), intent(in) :: w, f
@@ -4222,6 +4236,8 @@
       omgs = (c1 - f)*w/(c1 - w*f)
 
       end function omgs
+
+!=======================================================================
 
       real(kind=dbl_kind) function asys(gg,f)
 
