@@ -3157,38 +3157,19 @@
          mu0n         ! cosine solar zenith angle in medium
  
       real (kind=dbl_kind) :: &
-         alpha    , & ! term in direct reflectivity and transmissivity
-         agamm    , & ! term in direct reflectivity and transmissivity
-         el       , & ! term in alpha,agamm,n,u
-         taus     , & ! scaled extinction optical depth
-         omgs     , & ! scaled single particle scattering albedo
-         asys     , & ! scaled asymmetry parameter
-         u        , & ! term in diffuse reflectivity and transmissivity
-         n        , & ! term in diffuse reflectivity and transmissivity
-         lm       , & ! temporary for el
-         mu       , & ! cosine solar zenith for either snow or water
-         ne           ! temporary for n
- 
-      real (kind=dbl_kind) :: &
-         w        , & ! dummy argument for statement function
-         uu       , & ! dummy argument for statement function
-         gg       , & ! dummy argument for statement function
-         e        , & ! dummy argument for statement function
-         f        , & ! dummy argument for statement function
-         t        , & ! dummy argument for statement function
-         et           ! dummy argument for statement function
- 
-      real (kind=dbl_kind) :: &
          alp      , & ! temporary for alpha
          gam      , & ! temporary for agamm
+         lm       , & ! temporary for el
+         mu       , & ! temporary for gauspt
+         ne       , & ! temporary for n
          ue       , & ! temporary for u
          extins   , & ! extinction
          amg      , & ! alp - gam
          apg          ! alp + gam
- 
+
       integer (kind=int_kind), parameter :: &
          ngmax = 8    ! number of gaussian angles in hemisphere
- 
+
       real (kind=dbl_kind), dimension (ngmax), parameter :: &
          gauspt     & ! gaussian angles (radians)
             = (/ .9894009_dbl_kind,  .9445750_dbl_kind, &
@@ -3200,10 +3181,10 @@
                  .0951585_dbl_kind,  .1246290_dbl_kind, &
                  .1495960_dbl_kind,  .1691565_dbl_kind, &
                  .1826034_dbl_kind,  .1894506_dbl_kind/)
-  
+
       integer (kind=int_kind) :: &
          ng           ! gaussian integration index
- 
+
       real (kind=dbl_kind) :: &
          gwt      , & ! gaussian weight
          swt      , & ! sum of weights
@@ -3212,22 +3193,12 @@
          tdr      , & ! tdir for gaussian integration
          smr      , & ! accumulator for rdif gaussian integration
          smt          ! accumulator for tdif gaussian integration
- 
+
       real (kind=dbl_kind) :: &
          exp_min                    ! minimum exponential value
 
       character(len=*),parameter :: subname='(solution_dEdd)'
 
-      ! Delta-Eddington solution expressions
-      alpha(w,uu,gg,e) = p75*w*uu*((c1 + gg*(c1-w))/(c1 - e*e*uu*uu))
-      agamm(w,uu,gg,e) = p5*w*((c1 + c3*gg*(c1-w)*uu*uu)/(c1-e*e*uu*uu))
-      n(uu,et)         = ((uu+c1)*(uu+c1)/et ) - ((uu-c1)*(uu-c1)*et)
-      u(w,gg,e)        = c1p5*(c1 - w*gg)/e
-      el(w,gg)         = sqrt(c3*(c1-w)*(c1 - w*gg))
-      taus(w,f,t)      = (c1 - w*f)*t
-      omgs(w,f)        = (c1 - f)*w/(c1 - w*f)
-      asys(gg,f)       = (gg - f)/(c1 - f)
- 
 !-----------------------------------------------------------------------
 
       do k = 0, klevp 
@@ -3238,7 +3209,7 @@
          rupdif(k) = c0
          rdndif(k) = c0
       enddo
- 
+
       ! initialize top interface of top layer 
       trndir(0) =   c1
       trntdr(0) =   c1
@@ -3255,7 +3226,7 @@
       ! value below the fresnel level, i.e. the cosine solar zenith 
       ! angle below the fresnel level for the refracted solar beam:
       mu0nij = sqrt(c1-((c1-mu0**2)/(refindx*refindx)))
- 
+
       ! compute level of fresnel refraction
       ! if ponded sea ice, fresnel level is the top of the pond.
       kfrsnl = 0
@@ -3271,7 +3242,7 @@
 
       ! begin main level loop
       do k = 0, klev
-         
+
          ! initialize all layer apparent optical properties to 0
          rdir  (k) = c0
          rdif_a(k) = c0
@@ -4194,6 +4165,88 @@
 
       end subroutine icepack_step_radiation
 
+      ! Delta-Eddington solution expressions
+
+!=======================================================================
+
+      real(kind=dbl_kind) function alpha(w,uu,gg,e)
+
+      real(kind=dbl_kind), intent(in) :: w, uu, gg, e
+
+      alpha = p75*w*uu*((c1 + gg*(c1-w))/(c1 - e*e*uu*uu))
+
+      end function alpha
+
+!=======================================================================
+
+      real(kind=dbl_kind) function agamm(w,uu,gg,e)
+
+      real(kind=dbl_kind), intent(in) :: w, uu, gg, e
+
+      agamm = p5*w*((c1 + c3*gg*(c1-w)*uu*uu)/(c1-e*e*uu*uu))
+
+      end function agamm
+
+!=======================================================================
+
+      real(kind=dbl_kind) function n(uu,et)
+
+      real(kind=dbl_kind), intent(in) :: uu, et
+
+      n = ((uu+c1)*(uu+c1)/et ) - ((uu-c1)*(uu-c1)*et)
+
+      end function n
+
+!=======================================================================
+
+      real(kind=dbl_kind) function u(w,gg,e)
+
+      real(kind=dbl_kind), intent(in) :: w, gg, e
+
+      u = c1p5*(c1 - w*gg)/e
+
+      end function u
+
+!=======================================================================
+
+      real(kind=dbl_kind) function el(w,gg)
+
+      real(kind=dbl_kind), intent(in) :: w, gg
+
+      el = sqrt(c3*(c1-w)*(c1 - w*gg))
+
+      end function el
+
+!=======================================================================
+
+      real(kind=dbl_kind) function taus(w,f,t)
+
+      real(kind=dbl_kind), intent(in) :: w, f, t
+
+      taus = (c1 - w*f)*t
+
+      end function taus
+
+!=======================================================================
+
+      real(kind=dbl_kind) function omgs(w,f)
+
+      real(kind=dbl_kind), intent(in) :: w, f
+
+      omgs = (c1 - f)*w/(c1 - w*f)
+
+      end function omgs
+
+!=======================================================================
+
+      real(kind=dbl_kind) function asys(gg,f)
+
+      real(kind=dbl_kind), intent(in) :: gg, f
+
+      asys = (gg - f)/(c1 - f)
+
+      end function asys
+ 
 !=======================================================================
 
       end module icepack_shortwave
