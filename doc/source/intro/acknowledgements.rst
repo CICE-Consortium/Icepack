@@ -32,7 +32,5 @@ Special thanks are due to the following people:
 
 -  Cecilia Bitz of the University of Washington, for her column forcing data,
 
--  the National Earth System Prediction Capability project,
-
 -  and many others who contributed to previous versions of CICE.
 
