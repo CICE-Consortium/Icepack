@@ -22,11 +22,17 @@ Special thanks are due to the following people:
 
 -  Andrew Roberts of the Naval Postgraduate School,
 
+-  Michael Winton and Anders Damsgaard of the Geophysical Fluid Dynamics Laboratory,
+
 -  Jean-Francois Lemieux and Frederic Dupont of Environment and Climate Change Canada,
 
 -  Tony Craig and his supporters at the National Center for Atmospheric Research, the Naval Postgraduate School, and NOAA National Weather Service,
 
--  Cecilia Bitz at the University of Washington, for her column forcing data,
+-  Jessie Carman and Robert Grumbine of the National Oceanographic and Atmospheric Administration
+
+-  Cecilia Bitz of the University of Washington, for her column forcing data,
+
+-  the National Earth System Prediction Capability project,
 
 -  and many others who contributed to previous versions of CICE.
 
