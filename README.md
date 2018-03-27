@@ -23,7 +23,11 @@ where "branch name" can also be a version name
 
 ## Documentation
 
-Detailed and searchable online documentation of Icepack can be found at https://readthedocs.org/projects/cice-consortium-icepack/ . This site has both the most up to date [HTML](http://cice-consortium-icepack.readthedocs.io/en/master/) and [PDF](https://media.readthedocs.org/pdf/cice-consortium-icepack/master/cice-consortium-icepack.pdf) living documentation from the master branch of the CICE-Consortium repository that will be updated regularly with code development. The site also has static documentation with each Icepack release.
+Detailed and searchable online documentation of Icepack can be found at https://readthedocs.org/projects/cice-consortium-icepack/ . 
+
+This site has the most up-to-date [HTML](http://cice-consortium-icepack.readthedocs.io/en/master/) and [PDF](https://media.readthedocs.org/pdf/cice-consortium-icepack/master/cice-consortium-icepack.pdf) living documentation from the master branch of the CICE-Consortium repository that will be updated regularly with code development. 
+
+This site also has static documentation from each Icepack release.
 
 More information about Icepack documentation can be found on the [Icepack Documentation Wiki page](https://github.com/CICE-Consortium/Icepack/wiki/Icepack-Documentation).
 
