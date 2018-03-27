@@ -290,7 +290,7 @@ surface potential temperature and specific humidity.
     (:math:`kg/m^2/s`). Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes. 
     In the namelist, set ``atm_data_type = NICE`` to use N-ICE atmospheric forcing.
 
-    Oceanic forcing fields are available from a Parallel Ocean Program (POP) 1-degree (gx1v3) simulation run 01/08/15.
+    Oceanic forcing fields are available from a Parallel Ocean Program (POP) 1-degree (gx1v3) simulation :cite:`COLLINS06`.
     These fields consist of sea surface temperature (K), sea surface salinity (ppt), boundary layer depth (m),
     ocean velocity in the x and y direction (m/s), and deep ocean heat flux (:math:`W/m^2`). 
     In the namelist, set ``ocn_data_type = NICE`` to use N-ICE oceanic forcing.
@@ -312,7 +312,7 @@ surface potential temperature and specific humidity.
     (:math:`kg/m^2/s`). Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes. 
     In the namelist, set ``atm_data_type = ISPOL`` to use ISPOL atmospheric forcing.
 
-    Oceanic forcing fields are available from :cite:`JH14` derived from a POP 1-degree (gx1v3 simulation). 
+    Oceanic forcing fields are available from :cite:`JH14` derived from a POP 1-degree (gx1v3 simulation):cite:`COLLINS06`. 
     These consist of sea surface temperature (K), sea surface salinity (ppt), boundary layer depth (m), 
     ocean velocity in the x and y direction (m/s), and deep ocean heat flux (:math:`W/m^2`). 
     In the namelist, set ``ocn_data_type = ISPOL`` to use ISPOL oceanic forcing.
