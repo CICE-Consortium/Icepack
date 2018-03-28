@@ -142,7 +142,7 @@ Building documentation
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Once you've committed and pushed changes to the documentation *.rst files on your personal development fork. 
-Go to your readthepages.org site and then select your project "Overview". Whenever you commit to your fork
+Go to your readthedocs.org site and then select your project "Overview". Whenever you commit to your fork
 the documents will automatically build. There is also an option to "Build a Version". Choose "latest" 
 and then click the green "Build version" button. 
 
