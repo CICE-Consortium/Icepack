@@ -66,8 +66,9 @@ reference the `Getting Started <https://docs.readthedocs.io/en/latest/getting_st
 
 1. Sign up for a free account at `readthedocs.org <readthedocs.org>`_
 
-   Select a username and password. These do not have to match your GitHub username and password. Below, 
-   USERNAME is a placeholder. You would need to replace this with your personal username. 
+   Select a username and password. These do not have to match your GitHub username and password, but having
+   the same username can be simpler if the user choses to do this. Below, 
+   USERNAME is a placeholder - you would need to replace this with your personal username. 
 
 2. Connect your GitHub account
 
