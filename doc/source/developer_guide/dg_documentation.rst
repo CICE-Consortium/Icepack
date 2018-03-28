@@ -66,7 +66,8 @@ reference the `Getting Started <https://docs.readthedocs.io/en/latest/getting_st
 
 1. Sign up for a free account at `readthedocs.org <readthedocs.org>`_
 
-   Select a username and password.
+   Select a username and password. These do not have to match your GitHub username and password. Below, 
+   USERNAME is a placeholder. You would need to replace this with your personal username. 
 
 2. Connect your GitHub account
 
@@ -109,7 +110,7 @@ reference the `Getting Started <https://docs.readthedocs.io/en/latest/getting_st
 Model sandbox and documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Follow the general `CICE-Consortium Git Workflow and Developer's guide <https://docs.google.com/document/d/1rR6WAvZQT9iAMUp-m_HZ06AUCCI19mguFialsMCYs9o/edit#heading=h.ugpwrwa68ov1>`_
+Follow the general `CICE-Consortium Git Workflow and Developer's guide <https://github.com/CICE-Consortium/About-Us/wiki/Git-Workflow-Guidance>`_
 to clone the repository and create your personal fork for model modifications. Whenever you modify the model 
 you should update documentation. You can update the documentation on the same branch of your fork on which 
 you test code, or you can create a separate branch called 'readthedocs' to test only the RST and HTML documentation.
@@ -140,9 +141,17 @@ Here are some resources for using RST files:
 Building documentation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Once you've committed changes to the documentation *.rst files on your development fork. Go to your readthepages.org site and then select your project "Overview". There is an option to "Build a Version". Choose "latest" and then click the green "Build version" button. 
+Once you've committed and pushed changes to the documentation *.rst files on your personal development fork. 
+Go to your readthepages.org site and then select your project "Overview". Whenever you commit to your fork
+the documents will automatically build. There is also an option to "Build a Version". Choose "latest" 
+and then click the green "Build version" button. 
 
-You will automatically be taken to the "Builds" page with a list of recent documentation builds. The documentation build you just started will be listed as "Triggered" and then "Building". If the build is successful the status will change to "Passed"; if the build is not successful then the status will change to "Failed". You can click on the "Passed" or "Failed" text to get information about the build and what might be problematic. The time of the build attempt is also listed with the most recent build appearing at the top of the list.
+You will automatically be taken to the "Builds" page with a list of recent documentation builds. 
+The documentation build you just started will be listed as "Triggered" and then "Building". 
+If the build is successful the status will change to "Passed"; if the build is not successful 
+then the status will change to "Failed". You can click on the "Passed" or "Failed" text to get 
+information about the build and what might be problematic. The time of the build attempt is also 
+listed with the most recent build appearing at the top of the list.
 
 To see the HTML you just successfully built, go to "Overview" and click on "latest" under versions. To see the PDF you just successfully built, go to "Downloads" and click on "latest PDF". 
 
@@ -153,7 +162,10 @@ Push changes back to the repository
 When you're happy with the documentation you've generated, follow the standard CICE-Consortium 
 `Git Workflow and Developer's guide <https://docs.google.com/document/d/1rR6WAvZQT9iAMUp-m_HZ06AUCCI19mguFialsMCYs9o/edit#heading=h.ugpwrwa68ov1>`_ 
 to do a Pull Request and make sure to note in the Pull Request Template that documentation has also 
-been updated. We will test the HTML and PDF as part of the Pull Request before it is merged to the repository. It can be particularly helpful if you include the link to your successfully built documentation that is part of the Pull Request, and in order to do this you must ensure that your settings in readthedocs.org are set to "Public".
+been updated. We will test the HTML and PDF as part of the Pull Request before it is merged to the repository. 
+It can be particularly helpful if you include the link to your successfully built documentation that is 
+part of the Pull Request, and in order to do this you must ensure that your settings in readthedocs.org 
+are set to "Public".
 
 
 Other Tips and Tricks
