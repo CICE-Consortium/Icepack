@@ -23,14 +23,13 @@ where "branch name" can also be a version name
 
 ## Documentation
 
-Detailed and searchable online documentation of Icepack can be found at https://cice-consortium.github.io/Icepack with the following sections:
-- [Quick Start](https://cice-consortium.github.io/Icepack/intro/quickstart.html), which has instructions for running the model. 
-- [Science guide](https://cice-consortium.github.io/Icepack/science_guide/index.html)
-- [User guide](https://cice-consortium.github.io/Icepack/user_guide/index.html) with a [Testing](https://cice-consortium.github.io/Icepack/user_guide/ug_testing.html) subsection with instructions for setting up standard tests (e.g. regression, restart).
-- [Developer guide](https://cice-consortium.github.io/Icepack/developer_guide/index.html) with a [Documentation](https://cice-consoritum.github.io/Icepack/developer_guide/dg_documentation.html) subsection with instructions on how to update documentation using Sphinx along with code development.
-- [Index](https://cice-consortium.github.io/Icepack/icepack_index.html)
+Detailed and searchable online documentation of Icepack can be found at https://readthedocs.org/projects/cice-consortium-icepack/ . 
 
-**Note that the documentation Table of Contents can be accessed at any point by clicking the upper left hand "Icepack x.x.xx documentation" link.**
+This site has the most up-to-date [HTML](http://cice-consortium-icepack.readthedocs.io/en/master/) and [PDF](https://media.readthedocs.org/pdf/cice-consortium-icepack/master/cice-consortium-icepack.pdf) living documentation from the master branch of the CICE-Consortium repository that will be updated regularly with code development. 
+
+This site also has static documentation from each Icepack release.
+
+More information about Icepack documentation can be found on the [Icepack Documentation Wiki page](https://github.com/CICE-Consortium/Icepack/wiki/Icepack-Documentation).
 
 ## More Information
 
