@@ -503,6 +503,7 @@
       strocnyT(:) = c0    ! ice-ocean stress, y-direction (T-cell)
       fresh   (:) = c0
       fsalt   (:) = c0
+      fpond   (:) = c0
       fhocn   (:) = c0
       fswthru (:) = c0
       flux_bio(:,:) = c0 ! bgc
@@ -631,7 +632,6 @@
       fcondtopn (:,:) = c0
       flatn     (:,:) = c0
       fsensn    (:,:) = c0
-      fpond     (:) = c0
       fresh_ai  (:) = c0
       fsalt_ai  (:) = c0
       fhocn_ai  (:) = c0
@@ -648,10 +648,10 @@
       Cdn_ocn(:) = dragio
       Cdn_atm(:) = (vonkar/log(zref/iceruf)) &
                  * (vonkar/log(zref/iceruf)) ! atmo drag for RASM
+      Cdn_atm_ratio(:)= c0
 
       if (formdrag) then
         Cdn_atm_rdg (:) = c0
-        Cdn_atm_ratio(:)= c0
         Cdn_atm_floe(:) = c0
         Cdn_atm_pond(:) = c0
         Cdn_atm_skin(:) = c0

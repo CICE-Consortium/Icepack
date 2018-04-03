@@ -828,7 +828,6 @@
            aicen, & ! concentration of ice
            vicen, & ! volume per unit area of ice (m)
            vsnon, & ! volume per unit area of snow (m)
-           ffracn,& ! fraction of fsurfn used to melt ipond
            Tsfcn, & ! surface temperature (deg C)
            alvln, & ! level-ice area fraction
            apndn, & ! pond area fraction
@@ -840,6 +839,7 @@
            zbion    ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
+           ffracn,& ! fraction of fsurfn used to melt ipond
            dhsn     ! depth difference for snow on sea ice and pond ice
 
       real(kind=dbl_kind), intent(inout) :: &
@@ -867,7 +867,7 @@
       logical (kind=log_kind), intent(in) :: &
            l_print_point
 
-      logical (kind=log_kind), optional :: &
+      logical (kind=log_kind), intent(in) :: &
            initonly    ! flag to indicate init only, default is false
 
       ! local temporary variables
@@ -890,6 +890,9 @@
       integer (kind=int_kind) :: &
          n               ! thickness category index
 
+      logical (kind=log_kind) :: &
+         linitonly       ! local flag for initonly
+
       real (kind=dbl_kind) :: &
          ipn         , & ! refrozen pond ice thickness (m), mean over ice fraction
          hp          , & ! pond depth
@@ -901,15 +904,9 @@
          spn         , & ! snow depth on refrozen pond (m)
          tmp             ! 0 or 1
 
-      logical (kind=log_kind) :: &
-         linitonly       ! local initonly value
-
       character(len=*),parameter :: subname='(run_dEdd)'
 
-      linitonly = .false.
-      if (present(initonly)) then
-         linitonly = initonly
-      endif
+      linitonly = initonly
 
       ! cosine of the zenith angle
 #ifdef CESMCOUPLED
@@ -985,6 +982,7 @@
                
                ! reduce effective pond area absorbing surface heat flux
                ! due to flux already having been used to melt pond ice
+               if (linitonly) ffracn(n) = c0
                fpn = (c1 - ffracn(n)) * fpn
                
                ! taper pond area with snow on pond ice
@@ -3482,11 +3480,11 @@
          Tsfc   , & ! surface temperature 
          hs0        ! snow depth for transition to bare sea ice (m)
 
-      real (kind=dbl_kind), intent(out) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          fs     , & ! horizontal coverage of snow
          hs         ! snow depth
 
-      real (kind=dbl_kind), dimension (:), intent(out) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          rhosnw , & ! density in snow layer (kg/m3)
          rsnw       ! grain radius in snow layer (micro-meters)
 
@@ -3987,7 +3985,7 @@
          modal_aero   , & ! .true. use modal aerosol optical treatment
          tr_zaero
 
-      logical (kind=log_kind), optional :: &
+      logical (kind=log_kind), intent(in), optional :: &
          initonly         ! flag to indicate init only, default is false
 
       ! local variables
@@ -4020,6 +4018,7 @@
             fswsfcn (n) = c0
             fswintn (n) = c0
             fswthrun(n) = c0
+            if (linitonly) dhsn(n) = c0
          enddo   ! ncat
          fswpenln (:,:) = c0
          Iswabsn  (:,:) = c0

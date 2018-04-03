@@ -267,6 +267,7 @@
                                   zqsn,     zTsn,    &
                                   zSin,              &
                                   einit )
+
       if (icepack_warnings_aborted(subname)) return
 
       ! Save initial ice and snow thickness (for fresh and fsalt)
@@ -356,6 +357,7 @@
       ! intermediate energy for error check
       
       einter = c0
+
       do k = 1, nslyr
          einter = einter + hslyr * zqsn(k)
       enddo ! k
@@ -732,13 +734,13 @@
       ! where 'd' denotes an error due to roundoff.
       !-----------------------------------------------------------------
 
+         zqsn  (k) = -rhos * Lfresh
+         Tmax = puny
+
          if (hslyr > hs_min/rnslyr .and. heat_capacity) then
             ! zqsn < 0              
             Tmax = -zqsn(k)*puny*rnslyr / &
                  (rhos*cp_ice*vsnon)
-         else
-            zqsn  (k) = -rhos * Lfresh
-            Tmax = puny
          endif
 
       !-----------------------------------------------------------------
@@ -1129,6 +1131,8 @@
       !-----------------------------------------------------------------
 
       hsn_new  = c0
+      dhi = c0
+      dhs = c0
 
       do k = 1, nilyr
          dzi(k) = hilyr

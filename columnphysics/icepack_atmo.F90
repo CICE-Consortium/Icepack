@@ -88,7 +88,7 @@
       real (kind=dbl_kind), intent(inout) :: &
          Cdn_atm      ! neutral drag coefficient
  
-      real (kind=dbl_kind), intent(out) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          Cdn_atm_ratio_n ! ratio drag coeff / neutral drag coeff
 
       real (kind=dbl_kind), &
@@ -878,34 +878,34 @@
 
       Cdn_atm_ratio_n = c1
 
-               if (trim(atmbndy) == 'constant') then
-                  call atmo_boundary_const (sfctype,  calc_strair, &
-                                            uatm,     vatm,     &
-                                            wind,     rhoa,     &
-                                            strx,     stry,     &
-                                            Tsf,      potT,     &
-                                            Qa,                 &
-                                            delt,     delq,     &
-                                            lhcoef,   shcoef    )
-                  if (icepack_warnings_aborted(subname)) return
-               else ! default
-                  call atmo_boundary_layer (sfctype,                 &
-                                            calc_strair, formdrag,   &
-                                            highfreq, natmiter,      &
-                                            Tsf,      potT,          &
-                                            uatm,     vatm,          &
-                                            wind,     zlvl,          &
-                                            Qa,       rhoa,          &
-                                            strx,     stry,          &
-                                            Tref,     Qref,          &
-                                            delt,     delq,          &
-                                            lhcoef,   shcoef,        &
-                                            Cdn_atm,                 &
-                                            Cdn_atm_ratio_n,         &
-                                            worku,    workv,         &
-                                            workr)
-                  if (icepack_warnings_aborted(subname)) return
-               endif ! atmbndy
+      if (trim(atmbndy) == 'constant') then
+            call atmo_boundary_const (sfctype,  calc_strair, &
+                                      uatm,     vatm,     &
+                                      wind,     rhoa,     &
+                                      strx,     stry,     &
+                                      Tsf,      potT,     &
+                                      Qa,                 &
+                                      delt,     delq,     &
+                                      lhcoef,   shcoef    )
+            if (icepack_warnings_aborted(subname)) return
+      else ! default
+         call atmo_boundary_layer (sfctype,                 &
+                                   calc_strair, formdrag,   &
+                                   highfreq, natmiter,      &
+                                   Tsf,      potT,          &
+                                   uatm,     vatm,          &
+                                   wind,     zlvl,          &
+                                   Qa,       rhoa,          &
+                                   strx,     stry,          &
+                                   Tref,     Qref,          &
+                                   delt,     delq,          &
+                                   lhcoef,   shcoef,        &
+                                   Cdn_atm,                 &
+                                   Cdn_atm_ratio_n,         &
+                                   worku,    workv,         &
+                                   workr)
+         if (icepack_warnings_aborted(subname)) return
+      endif ! atmbndy
 
       if (present(Uref)) then
          Uref = workr

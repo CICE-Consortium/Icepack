@@ -15,7 +15,7 @@ module icepack_warnings
       logical :: warning_abort = .false.
 
       ! public string for all subroutines to use
-      character(len=char_len_long), public :: warnstr
+      character(len=char_len_long), public :: warnstr = ' '
 
       public :: &
         icepack_warnings_clear,    &

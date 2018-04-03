@@ -1041,14 +1041,14 @@
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn        ! ice tracers
 
-      real (kind=dbl_kind), intent(out) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          dfpond   , & ! zapped pond water flux (kg/m^2/s)
          dfresh   , & ! zapped fresh water flux (kg/m^2/s)
          dfsalt   , & ! zapped salt flux   (kg/m^2/s)
          dfhocn   , & ! zapped energy flux ( W/m^2)
          dfzsal       ! zapped salt flux from zsalinity(kg/m^2/s) 
 
-      real (kind=dbl_kind), dimension (:), intent(out) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
@@ -1860,15 +1860,15 @@
 
       character(len=*),parameter :: subname='(icepack_init_itd_hist)'
 
-         write(warnstr,*) ' '
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) 'hin_max(n-1) < Cat n < hin_max(n)'
-         call icepack_warnings_add(warnstr)
+!        write(warnstr,*) ' '
+!        call icepack_warnings_add(warnstr)
+!        write(warnstr,*) trim(subname)
+!        call icepack_warnings_add(warnstr)
+!        write(warnstr,*) 'hin_max(n-1) < Cat n < hin_max(n)'
+!        call icepack_warnings_add(warnstr)
          do n = 1, ncat
-            write(warnstr,*) hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
-            call icepack_warnings_add(warnstr)
+!           write(warnstr,*) hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
+!           call icepack_warnings_add(warnstr)
             ! Write integer n to character string
             write (c_nc, '(i2)') n    
 
@@ -1880,8 +1880,8 @@
             c_hi_range(n)=c_hinmax1//'m < hi Cat '//c_nc//' < '//c_hinmax2//'m'
          enddo
 
-         write(warnstr,*) ' '
-         call icepack_warnings_add(warnstr)
+!        write(warnstr,*) ' '
+!        call icepack_warnings_add(warnstr)
 
       end subroutine icepack_init_itd_hist
 

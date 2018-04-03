@@ -8,7 +8,7 @@
       module icedrv_InitMod
 
       use icedrv_kinds
-      use icedrv_constants, only: nu_diag
+      use icedrv_constants, only: nu_diag, c0
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_flags
       use icedrv_system, only: icedrv_system_abort
@@ -54,7 +54,7 @@
 
       call icepack_configure()  ! initialize icepack
       call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=trim(subname), &
           file=__FILE__,line= __LINE__)
 
       call input_data           ! namelist variables
@@ -66,14 +66,14 @@
       call icepack_init_itd(ncat, hin_max)
 
       call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted(subname)) then
+      if (icepack_warnings_aborted(trim(subname))) then
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       call icepack_init_itd_hist(ncat, hin_max, c_hi_range) ! output
 
       call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted(subname)) then
+      if (icepack_warnings_aborted(trim(subname))) then
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
@@ -99,7 +99,7 @@
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
       call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=trim(subname), &
           file=__FILE__,line= __LINE__)
 
       call init_forcing      ! initialize forcing (standalone)     
@@ -129,6 +129,7 @@
       use icedrv_init, only: ice_ic
       use icedrv_init, only: tmask
       use icedrv_init_column, only: init_hbrine, init_bgc
+      use icedrv_flux, only: frz_onset, mlt_onset
       use icedrv_restart, only: restartfile
       use icedrv_restart_shared, only: restart
       use icedrv_restart_bgc, only: read_restart_bgc
@@ -154,7 +155,7 @@
       call icepack_query_parameters(solve_zsal_out=solve_zsal)
       call icepack_query_tracer_flags(tr_brine_out=tr_brine)
       call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=trim(subname), &
           file=__FILE__,line= __LINE__)
 
       !-----------------------------------------------------------------
@@ -166,6 +167,9 @@
       if (restart) then
          call restartfile (ice_ic)
          call calendar (time)
+      else
+         frz_onset = c0
+         mlt_onset = c0
       endif
 
       if (solve_zsal .or. skl_bgc .or. z_tracers) then
@@ -195,7 +199,7 @@
                                 nt_strata)
       enddo
       call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=trim(subname), &
           file=__FILE__, line=__LINE__)
 
       end subroutine init_restart
