@@ -734,13 +734,13 @@
       ! where 'd' denotes an error due to roundoff.
       !-----------------------------------------------------------------
 
-         zqsn  (k) = -rhos * Lfresh
-         Tmax = puny
-
          if (hslyr > hs_min/rnslyr .and. heat_capacity) then
             ! zqsn < 0              
             Tmax = -zqsn(k)*puny*rnslyr / &
                  (rhos*cp_ice*vsnon)
+         else
+            zqsn  (k) = -rhos * Lfresh
+            Tmax = puny
          endif
 
       !-----------------------------------------------------------------
