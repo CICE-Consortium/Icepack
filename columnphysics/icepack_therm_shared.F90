@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_shared.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! Shared thermo variables, subroutines
@@ -8,14 +7,23 @@
       module icepack_therm_shared
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, c4, p5, pi
-      use icepack_constants, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
-      use icepack_constants, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
-      use icepack_parameters, only: saltmax, ktherm, heat_capacity
-      use icepack_parameters, only: min_salin, calc_Tsfc
+
+      use icepack_parameters, only: c0, c1, c2, c4, p5, pi
+      use icepack_parameters, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
+      use icepack_parameters, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
+      use icepack_parameters, only: saltmax, min_salin, depressT
+      use icepack_parameters, only: ktherm, heat_capacity, tfrz_option
+      use icepack_parameters, only: calc_Tsfc
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_mushy_physics, only: enthalpy_mush
+      use icepack_mushy_physics, only: temperature_snow
+      use icepack_mushy_physics, only: enthalpy_snow
+      use icepack_mushy_physics, only: temperature_mush
+      use icepack_mushy_physics, only: liquidus_temperature_mush
     
       implicit none
-      save
 
       private
       public :: calculate_Tin_from_qin, &
@@ -68,6 +76,8 @@
 
       real (kind=dbl_kind) :: &
          aa1,bb1,cc1         ! quadratic solvers
+
+      character(len=*),parameter :: subname='(calculate_Tin_from_qin)'
 
       if (l_brine) then
          aa1 = cp_ice
@@ -124,6 +134,8 @@
          flwdabs     , & ! downward longwave absorbed heat flx (W/m^2)
          tmpvar          ! 1/TsfK
     
+      character(len=*),parameter :: subname='(surface_heat_flux)'
+
       ! ice surface temperature in Kelvin
       TsfK = Tsf + Tffresh
 !      TsfK = max(Tsf + Tffresh, c1)
@@ -148,9 +160,7 @@
 
   !=======================================================================
   
-      subroutine dsurface_heat_flux_dTsf(Tsf,     fswsfc, &
-                                         rhoa,    flw,    &
-                                         potT,    Qa,     &
+      subroutine dsurface_heat_flux_dTsf(Tsf,  rhoa,      &
                                          shcoef,  lhcoef, &
                                          dfsurfn_dTsf, dflwoutn_dTsf, &
                                          dfsensn_dTsf, dflatn_dTsf)
@@ -161,11 +171,7 @@
     
       ! input variables
       real(kind=dbl_kind), intent(in) :: &
-         fswsfc        , & ! SW absorbed at ice/snow surface (W m-2)
          rhoa          , & ! air density (kg/m^3)
-         flw           , & ! incoming longwave radiation (W/m^2)
-         potT          , & ! air potential temperature  (K)
-         Qa            , & ! specific humidity (kg/kg)
          shcoef        , & ! transfer coefficient for sensible heat
          lhcoef            ! transfer coefficient for latent heat
     
@@ -185,6 +191,8 @@
          qsat          , & ! the saturation humidity of air (kg/m^3)
          tmpvar            ! 1/TsfK
     
+      character(len=*),parameter :: subname='(dsurface_heat_flux_dTsf)'
+
       ! ice surface temperature in Kelvin
 !      TsfK = max(Tsf + Tffresh, c1)
       TsfK = Tsf + Tffresh
@@ -227,6 +235,8 @@
 
       integer (kind=int_kind) :: k        ! ice layer index
       real (kind=dbl_kind)    :: zn       ! normalized ice thickness
+
+      character(len=*),parameter :: subname='(icepack_init_thermo)'
 
       !-----------------------------------------------------------------
       ! Determine l_brine based on saltmax.
@@ -271,8 +281,6 @@
                                   nilyr,    nslyr,    &
                                   qin,      qsn)
 
-      use icepack_mushy_physics, only: enthalpy_mush
-
       integer (kind=int_kind), intent(in) :: &
          nilyr, &    ! number of ice layers
          nslyr       ! number of snow layers
@@ -298,6 +306,8 @@
 
       real (kind=dbl_kind) :: &
          slope, Ti
+
+      character(len=*),parameter :: subname='(icepack_init_trcr)'
 
       ! surface temperature
       Tsfc = Tf ! default
@@ -341,12 +351,10 @@
 
       function icepack_liquidus_temperature(Sin) result(Tmlt)
 
-        use icepack_parameters, only: ktherm
-        use icepack_constants, only: depressT
-        use icepack_mushy_physics, only: liquidus_temperature_mush
-
         real(dbl_kind), intent(in) :: Sin
         real(dbl_kind) :: Tmlt
+
+        character(len=*),parameter :: subname='(icepack_liquidus_temperature)'
 
         if (ktherm == 2) then
 
@@ -364,11 +372,10 @@
 
       function icepack_sea_freezing_temperature(sss) result(Tf)
 
-        use icepack_parameters, only: tfrz_option
-        use icepack_constants, only: depressT
-
         real(dbl_kind), intent(in) :: sss
         real(dbl_kind) :: Tf
+
+        character(len=*),parameter :: subname='(icepack_sea_freezing_temperature)'
 
         if (trim(tfrz_option) == 'mushy') then
 
@@ -390,14 +397,12 @@
 
       function icepack_ice_temperature(qin, Sin) result(Tin)
 
-        use icepack_parameters, only: ktherm
-        use icepack_constants, only: depressT
-        use icepack_mushy_physics, only: temperature_mush
-
         real(kind=dbl_kind), intent(in) :: qin, Sin
         real(kind=dbl_kind) :: Tin
 
         real(kind=dbl_kind) :: Tmlts
+
+        character(len=*),parameter :: subname='(icepack_ice_temperature)'
 
         if (ktherm == 2) then
 
@@ -416,12 +421,10 @@
 
       function icepack_snow_temperature(qin) result(Tsn)
 
-        use icepack_parameters, only: ktherm
-        use icepack_mushy_physics, only: temperature_snow
-        use icepack_constants, only: Lfresh, rhos, cp_ice
-
         real(kind=dbl_kind), intent(in) :: qin
         real(kind=dbl_kind) :: Tsn
+
+        character(len=*),parameter :: subname='(icepack_snow_temperature)'
 
         if (ktherm == 2) then
 
@@ -439,10 +442,10 @@
 
       function icepack_enthalpy_snow(zTsn) result(qsn)
 
-        use icepack_mushy_physics, only: enthalpy_snow
-
         real(kind=dbl_kind), intent(in) :: zTsn
         real(kind=dbl_kind) :: qsn
+
+        character(len=*),parameter :: subname='(icepack_enthalpy_snow)'
 
         qsn = enthalpy_snow(zTsn)
 

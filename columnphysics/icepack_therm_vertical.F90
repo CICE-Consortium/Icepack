@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_therm_vertical.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=========================================================================
 !
 ! Update ice and snow internal temperatures and compute
@@ -21,20 +20,41 @@
       module icepack_therm_vertical
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c3, p001, p5, puny
-      use icepack_constants, only: pi, depressT, Lvap, hs_min, cp_ice
-      use icepack_constants, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
-      use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc, min_salin
+      use icepack_parameters, only: c0, c1, p001, p5, puny
+      use icepack_parameters, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
+      use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
+      use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd
+      use icepack_parameters, only: phi_i_mushy
+
+      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond
+      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
+      use icepack_therm_shared, only: hi_min
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_0layer, only: zerolayer_temperature
-      use icepack_warnings, only: add_warning
+      use icepack_therm_mushy,  only: temperature_changes_salinity
+
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_mushy_physics, only: temperature_mush
+      use icepack_mushy_physics, only: liquidus_temperature_mush
+      use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
+
+      use icepack_aerosol, only: update_aerosol
+      use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
+      use icepack_age, only: increment_age
+      use icepack_firstyear, only: update_FYarea
+      use icepack_flux, only: set_sfcflux, merge_fluxes
+      use icepack_meltpond_cesm, only: compute_ponds_cesm
+      use icepack_meltpond_lvl, only: compute_ponds_lvl
+      use icepack_meltpond_topo, only: compute_ponds_topo
 
       implicit none
-      save
 
       private
       public :: frzmlt_bottom_lateral, &
@@ -59,7 +79,7 @@
                                   Tsf,         zSin,      &
                                   zqin,        zqsn,      &
                                   apond,       hpond,     &
-                                  iage,        tr_pond_topo,&
+                                  tr_pond_topo,&
                                   flw,         potT,      &
                                   Qa,          rhoa,      &
                                   fsnow,       fpond,     &
@@ -77,10 +97,7 @@
                                   congel,      snoice,    &
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
-                                  l_stop,      stop_label,&
                                   prescribed_ice)
-
-      use icepack_therm_mushy, only: temperature_changes_salinity
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
@@ -99,8 +116,8 @@
       real (kind=dbl_kind), intent(inout) :: &
          Tsf     , & ! ice/snow top surface temp, same as Tsfcn (deg C)
          apond   , & ! melt pond area fraction
-         hpond   , & ! melt pond depth (m)
-         iage        ! ice age (s)
+         hpond       ! melt pond depth (m)
+!        iage        ! ice age (s)
 
       logical (kind=log_kind), intent(in) :: &
          tr_pond_topo    ! if .true., use melt pond tracer
@@ -173,12 +190,6 @@
       real (kind=dbl_kind), intent(in) :: &
          yday         ! day of year
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop       ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: &
-         stop_label   ! abort error message
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -216,11 +227,11 @@
       real (kind=dbl_kind) :: &
          fadvocn ! advective heat flux to ocean
 
+      character(len=*),parameter :: subname='(thermo_vertical)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
-
-      l_stop = .false.
 
       flwoutn = c0
       evapn   = c0
@@ -255,10 +266,8 @@
                                   zqin,     zTin,    &
                                   zqsn,     zTsn,    &
                                   zSin,              &
-                                  einit,    Tbot,    &
-                                  l_stop,   stop_label)
-
-      if (l_stop) return
+                                  einit )
+      if (icepack_warnings_aborted(subname)) return
 
       ! Save initial ice and snow thickness (for fresh and fsalt)
       worki = hin
@@ -290,11 +299,8 @@
                                               fsensn,    flatn,     &
                                               flwoutn,   fsurfn,    &
                                               fcondtopn, fcondbot,  &
-                                              fadvocn,   snoice,    &
-                                              einit,                &
-                                              l_stop,    stop_label)
-               
-            if (l_stop) return
+                                              fadvocn,   snoice)
+            if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
 
@@ -313,10 +319,8 @@
                                      fsensn,    flatn,     &
                                      flwoutn,   fsurfn,    &
                                      fcondtopn, fcondbot,  &
-                                     einit,     l_stop,    &
-                                     stop_label)
-
-            if (l_stop) return
+                                     einit                 )
+            if (icepack_warnings_aborted(subname)) return
 
          endif ! ktherm
             
@@ -324,8 +328,7 @@
 
          if (calc_Tsfc) then       
 
-            call zerolayer_temperature(dt,                  & 
-                                       nilyr,     nslyr,    &
+            call zerolayer_temperature(nilyr,     nslyr,    &
                                        rhoa,      flw,      &
                                        potT,      Qa,       &
                                        shcoef,    lhcoef,   &
@@ -334,10 +337,8 @@
                                        Tsf,       Tbot,     &
                                        fsensn,    flatn,    &
                                        flwoutn,   fsurfn,   &
-                                       fcondtopn, fcondbot, &
-                                       l_stop,    stop_label)
-
-            if (l_stop) return
+                                       fcondtopn, fcondbot  )
+            if (icepack_warnings_aborted(subname)) return
 
          else
 
@@ -362,7 +363,7 @@
          einter = einter + hilyr * zqin(k)
       enddo ! k
 
-      if (l_stop) return
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Compute growth and/or melting at the top and bottom surfaces.
@@ -382,11 +383,12 @@
                              fsnow,       hsn_new,   &
                              fhocnn,      evapn,     &
                              meltt,       melts,     &
-                             meltb,       iage,      &
+                             meltb,       &
                              congel,      snoice,    &
                              mlt_onset,   frz_onset, &
                              zSin,        sss,       &
                              dsnow)
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Check for energy conservation by comparing the change in energy
@@ -399,16 +401,14 @@
                                       fsnow,     einit,    &
                                       einter,    efinal,   &
                                       fcondtopn, fcondbot, &
-                                      fadvocn,   fbot,     &
-                                      l_stop,    stop_label)
-      
-      if (l_stop) return
+                                      fadvocn,   fbot      )
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! If prescribed ice, set hi back to old values
       !-----------------------------------------------------------------
 
-#ifdef CCSMCOUPLED
+#ifdef CESMCOUPLED
       if (present(prescribed_ice)) then
           if (prescribed_ice) then
             hin    = worki
@@ -446,6 +446,7 @@
                                 zqsn,             &
                                 aicen,            &
                                 vicen,   vsnon)
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Reload passive tracer array
@@ -538,6 +539,8 @@
                                       ! (m/s/deg^(-m2))
          m2 = 1.36_dbl_kind           ! constant from Maykut & Perovich
                                       ! (unitless)
+
+      character(len=*),parameter :: subname='(frzmlt_bottom_lateral)'
 
       !-----------------------------------------------------------------
       ! Identify grid cells where ice can melt.
@@ -640,12 +643,7 @@
                                        zqin,     zTin,     &
                                        zqsn,     zTsn,     &
                                        zSin,               &
-                                       einit,    Tbot,     &
-                                       l_stop,   stop_label)
-
-      use icepack_mushy_physics, only: temperature_mush
-      use icepack_mushy_physics, only: liquidus_temperature_mush
-      use icepack_mushy_physics, only: enthalpy_of_melting
+                                       einit )
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -661,9 +659,6 @@
          hslyr       , & ! snow layer thickness
          einit           ! initial energy of melting (J m-2)
  
-      real (kind=dbl_kind), intent(in):: &
-         Tbot            ! bottom ice temp  (C)
-
       real (kind=dbl_kind), intent(out):: &
          hin         , & ! ice thickness (m)
          hsn             ! snow thickness (m)
@@ -676,15 +671,9 @@
          zSin            ! internal ice layer salinities
         
       real (kind=dbl_kind), dimension (:), &
-         intent(out) :: &
+         intent(inout) :: &
          zqsn        , & ! snow enthalpy
          zTsn            ! snow temperature
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop          ! if true, print diagnostics and abort model
-
-      character (len=*), intent(out) :: &
-         stop_label      ! abort error message
 
       ! local variables
       real (kind=dbl_kind), dimension(nilyr) :: &
@@ -703,8 +692,7 @@
          tsno_low    , & ! flag for zTsn < Tmin
          tice_low        ! flag for zTin < Tmin
 
-      character(len=char_len_long) :: &
-         warning ! warning message
+      character(len=*),parameter :: subname='(init_vertical_profile)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -785,18 +773,18 @@
             endif
 
             if (zTsn(k) > Tmax) then
-               write(warning,*) ' '
-               call add_warning(warning)
-               write(warning,*) 'Starting thermo, zTsn > Tmax'
-               call add_warning(warning)
-               write(warning,*) 'zTsn=',zTsn(k)
-               call add_warning(warning)
-               write(warning,*) 'Tmax=',Tmax
-               call add_warning(warning)
-               write(warning,*) 'zqsn',zqsn(k),-Lfresh*rhos,zqsn(k)+Lfresh*rhos
-               call add_warning(warning)
-               l_stop = .true.
-               stop_label = "init_vertical_profile: Starting thermo, zTsn > Tmax"
+               write(warnstr,*) ' '
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'Starting thermo, zTsn > Tmax'
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zTsn=',zTsn(k)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'Tmax=',Tmax
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zqsn',zqsn(k),-Lfresh*rhos,zqsn(k)+Lfresh*rhos
+               call icepack_warnings_add(warnstr)
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTsn > Tmax" ) 
                return
             endif
 
@@ -807,22 +795,22 @@
          do k = 1, nslyr
 
             if (zTsn(k) < Tmin) then ! allowing for roundoff error
-               write(warning,*) ' '
-               call add_warning(warning)
-               write(warning,*) 'Starting thermo, zTsn < Tmin'
-               call add_warning(warning)
-               write(warning,*) 'zTsn=', zTsn(k)
-               call add_warning(warning)
-               write(warning,*) 'Tmin=', Tmin
-               call add_warning(warning)
-               write(warning,*) 'zqsn', zqsn(k)
-               call add_warning(warning)
-               write(warning,*) hin
-               call add_warning(warning)
-               write(warning,*) hsn
-               call add_warning(warning)
-               l_stop = .true.
-               stop_label = "init_vertical_profile: Starting thermo, zTsn < Tmin"
+               write(warnstr,*) ' '
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'Starting thermo, zTsn < Tmin'
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zTsn=', zTsn(k)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'Tmin=', Tmin
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zqsn', zqsn(k)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, hin
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, hsn
+               call icepack_warnings_add(warnstr)
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTsn < Tmin" ) 
                return
             endif
 
@@ -850,16 +838,16 @@
       !---------------------------------------------------------------------
 
          if (ktherm == 1 .and. zSin(k) < min_salin-puny) then
-            write(warning,*) ' '
-            call add_warning(warning)
-            write(warning,*) 'Starting zSin < min_salin, layer', k
-            call add_warning(warning)
-            write(warning,*) 'zSin =', zSin(k)
-            call add_warning(warning)
-            write(warning,*) 'min_salin =', min_salin
-            call add_warning(warning)
-            l_stop = .true.
-            stop_label = "init_vertical_profile: Starting zSin < min_salin, layer"
+            write(warnstr,*) ' '
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'Starting zSin < min_salin, layer', k
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'zSin =', zSin(k)
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'min_salin =', min_salin
+            call icepack_warnings_add(warnstr)
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//" init_vertical_profile: Starting zSin < min_salin, layer" ) 
             return
          endif
          
@@ -913,37 +901,37 @@
             endif
 
             if (zTin(k) > Tmax) then
-               write(warning,*) ' '
-               call add_warning(warning)
-               write(warning,*) 'Starting thermo, T > Tmax, layer', k
-               call add_warning(warning)
-               write(warning,*) 'k:', k
-               call add_warning(warning)
-               write(warning,*) 'zTin =',zTin(k),', Tmax=',Tmax
-               call add_warning(warning)
-               write(warning,*) 'zSin =',zSin(k)
-               call add_warning(warning)
-               write(warning,*) 'hin =',hin
-               call add_warning(warning)
-               write(warning,*) 'zqin =',zqin(k)
-               call add_warning(warning)
-               write(warning,*) 'qmlt=',enthalpy_of_melting(zSin(k))
-               call add_warning(warning)
-               write(warning,*) 'Tmlt=',Tmlts(k)
-               call add_warning(warning)
+               write(warnstr,*) ' '
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'Starting thermo, T > Tmax, layer', k
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'k:', k
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zTin =',zTin(k),', Tmax=',Tmax
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zSin =',zSin(k)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'hin =',hin
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zqin =',zqin(k)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'qmlt=',enthalpy_of_melting(zSin(k))
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'Tmlt=',Tmlts(k)
+               call icepack_warnings_add(warnstr)
                
                if (ktherm == 2) then
                   zqin(k) = enthalpy_of_melting(zSin(k)) - c1
                   zTin(k) = temperature_mush(zqin(k),zSin(k))
-                  write(warning,*) 'Corrected quantities'
-                  call add_warning(warning)
-                  write(warning,*) 'zqin=',zqin(k)
-                  call add_warning(warning)
-                  write(warning,*) 'zTin=',zTin(k)
-                  call add_warning(warning)
+                  write(warnstr,*) subname, 'Corrected quantities'
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'zqin=',zqin(k)
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'zTin=',zTin(k)
+                  call icepack_warnings_add(warnstr)
                else
-                  l_stop = .true.
-                  stop_label = "init_vertical_profile: Starting thermo, T > Tmax, layer"
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, T > Tmax, layer" ) 
                   return
                endif
             endif
@@ -952,16 +940,16 @@
          if (tice_low .and. heat_capacity) then
 
             if (zTin(k) < Tmin) then
-               write(warning,*) ' '
-               call add_warning(warning)
-               write(warning,*) 'Starting thermo T < Tmin, layer', k
-               call add_warning(warning)
-               write(warning,*) 'zTin =', zTin(k)
-               call add_warning(warning)
-               write(warning,*) 'Tmin =', Tmin
-               call add_warning(warning)
-               l_stop = .true.
-               stop_label = "init_vertical_profile: Starting thermo, T < Tmin, layer"
+               write(warnstr,*) ' '
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'Starting thermo T < Tmin, layer', k
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zTin =', zTin(k)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'Tmin =', Tmin
+               call icepack_warnings_add(warnstr)
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, T < Tmin, layer" ) 
                return
             endif
          endif                  ! tice_low
@@ -1017,16 +1005,11 @@
                                     fsnow,     hsn_new,  &
                                     fhocnn,    evapn,    &
                                     meltt,     melts,    &
-                                    meltb,     iage,     &
+                                    meltb,     &
                                     congel,    snoice,   &  
                                     mlt_onset, frz_onset,&
                                     zSin,      sss,      &
                                     dsnow)
-
-      use icepack_parameters, only: phi_i_mushy
-      use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
-      use icepack_mushy_physics, only: temperature_mush, liquidus_temperature_mush
-      use icepack_mushy_physics, only: liquid_fraction
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1062,7 +1045,7 @@
          congel      , & ! basal ice growth         (m/step-->cm/day)
          snoice      , & ! snow-ice formation       (m/step-->cm/day)
          dsnow       , & ! snow  formation          (m/step-->cm/day)
-         iage        , & ! ice age (s)
+!        iage        , & ! ice age (s)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
@@ -1138,6 +1121,8 @@
          qbotm       , &
          qbotp       , &
          qbot0
+
+      character(len=*),parameter :: subname='(thickness_changes)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -1461,12 +1446,13 @@
     !-------------------------------------------------------------------
 
       if (ktherm /= 2) &
-           call freeboard (nslyr,    dt,       &
-                           snoice,   iage,     &
-                           hin,      hsn,      &
-                           zqin,     zqsn,     &
-                           dzi,      dzs,      &
-                           dsnow)
+         call freeboard (nslyr, &
+                         snoice, &
+                         hin,      hsn,      &
+                         zqin,     zqsn,     &
+                         dzi,      dzs,      &
+                         dsnow)
+         if (icepack_warnings_aborted(subname)) return
 
 !---!-------------------------------------------------------------------
 !---! Repartition the ice and snow into equal-thickness layers,
@@ -1516,12 +1502,14 @@
                                zi1,      zi2,      &
                                hilyr,    hin,      &
                                zqin)   
+         if (icepack_warnings_aborted(subname)) return
 
          if (ktherm == 2) &
               call adjust_enthalpy (nilyr,              &
                                     zi1,      zi2,      &
                                     hilyr,    hin,      &
                                     zSin)   
+         if (icepack_warnings_aborted(subname)) return
 
       else ! zero layer (nilyr=1)
 
@@ -1556,6 +1544,7 @@
                                zs1,      zs2,      &
                                hslyr,    hsn,      &
                                zqsn)   
+         if (icepack_warnings_aborted(subname)) return
 
       endif   ! nslyr > 1
 
@@ -1610,9 +1599,8 @@
 ! authors William H. Lipscomb, LANL
 !         Elizabeth C. Hunke, LANL
 
-      subroutine freeboard (nslyr,    dt,       &
+      subroutine freeboard (nslyr, &
                             snoice,             &
-                            iage,               &
                             hin,      hsn,      &
                             zqin,     zqsn,     &
                             dzi,      dzs,      &
@@ -1621,14 +1609,14 @@
       integer (kind=int_kind), intent(in) :: &
          nslyr     ! number of snow layers
 
-      real (kind=dbl_kind), intent(in) :: &
-         dt      ! time step
+!     real (kind=dbl_kind), intent(in) :: &
+!        dt      ! time step
 
       real (kind=dbl_kind), &
          intent(inout) :: &
          snoice  , & ! snow-ice formation       (m/step-->cm/day)
-         dsnow   , & ! change in snow thickness after snow-ice formation (m)
-         iage        ! ice age (s)
+         dsnow       ! change in snow thickness after snow-ice formation (m)
+!        iage        ! ice age (s)
 
       real (kind=dbl_kind), &
          intent(inout) :: &
@@ -1656,6 +1644,8 @@
       real (kind=dbl_kind) :: &
          wk1         , & ! temporary variable
          dhs             ! snow to remove from layer (m)
+
+      character(len=*),parameter :: subname='(freeboard)'
 
       !-----------------------------------------------------------------
       ! Determine whether snow lies below freeboard.
@@ -1752,6 +1742,8 @@
       real (kind=dbl_kind), dimension (nlyr) :: &
          hq              ! h * q for a layer
 
+      character(len=*),parameter :: subname='(adjust_enthalpy)'
+
       !-----------------------------------------------------------------
       ! Compute reciprocal layer thickness.
       !-----------------------------------------------------------------
@@ -1806,8 +1798,7 @@
                                             einit,    einter,   &
                                             efinal,             &
                                             fcondtopn,fcondbot, &
-                                            fadvocn,  fbot,     &
-                                            l_stop,   stop_label)
+                                            fadvocn,  fbot      )
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
@@ -1828,20 +1819,13 @@
          efinal      , & ! final energy of melting (J m-2)
          fcondbot
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop          ! if true, print diagnostics and abort model
-
-      character (len=*), intent(out) :: &
-         stop_label   ! abort error message
-
       ! local variables
 
       real (kind=dbl_kind) :: &
          einp        , & ! energy input during timestep (J m-2)
          ferr            ! energy conservation error (W m-2)
 
-      character(len=char_len_long) :: &
-         warning ! warning message
+      character(len=*),parameter :: subname='(conservation_check_vthermo)'
 
       !----------------------------------------------------------------
       ! If energy is not conserved, print diagnostics and exit.
@@ -1859,60 +1843,60 @@
       ferr = abs(efinal-einit-einp) / dt
 
       if (ferr > ferrmax) then
-         l_stop = .true.
-         stop_label = "conservation_check_vthermo: Thermo energy conservation error"
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//" conservation_check_vthermo: Thermo energy conservation error" ) 
 
-         write(warning,*) 'Thermo energy conservation error'
-         call add_warning(warning)
-         write(warning,*) 'Flux error (W/m^2) =', ferr
-         call add_warning(warning)
-         write(warning,*) 'Energy error (J) =', ferr*dt
-         call add_warning(warning)
-         write(warning,*) 'Initial energy =', einit
-         call add_warning(warning)
-         write(warning,*) 'Final energy   =', efinal
-         call add_warning(warning)
-         write(warning,*) 'efinal - einit  =', efinal-einit
-         call add_warning(warning)
-         write(warning,*) 'fsurfn,flatn,fswint,fhocn, fsnow*Lfresh:'
-         call add_warning(warning)
-         write(warning,*) fsurfn,flatn,fswint,fhocnn, fsnow*Lfresh
-         call add_warning(warning)
-         write(warning,*) 'Input energy =', einp
-         call add_warning(warning)
-         write(warning,*) 'fbot,fcondbot:'
-         call add_warning(warning)
-         write(warning,*) fbot,fcondbot
-         call add_warning(warning)
+         write(warnstr,*) subname, 'Thermo energy conservation error'
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Flux error (W/m^2) =', ferr
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Energy error (J) =', ferr*dt
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Initial energy =', einit
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Final energy   =', efinal
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'efinal - einit  =', efinal-einit
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'fsurfn,flatn,fswint,fhocn, fsnow*Lfresh:'
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, fsurfn,flatn,fswint,fhocnn, fsnow*Lfresh
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Input energy =', einp
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'fbot,fcondbot:'
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, fbot,fcondbot
+         call icepack_warnings_add(warnstr)
 
          !         if (ktherm == 2) then
-         write(warning,*) 'Intermediate energy =', einter
-         call add_warning(warning)
-         write(warning,*) 'efinal - einter =', &
+         write(warnstr,*) subname, 'Intermediate energy =', einter
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'efinal - einter =', &
               efinal-einter
-         call add_warning(warning)
-         write(warning,*) 'einter - einit  =', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'einter - einit  =', &
               einter-einit
-         call add_warning(warning)
-         write(warning,*) 'Conduction Error =', (einter-einit) &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Conduction Error =', (einter-einit) &
               - (fcondtopn*dt - fcondbot*dt + fswint*dt)
-         call add_warning(warning)
-         write(warning,*) 'Melt/Growth Error =', (einter-einit) &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Melt/Growth Error =', (einter-einit) &
               + ferr*dt - (fcondtopn*dt - fcondbot*dt + fswint*dt)
-         call add_warning(warning)
-         write(warning,*) 'Advection Error =', fadvocn*dt
-         call add_warning(warning)
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Advection Error =', fadvocn*dt
+         call icepack_warnings_add(warnstr)
          !         endif
 
-         !         write(warning,*) fsurfn,flatn,fswint,fhocnn
-         !         call add_warning(warning)
+         !         write(warnstr,*) subname, fsurfn,flatn,fswint,fhocnn
+         !         call icepack_warnings_add(warnstr)
          
-         write(warning,*) 'dt*(fsurfn, flatn, fswint, fhocn, fsnow*Lfresh, fadvocn):'
-         call add_warning(warning)
-         write(warning,*) fsurfn*dt, flatn*dt, &
+         write(warnstr,*) subname, 'dt*(fsurfn, flatn, fswint, fhocn, fsnow*Lfresh, fadvocn):'
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, fsurfn*dt, flatn*dt, &
               fswint*dt, fhocnn*dt, &
               fsnow*Lfresh*dt, fadvocn*dt
-         call add_warning(warning)
+         call icepack_warnings_add(warnstr)
          return
       endif
 
@@ -1964,6 +1948,8 @@
 
       integer (kind=int_kind) :: &
          k               ! ice layer index
+
+      character(len=*),parameter :: subname='(update_state_vthermo)'
 
       if (hin <= c0) then
          aicen = c0
@@ -2041,7 +2027,7 @@
                                     fswthrun    , fswabs      , &
                                     flwout      ,               &
                                     Sswabsn     , Iswabsn     , &
-                                    flw         , coszen      , & 
+                                    flw         , & 
                                     fsens       , fsensn      , &
                                     flat        , flatn       , &
                                     evap        ,               &
@@ -2053,27 +2039,13 @@
                                     dhsn        , ffracn      , &
                                     meltt       , melttn      , &
                                     meltb       , meltbn      , &
-                                    meltl       ,               &
                                     melts       , meltsn      , &
                                     congel      , congeln     , &
                                     snoice      , snoicen     , &
-                                    dsnown      , frazil      , &
+                                    dsnown      , &
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
-                                    yday        , l_stop      , &
-                                    stop_label  , prescribed_ice)
-
-      use icepack_aerosol, only: update_aerosol
-      use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
-      use icepack_age, only: increment_age
-      use icepack_firstyear, only: update_FYarea
-      use icepack_flux, only: set_sfcflux, merge_fluxes
-      use icepack_meltpond_cesm, only: compute_ponds_cesm
-      use icepack_meltpond_lvl, only: compute_ponds_lvl
-      use icepack_meltpond_topo, only: compute_ponds_topo
-      use icepack_therm_shared, only: hi_min
-      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond
-      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+                                    yday        , prescribed_ice)
 
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories
@@ -2120,12 +2092,10 @@
          fsens       , & ! sensible heat flux (W/m^2)
          flat        , & ! latent heat flux   (W/m^2)
          fswabs      , & ! shortwave flux absorbed in ice and ocean (W/m^2)
-         coszen      , & ! cosine solar zenith angle, < 0 for sun below horizon 
          flw         , & ! incoming longwave radiation (W/m^2)
          flwout      , & ! outgoing longwave radiation (W/m^2)
          evap        , & ! evaporative water flux (kg/m^2/s)
          congel      , & ! basal ice growth         (m/step-->cm/day)
-         frazil      , & ! frazil ice growth        (m/step-->cm/day)
          snoice      , & ! snow-ice formation       (m/step-->cm/day)
          Tref        , & ! 2m atm reference temperature (K)
          Qref        , & ! 2m atm reference spec humidity (kg/kg)
@@ -2161,7 +2131,6 @@
          meltt       , & ! top ice melt             (m/step-->cm/day)
          melts       , & ! snow melt                (m/step-->cm/day)
          meltb       , & ! basal ice melt           (m/step-->cm/day)
-         meltl       , & ! lateral ice melt         (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
@@ -2213,12 +2182,6 @@
          aerosno    , &  ! snow aerosol tracer (kg/m^2)
          aeroice         ! ice aerosol tracer (kg/m^2)
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, abort model
-
-      character (len=*), intent(out) :: &
-         stop_label      ! abort error message
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -2247,8 +2210,9 @@
          rfrac           ! water fraction retained for melt ponds
 
       real (kind=dbl_kind) :: &
-         raice       , & ! 1/aice
          pond            ! water retained in ponds (m)
+
+      character(len=*),parameter :: subname='(icepack_step_therm1)'
 
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
@@ -2267,6 +2231,7 @@
                                   strocnxT,  strocnyT,  &
                                   Tbot,      fbot,      &
                                   rside,     Cdn_ocn)
+      if (icepack_warnings_aborted(subname)) return
       
       !-----------------------------------------------------------------
       ! Update the neutral drag coefficients to account for form drag
@@ -2279,7 +2244,7 @@
                                    alvl        , vlvl         , &
                                    aice        , vice,          &
                                    vsno        , aicen        , &
-                                   vicen       , vsnon        , &
+                                   vicen       , &
                                    Cdn_ocn     , Cdn_ocn_skin, &
                                    Cdn_ocn_floe, Cdn_ocn_keel, &
                                    Cdn_atm     , Cdn_atm_skin, &
@@ -2289,6 +2254,7 @@
                                    distrdg     , hkeel       , &
                                    dkeel       , lfloe       , &
                                    dfloe       , ncat)
+         if (icepack_warnings_aborted(subname)) return
       endif
 
       do n = 1, ncat
@@ -2334,6 +2300,7 @@
                                         Cdn_atm_ratio_n,         &
                                         uvel,     vvel,          &
                                         Uref=Urefn)
+               if (icepack_warnings_aborted(subname)) return
 
             endif   ! calc_Tsfc or calc_strair
 
@@ -2358,9 +2325,11 @@
       !-----------------------------------------------------------------
 
             if (tr_iage) call increment_age (dt, iage(n))
+            if (icepack_warnings_aborted(subname)) return
             if (tr_FY)   call update_FYarea (dt,               &
                                              lmask_n, lmask_s, &
                                              yday,    FY(n))
+            if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Vertical thermodynamics: Heat conduction, growth and melting.
@@ -2380,6 +2349,7 @@
                                 flatn      (n), fsensn     (n), &
                                 fsurfn     (n),                 &
                                 fcondtopn  (n))
+               if (icepack_warnings_aborted(subname)) return
             endif
 
             call thermo_vertical(nilyr,        nslyr,        &
@@ -2388,7 +2358,7 @@
                                  Tsfc     (n), zSin   (:,n), &
                                  zqin   (:,n), zqsn   (:,n), &
                                  apnd     (n), hpnd     (n), &
-                                 iage     (n), tr_pond_topo, &
+                                 tr_pond_topo, &
                                  flw,          potT,         &
                                  Qa,           rhoa,         &
                                  fsnow,        fpond,        &
@@ -2407,14 +2377,13 @@
                                  congeln  (n), snoicen  (n), &
                                  mlt_onset,    frz_onset,    &
                                  yday,         dsnown   (n), &
-                                 l_stop,       stop_label,   &
                                  prescribed_ice)
-               
-            if (l_stop) then
-               stop_label = 'ice: Vertical thermo error: '//trim(stop_label)
+
+            if (icepack_warnings_aborted(subname)) then
+               call icepack_warnings_add(subname//' ice: Vertical thermo error: ')
                return
             endif
-               
+
       !-----------------------------------------------------------------
       ! Total absorbed shortwave radiation
       !-----------------------------------------------------------------
@@ -2437,6 +2406,7 @@
                                     vicen      (n), vsnon      (n), &
                                     aicen      (n),                 &
                                     faero_atm     ,  faero_ocn)
+               if (icepack_warnings_aborted(subname)) return
             endif
 
          endif   ! aicen_init
@@ -2458,8 +2428,9 @@
                                        melttn(n), meltsn(n), &
                                        frain,                &
                                        aicen (n), vicen (n), &
-                                       vsnon (n), Tsfc  (n), &
+                                       Tsfc  (n), &
                                        apnd  (n), hpnd  (n))
+               if (icepack_warnings_aborted(subname)) return
                   
             elseif (tr_pond_lvl) then
                rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
@@ -2478,6 +2449,7 @@
                                       Tsfc  (n), alvl  (n), &
                                       apnd  (n), hpnd  (n), &
                                       ipnd  (n))
+               if (icepack_warnings_aborted(subname)) return
                   
             elseif (tr_pond_topo) then
                if (aicen_init(n) > puny) then
@@ -2509,7 +2481,7 @@
 
          if (aicen_init(n) > puny) &
             call merge_fluxes (aicen_init(n),            &
-                               flw,        coszen,       & 
+                               flw, & 
                                strairxn,   strairyn,     &
                                Cdn_atm_ratio_n,          &
                                fsurfn(n),  fcondtopn(n), &
@@ -2535,6 +2507,7 @@
                                meltb,      congel,       &
                                snoice,                   &
                                Uref,       Urefn)
+         if (icepack_warnings_aborted(subname)) return
 
       enddo                  ! ncat
 
@@ -2548,12 +2521,12 @@
                                  aice,     aicen,                &
                                  vice,     vicen,                &
                                  vsno,     vsnon,                &
-                                 potT,     meltt,                &
+                                 meltt,                &
                                  fsurf,    fpond,                &
                                  Tsfc,     Tf,                   &
                                  zqin,     zSin,                 &
-                                 apnd,     hpnd,      ipnd,      &
-                                 l_stop,   stop_label)
+                                 apnd,     hpnd,      ipnd       )
+         if (icepack_warnings_aborted(subname)) return
       endif
       !call ice_timer_stop(timer_ponds)
 

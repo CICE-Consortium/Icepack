@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_meltpond_cesm.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! CESM meltpond parameterization
@@ -16,8 +15,10 @@
       module icepack_meltpond_cesm
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, p01, puny
-      use icepack_constants, only: rhofresh, rhoi, rhos, Timelt
+      use icepack_parameters, only: c0, c1, c2, p01, puny
+      use icepack_parameters, only: rhofresh, rhoi, rhos, Timelt
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -34,7 +35,7 @@
                                     pndaspect,           &
                                     rfrac, meltt,        &
                                     melts, frain,        &
-                                    aicen, vicen, vsnon, &
+                                    aicen, vicen, &
                                     Tsfcn, apnd,  hpnd)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -48,8 +49,7 @@
          melts, &
          frain, &
          aicen, &
-         vicen, &
-         vsnon
+         vicen
 
       real (kind=dbl_kind), intent(in) :: &
          Tsfcn
@@ -65,7 +65,6 @@
 
       real (kind=dbl_kind) :: &
          hi                     , & ! ice thickness (m)
-         hs                     , & ! snow depth (m)
          dTs                    , & ! surface temperature diff for freeze-up (C)
          Tp                     , & ! pond freezing temperature (C)
          apondn, &
@@ -75,6 +74,8 @@
          Td       = c2          , & ! temperature difference for freeze-up (C)
          rexp     = p01         , & ! pond contraction scaling
          dpthhi   = 0.9_dbl_kind    ! ratio of pond depth to ice thickness
+
+      character(len=*),parameter :: subname='(compute_ponds_cesm)'
 
       !-----------------------------------------------------------------
       ! Initialize 
@@ -88,7 +89,6 @@
       if (aicen > puny) then
 
          hi = vicen/aicen
-         hs = vsnon/aicen
 
          if (hi < hi_min) then
 

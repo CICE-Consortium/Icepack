@@ -1,10 +1,12 @@
 module icepack_mushy_physics
 
   use icepack_kinds
-  use icepack_constants, only: c0, c1, c2, c4, c8, c10, c1000
-  use icepack_constants, only: p001, p01, p05, p1, p2, p5, pi, bignum, puny, ice_ref_salinity
-  use icepack_constants, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
-  use icepack_constants, only: hs_min, ksno
+  use icepack_parameters, only: c0, c1, c2, c4, c1000
+  use icepack_parameters, only: puny
+  use icepack_parameters, only: rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh
+  use icepack_parameters, only: ksno
+  use icepack_warnings, only: warnstr, icepack_warnings_add
+  use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
   implicit none
 
@@ -86,6 +88,8 @@ contains
 
     real(kind=dbl_kind) :: Tmush
     
+    character(len=*),parameter :: subname='(conductivity_mush_array)'
+
     do k = 1, nilyr
       
        Tmush = temperature_mush(zqin(k), zSin(k))
@@ -113,6 +117,8 @@ contains
          b = 0.78237_dbl_kind   , & ! linear empirical coefficient
          c = 2.8008e-4_dbl_kind     ! quadratic empirical coefficient
     
+    character(len=*),parameter :: subname='(density_brine)'
+
     rho = a + b * Sbr + c * Sbr**2
                 
   end function density_brine
@@ -127,6 +133,8 @@ contains
 
     real(kind=dbl_kind), dimension(:), intent(out) :: &
          ks ! snow layer conductivity (W m-1 K-1)
+
+    character(len=*),parameter :: subname='(conductivity_snow_array)'
 
     ks = ksno
 
@@ -144,6 +152,8 @@ contains
     real(kind=dbl_kind) :: &
          zqsn ! snow layer enthalpy (J m-3) 
     
+    character(len=*),parameter :: subname='(enthalpy_snow)'
+
     zqsn = -rhos * (-cp_ice * zTsn + Lfresh)
     
   end function enthalpy_snow
@@ -160,6 +170,8 @@ contains
     real(kind=dbl_kind) :: &
          zTsn, & ! snow layer temperature (C)
          A, B
+
+    character(len=*),parameter :: subname='(temperature_snow)'
 
     A = c1 / (rhos * cp_ice)
     B = Lfresh / cp_ice
@@ -189,6 +201,8 @@ contains
     real(kind=dbl_kind) :: &
          J1_liq, K1_liq, L1_liq, & ! temperature to brine salinity
          J2_liq, K2_liq, L2_liq
+
+    character(len=*),parameter :: subname='(liquidus_brine_salinty_mush)'
 
     ! temperature to brine salinity
     J1_liq = bz1_liq / az1_liq         
@@ -232,6 +246,8 @@ contains
        N2_liq, &
        O2_liq
 
+    character(len=*),parameter :: subname='(liquidus_temperature_mush)'
+
     ! brine salinity to temperature
     M1_liq = az1_liq
     N1_liq = -az1p_liq
@@ -263,6 +279,8 @@ contains
     real(kind=dbl_kind) :: &
          phi     ! ice liquid fraction 
 
+    character(len=*),parameter :: subname='(enthalpy_mush)'
+
     phi = liquid_fraction(zTin, zSin)
     
     zqin = phi * (cp_ocn * rhow - cp_ice * rhoi) * zTin + &
@@ -283,6 +301,8 @@ contains
     real(kind=dbl_kind) :: &
          zqin    ! ice layer enthalpy (J m-3) 
 
+    character(len=*),parameter :: subname='(enthalpy_mush_liquid_fraction)'
+
     zqin = phi * (cp_ocn * rhow - cp_ice * rhoi) * zTin + &
            rhoi * cp_ice * zTin - (c1 - phi) * rhoi * Lfresh
 
@@ -301,6 +321,8 @@ contains
     real(kind=dbl_kind) :: &
          qm   ! melting ice enthalpy (J m-3)
 
+    character(len=*),parameter :: subname='(enthalpy_of_melting)'
+
     qm = cp_ocn * rhow * liquidus_temperature_mush(zSin)
 
   end function enthalpy_of_melting
@@ -316,6 +338,8 @@ contains
 
     real(kind=dbl_kind) :: &
          qbr  ! brine enthalpy (J m-3)
+
+    character(len=*),parameter :: subname='(enthalpy_brine)'
 
     qbr = cp_ocn * rhow * zTin
 
@@ -357,6 +381,8 @@ contains
          F1_liq, G1_liq, H1_liq,    & ! just fully melted enthapy constants
          F2_liq, G2_liq, H2_liq,    & ! "
          I_liq                        ! warmer than fully melted constants
+
+    character(len=*),parameter :: subname='(temperature_mush)'
 
   !--------------------------------------------------------
 
@@ -440,6 +466,8 @@ contains
     real(kind=dbl_kind) :: &
          zTin       ! ice layer temperature (C)
 
+    character(len=*),parameter :: subname='(temperature_mush_liquid_fraction)'
+
     zTin = (zqin + (c1 - phi) * rhoi * Lfresh) / &
           (phi * (cp_ocn * rhow - cp_ice * rhoi) + rhoi * cp_ice)
 
@@ -461,6 +489,8 @@ contains
     real(kind=dbl_kind) :: &
          phi                   ! liquid fraction
 
+    character(len=*),parameter :: subname='(heat_conductivity)'
+
     phi = liquid_fraction(zTin, zSin)
 
     km = phi * (kb - ki) + ki
@@ -480,6 +510,8 @@ contains
     real(kind=dbl_kind) :: &
          phi , & ! liquid fraction
          Sbr     ! brine salinity (ppt)
+
+    character(len=*),parameter :: subname='(liquid_fraction)'
 
     Sbr = max(liquidus_brine_salinity_mush(zTin),puny)
     phi = zSin / max(Sbr, zSin)

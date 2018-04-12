@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_firstyear.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! First year concentration tracer for sea ice
@@ -15,7 +14,9 @@
       module icepack_firstyear
 
       use icepack_kinds
-      use icepack_constants, only: secday, c0
+      use icepack_parameters, only: secday, c0
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -48,6 +49,8 @@
       real (kind=dbl_kind), &
          intent(inout) :: &
          FYarea
+
+      character(len=*),parameter :: subname='(update_FYarea)'
 
       if ((yday >= 259._dbl_kind) .and. &
           (yday <  259._dbl_kind+dt/secday)) then

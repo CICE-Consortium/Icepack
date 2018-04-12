@@ -26,6 +26,9 @@
 #   % gmake MACFILE=Macros.SUN SRCS="test.F"
 #-------------------------------------------------------------------------------
 
+# Make sure that bash is chosen over /bin/sh, which may only be dash compatible
+SHELL=/bin/bash
+
 #-------------------------------------------------------------------------------
 # parse cmd-line and establish values for EXEC, VPATH, SRCS, OBJS, etc
 #-------------------------------------------------------------------------------
@@ -113,12 +116,10 @@ $(EXEC): $(OBJS)
 	cc $(CFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $<
 
 .F.o:
-	$(CPP) $(CPPFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $< > $*.f 
-	$(FC) -c $(FFLAGS) $(FIXEDFLAGS) $(INCS) $(INCLDIR) $*.f  
+	$(FC) -c $(FFLAGS) $(FIXEDFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $<
 
 .F90.o:
-	$(CPP) $(CPPFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $< > $*.f90
-	$(FC) -c $(FFLAGS) $(FREEFLAGS) $(INCS) $(INCLDIR) $*.f90  
+	$(FC) -c $(FFLAGS) $(FREEFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $<
 
 mostlyclean:
 	$(RM) -f *.f *.f90 

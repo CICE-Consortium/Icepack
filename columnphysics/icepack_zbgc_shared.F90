@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_zbgc_shared.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! Biogeochemistry variables
@@ -10,9 +9,16 @@
       module icepack_zbgc_shared
 
       use icepack_kinds
-      use icepack_constants, only: p01, p1, p5, c0, c1
-      use icepack_parameters, only: max_nbtrcr, max_algae, max_doc
-      use icepack_parameters, only: max_dic, max_aero, max_don, max_fe
+      use icepack_parameters, only: p5, c0, c1, secday, puny
+      use icepack_parameters, only: hs_ssl, sk_l
+      use icepack_parameters, only: rhoi, cp_ocn, cp_ice, Lfresh  
+      use icepack_parameters, only: solve_zbgc
+      use icepack_parameters, only: fr_resp
+      use icepack_tracers, only: max_nbtrcr, max_algae, max_doc
+      use icepack_tracers, only: max_don
+      use icepack_tracers, only: nt_bgc_N, nt_fbri
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none 
 
@@ -24,8 +30,33 @@
                 merge_bgc_fluxes, &
                 merge_bgc_fluxes_skl
 
+      !-----------------------------------------------------------------
+      ! Transport type
+      !-----------------------------------------------------------------
+      ! In delta Eddington, algal particles are assumed to cause no
+      ! significant scattering (Brieglib and Light), only absorption
+      ! in the visible spectral band (200-700 nm)
+      ! Algal types: Diatoms, flagellates, Phaeocycstis
+      ! DOC        : Proteins, EPS, Lipids
+      !-----------------------------------------------------------------
+      !------------------------------------------------------------
+      ! Aerosol order and type should be consistent with order/type
+      ! specified in delta Eddington:  1) hydrophobic black carbon;
+      ! 2) hydrophilic black carbon; 3) dust (0.05-0.5 micron);
+      ! 4) dust (0.5-1.25 micron); 5) dust (1.25-2.5 micron);
+      ! 6) dust (2.5-5 micron)
+      !-------------------------------------------------------------
+
       ! bio parameters for algal_dyn
  
+      real (kind=dbl_kind), dimension(max_algae), public :: &
+         R_C2N     ,      & ! algal C to N (mole/mole)
+         R_chl2N   ,      & ! 3 algal chlorophyll to N (mg/mmol)
+         F_abs_chl          ! to scale absorption in Dedd
+
+      real (kind=dbl_kind), dimension(max_don), public :: &  ! increase compare to algal R_Fe2C
+         R_C2N_DON
+
        real (kind=dbl_kind),  dimension(max_algae), public :: &
          R_Si2N     , & ! algal Sil to N (mole/mole) 
          R_S2N      , & ! algal S to N (mole/mole)
@@ -148,8 +179,6 @@
       function calculate_qin_from_Sin (Tin, Tmltk) &
                result(qin)
             
-      use icepack_constants, only: c1, rhoi, cp_ocn, cp_ice, Lfresh  
-
       real (kind=dbl_kind), intent(in) :: &
          Tin                ,&  ! internal temperature
          Tmltk                  ! melting temperature at one level
@@ -158,6 +187,8 @@
 
       real (kind=dbl_kind) :: &
          qin                    ! melting temperature at one level   
+
+      character(len=*),parameter :: subname='(calculate_qin_from_Sin)'
 
       qin =-rhoi*(cp_ice*(Tmltk-Tin) + Lfresh*(c1-Tmltk/Tin) - cp_ocn*Tmltk)
 
@@ -168,17 +199,15 @@
 ! Remaps tracer fields in a given category from one set of layers to another.
 ! Grids can be very different and  so can  vertical spaces.  
 
-      subroutine remap_zbgc(ntrcr,    nlyrn,    &
+      subroutine remap_zbgc(nlyrn,    &
                             it,                 &
                             trcrn,    trtmp,    &
                             nr0,      nbyrn,    &
                             hice,     hinS,     &
                             ice_grid, bio_grid, &
-                            S_min,    l_stop,   &
-                            stop_label)
+                            S_min     )
 
       integer (kind=int_kind), intent(in) :: &
-         ntrcr         , & ! number of tracers in use
          it            , & ! tracer index in top layer
          nr0           , & ! receiver category
          nlyrn         , & ! number of ice layers
@@ -201,11 +230,6 @@
          hinS          , & ! brine height 
          S_min             ! for salinity on CICE grid        
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -223,9 +247,11 @@
            dgrid       , & ! temporary, donor grid dimensional
            rgrid           ! temporary, receiver grid dimensional
 
+      character(len=*),parameter :: subname='(remap_zbgc)'
+
       if ((hinS < c0) .OR. (hice < c0)) then
-         l_stop = .true.
-         stop_label = 'ice: remap_layers_bgc error'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' ice: remap_layers_bgc error')
          return
       endif
          
@@ -361,6 +387,8 @@
       integer (kind=int_kind) :: &
          k          ! layer index
 
+      character(len=*),parameter :: subname='(zap_small_bgc)'
+
       do k = 1, zlevels
          dflux_bio = dflux_bio + btrcr(k)*zvol(k)/dt
       enddo
@@ -376,11 +404,8 @@
                                     ntrcr,        nblyr,    &
                                     top_conc,     igrid,    &
                                     flux_bio,               &
-                                    l_stop,       stop_label, &
                                     melt_b,       con_gel)
       
-      use icepack_constants, only: c0, c1, p5, puny
-
       integer (kind=int_kind), intent(in) :: &
          ntrcr,         & ! number of tracers
          nblyr            ! number of bio layers
@@ -400,18 +425,13 @@
          hbri_old     , & ! previous timestep brine height
          hbri             ! brine height 
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
-
       real(kind=dbl_kind), intent(in), optional :: &
          melt_b,         &  ! bottom melt (m)
          con_gel            ! bottom growth (m)
 
       !  local variables
 
-      integer (kind=int_kind) :: k, n, nt, nr
+      integer (kind=int_kind) :: k, nt, nr
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: &
          trtmp0,   &    ! temporary, remapped tracers
@@ -424,12 +444,13 @@
          dflux,    &    ! regrid flux correction (mmol/m^2)
          sum_i,    &    ! total tracer before melt loss
          sum_f,    &    ! total tracer after melt
-         neg_flux, & 
          hice,     & 
          hbio
 
       real (kind=dbl_kind), dimension(nblyr+1):: &
          zspace
+
+      character(len=*),parameter :: subname='(regrid_stationary)'
 
       ! initialize
 
@@ -492,16 +513,15 @@
       ! Regrid C_stationary to add or remove bottom layer(s)
       !-----------------------------------------------------------------
       if (htemp > c0) then
-          call remap_zbgc   (ntrcr,            nblyr+1,  &
+          call remap_zbgc   (nblyr+1,  &
                              nt,                         &
                              trtmp0(1:ntrcr),            &
                              trtmp,                      &
                              nr,                nblyr+1, & 
                              hice,              hbio,    & 
                              igrid(1:nblyr+1),           &
-                             igrid(1:nblyr+1), top_conc, &
-                             l_stop,           stop_label)
-          if (l_stop) return
+                             igrid(1:nblyr+1), top_conc  )
+          if (icepack_warnings_aborted(subname)) return
     
           trtmp0(:) = c0
           do k = 1,nblyr+1
@@ -536,7 +556,7 @@
                                bio_index,    n_algae,    &
                                nbtrcr,       aicen,      &    
                                vicen,        vsnon,      &
-                               ntrcr,        iphin,      &
+                               iphin,      &
                                trcrn,      &
                                flux_bion,    flux_bio,   &
                                upNOn,        upNHn,      &
@@ -547,18 +567,12 @@
                                snow_bio_net, grow_alg,   &
                                grow_net)
  
-      use icepack_constants, only: c1, c0, p5, secday, puny
-      use icepack_parameters, only: solve_zbgc, max_nbtrcr, hs_ssl, R_C2N
-      use icepack_parameters, only: fr_resp
-      use icepack_tracers, only: nt_bgc_N, nt_fbri
-
       real (kind=dbl_kind), intent(in) :: &          
          dt             ! timestep (s)
 
       integer (kind=int_kind), intent(in) :: &
          nblyr, &
          n_algae, &     !
-         ntrcr, &       ! number of tracers
          nbtrcr         ! number of biology tracer tracers
 
       integer (kind=int_kind), dimension(:), intent(in) :: &
@@ -613,6 +627,8 @@
       real (kind=dbl_kind), dimension (nblyr+1) :: & 
          zspace
 
+      character(len=*),parameter :: subname='(merge_bgc_fluxes)'
+
       !-----------------------------------------------------------------
       ! Column summation
       !-----------------------------------------------------------------
@@ -664,8 +680,7 @@
 !
 ! author: Elizabeth C. Hunke and William H. Lipscomb, LANL
 
-      subroutine merge_bgc_fluxes_skl (ntrcr,           &
-                               nbtrcr,    n_algae,         &
+      subroutine merge_bgc_fluxes_skl (nbtrcr, n_algae,    &
                                aicen,     trcrn,           &
                                flux_bion, flux_bio,        &
                                PP_net,    upNOn,           &
@@ -673,12 +688,7 @@
                                upNH,      grow_net,        &
                                grow_alg)
 
-      use icepack_constants, only: c1, secday, puny
-      use icepack_tracers, only: nt_bgc_N
-      use icepack_parameters, only: sk_l, R_C2N, fr_resp
-
       integer (kind=int_kind), intent(in) :: &
-         ntrcr   , & ! number of cells with aicen > puny
          nbtrcr  , & ! number of bgc tracers
          n_algae     ! number of autotrophs
 
@@ -715,6 +725,8 @@
       real (kind=dbl_kind) :: &
          tmp         ! temporary
     
+      character(len=*),parameter :: subname='(merge_bgc_fluxes_skl)'
+
       !-----------------------------------------------------------------
       ! Merge fluxes
       !-----------------------------------------------------------------

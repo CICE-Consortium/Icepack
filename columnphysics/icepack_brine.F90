@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_brine.F90 1008 2015-06-20 23:55:12Z eclare $
 !=======================================================================
 !
 ! Computes ice microstructural information for use in biogeochemistry
@@ -8,13 +7,19 @@
       module icepack_brine
 
       use icepack_kinds
-      use icepack_constants, only: p01, p001, p5, c0, c1, c2, c1p5, puny
-      use icepack_constants, only: gravit, rhoi, rhow, rhos, depressT
-      use icepack_parameters, only: dts_b, salt_loss
+      use icepack_parameters, only: p01, p001, p5, c0, c1, c2, c1p5, puny
+      use icepack_parameters, only: gravit, rhoi, rhow, rhos, depressT
+      use icepack_parameters, only: salt_loss, min_salin, rhosi
+      use icepack_parameters, only: dts_b, l_sk
       use icepack_tracers, only: ntrcr, nt_qice, nt_sice, nt_bgc_S 
+      use icepack_tracers, only: nt_Tsfc
       use icepack_zbgc_shared, only: k_o, exp_h, Dm, Ra_c, viscos_dynamic, thinS
       use icepack_zbgc_shared, only: remap_zbgc
-      use icepack_warnings, only: add_warning
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_mushy_physics, only: temperature_mush, liquid_fraction
+      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       implicit none
 
@@ -38,6 +43,9 @@
          b1      = 1000.0_dbl_kind, & ! (kg/m^3)  
          b2      = 0.8_dbl_kind       ! (kg/m^3/ppt)
 
+      real (kind=dbl_kind), parameter :: & 
+         exp_argmax = 30.0_dbl_kind    ! maximum argument of exponential for underflow
+
 !=======================================================================
 
       contains
@@ -51,17 +59,12 @@
 ! height of the brine surface relative to the bottom of the ice.  This volume fraction
 ! may be > 1 in which case there is brine above the ice surface (meltponds). 
 
-      subroutine preflushing_changes (n_cat,                &
-                                      aicen,    vicen,    vsnon,      &
+      subroutine preflushing_changes (aicen,    vicen,    vsnon,      &
                                       meltb,    meltt,    congel,     &
                                       snoice,   hice_old, dhice,      &
                                       fbri,     dhbr_top, dhbr_bot,   &
-                                      hbr_old,  hin,hsn,  firstice,   &
-                                      l_stop,   stop_label)
+                                      hbr_old,  hin,hsn,  firstice    )
  
-      integer (kind=int_kind), intent(in) :: &
-         n_cat           ! category
-                              
       real (kind=dbl_kind), intent(in) :: &
          aicen       , & ! concentration of ice
          vicen       , & ! volume per unit area of ice          (m)
@@ -88,31 +91,24 @@
       logical (kind=log_kind), intent(in) :: &
          firstice         ! if true, initialized values should be used     
 
-      logical (kind=log_kind), intent(out) :: &  
-         l_stop            ! if true, abort the model
-
-      character (char_len), intent(out) :: stop_label
-
       ! local variables
 
       real (kind=dbl_kind) :: &
          hin_old          ! ice thickness before current melt/growth (m)
 
-      character(len=char_len_long) :: &
-         warning ! warning message
+      character(len=*),parameter :: subname='(preflushing_changes)'
 
       !-----------------------------------------------------------------
       ! initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
       if (fbri <= c0) then
-         write(warning, *) 'fbri, hice_old', fbri, hice_old
-         call add_warning(warning)
-         write(warning, *) 'vicen, aicen', vicen, aicen
-         call add_warning(warning)         
-         l_stop = .true.
-         stop_label = 'icepack_brine preflushing: fbri <= c0'
+         write(warnstr, *) subname,'fbri, hice_old', fbri, hice_old
+         call icepack_warnings_add(warnstr)
+         write(warnstr, *) subname,'vicen, aicen', vicen, aicen
+         call icepack_warnings_add(warnstr)         
+         call icepack_warnings_add(subname//' icepack_brine preflushing: fbri <= c0')
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
 
       hin = vicen / aicen
@@ -141,23 +137,17 @@
 ! NOTE: This subroutine uses thermosaline_vertical output to compute
 ! average ice permeability and the surface ice porosity
 
-      subroutine compute_microS_mushy (n_cat,    nilyr,      nblyr,      &
+      subroutine compute_microS_mushy (nilyr,      nblyr,      &
                                        bgrid,    cgrid,      igrid,      &
                                        trcrn,    hice_old,   hbr_old,    &
                                        sss,      sst,        bTin,       &
                                        iTin,     bphin,                  &
-                                       kperm,    bphi_min,   phi_snow,   &
+                                       kperm,    bphi_min,   &
                                        bSin,     brine_sal,  brine_rho,  &
                                        iphin,    ibrine_rho, ibrine_sal, &
-                                       sice_rho, iDin,       l_stop,     &
-                                       stop_label)  
-
-      use icepack_therm_mushy, only: permeability
-      use icepack_mushy_physics, only: temperature_mush, liquid_fraction
-      use icepack_parameters, only: l_sk, min_salin
+                                       sice_rho, iDin                    )
 
       integer (kind=int_kind), intent(in) :: &
-         n_cat       , & ! ice category
          nilyr       , & ! number of ice layers
          nblyr           ! number of bio layers
                               
@@ -173,7 +163,6 @@
       real (kind=dbl_kind), &
          intent(in) :: &
          hice_old    , & ! previous timestep ice height (m)
-         phi_snow    , & ! porosity of snow
          sss         , & ! ocean salinity (ppt)
          sst             ! ocean temperature (C)
        
@@ -212,20 +201,7 @@
       real (kind=dbl_kind), intent(inout) :: &
          sice_rho        ! average ice density  
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
-
-      ! local variables
-
-      real (kind=dbl_kind), dimension (nilyr) :: &
-         cSin        , & ! bulk salinity (ppt)
-         cqin            ! enthalpy ()
-
       real (kind=dbl_kind), dimension (nblyr+2) :: &
-         zTin        , & ! Temperature of ice layers on bgrid (C) 
-         zSin        , & ! Salinity of ice layers on bgrid (C) 
          bqin            ! enthalpy on the bgrid ()
 
       real (kind=dbl_kind), dimension (nblyr+1) :: &
@@ -236,8 +212,7 @@
       
       real (kind=dbl_kind) :: &
          surface_S   , & ! salinity of ice above hin > hbr 
-         hinc_old    , & ! mean ice thickness before current melt/growth (m)
-         hbrc_old        ! mean brine thickness before current melt/growth (m)
+         hinc_old        ! mean ice thickness before current melt/growth (m)
       
       real (kind=dbl_kind), dimension (ntrcr+2) :: & ! nblyr+2)
          trtmp_s     , & ! temporary, remapped tracers   
@@ -249,6 +224,8 @@
       real(kind=dbl_kind), parameter :: &
          Smin = p01
     
+      character(len=*),parameter :: subname='(compute_microS_mushy)'
+
       !-----------------------------------------------------------------
       ! Define ice salinity and temperature on bgrid
       !-----------------------------------------------------------------
@@ -257,36 +234,28 @@
       trtmp_q(:) = c0
       iDin(:) = c0
 
-      do k = 1, nilyr
-         cSin(k) = trcrn(nt_sice+k-1)
-         cqin(k) = trcrn(nt_qice+k-1)
-      enddo
-
       ! map Sin and qin (cice) profiles to bgc grid 
       surface_S = min_salin
       hbr_old   = min(hbr_old, maxhbr*hice_old)
       hinc_old  = hice_old
-      hbrc_old  = hbr_old 
 
-      call remap_zbgc(ntrcr,            nilyr,          &
+      call remap_zbgc(nilyr,          &
                       nt_sice,                          &
                       trcrn,            trtmp_s,        &
                       0,                nblyr,          &
                       hinc_old,         hinc_old,       &
                       cgrid(2:nilyr+1),                 &
-                      bgrid(2:nblyr+1), surface_S,      &
-                      l_stop,           stop_label)
-      if (l_stop) return
+                      bgrid(2:nblyr+1), surface_S       )
+      if (icepack_warnings_aborted(subname)) return
      
-      call remap_zbgc(ntrcr,            nilyr,          &
+      call remap_zbgc(nilyr,          &
                       nt_qice,                          &
                       trcrn,            trtmp_q,        &
                       0,                nblyr,          &
                       hinc_old,         hinc_old,       &
                       cgrid(2:nilyr+1),                 &
-                      bgrid(2:nblyr+1), surface_S,      &
-                      l_stop,           stop_label)
-      if (l_stop) return
+                      bgrid(2:nblyr+1), surface_S       )
+      if (icepack_warnings_aborted(subname)) return
 
       do k = 1, nblyr
          bqin (k+1) = min(c0,   trtmp_q(nt_qice+k-1))
@@ -313,11 +282,13 @@
                            ibrine_sal,    ibrine_rho,                &
                            sice_rho,                                 &
                            bphin,         iphin,                     &
-                           kperm,         bphi_min,      phi_snow,   &
+                           kperm,         bphi_min, &
                            igrid,         sss)
+      if (icepack_warnings_aborted(subname)) return
 
       call calculate_drho(nblyr, igrid, bgrid,             &
                           brine_rho,    ibrine_rho, drho)   
+      if (icepack_warnings_aborted(subname)) return
 
       do k= 2, nblyr+1
          ikin(k) = k_o*iphin(k)**exp_h 
@@ -336,11 +307,8 @@
                                  brine_sal,  brine_rho,       &
                                  ibrine_sal, ibrine_rho,      &
                                  sice_rho,   bphin,     iphin,& 
-                                 kperm,      bphi_min,  phi_snow, &
+                                 kperm,      bphi_min,        &
                                  i_grid,     sss)
-
-      use icepack_parameters, only: rhosi
-      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       integer (kind=int_kind), intent(in) :: &
          nblyr           ! number of bio layers
@@ -362,7 +330,6 @@
          bphin          ! porosity of layers
 
       real (kind=dbl_kind), intent(in) :: &
-         phi_snow,    & ! porosity of snow
          sss            ! sea surface salinity (ppt)
 
       real (kind=dbl_kind), intent(out) :: &
@@ -383,6 +350,8 @@
 
       integer (kind=int_kind) :: &
            k   ! layer index
+
+      character(len=*),parameter :: subname='(prepare_hbrine)'
 
       !-----------------------------------------------------------------
       !  calculate equilibrium brine density and gradients 
@@ -466,12 +435,12 @@
 ! ice.  This volume fraction may be > 1 in which case there is brine 
 ! above the ice surface (ponds).
 
-      subroutine update_hbrine (meltb,      meltt,       &
+      subroutine update_hbrine (meltt,       &
                                 melts,      dt,          &
                                 hin,        hsn,         &
                                 hin_old,    hbr,         &
-                                hbr_old,    phi_snow,    &
-                                fbri,       snoice,      &
+                                hbr_old,    &
+                                fbri,       &
                                 dhS_top,    dhS_bottom,  &
                                 dh_top_chl, dh_bot_chl,  &
                                 kperm,      bphi_min,    &
@@ -479,23 +448,18 @@
                                 bphin,      aice0,       &
                                 dh_direct)
 
-      use icepack_parameters, only: rhosi
-
       real (kind=dbl_kind), intent(in) :: &
          dt             ! timestep
            
       real (kind=dbl_kind), intent(in):: &
-         meltb,       & ! bottom melt over dt (m)
          meltt,       & ! true top melt over dt (m)
          melts,       & ! true snow melt over dt (m)
          hin,         & ! ice thickness (m)
          hsn,         & ! snow thickness (m)
          hin_old,     & ! past timestep ice thickness (m)
          hbr_old,     & ! previous timestep hbr
-         phi_snow,    & ! porosity of snow
          kperm,       & ! avg ice permeability 
          bphin,       & ! upper brine porosity  
-         snoice,      & ! snoice change (m)
          dhS_bottom,  & ! change in bottom hbr initially before darcy flow
          aice0          ! open water area fraction
 
@@ -523,12 +487,15 @@
          darcy_coeff, & ! magnitude of the Darcy velocity/hbrocn (1/s)
          hbrocn_new , & ! hbrocn after flushing
          dhflood    , & ! surface flooding by ocean
+         exp_arg    , & ! temporary exp value
          dhrunoff       ! direct runoff to ocean
 
       real (kind=dbl_kind), parameter :: &
          dh_min = p001  ! brine remains within dh_min of sea level
                         ! when ice thickness is less than thinS
  
+      character(len=*),parameter :: subname='(update_hbrine)'
+
          hbrocn      = c0
          darcy_V     = c0
          darcy_V_chl = c0  
@@ -550,7 +517,13 @@
                bphi_min   = bphin  
                dhrunoff  = -dhS_top*aice0
                hbrocn    = max(c0,hbrocn - dhrunoff)
-               hbrocn_new = hbrocn*exp(-darcy_coeff/bphi_min*dt)
+               exp_arg = darcy_coeff/bphi_min*dt
+! tcraig avoids underflows
+               if (exp_arg > exp_argmax) then
+                  hbrocn_new = c0
+               else
+                  hbrocn_new = hbrocn*exp(-exp_arg)
+               endif
                hbr = max(hbrmin, h_ocn + hbrocn_new)
                hbrocn_new = hbr-h_ocn
                darcy_V = -SIGN((hbrocn-hbrocn_new)/dt*bphi_min, hbrocn)
@@ -559,7 +532,13 @@
                dh_top_chl = dh_top_chl - darcy_V_chl*dt/bphi_min + dhrunoff
                dh_direct  = dhrunoff
             elseif (hbrocn < c0 .AND. hbr > thinS) then
-               hbrocn_new = hbrocn*exp(-darcy_coeff/bphi_min*dt)
+               exp_arg = darcy_coeff/bphi_min*dt
+! tcraig avoids underflows
+               if (exp_arg > exp_argmax) then
+                  hbrocn_new = c0
+               else
+                  hbrocn_new = hbrocn*exp(-exp_arg)
+               endif
                dhflood  = max(c0,hbrocn_new - hbrocn)*aice0               
                hbr = max(hbrmin, h_ocn + hbrocn_new)
                darcy_V    = -SIGN((hbrocn-hbrocn_new + dhflood)/dt*bphi_min, hbrocn)
@@ -601,17 +580,12 @@
                                    trcrn,      hice_old,             &
                                    hbr_old,    sss,      sst,        &
                                    bTin,       iTin,     bphin,      &
-                                   kperm,      bphi_min, phi_snow,   &
+                                   kperm,      bphi_min, &
                                    Rayleigh_criteria,    firstice,   &
                                    bSin,                 brine_sal,  &
                                    brine_rho,  iphin,    ibrine_rho, &
-                                   ibrine_sal, sice_rho, sloss,      &
-                                   salinz,     l_stop,   stop_label)
+                                   ibrine_sal, sice_rho, sloss)
  
-      use icepack_therm_shared, only: calculate_Tin_from_qin
-      use icepack_tracers, only: nt_fbri, nt_Tsfc
-      use icepack_parameters, only: min_salin, rhosi, salt_loss
-
       integer (kind=int_kind), intent(in) :: &
          n_cat       , & ! ice category
          nilyr       , & ! number of ice layers
@@ -628,7 +602,6 @@
 
       real (kind=dbl_kind), intent(in) :: &
          hice_old      , & ! previous timestep ice height (m)
-         phi_snow      , & ! porosity of snow
          sss           , & ! ocean salinity (ppt)
          sst               ! ocean temperature (oC)
  
@@ -651,10 +624,6 @@
       real (kind=dbl_kind), dimension (nblyr+1), intent(out) :: &
          iTin              ! Temperature on the interface grid
 
-      real (kind=dbl_kind), dimension (nilyr), &
-         intent(in) :: &
-         salinz            ! initial salinity profile for new ice (on cice grid)
-
       real (kind=dbl_kind), intent(out) :: & 
          bphi_min      , & ! surface porosity
          kperm         , & ! average ice permeability (m^2)
@@ -671,11 +640,6 @@
          ibrine_rho    , & ! brine rho on interface  
          ibrine_sal        ! brine sal on interface   
 
-      logical (kind=log_kind), intent(out) :: &  
-         l_stop            ! if true, abort the model
-
-      character (char_len), intent(out) :: stop_label
-
       ! local variables
  
       integer (kind=int_kind) :: &
@@ -683,12 +647,10 @@
       
       real (kind=dbl_kind) :: &
          surface_S     , & ! salinity of ice above hin > hbr 
-         hinc_old      , & ! ice thickness (cell quantity) before current melt/growth (m)
-         hbrc_old      , & ! brine thickness(cell quantity) before current melt/growth (m)
-         h_o               ! freeboard height (m)
+         hinc_old          ! ice thickness (cell quantity) before current melt/growth (m)
 
-      logical (kind=log_kind) :: &
-         Rayleigh          ! .true. if ice exceeded a minimum thickness hin >= Ra_c 
+!     logical (kind=log_kind) :: &
+!        Rayleigh          ! .true. if ice exceeded a minimum thickness hin >= Ra_c 
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: &
          trtmp0        , & ! temporary, remapped tracers  
@@ -697,11 +659,11 @@
       real (kind=dbl_kind) :: &
          Tmlts             ! melting temperature
 
+      character(len=*),parameter :: subname='(compute_microS)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
-
-      l_stop = .false.
 
       sloss = c0  
       bTin(:) = c0
@@ -719,10 +681,10 @@
       ! Turn off by putting Ra_c = 0 in ice_in namelist.
       !-----------------------------------------------------------------
 
-      Rayleigh = .true.
-      if (n_cat == 1 .AND. hbr_old < Ra_c) then
-         Rayleigh = Rayleigh_criteria ! only category 1 ice can be false 
-      endif
+!     Rayleigh = .true.
+!     if (n_cat == 1 .AND. hbr_old < Ra_c) then
+!        Rayleigh = Rayleigh_criteria ! only category 1 ice can be false 
+!     endif
                      
       !-----------------------------------------------------------------
       ! Define ice salinity on Sin
@@ -734,20 +696,20 @@
                trcrn(nt_sice+k-1) =  sss*salt_loss 
             enddo
 
-            call remap_zbgc(ntrcr,            nilyr,     &
+            call remap_zbgc(nilyr,     &
                             nt_sice,                     &
                             trcrn,            trtmp,     &
                             0,                nblyr,     &
                             hinc_old,         hinc_old,  &
                             cgrid(2:nilyr+1),            &
-                            bgrid(2:nblyr+1), surface_S, &
-                            l_stop,           stop_label)
-            if (l_stop) return
+                            bgrid(2:nblyr+1), surface_S  )
+            if (icepack_warnings_aborted(subname)) return
 
             do k = 1, nblyr    
                trcrn(nt_bgc_S+k-1) = max(min_salin,trtmp(nt_sice+k-1)) 
                bSin(k+1) = max(min_salin,trcrn(nt_bgc_S+k-1)) 
-               if (trcrn(nt_bgc_S+k-1) < min_salin-puny) l_stop = .true.
+               if (trcrn(nt_bgc_S+k-1) < min_salin-puny) &
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             enddo ! k  
 
             bSin(1) = bSin(2) 
@@ -755,23 +717,23 @@
 
          elseif (hbr_old > maxhbr*hice_old) then
 
-            call remap_zbgc(ntrcr,            nblyr,    &
+            call remap_zbgc(nblyr,    &
                             nt_bgc_S,                   &
                             trcrn,            trtmp,    &
                             0,                nblyr,    &
                             hbr_old,                    &
                             maxhbr*hinc_old,            &
                             bgrid(2:nblyr+1),           &
-                            bgrid(2:nblyr+1), surface_S,&
-                            l_stop,           stop_label)
-            if (l_stop) return
+                            bgrid(2:nblyr+1), surface_S )
+            if (icepack_warnings_aborted(subname)) return
       
             do k = 1, nblyr    
                bSin(k+1) = max(min_salin,trtmp(nt_bgc_S+k-1)) 
                sloss = sloss + rhosi*(hbr_old*trcrn(nt_bgc_S+k-1) &
                      - maxhbr*hice_old*bSin(k+1))*(igrid(k+1)-igrid(k))
                trcrn(nt_bgc_S+k-1) = bSin(k+1)                                           
-               if (trcrn(nt_bgc_S+k-1) < min_salin-puny) l_stop = .true.
+               if (trcrn(nt_bgc_S+k-1) < min_salin-puny) &
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             enddo ! k
 
             bSin(1) = bSin(2)
@@ -802,15 +764,13 @@
       trtmp(:) = c0                
       
       ! CICE to Bio: remap temperatures
-      call remap_zbgc (ntrcr,                       &
-                       nilyr,            nt_qice,   &
+      call remap_zbgc (nilyr,            nt_qice,   &
                        trtmp0(1:ntrcr),  trtmp,     &
                        0,                nblyr,     &
                        hinc_old,         hbr_old,   &
                        cgrid(2:nilyr+1),            & 
-                       bgrid(2:nblyr+1), surface_S, &
-                       l_stop,           stop_label)
-      if (l_stop) return
+                       bgrid(2:nblyr+1), surface_S  )
+      if (icepack_warnings_aborted(subname)) return
 
       do k = 1, nblyr
          Tmlts          = -bSin(k+1) * depressT
@@ -832,12 +792,9 @@
                            ibrine_sal,    ibrine_rho,                &
                            sice_rho,                                 &
                            bphin,         iphin,                     &
-                           kperm,         bphi_min,      phi_snow,   &
+                           kperm,         bphi_min, &
                            igrid,         sss)
-
-      if (l_stop) then
-         stop_label = 'CICE icepack_brine:zsalin < min_salin'
-      endif
+      if (icepack_warnings_aborted(subname)) return
 
       end subroutine compute_microS
 
@@ -870,7 +827,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k, m, mm ! indices
+         k, mm ! indices
 
       integer (kind=int_kind) :: &
          mstop, mstart
@@ -882,6 +839,8 @@
       real (kind=dbl_kind), dimension (nblyr + 1) :: &  !on the zbgc vertical grid
          rho_b   , &  ! brine density  above grid point (kg/m^3)
          rho_2b       ! brine density  above and below grid points (kg/m^3)
+
+      character(len=*),parameter :: subname='(calculate_drho)'
 
        rho_a (:) = c0
        rho_2a(:) = c0
@@ -976,11 +935,12 @@
          swgrid                ! grid for ice tracers used in dEdd scheme
 
       integer (kind=int_kind) :: &
-         k           , & ! vertical index
-         n               ! thickness category index
+         k                 ! vertical index
 
       real (kind=dbl_kind) :: & 
          zspace            ! grid spacing for CICE vertical grid
+
+      character(len=*),parameter :: subname='(icepack_init_hbrine)'
 
 
       if (phi_snow .le. c0) phi_snow = c1-rhos/rhoi
@@ -1069,6 +1029,8 @@
       integer (kind=int_kind) :: &
         k, n
       
+      character(len=*),parameter :: subname='(icepack_init_zsalinity)'
+
       if (nblyr .LE. 7) then
           dts_b = 300.0_dbl_kind
       else

@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_algae.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! Compute sea ice biogeochemistry (vertical or skeletal layer)
@@ -10,6 +9,38 @@
       module icepack_algae
 
       use icepack_kinds
+
+      use icepack_parameters, only: p05, p5, c0, c1, c2, c6, c10
+      use icepack_parameters, only: pi, secday, puny
+      use icepack_parameters, only: hs_ssl, sk_l
+
+      use icepack_parameters, only: dEdd_algae, solve_zbgc
+      use icepack_parameters, only: R_dFe2dust, dustFe_sol, algal_vel
+      use icepack_parameters, only: bgc_flux_type
+      use icepack_parameters, only: grid_o
+      use icepack_parameters, only: T_max, fsal      , fr_resp
+      use icepack_parameters, only: op_dep_min       , fr_graze_s
+      use icepack_parameters, only: fr_graze_e       , fr_mort2min
+      use icepack_parameters, only: fr_dFe           , k_nitrif
+      use icepack_parameters, only: t_iron_conv      , max_loss
+      use icepack_parameters, only: max_dfe_doc1     , fr_resp_s
+      use icepack_parameters, only: y_sk_DMS         , t_sk_conv
+      use icepack_parameters, only: t_sk_ox
+
+      use icepack_tracers, only: ntrcr, bio_index 
+      use icepack_tracers, only: nt_bgc_N, nt_fbri, nt_zbgc_frac
+      use icepack_tracers, only: tr_brine
+      use icepack_tracers, only: tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil
+      use icepack_tracers, only: tr_bgc_DMS,    tr_bgc_PON
+      use icepack_tracers, only: tr_bgc_N,      tr_bgc_C,     tr_bgc_chl
+      use icepack_tracers, only: tr_bgc_DON,    tr_bgc_Fe,    tr_zaero
+      use icepack_tracers, only: nlt_bgc_Nit,   nlt_bgc_Am,   nlt_bgc_Sil
+      use icepack_tracers, only: nlt_bgc_DMS,   nlt_bgc_PON
+      use icepack_tracers, only: nlt_bgc_N,     nlt_bgc_C,    nlt_bgc_chl
+      use icepack_tracers, only: nlt_bgc_DOC,   nlt_bgc_DON,  nlt_bgc_DIC
+      use icepack_tracers, only: nlt_zaero  ,   nlt_bgc_DMSPp,nlt_bgc_DMSPd
+      use icepack_tracers, only: nlt_bgc_Fed,   nlt_bgc_Fep
+
       use icepack_zbgc_shared, only: remap_zbgc, regrid_stationary
       use icepack_zbgc_shared, only: merge_bgc_fluxes
       use icepack_zbgc_shared, only: merge_bgc_fluxes_skl
@@ -17,15 +48,25 @@
       use icepack_zbgc_shared, only: zbgc_init_frac
       use icepack_zbgc_shared, only: zbgc_frac_init
       use icepack_zbgc_shared, only: tau_rel, tau_ret, thinS
-      use icepack_zbgc_shared, only: r_Si2N, R_Fe2N, R_S2N
-      use icepack_warnings, only: add_warning
+      use icepack_zbgc_shared, only: r_Si2N, R_Fe2N, R_S2N, R_chl2N
+      use icepack_zbgc_shared, only: chlabs, alpha2max_low, beta2max, mu_max
+      use icepack_zbgc_shared, only: k_exude, K_Nit, K_Am, K_Sil, K_Fe
+      use icepack_zbgc_shared, only: grow_Tdep, fr_graze, mort_pre, mort_Tdep
+      use icepack_zbgc_shared, only: f_don, kn_bac, f_don_Am
+      use icepack_zbgc_shared, only: f_doc, f_exude, k_bac, R_chl2N, R_C2N
+
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_aerosol, only: update_snow_bgc
 
       implicit none
 
       private 
       public :: zbio, sklbio
 
-      save
+      real (kind=dbl_kind), parameter :: & 
+         exp_argmax = c10    ! maximum argument of exponential
 
 !=======================================================================
 
@@ -51,28 +92,24 @@
                          n_zaero,      first_ice,   &
                          hice_old,     ocean_bio,   & 
                          bphin,        iphin,       &
-                         iDin,         sss,         &
+                         iDin, &
                          fswthrul,                  &
                          dh_top,       dh_bot,      &
-                         dh_top_chl,   dh_bot_chl,  &
                          zfswin,                    & 
                          hbri,         hbri_old,    &
-                         darcy_V,      darcy_V_chl, &
-                         bgrid,        cgrid,       &
+!                        darcy_V,      darcy_V_chl, &
+                         darcy_V, &
+                         bgrid,       &
                          igrid,        icgrid,      &
                          bphi_min,                  &
-                         dhice,        iTin,        &
+                         iTin,        &
                          Zoo,                       &
                          flux_bio,     dh_direct,   &
                          upNO,         upNH,        &
                          fbio_snoice,  fbio_atmice, &
                          PP_net,       ice_bio_net, &
-                         snow_bio_net, grow_net,    &
-                         l_stop,       stop_label)
+                         snow_bio_net, grow_net     )
 
-      use icepack_aerosol, only: update_snow_bgc
-      use icepack_constants, only: c0, c1, puny
- 
       integer (kind=int_kind), intent(in) :: &
          nblyr,              & ! number of bio layers
          nslyr,              & ! number of snow layers
@@ -90,7 +127,6 @@
       real (kind=dbl_kind), intent(in) :: &
          dt,       &  ! time step
          hbri,     &  ! brine height  (m)
-         dhice,    &  ! change due to sublimation/condensation (m)
          bphi_min, &  ! surface porosity
          meltt,    &  ! thermodynamic melt/growth rates in dt (m)
          melts,    &
@@ -98,7 +134,6 @@
          congel,   &
          snoice,   &
          fsnow,    & ! snowfall rate (kg/m^2 s)
-         sss,      & ! ocean salinity (ppt)
          hice_old, & ! ice height (m)
          vicen,    & ! ice volume (m)
          vsnon,    & ! snow volume (m)
@@ -107,11 +142,9 @@
          vice_old, &
          vsno_old, &
          darcy_V,  & ! darcy velocity
-         darcy_V_chl,& ! darcy velocity for algae
+!        darcy_V_chl,& ! darcy velocity for algae
          dh_bot,     & ! change in brine bottom (m)
-         dh_bot_chl, & ! change in brine bottom (m) felt by algae
          dh_top,     & ! change in brine top (m)
-         dh_top_chl, & ! change in brine top (m) felt by algae
          dh_direct     ! surface flooding or surface runoff (m)
 
       real (kind=dbl_kind), dimension (nbtrcr), intent(inout) :: &
@@ -134,7 +167,6 @@
          iDin           ! Diffusivity/h on the igrid (1/s)
  
       real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         cgrid            , &  ! CICE vertical coordinate   
          icgrid     , & ! CICE interface coordinate   
          fswthrul       ! visible short wave radiation on icgrid (W/m^2)  
 
@@ -169,16 +201,10 @@
       logical (kind=log_kind), intent(in) :: &
          first_ice      ! initialized values should be used
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
-         k              , & ! vertical index
-         n, mm              ! thickness category index
+         mm              ! thickness category index
 
       real (kind=dbl_kind), dimension (nblyr+1,n_algae) :: &
          upNOn      , & ! algal nitrate uptake rate  (mmol/m^3/s)
@@ -198,7 +224,6 @@
          flux_bio_sno !
 
       real (kind=dbl_kind) :: &
-         Tot_Nit, &  !
          hsnow_i,  & ! initial snow thickness (m)
          hsnow_f     ! final snow thickness (m)
 
@@ -208,8 +233,7 @@
       real (kind=dbl_kind) :: &
          a_ice
 
-      character(len=char_len_long) :: &
-         warning  
+      character(len=*),parameter :: subname='(zbio)'
 
       zbgc_snown(:) = c0
       zbgc_atmn (:) = c0
@@ -228,6 +252,7 @@
                call bgc_column_sum (nblyr, nslyr, hsnow_i, hbri_old, &
                               trcrn(bio_index(mm):bio_index(mm)+nblyr+2), &
                               Tot_BGC_i(mm))
+               if (icepack_warnings_aborted(subname)) return
             enddo
          endif
       endif
@@ -244,9 +269,10 @@
                                 vicen,     vsnon,        &
                                 aicen,     flux_bio_atm, &
                                 zbgc_atmn, flux_bio_sno)
+      if (icepack_warnings_aborted(subname)) return
 
       call z_biogeochemistry   (n_cat,        dt,        &
-                                nilyr,        nslyr,     &
+                                nilyr,        &
                                 nblyr,        nbtrcr,    &
                                 n_algae,      n_doc,     & 
                                 n_dic,        n_don,     &
@@ -256,21 +282,21 @@
                                 hice_old,     ocean_bio, & 
                                 flux_bion,    bphin,     &
                                 iphin,        trcrn,     &  
-                                iDin,         sss,       &
+                                iDin,  &
                                 fswthrul,     grow_alg,  &
                                 upNOn,        upNHn,     &
                                 dh_top,       dh_bot,    &
-                                dh_top_chl,   dh_bot_chl,&
                                 zfswin,       hbri,      & 
                                 hbri_old,     darcy_V,   &
-                                darcy_V_chl,  bgrid,     &
+!                               darcy_V_chl,  bgrid,     &
+                                bgrid,     &
                                 igrid,        icgrid,    &
                                 bphi_min,     zbgc_snown,&
-                                dhice,        zbgc_atmn, &
+                                zbgc_atmn, &
                                 iTin,         dh_direct, &
                                 Zoo,          meltb,     &
-                                congel,       l_stop,    &
-                                stop_label)
+                                congel                   )
+      if (icepack_warnings_aborted(subname)) return
       
       do mm = 1,nbtrcr
          flux_bion(mm) = flux_bion(mm) + flux_bio_sno(mm)
@@ -283,33 +309,33 @@
                call bgc_column_sum (nblyr, nslyr, hsnow_f, hbri, &
                               trcrn(bio_index(mm):bio_index(mm)+nblyr+2), &
                               Tot_BGC_f(mm))
-               write(warning,*) 'mm, Tot_BGC_i(mm), Tot_BGC_f(mm)'
-               call add_warning(warning)
-               write(warning,*)  mm, Tot_BGC_i(mm), Tot_BGC_f(mm)
-               call add_warning(warning)
-               write(warning,*) 'flux_bion(mm), flux_bio_atm(mm)'
-               call add_warning(warning)
-               write(warning,*)  flux_bion(mm), flux_bio_atm(mm)
-               call add_warning(warning)
-               write(warning,*) 'zbgc_snown(mm),zbgc_atmn(mm)'
-               call add_warning(warning)
-               write(warning,*)  zbgc_snown(mm),zbgc_atmn(mm)
-               call add_warning(warning)
-               write(warning,*) 'Tot_BGC_i(mm) + flux_bio_atm(mm)*dt - flux_bion(mm)*dt'
-               call add_warning(warning)
-               write(warning,*)  Tot_BGC_i(mm) + flux_bio_atm(mm)*dt - flux_bion(mm)*dt
-               call add_warning(warning)
+               write(warnstr,*) subname, 'mm, Tot_BGC_i(mm), Tot_BGC_f(mm)'
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname,  mm, Tot_BGC_i(mm), Tot_BGC_f(mm)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'flux_bion(mm), flux_bio_atm(mm)'
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname,  flux_bion(mm), flux_bio_atm(mm)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zbgc_snown(mm),zbgc_atmn(mm)'
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname,  zbgc_snown(mm),zbgc_atmn(mm)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'Tot_BGC_i(mm) + flux_bio_atm(mm)*dt - flux_bion(mm)*dt'
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname,  Tot_BGC_i(mm) + flux_bio_atm(mm)*dt - flux_bion(mm)*dt
+               call icepack_warnings_add(warnstr)
             enddo
          endif
       endif
 
-      if (l_stop) return
+      if (icepack_warnings_aborted(subname)) return
 
       call merge_bgc_fluxes   (dt,           nblyr,      &
                                bio_index,    n_algae,    &
                                nbtrcr,       aicen,      &    
                                vicen,        vsnon,      &
-                               ntrcr,        iphin,      &
+                               iphin,      &
                                trcrn,                    &
                                flux_bion,    flux_bio,   &
                                upNOn,        upNHn,      &
@@ -319,24 +345,25 @@
                                PP_net,       ice_bio_net,&
                                snow_bio_net, grow_alg,   &
                                grow_net)
+      if (icepack_warnings_aborted(subname)) return
  
       if (write_flux_diag) then
          if (aicen > c0) then
             if (n_cat .eq. 1) a_ice = c0
             a_ice = a_ice + aicen
-            write(warning,*) 'after merge_bgc_fluxes, n_cat:', n_cat
-            call add_warning(warning)
+            write(warnstr,*) subname, 'after merge_bgc_fluxes, n_cat:', n_cat
+            call icepack_warnings_add(warnstr)
             do mm = 1,nbtrcr
-               write(warning,*)  'mm, flux_bio(mm):',mm,flux_bio(mm)
-               call add_warning(warning)
-               write(warning,*) 'fbio_snoice(mm)',fbio_snoice(mm)
-               call add_warning(warning)
-               write(warning,*) 'fbio_atmice(mm)',fbio_atmice(mm)
-               call add_warning(warning)
-               write(warning,*)  'flux_bio_atm(mm)', flux_bio_atm(mm)
-               call add_warning(warning)
-               write(warning,*)  'flux_bio_atm(mm)*a_ice', flux_bio_atm(mm)*a_ice
-               call add_warning(warning)
+               write(warnstr,*) subname,  'mm, flux_bio(mm):',mm,flux_bio(mm)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'fbio_snoice(mm)',fbio_snoice(mm)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'fbio_atmice(mm)',fbio_atmice(mm)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname,  'flux_bio_atm(mm)', flux_bio_atm(mm)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname,  'flux_bio_atm(mm)*a_ice', flux_bio_atm(mm)*a_ice
+               call icepack_warnings_add(warnstr)
             enddo
          endif
       endif
@@ -346,27 +373,21 @@
 !=======================================================================
 
       subroutine sklbio       (dt,       ntrcr,      &
-                               nilyr,                &
                                nbtrcr,   n_algae,    &
-                               n_zaero,  n_doc,      &
+                               n_doc,      &
                                n_dic,    n_don,      &
                                n_fed,    n_fep,      &
                                flux_bio, ocean_bio,  &
-                               hmix,     aicen,      &
+                               aicen,      &
                                meltb,    congel,     &
                                fswthru,  first_ice,  &
-                               trcrn,    hin,        &
+                               trcrn,  &
                                PP_net,   upNO,       &
-                               upNH,     grow_net,   &
-                               l_stop,   stop_label)
+                               upNH,     grow_net    )
 
-      use icepack_tracers, only: nt_bgc_N
- 
       integer (kind=int_kind), intent(in) :: &
-         nilyr,              & ! number of ice layers
          nbtrcr,             & ! number of distinct bio tracers
          n_algae,            & ! number of autotrophs
-         n_zaero,            & ! number of z aerosols
          n_doc, n_dic,       & ! number of dissolved organic, inorganic carbon
          n_don,              & ! number of dissolved organic nitrogen
          n_fed, n_fep,       & ! number of iron
@@ -377,12 +398,11 @@
 
       real (kind=dbl_kind), intent(in) :: &
          dt,       &  ! time step
-         hmix,     &  ! mixed layer depth (m)
+!        hmix,     &  ! mixed layer depth (m)
          aicen,    &  ! ice area fraction
          meltb,    &  ! bottom melt (m)
          congel,   &  ! bottom growth (m)
-         fswthru,  &  ! visible shortwave passing to ocean(W/m^2)  
-         hin          ! ice thickness (m)
+         fswthru      ! visible shortwave passing to ocean(W/m^2)  
 
       real (kind=dbl_kind), dimension(ntrcr), intent(inout) :: &
          trcrn      ! bulk concentration per m^3
@@ -400,11 +420,6 @@
          upNO    , & ! tot nitrate uptake rate (mmol/m^2/s) 
          upNH        ! tot ammonium uptake rate (mmol/m^2/s)
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: stop_label
-
       ! local variables
 
       real (kind=dbl_kind), dimension (n_algae) :: &
@@ -415,33 +430,29 @@
       real (kind=dbl_kind), dimension (nbtrcr) :: &
          flux_bion       !tracer flux to ocean
 
-      character(len=char_len_long) :: &
-         warning ! warning message
+      character(len=*),parameter :: subname='(sklbio)'
 
-      call skl_biogeochemistry       (dt,        nilyr,     &
-                                      n_zaero,   n_doc,     &
+      call skl_biogeochemistry       (dt, &
+                                      n_doc,     &
                                       n_dic,     n_don,     &
                                       n_fed,     n_fep,     &
                                       nbtrcr,    n_algae,   &
                                       flux_bion, ocean_bio, &
-                                      hmix,      aicen,     &
+!                                     hmix,      aicen,     &
                                       meltb,     congel,    &
                                       fswthru,   first_ice, &
                                       trcrn,     upNOn,     &
-                                      upNHn,     grow_alg,  &
-                                      hin,       l_stop,    &
-                                      stop_label)
+                                      upNHn,     grow_alg)
+      if (icepack_warnings_aborted(subname)) return
 
-     if (l_stop) return
-
-     call merge_bgc_fluxes_skl    (ntrcr,                  &
-                                   nbtrcr,    n_algae,     &
-                                   aicen,     trcrn,       &
-                                   flux_bion, flux_bio,    &
-                                   PP_net,    upNOn,       &
-                                   upNHn,     upNO,        &
-                                   upNH,      grow_net,    &
-                                   grow_alg)
+      call merge_bgc_fluxes_skl    (nbtrcr,    n_algae,     &
+                                    aicen,     trcrn,       &
+                                    flux_bion, flux_bio,    &
+                                    PP_net,    upNOn,       &
+                                    upNHn,     upNO,        &
+                                    upNH,      grow_net,    &
+                                    grow_alg)
+      if (icepack_warnings_aborted(subname)) return
  
       end subroutine sklbio    
 
@@ -449,34 +460,26 @@
 !
 ! skeletal layer biochemistry
 ! 
-      subroutine skl_biogeochemistry (dt,         nilyr,        &
-                                      n_zaero,    n_doc,        &
+      subroutine skl_biogeochemistry (dt, &
+                                      n_doc,        &
                                       n_dic,      n_don,        &
                                       n_fed,      n_fep,        &
                                       nbtrcr,     n_algae,      &
                                       flux_bio,   ocean_bio,    &
-                                      hmix,       aicen,        &
+!                                     hmix,       aicen,        &
                                       meltb,      congel,       &
                                       fswthru,    first_ice,    &
                                       trcrn,      upNOn,        &
-                                      upNHn,      grow_alg_skl, &
-                                      hin,        l_stop,       &
-                                      stop_label)
-
-      use icepack_constants, only: p5, p05, p1, c1, c0, puny, c10
-      use icepack_tracers, only: nt_bgc_N,  ntrcr, bio_index 
-      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l, R_chl2N
+                                      upNHn,      grow_alg_skl)
 
       integer (kind=int_kind), intent(in) :: &
-         nilyr             , & ! number of ice layers
-         n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+         n_doc, n_dic,  n_don, n_fed, n_fep, &
          nbtrcr , n_algae      ! number of bgc tracers and number algae
 
       real (kind=dbl_kind), intent(in) :: &
          dt     , & ! time step 
-         hin    , & ! ice thickness (m)
-         hmix   , & ! mixed layer depth
-         aicen  , & ! ice area 
+!        hmix   , & ! mixed layer depth
+!        aicen  , & ! ice area 
          meltb  , & ! bottom ice melt
          congel , & ! bottom ice growth 
          fswthru    ! shortwave passing through ice to ocean
@@ -500,14 +503,9 @@
          upNOn       , & !  algal NO uptake rate (mmol/m^3/s) 
          upNHn           !  algal NH uptake rate (mmol/m^3/s) 
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: stop_label
-
       ! local variables
 
-      integer (kind=int_kind) :: nn, mm
+      integer (kind=int_kind) :: nn
 
       real (kind=dbl_kind), dimension(nbtrcr):: &
          react        , & ! biological sources and sinks (mmol/m^3)
@@ -534,7 +532,7 @@
          PVc = 1.e-6_dbl_kind           , & ! type 'constant' piston velocity for interface (m/s) 
          PV_scale_growth = p5           , & ! scale factor in Jin code PV during ice growth
          PV_scale_melt = p05            , & ! scale factor in Jin code PV during ice melt
-         growth_max = 1.85e-10_dbl_kind , & ! PVt function reaches maximum here.  (m/s)
+         growth_max = 1.85e-5_dbl_kind , & ! PVt function reaches maximum here.  (m/s)
          Tin_bot = -1.8_dbl_kind        , & ! temperature of the ice bottom (oC)
          MJ1 = 9.667e-9_dbl_kind        , & ! (m/s) coefficients in Jin2008
          MJ2 = 38.8_dbl_kind            , & ! (1) from:4.49e-4_dbl_kind*secday   
@@ -543,14 +541,12 @@
 
       logical (kind=log_kind) :: conserve_N
 
-      character(len=char_len_long) :: &
-         warning ! warning message
+      character(len=*),parameter :: subname='(skl_biogeochemistry)'
 
       !-----------------------------------------------------------------
       ! Initialize 
       !-----------------------------------------------------------------
 
-      l_stop = .false.
       conserve_N = .true.
       Zoo_skl    = c0
       rphi_sk    = c1/phi_sk
@@ -584,15 +580,16 @@
          cinit  (nn) = trcrn(bio_index(nn)) * sk_l * rphi_sk
          cinit_v(nn) = cinit(nn)/sk_l
          if (cinit(nn) < c0) then
-            write(warning,*)'initial sk_bgc < 0, nn,nbtrcr,cinit(nn)', &
+            write(warnstr,*) subname,'initial sk_bgc < 0, nn,nbtrcr,cinit(nn)', &
                  nn,nbtrcr,cinit(nn)
-            call add_warning(warning)
-            l_stop = .true.
-            stop_label = 'cinit < c0'
+            call icepack_warnings_add(warnstr)
+            call icepack_warnings_add(subname//' cinit < c0')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
          endif  
       enddo     ! nbtrcr
 
-      if (l_stop) return
+      if (icepack_warnings_aborted(subname)) return
 
       if (trim(bgc_flux_type) == 'Jin2006') then  
  
@@ -654,15 +651,16 @@
       !-----------------------------------------------------------------
 
       call algal_dyn (dt,              &
-                      n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+                      n_doc, n_dic,  n_don, n_fed, n_fep, &
                       dEdd_algae, &
                       fswthru,         react,     & 
-                      cinit_v,         nbtrcr,    &
+                      cinit_v, &
                       grow_alg_skl,    n_algae,   &
                       iTin,                       &
                       upNOn,           upNHn,     &
                       Zoo_skl,                    &
                       Nerror,          conserve_N)
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! compute new tracer concencentrations
@@ -693,36 +691,36 @@
 !         ocean_bio(nn) = ocean_bio(nn) + flux_bio(nn)/hmix*aicen
 
          if (.not. conserve_N) then
-              write(warning,*) 'N not conserved in skl_bgc, Nerror:',Nerror
-              call add_warning(warning)
-              write(warning,*) 'sk_bgc < 0 after algal fluxes, nn,cinit,flux_bio',&
+              write(warnstr,*) subname, 'N not conserved in skl_bgc, Nerror:',Nerror
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'sk_bgc < 0 after algal fluxes, nn,cinit,flux_bio',&
                                nn,cinit(nn),flux_bio(nn)
-              call add_warning(warning)
-              write(warning,*) 'cinit_tmp,flux_bio_temp,f_meltn,congel_alg,PVt,PVflag: '
-              call add_warning(warning)
-              write(warning,*) cinit_tmp,flux_bio_temp(nn),f_meltn(nn), &
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'cinit_tmp,flux_bio_temp,f_meltn,congel_alg,PVt,PVflag: '
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, cinit_tmp,flux_bio_temp(nn),f_meltn(nn), &
                                congel_alg(nn),PVt,PVflag(nn)
-              call add_warning(warning)
-              write(warning,*) 'congel, meltb: ',congel,meltb
-              call add_warning(warning)
-              l_stop = .true.
-              stop_label = 'N not conserved in skl_bgc'
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'congel, meltb: ',congel,meltb
+              call icepack_warnings_add(warnstr)
+              call icepack_warnings_add(subname//' N not conserved in skl_bgc')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          elseif (cinit(nn) < c0) then
-              write(warning,*) 'sk_bgc < 0 after algal fluxes, nn,cinit,flux_bio',&
+              write(warnstr,*) subname, 'sk_bgc < 0 after algal fluxes, nn,cinit,flux_bio',&
                                nn,cinit(nn),flux_bio(nn)
-              call add_warning(warning)
-              write(warning,*) 'cinit_tmp,flux_bio_temp,f_meltn,congel_alg,PVt,PVflag: '
-              call add_warning(warning)
-              write(warning,*) cinit_tmp,flux_bio_temp(nn),f_meltn(nn), &
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'cinit_tmp,flux_bio_temp,f_meltn,congel_alg,PVt,PVflag: '
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, cinit_tmp,flux_bio_temp(nn),f_meltn(nn), &
                                congel_alg(nn),PVt,PVflag(nn)
-              call add_warning(warning)
-              write(warning,*) 'congel, meltb: ',congel,meltb
-              call add_warning(warning)
-              l_stop = .true.
-              stop_label = 'sk_bgc < 0 after algal fluxes'
+              call icepack_warnings_add(warnstr)
+              write(warnstr,*) subname, 'congel, meltb: ',congel,meltb
+              call icepack_warnings_add(warnstr)
+              call icepack_warnings_add(subname//'sk_bgc < 0 after algal fluxes')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          endif
 
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
          
       !-----------------------------------------------------------------
       ! reload tracer array:  Bulk tracer concentration (mmol or mg per m^3)
@@ -746,7 +744,7 @@
 ! 
 
       subroutine z_biogeochemistry (n_cat,        dt,        &
-                                    nilyr,        nslyr,     &
+                                    nilyr,        &
                                     nblyr,        nbtrcr,    &
                                     n_algae,      n_doc,     &
                                     n_dic,        n_don,     &
@@ -756,34 +754,24 @@
                                     hice_old,     ocean_bio, & 
                                     flux_bio,     bphin,     &
                                     iphin,        trcrn,     &  
-                                    iDin,         sss,       &
+                                    iDin,   &
                                     fswthrul,     grow_alg,  &
                                     upNOn,        upNHn,     &
                                     dh_top,       dh_bot,    &
-                                    dh_top_chl,   dh_bot_chl,&
                                     zfswin,       hbri,      & 
                                     hbri_old,     darcy_V,   &
-                                    darcy_V_chl,  bgrid,     &
+!                                   darcy_V_chl,  bgrid,     &
+                                    bgrid,     &
                                     i_grid,       ic_grid,   &
                                     bphi_min,     zbgc_snow, &
-                                    dhice,        zbgc_atm,  &
+                                    zbgc_atm,  &
                                     iTin,         dh_direct, &
                                     Zoo,          meltb,     &
-                                    congel,       l_stop,    &   
-                                    stop_label)
-
-      use icepack_tracers, only: nt_fbri, nt_zbgc_frac
-      use icepack_tracers, only: ntrcr, nlt_bgc_Nit, tr_bgc_Fe, tr_zaero
-      use icepack_tracers, only: nlt_bgc_Fed, nlt_zaero, bio_index, tr_bgc_N
-      use icepack_tracers, only: nlt_bgc_N
-      use icepack_constants, only: c0, c1, c2, p5, puny, pi
-      use icepack_parameters, only: hi_ssl, dEdd_algae, solve_zbgc
-      use icepack_parameters, only: R_dFe2dust, dustFe_sol, algal_vel
+                                    congel                   )
 
       integer (kind=int_kind), intent(in) :: &
          n_cat,              & ! category number
          nilyr,              & ! number of ice layers
-         nslyr,              & ! number of snow layers
          nblyr,              & ! number of bio layers
          nbtrcr, n_algae,    & ! number of bgc tracers, number of autotrophs
          n_zaero,            & ! number of aerosols
@@ -795,20 +783,16 @@
       real (kind=dbl_kind), intent(in) :: &
          dt         , & ! time step 
          hbri       , & ! brine height  (m)
-         dhice      , & ! change due to sublimation/condensation (m)
          bphi_min   , & ! surface porosity
          aicen      , & ! concentration of ice
          vicen      , & ! volume per unit area of ice  (m)
-         sss        , & ! ocean salinity (ppt)
          hice_old   , & ! ice height (m)
          meltb      , & ! bottom melt in dt (m)
          congel     , & ! bottom growth in dt (m)
          darcy_V    , & ! darcy velocity
-         darcy_V_chl, & ! darcy velocity for algae
+!        darcy_V_chl, & ! darcy velocity for algae
          dh_bot     , & ! change in brine bottom (m)
-         dh_bot_chl , & ! change in brine bottom (m) felt by algae
          dh_top     , & ! change in brine top (m)
-         dh_top_chl , & ! change in brine top (m) felt by algae
          dh_direct      ! surface flooding or runoff (m)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
@@ -839,11 +823,6 @@
          upNHn      , & ! algal ammonium uptake rate (mmol/m^3/s)
          grow_alg       ! algal growth rate          (mmol/m^3/s)
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, print diagnostics and abort on return
-
-      character (len=*), intent(out) :: stop_label
-
       !-----------------------------------------------------------------------------
       ! algae absorption coefficient for 0.5 m thick layer
       ! Grenfell (1991): SA = specific absorption coefficient= 0.004 m^2/mg Chla
@@ -854,7 +833,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k, m, mm, nn    ! vertical biology layer index 
+         k, m, mm        ! vertical biology layer index 
 
       real (kind=dbl_kind) :: &
          hin         , & ! ice thickness (m)        
@@ -867,8 +846,6 @@
          darcyV      , & !
          dhtop       , & !
          dhbot       , & !
-         dhmelt      , & ! >=0 (m) melt contribution to surface brine height
-         dhrunoff    , & ! >=0 (m) surface runoff to ocean
          dhflood         ! >=0 (m) surface flooding from the ocean
 
       real (kind=dbl_kind), dimension (nblyr+2) :: &
@@ -902,14 +879,11 @@
          Source_bot,    & ! For cons: (+) bottom tracer source into ice (mmol/m^2/s)
          Sink_bot,      & ! For cons: (+ or -) remaining bottom flux into ice(mmol/m^2/s)
          Sink_top,      & ! For cons: (+ or -) remaining bottom flux into ice(mmol/m^2/s)
-         ocean_b,       & ! ocean_bio
-         sum_react,     &
-         rtau_ret,      & ! retention frequency (s^-1)
-         rtau_rel     , & ! release frequency   (s^-1)
+         exp_ret,       & ! exp dt/retention frequency
+         exp_rel,       & ! exp dt/release frequency
          atm_add_cons , & ! zbgc_snow+zbgc_atm (mmol/m^3*m)
          dust_Fe      , & ! contribution of dust surface flux to dFe (umol/m*3*m)
-         source       , & ! mmol/m^2 surface input from snow/atmosphere
-         sum_stationary   ! sum of stationary tracer (mmol/m^2)
+         source           ! mmol/m^2 surface input from snow/atmosphere
 
       real (kind=dbl_kind), dimension (ntrcr+2) :: &
          trtmp0       , & ! temporary, remapped tracers
@@ -926,15 +900,13 @@
          initcons_mobile,&!
          initcons_stationary
  
-      real (kind=dbl_kind), dimension (nilyr+1):: &
-         icegrid          ! correct for large ice surface layers
-
       real (kind=dbl_kind):: &
          top_conc         ! 1% (min_bgc) of surface concentration 
                           ! when hin > hbri:  just used in sw calculation
 
       real (kind=dbl_kind):: &
-         bio_tmp          ! temporary variable
+         bio_tmp, &       ! temporary variable
+         exp_min          ! temporary exp var
 
       real (kind=dbl_kind):: &
          Sat_conc   , & ! adsorbing saturation concentration  (mmols/m^3)
@@ -958,23 +930,21 @@
          Ng_to_mmol =0.0140067_dbl_kind , & ! (g/mmol) Nitrogen
          f_s = c1 , &  ! fracton of sites available for saturation
          f_a = c1 , &  ! fraction of collector available for attachment
-         f_v = 0.7854  ! fraction of algal coverage on area availabel for attachment 4(pi r^2)/(4r)^2  [Johnson et al, 1995, water res. research]
+         f_v = 0.7854  ! fraction of algal coverage on area availabel for attachment
+                       ! 4(pi r^2)/(4r)^2  [Johnson et al, 1995, water res. research]
           
       integer, parameter :: &
          nt_zfswin = 1    ! for interpolation of short wave to bgrid
 
-      character(len=char_len_long) :: &
-         warning ! warning message  
+      character(len=*),parameter :: subname='(z_biogeochemistry)'
 
   !-------------------------------------
   ! Initialize 
   !----------------------------------- 
 
-      l_stop = .false.
       zspace = c1/real(nblyr,kind=dbl_kind)
       in_init_cons(:,:) = c0
       atm_add_cons(:) = c0
-      sum_react(:) = c0
       dhtop = c0
       dhbot = c0
       darcyV = c0
@@ -1001,22 +971,22 @@
             endif         ! first_ice
 
             if (trcrn(bio_index(m) + k-1) < c0  ) then
-               write(warning,*)'zbgc initialization error, first ice = ', first_ice
-               call add_warning(warning)
-               write(warning,*)'Category,m:',n_cat,m
-               call add_warning(warning)
-               write(warning,*)'hbri,hbri_old' 
-               call add_warning(warning)
-               write(warning,*) hbri,hbri_old
-               call add_warning(warning)
-               write(warning,*)'trcrn(bio_index(m) + k-1)'
-               call add_warning(warning)
-               write(warning,*) trcrn(bio_index(m) + k-1)
-               call add_warning(warning)
-               l_stop = .true.
-               stop_label = 'zbgc initialization error'
+               write(warnstr,*) subname,'zbgc initialization error, first ice = ', first_ice
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname,'Category,m:',n_cat,m
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname,'hbri,hbri_old' 
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, hbri,hbri_old
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname,'trcrn(bio_index(m) + k-1)'
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, trcrn(bio_index(m) + k-1)
+               call icepack_warnings_add(warnstr)
+               call icepack_warnings_add(subname//' zbgc initialization error')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             endif 
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
         enddo         !k
       enddo           !m
 
@@ -1060,31 +1030,35 @@
       !-----------------------------------------------------------------
       !   time constants for mobile/stationary phase changes
       !-----------------------------------------------------------------
-       
+
+         exp_rel(m) = c0
+         exp_ret(m) = c0
+         if (tau_ret(m) > c0) then
+            exp_min = min(dt/tau_ret(m),exp_argmax)
+            exp_ret(m) = exp(-exp_min)
+         endif
+         if (tau_rel(m) > c0) then
+            exp_min = min(dt/tau_rel(m),exp_argmax)
+            exp_rel(m) = exp(-exp_min)
+         endif
          if (m .ne. nlt_bgc_N(1)) then  
             if (hin_old  > hin) then  !melting
-               rtau_rel(m) = c1/tau_rel(m)
-               rtau_ret(m) = c0
+               exp_ret(m) = c1
             else                              !not melting
-               rtau_ret(m) = c1/tau_ret(m)
-               rtau_rel(m) = c0
+               exp_rel(m) = c1
             endif  
          elseif (tr_bgc_N .and. hin_old > hin + algal_vel*dt) then
-               rtau_rel(m) = c1/tau_rel(m)
-               rtau_ret(m) = c0
+               exp_ret(m) = c1
          elseif (tr_bgc_N) then
-               rtau_ret(m) = c1/tau_ret(m)
-               rtau_rel(m) = c0
+               exp_rel(m) = c1
          endif
 
-         ocean_b(m) = ocean_bio(m)
          dhtop      = dh_top
          dhbot      = dh_bot
          darcyV     = darcy_V
          C_top(m)   = in_init_cons(1,m)*trcrn(nt_zbgc_frac+m-1)!mobile fraction
          source(m)  = abs(zbgc_snow(m) + zbgc_atm(m) + dust_Fe(m))
 	 dhflood  = max(c0,-dh_direct)                              ! ocean water flooding surface
-	 dhrunoff = max(c0,dh_direct)
 
 	 if (dhtop+darcyV/bphin_N(1)*dt < -puny) then !snow/top ice melt
 	     C_top(m) = (zbgc_snow(m)+zbgc_atm(m) + dust_Fe(m))/abs(dhtop &
@@ -1117,20 +1091,20 @@
          trtmp0(nt_zfswin+k-1) = fswthrul(k) 
       enddo   !k
 
-      call remap_zbgc(ntrcr,            nilyr+1,  &
+      call remap_zbgc(nilyr+1,  &
                       nt_zfswin,                  &
                       trtmp0(1:ntrcr),  trtmp(1:ntrcr+2), &
                       0,                nblyr+1,  &
                       hin,              hbri,     &
                       ic_grid(1:nilyr+1),         &
-                      i_grid(1:nblyr+1),ice_conc, &
-                      l_stop,           stop_label) 
+                      i_grid(1:nblyr+1),ice_conc  )
 
-      if (l_stop) return
+      if (icepack_warnings_aborted(subname)) return
 
       do k = 1,nblyr+1
          zfswin(k) = trtmp(nt_zfswin+k-1)
       enddo
+
       !-----------------------------------------------------------------
       ! Initialze Biology  
       !----------------------------------------------------------------- 
@@ -1154,8 +1128,8 @@
             do k = 1,nblyr+1
                initcons_mobile(k) = in_init_cons(k,mm)*trcrn(nt_zbgc_frac+mm-1)
                initcons_stationary(k) = mobile(mm)*(in_init_cons(k,mm)-initcons_mobile(k))
-               dmobile(k) = mobile(mm)*(initcons_mobile(k)*(exp(-dt*rtau_ret( mm))-c1) + &
-                                 initcons_stationary(k)*(c1-exp(-dt*rtau_rel(mm))))
+               dmobile(k) = mobile(mm)*(initcons_mobile(k)*(exp_ret(mm)-c1) + &
+                                    initcons_stationary(k)*(c1-exp_rel(mm)))
                initcons_mobile(k) = max(c0,initcons_mobile(k) + dmobile(k))
                initcons_stationary(k) = max(c0,initcons_stationary(k) - dmobile(k))
                if (initcons_stationary(k)/hbri_old > Sat_conc) then
@@ -1171,7 +1145,7 @@
             call compute_FCT_matrix &
                                 (initcons,sbdiagz, dt, nblyr,  &
                                 diagz, spdiagz, rhsz, bgrid,   & 
-                                i_grid, darcyV,    dhtop,      &
+                                darcyV,    dhtop,      &
                                 dhbot,   iphin_N,              &
                                 Diff, hbri_old,                &
                                 atm_add_cons(mm), bphin_N,     &
@@ -1179,11 +1153,13 @@
                                 Source_bot(mm), Source_top(mm),&
                                 Sink_bot(mm),Sink_top(mm),     &
                                 D_sbdiag, D_spdiag, ML_diag)
+            if (icepack_warnings_aborted(subname)) return
 
             call tridiag_solverz &
                                (nblyr+1, sbdiagz,               &
                                 diagz,   spdiagz,               &
                                 rhsz,    biocons)
+            if (icepack_warnings_aborted(subname)) return
 
             call check_conservation_FCT &
                                (initcons,    &
@@ -1194,15 +1170,15 @@
                                 Sink_bot(mm),          &
                                 Sink_top(mm),          &
                                 dt, flux_bio(mm),     &
-                                l_stop, nblyr, &
+                                nblyr, &
                                 source(mm))
+            if (icepack_warnings_aborted(subname)) return
 
-            if (l_stop) return
-                
             call compute_FCT_corr & 
                                 (initcons,   &
                                  biocons, dt, nblyr, &
                                  D_sbdiag, D_spdiag, ML_diag)  
+            if (icepack_warnings_aborted(subname)) return
 
             top_conc = c0        ! or frazil ice concentration
  
@@ -1216,8 +1192,8 @@
                                  ntrcr,                               &
                                  nblyr,                  top_conc,    &
                                  i_grid,                 flux_bio(mm),&
-                                 l_stop,                 stop_label,  &
                                  meltb,                  congel)
+               if (icepack_warnings_aborted(subname)) return
 
             elseif (tr_bgc_N .and. mm .eq. nlt_bgc_N(1)) then  
                if (meltb > algal_vel*dt .or. aicen < 0.001_dbl_kind) then
@@ -1228,12 +1204,11 @@
                                  ntrcr,                               &
                                  nblyr,                  top_conc,    &
                                  i_grid,                 flux_bio(mm),&
-                                 l_stop,                 stop_label,  &
                                  meltb,                  congel)       
+                  if (icepack_warnings_aborted(subname)) return
 
                endif
             endif
-            if (l_stop) return
 
             biomat_cons(:,mm) =  biocons(:) +  initcons_stationary(:)
 
@@ -1250,45 +1225,46 @@
 	    
             if (abs(sum_new-sum_old) > accuracy*sum_old .or. &
                 minval(biocons(:)) < c0  .or. minval(initcons_stationary(:)) < c0 &
-                .or. l_stop) then
-                write(warning,*)'zbgc FCT tracer solution failed,nn', nn
-                call add_warning(warning)
-                write(warning,*)'sum_new,sum_old:',sum_new,sum_old
-                call add_warning(warning)
-                write(warning,*)'mm,biocons(:):',mm,biocons(:)
-                call add_warning(warning)
-                write(warning,*)'biomat_low:',biomat_low
-                call add_warning(warning)
-                write(warning,*)'Diff(:):',Diff(:)
-                call add_warning(warning)
-                write(warning,*)'dmobile(:):',dmobile(:)
-                call add_warning(warning)
-                write(warning,*)'mobile(mm):',mobile(mm)
-                call add_warning(warning)
-                write(warning,*)'initcons_stationary(:):',initcons_stationary(:)
-                call add_warning(warning)
-                write(warning,*) 'trcrn(nt_zbgc_frac+mm-1):',trcrn(nt_zbgc_frac+mm-1)
-                call add_warning(warning)
-                write(warning,*) 'in_init_cons(:,mm):',in_init_cons(:,mm)
-                call add_warning(warning)
-                write(warning,*) 'rtau_ret( mm),rtau_rel( mm)',rtau_ret( mm),rtau_rel( mm)
-                call add_warning(warning)
-                write(warning,*)'darcyV,dhtop,dhbot'
-                call add_warning(warning)
-                write(warning,*)darcyV,dhtop,dhbot
-                call add_warning(warning)
-                write(warning,*)'Category,mm:',n_cat,mm
-                call add_warning(warning)
-                l_stop = .true.
-                stop_label = 'zbgc FCT tracer solution failed'
+                .or. icepack_warnings_aborted()) then
+                write(warnstr,*) subname,'zbgc FCT tracer solution failed'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,'sum_new,sum_old:',sum_new,sum_old
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,'mm,biocons(:):',mm,biocons(:)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,'biomat_low:',biomat_low
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,'Diff(:):',Diff(:)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,'dmobile(:):',dmobile(:)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,'mobile(mm):',mobile(mm)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,'initcons_stationary(:):',initcons_stationary(:)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'trcrn(nt_zbgc_frac+mm-1):',trcrn(nt_zbgc_frac+mm-1)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'in_init_cons(:,mm):',in_init_cons(:,mm)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'exp_ret( mm),exp_rel( mm)',exp_ret( mm),exp_rel( mm)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,'darcyV,dhtop,dhbot'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,darcyV,dhtop,dhbot
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,'Category,mm:',n_cat,mm
+                call icepack_warnings_add(warnstr)
+                call icepack_warnings_add(subname//'zbgc FCT tracer solution failed')
+                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             endif
-            if (l_stop) return
+            if (icepack_warnings_aborted(subname)) return
 
          else              
   
-            Call thin_ice_flux(hbri,hbri_old,iphin_N, biomat_cons(:,mm), &
+            call thin_ice_flux(hbri,hbri_old,biomat_cons(:,mm), &
                                flux_bio(mm),source(mm), &
-                               i_grid, dt, nblyr,ocean_bio(mm))
+                               dt, nblyr,ocean_bio(mm))
+            if (icepack_warnings_aborted(subname)) return
 
          endif ! thin or not
 
@@ -1303,15 +1279,16 @@
       if (solve_zbgc) then
          do k = 1, nblyr+1   
             call algal_dyn (dt,              &
-                         n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+                         n_doc, n_dic,  n_don, n_fed, n_fep, &
                          dEdd_algae, &
                          zfswin(k),        react(k,:),     & 
-                         biomat_brine(k,:), nbtrcr,        &
+                         biomat_brine(k,:), &
                          grow_alg(k,:),    n_algae,        &
                          iTin(k),                          &
                          upNOn(k,:),       upNHn(k,:),     &
                          Zoo(k),                           &
                          Nerror(k),        conserve_N(k))
+            if (icepack_warnings_aborted(subname)) return
                          
          enddo ! k
       endif    ! solve_zbgc
@@ -1325,81 +1302,81 @@
             bio_tmp = (biomat_brine(k,m) + react(k,m))*iphin_N(k) 
                      
             if (.not. conserve_N(k)) then  
-                write(warning, *) 'N in algal_dyn not conserved'
-                call add_warning(warning)
-                write(warning, *) 'Nerror(k):', Nerror(k)
-                call add_warning(warning)
-                write(warning, *) 'k,m,hbri,hbri_old,bio_tmp,biomat_cons(k,m),ocean_bio(m)'
-                call add_warning(warning)
-                write(warning, *)  k,m,hbri,hbri_old,bio_tmp,biomat_cons(k,m),ocean_bio(m)
-                call add_warning(warning)
-                write(warning, *) 'react(k,m),iphin_N(k),biomat_brine(k,m)'
-                call add_warning(warning)
-                write(warning, *)  react(k,m),iphin_N(k),biomat_brine(k,m)
-                call add_warning(warning)
-                l_stop = .true.
-                stop_label = 'N in algal_dyn not conserved'
+                write(warnstr,*) subname, 'N in algal_dyn not conserved'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'Nerror(k):', Nerror(k)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'k,m,hbri,hbri_old,bio_tmp,biomat_cons(k,m),ocean_bio(m)'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,  k,m,hbri,hbri_old,bio_tmp,biomat_cons(k,m),ocean_bio(m)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'react(k,m),iphin_N(k),biomat_brine(k,m)'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,  react(k,m),iphin_N(k),biomat_brine(k,m)
+                call icepack_warnings_add(warnstr)
+                call icepack_warnings_add(subname//' N in algal_dyn not conserved')
+                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             elseif (abs(bio_tmp) < puny) then  
                bio_tmp = c0
             elseif (bio_tmp > 1.0e6_dbl_kind) then
-                write(warning, *) 'very large bgc value'
-                call add_warning(warning)
-                write(warning, *) 'k,m,hbri,hbri_old,bio_tmp,biomat_cons(k,m),ocean_bio(m)'
-                call add_warning(warning)
-                write(warning, *)  k,m,hbri,hbri_old,bio_tmp,biomat_cons(k,m),ocean_bio(m)
-                call add_warning(warning)
-                write(warning, *) 'react(k,m),iphin_N(k),biomat_brine(k,m)'
-                call add_warning(warning)
-                write(warning, *)  react(k,m),iphin_N(k),biomat_brine(k,m)
-                call add_warning(warning)
-                l_stop = .true.
-                stop_label = 'very large bgc value'
+                write(warnstr,*) subname, 'very large bgc value'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'k,m,hbri,hbri_old,bio_tmp,biomat_cons(k,m),ocean_bio(m)'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,  k,m,hbri,hbri_old,bio_tmp,biomat_cons(k,m),ocean_bio(m)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'react(k,m),iphin_N(k),biomat_brine(k,m)'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,  react(k,m),iphin_N(k),biomat_brine(k,m)
+                call icepack_warnings_add(warnstr)
+                call icepack_warnings_add(subname//' very large bgc value')
+                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             elseif (bio_tmp < c0) then
-                write(warning, *) 'negative bgc'
-                call add_warning(warning)
-                write(warning, *) 'k,m,nlt_bgc_Nit,hbri,hbri_old'
-                call add_warning(warning)
-                write(warning, *)  k,m,nlt_bgc_Nit,hbri,hbri_old
-                call add_warning(warning)
-                write(warning, *) 'bio_tmp,biomat_cons(k,m),ocean_bio(m)'
-                call add_warning(warning)
-                write(warning, *)  bio_tmp,biomat_cons(k,m),ocean_bio(m)
-                call add_warning(warning)
-                write(warning, *) 'react(k,m),iphin_N(k),biomat_brine(k,m)'
-                call add_warning(warning)
-                write(warning, *)  react(k,m),iphin_N(k),biomat_brine(k,m)
-                call add_warning(warning)
-                write(warning, *) 'rtau_ret( m),rtau_ret( m)',rtau_ret( m),rtau_ret( m)
-                call add_warning(warning)
-                l_stop = .true.
-                stop_label = 'negative bgc'
+                write(warnstr,*) subname, 'negative bgc'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'k,m,nlt_bgc_Nit,hbri,hbri_old'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,  k,m,nlt_bgc_Nit,hbri,hbri_old
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'bio_tmp,biomat_cons(k,m),ocean_bio(m)'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,  bio_tmp,biomat_cons(k,m),ocean_bio(m)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'react(k,m),iphin_N(k),biomat_brine(k,m)'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,  react(k,m),iphin_N(k),biomat_brine(k,m)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'exp_ret( m),exp_ret( m)',exp_ret( m),exp_ret( m)
+                call icepack_warnings_add(warnstr)
+                call icepack_warnings_add(subname//'negative bgc')
+                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             endif
-            if (l_stop) then
-                write(warning, *) 'trcrn(nt_zbgc_frac+m-1):',trcrn(nt_zbgc_frac+m-1)
-                call add_warning(warning)
-                write(warning, *) 'in_init_cons(k,m):',in_init_cons(k,m)
-                call add_warning(warning)
-                write(warning, *) 'trcrn(bio_index(m) + k-1)'
-                call add_warning(warning)
-                write(warning, *)  trcrn(bio_index(m) + k-1)
-                call add_warning(warning)
-                write(warning, *) 'Category,m:',n_cat,m
-                call add_warning(warning)
+            if (icepack_warnings_aborted()) then
+                write(warnstr,*) subname, 'trcrn(nt_zbgc_frac+m-1):',trcrn(nt_zbgc_frac+m-1)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'in_init_cons(k,m):',in_init_cons(k,m)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'trcrn(bio_index(m) + k-1)'
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname,  trcrn(bio_index(m) + k-1)
+                call icepack_warnings_add(warnstr)
+                write(warnstr,*) subname, 'Category,m:',n_cat,m
+                call icepack_warnings_add(warnstr)
                 return
             endif
             trcrn(bio_index(m)+k-1) = max(c0, bio_tmp)
             if (ocean_bio(m) .le. c0 .and. flux_bio(m) < c0) then
            !     if (flux_bio(m) < -1.0e-12_dbl_kind) then
-           !       write(warning, *) 'no ocean_bio but flux_bio < c0'
-           !       call add_warning(warning)
-           !       write(warning, *) 'm,ocean_bio(m),flux_bio(m)'
-           !       call add_warning(warning)
-           !       write(warning, *) m,ocean_bio(m),flux_bio(m)
-           !       call add_warning(warning)
-           !       write(warning, *) 'setting flux_bio(m) = c0'
-           !       call add_warning(warning)
-           !       l_stop = .true.
-           !       stop_label = 'flux_bio < 0 when ocean_bio = 0'
+           !       write(warnstr,*) subname, 'no ocean_bio but flux_bio < c0'
+           !       call icepack_warnings_add(warnstr)
+           !       write(warnstr,*) subname, 'm,ocean_bio(m),flux_bio(m)'
+           !       call icepack_warnings_add(warnstr)
+           !       write(warnstr,*) subname, m,ocean_bio(m),flux_bio(m)
+           !       call icepack_warnings_add(warnstr)
+           !       write(warnstr,*) subname, 'setting flux_bio(m) = c0'
+           !       call icepack_warnings_add(warnstr)
+           !       call icepack_warnings_add(subname//' flux_bio < 0 when ocean_bio = 0')
+           !       call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
            !     endif
                 flux_bio(m) = max(c0,flux_bio(m))
             endif
@@ -1424,48 +1401,18 @@
 !          Nicole Jeffery, LANL
 
       subroutine algal_dyn (dt,           &
-                            n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+                            n_doc, n_dic,  n_don, n_fed, n_fep, &
                             dEdd_algae,   &
                             fswthru,      reactb,       & 
-                            ltrcrn,       nbtrcr,       &
+                            ltrcrn,       &
                             grow_alg,     n_algae,      &
                             T_bot,                      &
                             upNOn,        upNHn,        &
                             Zoo,                        &
                             Nerror,       conserve_N)      
 
-      use icepack_constants, only: p1, p5, c0, c1, secday, puny
-      use icepack_parameters, only: max_algae, max_DON, max_DOC, R_C2N, R_chl2N
-      use icepack_parameters, only: T_max, fsal      , fr_resp
-      use icepack_parameters, only: op_dep_min       , fr_graze_s
-      use icepack_parameters, only: fr_graze_e       , fr_mort2min
-      use icepack_parameters, only: fr_dFe           , k_nitrif
-      use icepack_parameters, only: t_iron_conv      , max_loss
-      use icepack_parameters, only: max_dfe_doc1     , fr_resp_s
-      use icepack_parameters, only: y_sk_DMS         , t_sk_conv
-      use icepack_parameters, only: t_sk_ox
-
-      use icepack_zbgc_shared, only: chlabs, alpha2max_low, beta2max, mu_max
-      use icepack_zbgc_shared, only: k_exude, K_Nit, K_Am, K_Sil, K_Fe
-      use icepack_zbgc_shared, only: grow_Tdep, fr_graze, mort_pre, mort_Tdep
-      use icepack_zbgc_shared, only: f_don, kn_bac, f_don_Am
-      use icepack_zbgc_shared, only: f_doc, f_exude, k_bac
-
-      use icepack_tracers, only: tr_brine, nt_fbri
-      use icepack_tracers, only: tr_bgc_Nit,    tr_bgc_Am,    tr_bgc_Sil
-      use icepack_tracers, only: tr_bgc_DMS,    tr_bgc_PON,   tr_bgc_S
-      use icepack_tracers, only: tr_bgc_N,      tr_bgc_C,     tr_bgc_chl
-      use icepack_tracers, only: tr_bgc_DON,    tr_bgc_Fe
-      use icepack_tracers, only: nlt_bgc_Nit,   nlt_bgc_Am,   nlt_bgc_Sil
-      use icepack_tracers, only: nlt_bgc_DMS,   nlt_bgc_PON
-      use icepack_tracers, only: nlt_bgc_N,     nlt_bgc_C,    nlt_bgc_chl
-      use icepack_tracers, only: nlt_bgc_DOC,   nlt_bgc_DON,  nlt_bgc_DIC
-      use icepack_tracers, only: nlt_zaero  ,   nlt_bgc_DMSPp,nlt_bgc_DMSPd
-      use icepack_tracers, only: nlt_bgc_Fed,   nlt_bgc_Fep,  nlt_zaero
-
       integer (kind=int_kind), intent(in) :: &
-         nbtrcr,  & ! number of layer tracers,
-         n_zaero, n_doc, n_dic,  n_don, n_fed, n_fep, &
+         n_doc, n_dic,  n_don, n_fed, n_fep, &
          n_algae    ! number of autotrophic types
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1506,24 +1453,24 @@
       !                        nt_bgc_Sil -> silicate, nt_bgc_Fe -> dissolved iron   
       ! --------------------------------------------------------------------------------------
 
-      real (kind=dbl_kind),  parameter, dimension(max_algae) :: &
-         alpha2max_high  = (/ 0.25_dbl_kind, 0.25_dbl_kind, 0.25_dbl_kind/) ! light limitation (1/(W/m^2))
+!     real (kind=dbl_kind),  parameter, dimension(max_algae) :: &
+!        alpha2max_high  = (/ 0.25_dbl_kind, 0.25_dbl_kind, 0.25_dbl_kind/) ! light limitation (1/(W/m^2))
 
       integer (kind=int_kind) :: k, n
 
       real (kind=dbl_kind), dimension(n_algae) :: &
          Nin        , &     ! algal nitrogen concentration on volume (mmol/m^3) 
-         Cin        , &     ! algal carbon concentration on volume (mmol/m^3)
+!        Cin        , &     ! algal carbon concentration on volume (mmol/m^3)
          chlin              ! algal chlorophyll concentration on volume (mg/m^3)
 
       real (kind=dbl_kind), dimension(n_doc) :: &
-         Docin              ! dissolved organic carbon concentration on volume (mmolC/m^3) 
+         DOCin              ! dissolved organic carbon concentration on volume (mmolC/m^3) 
 
-      real (kind=dbl_kind), dimension(n_dic) :: &
-         Dicin              ! dissolved inorganic carbon concentration on volume (mmolC/m^3) 
+!     real (kind=dbl_kind), dimension(n_dic) :: &
+!        DICin              ! dissolved inorganic carbon concentration on volume (mmolC/m^3) 
 
       real (kind=dbl_kind), dimension(n_don) :: &  !proteins
-         Donin              ! dissolved organic nitrogen concentration on volume (mmolN/m^3) 
+         DONin              ! dissolved organic nitrogen concentration on volume (mmolN/m^3) 
 
       real (kind=dbl_kind), dimension(n_fed) :: &  !iron
          Fedin              ! dissolved iron concentration on volume (umol/m^3) 
@@ -1535,15 +1482,15 @@
          Nitin      , &     ! nitrate concentration on volume (mmol/m^3) 
          Amin       , &     ! ammonia/um concentration on volume (mmol/m^3) 
          Silin      , &     ! silicon concentration on volume (mmol/m^3) 
-         DMSPpin    , &     ! DMSPp concentration on volume (mmol/m^3)
+!        DMSPpin    , &     ! DMSPp concentration on volume (mmol/m^3)
          DMSPdin    , &     ! DMSPd concentration on volume (mmol/m^3)
          DMSin      , &     ! DMS concentration on volume (mmol/m^3)
-         PONin      , &     ! PON concentration on volume (mmol/m^3)
+!        PONin      , &     ! PON concentration on volume (mmol/m^3)
          op_dep     , &     ! bottom layer attenuation exponent (optical depth)
          Iavg_loc           ! bottom layer attenuated Fswthru (W/m^2)
 
       real (kind=dbl_kind), dimension(n_algae) :: &
-         L_lim    , &  ! overall light limitation 
+         L_lim    , &  ! overall light limitation
          Nit_lim  , &  ! overall nitrate limitation
          Am_lim   , &  ! overall ammonium limitation
          N_lim    , &  ! overall nitrogen species limitation
@@ -1553,7 +1500,7 @@
          fr_Am    , &  ! fraction of local ecological growth as ammonia
          growmax_N, &  ! maximum growth rate in N currency (mmol/m^3/s)
          grow_N   , &  ! true growth rate in N currency (mmol/m^3/s)
-         potU_Nit , &  ! potential nitrate uptake (mmol/m^3/s)
+!        potU_Nit , &  ! potential nitrate uptake (mmol/m^3/s)
          potU_Am  , &  ! potential ammonium uptake (mmol/m^3/s)
          U_Nit    , &  ! actual nitrate uptake (mmol/m^3/s)
          U_Am     , &  ! actual ammonium uptake (mmol/m^3/s)
@@ -1577,12 +1524,12 @@
          graze_C      , &  ! total algae grazed (mmol C/m^3)
          exude_C      , &  ! total carbon exuded by algae (mmol C/m^3)
          resp_N       , &  ! total N in respiration (mmol N/m^3)
-         growth_N     , &  ! total algal growth (mmol N/m^3)
-         fr_graze_p   , &  ! fraction of N grazed that becomes protein
-                           !  (rest is assimilated) < (1-fr_graze_a)
-                           !  and fr_graze_a*fr_graze_e becomes ammonia
-         fr_mort_p         ! fraction of N mortality that becomes protein 
-                           ! < (1-fr_mort2min)
+         growth_N          ! total algal growth (mmol N/m^3)
+!        fr_graze_p   , &  ! fraction of N grazed that becomes protein
+!                          !  (rest is assimilated) < (1-fr_graze_a)
+!                          !  and fr_graze_a*fr_graze_e becomes ammonia
+!        fr_mort_p         ! fraction of N mortality that becomes protein 
+!                          ! < (1-fr_mort2min)
 
       real (kind=dbl_kind), dimension(n_algae) :: &
          resp     , &  ! respiration (mmol/m^3/s)
@@ -1616,12 +1563,12 @@
 
       real (kind=dbl_kind) :: &
          dN        , &  ! change in N (mmol/m^3)
-         N_s_p     , &  ! algal nitrogen photosynthesis (mmol/m^3)
-         N_r_g     , &  ! algal nitrogen losses to grazing (mmol/m^3)
-         N_r_r     , &  ! algal nitrogen losses to respiration (mmol/m^3)
-         N_r_mo    , &  ! algal nitrogen losses to mortality (mmol/m^3)
+!        N_s_p     , &  ! algal nitrogen photosynthesis (mmol/m^3)
+!        N_r_g     , &  ! algal nitrogen losses to grazing (mmol/m^3)
+!        N_r_r     , &  ! algal nitrogen losses to respiration (mmol/m^3)
+!        N_r_mo    , &  ! algal nitrogen losses to mortality (mmol/m^3)
          Nit_s_n   , &  ! nitrate from nitrification (mmol/m^3)
-         Nit_s_r   , &  ! nitrate from respiration (mmol/m^3)
+!        Nit_s_r   , &  ! nitrate from respiration (mmol/m^3)
          Nit_r_p   , &  ! nitrate uptake by algae (mmol/m^3)
          Nit_s     , &  ! net nitrate sources (mmol/m^3)
          Nit_r     , &  ! net nitrate removal (mmol/m^3)
@@ -1629,15 +1576,14 @@
          Am_s_r    , &  ! ammonium source from respiration (mmol/m^3)
          Am_s_mo   , &  ! ammonium source from mort/remin (mmol/m^3) 
          Am_r_p    , &  ! ammonium uptake by algae (mmol/m^3)
-         Am_r_n    , &  ! ammonium removal to nitrification (mmol/m^3)
          Am_s      , &  ! net ammonium sources (mmol/m^3)
          Am_r      , &  ! net ammonium removal (mmol/m^3)
          Sil_r_p   , &  ! silicon uptake by algae (mmol/m^3)
          Sil_r     , &  ! net silicon removal (mmol/m^3)
-         Fe_r_p    , &  ! iron uptake by algae  (nM)
-         DOC_r_c   , &  ! net doc removal from bacterial consumption (mmol/m^3)
-         doc_s_m   , &  ! protein source due to algal mortality (mmol/m^3)
-         doc_s_g        ! protein source due to grazing (mmol/m^3)         
+         Fe_r_p         ! iron uptake by algae  (nM)
+!        DOC_r_c   , &  ! net doc removal from bacterial consumption (mmol/m^3)
+!        doc_s_m   , &  ! protein source due to algal mortality (mmol/m^3)
+!        doc_s_g        ! protein source due to grazing (mmol/m^3)         
 
       real (kind=dbl_kind) :: &
          DMSPd_s_r , &  ! skl dissolved DMSP from respiration (mmol/m^3)
@@ -1652,36 +1598,34 @@
          Fed_tot_r , &  ! total dissolved iron losses (nM)
          Fed_tot_s , &  ! total dissolved iron sources (nM)
          Fep_tot   , &  ! total particulate iron from all sources (nM)
-         Fep_tot_r , &  ! total particulate iron losses (nM)
+!        Fep_tot_r , &  ! total particulate iron losses (nM)
          Fep_tot_s , &  ! total particulate iron sources (nM)
          Zoo_s_a   , &  ! N Losses due to zooplankton assimilation (mmol/m^3)
          Zoo_s_s   , &  ! N Losses due to grazing spillage (mmol/m^3)
          Zoo_s_m   , &  ! N Losses due to algal mortality (mmol/m^3)
          Zoo_s_b        ! N losses due to bacterial recycling of DON (mmol/m^3)
 
-      character(len=char_len_long) :: &
-           warning ! warning message
-      
+      character(len=*),parameter :: subname='(algal_dyn)'
+
       !-----------------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------------
 
        conserve_N = .true.
        Nin(:)     = c0
-       Cin(:)     = c0
+!      Cin(:)     = c0
        chlin(:)   = c0
        DOCin(:)   = c0
-       DICin(:)   = c0
+!      DICin(:)   = c0
        DONin(:)   = c0
        Fedin(:)   = c0
        Fepin(:)   = c0
        Nitin      = c0
        Amin       = c0
        Silin      = c0
-       DMSPpin    = c0
+!      DMSPpin    = c0
        DMSPdin    = c0
        DMSin      = c0
-       PONin      = c0 
        U_Am_tot   = c0
        U_Nit_tot  = c0
        U_Sil_tot  = c0
@@ -1692,7 +1636,7 @@
        U_Fe_f(:)  = c0
        DOC_s(:)   = c0
        DOC_r(:)   = c0
-       DOC_r_c    = c0
+!      DOC_r_c    = c0
        nitrif     = c0 
        mort_N     = c0
        mort_C     = c0
@@ -1716,7 +1660,7 @@
        Fed_tot_s  = c0
        rFed(:)    = c0
        Fep_tot    = c0
-       Fep_tot_r  = c0
+!      Fep_tot_r  = c0
        Fep_tot_s  = c0
        rFep(:)    = c0
      
@@ -1734,18 +1678,21 @@
          do k = 1, n_doc
              DOCin(k)= ltrcrn(nlt_bgc_DOC(k))
          enddo
-         do k = 1, n_dic
-             DICin(k)= ltrcrn(nlt_bgc_DIC(k))
-         enddo
+!        do k = 1, n_dic
+!            DICin(k)= ltrcrn(nlt_bgc_DIC(k))
+!        enddo
        endif
-       if (tr_bgc_Am)        Amin     = ltrcrn(nlt_bgc_Am)
-       if (tr_bgc_Sil)       Silin    = ltrcrn(nlt_bgc_Sil)
+       if (tr_bgc_Am)  Amin     = ltrcrn(nlt_bgc_Am)
+       if (tr_bgc_Sil) Silin    = ltrcrn(nlt_bgc_Sil)
        if (tr_bgc_DMS) then
-        !       DMSPpin  = ltrcrn(nlt_bgc_DMSPp)
+       !      DMSPpin  = ltrcrn(nlt_bgc_DMSPp)
              DMSPdin  = ltrcrn(nlt_bgc_DMSPd)
              DMSin    = ltrcrn(nlt_bgc_DMS) 
        endif
-       if (tr_bgc_PON)       PONin    = ltrcrn(nlt_bgc_PON) 
+!      if (tr_bgc_PON) then
+!         PONin    = c0 
+!         PONin    = ltrcrn(nlt_bgc_PON) 
+!      endif
        if (tr_bgc_DON) then
          do k = 1, n_don
              DONin(k) = ltrcrn(nlt_bgc_DON(k))
@@ -1793,11 +1740,10 @@
 
        do k = 1, n_algae
           ! With light inhibition ! Maybe include light inhibition for diatoms but phaeocystis
-
-           L_lim = (c1 - exp(-alpha2max_low(k)*Iavg_loc)) * exp(-beta2max(k)*Iavg_loc)      
+          L_lim = (c1 - exp(-alpha2max_low(k)*Iavg_loc)) * exp(-beta2max(k)*Iavg_loc)
 
           ! Without light inhibition
-          !L_lim(k) = (c1 - exp(-alpha2max_low(k)*Iavg_loc)) 
+          ! L_lim(k) = (c1 - exp(-alpha2max_low(k)*Iavg_loc))
 
       !-----------------------------------------------------------------------
       ! Nutrient limitation
@@ -1830,7 +1776,7 @@
 
           growmax_N(k) = mu_max(k) / secday * exp(grow_Tdep(k) * dTemp)* Nin(k) *fsal
           grow_N(k)    = min(L_lim(k), N_lim(k), Sil_lim(k), Fe_lim(k)) * growmax_N(k)
-          potU_Nit(k)  = Nit_lim(k)* growmax_N(k)
+!         potU_Nit(k)  = Nit_lim(k)* growmax_N(k)
           potU_Am(k)   = Am_lim(k)* growmax_N(k) 
           U_Am(k)      = min(grow_N(k), potU_Am(k))
           U_Nit(k)     = grow_N(k) - U_Am(k)
@@ -1895,17 +1841,18 @@
 
           resp(k)   = fr_resp  * grow_N(k)  
           graze(k)  = fr_graze(k) * grow_N(k)
-          mort(k)   = min(max_loss * Nin(k)/dt, mort_pre(k)* exp(mort_Tdep(k)*dTemp) * Nin(k) / secday)
+          mort(k)   = min(max_loss * Nin(k)/dt, &
+                          mort_pre(k)*exp(mort_Tdep(k)*dTemp) * Nin(k)/secday)
  
         ! history variables
           grow_alg(k) = grow_N(k)
           upNOn(k) = U_Nit(k)
           upNHn(k) = U_Am(k)
 
-          N_s_p  = grow_N(k) * dt  
-          N_r_g  = graze(k)  * dt 
-          N_r_r  = resp(k)   * dt
-          N_r_mo = mort(k)   * dt
+!         N_s_p  = grow_N(k) * dt  
+!         N_r_g  = graze(k)  * dt 
+!         N_r_r  = resp(k)   * dt
+!         N_r_mo = mort(k)   * dt
           N_s(k)    = (c1- fr_resp - fr_graze(k)) * grow_N(k) *dt   !N_s_p
           N_r(k)    = mort(k) * dt                                  !N_r_g  + N_r_mo + N_r_r 
 
@@ -1921,35 +1868,35 @@
       ! Ammonium source: algal grazing, respiration, and mortality
       !--------------------------------------------------------------------
 
-          Am_s_e  = graze_N*(c1-fr_graze_s)*fr_graze_e*dt
-          Am_s_mo = mort_N*fr_mort2min*dt
-          Am_s_r  = resp_N*dt
-          Am_s    = Am_s_r + Am_s_e + Am_s_mo
+      Am_s_e  = graze_N*(c1-fr_graze_s)*fr_graze_e*dt
+      Am_s_mo = mort_N*fr_mort2min*dt
+      Am_s_r  = resp_N*dt
+      Am_s    = Am_s_r + Am_s_e + Am_s_mo
 
       !--------------------------------------------------------------------
       ! Nutrient net loss terms: algal uptake
       !--------------------------------------------------------------------
         
-       do k = 1, n_algae
-          Am_r_p  = U_Am(k)   * dt
-          Am_r    = Am_r + Am_r_p 
-          Nit_r_p = U_Nit(k)  * dt                
-          Nit_r   = Nit_r + Nit_r_p 
-          Sil_r_p = U_Sil(k) * dt
-          Sil_r   = Sil_r + Sil_r_p 
-          Fe_r_p  = U_Fe (k) * dt
-          Fed_tot_r = Fed_tot_r + Fe_r_p  
-          exude_C = exude_C + k_exude(k)* R_C2N(k)*Nin(k) / secday 
-       enddo
+      do k = 1, n_algae
+         Am_r_p  = U_Am(k)   * dt
+         Am_r    = Am_r + Am_r_p
+         Nit_r_p = U_Nit(k)  * dt
+         Nit_r   = Nit_r + Nit_r_p
+         Sil_r_p = U_Sil(k) * dt
+         Sil_r   = Sil_r + Sil_r_p
+         Fe_r_p  = U_Fe (k) * dt
+         Fed_tot_r = Fed_tot_r + Fe_r_p
+         exude_C = exude_C + k_exude(k)* R_C2N(k)*Nin(k) / secday
+      enddo
 
       !--------------------------------------------------------------------
       ! nitrification
       !--------------------------------------------------------------------
 
-       nitrif  = k_nitrif /secday * Amin 
-       Am_r = Am_r +  nitrif*dt
-       Nit_s_n = nitrif * dt  !source from NH4
-       Nit_s   = Nit_s_n  
+      nitrif  = k_nitrif /secday * Amin
+      Am_r    = Am_r +  nitrif*dt
+      Nit_s_n = nitrif * dt  ! source from NH4
+      Nit_s   = Nit_s_n
 
       !--------------------------------------------------------------------
       ! PON:  currently using PON to shadow nitrate
@@ -1960,48 +1907,48 @@
       ! of DON (Zoo_s_b). 
       !--------------------------------------------------------------------
 
-       if (tr_bgc_Am) then
+      if (tr_bgc_Am) then
          Zoo_s_a = graze_N*(c1-fr_graze_e)*(c1-fr_graze_s) *dt
          Zoo_s_s = graze_N*fr_graze_s*dt
          Zoo_s_m = mort_N*dt  -  Am_s_mo
-       else
+      else
          Zoo_s_a = graze_N*dt*(c1-fr_graze_s)
          Zoo_s_s = graze_N*fr_graze_s*dt
          Zoo_s_m = mort_N*dt 
-       endif
+      endif
 
-         Zoo_s_b = c0
+      Zoo_s_b = c0
 
       !--------------------------------------------------------------------
       ! DON (n_don = 1)
       ! Proteins   
       !--------------------------------------------------------------------
 
-       DON_r(:) = c0
-       DON_s(:) = c0
+      DON_r(:) = c0
+      DON_s(:) = c0
 
-       if (tr_bgc_DON) then
-       do n = 1, n_don   
-          DON_r(n) =  kn_bac(n)/secday * DONin(n) * dt
-          DON_s(n) =  graze_N*f_don(n)*fr_graze_s * dt 
-          Zoo_s_s = Zoo_s_s - DON_s(n)
-          Zoo_s_b = Zoo_s_b + DON_r(n)*(c1-f_don_Am(n))
-          !Am_s = Am_s + DON_r(n)*f_don_Am(n)
+      if (tr_bgc_DON) then
+      do n = 1, n_don
+         DON_r(n) = kn_bac(n)/secday * DONin(n) * dt
+         DON_s(n) = graze_N*f_don(n)*fr_graze_s * dt
+         Zoo_s_s  = Zoo_s_s - DON_s(n)
+         Zoo_s_b  = Zoo_s_b + DON_r(n)*(c1-f_don_Am(n))
+         !Am_s     = Am_s + DON_r(n)*f_don_Am(n)
       enddo
       endif
      
-       Zoo = Zoo_s_a + Zoo_s_s + Zoo_s_m + Zoo_s_b
+      Zoo = Zoo_s_a + Zoo_s_s + Zoo_s_m + Zoo_s_b
 
       !--------------------------------------------------------------------
       ! DOC
       ! polysaccharids, lipids
       !--------------------------------------------------------------------
 
-       do n = 1, n_doc   
+      do n = 1, n_doc
           
-          DOC_r(n) =  k_bac(n)/secday * DOCin(n) * dt
-          DOC_s(n) =  f_doc(n)*(fr_graze_s *graze_C + mort_C)*dt &
-                      + f_exude(n)*exude_C
+         DOC_r(n) = k_bac(n)/secday * DOCin(n) * dt
+         DOC_s(n) = f_doc(n)*(fr_graze_s *graze_C + mort_C)*dt &
+                  + f_exude(n)*exude_C
       enddo
 
       !--------------------------------------------------------------------
@@ -2016,35 +1963,39 @@
       !  Otherwise the only source of dFe is from remineralization
       !--------------------------------------------------------------------
 
-      if (tr_bgc_C .and. DOCin(1) > c0) then
-         
+      if (tr_bgc_C .and. tr_bgc_Fe) then
+        if (DOCin(1) > c0) then 
         if (Fed_tot/DOCin(1) > max_dfe_doc1) then             
-          do n = 1,n_fed                                    ! low saccharid:dFe ratio leads to 
-             Fed_r_l(n)  = Fedin(n)/t_iron_conv*dt/secday   ! loss of bioavailable Fe to particulate fraction
+          do n = 1,n_fed                                  ! low saccharid:dFe ratio leads to
+             Fed_r_l(n)  = Fedin(n)/t_iron_conv*dt/secday ! loss of bioavailable Fe to particulate fraction
              Fep_tot_s   = Fep_tot_s + Fed_r_l(n)
-             Fed_r(n)    = rFed(n) * Fed_tot_r + Fed_r_l(n) ! removal includes uptake and coagulation
-          enddo  
+             Fed_r(n)    = Fed_r_l(n)                     ! removal due to particulate scavenging
+          enddo
           do n = 1,n_fep
-             Fep_s(n) = rFep(n)* Fep_tot_s                  ! source from dissolved Fe 
+             Fep_s(n) = rFep(n)* Fep_tot_s                ! source from dissolved Fe
           enddo
         elseif (Fed_tot/DOCin(1) < max_dfe_doc1) then  
-          do n = 1,n_fep                                    ! high saccharid:dFe ratio leads to 
-             Fep_r(n)  = Fepin(n)/t_iron_conv*dt/secday     ! gain of bioavailable Fe from particulate fraction
+          do n = 1,n_fep                                  ! high saccharid:dFe ratio leads to
+             Fep_r(n)  = Fepin(n)/t_iron_conv*dt/secday   ! gain of bioavailable Fe from particulate fraction
              Fed_tot_s = Fed_tot_s + Fep_r(n)
           enddo  
           do n = 1,n_fed
-             Fed_s(n) = Fed_s(n) + rFed(n)* Fed_tot_s       ! source from particulate Fe
-             Fed_r(n) = rFed(n)* Fed_tot_r                  ! algal uptake
+             Fed_s(n) = Fed_s(n) + rFed(n)* Fed_tot_s     ! source from particulate Fe
           enddo    
-       endif         
-      endif
+        endif
+        endif !Docin(1) > c0
+      elseif (tr_bgc_Fe) then
+        do n = 1,n_fed
+           Fed_r(n) = Fed_r(n) + rFed(n)*Fed_tot_r        ! scavenging + uptake
+        enddo 
 
       ! source from algal mortality/grazing and fraction of remineralized nitrogen that does 
       ! not become immediately bioavailable
 
-      do n = 1,n_fep
-         Fep_s(n) = Fep_s(n) + rFep(n)* (Am_s * R_Fe2N(1) * (c1-fr_dFe))   
-      enddo ! losses not direct to Fed 
+         do n = 1,n_fep
+            Fep_s(n) = Fep_s(n) + rFep(n)* (Am_s * R_Fe2N(1) * (c1-fr_dFe))   
+         enddo ! losses not direct to Fed 
+      endif
 
       !--------------------------------------------------------------------
       ! Sulfur cycle begins here
@@ -2061,86 +2012,85 @@
       !                      *fr_graze*grow_N + fr_mort2min*mort)*dt
       !             - [\DMSPd]/t_sk_conv*dt
       !--------------------------------------------------------------------
-       do k = 1,n_algae
-          DMSPd_s_r = fr_resp_s  * R_S2N(k) * resp(k)   * dt  !respiration fraction to DMSPd
-          DMSPd_s_mo= fr_mort2min * R_S2N(k)* mort(k)   * dt  !mortality and extracellular excretion
-
-          DMSPd_s = DMSPd_s + DMSPd_s_r + DMSPd_s_mo 
-       enddo
-       DMSPd_r = (c1/t_sk_conv) * (c1/secday)  * (DMSPdin) * dt
+      do k = 1,n_algae
+         DMSPd_s_r = fr_resp_s  * R_S2N(k) * resp(k)   * dt  !respiration fraction to DMSPd
+         DMSPd_s_mo= fr_mort2min * R_S2N(k)* mort(k)   * dt  !mortality and extracellular excretion
+         DMSPd_s = DMSPd_s + DMSPd_s_r + DMSPd_s_mo 
+      enddo
+      DMSPd_r = (c1/t_sk_conv) * (c1/secday)  * (DMSPdin) * dt
 
       !--------------------------------------------------------------------
       ! DMS reaction term + DMSPd loss term 
       ! DMS_react = ([\DMSPd]*y_sk_DMS/t_sk_conv - c1/t_sk_ox *[\DMS])*dt
       !--------------------------------------------------------------------
 
-       DMS_s_c = y_sk_DMS * DMSPd_r 
-       DMS_r_o = DMSin * dt / (t_sk_ox * secday)
-       DMS_s   = DMS_s_c
-       DMS_r   = DMS_r_o
+      DMS_s_c = y_sk_DMS * DMSPd_r
+      DMS_r_o = DMSin * dt / (t_sk_ox * secday)
+      DMS_s   = DMS_s_c
+      DMS_r   = DMS_r_o
 
       !-----------------------------------------------------------------------
       ! Load reaction array
       !-----------------------------------------------------------------------
 
-       dN = c0
-       do k = 1,n_algae
-              reactb(nlt_bgc_N(k))  = N_s(k) - N_r(k)
-              dN = dN + reactb(nlt_bgc_N(k))
-       enddo
-       if (tr_bgc_C) then
-        ! do k = 1,n_algae
-        !      reactb(nlt_bgc_C(k))  = R_C2N(k)*reactb(nlt_bgc_N(k))
-        ! enddo
+      dN = c0
+      do k = 1,n_algae
+         reactb(nlt_bgc_N(k))  = N_s(k) - N_r(k)
+         dN = dN + reactb(nlt_bgc_N(k))
+      enddo
+      if (tr_bgc_C) then
+       ! do k = 1,n_algae
+       !      reactb(nlt_bgc_C(k))  = R_C2N(k)*reactb(nlt_bgc_N(k))
+       ! enddo
          do k = 1,n_doc
-              reactb(nlt_bgc_DOC(k))= DOC_s(k) - DOC_r(k)  
+            reactb(nlt_bgc_DOC(k))= DOC_s(k) - DOC_r(k)
          enddo
-       endif
-              reactb(nlt_bgc_Nit)   = Nit_s   - Nit_r
-              dN = dN + reactb(nlt_bgc_Nit)
-       if (tr_bgc_Am)  then
-              reactb(nlt_bgc_Am)    = Am_s    - Am_r
-              dN = dN + reactb(nlt_bgc_Am)
-       endif
-       if (tr_bgc_Sil) then
-              reactb(nlt_bgc_Sil)   =  - Sil_r
-       endif
-       if (tr_bgc_DON) then
+      endif
+            reactb(nlt_bgc_Nit)   = Nit_s   - Nit_r
+            dN = dN + reactb(nlt_bgc_Nit)
+      if (tr_bgc_Am)  then
+            reactb(nlt_bgc_Am)    = Am_s    - Am_r
+            dN = dN + reactb(nlt_bgc_Am)
+      endif
+      if (tr_bgc_Sil) then
+            reactb(nlt_bgc_Sil)   =  - Sil_r
+      endif
+      if (tr_bgc_DON) then
          do k = 1,n_don
-              reactb(nlt_bgc_DON(k))= DON_s(k) - DON_r(k)  
-              dN = dN + reactb(nlt_bgc_DON(k))
+            reactb(nlt_bgc_DON(k))= DON_s(k) - DON_r(k)  
+            dN = dN + reactb(nlt_bgc_DON(k))
          enddo
-       endif 
-       if (tr_bgc_Fe ) then
-        do k = 1,n_fed
-              reactb(nlt_bgc_Fed(k))= Fed_s (k) - Fed_r (k) 
-        enddo
-        do k = 1,n_fep
-              reactb(nlt_bgc_Fep(k))= Fep_s (k) - Fep_r (k) 
-        enddo
-       endif 
-       if (tr_bgc_DMS) then
-              reactb(nlt_bgc_DMSPd) = DMSPd_s - DMSPd_r
-              reactb(nlt_bgc_DMS)   = DMS_s   - DMS_r
-       endif
-       Nerror = dN + Zoo
+      endif
+      if (tr_bgc_Fe ) then
+         do k = 1,n_fed
+            reactb(nlt_bgc_Fed(k))= Fed_s (k) - Fed_r (k) 
+         enddo
+         do k = 1,n_fep
+            reactb(nlt_bgc_Fep(k))= Fep_s (k) - Fep_r (k) 
+         enddo
+      endif
+      if (tr_bgc_DMS) then
+         reactb(nlt_bgc_DMSPd) = DMSPd_s - DMSPd_r
+         reactb(nlt_bgc_DMS)   = DMS_s   - DMS_r
+      endif
+      Nerror = dN + Zoo
       ! if (abs(Nerror) > max(reactb(:))*1.0e-5) then
       !      conserve_N = .false.
-      !      write(warning, *) 'Conservation error!'
-      !      call add_warning(warning)
-      !      write(warning, *) 'Nerror,dN, DONin(1),kn_bac(1),secday,dt,n_doc'
-      !      call add_warning(warning)
-      !      write(warning, *) Nerror,dN, DONin(1),kn_bac(1),secday,dt,n_doc
-      !      call add_warning(warning)
-      !      write(warning, *) 'reactb(nlt_bgc_Nit),reactb(nlt_bgc_N(1)),reactb(nlt_bgc_N(2)'
-      !      call add_warning(warning)
-      !      write(warning, *) reactb(nlt_bgc_Nit),reactb(nlt_bgc_N(1)),reactb(nlt_bgc_N(2))
-      !      call add_warning(warning)
-      !      write(warning, *) 'reactb(nlt_bgc_Am),reactb(nlt_bgc_DON(1)), DON_r(1),DON_s(1)'
-      !      call add_warning(warning)
-      !      write(warning, *) reactb(nlt_bgc_Am),reactb(nlt_bgc_DON(1)),DON_r(1),DON_s(1)
-      !      call add_warning(warning)
-      !      write(warning, *) 'Zoo:',Zoo
+      !      write(warnstr,*) subname, 'Conservation error!'
+      !      call icepack_warnings_add(warnstr)
+      !      write(warnstr,*) subname, 'Nerror,dN, DONin(1),kn_bac(1),secday,dt,n_doc'
+      !      call icepack_warnings_add(warnstr)
+      !      write(warnstr,*) subname, Nerror,dN, DONin(1),kn_bac(1),secday,dt,n_doc
+      !      call icepack_warnings_add(warnstr)
+      !      write(warnstr,*) subname, 'reactb(nlt_bgc_Nit),reactb(nlt_bgc_N(1)),reactb(nlt_bgc_N(2)'
+      !      call icepack_warnings_add(warnstr)
+      !      write(warnstr,*) subname, reactb(nlt_bgc_Nit),reactb(nlt_bgc_N(1)),reactb(nlt_bgc_N(2))
+      !      call icepack_warnings_add(warnstr)
+      !      write(warnstr,*) subname, 'reactb(nlt_bgc_Am),reactb(nlt_bgc_DON(1)), DON_r(1),DON_s(1)'
+      !      call icepack_warnings_add(warnstr)
+      !      write(warnstr,*) subname, reactb(nlt_bgc_Am),reactb(nlt_bgc_DON(1)),DON_r(1),DON_s(1)
+      !      call icepack_warnings_add(warnstr)
+      !      write(warnstr,*) subname, 'Zoo:',Zoo
       ! endif
           
       end subroutine algal_dyn
@@ -2152,17 +2102,12 @@
 !
 ! authors     Nicole Jeffery, LANL
 
-      subroutine thin_ice_flux (hin, hin_old, phin, Cin, flux_o_tot, &
-                                source, i_grid,dt, nblyr, &
+      subroutine thin_ice_flux (hin, hin_old, Cin, flux_o_tot, &
+                                source, dt, nblyr, &
                                 ocean_bio) 
-
-      use icepack_constants, only: c1, p5, c0
 
       integer (kind=int_kind), intent(in) :: &
          nblyr    ! number of bio layers
-
-      real (kind=dbl_kind), dimension(nblyr+1), intent(in) :: &
-         phin
 
       real (kind=dbl_kind), dimension(nblyr+1), intent(inout) :: &
          Cin               ! initial concentration*hin_old*phin
@@ -2179,9 +2124,6 @@
                            ! and boundary flux to ocean (mmol/m^2/s)  
                            ! positive into the ocean  
 
-      real (kind=dbl_kind), dimension (nblyr + 1), intent(in) :: &
-         i_grid             ! biology nondimensional grid interface points 
-
      ! local variables
 
      integer (kind=int_kind) :: &
@@ -2193,6 +2135,8 @@
          dC,        & ! added ocean bio mass (mmol/m^2)
          dh           ! change in thickness  (m)  
    
+     character(len=*),parameter :: subname='(thin_ice_flux)'
+
      zspace = c1/real(nblyr,kind=dbl_kind)
 
      dC = c0
@@ -2225,18 +2169,14 @@
 !
 ! July, 2014 by N. Jeffery
 !
-      subroutine compute_FCT_matrix &
-                                     (C_in, sbdiag, dt,  nblyr,   &
-                                      diag, spdiag, rhs, bgrid,   &
-                                      i_grid, darcyV, dhtop, dhbot,&
-                                      iphin_N, iDin, hbri_old,    &
-                                      atm_add, bphin_N,           &
-                                      C_top, C_bot, Qbot, Qtop,   &
-                                      Sink_bot, Sink_top,         &
+      subroutine compute_FCT_matrix  (C_in, sbdiag, dt,  nblyr,     &
+                                      diag, spdiag, rhs, bgrid,     &
+                                      darcyV, dhtop, dhbot, &
+                                      iphin_N, iDin, hbri_old,      &
+                                      atm_add, bphin_N,             &
+                                      C_top, C_bot, Qbot, Qtop,     &
+                                      Sink_bot, Sink_top,           &
                                       D_sbdiag, D_spdiag, ML)
-
-      use icepack_constants, only: c1, c0, p5, c2, puny
-      use icepack_parameters, only: grid_o
 
       integer (kind=int_kind), intent(in) :: &
          nblyr           ! number of bio layers
@@ -2257,9 +2197,6 @@
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
          bphin_N, &      ! Porosity with min condition on igrid
          bgrid 
-
-      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         i_grid           ! biology nondimensional grid layer points 
 
       real (kind=dbl_kind), dimension (nblyr+1), &
          intent(out) :: &
@@ -2288,7 +2225,7 @@
       ! local variables
 
       real (kind=dbl_kind) :: &
-         vel, vel2, dphi_dx, vel_tot, zspace, dphi
+         vel, vel2, dphi_dx, zspace
 
       integer (kind=int_kind) :: &
          k                ! vertical index
@@ -2302,21 +2239,23 @@
       real (kind=dbl_kind), dimension (nblyr) :: &
          kvector1, kvectorn1
 
+      character(len=*),parameter :: subname='(compute_FCT_matrix)'
+
 !---------------------------------------------------------------------
 !  Diag (jj) solve for j = 1:nblyr+1
 !  spdiag(j) == (j,j+1) solve for j = 1:nblyr otherwise 0
 !  sbdiag(j) == (j,j-1) solve for j = 2:nblyr+1 otherwise 0
 !---------------------------------------------------------------------
-     kvector1(:) = c0
-     kvector1(1) = c1 
-     kvectorn1(:) = c1
-     kvectorn1(1) = c0 
+      kvector1(:) = c0
+      kvector1(1) = c1
+      kvectorn1(:) = c1
+      kvectorn1(1) = c0
 
-     zspace = c1/real(nblyr,kind=dbl_kind) 
-     Qbot = c0
-     Qtop = c0
-     Sink_bot = c0
-     Sink_top = c0
+      zspace = c1/real(nblyr,kind=dbl_kind)
+      Qbot = c0
+      Qtop = c0
+      Sink_bot = c0
+      Sink_top = c0
 
 ! compute the lumped mass matrix
 
@@ -2324,7 +2263,7 @@
       ML(1) = zspace/c2
       ML(nblyr+1) = zspace/c2
 
-! compute matrix K: K_diag , K_sbdiag, K_spdiag 
+! compute matrix K: K_diag , K_sbdiag, K_spdiag
 ! compute matrix S: S_diag, S_sbdiag, S_spdiag
 
       K_diag(:) = c0
@@ -2337,7 +2276,6 @@
       S_spdiag(:) = c0
       S_sbdiag(:) = c0
       iDin_phi(:) = c0
-      
 
       iDin_phi(1) = c0  !element 1
       iDin_phi(nblyr+1) = iDin(nblyr+1)/iphin_N(nblyr+1)  !outside ice at bottom
@@ -2345,7 +2283,7 @@
 
       vel = (bgrid(2)*dhbot - (bgrid(2)-c1)*dhtop)/dt+darcyV/bphin_N(2)
       K_diag(1) = p5*vel/hbri_old   
-      dphi_dx = (iphin_N(nblyr+1) - iphin_N(nblyr))/(zspace)  
+      dphi_dx = (iphin_N(nblyr+1) - iphin_N(nblyr))/(zspace)
       vel = (bgrid(nblyr+1)*dhbot - (bgrid(nblyr+1)-c1)*dhtop)/dt  +darcyV/bphin_N(nblyr+1)  
       vel = vel/hbri_old   
       vel2 = (dhbot/hbri_old/dt +darcyV/hbri_old) 
@@ -2371,7 +2309,7 @@
          S_sbdiag(k+1) = iDin_phi(k)/zspace
       enddo
 
-      !k = nblyr
+      ! k = nblyr
 
       vel = (bgrid(nblyr+1)*dhbot - (bgrid(nblyr+1)-c1)*dhtop)/dt+darcyV/bphin_N(nblyr+1)
       dphi_dx =  (iphin_N(nblyr+1) - iphin_N(nblyr))/(zspace)
@@ -2431,11 +2369,8 @@
 !
 ! July, 2014 by N. Jeffery
 !
-      subroutine compute_FCT_corr &
-                                     (C_in, C_low, dt,  nblyr, &
+      subroutine compute_FCT_corr    (C_in, C_low, dt,  nblyr, &
                                       D_sbdiag, D_spdiag, ML)
-
-      use icepack_constants, only: c1, c0, c6, puny
 
       integer (kind=int_kind), intent(in) :: &
          nblyr           ! number of bio layers
@@ -2472,13 +2407,15 @@
          Rplus, Rminus,              & !
          a_spdiag, a_sbdiag            ! weightings of F
 
+      character(len=*),parameter :: subname='(compute_FCT_corr)'
+
 !---------------------------------------------------------------------
 !  Diag (jj) solve for j = 1:nblyr+1
 !  spdiag(j) == (j,j+1) solve for j = 1:nblyr otherwise 0
 !  sbdiag(j) == (j,j-1) solve for j = 2:nblyr+1 otherwise 0
 !---------------------------------------------------------------------
 
-     zspace = c1/real(nblyr,kind=dbl_kind) 
+      zspace = c1/real(nblyr,kind=dbl_kind) 
 
 ! compute the mass matrix
 
@@ -2494,16 +2431,16 @@
       F_sbdiag(:) = c0
 
       do k = 1, nblyr 
-           F_spdiag(k) = M_spdiag(k)*(C_low(k)-C_in(k) - C_low(k+1)+ C_in(k+1))/dt &
-                       + D_spdiag(k)*(C_low(k)-C_low(k+1))
-           F_sbdiag(k+1) =  M_sbdiag(k+1)*(C_low(k+1)-C_in(k+1) - C_low(k)+ C_in(k))/dt &
+         F_spdiag(k) = M_spdiag(k)*(C_low(k)-C_in(k) - C_low(k+1)+ C_in(k+1))/dt &
+                     + D_spdiag(k)*(C_low(k)-C_low(k+1))
+         F_sbdiag(k+1) =  M_sbdiag(k+1)*(C_low(k+1)-C_in(k+1) - C_low(k)+ C_in(k))/dt &
                        + D_sbdiag(k+1)*(C_low(k+1)-C_low(k))
 
-           if (F_spdiag(k)*(C_low(k) - C_low(k+1)) > c0) F_spdiag(k) = c0
-           if (F_sbdiag(k+1)*(C_low(k+1) - C_low(k)) > c0) F_sbdiag(k+1) = c0
-     enddo
+         if (F_spdiag(k)*(C_low(k) - C_low(k+1)) > c0) F_spdiag(k) = c0
+         if (F_sbdiag(k+1)*(C_low(k+1) - C_low(k)) > c0) F_sbdiag(k+1) = c0
+      enddo
 
-    if (maxval(abs(F_spdiag)) > c0) then
+      if (maxval(abs(F_spdiag)) > c0) then
 
 ! compute the weighting factors: a_spdiag, a_sbdiag
 
@@ -2540,19 +2477,19 @@
 
 !compute F_diag:
 
-     F_diag(1) = a_spdiag(1)*F_spdiag(1)
-     F_diag(nblyr+1) = a_sbdiag(nblyr+1)* F_sbdiag(nblyr+1) 
-     C_low(1) = C_low(1) + dt*F_diag(1)/ML(1)
-     C_low(nblyr+1) = C_low(nblyr+1) + dt*F_diag(nblyr+1)/ML(nblyr+1)
+      F_diag(1) = a_spdiag(1)*F_spdiag(1)
+      F_diag(nblyr+1) = a_sbdiag(nblyr+1)* F_sbdiag(nblyr+1)
+      C_low(1) = C_low(1) + dt*F_diag(1)/ML(1)
+      C_low(nblyr+1) = C_low(nblyr+1) + dt*F_diag(nblyr+1)/ML(nblyr+1)
 
-     do k = 2,nblyr
+      do k = 2,nblyr
          F_diag(k) = a_spdiag(k)*F_spdiag(k) + a_sbdiag(k)*F_sbdiag(k)
          C_low(k) = C_low(k) + dt*F_diag(k)/ML(k)
-     enddo
+      enddo
       
-     endif  !F_spdiag is nonzero
+      endif  !F_spdiag is nonzero
 
-     end subroutine compute_FCT_corr
+      end subroutine compute_FCT_corr
   
 !=======================================================================
 !
@@ -2568,15 +2505,13 @@
       integer (kind=int_kind), intent(in) :: &
          nmat            ! matrix dimension
 
-      real (kind=dbl_kind), dimension (nmat), &
-           intent(in) :: &
+      real (kind=dbl_kind), dimension (nmat), intent(in) :: &
          sbdiag      , & ! sub-diagonal matrix elements
          diag        , & ! diagonal matrix elements
          spdiag      , & ! super-diagonal matrix elements
          rhs             ! rhs of tri-diagonal matrix eqn.
 
-      real (kind=dbl_kind), dimension (nmat), &
-           intent(inout) :: &
+      real (kind=dbl_kind), dimension (nmat), intent(inout) :: &
          xout            ! solution vector
 
       ! local variables     
@@ -2590,18 +2525,19 @@
       real (kind=dbl_kind), dimension(nmat):: &
          wgamma          ! temporary matrix variable
 
-         wbeta = diag(1)
-         xout(1) = rhs(1) / wbeta
+      character(len=*),parameter :: subname='(tridiag_solverz)'
+
+      wbeta = diag(1)
+      xout(1) = rhs(1) / wbeta
 
       do k = 2, nmat
-            wgamma(k) = spdiag(k-1) / wbeta
-            wbeta = diag(k) - sbdiag(k)*wgamma(k)
-            xout(k) = (rhs(k) - sbdiag(k)*xout(k-1)) &
-                         / wbeta
+         wgamma(k) = spdiag(k-1) / wbeta
+         wbeta = diag(k) - sbdiag(k)*wgamma(k)
+         xout(k) = (rhs(k) - sbdiag(k)*xout(k-1)) / wbeta
       enddo                     ! k
 
       do k = nmat-1, 1, -1
-            xout(k) = xout(k) - wgamma(k+1)*xout(k+1)
+         xout(k) = xout(k) - wgamma(k+1)*xout(k+1)
       enddo                     ! k
 
       end subroutine tridiag_solverz
@@ -2610,13 +2546,10 @@
 !
 ! authors     Nicole Jeffery, LANL
 
-      subroutine check_conservation_FCT &
-                                     (C_init, C_new, C_low, S_top, &
-                                      S_bot, L_bot, L_top, dt,     &
-                                      fluxbio, l_stop, nblyr, &
-                                      source) 
-
-      use icepack_constants, only: p5, c1, c4, c0
+      subroutine check_conservation_FCT (C_init, C_new, C_low, S_top, &
+                                         S_bot, L_bot, L_top, dt,     &
+                                         fluxbio, nblyr, &
+                                         source) 
 
       integer (kind=int_kind), intent(in) :: &
          nblyr             ! number of bio layers
@@ -2639,9 +2572,6 @@
       real (kind=dbl_kind), intent(inout) :: &
          fluxbio            ! (mmol/m^2/s)  positive down (into the ocean)
 
-      logical (kind=log_kind), intent(inout) :: &   
-         l_stop    ! false if conservation satisfied within error
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -2654,56 +2584,54 @@
          zspace      , &  !1/nblyr
          accuracy          ! centered difference is Order(zspace^2)
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-     
-         zspace = c1/real(nblyr,kind=dbl_kind)
-         l_stop = .false.
+      character(len=*),parameter :: subname='(check_conservation_FCT)'
 
-     !-------------------------------------
-     !  Ocean flux: positive into the ocean
-     !-------------------------------------    
-         C_init_tot = (C_init(1) + C_init(nblyr+1))*zspace*p5
-         C_new_tot = (C_new(1) + C_new(nblyr+1))*zspace*p5
-         C_low(1) = C_new(1)
-         C_low(nblyr+1) = C_new(nblyr+1)
+      zspace = c1/real(nblyr,kind=dbl_kind)
 
-         do k = 2, nblyr
-            C_init_tot = C_init_tot + C_init(k)*zspace
-            C_new_tot = C_new_tot + C_new(k)*zspace
-            C_low(k) = C_new(k)
-         enddo
+      !-------------------------------------
+      !  Ocean flux: positive into the ocean
+      !-------------------------------------
+      C_init_tot = (C_init(1) + C_init(nblyr+1))*zspace*p5
+      C_new_tot = (C_new(1) + C_new(nblyr+1))*zspace*p5
+      C_low(1) = C_new(1)
+      C_low(nblyr+1) = C_new(nblyr+1)
 
-         accuracy = 1.0e-14_dbl_kind*max(c1, C_init_tot, C_new_tot)  
-         fluxbio = (C_init_tot - C_new_tot + source)/dt
-         diff_dt =C_new_tot - C_init_tot - (S_top+S_bot+L_bot*C_new(nblyr+1)+L_top*C_new(1))*dt
+      do k = 2, nblyr
+         C_init_tot = C_init_tot + C_init(k)*zspace
+         C_new_tot = C_new_tot + C_new(k)*zspace
+         C_low(k) = C_new(k)
+      enddo
 
-         if (minval(C_low) < c0) then 
-           write(warning,*) 'Positivity of zbgc low order solution failed: C_low:',C_low
-           l_stop = .true.
-         endif
+      accuracy = 1.0e-14_dbl_kind*max(c1, C_init_tot, C_new_tot)
+      fluxbio = (C_init_tot - C_new_tot + source)/dt
+      diff_dt =C_new_tot - C_init_tot - (S_top+S_bot+L_bot*C_new(nblyr+1)+L_top*C_new(1))*dt
+
+      if (minval(C_low) < c0) then
+         write(warnstr,*) subname, 'Positivity of zbgc low order solution failed: C_low:',C_low
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+      endif
            
-         if (abs(diff_dt) > accuracy ) then
-           l_stop = .true.
-           write(warning,*) 'Conservation of zbgc low order solution failed: diff_dt:',&
+      if (abs(diff_dt) > accuracy ) then
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         write(warnstr,*) subname, 'Conservation of zbgc low order solution failed: diff_dt:',&
                         diff_dt
-           write(warning,*) 'Total initial tracer', C_init_tot
-           write(warning,*) 'Total final1  tracer', C_new_tot
-           write(warning,*) 'bottom final tracer', C_new(nblyr+1)
-           write(warning,*) 'top final tracer', C_new(1)
-           write(warning,*) 'Near bottom final tracer', C_new(nblyr)
-           write(warning,*) 'Near top final tracer', C_new(2)
-           write(warning,*) 'Top flux*dt into ice:', S_top*dt
-           write(warning,*) 'Bottom flux*dt into ice:', S_bot*dt
-           write(warning,*) 'Remaining bot flux*dt into ice:', L_bot*C_new(nblyr+1)*dt
-           write(warning,*) 'S_bot*dt + L_bot*C_new(nblyr+1)*dt'
-           write(warning,*)  S_bot*dt + L_bot*C_new(nblyr+1)*dt
-           write(warning,*) 'fluxbio*dt:', fluxbio*dt
-           write(warning,*) 'fluxbio:', fluxbio
-           write(warning,*) 'Remaining top flux*dt into ice:', L_top*C_new(1)*dt
-         endif
+         write(warnstr,*) subname, 'Total initial tracer', C_init_tot
+         write(warnstr,*) subname, 'Total final1  tracer', C_new_tot
+         write(warnstr,*) subname, 'bottom final tracer', C_new(nblyr+1)
+         write(warnstr,*) subname, 'top final tracer', C_new(1)
+         write(warnstr,*) subname, 'Near bottom final tracer', C_new(nblyr)
+         write(warnstr,*) subname, 'Near top final tracer', C_new(2)
+         write(warnstr,*) subname, 'Top flux*dt into ice:', S_top*dt
+         write(warnstr,*) subname, 'Bottom flux*dt into ice:', S_bot*dt
+         write(warnstr,*) subname, 'Remaining bot flux*dt into ice:', L_bot*C_new(nblyr+1)*dt
+         write(warnstr,*) subname, 'S_bot*dt + L_bot*C_new(nblyr+1)*dt'
+         write(warnstr,*) subname,  S_bot*dt + L_bot*C_new(nblyr+1)*dt
+         write(warnstr,*) subname, 'fluxbio*dt:', fluxbio*dt
+         write(warnstr,*) subname, 'fluxbio:', fluxbio
+         write(warnstr,*) subname, 'Remaining top flux*dt into ice:', L_top*C_new(1)*dt
+      endif
          
-     end subroutine check_conservation_FCT
+      end subroutine check_conservation_FCT
 
 !=======================================================================
 
@@ -2712,9 +2640,6 @@
 ! author: Nicole Jeffery, LANL
 
       subroutine bgc_column_sum (nblyr, nslyr, hsnow, hbrine, xin, xout)
-
-      use icepack_parameters, only: hs_ssl 
-      use icepack_constants, only: p5, c1, c0
 
       integer (kind=int_kind), intent(in) :: &
          nblyr, &         ! number of ice layers
@@ -2740,6 +2665,8 @@
 
       integer (kind=int_kind) :: &
          n                ! category/layer index
+
+      character(len=*),parameter :: subname='(bgc_column_sum)'
 
       hslyr      = hsnow/real(nslyr,kind=dbl_kind)
       dzssl      = min(hslyr*p5, hs_ssl)

@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_meltpond_lvl.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Level-ice meltpond parameterization
@@ -16,9 +15,11 @@
       module icepack_meltpond_lvl
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, c10, p01, p5, puny
-      use icepack_constants, only: viscosity_dyn, rhoi, rhos, rhow, Timelt, Tffresh, Lfresh
-      use icepack_constants, only: gravit, depressT, rhofresh, kice
+      use icepack_parameters, only: c0, c1, c2, c10, p01, p5, puny
+      use icepack_parameters, only: viscosity_dyn, rhoi, rhos, rhow, Timelt, Tffresh, Lfresh
+      use icepack_parameters, only: gravit, depressT, rhofresh, kice
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
@@ -112,6 +113,8 @@
       real (kind=dbl_kind), parameter :: &
          Td       = c2          , & ! temperature difference for freeze-up (C)
          rexp     = p01             ! pond contraction scaling
+
+      character(len=*),parameter :: subname='(compute_ponds_lvl)'
 
       !-----------------------------------------------------------------
       ! Initialize 
@@ -245,7 +248,8 @@
                pressure_head = gravit * rhow * max(deltah, c0)
                Tmlt(:) = -sicen(:) * depressT
                call brine_permeability(nilyr, qicen, &
-                    vicen, sicen, Tmlt, perm)
+                    sicen, Tmlt, perm)
+               if (icepack_warnings_aborted(subname)) return
                drain = perm*pressure_head*dt / (viscosity_dyn*hi) * dpscale
                deltah = min(drain, hpondn)
                dvn = -deltah*apondn
@@ -274,7 +278,7 @@
 
 ! determine the liquid fraction of brine in the ice and the permeability
 
-      subroutine brine_permeability(nilyr, qicen, vicen, salin, Tmlt, perm)
+      subroutine brine_permeability(nilyr, qicen, salin, Tmlt, perm)
 
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
@@ -285,9 +289,6 @@
          qicen, &  ! enthalpy for each ice layer (J m-3)
          salin, &  ! salinity (ppt)   
          Tmlt      ! melting temperature (C)
-    
-      real (kind=dbl_kind), intent(in) :: &
-         vicen     ! ice volume (m)
     
       real (kind=dbl_kind), intent(out) :: &
          perm      ! permeability (m^2)
@@ -303,6 +304,8 @@
 
       integer (kind=int_kind) :: k
     
+      character(len=*),parameter :: subname='(brine_permeability)'
+
       !-----------------------------------------------------------------
       ! Compute ice temperatures from enthalpies using quadratic formula
       !-----------------------------------------------------------------

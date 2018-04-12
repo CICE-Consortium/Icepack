@@ -1,15 +1,14 @@
-!  SVN:$Id: icepack_therm_mushy.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 module icepack_therm_mushy
 
   use icepack_kinds
-  use icepack_constants, only: c0, c1, c2, c4, c8, c10, c1000
-  use icepack_constants, only: p001, p01, p05, p1, p2, p5, pi, bignum, puny, ice_ref_salinity
-  use icepack_constants, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
-  use icepack_constants, only: hs_min, ksno
+  use icepack_parameters, only: c0, c1, c2, c8, c10
+  use icepack_parameters, only: p01, p05, p1, p2, p5, pi, bignum, puny
+  use icepack_parameters, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
+  use icepack_parameters, only: hs_min
   use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode
-  use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy
+  use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
   use icepack_mushy_physics, only: density_brine, enthalpy_brine, enthalpy_snow
   use icepack_mushy_physics, only: enthalpy_mush_liquid_fraction
   use icepack_mushy_physics, only: temperature_mush, liquid_fraction
@@ -19,7 +18,8 @@ module icepack_therm_mushy
   use icepack_tracers, only: tr_pond
   use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
   use icepack_therm_shared, only: ferrmax
-  use icepack_warnings, only: add_warning
+  use icepack_warnings, only: warnstr, icepack_warnings_add
+  use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
   implicit none
 
@@ -55,9 +55,7 @@ contains
                                           fsensn,   flatn,    &
                                           flwoutn,  fsurfn,   &
                                           fcondtop, fcondbot, &
-                                          fadvheat, snoice,   &
-                                          einit_old,          &
-                                          lstop,    stop_label)
+                                          fadvheat, snoice)
 
     ! solve the enthalpy and bulk salinity of the ice for a single column
 
@@ -88,9 +86,6 @@ contains
          apond       , & ! melt pond area fraction
          hpond           ! melt pond depth (m)
 
-    real (kind=dbl_kind), intent(in) :: &
-         einit_old       ! initial energy of melting (J m-2)
-    
     real (kind=dbl_kind), dimension (:), intent(inout) :: &
          Sswabs      , & ! SW radiation absorbed in snow layers (W m-2)
          Iswabs          ! SW radiation absorbed in ice layers (W m-2)
@@ -117,16 +112,9 @@ contains
          zqsn        , & ! snow layer enthalpy (J m-3)
          zTsn            ! internal snow layer temperatures
     
-    logical (kind=log_kind), intent(inout) :: &
-         lstop           ! solver failure flag 
-
-    character (len=*), intent(out) :: &
-         stop_label   ! abort error message
-
     ! local variables
     real(kind=dbl_kind), dimension(1:nilyr) :: &
          zqin0       , & ! ice layer enthalpy (J m-3) at start of timestep
-         zTin0       , & ! internal ice layer temperatures (C) at start of timestep
          zSin0       , & ! internal ice layer salinities (ppt) at start of timestep
          phi         , & ! liquid fraction
          km          , & ! ice conductivity (W m-1 K-1)
@@ -141,7 +129,6 @@ contains
 
     real(kind=dbl_kind), dimension(1:nslyr) :: &
          zqsn0       , & ! snow layer enthalpy (J m-3) at start of timestep
-         zTsn0       , & ! internal snow layer temperatures (C) at start of timestep
          ks              ! snow conductivity (W m-1 K-1)
 
     real(kind=dbl_kind) :: &
@@ -160,10 +147,8 @@ contains
     logical(kind=log_kind) :: &
          lsnow           ! snow presence: T: has snow, F: no snow
 
-    character(len=char_len_long) :: &
-         warning         ! warning message
-    
-    lstop = .false.
+    character(len=*),parameter :: subname='(temperature_changes_salinity)'
+
     fadvheat   = c0
     snoice     = c0
 
@@ -171,8 +156,6 @@ contains
     zqsn0 = zqsn
     zqin0 = zqin
     zSin0 = zSin
-    zTsn0 = zTsn
-    zTin0 = zTin
 
     Spond = c0
     qpond = enthalpy_brine(c0)
@@ -196,12 +179,13 @@ contains
     enddo ! k
 
     ! calculate vertical bulk darcy flow
-    call flushing_velocity(zTin,   zSin,  &
+    call flushing_velocity(zTin, &
                            phi,    nilyr, &
                            hin,    hsn,   &
                            hilyr,         &
                            hpond,  apond, & 
                            dt,     w)
+    if (icepack_warnings_aborted(subname)) return
 
     ! calculate quantities related to drainage
     call explicit_flow_velocities(nilyr,  zSin,   &
@@ -211,15 +195,18 @@ contains
                                   qbr,    dt,     &
                                   sss,    qocn,   &
                                   hilyr,  hin)
+    if (icepack_warnings_aborted(subname)) return
     
     ! calculate the conductivities
     call conductivity_mush_array(nilyr, zqin0, zSin0, km)
+    if (icepack_warnings_aborted(subname)) return
 
     if (lsnow) then
        ! case with snow
 
        ! calculate the snow conductivities
        call conductivity_snow_array(ks)
+       if (icepack_warnings_aborted(subname)) return
 
        ! run the two stage solver
        call two_stage_solver_snow(nilyr,       nslyr,      &
@@ -227,8 +214,8 @@ contains
                                   zqsn,        zqsn0,      &
                                   zqin,        zqin0,      &
                                   zSin,        zSin0,      &
-                                  zTsn,        zTsn0,      &
-                                  zTin,        zTin0,      &
+                                  zTsn, &
+                                  zTin, &
                                   phi,         Tbot,       &
                                   km,          ks,         &
                                   q,           dSdt,       &
@@ -244,12 +231,11 @@ contains
                                   fcondtop,    fcondbot,   &
                                   fadvheat,                &
                                   flwoutn,     fsensn,     &
-                                  flatn,       fsurfn,     &
-                                  lstop,       stop_label)
+                                  flatn,       fsurfn      )
 
-       if (lstop) then
-          write(warning,*) "temperature_changes_salinity: Picard solver non-convergence (snow)"
-          call add_warning(warning)
+       if (icepack_warnings_aborted(subname)) then
+          write(warnstr,*) subname, "temperature_changes_salinity: Picard solver non-convergence (snow)"
+          call icepack_warnings_add(warnstr)
           return
        endif
 
@@ -270,11 +256,11 @@ contains
        ! run the two stage solver
        call two_stage_solver_nosnow(nilyr,       nslyr,      &
                                     Tsf,         Tsf0,       &
-                                    zqsn,        zqsn0,      &
+                                    zqsn, &
                                     zqin,        zqin0,      &
                                     zSin,        zSin0,      &
-                                    zTsn,        zTsn0,      &
-                                    zTin,        zTin0,      &
+                                    zTsn, &
+                                    zTin, &
                                     phi,         Tbot,       &
                                     km,          ks,         &
                                     q,           dSdt,       &
@@ -290,12 +276,11 @@ contains
                                     fcondtop,    fcondbot,   &
                                     fadvheat,                &
                                     flwoutn,     fsensn,     &
-                                    flatn,       fsurfn,     &
-                                    lstop,       stop_label)
+                                    flatn,       fsurfn      )
 
-       if (lstop) then
-          write(warning,*) "temperature_changes_salinity: Picard solver non-convergence (no snow)"
-          call add_warning(warning)
+       if (icepack_warnings_aborted(subname)) then
+          write(warnstr,*) subname, "temperature_changes_salinity: Picard solver non-convergence (no snow)"
+          call icepack_warnings_add(warnstr)
           return
        endif
           
@@ -308,12 +293,9 @@ contains
        
     endif
 
-    if (lstop) then
-       return
-    end if
-
     ! drain ponds from flushing 
-    call flush_pond(w, hin, hpond, apond, dt)
+    call flush_pond(w, hpond, apond, dt)
+    if (icepack_warnings_aborted(subname)) return
 
     ! flood snow ice
     call flood_ice(hsn,        hin,      &
@@ -324,6 +306,7 @@ contains
                    zSin,       Sbr,      &
                    sss,        qocn,     &
                    snoice,     fadvheat)
+    if (icepack_warnings_aborted(subname)) return
 
   end subroutine temperature_changes_salinity
 
@@ -334,8 +317,8 @@ contains
                                    zqsn,        zqsn0,      &
                                    zqin,        zqin0,      &
                                    zSin,        zSin0,      &
-                                   zTsn,        zTsn0,      &
-                                   zTin,        zTin0,      &
+                                   zTsn, &
+                                   zTin, &
                                    phi,         Tbot,       &
                                    km,          ks,         &
                                    q,           dSdt,       &
@@ -351,8 +334,7 @@ contains
                                    fcondtop,    fcondbot,   &
                                    fadvheat,                &
                                    flwoutn,     fsensn,     &
-                                   flatn,       fsurfn,     &
-                                   lstop,       stop_label)
+                                   flatn,       fsurfn      )
 
     ! solve the vertical temperature and salt change for case with snow
     ! 1) determine what type of surface condition existed previously - cold or melting
@@ -386,7 +368,6 @@ contains
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
          zqsn0       , & ! snow layer enthalpy (J m-3) at beginning of timestep
-         zTsn0       , & ! snow layer temperature (C) at beginning of timestep
          ks          , & ! snow conductivity (W m-1 K-1)
          Sswabs          ! SW radiation absorbed in snow layers (W m-2)
 
@@ -399,7 +380,6 @@ contains
     real(kind=dbl_kind), dimension(:), intent(in) :: &
          zqin0       , & ! ice layer enthalpy (J m-3) at beginning of timestep
          zSin0       , & ! ice layer bulk salinity (ppt) at beginning of timestep
-         zTin0       , & ! ice layer temperature (C) at beginning of timestep
          km          , & ! ice conductivity (W m-1 K-1)
          Iswabs      , & ! SW radiation absorbed in ice layers (W m-2)
          dSdt            ! gravity drainage desalination rate for slow mode (ppt s-1)
@@ -426,16 +406,12 @@ contains
          Spond       , & ! melt pond salinity (ppt)
          sss             ! sea surface salinity (PSU)
 
-    logical(kind=log_kind), intent(inout) :: &
-         lstop           ! solver failure flag
-
-    character(len=*), intent(out) :: &
-         stop_label      ! fatal error message
-
     real(kind=dbl_kind) :: &
          fcondtop1   , & ! first stage downward cond flux at top surface (W m-2)
          fsurfn1     , & ! first stage net flux to top surface, excluding fcondtop
          Tsf1            ! first stage ice surface temperature (C)
+
+    character(len=*),parameter :: subname='(two_stage_solver_snow)'
 
 
     ! determine if surface is initially cold or melting
@@ -465,11 +441,11 @@ contains
                           qpond,    qocn,     &
                           Spond,    sss,      &
                           q,        dSdt,     &
-                          w,                  &
-                          lstop,    stop_label)
+                          w                   )
+       if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
-       if (lstop) return
+       if (icepack_warnings_aborted(subname)) return
 
        ! check if solution is consistent - surface should still be cold
        if (Tsf < dTemp_errmax) then
@@ -511,11 +487,11 @@ contains
                              qpond,    qocn,     &
                              Spond,    sss,      &
                              q,        dSdt,     &
-                             w,                  &
-                             lstop,    stop_label)
+                             w                   )
+          if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
-          if (lstop) return
+          if (icepack_warnings_aborted(subname)) return
 
           ! check if solution is consistent 
           ! surface conductive heat flux should be less than 
@@ -529,8 +505,9 @@ contains
 
              ! solution is inconsistent
              call two_stage_inconsistency(1, Tsf1, c0, fcondtop, fsurfn)
-             lstop = .true.
-             stop_label = "two_stage_solver_snow: two_stage_inconsistency: cold"
+             if (icepack_warnings_aborted(subname)) return
+             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+             call icepack_warnings_add(subname//" two_stage_solver_snow: two_stage_inconsistency: cold" ) 
              return
 
           endif ! surface flux consistency
@@ -564,11 +541,12 @@ contains
                           qpond,    qocn,     &
                           Spond,    sss,      &
                           q,        dSdt,     &
-                          w,                  &
-                          lstop,    stop_label)
+                          w                   )
+
+       if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
-       if (lstop) return
+       if (icepack_warnings_aborted(subname)) return
        
        ! check if solution is consistent 
        ! surface conductive heat flux should be less than 
@@ -613,11 +591,11 @@ contains
                              qpond,    qocn,     &
                              Spond,    sss,      &
                              q,        dSdt,     &
-                             w,                  &
-                             lstop,    stop_label)
+                             w                   )
+          if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
-          if (lstop) return
+          if (icepack_warnings_aborted(subname)) return
 
           ! check if solution is consistent - surface should be cold
           if (Tsf < dTemp_errmax) then
@@ -630,8 +608,9 @@ contains
              ! solution is inconsistent
              ! failed to find a solution so need to refine solutions until consistency found
              call two_stage_inconsistency(2, Tsf, c0, fcondtop1, fsurfn1)
-             lstop = .true.
-             stop_label = "two_stage_solver_snow: two_stage_inconsistency: melting"
+             if (icepack_warnings_aborted(subname)) return
+             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+             call icepack_warnings_add(subname//" two_stage_solver_snow: two_stage_inconsistency: melting" ) 
              return
  
           endif ! surface temperature consistency
@@ -646,11 +625,11 @@ contains
 
   subroutine two_stage_solver_nosnow(nilyr,       nslyr,      &
                                      Tsf,         Tsf0,       &
-                                     zqsn,        zqsn0,      &
+                                     zqsn, &
                                      zqin,        zqin0,      &
                                      zSin,        zSin0,      &
-                                     zTsn,        zTsn0,      &
-                                     zTin,        zTin0,      &
+                                     zTsn, &
+                                     zTin, &
                                      phi,         Tbot,       &
                                      km,          ks,         &
                                      q,           dSdt,       &
@@ -666,8 +645,7 @@ contains
                                      fcondtop,    fcondbot,   &
                                      fadvheat,                &
                                      flwoutn,     fsensn,     &
-                                     flatn,       fsurfn,     &
-                                     lstop,       stop_label)
+                                     flatn,       fsurfn      )
     
     ! solve the vertical temperature and salt change for case with no snow
     ! 1) determine what type of surface condition existed previously - cold or melting
@@ -700,8 +678,6 @@ contains
          zTsn            ! snow layer temperature (C)
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
-         zqsn0       , & ! snow layer enthalpy (J m-3) at beginning of timestep
-         zTsn0       , & ! snow layer temperature (C) at beginning of timestep
          ks          , & ! snow conductivity (W m-1 K-1)
          Sswabs          ! SW radiation absorbed in snow layers (W m-2)
 
@@ -714,7 +690,6 @@ contains
     real(kind=dbl_kind), dimension(:), intent(in) :: &
          zqin0       , & ! ice layer enthalpy (J m-3) at beginning of timestep
          zSin0       , & ! ice layer bulk salinity (ppt) at beginning of timestep
-         zTin0       , & ! ice layer temperature (C) at beginning of timestep
          km          , & ! ice conductivity (W m-1 K-1)
          Iswabs      , & ! SW radiation absorbed in ice layers (W m-2)
          dSdt            ! gravity drainage desalination rate for slow mode (ppt s-1)
@@ -741,17 +716,13 @@ contains
          Spond       , & ! melt pond salinity (ppt)
          sss             ! sea surface salinity (PSU)
 
-    logical, intent(inout) :: &
-         lstop           ! solver failure flag
-
-    character(len=*), intent(out) :: &
-         stop_label      ! fatal error message
-
     real(kind=dbl_kind) :: &
          Tmlt        , & ! upper ice layer melting temperature (C)
          fcondtop1   , & ! first stage downward cond flux at top surface (W m-2)
          fsurfn1     , & ! first stage net flux to top surface, excluding fcondtop
          Tsf1            ! first stage ice surface temperature (C)
+
+    character(len=*),parameter :: subname='(two_stage_solver_nosnow)'
 
     ! initial surface melting temperature
     Tmlt = liquidus_temperature_mush(zSin0(1))
@@ -783,11 +754,11 @@ contains
                           qpond,    qocn,     &
                           Spond,    sss,      &
                           q,        dSdt,     &
-                          w,                  &
-                          lstop,    stop_label)
+                          w                   )
+       if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
-       if (lstop) return
+       if (icepack_warnings_aborted(subname)) return
 
        ! check if solution is consistent - surface should still be cold
        if (Tsf < Tmlt + dTemp_errmax) then
@@ -827,11 +798,11 @@ contains
                              qpond,    qocn,     &
                              Spond,    sss,      &
                              q,        dSdt,     &
-                             w,                  &
-                             lstop,    stop_label)
+                             w                   )
+          if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
-          if (lstop) return
+          if (icepack_warnings_aborted(subname)) return
 
           ! check if solution is consistent 
           ! surface conductive heat flux should be less than 
@@ -845,8 +816,9 @@ contains
 
              ! solution is inconsistent
              call two_stage_inconsistency(3, Tsf1, Tmlt, fcondtop, fsurfn)
-             lstop = .true.
-             stop_label = "two_stage_solver_nosnow: two_stage_inconsistency: cold"
+             if (icepack_warnings_aborted(subname)) return
+             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+             call icepack_warnings_add(subname//" two_stage_solver_nosnow: two_stage_inconsistency: cold" ) 
              return
 
           endif
@@ -880,11 +852,11 @@ contains
                           qpond,    qocn,     &
                           Spond,    sss,      &
                           q,        dSdt,     &
-                          w,                  &
-                          lstop,    stop_label)
+                          w                   )
+       if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
-       if (lstop) return
+       if (icepack_warnings_aborted(subname)) return
 
        ! check if solution is consistent 
        ! surface conductive heat flux should be less than 
@@ -928,11 +900,11 @@ contains
                              qpond,    qocn,     &
                              Spond,    sss,      &
                              q,        dSdt,     &
-                             w,                  &
-                             lstop,    stop_label)
+                             w                   )
+          if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
-          if (lstop) return
+          if (icepack_warnings_aborted(subname)) return
 
           ! check if solution is consistent - surface should be cold
           if (Tsf < Tmlt + dTemp_errmax) then
@@ -944,8 +916,9 @@ contains
 
              ! solution is inconsistent
              call two_stage_inconsistency(4, Tsf, Tmlt, fcondtop1, fsurfn1)
-             lstop = .true.
-             stop_label = "two_stage_solver_nosnow: two_stage_inconsistency: melting"
+             if (icepack_warnings_aborted(subname)) return
+             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+             call icepack_warnings_add(subname//" two_stage_solver_nosnow: two_stage_inconsistency: melting" ) 
              return
 
           endif
@@ -969,57 +942,56 @@ contains
          fcondtop, &
          fsurfn
 
-    character(len=char_len_long) :: &
-         warning ! warning message
-    
-    write(warning,*) "icepack_therm_mushy: two stage inconsistency"
-    call add_warning(warning)
-    write(warning,*) "type:", type
-    call add_warning(warning)
+    character(len=*),parameter :: subname='(two_stage_inconsistency)'
+
+    write(warnstr,*) subname, "icepack_therm_mushy: two stage inconsistency"
+    call icepack_warnings_add(warnstr)
+    write(warnstr,*) subname, "type:", type
+    call icepack_warnings_add(warnstr)
 
     if (type == 1) then
 
-       write(warning,*) "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
-       call add_warning(warning)
-       write(warning,*) "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
-       call add_warning(warning)
-       write(warning,*) "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
-       call add_warning(warning)
-       write(warning,*) "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
-       call add_warning(warning)
+       write(warnstr,*) subname, "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
+       call icepack_warnings_add(warnstr)
 
     else if (type == 2) then
 
-       write(warning,*) "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
-       call add_warning(warning)
-       write(warning,*) "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
-       call add_warning(warning)
-       write(warning,*) "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
-       call add_warning(warning)
-       write(warning,*) "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
-       call add_warning(warning)
+       write(warnstr,*) subname, "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
+       call icepack_warnings_add(warnstr)
 
     else if (type == 3) then
 
-       write(warning,*) "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
-       call add_warning(warning)
-       write(warning,*) "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
-       call add_warning(warning)
-       write(warning,*) "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
-       call add_warning(warning)
-       write(warning,*) "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
-       call add_warning(warning)
+       write(warnstr,*) subname, "First stage  : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "Second stage : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
+       call icepack_warnings_add(warnstr)
 
     else if (type == 4) then
        
-       write(warning,*) "First stage  : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
-       call add_warning(warning)
-       write(warning,*) "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
-       call add_warning(warning)
-       write(warning,*) "Second stage : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
-       call add_warning(warning)
-       write(warning,*) "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
-       call add_warning(warning)
+       write(warnstr,*) subname, "First stage  : fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax"
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "             :", fcondtop, fsurfn, ferrmax, fcondtop - fsurfn - ferrmax
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "Second stage : Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax"
+       call icepack_warnings_add(warnstr)
+       write(warnstr,*) subname, "             :", Tsf, Tmlt, dTemp_errmax, Tsf - Tmlt - dTemp_errmax
+       call icepack_warnings_add(warnstr)
 
     endif
 
@@ -1070,6 +1042,8 @@ contains
 
     integer(kind=int_kind) :: k
 
+    character(len=*),parameter :: subname='(prep_picard)'
+
     ! calculate initial ice temperatures
     do k = 1, nilyr
        zTin(k) = temperature_mush(zqin(k), zSin(k))
@@ -1087,10 +1061,12 @@ contains
 
     ! interface distances
     call calc_intercell_thickness(nilyr, nslyr, lsnow, hilyr, hslyr, dxp)
+    if (icepack_warnings_aborted(subname)) return
 
     ! interface conductivities
     call calc_intercell_conductivity(lsnow, nilyr, nslyr, &
                                      km, ks, hilyr, hslyr, kcstar)
+    if (icepack_warnings_aborted(subname)) return
 
     ! total energy content
     call total_energy_content(lsnow,        &
@@ -1098,6 +1074,7 @@ contains
                               zqin,  zqsn,  &
                               hilyr, hslyr, &
                               einit)
+    if (icepack_warnings_aborted(subname)) return
 
   end subroutine prep_picard
 
@@ -1124,8 +1101,7 @@ contains
                            qpond,    qocn,     &
                            Spond,    sss,      &
                            q,        dSdt,     &
-                           w,                  &
-                           lstop,    stop_label)
+                           w                   )
 
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1188,12 +1164,6 @@ contains
          sss           , & ! sea surface salinity (ppt)
          w                 ! vertical flushing Darcy velocity (m/s)
       
-    logical(kind=log_kind), intent(inout) :: &
-         lstop             ! solver failure flag 
-
-    character(len=*), intent(out) :: &
-         stop_label        ! fatal error message
-
     real(kind=dbl_kind), dimension(nilyr) :: &
          Sbr           , & ! ice layer brine salinity (ppt)
          qbr           , & ! ice layer brine enthalpy (J m-3)
@@ -1230,6 +1200,8 @@ contains
     integer, parameter :: &
          nit_max = 100     ! maximum number of Picard iterations
 
+    character(len=*),parameter :: subname='(picard_solver)'
+
     lconverged = .false.
 
     ! prepare quantities for picard iteration
@@ -1242,6 +1214,7 @@ contains
                      Sbr,   phi,    &
                      dxp,   kcstar, &
                      einit)
+    if (icepack_warnings_aborted(subname)) return
 
     Tsf0  = Tsf
     zqin0 = zqin
@@ -1265,14 +1238,14 @@ contains
                               shcoef,  lhcoef, &
                               flwoutn, fsensn, &
                               flatn,   fsurfn)
+       if (icepack_warnings_aborted(subname)) return
 
        ! derivative of heat flux with respect to surface temperature
-       call dsurface_heat_flux_dTsf(Tsf,          fswsfc,        &
-                                    rhoa,         flw,           &
-                                    potT,         Qa,            &
+       call dsurface_heat_flux_dTsf(Tsf,          rhoa,          &
                                     shcoef,       lhcoef,        &
                                     dfsurfn_dTsf, dflwoutn_dTsf, &
                                     dfsensn_dTsf, dflatn_dTsf)
+       if (icepack_warnings_aborted(subname)) return
 
        ! tridiagonal solve of new temperatures
        call solve_heat_conduction(lsnow,     lcold,        &
@@ -1286,26 +1259,30 @@ contains
                                   dxp,       kcstar,       &
                                   Iswabs,    Sswabs,       &
                                   fsurfn,    dfsurfn_dTsf, &
-                                  zTin,      zTsn,nit)
+                                  zTin,      zTsn)
+       if (icepack_warnings_aborted(subname)) return
 
        ! update brine enthalpy
        call picard_updates_enthalpy(nilyr, zTin, qbr)
+       if (icepack_warnings_aborted(subname)) return
 
        ! drainage fluxes
        call picard_drainage_fluxes(fadvheat_nit, q,    &
                                    qbr,          qocn, &
-                                   hilyr,        nilyr)
+                                   nilyr)
+       if (icepack_warnings_aborted(subname)) return
 
        ! flushing fluxes
        call picard_flushing_fluxes(nilyr,           &
                                    fadvheat_nit, w, &
                                    qbr,             &
-                                   qocn, qpond)
+                                   qpond)
+       if (icepack_warnings_aborted(subname)) return
 
        ! perform convergence check
        call check_picard_convergence(nilyr,      nslyr,    &
                                      lsnow,                &
-                                     lconverged, nit,      & 
+                                     lconverged, & 
                                      Tsf,        Tsf_prev, &
                                      zTin,       zTin_prev,&
                                      zTsn,       zTsn_prev,&
@@ -1317,6 +1294,7 @@ contains
                                      einit,      dt,       &
                                      fcondtop,   fcondbot, &
                                      fadvheat_nit)
+       if (icepack_warnings_aborted(subname)) return
 
        if (lconverged) exit
 
@@ -1331,6 +1309,7 @@ contains
     ! update the picard iterants
     call picard_updates(nilyr, zTin, &
                         Sbr, qbr)
+    if (icepack_warnings_aborted(subname)) return
     
     ! solve for the salinity
     call solve_salinity(zSin,  Sbr,   &
@@ -1338,6 +1317,7 @@ contains
                         q,     dSdt,  &
                         w,     hilyr, &
                         dt,    nilyr)
+    if (icepack_warnings_aborted(subname)) return
 
     ! final surface heat flux
     call surface_heat_flux(Tsf,     fswsfc, &
@@ -1346,6 +1326,7 @@ contains
                            shcoef,  lhcoef, &
                            flwoutn, fsensn, &
                            flatn,   fsurfn)
+    if (icepack_warnings_aborted(subname)) return
 
     ! if not converged
     if (.not. lconverged) then
@@ -1356,9 +1337,12 @@ contains
                                   zTin0, zTin, &
                                   zSin0, zSin, &
                                   zqsn0, zqsn, &
-                                  zqin0, phi)
-       lstop = .true.
-       stop_label = "picard_solver: Picard solver non-convergence"
+                                  zqin0, zqin, &
+                                  phi)
+       if (icepack_warnings_aborted(subname)) return
+       call icepack_warnings_add(subname//" picard_solver: Picard solver non-convergence" ) 
+       call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+       if (icepack_warnings_aborted(subname)) return
 
     endif
 
@@ -1372,7 +1356,7 @@ contains
                                    zTin0, zTin, &
                                    zSin0, zSin, &
                                    zqsn0, zqsn, &
-                                   zqin0, phi)
+                                   zqin0, zqin, phi)
 
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1391,35 +1375,35 @@ contains
          zTin  , & ! ice layer temperature (C)
          zSin0 , & ! ice layer bulk salinity (ppt)
          zSin  , & ! ice layer bulk salinity (ppt)
-         phi   , & ! ice layer liquid fraction
-         zqin0
+         zqin0 , & 
+         zqin  , & 
+         phi       ! ice layer liquid fraction
 
     integer :: &
          k        ! vertical layer index
 
-    character(len=char_len_long) :: &
-         warning  ! warning message
-    
-    write(warning,*) "-------------------------------------"
-    call add_warning(warning)
+    character(len=*),parameter :: subname='(picard_nonconvergence)'
 
-    write(warning,*) "picard convergence failed!"
-    call add_warning(warning)
-    write(warning,*) 0, Tsf0, Tsf
-    call add_warning(warning)
+    write(warnstr,*) subname, "-------------------------------------"
+    call icepack_warnings_add(warnstr)
+
+    write(warnstr,*) subname, "picard convergence failed!"
+    call icepack_warnings_add(warnstr)
+    write(warnstr,*) subname, 0, Tsf0, Tsf
+    call icepack_warnings_add(warnstr)
     
     do k = 1, nslyr
-       write(warning,*) k, zTsn0(k), zTsn(k), zqsn0(k)
-       call add_warning(warning)
+       write(warnstr,*) subname, k, zTsn0(k), zTsn(k), zqsn(k), zqsn0(k)
+       call icepack_warnings_add(warnstr)
     enddo ! k          
     
     do k = 1, nilyr
-       write(warning,*) k, zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin0(k)
-       call add_warning(warning)
+       write(warnstr,*) subname, k, zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin(k), zqin0(k)
+       call icepack_warnings_add(warnstr)
     enddo ! k
 
-    write(warning,*) "-------------------------------------"
-    call add_warning(warning)
+    write(warnstr,*) subname, "-------------------------------------"
+    call icepack_warnings_add(warnstr)
 
   end subroutine picard_nonconvergence
 
@@ -1427,7 +1411,7 @@ contains
   
   subroutine check_picard_convergence(nilyr,      nslyr,    &
                                       lsnow,                &
-                                      lconverged, nit,      & 
+                                      lconverged, & 
                                       Tsf,        Tsf_prev, &
                                       zTin,       zTin_prev,&
                                       zTsn,       zTsn_prev,&
@@ -1449,9 +1433,6 @@ contains
 
     logical, intent(in) :: &
          lsnow        ! snow presence: T: has snow, F: no snow
-
-    integer, intent(in) :: &
-         nit          ! Picard iteration count
 
     real(kind=dbl_kind), intent(in) :: &
          dt       , & ! time step (s)
@@ -1492,22 +1473,27 @@ contains
          dzTin    , & ! change in ice temperature (C) between iterations
          dTsf         ! change in surface temperature (C) between iterations
 
+    character(len=*),parameter :: subname='(check_picard_convergence)'
+
     call picard_final(lsnow,        &
                       nilyr, nslyr, &
                       zqin,  zqsn,  &
                       zTin,  zTsn,  &
                       phi)
+    if (icepack_warnings_aborted(subname)) return
 
     call total_energy_content(lsnow,         &
                               nilyr,  nslyr, &
                               zqin,   zqsn,  &
                               hilyr,  hslyr, &
                               efinal)
+    if (icepack_warnings_aborted(subname)) return
 
     call maximum_variables_changes(lsnow,                  &
                                    Tsf,  Tsf_prev,  dTsf,  &
                                    zTsn, zTsn_prev, dzTsn, & 
                                    zTin, zTin_prev, dzTin)
+    if (icepack_warnings_aborted(subname)) return
 
     fcondbot = c2 * km(nilyr) * ((zTin(nilyr) - Tbot) / hilyr)
 
@@ -1530,7 +1516,7 @@ contains
 
   subroutine picard_drainage_fluxes(fadvheat, q,    &
                                     qbr,      qocn, &
-                                    hilyr,    nilyr)
+                                    nilyr)
 
     integer (kind=int_kind), intent(in) :: &
          nilyr        ! number of ice layers
@@ -1545,11 +1531,12 @@ contains
          qbr      ! ice layer brine enthalpy (J m-3)
 
     real(kind=dbl_kind), intent(in) :: &
-         qocn , & ! ocean brine enthalpy (J m-3)
-         hilyr    ! ice layer thickness (m)
+         qocn     ! ocean brine enthalpy (J m-3)
 
     integer :: &
          k        ! vertical layer index
+
+    character(len=*),parameter :: subname='(picard_drainage_fluxes)'
 
     fadvheat = c0
 
@@ -1571,7 +1558,7 @@ contains
   subroutine picard_flushing_fluxes(nilyr,         &
                                     fadvheat, w,   &
                                     qbr,           &
-                                    qocn,     qpond)
+                                    qpond)
 
     integer (kind=int_kind), intent(in) :: &
          nilyr        ! number of ice layers
@@ -1584,8 +1571,9 @@ contains
 
     real(kind=dbl_kind), intent(in) :: &
          w     , & ! vertical flushing Darcy velocity (m/s)
-         qocn  , & ! ocean brine enthalpy (J m-3)
          qpond     ! melt pond brine enthalpy (J m-3)
+
+    character(len=*),parameter :: subname='(picard_flushing_fluxes)'
 
     fadvheat = fadvheat + w * (qbr(nilyr) - qpond)
 
@@ -1615,6 +1603,8 @@ contains
          dTsf     , & ! change in surface temperature (C) between iterations
          dzTsn    , & ! change in snow temperature (C) between iterations
          dzTin        ! change in surface temperature (C) between iterations
+
+    character(len=*),parameter :: subname='(maximum_variables_changes)'
 
     dTsf = abs(Tsf - Tsf_prev)
 
@@ -1657,6 +1647,8 @@ contains
     integer :: &
          k         ! vertical layer index
 
+    character(len=*),parameter :: subname='(total_energy_content)'
+
     energy = c0
     
     if (lsnow) then
@@ -1697,6 +1689,8 @@ contains
     integer :: &
          k       ! vertical layer index
 
+    character(len=*),parameter :: subname='(picard_updates)'
+
     do k = 1, nilyr
 
        Sbr(k) = liquidus_brine_salinity_mush(zTin(k))
@@ -1723,6 +1717,8 @@ contains
 
     integer :: &
          k    ! vertical layer index
+
+    character(len=*),parameter :: subname='(picard_updates_enthalpy)'
 
     do k = 1, nilyr
 
@@ -1759,6 +1755,8 @@ contains
     integer :: &
          k       ! vertical layer index
 
+    character(len=*),parameter :: subname='(picard_final)'
+
     do k = 1, nilyr
        zqin(k) = enthalpy_mush_liquid_fraction(zTin(k), phi(k))
     enddo ! k
@@ -1793,6 +1791,8 @@ contains
 
     integer :: &
          l         ! vertical index
+
+    character(len=*),parameter :: subname='(calc_intercell_thickness)'
 
     if (lsnow) then
 
@@ -1869,6 +1869,8 @@ contains
          k, &       ! vertical layer index
          l          ! vertical index
 
+    character(len=*),parameter :: subname='(calc_intercell_conductivity)'
+
     if (lsnow) then
 
        kcstar(1) = ks(1)
@@ -1928,7 +1930,7 @@ contains
                                    dxp,    kcstar,       &
                                    Iswabs, Sswabs,       &
                                    fsurfn, dfsurfn_dTsf, &
-                                   zTin,   zTsn,nit)
+                                   zTin,   zTsn)
 
     logical, intent(in) :: &
          lsnow        , & ! snow presence: T: has snow, F: no snow
@@ -1972,9 +1974,6 @@ contains
     real(kind=dbl_kind), dimension(:), intent(out) :: &
          zTsn             ! snow layer temperature (C)
 
-    integer, intent(in) :: &
-         nit              ! Picard iteration count
-
     real(kind=dbl_kind), dimension(nilyr+nslyr+1) :: &
          Ap           , & ! diagonal of tridiagonal matrix
          As           , & ! lower off-diagonal of tridiagonal matrix
@@ -1984,6 +1983,8 @@ contains
 
     integer :: &
          nyn              ! matrix size
+
+    character(len=*),parameter :: subname='(solve_heat_conduction)'
 
     ! set up matrix and right hand side - snow
     if (lsnow) then
@@ -2002,6 +2003,7 @@ contains
                                          Iswabs, Sswabs,       &
                                          fsurfn, dfsurfn_dTsf, &
                                          dt)
+          if (icepack_warnings_aborted(subname)) return
 
        else ! lcold
 
@@ -2015,8 +2017,8 @@ contains
                                          hilyr,  hslyr,        &
                                          dxp,    kcstar,       &
                                          Iswabs, Sswabs,       &
-                                         fsurfn, dfsurfn_dTsf, &
                                          dt)
+          if (icepack_warnings_aborted(subname)) return
 
        endif ! lcold
 
@@ -2025,7 +2027,7 @@ contains
        if (lcold) then
 
           call matrix_elements_nosnow_cold(Ap, As, An, b, nyn,   &
-                                           nilyr,  nslyr,        &
+                                           nilyr, &
                                            Tsf,    Tbot,         &
                                            zqin0,                &
                                            qpond,  qocn,         &
@@ -2036,11 +2038,12 @@ contains
                                            Iswabs,               &
                                            fsurfn, dfsurfn_dTsf, &
                                            dt)
+          if (icepack_warnings_aborted(subname)) return
 
        else ! lcold
 
           call matrix_elements_nosnow_melt(Ap, As, An, b, nyn,   &
-                                           nilyr,  nslyr,        &
+                                           nilyr,  &
                                            Tsf,    Tbot,         &
                                            zqin0,                &
                                            qpond,  qocn,         &
@@ -2049,8 +2052,8 @@ contains
                                            hilyr,                &
                                            dxp,    kcstar,       &
                                            Iswabs,               &
-                                           fsurfn, dfsurfn_dTsf, &
                                            dt)
+          if (icepack_warnings_aborted(subname)) return
 
        endif ! lcold
 
@@ -2059,11 +2062,13 @@ contains
     ! tridiag to get new temperatures
     call tdma_solve_sparse(nilyr, nslyr, &
               An(1:nyn), Ap(1:nyn), As(1:nyn), b(1:nyn), T(1:nyn), nyn)
+    if (icepack_warnings_aborted(subname)) return
 
     call update_temperatures(lsnow, lcold, &
                              nilyr, nslyr, &
                              T,     Tsf,   &
                              zTin,  zTsn)
+    if (icepack_warnings_aborted(subname)) return
 
   end subroutine solve_heat_conduction
 
@@ -2095,6 +2100,8 @@ contains
     integer :: &
          l     , & ! vertical index
          k         ! vertical layer index
+
+    character(len=*),parameter :: subname='(update_temperatures)'
 
     if (lsnow) then
        
@@ -2153,7 +2160,7 @@ contains
 !=======================================================================
   
   subroutine matrix_elements_nosnow_melt(Ap, As, An, b, nyn,   &
-                                         nilyr,  nslyr,        &
+                                         nilyr, &
                                          Tsf,    Tbot,         &
                                          zqin0,                &
                                          qpond,  qocn,         &
@@ -2162,7 +2169,6 @@ contains
                                          hilyr,                &
                                          dxp,    kcstar,       &
                                          Iswabs,               &
-                                         fsurfn, dfsurfn_dTsf, &
                                          dt)
      
     real(kind=dbl_kind), dimension(:), intent(out) :: &
@@ -2175,8 +2181,7 @@ contains
          nyn              ! matrix size
 
     integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
+         nilyr            ! number of ice layers
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
          zqin0        , & ! ice layer enthalpy (J m-3) at beggining of timestep
@@ -2190,9 +2195,7 @@ contains
          Tbot         , & ! ice bottom surfce temperature (deg C)
          qpond        , & ! melt pond brine enthalpy (J m-3)
          qocn         , & ! ocean brine enthalpy (J m-3)
-         w            , & ! downwards vertical flushing Darcy velocity (m/s)
-         fsurfn       , & ! net flux to top surface, excluding fcondtop
-         dfsurfn_dTsf     ! derivative of net flux to top surface, excluding fcondtopn
+         w                ! downwards vertical flushing Darcy velocity (m/s)
 
     real(kind=dbl_kind), dimension(0:nilyr), intent(in) :: &    
          q                ! upward interface vertical Darcy flow (m s-1)
@@ -2205,6 +2208,8 @@ contains
          k            , & ! vertical layer index
          l                ! vertical index
     
+    character(len=*),parameter :: subname='(matrix_elements_nosnow_melt)'
+
     ! surface layer
     k = 1
     l = k
@@ -2262,7 +2267,7 @@ contains
 !=======================================================================
 
   subroutine matrix_elements_nosnow_cold(Ap, As, An, b, nyn,   &
-                                         nilyr,  nslyr,        &
+                                         nilyr, &
                                          Tsf,    Tbot,         &
                                          zqin0,                &
                                          qpond,  qocn,         &
@@ -2284,8 +2289,7 @@ contains
          nyn              ! matrix size
 
     integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
+         nilyr            ! number of ice layers
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
          zqin0        , & ! ice layer enthalpy (J m-3) at beggining of timestep
@@ -2313,6 +2317,8 @@ contains
     integer :: &
          k            , & ! vertical layer index
          l                ! vertical index
+
+    character(len=*),parameter :: subname='(matrix_elements_nosnow_cold)'
 
     ! surface temperature
     l = 1
@@ -2386,7 +2392,6 @@ contains
                                        hilyr,  hslyr,        &
                                        dxp,    kcstar,       &
                                        Iswabs, Sswabs,       &
-                                       fsurfn, dfsurfn_dTsf, &
                                        dt)
      
     real(kind=dbl_kind), dimension(:), intent(out) :: &
@@ -2417,9 +2422,7 @@ contains
          Tbot         , & ! ice bottom surfce temperature (deg C)
          qpond        , & ! melt pond brine enthalpy (J m-3)
          qocn         , & ! ocean brine enthalpy (J m-3)
-         w            , & ! downwards vertical flushing Darcy velocity (m/s)
-         fsurfn       , & ! net flux to top surface, excluding fcondtop
-         dfsurfn_dTsf     ! derivative of net flux to top surface, excluding fcondtopn
+         w                ! downwards vertical flushing Darcy velocity (m/s)
 
     real(kind=dbl_kind), dimension(0:nilyr), intent(in) :: &    
          q                ! upward interface vertical Darcy flow (m s-1)
@@ -2431,6 +2434,8 @@ contains
     integer :: &
          k            , & ! vertical layer index
          l                ! vertical index
+
+    character(len=*),parameter :: subname='(matrix_elements_snow_melt)'
 
     ! surface layer
     k = 1
@@ -2570,6 +2575,8 @@ contains
          l            , & ! matrix index
          m                ! vertical index
 
+    character(len=*),parameter :: subname='(matrix_elements_snow_cold)'
+
     ! surface temperature
     l = 1
     Ap(l) = dfsurfn_dTsf - kcstar(1) / dxp(1)
@@ -2697,6 +2704,8 @@ contains
     real(kind=dbl_kind), dimension(nilyr) :: &
          zSin0
 
+    character(len=*),parameter :: subname='(solve_salinity)'
+
     zSin0 = zSin
 
     k = 1
@@ -2724,17 +2733,20 @@ contains
     if (minval(zSin) < c0) then
 
 
-         write(*,*) (q(k)  * (Sbr(k+1) - Sbr(k))) / hilyr, &
+         write(warnstr,*) subname, (q(k)  * (Sbr(k+1) - Sbr(k))) / hilyr, &
           dSdt(k)                               , &
           (w * (Spond    - Sbr(k))) / hilyr
+         call icepack_warnings_add(warnstr)
 
        do k = 1, nilyr
        
-          write(*,*) k, zSin(k), zSin0(k)
+          write(warnstr,*) subname, k, zSin(k), zSin0(k)
+          call icepack_warnings_add(warnstr)
 
        enddo
 
-       stop
+       call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+       return
 
     endif
 
@@ -2769,6 +2781,8 @@ contains
     integer(kind=int_kind) :: &
          i      ! vector index
     
+    character(len=*),parameter :: subname='(tdma_solve_sparse)'
+
     ! forward sweep
     cp(1) = c(1) / b(1)
     do i = 2, n-1
@@ -2805,6 +2819,8 @@ contains
     
     real(kind=dbl_kind), parameter :: &
          phic = p05 ! critical liquid fraction for impermeability
+
+    character(len=*),parameter :: subname='(permeability)'
 
     perm = 3.0e-8_dbl_kind * max(phi - phic, c0)**3
 
@@ -2886,6 +2902,8 @@ contains
 
     integer(kind=int_kind) :: &
          k             ! ice layer index
+
+    character(len=*),parameter :: subname='(explicit_flow_velocities)'
 
     ! initial downward sweep - determine derived physical quantities
     do k = 1, nilyr
@@ -2984,7 +3002,7 @@ contains
 ! Flushing
 !=======================================================================
 
-  subroutine flushing_velocity(zTin,   zSin,  &
+  subroutine flushing_velocity(zTin, &
                                phi,    nilyr, &
                                hin,    hsn,   &
                                hilyr,         &
@@ -2998,7 +3016,6 @@ contains
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
          zTin      , & ! ice layer temperature (C)
-         zSin      , & ! ice layer bulk salinity (ppt)
          phi           ! ice layer liquid fraction
 
     real(kind=dbl_kind), intent(in) :: &
@@ -3029,6 +3046,8 @@ contains
 
     integer(kind=int_kind) :: &
          k              ! ice layer index
+
+    character(len=*),parameter :: subname='(flushing_velocity)'
 
     ! initialize
     w = c0
@@ -3097,13 +3116,12 @@ contains
 
 !=======================================================================
 
-  subroutine flush_pond(w, hin, hpond, apond, dt)
+  subroutine flush_pond(w, hpond, apond, dt)
 
     ! given a flushing velocity drain the meltponds
 
     real(kind=dbl_kind), intent(in) :: &
          w     , & ! vertical flushing Darcy flow rate (m s-1)
-         hin   , & ! ice thickness (m)
          apond , & ! melt pond area (-)
          dt        ! time step (s)
 
@@ -3113,6 +3131,8 @@ contains
     real(kind=dbl_kind), parameter :: &
          lambda_pond = c1 / (10.0_dbl_kind * 24.0_dbl_kind * 3600.0_dbl_kind), &
          hpond0 = 0.01_dbl_kind
+
+    character(len=*),parameter :: subname='(flush_pond)'
 
     if (tr_pond) then
        if (apond > c0 .and. hpond > c0) then
@@ -3193,11 +3213,15 @@ contains
          ice_density       , & ! density of ice layer (kg m-3)
          hadded            , & ! thickness rate of water used from ocean (m/s)
          wadded            , & ! mass rate of water used from ocean (kg/m^2/s)
-         eadded            , & ! energy rate of water used from ocean (W/m^2) 
-         sadded                ! salt rate of water used from ocean (kg/m^2/s)
+         eadded                ! energy rate of water used from ocean (W/m^2) 
+
+!   real(kind=dbl_kind) :: &
+!        sadded                ! salt rate of water used from ocean (kg/m^2/s)
 
     integer :: &
          k                     ! vertical index
+
+    character(len=*),parameter :: subname='(flood_ice)'
 
     snoice = c0
 
@@ -3232,6 +3256,7 @@ contains
 
           ! enthalpy of snow that becomes snowice
           call enthalpy_snow_snowice(nslyr, dh, hsn, zqsn, zqsn_snowice)
+          if (icepack_warnings_aborted(subname)) return
 
           ! change thicknesses
           hin2 = hin + dh
@@ -3246,14 +3271,18 @@ contains
 
           ! change snow properties
           call update_vertical_tracers_snow(nslyr, zqsn, hslyr, hslyr2)
+          if (icepack_warnings_aborted(subname)) return
 
           ! change ice properties
           call update_vertical_tracers_ice(nilyr, zqin, hilyr, hilyr2, &
                hin,  hin2,  zqin_snowice)
+          if (icepack_warnings_aborted(subname)) return
           call update_vertical_tracers_ice(nilyr, zSin, hilyr, hilyr2, &
                hin,  hin2,  zSin_snowice)
+          if (icepack_warnings_aborted(subname)) return
           call update_vertical_tracers_ice(nilyr, phi,  hilyr, hilyr2, &
                hin,  hin2,  phi_snowice)
+          if (icepack_warnings_aborted(subname)) return
 
           ! change thicknesses
           hilyr = hilyr2
@@ -3263,7 +3292,7 @@ contains
           hadded = (dh * phi_snowice) / dt
           wadded = hadded * rhoi
           eadded = hadded * qocn
-          sadded = wadded * ice_ref_salinity * p001
+!         sadded = wadded * ice_ref_salinity * p001
 
           ! conservation
           fadvheat = fadvheat - eadded
@@ -3299,6 +3328,8 @@ contains
     integer(kind=int_kind) :: &
          nlyr     , & ! no of snow layers completely converted to snowice
          k            ! snow layer index
+
+    character(len=*),parameter :: subname='(enthalpy_snow_snowice)'
 
     zqsn_snowice = c0
 
@@ -3351,6 +3382,8 @@ contains
          z2b     , & ! upper boundary of new cell
          overlap     ! overlap between old and new cell
     
+    character(len=*),parameter :: subname='(update_vertical_tracers_snow)'
+
     ! loop over new grid cells
     do k2 = 1, nslyr
        
@@ -3420,6 +3453,8 @@ contains
          z2b     , & ! upper boundary of new cell
          overlap     ! overlap between old and new cell
     
+    character(len=*),parameter :: subname='(update_vertical_tracers_ice)'
+
     ! loop over new grid cells
     do k2 = 1, nilyr
        

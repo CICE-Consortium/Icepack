@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_shortwave.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 !
 ! The albedo and absorbed/transmitted flux parameterizations for
@@ -42,17 +41,25 @@
       module icepack_shortwave
 
       use icepack_kinds
-      use icepack_constants,  only: c0, c1, c1p5, c2, c3, c4, c10
-      use icepack_constants,  only: p01, p1, p15, p25, p5, p75, puny
-      use icepack_constants,  only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
-      use icepack_constants,  only: kappav, hs_min, rhofresh, rhos, nspint
-      use icepack_parameters, only: hi_ssl, hs_ssl, modal_aero
+      use icepack_parameters, only: c0, c1, c1p5, c2, c3, c4, c10
+      use icepack_parameters, only: p01, p1, p15, p25, p5, p75, puny
+      use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
+      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint
+      use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_tracers,    only: tr_bgc_N, tr_aero
-      use icepack_warnings,   only: add_warning
+      use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
+      use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
+      use icepack_warnings,   only: warnstr, icepack_warnings_add
+      use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_zbgc_shared,only: R_chl2N, F_abs_chl
+      use icepack_zbgc_shared,only: remap_zbgc
+      use icepack_orbital, only: compute_coszen
+
 
       implicit none
 
@@ -67,8 +74,8 @@
          hpmin  = 0.005_dbl_kind, & ! minimum allowed melt pond depth (m)
          hp0    = 0.200_dbl_kind    ! pond depth below which transition to bare ice
 
-      real (kind=dbl_kind) :: &
-         exp_min                    ! minimum exponential value
+      real (kind=dbl_kind), parameter :: & 
+         exp_argmax = c10    ! maximum argument of exponential
 
 !=======================================================================
 
@@ -93,9 +100,11 @@
                                   fswthru,  fswpenl,  &
                                   Iswabs,   SSwabs,   &
                                   albin,    albsn,    &
-                                  coszen,   ncat)
+                                  coszen,   ncat,     &
+                                  nilyr)
 
       integer (kind=int_kind), intent(in) :: &
+         nilyr    , & ! number of ice layers
          ncat         ! number of ice thickness categories
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
@@ -122,7 +131,7 @@
          heat_capacity! if true, ice has nonzero heat capacity
 
       character (len=char_len), intent(in) :: &
-         albedo_type  ! albedo parameterization, 'default' ('ccsm3') or 'constant'
+         albedo_type  ! albedo parameterization, 'ccsm3' or 'constant'
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          alvdrn   , & ! visible, direct, avg   (fraction)
@@ -159,6 +168,8 @@
          alidrns, & ! near-ir, direct, snow   (fraction)
          alvdfns, & ! visible, diffuse, snow  (fraction)
          alidfns    ! near-ir, diffuse, snow  (fraction)
+
+      character(len=*),parameter :: subname='(shortwave_ccsm3)'
 
       !-----------------------------------------------------------------
       ! Solar radiation: albedo and absorbed shortwave
@@ -216,7 +227,9 @@
                                    alidfn(n),            &
                                    albin(n),             &
                                    albsn(n))
-         else ! default
+            if (icepack_warnings_aborted(subname)) return
+
+         elseif (trim(albedo_type) == 'ccsm3') then
 
             call compute_albedos (aicen(n),             &
                                   vicen(n),             &
@@ -235,6 +248,14 @@
                                   alidfn(n),            &
                                   albin(n),             &
                                   albsn(n))
+            if (icepack_warnings_aborted(subname)) return
+
+         else
+
+            call icepack_warnings_add(subname//' ERROR: albedo_type '//trim(albedo_type)//' unknown')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+
          endif
 
       !-----------------------------------------------------------------
@@ -242,7 +263,7 @@
       !-----------------------------------------------------------------
 
          call absorbed_solar  (heat_capacity,        &
-                               ncat,                 &
+                               nilyr,                &
                                aicen(n),             &
                                vicen(n),             &
                                vsnon(n),             &
@@ -257,6 +278,7 @@
                                fswthru(n),           &
                                fswpenl(:,n),         &
                                Iswabs(:,n))
+         if (icepack_warnings_aborted(subname)) return
 
       endif ! aicen > puny
 
@@ -332,6 +354,8 @@
          dTs , & ! difference of Tsfc and Timelt
          fhtan,& ! factor used in albedo dependence on ice thickness
          asnow   ! fractional area of snow cover
+
+      character(len=*),parameter :: subname='(compute_albedos)'
 
       fhtan = atan(ahmax*c4)
 
@@ -445,6 +469,8 @@
 
       real (kind=dbl_kind) :: &
          hs      ! snow thickness  (m)
+
+      character(len=*),parameter :: subname='(constant_albedos)'
 
       !-----------------------------------------------------------------
       ! Compute albedo for each thickness category.
@@ -568,6 +594,8 @@
          hs          , & ! snow thickness (m)
          hilyr       , & ! ice layer thickness
          asnow           ! fractional area of snow cover
+
+      character(len=*),parameter :: subname='(absorbed_solar)'
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -727,8 +755,6 @@
                           l_print_point,       &
                           initonly)
 
-      use icepack_orbital, only: compute_coszen
-
       integer (kind=int_kind), intent(in) :: &
          ncat   , & ! number of ice thickness categories
          nilyr  , & ! number of ice layers
@@ -862,8 +888,7 @@
          hpn             ! actual pond depth (m)
 
       integer (kind=int_kind) :: &
-         n           , & ! thickness category index
-         na              ! aerosol index               
+         n               ! thickness category index
 
       real (kind=dbl_kind) :: &
          ipn         , & ! refrozen pond ice thickness (m), mean over ice fraction
@@ -879,21 +904,23 @@
       logical (kind=log_kind) :: &
          linitonly       ! local initonly value
 
-      real (kind=dbl_kind), parameter :: & 
-         argmax = c10    ! maximum argument of exponential
+      character(len=*),parameter :: subname='(run_dEdd)'
 
       linitonly = .false.
       if (present(initonly)) then
          linitonly = initonly
       endif
 
-      exp_min = exp(-argmax)
-
       ! cosine of the zenith angle
-         call compute_coszen (tlat,          tlon, &
-                              calendar_type, days_per_year, &
-                              nextsw_cday,   yday,  sec, &
-                              coszen,        dt)
+#ifdef CESMCOUPLED
+      call compute_coszen (tlat,          tlon, &
+                           yday,  sec, coszen,  &
+                           days_per_year, nextsw_cday, calendar_type)
+#else
+      call compute_coszen (tlat,          tlon, &
+                           yday,  sec, coszen)
+#endif
+      if (icepack_warnings_aborted(subname)) return
 
       do n = 1, ncat
 
@@ -916,6 +943,7 @@
                                          Tsfcn(n),   fsn,      &
                                          hs0,        hsn,      &
                                          rhosnwn,    rsnwn)    
+            if (icepack_warnings_aborted(subname)) return
 
             ! set pond properties
             if (tr_pond_cesm) then
@@ -1019,6 +1047,7 @@
                call shortwave_dEdd_set_pond(Tsfcn(n), &
                                             fsn, fpn,   &
                                             hpn)
+               if (icepack_warnings_aborted(subname)) return
                
                apeffn(n) = fpn ! for history
                fpn = c0
@@ -1058,6 +1087,7 @@
                              albsnon(n),    albpndn(n),     &
                              fswpenln(:,n), zbion(:,n),     &
                              l_print_point)
+         if (icepack_warnings_aborted(subname)) return
 
          endif ! aicen > puny
 
@@ -1226,10 +1256,6 @@
       real (kind=dbl_kind) :: &
          vsno         ! volume of snow 
 
-      ! for printing points
-      integer (kind=int_kind) :: &
-         n            ! point number for prints
-
       real (kind=dbl_kind) :: &
          swdn  , & ! swvdr(i,j)+swvdf(i,j)+swidr(i,j)+swidf(i,j)
          swab  , & ! fswsfc(i,j)+fswint(i,j)+fswthru(i,j)
@@ -1242,9 +1268,8 @@
          aidrl   , & ! near-ir, direct, albedo (fraction) 
          aidfl       ! near-ir, diffuse, albedo (fraction) 
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
+      character(len=*),parameter :: subname='(shortwave_dEdd)'
+
 !-----------------------------------------------------------------------
 
          klev    = nslyr + nilyr + 1   ! number of radiation layers - 1
@@ -1327,6 +1352,7 @@
                       fswsfc,    fswint,                                &
                       fswthru,   Sswabs,                                &
                       Iswabs,    fswpenl)
+               if (icepack_warnings_aborted(subname)) return
                
                alvdr   = alvdr   + avdrl *fi
                alvdf   = alvdf   + avdfl *fi
@@ -1364,6 +1390,7 @@
                       fswsfc,    fswint,                                &
                       fswthru,   Sswabs,                                &
                       Iswabs,    fswpenl)
+               if (icepack_warnings_aborted(subname)) return
                
                alvdr   = alvdr   + avdrl *fs
                alvdf   = alvdf   + avdfl *fs
@@ -1406,6 +1433,7 @@
                       fswsfc,    fswint,                                &
                       fswthru,   Sswabs,                                &
                       Iswabs,    fswpenl)
+               if (icepack_warnings_aborted(subname)) return
                
                alvdr   = alvdr   + avdrl *fp
                alvdf   = alvdf   + avdfl *fp
@@ -1429,68 +1457,68 @@
 
       if (l_print_point .and. netsw > puny) then
 
-         write(warning,*) ' printing point = ',n
-         call add_warning(warning)
-         write(warning,*) ' coszen = ', &
+         write(warnstr,*) subname, ' printing point'
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' coszen = ', &
                             coszen
-         call add_warning(warning)
-         write(warning,*) ' swvdr  swvdf = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' swvdr  swvdf = ', &
                             swvdr,swvdf
-         call add_warning(warning)
-         write(warning,*) ' swidr  swidf = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' swidr  swidf = ', &
                             swidr,swidf
-         call add_warning(warning)
-         write(warning,*) ' aice = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' aice = ', &
                             aice
-         call add_warning(warning)
-         write(warning,*) ' hs = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' hs = ', &
                             hs
-         call add_warning(warning)
-         write(warning,*) ' hp = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' hp = ', &
                             hp
-         call add_warning(warning)
-         write(warning,*) ' fs = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' fs = ', &
                             fs
-         call add_warning(warning)
-         write(warning,*) ' fi = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' fi = ', &
                             fi
-         call add_warning(warning)
-         write(warning,*) ' fp = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' fp = ', &
                             fp
-         call add_warning(warning)
-         write(warning,*) ' hi = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' hi = ', &
                             hi
-         call add_warning(warning)
-         write(warning,*) ' alvdr  alvdf = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' alvdr  alvdf = ', &
                             alvdr,alvdf
-         call add_warning(warning)
-         write(warning,*) ' alidr  alidf = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' alidr  alidf = ', &
                             alidr,alidf
-         call add_warning(warning)
-         write(warning,*) ' fswsfc fswint fswthru = ', &
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' fswsfc fswint fswthru = ', &
                             fswsfc,fswint,fswthru
-         call add_warning(warning)
+         call icepack_warnings_add(warnstr)
          swdn  = swvdr+swvdf+swidr+swidf
          swab  = fswsfc+fswint+fswthru
          swalb = (1.-swab/(swdn+.0001))
-         write(warning,*) ' swdn swab swalb = ',swdn,swab,swalb
+         write(warnstr,*) subname, ' swdn swab swalb = ',swdn,swab,swalb
          do k = 1, nslyr               
-            write(warning,*) ' snow layer k    = ', k, &
+            write(warnstr,*) subname, ' snow layer k    = ', k, &
                              ' rhosnw = ', &
                                rhosnw(k), &
                              ' rsnw = ', &
                                rsnw(k)
-            call add_warning(warning)
+            call icepack_warnings_add(warnstr)
          enddo
          do k = 1, nslyr               
-            write(warning,*) ' snow layer k    = ', k, &
+            write(warnstr,*) subname, ' snow layer k    = ', k, &
                              ' Sswabs(k)       = ', Sswabs(k)
-            call add_warning(warning)
+            call icepack_warnings_add(warnstr)
          enddo
          do k = 1, nilyr               
-            write(warning,*) ' sea ice layer k = ', k, &
+            write(warnstr,*) subname, ' sea ice layer k = ', k, &
                              ' Iswabs(k)       = ', Iswabs(k)
-            call add_warning(warning)
+            call icepack_warnings_add(warnstr)
          enddo
 
       endif  ! l_print_point .and. coszen > .01
@@ -1744,9 +1772,7 @@
  
       real (kind=dbl_kind), parameter :: & 
          cp67    = 0.67_dbl_kind   , & ! nir band weight parameter
-         cp33    = 0.33_dbl_kind   , & ! nir band weight parameter
          cp78    = 0.78_dbl_kind   , & ! nir band weight parameter
-         cp22    = 0.22_dbl_kind   , & ! nir band weight parameter
          cp01    = 0.01_dbl_kind       ! for ocean visible albedo
  
       real (kind=dbl_kind), dimension (0:klev) :: &
@@ -2047,8 +2073,7 @@
                          ! Grenfell 1991 uses 0.004 (m^2/mg) which is (0.0078 * spectral weighting)
                          !chlorophyll mass extinction cross section (m^2/mg chla)
 
-      character(len=char_len_long) :: &
-         warning ! warning message
+      character(len=*),parameter :: subname='(compute_dEdd)'
 
 !-----------------------------------------------------------------------
 ! Initialize and tune bare ice/ponded ice iops
@@ -2258,8 +2283,8 @@
               if (k_bcexs(k) > 10) k_bcexs(k) = 10
 
               ! print ice radius index:
-              ! write(warning,*) "MGFICE2:k, ice index= ",k,  k_bcini(k)
-              ! call add_warning(warning)
+              ! write(warnstr,*) subname, "MGFICE2:k, ice index= ",k,  k_bcini(k)
+              ! call icepack_warnings_add(warnstr)
             enddo   ! k
 
         if (tr_zaero .and. dEdd_algae) then ! compute kzaero for chlorophyll  
@@ -2760,6 +2785,7 @@
                 tau,        w0,         g,          albodr,     albodf,    &
                 trndir,     trntdr,     trndif,     rupdir,     rupdif,    &
                 rdndif)   
+         if (icepack_warnings_aborted(subname)) return
 
          ! the interface reflectivities and transmissivities required
          ! to evaluate interface fluxes are returned from solution_dEdd;
@@ -3131,38 +3157,19 @@
          mu0n         ! cosine solar zenith angle in medium
  
       real (kind=dbl_kind) :: &
-         alpha    , & ! term in direct reflectivity and transmissivity
-         agamm    , & ! term in direct reflectivity and transmissivity
-         el       , & ! term in alpha,agamm,n,u
-         taus     , & ! scaled extinction optical depth
-         omgs     , & ! scaled single particle scattering albedo
-         asys     , & ! scaled asymmetry parameter
-         u        , & ! term in diffuse reflectivity and transmissivity
-         n        , & ! term in diffuse reflectivity and transmissivity
-         lm       , & ! temporary for el
-         mu       , & ! cosine solar zenith for either snow or water
-         ne           ! temporary for n
- 
-      real (kind=dbl_kind) :: &
-         w        , & ! dummy argument for statement function
-         uu       , & ! dummy argument for statement function
-         gg       , & ! dummy argument for statement function
-         e        , & ! dummy argument for statement function
-         f        , & ! dummy argument for statement function
-         t        , & ! dummy argument for statement function
-         et           ! dummy argument for statement function
- 
-      real (kind=dbl_kind) :: &
          alp      , & ! temporary for alpha
          gam      , & ! temporary for agamm
+         lm       , & ! temporary for el
+         mu       , & ! temporary for gauspt
+         ne       , & ! temporary for n
          ue       , & ! temporary for u
          extins   , & ! extinction
          amg      , & ! alp - gam
          apg          ! alp + gam
- 
+
       integer (kind=int_kind), parameter :: &
          ngmax = 8    ! number of gaussian angles in hemisphere
- 
+
       real (kind=dbl_kind), dimension (ngmax), parameter :: &
          gauspt     & ! gaussian angles (radians)
             = (/ .9894009_dbl_kind,  .9445750_dbl_kind, &
@@ -3174,10 +3181,10 @@
                  .0951585_dbl_kind,  .1246290_dbl_kind, &
                  .1495960_dbl_kind,  .1691565_dbl_kind, &
                  .1826034_dbl_kind,  .1894506_dbl_kind/)
-  
+
       integer (kind=int_kind) :: &
          ng           ! gaussian integration index
- 
+
       real (kind=dbl_kind) :: &
          gwt      , & ! gaussian weight
          swt      , & ! sum of weights
@@ -3186,17 +3193,12 @@
          tdr      , & ! tdir for gaussian integration
          smr      , & ! accumulator for rdif gaussian integration
          smt          ! accumulator for tdif gaussian integration
- 
-      ! Delta-Eddington solution expressions
-      alpha(w,uu,gg,e) = p75*w*uu*((c1 + gg*(c1-w))/(c1 - e*e*uu*uu))
-      agamm(w,uu,gg,e) = p5*w*((c1 + c3*gg*(c1-w)*uu*uu)/(c1-e*e*uu*uu))
-      n(uu,et)         = ((uu+c1)*(uu+c1)/et ) - ((uu-c1)*(uu-c1)*et)
-      u(w,gg,e)        = c1p5*(c1 - w*gg)/e
-      el(w,gg)         = sqrt(c3*(c1-w)*(c1 - w*gg))
-      taus(w,f,t)      = (c1 - w*f)*t
-      omgs(w,f)        = (c1 - f)*w/(c1 - w*f)
-      asys(gg,f)       = (gg - f)/(c1 - f)
- 
+
+      real (kind=dbl_kind) :: &
+         exp_min                    ! minimum exponential value
+
+      character(len=*),parameter :: subname='(solution_dEdd)'
+
 !-----------------------------------------------------------------------
 
       do k = 0, klevp 
@@ -3207,7 +3209,7 @@
          rupdif(k) = c0
          rdndif(k) = c0
       enddo
- 
+
       ! initialize top interface of top layer 
       trndir(0) =   c1
       trntdr(0) =   c1
@@ -3224,7 +3226,7 @@
       ! value below the fresnel level, i.e. the cosine solar zenith 
       ! angle below the fresnel level for the refracted solar beam:
       mu0nij = sqrt(c1-((c1-mu0**2)/(refindx*refindx)))
- 
+
       ! compute level of fresnel refraction
       ! if ponded sea ice, fresnel level is the top of the pond.
       kfrsnl = 0
@@ -3240,7 +3242,7 @@
 
       ! begin main level loop
       do k = 0, klev
-         
+
          ! initialize all layer apparent optical properties to 0
          rdir  (k) = c0
          rdif_a(k) = c0
@@ -3273,7 +3275,8 @@
             ! non-refracted beam instead
             if( srftyp < 2 .and. k < kfrsnl ) mu0n = mu0
 
-            extins = max(exp_min, exp(-lm*ts))
+            exp_min = min(exp_argmax,lm*ts)
+            extins = exp(-exp_min)
             ne = n(ue,extins)
 
             ! first calculation of rdif, tdif using Delta-Eddington formulas
@@ -3282,7 +3285,8 @@
             tdif_a(k) = c4*ue/ne
 
             ! evaluate rdir,tdir for direct beam
-            trnlay(k) = max(exp_min, exp(-ts/mu0n))
+            exp_min = min(exp_argmax,ts/mu0n)
+            trnlay(k) = exp(-exp_min)
             alp = alpha(ws,mu0n,gs,lm)
             gam = agamm(ws,mu0n,gs,lm)
             apg = alp + gam
@@ -3303,7 +3307,8 @@
                mu  = gauspt(ng)
                gwt = gauswt(ng)
                swt = swt + mu*gwt
-               trn = max(exp_min, exp(-ts/mu))
+               exp_min = min(exp_argmax,ts/mu)
+               trn = exp(-exp_min)
                alp = alpha(ws,mu,gs,lm)
                gam = agamm(ws,mu,gs,lm)
                apg = alp + gam
@@ -3501,6 +3506,8 @@
          rsnw_nonmelt  =  500._dbl_kind, & ! nonmelt snow grain radius
          rsnw_sig      =  250._dbl_kind    ! assumed sigma for snow grain radius
 
+      character(len=*),parameter :: subname='(shortwave_dEdd_set_snow)'
+
 !-----------------------------------------------------------------------
 
       ! set snow horizontal fraction
@@ -3560,6 +3567,8 @@
       real (kind=dbl_kind), parameter :: &
          dT_pnd = c1   ! change in temp for pond fraction and depth
 
+      character(len=*),parameter :: subname='(shortwave_dEdd_set_pond)'
+
 !-----------------------------------------------------------------------
 
       ! bare ice, temperature dependence
@@ -3584,16 +3593,8 @@
                                     nilyr,        nblyr,     &
                                     i_grid,                  &
                                     nbtrcr_sw,    n_zaero,   &
-                                    skl_bgc,      z_tracers, &
-                                    l_stop,       stop_label)
+                                    skl_bgc,      z_tracers  )
       
-      use icepack_constants,  only: c0, c1, c2, p5
-      use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
-      use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
-      use icepack_parameters, only: dEdd_algae, bgc_flux_type, sk_l
-      use icepack_parameters, only: R_chl2N, min_bgc, F_abs_chl,  hi_ssl
-      use icepack_zbgc_shared,only: remap_zbgc
-
       integer (kind=int_kind), intent(in) :: &
          nslyr, & ! number of snow layers
          n_zaero    , & ! number of cells with aicen > puny 
@@ -3623,11 +3624,6 @@
          skl_bgc, & ! skeletal layer bgc  
          z_tracers  ! zbgc   
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, print diagnostics and abort on return
-        
-      character (char_len), intent(inout) :: stop_label
-
       !  local variables
 
       integer (kind=int_kind) :: k, n, nn
@@ -3642,6 +3638,8 @@
       real (kind=dbl_kind):: &
          top_conc       ! 1% (min_bgc) of surface concentration 
                         ! when hin > hbri:  just used in sw calculation
+
+      character(len=*),parameter :: subname='(compute_shortwave_trcr)'
 
       !-----------------------------------------------------------------
       ! Compute aerosols and algal chlorophyll on shortwave grid
@@ -3668,17 +3666,15 @@
          enddo    ! k
  
          top_conc = trtmp0(nt_bgc_N(1))*min_bgc
-         call remap_zbgc (ntrcr,             nilyr+1, &
+         call remap_zbgc (nilyr+1, &
                           nt_bgc_N(1),                &
                           trtmp0(1:ntrcr  ),          &
                           trtmp (1:ntrcr+2),          &
                           1,                 nblyr+1, &
                           hin,               hbri,    &
                           icegrid(1:nilyr+1),         &
-                          i_grid(1:nblyr+1), top_conc, & 
-                          l_stop,            stop_label) 
-
-         if (l_stop) return
+                          i_grid(1:nblyr+1), top_conc ) 
+         if (icepack_warnings_aborted(subname)) return
 
          do k = 1, nilyr+1
             trcrn_sw(nlt_chl_sw+nslyr+k) = trtmp(nt_bgc_N(1) + k-1)
@@ -3706,17 +3702,15 @@
             enddo
 
             top_conc = trtmp0(nt_zaero(n))*min_bgc
-            call remap_zbgc (ntrcr,             nilyr+1, &
+            call remap_zbgc (nilyr+1, &
                              nt_zaero(n),                &
                              trtmp0(1:ntrcr  ),          &
                              trtmp (1:ntrcr+2),          &
                              1,                 nblyr+1, &
                              hin,               hbri,    &
                              icegrid(1:nilyr+1),         &
-                             i_grid(1:nblyr+1), top_conc, &
-                             l_stop,            stop_label) 
-
-            if (l_stop) return
+                             i_grid(1:nblyr+1), top_conc )
+            if (icepack_warnings_aborted(subname)) return
 
             do k = 1,nilyr+1
                trcrn_sw(nlt_zaero_sw(n)+nslyr+k) = trtmp(nt_zaero(n) + k-1)
@@ -3795,6 +3789,8 @@
 
       real (kind=dbl_kind) :: netsw 
 
+      character(len=*),parameter :: subname='(icepack_prep_radiation)'
+
       !-----------------------------------------------------------------
       ! Compute netsw scaling factor (new netsw / old netsw)
       !-----------------------------------------------------------------
@@ -3843,10 +3839,10 @@
 !          David Bailey, NCAR
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_radiation (dt,       ncat,      & 
+      subroutine icepack_step_radiation (dt,       ncat,     &
                                         n_algae,  tr_zaero,  &
                                         nblyr,    ntrcr,     &
-                                        nbtrcr,   nbtrcr_sw, &
+                                        nbtrcr_sw,           &
                                         nilyr,    nslyr,     &
                                         n_aero,   n_zaero,   &
                                         dEdd_algae,          &
@@ -3897,7 +3893,6 @@
          nlt_chl_sw, & ! index for chla
          nblyr     , &
          ntrcr     , &
-         nbtrcr    , &
          nbtrcr_sw , &
          n_algae
 
@@ -4001,14 +3996,13 @@
          n                  ! thickness category index
 
       logical (kind=log_kind) :: &
-         l_stop      ,&  ! if true, abort the model
          linitonly       ! local flag for initonly
-
-      character (char_len) :: stop_label
 
       real(kind=dbl_kind) :: &
         hin,         & ! Ice thickness (m)
         hbri           ! brine thickness (m)
+
+      character(len=*),parameter :: subname='(icepack_step_radiation)'
 
         hin = c0
         hbri = c0
@@ -4046,8 +4040,8 @@
                                      nilyr,        nblyr,     &
                                      igrid,                   &
                                      nbtrcr_sw,    n_zaero,   &
-                                     skl_bgc,      z_tracers, &
-                                     l_stop,       stop_label)
+                                     skl_bgc,      z_tracers  )
+                 if (icepack_warnings_aborted(subname)) return
               endif
          enddo
          endif
@@ -4100,8 +4094,9 @@
                           dhsn,         ffracn,         &
                           l_print_point,                &
                           linitonly)
+            if (icepack_warnings_aborted(subname)) return
  
-         else  ! .not. dEdd
+         elseif (trim(shortwave) == 'ccsm3') then
 
             call shortwave_ccsm3(aicen,      vicen,      &
                                  vsnon,                  &
@@ -4121,7 +4116,15 @@
                                  Iswabsn,                &
                                  Sswabsn,                &
                                  albicen,    albsnon,    &
-                                 coszen,     ncat)
+                                 coszen,     ncat,       &
+                                 nilyr)
+            if (icepack_warnings_aborted(subname)) return
+
+         else
+
+            call icepack_warnings_add(subname//' ERROR: shortwave '//trim(shortwave)//' unknown')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
 
          endif   ! shortwave
 
@@ -4162,6 +4165,88 @@
 
       end subroutine icepack_step_radiation
 
+      ! Delta-Eddington solution expressions
+
+!=======================================================================
+
+      real(kind=dbl_kind) function alpha(w,uu,gg,e)
+
+      real(kind=dbl_kind), intent(in) :: w, uu, gg, e
+
+      alpha = p75*w*uu*((c1 + gg*(c1-w))/(c1 - e*e*uu*uu))
+
+      end function alpha
+
+!=======================================================================
+
+      real(kind=dbl_kind) function agamm(w,uu,gg,e)
+
+      real(kind=dbl_kind), intent(in) :: w, uu, gg, e
+
+      agamm = p5*w*((c1 + c3*gg*(c1-w)*uu*uu)/(c1-e*e*uu*uu))
+
+      end function agamm
+
+!=======================================================================
+
+      real(kind=dbl_kind) function n(uu,et)
+
+      real(kind=dbl_kind), intent(in) :: uu, et
+
+      n = ((uu+c1)*(uu+c1)/et ) - ((uu-c1)*(uu-c1)*et)
+
+      end function n
+
+!=======================================================================
+
+      real(kind=dbl_kind) function u(w,gg,e)
+
+      real(kind=dbl_kind), intent(in) :: w, gg, e
+
+      u = c1p5*(c1 - w*gg)/e
+
+      end function u
+
+!=======================================================================
+
+      real(kind=dbl_kind) function el(w,gg)
+
+      real(kind=dbl_kind), intent(in) :: w, gg
+
+      el = sqrt(c3*(c1-w)*(c1 - w*gg))
+
+      end function el
+
+!=======================================================================
+
+      real(kind=dbl_kind) function taus(w,f,t)
+
+      real(kind=dbl_kind), intent(in) :: w, f, t
+
+      taus = (c1 - w*f)*t
+
+      end function taus
+
+!=======================================================================
+
+      real(kind=dbl_kind) function omgs(w,f)
+
+      real(kind=dbl_kind), intent(in) :: w, f
+
+      omgs = (c1 - f)*w/(c1 - w*f)
+
+      end function omgs
+
+!=======================================================================
+
+      real(kind=dbl_kind) function asys(gg,f)
+
+      real(kind=dbl_kind), intent(in) :: gg, f
+
+      asys = (gg - f)/(c1 - f)
+
+      end function asys
+ 
 !=======================================================================
 
       end module icepack_shortwave

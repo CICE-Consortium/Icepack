@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_kinds.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Defines variable precision for all common data types
@@ -13,7 +12,6 @@
 
       implicit none
       public
-      save
 
       integer, parameter :: char_len  = 80, &
                             char_len_long  = 256, &

@@ -12,7 +12,24 @@ set basename = $1
 
 set fieldlist=("area fraction  " \
                "avg ice thickness (m)" \
-               "avg snow depth (m)")
+               "avg snow depth (m)" \
+               "air temperature (C)" \
+               "shortwave radiation sum" \
+               "longwave radiation" \
+               "snowfall" \
+               "avg salinity (ppt)" \
+               "surface temperature(C)" \
+               "outward longwave flx" \
+               "sensible heat flx" \
+               "latent heat flx" \
+#               "subl/cond (m ice)" \
+               "top melt (m)" \
+               "bottom melt (m)" \
+               "lateral melt (m)" \
+               "new ice (m)" \
+               "congelation (m)" \
+#               "snow-ice (m)" \
+               "intnl enrgy chng(W/m^2)")
 
 # Get the filename for the latest log
 set logfile = $1
@@ -54,12 +71,14 @@ foreach field ($fieldlist:q)
   endif
 
   set output = `echo $fieldname | sed 's/ /_/g'`
-  set output = "${basename}_${output}.png"
+  set casename = `echo $basename | rev | cut -d / -f 1-2 | rev | sed 's/\//, /'`
+  set fname_base = "${casename}_${output}"
+  set output_fname = "${basename}_${output}.png"
 
-  echo "Plotting data for '$fieldname' and saving to $output"
+  echo "Plotting data for '$fieldname' and saving to $output_fname"
 
 # Call the plotting routine, which uses the data in the data.txt file
-gnuplot << EOF > $output
+gnuplot << EOF > $output_fname
 # Plot style
 set style data points
 
@@ -76,9 +95,9 @@ set format x "%Y/%m/%d"
 # Axis tick marks
 set xtics rotate
 
-set title "Annual ICEPACK Test $field (Diagnostic Print)" 
-set ylabel "$field" 
-set xlabel "Simulation Day" 
+set title "$fname_base"
+set ylabel "$field"
+set xlabel "Simulation Day"
 
 # Set y-axis limits
 $yrange

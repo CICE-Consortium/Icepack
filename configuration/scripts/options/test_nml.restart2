@@ -1,5 +1,2 @@
-npt            = 8760
-ice_ic         = './restart/iced.2015-03-01-00000'
 restart        = .true.
 dumpfreq       = 'm'
-

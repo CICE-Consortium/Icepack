@@ -7,15 +7,16 @@ else
 endif
 
 source ./icepack.settings
-source ${ICE_CASEDIR}/env.${ICE_MACHINE} || exit 2
+source ${ICE_CASEDIR}/env.${ICE_MACHCOMP} || exit 2
 
 set jobfile = $1
 
 set ntasks = ${ICE_NTASKS}
 set nthrds = ${ICE_NTHRDS}
 set maxtpn = ${ICE_MACHINE_TPNODE}
-set acct   = ${ICE_MACHINE_ACCT}
+set acct   = ${ICE_ACCOUNT}
 
+@ ncores = ${ntasks} * ${nthrds}
 @ taskpernode = ${maxtpn} / $nthrds
 @ nnodes = ${ntasks} / ${taskpernode}
 if (${nnodes} * ${taskpernode} < ${ntasks}) @ nnodes = $nnodes + 1
@@ -26,6 +27,8 @@ if (${taskpernodelimit} > ${ntasks}) set taskpernodelimit = ${ntasks}
 set ptile = $taskpernode
 if ($ptile > ${maxtpn} / 2) @ ptile = ${maxtpn} / 2
 
+set shortcase = `echo ${ICE_CASENAME} | cut -c1-15`
+
 #==========================================
 
 cat >! ${jobfile} << EOF0
@@ -34,38 +37,31 @@ EOF0
 
 #==========================================
 
-if (${ICE_MACHINE} =~ yellowstone*) then
-cat >> ${jobfile} << EOFB
-#BSUB -n ${ntasks}
-#BSUB -R "span[ptile=${ptile}]"
-#BSUB -q caldera
-#BSUB -N
-###BSUB -x
-#BSUB -a poe
-#BSUB -o poe.stdout.%J
-#BSUB -e poe.stderr.%J
-#BSUB -J ${ICE_CASENAME}
-#BSUB -W ${ICE_RUNLENGTH}
-#BSUB -P ${acct}
-EOFB
-
-#==========================================
-
-else if (${ICE_MACHINE} =~ cheyenne*) then
+if (${ICE_MACHINE} =~ cheyenne*) then
 cat >> ${jobfile} << EOFB
 #PBS -j oe 
 #PBS -m ae 
 #PBS -V
 #PBS -q share
 #PBS -N ${ICE_CASENAME}
-#PBS -A ${ICE_ACCT}
+#PBS -A ${acct}
 #PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
 #PBS -l walltime=${ICE_RUNLENGTH}
 EOFB
 
+else if (${ICE_MACHINE} =~ hobart*) then
+cat >> ${jobfile} << EOFB
+#PBS -j oe 
+#PBS -m ae 
+#PBS -V
+#PBS -q short
+#PBS -N ${ICE_CASENAME}
+#PBS -l nodes=1:ppn=24
+EOFB
+
 else if (${ICE_MACHINE} =~ thunder* || ${ICE_MACHINE} =~ gordon* || ${ICE_MACHINE} =~ conrad*) then
 cat >> ${jobfile} << EOFB
-#PBS -N ${ICE_CASENAME}
+#PBS -N ${shortcase}
 #PBS -q debug
 #PBS -A ${acct}
 #PBS -l select=${nnodes}:ncpus=${maxtpn}:mpiprocs=${taskpernode}
@@ -90,9 +86,9 @@ EOFB
 else if (${ICE_MACHINE} =~ cori*) then
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
-#SBATCH -p debug
+#SBATCH -p shared
 ###SBATCH -A ${acct}
-#SBATCH -N ${nnodes}
+#SBATCH -n ${ncores}
 #SBATCH -t ${ICE_RUNLENGTH}
 #SBATCH -L SCRATCH
 #SBATCH -C haswell
@@ -123,7 +119,7 @@ cat >> ${jobfile} << EOFB
 #SBATCH -o slurm%j.out
 ###SBATCH --mail-type END,FAIL
 ###SBATCH --mail-user=eclare@lanl.gov
-#SBATCH --qos=low
+#SBATCH --qos=standby
 EOFB
 
 else if (${ICE_MACHINE} =~ pinto*) then
@@ -136,7 +132,7 @@ cat >> ${jobfile} << EOFB
 #SBATCH -o slurm%j.out
 ###SBATCH --mail-type END,FAIL
 ###SBATCH --mail-user=eclare@lanl.gov
-#SBATCH --qos=standby
+#SBATCH --qos=standard
 EOFB
 
 else if (${ICE_MACHINE} =~ loft*) then
@@ -145,6 +141,11 @@ cat >> ${jobfile} << EOFB
 EOFB
 
 else if (${ICE_MACHINE} =~ testmachine*) then
+cat >> ${jobfile} << EOFB
+# nothing to do
+EOFB
+
+else if (${ICE_MACHINE} =~ travisCI*) then
 cat >> ${jobfile} << EOFB
 # nothing to do
 EOFB

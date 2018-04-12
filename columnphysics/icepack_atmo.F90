@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_atmo.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Atmospheric boundary interface (stability based flux calculations)
@@ -14,16 +13,17 @@
       module icepack_atmo
 
       use icepack_kinds
-      use icepack_constants,  only: c0, c1, c2, c4, c5, c8, c10
-      use icepack_constants,  only: c16, c20, p001, p01, p2, p4, p5, p75, puny
-      use icepack_constants,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
-      use icepack_constants,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
-      use icepack_constants,  only: pih, dragio, rhoi, rhos, rhow
+      use icepack_parameters,  only: c0, c1, c2, c4, c5, c8, c10
+      use icepack_parameters,  only: c16, c20, p001, p01, p2, p4, p5, p75, puny
+      use icepack_parameters,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
+      use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
+      use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
       use icepack_parameters, only: atmbndy, calc_strair, formdrag
       use icepack_parameters, only: highfreq, natmiter
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
-      save
 
       private
       public :: atmo_boundary_layer, &
@@ -38,10 +38,10 @@
 !=======================================================================
 
 ! Compute coefficients for atm/ice fluxes, stress, and reference
-! temperature and humidity. NOTE: \\
-! (1) All fluxes are positive downward,  \\
-! (2) Here, tstar = (WT)/U*, and qstar = (WQ)/U*,  \\
-! (3a) wind speeds should all be above a minimum speed (eg. 1.0 m/s). \\
+! temperature and humidity. NOTE:
+! (1) All fluxes are positive downward, 
+! (2) Here, tstar = (WT)/U*, and qstar = (WQ)/U*,
+! (3a) wind speeds should all be above a minimum speed (eg. 1.0 m/s).
 !
 ! ASSUME:
 !  The saturation humidity of air at T(K): qsat(T)  (kg/m**3)
@@ -154,21 +154,7 @@
       real (kind=dbl_kind), parameter :: &
          zTrf  = c2                 ! reference height for air temp (m)
 
-      ! local functions
-      real (kind=dbl_kind) :: &
-         xd    , & ! dummy argument
-         psimhu, & ! unstable part of psimh
-         psixhu    ! unstable part of psimx
-
-      !------------------------------------------------------------
-      ! Define functions
-      !------------------------------------------------------------
-
-      psimhu(xd) = log((c1+xd*(c2+xd))*(c1+xd*xd)/c8) &
-                 - c2*atan(xd) + pih
-!ech                 - c2*atan(xd) + 1.571_dbl_kind
-
-      psixhu(xd) =  c2 * log((c1 + xd*xd)/c2)
+      character(len=*),parameter :: subname='(atmo_boundary_layer)'
 
       al2 = log(zref/zTrf)
 
@@ -305,7 +291,7 @@
          if (highfreq .and. sfctype(1:3)=='ice') then
 
             !------------------------------------------------------------
-            ! momentum flux for RASM
+            ! momentum flux for high frequency coupling (RASM/CESM) 
             !------------------------------------------------------------
             ! tau = rhoa * rd * rd
             ! strx = tau * |Uatm-U| * (uatm-u)
@@ -386,8 +372,7 @@
                                       Tsf,      potT,     &
                                       Qa,                 &
                                       delt,     delq,     &
-                                      lhcoef,   shcoef,   &
-                                      Cdn_atm)  
+                                      lhcoef,   shcoef    )
 
       character (len=3), intent(in) :: &
          sfctype      ! ice or ocean
@@ -403,9 +388,6 @@
          vatm     , & ! y-direction wind speed (m/s)
          wind     , & ! wind speed (m/s)
          rhoa         ! air density (kg/m^3)
-
-      real (kind=dbl_kind), intent(in) :: &
-         Cdn_atm      ! neutral drag coefficient
 
       real (kind=dbl_kind), intent(inout):: &
          strx     , & ! x surface stress (N)
@@ -425,6 +407,8 @@
          ssq , & ! sat surface humidity     (kg/kg)
          tau, &  ! stress at zlvl
          Lheat   ! Lvap or Lsub, depending on surface type
+
+      character(len=*),parameter :: subname='(atmo_boundary_const)'
 
       !------------------------------------------------------------
       ! Initialize
@@ -498,7 +482,7 @@
                                       alvl,     vlvl,     &
                                       aice,     vice,     &
                                       vsno,     aicen,    &
-                                      vicen,    vsnon,    &
+                                      vicen, &
                                       Cdn_ocn,  Cdn_ocn_skin,    &
                                       Cdn_ocn_floe, Cdn_ocn_keel,&
                                       Cdn_atm,  Cdn_atm_skin,    &
@@ -528,8 +512,7 @@
          
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen    , & ! concentration of ice
-         vicen    , & ! volume per unit area of ice (m)
-         vsnon        ! volume per unit area of snow (m)   
+         vicen        ! volume per unit area of ice (m)
      
       real (kind=dbl_kind), &
          intent(out) :: &
@@ -555,14 +538,12 @@
                                       ! [,] = range of values that can be tested 
          csw       = 0.002_dbl_kind ,&! ice-ocn drag coefficient [0.0005,0.005]
          csa       = 0.0005_dbl_kind,&! ice-air drag coefficient [0.0001,0.001] 
-         dragia    = 0.0012_dbl_kind,&! ice-air drag coefficient [0.0005,0.002] 
          mrdg      = c20            ,&! screening effect see Lu2011 [5,50]
          mrdgo     = c10            ,&! screening effect see Lu2011 [5,50]
          beta      = p5             ,&! power exponent appearing in astar and 
                                       ! L=Lmin(A*/(A*-A))**beta [0,1]
          Lmin      = c8             ,&! min length of floe (m) [5,100]
          Lmax      = 300._dbl_kind  ,&! max length of floe (m) [30,3000]
-         Lmoy      = 300._dbl_kind  ,&! average length of floe (m) [30,1000]
          cfa       = p2             ,&! Eq. 12 ratio of local from drag over 
                                       ! geometrical parameter [0,1] 
          cfw       = p2             ,&! Eq. 15 ratio of local from drag over 
@@ -576,7 +557,6 @@
          lpmax     = 24.63_dbl_kind ,&! max pond length (m) see Eq. 17 [10,100]
          tanar     = p4             ,&! 0.25 sail slope = 14 deg [0.4,1]
          tanak     = p4             ,&! 0.58 keel slope = 30 deg [0.4,1]
-         invsqrte  = 0.6065_dbl_kind,&!
          phir      = 0.8_dbl_kind   ,&! porosity of ridges [0.4,1]
          phik      = 0.8_dbl_kind   ,&! porosity of keels  [0.4,1]
          hkoverhr  = c4             ,&! hkeel/hridge ratio [4,8]
@@ -616,6 +596,8 @@
       real (kind=dbl_kind), parameter :: &
          camax    = 0.02_dbl_kind , & ! Maximum for atmospheric drag
          cwmax    = 0.06_dbl_kind     ! Maximum for ocean drag
+
+      character(len=*),parameter :: subname='(neutral_drag_coeffs)'
 
       astar = c1/(c1-(Lmin/Lmax)**(c1/beta))
 
@@ -882,15 +864,19 @@
       real (kind=dbl_kind) :: &
          worku, workv, workr
 
+      character(len=*),parameter :: subname='(icepack_atm_boundary)'
+
       worku = c0
       workv = c0
       workr = c0
       if (present(uvel)) then
          worku = uvel
       endif
-      if (present(uvel)) then
-         worku = uvel
+      if (present(vvel)) then
+         workv = vvel
       endif
+
+      Cdn_atm_ratio_n = c1
 
                if (trim(atmbndy) == 'constant') then
                   call atmo_boundary_const (sfctype,  calc_strair, &
@@ -900,8 +886,8 @@
                                             Tsf,      potT,     &
                                             Qa,                 &
                                             delt,     delq,     &
-                                            lhcoef,   shcoef,   &
-                                            Cdn_atm)
+                                            lhcoef,   shcoef    )
+                  if (icepack_warnings_aborted(subname)) return
                else ! default
                   call atmo_boundary_layer (sfctype,                 &
                                             calc_strair, formdrag,   &
@@ -918,6 +904,7 @@
                                             Cdn_atm_ratio_n,         &
                                             worku,    workv,         &
                                             workr)
+                  if (icepack_warnings_aborted(subname)) return
                endif ! atmbndy
 
       if (present(Uref)) then
@@ -925,6 +912,32 @@
       endif
 
       end subroutine icepack_atm_boundary
+
+      !------------------------------------------------------------
+      ! Define functions
+      !------------------------------------------------------------
+
+!=======================================================================
+
+      real(kind=dbl_kind) function psimhu(xd)
+
+      real(kind=dbl_kind), intent(in) :: xd
+
+      psimhu = log((c1+xd*(c2+xd))*(c1+xd*xd)/c8) &
+             - c2*atan(xd) + pih
+!ech         - c2*atan(xd) + 1.571_dbl_kind
+
+      end function psimhu
+
+!=======================================================================
+
+      real(kind=dbl_kind) function psixhu(xd)
+
+      real(kind=dbl_kind), intent(in) :: xd
+
+      psixhu =  c2 * log((c1 + xd*xd)/c2)
+
+      end function psixhu
 
 !=======================================================================
 

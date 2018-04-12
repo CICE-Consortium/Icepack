@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_meltpond_topo.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Melt pond evolution based on the ice topography as inferred from
@@ -21,9 +20,12 @@
       module icepack_meltpond_topo
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c2, p01, p1, p15, p4, p6
-      use icepack_constants, only: puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh
-      use icepack_constants, only: gravit, depressT, kice, ice_ref_salinity
+      use icepack_parameters, only: c0, c1, c2, p01, p1, p15, p4, p6
+      use icepack_parameters, only: puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh
+      use icepack_parameters, only: gravit, depressT, kice, ice_ref_salinity
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       implicit none
 
@@ -41,12 +43,11 @@
                                     aice,  aicen,       &
                                     vice,  vicen,       &
                                     vsno,  vsnon,       &
-                                    potT,  meltt,       &
+                                    meltt,       &
                                     fsurf, fpond,       &
                                     Tsfcn, Tf,          &
                                     qicen, sicen,       &
-                                    apnd,  hpnd, ipnd,  &
-                                    l_stop,stop_label)
+                                    apnd,  hpnd, ipnd   )
 
       integer (kind=int_kind), intent(in) :: &
          ncat , &   ! number of thickness categories
@@ -89,15 +90,8 @@
          ipnd
 
       real (kind=dbl_kind), intent(in) :: &
-         potT,  &   ! air potential temperature
          meltt, &   ! total surface meltwater flux
          fsurf      ! thermodynamic heat flux at ice/snow surface (W/m^2)
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, abort model
-
-      character (len=char_len), intent(out) :: &
-         stop_label
 
       ! local variables
 
@@ -129,6 +123,8 @@
          hicemin = p1           , & ! minimum ice thickness with ponds (m) 
          Td      = p15          , & ! temperature difference for freeze-up (C)
          min_volp = 1.e-4_dbl_kind  ! minimum pond volume (m)
+
+      character(len=*),parameter :: subname='(compute_ponds_topo)'
 
       !---------------------------------------------------------------
       ! initialize
@@ -174,8 +170,8 @@
                         qicen,      sicen,              &
                         volpn,      volp,               &
                         Tsfcn,      Tf,                 & 
-                        apondn,     hpondn,    dvn,     &
-                        l_stop,     stop_label)
+                        apondn,     hpondn,    dvn      )
+         if (icepack_warnings_aborted(subname)) return
 
          fpond = fpond - dvn
          
@@ -307,8 +303,7 @@
                            qicen, sicen,       &
                            volpn, volp,        &
                            Tsfcn,  Tf,         &
-                           apondn,hpondn,dvolp,&
-                           l_stop,stop_label)
+                           apondn,hpondn,dvolp )
 
       integer (kind=int_kind), intent(in) :: &
          ncat , & ! number of thickness categories
@@ -338,12 +333,6 @@
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          apondn, hpondn
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, abort model
-
-      character (len=char_len), intent(out) :: &
-         stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -370,8 +359,9 @@
          pressure_head, &
          hsl_rel, &
          deltah, &
-         perm, &
-         apond
+         perm
+
+      character(len=*),parameter :: subname='(pond_area)'
 
  !-----------|
  !           |
@@ -466,8 +456,8 @@
             cum_max_vol_tmp(n) = cum_max_vol_tmp(n-1)
          endif
          if (cum_max_vol_tmp(n) < c0) then
-            l_stop = .true.
-            stop_label =  'topo ponds: negative melt pond volume'
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//' topo ponds: negative melt pond volume')
             return
          endif
       enddo
@@ -491,12 +481,12 @@
 
       call calc_hpond(ncat, reduced_aicen, asnon, hsnon, &
                       alfan, volp, cum_max_vol, hpond, m_index)
+      if (icepack_warnings_aborted(subname)) return
     
       do n=1, m_index
          hpondn(n) = max((hpond - alfan(n) + alfan(1)), c0)
          apondn(n) = reduced_aicen(n) 
       enddo
-      apond = sum(apondn(1:m_index))
     
       !------------------------------------------------------------------------
       ! drainage due to ice permeability - Darcy's law
@@ -517,8 +507,8 @@
          if (hicen(n) > c0) then
             call permeability_phi(heat_capacity, nilyr, &
                                   qicen(:,n), sicen(:,n), Tsfcn(n), Tf, &
-                                  vicen(n),   perm,       l_stop,   stop_label)
-            if (l_stop) return
+                                  perm)
+            if (icepack_warnings_aborted(subname)) return
             if (perm > c0) permflag = 1
             drain = perm*apondn(n)*pressure_head*dt / (viscosity_dyn*hicen(n))
             dvolp = dvolp + min(drain, volp)
@@ -535,11 +525,11 @@
          ! recompute pond depth    
          call calc_hpond(ncat, reduced_aicen, asnon, hsnon, &
                          alfan, volp, cum_max_vol, hpond, m_index)
+         if (icepack_warnings_aborted(subname)) return
          do n=1, m_index
             hpondn(n) = hpond - alfan(n) + alfan(1)
             apondn(n) = reduced_aicen(n) 
          enddo
-         apond = sum(apondn(1:m_index))
       endif
       endif ! pressure_head
 
@@ -625,6 +615,8 @@
          vol, &
          tmp
     
+    character(len=*),parameter :: subname='(calc_hpond)'
+
     !----------------------------------------------------------------
     ! hpond is zero if volp is zero - have we fully drained? 
     !----------------------------------------------------------------
@@ -756,9 +748,7 @@
 
       subroutine permeability_phi(heat_capacity, nilyr, &
                                   qicen, sicen, Tsfcn, Tf, &
-                                  vicen, perm,  l_stop, stop_label)
-
-      use icepack_therm_shared, only: calculate_Tin_from_qin
+                                  perm)
 
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if true, ice has nonzero heat capacity
@@ -772,18 +762,11 @@
          sicen     ! salinity (ppt)   
     
       real (kind=dbl_kind), intent(in) :: &
-         vicen, &  ! ice volume
          Tsfcn, &  ! sea ice surface skin temperature (degC)     
          Tf     ! ocean freezing temperature [= ice bottom temperature] (degC) 
     
       real (kind=dbl_kind), intent(out) :: &
          perm      ! permeability
-
-      logical (kind=log_kind), intent(out) :: &
-         l_stop          ! if true, abort model
-
-      character (len=char_len), intent(out) :: &
-         stop_label
 
       ! local variables
 
@@ -797,6 +780,8 @@
 
       integer (kind=int_kind) :: k
     
+      character(len=*),parameter :: subname='(permeability_phi)'
+
       !-----------------------------------------------------------------
       ! Compute ice temperatures from enthalpies using quadratic formula
       ! NOTE this assumes Tmlt = Si * depressT
@@ -838,8 +823,8 @@
                   - 0.389_dbl_kind  * Tin(k)**2 &
                   - 0.00362_dbl_kind* Tin(k)**3
             if (Sbr == c0) then
-               l_stop = .true.
-               stop_label =  'topo ponds: zero brine salinity in permeability'
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' topo ponds: zero brine salinity in permeability')
                return
             endif
             if (heat_capacity) then

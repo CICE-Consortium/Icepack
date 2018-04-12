@@ -7,21 +7,16 @@
 Icepack Documentation 
 ===========================================
 
-Table of Contents:
-------------------
-
 .. toctree::
    :numbered:
-   :maxdepth: 3
+   :maxdepth: 2
 
-   icepack_1_introduction.rst
-   icepack_2_science_guide.rst
-   icepack_3_user_guide.rst
-   icepack_4_index.rst
+   intro/index.rst
+   science_guide/index.rst
+   user_guide/index.rst
+   developer_guide/index.rst
+   icepack_index.rst
    zreferences.rst
- 
-Useful tools
-==================
 
 * :ref:`search`
 

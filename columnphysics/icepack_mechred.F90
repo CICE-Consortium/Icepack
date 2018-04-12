@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_mechred.F90 1227 2017-05-22 22:49:10Z tcraig $
 !=======================================================================
 
 ! Driver for ice mechanical redistribution (ridging)
@@ -35,19 +34,27 @@
       module icepack_mechred
 
       use icepack_kinds
-      use icepack_constants,  only: c0, c1, c2, c10, c20, c25, Cf, Cp, Pstar, Cstar
-      use icepack_constants,  only: p05, p15, p25, p333, p5
-      use icepack_constants,  only: puny, Lfresh, rhoi, rhos, rhow, gravit
+      use icepack_parameters,  only: c0, c1, c2, c10, c25, Cf, Cp, Pstar, Cstar
+      use icepack_parameters,  only: p05, p15, p25, p333, p5
+      use icepack_parameters,  only: puny, Lfresh, rhoi, rhos
+
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: heat_capacity
-      use icepack_tracers,    only: tr_pond_topo, tr_aero, tr_brine, ntrcr, nbtrcr
+
+      use icepack_tracers, only: tr_pond_topo, tr_aero, tr_brine, ntrcr, nbtrcr
+      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
+      use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero
+      use icepack_tracers, only: nt_apnd, nt_hpnd
+      use icepack_tracers, only: icepack_compute_tracers
+                           
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
       use icepack_itd, only: column_sum
       use icepack_itd, only: column_conservation_check
       use icepack_itd, only: cleanup_itd
-      use icepack_warnings, only: add_warning
 
       implicit none
-      save
 
       private
       public :: ridge_ice, &
@@ -57,6 +64,7 @@
                 icepack_step_ridge
 
       real (kind=dbl_kind), parameter :: & 
+         exp_argmax = 100.0_dbl_kind, &    ! maximum argument of exponential for underflow
          Cs = p25         , & ! fraction of shear energy contrbtng to ridging 
          fsnowrdg = p5    , & ! snow fraction that survives in ridging 
          Gstar  = p15     , & ! max value of G(h) that participates 
@@ -95,22 +103,20 @@
                             aice0,                   &
                             trcr_depend, trcr_base,  &
                             n_trcr_strata,           &
-                            nt_strata,   l_stop,     &
-                            stop_label,              &
+                            nt_strata,               &
                             krdg_partic, krdg_redist,&
-                            mu_rdg,                  &
+                            mu_rdg,      tr_brine,   &
                             dardg1dt,    dardg2dt,   &
                             dvirdgdt,    opening,    &
                             fpond,                   &
                             fresh,       fhocn,      &
-                            tr_brine,    faero_ocn,  &
+                            faero_ocn,               &
                             aparticn,    krdgn,      &
                             aredistn,    vredistn,   &
                             dardg1ndt,   dardg2ndt,  &
                             dvirdgndt,               &
-                            araftn,      vraftn)
-
-      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
+                            araftn,      vraftn,     &
+                            closing )
 
       integer (kind=int_kind), intent(in) :: &
          ndtd       , & ! number of dynamics subcycles
@@ -153,12 +159,6 @@
       integer (kind=int_kind), dimension (:,:), intent(in) :: &
          nt_strata      ! indices of underlying tracer layers
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop         ! if true, abort on return
-
-      character (len=*), intent(out) :: &
-         stop_label   ! diagnostic information for abort
-
       integer (kind=int_kind), intent(in) :: &
          krdg_partic  , & ! selects participation function
          krdg_redist      ! selects redistribution function
@@ -172,6 +172,7 @@
          dardg2dt   , & ! rate of fractional area gain by new ridges (1/s)
          dvirdgdt   , & ! rate of ice volume ridged (m/s)
          opening    , & ! rate of opening due to divergence/shear (1/s)
+         closing    , & ! rate of closing due to divergence/shear (1/s)
          fpond      , & ! fresh water flux to ponds (kg/m^2/s)
          fresh      , & ! fresh water flux to ocean (kg/m^2/s)
          fhocn          ! net heat flux to ocean (W/m^2)
@@ -260,14 +261,11 @@
       character (len=char_len) :: &
          fieldid        ! field identifier
 
-      character(len=char_len_long) :: &
-         warning ! warning message
+      character(len=*),parameter :: subname='(ridge_ice)'
 
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
-
-      l_stop = .false.
 
       msnow_mlt = c0
       esnow_mlt = c0
@@ -287,16 +285,29 @@
       !-----------------------------------------------------------------
 
       call asum_ridging (ncat, aicen, aice0, asum)
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Compute the area opening and closing.
       !-----------------------------------------------------------------
 
-      call ridge_prep (dt,                      &
-                       ncat,      hin_max,      &
-                       rdg_conv,  rdg_shear,    &
-                       asum,      closing_net,  &
-                       divu_adv,  opning)
+      if (present(closing)) then
+
+         opning = opening
+         closing_net = closing
+         divu_adv = opening - closing
+
+      else
+
+         call ridge_prep (dt,                      &
+                          ncat,      hin_max,      &
+                          rdg_conv,  rdg_shear,    &
+                          asum,      closing_net,  &
+                          divu_adv,  opning)
+
+      endif
+
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Compute initial values of conserved quantities. 
@@ -326,16 +337,22 @@
 
          call column_sum (ncat,                     &
                           vicen, vice_init)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           vsnon, vsno_init)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           eicen, eice_init)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           esnon, esno_init)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           sicen, sice_init)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           vbrin, vbri_init)
+         if (icepack_warnings_aborted(subname)) return
 
       endif            
 
@@ -355,6 +372,7 @@
                          hrexp,       krdg,       &
                          aparticn,    krdgn,      &
                          mraftn)    
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Redistribute area, volume, and energy.
@@ -378,10 +396,8 @@
                            nslyr,       n_aero,      &
                            msnow_mlt,   esnow_mlt,   &
                            maero,       mpond,       &
-                           l_stop,      stop_label,  &
                            aredistn,    vredistn)    
-
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Make sure the new area = 1.  If not (because the closing
@@ -390,6 +406,7 @@
       !-----------------------------------------------------------------
 
          call asum_ridging (ncat, aicen, aice0, asum)
+         if (icepack_warnings_aborted(subname)) return
 
          if (abs(asum - c1) < puny) then
             iterate_ridging = .false.
@@ -407,21 +424,21 @@
       !-----------------------------------------------------------------
 
          if (iterate_ridging) then
-            write(warning,*) 'Repeat ridging, niter =', niter
-            call add_warning(warning)
+            write(warnstr,*) subname, 'Repeat ridging, niter =', niter
+            call icepack_warnings_add(warnstr)
          else
             exit rdg_iteration
          endif
 
          if (niter == nitermax) then
-            write(warning,*) ' '
-            call add_warning(warning)
-            write(warning,*) 'Exceeded max number of ridging iterations'
-            call add_warning(warning)
-            write(warning,*) 'max =',nitermax
-            call add_warning(warning)
-            l_stop = .true.
-            stop_label = "ridge_ice: Exceeded max number of ridging iterations"
+            write(warnstr,*) ' '
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'Exceeded max number of ridging iterations'
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'max =',nitermax
+            call icepack_warnings_add(warnstr)
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//" ridge_ice: Exceeded max number of ridging iterations" ) 
             return
          endif
 
@@ -456,16 +473,22 @@
 
          call column_sum (ncat,                     &
                           vicen, vice_final)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           vsnon, vsno_final)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           eicen, eice_final)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           esnon, esno_final)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           sicen, sice_final)
+         if (icepack_warnings_aborted(subname)) return
          call column_sum (ncat,                     &
                           vbrin, vbri_final)
+         if (icepack_warnings_aborted(subname)) return
 
          vsno_final = vsno_final + msnow_mlt/rhos
          esno_final = esno_final + esnow_mlt
@@ -473,37 +496,33 @@
          fieldid = 'vice, ridging'
          call column_conservation_check (fieldid,               &
                                          vice_init, vice_final, &
-                                         puny,                  &
-                                         l_stop)
+                                         puny)
+         if (icepack_warnings_aborted(subname)) return
          fieldid = 'vsno, ridging'
          call column_conservation_check (fieldid,               &
                                          vsno_init, vsno_final, &
-                                         puny,                  &
-                                         l_stop)
+                                         puny)
+         if (icepack_warnings_aborted(subname)) return
          fieldid = 'eice, ridging'
          call column_conservation_check (fieldid,               &
                                          eice_init, eice_final, &
-                                         puny*Lfresh*rhoi,      &
-                                         l_stop)
+                                         puny*Lfresh*rhoi)
+         if (icepack_warnings_aborted(subname)) return
          fieldid = 'esno, ridging'
          call column_conservation_check (fieldid,               &
                                          esno_init, esno_final, &
-                                         puny*Lfresh*rhos,      &
-                                         l_stop)
+                                         puny*Lfresh*rhos)
+         if (icepack_warnings_aborted(subname)) return
          fieldid = 'sice, ridging'
          call column_conservation_check (fieldid,               &
                                          sice_init, sice_final, &
-                                         puny,                  &
-                                         l_stop)
+                                         puny)
+         if (icepack_warnings_aborted(subname)) return
          fieldid = 'vbrin, ridging'
          call column_conservation_check (fieldid,               &
                                          vbri_init, vbri_final, &
-                                         puny*c10,              &
-                                         l_stop)
-         if (l_stop) then
-            stop_label = 'ridge_ice: Column conservation error'
-            return
-         endif
+                                         puny*c10)
+         if (icepack_warnings_aborted(subname)) return
 
       endif                     ! l_conservation_check            
 
@@ -579,22 +598,22 @@
       !-----------------------------------------------------------------
 
       if (abs(asum - c1) > puny) then
-         l_stop = .true.
-         stop_label = "ridge_ice: total area > 1"
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//" ridge_ice: total area > 1" ) 
 
-         write(warning,*) ' '
-         call add_warning(warning)
-         write(warning,*) 'Ridging error: total area > 1'
-         call add_warning(warning)
-         write(warning,*) 'area:', asum
-         call add_warning(warning)
-         write(warning,*) 'n, aicen:'
-         call add_warning(warning)
-         write(warning,*)  0, aice0
-         call add_warning(warning)
+         write(warnstr,*) ' '
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Ridging error: total area > 1'
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'area:', asum
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'n, aicen:'
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname,  0, aice0
+         call icepack_warnings_add(warnstr)
          do n = 1, ncat
-            write(warning,*) n, aicen(n)
-            call add_warning(warning)
+            write(warnstr,*) subname, n, aicen(n)
+            call icepack_warnings_add(warnstr)
          enddo
          return
       endif
@@ -628,6 +647,8 @@
       ! local variables
 
       integer (kind=int_kind) :: n
+
+      character(len=*),parameter :: subname='(asum_ridging)'
 
       asum = aice0
       do n = 1, ncat
@@ -674,6 +695,8 @@
 
       real (kind=dbl_kind), parameter :: &
          big = 1.0e+8_dbl_kind
+
+      character(len=*),parameter :: subname='(ridge_prep)'
 
       ! Set hin_max(ncat) to a big value to ensure that all ridged ice
       ! is thinner than hin_max(ncat).
@@ -802,20 +825,22 @@
          Gsum        ! Gsum(n) = sum of areas in categories 0 to n
 
       real (kind=dbl_kind) :: &
-         work        ! temporary work array
+         work        ! temporary work variable
 
       real (kind=dbl_kind) :: &
          hi      , & ! ice thickness for each cat (m)
          hrmean  , & ! mean ridge thickness (m)
          xtmp        ! temporary variable
 
+      character(len=*),parameter :: subname='(ridge_itd)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
 
-      Gsum   (-1) = c0        ! by definition
-!      Gsum   (0)  = c1         ! to avoid divzero below
+      Gsum   (-1:ncat) = c0  ! initialize
 
+      Gsum   (-1) = c0     ! by definition
       if (aice0 > puny) then
          Gsum(0) = aice0
       else
@@ -824,7 +849,6 @@
       apartic(0)  = c0
 
       do n = 1, ncat
-         Gsum   (n) = c1    ! to avoid divzero below
          apartic(n) = c0
          hrmin  (n) = c0
          hrmax  (n) = c0
@@ -850,10 +874,12 @@
 
       ! normalize
 
-      work = c1 / Gsum(ncat)
-      do n = 0, ncat
-         Gsum(n) = Gsum(n) * work
-      enddo
+      if (Gsum(ncat) > c0) then
+         work = c1 / Gsum(ncat)
+         do n = 0, ncat
+            Gsum(n) = Gsum(n) * work
+         enddo
+      endif
 
       !-----------------------------------------------------------------
       ! Compute the participation function apartic; this is analogous to
@@ -1050,14 +1076,8 @@
                               nslyr,       n_aero,          &
                               msnow_mlt,   esnow_mlt,       &
                               maero,       mpond,           &
-                              l_stop,      stop_label,      &
                               aredistn,    vredistn)
 
-      use icepack_tracers, only: nt_qsno, nt_fbri
-      use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, tr_aero
-      use icepack_tracers, only: nt_apnd, nt_hpnd, tr_pond_topo
-      use icepack_tracers, only: icepack_compute_tracers
-                           
       integer (kind=int_kind), intent(in) :: & 
          ncat  , & ! number of thickness categories
          nslyr , & ! number of snow layers
@@ -1127,12 +1147,6 @@
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          maero          ! aerosol mass added to ocean (kg m-2)
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop         ! if true, abort on return
-
-      character (len=*), intent(out) :: &
-         stop_label   ! diagnostic information for abort
-
       real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          aredistn   , & ! redistribution function: fraction of new ridge area
          vredistn       ! redistribution function: fraction of new ridge volume
@@ -1159,6 +1173,8 @@
 
       real (kind=dbl_kind) :: &
          work       , & ! temporary variable
+         expL_arg   , & ! temporary exp arg values
+         expR_arg   , & ! temporary exp arg values
          closing_gross  ! rate at which area removed, not counting
                         ! area of new ridges
 
@@ -1185,8 +1201,7 @@
          tmpfac     , & ! factor by which opening/closing rates are cut
          wk1            ! work variable
 
-      character(len=char_len_long) :: &
-         warning ! warning message
+      character(len=*),parameter :: subname='(ridge_shift)'
 
       do n = 1, ncat
 
@@ -1260,12 +1275,10 @@
       aice0 = aice0 - apartic(0)*closing_gross*dt + opning*dt
 
       if (aice0 < -puny) then
-         l_stop = .true.
-         stop_label = 'Ridging error: aice0 < 0'
-         write(warning,*) trim(stop_label)
-         call add_warning(warning)
-         write(warning,*) 'aice0:', aice0
-         call add_warning(warning)
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' Ridging error: aice0 < 0')
+         write(warnstr,*) subname, 'aice0:', aice0
+         call icepack_warnings_add(warnstr)
          return
 
       elseif (aice0 < c0) then    ! roundoff error
@@ -1297,13 +1310,11 @@
             ardg1n = apartic(n)*closing_gross*dt
 
             if (ardg1n > aicen_init(n) + puny) then
-               l_stop = .true.
-               stop_label = 'Ridging error: ardg > aicen'
-               write(warning,*) trim(stop_label)
-               call add_warning(warning)
-               write(warning,*) 'n, ardg, aicen:', &
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' Ridging error: ardg > aicen')
+               write(warnstr,*) subname, 'n, ardg, aicen:', &
                     n, ardg1n, aicen_init(n)
-               call add_warning(warning)
+               call icepack_warnings_add(warnstr)
                return
             else
                ardg1n = min(aicen_init(n), ardg1n)
@@ -1442,8 +1453,10 @@
                      else
                         hL = max (hi1, hin_max(nr-1))
                         hR = hin_max(nr)
-                        expL = exp(-(hL-hi1)/hexp)
-                        expR = exp(-(hR-hi1)/hexp)
+                        expL_arg = min(((hL-hi1)/hexp),exp_argmax)
+                        expR_arg = min(((hR-hi1)/hexp),exp_argmax)
+                        expL = exp(-(expL_arg))
+                        expR = exp(-(expR_arg))
                         farea = expL - expR
                         fvol  = ((hL + hexp)*expL  &
                                     - (hR + hexp)*expR) / (hi1 + hexp)
@@ -1455,7 +1468,8 @@
                      hexp = hrexp(n)
 
                      hL = max (hi1, hin_max(nr-1))
-                     expL = exp(-(hL-hi1)/hexp)
+                     expL_arg = min(((hL-hi1)/hexp),exp_argmax)
+                     expL = exp(-(expL_arg))
                      farea = expL
                      fvol  = (hL + hexp)*expL / (hi1 + hexp)
 
@@ -1533,11 +1547,12 @@
       !-----------------------------------------------------------------
 
       do n = 1, ncat
-            call icepack_compute_tracers (ntrcr,       trcr_depend,   &
-                                         atrcrn(:,n), aicen(n),      &
-                                         vicen(n),    vsnon(n),      &
-                                         trcr_base,   n_trcr_strata, &
-                                         nt_strata,   trcrn(:,n))
+         call icepack_compute_tracers (ntrcr,       trcr_depend,   &
+                                       atrcrn(:,n), aicen(n),      &
+                                       vicen(n),    vsnon(n),      &
+                                       trcr_base,   n_trcr_strata, &
+                                       nt_strata,   trcrn(:,n))
+         if (icepack_warnings_aborted(subname)) return
       enddo
 
       end subroutine ridge_shift
@@ -1604,6 +1619,8 @@
          dh2rdg     ! change in mean value of h^2 per unit area
                     ! consumed by ridging 
 
+      character(len=*),parameter :: subname='(icepack_ice_strength)'
+
       if (kstrength == 1) then  ! Rothrock 1975 formulation
 
       !-----------------------------------------------------------------
@@ -1611,6 +1628,7 @@
       !-----------------------------------------------------------------
 
          call asum_ridging (ncat, aicen, aice0, asum)
+         if (icepack_warnings_aborted(subname)) return
 
          call ridge_itd (ncat,     aice0,      &
                          aicen,    vicen,      &
@@ -1619,6 +1637,7 @@
                          aksum,    apartic,    &
                          hrmin,    hrmax,      &
                          hrexp,    krdg)   
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Compute ice strength based on change in potential energy,
@@ -1675,7 +1694,7 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_ridge (dt,           ndtd,          &
+      subroutine icepack_step_ridge (dt,           ndtd,         &
                                     nilyr,        nslyr,         &
                                     nblyr,                       &
                                     ncat,         hin_max,       &
@@ -1699,8 +1718,7 @@
                                     araftn,       vraftn,        &
                                     aice,         fsalt,         &
                                     first_ice,    fzsal,         &
-                                    flux_bio,                    &
-                                    l_stop,       stop_label)
+                                    flux_bio,     closing )
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -1742,6 +1760,9 @@
          fhocn    , & ! net heat flux to ocean (W/m^2)
          fzsal        ! zsalinity flux to ocean(kg/m^2/s)
 
+      real (kind=dbl_kind), intent(inout), optional :: &
+         closing      ! rate of closing due to divergence/shear (1/s)
+
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          aicen    , & ! concentration of ice
          vicen    , & ! volume per unit area of ice          (m)
@@ -1770,20 +1791,12 @@
       logical (kind=log_kind), dimension(:), intent(inout) :: &
          first_ice    ! true until ice forms
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop       ! if true, abort the model
-
-      character (len=*), intent(out) :: &
-         stop_label   ! diagnostic information for abort
-
       ! local variables
 
       real (kind=dbl_kind) :: &
-         dtt      , & ! thermo time step
-         atmp     , & ! temporary ice area
-         atmp0        ! temporary open water area
+         dtt          ! thermo time step
 
-      l_stop = .false.
+      character(len=*),parameter :: subname='(icepack_step_ridge)'
 
       !-----------------------------------------------------------------
       ! Identify ice-ocean cells.
@@ -1792,6 +1805,8 @@
       !        it may be out of whack, which the ridging helps fix).-ECH
       !-----------------------------------------------------------------
            
+      if (present(closing)) then
+
          call ridge_ice (dt,           ndtd,           &
                          ncat,         n_aero,         &
                          nilyr,        nslyr,          &
@@ -1805,22 +1820,51 @@
                          trcr_base,                    &
                          n_trcr_strata,                &
                          nt_strata,                    &
-                         l_stop,                       &
-                         stop_label,                   &
-                         krdg_partic, krdg_redist, &
-                         mu_rdg,                   &
+                         krdg_partic,  krdg_redist,    &
+                         mu_rdg,       tr_brine,       &
                          dardg1dt,     dardg2dt,       &
                          dvirdgdt,     opening,        &
                          fpond,                        &
                          fresh,        fhocn,          &
-                         tr_brine,     faero_ocn,      &
+                         faero_ocn,                    &
                          aparticn,     krdgn,          &
                          aredistn,     vredistn,       &
                          dardg1ndt,    dardg2ndt,      &
                          dvirdgndt,                    &
-                         araftn,       vraftn)        
+                         araftn,       vraftn,         &
+                         closing )        
+        
+      else
 
-         if (l_stop) return
+         call ridge_ice (dt,           ndtd,           &
+                         ncat,         n_aero,         &
+                         nilyr,        nslyr,          &
+                         ntrcr,        hin_max,        &
+                         rdg_conv,     rdg_shear,      &
+                         aicen,                        &
+                         trcrn,                        &
+                         vicen,        vsnon,          &
+                         aice0,                        &
+                         trcr_depend,                  &
+                         trcr_base,                    &
+                         n_trcr_strata,                &
+                         nt_strata,                    &
+                         krdg_partic,  krdg_redist,    &
+                         mu_rdg,       tr_brine,       &
+                         dardg1dt,     dardg2dt,       &
+                         dvirdgdt,     opening,        &
+                         fpond,                        &
+                         fresh,        fhocn,          &
+                         faero_ocn,                    &
+                         aparticn,     krdgn,          &
+                         aredistn,     vredistn,       &
+                         dardg1ndt,    dardg2ndt,      &
+                         dvirdgndt,                    &
+                         araftn,       vraftn )
+
+      endif
+
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! ITD cleanup: Rebin thickness categories if necessary, and remove
@@ -1836,7 +1880,6 @@
                         aice0,                aice,             &          
                         n_aero,                                 &
                         nbtrcr,               nblyr,            &
-                        l_stop,               stop_label,       &
                         tr_aero,                                &
                         tr_pond_topo,         heat_capacity,    &  
                         first_ice,                              &                
@@ -1846,10 +1889,7 @@
                         fsalt,                fhocn,            &
                         faero_ocn,            fzsal,            &
                         flux_bio)
-
-      if (l_stop) then
-         stop_label = 'ice: ITD cleanup error in icepack_step_ridge'
-      endif
+      if (icepack_warnings_aborted(subname)) return
 
       end subroutine icepack_step_ridge
 

@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_atmo.F90 1226 2017-05-22 22:45:03Z tcraig $
 !=======================================================================
 
 ! Ocean boundary interface
@@ -6,11 +5,12 @@
       module icepack_ocean
 
       use icepack_kinds
-      use icepack_constants, only: c0, c1, c1000
-      use icepack_constants, only: cp_ocn, Tffresh, stefan_boltzmann, Lvap, cprho
+      use icepack_parameters, only: c0, c1, c1000
+      use icepack_parameters, only: Tffresh, stefan_boltzmann, Lvap, cprho
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
-      save
 
       private
       public :: icepack_ocn_mixed_layer
@@ -78,6 +78,8 @@
       real (kind=dbl_kind) :: &
          TsfK , & ! surface temperature (K)
          swabs    ! surface absorbed shortwave heat flux (W/m^2)
+
+      character(len=*),parameter :: subname='(icepack_ocn_mixed_layer)'
 
       ! shortwave radiative flux
       swabs = (c1-alvdr_ocn) * swvdr + (c1-alidr_ocn) * swidr &

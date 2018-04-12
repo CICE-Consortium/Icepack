@@ -1,4 +1,3 @@
-!  SVN:$Id: icepack_itd.F90 1227 2017-05-22 22:49:10Z tcraig $
 !=======================================================================
 
 ! Routines to initialize the ice thickness distribution and
@@ -27,17 +26,21 @@
       module icepack_itd
 
       use icepack_kinds
-      use icepack_constants,  only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
-      use icepack_constants,  only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
+      use icepack_parameters,  only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
+      use icepack_parameters,  only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
+      use icepack_parameters,  only: rhosi, sk_l, hs_ssl, min_salin
       use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
-      use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers, min_salin
-      use icepack_parameters, only: sk_l, rhosi, hs_ssl, kcatbound, kitd
+      use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers
+      use icepack_parameters, only: kcatbound, kitd
       use icepack_therm_shared, only: Tmin, hi_min
-      use icepack_warnings,   only: add_warning
+      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+
+      use icepack_zbgc_shared, only: zap_small_bgc
+      use icepack_tracers, only: icepack_compute_tracers
 
       implicit none
-      save
 
       private
       public :: aggregate_area, &
@@ -77,6 +80,8 @@
 
       integer (kind=int_kind) :: n
 
+      character(len=*),parameter :: subname='(aggregate_area)'
+
       !-----------------------------------------------------------------
       ! Aggregate
       !-----------------------------------------------------------------
@@ -103,8 +108,7 @@
                         nt_strata,                 &
                         aicen,    trcrn,           &
                         vicen,    vsnon,           &
-                        ncat,     hin_max,         &
-                        l_stop,   stop_label)
+                        ncat,     hin_max          )
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr , & ! number of tracers in use
@@ -132,11 +136,6 @@
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max   ! category limits (m)
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -153,11 +152,11 @@
          dvice          , & ! ice volume transferred
          hicen              ! ice thickness for each cat (m)
 
+      character(len=*),parameter :: subname='(rebin)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
-
-      l_stop = .false.
 
       do n = 1, ncat
          donor(n) = 0
@@ -222,8 +221,8 @@
                             aicen,    trcrn,      &
                             vicen,    vsnon,      &
                             hicen,    donor,      &
-                            daice,    dvice,      &
-                            l_stop,   stop_label)
+                            daice,    dvice       )
+            if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! reset shift parameters
@@ -270,8 +269,8 @@
                             aicen,    trcrn,      &
                             vicen,    vsnon,      &
                             hicen,    donor,      &
-                            daice,    dvice,      &
-                            l_stop,   stop_label)
+                            daice,    dvice       )
+            if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! reset shift parameters
@@ -321,6 +320,8 @@
          hi1       , & ! current hi
          dhi           ! hi1 - hi0
 
+      character(len=*),parameter :: subname='(reduce_area)'
+
             hi0 = c0
             if (aicen_init > c0) &
                 hi0 = vicen_init / aicen_init
@@ -360,10 +361,7 @@
                             aicen,    trcrn,       &
                             vicen,    vsnon,       &
                             hicen,    donor,       &
-                            daice,    dvice,       &
-                            l_stop,   stop_label)
-
-      use icepack_tracers, only: icepack_compute_tracers
+                            daice,    dvice        )
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -398,11 +396,6 @@
          dvice         , & ! ice volume transferred across boundary
          hicen             ! ice thickness for each cat        (m)
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -429,14 +422,7 @@
       real (kind=dbl_kind) :: &
         worka, workb
 
-      character(len=char_len_long) :: &
-        warning ! warning message
-
-      !-----------------------------------------------------------------
-      ! Initialize
-      !-----------------------------------------------------------------
-
-      l_stop = .false.
+      character(len=*),parameter :: subname='(shift_ice)'
 
       !-----------------------------------------------------------------
       ! Define variables equal to aicen*trcrn, vicen*trcrn, vsnon*trcrn
@@ -515,82 +501,82 @@
          if (daice_negative) then
                if (donor(n) > 0 .and.  &
                    daice(n) <= -puny*aicen(nd)) then
-                  write(warning,*) ' '
-                  call add_warning(warning)
-                  write(warning,*) 'shift_ice: negative daice'
-                  call add_warning(warning)
-                  write(warning,*) 'boundary, donor cat:', n, nd
-                  call add_warning(warning)
-                  write(warning,*) 'daice =', daice(n)
-                  call add_warning(warning)
-                  write(warning,*) 'dvice =', dvice(n)
-                  call add_warning(warning)
-                  l_stop = .true.
-                  stop_label = 'shift_ice: negative daice'
+                  write(warnstr,*) ' '
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'shift_ice: negative daice'
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'boundary, donor cat:', n, nd
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'daice =', daice(n)
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'dvice =', dvice(n)
+                  call icepack_warnings_add(warnstr)
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//' shift_ice: negative daice')
                endif
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          if (dvice_negative) then
                if (donor(n) > 0 .and.  &
                    dvice(n) <= -puny*vicen(nd)) then
-                  write(warning,*) ' '
-                  call add_warning(warning)
-                  write(warning,*) 'shift_ice: negative dvice'
-                  call add_warning(warning)
-                  write(warning,*) 'boundary, donor cat:', n, nd
-                  call add_warning(warning)
-                  write(warning,*) 'daice =', daice(n)
-                  call add_warning(warning)
-                  write(warning,*) 'dvice =', dvice(n)
-                  call add_warning(warning)
-                  l_stop = .true.
-                  stop_label = 'shift_ice: negative dvice'
+                  write(warnstr,*) ' '
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'shift_ice: negative dvice'
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'boundary, donor cat:', n, nd
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'daice =', daice(n)
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, 'dvice =', dvice(n)
+                  call icepack_warnings_add(warnstr)
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//' shift_ice: negative dvice')
                endif
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          if (daice_greater_aicen) then
                if (donor(n) > 0) then
                   nd = donor(n)
                   if (daice(n) >= aicen(nd)*(c1+puny)) then
-                     write(warning,*) ' '
-                     call add_warning(warning)
-                     write(warning,*) 'shift_ice: daice > aicen'
-                     call add_warning(warning)
-                     write(warning,*) 'boundary, donor cat:', n, nd
-                     call add_warning(warning)
-                     write(warning,*) 'daice =', daice(n)
-                     call add_warning(warning)
-                     write(warning,*) 'aicen =', aicen(nd)
-                     call add_warning(warning)
-                     l_stop = .true.
-                     stop_label = 'shift_ice: daice > aicen'
+                     write(warnstr,*) ' '
+                     call icepack_warnings_add(warnstr)
+                     write(warnstr,*) subname, 'shift_ice: daice > aicen'
+                     call icepack_warnings_add(warnstr)
+                     write(warnstr,*) subname, 'boundary, donor cat:', n, nd
+                     call icepack_warnings_add(warnstr)
+                     write(warnstr,*) subname, 'daice =', daice(n)
+                     call icepack_warnings_add(warnstr)
+                     write(warnstr,*) subname, 'aicen =', aicen(nd)
+                     call icepack_warnings_add(warnstr)
+                     call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                     call icepack_warnings_add(subname//' shift_ice: daice > aicen')
                   endif
                endif
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          if (dvice_greater_vicen) then
                if (donor(n) > 0) then
                   nd = donor(n)
                   if (dvice(n) >= vicen(nd)*(c1+puny)) then
-                     write(warning,*) ' '
-                     call add_warning(warning)
-                     write(warning,*) 'shift_ice: dvice > vicen'
-                     call add_warning(warning)
-                     write(warning,*) 'boundary, donor cat:', n, nd
-                     call add_warning(warning)
-                     write(warning,*) 'dvice =', dvice(n)
-                     call add_warning(warning)
-                     write(warning,*) 'vicen =', vicen(nd)
-                     call add_warning(warning)
-                     l_stop = .true.
-                     stop_label = 'shift_ice: dvice > vicen'
+                     write(warnstr,*) ' '
+                     call icepack_warnings_add(warnstr)
+                     write(warnstr,*) subname, 'shift_ice: dvice > vicen'
+                     call icepack_warnings_add(warnstr)
+                     write(warnstr,*) subname, 'boundary, donor cat:', n, nd
+                     call icepack_warnings_add(warnstr)
+                     write(warnstr,*) subname, 'dvice =', dvice(n)
+                     call icepack_warnings_add(warnstr)
+                     write(warnstr,*) subname, 'vicen =', vicen(nd)
+                     call icepack_warnings_add(warnstr)
+                     call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                     call icepack_warnings_add(subname//' shift_ice: dvice > vicen')
                   endif
                endif
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! transfer volume and energy between categories
@@ -663,6 +649,7 @@
                                       vicen(n),    vsnon(n),    &
                                       trcr_base,   n_trcr_strata,  &
                                       nt_strata,   trcrn(:,n))
+         if (icepack_warnings_aborted(subname)) return
 
       enddo                     ! ncat
 
@@ -691,6 +678,8 @@
       integer (kind=int_kind) :: &
          n                ! category/layer index
 
+      character(len=*),parameter :: subname='(column_sum)'
+
       xout = c0
       do n = 1, nsum
          xout = xout + xin(n)
@@ -707,8 +696,7 @@
 
       subroutine column_conservation_check (fieldid,          &
                                             x1,       x2,     &
-                                            max_err,          &
-                                            l_stop)
+                                            max_err           )
 
       real (kind=dbl_kind), intent(in) :: &
          x1            , & ! initial field
@@ -720,26 +708,22 @@
       character (len=char_len), intent(in) :: &
          fieldid           ! field identifier
 
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop            ! if true, abort on return
+      character(len=*),parameter :: subname='(column_conservation_check)'
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
       ! local variables
 
       if (abs (x2-x1) > max_err) then
-         l_stop = .true.
-         write(warning,*) ' '
-         call add_warning(warning)
-         write(warning,*) 'Conservation error: ', trim(fieldid)
-         call add_warning(warning)
-         write(warning,*) 'Initial value =', x1
-         call add_warning(warning)
-         write(warning,*) 'Final value =',   x2
-         call add_warning(warning)
-         write(warning,*) 'Difference =', x2 - x1
-         call add_warning(warning)
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         write(warnstr,*) ' '
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Conservation error: ', trim(fieldid)
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Initial value =', x1
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Final value =',   x2
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'Difference =', x2 - x1
+         call icepack_warnings_add(warnstr)
       endif
 
       end subroutine column_conservation_check
@@ -763,7 +747,6 @@
                               aice0,       aice,       &   
                               n_aero,                  &
                               nbtrcr,      nblyr,      &
-                              l_stop,      stop_label, &
                               tr_aero,                 &
                               tr_pond_topo,            &
                               heat_capacity,           & 
@@ -821,11 +804,6 @@
       logical (kind=log_kind), dimension(ncat),intent(inout) :: &
          first_ice   ! For bgc and S tracers. set to true if zapping ice.
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
-
       ! ice-ocean fluxes (required for strict conservation)
 
       real (kind=dbl_kind), intent(inout), optional :: &
@@ -868,9 +846,8 @@
       logical (kind=log_kind) ::   &
          limit_aice         ! if true, check for aice out of bounds
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
+      character(len=*),parameter :: subname='(cleanup_itd)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -880,8 +857,6 @@
       else
          limit_aice = .true.
       endif
-
-      l_stop = .false.
 
       dfpond = c0
       dfresh = c0
@@ -896,16 +871,17 @@
       !-----------------------------------------------------------------
 
       call aggregate_area (ncat, aicen, aice, aice0)
+      if (icepack_warnings_aborted(subname)) return
 
       if (limit_aice) then  ! check for aice out of bounds
          if (aice > c1+puny .or. aice < -puny) then
-            l_stop = .true.
-            stop_label = 'aggregate ice area out of bounds'
-            write(warning,*) 'aice:', aice
-            call add_warning(warning)
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//' aggregate ice area out of bounds')
+            write(warnstr,*) subname, 'aice:', aice
+            call icepack_warnings_add(warnstr)
             do n = 1, ncat
-               write(warning,*) 'n, aicen:', n, aicen(n)
-               call add_warning(warning)
+               write(warnstr,*) subname, 'n, aicen:', n, aicen(n)
+               call icepack_warnings_add(warnstr)
             enddo
             return
          endif
@@ -930,8 +906,8 @@
                      nt_strata,               &
                      aicen,      trcrn,       &
                      vicen,      vsnon,       &
-                     ncat,       hin_max,     &
-                     l_stop,     stop_label)
+                     ncat,       hin_max      )
+         if (icepack_warnings_aborted(subname)) return
 
       endif ! aice > puny
 
@@ -952,15 +928,14 @@
                                dfhocn,       dfaero_ocn,    &
                                tr_aero,      tr_pond_topo,  &
                                first_ice,    nbtrcr,        &
-                               dfzsal,       dflux_bio,     & 
-                               l_stop,       stop_label)
+                               dfzsal,       dflux_bio      )
 
-         if (l_stop) then
-            write(warning,*) 'aice:', aice
-            call add_warning(warning)
+         if (icepack_warnings_aborted(subname)) then
+            write(warnstr,*) subname, 'aice:', aice
+            call icepack_warnings_add(warnstr)
             do n = 1, ncat
-               write(warning,*) 'n, aicen:', n, aicen(n)
-               call add_warning(warning)
+               write(warnstr,*) subname, 'n, aicen:', n, aicen(n)
+               call icepack_warnings_add(warnstr)
             enddo
             return
          endif
@@ -978,7 +953,8 @@
                                 dfresh,        dfhocn,   &
                                 dfaero_ocn,    tr_aero,  &
                                 dflux_bio,     nbtrcr,   &
-                                n_aero,        ntrcr)
+                                n_aero)
+      if (icepack_warnings_aborted(subname)) return
 
     !-------------------------------------------------------------------
     ! Update ice-ocean fluxes for strict conservation
@@ -1014,8 +990,8 @@
          call zerolayer_check (ncat,       nilyr,    &
                                nslyr,      aicen,    &
                                vicen,      vsnon,    &
-                               trcrn,      l_stop,   &
-                               stop_label)
+                               trcrn)
+         if (icepack_warnings_aborted(subname)) return
       endif
 
       end subroutine cleanup_itd
@@ -1039,10 +1015,7 @@
                                   dfhocn,    dfaero_ocn,   &
                                   tr_aero,   tr_pond_topo, &
                                   first_ice, nbtrcr,       &
-                                  dfzsal,    dflux_bio,    &
-                                  l_stop,    stop_label)
-
-      use icepack_zbgc_shared, only: zap_small_bgc
+                                  dfzsal,    dflux_bio     )
 
       integer (kind=int_kind), intent(in) :: &
          ncat     , & ! number of thickness categories
@@ -1088,11 +1061,6 @@
       logical (kind=log_kind), dimension (:),intent(inout) :: &
          first_ice    ! For bgc tracers.  Set to true if zapping ice 
 
-      logical (kind=log_kind), intent(out) :: &
-         l_stop       ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -1103,7 +1071,7 @@
       real (kind=dbl_kind) , dimension (1):: trcr_skl    
       real (kind=dbl_kind) , dimension (nblyr+1):: bvol     
 
-      l_stop = .false.
+      character(len=*),parameter :: subname='(zap_small_areas)'
 
       !-----------------------------------------------------------------
       ! I. Zap categories with very small areas.
@@ -1117,8 +1085,8 @@
       !-----------------------------------------------------------------
 
          if (aicen(n) < -puny) then
-            l_stop = .true.
-            stop_label = 'Zap ice: negative ice area'
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//' Zap ice: negative ice area')
             return
          elseif (abs(aicen(n)) /= c0 .and. &
                  abs(aicen(n)) <= puny) then
@@ -1158,6 +1126,7 @@
                   trcr_skl(1) = trcrn(bio_index(it),n)
                   call zap_small_bgc(blevels, dflux_bio(it), &
                        dt, bvol(1:blevels), trcr_skl(blevels))
+                  if (icepack_warnings_aborted(subname)) return
                enddo
          elseif (z_tracers .and. nbtrcr > 0) then
                blevels = nblyr + 1
@@ -1167,6 +1136,7 @@
                do it = 1, nbtrcr
                   call zap_small_bgc(blevels, dflux_bio(it), &
                        dt, bvol(1:blevels),trcrn(bio_index(it):bio_index(it)+blevels-1,n))
+                  if (icepack_warnings_aborted(subname)) return
                enddo
          endif
 
@@ -1204,8 +1174,9 @@
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
                           dflux_bio,     nbtrcr,   &
-                          n_aero,        ntrcr,    &
+                          n_aero, &
                           aicen(n),      nblyr)
+            if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Zap tracers
@@ -1231,8 +1202,8 @@
       !-----------------------------------------------------------------
 
       if (aice > (c1+puny)) then
-         l_stop = .true.
-         stop_label = 'Zap ice: excess ice area'
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//' Zap ice: excess ice area')
          return
       elseif (aice > c1 .and. aice < (c1+puny)) then
 
@@ -1335,13 +1306,12 @@
                           dfresh,     dfhocn,   &
                           dfaero_ocn, tr_aero,  &
                           dflux_bio,  nbtrcr,   &
-                          n_aero,     ntrcr,    &
+                          n_aero, &      
                           aicen,      nblyr)
 
       integer (kind=int_kind), intent(in) :: &
          nslyr    , & ! number of snow layers
          n_aero   , & ! number of aerosol tracers
-         ntrcr    , & ! number of tracers in use
          nblyr    , & ! number of bio  layers
          nbtrcr
  
@@ -1374,6 +1344,8 @@
          k, it        ! counting indices
 
       real (kind=dbl_kind) :: xtmp, dvssl, dvint
+
+      character(len=*),parameter :: subname='(zap_snow)'
 
       ! aerosols
       if (tr_aero) then
@@ -1421,15 +1393,14 @@
                                       dfresh,     dfhocn,   &
                                       dfaero_ocn, tr_aero,  &
                                       dflux_bio,  nbtrcr,   &
-                                      n_aero,     ntrcr)
+                                      n_aero)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
          nslyr , & ! number of snow layers
          n_aero, & ! number of aerosol tracers
          nbtrcr, & ! number of z-tracers in use
-         nblyr , & ! number of bio  layers in ice
-         ntrcr     ! number of tracers in use
+         nblyr     ! number of bio  layers in ice
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -1462,7 +1433,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         n, k, it     ! counting indices
+         n, k  ! counting indices
 
       real (kind=dbl_kind) :: &
          rnslyr   , & ! real(nslyr)
@@ -1474,9 +1445,8 @@
       logical :: &
          l_zap        ! logical whether zap snow
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
+      character(len=*),parameter :: subname='(zap_snow_temperature)'
+
       rnslyr = real(nslyr,kind=dbl_kind)
       
       do n = 1, ncat
@@ -1511,18 +1481,18 @@
             ! check for zapping
             if (zTsn < Tmin .or. zTsn > Tmax) then
                l_zap = .true.
-               write(warning,*) "zap_snow_temperature: temperature out of bounds!"
-               call add_warning(warning)
-               write(warning,*) "k:"   , k
-               call add_warning(warning)
-               write(warning,*) "zTsn:", zTsn
-               call add_warning(warning)
-               write(warning,*) "Tmin:", Tmin
-               call add_warning(warning)
-               write(warning,*) "Tmax:", Tmax
-               call add_warning(warning)
-               write(warning,*) "zqsn:", zqsn
-               call add_warning(warning)
+               write(warnstr,*) subname, "zap_snow_temperature: temperature out of bounds!"
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, "k:"   , k
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, "zTsn:", zTsn
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, "Tmin:", Tmin
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, "Tmax:", Tmax
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, "zqsn:", zqsn
+               call icepack_warnings_add(warnstr)
             endif
 
          enddo ! k
@@ -1538,8 +1508,9 @@
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
                           dflux_bio,     nbtrcr,   &
-                          n_aero,        ntrcr,    &
+                          n_aero, &
                           aicen(n),      nblyr)
+            if (icepack_warnings_aborted(subname)) return
 
       enddo ! n
 
@@ -1559,8 +1530,7 @@
       subroutine zerolayer_check (ncat,        nilyr,      &
                                   nslyr,       aicen,      &
                                   vicen,       vsnon,      &
-                                  trcrn,       l_stop,     &
-                                  stop_label)
+                                  trcrn)
 
       integer (kind=int_kind), intent(in) :: & 
          ncat  , & ! number of thickness categories
@@ -1575,11 +1545,6 @@
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn     ! ice tracers
       
-      logical (kind=log_kind), intent(out) :: &
-         l_stop    ! if true, abort on return
-
-      character (char_len), intent(out) :: stop_label
-
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -1603,14 +1568,12 @@
       real (kind=dbl_kind) :: &
          worka, workb
 
-      character(len=char_len_long) :: &
-         warning ! warning message
-      
+      character(len=*),parameter :: subname='(zerolayer_check)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
 
-      l_stop = .false.
       max_error = puny*Lfresh*rhos ! max error in zero layer energy check
                                    ! (so max volume error = puny)
 
@@ -1650,42 +1613,38 @@
          if (.not. ice_energy_correct) then
 
             if (abs(worka) > max_error) then
-               l_stop = .true.
-               stop_label = 'zerolayer check - wrong ice energy'
-               write(warning,*) trim(stop_label)
-               call add_warning(warning)
-               write(warning,*) 'n:', n
-               call add_warning(warning)
-               write(warning,*) 'eicen =', eicen(n)
-               call add_warning(warning)
-               write(warning,*) 'error=',  worka
-               call add_warning(warning)
-               write(warning,*) 'vicen =', vicen(n)
-               call add_warning(warning)
-               write(warning,*) 'aicen =', aicen(n)
-               call add_warning(warning)
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' zerolayer check - wrong ice energy')
+               write(warnstr,*) subname, 'n:', n
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'eicen =', eicen(n)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'error=',  worka
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'vicen =', vicen(n)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'aicen =', aicen(n)
+               call icepack_warnings_add(warnstr)
             endif
 
          endif
-         if (l_stop) return
+         if (icepack_warnings_aborted(subname)) return
 
          if (.not. snow_energy_correct) then
 
             if (abs(workb) > max_error) then
-               l_stop = .true.
-               stop_label = 'zerolayer check - wrong snow energy'
-               write(warning,*) trim(stop_label)
-               call add_warning(warning)
-               write(warning,*) 'n:', n
-               call add_warning(warning)
-               write(warning,*) 'esnon =', esnon(n)
-               call add_warning(warning)
-               write(warning,*) 'error=',  workb
-               call add_warning(warning)
-               write(warning,*) 'vsnon =', vsnon(n)
-               call add_warning(warning)
-               write(warning,*) 'aicen =', aicen(n)
-               call add_warning(warning)
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' zerolayer check - wrong snow energy')
+               write(warnstr,*) subname, 'n:', n
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'esnon =', esnon(n)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'error=',  workb
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'vsnon =', vsnon(n)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'aicen =', aicen(n)
+               call icepack_warnings_add(warnstr)
                return
             endif
 
@@ -1701,19 +1660,13 @@
 ! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
 !          C. M. Bitz, UW
 
-      subroutine icepack_init_itd(ncat, hin_max, l_stop, stop_label)
+      subroutine icepack_init_itd(ncat, hin_max)
 
       integer (kind=int_kind), intent(in) :: &
            ncat ! number of thickness categories
 
       real (kind=dbl_kind), intent(out) :: &
            hin_max(0:ncat)  ! category limits (m)
-
-      logical (kind=log_kind), intent(inout) :: &
-         l_stop          ! if true, print diagnostics and abort model
-
-      character (len=*), intent(out) :: &
-         stop_label   ! abort error message
 
       ! local variables
 
@@ -1735,7 +1688,27 @@
       real (kind=dbl_kind), dimension(6) :: wmo6 ! data for wmo itd
       real (kind=dbl_kind), dimension(7) :: wmo7 ! data for wmo itd
 
-      l_stop = .false.
+      character(len=*),parameter :: subname='(icepack_init_itd)'
+
+      ! thinnest 3 categories combined
+      data wmo5 / 0.30_dbl_kind, 0.70_dbl_kind, &
+                  1.20_dbl_kind, 2.00_dbl_kind,  &
+                  999._dbl_kind  /
+      ! thinnest 2 categories combined
+      data wmo6 / 0.15_dbl_kind, &
+                  0.30_dbl_kind, 0.70_dbl_kind,  &
+                  1.20_dbl_kind, 2.00_dbl_kind,  &
+                  999._dbl_kind /
+!echmod wmo6a
+!     data wmo6 /0.30_dbl_kind, 0.70_dbl_kind,  &
+!                1.20_dbl_kind, 2.00_dbl_kind,  &
+!                4.56729_dbl_kind, &
+!                 999._dbl_kind /
+      ! all thickness categories 
+      data wmo7 / 0.10_dbl_kind, 0.15_dbl_kind, &
+                  0.30_dbl_kind, 0.70_dbl_kind,  &
+                  1.20_dbl_kind, 2.00_dbl_kind,  &
+                  999._dbl_kind  /
 
       rncat = real(ncat, kind=dbl_kind)
       d1 = 3.0_dbl_kind / rncat
@@ -1798,7 +1771,7 @@
             hin_max(0) = c0     ! minimum ice thickness, m
          else
             ! delta function itd category limits
-#ifndef CCSMCOUPLED
+#ifndef CESMCOUPLED
             hi_min = p1    ! minimum ice thickness allowed (m) for thermo
 #endif
             cc1 = max(1.1_dbl_kind/rncat,hi_min)
@@ -1827,43 +1800,23 @@
       elseif (kcatbound == 2) then  ! WMO standard
 
         if (ncat == 5) then
-         ! thinnest 3 categories combined
-         data wmo5 / 0.30_dbl_kind, 0.70_dbl_kind, &
-                    1.20_dbl_kind, 2.00_dbl_kind,  &
-                    999._dbl_kind  /
          hin_max(0) = c0
          do n = 1, ncat
             hin_max(n) = wmo5(n)
          enddo
        elseif (ncat == 6) then
-         ! thinnest 2 categories combined
-         data wmo6 / 0.15_dbl_kind, &
-                    0.30_dbl_kind, 0.70_dbl_kind,  &
-                    1.20_dbl_kind, 2.00_dbl_kind,  &
-                    999._dbl_kind /
-!echmod wmo6a
-!         data wmo6 /0.30_dbl_kind, 0.70_dbl_kind,  &
-!                    1.20_dbl_kind, 2.00_dbl_kind,  &
-!                    4.56729_dbl_kind, &
-!                    999._dbl_kind /
-
          hin_max(0) = c0
          do n = 1, ncat
             hin_max(n) = wmo6(n)
          enddo
        elseif (ncat == 7) then
-         ! all thickness categories 
-         data wmo7 / 0.10_dbl_kind, 0.15_dbl_kind, &
-                    0.30_dbl_kind, 0.70_dbl_kind,  &
-                    1.20_dbl_kind, 2.00_dbl_kind,  &
-                    999._dbl_kind  /
          hin_max(0) = c0
          do n = 1, ncat
             hin_max(n) = wmo7(n)
          enddo
        else
-         stop_label = 'kcatbound=2 (WMO) must have ncat=5, 6 or 7'
-         l_stop = .true. 
+         call icepack_warnings_add(subname//' kcatbound=2 (WMO) must have ncat=5, 6 or 7')
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__) 
          return
        endif
 
@@ -1905,16 +1858,17 @@
       character(len=8) :: c_hinmax1,c_hinmax2
       character(len=2) :: c_nc
 
-      character(len=char_len_long) :: &
-           warning ! warning message
+      character(len=*),parameter :: subname='(icepack_init_itd_hist)'
 
-         write(warning,*) ' '
-         call add_warning(warning)
-         write(warning,*) 'hin_max(n-1) < Cat n < hin_max(n)'
-         call add_warning(warning)
+         write(warnstr,*) ' '
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) 'hin_max(n-1) < Cat n < hin_max(n)'
+         call icepack_warnings_add(warnstr)
          do n = 1, ncat
-            write(warning,*) hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
-            call add_warning(warning)
+            write(warnstr,*) hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
+            call icepack_warnings_add(warnstr)
             ! Write integer n to character string
             write (c_nc, '(i2)') n    
 
@@ -1926,8 +1880,8 @@
             c_hi_range(n)=c_hinmax1//'m < hi Cat '//c_nc//' < '//c_hinmax2//'m'
          enddo
 
-         write(warning,*) ' '
-         call add_warning(warning)
+         write(warnstr,*) ' '
+         call icepack_warnings_add(warnstr)
 
       end subroutine icepack_init_itd_hist
 
@@ -1949,8 +1903,6 @@
                                    trcr_base,          & 
                                    n_trcr_strata,      &
                                    nt_strata)
-
-      use icepack_tracers, only: icepack_compute_tracers
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1998,6 +1950,8 @@
       real (kind=dbl_kind) :: &
          atrcrn    ! category value
 
+      character(len=*),parameter :: subname='(icepack_aggregate)'
+
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
@@ -2044,6 +1998,7 @@
                                    vice ,     vsno,          &
                                    trcr_base, n_trcr_strata, &
                                    nt_strata, trcr)   
+      if (icepack_warnings_aborted(subname)) return
 
       deallocate (atrcr)
 
