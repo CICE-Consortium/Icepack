@@ -2,20 +2,16 @@ language: cpp
 
 sudo: false
 
-compiler: clang
-
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-5.0
     packages:
       - tcsh
       - pkg-config
       - netcdf-bin
       - libnetcdf-dev
       - gfortran
-      - clang-5.0
       - wget
       #- lftp
 
