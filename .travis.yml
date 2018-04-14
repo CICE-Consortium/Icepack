@@ -38,6 +38,9 @@ script:
 notifications:
   email: false
 
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
 after_failure:
   - "for runlog in $TRAVIS_BUILD_DIR/travis_suite.travisCItest/*.travisCItest/logs/icepack.runlog.*; do
     echo \"### Contents of $runlog ###\" && cat $runlog; done"
