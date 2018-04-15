@@ -35,7 +35,7 @@ notifications:
   email: false
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash) -s ~/ICEPACK_RUNS/
 
 after_failure:
   - "for runlog in $TRAVIS_BUILD_DIR/travis_suite.travisCItest/*.travisCItest/logs/icepack.runlog.*; do
