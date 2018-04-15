@@ -35,7 +35,9 @@ notifications:
   email: false
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) -s ~/ICEPACK_RUNS/
+  - "for dir in $HOME/ICEPACK_RUNS/*/; do
+    cp $dir/compile/*.{gcno,gcda} $TRAVIS_BUILD_DIR/columnphysics/ &&
+    bash <(curl -s https://codecov.io/bash); done"
 
 after_failure:
   - "for runlog in $TRAVIS_BUILD_DIR/travis_suite.travisCItest/*.travisCItest/logs/icepack.runlog.*; do
