@@ -13,6 +13,7 @@ addons:
       - libnetcdf-dev
       - gfortran
       - wget
+      - curl
       #- lftp
 
 install:
