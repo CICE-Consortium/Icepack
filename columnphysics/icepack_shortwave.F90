@@ -867,7 +867,7 @@
       logical (kind=log_kind), intent(in) :: &
            l_print_point
 
-      logical (kind=log_kind), intent(in) :: &
+      logical (kind=log_kind), optional, intent(in) :: &
            initonly    ! flag to indicate init only, default is false
 
       ! local temporary variables
@@ -906,7 +906,10 @@
 
       character(len=*),parameter :: subname='(run_dEdd)'
 
-      linitonly = initonly
+      linitonly = .false.
+      if (present(initonly)) then
+         linitonly = initonly
+      endif
 
       ! cosine of the zenith angle
 #ifdef CESMCOUPLED
@@ -982,8 +985,8 @@
                
                ! reduce effective pond area absorbing surface heat flux
                ! due to flux already having been used to melt pond ice
-               if (linitonly) ffracn(n) = c0
                fpn = (c1 - ffracn(n)) * fpn
+               
                
                ! taper pond area with snow on pond ice
                if (dhs > puny .and. spn >= puny .and. hs1 > puny) then
@@ -4019,6 +4022,7 @@
             fswintn (n) = c0
             fswthrun(n) = c0
             if (linitonly) dhsn(n) = c0
+            if (linitonly) ffracn(n) = c0
          enddo   ! ncat
          fswpenln (:,:) = c0
          Iswabsn  (:,:) = c0
