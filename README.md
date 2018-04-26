@@ -4,7 +4,9 @@
 ## Overview
 This repository contains files for Icepack, the column physics of the sea ice model CICE. Icepack is maintained by the CICE Consortium.  For testing purposes and guidance for including Icepack in other sea ice host models, this repository also includes a driver and basic test suite.
 
-Icepack is included in CICE as a git submodule.  Because Icepack is a submodule of CICE, Icepack and CICE development are handled independently with respect to the github repositories even though development and testing can be done together. 
+Icepack is included in CICE as a git submodule.  Because Icepack is a submodule of CICE, Icepack and CICE development are handled independently with respect to the github repositories even though development and testing can be done together.
+
+If you expect to make any changes to the code, we recommend that you first fork the Icepack repositories. Basic instructions for working with CICE and Icepack are found in the Git Workflow Guidance, linked from the Resource Index (below).
 
 ## Useful links
 * [Icepack wiki](https://github.com/CICE-Consortium/Icepack/wiki): https://github.com/CICE-Consortium/Icepack/wiki
@@ -15,6 +17,6 @@ Icepack is included in CICE as a git submodule.  Because Icepack is a submodule 
 
    Numbered Icepack releases with associated documentation and DOIs. 
 
-* [Resources](https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index): https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index
+* [Resource Index](https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index): https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index
 
    List of resources for information about the Consortium and its repositories as well as model documentation, testing, and development.
