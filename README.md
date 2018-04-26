@@ -6,7 +6,7 @@ This repository contains files for Icepack, the column physics of the sea ice mo
 
 Icepack is included in CICE as a git submodule.  Because Icepack is a submodule of CICE, Icepack and CICE development are handled independently with respect to the github repositories even though development and testing can be done together.
 
-If you expect to make any changes to the code, we recommend that you first fork the Icepack repositories. Basic instructions for working with CICE and Icepack are found in the Git Workflow Guidance, linked from the Resource Index (below).
+If you expect to make any changes to the code, we recommend that you first fork the Icepack repository. Basic instructions for working with CICE and Icepack are found in the Git Workflow Guidance, linked from the Resource Index (below).
 
 ## Useful links
 * [Icepack wiki](https://github.com/CICE-Consortium/Icepack/wiki): https://github.com/CICE-Consortium/Icepack/wiki
