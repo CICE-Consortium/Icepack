@@ -16,7 +16,7 @@
 /
 
 &grid_nml
-    kcatbound    = 0
+    kcatbound    = 1
 /
 
 &tracer_nml

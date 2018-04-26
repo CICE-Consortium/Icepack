@@ -255,6 +255,10 @@
          read(nu_nml, nml=setup_nml,iostat=nml_error)
          if (nml_error /= 0) exit
 
+         print*,'Reading grid_nml'
+         read(nu_nml, nml=grid_nml,iostat=nml_error)
+         if (nml_error /= 0) exit
+
          print*,'Reading tracer_nml'
          read(nu_nml, nml=tracer_nml,iostat=nml_error)
          if (nml_error /= 0) exit
@@ -529,6 +533,9 @@
                                trim(ocn_data_type)
          write(nu_diag,*)    ' bgc_data_type             = ', &
                                trim(bgc_data_type)
+
+         if (trim(atm_data_type)=='default') &
+         write(nu_diag,*)    ' default_season            = ', trim(default_season)
 
          write(nu_diag,1010) ' update_ocn_f              = ', update_ocn_f
          write(nu_diag,1010) ' l_mpond_fresh             = ', l_mpond_fresh
