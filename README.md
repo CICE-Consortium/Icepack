@@ -9,14 +9,14 @@ Icepack is included in CICE as a git submodule.  Because Icepack is a submodule 
 If you expect to make any changes to the code, we recommend that you first fork the Icepack repository. Basic instructions for working with CICE and Icepack are found in the Git Workflow Guidance, linked from the Resource Index (below).
 
 ## Useful links
-* [Icepack wiki](https://github.com/CICE-Consortium/Icepack/wiki): https://github.com/CICE-Consortium/Icepack/wiki
+* **Icepack wiki**: https://github.com/CICE-Consortium/Icepack/wiki
 
    Information about the Icepack model
 
-* [Icepack Version Index](https://github.com/CICE-Consortium/Icepack/wiki/Icepack-Version-Index): https://github.com/CICE-Consortium/Icepack/wiki/Icepack-Version-Index
+* **Icepack Version Index**: https://github.com/CICE-Consortium/Icepack/wiki/Icepack-Version-Index
 
    Numbered Icepack releases with associated documentation and DOIs. 
 
-* [Resource Index](https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index): https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index
+* **Resource Index**: https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index
 
    List of resources for information about the Consortium and its repositories as well as model documentation, testing, and development.
