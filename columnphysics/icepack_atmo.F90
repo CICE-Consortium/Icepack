@@ -585,8 +585,6 @@
 
       real (kind=dbl_kind) :: &
          apond    , & ! melt pond fraction of grid cell
-         vpond    , & ! mean melt pond depth over grid cell
-         ipond    , & ! mean melt pond ice depth over grid cell
          ardg     , & ! ridged ice area fraction of grid cell
          vrdg         ! ridged ice mean thickness  
 
@@ -639,20 +637,10 @@
 
          ! ponds
          apond = c0
-         vpond = c0
-         ipond = c0
          if (tr_pond) then
             do n = 1,ncat
                ! area of pond per unit area of grid cell 
                apond = apond+apnd(n)*aicen(n)  
-               ! volume of pond per unit area of grid cell
-               vpond = vpond+apnd(n)*hpnd(n)*aicen(n)
-            enddo
-         endif
-         if (tr_pond_lvl .and. tr_pond_topo) then
-            do n = 1,ncat
-               ! volume of lid per unit area of grid cell
-               ipond = ipond+apnd(n)*ipnd(n)*aicen(n)
             enddo
          endif
          

@@ -1,0 +1,2 @@
+setenv NICELYR   1         # number of vertical layers in the snow
+setenv NICECAT   1         # number of ice thickness categories
