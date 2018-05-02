@@ -1107,8 +1107,14 @@
       !-----------------------------------------------------------------
 
       i = 2  ! 2-m slab, no snow
-      ainit(3) = c1  ! assumes we are using the default ITD boundaries
-      hinit(3) = c2
+      if (3 <= ncat) then
+         n = 3
+         ainit(n) = c1  ! assumes we are using the default ITD boundaries
+         hinit(n) = c2
+      else
+         ainit(ncat) = c1
+         hinit(ncat) = c2
+      endif
       do n = 1, ncat
          ! ice volume, snow volume
          aicen(i,n) = ainit(n)

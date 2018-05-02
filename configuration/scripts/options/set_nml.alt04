@@ -14,6 +14,6 @@
     highfreq        = .true.
     update_ocn_f    = .true.
     l_mpond_fresh   = .true.
-    restore_ocn     = .false.
+    restore_ocn     = .true.
     trestore        = 0
     atm_data_type   = 'CFS'
