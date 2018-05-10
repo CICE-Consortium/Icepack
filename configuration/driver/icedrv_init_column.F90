@@ -1182,7 +1182,6 @@
       ! set Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_init_tracer_indices(nbtrcr_in=nbtrcr)
       call icepack_init_parameters(ktherm_in=ktherm, shortwave_in=shortwave, &
          scale_bgc_in=scale_bgc, skl_bgc_in=skl_bgc, z_tracers_in=z_tracers, &
          dEdd_algae_in=dEdd_algae, solve_zbgc_in=solve_zbgc, &

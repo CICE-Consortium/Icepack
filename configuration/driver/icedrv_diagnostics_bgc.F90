@@ -325,6 +325,7 @@
                pDON_sk(:) = c0
                pFed_sk(:) = c0
                pFep_sk(:) = c0
+               pgrow_net =  grow_net(n)
 
                do k = 1,n_algae
                   pN_sk(k)       = trcr    (n, nt_bgc_N(k))
