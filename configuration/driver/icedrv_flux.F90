@@ -122,6 +122,7 @@
       real (kind=dbl_kind), dimension (nx), public :: &
          sss     , & ! sea surface salinity (ppt)
          sst     , & ! sea surface temperature (C)
+         sstdat  , & ! sea surface temperature (C) saved for restoring
          frzmlt  , & ! freezing/melting potential (W/m^2)
          frzmlt_init, & ! frzmlt used in current time step (W/m^2)
          Tf      , & ! freezing temperature (C)
@@ -463,6 +464,7 @@
       frzmlt (:) = c0              ! freezing/melting potential (W/m^2)
       sss    (:) = 34.0_dbl_kind   ! sea surface salinity (ppt)
       sst    (:) = -1.8_dbl_kind   ! sea surface temperature (C)
+      sstdat (:) = sst(:)          ! sea surface temperature (C)
 
       do i = 1, nx
          Tf (i) = icepack_liquidus_temperature(sss(i)) ! freezing temp (C)

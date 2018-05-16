@@ -18,7 +18,7 @@
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing
+         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing, sstdat
 
       implicit none
       private
@@ -142,7 +142,6 @@
          frain_data(:) = frain(i)    ! rainfall rate (kg/m^2 s)
          fsnow_data(:) = fsnow(i)    ! snowfall rate (kg/m^2 s)
            qdp_data(:) = qdp  (i)    ! deep ocean heat flux (W/m^2)
-           sst_data(:) = sst  (i)    ! sea surface temperature
            sss_data(:) = sss  (i)    ! sea surface salinity
           uocn_data(:) = uocn (i)    ! ocean current components (m/s)
           vocn_data(:) = vocn (i)
@@ -160,6 +159,9 @@
         else
           trest = real(trestore,kind=dbl_kind) * secday ! seconds
         end if
+        sst_data(:) = sstdat(i)    ! default may be overwritten below
+      else
+        sst_data(:) = sst   (i)    ! default or restart value if not restoring
       endif
 
       if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
@@ -175,6 +177,7 @@
                             swvdr_data,    swvdf_data,    &
                             swidr_data,    swidf_data,    &
                             potT_data)
+
       end subroutine init_forcing
 
 !=======================================================================
