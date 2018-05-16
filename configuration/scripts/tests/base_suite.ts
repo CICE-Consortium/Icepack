@@ -22,6 +22,6 @@ restart        col     1x1        thermo1
 restart        col     1x1        swccsm3
 restart        col     1x1        alt01
 restart        col     1x1        alt02
-#restart        col     1x1        alt03
-#restart        col     1x1        alt04
+restart        col     1x1        alt03
+restart        col     1x1        alt04
 restart        col     1x1        dyn
