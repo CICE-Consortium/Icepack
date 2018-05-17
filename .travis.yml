@@ -35,7 +35,12 @@ notifications:
   email: false
 
 after_success:
-  - "for dir in $HOME/ICEPACK_RUNS/*/; do
+  # rerun with codecov metrics after the build has succeeded
+  - "./icepack.setup --suite travis_suite --testid travisCItest 
+    --mach travisCI --env gnu --codecov &&
+    cd travis_suite.travisCItest &&
+    ./results.csh && 
+    for dir in $HOME/ICEPACK_RUNS/*/; do
     cp $dir/compile/*.{gcno,gcda} $TRAVIS_BUILD_DIR/columnphysics/ &&
     bash <(curl -s https://codecov.io/bash); done"
 
