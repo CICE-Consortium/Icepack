@@ -456,10 +456,19 @@ foreach file (env.${machcomp} Macros.${machcomp})
     exit -1
   endif
   cp -f -p ${ICE_SCRIPTS}/machines/$file ${casedir}
-  # append coverage-related flags to FFLAGS if `codecov` is set
-  sed -i '' '/^FFLAGS/ s/$/ -O0 -fprofile-arcs -ftest-coverage -g/' \
-    ${casedir}/$file
 end
+
+# append coverage-related flags to Macros if `codecov` is true
+if ($codecov == 1) then
+  sed -i '' '/^FFLAGS/ s/$/ -O0 -fprofile-arcs -ftest-coverage -g/' \
+    ${casedir}/Macros.${machcomp}
+
+  sed -i '' '/^CFLAGS/ s/$/ -O0 -coverage -g/' \
+    ${casedir}/Macros.${machcomp}
+
+  echo "LDFLAGS += -ftest-coverage -fprofile-arcs -g" >> \
+    ${casedir}/Macros.${machcomp}
+endif
 
 # from basic script dir to casescr
 foreach file (parse_namelist.sh parse_settings.sh parse_namelist_from_settings.sh icepack_decomp.csh icepack.run.setup.csh icepack.test.setup.csh)
