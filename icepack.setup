@@ -23,6 +23,7 @@ set baseCom = $spval  # Baseline compare
 set baseGen = $spval  # Baseline generate
 set bfbcomp = $spval  # BFB compare
 set report  = 0       # test results reporting
+set codecov  = 0      # code coverage measurement and reporting
 #set versno = `grep "release =" doc/source/conf.py | cut -d \' -f 2`
 set versno = `git log | grep 'v[0-9]\.[0-9]\.[0-9]\.[a-z][0-9]*' | head -1 | sed 's/.*\(v[0-9]\.[0-9]\.[0-9]\.[a-z][0-9]*\).*/\1/' `
 
@@ -73,7 +74,7 @@ SYNOPSIS
 
     --suite SUITE -m MACH --testid ID 
         [-e ENV1,ENV2][--acct ACCT][--bdir DIR][--bgen DIR]
-        [--bcmp DIR][--report]
+        [--bcmp DIR][--report][--codecov]
 
 DESCRIPTION
     --help, -h : help
@@ -96,6 +97,7 @@ DESCRIPTION
     --testid   : test ID, user-defined id for testing (REQUIRED with --test or --suite)
     --diff     : generate comparison against another case
     --report   : automatically post results when tests are complete
+    --codecov  : generate and report test coverage metrics when tests are complete
 
 EXAMPLES
     icepack.setup -c caseB -m gordon -e cray -s diag1,debug
@@ -170,6 +172,10 @@ while (1)
 # arguments without settings
   if ("$option" == "--report") then
     set report = 1
+    shift argv
+
+  else if ("$option" == "--codecov") then
+    set codecov = 1
     shift argv
 
 # arguments with settings
@@ -252,6 +258,11 @@ if ($report == 1 && $testsuite == $spval) then
   exit -1
 endif
 
+if ($codecov == 1 && $testsuite == $spval) then
+  echo "${0}: ERROR in arguments, must use --suite with --codecov"
+  exit -1
+endif
+
 if ($testsuite == $spval) then
   if ("$compilers" =~ "*,*") then
     echo "${0}: ERROR in arguments, cannot set multiple compilers without --suite"
@@ -301,6 +312,10 @@ if ( $testsuite != $spval ) then
   if ($report == 1) then
     cp -f ${ICE_SCRIPTS}/tests/poll_queue.csh ./${tsdir}
   endif
+
+  #if ($codecov == 1) then
+    #cp -f ${ICE_SCRIPTS}/tests/report_codecov.csh ./${tsdir}
+  #endif
 
 cat >! ./${tsdir}/suite.run << EOF0
 #!/bin/csh -f
@@ -441,6 +456,9 @@ foreach file (env.${machcomp} Macros.${machcomp})
     exit -1
   endif
   cp -f -p ${ICE_SCRIPTS}/machines/$file ${casedir}
+  # append coverage-related flags to FFLAGS if `codecov` is set
+  sed -i '' '/^FFLAGS/ s/$/ -O0 -fprofile-arcs -ftest-coverage -g/' \
+    ${casedir}/$file
 end
 
 # from basic script dir to casescr

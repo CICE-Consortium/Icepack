@@ -8,7 +8,7 @@ CFLAGS     := -c -O0 -fp-model precise   -xHost -coverage -g
 LDFLAGS    += -ftest-coverage -fprofile-arcs -g
 
 FIXEDFLAGS := -132
-FFLAGS     :=  -O0 -ffree-line-length-none -fconvert=big-endian -finit-real=nan -fprofile-arcs -ftest-coverage -g
+FFLAGS     :=  -O2 -ffree-line-length-none -fconvert=big-endian -finit-real=nan
 FFLAGS_NOOPT:= -O0
 
 ifeq ($(ICE_BLDDEBUG), true)
