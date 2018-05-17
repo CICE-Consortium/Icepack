@@ -1,5 +1,5 @@
 #==============================================================================
-# Makefile macros for Travis-CI - gfortran and llvm (clang) compilers
+# Makefile macros for Travis-CI - gfortran and gcc compilers
 #==============================================================================
 
 CPP        := cpp
