@@ -2,21 +2,18 @@ language: cpp
 
 sudo: false
 
-compiler: clang
-
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-5.0
     packages:
       - tcsh
       - pkg-config
       - netcdf-bin
       - libnetcdf-dev
       - gfortran
-      - clang-5.0
       - wget
+      - curl
       #- lftp
 
 install:
@@ -28,7 +25,6 @@ install:
   #- "lftp ftp://anonymous:travis@travis-ci.org@ftp.cgd.ucar.edu 
   #-e 'mirror /archive/Model-Data/CICE/ ~/ICEPACK_INPUTDATA; quit'"
 
-
 script:
   - "./icepack.setup --suite travis_suite --testid travisCItest 
     --mach travisCI --env gnu &&
@@ -37,6 +33,11 @@ script:
 
 notifications:
   email: false
+
+after_success:
+  - "for dir in $HOME/ICEPACK_RUNS/*/; do
+    cp $dir/compile/*.{gcno,gcda} $TRAVIS_BUILD_DIR/columnphysics/ &&
+    bash <(curl -s https://codecov.io/bash); done"
 
 after_failure:
   - "for runlog in $TRAVIS_BUILD_DIR/travis_suite.travisCItest/*.travisCItest/logs/icepack.runlog.*; do
