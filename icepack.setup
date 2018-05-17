@@ -748,7 +748,7 @@ EOF
     ./report_results.csh
   endif
   if ($codecov == 1) then
-    echo "Measuring test coverage and uploading results to codecov.io"
+    echo "\nMeasuring test coverage and uploading results to codecov.io"
     ./report_codecov.csh
   endif
   cd ${ICE_SANDBOX}
