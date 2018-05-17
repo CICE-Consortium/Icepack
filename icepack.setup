@@ -460,13 +460,9 @@ end
 
 # append coverage-related flags to Macros if `codecov` is true
 if ($codecov == 1) then
-  sed -i '' '/^FFLAGS/ s/$/ -O0 -fprofile-arcs -ftest-coverage -g/' \
-    ${casedir}/Macros.${machcomp}
-
-  sed -i '' '/^CFLAGS/ s/$/ -O0 -coverage -g/' \
-    ${casedir}/Macros.${machcomp}
-
-  echo "LDFLAGS += -ftest-coverage -fprofile-arcs -g" >> \
+  printf "FFLAGS += -O0 -fprofile-arcs -ftest-coverage -g\
+CFLAGS += -O0 -coverage -g\
+LDFLAGS += -ftest-coverage -fprofile-arcs -g\n" >> \
     ${casedir}/Macros.${machcomp}
 endif
 
