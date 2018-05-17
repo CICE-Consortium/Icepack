@@ -1,4 +1,6 @@
 # token from https://codecov.io/gh/anders-dc/Icepack/settings
-# TODO update to reflect value for CICE/Icepack account
 codecov:
   token: 9c1a17ac-ff4e-4add-8b8a-9c0d0acffcfd
+
+# do not comment with code coverage metrics in github pull requests
+comment: false

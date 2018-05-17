@@ -177,7 +177,7 @@ while (1)
   else if ("$option" == "--codecov") then
     set codecov = 1
     shift argv
-
+     
 # arguments with settings
   else
     shift argv
@@ -313,9 +313,9 @@ if ( $testsuite != $spval ) then
     cp -f ${ICE_SCRIPTS}/tests/poll_queue.csh ./${tsdir}
   endif
 
-  #if ($codecov == 1) then
-    #cp -f ${ICE_SCRIPTS}/tests/report_codecov.csh ./${tsdir}
-  #endif
+  if ($codecov == 1) then
+    cp -f ${ICE_SCRIPTS}/tests/report_codecov.csh ./${tsdir}
+  endif
 
 cat >! ./${tsdir}/suite.run << EOF0
 #!/bin/csh -f
@@ -746,6 +746,10 @@ EOF
     ./poll_queue.csh
     ./results.csh
     ./report_results.csh
+  endif
+  if ($codecov == 1) then
+    echo "Measuring test coverage and uploading results to codecov.io"
+    ./report_codecov.csh
   endif
   cd ${ICE_SANDBOX}
 
