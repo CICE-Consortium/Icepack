@@ -36,7 +36,8 @@ notifications:
 
 after_success:
   # rerun with codecov metrics after the build has succeeded
-  - "./icepack.setup --suite travis_suite --testid travisCItest 
+  - "cd $TRAVIS_BUILD_DIR &&
+    ./icepack.setup --suite travis_suite --testid travisCItest 
     --mach travisCI --env gnu --codecov &&
     cd travis_suite.travisCItest &&
     ./results.csh && 
