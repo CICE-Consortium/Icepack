@@ -4,8 +4,8 @@ if (`where curl` == "") then
   exit(1)
 endif
 
-# token from https://codecov.io/gh/anders-dc/Icepack/settings
-setenv CODECOV_TOKEN "9c1a17ac-ff4e-4add-8b8a-9c0d0acffcfd"
+# token from https://codecov.io/gh/CICE-Consortium/Icepack/settings
+setenv CODECOV_TOKEN "df12b574-8dce-439d-8d3b-ed7428d7598a"
 
 # The test-coverage files (*.gcno,*.gcda) must reside next to the source code
 # for the coverage reporting to work. However, the coverage files are created
