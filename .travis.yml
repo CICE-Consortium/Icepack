@@ -34,16 +34,11 @@ script:
 notifications:
   email: false
 
-after_success:
-  # rerun with codecov metrics after the build has succeeded
-  - "cd $TRAVIS_BUILD_DIR && rm -rf travis_suite.travisCItest &&
-    ./icepack.setup --suite travis_suite --testid travisCItest 
-    --mach travisCI --env gnu --codecov &&
-    cd travis_suite.travisCItest &&
-    ./results.csh && 
-    for dir in $HOME/ICEPACK_RUNS/*/; do
-    cp $dir/compile/*.{gcno,gcda} $TRAVIS_BUILD_DIR/columnphysics/ &&
-    bash <(curl -s https://codecov.io/bash); done"
+#after_success:
+  # if tests were launched with --codecov, submit results to codecov.io
+  #- "for dir in $HOME/ICEPACK_RUNS/*/; do
+  #  cp $dir/compile/*.{gcno,gcda} $TRAVIS_BUILD_DIR/columnphysics/ &&
+  #  bash <(curl -s https://codecov.io/bash); done"
 
 after_failure:
   - "for runlog in $TRAVIS_BUILD_DIR/travis_suite.travisCItest/*.travisCItest/logs/icepack.runlog.*; do
