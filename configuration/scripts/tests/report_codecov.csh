@@ -30,9 +30,9 @@ foreach dir ($testdirs)
   if ( $status == 0 ) then
       echo "Uploading coverage results to codecov.io"
       if ( $use_curl == 1 ) then
-          bash -c "bash <(curl -s https://codecov.io/bash) -N '${report_name} ${test_suite_id}'"
+          bash -c "bash <(curl -s https://codecov.io/bash) -n '${report_name} ${test_suite_id}'"
       else
-          bash -c "bash <(wget -O - https://codecov.io/bash) -N '${report_name} ${test_suite_id}'"
+          bash -c "bash <(wget -O - https://codecov.io/bash) -n '${report_name} ${test_suite_id}'"
       endif
   else
       echo "No coverage files found for this test"
