@@ -25,13 +25,14 @@ echo "Looping over test cases and uploading test coverage"
 set testdirs=`ls -d ${ICE_MACHINE_WKDIR}/*`
 foreach dir ($testdirs)
   echo "## Submitting results from ${dir}"
+  set test_suite_id = "`printf ${dir} | sed 's/_.*\././'`"  # gives <suite>.<id>
   cp $dir/compile/*.{gcno,gcda} ${ICE_SANDBOX}/columnphysics/
   if ( $status == 0 ) then
       echo "Uploading coverage results to codecov.io"
       if ( $use_curl == 1 ) then
-          bash -c "bash <(curl -s https://codecov.io/bash) -N '${report_name}'"
+          bash -c "bash <(curl -s https://codecov.io/bash) -N '${report_name} ${test_suite_id}'"
       else
-          bash -c "bash <(wget -O - https://codecov.io/bash) -N '${report_name}'"
+          bash -c "bash <(wget -O - https://codecov.io/bash) -N '${report_name} ${test_suite_id}'"
       endif
   else
       echo "No coverage files found for this test"
