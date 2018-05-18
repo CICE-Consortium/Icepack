@@ -14,7 +14,7 @@ endif
 setenv CODECOV_TOKEN "df12b574-8dce-439d-8d3b-ed7428d7598a"
 
 # set name for the report, visible on the codecov user interface
-set report_name = "`git rev-parse HEAD`:`git rev-parse --abbrev-ref HEAD` on `hostname`"
+set report_name = "`git rev-parse --short HEAD`:`git rev-parse --abbrev-ref HEAD` on `hostname`"
 
 # The test-coverage files (*.gcno,*.gcda) must reside next to the source code
 # for the coverage reporting to work. However, the coverage files are created
@@ -25,7 +25,7 @@ echo "Looping over test cases and uploading test coverage"
 set testdirs=`ls -d ${ICE_MACHINE_WKDIR}/*`
 foreach dir ($testdirs)
   echo "## Submitting results from ${dir}"
-  set test_suite_id = "`printf ${dir} | sed 's/_.*\././'`"  # gives <suite>.<id>
+  set test_suite_id = "`basename '${dir}' | sed 's/_.*\././'`"  # gives <suite>.<id>
   cp $dir/compile/*.{gcno,gcda} ${ICE_SANDBOX}/columnphysics/
   if ( $status == 0 ) then
       echo "Uploading coverage results to codecov.io"
