@@ -97,7 +97,8 @@ DESCRIPTION
     --testid   : test ID, user-defined id for testing (REQUIRED with --test or --suite)
     --diff     : generate comparison against another case
     --report   : automatically post results when tests are complete
-    --codecov  : generate and report test coverage metrics when tests are complete
+    --codecov  : generate and report test coverage metrics when tests are complete,
+                 requires GNU compiler (--env gnu)
 
 EXAMPLES
     icepack.setup -c caseB -m gordon -e cray -s diag1,debug
@@ -260,6 +261,16 @@ endif
 
 if ($codecov == 1 && $testsuite == $spval) then
   echo "${0}: ERROR in arguments, must use --suite with --codecov"
+  exit -1
+endif
+
+if ($codecov == 1 && "$compilers" != "gnu") then
+  echo "${0}: ERROR in arguments, must use --env gnu with --codecov"
+  exit -1
+endif
+
+if ($codecov == 1 && `where curl` == "") then
+  echo "${0}: ERROR 'curl' is required for --codecov"
   exit -1
 endif
 
