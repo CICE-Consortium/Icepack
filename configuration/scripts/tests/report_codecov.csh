@@ -1,7 +1,13 @@
 #!/bin/csh -f
+set use_curl = 1
 if (`where curl` == "") then
-  (>&2 echo "ERROR: Code coverage reporting (--codecov) needs 'curl' to upload results")
-  exit(1)
+  echo "use_curl = 0"
+  set use_curl = 0
+  if (`where wget` == "" ) then
+    echo "curl/wget not available"
+    (>&2 echo "ERROR: Code coverage reporting (--codecov) needs 'curl' or 'wget' to upload results")
+    exit(1)
+  endif
 endif
 
 # token from https://codecov.io/gh/CICE-Consortium/Icepack/settings
@@ -19,7 +25,11 @@ foreach dir ($testdirs)
   cp $dir/compile/*.{gcno,gcda} ${ICE_SANDBOX}/columnphysics/
   if ( $status == 0 ) then
       echo "Uploading coverage results to codecov.io"
-      bash -c "bash <(curl -s https://codecov.io/bash)"
+      if ( $use_curl == 1 ) then
+          bash -c "bash <(curl -s https://codecov.io/bash)"
+      else
+          bash -c "bash <(wget -O - https://codecov.io/bash)"
+      endif
   else
       echo "No coverage files found for this test"
   endif

@@ -269,8 +269,8 @@ if ($codecov == 1 && "$compilers" != "gnu") then
   exit -1
 endif
 
-if ($codecov == 1 && `where curl` == "") then
-  echo "${0}: ERROR 'curl' is required for --codecov"
+if ($codecov == 1 && `where curl` == "" && `where wget` == "") then
+  echo "${0}: ERROR 'curl' or 'wget' is required for --codecov"
   exit -1
 endif
 
