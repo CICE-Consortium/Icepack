@@ -27,7 +27,7 @@ install:
 
 script:
   - "./icepack.setup --suite travis_suite --testid travisCItest
-    --mach travisCI --env gnu --coverage &&
+    --mach travisCI --env gnu --codecov &&
     cd travis_suite.travisCItest &&
     ./results.csh"
 
