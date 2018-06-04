@@ -71,6 +71,7 @@
       use icepack_ocean, only: icepack_ocn_mixed_layer
 
       use icepack_orbital       , only: icepack_init_orbit
+      use icepack_orbital       , only: icepack_query_orbit
 
       use icepack_therm_vertical, only: icepack_step_therm1
       use icepack_therm_itd     , only: icepack_step_therm2

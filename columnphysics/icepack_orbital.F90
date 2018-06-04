@@ -16,7 +16,8 @@
       implicit none
       private
       public :: compute_coszen, &
-                icepack_init_orbit
+                icepack_init_orbit, &
+                icepack_query_orbit
 
       ! orbital parameters
       integer (kind=int_kind)  :: iyear_AD  ! Year to calculate orbit for
@@ -35,14 +36,27 @@
 !=======================================================================
  
       contains
- 
+
 !=======================================================================
 
 ! Compute orbital parameters for the specified date.
-!
-! author:  Bruce P. Briegleb, NCAR 
 
-      subroutine icepack_init_orbit()
+      subroutine icepack_init_orbit(iyear_AD_in, eccen_in, obliqr_in, &
+         lambm0_in, mvelpp_in, obliq_in, mvelp_in, decln_in, eccf_in, &
+         log_print_in)
+
+      integer(kind=int_kind), optional, intent(in) :: iyear_AD_in  ! Year to calculate orbit for
+      real(kind=dbl_kind), optional, intent(in) :: eccen_in  ! Earth's orbital eccentricity
+      real(kind=dbl_kind), optional, intent(in) :: obliqr_in ! Earth's obliquity in radians
+      real(kind=dbl_kind), optional, intent(in) :: lambm0_in ! Mean longitude of perihelion at the
+                                                             ! vernal equinox (radians)
+      real(kind=dbl_kind), optional, intent(in) :: mvelpp_in ! Earth's moving vernal equinox longitude
+                                                             ! of perihelion + pi (radians)
+      real(kind=dbl_kind), optional, intent(in) :: obliq_in  ! obliquity in degrees
+      real(kind=dbl_kind), optional, intent(in) :: mvelp_in  ! moving vernal equinox long
+      real(kind=dbl_kind), optional, intent(in) :: decln_in  ! solar declination angle in radians
+      real(kind=dbl_kind), optional, intent(in) :: eccf_in   ! earth orbit eccentricity factor
+      logical(kind=log_kind), optional, intent(in) :: log_print_in ! Flags print of status/error
 
       character(len=*),parameter :: subname='(icepack_init_orbit)'
 
@@ -56,7 +70,64 @@
       if (icepack_warnings_aborted(subname)) return
 #endif
 
+      if (present(iyear_AD_in)) iyear_AD = iyear_AD_in
+      if (present(eccen_in)) eccen = eccen_in
+      if (present(obliqr_in)) obliqr = obliqr_in
+      if (present(lambm0_in)) lambm0 = lambm0_in
+      if (present(mvelpp_in)) mvelpp = mvelpp_in
+      if (present(obliq_in)) obliq = obliq_in
+      if (present(mvelp_in)) mvelp = mvelp_in
+      if (present(decln_in)) decln = decln_in
+      if (present(eccf_in)) eccf = eccf_in
+      if (present(log_print_in)) log_print = log_print_in
+
       end subroutine icepack_init_orbit
+ 
+!=======================================================================
+
+! Compute orbital parameters for the specified date.
+
+      subroutine icepack_query_orbit(iyear_AD_out, eccen_out, obliqr_out, &
+         lambm0_out, mvelpp_out, obliq_out, mvelp_out, decln_out, eccf_out, &
+         log_print_out)
+
+      integer(kind=int_kind), optional, intent(out) :: iyear_AD_out  ! Year to calculate orbit for
+      real(kind=dbl_kind), optional, intent(out) :: eccen_out  ! Earth's orbital eccentricity
+      real(kind=dbl_kind), optional, intent(out) :: obliqr_out ! Earth's obliquity in radians
+      real(kind=dbl_kind), optional, intent(out) :: lambm0_out ! Mean longitude of perihelion at the
+                                                             ! vernal equinox (radians)
+      real(kind=dbl_kind), optional, intent(out) :: mvelpp_out ! Earth's moving vernal equinox longitude
+                                                             ! of perihelion + pi (radians)
+      real(kind=dbl_kind), optional, intent(out) :: obliq_out  ! obliquity in degrees
+      real(kind=dbl_kind), optional, intent(out) :: mvelp_out  ! moving vernal equinox long
+      real(kind=dbl_kind), optional, intent(out) :: decln_out  ! solar declination angle in radians
+      real(kind=dbl_kind), optional, intent(out) :: eccf_out   ! earth orbit eccentricity factor
+      logical(kind=log_kind), optional, intent(out) :: log_print_out ! Flags print of status/error
+
+      character(len=*),parameter :: subname='(icepack_query_orbit)'
+
+      !call icepack_warnings_add(subname//'  ')
+      iyear_AD  = 1950
+      log_print = .false.   ! if true, write out orbital parameters
+
+#ifndef CESMCOUPLED
+      call shr_orb_params( iyear_AD, eccen , obliq , mvelp    , &
+                           obliqr  , lambm0, mvelpp, log_print)
+      if (icepack_warnings_aborted(subname)) return
+#endif
+
+      if (present(iyear_AD_out)) iyear_AD_out = iyear_AD
+      if (present(eccen_out)) eccen_out = eccen
+      if (present(obliqr_out)) obliqr_out = obliqr
+      if (present(lambm0_out)) lambm0_out = lambm0
+      if (present(mvelpp_out)) mvelpp_out = mvelpp
+      if (present(obliq_out)) obliq_out = obliq
+      if (present(mvelp_out)) mvelp_out = mvelp
+      if (present(decln_out)) decln_out = decln
+      if (present(eccf_out)) eccf_out = eccf
+      if (present(log_print_out)) log_print_out = log_print
+
+      end subroutine icepack_query_orbit
  
 !=======================================================================
 
