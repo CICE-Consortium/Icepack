@@ -282,9 +282,9 @@
 
       elseif (trim(atm_data_type) == 'ISPOL') then
 
-        offndy = 167                         ! first data record (Julian day)
+        offndy = 0                              ! first data record (Julian day)
         offset = real(offndy,dbl_kind)*secday
-        dataloc = 2                          ! data located at end of interval
+        dataloc = 1                             ! data located at middle of interval
         maxrec = 365
         recslot = 2
         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
@@ -308,7 +308,7 @@
          frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
 
         sec6hr = secday/c4;                      ! seconds in 6 hours
-        offndy = 167
+        offndy = 0
         maxrec = 1460
         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1 ! data begins on 16 June 2004
@@ -329,9 +329,9 @@
 
       elseif (trim(atm_data_type) == 'NICE') then
 
-        offndy = 114                         ! first data record (Julian day)
+        offndy = 0                              ! first data record (Julian day)
         offset = real(offndy,dbl_kind)*secday
-        dataloc = 2                          ! data located at end of interval
+        dataloc = 1                          ! data located in middle of interval
         maxrec = 365
         recslot = 2
         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
@@ -356,6 +356,7 @@
 
         sec6hr = secday/c4;                      ! seconds in 6 hours
         maxrec = 1460
+        dataloc = 2                              ! data located at end of interval
         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1
         recslot = 2

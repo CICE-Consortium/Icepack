@@ -432,6 +432,11 @@
 
       character(len=*),parameter :: subname='(sklbio)'
 
+      flux_bion (:) = c0
+      upNOn     (:) = c0
+      upNHn     (:) = c0
+      grow_alg  (:) = c0
+
       call skl_biogeochemistry       (dt, &
                                       n_doc,     &
                                       n_dic,     n_don,     &
@@ -650,14 +655,17 @@
       ! begin building biogeochemistry terms
       !-----------------------------------------------------------------
 
+      react(:) = c0  
+      grow_alg_skl(:) = c0
+
       call algal_dyn (dt,              &
                       n_doc, n_dic,  n_don, n_fed, n_fep, &
                       dEdd_algae, &
                       fswthru,         react,     & 
                       cinit_v, &
-                      grow_alg_skl,    n_algae,   &
+                      grow_alg_skl(:),    n_algae,   &
                       iTin,                       &
-                      upNOn,           upNHn,     &
+                      upNOn(:),           upNHn(:),     &
                       Zoo_skl,                    &
                       Nerror,          conserve_N)
       if (icepack_warnings_aborted(subname)) return

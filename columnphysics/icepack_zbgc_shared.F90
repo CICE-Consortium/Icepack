@@ -712,10 +712,10 @@
 
       ! history output
       real (kind=dbl_kind), intent(inout):: & 
-         PP_net  , & ! Bulk net PP (mg C/m^2/s)
-         grow_net, & ! net specific growth (/s)
-         upNO    , & ! tot nitrate uptake rate (mmol/m^2/s) 
-         upNH        ! tot ammonium uptake rate (mmol/m^2/s)
+         PP_net  , & ! Bulk net PP (mg C/m^2/d)
+         grow_net, & ! net specific growth (/d)
+         upNO    , & ! tot nitrate uptake rate (mmol/m^2/d) 
+         upNH        ! tot ammonium uptake rate (mmol/m^2/d)
       
       ! local variables
 
