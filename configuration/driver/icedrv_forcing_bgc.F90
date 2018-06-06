@@ -32,7 +32,7 @@
 
       subroutine init_forcing_bgc
 
-        use icedrv_forcing, only: data_dir, bgc_data_type
+        use icedrv_forcing, only: data_dir, bgc_data_type, bgc_data_file
 
         integer (kind=int_kind) :: &
            ntime, &
@@ -50,9 +50,9 @@
             trim(bgc_data_type) == 'NICE') then
           
            if (trim(bgc_data_type) == 'ISPOL') &
-           filename = trim(data_dir)//'/ISPOL_2004/nutrients_daily_ISPOL_WOA_field3.txt'
+           filename = trim(data_dir)//'/ISPOL_2004/'//trim(bgc_data_file)
            if (trim(bgc_data_type) == 'NICE') &
-           filename = trim(data_dir)//'/NICE_2015/nutrients_daily_ISPOL_WOA_field3.txt'
+           filename = trim(data_dir)//'/NICE_2015/'//trim(bgc_data_file)
 
           write (nu_diag,*) 'Reading ',filename
 

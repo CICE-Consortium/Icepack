@@ -7,6 +7,9 @@
  atm_data_type   = 'ISPOL'
  ocn_data_type   = 'ISPOL'
  bgc_data_type   = 'ISPOL'
+ atm_data_file   = 'ISPOL_atm_forcing.txt'
+ ocn_data_file   = 'pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+ bgc_data_file   = 'nutrients_daily_ISPOL_WOA_field3.txt'
  tr_brine        = .true.
  tr_zaero        = .true.
  z_tracers       = .true.

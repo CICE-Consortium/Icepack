@@ -7,6 +7,9 @@
  atm_data_type   = 'NICE'
  ocn_data_type   = 'NICE'
  bgc_data_type   = 'NICE'
+ atm_data_file   = 'NICE_atm_forcing.txt'
+ ocn_data_file   = 'oceanmixed_daily_3.txt'
+ bgc_data_file   = 'nutrients_daily_ISPOL_WOA_field3.txt'
  tr_brine        = .true.
  tr_zaero        = .false.
  z_tracers       = .true.

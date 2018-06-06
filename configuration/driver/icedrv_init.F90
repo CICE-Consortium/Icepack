@@ -65,6 +65,8 @@
       use icedrv_flux, only: default_season
       use icedrv_forcing, only: precip_units,    fyear_init,      ycycle
       use icedrv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
+      use icedrv_forcing, only: atm_data_file,   ocn_data_file,   bgc_data_file
+      use icedrv_forcing, only: ice_data_file
       use icedrv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icedrv_forcing, only: data_dir
       use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
@@ -145,6 +147,8 @@
         tfrz_option,     default_season,                   &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
+        atm_data_file,   ocn_data_file,   bgc_data_file,   &
+        ice_data_file,                                     &
         atm_data_format, ocn_data_format, bgc_data_format, &
         data_dir,        trestore,        restore_ocn
 
@@ -217,13 +221,17 @@
       ycycle          = 1         ! number of years in forcing cycle
       atm_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       atm_data_type   = 'default' ! source of atmospheric forcing data
+      atm_data_file   = ' '       ! atmospheric forcing data file
       precip_units    = 'mks'     ! 'mm_per_month' or
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default' ! source of ocean forcing data
+      ocn_data_file   = ' '       ! ocean forcing data file
+      ice_data_file   = ' '       ! ice forcing data file (opening, closing)
       bgc_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       bgc_data_type   = 'default' ! source of BGC forcing data
+      bgc_data_file   = ' '       ! biogeochemistry forcing data file
       data_dir    = ' '           ! root location of data files
       restore_ocn     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
@@ -533,6 +541,15 @@
                                trim(ocn_data_type)
          write(nu_diag,*)    ' bgc_data_type             = ', &
                                trim(bgc_data_type)
+
+         write(nu_diag,*)    ' atm_data_file             = ', &
+                               trim(atm_data_file)
+         write(nu_diag,*)    ' ocn_data_file             = ', &
+                               trim(ocn_data_file)
+         write(nu_diag,*)    ' bgc_data_file             = ', &
+                               trim(bgc_data_file)
+         write(nu_diag,*)    ' ice_data_file             = ', &
+                               trim(ice_data_file)
 
          if (trim(atm_data_type)=='default') &
          write(nu_diag,*)    ' default_season            = ', trim(default_season)
