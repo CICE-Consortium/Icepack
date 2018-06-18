@@ -255,7 +255,6 @@ column physics.
    "``scale_bgc``", "true/false", "Initialize biogeochemical profiles to scale with prognosed salinity profile", "``.false.``"
    "``solve_zsal``", "true/false", "prognostic salinity tracer used with ktherm = 1", "``.false.``"
    "``restart_zsal``", "true/false", "restarts zsalinity", "``.false.``"
-   "``bgc_data_dir``", "``/nitrate_and_silicate/forcing_directory/``", "", "'``/nitrate_and_silicate/forcing_directory/``'"
    "``bgc_data_type``", "``default``", "fixed, spatially homogeneous constant values defined in the code", ""
    "", "``clim``", "monthly climatology data file (see icedrv_forcing_bgc.F90) :cite:`GLBA06`", ""
    "", "``NICE``", "N-ICE experiment data", ""

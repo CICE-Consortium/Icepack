@@ -299,8 +299,8 @@ subroutine **icepack\_init\_ocean\_conc** in **icepack\_zbgc.F90** unless
 coupled to the ocean biogeochemistry. Silicate and nitrate may be read
 from a file. This option is specified in the namelist by setting the
 variables ``bgc_data_type`` to ``ISPOL``  or ``NICE``. The location of 
-forcing files is specified in ``bgc_data_dir`` and the filename is hardcoded 
-in **icedrv\_forcing** (NJ - needs to be updated).
+forcing files is specified in ``data_dir`` and the filename is also in
+namelist, ``bgc_data_file``.
 
 
 Skeletal Layer BGC
