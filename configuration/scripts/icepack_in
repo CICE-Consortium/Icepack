@@ -244,6 +244,10 @@
     fyear_init      = 2015
     ycycle          = 1
     data_dir        = '/Users/ftuser/Desktop/CICE-Consortium/ICEPACK_DATA/'
+    atm_data_file   = 'unknown_atm_data_file'
+    ocn_data_file   = 'unknown_ocn_data_file'
+    bgc_data_file   = 'unknown_bgc_data_file'
+    ice_data_file   = 'open_clos_lindsay.dat'
     atm_data_format = 'bin'
     ocn_data_format = 'bin'
     bgc_data_format = 'bin'

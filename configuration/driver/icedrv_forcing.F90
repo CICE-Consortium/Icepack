@@ -73,8 +73,12 @@
          ocn_data_format, & ! 'bin'=binary or 'nc'=netcdf
          bgc_data_format, & ! 'bin'=binary or 'nc'=netcdf
          atm_data_type,   & ! 'default', 'clim', 'CFS'
-         ocn_data_type,   & ! 'default'
-         bgc_data_type,   & ! 'default'
+         ocn_data_type,   & ! 'default', 'SHEBA'
+         bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
+         atm_data_file,   & ! atmospheric forcing data file
+         ocn_data_file,   & ! ocean forcing data file
+         ice_data_file,   & ! ice forcing data file
+         bgc_data_file,   & ! biogeochemistry forcing data file
          precip_units       ! 'mm_per_month', 'mm_per_sec', 'mks'
  
       character(char_len_long), public :: & 
@@ -547,7 +551,8 @@
       character (char_len_long) filename
       character(len=*), parameter :: subname='(atm_CFS)'
 
-      filename = trim(data_dir)//'/CFS/cfsv2_2015_220_70_01hr.txt'
+!      atm_data_file = 'cfsv2_2015_220_70_01hr.txt'
+      filename = trim(data_dir)//'/CFS/'//trim(atm_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -869,8 +874,9 @@
       character (char_len_long) filename
 
       character(len=*), parameter :: subname='(atm_ISPOL)'
-      
-      filename = trim(data_dir)//'/ISPOL_2004/ISPOL_atm_forcing.txt'
+
+!      atm_data_file = 'ISPOL_atm_forcing.txt'
+      filename = trim(data_dir)//'/ISPOL_2004/'//trim(atm_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -927,7 +933,8 @@
 
       character(len=*), parameter :: subname='(atm_NICE)'
 
-      filename = trim(data_dir)//'/NICE_2015/NICE_atm_forcing.txt'
+!      atm_data_file = 'NICE_atm_forcing.txt'
+      filename = trim(data_dir)//'/NICE_2015/'//trim(atm_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -980,8 +987,8 @@
       
       character(len=*), parameter :: subname='(ocn_NICE)'
 
-      filename = &
-         trim(data_dir)//'/NICE_2015/oceanmixed_daily_3.txt'
+!      ocn_data_file = 'oceanmixed_daily_3.txt'
+      filename = trim(data_dir)//'/NICE_2015/'//trim(ocn_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -1030,8 +1037,8 @@
       
       character(len=*), parameter :: subname='(ocn_ISPOL)'
 
-      filename = &
-        trim(data_dir)//'/ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+!      ocn_data_file = 'pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+      filename = trim(data_dir)//'/ISPOL_2004/'//trim(ocn_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -1101,8 +1108,8 @@
 
       character (char_len_long) filename
 
-      filename = &
-          trim(data_dir)//'/SHEBA/open_clos_lindsay.dat'
+!      ice_data_file = 'open_clos_lindsay.dat'
+      filename = trim(data_dir)//'/SHEBA/'//trim(ice_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 

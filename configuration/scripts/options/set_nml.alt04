@@ -17,3 +17,6 @@
     restore_ocn     = .true.
     trestore        = 0
     atm_data_type   = 'CFS'
+    atm_data_file   = 'cfsv2_2015_220_70_01hr.txt'
+    ocn_data_type   = 'SHEBA'
+    ice_data_file   = 'open_clos_lindsay.dat'

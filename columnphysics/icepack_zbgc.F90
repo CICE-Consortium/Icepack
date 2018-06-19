@@ -953,9 +953,11 @@
          else
             first_ice(n) = .true.
             if (tr_brine) trcrn(nt_fbri,n) = c1
-            do mm = 1,nbtrcr
-               trcrn(nt_zbgc_frac-1+mm,n) = zbgc_frac_init(mm)
-            enddo
+            if (z_tracers) then
+               do mm = 1,nbtrcr
+                  trcrn(nt_zbgc_frac-1+mm,n) = zbgc_frac_init(mm)
+               enddo
+            endif
             if (n == 1) Rayleigh_criteria = .false.
             if (solve_zsal) trcrn(nt_bgc_S:nt_bgc_S+nblyr-1,n) = c0
          endif

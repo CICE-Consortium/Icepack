@@ -256,7 +256,11 @@ Icepack requires near surface atmospheric data at a single point which are set
 in ``forcing_nml`` with the ``atm_data_type`` in the namelist (see :ref:`tabsettings`).
 The required fields to force icepack include: downwelling long wave and shortwave 
 radiative fluxes, latent and sensible heat fluxes, precipitation rate, and near 
-surface potential temperature and specific humidity.
+surface potential temperature and specific humidity.  The filenames ``atm_data_file``,
+``ocn_data_file``, ``ice_data_file``, and ``bgc_data_file``
+must also be provided for options other than the default and climatological forcing
+cases.  Current filenames can be found in the options scripts in
+**configuration/scripts/options** and in the forcing data directories.
 
 
 1) **Climate Forecast System (CFS)**
