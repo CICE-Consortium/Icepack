@@ -4,7 +4,7 @@
     tr_pond_topo = .false.
     tr_pond_cesm = .false.
     ktherm            = 0
-    tfrz_option       = linear_salt
+    tfrz_option       = 'linear_salt'
     conduct           = 'bubbly'
     default_season  = 'winter'
     atm_data_type   = 'default'

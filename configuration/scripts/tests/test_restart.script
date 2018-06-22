@@ -40,7 +40,8 @@ end
 cp -f ${fname} ${ICE_RUNDIR}/restart/
 
 # Calculate the 'npt' for the restart run
-set npt=`grep "npt " icepack_in.1 | grep -oP "\d+" | sort -n | tail -1`
+#set npt=`grep "npt " icepack_in.1 | grep -oP "\d+" | sort -n | tail -1`
+set npt=`grep "npt " icepack_in.1 | sed "s/[^0-9]*//g" | sort -n | tail -1`
 @ new_npt = $npt / 2
 
 set base_data = ${ICE_RUNDIR}/restart_baseline/${test_file}
