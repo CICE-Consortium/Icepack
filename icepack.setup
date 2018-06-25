@@ -489,7 +489,7 @@ foreach compiler ( $ncompilers )
     if !( -d ${casescr}) mkdir ${casescr}
 
     # from basic script dir to case
-    foreach file (icepack.build icepack.settings Makefile icepack_in makdep.c)
+    foreach file (icepack.build icepack.settings Makefile icepack_in makdep.c setup_run_dirs.csh)
       if !(-e ${ICE_SCRIPTS}/$file) then
         echo "${0}: ERROR, ${ICE_SCRIPTS}/$file not found"
         exit -1

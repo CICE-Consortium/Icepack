@@ -3,13 +3,24 @@
 # Run the ICEPACK model
 # icepack.run returns -1 if run did not complete successfully
 
-./icepack.run
+mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
+cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} run" >! ${ICE_CASEDIR}/test_output
+rm -f ${ICE_CASEDIR}/test_output.prev
+echo "RUN  ${ICE_TESTNAME} run " >> ${ICE_CASEDIR}/test_output
 
-if ( $? != 0 ) then
-  # Run failed
-  echo "FAIL ${ICE_TESTNAME} run" >> ${ICE_CASEDIR}/test_output
-  exit 99
-else
-  # Run succeeded
-  echo "PASS ${ICE_TESTNAME} run" >> ${ICE_CASEDIR}/test_output
+./icepack.run
+set res="$?"
+
+mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
+cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} run" >! ${ICE_CASEDIR}/test_output
+mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
+cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} test" >! ${ICE_CASEDIR}/test_output
+rm -f ${ICE_CASEDIR}/test_output.prev
+
+set grade = FAIL
+if ( $res == 0 ) then
+  set grade = PASS
 endif
+
+echo "$grade ${ICE_TESTNAME} run" >> ${ICE_CASEDIR}/test_output
+echo "$grade ${ICE_TESTNAME} test" >> ${ICE_CASEDIR}/test_output
