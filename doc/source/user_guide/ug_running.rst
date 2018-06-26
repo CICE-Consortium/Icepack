@@ -104,6 +104,9 @@ Testing will be described in greater detail in the :ref:`testing` section.
 ``--version``
   prints the Icepack version to the terminal and exits.
 
+``--setvers``
+  Updates the stored value of the Icepack version in the sandbox and exits  See :ref:`version` for more information
+
 ``--case``, ``-c`` CASE
   specifies the case name.  This can be either a relative path of an absolute path.  This cannot be used with --test or --suite.  Either ``--case``, ``--test``, or ``--suite`` is required.
 
@@ -118,6 +121,9 @@ Testing will be described in greater detail in the :ref:`testing` section.
 
 ``--acct``  ACCOUNT
   specifies a batch account number.  This is optional.  See :ref:`account` for more information.
+
+``--queue`` QUEUE
+  specifies a batch queue name.  This is optional.  See :ref:`queue` for more information.
 
 ``--grid``, ``-g`` GRID
   specifies the grid.  This is a string and for the current icepack driver, only col is supported. (default = col)
@@ -189,6 +195,44 @@ Once the cases are created, users are free to modify the icepack.settings and ic
 
 .. _porting:
 
+.. _version:
+
+Model Version Control
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Managing the internal representation of the model version is handled through the
+**icepack.setup** script.  The ``--version`` option displays the version value
+on the terminal.  The ``--setvers`` option updates the version defined in the 
+sandbox.  It is highly recommended that any changes to the version name be done
+through this interface to make sure it's done correctly and comprehensively.
+The version name should just include the string associated with the major, minor,
+and similar.  For instance,::
+
+  icepack.setup --version
+
+returns
+
+  ./icepack.setup: This is ICEPACK_v1.0.0.d0003
+
+and::
+
+  icepack.setup --setvers v1.0.0.d0004
+
+would update the version.  Always check the string by doing
+``icepack.setup --version`` after invoking ``icepack.setup --setvers``.
+
+The version is not updated in the repository unless the code changes associated
+with the new version are pushed to the repository.
+
+.. _otherscripts:
+
+Other Scripts Tools
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are other scripts that come with icepack.  These include
+
+- setup_run_dirs.csh.  This scripts is added to the case directory.  Invoking it creates all the run directories manually.  This script is automatically called as part of the run script, but sometimes it's useful to create these directories before submitting in order to stage custom input files or other data.
+
 Porting
 -------
 
@@ -232,6 +276,19 @@ preferred account name to the first line.
 There is also an option (``--acct``) in **icepack.setup** to define the account number.  
 The order of precedent is **icepack.setup** command line option, 
 **.cice\_proj** setting, and then value in the **env.[machine]** file.
+
+.. _queue:
+
+Machine Queue Settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The machine queue default is specified by the variable ``ICE_MACHINE_QUEUE`` in 
+the **env.[machine]** file.  The easiest way to change a user's default is to 
+create a file in your home directory called **.cice\_queue** and add your 
+preferred account name to the first line.  
+There is also an option (``--queue``) in **icepack.setup** to define the queue name on a case basis.
+The order of precedent is **icepack.setup** command line option, 
+**.cice\_queue** setting, and then value in the **env.[machine]** file.
 
 .. _force:
 

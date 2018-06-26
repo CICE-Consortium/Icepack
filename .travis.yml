@@ -32,14 +32,14 @@ install:
 script:
   - "./icepack.setup --suite travis_suite --testid travisCItest 
     --mach travisCI --env gnu &&
-    cd travis_suite.travisCItest &&
+    cd testsuite.travisCItest &&
     ./results.csh"
 
 notifications:
   email: false
 
 after_failure:
-  - "for runlog in $TRAVIS_BUILD_DIR/travis_suite.travisCItest/*.travisCItest/logs/icepack.runlog.*; do
+  - "for runlog in $TRAVIS_BUILD_DIR/testsuite.travisCItest/*.travisCItest/logs/icepack.runlog.*; do
     echo \"### Contents of $runlog ###\" && cat $runlog; done"
   - "git config --global user.email 'travis@travis-ci.org' &&
     git config --global user.name 'ciceconsortium' &&

@@ -16,7 +16,7 @@ may be a good starting point for testing.
 
 The testing scripts support several features
  - Ability to test individual (via ``--test``)or multiple tests (via ``--suite``)
-   using an input file to define the suite
+   using an input file to define the suite or suites
  - Ability to use test suite defined in the package or test suites defined by the user
  - Ability to store test results for regresssion testing (``--bgen``)
  - Ability to compare results to prior baselines to verify bit-for-bit (``--bcmp``)
@@ -215,9 +215,9 @@ Test suites
 ------------
 
 Test suites support running multiple tests specified via
-an input file.  When invoking the test suite option (``--suite``) with **icepack.setup**,
+an input file or files.  When invoking the test suite option (``--suite``) with **icepack.setup**,
 all tests will be created, built, and submitted automatically under
-a directory called [suite_name].[testid] as part of involing the suite.
+a directory called testsuite.[testid].[$date] as part of involing the suite.
 Because the tests are built and submitted automatically, 
 this feature does not allow for customization of cases or tests like
 individual cases and tests do::
@@ -256,7 +256,7 @@ Lines that begin with # or are blank are ignored.  For example,
    restart  col  1x1  pondlvl  
    restart  col  1x1  pondtopo  
 
-The argument to ``--suite`` defines the test suite (.ts) filename and that argument 
+The argument to ``--suite`` defines the test suite (.ts) filename or filenames and that argument 
 can contain a path.  
 **icepack.setup** 
 will look for the filename in the local directory, in **configuration/scripts/tests/**, 
@@ -265,8 +265,8 @@ or in the path defined by the ``--suite`` option.
 Because many of the command line options are specified in the input file, ONLY the
 following options are valid for suites,
 
-``--suite`` filename
-  required, input filename with list of suites
+``--suite`` suitename1,suitename2
+  required, input filename with comma delimited list of suite or suites
 
 ``--mach`` MACHINE
   required
@@ -307,19 +307,20 @@ Specify suite, mach, env, testid.
   ./results.csh
 
 
-Example. Basic test suite on multiple environments
+Example. Multiple test suites on multiple environments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Specify multiple envs.
 ::
 
-  ./icepack.setup --suite base_suite --mach conrad --env cray,pgi,intel,gnu --testid v01a
+  ./icepack.setup --suite base_suite,quick_suite --mach conrad --env cray,pgi,intel,gnu --testid v01a
   cd base_suite.v01a
   #wait for runs to complete
   ./results.csh
 
-Each env can be run as a separate invokation of `icepack.setup` but if that
-approach is taken, it is recommended that different testids be used.
+The interface supports both multiple suites and multiple environments from a single
+command line invokation.  Each env or suite can also be run as a separate invokation 
+of `icepack.setup` but if that approach is taken, it is recommended that different testids be used.
 
 
 Example. Basic test suite, store baselines in user defined name

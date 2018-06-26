@@ -7,14 +7,30 @@ cp icepack_in icepack_in.0
 ${ICE_CASEDIR}/casescripts/parse_namelist.sh icepack_in ${ICE_CASEDIR}/casescripts/test_nml.restart1
 cp icepack_in icepack_in.1
 
-./icepack.run
+mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
+cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} run" >! ${ICE_CASEDIR}/test_output
+mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
+cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} test" >! ${ICE_CASEDIR}/test_output
+rm -f ${ICE_CASEDIR}/test_output.prev
+echo "RUN  ${ICE_TESTNAME} run " >> ${ICE_CASEDIR}/test_output
+echo "PEND ${ICE_TESTNAME} test " >> ${ICE_CASEDIR}/test_output
 
-if ( $? != 0 ) then
-  echo "FAIL ${ICE_TESTNAME} run-initial" >> ${ICE_CASEDIR}/test_output
+./icepack.run
+set res="$?"
+
+if ( $res != 0 ) then
+  mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
+  cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} run" >! ${ICE_CASEDIR}/test_output
+  mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
+  cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} test " >! ${ICE_CASEDIR}/test_output
+  rm -f ${ICE_CASEDIR}/test_output.prev
+  echo "FAIL ${ICE_TESTNAME} run" >> ${ICE_CASEDIR}/test_output
+  echo "FAIL ${ICE_TESTNAME} test " >> ${ICE_CASEDIR}/test_output
   exit 99
 else
-  echo "PASS ${ICE_TESTNAME} run-initial" >> ${ICE_CASEDIR}/test_output
+  echo "PASS ${ICE_TESTNAME} initialrun" >> ${ICE_CASEDIR}/test_output
 endif
+
 
 # Copy restart files to baseline directory 
 set test_file = `ls -1 ${ICE_RUNDIR}/restart | tail -1`
@@ -56,24 +72,32 @@ ${ICE_CASEDIR}/casescripts/parse_namelist.sh icepack_in ${ICE_CASEDIR}/casescrip
 cp icepack_in icepack_in.2
 
 ./icepack.run
+set res="$?"
 
-if ( $? != 0 ) then
-  echo "FAIL ${ICE_TESTNAME} run-restart" >> ${ICE_CASEDIR}/test_output
+cp icepack_in.0 icepack_in
+
+mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
+cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} run" >! ${ICE_CASEDIR}/test_output
+mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
+cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} test" >! ${ICE_CASEDIR}/test_output
+rm -f ${ICE_CASEDIR}/test_output.prev
+
+if ( $res != 0 ) then
+  echo "FAIL ${ICE_TESTNAME} run " >> ${ICE_CASEDIR}/test_output
+  echo "FAIL ${ICE_TESTNAME} test " >> ${ICE_CASEDIR}/test_output
   exit 99
 else
-  echo "PASS ${ICE_TESTNAME} run-restart" >> ${ICE_CASEDIR}/test_output
-endif
+  echo "PASS ${ICE_TESTNAME} run " >> ${ICE_CASEDIR}/test_output
 
-#-----------------------------------------------------------
-
-echo "Exact Restart Comparison Mode:"
-echo "Performing binary comparison between files:"
-echo "base: $base_data"
-echo "test: $test_data"
-if ( { cmp -s $test_data $base_data } ) then
-  echo "PASS ${ICE_TESTNAME} exact-restart" >> ${ICE_CASEDIR}/test_output
-else
-  echo "FAIL ${ICE_TESTNAME} exact-restart" >> ${ICE_CASEDIR}/test_output
+  echo "Exact Restart Comparison Mode:"
+  echo "Performing binary comparison between files:"
+  echo "base: $base_data"
+  echo "test: $test_data"
+  if ( { cmp -s $test_data $base_data } ) then
+    echo "PASS ${ICE_TESTNAME} test " >> ${ICE_CASEDIR}/test_output
+  else
+    echo "FAIL ${ICE_TESTNAME} test " >> ${ICE_CASEDIR}/test_output
+  endif
 endif
 
 #-----------------------------------------------------------
