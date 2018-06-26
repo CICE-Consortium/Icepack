@@ -61,6 +61,12 @@ NAME
   icepack.setup
 
 SYNOPSIS
+    -h || --help
+    
+    --version
+
+    --setvers versno
+
     --case CASE -m MACH 
         [-e ENV][-p MxN][-g GRID][-s SET1,SET2][--acct ACCT]
 
@@ -75,10 +81,12 @@ SYNOPSIS
 DESCRIPTION
     --help, -h : help
     --version  : generates icepack version number
+    --setvers  : updates the icepack version number in the sandbox
     --case, -c : case, case directory/name (not with --test or --suite)
     --mach, -m : machine, machine name (required)
     --env,  -e : compiler(s), comma separated (default = "intel")
     --pes,  -p : tasks x threads or "m"x"n" (default is 1x1)
+    --queue    : queue name for batch submission
     --acct     : account number for the batch submission
     --grid, -g : grid, grid (default = col)
     --set,  -s : case option setting(s), comma separated (default = " ")
