@@ -14,7 +14,6 @@ setenv ICE_HSTDIR     ${ICE_RUNDIR}/history
 setenv ICE_LOGDIR     ${ICE_CASEDIR}/logs
 setenv ICE_RSTPFILE   undefined
 setenv ICE_DRVOPT     icepack
-setenv ICE_CONSTOPT   cice
 setenv ICE_IOTYPE     none    # set to none if netcdf library is unavailable
 setenv ICE_CLEANBUILD true
 setenv ICE_QUIETMODE  false

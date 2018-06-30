@@ -37,7 +37,6 @@ to support the CICE model.
    "ICE_LOGDIR", " ", "log directory", "${ICE_CASEDIR}/logs"
    "ICE_RSTPFILE", " ", "unused", "undefined"
    "ICE_DRVOPT", " ", "unused", "icepack"
-   "ICE_CONSTOPT", " ", "unused", "cice"
    "ICE_IOTYPE", " ", "unused", "none"
    "ICE_CLEANBUILD", "true,false", "automatically clean before building", "true"
    "ICE_GRID", "col", "grid", "col"

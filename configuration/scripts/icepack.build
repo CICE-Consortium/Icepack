@@ -50,7 +50,6 @@ endif
 ### List of source code directories (in order of importance).
 cat >! Filepath << EOF
 ${ICE_SANDBOX}/configuration/driver
-${ICE_SANDBOX}/columnphysics/constants/${ICE_CONSTOPT}
 ${ICE_SANDBOX}/columnphysics
 EOF
 
