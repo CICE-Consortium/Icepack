@@ -41,14 +41,6 @@
     phi_i_mushy       =    0.85
 /
 
-&dynamics_nml
-    kstrength       = 1
-    krdg_partic     = 1
-    krdg_redist     = 1
-    mu_rdg          = 3
-    Cf              = 17.
-/
-
 &shortwave_nml
     shortwave       = 'dEdd'
     albedo_type     = 'ccsm3'
@@ -74,6 +66,38 @@
     rfracmin        = 0.15
     rfracmax        = 1.
     pndaspect       = 0.8
+/
+
+&forcing_nml
+    formdrag        = .false.
+    atmbndy         = 'default'
+    calc_strair     = .true.
+    calc_Tsfc       = .true.
+    highfreq        = .false.
+    natmiter        = 5
+    ustar_min       = 0.0005
+    fbot_xfer_type  = 'constant'
+    update_ocn_f    = .false.
+    l_mpond_fresh   = .false.
+    tfrz_option     = 'mushy'
+    oceanmixed_ice  = .true.
+    restore_ocn     = .false.
+    trestore        = 90
+    precip_units    = 'mks'
+    default_season  = 'spring'
+    atm_data_type   = 'clim'
+    ocn_data_type   = 'SHEBA'
+    bgc_data_type   = 'default'
+    fyear_init      = 2015
+    ycycle          = 1
+    data_dir        = '/Users/ftuser/Desktop/CICE-Consortium/ICEPACK_DATA/'
+    atm_data_file   = 'unknown_atm_data_file'
+    ocn_data_file   = 'unknown_ocn_data_file'
+    bgc_data_file   = 'unknown_bgc_data_file'
+    ice_data_file   = 'open_clos_lindsay.dat'
+    atm_data_format = 'bin'
+    ocn_data_format = 'bin'
+    bgc_data_format = 'bin'
 /
 
 &zbgc_nml
@@ -220,37 +244,4 @@
     F_abs_chl_phaeo    = 5.0
     ratio_C2N_proteins = 7.0
 /
-
-&forcing_nml
-    formdrag        = .false.
-    atmbndy         = 'default'
-    calc_strair     = .true.
-    calc_Tsfc       = .true.
-    highfreq        = .false.
-    natmiter        = 5
-    ustar_min       = 0.0005
-    fbot_xfer_type  = 'constant'
-    update_ocn_f    = .false.
-    l_mpond_fresh   = .false.
-    tfrz_option     = 'mushy'
-    oceanmixed_ice  = .true.
-    restore_ocn     = .false.
-    trestore        = 90
-    precip_units    = 'mks'
-    default_season  = 'spring'
-    atm_data_type   = 'clim'
-    ocn_data_type   = 'SHEBA'
-    bgc_data_type   = 'default'
-    fyear_init      = 2015
-    ycycle          = 1
-    data_dir        = '/Users/ftuser/Desktop/CICE-Consortium/ICEPACK_DATA/'
-    atm_data_file   = 'unknown_atm_data_file'
-    ocn_data_file   = 'unknown_ocn_data_file'
-    bgc_data_file   = 'unknown_bgc_data_file'
-    ice_data_file   = 'open_clos_lindsay.dat'
-    atm_data_format = 'bin'
-    ocn_data_format = 'bin'
-    bgc_data_format = 'bin'
-/
-
 

@@ -26,8 +26,6 @@ else
   LD         := ifort
 endif
 
-SLIBS   := -Wl,-rpath,/usr/local/intel-cluster-15.0.2.164/composer_xe_2015.2.164/compiler/lib/intel64 -lifcore
-
 ifeq ($(DITTO), yes)
    CPPDEFS :=  $(CPPDEFS) -DREPRODUCIBLE
 endif
