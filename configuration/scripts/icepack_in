@@ -100,6 +100,14 @@
     bgc_data_format = 'bin'
 /
 
+&dynamics_nml
+    kstrength       = 1
+    krdg_partic     = 1
+    krdg_redist     = 1
+    mu_rdg          = 3
+    Cf              = 17.
+/
+
 &zbgc_nml
     tr_brine        = .false.
     tr_zaero        = .false.
