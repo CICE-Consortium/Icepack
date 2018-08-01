@@ -25,9 +25,7 @@ else
   LD         := nagfor
 endif
 
-LIB_NETCDF := $(NETCDF_PATH)/lib
-
-SLIBS   := -L/usr/local/nag-6.2/lib/NAG_Fortran
+SLIBS   := -L$(COMPILER_PATH)/lib/NAG_Fortran
 
 ifeq ($(DITTO), yes)
    CPPDEFS :=  $(CPPDEFS) -DREPRODUCIBLE
