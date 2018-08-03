@@ -107,7 +107,9 @@ contains
         character(len=*),parameter :: subname='(icepack_warnings_print)'
 
         do iWarning = 1, icepack_warnings_number()
-           write(iounit,*) trim(icepack_warnings_getone(iWarning))
+! tcx, tcraig this causes a recursive IO error on some platforms/compilers
+!          write(iounit,*) trim(icepack_warnings_getone(iWarning))
+           write(iounit,*) trim(warnings(iWarning))
         enddo
 
       end subroutine icepack_warnings_print
