@@ -86,7 +86,7 @@
          ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
-         phi_c_slow_mode, phi_i_mushy, kalg
+         phi_c_slow_mode, phi_i_mushy, kalg, emissivity
 
       integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, &
          natmiter, kitd, kcatbound
@@ -142,7 +142,7 @@
       namelist /forcing_nml/ &
         atmbndy,         calc_strair,     calc_Tsfc,       &
         update_ocn_f,    l_mpond_fresh,   ustar_min,       &
-        fbot_xfer_type,  oceanmixed_ice,                   &
+        fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
         tfrz_option,     default_season,                   &
         precip_units,    fyear_init,      ycycle,          &
@@ -175,6 +175,7 @@
          krdg_redist_out=krdg_redist, mu_rdg_out=mu_rdg, &
          atmbndy_out=atmbndy, calc_strair_out=calc_strair, &
          formdrag_out=formdrag, highfreq_out=highfreq, &
+         emissivity_out=emissivity, &
          kitd_out=kitd, kcatbound_out=kcatbound, hs0_out=hs0, & 
          dpscale_out=dpscale, frzpnd_out=frzpnd, &
          rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
@@ -518,6 +519,7 @@
          write(nu_diag,1020) ' ktherm                    = ', ktherm
          if (ktherm == 1) &
          write(nu_diag,1030) ' conduct                   = ', conduct
+         write(nu_diag,1005) ' emissivity                = ', emissivity
          if (ktherm == 2) then
          write(nu_diag,1005) ' a_rapid_mode              = ', a_rapid_mode
          write(nu_diag,1005) ' Rac_rapid_mode            = ', Rac_rapid_mode
@@ -694,6 +696,7 @@
          krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
          atmbndy_in=atmbndy, calc_strair_in=calc_strair, &
          formdrag_in=formdrag, highfreq_in=highfreq, &
+         emissivity_in=emissivity, &
          kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, &
          dpscale_in=dpscale, frzpnd_in=frzpnd, &
          rfracmin_in=rfracmin, rfracmax_in=rfracmax, &
