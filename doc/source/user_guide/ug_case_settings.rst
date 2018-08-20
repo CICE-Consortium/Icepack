@@ -223,6 +223,7 @@ column physics.
    "", "``summer``","typical summer values",""
    "", "``spring``","typical spring values",""
    "``ustar_min``", "real", "minimum value of ocean friction velocity", "0.0005 m/s"
+   "``emissivity``", "real", "emissivity of snow and ice", "0.95"
    "``fbot_xfer_type``", "``constant``", "constant ocean heat transfer coefficient", ""
    "", "``Cdn_ocn``", "variable ocean heat transfer coefficient", ""
    "``update_ocn_f``", "true", "include frazil water/salt fluxes in ocn fluxes", ""
