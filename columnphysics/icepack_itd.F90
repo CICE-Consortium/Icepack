@@ -1041,14 +1041,14 @@
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn        ! ice tracers
 
-      real (kind=dbl_kind), intent(out) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          dfpond   , & ! zapped pond water flux (kg/m^2/s)
          dfresh   , & ! zapped fresh water flux (kg/m^2/s)
          dfsalt   , & ! zapped salt flux   (kg/m^2/s)
          dfhocn   , & ! zapped energy flux ( W/m^2)
          dfzsal       ! zapped salt flux from zsalinity(kg/m^2/s) 
 
-      real (kind=dbl_kind), dimension (:), intent(out) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
