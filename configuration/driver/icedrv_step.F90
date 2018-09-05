@@ -107,10 +107,10 @@
       use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot, Tbot, Tsnic
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
       use icedrv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn
-      use icedrv_flux, only: fsensn, fsurfn, fcondtopn
+      use icedrv_flux, only: fsensn, fsurfn, fcondtopn, fcondbotn
       use icedrv_flux, only: flw, fsnow, fpond, sss, mlt_onset, frz_onset
       use icedrv_flux, only: frain, Tair, strairxT, strairyT, fsurf
-      use icedrv_flux, only: fcondtop, fsens, fresh, fsalt, fhocn
+      use icedrv_flux, only: fcondtop, fcondbot, fsens, fresh, fsalt, fhocn
       use icedrv_flux, only: flat, fswabs, flwout, evap, evaps, evapi, Tref, Qref, Uref
       use icedrv_flux, only: fswthru, meltt, melts, meltb, congel, snoice
       use icedrv_flux, only: flatn_f, fsensn_f, fsurfn_f, fcondtopn_f

@@ -141,7 +141,9 @@
          Tref    , & ! 2m atm reference temperature (K)
          Qref    , & ! 2m atm reference spec humidity (kg/kg)
          Uref    , & ! 10m atm reference wind speed (m/s)
-         evap        ! evaporative water flux (kg/m^2/s)
+         evap    , & ! evaporative water flux (kg/m^2/s)
+         evaps   , & ! evaporative water flux over snow (kg/m^2/s)
+         evapi       ! evaporative water flux over ice (kg/m^2/s)
 
        ! albedos aggregated over categories (if calc_Tsfc)
       real (kind=dbl_kind), dimension(nx), public :: &
@@ -493,6 +495,8 @@
       flwout  (:) = -stefan_boltzmann*Tffresh**4   
                      ! in case atm model diagnoses Tsfc from flwout
       evap    (:) = c0
+      evaps   (:) = c0
+      evapi   (:) = c0
       Tref    (:) = c0
       Qref    (:) = c0
       Uref    (:) = c0
@@ -560,6 +564,8 @@
       fswabs  (:) = c0
       flwout  (:) = c0
       evap    (:) = c0
+      evaps   (:) = c0
+      evapi   (:) = c0
       Tref    (:) = c0
       Qref    (:) = c0
       Uref    (:) = c0

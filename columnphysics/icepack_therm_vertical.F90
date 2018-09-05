@@ -2158,8 +2158,6 @@
          rside       , & ! fraction of ice that melts laterally
          sst         , & ! sea surface temperature (C)
          Tf          , & ! freezing temperature (C)
-         Tbot        , & ! ice bottom surface temperature (deg C)
-         Tsnic       , & ! snow ice interface temperature (deg C)
          sss         , & ! sea surface salinity (ppt)
          meltt       , & ! top ice melt             (m/step-->cm/day)
          melts       , & ! snow melt                (m/step-->cm/day)
