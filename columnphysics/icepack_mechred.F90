@@ -809,7 +809,7 @@
          aparticn, & ! participation function
          krdgn       ! mean ridge thickness/thickness of ridging ice
 
-      real (kind=dbl_kind), dimension (:), intent(out), optional :: &
+      real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          mraft       ! rafting ice mask 
 
       ! local variables

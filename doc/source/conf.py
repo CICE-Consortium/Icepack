@@ -128,7 +128,8 @@ html_theme_options = {"stickysidebar": "true"}
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
-#html_title = u'Icepack v1.0'
+# To manually specify the version, uncomment the following line and enter information.
+#html_title = u'Icepack XXX'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
