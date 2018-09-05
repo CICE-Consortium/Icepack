@@ -2020,6 +2020,7 @@
                                     sss         , Tf          , &
                                     strocnxT    , strocnyT    , &
                                     fbot        ,               &
+                                    Tbot        , Tsnic       , &
                                     frzmlt      , rside       , &
                                     fsnow       , frain       , &
                                     fpond       ,               &
@@ -2125,6 +2126,8 @@
          strocnxT    , & ! ice-ocean stress, x-direction
          strocnyT    , & ! ice-ocean stress, y-direction
          fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
+         Tbot        , & ! ice bottom surface temperature (deg C)
+         Tsnic       , & ! ice snow interface temperature (deg C)
          frzmlt      , & ! freezing/melting potential (W/m^2)
          rside       , & ! fraction of ice that melts laterally
          sst         , & ! sea surface temperature (C)
@@ -2206,7 +2209,6 @@
          Trefn       , & ! air tmp reference level                (K)
          Urefn       , & ! air speed reference level            (m/s)
          Qrefn       , & ! air sp hum reference level         (kg/kg)
-         Tbot        , & ! ice bottom surface temperature (deg C)
          shcoef      , & ! transfer coefficient for sensible heat
          lhcoef      , & ! transfer coefficient for latent heat
          rfrac           ! water fraction retained for melt ponds

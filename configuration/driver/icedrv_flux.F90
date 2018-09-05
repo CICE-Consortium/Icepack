@@ -219,6 +219,8 @@
          fsurf , & ! net surface heat flux (excluding fcondtop)(W/m^2)
          fcondtop,&! top surface conductive flux        (W/m^2)
          fbot,   & ! heat flux at bottom surface of ice (excluding excess) (W/m^2)
+         Tbot,   & ! temperature at bottom surface of ice (deg C)
+         Tsnic,  & ! temperature at snow ice interface (deg C)
          congel, & ! basal ice growth         (m/step-->cm/day)
          frazil, & ! frazil ice growth        (m/step-->cm/day)
          snoice, & ! snow-ice formation       (m/step-->cm/day)
