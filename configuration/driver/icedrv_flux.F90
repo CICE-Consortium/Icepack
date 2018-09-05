@@ -218,7 +218,10 @@
       real (kind=dbl_kind), dimension (nx), public :: &
          fsurf , & ! net surface heat flux (excluding fcondtop)(W/m^2)
          fcondtop,&! top surface conductive flux        (W/m^2)
+         fcondbot,&! bottom surface conductive flux        (W/m^2)
          fbot,   & ! heat flux at bottom surface of ice (excluding excess) (W/m^2)
+         Tbot,   & ! Temperature at bottom surface of ice (deg C)
+         Tsnic,  & ! Temperature at snow ice interface (deg C)
          congel, & ! basal ice growth         (m/step-->cm/day)
          frazil, & ! frazil ice growth        (m/step-->cm/day)
          snoice, & ! snow-ice formation       (m/step-->cm/day)
@@ -238,6 +241,7 @@
          dimension (nx,ncat), public :: &
          fsurfn,   & ! category fsurf
          fcondtopn,& ! category fcondtop
+         fcondbotn,& ! category fcondbot
          fsensn,   & ! category sensible heat flux
          flatn       ! category latent heat flux
 
@@ -614,6 +618,7 @@
 
       fsurf  (:) = c0
       fcondtop(:)= c0
+      fcondbot(:)= c0
       congel (:) = c0
       frazil (:) = c0
       snoice (:) = c0
@@ -631,6 +636,7 @@
       endif
       fsurfn    (:,:) = c0
       fcondtopn (:,:) = c0
+      fcondbotn (:,:) = c0
       flatn     (:,:) = c0
       fsensn    (:,:) = c0
       fpond     (:) = c0

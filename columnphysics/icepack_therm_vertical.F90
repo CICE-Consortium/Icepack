@@ -84,13 +84,15 @@
                                   Qa,          rhoa,      &
                                   fsnow,       fpond,     &
                                   fbot,        Tbot,      &
-                                  sss,                    &
+                                  Tsnic,       sss,       &
                                   lhcoef,      shcoef,    &
                                   fswsfc,      fswint,    &
                                   Sswabs,      Iswabs,    &
                                   fsurfn,      fcondtopn, &
+                                  fcondbotn,              &
                                   fsensn,      flatn,     &
                                   flwoutn,     evapn,     &
+                                  evapsn,      evapin,    &
                                   freshn,      fsaltn,    &
                                   fhocnn,      meltt,     &
                                   melts,       meltb,     &
@@ -160,14 +162,17 @@
       ! coupler fluxes to atmosphere
       real (kind=dbl_kind), intent(out):: &
          flwoutn , & ! outgoing longwave radiation (W/m^2) 
-         evapn       ! evaporative water flux (kg/m^2/s) 
+         evapn   , & ! evaporative water flux (kg/m^2/s) 
+         evapsn  , & ! evaporative water flux over snow (kg/m^2/s) 
+         evapin      ! evaporative water flux over ice (kg/m^2/s) 
 
       ! Note: these are intent out if calc_Tsfc = T, otherwise intent in
       real (kind=dbl_kind), intent(inout):: &
          fsensn   , & ! sensible heat flux (W/m^2) 
          flatn    , & ! latent heat flux   (W/m^2) 
          fsurfn   , & ! net flux to top surface, excluding fcondtopn
-         fcondtopn    ! downward cond flux at top surface (W m-2)
+         fcondtopn, & ! downward cond flux at top surface (W m-2)
+         fcondbotn    ! downward cond flux at bottom surface (W m-2)
 
       ! coupler fluxes to ocean
       real (kind=dbl_kind), intent(out):: &
@@ -178,6 +183,7 @@
       ! diagnostic fields
       real (kind=dbl_kind), &
          intent(inout):: &
+         Tsnic    , & ! snow ice interface temperature (deg C)
          meltt    , & ! top ice melt             (m/step-->cm/day) 
          melts    , & ! snow melt                (m/step-->cm/day) 
          meltb    , & ! basal ice melt           (m/step-->cm/day) 
@@ -219,7 +225,6 @@
 ! other 2D flux and energy variables
 
       real (kind=dbl_kind) :: &
-         fcondbot    , & ! downward cond flux at bottom surface (W m-2)
          einit       , & ! initial energy of melting (J m-2)
          efinal      , & ! final energy of melting (J m-2)
          einter          ! intermediate energy
@@ -235,6 +240,8 @@
 
       flwoutn = c0
       evapn   = c0
+      evapsn   = c0
+      evapin   = c0
       freshn  = c0
       fsaltn  = c0
       fhocnn  = c0
@@ -298,7 +305,7 @@
                                               sss,                  &
                                               fsensn,    flatn,     &
                                               flwoutn,   fsurfn,    &
-                                              fcondtopn, fcondbot,  &
+                                              fcondtopn, fcondbotn,  &
                                               fadvocn,   snoice)
             if (icepack_warnings_aborted(subname)) return
 
@@ -318,7 +325,7 @@
                                      Tsf,       Tbot,      &
                                      fsensn,    flatn,     &
                                      flwoutn,   fsurfn,    &
-                                     fcondtopn, fcondbot,  &
+                                     fcondtopn, fcondbotn,  &
                                      einit                 )
             if (icepack_warnings_aborted(subname)) return
 
@@ -337,7 +344,7 @@
                                        Tsf,       Tbot,     &
                                        fsensn,    flatn,    &
                                        flwoutn,   fsurfn,   &
-                                       fcondtopn, fcondbot  )
+                                       fcondtopn, fcondbotn  )
             if (icepack_warnings_aborted(subname)) return
 
          else
@@ -347,7 +354,7 @@
             ! fcondtop is set in call to set_sfcflux in step_therm1
             !------------------------------------------------------------
 
-            fcondbot  = fcondtopn   ! zero layer         
+            fcondbotn  = fcondtopn   ! zero layer         
       
          endif      ! calc_Tsfc
 
@@ -362,6 +369,8 @@
       do k = 1, nilyr
          einter = einter + hilyr * zqin(k)
       enddo ! k
+
+      Tsnic = (hslyr*zTsn(nslyr) + hilyr*zTin(1)) / (hslyr+hilyr)
 
       if (icepack_warnings_aborted(subname)) return
 
@@ -379,9 +388,10 @@
                              zqin,        zqsn,      &
                              fbot,        Tbot,      &
                              flatn,       fsurfn,    &
-                             fcondtopn,   fcondbot,  &
+                             fcondtopn,   fcondbotn,  &
                              fsnow,       hsn_new,   &
                              fhocnn,      evapn,     &
+                             evapsn,      evapin,    &
                              meltt,       melts,     &
                              meltb,       &
                              congel,      snoice,    &
@@ -400,7 +410,7 @@
                                       fhocnn,    fswint,   &
                                       fsnow,     einit,    &
                                       einter,    efinal,   &
-                                      fcondtopn, fcondbot, &
+                                      fcondtopn, fcondbotn, &
                                       fadvocn,   fbot      )
       if (icepack_warnings_aborted(subname)) return
 
@@ -1001,9 +1011,10 @@
                                     zqin,      zqsn,     &
                                     fbot,      Tbot,     &
                                     flatn,     fsurfn,   &
-                                    fcondtopn, fcondbot, &
+                                    fcondtopn, fcondbotn, &
                                     fsnow,     hsn_new,  &
                                     fhocnn,    evapn,    &
+                                    evapsn,    evapin,   &
                                     meltt,     melts,    &
                                     meltb,     &
                                     congel,    snoice,   &  
@@ -1028,7 +1039,7 @@
          fcondtopn       ! downward cond flux at top surface (W m-2)
 
       real (kind=dbl_kind), intent(inout) :: &
-         fcondbot        ! downward cond flux at bottom surface (W m-2)
+         fcondbotn       ! downward cond flux at bottom surface (W m-2)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          zqin        , & ! ice layer enthalpy (J m-3)
@@ -1058,7 +1069,9 @@
 
       real (kind=dbl_kind), intent(out):: &
          fhocnn      , & ! fbot, corrected for any surplus energy (W m-2)
-         evapn           ! ice/snow mass sublimated/condensed (kg m-2 s-1)
+         evapn       , & ! ice/snow mass sublimated/condensed (kg m-2 s-1)
+         evapsn      , & ! ice/snow mass sublimated/condensed over snow (kg m-2 s-1)
+         evapin          ! ice/snow mass sublimated/condensed over ice (kg m-2 s-1)
 
       real (kind=dbl_kind), intent(out):: &
          hsn_new         ! thickness of new snow (m)
@@ -1189,7 +1202,7 @@
       wk1 = (fsurfn - fcondtopn) * dt
       etop_mlt = max(wk1, c0)           ! etop_mlt > 0
 
-      wk1 = (fcondbot - fbot) * dt
+      wk1 = (fcondbotn - fbot) * dt
       ebot_mlt = max(wk1, c0)           ! ebot_mlt > 0
       ebot_gro = min(wk1, c0)           ! ebot_gro < 0
 
@@ -1201,15 +1214,19 @@
       !--------------------------------------------------------------
 
       evapn = c0          ! initialize
+      evapsn = c0          ! initialize
+      evapin = c0          ! initialize
 
       if (hsn > puny) then    ! add snow with enthalpy zqsn(1)
          dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
          dzs(1) = dzs(1) + dhs
          evapn = evapn + dhs*rhos
+         evapsn = evapsn + dhs*rhos
       else                        ! add ice with enthalpy zqin(1)
          dhi = econ / (qm(1) - rhoi*Lvap) ! econ < 0, dhi > 0
          dzi(1) = dzi(1) + dhi
          evapn = evapn + dhi*rhoi
+         evapin = evapin + dhi*rhoi
          ! enthalpy of melt water
          emlt_atm = emlt_atm - qmlt(1) * dhi 
       endif
@@ -1303,6 +1320,7 @@
          esub = esub - dhs*qsub
          esub = max(esub, c0)   ! in case of roundoff error
          evapn = evapn + dhs*rhos
+         evapsn = evapsn + dhs*rhos
 
          !--------------------------------------------------------------
          ! Melt snow (top)
@@ -1332,6 +1350,7 @@
          esub = esub - dhi*qsub
          esub = max(esub, c0)
          evapn = evapn + dhi*rhoi
+         evapin = evapin + dhi*rhoi
          emlt_ocn = emlt_ocn - qmlt(k) * dhi 
 
          !--------------------------------------------------------------
@@ -1570,6 +1589,8 @@
 
       efinal = -evapn*Lvap
       evapn =  evapn/dt
+      evapsn =  evapsn/dt
+      evapin =  evapin/dt
 
       do k = 1, nslyr
          efinal = efinal + hslyr*zqsn(k)
@@ -1797,7 +1818,7 @@
                                             fsnow,              &
                                             einit,    einter,   &
                                             efinal,             &
-                                            fcondtopn,fcondbot, &
+                                            fcondtopn,fcondbotn, &
                                             fadvocn,  fbot      )
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1817,7 +1838,7 @@
          einit       , & ! initial energy of melting (J m-2)
          einter      , & ! intermediate energy of melting (J m-2)
          efinal      , & ! final energy of melting (J m-2)
-         fcondbot
+         fcondbotn
 
       ! local variables
 
@@ -1866,7 +1887,7 @@
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fbot,fcondbot:'
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, fbot,fcondbot
+         write(warnstr,*) subname, fbot,fcondbotn
          call icepack_warnings_add(warnstr)
 
          !         if (ktherm == 2) then
@@ -1879,10 +1900,10 @@
               einter-einit
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Conduction Error =', (einter-einit) &
-              - (fcondtopn*dt - fcondbot*dt + fswint*dt)
+              - (fcondtopn*dt - fcondbotn*dt + fswint*dt)
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Melt/Growth Error =', (einter-einit) &
-              + ferr*dt - (fcondtopn*dt - fcondbot*dt + fswint*dt)
+              + ferr*dt - (fcondtopn*dt - fcondbotn*dt + fswint*dt)
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Advection Error =', fadvocn*dt
          call icepack_warnings_add(warnstr)
@@ -2018,11 +2039,13 @@
                                     sss         , Tf          , &
                                     strocnxT    , strocnyT    , &
                                     fbot        ,               &
+                                    Tbot        , Tsnic       , &
                                     frzmlt      , rside       , &
                                     fsnow       , frain       , &
                                     fpond       ,               &
                                     fsurf       , fsurfn      , &
                                     fcondtop    , fcondtopn   , &
+                                    fcondbot    , fcondbotn   , &
                                     fswsfcn     , fswintn     , &
                                     fswthrun    , fswabs      , &
                                     flwout      ,               &
@@ -2031,6 +2054,7 @@
                                     fsens       , fsensn      , &
                                     flat        , flatn       , &
                                     evap        ,               &
+                                    evaps       , evapi       , &
                                     fresh       , fsalt       , &
                                     fhocn       , fswthru     , &
                                     flatn_f     , fsensn_f    , &
@@ -2089,12 +2113,15 @@
          fswthru     , & ! shortwave penetrating to ocean (W/m^2)
          fsurf       , & ! net surface heat flux (excluding fcondtop)(W/m^2)
          fcondtop    , & ! top surface conductive flux        (W/m^2)
+         fcondbot    , & ! bottom surface conductive flux     (W/m^2)
          fsens       , & ! sensible heat flux (W/m^2)
          flat        , & ! latent heat flux   (W/m^2)
          fswabs      , & ! shortwave flux absorbed in ice and ocean (W/m^2)
          flw         , & ! incoming longwave radiation (W/m^2)
          flwout      , & ! outgoing longwave radiation (W/m^2)
          evap        , & ! evaporative water flux (kg/m^2/s)
+         evaps       , & ! evaporative water flux over snow (kg/m^2/s)
+         evapi       , & ! evaporative water flux over ice (kg/m^2/s)
          congel      , & ! basal ice growth         (m/step-->cm/day)
          snoice      , & ! snow-ice formation       (m/step-->cm/day)
          Tref        , & ! 2m atm reference temperature (K)
@@ -2127,6 +2154,8 @@
          rside       , & ! fraction of ice that melts laterally
          sst         , & ! sea surface temperature (C)
          Tf          , & ! freezing temperature (C)
+         Tbot        , & ! ice bottom surface temperature (deg C)
+         Tsnic       , & ! snow ice interface temperature (deg C)
          sss         , & ! sea surface salinity (ppt)
          meltt       , & ! top ice melt             (m/step-->cm/day)
          melts       , & ! snow melt                (m/step-->cm/day)
@@ -2151,6 +2180,7 @@
          FY          , & ! area-weighted first-year ice area
          fsurfn      , & ! net flux to top surface, excluding fcondtop
          fcondtopn   , & ! downward cond flux at top surface (W m-2)
+         fcondbotn   , & ! downward cond flux at bottom surface (W m-2)
          flatn       , & ! latent heat flux (W m-2)
          fsensn      , & ! sensible heat flux (W m-2)
          fsurfn_f    , & ! net flux to top surface, excluding fcondtop
@@ -2195,6 +2225,8 @@
          fswabsn     , & ! shortwave absorbed by ice          (W/m^2)
          flwoutn     , & ! upward LW at surface               (W/m^2)
          evapn       , & ! flux of vapor, atmos to ice   (kg m-2 s-1)
+         evapsn      , & ! flux of vapor, atmos to ice over snow  (kg m-2 s-1)
+         evapin      , & ! flux of vapor, atmos to ice over ice  (kg m-2 s-1)
          freshn      , & ! flux of water, ice to ocean     (kg/m^2/s)
          fsaltn      , & ! flux of salt, ice to ocean      (kg/m^2/s)
          fhocnn      , & ! fbot corrected for leftover energy (W/m^2)
@@ -2204,7 +2236,6 @@
          Trefn       , & ! air tmp reference level                (K)
          Urefn       , & ! air speed reference level            (m/s)
          Qrefn       , & ! air sp hum reference level         (kg/kg)
-         Tbot        , & ! ice bottom surface temperature (deg C)
          shcoef      , & ! transfer coefficient for sensible heat
          lhcoef      , & ! transfer coefficient for latent heat
          rfrac           ! water fraction retained for melt ponds
@@ -2363,13 +2394,15 @@
                                  Qa,           rhoa,         &
                                  fsnow,        fpond,        &
                                  fbot,         Tbot,         &
-                                 sss,                        &
+                                 Tsnic,        sss,          &
                                  lhcoef,       shcoef,       &
                                  fswsfcn  (n), fswintn  (n), &
                                  Sswabsn(:,n), Iswabsn(:,n), &
                                  fsurfn   (n), fcondtopn(n), &
+                                 fcondbotn(n),               &
                                  fsensn   (n), flatn    (n), &
                                  flwoutn,      evapn,        &
+                                 evapsn,       evapin,       &
                                  freshn,       fsaltn,       &
                                  fhocnn,                     &
                                  melttn   (n), meltsn   (n), &
@@ -2485,18 +2518,22 @@
                                strairxn,   strairyn,     &
                                Cdn_atm_ratio_n,          &
                                fsurfn(n),  fcondtopn(n), &
+                               fcondbotn(n),             &
                                fsensn(n),  flatn(n),     &
                                fswabsn,    flwoutn,      &
                                evapn,                    &
+                               evapsn,     evapin,       &
                                Trefn,      Qrefn,        &
                                freshn,     fsaltn,       &
                                fhocnn,     fswthrun(n),  &
                                strairxT,   strairyT,     &
                                Cdn_atm_ratio,            &
                                fsurf,      fcondtop,     &
+                               fcondbot,                 &
                                fsens,      flat,         &
                                fswabs,     flwout,       &
                                evap,                     &
+                               evaps,      evapi,        &
                                Tref,       Qref,         &
                                fresh,      fsalt,        &
                                fhocn,      fswthru,      &
