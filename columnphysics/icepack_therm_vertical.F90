@@ -84,7 +84,7 @@
                                   Qa,          rhoa,      &
                                   fsnow,       fpond,     &
                                   fbot,        Tbot,      &
-                                  Tsnic,       sss,       &
+                                  Tsnice,       sss,       &
                                   lhcoef,      shcoef,    &
                                   fswsfc,      fswint,    &
                                   Sswabs,      Iswabs,    &
@@ -183,7 +183,7 @@
       ! diagnostic fields
       real (kind=dbl_kind), &
          intent(inout):: &
-         Tsnic    , & ! snow ice interface temperature (deg C)
+         Tsnice    , & ! snow ice interface temperature (deg C)
          meltt    , & ! top ice melt             (m/step-->cm/day) 
          melts    , & ! snow melt                (m/step-->cm/day) 
          meltb    , & ! basal ice melt           (m/step-->cm/day) 
@@ -253,6 +253,8 @@
       congel  = c0
       snoice  = c0
       dsnow   = c0
+      zTsn(:) = c0
+      zTin(:) = c0
 
       if (calc_Tsfc) then
          fsensn  = c0
@@ -370,7 +372,14 @@
          einter = einter + hilyr * zqin(k)
       enddo ! k
 
-      Tsnic = (hslyr*zTsn(nslyr) + hilyr*zTin(1)) / (hslyr+hilyr)
+      Tsnice = c0
+      if ((hslyr+hilyr) > puny) then
+         if (hslyr > puny) then
+            Tsnice = (hslyr*zTsn(nslyr) + hilyr*zTin(1)) / (hslyr+hilyr)
+         else
+            Tsnice = Tsf
+         endif
+      endif
 
       if (icepack_warnings_aborted(subname)) return
 
@@ -2041,7 +2050,7 @@
                                     sss         , Tf          , &
                                     strocnxT    , strocnyT    , &
                                     fbot        ,               &
-                                    Tbot        , Tsnic       , &
+                                    Tbot        , Tsnice       , &
                                     frzmlt      , rside       , &
                                     fsnow       , frain       , &
                                     fpond       ,               &
@@ -2152,12 +2161,12 @@
          strocnxT    , & ! ice-ocean stress, x-direction
          strocnyT    , & ! ice-ocean stress, y-direction
          fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
-         Tbot        , & ! ice bottom surface temperature (deg C)
-         Tsnic       , & ! ice snow interface temperature (deg C)
          frzmlt      , & ! freezing/melting potential (W/m^2)
          rside       , & ! fraction of ice that melts laterally
          sst         , & ! sea surface temperature (C)
          Tf          , & ! freezing temperature (C)
+         Tbot        , & ! ice bottom surface temperature (deg C)
+         Tsnice       , & ! snow ice interface temperature (deg C)
          sss         , & ! sea surface salinity (ppt)
          meltt       , & ! top ice melt             (m/step-->cm/day)
          melts       , & ! snow melt                (m/step-->cm/day)
@@ -2396,7 +2405,7 @@
                                  Qa,           rhoa,         &
                                  fsnow,        fpond,        &
                                  fbot,         Tbot,         &
-                                 Tsnic,        sss,          &
+                                 Tsnice,        sss,          &
                                  lhcoef,       shcoef,       &
                                  fswsfcn  (n), fswintn  (n), &
                                  Sswabsn(:,n), Iswabsn(:,n), &

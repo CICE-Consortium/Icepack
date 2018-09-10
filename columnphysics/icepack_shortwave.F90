@@ -3482,7 +3482,8 @@
          Tsfc   , & ! surface temperature 
          hs0        ! snow depth for transition to bare sea ice (m)
 
-      real (kind=dbl_kind), intent(out) :: &
+!    real (kind=dbl_kind), intent(inout) :: &
+     real (kind=dbl_kind), intent(out) :: &
          fs     , & ! horizontal coverage of snow
          hs         ! snow depth
 

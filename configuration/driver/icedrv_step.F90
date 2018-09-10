@@ -104,7 +104,7 @@
       use icedrv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nx
-      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot, Tbot, Tsnic
+      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot, Tbot, Tsnice
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
       use icedrv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn
       use icedrv_flux, only: fsensn, fsurfn, fcondtopn, fcondbotn
@@ -264,7 +264,7 @@
             sss         (i), Tf          (i), &
             strocnxT    (i), strocnyT    (i), &
             fbot        (i),                  &
-            Tbot        (i), Tsnic       (i), &
+            Tbot        (i), Tsnice       (i), &
             frzmlt      (i), rside       (i), &
             fsnow       (i), frain       (i), &
             fpond       (i),                           &
