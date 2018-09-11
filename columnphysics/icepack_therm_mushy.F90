@@ -1029,7 +1029,7 @@ contains
          hilyr  , & ! ice layer thickness (m)
          hslyr      ! snow layer thickness (m)
 
-    real(kind=dbl_kind), dimension(:), intent(out) :: &
+    real(kind=dbl_kind), dimension(:), intent(inout) :: &
          zTin   , & ! ice layer temperature (C)
          Sbr    , & ! ice layer brine salinity (ppt)
          phi    , & ! ice layer liquid fraction
@@ -1971,7 +1971,7 @@ contains
     real(kind=dbl_kind), dimension(:), intent(inout) :: &
          zTin             ! ice layer temperature (C)
 
-    real(kind=dbl_kind), dimension(:), intent(out) :: &
+    real(kind=dbl_kind), dimension(:), intent(inout) :: &
          zTsn             ! snow layer temperature (C)
 
     real(kind=dbl_kind), dimension(nilyr+nslyr+1) :: &
