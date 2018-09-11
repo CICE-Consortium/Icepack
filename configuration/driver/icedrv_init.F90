@@ -58,7 +58,7 @@
       use icedrv_diagnostics, only: diag_file, nx_names
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icedrv_calendar, only: year_init, istep0
-      use icedrv_calendar, only: dumpfreq, diagfreq
+      use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
       use icedrv_restart_shared, only: restart, restart_dir, restart_file
       use icedrv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
@@ -112,7 +112,7 @@
 
       namelist /setup_nml/ &
         days_per_year,  use_leap_years, year_init,       istep0,        &
-        dt,             npt,            ndtd,                           &
+        dt,             npt,            ndtd,            dump_last,     &
         ice_ic,         restart,        restart_dir,     restart_file,  &
         dumpfreq,       diagfreq,       diag_file,       cpl_bgc
 
@@ -209,6 +209,7 @@
       diag_file = 'ice_diag' ! history file name prefix
       cpl_bgc = .false.      ! 
       dumpfreq='y'           ! restart frequency option
+      dump_last=.false.      ! restart at end of run
       restart = .false.      ! if true, read restart files for initialization
       restart_dir  = './'    ! write to executable dir for default
       restart_file = 'iced'  ! restart file name prefix
@@ -459,6 +460,7 @@
          write(nu_diag,1020) ' diagfreq                  = ', diagfreq
          write(nu_diag,1030) ' dumpfreq                  = ', &
                                trim(dumpfreq)
+         write(nu_diag,1010) ' dump_last                 = ', dump_last
          write(nu_diag,1010) ' restart                   = ', restart
          write(nu_diag,*)    ' restart_dir               = ', &
                                trim(restart_dir)
