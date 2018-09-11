@@ -173,6 +173,8 @@ for a full, exact restart. The filename begins with the character string
 variable ``dumpfreq``. The namelist variable ``ice_ic`` contains the
 pointer to the filename from which the restart data is to be read and 
 the namelist option ``restart`` must be set to ``.true.`` to use the file.
+``dump_last`` namelist can also be set to true to trigger restarts automatically
+at then end of runs.
 
 .. _bgc-hist:
 

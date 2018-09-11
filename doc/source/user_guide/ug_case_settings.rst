@@ -112,6 +112,7 @@ column physics.
    "``dumpfreq``", "``y``", "write restart every ``dumpfreq_n`` years", "y"
    "", "``m``", "write restart every ``dumpfreq_n`` months", ""
    "", "``d``", "write restart every ``dumpfreq_n`` days", ""
+   "``dump_last``", "true/false", "write restart at end of run", "false"
    "", "", "*Model Output*", ""
    "``diagfreq``", "integer", "frequency of diagnostic output in ``dt``", "24"
    "", "*e.g.*, 10", "once every 10 time steps", ""
