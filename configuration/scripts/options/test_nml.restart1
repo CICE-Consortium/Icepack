@@ -1,4 +1,3 @@
 npt            = 10248
 restart        = .false.
 dumpfreq       = 'm'
-dump_last      = .false.

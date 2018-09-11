@@ -1,6 +1,5 @@
     days_per_year  = 360
     dumpfreq       = 'd'
-    dump_last      = .false.
     kcatbound    = 3
     tr_pond_lvl  = .true.
     tr_pond_topo = .false.

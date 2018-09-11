@@ -1,5 +1,4 @@
 npt            = 24
 dumpfreq       = 'd'
-dump_last      = .false.
 
 
