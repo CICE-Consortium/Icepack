@@ -679,7 +679,7 @@ EOF1
       endif
     endif
 
-    foreach name (${grid} ${setsx})
+    foreach name (${grid} ${test} ${setsx})
       set found = 0
       if (-e ${ICE_SCRIPTS}/options/set_nml.${name}) then
 
@@ -715,8 +715,14 @@ EOF2
         set found = 1
       endif
       if (${found} == 0) then
-        echo "${0}: ERROR, ${ICE_SCRIPTS}/options/set_[nml,env].${name} not found"
-        exit -1
+        if (${name} == ${test}) then
+          echo "${ICE_SCRIPTS}/options/set_[nml,env].${name} not found"
+          echo "`date`${0} ${ICE_SCRIPTS}/options/set_[nml,env].${name} not found" >> ${casedir}/README.case
+        else
+          echo "${0}: ERROR, ${ICE_SCRIPTS}/options/set_[nml,env].${name} not found"
+          echo "`date`${0}: ERROR, ${ICE_SCRIPTS}/options/set_[nml,env].${name} not found" >> ${casedir}/README.case
+          exit -1
+        endif
       endif
     end
 
