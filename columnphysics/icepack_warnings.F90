@@ -149,7 +149,7 @@ contains
              iWarning ! warning index
         character(len=*),parameter :: subname='(icepack_warnings_add)'
 
-!$OMP CRITICAL warnings_add
+!$OMP CRITICAL (omp_warnings_add)
         ! check if warnings array is not allocated
         if (.not. allocated(warnings)) then
 
@@ -194,7 +194,7 @@ contains
 
         ! increase warning number
         nWarnings = nWarnings + 1
-!$OMP END CRITICAL warnings_add
+!$OMP END CRITICAL (omp_warnings_add)
 
         ! add the new warning
         warnings(nWarnings) = trim(warning)
