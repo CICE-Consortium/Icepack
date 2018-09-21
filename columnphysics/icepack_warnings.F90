@@ -10,6 +10,7 @@ module icepack_warnings
       ! warning messages
       character(len=char_len_long), dimension(:), allocatable :: warnings
       integer :: nWarnings = 0
+      integer, parameter :: nWarningsBuffer = 10 ! incremental number of messages
 
       ! abort flag, accessed via icepack_warnings_setabort and icepack_warnings_aborted
       logical :: warning_abort = .false.
@@ -19,14 +20,14 @@ module icepack_warnings
 
       public :: &
         icepack_warnings_clear,    &
-        icepack_warnings_getall,   &
         icepack_warnings_print,    &
         icepack_warnings_flush,    &
         icepack_warnings_aborted,  &
-        icepack_warnings_setabort, &
         icepack_warnings_add,      &
-        icepack_warnings_resets,   &
-        icepack_warnings_number,   &
+        icepack_warnings_setabort
+
+      private :: &
+        icepack_warnings_getall,   &
         icepack_warnings_getone
 
 !=======================================================================
@@ -57,14 +58,16 @@ contains
 
         character(len=*),parameter :: subname='(icepack_warnings_setabort)'
 
-        warning_abort = abortflag
+        ! try to capture just the first setabort call
 
-! tcx. tcraig,take this out as it tends to write from all pes in all runs
-! may want to consider separating info and error messages somehow
-!        write(warnstr,*) subname,abortflag
-!        if (present(file)) write(warnstr,*) trim(warnstr)//' :file '//trim(file)
-!        if (present(line)) write(warnstr,*) trim(warnstr)//' :line ',line
-!        call icepack_warnings_add(warnstr)
+        if (.not.warning_abort) then
+          write(warnstr,*) subname,abortflag
+          if (present(file)) write(warnstr,*) trim(warnstr)//' :file '//trim(file)
+          if (present(line)) write(warnstr,*) trim(warnstr)//' :line ',line
+          call icepack_warnings_add(warnstr)
+        endif
+
+        warning_abort = abortflag
 
       end subroutine icepack_warnings_setabort
 
@@ -74,7 +77,7 @@ contains
 
         character(len=*),parameter :: subname='(icepack_warnings_clear)'
 
-        call icepack_warnings_resets()
+        nWarnings = 0
 
       end subroutine icepack_warnings_clear
 
@@ -89,9 +92,9 @@ contains
         character(len=*),parameter :: subname='(icepack_warnings_getall)'
 
         if (allocated(warningsOut)) deallocate(warningsOut)
-        allocate(warningsOut(icepack_warnings_number()))
+        allocate(warningsOut(nWarnings))
 
-        do iWarning = 1, icepack_warnings_number()
+        do iWarning = 1, nWarnings
            warningsOut(iWarning) = trim(icepack_warnings_getone(iWarning))
         enddo
 
@@ -106,11 +109,14 @@ contains
         integer :: iWarning
         character(len=*),parameter :: subname='(icepack_warnings_print)'
 
-        do iWarning = 1, icepack_warnings_number()
-! tcx, tcraig this causes a recursive IO error on some platforms/compilers
-!          write(iounit,*) trim(icepack_warnings_getone(iWarning))
-           write(iounit,*) trim(warnings(iWarning))
+! tcraig
+! this code intermittenly aborts on recursive IO errors with intel
+! not sure if it's OMP or something else causing this
+!$OMP MASTER
+        do iWarning = 1, nWarnings
+          write(iounit,*) trim(icepack_warnings_getone(iWarning))
         enddo
+!$OMP END MASTER
 
       end subroutine icepack_warnings_print
 
@@ -122,7 +128,9 @@ contains
 
         character(len=*),parameter :: subname='(icepack_warnings_flush)'
 
-        call icepack_warnings_print(iounit)
+        if (nWarnings > 0) then
+          call icepack_warnings_print(iounit)
+        endif
         call icepack_warnings_clear()
 
       end subroutine icepack_warnings_flush
@@ -139,9 +147,9 @@ contains
         integer :: &
              nWarningsArray, & ! size of warnings array at start
              iWarning ! warning index
-        integer, parameter :: nWarningsBuffer = 10
         character(len=*),parameter :: subname='(icepack_warnings_add)'
 
+!$OMP CRITICAL warnings_add
         ! check if warnings array is not allocated
         if (.not. allocated(warnings)) then
 
@@ -186,33 +194,12 @@ contains
 
         ! increase warning number
         nWarnings = nWarnings + 1
+!$OMP END CRITICAL warnings_add
 
         ! add the new warning
         warnings(nWarnings) = trim(warning)
 
       end subroutine icepack_warnings_add
-
-!=======================================================================
-
-      subroutine icepack_warnings_resets()
-
-        character(len=*),parameter :: subname='(icepack_warnings_resets)'
-
-        nWarnings = 0
-
-      end subroutine icepack_warnings_resets
-
-!=======================================================================
-
-      function icepack_warnings_number() result(nWarningsOut)
-
-        integer :: nWarningsOut
-
-        character(len=*),parameter :: subname='(icepack_warnings_number)'
-
-        nWarningsOut = nWarnings
-
-      end function icepack_warnings_number
 
 !=======================================================================
 
