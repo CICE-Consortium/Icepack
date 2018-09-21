@@ -32,22 +32,18 @@
                                strairxn, strairyn,   &
                                Cdn_atm_ratio_n,      &
                                fsurfn,   fcondtopn,  &  
-                               fcondbotn,            &
                                fsensn,   flatn,      & 
                                fswabsn,  flwoutn,    &
                                evapn,                &
-                               evapsn,   evapin,     &
                                Trefn,    Qrefn,      &
                                freshn,   fsaltn,     &
                                fhocnn,   fswthrun,   &
                                strairxT, strairyT,   &  
                                Cdn_atm_ratio,        &
                                fsurf,    fcondtop,   &
-                               fcondbot,             &
                                fsens,    flat,       & 
                                fswabs,   flwout,     &
                                evap,                 & 
-                               evaps,    evapi,      &
                                Tref,     Qref,       &
                                fresh,    fsalt,      & 
                                fhocn,    fswthru,    &
@@ -66,14 +62,11 @@
           Cdn_atm_ratio_n, & ! ratio of total drag over neutral drag  
           fsurfn  , & ! net heat flux to top surface    (W/m**2)
           fcondtopn,& ! downward cond flux at top sfc   (W/m**2)
-          fcondbotn,& ! downward cond flux at bottom sfc   (W/m**2)
           fsensn  , & ! sensible heat flx               (W/m**2)
           flatn   , & ! latent   heat flx               (W/m**2)
           fswabsn , & ! shortwave absorbed heat flx     (W/m**2)
           flwoutn , & ! upwd lw emitted heat flx        (W/m**2)
           evapn   , & ! evaporation                     (kg/m2/s)
-          evapsn  , & ! evaporation over snow           (kg/m2/s)
-          evapin  , & ! evaporation over ice            (kg/m2/s)
           Trefn   , & ! air tmp reference level         (K)
           Qrefn   , & ! air sp hum reference level      (kg/kg)
           freshn  , & ! fresh water flux to ocean       (kg/m2/s)
@@ -96,14 +89,11 @@
           Cdn_atm_ratio, & ! ratio of total drag over neutral drag
           fsurf   , & ! net heat flux to top surface    (W/m**2)
           fcondtop, & ! downward cond flux at top sfc   (W/m**2)
-          fcondbot, & ! downward cond flux at bottom sfc   (W/m**2)
           fsens   , & ! sensible heat flx               (W/m**2)
           flat    , & ! latent   heat flx               (W/m**2)
           fswabs  , & ! shortwave absorbed heat flx     (W/m**2)
           flwout  , & ! upwd lw emitted heat flx        (W/m**2)
           evap    , & ! evaporation                     (kg/m2/s)
-          evaps   , & ! evaporation over snow           (kg/m2/s)
-          evapi   , & ! evaporation over ice            (kg/m2/s)
           Tref    , & ! air tmp reference level         (K)
           Qref    , & ! air sp hum reference level      (kg/kg)
           fresh   , & ! fresh water flux to ocean       (kg/m2/s)
@@ -136,15 +126,12 @@
                       Cdn_atm_ratio_n   * aicen
       fsurf      = fsurf    + fsurfn    * aicen
       fcondtop   = fcondtop + fcondtopn * aicen 
-      fcondbot   = fcondbot + fcondbotn * aicen 
       fsens      = fsens    + fsensn    * aicen
       flat       = flat     + flatn     * aicen
       fswabs     = fswabs   + fswabsn   * aicen
       flwout     = flwout   &
            + (flwoutn - (c1-emissivity)*flw) * aicen
       evap       = evap     + evapn     * aicen
-      evaps      = evaps    + evapsn    * aicen
-      evapi      = evapi    + evapin    * aicen
       Tref       = Tref     + Trefn     * aicen
       Qref       = Qref     + Qrefn     * aicen
 
