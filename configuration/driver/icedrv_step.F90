@@ -104,14 +104,14 @@
       use icedrv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nx
-      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot
+      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot, Tbot, Tsnice
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
       use icedrv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn
-      use icedrv_flux, only: fsensn, fsurfn, fcondtopn
+      use icedrv_flux, only: fsensn, fsurfn, fcondtopn, fcondbotn
       use icedrv_flux, only: flw, fsnow, fpond, sss, mlt_onset, frz_onset
       use icedrv_flux, only: frain, Tair, strairxT, strairyT, fsurf
-      use icedrv_flux, only: fcondtop, fsens, fresh, fsalt, fhocn
-      use icedrv_flux, only: flat, fswabs, flwout, evap, Tref, Qref, Uref
+      use icedrv_flux, only: fcondtop, fcondbot, fsens, fresh, fsalt, fhocn
+      use icedrv_flux, only: flat, fswabs, flwout, evap, evaps, evapi, Tref, Qref, Uref
       use icedrv_flux, only: fswthru, meltt, melts, meltb, congel, snoice
       use icedrv_flux, only: flatn_f, fsensn_f, fsurfn_f, fcondtopn_f
       use icedrv_flux, only: dsnown, faero_atm, faero_ocn
@@ -263,12 +263,14 @@
             potT        (i), sst         (i), &
             sss         (i), Tf          (i), &
             strocnxT    (i), strocnyT    (i), &
-            fbot        (i),                           &
+            fbot        (i),                  &
+            Tbot        (i), Tsnice       (i), &
             frzmlt      (i), rside       (i), &
             fsnow       (i), frain       (i), &
             fpond       (i),                           &
             fsurf       (i), fsurfn      (i,:), &
             fcondtop    (i), fcondtopn   (i,:), &
+            fcondbot    (i), fcondbotn   (i,:), &
             fswsfcn     (i,:), fswintn     (i,:), &
             fswthrun    (i,:), fswabs      (i), &
             flwout      (i),                           &
@@ -277,6 +279,7 @@
             fsens       (i), fsensn      (i,:), &
             flat        (i), flatn       (i,:), &
             evap        (i),                           &
+            evaps       (i), evapi       (i), &
             fresh       (i), fsalt       (i), &
             fhocn       (i), fswthru     (i), &
             flatn_f     (i,:), fsensn_f    (i,:), &
