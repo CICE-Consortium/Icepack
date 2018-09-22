@@ -7,8 +7,7 @@
       module icepack_parameters
 
       use icepack_kinds
-      use icepack_warnings, only: warnstr, icepack_warnings_add
-      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+      use icepack_warnings, only: icepack_warnings_aborted
 
       implicit none
       private
