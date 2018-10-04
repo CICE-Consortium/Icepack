@@ -18,7 +18,7 @@
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
-         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing
+         fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing, sstdat
 
       implicit none
       private
@@ -73,8 +73,12 @@
          ocn_data_format, & ! 'bin'=binary or 'nc'=netcdf
          bgc_data_format, & ! 'bin'=binary or 'nc'=netcdf
          atm_data_type,   & ! 'default', 'clim', 'CFS'
-         ocn_data_type,   & ! 'default'
-         bgc_data_type,   & ! 'default'
+         ocn_data_type,   & ! 'default', 'SHEBA'
+         bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
+         atm_data_file,   & ! atmospheric forcing data file
+         ocn_data_file,   & ! ocean forcing data file
+         ice_data_file,   & ! ice forcing data file
+         bgc_data_file,   & ! biogeochemistry forcing data file
          precip_units       ! 'mm_per_month', 'mm_per_sec', 'mks'
  
       character(char_len_long), public :: & 
@@ -142,7 +146,6 @@
          frain_data(:) = frain(i)    ! rainfall rate (kg/m^2 s)
          fsnow_data(:) = fsnow(i)    ! snowfall rate (kg/m^2 s)
            qdp_data(:) = qdp  (i)    ! deep ocean heat flux (W/m^2)
-           sst_data(:) = sst  (i)    ! sea surface temperature
            sss_data(:) = sss  (i)    ! sea surface salinity
           uocn_data(:) = uocn (i)    ! ocean current components (m/s)
           vocn_data(:) = vocn (i)
@@ -160,6 +163,9 @@
         else
           trest = real(trestore,kind=dbl_kind) * secday ! seconds
         end if
+        sst_data(:) = sstdat(i)    ! default may be overwritten below
+      else
+        sst_data(:) = sst   (i)    ! default or restart value if not restoring
       endif
 
       if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
@@ -175,6 +181,7 @@
                             swvdr_data,    swvdf_data,    &
                             swidr_data,    swidf_data,    &
                             potT_data)
+
       end subroutine init_forcing
 
 !=======================================================================
@@ -279,9 +286,9 @@
 
       elseif (trim(atm_data_type) == 'ISPOL') then
 
-        offndy = 167                         ! first data record (Julian day)
+        offndy = 0                              ! first data record (Julian day)
         offset = real(offndy,dbl_kind)*secday
-        dataloc = 2                          ! data located at end of interval
+        dataloc = 1                             ! data located at middle of interval
         maxrec = 365
         recslot = 2
         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
@@ -305,7 +312,7 @@
          frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
 
         sec6hr = secday/c4;                      ! seconds in 6 hours
-        offndy = 167
+        offndy = 0
         maxrec = 1460
         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1 ! data begins on 16 June 2004
@@ -326,9 +333,9 @@
 
       elseif (trim(atm_data_type) == 'NICE') then
 
-        offndy = 114                         ! first data record (Julian day)
+        offndy = 0                              ! first data record (Julian day)
         offset = real(offndy,dbl_kind)*secday
-        dataloc = 2                          ! data located at end of interval
+        dataloc = 1                          ! data located in middle of interval
         maxrec = 365
         recslot = 2
         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
@@ -353,6 +360,7 @@
 
         sec6hr = secday/c4;                      ! seconds in 6 hours
         maxrec = 1460
+        dataloc = 2                              ! data located at end of interval
         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1
         recslot = 2
@@ -543,7 +551,8 @@
       character (char_len_long) filename
       character(len=*), parameter :: subname='(atm_CFS)'
 
-      filename = trim(data_dir)//'/CFS/cfsv2_2015_220_70_01hr.txt'
+!      atm_data_file = 'cfsv2_2015_220_70_01hr.txt'
+      filename = trim(data_dir)//'/CFS/'//trim(atm_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -865,8 +874,9 @@
       character (char_len_long) filename
 
       character(len=*), parameter :: subname='(atm_ISPOL)'
-      
-      filename = trim(data_dir)//'/ISPOL_2004/ISPOL_atm_forcing.txt'
+
+!      atm_data_file = 'ISPOL_atm_forcing.txt'
+      filename = trim(data_dir)//'/ISPOL_2004/'//trim(atm_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -923,7 +933,8 @@
 
       character(len=*), parameter :: subname='(atm_NICE)'
 
-      filename = trim(data_dir)//'/NICE_2015/NICE_atm_forcing.txt'
+!      atm_data_file = 'NICE_atm_forcing.txt'
+      filename = trim(data_dir)//'/NICE_2015/'//trim(atm_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -976,8 +987,8 @@
       
       character(len=*), parameter :: subname='(ocn_NICE)'
 
-      filename = &
-         trim(data_dir)//'/NICE_2015/oceanmixed_daily_3.txt'
+!      ocn_data_file = 'oceanmixed_daily_3.txt'
+      filename = trim(data_dir)//'/NICE_2015/'//trim(ocn_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -1026,8 +1037,8 @@
       
       character(len=*), parameter :: subname='(ocn_ISPOL)'
 
-      filename = &
-        trim(data_dir)//'/ISPOL_2004/pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+!      ocn_data_file = 'pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
+      filename = trim(data_dir)//'/ISPOL_2004/'//trim(ocn_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 
@@ -1097,8 +1108,8 @@
 
       character (char_len_long) filename
 
-      filename = &
-          trim(data_dir)//'/SHEBA/open_clos_lindsay.dat'
+!      ice_data_file = 'open_clos_lindsay.dat'
+      filename = trim(data_dir)//'/SHEBA/'//trim(ice_data_file)
 
       write (nu_diag,*) 'Reading ',filename
 

@@ -104,6 +104,9 @@ Testing will be described in greater detail in the :ref:`testing` section.
 ``--version``
   prints the Icepack version to the terminal and exits.
 
+``--setvers``
+  Updates the stored value of the Icepack version in the sandbox and exits  See :ref:`version` for more information
+
 ``--case``, ``-c`` CASE
   specifies the case name.  This can be either a relative path of an absolute path.  This cannot be used with --test or --suite.  Either ``--case``, ``--test``, or ``--suite`` is required.
 
@@ -118,6 +121,9 @@ Testing will be described in greater detail in the :ref:`testing` section.
 
 ``--acct``  ACCOUNT
   specifies a batch account number.  This is optional.  See :ref:`account` for more information.
+
+``--queue`` QUEUE
+  specifies a batch queue name.  This is optional.  See :ref:`queue` for more information.
 
 ``--grid``, ``-g`` GRID
   specifies the grid.  This is a string and for the current icepack driver, only col is supported. (default = col)
@@ -189,6 +195,44 @@ Once the cases are created, users are free to modify the icepack.settings and ic
 
 .. _porting:
 
+.. _version:
+
+Model Version Control
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Managing the internal representation of the model version is handled through the
+**icepack.setup** script.  The ``--version`` option displays the version value
+on the terminal.  The ``--setvers`` option updates the version defined in the 
+sandbox.  It is highly recommended that any changes to the version name be done
+through this interface to make sure it's done correctly and comprehensively.
+The version name should just include the string associated with the major, minor,
+and similar.  For instance,::
+
+  icepack.setup --version
+
+returns
+
+  ./icepack.setup: This is ICEPACK_v1.0.0.d0003
+
+and::
+
+  icepack.setup --setvers v1.0.0.d0004
+
+would update the version.  Always check the string by doing
+``icepack.setup --version`` after invoking ``icepack.setup --setvers``.
+
+The version is not updated in the repository unless the code changes associated
+with the new version are pushed to the repository.
+
+.. _otherscripts:
+
+Other Scripts Tools
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are other scripts that come with icepack.  These include
+
+- setup_run_dirs.csh.  This scripts is added to the case directory.  Invoking it creates all the run directories manually.  This script is automatically called as part of the run script, but sometimes it's useful to create these directories before submitting in order to stage custom input files or other data.
+
 Porting
 -------
 
@@ -233,6 +277,19 @@ There is also an option (``--acct``) in **icepack.setup** to define the account 
 The order of precedent is **icepack.setup** command line option, 
 **.cice\_proj** setting, and then value in the **env.[machine]** file.
 
+.. _queue:
+
+Machine Queue Settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The machine queue default is specified by the variable ``ICE_MACHINE_QUEUE`` in 
+the **env.[machine]** file.  The easiest way to change a user's default is to 
+create a file in your home directory called **.cice\_queue** and add your 
+preferred account name to the first line.  
+There is also an option (``--queue``) in **icepack.setup** to define the queue name on a case basis.
+The order of precedent is **icepack.setup** command line option, 
+**.cice\_queue** setting, and then value in the **env.[machine]** file.
+
 .. _force:
 
 Forcing data
@@ -256,7 +313,11 @@ Icepack requires near surface atmospheric data at a single point which are set
 in ``forcing_nml`` with the ``atm_data_type`` in the namelist (see :ref:`tabsettings`).
 The required fields to force icepack include: downwelling long wave and shortwave 
 radiative fluxes, latent and sensible heat fluxes, precipitation rate, and near 
-surface potential temperature and specific humidity.
+surface potential temperature and specific humidity.  The filenames ``atm_data_file``,
+``ocn_data_file``, ``ice_data_file``, and ``bgc_data_file``
+must also be provided for options other than the default and climatological forcing
+cases.  Current filenames can be found in the options scripts in
+**configuration/scripts/options** and in the forcing data directories.
 
 
 1) **Climate Forecast System (CFS)**
@@ -312,7 +373,7 @@ surface potential temperature and specific humidity.
     (:math:`kg/m^2/s`). Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes. 
     In the namelist, set ``atm_data_type = ISPOL`` to use ISPOL atmospheric forcing.
 
-    Oceanic forcing fields are available from :cite:`JH14` derived from a POP 1-degree (gx1v3 simulation):cite:`COLLINS06`. 
+    Oceanic forcing fields are available from :cite:`JH14` derived from a POP 1-degree (gx1v3 simulation) :cite:`COLLINS06`. 
     These consist of sea surface temperature (K), sea surface salinity (ppt), boundary layer depth (m), 
     ocean velocity in the x and y direction (m/s), and deep ocean heat flux (:math:`W/m^2`). 
     In the namelist, set ``ocn_data_type = ISPOL`` to use ISPOL oceanic forcing.

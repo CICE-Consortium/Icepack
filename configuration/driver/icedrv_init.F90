@@ -58,13 +58,15 @@
       use icedrv_diagnostics, only: diag_file, nx_names
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
       use icedrv_calendar, only: year_init, istep0
-      use icedrv_calendar, only: dumpfreq, diagfreq
+      use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
       use icedrv_restart_shared, only: restart, restart_dir, restart_file
       use icedrv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
       use icedrv_flux, only: default_season
       use icedrv_forcing, only: precip_units,    fyear_init,      ycycle
       use icedrv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
+      use icedrv_forcing, only: atm_data_file,   ocn_data_file,   bgc_data_file
+      use icedrv_forcing, only: ice_data_file
       use icedrv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icedrv_forcing, only: data_dir
       use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
@@ -84,7 +86,7 @@
          ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
-         phi_c_slow_mode, phi_i_mushy, kalg
+         phi_c_slow_mode, phi_i_mushy, kalg, emissivity
 
       integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, &
          natmiter, kitd, kcatbound
@@ -110,7 +112,7 @@
 
       namelist /setup_nml/ &
         days_per_year,  use_leap_years, year_init,       istep0,        &
-        dt,             npt,            ndtd,                           &
+        dt,             npt,            ndtd,            dump_last,     &
         ice_ic,         restart,        restart_dir,     restart_file,  &
         dumpfreq,       diagfreq,       diag_file,       cpl_bgc
 
@@ -140,11 +142,13 @@
       namelist /forcing_nml/ &
         atmbndy,         calc_strair,     calc_Tsfc,       &
         update_ocn_f,    l_mpond_fresh,   ustar_min,       &
-        fbot_xfer_type,  oceanmixed_ice,                   &
+        fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
         tfrz_option,     default_season,                   &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
+        atm_data_file,   ocn_data_file,   bgc_data_file,   &
+        ice_data_file,                                     &
         atm_data_format, ocn_data_format, bgc_data_format, &
         data_dir,        trestore,        restore_ocn
 
@@ -171,6 +175,7 @@
          krdg_redist_out=krdg_redist, mu_rdg_out=mu_rdg, &
          atmbndy_out=atmbndy, calc_strair_out=calc_strair, &
          formdrag_out=formdrag, highfreq_out=highfreq, &
+         emissivity_out=emissivity, &
          kitd_out=kitd, kcatbound_out=kcatbound, hs0_out=hs0, & 
          dpscale_out=dpscale, frzpnd_out=frzpnd, &
          rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
@@ -204,6 +209,7 @@
       diag_file = 'ice_diag' ! history file name prefix
       cpl_bgc = .false.      ! 
       dumpfreq='y'           ! restart frequency option
+      dump_last=.false.      ! restart at end of run
       restart = .false.      ! if true, read restart files for initialization
       restart_dir  = './'    ! write to executable dir for default
       restart_file = 'iced'  ! restart file name prefix
@@ -217,13 +223,17 @@
       ycycle          = 1         ! number of years in forcing cycle
       atm_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       atm_data_type   = 'default' ! source of atmospheric forcing data
+      atm_data_file   = ' '       ! atmospheric forcing data file
       precip_units    = 'mks'     ! 'mm_per_month' or
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default' ! source of ocean forcing data
+      ocn_data_file   = ' '       ! ocean forcing data file
+      ice_data_file   = ' '       ! ice forcing data file (opening, closing)
       bgc_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       bgc_data_type   = 'default' ! source of BGC forcing data
+      bgc_data_file   = ' '       ! biogeochemistry forcing data file
       data_dir    = ' '           ! root location of data files
       restore_ocn     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
@@ -253,6 +263,10 @@
 
          print*,'Reading setup_nml'
          read(nu_nml, nml=setup_nml,iostat=nml_error)
+         if (nml_error /= 0) exit
+
+         print*,'Reading grid_nml'
+         read(nu_nml, nml=grid_nml,iostat=nml_error)
          if (nml_error /= 0) exit
 
          print*,'Reading tracer_nml'
@@ -446,6 +460,7 @@
          write(nu_diag,1020) ' diagfreq                  = ', diagfreq
          write(nu_diag,1030) ' dumpfreq                  = ', &
                                trim(dumpfreq)
+         write(nu_diag,1010) ' dump_last                 = ', dump_last
          write(nu_diag,1010) ' restart                   = ', restart
          write(nu_diag,*)    ' restart_dir               = ', &
                                trim(restart_dir)
@@ -506,6 +521,7 @@
          write(nu_diag,1020) ' ktherm                    = ', ktherm
          if (ktherm == 1) &
          write(nu_diag,1030) ' conduct                   = ', conduct
+         write(nu_diag,1005) ' emissivity                = ', emissivity
          if (ktherm == 2) then
          write(nu_diag,1005) ' a_rapid_mode              = ', a_rapid_mode
          write(nu_diag,1005) ' Rac_rapid_mode            = ', Rac_rapid_mode
@@ -529,6 +545,18 @@
                                trim(ocn_data_type)
          write(nu_diag,*)    ' bgc_data_type             = ', &
                                trim(bgc_data_type)
+
+         write(nu_diag,*)    ' atm_data_file             = ', &
+                               trim(atm_data_file)
+         write(nu_diag,*)    ' ocn_data_file             = ', &
+                               trim(ocn_data_file)
+         write(nu_diag,*)    ' bgc_data_file             = ', &
+                               trim(bgc_data_file)
+         write(nu_diag,*)    ' ice_data_file             = ', &
+                               trim(ice_data_file)
+
+         if (trim(atm_data_type)=='default') &
+         write(nu_diag,*)    ' default_season            = ', trim(default_season)
 
          write(nu_diag,1010) ' update_ocn_f              = ', update_ocn_f
          write(nu_diag,1010) ' l_mpond_fresh             = ', l_mpond_fresh
@@ -670,6 +698,7 @@
          krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
          atmbndy_in=atmbndy, calc_strair_in=calc_strair, &
          formdrag_in=formdrag, highfreq_in=highfreq, &
+         emissivity_in=emissivity, &
          kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, &
          dpscale_in=dpscale, frzpnd_in=frzpnd, &
          rfracmin_in=rfracmin, rfracmax_in=rfracmax, &
@@ -1100,8 +1129,14 @@
       !-----------------------------------------------------------------
 
       i = 2  ! 2-m slab, no snow
-      ainit(3) = c1  ! assumes we are using the default ITD boundaries
-      hinit(3) = c2
+      if (3 <= ncat) then
+         n = 3
+         ainit(n) = c1  ! assumes we are using the default ITD boundaries
+         hinit(n) = c2
+      else
+         ainit(ncat) = c1
+         hinit(ncat) = c2
+      endif
       do n = 1, ncat
          ! ice volume, snow volume
          aicen(i,n) = ainit(n)

@@ -9,12 +9,14 @@ CFLAGS     := -std=gnu99
 
 FIXEDFLAGS := -fixed
 FREEFLAGS  := -free
-FFLAGS     := -Wp,-macro=no_com -convert=BIG_ENDIAN -ieee=full -O2 -gline
-FFLAGS_NOOPT:= -Wp,-macro=no_com -convert=BIG_ENDIAN -ieee=full -gline
+FFLAGS     := -Wp,-macro=no_com -convert=BIG_ENDIAN
+FFLAGS_NOOPT:= -Wp,-macro=no_com -convert=BIG_ENDIAN
 FC_AUTO_R8 := -r8
 
 ifeq ($(ICE_BLDDEBUG), true)
-  FFLAGS   := -C=all -g -gline -time -f2003 -ieee=stop
+  FFLAGS   += -C=all -g -gline -time -f2003 -ieee=stop
+else
+  FFLAGS   += -O2 -ieee=full
 endif
 
 ifeq ($(ICE_COMMDIR), mpi)
@@ -25,9 +27,7 @@ else
   LD         := nagfor
 endif
 
-LIB_NETCDF := $(NETCDF_PATH)/lib
-
-SLIBS   := -L/usr/local/nag-6.2/lib/NAG_Fortran
+SLIBS   := -L$(COMPILER_PATH)/lib/NAG_Fortran
 
 ifeq ($(DITTO), yes)
    CPPDEFS :=  $(CPPDEFS) -DREPRODUCIBLE

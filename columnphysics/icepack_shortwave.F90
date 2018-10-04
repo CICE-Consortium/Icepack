@@ -828,7 +828,6 @@
            aicen, & ! concentration of ice
            vicen, & ! volume per unit area of ice (m)
            vsnon, & ! volume per unit area of snow (m)
-           ffracn,& ! fraction of fsurfn used to melt ipond
            Tsfcn, & ! surface temperature (deg C)
            alvln, & ! level-ice area fraction
            apndn, & ! pond area fraction
@@ -840,6 +839,7 @@
            zbion    ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
+           ffracn,& ! fraction of fsurfn used to melt ipond
            dhsn     ! depth difference for snow on sea ice and pond ice
 
       real(kind=dbl_kind), intent(inout) :: &
@@ -3482,7 +3482,8 @@
          Tsfc   , & ! surface temperature 
          hs0        ! snow depth for transition to bare sea ice (m)
 
-      real (kind=dbl_kind), intent(out) :: &
+!    real (kind=dbl_kind), intent(inout) :: &
+     real (kind=dbl_kind), intent(out) :: &
          fs     , & ! horizontal coverage of snow
          hs         ! snow depth
 

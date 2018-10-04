@@ -1029,7 +1029,7 @@ contains
          hilyr  , & ! ice layer thickness (m)
          hslyr      ! snow layer thickness (m)
 
-    real(kind=dbl_kind), dimension(:), intent(out) :: &
+    real(kind=dbl_kind), dimension(:), intent(inout) :: &
          zTin   , & ! ice layer temperature (C)
          Sbr    , & ! ice layer brine salinity (ppt)
          phi    , & ! ice layer liquid fraction
@@ -1451,7 +1451,7 @@ contains
          phi      , & ! ice layer liquid fraction
          km           ! ice conductivity (W m-1 K-1)
 
-    real(kind=dbl_kind), dimension(:), intent(out) :: &
+    real(kind=dbl_kind), dimension(:), intent(inout) :: &
          zqin         ! ice layer enthalpy (J m-3)
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
@@ -1459,7 +1459,7 @@ contains
          zTsn_prev, & ! snow layer temperature at previous iteration
          ks           ! snow conductivity (W m-1 K-1)
 
-    real(kind=dbl_kind), dimension(:), intent(out) :: &
+    real(kind=dbl_kind), dimension(:), intent(inout) :: &
          zqsn         ! snow layer enthalpy (J m-3)
 
     real(kind=dbl_kind), intent(out) :: &    
@@ -1743,7 +1743,7 @@ contains
     logical, intent(in) :: &
          lsnow   ! snow presence: T: has snow, F: no snow
 
-    real(kind=dbl_kind), dimension(:), intent(out) :: &
+    real(kind=dbl_kind), dimension(:), intent(inout) :: &
          zqin, & ! ice layer enthalpy (J m-3)
          zqsn    ! snow layer enthalpy (J m-3)
 
@@ -1971,7 +1971,7 @@ contains
     real(kind=dbl_kind), dimension(:), intent(inout) :: &
          zTin             ! ice layer temperature (C)
 
-    real(kind=dbl_kind), dimension(:), intent(out) :: &
+    real(kind=dbl_kind), dimension(:), intent(inout) :: &
          zTsn             ! snow layer temperature (C)
 
     real(kind=dbl_kind), dimension(nilyr+nslyr+1) :: &

@@ -422,7 +422,19 @@
       real (kind=dbl_kind) :: &
         worka, workb
 
+      real (kind=dbl_kind), dimension(ncat) :: aicen_init
+      real (kind=dbl_kind), dimension(ncat) :: vicen_init
+      real (kind=dbl_kind), dimension(ncat) :: vsnon_init
+
       character(len=*),parameter :: subname='(shift_ice)'
+
+      !-----------------------------------------------------------------
+      ! store initial snow and ice volume
+      !-----------------------------------------------------------------
+
+      aicen_init(:) = aicen(:)
+      vicen_init(:) = vicen(:)
+      vsnon_init(:) = vsnon(:)
 
       !-----------------------------------------------------------------
       ! Define variables equal to aicen*trcrn, vicen*trcrn, vsnon*trcrn
@@ -577,15 +589,17 @@
                endif
          endif
          if (icepack_warnings_aborted(subname)) return
+      enddo       ! boundaries, 1 to ncat-1
 
       !-----------------------------------------------------------------
       ! transfer volume and energy between categories
       !-----------------------------------------------------------------
 
+      do n = 1, ncat-1
+
          if (daice(n) > c0) then ! daice(n) can be < puny
 
             nd = donor(n)
-            worka = daice(n) / aicen(nd)
             if (nd  ==  n) then
                nr = nd+1
             else                ! nd = n+1
@@ -598,7 +612,8 @@
             vicen(nd) = vicen(nd) - dvice(n)
             vicen(nr) = vicen(nr) + dvice(n)
 
-            dvsnow = vsnon(nd) * worka
+            worka = daice(n) / aicen_init(nd)
+            dvsnow = vsnon_init(nd) * worka
             vsnon(nd) = vsnon(nd) - dvsnow
             vsnon(nr) = vsnon(nr) + dvsnow
             workb = dvsnow
@@ -1041,14 +1056,14 @@
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn        ! ice tracers
 
-      real (kind=dbl_kind), intent(out) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          dfpond   , & ! zapped pond water flux (kg/m^2/s)
          dfresh   , & ! zapped fresh water flux (kg/m^2/s)
          dfsalt   , & ! zapped salt flux   (kg/m^2/s)
          dfhocn   , & ! zapped energy flux ( W/m^2)
          dfzsal       ! zapped salt flux from zsalinity(kg/m^2/s) 
 
-      real (kind=dbl_kind), dimension (:), intent(out) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &

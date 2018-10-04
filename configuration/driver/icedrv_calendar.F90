@@ -88,6 +88,7 @@
          new_hour       , & ! new hour = .true.
          use_leap_years , & ! use leap year functionality if true
          write_ic       , & ! write initial condition now
+         dump_last      , & ! write restart at end
          force_restart_now  ! force a restart now
 
       character (len=1), public :: &
@@ -241,6 +242,7 @@
         end select
 
         if (force_restart_now) write_restart = 1
+        if (dump_last .and. istep == npt) write_restart = 1
       
       endif !  istep > 1
 

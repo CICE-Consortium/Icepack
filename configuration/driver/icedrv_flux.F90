@@ -122,6 +122,7 @@
       real (kind=dbl_kind), dimension (nx), public :: &
          sss     , & ! sea surface salinity (ppt)
          sst     , & ! sea surface temperature (C)
+         sstdat  , & ! sea surface temperature (C) saved for restoring
          frzmlt  , & ! freezing/melting potential (W/m^2)
          frzmlt_init, & ! frzmlt used in current time step (W/m^2)
          Tf      , & ! freezing temperature (C)
@@ -140,7 +141,9 @@
          Tref    , & ! 2m atm reference temperature (K)
          Qref    , & ! 2m atm reference spec humidity (kg/kg)
          Uref    , & ! 10m atm reference wind speed (m/s)
-         evap        ! evaporative water flux (kg/m^2/s)
+         evap    , & ! evaporative water flux (kg/m^2/s)
+         evaps   , & ! evaporative water flux over snow (kg/m^2/s)
+         evapi       ! evaporative water flux over ice (kg/m^2/s)
 
        ! albedos aggregated over categories (if calc_Tsfc)
       real (kind=dbl_kind), dimension(nx), public :: &
@@ -217,7 +220,10 @@
       real (kind=dbl_kind), dimension (nx), public :: &
          fsurf , & ! net surface heat flux (excluding fcondtop)(W/m^2)
          fcondtop,&! top surface conductive flux        (W/m^2)
+         fcondbot,&! bottom surface conductive flux        (W/m^2)
          fbot,   & ! heat flux at bottom surface of ice (excluding excess) (W/m^2)
+         Tbot,   & ! Temperature at bottom surface of ice (deg C)
+         Tsnice,  & ! Temperature at snow ice interface (deg C)
          congel, & ! basal ice growth         (m/step-->cm/day)
          frazil, & ! frazil ice growth        (m/step-->cm/day)
          snoice, & ! snow-ice formation       (m/step-->cm/day)
@@ -237,6 +243,7 @@
          dimension (nx,ncat), public :: &
          fsurfn,   & ! category fsurf
          fcondtopn,& ! category fcondtop
+         fcondbotn,& ! category fcondbot
          fsensn,   & ! category sensible heat flux
          flatn       ! category latent heat flux
 
@@ -463,6 +470,7 @@
       frzmlt (:) = c0              ! freezing/melting potential (W/m^2)
       sss    (:) = 34.0_dbl_kind   ! sea surface salinity (ppt)
       sst    (:) = -1.8_dbl_kind   ! sea surface temperature (C)
+      sstdat (:) = sst(:)          ! sea surface temperature (C)
 
       do i = 1, nx
          Tf (i) = icepack_liquidus_temperature(sss(i)) ! freezing temp (C)
@@ -487,6 +495,8 @@
       flwout  (:) = -stefan_boltzmann*Tffresh**4   
                      ! in case atm model diagnoses Tsfc from flwout
       evap    (:) = c0
+      evaps   (:) = c0
+      evapi   (:) = c0
       Tref    (:) = c0
       Qref    (:) = c0
       Uref    (:) = c0
@@ -554,6 +564,8 @@
       fswabs  (:) = c0
       flwout  (:) = c0
       evap    (:) = c0
+      evaps   (:) = c0
+      evapi   (:) = c0
       Tref    (:) = c0
       Qref    (:) = c0
       Uref    (:) = c0
@@ -612,6 +624,7 @@
 
       fsurf  (:) = c0
       fcondtop(:)= c0
+      fcondbot(:)= c0
       congel (:) = c0
       frazil (:) = c0
       snoice (:) = c0
@@ -629,6 +642,7 @@
       endif
       fsurfn    (:,:) = c0
       fcondtopn (:,:) = c0
+      fcondbotn (:,:) = c0
       flatn     (:,:) = c0
       fsensn    (:,:) = c0
       fpond     (:) = c0
