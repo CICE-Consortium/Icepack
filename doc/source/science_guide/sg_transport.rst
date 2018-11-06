@@ -197,7 +197,7 @@ The right boundary :math:`H_N` is not fixed but varies with
 or melt rates in a given grid cell are too large, the thickness
 remapping scheme will not work. Instead, the thickness categories in
 that grid cell are treated as delta functions following
-:cite:`BHWE01`, and categories outside their prescribed
+:cite:`Bitz01`, and categories outside their prescribed
 boundaries are merged with neighboring categories as needed. For time
 steps of less than a day and category thickness ranges of 10 cm or more,
 this simplification is needed rarely, if ever.

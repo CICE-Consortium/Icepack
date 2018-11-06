@@ -323,7 +323,7 @@ cases.  Current filenames can be found in the options scripts in
 1) **Climate Forecast System (CFS)**
 
    Hourly atmospheric forcing from the National Centers for Environmental Prediction's (NCEP) 
-   Climate Forecast System, version 2 (CFSv2) :cite:`SAHA14` were utilized to generate
+   Climate Forecast System, version 2 (CFSv2) :cite:`Saha14` were utilized to generate
    a one-year time series for Icepack testing. These data were used to create the annual cycle at a 
    point in the Beaufort Sea (70N, 220W) for the period of January 1 00:00UTC - December 31 23:00UTC, 2015. 
    Additional locations can be provided for both hemispheres for the period of 1999-2015 for 
@@ -342,16 +342,16 @@ cases.  Current filenames can be found in the options scripts in
    a) **Norwegian Young Sea Ice cruise (N-ICE)**
 
     Atmospheric, oceanic, and biogeochemical forcing are available from the 2015 Norwegian Young Sea Ice Cruise 
-    (N-ICE) :cite:`DUARTE17`. These data are available daily, except for incoming atmospheric radiative forcing,
+    (N-ICE) :cite:`Duarte17`. These data are available daily, except for incoming atmospheric radiative forcing,
     which are available 6-hourly. The data correspond to the Arctic Ocean north of Svalbard along the N-ICE drift 
     track (83N, 16E to 80N, 5E) from April 24, 2015 to June 6, 2015.
 
-    Atmospheric forcing fields from :cite:`DUARTE17` consist of 2-m air temperature (K), 2-m specific humidity (kg/kg), 
+    Atmospheric forcing fields from :cite:`Duarte17` consist of 2-m air temperature (K), 2-m specific humidity (kg/kg), 
     10-m wind velocity in the x and y directions (m/s), downward solar radiation (:math:`W/m^2`), and precipitation
     (:math:`kg/m^2/s`). Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes. 
     In the namelist, set ``atm_data_type = NICE`` to use N-ICE atmospheric forcing.
 
-    Oceanic forcing fields are available from a Parallel Ocean Program (POP) 1-degree (gx1v3) simulation :cite:`COLLINS06`.
+    Oceanic forcing fields are available from a Parallel Ocean Program (POP) 1-degree (gx1v3) simulation :cite:`Collins06`.
     These fields consist of sea surface temperature (K), sea surface salinity (ppt), boundary layer depth (m),
     ocean velocity in the x and y direction (m/s), and deep ocean heat flux (:math:`W/m^2`). 
     In the namelist, set ``ocn_data_type = NICE`` to use N-ICE oceanic forcing.
@@ -363,17 +363,17 @@ cases.  Current filenames can be found in the options scripts in
    b) **Ice Station Polarstern (ISPOL)**
 
     Atmospheric, oceanic, and biogeochemical forcing are available from the 2004 Ice Station Polarstern
-    (ISPOL) :cite:`JH14`. These data can be used with both :cite:`BL99` and mushy layer thermodynamics. 
+    (ISPOL) :cite:`Jeffery14`. These data can be used with both :cite:`Bitz99` and mushy layer thermodynamics. 
     These data are available daily, except for incoming atmospheric radiative forcing,
     which are available 6-hourly. The data correspond to the Weddell Sea (67.9S, 54W) from June 16, 2004 
     to December 31, 2004.
 
-    Atmospheric forcing fields from :cite:`JH14` consist of 2-m air temperature (K), 2-m specific humidity (kg/kg), 10-m wind 
+    Atmospheric forcing fields from :cite:`Jeffery14` consist of 2-m air temperature (K), 2-m specific humidity (kg/kg), 10-m wind 
     velocity in the x and y directions (m/s), downward solar radiation (:math:`W/m^2`), and precipitation
     (:math:`kg/m^2/s`). Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes. 
     In the namelist, set ``atm_data_type = ISPOL`` to use ISPOL atmospheric forcing.
 
-    Oceanic forcing fields are available from :cite:`JH14` derived from a POP 1-degree (gx1v3 simulation) :cite:`COLLINS06`. 
+    Oceanic forcing fields are available from :cite:`Jeffery14` derived from a POP 1-degree (gx1v3 simulation) :cite:`Collins06`. 
     These consist of sea surface temperature (K), sea surface salinity (ppt), boundary layer depth (m), 
     ocean velocity in the x and y direction (m/s), and deep ocean heat flux (:math:`W/m^2`). 
     In the namelist, set ``ocn_data_type = ISPOL`` to use ISPOL oceanic forcing.
@@ -393,11 +393,11 @@ cases.  Current filenames can be found in the options scripts in
     At present, only the opening and closing rates (1/s) are used from the forcing data. 
     In the namelist, set ``ocn_data_type = SHEBA`` to use this forcing in Icepack.
 
-3) **Climatological** - Maykut and Untersteiner 1971 :cite:`MU71`
+3) **Climatological** - Maykut and Untersteiner 1971 :cite:`Maykut71`
 
    The climatological forcing consists of a monthly climatology of downward radiative fluxes, air temperature, 
    relative humidity and wind speed compiled from Arctic ice station observations shown in Table 1 from
-   :cite:`LIND98`. Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes.  
+   :cite:`Lindsay98`. Icepack's boundary layer calculation is used to derive sensible and latent heat fluxes.  
    The snowfall follows the idealized specification used by :cite:`Semtner76` . 
    To adjust the ice thickness a fixed heating of 6 :math:`W/m^2` is applied to the bottom of the ice.
    This may be thought of as containing about 2 :math:`W/m^2` of ocean heating and an adjustment of 

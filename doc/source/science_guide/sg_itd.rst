@@ -12,7 +12,7 @@ ice lies in each thickness range. Thus the basic problem in sea ice
 modeling is to describe the evolution of the ice thickness distribution
 (ITD) in time and space.
 
-The fundamental equation solved by CICE is :cite:`TRMC75`:
+The fundamental equation solved by CICE is :cite:`Thorndike75`:
 
 .. math::
    \frac{\partial g}{\partial t} = -\nabla \cdot (g {\bf u}) 
@@ -35,7 +35,7 @@ each grid cell into discrete thickness categories. The number of
 categories can be set by the user, with a default value :math:`N_C = 5`.
 (Five categories, plus open water, are generally sufficient to simulate
 the annual cycles of ice thickness, ice strength, and surface fluxes
-:cite:`BHWE01,Lipscomb01`.) Each category :math:`n` has
+:cite:`Bitz01,Lipscomb01`.) Each category :math:`n` has
 lower thickness bound :math:`H_{n-1}` and upper bound :math:`H_n`. The
 lower bound of the thinnest ice category, :math:`H_0`, is set to zero.
 The other boundaries are chosen with greater resolution for small
