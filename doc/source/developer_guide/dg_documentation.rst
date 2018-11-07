@@ -142,7 +142,7 @@ Here are some resources for using RST files:
 Building documentation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Once you've committed and pushed changes to the documentation *.rst files on your personal development fork. 
+snce you've committed and pushed changes to the documentation `*.rst` files on your personal development fork. 
 Go to your readthedocs.org site and then select your project "Overview". Whenever you commit to your fork
 the documents will automatically build. There is also an option to "Build a Version". Choose "latest" 
 and then click the green "Build version" button. 
@@ -161,7 +161,7 @@ Push changes back to the repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you're happy with the documentation you've generated, follow the standard CICE-Consortium 
-`Git Workflow and Developer's guide <<https://github.com/CICE-Consortium/About-Us/wiki/Git-Workflow-Guidance>'_
+`Git Workflow and Developer's guide <https://github.com/CICE-Consortium/About-Us/wiki/Git-Workflow-Guidance>`_
 to do a Pull Request and make sure to note in the Pull Request Template that documentation has also 
 been updated. We will test the HTML and PDF as part of the Pull Request before it is merged to the repository. 
 It can be particularly helpful if you include the link to your successfully built documentation that is 

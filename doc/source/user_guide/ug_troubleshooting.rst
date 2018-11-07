@@ -131,7 +131,7 @@ code with differing descriptions. For instance, sea ice porosity and
 permeability, along with associated flushing and flooding, are
 calculated separately for mushy thermodynamics, topo and level-ice melt
 ponds, and for the brine height tracer, each employing its own
-equations. Likewise, the BL99 and mushy thermodynamics compute freeboard
+equations. Likewise, the Bitz99 and mushy thermodynamics compute freeboard
 and snow–ice formation differently, and the topo and level-ice melt pond
 schemes both allow fresh ice to grow atop melt ponds, using slightly
 different formulations for Stefan freezing. These various process

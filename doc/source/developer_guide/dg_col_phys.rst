@@ -31,16 +31,16 @@ The column physics source code contains the following files
 |    **icepack_parameters.F90**    basic model parameters including physical and numerical constants requried for column package
 |    **icepack_shortwave.F90**     shortwave and albedo parameterizations
 |    **icepack_therm_0layer.F90**  zero-layer thermodynamics of :cite:`Semtner76`
-|    **icepack_therm_bl99.F90**    multilayer thermodynamics of :cite:`BL99`
+|    **icepack_therm_bl99.F90**    multilayer thermodynamics of :cite:`Bitz99`
 |    **icepack_therm_itd.F90**     thermodynamic changes mostly related to ice thickness distribution
-|    **icepack_therm_mushy.F90**   mushy-theory thermodynamics of :cite:`THB13`
+|    **icepack_therm_mushy.F90**   mushy-theory thermodynamics of :cite:`Turner13`
 |    **icepack_therm_shared.F90**  code shared by all thermodynamics parameterizations
 |    **icepack_therm_vertical.F90**  vertical growth rates and fluxes
 |    **icepack_tracers.F90**       tracer information
 |    **icepack_warnings.F90**      utilities for writing warning and error messages
 |    **icepack_zbgc.F90**          driver for ice biogeochemistry and brine tracer motion
 |    **icepack_zbgc_shared.F90**   parameters and shared code for biogeochemistry and brine height
-|    **icepack_zsalinity.F90**     vertical salinity parameterization of :cite:`JHE11`
+|    **icepack_zsalinity.F90**     vertical salinity parameterization of :cite:`Jeffery11`
 
 
 Coding Standard
