@@ -6,8 +6,6 @@
 Major Icepack updates
 ============================================
 
-This model release is Icepack version 1.0.
-
 Modern sea ice models have evolved into highly complex collections of physical parameterizations and
 infrastructural elements to support various configurations and computational approaches.  In particular,
 numerical models may now be implemented for unstructured grids, requiring new approaches for referencing
