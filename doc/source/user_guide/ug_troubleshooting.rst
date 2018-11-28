@@ -101,13 +101,13 @@ melt pond albedo ``albpnd`` is only computed for the Delta-Eddington
 shortwave case.
 
 With the Delta-Eddington parameterization, the albedo depends on the
-cosine of the zenith angle (:math:`\cos\varphi`, ``coszen``) and is zero if
-the sun is below the horizon (:math:`\cos\varphi < 0`). Therefore
-time-averaged albedo fields would be low if a diurnal solar cycle is
-used, because zero values would be included in the average for half of
+cosine of the zenith angle (:math:`\cos\varphi`, ``coszen``) and is one if
+the sun is below the horizon (:math:`\cos\varphi < 0`). Thus, the albedos
+will be one in the dark, polar winter hemisphere. However, the
+time-averaged albedo fields would be high if a diurnal solar cycle is
+used, because values of one would be included in the average for half of
 each 24-hour period. To rectify this, a separate counter is used for the
-averaging that is incremented only when :math:`\cos\varphi > 0`. The
-albedos will still be zero in the dark, polar winter hemisphere.
+averaging that is incremented only when :math:`\cos\varphi > 0`. 
 
 Interpretation of general results
 ---------------------------------
