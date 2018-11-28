@@ -60,7 +60,7 @@ contains
 
         ! try to capture just the first setabort call
 
-        if (.not.warning_abort) then
+        if (abortflag) then
           write(warnstr,*) subname,abortflag
           if (present(file)) write(warnstr,*) trim(warnstr)//' :file '//trim(file)
           if (present(line)) write(warnstr,*) trim(warnstr)//' :line ',line
