@@ -66,6 +66,27 @@ treated identically (land also may occupy less than 100% of an
 atmospheric grid cell). These fluxes are "per unit ice area" rather than
 "per unit grid cell area."
 
+In some coupled climate models (for example, recent versions of the U.K.	
+Hadley Centre model) the surface air temperature and fluxes are computed	
+within the atmosphere model and are passed to CICE for use in the column physics. In this case the	
+logical parameter ``calc_Tsfc`` in *ice_therm_vertical* is set to false.	
+The fields ``fsurfn`` (the net surface heat flux from the atmosphere), ``flatn``	
+(the surface latent heat flux), and ``fcondtopn`` (the conductive flux at	
+the top surface) for each ice thickness category are copied or derived	
+from the input coupler fluxes and are passed to the thermodynamic driver	
+subroutine, *thermo_vertical*. At the end of the time step, the surface	
+temperature and effective conductivity (i.e., thermal conductivity	
+divided by thickness) of the top ice/snow layer in each category are	
+returned to the atmosphere model via the coupler. Since the ice surface	
+temperature is treated explicitly, the effective conductivity may need	
+to be limited to ensure stability. As a result, accuracy may be	
+significantly reduced, especially for thin ice or snow layers. A more	
+stable and accurate procedure would be to compute the temperature	
+profiles for both the atmosphere and ice, together with the surface	
+fluxes, in a single implicit calculation. This was judged impractical,	
+however, given that the atmosphere and sea ice models generally exist on	
+different grids and/or processor sets.
+
 .. _atmo:
 
 Atmosphere
