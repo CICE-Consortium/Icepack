@@ -11,37 +11,38 @@ Atmosphere and ocean boundary forcing
    :header: "Variable", "Description", "External Interactions"
    :widths: 10, 25, 25
      
-   ":math:`z_o`", "Atmosphere level height", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`Q_a`", "Specific humidity", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`\rho_a`", "Air density", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`\Theta_a`", "Air potential temperature", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`T_a`", "Air temperature", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{sw\downarrow}`", "Incoming shortwave radiation (4 bands)", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{L\downarrow}`", "Incoming longwave radiation", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{rain}`", "Rainfall rate", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{snow}`", "Snowfall rate", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{frzmlt}`", "Freezing/melting potential", "From *ocean model*  **to** *sea ice model*"
-   ":math:`T_w`", "Sea surface temperature", "From *ocean model*  **to** *sea ice model*"
-   ":math:`S`", "Sea surface salinity", "From *ocean model*  **to** *sea ice model*"
-   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model*  **to** *sea ice model* (available in Icepack driver, not used directly in column physics)"
-   ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_s`", "Sensible heat flux", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_l`", "Latent heat flux", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_{L\uparrow}`", "Outgoing longwave radiation", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_{evap}`", "Evaporated water", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`\alpha`", "Surface albedo (4 bands)", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`T_{sfc}`", "Surface temperature", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_{sw\Downarrow}`", "Penetrating shortwave radiation", "From *sea ice model*  **to** *ocean model*"
-   ":math:`F_{water}`", "Fresh water flux", "From *sea ice model*  **to** *ocean model*"
-   ":math:`F_{hocn}`", "Net heat flux to ocean", "From *sea ice model*  **to** *ocean model*"
-   ":math:`F_{salt}`", "Salt flux", "From *sea ice model*  **to** *ocean model*"
-   ":math:`\vec{\tau}_w`", "Ice-ocean stress", "From *sea ice model*  **to** *ocean model*"
-   ":math:`F_{bio}`", "Biogeochemical fluxes", "From *sea ice model*  **to** *ocean model*"
-   ":math:`a_{i}`", "Ice fraction", "From *sea ice model*  **to** both *ocean and atmosphere models*"
-   ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
-   ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
-   ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
+   ":math:`z_o`", "Atmosphere level height", "From *atmosphere model* to *sea ice model*"
+   ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model* to *sea ice model*"
+   ":math:`Q_a`", "Specific humidity", "From *atmosphere model* to *sea ice model*"
+   ":math:`\rho_a`", "Air density", "From *atmosphere model* to *sea ice model*"
+   ":math:`\Theta_a`", "Air potential temperature", "From *atmosphere model* to *sea ice model*"
+   ":math:`T_a`", "Air temperature", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{sw\downarrow}`", "Incoming shortwave radiation (4 bands)", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{L\downarrow}`", "Incoming longwave radiation", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{rain}`", "Rainfall rate", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{snow}`", "Snowfall rate", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{frzmlt}`", "Freezing/melting potential", "From *ocean model* to *sea ice model*"
+   ":math:`T_w`", "Sea surface temperature", "From *ocean model* to *sea ice model*"
+   ":math:`S`", "Sea surface salinity", "From *ocean model* to *sea ice model*"
+   ":math:`\nabla H_o`", "Sea surface slope", "From *ocean model* via flux coupler to *sea ice model*"
+   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model* to *sea ice model* (available in Icepack driver, not used directly in column physics)"
+   ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_s`", "Sensible heat flux", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_l`", "Latent heat flux", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_{L\uparrow}`", "Outgoing longwave radiation", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_{evap}`", "Evaporated water", "From *sea ice model* to *atmosphere model*"
+   ":math:`\alpha`", "Surface albedo (4 bands)", "From *sea ice model* to *atmosphere model*"
+   ":math:`T_{sfc}`", "Surface temperature", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_{sw\Downarrow}`", "Penetrating shortwave radiation", "From *sea ice model* to *ocean model*"
+   ":math:`F_{water}`", "Fresh water flux", "From *sea ice model* to *ocean model*"
+   ":math:`F_{hocn}`", "Net heat flux to ocean", "From *sea ice model* to *ocean model*"
+   ":math:`F_{salt}`", "Salt flux", "From *sea ice model* to *ocean model*"
+   ":math:`\vec{\tau}_w`", "Ice-ocean stress", "From *sea ice model* to *ocean model*"
+   ":math:`F_{bio}`", "Biogeochemical fluxes", "From *sea ice model* to *ocean model*"
+   ":math:`a_{i}`", "Ice fraction", "From *sea ice model* to both *ocean and atmosphere models*"
+   ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model* to both *ocean and atmosphere models*"
+   ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model* to both *ocean and atmosphere models*"
+   ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model* to both *ocean and atmosphere models*"
 
 The ice fraction :math:`a_i` (aice) is the total fractional ice
 coverage of a grid cell. That is, in each cell,
@@ -64,27 +65,6 @@ be divided by the total ice area so that the ice and land models are
 treated identically (land also may occupy less than 100% of an
 atmospheric grid cell). These fluxes are "per unit ice area" rather than
 "per unit grid cell area."
-
-In some coupled climate models (for example, recent versions of the U.K.
-Hadley Centre model) the surface air temperature and fluxes are computed
-within the atmosphere model and are passed to CICE for use in the column physics. In this case the
-logical parameter ``calc_Tsfc`` in *ice_therm_vertical* is set to false.
-The fields ``fsurfn`` (the net surface heat flux from the atmosphere), ``flatn``
-(the surface latent heat flux), and ``fcondtopn`` (the conductive flux at
-the top surface) for each ice thickness category are copied or derived
-from the input coupler fluxes and are passed to the thermodynamic driver
-subroutine, *thermo_vertical*. At the end of the time step, the surface
-temperature and effective conductivity (i.e., thermal conductivity
-divided by thickness) of the top ice/snow layer in each category are
-returned to the atmosphere model via the coupler. Since the ice surface
-temperature is treated explicitly, the effective conductivity may need
-to be limited to ensure stability. As a result, accuracy may be
-significantly reduced, especially for thin ice or snow layers. A more
-stable and accurate procedure would be to compute the temperature
-profiles for both the atmosphere and ice, together with the surface
-fluxes, in a single implicit calculation. This was judged impractical,
-however, given that the atmosphere and sea ice models generally exist on
-different grids and/or processor sets.
 
 .. _atmo:
 
