@@ -600,7 +600,8 @@
          nt_bgc_Fep         !  particulate iron
 
       integer (kind=int_kind), dimension(icepack_max_aero) :: &
-         nt_zaero           !  black carbon and other aerosols
+         nt_zaero       , & !  black carbon and other aerosols
+         nt_zaero_sw        !  for shortwave calculation
 
       integer (kind=int_kind), dimension(icepack_max_nbtrcr) :: &
          bio_index_o        ! relates nlt_bgc_NO to ocean concentration index
@@ -1272,6 +1273,7 @@
       nlt_zaero(:) = 0
       nlt_zaero_sw(:) = 0
       nt_zaero(:) = 0
+      nt_zaero_sw(:) = 0
 
       nlt_bgc_Nit    = 0
       nlt_bgc_Am     = 0

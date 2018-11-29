@@ -1,5 +1,5 @@
 #==============================================================================
-# Macros file for LANL pinto, intel compiler
+# Macros file for LANL badger, intel compiler
 #==============================================================================
 
 CPP        := fpp
@@ -14,7 +14,8 @@ FFLAGS_NOOPT:= -O0
 ifeq ($(ICE_BLDDEBUG), true)
   FFLAGS     += -O0 -g -check uninit -check bounds -check pointers -fpe0 -check noarg_temp_created
 else
-  FFLAGS     += -O2
+#  FFLAGS     += -O2
+  FFLAGS     += -O1
 endif
 
 ifeq ($(ICE_COMMDIR), mpi)
