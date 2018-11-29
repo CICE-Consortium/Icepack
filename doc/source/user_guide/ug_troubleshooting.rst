@@ -104,10 +104,11 @@ With the Delta-Eddington parameterization, the albedo depends on the
 cosine of the zenith angle (:math:`\cos\varphi`, ``coszen``) and is one if
 the sun is below the horizon (:math:`\cos\varphi < 0`). Thus, the albedos
 will be one in the dark, polar winter hemisphere. However, the
-time-averaged albedo fields would be high if a diurnal solar cycle is
+time-averaged albedo fields will be high if a diurnal solar cycle is
 used, because values of one would be included in the average for half of
-each 24-hour period. To rectify this, a separate counter is used for the
-averaging that is incremented only when :math:`\cos\varphi > 0`. 
+each 24-hour period. To rectify this, a separate counter should be used for the
+averaging that is incremented only when :math:`\cos\varphi > 0`. However, this is
+still a work in progress.
 
 Interpretation of general results
 ---------------------------------
