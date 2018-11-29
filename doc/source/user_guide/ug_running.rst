@@ -193,8 +193,6 @@ To add some optional settings, one might do::
 
 Once the cases are created, users are free to modify the icepack.settings and icepack_in namelist to further modify their setup.
 
-.. _porting:
-
 .. _version:
 
 Model Version Control
@@ -232,6 +230,8 @@ Other Scripts Tools
 There are other scripts that come with icepack.  These include
 
 - setup_run_dirs.csh.  This scripts is added to the case directory.  Invoking it creates all the run directories manually.  This script is automatically called as part of the run script, but sometimes it's useful to create these directories before submitting in order to stage custom input files or other data.
+
+.. _porting:
 
 Porting
 -------

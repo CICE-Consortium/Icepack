@@ -13,7 +13,7 @@ Introduction - Icepack
 
    about.rst
    quickstart.rst
-   major_updates.rst
    acknowledgements.rst
+   citing.rst
    copyright.rst
 
