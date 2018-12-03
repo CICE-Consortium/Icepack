@@ -26,8 +26,9 @@ age, first-year ice area, melt pond area and volume, brine height,
 aerosols, and level ice area and volume (from which ridged ice
 quantities are derived). Salinity, enthalpies, age, aerosols, level-ice
 volume, brine height and most melt pond quantities are volume-weighted
-tracers, while first-year area, pond area, level-ice area and all of the
-biogeochemistry tracers in this release are area-weighted tracers. In
+tracers, while first-year area, pond area, and level-ice area are area-weighted 
+tracers. Biogeochemistry tracers in the skeletal layer are area-weighted,
+and vertical biogeochemistry tracers are volume-weighted.  In
 the absence of sources and sinks, the total mass of a volume-weighted
 tracer such as aerosol (kg) is conserved under transport in horizontal
 and thickness space (the mass in a given grid cell will change), whereas
@@ -40,25 +41,31 @@ In several places in the code, tracer computations must be performed on
 the conserved "tracer volume" rather than the tracer itself; for
 example, the conserved quantity is :math:`h_{pnd}a_{pnd}a_{lvl}a_{i}`,
 not :math:`h_{pnd}`. Conserved quantities are thus computed according to
-the tracer dependencies, and code must be included to account for new
-dependencies (e.g., :math:`a_{lvl}` and :math:`a_{pnd}` in
-**ice\_itd.F90** and **ice\_mechred.F90**).
+the tracer dependencies (weights), which are tracked using the arrays
+``trcr_depend`` (indicates dependency on area, ice volume or snow volume),
+``trcr_base`` (a dependency mask), ``n_trcr_strata`` (the number of
+underlying tracer layers), and ``nt_strata`` (indices of underlying layers). 
+See subroutine *icepack_compute_tracers* in **icepack\_tracers.F90**.
 
 To add a tracer, follow these steps using one of the existing tracers as
-a pattern.
+a pattern (e.g. age).
 
 #. **icedrv\_domain\_size.F90**: increase ``max_ntrcr`` (can also add option
    to **icepack.settings** and **icepack.build**)
 
-#. **icedrv\_state.F90**: declare ``nt_[tracer]`` and ``tr_[tracer]``
+#. **icepack\_tracers.F90**: 
 
-#. **icepack\_[tracer].F90**: create initialization, physics routines
+   -  declare ``nt_[tracer]`` and ``tr_[tracer]`` 
 
-#. **ice\_drv\_init.F90**: (some of this may be done in **ice\_[tracer].F90**
+   -  add flags and indices to the init, query and write subroutines, and
+      call these routines as needed throughout the code
+
+#. **icepack\_[tracer].F90**: create physics routines
+
+#. **icedrv\_init.F90**: (some of this may be done in **icepack\_[tracer].F90**
    instead)
 
-   -  add new module and ``tr_[tracer]`` to list of used modules and
-      variables
+   -  declare ``tr_[tracer]``  and ``nt_[tracer]`` as needed
 
    -  add logical namelist variable ``tr_[tracer]``
 
@@ -68,27 +75,24 @@ a pattern.
 
    -  increment number of tracers in use based on namelist input (``ntrcr``)
 
-   -  define tracer types (``trcr_depend`` = 0 for ice area tracers, 1 for
-      ice volume, 2 for snow volume, 2+``nt_``[tracer] for dependence on
-      other tracers)
+   -  define tracer dependencies
 
-#. **icepack\_itd.F90**, **icepack\_mechred.F90**: Account for new dependencies
-   if needed.
+#. **icedrv\_step\_mod.F90** (and elsewhere as needed):
 
-#. **icedrv\_InitMod.F90**: initialize tracer (includes reading restart
-   file)
+   -  call physics routines in **icepack\_[tracer].F90**
 
-#. **icedrv\_RunMod.F90**, **icedrv\_step\_mod.F90**:
+#. **icedrv\_restart.F90**: 
 
-   -  call routine to write tracer restart data
+   -  define restart variables
 
-   -  call physics routines in **icepack\_[tracer].F90** (often called from
-      **icedrv\_step\_mod.F90**)
-
-#. **icedrv\_restart.F90**: define restart variables
+   -  call routines to read, write tracer restart data
 
 #. **icepack\_in**: add namelist variables to *tracer\_nml* and
-   *icefields\_nml*
+   *icefields\_nml*.  Best practice is to set the namelist values so that the 
+   new capability is turned off, and create an option file with your preferred
+   configuration in **configuration/scripts/options**.
 
 #. If strict conservation is necessary, add diagnostics as noted for
-   topo ponds in Section :ref:`ponds`.
+   topo ponds in Section :ref:`ponds`
+
+#. Update documentation, including **icepack_index.rst** and **ug_case_settings.rst**
