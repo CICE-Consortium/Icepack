@@ -20,12 +20,12 @@ endif
 ifeq ($(ICE_COMMDIR), mpi)
   FC         := mpif90
 else
-  FC         := pgf77
+  FC         := pgf90
 endif
 
-MPICC:= mpicc
+MPICC:= pgcc
 
-MPIFC:= mpif90
+MPIFC:= pgf90
 LD:= $(MPIFC)
 
 # defined by module
@@ -46,7 +46,7 @@ INCLDIR := $(INCLDIR)
 
 SCC:= pgcc
 
-SFC:= pgf77
+SFC:= pgf90
 
 ifeq ($(ICE_THREADED), true) 
    LDFLAGS += -mp
