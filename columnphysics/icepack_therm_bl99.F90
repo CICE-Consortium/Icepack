@@ -14,7 +14,7 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p1, p5, puny
 #ifdef CESMCOUPLED
-      use icepack_parameters, only p01
+      use icepack_parameters, only: p01
 #endif
       use icepack_parameters, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
       use icepack_parameters, only: conduct, calc_Tsfc, solve_zsal

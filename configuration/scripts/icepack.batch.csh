@@ -98,18 +98,7 @@ cat >> ${jobfile} << EOFB
 ###SBATCH --mail-user username@domain.com
 EOFB
 
-else if (${ICE_MACHINE} =~ theia*) then
-cat >> ${jobfile} << EOFB
-#PBS -N ${ICE_CASENAME}
-#PBS -l walltime=${ICE_RUNLENGTH}
-#PBS -A omd
-#PBS -l nodes=${nnodes}
-#PBS -e $ICE_CASENAME.err
-#PBS -o $ICE_CASENAME.out
-#PBS -q batch
-EOFB
-
-else if (${ICE_MACHINE} =~ wolf*) then
+else if (${ICE_MACHINE} =~ badger*) then
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
 #SBATCH -t ${ICE_RUNLENGTH}
@@ -120,19 +109,6 @@ cat >> ${jobfile} << EOFB
 ###SBATCH --mail-type END,FAIL
 ###SBATCH --mail-user=eclare@lanl.gov
 #SBATCH --qos=standby
-EOFB
-
-else if (${ICE_MACHINE} =~ pinto*) then
-cat >> ${jobfile} << EOFB
-#SBATCH -J ${ICE_CASENAME}
-#SBATCH -t ${ICE_RUNLENGTH}
-#SBATCH -A ${acct}
-#SBATCH -N ${nnodes}
-#SBATCH -e slurm%j.err
-#SBATCH -o slurm%j.out
-###SBATCH --mail-type END,FAIL
-###SBATCH --mail-user=eclare@lanl.gov
-#SBATCH --qos=standard
 EOFB
 
 else if (${ICE_MACHINE} =~ loft*) then

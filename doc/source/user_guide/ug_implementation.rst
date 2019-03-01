@@ -29,25 +29,25 @@ The directory structure of Icepack is as follows.  All columnphysics filename ha
 of icepack\_ and all driver files are prefixed with icedrv\_*.
 
 **LICENSE.pdf**
-  license and policy for using and sharing the code
+  license for using and sharing the code
 
 **DistributionPolicy.pdf**
-  license and policy for using and sharing the code
+  policy for using and sharing the code
 
 **README.md**
   basic information and pointers
 
 **columnphysics/**
-   directory for columnphysics source code, see :ref:`dev_colphys`
+  columnphysics source code, see :ref:`dev_colphys`
 
 **configuration/scripts/**
-   directory of support scripts, see :ref:`dev_scripts`
+  support scripts, see :ref:`dev_scripts`
 
 **configuration/driver/**
-   directory of icepack driver code, see :ref:`dev_driver`
+  icepack driver code, see :ref:`dev_driver`
 
 **doc/**
-    documentation
+  documentation
 
 **icepack.setup**
   main icepack script for creating cases

@@ -11,37 +11,38 @@ Atmosphere and ocean boundary forcing
    :header: "Variable", "Description", "External Interactions"
    :widths: 10, 25, 25
      
-   ":math:`z_o`", "Atmosphere level height", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`Q_a`", "Specific humidity", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`\rho_a`", "Air density", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`\Theta_a`", "Air potential temperature", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`T_a`", "Air temperature", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{sw\downarrow}`", "Incoming shortwave radiation (4 bands)", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{L\downarrow}`", "Incoming longwave radiation", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{rain}`", "Rainfall rate", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{snow}`", "Snowfall rate", "From *atmosphere model*  **to** *sea ice model*"
-   ":math:`F_{frzmlt}`", "Freezing/melting potential", "From *ocean model*  **to** *sea ice model*"
-   ":math:`T_w`", "Sea surface temperature", "From *ocean model*  **to** *sea ice model*"
-   ":math:`S`", "Sea surface salinity", "From *ocean model*  **to** *sea ice model*"
-   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model*  **to** *sea ice model* (available in Icepack driver, not used directly in column physics)"
-   ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_s`", "Sensible heat flux", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_l`", "Latent heat flux", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_{L\uparrow}`", "Outgoing longwave radiation", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_{evap}`", "Evaporated water", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`\alpha`", "Surface albedo (4 bands)", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`T_{sfc}`", "Surface temperature", "From *sea ice model*  **to** *atmosphere model*"
-   ":math:`F_{sw\Downarrow}`", "Penetrating shortwave radiation", "From *sea ice model*  **to** *ocean model*"
-   ":math:`F_{water}`", "Fresh water flux", "From *sea ice model*  **to** *ocean model*"
-   ":math:`F_{hocn}`", "Net heat flux to ocean", "From *sea ice model*  **to** *ocean model*"
-   ":math:`F_{salt}`", "Salt flux", "From *sea ice model*  **to** *ocean model*"
-   ":math:`\vec{\tau}_w`", "Ice-ocean stress", "From *sea ice model*  **to** *ocean model*"
-   ":math:`F_{bio}`", "Biogeochemical fluxes", "From *sea ice model*  **to** *ocean model*"
-   ":math:`a_{i}`", "Ice fraction", "From *sea ice model*  **to** both *ocean and atmosphere models*"
-   ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
-   ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
-   ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model*  **to** both *ocean and atmosphere models*"
+   ":math:`z_o`", "Atmosphere level height", "From *atmosphere model* to *sea ice model*"
+   ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model* to *sea ice model*"
+   ":math:`Q_a`", "Specific humidity", "From *atmosphere model* to *sea ice model*"
+   ":math:`\rho_a`", "Air density", "From *atmosphere model* to *sea ice model*"
+   ":math:`\Theta_a`", "Air potential temperature", "From *atmosphere model* to *sea ice model*"
+   ":math:`T_a`", "Air temperature", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{sw\downarrow}`", "Incoming shortwave radiation (4 bands)", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{L\downarrow}`", "Incoming longwave radiation", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{rain}`", "Rainfall rate", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{snow}`", "Snowfall rate", "From *atmosphere model* to *sea ice model*"
+   ":math:`F_{frzmlt}`", "Freezing/melting potential", "From *ocean model* to *sea ice model*"
+   ":math:`T_w`", "Sea surface temperature", "From *ocean model* to *sea ice model*"
+   ":math:`S`", "Sea surface salinity", "From *ocean model* to *sea ice model*"
+   ":math:`\nabla H_o`", "Sea surface slope", "From *ocean model* via flux coupler to *sea ice model*"
+   ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model* to *sea ice model* (available in Icepack driver, not used directly in column physics)"
+   ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_s`", "Sensible heat flux", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_l`", "Latent heat flux", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_{L\uparrow}`", "Outgoing longwave radiation", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_{evap}`", "Evaporated water", "From *sea ice model* to *atmosphere model*"
+   ":math:`\alpha`", "Surface albedo (4 bands)", "From *sea ice model* to *atmosphere model*"
+   ":math:`T_{sfc}`", "Surface temperature", "From *sea ice model* to *atmosphere model*"
+   ":math:`F_{sw\Downarrow}`", "Penetrating shortwave radiation", "From *sea ice model* to *ocean model*"
+   ":math:`F_{water}`", "Fresh water flux", "From *sea ice model* to *ocean model*"
+   ":math:`F_{hocn}`", "Net heat flux to ocean", "From *sea ice model* to *ocean model*"
+   ":math:`F_{salt}`", "Salt flux", "From *sea ice model* to *ocean model*"
+   ":math:`\vec{\tau}_w`", "Ice-ocean stress", "From *sea ice model* to *ocean model*"
+   ":math:`F_{bio}`", "Biogeochemical fluxes", "From *sea ice model* to *ocean model*"
+   ":math:`a_{i}`", "Ice fraction", "From *sea ice model* to both *ocean and atmosphere models*"
+   ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model* to both *ocean and atmosphere models*"
+   ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model* to both *ocean and atmosphere models*"
+   ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model* to both *ocean and atmosphere models*"
 
 The ice fraction :math:`a_i` (aice) is the total fractional ice
 coverage of a grid cell. That is, in each cell,
@@ -65,25 +66,25 @@ treated identically (land also may occupy less than 100% of an
 atmospheric grid cell). These fluxes are "per unit ice area" rather than
 "per unit grid cell area."
 
-In some coupled climate models (for example, recent versions of the U.K.
-Hadley Centre model) the surface air temperature and fluxes are computed
-within the atmosphere model and are passed to CICE for use in the column physics. In this case the
-logical parameter ``calc_Tsfc`` in *ice_therm_vertical* is set to false.
-The fields ``fsurfn`` (the net surface heat flux from the atmosphere), ``flatn``
-(the surface latent heat flux), and ``fcondtopn`` (the conductive flux at
-the top surface) for each ice thickness category are copied or derived
-from the input coupler fluxes and are passed to the thermodynamic driver
-subroutine, *thermo_vertical*. At the end of the time step, the surface
-temperature and effective conductivity (i.e., thermal conductivity
-divided by thickness) of the top ice/snow layer in each category are
-returned to the atmosphere model via the coupler. Since the ice surface
-temperature is treated explicitly, the effective conductivity may need
-to be limited to ensure stability. As a result, accuracy may be
-significantly reduced, especially for thin ice or snow layers. A more
-stable and accurate procedure would be to compute the temperature
-profiles for both the atmosphere and ice, together with the surface
-fluxes, in a single implicit calculation. This was judged impractical,
-however, given that the atmosphere and sea ice models generally exist on
+In some coupled climate models (for example, recent versions of the U.K.	
+Hadley Centre model) the surface air temperature and fluxes are computed	
+within the atmosphere model and are passed to CICE for use in the column physics. In this case the	
+logical parameter ``calc_Tsfc`` in *ice_therm_vertical* is set to false.	
+The fields ``fsurfn`` (the net surface heat flux from the atmosphere), ``flatn``	
+(the surface latent heat flux), and ``fcondtopn`` (the conductive flux at	
+the top surface) for each ice thickness category are copied or derived	
+from the input coupler fluxes and are passed to the thermodynamic driver	
+subroutine, *thermo_vertical*. At the end of the time step, the surface	
+temperature and effective conductivity (i.e., thermal conductivity	
+divided by thickness) of the top ice/snow layer in each category are	
+returned to the atmosphere model via the coupler. Since the ice surface	
+temperature is treated explicitly, the effective conductivity may need	
+to be limited to ensure stability. As a result, accuracy may be	
+significantly reduced, especially for thin ice or snow layers. A more	
+stable and accurate procedure would be to compute the temperature	
+profiles for both the atmosphere and ice, together with the surface	
+fluxes, in a single implicit calculation. This was judged impractical,	
+however, given that the atmosphere and sea ice models generally exist on	
 different grids and/or processor sets.
 
 .. _atmo:
@@ -115,7 +116,7 @@ parameterizations. Rain and all melted snow end up in the ocean.
 
 Wind stress and transfer coefficients for the
 turbulent heat fluxes are computed in subroutine
-*atmo\_boundary\_layer* following :cite:`KL02`, with additions and changes as detailed in Appendix A of :cite:`Roberts2015` for high frequency coupling (namelist variable ``highfreq``).
+*atmo\_boundary\_layer* following :cite:`Kauffman02`, with additions and changes as detailed in Appendix A of :cite:`Roberts15` for high frequency coupling (namelist variable ``highfreq``).
 The resulting equations are provided here.
 
 The wind stress and turbulent heat flux calculation accounts for both
@@ -148,7 +149,7 @@ When high frequency coupling is turned off (``highfreq`` =.false.), it is assume
  \vec{U}_{a} - \vec{U}_{i} \approx  \vec{U}_{a} 
  :label: lowfreq 
 
-and a higher threshold is taken for :math:`U_{\Delta\textrm{min}}` of 1m/s. Equation :eq:`lowfreq` is a poor assumption when resolving inertial oscillations in ice-ocean configurations where the ice velocity vector may make a complete rotation over a period of :math:`\ge` 11.96 hours, as discussed in :cite:`Roberts2015`.
+and a higher threshold is taken for :math:`U_{\Delta\textrm{min}}` of 1m/s. Equation :eq:`lowfreq` is a poor assumption when resolving inertial oscillations in ice-ocean configurations where the ice velocity vector may make a complete rotation over a period of :math:`\ge` 11.96 hours, as discussed in :cite:`Roberts15`.
 However, :eq:`lowfreq`  is acceptable for low frequency ice-ocean coupling on the order of a day or more, when transient ice-ocean Ekman transport is effectively filtered from the model solution.
 For the :math:`\Theta^*` and :math:`Q^*` terms in :eq:`stars`, :math:`T_{sfc}` and :math:`Q_{sfc}` are the surface temperature and specific
 humidity, respectively.  The latter is calculated by assuming a saturated
@@ -181,8 +182,8 @@ unstable (:math:`\Upsilon <0`) case are given by
    :label: psi1
 
 In a departure from the parameterization used in
-:cite:`KL02`, we use profiles for the stable case
-following :cite:`JAM99`,
+:cite:`Kauffman02`, we use profiles for the stable case
+following :cite:`Jordan99`,
 
 .. math::
    \psi_m = \psi_s = -\left[0.7\Upsilon + 0.75\left(\Upsilon-14.3\right)
@@ -214,7 +215,7 @@ heat flux coefficients are computed, along with the wind stress:
 where :math:`L_{vap}` and :math:`L_{ice}` are
 latent heats of vaporization and fusion, :math:`\rho_a` is the density
 of air and :math:`c_p` is its specific heat. Again following
-:cite:`JAM99`, we have added a constant to the sensible
+:cite:`Jordan99`, we have added a constant to the sensible
 heat flux coefficient in order to allow some heat to pass between the
 atmosphere and the ice surface in stable, calm conditions. 
 For the atmospheric stress term in :eq:`coeff2`, we make the assumption in :eq:`lowfreq` when ``highfreq`` =.false..
@@ -238,7 +239,7 @@ Ocean
 
 New sea ice forms when the ocean temperature drops below its freezing
 temperature. In the Bitz and Lipscomb thermodynamics,
-:cite:`BL99` :math:`T_f=-\mu S`, where :math:`S` is the
+:cite:`Bitz99` :math:`T_f=-\mu S`, where :math:`S` is the
 seawater salinity and :math:`\mu=0.054^\circ`/ppt is the ratio of the
 freezing temperature of brine to its salinity (linear liquidus
 approximation). For the mushy thermodynamics, :math:`T_f` is given by a
@@ -305,8 +306,8 @@ with an effective sea ice surface roughness at the ice–atmosphere and
 ice–ocean interfaces. Sea ice (in both Arctic and Antarctic) contains
 pressure ridges as well as floe and melt pond edges that act as discrete
 obstructions to the flow of air or water past the ice, and are a source
-of form drag. Following :cite:`TFSFFKLB14` and based on
-recent theoretical developments :cite:`LGHA12,LLCL11`, the
+of form drag. Following :cite:`Tsamados14` and based on
+recent theoretical developments :cite:`Lupkes12,Lu11`, the
 neutral drag coefficients can now be estimated from properties of the
 ice cover such as ice concentration, vertical extent and area of the
 ridges, freeboard and floe draft, and size of floes and melt ponds. The
@@ -316,7 +317,7 @@ parameterization is contained in the subroutine *neutral\_drag\_coeffs*
 and is accessed by setting ``formdrag`` = true in the namelist.
 (Note:  see also :ref:`bugs`.)
 
-Following :cite:`TFSFFKLB14`, consider the general case of
+Following :cite:`Tsamados14`, consider the general case of
 fluid flow obstructed by N randomly oriented obstacles of height
 :math:`H` and transverse length :math:`L_y`, distributed on a domain
 surface area :math:`S_T`. Under the assumption of a logarithmic fluid
@@ -358,9 +359,9 @@ account for form drag, expressed in terms of various contributions as
 
 The contributions to form drag from ridges (and keels underneath the
 ice), floe edges and melt pond edges can be expressed using the general
-formulation of equation :eq:`formdrag` (see :cite:`TFSFFKLB14` for
+formulation of equation :eq:`formdrag` (see :cite:`Tsamados14` for
 details). Individual terms in equation :eq:`Cdw` are fully described in
-:cite:`TFSFFKLB14`. Following :cite:`Arya75`
+:cite:`Tsamados14`. Following :cite:`Arya75`
 the skin drag coefficient is parametrized as
 
 .. math:: 
@@ -379,7 +380,7 @@ Calculation of equations :eq:`formdrag` – :eq:`skindrag` requires that small-s
 properties of the ice cover be related to average grid cell quantities
 already computed in the sea ice model. These intermediate quantities are
 briefly presented here and described in more detail in
-:cite:`TFSFFKLB14`. The sail height is given by
+:cite:`Tsamados14`. The sail height is given by
 
 .. math:: 
    H_{s} = \displaystyle 2\frac{v_{rdg}}{a_{rdg}}\left(\frac{\alpha\tan \alpha_{k} R_d+\beta \tan \alpha_{s} R_h}{\phi_r\tan \alpha_{k} R_d+\phi_k \tan \alpha_{s} R_h^2}\right),
@@ -405,10 +406,10 @@ is the mean ice thickness and :math:`\bar{h_s}` is the mean snow
 thickness (means taken over the ice covered regions). For the melt pond
 edge elevation we assume that the melt pond surface is at the same level
 as the ocean surface surrounding the floes
-:cite:`FF07,FFT10,FSFH12` and use the simplification
+:cite:`Flocco07,Flocco10,Flocco12` and use the simplification
 :math:`H_p = H_f`. Finally to estimate the typical floe size
 :math:`L_A`, distance between floes, :math:`D_F`, and melt pond size,
-:math:`L_P` we use the parameterizations of :cite:`LGHA12`
+:math:`L_P` we use the parameterizations of :cite:`Lupkes12`
 to relate these quantities to the ice and pond concentrations. All of
 these intermediate quantities are available for output, along
 with ``Cdn_atm``, ``Cdn_ocn`` and the ratio ``Cdn_atm_ratio_n`` between the

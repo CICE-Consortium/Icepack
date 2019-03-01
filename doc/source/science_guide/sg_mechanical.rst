@@ -9,9 +9,9 @@ The last term on the right-hand side of Equation :eq:`transport-g`
 is :math:`\psi`, which describes the redistribution
 of ice in thickness space due to ridging and other mechanical processes.
 The mechanical redistribution scheme in Icepack is based on
-:cite:`TRMC75`, :cite:`Rothrock75`,
-:cite:`Hibler80`, :cite:`FH95`, and
-:cite:`LHMJ07`. This scheme converts thinner ice to thicker
+:cite:`Thorndike75`, :cite:`Rothrock75`,
+:cite:`Hibler80`, :cite:`Flato95`, and
+:cite:`Lipscomb07`. This scheme converts thinner ice to thicker
 ice and is applied after horizontal transport. When the ice is
 converging, enough ice ridges to ensure that the ice area does not
 exceed the grid cell area.
@@ -22,7 +22,7 @@ use "ridging" as shorthand for all forms of mechanical redistribution,
 including rafting.) The weighting function :math:`b(h)` favors ridging
 of thin ice and closing of open water in preference to ridging of
 thicker ice. There are two options for the form of :math:`b(h)`. If
-``krdg_partic`` = 0 in the namelist, we follow :cite:`TRMC75`
+``krdg_partic`` = 0 in the namelist, we follow :cite:`Thorndike75`
 and set
 
 .. math::
@@ -52,7 +52,7 @@ Equation :eq:`partic-old-discrete` is valid with :math:`G^*` replacing
 :math:`G_n`, and if :math:`G_{n-1} > G^*`, then :math:`a_{Pn} = 0`. If
 the open water fraction :math:`a_0 > G^*`, no ice can ridge, because
 "ridging" simply reduces the area of open water. As in
-:cite:`TRMC75` we set :math:`G^* = 0.15`.
+:cite:`Thorndike75` we set :math:`G^* = 0.15`.
 
 If the spatial resolution is too fine for a given time step
 :math:`\Delta t`, the weighting function Equation :eq:`partic-old-contin` can
@@ -67,7 +67,7 @@ velocity, strength, divergence, and shear can become noisy and
 unphysical.
 
 A more stable weighting function was suggested by
-:cite:`LHMJ07`:
+:cite:`Lipscomb07`:
 
 .. math::
    b(h) = \frac{\exp[-G(h)/a^*]}
@@ -88,7 +88,7 @@ participating in ridging is :math:`a^*`, as compared to :math:`G^*/3`
 for Equation :eq:`partic-old-contin`. For typical ice thickness distributions,
 setting :math:`a^* = 0.05` with ``krdg_partic`` = 1 gives participation
 fractions similar to those given by :math:`G^* = 0.15` with ``krdg_partic``
-= 0. See :cite:`LHMJ07` for a detailed comparison of these
+= 0. See :cite:`Lipscomb07` for a detailed comparison of these
 two participation functions.
 
 Thin ice is converted to thick, ridged ice in a way that reduces the
@@ -100,8 +100,8 @@ forms ridges whose area is distributed uniformly between
 :cite:`Hibler80`. The default value of :math:`H^*` is 25 m, as
 in earlier versions of CICE. Observations suggest that
 :math:`H^* = 50` m gives a better fit to first-year ridges
-:cite:`AMI04`, although the lower value may be appropriate
-for multiyear ridges :cite:`FH95`. The ratio of the mean
+:cite:`Amundrud04`, although the lower value may be appropriate
+for multiyear ridges :cite:`Flato95`. The ratio of the mean
 ridge thickness to the thickness of ridging ice is
 :math:`k_n = (H_{\min} + H_{\max}) / (2 h_n)`. If the area of category
 :math:`n` is reduced by ridging at the rate :math:`r_n`, the area of
@@ -129,9 +129,9 @@ to category :math:`m` is
 
 This uniform redistribution function tends to produce too little ice in
 the 3–5 m range and too much ice thicker than 10 m
-:cite:`AMI04`. Observations show that the ITD of ridges is
+:cite:`Amundrud04`. Observations show that the ITD of ridges is
 better approximated by a negative exponential. Setting ``krdg_redist`` = 1
-gives ridges with an exponential ITD :cite:`LHMJ07`:
+gives ridges with an exponential ITD :cite:`Lipscomb07`:
 
 .. math::
    g_R(h) \propto \exp[-(h - H_{\min})/\lambda]
@@ -176,7 +176,7 @@ instead of added to the new ridge.
 The net area removed by ridging and closing is a function of the strain
 rates. Let :math:`R_{\mathrm{net}}` be the net rate of area loss for the
 ice pack (i.e., the rate of open water area closing, plus the net rate
-of ice area loss due to ridging). Following :cite:`FH95`,
+of ice area loss due to ridging). Following :cite:`Flato95`,
 :math:`R_{\mathrm{net}}` is given by
 
 .. math::
@@ -272,7 +272,7 @@ where :math:`C_P = (g/2)(\rho_i/\rho_w)(\rho_w-\rho_i)`,
 :math:`\beta =R_{\mathrm{tot}}/R_{\mathrm{net}} > 1`
 from Equation :eq:`Rtot-Rnet`, and :math:`C_f` is an empirical parameter that
 accounts for frictional energy dissipation. Following
-:cite:`FH95`, we set :math:`C_f = 17`. The first term in
+:cite:`Flato95`, we set :math:`C_f = 17`. The first term in
 the summation is the potential energy of ridging ice, and the second,
 larger term is the potential energy of the resulting ridges. The factor
 of :math:`\beta` is included because :math:`a_{Pn}` is normalized with
@@ -291,4 +291,4 @@ The energy-based ice strength given by Equations :eq:`roth-strength0` or
 :eq:`roth-strength1` is more physically realistic than the strength
 given by Equation :eq:`hib-strength`. However, use of Equation :eq:`hib-strength` is
 less likely to allow numerical instability at a given resolution and
-time step. See :cite:`LHMJ07` for more details.
+time step. See :cite:`Lipscomb07` for more details.

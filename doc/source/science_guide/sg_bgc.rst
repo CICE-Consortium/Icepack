@@ -481,7 +481,7 @@ The biogeochemical module solves the following equation:
 
 where :math:`D_{in} = \tilde{D}/h^2 =  (D + \phi D_m)/h^2` and
 :math:`R([c])` is the nonlinear biogeochemical interaction term (see
-:cite:`JHE11`).
+:cite:`Jeffery11`).
 
 The solution to :eq:`mobile-transport` is flux-corrected and
 positive definite. This is accomplished using a finite element Galerkin

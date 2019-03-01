@@ -519,28 +519,6 @@
         if (present(nt_zbgc_frac_in) ) nt_zbgc_frac  = nt_zbgc_frac_in
         if (present(nt_bgc_S_in)     ) nt_bgc_S      = nt_bgc_S_in
 
-        nt_bgc_N(:)    = 0
-        nt_bgc_C(:)    = 0
-        nt_bgc_chl(:)  = 0
-        nlt_bgc_N(:)   = 0
-        nlt_bgc_C(:)   = 0
-        nlt_bgc_chl(:) = 0
-        nt_bgc_DOC(:)  = 0
-        nlt_bgc_DOC(:) = 0
-        nt_bgc_DIC(:)  = 0
-        nlt_bgc_DIC(:) = 0
-        nt_bgc_DON(:)  = 0
-        nlt_bgc_DON(:) = 0
-        nt_bgc_Fed(:)  = 0
-        nt_bgc_Fep(:)  = 0
-        nlt_bgc_Fed(:) = 0
-        nlt_bgc_Fep(:) = 0
-        nt_zaero(:)    = 0
-        nlt_zaero(:)   = 0
-        nlt_zaero_sw(:)= 0
-        bio_index(:)   = 0
-        bio_index_o(:) = 0
-
         if (present(nbtrcr_in)) then
            nbtrcr = nbtrcr_in
            do k = 1, nbtrcr_in

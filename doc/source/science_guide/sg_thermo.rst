@@ -7,10 +7,10 @@ Thermodynamics
 
 The current Icepack version includes three thermodynamics
 options, the "zero-layer" thermodynamics of :cite:`Semtner76`
-(``ktherm`` = 0), the Bitz and Lipscomb model :cite:`BL99`
+(``ktherm`` = 0), the Bitz and Lipscomb model :cite:`Bitz99`
 (``ktherm`` = 1) that assumes a fixed salinity profile, and a "mushy"
 formulation (``ktherm`` = 2) in which salinity evolves
-:cite:`THB13`. For each thickness category, Icepack computes
+:cite:`Turner13`. For each thickness category, Icepack computes
 changes in the ice and snow thickness and vertical temperature profile
 resulting from radiative, turbulent, and conductive heat fluxes. The ice
 has a temperature-dependent specific heat to simulate the effect of
@@ -122,7 +122,7 @@ and thickness are computed according to the assumed pond shape, and the
 pond area is then reduced in the presence of snow for the radiation
 calculation. Ponds are allowed only on ice at least 1 cm thick. This
 formulation differs slightly from that documented in
-:cite:`HBBLH12`.
+:cite:`Holland12`.
 
 Topographic formulation (``tr_pond_topo`` = true)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,7 +130,7 @@ Topographic formulation (``tr_pond_topo`` = true)
 The principle concept of this scheme is that melt water runs downhill
 under the influence of gravity and collects on sea ice with increasing
 surface height starting at the lowest height
-:cite:`FF07,FFT10,FSFH12`. Thus, the topography of the
+:cite:`Flocco07,Flocco10,Flocco12`. Thus, the topography of the
 ice cover plays a crucial role in determining the melt pond cover.
 However, Icepack does not explicitly represent the topography of sea ice.
 Therefore, we split the existing ice thickness distribution function
@@ -261,7 +261,7 @@ ice class :math:`k + 1`,
 As the melting season progresses, not only does melt water accumulate
 upon the upper surface of the sea ice, but the sea ice beneath the melt
 water becomes more porous owing to a reduction in solid fraction
-:cite:`EGPRF04`. The hydraulic head of melt water on sea
+:cite:`Eicken04`. The hydraulic head of melt water on sea
 ice (i.e., its height above sea level) drives flushing of melt water
 through the porous sea ice and into the underlying ocean. The mushy
 thermodynamics scheme (`ktherm` = 2) handles flushing. For
@@ -279,7 +279,7 @@ tensor (assumed to be isotropic in the horizontal), :math:`\mu` is the
 viscosity of water, :math:`\rho_o` is the ocean density, :math:`g` is
 gravitational acceleration, :math:`\Delta H` is the the hydraulic head,
 and :math:`h_i` is the thickness of the ice through which the pond
-flushes. As proposed by :cite:`GEHMPZ07` the vertical
+flushes. As proposed by :cite:`Golden07` the vertical
 permeability of sea ice can be calculated from the liquid fraction
 :math:`\phi`:
 
@@ -291,7 +291,7 @@ Since the solid fraction varies throughout the depth of the sea ice, so
 does the permeability. The rate of vertical drainage is determined by
 the lowest (least permeable) layer, corresponding to the highest solid
 fraction. From the equations describing sea ice as a mushy layer
-:cite:`FUWW06`, the solid fraction is determined by:
+:cite:`Feltham06`, the solid fraction is determined by:
 
 .. math::
    \phi = \frac{c_i-S}{c_i-S_{br}(T)},
@@ -339,7 +339,7 @@ volume, :math:`T_i` and :math:`T_p` are the ice surface and pond
 temperatures, and :math:`k_i` and :math:`k_p` are the thermal
 conductivity of the ice lid and pond respectively. The second term on
 the right hand-side is close to zero since the pond is almost uniformly
-at the freezing temperature :cite:`TF04`. Approximating the
+at the freezing temperature :cite:`Taylor04`. Approximating the
 temperature gradient in the ice lid as linear, the Stefan condition
 yields the classic Stefan solution for ice lid depth
 
@@ -362,8 +362,8 @@ once the pond is completely refrozen.
 
 As the sea ice area shrinks due to melting and ridging, the pond volume
 over the lost area is released to the ocean immediately. In
-:cite:`FFT10`, the pond volume was carried as an ice area
-tracer, but in :cite:`FSFH12` and here, pond area and
+:cite:`Flocco10`, the pond volume was carried as an ice area
+tracer, but in :cite:`Flocco12` and here, pond area and
 thickness are carried as separate tracers, as in
 the :ref:`tracers` section.
 
@@ -383,7 +383,7 @@ Level-ice formulation (``tr_pond_lvl`` = true)
 
 This meltpond parameterization represents a combination of ideas from
 the empirical CESM melt pond scheme and the topo approach, and is
-documented in :cite:`HHL13`. The ponds evolve according to
+documented in :cite:`Hunke13`. The ponds evolve according to
 physically based process descriptions, assuming a thickness-area ratio
 for changes in pond volume. A novel aspect of the new scheme is that the
 ponds are carried as tracers on the level (undeformed) ice area of each
@@ -710,7 +710,7 @@ effects of inclusions in the ice/snow matrix such as dust and algae can
 also be included, along with radiative treatment of melt ponds and other
 changes in physical properties, for example granularization associated
 with snow aging. The Delta-Eddington formulation is described in detail
-in :cite:`BL07`. Since publication of this technical paper,
+in :cite:`Briegleb07`. Since publication of this technical paper,
 a number of improvements have been made to the Delta-Eddington scheme,
 including a surface scattering layer and internal shortwave absorption
 for snow, generalization for multiple snow layers and more than four
@@ -725,9 +725,9 @@ additional tuning parameters are available for this scheme, ``dT_mlt`` and
 ``rsnw_mlt``. ``dT_mlt`` is the temperature change needed for a change in snow
 grain radius from non-melting to melting, and ``rsnw_mlt`` is the maximum
 snow grain radius when melting. An absorption coefficient for algae
-(``kalg``) may also be set. See :cite:`BL07` for details; the
+(``kalg``) may also be set. See :cite:`Briegleb07` for details; the
 CESM melt pond and Delta-Eddington parameterizations are further
-explained and validated in :cite:`HBBLH12`.
+explained and validated in :cite:`Holland12`.
 
 Shortwave radiation: CCSM3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -788,7 +788,7 @@ where :math:`I(z)` is the shortwave flux that reaches depth :math:`z`
 beneath the surface without being absorbed, and :math:`\kappa_i` is the
 bulk extinction coefficient for solar radiation in ice, set to
 :math:`1.4 \
-{\mathrm m^{-1}}` for visible wavelengths :cite:`ESC95`. A
+{\mathrm m^{-1}}` for visible wavelengths :cite:`Ebert95`. A
 fraction :math:`\exp(-\kappa_i h_i)` of the penetrating solar radiation
 passes through the ice to the ocean
 (:math:`F_{sw\Downarrow}`). 
@@ -830,7 +830,7 @@ where :math:`q_1 = 1.16378 \times 10^7 \, \mathrm{kg/m^3}`,
 Kelvin, and :math:`\rho_a` is the surface air density.
 
 The net downward heat flux from the ice to the ocean is given by
-:cite:`MM95`:
+:cite:`Maykut95`:
 
 .. math::
    F_{bot} = -\rho_w c_w c_h u_* (T_w - T_f),
@@ -847,7 +847,7 @@ depend on the ocean forcing used and can be as low as 0.
 :math:`F_{bot}` is limited by the total amount of heat available from
 the ocean, :math:`F_{frzmlt}`. Additional heat,
 :math:`F_{side}`, is used to melt the ice laterally following
-:cite:`MP87` and :cite:`Steele92`.
+:cite:`Maykut87` and :cite:`Steele92`.
 :math:`F_{bot}` and the fraction of ice melting laterally are scaled so
 that :math:`F_{bot} + F_{side} \ge F_{frzmlt}` in the case that
 :math:`F_{frzmlt}<0` (melting; see
@@ -871,8 +871,8 @@ other configurations, which we describe here.
 Bitz and Lipscomb thermodynamics (``ktherm`` = 1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The "BL99" thermodynamic sea ice model is based on
-:cite:`MU71` and :cite:`BL99`, and is
+The "Bitz99" thermodynamic sea ice model is based on
+:cite:`Maykut71` and :cite:`Bitz99`, and is
 described more fully in :cite:`Lipscomb98`. The vertical
 salinity profile is prescribed and is unchanging in time. The snow is
 assumed to be fresh, and the midpoint salinity :math:`S_{ik}` in each
@@ -888,7 +888,7 @@ least-squares fit to the salinity profile observed in multiyear sea
 ice by :cite:`Schwarzacher59`. This profile varies from
 :math:`S=0` at the top surface (:math:`z = 0`) to :math:`S=S_{\max}`
 at the bottom surface (:math:`z=1`) and is similar to that used by
-:cite:`MU71`. Equation :eq:`salinity` is fairly accurate
+:cite:`Maykut71`. Equation :eq:`salinity` is fairly accurate
 for ice that has drained at the top surface due to summer melting. It
 is not a good approximation for cold first-year ice, which has a more
 vertically uniform salinity because it has not yet drained. However,
@@ -932,7 +932,7 @@ conservatively by the transport modules; they are simply ignored by the
 thermodynamics.)
 
 The rate of temperature change in the ice interior is given by
-:cite:`MU71`:
+:cite:`Maykut71`:
 
 .. math::
    \rho_i c_i \frac{\partial T_i}{\partial t} =
@@ -968,8 +968,8 @@ fresh ice at , and :math:`\mu = 0.054` deg/ppt is the (liquidus) ratio
 between the freezing temperature and salinity of brine.
 
 Following :cite:`Untersteiner64` and
-:cite:`MU71`, the standard thermal conductivity
-(``conduct`` = ‘MU71’) is given by
+:cite:`Maykut71`, the standard thermal conductivity
+(``conduct`` = ‘Maykut71’) is given by
 
 .. math::
    K_i(T,S) = K_0 + \frac{\beta S}{T},
@@ -977,14 +977,14 @@ Following :cite:`Untersteiner64` and
 
 where :math:`K_0 = 2.03` W/m/deg is the conductivity of fresh ice and
 :math:`\beta = 0.13` W/m/ppt is an empirical constant. Experimental
-results :cite:`TWMH01` suggest that Equation :eq:`conductivity` may
+results :cite:`Trodahl01` suggest that Equation :eq:`conductivity` may
 not be a good description of the thermal conductivity of sea ice. In
 particular, the measured conductivity does not markedly decrease as
 :math:`T` approaches :math:`0^{\circ}C`, but does decrease near the top surface
 (regardless of temperature).
 
 An alternative parameterization based on the "bubbly brine" model of
-:cite:`PETB07` for conductivity is available
+:cite:`Pringle07` for conductivity is available
 (``conduct`` = ‘bubbly’):
 
 .. math::
@@ -1259,7 +1259,7 @@ Mushy thermodynamics (``ktherm`` = 2)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The "mushy" thermodynamics option treats the sea ice as a mushy layer
-:cite:`FUWW06` in which the ice is assumed to be composed
+:cite:`Feltham06` in which the ice is assumed to be composed
 of microscopic brine inclusions surrounded by a matrix of pure water
 ice. Both enthalpy and salinity are prognostic variables. The size of
 the brine inclusions is assumed to be much smaller than the size of
@@ -1314,7 +1314,7 @@ and ice are fixed at the values of :math:`\rho_w` and :math:`\rho_i`,
 respectively.
 
 The permeability of ice is computed from the liquid fraction as in
-:cite:`GEHMPZ07`:
+:cite:`Golden07`:
 
 
 .. math:: 
@@ -1358,12 +1358,12 @@ Fitting to the data, :math:`T_0=-7.636^\circ`\ C,
 
 *Two-stage outer iteration* 
 
-As for the BL99 thermodynamics
-:cite:`BL99` there are two qualitatively different
+As for the Bitz99 thermodynamics
+:cite:`Bitz99` there are two qualitatively different
 situations that must be considered when solving for the vertical
 thermodynamics: the surface can be melting and at the melting
 temperature, or the surface can be colder than the melting temperature
-and not melting. In the BL99 thermodynamics these two situations were
+and not melting. In the Bitz99 thermodynamics these two situations were
 treated within the same iterative loop, but here they are dealt with
 separately. If at the beginning of the time step the ice surface is cold
 and not melting, we solve the ice temperatures assuming that this is
@@ -1395,7 +1395,7 @@ iteration described below was found to be numerically unstable. Keeping
 the liquid fraction fixed drastically improves the numerical stability
 of the method without significantly changing the solution.
 
-Temperatures are calculated in a similar way to BL99 with an outer
+Temperatures are calculated in a similar way to Bitz99 with an outer
 Picard iteration of an inner tridiagonal matrix solve. The conservation
 equation for the internal ice temperatures is
 
@@ -1420,7 +1420,7 @@ conductivity of pure ice and
 conductivity of the brine. The thermal conductivity of brine is a
 function of temperature and salinity, but here we take it as a constant
 value for the middle of the temperature range experienced by sea ice,
-:math:`-10^\circ`\ C :cite:`SP86`, assuming the brine
+:math:`-10^\circ`\ C :cite:`Siedler86`, assuming the brine
 liquidus salinity at :math:`-10^\circ`\ C.
 
 We discretize the terms that include temperature in the heat
@@ -1456,7 +1456,7 @@ surface.
 
 If the surface is colder than the melting temperature then we also have
 to solve for the surface temperature, :math:`T_{sf}`. Here we follow the
-methodology of BL99 described above.
+methodology of Bitz99 described above.
 
 These discretized temperature equations form a tridiagional matrix for
 the new temperatures and are solved with a standard tridiagonal solver.
@@ -1495,7 +1495,7 @@ saltier brine is denser than the underlying sea water and the brine
 undergoes convective overturning with the ocean. As the dense, cold
 brine drains out of the ice, it is replaced by fresher seawater,
 lowering the bulk salinity of the ice. Following
-:cite:`THB13`, gravity drainage is assumed to occur as two
+:cite:`Turner13`, gravity drainage is assumed to occur as two
 simultaneously operating modes: a rapid mode operating principally near
 the ice base and a slow mode occurring everywhere.
 
@@ -1751,7 +1751,7 @@ old and new layers, respectively. The enthalpies of the new layers are
 
 Lateral melting is accomplished by multiplying the state variables by
 :math:`1-r_{side}`, where :math:`r_{side}` is the fraction of ice melted
-laterally :cite:`MP87,Steele92`, and adjusting the ice
+laterally :cite:`Maykut87,Steele92`, and adjusting the ice
 energy and fluxes as appropriate. We assume a floe diameter of 300 m.
 
 Snow-ice formation
@@ -1770,7 +1770,7 @@ Thus the snow base lies below sea level when
 .. math:: 
    h^* \equiv h_s - \frac {(\rho_w-\rho_i) h_i}{\rho_s} > 0.
 
-In this case, for ``ktherm`` = 1 (BL99) we raise the snow base to sea level
+In this case, for ``ktherm`` = 1 (Bitz99) we raise the snow base to sea level
 by converting some snow to ice:
 
 .. math::
@@ -1802,6 +1802,6 @@ into equal thicknesses while conserving energy and salt.
 .. [1]
    The mushy thermodynamics option does not include the enthalpy
    associated with raising the meltwater temperature to in these
-   calculations, unlike BL99, which does include it. This extra heat is
+   calculations, unlike Bitz99, which does include it. This extra heat is
    returned to the ocean (or the atmosphere, in the case of evaporation)
    with the melt water.

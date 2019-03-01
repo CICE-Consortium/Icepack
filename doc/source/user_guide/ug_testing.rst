@@ -106,108 +106,107 @@ Tests are defined under **configuration/scripts/tests/**.  The tests currently s
 Please run ``./icepack.setup --help`` for the latest information.
 
 
-Example.  Basic default single test
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _examplediff:
 
-Define the test, mach, env, and testid.
-::
+Individual Test Examples
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-  ./icepack.setup --test smoke --mach wolf --env gnu --testid t00
-  cd wolf_gnu_smoke_col_1x1.t00
-  ./icepack.build
-  ./icepack.submit
-  ./cat test_output
+ 1) **Basic default single test**
+     
+    Define the test, mach, env, and testid.
+    ::
 
-
-Example. Simple test with some options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Add ``--set``
-::
-
-  ./icepack.setup --test smoke --mach wolf --env gnu --set diag1,debug --testid t00
-  cd wolf_gnu_smoke_col_1x1_debug_diag1.t00
-  ./icepack.build
-  ./icepack.submit
-  ./cat test_output
+      ./icepack.setup --test smoke --mach wolf --env gnu --testid t00
+      cd wolf_gnu_smoke_col_1x1.t00
+      ./icepack.build
+      ./icepack.submit
+      ./cat test_output
 
 
-Example. Single test, generate a baseline dataset
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2) **Simple test with some options**
 
-Add ``--bgen``
-::
+    Add ``--set``
+    ::
 
-  ./icepack.setup --test smoke --mach wolf -env gnu --bgen icepack.v01 --testid t00 --set diag1
-  cd wolf_gnu_smoke_col_1x1_diag1.t00
-  ./icepack.build
-  ./icepack.submit
-  ./cat test_output
-
-
-Example. Single test, compare results to a prior baseline.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Add ``--bcmp``.  For this to work,
-the prior baseline must exist and have the exact same base testname 
-[machine]_[env]_[test]_[grid]_[pes]_[sets] 
-::
-
-  ./icepack.setup --test smoke --mach wolf -env gnu --bcmp icepack.v01 --testid t01 --set diag1
-  cd wolf_gnu_smoke_col_1x1_diag1.t01
-  ./icepack.build
-  ./icepack.submit
-  ./cat test_output
+      ./icepack.setup --test smoke --mach wolf --env gnu --set diag1,debug --testid t00
+      cd wolf_gnu_smoke_col_1x1_debug_diag1.t00
+      ./icepack.build
+      ./icepack.submit
+      ./cat test_output
 
 
-Example. Simple test, generate a baseline dataset and compare to a prior baseline
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 3) **Single test, generate baseline dataset**
 
-Use ``--bgen`` and ``--bcmp``.  The prior baseline must exist already.
-::
+    Add ``--bgen``
+    ::
 
-  ./icepack.setup --test smoke --mach wolf -env gnu --bgen icepack.v02 --bcmp icepack.v01 --testid t02 --set diag1
-  cd wolf_gnu_smoke_col_1x1_diag1.t02
-  ./icepack.build
-  ./icepack.submit
-  ./cat test_output
+      ./icepack.setup --test smoke --mach wolf -env gnu --bgen icepack.v01 --testid t00 --set diag1
+      cd wolf_gnu_smoke_col_1x1_diag1.t00
+      ./icepack.build
+      ./icepack.submit
+      ./cat test_output
 
 
-Example. Simple test, comparison against another test
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 4) **Single test, compare results to a prior baseline**
 
-Use ``--diff``.  This feature is primarily used in test suites and has 
-limited use in icepack, but is being described for completeness.
+    Add ``--bcmp``.  For this to work,
+    the prior baseline must exist and have the exact same base testname 
+    [machine]_[env]_[test]_[grid]_[pes]_[sets] 
+    ::
 
-``--diff`` provides a way to compare tests with each other.  
-For this to work, the tests have to be run in a specific order and
-the testids need to match.  The test 
-is always compared relative to the current case directory.
+      ./icepack.setup --test smoke --mach wolf -env gnu --bcmp icepack.v01 --testid t01 --set diag1
+      cd wolf_gnu_smoke_col_1x1_diag1.t01
+      ./icepack.build
+      ./icepack.submit
+      ./cat test_output
 
-To run the first test,
-::
 
-  ./icepack.setup --test smoke --mach wolf -env gnu --testid tx01 --set debug
-  cd wolf_gnu_smoke_col_1x1_debug.tx01
-  ./icepack.build
-  ./icepack.submit
-  ./cat test_output
+ 5) **Simple test, generate a baseline dataset and compare to a prior baseline**
 
-Then to run the second test and compare to the results from the first test
-::
+    Use ``--bgen`` and ``--bcmp``.  The prior baseline must exist already.
+    ::
 
-  ./icepack.setup --test smoke --mach wolf -env gnu --testid tx01 --diff smoke_col_1x1_debug
-  cd wolf_gnu_smoke_col_1x1.tx01
-  ./icepack.build
-  ./icepack.submit
-  ./cat test_output
+      ./icepack.setup --test smoke --mach wolf -env gnu --bgen icepack.v02 --bcmp icepack.v01 --testid t02 --set diag1
+      cd wolf_gnu_smoke_col_1x1_diag1.t02
+      ./icepack.build
+      ./icepack.submit
+      ./cat test_output
 
-The scripts will add a [machine]_[environment] to the beginning of the diff 
-argument and the same testid to the end of the diff argument.  Then the runs 
-will be compared for bit-for-bit and a result will be produced in test_output.  
-This is really more useful in CICE and for test suites right now.  For example, 
-CICE uses this feature to compare results from different pe counts or 
-decompositions, single threaded vs multi-threaded, and so forth.
+
+ 6) **Simple test, comparison against another test**
+
+    Use ``--diff``.  This feature is primarily used in test suites and has 
+    limited use in icepack, but is being described for completeness.
+
+    ``--diff`` provides a way to compare tests with each other.  
+    For this to work, the tests have to be run in a specific order and
+    the testids need to match.  The test 
+    is always compared relative to the current case directory.
+
+    To run the first test,
+    ::
+
+      ./icepack.setup --test smoke --mach wolf -env gnu --testid tx01 --set debug
+      cd wolf_gnu_smoke_col_1x1_debug.tx01
+      ./icepack.build
+      ./icepack.submit
+      ./cat test_output
+
+    Then to run the second test and compare to the results from the first test
+    ::
+
+      ./icepack.setup --test smoke --mach wolf -env gnu --testid tx01 --diff smoke_col_1x1_debug
+      cd wolf_gnu_smoke_col_1x1.tx01
+      ./icepack.build
+      ./icepack.submit
+      ./cat test_output
+
+    The scripts will add a [machine]_[environment] to the beginning of the diff 
+    argument and the same testid to the end of the diff argument.  Then the runs 
+    will be compared for bit-for-bit and a result will be produced in test_output.  
+    This is really more useful in CICE and for test suites right now.  For example, 
+    CICE uses this feature to compare results from different pe counts or 
+    decompositions, single threaded vs multi-threaded, and so forth.
 
 .. _testsuites:
 
@@ -295,152 +294,148 @@ following options are valid for suites,
 Please see :ref:`case_options` and :ref:`indtests` for more details about how these options are used.
 
 
-Example. Basic test suite
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test Suite Examples
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Specify suite, mach, env, testid.
-::
+ 1) **Basic test suite**
+     
+    Specify suite, mach, env, testid.
+    ::
 
-  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a
-  cd base_suite.v01a
-  #wait for runs to complete
-  ./results.csh
-
-
-Example. Multiple test suites on multiple environments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Specify multiple envs.
-::
-
-  ./icepack.setup --suite base_suite,quick_suite --mach conrad --env cray,pgi,intel,gnu --testid v01a
-  cd base_suite.v01a
-  #wait for runs to complete
-  ./results.csh
-
-The interface supports both multiple suites and multiple environments from a single
-command line invokation.  Each env or suite can also be run as a separate invokation 
-of `icepack.setup` but if that approach is taken, it is recommended that different testids be used.
+      ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a
+      cd base_suite.v01a
+      #wait for runs to complete
+      ./results.csh
 
 
-Example. Basic test suite, store baselines in user defined name
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2) **Multiple test suites on multiple environments**
 
-Add ``--bgen``
-::
+      Specify multiple envs.
+      ::
 
-  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a
-  cd base_suite.v01a
-  #wait for runs to complete
-  ./results.csh
+        ./icepack.setup --suite base_suite,quick_suite --mach conrad --env cray,pgi,intel,gnu --testid v01a
+        cd base_suite.v01a
+        #wait for runs to complete
+        ./results.csh
 
-This will store the results in the default [bdir] directory under the subdirectory icepack.v01a.
-
-Example. Basic test suite, store baselines in user defined top level directory
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Add ``--bgen`` and ``--bdir``
-::
-
-  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a --bdir /tmp/user/ICEPACK_BASELINES
-  cd base_suite.v01a
-  #wait for runs to complete
-  ./results.csh
-
-This will store the results in /tmp/user/ICEPACK_BASELINES/icepack.v01a.
+      The interface supports both multiple suites and multiple environments from a single
+      command line invokation.  Each env or suite can also be run as a separate invokation 
+      of `icepack.setup` but if that approach is taken, it is recommended that different testids be used.
 
 
-Example. Basic test suite, store baselines in auto-generated directory
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 3) **Basic test suite, store baselines in user defined name**
 
-Add ``--bgen default``
-::
+      Add ``--bgen``
+      ::
 
-  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --bgen default
-  cd base_suite.v01a
-  #wait for runs to complete
-  ./results.csh
+        ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a
+        cd base_suite.v01a
+        #wait for runs to complete
+        ./results.csh
 
-This will store the results in the default [bdir] directory under a directory name generated by the script that includes the hash and date.
-
-
-Example. Basic test suite, compare to prior baselines
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Add ``--bcmp``
-::
-
-  ./icepack.setup --suite base_suite --mach conrad --env cray --testid v02a --bcmp icepack.v01a
-  cd base_suite.v02a
-  #wait for runs to complete
-  ./results.csh
-
-This will compare to results saved in the baseline [bdir] directory under
-the subdirectory icepack.v01a.  You can use other regression options as well
-(``--bdir`` and ``--bgen``)
+      This will store the results in the default [bdir] directory under the subdirectory icepack.v01a.
 
 
-Example. Basic test suite, use of default string in regression testing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 4) **Basic test suite, store baselines in user defined top level directory**
 
-default is a special argument to ``--bgen`` and ``--bcmp``.  When used, the
-scripts will automate generation of the directories.  In the case of ``--bgen``,
-a unique directory name consisting of the hash and a date will be created.
-In the case of ``--bcmp``, the latest directory in [bdir] will automatically
-be specified.  This provides a number of useful features
+      Add ``--bgen`` and ``--bdir``
+      ::
 
- - the ``--bgen`` directory will be named after the hash automatically
- - the ``--bcmp`` will always find the most recent set of baselines
- - the ``--bcmp`` reporting will include information about the comparison directory
-   name which will include hash information
- - automation can be invoked easily, especially if ``--bdir`` is used to separate
-   results
+        ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --bgen icepack.v01a --bdir /tmp/user/ICEPACK_BASELINES
+        cd base_suite.v01a
+        #wait for runs to complete
+        ./results.csh
 
-Imagine the case where the default settings are used and ``--bdir`` is used to 
-create a unique location.  You could easily carry out regular builds automatically via,
-::
-
-  set mydate = `date -u "+%Y%m%d"`
-  git clone https://github.com/myfork/icepack icepack.$mydate
-  cd icepack.$mydate
-  ./icepack.setup --suite base_suite --mach conrad --env cray,gnu,intel,pgi --testid $mydate --bcmp default --bgen default --bdir /tmp/work/user/ICEPACK_BASELINES_MASTER
-
-When this is invoked, a new set of baselines will be generated and compared to the prior
-results each time without having to change the arguments.
+      This will store the results in /tmp/user/ICEPACK_BASELINES/icepack.v01a.
 
 
-Example. Create and test a custom suite
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 5) **Basic test suite, store baselines in auto-generated directory**
 
-Create your own input text file consisting of 5 columns of data,
- - Test
- - Grid
- - pes
- - sets (optional)
- - diff test (optional)
+      Add ``--bgen default``
+      ::
 
-such as
-::
+        ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a --bgen default
+        cd base_suite.v01a
+        #wait for runs to complete
+        ./results.csh
 
-   > cat mysuite
-   smoke    col  1x1  diag1,debug
-   restart  col  1x1
-   restart  col  1x1  diag1,debug    restart_col_1x1
-   restart  col  1x1  mynewoption,diag1,debug
+      This will store the results in the default [bdir] directory under a directory name generated by the script that includes the hash and date.
 
-then use that input file, mysuite
-::
 
-  ./icepack.setup --suite mysuite --mach conrad --env cray --testid v01a --bgen default
-  cd mysuite.v01a
-  #wait for runs to complete
-  ./results.csh
+ 6) **Basic test suite, compare to prior baselines**
 
-You can use all the standard regression testing options (``--bgen``, ``--bcmp``, 
-``--bdir``).  Make sure any "diff" testing that goes on is on tests that
-are created earlier in the test list, as early as possible.  Unfortunately,
-there is still no absolute guarantee the tests will be completed in the correct 
-sequence.
+      Add ``--bcmp``
+      ::
+
+        ./icepack.setup --suite base_suite --mach conrad --env cray --testid v02a --bcmp icepack.v01a
+        cd base_suite.v02a
+        #wait for runs to complete
+        ./results.csh
+
+      This will compare to results saved in the baseline [bdir] directory under
+      the subdirectory icepack.v01a.  You can use other regression options as well
+      (``--bdir`` and ``--bgen``)
+
+
+ 7) **Basic test suite, use of default string in regression testing**
+
+      default is a special argument to ``--bgen`` and ``--bcmp``.  When used, the
+      scripts will automate generation of the directories.  In the case of ``--bgen``,
+      a unique directory name consisting of the hash and a date will be created.
+      In the case of ``--bcmp``, the latest directory in [bdir] will automatically
+      be specified.  This provides a number of useful features
+
+       - the ``--bgen`` directory will be named after the hash automatically
+       - the ``--bcmp`` will always find the most recent set of baselines
+       - the ``--bcmp`` reporting will include information about the comparison directory
+         name which will include hash information
+       - automation can be invoked easily, especially if ``--bdir`` is used to separate
+         results
+
+      Imagine the case where the default settings are used and ``--bdir`` is used to 
+      create a unique location.  You could easily carry out regular builds automatically via,
+      ::
+
+        set mydate = `date -u "+%Y%m%d"`
+        git clone https://github.com/myfork/icepack icepack.$mydate
+        cd icepack.$mydate
+        ./icepack.setup --suite base_suite --mach conrad --env cray,gnu,intel,pgi --testid $mydate --bcmp default --bgen default --bdir /tmp/work/user/ICEPACK_BASELINES_MASTER
+
+      When this is invoked, a new set of baselines will be generated and compared to the prior
+      results each time without having to change the arguments.
+
+
+ 8) **Create and test a custom suite**
+
+      Create your own input text file consisting of 5 columns of data,
+       - Test
+       - Grid
+       - pes
+       - sets (optional)
+       - diff test (optional)
+
+      such as
+      ::
+
+         > cat mysuite
+         smoke    col  1x1  diag1,debug
+         restart  col  1x1
+         restart  col  1x1  diag1,debug    restart_col_1x1
+         restart  col  1x1  mynewoption,diag1,debug
+
+      then use that input file, mysuite
+      ::
+
+        ./icepack.setup --suite mysuite --mach conrad --env cray --testid v01a --bgen default
+        cd mysuite.v01a
+        #wait for runs to complete
+        ./results.csh
+
+      You can use all the standard regression testing options (``--bgen``, ``--bcmp``, 
+      ``--bdir``).  Make sure any "diff" testing that goes on is on tests that
+      are created earlier in the test list, as early as possible.  Unfortunately,
+      there is still no absolute guarantee the tests will be completed in the correct 
+      sequence.
 
 
 .. _testreporting:

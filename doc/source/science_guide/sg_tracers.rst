@@ -27,7 +27,7 @@ timestep. Freezing directly onto the bottom of the ice does not affect
 the age, nor does melting. Mechanical redistribution processes and
 advection alter the age of ice in any given grid cell in a conservative
 manner following changes in ice area. The sea ice age tracer is
-validated in :cite:`HB09`.
+validated in :cite:`Hunke09`.
 
 Another age-related tracer, the area covered by first-year ice
 :math:`a_{FY}`, is an area tracer (`trcr\_depend` = 0) that corresponds
@@ -37,7 +37,7 @@ September (``yday`` = 259) in the northern hemisphere and 15 March (``yday`` =
 75) in the southern hemisphere, in non-leap years. This tracer is
 increased when new ice forms in open water, in subroutine
 *add\_new\_ice* in **icepack\_therm\_itd.F90**. The first-year area tracer
-is discussed in :cite:`ABTH11`.
+is discussed in :cite:`Armour11`.
 
 .. _pondtr:
 

@@ -101,13 +101,14 @@ melt pond albedo ``albpnd`` is only computed for the Delta-Eddington
 shortwave case.
 
 With the Delta-Eddington parameterization, the albedo depends on the
-cosine of the zenith angle (:math:`\cos\varphi`, ``coszen``) and is zero if
-the sun is below the horizon (:math:`\cos\varphi < 0`). Therefore
-time-averaged albedo fields would be low if a diurnal solar cycle is
-used, because zero values would be included in the average for half of
-each 24-hour period. To rectify this, a separate counter is used for the
-averaging that is incremented only when :math:`\cos\varphi > 0`. The
-albedos will still be zero in the dark, polar winter hemisphere.
+cosine of the zenith angle (:math:`\cos\varphi`, ``coszen``) and is one if
+the sun is below the horizon (:math:`\cos\varphi < 0`). Thus, the albedos
+will be one in the dark, polar winter hemisphere. However, the
+time-averaged albedo fields will be high if a diurnal solar cycle is
+used, because values of one would be included in the average for half of
+each 24-hour period. To rectify this, a separate counter should be used for the
+averaging that is incremented only when :math:`\cos\varphi > 0`. However, this is
+still a work in progress.
 
 Interpretation of general results
 ---------------------------------
@@ -131,7 +132,7 @@ code with differing descriptions. For instance, sea ice porosity and
 permeability, along with associated flushing and flooding, are
 calculated separately for mushy thermodynamics, topo and level-ice melt
 ponds, and for the brine height tracer, each employing its own
-equations. Likewise, the BL99 and mushy thermodynamics compute freeboard
+equations. Likewise, the Bitz99 and mushy thermodynamics compute freeboard
 and snow–ice formation differently, and the topo and level-ice melt pond
 schemes both allow fresh ice to grow atop melt ponds, using slightly
 different formulations for Stefan freezing. These various process
