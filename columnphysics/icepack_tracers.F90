@@ -73,6 +73,7 @@
          nt_apnd  , & ! melt pond area fraction
          nt_hpnd  , & ! melt pond depth
          nt_ipnd  , & ! melt pond refrozen lid thickness
+         nt_fsd   , & ! floe size distribution
          nt_aero  , & ! starting index for aerosols in ice
          nt_bgc_Nit,   & ! nutrients  
          nt_bgc_Am,    & ! 
@@ -94,7 +95,8 @@
          tr_pond_lvl , & ! if .true., use level-ice pond tracer
          tr_pond_topo, & ! if .true., use explicit topography-based ponds
          tr_aero     , & ! if .true., use aerosol tracers
-         tr_brine        ! if .true., brine height differs from ice thickness
+         tr_brine    , & ! if .true., brine height differs from ice thickness
+         tr_fsd          ! if .true., use floe size distribution
 
       !-----------------------------------------------------------------
       !  biogeochemistry
@@ -242,7 +244,7 @@
       subroutine icepack_init_tracer_flags(&
            tr_iage_in, tr_FY_in, tr_lvl_in, &
            tr_pond_in, tr_pond_cesm_in, tr_pond_lvl_in, tr_pond_topo_in, &
-           tr_aero_in, tr_brine_in, tr_zaero_in, &
+           tr_fsd_in, tr_aero_in, tr_brine_in, tr_zaero_in, &
            tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
            tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
            tr_bgc_PON_in)
@@ -255,6 +257,7 @@
              tr_pond_cesm_in , & ! if .true., use cesm pond tracer
              tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
              tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
+             tr_fsd_in       , & ! if .true., use floe size distribution tracers
              tr_aero_in      , & ! if .true., use aerosol tracers
              tr_brine_in     , & ! if .true., brine height differs from ice thickness
              tr_zaero_in     , & ! if .true., black carbon is tracers  (n_zaero)
@@ -277,6 +280,7 @@
         if (present(tr_pond_cesm_in)) tr_pond_cesm = tr_pond_cesm_in
         if (present(tr_pond_lvl_in) ) tr_pond_lvl  = tr_pond_lvl_in
         if (present(tr_pond_topo_in)) tr_pond_topo = tr_pond_topo_in
+        if (present(tr_fsd_in)    ) tr_fsd     = tr_fsd_in
         if (present(tr_aero_in)   ) tr_aero    = tr_aero_in
         if (present(tr_brine_in)  ) tr_brine   = tr_brine_in
         if (present(tr_zaero_in)  ) tr_zaero   = tr_zaero_in 
@@ -300,7 +304,7 @@
       subroutine icepack_query_tracer_flags(&
            tr_iage_out, tr_FY_out, tr_lvl_out, &
            tr_pond_out, tr_pond_cesm_out, tr_pond_lvl_out, tr_pond_topo_out, &
-           tr_aero_out, tr_brine_out, tr_zaero_out, &
+           tr_fsd_out, tr_aero_out, tr_brine_out, tr_zaero_out, &
            tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
            tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
            tr_bgc_PON_out)
@@ -313,6 +317,7 @@
              tr_pond_cesm_out , & ! if .true., use cesm pond tracer
              tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
              tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
+             tr_fsd_out       , & ! if .true., use floe size distribution
              tr_aero_out      , & ! if .true., use aerosol tracers
              tr_brine_out     , & ! if .true., brine height differs from ice thickness
              tr_zaero_out     , & ! if .true., black carbon is tracers  (n_zaero)
@@ -335,6 +340,7 @@
         if (present(tr_pond_cesm_out)) tr_pond_cesm_out = tr_pond_cesm
         if (present(tr_pond_lvl_out) ) tr_pond_lvl_out  = tr_pond_lvl
         if (present(tr_pond_topo_out)) tr_pond_topo_out = tr_pond_topo
+        if (present(tr_fsd_out)    ) tr_fsd_out     = tr_fsd
         if (present(tr_aero_out)   ) tr_aero_out    = tr_aero
         if (present(tr_brine_out)  ) tr_brine_out   = tr_brine
         if (present(tr_zaero_out)  ) tr_zaero_out   = tr_zaero
@@ -367,7 +373,8 @@
         write(iounit,*) "  tr_pond_cesm = ",tr_pond_cesm
         write(iounit,*) "  tr_pond_lvl  = ",tr_pond_lvl 
         write(iounit,*) "  tr_pond_topo = ",tr_pond_topo
-        write(iounit,*) "  tr_aero    = ",tr_aero   
+        write(iounit,*) "  tr_fsd     = ",tr_fsd
+        write(iounit,*) "  tr_aero    = ",tr_aero
         write(iounit,*) "  tr_brine   = ",tr_brine  
         write(iounit,*) "  tr_zaero   = ",tr_zaero  
         write(iounit,*) "  tr_bgc_Nit = ",tr_bgc_Nit
@@ -391,7 +398,7 @@
            nt_Tsfc_in, nt_qice_in, nt_qsno_in, nt_sice_in, &
            nt_fbri_in, nt_iage_in, nt_FY_in, & 
            nt_alvl_in, nt_vlvl_in, nt_apnd_in, nt_hpnd_in, nt_ipnd_in, &
-           nt_aero_in, nt_zaero_in, &
+           nt_fsd_in, nt_aero_in, nt_zaero_in, &
            nt_bgc_N_in, nt_bgc_chl_in, nt_bgc_DOC_in, nt_bgc_DON_in, &
            nt_bgc_DIC_in, nt_bgc_Fed_in, nt_bgc_Fep_in, nt_bgc_Nit_in, nt_bgc_Am_in, &
            nt_bgc_Sil_in, nt_bgc_DMSPp_in, nt_bgc_DMSPd_in, nt_bgc_DMS_in, nt_bgc_hum_in, &
@@ -417,6 +424,7 @@
              nt_apnd_in, & ! melt pond area fraction
              nt_hpnd_in, & ! melt pond depth
              nt_ipnd_in, & ! melt pond refrozen lid thickness
+             nt_fsd_in,  & ! floe size distribution
              nt_aero_in, & ! starting index for aerosols in ice
              nt_bgc_Nit_in, & ! nutrients  
              nt_bgc_Am_in,  & ! 
@@ -498,6 +506,7 @@
         if (present(nt_apnd_in)) nt_apnd = nt_apnd_in
         if (present(nt_hpnd_in)) nt_hpnd = nt_hpnd_in
         if (present(nt_ipnd_in)) nt_ipnd = nt_ipnd_in
+        if (present(nt_fsd_in) ) nt_fsd  = nt_fsd_in
         if (present(nt_aero_in)) nt_aero = nt_aero_in
         if (present(nt_bgc_Nit_in)   ) nt_bgc_Nit    = nt_bgc_Nit_in
         if (present(nt_bgc_Am_in)    ) nt_bgc_Am     = nt_bgc_Am_in
@@ -604,7 +613,7 @@
            nt_Tsfc_out, nt_qice_out, nt_qsno_out, nt_sice_out, &
            nt_fbri_out, nt_iage_out, nt_FY_out, & 
            nt_alvl_out, nt_vlvl_out, nt_apnd_out, nt_hpnd_out, nt_ipnd_out, &
-           nt_aero_out, nt_zaero_out, &
+           nt_fsd_out, nt_aero_out, nt_zaero_out, &
            nt_bgc_N_out, nt_bgc_C_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
            nt_bgc_DIC_out, nt_bgc_Fed_out, nt_bgc_Fep_out, nt_bgc_Nit_out, nt_bgc_Am_out, &
            nt_bgc_Sil_out, nt_bgc_DMSPp_out, nt_bgc_DMSPd_out, nt_bgc_DMS_out, nt_bgc_hum_out, &
@@ -629,6 +638,7 @@
              nt_apnd_out, & ! melt pond area fraction
              nt_hpnd_out, & ! melt pond depth
              nt_ipnd_out, & ! melt pond refrozen lid thickness
+             nt_fsd_out,  & ! floe size distribution
              nt_aero_out, & ! starting index for aerosols in ice
              nt_bgc_Nit_out, & ! nutrients  
              nt_bgc_Am_out,  & ! 
@@ -697,6 +707,7 @@
         if (present(nt_apnd_out)) nt_apnd_out = nt_apnd
         if (present(nt_hpnd_out)) nt_hpnd_out = nt_hpnd
         if (present(nt_ipnd_out)) nt_ipnd_out = nt_ipnd
+        if (present(nt_fsd_out) ) nt_fsd_out  = nt_fsd
         if (present(nt_aero_out)) nt_aero_out = nt_aero
         if (present(nt_bgc_Nit_out)   ) nt_bgc_Nit_out    = nt_bgc_Nit
         if (present(nt_bgc_Am_out)    ) nt_bgc_Am_out     = nt_bgc_Am
@@ -765,6 +776,7 @@
         write(iounit,*) "  nt_apnd = ",nt_apnd
         write(iounit,*) "  nt_hpnd = ",nt_hpnd
         write(iounit,*) "  nt_ipnd = ",nt_ipnd
+        write(iounit,*) "  nt_fsd  = ",nt_fsd
         write(iounit,*) "  nt_aero = ",nt_aero
         write(iounit,*) "  nt_bgc_Nit    = ",nt_bgc_Nit   
         write(iounit,*) "  nt_bgc_Am     = ",nt_bgc_Am    
