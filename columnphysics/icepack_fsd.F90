@@ -43,12 +43,14 @@
 !         nfreq           ! number of frequencies in wave spectrum   
 
       real(kind=dbl_kind), dimension(:), allocatable ::  &
-         floe_area_l,   &  ! fsd area at lower bound (m^2)
-         floe_area_h,   &  ! fsd area at higher bound (m^2)
+         floe_rad_h,         & ! fsd size higher bound in m (radius)
+         floe_area_l,        & ! fsd area at lower bound (m^2)
+         floe_area_h,        & ! fsd area at higher bound (m^2)
+         floe_area_c,        & ! fsd area at bin centre (m^2)
          floe_area_binwidth, & ! floe area bin width (m^2)
-         area_scaled_l, &  ! area bins scaled so they begin at zero
-         area_scaled_h, &  ! and no binwidth is greater than 1
-         area_scaled_c, &  ! (dimensionless)
+         area_scaled_l,      & ! area bins scaled so they begin at zero
+         area_scaled_h,      & ! and no binwidth is greater than 1
+         area_scaled_c,      & ! (dimensionless)
          area_scaled_binwidth
 
       integer(kind=int_kind), dimension(:,:), allocatable, public ::  &
@@ -72,10 +74,8 @@
 !
       subroutine icepack_init_fsd_bounds(ncat, nfsd, &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
-         floe_rad_h,    &  ! fsd size higher bound in m (radius)
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
          floe_binwidth, &  ! fsd size bin width in m (radius)
-         floe_area_c,   &  ! fsd area at bin centre (m^2)
          c_fsd_range)      ! string for history output
 
       integer (kind=int_kind), intent(in) :: &
@@ -84,10 +84,8 @@
 
       real(kind=dbl_kind), dimension(:), intent(inout) ::  &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
-         floe_rad_h,    &  ! fsd size higher bound in m (radius)
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
-         floe_binwidth, &  ! fsd size bin width in m (radius)
-         floe_area_c       ! fsd area at bin centre (m^2)
+         floe_binwidth     ! fsd size bin width in m (radius)
 
       character (len=35), intent(out) :: &
            c_fsd_range(nfsd) ! string for history output
@@ -158,8 +156,10 @@
       end if
 
       allocate(                                                   &
+         floe_rad_h          (nfsd), & ! fsd size higher bound in m (radius)
          floe_area_l         (nfsd), & ! fsd area at lower bound (m^2)
          floe_area_h         (nfsd), & ! fsd area at higher bound (m^2)
+         floe_area_c         (nfsd), & ! fsd area at bin centre (m^2)
          floe_area_binwidth  (nfsd), & ! floe area bin width (m^2)
          area_scaled_l       (nfsd), & ! area bins scaled so they begin at zero
          area_scaled_h       (nfsd), & ! and no binwidth is greater than 1
@@ -258,7 +258,7 @@
 
       subroutine icepack_init_fsd(nfsd, ice_ic, &
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
-         floe_area_c,   &  ! fsd area at bin centre (m^2)
+         floe_binwidth, &  ! fsd size bin width in m (radius)
          afsd)             ! floe size distribution tracer
 
       integer(kind=int_kind), intent(in) :: &
@@ -269,7 +269,7 @@
 
       real(kind=dbl_kind), dimension(:), intent(inout) ::  &
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
-         floe_area_c       ! fsd area at bin centre (m^2)
+         floe_binwidth     ! fsd size bin width in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          afsd              ! floe size tracer: fraction distribution of floes
@@ -295,15 +295,16 @@
          totfrac = c0                                   ! total fraction of floes 
          do k = 1, nfsd
             num_fsd(k) = (2*floe_rad_c(k))**(-alpha-c1) ! number distribution of floes
-            afsd   (k) = num_fsd(k)*floe_area_c(k)      ! fraction distribution of floes
+            afsd   (k) = num_fsd(k)*floe_area_c(k)*floe_binwidth(k) ! fraction distribution of floes
             totfrac = totfrac + afsd(k)
          enddo
          afsd = afsd/totfrac                    ! normalize
 
-        !write(*,*)'init_fsd: initial number distribution of floes'
-        !write(*,*) num_fsd(1:nfsd)
-        !write(*,*)'init_fsd: initial fraction distribution of floes'
-        !write(*,*) afsd(1:nfsd)
+!         write(*,*)'init_fsd: initial number distribution of floes'
+!         write(*,*) num_fsd(1:nfsd)
+!         write(*,*)'init_fsd: initial fraction distribution of floes'
+!         write(*,*) afsd(1:nfsd)
+!         write(*,*) SUM(afsd(1:nfsd)) ! should be 1
 
       endif ! ice_ic
 
