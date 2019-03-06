@@ -17,7 +17,6 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, c4, puny
       use icepack_parameters, only: pi, floeshape
-      use icepack_tracers, only: tr_fsd, nt_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
