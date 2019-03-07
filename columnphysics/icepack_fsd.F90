@@ -23,9 +23,7 @@
       implicit none
 
       private
-      public :: icepack_init_fsd_bounds, icepack_init_fsd
-!      public :: init_fsd, init_fsd_bounds,     &
-!          frzmlt_bottom_lateral_fsd, &
+      public :: icepack_init_fsd_bounds, icepack_init_fsd, partition_area
 !          renorm_mfstd, wave_dep_growth 
 
 !      logical (kind=log_kind), public :: & 
@@ -71,15 +69,14 @@
 !  Note also that the bound of the lowest floe size category is used
 !  to define the lead region width and the domain spacing for wave breaking
 !
-      subroutine icepack_init_fsd_bounds(ncat, nfsd, &
+      subroutine icepack_init_fsd_bounds(nfsd, &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
          floe_binwidth, &  ! fsd size bin width in m (radius)
          c_fsd_range)      ! string for history output
 
       integer (kind=int_kind), intent(in) :: &
-         ncat, & ! number of thickness categories
-         nfsd    ! number of floe size categories
+         nfsd              ! number of floe size categories
 
       real(kind=dbl_kind), dimension(:), intent(inout) ::  &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
@@ -308,6 +305,106 @@
       endif ! ice_ic
 
       end subroutine icepack_init_fsd
+
+!=======================================================================
+! 
+!  Given the joint ice thickness and floe size distribution, calculate
+!  the lead region and the total lateral surface area following Horvat
+!  and Tziperman (2015)
+!
+! author: Lettie Roach, NIWA/VUW
+
+      subroutine partition_area (ncat,       nfsd,      &
+                                 floe_rad_c, aice,      &
+                                 aicen,      vicen,     &
+                                 afsdn,      lead_area, &
+                                 latsurf_area)
+
+      integer (kind=int_kind), intent(in) :: &
+         ncat           , & ! number of thickness categories
+         nfsd               ! number of floe size categories
+
+      real (kind=dbl_kind), dimension(:), intent(in) ::  &
+         floe_rad_c         ! fsd size bin centre in m (radius)
+
+      real (kind=dbl_kind), intent(in) :: &
+         aice               ! ice concentration
+
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         aicen          , & ! fractional area of ice
+         vicen              ! volume per unit area of ice
+
+      real (kind=dbl_kind), dimension(:,:), intent(in) :: &
+         afsdn              ! floe size distribution tracer
+
+      real (kind=dbl_kind), intent(out) :: &
+         lead_area      , & ! the fractional area of the lead region
+         latsurf_area       ! the area covered by lateral surface of floes
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         n              , & ! thickness category index
+         k                  ! floe size index
+
+      real (kind=dbl_kind) :: &
+         width_leadreg, &   ! width of lead region
+         thickness          ! actual thickness of ice in thickness cat
+
+      !-----------------------------------------------------------------
+      ! Initialize
+      !-----------------------------------------------------------------
+      lead_area    = c0
+      latsurf_area = c0
+
+      ! Set the width of the lead region to be the smallest
+      ! floe size category, as per Horvat & Tziperman (2015)
+      width_leadreg = floe_rad_c(1)
+
+      ! Only calculate these areas where there is some ice
+      if (aice > puny) then
+
+         ! lead area = sum of areas of annuli around all floes
+         do n = 1, ncat
+            do k = 1, nfsd
+               lead_area = lead_area + aicen(n) * afsdn(k,n) &
+                         * (c2*width_leadreg    /floe_rad_c(k)     &
+                             + width_leadreg**c2/floe_rad_c(k)**2)
+            enddo ! k
+         enddo    ! n
+
+         ! cannot be greater than the open water fraction
+         lead_area=MIN(lead_area, c1-aice)
+
+                ! sanity checks
+!                if (lead_area.gt.c1) stop 'lead_area not frac!'
+!                if (lead_area.ne.lead_area) stop 'lead_a NaN'
+                if (lead_area.lt.c0) then
+                        if (lead_area.lt.(c0-puny)) then
+!                                stop 'lead_area lt0 in partition_area'
+                        else
+                                lead_area=MAX(lead_area,c0)
+                        end if
+                end if
+
+         ! Total fractional lateral surface area in each grid (per unit ocean area)
+         do n = 1, ncat
+            thickness = c0
+            if (aicen(n) > c0) thickness = vicen(n)/aicen(n)
+
+            do k = 1, nfsd
+               latsurf_area = latsurf_area &
+                   + afsdn(k,n) * aicen(n) * c2 * thickness/floe_rad_c(k)
+            end do
+         end do
+
+                ! check
+                if (latsurf_area.lt.c0) stop 'negative latsurf_ area'
+                if (latsurf_area.ne.latsurf_area) stop 'latsurf_ area NaN'
+
+      end if ! aice
+
+      end subroutine partition_area
 
 !=======================================================================
 
