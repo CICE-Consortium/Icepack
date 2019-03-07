@@ -27,6 +27,7 @@
       use icepack_parameters, only: rhosi
       use icepack_parameters, only: kitd, ktherm, heat_capacity
       use icepack_parameters, only: z_tracers, solve_zsal
+      use icepack_parameters, only: wave_spec
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -1352,10 +1353,8 @@
       real (kind=dbl_kind), dimension(nfsd+1) :: &
          f_flx         !
 
-!echmod:  move to namelist?
       integer (kind=int_kind) :: &
-         new_size   , & ! index for floe size of new ice
-         new_ice_fs     ! options for frazil ice growth
+         new_size      ! index for floe size of new ice
 
       character(len=*),parameter :: subname='(add_new_ice)'
 
@@ -1363,7 +1362,6 @@
       ! initialize
       !-----------------------------------------------------------------
 
-      new_ice_fs   = 0
       lead_area    = c0
       latsurf_area = c0
       G_radial     = c0
@@ -1388,13 +1386,6 @@
          endif
          afsdn_latg(:,n) = afsdn(:,n)
       enddo
-
-      if (tr_fsd) &
-      call partition_area (ncat,       nfsd,      &
-                           floe_rad_c, aice,      &
-                           aicen,      vicen,     &
-                           afsdn,      lead_area, &
-                           latsurf_area)
 
       if (l_conservation_check) then
 
@@ -1501,6 +1492,12 @@
          if (tr_fsd) then ! lateral growth of existing ice
 
             ! partition volume into lateral growth and frazil
+            call partition_area (ncat,       nfsd,      &
+                                 floe_rad_c, aice,      &
+                                 aicen,      vicen,     &
+                                 afsdn,      lead_area, &
+                                 latsurf_area)
+
             vi0new_lat = c0
             if (latsurf_area > puny) then
                vi0new_lat = vi0new * lead_area / (c1 + aice/latsurf_area)
@@ -1713,6 +1710,7 @@
             trcrn(nt_FY,n) = min(trcrn(nt_FY,n), c1)
          endif
 
+!echmod - move this into a subroutine in ice_fsd.F90?
          if (tr_fsd) then ! evolve the floe size distribution
          ! lateral growth of existing ice
          ! and growth of new ice in category 1
@@ -1767,21 +1765,7 @@
 
                if (SUM(afsdn_latg(:,n)) > puny) then ! fsd lateral growth occurred
 
-                  if (new_ice_fs == 0) then ! grow in smallest
-                     afsd_ni(1) = (afsdn_latg(1,n)*area2(n) + ai0new) &
-                                                / (area2(n) + ai0new)
-                     do k = 2, nfsd  ! diminish other floe cats accordingly
-                        afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
-                     enddo
-
-                  else if (new_ice_fs == 1) then ! grow in largest
-                     afsd_ni(nfsd) =  (afsdn_latg(nfsd,n)*area2(n) + ai0new) &
-                                                       / (area2(n) + ai0new)
-                     do k = 1, nfsd-1  ! diminish other floe cats accordingly
-                        afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
-                     enddo
-
-                  else !if (new_ice_fs == 3) then
+                  if (wave_spec) then
 !echmod                     call wave_dep_growth(wave_spectrum(:), wave_hs_in_ice(i,j), new_size)
                        new_size = 1 !echmod for now
 
@@ -1797,18 +1781,33 @@
                         afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n) + ai0new)
                      end do
 
+! add this option later, maybe
+!                  else if () then ! grow in largest category
+!                     afsd_ni(nfsd) =  (afsdn_latg(nfsd,n)*area2(n) + ai0new) &
+!                                                       / (area2(n) + ai0new)
+!                     do k = 1, nfsd-1  ! diminish other floe cats accordingly
+!                        afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
+!                     enddo
+
+                  else ! grow in smallest floe size category
+                     afsd_ni(1) = (afsdn_latg(1,n)*area2(n) + ai0new) &
+                                                / (area2(n) + ai0new)
+                     do k = 2, nfsd  ! diminish other floe cats accordingly
+                        afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
+                     enddo
+
                   end if ! new_fs_option
 
                else ! entirely new ice or not
 
-                  if (new_ice_fs == 0) then
-                     afsd_ni(1) = c1
-                  elseif (new_ice_fs == 1) then
-                     afsd_ni(nfsd) = c1
-                  else !  new_ice_fs == 3
+                  if (wave_spec) then
 !echmod                     call wave_dep_growth(wave_spectrum(:), wave_hs_in_ice(i,j), new_size)
                      afsd_ni(new_size) = c1
-                  endif      ! new ice fs
+                  else
+                     afsd_ni(1) = c1
+!                  elseif () then ! grow in largest category
+!                     afsd_ni(nfsd) = c1
+                  endif      ! wave forcing
 
                endif ! entirely new ice or not
 
