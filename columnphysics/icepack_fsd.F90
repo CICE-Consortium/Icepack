@@ -16,14 +16,16 @@
 
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, c4, puny
-      use icepack_parameters, only: pi, floeshape
+      use icepack_parameters, only: pi, floeshape, wave_spec
+      use icepack_tracers, only: nt_fsd, tr_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       implicit none
 
       private
-      public :: icepack_init_fsd_bounds, icepack_init_fsd, partition_area
+      public :: icepack_init_fsd_bounds, icepack_init_fsd, fsd_lateral_growth, &
+         fsd_add_new_ice
 !          renorm_mfstd, wave_dep_growth 
 
 !      logical (kind=log_kind), public :: & 
@@ -405,6 +407,280 @@
       end if ! aice
 
       end subroutine partition_area
+
+!=======================================================================
+
+      subroutine fsd_lateral_growth (ncat,      nfsd,         &
+                                     dt,        aice,         &
+                                     aicen,     vicen,        &
+                                     vi0new,                  &
+                                     frazil,    floe_rad_c,   &
+                                     afsdn,                   &
+                                     lead_area, latsurf_area, &
+                                     G_radial,  d_an_latg,    &
+                                     tot_latg)
+
+      integer (kind=int_kind), intent(in) :: &
+         ncat  , & ! number of thickness categories
+         nfsd      ! number of floe size categories
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt    , & ! time step (s)
+         aice      ! total concentration of ice
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         aicen , & ! concentration of ice
+         vicen     ! volume per unit area of ice          (m)
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+         afsdn              ! floe size distribution tracer
+
+      real (kind=dbl_kind), intent(inout) :: &
+         vi0new, & ! volume of new ice added to cat 1
+         frazil    ! frazil ice growth        (m/step-->cm/day)
+
+      ! floe size distribution
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         floe_rad_c    ! fsd size bin centre in m (radius)
+
+      real (kind=dbl_kind), dimension(ncat), intent(out) :: &
+!      real (kind=dbl_kind), dimension(:), intent(out) :: &
+         d_an_latg
+
+      real (kind=dbl_kind), intent(out) :: &
+         G_radial    , & ! lateral melt rate (m/s)
+         tot_latg        ! total fsd lateral growth in open water
+
+!!      real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
+!      real (kind=dbl_kind), dimension(:), intent(out) :: &
+!         d_afsd_latg, d_afsd_addnew
+
+!      real (kind=dbl_kind), dimension(nfreq), intent(in)  :: &
+!         wave_spectrum
+
+!      real (kind=dbl_kind), intent(in)  :: &
+!         wave_hs_in_ice
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         n, k             ! ice category indices
+
+      real (kind=dbl_kind) :: &
+         vi0new_lat       ! volume of new ice added laterally to fsd
+
+      real (kind=dbl_kind), intent(out) :: &
+         lead_area      , & ! the fractional area of the lead region
+         latsurf_area       ! the area covered by lateral surface of floes
+
+      character(len=*),parameter :: subname='(fsd_lateral_growth)'
+
+      lead_area    = c0
+      latsurf_area = c0
+      G_radial     = c0
+      tot_latg     = c0
+
+      ! partition volume into lateral growth and frazil
+      call partition_area (ncat,       nfsd,      &
+                           floe_rad_c, aice,      &
+                           aicen,      vicen,     &
+                           afsdn,      lead_area, &
+                           latsurf_area)
+
+      vi0new_lat = c0
+      if (latsurf_area > puny) then
+         vi0new_lat = vi0new * lead_area / (c1 + aice/latsurf_area)
+      end if
+
+      ! for diagnostics
+      frazil = vi0new - vi0new_lat
+
+      ! lateral growth increment
+      if (vi0new_lat > puny) then
+         G_radial = vi0new_lat/dt
+         do n = 1, ncat
+            if (aicen(n) > puny) then
+               afsdn(:,n) = afsdn(:,n)/SUM(afsdn(:,n)) ! in case of 10e-10 errors
+            end if
+
+            do k = 1, nfsd
+               d_an_latg(n) = d_an_latg(n) &
+                            + c2*aicen(n)*afsdn(k,n)*G_radial*dt/floe_rad_c(k)
+            end do
+         end do ! n
+      endif ! vi0new_lat > 0
+
+      ! Use remaining ice volume as in standard model,
+      ! but ice cannot grow into the area that has grown laterally
+
+      vi0new = vi0new - vi0new_lat
+      tot_latg = SUM(d_an_latg(:))
+
+      end subroutine fsd_lateral_growth
+
+!=======================================================================
+
+      ! lateral growth of existing ice and growth of new ice in category 1
+
+      subroutine fsd_add_new_ice (ncat, n,    nfsd,          &
+                                  dt,         ai0new,        &
+                                  d_an_latg,  d_an_addnew,   &
+                                  floe_rad_c, floe_binwidth, &
+                                  G_radial,   area2,         &
+                                  afsdn,      aicen_init,    &
+                                  aicen,      trcrn)
+
+      integer (kind=int_kind), intent(in) :: &
+         n     , & ! thickness category number
+         ncat  , & ! number of thickness categories
+         nfsd      ! number of floe size categories
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt    , & ! time step (s)
+         ai0new, &   ! area of new ice added to cat 1
+         G_radial      ! lateral melt rate (m/s)
+!         wave_hs_in_ice
+
+!      real (kind=dbl_kind), dimension(nfreq), intent(in)  :: &
+!         wave_spectrum
+
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         d_an_latg, d_an_addnew
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         aicen_init     , & ! fractional area of ice
+         floe_rad_c     , & ! fsd size bin centre in m (radius)
+         floe_binwidth      ! fsd size bin width in m (radius)
+
+      real (kind=dbl_kind), dimension (:,:), intent(in) :: &
+         afsdn     ! floe size distribution tracer (originally areal_mfstd_init)
+
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+         area2 , & ! area after lateral growth and before new ice formation
+         aicen     ! concentration of ice
+
+      real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
+         trcrn     ! ice tracers
+
+! output?
+      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
+         d_afsdn_latg, d_afsdn_addnew
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         k             ! floe size category index
+
+      real (kind=dbl_kind), dimension (nfsd) :: &
+         afsdn_latg    ! after lateral growth
+
+      real (kind=dbl_kind), dimension (nfsd) :: &
+         df_flx, &     ! finite differences for G_r*tilda(L)
+         afsd_ni       ! areal mFSTD after new ice added
+
+      real (kind=dbl_kind), dimension(nfsd+1) :: &
+         f_flx         !
+
+      integer (kind=int_kind) :: &
+         new_size      ! index for floe size of new ice
+
+      character(len=*),parameter :: subname='(fsd_add_new_ice)'
+
+      afsdn_latg(:) = afsdn(:,n)  ! default
+
+      if (d_an_latg(n) > puny) then ! lateral growth
+
+         area2(n) = aicen_init(n) + d_an_latg(n) ! area after lateral growth, before new ice forms
+
+         df_flx(:) = c0 ! NB could stay zero if all in largest FS cat
+         f_flx (:) = c0
+         do k = 2, nfsd
+            f_flx(k) = G_radial * afsdn(k-1,n) / floe_binwidth(k-1)
+         end do
+         do k = 1, nfsd
+            df_flx(k) = f_flx(k+1) - f_flx(k)
+         end do
+
+         afsdn_latg(:) = c0
+         do k = 1, nfsd
+            afsdn_latg(k) = afsdn(k,n) &
+                          + dt * (-df_flx(k) + c2 * G_radial * afsdn(k,n) &
+                          * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
+         end do
+
+         ! combining the next 2 lines changes the answers
+         afsdn_latg(:) = afsdn_latg(:) / SUM(afsdn_latg(:)) ! just in case (may be errors < 1e-11)
+         trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:)
+
+         d_afsdn_latg(:,n) = afsdn_latg(:) - afsdn(:,n)
+
+      else ! no lateral growth, no change in floe size
+
+         afsdn_latg(:) = afsdn(:,n)
+
+      end if ! lat growth
+
+      afsd_ni(:) = c0
+
+      if (n == 1) then
+         ! add new frazil ice to smallest thickness
+         if (d_an_addnew(n) > puny) then
+
+            if (SUM(afsdn_latg(:)) > puny) then ! fsd lateral growth occurred
+
+               if (wave_spec) then
+!echmod                   call wave_dep_growth(wave_spectrum(:), wave_hs_in_ice(i,j), new_size)
+                  new_size = 1 !echmod for now
+
+                  ! grow in new_size
+                  afsd_ni(new_size) = (afsdn_latg(new_size)*area2(n) + ai0new) &
+                                                           / (area2(n) + ai0new)
+                  do k = 1, new_size-1  ! diminish other floe cats accordingly
+                     afsd_ni(k) = afsdn_latg(k)*area2(n) / (area2(n) + ai0new)
+                  end do
+                  do k = new_size+1, nfsd  ! diminish other floe cats accordingly
+                     afsd_ni(k) = afsdn_latg(k)*area2(n) / (area2(n) + ai0new)
+                  end do
+
+! add this option later, maybe
+!               else if () then ! grow in largest category
+!                  afsd_ni(nfsd) =  (afsdn_latg(nfsd)*area2(n) + ai0new) &
+!                                                    / (area2(n) + ai0new)
+!                  do k = 1, nfsd-1  ! diminish other floe cats accordingly
+!                     afsd_ni(k) = afsdn_latg(k)*area2(n) / (area2(n)+ai0new)
+!                  enddo
+
+               else ! grow in smallest floe size category
+                  afsd_ni(1) = (afsdn_latg(1)*area2(n) + ai0new) &
+                                                / (area2(n) + ai0new)
+                  do k = 2, nfsd  ! diminish other floe cats accordingly
+                     afsd_ni(k) = afsdn_latg(k)*area2(n) / (area2(n)+ai0new)
+                  enddo
+               end if ! new_fs_option
+
+            else ! entirely new ice or not
+
+               if (wave_spec) then
+!echmod                  call wave_dep_growth(wave_spectrum(:), wave_hs_in_ice(i,j), new_size)
+                  afsd_ni(new_size) = c1
+               else
+                  afsd_ni(1) = c1
+!               elseif () then ! grow in largest category
+!                  afsd_ni(nfsd) = c1
+               endif      ! wave forcing
+
+            endif ! entirely new ice or not
+
+            afsd_ni(:) = afsd_ni(:) / SUM(afsd_ni(:))
+            trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_ni(:)
+
+            ! for diagnostics
+            d_afsdn_addnew(:,n) = afsd_ni(:) - afsdn_latg(:)
+
+         endif ! d_an_addnew > puny
+      endif    ! n = 1
+
+      end subroutine fsd_add_new_ice
 
 !=======================================================================
 
