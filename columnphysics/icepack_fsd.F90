@@ -15,7 +15,7 @@
       module icepack_fsd
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, c2, c3, c4, puny
+      use icepack_parameters, only: c0, c1, c2, c3, c4, p1, p5, puny
       use icepack_parameters, only: pi, floeshape, wave_spec, bignum, gravit, rhoi
       use icepack_tracers, only: nt_fsd, tr_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -26,14 +26,14 @@
       private
       public :: icepack_init_fsd_bounds, icepack_init_fsd, fsd_lateral_growth, &
          fsd_add_new_ice
-!          renorm_mfstd, wave_dep_growth 
+!          renorm_mfstd
 
 !      logical (kind=log_kind), public :: & 
 !         write_diag_wave     ! if .true., write the lat/lons from find_wave to history file
 
-!      real (kind=dbl_kind), public :: &
-!        c_mrg            ! constant of proportionality for merging
-                         ! see documentation for details
+      real (kind=dbl_kind), public :: &
+         c_weld           ! constant of proportionality for welding
+                          ! see documentation for details
 
 !      logical (kind=log_kind), public :: &
 !         rdc_frzmlt      ! if true, only (1-oo) of frzmlt can melt (lat and bot)
@@ -54,7 +54,7 @@
          area_scaled_binwidth
 
       integer(kind=int_kind), dimension(:,:), allocatable, public ::  &
-         alpha_mrg
+         iweld
 
 !=======================================================================
 
@@ -67,7 +67,7 @@
 !  categories in area and radius
 !
 !  Note that radius widths cannot be larger than twice previous
-!  category width or floe merging will not have an effect
+!  category width or floe welding will not have an effect
 !
 !  Note also that the bound of the lowest floe size category is used
 !  to define the lead region width and the domain spacing for wave breaking
@@ -164,7 +164,7 @@
          area_scaled_h       (nfsd), & ! and no binwidth is greater than 1
          area_scaled_c       (nfsd), & ! (dimensionless)
          area_scaled_binwidth(nfsd), & !
-         alpha_mrg     (nfsd, nfsd), & !
+         iweld         (nfsd, nfsd), & ! fsd categories that can weld
          stat=ierr)
       if (ierr/=0) then
          call icepack_warnings_add(subname//' Out of Memory fsd')
@@ -182,7 +182,7 @@
 
       floe_binwidth = floe_rad_h - floe_rad_l
 
-      ! scaled area for merging
+      ! scaled area for welding
       floe_area_binwidth = floe_area_h - floe_area_l
       area_lims(1:nfsd) = floe_area_l(1:nfsd)
       area_lims(nfsd+1) = floe_area_h(nfsd)
@@ -193,17 +193,17 @@
       area_scaled_c = (area_scaled_h + area_scaled_l) / c2
       area_scaled_binwidth = area_scaled_h - area_scaled_l
 
-      ! which floe sizes can combine during merging
-      alpha_mrg(:,:) = -999
-      do n  = 1, nfsd
-         do m = 1, nfsd
-            test = area_scaled_h(n) - area_scaled_c(m)
-            do k = 1, nfsd
-               if ((test >= area_scaled_l(k)) .and. (test < area_scaled_h(k))) then
-                  alpha_mrg(n,m) = k + 1
-               end if
-            end do
+      ! floe size categories that can combine during welding
+      iweld(:,:) = -999
+      do n = 1, nfsd
+      do m = 1, nfsd
+         test = area_scaled_h(n) - area_scaled_c(m)
+         do k = 1, nfsd
+            if ((test >= area_scaled_l(k)) .and. (test < area_scaled_h(k))) then
+               iweld(n,m) = k + 1
+            end if
          end do
+      end do
       end do
 
       if (allocated(lims)) deallocate(lims)
@@ -284,7 +284,7 @@
 
       if (trim(ice_ic) == 'none') then
 
-            afsd(:) = c0
+         afsd(:) = c0
 
       else            ! Perovich (2014)
  
@@ -537,7 +537,7 @@
 
 ! for now (intent(in))
       real (kind=dbl_kind) :: &
-         ice_wave_sigh    ! wave significant height in ice
+         ice_wave_sig_ht    ! wave significant height in ice
 
 !      real (kind=dbl_kind), dimension(nwavefreq), intent(in)  :: &
 !      real (kind=dbl_kind), dimension(:), intent(in)  :: &
@@ -572,7 +572,7 @@
          k             ! floe size category index
 
       real (kind=dbl_kind), dimension (nfsd) :: &
-         afsdn_latg    ! after lateral growth
+         afsd_latg     ! after lateral growth
 
       real (kind=dbl_kind), dimension (nfsd) :: &
          df_flx, &     ! finite differences for G_r*tilda(L)
@@ -588,9 +588,9 @@
 
 ! for now
       wave_spectrum(:) = c0
-      ice_wave_sigh = c1
+      ice_wave_sig_ht = c1
 
-      afsdn_latg(:) = afsdn(:,n)  ! default
+      afsd_latg(:) = afsdn(:,n)  ! default
 
       if (d_an_latg(n) > puny) then ! lateral growth
 
@@ -605,22 +605,22 @@
             df_flx(k) = f_flx(k+1) - f_flx(k)
          end do
 
-         afsdn_latg(:) = c0
+         afsd_latg(:) = c0
          do k = 1, nfsd
-            afsdn_latg(k) = afsdn(k,n) &
+            afsd_latg(k) = afsdn(k,n) &
                           + dt * (-df_flx(k) + c2 * G_radial * afsdn(k,n) &
                           * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
          end do
 
          ! combining the next 2 lines changes the answers
-         afsdn_latg(:) = afsdn_latg(:) / SUM(afsdn_latg(:)) ! just in case (may be errors < 1e-11)
-         trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:)
+         afsd_latg(:) = afsd_latg(:) / SUM(afsd_latg(:)) ! just in case (may be errors < 1e-11)
+         trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_latg(:)
 
-         d_afsdn_latg(:,n) = afsdn_latg(:) - afsdn(:,n)
+         d_afsdn_latg(:,n) = afsd_latg(:) - afsdn(:,n)
 
       else ! no lateral growth, no change in floe size
 
-         afsdn_latg(:) = afsdn(:,n)
+         afsd_latg(:) = afsdn(:,n)
 
       end if ! lat growth
 
@@ -631,42 +631,42 @@
          ! add new frazil ice to smallest thickness
          if (d_an_addnew(n) > puny) then
 
-            if (SUM(afsdn_latg(:)) > puny) then ! fsd lateral growth occurred
+            if (SUM(afsd_latg(:)) > puny) then ! fsd lateral growth occurred
 
                if (wave_spec) then
-                  if (ice_wave_sigh > puny) &
+                  if (ice_wave_sig_ht > puny) &
                      call wave_dep_growth(nfsd, wave_spectrum(:), new_size)
 
                   ! grow in new_size category
-                  afsd_ni(new_size) = (afsdn_latg(new_size)*area2(n) + ai0new) &
-                                                           / (area2(n) + ai0new)
+                  afsd_ni(new_size) = (afsd_latg(new_size)*area2(n) + ai0new) &
+                                                          / (area2(n) + ai0new)
                   do k = 1, new_size-1  ! diminish other floe cats accordingly
-                     afsd_ni(k) = afsdn_latg(k)*area2(n) / (area2(n) + ai0new)
+                     afsd_ni(k) = afsd_latg(k)*area2(n) / (area2(n) + ai0new)
                   end do
                   do k = new_size+1, nfsd  ! diminish other floe cats accordingly
-                     afsd_ni(k) = afsdn_latg(k)*area2(n) / (area2(n) + ai0new)
+                     afsd_ni(k) = afsd_latg(k)*area2(n) / (area2(n) + ai0new)
                   end do
 
 ! add this option later, maybe
 !               else if () then ! grow in largest category
-!                  afsd_ni(nfsd) =  (afsdn_latg(nfsd)*area2(n) + ai0new) &
-!                                                    / (area2(n) + ai0new)
+!                  afsd_ni(nfsd) =  (afsd_latg(nfsd)*area2(n) + ai0new) &
+!                                                   / (area2(n) + ai0new)
 !                  do k = 1, nfsd-1  ! diminish other floe cats accordingly
-!                     afsd_ni(k) = afsdn_latg(k)*area2(n) / (area2(n)+ai0new)
+!                     afsd_ni(k) = afsd_latg(k)*area2(n) / (area2(n)+ai0new)
 !                  enddo
 
                else ! grow in smallest floe size category
-                  afsd_ni(1) = (afsdn_latg(1)*area2(n) + ai0new) &
-                                                / (area2(n) + ai0new)
+                  afsd_ni(1) = (afsd_latg(1)*area2(n) + ai0new) &
+                                          / (area2(n) + ai0new)
                   do k = 2, nfsd  ! diminish other floe cats accordingly
-                     afsd_ni(k) = afsdn_latg(k)*area2(n) / (area2(n)+ai0new)
+                     afsd_ni(k) = afsd_latg(k)*area2(n) / (area2(n)+ai0new)
                   enddo
                end if ! new_fs_option
 
             else ! entirely new ice or not
 
                if (wave_spec) then
-                  if (ice_wave_sigh > puny) &
+                  if (ice_wave_sig_ht > puny) &
                      call wave_dep_growth(nfsd, wave_spectrum(:), new_size)
                   afsd_ni(new_size) = c1
                else
@@ -681,7 +681,7 @@
             trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_ni(:)
 
             ! for diagnostics
-            d_afsdn_addnew(:,n) = afsd_ni(:) - afsdn_latg(:)
+            d_afsdn_addnew(:,n) = afsd_ni(:) - afsd_latg(:)
 
          endif ! d_an_addnew > puny
       endif    ! n = 1
@@ -756,6 +756,154 @@
       end do
 
       end subroutine wave_dep_growth
+
+!=======================================================================
+
+      subroutine fsd_weld_thermo (ncat,  nfsd,   &
+                                  dt,    frzmlt, &
+                                  aicen, afsdn,  &
+                                  d_afsd_weld,   &
+                                  d_afsdn_weld)
+
+      integer (kind=int_kind), intent(in) :: &
+         ncat     , & ! number of thickness categories
+         nfsd         ! number of floe size categories
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt           ! time step (s)
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         aicen        ! ice concentration
+
+      real (kind=dbl_kind), intent(in) :: &
+         frzmlt       ! freezing/melting potential (W/m^2)
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+         afsdn    , & ! floe size distribution tracer
+         d_afsdn_weld ! change in afsdn due to welding
+
+      real (kind=dbl_kind), dimension (nfsd), intent(inout) :: &
+         d_afsd_weld  ! change in fsd due to welding
+
+      real (kind=dbl_kind), parameter :: &
+         aminweld = p1 ! minimum ice concentration likely to weld
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+        nt        , & ! time step index
+        n         , & ! thickness category index
+        k, kx, ky     ! floe size category indices
+
+      real (kind=dbl_kind), dimension(nfsd) :: &
+        afsd_init , & ! initial values
+        afsd_tmp  , & ! work array
+        coag          !
+
+      real(kind=dbl_kind) :: &
+        afsd_sum  , & ! work array
+        subdt     , & ! subcycling time step for stability
+        darea     , & ! total area lost due to welding
+        darea_nfsd, & ! area lost from category nfsd
+        stability     ! to satisfy stability condition for Smol. eqn
+
+      integer(kind=int_kind) :: &
+        ndt_weld        ! number of sub-timesteps required for stability
+
+      do n = 1, ncat
+
+         d_afsd_weld (:)   = c0
+         d_afsdn_weld(:,n) = c0
+
+         ! If there is some ice in the lower (nfsd-1) categories
+         ! and there is freezing potential
+         if ((frzmlt > puny) .and. &               ! freezing potential
+             (aicen(n) > aminweld) .and. &         ! low concentrations area unlikely to weld
+             (SUM(afsdn(1:nfsd-1,n)) > puny)) then ! some ice in nfsd-1 categories
+
+            ! time step limitations for welding
+            stability = dt * c_weld * aicen(n) * area_scaled_h(nfsd)
+            ndt_weld = NINT(stability+p5) ! add 0.5 to round up number of subcycles
+            subdt = dt/FLOAT(ndt_weld)    ! subcycling time step
+
+            afsd_init(:) = afsdn(:,n)     ! save initial values
+            afsd_tmp (:) = afsd_init(:)   ! work array
+
+            ! sanity checks
+!            if (ABS(SUM(afsd_init) - c1) > puny) stop 'not 1 b4 weld'
+!            if (ANY(afsd_init < c0-puny)) stop 'negative mFSTD b4 weld'
+!            if (ANY(afsd_init > c1+puny)) stop 'mFSTD>1 b4 weld'
+
+            darea_nfsd = c0
+            do nt = 1, ndt_weld
+               do kx = 1, nfsd
+               coag(kx) = c0
+               do ky = 1, kx
+                  k = iweld(kx,ky)
+                  coag(kx) = coag(kx)  &
+                           + area_scaled_c(ky) * afsd_tmp(ky) * aicen(n) &
+                           * (SUM(afsd_tmp(k:nfsd)) &
+                             + (afsd_tmp(k-1)/area_scaled_binwidth(k-1)) &
+                             * (area_scaled_h(k-1) - area_scaled_h(kx) + area_scaled_c(ky)))
+               end do ! ky
+               end do ! kx
+
+               afsd_tmp(1) = afsd_tmp(1) - subdt*c_weld*coag(1)
+               do k = 2, nfsd
+                  afsd_tmp(k) = afsd_tmp(k) - subdt*c_weld*(coag(k) - coag(k-1))
+               enddo
+
+               ! sanity checks
+!               if (ANY(afsd_tmp < c0-puny)) then
+!                        print *, 'afsd_init',afsd_init
+!                        print *, 'coag',coag
+!                        print *, 'afsd_tmp ',afsd_tmp
+!                        print *, 'WARNING negative mFSTD weld, l'
+!               end if
+!               if (ANY(afsd_tmp < c0-puny)) stop 'negative mFSTD weld, l'
+!               if (ANY(afsd_tmp > c1+puny)) stop ' mFSTD> 1 weld, l'
+!               if (ANY(dt*c_weld*coag < -puny)) stop 'not positive'
+
+               ! update
+               darea_nfsd = darea_nfsd + subdt*c_weld*coag(nfsd)
+
+            end do ! time
+
+            ! ignore loss in largest cat
+            afsd_tmp(nfsd) = afsd_tmp(nfsd) + darea_nfsd
+
+            afsd_sum = c0
+            do k = 1, nfsd
+               afsd_sum = afsd_sum + afsd_tmp(k)
+            enddo
+            darea = SUM(afsd_init) - afsd_sum
+
+            do k = 1, nfsd
+               afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
+               afsdn(k,n) = max(afsdn(k,n), c0)
+               ! diagnostic
+               d_afsdn_weld(k,n) = afsdn(k,n) - afsd_init(k)
+            enddo
+
+            ! more sanity checks
+            if (darea < -puny) stop 'area gain'
+            if (ABS(darea) > puny) stop 'area change after correction'
+            if (ANY(afsdn(:,n) < -puny)) stop 'neg, weld'
+            if (afsdn(1,n) > afsd_init(1)+puny) stop 'gain in smallest cat'
+
+         endif ! try to weld
+      enddo ! n
+
+      ! diagnostics
+      do k = 1, nfsd
+         d_afsd_weld(k) = c0
+         do n = 1, ncat
+            d_afsd_weld(k) = d_afsd_weld(k)  + &
+            aicen(n)* d_afsdn_weld(k,n)
+         end do ! n
+      end do ! k
+
+      end subroutine fsd_weld_thermo
 
 !=======================================================================
 
