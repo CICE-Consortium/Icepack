@@ -15,7 +15,7 @@
       module icepack_fsd
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, c2, c3, c4, p1, p5, puny
+      use icepack_parameters, only: c0, c1, c2, c3, c4, p01, p1, p5, puny
       use icepack_parameters, only: pi, floeshape, wave_spec, bignum, gravit, rhoi
       use icepack_tracers, only: nt_fsd, tr_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -25,22 +25,22 @@
 
       private
       public :: icepack_init_fsd_bounds, icepack_init_fsd, fsd_lateral_growth, &
-         fsd_add_new_ice
+         fsd_add_new_ice, fsd_weld_thermo
 !          renorm_mfstd
 
 !      logical (kind=log_kind), public :: & 
 !         write_diag_wave     ! if .true., write the lat/lons from find_wave to history file
 
+! move to namelist? domain_size?
+      integer(kind=int_kind) ::  &
+         nwavefreq = 25        ! number of frequencies in wave spectrum
+
       real (kind=dbl_kind), public :: &
-         c_weld           ! constant of proportionality for welding
+         c_weld = p01     ! constant of proportionality for welding
                           ! see documentation for details
 
 !      logical (kind=log_kind), public :: &
 !         rdc_frzmlt      ! if true, only (1-oo) of frzmlt can melt (lat and bot)
-
-! move to namelist? domain_size?
-      integer(kind=int_kind) ::  &
-         nwavefreq = 25        ! number of frequencies in wave spectrum
 
       real(kind=dbl_kind), dimension(:), allocatable ::  &
          floe_rad_h,         & ! fsd size higher bound in m (radius)
@@ -382,6 +382,7 @@
                 ! sanity checks
 !                if (lead_area.gt.c1) stop 'lead_area not frac!'
 !                if (lead_area.ne.lead_area) stop 'lead_a NaN'
+
                 if (lead_area.lt.c0) then
                         if (lead_area.lt.(c0-puny)) then
 !                                stop 'lead_area lt0 in partition_area'
@@ -761,9 +762,9 @@
 
       subroutine fsd_weld_thermo (ncat,  nfsd,   &
                                   dt,    frzmlt, &
-                                  aicen, afsdn,  &
-                                  d_afsd_weld,   &
-                                  d_afsdn_weld)
+                                  aicen, trcrn)!,  &
+!                                  d_afsd_weld,   &
+!                                  d_afsdn_weld)
 
       integer (kind=int_kind), intent(in) :: &
          ncat     , & ! number of thickness categories
@@ -778,11 +779,15 @@
       real (kind=dbl_kind), intent(in) :: &
          frzmlt       ! freezing/melting potential (W/m^2)
 
-      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
-         afsdn    , & ! floe size distribution tracer
+      real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
+         trcrn        ! ice tracers
+
+!      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          d_afsdn_weld ! change in afsdn due to welding
 
-      real (kind=dbl_kind), dimension (nfsd), intent(inout) :: &
+!      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+      real (kind=dbl_kind), dimension (nfsd) :: &
          d_afsd_weld  ! change in fsd due to welding
 
       real (kind=dbl_kind), parameter :: &
@@ -795,25 +800,39 @@
         n         , & ! thickness category index
         k, kx, ky     ! floe size category indices
 
+      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
+         afsdn        ! floe size distribution tracer
+
       real (kind=dbl_kind), dimension(nfsd) :: &
-        afsd_init , & ! initial values
-        afsd_tmp  , & ! work array
-        coag          !
+         afsd_init , & ! initial values
+         afsd_tmp  , & ! work array
+         coag          !
 
       real(kind=dbl_kind) :: &
-        afsd_sum  , & ! work array
-        subdt     , & ! subcycling time step for stability
-        darea     , & ! total area lost due to welding
-        darea_nfsd, & ! area lost from category nfsd
-        stability     ! to satisfy stability condition for Smol. eqn
+         afsd_sum  , & ! work array
+         subdt     , & ! subcycling time step for stability
+         darea     , & ! total area lost due to welding
+         darea_nfsd, & ! area lost from category nfsd
+         stability     ! to satisfy stability condition for Smol. eqn
 
       integer(kind=int_kind) :: &
-        ndt_weld        ! number of sub-timesteps required for stability
+         ndt_weld        ! number of sub-timesteps required for stability
+
+      afsdn  (:,:) = c0
+      afsd_init(:) = c0
+      coag     (:) = c0
+      afsd_sum     = c0
+      darea        = c0
+      darea_nfsd   = c0
+      stability    = c0
+      ndt_weld     = 1
+      subdt        = dt
 
       do n = 1, ncat
 
          d_afsd_weld (:)   = c0
          d_afsdn_weld(:,n) = c0
+         afsdn(:,n) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
 
          ! If there is some ice in the lower (nfsd-1) categories
          ! and there is freezing potential
@@ -829,8 +848,12 @@
             afsd_init(:) = afsdn(:,n)     ! save initial values
             afsd_tmp (:) = afsd_init(:)   ! work array
 
-            ! sanity checks
-!            if (ABS(SUM(afsd_init) - c1) > puny) stop 'not 1 b4 weld'
+!            ! sanity checks
+!            afsd_sum = SUM(afsd_init)
+!            if (ABS(afsd_sum - c1) > puny) then
+!                print*,'afsd_sum',afsd_sum
+!                stop 'not 1 b4 weld'
+!            endif
 !            if (ANY(afsd_init < c0-puny)) stop 'negative mFSTD b4 weld'
 !            if (ANY(afsd_init > c1+puny)) stop 'mFSTD>1 b4 weld'
 
@@ -880,16 +903,16 @@
 
             do k = 1, nfsd
                afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
-               afsdn(k,n) = max(afsdn(k,n), c0)
+               trcrn(nt_fsd+k-1,n) = max(afsdn(k,n), c0)
                ! diagnostic
                d_afsdn_weld(k,n) = afsdn(k,n) - afsd_init(k)
             enddo
 
             ! more sanity checks
-            if (darea < -puny) stop 'area gain'
-            if (ABS(darea) > puny) stop 'area change after correction'
-            if (ANY(afsdn(:,n) < -puny)) stop 'neg, weld'
-            if (afsdn(1,n) > afsd_init(1)+puny) stop 'gain in smallest cat'
+!            if (darea < -puny) stop 'area gain'
+!            if (ABS(darea) > puny) stop 'area change after correction'
+!            if (ANY(afsdn(:,n) < -puny)) stop 'neg, weld'
+!            if (afsdn(1,n) > afsd_init(1)+puny) stop 'gain in smallest cat'
 
          endif ! try to weld
       enddo ! n

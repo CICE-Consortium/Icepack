@@ -40,6 +40,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
+      use icepack_fsd, only: fsd_weld_thermo
       use icepack_itd, only: reduce_area, cleanup_itd
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
@@ -919,7 +920,7 @@
          dfsalt  , & ! change in fsalt
          dvssl   , & ! snow surface layer volume
          dvint   , & ! snow interior layer
-         cat1_arealoss !
+         cat1_arealoss, tmp !
 
       logical (kind=log_kind) :: &
          flag        ! .true. if there could be lateral melting
@@ -1926,6 +1927,14 @@
                          nbtrcr,    nblyr,         &
                          nfsd,                     &
                          floe_rad_c,floe_binwidth)
+      if (icepack_warnings_aborted(subname)) return
+
+      if (tr_fsd) &
+      call fsd_weld_thermo (ncat,  nfsd,   &
+                            dt,    frzmlt, &
+                            aicen, trcrn)!,  &
+!                            d_afsd_weld,   &
+!                            d_afsdn_weld)
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
