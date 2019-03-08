@@ -27,7 +27,6 @@
       use icepack_parameters, only: rhosi
       use icepack_parameters, only: kitd, ktherm, heat_capacity
       use icepack_parameters, only: z_tracers, solve_zsal
-      use icepack_parameters, only: wave_spec
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -1246,12 +1245,6 @@
 !!      real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
 !      real (kind=dbl_kind), dimension(:), intent(out) :: &
 !         d_afsd_latg, d_afsd_addnew
-
-!      real (kind=dbl_kind), dimension(nfreq), intent(in)  :: &
-!         wave_spectrum
-
-!      real (kind=dbl_kind), intent(in)  :: &
-!         wave_hs_in_ice
 
       ! local variables
 
