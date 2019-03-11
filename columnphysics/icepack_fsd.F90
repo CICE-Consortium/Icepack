@@ -3,6 +3,12 @@
 ! This module contains the subroutines required to define
 ! a floe size distribution tracer for sea ice
 !
+! Variable naming convention
+! for k = 1, nfsd and n = 1, ncat
+!    afsdn(k,n) = trcrn(:,:,nt_nfsd+k-1,n,:)
+!    afsd (k) is per thickness category or averaged over n
+!    afs is the associated scalar value for (k,n)
+!
 ! authors: liuxy
 !          C. M. Bitz, UW
 !          Lettie Roach, NIWA
@@ -455,7 +461,7 @@
 
 !!      real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
 !      real (kind=dbl_kind), dimension(:), intent(out) :: &
-!         d_afsd_latg, d_afsd_addnew
+!         d_afsd_latg, d_afsd_newi
 
       ! local variables
 
@@ -488,7 +494,7 @@
          vi0new_lat = vi0new * lead_area / (c1 + aice/latsurf_area)
       end if
 
-      ! for diagnostics
+      ! for history/diagnostics
       frazil = vi0new - vi0new_lat
 
       ! lateral growth increment
@@ -520,9 +526,12 @@
 
       subroutine fsd_add_new_ice (ncat, n,    nfsd,          &
                                   dt,         ai0new,        &
-                                  d_an_latg,  d_an_addnew,   &
+                                  d_an_latg,  d_an_newi,   &
                                   floe_rad_c, floe_binwidth, &
                                   G_radial,   area2,         &
+                                  ice_wave_sig_ht,           &
+                                  d_afsd_latg,               &
+                                  d_afsd_newi,               &
                                   afsdn,      aicen_init,    &
                                   aicen,      trcrn)
 
@@ -534,11 +543,8 @@
       real (kind=dbl_kind), intent(in) :: &
          dt           , & ! time step (s)
          ai0new       , & ! area of new ice added to cat 1
-         G_radial         ! lateral melt rate (m/s)
-
-! for now (intent(in))
-      real (kind=dbl_kind) :: &
-         ice_wave_sig_ht    ! wave significant height in ice
+         G_radial     , & ! lateral melt rate (m/s)
+         ice_wave_sig_ht  ! wave significant height in ice
 
 !      real (kind=dbl_kind), dimension(nwavefreq), intent(in)  :: &
 !      real (kind=dbl_kind), dimension(:), intent(in)  :: &
@@ -546,7 +552,7 @@
          wave_spectrum
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
-         d_an_latg, d_an_addnew
+         d_an_latg, d_an_newi
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen_init     , & ! fractional area of ice
@@ -563,17 +569,20 @@
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn     ! ice tracers
 
-! output?
-      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
-         d_afsdn_latg, d_afsdn_addnew
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         d_afsd_latg    , & ! change in floe size distribution (area)
+         d_afsd_newi        ! due to fsd lateral growth
 
       ! local variables
+
+!      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
+!         d_afsdn_latg, d_afsdn_newi
 
       integer (kind=int_kind) :: &
          k             ! floe size category index
 
-      real (kind=dbl_kind), dimension (nfsd) :: &
-         afsd_latg     ! after lateral growth
+      real (kind=dbl_kind), dimension (nfsd,ncat) :: &
+         afsdn_latg    ! after lateral growth
 
       real (kind=dbl_kind), dimension (nfsd) :: &
          df_flx, &     ! finite differences for G_r*tilda(L)
@@ -589,9 +598,8 @@
 
 ! for now
       wave_spectrum(:) = c0
-      ice_wave_sig_ht = c1
 
-      afsd_latg(:) = afsdn(:,n)  ! default
+      afsdn_latg(:,n) = afsdn(:,n)  ! default
 
       if (d_an_latg(n) > puny) then ! lateral growth
 
@@ -606,22 +614,22 @@
             df_flx(k) = f_flx(k+1) - f_flx(k)
          end do
 
-         afsd_latg(:) = c0
+         afsdn_latg(:,n) = c0
          do k = 1, nfsd
-            afsd_latg(k) = afsdn(k,n) &
-                          + dt * (-df_flx(k) + c2 * G_radial * afsdn(k,n) &
-                          * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
+            afsdn_latg(k,n) = afsdn(k,n) &
+                            + dt * (-df_flx(k) + c2 * G_radial * afsdn(k,n) &
+                            * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
          end do
 
          ! combining the next 2 lines changes the answers
-         afsd_latg(:) = afsd_latg(:) / SUM(afsd_latg(:)) ! just in case (may be errors < 1e-11)
-         trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_latg(:)
+         afsdn_latg(:,n) = afsdn_latg(:,n) / SUM(afsdn_latg(:,n)) ! just in case (may be errors < 1e-11)
+         trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:,n)
 
-         d_afsdn_latg(:,n) = afsd_latg(:) - afsdn(:,n)
+!         d_afsdn_latg(:,n) = afsdn_latg(:,n) - afsdn(:,n)
 
       else ! no lateral growth, no change in floe size
 
-         afsd_latg(:) = afsdn(:,n)
+         afsdn_latg(:,n) = afsdn(:,n)
 
       end if ! lat growth
 
@@ -630,37 +638,37 @@
       new_size = nfsd
       if (n == 1) then
          ! add new frazil ice to smallest thickness
-         if (d_an_addnew(n) > puny) then
+         if (d_an_newi(n) > puny) then
 
-            if (SUM(afsd_latg(:)) > puny) then ! fsd lateral growth occurred
+            if (SUM(afsdn_latg(:,n)) > puny) then ! fsd lateral growth occurred
 
                if (wave_spec) then
                   if (ice_wave_sig_ht > puny) &
                      call wave_dep_growth(nfsd, wave_spectrum(:), new_size)
 
                   ! grow in new_size category
-                  afsd_ni(new_size) = (afsd_latg(new_size)*area2(n) + ai0new) &
+                  afsd_ni(new_size) = (afsdn_latg(new_size,n)*area2(n) + ai0new) &
                                                           / (area2(n) + ai0new)
                   do k = 1, new_size-1  ! diminish other floe cats accordingly
-                     afsd_ni(k) = afsd_latg(k)*area2(n) / (area2(n) + ai0new)
+                     afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n) + ai0new)
                   end do
                   do k = new_size+1, nfsd  ! diminish other floe cats accordingly
-                     afsd_ni(k) = afsd_latg(k)*area2(n) / (area2(n) + ai0new)
+                     afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n) + ai0new)
                   end do
 
 ! add this option later, maybe
 !               else if () then ! grow in largest category
-!                  afsd_ni(nfsd) =  (afsd_latg(nfsd)*area2(n) + ai0new) &
+!                  afsd_ni(nfsd) =  (afsdn_latg(nfsd,n)*area2(n) + ai0new) &
 !                                                   / (area2(n) + ai0new)
 !                  do k = 1, nfsd-1  ! diminish other floe cats accordingly
-!                     afsd_ni(k) = afsd_latg(k)*area2(n) / (area2(n)+ai0new)
+!                     afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
 !                  enddo
 
                else ! grow in smallest floe size category
-                  afsd_ni(1) = (afsd_latg(1)*area2(n) + ai0new) &
+                  afsd_ni(1) = (afsdn_latg(1,n)*area2(n) + ai0new) &
                                           / (area2(n) + ai0new)
                   do k = 2, nfsd  ! diminish other floe cats accordingly
-                     afsd_ni(k) = afsd_latg(k)*area2(n) / (area2(n)+ai0new)
+                     afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
                   enddo
                end if ! new_fs_option
 
@@ -681,11 +689,19 @@
             afsd_ni(:) = afsd_ni(:) / SUM(afsd_ni(:))
             trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_ni(:)
 
-            ! for diagnostics
-            d_afsdn_addnew(:,n) = afsd_ni(:) - afsd_latg(:)
+            ! for history/diagnostics
+!            d_afsdn_newi(:,n) = afsd_ni(:) - afsdn_latg(:,n)
 
-         endif ! d_an_addnew > puny
+         endif ! d_an_newi > puny
       endif    ! n = 1
+
+      ! history/diagnostics
+      do k = 1, nfsd
+         d_afsd_latg(k) = d_afsd_latg(k) - aicen_init(n)*afsdn(k,n) &
+                + (aicen_init(n) + d_an_latg(n))*afsdn_latg(k,n)
+         d_afsd_newi(k) = d_afsd_newi(k) + aicen(n)*trcrn(nt_fsd+k-1,n) &
+                - (aicen_init(n) + d_an_latg(n))*afsdn_latg(k,n)
+      enddo    ! k
 
       end subroutine fsd_add_new_ice
 
@@ -762,9 +778,8 @@
 
       subroutine fsd_weld_thermo (ncat,  nfsd,   &
                                   dt,    frzmlt, &
-                                  aicen, trcrn)!,  &
-!                                  d_afsd_weld,   &
-!                                  d_afsdn_weld)
+                                  aicen, trcrn,  &
+                                  d_afsd_weld)
 
       integer (kind=int_kind), intent(in) :: &
          ncat     , & ! number of thickness categories
@@ -782,12 +797,7 @@
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn        ! ice tracers
 
-!      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
-      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
-         d_afsdn_weld ! change in afsdn due to welding
-
-!      real (kind=dbl_kind), dimension (:), intent(inout) :: &
-      real (kind=dbl_kind), dimension (nfsd) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          d_afsd_weld  ! change in fsd due to welding
 
       real (kind=dbl_kind), parameter :: &
@@ -802,6 +812,9 @@
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          afsdn        ! floe size distribution tracer
+
+      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
+         d_afsdn_weld ! change in afsdn due to welding
 
       real (kind=dbl_kind), dimension(nfsd) :: &
          afsd_init , & ! initial values
@@ -904,7 +917,7 @@
             do k = 1, nfsd
                afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
                trcrn(nt_fsd+k-1,n) = max(afsdn(k,n), c0)
-               ! diagnostic
+               ! history/diagnostics
                d_afsdn_weld(k,n) = afsdn(k,n) - afsd_init(k)
             enddo
 
@@ -917,12 +930,11 @@
          endif ! try to weld
       enddo ! n
 
-      ! diagnostics
+      ! history/diagnostics
       do k = 1, nfsd
          d_afsd_weld(k) = c0
          do n = 1, ncat
-            d_afsd_weld(k) = d_afsd_weld(k)  + &
-            aicen(n)* d_afsdn_weld(k,n)
+            d_afsd_weld(k) = d_afsd_weld(k) + aicen(n)*d_afsdn_weld(k,n)
          end do ! n
       end do ! k
 

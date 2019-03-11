@@ -861,7 +861,7 @@
                                vsnon,      trcrn,      &
                                fzsal,      flux_bio,   &
                                nbtrcr,     nblyr,      &
-                               nfsd,                   &
+                               nfsd,       d_afsd_latm,&
                                floe_rad_c, floe_binwidth)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -900,6 +900,9 @@
          floe_rad_c     , & ! fsd size bin centre in m (radius)
          floe_binwidth      ! fsd size bin width in m (radius)
 
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
+         d_afsd_latm        ! change in fsd due to lateral melt (m)
+
       real (kind=dbl_kind), dimension(nbtrcr), &
          intent(inout) :: &
          flux_bio  ! biology tracer flux from layer bgc (mmol/m^2/s)  
@@ -926,6 +929,7 @@
          flag        ! .true. if there could be lateral melting
 
       real (kind=dbl_kind), dimension (ncat) :: &
+         aicen_init, & ! initial area fraction
          vicen_init, & ! volume per unit area of ice (m)
          G_radialn , & ! rate of lateral melt (m/s)
          delta_an  , & ! change in the ITD
@@ -933,7 +937,8 @@
          rsiden        ! delta_an/aicen
 
       real (kind=dbl_kind), dimension (nfsd,ncat) :: &
-         afsdn         ! floe size distribution tracer
+         afsdn     , & ! floe size distribution tracer
+         afsdn_init    ! initial value
 
       real (kind=dbl_kind), dimension (nfsd) :: &
          afsd      , & ! fsd tracer for each thickness category
@@ -950,6 +955,8 @@
       if (tr_fsd .and. fside < c0) then
          flag = .true.
          afsdn = trcrn(nt_fsd:nt_fsd+nfsd-1,:)
+         afsdn_init = afsdn ! for diagnostics
+         d_afsd_latm(:) = c0
 
          do n = 1, ncat
             if (ktherm == 2) then  ! mushy
@@ -1051,6 +1058,12 @@
                   end if ! aicen
                end if ! rside > 0, otherwise do nothing
 
+               ! diagnostics
+               do k = 1, nfsd
+                  d_afsd_latm(k) = d_afsd_latm(k) + aicen(n)*trcrn(nt_fsd+k-1,n) &
+                                 - aicen_init(n)*afsdn_init(k,n)
+               enddo
+
             end if ! tr_fsd
 
             ! fluxes
@@ -1149,6 +1162,9 @@
                               nbtrcr,    flux_bio,   &
                               ocean_bio, fzsal,      &
                               frazil_diag,           &
+                              ice_wave_sig_ht,       &
+                              d_afsd_latg,           &
+                              d_afsd_newi,           &
                               floe_rad_c, floe_binwidth)
 
       use icepack_fsd, only: fsd_lateral_growth, fsd_add_new_ice
@@ -1229,23 +1245,22 @@
          fzsal      ! salt flux to ocean from zsalinity (kg/m^2/s)
 
       ! floe size distribution
+      real (kind=dbl_kind), intent(in) :: &
+         ice_wave_sig_ht    ! significant height of waves in ice (m)
+
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          floe_rad_c     , & ! fsd size bin centre in m (radius)
          floe_binwidth      ! fsd size bin width in m (radius)
 
-!!      real (kind=dbl_kind), dimension(nfsd,ncat), intent(out) :: &
-!      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
-!         d_afsdn_latg, d_afsdn_addnew
-
-!      real (kind=dbl_kind), dimension(ncat), intent(out) :: &
 !      real (kind=dbl_kind), dimension(:), intent(out) :: &
       real (kind=dbl_kind), dimension(ncat) :: &  ! for now
-         d_an_latg      , & ! change in area due to fsd lateral growth
-         d_an_addnew
+         d_an_latg      , & ! change in thickness distribution (area)
+         d_an_newi          ! due to fsd lateral growth
 
 !!      real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
-!      real (kind=dbl_kind), dimension(:), intent(out) :: &
-!         d_afsd_latg, d_afsd_addnew
+      real (kind=dbl_kind), dimension(:), intent(out) :: &
+         d_afsd_latg    , & ! change in floe size distribution (area)
+         d_afsd_newi        ! due to fsd lateral growth
 
       ! local variables
 
@@ -1323,7 +1338,7 @@
       latsurf_area = c0
       G_radial     = c0
       tot_latg     = c0
-      d_an_addnew(:) = c0
+      d_an_newi(:) = c0
 
       if (ncat > 1) then
          hi0max = hin_max(1)*0.9_dbl_kind  ! not too close to boundary
@@ -1482,9 +1497,9 @@
             if (aicen(n) > c0) vin0new(n) = d_an_latg(n) * vicen(n)/aicen(n)
          end do
 
-         d_an_addnew(1)   = ai0new
+         d_an_newi(1)     = ai0new
          d_an_tot(2:ncat) = d_an_latg(2:ncat)
-         d_an_tot(1)      = d_an_latg(1) + d_an_addnew(1)
+         d_an_tot(1)      = d_an_latg(1) + d_an_newi(1)
          if (tr_fsd) then
             vin0new(1)    = vin0new(1) + ai0new*hi0new ! not BFB
          else
@@ -1580,7 +1595,11 @@
       !-----------------------------------------------------------------
 
       ncats = 1                  ! add new ice to category 1 by default
-      if (tr_fsd) ncats = ncat   ! add new ice laterally to all categories
+      if (tr_fsd) then
+          ncats = ncat           ! add new ice laterally to all categories
+          d_afsd_latg(:) = c0    ! diagnostics
+          d_afsd_newi(:) = c0
+      endif
 
       do n = 1, ncats
 
@@ -1606,13 +1625,16 @@
          endif
 
          if (tr_fsd) & ! evolve the floe size distribution
-         call fsd_add_new_ice (ncat, n,    nfsd,          &
-                               dt,         ai0new,        &
-                               d_an_latg,  d_an_addnew,   &
-                               floe_rad_c, floe_binwidth, &
-                               G_radial,   area2,         &
-                               afsdn,      aicen_init,    &
-                               aicen,      trcrn)
+            call fsd_add_new_ice (ncat, n,    nfsd,          &
+                                  dt,         ai0new,        &
+                                  d_an_latg,  d_an_newi,     &
+                                  floe_rad_c, floe_binwidth, &
+                                  G_radial,   area2,         &
+                                  ice_wave_sig_ht,           &
+                                  d_afsd_latg,               &
+                                  d_afsd_newi,               &
+                                  afsdn,      aicen_init,    &
+                                  aicen,      trcrn)
 
          if (vicen(n) > puny) then
             if (tr_iage) &
@@ -1740,7 +1762,10 @@
                                      flux_bio,     ocean_bio,     &
                                      frazil_diag,                 &
                                      frz_onset,    yday,          &
-                                     nfsd,                        &
+                                     nfsd,         ice_wave_sig_ht, &
+                                     d_afsd_latg,  d_afsd_newi,   &
+                                     d_afsd_latm,  d_afsd_wave,   &
+                                     d_afsd_weld,  &
                                      floe_rad_c,   floe_binwidth)
 
       integer (kind=int_kind), intent(in) :: &
@@ -1764,7 +1789,8 @@
          sss      , & ! sea surface salinity (ppt)
          rside    , & ! fraction of ice that melts laterally
          fside    , & ! lateral heat flux (W/m^2)
-         frzmlt       ! freezing/melting potential (W/m^2)
+         frzmlt   , & ! freezing/melting potential (W/m^2)
+         ice_wave_sig_ht ! significant height of waves in ice (m)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          floe_rad_c     , & ! fsd size bin centre in m (radius)
@@ -1821,6 +1847,13 @@
  
       logical (kind=log_kind), dimension(:), intent(inout) :: &
          first_ice      ! true until ice forms
+
+      real (kind=dbl_kind), dimension(:), intent(out) :: &
+         d_afsd_latg    , & ! change in floe size distribution (area)
+         d_afsd_newi    , & ! due to fsd lateral growth
+         d_afsd_latm    , & ! lateral melt
+         d_afsd_wave    , & ! waves
+         d_afsd_weld        ! welding
 
       real (kind=dbl_kind), intent(inout), optional :: &
          frz_onset    ! day of year that freezing begins (congel or frazil)
@@ -1906,8 +1939,9 @@
                            nbtrcr,        flux_bio,     &
                            ocean_bio,     fzsal,        &
                            frazil_diag,                 &
+                           ice_wave_sig_ht,             &
+                           d_afsd_latg,   d_afsd_newi,  &
                            floe_rad_c, floe_binwidth)
-!                           d_an_latg,     d_an_addnew)
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1925,16 +1959,15 @@
                          vsnon,     trcrn,         &
                          fzsal,     flux_bio,      &
                          nbtrcr,    nblyr,         &
-                         nfsd,                     &
+                         nfsd,      d_afsd_latm,   &
                          floe_rad_c,floe_binwidth)
       if (icepack_warnings_aborted(subname)) return
 
       if (tr_fsd) &
       call fsd_weld_thermo (ncat,  nfsd,   &
                             dt,    frzmlt, &
-                            aicen, trcrn)!,  &
-!                            d_afsd_weld,   &
-!                            d_afsdn_weld)
+                            aicen, trcrn,  &
+                            d_afsd_weld)
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
