@@ -232,7 +232,7 @@
             ! Write integer n to character string
             write (c_nf, '(i2)') n    
 
-            ! Write hin_max to character string
+            ! Write floe_rad to character string
             write (c_fsd1, '(f6.3)') floe_rad(n-1)
             write (c_fsd2, '(f6.3)') floe_rad(n)
 
