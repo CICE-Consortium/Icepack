@@ -29,6 +29,3 @@ endif
 
 SLIBS   := -L$(COMPILER_PATH)/lib/NAG_Fortran
 
-ifeq ($(DITTO), yes)
-   CPPDEFS :=  $(CPPDEFS) -DREPRODUCIBLE
-endif

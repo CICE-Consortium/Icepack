@@ -3,7 +3,7 @@
 #==============================================================================
 
 CPP        := fpp
-CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
+CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
 CFLAGS     := -qno-opt-dynamic-align -fp-model precise -std=gnu99
 
 FIXEDFLAGS := -fixed -132
@@ -26,6 +26,3 @@ else
   LD         := ifort
 endif
 
-ifeq ($(DITTO), yes)
-   CPPDEFS :=  $(CPPDEFS) -DREPRODUCIBLE
-endif
