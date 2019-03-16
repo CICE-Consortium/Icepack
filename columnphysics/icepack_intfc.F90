@@ -10,6 +10,7 @@
       use icepack_kinds, only: icepack_char_len_long  => char_len_long
       use icepack_kinds, only: icepack_log_kind  => log_kind
       use icepack_kinds, only: icepack_int_kind  => int_kind
+      use icepack_kinds, only: icepack_int8_kind => int8_kind
       use icepack_kinds, only: icepack_real_kind => real_kind
       use icepack_kinds, only: icepack_dbl_kind  => dbl_kind
       use icepack_kinds, only: icepack_r16_kind  => r16_kind

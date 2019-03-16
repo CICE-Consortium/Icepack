@@ -73,12 +73,7 @@ to support the CICE model.
    "TRDON", "0,1", "number of dissolved organic nitrogen", "0"
    "TRFEP", "0,1,2", "number of particulate iron tracers", "0"
    "TRFED", "0,1,2", "number of dissolved iron tracers", "0"
-   "CAM_ICE", " ", "unused", "no"
-   "DITTO", " ", "unused", "no"
-   "BARRIERS", " ", "unused", "no"
    "ICE_BLDDEBUG", "true,false", "turn on compile debug flags", "false"
-   "NUMIN", " ", "unused", "11"
-   "NUMAX", " ", "unused", "99"
 
 
 .. _tabnamelist:
