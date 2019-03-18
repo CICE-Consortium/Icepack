@@ -481,6 +481,7 @@
       latsurf_area = c0
       G_radial     = c0
       tot_latg     = c0
+      d_an_latg    = c0
 
       ! partition volume into lateral growth and frazil
       call partition_area (ncat,       nfsd,      &
@@ -493,6 +494,8 @@
       if (latsurf_area > puny) then
          vi0new_lat = vi0new * lead_area / (c1 + aice/latsurf_area)
       end if
+
+!      if (vi0new_lat < c0) print*,'ERROR vi0new_lat < 0', vi0new_lat
 
       ! for history/diagnostics
       frazil = vi0new - vi0new_lat
@@ -614,6 +617,8 @@
             df_flx(k) = f_flx(k+1) - f_flx(k)
          end do
 
+!         if (abs(sum(df_flx)) > puny) print*,'fsd_add_new ERROR df_flx /= 0'
+
          afsdn_latg(:,n) = c0
          do k = 1, nfsd
             afsdn_latg(k,n) = afsdn(k,n) &
@@ -627,6 +632,10 @@
 
 !         d_afsdn_latg(:,n) = afsdn_latg(:,n) - afsdn(:,n)
 
+!         if (abs(sum(afsdn(:,n))-c1) > puny) print*,'fsd_add_new WARNING afsdn not normal'
+!         if (abs(sum(afsdn_latg(:,n))-c1) > puny) print*,'fsd_add_new WARNING afsdn_latg not normal'
+!         if (any(afsdn_latg < c0)) print*,'fsd_add_new ERROR afsdn_latg < 0'
+
       else ! no lateral growth, no change in floe size
 
          afsdn_latg(:,n) = afsdn(:,n)
@@ -639,6 +648,8 @@
       if (n == 1) then
          ! add new frazil ice to smallest thickness
          if (d_an_newi(n) > puny) then
+
+!            if (d_an_newi(n) > aicen(n)) print*,'fsd_add_new ERROR d_an_newi > aicen'
 
             if (SUM(afsdn_latg(:,n)) > puny) then ! fsd lateral growth occurred
 
@@ -659,14 +670,14 @@
 ! add this option later, maybe
 !               else if () then ! grow in largest category
 !                  afsd_ni(nfsd) =  (afsdn_latg(nfsd,n)*area2(n) + ai0new) &
-!                                                   / (area2(n) + ai0new)
+!                                                    / (area2(n) + ai0new)
 !                  do k = 1, nfsd-1  ! diminish other floe cats accordingly
 !                     afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
 !                  enddo
 
                else ! grow in smallest floe size category
                   afsd_ni(1) = (afsdn_latg(1,n)*area2(n) + ai0new) &
-                                          / (area2(n) + ai0new)
+                                             / (area2(n) + ai0new)
                   do k = 2, nfsd  ! diminish other floe cats accordingly
                      afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
                   enddo
@@ -685,6 +696,9 @@
                endif      ! wave forcing
 
             endif ! entirely new ice or not
+
+!            if (abs(sum(afsd_ni)-c1) > puny) print*,'fsd_add_new afsd_ni not normal',abs(sum(afsd_ni))
+!            if (any(afsd_ni < c0)) print*,'fsd_add_new afsd_ni < 0', afsd_ni
 
             afsd_ni(:) = afsd_ni(:) / SUM(afsd_ni(:))
             trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_ni(:)

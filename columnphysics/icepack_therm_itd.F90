@@ -856,7 +856,7 @@
                                fresh,      fsalt,      &
                                fhocn,      faero_ocn,  &
                                rside,      meltl,      &
-                               fside,                  &
+                               fside,      sss,        &
                                aicen,      vicen,      &
                                vsnon,      trcrn,      &
                                fzsal,      flux_bio,   &
@@ -947,10 +947,34 @@
       real (kind=dbl_kind), dimension(nfsd+1) :: &
          f_flx         !
 
+!echmod - for average qin
+      real (kind=dbl_kind), intent(in) :: &
+         sss
+      real (kind=dbl_kind) :: &
+         Ti, Si0, qi0
+
       character(len=*), parameter :: subname='(lateral_melt)'
 
       flag = .false.
-      rsiden(:) = c0
+      dfhocn   = c0
+      dfpond   = c0
+      dfresh   = c0
+      dfsalt   = c0
+      dvssl    = c0
+      dvint    = c0
+      cat1_arealoss  = c0
+      tmp  = c0
+      aicen_init = c0
+      vicen_init = c0
+      G_radialn  = c0
+      delta_an   = c0
+      qin        = c0
+      rsiden     = c0
+      afsdn      = c1
+      afsdn_init = c0
+      afsd       = c0
+      df_flx     = c0
+      f_flx      = c0
 
       if (tr_fsd .and. fside < c0) then
          flag = .true.
@@ -958,22 +982,47 @@
          afsdn_init = afsdn ! for diagnostics
          d_afsd_latm(:) = c0
 
+!         if (any(afsdn < c0)) print*,'lateral_melt A afsdn < 0'
+
+! echmod - testing original
+         ! Compute average enthalpy of ice. (taken from add_new_ice)
+                    if (sss > c2 * dSin0_frazil) then
+                       Si0 = sss - dSin0_frazil
+                    else
+                       Si0 = sss**2 / (c4*dSin0_frazil)
+                    endif
+                    Ti = min(liquidus_temperature_mush(Si0/phi_init), -p1)
+                    qi0 = enthalpy_mush(Ti, Si0)
+! echmod - testing original
+
          do n = 1, ncat
             if (ktherm == 2) then  ! mushy
                do k = 1, nilyr
-                  qin(n) = qin(n) + trcrn(nt_qice+k-1,n) * vicen(n)/real(nilyr,kind=dbl_kind)
+!echmod                  qin(n) = qin(n) + trcrn(nt_qice+k-1,n) * vicen(n)/real(nilyr,kind=dbl_kind)
+                  qin(n) = qi0
                enddo
             else
                qin(n) = -rhoi*Lfresh
             endif
 
-            G_radialn(n) = -fside/qin(n) ! negative
+            if (qin(n) < -puny) G_radialn(n) = -fside/qin(n) ! negative
 
-            if (G_radialn(n) < c0-puny) then
+!            if (G_radialn(n) > c0) print*,'ERROR G_radialn > 0', G_radialn(n)
+
+            if (G_radialn(n) < -puny) then
 
                if (aicen(n) > puny) then
+
+!                  if (abs(sum(afsdn(:,n))-c1) > 1.e-9_dbl_kind) then
+!                    print*,abs(sum(afsdn(:,n))-c1)
+!                    print*,sum(afsdn(:,n))
+!                    print*,'lateral_melt WARNING initial afsdn not normal'
+!                  endif
+
                   afsdn(:,n) = afsdn(:,n)/SUM(afsdn(:,n))
                end if
+
+!         if (any(afsd < c0)) print*,'lateral_melt B afsd < 0',n
 
                cat1_arealoss = -trcrn(nt_fsd+1-1,n) * aicen(n) * dt &
                              * G_radialn(n) / floe_binwidth(1)
@@ -983,11 +1032,16 @@
                   delta_an(n) = delta_an(n) + ((c2/floe_rad_c(k))*aicen(n) &
                                             * trcrn(nt_fsd+k-1,n)*G_radialn(n)*dt) ! delta_an < 0
                end do
+
+!               if (delta_an(n) > c0) print*,'ERROR delta_an > 0', delta_an(n)
+
                ! add negative area loss from fsd
                delta_an(n) = delta_an(n) - cat1_arealoss
 
                ! following original code, not necessary for fsd
-               if (aicen(n) > c0) rsiden(n)=-delta_an(n)/aicen(n) 
+               if (aicen(n) > c0) rsiden(n) = -delta_an(n)/aicen(n)
+
+!               if (rsiden(n) < c0) print*,'ERROR rsiden < 0', rsiden(n)
 
             end if ! G_radialn
          enddo ! ncat
@@ -1001,7 +1055,14 @@
 
       if (flag) then ! grid cells with lateral melting.
 
+         tmp = SUM(rsiden(:))
          do n = 1, ncat
+
+            if (tmp > c0) then
+                rsiden(n) = rsiden(n)/tmp
+            else
+                rsiden(n) = c0
+            end if
 
       !-----------------------------------------------------------------
       ! Melt the ice and increment fluxes.
@@ -1039,15 +1100,23 @@
                         f_flx(k) =  G_radialn(n) * afsdn(k,n) / floe_binwidth(k)
                      end do
 
+!                     if (abs(sum(df_flx(:))) > puny) print*,'sum(df_flx)/=0'
+
                      do k = 1, nfsd
                         df_flx(k) = f_flx(k+1) - f_flx(k)
                         afsd  (k) = afsdn(k,n) &
                            + dt * (-df_flx(k) + c2 * G_radialn(n) * afsdn(k,n) &
                            * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
                      end do
- 
+
+!                     if (abs(sum(afsd)-c1) > puny) &
+!                        print*,'lateral_melt E afsd not normed',sum(df_flx), sum(afsd)-c1
+
                      ! this fixes tiny (e-30) differences from 1
                      afsd = afsd/SUM(afsd)
+
+!                     if (any(afsd < c0)) print*,'lateral_melt:  afsd < 0'
+!                     if (any(afsd > c1)) print*,'lateral_melt:  afsd > 1'
 
                      trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd
 
@@ -1316,13 +1385,13 @@
          area2       ! area after lateral growth and before new ice formation
 
       real (kind=dbl_kind), dimension (ncat) :: &
-         ain0new     , &  ! area of new ice added to any thickness cat
          vin0new          ! volume of new ice added to any thickness cat
 
       real (kind=dbl_kind), dimension (nfsd) :: &
          afsd_ni      ! areal mFSTD after new ice added
 
       real (kind=dbl_kind) :: &
+         tmp, &
          latsurf_area, & ! fractional area of ice on sides of floes
          lead_area   , & ! fractional area of ice in lead region
          G_radial    , & ! lateral melt rate (m/s)
@@ -1334,6 +1403,13 @@
       ! initialize
       !-----------------------------------------------------------------
 
+      hsurp  = c0
+      hi0new = c0
+      ai0new = c0
+      afsdn(:,:) = c1
+      d_an_latg(:) = c0
+      d_an_tot(:) = c0
+      area2(:) = aicen(:)
       lead_area    = c0
       latsurf_area = c0
       G_radial     = c0
@@ -1354,10 +1430,10 @@
             do k = 1, nfsd
                afsdn(k,n) = trcrn(nt_fsd+k-1,n)
             enddo
-         else
-            afsdn(:,n) = c1
          endif
       enddo
+
+!      if (any(afsdn < c0)) print*,'add_new B afsdn < 0'
 
       if (l_conservation_check) then
 
@@ -1453,14 +1529,16 @@
       ! Decide how to distribute the new ice.
       !-----------------------------------------------------------------
 
-      hsurp  = c0
-      hi0new = c0
-      ai0new = c0
-      d_an_latg(:) = c0
-      d_an_tot(:) = c0
-      area2(:) = aicen(:)
-
       if (vi0new > c0) then
+
+!                  do n = 1, ncat
+!                  tmp = sum(afsdn(:,n))
+!                  if (abs(tmp) > c0 .and. abs(tmp-c1) > 1.e-9_dbl_kind) then
+!                    print*,tmp
+!                    print*,n,'afsdn',afsdn(:,n)
+!                    print*,'add_new A WARNING initial afsdn not normal'
+!                  endif
+!                  enddo
 
          if (tr_fsd) & ! lateral growth of existing ice
          call fsd_lateral_growth (ncat,       nfsd,         &
@@ -1471,6 +1549,17 @@
                                   lead_area,  latsurf_area, &
                                   G_radial,   d_an_latg,    &
                                   tot_latg)
+
+!                  do n = 1, ncat
+!                  tmp = sum(afsdn(:,n))
+!                  if (abs(tmp) > c0 .and. abs(tmp-c1) > 1.e-9_dbl_kind) then
+!                    print*,abs(tmp-c1)
+!                    print*,tmp
+!                    print*,'add_new B WARNING initial afsdn not normal'
+!                  endif
+!                  enddo
+
+!      if (any(afsdn < c0)) print*,'add_new C afsdn < 0'
 
          ! new ice area and thickness
          ! hin_max(0) < new ice thickness < hin_max(1)
@@ -1625,6 +1714,13 @@
             trcrn(nt_FY,n) = min(trcrn(nt_FY,n), c1)
          endif
 
+!                  tmp = sum(afsdn(:,n))
+!                  if (abs(tmp) > c0 .and. abs(tmp-c1) > 1.e-9_dbl_kind) then
+!                    print*,abs(tmp-c1)
+!                    print*,tmp
+!                    print*,'add_new C WARNING initial afsdn not normal'
+!                  endif
+
          if (tr_fsd) & ! evolve the floe size distribution
             call fsd_add_new_ice (ncat, n,    nfsd,          &
                                   dt,         ai0new,        &
@@ -1636,6 +1732,15 @@
                                   d_afsd_newi,               &
                                   afsdn,      aicen_init,    &
                                   aicen,      trcrn)
+
+!                  tmp = sum(afsdn(:,n))
+!                  if (abs(tmp) > c0 .and. abs(tmp-c1) > 1.e-9_dbl_kind) then
+!                    print*,abs(tmp-c1)
+!                    print*,tmp
+!                    print*,'add_new D WARNING initial afsdn not normal'
+!                  endif
+
+!      if (any(afsdn < c0)) print*,'add_new D afsdn < 0'
 
          if (vicen(n) > puny) then
             if (tr_iage) &
@@ -1864,6 +1969,7 @@
 
       character(len=*),parameter :: subname='(icepack_step_therm2)'
 
+
       !-----------------------------------------------------------------
       ! Let rain drain through to the ocean.
       !-----------------------------------------------------------------
@@ -1955,7 +2061,7 @@
                          fresh,     fsalt,         &
                          fhocn,     faero_ocn,     &
                          rside,     meltl,         &
-                         fside,                    &
+                         fside,     sss,           &
                          aicen,     vicen,         &
                          vsnon,     trcrn,         &
                          fzsal,     flux_bio,      &
