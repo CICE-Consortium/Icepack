@@ -40,7 +40,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_fsd, only: fsd_weld_thermo
+      use icepack_fsd, only: fsd_weld_thermo, icepack_cleanup_fsd
       use icepack_itd, only: reduce_area, cleanup_itd
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
@@ -941,7 +941,6 @@
          afsdn_init    ! initial value
 
       real (kind=dbl_kind), dimension (nfsd) :: &
-         afsd      , & ! fsd tracer for each thickness category
          df_flx        ! finite difference for G_r * areal mFSTD tilda
 
       real (kind=dbl_kind), dimension(nfsd+1) :: &
@@ -972,7 +971,6 @@
       rsiden     = c0
       afsdn      = c1
       afsdn_init = c0
-      afsd       = c0
       df_flx     = c0
       f_flx      = c0
 
@@ -981,6 +979,8 @@
          afsdn = trcrn(nt_fsd:nt_fsd+nfsd-1,:)
          afsdn_init = afsdn ! for diagnostics
          d_afsd_latm(:) = c0
+
+!         call icepack_cleanup_fsd (ncat, nfsd, afsdn) ! done at the end of add_new_ice
 
 !         if (any(afsdn < c0)) print*,'lateral_melt A afsdn < 0'
 
@@ -1019,7 +1019,7 @@
 !                    print*,'lateral_melt WARNING initial afsdn not normal'
 !                  endif
 
-                  afsdn(:,n) = afsdn(:,n)/SUM(afsdn(:,n))
+!                  afsdn(:,n) = afsdn(:,n)/SUM(afsdn(:,n))
                end if
 
 !         if (any(afsd < c0)) print*,'lateral_melt B afsd < 0',n
@@ -1102,23 +1102,26 @@
 
 !                     if (abs(sum(df_flx(:))) > puny) print*,'sum(df_flx)/=0'
 
+                     tmp = SUM(afsdn(:,n)/floe_rad_c(:))
                      do k = 1, nfsd
-                        df_flx(k) = f_flx(k+1) - f_flx(k)
-                        afsd  (k) = afsdn(k,n) &
+                        df_flx(k)   = f_flx(k+1) - f_flx(k)
+                        afsdn (k,n) = afsdn(k,n) &
                            + dt * (-df_flx(k) + c2 * G_radialn(n) * afsdn(k,n) &
-                           * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
+                                * (c1/floe_rad_c(k) - tmp))
                      end do
 
-!                     if (abs(sum(afsd)-c1) > puny) &
-!                        print*,'lateral_melt E afsd not normed',sum(df_flx), sum(afsd)-c1
+!                     if (abs(sum(afsdn(:,n))-c1) > puny) &
+!                        print*,'lateral_melt E afsdn not normed',sum(df_flx), sum(afsdn(:,n))-c1
 
                      ! this fixes tiny (e-30) differences from 1
-                     afsd = afsd/SUM(afsd)
+!                     afsdn(:,n) = afsdn(:,n)/SUM(afsdn(:,n))
 
-!                     if (any(afsd < c0)) print*,'lateral_melt:  afsd < 0'
-!                     if (any(afsd > c1)) print*,'lateral_melt:  afsd > 1'
+                     call icepack_cleanup_fsd (ncat, nfsd, afsdn)
 
-                     trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd
+!                     if (any(afsdn < c0)) print*,'lateral_melt:  afsdn < 0'
+!                     if (any(afsdn > c1)) print*,'lateral_melt:  afsdn > 1'
+
+                     trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn(:,n)
 
                   else ! aicen = 0
 
@@ -1432,6 +1435,7 @@
             enddo
          endif
       enddo
+      call icepack_cleanup_fsd (ncat, nfsd, afsdn)
 
 !      if (any(afsdn < c0)) print*,'add_new B afsdn < 0'
 
@@ -1739,8 +1743,9 @@
 !                    print*,tmp
 !                    print*,'add_new D WARNING initial afsdn not normal'
 !                  endif
-
 !      if (any(afsdn < c0)) print*,'add_new D afsdn < 0'
+
+            call icepack_cleanup_fsd (ncat, nfsd, afsdn)
 
          if (vicen(n) > puny) then
             if (tr_iage) &

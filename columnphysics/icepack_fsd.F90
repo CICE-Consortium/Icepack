@@ -30,9 +30,8 @@
       implicit none
 
       private
-      public :: icepack_init_fsd_bounds, icepack_init_fsd, fsd_lateral_growth, &
-         fsd_add_new_ice, fsd_weld_thermo
-!          renorm_mfstd
+      public :: icepack_init_fsd_bounds, icepack_init_fsd, icepack_cleanup_fsd, &
+         fsd_lateral_growth, fsd_add_new_ice, fsd_weld_thermo
 
 !      logical (kind=log_kind), public :: & 
 !         write_diag_wave     ! if .true., write the lat/lons from find_wave to history file
@@ -314,6 +313,53 @@
       endif ! ice_ic
 
       end subroutine icepack_init_fsd
+
+!=======================================================================
+!
+!  Clean up small values and renormalize
+!
+!  author:  Elizabeth Hunke, LANL
+
+      subroutine icepack_cleanup_fsd (ncat, nfsd, afsdn)
+
+      integer (kind=int_kind), intent(in) :: &
+         ncat           , & ! number of thickness categories
+         nfsd               ! number of floe size categories
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+         afsdn              ! floe size distribution tracer
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         n, k               ! thickness and floe size category indices
+
+      real (kind=dbl_kind) :: &
+         tot
+
+      if (tr_fsd) then
+
+      do n = 1, ncat
+         do k = 1, nfsd
+            if (afsdn(k,n) < puny) afsdn(k,n) = c0
+         enddo
+
+         tot = sum(afsdn(:,n))
+         if (tot > puny) then
+            do k = 1, nfsd
+               afsdn(k,n) = afsdn(k,n) / tot ! normalize
+            enddo
+         else
+            afsdn(1,n) = c1                  ! default to smallest floe size
+            do k = 2, nfsd
+               afsdn(k,n) = c0
+            enddo
+         endif
+      enddo ! ncat
+
+      endif ! tr_fsd
+
+      end subroutine icepack_cleanup_fsd
 
 !=======================================================================
 ! 
@@ -928,9 +974,12 @@
             enddo
             darea = SUM(afsd_init) - afsd_sum
 
+            call icepack_cleanup_fsd (ncat, nfsd, afsdn)
+
             do k = 1, nfsd
-               afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
-               trcrn(nt_fsd+k-1,n) = max(afsdn(k,n), c0)
+!               afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
+!               trcrn(nt_fsd+k-1,n) = max(afsdn(k,n), c0)
+               trcrn(nt_fsd+k-1,n) = afsdn(k,n)
                ! history/diagnostics
                d_afsdn_weld(k,n) = afsdn(k,n) - afsd_init(k)
             enddo
