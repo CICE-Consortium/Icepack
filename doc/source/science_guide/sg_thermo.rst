@@ -1749,10 +1749,15 @@ old and new layers, respectively. The enthalpies of the new layers are
 .. math:: 
    q_k = \frac{1}{\Delta h_i} \sum_{m=1}^{N_i} \eta_{km} q_m.
 
-Lateral melting is accomplished by multiplying the state variables by
+If ``tr_fsd=false``, lateral melting is accomplished by multiplying the state variables by
 :math:`1-r_{side}`, where :math:`r_{side}` is the fraction of ice melted
 laterally :cite:`Maykut87,Steele92`, and adjusting the ice
 energy and fluxes as appropriate. We assume a floe diameter of 300 m.
+
+If ``tr_fsd=true``, lateral melting is accomplished using the :cite:`Maykut87`
+lateral heat flux, but applied to the ice using the prognostic floe size distribution
+as described in Horvat & Tziperman (2015) and Roach et al. (2018). Lateral melt modifies
+the ITD and the FSD.
 
 Snow-ice formation
 ------------------
@@ -1805,3 +1810,5 @@ into equal thicknesses while conserving energy and salt.
    calculations, unlike Bitz99, which does include it. This extra heat is
    returned to the ocean (or the atmosphere, in the case of evaporation)
    with the melt water.
+
+
