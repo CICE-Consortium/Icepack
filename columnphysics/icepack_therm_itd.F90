@@ -1058,10 +1058,12 @@
          tmp = SUM(rsiden(:))
          do n = 1, ncat
 
-            if (tmp > c0) then
-                rsiden(n) = rsiden(n)/tmp
-            else
-                rsiden(n) = c0
+            if (tr_fsd) then
+               if (tmp > c0) then
+                  rsiden(n) = rsiden(n)/tmp
+               else
+                  rsiden(n) = c0
+               end if
             end if
 
       !-----------------------------------------------------------------
@@ -1071,7 +1073,7 @@
             ! fluxes to coupler
             ! dfresh > 0, dfsalt > 0, dfpond > 0
 
-            dfresh = (rhoi*vicen(n) + rhos*vsnon(n))      * rsiden(n) / dt
+            dfresh = (rhoi*vsnon(n) + rhos*vicen(n))      * rsiden(n) / dt
             dfsalt =  rhoi*vicen(n)*ice_ref_salinity*p001 * rsiden(n) / dt
             fresh  = fresh + dfresh
             fsalt  = fsalt + dfsalt
@@ -1398,7 +1400,8 @@
          latsurf_area, & ! fractional area of ice on sides of floes
          lead_area   , & ! fractional area of ice in lead region
          G_radial    , & ! lateral melt rate (m/s)
-         tot_latg        ! total fsd lateral growth in open water
+         tot_latg    , & ! total fsd lateral growth in open water
+         ai0mod          ! ai0new - tot_latg
 
       character(len=*),parameter :: subname='(add_new_ice)'
 
@@ -1565,15 +1568,18 @@
 
 !      if (any(afsdn < c0)) print*,'add_new C afsdn < 0'
 
+         ai0mod = aice0
+         if (tr_fsd) ai0mod = aice0-tot_latg
+
          ! new ice area and thickness
          ! hin_max(0) < new ice thickness < hin_max(1)
-         if (aice0-tot_latg > puny) then
-            hi0new = max(vi0new/(aice0-tot_latg), hfrazilmin)
-            if (hi0new > hi0max .and. aice0-tot_latg+puny < c1) then
+         if (ai0mod > puny) then
+            hi0new = max(vi0new/ai0mod, hfrazilmin)
+            if (hi0new > hi0max .and. ai0mod+puny < c1) then
                ! distribute excess volume over all categories (below)
                hi0new = hi0max
-               ai0new = aice0 - tot_latg
-               vsurp      = vi0new - ai0new*hi0new
+               ai0new = ai0mod
+               vsurp  = vi0new - ai0new*hi0new
                hsurp  = vsurp / aice
                vi0new = ai0new*hi0new
             else
