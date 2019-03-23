@@ -153,7 +153,8 @@
 
       else
 
-         call icepack_warnings_add(subname//' floe size categories not defined for nfsd')
+         call icepack_warnings_add(subname//&
+            ' floe size categories not defined for nfsd')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__) 
          return
 
@@ -242,16 +243,7 @@
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
 
-         ! write(*,*) &
-         !    'floe size bin info: low, high, center, width, area_c'
-         ! write(*,*) floe_rad_l
-         ! write(*,*) floe_rad_h
-         ! write(*,*) floe_rad_c
-         ! write(*,*) floe_binwidth
-         ! write(*,*) floe_area_l
-         ! write(*,*) floe_area_h   
-         ! write(*,*) floe_area_c
-
+       
       end subroutine icepack_init_fsd_bounds
 
 !=======================================================================
@@ -304,12 +296,6 @@
          enddo
          afsd = afsd/totfrac                    ! normalize
 
-!         write(*,*)'init_fsd: initial number distribution of floes'
-!         write(*,*) num_fsd(1:nfsd)
-!         write(*,*)'init_fsd: initial fraction distribution of floes'
-!         write(*,*) afsd(1:nfsd)
-!         write(*,*) SUM(afsd(1:nfsd)) ! should be 1
-
       endif ! ice_ic
 
       end subroutine icepack_init_fsd
@@ -350,10 +336,11 @@
                afsdn(k,n) = afsdn(k,n) / tot ! normalize
             enddo
          else
-            afsdn(1,n) = c1                  ! default to smallest floe size
-            do k = 2, nfsd
-               afsdn(k,n) = c0
-            enddo
+            afsdn(:,n) = c0
+            !afsdn(1,n) = c1                  ! default to smallest floe size
+            !do k = 2, nfsd
+            !   afsdn(k,n) = c0
+            !enddo
          endif
       enddo ! ncat
 
@@ -455,8 +442,9 @@
          end do
 
                 ! check
-                if (latsurf_area.lt.c0) stop 'negative latsurf_ area'
-                if (latsurf_area.ne.latsurf_area) stop 'latsurf_ area NaN'
+                if (latsurf_area.lt.c0) stop 'negative latsurf_area'
+                if (latsurf_area.ne.latsurf_area) stop &
+                   'latsurf_area NaN'
 
       end if ! aice
 
@@ -674,7 +662,7 @@
 
          ! combining the next 2 lines changes the answers
          afsdn_latg(:,n) = afsdn_latg(:,n) / SUM(afsdn_latg(:,n)) ! just in case (may be errors < 1e-11)
-         trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:,n)
+         !trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:,n)
 
 !         d_afsdn_latg(:,n) = afsdn_latg(:,n) - afsdn(:,n)
 
@@ -906,6 +894,8 @@
          d_afsd_weld (:)   = c0
          d_afsdn_weld(:,n) = c0
          afsdn(:,n) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
+         call icepack_cleanup_fsd (ncat, nfsd, afsdn)
+
 
          ! If there is some ice in the lower (nfsd-1) categories
          ! and there is freezing potential
@@ -950,15 +940,18 @@
                enddo
 
                ! sanity checks
-!               if (ANY(afsd_tmp < c0-puny)) then
-!                        print *, 'afsd_init',afsd_init
-!                        print *, 'coag',coag
-!                        print *, 'afsd_tmp ',afsd_tmp
-!                        print *, 'WARNING negative mFSTD weld, l'
-!               end if
-!               if (ANY(afsd_tmp < c0-puny)) stop 'negative mFSTD weld, l'
-!               if (ANY(afsd_tmp > c1+puny)) stop ' mFSTD> 1 weld, l'
-!               if (ANY(dt*c_weld*coag < -puny)) stop 'not positive'
+               if (ANY(afsd_tmp < c0-puny)) then
+                        print *, 'afsd_init',afsd_init
+                        print *, 'coag',coag
+                        print *, 'afsd_tmp ',afsd_tmp
+                        print *, 'WARNING negative mFSTD weld, l'
+               end if
+               if (ANY(afsd_tmp < c0-puny)) stop &
+			'negative mFSTD weld, l'
+               if (ANY(afsd_tmp > c1+puny)) stop &
+			' mFSTD> 1 weld, l'
+               if (ANY(dt*c_weld*coag < -puny)) stop &
+		 'not positive'
 
                ! update
                darea_nfsd = darea_nfsd + subdt*c_weld*coag(nfsd)
@@ -977,19 +970,23 @@
             call icepack_cleanup_fsd (ncat, nfsd, afsdn)
 
             do k = 1, nfsd
-!               afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
-!               trcrn(nt_fsd+k-1,n) = max(afsdn(k,n), c0)
+               afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
+               trcrn(nt_fsd+k-1,n) = max(afsdn(k,n), c0)
                trcrn(nt_fsd+k-1,n) = afsdn(k,n)
                ! history/diagnostics
                d_afsdn_weld(k,n) = afsdn(k,n) - afsd_init(k)
             enddo
 
-            ! more sanity checks
-!            if (darea < -puny) stop 'area gain'
-!            if (ABS(darea) > puny) stop 'area change after correction'
-!            if (ANY(afsdn(:,n) < -puny)) stop 'neg, weld'
-!            if (afsdn(1,n) > afsd_init(1)+puny) stop 'gain in smallest cat'
 
+            ! more sanity checks
+            if (darea < -puny) stop 'area gain'
+            if (ABS(darea) > puny) stop 'area change after correction'
+            if (ANY(afsdn(:,n) < -puny)) stop 'neg, weld'
+            if (afsdn(1,n) > afsd_init(1)+puny) then
+                        !print *, afsdn(:,n)
+			!print *, afsd_init(:)
+			stop 'gain in smallest cat'
+            end if
          endif ! try to weld
       enddo ! n
 

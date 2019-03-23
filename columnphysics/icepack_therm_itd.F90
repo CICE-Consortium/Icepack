@@ -963,7 +963,6 @@
       dvint    = c0
       cat1_arealoss  = c0
       tmp  = c0
-      aicen_init = c0
       vicen_init = c0
       G_radialn  = c0
       delta_an   = c0
@@ -974,15 +973,17 @@
       df_flx     = c0
       f_flx      = c0
 
-      if (tr_fsd .and. fside < c0) then
-         flag = .true.
+      if (tr_fsd) then
+         call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:)) 
          afsdn = trcrn(nt_fsd:nt_fsd+nfsd-1,:)
+         aicen_init = aicen
          afsdn_init = afsdn ! for diagnostics
          d_afsd_latm(:) = c0
+      end if
 
-!         call icepack_cleanup_fsd (ncat, nfsd, afsdn) ! done at the end of add_new_ice
+      if (tr_fsd .and. fside < c0) then
+         flag = .true.
 
-!         if (any(afsdn < c0)) print*,'lateral_melt A afsdn < 0'
 
 ! echmod - testing original
          ! Compute average enthalpy of ice. (taken from add_new_ice)
@@ -1007,22 +1008,13 @@
 
             if (qin(n) < -puny) G_radialn(n) = -fside/qin(n) ! negative
 
-!            if (G_radialn(n) > c0) print*,'ERROR G_radialn > 0', G_radialn(n)
+            if (G_radialn(n) > puny) stop 'Gr pos'
 
             if (G_radialn(n) < -puny) then
 
-               if (aicen(n) > puny) then
-
-!                  if (abs(sum(afsdn(:,n))-c1) > 1.e-9_dbl_kind) then
-!                    print*,abs(sum(afsdn(:,n))-c1)
-!                    print*,sum(afsdn(:,n))
-!                    print*,'lateral_melt WARNING initial afsdn not normal'
-!                  endif
-
-!                  afsdn(:,n) = afsdn(:,n)/SUM(afsdn(:,n))
-               end if
-
-!         if (any(afsd < c0)) print*,'lateral_melt B afsd < 0',n
+               
+               if (any(afsdn(:,n) < c0)) print*,&
+                 'lateral_melt B afsd < 0',n
 
                cat1_arealoss = -trcrn(nt_fsd+1-1,n) * aicen(n) * dt &
                              * G_radialn(n) / floe_binwidth(1)
@@ -1033,15 +1025,15 @@
                                             * trcrn(nt_fsd+k-1,n)*G_radialn(n)*dt) ! delta_an < 0
                end do
 
-!               if (delta_an(n) > c0) print*,'ERROR delta_an > 0', delta_an(n)
-
                ! add negative area loss from fsd
                delta_an(n) = delta_an(n) - cat1_arealoss
 
+               if (delta_an(n) > c0) print*,'ERROR delta_an > 0', delta_an(n)
+ 
                ! following original code, not necessary for fsd
                if (aicen(n) > c0) rsiden(n) = -delta_an(n)/aicen(n)
 
-!               if (rsiden(n) < c0) print*,'ERROR rsiden < 0', rsiden(n)
+               if (rsiden(n) < c0) print*,'ERROR rsiden < 0', rsiden(n)
 
             end if ! G_radialn
          enddo ! ncat
@@ -1055,16 +1047,17 @@
 
       if (flag) then ! grid cells with lateral melting.
 
-         tmp = SUM(rsiden(:))
+         ! LR is this necessary?
+         !tmp = SUM(rsiden(:))
          do n = 1, ncat
 
-            if (tr_fsd) then
-               if (tmp > c0) then
-                  rsiden(n) = rsiden(n)/tmp
-               else
-                  rsiden(n) = c0
-               end if
-            end if
+            !if (tr_fsd) then
+            !   if (tmp > c0) then
+            !      rsiden(n) = rsiden(n)/tmp
+            !   else
+            !      rsiden(n) = c0
+            !   end if
+            !end if
 
       !-----------------------------------------------------------------
       ! Melt the ice and increment fluxes.
@@ -1099,44 +1092,39 @@
                      df_flx(:) = c0
                      f_flx (:) = c0
                      do k = 2, nfsd
-                        f_flx(k) =  G_radialn(n) * afsdn(k,n) / floe_binwidth(k)
+                        f_flx(k) =  G_radialn(n) * afsdn_init(k,n) / floe_binwidth(k)
                      end do
 
-!                     if (abs(sum(df_flx(:))) > puny) print*,'sum(df_flx)/=0'
-
-                     tmp = SUM(afsdn(:,n)/floe_rad_c(:))
                      do k = 1, nfsd
-                        df_flx(k)   = f_flx(k+1) - f_flx(k)
-                        afsdn (k,n) = afsdn(k,n) &
-                           + dt * (-df_flx(k) + c2 * G_radialn(n) * afsdn(k,n) &
+                        df_flx(k)   = f_flx(k+1) - f_flx(k) 
+                     end do
+
+                     if (abs(sum(df_flx(:))) > puny) &
+                         print*,'sum(df_flx)/=0'
+
+                     tmp = SUM(afsdn_init(:,n)/floe_rad_c(:))
+                     do k = 1, nfsd
+                       afsdn (k,n) = afsdn_init(k,n) &
+                           + dt * (-df_flx(k) + c2 * G_radialn(n) * afsdn_init(k,n) &
                                 * (c1/floe_rad_c(k) - tmp))
                      end do
 
-!                     if (abs(sum(afsdn(:,n))-c1) > puny) &
-!                        print*,'lateral_melt E afsdn not normed',sum(df_flx), sum(afsdn(:,n))-c1
+                     if (abs(sum(afsdn(:,n))-c1) > puny) &
+                        print*,'lateral_melt E afsdn not normed',sum(df_flx), sum(afsdn(:,n))-c1
+                     if (any(afsdn < -puny)) &
+                         print*,'lateral_melt:  afsdn < 0'
+                     if (any(afsdn > c1+puny)) &
+                         print*,'lateral_melt:  afsdn > 1'
 
-                     ! this fixes tiny (e-30) differences from 1
-!                     afsdn(:,n) = afsdn(:,n)/SUM(afsdn(:,n))
 
-                     call icepack_cleanup_fsd (ncat, nfsd, afsdn)
+                     !trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn(:,n)
 
-!                     if (any(afsdn < c0)) print*,'lateral_melt:  afsdn < 0'
-!                     if (any(afsdn > c1)) print*,'lateral_melt:  afsdn > 1'
+                  !else ! aicen = 0
 
-                     trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn(:,n)
-
-                  else ! aicen = 0
-
-                     trcrn(nt_fsd:nt_fsd+nfsd-1,n) = c0
+                   !  trcrn(nt_fsd:nt_fsd+nfsd-1,n) = c0
 
                   end if ! aicen
                end if ! rside > 0, otherwise do nothing
-
-               ! diagnostics
-               do k = 1, nfsd
-                  d_afsd_latm(k) = d_afsd_latm(k) + aicen(n)*trcrn(nt_fsd+k-1,n) &
-                                 - aicen_init(n)*afsdn_init(k,n)
-               enddo
 
             end if ! tr_fsd
 
@@ -1194,6 +1182,21 @@
             if (icepack_warnings_aborted(subname)) return
 
       endif          ! flag
+
+      if (tr_fsd) then
+         !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+
+         ! diagnostics
+         do k = 1, nfsd
+            d_afsd_latm(k) = c0
+            do n = 1, ncat
+                     d_afsd_latm(k) = d_afsd_latm(k) + &
+                          afsdn(k,n)*aicen(n) & 
+                          !trcrn(nt_fsd+k-1,n) &
+                          - afsdn_init(k,n)*aicen_init(n)
+            end do
+         end do
+      end if
 
       end subroutine lateral_melt
 
@@ -1548,14 +1551,14 @@
 !                  enddo
 
          if (tr_fsd) & ! lateral growth of existing ice
-         call fsd_lateral_growth (ncat,       nfsd,         &
-                                  dt,         aice,         &
-                                  aicen,      vicen,        &
-                                  vi0new,     frazil,       &
-                                  floe_rad_c, afsdn,        &
-                                  lead_area,  latsurf_area, &
-                                  G_radial,   d_an_latg,    &
-                                  tot_latg)
+            !call fsd_lateral_growth (ncat,       nfsd,         &
+            !                      dt,         aice,         &
+            !                      aicen,      vicen,        &
+            !                      vi0new,     frazil,       &
+            !                      floe_rad_c, afsdn,        &
+            !                      lead_area,  latsurf_area, &
+            !                      G_radial,   d_an_latg,    &
+            !                      tot_latg)
 
 !                  do n = 1, ncat
 !                  tmp = sum(afsdn(:,n))
