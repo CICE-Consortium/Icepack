@@ -1716,6 +1716,10 @@ to a specified minimum thickness; if the open water area is nearly zero
 or if there is more new ice than will fit into the thinnest ice
 category, then the new ice is spread over the entire cell.
 
+If ``tr_fsd=true``, lateral growth at the edges of exisiting floes may occur,
+calculated using the prognostic floe size distribution as described in Horvat & Tziperman (2015) 
+and Roach et al. (2018). Lateral growth modifies the ITD and the FSD.
+
 If the latent heat flux is negative (i.e., latent heat is transferred
 from the ice to the atmosphere), snow or snow-free ice sublimates at the
 top surface. If the latent heat flux is positive, vapor from the
