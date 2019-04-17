@@ -1192,7 +1192,6 @@
             do n = 1, ncat
                      d_afsd_latm(k) = d_afsd_latm(k) + &
                           afsdn(k,n)*aicen(n) & 
-                          !trcrn(nt_fsd+k-1,n) &
                           - afsdn_init(k,n)*aicen_init(n)
             end do
          end do
@@ -1415,21 +1414,29 @@
       hsurp  = c0
       hi0new = c0
       ai0new = c0
-      afsdn(:,:) = c1
+      afsdn(:,:) = c0
       d_an_latg(:) = c0
       d_an_tot(:) = c0
+      d_an_newi(:) = c0
+
+      if (tr_fsd) then
+          d_afsd_latg(:) = c0    ! diagnostics
+          d_afsd_newi(:) = c0
+      end if
+
       area2(:) = aicen(:)
       lead_area    = c0
       latsurf_area = c0
       G_radial     = c0
       tot_latg     = c0
-      d_an_newi(:) = c0
-
       if (ncat > 1) then
          hi0max = hin_max(1)*0.9_dbl_kind  ! not too close to boundary
       else
          hi0max = bignum                   ! big number
       endif
+
+      call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:))
+
 
       do n = 1, ncat
          aicen_init(n) = aicen(n)
@@ -1441,8 +1448,6 @@
             enddo
          endif
       enddo
-      call icepack_cleanup_fsd (ncat, nfsd, afsdn)
-
 !      if (any(afsdn < c0)) print*,'add_new B afsdn < 0'
 
       if (l_conservation_check) then
@@ -1541,35 +1546,18 @@
 
       if (vi0new > c0) then
 
-!                  do n = 1, ncat
-!                  tmp = sum(afsdn(:,n))
-!                  if (abs(tmp) > c0 .and. abs(tmp-c1) > 1.e-9_dbl_kind) then
-!                    print*,tmp
-!                    print*,n,'afsdn',afsdn(:,n)
-!                    print*,'add_new A WARNING initial afsdn not normal'
-!                  endif
-!                  enddo
-
-         if (tr_fsd) & ! lateral growth of existing ice
-            !call fsd_lateral_growth (ncat,       nfsd,         &
-            !                      dt,         aice,         &
-            !                      aicen,      vicen,        &
-            !                      vi0new,     frazil,       &
-            !                      floe_rad_c, afsdn,        &
-            !                      lead_area,  latsurf_area, &
-            !                      G_radial,   d_an_latg,    &
-            !                      tot_latg)
-
-!                  do n = 1, ncat
-!                  tmp = sum(afsdn(:,n))
-!                  if (abs(tmp) > c0 .and. abs(tmp-c1) > 1.e-9_dbl_kind) then
-!                    print*,abs(tmp-c1)
-!                    print*,tmp
-!                    print*,'add_new B WARNING initial afsdn not normal'
-!                  endif
-!                  enddo
-
-!      if (any(afsdn < c0)) print*,'add_new C afsdn < 0'
+        if (tr_fsd) & ! lateral growth of existing ice
+            ! calculate change in conc due to lateral growth
+            ! update vi0new
+            ! no change to afsdn or aicen
+            call fsd_lateral_growth (ncat,       nfsd,         &
+                                  dt,         aice,         &
+                                  aicen,      vicen,        &
+                                  vi0new,     frazil,       &
+                                  floe_rad_c, afsdn,        &
+                                  lead_area,  latsurf_area, &
+                                  G_radial,   d_an_latg,    &
+                                  tot_latg)
 
          ai0mod = aice0
          if (tr_fsd) ai0mod = aice0-tot_latg
@@ -1698,11 +1686,8 @@
       !-----------------------------------------------------------------
 
       ncats = 1                  ! add new ice to category 1 by default
-      if (tr_fsd) then
-          ncats = ncat           ! add new ice laterally to all categories
-          d_afsd_latg(:) = c0    ! diagnostics
-          d_afsd_newi(:) = c0
-      endif
+      if (tr_fsd) ncats = ncat   ! add new ice laterally to all categories
+  
 
       do n = 1, ncats
 
@@ -1715,7 +1700,9 @@
 
          area1    = aicen(n)   ! save
          vice1    = vicen(n)   ! save
+         area2(n) = aicen_init(n) + d_an_latg(n) ! save area after latg, before newi
          aicen(n) = aicen(n) + d_an_tot(n)
+ 
          aice0    = aice0    - d_an_tot(n)
          vicen(n) = vicen(n) + vin0new(n)
 
@@ -1727,14 +1714,8 @@
             trcrn(nt_FY,n) = min(trcrn(nt_FY,n), c1)
          endif
 
-!                  tmp = sum(afsdn(:,n))
-!                  if (abs(tmp) > c0 .and. abs(tmp-c1) > 1.e-9_dbl_kind) then
-!                    print*,abs(tmp-c1)
-!                    print*,tmp
-!                    print*,'add_new C WARNING initial afsdn not normal'
-!                  endif
-
          if (tr_fsd) & ! evolve the floe size distribution
+            ! both new frazil ice and lateral growth
             call fsd_add_new_ice (ncat, n,    nfsd,          &
                                   dt,         ai0new,        &
                                   d_an_latg,  d_an_newi,     &
@@ -1746,15 +1727,6 @@
                                   afsdn,      aicen_init,    &
                                   aicen,      trcrn)
 
-!                  tmp = sum(afsdn(:,n))
-!                  if (abs(tmp) > c0 .and. abs(tmp-c1) > 1.e-9_dbl_kind) then
-!                    print*,abs(tmp-c1)
-!                    print*,tmp
-!                    print*,'add_new D WARNING initial afsdn not normal'
-!                  endif
-!      if (any(afsdn < c0)) print*,'add_new D afsdn < 0'
-
-            call icepack_cleanup_fsd (ncat, nfsd, afsdn)
 
          if (vicen(n) > puny) then
             if (tr_iage) &
