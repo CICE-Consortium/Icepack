@@ -153,7 +153,8 @@
 
       else
 
-         call icepack_warnings_add(subname//' floe size categories not defined for nfsd')
+         call icepack_warnings_add(subname//&
+            ' floe size categories not defined for nfsd')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__) 
          return
 
@@ -242,16 +243,7 @@
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
 
-         ! write(*,*) &
-         !    'floe size bin info: low, high, center, width, area_c'
-         ! write(*,*) floe_rad_l
-         ! write(*,*) floe_rad_h
-         ! write(*,*) floe_rad_c
-         ! write(*,*) floe_binwidth
-         ! write(*,*) floe_area_l
-         ! write(*,*) floe_area_h   
-         ! write(*,*) floe_area_c
-
+       
       end subroutine icepack_init_fsd_bounds
 
 !=======================================================================
@@ -304,12 +296,6 @@
          enddo
          afsd = afsd/totfrac                    ! normalize
 
-!         write(*,*)'init_fsd: initial number distribution of floes'
-!         write(*,*) num_fsd(1:nfsd)
-!         write(*,*)'init_fsd: initial fraction distribution of floes'
-!         write(*,*) afsd(1:nfsd)
-!         write(*,*) SUM(afsd(1:nfsd)) ! should be 1
-
       endif ! ice_ic
 
       end subroutine icepack_init_fsd
@@ -350,10 +336,11 @@
                afsdn(k,n) = afsdn(k,n) / tot ! normalize
             enddo
          else
-            afsdn(1,n) = c1                  ! default to smallest floe size
-            do k = 2, nfsd
-               afsdn(k,n) = c0
-            enddo
+            afsdn(:,n) = c0
+            !afsdn(1,n) = c1                  ! default to smallest floe size
+            !do k = 2, nfsd
+            !   afsdn(k,n) = c0
+            !enddo
          endif
       enddo ! ncat
 
@@ -455,8 +442,9 @@
          end do
 
                 ! check
-                if (latsurf_area.lt.c0) stop 'negative latsurf_ area'
-                if (latsurf_area.ne.latsurf_area) stop 'latsurf_ area NaN'
+                if (latsurf_area.lt.c0) stop 'negative latsurf_area'
+                if (latsurf_area.ne.latsurf_area) stop &
+                   'latsurf_area NaN'
 
       end if ! aice
 
@@ -486,7 +474,7 @@
          aicen , & ! concentration of ice
          vicen     ! volume per unit area of ice          (m)
 
-      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          afsdn              ! floe size distribution tracer
 
       real (kind=dbl_kind), intent(inout) :: &
@@ -541,6 +529,7 @@
          vi0new_lat = vi0new * lead_area / (c1 + aice/latsurf_area)
       end if
 
+
 !      if (vi0new_lat < c0) print*,'ERROR vi0new_lat < 0', vi0new_lat
 
       ! for history/diagnostics
@@ -550,9 +539,6 @@
       if (vi0new_lat > puny) then
          G_radial = vi0new_lat/dt
          do n = 1, ncat
-            if (aicen(n) > puny) then
-               afsdn(:,n) = afsdn(:,n)/SUM(afsdn(:,n)) ! in case of 10e-10 errors
-            end if
 
             do k = 1, nfsd
                d_an_latg(n) = d_an_latg(n) &
@@ -605,15 +591,15 @@
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen_init     , & ! fractional area of ice
+         aicen          , & ! after update
          floe_rad_c     , & ! fsd size bin centre in m (radius)
          floe_binwidth      ! fsd size bin width in m (radius)
 
       real (kind=dbl_kind), dimension (:,:), intent(in) :: &
          afsdn     ! floe size distribution tracer (originally areal_mfstd_init)
 
-      real (kind=dbl_kind), dimension (:), intent(inout) :: &
-         area2 , & ! area after lateral growth and before new ice formation
-         aicen     ! concentration of ice
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         area2     ! area after lateral growth and before new ice formation
 
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn     ! ice tracers
@@ -652,8 +638,6 @@
 
       if (d_an_latg(n) > puny) then ! lateral growth
 
-         area2(n) = aicen_init(n) + d_an_latg(n) ! area after lateral growth, before new ice forms
-
          df_flx(:) = c0 ! NB could stay zero if all in largest FS cat
          f_flx (:) = c0
          do k = 2, nfsd
@@ -672,32 +656,20 @@
                             * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
          end do
 
-         ! combining the next 2 lines changes the answers
-         afsdn_latg(:,n) = afsdn_latg(:,n) / SUM(afsdn_latg(:,n)) ! just in case (may be errors < 1e-11)
+         call icepack_cleanup_fsd (ncat, nfsd, afsdn_latg)
          trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:,n)
 
-!         d_afsdn_latg(:,n) = afsdn_latg(:,n) - afsdn(:,n)
-
-!         if (abs(sum(afsdn(:,n))-c1) > puny) print*,'fsd_add_new WARNING afsdn not normal'
-!         if (abs(sum(afsdn_latg(:,n))-c1) > puny) print*,'fsd_add_new WARNING afsdn_latg not normal'
-!         if (any(afsdn_latg < c0)) print*,'fsd_add_new ERROR afsdn_latg < 0'
-
-      else ! no lateral growth, no change in floe size
-
-         afsdn_latg(:,n) = afsdn(:,n)
-
       end if ! lat growth
-
-      afsd_ni(:) = c0
+     
 
       new_size = nfsd
       if (n == 1) then
          ! add new frazil ice to smallest thickness
          if (d_an_newi(n) > puny) then
 
-!            if (d_an_newi(n) > aicen(n)) print*,'fsd_add_new ERROR d_an_newi > aicen'
+             afsd_ni(:) = c0
 
-            if (SUM(afsdn_latg(:,n)) > puny) then ! fsd lateral growth occurred
+            if (SUM(afsdn_latg(:,n)) > puny) then ! fsd exists
 
                if (wave_spec) then
                   if (ice_wave_sig_ht > puny) &
@@ -713,14 +685,6 @@
                      afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n) + ai0new)
                   end do
 
-! add this option later, maybe
-!               else if () then ! grow in largest category
-!                  afsd_ni(nfsd) =  (afsdn_latg(nfsd,n)*area2(n) + ai0new) &
-!                                                    / (area2(n) + ai0new)
-!                  do k = 1, nfsd-1  ! diminish other floe cats accordingly
-!                     afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
-!                  enddo
-
                else ! grow in smallest floe size category
                   afsd_ni(1) = (afsdn_latg(1,n)*area2(n) + ai0new) &
                                              / (area2(n) + ai0new)
@@ -729,7 +693,7 @@
                   enddo
                end if ! new_fs_option
 
-            else ! entirely new ice or not
+            else ! no fsd, so entirely new ice
 
                if (wave_spec) then
                   if (ice_wave_sig_ht > puny) &
@@ -737,30 +701,26 @@
                   afsd_ni(new_size) = c1
                else
                   afsd_ni(1) = c1
-!               elseif () then ! grow in largest category
-!                  afsd_ni(nfsd) = c1
                endif      ! wave forcing
 
             endif ! entirely new ice or not
 
-!            if (abs(sum(afsd_ni)-c1) > puny) print*,'fsd_add_new afsd_ni not normal',abs(sum(afsd_ni))
-!            if (any(afsd_ni < c0)) print*,'fsd_add_new afsd_ni < 0', afsd_ni
-
-            afsd_ni(:) = afsd_ni(:) / SUM(afsd_ni(:))
             trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_ni(:)
-
-            ! for history/diagnostics
-!            d_afsdn_newi(:,n) = afsd_ni(:) - afsdn_latg(:,n)
+            call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:))
 
          endif ! d_an_newi > puny
       endif    ! n = 1
 
+
       ! history/diagnostics
       do k = 1, nfsd
-         d_afsd_latg(k) = d_afsd_latg(k) - aicen_init(n)*afsdn(k,n) &
-                + (aicen_init(n) + d_an_latg(n))*afsdn_latg(k,n)
-         d_afsd_newi(k) = d_afsd_newi(k) + aicen(n)*trcrn(nt_fsd+k-1,n) &
-                - (aicen_init(n) + d_an_latg(n))*afsdn_latg(k,n)
+         ! sum over n
+         d_afsd_latg(k) = d_afsd_latg(k) &
+                + area2(n)*afsdn_latg(k,n) & ! after latg
+                - aicen_init(n)*afsdn(k,n) ! at start
+         d_afsd_newi(k) = d_afsd_newi(k) &
+                + aicen(n)*trcrn(nt_fsd+k-1,n) & ! after latg and newi
+                - area2(n)*afsdn_latg(k,n) ! after latg
       enddo    ! k
 
       end subroutine fsd_add_new_ice
@@ -906,6 +866,8 @@
          d_afsd_weld (:)   = c0
          d_afsdn_weld(:,n) = c0
          afsdn(:,n) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
+         call icepack_cleanup_fsd (ncat, nfsd, afsdn)
+
 
          ! If there is some ice in the lower (nfsd-1) categories
          ! and there is freezing potential
@@ -950,15 +912,18 @@
                enddo
 
                ! sanity checks
-!               if (ANY(afsd_tmp < c0-puny)) then
-!                        print *, 'afsd_init',afsd_init
-!                        print *, 'coag',coag
-!                        print *, 'afsd_tmp ',afsd_tmp
-!                        print *, 'WARNING negative mFSTD weld, l'
-!               end if
-!               if (ANY(afsd_tmp < c0-puny)) stop 'negative mFSTD weld, l'
-!               if (ANY(afsd_tmp > c1+puny)) stop ' mFSTD> 1 weld, l'
-!               if (ANY(dt*c_weld*coag < -puny)) stop 'not positive'
+               if (ANY(afsd_tmp < c0-puny)) then
+                        print *, 'afsd_init',afsd_init
+                        print *, 'coag',coag
+                        print *, 'afsd_tmp ',afsd_tmp
+                        print *, 'WARNING negative mFSTD weld, l'
+               end if
+               if (ANY(afsd_tmp < c0-puny)) stop &
+			'negative mFSTD weld, l'
+               if (ANY(afsd_tmp > c1+puny)) stop &
+			' mFSTD> 1 weld, l'
+               if (ANY(dt*c_weld*coag < -puny)) stop &
+		 'not positive'
 
                ! update
                darea_nfsd = darea_nfsd + subdt*c_weld*coag(nfsd)
@@ -977,19 +942,23 @@
             call icepack_cleanup_fsd (ncat, nfsd, afsdn)
 
             do k = 1, nfsd
-!               afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
-!               trcrn(nt_fsd+k-1,n) = max(afsdn(k,n), c0)
+               afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
+               trcrn(nt_fsd+k-1,n) = max(afsdn(k,n), c0)
                trcrn(nt_fsd+k-1,n) = afsdn(k,n)
                ! history/diagnostics
                d_afsdn_weld(k,n) = afsdn(k,n) - afsd_init(k)
             enddo
 
-            ! more sanity checks
-!            if (darea < -puny) stop 'area gain'
-!            if (ABS(darea) > puny) stop 'area change after correction'
-!            if (ANY(afsdn(:,n) < -puny)) stop 'neg, weld'
-!            if (afsdn(1,n) > afsd_init(1)+puny) stop 'gain in smallest cat'
 
+            ! more sanity checks
+            if (darea < -puny) stop 'area gain'
+            if (ABS(darea) > puny) stop 'area change after correction'
+            if (ANY(afsdn(:,n) < -puny)) stop 'neg, weld'
+            if (afsdn(1,n) > afsd_init(1)+puny) then
+                        !print *, afsdn(:,n)
+			!print *, afsd_init(:)
+			stop 'gain in smallest cat'
+            end if
          endif ! try to weld
       enddo ! n
 
