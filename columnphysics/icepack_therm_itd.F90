@@ -1239,6 +1239,9 @@
                               ocean_bio, fzsal,      &
                               frazil_diag,           &
                               ice_wave_sig_ht,       &
+                              wave_spectrum,         &
+                              wavefreq,              &
+                              dwavefreq,             &
                               d_afsd_latg,           &
                               d_afsd_newi,           &
                               floe_rad_c, floe_binwidth)
@@ -1324,19 +1327,28 @@
       real (kind=dbl_kind), intent(in) :: &
          ice_wave_sig_ht    ! significant height of waves in ice (m)
 
+      real (kind=dbl_kind), dimension(:), intent(in)  :: &
+         wave_spectrum
+
+      real(kind=dbl_kind), dimension(:), intent(in) :: &
+         wavefreq,              & ! wave frequencies
+         dwavefreq                ! wave frequency bin widths
+
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          floe_rad_c     , & ! fsd size bin centre in m (radius)
          floe_binwidth      ! fsd size bin width in m (radius)
 
 !      real (kind=dbl_kind), dimension(:), intent(out) :: &
       real (kind=dbl_kind), dimension(ncat) :: &  ! for now
-         d_an_latg      , & ! change in thickness distribution (area)
-         d_an_newi          ! due to fsd lateral growth
+                            ! change in thickness distribution (area)
+         d_an_latg      , & ! due to fsd lateral growth
+         d_an_newi          ! new ice formation
 
 !!      real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
       real (kind=dbl_kind), dimension(:), intent(out) :: &
-         d_afsd_latg    , & ! change in floe size distribution (area)
-         d_afsd_newi        ! due to fsd lateral growth
+                            ! change in thickness distribution (area)
+         d_afsd_latg    , & ! due to fsd lateral growth
+         d_afsd_newi        ! new ice formation
 
       ! local variables
 
@@ -1722,6 +1734,9 @@
                                   floe_rad_c, floe_binwidth, &
                                   G_radial,   area2,         &
                                   ice_wave_sig_ht,           &
+                                  wave_spectrum,             &
+                                  wavefreq,                  &
+                                  dwavefreq,                 &
                                   d_afsd_latg,               &
                                   d_afsd_newi,               &
                                   afsdn,      aicen_init,    &
@@ -1855,9 +1870,11 @@
                                      frazil_diag,                 &
                                      frz_onset,    yday,          &
                                      nfsd,         ice_wave_sig_ht, &
+                                     wave_spectrum,               &
+                                     wavefreq,                    &
+                                     dwavefreq,                   &
                                      d_afsd_latg,  d_afsd_newi,   &
-                                     d_afsd_latm,  d_afsd_wave,   &
-                                     d_afsd_weld,  &
+                                     d_afsd_latm,  d_afsd_weld,   &
                                      floe_rad_c,   floe_binwidth)
 
       integer (kind=int_kind), intent(in) :: &
@@ -1883,6 +1900,13 @@
          fside    , & ! lateral heat flux (W/m^2)
          frzmlt   , & ! freezing/melting potential (W/m^2)
          ice_wave_sig_ht ! significant height of waves in ice (m)
+
+      real (kind=dbl_kind), dimension(:), intent(in)  :: &
+         wave_spectrum
+
+      real(kind=dbl_kind), dimension(:), intent(in) :: &
+         wavefreq,              & ! wave frequencies
+         dwavefreq                ! wave frequency bin widths
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          floe_rad_c     , & ! fsd size bin centre in m (radius)
@@ -1941,10 +1965,10 @@
          first_ice      ! true until ice forms
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
-         d_afsd_latg    , & ! change in floe size distribution (area)
-         d_afsd_newi    , & ! due to fsd lateral growth
+                            ! change in floe size distribution (area)
+         d_afsd_latg    , & ! due to fsd lateral growth
+         d_afsd_newi    , & ! new ice formation
          d_afsd_latm    , & ! lateral melt
-         d_afsd_wave    , & ! waves
          d_afsd_weld        ! welding
 
       real (kind=dbl_kind), intent(inout), optional :: &
@@ -2033,6 +2057,8 @@
                            ocean_bio,     fzsal,        &
                            frazil_diag,                 &
                            ice_wave_sig_ht,             &
+                           wave_spectrum,               &
+                           wavefreq,      dwavefreq,    &
                            d_afsd_latg,   d_afsd_newi,  &
                            floe_rad_c, floe_binwidth)
          if (icepack_warnings_aborted(subname)) return

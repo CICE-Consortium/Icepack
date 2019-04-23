@@ -36,10 +36,6 @@
 !      logical (kind=log_kind), public :: & 
 !         write_diag_wave     ! if .true., write the lat/lons from find_wave to history file
 
-! move to namelist? domain_size?
-      integer(kind=int_kind) ::  &
-         nwavefreq = 25        ! number of frequencies in wave spectrum
-
       real (kind=dbl_kind), public :: &
          c_weld = p01     ! constant of proportionality for welding
                           ! see documentation for details
@@ -243,7 +239,6 @@
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
 
-       
       end subroutine icepack_init_fsd_bounds
 
 !=======================================================================
@@ -565,6 +560,9 @@
                                   floe_rad_c, floe_binwidth, &
                                   G_radial,   area2,         &
                                   ice_wave_sig_ht,           &
+                                  wave_spectrum,             &
+                                  wavefreq,                  &
+                                  dwavefreq,                 &
                                   d_afsd_latg,               &
                                   d_afsd_newi,               &
                                   afsdn,      aicen_init,    &
@@ -581,10 +579,12 @@
          G_radial     , & ! lateral melt rate (m/s)
          ice_wave_sig_ht  ! wave significant height in ice
 
-!      real (kind=dbl_kind), dimension(nwavefreq), intent(in)  :: &
-!      real (kind=dbl_kind), dimension(:), intent(in)  :: &
-      real (kind=dbl_kind), dimension(nwavefreq)  :: &
+      real (kind=dbl_kind), dimension(:), intent(in)  :: &
          wave_spectrum
+
+      real(kind=dbl_kind), dimension(:), intent(in) :: &
+         wavefreq,              & ! wave frequencies
+         dwavefreq                ! wave frequency bin widths
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          d_an_latg, d_an_newi
@@ -605,8 +605,9 @@
          trcrn     ! ice tracers
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
-         d_afsd_latg    , & ! change in floe size distribution (area)
-         d_afsd_newi        ! due to fsd lateral growth
+                            ! change in floe size distribution (area)
+         d_afsd_latg    , & ! due to fsd lateral growth
+         d_afsd_newi        ! new ice formation
 
       ! local variables
 
@@ -630,9 +631,6 @@
          new_size      ! index for floe size of new ice
 
       character(len=*),parameter :: subname='(fsd_add_new_ice)'
-
-! for now
-      wave_spectrum(:) = c0
 
       afsdn_latg(:,n) = afsdn(:,n)  ! default
 
@@ -673,7 +671,9 @@
 
                if (wave_spec) then
                   if (ice_wave_sig_ht > puny) &
-                     call wave_dep_growth(nfsd, wave_spectrum(:), new_size)
+                     call wave_dep_growth (nfsd, wave_spectrum, &
+                                           wavefreq, dwavefreq, &
+                                           new_size)
 
                   ! grow in new_size category
                   afsd_ni(new_size) = (afsdn_latg(new_size,n)*area2(n) + ai0new) &
@@ -697,7 +697,9 @@
 
                if (wave_spec) then
                   if (ice_wave_sig_ht > puny) &
-                     call wave_dep_growth(nfsd, wave_spectrum(:), new_size)
+                     call wave_dep_growth (nfsd, wave_spectrum, &
+                                           wavefreq, dwavefreq, &
+                                           new_size)
                   afsd_ni(new_size) = c1
                else
                   afsd_ni(1) = c1
@@ -731,13 +733,19 @@
 ! See Shen & Ackley (2004), Roach, Smith & Dean (2018) for further details
 ! Author: Lettie Roach (NIWA) 2018
 
-      subroutine wave_dep_growth (nfsd, local_wave_spec, new_size)
+      subroutine wave_dep_growth (nfsd, local_wave_spec, &
+                                  wavefreq, dwavefreq, &
+                                  new_size)
 
       integer (kind=int_kind), intent(in) :: &
          nfsd              ! number of floe size categories
 
-      real (kind=dbl_kind), dimension(nwavefreq), intent(in) :: &
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
          local_wave_spec ! e(f), dimension set in ice_forcing
+
+      real(kind=dbl_kind), dimension(:), intent(in) :: &
+         wavefreq,              & ! wave frequencies
+         dwavefreq                ! wave frequency bin widths
 
       integer (kind=int_kind), intent(out) :: &
          new_size ! index of floe size category in which new floes will growh
@@ -755,24 +763,6 @@
          r_max     ! radius
 
       integer (kind=int_kind) :: k
-
-      ! ----- begin forcing --- these values will come from a coupler or forcing data
-      real (kind=dbl_kind), dimension(nwavefreq) :: &
-         wavefreq, & ! wave frequencies
-         dwavefreq   ! wave frequency bin widths
-
-      ! hardwired for wave coupling with our version of Wavewatch
-      ! from Wavewatch, set as f(n+1) = C*f(n) where C is a constant set by the user, typically ~ 1.1.
-      ! these freq are for C = 1.1
-      wavefreq = (/0.04118,     0.045298,    0.0498278,   0.05481058,  0.06029164,  0.06632081, &
-                   0.07295289,  0.08024818,  0.08827299,  0.09710029,  0.10681032,  0.11749136, &
-                   0.1292405,   0.14216454,  0.15638101,  0.17201911,  0.18922101,  0.20814312, &
-                   0.22895744,  0.25185317,  0.27703848,  0.30474234,  0.33521661,  0.36873826, &
-                   0.40561208/)
-
-      ! boundaries of bin n are at f(n)*sqrt(1/C) and f(n)*sqrt(C)
-      dwavefreq(:) = wavefreq(:)*(SQRT(1.1_dbl_kind) - SQRT(c1/1.1_dbl_kind))
-      ! ----- end forcing ---
 
       mom0 = SUM(local_wave_spec*dwavefreq)                   ! zeroth moment
       h_sig = c4*SQRT(mom0)                                   ! sig wave height
