@@ -176,6 +176,8 @@
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         ice_wave_sig_ht, d_afsd_wave)
 
+      use icepack_fsd, only: icepack_cleanup_fsd
+
       integer (kind=int_kind), intent(in) :: &
          ncat,         & ! number of thickness categories
          nfsd            ! number of floe size categories
@@ -329,6 +331,9 @@
             enddo    ! n
          endif       ! fracture occurs
       endif          ! aice > p01
+
+
+      call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
 
      end subroutine icepack_step_wavefracture
 
