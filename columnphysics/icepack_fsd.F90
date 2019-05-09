@@ -668,42 +668,43 @@
              afsd_ni(:) = c0
 
             if (SUM(afsdn_latg(:,n)) > puny) then ! fsd exists
+               print *, 'in icepack fsd ',wave_spec,' ',ice_wave_sig_ht,' ',wave_spectrum
 
-               !if (wave_spec) then
-               !   if (ice_wave_sig_ht > puny) &
-               !      call wave_dep_growth (nfsd, wave_spectrum, &
-               !                            wavefreq, dwavefreq, &
-               !                            new_size)
-               !
-               !   ! grow in new_size category
-               !   afsd_ni(new_size) = (afsdn_latg(new_size,n)*area2(n) + ai0new) &
-               !                                           / (area2(n) + ai0new)
-               !   do k = 1, new_size-1  ! diminish other floe cats accordingly
-               !      afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n) + ai0new)
-               !   end do
-               !   do k = new_size+1, nfsd  ! diminish other floe cats accordingly
-               !      afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n) + ai0new)
-               !   end do
+               if (wave_spec) then
+                  if (ice_wave_sig_ht > puny) &
+                     call wave_dep_growth (nfsd, wave_spectrum, &
+                                           wavefreq, dwavefreq, &
+                                           new_size)
+               
+                  ! grow in new_size category
+                  afsd_ni(new_size) = (afsdn_latg(new_size,n)*area2(n) + ai0new) &
+                                                          / (area2(n) + ai0new)
+                  do k = 1, new_size-1  ! diminish other floe cats accordingly
+                     afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n) + ai0new)
+                  end do
+                  do k = new_size+1, nfsd  ! diminish other floe cats accordingly
+                     afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n) + ai0new)
+                  end do
 
-               !else ! grow in smallest floe size category
+               else ! grow in smallest floe size category
                   afsd_ni(1) = (afsdn_latg(1,n)*area2(n) + ai0new) &
                                              / (area2(n) + ai0new)
                   do k = 2, nfsd  ! diminish other floe cats accordingly
                      afsd_ni(k) = afsdn_latg(k,n)*area2(n) / (area2(n)+ai0new)
                   enddo
-               !end if ! new_fs_option
+               end if ! wave spec
 
             else ! no fsd, so entirely new ice
 
-               !if (wave_spec) then
-               !   if (ice_wave_sig_ht > puny) &
-               !      call wave_dep_growth (nfsd, wave_spectrum, &
-               !                            wavefreq, dwavefreq, &
-               !                            new_size)
-               !   afsd_ni(new_size) = c1
-               !else
+               if (wave_spec) then
+                  if (ice_wave_sig_ht > puny) &
+                     call wave_dep_growth (nfsd, wave_spectrum, &
+                                           wavefreq, dwavefreq, &
+                                           new_size)
+                  afsd_ni(new_size) = c1
+               else
                   afsd_ni(1) = c1
-               !endif      ! wave forcing
+               endif      ! wave forcing
 
             endif ! entirely new ice or not
 

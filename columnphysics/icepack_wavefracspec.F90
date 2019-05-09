@@ -88,7 +88,11 @@
       end subroutine icepack_init_wave
 
 !=======================================================================
-
+!
+!     Calculate the change in the FSD arising from wave fracture
+!     See references: Roach, Horvat et al. (2018) JGR; Horvat & Tziperman (2015) TC
+!     Author: Lettie Roach, NIWA, 2018
+!
       function get_dafsd_wave(nfsd, afsd_init, fracture_hist, frac) &
                               result(d_afsd)
 
@@ -116,27 +120,28 @@
          omega(k) = afsd_init(k)*SUM(fracture_hist(1:k-1)) 
       end do
 
-!      if (SUM(omega) > c1+puny) stop &
-!          'omega cannot be greater than 1, waves'
-
       loss = omega
 
       do k =1,nfsd
          gain(k) = SUM(omega*frac(:,k)) 
       end do
 
-!      if (gain(nfsd) > puny) stop 'largest cat cannot gain, waves'
-!      if (loss(1) > puny) stop 'smallest cat cannot lose, waves'
-
       d_afsd(:) = gain(:) - loss(:)
 
-!      if (SUM(d_afsd(:)) > puny) stop 'area not cons, waves'
+      if (SUM(d_afsd(:)) > puny) stop 'area not cons, waves'
+
+      WHERE (ABS(d_afsd).lt.puny) d_afsd = c0
 
       end  function get_dafsd_wave
 
 !=======================================================================
-
-      function get_subdt_wave(nfsd, afsd_init, d_afsd) &
+!
+!    Adaptive timestepping for wave fracture
+!    See reference: Horvat & Tziperman (2017) JGR, Appendix A
+!    Author: Lettie Roach, NIWA 2018
+!
+!
+     function get_subdt_wave(nfsd, afsd_init, d_afsd) &
                               result(subdt)
 
       integer (kind=int_kind), intent(in) :: &
@@ -227,7 +232,8 @@
       real (kind=dbl_kind) :: &
          hbar         , & ! mean ice thickness
          elapsed_t    , & ! elapsed subcycling time
-         subdt            ! subcycling time step
+         subdt        , & ! subcycling time step
+         cons_error       ! area conservation error
 
       real (kind=dbl_kind), dimension (nfsd) :: &
          fracture_hist, & ! fracture histogram
@@ -242,6 +248,7 @@
       d_afsdn_wave   (:,:) = c0
       ice_wave_sig_ht      = c0
       fracture_hist  (:)   = c0
+
 
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
@@ -260,22 +267,16 @@
          ! if fracture occurs
          if (MAXVAL(fracture_hist) > puny) then
 
+            ! protect against small numerical errors
+            call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+
             do n = 1, ncat
 
-               afsd_init(:) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
-!               if (MINVAL(afsd_init(:,:) < c0)) stop 'neg b4-wb'
-
-               if ((aicen(n) > puny) .and. (SUM(afsd_init(:)) > puny) &
+              ! if there is ice, and a FSD, and not all ice is the smallest floe size 
+              if ((aicen(n) > puny) .and. (SUM(afsd_init(:)) > puny) &
                                      .and.     (afsd_init(1) < c1)) then
 
-                  ! sanity check
-!                  if (ABS(SUM(afsd_init(:))-c1) > puny) stop &
-!                                    'init mFSTD not norm, wave'
-                            
-                  ! protect against small numerical errors
-                  WHERE (afsd_init < puny) afsd_init = c0
-                  afsd_init(:) = afsd_init(:) / SUM(afsd_init(:)) ! normalize
-
+                  afsd_init(:) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
                   afsd_tmp =  afsd_init
 
                   ! frac does not vary within subcycle
@@ -289,11 +290,11 @@
 
                   ! adaptive sub-timestep
                   elapsed_t = c0
+                  cons_error = c0
                   DO WHILE (elapsed_t < dt)
 
                      ! calculate d_afsd using current afstd
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
-                     WHERE (ABS(d_afsd_tmp) < puny) d_afsd_tmp = c0 
 
                      ! required timestep
                      subdt = get_subdt_wave(nfsd, afsd_tmp, d_afsd_tmp)
@@ -303,25 +304,34 @@
                      afsd_tmp = afsd_tmp + subdt * d_afsd_tmp(:)
 
                      ! check conservation and negatives
-!                     if (MINVAL(afsd_tmp < -puny)) stop 'wb, <0 in loop'
-!                     if (MAXVAL(afsd_tmp > c1+puny)) stop 'wb, >1 in loop'
-
-                     ! in case of small numerical errors
-                     WHERE (afsd_tmp < puny) afsd_tmp = c0
-                     afsd_tmp = afsd_tmp/SUM(afsd_tmp)
+                     if (MINVAL(afsd_tmp) < -puny) stop 'wb, <0 loop'
+                     if (MAXVAL(afsd_tmp) > c1+puny) stop 'wb, >1 loop'
 
                      ! update time
                      elapsed_t = elapsed_t + subdt 
 
                   END DO ! elapsed_t < dt
+ 
+                  ! In some cases---particularly for strong fracturing---the equation
+                  ! for wave fracture does not quite conserve area. With the dummy wave
+                  ! forcing, the area conservation error is usually less than 10^-8.
+                  ! Simply renormalizing may cause the first floe size category to reduce,
+                  ! which is not physically allowed to happen. So as a rather blunt fix,
+                  ! we adjust the largest floe size category possible to account for the
+                  ! tiny extra area.
+                  cons_error = SUM(afsd_tmp) - c1
+                  if (ABS(cons_error).gt.1.0e-7_dbl_kind) print *, & 
+                     'Area conservation error, waves ',cons_error
 
-                  ! update afsdn, already normalized
-                  trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp(:)
+                  do k = nfsd, 1, -1
+                     if (afsd_tmp(k).gt.cons_error) then
+                        afsd_tmp(k) = afsd_tmp(k) - cons_error
+                        EXIT
+                     end if
+                  end do
 
-                  ! sanity checks
-!                  if (ABS(SUM(afsd_tmp(:))-c1) > puny) stop 'not 1 wb'
-!                  if (MINVAL(afsd_tmp(:) < c0)) stop 'neg wb'
-!                  if (MAXVAL(afsd_tmp(:) > c1)) stop '>1 wb'
+                  ! update trcrn
+                  trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
 
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
@@ -332,8 +342,6 @@
          endif       ! fracture occurs
       endif          ! aice > p01
 
-
-      call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
 
      end subroutine icepack_step_wavefracture
 
