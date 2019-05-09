@@ -17,17 +17,11 @@ else
   FFLAGS     += -O2
 endif
 
-ifeq ($(ICE_COMMDIR), mpi)
-  FC         := mpif90
-  LDFLAGS += -lmpi
-else
-  FC         := gfortran
-endif
-
-MPICC:= mpicc
-MPIFC:= mpif90
-#LD:= $(MPIFC)
-LD:= gfortran
+SCC := gcc
+SFC := gfortran
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
 
 # defined by module
 #NETCDF_PATH := $(NETCDF)
@@ -44,10 +38,6 @@ INCLDIR += -I$(NETCDF_PATH)/include
 #LIB_PNETCDF := $(PNETCDF_PATH)/lib
 #LIB_MPI := $(IMPILIBDIR)
 #SLIBS   := -L$(LIB_NETCDF) -lnetcdf -lnetcdff
-
-SCC:= icc 
-
-SFC:= ifort 
 
 ifeq ($(ICE_THREADED), true) 
    LDFLAGS += -fopenmp
