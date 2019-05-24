@@ -74,12 +74,6 @@ setenv TRFED     0         # number of dissolved iron tracers
                            # (up to max_fe  = 2)
 
 ### Specialty code
-setenv CAM_ICE  no           # set to yes for CAM runs (single column) 
-setenv DITTO    no           # reproducible diagnostics
-setenv BARRIERS no           # prevent MPI buffer overflow during gather/scatter 
 setenv ICE_BLDDEBUG  false  # build debug flags
 
-### File unit numbers
-setenv NUMIN    11         # minimum file unit number
-setenv NUMAX    99         # maximum file unit number
 

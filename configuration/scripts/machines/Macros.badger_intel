@@ -1,9 +1,9 @@
 #==============================================================================
-# Macros file for LANL pinto, intel compiler
+# Macros file for LANL badger, intel compiler
 #==============================================================================
 
 CPP        := fpp
-CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
+CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
 CFLAGS     := -c -O2 -fp-model precise   -xHost
 
 FIXEDFLAGS := -132
@@ -14,19 +14,15 @@ FFLAGS_NOOPT:= -O0
 ifeq ($(ICE_BLDDEBUG), true)
   FFLAGS     += -O0 -g -check uninit -check bounds -check pointers -fpe0 -check noarg_temp_created
 else
-  FFLAGS     += -O2
+#  FFLAGS     += -O2
+  FFLAGS     += -O1
 endif
 
-ifeq ($(ICE_COMMDIR), mpi)
-  FC         := mpif90
-else
-  FC         := ifort
-endif
-
-MPICC:= mpicc
-
-MPIFC:= mpif90
-LD:= $(MPIFC)
+SCC := icc
+SFC := ifort
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
 
 # set in Macros file
 NETCDF_PATH := /usr/projects/climate/SHARED_CLIMATE/software/conejo/netcdf/3.6.3/intel-13.0.1
@@ -49,9 +45,6 @@ else
   SLIBS   := 
 endif
 
-SCC:= icc 
-
-SFC:= ifort 
 
 ifeq ($(ICE_THREADED), true) 
    LDFLAGS += -qopenmp

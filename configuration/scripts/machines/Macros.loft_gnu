@@ -4,7 +4,7 @@
 
 CPP        := /usr/bin/cpp
 #CPP        := fpp
-CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
+CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
 CFLAGS     := -c -O2 -fp-model precise   -xHost
 
 FIXEDFLAGS := -132
@@ -27,12 +27,11 @@ else
   FFLAGS     += -O2
 endif
 
- 	FC         := gfortran
-
-MPICC:= 
-
-MPIFC:= 
-LD:= $(FC)
+SCC := gcc
+SFC := gfortran
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
 
 ifeq ($(ICE_IOTYPE), netcdf)
   NETCDF_PATH := /usr/projects/climate/SHARED_CLIMATE/software/conejo/netcdf/3.6.3/intel-13.0.1
@@ -45,8 +44,6 @@ else
 endif
 
 LIB_MPI := 
-SCC:= 
-SFC:= 
 
 ifeq ($(ICE_THREADED), true) 
    LDFLAGS += -openmp

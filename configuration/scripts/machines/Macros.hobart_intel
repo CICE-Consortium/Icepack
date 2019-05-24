@@ -3,7 +3,7 @@
 #==============================================================================
 
 CPP        := fpp
-CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 -DHAVE_F2008_CONTIGUOUS -DLINUX -DCPRINTEL ${ICE_CPPDEFS}
+CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
 CFLAGS     := -qno-opt-dynamic-align -fp-model precise -std=gnu99
 
 FIXEDFLAGS := -fixed -132
@@ -18,14 +18,9 @@ else
   FFLAGS     += -O2 -debug minimal
 endif
 
-ifeq ($(ICE_COMMDIR), mpi)
-  FC         := mpif90
-  LD         := mpif90
-else
-  FC         := ifort
-  LD         := ifort
-endif
+SCC := icc
+SFC := ifort
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
 
-ifeq ($(DITTO), yes)
-   CPPDEFS :=  $(CPPDEFS) -DREPRODUCIBLE
-endif

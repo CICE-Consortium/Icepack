@@ -16,6 +16,8 @@ The icepack scripts are written to allow quick setup of cases and tests.  Once a
 generated, users can manually modify the namelist and other files to custom configure
 the case.  Several settings are available via scripts as well.
 
+.. _overview:
+
 Overview
 ~~~~~~~~
 
@@ -36,7 +38,7 @@ There are three usage modes,
 
 All modes will require use of ``--mach`` or ``-m`` to specify the machine and case and test modes 
 can use ``--set`` or ``-s`` to define specific options.  ``--test`` and ``--suite`` will require ``--testid`` to be set 
-and both of the test modes can use ``--bdir``, ``--bgen``, ``--bcmp``, and ``--diff`` to generate (save) results and compare results with prior results.
+and both of the test modes can use ``--bdir``, ``--bgen``, ``--bcmp``, and ``--diff`` to generate (save) results and compare results with prior results as well as ``--tdir`` to specify the location of the test directory.
 Testing will be described in greater detail in the :ref:`testing` section.
 
 Again, ``icepack.setup --help`` will show the latest usage information including 
@@ -236,7 +238,7 @@ There are other scripts that come with icepack.  These include
 Porting
 -------
 
-To port, an **env.[machine]_[environment]** and **Macros.[machine]_[environment}** file have to be added to the
+To port, an **env.[machine]_[environment]** and **Macros.[machine]_[environment]** file have to be added to the
 **configuration/scripts/machines/** directory and the 
 **configuration/scripts/icepack.batch.csh** file needs to be modified.
 In general, the machine is specified in ``icepack.setup`` with ``--mach``
@@ -263,6 +265,16 @@ file until the case can build and run.  Then copy the files from the case
 directory back to **configuration/scripts/machines/** and update 
 the **configuration/scripts/icepack.batch.csh** file, retest, 
 and then add and commit the updated machine files to the repository.
+
+.. _cross_compiling:
+
+Cross-compiling
+~~~~~~~~~~~~~~~~~~~~~~~~
+It can happen that the model must be built on a platform and run on another, for example when the run environment is only available in a batch queue. The program **makdep** (see :ref:`overview`), however, is both compiled and run as part of the build process.
+
+In order to support this, the Makefile uses a variable ``CFLAGS_HOST`` that can hold compiler flags specfic to the build machine for the compilation of makdep. If this feature is needed, add the variable ``CFLAGS_HOST`` to the **Macros.[machine]_[environment]** file. For example : ::
+
+  CFLAGS_HOST = -xHost
 
 .. _account:
 
