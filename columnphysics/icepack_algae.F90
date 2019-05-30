@@ -934,7 +934,7 @@
          r_c  = 3.0e3_dbl_kind     , & ! ice crystal radius (um)
          r_bac= 15.0_dbl_kind    , & ! diatom large radius (um)
          r_alg= 10.0_dbl_kind    , & ! diatom small radius (um)
-	 N_vol = 0.04e-12_dbl_kind  , & ! (g) Nitrogen per um^3
+         N_vol = 0.04e-12_dbl_kind  , & ! (g) Nitrogen per um^3
          Ng_to_mmol =0.0140067_dbl_kind , & ! (g/mmol) Nitrogen
          f_s = c1 , &  ! fracton of sites available for saturation
          f_a = c1 , &  ! fraction of collector available for attachment
@@ -1016,7 +1016,7 @@
       V_c     = 4.0_dbl_kind*pi*r_c**3/3.0_dbl_kind*(1.0e-6_dbl_kind)**3  ! (m^3) sphere
       V_alg   = pi/6.0_dbl_kind*r_bac*r_alg**2       ! prolate spheroid (*10-9 for colloids)
       Sat_conc= f_s*f_a*f_v*(c1-phi_max)/V_c*S_col/P_b*N_vol*V_alg/Ng_to_mmol
-      	      	!mmol/m^3 (algae, don, hum...) and umols/m^3 for colloids 
+                            !mmol/m^3 (algae, don, hum...) and umols/m^3 for colloids 
 
       !-----------------------------------------------------------------
       !    convert surface dust flux (n_zaero > 2) to dFe(1) flux    
@@ -1066,19 +1066,19 @@
          darcyV     = darcy_V
          C_top(m)   = in_init_cons(1,m)*trcrn(nt_zbgc_frac+m-1)!mobile fraction
          source(m)  = abs(zbgc_snow(m) + zbgc_atm(m) + dust_Fe(m))
-	 dhflood  = max(c0,-dh_direct)                              ! ocean water flooding surface
+         dhflood  = max(c0,-dh_direct)                              ! ocean water flooding surface
 
-	 if (dhtop+darcyV/bphin_N(1)*dt < -puny) then !snow/top ice melt
-	     C_top(m) = (zbgc_snow(m)+zbgc_atm(m) + dust_Fe(m))/abs(dhtop &
-	                + darcyV/bphin_N(1)*dt + puny)*hbri_old    
-	 elseif (dhtop+darcyV/bphin_N(1)*dt >= -puny .and. &
-	                abs((zbgc_snow(m)+zbgc_atm(m) + dust_Fe(m)) + &
+         if (dhtop+darcyV/bphin_N(1)*dt < -puny) then !snow/top ice melt
+             C_top(m) = (zbgc_snow(m)+zbgc_atm(m) + dust_Fe(m))/abs(dhtop &
+                        + darcyV/bphin_N(1)*dt + puny)*hbri_old    
+         elseif (dhtop+darcyV/bphin_N(1)*dt >= -puny .and. &
+                        abs((zbgc_snow(m)+zbgc_atm(m) + dust_Fe(m)) + &
                         ocean_bio(m)*bphin_N(1)*dhflood) >  puny) then
-	      atm_add_cons(m) =  abs(zbgc_snow(m) + zbgc_atm(m)+ dust_Fe(m)) + &
-	     		         ocean_bio(m)*bphin_N(1)*dhflood      
-	 else   ! only positive fluxes 
+              atm_add_cons(m) =  abs(zbgc_snow(m) + zbgc_atm(m)+ dust_Fe(m)) + &
+                                      ocean_bio(m)*bphin_N(1)*dhflood      
+         else   ! only positive fluxes 
               atm_add_cons(m) =  abs(zbgc_snow(m) + zbgc_atm(m)+ dust_Fe(m))
-	 endif
+         endif
 
          C_bot(m) = ocean_bio(m)*hbri_old*iphin_N(nblyr+1)            
 
@@ -1142,7 +1142,7 @@
                initcons_stationary(k) = max(c0,initcons_stationary(k) - dmobile(k))
                if (initcons_stationary(k)/hbri_old > Sat_conc) then
                   initcons_mobile(k) = initcons_mobile(k) + initcons_stationary(k) - Sat_conc*hbri_old
- 		  initcons_stationary(k) = Sat_conc*hbri_old
+                   initcons_stationary(k) = Sat_conc*hbri_old
                endif
 
                Diff(k) = iDin(k) 
@@ -1193,7 +1193,7 @@
             ! assume diatoms actively maintain there relative position in the ice
 
             if (mm .ne. nlt_bgc_N(1)) then    
-	       	
+                       
                call regrid_stationary & 
                                 (initcons_stationary,    hbri_old,    &
                                  hbri,                   dt,          &
@@ -1230,7 +1230,7 @@
             enddo
             trcrn(nt_zbgc_frac+mm-1) = zbgc_frac_init(mm)
             if (sum_tot > c0 .and. mobile(mm) > c0) trcrn(nt_zbgc_frac+mm-1) = sum_new/sum_tot
-	    
+
             if (abs(sum_new-sum_old) > accuracy*sum_old .or. &
                 minval(biocons(:)) < c0  .or. minval(initcons_stationary(:)) < c0 &
                 .or. icepack_warnings_aborted()) then

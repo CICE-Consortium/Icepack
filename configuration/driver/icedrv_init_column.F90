@@ -322,11 +322,11 @@
       !----------------------------------------------------------------
             if (.not. restart) then
                scale_factor(i) = &
-	 	      swvdr(i)*(c1 - alvdr_ai(i)) &
-	 	    + swvdf(i)*(c1 - alvdf_ai(i)) &
- 	            + swidr(i)*(c1 - alidr_ai(i)) &
-	 	    + swidf(i)*(c1 - alidf_ai(i))
-	    endif
+                       swvdr(i)*(c1 - alvdr_ai(i)) &
+                     + swvdf(i)*(c1 - alvdf_ai(i)) &
+                     + swidr(i)*(c1 - alidr_ai(i)) &
+                     + swidf(i)*(c1 - alidf_ai(i))
+            endif
 
          enddo ! i
 
@@ -754,7 +754,7 @@
       integer (kind=int_kind) :: &
         nml_error, & ! namelist i/o error flag
         k, mm    , & ! loop index
-	ntd      , & ! for tracer dependency calculation
+        ntd      , & ! for tracer dependency calculation
         nk       , & !
         nt_depend
 
@@ -1786,7 +1786,7 @@
          write (nu_diag,*) 'nbtrcr > icepack_max_nbtrcr'
          write (nu_diag,*) 'nbtrcr, icepack_max_nbtrcr:',nbtrcr, icepack_max_nbtrcr
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
-      endif	
+      endif
       if (.NOT. dEdd_algae) nbtrcr_sw = 1
 
       if (nbtrcr_sw > max_nsw) then

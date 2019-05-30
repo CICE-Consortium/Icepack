@@ -109,7 +109,7 @@
       real (kind=dbl_kind) :: &
          hi,    & ! ice thickness (m)
          dHui,  & ! change in thickness of ice lid (m)
-         omega,	& ! conduction
+         omega, & ! conduction
          dTice, & ! temperature difference across ice lid (C)
          dvice, & ! change in ice volume (m)
          Tavg,  & ! mean surface temperature across categories (C)
@@ -337,7 +337,7 @@
 
       integer (kind=int_kind) :: &
          n, ns,   &
-	 m_index, &
+         m_index, &
          permflag
 
       real (kind=dbl_kind), dimension(ncat) :: &
