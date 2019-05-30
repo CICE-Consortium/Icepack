@@ -96,13 +96,13 @@ Joint floe size and thickness distribution
 
 Sizes of individual sea ice floes vary over an extremely broad range, from centimeters
 to hundreds of kilometers. The floe size distribution (FSD) is a probability function that
-characterizes this variability (Rothrock & Thorndike, 1984). An option to include a 
+characterizes this variability :cite:`Rothrock84`. An option to include a 
 prognostic sea ice floe size distribution is available and used if ``tr_fsd`` is set to true. 
-The scheme is based on the theoretical framework described in Hovart & Tziperman (2015) for a
-*joint* floe size and thickness distribution (FSTD), and was implemented by Roach et al. (2018).
+The scheme is based on the theoretical framework described in :cite:`Horvat15` for a
+*joint* floe size and thickness distribution (FSTD), and was implemented by :cite:`Roach18`.
 
 In this theory, individual floes are identified with a size :math:`r` and area :math:`x(r)`, where
-:math:`x(r)=4\alpha r^2` for :math:`\alpha=0.66 < \pi/4` (Rothrock & Thorndike, 1984). The probability 
+:math:`x(r)=4\alpha r^2` for :math:`\alpha=0.66 < \pi/4` (:cite:`Rothrock84`). The probability 
 distribution :math:`f(r,h) dr dh` is the fraction of grid surface area 
 covered by ice with thickness between :math:`h` and :math:`h + dh` and lateral floe
 size between :math:`r` and :math:`r + dr`. The FSTD integrates over all floe sizes and ice thicknesses to unity;
@@ -131,4 +131,4 @@ of all floes equally.
 If simulations begin without ice (``ice_ice='none'``), the FSD can emerge without initialization. This
 is the recommended initialization for studies on the FSD itself. If simulations begin with ice cover, 
 some initial FSD must be prescribed in ``init_fsd``. The default is a simple relationship determined 
-from point observations by Perovich & Jones (2014), but its basin-wide applicability has not been tested.
+from point observations by :cite:`Perovich14`, but its basin-wide applicability has not been tested.
