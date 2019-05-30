@@ -1716,9 +1716,28 @@ to a specified minimum thickness; if the open water area is nearly zero
 or if there is more new ice than will fit into the thinnest ice
 category, then the new ice is spread over the entire cell.
 
-If ``tr_fsd=true``, lateral growth at the edges of exisiting floes may occur,
-calculated using the prognostic floe size distribution as described in Horvat & Tziperman (2015) 
-and Roach et al. (2018). Lateral growth modifies the ITD and the FSD.
+If ``tr_fsd=true``, a floe size must be assigned to the new frazil ice.
+If spectral ocean surface wave forcing is provided, this will be used
+to calculate a tensile stress on new floes that determines their maximum
+possible size :cite:`Shen2001,Roach2019`. If no ocean surface wave forcing
+is provided, all floes are assumed to grow as pancakes, at the smallest
+possible floe size. 
+
+If ``tr_fsd=true``, lateral growth at the edges of exisiting floes may
+also occur, calculated using the prognostic floe size distribution as 
+described in :cite:`Horvat15` and :cite:`Roach18`. The lateral growth
+that occurs is a portion of the total new ice growth, depending on the 
+area of open water close to floe edges. Lateral growth 
+modifies the ITD and the FSD.
+
+If ``tr_fsd=true``, floes may weld together thermodynamically during 
+freezing conditions according to the probability that they overlap,
+assuming they are replaced randomly on the domain. Evolution of the 
+FSD is described using a coagulation, solved following :cite:`Filbet2004`
+and :cite:`Roach18`. The total number of floes that weld with another, 
+per square meter, per unit time, in the case of a fully covered ice surface
+was estimated from observations in :cite:`Roach18b`. Floe welding modifies
+the FSD but not the ITD.
 
 If the latent heat flux is negative (i.e., latent heat is transferred
 from the ice to the atmosphere), snow or snow-free ice sublimates at the
