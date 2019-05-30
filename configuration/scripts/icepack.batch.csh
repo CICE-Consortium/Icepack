@@ -84,14 +84,15 @@ cat >> ${jobfile} << EOFB
 EOFB
 
 else if (${ICE_MACHINE} =~ cori*) then
+@ nthrds2 = ${nthrds} * 2
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
-#SBATCH -p shared
 ###SBATCH -A ${acct}
-#SBATCH -n ${ncores}
-#SBATCH -t ${ICE_RUNLENGTH}
-#SBATCH -L SCRATCH
-#SBATCH -C haswell
+#SBATCH --qos shared
+#SBATCH --ntasks ${ncores}
+#SBATCH --time ${ICE_RUNLENGTH}
+#SBATCH --cpus-per-task ${nthrds2}
+#SBATCH --constraint haswell
 ###SBATCH -e filename
 ###SBATCH -o filename
 ###SBATCH --mail-type FAIL
