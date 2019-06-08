@@ -34,8 +34,9 @@
 !
 !  authors: Lettie Roach, VUW/NIWA
 !           C. M. Bitz, UW
-!          
-!  2016/7: LR with initial input from CMB
+!  
+!  2016: CMB started
+!  2016-8: LR worked on most of it
 !  2019: ECH ported to Icepack
 
 !-----------------------------------------------------------------
@@ -81,7 +82,7 @@
       contains
 
 !=======================================================================
-
+!
 !  Initialize ice fsd bounds (call whether or not restarting)
 !  Define the bounds, midpoints and widths of floe size
 !  categories in area and radius
@@ -91,6 +92,8 @@
 !
 !  Note also that the bound of the lowest floe size category is used
 !  to define the lead region width and the domain spacing for wave fracture
+!
+!  authors: Lettie Roach, NIWA/VUW and C. M. Bitz, UW
 !
       subroutine icepack_init_fsd_bounds(nfsd, &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
@@ -274,6 +277,9 @@
 !  Perovich, D. K., & Jones, K. F. (2014). The seasonal evolution of 
 !  sea ice floe size distribution. Journal of Geophysical Research: Oceans,
 !  119(12), 8767–8777. doi:10.1002/2014JC010136
+!
+!  authors: Lettie Roach, NIWA/VUW
+
 
       subroutine icepack_init_fsd(nfsd, ice_ic, &
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
@@ -327,7 +333,8 @@
 !
 !  Clean up small values and renormalize
 !
-!  author:  Elizabeth Hunke, LANL
+!  authors:  Elizabeth Hunke, LANL
+!
 
       subroutine icepack_cleanup_fsd (ncat, nfsd, afsdn)
 
@@ -373,7 +380,7 @@
 !  the lead region and the total lateral surface area following Horvat
 !  and Tziperman (2015).
 !
-! author: Lettie Roach
+!  authors: Lettie Roach, NIWA/VUW
 
       subroutine partition_area (ncat,       nfsd,      &
                                  floe_rad_c, aice,      &
@@ -468,7 +475,7 @@
 
 !=======================================================================
 !
-!   Lateral growth at the edges of floes
+!  Lateral growth at the edges of floes
 !
 !  Compute the portion of new ice growth that occurs at the edges of
 !  floes. The remainder will grow as new ice frazil ice in open water
@@ -476,6 +483,7 @@
 !
 !  See Horvat & Tziperman (2015) and Roach, Horvat et al. (2018).
 !
+!  authors: Lettie Roach, NIWA/VUW
 !
       subroutine fsd_lateral_growth (ncat,      nfsd,         &
                                      dt,        aice,         &
@@ -587,10 +595,11 @@
 !  Shen et al. (2001). Otherwise, new floes all grow in the smallest
 !  floe size category, representing pancake ice formation.
 !
-! Shen, H., Ackley, S., & Hopkins, M. (2001). A conceptual model 
-! for pancake-ice formation in a wave field. 
-! Annals of Glaciology, 33, 361-367. doi:10.3189/172756401781818239
+!  Shen, H., Ackley, S., & Hopkins, M. (2001). A conceptual model 
+!  for pancake-ice formation in a wave field. 
+!  Annals of Glaciology, 33, 361-367. doi:10.3189/172756401781818239
 !
+!  authors: Lettie Roach, NIWA/VUW
 !
 
       subroutine fsd_add_new_ice (ncat, n,    nfsd,          &
@@ -767,12 +776,14 @@
 
 !=======================================================================
 !
-! Given a wave spectrum, calculate size of new floes based on 
-! tensile failure, following Shen et al. (2001)
+!  Given a wave spectrum, calculate size of new floes based on 
+!  tensile failure, following Shen et al. (2001)
 !
-! The tensile mode parameter is based on in-situ measurements
-! by Roach, Smith & Dean (2018).
-
+!  The tensile mode parameter is based on in-situ measurements
+!  by Roach, Smith & Dean (2018).
+!
+!  authors: Lettie Roach, NIWA/VUW
+!
 
       subroutine wave_dep_growth (nfsd, local_wave_spec, &
                                   wavefreq, dwavefreq, &
@@ -841,9 +852,11 @@
 !  case of a fully covered ice surface (aice=1), equal to twice the reduction
 !  in total floe number. See Roach, Smith & Dean (2018).
 !
-! Filbet, F., & Laurençot, P. (2004). Numerical simulation of the Smoluchowski 
-! coagulation equation. SIAM Journal on Scientific Computing, 25(6), 2004–2028. 
-! doi:10.1137/S1064827503429132
+!  Filbet, F., & Laurençot, P. (2004). Numerical simulation of the Smoluchowski 
+!  coagulation equation. SIAM Journal on Scientific Computing, 25(6), 2004–2028. 
+!  doi:10.1137/S1064827503429132
+!
+!  authors: Lettie Roach, NIWA/VUW
 !
 
       subroutine fsd_weld_thermo (ncat,  nfsd,   &
