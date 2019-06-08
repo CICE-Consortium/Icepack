@@ -849,6 +849,7 @@
 !
 ! author: C. M. Bitz, UW
 ! 2003:   Modified by William H. Lipscomb and Elizabeth C. Hunke, LANL
+! 2016    Lettie Roach, NIWA/VUW, added floe size dependence
 !
       subroutine lateral_melt (dt,         ncat,       &
                                nilyr,      nslyr,      &
@@ -1215,9 +1216,10 @@
 ! added to only category 1, all formulations combine the new ice and
 ! existing ice tracers as bulk quantities.
 !
-! authors William H. Lipscomb, LANL
-!         Elizabeth C. Hunke, LANL
-!         Adrian Turner, LANL
+! authors: William H. Lipscomb, LANL
+!          Elizabeth C. Hunke, LANL
+!          Adrian Turner, LANL
+!          Lettie Roach, NIWA/VUW
 !
       subroutine add_new_ice (ncat,      nilyr,      &
                               nfsd,      nblyr,      &
@@ -1328,23 +1330,21 @@
          ice_wave_sig_ht    ! significant height of waves in ice (m)
 
       real (kind=dbl_kind), dimension(:), intent(in)  :: &
-         wave_spectrum
+         wave_spectrum  ! ocean surface wave spectrum, E(f) (m^2 s)
 
       real(kind=dbl_kind), dimension(:), intent(in) :: &
-         wavefreq,              & ! wave frequencies
-         dwavefreq                ! wave frequency bin widths
+         wavefreq,              & ! wave frequencies (s^-1)
+         dwavefreq                ! wave frequency bin widths (s^-1)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          floe_rad_c     , & ! fsd size bin centre in m (radius)
          floe_binwidth      ! fsd size bin width in m (radius)
 
-!      real (kind=dbl_kind), dimension(:), intent(out) :: &
       real (kind=dbl_kind), dimension(ncat) :: &  ! for now
                             ! change in thickness distribution (area)
          d_an_latg      , & ! due to fsd lateral growth
          d_an_newi          ! new ice formation
 
-!!      real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
       real (kind=dbl_kind), dimension(:), intent(out) :: &
                             ! change in thickness distribution (area)
          d_afsd_latg    , & ! due to fsd lateral growth
@@ -1560,8 +1560,7 @@
 
         if (tr_fsd) & ! lateral growth of existing ice
             ! calculate change in conc due to lateral growth
-            ! update vi0new
-            ! no change to afsdn or aicen
+            ! update vi0new, without change to afsdn or aicen
             call fsd_lateral_growth (ncat,       nfsd,         &
                                   dt,         aice,         &
                                   aicen,      vicen,        &
@@ -1572,6 +1571,7 @@
                                   tot_latg)
 
          ai0mod = aice0
+         ! separate frazil ice growth from lateral ice growth
          if (tr_fsd) ai0mod = aice0-tot_latg
 
          ! new ice area and thickness
@@ -1600,6 +1600,7 @@
             if (aicen(n) > c0) vin0new(n) = d_an_latg(n) * vicen(n)/aicen(n)
          end do
 
+         ! combine areal change from new ice growth and lateral growth
          d_an_newi(1)     = ai0new
          d_an_tot(2:ncat) = d_an_latg(2:ncat)
          d_an_tot(1)      = d_an_latg(1) + d_an_newi(1)
@@ -1704,7 +1705,6 @@
       do n = 1, ncats
 
       if (d_an_tot(n) > c0 .and. vin0new(n) > c0) then  ! add ice to category n
-!      if (vi0new > c0) then  ! add ice to category n
 
 !echmod - check
 !      if (vin0new(1)/=vi0new) print*,'A vin0new differs',vin0new(n),vi0new
@@ -1713,7 +1713,7 @@
          area1    = aicen(n)   ! save
          vice1    = vicen(n)   ! save
          area2(n) = aicen_init(n) + d_an_latg(n) ! save area after latg, before newi
-         aicen(n) = aicen(n) + d_an_tot(n)
+         aicen(n) = aicen(n) + d_an_tot(n) ! after lateral growth and new ice growth
  
          aice0    = aice0    - d_an_tot(n)
          vicen(n) = vicen(n) + vin0new(n)
@@ -1902,11 +1902,11 @@
          ice_wave_sig_ht ! significant height of waves in ice (m)
 
       real (kind=dbl_kind), dimension(:), intent(in)  :: &
-         wave_spectrum
+         wave_spectrum  ! ocean surface wave spectrum E(f) (m^2 s)
 
       real(kind=dbl_kind), dimension(:), intent(in) :: &
-         wavefreq,              & ! wave frequencies
-         dwavefreq                ! wave frequency bin widths
+         wavefreq,              & ! wave frequencies (s^-1)
+         dwavefreq                ! wave frequency bin widths (s^-1)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          floe_rad_c     , & ! fsd size bin centre in m (radius)
@@ -2082,6 +2082,7 @@
                          floe_rad_c,floe_binwidth)
       if (icepack_warnings_aborted(subname)) return
 
+      ! Floe welding during freezing conditions
       if (tr_fsd) &
       call fsd_weld_thermo (ncat,  nfsd,   &
                             dt,    frzmlt, &
