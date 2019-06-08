@@ -105,30 +105,70 @@ In this theory, individual floes are identified with a size :math:`r` and area :
 :math:`x(r)=4\alpha r^2` for :math:`\alpha=0.66 < \pi/4` (:cite:`Rothrock84`). The probability 
 distribution :math:`f(r,h) dr dh` is the fraction of grid surface area 
 covered by ice with thickness between :math:`h` and :math:`h + dh` and lateral floe
-size between :math:`r` and :math:`r + dr`. The FSTD integrates over all floe sizes and ice thicknesses to unity;
-over all floe sizes to the ITD; and over all thicknesses to the FSD.
+size between :math:`r` and :math:`r + dr`. The FSTD integrates over all floe sizes and
+ice thicknesses to unity; over all floe sizes to the ITD; and over all thicknesses to the FSD.
 
 For implementation in CICE,  the continuous function :math:`f(r,h)` is replaced
 with a product of two discrete variables: :math:`a_{in}` as defined above and :math:`F_{in,k}`. 
 :math:`F_{in,k}` is the fraction of ice belonging to thickness category :math:`n` with lateral 
 floe size belonging to floe size class :math:`k`, giving
 :math:`\sum_{n=0}^{N_C}\sum_{k=0}^{N_f} a_{in} F_{in,k} = 1` and :math:`\sum_{k=0}^{N_f}  F_{in,k} = 1`.
+:math:`F_{in,k}` is carried as an area-weighted tracer.
 
-This implementation means that the FSD can be ignored for processes that only modify the ITD (eg. vertical thermodynamics),
-and the ITD can be ignored for processes that only modify the FSD (eg. wave fracture). For processes that affect both 
-the ITD and the FSD, (eg. lateral melt), both :math:`a_{in}` and :math:`F_{in,k}` are evolved.
+This implementation means that the FSD can be ignored for processes that only modify the ITD
+(eg. vertical thermodynamics), and the ITD can be ignored for processes that only modify the
+FSD (eg. wave fracture). For processes that affect both the ITD and the FSD, (eg. lateral melt), 
+both :math:`a_{in}` and :math:`F_{in,k}` are evolved.
+
+The FSD evolves subject to lateral growth, lateral melt, new ice growth, floe welding and 
+wave fracture, as described in :cite:`Roach18` and with some modifications described in 
+:cite:`Roach19`.  Floe sizes do not  appear directly in any terms in the momentum equation
+or constitutive law, and mechanical redistribution reduces the area fractions of all floes 
+equally. Thus in the equation for time evolution of the FSTD,
+
+:math:`\frac{\partial f(r,h)}{\partial t} = - \nabla \cdot (f(r,h)\mathbf{v}) + \mathcal{L}_T + \mathcal{L}_M + \mathcal{L}_W`,
+
+where the terms on the right hand side represent advection, thermodynamics, mechanical 
+redistribution and wave fracture respectively, it remains only to compute the thermodynamic
+tendency and wave fracture.
+
+Thermodynamic changes to the FSTD are given by 
+
+:math:`\mathcal{L}_T(r,h)=-\nabla_{(r,h)} \cdot (f(r,h) \mathbf{G}) +\frac{2}{r}f(r,h)G_r  + 
+\delta(r-r_{\text{min}})\delta(h-h_{\text{min}})\dot{A}_p + \beta_{\text{weld}}.`
+
+The first two terms on the right-hand side represent growth and melt of existing floes 
+in thickness and lateral size, at a rate :math:`\mathbf{G} = (G_r,G_h)`. The third 
+term represents growth of new ice: new floes are created at a rate :math:`\dot{A}_p` 
+in the smallest thickness category and a given lateral size category. If wave forcing 
+is provided, the size of newly formed floes is determined via a tensile stress limitation 
+arising from the wave field (:cite:`Shen2001`,:cite:`2019`); otherwise, all floes 
+are presumed to grow as pancakes in the smallest floe size category resolved. 
+To allow for the joining of individual floes to one another, we represent
+the welding together of floes in freezing conditions via the fourth term, 
+:math:`\beta_{\text{weld}}`, using a coagulation equation.
+
+To compute the impact of wave fracture of the FSD, if a local ocean surface wave 
+spectrum is provided, we generate a realization of the sea surface height field 
+using a random phase (XX random number currently commented out).
+We calculate the fractures that would occur if waves enter a fully ice-covered 
+region defined in one dimension in the direction of propagation, and then apply
+the outcome proportionally to the ice-covered fraction in each grid cell. 
+Assuming that sea ice flexes with the sea surface height field, strains are computed
+on this sub-grid-scale 1D domain. If the strain between successive extrema exceeds
+a critical value new floes are formed with diameters equal to the distance between 
+the extrema.
 
 Floe size categories are set in *init\_fsd\_bounds* using an exponential spacing, beginning at 0.5 m with the
 largest size resolved set by choice of :math:`N_f`, the number of floe size categories. It is assumed that 
-the floe size lies at the midpoint of each floe size category.
-
-When ``tr_fsd`` is set to true, the floe size distribution evolves subject to lateral growth, 
-lateral melt, new ice growth, floe welding and wave fracture. These processes are described in XX. 
-:math:`F_{in,k}` is carried as an area-weighted tracer. Floe sizes do not appear directly in any terms
-in the momentum equation or constitutive law, and mechanical redistribution reduces the area fractions
-of all floes equally.
+the floe size lies at the midpoint of each floe size category. Note that there is a sensitivity to the choice
+of floe size categories inherent in the current floe welding scheme.
 
 If simulations begin without ice (``ice_ice='none'``), the FSD can emerge without initialization. This
 is the recommended initialization for studies on the FSD itself. If simulations begin with ice cover, 
 some initial FSD must be prescribed in ``init_fsd``. The default is a simple relationship determined 
 from point observations by :cite:`Perovich14`, but its basin-wide applicability has not been tested.
+
+
+
+
