@@ -1,22 +1,44 @@
 !=========================================================================
 !
-! This module contains the subroutines required to define
-! a floe size distribution tracer for sea ice
+!  This module contains the subroutines required to define
+!  a floe size distribution tracer for sea ice
 !
-! Variable naming convention
-! for k = 1, nfsd and n = 1, ncat
+!  Theory based on:
+!
+!    Horvat, C., & Tziperman, E. (2015). A prognostic model of the sea-ice 
+!    floe size and thickness distribution. The Cryosphere, 9(6), 2119–2134.
+!    doi:10.5194/tc-9-2119-2015
+!
+!  and implementation described in:
+!
+!    Roach, L. A., Horvat, C., Dean, S. M., & Bitz, C. M. (2018). An emergent
+!    sea ice floe size distribution in a global coupled ocean--sea ice model. 
+!    Journal of Geophysical Research: Oceans, 123(6), 4322–4337. 
+!    doi:10.1029/2017JC013692
+!
+!  with some modifications.
+!
+!  For floe welding parameter and tensile mode parameter values, see
+!
+!    Roach, L. A., Smith, M. M., & Dean, S. M. (2018). Quantifying
+!    growth of pancake sea ice floes using images from drifting buoys. 
+!    Journal of Geophysical Research: Oceans, 123(4), 2851–2866.
+!    doi: 10.1002/2017JC013693
+!
+!
+!  Variable naming convention
+!  for k = 1, nfsd and n = 1, ncat
 !    afsdn(k,n) = trcrn(:,:,nt_nfsd+k-1,n,:)
 !    afsd (k) is per thickness category or averaged over n
 !    afs is the associated scalar value for (k,n)
 !
-! authors: liuxy
-!          C. M. Bitz, UW
-!          Lettie Roach, NIWA
-!
-! 2015: liuxy modified from ice_fsd module
-! 2016: CMB rewrote a lot of it
-! 2016: LR made some modifications
-! 2019: ECH ported to Icepack
+!  authors: Lettie Roach, VUW/NIWA
+!           C. M. Bitz, UW
+!          
+!  2016/7: LR with initial input from CMB
+!  2019: ECH ported to Icepack
+
+!-----------------------------------------------------------------
  
       module icepack_fsd
 
@@ -33,15 +55,11 @@
       public :: icepack_init_fsd_bounds, icepack_init_fsd, icepack_cleanup_fsd, &
          fsd_lateral_growth, fsd_add_new_ice, fsd_weld_thermo
 
-!      logical (kind=log_kind), public :: & 
-!         write_diag_wave     ! if .true., write the lat/lons from find_wave to history file
-
       real (kind=dbl_kind), public :: &
          c_weld = p01     ! constant of proportionality for welding
-                          ! see documentation for details
-
-!      logical (kind=log_kind), public :: &
-!         rdc_frzmlt      ! if true, only (1-oo) of frzmlt can melt (lat and bot)
+	 	          ! total number of floes that weld with another, per square meter,
+			  ! per unit time, in the case of a fully covered ice surface
+	 		  ! units m^-2 s^-1, value from Roach, Smith & Dean (2018)
 
       real(kind=dbl_kind), dimension(:), allocatable ::  &
          floe_rad_h,         & ! fsd size higher bound in m (radius)
@@ -55,7 +73,8 @@
          area_scaled_binwidth
 
       integer(kind=int_kind), dimension(:,:), allocatable, public ::  &
-         iweld
+         iweld			! floe size categories that can combine
+	 			! during welding (dimensionless)
 
 !=======================================================================
 
@@ -71,7 +90,7 @@
 !  category width or floe welding will not have an effect
 !
 !  Note also that the bound of the lowest floe size category is used
-!  to define the lead region width and the domain spacing for wave breaking
+!  to define the lead region width and the domain spacing for wave fracture
 !
       subroutine icepack_init_fsd_bounds(nfsd, &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
@@ -244,8 +263,17 @@
 !=======================================================================
 !
 !  Initialize the FSD 
-!  When growing from no-ice conditions, initialize to zero
-!  Otherwise initalize with a power law, following Perovich (2014)
+!
+!  When growing from no-ice conditions, initialize to zero.
+!  This allows the FSD to emerge, as described in Roach, Horvat et al. (2018)
+!
+!  Otherwise initalize with a power law, following Perovich
+!  & Jones (2014). The basin-wide applicability of such a 
+!  prescribed power law has not yet been tested.
+!
+!  Perovich, D. K., & Jones, K. F. (2014). The seasonal evolution of 
+!  sea ice floe size distribution. Journal of Geophysical Research: Oceans,
+!  119(12), 8767–8777. doi:10.1002/2014JC010136
 
       subroutine icepack_init_fsd(nfsd, ice_ic, &
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
@@ -330,12 +358,8 @@
             do k = 1, nfsd
                afsdn(k,n) = afsdn(k,n) / tot ! normalize
             enddo
-         else
+         else ! represents ice-free cell, so set to zero
             afsdn(:,n) = c0
-            !afsdn(1,n) = c1                  ! default to smallest floe size
-            !do k = 2, nfsd
-            !   afsdn(k,n) = c0
-            !enddo
          endif
       enddo ! ncat
 
@@ -347,9 +371,9 @@
 ! 
 !  Given the joint ice thickness and floe size distribution, calculate
 !  the lead region and the total lateral surface area following Horvat
-!  and Tziperman (2015)
+!  and Tziperman (2015).
 !
-! author: Lettie Roach, NIWA/VUW
+! author: Lettie Roach
 
       subroutine partition_area (ncat,       nfsd,      &
                                  floe_rad_c, aice,      &
@@ -369,7 +393,7 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen          , & ! fractional area of ice
-         vicen              ! volume per unit area of ice
+         vicen              ! volume per unit area of ice (m)
 
       real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          afsdn              ! floe size distribution tracer
@@ -385,8 +409,8 @@
          k                  ! floe size index
 
       real (kind=dbl_kind) :: &
-         width_leadreg, &   ! width of lead region
-         thickness          ! actual thickness of ice in thickness cat
+         width_leadreg, &   ! width of lead region (m)
+         thickness          ! actual thickness of ice in thickness cat (m)
 
       !-----------------------------------------------------------------
       ! Initialize
@@ -413,9 +437,6 @@
          ! cannot be greater than the open water fraction
          lead_area=MIN(lead_area, c1-aice)
 
-                ! sanity checks
-!                if (lead_area.gt.c1) stop 'lead_area not frac!'
-!                if (lead_area.ne.lead_area) stop 'lead_a NaN'
 
                 if (lead_area.lt.c0) then
                         if (lead_area.lt.(c0-puny)) then
@@ -446,7 +467,16 @@
       end subroutine partition_area
 
 !=======================================================================
-
+!
+!   Lateral growth at the edges of floes
+!
+!  Compute the portion of new ice growth that occurs at the edges of
+!  floes. The remainder will grow as new ice frazil ice in open water
+!  (away from floes).
+!
+!  See Horvat & Tziperman (2015) and Roach, Horvat et al. (2018).
+!
+!
       subroutine fsd_lateral_growth (ncat,      nfsd,         &
                                      dt,        aice,         &
                                      aicen,     vicen,        &
@@ -473,7 +503,7 @@
          afsdn              ! floe size distribution tracer
 
       real (kind=dbl_kind), intent(inout) :: &
-         vi0new, & ! volume of new ice added to cat 1
+         vi0new, & ! volume of new ice added to cat 1 (m)
          frazil    ! frazil ice growth        (m/step-->cm/day)
 
       ! floe size distribution
@@ -481,16 +511,14 @@
          floe_rad_c    ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension(ncat), intent(out) :: &
-!      real (kind=dbl_kind), dimension(:), intent(out) :: &
-         d_an_latg
+         d_an_latg	! change in aicen occuring due
+	 		! to lateral growth
 
       real (kind=dbl_kind), intent(out) :: &
          G_radial    , & ! lateral melt rate (m/s)
-         tot_latg        ! total fsd lateral growth in open water
+         tot_latg        ! total change in aice due to
+	 		 ! lateral growth at the edges of floes
 
-!!      real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
-!      real (kind=dbl_kind), dimension(:), intent(out) :: &
-!         d_afsd_latg, d_afsd_newi
 
       ! local variables
 
@@ -498,7 +526,7 @@
          n, k             ! ice category indices
 
       real (kind=dbl_kind) :: &
-         vi0new_lat       ! volume of new ice added laterally to fsd
+         vi0new_lat       ! volume of new ice added laterally to FSD (m)
 
       real (kind=dbl_kind), intent(out) :: &
          lead_area      , & ! the fractional area of the lead region
@@ -525,8 +553,6 @@
       end if
 
 
-!      if (vi0new_lat < c0) print*,'ERROR vi0new_lat < 0', vi0new_lat
-
       ! for history/diagnostics
       frazil = vi0new - vi0new_lat
 
@@ -551,8 +577,21 @@
       end subroutine fsd_lateral_growth
 
 !=======================================================================
-
-      ! lateral growth of existing ice and growth of new ice in category 1
+!
+!  Evolve the FSD subject to lateral growth and the growth of new ice
+!  in thickness category 1.
+!
+!  If ocean surface wave forcing is provided, the floe size of new ice
+!  (grown away from floe edges) can computed from the wave field
+!  based on the tensile (stretching) stress limitation following
+!  Shen et al. (2001). Otherwise, new floes all grow in the smallest
+!  floe size category, representing pancake ice formation.
+!
+! Shen, H., Ackley, S., & Hopkins, M. (2001). A conceptual model 
+! for pancake-ice formation in a wave field. 
+! Annals of Glaciology, 33, 361-367. doi:10.3189/172756401781818239
+!
+!
 
       subroutine fsd_add_new_ice (ncat, n,    nfsd,          &
                                   dt,         ai0new,        &
@@ -580,14 +619,17 @@
          ice_wave_sig_ht  ! wave significant height in ice
 
       real (kind=dbl_kind), dimension(:), intent(in)  :: &
-         wave_spectrum
+         wave_spectrum  ! ocean surface wave spectrum as a function of frequency
+	 		! power spectral density of surface elevation, E(f) (units m^2 s)
 
       real(kind=dbl_kind), dimension(:), intent(in) :: &
-         wavefreq,              & ! wave frequencies
-         dwavefreq                ! wave frequency bin widths
+         wavefreq,              & ! wave frequencies (s^-1)
+         dwavefreq                ! wave frequency bin widths (s^-1)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
-         d_an_latg, d_an_newi
+         d_an_latg, d_an_newi	! change in aicen due to
+	 			! lateral growth and frazil 
+				! ice formation
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen_init     , & ! fractional area of ice
@@ -596,7 +638,7 @@
          floe_binwidth      ! fsd size bin width in m (radius)
 
       real (kind=dbl_kind), dimension (:,:), intent(in) :: &
-         afsdn     ! floe size distribution tracer (originally areal_mfstd_init)
+         afsdn     ! floe size distribution tracer 
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          area2     ! area after lateral growth and before new ice formation
@@ -609,23 +651,18 @@
          d_afsd_latg    , & ! due to fsd lateral growth
          d_afsd_newi        ! new ice formation
 
-      ! local variables
-
-!      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
-!         d_afsdn_latg, d_afsdn_newi
-
       integer (kind=int_kind) :: &
          k             ! floe size category index
 
       real (kind=dbl_kind), dimension (nfsd,ncat) :: &
-         afsdn_latg    ! after lateral growth
+         afsdn_latg    ! fsd after lateral growth
 
       real (kind=dbl_kind), dimension (nfsd) :: &
          df_flx, &     ! finite differences for G_r*tilda(L)
-         afsd_ni       ! areal mFSTD after new ice added
+         afsd_ni       ! fsd after new ice added
 
       real (kind=dbl_kind), dimension(nfsd+1) :: &
-         f_flx         !
+         f_flx         ! finite differences in floe size
 
       integer (kind=int_kind) :: &
          new_size      ! index for floe size of new ice
@@ -730,9 +767,12 @@
 
 !=======================================================================
 !
-! Given a wave spectrum, calculate size of new floes based on tensile failire
-! See Shen & Ackley (2004), Roach, Smith & Dean (2018) for further details
-! Author: Lettie Roach (NIWA) 2018
+! Given a wave spectrum, calculate size of new floes based on 
+! tensile failure, following Shen et al. (2001)
+!
+! The tensile mode parameter is based on in-situ measurements
+! by Roach, Smith & Dean (2018).
+
 
       subroutine wave_dep_growth (nfsd, local_wave_spec, &
                                   wavefreq, dwavefreq, &
@@ -742,18 +782,23 @@
          nfsd              ! number of floe size categories
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
-         local_wave_spec ! e(f), dimension set in ice_forcing
+         local_wave_spec ! ocean surface wave spectrum as a function of frequency
+	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
+	 		 ! dimension set in ice_forcing
+	 		
 
       real(kind=dbl_kind), dimension(:), intent(in) :: &
-         wavefreq,              & ! wave frequencies
-         dwavefreq                ! wave frequency bin widths
+         wavefreq,              & ! wave frequencies (s^-1)
+         dwavefreq                ! wave frequency bin widths (s^-1)
 
       integer (kind=int_kind), intent(out) :: &
-         new_size ! index of floe size category in which new floes will growh
+         new_size ! index of floe size category in which new floes will grow
 
       ! local variables
       real (kind=dbl_kind), parameter :: &
-         tensile_param = 0.167_dbl_kind
+         tensile_param = 0.167_dbl_kind ! tensile mode parameter
+	 				! value from Roach, Smith & Dean (2018)
+					! units kg m^-1 s^-2
 
       real (kind=dbl_kind)  :: &
          mom0,   & ! zeroth moment of the spectrum (m)
@@ -761,9 +806,10 @@
          w_amp,  & ! wave amplitude (m)
          f_peak, & ! peak frequency (s^-1)
          w_peak, & ! wavelength from peak freqency (m)
-         r_max     ! radius
+         r_max     ! floe radius (m)
 
       integer (kind=int_kind) :: k
+      
 
       mom0 = SUM(local_wave_spec*dwavefreq)                   ! zeroth moment
       h_sig = c4*SQRT(mom0)                                   ! sig wave height
@@ -786,6 +832,19 @@
       end subroutine wave_dep_growth
 
 !=======================================================================
+!
+!  Floes are perimitted to weld together in freezing conditions, according
+!  to their geometric probability of overlap if placed randomly on the 
+!  domain. The coagulation equation is solved using the method of Filbet
+!  & Laurencot (2004). The rate per unit area c_weld is the total number 
+!  of floes that weld with another, per square meter, per unit time, in the 
+!  case of a fully covered ice surface (aice=1), equal to twice the reduction
+!  in total floe number. See Roach, Smith & Dean (2018).
+!
+! Filbet, F., & Laurençot, P. (2004). Numerical simulation of the Smoluchowski 
+! coagulation equation. SIAM Journal on Scientific Computing, 25(6), 2004–2028. 
+! doi:10.1137/S1064827503429132
+!
 
       subroutine fsd_weld_thermo (ncat,  nfsd,   &
                                   dt,    frzmlt, &
@@ -830,11 +889,11 @@
       real (kind=dbl_kind), dimension(nfsd) :: &
          afsd_init , & ! initial values
          afsd_tmp  , & ! work array
-         coag          !
+         coag          ! welding tendency
 
       real(kind=dbl_kind) :: &
          afsd_sum  , & ! work array
-         subdt     , & ! subcycling time step for stability
+         subdt     , & ! subcycling time step for stability (s)
          darea     , & ! total area lost due to welding
          darea_nfsd, & ! area lost from category nfsd
          stability     ! to satisfy stability condition for Smol. eqn
@@ -873,15 +932,6 @@
 
             afsd_init(:) = afsdn(:,n)     ! save initial values
             afsd_tmp (:) = afsd_init(:)   ! work array
-
-!            ! sanity checks
-!            afsd_sum = SUM(afsd_init)
-!            if (ABS(afsd_sum - c1) > puny) then
-!                print*,'afsd_sum',afsd_sum
-!                stop 'not 1 b4 weld'
-!            endif
-!            if (ANY(afsd_init < c0-puny)) stop 'negative mFSTD b4 weld'
-!            if (ANY(afsd_init > c1+puny)) stop 'mFSTD>1 b4 weld'
 
             darea_nfsd = c0
             do nt = 1, ndt_weld
