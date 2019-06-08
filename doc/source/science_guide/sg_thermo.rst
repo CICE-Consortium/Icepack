@@ -1779,7 +1779,7 @@ energy and fluxes as appropriate. We assume a floe diameter of 300 m.
 
 If ``tr_fsd=true``, lateral melting is accomplished using the :cite:`Maykut87`
 lateral heat flux, but applied to the ice using the prognostic floe size distribution
-as described in Horvat & Tziperman (2015) and Roach et al. (2018). Lateral melt modifies
+as described in :cite:`Horvat15` and :cite:`Roach18`. Lateral melt modifies
 the ITD and the FSD.
 
 Snow-ice formation
