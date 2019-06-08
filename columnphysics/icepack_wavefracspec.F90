@@ -1,6 +1,30 @@
-! Lettie Roach, NIWA/VUW, June 2016
-! Some of this modified from Chris Horvat's Matlab original
-! New module for CICE to generate waves and break the FSD
+!  This module contains the subroutines required to fracture sea ice
+!  by ocean surface waves
+!
+!  Theory based on:
+!
+!    Horvat, C., & Tziperman, E. (2015). A prognostic model of the sea-ice 
+!    floe size and thickness distribution. The Cryosphere, 9(6), 2119–2134.
+!    doi:10.5194/tc-9-2119-2015
+!
+!  and implementation described in:
+!
+!    Roach, L. A., Horvat, C., Dean, S. M., & Bitz, C. M. (2018). An emergent
+!    sea ice floe size distribution in a global coupled ocean--sea ice model. 
+!    Journal of Geophysical Research: Oceans, 123(6), 4322–4337. 
+!    doi:10.1029/2017JC013692
+!
+!  now with some modifications to allow direct input of ocean surface wave spectrum.
+!
+!  We calculate the fractures that would occur if waves enter a fully ice-covered 
+!  region defined in one dimension in the direction of propagation, and then apply 
+!  the outcome proportionally to the ice-covered fraction in each grid cell. Assuming
+!  that sea ice flexes with the sea surface height field, strains are computed on this
+!  sub-grid-scale 1D domain. If the strain between successive extrema exceeds a critical
+!  value new floes are formed with diameters equal to the distance between the extrema.
+!
+!  authors: 2016-8 Lettie Roach, NIWA/VUW
+!          
 !
       module icepack_wavefracspec
 
@@ -35,6 +59,8 @@
 !=======================================================================
 !
 !  Initialize the wave spectrum and frequencies for the FSD
+!
+!  authors: 2018 Lettie Roach, NIWA/VUW
 
       subroutine icepack_init_wave(nfreq,                 &
                                    wave_spectrum_profile, &
@@ -44,9 +70,10 @@
          nfreq                    ! number of wave frequencies
 
       real(kind=dbl_kind), dimension(:), intent(out) :: &
-         wave_spectrum_profile, & ! wave spectrum
-         wavefreq,              & ! wave frequencies
-         dwavefreq                ! wave frequency bin widths
+         wave_spectrum_profile, & ! ocean surface wave spectrum as a function of frequency
+	 		                ! power spectral density of surface elevation, E(f) (units m^2 s)
+         wavefreq,              & ! wave frequencies (s^-1)
+         dwavefreq                ! wave frequency bin widths (s^-1)
 
       ! local variables
       integer (kind=int_kind) :: k
@@ -89,9 +116,9 @@
 
 !=======================================================================
 !
-!     Calculate the change in the FSD arising from wave fracture
-!     See references: Roach, Horvat et al. (2018) JGR; Horvat & Tziperman (2015) TC
-!     Author: Lettie Roach, NIWA, 2018
+!  Calculate the change in the FSD arising from wave fracture
+!
+!  authors: 2017 Lettie Roach, NIWA/VUW
 !
       function get_dafsd_wave(nfsd, afsd_init, fracture_hist, frac) &
                               result(d_afsd)
@@ -136,9 +163,10 @@
 
 !=======================================================================
 !
-!    Adaptive timestepping for wave fracture
-!    See reference: Horvat & Tziperman (2017) JGR, Appendix A
-!    Author: Lettie Roach, NIWA 2018
+!  Adaptive timestepping for wave fracture
+!  See reference: Horvat & Tziperman (2017) JGR, Appendix A
+!
+!  authors: 2018 Lettie Roach, NIWA/VUW
 !
 !
      function get_subdt_wave(nfsd, afsd_init, d_afsd) &
@@ -148,14 +176,15 @@
          nfsd       ! number of floe size categories
 
       real (kind=dbl_kind), dimension (nfsd), intent(in) :: &
-         afsd_init, d_afsd
+         afsd_init, d_afsd ! floe size distribution tracer 
 
       ! output
-      real (kind=dbl_kind) :: subdt
+      real (kind=dbl_kind) :: &
+         subdt ! subcycle timestep (s)
 
       ! local variables
       real (kind=dbl_kind), dimension (nfsd) :: &
-         check_dt 
+         check_dt ! to compute subcycle timestep (s)
 
       integer (kind=int_kind) :: k
 
@@ -170,9 +199,12 @@
       end function get_subdt_wave
 
 !=======================================================================
-! Author: Lettie Roach, NIWA, 2018
 ! 
-! Given fracture histogram computed from local wave spectrum, evolve FSD
+!  Given fracture histogram computed from local wave spectrum, evolve 
+!  the floe size distribution
+!
+!  authors: 2018 Lettie Roach, NIWA/VUW
+!
 
       subroutine icepack_step_wavefracture(                  &
                   dt,            ncat,            nfsd,      &
@@ -200,17 +232,18 @@
          floe_rad_c      ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         wavefreq,     & ! wave frequencies
-         dwavefreq       ! wave frequency bin widths
+         wavefreq,     & ! wave frequencies (s^-1)
+         dwavefreq       ! wave frequency bin widths (s^-1)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
-         wave_spectrum   ! you guessed it
+         wave_spectrum   ! ocean surface wave spectrum as a function of frequency
+	 		       ! power spectral density of surface elevation, E(f) (units m^2 s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          trcrn           ! tracer array
 
       real (kind=dbl_kind), intent(out) :: &
-         ice_wave_sig_ht ! significant wave height in ice
+         ice_wave_sig_ht ! significant wave height in ice (m)
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          d_afsd_wave     ! change in fsd due to waves
@@ -346,14 +379,18 @@
      end subroutine icepack_step_wavefracture
 
 !=======================================================================
-! Author: Lettie Roach, NIWA, 2018
 !
-! Based on MatLab code from Horvat & Tziperman (2015). Calculates functions 
-! to describe the change in the FSD when waves fracture ice, given a wave
-! spectrum (1D frequency, 25 frequency bins) in ice. 
-! We calculate extrema and if these are successive maximum, minimum, maximum or
-! vice versa, and have strain greater than a critical strain, break ice and 
-! create new floes with lengths equal to these distances
+!  Calculates functions to describe the change in the FSD when waves 
+!  fracture ice, given a wave spectrum (1D frequency, 25 frequency bins)
+!  in ice. We calculate extrema and if these are successive maximum, 
+!  minimum, maximum or vice versa, and have strain greater than a 
+!  critical strain, break ice and create new floes with lengths equal
+!  to these distances. Based on MatLab code written by Chris Horvat,
+!  from Horvat & Tziperman (2015). 
+!
+!  Note that a realization of sea surface height requires a random phase.
+!
+!  authors: 2018 Lettie Roach, NIWA/VUW
 
       subroutine wave_frac(nfsd, &
                            floe_rad_l, floe_rad_c, &
@@ -364,16 +401,16 @@
          nfsd          ! number of floe size categories
 
       real (kind=dbl_kind),  intent(in) :: &
-         hbar          ! mean ice thickness
+         hbar          ! mean ice thickness (m)
 
       real(kind=dbl_kind), dimension(:), intent(in) ::  &
          floe_rad_l, & ! fsd size lower bound in m (radius)
          floe_rad_c    ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         wavefreq,   & ! wave frequencies
-         dwavefreq,  & ! wave frequency bin widths
-         spec_efreq    ! wave spectrum
+         wavefreq,   & ! wave frequencies (s^-1) 
+         dwavefreq,  & ! wave frequency bin widths (s^-1)
+         spec_efreq    ! wave spectrum (m^2 s)
 
       real (kind=dbl_kind), dimension (nfsd), intent(out) :: &
          frac_local    ! fracturing histogram
@@ -386,18 +423,19 @@
          loopcts = 1  ! number of SSH realizations
 
       real (kind=dbl_kind), dimension(25) :: &
-         spec_elambda, &
-         reverse_spec_elambda, &
-         reverse_lambda, lambda,&! wavelengths (m)
-         reverse_dlambda, dlambda, &
-         spec_coeff, &
+         spec_elambda,             & ! spectrum as a function of wavelength (m^-1 s^-1)     
+         reverse_spec_elambda,     & ! reversed
+         reverse_lambda, lambda,   & ! wavelengths (m)
+         reverse_dlambda, dlambda, & ! wavelength bin spacing (m)
+         spec_coeff,               &
          phi, rand_array, summand
 
       real (kind=dbl_kind), dimension(2*nx) :: &
          fraclengths
 
       real (kind=dbl_kind), dimension(nx) :: &
-         X, eta
+         X,  &    ! spatial domain (m)
+         eta      ! sea surface height field (m)
 
       real (kind=dbl_kind), dimension(nfsd) :: &
          frachistogram 
@@ -424,8 +462,7 @@
       spec_elambda(:) = reverse_spec_elambda(25:1:-1) 
  
       ! spectral coefficients
-      spec_coeff = sqrt(c2*spec_elambda*dlambda)
-!      if (ANY(ISNAN(spec_coeff))) stop 'NaN spec_coeff' 
+      spec_coeff = sqrt(c2*spec_elambda*dlambda) 
 
       ! initialize fracture lengths
       fraclengths(:) = c0
@@ -447,7 +484,7 @@
             eta(j)  = SUM(summand)
          end do
          
-!         if ((.NOT.(ALL(eta == c0))).and.(hbar > puny)) then 
+ 
          if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
             call get_fraclengths(X, eta, fraclengths, hbar, e_stop)
          end if
@@ -472,10 +509,6 @@
                end if
             end do
 
-            ! sanity check
-!            if (fraclengths(j) < (floe_rad_l(1)-puny)) then
-!               if (fraclengths(j) > puny) stop 'fractures too small'
-!            end if
          end do
       end if
 
@@ -489,19 +522,24 @@
       end subroutine wave_frac
 
 !===========================================================================
+!
 !  Given the (attenuated) sea surface height, find the strain across triplets
 !  of max, min, max or min, max, min (local extrema within 10m).
 !  If this strain is greater than the  critical strain, ice can fracture
 !  and new floes are formed with sizes equal to the distances between
-!  extrema
+!  extrema. Based on MatLab code written by Chris Horvat,
+!  from Horvat & Tziperman (2015). 
+!
+!  authors: 2016 Lettie Roach, NIWA/VUW
 !
       subroutine get_fraclengths(X, eta, fraclengths, hbar, e_stop)
 
       real (kind=dbl_kind) :: &
-         hbar             ! mean thickness
+         hbar             ! mean thickness (m)
 
       real (kind=dbl_kind), intent(in), dimension (nx) :: &
-         X, eta
+         X, &              ! spatial domain (m)
+         eta               ! sea surface height field (m)
 
       real (kind=dbl_kind), intent(inout), dimension (2*nx) :: &
          fraclengths      ! the biggest number of fraclengths we could have is
