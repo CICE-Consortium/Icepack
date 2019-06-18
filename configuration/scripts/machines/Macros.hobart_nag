@@ -4,7 +4,7 @@
 
 CPP        := /usr/bin/cpp
 CPPFLAGS   := -P -traditional
-CPPDEFS    := -DFORTRANUNDERSCORE -DNO_CRAY_POINTERS -DNO_SHR_VMATH -DCPRNAG
+CPPDEFS    := -DFORTRANUNDERSCORE -DNO_CRAY_POINTERS -DNO_SHR_VMATH -DCPRNAG ${ICE_CPPDEFS}
 CFLAGS     := -std=gnu99
 
 FIXEDFLAGS := -fixed
@@ -19,7 +19,7 @@ else
   FFLAGS   += -O2 -ieee=full
 endif
 
-SCC := nagcc
+SCC := cc
 SFC := nagfor
 CC := $(SCC)
 FC := $(SFC)
