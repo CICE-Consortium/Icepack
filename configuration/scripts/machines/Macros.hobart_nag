@@ -1,10 +1,10 @@
 #==============================================================================
-# Makefile macros for NCAR cheyenne, intel compiler
+# Makefile macros for NCAR cheyenne, nag compiler
 #==============================================================================
 
 CPP        := /usr/bin/cpp
 CPPFLAGS   := -P -traditional
-CPPDEFS    := -DFORTRANUNDERSCORE -DNO_CRAY_POINTERS -DNO_SHR_VMATH -DCPRNAG
+CPPDEFS    := -DFORTRANUNDERSCORE -DNO_CRAY_POINTERS -DNO_SHR_VMATH -DCPRNAG ${ICE_CPPDEFS}
 CFLAGS     := -std=gnu99
 
 FIXEDFLAGS := -fixed
@@ -19,13 +19,11 @@ else
   FFLAGS   += -O2 -ieee=full
 endif
 
-ifeq ($(ICE_COMMDIR), mpi)
-  FC         := mpif90
-  LD         := mpif90
-else
-  FC         := nagfor
-  LD         := nagfor
-endif
+SCC := cc
+SFC := nagfor
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
 
 SLIBS   := -L$(COMPILER_PATH)/lib/NAG_Fortran
 

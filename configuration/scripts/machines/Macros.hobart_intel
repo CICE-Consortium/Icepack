@@ -18,11 +18,9 @@ else
   FFLAGS     += -O2 -debug minimal
 endif
 
-ifeq ($(ICE_COMMDIR), mpi)
-  FC         := mpif90
-  LD         := mpif90
-else
-  FC         := ifort
-  LD         := ifort
-endif
+SCC := icc
+SFC := ifort
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
 

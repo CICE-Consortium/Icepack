@@ -632,7 +632,7 @@
          Ui_s(nblyr+1) = ivel(nblyr+1)/dt*dts  
          dSbdx(nblyr) = (ibrine_sal(nblyr+1)*ibrine_rho(nblyr+1) &
                       -  ibrine_sal(nblyr)*ibrine_rho(nblyr)) &
-                      / (igrid(nblyr+1)-igrid(nblyr))	              
+                      / (igrid(nblyr+1)-igrid(nblyr))
          C_s(nblyr+1) = Dm/brine_sal(nblyr+1)/brine_rho(nblyr+1)*dts/hbri_old**2 &
                       * (ibrine_sal(nblyr+1)*ibrine_rho(nblyr+1) &
                       -  ibrine_sal(nblyr)*ibrine_rho(nblyr)) &
