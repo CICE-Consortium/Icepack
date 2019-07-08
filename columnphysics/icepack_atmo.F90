@@ -61,6 +61,8 @@
                                       lhcoef,   shcoef,   &
                                       Cdn_atm,            &
                                       Cdn_atm_ratio_n,    &
+                                      n_iso,              &
+                                      Qa_iso,   Qref_iso, &
                                       uvel,     vvel,     &
                                       Uref                )     
 
@@ -74,6 +76,9 @@
 
       integer (kind=int_kind), intent(in) :: &
          natmiter        ! number of iterations for boundary layer calculations
+
+      integer (kind=int_kind), intent(in), optional :: &
+         n_iso        ! number of isotopes
 
       real (kind=dbl_kind), intent(in) :: &
          Tsf      , & ! surface temperature of ice or ocean
@@ -104,6 +109,12 @@
          shcoef   , & ! transfer coefficient for sensible heat
          lhcoef       ! transfer coefficient for latent heat
 
+      real (kind=dbl_kind), intent(in), optional, dimension(:) :: &
+         Qa_iso      ! specific isotopic humidity (kg/kg)
+
+      real (kind=dbl_kind), intent(out), optional, dimension(:) :: &
+         Qref_iso    ! reference specific isotopic humidity (kg/kg)
+
       real (kind=dbl_kind), intent(in) :: &
          uvel     , & ! x-direction ice speed (m/s)
          vvel         ! y-direction ice speed (m/s)
@@ -114,7 +125,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k         ! iteration index
+         k,n         ! iteration index
 
       real (kind=dbl_kind) :: &
          TsfK  , & ! surface temperature in Kelvin (K)
@@ -136,6 +147,7 @@
          ustar , & ! ustar (m/s)
          tstar , & ! tstar
          qstar , & ! qstar
+         ratio , & ! ratio
          rdn   , & ! sqrt of neutral exchange coefficient (momentum)
          rhn   , & ! sqrt of neutral exchange coefficient (heat)
          ren   , & ! sqrt of neutral exchange coefficient (water)
@@ -173,6 +185,7 @@
       Tref = c0
       Qref = c0
       Uref = c0
+      if (present(Qref_iso)) Qref_iso(:) = c0
       delt = c0
       delq = c0
       shcoef = c0
@@ -354,6 +367,15 @@
          Uref = sqrt((uatm-uvel)**2 + (vatm-vvel)**2) * rd / rdn
       else
          Uref = vmag * rd / rdn
+      endif
+
+      if (present(Qref_iso)) then
+         do n = 1, n_iso
+            ratio = c1
+            if (Qa_iso(2) > puny) &
+               ratio = Qa_iso(n)/Qa_iso(2)
+            Qref_iso(n) = Qa_iso(n) - ratio*delq*fac
+         enddo
       endif
 
       end subroutine atmo_boundary_layer
@@ -809,6 +831,8 @@
                                      lhcoef,      shcoef,        &
                                      Cdn_atm,                    &
                                      Cdn_atm_ratio_n,            &
+                                     n_iso,                      &
+                                     Qa_iso,      Qref_iso,      &
                                      uvel,        vvel,          &
                                      Uref)
 
@@ -824,6 +848,9 @@
          zlvl     , & ! atm level height (m)
          Qa       , & ! specific humidity (kg/kg)
          rhoa         ! air density (kg/m^3)
+
+      integer (kind=int_kind), intent(in), optional :: &
+         n_iso        ! number of isotopes
 
       real (kind=dbl_kind), intent(inout) :: &
          Cdn_atm  , &    ! neutral drag coefficient
@@ -841,6 +868,12 @@
          delq     , & ! humidity difference      (kg/kg)
          shcoef   , & ! transfer coefficient for sensible heat
          lhcoef       ! transfer coefficient for latent heat
+
+      real (kind=dbl_kind), intent(in), optional, dimension(:) :: &
+         Qa_iso      ! specific isotopic humidity (kg/kg)
+
+      real (kind=dbl_kind), intent(out), optional, dimension(:) :: &
+         Qref_iso    ! reference specific isotopic humidity (kg/kg)
 
       real (kind=dbl_kind), optional, intent(in) :: &
          uvel     , & ! x-direction ice speed (m/s)
@@ -890,6 +923,8 @@
                                    lhcoef,   shcoef,        &
                                    Cdn_atm,                 &
                                    Cdn_atm_ratio_n,         &
+                                   n_iso,                   &
+                                   Qa_iso,   Qref_iso,      &
                                    worku,    workv,         &
                                    workr)
          if (icepack_warnings_aborted(subname)) return

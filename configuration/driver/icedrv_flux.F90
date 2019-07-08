@@ -12,7 +12,7 @@
       use icedrv_domain_size, only: ncat, nilyr, nx
       use icedrv_constants, only: c0, c1, c5, c10, c20, c180
       use icedrv_constants, only: nu_diag
-      use icepack_intfc, only: icepack_max_aero, icepack_max_nbtrcr, icepack_max_fe
+      use icepack_intfc, only: icepack_max_aero, icepack_max_iso, icepack_max_nbtrcr, icepack_max_fe
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don
       use icepack_intfc, only: icepack_max_dic
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -176,6 +176,10 @@
          fhocn   , & ! net heat flux to ocean (W/m^2)
          fswthru     ! shortwave penetrating to ocean (W/m^2)
 
+      real (kind=dbl_kind), dimension (nx,icepack_max_iso), public :: &
+         Qa_iso      , & ! isotope specific humidity (kg/kg)
+         Qref_iso        ! 2m atm reference isotope spec humidity (kg/kg)
+
        ! internal
 
       real (kind=dbl_kind), &
@@ -285,6 +289,10 @@
          dimension (nx,icepack_max_aero), public :: &
          faero_atm   ! aerosol deposition rate (kg/m^2 s)   
 
+      real (kind=dbl_kind), &   !coupling variable for tr_iso
+         dimension (nx,icepack_max_iso), public :: &
+         fiso_atm   ! aerosol deposition rate (kg/m^2 s)   
+
       real (kind=dbl_kind), &
          dimension (nx,icepack_max_nbtrcr), public :: &
          flux_bio_atm  ! all bio fluxes to ice from atmosphere
@@ -294,6 +302,10 @@
       real (kind=dbl_kind), &
          dimension (nx,icepack_max_aero), public :: &
          faero_ocn   ! aerosol flux to ocean  (kg/m^2/s)
+
+      real (kind=dbl_kind), &
+         dimension (nx,icepack_max_iso), public :: &
+         fiso_ocn   ! isotope flux to ocean  (kg/m^2/s)
 
       ! out to ocean 
 
@@ -459,6 +471,7 @@
       endif !     l_winter
 
       faero_atm    (:,:) = c0        ! aerosol deposition rate (kg/m2/s)
+      fiso_atm    (:,:) = c0        ! isotope deposition rate (kg/m2/s)
       flux_bio_atm (:,:) = c0        ! zaero and bio deposition rate (kg/m2/s)
 
       !-----------------------------------------------------------------
@@ -579,6 +592,7 @@
       fhocn    (:)   = c0
       fswthru  (:)   = c0
       faero_ocn(:,:) = c0
+      fiso_ocn(:,:) = c0
 
       end subroutine init_flux_atm_ocn
 

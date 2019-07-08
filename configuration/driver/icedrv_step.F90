@@ -103,7 +103,7 @@
       use icedrv_arrays_column, only: hkeel, dkeel, lfloe, dfloe
       use icedrv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
       use icedrv_calendar, only: yday
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nx
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nx
       use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot, Tbot, Tsnice
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
       use icedrv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn
@@ -114,7 +114,7 @@
       use icedrv_flux, only: flat, fswabs, flwout, evap, evaps, evapi, Tref, Qref, Uref
       use icedrv_flux, only: fswthru, meltt, melts, meltb, congel, snoice
       use icedrv_flux, only: flatn_f, fsensn_f, fsurfn_f, fcondtopn_f
-      use icedrv_flux, only: dsnown, faero_atm, faero_ocn
+      use icedrv_flux, only: dsnown, faero_atm, faero_ocn, fiso_atm, fiso_ocn
       use icedrv_init, only: lmask_n, lmask_s
       use icedrv_state, only: aice, aicen, aice_init, aicen_init, vicen_init
       use icedrv_state, only: vice, vicen, vsno, vsnon, trcrn, uvel, vvel, vsnon_init
@@ -137,14 +137,17 @@
 
       integer (kind=int_kind) :: &
          ntrcr, nt_apnd, nt_hpnd, nt_ipnd, nt_alvl, nt_vlvl, nt_Tsfc, &
-         nt_iage, nt_FY, nt_qice, nt_sice, nt_aero, nt_qsno
+         nt_iage, nt_FY, nt_qice, nt_sice, nt_aero, nt_iso, nt_qsno
 
       logical (kind=log_kind) :: &
-         tr_iage, tr_FY, tr_aero, tr_pond, tr_pond_cesm, &
+         tr_iage, tr_FY, tr_aero, tr_iso, tr_pond, tr_pond_cesm, &
          tr_pond_lvl, tr_pond_topo, calc_Tsfc
 
       real (kind=dbl_kind), dimension(n_aero,2,ncat) :: &
          aerosno,  aeroice    ! kg/m^2
+
+      real (kind=dbl_kind), dimension(n_iso,2,ncat) :: &
+         isosno,  isoice    ! kg/m^2
 
       real (kind=dbl_kind) :: &
          puny
@@ -169,7 +172,7 @@
 
       call icepack_query_tracer_flags( &
          tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_aero_out=tr_aero, tr_pond_out=tr_pond, tr_pond_cesm_out=tr_pond_cesm, &
+         tr_aero_out=tr_aero, tr_iso_out=tr_iso, tr_pond_out=tr_pond, tr_pond_cesm_out=tr_pond_cesm, &
          tr_pond_lvl_out=tr_pond_lvl, tr_pond_topo_out=tr_pond_topo)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -180,7 +183,7 @@
          nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, nt_Tsfc_out=nt_Tsfc, &
          nt_iage_out=nt_iage, nt_FY_out=nt_FY, &
          nt_qice_out=nt_qice, nt_sice_out=nt_sice, &
-         nt_aero_out=nt_aero, nt_qsno_out=nt_qsno)
+         nt_aero_out=nt_aero, nt_iso_out=nt_iso, nt_qsno_out=nt_qsno)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -190,6 +193,8 @@
       prescribed_ice = .false.
       aerosno(:,:,:) = c0
       aeroice(:,:,:) = c0
+      isosno(:,:,:) = c0
+      isoice(:,:,:) = c0
 
       do i = 1, nx
 
@@ -224,6 +229,20 @@
           enddo
         endif ! tr_aero
         
+        if (tr_iso) then
+          ! trcrn(nt_iso) has units kg/m^3
+          do n=1,ncat
+            do k=1,n_iso
+              isosno (k,:,n) = &
+                  trcrn(i,nt_iso+(k-1)*4  :nt_iso+(k-1)*4+1,n) &
+                  * vsnon_init(i,n)
+              isoice (k,:,n) = &
+                  trcrn(i,nt_iso+(k-1)*4+2:nt_iso+(k-1)*4+3,n) &
+                  * vicen_init(i,n)
+            enddo
+          enddo
+        endif ! tr_iso
+        
         call icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero,                &
             aicen_init  (i,:),                           &
             vicen_init  (i,:), vsnon_init  (i,:), &
@@ -243,6 +262,7 @@
             trcrn       (i,nt_iage,:),                   &
             trcrn       (i,nt_FY  ,:),                   & 
             aerosno     (:,:,:),      aeroice     (:,:,:),      &
+            isosno     (:,:,:),      isoice     (:,:,:),      &
             uatm        (i), vatm        (i), &
             wind        (i), zlvl        (i), &
             Qa          (i), rhoa        (i), &
@@ -286,6 +306,8 @@
             fsurfn_f    (i,:), fcondtopn_f (i,:), &
             faero_atm   (i,1:n_aero),                    &
             faero_ocn   (i,1:n_aero),                    &
+            fiso_atm   (i,1:n_iso),                    &
+            fiso_ocn   (i,1:n_iso),                    &
             dhsn        (i,:), ffracn      (i,:), &
             meltt       (i), melttn      (i,:), &
             meltb       (i), meltbn      (i,:), &
@@ -312,6 +334,21 @@
           enddo
         endif ! tr_aero
         
+        if (tr_iso) then
+          do n = 1, ncat
+            if (vicen(i,n) > puny) &
+                isoice(:,:,n) = isoice(:,:,n)/vicen(i,n)
+            if (vsnon(i,n) > puny) &
+                isosno(:,:,n) = isosno(:,:,n)/vsnon(i,n)
+            do k = 1, n_iso
+              do kk = 1, 2
+                trcrn(i,nt_iso+(k-1)*4+kk-1,n)=isosno(k,kk,n)
+                trcrn(i,nt_iso+(k-1)*4+kk+1,n)=isoice(k,kk,n)
+              enddo
+            enddo
+          enddo
+        endif ! tr_iso
+        
       enddo ! i
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -331,10 +368,10 @@
       use icedrv_arrays_column, only: hin_max, fzsal, ocean_bio
       use icedrv_arrays_column, only: first_ice, bgrid, cgrid, igrid
       use icedrv_calendar, only: yday
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nltrcr, nx
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nblyr, nltrcr, nx
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
       use icedrv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside
-      use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn 
+      use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn
       use icedrv_init, only: tmask
       use icedrv_state, only: aice, aicen, aice0, trcr_depend
       use icedrv_state, only: aicen_init, vicen_init, trcrn, vicen, vsnon
@@ -371,7 +408,7 @@
 
          if (tmask(i)) then
 
-            call icepack_step_therm2(dt, ncat, n_aero, nltrcr,                 &
+            call icepack_step_therm2(dt, ncat, n_aero, n_iso, nltrcr,                 &
                            nilyr,                  nslyr,                  &
                            hin_max   (:),          nblyr,                  &   
                            aicen     (i,:),                         &
@@ -390,6 +427,7 @@
                            fhocn     (i), update_ocn_f,           &
                            bgrid,                  cgrid,                  &
                            igrid,                  faero_ocn (i,:), &
+                           fiso_ocn(i,:), &
                            first_ice (i,:), fzsal     (i), &
                            flux_bio  (i,1:nbtrcr),                  &
                            ocean_bio (i,1:nbtrcr),                  &
@@ -517,11 +555,11 @@
       subroutine step_dyn_ridge (dt, ndtd)
 
       use icedrv_arrays_column, only: hin_max, fzsal, first_ice
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nblyr, nx
       use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
       use icedrv_flux, only: dvirdgdt, opening, closing, fpond, fresh, fhocn
       use icedrv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt
-      use icedrv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn
+      use icedrv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn, fiso_ocn
       use icedrv_init, only: tmask
       use icedrv_state, only: trcrn, vsnon, aicen, vicen
       use icedrv_state, only: aice, aice0, trcr_depend, n_trcr_strata
@@ -583,8 +621,8 @@
                          dvirdgdt (i), opening  (i), &
                          fpond    (i),                        &
                          fresh    (i), fhocn    (i), &
-                         n_aero,                                       &
-                         faero_ocn(i,:),                        &
+                         n_aero, n_iso,                         &
+                         faero_ocn(i,:), fiso_ocn(i,:),         &
                          aparticn (i,:), krdgn    (i,:), &
                          aredistn (i,:), vredistn (i,:), &
                          dardg1ndt(i,:), dardg2ndt(i,:), &
@@ -624,8 +662,8 @@
                          dvirdgdt (i), opening  (i), &
                          fpond    (i),                        &
                          fresh    (i), fhocn    (i), &
-                         n_aero,                                       &
-                         faero_ocn(i,:),                        &
+                         n_aero, n_iso,                                &
+                         faero_ocn(i,:), fiso_ocn(i,:),                &
                          aparticn (i,:), krdgn    (i,:), &
                          aredistn (i,:), vredistn (i,:), &
                          dardg1ndt(i,:), dardg2ndt(i,:), &
@@ -663,7 +701,7 @@
       use icedrv_arrays_column, only: kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab
       use icedrv_arrays_column, only: gaer_bc_tab, bcenh, swgrid, igrid
       use icedrv_calendar, only: calendar_type, days_per_year, nextsw_cday, yday, sec
-      use icedrv_domain_size, only: ncat, n_aero, nilyr, nslyr, n_zaero, n_algae, nblyr, nx
+      use icedrv_domain_size, only: ncat, n_aero, n_iso, nilyr, nslyr, n_zaero, n_algae, nblyr, nx
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, coszen, fsnow
       use icedrv_init, only: TLAT, TLON, tmask
       use icedrv_state, only: aicen, vicen, vsnon, trcrn
@@ -681,7 +719,7 @@
 
       integer (kind=int_kind) :: &
          max_aero, nt_Tsfc, nt_alvl, &
-         nt_apnd, nt_hpnd, nt_ipnd, nt_aero, nlt_chl_sw, &
+         nt_apnd, nt_hpnd, nt_ipnd, nt_aero, nt_iso, nlt_chl_sw, &
          ntrcr, nbtrcr_sw, nt_fbri
 
       integer (kind=int_kind), dimension(:), allocatable :: &
@@ -728,7 +766,7 @@
       call icepack_query_tracer_indices( &
          nt_Tsfc_out=nt_Tsfc, nt_alvl_out=nt_alvl, &
          nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, &
-         nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw, &
+         nt_iso_out=nt_iso, nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw, &
          nt_fbri_out=nt_fbri, nt_zaero_out=nt_zaero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -764,6 +802,7 @@
                           nblyr,                 ntrcr,            &
                           nbtrcr_sw,             nilyr,            &
                           nslyr,                 n_aero,           &
+                          n_iso, &
                           n_zaero,               dEdd_algae,       &
                           nlt_chl_sw,            nlt_zaero_sw(:),  &
                           swgrid(:),             igrid(:),         &
@@ -776,6 +815,7 @@
                           trcrn(i,nt_hpnd,:),                      &
                           trcrn(i,nt_ipnd,:),                      &
                           trcrn(i,nt_aero:nt_aero+4*n_aero-1,:),   &
+                          trcrn(i,nt_iso:nt_iso+4*n_iso-1,:),   &
                           ztrcr_sw,              ztrcr,            &
                           TLAT(i),               TLON(i),          &
                           calendar_type,         days_per_year,    &
@@ -971,7 +1011,7 @@
       use icedrv_domain_size, only: n_doc, n_dic,  n_don, n_fed, n_fep, nx
       use icedrv_flux, only: meltbn, melttn, congeln, snoicen
       use icedrv_flux, only: sst, sss, fsnow, meltsn
-      use icedrv_flux, only: hin_old, flux_bio, flux_bio_atm, faero_atm 
+      use icedrv_flux, only: hin_old, flux_bio, flux_bio_atm, faero_atm, fiso_atm
       use icedrv_flux, only: nit, amm, sil, dmsp, dms, algalN, doc, don, dic, fed, fep, zaeros, hum
       use icedrv_state, only: aicen_init, vicen_init, aicen, vicen, vsnon
       use icedrv_state, only: trcrn, vsnon_init, aice0                    

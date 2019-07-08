@@ -56,7 +56,7 @@
       subroutine input_data
 
       use icedrv_diagnostics, only: diag_file, nx_names
-      use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
+      use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero, n_iso
       use icedrv_calendar, only: year_init, istep0
       use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
@@ -97,10 +97,10 @@
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
 
       integer (kind=int_kind) :: ntrcr
-      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_aero
+      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_aero, tr_iso
       logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY
-      integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
+      integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, nt_iso
 
       real (kind=real_kind) :: rpcesm, rplvl, rptopo 
       real (kind=dbl_kind) :: Cf, puny
@@ -159,7 +159,8 @@
         tr_pond_cesm, &
         tr_pond_lvl,  &
         tr_pond_topo, &
-        tr_aero
+        tr_aero,      &
+        tr_iso
 
       !-----------------------------------------------------------------
       ! query Icepack values
@@ -246,6 +247,7 @@
       tr_pond_lvl  = .false. ! level-ice melt ponds
       tr_pond_topo = .false. ! explicit melt ponds (topographic)
       tr_aero      = .false. ! aerosols
+      tr_iso      = .false. ! isotopes
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -379,6 +381,13 @@
 
       if (tr_aero .and. n_aero==0) then
          write (nu_diag,*) 'WARNING: aerosols activated but'
+         write (nu_diag,*) 'WARNING: not allocated in tracer array.'
+         write (nu_diag,*) 'WARNING: Activate in compilation script.'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
+      if (tr_iso .and. n_iso==0) then
+         write (nu_diag,*) 'WARNING: isotopes activated but'
          write (nu_diag,*) 'WARNING: not allocated in tracer array.'
          write (nu_diag,*) 'WARNING: Activate in compilation script.'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
@@ -578,6 +587,7 @@
          write(nu_diag,1010) ' tr_pond_lvl               = ', tr_pond_lvl
          write(nu_diag,1010) ' tr_pond_topo              = ', tr_pond_topo
          write(nu_diag,1010) ' tr_aero                   = ', tr_aero
+         write(nu_diag,1010) ' tr_iso                    = ', tr_iso
 
          nt_Tsfc = 1           ! index tracers, starting with Tsfc = 1
          ntrcr = 1             ! count tracers, starting with Tsfc = 1
@@ -634,6 +644,12 @@
          if (tr_aero) then
              nt_aero = ntrcr + 1
              ntrcr = ntrcr + 4*n_aero ! 4 dEdd layers, n_aero species
+         endif
+              
+         nt_iso = max_ntrcr - 4*n_iso
+         if (tr_iso) then
+             nt_iso = ntrcr + 1
+             ntrcr = ntrcr + 4*n_iso ! 4 dEdd layers, n_iso species
          endif
               
          if (ntrcr > max_ntrcr-1) then
@@ -715,6 +731,7 @@
       call icepack_init_tracer_numbers(ntrcr_in=ntrcr)
       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
          tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
+         tr_iso_in=tr_iso, &
          tr_pond_in=tr_pond, tr_pond_cesm_in=tr_pond_cesm, &
          tr_pond_lvl_in=tr_pond_lvl, &
          tr_pond_topo_in=tr_pond_topo)
@@ -723,7 +740,7 @@
          nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, &
          nt_fy_in=nt_fy, nt_alvl_in=nt_alvl, nt_vlvl_in=nt_vlvl, &
          nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, nt_ipnd_in=nt_ipnd, &
-         nt_aero_in=nt_aero)
+         nt_aero_in=nt_aero, nt_iso_in=nt_iso)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -790,7 +807,7 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero, n_iso
       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
       use icedrv_state, only: aice0, aice, vice, vsno, trcr, aice_init
@@ -805,10 +822,10 @@
          heat_capacity   ! from icepack
 
       integer (kind=int_kind) :: ntrcr
-      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero
+      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_iso
       logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
-      integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero
+      integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, nt_iso
 
       character(len=*), parameter :: subname='(init_state)'
 
@@ -820,6 +837,7 @@
          call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
          call icepack_query_tracer_flags(tr_iage_out=tr_iage, &
             tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
+            tr_iso_out=tr_iso, &
             tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, &
             tr_pond_topo_out=tr_pond_topo)
          call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, &
@@ -827,7 +845,7 @@
             nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, nt_fy_out=nt_fy, &
             nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
             nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
-            nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero)
+            nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, nt_iso_out=nt_iso)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
@@ -905,6 +923,15 @@
             trcr_depend(nt_aero+(it-1)*4+3) = 1 ! ice
          enddo
       endif
+      if (tr_iso) then ! volume-weighted isosols
+         do it = 1, n_iso
+            trcr_depend(nt_iso+(it-1)*4  ) = 2 ! snow
+            trcr_depend(nt_iso+(it-1)*4+1) = 2 ! snow
+            trcr_depend(nt_iso+(it-1)*4+2) = 1 ! ice
+            trcr_depend(nt_iso+(it-1)*4+3) = 1 ! ice
+         enddo
+      endif
+
 
       do it = 1, ntrcr
          ! mask for base quantity on which tracers are carried

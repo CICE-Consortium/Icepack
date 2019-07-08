@@ -41,9 +41,9 @@
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: heat_capacity
 
-      use icepack_tracers, only: tr_pond_topo, tr_aero, tr_brine, ntrcr, nbtrcr
+      use icepack_tracers, only: tr_pond_topo, tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
-      use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero
+      use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, nt_iso
       use icepack_tracers, only: nt_apnd, nt_hpnd
       use icepack_tracers, only: icepack_compute_tracers
                            
@@ -95,6 +95,7 @@
 
       subroutine ridge_ice (dt,          ndtd,       &
                             ncat,        n_aero,     &
+                            n_iso,                   &
                             nilyr,       nslyr,      &
                             ntrcr,       hin_max,    &
                             rdg_conv,    rdg_shear,  &
@@ -110,7 +111,7 @@
                             dvirdgdt,    opening,    &
                             fpond,                   &
                             fresh,       fhocn,      &
-                            faero_ocn,               &
+                            faero_ocn,   fiso_ocn,   &
                             aparticn,    krdgn,      &
                             aredistn,    vredistn,   &
                             dardg1ndt,   dardg2ndt,  &
@@ -124,6 +125,7 @@
          nilyr , & ! number of ice layers
          nslyr , & ! number of snow layers
          n_aero, & ! number of aerosol tracers
+         n_iso,  & ! number of isotope tracers
          ntrcr     ! number of tracers in use
 
       real (kind=dbl_kind), intent(in) :: &
@@ -191,6 +193,9 @@
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          faero_ocn      ! aerosol flux to ocean (kg/m^2/s)
 
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         fiso_ocn      ! isotope flux to ocean (kg/m^2/s)
+
       ! local variables
 
       real (kind=dbl_kind), dimension (ncat) :: &
@@ -220,6 +225,9 @@
 
       real (kind=dbl_kind), dimension (n_aero) :: &
          maero          ! aerosol mass added to ocean (kg m-2)
+
+      real (kind=dbl_kind), dimension (n_iso) :: &
+         miso          ! isotope mass added to ocean (kg m-2)
 
       real (kind=dbl_kind), dimension (0:ncat) :: &
          apartic        ! participation function; fraction of ridging
@@ -270,6 +278,7 @@
       msnow_mlt = c0
       esnow_mlt = c0
       maero (:) = c0
+      miso (:) = c0
       mpond     = c0
       ardg1     = c0
       ardg2     = c0
@@ -394,8 +403,10 @@
                            ardg1n,      ardg2n,      &
                            virdgn,                   &
                            nslyr,       n_aero,      &
+                           n_iso,                    &
                            msnow_mlt,   esnow_mlt,   &
-                           maero,       mpond,       &
+                           maero,       miso,        &
+                           mpond,       &
                            aredistn,    vredistn)    
          if (icepack_warnings_aborted(subname)) return
 
@@ -587,6 +598,11 @@
       if (present(faero_ocn)) then
          do it = 1, n_aero
             faero_ocn(it) = faero_ocn(it) + maero(it)*dti
+         enddo
+      endif
+      if (present(fiso_ocn)) then
+         do it = 1, n_iso
+            fiso_ocn(it) = fiso_ocn(it) + miso(it)*dti
          enddo
       endif
       if (present(fpond)) then
@@ -1074,8 +1090,10 @@
                               ardg1nn,     ardg2nn,         &
                               virdgnn,                      &
                               nslyr,       n_aero,          &
+                              n_iso,                        &
                               msnow_mlt,   esnow_mlt,       &
-                              maero,       mpond,           &
+                              maero,       miso,            &
+                              mpond,           &
                               aredistn,    vredistn)
 
       integer (kind=int_kind), intent(in) :: & 
@@ -1083,6 +1101,7 @@
          nslyr , & ! number of snow layers
          ntrcr , & ! number of tracers in use
          n_aero, & ! number of aerosol tracers
+         n_iso, & ! number of isotope tracers
          krdg_redist      ! selects redistribution function
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1146,6 +1165,9 @@
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          maero          ! aerosol mass added to ocean (kg m-2)
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         miso          ! isotope mass added to ocean (kg m-2)
 
       real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          aredistn   , & ! redistribution function: fraction of new ridge area
@@ -1359,6 +1381,15 @@
                             + vsrdgn*(c1-fsnowrdg) &
                             *(trcrn(nt_aero  +4*(it-1),n)   &
                             + trcrn(nt_aero+1+4*(it-1),n))
+               enddo
+            endif
+
+            if (tr_iso) then
+               do it = 1, n_iso
+                  miso(it) = miso(it) &
+                            + vsrdgn*(c1-fsnowrdg) &
+                            *(trcrn(nt_iso  +4*(it-1),n)   &
+                            + trcrn(nt_iso+1+4*(it-1),n))
                enddo
             endif
 
@@ -1709,8 +1740,8 @@
                                     dvirdgdt,     opening,       &
                                     fpond,                       &
                                     fresh,        fhocn,         &
-                                    n_aero,                      &
-                                    faero_ocn,                   &
+                                    n_aero,       n_iso,         &
+                                    faero_ocn,    fiso_ocn,      &
                                     aparticn,     krdgn,         &
                                     aredistn,     vredistn,      &
                                     dardg1ndt,    dardg2ndt,     &
@@ -1729,7 +1760,8 @@
          nblyr , & ! number of bio layers
          nilyr , & ! number of ice layers
          nslyr , & ! number of snow layers
-         n_aero    ! number of aerosol tracers
+         n_aero, & ! number of aerosol tracers
+         n_iso     ! number of isotope tracers
 
       real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
          hin_max   ! category limits (m)
@@ -1777,6 +1809,7 @@
          aredistn , & ! redistribution function: fraction of new ridge area
          vredistn , & ! redistribution function: fraction of new ridge volume
          faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
+         fiso_ocn , & ! isotope flux to ocean  (kg/m^2/s)
          flux_bio     ! all bio fluxes to ocean
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
@@ -1809,6 +1842,7 @@
 
          call ridge_ice (dt,           ndtd,           &
                          ncat,         n_aero,         &
+                         n_iso,                        &
                          nilyr,        nslyr,          &
                          ntrcr,        hin_max,        &
                          rdg_conv,     rdg_shear,      &
@@ -1826,7 +1860,7 @@
                          dvirdgdt,     opening,        &
                          fpond,                        &
                          fresh,        fhocn,          &
-                         faero_ocn,                    &
+                         faero_ocn,    fiso_ocn,       &
                          aparticn,     krdgn,          &
                          aredistn,     vredistn,       &
                          dardg1ndt,    dardg2ndt,      &
@@ -1838,6 +1872,7 @@
 
          call ridge_ice (dt,           ndtd,           &
                          ncat,         n_aero,         &
+                         n_iso,                        &
                          nilyr,        nslyr,          &
                          ntrcr,        hin_max,        &
                          rdg_conv,     rdg_shear,      &
@@ -1855,7 +1890,7 @@
                          dvirdgdt,     opening,        &
                          fpond,                        &
                          fresh,        fhocn,          &
-                         faero_ocn,                    &
+                         faero_ocn,    fiso_ocn,       &
                          aparticn,     krdgn,          &
                          aredistn,     vredistn,       &
                          dardg1ndt,    dardg2ndt,      &
@@ -1878,16 +1913,17 @@
                         aicen,                trcrn,            &
                         vicen,                vsnon,            &
                         aice0,                aice,             &          
-                        n_aero,                                 &
+                        n_aero,               n_iso,            &
                         nbtrcr,               nblyr,            &
-                        tr_aero,                                &
+                        tr_aero,              tr_iso,           &
                         tr_pond_topo,         heat_capacity,    &  
                         first_ice,                              &                
                         trcr_depend,          trcr_base,        &
                         n_trcr_strata,        nt_strata,        &
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
-                        faero_ocn,            fzsal,            &
+                        faero_ocn,            fiso_ocn,         &
+                        fzsal,            &
                         flux_bio)
       if (icepack_warnings_aborted(subname)) return
 

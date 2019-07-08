@@ -48,6 +48,7 @@
          skl_bgc, &    ! from icepack
          z_tracers, &  ! from icepack
          tr_aero, &    ! from icepack
+         tr_iso, &    ! from icepack
          tr_zaero      ! from icepack
 
       character(len=*), parameter :: subname='(icedrv_initialize)'
@@ -97,6 +98,7 @@
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
+      call icepack_query_tracer_flags(tr_iso_out=tr_iso)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

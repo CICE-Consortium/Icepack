@@ -28,7 +28,7 @@
       use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd
       use icepack_parameters, only: phi_i_mushy
 
-      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond
+      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_iso, tr_pond
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
 
       use icepack_therm_shared, only: ferrmax, l_brine
@@ -46,6 +46,7 @@
       use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
 
       use icepack_aerosol, only: update_aerosol
+      use icepack_isotope, only: update_isotope
       use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
       use icepack_age, only: increment_age
       use icepack_firstyear, only: update_FYarea
@@ -2015,7 +2016,7 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, &
+      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, n_iso, &
                                     aicen_init  ,               &
                                     vicen_init  , vsnon_init  , &
                                     aice        , aicen       , &
@@ -2029,6 +2030,7 @@
                                     ipnd        ,               &
                                     iage        , FY          , &
                                     aerosno     , aeroice     , &
+                                    isosno     , isoice     , &
                                     uatm        , vatm        , &
                                     wind        , zlvl        , &
                                     Qa          , rhoa        , &
@@ -2071,6 +2073,7 @@
                                     flatn_f     , fsensn_f    , &
                                     fsurfn_f    , fcondtopn_f , &
                                     faero_atm   , faero_ocn   , &
+                                    fiso_atm   , fiso_ocn   , &
                                     dhsn        , ffracn      , &
                                     meltt       , melttn      , &
                                     meltb       , meltbn      , &
@@ -2086,7 +2089,8 @@
          ncat    , & ! number of thickness categories
          nilyr   , & ! number of ice layers
          nslyr   , & ! number of snow layers
-         n_aero      ! number of aerosol tracers in use
+         n_aero  , & ! number of aerosol tracers in use
+         n_iso      ! number of isotope tracers in use
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2203,6 +2207,8 @@
          fswintn     , & ! SW absorbed in ice interior, below surface (W m-2)
          faero_atm   , & ! aerosol deposition rate (kg/m^2 s)
          faero_ocn   , & ! aerosol flux to ocean  (kg/m^2/s)
+         fiso_atm   , & ! isotope deposition rate (kg/m^2 s)
+         fiso_ocn   , & ! isotope flux to ocean  (kg/m^2/s)
          dhsn        , & ! depth difference for snow on sea ice and pond ice
          ffracn      , & ! fraction of fsurfn used to melt ipond
          meltsn      , & ! snow melt                       (m)
@@ -2222,6 +2228,10 @@
       real (kind=dbl_kind), dimension(:,:,:), intent(inout) :: &
          aerosno    , &  ! snow aerosol tracer (kg/m^2)
          aeroice         ! ice aerosol tracer (kg/m^2)
+
+      real (kind=dbl_kind), dimension(:,:,:), intent(inout) :: &
+         isosno    , &  ! snow isotope tracer (kg/m^2)
+         isoice         ! ice isotope tracer (kg/m^2)
 
       ! local variables
 
@@ -2453,6 +2463,24 @@
                if (icepack_warnings_aborted(subname)) return
             endif
 
+            if (tr_iso) then
+               call update_isotope (dt, &
+                                    melttn(n),     meltsn(n),     &
+                                    meltbn(n),     congeln(n),    &
+                                    snoicen(n),    evapn,         & 
+                                    fsnow, &
+                                    Qrefn_iso(:),  trcrn(:,n),    &
+                                    aicen_init(n), vicen_init(n), &
+                                    vsnon_init,                   &
+                                    vicen(n),      vsnon(n),      &
+                                    aicen(n),                     &
+                                    fiso_atm(:),                  &
+                                    fiso_evapn(:),                &
+                                    fiso_ocnn(:),                 &
+                                    HDO_ocn,       H2_16O_ocn,    &
+                                    H2_18O_ocn)
+
+            endif
          endif   ! aicen_init
 
       !-----------------------------------------------------------------

@@ -19,6 +19,7 @@
         nilyr     = NICELYR   , & ! number of ice layers per category
         nslyr     = NSNWLYR   , & ! number of snow layers per category
         n_aero    = NTRAERO   , & ! number of aerosols in use
+        n_iso     = NTRISO    , & ! number of isotopes in use
         n_zaero   = TRZAERO   , & ! number of z aerosols in use 
         n_algae   = TRALG     , & ! number of algae in use 
         n_doc     = TRDOC     , & ! number of DOC pools in use
@@ -45,6 +46,7 @@
                   + TRLVL*2     & ! level/deformed ice
                   + TRPND*3     & ! ponds
                   + n_aero*4    & ! number of aerosols * 4 aero layers
+                  + n_iso*4    & ! number of isotopes * 4 isotope layers
                   + TRBRI       & ! brine height 
                   + TRBGCS*n_bgc           & ! skeletal layer BGC 
                   + TRZS  *TRBRI* nblyr    & ! zsalinity  (off if TRBRI=0)
