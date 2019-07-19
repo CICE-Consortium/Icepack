@@ -490,6 +490,11 @@
       sst    (:) = -1.8_dbl_kind   ! sea surface temperature (C)
       sstdat (:) = sst(:)          ! sea surface temperature (C)
 
+      ! water isotopes from ocean
+      HDO_ocn(:) = c0
+      H2_16O_ocn(:) = c0
+      H2_18O_ocn(:) = c0
+
       do i = 1, nx
          Tf (i) = icepack_liquidus_temperature(sss(i)) ! freezing temp (C)
       enddo

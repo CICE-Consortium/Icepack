@@ -19,7 +19,6 @@
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing, sstdat
-      use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
 
       implicit none
       private
@@ -455,11 +454,6 @@
         closing(:) = -(c1intp * clos_data(mlast) + c2intp * clos_data(mnext))
 
       endif
-
-      ! water isotopes
-      HDO_ocn(:) = c0
-      H2_16O_ocn(:) = c0
-      H2_18O_ocn(:) = c0
 
       end subroutine get_forcing
 

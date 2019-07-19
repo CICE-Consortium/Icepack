@@ -28,6 +28,7 @@
     tr_pond_topo = .false.
     tr_pond_lvl  = .true.
     tr_aero      = .false.
+    tr_iso       = .false.
 /
 
 &thermo_nml
