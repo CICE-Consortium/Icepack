@@ -43,6 +43,7 @@
       use icepack_itd, only: reduce_area, cleanup_itd
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
+      use icepack_isotope, only: isoice_alpha, frac
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
       use icepack_therm_shared, only: hfrazilmin
       use icepack_therm_shared, only: hi_min
@@ -1059,7 +1060,10 @@
                               bgrid,      cgrid,      igrid,    &
                               nbtrcr,    flux_bio,   &
                               ocean_bio, fzsal,      &
-                              frazil_diag            )
+                              frazil_diag,           &
+                              fiso_ocn,              &
+                              HDO_ocn, H2_16O_ocn,   &
+                              H2_18O_ocn )
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1136,6 +1140,16 @@
       real (kind=dbl_kind),  intent(inout) :: &  
          fzsal      ! salt flux to ocean from zsalinity (kg/m^2/s)
 
+      ! water isotopes
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
+
+      real (kind=dbl_kind), intent(in) :: &
+         HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
+         H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
+         H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
+
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -1164,6 +1178,8 @@
          vice1        , & ! starting volume of existing ice
          vice_init, vice_final, & ! ice volume summed over categories
          eice_init, eice_final    ! ice energy summed over categories
+
+      real (kind=dbl_kind) :: frazil_conc
 
       real (kind=dbl_kind), dimension (nilyr) :: &
          Sprofile         ! salinity profile used for new ice additions
@@ -1472,13 +1488,13 @@
                                 *H2_18O_ocn
 
                 trcrn(nt_iso+2+4*(it-1),1) = &
-                  (trcrn(nt_iso+2+4*(it-1),1)*vice1(ij))/vicen(1)
+                  (trcrn(nt_iso+2+4*(it-1),1)*vice1)/vicen(1)
                 trcrn(nt_iso+3+4*(it-1),1) = &
-                  (trcrn(nt_iso+3+4*(it-1),1)*vice1(ij) &
-                  +frazil_conc*rhoi*vi0new(m))/vicen(1)
+                  (trcrn(nt_iso+3+4*(it-1),1)*vice1) &
+                  +frazil_conc*rhoi*vi0new/vicen(1)
 
                 fiso_ocn(it) = fiso_ocn(it) &
-                  - frazil_conc*rhoi*vi0new(m)/dt
+                  - frazil_conc*rhoi*vi0new/dt
               enddo
            endif
 
@@ -1588,11 +1604,12 @@
                                      fhocn,        update_ocn_f,  &
                                      bgrid,        cgrid,         &
                                      igrid,        faero_ocn,     &
-                                     fiso_ocn,                    &
                                      first_ice,    fzsal,         &
                                      flux_bio,     ocean_bio,     &
                                      frazil_diag,                 &
-                                     frz_onset,    yday)
+                                     frz_onset,    yday,          &
+                                     fiso_ocn,     HDO_ocn,       &
+                                     H2_16O_ocn,   H2_18O_ocn)
 
       integer (kind=int_kind), intent(in) :: &
          ncat     , & ! number of thickness categories
@@ -1660,7 +1677,6 @@
          vicen    , & ! volume per unit area of ice          (m)
          vsnon    , & ! volume per unit area of snow         (m)
          faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
-         fiso_ocn, & ! isotope flux to ocean  (kg/m^2/s)
          flux_bio     ! all bio fluxes to ocean
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
@@ -1674,6 +1690,15 @@
 
       real (kind=dbl_kind), intent(in), optional :: &
          yday         ! day of year
+
+      ! water isotopes
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
+
+      real (kind=dbl_kind), intent(in) :: &
+         HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
+         H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
+         H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
 
       character(len=*),parameter :: subname='(icepack_step_therm2)'
 
@@ -1752,7 +1777,10 @@
                            cgrid,         igrid,        &
                            nbtrcr,        flux_bio,     &
                            ocean_bio,     fzsal,        &
-                           frazil_diag                  )
+                           frazil_diag,   fiso_ocn,     &
+                           HDO_ocn,       H2_16O_ocn,   &
+                           H2_18O_ocn)
+
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------

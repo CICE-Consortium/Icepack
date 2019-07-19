@@ -39,6 +39,7 @@
          nmodal1    =   10      , & ! dimension for modal aerosol radiation parameters
          nmodal2    =   8       , & ! dimension for modal aerosol radiation parameters
          max_aero   =   6       , & ! maximum number of aerosols
+         max_iso    =   3       , & ! maximum number of isotopes
          max_nbtrcr = max_algae*2 & ! algal nitrogen and chlorophyll
                     + max_dic     & ! dissolved inorganic carbon
                     + max_doc     & ! dissolved organic carbon

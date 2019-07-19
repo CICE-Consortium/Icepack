@@ -23,6 +23,7 @@
 ! !USES:
 !
       use icepack_kinds
+      use icepack_parameters, only: c0, c1, c2, p001, p1, p5, puny
 !
 !EOP
 !
@@ -33,6 +34,15 @@
                           !  cfrac, constant fractionation
                           !  nfrac, nonfractionation
                           !  gfrac, growth-rate dependent for H2_18O
+
+      ! Species indicies - public so thay can be seen by water_tracers
+      integer, parameter, public  :: ispundef = 0    ! Undefined
+      integer, parameter, public  :: isph2o   = 1    ! H2O    ! "regular" water
+      integer, parameter, public  :: isph216o = 2    ! H216O  ! H216O, nearly the same as "regular" water
+      integer, parameter, public  :: isphdo   = 3    ! HDO
+      integer, parameter, public  :: isph218o = 4    ! H218O
+
+      integer, parameter, public  :: pwtspec = 4    ! number of water species (h2o,hdo,h218o,h216o)
 
 !=======================================================================
 
@@ -54,6 +64,7 @@
 !
       subroutine update_isotope (dt,                  &
                                 nilyr,    nslyr,      &
+                                n_iso,    ntrcr,      &
                                 meltt,    melts,      &
                                 meltb,    congel,     &
                                 snoice,   evap,       &
@@ -70,14 +81,13 @@
 ! !USES:
 !
 !     use water_isotopes, only: wiso_alpi
-      use icepack_parameters, only: c0, c1, c2, p001, p1, p5, puny
       use icepack_parameters, only: ktherm, rhoi, rhos, Tffresh
       use icepack_tracers, only: nt_iso, nt_Tsfc
 !
 ! !INPUT/OUTPUT PARAMETERS:
 !
       integer (kind=int_kind), intent(in) :: &
-         nilyr, nslyr
+         nilyr, nslyr, n_iso, ntrcr
 
       real (kind=dbl_kind), intent(in) :: &
          dt                     ! time step
@@ -697,15 +707,20 @@
 !=======================================================================
       function wiso_alpi(isp,tk)
 
-      use icepack_parameters, only: c1
-
 !-----------------------------------------------------------------------
 ! Purpose: return ice/vapour fractionation from loop-up tables
 ! Author:  David Noone <dcn@caltech.edu> - Tue Jul  1 12:02:24 MDT 2003
 !-----------------------------------------------------------------------
       integer , intent(in)        :: isp  ! species indes
-      real(dbl_kind), intent(in)        :: tk   ! temperature (k)
-      real(dbl_kind) :: wiso_alpi               ! return fractionation
+      real(kind=dbl_kind), intent(in)        :: tk   ! temperature (k)
+      real(kind=dbl_kind) :: wiso_alpi               ! return fractionation
+
+!From Merlivat & Nief,1967 for HDO, and Majoube, 1971b for H218O:
+      real(kind=dbl_kind), parameter, dimension(pwtspec) :: &  ! ice/vapour
+         alpai = (/ 0._dbl_kind, 0._dbl_kind, 16289._dbl_kind,   0._dbl_kind         /), &
+         alpbi = (/ 0._dbl_kind, 0._dbl_kind, 0._dbl_kind,       11.839_dbl_kind     /), &
+         alpci = (/ 0._dbl_kind, 0._dbl_kind, -9.45e-2_dbl_kind, -28.224e-3_dbl_kind /)
+
 !-----------------------------------------------------------------------
       if (isp == isph2o) then
         wiso_alpi = c1

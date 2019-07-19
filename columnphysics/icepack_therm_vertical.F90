@@ -74,7 +74,7 @@
 ! authors: William H. Lipscomb, LANL
 !          C. M. Bitz, UW
 
-      subroutine thermo_vertical (nilyr,       nslyr,     &
+      subroutine thermo_vertical (nilyr, nslyr, ntrcr,    &
                                   dt,          aicen,     &
                                   vicen,       vsnon,     &
                                   Tsf,         zSin,      &
@@ -104,7 +104,8 @@
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
-         nslyr       ! number of snow layers
+         nslyr   , & ! number of snow layers
+         ntrcr       ! number of tracers in use
 
       real (kind=dbl_kind), intent(in) :: &
          dt          ! time step
@@ -2016,12 +2017,13 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, n_iso, &
+      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, ntrcr, n_aero, n_iso, &
                                     aicen_init  ,               &
                                     vicen_init  , vsnon_init  , &
                                     aice        , aicen       , &
                                     vice        , vicen       , &
                                     vsno        , vsnon       , &
+                                    trcrn       ,               &
                                     uvel        , vvel        , &
                                     Tsfc        , zqsn        , &
                                     zqin        , zSin        , &
@@ -2034,8 +2036,10 @@
                                     uatm        , vatm        , &
                                     wind        , zlvl        , &
                                     Qa          , rhoa        , &
+                                    Qa_iso      , &
                                     Tair        , Tref        , &
                                     Qref        , Uref        , &
+                                    Qref_iso    , &
                                     Cdn_atm_ratio,              &
                                     Cdn_ocn     , Cdn_ocn_skin, &
                                     Cdn_ocn_floe, Cdn_ocn_keel, &
@@ -2073,7 +2077,10 @@
                                     flatn_f     , fsensn_f    , &
                                     fsurfn_f    , fcondtopn_f , &
                                     faero_atm   , faero_ocn   , &
-                                    fiso_atm   , fiso_ocn   , &
+                                    fiso_atm    , fiso_ocn    , &
+                                    fiso_evap   , &
+                                    HDO_ocn     , H2_16O_ocn  , &
+                                    H2_18O_ocn  ,  &
                                     dhsn        , ffracn      , &
                                     meltt       , melttn      , &
                                     meltb       , meltbn      , &
@@ -2089,6 +2096,7 @@
          ncat    , & ! number of thickness categories
          nilyr   , & ! number of ice layers
          nslyr   , & ! number of snow layers
+         ntrcr   , & ! number of tracers in use
          n_aero  , & ! number of aerosol tracers in use
          n_iso      ! number of isotope tracers in use
 
@@ -2178,6 +2186,18 @@
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
+      real (kind=dbl_kind), dimension(n_iso), intent(inout) :: &
+         Qa_iso      , & ! isotope specific humidity (kg/kg)
+         Qref_iso    , & ! isotope 2m atm reference spec humidity (kg/kg)
+         fiso_atm   , & ! isotope deposition rate (kg/m^2 s)
+         fiso_ocn   , & ! isotope flux to ocean  (kg/m^2/s)
+         fiso_evap      ! isotope evaporation (kg/m^2/s)
+
+      real (kind=dbl_kind), intent(in) :: &
+         HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
+         H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
+         H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
+
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          aicen_init  , & ! fractional area of ice
          vicen_init  , & ! volume per unit area of ice (m)
@@ -2207,8 +2227,6 @@
          fswintn     , & ! SW absorbed in ice interior, below surface (W m-2)
          faero_atm   , & ! aerosol deposition rate (kg/m^2 s)
          faero_ocn   , & ! aerosol flux to ocean  (kg/m^2/s)
-         fiso_atm   , & ! isotope deposition rate (kg/m^2 s)
-         fiso_ocn   , & ! isotope flux to ocean  (kg/m^2/s)
          dhsn        , & ! depth difference for snow on sea ice and pond ice
          ffracn      , & ! fraction of fsurfn used to melt ipond
          meltsn      , & ! snow melt                       (m)
@@ -2217,6 +2235,9 @@
          congeln     , & ! congelation ice growth          (m)
          snoicen     , & ! snow-ice growth                 (m)
          dsnown          ! change in snow thickness (m/step-->cm/day)
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+         trcrn 
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy (J m-3)
@@ -2260,6 +2281,11 @@
          shcoef      , & ! transfer coefficient for sensible heat
          lhcoef      , & ! transfer coefficient for latent heat
          rfrac           ! water fraction retained for melt ponds
+
+      real (kind=dbl_kind), dimension(n_iso) :: &
+         Qrefn_iso  , & ! isotope air sp hum reference level         (kg/kg)
+         fiso_ocnn  , & ! isotope flux to ocean  (kg/m^2/s)
+         fiso_evapn     ! isotope evaporation (kg/m^2/s)
 
       real (kind=dbl_kind) :: &
          pond            ! water retained in ponds (m)
@@ -2320,6 +2346,9 @@
 
          Trefn  = c0
          Qrefn  = c0
+         Qrefn_iso(:) = c0
+         fiso_ocnn(:) = c0
+         fiso_evapn(:) = c0
          Urefn  = c0
          lhcoef = c0
          shcoef = c0
@@ -2350,6 +2379,8 @@
                                         lhcoef,   shcoef,        &
                                         Cdn_atm,                 &
                                         Cdn_atm_ratio_n,         &
+                                        n_iso,                   &
+                                        Qa_iso(:),   Qrefn_iso(:),  &
                                         uvel,     vvel,          &
                                         Uref=Urefn)
                if (icepack_warnings_aborted(subname)) return
@@ -2404,7 +2435,7 @@
                if (icepack_warnings_aborted(subname)) return
             endif
 
-            call thermo_vertical(nilyr,        nslyr,        &
+            call thermo_vertical(nilyr, nslyr, ntrcr,        &
                                  dt,           aicen    (n), &
                                  vicen    (n), vsnon    (n), &
                                  Tsfc     (n), zSin   (:,n), &
@@ -2465,13 +2496,15 @@
 
             if (tr_iso) then
                call update_isotope (dt, &
+                                    nilyr, nslyr, n_iso, ntrcr,   &
                                     melttn(n),     meltsn(n),     &
                                     meltbn(n),     congeln(n),    &
                                     snoicen(n),    evapn,         & 
-                                    fsnow, &
-                                    Qrefn_iso(:),  trcrn(:,n),    &
+                                    fsnow,         trcrn(:,n),    &
+                                    Qrefn_iso(:),                 &
+                                    isosno(:,:,n), isoice(:,:,n), &
                                     aicen_init(n), vicen_init(n), &
-                                    vsnon_init,                   &
+                                    vsnon_init(n),                &
                                     vicen(n),      vsnon(n),      &
                                     aicen(n),                     &
                                     fiso_atm(:),                  &
@@ -2582,7 +2615,11 @@
                                meltt,      melts,        &
                                meltb,      congel,       &
                                snoice,                   &
-                               Uref,       Urefn)
+                               Uref,       Urefn,        &
+                               Qref_iso(:),Qrefn_iso(:), &
+                               fiso_ocn(:),fiso_ocnn(:), &
+                               fiso_evap(:),fiso_evapn(:))
+
          if (icepack_warnings_aborted(subname)) return
 
       enddo                  ! ncat

@@ -129,8 +129,11 @@
          qdp     , & ! deep ocean heat flux (W/m^2), negative upward
          hmix        ! mixed layer depth (m)
 
-       ! out to atmosphere (if calc_Tsfc)
-       ! note Tsfc is in ice_state.F
+      ! water isotopes
+      real (kind=dbl_kind), dimension (nx), public :: &
+         HDO_ocn    , & ! seawater concentration of HDO (kg/kg)
+         H2_16O_ocn , & ! seawater concentration of H2_16O (kg/kg)
+         H2_18O_ocn     ! seawater concentration of H2_18O (kg/kg)
 
       real (kind=dbl_kind), dimension (nx), public :: &
          fsens   , & ! sensible heat flux (W/m^2)
@@ -291,7 +294,8 @@
 
       real (kind=dbl_kind), &   !coupling variable for tr_iso
          dimension (nx,icepack_max_iso), public :: &
-         fiso_atm   ! aerosol deposition rate (kg/m^2 s)   
+         fiso_atm  , & ! isotope deposition rate (kg/m^2 s)   
+         fiso_evap     ! isotope evaporation rate (kg/m^2 s)   
 
       real (kind=dbl_kind), &
          dimension (nx,icepack_max_nbtrcr), public :: &
