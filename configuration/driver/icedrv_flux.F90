@@ -476,6 +476,7 @@
 
       faero_atm    (:,:) = c0        ! aerosol deposition rate (kg/m2/s)
       fiso_atm    (:,:) = c0        ! isotope deposition rate (kg/m2/s)
+      fiso_evap   (:,:) = c0        ! isotope evaporation rate (kg/m2/s)
       flux_bio_atm (:,:) = c0        ! zaero and bio deposition rate (kg/m2/s)
 
       !-----------------------------------------------------------------
