@@ -74,7 +74,7 @@
 ! authors: William H. Lipscomb, LANL
 !          C. M. Bitz, UW
 
-      subroutine thermo_vertical (nilyr, nslyr, ntrcr,    &
+      subroutine thermo_vertical (nilyr,       nslyr,     &
                                   dt,          aicen,     &
                                   vicen,       vsnon,     &
                                   Tsf,         zSin,      &
@@ -104,8 +104,7 @@
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
-         nslyr   , & ! number of snow layers
-         ntrcr       ! number of tracers in use
+         nslyr       ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt          ! time step
@@ -2435,7 +2434,7 @@
                if (icepack_warnings_aborted(subname)) return
             endif
 
-            call thermo_vertical(nilyr, nslyr, ntrcr,        &
+            call thermo_vertical(nilyr,        nslyr,        &
                                  dt,           aicen    (n), &
                                  vicen    (n), vsnon    (n), &
                                  Tsfc     (n), zSin   (:,n), &

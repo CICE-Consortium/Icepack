@@ -1808,9 +1808,13 @@
          vraftn   , & ! rafting ice volume 
          aredistn , & ! redistribution function: fraction of new ridge area
          vredistn , & ! redistribution function: fraction of new ridge volume
-         faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
-         fiso_ocn , & ! isotope flux to ocean  (kg/m^2/s)
          flux_bio     ! all bio fluxes to ocean
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         faero_ocn    ! aerosol flux to ocean  (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         fiso_ocn     ! isotope flux to ocean  (kg/m^2/s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          trcrn        ! tracers
