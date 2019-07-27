@@ -226,11 +226,11 @@ while (1)
   else
     shift argv
     if ( $#argv < 1 ) then
-      echo "${0}: ERROR1 in $option"
+      echo "${0}: ERROR in $option, unsupported or missing an argument"
       exit -1
     endif
-    if ($argv[1] =~ $dash* ) then
-      echo "${0}: ERROR2 in $option"
+    if ("$argv[1]" =~ "$dash*" ) then
+      echo "${0}: ERROR in $option, possibly missing an argument"
       exit -1
     endif
 
