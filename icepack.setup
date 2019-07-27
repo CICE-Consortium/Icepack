@@ -316,7 +316,7 @@ if (${dosuite} == 0) then
     exit -1
   endif
   if ($codecov == 1) then
-    echo "${0}: ERROR in arguments, must use --suite with --coverage"
+    echo "${0}: ERROR in arguments, must use --suite with --codecov"
     exit -1
   endif
   if ("$compilers" =~ "*,*") then
