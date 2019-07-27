@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/CICE-Consortium/Icepack.svg?branch=master)](https://travis-ci.org/CICE-Consortium/Icepack)
 [![Documentation Status](https://readthedocs.org/projects/cice-consortium-icepack/badge/?version=master)](http://cice-consortium-icepack.readthedocs.io/en/master/?badge=master)
+[![codecov.io](http://codecov.io/github/CICE-Consortium/Icepack/coverage.svg?branch=master)](http://codecov.io/github/CICE-Consortium/Icepack?branch=master)
 
 ## Overview
 This repository contains files for Icepack, the column physics of the sea ice model CICE. Icepack is maintained by the CICE Consortium.  For testing purposes and guidance for including Icepack in other sea ice host models, this repository also includes a driver and basic test suite.   

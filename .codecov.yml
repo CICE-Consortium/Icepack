@@ -1,0 +1,2 @@
+# do not comment with code coverage metrics in github pull requests
+comment: false
