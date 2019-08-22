@@ -1,0 +1,26 @@
+#==============================================================================
+# Makefile macros for NCAR cheyenne, intel compiler
+#==============================================================================
+
+CPP        := fpp
+CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
+CFLAGS     := -qno-opt-dynamic-align -fp-model precise -std=gnu99
+
+FIXEDFLAGS := -fixed -132
+FREEFLAGS  := -free
+FFLAGS     := -qno-opt-dynamic-align  -convert big_endian -assume byterecl -ftz -traceback -assume realloc_lhs -fp-model source -lifcore 
+FFLAGS_NOOPT:= -O0
+FC_AUTO_R8 := -r8
+
+ifeq ($(ICE_BLDDEBUG), true)
+  FFLAGS     += -O0 -g -check uninit -check bounds -check pointers -fpe0 -check noarg_temp_created
+else
+  FFLAGS     += -O2 -debug minimal
+endif
+
+SCC := icc
+SFC := ifort
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
+
