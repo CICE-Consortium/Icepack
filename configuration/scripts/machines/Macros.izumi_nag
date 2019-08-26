@@ -1,5 +1,5 @@
 #==============================================================================
-# Makefile macros for NCAR cheyenne, nag compiler
+# Makefile macros for NCAR izumi, nag compiler
 #==============================================================================
 
 CPP        := /usr/bin/cpp
@@ -11,7 +11,6 @@ FIXEDFLAGS := -fixed
 FREEFLAGS  := -free
 FFLAGS     := -Wp,-macro=no_com -convert=BIG_ENDIAN
 FFLAGS_NOOPT:= -Wp,-macro=no_com -convert=BIG_ENDIAN
-FC_AUTO_R8 := -r8
 
 ifeq ($(ICE_BLDDEBUG), true)
   FFLAGS   += -C=all -g -gline -time -f2003 -ieee=stop
@@ -25,5 +24,9 @@ CC := $(SCC)
 FC := $(SFC)
 LD := $(FC)
 
-SLIBS   := -L$(COMPILER_PATH)/lib/NAG_Fortran
+ifeq ($(ICE_THREADED), true) 
+   LDFLAGS += -openmp
+   CFLAGS += -openmp
+   FFLAGS += -openmp
+endif
 
