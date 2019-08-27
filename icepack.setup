@@ -1,6 +1,6 @@
 #!/bin/csh -f
 
-#tcraig test1
+#tcraig test2
 set ICE_SANDBOX = `pwd`
 set ICE_VERSION = unknown
 if (-e columnphysics/version.txt) then
