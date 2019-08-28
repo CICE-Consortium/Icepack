@@ -1,5 +1,5 @@
 #==============================================================================
-# Makefile macros for NCAR cheyenne, intel compiler
+# Makefile macros for NCAR izumi, intel compiler
 #==============================================================================
 
 CPP        := fpp
@@ -10,7 +10,6 @@ FIXEDFLAGS := -fixed -132
 FREEFLAGS  := -free
 FFLAGS     := -qno-opt-dynamic-align  -convert big_endian -assume byterecl -ftz -traceback -assume realloc_lhs -fp-model source -lifcore 
 FFLAGS_NOOPT:= -O0
-FC_AUTO_R8 := -r8
 
 ifeq ($(ICE_BLDDEBUG), true)
   FFLAGS     += -O0 -g -check uninit -check bounds -check pointers -fpe0 -check noarg_temp_created
@@ -23,4 +22,10 @@ SFC := ifort
 CC := $(SCC)
 FC := $(SFC)
 LD := $(FC)
+
+ifeq ($(ICE_THREADED), true) 
+   LDFLAGS += -qopenmp
+   CFLAGS += -qopenmp
+   FFLAGS += -qopenmp
+endif
 
