@@ -2016,13 +2016,12 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, ntrcr, n_aero, n_iso, &
+      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, n_iso, &
                                     aicen_init  ,               &
                                     vicen_init  , vsnon_init  , &
                                     aice        , aicen       , &
                                     vice        , vicen       , &
                                     vsno        , vsnon       , &
-                                    trcrn       ,               &
                                     uvel        , vvel        , &
                                     Tsfc        , zqsn        , &
                                     zqin        , zSin        , &
@@ -2031,7 +2030,7 @@
                                     ipnd        ,               &
                                     iage        , FY          , &
                                     aerosno     , aeroice     , &
-                                    isosno     , isoice     , &
+                                    isosno      , isoice      , &
                                     uatm        , vatm        , &
                                     wind        , zlvl        , &
                                     Qa          , rhoa        , &
@@ -2095,7 +2094,6 @@
          ncat    , & ! number of thickness categories
          nilyr   , & ! number of ice layers
          nslyr   , & ! number of snow layers
-         ntrcr   , & ! number of tracers in use
          n_aero  , & ! number of aerosol tracers in use
          n_iso      ! number of isotope tracers in use
 
@@ -2234,9 +2232,6 @@
          congeln     , & ! congelation ice growth          (m)
          snoicen     , & ! snow-ice growth                 (m)
          dsnown          ! change in snow thickness (m/step-->cm/day)
-
-      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
-         trcrn 
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy (J m-3)
@@ -2378,9 +2373,9 @@
                                         lhcoef,   shcoef,        &
                                         Cdn_atm,                 &
                                         Cdn_atm_ratio_n,         &
-                                        n_iso,                   &
-                                        Qa_iso(:),   Qrefn_iso(:),  &
-                                        uvel,     vvel,          &
+                                        n_iso=n_iso, tr_iso=tr_iso, &
+                                        Qa_iso=Qa_iso(:), Qref_iso=Qrefn_iso(:), &
+                                        uvel=uvel, vvel=vvel,    &
                                         Uref=Urefn)
                if (icepack_warnings_aborted(subname)) return
 
@@ -2495,11 +2490,11 @@
 
             if (tr_iso) then
                call update_isotope (dt, &
-                                    nilyr, nslyr, n_iso, ntrcr,   &
+                                    nilyr, nslyr, n_iso, &
                                     melttn(n),     meltsn(n),     &
                                     meltbn(n),     congeln(n),    &
                                     snoicen(n),    evapn,         & 
-                                    fsnow,         trcrn(:,n),    &
+                                    fsnow,         Tsfc(n),       &
                                     Qrefn_iso(:),                 &
                                     isosno(:,:,n), isoice(:,:,n), &
                                     aicen_init(n), vicen_init(n), &

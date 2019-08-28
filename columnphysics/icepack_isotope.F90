@@ -64,11 +64,11 @@
 !
       subroutine update_isotope (dt,                  &
                                 nilyr,    nslyr,      &
-                                n_iso,    ntrcr,      &
+                                n_iso,                &
                                 meltt,    melts,      &
                                 meltb,    congel,     &
                                 snoice,   evap,       &
-                                fsnow,    trcrn,      &
+                                fsnow,    Tsfc,      &
                                 Qref_iso,             &
                                 isosno, isoice,       &
                                 aice_old,             &
@@ -82,17 +82,18 @@
 !
 !     use water_isotopes, only: wiso_alpi
       use icepack_parameters, only: ktherm, rhoi, rhos, Tffresh
-      use icepack_tracers, only: nt_iso, nt_Tsfc
+      use icepack_tracers, only: nt_iso
 !
 ! !INPUT/OUTPUT PARAMETERS:
 !
       integer (kind=int_kind), intent(in) :: &
-         nilyr, nslyr, n_iso, ntrcr
+         nilyr, nslyr, n_iso
 
       real (kind=dbl_kind), intent(in) :: &
          dt                     ! time step
 
       real (kind=dbl_kind), intent(in) :: &
+         Tsfc,     &
          meltt,    &
          melts,    &
          meltb,    &
@@ -120,10 +121,6 @@
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          isosno, isoice         ! mass of isotopes  (kg)
-
-      real (kind=dbl_kind), dimension(ntrcr), &
-         intent(inout) :: &
-         trcrn       ! ice/snow tracer array
 
 !
 !  local variables
@@ -200,17 +197,9 @@
           fsnow/rhos*dt)
       evapi = hi-(hi_old-meltt-meltb+congel+snoice)
 
-      do k=1,n_iso
-         isosno(k,:)=&                      ! isotope in snow
-          trcrn(nt_iso+(k-1)*4  :nt_iso+(k-1)*4+1)*vsno_old
-         isoice(k,:)=&                      ! isotope in ice
-          trcrn(nt_iso+(k-1)*4+2:nt_iso+(k-1)*4+3)*vice_old
-         isotot0(k)=isosno(k,2)+isosno(k,1)+isoice(k,2)+isoice(k,1)
-      enddo
-
 ! condensation of vapor onto snow and ice
 
-      TsfK = trcrn(nt_Tsfc) + Tffresh
+      TsfK = Tsfc + Tffresh
 
       if (evaps > c0) then   ! condensation to snow
          do k = 1, n_iso         
@@ -592,66 +581,11 @@
 
 !     reload tracers
 
-       do k=1,n_iso
-          ! Update tracers only when vsnon/vicen is large enough.
-          ! Otherwise, they are unchanged from last timestep. 
-          if (vsnon > puny) then
-             trcrn(nt_iso+(k-1)*4  ) = isosno(k,1)/vsnon
-             trcrn(nt_iso+(k-1)*4+1) = isosno(k,2)/vsnon
-          endif
-          if (vicen > puny) then
-             trcrn(nt_iso+(k-1)*4+2) = isoice(k,1)/vicen
-             trcrn(nt_iso+(k-1)*4+3) = isoice(k,2)/vicen
-          endif
-
-         !do n = 1,2
-         ! limit the trcrn to be positive
-         !  if (trcrn(nt_iso+(k-1)*4+n-1) < puny) then
-         !     trcrn(nt_iso+(k-1)*4+n-1) = c0
-         !     fiso_ocnn(k) = fiso_ocnn(k) + &
-         !       trcrn(nt_iso+(k-1)*4+n-1)*vsnon/dt
-         !  endif
-         !  if (trcrn(nt_iso+(k-1)*4+n+1) < puny) then
-         !     trcrn(nt_iso+(k-1)*4+n+1) = c0
-         !     fiso_ocnn(k) = fiso_ocnn(k) + &
-         !       trcrn(nt_iso+(k-1)*4+n+1)*vicen/dt
-         !  endif
-         !enddo
-
-       enddo        ! n_iso
-
 !     scale fiso_ocnn. It will be re-scaled by aicen latter in merge_fluxes
       if (aicen > puny) then
          fiso_ocnn(:) = fiso_ocnn(:)/aicen
          fiso_evapn(:) = fiso_evapn(:)/aicen
       endif
-
-!      if (trcrn(nt_iso) < -puny .or. trcrn(nt_iso+1) < -puny    &
-!      .or. trcrn(nt_iso+2) < -puny .or. trcrn(nt_iso+3) < -puny) then
-!          write(nu_diag,*) 'isotope negative in isotope code'
-!          write(nu_diag,*) 'INT neg in isotope my_task = ',&
-!                              my_task &
-!                              ,' printing point i and j = ',i,j
-!          write(nu_diag,*) 'Int Neg iso new snowssl= ',isosno(1,1)
-!          write(nu_diag,*) 'Int Neg iso new snowint= ',isosno(1,2)
-!          write(nu_diag,*) 'Int Neg iso new ice ssl= ',isoice(1,1)
-!          write(nu_diag,*) 'Int Neg iso new ice int= ',isoice(1,2)
-!          write(nu_diag,*) 'Int Neg iso vicen      = ',vice_old
-!          write(nu_diag,*) 'Int Neg iso vsnon      = ',vsno_old
-!          write(nu_diag,*) 'Int Neg iso aicen      = ',aicen
-!          write(nu_diag,*) 'Int Neg iso new vicen  = ',vicen
-!          write(nu_diag,*) 'Int Neg iso new vsnon  = ',vsnon
-!          write(nu_diag,*) 'Int Neg iso melts      = ',melts
-!          write(nu_diag,*) 'Int Neg iso meltt      = ',meltt
-!          write(nu_diag,*) 'Int Neg iso meltb      = ',meltb
-!          write(nu_diag,*) 'Int Neg iso congel     = ',congel
-!          write(nu_diag,*) 'Int Neg iso snoice     = ',snoice
-!          write(nu_diag,*) 'Int Neg iso evap sno   = ',evaps
-!          write(nu_diag,*) 'Int Neg iso evap ice   = ',evapi
-!          write(nu_diag,*) 'Int Neg iso fsnow      = ',fsnow
-!          write(nu_diag,*) 'Int Neg iso fiso_atm   = ',fiso_atm(1)
-!          write(nu_diag,*) 'Int Neg iso fiso_ocnn  = ',fiso_ocnn(1)
-!         endif
 
       end subroutine update_isotope
 

@@ -61,13 +61,16 @@
                                       lhcoef,   shcoef,   &
                                       Cdn_atm,            &
                                       Cdn_atm_ratio_n,    &
-                                      n_iso,              &
+                                      n_iso,    tr_iso,   &
                                       Qa_iso,   Qref_iso, &
                                       uvel,     vvel,     &
                                       Uref                )     
 
       character (len=3), intent(in) :: &
          sfctype      ! ice or ocean
+
+      logical (kind=log_kind), optional, intent(in) :: &
+         tr_iso
 
       logical (kind=log_kind), intent(in) :: &
          calc_strair, &  ! if true, calculate wind stress components
@@ -77,7 +80,7 @@
       integer (kind=int_kind), intent(in) :: &
          natmiter        ! number of iterations for boundary layer calculations
 
-      integer (kind=int_kind), intent(in), optional :: &
+      integer (kind=int_kind), optional, intent(in) :: &
          n_iso        ! number of isotopes
 
       real (kind=dbl_kind), intent(in) :: &
@@ -112,7 +115,7 @@
       real (kind=dbl_kind), intent(in), optional, dimension(:) :: &
          Qa_iso      ! specific isotopic humidity (kg/kg)
 
-      real (kind=dbl_kind), intent(out), optional, dimension(:) :: &
+      real (kind=dbl_kind), intent(inout), optional, dimension(:) :: &
          Qref_iso    ! reference specific isotopic humidity (kg/kg)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -185,7 +188,6 @@
       Tref = c0
       Qref = c0
       Uref = c0
-      if (present(Qref_iso)) Qref_iso(:) = c0
       delt = c0
       delq = c0
       shcoef = c0
@@ -369,7 +371,8 @@
          Uref = vmag * rd / rdn
       endif
 
-      if (present(Qref_iso)) then
+      if (present(tr_iso) .and. tr_iso) then
+         Qref_iso(:) = c0 
          do n = 1, n_iso
             ratio = c1
             if (Qa_iso(2) > puny) &
@@ -820,7 +823,7 @@
 
 !=======================================================================
 
-      subroutine icepack_atm_boundary(sfctype,                    &
+      subroutine icepack_atm_boundary(sfctype,                   &
                                      Tsf,         potT,          &
                                      uatm,        vatm,          &
                                      wind,        zlvl,          &
@@ -831,7 +834,7 @@
                                      lhcoef,      shcoef,        &
                                      Cdn_atm,                    &
                                      Cdn_atm_ratio_n,            &
-                                     n_iso,                      &
+                                     n_iso,       tr_iso,        &
                                      Qa_iso,      Qref_iso,      &
                                      uvel,        vvel,          &
                                      Uref)
@@ -849,8 +852,11 @@
          Qa       , & ! specific humidity (kg/kg)
          rhoa         ! air density (kg/m^3)
 
-      integer (kind=int_kind), intent(in), optional :: &
+      integer (kind=int_kind), optional, intent(in) :: &
          n_iso        ! number of isotopes
+ 
+      logical (kind=log_kind), optional, intent(in) :: &
+         tr_iso
 
       real (kind=dbl_kind), intent(inout) :: &
          Cdn_atm  , &    ! neutral drag coefficient
@@ -872,7 +878,7 @@
       real (kind=dbl_kind), intent(in), optional, dimension(:) :: &
          Qa_iso      ! specific isotopic humidity (kg/kg)
 
-      real (kind=dbl_kind), intent(out), optional, dimension(:) :: &
+      real (kind=dbl_kind), intent(inout), optional, dimension(:) :: &
          Qref_iso    ! reference specific isotopic humidity (kg/kg)
 
       real (kind=dbl_kind), optional, intent(in) :: &
@@ -885,6 +891,15 @@
       real (kind=dbl_kind) :: &
          worku, workv, workr
 
+      integer (kind=int_kind) :: &
+         niso
+
+      logical (kind=log_kind) :: &
+         triso
+
+      real (kind=dbl_kind), dimension(:), allocatable :: &
+         Qaiso, Qriso
+
       character(len=*),parameter :: subname='(icepack_atm_boundary)'
 
       worku = c0
@@ -895,6 +910,13 @@
       endif
       if (present(vvel)) then
          workv = vvel
+      endif
+      if (present(n_iso)) then
+         allocate(Qaiso(n_iso),Qriso(n_iso))
+         Qaiso = Qa_iso
+         Qriso = Qref_iso
+         niso = n_iso
+         triso = tr_iso
       endif
 
       Cdn_atm_ratio_n = c1
@@ -923,15 +945,19 @@
                                    lhcoef,   shcoef,        &
                                    Cdn_atm,                 &
                                    Cdn_atm_ratio_n,         &
-                                   n_iso,                   &
-                                   Qa_iso,   Qref_iso,      &
-                                   worku,    workv,         &
-                                   workr)
+                                   n_iso=niso, tr_iso=triso, &
+                                   Qa_iso=Qaiso, Qref_iso=Qriso,&
+                                   uvel=worku, vvel=workv,  &
+                                   Uref=workr)
          if (icepack_warnings_aborted(subname)) return
       endif ! atmbndy
 
       if (present(Uref)) then
          Uref = workr
+      endif
+
+      if (present(Qref_iso)) then
+         Qref_iso = Qriso
       endif
 
       end subroutine icepack_atm_boundary

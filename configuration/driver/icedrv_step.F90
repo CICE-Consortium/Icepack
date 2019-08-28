@@ -244,13 +244,12 @@
           enddo
         endif ! tr_iso
         
-        call icepack_step_therm1(dt, ncat, nilyr, nslyr, ntrcr, n_aero, n_iso, &
+        call icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, n_iso, &
             aicen_init  (i,:),                           &
             vicen_init  (i,:), vsnon_init  (i,:), &
             aice        (i), aicen       (i,:), &
             vice        (i), vicen       (i,:), &
             vsno        (i), vsnon       (i,:), &
-            trcrn       (i,:,:), &
             uvel        (i), vvel        (i), &
             trcrn       (i,nt_Tsfc,:),                   &
             trcrn       (i,nt_qsno:nt_qsno+nslyr-1,:),   & 
@@ -263,8 +262,8 @@
             trcrn       (i,nt_ipnd,:),                   & 
             trcrn       (i,nt_iage,:),                   &
             trcrn       (i,nt_FY  ,:),                   & 
-            aerosno     (:,:,:),      aeroice     (:,:,:),      &
-            isosno     (:,:,:),      isoice     (:,:,:),      &
+            aerosno     (:,:,:), aeroice     (:,:,:),    &
+            isosno      (:,:,:), isoice      (:,:,:),    &
             uatm        (i), vatm        (i), &
             wind        (i), zlvl        (i), &
             Qa          (i), rhoa        (i), &
