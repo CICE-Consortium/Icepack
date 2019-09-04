@@ -836,7 +836,10 @@
 
       real (kind=dbl_kind), dimension (:), &
          intent(inout), optional :: &
-         faero_ocn, & ! aerosol flux to ocean     (kg/m^2/s)
+         faero_ocn    ! aerosol flux to ocean     (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension (:), &
+         intent(inout), optional :: &
          fiso_ocn     ! isotope flux to ocean     (kg/m^2/s)
 
       logical (kind=log_kind), intent(in), optional ::   &
@@ -1001,9 +1004,11 @@
          enddo
       endif
       if (present(fiso_ocn)) then
-         do it = 1, n_iso
-           fiso_ocn(it) = fiso_ocn(it) + dfiso_ocn(it)
-         enddo
+         if (tr_iso) then
+            do it = 1, n_iso
+              fiso_ocn(it) = fiso_ocn(it) + dfiso_ocn(it)
+            enddo
+         endif
       endif
       if (present(flux_bio)) then
          do it = 1, nbtrcr

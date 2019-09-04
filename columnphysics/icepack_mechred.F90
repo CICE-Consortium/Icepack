@@ -601,9 +601,11 @@
          enddo
       endif
       if (present(fiso_ocn)) then
-         do it = 1, n_iso
-            fiso_ocn(it) = fiso_ocn(it) + miso(it)*dti
-         enddo
+         if (tr_iso) then
+            do it = 1, n_iso
+               fiso_ocn(it) = fiso_ocn(it) + miso(it)*dti
+            enddo
+         endif
       endif
       if (present(fpond)) then
          fpond = fpond - mpond ! units change later
@@ -1808,10 +1810,8 @@
          vraftn   , & ! rafting ice volume 
          aredistn , & ! redistribution function: fraction of new ridge area
          vredistn , & ! redistribution function: fraction of new ridge volume
+         faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
          flux_bio     ! all bio fluxes to ocean
-
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
-         faero_ocn    ! aerosol flux to ocean  (kg/m^2/s)
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          fiso_ocn     ! isotope flux to ocean  (kg/m^2/s)

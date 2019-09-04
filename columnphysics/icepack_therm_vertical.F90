@@ -2609,10 +2609,10 @@
                                meltt,      melts,        &
                                meltb,      congel,       &
                                snoice,                   &
-                               Uref,       Urefn,        &
-                               Qref_iso(:),Qrefn_iso(:), &
-                               fiso_ocn(:),fiso_ocnn(:), &
-                               fiso_evap(:),fiso_evapn(:))
+                               Uref=Uref,  Urefn=Urefn,        &
+                               Qref_iso=Qref_iso(:),Qrefn_iso=Qrefn_iso(:), &
+                               fiso_ocn=fiso_ocn(:),fiso_ocnn=fiso_ocnn(:), &
+                               fiso_evap=fiso_evap(:),fiso_evapn=fiso_evapn(:))
 
          if (icepack_warnings_aborted(subname)) return
 
