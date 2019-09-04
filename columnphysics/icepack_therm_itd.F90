@@ -1240,7 +1240,7 @@
                               nbtrcr,    flux_bio,   &
                               ocean_bio, fzsal,      &
                               frazil_diag,           &
-                              ice_wave_sig_ht,       &
+                              wave_sig_ht,           &
                               wave_spectrum,         &
                               wavefreq,              &
                               dwavefreq,             &
@@ -1327,7 +1327,7 @@
 
       ! floe size distribution
       real (kind=dbl_kind), intent(in) :: &
-         ice_wave_sig_ht    ! significant height of waves in ice (m)
+         wave_sig_ht    ! significant height of waves globally (m)
 
       real (kind=dbl_kind), dimension(:), intent(in)  :: &
          wave_spectrum  ! ocean surface wave spectrum, E(f) (m^2 s)
@@ -1733,7 +1733,7 @@
                                   d_an_latg,  d_an_newi,     &
                                   floe_rad_c, floe_binwidth, &
                                   G_radial,   area2,         &
-                                  ice_wave_sig_ht,           &
+                                  wave_sig_ht,               &
                                   wave_spectrum,             &
                                   wavefreq,                  &
                                   dwavefreq,                 &
@@ -1869,7 +1869,7 @@
                                      flux_bio,     ocean_bio,     &
                                      frazil_diag,                 &
                                      frz_onset,    yday,          &
-                                     nfsd,         ice_wave_sig_ht, &
+                                     nfsd,         wave_sig_ht,   &
                                      wave_spectrum,               &
                                      wavefreq,                    &
                                      dwavefreq,                   &
@@ -1899,7 +1899,7 @@
          rside    , & ! fraction of ice that melts laterally
          fside    , & ! lateral heat flux (W/m^2)
          frzmlt   , & ! freezing/melting potential (W/m^2)
-         ice_wave_sig_ht ! significant height of waves in ice (m)
+         wave_sig_ht ! significant height of waves in ice (m)
 
       real (kind=dbl_kind), dimension(:), intent(in)  :: &
          wave_spectrum  ! ocean surface wave spectrum E(f) (m^2 s)
@@ -2056,7 +2056,7 @@
                            nbtrcr,        flux_bio,     &
                            ocean_bio,     fzsal,        &
                            frazil_diag,                 &
-                           ice_wave_sig_ht,             &
+                           wave_sig_ht,                 &
                            wave_spectrum,               &
                            wavefreq,      dwavefreq,    &
                            d_afsd_latg,   d_afsd_newi,  &

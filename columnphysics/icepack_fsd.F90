@@ -604,10 +604,10 @@
 
       subroutine fsd_add_new_ice (ncat, n,    nfsd,          &
                                   dt,         ai0new,        &
-                                  d_an_latg,  d_an_newi,   &
+                                  d_an_latg,  d_an_newi,     &
                                   floe_rad_c, floe_binwidth, &
                                   G_radial,   area2,         &
-                                  ice_wave_sig_ht,           &
+                                  wave_sig_ht,               &
                                   wave_spectrum,             &
                                   wavefreq,                  &
                                   dwavefreq,                 &
@@ -625,7 +625,7 @@
          dt           , & ! time step (s)
          ai0new       , & ! area of new ice added to cat 1
          G_radial     , & ! lateral melt rate (m/s)
-         ice_wave_sig_ht  ! wave significant height in ice
+         wave_sig_ht      ! wave significant height (everywhere) (m)
 
       real (kind=dbl_kind), dimension(:), intent(in)  :: &
          wave_spectrum  ! ocean surface wave spectrum as a function of frequency
@@ -714,10 +714,9 @@
              afsd_ni(:) = c0
 
             if (SUM(afsdn_latg(:,n)) > puny) then ! fsd exists
-               print *, 'in icepack fsd ',wave_spec,' ',ice_wave_sig_ht,' ',wave_spectrum
 
                if (wave_spec) then
-                  if (ice_wave_sig_ht > puny) &
+                  if (wave_sig_ht > puny) &
                      call wave_dep_growth (nfsd, wave_spectrum, &
                                            wavefreq, dwavefreq, &
                                            new_size)
@@ -743,7 +742,7 @@
             else ! no fsd, so entirely new ice
 
                if (wave_spec) then
-                  if (ice_wave_sig_ht > puny) &
+                  if (wave_sig_ht > puny) &
                      call wave_dep_growth (nfsd, wave_spectrum, &
                                            wavefreq, dwavefreq, &
                                            new_size)

@@ -211,7 +211,7 @@
                   aice,          vice,            aicen,     &
                   floe_rad_l,    floe_rad_c,                 &
                   wave_spectrum, wavefreq,        dwavefreq, &
-                  trcrn,         ice_wave_sig_ht, d_afsd_wave)
+                  trcrn,         d_afsd_wave)
 
       use icepack_fsd, only: icepack_cleanup_fsd
 
@@ -241,9 +241,6 @@
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          trcrn           ! tracer array
-
-      real (kind=dbl_kind), intent(out) :: &
-         ice_wave_sig_ht ! significant wave height in ice (m)
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          d_afsd_wave     ! change in fsd due to waves
@@ -279,15 +276,11 @@
       ! initialize 
       d_afsd_wave    (:)   = c0
       d_afsdn_wave   (:,:) = c0
-      ice_wave_sig_ht      = c0
       fracture_hist  (:)   = c0
 
 
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
-
-         ! diagnostics
-         ice_wave_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
 
          hbar = vice / aice
 
