@@ -371,14 +371,17 @@
          Uref = vmag * rd / rdn
       endif
 
-      if (present(tr_iso) .and. tr_iso) then
-         Qref_iso(:) = c0 
-         do n = 1, n_iso
-            ratio = c1
-            if (Qa_iso(2) > puny) &
-               ratio = Qa_iso(n)/Qa_iso(2)
-            Qref_iso(n) = Qa_iso(n) - ratio*delq*fac
-         enddo
+      if (present(tr_iso) .and. present(Qref_iso) &
+          .and. present(Qa_iso) .and. present(n_iso)) then
+         if (tr_iso) then
+            Qref_iso(:) = c0 
+            do n = 1, n_iso
+               ratio = c1
+               if (Qa_iso(2) > puny) &
+                  ratio = Qa_iso(n)/Qa_iso(2)
+               Qref_iso(n) = Qa_iso(n) - ratio*delq*fac
+            enddo
+         endif
       endif
 
       end subroutine atmo_boundary_layer
