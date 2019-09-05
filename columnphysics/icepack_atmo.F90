@@ -371,8 +371,8 @@
          Uref = vmag * rd / rdn
       endif
 
-      if (present(tr_iso) .and. present(Qref_iso) &
-          .and. present(Qa_iso) .and. present(n_iso)) then
+      if (present(tr_iso) .and. present(Qref_iso) .and. &
+          present(Qa_iso) .and. present(n_iso)) then
          if (tr_iso) then
             Qref_iso(:) = c0 
             do n = 1, n_iso
@@ -914,12 +914,15 @@
       if (present(vvel)) then
          workv = vvel
       endif
-      if (present(n_iso)) then
+      if (present(n_iso) .and. present(Qa_iso) .and. &
+          present(Qref_iso) .and. present(tr_iso)) then
          allocate(Qaiso(n_iso),Qriso(n_iso))
          Qaiso = Qa_iso
          Qriso = Qref_iso
          niso = n_iso
          triso = tr_iso
+      else
+         allocate(Qaiso(1),Qriso(1))
       endif
 
       Cdn_atm_ratio_n = c1
@@ -962,6 +965,8 @@
       if (present(Qref_iso)) then
          Qref_iso = Qriso
       endif
+
+      deallocate(Qaiso,Qriso)
 
       end subroutine icepack_atm_boundary
 
