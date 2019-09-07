@@ -208,6 +208,7 @@
 
       subroutine icepack_step_wavefracture(                  &
                   dt,            ncat,            nfsd,      &
+                  nfreq,                                     &
                   aice,          vice,            aicen,     &
                   floe_rad_l,    floe_rad_c,                 &
                   wave_spectrum, wavefreq,        dwavefreq, &
@@ -216,6 +217,7 @@
       use icepack_fsd, only: icepack_cleanup_fsd
 
       integer (kind=int_kind), intent(in) :: &
+         nfreq,        & ! number of wave frequency categories
          ncat,         & ! number of thickness categories
          nfsd            ! number of floe size categories
 
@@ -278,32 +280,33 @@
       d_afsdn_wave   (:,:) = c0
       fracture_hist  (:)   = c0
 
-
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
 
          hbar = vice / aice
 
          ! calculate fracture histogram
-         call wave_frac(nfsd, &
+         call wave_frac(nfsd, nfreq, &
                         floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
 
          ! if fracture occurs
          if (MAXVAL(fracture_hist) > puny) then
-
             ! protect against small numerical errors
             call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
-
+            
             do n = 1, ncat
+              
+              afsd_init(:) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
+              
 
               ! if there is ice, and a FSD, and not all ice is the smallest floe size 
               if ((aicen(n) > puny) .and. (SUM(afsd_init(:)) > puny) &
                                      .and.     (afsd_init(1) < c1)) then
 
-                  afsd_init(:) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
-                  afsd_tmp =  afsd_init
+
+                 afsd_tmp =  afsd_init
 
                   ! frac does not vary within subcycle
                   frac(:,:) = c0
@@ -313,6 +316,7 @@
                   do k = 1, nfsd
                      if (SUM(frac(k,:)) > c0) frac(k,:) = frac(k,:)/SUM(frac(k,:))
                   end do
+
 
                   ! adaptive sub-timestep
                   elapsed_t = c0
@@ -374,8 +378,10 @@
 !=======================================================================
 !
 !  Calculates functions to describe the change in the FSD when waves 
-!  fracture ice, given a wave spectrum (1D frequency, 25 frequency bins)
-!  in ice. We calculate extrema and if these are successive maximum, 
+!  fracture ice, given a wave spectrum (1D frequency, nfreq (default 25)
+!  frequency bins)
+!
+!  We calculate extrema and if these are successive maximum, 
 !  minimum, maximum or vice versa, and have strain greater than a 
 !  critical strain, break ice and create new floes with lengths equal
 !  to these distances. Based on MatLab code written by Chris Horvat,
@@ -385,13 +391,14 @@
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 
-      subroutine wave_frac(nfsd, &
+      subroutine wave_frac(nfsd, nfreq, &
                            floe_rad_l, floe_rad_c, &
                            wavefreq, dwavefreq, &
                            hbar, spec_efreq, frac_local)
 
       integer (kind=int_kind), intent(in) :: &
-         nfsd          ! number of floe size categories
+         nfsd, &          ! number of floe size categories
+         nfreq            ! number of wave frequency categories
 
       real (kind=dbl_kind),  intent(in) :: &
          hbar          ! mean ice thickness (m)
@@ -415,7 +422,7 @@
       integer, parameter :: &
          loopcts = 1  ! number of SSH realizations
 
-      real (kind=dbl_kind), dimension(25) :: &
+      real (kind=dbl_kind), dimension(nfreq) :: &
          spec_elambda,             & ! spectrum as a function of wavelength (m^-1 s^-1)     
          reverse_spec_elambda,     & ! reversed
          reverse_lambda, lambda,   & ! wavelengths (m)
@@ -437,7 +444,7 @@
          e_stop        ! if true, stop and return zero omega and fsdformed
 
       e_stop = .false. ! if true, aborts fracture calc
- 
+  
       ! spatial domain
       do j = 1, nx
          X(j)= j*dx
@@ -450,9 +457,9 @@
       reverse_spec_elambda(:) = spec_efreq(:) &
                    *(p5 * (gravit/(c2*pi*reverse_lambda(:)**c3) )**p5)
       ! reverse lambda
-      lambda (:) = reverse_lambda (25:1:-1)
-      dlambda(:) = reverse_dlambda(25:1:-1)
-      spec_elambda(:) = reverse_spec_elambda(25:1:-1) 
+      lambda (:) = reverse_lambda (nfreq:1:-1)
+      dlambda(:) = reverse_dlambda(nfreq:1:-1)
+      spec_elambda(:) = reverse_spec_elambda(nfreq:1:-1) 
  
       ! spectral coefficients
       spec_coeff = sqrt(c2*spec_elambda*dlambda) 
