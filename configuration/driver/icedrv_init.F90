@@ -737,7 +737,7 @@
          tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
          tr_pond_in=tr_pond, tr_pond_cesm_in=tr_pond_cesm, &
          tr_pond_lvl_in=tr_pond_lvl, &
-         tr_pond_topo_in=tr_pond_topo, tr_fsd_in=nt_fsd)
+         tr_pond_topo_in=tr_pond_topo, tr_fsd_in=tr_fsd)
       call icepack_init_tracer_indices(nt_Tsfc_in=nt_Tsfc, &
          nt_sice_in=nt_sice, nt_qice_in=nt_qice, &
          nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, &

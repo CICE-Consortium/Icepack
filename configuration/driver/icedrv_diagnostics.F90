@@ -89,7 +89,7 @@
          Tffresh, rhos, rhow, rhoi
 
       logical (kind=log_kind) :: tr_brine
-      integer (kind=int_kind) :: nt_fbri, nt_Tsfc
+      integer (kind=int_kind) :: nt_fbri, nt_Tsfc, nt_fsd
 
       character(len=*), parameter :: subname='(runtime_diags)'
 
@@ -99,7 +99,8 @@
 
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
       call icepack_query_tracer_flags(tr_brine_out=tr_brine,tr_fsd_out=tr_fsd)
-      call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc)
+      call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc,&
+                                        nt_fsd_out=nt_fsd)
       call icepack_query_parameters(Tffresh_out=Tffresh, rhos_out=rhos, &
            rhow_out=rhow, rhoi_out=rhoi)
       call icepack_warnings_flush(nu_diag)
@@ -131,9 +132,9 @@
           if (tr_fsd) then
               do nc = 1, ncat
               do k = 1, nfsd
-                  fsdavg(n) = fsdavg(n) &
-                            + trcrn(i,j,nt_fsd+k-1,nc) * floe_rad_c(k) &
-                            * aicen(nc) / paice
+                  fsdavg  = fsdavg &
+                          + trcrn(n,nt_fsd+k-1,nc) * floe_rad_c(k) &
+                          * aicen(n,nc) / paice
               end do
               end do
           end if
@@ -174,7 +175,7 @@
         write(nu_diag_out+n-1,900) 'avg salinity (ppt)     = ',psalt
         write(nu_diag_out+n-1,900) 'avg brine thickness (m)= ',hbravg
         if (tr_fsd) &
-        write(nu_diag_out+n-1,900) 'avg fsd rep radius (m) = ',fsdavg(1),fsdavg(2)
+        write(nu_diag_out+n-1,900) 'avg fsd rep radius (m) = ',fsdavg
 
        
         if (calc_Tsfc) then
@@ -453,7 +454,7 @@
             write(nu_diag,*) 'hsn', vsnon(i,n)/aicen(i,n)
          endif
          write(nu_diag,*) 'Tsfcn',trcrn(i,nt_Tsfc,n)
-         if (tr_fsd) write(nu_diag,*) 'afsdn',trcrn(i,nt_fsd,n,iblk) ! fsd cat 1
+         if (tr_fsd) write(nu_diag,*) 'afsdn',trcrn(i,nt_fsd,n) ! fsd cat 1
          write(nu_diag,*) ' '
       enddo                     ! n
 

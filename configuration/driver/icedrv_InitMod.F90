@@ -115,7 +115,7 @@
       call icepack_query_parameters(wave_spec_out=wave_spec)
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
-      call icepack_warnings_flush(nu_diag)wu      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+      call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 

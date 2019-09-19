@@ -537,6 +537,7 @@
           d_afsd_wave, floe_rad_l, floe_rad_c, wavefreq, dwavefreq
       use icedrv_domain_size, only: ncat, nfsd, nfreq, nx
       use icedrv_state, only: trcrn, aicen, aice, vice
+      use icepack_intfc, only: icepack_step_wavefracture
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step

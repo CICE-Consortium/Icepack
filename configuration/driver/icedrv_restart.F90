@@ -512,7 +512,7 @@
           call write_restart_field(nu_dump,trcrn(:,nt_fsd+k+1,:),ncat)
       end do
 
-      end subroutine write_restart_age
+      end subroutine write_restart_fsd
 
 
 !=======================================================================
