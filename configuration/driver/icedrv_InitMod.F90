@@ -29,11 +29,14 @@
       subroutine icedrv_initialize
 
       use icedrv_arrays_column, only: hin_max, c_hi_range
+      use icedrv_arrays_column, only: floe_rad_l, floe_rad_c, &
+          floe_binwidth, c_fsd_range
       use icedrv_calendar, only: dt, time, istep, istep1, &
           init_calendar, calendar
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
+      use icepack_intfc, only: icepack_init_fsd_bounds, icepack_init_wave
       use icepack_intfc, only: icepack_warnings_flush
-      use icedrv_domain_size, only: ncat
+      use icedrv_domain_size, only: ncat, nfsd
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
@@ -48,7 +51,8 @@
          skl_bgc, &    ! from icepack
          z_tracers, &  ! from icepack
          tr_aero, &    ! from icepack
-         tr_zaero      ! from icepack
+         tr_zaero, &   ! from icepack
+         tr_fsd, wave_spec
 
       character(len=*), parameter :: subname='(icedrv_initialize)'
 
@@ -71,6 +75,18 @@
       endif
 
       call icepack_init_itd_hist(ncat, hin_max, c_hi_range) ! output
+
+      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted(subname)) then
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
+      if (tr_fsd) call icepack_init_fsd_bounds (nfsd, & ! floe size distribution
+         floe_rad_l,    &  ! fsd size lower bound in m (radius)
+         floe_rad_c,    &  ! fsd size bin centre in m (radius)
+         floe_binwidth, &  ! fsd size bin width in m (radius)
+         c_fsd_range)      ! string for history output
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then
@@ -96,14 +112,16 @@
    !--------------------------------------------------------------------
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
+      call icepack_query_parameters(wave_spec_out=wave_spec)
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
-      call icepack_warnings_flush(nu_diag)
+      call icepack_warnings_flush(nu_diag)wu      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
       call init_forcing      ! initialize forcing (standalone)     
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
+!later      !if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
 
       ! aerosols

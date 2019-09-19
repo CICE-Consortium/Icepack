@@ -15,6 +15,8 @@
 
       integer (kind=int_kind), parameter, public :: &
         nx        = NXGLOB    , & ! vector length
+        nfsd      = 12        , & ! number of floe size categories
+! LR - hardcoded nfsd here - not sure how we want to set this?
         ncat      = NICECAT   , & ! number of categories
         nilyr     = NICELYR   , & ! number of ice layers per category
         nslyr     = NSNWLYR   , & ! number of snow layers per category
@@ -26,6 +28,8 @@
         n_don     = TRDON     , & ! number of DON pools in use
         n_fed     = TRFED     , & ! number of Fe  pools in use dissolved Fe
         n_fep     = TRFEP     , & ! number of Fe  pools in use particulate Fe
+        nfreq     = 25        , & ! number of wave frequencies
+! LR - hardcoded nfreq here - not sure how we want to set this?
         nblyr     = NBGCLYR   , & ! number of bio/brine layers per category 
                                   ! maximum number of biology tracers + aerosols
                                   ! *** add to kscavz in icepack_zbgc_shared.F90 
@@ -40,6 +44,7 @@
                   + nilyr       & ! ice enthalpy
                   + nslyr       & ! snow enthalpy
                               !!!!! optional tracers:
+                  + nfsd        & ! number of floe size categories
                   + TRAGE       & ! age
                   + TRFY        & ! first-year area
                   + TRLVL*2     & ! level/deformed ice
