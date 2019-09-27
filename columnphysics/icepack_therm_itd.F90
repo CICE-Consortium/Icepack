@@ -992,7 +992,7 @@
                                + trcrn(nt_iso+3+4*(k-1),n))) &
                                * rside / dt
                enddo ! k
-            endif    ! tr_aero
+            endif    ! tr_iso
 
       !-----------------------------------------------------------------
       ! Biogeochemistry
@@ -1372,7 +1372,7 @@
                enddo
             endif
 
-           if (tr_iso) then
+           if (tr_iso .and. vtmp > puny) then
              do it=1,n_iso
                if (it==1)   &
                   frazil_conc = isoice_alpha(c0,'HDO',frac)      &

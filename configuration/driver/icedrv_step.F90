@@ -263,15 +263,15 @@
             trcrn       (i,nt_iage,:),                   &
             trcrn       (i,nt_FY  ,:),                   & 
             aerosno     (:,:,:), aeroice     (:,:,:),    &
-            isosno      (:,:,:), isoice      (:,:,:),    &
-            uatm        (i), vatm        (i), &
-            wind        (i), zlvl        (i), &
-            Qa          (i), rhoa        (i), &
-            Qa_iso      (i,:), &
-            Tair        (i), Tref        (i), &
-            Qref        (i), Uref        (i), &
-            Qref_iso    (i,:), &
-            Cdn_atm_ratio(i),                           &
+            isosno     (:,:,:), isoice     (:,:,:),      &
+            uatm        (i), vatm        (i),            &
+            wind        (i), zlvl        (i),            &
+            Qa          (i), rhoa        (i),            &
+            Qa_iso      (i, :),                    &
+            Tair        (i), Tref        (i),            &
+            Qref        (i), Uref        (i),            &
+            Qref_iso    (i, :),                    &
+            Cdn_atm_ratio(i),                            &
             Cdn_ocn     (i), Cdn_ocn_skin(i), &
             Cdn_ocn_floe(i), Cdn_ocn_keel(i), &
             Cdn_atm     (i), Cdn_atm_skin(i), &
@@ -307,14 +307,14 @@
             fhocn       (i), fswthru     (i), &
             flatn_f     (i,:), fsensn_f    (i,:), &
             fsurfn_f    (i,:), fcondtopn_f (i,:), &
-            faero_atm   (i,1:n_aero), &
-            faero_ocn   (i,1:n_aero), &
-            fiso_atm   (i,1:n_iso),   &
-            fiso_ocn   (i,1:n_iso),   &
-            fiso_evap  (i,1:n_iso),   &
-            HDO_ocn     (i), &
-            H2_16O_ocn  (i), &
-            H2_18O_ocn  (i), &
+            faero_atm   (i,:), &
+            faero_ocn   (i,:), &
+            fiso_atm   (i,:), &
+            fiso_ocn   (i,:), &
+            fiso_evap  (i,:), &
+            HDO_ocn (i), &
+            H2_16O_ocn (i), &
+            H2_18O_ocn (i), &
             dhsn        (i,:), ffracn      (i,:), &
             meltt       (i), melttn      (i,:), &
             meltb       (i), meltbn      (i,:), &
@@ -416,7 +416,7 @@
 
          if (tmask(i)) then
 
-            call icepack_step_therm2(dt, ncat, n_aero, n_iso, nltrcr,                 &
+            call icepack_step_therm2(dt, ncat, n_aero, n_iso, nltrcr,      &
                            nilyr,                  nslyr,                  &
                            hin_max   (:),          nblyr,                  &   
                            aicen     (i,:),                         &
@@ -440,7 +440,7 @@
                            ocean_bio (i,1:nbtrcr),                  &
                            frazil_diag(i),                         &
                            frz_onset (i), yday, &
-                           fiso_ocn(i,1:n_iso), HDO_ocn(i), &
+                           fiso_ocn(i,:), HDO_ocn(i), &
                            H2_16O_ocn(i), H2_18O_ocn(i))
 
          endif ! tmask
@@ -628,14 +628,14 @@
                          nt_strata(1:ntrcr,:),                         &
                          dardg1dt (i), dardg2dt (i), &
                          dvirdgdt (i), opening  (i), &
-                         fpond    (i),                        &
+                         fpond    (i),               &
                          fresh    (i), fhocn    (i), &
-                         n_aero, n_iso,                         &
-                         faero_ocn(i,:), fiso_ocn(i,:),         &
+                         n_aero,         n_iso,          &
+                         faero_ocn(i,:), fiso_ocn(i,:),  &
                          aparticn (i,:), krdgn    (i,:), &
                          aredistn (i,:), vredistn (i,:), &
                          dardg1ndt(i,:), dardg2ndt(i,:), &
-                         dvirdgndt(i,:),                        &
+                         dvirdgndt(i,:),                 &
                          araftn   (i,:), vraftn   (i,:), &
                          aice     (i), fsalt    (i), &
                          first_ice(i,:), fzsal    (i), &
@@ -671,8 +671,8 @@
                          dvirdgdt (i), opening  (i), &
                          fpond    (i),                        &
                          fresh    (i), fhocn    (i), &
-                         n_aero, n_iso,                                &
-                         faero_ocn(i,:), fiso_ocn(i,:),                &
+                         n_aero,         n_iso,          &
+                         faero_ocn(i,:), fiso_ocn(i,:),  &
                          aparticn (i,:), krdgn    (i,:), &
                          aredistn (i,:), vredistn (i,:), &
                          dardg1ndt(i,:), dardg2ndt(i,:), &
