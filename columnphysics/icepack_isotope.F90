@@ -207,6 +207,7 @@
             alphai = c1  ! fractionation coefficient
             if (frac.ne.'nfrac' .and. Qref_iso(2)>puny) &
                ratio = Qref_iso(k)/Qref_iso(2)
+            if (Qref_iso(2) <= puny) ratio = c0
             if (frac.ne.'nfrac' .and. k==1) alphai = wiso_alpi(3,TsfK)
             if (frac.ne.'nfrac' .and. k==2) alphai = wiso_alpi(2,TsfK)
             if (frac.ne.'nfrac' .and. k==3) alphai = wiso_alpi(4,TsfK)
@@ -223,6 +224,7 @@
             alphai = c1  ! fractionation coefficient
             if (frac.ne.'nfrac' .and. Qref_iso(2)>puny) &
                ratio = Qref_iso(k)/Qref_iso(2)
+            if (Qref_iso(2) <= puny) ratio = c0
             if (frac.ne.'nfrac' .and. k==1) alphai = wiso_alpi(3,TsfK)
             if (frac.ne.'nfrac' .and. k==2) alphai = wiso_alpi(2,TsfK)
             if (frac.ne.'nfrac' .and. k==3) alphai = wiso_alpi(4,TsfK)
