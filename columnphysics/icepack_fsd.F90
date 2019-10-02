@@ -184,10 +184,6 @@
          floe_area_h         (nfsd), & ! fsd area at higher bound (m^2)
          floe_area_c         (nfsd), & ! fsd area at bin centre (m^2)
          floe_area_binwidth  (nfsd), & ! floe area bin width (m^2)
-         area_scaled_l       (nfsd), & ! area bins scaled so they begin at zero
-         area_scaled_h       (nfsd), & ! and no binwidth is greater than 1
-         area_scaled_c       (nfsd), & ! (dimensionless)
-         area_scaled_binwidth(nfsd), & !
          iweld         (nfsd, nfsd), & ! fsd categories that can weld
          stat=ierr)
       if (ierr/=0) then
@@ -206,27 +202,21 @@
 
       floe_binwidth = floe_rad_h - floe_rad_l
 
-      ! scaled area for welding
       floe_area_binwidth = floe_area_h - floe_area_l
-      area_lims(1:nfsd) = floe_area_l(1:nfsd)
-      area_lims(nfsd+1) = floe_area_h(nfsd)
-      area_lims_scaled = (area_lims - area_lims(1))/MAXVAL(floe_area_binwidth)
-
-      area_scaled_h = area_lims_scaled(2:nfsd+1)
-      area_scaled_l = area_lims_scaled(1:nfsd  )
-      area_scaled_c = (area_scaled_h + area_scaled_l) / c2
-      area_scaled_binwidth = area_scaled_h - area_scaled_l
-
+      
       ! floe size categories that can combine during welding
       iweld(:,:) = -999
       do n = 1, nfsd
       do m = 1, nfsd
-         test = area_scaled_h(n) - area_scaled_c(m)
-         do k = 1, nfsd
-            if ((test >= area_scaled_l(k)) .and. (test < area_scaled_h(k))) then
-               iweld(n,m) = k + 1
-            end if
+         test = floe_area_c(n) + floe_area_c(m)
+
+         do k = 1, nfsd-1
+            if ((test.ge.floe_area_l(k)) .and. (test.lt.floe_area_h(k))) &
+                  iweld(n,m) = k
          end do
+         if (test.ge.floe_area_l(nfsd)) iweld(n,m) = nfsd
+
+
       end do
       end do
 
@@ -890,7 +880,7 @@
       integer (kind=int_kind) :: &
         nt        , & ! time step index
         n         , & ! thickness category index
-        k, kx, ky     ! floe size category indices
+        k, kx, ky, i, j     ! floe size category indices
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          afsdn        ! floe size distribution tracer
@@ -899,29 +889,32 @@
          d_afsdn_weld ! change in afsdn due to welding
 
       real (kind=dbl_kind), dimension(nfsd) :: &
+         stability , & ! check for stability
+         nfsd_tmp  , & ! number fsd
          afsd_init , & ! initial values
          afsd_tmp  , & ! work array
-         coag          ! welding tendency
+         gain, loss    ! welding tendencies
 
       real(kind=dbl_kind) :: &
+         prefac, kappa , & ! multiplies kernel
+         kern      , & ! kernel
          afsd_sum  , & ! work array
          subdt     , & ! subcycling time step for stability (s)
+         elapsed_t , & ! elapsed subcycling time
          darea     , & ! total area lost due to welding
-         darea_nfsd, & ! area lost from category nfsd
-         stability     ! to satisfy stability condition for Smol. eqn
+         darea_nfsd    ! area lost from category nfsd
 
       integer(kind=int_kind) :: &
          ndt_weld        ! number of sub-timesteps required for stability
 
       afsdn  (:,:) = c0
       afsd_init(:) = c0
-      coag     (:) = c0
       afsd_sum     = c0
       darea        = c0
       darea_nfsd   = c0
       stability    = c0
-      ndt_weld     = 1
-      subdt        = dt
+      prefac = p5
+      kappa = c_weld/floe_area_binwidth(11) ! hardcoded for consistency with first implementation
 
       do n = 1, ncat
 
@@ -937,82 +930,78 @@
              (aicen(n) > aminweld) .and. &         ! low concentrations area unlikely to weld
              (SUM(afsdn(1:nfsd-1,n)) > puny)) then ! some ice in nfsd-1 categories
 
-            ! time step limitations for welding
-            stability = dt * c_weld * aicen(n) * area_scaled_h(nfsd)
-            ndt_weld = NINT(stability+p5) ! add 0.5 to round up number of subcycles
-            subdt = dt/FLOAT(ndt_weld)    ! subcycling time step
-
             afsd_init(:) = afsdn(:,n)     ! save initial values
             afsd_tmp (:) = afsd_init(:)   ! work array
+               
+            ! in case of minor numerical errors
+            WHERE(afsd_tmp.lt.puny) afsd_tmp = c0
+            afsd_tmp = afsd_tmp/SUM(afsd_tmp)
 
+            ! adaptive sub-timestep
+            elapsed_t = c0 
             darea_nfsd = c0
-            do nt = 1, ndt_weld
-               do kx = 1, nfsd
-               coag(kx) = c0
-               do ky = 1, kx
-                  k = iweld(kx,ky)
-                  coag(kx) = coag(kx)  &
-                           + area_scaled_c(ky) * afsd_tmp(ky) * aicen(n) &
-                           * (SUM(afsd_tmp(k:nfsd)) &
-                             + (afsd_tmp(k-1)/area_scaled_binwidth(k-1)) &
-                             * (area_scaled_h(k-1) - area_scaled_h(kx) + area_scaled_c(ky)))
-               end do ! ky
-               end do ! kx
+            DO WHILE (elapsed_t < dt) 
 
-               afsd_tmp(1) = afsd_tmp(1) - subdt*c_weld*coag(1)
-               do k = 2, nfsd
-                  afsd_tmp(k) = afsd_tmp(k) - subdt*c_weld*(coag(k) - coag(k-1))
-               enddo
+               ! calculate sub timestep
+               nfsd_tmp = afsd_tmp/floe_area_c
+               stability = nfsd_tmp/(kappa*afsd_tmp*aicen(n))
+               WHERE (stability.lt.puny) stability = bignum
+               subdt = MINVAL(stability)
+               subdt = MIN(subdt,dt)
 
-               ! sanity checks
-               if (ANY(afsd_tmp < c0-puny)) then
-                        print *, 'afsd_init',afsd_init
-                        print *, 'coag',coag
-                        print *, 'afsd_tmp ',afsd_tmp
-                        print *, 'WARNING negative mFSTD weld, l'
-               end if
-               if (ANY(afsd_tmp < c0-puny)) stop &
-			'negative mFSTD weld, l'
-               if (ANY(afsd_tmp > c1+puny)) stop &
-			' mFSTD> 1 weld, l'
-               if (ANY(dt*c_weld*coag < -puny)) stop &
-		 'not positive'
+               loss(:) = c0
+               gain(:) = c0
 
-               ! update
-               darea_nfsd = darea_nfsd + subdt*c_weld*coag(nfsd)
+               do i=1,nfsd ! consider loss from this category
+               do j=1,nfsd ! consider all interaction partners
 
-            end do ! time
+                   k = iweld(i,j) ! product of i+j
 
-            ! ignore loss in largest cat
-            afsd_tmp(nfsd) = afsd_tmp(nfsd) + darea_nfsd
+                   if(k.gt.i) then
+                   
+                       kern = kappa * floe_area_c(i) * aicen(n)
+                      
+                       loss(i) = loss(i) + kern*afsd_tmp(i)*afsd_tmp(j)
 
-            afsd_sum = c0
+                       if (i.eq.j) prefac = c1 ! otherwise 0.5
+
+                       gain(k) = gain(k) + prefac*kern*afsd_tmp(i)*afsd_tmp(j)
+
+                   end if
+
+               end do
+               end do
+
+               ! does largest category lose?
+               if (loss(nfsd).gt.puny) stop 'weld, largest cat losing'
+               if (gain(1).gt.puny) stop 'weld, smallest cat gaining'
+
+
+               ! update afsd   
+               afsd_tmp(:) = afsd_tmp(:) + subdt*(gain(:) - loss(:))
+
+               ! in case of minor numerical errors
+               WHERE(afsd_tmp.lt.puny) afsd_tmp = c0
+               afsd_tmp = afsd_tmp/SUM(afsd_tmp)
+
+               ! update time
+               elapsed_t = elapsed_t + subdt
+
+               ! stop if all in largest floe size cat
+               if (afsd_tmp(nfsd).gt.(c1-puny)) exit 
+
+            END DO ! time
+
+
             do k = 1, nfsd
-               afsd_sum = afsd_sum + afsd_tmp(k)
-            enddo
-            darea = SUM(afsd_init) - afsd_sum
-
-            call icepack_cleanup_fsd (ncat, nfsd, afsdn)
-
-            do k = 1, nfsd
-               afsdn(k,n) = afsd_tmp(k)/afsd_sum ! in case of small numerical errors
-               trcrn(nt_fsd+k-1,n) = max(afsdn(k,n), c0)
+               afsdn(k,n) = afsd_tmp(k)
                trcrn(nt_fsd+k-1,n) = afsdn(k,n)
                ! history/diagnostics
                d_afsdn_weld(k,n) = afsdn(k,n) - afsd_init(k)
             enddo
 
 
-            ! more sanity checks
-            if (darea < -puny) stop 'area gain'
-            if (ABS(darea) > puny) stop 'area change after correction'
-            if (ANY(afsdn(:,n) < -puny)) stop 'neg, weld'
-            if (afsdn(1,n) > afsd_init(1)+puny) then
-                        !print *, afsdn(:,n)
-			!print *, afsd_init(:)
-			stop 'gain in smallest cat'
-            end if
-         endif ! try to weld
+        endif ! try to weld
       enddo ! n
 
       ! history/diagnostics
