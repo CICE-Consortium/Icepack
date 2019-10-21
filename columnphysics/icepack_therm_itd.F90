@@ -1447,8 +1447,9 @@
          hi0max = bignum                   ! big number
       endif
 
-      call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:))
-
+      if (tr_fsd) then
+         call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:))
+      endif
 
       do n = 1, ncat
          aicen_init(n) = aicen(n)
@@ -1741,7 +1742,6 @@
                                   d_afsd_newi,               &
                                   afsdn,      aicen_init,    &
                                   aicen,      trcrn)
-
 
          if (vicen(n) > puny) then
             if (tr_iage) &
