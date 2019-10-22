@@ -56,6 +56,7 @@ to support the CICE model.
    "NICELYR", " ", "number of vertical layers in the ice", "7"
    "NSNWLYR", " ", "number of vertical layers in the snow", "1"
    "NICECAT", " ", "number of ice thickness categories", "5"
+   "NFSDCAT", " ", "number of floe size categories", "1"
    "TRAGE", "0,1", "ice age tracer", "1"
    "TRFY", "0,1", "first-year ice area tracer", "1"
    "TRLVL", "0,1", "deformed ice tracer", "1"

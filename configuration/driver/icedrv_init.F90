@@ -56,8 +56,7 @@
       subroutine input_data
 
       use icedrv_diagnostics, only: diag_file, nx_names
-      use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero, &
-                                    nfsd, nfreq
+      use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero, nfsd
       use icedrv_calendar, only: year_init, istep0
       use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
@@ -119,7 +118,7 @@
         dumpfreq,       diagfreq,       diag_file,       cpl_bgc
 
       namelist /grid_nml/ &
-        kcatbound ! nfsd?
+        kcatbound
 
       namelist /thermo_nml/ &
         kitd,           ktherm,          conduct,                       &
@@ -146,7 +145,7 @@
         update_ocn_f,    l_mpond_fresh,   ustar_min,       &
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
-        tfrz_option,     default_season,  wave_spec,       & ! nfreq?
+        tfrz_option,     default_season,  wave_spec,       &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
@@ -231,9 +230,7 @@
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       wave_spec       = .false.   ! if true, use wave forcing
-     ! nfreq           = 25         ! number of wave frequencies
-     ! nfsd?
-     ! wave_spec_file  = ' '       ! wave forcing file name
+!      wave_spec_file  = ' '       ! wave forcing file name
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default' ! source of ocean forcing data
       ocn_data_file   = ' '       ! ocean forcing data file
@@ -589,8 +586,6 @@
          write(nu_diag,1010) ' tr_pond_topo              = ', tr_pond_topo
          write(nu_diag,1010) ' tr_aero                   = ', tr_aero
          write(nu_diag,1010) ' tr_fsd                    = ', tr_fsd
-
-
 
          nt_Tsfc = 1           ! index tracers, starting with Tsfc = 1
          ntrcr = 1             ! count tracers, starting with Tsfc = 1
