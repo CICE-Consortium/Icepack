@@ -316,7 +316,7 @@ Test Suite Examples
     ::
 
       ./icepack.setup --suite base_suite --mach conrad --env cray --testid v01a
-      cd testsuite.v01a
+      cd base_suite.v01a
       #wait for runs to complete
       ./results.csh
 

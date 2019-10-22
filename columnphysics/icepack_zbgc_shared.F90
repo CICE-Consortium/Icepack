@@ -262,25 +262,25 @@
          n_plus          = 2
          dgrid (1)       = min(-hice+hinS, -hinS+hice, c0)            
          dgrid (nlyrn+2) = min(hinS, hice) 
-	 tracer(1)       = trcrn(it)
-	 tracer(nlyrn+2) = trcrn(it+nlyrn-1)
+         tracer(1)       = trcrn(it)
+         tracer(nlyrn+2) = trcrn(it+nlyrn-1)
          rgrid (nbyrn+2) = min(hinS, hice)
          if (hice > hinS) then
             rgrid(1) = c0 
-	    do kr = 1,n_nr
-	       rgrid(kr+1) = bio_grid(kr)*hinS
+            do kr = 1,n_nr
+               rgrid(kr+1) = bio_grid(kr)*hinS
             enddo
             do kd = 1,n_nd
-	       dgrid(kd+1) = (ice_grid(kd)-c1)*hice+hinS
+               dgrid(kd+1) = (ice_grid(kd)-c1)*hice+hinS
                tracer(kd+1) = trcrn(it+kd-1)
             enddo
          else
             rgrid(1) = -hinS + hice 
             do kr = 1,n_nr
-	       rgrid(kr+1) = (bio_grid(kr)-c1)*hinS + hice
+               rgrid(kr+1) = (bio_grid(kr)-c1)*hinS + hice
             enddo
             do kd = 1,n_nd
-	       dgrid(kd+1) = ice_grid(kd)*hice
+               dgrid(kd+1) = ice_grid(kd)*hice
                tracer(kd+1) = trcrn(it+kd-1)
             enddo
          endif

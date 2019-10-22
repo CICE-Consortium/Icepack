@@ -1,0 +1,31 @@
+#==============================================================================
+# Makefile macros for NCAR izumi, pgi compiler
+#==============================================================================
+
+CPP        := pgcc -E
+CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
+CFLAGS     := -c -O2 -Kieee
+
+FIXEDFLAGS := -Mextend
+FREEFLAGS  := -Mfree
+FFLAGS     := -Kieee -Mbyteswapio -traceback
+FFLAGS_NOOPT:= -O0
+
+ifeq ($(ICE_BLDDEBUG), true)
+  FFLAGS     += -O0 -g -Mbounds -Mchkptr
+else
+  FFLAGS     += -O2 -g
+endif
+
+SCC := pgcc
+SFC := pgf90
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
+
+ifeq ($(ICE_THREADED), true) 
+   LDFLAGS += -mp
+   CFLAGS += -mp
+   FFLAGS += -mp
+endif
+
