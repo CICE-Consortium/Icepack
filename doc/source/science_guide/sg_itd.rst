@@ -164,7 +164,7 @@ largest size resolved set by choice of :math:`N_f`, the number of floe size cate
 the floe size lies at the midpoint of each floe size category. Note that there is a sensitivity to the choice
 of floe size categories inherent in the current floe welding scheme.
 
-If simulations begin without ice (``ice_ice='none'``), the FSD can emerge without initialization. This
+If simulations begin without ice (``ice_init='none'``), the FSD can emerge without initialization. This
 is the recommended initialization for studies on the FSD itself. If simulations begin with ice cover, 
 some initial FSD must be prescribed in ``init_fsd``. The default is a simple relationship determined 
 from point observations by :cite:`Perovich14`, but its basin-wide applicability has not been tested.
