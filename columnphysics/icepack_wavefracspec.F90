@@ -239,7 +239,7 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          wave_spectrum   ! ocean surface wave spectrum as a function of frequency
-	 		       ! power spectral density of surface elevation, E(f) (units m^2 s)
+	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          trcrn           ! tracer array
@@ -280,6 +280,11 @@
       d_afsdn_wave   (:,:) = c0
       fracture_hist  (:)   = c0
 
+
+
+      ! if all ice is not in first floe size category
+      if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
+ 
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
 
@@ -291,6 +296,8 @@
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
 
+
+
          ! if fracture occurs
          if (MAXVAL(fracture_hist) > puny) then
             ! protect against small numerical errors
@@ -299,7 +306,6 @@
             do n = 1, ncat
               
               afsd_init(:) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
-              
 
               ! if there is ice, and a FSD, and not all ice is the smallest floe size 
               if ((aicen(n) > puny) .and. (SUM(afsd_init(:)) > puny) &
@@ -364,7 +370,7 @@
                   ! we adjust the largest floe size category possible to account for the
                   ! tiny extra area.
                   cons_error = SUM(afsd_tmp) - c1
-                  if (ABS(cons_error).gt.1.0e-7_dbl_kind) print *, & 
+                  if (ABS(cons_error).gt.1.0e-14_dbl_kind) print *, & 
                      'Area conservation error, waves ',cons_error
 
                   do k = nfsd, 1, -1
@@ -386,8 +392,9 @@
                endif ! aicen > puny
             enddo    ! n
          endif       ! fracture occurs
-      endif          ! aice > p01
 
+      endif          ! aice > p01
+      end if         ! all small floes
 
      end subroutine icepack_step_wavefracture
 
@@ -486,16 +493,15 @@
       ! loop over n. realizations of SSH
       do i = 1, loopcts
 
-         ! random phase for each Fourier component
-         ! varies in each j loop
-         ! LR took out the call to random number and set phase to constant
-         ! Constant phase should NOT BE USED for actual runs
+         ! Here we are assuming a constant phase for each Fourier component
+         ! rather than a random phase that varies in each i loop
+         ! See documentation for discussion
          rand_array(:) = p5
          !!call RANDOM_NUMBER(rand_array)
          phi = c2*pi*rand_array
  
          do j = 1, nx
-            !SSH field in space (sum over wavelengths, no attenuation)
+            ! SSH field in space (sum over wavelengths, no attenuation)
             summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
             eta(j)  = SUM(summand)
          end do
@@ -667,11 +673,7 @@
             if (is_triplet(j)) then
                delta_pos = X(j_pos) - X(j    )
                delta     = X(j    ) - X(j_neg)
-! ech:  IS THIS CORRECT?
-!               strain(j) = p5*hbar*(eta(j_neg)* delta_pos &
-!                                  - eta(j    )*(delta_pos+delta) &
-!                                  + eta(j    )*           delta) &
-!                                  / (delta*delta_pos*(delta+delta_pos))
+
                strain(j) = p5*hbar*(eta(j_neg) - eta(j)) &
                                   / (delta*(delta+delta_pos))
 

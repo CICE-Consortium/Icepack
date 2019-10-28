@@ -11,6 +11,7 @@
       use icedrv_constants, only: c0, c1, c2, c3, p2, p5
       use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_init_parameters
+      use icepack_intfc, only: icepack_init_fsd
       use icepack_intfc, only: icepack_init_tracer_flags
       use icepack_intfc, only: icepack_init_tracer_numbers
       use icepack_intfc, only: icepack_init_tracer_indices
@@ -191,7 +192,7 @@
          phi_c_slow_mode_out=phi_c_slow_mode, &
          phi_i_mushy_out=phi_i_mushy, &
          tfrz_option_out=tfrz_option, kalg_out=kalg, &
-         fbot_xfer_type_out=fbot_xfer_type, puny_out=puny)
+         fbot_xfer_type_out=fbot_xfer_type, puny_out=puny,wave_spec_out=wave_spec)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -230,7 +231,6 @@
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       wave_spec       = .false.   ! if true, use wave forcing
-!      wave_spec_file  = ' '       ! wave forcing file name
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default' ! source of ocean forcing data
       ocn_data_file   = ' '       ! ocean forcing data file
@@ -566,6 +566,7 @@
          write(nu_diag,*)    ' default_season            = ', trim(default_season)
 
          write(nu_diag,1010) ' update_ocn_f              = ', update_ocn_f
+         write(nu_diag,1010) ' wave_spec                 = ', wave_spec
          write(nu_diag,1010) ' l_mpond_fresh             = ', l_mpond_fresh
          write(nu_diag,1005) ' ustar_min                 = ', ustar_min
          write(nu_diag, *)   ' fbot_xfer_type            = ', &
@@ -726,7 +727,7 @@
          phi_c_slow_mode_in=phi_c_slow_mode, &
          phi_i_mushy_in=phi_i_mushy, &
          tfrz_option_in=tfrz_option, kalg_in=kalg, &
-         fbot_xfer_type_in=fbot_xfer_type)
+         fbot_xfer_type_in=fbot_xfer_type, wave_spec_in = wave_spec)
       call icepack_init_tracer_numbers(ntrcr_in=ntrcr)
       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
          tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
@@ -1036,7 +1037,9 @@
                                 vicen,    vsnon)
 
       use icedrv_arrays_column, only: hin_max
-      use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat
+      use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, nfsd
+      use icedrv_arrays_column, only: floe_rad_c, floe_binwidth
+
 
       integer (kind=int_kind), intent(in) :: &
          nx          ! number of grid cells
@@ -1090,7 +1093,7 @@
          hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
 
       logical (kind=log_kind) :: tr_brine, tr_lvl
-      integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_sice
+      integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_sice, nt_fsd
       integer (kind=int_kind) :: nt_fbri, nt_alvl, nt_vlvl
 
       character(len=*), parameter :: subname='(set_state_var)'
@@ -1101,7 +1104,7 @@
 
       call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_lvl_out=tr_lvl)
       call icepack_query_tracer_indices( nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
-        nt_qsno_out=nt_qsno, nt_sice_out=nt_sice, &
+        nt_qsno_out=nt_qsno, nt_sice_out=nt_sice, nt_fsd_out=nt_fsd, &
         nt_fbri_out=nt_fbri, nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
       call icepack_query_parameters(rhos_out=rhos, Lfresh_out=Lfresh, puny_out=puny)
       call icepack_warnings_flush(nu_diag)
@@ -1170,6 +1173,13 @@
                                 Tsfc,                    &
                                 nilyr,       nslyr,      &
                                 qin   (  :), qsn  (  :))
+
+         ! floe size distribution
+         ! ice_ic = 'default' will set FSD to a power law following Perovich
+         ! ice_ic = 'none' assumes aice=0
+         ice_ic = 'default'
+         call icepack_init_fsd(nfsd,ice_ic,floe_rad_c,floe_binwidth,&
+                               trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
         
          ! surface temperature
          trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
@@ -1224,6 +1234,12 @@
                                 Tsfc,                    &
                                 nilyr,       nslyr,      &
                                 qin   (  :), qsn  (  :))
+ 
+         ! floe size distribution
+         ! as above
+         ice_ic = 'default'
+         call icepack_init_fsd(nfsd,ice_ic,floe_rad_c,floe_binwidth,&
+                               trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
         
          ! surface temperature
          trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
