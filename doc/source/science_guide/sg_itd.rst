@@ -142,15 +142,23 @@ in thickness and lateral size, at a rate :math:`\mathbf{G} = (G_r,G_h)`. The thi
 term represents growth of new ice: new floes are created at a rate :math:`\dot{A}_p` 
 in the smallest thickness category and a given lateral size category. If wave forcing 
 is provided, the size of newly formed floes is determined via a tensile stress limitation 
-arising from the wave field (:cite:`Shen2001`,:cite:`2019`); otherwise, all floes 
+arising from the wave field (:cite:`Shen2001`,:cite:`Roach2019`); otherwise, all floes 
 are presumed to grow as pancakes in the smallest floe size category resolved. 
 To allow for the joining of individual floes to one another, we represent
 the welding together of floes in freezing conditions via the fourth term, 
 :math:`\beta_{\text{weld}}`, using a coagulation equation.
 
 To compute the impact of wave fracture of the FSD, if a local ocean surface wave 
-spectrum is provided, we generate a realization of the sea surface height field 
-using a random phase (XX random number currently commented out).
+spectrum is provided, we generate a realization of the sea surface height field.
+The full wave fracture parametrization as described in :cite:`Horvat2015` uses 
+realizations of the sea surface field described by a randomly-varying phase. 
+The presence of stochasticity means that the model would not be bit-for-bit. 
+Users running the model with the full wave fracture parametrization should be 
+aware that we have set the phase to be constant to obtain bit-for-bit reproducibility. 
+Users with an interest in wave fracture may wish to uncomment the call to a random 
+number in the code to incorporate the random phase. We are working on a machine-learning
+approach that would emulate the full parametrization including stochasticity, run to convergence.
+
 We calculate the fractures that would occur if waves enter a fully ice-covered 
 region defined in one dimension in the direction of propagation, and then apply
 the outcome proportionally to the ice-covered fraction in each grid cell. 
@@ -166,8 +174,10 @@ of floe size categories inherent in the current floe welding scheme.
 
 If simulations begin without ice (``ice_init='none'``), the FSD can emerge without initialization. This
 is the recommended initialization for studies on the FSD itself. If simulations begin with ice cover, 
-some initial FSD must be prescribed in ``init_fsd``. The default is a simple relationship determined 
-from point observations by :cite:`Perovich14`, but its basin-wide applicability has not been tested.
+some initial FSD must be prescribed in ``init_fsd``. The default (used for ``ice_init='default'``) 
+is a simple relationship determined from point observations by :cite:`Perovich14`, but its basin-wide 
+applicability has not been tested. In Icepack, ``ice_init='default'`` is selected for the slab
+and the full ITD cells.
 
 
 
