@@ -40,7 +40,7 @@
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
-      use icedrv_forcing, only: init_forcing, get_forcing
+      use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
       use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
       use icedrv_restart_shared, only: restart
       use icedrv_init, only: input_data, init_state, init_grid2
@@ -121,7 +121,7 @@
 
       call init_forcing      ! initialize forcing (standalone)     
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
-!later      !if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
+      if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
 
       ! aerosols

@@ -1742,7 +1742,7 @@
                                   d_afsd_newi,               &
                                   afsdn,      aicen_init,    &
                                   aicen,      trcrn)
-
+      
          if (vicen(n) > puny) then
             if (tr_iage) &
                trcrn(nt_iage,n) = (trcrn(nt_iage,n)*vice1 + dt*vin0new(n))/vicen(n)

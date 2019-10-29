@@ -411,7 +411,7 @@
                            wavefreq(:),     dwavefreq(:),    &
                            d_afsd_latg(i,:),d_afsd_newi(i,:),&
                            d_afsd_latm(i,:),d_afsd_weld(i,:),&
-                           floe_rad_c(:),          floe_binwidth(:))
+                           floe_rad_c(:),   floe_binwidth(:))
  
          endif ! tmask
 
