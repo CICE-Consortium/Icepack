@@ -63,17 +63,17 @@
 
          if (stop_now >= 1) exit timeLoop
 
-         if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice 
-         call get_forcing(istep1)  ! get forcing from data arrays
-
-         ! aerosols
-         if (tr_aero .or. tr_zaero)  call faero_default    ! default values
-
          call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers,&
                                        wave_spec_out=wave_spec)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
+
+         if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
+         call get_forcing(istep1)  ! get forcing from data arrays
+
+         ! aerosols
+         if (tr_aero .or. tr_zaero)  call faero_default    ! default values
 
          if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 

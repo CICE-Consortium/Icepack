@@ -508,12 +508,13 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
+ print*,'fsd write',ncat,nfsd
+
       do k = 1, nfsd
-          call write_restart_field(nu_dump,trcrn(:,nt_fsd+k+1,:),ncat)
+          call write_restart_field(nu_dump,trcrn(:,nt_fsd+k-1,:),ncat)
       end do
 
       end subroutine write_restart_fsd
-
 
 !=======================================================================
 
@@ -534,12 +535,13 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
+ print*,'fsd read',ncat,nfsd
+
       do k =1, nfsd
-          call read_restart_field(nu_restart,trcrn(:,nt_fsd+k+1,:),ncat)
+          call read_restart_field(nu_restart,trcrn(:,nt_fsd+k-1,:),ncat)
       end do
 
       end subroutine read_restart_fsd
-
 
 !=======================================================================
 

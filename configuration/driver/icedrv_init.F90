@@ -1175,9 +1175,6 @@
                                 qin   (  :), qsn  (  :))
 
          ! floe size distribution
-         ! ice_ic = 'default' will set FSD to a power law following Perovich
-         ! ice_ic = 'none' assumes aice=0
-         ice_ic = 'default'
          call icepack_init_fsd(nfsd,ice_ic,floe_rad_c,floe_binwidth,&
                                trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
         
@@ -1236,8 +1233,6 @@
                                 qin   (  :), qsn  (  :))
  
          ! floe size distribution
-         ! as above
-         ice_ic = 'default'
          call icepack_init_fsd(nfsd,ice_ic,floe_rad_c,floe_binwidth,&
                                trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
         
