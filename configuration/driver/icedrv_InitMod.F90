@@ -171,7 +171,7 @@
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_parameters(solve_zsal_out=solve_zsal)
-      call icepack_query_tracer_flags(tr_brine_out=tr_brine)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
