@@ -187,6 +187,10 @@
       endif
 
       if (solve_zsal .or. skl_bgc .or. z_tracers) then
+         if (tr_fsd) then
+            write (nu_diag,*) 'FSD implementation incomplete for use with BGC'
+            call icedrv_system_abort(string=subname,file=__FILE__,line=__LINE__)
+         endif
          call init_bgc
          if (restart) call read_restart_bgc ! complete BGC initialization
       endif
