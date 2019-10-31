@@ -335,14 +335,16 @@
                      if (afsd_tmp(1).ge.c1-puny) EXIT 
 
 
-                    ! calculate d_afsd using current afstd
+                     ! calculate d_afsd using current afstd
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
-
+                     
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
                           print *, 'afsd_tmp ',afsd_tmp
                           print *, 'dafsd_tmp ',d_afsd_tmp
-                          stop 'wave frac not converging'
+                          print *, 'subt ',nsubt
+                          print *, &
+                              'wave frac taking a while to converge....'
                      end if
                           
  
@@ -351,7 +353,7 @@
                      subdt = MIN(subdt, dt)
 
                      ! update afsd
-                     afsd_tmp = afsd_tmp + subdt * d_afsd_tmp(:)
+                     afsd_tmp = afsd_tmp + subdt * d_afsd_tmp(:) 
 
                      ! check conservation and negatives
                      if (MINVAL(afsd_tmp) < -puny) stop 'wb, <0 loop'
@@ -366,19 +368,23 @@
                   ! for wave fracture does not quite conserve area. With the dummy wave
                   ! forcing, the area conservation error is usually less than 10^-8.
                   ! Simply renormalizing may cause the first floe size category to reduce,
-                  ! which is not physically allowed to happen. So as a rather blunt fix,
-                  ! we adjust the largest floe size category possible to account for the
+                  ! which is not physically allowed to happen. So we adjust
+                  ! the largest floe size category possible to account for the
                   ! tiny extra area.
                   cons_error = SUM(afsd_tmp) - c1
-                  if (ABS(cons_error).gt.1.0e-14_dbl_kind) print *, & 
-                     'Area conservation error, waves ',cons_error
 
+                  ! area loss: add to first category
+                  if (cons_error.lt.c0) then
+                      afsd_tmp(1) = afsd_tmp(1) - cons_error
+                  else
+                  ! area gain: take it from the largest possible category 
                   do k = nfsd, 1, -1
                      if (afsd_tmp(k).gt.cons_error) then
                         afsd_tmp(k) = afsd_tmp(k) - cons_error
                         EXIT
                      end if
                   end do
+                  end if
 
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
@@ -512,8 +518,6 @@
          end if
       end do
  
-!      if (SUM(fraclengths(:)) < puny)) e_stop = .true.
-
       frachistogram(:) = c0
 
       if (.not. e_stop) then
