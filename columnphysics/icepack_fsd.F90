@@ -280,7 +280,6 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 
-
       subroutine icepack_init_fsd(nfsd, ice_ic, &
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
          floe_binwidth, &  ! fsd size bin width in m (radius)

@@ -6,7 +6,7 @@
     dt             = 3600.0
     npt            = 8760
     ndtd           = 1
-    ice_ic         = 'none'
+    ice_ic         = 'default'
     restart        = .false.
     restart_dir    = './restart/'
     dumpfreq       = 'y'
