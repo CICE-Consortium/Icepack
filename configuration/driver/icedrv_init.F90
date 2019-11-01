@@ -451,8 +451,9 @@
       endif
 
       if (tr_fsd) then
-         wave_spec = .false.
          if (trim(wave_spec_type) /= 'none') wave_spec = .true.
+      else
+         wave_spec = .false.
       endif
 
       !-----------------------------------------------------------------

@@ -420,11 +420,11 @@
                            hbar, spec_efreq, frac_local)
 
       integer (kind=int_kind), intent(in) :: &
-         nfsd, &          ! number of floe size categories
-         nfreq            ! number of wave frequency categories
+         nfsd, &       ! number of floe size categories
+         nfreq         ! number of wave frequency categories
 
       character (len=char_len), intent(in) :: &
-        wave_spec_type   ! type of wave spectrum forcing
+        wave_spec_type ! type of wave spectrum forcing
 
       real (kind=dbl_kind),  intent(in) :: &
          hbar          ! mean ice thickness (m)
