@@ -205,8 +205,7 @@
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
-
-      subroutine icepack_step_wavefracture(                  &
+      subroutine icepack_step_wavefracture(wave_spec_type,   &
                   dt,            ncat,            nfsd,      &
                   nfreq,                                     &
                   aice,          vice,            aicen,     &
@@ -215,6 +214,9 @@
                   trcrn,         d_afsd_wave)
 
       use icepack_fsd, only: icepack_cleanup_fsd
+
+      character (len=char_len), intent(in) :: &
+         wave_spec_type   ! type of wave spectrum forcing
 
       integer (kind=int_kind), intent(in) :: &
          nfreq,        & ! number of wave frequency categories
@@ -280,8 +282,6 @@
       d_afsdn_wave   (:,:) = c0
       fracture_hist  (:)   = c0
 
-
-
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
  
@@ -291,12 +291,10 @@
          hbar = vice / aice
 
          ! calculate fracture histogram
-         call wave_frac(nfsd, nfreq, &
+         call wave_frac(nfsd, nfreq, wave_spec_type, &
                         floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
-
-
 
          ! if fracture occurs
          if (MAXVAL(fracture_hist) > puny) then
@@ -309,8 +307,7 @@
 
               ! if there is ice, and a FSD, and not all ice is the smallest floe size 
               if ((aicen(n) > puny) .and. (SUM(afsd_init(:)) > puny) &
-                                     .and.     (afsd_init(1) < c1)) then
-
+                                    .and.     (afsd_init(1) < c1)) then
 
                  afsd_tmp =  afsd_init
 
@@ -323,7 +320,6 @@
                      if (SUM(frac(k,:)) > c0) frac(k,:) = frac(k,:)/SUM(frac(k,:))
                   end do
 
-
                   ! adaptive sub-timestep
                   elapsed_t = c0
                   cons_error = c0
@@ -333,7 +329,6 @@
 
                      ! if all floes in smallest category already, exit
                      if (afsd_tmp(1).ge.c1-puny) EXIT 
-
 
                      ! calculate d_afsd using current afstd
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
@@ -346,7 +341,6 @@
                           print *, &
                               'wave frac taking a while to converge....'
                      end if
-                          
  
                      ! required timestep
                      subdt = get_subdt_wave(nfsd, afsd_tmp, d_afsd_tmp)
@@ -420,7 +414,7 @@
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 
-      subroutine wave_frac(nfsd, nfreq, &
+      subroutine wave_frac(nfsd, nfreq, wave_spec_type, &
                            floe_rad_l, floe_rad_c, &
                            wavefreq, dwavefreq, &
                            hbar, spec_efreq, frac_local)
@@ -428,6 +422,9 @@
       integer (kind=int_kind), intent(in) :: &
          nfsd, &          ! number of floe size categories
          nfreq            ! number of wave frequency categories
+
+      character (len=char_len), intent(in) :: &
+        wave_spec_type   ! type of wave spectrum forcing
 
       real (kind=dbl_kind),  intent(in) :: &
          hbar          ! mean ice thickness (m)
@@ -502,8 +499,11 @@
          ! Here we are assuming a constant phase for each Fourier component
          ! rather than a random phase that varies in each i loop
          ! See documentation for discussion
-         rand_array(:) = p5
-         !!call RANDOM_NUMBER(rand_array)
+         if (trim(wave_spec_type)=='random') then
+            call RANDOM_NUMBER(rand_array)
+         else
+            rand_array(:) = p5
+         endif
          phi = c2*pi*rand_array
  
          do j = 1, nx
@@ -511,7 +511,6 @@
             summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
             eta(j)  = SUM(summand)
          end do
-         
  
          if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
             call get_fraclengths(X, eta, fraclengths, hbar, e_stop)

@@ -93,13 +93,13 @@
          natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
-         tfrz_option, frzpnd, atmbndy
+         tfrz_option, frzpnd, atmbndy, wave_spec_type
 
-      logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair, wave_spec
+      logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
 
       integer (kind=int_kind) :: ntrcr
       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_aero, tr_fsd
-      logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, wave_spec
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY
       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, &
                                  nt_aero, nt_fsd
@@ -146,7 +146,7 @@
         update_ocn_f,    l_mpond_fresh,   ustar_min,       &
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
-        tfrz_option,     default_season,  wave_spec,       &
+        tfrz_option,     default_season,  wave_spec_type,  &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
@@ -192,7 +192,8 @@
          phi_c_slow_mode_out=phi_c_slow_mode, &
          phi_i_mushy_out=phi_i_mushy, &
          tfrz_option_out=tfrz_option, kalg_out=kalg, &
-         fbot_xfer_type_out=fbot_xfer_type, puny_out=puny,wave_spec_out=wave_spec)
+         fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
+         wave_spec_type_out=wave_spec_type)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -230,7 +231,7 @@
       precip_units    = 'mks'     ! 'mm_per_month' or
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
-      wave_spec       = .false.   ! if true, use wave forcing
+      wave_spec_type  = 'none'    ! type of wave spectrum forcing
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default' ! source of ocean forcing data
       ocn_data_file   = ' '       ! ocean forcing data file
@@ -449,6 +450,11 @@
          fbot_xfer_type = 'constant'
       endif
 
+      if (tr_fsd) then
+         wave_spec = .false.
+         if (trim(wave_spec_type) /= 'none') wave_spec = .true.
+      endif
+
       !-----------------------------------------------------------------
       ! spew
       !-----------------------------------------------------------------
@@ -565,9 +571,11 @@
 
          write(nu_diag,1010) ' update_ocn_f              = ', update_ocn_f
          write(nu_diag,1010) ' wave_spec                 = ', wave_spec
+         if (wave_spec) &
+         write(nu_diag,*)    ' wave_spec_type            = ', wave_spec_type
          write(nu_diag,1010) ' l_mpond_fresh             = ', l_mpond_fresh
          write(nu_diag,1005) ' ustar_min                 = ', ustar_min
-         write(nu_diag, *)   ' fbot_xfer_type            = ', &
+         write(nu_diag,*)    ' fbot_xfer_type            = ', &
                                trim(fbot_xfer_type)
          write(nu_diag,1010) ' oceanmixed_ice            = ', oceanmixed_ice
          write(nu_diag,*)    ' tfrz_option               = ', &
@@ -725,7 +733,8 @@
          phi_c_slow_mode_in=phi_c_slow_mode, &
          phi_i_mushy_in=phi_i_mushy, &
          tfrz_option_in=tfrz_option, kalg_in=kalg, &
-         fbot_xfer_type_in=fbot_xfer_type, wave_spec_in = wave_spec)
+         fbot_xfer_type_in=fbot_xfer_type, &
+         wave_spec_type_in = wave_spec_type, wave_spec_in = wave_spec)
       call icepack_init_tracer_numbers(ntrcr_in=ntrcr)
       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
          tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &

@@ -380,7 +380,6 @@
             ! wave_sig_ht - here or elsewhere?
             wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
-
             call icepack_step_therm2(dt, ncat, n_aero, nltrcr,             &
                            nilyr,                  nslyr,    &
                            hin_max   (:),          nblyr,    &   
@@ -549,15 +548,19 @@
          ntrcr,           & !
          nbtrcr             !
 
+      character (len=char_len) :: wave_spec_type
+
       character(len=*), parameter :: subname = '(step_dyn_wave)'
 
+      call icepack_query_parameters(wave_spec_type_out=wave_spec_type)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
 
       do i = 1, nx
            d_afsd_wave(i,:) = c0
-           call icepack_step_wavefracture (dt, ncat, nfsd, nfreq, &
+           call icepack_step_wavefracture (wave_spec_type,        &
+                                           dt, ncat, nfsd, nfreq, &
                                            aice         (i),      &
                                            vice         (i),      &
                                            aicen        (i,:),    &
