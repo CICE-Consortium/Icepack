@@ -270,7 +270,6 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 
-
       subroutine icepack_init_fsd(nfsd, ice_ic, &
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
          floe_binwidth, &  ! fsd size bin width in m (radius)
@@ -325,7 +324,6 @@
 !
 !  authors:  Elizabeth Hunke, LANL
 !
-
       subroutine icepack_cleanup_fsd (ncat, nfsd, afsdn)
 
       integer (kind=int_kind), intent(in) :: &
@@ -338,31 +336,55 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         n, k               ! thickness and floe size category indices
-
-      real (kind=dbl_kind) :: &
-         tot
+         n                  ! thickness category index
 
       if (tr_fsd) then
 
-      do n = 1, ncat
-         do k = 1, nfsd
-            if (afsdn(k,n) < puny) afsdn(k,n) = c0
+         do n = 1, ncat
+            call icepack_cleanup_fsdn(nfsd, afsdn(:,n))
          enddo
-
-         tot = sum(afsdn(:,n))
-         if (tot > puny) then
-            do k = 1, nfsd
-               afsdn(k,n) = afsdn(k,n) / tot ! normalize
-            enddo
-         else ! represents ice-free cell, so set to zero
-            afsdn(:,n) = c0
-         endif
-      enddo ! ncat
 
       endif ! tr_fsd
 
       end subroutine icepack_cleanup_fsd
+
+!=======================================================================
+!
+!  Clean up small values and renormalize -- per category
+!
+!  authors:  Elizabeth Hunke, LANL
+!
+
+      subroutine icepack_cleanup_fsdn (nfsd, afsd)
+
+      integer (kind=int_kind), intent(in) :: &
+         nfsd               ! number of floe size categories
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         afsd               ! floe size distribution tracer
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         k                  ! floe size category index
+
+      real (kind=dbl_kind) :: &
+         tot
+
+      do k = 1, nfsd
+         if (afsd(k) < puny) afsd(k) = c0
+      enddo
+
+      tot = sum(afsd(:))
+      if (tot > puny) then
+         do k = 1, nfsd
+            afsd(k) = afsd(k) / tot ! normalize
+         enddo
+      else ! represents ice-free cell, so set to zero
+         afsd(:) = c0
+      endif
+
+      end subroutine icepack_cleanup_fsdn
 
 !=======================================================================
 ! 
@@ -690,11 +712,10 @@
                             * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
          end do
 
-         call icepack_cleanup_fsd (ncat, nfsd, afsdn_latg)
+         call icepack_cleanup_fsdn (nfsd, afsdn_latg(:,n))
          trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:,n)
 
       end if ! lat growth
-     
 
       new_size = nfsd
       if (n == 1) then
@@ -744,7 +765,7 @@
             endif ! entirely new ice or not
 
             trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_ni(:)
-            call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:))
+            call icepack_cleanup_fsdn (nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,n))
 
          endif ! d_an_newi > puny
       endif    ! n = 1
@@ -921,8 +942,7 @@
          d_afsd_weld (:)   = c0
          d_afsdn_weld(:,n) = c0
          afsdn(:,n) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
-         call icepack_cleanup_fsd (ncat, nfsd, afsdn)
-
+         call icepack_cleanup_fsdn (nfsd, afsdn(:,n))
 
          ! If there is some ice in the lower (nfsd-1) categories
          ! and there is freezing potential
@@ -992,6 +1012,7 @@
 
             END DO ! time
 
+            call icepack_cleanup_fsdn (nfsd, afsdn(:,n))
 
             do k = 1, nfsd
                afsdn(k,n) = afsd_tmp(k)

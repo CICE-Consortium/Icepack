@@ -1,0 +1,32 @@
+#==============================================================================
+# Makefile macros for NCAR izumi, nag compiler
+#==============================================================================
+
+CPP        := /usr/bin/cpp
+CPPFLAGS   := -P -traditional
+CPPDEFS    := -DFORTRANUNDERSCORE -DNO_CRAY_POINTERS -DNO_SHR_VMATH -DCPRNAG ${ICE_CPPDEFS}
+CFLAGS     := -std=gnu99
+
+FIXEDFLAGS := -fixed
+FREEFLAGS  := -free
+FFLAGS     := -Wp,-macro=no_com -convert=BIG_ENDIAN
+FFLAGS_NOOPT:= -Wp,-macro=no_com -convert=BIG_ENDIAN
+
+ifeq ($(ICE_BLDDEBUG), true)
+  FFLAGS   += -C=all -g -gline -time -f2003 -ieee=stop
+else
+  FFLAGS   += -O2 -ieee=full
+endif
+
+SCC := cc
+SFC := nagfor
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
+
+ifeq ($(ICE_THREADED), true) 
+   LDFLAGS += -openmp
+   CFLAGS += -openmp
+   FFLAGS += -openmp
+endif
+

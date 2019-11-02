@@ -537,7 +537,7 @@
             dhs_melts  = -melts
             dhs_snoice = snoice*rhoi/rhos
          else ! ice disappeared during time step
-	    ar = c1
+            ar = c1
             hs = vsnon/aice_old
             dhs_melts  = -melts
             dhs_snoice = snoice*rhoi/rhos

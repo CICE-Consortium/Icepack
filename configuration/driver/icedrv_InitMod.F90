@@ -40,7 +40,7 @@
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
-      use icedrv_forcing, only: init_forcing, get_forcing
+      use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
       use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
       use icedrv_restart_shared, only: restart
       use icedrv_init, only: input_data, init_state, init_grid2
@@ -121,7 +121,7 @@
 
       call init_forcing      ! initialize forcing (standalone)     
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
-!later      !if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
+      if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
 
       ! aerosols
@@ -159,7 +159,8 @@
          skl_bgc, &    ! from icepack
          z_tracers, &  ! from icepack
          solve_zsal, & ! from icepack
-         tr_brine      ! from icepack
+         tr_brine, &   ! from icepack
+         tr_fsd        ! from icepack
 
       character(len=*), parameter :: subname='(init_restart)'
 
@@ -170,7 +171,7 @@
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_parameters(solve_zsal_out=solve_zsal)
-      call icepack_query_tracer_flags(tr_brine_out=tr_brine)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -187,6 +188,10 @@
       endif
 
       if (solve_zsal .or. skl_bgc .or. z_tracers) then
+        if (tr_fsd) then
+            write (nu_diag,*) 'FSD implementation incomplete for use with BGC'
+            call icedrv_system_abort(string=subname,file=__FILE__,line=__LINE__)
+         endif
          call init_bgc
          if (restart) call read_restart_bgc ! complete BGC initialization
       endif

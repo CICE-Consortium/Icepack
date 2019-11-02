@@ -22,7 +22,8 @@
 
       implicit none
       private
-      public :: init_forcing, get_forcing, interp_coeff, interp_coeff_monthly
+      public :: init_forcing, get_forcing, interp_coeff, &
+                interp_coeff_monthly, get_wave_spec
 
       integer (kind=int_kind), parameter :: &
          ntime = 8760        ! number of data points in time
@@ -1121,6 +1122,42 @@
       enddo
 
     end subroutine ice_open_clos
+
+!=======================================================================
+
+      subroutine get_wave_spec
+  
+      use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
+                                   dwavefreq, wavefreq
+      use icedrv_domain_size, only: nfreq
+      use icepack_intfc, only: icepack_init_wave
+
+
+#ifdef ncdf
+      use netcdf
+#endif
+
+      ! local variables
+      integer (kind=int_kind) :: &
+         k
+
+      real(kind=dbl_kind), dimension(nfreq) :: &
+         wave_spectrum_profile  ! wave spectrum
+
+       wave_spectrum(:,:) = c0
+
+      ! wave spectrum and frequencies
+      ! get hardwired frequency bin info and a dummy wave spectrum profile
+      call icepack_init_wave(nfreq,                 &
+                             wave_spectrum_profile, &
+                             wavefreq, dwavefreq)
+
+      do k = 1, nfreq
+          wave_spectrum(:,k) = wave_spectrum_profile(k)
+      enddo
+
+      end subroutine get_wave_spec
+
 
 !=======================================================================
 

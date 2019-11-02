@@ -1,0 +1,31 @@
+#==============================================================================
+# Makefile macros for NCAR izumi, gnu compiler
+#==============================================================================
+
+CPP        := ftn -E
+CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
+CFLAGS     := -c -O2
+
+FIXEDFLAGS := -ffixed-line-length-132
+FREEFLAGS  := -ffree-form
+FFLAGS     := -fconvert=big-endian -fbacktrace -ffree-line-length-none
+FFLAGS_NOOPT:= -O0
+
+ifeq ($(ICE_BLDDEBUG), true)
+  FFLAGS     += -O0 -g -fcheck=bounds -finit-real=nan -fimplicit-none -ffpe-trap=invalid,zero,overflow
+else
+  FFLAGS     += -O2
+endif
+
+SCC := gcc
+SFC := gfortran
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
+
+ifeq ($(ICE_THREADED), true) 
+   LDFLAGS += -fopenmp
+   CFLAGS += -fopenmp
+   FFLAGS += -fopenmp
+endif
+

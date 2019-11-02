@@ -205,8 +205,7 @@
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
-
-      subroutine icepack_step_wavefracture(                  &
+      subroutine icepack_step_wavefracture(wave_spec_type,   &
                   dt,            ncat,            nfsd,      &
                   nfreq,                                     &
                   aice,          vice,            aicen,     &
@@ -215,6 +214,9 @@
                   trcrn,         d_afsd_wave)
 
       use icepack_fsd, only: icepack_cleanup_fsd
+
+      character (len=char_len), intent(in) :: &
+         wave_spec_type   ! type of wave spectrum forcing
 
       integer (kind=int_kind), intent(in) :: &
          nfreq,        & ! number of wave frequency categories
@@ -239,7 +241,7 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          wave_spectrum   ! ocean surface wave spectrum as a function of frequency
-	 		       ! power spectral density of surface elevation, E(f) (units m^2 s)
+	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          trcrn           ! tracer array
@@ -280,13 +282,16 @@
       d_afsdn_wave   (:,:) = c0
       fracture_hist  (:)   = c0
 
+      ! if all ice is not in first floe size category
+      if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
+ 
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
 
          hbar = vice / aice
 
          ! calculate fracture histogram
-         call wave_frac(nfsd, nfreq, &
+         call wave_frac(nfsd, nfreq, wave_spec_type, &
                         floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
@@ -299,12 +304,10 @@
             do n = 1, ncat
               
               afsd_init(:) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
-              
 
               ! if there is ice, and a FSD, and not all ice is the smallest floe size 
               if ((aicen(n) > puny) .and. (SUM(afsd_init(:)) > puny) &
-                                     .and.     (afsd_init(1) < c1)) then
-
+                                    .and.     (afsd_init(1) < c1)) then
 
                  afsd_tmp =  afsd_init
 
@@ -316,7 +319,6 @@
                   do k = 1, nfsd
                      if (SUM(frac(k,:)) > c0) frac(k,:) = frac(k,:)/SUM(frac(k,:))
                   end do
-
 
                   ! adaptive sub-timestep
                   elapsed_t = c0
@@ -332,13 +334,14 @@
                     ! calculate d_afsd using current afstd
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
 
-                     ! check in case wave fracture struggles to converge
+                    ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
                           print *, 'afsd_tmp ',afsd_tmp
                           print *, 'dafsd_tmp ',d_afsd_tmp
-                          stop 'wave frac not converging'
+                          print *, 'subt ',nsubt
+                          print *, &
+                              'wave frac taking a while to converge....'
                      end if
-                          
  
                      ! required timestep
                      subdt = get_subdt_wave(nfsd, afsd_tmp, d_afsd_tmp)
@@ -360,19 +363,23 @@
                   ! for wave fracture does not quite conserve area. With the dummy wave
                   ! forcing, the area conservation error is usually less than 10^-8.
                   ! Simply renormalizing may cause the first floe size category to reduce,
-                  ! which is not physically allowed to happen. So as a rather blunt fix,
-                  ! we adjust the largest floe size category possible to account for the
+                  ! which is not physically allowed to happen. So we adjust
+                  ! the largest floe size category possible to account for the
                   ! tiny extra area.
                   cons_error = SUM(afsd_tmp) - c1
-                  if (ABS(cons_error).gt.1.0e-7_dbl_kind) print *, & 
-                     'Area conservation error, waves ',cons_error
 
+                  ! area loss: add to first category
+                  if (cons_error.lt.c0) then
+                      afsd_tmp(1) = afsd_tmp(1) - cons_error
+                  else
+                  ! area gain: take it from the largest possible category 
                   do k = nfsd, 1, -1
                      if (afsd_tmp(k).gt.cons_error) then
                         afsd_tmp(k) = afsd_tmp(k) - cons_error
                         EXIT
                      end if
                   end do
+                  end if
 
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
@@ -386,8 +393,9 @@
                endif ! aicen > puny
             enddo    ! n
          endif       ! fracture occurs
-      endif          ! aice > p01
 
+      endif          ! aice > p01
+      end if         ! all small floes
 
      end subroutine icepack_step_wavefracture
 
@@ -407,14 +415,17 @@
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 
-      subroutine wave_frac(nfsd, nfreq, &
+      subroutine wave_frac(nfsd, nfreq, wave_spec_type, &
                            floe_rad_l, floe_rad_c, &
                            wavefreq, dwavefreq, &
                            hbar, spec_efreq, frac_local)
 
       integer (kind=int_kind), intent(in) :: &
-         nfsd, &          ! number of floe size categories
-         nfreq            ! number of wave frequency categories
+         nfsd, &       ! number of floe size categories
+         nfreq         ! number of wave frequency categories
+
+      character (len=char_len), intent(in) :: &
+        wave_spec_type ! type of wave spectrum forcing
 
       real (kind=dbl_kind),  intent(in) :: &
          hbar          ! mean ice thickness (m)
@@ -486,28 +497,27 @@
       ! loop over n. realizations of SSH
       do i = 1, loopcts
 
-         ! random phase for each Fourier component
-         ! varies in each j loop
-         ! LR took out the call to random number and set phase to constant
-         ! Constant phase should NOT BE USED for actual runs
-         rand_array(:) = p5
-         !!call RANDOM_NUMBER(rand_array)
+         ! Here we are assuming a constant phase for each Fourier component
+         ! rather than a random phase that varies in each i loop
+         ! See documentation for discussion
+         if (trim(wave_spec_type)=='random') then
+            call RANDOM_NUMBER(rand_array)
+         else
+            rand_array(:) = p5
+         endif
          phi = c2*pi*rand_array
  
          do j = 1, nx
-            !SSH field in space (sum over wavelengths, no attenuation)
+            ! SSH field in space (sum over wavelengths, no attenuation)
             summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
             eta(j)  = SUM(summand)
          end do
-         
  
          if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
             call get_fraclengths(X, eta, fraclengths, hbar, e_stop)
          end if
       end do
  
-!      if (SUM(fraclengths(:)) < puny)) e_stop = .true.
-
       frachistogram(:) = c0
 
       if (.not. e_stop) then
@@ -667,11 +677,7 @@
             if (is_triplet(j)) then
                delta_pos = X(j_pos) - X(j    )
                delta     = X(j    ) - X(j_neg)
-! ech:  IS THIS CORRECT?
-!               strain(j) = p5*hbar*(eta(j_neg)* delta_pos &
-!                                  - eta(j    )*(delta_pos+delta) &
-!                                  + eta(j    )*           delta) &
-!                                  / (delta*delta_pos*(delta+delta_pos))
+
                strain(j) = p5*hbar*(eta(j_neg) - eta(j)) &
                                   / (delta*(delta+delta_pos))
 

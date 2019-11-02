@@ -42,7 +42,7 @@ cat >> ${jobfile} << EOFB
 #PBS -j oe 
 ###PBS -m ae 
 #PBS -V
-#PBS -q share
+#PBS -q ${ICE_MACHINE_QUEUE}
 #PBS -N ${ICE_CASENAME}
 #PBS -A ${acct}
 #PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
@@ -59,10 +59,21 @@ cat >> ${jobfile} << EOFB
 #PBS -l nodes=1:ppn=24
 EOFB
 
+else if (${ICE_MACHINE} =~ izumi*) then
+cat >> ${jobfile} << EOFB
+#PBS -j oe 
+###PBS -m ae 
+#PBS -V
+#PBS -q ${ICE_MACHINE_QUEUE}
+#PBS -N ${ICE_CASENAME}
+#PBS -l nodes=1:ppn=48
+#PBS -l walltime=${ICE_RUNLENGTH}
+EOFB
+
 else if (${ICE_MACHINE} =~ thunder* || ${ICE_MACHINE} =~ gordon* || ${ICE_MACHINE} =~ conrad* || ${ICE_MACHINE} =~ gaffney* || ${ICE_MACHINE} =~ koehr*) then
 cat >> ${jobfile} << EOFB
 #PBS -N ${shortcase}
-#PBS -q debug
+#PBS -q ${ICE_MACHINE_QUEUE}
 #PBS -A ${acct}
 #PBS -l select=${nnodes}:ncpus=${maxtpn}:mpiprocs=${taskpernode}
 #PBS -l walltime=${ICE_RUNLENGTH}
@@ -74,7 +85,7 @@ EOFB
 else if (${ICE_MACHINE} =~ onyx*) then
 cat >> ${jobfile} << EOFB
 #PBS -N ${ICE_CASENAME}
-#PBS -q debug
+#PBS -q ${ICE_MACHINE_QUEUE}
 #PBS -A ${acct}
 #PBS -l select=${nnodes}:ncpus=${maxtpn}:mpiprocs=${taskpernode}
 #PBS -l walltime=${ICE_RUNLENGTH}
@@ -84,14 +95,15 @@ cat >> ${jobfile} << EOFB
 EOFB
 
 else if (${ICE_MACHINE} =~ cori*) then
+@ nthrds2 = ${nthrds} * 2
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
-#SBATCH -p shared
 ###SBATCH -A ${acct}
-#SBATCH -n ${ncores}
-#SBATCH -t ${ICE_RUNLENGTH}
-#SBATCH -L SCRATCH
-#SBATCH -C haswell
+#SBATCH --qos shared
+#SBATCH --ntasks ${ncores}
+#SBATCH --time ${ICE_RUNLENGTH}
+#SBATCH --cpus-per-task ${nthrds2}
+#SBATCH --constraint haswell
 ###SBATCH -e filename
 ###SBATCH -o filename
 ###SBATCH --mail-type FAIL
@@ -112,6 +124,11 @@ cat >> ${jobfile} << EOFB
 EOFB
 
 else if (${ICE_MACHINE} =~ loft*) then
+cat >> ${jobfile} << EOFB
+# nothing to do
+EOFB
+
+else if (${ICE_MACHINE} =~ high_Sierra*) then
 cat >> ${jobfile} << EOFB
 # nothing to do
 EOFB

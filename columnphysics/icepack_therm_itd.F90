@@ -58,7 +58,6 @@
                 lateral_melt, &
                 icepack_step_therm2
 
-!echmod - move this into namelist
       logical (kind=log_kind), parameter, public :: &
          l_conservation_check = .false.   ! if true, check conservation
                                           ! (useful for debugging)
@@ -986,21 +985,21 @@
          flag = .true.
 
 
-! echmod - testing original
-         ! Compute average enthalpy of ice. (taken from add_new_ice)
-                    if (sss > c2 * dSin0_frazil) then
-                       Si0 = sss - dSin0_frazil
-                    else
-                       Si0 = sss**2 / (c4*dSin0_frazil)
-                    endif
-                    Ti = min(liquidus_temperature_mush(Si0/phi_init), -p1)
-                    qi0 = enthalpy_mush(Ti, Si0)
-! echmod - testing original
+! echmod - using category values would be preferable to the average value
+         ! Compute average enthalpy of ice (taken from add_new_ice)
+         if (sss > c2 * dSin0_frazil) then
+            Si0 = sss - dSin0_frazil
+         else
+            Si0 = sss**2 / (c4*dSin0_frazil)
+         endif
+         Ti = min(liquidus_temperature_mush(Si0/phi_init), -p1)
+         qi0 = enthalpy_mush(Ti, Si0)
 
          do n = 1, ncat
             if (ktherm == 2) then  ! mushy
                do k = 1, nilyr
-!echmod                  qin(n) = qin(n) + trcrn(nt_qice+k-1,n) * vicen(n)/real(nilyr,kind=dbl_kind)
+                  !qin(n) = qin(n) &
+                  !       + trcrn(nt_qice+k-1,n)*vicen(n)/real(nilyr,kind=dbl_kind)
                   qin(n) = qi0
                enddo
             else
@@ -1447,8 +1446,9 @@
          hi0max = bignum                   ! big number
       endif
 
-      call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:))
-
+      if (tr_fsd) then
+         call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:))
+      endif
 
       do n = 1, ncat
          aicen_init(n) = aicen(n)
@@ -1706,10 +1706,6 @@
 
       if (d_an_tot(n) > c0 .and. vin0new(n) > c0) then  ! add ice to category n
 
-!echmod - check
-!      if (vin0new(1)/=vi0new) print*,'A vin0new differs',vin0new(n),vi0new
-!echmod - check
-
          area1    = aicen(n)   ! save
          vice1    = vicen(n)   ! save
          area2(n) = aicen_init(n) + d_an_latg(n) ! save area after latg, before newi
@@ -1741,8 +1737,7 @@
                                   d_afsd_newi,               &
                                   afsdn,      aicen_init,    &
                                   aicen,      trcrn)
-
-
+      
          if (vicen(n) > puny) then
             if (tr_iage) &
                trcrn(nt_iage,n) = (trcrn(nt_iage,n)*vice1 + dt*vin0new(n))/vicen(n)

@@ -1,21 +1,19 @@
 language: cpp
 
-sudo: false
+dist: xenial
 
-compiler: clang
+sudo: false
 
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-5.0
     packages:
       - tcsh
       - pkg-config
-      - netcdf-bin
-      - libnetcdf-dev
+      - netcdf-bin libnetcdf-dev libnetcdff-dev
       - gfortran
-      - clang-5.0
+      - gcc
       - wget
       #- lftp
 

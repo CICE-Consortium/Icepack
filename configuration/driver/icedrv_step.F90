@@ -380,7 +380,6 @@
             ! wave_sig_ht - here or elsewhere?
             wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
-
             call icepack_step_therm2(dt, ncat, n_aero, nltrcr,             &
                            nilyr,                  nslyr,    &
                            hin_max   (:),          nblyr,    &   
@@ -411,7 +410,7 @@
                            wavefreq(:),     dwavefreq(:),    &
                            d_afsd_latg(i,:),d_afsd_newi(i,:),&
                            d_afsd_latm(i,:),d_afsd_weld(i,:),&
-                           floe_rad_c(:),          floe_binwidth(:))
+                           floe_rad_c(:),   floe_binwidth(:))
  
          endif ! tmask
 
@@ -549,40 +548,36 @@
          ntrcr,           & !
          nbtrcr             !
 
+      character (len=char_len) :: wave_spec_type
+
       character(len=*), parameter :: subname = '(step_dyn_wave)'
 
+      call icepack_query_parameters(wave_spec_type_out=wave_spec_type)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
 
-
       do i = 1, nx
-
            d_afsd_wave(i,:) = c0
-
-           ! LR this condition is FOR TESTING ONLY when using dummy wave spectrum
-           ! do not use for actual runs!!
-           if (aice(i).lt.0.8_dbl_kind) &
-
-           call icepack_step_wavefracture (dt, ncat, nfsd, nfreq, &
-                                            aice           (i),   &
-                                            vice           (i),   &
-                                            aicen          (i,:), &
-                                            floe_rad_l(:),        &
-                                            floe_rad_c(:),        &
-                                            wave_spectrum  (i,:), &
-                                            wavefreq(:),   dwavefreq(:),   &
-                                            trcrn          (i,:,:), &
-                                            d_afsd_wave    (i,:)  )
+           call icepack_step_wavefracture (wave_spec_type,        &
+                                           dt, ncat, nfsd, nfreq, &
+                                           aice         (i),      &
+                                           vice         (i),      &
+                                           aicen        (i,:),    &
+                                           floe_rad_l     (:),    &
+                                           floe_rad_c     (:),    &
+                                           wave_spectrum(i,:),    &
+                                           wavefreq       (:),    &
+                                           dwavefreq      (:),    &
+                                           trcrn      (i,:,:),    &
+                                           d_afsd_wave  (i,:))
       end do ! i
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
 
-
       end subroutine step_dyn_wave
-
 
 !=======================================================================
 !
