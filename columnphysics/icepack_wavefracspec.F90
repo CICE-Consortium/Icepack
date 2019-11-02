@@ -330,11 +330,10 @@
                      ! if all floes in smallest category already, exit
                      if (afsd_tmp(1).ge.c1-puny) EXIT 
 
-
-                    ! calculate d_afsd using current afstd
+                     ! calculate d_afsd using current afstd
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
-
-                    ! check in case wave fracture struggles to converge
+                     
+                     ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
                           print *, 'afsd_tmp ',afsd_tmp
                           print *, 'dafsd_tmp ',d_afsd_tmp
@@ -348,7 +347,7 @@
                      subdt = MIN(subdt, dt)
 
                      ! update afsd
-                     afsd_tmp = afsd_tmp + subdt * d_afsd_tmp(:)
+                     afsd_tmp = afsd_tmp + subdt * d_afsd_tmp(:) 
 
                      ! check conservation and negatives
                      if (MINVAL(afsd_tmp) < -puny) stop 'wb, <0 loop'
