@@ -56,22 +56,12 @@
       public :: icepack_init_fsd_bounds, icepack_init_fsd, icepack_cleanup_fsd, &
          fsd_lateral_growth, fsd_add_new_ice, fsd_weld_thermo
 
-      real (kind=dbl_kind), public :: &
-         c_weld = p01     ! constant of proportionality for welding
-	 	          ! total number of floes that weld with another, per square meter,
-			  ! per unit time, in the case of a fully covered ice surface
-	 		  ! units m^-2 s^-1, value from Roach, Smith & Dean (2018)
-
       real(kind=dbl_kind), dimension(:), allocatable ::  &
          floe_rad_h,         & ! fsd size higher bound in m (radius)
          floe_area_l,        & ! fsd area at lower bound (m^2)
          floe_area_h,        & ! fsd area at higher bound (m^2)
          floe_area_c,        & ! fsd area at bin centre (m^2)
-         floe_area_binwidth, & ! floe area bin width (m^2)
-         area_scaled_l,      & ! area bins scaled so they begin at zero
-         area_scaled_h,      & ! and no binwidth is greater than 1
-         area_scaled_c,      & ! (dimensionless)
-         area_scaled_binwidth
+         floe_area_binwidth    ! floe area bin width (m^2)
 
       integer(kind=int_kind), dimension(:,:), allocatable, public ::  &
          iweld			! floe size categories that can combine
@@ -856,15 +846,11 @@
 !
 !  Floes are perimitted to weld together in freezing conditions, according
 !  to their geometric probability of overlap if placed randomly on the 
-!  domain. The coagulation equation is solved using the method of Filbet
-!  & Laurencot (2004). The rate per unit area c_weld is the total number 
+!  domain. The rate per unit area c_weld is the total number 
 !  of floes that weld with another, per square meter, per unit time, in the 
 !  case of a fully covered ice surface (aice=1), equal to twice the reduction
 !  in total floe number. See Roach, Smith & Dean (2018).
 !
-!  Filbet, F., & Laurençot, P. (2004). Numerical simulation of the Smoluchowski 
-!  coagulation equation. SIAM Journal on Scientific Computing, 25(6), 2004–2028. 
-!  doi:10.1137/S1064827503429132
 !
 !  authors: Lettie Roach, NIWA/VUW
 !
@@ -895,6 +881,14 @@
 
       real (kind=dbl_kind), parameter :: &
          aminweld = p1 ! minimum ice concentration likely to weld
+
+      real (kind=dbl_kind) :: &
+         c_weld = 1.0e-8_dbl_kind     
+                          ! constant of proportionality for welding
+	 	          ! total number of floes that weld with another, per square meter,
+			  ! per unit time, in the case of a fully covered ice surface
+	 		  ! units m^-2 s^-1, see documentation for details
+
 
       ! local variables
 
@@ -935,7 +929,7 @@
       darea_nfsd   = c0
       stability    = c0
       prefac = p5
-      kappa = c_weld/floe_area_binwidth(11) ! hardcoded for consistency with first implementation
+      kappa = c_weld
 
       do n = 1, ncat
 
