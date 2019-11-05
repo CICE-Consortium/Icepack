@@ -377,7 +377,7 @@
       do i = 1, nx
 
          if (tmask(i)) then
-            ! wave_sig_ht - here or elsewhere?
+            ! wave_sig_ht - compute here to pass to add new ice
             wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
             call icepack_step_therm2(dt, ncat, n_aero, nltrcr,             &

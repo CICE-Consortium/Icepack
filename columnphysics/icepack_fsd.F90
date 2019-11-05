@@ -879,10 +879,12 @@
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          d_afsd_weld  ! change in fsd due to welding
 
-      real (kind=dbl_kind), parameter :: &
-         aminweld = p1 ! minimum ice concentration likely to weld
+      ! local variables
 
-      real (kind=dbl_kind) :: &
+      real (kind=dbl_kind), parameter :: &
+         aminweld = p1    ! minimum ice concentration likely to weld
+
+      real (kind=dbl_kind), parameter :: &
          c_weld = 1.0e-8_dbl_kind     
                           ! constant of proportionality for welding
 	 	          ! total number of floes that weld with another, per square meter,
@@ -890,7 +892,6 @@
 	 		  ! units m^-2 s^-1, see documentation for details
 
 
-      ! local variables
 
       integer (kind=int_kind) :: &
         nt        , & ! time step index
@@ -911,25 +912,16 @@
          gain, loss    ! welding tendencies
 
       real(kind=dbl_kind) :: &
-         prefac, kappa , & ! multiplies kernel
+         prefac    , & ! multiplies kernel
          kern      , & ! kernel
-         afsd_sum  , & ! work array
          subdt     , & ! subcycling time step for stability (s)
-         elapsed_t , & ! elapsed subcycling time
-         darea     , & ! total area lost due to welding
-         darea_nfsd    ! area lost from category nfsd
+         elapsed_t     ! elapsed subcycling time
 
-      integer(kind=int_kind) :: &
-         ndt_weld        ! number of sub-timesteps required for stability
 
       afsdn  (:,:) = c0
       afsd_init(:) = c0
-      afsd_sum     = c0
-      darea        = c0
-      darea_nfsd   = c0
       stability    = c0
-      prefac = p5
-      kappa = c_weld
+      prefac       = p5
 
       do n = 1, ncat
 
@@ -953,12 +945,11 @@
 
             ! adaptive sub-timestep
             elapsed_t = c0 
-            darea_nfsd = c0
             DO WHILE (elapsed_t < dt) 
 
                ! calculate sub timestep
                nfsd_tmp = afsd_tmp/floe_area_c
-               stability = nfsd_tmp/(kappa*afsd_tmp*aicen(n))
+               stability = nfsd_tmp/(c_weld*afsd_tmp*aicen(n))
                WHERE (stability.lt.puny) stability = bignum
                subdt = MINVAL(stability)
                subdt = MIN(subdt,dt)
@@ -973,7 +964,7 @@
 
                    if(k.gt.i) then
                    
-                       kern = kappa * floe_area_c(i) * aicen(n)
+                       kern = c_weld * floe_area_c(i) * aicen(n)
                       
                        loss(i) = loss(i) + kern*afsd_tmp(i)*afsd_tmp(j)
 
@@ -989,7 +980,6 @@
                ! does largest category lose?
                if (loss(nfsd).gt.puny) stop 'weld, largest cat losing'
                if (gain(1).gt.puny) stop 'weld, smallest cat gaining'
-
 
                ! update afsd   
                afsd_tmp(:) = afsd_tmp(:) + subdt*(gain(:) - loss(:))

@@ -359,12 +359,12 @@
                   END DO ! elapsed_t < dt
  
                   ! In some cases---particularly for strong fracturing---the equation
-                  ! for wave fracture does not quite conserve area. With the dummy wave
-                  ! forcing, the area conservation error is usually less than 10^-8.
-                  ! Simply renormalizing may cause the first floe size category to reduce,
-                  ! which is not physically allowed to happen. So we adjust
-                  ! the largest floe size category possible to account for the
-                  ! tiny extra area.
+                  ! for wave fracture does not quite conserve area.
+                  ! With the dummy wave forcing, this happens < 2% of the time (in
+                  ! 1997) and is always less than 10^-7.
+                  ! Simply renormalizing may cause the first floe size 
+                  ! category to reduce, which is not physically allowed
+                  ! to happen. So we adjust here
                   cons_error = SUM(afsd_tmp) - c1
 
                   ! area loss: add to first category
@@ -496,8 +496,8 @@
       ! loop over n. realizations of SSH
       do i = 1, loopcts
 
-         ! Here we are assuming a constant phase for each Fourier component
-         ! rather than a random phase that varies in each i loop
+         ! Phase for each Fourier component may be constant or
+         ! a random phase that varies in each i loop
          ! See documentation for discussion
          if (trim(wave_spec_type)=='random') then
             call RANDOM_NUMBER(rand_array)
