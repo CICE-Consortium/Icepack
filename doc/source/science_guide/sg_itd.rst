@@ -145,9 +145,13 @@ the welding together of floes in freezing conditions via the fourth term,
 :math:`\beta_{\text{weld}}`, using a coagulation equation.
 
 To compute the impact of wave fracture of the FSD, given a local ocean surface wave 
-spectrum is provided, we generate a realization of the sea surface height field, which are uniquely determined by the spectrum up to a phase. In :cite:`Horvat2015` this phase is randomly chosen, and multiple realizations of the resulting surface height field are used to obtain convergent statistics. However this stochastic component would lead to a model that is not bit-for-bit reproducible. Users currently running the model with the full wave fracture parametrization should be 
-aware that we have therefore set the phase to be constant. Users with an interest in wave fracture may wish to uncomment the call to a random number in the code to incorporate the random phase. We are working on a machine-learning
-approach that would emulate the full parametrization.
+spectrum is provided, we generate a realization of the sea surface height field, which 
+is uniquely determined by the spectrum up to a phase. In :cite:`Horvat2015` this phase is 
+randomly chosen, and multiple realizations of the resulting surface height field are used to 
+obtain convergent statistics. However this stochastic component would lead to a model that is 
+not bit-for-bit reproducible. Users can choose in the namelist (via the variable wave_spec_type)
+to run the model with the phase set to be constant to obtain bit-for-bit reproducibility or
+to include the random phase.
 
 We calculate the number and length of fractures that would occur if waves enter a fully ice-covered 
 region defined in one dimension in the direction of propagation, and then apply
