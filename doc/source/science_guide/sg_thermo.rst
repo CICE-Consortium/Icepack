@@ -1733,10 +1733,15 @@ modifies the ITD and the FSD.
 If ``tr_fsd=true``, floes may weld together thermodynamically during 
 freezing conditions according to the probability that they overlap,
 assuming they are replaced randomly on the domain. Evolution of the 
-FSD is described using a coagulation, solved following :cite:`Filbet2004`
-and :cite:`Roach18`. The total number of floes that weld with another, 
-per square meter, per unit time, in the case of a fully covered ice surface
-was estimated from observations in :cite:`Roach18b`. In its original implementation, with 13 floe size categories, the tendency term for floe welding was divided by a constant equal to the area of the largest floe, XX, with this choice made  as the product of sensitivity studies to balance the climatological tendencies of wave fracture and welding. So that results do not vary as the number or range of floe size categories varies, we fix this scaling coefficient, which may be modified in XX.
+FSD is described using a coagulation equation. 
+The total number of floes that weld with another, per square meter, 
+per unit time, in the case of a fully covered ice surface was estimated 
+from observations in :cite:`Roach18b`. In its original model implementation, 
+with 12 floe size categories, the tendency term for floe welding was divided by a 
+constant equal to the area of the largest floe, (approx 2 km^2), with this choice made  
+as the product of sensitivity studies to balance the climatological tendencies of 
+wave fracture and welding. So that results do not vary as the number or range of 
+floe size categories varies, we fix this scaling coefficient, c_weld.
 
 If the latent heat flux is negative (i.e., latent heat is transferred
 from the ice to the atmosphere), snow or snow-free ice sublimates at the
