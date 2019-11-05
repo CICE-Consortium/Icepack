@@ -115,22 +115,18 @@ floe size belonging to floe size class :math:`k`, giving
 :math:`\sum_{n=0}^{N_C}\sum_{k=0}^{N_f} a_{in} F_{in,k} = 1` and :math:`\sum_{k=0}^{N_f}  F_{in,k} = 1`.
 :math:`F_{in,k}` is carried as an area-weighted tracer.
 
-This implementation means that the FSD can be ignored for processes that only modify the ITD
-(eg. vertical thermodynamics), and the ITD can be ignored for processes that only modify the
-FSD (eg. wave fracture). For processes that affect both the ITD and the FSD, (eg. lateral melt), 
+The FSD may be ignored when considering processes that only modify ice thickness
+(eg. vertical thermodynamics), and the ITD can be ignored when considering processes that only modify floe sizes (eg. wave fracture). For processes that affect both the ITD and the FSD, (eg. lateral melt), 
 both :math:`a_{in}` and :math:`F_{in,k}` are evolved.
 
-The FSD evolves subject to lateral growth, lateral melt, new ice growth, floe welding and 
+The FSTD evolves subject to lateral growth, lateral melt, new ice growth, floe welding and 
 wave fracture, as described in :cite:`Roach18` and with some modifications described in 
-:cite:`Roach19`.  Floe sizes do not  appear directly in any terms in the momentum equation
-or constitutive law, and mechanical redistribution reduces the area fractions of all floes 
-equally. Thus in the equation for time evolution of the FSTD,
+:cite:`Roach19`. The equation for time evolution of the FSTD is (:cite:`Horvat15`),
 
 :math:`\frac{\partial f(r,h)}{\partial t} = - \nabla \cdot (f(r,h)\mathbf{v}) + \mathcal{L}_T + \mathcal{L}_M + \mathcal{L}_W`,
 
-where the terms on the right hand side represent advection, thermodynamics, mechanical 
-redistribution and wave fracture respectively, it remains only to compute the thermodynamic
-tendency and wave fracture.
+where the terms on the right hand side represent the effects of advection, thermodynamics, mechanical 
+redistribution and wave fracture respectively. Floe sizes do not explicitly appear in the equations of sea ice motion and therefore the FSTD is advected as an area tracer. We also assume that mechanical redistribution of sea ice through ridging does not impact floe sizes. Thus it remains only to compute the thermodynamic and wave fracture tendencies.
 
 Thermodynamic changes to the FSTD are given by 
 
@@ -148,18 +144,12 @@ To allow for the joining of individual floes to one another, we represent
 the welding together of floes in freezing conditions via the fourth term, 
 :math:`\beta_{\text{weld}}`, using a coagulation equation.
 
-To compute the impact of wave fracture of the FSD, if a local ocean surface wave 
-spectrum is provided, we generate a realization of the sea surface height field.
-The full wave fracture parametrization as described in :cite:`Horvat2015` uses 
-realizations of the sea surface field described by a randomly-varying phase. 
-The presence of stochasticity means that the model would not be bit-for-bit. 
-Users running the model with the full wave fracture parametrization should be 
-aware that we have set the phase to be constant to obtain bit-for-bit reproducibility. 
-Users with an interest in wave fracture may wish to uncomment the call to a random 
-number in the code to incorporate the random phase. We are working on a machine-learning
-approach that would emulate the full parametrization including stochasticity, run to convergence.
+To compute the impact of wave fracture of the FSD, given a local ocean surface wave 
+spectrum is provided, we generate a realization of the sea surface height field, which are uniquely determined by the spectrum up to a phase. In :cite:`Horvat2015` this phase is randomly chosen, and multiple realizations of the resulting surface height field are used to obtain convergent statistics. However this stochastic component would lead to a model that is not bit-for-bit reproducible. Users currently running the model with the full wave fracture parametrization should be 
+aware that we have therefore set the phase to be constant. Users with an interest in wave fracture may wish to uncomment the call to a random number in the code to incorporate the random phase. We are working on a machine-learning
+approach that would emulate the full parametrization.
 
-We calculate the fractures that would occur if waves enter a fully ice-covered 
+We calculate the number and length of fractures that would occur if waves enter a fully ice-covered 
 region defined in one dimension in the direction of propagation, and then apply
 the outcome proportionally to the ice-covered fraction in each grid cell. 
 Assuming that sea ice flexes with the sea surface height field, strains are computed
