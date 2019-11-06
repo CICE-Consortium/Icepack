@@ -63,14 +63,14 @@
       call init_calendar        ! initialize some calendar stuff
       call init_coupler_flux    ! initialize fluxes exchanged with coupler
       call init_thermo_vertical ! initialize vertical thermodynamics
-      call icepack_init_itd(ncat, hin_max)
+      call icepack_init_itd(ncat=ncat, hin_max=hin_max)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
-      call icepack_init_itd_hist(ncat, hin_max, c_hi_range) ! output
+      call icepack_init_itd_hist(ncat=ncat, c_hi_range=c_hi_range, hin_max=hin_max) ! output
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then
@@ -178,21 +178,21 @@
       !-----------------------------------------------------------------
       do i = 1, nx
          if (tmask(i)) &
-         call icepack_aggregate(ncat,          &
-                                aicen(i,:),    &
-                                trcrn(i,:,:),  &
-                                vicen(i,:),    &
-                                vsnon(i,:),    &
-                                aice (i),      &
-                                trcr (i,:),    &
-                                vice (i),      &
-                                vsno (i),      &
-                                aice0(i),      &
-                                max_ntrcr,     &
-                                trcr_depend,   &
-                                trcr_base,     &
-                                n_trcr_strata, &
-                                nt_strata)
+         call icepack_aggregate(ncat=ncat,          &
+                                aicen=aicen(i,:),   &
+                                vicen=vicen(i,:),   &
+                                vsnon=vsnon(i,:),   &
+                                trcrn=trcrn(i,:,:), &
+                                aice=aice (i),      &
+                                vice=vice (i),      &
+                                vsno=vsno (i),      &
+                                trcr=trcr (i,:),    &
+                                aice0=aice0(i),     &
+                                ntrcr=max_ntrcr,    &
+                                trcr_depend=trcr_depend, &
+                                trcr_base=trcr_base,     &
+                                n_trcr_strata=n_trcr_strata, &
+                                nt_strata=nt_strata)
       enddo
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

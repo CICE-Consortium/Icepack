@@ -24,7 +24,8 @@ module icepack_warnings
         icepack_warnings_flush,    &
         icepack_warnings_aborted,  &
         icepack_warnings_add,      &
-        icepack_warnings_setabort
+        icepack_warnings_setabort, &
+        icepack_warnings_argchk
 
       private :: &
         icepack_warnings_getall,   &
@@ -218,6 +219,29 @@ contains
         endif
 
       end function icepack_warnings_getone
+
+!=======================================================================
+
+      subroutine icepack_warnings_argchk(argflag,arg,sub,errflag)
+
+        logical, intent(in) :: argflag
+        character(len=*), intent(in) :: sub
+        character(len=*), intent(in) :: arg
+        logical, intent(inout), optional :: errflag
+
+        character(len=*),parameter :: subname='(icepack_warnings_argchk)'
+
+        ! subroutine to check interface arguments
+        ! expect argflag is passing (present(arg)) and if false, trigger error
+
+        if (.not.argflag) then
+          write(warnstr,*) trim(sub)//" "//trim(arg)//" required in interface"
+          call icepack_warnings_add(warnstr)
+          if (present(errflag)) errflag = .true.
+          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+        endif
+
+      end subroutine icepack_warnings_argchk
 
 !=======================================================================
 

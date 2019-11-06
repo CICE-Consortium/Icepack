@@ -468,18 +468,17 @@
       !----------------------------------------------------------------- 
  
          if (tmask(i)) then
-            call icepack_aggregate (ncat,               aicen(i,:),   &
-                               trcrn(i,1:ntrcr,:),               &
-                               vicen(i,:), vsnon(i,:),  &
-                               aice (i),                       &
-                               trcr (i,1:ntrcr),               &
-                               vice (i), vsno (i),  &
-                               aice0(i),                       &
-                               ntrcr,                                   &
-                               trcr_depend(1:ntrcr),                    &
-                               trcr_base    (1:ntrcr,:),                &
-                               n_trcr_strata(1:ntrcr),                  &
-                               nt_strata    (1:ntrcr,:))
+            call icepack_aggregate (ncat=ncat,                     &
+                               aicen=aicen(i,:), trcrn=trcrn(i,1:ntrcr,:), &
+                               vicen=vicen(i,:), vsnon=vsnon(i,:), &
+                               aice=aice (i), trcr=trcr (i,1:ntrcr), &
+                               vice=vice (i), vsno=vsno (i),       &
+                               aice0=aice0(i),                     &
+                               ntrcr=ntrcr,                        &
+                               trcr_depend=trcr_depend(1:ntrcr),   &
+                               trcr_base=trcr_base    (1:ntrcr,:), &
+                               n_trcr_strata=n_trcr_strata(1:ntrcr), &
+                               nt_strata=nt_strata    (1:ntrcr,:))
          endif
 
       !-----------------------------------------------------------------

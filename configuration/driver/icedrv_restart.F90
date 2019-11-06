@@ -277,21 +277,21 @@
 
       do i = 1, nx
          if (tmask(i)) &
-         call icepack_aggregate (ncat,               &
-                                aicen(i,:),  &
-                                trcrn(i,:,:),&
-                                vicen(i,:),  &
-                                vsnon(i,:),  &
-                                aice (i),  &
-                                trcr (i,:),  &
-                                vice (i),  &
-                                vsno (i),  &
-                                aice0(i),  &
-                                max_ntrcr,          &
-                                trcr_depend,        &
-                                trcr_base,          &
-                                n_trcr_strata,      &
-                                nt_strata)
+         call icepack_aggregate (ncat=ncat,          &
+                                 aicen=aicen(i,:),   &
+                                 trcrn=trcrn(i,:,:), &
+                                 vicen=vicen(i,:),   &
+                                 vsnon=vsnon(i,:),   &
+                                 aice=aice (i),      &
+                                 trcr=trcr (i,:),    &
+                                 vice=vice (i),      &
+                                 vsno=vsno (i),      &
+                                 aice0=aice0(i),     &
+                                 ntrcr=max_ntrcr,    &
+                                 trcr_depend=trcr_depend, &
+                                 trcr_base=trcr_base,     &
+                                 n_trcr_strata=n_trcr_strata, &
+                                 nt_strata=nt_strata)
 
          aice_init(i) = aice(i)
       enddo
