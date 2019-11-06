@@ -232,7 +232,8 @@ contains
         character(len=*),parameter :: subname='(icepack_warnings_argchk)'
 
         ! subroutine to check interface arguments
-        ! expect argflag is passing (present(arg)) and if false, trigger error
+        ! expect argflag is passing (present(arg)) and if false, trigger error -
+        ! add error message, set abort flag, return errflag if passed
 
         if (.not.argflag) then
           write(warnstr,*) trim(sub)//" "//trim(arg)//" required in interface"
