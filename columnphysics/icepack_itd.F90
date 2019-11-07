@@ -34,7 +34,7 @@
       use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers
       use icepack_parameters, only: kcatbound, kitd
       use icepack_therm_shared, only: Tmin, hi_min
-      use icepack_warnings, only: warnstr, icepack_warnings_add, icepack_warnings_argchk
+      use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       use icepack_zbgc_shared, only: zap_small_bgc
@@ -1676,11 +1676,11 @@
 
       subroutine icepack_init_itd(ncat, hin_max)
 
-      integer (kind=int_kind), intent(in), optional :: &
+      integer (kind=int_kind), intent(in) :: &
            ncat ! number of thickness categories
 
-      real (kind=dbl_kind), intent(out), optional :: &
-           hin_max(0:)  ! category limits (m) (0:ncat)
+      real (kind=dbl_kind), intent(out) :: &
+           hin_max(0:ncat)  ! category limits (m)
 
       ! local variables
 
@@ -1701,9 +1701,6 @@
       real (kind=dbl_kind), dimension(5) :: wmo5 ! data for wmo itd
       real (kind=dbl_kind), dimension(6) :: wmo6 ! data for wmo itd
       real (kind=dbl_kind), dimension(7) :: wmo7 ! data for wmo itd
-
-      logical (kind=log_kind) :: &
-         interface_error       ! = .true. if interface error is found
 
       character(len=*),parameter :: subname='(icepack_init_itd)'
 
@@ -1726,11 +1723,6 @@
                   0.30_dbl_kind, 0.70_dbl_kind,  &
                   1.20_dbl_kind, 2.00_dbl_kind,  &
                   999._dbl_kind  /
-
-      interface_error = .false.
-      call icepack_warnings_argchk(present(ncat)   ,"ncat"   ,subname,interface_error)
-      call icepack_warnings_argchk(present(hin_max),"hin_max",subname,interface_error)
-      if (interface_error) return
 
       rncat = real(ncat, kind=dbl_kind)
       d1 = 3.0_dbl_kind / rncat
@@ -1863,14 +1855,14 @@
 
       subroutine icepack_init_itd_hist (ncat, hin_max, c_hi_range)
 
-      integer (kind=int_kind), intent(in), optional :: &
-           ncat          ! number of thickness categories
+      integer (kind=int_kind), intent(in) :: &
+           ncat ! number of thickness categories
 
-      real (kind=dbl_kind), intent(in), optional :: &
-           hin_max(0:)    ! category limits (m) (0:ncat)
+      real (kind=dbl_kind), intent(in) :: &
+           hin_max(0:ncat)  ! category limits (m)
 
-      character (len=35), intent(out), optional :: &
-           c_hi_range(:) ! string for history output (ncat)
+      character (len=35), intent(out) :: &
+           c_hi_range(ncat) ! string for history output
 
       ! local variables
 
@@ -1880,16 +1872,7 @@
       character(len=8) :: c_hinmax1,c_hinmax2
       character(len=2) :: c_nc
 
-      logical (kind=log_kind) :: &
-         interface_error       ! = .true. if interface error is found
-
       character(len=*),parameter :: subname='(icepack_init_itd_hist)'
-
-      interface_error = .false.
-      call icepack_warnings_argchk(present(ncat)      ,"ncat"      ,subname,interface_error)
-      call icepack_warnings_argchk(present(hin_max)   ,"hin_max"   ,subname,interface_error)
-      call icepack_warnings_argchk(present(c_hi_range),"c_hi_range",subname,interface_error)
-      if (interface_error) return
 
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
@@ -1935,36 +1918,36 @@
                                    n_trcr_strata,      &
                                    nt_strata)
 
-      integer (kind=int_kind), intent(in), optional :: &
+      integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
          ntrcr     ! number of tracers in use
 
-      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen , & ! concentration of ice
          vicen , & ! volume per unit area of ice          (m)
          vsnon     ! volume per unit area of snow         (m)
 
-      real (kind=dbl_kind), dimension (:,:), intent(inout), optional :: &
+      real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn     ! ice tracers
 
-      integer (kind=int_kind), dimension (:), intent(in), optional :: &
+      integer (kind=int_kind), dimension (:), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
          n_trcr_strata  ! number of underlying tracer layers
 
-      real (kind=dbl_kind), dimension (:,:), intent(in), optional :: &
+      real (kind=dbl_kind), dimension (:,:), intent(in) :: &
          trcr_base      ! = 0 or 1 depending on tracer dependency
                         ! argument 2:  (1) aice, (2) vice, (3) vsno
 
-      integer (kind=int_kind), dimension (:,:), intent(in), optional :: &
+      integer (kind=int_kind), dimension (:,:), intent(in) :: &
          nt_strata      ! indices of underlying tracer layers
 
-      real (kind=dbl_kind), intent(out), optional :: &
+      real (kind=dbl_kind), intent(out) :: &
          aice  , & ! concentration of ice
          vice  , & ! volume per unit area of ice          (m)
          vsno  , & ! volume per unit area of snow         (m)
          aice0     ! concentration of open water
 
-      real (kind=dbl_kind), dimension (:), intent(out), optional :: &
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
          trcr      ! ice tracers
 
       ! local variables
@@ -1979,32 +1962,7 @@
       real (kind=dbl_kind) :: &
          atrcrn    ! category value
 
-      logical (kind=log_kind) :: &
-         interface_error       ! = .true. if interface error is found
-
       character(len=*),parameter :: subname='(icepack_aggregate)'
-
-      !-----------------------------------------------------------------
-      ! Check arguments
-      !-----------------------------------------------------------------
-
-      interface_error = .false.
-      call icepack_warnings_argchk(present(ncat) ,"ncat" ,subname,interface_error)
-      call icepack_warnings_argchk(present(trcrn),"trcrn",subname,interface_error)
-      call icepack_warnings_argchk(present(aicen),"aicen",subname,interface_error)
-      call icepack_warnings_argchk(present(vicen),"vicen",subname,interface_error)
-      call icepack_warnings_argchk(present(vsnon),"vsnon",subname,interface_error)
-      call icepack_warnings_argchk(present(trcr) ,"trcr" ,subname,interface_error)
-      call icepack_warnings_argchk(present(aice) ,"aice" ,subname,interface_error)
-      call icepack_warnings_argchk(present(vice) ,"vice" ,subname,interface_error)
-      call icepack_warnings_argchk(present(vsno) ,"vsno" ,subname,interface_error)
-      call icepack_warnings_argchk(present(aice0),"aice0",subname,interface_error)
-      call icepack_warnings_argchk(present(ntrcr),"ntrcr",subname,interface_error)
-      call icepack_warnings_argchk(present(trcr_depend),"trcr_depend",subname,interface_error)
-      call icepack_warnings_argchk(present(trcr_base),"trcr_base",subname,interface_error)
-      call icepack_warnings_argchk(present(n_trcr_strata),"n_trcr_strata",subname,interface_error)
-      call icepack_warnings_argchk(present(nt_strata),"nt_strata",subname,interface_error)
-      if (interface_error) return
 
       !-----------------------------------------------------------------
       ! Initialize
