@@ -76,11 +76,11 @@
          iyear,'-',month,'-',mday,'-',sec
       
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
-         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
-         tr_pond_lvl_out=tr_pond_lvl)
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+           tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
+           tr_pond_lvl_out=tr_pond_lvl)
 !      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
 !         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
       call icepack_warnings_flush(nu_diag)
@@ -192,11 +192,11 @@
       write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
-         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
-         tr_pond_lvl_out=tr_pond_lvl)
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+           tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
+           tr_pond_lvl_out=tr_pond_lvl)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)

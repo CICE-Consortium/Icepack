@@ -67,16 +67,16 @@
             alidr_init(i) = alidr_ai(i)
             alidf_init(i) = alidf_ai(i)
 
-            call icepack_prep_radiation (ncat, nilyr, nslyr,             &
-                        aice    (i), aicen   (i,:), &
-                        swvdr   (i), swvdf   (i), &
-                        swidr   (i), swidf   (i), &
-                        alvdr_ai(i), alvdf_ai(i), &
-                        alidr_ai(i), alidf_ai(i), &
-                        scale_factor(i),                         &
-                        fswsfcn (i,:), fswintn (i,:), &
-                        fswthrun(i,:), fswpenln(i,:,:), &
-                        Sswabsn (i,:,:), Iswabsn (i,:,:))
+            call icepack_prep_radiation(ncat=ncat, nilyr=nilyr, nslyr=nslyr, &
+                         aice=aice(i),   aicen=aicen(i,:), &
+                         swvdr=swvdr(i), swvdf=swvdf(i),   &
+                         swidr=swidr(i), swidf=swidf(i),   &
+                         alvdr_ai=alvdr_ai(i), alvdf_ai=alvdf_ai(i), &
+                         alidr_ai=alidr_ai(i), alidf_ai=alidf_ai(i), &
+                         scale_factor=scale_factor(i),     &
+                         fswsfcn=fswsfcn(i,:),   fswintn=fswintn(i,:),     &
+                         fswthrun=fswthrun(i,:), fswpenln=fswpenln(i,:,:), &
+                         Sswabsn=Sswabsn(i,:,:), Iswabsn=Iswabsn(i,:,:))
 
          enddo               ! i
          call icepack_warnings_flush(nu_diag)
@@ -162,25 +162,25 @@
           file=__FILE__,line= __LINE__)
 
       call icepack_query_tracer_numbers( &
-         ntrcr_out=ntrcr)
+           ntrcr_out=ntrcr)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
       call icepack_query_tracer_flags( &
-         tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_aero_out=tr_aero, tr_pond_out=tr_pond, tr_pond_cesm_out=tr_pond_cesm, &
-         tr_pond_lvl_out=tr_pond_lvl, tr_pond_topo_out=tr_pond_topo)
+           tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+           tr_aero_out=tr_aero, tr_pond_out=tr_pond, tr_pond_cesm_out=tr_pond_cesm, &
+           tr_pond_lvl_out=tr_pond_lvl, tr_pond_topo_out=tr_pond_topo)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
       call icepack_query_tracer_indices( &
-         nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, &
-         nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, nt_Tsfc_out=nt_Tsfc, &
-         nt_iage_out=nt_iage, nt_FY_out=nt_FY, &
-         nt_qice_out=nt_qice, nt_sice_out=nt_sice, &
-         nt_aero_out=nt_aero, nt_qsno_out=nt_qsno)
+           nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, &
+           nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, nt_Tsfc_out=nt_Tsfc, &
+           nt_iage_out=nt_iage, nt_FY_out=nt_FY, &
+           nt_qice_out=nt_qice, nt_sice_out=nt_sice, &
+           nt_aero_out=nt_aero, nt_qsno_out=nt_qsno)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -223,79 +223,84 @@
             enddo
           enddo
         endif ! tr_aero
-        
-        call icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero,                &
-            aicen_init  (i,:),                           &
-            vicen_init  (i,:), vsnon_init  (i,:), &
-            aice        (i), aicen       (i,:), &
-            vice        (i), vicen       (i,:), &
-            vsno        (i), vsnon       (i,:), &
-            uvel        (i), vvel        (i), &
-            trcrn       (i,nt_Tsfc,:),                   &
-            trcrn       (i,nt_qsno:nt_qsno+nslyr-1,:),   & 
-            trcrn       (i,nt_qice:nt_qice+nilyr-1,:),   & 
-            trcrn       (i,nt_sice:nt_sice+nilyr-1,:),   & 
-            trcrn       (i,nt_alvl,:),                   & 
-            trcrn       (i,nt_vlvl,:),                   & 
-            trcrn       (i,nt_apnd,:),                   & 
-            trcrn       (i,nt_hpnd,:),                   & 
-            trcrn       (i,nt_ipnd,:),                   & 
-            trcrn       (i,nt_iage,:),                   &
-            trcrn       (i,nt_FY  ,:),                   & 
-            aerosno     (:,:,:),      aeroice     (:,:,:),      &
-            uatm        (i), vatm        (i), &
-            wind        (i), zlvl        (i), &
-            Qa          (i), rhoa        (i), &
-            Tair        (i), Tref        (i), &
-            Qref        (i), Uref        (i), &
-            Cdn_atm_ratio(i),                           &
-            Cdn_ocn     (i), Cdn_ocn_skin(i), &
-            Cdn_ocn_floe(i), Cdn_ocn_keel(i), &
-            Cdn_atm     (i), Cdn_atm_skin(i), &
-            Cdn_atm_floe(i), Cdn_atm_pond(i), &
-            Cdn_atm_rdg (i), hfreebd     (i), &
-            hdraft      (i), hridge      (i), &
-            distrdg     (i), hkeel       (i), &
-            dkeel       (i), lfloe       (i), &
-            dfloe       (i),                           &
-            strax       (i), stray       (i), &
-            strairxT    (i), strairyT    (i), &
-            potT        (i), sst         (i), &
-            sss         (i), Tf          (i), &
-            strocnxT    (i), strocnyT    (i), &
-            fbot        (i),                  &
-            Tbot        (i), Tsnice       (i), &
-            frzmlt      (i), rside       (i), &
-            fsnow       (i), frain       (i), &
-            fpond       (i),                           &
-            fsurf       (i), fsurfn      (i,:), &
-            fcondtop    (i), fcondtopn   (i,:), &
-            fcondbot    (i), fcondbotn   (i,:), &
-            fswsfcn     (i,:), fswintn     (i,:), &
-            fswthrun    (i,:), fswabs      (i), &
-            flwout      (i),                           &
-            Sswabsn   (i,:,:), Iswabsn   (i,:,:), &
-            flw         (i), &
-            fsens       (i), fsensn      (i,:), &
-            flat        (i), flatn       (i,:), &
-            evap        (i),                           &
-            evaps       (i), evapi       (i), &
-            fresh       (i), fsalt       (i), &
-            fhocn       (i), fswthru     (i), &
-            flatn_f     (i,:), fsensn_f    (i,:), &
-            fsurfn_f    (i,:), fcondtopn_f (i,:), &
-            faero_atm   (i,1:n_aero),                    &
-            faero_ocn   (i,1:n_aero),                    &
-            dhsn        (i,:), ffracn      (i,:), &
-            meltt       (i), melttn      (i,:), &
-            meltb       (i), meltbn      (i,:), &
-            melts       (i), meltsn      (i,:), &
-            congel      (i), congeln     (i,:), &
-            snoice      (i), snoicen     (i,:), &
-            dsnown      (i,:), &
-            lmask_n     (i), lmask_s     (i), &
-            mlt_onset   (i), frz_onset   (i), &
-            yday,  prescribed_ice)
+
+        call icepack_step_therm1(dt=dt, ncat=ncat, nilyr=nilyr, nslyr=nslyr, n_aero=n_aero, &
+            aicen_init = aicen_init(i,:), &
+            vicen_init = vicen_init(i,:), &
+            vsnon_init = vsnon_init(i,:), &
+            aice = aice(i),   aicen = aicen(i,:), &
+            vice = vice(i),   vicen = vicen(i,:), &
+            vsno = vsno(i),   vsnon = vsnon(i,:), &
+            uvel = uvel(i),   vvel  = vvel(i),    &
+            Tsfc = trcrn(i,nt_Tsfc,:),                 &
+            zqsn = trcrn(i,nt_qsno:nt_qsno+nslyr-1,:), & 
+            zqin = trcrn(i,nt_qice:nt_qice+nilyr-1,:), & 
+            zSin = trcrn(i,nt_sice:nt_sice+nilyr-1,:), & 
+            alvl = trcrn(i,nt_alvl,:),                 & 
+            vlvl = trcrn(i,nt_vlvl,:),                 & 
+            apnd = trcrn(i,nt_apnd,:),                 & 
+            hpnd = trcrn(i,nt_hpnd,:),                 & 
+            ipnd = trcrn(i,nt_ipnd,:),                 & 
+            iage = trcrn(i,nt_iage,:),                 &
+            FY   = trcrn(i,nt_FY,:),                   & 
+            aerosno = aerosno(:,:,:),        &
+            aeroice = aeroice(:,:,:),        &
+            uatm = uatm(i), vatm = vatm(i),  &
+            wind = wind(i), zlvl = zlvl(i),  &
+            Qa   = Qa(i),   rhoa = rhoa(i),  &
+            Tair = Tair(i), Tref = Tref(i),  &
+            Qref = Qref(i), Uref = Uref(i),  &
+            Cdn_atm_ratio = Cdn_atm_ratio(i),&
+            Cdn_ocn       = Cdn_ocn(i),      &
+            Cdn_ocn_skin  = Cdn_ocn_skin(i), &
+            Cdn_ocn_floe  = Cdn_ocn_floe(i), &
+            Cdn_ocn_keel  = Cdn_ocn_keel(i), &
+            Cdn_atm       = Cdn_atm(i),      &
+            Cdn_atm_skin  = Cdn_atm_skin(i), &
+            Cdn_atm_floe  = Cdn_atm_floe(i), &
+            Cdn_atm_pond  = Cdn_atm_pond(i), &
+            Cdn_atm_rdg   = Cdn_atm_rdg(i),  &
+            hfreebd  = hfreebd(i),    hkeel     = hkeel(i),       &
+            hdraft   = hdraft(i),     hridge    = hridge(i),      &
+            distrdg  = distrdg(i),    dkeel     = dkeel(i),       &
+            lfloe    = lfloe(i),      dfloe     = dfloe(i),       &
+            strax    = strax(i),      stray     = stray(i),       &
+            strairxT = strairxT(i),   strairyT  = strairyT(i),    &
+            potT     = potT(i),       sst       = sst(i),         &
+            sss      = sss(i),        Tf        = Tf(i),          &
+            strocnxT = strocnxT(i),   strocnyT  = strocnyT(i),    &
+            fbot     = fbot(i),       frzmlt    = frzmlt(i),      &
+            Tbot     = Tbot(i),       Tsnice    = Tsnice(i),      &
+            rside    = rside(i),                                  &
+            fsnow    = fsnow(i),      frain     = frain(i),       &
+            fpond    = fpond(i),                                  &
+            fsurf    = fsurf(i),      fsurfn    = fsurfn(i,:),    &
+            fcondtop = fcondtop(i),   fcondtopn = fcondtopn(i,:), &
+            fcondbot = fcondbot(i),   fcondbotn = fcondbotn(i,:), &
+            fswsfcn  = fswsfcn(i,:),  fswintn   = fswintn(i,:),   &
+            fswthrun = fswthrun(i,:), fswabs    = fswabs(i),      &
+            flwout   = flwout(i),     flw       = flw(i),         &
+            fsens    = fsens(i),      fsensn    = fsensn(i,:),    &
+            flat     = flat(i),       flatn     = flatn(i,:),     &
+            fresh    = fresh(i),      fsalt     = fsalt(i),       &
+            fhocn    = fhocn(i),      fswthru   = fswthru(i),     &
+            flatn_f  = flatn_f(i,:),  fsensn_f  = fsensn_f(i,:),  &
+            fsurfn_f = fsurfn_f(i,:),                             &
+            fcondtopn_f = fcondtopn_f(i,:),                       &
+            faero_atm   = faero_atm(i,1:n_aero),                  &
+            faero_ocn   = faero_ocn(i,1:n_aero),                  &
+            Sswabsn  = Sswabsn(i,:,:),Iswabsn   = Iswabsn(i,:,:), &
+            evap = evap(i), evaps = evaps(i), evapi = evapi(i),   &
+            dhsn     = dhsn(i,:),     ffracn    = ffracn(i,:),    &
+            meltt    = meltt(i),      melttn    = melttn(i,:),    &
+            meltb    = meltb(i),      meltbn    = meltbn(i,:),    &
+            melts    = melts(i),      meltsn    = meltsn(i,:),    &
+            congel   = congel(i),     congeln   = congeln(i,:),   &
+            snoice   = snoice(i),     snoicen   = snoicen(i,:),   &
+            dsnown   = dsnown(i,:),                               &
+            lmask_n  = lmask_n(i),    lmask_s   = lmask_s(i),     &
+            mlt_onset=mlt_onset(i),   frz_onset = frz_onset(i),   &
+            yday = yday,  prescribed_ice = prescribed_ice)
 
         if (tr_aero) then
           do n = 1, ncat
@@ -371,30 +376,37 @@
 
          if (tmask(i)) then
 
-            call icepack_step_therm2(dt, ncat, n_aero, nltrcr,                 &
-                           nilyr,                  nslyr,                  &
-                           hin_max   (:),          nblyr,                  &   
-                           aicen     (i,:),                         &
-                           vicen     (i,:), vsnon     (i,:), &
-                           aicen_init(i,:), vicen_init(i,:), &
-                           trcrn     (i,1:ntrcr,:),                 &
-                           aice0     (i), aice      (i), &
-                           trcr_depend(1:ntrcr),   trcr_base(1:ntrcr,:),   &
-                           n_trcr_strata(1:ntrcr), nt_strata(1:ntrcr,:),   &
-                           Tf        (i), sss       (i), &
-                           salinz    (i,:),                         &
-                           rside     (i), meltl     (i), &
-                           frzmlt    (i), frazil    (i), &
-                           frain     (i), fpond     (i), &
-                           fresh     (i), fsalt     (i), &
-                           fhocn     (i), update_ocn_f,           &
-                           bgrid,                  cgrid,                  &
-                           igrid,                  faero_ocn (i,:), &
-                           first_ice (i,:), fzsal     (i), &
-                           flux_bio  (i,1:nbtrcr),                  &
-                           ocean_bio (i,1:nbtrcr),                  &
-                           frazil_diag(i),                         &
-                           frz_onset (i), yday)
+            call icepack_step_therm2(dt=dt, ncat=ncat, n_aero=n_aero, &
+                         nltrcr=nltrcr, nilyr=nilyr, nslyr=nslyr,     &
+                         hin_max=hin_max(:), nblyr=nblyr,             &   
+                         aicen=aicen(i,:),                            &
+                         vicen=vicen(i,:),                            &
+                         vsnon=vsnon(i,:),                            &
+                         aicen_init=aicen_init(i,:),                  &
+                         vicen_init=vicen_init(i,:),                  &
+                         trcrn=trcrn(i,1:ntrcr,:),                    &
+                         aice0=aice0(i),                              &
+                         aice =aice(i),                               &
+                         trcr_depend=trcr_depend(1:ntrcr),            &
+                         trcr_base=trcr_base(1:ntrcr,:),              &
+                         n_trcr_strata=n_trcr_strata(1:ntrcr),        &
+                         nt_strata=nt_strata(1:ntrcr,:),              &
+                         Tf=Tf(i), sss=sss(i),                        &
+                         salinz=salinz(i,:),                          &
+                         rside=rside(i),   meltl=meltl(i),            &
+                         frzmlt=frzmlt(i), frazil=frazil(i),          &
+                         frain=frain(i),   fpond=fpond(i),            &
+                         fresh=fresh(i),   fsalt=fsalt(i),            &
+                         fhocn=fhocn(i),   update_ocn_f=update_ocn_f, &
+                         bgrid=bgrid,      cgrid=cgrid,               &
+                         igrid=igrid,      faero_ocn=faero_ocn(i,:),  &
+                         first_ice=first_ice(i,:),                    &
+                         fzsal=fzsal(i),                              &
+                         flux_bio=flux_bio(i,1:nbtrcr),               &
+                         ocean_bio=ocean_bio(i,1:nbtrcr),             &
+                         frazil_diag=frazil_diag(i),                  &
+                         frz_onset=frz_onset(i),                      &
+                         yday=yday)
 
          endif ! tmask
 
@@ -469,16 +481,16 @@
  
          if (tmask(i)) then
             call icepack_aggregate (ncat=ncat,                     &
-                               aicen=aicen(i,:), trcrn=trcrn(i,1:ntrcr,:), &
-                               vicen=vicen(i,:), vsnon=vsnon(i,:), &
-                               aice=aice (i), trcr=trcr (i,1:ntrcr), &
-                               vice=vice (i), vsno=vsno (i),       &
-                               aice0=aice0(i),                     &
-                               ntrcr=ntrcr,                        &
-                               trcr_depend=trcr_depend(1:ntrcr),   &
-                               trcr_base=trcr_base    (1:ntrcr,:), &
-                               n_trcr_strata=n_trcr_strata(1:ntrcr), &
-                               nt_strata=nt_strata    (1:ntrcr,:))
+                         aicen=aicen(i,:), trcrn=trcrn(i,1:ntrcr,:), &
+                         vicen=vicen(i,:), vsnon=vsnon(i,:),       &
+                         aice =aice (i),   trcr =trcr (i,1:ntrcr), &
+                         vice =vice (i),   vsno =vsno (i),         &
+                         aice0=aice0(i),                           &
+                         ntrcr=ntrcr,                              &
+                         trcr_depend=trcr_depend    (1:ntrcr),     &
+                         trcr_base=trcr_base        (1:ntrcr,:),   &
+                         n_trcr_strata=n_trcr_strata(1:ntrcr),     &
+                         nt_strata=nt_strata        (1:ntrcr,:))
          endif
 
       !-----------------------------------------------------------------
@@ -567,32 +579,34 @@
 
          if (tmask(i)) then
 
-            call icepack_step_ridge (dt,            ndtd,                  &
-                         nilyr,                 nslyr,                 &
-                         nblyr,                                        &
-                         ncat,                  hin_max  (:),          &
-                         rdg_conv (i), rdg_shear(i), &
-                         aicen    (i,:),                        &
-                         trcrn    (i,1:ntrcr,:),                &
-                         vicen    (i,:), vsnon    (i,:), &
-                         aice0    (i), trcr_depend(1:ntrcr),  &
-                         trcr_base(1:ntrcr,:),  n_trcr_strata(1:ntrcr),&
-                         nt_strata(1:ntrcr,:),                         &
-                         dardg1dt (i), dardg2dt (i), &
-                         dvirdgdt (i), opening  (i), &
-                         fpond    (i),                        &
-                         fresh    (i), fhocn    (i), &
-                         n_aero,                                       &
-                         faero_ocn(i,:),                        &
-                         aparticn (i,:), krdgn    (i,:), &
-                         aredistn (i,:), vredistn (i,:), &
-                         dardg1ndt(i,:), dardg2ndt(i,:), &
-                         dvirdgndt(i,:),                        &
-                         araftn   (i,:), vraftn   (i,:), &
-                         aice     (i), fsalt    (i), &
-                         first_ice(i,:), fzsal    (i), &
-                         flux_bio (i,1:nbtrcr), &
-                         closing(i) )
+            call icepack_step_ridge(dt=dt,         ndtd=ndtd,                &
+                         nilyr=nilyr,              nslyr=nslyr,              &
+                         nblyr=nblyr,                                        &
+                         ncat=ncat,                hin_max=hin_max(:),       &
+                         rdg_conv=rdg_conv(i),     rdg_shear=rdg_shear(i),   &
+                         aicen=aicen(i,:),                                   &
+                         trcrn=trcrn(i,1:ntrcr,:),                           &
+                         vicen=vicen(i,:),         vsnon=vsnon(i,:),         &
+                         aice0=aice0(i),                                     &
+                         trcr_depend=trcr_depend(1:ntrcr),                   &
+                         trcr_base=trcr_base(1:ntrcr,:),                     &
+                         n_trcr_strata=n_trcr_strata(1:ntrcr),               &
+                         nt_strata=nt_strata(1:ntrcr,:),                     &
+                         dardg1dt=dardg1dt(i),     dardg2dt=dardg2dt(i),     &
+                         dvirdgdt=dvirdgdt(i),     opening=opening(i),       &
+                         fpond=fpond(i),                                     &
+                         fresh=fresh(i),           fhocn=fhocn(i),           &
+                         n_aero=n_aero,                                      &
+                         faero_ocn=faero_ocn(i,:),                           &
+                         aparticn=aparticn(i,:),   krdgn=krdgn(i,:),         &
+                         aredistn=aredistn(i,:),   vredistn=vredistn(i,:),   &
+                         dardg1ndt=dardg1ndt(i,:), dardg2ndt=dardg2ndt(i,:), &
+                         dvirdgndt=dvirdgndt(i,:),                           &
+                         araftn=araftn(i,:),       vraftn=vraftn(i,:),       &
+                         aice=aice(i),             fsalt=fsalt(i),           &
+                         first_ice=first_ice(i,:), fzsal=fzsal(i),           &
+                         flux_bio=flux_bio(i,1:nbtrcr),                      &
+                         closing=closing(i) )
 
          endif ! tmask
 
@@ -608,31 +622,33 @@
 
          if (tmask(i)) then
 
-            call icepack_step_ridge (dt,            ndtd,                  &
-                         nilyr,                 nslyr,                 &
-                         nblyr,                                        &
-                         ncat,                  hin_max  (:),          &
-                         rdg_conv (i), rdg_shear(i), &
-                         aicen    (i,:),                        &
-                         trcrn    (i,1:ntrcr,:),                &
-                         vicen    (i,:), vsnon    (i,:), &
-                         aice0    (i), trcr_depend(1:ntrcr),  &
-                         trcr_base(1:ntrcr,:),  n_trcr_strata(1:ntrcr),&
-                         nt_strata(1:ntrcr,:),                         &
-                         dardg1dt (i), dardg2dt (i), &
-                         dvirdgdt (i), opening  (i), &
-                         fpond    (i),                        &
-                         fresh    (i), fhocn    (i), &
-                         n_aero,                                       &
-                         faero_ocn(i,:),                        &
-                         aparticn (i,:), krdgn    (i,:), &
-                         aredistn (i,:), vredistn (i,:), &
-                         dardg1ndt(i,:), dardg2ndt(i,:), &
-                         dvirdgndt(i,:),                        &
-                         araftn   (i,:), vraftn   (i,:), &
-                         aice     (i), fsalt    (i), &
-                         first_ice(i,:), fzsal    (i), &
-                         flux_bio (i,1:nbtrcr))
+            call icepack_step_ridge (dt=dt,        ndtd=ndtd,                &
+                         nilyr=nilyr,              nslyr=nslyr,              &
+                         nblyr=nblyr,                                        &
+                         ncat=ncat,                hin_max=hin_max(:),       &
+                         rdg_conv=rdg_conv(i),     rdg_shear=rdg_shear(i),   &
+                         aicen=aicen(i,:),                                   &
+                         trcrn=trcrn(i,1:ntrcr,:),                           &
+                         vicen=vicen(i,:),         vsnon=vsnon(i,:),         &
+                         aice0=aice0(i),                                     &
+                         trcr_depend=trcr_depend(1:ntrcr),                   &
+                         trcr_base=trcr_base(1:ntrcr,:),                     &
+                         n_trcr_strata=n_trcr_strata(1:ntrcr),               &
+                         nt_strata=nt_strata(1:ntrcr,:),                     &
+                         dardg1dt=dardg1dt(i),     dardg2dt=dardg2dt(i),     &
+                         dvirdgdt=dvirdgdt(i),     opening=opening(i),       &
+                         fpond=fpond(i),                                     &
+                         fresh=fresh(i),           fhocn=fhocn(i),           &
+                         n_aero=n_aero,                                      &
+                         faero_ocn=faero_ocn(i,:),                           &
+                         aparticn=aparticn(i,:),   krdgn=krdgn(i,:),         &
+                         aredistn=aredistn(i,:),   vredistn=vredistn(i,:),   &
+                         dardg1ndt=dardg1ndt(i,:), dardg2ndt=dardg2ndt(i,:), &
+                         dvirdgndt=dvirdgndt(i,:),                           &
+                         araftn=araftn(i,:),       vraftn=vraftn(i,:),       &
+                         aice=aice(i),             fsalt=fsalt(i),           &
+                         first_ice=first_ice(i,:), fzsal=fzsal(i),           &
+                         flux_bio=flux_bio(i,1:nbtrcr))
 
          endif ! tmask
 
@@ -706,7 +722,7 @@
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_sizes( &
-         max_aero_out=max_aero)
+           max_aero_out=max_aero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -719,16 +735,16 @@
           file=__FILE__,line= __LINE__)
 
       call icepack_query_tracer_flags( &
-         tr_brine_out=tr_brine, tr_bgc_N_out=tr_bgc_N, tr_zaero_out=tr_zaero)
+           tr_brine_out=tr_brine, tr_bgc_N_out=tr_bgc_N, tr_zaero_out=tr_zaero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
       call icepack_query_tracer_indices( &
-         nt_Tsfc_out=nt_Tsfc, nt_alvl_out=nt_alvl, &
-         nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, &
-         nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw, &
-         nt_fbri_out=nt_fbri, nt_zaero_out=nt_zaero)
+           nt_Tsfc_out=nt_Tsfc, nt_alvl_out=nt_alvl, &
+           nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, &
+           nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw, &
+           nt_fbri_out=nt_fbri, nt_zaero_out=nt_zaero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -758,45 +774,45 @@
 
          if (tmask(i)) then
 
-            call icepack_step_radiation (dt,     ncat,             &
-                          n_algae,               tr_zaero,         &
-                          nblyr,                 ntrcr,            &
-                          nbtrcr_sw,             nilyr,            &
-                          nslyr,                 n_aero,           &
-                          n_zaero,               dEdd_algae,       &
-                          nlt_chl_sw,            nlt_zaero_sw(:),  &
-                          swgrid(:),             igrid(:),         &
-                          fbri(:),                                 &
-                          aicen(i,:),            vicen(i,:),       &
-                          vsnon(i,:),                              &
-                          trcrn(i,nt_Tsfc,:),                      &
-                          trcrn(i,nt_alvl,:),                      &
-                          trcrn(i,nt_apnd,:),                      &
-                          trcrn(i,nt_hpnd,:),                      &
-                          trcrn(i,nt_ipnd,:),                      &
-                          trcrn(i,nt_aero:nt_aero+4*n_aero-1,:),   &
-                          ztrcr_sw,              ztrcr,            &
-                          TLAT(i),               TLON(i),          &
-                          calendar_type,         days_per_year,    &
-                          nextsw_cday,           yday,             &
-                          sec,                   kaer_tab,         &
-                          waer_tab,              gaer_tab,         &
-                          kaer_bc_tab(:,:),      waer_bc_tab(:,:), &
-                          gaer_bc_tab(:,:),      bcenh(:,:,:),     &
-                          modal_aero,                              &
-                          swvdr(i),              swvdf(i),         &
-                          swidr(i),              swidf(i),         &
-                          coszen(i),             fsnow(i),         &
-                          alvdrn(i,:),           alvdfn(i,:),      &
-                          alidrn(i,:),           alidfn(i,:),      &
-                          fswsfcn(i,:),          fswintn(i,:),     &
-                          fswthrun(i,:),         fswpenln(i,:,:),  &
-                          Sswabsn(i,:,:),        Iswabsn(i,:,:),   &
-                          albicen(i,:),          albsnon(i,:),     &
-                          albpndn(i,:),          apeffn(i,:),      &
-                          snowfracn(i,:),                          &
-                          dhsn(i,:),             ffracn(i,:),      &
-                          l_print_point)
+            call icepack_step_radiation(dt=dt,      ncat=ncat,          &
+                         n_algae=n_algae,           tr_zaero=tr_zaero,  &
+                         nblyr=nblyr,               ntrcr=ntrcr,        &
+                         nbtrcr_sw=nbtrcr_sw,       nilyr=nilyr,        &
+                         nslyr=nslyr,               n_aero=n_aero,      &
+                         n_zaero=n_zaero,           dEdd_algae=dEdd_algae,        &
+                         nlt_chl_sw=nlt_chl_sw,     nlt_zaero_sw=nlt_zaero_sw(:), &
+                         swgrid=swgrid(:),          igrid=igrid(:),     &
+                         fbri=fbri(:),                                  &
+                         aicen=aicen(i,:),          vicen=vicen(i,:),   &
+                         vsnon=vsnon(i,:),                              &
+                         Tsfcn=trcrn(i,nt_Tsfc,:),                      &
+                         alvln=trcrn(i,nt_alvl,:),                      &
+                         apndn=trcrn(i,nt_apnd,:),                      &
+                         hpndn=trcrn(i,nt_hpnd,:),                      &
+                         ipndn=trcrn(i,nt_ipnd,:),                      &
+                         aeron=trcrn(i,nt_aero:nt_aero+4*n_aero-1,:),   &
+                         zbion=ztrcr_sw,            trcrn=ztrcr,        &
+                         TLAT=TLAT(i),              TLON=TLON(i),       &
+                         calendar_type=calendar_type,                   &
+                         days_per_year=days_per_year, sec=sec,          &
+                         nextsw_cday=nextsw_cday,   yday=yday,          &
+                         kaer_tab=kaer_tab,         kaer_bc_tab=kaer_bc_tab(:,:), &
+                         waer_tab=waer_tab,         waer_bc_tab=waer_bc_tab(:,:), &
+                         gaer_tab=gaer_tab,         gaer_bc_tab=gaer_bc_tab(:,:), &
+                         bcenh=bcenh(:,:,:),        modal_aero=modal_aero,    &
+                         swvdr=swvdr(i),            swvdf=swvdf(i),           &
+                         swidr=swidr(i),            swidf=swidf(i),           &
+                         coszen=coszen(i),          fsnow=fsnow(i),           &
+                         alvdrn=alvdrn(i,:),        alvdfn=alvdfn(i,:),       &
+                         alidrn=alidrn(i,:),        alidfn=alidfn(i,:),       &
+                         fswsfcn=fswsfcn(i,:),      fswintn=fswintn(i,:),     &
+                         fswthrun=fswthrun(i,:),    fswpenln=fswpenln(i,:,:), &
+                         Sswabsn=Sswabsn(i,:,:),    Iswabsn=Iswabsn(i,:,:),   &
+                         albicen=albicen(i,:),      albsnon=albsnon(i,:),     &
+                         albpndn=albpndn(i,:),      apeffn=apeffn(i,:),       &
+                         snowfracn=snowfracn(i,:),                            &
+                         dhsn=dhsn(i,:),            ffracn=ffracn(i,:),       &
+                         l_print_point=l_print_point)
 
          endif ! tmask
 
@@ -892,25 +908,25 @@
 
             do i = 1, nx
                if (tmask(i)) then
-                  call icepack_atm_boundary( 'ocn',                &
-                                        sst        (i), &    
-                                        potT       (i), &
-                                        uatm       (i), &   
-                                        vatm       (i), &   
-                                        wind       (i), &   
-                                        zlvl       (i), &   
-                                        Qa         (i), &     
-                                        rhoa       (i), &
-                                        strairx_ocn(i), & 
-                                        strairy_ocn(i), & 
-                                        Tref_ocn   (i), & 
-                                        Qref_ocn   (i), & 
-                                        delt       (i),      &    
-                                        delq       (i),      &
-                                        lhcoef     (i),      &
-                                        shcoef     (i),      &
-                                        Cdn_atm    (i), & 
-                                        Cdn_atm_ratio(i))    
+                  call icepack_atm_boundary(sfctype = 'ocn',          &
+                                            Tsf     = sst(i),         &
+                                            potT    = potT(i),        &
+                                            uatm    = uatm(i),        &   
+                                            vatm    = vatm(i),        &   
+                                            wind    = wind(i),        &   
+                                            zlvl    = zlvl(i),        &   
+                                            Qa      = Qa(i),          &     
+                                            rhoa    = rhoa(i),        &
+                                            strx    = strairx_ocn(i), & 
+                                            stry    = strairy_ocn(i), & 
+                                            Tref    = Tref_ocn(i),    & 
+                                            Qref    = Qref_ocn(i),    & 
+                                            delt    = delt(i),        &    
+                                            delq    = delq(i),        &
+                                            lhcoef  = lhcoef(i),      &
+                                            shcoef  = shcoef(i),      &
+                                            Cdn_atm = Cdn_atm(i),     & 
+                                            Cdn_atm_ratio_n = Cdn_atm_ratio(i))    
                endif
             enddo ! i
             call icepack_warnings_flush(nu_diag)
@@ -932,19 +948,19 @@
       !-----------------------------------------------------------------
       do i = 1, nx
          if (tmask(i)) then
-            call icepack_ocn_mixed_layer (alvdr_ocn(i), swvdr     (i), &
-                                      alidr_ocn(i), swidr     (i), &
-                                      alvdf_ocn(i), swvdf     (i), &
-                                      alidf_ocn(i), swidf     (i), &
-                                      sst      (i), flwout_ocn(i), &
-                                      fsens_ocn(i), shcoef    (i),      &
-                                      flat_ocn (i), lhcoef    (i),      &
-                                      evap_ocn (i), flw       (i), &
-                                      delt     (i),      delq      (i),      &
-                                      aice     (i), fhocn     (i), &
-                                      fswthru  (i), hmix      (i), &
-                                      Tf       (i), qdp       (i), &
-                                      frzmlt   (i), dt)
+            call icepack_ocn_mixed_layer(alvdr_ocn=alvdr_ocn(i),  swvdr=swvdr(i),   &
+                                         alidr_ocn=alidr_ocn(i),  swidr=swidr(i),   &
+                                         alvdf_ocn=alvdf_ocn(i),  swvdf=swvdf(i),   &
+                                         alidf_ocn=alidf_ocn(i),  swidf=swidf(i),   &
+                                         flwout_ocn=flwout_ocn(i),sst=sst(i),       &
+                                         fsens_ocn=fsens_ocn(i),  shcoef=shcoef(i), &
+                                         flat_ocn=flat_ocn(i),    lhcoef=lhcoef(i), &
+                                         evap_ocn=evap_ocn(i),    flw=flw(i),       &
+                                         delt=delt(i),            delq=delq(i),     &
+                                         aice=aice(i),            fhocn=fhocn(i),   &
+                                         fswthru=fswthru(i),      hmix=hmix(i),     &
+                                         Tf=Tf(i),                qdp=qdp(i),       &
+                                         frzmlt=frzmlt(i),        dt=dt)
          endif
       enddo                    ! i
       call icepack_warnings_flush(nu_diag)
@@ -1021,8 +1037,8 @@
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_sizes( &
-         max_algae_out=max_algae, max_nbtrcr_out=max_nbtrcr, max_don_out=max_don, &
-         max_doc_out=max_doc, max_dic_out=max_dic, max_aero_out=max_aero, max_fe_out=max_fe)
+           max_algae_out=max_algae, max_nbtrcr_out=max_nbtrcr, max_don_out=max_don, &
+           max_doc_out=max_doc, max_dic_out=max_dic, max_aero_out=max_aero, max_fe_out=max_fe)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -1047,17 +1063,18 @@
       ! Define ocean concentrations for tracers used in simulation
       do i = 1, nx
 
-         call icepack_init_OceanConcArray(max_nbtrcr, &
-                max_algae, max_don,  max_doc,        &
-                max_dic,   max_aero, max_fe,         &
-                nit(i), amm   (i), &
-                sil(i), dmsp  (i), &
-                dms(i), algalN(i,:), &
-                doc(i,:), don   (i,:), &
-                dic(i,:), fed   (i,:), &
-                fep(i,:), zaeros(i,:), &
-                ocean_bio_all(i,:), &
-                hum(i))
+         call icepack_init_OceanConcArray(max_nbtrcr=max_nbtrcr, &
+                      max_algae = max_algae, max_don  = max_don, &
+                      max_doc   = max_doc,   max_dic  = max_dic, &
+                      max_aero  = max_aero,  max_fe   = max_fe,  &
+                      nit = nit(i),   amm    = amm(i),      &
+                      sil = sil(i),   dmsp   = dmsp(i),     &
+                      dms = dms(i),   algalN = algalN(i,:), &
+                      doc = doc(i,:), don    = don(i,:),    &
+                      dic = dic(i,:), fed    = fed(i,:),    &
+                      fep = fep(i,:), zaeros = zaeros(i,:), &
+                      ocean_bio_all=ocean_bio_all(i,:),     &
+                      hum=hum(i))
 !         call icepack_warnings_flush(nu_diag)
 !         if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
 !             file=__FILE__,line= __LINE__)
@@ -1071,57 +1088,59 @@
             enddo  ! mm
          endif
 
-         call icepack_biogeochemistry(dt, ntrcr, nbtrcr,&
-                              upNO        (i),        &
-                              upNH        (i),        &
-                              iDi         (i,:,:),        &
-                              iki         (i,:,:),        &
-                              zfswin      (i,:,:),        &
-                              zsal_tot    (i),        &
-                              darcy_V     (i,:),        &
-                              grow_net    (i),        &
-                              PP_net      (i),        &
-                              hbri        (i),        &
-                              dhbr_bot    (i,:),        &
-                              dhbr_top    (i,:),        &
-                              Zoo         (i,:,:),        &
-                              fbio_snoice (i,:),        &
-                              fbio_atmice (i,:),        &
-                              ocean_bio   (i,1:nbtrcr),        &
-                              first_ice   (i,:),        &
-                              fswpenln    (i,:,:),        &
-                              bphi        (i,:,:),        &
-                              bTiz        (i,:,:),        &
-                              ice_bio_net (i,1:nbtrcr),        &
-                              snow_bio_net(i,1:nbtrcr),        &
-                              fswthrun    (i,:),        &
-                              Rayleigh_criteria(i),        &
-                              sice_rho    (i,:),        &
-                              fzsal       (i),        &   
-                              fzsal_g     (i),        &
-                              bgrid, igrid, icgrid, cgrid,     &
-                              nblyr, nilyr, nslyr, n_algae, n_zaero,   &
-                              ncat, n_doc, n_dic, n_don, n_fed, n_fep, &
-                              meltbn      (i,:),        &
-                              melttn      (i,:),        &
-                              congeln     (i,:),        &
-                              snoicen     (i,:),        & 
-                              sst         (i),        &    
-                              sss         (i),        &
-                              fsnow       (i),        &
-                              meltsn      (i,:),        &
-                              hin_old     (i,:),        &
-                              flux_bio    (i,1:nbtrcr),        &
-                              flux_bio_atm(i,1:nbtrcr),        &
-                              aicen_init  (i,:),        &
-                              vicen_init  (i,:),        &
-                              aicen       (i,:),        &
-                              vicen       (i,:),        &
-                              vsnon       (i,:),        &
-                              aice0       (i),        &
-                              trcrn       (i,1:ntrcr,:),        &
-                              vsnon_init  (i,:),        &
-                              skl_bgc)
+         call icepack_biogeochemistry(dt=dt, ntrcr=ntrcr, nbtrcr=nbtrcr,    &
+                      ncat=ncat, nblyr=nblyr, nilyr=nilyr, nslyr=nslyr,     &
+                      n_algae=n_algae, n_zaero=n_zaero,                     &
+                      n_doc=n_doc, n_dic=n_dic, n_don=n_don,                &
+                      n_fed=n_fed, n_fep=n_fep,                             &
+                      bgrid=bgrid, igrid=igrid, icgrid=icgrid, cgrid=cgrid, &
+                      upNO         = upNO(i),                   &
+                      upNH         = upNH(i),                   &
+                      iDi          = iDi(i,:,:),                &
+                      iki          = iki(i,:,:),                &
+                      zfswin       = zfswin(i,:,:),             &
+                      zsal_tot     = zsal_tot(i),               &
+                      darcy_V      = darcy_V(i,:),              &
+                      grow_net     = grow_net(i),               &
+                      PP_net       = PP_net(i),                 &
+                      hbri         = hbri(i),                   &
+                      dhbr_bot     = dhbr_bot(i,:),             &
+                      dhbr_top     = dhbr_top(i,:),             &
+                      Zoo          = Zoo(i,:,:),                &
+                      fbio_snoice  = fbio_snoice(i,:),          &
+                      fbio_atmice  = fbio_atmice(i,:),          &
+                      ocean_bio    = ocean_bio(i,1:nbtrcr),     &
+                      first_ice    = first_ice(i,:),            &
+                      fswpenln     = fswpenln(i,:,:),           &
+                      bphi         = bphi(i,:,:),               &
+                      bTiz         = bTiz(i,:,:),               &
+                      ice_bio_net  = ice_bio_net(i,1:nbtrcr),   &
+                      snow_bio_net = snow_bio_net(i,1:nbtrcr),  &
+                      fswthrun     = fswthrun(i,:),             &
+                      Rayleigh_criteria = Rayleigh_criteria(i), &
+                      sice_rho     = sice_rho(i,:),             &
+                      fzsal        = fzsal(i),                  &
+                      fzsal_g      = fzsal_g(i),                &
+                      meltbn       = meltbn(i,:),               &
+                      melttn       = melttn(i,:),               &
+                      congeln      = congeln(i,:),              &
+                      snoicen      = snoicen(i,:),              &
+                      sst          = sst(i),                    &
+                      sss          = sss(i),                    &
+                      fsnow        = fsnow(i),                  &
+                      meltsn       = meltsn(i,:),               &
+                      hin_old      = hin_old(i,:),              &
+                      flux_bio     = flux_bio(i,1:nbtrcr),      &
+                      flux_bio_atm = flux_bio_atm(i,1:nbtrcr),  &
+                      aicen_init   = aicen_init(i,:),           &
+                      vicen_init   = vicen_init(i,:),           &
+                      aicen        = aicen(i,:),                &
+                      vicen        = vicen(i,:),                &
+                      vsnon        = vsnon(i,:),                &
+                      aice0        = aice0(i),                  &
+                      trcrn        = trcrn(i,1:ntrcr,:),        &
+                      vsnon_init   = vsnon_init(i,:),           &
+                      skl_bgc      = skl_bgc)
 
 !         call icepack_warnings_flush(nu_diag)
 !         if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
