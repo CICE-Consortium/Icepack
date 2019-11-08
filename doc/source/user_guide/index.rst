@@ -15,4 +15,5 @@ User Guide
    ug_running.rst
    ug_testing.rst
    ug_case_settings.rst
+   ug_library.rst
    ug_troubleshooting.rst
