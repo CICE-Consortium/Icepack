@@ -169,31 +169,31 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(ustar_min_out=ustar_min, Cf_out=Cf, &
-         albicev_out=albicev, albicei_out=albicei, &
-         albsnowv_out=albsnowv, albsnowi_out=albsnowi, &
-         natmiter_out=natmiter, ahmax_out=ahmax, shortwave_out=shortwave, &
-         albedo_type_out=albedo_type, R_ice_out=R_ice, R_pnd_out=R_pnd, &
-         R_snw_out=R_snw, dT_mlt_out=dT_mlt, rsnw_mlt_out=rsnw_mlt, &
-         kstrength_out=kstrength, krdg_partic_out=krdg_partic, &
-         krdg_redist_out=krdg_redist, mu_rdg_out=mu_rdg, &
-         atmbndy_out=atmbndy, calc_strair_out=calc_strair, &
-         formdrag_out=formdrag, highfreq_out=highfreq, &
-         emissivity_out=emissivity, &
-         kitd_out=kitd, kcatbound_out=kcatbound, hs0_out=hs0, & 
-         dpscale_out=dpscale, frzpnd_out=frzpnd, &
-         rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
-         pndaspect_out=pndaspect, hs1_out=hs1, hp1_out=hp1, &
-         ktherm_out=ktherm, calc_Tsfc_out=calc_Tsfc, &
-         update_ocn_f_out = update_ocn_f, &
-         conduct_out=conduct, a_rapid_mode_out=a_rapid_mode, &
-         Rac_rapid_mode_out=Rac_rapid_mode, &
-         aspect_rapid_mode_out=aspect_rapid_mode, &
-         dSdt_slow_mode_out=dSdt_slow_mode, &
-         phi_c_slow_mode_out=phi_c_slow_mode, &
-         phi_i_mushy_out=phi_i_mushy, &
-         tfrz_option_out=tfrz_option, kalg_out=kalg, &
-         fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
-         wave_spec_type_out=wave_spec_type)
+           albicev_out=albicev, albicei_out=albicei, &
+           albsnowv_out=albsnowv, albsnowi_out=albsnowi, &
+           natmiter_out=natmiter, ahmax_out=ahmax, shortwave_out=shortwave, &
+           albedo_type_out=albedo_type, R_ice_out=R_ice, R_pnd_out=R_pnd, &
+           R_snw_out=R_snw, dT_mlt_out=dT_mlt, rsnw_mlt_out=rsnw_mlt, &
+           kstrength_out=kstrength, krdg_partic_out=krdg_partic, &
+           krdg_redist_out=krdg_redist, mu_rdg_out=mu_rdg, &
+           atmbndy_out=atmbndy, calc_strair_out=calc_strair, &
+           formdrag_out=formdrag, highfreq_out=highfreq, &
+           emissivity_out=emissivity, &
+           kitd_out=kitd, kcatbound_out=kcatbound, hs0_out=hs0, & 
+           dpscale_out=dpscale, frzpnd_out=frzpnd, &
+           rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
+           pndaspect_out=pndaspect, hs1_out=hs1, hp1_out=hp1, &
+           ktherm_out=ktherm, calc_Tsfc_out=calc_Tsfc, &
+           update_ocn_f_out = update_ocn_f, &
+           conduct_out=conduct, a_rapid_mode_out=a_rapid_mode, &
+           Rac_rapid_mode_out=Rac_rapid_mode, &
+           aspect_rapid_mode_out=aspect_rapid_mode, &
+           dSdt_slow_mode_out=dSdt_slow_mode, &
+           phi_c_slow_mode_out=phi_c_slow_mode, &
+           phi_i_mushy_out=phi_i_mushy, &
+           tfrz_option_out=tfrz_option, kalg_out=kalg, &
+           fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
+           wave_spec_type_out=wave_spec_type)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -712,42 +712,42 @@
       !-----------------------------------------------------------------
 
       call icepack_init_parameters(ustar_min_in=ustar_min, Cf_in=Cf, &
-         albicev_in=albicev, albicei_in=albicei, &
-         albsnowv_in=albsnowv, albsnowi_in=albsnowi, &
-         natmiter_in=natmiter, ahmax_in=ahmax, shortwave_in=shortwave, &
-         albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &
-         R_snw_in=R_snw, dT_mlt_in=dT_mlt, rsnw_mlt_in=rsnw_mlt, &
-         kstrength_in=kstrength, krdg_partic_in=krdg_partic, &
-         krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
-         atmbndy_in=atmbndy, calc_strair_in=calc_strair, &
-         formdrag_in=formdrag, highfreq_in=highfreq, &
-         emissivity_in=emissivity, &
-         kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, &
-         dpscale_in=dpscale, frzpnd_in=frzpnd, &
-         rfracmin_in=rfracmin, rfracmax_in=rfracmax, &
-         pndaspect_in=pndaspect, hs1_in=hs1, hp1_in=hp1, &
-         ktherm_in=ktherm, calc_Tsfc_in=calc_Tsfc, &
-         conduct_in=conduct, a_rapid_mode_in=a_rapid_mode, &
-         Rac_rapid_mode_in=Rac_rapid_mode, &
-         aspect_rapid_mode_in=aspect_rapid_mode, &
-         dSdt_slow_mode_in=dSdt_slow_mode, &
-         phi_c_slow_mode_in=phi_c_slow_mode, &
-         phi_i_mushy_in=phi_i_mushy, &
-         tfrz_option_in=tfrz_option, kalg_in=kalg, &
-         fbot_xfer_type_in=fbot_xfer_type, &
-         wave_spec_type_in = wave_spec_type, wave_spec_in = wave_spec)
+           albicev_in=albicev, albicei_in=albicei, &
+           albsnowv_in=albsnowv, albsnowi_in=albsnowi, &
+           natmiter_in=natmiter, ahmax_in=ahmax, shortwave_in=shortwave, &
+           albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &
+           R_snw_in=R_snw, dT_mlt_in=dT_mlt, rsnw_mlt_in=rsnw_mlt, &
+           kstrength_in=kstrength, krdg_partic_in=krdg_partic, &
+           krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
+           atmbndy_in=atmbndy, calc_strair_in=calc_strair, &
+           formdrag_in=formdrag, highfreq_in=highfreq, &
+           emissivity_in=emissivity, &
+           kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, &
+           dpscale_in=dpscale, frzpnd_in=frzpnd, &
+           rfracmin_in=rfracmin, rfracmax_in=rfracmax, &
+           pndaspect_in=pndaspect, hs1_in=hs1, hp1_in=hp1, &
+           ktherm_in=ktherm, calc_Tsfc_in=calc_Tsfc, &
+           conduct_in=conduct, a_rapid_mode_in=a_rapid_mode, &
+           Rac_rapid_mode_in=Rac_rapid_mode, &
+           aspect_rapid_mode_in=aspect_rapid_mode, &
+           dSdt_slow_mode_in=dSdt_slow_mode, &
+           phi_c_slow_mode_in=phi_c_slow_mode, &
+           phi_i_mushy_in=phi_i_mushy, &
+           tfrz_option_in=tfrz_option, kalg_in=kalg, &
+           fbot_xfer_type_in=fbot_xfer_type, &
+           wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec)
       call icepack_init_tracer_numbers(ntrcr_in=ntrcr)
       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
-         tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
-         tr_pond_in=tr_pond, tr_pond_cesm_in=tr_pond_cesm, &
-         tr_pond_lvl_in=tr_pond_lvl, &
-         tr_pond_topo_in=tr_pond_topo, tr_fsd_in=tr_fsd)
+           tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
+           tr_pond_in=tr_pond, tr_pond_cesm_in=tr_pond_cesm, &
+           tr_pond_lvl_in=tr_pond_lvl, &
+           tr_pond_topo_in=tr_pond_topo, tr_fsd_in=tr_fsd)
       call icepack_init_tracer_indices(nt_Tsfc_in=nt_Tsfc, &
-         nt_sice_in=nt_sice, nt_qice_in=nt_qice, &
-         nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, &
-         nt_fy_in=nt_fy, nt_alvl_in=nt_alvl, nt_vlvl_in=nt_vlvl, &
-         nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, nt_ipnd_in=nt_ipnd, &
-         nt_aero_in=nt_aero,nt_fsd_in=nt_fsd)
+           nt_sice_in=nt_sice, nt_qice_in=nt_qice, &
+           nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, &
+           nt_fy_in=nt_fy, nt_alvl_in=nt_alvl, nt_vlvl_in=nt_vlvl, &
+           nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, nt_ipnd_in=nt_ipnd, &
+           nt_aero_in=nt_aero, nt_fsd_in=nt_fsd)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -844,16 +844,15 @@
          call icepack_query_parameters(heat_capacity_out=heat_capacity)
          call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
          call icepack_query_tracer_flags(tr_iage_out=tr_iage, &
-            tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
-            tr_fsd_out=tr_fsd, &
-            tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, &
-            tr_pond_topo_out=tr_pond_topo)
+              tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
+              tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, &
+              tr_pond_topo_out=tr_pond_topo, tr_fsd_out=tr_fsd)
          call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, &
-            nt_sice_out=nt_sice, nt_qice_out=nt_qice, &
-            nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, nt_fy_out=nt_fy, &
-            nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
-            nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
-            nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero,nt_fsd_out=nt_fsd)
+              nt_sice_out=nt_sice, nt_qice_out=nt_qice, &
+              nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, nt_fy_out=nt_fy, &
+              nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
+              nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+              nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, nt_fsd_out=nt_fsd)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
@@ -1004,21 +1003,21 @@
          enddo
 
          if (tmask(i)) &
-         call icepack_aggregate (ncat,                    &
-                                aicen(i,:),               &
-                                trcrn(i,1:ntrcr,:),       &
-                                vicen(i,:),               &
-                                vsnon(i,:),               &
-                                aice (i),                 &
-                                trcr (i,1:ntrcr),         &
-                                vice (i),                 &
-                                vsno (i),                 &
-                                aice0(i),                 &
-                                ntrcr,                    &
-                                trcr_depend  (1:ntrcr),   &
-                                trcr_base    (1:ntrcr,:), &
-                                n_trcr_strata(1:ntrcr),   &
-                                nt_strata    (1:ntrcr,:))
+         call icepack_aggregate(ncat=ncat,                    &
+                                trcrn=trcrn(i,1:ntrcr,:),     &
+                                aicen=aicen(i,:),             &
+                                vicen=vicen(i,:),             &
+                                vsnon=vsnon(i,:),             &
+                                trcr=trcr (i,1:ntrcr),        &
+                                aice=aice (i),                &
+                                vice=vice (i),                &
+                                vsno=vsno (i),                &
+                                aice0=aice0(i),               &
+                                ntrcr=ntrcr,                  &
+                                trcr_depend=trcr_depend(1:ntrcr),     &
+                                trcr_base=trcr_base    (1:ntrcr,:),   &
+                                n_trcr_strata=n_trcr_strata(1:ntrcr), &
+                                nt_strata=nt_strata    (1:ntrcr,:))
 
          aice_init(i) = aice(i)
 
@@ -1113,8 +1112,8 @@
       call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_lvl_out=tr_lvl, &
         tr_fsd_out=tr_fsd)
       call icepack_query_tracer_indices( nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
-        nt_qsno_out=nt_qsno, nt_sice_out=nt_sice, nt_fsd_out=nt_fsd, &
-        nt_fbri_out=nt_fbri, nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
+           nt_qsno_out=nt_qsno, nt_sice_out=nt_sice, nt_fsd_out=nt_fsd, &
+           nt_fbri_out=nt_fbri, nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
       call icepack_query_parameters(rhos_out=rhos, Lfresh_out=Lfresh, puny_out=puny)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -1177,17 +1176,19 @@
          vicen(i,n) = hinit(n) * ainit(n) ! m
          vsnon(i,n) = c0
          ! tracers
-         call icepack_init_trcr(Tair  (i  ), Tf   (i  ), &
-                                salinz(i,:), Tmltz(i,:), &
-                                Tsfc,                    &
-                                nilyr,       nslyr,      &
-                                qin   (  :), qsn  (  :))
+         call icepack_init_trcr(Tair     = Tair(i),     &
+                                Tf       = Tf(i),       &
+                                Sprofile = salinz(i,:), &
+                                Tprofile = Tmltz(i,:),  &
+                                Tsfc     = Tsfc,        &
+                                nilyr=nilyr, nslyr=nslyr, &
+                                qin=qin(:), qsn=qsn(:))
 
          ! floe size distribution
-         if (tr_fsd) call icepack_init_fsd(nfsd,       ice_ic,        &
-                                           floe_rad_c, floe_binwidth, &
-                                           trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
-        
+         if (tr_fsd) call icepack_init_fsd(nfsd=nfsd, ice_ic=ice_ic, &
+                                  floe_rad_c=floe_rad_c,             &
+                                  floe_binwidth=floe_binwidth,       &
+                                  afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
          ! surface temperature
          trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
          ! ice enthalpy, salinity 
@@ -1236,17 +1237,19 @@
          vicen(i,n) = hinit(n) * ainit(n) ! m
          vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
          ! tracers
-         call icepack_init_trcr(Tair  (i  ), Tf   (i  ), &
-                                salinz(i,:), Tmltz(i,:), &
-                                Tsfc,                    &
-                                nilyr,       nslyr,      &
-                                qin   (  :), qsn  (  :))
- 
+         call icepack_init_trcr(Tair     = Tair(i),     &
+                                Tf       = Tf(i),       &
+                                Sprofile = salinz(i,:), &
+                                Tprofile = Tmltz(i,:),  &
+                                Tsfc     = Tsfc,        &
+                                nilyr=nilyr, nslyr=nslyr, &
+                                qin=qin(:), qsn=qsn(:))
          ! floe size distribution
-         if (tr_fsd) call icepack_init_fsd(nfsd,       ice_ic,        &
-                                           floe_rad_c, floe_binwidth, &
-                                           trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
-        
+         if (tr_fsd) call icepack_init_fsd(nfsd=nfsd, ice_ic=ice_ic, &
+                                  floe_rad_c=floe_rad_c,             &
+                                  floe_binwidth=floe_binwidth,       &
+                                  afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
+
          ! surface temperature
          trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
          ! ice enthalpy, salinity 

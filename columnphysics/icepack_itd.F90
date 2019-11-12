@@ -816,7 +816,7 @@
          tr_pond_topo, & ! topo pond flag
          heat_capacity   ! if false, ice and snow have zero heat capacity
 
-      logical (kind=log_kind), dimension(ncat),intent(inout) :: &
+      logical (kind=log_kind), dimension(ncat), intent(inout) :: &
          first_ice   ! For bgc and S tracers. set to true if zapping ice.
 
       ! ice-ocean fluxes (required for strict conservation)
@@ -831,8 +831,7 @@
       real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          flux_bio     ! net tracer flux to ocean from biology (mmol/m^2/s)
 
-      real (kind=dbl_kind), dimension (:), &
-         intent(inout), optional :: &
+      real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          faero_ocn    ! aerosol flux to ocean     (kg/m^2/s)
 
       logical (kind=log_kind), intent(in), optional ::   &
@@ -1073,7 +1072,7 @@
          tr_aero, &   ! aerosol flag
          tr_pond_topo ! pond flag
 
-      logical (kind=log_kind), dimension (:),intent(inout) :: &
+      logical (kind=log_kind), dimension (:), intent(inout) :: &
          first_ice    ! For bgc tracers.  Set to true if zapping ice 
 
       ! local variables
@@ -1439,7 +1438,7 @@
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
 
-      real (kind=dbl_kind), dimension (:),intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dflux_bio    ! zapped biology flux  (mmol/m^2/s)
 
       logical (kind=log_kind), intent(in) :: &
@@ -1928,8 +1927,7 @@
          vicen , & ! volume per unit area of ice          (m)
          vsnon     ! volume per unit area of snow         (m)
 
-      real (kind=dbl_kind), dimension (:,:), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn     ! ice tracers
 
       integer (kind=int_kind), dimension (:), intent(in) :: &
@@ -1949,8 +1947,7 @@
          vsno  , & ! volume per unit area of snow         (m)
          aice0     ! concentration of open water
 
-      real (kind=dbl_kind), dimension (:),  &
-         intent(out) :: &
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
          trcr      ! ice tracers
 
       ! local variables

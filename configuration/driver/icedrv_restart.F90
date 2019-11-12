@@ -77,11 +77,11 @@
          iyear,'-',month,'-',mday,'-',sec
       
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
-         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
-         tr_pond_lvl_out=tr_pond_lvl,tr_fsd_out=tr_fsd)
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+           tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
+           tr_pond_lvl_out=tr_pond_lvl,tr_fsd_out=tr_fsd)
 !      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
 !         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
       call icepack_warnings_flush(nu_diag)
@@ -194,11 +194,11 @@
       write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
-         tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
-         tr_pond_lvl_out=tr_pond_lvl,tr_fsd_out=tr_fsd)
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+           tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
+           tr_pond_lvl_out=tr_pond_lvl,tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -279,21 +279,21 @@
 
       do i = 1, nx
          if (tmask(i)) &
-         call icepack_aggregate (ncat,               &
-                                aicen(i,:),  &
-                                trcrn(i,:,:),&
-                                vicen(i,:),  &
-                                vsnon(i,:),  &
-                                aice (i),  &
-                                trcr (i,:),  &
-                                vice (i),  &
-                                vsno (i),  &
-                                aice0(i),  &
-                                max_ntrcr,          &
-                                trcr_depend,        &
-                                trcr_base,          &
-                                n_trcr_strata,      &
-                                nt_strata)
+         call icepack_aggregate (ncat=ncat,          &
+                                 aicen=aicen(i,:),   &
+                                 trcrn=trcrn(i,:,:), &
+                                 vicen=vicen(i,:),   &
+                                 vsnon=vsnon(i,:),   &
+                                 aice=aice (i),      &
+                                 trcr=trcr (i,:),    &
+                                 vice=vice (i),      &
+                                 vsno=vsno (i),      &
+                                 aice0=aice0(i),     &
+                                 ntrcr=max_ntrcr,    &
+                                 trcr_depend=trcr_depend, &
+                                 trcr_base=trcr_base,     &
+                                 n_trcr_strata=n_trcr_strata, &
+                                 nt_strata=nt_strata)
 
          aice_init(i) = aice(i)
       enddo

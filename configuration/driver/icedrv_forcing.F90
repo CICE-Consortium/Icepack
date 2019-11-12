@@ -14,7 +14,8 @@
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
-      use icepack_intfc, only: icepack_sea_freezing_temperature
+      use icepack_intfc, only: icepack_sea_freezing_temperature 
+      use icepack_intfc, only: icepack_init_wave
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
@@ -1130,8 +1131,6 @@
       use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
                                    dwavefreq, wavefreq
       use icedrv_domain_size, only: nfreq
-      use icepack_intfc, only: icepack_init_wave
-
 
 #ifdef ncdf
       use netcdf
@@ -1148,9 +1147,9 @@
 
       ! wave spectrum and frequencies
       ! get hardwired frequency bin info and a dummy wave spectrum profile
-      call icepack_init_wave(nfreq,                 &
-                             wave_spectrum_profile, &
-                             wavefreq, dwavefreq)
+      call icepack_init_wave(nfreq=nfreq,                 &
+                             wave_spectrum_profile=wave_spectrum_profile, &
+                             wavefreq=wavefreq, dwavefreq=dwavefreq)
 
       do k = 1, nfreq
           wave_spectrum(:,k) = wave_spectrum_profile(k)

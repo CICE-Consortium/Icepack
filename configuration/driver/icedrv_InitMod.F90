@@ -34,7 +34,7 @@
       use icedrv_calendar, only: dt, time, istep, istep1, &
           init_calendar, calendar
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
-      use icepack_intfc, only: icepack_init_fsd_bounds, icepack_init_wave
+      use icepack_intfc, only: icepack_init_fsd_bounds
       use icepack_intfc, only: icepack_warnings_flush
       use icedrv_domain_size, only: ncat, nfsd
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
@@ -67,14 +67,14 @@
       call init_calendar        ! initialize some calendar stuff
       call init_coupler_flux    ! initialize fluxes exchanged with coupler
       call init_thermo_vertical ! initialize vertical thermodynamics
-      call icepack_init_itd(ncat, hin_max)
+      call icepack_init_itd(ncat=ncat, hin_max=hin_max)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
-      call icepack_init_itd_hist(ncat, hin_max, c_hi_range) ! output
+      call icepack_init_itd_hist(ncat=ncat, c_hi_range=c_hi_range, hin_max=hin_max) ! output
 
       call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
@@ -82,11 +82,12 @@
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
-      if (tr_fsd) call icepack_init_fsd_bounds (nfsd, & ! floe size distribution
-         floe_rad_l,    &  ! fsd size lower bound in m (radius)
-         floe_rad_c,    &  ! fsd size bin centre in m (radius)
-         floe_binwidth, &  ! fsd size bin width in m (radius)
-         c_fsd_range)      ! string for history output
+      if (tr_fsd) call icepack_init_fsd_bounds(  &
+         nfsd=nfsd,                   &  ! floe size distribution
+         floe_rad_l=floe_rad_l,       &  ! fsd size lower bound in m (radius)
+         floe_rad_c=floe_rad_c,       &  ! fsd size bin centre in m (radius)
+         floe_binwidth=floe_binwidth, &  ! fsd size bin width in m (radius)
+         c_fsd_range=c_fsd_range)        ! string for history output
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then
@@ -201,21 +202,21 @@
       !-----------------------------------------------------------------
       do i = 1, nx
          if (tmask(i)) &
-         call icepack_aggregate(ncat,          &
-                                aicen(i,:),    &
-                                trcrn(i,:,:),  &
-                                vicen(i,:),    &
-                                vsnon(i,:),    &
-                                aice (i),      &
-                                trcr (i,:),    &
-                                vice (i),      &
-                                vsno (i),      &
-                                aice0(i),      &
-                                max_ntrcr,     &
-                                trcr_depend,   &
-                                trcr_base,     &
-                                n_trcr_strata, &
-                                nt_strata)
+         call icepack_aggregate(ncat=ncat,          &
+                                aicen=aicen(i,:),   &
+                                vicen=vicen(i,:),   &
+                                vsnon=vsnon(i,:),   &
+                                trcrn=trcrn(i,:,:), &
+                                aice=aice (i),      &
+                                vice=vice (i),      &
+                                vsno=vsno (i),      &
+                                trcr=trcr (i,:),    &
+                                aice0=aice0(i),     &
+                                ntrcr=max_ntrcr,    &
+                                trcr_depend=trcr_depend, &
+                                trcr_base=trcr_base,     &
+                                n_trcr_strata=n_trcr_strata, &
+                                nt_strata=nt_strata)
       enddo
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
