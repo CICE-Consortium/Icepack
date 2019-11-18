@@ -3,7 +3,7 @@
 .. _library:
 
 Using Icepack in other models
-================
+=================================
 
 This section documents how to use Icepack in other models.
 
@@ -40,13 +40,13 @@ call be implemented as::
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call my_abort_method()
 
-The 2nd and 3rd line above are described further in :ref:`_aborts`.
+The 2nd and 3rd line above are described further in :ref:`aborts`.
 
 
 .. _aborts:
 
 Error Messages and Aborts
-------------------------
+--------------------------------
 
 Icepack does not understand the I/O (file units) or computing environment (MPI, etc).  It provides an
 interface that allows the driver to write error messsages and check for an abort flag.  If Icepack
@@ -68,14 +68,20 @@ running.  That interface or command is driver dependent.
 .. _callingseq:
 
 Calling Sequence
------------------
+-----------------------
 
 TBD
 
 .. _interfaces:
 
-Interfaces
-----------------
+Public Interfaces
+---------------------
 
-TBD
+Below are a list of public icepack interfaces.
+
+These interfaces are extracted directly from the icepack source code using the script
+**doc/generate_interfaces.sh**.  There is documentation about how to use the script
+in the script.
+
+.. include:: interfaces.rst
 

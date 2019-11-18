@@ -35,10 +35,16 @@ module icepack_warnings
 contains
 
 !=======================================================================
+!autodocument_start icepack_warnings_aborted
+! turn on the abort flag in the icepack warnings package
+! pass in an optional error message
 
       logical function icepack_warnings_aborted(instring)
 
         character(len=*),intent(in), optional :: instring
+
+!autodocument_end
+
         character(len=*),parameter :: subname='(icepack_warnings_aborted)'
 
         icepack_warnings_aborted = warning_abort
@@ -72,8 +78,12 @@ contains
       end subroutine icepack_warnings_setabort
 
 !=======================================================================
+!autodocument_start icepack_warnings_clear
+! clear all warning messages from the icepack warning buffer
 
       subroutine icepack_warnings_clear()
+
+!autodocument_end
 
         character(len=*),parameter :: subname='(icepack_warnings_clear)'
 
@@ -101,10 +111,14 @@ contains
       end subroutine icepack_warnings_getall
 
 !=======================================================================
+!autodocument_start icepack_warnings_print
+! print all warning messages from the icepack warning buffer
 
       subroutine icepack_warnings_print(iounit)
 
         integer, intent(in) :: iounit
+
+!autodocument_end
 
         integer :: iWarning
         character(len=*),parameter :: subname='(icepack_warnings_print)'
@@ -121,10 +135,14 @@ contains
       end subroutine icepack_warnings_print
 
 !=======================================================================
+!autodocument_start icepack_warnings_flush
+! print and clear all warning messages from the icepack warning buffer
 
       subroutine icepack_warnings_flush(iounit)
 
         integer, intent(in) :: iounit
+
+!autodocument_end
 
         character(len=*),parameter :: subname='(icepack_warnings_flush)'
 

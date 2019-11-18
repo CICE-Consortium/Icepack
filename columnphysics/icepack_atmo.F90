@@ -797,6 +797,8 @@
       end subroutine neutral_drag_coeffs
 
 !=======================================================================
+!autodocument_start icepack_atm_boundary
+! 
 
       subroutine icepack_atm_boundary(sfctype,                    &
                                      Tsf,         potT,          &
@@ -848,6 +850,10 @@
 
       real (kind=dbl_kind), optional, intent(out) :: &
          Uref         ! reference height wind speed (m/s)
+
+!autodocument_end
+
+      ! local variables
 
       real (kind=dbl_kind) :: &
          worku, workv, workr
@@ -901,9 +907,9 @@
 
       end subroutine icepack_atm_boundary
 
-      !------------------------------------------------------------
-      ! Define functions
-      !------------------------------------------------------------
+!------------------------------------------------------------
+! Define functions
+!------------------------------------------------------------
 
 !=======================================================================
 

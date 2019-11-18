@@ -535,6 +535,8 @@
       end subroutine adjust_tracer_profile
 
 !=======================================================================
+!autodocument_start icepack_init_bgc
+!
 
       subroutine icepack_init_bgc(ncat, nblyr, nilyr, ntrcr_o, &
          cgrid, igrid, ntrcr, nbtrcr, &
@@ -565,6 +567,8 @@
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          ocean_bio_all   ! fixed order, all values even for tracers false
+
+!autodocument_end
 
       ! local variables
 
@@ -659,6 +663,8 @@
       end subroutine icepack_init_bgc
 
 !=======================================================================
+!autodocument_start icepack_init_zbgc
+!
 
       subroutine icepack_init_zbgc ( &
                  R_Si2N_in, R_S2N_in, R_Fe2C_in, R_Fe2N_in, R_C2N_in, R_C2N_DON_in, &
@@ -731,6 +737,8 @@
       real (kind=dbl_kind), optional :: tau_ret_in(:)         ! retention timescale  (s), mobile to stationary phase
       real (kind=dbl_kind), optional :: tau_rel_in(:)         ! release timescale    (s), stationary to mobile phase
 
+!autodocument_end
+
       character(len=*),parameter :: subname='(icepack_init_zbgc)'
 
       !--------
@@ -796,6 +804,8 @@
       end subroutine icepack_init_zbgc
 
 !=======================================================================
+!autodocument_start icepack_biogeochemistry
+!
 
       subroutine icepack_biogeochemistry(dt, &
                            ntrcr, nbtrcr,  &
@@ -900,6 +910,8 @@
 
       logical (kind=log_kind), intent(in) :: &
          skl_bgc       ! if true, solve skeletal biochemistry
+
+!autodocument_end
 
       ! local variables
 
@@ -1147,7 +1159,7 @@
       end subroutine icepack_biogeochemistry
 
 !=======================================================================
-
+!autodocument_start icepack_init_OceanConcArray
 ! basic initialization for ocean_bio_all
 
       subroutine icepack_init_OceanConcArray(max_nbtrcr, &
@@ -1192,6 +1204,8 @@
 
       real (kind=dbl_kind), dimension (max_nbtrcr), intent(inout) :: &
          ocean_bio_all   ! fixed order, all values even for tracers false
+
+!autodocument_end
 
       ! local variables
 
@@ -1257,7 +1271,7 @@
       end subroutine icepack_init_OceanConcArray
 
 !=======================================================================
-
+!autodocument_start icepack_init_ocean_conc
 !  Initialize ocean concentration
 
       subroutine icepack_init_ocean_conc (amm, dmsp, dms, algalN, doc, dic, don, &
@@ -1290,6 +1304,10 @@
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
        CToN     , & ! carbon to nitrogen ratio for algae
        CToN_DON     ! nitrogen to carbon ratio for proteins
+
+!autodocument_end
+
+      ! local variables
 
       integer (kind=int_kind) :: &
         k 

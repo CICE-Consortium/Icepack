@@ -910,7 +910,7 @@
      end subroutine calculate_drho
 
 !=======================================================================
-
+!autodocument_start icepack_init_hbrine
 !  Initialize brine height tracer
 
       subroutine icepack_init_hbrine(bgrid, igrid, cgrid, &
@@ -933,6 +933,10 @@
          cgrid            , &  ! CICE vertical coordinate   
          icgrid           , &  ! interface grid for CICE (shortwave variable)
          swgrid                ! grid for ice tracers used in dEdd scheme
+
+!autodocument_end
+
+      ! local variables
 
       integer (kind=int_kind) :: &
          k                 ! vertical index
@@ -1002,7 +1006,7 @@
       end subroutine icepack_init_hbrine
 
 !=======================================================================
-
+!autodocument_start icepack_init_zsalinity
 !  Initialize zSalinity
 
       subroutine icepack_init_zsalinity(nblyr,ntrcr_o,  Rayleigh_criteria, &
@@ -1025,6 +1029,10 @@
 
       real (kind=dbl_kind), dimension(:,:), intent(inout):: &
        trcrn ! bgc subset of trcrn
+
+!autodocument_end
+
+      ! local variables
 
       integer (kind=int_kind) :: &
         k, n
