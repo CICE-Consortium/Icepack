@@ -48,7 +48,6 @@ filename=`basename $file`
   while IFS= read -r line; do
     if [[ $line =~ .*$endline.* ]]; then
       dowrite=0
-      #echo "$dowrite $line"
       echo " " >> $rstfile
     fi
 
@@ -69,11 +68,10 @@ filename=`basename $file`
          exit -9
       fi
       echo "$filename $title"
-      #echo "$dowrite $line"
       echo " " >> $rstfile
       echo "${title}" >> $rstfile
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" >> $rstfile
-      echo "::" >> $rstfile
+      echo ".. code-block:: fortran" >> $rstfile
       echo " " >> $rstfile
     fi
 

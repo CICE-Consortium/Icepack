@@ -1,7 +1,7 @@
  
 icepack_atm_boundary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! 
   
@@ -60,7 +60,7 @@ icepack_atm_boundary
  
 icepack_init_hbrine
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   !  Initialize brine height tracer
   
@@ -89,7 +89,7 @@ icepack_init_hbrine
  
 icepack_init_zsalinity
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   !  Initialize zSalinity
   
@@ -118,7 +118,7 @@ icepack_init_zsalinity
  
 icepack_init_itd
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Initialize area fraction and thickness boundaries for the itd model
   !
@@ -137,7 +137,7 @@ icepack_init_itd
  
 icepack_init_itd_hist
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Initialize area fraction and thickness boundaries for the itd model
   !
@@ -159,7 +159,7 @@ icepack_init_itd_hist
  
 icepack_aggregate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Aggregate ice state variables over thickness categories.
   !
@@ -214,7 +214,7 @@ icepack_aggregate
  
 icepack_ice_strength
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Compute the strength of the ice pack, defined as the energy (J m-2)
   ! dissipated per unit area removed from the ice pack under compression,
@@ -255,7 +255,7 @@ icepack_ice_strength
  
 icepack_step_ridge
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Computes sea ice mechanical deformation
   !
@@ -363,7 +363,7 @@ icepack_step_ridge
  
 icepack_ocn_mixed_layer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Compute the mixed layer heat balance and update the SST.
   ! Compute the energy available to freeze or melt ice.
@@ -418,7 +418,7 @@ icepack_ocn_mixed_layer
  
 icepack_init_orbit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Compute orbital parameters for the specified date.
   
@@ -443,7 +443,7 @@ icepack_init_orbit
  
 icepack_query_orbit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Compute orbital parameters for the specified date.
   
@@ -468,7 +468,7 @@ icepack_query_orbit
  
 icepack_init_parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! subroutine to set the column package internal parameters
   
@@ -777,7 +777,7 @@ icepack_init_parameters
  
 icepack_query_parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! subroutine to query the column package internal parameters
   
@@ -1100,7 +1100,7 @@ icepack_query_parameters
  
 icepack_write_parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! subroutine to write the column package internal parameters
   
@@ -1113,7 +1113,7 @@ icepack_write_parameters
  
 icepack_recompute_constants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! subroutine to reinitialize some derived constants
   
@@ -1123,7 +1123,7 @@ icepack_recompute_constants
  
 icepack_prep_radiation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Scales radiation fields computed on the previous time step.
   !
@@ -1177,7 +1177,7 @@ icepack_prep_radiation
  
 icepack_step_radiation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Computes radiation fields
   !
@@ -1340,7 +1340,7 @@ icepack_step_radiation
  
 icepack_step_therm2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Driver for thermodynamic changes not needed for coupling:
   ! transport in thickness space, lateral growth and melting.
@@ -1456,7 +1456,7 @@ icepack_step_therm2
  
 icepack_init_thermo
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Initialize the vertical profile of ice salinity and melting temperature.
   !
@@ -1475,7 +1475,7 @@ icepack_init_thermo
  
 icepack_init_trcr
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   !
         subroutine icepack_init_trcr(Tair,     Tf,       &
@@ -1507,7 +1507,7 @@ icepack_init_trcr
  
 icepack_liquidus_temperature
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! compute liquidus temperature
   
@@ -1520,7 +1520,7 @@ icepack_liquidus_temperature
  
 icepack_sea_freezing_temperature
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! compute ocean freezing temperature
   
@@ -1533,7 +1533,7 @@ icepack_sea_freezing_temperature
  
 icepack_ice_temperature
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! compute ice temperature
   
@@ -1546,7 +1546,7 @@ icepack_ice_temperature
  
 icepack_snow_temperature
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! compute snow temperature
   
@@ -1559,7 +1559,7 @@ icepack_snow_temperature
  
 icepack_enthalpy_snow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! compute snow enthalpy
   
@@ -1572,7 +1572,7 @@ icepack_enthalpy_snow
  
 icepack_step_therm1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Driver for thermodynamic changes not needed for coupling:
   ! transport in thickness space, lateral growth and melting.
@@ -1792,7 +1792,7 @@ icepack_step_therm1
  
 icepack_query_tracer_sizes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! query tracer sizes
   
@@ -1816,7 +1816,7 @@ icepack_query_tracer_sizes
  
 icepack_write_tracer_sizes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! write tracer sizes
   
@@ -1828,7 +1828,7 @@ icepack_write_tracer_sizes
  
 icepack_init_tracer_flags
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! set tracer active flags
   
@@ -1867,7 +1867,7 @@ icepack_init_tracer_flags
  
 icepack_query_tracer_flags
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! query tracer active flags
   
@@ -1906,7 +1906,7 @@ icepack_query_tracer_flags
  
 icepack_write_tracer_flags
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! write tracer active flags
   
@@ -1918,7 +1918,7 @@ icepack_write_tracer_flags
  
 icepack_init_tracer_indices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! set the number of column tracer indices
   
@@ -2022,7 +2022,7 @@ icepack_init_tracer_indices
  
 icepack_query_tracer_indices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! query the number of column tracer indices
   
@@ -2115,7 +2115,7 @@ icepack_query_tracer_indices
  
 icepack_write_tracer_indices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! write the number of column tracer indices
   
@@ -2127,7 +2127,7 @@ icepack_write_tracer_indices
  
 icepack_init_tracer_numbers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! set the number of column tracers
   
@@ -2144,7 +2144,7 @@ icepack_init_tracer_numbers
  
 icepack_query_tracer_numbers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! query the number of column tracers
   
@@ -2161,7 +2161,7 @@ icepack_query_tracer_numbers
  
 icepack_write_tracer_numbers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! write the number of column tracers
   
@@ -2173,7 +2173,7 @@ icepack_write_tracer_numbers
  
 icepack_compute_tracers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! Compute tracer fields.
   ! Given atrcrn = aicen*trcrn (or vicen*trcrn, vsnon*trcrn), compute trcrn.
@@ -2213,7 +2213,7 @@ icepack_compute_tracers
  
 icepack_warnings_aborted
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! turn on the abort flag in the icepack warnings package
   ! pass in an optional error message
@@ -2226,7 +2226,7 @@ icepack_warnings_aborted
  
 icepack_warnings_clear
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! clear all warning messages from the icepack warning buffer
   
@@ -2236,7 +2236,7 @@ icepack_warnings_clear
  
 icepack_warnings_print
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! print all warning messages from the icepack warning buffer
   
@@ -2248,7 +2248,7 @@ icepack_warnings_print
  
 icepack_warnings_flush
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! print and clear all warning messages from the icepack warning buffer
   
@@ -2260,7 +2260,7 @@ icepack_warnings_flush
  
 icepack_init_bgc
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   !
   
@@ -2298,7 +2298,7 @@ icepack_init_bgc
  
 icepack_init_zbgc
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   !
   
@@ -2377,7 +2377,7 @@ icepack_init_zbgc
  
 icepack_biogeochemistry
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   !
   
@@ -2489,7 +2489,7 @@ icepack_biogeochemistry
  
 icepack_init_OceanConcArray
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   ! basic initialization for ocean_bio_all
   
@@ -2540,7 +2540,7 @@ icepack_init_OceanConcArray
  
 icepack_init_ocean_conc
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-::
+.. code-block:: fortran
  
   !  Initialize ocean concentration
   
