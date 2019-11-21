@@ -1717,7 +1717,8 @@ or if there is more new ice than will fit into the thinnest ice
 category, then the new ice is spread over the entire cell.
 
 If ``tr_fsd=true``, a floe size must be assigned to the new frazil ice.
-If spectral ocean surface wave forcing is provided, this will be used
+If spectral ocean surface wave forcing is provided (and set using the 
+namelist option ``wave_spec_type``), this will be used
 to calculate a tensile stress on new floes that determines their maximum
 possible size :cite:`Shen2001,Roach2019`. If no ocean surface wave forcing
 is provided, all floes are assumed to grow as pancakes, at the smallest

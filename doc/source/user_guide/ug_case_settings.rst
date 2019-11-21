@@ -229,7 +229,7 @@ column physics.
    "", "false", "release (topo) pond water immediately to ocean", ""
    "``oceanmixed_ice``", "true/false", "active ocean mixed layer calculation", "``.true.`` (if uncoupled)"
    "``wave_spec_type``", "``none``", "no ocean wave spectrum data - no wave-ice interations",""
-   "", "``constant``", "ocean wave spectrum data present, sea surface height field generated using constant phase, for testing", ""
+   "", "``constant``", "ocean wave spectrum data present, sea surface height field generated using constant phase, for testing FSD", ""
    "", "``random``", "ocean wave spectrum data present, sea surface height field generated using random phase", ""
    "``ocn_data_type``", "``default``", "constant values defined in the code", ""
    "", "``ISPOL``", "ISPOL experiment data  (see :ref:`force`)", ""

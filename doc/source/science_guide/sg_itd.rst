@@ -149,7 +149,7 @@ spectrum is provided, we generate a realization of the sea surface height field,
 is uniquely determined by the spectrum up to a phase. In :cite:`Horvat2015` this phase is 
 randomly chosen, and multiple realizations of the resulting surface height field are used to 
 obtain convergent statistics. However this stochastic component would lead to a model that is 
-not bit-for-bit reproducible. Users can choose in the namelist (via the variable wave_spec_type)
+not bit-for-bit reproducible. Users can choose in the namelist (via ``wave_spec_type``)
 to run the model with the phase set to be constant to obtain bit-for-bit reproducibility or
 to include the random phase.
 
