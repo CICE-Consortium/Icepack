@@ -1493,6 +1493,7 @@
       end subroutine add_new_ice
 
 !=======================================================================
+!autodocument_start icepack_step_therm2
 ! Driver for thermodynamic changes not needed for coupling:
 ! transport in thickness space, lateral growth and melting.
 !
@@ -1602,6 +1603,8 @@
 
       real (kind=dbl_kind), intent(in), optional :: &
          yday         ! day of year
+
+!autodocument_end
 
       character(len=*),parameter :: subname='(icepack_step_therm2)'
 

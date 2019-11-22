@@ -21,6 +21,7 @@
 
 !=======================================================================
 !=======================================================================
+!autodocument_start icepack_ocn_mixed_layer
 ! Compute the mixed layer heat balance and update the SST.
 ! Compute the energy available to freeze or melt ice.
 ! NOTE: SST changes due to fluxes through the ice are computed in
@@ -69,6 +70,8 @@
          qdp       , & ! deep ocean heat flux (W/m^2), negative upward
          sst       , & ! sea surface temperature (C)
          frzmlt        ! freezing/melting potential (W/m^2)
+
+!autodocument_end
 
       ! local variables
 
