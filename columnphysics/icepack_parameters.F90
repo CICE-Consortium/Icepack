@@ -357,6 +357,7 @@
 
 !=======================================================================
 
+!autodocument_start icepack_init_parameters
 ! subroutine to set the column package internal parameters
 
       subroutine icepack_init_parameters(   &
@@ -677,6 +678,8 @@
       real (kind=dbl_kind), intent(in), optional :: &
          hp1_in             ! critical parameter for pond ice thickness
 
+!autodocument_end
+
       character(len=*),parameter :: subname='(icepack_init_parameters)'
 
       if (present(rhos_in)              ) rhos             = rhos_in
@@ -829,6 +832,7 @@
 
 !=======================================================================
 
+!autodocument_start icepack_query_parameters
 ! subroutine to query the column package internal parameters
 
       subroutine icepack_query_parameters(   &
@@ -1163,6 +1167,8 @@
       real (kind=dbl_kind), intent(out), optional :: &
          hp1_out             ! critical parameter for pond ice thickness
 
+!autodocument_end
+
       character(len=*),parameter :: subname='(icepack_query_parameters)'
 
       if (present(puny_out)              ) puny_out         = puny
@@ -1359,12 +1365,15 @@
 
 !=======================================================================
 
+!autodocument_start icepack_write_parameters
 ! subroutine to write the column package internal parameters
 
       subroutine icepack_write_parameters(iounit)
 
         integer (kind=int_kind), intent(in) :: &
              iounit   ! unit number for output
+
+!autodocument_end
 
         character(len=*),parameter :: subname='(icepack_write_parameters)'
 
@@ -1523,7 +1532,12 @@
 
 !=======================================================================
 
+!autodocument_start icepack_recompute_constants
+! subroutine to reinitialize some derived constants
+
       subroutine icepack_recompute_constants()
+
+!autodocument_end
 
       character(len=*),parameter :: subname='(icepack_recompute_constants)'
 

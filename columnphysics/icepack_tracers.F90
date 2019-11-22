@@ -188,6 +188,7 @@
       contains
 
 !=======================================================================
+!autodocument_start icepack_query_tracer_sizes
 ! query tracer sizes
 
       subroutine icepack_query_tracer_sizes( &
@@ -206,6 +207,8 @@
              max_aero_out   , & ! maximum number of aerosols
              max_nbtrcr_out     ! algal nitrogen and chlorophyll
 
+!autodocument_end
+
         if (present(max_algae_out))  max_algae_out = max_algae
         if (present(max_dic_out))    max_dic_out   = max_dic
         if (present(max_doc_out))    max_doc_out   = max_doc
@@ -219,11 +222,14 @@
       end subroutine icepack_query_tracer_sizes
 
 !=======================================================================
+!autodocument_start icepack_write_tracer_sizes
 ! write tracer sizes
 
       subroutine icepack_write_tracer_sizes(iounit)
 
         integer, intent(in) :: iounit
+
+!autodocument_end
 
         write(iounit,*) "icepack_write_tracer_sizes:"
         write(iounit,*) '  max_algae_out =', max_algae
@@ -239,6 +245,7 @@
       end subroutine icepack_write_tracer_sizes
 
 !=======================================================================
+!autodocument_start icepack_init_tracer_flags
 ! set tracer active flags
 
       subroutine icepack_init_tracer_flags(&
@@ -273,6 +280,8 @@
              tr_bgc_hum_in   , & ! if .true., hum as product tracer 
              tr_bgc_PON_in       ! if .true., PON as product tracer 
 
+!autodocument_end
+
         if (present(tr_iage_in)) tr_iage = tr_iage_in
         if (present(tr_FY_in)  ) tr_FY   = tr_FY_in
         if (present(tr_lvl_in) ) tr_lvl  = tr_lvl_in
@@ -299,6 +308,7 @@
       end subroutine icepack_init_tracer_flags
 
 !=======================================================================
+!autodocument_start icepack_query_tracer_flags
 ! query tracer active flags
 
       subroutine icepack_query_tracer_flags(&
@@ -333,6 +343,8 @@
              tr_bgc_hum_out   , & ! if .true., hum as product tracer 
              tr_bgc_PON_out       ! if .true., PON as product tracer 
 
+!autodocument_end
+
         if (present(tr_iage_out)) tr_iage_out = tr_iage
         if (present(tr_FY_out)  ) tr_FY_out   = tr_FY
         if (present(tr_lvl_out) ) tr_lvl_out  = tr_lvl
@@ -359,11 +371,14 @@
       end subroutine icepack_query_tracer_flags
 
 !=======================================================================
+!autodocument_start icepack_write_tracer_flags
 ! write tracer active flags
 
       subroutine icepack_write_tracer_flags(iounit)
 
         integer, intent(in) :: iounit
+
+!autodocument_end
 
         write(iounit,*) "icepack_write_tracer_flags:"
         write(iounit,*) "  tr_iage = ",tr_iage
@@ -392,6 +407,7 @@
       end subroutine icepack_write_tracer_flags
 
 !=======================================================================
+!autodocument_start icepack_init_tracer_indices
 ! set the number of column tracer indices
 
       subroutine icepack_init_tracer_indices(&
@@ -490,6 +506,8 @@
              nt_zaero_in,   & !  black carbon and other aerosols
              nlt_zaero_in,  & !  black carbon and other aerosols
              nlt_zaero_sw_in  ! black carbon and dust in trcrn_sw
+
+!autodocument_end
 
         ! local
         integer (kind=int_kind) :: k
@@ -607,6 +625,7 @@
       end subroutine icepack_init_tracer_indices
 
 !=======================================================================
+!autodocument_start icepack_query_tracer_indices
 ! query the number of column tracer indices
 
       subroutine icepack_query_tracer_indices(&
@@ -695,6 +714,8 @@
              nlt_zaero_out,  & !  black carbon and other aerosols
              nlt_zaero_sw_out  ! black carbon and dust in trcrn_sw
 
+!autodocument_end
+
         if (present(nt_Tsfc_out)) nt_Tsfc_out = nt_Tsfc
         if (present(nt_qice_out)) nt_qice_out = nt_qice
         if (present(nt_qsno_out)) nt_qsno_out = nt_qsno
@@ -754,11 +775,14 @@
       end subroutine icepack_query_tracer_indices
 
 !=======================================================================
+!autodocument_start icepack_write_tracer_indices
 ! write the number of column tracer indices
 
       subroutine icepack_write_tracer_indices(iounit)
 
         integer, intent(in), optional :: iounit 
+
+!autodocument_end
 
         ! local
         integer (kind=int_kind) :: k
@@ -850,6 +874,7 @@
       end subroutine icepack_write_tracer_indices
 
 !=======================================================================
+!autodocument_start icepack_init_tracer_numbers
 ! set the number of column tracers
 
       subroutine icepack_init_tracer_numbers(&
@@ -861,6 +886,8 @@
          nbtrcr_in , &! number of bio tracers in use
          nbtrcr_sw_in ! number of shortwave bio tracers in use
 
+!autodocument_end
+
         if (present(ntrcr_in)    ) ntrcr     = ntrcr_in
         if (present(ntrcr_o_in)  ) ntrcr_o   = ntrcr_o_in
         if (present(nbtrcr_in)   ) nbtrcr    = nbtrcr_in
@@ -869,6 +896,7 @@
       end subroutine icepack_init_tracer_numbers
 
 !=======================================================================
+!autodocument_start icepack_query_tracer_numbers
 ! query the number of column tracers
 
       subroutine icepack_query_tracer_numbers(&
@@ -880,6 +908,8 @@
          nbtrcr_out , &! number of bio tracers in use
          nbtrcr_sw_out ! number of shortwave bio tracers in use
 
+!autodocument_end
+
         if (present(ntrcr_out)    ) ntrcr_out     = ntrcr
         if (present(ntrcr_o_out)  ) ntrcr_o_out   = ntrcr_o
         if (present(nbtrcr_out)   ) nbtrcr_out    = nbtrcr
@@ -888,11 +918,14 @@
       end subroutine icepack_query_tracer_numbers
 
 !=======================================================================
+!autodocument_start icepack_write_tracer_numbers
 ! write the number of column tracers
 
       subroutine icepack_write_tracer_numbers(iounit)
 
       integer (kind=int_kind), intent(in) :: iounit
+
+!autodocument_end
 
         write(iounit,*) "icepack_write_tracer_numbers:"
         write(iounit,*) "  ntrcr     = ",ntrcr    
@@ -902,11 +935,9 @@
       end subroutine icepack_write_tracer_numbers
 
 !=======================================================================
-
+!autodocument_start icepack_compute_tracers
 ! Compute tracer fields.
 ! Given atrcrn = aicen*trcrn (or vicen*trcrn, vsnon*trcrn), compute trcrn.
-!
-! author: William H. Lipscomb, LANL
 
       subroutine icepack_compute_tracers (ntrcr,     trcr_depend,    &
                                          atrcrn,    aicen,          &
@@ -938,6 +969,8 @@
 
       real (kind=dbl_kind), dimension (ntrcr), intent(out) :: &
          trcrn     ! ice tracers
+
+!autodocument_end
 
       ! local variables
 

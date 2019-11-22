@@ -3732,7 +3732,7 @@
       end subroutine compute_shortwave_trcr
 
 !=======================================================================
-!
+!autodocument_start icepack_prep_radiation
 ! Scales radiation fields computed on the previous time step.
 !
 ! authors: Elizabeth Hunke, LANL
@@ -3780,6 +3780,8 @@
          fswpenln    , & ! visible SW entering ice layers (W m-2)
          Iswabsn     , & ! SW radiation absorbed in ice layers (W m-2)
          Sswabsn         ! SW radiation absorbed in snow layers (W m-2)
+
+!autodocument_end
 
       ! local variables
 
@@ -3832,7 +3834,7 @@
       end subroutine icepack_prep_radiation
 
 !=======================================================================
-!
+!autodocument_start icepack_step_radiation
 ! Computes radiation fields
 !
 ! authors: William H. Lipscomb, LANL
@@ -3989,6 +3991,8 @@
 
       logical (kind=log_kind), optional :: &
          initonly         ! flag to indicate init only, default is false
+
+!autodocument_end
 
       ! local variables
 

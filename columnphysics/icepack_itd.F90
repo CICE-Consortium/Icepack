@@ -1669,6 +1669,7 @@
       end subroutine zerolayer_check
 
 !=======================================================================
+!autodocument_start icepack_init_itd
 ! Initialize area fraction and thickness boundaries for the itd model
 !
 ! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
@@ -1681,6 +1682,8 @@
 
       real (kind=dbl_kind), intent(out) :: &
            hin_max(0:ncat)  ! category limits (m)
+
+!autodocument_end
 
       ! local variables
 
@@ -1847,7 +1850,7 @@
       end subroutine icepack_init_itd
 
 !=======================================================================
-
+!autodocument_start icepack_init_itd_hist
 ! Initialize area fraction and thickness boundaries for the itd model
 !
 ! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
@@ -1863,6 +1866,8 @@
 
       character (len=35), intent(out) :: &
            c_hi_range(ncat) ! string for history output
+
+!autodocument_end
 
       ! local variables
 
@@ -1900,7 +1905,7 @@
       end subroutine icepack_init_itd_hist
 
 !=======================================================================
-
+!autodocument_start icepack_aggregate
 ! Aggregate ice state variables over thickness categories.
 !
 ! authors: C. M. Bitz, UW
@@ -1949,6 +1954,8 @@
 
       real (kind=dbl_kind), dimension (:), intent(out) :: &
          trcr      ! ice tracers
+
+!autodocument_end
 
       ! local variables
 

@@ -2018,7 +2018,7 @@
       end subroutine update_state_vthermo
 
 !=======================================================================
-
+!autodocument_start icepack_step_therm1
 ! Driver for thermodynamic changes not needed for coupling:
 ! transport in thickness space, lateral growth and melting.
 !
@@ -2234,6 +2234,8 @@
       real (kind=dbl_kind), dimension(:,:,:), intent(inout) :: &
          aerosno    , &  ! snow aerosol tracer (kg/m^2)
          aeroice         ! ice aerosol tracer (kg/m^2)
+
+!autodocument_end
 
       ! local variables
 

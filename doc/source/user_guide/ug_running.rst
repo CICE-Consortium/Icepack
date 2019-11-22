@@ -107,7 +107,10 @@ Testing will be described in greater detail in the :ref:`testing` section.
   prints the Icepack version to the terminal and exits.
 
 ``--setvers``
-  Updates the stored value of the Icepack version in the sandbox and exits  See :ref:`version` for more information
+  Updates the stored value of the Icepack version in the sandbox and exits  See :ref:`version` for more information.
+
+``--docintfc``
+  Runs a script that updates the public interfaces in the documentation.  This script parses the source code directly.  See :ref:`docintfc` for more information.
 
 ``--case``, ``-c`` CASE
   specifies the case name.  This can be either a relative path of an absolute path.  This cannot be used with --test or --suite.  Either ``--case``, ``--test``, or ``--suite`` is required.
