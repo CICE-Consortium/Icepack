@@ -450,11 +450,8 @@
          fbot_xfer_type = 'constant'
       endif
 
-      if (tr_fsd) then
-         if (trim(wave_spec_type) /= 'none') wave_spec = .true.
-      else
-         wave_spec = .false.
-      endif
+      wave_spec = .false.
+      if (tr_fsd .and. (trim(wave_spec_type) /= 'none')) wave_spec = .true.
 
       !-----------------------------------------------------------------
       ! spew

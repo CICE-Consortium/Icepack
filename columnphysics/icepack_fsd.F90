@@ -201,10 +201,10 @@
          test = floe_area_c(n) + floe_area_c(m)
 
          do k = 1, nfsd-1
-            if ((test.ge.floe_area_l(k)) .and. (test.lt.floe_area_h(k))) &
+            if ((test >= floe_area_l(k)) .and. (test < floe_area_h(k))) &
                   iweld(n,m) = k
          end do
-         if (test.ge.floe_area_l(nfsd)) iweld(n,m) = nfsd
+         if (test >= floe_area_l(nfsd)) iweld(n,m) = nfsd
 
 
       end do
@@ -445,15 +445,13 @@
 
          ! cannot be greater than the open water fraction
          lead_area=MIN(lead_area, c1-aice)
-
-
-                if (lead_area.lt.c0) then
-                        if (lead_area.lt.(c0-puny)) then
-!                                stop 'lead_area lt0 in partition_area'
-                        else
-                                lead_area=MAX(lead_area,c0)
-                        end if
-                end if
+         if (lead_area < c0) then
+            if (lead_area < -puny) then
+!               stop 'lead_area lt0 in partition_area'
+            else
+               lead_area=MAX(lead_area,c0)
+            end if
+         end if
 
          ! Total fractional lateral surface area in each grid (per unit ocean area)
          do n = 1, ncat
@@ -466,10 +464,9 @@
             end do
          end do
 
-                ! check
-                if (latsurf_area.lt.c0) stop 'negative latsurf_area'
-                if (latsurf_area.ne.latsurf_area) stop &
-                   'latsurf_area NaN'
+         ! check
+!         if (latsurf_area < c0) stop 'negative latsurf_area'
+!         if (latsurf_area /= latsurf_area) stop 'latsurf_area NaN'
 
       end if ! aice
 
@@ -940,7 +937,7 @@
             afsd_tmp (:) = afsd_init(:)   ! work array
                
             ! in case of minor numerical errors
-            WHERE(afsd_tmp.lt.puny) afsd_tmp = c0
+            WHERE(afsd_tmp < puny) afsd_tmp = c0
             afsd_tmp = afsd_tmp/SUM(afsd_tmp)
 
             ! adaptive sub-timestep
@@ -949,20 +946,21 @@
 
                ! calculate sub timestep
                nfsd_tmp = afsd_tmp/floe_area_c
-               stability = nfsd_tmp/(c_weld*afsd_tmp*aicen(n))
-               WHERE (stability.lt.puny) stability = bignum
+               WHERE (afsd_tmp > puny) &
+                  stability = nfsd_tmp/(c_weld*afsd_tmp*aicen(n))
+               WHERE (stability < puny) stability = bignum
                subdt = MINVAL(stability)
                subdt = MIN(subdt,dt)
 
                loss(:) = c0
                gain(:) = c0
 
-               do i=1,nfsd ! consider loss from this category
-               do j=1,nfsd ! consider all interaction partners
+               do i = 1, nfsd ! consider loss from this category
+               do j = 1, nfsd ! consider all interaction partners
 
                    k = iweld(i,j) ! product of i+j
 
-                   if(k.gt.i) then
+                   if (k > i) then
                    
                        kern = c_weld * floe_area_c(i) * aicen(n)
                       
@@ -978,21 +976,21 @@
                end do
 
                ! does largest category lose?
-               if (loss(nfsd).gt.puny) stop 'weld, largest cat losing'
-               if (gain(1).gt.puny) stop 'weld, smallest cat gaining'
+!               if (loss(nfsd) > puny) stop 'weld, largest cat losing'
+!               if (gain(1) > puny) stop 'weld, smallest cat gaining'
 
                ! update afsd   
                afsd_tmp(:) = afsd_tmp(:) + subdt*(gain(:) - loss(:))
 
                ! in case of minor numerical errors
-               WHERE(afsd_tmp.lt.puny) afsd_tmp = c0
+               WHERE(afsd_tmp < puny) afsd_tmp = c0
                afsd_tmp = afsd_tmp/SUM(afsd_tmp)
 
                ! update time
                elapsed_t = elapsed_t + subdt
 
                ! stop if all in largest floe size cat
-               if (afsd_tmp(nfsd).gt.(c1-puny)) exit 
+               if (afsd_tmp(nfsd) > (c1-puny)) exit
 
             END DO ! time
 

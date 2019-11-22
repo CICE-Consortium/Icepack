@@ -1008,7 +1008,7 @@
 
             if (qin(n) < -puny) G_radialn(n) = -fside/qin(n) ! negative
 
-            if (G_radialn(n) > puny) stop 'Gr pos'
+!            if (G_radialn(n) > puny) stop 'G_radial positive'
 
             if (G_radialn(n) < -puny) then
 
@@ -1190,9 +1190,8 @@
          do k = 1, nfsd
             d_afsd_latm(k) = c0
             do n = 1, ncat
-                     d_afsd_latm(k) = d_afsd_latm(k) + &
-                          afsdn(k,n)*aicen(n) & 
-                          - afsdn_init(k,n)*aicen_init(n)
+               d_afsd_latm(k) = d_afsd_latm(k) &
+                  + afsdn(k,n)*aicen(n) - afsdn_init(k,n)*aicen_init(n)
             end do
          end do
       end if

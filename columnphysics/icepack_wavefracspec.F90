@@ -32,6 +32,7 @@
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd
+      use icepack_warnings, only: warnstr, icepack_warnings_add
 
       implicit none
       private
@@ -142,6 +143,8 @@
 
       integer (kind=int_kind) :: k
 
+      character(len=*),parameter :: subname='(get_dafsd_wave)'
+
       do k = 1, nfsd
          ! fracture_hist is already normalized
          omega(k) = afsd_init(k)*SUM(fracture_hist(1:k-1)) 
@@ -155,7 +158,10 @@
 
       d_afsd(:) = gain(:) - loss(:)
 
-      if (SUM(d_afsd(:)) > puny) stop 'area not cons, waves'
+      if (SUM(d_afsd(:)) > puny) then
+         write(warnstr,*) subname, 'area not conserved, waves'
+         call icepack_warnings_add(warnstr)
+      endif
 
       WHERE (ABS(d_afsd).lt.puny) d_afsd = c0
 
@@ -275,6 +281,8 @@
          afsd_tmp     , & ! tracer array
          d_afsd_tmp       ! change
 
+      character(len=*),parameter :: subname='(icepack_step_wavefracture)'
+
       !------------------------------------
 
       ! initialize 
@@ -350,8 +358,14 @@
                      afsd_tmp = afsd_tmp + subdt * d_afsd_tmp(:) 
 
                      ! check conservation and negatives
-                     if (MINVAL(afsd_tmp) < -puny) stop 'wb, <0 loop'
-                     if (MAXVAL(afsd_tmp) > c1+puny) stop 'wb, >1 loop'
+                     if (MINVAL(afsd_tmp) < -puny) then
+                        write(warnstr,*) subname, 'wb, <0 loop'
+                        call icepack_warnings_add(warnstr)
+                     endif
+                     if (MAXVAL(afsd_tmp) > c1+puny) then
+                         write(warnstr,*) subname, 'wb, >1 loop'
+                        call icepack_warnings_add(warnstr)
+                     endif
 
                      ! update time
                      elapsed_t = elapsed_t + subdt 
