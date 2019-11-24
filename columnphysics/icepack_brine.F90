@@ -1010,7 +1010,7 @@
 !  Initialize zSalinity
 
       subroutine icepack_init_zsalinity(nblyr,ntrcr_o,  Rayleigh_criteria, &
-               Rayleigh_real, trcrn, nt_bgc_S, ncat, sss)
+               Rayleigh_real, trcrn_bgc, nt_bgc_S, ncat, sss)
 
       integer (kind=int_kind), intent(in) :: &
        nblyr, & ! number of biolayers
@@ -1028,7 +1028,7 @@
        sss
 
       real (kind=dbl_kind), dimension(:,:), intent(inout):: &
-       trcrn ! bgc subset of trcrn
+       trcrn_bgc ! bgc subset of trcrn
 
 !autodocument_end
 
@@ -1049,7 +1049,7 @@
       Rayleigh_real     = c0
       do n = 1,ncat
          do k = 1,nblyr
-            trcrn(nt_bgc_S+k-1-ntrcr_o,n) = sss*salt_loss
+            trcrn_bgc(nt_bgc_S+k-1-ntrcr_o,n) = sss*salt_loss
          enddo   ! k
       enddo      ! n
 

@@ -19,7 +19,7 @@ setenv TRBGCS    0         # set to 1 for skeletal layer tracers
 setenv TRBGCZ    1         # set to 1 for zbgc tracers
                            # (needs TRBGCS = 0 and TRBRI = 1)         
 setenv NBGCLYR   7         # number of zbgc layers 
-setenv TRZAERO   6         # number of z aerosol tracers 
+setenv TRZAERO   0         # number of z aerosol tracers 
                            # (up to max_aero = 6)
 setenv TRALG     3         # number of algal tracers
                            # (up to max_algae = 3)

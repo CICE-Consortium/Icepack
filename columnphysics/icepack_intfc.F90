@@ -65,8 +65,8 @@
       use icepack_zbgc , only: icepack_init_bgc
       use icepack_zbgc , only: icepack_init_zbgc
       use icepack_zbgc , only: icepack_biogeochemistry
-      use icepack_zbgc , only: icepack_init_OceanConcArray
-      use icepack_zbgc , only: icepack_init_ocean_conc
+      use icepack_zbgc , only: icepack_init_ocean_bio
+      use icepack_zbgc , only: icepack_load_ocean_bio_array
 
       use icepack_atmo , only: icepack_atm_boundary
       use icepack_ocean, only: icepack_ocn_mixed_layer

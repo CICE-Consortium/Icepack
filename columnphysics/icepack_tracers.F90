@@ -49,137 +49,137 @@
                     + max_aero      ! aerosols
 
       integer (kind=int_kind), public :: &
-         ntrcr   , & ! number of tracers in use
-         ntrcr_o , & ! number of non-bio tracers in use
-         n_aero  , & ! number of aerosols in use
-         n_zaero , & ! number of z aerosols in use 
-         n_algae , & ! number of algae in use 
-         n_doc   , & ! number of DOC pools in use
-         n_dic   , & ! number of DIC pools in use
-         n_don   , & ! number of DON pools in use
-         n_fed   , & ! number of Fe  pools in use dissolved Fe
-         n_fep       ! number of Fe  pools in use particulate Fe
+         ntrcr        = 0, & ! number of tracers in use
+         ntrcr_o      = 0, & ! number of non-bio tracers in use
+         n_aero       = 0, & ! number of aerosols in use
+         n_zaero      = 0, & ! number of z aerosols in use
+         n_algae      = 0, & ! number of algae in use
+         n_doc        = 0, & ! number of DOC pools in use
+         n_dic        = 0, & ! number of DIC pools in use
+         n_don        = 0, & ! number of DON pools in use
+         n_fed        = 0, & ! number of Fe  pools in use dissolved Fe
+         n_fep        = 0    ! number of Fe  pools in use particulate Fe
 
       integer (kind=int_kind), public :: &
-         nt_Tsfc  , & ! ice/snow temperature
-         nt_qice  , & ! volume-weighted ice enthalpy (in layers)
-         nt_qsno  , & ! volume-weighted snow enthalpy (in layers)
-         nt_sice  , & ! volume-weighted ice bulk salinity (CICE grid layers)
-         nt_fbri  , & ! volume fraction of ice with dynamic salt (hinS/vicen*aicen)
-         nt_iage  , & ! volume-weighted ice age
-         nt_FY    , & ! area-weighted first-year ice area
-         nt_alvl  , & ! level ice area fraction
-         nt_vlvl  , & ! level ice volume fraction
-         nt_apnd  , & ! melt pond area fraction
-         nt_hpnd  , & ! melt pond depth
-         nt_ipnd  , & ! melt pond refrozen lid thickness
-         nt_aero  , & ! starting index for aerosols in ice
-         nt_bgc_Nit,   & ! nutrients  
-         nt_bgc_Am,    & ! 
-         nt_bgc_Sil,   & !
-         nt_bgc_DMSPp, & ! trace gases (skeletal layer)
-         nt_bgc_DMSPd, & ! 
-         nt_bgc_DMS,   & ! 
-         nt_bgc_PON,   & ! zooplankton and detritus 
-         nt_bgc_hum,   & ! humic material 
-         nt_zbgc_frac, & ! fraction of tracer in the mobile phase
-         nt_bgc_S        ! Bulk salinity in fraction ice with dynamic salinity (Bio grid)
+         nt_Tsfc      = 0, & ! ice/snow temperature
+         nt_qice      = 0, & ! volume-weighted ice enthalpy (in layers)
+         nt_qsno      = 0, & ! volume-weighted snow enthalpy (in layers)
+         nt_sice      = 0, & ! volume-weighted ice bulk salinity (CICE grid layers)
+         nt_fbri      = 0, & ! volume fraction of ice with dynamic salt (hinS/vicen*aicen)
+         nt_iage      = 0, & ! volume-weighted ice age
+         nt_FY        = 0, & ! area-weighted first-year ice area
+         nt_alvl      = 0, & ! level ice area fraction
+         nt_vlvl      = 0, & ! level ice volume fraction
+         nt_apnd      = 0, & ! melt pond area fraction
+         nt_hpnd      = 0, & ! melt pond depth
+         nt_ipnd      = 0, & ! melt pond refrozen lid thickness
+         nt_aero      = 0, & ! starting index for aerosols in ice
+         nt_bgc_Nit   = 0, & ! nutrients
+         nt_bgc_Am    = 0, & ! 
+         nt_bgc_Sil   = 0, & !
+         nt_bgc_DMSPp = 0, & ! trace gases (skeletal layer)
+         nt_bgc_DMSPd = 0, & ! 
+         nt_bgc_DMS   = 0, & ! 
+         nt_bgc_PON   = 0, & ! zooplankton and detritus
+         nt_bgc_hum   = 0, & ! humic material
+         nt_zbgc_frac = 0, & ! fraction of tracer in the mobile phase
+         nt_bgc_S     = 0    ! Bulk salinity in fraction ice with dynamic salinity (Bio grid)
 
       logical (kind=log_kind), public :: &
-         tr_iage     , & ! if .true., use age tracer
-         tr_FY       , & ! if .true., use first-year area tracer
-         tr_lvl      , & ! if .true., use level ice tracer
-         tr_pond     , & ! if .true., use melt pond tracer
-         tr_pond_cesm, & ! if .true., use cesm pond tracer
-         tr_pond_lvl , & ! if .true., use level-ice pond tracer
-         tr_pond_topo, & ! if .true., use explicit topography-based ponds
-         tr_aero     , & ! if .true., use aerosol tracers
-         tr_brine        ! if .true., brine height differs from ice thickness
+         tr_iage      = .false., & ! if .true., use age tracer
+         tr_FY        = .false., & ! if .true., use first-year area tracer
+         tr_lvl       = .false., & ! if .true., use level ice tracer
+         tr_pond      = .false., & ! if .true., use melt pond tracer
+         tr_pond_cesm = .false., & ! if .true., use cesm pond tracer
+         tr_pond_lvl  = .false., & ! if .true., use level-ice pond tracer
+         tr_pond_topo = .false., & ! if .true., use explicit topography-based ponds
+         tr_aero      = .false., & ! if .true., use aerosol tracers
+         tr_brine     = .false.    ! if .true., brine height differs from ice thickness
 
       !-----------------------------------------------------------------
       !  biogeochemistry
       !-----------------------------------------------------------------
 
       logical (kind=log_kind), public :: & 
-         tr_zaero,       & ! if .true., black carbon as tracers  (n_zaero)
-         tr_bgc_Nit,     & ! if .true. Nitrate tracer in ice 
-         tr_bgc_N,       & ! if .true., algal nitrogen tracers  (n_algae)
-         tr_bgc_DON,     & ! if .true., DON pools are tracers  (n_don)
-         tr_bgc_C,       & ! if .true., algal carbon tracers + DOC and DIC 
-         tr_bgc_chl,     & ! if .true., algal chlorophyll tracers 
-         tr_bgc_Am,      & ! if .true., ammonia/um as nutrient tracer 
-         tr_bgc_Sil,     & ! if .true., silicon as nutrient tracer 
-         tr_bgc_DMS,     & ! if .true., DMS as  tracer 
-         tr_bgc_Fe,      & ! if .true., Fe as  tracer 
-         tr_bgc_PON,     & ! if .true., PON as tracer 
-         tr_bgc_hum        ! if .true., humic material as tracer 
+         tr_zaero     = .false., & ! if .true., black carbon as tracers  (n_zaero)
+         tr_bgc_Nit   = .false., & ! if .true. Nitrate tracer in ice
+         tr_bgc_N     = .false., & ! if .true., algal nitrogen tracers  (n_algae)
+         tr_bgc_DON   = .false., & ! if .true., DON pools are tracers  (n_don)
+         tr_bgc_C     = .false., & ! if .true., algal carbon tracers + DOC and DIC
+         tr_bgc_chl   = .false., & ! if .true., algal chlorophyll tracers
+         tr_bgc_Am    = .false., & ! if .true., ammonia/um as nutrient tracer
+         tr_bgc_Sil   = .false., & ! if .true., silicon as nutrient tracer
+         tr_bgc_DMS   = .false., & ! if .true., DMS as tracer
+         tr_bgc_Fe    = .false., & ! if .true., Fe as  tracer
+         tr_bgc_PON   = .false., & ! if .true., PON as tracer
+         tr_bgc_hum   = .false.    ! if .true., humic material as tracer
 
       integer (kind=int_kind), public :: &
-         nbtrcr,         & ! number of bgc tracers in use
-         nbtrcr_sw,      & ! number of bgc tracers which impact shortwave
-         nlt_chl_sw        ! points to total chla in trcrn_sw
+         nbtrcr       = 0, & ! number of bgc tracers in use
+         nbtrcr_sw    = 0, & ! number of bgc tracers which impact shortwave
+         nlt_chl_sw   = 0    ! points to total chla in trcrn_sw
 
       integer (kind=int_kind), dimension(max_aero), public :: &
-         nlt_zaero_sw       ! points to aerosol in trcrn_sw
+         nlt_zaero_sw = 0    ! points to aerosol in trcrn_sw
   
       integer (kind=int_kind), dimension(max_algae), public :: &
-         nlt_bgc_N      , & ! algae 
-         nlt_bgc_C      , & ! 
-         nlt_bgc_chl   
+         nlt_bgc_N    = 0, & ! algae
+         nlt_bgc_C    = 0, & ! 
+         nlt_bgc_chl  = 0    ! 
 
       integer (kind=int_kind), dimension(max_doc), public :: &
-         nlt_bgc_DOC        ! disolved organic carbon
+         nlt_bgc_DOC  = 0    ! disolved organic carbon
 
       integer (kind=int_kind), dimension(max_don), public :: &
-         nlt_bgc_DON        !
+         nlt_bgc_DON  = 0    !
 
       integer (kind=int_kind), dimension(max_dic), public :: &
-         nlt_bgc_DIC        ! disolved inorganic carbon
+         nlt_bgc_DIC  = 0    ! disolved inorganic carbon
 
       integer (kind=int_kind), dimension(max_fe), public :: &
-         nlt_bgc_Fed    , & !
-         nlt_bgc_Fep        !
+         nlt_bgc_Fed  = 0, & !
+         nlt_bgc_Fep  = 0    !
 
       integer (kind=int_kind), dimension(max_aero), public :: &
-         nlt_zaero          ! non-reacting layer aerosols
+         nlt_zaero    = 0    ! non-reacting layer aerosols
 
       integer (kind=int_kind), public :: &
-         nlt_bgc_Nit   ,   & ! nutrients  
-         nlt_bgc_Am    ,   & ! 
-         nlt_bgc_Sil   ,   & !
-         nlt_bgc_DMSPp ,   & ! trace gases (skeletal layer)
-         nlt_bgc_DMSPd ,   & ! 
-         nlt_bgc_DMS   ,   & ! 
-         nlt_bgc_PON   ,   & ! zooplankton and detritus
-         nlt_bgc_hum         ! humic material
+         nlt_bgc_Nit  = 0, & ! nutrients
+         nlt_bgc_Am   = 0, & ! 
+         nlt_bgc_Sil  = 0, & !
+         nlt_bgc_DMSPp= 0, & ! trace gases (skeletal layer)
+         nlt_bgc_DMSPd= 0, & ! 
+         nlt_bgc_DMS  = 0, & ! 
+         nlt_bgc_PON  = 0, & ! zooplankton and detritus
+         nlt_bgc_hum  = 0    ! humic material
 
-      integer (kind=int_kind), dimension(max_algae), public :: &  
-         nt_bgc_N , & ! diatoms, phaeocystis, pico/small   
-         nt_bgc_C , & ! diatoms, phaeocystis, pico/small   
-         nt_bgc_chl   ! diatoms, phaeocystis, pico/small 
+      integer (kind=int_kind), dimension(max_algae), public :: &
+         nt_bgc_N     = 0, & ! diatoms, phaeocystis, pico/small
+         nt_bgc_C     = 0, & ! diatoms, phaeocystis, pico/small
+         nt_bgc_chl   = 0    ! diatoms, phaeocystis, pico/small
 
-      integer (kind=int_kind), dimension(max_doc), public :: &  
-         nt_bgc_DOC      !  dissolved organic carbon
+      integer (kind=int_kind), dimension(max_doc), public :: & 
+         nt_bgc_DOC   = 0    !  dissolved organic carbon
 
-      integer (kind=int_kind), dimension(max_don), public :: & 
-         nt_bgc_DON         !  dissolved organic nitrogen
+      integer (kind=int_kind), dimension(max_don), public :: &
+         nt_bgc_DON   = 0    !  dissolved organic nitrogen
 
-      integer (kind=int_kind), dimension(max_dic), public :: &  
-         nt_bgc_DIC         !  dissolved inorganic carbon
+      integer (kind=int_kind), dimension(max_dic), public :: &
+         nt_bgc_DIC   = 0    !  dissolved inorganic carbon
 
-      integer (kind=int_kind), dimension(max_fe), public :: & 
-         nt_bgc_Fed,     & !  dissolved iron
-         nt_bgc_Fep        !  particulate iron
+      integer (kind=int_kind), dimension(max_fe), public :: &
+         nt_bgc_Fed   = 0, & !  dissolved iron
+         nt_bgc_Fep   = 0    !  particulate iron
 
-      integer (kind=int_kind), dimension(max_aero), public :: &  
-         nt_zaero       !  black carbon and other aerosols
+      integer (kind=int_kind), dimension(max_aero), public :: &
+         nt_zaero     = 0    !  black carbon and other aerosols
       
       integer (kind=int_kind), dimension(max_nbtrcr), public :: &
-         bio_index_o         ! relates nlt_bgc_NO to ocean concentration index
+         bio_index_o  = 0    ! relates nlt_bgc_NO to ocean concentration index
                              ! see ocean_bio_all
 
       integer (kind=int_kind), dimension(max_nbtrcr), public :: &
-         bio_index           ! relates bio indices, ie.  nlt_bgc_N to nt_bgc_N 
+         bio_index    = 0    ! relates bio indices, ie.  nlt_bgc_N to nt_bgc_N 
 
 !=======================================================================
 
@@ -207,6 +207,8 @@
 
 !autodocument_end
 
+        character(len=*),parameter :: subname='(icepack_query_tracer_sizes)'
+
         if (present(max_algae_out))  max_algae_out = max_algae
         if (present(max_dic_out))    max_dic_out   = max_dic
         if (present(max_doc_out))    max_doc_out   = max_doc
@@ -229,7 +231,9 @@
 
 !autodocument_end
 
-        write(iounit,*) "icepack_write_tracer_sizes:"
+        character(len=*),parameter :: subname='(icepack_write_tracer_sizes)'
+
+        write(iounit,*) subname//":"
         write(iounit,*) '  max_algae_out =', max_algae
         write(iounit,*) '  max_dic_out   =', max_dic
         write(iounit,*) '  max_doc_out   =', max_doc
@@ -278,6 +282,8 @@
              tr_bgc_PON_in       ! if .true., PON as product tracer 
 
 !autodocument_end
+
+        character(len=*),parameter :: subname='(icepack_init_tracer_flags)'
 
         if (present(tr_iage_in)) tr_iage = tr_iage_in
         if (present(tr_FY_in)  ) tr_FY   = tr_FY_in
@@ -340,6 +346,8 @@
 
 !autodocument_end
 
+        character(len=*),parameter :: subname='(icepack_query_tracer_flags)'
+
         if (present(tr_iage_out)) tr_iage_out = tr_iage
         if (present(tr_FY_out)  ) tr_FY_out   = tr_FY
         if (present(tr_lvl_out) ) tr_lvl_out  = tr_lvl
@@ -374,7 +382,9 @@
 
 !autodocument_end
 
-        write(iounit,*) "icepack_write_tracer_flags:"
+        character(len=*),parameter :: subname='(icepack_write_tracer_flags)'
+
+        write(iounit,*) subname//":"
         write(iounit,*) "  tr_iage = ",tr_iage
         write(iounit,*) "  tr_FY   = ",tr_FY  
         write(iounit,*) "  tr_lvl  = ",tr_lvl 
@@ -503,6 +513,7 @@
 
         ! local
         integer (kind=int_kind) :: k
+        character(len=*),parameter :: subname='(icepack_init_tracer_indices)'
 
         if (present(nt_Tsfc_in)) nt_Tsfc = nt_Tsfc_in
         if (present(nt_qice_in)) nt_qice = nt_qice_in
@@ -706,6 +717,8 @@
 
 !autodocument_end
 
+        character(len=*),parameter :: subname='(icepack_query_tracer_indices)'
+
         if (present(nt_Tsfc_out)) nt_Tsfc_out = nt_Tsfc
         if (present(nt_qice_out)) nt_qice_out = nt_qice
         if (present(nt_qsno_out)) nt_qsno_out = nt_qsno
@@ -775,8 +788,9 @@
 
         ! local
         integer (kind=int_kind) :: k
+        character(len=*),parameter :: subname='(icepack_write_tracer_indices)'
 
-        write(iounit,*) "icepack_write_tracer_indices:"
+        write(iounit,*) subname//":"
         write(iounit,*) "  nt_Tsfc = ",nt_Tsfc
         write(iounit,*) "  nt_qice = ",nt_qice
         write(iounit,*) "  nt_qsno = ",nt_qsno
@@ -876,6 +890,8 @@
 
 !autodocument_end
 
+        character(len=*),parameter :: subname='(icepack_init_tracer_numbers)'
+
         if (present(ntrcr_in)    ) ntrcr     = ntrcr_in
         if (present(ntrcr_o_in)  ) ntrcr_o   = ntrcr_o_in
         if (present(nbtrcr_in)   ) nbtrcr    = nbtrcr_in
@@ -898,6 +914,8 @@
 
 !autodocument_end
 
+        character(len=*),parameter :: subname='(icepack_query_tracer_numbers)'
+
         if (present(ntrcr_out)    ) ntrcr_out     = ntrcr
         if (present(ntrcr_o_out)  ) ntrcr_o_out   = ntrcr_o
         if (present(nbtrcr_out)   ) nbtrcr_out    = nbtrcr
@@ -915,7 +933,9 @@
 
 !autodocument_end
 
-        write(iounit,*) "icepack_write_tracer_numbers:"
+        character(len=*),parameter :: subname='(icepack_write_tracer_numbers)'
+
+        write(iounit,*) subname//":"
         write(iounit,*) "  ntrcr     = ",ntrcr    
         write(iounit,*) "  nbtrcr    = ",nbtrcr   
         write(iounit,*) "  nbtrcr_sw = ",nbtrcr_sw
@@ -973,6 +993,8 @@
 
       real (kind=dbl_kind) :: &
          work      ! temporary scalar
+
+      character(len=*),parameter :: subname='(icepack_compute_tracers)'
 
       !-----------------------------------------------------------------
       ! Compute new tracers

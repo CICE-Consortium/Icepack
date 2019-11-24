@@ -56,7 +56,7 @@
       subroutine input_data
 
       use icedrv_diagnostics, only: diag_file, nx_names
-      use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero
+      use icedrv_domain_size, only: nilyr, nslyr, nblyr, max_ntrcr, ncat, n_aero
       use icedrv_calendar, only: year_init, istep0
       use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
@@ -650,11 +650,12 @@
          write(nu_diag,1020) 'nt_qice = ', nt_qice
          write(nu_diag,1020) 'nt_qsno = ', nt_qsno
          write(nu_diag,*)' '
-         write(nu_diag,1020) 'ncat', ncat
-         write(nu_diag,1020) 'nilyr', nilyr
-         write(nu_diag,1020) 'nslyr', nslyr
+         write(nu_diag,1020) 'ncat    = ', ncat
+         write(nu_diag,1020) 'nilyr   = ', nilyr
+         write(nu_diag,1020) 'nslyr   = ', nslyr
+         write(nu_diag,1020) 'nblyr   = ', nblyr
          write(nu_diag,*)' '
-         write(nu_diag,1020) 'nx', nx
+         write(nu_diag,1020) 'nx      = ', nx
          write(nu_diag,*)' '
 
  1000    format (a30,2x,f9.2)  ! a30 to align formatted, unformatted statements
@@ -790,7 +791,7 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, max_ntrcr, n_aero
       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
       use icedrv_state, only: aice0, aice, vice, vsno, trcr, aice_init
