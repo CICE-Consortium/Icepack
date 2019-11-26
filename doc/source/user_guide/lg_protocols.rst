@@ -1,37 +1,33 @@
 :tocdepth: 3
 
-.. _library:
+.. _protocols:
 
-Using Icepack in other models
-=================================
-
-This section documents how to use Icepack in other models.
-
-.. _liboverview:
-
-Overview
+Protocols
 ----------------
 
-Icepack is a column physics package designed to be used in other broader sea ice models, such as
-CICE, SIS, or even in ocean models.  
-Icepack includes options for simulating sea ice thermodynamics, mechanical redistribution 
-(ridging) and associated area and thickness changes. In addition, the model supports a number of 
-tracers, including thickness, enthalpy, ice age, first-year ice area, deformed ice area and 
-volume, melt ponds, and biogeochemistry.
+This section describes a number of basic protocols for using Icepack in other models.
 
-Icepack is called on a grid point by grid point basis.  All data is passed in and out of the model
-via subroutine interfaces.  Fortran "use" statements are not encouraged for accessing data inside
-the Icepack model.
+.. _calling:
 
-Icepack does not generally contain any parallelization or I/O.  The driver of Icepack is 
-expected to support
-those features.  Icepack can be called concurrently across multiple MPI tasks.  Icepack should also
-be thread safe.
+Access
+~~~~~~~~~~~~~~~~~~~
+
+Icepack provides several public interfaces.  These are defined in **columnphysics/icepack\_intfc.F90**.  
+Icepack interfaces all contain the icepack\_ prefix.
+Icepack interfaces follow a general design where data is passed in on a gridpoint by gridpoint
+basis, that data is updated and returned to the driver, and the data is not stored within Icepack.  
+
+Icepack interfaces can have long argument lists.  These are documented in :ref:`docintfc`.  In
+some cases, arguments are required for optional features (i.e. biogeochemistry) even when that
+feature is turned off in Icepack.  The Icepack
+development team continues to work towards having more optional arguments.  If an argument is 
+required for the interface but not needed, the driver will still have to pass a (dummy) variable 
+thru the interface to meet the interface specification.
 
 .. _initialization:
 
-Icepack Initialization
-----------------------
+Initialization
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The subroutine icepack_configure should be called before any other icepack interfaces are called.
 This subroutine initializes the abort flag and a few other important defaults.  We recommend that
@@ -47,7 +43,7 @@ The 2nd and 3rd line above are described further in :ref:`aborts`.
 .. _aborts:
 
 Error Messages and Aborts
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Icepack does not generally handle I/O (file units), the parallel computing environment (MPI, etc),
 or model aborts.  Icepack generates and buffers error messages that can be accessed by the
@@ -64,20 +60,6 @@ The function icepack_warnings_aborted queries the internal icepack abort flag an
 returns true if icepack generated an abort error.  
 my_abort_method represents a method in the driver that will abort the model cleanly.
 
-Calling Icepack
------------------------
-
-Icepack provides several public interfaces.  These are defined in **columnphysics/icepack\_intfc.F90**.
-Icepack interfaces follow a general design where data is passed in on a gridpoint by gridpoint
-basis, that data is updated and returned to the driver, and the data is not stored within Icepack.  
-
-Icepack interfaces can have long argument lists.  These are documented in :ref:`docintfc`.  In
-some cases, arguments are required for optional features (i.e. biogeochemistry) even when that
-feature is turned off in Icepack.  The Icepack
-development team continues to work towards having more optional arguments.  If an argument is 
-required for the interface but not needed, the driver will still have to pass a (dummy) variable 
-thru the interface to meet the interface specification.
-
 .. _setinternal:
 
 Setting Internal Parameters
@@ -92,39 +74,23 @@ defines the available interfaces that fit into this category.
 
 .. table:: *Init, Query, and Write Interfaces* 
 
-   +----------------+-----------------------------+------------------------------+------------------------------+-------------------------------------------------+
-   | type           | init                        |                      query   |                      write   |           notes                                 |
-   +================+=============================+==============================+==============================+=================================================+
-   | orbital        | icepack_init_orbit          | icepack_query_orbit          |                              | orbital settings                                |
-   +----------------+-----------------------------+------------------------------+------------------------------+-------------------------------------------------+
-   | parameters     | icepack_init_parameters     | icepack_query_parameters     | icepack_write_parameters     | scientific parameters                           |
-   +----------------+-----------------------------+------------------------------+------------------------------+-------------------------------------------------+
-   | tracer flags   | icepack_init_tracer_flags   | icepack_query_tracer_flags   | icepack_write_tracer_flags   | tracer flags                                    |
-   +----------------+-----------------------------+------------------------------+------------------------------+-------------------------------------------------+
-   | tracer sizes   |                             | icepack_query_tracer_sizes   | icepack_write_tracer_sizes   | internally defined maximum tracer sizes         |
-   +----------------+-----------------------------+------------------------------+------------------------------+-------------------------------------------------+
-   | tracer indices | icepack_init_tracer_indices | icepack_query_tracer_indices | icepack_write_tracer_indices | tracer indexing in a broader tracer array       |
-   +----------------+-----------------------------+------------------------------+------------------------------+-------------------------------------------------+
-   | tracer numbers | icepack_init_tracer_numbers | icepack_query_tracer_numbers | icepack_write_tracer_numbers | tracer counts associated with different tracers |
-   +----------------+-----------------------------+------------------------------+------------------------------+-------------------------------------------------+
+   +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
+   | type           | init                            |                      query       |                      write       |           notes                                 |
+   +================+=================================+==================================+==================================+=================================================+
+   | orbital        | icepack\_init\_ orbit           | icepack\_query\_ orbit           |                                  | orbital settings                                |
+   +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
+   | parameters     | icepack\_init\_ parameters      | icepack\_query\_ parameters      | icepack\_write\_ parameters      | scientific parameters                           |
+   +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
+   | tracer flags   | icepack\_init\_ tracer\_flags   | icepack\_query\_ tracer\_flags   | icepack\_write\_ tracer\_flags   | tracer flags                                    |
+   +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
+   | tracer sizes   |                                 | icepack\_query\_ tracer\_sizes   | icepack\_write\_ tracer\_sizes   | internally defined maximum tracer sizes         |
+   +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
+   | tracer indices | icepack\_init\_ tracer\_indices | icepack\_query\_ tracer\_indices | icepack\_write\_ tracer\_indices | tracer indexing in a broader tracer array       |
+   +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
+   | tracer numbers | icepack\_init\_ tracer\_numbers | icepack\_query\_ tracer\_numbers | icepack\_write\_ tracer\_numbers | tracer counts associated with different tracers |
+   +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
 
 Many of these interfaces are related to tracers and in particular, tracer indexing in broader arrays.  This is further explained in :ref:`tracerindex`.
-
-Initialization Interfaces
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following interfaces are called during initialization for each gridcell.
-
-  - blahblah
-  - blahblah
-
-Timestepping Interfaces
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following interfaces are generally called on each timestep for each gridcell.
-
-  - blahblah
-  - blahblah
 
 .. _tracerindex:
 
@@ -140,7 +106,7 @@ Tsfc, qice, qsno) are required, while other tracers (i.e. FY or bgc tracers) are
 only when certain features are triggered.  As a general rule, Icepack is aware of only a specific set
 of tracers and each tracer takes on multiple properties including counts, dependencies (:ref:`pondtr`), 
 and indexing in a broader tracer array.  The following table summarize the various types of 
-tracers understood by Icepack and lists some of their properties.  See all :ref:`tab-bio-tracers`.
+tracers understood by Icepack and lists some of their properties.  See all :ref:`tab-bio-tracer`.
 
 .. table:: *Tracer Types and Properties* 
 
@@ -224,38 +190,4 @@ tracer indexing is particularly important.  Below is a list of the various trace
   - trcrn_depend/strata/etc defines dependency properties for tracers associated with the full array reference by nt\_ indexing
   - bio_index and bio_index_o is something else
 
-
-.. _callingseq:
-
-Calling Sequence
------------------------
-
-TBD
-
-.. _docintfc:
-
-Public Interfaces
----------------------
-
-Below are a list of public icepack interfaces.
-
-These interfaces are extracted directly from the icepack source code using the script
-``doc/generate_interfaces.sh``.  That script updates rst files in the
-doc directory tree which are then incorporated into the sphinx documentation.
-There is information about how ``generate_interfaces.sh`` parses
-the source code in a comment section in that script.  In addition, 
-executing ``icepack.setup --docintfc`` will also run the generate_interfaces 
-script as noted in :ref:`case_options`.  
-Once ``generate_interfaces`` is executed, the user
-still has to add and commit the changes to the documentation manually.  A typical workflow
-would be::
-
-    ./icepack.setup --docintfc
-    git add doc/source/user_guide/interfaces.rst
-    git commit -m "update public interface documentation"
-
-If the script is run, but no interfaces have changed, there should be no changes to the
-documentation files.
-
-.. include:: interfaces.rst
 

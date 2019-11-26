@@ -4,14 +4,14 @@
 # Generate documentation from icepack source code
 # Will cut and paste all code between "autodocument_start" and "autodocument_end"
 #   (defined by $startline and $endline below)
-# Writes to source/user_guide/interfaces.rst ($rstfile below)
+# Writes to source/user_guide/interfaces.include ($rstfile below)
 # Expects $startline to include a section title string such as
 #   ! autodocument_start icepack_subroutine_name
 # That string (ie. icepack_subroutine_name) will be used as the section name 
 #   in the rst documentation
 # The pattern matching assumes the title is anything following the $startline string
 #   and can include spaces
-# The file interfaces.rst is included automatically in the icepack documentation
+# The file interfaces.include is included automatically in the icepack documentation
 # To update the documentation
 #   cd to this directory
 #   run this script (./generate_interfaces.sh)
@@ -36,7 +36,7 @@
 startline="autodocument_start"
 endline="autodocument_end"
 inpfiles="../columnphysics/*.F90"
-rstfile="./source/user_guide/interfaces.rst"
+rstfile="./source/user_guide/interfaces.include"
 dowrite=0
 
 mv ${rstfile} ${rstfile}.orig
@@ -68,11 +68,13 @@ filename=`basename $file`
          exit -9
       fi
       echo "$filename $title"
-      echo " " >> $rstfile
+      echo "" >> $rstfile
+      echo ".. _${title}:" >> $rstfile
+      echo "" >> $rstfile
       echo "${title}" >> $rstfile
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" >> $rstfile
       echo ".. code-block:: fortran" >> $rstfile
-      echo " " >> $rstfile
+      echo "" >> $rstfile
     fi
 
   done < "$file"
