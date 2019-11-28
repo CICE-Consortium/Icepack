@@ -51,6 +51,10 @@
       integer (kind=int_kind), public :: &
          ntrcr        = 0, & ! number of tracers in use
          ntrcr_o      = 0, & ! number of non-bio tracers in use
+         ncat         = 0, & ! number of ice categories in use
+         nilyr        = 0, & ! number of ice layers per category
+         nslyr        = 0, & ! number of snow layers per category
+         nblyr        = 0, & ! number of bio/brine layers per category
          n_aero       = 0, & ! number of aerosols in use
          n_zaero      = 0, & ! number of z aerosols in use
          n_algae      = 0, & ! number of algae in use
@@ -417,18 +421,19 @@
            nt_Tsfc_in, nt_qice_in, nt_qsno_in, nt_sice_in, &
            nt_fbri_in, nt_iage_in, nt_FY_in, & 
            nt_alvl_in, nt_vlvl_in, nt_apnd_in, nt_hpnd_in, nt_ipnd_in, &
-           nt_aero_in, nt_zaero_in, &
+           nt_aero_in, nt_zaero_in, nt_bgc_C_in, &
            nt_bgc_N_in, nt_bgc_chl_in, nt_bgc_DOC_in, nt_bgc_DON_in, &
            nt_bgc_DIC_in, nt_bgc_Fed_in, nt_bgc_Fep_in, nt_bgc_Nit_in, nt_bgc_Am_in, &
            nt_bgc_Sil_in, nt_bgc_DMSPp_in, nt_bgc_DMSPd_in, nt_bgc_DMS_in, nt_bgc_hum_in, &
-           nt_bgc_PON_in, nlt_zaero_in, nlt_bgc_N_in, nlt_bgc_chl_in, &
+           nt_bgc_PON_in, nlt_zaero_in, nlt_bgc_C_in, nlt_bgc_N_in, nlt_bgc_chl_in, &
            nlt_bgc_DOC_in, nlt_bgc_DON_in, nlt_bgc_DIC_in, nlt_bgc_Fed_in, &
            nlt_bgc_Fep_in, nlt_bgc_Nit_in, nlt_bgc_Am_in, nlt_bgc_Sil_in, &
            nlt_bgc_DMSPp_in, nlt_bgc_DMSPd_in, nlt_bgc_DMS_in, nlt_bgc_hum_in, &
            nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
-           nlt_zaero_sw_in, n_algae_in, n_DOC_in, &
+           nlt_zaero_sw_in, n_algae_in, n_DOC_in, n_aero_in, &
            n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
-           bio_index_o_in, bio_index_in, nbtrcr_in)
+           ncat_in, nilyr_in, nslyr_in, nblyr_in, &
+           bio_index_o_in, bio_index_in)
 
         integer, intent(in), optional :: &
              nt_Tsfc_in, & ! ice/snow temperature
@@ -465,14 +470,18 @@
              nlt_chl_sw_in    ! points to total chla in trcrn_sw
 
        integer, intent(in), optional :: &
-             n_algae_in,    & !  Dimensions
+             ncat_in,       & ! Categories
+             nilyr_in,      & ! Layers
+             nslyr_in,      & !
+             nblyr_in,      & !
+             n_algae_in,    & ! Dimensions
              n_DOC_in,      & !
              n_DON_in,      & !
              n_DIC_in,      & !
              n_fed_in,      & !
              n_fep_in,      & ! 
              n_zaero_in,    & !
-             nbtrcr_in
+             n_aero_in        !
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
              bio_index_o_in, & 
@@ -480,10 +489,10 @@
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
              nt_bgc_N_in ,  & ! diatoms, phaeocystis, pico/small   
-!            nt_bgc_C_in ,  & ! diatoms, phaeocystis, pico/small   
+             nt_bgc_C_in ,  & ! diatoms, phaeocystis, pico/small   
              nt_bgc_chl_in, & ! diatoms, phaeocystis, pico/small 
              nlt_bgc_N_in , & ! diatoms, phaeocystis, pico/small   
-!            nlt_bgc_C_in , & ! diatoms, phaeocystis, pico/small   
+             nlt_bgc_C_in , & ! diatoms, phaeocystis, pico/small   
              nlt_bgc_chl_in   ! diatoms, phaeocystis, pico/small 
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
@@ -512,7 +521,7 @@
 !autodocument_end
 
         ! local
-        integer (kind=int_kind) :: k
+        integer (kind=int_kind) :: k, nsiz
         character(len=*),parameter :: subname='(icepack_init_tracer_indices)'
 
         if (present(nt_Tsfc_in)) nt_Tsfc = nt_Tsfc_in
@@ -547,81 +556,233 @@
         if (present(nlt_chl_sw_in)   ) nlt_chl_sw    = nlt_chl_sw_in
         if (present(nt_zbgc_frac_in) ) nt_zbgc_frac  = nt_zbgc_frac_in
         if (present(nt_bgc_S_in)     ) nt_bgc_S      = nt_bgc_S_in
+        if (present(ncat_in)         ) ncat          = ncat_in
+        if (present(nilyr_in)        ) nilyr         = nilyr_in
+        if (present(nslyr_in)        ) nslyr         = nslyr_in
+        if (present(nblyr_in)        ) nblyr         = nblyr_in
+        if (present(n_algae_in)      ) n_algae       = n_algae_in
+        if (present(n_DOC_in)        ) n_DOC         = n_DOC_in
+        if (present(n_DON_in)        ) n_DON         = n_DON_in
+        if (present(n_DIC_in)        ) n_DIC         = n_DIC_in
+        if (present(n_fed_in)        ) n_fed         = n_fed_in
+        if (present(n_fep_in)        ) n_fep         = n_fep_in
+        if (present(n_zaero_in)      ) n_zaero       = n_zaero_in
+        if (present(n_aero_in)        ) n_aero       = n_aero_in
 
-        if (present(nbtrcr_in)) then
-           nbtrcr = nbtrcr_in
-           do k = 1, nbtrcr_in
-              if (present(bio_index_o_in)) bio_index_o(k)= bio_index_o_in(k)
-              if (present(bio_index_in)  ) bio_index(k)  = bio_index_in(k)
-           enddo
+        if (present(bio_index_in)) then
+           nsiz = size(bio_index_in)
+           if (size(bio_index) < nsiz) then
+              call icepack_warnings_add(subname//'error in bio_index size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              bio_index(1:nsiz) = bio_index_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_algae_in)) then
-           n_algae = n_algae_in
-           do k = 1, n_algae_in
-              if (present(nt_bgc_N_in) ) nt_bgc_N(k) = nt_bgc_N_in(k) 
-              if (present(nlt_bgc_N_in)) nlt_bgc_N(k)= nlt_bgc_N_in(k) 
-              if (present(nt_bgc_chl_in) ) nt_bgc_chl(k) = nt_bgc_chl_in(k) 
-              if (present(nlt_bgc_chl_in)) nlt_bgc_chl(k)= nlt_bgc_chl_in(k) 
-           enddo
+        if (present(bio_index_o_in)) then
+           nsiz = size(bio_index_o_in)
+           if (size(bio_index_o) < nsiz) then
+              call icepack_warnings_add(subname//'error in bio_index_o size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              bio_index_o(1:nsiz) = bio_index_o_in(1:nsiz)
+           endif
         endif
 
-! algal C is not yet distinct from algal N
-!        if (present(n_algalC_in)) then
-!           n_algalC = n_algalC_in
-!           do k = 1, n_algalC_in
-!              if (present(nt_bgc_C_in) ) nt_bgc_C(k) = nt_bgc_C_in(k) 
-!              if (present(nlt_bgc_C_in)) nlt_bgc_C(k)= nlt_bgc_C_in(k) 
-!           enddo
+        if (present(nt_bgc_N_in)) then
+           nsiz = size(nt_bgc_N_in)
+           if (size(nt_bgc_N) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_N size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_N(1:nsiz) = nt_bgc_N_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_bgc_N_in)) then
+           nsiz = size(nlt_bgc_N_in)
+           if (size(nlt_bgc_N) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_N size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_N(1:nsiz) = nlt_bgc_N_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nt_bgc_chl_in)) then
+           nsiz = size(nt_bgc_chl_in)
+           if (size(nt_bgc_chl) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_chl size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_chl(1:nsiz) = nt_bgc_chl_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_bgc_chl_in)) then
+           nsiz = size(nlt_bgc_chl_in)
+           if (size(nlt_bgc_chl) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_chl size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_chl(1:nsiz) = nlt_bgc_chl_in(1:nsiz)
+           endif
+        endif
+
+! bgc C is not yet distinct from bgc N
+        if (present(nt_bgc_C_in) .or. present(nlt_bgc_C_in)) then
+           call icepack_warnings_add(subname//'error bgc_C not supported')
+           call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+        endif
+
+!        if (present(nt_bgc_C_in)) then
+!           nsiz = size(nt_bgc_C_in)
+!           if (size(nt_bgc_C) < nsiz) then
+!              call icepack_warnings_add(subname//'error in nt_bgc_C size')
+!              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+!           else
+!              nt_bgc_C(1:nsiz) = nt_bgc_C_in(1:nsiz)
+!           endif
 !        endif
 
-        if (present(n_DOC_in)) then
-           n_DOC = n_DOC_in
-           do k = 1, n_DOC_in
-              if (present(nt_bgc_DOC_in) ) nt_bgc_DOC(k) = nt_bgc_DOC_in(k) 
-              if (present(nlt_bgc_DOC_in)) nlt_bgc_DOC(k)= nlt_bgc_DOC_in(k) 
-           enddo
+!        if (present(nlt_bgc_C_in)) then
+!           nsiz = size(nlt_bgc_C_in)
+!           if (size(nlt_bgc_C) < nsiz) then
+!              call icepack_warnings_add(subname//'error in nlt_bgc_C size')
+!              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+!           else
+!              nlt_bgc_C(1:nsiz) = nlt_bgc_C_in(1:nsiz)
+!           endif
+!        endif
+
+        if (present(nt_bgc_DOC_in)) then
+           nsiz = size(nt_bgc_DOC_in)
+           if (size(nt_bgc_DOC) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_DOC size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_DOC(1:nsiz) = nt_bgc_DOC_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_DON_in)) then
-           n_DON = n_DON_in
-           do k = 1, n_DON_in
-              if (present(nt_bgc_DON_in) ) nt_bgc_DON(k) = nt_bgc_DON_in(k) 
-              if (present(nlt_bgc_DON_in)) nlt_bgc_DON(k)= nlt_bgc_DON_in(k) 
-           enddo
+        if (present(nlt_bgc_DOC_in)) then
+           nsiz = size(nlt_bgc_DOC_in)
+           if (size(nlt_bgc_DOC) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_DOC size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_DOC(1:nsiz) = nlt_bgc_DOC_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_DIC_in)) then
-           n_DIC = n_DIC_in
-           do k = 1, n_DIC_in
-              if (present(nt_bgc_DIC_in) ) nt_bgc_DIC(k) = nt_bgc_DIC_in(k) 
-              if (present(nlt_bgc_DIC_in)) nlt_bgc_DIC(k)= nlt_bgc_DIC_in(k) 
-           enddo
+        if (present(nt_bgc_DON_in)) then
+           nsiz = size(nt_bgc_DON_in)
+           if (size(nt_bgc_DON) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_DON size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_DON(1:nsiz) = nt_bgc_DON_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_fed_in)) then
-           n_fed = n_fed_in
-           do k = 1, n_fed_in
-              if (present(nt_bgc_Fed_in) ) nt_bgc_Fed(k) = nt_bgc_Fed_in(k) 
-              if (present(nlt_bgc_Fed_in)) nlt_bgc_Fed(k)= nlt_bgc_Fed_in(k) 
-           enddo
+        if (present(nlt_bgc_DON_in)) then
+           nsiz = size(nlt_bgc_DON_in)
+           if (size(nlt_bgc_DON) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_DON size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_DON(1:nsiz) = nlt_bgc_DON_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_fep_in)) then
-           n_fed = n_fep_in
-           do k = 1, n_fep_in
-              if (present(nt_bgc_Fep_in) ) nt_bgc_Fep(k) = nt_bgc_Fep_in(k) 
-              if (present(nlt_bgc_Fep_in)) nlt_bgc_Fep(k)= nlt_bgc_Fep_in(k) 
-           enddo
+        if (present(nt_bgc_DIC_in)) then
+           nsiz = size(nt_bgc_DIC_in)
+           if (size(nt_bgc_DIC) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_DIC size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_DIC(1:nsiz) = nt_bgc_DIC_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_zaero_in)) then
-           n_zaero = n_zaero_in
-           do k = 1, n_zaero_in
-              if (present(nt_zaero_in)    ) nt_zaero(k)    = nt_zaero_in(k)   
-              if (present(nlt_zaero_in)   ) nlt_zaero(k)   = nlt_zaero_in(k)   
-              if (present(nlt_zaero_sw_in)) nlt_zaero_sw(k)= nlt_zaero_sw_in(k)   
-           enddo
+        if (present(nlt_bgc_DIC_in)) then
+           nsiz = size(nlt_bgc_DIC_in)
+           if (size(nlt_bgc_DIC) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_DIC size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_DIC(1:nsiz) = nlt_bgc_DIC_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nt_bgc_Fed_in)) then
+           nsiz = size(nt_bgc_Fed_in)
+           if (size(nt_bgc_Fed) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_Fed size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_Fed(1:nsiz) = nt_bgc_Fed_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_bgc_Fed_in)) then
+           nsiz = size(nlt_bgc_Fed_in)
+           if (size(nlt_bgc_Fed) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_Fed size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_Fed(1:nsiz) = nlt_bgc_Fed_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nt_bgc_Fep_in)) then
+           nsiz = size(nt_bgc_Fep_in)
+           if (size(nt_bgc_Fep) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_Fep size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_Fep(1:nsiz) = nt_bgc_Fep_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_bgc_Fep_in)) then
+           nsiz = size(nlt_bgc_Fep_in)
+           if (size(nlt_bgc_Fep) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_Fep size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_Fep(1:nsiz) = nlt_bgc_Fep_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nt_zaero_in)) then
+           nsiz = size(nt_zaero_in)
+           if (size(nt_zaero) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_zaero size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_zaero(1:nsiz) = nt_zaero_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_zaero_in)) then
+           nsiz = size(nlt_zaero_in)
+           if (size(nlt_zaero) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_zaero size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_zaero(1:nsiz) = nlt_zaero_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_zaero_sw_in)) then
+           nsiz = size(nlt_zaero_sw_in)
+           if (size(nlt_zaero_sw) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_zaero_sw size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_zaero_sw(1:nsiz) = nlt_zaero_sw_in(1:nsiz)
+           endif
         endif
 
       end subroutine icepack_init_tracer_indices
@@ -634,16 +795,18 @@
            nt_Tsfc_out, nt_qice_out, nt_qsno_out, nt_sice_out, &
            nt_fbri_out, nt_iage_out, nt_FY_out, & 
            nt_alvl_out, nt_vlvl_out, nt_apnd_out, nt_hpnd_out, nt_ipnd_out, &
-           nt_aero_out, nt_zaero_out, &
-           nt_bgc_N_out, nt_bgc_C_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
+           nt_aero_out, nt_zaero_out, nt_bgc_C_out, &
+           nt_bgc_N_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
            nt_bgc_DIC_out, nt_bgc_Fed_out, nt_bgc_Fep_out, nt_bgc_Nit_out, nt_bgc_Am_out, &
            nt_bgc_Sil_out, nt_bgc_DMSPp_out, nt_bgc_DMSPd_out, nt_bgc_DMS_out, nt_bgc_hum_out, &
-           nt_bgc_PON_out, nlt_zaero_out, nlt_bgc_N_out, nlt_bgc_C_out, nlt_bgc_chl_out, &
+           nt_bgc_PON_out, nlt_zaero_out, nlt_bgc_C_out, nlt_bgc_N_out, nlt_bgc_chl_out, &
            nlt_bgc_DOC_out, nlt_bgc_DON_out, nlt_bgc_DIC_out, nlt_bgc_Fed_out, &
            nlt_bgc_Fep_out, nlt_bgc_Nit_out, nlt_bgc_Am_out, nlt_bgc_Sil_out, &
            nlt_bgc_DMSPp_out, nlt_bgc_DMSPd_out, nlt_bgc_DMS_out, nlt_bgc_hum_out, &
            nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
-           nlt_zaero_sw_out, &
+           nlt_zaero_sw_out, n_algae_out, n_DOC_out, n_aero_out, &
+           n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
+           ncat_out, nilyr_out, nslyr_out, nblyr_out, &
            bio_index_o_out, bio_index_out)
 
         integer, intent(out), optional :: &
@@ -679,6 +842,20 @@
              nt_zbgc_frac_out,&! fraction of tracer in the mobile phase
              nt_bgc_S_out,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
              nlt_chl_sw_out    ! points to total chla in trcrn_sw
+
+       integer, intent(out), optional :: &
+             ncat_out,       & ! Categories
+             nilyr_out,      & ! Layers
+             nslyr_out,      & !
+             nblyr_out,      & !
+             n_algae_out,    & ! Dimensions
+             n_DOC_out,      & !
+             n_DON_out,      & !
+             n_DIC_out,      & !
+             n_fed_out,      & !
+             n_fep_out,      & ! 
+             n_zaero_out,    & !
+             n_aero_out
 
         integer (kind=int_kind), dimension(:), intent(out), optional :: &
              bio_index_o_out, & 
@@ -718,6 +895,19 @@
 !autodocument_end
 
         character(len=*),parameter :: subname='(icepack_query_tracer_indices)'
+
+        if (present(ncat_out)   ) ncat_out    = ncat
+        if (present(nilyr_out)  ) nilyr_out   = nilyr
+        if (present(nslyr_out)  ) nslyr_out   = nslyr
+        if (present(nblyr_out)  ) nblyr_out   = nblyr
+        if (present(n_algae_out)) n_algae_out = n_algae
+        if (present(n_DOC_out)  ) n_DOC_out   = n_DOC
+        if (present(n_DON_out)  ) n_DON_out   = n_DON
+        if (present(n_DIC_out)  ) n_DIC_out   = n_DIC
+        if (present(n_fed_out)  ) n_fed_out   = n_fed
+        if (present(n_fep_out)  ) n_fep_out   = n_fep
+        if (present(n_zaero_out)) n_zaero_out = n_zaero
+        if (present(n_aero_out) ) n_aero_out  = n_aero
 
         if (present(nt_Tsfc_out)) nt_Tsfc_out = nt_Tsfc
         if (present(nt_qice_out)) nt_qice_out = nt_qice
@@ -791,6 +981,18 @@
         character(len=*),parameter :: subname='(icepack_write_tracer_indices)'
 
         write(iounit,*) subname//":"
+        write(iounit,*) "  ncat    = ",ncat
+        write(iounit,*) "  nilyr   = ",nilyr
+        write(iounit,*) "  nslyr   = ",nslyr
+        write(iounit,*) "  nblyr   = ",nblyr
+        write(iounit,*) "  n_algae = ",n_algae
+        write(iounit,*) "  n_DOC   = ",n_DOC
+        write(iounit,*) "  n_DON   = ",n_DON
+        write(iounit,*) "  n_DIC   = ",n_DIC
+        write(iounit,*) "  n_fed   = ",n_fed
+        write(iounit,*) "  n_fep   = ",n_fep
+        write(iounit,*) "  n_zaero = ",n_zaero
+        write(iounit,*) "  n_aero  = ",n_aero
         write(iounit,*) "  nt_Tsfc = ",nt_Tsfc
         write(iounit,*) "  nt_qice = ",nt_qice
         write(iounit,*) "  nt_qsno = ",nt_qsno
@@ -834,8 +1036,8 @@
         do k = 1, max_algae
            write(iounit,*) "  nt_bgc_N(k)  = ",k,nt_bgc_N(k)
            write(iounit,*) "  nlt_bgc_N(k) = ",k,nlt_bgc_N(k)
-!           write(iounit,*) "  nt_bgc_C(k)  = ",k,nt_bgc_C(k)
-!           write(iounit,*) "  nlt_bgc_C(k) = ",k,nlt_bgc_C(k)
+           write(iounit,*) "  nt_bgc_C(k)  = ",k,nt_bgc_C(k)
+           write(iounit,*) "  nlt_bgc_C(k) = ",k,nlt_bgc_C(k)
            write(iounit,*) "  nt_bgc_chl(k)  = ",k,nt_bgc_chl(k) 
            write(iounit,*) "  nlt_bgc_chl(k) = ",k,nlt_bgc_chl(k)
         enddo

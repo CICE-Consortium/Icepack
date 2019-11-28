@@ -20,12 +20,12 @@ module icepack_mushy_physics
        enthalpy_mush_liquid_fraction, &
        enthalpy_of_melting, &
        temperature_snow, &
-       temperature_mush, &
+       icepack_mushy_temperature_mush, &
        temperature_mush_liquid_fraction, &
        liquidus_brine_salinity_mush, &
        liquidus_temperature_mush, &
-       liquid_fraction, &
-       density_brine
+       icepack_mushy_liquid_fraction, &
+       icepack_mushy_density_brine
       
   !-----------------------------------------------------------------
   ! Constants for Liquidus relation from Assur (1958)
@@ -92,7 +92,7 @@ contains
 
     do k = 1, nilyr
       
-       Tmush = temperature_mush(zqin(k), zSin(k))
+       Tmush = icepack_mushy_temperature_mush(zqin(k), zSin(k))
        
        km(k) = heat_conductivity(Tmush, zSin(k))
        
@@ -102,7 +102,7 @@ contains
 
 !=======================================================================
 
-  function density_brine(Sbr) result(rho)
+  function icepack_mushy_density_brine(Sbr) result(rho)
     
     ! density of brine from brine salinity
 
@@ -117,11 +117,11 @@ contains
          b = 0.78237_dbl_kind   , & ! linear empirical coefficient
          c = 2.8008e-4_dbl_kind     ! quadratic empirical coefficient
     
-    character(len=*),parameter :: subname='(density_brine)'
+    character(len=*),parameter :: subname='(icepack_mushy_density_brine)'
 
     rho = a + b * Sbr + c * Sbr**2
                 
-  end function density_brine
+  end function icepack_mushy_density_brine
 
 !=======================================================================
 ! Snow
@@ -281,7 +281,7 @@ contains
 
     character(len=*),parameter :: subname='(enthalpy_mush)'
 
-    phi = liquid_fraction(zTin, zSin)
+    phi = icepack_mushy_liquid_fraction(zTin, zSin)
     
     zqin = phi * (cp_ocn * rhow - cp_ice * rhoi) * zTin + &
            rhoi * cp_ice * zTin - (c1 - phi) * rhoi * Lfresh
@@ -347,7 +347,7 @@ contains
 
 !=======================================================================
 
-  function temperature_mush(zqin, zSin) result(zTin)
+  function icepack_mushy_temperature_mush(zqin, zSin) result(zTin)
 
     ! temperature of mush from mush enthalpy
 
@@ -382,7 +382,7 @@ contains
          F2_liq, G2_liq, H2_liq,    & ! "
          I_liq                        ! warmer than fully melted constants
 
-    character(len=*),parameter :: subname='(temperature_mush)'
+    character(len=*),parameter :: subname='(icepack_mushy_temperature_mush)'
 
   !--------------------------------------------------------
 
@@ -451,7 +451,7 @@ contains
     ! change T if all melted
     zTin = q_melt * zqin * I_liq + (c1 - q_melt) * zTin
 
-  end function temperature_mush
+  end function icepack_mushy_temperature_mush
 
 !=======================================================================
 
@@ -491,7 +491,7 @@ contains
 
     character(len=*),parameter :: subname='(heat_conductivity)'
 
-    phi = liquid_fraction(zTin, zSin)
+    phi = icepack_mushy_liquid_fraction(zTin, zSin)
 
     km = phi * (kb - ki) + ki
 
@@ -499,7 +499,7 @@ contains
 
   !=======================================================================
 
-  function liquid_fraction(zTin, zSin) result(phi)
+  function icepack_mushy_liquid_fraction(zTin, zSin) result(phi)
 
     ! liquid fraction of mush from mush temperature and bulk salinity
 
@@ -511,12 +511,12 @@ contains
          phi , & ! liquid fraction
          Sbr     ! brine salinity (ppt)
 
-    character(len=*),parameter :: subname='(liquid_fraction)'
+    character(len=*),parameter :: subname='(icepack_mushy_liquid_fraction)'
 
     Sbr = max(liquidus_brine_salinity_mush(zTin),puny)
     phi = zSin / max(Sbr, zSin)
 
-  end function liquid_fraction
+  end function icepack_mushy_liquid_fraction
 
 !=======================================================================
 

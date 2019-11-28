@@ -18,7 +18,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_mushy_physics, only: temperature_mush, liquid_fraction
+      use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
       implicit none
@@ -260,8 +260,8 @@
       do k = 1, nblyr
          bqin (k+1) = min(c0,   trtmp_q(nt_qice+k-1))
          bSin (k+1) = max(Smin, trtmp_s(nt_sice+k-1))
-         bTin (k+1) = temperature_mush(bqin(k+1), bSin(k+1))
-         bphin(k+1) = liquid_fraction (bTin(k+1), bSin(k+1))
+         bTin (k+1) = icepack_mushy_temperature_mush(bqin(k+1), bSin(k+1))
+         bphin(k+1) = icepack_mushy_liquid_fraction (bTin(k+1), bSin(k+1))
       enddo    ! k
 
       bSin (1)       = bSin(2)

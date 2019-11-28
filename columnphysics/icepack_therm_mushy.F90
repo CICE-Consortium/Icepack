@@ -9,9 +9,9 @@ module icepack_therm_mushy
   use icepack_parameters, only: hs_min
   use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode
   use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
-  use icepack_mushy_physics, only: density_brine, enthalpy_brine, enthalpy_snow
+  use icepack_mushy_physics, only: icepack_mushy_density_brine, enthalpy_brine, enthalpy_snow
   use icepack_mushy_physics, only: enthalpy_mush_liquid_fraction
-  use icepack_mushy_physics, only: temperature_mush, liquid_fraction
+  use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
   use icepack_mushy_physics, only: temperature_snow, temperature_mush_liquid_fraction
   use icepack_mushy_physics, only: liquidus_brine_salinity_mush, liquidus_temperature_mush
   use icepack_mushy_physics, only: conductivity_mush_array, conductivity_snow_array
@@ -175,7 +175,7 @@ contains
     endif
 
     do k = 1, nilyr
-       phi(k) = liquid_fraction(temperature_mush(zqin(k),zSin(k)),zSin(k))
+       phi(k) = icepack_mushy_liquid_fraction(icepack_mushy_temperature_mush(zqin(k),zSin(k)),zSin(k))
     enddo ! k
 
     ! calculate vertical bulk darcy flow
@@ -1046,9 +1046,9 @@ contains
 
     ! calculate initial ice temperatures
     do k = 1, nilyr
-       zTin(k) = temperature_mush(zqin(k), zSin(k))
+       zTin(k) = icepack_mushy_temperature_mush(zqin(k), zSin(k))
        Sbr(k)  = liquidus_brine_salinity_mush(zTin(k))
-       phi(k)  = liquid_fraction(zTin(k), zSin(k))
+       phi(k)  = icepack_mushy_liquid_fraction(zTin(k), zSin(k))
     enddo ! k
 
     if (lsnow) then
@@ -2909,9 +2909,9 @@ contains
     do k = 1, nilyr
        
        Sbr(k) = liquidus_brine_salinity_mush(zTin(k))
-       phi(k) = liquid_fraction(zTin(k), zSin(k))
+       phi(k) = icepack_mushy_liquid_fraction(zTin(k), zSin(k))
        qbr(k) = enthalpy_brine(zTin(k))
-       rho(k) = density_brine(Sbr(k))
+       rho(k) = icepack_mushy_density_brine(Sbr(k))
 
     enddo ! k
 
@@ -2920,7 +2920,7 @@ contains
     ! ocean conditions
     Sbr(nilyr+1) = sss
     qbr(nilyr+1) = qocn
-    rho_ocn = density_brine(sss)
+    rho_ocn = icepack_mushy_density_brine(sss)
 
     ! initialize accumulated quantities
     perm_min = bignum
@@ -3062,14 +3062,14 @@ contains
        do k = 1, nilyr
 
           ! liquid fraction
-          !phi = liquid_fraction(zTin(k), zSin(k))
+          !phi = icepack_mushy_liquid_fraction(zTin(k), zSin(k))
           phi_min = min(phi_min,phi(k))
 
           ! permeability
           perm = permeability(phi(k))
 
           ! ice mass
-          ice_mass = ice_mass + phi(k)        * density_brine(liquidus_brine_salinity_mush(zTin(k))) + &
+          ice_mass = ice_mass + phi(k)        * icepack_mushy_density_brine(liquidus_brine_salinity_mush(zTin(k))) + &
                (c1 - phi(k)) * rhoi
 
           ! permeability harmonic mean
@@ -3228,12 +3228,12 @@ contains
     ! check we have snow
     if (hsn > puny) then
        
-       rho_ocn = density_brine(sss)
+       rho_ocn = icepack_mushy_density_brine(sss)
 
        ! ice mass
        ice_mass = c0
        do k = 1, nilyr
-          ice_density = min(phi(k) * density_brine(Sbr(k)) + (c1 - phi(k)) * rhoi,rho_ocn)
+          ice_density = min(phi(k) * icepack_mushy_density_brine(Sbr(k)) + (c1 - phi(k)) * rhoi,rho_ocn)
           ice_mass = ice_mass + ice_density
        enddo ! k
        ice_mass = ice_mass * hilyr

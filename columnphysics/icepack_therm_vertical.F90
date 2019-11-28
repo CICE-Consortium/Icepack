@@ -30,6 +30,7 @@
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers, only: n_aero
 
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
@@ -41,7 +42,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_mushy_physics, only: temperature_mush
+      use icepack_mushy_physics, only: icepack_mushy_temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
       use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
 
@@ -887,7 +888,7 @@
       !-----------------------------------------------------------------
          
          if (ktherm == 2) then
-            zTin(k) = temperature_mush(zqin(k),zSin(k))
+            zTin(k) = icepack_mushy_temperature_mush(zqin(k),zSin(k))
          else
             zTin(k) = calculate_Tin_from_qin(zqin(k),Tmlts(k))
          endif
@@ -941,7 +942,7 @@
                
                if (ktherm == 2) then
                   zqin(k) = enthalpy_of_melting(zSin(k)) - c1
-                  zTin(k) = temperature_mush(zqin(k),zSin(k))
+                  zTin(k) = icepack_mushy_temperature_mush(zqin(k),zSin(k))
                   write(warnstr,*) subname, 'Corrected quantities'
                   call icepack_warnings_add(warnstr)
                   write(warnstr,*) subname, 'zqin=',zqin(k)
@@ -2015,7 +2016,7 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, &
+      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
                                     aicen_init  ,               &
                                     vicen_init  , vsnon_init  , &
                                     aice        , aicen       , &
@@ -2085,8 +2086,7 @@
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories
          nilyr   , & ! number of ice layers
-         nslyr   , & ! number of snow layers
-         n_aero      ! number of aerosol tracers in use
+         nslyr       ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step

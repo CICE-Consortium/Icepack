@@ -1771,7 +1771,7 @@
           file=__FILE__, line=__LINE__)
 
       call icepack_init_tracer_indices( &
-           nbtrcr_in=nbtrcr,           nt_fbri_in=nt_fbri,                                       &  
+           nt_fbri_in=nt_fbri,                                                                   &  
            nt_bgc_Nit_in=nt_bgc_Nit,   nt_bgc_Am_in=nt_bgc_Am,       nt_bgc_Sil_in=nt_bgc_Sil,   &
            nt_bgc_DMS_in=nt_bgc_DMS,   nt_bgc_PON_in=nt_bgc_PON,     nt_bgc_S_in=nt_bgc_S,       &
            nt_bgc_N_in=nt_bgc_N,       nt_bgc_chl_in=nt_bgc_chl,     nt_bgc_hum_in=nt_bgc_hum,   &

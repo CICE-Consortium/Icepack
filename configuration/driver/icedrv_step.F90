@@ -224,7 +224,7 @@
           enddo
         endif ! tr_aero
 
-        call icepack_step_therm1(dt=dt, ncat=ncat, nilyr=nilyr, nslyr=nslyr, n_aero=n_aero, &
+        call icepack_step_therm1(dt=dt, ncat=ncat, nilyr=nilyr, nslyr=nslyr, &
             aicen_init = aicen_init(i,:), &
             vicen_init = vicen_init(i,:), &
             vsnon_init = vsnon_init(i,:), &
@@ -376,7 +376,7 @@
 
          if (tmask(i)) then
 
-            call icepack_step_therm2(dt=dt, ncat=ncat, n_aero=n_aero, &
+            call icepack_step_therm2(dt=dt, ncat=ncat,                &
                          nltrcr=nltrcr, nilyr=nilyr, nslyr=nslyr,     &
                          hin_max=hin_max(:), nblyr=nblyr,             &   
                          aicen=aicen(i,:),                            &

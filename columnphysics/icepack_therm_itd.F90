@@ -35,6 +35,7 @@
       use icepack_tracers, only: nt_alvl, nt_vlvl
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine
+      use icepack_tracers, only: n_aero
       use icepack_tracers, only: bio_index
 
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -1500,7 +1501,7 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_therm2 (dt, ncat, n_aero, nltrcr,           &
+      subroutine icepack_step_therm2 (dt, ncat, nltrcr,           &
                                      nilyr,        nslyr,         &
                                      hin_max,      nblyr,         &
                                      aicen,                       &
@@ -1530,8 +1531,7 @@
          nltrcr   , & ! number of zbgc tracers
          nblyr    , & ! number of bio layers
          nilyr    , & ! number of ice layers
-         nslyr    , & ! number of snow layers
-         n_aero       ! number of aerosol tracers
+         nslyr        ! number of snow layers
 
       logical (kind=log_kind), intent(in) :: &
          update_ocn_f     ! if true, update fresh water and salt fluxes

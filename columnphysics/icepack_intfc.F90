@@ -84,6 +84,10 @@
       use icepack_therm_shared  , only: icepack_init_thermo
       use icepack_therm_shared  , only: icepack_init_trcr
 
+      use icepack_mushy_physics , only: icepack_mushy_density_brine
+      use icepack_mushy_physics , only: icepack_mushy_liquid_fraction
+      use icepack_mushy_physics , only: icepack_mushy_temperature_mush
+
       use icepack_warnings, only: icepack_warnings_clear
       use icepack_warnings, only: icepack_warnings_print
       use icepack_warnings, only: icepack_warnings_flush

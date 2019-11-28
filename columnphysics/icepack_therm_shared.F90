@@ -20,7 +20,7 @@
       use icepack_mushy_physics, only: enthalpy_mush
       use icepack_mushy_physics, only: temperature_snow
       use icepack_mushy_physics, only: enthalpy_snow
-      use icepack_mushy_physics, only: temperature_mush
+      use icepack_mushy_physics, only: icepack_mushy_temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
     
       implicit none
@@ -423,7 +423,7 @@
 
         if (ktherm == 2) then
 
-           Tin = temperature_mush(qin, Sin)
+           Tin = icepack_mushy_temperature_mush(qin, Sin)
 
         else
 
