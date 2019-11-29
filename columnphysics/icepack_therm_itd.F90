@@ -1066,7 +1066,7 @@
             ! fluxes to coupler
             ! dfresh > 0, dfsalt > 0, dfpond > 0
 
-            dfresh = (rhoi*vsnon(n) + rhos*vicen(n))      * rsiden(n) / dt
+            dfresh = (rhoi*vicen(n) + rhos*vsnon(n))      * rsiden(n) / dt
             dfsalt =  rhoi*vicen(n)*ice_ref_salinity*p001 * rsiden(n) / dt
             fresh  = fresh + dfresh
             fsalt  = fsalt + dfsalt
