@@ -55,13 +55,15 @@
 
       subroutine runtime_diags (dt)
 
+      use icedrv_arrays_column, only: floe_rad_c
+      use icedrv_domain_size, only: ncat, nfsd
       use icedrv_flux, only: evap, fsnow, frazil
       use icedrv_flux, only: fswabs, flw, flwout, fsens, fsurf, flat
       use icedrv_flux, only: frain
       use icedrv_flux, only: Tair, Qa, fsw, fcondtop
       use icedrv_flux, only: meltt, meltb, meltl, snoice
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
-      use icedrv_state, only: aice, vice, vsno, trcr
+      use icedrv_state, only: aice, vice, vsno, trcr, trcrn, aicen
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -69,16 +71,16 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         n
+         n, nc, k
 
       logical (kind=log_kind) :: &
-         calc_Tsfc
+         calc_Tsfc, tr_fsd
 
       ! fields at diagnostic points
       real (kind=dbl_kind) :: & 
          pTair, pfsnow, pfrain, &
          paice, hiavg, hsavg, hbravg, psalt, pTsfc, &
-         pevap, pfhocn
+         pevap, pfhocn, fsdavg
 
       real (kind=dbl_kind), dimension (nx) :: &
          work1, work2
@@ -87,7 +89,7 @@
          Tffresh, rhos, rhow, rhoi
 
       logical (kind=log_kind) :: tr_brine
-      integer (kind=int_kind) :: nt_fbri, nt_Tsfc
+      integer (kind=int_kind) :: nt_fbri, nt_Tsfc, nt_fsd
 
       character(len=*), parameter :: subname='(runtime_diags)'
 
@@ -96,8 +98,9 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
-      call icepack_query_tracer_flags(tr_brine_out=tr_brine)
-      call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine,tr_fsd_out=tr_fsd)
+      call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc,&
+                                        nt_fsd_out=nt_fsd)
       call icepack_query_parameters(Tffresh_out=Tffresh, rhos_out=rhos, &
            rhow_out=rhow, rhoi_out=rhoi)
       call icepack_warnings_flush(nu_diag)
@@ -118,6 +121,7 @@
         
         paice = aice(n)           ! ice area           
         hiavg = c0                ! avg snow/ice thickness
+        fsdavg = c0               ! FSD rep radius 
         hsavg = c0
         hbravg = c0               ! avg brine thickness
         psalt = c0 
@@ -125,6 +129,16 @@
           hiavg = vice(n)/paice
           hsavg = vsno(n)/paice
           if (tr_brine) hbravg = trcr(n,nt_fbri)* hiavg
+          if (tr_fsd) then
+              do nc = 1, ncat
+              do k = 1, nfsd
+                  fsdavg  = fsdavg &
+                          + trcrn(n,nt_fsd+k-1,nc) * floe_rad_c(k) &
+                          * aicen(n,nc) / paice
+              end do
+              end do
+          end if
+
         endif
         if (vice(n) /= c0) psalt = work2(n)/vice(n)
         pTsfc = trcr(n,nt_Tsfc)   ! ice/snow sfc temperature
@@ -160,7 +174,10 @@
         write(nu_diag_out+n-1,900) 'avg snow depth (m)     = ',hsavg
         write(nu_diag_out+n-1,900) 'avg salinity (ppt)     = ',psalt
         write(nu_diag_out+n-1,900) 'avg brine thickness (m)= ',hbravg
-        
+        if (tr_fsd) &
+        write(nu_diag_out+n-1,900) 'avg fsd rep radius (m) = ',fsdavg
+
+       
         if (calc_Tsfc) then
           write(nu_diag_out+n-1,900) 'surface temperature(C) = ',pTsfc ! ice/snow
           write(nu_diag_out+n-1,900) 'absorbed shortwave flx = ',fswabs(n)
@@ -346,7 +363,8 @@
 
       character (*), intent(in) :: plabeld
 
-      character(len=*), parameter :: subname='(icedrv_diagnostics_debug)'
+      character(len=*), parameter :: &
+         subname='(icedrv_diagnostics_debug)'
 
       ! printing info for routine print_state
 
@@ -372,7 +390,7 @@
       subroutine print_state(plabel,i)
 
       use icedrv_calendar,  only: istep1, time
-      use icedrv_domain_size, only: ncat, nilyr, nslyr
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, nfsd
       use icedrv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
       use icedrv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow
       use icedrv_flux, only: fsens, flat, evap, flwout
@@ -397,7 +415,9 @@
 
       integer (kind=int_kind) :: n, k
 
-      integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno
+      integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_fsd
+
+      logical (kind=log_kind) :: tr_fsd
 
       character(len=*), parameter :: subname='(print_state)'
 
@@ -405,8 +425,9 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
+      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd) 
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
-           nt_qsno_out=nt_qsno)
+           nt_qsno_out=nt_qsno,nt_fsd_out=nt_fsd)
       call icepack_query_parameters(puny_out=puny, Lfresh_out=Lfresh, cp_ice_out=cp_ice, &
            rhoi_out=rhoi, rhos_out=rhos)
       call icepack_warnings_flush(nu_diag)
@@ -433,6 +454,7 @@
             write(nu_diag,*) 'hsn', vsnon(i,n)/aicen(i,n)
          endif
          write(nu_diag,*) 'Tsfcn',trcrn(i,nt_Tsfc,n)
+         if (tr_fsd) write(nu_diag,*) 'afsdn',trcrn(i,nt_fsd,n) ! fsd cat 1
          write(nu_diag,*) ' '
       enddo                     ! n
 

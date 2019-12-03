@@ -6,7 +6,7 @@
 
       module icedrv_step
 
-      use icedrv_constants, only: c0, nu_diag
+      use icedrv_constants, only: c0, nu_diag, c4
       use icedrv_kinds
 !      use icedrv_calendar, only: istep1
       use icedrv_forcing, only: ocn_data_type
@@ -24,7 +24,7 @@
 
       public :: step_therm1, step_therm2, step_dyn_ridge, &
                 prep_radiation, step_radiation, ocean_mixed_layer, &
-                update_state, biogeochemistry
+                update_state, biogeochemistry, step_dyn_wave
 
 !=======================================================================
 
@@ -104,7 +104,8 @@
       use icedrv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nx
-      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot, Tbot, Tsnice
+      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fside, &
+                             fbot, Tbot, Tsnice
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
       use icedrv_flux, only: wind, rhoa, potT, Qa, zlvl, strax, stray, flatn
       use icedrv_flux, only: fsensn, fsurfn, fcondtopn, fcondbotn
@@ -271,7 +272,7 @@
             strocnxT = strocnxT(i),   strocnyT  = strocnyT(i),    &
             fbot     = fbot(i),       frzmlt    = frzmlt(i),      &
             Tbot     = Tbot(i),       Tsnice    = Tsnice(i),      &
-            rside    = rside(i),                                  &
+            rside    = rside(i),      fside     = fside(i),       &
             fsnow    = fsnow(i),      frain     = frain(i),       &
             fpond    = fpond(i),                                  &
             fsurf    = fsurf(i),      fsurfn    = fsurfn(i,:),    &
@@ -333,12 +334,17 @@
 
       subroutine step_therm2 (dt)
 
-      use icedrv_arrays_column, only: hin_max, fzsal, ocean_bio
+      use icedrv_arrays_column, only: hin_max, fzsal, ocean_bio, &
+                                      wave_sig_ht, wave_spectrum, &
+                                      wavefreq, dwavefreq,        &
+                                      floe_rad_c, floe_binwidth,  &
+                               d_afsd_latg, d_afsd_newi, d_afsd_latm, d_afsd_weld
       use icedrv_arrays_column, only: first_ice, bgrid, cgrid, igrid
       use icedrv_calendar, only: yday
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nltrcr, nx
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, &
+                                    nltrcr, nx, nfsd
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
-      use icedrv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside
+      use icedrv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside, fside
       use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn 
       use icedrv_init, only: tmask
       use icedrv_state, only: aice, aicen, aice0, trcr_depend
@@ -375,6 +381,8 @@
       do i = 1, nx
 
          if (tmask(i)) then
+            ! wave_sig_ht - compute here to pass to add new ice
+            wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
             call icepack_step_therm2(dt=dt, ncat=ncat, n_aero=n_aero, &
                          nltrcr=nltrcr, nilyr=nilyr, nslyr=nslyr,     &
@@ -392,7 +400,7 @@
                          n_trcr_strata=n_trcr_strata(1:ntrcr),        &
                          nt_strata=nt_strata(1:ntrcr,:),              &
                          Tf=Tf(i), sss=sss(i),                        &
-                         salinz=salinz(i,:),                          &
+                         salinz=salinz(i,:), fside=fside(i),          &
                          rside=rside(i),   meltl=meltl(i),            &
                          frzmlt=frzmlt(i), frazil=frazil(i),          &
                          frain=frain(i),   fpond=fpond(i),            &
@@ -406,7 +414,17 @@
                          ocean_bio=ocean_bio(i,1:nbtrcr),             &
                          frazil_diag=frazil_diag(i),                  &
                          frz_onset=frz_onset(i),                      &
-                         yday=yday)
+                         yday=yday,                                   &
+                         nfsd=nfsd,   wave_sig_ht=wave_sig_ht(i),     &
+                         wave_spectrum=wave_spectrum(i,:),            &
+                         wavefreq=wavefreq(:),                        &
+                         dwavefreq=dwavefreq(:),                      &
+                         d_afsd_latg=d_afsd_latg(i,:),                &
+                         d_afsd_newi=d_afsd_newi(i,:),                &
+                         d_afsd_latm=d_afsd_latm(i,:),                &
+                         d_afsd_weld=d_afsd_weld(i,:),                &
+                         floe_rad_c=floe_rad_c(:),                    &
+                         floe_binwidth=floe_binwidth(:))
 
          endif ! tmask
 
@@ -517,6 +535,62 @@
           file=__FILE__, line=__LINE__)
 
       end subroutine update_state
+
+!=======================================================================
+!
+! Run one time step of wave-fracturing the floe size distribution
+!
+! authors: Lettie Roach, NIWA
+!          Elizabeth C. Hunke, LANL
+
+      subroutine step_dyn_wave (dt)
+
+      use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
+          d_afsd_wave, floe_rad_l, floe_rad_c, wavefreq, dwavefreq
+      use icedrv_domain_size, only: ncat, nfsd, nfreq, nx
+      use icedrv_state, only: trcrn, aicen, aice, vice
+      use icepack_intfc, only: icepack_step_wavefracture
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt      ! time step
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, j,            & ! horizontal indices
+         ntrcr,           & !
+         nbtrcr             !
+
+      character (len=char_len) :: wave_spec_type
+
+      character(len=*), parameter :: subname = '(step_dyn_wave)'
+
+      call icepack_query_parameters(wave_spec_type_out=wave_spec_type)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
+
+      do i = 1, nx
+           d_afsd_wave(i,:) = c0
+           call icepack_step_wavefracture (wave_spec_type=wave_spec_type, &
+                        dt=dt, ncat=ncat, nfsd=nfsd, nfreq=nfreq, &
+                        aice          = aice         (i),      &
+                        vice          = vice         (i),      &
+                        aicen         = aicen        (i,:),    &
+                        floe_rad_l    = floe_rad_l     (:),    &
+                        floe_rad_c    = floe_rad_c     (:),    &
+                        wave_spectrum = wave_spectrum(i,:),    &
+                        wavefreq      = wavefreq       (:),    &
+                        dwavefreq     = dwavefreq      (:),    &
+                        trcrn         = trcrn        (i,:,:),  &
+                        d_afsd_wave   = d_afsd_wave  (i,:))
+      end do ! i
+
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
+
+      end subroutine step_dyn_wave
 
 !=======================================================================
 !

@@ -37,10 +37,11 @@ setenv ICE_QUEUE      undefined
 setenv ICE_THREADED   false
 if (${ICE_NTHRDS} > 1) setenv ICE_THREADED  true
 
-### Layers
+### Layers and Categories
 setenv NICELYR   7         # number of vertical layers in the ice
 setenv NSNWLYR   1         # number of vertical layers in the snow
 setenv NICECAT   5         # number of ice thickness categories
+setenv NFSDCAT   1         # number of floe size categories
 
 ### Tracers                # match icepack_in tracer_nml to conserve memory
 setenv TRAGE     1         # set to 1 for ice age tracer
