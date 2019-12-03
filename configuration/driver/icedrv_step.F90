@@ -360,10 +360,13 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         i               ! horizontal indices
+         i       ! horizontal index
 
       integer (kind=int_kind) :: &
          ntrcr, nbtrcr
+
+      logical (kind=log_kind) :: &
+         tr_fsd  ! floe size distribution tracers
 
       character(len=*), parameter :: subname='(step_therm2)'
 
@@ -372,6 +375,7 @@
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -382,6 +386,7 @@
 
          if (tmask(i)) then
             ! wave_sig_ht - compute here to pass to add new ice
+            if (tr_fsd) &
             wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
             call icepack_step_therm2(dt=dt, ncat=ncat, n_aero=n_aero, &
@@ -467,7 +472,7 @@
          nt_iage  !
 
       logical (kind=log_kind) :: &
-         tr_iage  !
+         tr_iage  ! ice age tracer
 
       character(len=*), parameter :: subname='(update_state)'
 
