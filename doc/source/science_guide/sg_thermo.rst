@@ -1720,7 +1720,7 @@ If ``tr_fsd=true``, a floe size must be assigned to the new frazil ice.
 If spectral ocean surface wave forcing is provided (and set using the 
 namelist option ``wave_spec_type``), this will be used
 to calculate a tensile stress on new floes that determines their maximum
-possible size :cite:`Shen2001,Roach2019`. If no ocean surface wave forcing
+possible size :cite:`Shen01,Roach19`. If no ocean surface wave forcing
 is provided, all floes are assumed to grow as pancakes, at the smallest
 possible floe size. 
 
@@ -1734,11 +1734,11 @@ modifies the ITD and the FSD.
 If ``tr_fsd=true``, floes may weld together thermodynamically during 
 freezing conditions according to the probability that they overlap,
 assuming they are replaced randomly on the domain. Evolution of the 
-FSD is described using a coagulation equation. 
-The total number of floes that weld with another, per square meter, 
-per unit time, in the case of a fully covered ice surface was estimated 
-from observations in :cite:`Roach18b`. In its original model implementation, 
-with 12 floe size categories, the tendency term for floe welding was divided by a 
+FSD is described using a coagulation equation. The total number of floes 
+that weld with another, per square meter, per unit time, in the 
+case of a fully covered ice surface was estimated from observations in 
+:cite:`Roach18b`. In its original model implementation, with 12 floe size categories,
+the tendency term for floe welding was divided by a 
 constant equal to the area of the largest floe, (approx 2 km^2), with this choice made  
 as the product of sensitivity studies to balance the climatological tendencies of 
 wave fracture and welding. So that results do not vary as the number or range of 
