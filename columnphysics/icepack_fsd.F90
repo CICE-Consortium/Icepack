@@ -44,7 +44,7 @@
       module icepack_fsd
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, c2, c3, c4, p01, p1, p5, puny
+      use icepack_parameters, only: c0, c1, c2, c3, c4, p01, p1, p25, p5, puny
       use icepack_parameters, only: pi, floeshape, wave_spec, bignum, gravit, rhoi
       use icepack_tracers, only: nt_fsd, tr_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -186,9 +186,9 @@
       floe_rad_h = lims(2:nfsd+1)
       floe_rad_c = (floe_rad_h+floe_rad_l)/c2
 
-      floe_area_l = c4*floeshape*floe_rad_l**c2
-      floe_area_c = c4*floeshape*floe_rad_c**c2
-      floe_area_h = c4*floeshape*floe_rad_h**c2
+      floe_area_l = c4*floeshape*floe_rad_l**2
+      floe_area_c = c4*floeshape*floe_rad_c**2
+      floe_area_h = c4*floeshape*floe_rad_h**2
 
       floe_binwidth = floe_rad_h - floe_rad_l
 
@@ -439,7 +439,7 @@
             do k = 1, nfsd
                lead_area = lead_area + aicen(n) * afsdn(k,n) &
                          * (c2*width_leadreg    /floe_rad_c(k)     &
-                             + width_leadreg**c2/floe_rad_c(k)**2)
+                             + width_leadreg**2/floe_rad_c(k)**2)
             enddo ! k
          enddo    ! n
 
@@ -794,7 +794,6 @@
 	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
 	 		 ! dimension set in ice_forcing
 	 		
-
       real(kind=dbl_kind), dimension(:), intent(in) :: &
          wavefreq,              & ! wave frequencies (s^-1)
          dwavefreq                ! wave frequency bin widths (s^-1)
@@ -810,24 +809,19 @@
 
       real (kind=dbl_kind)  :: &
          mom0,   & ! zeroth moment of the spectrum (m)
-         h_sig,  & ! significant wave height (m)
-         w_amp,  & ! wave amplitude (m)
+         w_amp,  & ! half the wave amplitude (m)
          f_peak, & ! peak frequency (s^-1)
-         w_peak, & ! wavelength from peak freqency (m)
          r_max     ! floe radius (m)
 
       integer (kind=int_kind) :: k
       
-
       mom0 = SUM(local_wave_spec*dwavefreq)                   ! zeroth moment
-      h_sig = c4*SQRT(mom0)                                   ! sig wave height
-      w_amp = h_sig/c2                                        ! sig wave amplitude
+      w_amp = SQRT(mom0)                                      ! 0.5*sig wave amplitude
       f_peak = wavefreq(MAXLOC(local_wave_spec, DIM=1))       ! peak frequency
-      if (f_peak > puny) w_peak = gravit / (c2*pi*f_peak**c2) ! wavelength from peak freq
 
       ! tensile failure
-      if (w_amp > puny) then
-         r_max = SQRT(c2*tensile_param*w_peak**c2/(pi**c3*w_amp*gravit*rhoi))/c2
+      if (w_amp > puny .and. f_peak > puny) then
+         r_max = p25*SQRT(tensile_param*gravit/(pi**5*rhoi*w_amp))/f_peak**2
       else
          r_max = bignum
       end if
@@ -888,8 +882,6 @@
 			  ! per unit time, in the case of a fully covered ice surface
 	 		  ! units m^-2 s^-1, see documentation for details
 
-
-
       integer (kind=int_kind) :: &
         nt        , & ! time step index
         n         , & ! thickness category index
@@ -913,7 +905,6 @@
          kern      , & ! kernel
          subdt     , & ! subcycling time step for stability (s)
          elapsed_t     ! elapsed subcycling time
-
 
       afsdn  (:,:) = c0
       afsd_init(:) = c0
@@ -957,21 +948,13 @@
 
                do i = 1, nfsd ! consider loss from this category
                do j = 1, nfsd ! consider all interaction partners
-
                    k = iweld(i,j) ! product of i+j
-
                    if (k > i) then
-                   
                        kern = c_weld * floe_area_c(i) * aicen(n)
-                      
                        loss(i) = loss(i) + kern*afsd_tmp(i)*afsd_tmp(j)
-
                        if (i.eq.j) prefac = c1 ! otherwise 0.5
-
                        gain(k) = gain(k) + prefac*kern*afsd_tmp(i)*afsd_tmp(j)
-
                    end if
-
                end do
                end do
 

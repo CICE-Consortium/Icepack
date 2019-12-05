@@ -491,11 +491,11 @@
       end do
 
       ! dispersion relation
-      reverse_lambda (:) = gravit/(c2*pi*wavefreq (:)**c2)
-      reverse_dlambda(:) = gravit/(c2*pi*dwavefreq(:)**c2)
+      reverse_lambda (:) = gravit/(c2*pi*wavefreq (:)**2)
+      reverse_dlambda(:) = gravit/(c2*pi*dwavefreq(:)**2)
       ! convert to lambda spectrum
       reverse_spec_elambda(:) = spec_efreq(:) &
-                   *(p5 * (gravit/(c2*pi*reverse_lambda(:)**c3) )**p5)
+                   *(p5 * (gravit/(c2*pi*reverse_lambda(:)**3) )**p5)
       ! reverse lambda
       lambda (:) = reverse_lambda (nfreq:1:-1)
       dlambda(:) = reverse_dlambda(nfreq:1:-1)
