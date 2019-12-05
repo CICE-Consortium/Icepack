@@ -808,20 +808,18 @@
 					! units kg m^-1 s^-2
 
       real (kind=dbl_kind)  :: &
-         mom0,   & ! zeroth moment of the spectrum (m)
          w_amp,  & ! half the wave amplitude (m)
          f_peak, & ! peak frequency (s^-1)
          r_max     ! floe radius (m)
 
       integer (kind=int_kind) :: k
-      
-      mom0 = SUM(local_wave_spec*dwavefreq)                   ! zeroth moment
-      w_amp = SQRT(mom0)                                      ! 0.5*sig wave amplitude
-      f_peak = wavefreq(MAXLOC(local_wave_spec, DIM=1))       ! peak frequency
+
+      w_amp = c2* SQRT(SUM(local_wave_spec*dwavefreq))   ! 0.5*sig wave amplitude
+      f_peak = wavefreq(MAXLOC(local_wave_spec, DIM=1))  ! peak frequency
 
       ! tensile failure
       if (w_amp > puny .and. f_peak > puny) then
-         r_max = p25*SQRT(tensile_param*gravit/(pi**5*rhoi*w_amp))/f_peak**2
+         r_max = SQRT(tensile_param*gravit/(pi**5*rhoi*w_amp*2))/f_peak**2
       else
          r_max = bignum
       end if
