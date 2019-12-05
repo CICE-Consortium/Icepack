@@ -819,7 +819,7 @@
 
       ! tensile failure
       if (w_amp > puny .and. f_peak > puny) then
-         r_max = SQRT(tensile_param*gravit/(pi**5*rhoi*w_amp*2))/f_peak**2
+         r_max = p5*SQRT(tensile_param*gravit/(pi**5*rhoi*w_amp*2))/f_peak**2
       else
          r_max = bignum
       end if
