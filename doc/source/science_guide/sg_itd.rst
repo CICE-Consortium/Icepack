@@ -162,8 +162,10 @@ a critical value new floes are formed with diameters equal to the distance betwe
 the extrema.
 
 Floe size categories are set in *init\_fsd\_bounds* using an exponential spacing, beginning at 0.5 m with the
-largest size resolved set by choice of :math:`N_f`, the number of floe size categories. It is assumed that 
-the floe size lies at the midpoint of each floe size category. 
+largest size resolved set by choice of :math:`N_f` (``nfsd``), the number of floe size categories.  Icepack
+currently supports ``nfsd = 1, 12, 16, 24``.  Although ``nfsd = 1`` tracks the same ice floe diameter as
+is assumed when ``tr_fsd=false``, the processes acting on the floes differ.
+It is assumed that the floe size lies at the midpoint of each floe size category.
 
 If simulations begin without ice (``ice_init='none'``), the FSD can emerge without initialization. This
 is the recommended initialization for studies on the FSD itself. If simulations begin with ice cover, 
