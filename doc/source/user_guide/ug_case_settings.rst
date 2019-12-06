@@ -401,9 +401,7 @@ column physics.
 ..   "", "``NICE``", "N-ICE experiment data", ""
 ..   "", "``NICE``", "N-ICE experiment data", ""
 
-* = If Icepack is run stand-alone and wave_spec_type is not set to none, then a fixed wave spectrum 
-is defined in the code to use for testing. As with other input data, this spectrum should not be used
-for production runs or publications.
+* = If Icepack is run stand-alone and wave_spec_type is not set to none, then a fixed wave spectrum is defined in the code to use for testing. As with other input data, this spectrum should not be used for production runs or publications.
   
 .. _tuning:
 
