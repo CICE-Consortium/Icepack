@@ -1132,10 +1132,6 @@
                                    dwavefreq, wavefreq
       use icedrv_domain_size, only: nfreq
 
-#ifdef ncdf
-      use netcdf
-#endif
-
       ! local variables
       integer (kind=int_kind) :: &
          k

@@ -5,15 +5,15 @@
 !
 !  Theory based on:
 !
-!    Horvat, C., & Tziperman, E. (2015). A prognostic model of the sea-ice 
-!    floe size and thickness distribution. The Cryosphere, 9(6), 2119–2134.
+!    Horvat, C., & Tziperman, E. (2015). A prognostic model of the sea-ice
+!    floe size and thickness distribution. The Cryosphere, 9(6), 2119-2134.
 !    doi:10.5194/tc-9-2119-2015
 !
 !  and implementation described in:
 !
 !    Roach, L. A., Horvat, C., Dean, S. M., & Bitz, C. M. (2018). An emergent
-!    sea ice floe size distribution in a global coupled ocean--sea ice model. 
-!    Journal of Geophysical Research: Oceans, 123(6), 4322–4337. 
+!    sea ice floe size distribution in a global coupled ocean--sea ice model.
+!    Journal of Geophysical Research: Oceans, 123(6), 4322-4337.
 !    doi:10.1029/2017JC013692
 !
 !  with some modifications.
@@ -21,12 +21,11 @@
 !  For floe welding parameter and tensile mode parameter values, see
 !
 !    Roach, L. A., Smith, M. M., & Dean, S. M. (2018). Quantifying
-!    growth of pancake sea ice floes using images from drifting buoys. 
-!    Journal of Geophysical Research: Oceans, 123(4), 2851–2866.
+!    growth of pancake sea ice floes using images from drifting buoys.
+!    Journal of Geophysical Research: Oceans, 123(4), 2851-2866.
 !    doi: 10.1002/2017JC013693
 !
-!
-!  Variable naming convention
+!  Variable naming convention:
 !  for k = 1, nfsd and n = 1, ncat
 !    afsdn(k,n) = trcrn(:,:,nt_nfsd+k-1,n,:)
 !    afsd (k) is per thickness category or averaged over n

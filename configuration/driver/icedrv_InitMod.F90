@@ -43,7 +43,7 @@
       use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
       use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
       use icedrv_restart_shared, only: restart
-      use icedrv_init, only: input_data, init_state, init_grid2
+      use icedrv_init, only: input_data, init_state, init_grid2, init_fsd
       use icedrv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
       use icepack_intfc, only: icepack_configure
 
@@ -82,12 +82,15 @@
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
-      if (tr_fsd) call icepack_init_fsd_bounds(  &
-         nfsd=nfsd,                   &  ! floe size distribution
-         floe_rad_l=floe_rad_l,       &  ! fsd size lower bound in m (radius)
-         floe_rad_c=floe_rad_c,       &  ! fsd size bin centre in m (radius)
-         floe_binwidth=floe_binwidth, &  ! fsd size bin width in m (radius)
-         c_fsd_range=c_fsd_range)        ! string for history output
+      if (tr_fsd) then
+         call icepack_init_fsd_bounds(   &
+            nfsd=nfsd,                   &  ! floe size distribution
+            floe_rad_l=floe_rad_l,       &  ! fsd size lower bound in m (radius)
+            floe_rad_c=floe_rad_c,       &  ! fsd size bin centre in m (radius)
+            floe_binwidth=floe_binwidth, &  ! fsd size bin width in m (radius)
+            c_fsd_range=c_fsd_range)        ! string for history output
+         call init_fsd
+      endif
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted(subname)) then

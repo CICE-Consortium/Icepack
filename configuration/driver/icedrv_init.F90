@@ -25,7 +25,7 @@
 
       implicit none
       private
-      public :: input_data, init_grid2, init_state
+      public :: input_data, init_grid2, init_state, init_fsd
 
       character(len=char_len_long), public :: &
          ice_ic      ! method of ice cover initialization
@@ -1274,6 +1274,28 @@
       Tf(i) = c0
 
       end subroutine set_state_var
+
+!=======================================================================
+
+!  Initialize floe size distribution tracer (call prior to reading restart data)
+
+      subroutine init_fsd
+
+      use icedrv_arrays_column, only: wavefreq, dwavefreq, wave_sig_ht, &
+         wave_spectrum, d_afsd_newi, d_afsd_latg, d_afsd_latm, &
+         d_afsd_wave, d_afsd_weld
+
+      wavefreq       (:)   = c0
+      dwavefreq      (:)   = c0
+      wave_sig_ht    (:)   = c0
+      wave_spectrum  (:,:) = c0
+      d_afsd_newi    (:,:) = c0
+      d_afsd_latg    (:,:) = c0
+      d_afsd_latm    (:,:) = c0
+      d_afsd_wave    (:,:) = c0
+      d_afsd_weld    (:,:) = c0
+
+      end subroutine init_fsd
 
 !=======================================================================
 
