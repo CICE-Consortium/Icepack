@@ -230,8 +230,8 @@ column physics.
    "", "false", "release (topo) pond water immediately to ocean", ""
    "``oceanmixed_ice``", "true/false", "active ocean mixed layer calculation", "``.true.`` (if uncoupled)"
    "``wave_spec_type``", "``none``", "no ocean wave spectrum data - no wave-ice interactions",""
-   "", "``constant``", "ocean wave spectrum data present, sea surface height field generated using constant phase, for testing FSD", ""
-   "", "``random``", "ocean wave spectrum data present, sea surface height field generated using random phase", ""
+   "", "``constant``", "ocean wave spectrum data present*, sea surface height field generated using constant phase, for testing FSD", ""
+   "", "``random``", "ocean wave spectrum data present*, sea surface height field generated using random phase", ""
    "``ocn_data_type``", "``default``", "constant values defined in the code", ""
    "", "``ISPOL``", "ISPOL experiment data  (see :ref:`force`)", ""
    "", "``NICE``", "N-ICE experiment data  (see :ref:`force`)", ""
@@ -401,6 +401,9 @@ column physics.
 ..   "", "``NICE``", "N-ICE experiment data", ""
 ..   "", "``NICE``", "N-ICE experiment data", ""
 
+* = If Icepack is run stand-alone and wave_spec_type is not set to none, then a fixed wave spectrum 
+is defined in the code to use for testing. As with other input data, this spectrum should not be used
+for production runs or publications.
   
 .. _tuning:
 
