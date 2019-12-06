@@ -43,6 +43,7 @@ Atmosphere and ocean boundary forcing
    ":math:`T^{ref}_{a}`", "2m reference temperature (diagnostic)", "From *sea ice model* to both *ocean and atmosphere models*"
    ":math:`Q^{ref}_{a}`", "2m reference humidity (diagnostic)", "From *sea ice model* to both *ocean and atmosphere models*"
    ":math:`F_{swabs}`", "Absorbed shortwave (diagnostic)", "From *sea ice model* to both *ocean and atmosphere models*"
+   ":math:`E(f)`", "Wave spectrum as a function of frequency", "From *ocean surface wave model* to *sea ice model*"
 
 The ice fraction :math:`a_i` (aice) is the total fractional ice
 coverage of a grid cell. That is, in each cell,
