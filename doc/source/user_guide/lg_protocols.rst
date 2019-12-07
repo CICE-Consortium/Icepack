@@ -16,6 +16,7 @@ Icepack provides several public interfaces.  These are defined in **columnphysic
 Icepack interfaces all contain the icepack\_ prefix.
 Icepack interfaces follow a general design where data is passed in on a gridpoint by gridpoint
 basis, that data is updated and returned to the driver, and the data is not stored within Icepack.  
+Additional information about the interfaces can be found in :ref:`sequence_and_interface`.
 
 Icepack interfaces can have long argument lists.  These are documented in :ref:`docintfc`.  In
 some cases, arguments are required for optional features (i.e. biogeochemistry) even when that
@@ -29,7 +30,7 @@ thru the interface to meet the interface specification.
 Initialization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The subroutine icepack_configure should be called before any other icepack interfaces are called.
+The subroutine **icepack_configure** should be called before any other icepack interfaces are called.
 This subroutine initializes the abort flag and a few other important defaults.  We recommend that
 call be implemented as::
 
@@ -54,9 +55,9 @@ add the following::
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call my_abort_method()
 
-icepack_warnings_flush is a public interface in icepack that writes any warning or error messages
+**icepack_warnings_flush** is a public interface in icepack that writes any warning or error messages
 generated in icepack to the driver file unit number defined by nu_diag.  
-The function icepack_warnings_aborted queries the internal icepack abort flag and
+The function **icepack_warnings_aborted** queries the internal icepack abort flag and
 returns true if icepack generated an abort error.  
 my_abort_method represents a method in the driver that will abort the model cleanly.
 
@@ -64,7 +65,7 @@ Icepack has no IO capabilities.  It does not have direct knowledge of
 any input or output files.  However, it can write output through specific
 interfaces that pass in a fortran file unit number.  There are also several
 methods in icepack that support writing data to a file.  The various
-*icepack_write_* interfaces also accept a unit number provided by the driver.
+**icepack_write_** interfaces also accept a unit number provided by the driver.
 
 .. _setinternal:
 
@@ -198,4 +199,9 @@ tracer indexing is particularly important.  Below is a list of the various trace
   - trcrn_depend/strata/etc defines dependency properties for tracers associated with the full array reference by nt\_ indexing
   - bio_index and bio_index_o is something else
 
+There are a few other tracer indexing arrays that may be needed.  In **icepack_aggregate**, the arguments
+*trcr_depend*, *trcr_base*, *n_trcr_strata*, and *nt_strata* are passed into the interface, and they
+provide information on dependencies between tracers.  This information needs to be initialized in
+the driving code.  In the bgc implementation, there are arrays *bio_index* and *bio_index_o* which
+also need to be initialized in the driving code and passed to Icepack.
 
