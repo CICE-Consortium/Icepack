@@ -5,15 +5,15 @@
 !
 !  Theory based on:
 !
-!    Horvat, C., & Tziperman, E. (2015). A prognostic model of the sea-ice 
-!    floe size and thickness distribution. The Cryosphere, 9(6), 2119–2134.
+!    Horvat, C., & Tziperman, E. (2015). A prognostic model of the sea-ice
+!    floe size and thickness distribution. The Cryosphere, 9(6), 2119-2134.
 !    doi:10.5194/tc-9-2119-2015
 !
 !  and implementation described in:
 !
 !    Roach, L. A., Horvat, C., Dean, S. M., & Bitz, C. M. (2018). An emergent
-!    sea ice floe size distribution in a global coupled ocean--sea ice model. 
-!    Journal of Geophysical Research: Oceans, 123(6), 4322–4337. 
+!    sea ice floe size distribution in a global coupled ocean--sea ice model.
+!    Journal of Geophysical Research: Oceans, 123(6), 4322-4337.
 !    doi:10.1029/2017JC013692
 !
 !  with some modifications.
@@ -21,12 +21,11 @@
 !  For floe welding parameter and tensile mode parameter values, see
 !
 !    Roach, L. A., Smith, M. M., & Dean, S. M. (2018). Quantifying
-!    growth of pancake sea ice floes using images from drifting buoys. 
-!    Journal of Geophysical Research: Oceans, 123(4), 2851–2866.
+!    growth of pancake sea ice floes using images from drifting buoys.
+!    Journal of Geophysical Research: Oceans, 123(4), 2851-2866.
 !    doi: 10.1002/2017JC013693
 !
-!
-!  Variable naming convention
+!  Variable naming convention:
 !  for k = 1, nfsd and n = 1, ncat
 !    afsdn(k,n) = trcrn(:,:,nt_nfsd+k-1,n,:)
 !    afsd (k) is per thickness category or averaged over n
@@ -44,7 +43,7 @@
       module icepack_fsd
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, c2, c3, c4, p01, p1, p5, puny
+      use icepack_parameters, only: c0, c1, c2, c4, p01, p1, p5, puny
       use icepack_parameters, only: pi, floeshape, wave_spec, bignum, gravit, rhoi
       use icepack_tracers, only: nt_fsd, tr_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -186,9 +185,9 @@
       floe_rad_h = lims(2:nfsd+1)
       floe_rad_c = (floe_rad_h+floe_rad_l)/c2
 
-      floe_area_l = c4*floeshape*floe_rad_l**c2
-      floe_area_c = c4*floeshape*floe_rad_c**c2
-      floe_area_h = c4*floeshape*floe_rad_h**c2
+      floe_area_l = c4*floeshape*floe_rad_l**2
+      floe_area_c = c4*floeshape*floe_rad_c**2
+      floe_area_h = c4*floeshape*floe_rad_h**2
 
       floe_binwidth = floe_rad_h - floe_rad_l
 
@@ -199,14 +198,11 @@
       do n = 1, nfsd
       do m = 1, nfsd
          test = floe_area_c(n) + floe_area_c(m)
-
          do k = 1, nfsd-1
             if ((test >= floe_area_l(k)) .and. (test < floe_area_h(k))) &
                   iweld(n,m) = k
          end do
          if (test >= floe_area_l(nfsd)) iweld(n,m) = nfsd
-
-
       end do
       end do
 
@@ -269,7 +265,7 @@
          nfsd
 
       character(len=char_len_long), intent(in) :: &
-         ice_ic           ! method of ice cover initialization
+         ice_ic            ! method of ice cover initialization
 
       real(kind=dbl_kind), dimension(:), intent(inout) ::  &
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
@@ -439,7 +435,7 @@
             do k = 1, nfsd
                lead_area = lead_area + aicen(n) * afsdn(k,n) &
                          * (c2*width_leadreg    /floe_rad_c(k)     &
-                             + width_leadreg**c2/floe_rad_c(k)**2)
+                             + width_leadreg**2/floe_rad_c(k)**2)
             enddo ! k
          enddo    ! n
 
@@ -495,45 +491,42 @@
                                      tot_latg)
 
       integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         nfsd      ! number of floe size categories
+         ncat           , & ! number of thickness categories
+         nfsd               ! number of floe size categories
 
       real (kind=dbl_kind), intent(in) :: &
-         dt    , & ! time step (s)
-         aice      ! total concentration of ice
+         dt             , & ! time step (s)
+         aice               ! total concentration of ice
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         aicen , & ! concentration of ice
-         vicen     ! volume per unit area of ice          (m)
+         aicen          , & ! concentration of ice
+         vicen              ! volume per unit area of ice          (m)
 
       real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          afsdn              ! floe size distribution tracer
 
       real (kind=dbl_kind), intent(inout) :: &
-         vi0new, & ! volume of new ice added to cat 1 (m)
-         frazil    ! frazil ice growth        (m/step-->cm/day)
+         vi0new         , & ! volume of new ice added to cat 1 (m)
+         frazil             ! frazil ice growth        (m/step-->cm/day)
 
       ! floe size distribution
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         floe_rad_c    ! fsd size bin centre in m (radius)
+         floe_rad_c         ! fsd size bin centre in m (radius)
 
       real (kind=dbl_kind), dimension(ncat), intent(out) :: &
-         d_an_latg	! change in aicen occuring due
-	 		! to lateral growth
+         d_an_latg          ! change in aicen occuring due to lateral growth
 
       real (kind=dbl_kind), intent(out) :: &
-         G_radial    , & ! lateral melt rate (m/s)
-         tot_latg        ! total change in aice due to
-	 		 ! lateral growth at the edges of floes
-
+         G_radial       , & ! lateral melt rate (m/s)
+         tot_latg           ! total change in aice due to
+                            ! lateral growth at the edges of floes
 
       ! local variables
-
       integer (kind=int_kind) :: &
-         n, k             ! ice category indices
+         n, k               ! ice category indices
 
       real (kind=dbl_kind) :: &
-         vi0new_lat       ! volume of new ice added laterally to FSD (m)
+         vi0new_lat         ! volume of new ice added laterally to FSD (m)
 
       real (kind=dbl_kind), intent(out) :: &
          lead_area      , & ! the fractional area of the lead region
@@ -559,7 +552,6 @@
          vi0new_lat = vi0new * lead_area / (c1 + aice/latsurf_area)
       end if
 
-
       ! for history/diagnostics
       frazil = vi0new - vi0new_lat
 
@@ -577,7 +569,6 @@
 
       ! Use remaining ice volume as in standard model,
       ! but ice cannot grow into the area that has grown laterally
-
       vi0new = vi0new - vi0new_lat
       tot_latg = SUM(d_an_latg(:))
 
@@ -600,7 +591,6 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 !
-
       subroutine fsd_add_new_ice (ncat, n,    nfsd,          &
                                   dt,         ai0new,        &
                                   d_an_latg,  d_an_newi,     &
@@ -616,64 +606,63 @@
                                   aicen,      trcrn)
 
       integer (kind=int_kind), intent(in) :: &
-         n     , & ! thickness category number
-         ncat  , & ! number of thickness categories
-         nfsd      ! number of floe size categories
+         n          , & ! thickness category number
+         ncat       , & ! number of thickness categories
+         nfsd           ! number of floe size categories
 
       real (kind=dbl_kind), intent(in) :: &
-         dt           , & ! time step (s)
-         ai0new       , & ! area of new ice added to cat 1
-         G_radial     , & ! lateral melt rate (m/s)
-         wave_sig_ht      ! wave significant height (everywhere) (m)
+         dt         , & ! time step (s)
+         ai0new     , & ! area of new ice added to cat 1
+         G_radial   , & ! lateral melt rate (m/s)
+         wave_sig_ht    ! wave significant height (everywhere) (m)
 
       real (kind=dbl_kind), dimension(:), intent(in)  :: &
          wave_spectrum  ! ocean surface wave spectrum as a function of frequency
-	 		! power spectral density of surface elevation, E(f) (units m^2 s)
+                        ! power spectral density of surface elevation, E(f) (units m^2 s)
 
       real(kind=dbl_kind), dimension(:), intent(in) :: &
-         wavefreq,              & ! wave frequencies (s^-1)
-         dwavefreq                ! wave frequency bin widths (s^-1)
+         wavefreq   , & ! wave frequencies (s^-1)
+         dwavefreq      ! wave frequency bin widths (s^-1)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
-         d_an_latg, d_an_newi	! change in aicen due to
-	 			! lateral growth and frazil 
-				! ice formation
+         d_an_latg  , & ! change in aicen due to lateral growth
+         d_an_newi      ! change in aicen due to frazil ice formation
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         aicen_init     , & ! fractional area of ice
-         aicen          , & ! after update
-         floe_rad_c     , & ! fsd size bin centre in m (radius)
-         floe_binwidth      ! fsd size bin width in m (radius)
+         aicen_init , & ! fractional area of ice
+         aicen      , & ! after update
+         floe_rad_c , & ! fsd size bin centre in m (radius)
+         floe_binwidth  ! fsd size bin width in m (radius)
 
       real (kind=dbl_kind), dimension (:,:), intent(in) :: &
-         afsdn     ! floe size distribution tracer 
+         afsdn          ! floe size distribution tracer
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         area2     ! area after lateral growth and before new ice formation
+         area2          ! area after lateral growth, before new ice formation
 
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
-         trcrn     ! ice tracers
+         trcrn          ! ice tracers
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
-                            ! change in floe size distribution (area)
-         d_afsd_latg    , & ! due to fsd lateral growth
-         d_afsd_newi        ! new ice formation
+                        ! change in floe size distribution (area)
+         d_afsd_latg, & ! due to fsd lateral growth
+         d_afsd_newi    ! new ice formation
 
       integer (kind=int_kind) :: &
-         k             ! floe size category index
+         k              ! floe size category index
 
       real (kind=dbl_kind), dimension (nfsd,ncat) :: &
-         afsdn_latg    ! fsd after lateral growth
+         afsdn_latg     ! fsd after lateral growth
 
       real (kind=dbl_kind), dimension (nfsd) :: &
-         df_flx, &     ! finite differences for G_r*tilda(L)
-         afsd_ni       ! fsd after new ice added
+         df_flx     , & ! finite differences for G_r*tilda(L)
+         afsd_ni        ! fsd after new ice added
 
       real (kind=dbl_kind), dimension(nfsd+1) :: &
-         f_flx         ! finite differences in floe size
+         f_flx          ! finite differences in floe size
 
       integer (kind=int_kind) :: &
-         new_size      ! index for floe size of new ice
+         new_size       ! index for floe size of new ice
 
       character(len=*),parameter :: subname='(fsd_add_new_ice)'
 
@@ -757,7 +746,6 @@
          endif ! d_an_newi > puny
       endif    ! n = 1
 
-
       ! history/diagnostics
       do k = 1, nfsd
          ! sum over n
@@ -781,53 +769,43 @@
 !
 !  authors: Lettie Roach, NIWA/VUW
 !
-
       subroutine wave_dep_growth (nfsd, local_wave_spec, &
                                   wavefreq, dwavefreq, &
                                   new_size)
 
       integer (kind=int_kind), intent(in) :: &
-         nfsd              ! number of floe size categories
+         nfsd            ! number of floe size categories
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          local_wave_spec ! ocean surface wave spectrum as a function of frequency
 	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
 	 		 ! dimension set in ice_forcing
 	 		
-
       real(kind=dbl_kind), dimension(:), intent(in) :: &
-         wavefreq,              & ! wave frequencies (s^-1)
-         dwavefreq                ! wave frequency bin widths (s^-1)
+         wavefreq,     & ! wave frequencies (s^-1)
+         dwavefreq       ! wave frequency bin widths (s^-1)
 
       integer (kind=int_kind), intent(out) :: &
-         new_size ! index of floe size category in which new floes will grow
+         new_size        ! index of floe size category in which new floes will grow
 
       ! local variables
       real (kind=dbl_kind), parameter :: &
-         tensile_param = 0.167_dbl_kind ! tensile mode parameter
+         tensile_param = 0.167_dbl_kind ! tensile mode parameter (kg m^-1 s^-2)
 	 				! value from Roach, Smith & Dean (2018)
-					! units kg m^-1 s^-2
 
       real (kind=dbl_kind)  :: &
-         mom0,   & ! zeroth moment of the spectrum (m)
-         h_sig,  & ! significant wave height (m)
-         w_amp,  & ! wave amplitude (m)
-         f_peak, & ! peak frequency (s^-1)
-         w_peak, & ! wavelength from peak freqency (m)
-         r_max     ! floe radius (m)
+         w_amp,       & ! wave amplitude (m)
+         f_peak,      & ! peak frequency (s^-1)
+         r_max          ! floe radius (m)
 
       integer (kind=int_kind) :: k
-      
 
-      mom0 = SUM(local_wave_spec*dwavefreq)                   ! zeroth moment
-      h_sig = c4*SQRT(mom0)                                   ! sig wave height
-      w_amp = h_sig/c2                                        ! sig wave amplitude
-      f_peak = wavefreq(MAXLOC(local_wave_spec, DIM=1))       ! peak frequency
-      if (f_peak > puny) w_peak = gravit / (c2*pi*f_peak**c2) ! wavelength from peak freq
+      w_amp = c2* SQRT(SUM(local_wave_spec*dwavefreq))   ! sig wave amplitude
+      f_peak = wavefreq(MAXLOC(local_wave_spec, DIM=1))  ! peak frequency
 
       ! tensile failure
-      if (w_amp > puny) then
-         r_max = SQRT(c2*tensile_param*w_peak**c2/(pi**c3*w_amp*gravit*rhoi))/c2
+      if (w_amp > puny .and. f_peak > puny) then
+         r_max = p5*SQRT(tensile_param*gravit/(pi**5*rhoi*w_amp*2))/f_peak**2
       else
          r_max = bignum
       end if
@@ -858,62 +836,58 @@
                                   d_afsd_weld)
 
       integer (kind=int_kind), intent(in) :: &
-         ncat     , & ! number of thickness categories
-         nfsd         ! number of floe size categories
+         ncat       , & ! number of thickness categories
+         nfsd           ! number of floe size categories
 
       real (kind=dbl_kind), intent(in) :: &
-         dt           ! time step (s)
+         dt             ! time step (s)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         aicen        ! ice concentration
+         aicen          ! ice concentration
 
       real (kind=dbl_kind), intent(in) :: &
-         frzmlt       ! freezing/melting potential (W/m^2)
+         frzmlt         ! freezing/melting potential (W/m^2)
 
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
-         trcrn        ! ice tracers
+         trcrn          ! ice tracers
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
-         d_afsd_weld  ! change in fsd due to welding
+         d_afsd_weld    ! change in fsd due to welding
 
       ! local variables
-
       real (kind=dbl_kind), parameter :: &
-         aminweld = p1    ! minimum ice concentration likely to weld
+         aminweld = p1  ! minimum ice concentration likely to weld
 
       real (kind=dbl_kind), parameter :: &
          c_weld = 1.0e-8_dbl_kind     
-                          ! constant of proportionality for welding
-	 	          ! total number of floes that weld with another, per square meter,
-			  ! per unit time, in the case of a fully covered ice surface
-	 		  ! units m^-2 s^-1, see documentation for details
-
-
+                        ! constant of proportionality for welding
+                        ! total number of floes that weld with another, per square meter,
+                        ! per unit time, in the case of a fully covered ice surface
+                        ! units m^-2 s^-1, see documentation for details
 
       integer (kind=int_kind) :: &
-        nt        , & ! time step index
-        n         , & ! thickness category index
-        k, kx, ky, i, j     ! floe size category indices
+        nt          , & ! time step index
+        n           , & ! thickness category index
+        k, kx, ky, i, j ! floe size category indices
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
-         afsdn        ! floe size distribution tracer
+         afsdn          ! floe size distribution tracer
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
-         d_afsdn_weld ! change in afsdn due to welding
+         d_afsdn_weld   ! change in afsdn due to welding
 
       real (kind=dbl_kind), dimension(nfsd) :: &
-         stability , & ! check for stability
-         nfsd_tmp  , & ! number fsd
-         afsd_init , & ! initial values
-         afsd_tmp  , & ! work array
-         gain, loss    ! welding tendencies
+         stability  , & ! check for stability
+         nfsd_tmp   , & ! number fsd
+         afsd_init  , & ! initial values
+         afsd_tmp   , & ! work array
+         gain, loss     ! welding tendencies
 
       real(kind=dbl_kind) :: &
-         prefac    , & ! multiplies kernel
-         kern      , & ! kernel
-         subdt     , & ! subcycling time step for stability (s)
-         elapsed_t     ! elapsed subcycling time
-
+         prefac     , & ! multiplies kernel
+         kern       , & ! kernel
+         subdt      , & ! subcycling time step for stability (s)
+         elapsed_t      ! elapsed subcycling time
 
       afsdn  (:,:) = c0
       afsd_init(:) = c0
@@ -930,7 +904,7 @@
          ! If there is some ice in the lower (nfsd-1) categories
          ! and there is freezing potential
          if ((frzmlt > puny) .and. &               ! freezing potential
-             (aicen(n) > aminweld) .and. &         ! low concentrations area unlikely to weld
+             (aicen(n) > aminweld) .and. &         ! low concentrations unlikely to weld
              (SUM(afsdn(1:nfsd-1,n)) > puny)) then ! some ice in nfsd-1 categories
 
             afsd_init(:) = afsdn(:,n)     ! save initial values
@@ -957,21 +931,13 @@
 
                do i = 1, nfsd ! consider loss from this category
                do j = 1, nfsd ! consider all interaction partners
-
                    k = iweld(i,j) ! product of i+j
-
                    if (k > i) then
-                   
                        kern = c_weld * floe_area_c(i) * aicen(n)
-                      
                        loss(i) = loss(i) + kern*afsd_tmp(i)*afsd_tmp(j)
-
                        if (i.eq.j) prefac = c1 ! otherwise 0.5
-
                        gain(k) = gain(k) + prefac*kern*afsd_tmp(i)*afsd_tmp(j)
-
                    end if
-
                end do
                end do
 
@@ -1002,10 +968,8 @@
                ! history/diagnostics
                d_afsdn_weld(k,n) = afsdn(k,n) - afsd_init(k)
             enddo
-
-
-        endif ! try to weld
-      enddo ! n
+         endif ! try to weld
+      enddo    ! ncat
 
       ! history/diagnostics
       do k = 1, nfsd
@@ -1013,7 +977,7 @@
          do n = 1, ncat
             d_afsd_weld(k) = d_afsd_weld(k) + aicen(n)*d_afsdn_weld(k,n)
          end do ! n
-      end do ! k
+      end do    ! k
 
       end subroutine fsd_weld_thermo
 

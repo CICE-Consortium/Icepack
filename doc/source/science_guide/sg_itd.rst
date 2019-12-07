@@ -138,7 +138,7 @@ in thickness and lateral size, at a rate :math:`\mathbf{G} = (G_r,G_h)`. The thi
 term represents growth of new ice: new floes are created at a rate :math:`\dot{A}_p` 
 in the smallest thickness category and a given lateral size category. If wave forcing 
 is provided, the size of newly formed floes is determined via a tensile stress limitation 
-arising from the wave field (:cite:`Shen2001`,:cite:`Roach2019`); otherwise, all floes 
+arising from the wave field (:cite:`Shen01`,:cite:`Roach19`); otherwise, all floes 
 are presumed to grow as pancakes in the smallest floe size category resolved. 
 To allow for the joining of individual floes to one another, we represent
 the welding together of floes in freezing conditions via the fourth term, 
@@ -150,8 +150,8 @@ is uniquely determined by the spectrum up to a phase. In :cite:`Horvat2015` this
 randomly chosen, and multiple realizations of the resulting surface height field are used to 
 obtain convergent statistics. However this stochastic component would lead to a model that is 
 not bit-for-bit reproducible. Users can choose in the namelist (via ``wave_spec_type``)
-to run the model with the phase set to be constant to obtain bit-for-bit reproducibility or
-to include the random phase.
+to run the model with the phase set to be constant to obtain bit-for-bit reproducibility, or
+to include the random phase, or to exclude wave effects completely.
 
 We calculate the number and length of fractures that would occur if waves enter a fully ice-covered 
 region defined in one dimension in the direction of propagation, and then apply
@@ -162,9 +162,10 @@ a critical value new floes are formed with diameters equal to the distance betwe
 the extrema.
 
 Floe size categories are set in *init\_fsd\_bounds* using an exponential spacing, beginning at 0.5 m with the
-largest size resolved set by choice of :math:`N_f`, the number of floe size categories. It is assumed that 
-the floe size lies at the midpoint of each floe size category. Note that there is a sensitivity to the choice
-of floe size categories inherent in the current floe welding scheme.
+largest size resolved set by choice of :math:`N_f` (``nfsd``), the number of floe size categories.  Icepack
+currently supports ``nfsd = 1, 12, 16, 24``.  Although ``nfsd = 1`` tracks the same ice floe diameter as
+is assumed when ``tr_fsd=false``, the processes acting on the floes differ.
+It is assumed that the floe size lies at the midpoint of each floe size category.
 
 If simulations begin without ice (``ice_init='none'``), the FSD can emerge without initialization. This
 is the recommended initialization for studies on the FSD itself. If simulations begin with ice cover, 
