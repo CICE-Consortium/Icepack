@@ -1660,7 +1660,7 @@ bulk salinity, the resulting temperature may be changed to be greater
 than the limit allowed in the thermodynamics routines. If this situation
 is detected, the code corrects the enthalpy so the temperature is below
 the limiting value. Conservation of energy is ensured by placing the
-excess energy in the ocean, and the code writes a warning (see :ref:`warning`) 
+excess energy in the ocean, and the code writes a warning (see :ref:`aborts`) 
 that this has
 occurred to the diagnostics file. This situation only occurs with the
 mushy thermodynamics, and it should only occur very infrequently and

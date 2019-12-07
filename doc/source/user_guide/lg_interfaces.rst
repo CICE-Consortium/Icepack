@@ -2,8 +2,8 @@
 
 .. _docintfc:
 
-Interface Module
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Interfaces Module
+-----------------------
 
 Column physics data and subroutines are made public through the **icepack_intfc.F90**
 file.  That file contains the entire list of data and subroutines needed to

@@ -61,7 +61,7 @@ that is passed into the column physics though interfaces.  In fact,
 there are no direct IO capabilities in the column physics.  That is to say, the
 column physics does not open files to read or write.  The column physics is able to write 
 data via several different routines that specifically have a fortran unit number as an input
-argument.  In addition, there is a warning package (see section :ref:`warning`) that
+argument.  In addition, there is a warning and abort package (see section :ref:`aborts`) that
 provides the column package with the ability to store log output.  That output can
 be queried by the host model or it can be written directly via a specific routine.
 The warning package also provides access to an abort flag that the host model can

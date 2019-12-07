@@ -55,6 +55,7 @@
          nilyr        = 0, & ! number of ice layers per category
          nslyr        = 0, & ! number of snow layers per category
          nblyr        = 0, & ! number of bio/brine layers per category
+         nfsd         = 0, & ! number of fsd layers
          n_aero       = 0, & ! number of aerosols in use
          n_zaero      = 0, & ! number of z aerosols in use
          n_algae      = 0, & ! number of algae in use
@@ -439,7 +440,7 @@
            nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
            nlt_zaero_sw_in, n_algae_in, n_DOC_in, n_aero_in, &
            n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
-           ncat_in, nilyr_in, nslyr_in, nblyr_in, &
+           ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in, &
            bio_index_o_in, bio_index_in)
 
         integer, intent(in), optional :: &
@@ -482,6 +483,7 @@
              nilyr_in,      & ! Layers
              nslyr_in,      & !
              nblyr_in,      & !
+             nfsd_in,       & !
              n_algae_in,    & ! Dimensions
              n_DOC_in,      & !
              n_DON_in,      & !
@@ -569,6 +571,7 @@
         if (present(nilyr_in)        ) nilyr         = nilyr_in
         if (present(nslyr_in)        ) nslyr         = nslyr_in
         if (present(nblyr_in)        ) nblyr         = nblyr_in
+        if (present(nfsd_in)         ) nfsd          = nfsd_in
         if (present(n_algae_in)      ) n_algae       = n_algae_in
         if (present(n_DOC_in)        ) n_DOC         = n_DOC_in
         if (present(n_DON_in)        ) n_DON         = n_DON_in
@@ -815,7 +818,7 @@
            nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
            nlt_zaero_sw_out, n_algae_out, n_DOC_out, n_aero_out, &
            n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
-           ncat_out, nilyr_out, nslyr_out, nblyr_out, &
+           ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
            bio_index_o_out, bio_index_out)
 
         integer, intent(out), optional :: &
@@ -858,6 +861,7 @@
              nilyr_out,      & ! Layers
              nslyr_out,      & !
              nblyr_out,      & !
+             nfsd_out,       & !
              n_algae_out,    & ! Dimensions
              n_DOC_out,      & !
              n_DON_out,      & !
@@ -910,6 +914,7 @@
         if (present(nilyr_out)  ) nilyr_out   = nilyr
         if (present(nslyr_out)  ) nslyr_out   = nslyr
         if (present(nblyr_out)  ) nblyr_out   = nblyr
+        if (present(nfsd_out)   ) nfsd_out    = nfsd
         if (present(n_algae_out)) n_algae_out = n_algae
         if (present(n_DOC_out)  ) n_DOC_out   = n_DOC
         if (present(n_DON_out)  ) n_DON_out   = n_DON
@@ -996,6 +1001,7 @@
         write(iounit,*) "  nilyr   = ",nilyr
         write(iounit,*) "  nslyr   = ",nslyr
         write(iounit,*) "  nblyr   = ",nblyr
+        write(iounit,*) "  nfsd    = ",nfsd
         write(iounit,*) "  n_algae = ",n_algae
         write(iounit,*) "  n_DOC   = ",n_DOC
         write(iounit,*) "  n_DON   = ",n_DON
