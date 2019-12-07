@@ -10,7 +10,7 @@ required (surface temperature and thickness, salinity and enthalpy of ice and sn
 and many others are options.  For instance, there are tracers to track the age of the ice;
 the area of first-year ice, fractions of ice area and volume that are level, from which
 the amount of deformed ice can be calculated; pond area, pond volume and volume of ice covering ponds;
-aerosols and numerous other biogeochemical tracers.
+a prognostic floe size distribution; aerosols and numerous other biogeochemical tracers.
 Most of these tracers are presented in later sections.  Here we describe the ice age 
 tracers and how tracers may depend on other tracers, using the pond tracers as an 
 example.

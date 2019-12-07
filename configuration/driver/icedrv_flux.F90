@@ -266,6 +266,7 @@
 
       real (kind=dbl_kind), dimension (nx), public :: &
          rside   , & ! fraction of ice that melts laterally
+         fside   , & ! lateral heat flux (W/m^2)
          fsw     , & ! incoming shortwave radiation (W/m^2)
          coszen  , & ! cosine solar zenith angle, < 0 for sun below horizon 
          rdg_conv, & ! convergence term for ridging (1/s)

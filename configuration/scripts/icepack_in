@@ -6,7 +6,7 @@
     dt             = 3600.0
     npt            = 8760
     ndtd           = 1
-    ice_ic         = 'none'
+    ice_ic         = 'default'
     restart        = .false.
     restart_dir    = './restart/'
     dumpfreq       = 'y'
@@ -28,6 +28,7 @@
     tr_pond_topo = .false.
     tr_pond_lvl  = .true.
     tr_aero      = .false.
+    tr_fsd       = .false.
 /
 
 &thermo_nml
@@ -83,6 +84,7 @@
     l_mpond_fresh   = .false.
     tfrz_option     = 'mushy'
     oceanmixed_ice  = .true.
+    wave_spec_type  = 'none'
     restore_ocn     = .false.
     trestore        = 90
     precip_units    = 'mks'
