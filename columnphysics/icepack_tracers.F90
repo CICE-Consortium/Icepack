@@ -641,7 +641,7 @@
            endif
         endif
 
-! bgc C is not yet distinct from bgc N
+! algal C is not yet distinct from algal N
         if (present(nt_bgc_C_in) .or. present(nlt_bgc_C_in)) then
            call icepack_warnings_add(subname//'error bgc_C not supported')
            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
