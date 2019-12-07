@@ -179,8 +179,15 @@ icepack_intfc.F90
         use icepack_itd, only: icepack_init_itd_hist
         use icepack_itd, only: icepack_aggregate
   
+        use icepack_fsd, only: icepack_init_fsd_bounds
+        use icepack_fsd, only: icepack_init_fsd
+        use icepack_fsd, only: icepack_cleanup_fsd
+  
         use icepack_mechred, only: icepack_step_ridge
         use icepack_mechred, only: icepack_ice_strength
+  
+        use icepack_wavefracspec, only: icepack_init_wave
+        use icepack_wavefracspec, only: icepack_step_wavefracture
   
         use icepack_shortwave, only: icepack_prep_radiation
         use icepack_shortwave, only: icepack_step_radiation
@@ -209,6 +216,10 @@ icepack_intfc.F90
         use icepack_therm_shared  , only: icepack_enthalpy_snow
         use icepack_therm_shared  , only: icepack_init_thermo
         use icepack_therm_shared  , only: icepack_init_trcr
+  
+        use icepack_mushy_physics , only: icepack_mushy_density_brine
+        use icepack_mushy_physics , only: icepack_mushy_liquid_fraction
+        use icepack_mushy_physics , only: icepack_mushy_temperature_mush
   
         use icepack_warnings, only: icepack_warnings_clear
         use icepack_warnings, only: icepack_warnings_print
@@ -616,6 +627,7 @@ icepack_init_parameters
            kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
            atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
            tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
+           floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
            dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
            bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
            modal_aero_in, skl_bgc_in, solve_zsal_in, grid_o_in, l_sk_in, &
@@ -815,6 +827,22 @@ icepack_init_parameters
                               !   3 = asymptotic formula
   
   !-----------------------------------------------------------------------
+  ! Parameters for the floe size distribution
+  !-----------------------------------------------------------------------
+  
+        integer (kind=int_kind), intent(in), optional :: &
+           nfreq_in           ! number of frequencies
+  
+        real (kind=dbl_kind), intent(in), optional :: &
+           floeshape_in       ! constant from Steele (unitless)
+  
+        logical (kind=log_kind), intent(in), optional :: &
+           wave_spec_in       ! if true, use wave forcing
+  
+        character (len=char_len), intent(in), optional :: &
+           wave_spec_type_in  ! type of wave spectrum forcing 
+  
+  !-----------------------------------------------------------------------
   ! Parameters for biogeochemistry
   !-----------------------------------------------------------------------
   
@@ -932,6 +960,7 @@ icepack_query_parameters
            kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
            atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
            tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
+           floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
            dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
            bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
            modal_aero_out, skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
@@ -1138,6 +1167,22 @@ icepack_query_parameters
                                !   1 = new formula giving round numbers
                                !   2 = WMO standard
                                !   3 = asymptotic formula
+  
+  !-----------------------------------------------------------------------
+  ! Parameters for the floe size distribution
+  !-----------------------------------------------------------------------
+  
+        integer (kind=int_kind), intent(out), optional :: &
+           nfreq_out          ! number of frequencies
+  
+        real (kind=dbl_kind), intent(out), optional :: &
+           floeshape_out      ! constant from Steele (unitless)
+  
+        logical (kind=log_kind), intent(out), optional :: &
+           wave_spec_out      ! if true, use wave forcing
+  
+        character (len=char_len), intent(out), optional :: &
+           wave_spec_type_out ! type of wave spectrum forcing
   
   !-----------------------------------------------------------------------
   ! Parameters for biogeochemistry
@@ -1465,7 +1510,7 @@ icepack_step_therm2
   ! authors: William H. Lipscomb, LANL
   !          Elizabeth C. Hunke, LANL
   
-        subroutine icepack_step_therm2 (dt, ncat, n_aero, nltrcr,           &
+        subroutine icepack_step_therm2 (dt, ncat, nltrcr,           &
                                        nilyr,        nslyr,         &
                                        hin_max,      nblyr,         &
                                        aicen,                       &
@@ -1479,6 +1524,7 @@ icepack_step_therm2
                                        Tf,           sss,           &
                                        salinz,                      &
                                        rside,        meltl,         &
+                                       fside,                       &
                                        frzmlt,       frazil,        &
                                        frain,        fpond,         &
                                        fresh,        fsalt,         &
@@ -1488,15 +1534,22 @@ icepack_step_therm2
                                        first_ice,    fzsal,         &
                                        flux_bio,     ocean_bio,     &
                                        frazil_diag,                 &
-                                       frz_onset,    yday)
+                                       frz_onset,    yday,          &
+                                       nfsd,         wave_sig_ht,   &
+                                       wave_spectrum,               &
+                                       wavefreq,                    &
+                                       dwavefreq,                   &
+                                       d_afsd_latg,  d_afsd_newi,   &
+                                       d_afsd_latm,  d_afsd_weld,   &
+                                       floe_rad_c,   floe_binwidth)
   
         integer (kind=int_kind), intent(in) :: &
            ncat     , & ! number of thickness categories
+           nfsd     , & ! number of floe size categories
            nltrcr   , & ! number of zbgc tracers
            nblyr    , & ! number of bio layers
            nilyr    , & ! number of ice layers
-           nslyr    , & ! number of snow layers
-           n_aero       ! number of aerosol tracers
+           nslyr        ! number of snow layers
   
         logical (kind=log_kind), intent(in) :: &
            update_ocn_f     ! if true, update fresh water and salt fluxes
@@ -1509,7 +1562,20 @@ icepack_step_therm2
            Tf       , & ! freezing temperature (C)
            sss      , & ! sea surface salinity (ppt)
            rside    , & ! fraction of ice that melts laterally
-           frzmlt       ! freezing/melting potential (W/m^2)
+           fside    , & ! lateral heat flux (W/m^2)
+           frzmlt   , & ! freezing/melting potential (W/m^2)
+           wave_sig_ht ! significant height of waves in ice (m)
+  
+        real (kind=dbl_kind), dimension(:), intent(in)  :: &
+           wave_spectrum  ! ocean surface wave spectrum E(f) (m^2 s)
+  
+        real(kind=dbl_kind), dimension(:), intent(in) :: &
+           wavefreq,              & ! wave frequencies (s^-1)
+           dwavefreq                ! wave frequency bin widths (s^-1)
+  
+        real (kind=dbl_kind), dimension (:), intent(in) :: &
+           floe_rad_c     , & ! fsd size bin centre in m (radius)
+           floe_binwidth      ! fsd size bin width in m (radius)
   
         integer (kind=int_kind), dimension (:), intent(in) :: &
            trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
@@ -1562,6 +1628,13 @@ icepack_step_therm2
    
         logical (kind=log_kind), dimension(:), intent(inout) :: &
            first_ice      ! true until ice forms
+  
+        real (kind=dbl_kind), dimension(:), intent(out) :: &
+                              ! change in floe size distribution (area)
+           d_afsd_latg    , & ! due to fsd lateral growth
+           d_afsd_newi    , & ! new ice formation
+           d_afsd_latm    , & ! lateral melt
+           d_afsd_weld        ! welding
   
         real (kind=dbl_kind), intent(inout), optional :: &
            frz_onset    ! day of year that freezing begins (congel or frazil)
@@ -1713,7 +1786,7 @@ icepack_step_therm1
   ! authors: William H. Lipscomb, LANL
   !          Elizabeth C. Hunke, LANL
   
-        subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, &
+        subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
                                       aicen_init  ,               &
                                       vicen_init  , vsnon_init  , &
                                       aice        , aicen       , &
@@ -1748,8 +1821,9 @@ icepack_step_therm1
                                       sss         , Tf          , &
                                       strocnxT    , strocnyT    , &
                                       fbot        ,               &
-                                      Tbot        , Tsnice       , &
+                                      Tbot        , Tsnice      , &
                                       frzmlt      , rside       , &
+                                      fside       ,               &
                                       fsnow       , frain       , &
                                       fpond       ,               &
                                       fsurf       , fsurfn      , &
@@ -1783,8 +1857,7 @@ icepack_step_therm1
         integer (kind=int_kind), intent(in) :: &
            ncat    , & ! number of thickness categories
            nilyr   , & ! number of ice layers
-           nslyr   , & ! number of snow layers
-           n_aero      ! number of aerosol tracers in use
+           nslyr       ! number of snow layers
   
         real (kind=dbl_kind), intent(in) :: &
            dt          , & ! time step
@@ -1861,10 +1934,11 @@ icepack_step_therm1
            fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
            frzmlt      , & ! freezing/melting potential (W/m^2)
            rside       , & ! fraction of ice that melts laterally
+           fside       , & ! lateral heat flux (W/m^2)
            sst         , & ! sea surface temperature (C)
            Tf          , & ! freezing temperature (C)
            Tbot        , & ! ice bottom surface temperature (deg C)
-           Tsnice       , & ! snow ice interface temperature (deg C)
+           Tsnice      , & ! snow ice interface temperature (deg C)
            sss         , & ! sea surface salinity (ppt)
            meltt       , & ! top ice melt             (m/step-->cm/day)
            melts       , & ! snow melt                (m/step-->cm/day)
@@ -1974,7 +2048,7 @@ icepack_init_tracer_flags
         subroutine icepack_init_tracer_flags(&
              tr_iage_in, tr_FY_in, tr_lvl_in, &
              tr_pond_in, tr_pond_cesm_in, tr_pond_lvl_in, tr_pond_topo_in, &
-             tr_aero_in, tr_brine_in, tr_zaero_in, &
+             tr_fsd_in, tr_aero_in, tr_brine_in, tr_zaero_in, &
              tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
              tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
              tr_bgc_PON_in)
@@ -1987,6 +2061,7 @@ icepack_init_tracer_flags
                tr_pond_cesm_in , & ! if .true., use cesm pond tracer
                tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
+               tr_fsd_in       , & ! if .true., use floe size distribution tracers
                tr_aero_in      , & ! if .true., use aerosol tracers
                tr_brine_in     , & ! if .true., brine height differs from ice thickness
                tr_zaero_in     , & ! if .true., black carbon is tracers  (n_zaero)
@@ -2015,7 +2090,7 @@ icepack_query_tracer_flags
         subroutine icepack_query_tracer_flags(&
              tr_iage_out, tr_FY_out, tr_lvl_out, &
              tr_pond_out, tr_pond_cesm_out, tr_pond_lvl_out, tr_pond_topo_out, &
-             tr_aero_out, tr_brine_out, tr_zaero_out, &
+             tr_fsd_out, tr_aero_out, tr_brine_out, tr_zaero_out, &
              tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
              tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
              tr_bgc_PON_out)
@@ -2028,6 +2103,7 @@ icepack_query_tracer_flags
                tr_pond_cesm_out , & ! if .true., use cesm pond tracer
                tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
+               tr_fsd_out       , & ! if .true., use floe size distribution
                tr_aero_out      , & ! if .true., use aerosol tracers
                tr_brine_out     , & ! if .true., brine height differs from ice thickness
                tr_zaero_out     , & ! if .true., black carbon is tracers  (n_zaero)
@@ -2071,18 +2147,19 @@ icepack_init_tracer_indices
              nt_Tsfc_in, nt_qice_in, nt_qsno_in, nt_sice_in, &
              nt_fbri_in, nt_iage_in, nt_FY_in, & 
              nt_alvl_in, nt_vlvl_in, nt_apnd_in, nt_hpnd_in, nt_ipnd_in, &
-             nt_aero_in, nt_zaero_in, &
+             nt_fsd_in, nt_aero_in, nt_zaero_in, nt_bgc_C_in, &
              nt_bgc_N_in, nt_bgc_chl_in, nt_bgc_DOC_in, nt_bgc_DON_in, &
              nt_bgc_DIC_in, nt_bgc_Fed_in, nt_bgc_Fep_in, nt_bgc_Nit_in, nt_bgc_Am_in, &
              nt_bgc_Sil_in, nt_bgc_DMSPp_in, nt_bgc_DMSPd_in, nt_bgc_DMS_in, nt_bgc_hum_in, &
-             nt_bgc_PON_in, nlt_zaero_in, nlt_bgc_N_in, nlt_bgc_chl_in, &
+             nt_bgc_PON_in, nlt_zaero_in, nlt_bgc_C_in, nlt_bgc_N_in, nlt_bgc_chl_in, &
              nlt_bgc_DOC_in, nlt_bgc_DON_in, nlt_bgc_DIC_in, nlt_bgc_Fed_in, &
              nlt_bgc_Fep_in, nlt_bgc_Nit_in, nlt_bgc_Am_in, nlt_bgc_Sil_in, &
              nlt_bgc_DMSPp_in, nlt_bgc_DMSPd_in, nlt_bgc_DMS_in, nlt_bgc_hum_in, &
              nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
-             nlt_zaero_sw_in, n_algae_in, n_DOC_in, &
+             nlt_zaero_sw_in, n_algae_in, n_DOC_in, n_aero_in, &
              n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
-             bio_index_o_in, bio_index_in, nbtrcr_in)
+             ncat_in, nilyr_in, nslyr_in, nblyr_in, &
+             bio_index_o_in, bio_index_in)
   
           integer, intent(in), optional :: &
                nt_Tsfc_in, & ! ice/snow temperature
@@ -2097,6 +2174,7 @@ icepack_init_tracer_indices
                nt_apnd_in, & ! melt pond area fraction
                nt_hpnd_in, & ! melt pond depth
                nt_ipnd_in, & ! melt pond refrozen lid thickness
+               nt_fsd_in,  & ! floe size distribution
                nt_aero_in, & ! starting index for aerosols in ice
                nt_bgc_Nit_in, & ! nutrients  
                nt_bgc_Am_in,  & ! 
@@ -2119,14 +2197,18 @@ icepack_init_tracer_indices
                nlt_chl_sw_in    ! points to total chla in trcrn_sw
   
          integer, intent(in), optional :: &
-               n_algae_in,    & !  Dimensions
+               ncat_in,       & ! Categories
+               nilyr_in,      & ! Layers
+               nslyr_in,      & !
+               nblyr_in,      & !
+               n_algae_in,    & ! Dimensions
                n_DOC_in,      & !
                n_DON_in,      & !
                n_DIC_in,      & !
                n_fed_in,      & !
                n_fep_in,      & ! 
                n_zaero_in,    & !
-               nbtrcr_in
+               n_aero_in        !
   
           integer (kind=int_kind), dimension(:), intent(in), optional :: &
                bio_index_o_in, & 
@@ -2134,10 +2216,10 @@ icepack_init_tracer_indices
   
           integer (kind=int_kind), dimension(:), intent(in), optional :: &
                nt_bgc_N_in ,  & ! diatoms, phaeocystis, pico/small   
-  !            nt_bgc_C_in ,  & ! diatoms, phaeocystis, pico/small   
+               nt_bgc_C_in ,  & ! diatoms, phaeocystis, pico/small   
                nt_bgc_chl_in, & ! diatoms, phaeocystis, pico/small 
                nlt_bgc_N_in , & ! diatoms, phaeocystis, pico/small   
-  !            nlt_bgc_C_in , & ! diatoms, phaeocystis, pico/small   
+               nlt_bgc_C_in , & ! diatoms, phaeocystis, pico/small   
                nlt_bgc_chl_in   ! diatoms, phaeocystis, pico/small 
   
           integer (kind=int_kind), dimension(:), intent(in), optional :: &
@@ -2177,16 +2259,18 @@ icepack_query_tracer_indices
              nt_Tsfc_out, nt_qice_out, nt_qsno_out, nt_sice_out, &
              nt_fbri_out, nt_iage_out, nt_FY_out, & 
              nt_alvl_out, nt_vlvl_out, nt_apnd_out, nt_hpnd_out, nt_ipnd_out, &
-             nt_aero_out, nt_zaero_out, &
-             nt_bgc_N_out, nt_bgc_C_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
+             nt_fsd_out, nt_aero_out, nt_zaero_out, nt_bgc_C_out, &
+             nt_bgc_N_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
              nt_bgc_DIC_out, nt_bgc_Fed_out, nt_bgc_Fep_out, nt_bgc_Nit_out, nt_bgc_Am_out, &
              nt_bgc_Sil_out, nt_bgc_DMSPp_out, nt_bgc_DMSPd_out, nt_bgc_DMS_out, nt_bgc_hum_out, &
-             nt_bgc_PON_out, nlt_zaero_out, nlt_bgc_N_out, nlt_bgc_C_out, nlt_bgc_chl_out, &
+             nt_bgc_PON_out, nlt_zaero_out, nlt_bgc_C_out, nlt_bgc_N_out, nlt_bgc_chl_out, &
              nlt_bgc_DOC_out, nlt_bgc_DON_out, nlt_bgc_DIC_out, nlt_bgc_Fed_out, &
              nlt_bgc_Fep_out, nlt_bgc_Nit_out, nlt_bgc_Am_out, nlt_bgc_Sil_out, &
              nlt_bgc_DMSPp_out, nlt_bgc_DMSPd_out, nlt_bgc_DMS_out, nlt_bgc_hum_out, &
              nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
-             nlt_zaero_sw_out, &
+             nlt_zaero_sw_out, n_algae_out, n_DOC_out, n_aero_out, &
+             n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
+             ncat_out, nilyr_out, nslyr_out, nblyr_out, &
              bio_index_o_out, bio_index_out)
   
           integer, intent(out), optional :: &
@@ -2202,6 +2286,7 @@ icepack_query_tracer_indices
                nt_apnd_out, & ! melt pond area fraction
                nt_hpnd_out, & ! melt pond depth
                nt_ipnd_out, & ! melt pond refrozen lid thickness
+               nt_fsd_out,  & ! floe size distribution
                nt_aero_out, & ! starting index for aerosols in ice
                nt_bgc_Nit_out, & ! nutrients  
                nt_bgc_Am_out,  & ! 
@@ -2222,6 +2307,20 @@ icepack_query_tracer_indices
                nt_zbgc_frac_out,&! fraction of tracer in the mobile phase
                nt_bgc_S_out,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
                nlt_chl_sw_out    ! points to total chla in trcrn_sw
+  
+         integer, intent(out), optional :: &
+               ncat_out,       & ! Categories
+               nilyr_out,      & ! Layers
+               nslyr_out,      & !
+               nblyr_out,      & !
+               n_algae_out,    & ! Dimensions
+               n_DOC_out,      & !
+               n_DON_out,      & !
+               n_DIC_out,      & !
+               n_fed_out,      & !
+               n_fep_out,      & ! 
+               n_zaero_out,    & !
+               n_aero_out
   
           integer (kind=int_kind), dimension(:), intent(out), optional :: &
                bio_index_o_out, & 

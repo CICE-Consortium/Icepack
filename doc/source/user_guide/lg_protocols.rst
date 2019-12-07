@@ -60,6 +60,12 @@ The function icepack_warnings_aborted queries the internal icepack abort flag an
 returns true if icepack generated an abort error.  
 my_abort_method represents a method in the driver that will abort the model cleanly.
 
+Icepack has no IO capabilities.  It does not have direct knowledge of
+any input or output files.  However, it can write output through specific
+interfaces that pass in a fortran file unit number.  There are also several
+methods in icepack that support writing data to a file.  The various
+*icepack_write_* interfaces also accept a unit number provided by the driver.
+
 .. _setinternal:
 
 Setting Internal Parameters
@@ -134,6 +140,8 @@ tracers understood by Icepack and lists some of their properties.  See all :ref:
    | hpnd       | optional | tr_pond       | 1       | 1       | melt pond depth                                                                   |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
    | ipnd       | optional | tr_pond       | 1       | 1       | melt pond refrozen thickness                                                      |
+   +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
+   | fsd        | optional | tr_fsd        | 1       | nfsd    | floe size distribution                                                            !
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
    | aero       | optional | tr_aero       | n_aero  | 4       | aerosols (snow SSL, snow below SSL, sea ice SSL, sea ice below SSL in that order) |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
