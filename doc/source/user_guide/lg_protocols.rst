@@ -61,11 +61,10 @@ The function **icepack_warnings_aborted** queries the internal icepack abort fla
 returns true if icepack generated an abort error.  
 my_abort_method represents a method in the driver that will abort the model cleanly.
 
-Icepack has no IO capabilities.  It does not have direct knowledge of
-any input or output files.  However, it can write output through specific
-interfaces that pass in a fortran file unit number.  There are also several
-methods in icepack that support writing data to a file.  The various
-**icepack_write_** interfaces also accept a unit number provided by the driver.
+In addition to writing Icepack messages thru the icepack_warnings_flush interface,
+there are also several methods in icepack that write general information to a file.  
+The various **icepack_write_** interfaces accept a unit number provided by the driver
+and then document internal Icepack values.
 
 .. _setinternal:
 
@@ -84,17 +83,17 @@ defines the available interfaces that fit into this category.
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
    | type           | init                            |                      query       |                      write       |           notes                                 |
    +================+=================================+==================================+==================================+=================================================+
-   | orbital        | icepack\_init\_ orbit           | icepack\_query\_ orbit           |                                  | orbital settings                                |
+   | orbital        | icepack\_init\_orbit            | icepack\_query\_orbit            |                                  | orbital settings                                |
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
-   | parameters     | icepack\_init\_ parameters      | icepack\_query\_ parameters      | icepack\_write\_ parameters      | scientific parameters                           |
+   | parameters     | icepack\_init\_parameters       | icepack\_query\_parameters       | icepack\_write\_parameters       | scientific parameters                           |
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
-   | tracer flags   | icepack\_init\_ tracer\_flags   | icepack\_query\_ tracer\_flags   | icepack\_write\_ tracer\_flags   | tracer flags                                    |
+   | tracer flags   | icepack\_init\_tracer\_flags    | icepack\_query\_tracer\_flags    | icepack\_write\_tracer\_flags    | tracer flags                                    |
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
-   | tracer sizes   |                                 | icepack\_query\_ tracer\_sizes   | icepack\_write\_ tracer\_sizes   | internally defined maximum tracer sizes         |
+   | tracer sizes   |                                 | icepack\_query\_tracer\_sizes    | icepack\_write\_tracer\_sizes    | internally defined maximum tracer sizes         |
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
-   | tracer indices | icepack\_init\_ tracer\_indices | icepack\_query\_ tracer\_indices | icepack\_write\_ tracer\_indices | tracer indexing in a broader tracer array       |
+   | tracer indices | icepack\_init\_tracer\_indices  | icepack\_query\_tracer\_indices  | icepack\_write\_tracer\_indices  | tracer indexing in a broader tracer array       |
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
-   | tracer numbers | icepack\_init\_ tracer\_numbers | icepack\_query\_ tracer\_numbers | icepack\_write\_ tracer\_numbers | tracer counts associated with different tracers |
+   | tracer numbers | icepack\_init\_tracer\_numbers  | icepack\_query\_tracer\_numbers  | icepack\_write\_tracer\_numbers  | tracer counts associated with different tracers |
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
 
 Many of these interfaces are related to tracers and in particular, tracer indexing in broader arrays.  This is further explained in :ref:`tracerindex`.
@@ -113,7 +112,7 @@ Tsfc, qice, qsno) are required, while other tracers (i.e. FY or bgc tracers) are
 only when certain features are triggered.  As a general rule, Icepack is aware of only a specific set
 of tracers and each tracer takes on multiple properties including counts, dependencies (:ref:`pondtr`), 
 and indexing in a broader tracer array.  The following table summarize the various types of 
-tracers understood by Icepack and lists some of their properties.  See all :ref:`tab-bio-tracer`.
+tracers understood by Icepack and lists some of their properties.  See also :ref:`tab-bio-tracer`.
 
 .. table:: *Tracer Types and Properties* 
 
@@ -144,7 +143,7 @@ tracers understood by Icepack and lists some of their properties.  See all :ref:
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
    | fsd        | optional | tr_fsd        | 1       | nfsd    | floe size distribution                                                            |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
-   | aero       | optional | tr_aero       | n_aero  | 4       | aerosols (snow SSL, snow below SSL, sea ice SSL, sea ice below SSL in that order) |
+   | aero       | optional | tr_aero       | n_aero* | 4       | aerosols (snow SSL, snow below SSL, sea ice SSL, sea ice below SSL in that order) |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
    | fbri       | optional | tr_brine      | 1       | 1       |                                                                                   |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
@@ -185,6 +184,8 @@ tracers understood by Icepack and lists some of their properties.  See all :ref:
    | zbgc_frac  | optional |               | 1       | nbtrcr  | fraction of tracer in mobile phase                                                |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
 
+* NOTE the aero tracer indexing is a little more complicated depending which aero option is chosen.
+
 The nt\_ start index in a full tracer array is the start index associated with tracer
 relative to the number*count.  The nlt\_ start index in a bgc array is the start index 
 associated with the tracer relative to the number only and it generally contains only
@@ -199,7 +200,7 @@ tracer indexing is particularly important.  Below is a list of the various trace
   - trcrn_depend/strata/etc defines dependency properties for tracers associated with the full array reference by nt\_ indexing
   - bio_index and bio_index_o is something else
 
-There are a few other tracer indexing arrays that may be needed.  In **icepack_aggregate**, the arguments
+In **icepack_aggregate**, the arguments
 *trcr_depend*, *trcr_base*, *n_trcr_strata*, and *nt_strata* are passed into the interface, and they
 provide information on dependencies between tracers.  This information needs to be initialized in
 the driving code.  In the bgc implementation, there are arrays *bio_index* and *bio_index_o* which

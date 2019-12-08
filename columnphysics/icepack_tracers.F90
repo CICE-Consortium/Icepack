@@ -440,7 +440,6 @@
            nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
            nlt_zaero_sw_in, n_algae_in, n_DOC_in, n_aero_in, &
            n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
-           ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in, &
            bio_index_o_in, bio_index_in)
 
         integer, intent(in), optional :: &
@@ -479,11 +478,6 @@
              nlt_chl_sw_in    ! points to total chla in trcrn_sw
 
        integer, intent(in), optional :: &
-             ncat_in,       & ! Categories
-             nilyr_in,      & ! Layers
-             nslyr_in,      & !
-             nblyr_in,      & !
-             nfsd_in,       & !
              n_algae_in,    & ! Dimensions
              n_DOC_in,      & !
              n_DON_in,      & !
@@ -567,11 +561,6 @@
         if (present(nlt_chl_sw_in)   ) nlt_chl_sw    = nlt_chl_sw_in
         if (present(nt_zbgc_frac_in) ) nt_zbgc_frac  = nt_zbgc_frac_in
         if (present(nt_bgc_S_in)     ) nt_bgc_S      = nt_bgc_S_in
-        if (present(ncat_in)         ) ncat          = ncat_in
-        if (present(nilyr_in)        ) nilyr         = nilyr_in
-        if (present(nslyr_in)        ) nslyr         = nslyr_in
-        if (present(nblyr_in)        ) nblyr         = nblyr_in
-        if (present(nfsd_in)         ) nfsd          = nfsd_in
         if (present(n_algae_in)      ) n_algae       = n_algae_in
         if (present(n_DOC_in)        ) n_DOC         = n_DOC_in
         if (present(n_DON_in)        ) n_DON         = n_DON_in
@@ -818,7 +807,6 @@
            nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
            nlt_zaero_sw_out, n_algae_out, n_DOC_out, n_aero_out, &
            n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
-           ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
            bio_index_o_out, bio_index_out)
 
         integer, intent(out), optional :: &
@@ -857,11 +845,6 @@
              nlt_chl_sw_out    ! points to total chla in trcrn_sw
 
        integer, intent(out), optional :: &
-             ncat_out,       & ! Categories
-             nilyr_out,      & ! Layers
-             nslyr_out,      & !
-             nblyr_out,      & !
-             nfsd_out,       & !
              n_algae_out,    & ! Dimensions
              n_DOC_out,      & !
              n_DON_out,      & !
@@ -910,11 +893,6 @@
 
         character(len=*),parameter :: subname='(icepack_query_tracer_indices)'
 
-        if (present(ncat_out)   ) ncat_out    = ncat
-        if (present(nilyr_out)  ) nilyr_out   = nilyr
-        if (present(nslyr_out)  ) nslyr_out   = nslyr
-        if (present(nblyr_out)  ) nblyr_out   = nblyr
-        if (present(nfsd_out)   ) nfsd_out    = nfsd
         if (present(n_algae_out)) n_algae_out = n_algae
         if (present(n_DOC_out)  ) n_DOC_out   = n_DOC
         if (present(n_DON_out)  ) n_DON_out   = n_DON
@@ -997,11 +975,6 @@
         character(len=*),parameter :: subname='(icepack_write_tracer_indices)'
 
         write(iounit,*) subname//":"
-        write(iounit,*) "  ncat    = ",ncat
-        write(iounit,*) "  nilyr   = ",nilyr
-        write(iounit,*) "  nslyr   = ",nslyr
-        write(iounit,*) "  nblyr   = ",nblyr
-        write(iounit,*) "  nfsd    = ",nfsd
         write(iounit,*) "  n_algae = ",n_algae
         write(iounit,*) "  n_DOC   = ",n_DOC
         write(iounit,*) "  n_DON   = ",n_DON
@@ -1100,9 +1073,15 @@
 ! set the number of column tracers
 
       subroutine icepack_init_tracer_numbers(&
+         ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in, &
          ntrcr_in, ntrcr_o_in, nbtrcr_in, nbtrcr_sw_in)
 
       integer (kind=int_kind), intent(in), optional :: &
+         ncat_in   , & ! Categories
+         nfsd_in   , & !
+         nilyr_in  , & ! Layers
+         nslyr_in  , & !
+         nblyr_in  , & !
          ntrcr_in  , &! number of tracers in use
          ntrcr_o_in, &! number of non-bio tracers in use
          nbtrcr_in , &! number of bio tracers in use
@@ -1112,6 +1091,11 @@
 
         character(len=*),parameter :: subname='(icepack_init_tracer_numbers)'
 
+        if (present(ncat_in)     ) ncat      = ncat_in
+        if (present(nilyr_in)    ) nilyr     = nilyr_in
+        if (present(nslyr_in)    ) nslyr     = nslyr_in
+        if (present(nblyr_in)    ) nblyr     = nblyr_in
+        if (present(nfsd_in)     ) nfsd      = nfsd_in
         if (present(ntrcr_in)    ) ntrcr     = ntrcr_in
         if (present(ntrcr_o_in)  ) ntrcr_o   = ntrcr_o_in
         if (present(nbtrcr_in)   ) nbtrcr    = nbtrcr_in
@@ -1124,9 +1108,15 @@
 ! query the number of column tracers
 
       subroutine icepack_query_tracer_numbers(&
+         ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
          ntrcr_out, ntrcr_o_out, nbtrcr_out, nbtrcr_sw_out)
 
       integer (kind=int_kind), intent(out), optional :: &
+         ncat_out   , & ! Categories
+         nfsd_out   , & !
+         nilyr_out  , & ! Layers
+         nslyr_out  , & !
+         nblyr_out  , & !
          ntrcr_out  , &! number of tracers in use
          ntrcr_o_out, &! number of non-bio tracers in use
          nbtrcr_out , &! number of bio tracers in use
@@ -1136,6 +1126,11 @@
 
         character(len=*),parameter :: subname='(icepack_query_tracer_numbers)'
 
+        if (present(ncat_out)     ) ncat_out      = ncat
+        if (present(nilyr_out)    ) nilyr_out     = nilyr
+        if (present(nslyr_out)    ) nslyr_out     = nslyr
+        if (present(nblyr_out)    ) nblyr_out     = nblyr
+        if (present(nfsd_out)     ) nfsd_out      = nfsd
         if (present(ntrcr_out)    ) ntrcr_out     = ntrcr
         if (present(ntrcr_o_out)  ) ntrcr_o_out   = ntrcr_o
         if (present(nbtrcr_out)   ) nbtrcr_out    = nbtrcr
@@ -1156,8 +1151,14 @@
         character(len=*),parameter :: subname='(icepack_write_tracer_numbers)'
 
         write(iounit,*) subname//":"
-        write(iounit,*) "  ntrcr     = ",ntrcr    
-        write(iounit,*) "  nbtrcr    = ",nbtrcr   
+        write(iounit,*) "  ncat      = ",ncat
+        write(iounit,*) "  nilyr     = ",nilyr
+        write(iounit,*) "  nslyr     = ",nslyr
+        write(iounit,*) "  nblyr     = ",nblyr
+        write(iounit,*) "  nfsd      = ",nfsd
+        write(iounit,*) "  ntrcr     = ",ntrcr
+        write(iounit,*) "  ntrcr_o   = ",ntrcr_o
+        write(iounit,*) "  nbtrcr    = ",nbtrcr
         write(iounit,*) "  nbtrcr_sw = ",nbtrcr_sw
 
       end subroutine icepack_write_tracer_numbers

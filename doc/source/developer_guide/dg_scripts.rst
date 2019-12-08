@@ -83,9 +83,7 @@ Machines
 
 Machine specific information is contained in **configuration/scripts/machines**.  That
 directory contains a Macros file and an env file for each supported machine.
-One other files will need to be
-changed to support a port, that is **configuration/scripts/icepack.batch.csh**.
-To port to a new machine, see :ref:`porting`.  
+For more information on porting to a new machine, see :ref:`porting`.  
 
 .. _dev_testing:
 
@@ -98,9 +96,6 @@ A baseline test script (**baseline.script**) is also there to setup the regressi
 and comparison testing.  That directory also contains the preset test suites 
 (ie. **base_suite.ts**) and a file that supports post-processing on the model
 output (**timeseries.csh**).  
-
-There is a subdirectory, **configuration/scripts/tests/CTest**, that supports the
-CTest scripts.  These scripts allow test reporting to CDash.
 
 To add a new test, a file associated with that test will need to be added to the
 **configuration/scripts/tests** directory similar to **test_smoke.script** 
