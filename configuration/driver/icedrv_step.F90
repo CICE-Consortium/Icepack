@@ -13,10 +13,9 @@
       use icedrv_system, only: icedrv_system_abort
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_indices
-      use icepack_intfc, only: icepack_query_tracer_numbers
+      use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_parameters
 
       implicit none
@@ -162,7 +161,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call icepack_query_tracer_numbers( &
+      call icepack_query_tracer_sizes( &
            ntrcr_out=ntrcr)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -374,7 +373,7 @@
       ! query icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -480,7 +479,7 @@
       ! query icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -639,7 +638,7 @@
       ! query icepack values
       !-----------------------------------------------------------------
 
-         call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+         call icepack_query_tracer_sizes(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
@@ -808,7 +807,7 @@
       allocate(nt_zaero(max_aero))
       allocate(nt_bgc_N(max_algae))
 
-      call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_sw_out=nbtrcr_sw)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr, nbtrcr_sw_out=nbtrcr_sw)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -1123,7 +1122,7 @@
 
       !-----------------------------------------------------------------
 
-      call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
       call icepack_query_tracer_indices(nlt_zaero_out=nlt_zaero)
       call icepack_query_tracer_indices(bio_index_o_out=bio_index_o)

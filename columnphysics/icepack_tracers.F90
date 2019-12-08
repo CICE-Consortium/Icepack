@@ -15,17 +15,15 @@
 
       private
       public :: icepack_compute_tracers
-      public :: icepack_query_tracer_sizes
-      public :: icepack_write_tracer_sizes
       public :: icepack_init_tracer_flags
       public :: icepack_query_tracer_flags
       public :: icepack_write_tracer_flags
       public :: icepack_init_tracer_indices
       public :: icepack_query_tracer_indices
       public :: icepack_write_tracer_indices
-      public :: icepack_init_tracer_numbers
-      public :: icepack_query_tracer_numbers
-      public :: icepack_write_tracer_numbers
+      public :: icepack_init_tracer_sizes
+      public :: icepack_query_tracer_sizes
+      public :: icepack_write_tracer_sizes
 
       !-----------------------------------------------------------------
       ! dimensions
@@ -191,67 +189,6 @@
 !=======================================================================
 
       contains
-
-!=======================================================================
-!autodocument_start icepack_query_tracer_sizes
-! query tracer sizes
-
-      subroutine icepack_query_tracer_sizes( &
-           max_algae_out  , max_dic_out    , max_doc_out    , &
-           max_don_out    , max_fe_out     , nmodal1_out    , &
-           nmodal2_out    , max_aero_out   , max_nbtrcr_out )
-
-        integer (kind=int_kind), intent(out), optional :: &
-             max_algae_out  , & ! maximum number of algal types
-             max_dic_out    , & ! maximum number of dissolved inorganic carbon types
-             max_doc_out    , & ! maximum number of dissolved organic carbon types
-             max_don_out    , & ! maximum number of dissolved organic nitrogen types
-             max_fe_out     , & ! maximum number of iron types
-             nmodal1_out    , & ! dimension for modal aerosol radiation parameters
-             nmodal2_out    , & ! dimension for modal aerosol radiation parameters
-             max_aero_out   , & ! maximum number of aerosols
-             max_nbtrcr_out     ! algal nitrogen and chlorophyll
-
-!autodocument_end
-
-        character(len=*),parameter :: subname='(icepack_query_tracer_sizes)'
-
-        if (present(max_algae_out))  max_algae_out = max_algae
-        if (present(max_dic_out))    max_dic_out   = max_dic
-        if (present(max_doc_out))    max_doc_out   = max_doc
-        if (present(max_don_out))    max_don_out   = max_don
-        if (present(max_fe_out))     max_fe_out    = max_fe
-        if (present(nmodal1_out))    nmodal1_out   = nmodal1
-        if (present(nmodal2_out))    nmodal2_out   = nmodal2
-        if (present(max_aero_out))   max_aero_out  = max_aero
-        if (present(max_nbtrcr_out)) max_nbtrcr_out= max_nbtrcr
-
-      end subroutine icepack_query_tracer_sizes
-
-!=======================================================================
-!autodocument_start icepack_write_tracer_sizes
-! write tracer sizes
-
-      subroutine icepack_write_tracer_sizes(iounit)
-
-        integer, intent(in) :: iounit
-
-!autodocument_end
-
-        character(len=*),parameter :: subname='(icepack_write_tracer_sizes)'
-
-        write(iounit,*) subname//":"
-        write(iounit,*) '  max_algae_out =', max_algae
-        write(iounit,*) '  max_dic_out   =', max_dic
-        write(iounit,*) '  max_doc_out   =', max_doc
-        write(iounit,*) '  max_don_out   =', max_don
-        write(iounit,*) '  max_fe_out    =', max_fe
-        write(iounit,*) '  nmodal1_out   =', nmodal1
-        write(iounit,*) '  nmodal2_out   =', nmodal2
-        write(iounit,*) '  max_aero_out  =', max_aero
-        write(iounit,*) '  max_nbtrcr_out=', max_nbtrcr
-
-      end subroutine icepack_write_tracer_sizes
 
 !=======================================================================
 !autodocument_start icepack_init_tracer_flags
@@ -438,8 +375,7 @@
            nlt_bgc_Fep_in, nlt_bgc_Nit_in, nlt_bgc_Am_in, nlt_bgc_Sil_in, &
            nlt_bgc_DMSPp_in, nlt_bgc_DMSPd_in, nlt_bgc_DMS_in, nlt_bgc_hum_in, &
            nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
-           nlt_zaero_sw_in, n_algae_in, n_DOC_in, n_aero_in, &
-           n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
+           nlt_zaero_sw_in, &
            bio_index_o_in, bio_index_in)
 
         integer, intent(in), optional :: &
@@ -476,16 +412,6 @@
              nt_zbgc_frac_in,&! fraction of tracer in the mobile phase
              nt_bgc_S_in,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
              nlt_chl_sw_in    ! points to total chla in trcrn_sw
-
-       integer, intent(in), optional :: &
-             n_algae_in,    & ! Dimensions
-             n_DOC_in,      & !
-             n_DON_in,      & !
-             n_DIC_in,      & !
-             n_fed_in,      & !
-             n_fep_in,      & ! 
-             n_zaero_in,    & !
-             n_aero_in        !
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
              bio_index_o_in, & 
@@ -561,14 +487,6 @@
         if (present(nlt_chl_sw_in)   ) nlt_chl_sw    = nlt_chl_sw_in
         if (present(nt_zbgc_frac_in) ) nt_zbgc_frac  = nt_zbgc_frac_in
         if (present(nt_bgc_S_in)     ) nt_bgc_S      = nt_bgc_S_in
-        if (present(n_algae_in)      ) n_algae       = n_algae_in
-        if (present(n_DOC_in)        ) n_DOC         = n_DOC_in
-        if (present(n_DON_in)        ) n_DON         = n_DON_in
-        if (present(n_DIC_in)        ) n_DIC         = n_DIC_in
-        if (present(n_fed_in)        ) n_fed         = n_fed_in
-        if (present(n_fep_in)        ) n_fep         = n_fep_in
-        if (present(n_zaero_in)      ) n_zaero       = n_zaero_in
-        if (present(n_aero_in)        ) n_aero       = n_aero_in
 
         if (present(bio_index_in)) then
            nsiz = size(bio_index_in)
@@ -805,8 +723,7 @@
            nlt_bgc_Fep_out, nlt_bgc_Nit_out, nlt_bgc_Am_out, nlt_bgc_Sil_out, &
            nlt_bgc_DMSPp_out, nlt_bgc_DMSPd_out, nlt_bgc_DMS_out, nlt_bgc_hum_out, &
            nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
-           nlt_zaero_sw_out, n_algae_out, n_DOC_out, n_aero_out, &
-           n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
+           nlt_zaero_sw_out, &
            bio_index_o_out, bio_index_out)
 
         integer, intent(out), optional :: &
@@ -843,16 +760,6 @@
              nt_zbgc_frac_out,&! fraction of tracer in the mobile phase
              nt_bgc_S_out,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
              nlt_chl_sw_out    ! points to total chla in trcrn_sw
-
-       integer, intent(out), optional :: &
-             n_algae_out,    & ! Dimensions
-             n_DOC_out,      & !
-             n_DON_out,      & !
-             n_DIC_out,      & !
-             n_fed_out,      & !
-             n_fep_out,      & ! 
-             n_zaero_out,    & !
-             n_aero_out
 
         integer (kind=int_kind), dimension(:), intent(out), optional :: &
              bio_index_o_out, & 
@@ -892,15 +799,6 @@
 !autodocument_end
 
         character(len=*),parameter :: subname='(icepack_query_tracer_indices)'
-
-        if (present(n_algae_out)) n_algae_out = n_algae
-        if (present(n_DOC_out)  ) n_DOC_out   = n_DOC
-        if (present(n_DON_out)  ) n_DON_out   = n_DON
-        if (present(n_DIC_out)  ) n_DIC_out   = n_DIC
-        if (present(n_fed_out)  ) n_fed_out   = n_fed
-        if (present(n_fep_out)  ) n_fep_out   = n_fep
-        if (present(n_zaero_out)) n_zaero_out = n_zaero
-        if (present(n_aero_out) ) n_aero_out  = n_aero
 
         if (present(nt_Tsfc_out)) nt_Tsfc_out = nt_Tsfc
         if (present(nt_qice_out)) nt_qice_out = nt_qice
@@ -975,14 +873,6 @@
         character(len=*),parameter :: subname='(icepack_write_tracer_indices)'
 
         write(iounit,*) subname//":"
-        write(iounit,*) "  n_algae = ",n_algae
-        write(iounit,*) "  n_DOC   = ",n_DOC
-        write(iounit,*) "  n_DON   = ",n_DON
-        write(iounit,*) "  n_DIC   = ",n_DIC
-        write(iounit,*) "  n_fed   = ",n_fed
-        write(iounit,*) "  n_fep   = ",n_fep
-        write(iounit,*) "  n_zaero = ",n_zaero
-        write(iounit,*) "  n_aero  = ",n_aero
         write(iounit,*) "  nt_Tsfc = ",nt_Tsfc
         write(iounit,*) "  nt_qice = ",nt_qice
         write(iounit,*) "  nt_qsno = ",nt_qsno
@@ -1069,11 +959,13 @@
       end subroutine icepack_write_tracer_indices
 
 !=======================================================================
-!autodocument_start icepack_init_tracer_numbers
+!autodocument_start icepack_init_tracer_sizes
 ! set the number of column tracers
 
-      subroutine icepack_init_tracer_numbers(&
-         ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in, &
+      subroutine icepack_init_tracer_sizes(&
+         ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in  , &
+         n_algae_in, n_DOC_in, n_aero_in, &
+         n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
          ntrcr_in, ntrcr_o_in, nbtrcr_in, nbtrcr_sw_in)
 
       integer (kind=int_kind), intent(in), optional :: &
@@ -1082,34 +974,68 @@
          nilyr_in  , & ! Layers
          nslyr_in  , & !
          nblyr_in  , & !
-         ntrcr_in  , &! number of tracers in use
-         ntrcr_o_in, &! number of non-bio tracers in use
-         nbtrcr_in , &! number of bio tracers in use
-         nbtrcr_sw_in ! number of shortwave bio tracers in use
+         n_algae_in, & ! Dimensions
+         n_DOC_in  , & !
+         n_DON_in  , & !
+         n_DIC_in  , & !
+         n_fed_in  , & !
+         n_fep_in  , & ! 
+         n_zaero_in, & !
+         n_aero_in , & !
+         ntrcr_in  , & ! number of tracers in use
+         ntrcr_o_in, & ! number of non-bio tracers in use
+         nbtrcr_in , & ! number of bio tracers in use
+         nbtrcr_sw_in  ! number of shortwave bio tracers in use
 
 !autodocument_end
 
-        character(len=*),parameter :: subname='(icepack_init_tracer_numbers)'
+        character(len=*),parameter :: subname='(icepack_init_tracer_sizes)'
 
         if (present(ncat_in)     ) ncat      = ncat_in
         if (present(nilyr_in)    ) nilyr     = nilyr_in
         if (present(nslyr_in)    ) nslyr     = nslyr_in
         if (present(nblyr_in)    ) nblyr     = nblyr_in
         if (present(nfsd_in)     ) nfsd      = nfsd_in
+
+        if (present(n_algae_in)  ) n_algae   = n_algae_in
+        if (present(n_DOC_in)    ) n_DOC     = n_DOC_in
+        if (present(n_DON_in)    ) n_DON     = n_DON_in
+        if (present(n_DIC_in)    ) n_DIC     = n_DIC_in
+        if (present(n_fed_in)    ) n_fed     = n_fed_in
+        if (present(n_fep_in)    ) n_fep     = n_fep_in
+        if (present(n_zaero_in)  ) n_zaero   = n_zaero_in
+        if (present(n_aero_in)   ) n_aero    = n_aero_in
+
         if (present(ntrcr_in)    ) ntrcr     = ntrcr_in
         if (present(ntrcr_o_in)  ) ntrcr_o   = ntrcr_o_in
         if (present(nbtrcr_in)   ) nbtrcr    = nbtrcr_in
         if (present(nbtrcr_sw_in)) nbtrcr_sw = nbtrcr_sw_in
 
-      end subroutine icepack_init_tracer_numbers
+      end subroutine icepack_init_tracer_sizes
 
 !=======================================================================
-!autodocument_start icepack_query_tracer_numbers
+!autodocument_start icepack_query_tracer_sizes
 ! query the number of column tracers
 
-      subroutine icepack_query_tracer_numbers(&
+      subroutine icepack_query_tracer_sizes(&
+         max_algae_out  , max_dic_out    , max_doc_out      , &
+         max_don_out    , max_fe_out     , nmodal1_out      , &
+         nmodal2_out    , max_aero_out   , max_nbtrcr_out   , &
          ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
+         n_algae_out, n_DOC_out, n_aero_out, &
+         n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
          ntrcr_out, ntrcr_o_out, nbtrcr_out, nbtrcr_sw_out)
+
+      integer (kind=int_kind), intent(out), optional :: &
+         max_algae_out  , & ! maximum number of algal types
+         max_dic_out    , & ! maximum number of dissolved inorganic carbon types
+         max_doc_out    , & ! maximum number of dissolved organic carbon types
+         max_don_out    , & ! maximum number of dissolved organic nitrogen types
+         max_fe_out     , & ! maximum number of iron types
+         nmodal1_out    , & ! dimension for modal aerosol radiation parameters
+         nmodal2_out    , & ! dimension for modal aerosol radiation parameters
+         max_aero_out   , & ! maximum number of aerosols
+         max_nbtrcr_out     ! algal nitrogen and chlorophyll
 
       integer (kind=int_kind), intent(out), optional :: &
          ncat_out   , & ! Categories
@@ -1117,51 +1043,99 @@
          nilyr_out  , & ! Layers
          nslyr_out  , & !
          nblyr_out  , & !
-         ntrcr_out  , &! number of tracers in use
-         ntrcr_o_out, &! number of non-bio tracers in use
-         nbtrcr_out , &! number of bio tracers in use
-         nbtrcr_sw_out ! number of shortwave bio tracers in use
+         n_algae_out, & ! Dimensions
+         n_DOC_out  , & !
+         n_DON_out  , & !
+         n_DIC_out  , & !
+         n_fed_out  , & !
+         n_fep_out  , & ! 
+         n_zaero_out, & !
+         n_aero_out , & !
+         ntrcr_out  , & ! number of tracers in use
+         ntrcr_o_out, & ! number of non-bio tracers in use
+         nbtrcr_out , & ! number of bio tracers in use
+         nbtrcr_sw_out  ! number of shortwave bio tracers in use
 
 !autodocument_end
 
-        character(len=*),parameter :: subname='(icepack_query_tracer_numbers)'
+        character(len=*),parameter :: subname='(icepack_query_tracer_sizes)'
+
+        if (present(max_algae_out))  max_algae_out = max_algae
+        if (present(max_dic_out))    max_dic_out   = max_dic
+        if (present(max_doc_out))    max_doc_out   = max_doc
+        if (present(max_don_out))    max_don_out   = max_don
+        if (present(max_fe_out))     max_fe_out    = max_fe
+        if (present(nmodal1_out))    nmodal1_out   = nmodal1
+        if (present(nmodal2_out))    nmodal2_out   = nmodal2
+        if (present(max_aero_out))   max_aero_out  = max_aero
+        if (present(max_nbtrcr_out)) max_nbtrcr_out= max_nbtrcr
 
         if (present(ncat_out)     ) ncat_out      = ncat
         if (present(nilyr_out)    ) nilyr_out     = nilyr
         if (present(nslyr_out)    ) nslyr_out     = nslyr
         if (present(nblyr_out)    ) nblyr_out     = nblyr
         if (present(nfsd_out)     ) nfsd_out      = nfsd
+
+        if (present(n_algae_out)  ) n_algae_out   = n_algae
+        if (present(n_DOC_out)    ) n_DOC_out     = n_DOC
+        if (present(n_DON_out)    ) n_DON_out     = n_DON
+        if (present(n_DIC_out)    ) n_DIC_out     = n_DIC
+        if (present(n_fed_out)    ) n_fed_out     = n_fed
+        if (present(n_fep_out)    ) n_fep_out     = n_fep
+        if (present(n_zaero_out)  ) n_zaero_out   = n_zaero
+        if (present(n_aero_out)   ) n_aero_out    = n_aero
+
         if (present(ntrcr_out)    ) ntrcr_out     = ntrcr
         if (present(ntrcr_o_out)  ) ntrcr_o_out   = ntrcr_o
         if (present(nbtrcr_out)   ) nbtrcr_out    = nbtrcr
         if (present(nbtrcr_sw_out)) nbtrcr_sw_out = nbtrcr_sw
 
-      end subroutine icepack_query_tracer_numbers
+      end subroutine icepack_query_tracer_sizes
 
 !=======================================================================
-!autodocument_start icepack_write_tracer_numbers
+!autodocument_start icepack_write_tracer_sizes
 ! write the number of column tracers
 
-      subroutine icepack_write_tracer_numbers(iounit)
+      subroutine icepack_write_tracer_sizes(iounit)
 
       integer (kind=int_kind), intent(in) :: iounit
 
 !autodocument_end
 
-        character(len=*),parameter :: subname='(icepack_write_tracer_numbers)'
+        character(len=*),parameter :: subname='(icepack_write_tracer_sizes)'
 
         write(iounit,*) subname//":"
+        write(iounit,*) "  fixed parameters: "
+        write(iounit,*) "  max_algae_out =", max_algae
+        write(iounit,*) "  max_dic_out   =", max_dic
+        write(iounit,*) "  max_doc_out   =", max_doc
+        write(iounit,*) "  max_don_out   =", max_don
+        write(iounit,*) "  max_fe_out    =", max_fe
+        write(iounit,*) "  nmodal1_out   =", nmodal1
+        write(iounit,*) "  nmodal2_out   =", nmodal2
+        write(iounit,*) "  max_aero_out  =", max_aero
+        write(iounit,*) "  max_nbtrcr_out=", max_nbtrcr
+
+        write(iounit,*) "  model defined parameters: "
         write(iounit,*) "  ncat      = ",ncat
         write(iounit,*) "  nilyr     = ",nilyr
         write(iounit,*) "  nslyr     = ",nslyr
         write(iounit,*) "  nblyr     = ",nblyr
         write(iounit,*) "  nfsd      = ",nfsd
+        write(iounit,*) "  n_algae   = ",n_algae
+        write(iounit,*) "  n_DOC     = ",n_DOC
+        write(iounit,*) "  n_DON     = ",n_DON
+        write(iounit,*) "  n_DIC     = ",n_DIC
+        write(iounit,*) "  n_fed     = ",n_fed
+        write(iounit,*) "  n_fep     = ",n_fep
+        write(iounit,*) "  n_zaero   = ",n_zaero
+        write(iounit,*) "  n_aero    = ",n_aero
         write(iounit,*) "  ntrcr     = ",ntrcr
         write(iounit,*) "  ntrcr_o   = ",ntrcr_o
         write(iounit,*) "  nbtrcr    = ",nbtrcr
         write(iounit,*) "  nbtrcr_sw = ",nbtrcr_sw
 
-      end subroutine icepack_write_tracer_numbers
+      end subroutine icepack_write_tracer_sizes
 
 !=======================================================================
 !autodocument_start icepack_compute_tracers

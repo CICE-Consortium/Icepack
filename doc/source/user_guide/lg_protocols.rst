@@ -89,11 +89,9 @@ defines the available interfaces that fit into this category.
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
    | tracer flags   | icepack\_init\_tracer\_flags    | icepack\_query\_tracer\_flags    | icepack\_write\_tracer\_flags    | tracer flags                                    |
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
-   | tracer sizes   |                                 | icepack\_query\_tracer\_sizes    | icepack\_write\_tracer\_sizes    | internally defined maximum tracer sizes         |
+   | tracer sizes   |                                 | icepack\_query\_tracer\_sizes    | icepack\_write\_tracer\_sizes    | tracer counts and tracer maximum sizes          |
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
    | tracer indices | icepack\_init\_tracer\_indices  | icepack\_query\_tracer\_indices  | icepack\_write\_tracer\_indices  | tracer indexing in a broader tracer array       |
-   +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
-   | tracer numbers | icepack\_init\_tracer\_numbers  | icepack\_query\_tracer\_numbers  | icepack\_write\_tracer\_numbers  | tracer counts associated with different tracers |
    +----------------+---------------------------------+----------------------------------+----------------------------------+-------------------------------------------------+
 
 Many of these interfaces are related to tracers and in particular, tracer indexing in broader arrays.  This is further explained in :ref:`tracerindex`.

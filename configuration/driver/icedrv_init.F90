@@ -13,12 +13,12 @@
       use icepack_intfc, only: icepack_init_parameters
       use icepack_intfc, only: icepack_init_fsd
       use icepack_intfc, only: icepack_init_tracer_flags
-      use icepack_intfc, only: icepack_init_tracer_numbers
+      use icepack_intfc, only: icepack_init_tracer_sizes
       use icepack_intfc, only: icepack_init_tracer_indices
       use icepack_intfc, only: icepack_init_trcr
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags
-      use icepack_intfc, only: icepack_query_tracer_numbers
+      use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
@@ -734,7 +734,7 @@
            tfrz_option_in=tfrz_option, kalg_in=kalg, &
            fbot_xfer_type_in=fbot_xfer_type, &
            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec)
-      call icepack_init_tracer_numbers(ntrcr_in=ntrcr, &
+      call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
            nfsd_in=nfsd)
       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
@@ -842,7 +842,7 @@
       !-----------------------------------------------------------------
 
          call icepack_query_parameters(heat_capacity_out=heat_capacity)
-         call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
+         call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
          call icepack_query_tracer_flags(tr_iage_out=tr_iage, &
               tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
               tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, &
