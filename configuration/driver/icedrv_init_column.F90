@@ -27,7 +27,7 @@
       use icepack_intfc, only: icepack_init_thermo
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
       use icepack_intfc, only: icepack_init_bgc, icepack_init_zsalinity
-      use icepack_intfc, only: icepack_init_ocean_conc, icepack_init_OceanConcArray
+      use icepack_intfc, only: icepack_init_ocean_bio, icepack_load_ocean_bio_array
       use icepack_intfc, only: icepack_init_hbrine
       use icedrv_system, only: icedrv_system_abort
 
@@ -113,11 +113,11 @@
       use icedrv_state, only: aicen, vicen, vsnon, trcrn
 
       integer (kind=int_kind) :: &
-         i, k           , & ! horizontal indices
-         n                  ! thickness category index
+         i, k         , & ! horizontal indices
+         n                ! thickness category index
 
       real (kind=dbl_kind) :: &
-         netsw           ! flag for shortwave radiation presence
+         netsw            ! flag for shortwave radiation presence
 
       logical (kind=log_kind) :: &
          l_print_point, & ! flag to print designated grid point diagnostics
@@ -128,18 +128,17 @@
          shortwave        ! from icepack
 
       real (kind=dbl_kind), dimension(ncat) :: &
-         fbri                 ! brine height to ice thickness
+         fbri             ! brine height to ice thickness
 
-      real (kind=dbl_kind), dimension(max_ntrcr, ncat) :: &
-         ztrcr
-
-      real (kind=dbl_kind), dimension(max_ntrcr, ncat) :: &
+      real (kind=dbl_kind), allocatable, dimension(:,:) :: &
          ztrcr_sw
 
-      logical (kind=log_kind) :: tr_brine, tr_zaero, tr_bgc_n
+      logical (kind=log_kind) :: tr_brine, tr_zaero, tr_bgc_N
       integer (kind=int_kind) :: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, &
          nt_fbri, nt_tsfc, ntrcr, nbtrcr_sw, nlt_chl_sw
       integer (kind=int_kind), dimension(icepack_max_aero) :: nlt_zaero_sw
+      integer (kind=int_kind), dimension(icepack_max_aero) :: nt_zaero
+      integer (kind=int_kind), dimension(icepack_max_algae) :: nt_bgc_N
       real (kind=dbl_kind) :: puny
 
       character(len=*), parameter :: subname='(init_shortwave)'
@@ -155,11 +154,12 @@
          call icepack_query_tracer_numbers(ntrcr_out=ntrcr, &
               nbtrcr_sw_out=nbtrcr_sw)
          call icepack_query_tracer_flags(tr_brine_out=tr_brine, &
-              tr_zaero_out=tr_zaero, tr_bgc_n_out=tr_bgc_n)
+              tr_zaero_out=tr_zaero, tr_bgc_N_out=tr_bgc_N)
          call icepack_query_tracer_indices(nt_alvl_out=nt_alvl, &
               nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
               nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, &
               nt_fbri_out=nt_fbri, nt_tsfc_out=nt_tsfc, &
+              nt_bgc_N_out=nt_bgc_N, nt_zaero_out=nt_zaero, &
               nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -168,6 +168,8 @@
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
+
+         allocate(ztrcr_sw(nbtrcr_sw, ncat))
 
          fswpenln(:,:,:) = c0
          Iswabsn(:,:,:) = c0
@@ -221,23 +223,15 @@
             fbri(:) = c0
             ztrcr_sw(:,:) = c0
             do n = 1, ncat
-               do k = 1, ntrcr
-                  ztrcr(k,n) = trcrn(i,k,n)
-               enddo
                if (tr_brine)  fbri(n) = trcrn(i,nt_fbri,n)
             enddo
 
             if (tmask(i)) then
             call icepack_step_radiation (              &
                          dt=dt,           ncat=ncat,           &
-                         n_algae=n_algae, nblyr=nblyr,         &
-                         ntrcr=ntrcr,     nbtrcr_sw=nbtrcr_sw, &
+                         nblyr=nblyr,                          &
                          nilyr=nilyr,     nslyr=nslyr,         &
-                         n_aero=n_aero,   n_zaero=n_zaero,     &
-                         tr_zaero=tr_zaero,                    &
                          dEdd_algae=dEdd_algae,                &
-                         nlt_chl_sw=nlt_chl_sw,                &
-                         nlt_zaero_sw=nlt_zaero_sw(:),         &
                          swgrid=swgrid(:),                     &
                          igrid=igrid(:),                       &
                          fbri=fbri(:),                         &
@@ -250,8 +244,9 @@
                          hpndn=trcrn(i,nt_hpnd,:),             &
                          ipndn=trcrn(i,nt_ipnd,:),             &
                          aeron=trcrn(i,nt_aero:nt_aero+4*n_aero-1,:), &
-                         zbion=ztrcr_sw,                       &
-                         trcrn=ztrcr,                          &
+                         bgcNn=trcrn(i,nt_bgc_N(1):nt_bgc_N(1)+n_algae*(nblyr+3)-1,:), &
+                         zaeron=trcrn(i,nt_zaero(1):nt_zaero(1)+n_zaero*(nblyr+3)-1,:), &
+                         trcrn_bgcsw=ztrcr_sw,                 &
                          TLAT=TLAT(i), TLON=TLON(i),           &
                          calendar_type=calendar_type,          &
                          days_per_year=days_per_year,          &
@@ -341,6 +336,8 @@
 
          enddo ! i
 
+         deallocate(ztrcr_sw)
+
       end subroutine init_shortwave
 
 !=======================================================================
@@ -428,7 +425,7 @@
                                         ntrcr_o           = ntrcr_o,   &
                                         Rayleigh_criteria = RayleighC, &
                                         Rayleigh_real     = RayleighR, &
-                                        trcrn             = trcrn_bgc, &
+                                        trcrn_bgc         = trcrn_bgc, &
                                         nt_bgc_S          = nt_bgc_S,  &
                                         sss               = sss(i))
             Rayleigh_real    (i) = RayleighR
@@ -452,7 +449,7 @@
       ! Initial Ocean Values if not coupled to the ocean bgc
       !-----------------------------------------------------------------
       do i = 1, nx
-         call icepack_init_ocean_conc ( &
+         call icepack_init_ocean_bio ( &
                       amm=amm(i),   dmsp=dmsp(i),  dms=dms(i),   &
                       doc=doc(i,:), dic =dic(i,:), don=don(i,:), &
                       fed=fed(i,:), fep =fep(i,:), hum=hum(i),   &
@@ -479,7 +476,7 @@
             enddo
          enddo
 
-         call icepack_init_OceanConcArray(max_nbtrcr=max_nbtrcr,              &
+         call icepack_load_ocean_bio_array(max_nbtrcr=max_nbtrcr,             &
                       max_algae=max_algae, max_don=max_don,  max_doc=max_doc, &
                       max_aero =max_aero,  max_dic=max_dic,  max_fe =max_fe,  &
                       nit =nit(i),   amm=amm(i),   sil   =sil(i),             &
@@ -1774,7 +1771,7 @@
           file=__FILE__, line=__LINE__)
 
       call icepack_init_tracer_indices( &
-           nbtrcr_in=nbtrcr,           nt_fbri_in=nt_fbri,                                       &  
+           nt_fbri_in=nt_fbri,                                                                   &  
            nt_bgc_Nit_in=nt_bgc_Nit,   nt_bgc_Am_in=nt_bgc_Am,       nt_bgc_Sil_in=nt_bgc_Sil,   &
            nt_bgc_DMS_in=nt_bgc_DMS,   nt_bgc_PON_in=nt_bgc_PON,     nt_bgc_S_in=nt_bgc_S,       &
            nt_bgc_N_in=nt_bgc_N,       nt_bgc_chl_in=nt_bgc_chl,     nt_bgc_hum_in=nt_bgc_hum,   &

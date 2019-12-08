@@ -55,8 +55,8 @@
                 icepack_init_bgc, &
                 icepack_init_zbgc, &
                 icepack_biogeochemistry, &
-                icepack_init_OceanConcArray, &
-                icepack_init_ocean_conc
+                icepack_load_ocean_bio_array, &
+                icepack_init_ocean_bio
 
 !=======================================================================
 
@@ -1159,10 +1159,10 @@
       end subroutine icepack_biogeochemistry
 
 !=======================================================================
-!autodocument_start icepack_init_OceanConcArray
+!autodocument_start icepack_load_ocean_bio_array
 ! basic initialization for ocean_bio_all
 
-      subroutine icepack_init_OceanConcArray(max_nbtrcr, &
+      subroutine icepack_load_ocean_bio_array(max_nbtrcr, &
           max_algae, max_don, max_doc, max_dic, max_aero, max_fe, &
           nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, ocean_bio_all, hum)
@@ -1212,7 +1212,7 @@
       integer (kind=int_kind) :: &
          k, ks           ! tracer indices
 
-      character(len=*),parameter :: subname='(icepack_init_OceanConcArray)'
+      character(len=*),parameter :: subname='(icepack_load_ocean_bio_array)'
 
       ocean_bio_all(:) = c0
 
@@ -1268,13 +1268,13 @@
       ks = ks + max_aero + 1 
       ocean_bio_all(ks)  = hum                       ! humics
 
-      end subroutine icepack_init_OceanConcArray
+      end subroutine icepack_load_ocean_bio_array
 
 !=======================================================================
-!autodocument_start icepack_init_ocean_conc
+!autodocument_start icepack_init_ocean_bio
 !  Initialize ocean concentration
 
-      subroutine icepack_init_ocean_conc (amm, dmsp, dms, algalN, doc, dic, don, &
+      subroutine icepack_init_ocean_bio (amm, dmsp, dms, algalN, doc, dic, don, &
              fed, fep, hum, nit, sil, zaeros, max_dic, max_don, max_fe, max_aero,&
              CToN, CToN_DON)
 
@@ -1312,7 +1312,7 @@
       integer (kind=int_kind) :: &
         k 
 
-      character(len=*),parameter :: subname='(icepack_init_ocean_conc)'
+      character(len=*),parameter :: subname='(icepack_init_ocean_bio)'
 
        if (present(CToN)) then
          CToN(1) = R_C2N(1)
@@ -1358,7 +1358,7 @@
        enddo
  
 
-      end subroutine icepack_init_ocean_conc
+      end subroutine icepack_init_ocean_bio
 
 !=======================================================================
 

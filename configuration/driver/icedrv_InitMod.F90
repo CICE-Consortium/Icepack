@@ -11,6 +11,8 @@
       use icedrv_constants, only: nu_diag
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_flags
+      use icepack_intfc, only: icepack_write_tracer_flags, icepack_write_tracer_indices
+      use icepack_intfc, only: icepack_write_tracer_numbers
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -63,6 +65,15 @@
 
       call input_data           ! namelist variables
       call init_zbgc            ! vertical biogeochemistry namelist
+
+      ! generate some output
+      call icepack_write_tracer_flags(nu_diag)
+      call icepack_write_tracer_numbers(nu_diag)
+      call icepack_write_tracer_indices(nu_diag)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
       call init_grid2           ! grid variables
       call init_calendar        ! initialize some calendar stuff
       call init_coupler_flux    ! initialize fluxes exchanged with coupler

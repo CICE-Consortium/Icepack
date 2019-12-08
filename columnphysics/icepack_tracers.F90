@@ -49,139 +49,144 @@
                     + max_aero      ! aerosols
 
       integer (kind=int_kind), public :: &
-         ntrcr   , & ! number of tracers in use
-         ntrcr_o , & ! number of non-bio tracers in use
-         n_aero  , & ! number of aerosols in use
-         n_zaero , & ! number of z aerosols in use 
-         n_algae , & ! number of algae in use 
-         n_doc   , & ! number of DOC pools in use
-         n_dic   , & ! number of DIC pools in use
-         n_don   , & ! number of DON pools in use
-         n_fed   , & ! number of Fe  pools in use dissolved Fe
-         n_fep       ! number of Fe  pools in use particulate Fe
+         ntrcr        = 0, & ! number of tracers in use
+         ntrcr_o      = 0, & ! number of non-bio tracers in use
+         ncat         = 0, & ! number of ice categories in use
+         nilyr        = 0, & ! number of ice layers per category
+         nslyr        = 0, & ! number of snow layers per category
+         nblyr        = 0, & ! number of bio/brine layers per category
+         nfsd         = 0, & ! number of fsd layers
+         n_aero       = 0, & ! number of aerosols in use
+         n_zaero      = 0, & ! number of z aerosols in use
+         n_algae      = 0, & ! number of algae in use
+         n_doc        = 0, & ! number of DOC pools in use
+         n_dic        = 0, & ! number of DIC pools in use
+         n_don        = 0, & ! number of DON pools in use
+         n_fed        = 0, & ! number of Fe  pools in use dissolved Fe
+         n_fep        = 0    ! number of Fe  pools in use particulate Fe
 
       integer (kind=int_kind), public :: &
-         nt_Tsfc  , & ! ice/snow temperature
-         nt_qice  , & ! volume-weighted ice enthalpy (in layers)
-         nt_qsno  , & ! volume-weighted snow enthalpy (in layers)
-         nt_sice  , & ! volume-weighted ice bulk salinity (CICE grid layers)
-         nt_fbri  , & ! volume fraction of ice with dynamic salt (hinS/vicen*aicen)
-         nt_iage  , & ! volume-weighted ice age
-         nt_FY    , & ! area-weighted first-year ice area
-         nt_alvl  , & ! level ice area fraction
-         nt_vlvl  , & ! level ice volume fraction
-         nt_apnd  , & ! melt pond area fraction
-         nt_hpnd  , & ! melt pond depth
-         nt_ipnd  , & ! melt pond refrozen lid thickness
-         nt_fsd   , & ! floe size distribution
-         nt_aero  , & ! starting index for aerosols in ice
-         nt_bgc_Nit,   & ! nutrients  
-         nt_bgc_Am,    & ! 
-         nt_bgc_Sil,   & !
-         nt_bgc_DMSPp, & ! trace gases (skeletal layer)
-         nt_bgc_DMSPd, & ! 
-         nt_bgc_DMS,   & ! 
-         nt_bgc_PON,   & ! zooplankton and detritus 
-         nt_bgc_hum,   & ! humic material 
-         nt_zbgc_frac, & ! fraction of tracer in the mobile phase
-         nt_bgc_S        ! Bulk salinity in fraction ice with dynamic salinity (Bio grid)
+         nt_Tsfc      = 0, & ! ice/snow temperature
+         nt_qice      = 0, & ! volume-weighted ice enthalpy (in layers)
+         nt_qsno      = 0, & ! volume-weighted snow enthalpy (in layers)
+         nt_sice      = 0, & ! volume-weighted ice bulk salinity (CICE grid layers)
+         nt_fbri      = 0, & ! volume fraction of ice with dynamic salt (hinS/vicen*aicen)
+         nt_iage      = 0, & ! volume-weighted ice age
+         nt_FY        = 0, & ! area-weighted first-year ice area
+         nt_alvl      = 0, & ! level ice area fraction
+         nt_vlvl      = 0, & ! level ice volume fraction
+         nt_apnd      = 0, & ! melt pond area fraction
+         nt_hpnd      = 0, & ! melt pond depth
+         nt_ipnd      = 0, & ! melt pond refrozen lid thickness
+         nt_fsd       = 0, & ! floe size distribution
+         nt_aero      = 0, & ! starting index for aerosols in ice
+         nt_bgc_Nit   = 0, & ! nutrients
+         nt_bgc_Am    = 0, & ! 
+         nt_bgc_Sil   = 0, & !
+         nt_bgc_DMSPp = 0, & ! trace gases (skeletal layer)
+         nt_bgc_DMSPd = 0, & ! 
+         nt_bgc_DMS   = 0, & ! 
+         nt_bgc_PON   = 0, & ! zooplankton and detritus
+         nt_bgc_hum   = 0, & ! humic material
+         nt_zbgc_frac = 0, & ! fraction of tracer in the mobile phase
+         nt_bgc_S     = 0    ! Bulk salinity in fraction ice with dynamic salinity (Bio grid)
 
       logical (kind=log_kind), public :: &
-         tr_iage     , & ! if .true., use age tracer
-         tr_FY       , & ! if .true., use first-year area tracer
-         tr_lvl      , & ! if .true., use level ice tracer
-         tr_pond     , & ! if .true., use melt pond tracer
-         tr_pond_cesm, & ! if .true., use cesm pond tracer
-         tr_pond_lvl , & ! if .true., use level-ice pond tracer
-         tr_pond_topo, & ! if .true., use explicit topography-based ponds
-         tr_aero     , & ! if .true., use aerosol tracers
-         tr_brine    , & ! if .true., brine height differs from ice thickness
-         tr_fsd          ! if .true., use floe size distribution
+         tr_iage      = .false., & ! if .true., use age tracer
+         tr_FY        = .false., & ! if .true., use first-year area tracer
+         tr_lvl       = .false., & ! if .true., use level ice tracer
+         tr_pond      = .false., & ! if .true., use melt pond tracer
+         tr_pond_cesm = .false., & ! if .true., use cesm pond tracer
+         tr_pond_lvl  = .false., & ! if .true., use level-ice pond tracer
+         tr_pond_topo = .false., & ! if .true., use explicit topography-based ponds
+         tr_aero      = .false., & ! if .true., use aerosol tracers
+         tr_brine     = .false., & ! if .true., brine height differs from ice thickness
+         tr_fsd       = .false.    ! if .true., use floe size distribution
 
       !-----------------------------------------------------------------
       !  biogeochemistry
       !-----------------------------------------------------------------
 
       logical (kind=log_kind), public :: & 
-         tr_zaero,       & ! if .true., black carbon as tracers  (n_zaero)
-         tr_bgc_Nit,     & ! if .true. Nitrate tracer in ice 
-         tr_bgc_N,       & ! if .true., algal nitrogen tracers  (n_algae)
-         tr_bgc_DON,     & ! if .true., DON pools are tracers  (n_don)
-         tr_bgc_C,       & ! if .true., algal carbon tracers + DOC and DIC 
-         tr_bgc_chl,     & ! if .true., algal chlorophyll tracers 
-         tr_bgc_Am,      & ! if .true., ammonia/um as nutrient tracer 
-         tr_bgc_Sil,     & ! if .true., silicon as nutrient tracer 
-         tr_bgc_DMS,     & ! if .true., DMS as  tracer 
-         tr_bgc_Fe,      & ! if .true., Fe as  tracer 
-         tr_bgc_PON,     & ! if .true., PON as tracer 
-         tr_bgc_hum        ! if .true., humic material as tracer 
+         tr_zaero     = .false., & ! if .true., black carbon as tracers  (n_zaero)
+         tr_bgc_Nit   = .false., & ! if .true. Nitrate tracer in ice
+         tr_bgc_N     = .false., & ! if .true., algal nitrogen tracers  (n_algae)
+         tr_bgc_DON   = .false., & ! if .true., DON pools are tracers  (n_don)
+         tr_bgc_C     = .false., & ! if .true., algal carbon tracers + DOC and DIC
+         tr_bgc_chl   = .false., & ! if .true., algal chlorophyll tracers
+         tr_bgc_Am    = .false., & ! if .true., ammonia/um as nutrient tracer
+         tr_bgc_Sil   = .false., & ! if .true., silicon as nutrient tracer
+         tr_bgc_DMS   = .false., & ! if .true., DMS as tracer
+         tr_bgc_Fe    = .false., & ! if .true., Fe as  tracer
+         tr_bgc_PON   = .false., & ! if .true., PON as tracer
+         tr_bgc_hum   = .false.    ! if .true., humic material as tracer
 
       integer (kind=int_kind), public :: &
-         nbtrcr,         & ! number of bgc tracers in use
-         nbtrcr_sw,      & ! number of bgc tracers which impact shortwave
-         nlt_chl_sw        ! points to total chla in trcrn_sw
+         nbtrcr       = 0, & ! number of bgc tracers in use
+         nbtrcr_sw    = 0, & ! number of bgc tracers which impact shortwave
+         nlt_chl_sw   = 0    ! points to total chla in trcrn_sw
 
       integer (kind=int_kind), dimension(max_aero), public :: &
-         nlt_zaero_sw       ! points to aerosol in trcrn_sw
+         nlt_zaero_sw = 0    ! points to aerosol in trcrn_sw
   
       integer (kind=int_kind), dimension(max_algae), public :: &
-         nlt_bgc_N      , & ! algae 
-         nlt_bgc_C      , & ! 
-         nlt_bgc_chl   
+         nlt_bgc_N    = 0, & ! algae
+         nlt_bgc_C    = 0, & ! 
+         nlt_bgc_chl  = 0    ! 
 
       integer (kind=int_kind), dimension(max_doc), public :: &
-         nlt_bgc_DOC        ! disolved organic carbon
+         nlt_bgc_DOC  = 0    ! disolved organic carbon
 
       integer (kind=int_kind), dimension(max_don), public :: &
-         nlt_bgc_DON        !
+         nlt_bgc_DON  = 0    !
 
       integer (kind=int_kind), dimension(max_dic), public :: &
-         nlt_bgc_DIC        ! disolved inorganic carbon
+         nlt_bgc_DIC  = 0    ! disolved inorganic carbon
 
       integer (kind=int_kind), dimension(max_fe), public :: &
-         nlt_bgc_Fed    , & !
-         nlt_bgc_Fep        !
+         nlt_bgc_Fed  = 0, & !
+         nlt_bgc_Fep  = 0    !
 
       integer (kind=int_kind), dimension(max_aero), public :: &
-         nlt_zaero          ! non-reacting layer aerosols
+         nlt_zaero    = 0    ! non-reacting layer aerosols
 
       integer (kind=int_kind), public :: &
-         nlt_bgc_Nit   ,   & ! nutrients  
-         nlt_bgc_Am    ,   & ! 
-         nlt_bgc_Sil   ,   & !
-         nlt_bgc_DMSPp ,   & ! trace gases (skeletal layer)
-         nlt_bgc_DMSPd ,   & ! 
-         nlt_bgc_DMS   ,   & ! 
-         nlt_bgc_PON   ,   & ! zooplankton and detritus
-         nlt_bgc_hum         ! humic material
+         nlt_bgc_Nit  = 0, & ! nutrients
+         nlt_bgc_Am   = 0, & ! 
+         nlt_bgc_Sil  = 0, & !
+         nlt_bgc_DMSPp= 0, & ! trace gases (skeletal layer)
+         nlt_bgc_DMSPd= 0, & ! 
+         nlt_bgc_DMS  = 0, & ! 
+         nlt_bgc_PON  = 0, & ! zooplankton and detritus
+         nlt_bgc_hum  = 0    ! humic material
 
-      integer (kind=int_kind), dimension(max_algae), public :: &  
-         nt_bgc_N , & ! diatoms, phaeocystis, pico/small   
-         nt_bgc_C , & ! diatoms, phaeocystis, pico/small   
-         nt_bgc_chl   ! diatoms, phaeocystis, pico/small 
+      integer (kind=int_kind), dimension(max_algae), public :: &
+         nt_bgc_N     = 0, & ! diatoms, phaeocystis, pico/small
+         nt_bgc_C     = 0, & ! diatoms, phaeocystis, pico/small
+         nt_bgc_chl   = 0    ! diatoms, phaeocystis, pico/small
 
-      integer (kind=int_kind), dimension(max_doc), public :: &  
-         nt_bgc_DOC      !  dissolved organic carbon
+      integer (kind=int_kind), dimension(max_doc), public :: & 
+         nt_bgc_DOC   = 0    !  dissolved organic carbon
 
-      integer (kind=int_kind), dimension(max_don), public :: & 
-         nt_bgc_DON         !  dissolved organic nitrogen
+      integer (kind=int_kind), dimension(max_don), public :: &
+         nt_bgc_DON   = 0    !  dissolved organic nitrogen
 
-      integer (kind=int_kind), dimension(max_dic), public :: &  
-         nt_bgc_DIC         !  dissolved inorganic carbon
+      integer (kind=int_kind), dimension(max_dic), public :: &
+         nt_bgc_DIC   = 0    !  dissolved inorganic carbon
 
-      integer (kind=int_kind), dimension(max_fe), public :: & 
-         nt_bgc_Fed,     & !  dissolved iron
-         nt_bgc_Fep        !  particulate iron
+      integer (kind=int_kind), dimension(max_fe), public :: &
+         nt_bgc_Fed   = 0, & !  dissolved iron
+         nt_bgc_Fep   = 0    !  particulate iron
 
-      integer (kind=int_kind), dimension(max_aero), public :: &  
-         nt_zaero       !  black carbon and other aerosols
+      integer (kind=int_kind), dimension(max_aero), public :: &
+         nt_zaero     = 0    !  black carbon and other aerosols
       
       integer (kind=int_kind), dimension(max_nbtrcr), public :: &
-         bio_index_o         ! relates nlt_bgc_NO to ocean concentration index
+         bio_index_o  = 0    ! relates nlt_bgc_NO to ocean concentration index
                              ! see ocean_bio_all
 
       integer (kind=int_kind), dimension(max_nbtrcr), public :: &
-         bio_index           ! relates bio indices, ie.  nlt_bgc_N to nt_bgc_N 
+         bio_index    = 0    ! relates bio indices, ie.  nlt_bgc_N to nt_bgc_N 
 
 !=======================================================================
 
@@ -209,6 +214,8 @@
 
 !autodocument_end
 
+        character(len=*),parameter :: subname='(icepack_query_tracer_sizes)'
+
         if (present(max_algae_out))  max_algae_out = max_algae
         if (present(max_dic_out))    max_dic_out   = max_dic
         if (present(max_doc_out))    max_doc_out   = max_doc
@@ -231,7 +238,9 @@
 
 !autodocument_end
 
-        write(iounit,*) "icepack_write_tracer_sizes:"
+        character(len=*),parameter :: subname='(icepack_write_tracer_sizes)'
+
+        write(iounit,*) subname//":"
         write(iounit,*) '  max_algae_out =', max_algae
         write(iounit,*) '  max_dic_out   =', max_dic
         write(iounit,*) '  max_doc_out   =', max_doc
@@ -281,6 +290,8 @@
              tr_bgc_PON_in       ! if .true., PON as product tracer 
 
 !autodocument_end
+
+        character(len=*),parameter :: subname='(icepack_init_tracer_flags)'
 
         if (present(tr_iage_in)) tr_iage = tr_iage_in
         if (present(tr_FY_in)  ) tr_FY   = tr_FY_in
@@ -345,6 +356,8 @@
 
 !autodocument_end
 
+        character(len=*),parameter :: subname='(icepack_query_tracer_flags)'
+
         if (present(tr_iage_out)) tr_iage_out = tr_iage
         if (present(tr_FY_out)  ) tr_FY_out   = tr_FY
         if (present(tr_lvl_out) ) tr_lvl_out  = tr_lvl
@@ -380,7 +393,9 @@
 
 !autodocument_end
 
-        write(iounit,*) "icepack_write_tracer_flags:"
+        character(len=*),parameter :: subname='(icepack_write_tracer_flags)'
+
+        write(iounit,*) subname//":"
         write(iounit,*) "  tr_iage = ",tr_iage
         write(iounit,*) "  tr_FY   = ",tr_FY  
         write(iounit,*) "  tr_lvl  = ",tr_lvl 
@@ -414,18 +429,19 @@
            nt_Tsfc_in, nt_qice_in, nt_qsno_in, nt_sice_in, &
            nt_fbri_in, nt_iage_in, nt_FY_in, & 
            nt_alvl_in, nt_vlvl_in, nt_apnd_in, nt_hpnd_in, nt_ipnd_in, &
-           nt_fsd_in, nt_aero_in, nt_zaero_in, &
+           nt_fsd_in, nt_aero_in, nt_zaero_in, nt_bgc_C_in, &
            nt_bgc_N_in, nt_bgc_chl_in, nt_bgc_DOC_in, nt_bgc_DON_in, &
            nt_bgc_DIC_in, nt_bgc_Fed_in, nt_bgc_Fep_in, nt_bgc_Nit_in, nt_bgc_Am_in, &
            nt_bgc_Sil_in, nt_bgc_DMSPp_in, nt_bgc_DMSPd_in, nt_bgc_DMS_in, nt_bgc_hum_in, &
-           nt_bgc_PON_in, nlt_zaero_in, nlt_bgc_N_in, nlt_bgc_chl_in, &
+           nt_bgc_PON_in, nlt_zaero_in, nlt_bgc_C_in, nlt_bgc_N_in, nlt_bgc_chl_in, &
            nlt_bgc_DOC_in, nlt_bgc_DON_in, nlt_bgc_DIC_in, nlt_bgc_Fed_in, &
            nlt_bgc_Fep_in, nlt_bgc_Nit_in, nlt_bgc_Am_in, nlt_bgc_Sil_in, &
            nlt_bgc_DMSPp_in, nlt_bgc_DMSPd_in, nlt_bgc_DMS_in, nlt_bgc_hum_in, &
            nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
-           nlt_zaero_sw_in, n_algae_in, n_DOC_in, &
+           nlt_zaero_sw_in, n_algae_in, n_DOC_in, n_aero_in, &
            n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
-           bio_index_o_in, bio_index_in, nbtrcr_in)
+           ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in, &
+           bio_index_o_in, bio_index_in)
 
         integer, intent(in), optional :: &
              nt_Tsfc_in, & ! ice/snow temperature
@@ -463,14 +479,19 @@
              nlt_chl_sw_in    ! points to total chla in trcrn_sw
 
        integer, intent(in), optional :: &
-             n_algae_in,    & !  Dimensions
+             ncat_in,       & ! Categories
+             nilyr_in,      & ! Layers
+             nslyr_in,      & !
+             nblyr_in,      & !
+             nfsd_in,       & !
+             n_algae_in,    & ! Dimensions
              n_DOC_in,      & !
              n_DON_in,      & !
              n_DIC_in,      & !
              n_fed_in,      & !
              n_fep_in,      & ! 
              n_zaero_in,    & !
-             nbtrcr_in
+             n_aero_in        !
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
              bio_index_o_in, & 
@@ -478,10 +499,10 @@
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
              nt_bgc_N_in ,  & ! diatoms, phaeocystis, pico/small   
-!            nt_bgc_C_in ,  & ! diatoms, phaeocystis, pico/small   
+             nt_bgc_C_in ,  & ! diatoms, phaeocystis, pico/small   
              nt_bgc_chl_in, & ! diatoms, phaeocystis, pico/small 
              nlt_bgc_N_in , & ! diatoms, phaeocystis, pico/small   
-!            nlt_bgc_C_in , & ! diatoms, phaeocystis, pico/small   
+             nlt_bgc_C_in , & ! diatoms, phaeocystis, pico/small   
              nlt_bgc_chl_in   ! diatoms, phaeocystis, pico/small 
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
@@ -510,7 +531,8 @@
 !autodocument_end
 
         ! local
-        integer (kind=int_kind) :: k
+        integer (kind=int_kind) :: k, nsiz
+        character(len=*),parameter :: subname='(icepack_init_tracer_indices)'
 
         if (present(nt_Tsfc_in)) nt_Tsfc = nt_Tsfc_in
         if (present(nt_qice_in)) nt_qice = nt_qice_in
@@ -545,81 +567,234 @@
         if (present(nlt_chl_sw_in)   ) nlt_chl_sw    = nlt_chl_sw_in
         if (present(nt_zbgc_frac_in) ) nt_zbgc_frac  = nt_zbgc_frac_in
         if (present(nt_bgc_S_in)     ) nt_bgc_S      = nt_bgc_S_in
+        if (present(ncat_in)         ) ncat          = ncat_in
+        if (present(nilyr_in)        ) nilyr         = nilyr_in
+        if (present(nslyr_in)        ) nslyr         = nslyr_in
+        if (present(nblyr_in)        ) nblyr         = nblyr_in
+        if (present(nfsd_in)         ) nfsd          = nfsd_in
+        if (present(n_algae_in)      ) n_algae       = n_algae_in
+        if (present(n_DOC_in)        ) n_DOC         = n_DOC_in
+        if (present(n_DON_in)        ) n_DON         = n_DON_in
+        if (present(n_DIC_in)        ) n_DIC         = n_DIC_in
+        if (present(n_fed_in)        ) n_fed         = n_fed_in
+        if (present(n_fep_in)        ) n_fep         = n_fep_in
+        if (present(n_zaero_in)      ) n_zaero       = n_zaero_in
+        if (present(n_aero_in)        ) n_aero       = n_aero_in
 
-        if (present(nbtrcr_in)) then
-           nbtrcr = nbtrcr_in
-           do k = 1, nbtrcr_in
-              if (present(bio_index_o_in)) bio_index_o(k)= bio_index_o_in(k)
-              if (present(bio_index_in)  ) bio_index(k)  = bio_index_in(k)
-           enddo
+        if (present(bio_index_in)) then
+           nsiz = size(bio_index_in)
+           if (size(bio_index) < nsiz) then
+              call icepack_warnings_add(subname//'error in bio_index size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              bio_index(1:nsiz) = bio_index_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_algae_in)) then
-           n_algae = n_algae_in
-           do k = 1, n_algae_in
-              if (present(nt_bgc_N_in) ) nt_bgc_N(k) = nt_bgc_N_in(k) 
-              if (present(nlt_bgc_N_in)) nlt_bgc_N(k)= nlt_bgc_N_in(k) 
-              if (present(nt_bgc_chl_in) ) nt_bgc_chl(k) = nt_bgc_chl_in(k) 
-              if (present(nlt_bgc_chl_in)) nlt_bgc_chl(k)= nlt_bgc_chl_in(k) 
-           enddo
+        if (present(bio_index_o_in)) then
+           nsiz = size(bio_index_o_in)
+           if (size(bio_index_o) < nsiz) then
+              call icepack_warnings_add(subname//'error in bio_index_o size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              bio_index_o(1:nsiz) = bio_index_o_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nt_bgc_N_in)) then
+           nsiz = size(nt_bgc_N_in)
+           if (size(nt_bgc_N) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_N size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_N(1:nsiz) = nt_bgc_N_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_bgc_N_in)) then
+           nsiz = size(nlt_bgc_N_in)
+           if (size(nlt_bgc_N) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_N size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_N(1:nsiz) = nlt_bgc_N_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nt_bgc_chl_in)) then
+           nsiz = size(nt_bgc_chl_in)
+           if (size(nt_bgc_chl) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_chl size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_chl(1:nsiz) = nt_bgc_chl_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_bgc_chl_in)) then
+           nsiz = size(nlt_bgc_chl_in)
+           if (size(nlt_bgc_chl) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_chl size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_chl(1:nsiz) = nlt_bgc_chl_in(1:nsiz)
+           endif
         endif
 
 ! algal C is not yet distinct from algal N
-!        if (present(n_algalC_in)) then
-!           n_algalC = n_algalC_in
-!           do k = 1, n_algalC_in
-!              if (present(nt_bgc_C_in) ) nt_bgc_C(k) = nt_bgc_C_in(k) 
-!              if (present(nlt_bgc_C_in)) nlt_bgc_C(k)= nlt_bgc_C_in(k) 
-!           enddo
+        if (present(nt_bgc_C_in) .or. present(nlt_bgc_C_in)) then
+           call icepack_warnings_add(subname//'error bgc_C not supported')
+           call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+        endif
+
+!        if (present(nt_bgc_C_in)) then
+!           nsiz = size(nt_bgc_C_in)
+!           if (size(nt_bgc_C) < nsiz) then
+!              call icepack_warnings_add(subname//'error in nt_bgc_C size')
+!              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+!           else
+!              nt_bgc_C(1:nsiz) = nt_bgc_C_in(1:nsiz)
+!           endif
 !        endif
 
-        if (present(n_DOC_in)) then
-           n_DOC = n_DOC_in
-           do k = 1, n_DOC_in
-              if (present(nt_bgc_DOC_in) ) nt_bgc_DOC(k) = nt_bgc_DOC_in(k) 
-              if (present(nlt_bgc_DOC_in)) nlt_bgc_DOC(k)= nlt_bgc_DOC_in(k) 
-           enddo
+!        if (present(nlt_bgc_C_in)) then
+!           nsiz = size(nlt_bgc_C_in)
+!           if (size(nlt_bgc_C) < nsiz) then
+!              call icepack_warnings_add(subname//'error in nlt_bgc_C size')
+!              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+!           else
+!              nlt_bgc_C(1:nsiz) = nlt_bgc_C_in(1:nsiz)
+!           endif
+!        endif
+
+        if (present(nt_bgc_DOC_in)) then
+           nsiz = size(nt_bgc_DOC_in)
+           if (size(nt_bgc_DOC) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_DOC size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_DOC(1:nsiz) = nt_bgc_DOC_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_DON_in)) then
-           n_DON = n_DON_in
-           do k = 1, n_DON_in
-              if (present(nt_bgc_DON_in) ) nt_bgc_DON(k) = nt_bgc_DON_in(k) 
-              if (present(nlt_bgc_DON_in)) nlt_bgc_DON(k)= nlt_bgc_DON_in(k) 
-           enddo
+        if (present(nlt_bgc_DOC_in)) then
+           nsiz = size(nlt_bgc_DOC_in)
+           if (size(nlt_bgc_DOC) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_DOC size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_DOC(1:nsiz) = nlt_bgc_DOC_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_DIC_in)) then
-           n_DIC = n_DIC_in
-           do k = 1, n_DIC_in
-              if (present(nt_bgc_DIC_in) ) nt_bgc_DIC(k) = nt_bgc_DIC_in(k) 
-              if (present(nlt_bgc_DIC_in)) nlt_bgc_DIC(k)= nlt_bgc_DIC_in(k) 
-           enddo
+        if (present(nt_bgc_DON_in)) then
+           nsiz = size(nt_bgc_DON_in)
+           if (size(nt_bgc_DON) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_DON size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_DON(1:nsiz) = nt_bgc_DON_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_fed_in)) then
-           n_fed = n_fed_in
-           do k = 1, n_fed_in
-              if (present(nt_bgc_Fed_in) ) nt_bgc_Fed(k) = nt_bgc_Fed_in(k) 
-              if (present(nlt_bgc_Fed_in)) nlt_bgc_Fed(k)= nlt_bgc_Fed_in(k) 
-           enddo
+        if (present(nlt_bgc_DON_in)) then
+           nsiz = size(nlt_bgc_DON_in)
+           if (size(nlt_bgc_DON) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_DON size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_DON(1:nsiz) = nlt_bgc_DON_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_fep_in)) then
-           n_fed = n_fep_in
-           do k = 1, n_fep_in
-              if (present(nt_bgc_Fep_in) ) nt_bgc_Fep(k) = nt_bgc_Fep_in(k) 
-              if (present(nlt_bgc_Fep_in)) nlt_bgc_Fep(k)= nlt_bgc_Fep_in(k) 
-           enddo
+        if (present(nt_bgc_DIC_in)) then
+           nsiz = size(nt_bgc_DIC_in)
+           if (size(nt_bgc_DIC) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_DIC size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_DIC(1:nsiz) = nt_bgc_DIC_in(1:nsiz)
+           endif
         endif
 
-        if (present(n_zaero_in)) then
-           n_zaero = n_zaero_in
-           do k = 1, n_zaero_in
-              if (present(nt_zaero_in)    ) nt_zaero(k)    = nt_zaero_in(k)   
-              if (present(nlt_zaero_in)   ) nlt_zaero(k)   = nlt_zaero_in(k)   
-              if (present(nlt_zaero_sw_in)) nlt_zaero_sw(k)= nlt_zaero_sw_in(k)   
-           enddo
+        if (present(nlt_bgc_DIC_in)) then
+           nsiz = size(nlt_bgc_DIC_in)
+           if (size(nlt_bgc_DIC) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_DIC size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_DIC(1:nsiz) = nlt_bgc_DIC_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nt_bgc_Fed_in)) then
+           nsiz = size(nt_bgc_Fed_in)
+           if (size(nt_bgc_Fed) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_Fed size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_Fed(1:nsiz) = nt_bgc_Fed_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_bgc_Fed_in)) then
+           nsiz = size(nlt_bgc_Fed_in)
+           if (size(nlt_bgc_Fed) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_Fed size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_Fed(1:nsiz) = nlt_bgc_Fed_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nt_bgc_Fep_in)) then
+           nsiz = size(nt_bgc_Fep_in)
+           if (size(nt_bgc_Fep) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_bgc_Fep size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_bgc_Fep(1:nsiz) = nt_bgc_Fep_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_bgc_Fep_in)) then
+           nsiz = size(nlt_bgc_Fep_in)
+           if (size(nlt_bgc_Fep) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_bgc_Fep size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_bgc_Fep(1:nsiz) = nlt_bgc_Fep_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nt_zaero_in)) then
+           nsiz = size(nt_zaero_in)
+           if (size(nt_zaero) < nsiz) then
+              call icepack_warnings_add(subname//'error in nt_zaero size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nt_zaero(1:nsiz) = nt_zaero_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_zaero_in)) then
+           nsiz = size(nlt_zaero_in)
+           if (size(nlt_zaero) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_zaero size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_zaero(1:nsiz) = nlt_zaero_in(1:nsiz)
+           endif
+        endif
+
+        if (present(nlt_zaero_sw_in)) then
+           nsiz = size(nlt_zaero_sw_in)
+           if (size(nlt_zaero_sw) < nsiz) then
+              call icepack_warnings_add(subname//'error in nlt_zaero_sw size')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+           else
+              nlt_zaero_sw(1:nsiz) = nlt_zaero_sw_in(1:nsiz)
+           endif
         endif
 
       end subroutine icepack_init_tracer_indices
@@ -632,16 +807,18 @@
            nt_Tsfc_out, nt_qice_out, nt_qsno_out, nt_sice_out, &
            nt_fbri_out, nt_iage_out, nt_FY_out, & 
            nt_alvl_out, nt_vlvl_out, nt_apnd_out, nt_hpnd_out, nt_ipnd_out, &
-           nt_fsd_out, nt_aero_out, nt_zaero_out, &
-           nt_bgc_N_out, nt_bgc_C_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
+           nt_fsd_out, nt_aero_out, nt_zaero_out, nt_bgc_C_out, &
+           nt_bgc_N_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
            nt_bgc_DIC_out, nt_bgc_Fed_out, nt_bgc_Fep_out, nt_bgc_Nit_out, nt_bgc_Am_out, &
            nt_bgc_Sil_out, nt_bgc_DMSPp_out, nt_bgc_DMSPd_out, nt_bgc_DMS_out, nt_bgc_hum_out, &
-           nt_bgc_PON_out, nlt_zaero_out, nlt_bgc_N_out, nlt_bgc_C_out, nlt_bgc_chl_out, &
+           nt_bgc_PON_out, nlt_zaero_out, nlt_bgc_C_out, nlt_bgc_N_out, nlt_bgc_chl_out, &
            nlt_bgc_DOC_out, nlt_bgc_DON_out, nlt_bgc_DIC_out, nlt_bgc_Fed_out, &
            nlt_bgc_Fep_out, nlt_bgc_Nit_out, nlt_bgc_Am_out, nlt_bgc_Sil_out, &
            nlt_bgc_DMSPp_out, nlt_bgc_DMSPd_out, nlt_bgc_DMS_out, nlt_bgc_hum_out, &
            nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
-           nlt_zaero_sw_out, &
+           nlt_zaero_sw_out, n_algae_out, n_DOC_out, n_aero_out, &
+           n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
+           ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
            bio_index_o_out, bio_index_out)
 
         integer, intent(out), optional :: &
@@ -679,6 +856,21 @@
              nt_bgc_S_out,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
              nlt_chl_sw_out    ! points to total chla in trcrn_sw
 
+       integer, intent(out), optional :: &
+             ncat_out,       & ! Categories
+             nilyr_out,      & ! Layers
+             nslyr_out,      & !
+             nblyr_out,      & !
+             nfsd_out,       & !
+             n_algae_out,    & ! Dimensions
+             n_DOC_out,      & !
+             n_DON_out,      & !
+             n_DIC_out,      & !
+             n_fed_out,      & !
+             n_fep_out,      & ! 
+             n_zaero_out,    & !
+             n_aero_out
+
         integer (kind=int_kind), dimension(:), intent(out), optional :: &
              bio_index_o_out, & 
              bio_index_out  
@@ -715,6 +907,22 @@
              nlt_zaero_sw_out  ! black carbon and dust in trcrn_sw
 
 !autodocument_end
+
+        character(len=*),parameter :: subname='(icepack_query_tracer_indices)'
+
+        if (present(ncat_out)   ) ncat_out    = ncat
+        if (present(nilyr_out)  ) nilyr_out   = nilyr
+        if (present(nslyr_out)  ) nslyr_out   = nslyr
+        if (present(nblyr_out)  ) nblyr_out   = nblyr
+        if (present(nfsd_out)   ) nfsd_out    = nfsd
+        if (present(n_algae_out)) n_algae_out = n_algae
+        if (present(n_DOC_out)  ) n_DOC_out   = n_DOC
+        if (present(n_DON_out)  ) n_DON_out   = n_DON
+        if (present(n_DIC_out)  ) n_DIC_out   = n_DIC
+        if (present(n_fed_out)  ) n_fed_out   = n_fed
+        if (present(n_fep_out)  ) n_fep_out   = n_fep
+        if (present(n_zaero_out)) n_zaero_out = n_zaero
+        if (present(n_aero_out) ) n_aero_out  = n_aero
 
         if (present(nt_Tsfc_out)) nt_Tsfc_out = nt_Tsfc
         if (present(nt_qice_out)) nt_qice_out = nt_qice
@@ -786,8 +994,22 @@
 
         ! local
         integer (kind=int_kind) :: k
+        character(len=*),parameter :: subname='(icepack_write_tracer_indices)'
 
-        write(iounit,*) "icepack_write_tracer_indices:"
+        write(iounit,*) subname//":"
+        write(iounit,*) "  ncat    = ",ncat
+        write(iounit,*) "  nilyr   = ",nilyr
+        write(iounit,*) "  nslyr   = ",nslyr
+        write(iounit,*) "  nblyr   = ",nblyr
+        write(iounit,*) "  nfsd    = ",nfsd
+        write(iounit,*) "  n_algae = ",n_algae
+        write(iounit,*) "  n_DOC   = ",n_DOC
+        write(iounit,*) "  n_DON   = ",n_DON
+        write(iounit,*) "  n_DIC   = ",n_DIC
+        write(iounit,*) "  n_fed   = ",n_fed
+        write(iounit,*) "  n_fep   = ",n_fep
+        write(iounit,*) "  n_zaero = ",n_zaero
+        write(iounit,*) "  n_aero  = ",n_aero
         write(iounit,*) "  nt_Tsfc = ",nt_Tsfc
         write(iounit,*) "  nt_qice = ",nt_qice
         write(iounit,*) "  nt_qsno = ",nt_qsno
@@ -832,8 +1054,8 @@
         do k = 1, max_algae
            write(iounit,*) "  nt_bgc_N(k)  = ",k,nt_bgc_N(k)
            write(iounit,*) "  nlt_bgc_N(k) = ",k,nlt_bgc_N(k)
-!           write(iounit,*) "  nt_bgc_C(k)  = ",k,nt_bgc_C(k)
-!           write(iounit,*) "  nlt_bgc_C(k) = ",k,nlt_bgc_C(k)
+           write(iounit,*) "  nt_bgc_C(k)  = ",k,nt_bgc_C(k)
+           write(iounit,*) "  nlt_bgc_C(k) = ",k,nlt_bgc_C(k)
            write(iounit,*) "  nt_bgc_chl(k)  = ",k,nt_bgc_chl(k) 
            write(iounit,*) "  nlt_bgc_chl(k) = ",k,nlt_bgc_chl(k)
         enddo
@@ -888,6 +1110,8 @@
 
 !autodocument_end
 
+        character(len=*),parameter :: subname='(icepack_init_tracer_numbers)'
+
         if (present(ntrcr_in)    ) ntrcr     = ntrcr_in
         if (present(ntrcr_o_in)  ) ntrcr_o   = ntrcr_o_in
         if (present(nbtrcr_in)   ) nbtrcr    = nbtrcr_in
@@ -910,6 +1134,8 @@
 
 !autodocument_end
 
+        character(len=*),parameter :: subname='(icepack_query_tracer_numbers)'
+
         if (present(ntrcr_out)    ) ntrcr_out     = ntrcr
         if (present(ntrcr_o_out)  ) ntrcr_o_out   = ntrcr_o
         if (present(nbtrcr_out)   ) nbtrcr_out    = nbtrcr
@@ -927,7 +1153,9 @@
 
 !autodocument_end
 
-        write(iounit,*) "icepack_write_tracer_numbers:"
+        character(len=*),parameter :: subname='(icepack_write_tracer_numbers)'
+
+        write(iounit,*) subname//":"
         write(iounit,*) "  ntrcr     = ",ntrcr    
         write(iounit,*) "  nbtrcr    = ",nbtrcr   
         write(iounit,*) "  nbtrcr_sw = ",nbtrcr_sw
@@ -985,6 +1213,8 @@
 
       real (kind=dbl_kind) :: &
          work      ! temporary scalar
+
+      character(len=*),parameter :: subname='(icepack_compute_tracers)'
 
       !-----------------------------------------------------------------
       ! Compute new tracers

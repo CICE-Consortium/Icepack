@@ -57,7 +57,7 @@
       subroutine input_data
 
       use icedrv_diagnostics, only: diag_file, nx_names
-      use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, n_aero, nfsd
+      use icedrv_domain_size, only: nilyr, nslyr, nblyr, max_ntrcr, ncat, n_aero, nfsd
       use icedrv_calendar, only: year_init, istep0
       use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
@@ -669,12 +669,13 @@
          write(nu_diag,1020) 'nt_qice = ', nt_qice
          write(nu_diag,1020) 'nt_qsno = ', nt_qsno
          write(nu_diag,*)' '
-         write(nu_diag,1020) 'ncat', ncat
-         write(nu_diag,1020) 'nilyr', nilyr
-         write(nu_diag,1020) 'nslyr', nslyr
-         write(nu_diag,1020) 'nfsd', nfsd
+         write(nu_diag,1020) 'ncat    = ', ncat
+         write(nu_diag,1020) 'nilyr   = ', nilyr
+         write(nu_diag,1020) 'nslyr   = ', nslyr
+         write(nu_diag,1020) 'nblyr   = ', nblyr
+         write(nu_diag,1020) 'nfsd    = ', nfsd
          write(nu_diag,*)' '
-         write(nu_diag,1020) 'nx', nx
+         write(nu_diag,1020) 'nx      = ', nx
          write(nu_diag,*)' '
 
  1000    format (a30,2x,f9.2)  ! a30 to align formatted, unformatted statements
@@ -744,7 +745,9 @@
            nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, &
            nt_fy_in=nt_fy, nt_alvl_in=nt_alvl, nt_vlvl_in=nt_vlvl, &
            nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, nt_ipnd_in=nt_ipnd, &
-           nt_aero_in=nt_aero, nt_fsd_in=nt_fsd)
+           nt_aero_in=nt_aero, nt_fsd_in=nt_fsd, &
+           ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
+           nfsd_in=nfsd)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -811,7 +814,7 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero, nfsd
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, max_ntrcr, n_aero, nfsd
       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
       use icedrv_state, only: aice0, aice, vice, vsno, trcr, aice_init
