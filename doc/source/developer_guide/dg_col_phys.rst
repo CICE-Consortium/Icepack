@@ -18,6 +18,7 @@ The column physics source code contains the following files
 |    **icepack_brine.F90**         evolves the brine height tracer
 |    **icepack_firstyear.F90**     handles most work associated with the first-year ice area tracer
 |    **icepack_flux.F90**          fluxes needed/produced by the model
+|    **icepack_fsd.F90**           supports floe size distribution
 |    **icepack_intfc.F90**         interface routines for linking Icepack with a host sea ice model
 |    **icepack_itd.F90**           utilities for managing ice thickness distribution
 |    **icepack_kinds.F90**         basic definitions of reals, integers, etc.
@@ -38,6 +39,7 @@ The column physics source code contains the following files
 |    **icepack_therm_vertical.F90**  vertical growth rates and fluxes
 |    **icepack_tracers.F90**       tracer information
 |    **icepack_warnings.F90**      utilities for writing warning and error messages
+|    **icepack_wavefracspec.F90**  wave impact on sea ice
 |    **icepack_zbgc.F90**          driver for ice biogeochemistry and brine tracer motion
 |    **icepack_zbgc_shared.F90**   parameters and shared code for biogeochemistry and brine height
 |    **icepack_zsalinity.F90**     vertical salinity parameterization of :cite:`Jeffery11`
@@ -59,7 +61,7 @@ that is passed into the column physics though interfaces.  In fact,
 there are no direct IO capabilities in the column physics.  That is to say, the
 column physics does not open files to read or write.  The column physics is able to write 
 data via several different routines that specifically have a fortran unit number as an input
-argument.  In addition, there is a warning package (see section :ref:`warning`) that
+argument.  In addition, there is a warning and abort package (see section :ref:`aborts`) that
 provides the column package with the ability to store log output.  That output can
 be queried by the host model or it can be written directly via a specific routine.
 The warning package also provides access to an abort flag that the host model can
@@ -221,76 +223,3 @@ first::
       public :: icepack_configure
 
 
-Calling Sequence
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The calling sequence required to setup and run the column physics is generally
-described below.  Several steps may be needed to be taken by the host between
-icepack calls in order to support the icepack interfaces.  
-The icepack driver and the CICE model provide working examples
-of how to do this in practice.  The sample below does not include bgc.
-
-start driver
-
-* call *icepack_configure*
-
-initialize driver and read in driver namelist
-
-* call *icepack_init_parameters*
-* call *icepack_init_tracers_*
-* call *icepack_init_trcr*
-* call *icepack_init_thermo*
-* call *icepack_init_itd*
-* call *icepack_init_itd_hist*
-* call *icepack_step_radiation*
-* call *icepack_init_zsalinity*
-* call *icepack_init_hbrine*
-* call *icepack_aggregate*
-
-loop over timesteps
-loop over gridcells
-
-* call *icepack_prep_radiation*
-* call *icepack_step_therm1*
-* call *icepack_step_therm2*
-* call *icepack_aggregate*
-* call *icepack_step_ridge*
-* call *icepack_step_radiation*
-* call *icepack_atm_boundary*
-* call *icepack_ocn_mixed_layer*
-
-end loop over gridcells
-end loop over timesteps
-
-end driver
-
-.. _warning:
-
-The Warning Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Icepack has no IO capabilities.  It does not have direct knowledge of
-any input or output files.  However, it can write output through specific
-interfaces that pass in a fortran file unit number.  There are several 
-methods in icepack that support writing data to a file this way including
-the various *icepack_write_* interfaces.
-
-Separately, the icepack warning package is where icepack stores internal output and
-error messages not directly set in the various write routines.  The warning package
-also contains an *icepack_warnings_aborted* function that will be set to true 
-if icepack detects an abort.  In that case, icepack will return to the driver.
-As a general rule, after each call to icepack, the driver should call::
-
-      call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-          file=__FILE__, line=__LINE__)
-
-to flush (print and clear) the icepack warning buffer and to check whether icepack 
-aborted.  If icepack aborts, it's actually up to the driver to cleanly shut the
-model down.
-
-Alternatively, *icepack_warnings_getall* provides the saved icepack messages to
-the driver via an array of strings in the argument list.  This allows the driver
-to reformat that output as needed.  *icepack_warnings_print*
-writes out the messages but does not clear them, and *icepack_warnings_clear* zeros
-out the icepack warning messages.

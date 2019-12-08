@@ -92,7 +92,7 @@ In the WMO case, the distribution used depends on the number of categories used.
    +----------------+------------+---------+--------+--------+--------+
    
 Joint floe size and thickness distribution
-============================
+=============================================
 
 Sizes of individual sea ice floes vary over an extremely broad range, from centimeters
 to hundreds of kilometers. The floe size distribution (FSD) is a probability function that
@@ -146,7 +146,7 @@ the welding together of floes in freezing conditions via the fourth term,
 
 To compute the impact of wave fracture of the FSD, given a local ocean surface wave 
 spectrum is provided, we generate a realization of the sea surface height field, which 
-is uniquely determined by the spectrum up to a phase. In :cite:`Horvat2015` this phase is 
+is uniquely determined by the spectrum up to a phase. In :cite:`Horvat15` this phase is 
 randomly chosen, and multiple realizations of the resulting surface height field are used to 
 obtain convergent statistics. However this stochastic component would lead to a model that is 
 not bit-for-bit reproducible. Users can choose in the namelist (via ``wave_spec_type``)

@@ -196,7 +196,7 @@ To add some optional settings, one might do::
 
   icepack.setup --case mycase2 --mach spirit --env intel --set debug,diag1,run1year,pondtopo
 
-Once the cases are created, users are free to modify the icepack.settings and icepack_in namelist to further modify their setup.
+Once the cases are created, users are free to modify the **icepack.settings** and **icepack_in** namelist to further modify their setup.
 
 .. _version:
 
