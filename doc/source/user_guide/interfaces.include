@@ -163,17 +163,15 @@ icepack_intfc.F90
         use icepack_parameters, only: p15, p25, p75, p333, p666
   
         use icepack_tracers, only: icepack_compute_tracers
-        use icepack_tracers, only: icepack_query_tracer_sizes
-        use icepack_tracers, only: icepack_write_tracer_sizes
         use icepack_tracers, only: icepack_init_tracer_flags
         use icepack_tracers, only: icepack_query_tracer_flags
         use icepack_tracers, only: icepack_write_tracer_flags
         use icepack_tracers, only: icepack_init_tracer_indices
         use icepack_tracers, only: icepack_query_tracer_indices
         use icepack_tracers, only: icepack_write_tracer_indices
-        use icepack_tracers, only: icepack_init_tracer_numbers
-        use icepack_tracers, only: icepack_query_tracer_numbers
-        use icepack_tracers, only: icepack_write_tracer_numbers
+        use icepack_tracers, only: icepack_init_tracer_sizes
+        use icepack_tracers, only: icepack_query_tracer_sizes
+        use icepack_tracers, only: icepack_write_tracer_sizes
   
         use icepack_itd, only: icepack_init_itd
         use icepack_itd, only: icepack_init_itd_hist
@@ -1997,46 +1995,6 @@ icepack_step_therm1
   
  
 
-.. _icepack_query_tracer_sizes:
-
-icepack_query_tracer_sizes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. code-block:: fortran
-
-  ! query tracer sizes
-  
-        subroutine icepack_query_tracer_sizes( &
-             max_algae_out  , max_dic_out    , max_doc_out    , &
-             max_don_out    , max_fe_out     , nmodal1_out    , &
-             nmodal2_out    , max_aero_out   , max_nbtrcr_out )
-  
-          integer (kind=int_kind), intent(out), optional :: &
-               max_algae_out  , & ! maximum number of algal types
-               max_dic_out    , & ! maximum number of dissolved inorganic carbon types
-               max_doc_out    , & ! maximum number of dissolved organic carbon types
-               max_don_out    , & ! maximum number of dissolved organic nitrogen types
-               max_fe_out     , & ! maximum number of iron types
-               nmodal1_out    , & ! dimension for modal aerosol radiation parameters
-               nmodal2_out    , & ! dimension for modal aerosol radiation parameters
-               max_aero_out   , & ! maximum number of aerosols
-               max_nbtrcr_out     ! algal nitrogen and chlorophyll
-  
- 
-
-.. _icepack_write_tracer_sizes:
-
-icepack_write_tracer_sizes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. code-block:: fortran
-
-  ! write tracer sizes
-  
-        subroutine icepack_write_tracer_sizes(iounit)
-  
-          integer, intent(in) :: iounit
-  
- 
-
 .. _icepack_init_tracer_flags:
 
 icepack_init_tracer_flags
@@ -2156,9 +2114,7 @@ icepack_init_tracer_indices
              nlt_bgc_Fep_in, nlt_bgc_Nit_in, nlt_bgc_Am_in, nlt_bgc_Sil_in, &
              nlt_bgc_DMSPp_in, nlt_bgc_DMSPd_in, nlt_bgc_DMS_in, nlt_bgc_hum_in, &
              nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
-             nlt_zaero_sw_in, n_algae_in, n_DOC_in, n_aero_in, &
-             n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
-             ncat_in, nilyr_in, nslyr_in, nblyr_in, &
+             nlt_zaero_sw_in, &
              bio_index_o_in, bio_index_in)
   
           integer, intent(in), optional :: &
@@ -2195,20 +2151,6 @@ icepack_init_tracer_indices
                nt_zbgc_frac_in,&! fraction of tracer in the mobile phase
                nt_bgc_S_in,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
                nlt_chl_sw_in    ! points to total chla in trcrn_sw
-  
-         integer, intent(in), optional :: &
-               ncat_in,       & ! Categories
-               nilyr_in,      & ! Layers
-               nslyr_in,      & !
-               nblyr_in,      & !
-               n_algae_in,    & ! Dimensions
-               n_DOC_in,      & !
-               n_DON_in,      & !
-               n_DIC_in,      & !
-               n_fed_in,      & !
-               n_fep_in,      & ! 
-               n_zaero_in,    & !
-               n_aero_in        !
   
           integer (kind=int_kind), dimension(:), intent(in), optional :: &
                bio_index_o_in, & 
@@ -2268,9 +2210,7 @@ icepack_query_tracer_indices
              nlt_bgc_Fep_out, nlt_bgc_Nit_out, nlt_bgc_Am_out, nlt_bgc_Sil_out, &
              nlt_bgc_DMSPp_out, nlt_bgc_DMSPd_out, nlt_bgc_DMS_out, nlt_bgc_hum_out, &
              nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
-             nlt_zaero_sw_out, n_algae_out, n_DOC_out, n_aero_out, &
-             n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
-             ncat_out, nilyr_out, nslyr_out, nblyr_out, &
+             nlt_zaero_sw_out, &
              bio_index_o_out, bio_index_out)
   
           integer, intent(out), optional :: &
@@ -2307,20 +2247,6 @@ icepack_query_tracer_indices
                nt_zbgc_frac_out,&! fraction of tracer in the mobile phase
                nt_bgc_S_out,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
                nlt_chl_sw_out    ! points to total chla in trcrn_sw
-  
-         integer, intent(out), optional :: &
-               ncat_out,       & ! Categories
-               nilyr_out,      & ! Layers
-               nslyr_out,      & !
-               nblyr_out,      & !
-               n_algae_out,    & ! Dimensions
-               n_DOC_out,      & !
-               n_DON_out,      & !
-               n_DIC_out,      & !
-               n_fed_out,      & !
-               n_fep_out,      & ! 
-               n_zaero_out,    & !
-               n_aero_out
   
           integer (kind=int_kind), dimension(:), intent(out), optional :: &
                bio_index_o_out, & 
@@ -2373,53 +2299,99 @@ icepack_write_tracer_indices
   
  
 
-.. _icepack_init_tracer_numbers:
+.. _icepack_init_tracer_sizes:
 
-icepack_init_tracer_numbers
+icepack_init_tracer_sizes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: fortran
 
   ! set the number of column tracers
   
-        subroutine icepack_init_tracer_numbers(&
+        subroutine icepack_init_tracer_sizes(&
+           ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in  , &
+           n_algae_in, n_DOC_in, n_aero_in, &
+           n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
            ntrcr_in, ntrcr_o_in, nbtrcr_in, nbtrcr_sw_in)
   
         integer (kind=int_kind), intent(in), optional :: &
-           ntrcr_in  , &! number of tracers in use
-           ntrcr_o_in, &! number of non-bio tracers in use
-           nbtrcr_in , &! number of bio tracers in use
-           nbtrcr_sw_in ! number of shortwave bio tracers in use
+           ncat_in   , & ! Categories
+           nfsd_in   , & !
+           nilyr_in  , & ! Layers
+           nslyr_in  , & !
+           nblyr_in  , & !
+           n_algae_in, & ! Dimensions
+           n_DOC_in  , & !
+           n_DON_in  , & !
+           n_DIC_in  , & !
+           n_fed_in  , & !
+           n_fep_in  , & ! 
+           n_zaero_in, & !
+           n_aero_in , & !
+           ntrcr_in  , & ! number of tracers in use
+           ntrcr_o_in, & ! number of non-bio tracers in use
+           nbtrcr_in , & ! number of bio tracers in use
+           nbtrcr_sw_in  ! number of shortwave bio tracers in use
   
  
 
-.. _icepack_query_tracer_numbers:
+.. _icepack_query_tracer_sizes:
 
-icepack_query_tracer_numbers
+icepack_query_tracer_sizes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: fortran
 
   ! query the number of column tracers
   
-        subroutine icepack_query_tracer_numbers(&
+        subroutine icepack_query_tracer_sizes(&
+           max_algae_out  , max_dic_out    , max_doc_out      , &
+           max_don_out    , max_fe_out     , nmodal1_out      , &
+           nmodal2_out    , max_aero_out   , max_nbtrcr_out   , &
+           ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
+           n_algae_out, n_DOC_out, n_aero_out, &
+           n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
            ntrcr_out, ntrcr_o_out, nbtrcr_out, nbtrcr_sw_out)
   
         integer (kind=int_kind), intent(out), optional :: &
-           ntrcr_out  , &! number of tracers in use
-           ntrcr_o_out, &! number of non-bio tracers in use
-           nbtrcr_out , &! number of bio tracers in use
-           nbtrcr_sw_out ! number of shortwave bio tracers in use
+           max_algae_out  , & ! maximum number of algal types
+           max_dic_out    , & ! maximum number of dissolved inorganic carbon types
+           max_doc_out    , & ! maximum number of dissolved organic carbon types
+           max_don_out    , & ! maximum number of dissolved organic nitrogen types
+           max_fe_out     , & ! maximum number of iron types
+           nmodal1_out    , & ! dimension for modal aerosol radiation parameters
+           nmodal2_out    , & ! dimension for modal aerosol radiation parameters
+           max_aero_out   , & ! maximum number of aerosols
+           max_nbtrcr_out     ! algal nitrogen and chlorophyll
+  
+        integer (kind=int_kind), intent(out), optional :: &
+           ncat_out   , & ! Categories
+           nfsd_out   , & !
+           nilyr_out  , & ! Layers
+           nslyr_out  , & !
+           nblyr_out  , & !
+           n_algae_out, & ! Dimensions
+           n_DOC_out  , & !
+           n_DON_out  , & !
+           n_DIC_out  , & !
+           n_fed_out  , & !
+           n_fep_out  , & ! 
+           n_zaero_out, & !
+           n_aero_out , & !
+           ntrcr_out  , & ! number of tracers in use
+           ntrcr_o_out, & ! number of non-bio tracers in use
+           nbtrcr_out , & ! number of bio tracers in use
+           nbtrcr_sw_out  ! number of shortwave bio tracers in use
   
  
 
-.. _icepack_write_tracer_numbers:
+.. _icepack_write_tracer_sizes:
 
-icepack_write_tracer_numbers
+icepack_write_tracer_sizes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: fortran
 
   ! write the number of column tracers
   
-        subroutine icepack_write_tracer_numbers(iounit)
+        subroutine icepack_write_tracer_sizes(iounit)
   
         integer (kind=int_kind), intent(in) :: iounit
   

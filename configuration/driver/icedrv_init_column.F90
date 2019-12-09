@@ -17,11 +17,11 @@
       use icepack_intfc, only: icepack_max_algae, icepack_max_aero, icepack_max_fe
       use icepack_intfc, only: icepack_max_nbtrcr
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_init_tracer_numbers, icepack_init_tracer_flags
+      use icepack_intfc, only: icepack_init_tracer_sizes, icepack_init_tracer_flags
       use icepack_intfc, only: icepack_init_tracer_indices
       use icepack_intfc, only: icepack_init_parameters
-      use icepack_intfc, only: icepack_query_tracer_numbers, icepack_query_tracer_flags
-      use icepack_intfc, only: icepack_query_tracer_indices, icepack_query_tracer_sizes
+      use icepack_intfc, only: icepack_query_tracer_sizes, icepack_query_tracer_flags
+      use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_init_zbgc
       use icepack_intfc, only: icepack_init_thermo
@@ -151,7 +151,7 @@
          call icepack_query_parameters(shortwave_out=shortwave)
          call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
          call icepack_query_parameters(modal_aero_out=modal_aero)
-         call icepack_query_tracer_numbers(ntrcr_out=ntrcr, &
+         call icepack_query_tracer_sizes(ntrcr_out=ntrcr, &
               nbtrcr_sw_out=nbtrcr_sw)
          call icepack_query_tracer_flags(tr_brine_out=tr_brine, &
               tr_zaero_out=tr_zaero, tr_bgc_N_out=tr_bgc_N)
@@ -405,12 +405,12 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(solve_zsal_out=solve_zsal)
-      call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr, ntrcr_out=ntrcr, &
-           ntrcr_o_out=ntrcr_o)
-      call icepack_query_tracer_indices(nt_sice_out=nt_sice, nt_bgc_S_out=nt_bgc_S)
       call icepack_query_tracer_sizes(max_nbtrcr_out=max_nbtrcr, &
            max_algae_out=max_algae, max_don_out=max_don, max_doc_out=max_doc, &
            max_dic_out=max_dic, max_aero_out=max_aero, max_fe_out=max_fe)
+      call icepack_query_tracer_sizes(nbtrcr_out=nbtrcr, ntrcr_out=ntrcr, &
+           ntrcr_o_out=ntrcr_o)
+      call icepack_query_tracer_indices(nt_sice_out=nt_sice, nt_bgc_S_out=nt_bgc_S)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -842,7 +842,7 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
       call icepack_query_parameters(ktherm_out=ktherm, shortwave_out=shortwave, &
            scale_bgc_out=scale_bgc, skl_bgc_out=skl_bgc, z_tracers_out=z_tracers, &
@@ -1753,7 +1753,10 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
 
-      call icepack_init_tracer_numbers( &
+      call icepack_init_tracer_sizes( &
+           n_algae_in=n_algae,                                                                   &
+           n_DOC_in=n_DOC,             n_DON_in=n_DON,               n_DIC_in=n_DIC,             &
+           n_fed_in=n_fed,             n_fep_in=n_fep,               n_zaero_in=n_zaero,         &
            ntrcr_in=ntrcr, ntrcr_o_in=ntrcr_o, nbtrcr_in=nbtrcr, nbtrcr_sw_in=nbtrcr_sw)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -1785,9 +1788,6 @@
            nlt_bgc_DIC_in=nlt_bgc_DIC, nlt_bgc_DOC_in=nlt_bgc_DOC,   nlt_bgc_PON_in=nlt_bgc_PON, &
            nlt_bgc_DON_in=nlt_bgc_DON, nlt_bgc_Fed_in=nlt_bgc_Fed,   nlt_bgc_Fep_in=nlt_bgc_Fep, &
            nlt_bgc_chl_in=nlt_bgc_chl, nlt_bgc_hum_in=nlt_bgc_hum,   nlt_zaero_in=nlt_zaero,     &
-           n_algae_in=n_algae,                                                                   &
-           n_DOC_in=n_DOC,             n_DON_in=n_DON,               n_DIC_in=n_DIC,             &
-           n_fed_in=n_fed,             n_fep_in=n_fep,               n_zaero_in=n_zaero,         &
            bio_index_o_in=bio_index_o, bio_index_in=bio_index)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

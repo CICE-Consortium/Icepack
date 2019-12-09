@@ -70,21 +70,19 @@ icepack_parameters also provides a set of constants::
       use icepack_parameters, only: p15, p25, p75, p333, p666
 
 icepack_tracers provides init, query, and write methods to
-define various tracer sizes, flags, indices, and numbers.  The
+define various tracer sizes, flags, and indices.  The
 tracers have some defaults that the caller can query or reset::
 
       use icepack_tracers, only: icepack_compute_tracers
-      use icepack_tracers, only: icepack_query_tracer_sizes
-      use icepack_tracers, only: icepack_write_tracer_sizes
       use icepack_tracers, only: icepack_init_tracer_flags
       use icepack_tracers, only: icepack_query_tracer_flags
       use icepack_tracers, only: icepack_write_tracer_flags
       use icepack_tracers, only: icepack_init_tracer_indices
       use icepack_tracers, only: icepack_query_tracer_indices
       use icepack_tracers, only: icepack_write_tracer_indices
-      use icepack_tracers, only: icepack_init_tracer_numbers
-      use icepack_tracers, only: icepack_query_tracer_numbers
-      use icepack_tracers, only: icepack_write_tracer_numbers
+      use icepack_tracers, only: icepack_init_tracer_sizes
+      use icepack_tracers, only: icepack_query_tracer_sizes
+      use icepack_tracers, only: icepack_write_tracer_sizes
 
 icepack_itd provides three public interfaces to compute the ice
 thickness distribution::

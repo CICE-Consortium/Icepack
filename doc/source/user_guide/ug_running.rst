@@ -244,6 +244,8 @@ Porting
 To port, an **env.[machine]_[environment]** and **Macros.[machine]_[environment]** file have to be added to the
 **configuration/scripts/machines/** directory and the 
 **configuration/scripts/icepack.batch.csh** file needs to be modified.
+In addition **configuration/scripts/icepack.launch.csh** may need to
+be modified if simply running the binary directly will not work.
 In general, the machine is specified in ``icepack.setup`` with ``--mach``
 and the environment (compiler) is specified with ``--env``.
  
@@ -257,6 +259,9 @@ and the environment (compiler) is specified with ``--env``.
 
 - Edit the **icepack.batch.csh** script to add a section for your machine 
   with batch settings and job launch settings
+
+- Edit the **icepack.launch.csh** script to add a section for your machine 
+  if executing the binary directly is not supported
 
 - Download and untar a forcing dataset to the location defined by 
   ``ICE_MACHINE_INPUTDATA`` in the env file

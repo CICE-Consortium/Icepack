@@ -22,8 +22,5 @@ would be::
     git add doc/source/user_guide/interfaces.rst
     git commit -m "update public interface documentation"
 
-If the script is run, but no interfaces have changed, there should be no changes to the
-documentation files.
-
 .. include:: interfaces.include
 
