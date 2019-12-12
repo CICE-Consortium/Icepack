@@ -220,6 +220,7 @@
                   trcrn,         d_afsd_wave)
 
       use icepack_fsd, only: icepack_cleanup_fsd
+      use icepack_parameters, only: spwf_clss_crit 
 
       character (len=char_len), intent(in) :: &
          wave_spec_type   ! type of wave spectrum forcing
@@ -270,6 +271,9 @@
          frac    
 
       real (kind=dbl_kind) :: &
+         logwavenergy , & ! log base 10 of wave energy 
+         peak_period  , & ! peak period of wave spectrum (s)
+         spwf_classifier_out, & ! classifier output
          hbar         , & ! mean ice thickness
          elapsed_t    , & ! elapsed subcycling time
          subdt        , & ! subcycling time step
@@ -298,7 +302,19 @@
 
          hbar = vice / aice
 
-         ! calculate fracture histogram
+         logwavenergy = LOG10(SUM(wave_spectrum(:)*dwavefreq(:))) 
+         peak_period  = c1/(wavefreq(MAXLOC(wave_spectrum, DIM=1))) ! 1/peak frequency
+ 	 ! classify input (based on neural net run offline)
+	 ! input = thickness,log10(waveenergy),peak_period
+	 ! output: spwf_classifier_out between 0 and 1
+	 ! if greater than some critical value, run wave fracture
+	 call spwf_classifier(hbar,logwavenergy,peak_period, &
+			      spwf_classifier_out)
+
+	print *, 'spwf ',spwf_classifier_out!hbar,logwavenergy,peak_period, &
+                         !     spwf_classifier_out, spwf_clss_crit
+
+        ! calculate fracture histogram
          call wave_frac(nfsd, nfreq, wave_spec_type, &
                         floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
