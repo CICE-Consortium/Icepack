@@ -735,9 +735,8 @@
 ! See ref XXX for details
 !
 ! This routine contains the results of a pattern recognition network
-! (trained offline) with five hidden nodes. The network classifies whether
-! or not wave fracture occurs based on three input data variables - 
-! ice thickness, wave peak period and total wave energy.
+! (trained offline). The network classifies whether or not wave fracture occurs 
+! based on the 25-dim wave spectrum and ice thickness.
 ! The output is an integer between 0 and 1.
 !
 !  authors: 2019 Lettie Roach, UW
@@ -781,14 +780,7 @@
  
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
-      input(:) = (/c1, c1, c1, c1, c1, &
-                   c1, c1, c1, c1, c1, &
-                   c1, c1, c1, c1, c1, &
-                   c1, c1, c1, c1, c1, &
-                   c1, c1, c1, c1, c1, c1 /)
-
-
-
+      input(:) = c1
 
       wave_class_file = &
        trim('/glade/u/home/lettier/wavefrac_nn_classifier.txt')
@@ -821,7 +813,6 @@
       if (SUM(y3).NE.c0) y3 = y3/SUM(y3)
 
       print *, 'test y3 ',y3
-      ! temporary
       spwf_classifier_out = y3(2) 
       
 
