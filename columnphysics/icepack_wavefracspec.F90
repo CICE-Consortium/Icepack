@@ -545,9 +545,9 @@
          ! a random phase that varies in each i loop
          ! See documentation for discussion
          !if (trim(wave_spec_type)=='random') then
-            call RANDOM_NUMBER(rand_array)
+            !call RANDOM_NUMBER(rand_array)
          !else
-         !   rand_array(:) = p5
+         rand_array(:) = p5
          !endif
          phi = c2*pi*rand_array
  
@@ -562,28 +562,29 @@
             call get_fraclengths(X, eta, fraclengths, hbar, e_stop)
          end if
 
-         allfraclengths(2*nx*loopct+1:(loopct+1)*2*nx) = fraclengths(:)
-      
+ 
+         ! convert from diameter to radii
+         fraclengths(:) = fraclengths(:)/c2
+
+         ! add to end of long array
+         allfraclengths(2*nx*loopct+1:(loopct+1)*2*nx) = fraclengths(1:2*nx)
  
          frachistogram(:) = c0
 
-         if (.not. e_stop) then
-
-           ! convert from diameter to radii
-           allfraclengths(:) = allfraclengths(:)/c2
 
            ! bin into FS cats
            ! highest cat cannot be fractured into
            do j = 1, size(allfraclengths)
+            if (allfraclengths(j).gt.puny) then
             do k = 1, nfsd-1
                if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
                    (allfraclengths(j) < floe_rad_l(k+1))) then
                   frachistogram(k) = frachistogram(k) + 1
                end if
             end do
+            end if
 
            end do
-         end if
 
          do k = 1, nfsd
            frac_local(k) = floe_rad_c(k)*frachistogram(k)
@@ -601,6 +602,8 @@
          prev_frac_local = frac_local
 
       END DO
+      print *, 'finished in ',loopct
+      stop 'end'
 
       end subroutine wave_frac
 
