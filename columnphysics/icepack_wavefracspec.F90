@@ -305,12 +305,12 @@
 	 ! input = wave spectrum (25 freq) and ice thickness
 	 ! output: spwf_classifier_out between 0 and 1
 	 ! if greater than some critical value, run wave fracture
-	 call spwf_classifier(wave_spectrum, hbar,  &
-			      spwf_classifier_out)
+	 !call spwf_classifier(wave_spectrum, hbar,  &
+	 !		      spwf_classifier_out)
 
-	 print *, 'spwf ',spwf_classifier_out 
+	 !print *, 'spwf ',spwf_classifier_out 
 
-         if (spwf_classifier_out > spwf_clss_crit) then
+         !if (spwf_classifier_out > spwf_clss_crit) then
 
          ! calculate fracture histogram
          call wave_frac(nfsd, nfreq, wave_spec_type, &
@@ -420,7 +420,7 @@
                endif ! aicen > puny
             enddo    ! n
           end if
-         endif       ! fracture occurs
+         !endif       ! fracture occurs, clss vs clss_crit
 
       endif          ! aice > p01
       end if         ! all small floes
@@ -472,10 +472,13 @@
 
       ! local variables
 
-      integer (kind=int_kind) :: i, j, k
+      integer (kind=int_kind) :: i, j, k, loopct
 
-      integer, parameter :: &
-         loopcts = 1  ! number of SSH realizations
+      real (kind=dbl_kind) :: &
+         fracerror ! difference between successive histograms
+
+      real (kind=dbl_kind), parameter :: &
+         errortol = 5.0e-5  ! tolerance in error between successive histograms
 
       real (kind=dbl_kind), dimension(nfreq) :: &
          spec_elambda,             & ! spectrum as a function of wavelength (m^-1 s^-1)     
@@ -488,12 +491,16 @@
       real (kind=dbl_kind), dimension(2*nx) :: &
          fraclengths
 
+      real (kind=dbl_kind), dimension(1000*2*nx) :: &
+         allfraclengths
+
       real (kind=dbl_kind), dimension(nx) :: &
          X,  &    ! spatial domain (m)
          eta      ! sea surface height field (m)
 
       real (kind=dbl_kind), dimension(nfsd) :: &
-         frachistogram 
+         frachistogram, & ! histogram
+         prev_frac_local  ! previous histogram
 
       logical (kind=log_kind) :: &
          e_stop        ! if true, stop and return zero omega and fsdformed
@@ -519,20 +526,29 @@
       ! spectral coefficients
       spec_coeff = sqrt(c2*spec_elambda*dlambda) 
 
-      ! initialize fracture lengths
+      ! initialize things
       fraclengths(:) = c0
-     
-      ! loop over n. realizations of SSH
-      do i = 1, loopcts
+      prev_frac_local(:) = c0
+      allfraclengths(:) = c0
+      fracerror = bignum
+
+      ! loop while fracerror greater than error tolerance
+      loopct = -1
+      DO WHILE (fracerror.gt.errortol)
+         loopct = loopct + 1
+
+         if (loopct>1000) stop 'wave frac not converging'
+
+         print *, loopct,'fracerror=',fracerror
 
          ! Phase for each Fourier component may be constant or
          ! a random phase that varies in each i loop
          ! See documentation for discussion
-         if (trim(wave_spec_type)=='random') then
+         !if (trim(wave_spec_type)=='random') then
             call RANDOM_NUMBER(rand_array)
-         else
-            rand_array(:) = p5
-         endif
+         !else
+         !   rand_array(:) = p5
+         !endif
          phi = c2*pi*rand_array
  
          do j = 1, nx
@@ -540,38 +556,51 @@
             summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
             eta(j)  = SUM(summand)
          end do
- 
+
+         fraclengths(:) = c0 
          if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
             call get_fraclengths(X, eta, fraclengths, hbar, e_stop)
          end if
-      end do
+
+         allfraclengths(2*nx*loopct+1:(loopct+1)*2*nx) = fraclengths(:)
+      
  
-      frachistogram(:) = c0
+         frachistogram(:) = c0
 
-      if (.not. e_stop) then
+         if (.not. e_stop) then
 
-         ! convert from diameter to radii
-         fraclengths(:) = fraclengths(:)/c2
+           ! convert from diameter to radii
+           allfraclengths(:) = allfraclengths(:)/c2
 
-         ! bin into FS cats
-         ! highest cat cannot be fractured into
-         do j = 1, size(fraclengths)
+           ! bin into FS cats
+           ! highest cat cannot be fractured into
+           do j = 1, size(allfraclengths)
             do k = 1, nfsd-1
-               if ((fraclengths(j) >= floe_rad_l(k)) .and. &
-                   (fraclengths(j) < floe_rad_l(k+1))) then
+               if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
+                   (allfraclengths(j) < floe_rad_l(k+1))) then
                   frachistogram(k) = frachistogram(k) + 1
                end if
             end do
 
+           end do
+         end if
+
+         do k = 1, nfsd
+           frac_local(k) = floe_rad_c(k)*frachistogram(k)
          end do
-      end if
 
-      do k = 1, nfsd
-         frac_local(k) = floe_rad_c(k)*frachistogram(k)
-      end do
+         ! normalize
+         if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
 
-      ! normalize
-      if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
+         ! check against previous iteration
+         ! same as Chris' code, but in future rewrite to change
+         ! tolerance criteria
+         fracerror = SUM(ABS(frac_local - prev_frac_local))/(nfsd**2)
+
+         ! save histogram for next iteration
+         prev_frac_local = frac_local
+
+      END DO
 
       end subroutine wave_frac
 
