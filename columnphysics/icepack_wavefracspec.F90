@@ -278,6 +278,7 @@
          cons_error       ! area conservation error
 
       real (kind=dbl_kind), dimension (nfsd) :: &
+         spwf_fullnet_hist, & !
          fracture_hist, & ! fracture histogram
          afsd_init    , & ! tracer array
          afsd_tmp     , & ! tracer array
@@ -300,6 +301,12 @@
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
 
          hbar = vice / aice
+
+         ! for testing
+         call spwf_fullnet(nfsd, wave_spectrum, hbar, &
+                                 spwf_fullnet_hist)
+
+
 
  	 ! classify input (based on neural net run offline)
 	 ! input = wave spectrum (25 freq) and ice thickness
@@ -603,7 +610,6 @@
 
       END DO
       print *, 'finished in ',loopct
-      stop 'end'
 
       end subroutine wave_frac
 
@@ -850,6 +856,109 @@
 
 
       end subroutine spwf_classifier
+!===========================================================================
+!
+! See ref XXX for details
+!
+! This routine contains the results of a pattern recognition network
+! (trained offline). The network emulates the full wave fracture code
+! based on the 25-dim wave spectrum and ice thickness.
+! The output is the fracture histogram, binned into our floe size categories
+!
+!  authors: 2019 Lettie Roach, UW
+!                Chris Horvat, Brown University
+!
+
+      subroutine spwf_fullnet(nfsd, wave_spectrum, hbar, &
+                                 spwf_fullnet_hist)
+
+      integer (kind=int_kind), intent(in) :: &
+          nfsd
+ 
+      real (kind=dbl_kind), intent (in) :: &
+          hbar  ! ice thickness (m)
+
+      real (kind=dbl_kind), dimension (:), intent (in) :: &
+          wave_spectrum ! wave spectrum as a function of freq (m^s s)
+
+
+      real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
+          spwf_fullnet_hist
+
+
+      ! local variables
+
+      character(char_len_long) :: wave_fullnet_file
+
+      real (kind=dbl_kind), dimension(26) :: input
+
+      real (kind=dbl_kind), dimension(27041)   :: filelist
+ 
+      real (kind=dbl_kind), dimension(26,100)  :: full_weight1
+      real (kind=dbl_kind), dimension(100)     :: full_weight2
+      real (kind=dbl_kind), dimension(100,100) :: full_weight3
+      real (kind=dbl_kind), dimension(100)     :: full_weight4
+      real (kind=dbl_kind), dimension(100,100) :: full_weight5
+      real (kind=dbl_kind), dimension(100)     :: full_weight6
+      real (kind=dbl_kind), dimension(100,41)  :: full_weight7
+      real (kind=dbl_kind), dimension(41)      :: full_weight8
+
+
+      real (kind=dbl_kind), dimension(100)    :: y1, y2, y3
+      real (kind=dbl_kind), dimension(41)     :: y4
+
+
+      print *, 'in fullnet subroutine'
+
+ 
+      input(1:25) = wave_spectrum(1:25)
+      input(26)   = hbar
+      ! for testing
+      input(:) = c1
+
+      wave_fullnet_file = &
+       trim('/glade/u/home/lettier/wavefrac_nn_fullnet.txt')
+
+      open (unit = 2, file = wave_fullnet_file)
+      read (2, *) filelist
+      close(2)
+
+      full_weight1 = TRANSPOSE(RESHAPE(filelist(1:2600), (/100, 26/)))
+      full_weight2 = filelist(2601:2700)
+      full_weight3 = TRANSPOSE(RESHAPE(filelist(2701:12700), (/100, 100/)))
+      full_weight4 = filelist(12701:12800)
+      full_weight5 = TRANSPOSE(RESHAPE(filelist(12801:22800), (/100, 100/)))
+      full_weight6 = filelist(22801:22900)
+      full_weight7 = TRANSPOSE(RESHAPE(filelist(22901:27000), (/41, 100/)))
+      full_weight8 = filelist(27001:27041)
+
+      y1 = MATMUL(input,full_weight1) + full_weight2
+      WHERE (y1 < c0) y1 = c0
+      print *, 'test y1 ',y1(1:5)
+
+      y2 = MATMUL(y1, full_weight3) + full_weight4
+      WHERE (y2 < c0) y2 = c0
+      print *, 'test y2 ',y2(1:5)
+
+      y3 = MATMUL(y2, full_weight5) + full_weight6
+      WHERE (y3 < c0) y3 = c0
+      print *, 'test arg to y3 ',y3(1:5)
+
+      y4 = MATMUL(y3, full_weight7) + full_weight8
+      print *, 'test arg to y4 ',y4(1:5)
+
+      y4 = y4 - MAXVAL(y4)
+      y4 = EXP(y4)
+      if (SUM(y4).NE.c0) y4 = y4/SUM(y4)
+
+      print *, 'test y4 ',y4
+      ! temporary, need to rebin properly
+      spwf_fullnet_hist = y4(1:nfsd) 
+      
+
+
+      end subroutine spwf_fullnet
+
 
 !=======================================================================
      
