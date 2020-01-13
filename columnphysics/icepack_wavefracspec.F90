@@ -49,9 +49,13 @@
                                         ! of 10m on both sides, based on the 
                                         ! observations of Toyota et al. (2011) who 
                                         ! find this to be the order of the smallest 
-                                        ! floe size affected by wave fracture 
-      integer (kind=int_kind) :: &
+                                        ! floe size affected by wave fracture
+ 
+      integer (kind=int_kind), parameter :: &
          nx = 10000                     ! number of points in domain
+
+      integer (kind=int_kind), parameter :: max_no_iter = 1
+
 
 !=======================================================================
 
@@ -302,22 +306,21 @@
 
          hbar = vice / aice
 
+
          ! for testing
-         call spwf_fullnet(nfsd, wave_spectrum, hbar, &
-                                 spwf_fullnet_hist)
+         !call spwf_fullnet(nfsd, wave_spectrum, hbar, &
+         !                        spwf_fullnet_hist)
 
+         ! classify input (based on neural net run offline)
+         ! input = wave spectrum (25 freq) and ice thickness
+         ! output: spwf_classifier_out between 0 and 1
+         ! if greater than some critical value, run wave fracture
+         call spwf_classifier(wave_spectrum, hbar,  &
+                              spwf_classifier_out)
 
+         print *, 'spwf ',spwf_classifier_out 
 
- 	 ! classify input (based on neural net run offline)
-	 ! input = wave spectrum (25 freq) and ice thickness
-	 ! output: spwf_classifier_out between 0 and 1
-	 ! if greater than some critical value, run wave fracture
-	 !call spwf_classifier(wave_spectrum, hbar,  &
-	 !		      spwf_classifier_out)
-
-	 !print *, 'spwf ',spwf_classifier_out 
-
-         !if (spwf_classifier_out > spwf_clss_crit) then
+         if (spwf_classifier_out > spwf_clss_crit) then
 
          ! calculate fracture histogram
          call wave_frac(nfsd, nfreq, wave_spec_type, &
@@ -427,7 +430,7 @@
                endif ! aicen > puny
             enddo    ! n
           end if
-         !endif       ! fracture occurs, clss vs clss_crit
+         endif       ! fracture occurs, clss vs clss_crit
 
       endif          ! aice > p01
       end if         ! all small floes
@@ -479,7 +482,7 @@
 
       ! local variables
 
-      integer (kind=int_kind) :: i, j, k, loopct
+      integer (kind=int_kind) :: i, j, k, iter
 
       real (kind=dbl_kind) :: &
          fracerror ! difference between successive histograms
@@ -498,7 +501,7 @@
       real (kind=dbl_kind), dimension(2*nx) :: &
          fraclengths
 
-      real (kind=dbl_kind), dimension(1000*2*nx) :: &
+      real (kind=dbl_kind), dimension(max_no_iter*2*nx) :: &
          allfraclengths
 
       real (kind=dbl_kind), dimension(nx) :: &
@@ -540,21 +543,17 @@
       fracerror = bignum
 
       ! loop while fracerror greater than error tolerance
-      loopct = -1
-      DO WHILE (fracerror.gt.errortol)
-         loopct = loopct + 1
+      DO iter = 1, max_no_iter
+      !DO WHILE (fracerror.gt.errortol)
 
-         if (loopct>1000) stop 'wave frac not converging'
-
-         print *, loopct,'fracerror=',fracerror
 
          ! Phase for each Fourier component may be constant or
          ! a random phase that varies in each i loop
          ! See documentation for discussion
          !if (trim(wave_spec_type)=='random') then
-            !call RANDOM_NUMBER(rand_array)
+         call RANDOM_NUMBER(rand_array)
          !else
-         rand_array(:) = p5
+         !rand_array(:) = p5
          !endif
          phi = c2*pi*rand_array
  
@@ -568,20 +567,18 @@
          if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
             call get_fraclengths(X, eta, fraclengths, hbar, e_stop)
          end if
-
  
          ! convert from diameter to radii
          fraclengths(:) = fraclengths(:)/c2
 
          ! add to end of long array
-         allfraclengths(2*nx*loopct+1:(loopct+1)*2*nx) = fraclengths(1:2*nx)
+         allfraclengths(2*nx*iter+1:(iter+1)*2*nx) = fraclengths(1:2*nx)
  
          frachistogram(:) = c0
 
-
-           ! bin into FS cats
-           ! highest cat cannot be fractured into
-           do j = 1, size(allfraclengths)
+         ! bin into FS cats
+         ! highest cat cannot be fractured into
+         do j = 1, size(allfraclengths)
             if (allfraclengths(j).gt.puny) then
             do k = 1, nfsd-1
                if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
@@ -590,8 +587,7 @@
                end if
             end do
             end if
-
-           end do
+         end do
 
          do k = 1, nfsd
            frac_local(k) = floe_rad_c(k)*frachistogram(k)
@@ -608,8 +604,10 @@
          ! save histogram for next iteration
          prev_frac_local = frac_local
 
+         if (fracerror.lt.errortol) EXIT
+
       END DO
-      print *, 'finished in ',loopct
+      print *, 'finished in ',iter
 
       end subroutine wave_frac
 
@@ -853,9 +851,8 @@
       print *, 'test y3 ',y3
       spwf_classifier_out = y3(2) 
       
-
-
       end subroutine spwf_classifier
+
 !===========================================================================
 !
 ! See ref XXX for details

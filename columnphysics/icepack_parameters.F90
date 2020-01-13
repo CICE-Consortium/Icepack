@@ -277,7 +277,7 @@
          floeshape = 0.666_dbl_kind   ! constant from Steele (unitless)
 
       real (kind=dbl_kind), public :: &
-         spwf_clss_crit = c0
+         spwf_clss_crit = 0.46_dbl_kind
 
       logical (kind=log_kind), public :: &
          wave_spec = .false.          ! if true, use wave forcing
