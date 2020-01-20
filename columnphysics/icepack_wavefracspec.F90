@@ -312,6 +312,11 @@
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
          hbar = vice / aice
 
+
+        print *, 'wave_spectrum ',wave_spectrum 
+        print *, 'hbar ',hbar
+
+
         if (trim(wave_solver).eq.'classifier') then 
          ! classify input (based on neural net run offline)
          ! input = wave spectrum (25 freq) and ice thickness
@@ -347,6 +352,8 @@
                         hbar, wave_spectrum, fracture_hist)
         end if
 
+
+        print *, 'fracture hist ',fracture_hist
 
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
@@ -415,6 +422,7 @@
                      elapsed_t = elapsed_t + subdt 
 
                   END DO ! elapsed_t < dt
+                  print *, n,' nsubt=',nsubt
  
                   ! In some cases---particularly for strong fracturing---the equation
                   ! for wave fracture does not quite conserve area.
@@ -445,7 +453,7 @@
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
                   d_afsd_wave (:)   = d_afsd_wave(:) + aicen(n)*d_afsdn_wave(:,n)
-
+                  print *, n,' dafsd_wave ',d_afsd_wave (:)
                endif ! aicen > puny
             enddo    ! n
         endif ! fracture hist > 0
@@ -904,8 +912,6 @@
       real (kind=dbl_kind), dimension (nfsd), intent (in) :: &
           floe_rad_l ! FSD categories, lower limit, radius (m)
 
-
-
       real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
           spwf_fullnet_hist
 
@@ -951,7 +957,7 @@
 
       fracbin_lims  = fracbin_lims/c2 ! radii
       fracbin_width = fracbin_lims(2:42) - fracbin_lims(1:41)
-      fracbin_c     = fracbin_lims(1:41) + fracbin_width
+      fracbin_c     = fracbin_lims(1:41) + fracbin_width/c2
  
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
