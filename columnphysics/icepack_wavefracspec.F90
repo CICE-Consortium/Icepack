@@ -103,8 +103,10 @@
       wave_spectrum_data(9) = 2.419401186610744e-20      
 
       do k = 1, nfreq
-         wave_spectrum_profile(k) = wave_spectrum_data(k)
+         wave_spectrum_profile(k) = 100_dbl_kind*wave_spectrum_data(k)
       enddo
+
+      print *, 'warning wave spec mult 100'
 
       ! hardwired for wave coupling with NIWA version of Wavewatch
       ! From Wavewatch, f(n+1) = C*f(n) where C is a constant set by the user
@@ -117,6 +119,7 @@
 
       ! boundaries of bin n are at f(n)*sqrt(1/C) and f(n)*sqrt(C) 
       dwavefreq(:) = wavefreq(:)*(SQRT(1.1_dbl_kind) - SQRT(c1/1.1_dbl_kind))
+      print *, 'dwavefreq ',dwavefreq
 
       end subroutine icepack_init_wave
 
@@ -525,10 +528,10 @@
          spec_coeff,               &
          phi, rand_array, summand
 
-      real (kind=dbl_kind), dimension(2*nx) :: &
+      real (kind=dbl_kind), dimension(nx) :: &
          fraclengths
 
-      real (kind=dbl_kind), dimension(max_no_iter*2*nx) :: &
+      real (kind=dbl_kind), dimension(max_no_iter*nx) :: &
          allfraclengths
 
       real (kind=dbl_kind), dimension(nx) :: &
@@ -539,10 +542,7 @@
          frachistogram, & ! histogram
          prev_frac_local  ! previous histogram
 
-      logical (kind=log_kind) :: &
-         e_stop        ! if true, stop and return zero omega and fsdformed
 
-      e_stop = .false. ! if true, aborts fracture calc
       loop_max_iter = max_no_iter
       if (trim(wave_solver).eq.'1') loop_max_iter = 1
   
@@ -552,18 +552,14 @@
       end do
 
       ! dispersion relation
-      reverse_lambda (:) = gravit/(c2*pi*wavefreq (:)**2)
-      reverse_dlambda(:) = gravit/(c2*pi*dwavefreq(:)**2)
-      ! convert to lambda spectrum
-      reverse_spec_elambda(:) = spec_efreq(:) &
-                   *(p5 * (gravit/(c2*pi*reverse_lambda(:)**3) )**p5)
-      ! reverse lambda
-      lambda (:) = reverse_lambda (nfreq:1:-1)
-      dlambda(:) = reverse_dlambda(nfreq:1:-1)
-      spec_elambda(:) = reverse_spec_elambda(nfreq:1:-1) 
- 
+      lambda (:) = gravit/(c2*pi*wavefreq (:)**2)
+
+      print *, 'lambda ',lambda (:)
+
       ! spectral coefficients
-      spec_coeff = sqrt(c2*spec_elambda*dlambda) 
+      spec_coeff = sqrt(c2*spec_efreq*dwavefreq) 
+
+      print *, 'spec_coeff ',spec_coeff
 
       ! initialize things
       fraclengths(:) = c0
@@ -578,9 +574,9 @@
          ! a random phase that varies in each i loop
          ! See documentation for discussion
          !if (trim(wave_spec_type)=='random') then
-         call RANDOM_NUMBER(rand_array)
+         !call RANDOM_NUMBER(rand_array)
          !else
-         !rand_array(:) = p5
+         rand_array(:) = p5
          !endif
          phi = c2*pi*rand_array
  
@@ -589,17 +585,21 @@
             summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
             eta(j)  = SUM(summand)
          end do
+         print *, 'SUM eta ',SUM(eta)
+         print *, 'hbar = ',hbar
 
          fraclengths(:) = c0 
          if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
-            call get_fraclengths(X, eta, fraclengths, hbar, e_stop)
+            call get_fraclengths(X, eta, fraclengths, hbar)
          end if
- 
+
+
+         print *, 'max fraclengths ',MAXVAL(fraclengths) 
          ! convert from diameter to radii
          fraclengths(:) = fraclengths(:)/c2
 
          ! add to end of long array
-         allfraclengths(2*nx*iter+1:(iter+1)*2*nx) = fraclengths(1:2*nx)
+         allfraclengths(nx*iter+1:(iter+1)*nx) = fraclengths(1:nx)
  
          if (ALL(allfraclengths.lt.puny)) then
              frac_local(:) = c0
@@ -617,8 +617,11 @@
                   frachistogram(k) = frachistogram(k) + 1
                end if
             end do
+            if (allfraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
             end if
             end do
+
+            print *, 'frachistogram ',frachistogram
 
             do k = 1, nfsd
              frac_local(k) = floe_rad_c(k)*frachistogram(k)
@@ -658,7 +661,7 @@
 !
 !  authors: 2016 Lettie Roach, NIWA/VUW
 !
-      subroutine get_fraclengths(X, eta, fraclengths, hbar, e_stop)
+      subroutine get_fraclengths(X, eta, fraclengths, hbar)
 
       real (kind=dbl_kind) :: &
          hbar             ! mean thickness (m)
@@ -667,14 +670,10 @@
          X, &              ! spatial domain (m)
          eta               ! sea surface height field (m)
 
-      real (kind=dbl_kind), intent(inout), dimension (2*nx) :: &
-         fraclengths      ! the biggest number of fraclengths we could have is
-                          ! two floe pieces created at each subgridpoint ie. 2*nx
-                          ! This will never actually happen - most of the array
-                          ! will be zeros
+      real (kind=dbl_kind), intent(inout), dimension (nx) :: &
+         fraclengths      ! The distances between fracture points
+                          ! Size cannot be greater than nx
 
-      logical (kind=log_kind), intent(inout) :: &
-         e_stop           ! if true, stop and return zero omega and fsdformed
 
       ! local variables
       integer (kind=int_kind) :: &
@@ -686,9 +685,8 @@
          n_above          ! number of points where strain is above critical
 
       real (kind=dbl_kind), dimension(nx) :: &
-         strain,        & ! the strain between triplets of extrema
-         frac_size_one, & !
-         frac_size_two
+         fracdistances, & ! distances in space where fracture has occurred 
+         strain           ! the strain between triplets of extrema
 
       logical (kind=log_kind), dimension(nx) :: &
          is_max, is_min,& ! arrays to hold whether each point is a local max or min
@@ -711,8 +709,6 @@
       is_extremum = .false.
       is_triplet = .false.
       strain = c0
-      frac_size_one = c0
-      frac_size_two = c0
       j_neg = 0
       j_pos = 0      
       fraclengths(:) = c0
@@ -722,30 +718,24 @@
 
       do j = 1, nx
 
+         ! indices within which to search for local max and min
          first = MAX(1,j-spcing)
          last  = MIN(nx,j+spcing)
 
+         ! location of max and min within spacing
          maxj = MAXLOC(eta(first:last))
          minj = MINLOC(eta(first:last))
 
-!         if (COUNT(eta(first:last) == MAXVAL(eta(first:last))) > 1) &
-!                       stop 'more than one max'
-!         if (COUNT(eta(first:last) == MINVAL(eta(first:last))) > 1) &
-!                        stop 'more than one min'
-
+         ! current j is the max or the min, save it
          if (maxj(1)+first-1 == j) is_max(j) = .true.
          if (minj(1)+first-1 == j) is_min(j) = .true.
 
-!         if (is_min(j).and.is_max(j)) then
-!            print *, 'X ',X
-!            print *, 'eta ',eta
-!            print *, 'frst last' ,first, last
-!            print *, 'maxj, minj ',maxj,minj
-!            stop     'error in extrema'
-!         end if
+         ! save whether max or min in one array
          if (is_min(j).or.is_max(j)) is_extremum(j) = .true.
       end do
 
+      ! loop over points
+      ! nothing can happen at the first or last
       do j = 2, nx-1
          if (is_extremum(j)) then
             if (j == 2) then
@@ -765,7 +755,8 @@
                   EXIT
                end if
             end do
-                       
+
+            ! find triplets of max and min                       
             if ((j_neg > 0).and.(j_pos > 0)) then 
                if (is_max(j_neg).and.is_min(j).and.is_max(j_pos)) &
                   is_triplet(j) = .true.
@@ -775,29 +766,52 @@
 
             ! calculate strain
             if (is_triplet(j)) then
+
+               ! finite differences
                delta_pos = X(j_pos) - X(j    )
                delta     = X(j    ) - X(j_neg)
 
-               strain(j) = p5*hbar*(eta(j_neg) - eta(j)) &
-                                  / (delta*(delta+delta_pos))
 
-               if (strain(j) > straincrit) then
-                  frac_size_one(j) = X(j_pos) - X(j    )
-                  frac_size_two(j) = X(j    ) - X(j_neg)
-               end if
-            end if
-         end if
+               ! NB differs from HT2015 - factor 2 in numerator
+               ! and eta(j_pos)
+               strain(j) = ABS(hbar*(eta(j_neg)* delta_pos &
+                                - eta(j    )*(delta_pos+delta) &
+                                + eta(j_pos)*           delta) &
+                                / (delta*delta_pos*(delta+delta_pos)))
 
+            end if ! is triplet
+         end if ! is extremum
+
+      end do ! loop over j
+
+      do j =1 ,nx
+        if (strain(j)>puny) print *, j ,' strain ',strain(j)
       end do
 
       n_above = COUNT(strain > straincrit)
-      if (n_above > 0) then
-         fraclengths(1:nx)      = frac_size_one(:)
-         fraclengths(nx+1:2*nx) = frac_size_two(:)
-         e_stop = .false.
-      else
-         e_stop = .true.
-      end if
+      fracdistances(:) = c0
+
+      ! only do if we have some strains exceeding strain crit
+      if (n_above>0) then
+
+          k = 0
+          do j = 1, nx
+            if (strain(j) > straincrit) then
+              k = k + 1
+              fracdistances(k) = X(j)
+            end if
+          end do
+
+          print *, 'fracdistances ',fracdistances(1:n_above+2)
+
+          fraclengths(1:nx-1) = fracdistances(2:nx) - fracdistances(1:nx-1)
+          fraclengths(n_above) = c0 ! the last one will be 0 - a distance,
+                                      ! so reset back to zero
+
+
+      end if ! n_above
+
+      print *, 'fraclengths ',fraclengths(1:n_above+3)
 
       end subroutine get_fraclengths
 
