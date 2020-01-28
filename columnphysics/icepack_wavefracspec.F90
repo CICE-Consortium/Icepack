@@ -103,10 +103,8 @@
       wave_spectrum_data(9) = 2.419401186610744e-20      
 
       do k = 1, nfreq
-         wave_spectrum_profile(k) = 100_dbl_kind*wave_spectrum_data(k)
+         wave_spectrum_profile(k) = wave_spectrum_data(k)
       enddo
-
-      print *, 'warning wave spec mult 100'
 
       ! hardwired for wave coupling with NIWA version of Wavewatch
       ! From Wavewatch, f(n+1) = C*f(n) where C is a constant set by the user
@@ -119,7 +117,6 @@
 
       ! boundaries of bin n are at f(n)*sqrt(1/C) and f(n)*sqrt(C) 
       dwavefreq(:) = wavefreq(:)*(SQRT(1.1_dbl_kind) - SQRT(c1/1.1_dbl_kind))
-      print *, 'dwavefreq ',dwavefreq
 
       end subroutine icepack_init_wave
 
@@ -316,10 +313,6 @@
          hbar = vice / aice
 
 
-        print *, 'wave_spectrum ',wave_spectrum 
-        print *, 'hbar ',hbar
-
-
         if (trim(wave_solver).eq.'classifier') then 
          ! classify input (based on neural net run offline)
          ! input = wave spectrum (25 freq) and ice thickness
@@ -355,8 +348,6 @@
                         hbar, wave_spectrum, fracture_hist)
         end if
 
-
-        print *, 'fracture hist ',fracture_hist
 
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
@@ -456,7 +447,6 @@
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
                   d_afsd_wave (:)   = d_afsd_wave(:) + aicen(n)*d_afsdn_wave(:,n)
-                  print *, n,' dafsd_wave ',d_afsd_wave (:)
                endif ! aicen > puny
             enddo    ! n
         endif ! fracture hist > 0
@@ -518,13 +508,11 @@
          fracerror ! difference between successive histograms
 
       real (kind=dbl_kind), parameter :: &
-         errortol = 5.0e-5  ! tolerance in error between successive histograms
+         errortol = 6.5e-4  ! tolerance in error between successive histograms
 
       real (kind=dbl_kind), dimension(nfreq) :: &
          spec_elambda,             & ! spectrum as a function of wavelength (m^-1 s^-1)     
-         reverse_spec_elambda,     & ! reversed
-         reverse_lambda, lambda,   & ! wavelengths (m)
-         reverse_dlambda, dlambda, & ! wavelength bin spacing (m)
+         lambda,                   & ! wavelengths (m)
          spec_coeff,               &
          phi, rand_array, summand
 
@@ -554,12 +542,8 @@
       ! dispersion relation
       lambda (:) = gravit/(c2*pi*wavefreq (:)**2)
 
-      print *, 'lambda ',lambda (:)
-
       ! spectral coefficients
       spec_coeff = sqrt(c2*spec_efreq*dwavefreq) 
-
-      print *, 'spec_coeff ',spec_coeff
 
       ! initialize things
       fraclengths(:) = c0
@@ -574,9 +558,9 @@
          ! a random phase that varies in each i loop
          ! See documentation for discussion
          !if (trim(wave_spec_type)=='random') then
-         !call RANDOM_NUMBER(rand_array)
+         call RANDOM_NUMBER(rand_array)
          !else
-         rand_array(:) = p5
+         !rand_array(:) = p5
          !endif
          phi = c2*pi*rand_array
  
@@ -585,16 +569,12 @@
             summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
             eta(j)  = SUM(summand)
          end do
-         print *, 'SUM eta ',SUM(eta)
-         print *, 'hbar = ',hbar
 
          fraclengths(:) = c0 
          if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
             call get_fraclengths(X, eta, fraclengths, hbar)
          end if
 
-
-         print *, 'max fraclengths ',MAXVAL(fraclengths) 
          ! convert from diameter to radii
          fraclengths(:) = fraclengths(:)/c2
 
@@ -621,8 +601,6 @@
             end if
             end do
 
-            print *, 'frachistogram ',frachistogram
-
             do k = 1, nfsd
              frac_local(k) = floe_rad_c(k)*frachistogram(k)
             end do
@@ -632,10 +610,8 @@
 
          end if ! allfraclengths > 0
 
-         ! check against previous iteration
-         ! same as Chris' code, but in future rewrite to change
-         ! tolerance criteria
-         fracerror = SUM(ABS(frac_local - prev_frac_local))/(nfsd**2)
+         ! check avg frac local against previous iteration
+         fracerror = SUM(ABS(frac_local - prev_frac_local))/nfsd
 
          ! save histogram for next iteration
          prev_frac_local = frac_local
@@ -784,10 +760,6 @@
 
       end do ! loop over j
 
-      do j =1 ,nx
-        if (strain(j)>puny) print *, j ,' strain ',strain(j)
-      end do
-
       n_above = COUNT(strain > straincrit)
       fracdistances(:) = c0
 
@@ -802,16 +774,12 @@
             end if
           end do
 
-          print *, 'fracdistances ',fracdistances(1:n_above+2)
-
           fraclengths(1:nx-1) = fracdistances(2:nx) - fracdistances(1:nx-1)
           fraclengths(n_above) = c0 ! the last one will be 0 - a distance,
                                       ! so reset back to zero
 
 
       end if ! n_above
-
-      print *, 'fraclengths ',fraclengths(1:n_above+3)
 
       end subroutine get_fraclengths
 
