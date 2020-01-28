@@ -104,9 +104,9 @@
       ! hardwired for wave coupling with NIWA version of Wavewatch
       ! From Wavewatch, f(n+1) = C*f(n) where C is a constant set by the user
       ! These freq are for C = 1.1
-      wavefreq = (/0.04118,     0.045298,    0.0498278,   0.05481058,  0.06029164, &
+      wavefreq = (/0.04118000,  0.04529800,  0.04982780,  0.05481058,  0.06029164, &
                    0.06632081,  0.07295289,  0.08024818,  0.08827299,  0.09710029, &
-                   0.10681032,  0.11749136,  0.1292405,   0.14216454,  0.15638101, &
+                   0.10681032,  0.11749136,  0.12924050,  0.14216454,  0.15638101, &
                    0.17201911,  0.18922101,  0.20814312,  0.22895744,  0.25185317, &
                    0.27703848,  0.30474234,  0.33521661,  0.36873826,  0.40561208/)
 
@@ -281,7 +281,8 @@
          afsd_tmp     , & ! tracer array
          d_afsd_tmp       ! change
 
-      character(len=*),parameter :: subname='(icepack_step_wavefracture)'
+      character(len=*),parameter :: &
+         subname='(icepack_step_wavefracture)'
 
       !------------------------------------
 
@@ -292,12 +293,13 @@
 
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
- 
+
+   
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
 
          hbar = vice / aice
-
+ 
          ! calculate fracture histogram
          call wave_frac(nfsd, nfreq, wave_spec_type, &
                         floe_rad_l, floe_rad_c, &
@@ -459,9 +461,6 @@
 
       integer (kind=int_kind) :: i, j, k
 
-      integer, parameter :: &
-         loopcts = 1  ! number of SSH realizations
-
       real (kind=dbl_kind), dimension(nfreq) :: &
          spec_elambda,             & ! spectrum as a function of wavelength (m^-1 s^-1)     
          lambda,                   & ! wavelengths (m)
@@ -495,31 +494,27 @@
 
       ! initialize fracture lengths
       fraclengths(:) = c0
-     
-      ! loop over n. realizations of SSH
-      do i = 1, loopcts
 
-         ! Phase for each Fourier component may be constant or
-         ! a random phase that varies in each i loop
-         ! See documentation for discussion
-         if (trim(wave_spec_type)=='random') then
-            call RANDOM_NUMBER(rand_array)
-         else
-            rand_array(:) = p5
-         endif
-         phi = c2*pi*rand_array
- 
-         do j = 1, nx
-            ! SSH field in space (sum over wavelengths, no attenuation)
-            summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
-            eta(j)  = SUM(summand)
-         end do
- 
-         if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
-            call get_fraclengths(X, eta, fraclengths, hbar)
-         end if
+      ! Phase for each Fourier component may be constant or
+      ! a random phase that varies in each i loop
+      ! See documentation for discussion
+      !if (trim(wave_spec_type)=='random') then
+      !  call RANDOM_NUMBER(rand_array)
+      !else
+        rand_array(:) = p5
+      !endif
+      phi = c2*pi*rand_array
+
+      do j = 1, nx
+         ! SSH field in space (sum over wavelengths, no attenuation)
+         summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
+         eta(j)  = SUM(summand)
       end do
- 
+
+      if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
+         call get_fraclengths(X, eta, fraclengths, hbar)
+      end if
+
       frachistogram(:) = c0
 
       ! convert from diameter to radii
@@ -543,6 +538,7 @@
 
       ! normalize
       if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
+
 
       end subroutine wave_frac
 
@@ -679,10 +675,6 @@
          end if ! is extremum
 
       end do ! loop over j
-
-      do j =1 ,nx
-        if (strain(j)>puny) print *, j ,' strain ',strain(j)
-      end do
 
       n_above = COUNT(strain > straincrit)
       fracdistances(:) = c0
