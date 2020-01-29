@@ -272,7 +272,7 @@
          nsubt ! number of subcycles
 
       logical (kind=log_kind) :: &
-         run_wave_fracture 
+         run_wave_fracture, run_to_convergence 
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          afsdn           ! floe size and thickness distribution
@@ -305,6 +305,12 @@
       fracture_hist  (:)   = c0
       run_wave_fracture    = .true.
 
+      ! should be moved to ice_init
+      run_to_convergence = .false.
+      if ((trim(wave_solver).eq.'std-conv') &
+          .OR.(trim(wave_solver).eq.'mlclass-conv')) run_to_convergence = .true.
+
+
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
  
@@ -313,7 +319,7 @@
          hbar = vice / aice
 
 
-        if (trim(wave_solver).eq.'classifier') then 
+        if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')) then 
          ! classify input (based on neural net run offline)
          ! input = wave spectrum (25 freq) and ice thickness
          ! output: spwf_classifier_out between 0 and 1
@@ -329,7 +335,7 @@
                 print *, 'skip wave frac'
              end if
 
-        else if (trim(wave_solver).eq.'fullnet') then
+        else if (trim(wave_solver).eq.'mlfullnet') then
              run_wave_fracture = .false.
 
              call spwf_fullnet(nfsd, floe_rad_l, wave_spectrum, hbar, &
@@ -342,7 +348,7 @@
         if (run_wave_fracture.eq. .true.) then
          ! calculate fracture histogram
          print *, 'run wave frac'
-         call wave_frac(nfsd, nfreq, wave_spec_type, wave_solver, &
+         call wave_frac(nfsd, nfreq, run_to_convergence, &
                         floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
@@ -472,7 +478,7 @@
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 
-      subroutine wave_frac(nfsd, nfreq, wave_spec_type, wave_solver, &
+      subroutine wave_frac(nfsd, nfreq, run_to_convergence, &
                            floe_rad_l, floe_rad_c, &
                            wavefreq, dwavefreq, &
                            hbar, spec_efreq, frac_local)
@@ -481,9 +487,11 @@
          nfsd, &       ! number of floe size categories
          nfreq         ! number of wave frequency categories
 
-      character (len=char_len), intent(in) :: &
-        wave_spec_type, & ! type of wave spectrum forcing
-        wave_solver       ! method of solving wave fracture
+      logical (kind=log_kind), intent(in) :: &
+        run_to_convergence ! whether to iterate the wave fracture code
+                           ! over random SSH phases until convergence
+                           ! (not bit for bit), or do one iteration
+                           ! with a fixed phase (bit for bit)
 
       real (kind=dbl_kind),  intent(in) :: &
          hbar          ! mean ice thickness (m)
@@ -532,7 +540,7 @@
 
 
       loop_max_iter = max_no_iter
-      if (trim(wave_solver).eq.'1') loop_max_iter = 1
+      if (.NOT. run_to_convergence) loop_max_iter = 1
   
       ! spatial domain
       do j = 1, nx
@@ -557,11 +565,11 @@
          ! Phase for each Fourier component may be constant or
          ! a random phase that varies in each i loop
          ! See documentation for discussion
-         !if (trim(wave_spec_type)=='random') then
-         call RANDOM_NUMBER(rand_array)
-         !else
-         !rand_array(:) = p5
-         !endif
+         if (run_to_convergence) then
+             call RANDOM_NUMBER(rand_array)
+         else
+             rand_array(:) = p5
+         endif
          phi = c2*pi*rand_array
  
          do j = 1, nx
@@ -609,17 +617,21 @@
             if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
 
          end if ! allfraclengths > 0
+ 
+         if (run_to_convergence) then
 
-         ! check avg frac local against previous iteration
-         fracerror = SUM(ABS(frac_local - prev_frac_local))/nfsd
+             ! check avg frac local against previous iteration
+             fracerror = SUM(ABS(frac_local - prev_frac_local))/nfsd
 
-         ! save histogram for next iteration
-         prev_frac_local = frac_local
+             ! save histogram for next iteration
+             prev_frac_local = frac_local
 
-         if (fracerror.lt.errortol) then
-             print *, 'finished in ',iter
-             if (iter.gt.100) stop 'not conv in wave_frac'
-             EXIT
+             if (fracerror.lt.errortol) then
+               print *, 'finished in ',iter
+               if (iter.gt.100) stop 'not conv in wave_frac'
+               EXIT
+             end if
+         
          end if
 
       END DO
