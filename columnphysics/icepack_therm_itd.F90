@@ -50,7 +50,8 @@
       use icepack_therm_shared, only: hi_min
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc               
-     
+      use icepack_wavefracspec, only: get_subdt_fsd    
+ 
       implicit none
       
       private
@@ -942,7 +943,8 @@
          afsdn_init    ! initial value
 
       real (kind=dbl_kind), dimension (nfsd) :: &
-         df_flx        ! finite difference for G_r * areal mFSTD tilda
+         df_flx, &        ! finite difference for G_r * areal mFSTD tilda
+         afsd_tmp, d_afsd_tmp
 
       real (kind=dbl_kind), dimension(nfsd+1) :: &
          f_flx         !
@@ -951,7 +953,9 @@
       real (kind=dbl_kind), intent(in) :: &
          sss
       real (kind=dbl_kind) :: &
-         Ti, Si0, qi0
+         Ti, Si0, qi0, &
+         elapsed_t,    & ! FSD subcycling
+         subdt           ! FSD timestep (s)
 
       character(len=*), parameter :: subname='(lateral_melt)'
 
@@ -1008,8 +1012,6 @@
             endif
 
             if (qin(n) < -puny) G_radialn(n) = -fside/qin(n) ! negative
-
-!            if (G_radialn(n) > puny) stop 'G_radial positive'
 
             if (G_radialn(n) < -puny) then
 
@@ -1105,6 +1107,15 @@
 
                      tmp = SUM(afsdn_init(:,n)/floe_rad_c(:))
                      do k = 1, nfsd
+                         d_afsd_tmp(k) = -df_flx(k) + c2 * G_radialn(n) * afsdn_init(k,n) &
+                                       * (c1/floe_rad_c(k) - tmp)
+                     end do
+
+                     subdt = get_subdt_fsd(nfsd, afsdn_init(:,n), d_afsd_tmp(:))
+                     subdt = MIN(subdt, dt)
+                     print *, 'subdt =',subdt
+
+                     do k = 1, nfsd
                        afsdn (k,n) = afsdn_init(k,n) &
                            + dt * (-df_flx(k) + c2 * G_radialn(n) * afsdn_init(k,n) &
                                 * (c1/floe_rad_c(k) - tmp))
@@ -1117,12 +1128,6 @@
                      if (any(afsdn > c1+puny)) &
                          print*,'lateral_melt:  afsdn > 1'
 
-
-                     !trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn(:,n)
-
-                  !else ! aicen = 0
-
-                   !  trcrn(nt_fsd:nt_fsd+nfsd-1,n) = c0
 
                   end if ! aicen
                end if ! rside > 0, otherwise do nothing
