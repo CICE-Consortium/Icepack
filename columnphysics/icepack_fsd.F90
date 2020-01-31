@@ -655,6 +655,7 @@
          afsdn_latg     ! fsd after lateral growth
 
       real (kind=dbl_kind), dimension (nfsd) :: &
+         dafsd_tmp,  & !
          df_flx     , & ! finite differences for G_r*tilda(L)
          afsd_ni        ! fsd after new ice added
 
@@ -682,6 +683,14 @@
 !         if (abs(sum(df_flx)) > puny) print*,'fsd_add_new ERROR df_flx /= 0'
 
          afsdn_latg(:,n) = c0
+         do k = 1, nfsd
+            dafsd_tmp(k) = (-df_flx(k) + c2 * G_radial * afsdn(k,n) &
+                            * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
+
+         end do
+
+         if (.NOT. ALL(dafsd_tmp.eq.c0)) print *, 'latg ',dafsd_tmp(:)
+
          do k = 1, nfsd
             afsdn_latg(k,n) = afsdn(k,n) &
                             + dt * (-df_flx(k) + c2 * G_radial * afsdn(k,n) &

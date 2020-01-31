@@ -1110,10 +1110,10 @@
                          d_afsd_tmp(k) = -df_flx(k) + c2 * G_radialn(n) * afsdn_init(k,n) &
                                        * (c1/floe_rad_c(k) - tmp)
                      end do
+                     print *, 'latm ',d_afsd_tmp(:)
 
                      subdt = get_subdt_fsd(nfsd, afsdn_init(:,n), d_afsd_tmp(:))
                      subdt = MIN(subdt, dt)
-                     print *, 'subdt =',subdt
 
                      do k = 1, nfsd
                        afsdn (k,n) = afsdn_init(k,n) &
