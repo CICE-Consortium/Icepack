@@ -9,10 +9,9 @@ Icepack is included in CICE as a Git submodule.  Because Icepack is a submodule 
 [cice]: https://github.com/CICE-Consortium/CICE
 
 ## Getting help
-If you still need help getting started using the model afer reviewing the [model documentation][doc-running], the first point of contact with the CICE Consortium is the [Consortium Community Forum][forum].
-This forum is monitored by Consortium members and also opened to the whole community.
-**Please do not use our issue tracker for general support questions.**
+If you still need help getting started using the model afer reviewing the [model documentation][doc-resources], the first point of contact with the CICE Consortium is the [Consortium Community Forum][forum]. This forum is monitored by Consortium members and is also open to the whole community. **Please do not use our issue tracker for general support questions.**
 
+[doc-resources]: https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index#model-documentation
 [doc-running]: https://cice-consortium-icepack.readthedocs.io/en/master/user_guide/ug_running.html
 [forum]: https://xenforo.cgd.ucar.edu/cesm/forums/cice-consortium.146/
 
@@ -41,4 +40,4 @@ Head over to our [Contribution guide][contributing] to learn more about how you 
    List of resources for information about the Consortium and its repositories as well as model documentation, testing, and development.
 
 ## License
-See our [License](Licese.pdf) and [Distribution Policy](DistributionPolicy.pdf).
+See our [License](License.pdf) and [Distribution Policy](DistributionPolicy.pdf).
