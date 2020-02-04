@@ -462,7 +462,6 @@
       integer (kind=int_kind) :: i, j, k
 
       real (kind=dbl_kind), dimension(nfreq) :: &
-         spec_elambda,             & ! spectrum as a function of wavelength (m^-1 s^-1)     
          lambda,                   & ! wavelengths (m)
          spec_coeff,               &
          phi, rand_array, summand
@@ -477,10 +476,11 @@
       real (kind=dbl_kind), dimension(nfsd) :: &
          frachistogram 
 
-      logical (kind=log_kind) :: &
-         e_stop        ! if true, stop and return zero omega and fsdformed
-
-  
+      ! initialize fracture lengths
+      fraclengths(:) = c0
+      frachistogram(:) = c0
+      frac_local(:) = c0
+ 
       ! spatial domain
       do j = 1, nx
          X(j)= j*dx
@@ -492,18 +492,8 @@
       ! spectral coefficients
       spec_coeff = sqrt(c2*spec_efreq*dwavefreq) 
 
-      ! initialize fracture lengths
-      fraclengths(:) = c0
-
-      ! Phase for each Fourier component may be constant or
-      ! a random phase that varies in each i loop
-      ! See documentation for discussion
-      !if (trim(wave_spec_type)=='random') then
-      !  call RANDOM_NUMBER(rand_array)
-      !else
-        rand_array(:) = p5
-      !endif
-      phi = c2*pi*rand_array
+      ! Fixed phase - not converging waves here 
+      phi = pi
 
       do j = 1, nx
          ! SSH field in space (sum over wavelengths, no attenuation)
@@ -515,29 +505,30 @@
          call get_fraclengths(X, eta, fraclengths, hbar)
       end if
 
-      frachistogram(:) = c0
+      if (ANY(fraclengths.gt.puny)) then
 
-      ! convert from diameter to radii
-      fraclengths(:) = fraclengths(:)/c2
+          ! convert from diameter to radii
+          fraclengths(:) = fraclengths(:)/c2
 
-      ! bin into FS cats
-      ! highest cat cannot be fractured into
-      do j = 1, size(fraclengths)
-      do k = 1, nfsd-1
-         if ((fraclengths(j) >= floe_rad_l(k)) .and. &
+          ! bin into FS cats
+          do j = 1, size(fraclengths)
+          do k = 1, nfsd-1
+             if ((fraclengths(j) >= floe_rad_l(k)) .and. &
              (fraclengths(j) < floe_rad_l(k+1))) then
              frachistogram(k) = frachistogram(k) + 1
-         end if
-      end do
-      if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
-      end do
+             end if
+          end do
+          if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
+          end do
 
-      do k = 1, nfsd
-         frac_local(k) = floe_rad_c(k)*frachistogram(k)
-      end do
+          do k = 1, nfsd
+             frac_local(k) = floe_rad_c(k)*frachistogram(k)
+          end do
 
-      ! normalize
-      if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
+          ! normalize
+          if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
+
+      end if
 
 
       end subroutine wave_frac
