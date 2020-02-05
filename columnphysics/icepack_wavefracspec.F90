@@ -49,9 +49,14 @@
                                         ! of 10m on both sides, based on the 
                                         ! observations of Toyota et al. (2011) who 
                                         ! find this to be the order of the smallest 
-                                        ! floe size affected by wave fracture 
-      integer (kind=int_kind) :: &
-         nx = 10000                     ! number of points in domain
+                                        ! floe size affected by wave fracture
+ 
+      integer (kind=int_kind), parameter :: &
+         nx = 10000         ! number of points in domain
+
+      integer (kind=int_kind), parameter :: &
+         max_no_iter = 100 ! max no of iterations to compute wave fracture
+
 
 !=======================================================================
 
@@ -104,9 +109,9 @@
       ! hardwired for wave coupling with NIWA version of Wavewatch
       ! From Wavewatch, f(n+1) = C*f(n) where C is a constant set by the user
       ! These freq are for C = 1.1
-      wavefreq = (/0.04118000,  0.04529800,  0.04982780,  0.05481058,  0.06029164, &
+      wavefreq = (/0.04118,     0.045298,    0.0498278,   0.05481058,  0.06029164, &
                    0.06632081,  0.07295289,  0.08024818,  0.08827299,  0.09710029, &
-                   0.10681032,  0.11749136,  0.12924050,  0.14216454,  0.15638101, &
+                   0.10681032,  0.11749136,  0.1292405,   0.14216454,  0.15638101, &
                    0.17201911,  0.18922101,  0.20814312,  0.22895744,  0.25185317, &
                    0.27703848,  0.30474234,  0.33521661,  0.36873826,  0.40561208/)
 
@@ -400,19 +405,17 @@
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
                   call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
  
-
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
                   d_afsd_wave (:)   = d_afsd_wave(:) + aicen(n)*d_afsdn_wave(:,n)
-
                endif ! aicen > puny
             enddo    ! n
-         endif       ! fracture occurs
+        endif ! fracture hist > 0
 
       endif          ! aice > p01
-      end if         ! all small floes
+      endif         ! all small floes
 
-     end subroutine icepack_step_wavefracture
+      end subroutine icepack_step_wavefracture
 
 !=======================================================================
 !
@@ -459,7 +462,13 @@
 
       ! local variables
 
-      integer (kind=int_kind) :: i, j, k
+      integer (kind=int_kind) :: i, j, k, iter, loop_max_iter
+
+      real (kind=dbl_kind) :: &
+         fracerror ! difference between successive histograms
+
+      real (kind=dbl_kind), parameter :: &
+         errortol = 6.5e-4  ! tolerance in error between successive histograms
 
       real (kind=dbl_kind), dimension(nfreq) :: &
          lambda,                   & ! wavelengths (m)
@@ -469,17 +478,24 @@
       real (kind=dbl_kind), dimension(nx) :: &
          fraclengths
 
+      real (kind=dbl_kind), dimension(max_no_iter*nx) :: &
+         allfraclengths
+
       real (kind=dbl_kind), dimension(nx) :: &
          X,  &    ! spatial domain (m)
          eta      ! sea surface height field (m)
 
       real (kind=dbl_kind), dimension(nfsd) :: &
-         frachistogram 
+         frachistogram, & ! histogram
+         prev_frac_local  ! previous histogram
 
-      ! initialize fracture lengths
-      fraclengths(:) = c0
-      frachistogram(:) = c0
-      frac_local(:) = c0
+
+      if (trim(wave_spec_type).eq.'random') then
+          ! run wave fracture to convergence
+          loop_max_iter = max_no_iter
+      else
+          loop_max_iter = 1
+      end if
  
       ! spatial domain
       do j = 1, nx
@@ -492,45 +508,85 @@
       ! spectral coefficients
       spec_coeff = sqrt(c2*spec_efreq*dwavefreq) 
 
-      ! Fixed phase - not converging waves here 
-      phi = pi
+      ! initialize frac lengths
+      fraclengths(:) = c0
+      prev_frac_local(:) = c0
+      allfraclengths(:) = c0
+      fracerror = bignum
 
-      do j = 1, nx
-         ! SSH field in space (sum over wavelengths, no attenuation)
-         summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
-         eta(j)  = SUM(summand)
-      end do
+      ! loop while fracerror greater than error tolerance
+      DO iter = 1, loop_max_iter
 
-      if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
-         call get_fraclengths(X, eta, fraclengths, hbar)
-      end if
+         ! Phase for each Fourier component may be constant or
+         ! a random phase that varies in each i loop
+         ! See documentation for discussion
+         if (trim(wave_spec_type).eq.'random') then
+             call RANDOM_NUMBER(rand_array)
+         else
+             rand_array(:) = p5
+         endif
+         phi = c2*pi*rand_array
+ 
+         do j = 1, nx
+            ! SSH field in space (sum over wavelengths, no attenuation)
+            summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
+            eta(j)  = SUM(summand)
+         end do
 
-      if (ANY(fraclengths.gt.puny)) then
+         fraclengths(:) = c0 
+         if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
+            call get_fraclengths(X, eta, fraclengths, hbar)
+         end if
 
-          ! convert from diameter to radii
-          fraclengths(:) = fraclengths(:)/c2
+         ! convert from diameter to radii
+         fraclengths(:) = fraclengths(:)/c2
 
-          ! bin into FS cats
-          do j = 1, size(fraclengths)
-          do k = 1, nfsd-1
-             if ((fraclengths(j) >= floe_rad_l(k)) .and. &
-             (fraclengths(j) < floe_rad_l(k+1))) then
-             frachistogram(k) = frachistogram(k) + 1
-             end if
-          end do
-          if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
-          end do
+         ! add to end of long array
+         allfraclengths(nx*iter+1:(iter+1)*nx) = fraclengths(1:nx)
+ 
+         if (ALL(allfraclengths.lt.floe_rad_l(1))) then
+             frac_local(:) = c0
+         else
 
-          do k = 1, nfsd
+            frachistogram(:) = c0
+
+            ! bin into FS cats
+            do j = 1, size(allfraclengths)
+            if (allfraclengths(j).gt.puny) then
+            do k = 1, nfsd-1
+               if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
+                   (allfraclengths(j) < floe_rad_l(k+1))) then
+                  frachistogram(k) = frachistogram(k) + 1
+               end if
+            end do
+            if (allfraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
+            end if
+            end do
+
+            do k = 1, nfsd
              frac_local(k) = floe_rad_c(k)*frachistogram(k)
-          end do
+            end do
 
-          ! normalize
-          if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
+            ! normalize
+            if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
 
-      end if
+         end if ! allfraclengths > 0
+ 
+         ! wave fracture run to convergence
+         if (trim(wave_spec_type).eq.'random') then
 
+             ! check avg frac local against previous iteration
+             fracerror = SUM(ABS(frac_local - prev_frac_local))/nfsd
 
+             ! save histogram for next iteration
+             prev_frac_local = frac_local
+
+        
+         end if
+
+      END DO
+      if (iter.gt.100) stop 'wave_frac did not converge'
+ 
       end subroutine wave_frac
 
 !===========================================================================
@@ -556,7 +612,7 @@
       real (kind=dbl_kind), intent(inout), dimension (nx) :: &
          fraclengths      ! The distances between fracture points
                           ! Size cannot be greater than nx.
-                          ! In practice, will be least
+                          ! In practice, will be much less
 
       ! local variables
       integer (kind=int_kind) :: &
@@ -681,7 +737,10 @@
             end if
           end do
 
-          fraclengths(1:nx-1) = fracdistances(2:nx) - fracdistances(1:nx-1)
+          do j = 1, n_above
+              fraclengths(j) = fracdistances(j+1) - fracdistances(j)
+          end do
+
           fraclengths(n_above) = c0 ! the last one will be 0 - a distance,
                                       ! so reset back to zero
 
