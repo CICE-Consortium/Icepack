@@ -55,7 +55,7 @@
          nx = 10000         ! number of points in domain
 
       integer (kind=int_kind), parameter :: &
-         max_no_iter = 1000 ! max no of iterations to compute wave fracture
+         max_no_iter = 100 ! max no of iterations to compute wave fracture
 
 
 !=======================================================================
