@@ -219,7 +219,7 @@
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave)
 
-      use icepack_fsd, only: icepack_cleanup_fsd
+
 
       character (len=char_len), intent(in) :: &
          wave_spec_type   ! type of wave spectrum forcing
@@ -308,7 +308,7 @@
          ! if fracture occurs
          if (MAXVAL(fracture_hist) > puny) then
             ! protect against small numerical errors
-            call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+            !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
             
             do n = 1, ncat
               
@@ -392,7 +392,7 @@
 
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
-                  call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+                  !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
  
 
                   ! for diagnostics

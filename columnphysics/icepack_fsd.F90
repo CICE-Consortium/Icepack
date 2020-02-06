@@ -48,6 +48,7 @@
       use icepack_tracers, only: nt_fsd, tr_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+      use icepack_wavefracspec, only: get_subdt_fsd
 
       implicit none
 
@@ -565,6 +566,13 @@
                             + c2*aicen(n)*afsdn(k,n)*G_radial*dt/floe_rad_c(k)
             end do
          end do ! n
+         
+         ! cannot expand ice laterally beyond lead region
+         if (SUM(d_an_latg(:)).ge.lead_area) then
+             d_an_latg(:) = d_an_latg(:)/SUM(d_an_latg(:))
+             d_an_latg(:) = d_an_latg(:)*lead_area
+         end if
+
       endif ! vi0new_lat > 0
 
       ! Use remaining ice volume as in standard model,
@@ -649,21 +657,23 @@
          d_afsd_newi    ! new ice formation
 
       integer (kind=int_kind) :: &
-         k              ! floe size category index
+         k, &              ! floe size category index
+         new_size, &       ! index for floe size of new ice
+         nsubt             ! number of subtimesteps
+
+      real (kind=dbl_kind) :: &
+         elapsed_t, subdt  ! elapsed time, subtimestep (s)
 
       real (kind=dbl_kind), dimension (nfsd,ncat) :: &
          afsdn_latg     ! fsd after lateral growth
 
       real (kind=dbl_kind), dimension (nfsd) :: &
-         dafsd_tmp,  & !
-         df_flx     , & ! finite differences for G_r*tilda(L)
+         dafsd_tmp,  &  ! tmp FSD
+         df_flx     , & ! finite differences for fsd
          afsd_ni        ! fsd after new ice added
 
       real (kind=dbl_kind), dimension(nfsd+1) :: &
          f_flx          ! finite differences in floe size
-
-      integer (kind=int_kind) :: &
-         new_size       ! index for floe size of new ice
 
       character(len=*),parameter :: subname='(fsd_add_new_ice)'
 
@@ -671,31 +681,44 @@
 
       if (d_an_latg(n) > puny) then ! lateral growth
 
-         df_flx(:) = c0 ! NB could stay zero if all in largest FS cat
-         f_flx (:) = c0
-         do k = 2, nfsd
-            f_flx(k) = G_radial * afsdn(k-1,n) / floe_binwidth(k-1)
-         end do
-         do k = 1, nfsd
-            df_flx(k) = f_flx(k+1) - f_flx(k)
-         end do
+         ! adaptive timestep
+         elapsed_t = c0
+         nsubt = 0
+
+         DO WHILE (elapsed_t.lt.dt)
+        
+             nsubt = nsubt + 1
+             if (nsubt.gt.100) print *, 'latg not converging'
+ 
+             ! finite differences
+             df_flx(:) = c0 ! NB could stay zero if all in largest FS cat
+             f_flx (:) = c0
+             do k = 2, nfsd
+                f_flx(k) = G_radial * afsdn_latg(k-1,n) / floe_binwidth(k-1)
+             end do
+             do k = 1, nfsd
+                df_flx(k) = f_flx(k+1) - f_flx(k)
+             end do
 
 !         if (abs(sum(df_flx)) > puny) print*,'fsd_add_new ERROR df_flx /= 0'
 
-         afsdn_latg(:,n) = c0
-         do k = 1, nfsd
-            dafsd_tmp(k) = (-df_flx(k) + c2 * G_radial * afsdn(k,n) &
-                            * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
+             dafsd_tmp(:) = c0
+             do k = 1, nfsd
+                dafsd_tmp(k) = (-df_flx(k) + c2 * G_radial * afsdn_latg(k,n) &
+                            * (c1/floe_rad_c(k) - SUM(afsdn_latg(:,n)/floe_rad_c(:))) )
 
-         end do
+             end do
+             WHERE (abs(dafsd_tmp).lt.puny) dafsd_tmp = c0
 
-         if (.NOT. ALL(dafsd_tmp.eq.c0)) print *, 'latg ',dafsd_tmp(:)
+            ! timestep required for this
+            subdt = get_subdt_fsd(nfsd, afsdn_latg(:,n), dafsd_tmp(:)) 
+            subdt = MIN(subdt, dt)
+ 
+            ! update fsd and elapsed time
+            afsdn_latg(:,n) = afsdn_latg(:,n) + subdt*dafsd_tmp(:)
+            elapsed_t = elapsed_t + subdt
 
-         do k = 1, nfsd
-            afsdn_latg(k,n) = afsdn(k,n) &
-                            + dt * (-df_flx(k) + c2 * G_radial * afsdn(k,n) &
-                            * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
-         end do
+         END DO
 
          call icepack_cleanup_fsdn (nfsd, afsdn_latg(:,n))
          trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:,n)
