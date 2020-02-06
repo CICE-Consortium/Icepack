@@ -478,9 +478,6 @@
       real (kind=dbl_kind), dimension(nx) :: &
          fraclengths
 
-      real (kind=dbl_kind), dimension(max_no_iter*nx) :: &
-         allfraclengths
-
       real (kind=dbl_kind), dimension(nx) :: &
          X,  &    ! spatial domain (m)
          eta      ! sea surface height field (m)
@@ -511,7 +508,6 @@
       ! initialize frac lengths
       fraclengths(:) = c0
       prev_frac_local(:) = c0
-      allfraclengths(:) = c0
       fracerror = bignum
 
       ! loop while fracerror greater than error tolerance
@@ -541,25 +537,23 @@
          ! convert from diameter to radii
          fraclengths(:) = fraclengths(:)/c2
 
-         ! add to end of long array
-         allfraclengths(nx*iter+1:(iter+1)*nx) = fraclengths(1:nx)
  
-         if (ALL(allfraclengths.lt.floe_rad_l(1))) then
+         if (ALL(fraclengths.lt.floe_rad_l(1))) then
              frac_local(:) = c0
          else
 
             frachistogram(:) = c0
 
             ! bin into FS cats
-            do j = 1, size(allfraclengths)
-            if (allfraclengths(j).gt.puny) then
+            do j = 1, size(fraclengths)
+            if (fraclengths(j).gt.puny) then
             do k = 1, nfsd-1
-               if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
-                   (allfraclengths(j) < floe_rad_l(k+1))) then
+               if ((fraclengths(j) >= floe_rad_l(k)) .and. &
+                   (fraclengths(j) < floe_rad_l(k+1))) then
                   frachistogram(k) = frachistogram(k) + 1
                end if
             end do
-            if (allfraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
+            if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
             end if
             end do
 
@@ -570,7 +564,7 @@
             ! normalize
             if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
 
-         end if ! allfraclengths > 0
+         end if ! fraclengths > 0
  
          ! wave fracture run to convergence
          if (trim(wave_spec_type).eq.'random') then
@@ -578,15 +572,23 @@
              ! check avg frac local against previous iteration
              fracerror = SUM(ABS(frac_local - prev_frac_local))/nfsd
 
+             if (fracerror.lt.errortol) EXIT
+
+             if (iter.gt.100) then
+               print *, 'fracerror ',fracerror
+               print *, 'before ',prev_frac_local
+               print *, 'after ',frac_local
+               stop 'wave_frac did not converge'
+             end if
+
              ! save histogram for next iteration
              prev_frac_local = frac_local
 
-        
+            
          end if
 
       END DO
-      if (iter.gt.100) stop 'wave_frac did not converge'
- 
+
       end subroutine wave_frac
 
 !===========================================================================
