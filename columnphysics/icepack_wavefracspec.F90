@@ -36,7 +36,7 @@
 
       implicit none
       private
-      public :: icepack_init_wave, icepack_step_wavefracture
+      public :: icepack_init_wave, icepack_step_wavefracture, get_subdt_fsd
 
       real (kind=dbl_kind), parameter  :: &
          swh_minval = 0.01_dbl_kind,  & ! minimum value of wave height (m)
@@ -77,7 +77,7 @@
 
       real(kind=dbl_kind), dimension(:), intent(out) :: &
          wave_spectrum_profile, & ! ocean surface wave spectrum as a function of frequency
-	 		                ! power spectral density of surface elevation, E(f) (units m^2 s)
+                                  ! power spectral density of surface elevation, E(f) (units m^2 s)
          wavefreq,              & ! wave frequencies (s^-1)
          dwavefreq                ! wave frequency bin widths (s^-1)
 
@@ -174,13 +174,13 @@
 
 !=======================================================================
 !
-!  Adaptive timestepping for wave fracture
+!  Adaptive timestepping (process agnostic)
 !  See reference: Horvat & Tziperman (2017) JGR, Appendix A
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
 !
-     function get_subdt_wave(nfsd, afsd_init, d_afsd) &
+      function get_subdt_fsd(nfsd, afsd_init, d_afsd) &
                               result(subdt)
 
       integer (kind=int_kind), intent(in) :: &
@@ -207,7 +207,7 @@
 
       subdt = MINVAL(check_dt)
 
-      end function get_subdt_wave
+      end function get_subdt_fsd
 
 !=======================================================================
 ! 
@@ -227,6 +227,7 @@
 
       use icepack_fsd, only: icepack_cleanup_fsd
       use icepack_parameters, only: spwf_clss_crit 
+
 
       character (len=char_len), intent(in) :: &
          wave_spec_type, &   ! type of wave spectrum forcing
@@ -358,7 +359,7 @@
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
             ! protect against small numerical errors
-            call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+            !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
             
             do n = 1, ncat
               
@@ -386,23 +387,18 @@
                   DO WHILE (elapsed_t < dt)
                      nsubt = nsubt + 1
 
+                     ! check in case wave fracture struggles to converge
+                     if (nsubt>100) print *, &
+                              'wave frac taking a while to converge....'
+
                      ! if all floes in smallest category already, exit
                      if (afsd_tmp(1).ge.c1-puny) EXIT 
 
                      ! calculate d_afsd using current afstd
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
                      
-                     ! check in case wave fracture struggles to converge
-                     if (nsubt>100) then
-                          print *, 'afsd_tmp ',afsd_tmp
-                          print *, 'dafsd_tmp ',d_afsd_tmp
-                          print *, 'subt ',nsubt
-                          print *, &
-                              'wave frac taking a while to converge....'
-                     end if
- 
                      ! required timestep
-                     subdt = get_subdt_wave(nfsd, afsd_tmp, d_afsd_tmp)
+                     subdt = get_subdt_fsd(nfsd, afsd_tmp, d_afsd_tmp)
                      subdt = MIN(subdt, dt)
 
                      ! update afsd
@@ -448,7 +444,7 @@
 
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
-                  call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+                  !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
  
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
