@@ -828,20 +828,18 @@
 
       real (kind=dbl_kind), dimension(26) :: input
 
-      real (kind=dbl_kind), dimension(402)   :: filelist
+      real (kind=dbl_kind), dimension(13002)   :: filelist
  
-      real (kind=dbl_kind), dimension(26,10) :: class_weight1
-      real (kind=dbl_kind), dimension(10)    :: class_weight2
-      real (kind=dbl_kind), dimension(10,10) :: class_weight3
-      real (kind=dbl_kind), dimension(10)    :: class_weight4
-      real (kind=dbl_kind), dimension(10,2)  :: class_weight5
-      real (kind=dbl_kind), dimension(2)     :: class_weight6
+      real (kind=dbl_kind), dimension(26,100)  :: class_weight1
+      real (kind=dbl_kind), dimension(100)     :: class_weight2
+      real (kind=dbl_kind), dimension(100,100) :: class_weight3
+      real (kind=dbl_kind), dimension(100)     :: class_weight4
+      real (kind=dbl_kind), dimension(100,2)   :: class_weight5
+      real (kind=dbl_kind), dimension(2)       :: class_weight6
 
-      real (kind=dbl_kind), dimension(10)    :: y1, y2
+      real (kind=dbl_kind), dimension(100)    :: y1, y2
       real (kind=dbl_kind), dimension(2)     :: y3
 
-
- 
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
 
@@ -852,12 +850,12 @@
       read (1, *) filelist
       close(1)
 
-      class_weight1 = TRANSPOSE(RESHAPE(filelist(1:260), (/10, 26/)))
-      class_weight2 = filelist(261:270)
-      class_weight3 = TRANSPOSE(RESHAPE(filelist(271:370), (/10, 10/)))
-      class_weight4 = filelist(371:380)
-      class_weight5 = TRANSPOSE(RESHAPE(filelist(381:400), (/2, 10/)))
-      class_weight6 = filelist(401:402)
+      class_weight1 = TRANSPOSE(RESHAPE(filelist(1:2600), (/100, 26/)))
+      class_weight2 = filelist(2601:2700)
+      class_weight3 = TRANSPOSE(RESHAPE(filelist(2701:12700), (/100, 100/)))
+      class_weight4 = filelist(12701:12800)
+      class_weight5 = TRANSPOSE(RESHAPE(filelist(12801:13000), (/2, 100/)))
+      class_weight6 = filelist(13001:13002)
 
 
       y1 = MATMUL(input,class_weight1) + class_weight2
@@ -916,7 +914,7 @@
 
       real (kind=dbl_kind), dimension(26) :: input
 
-      real (kind=dbl_kind), dimension(27041)   :: filelist
+      real (kind=dbl_kind), dimension(48049)   :: filelist
  
       real (kind=dbl_kind), dimension(26,100)  :: full_weight1
       real (kind=dbl_kind), dimension(100)     :: full_weight2
@@ -924,32 +922,28 @@
       real (kind=dbl_kind), dimension(100)     :: full_weight4
       real (kind=dbl_kind), dimension(100,100) :: full_weight5
       real (kind=dbl_kind), dimension(100)     :: full_weight6
-      real (kind=dbl_kind), dimension(100,41)  :: full_weight7
-      real (kind=dbl_kind), dimension(41)      :: full_weight8
 
-      real (kind=dbl_kind), dimension(100)    :: y1, y2, y3
-      real (kind=dbl_kind), dimension(41)     :: y4
+      real (kind=dbl_kind), dimension(100,100) :: full_weight7
+      real (kind=dbl_kind), dimension(100)     :: full_weight8
+      real (kind=dbl_kind), dimension(100,100) :: full_weight9
+      real (kind=dbl_kind), dimension(100)     :: full_weight10
 
-      real (kind=dbl_kind), dimension(42) :: &
-          fracbin_lims = (/0.00000000e+00, 1.00000000e+00, 1.25892541e+00, 1.58489319e+00, &
-                            1.99526231e+00, 2.51188643e+00, 3.16227766e+00, 3.98107171e+00, &
-                            5.01187234e+00, 6.30957344e+00, 7.94328235e+00, 1.00000000e+01, &
-                            1.25892541e+01, 1.58489319e+01, 1.99526231e+01, 2.51188643e+01, &
-                            3.16227766e+01, 3.98107171e+01, 5.01187234e+01, 6.30957344e+01, &
-                            7.94328235e+01, 1.00000000e+02, 1.25892541e+02, 1.58489319e+02, &
-                            1.99526231e+02, 2.51188643e+02, 3.16227766e+02, 3.98107171e+02, &
-                            5.01187234e+02, 6.30957344e+02, 7.94328235e+02, 1.00000000e+03, &
-                            1.25892541e+03, 1.58489319e+03, 1.99526231e+03, 2.51188643e+03, &
-                            3.16227766e+03, 3.98107171e+03, 5.01187234e+03, 6.30957344e+03, &
-                            7.94328235e+03, 1.00000000e+04/)
+      real (kind=dbl_kind), dimension(100,49)  :: full_weight11
+      real (kind=dbl_kind), dimension(49)      :: full_weight12
 
-      real (kind=dbl_kind), dimension(41) :: &
+      real (kind=dbl_kind), dimension(100)    :: y1, y2, y3, y4, y5
+      real (kind=dbl_kind), dimension(49)     :: y6
+
+      real (kind=dbl_kind), dimension(50) :: &
+          fracbin_lims = (/0.0665000000001815, 2.40835589141913, 5.31030847002807, 9.16027653259012, 14.2865861000647, 20.7575631647743, 29.0576686001186, 39.3897615767871, 52.4122136001970, 68.2905949590838, 87.8691405003101, 111.282357408793, 139.518470000468, 172.613187564468, 211.635752000678, 256.427284528097, 308.037274000949, 365.995660133244, 431.203059001283, 501.395164857144, 581.277225001814, 669.934308094615, 755.141047002274, 832.798401621684, 945.812834003182, 1123.23314281921, 1343.54446000417, 1570.56710572412, 1822.65364000582, 2119.13318486551, 2472.61361000779, 2877.73619338566, 3354.34988001061, 3903.52982771199, 4550.51413001439, 5295.53214922787, 6173.23164001952, 7183.92376577288, 8374.61170002648, 9745.71756262409, 11361.0059000359, 13221.0493617961, 15412.3510000487, 17960.1337125977, 20908.4095000636, 24289.3244672200, 28364.3675000829, 33174.1399761146, 38479.1270001050, 43762.3390910769/)
+
+      real (kind=dbl_kind), dimension(49) :: &
           fracbin_c, fracbin_width
 
 
       fracbin_lims  = fracbin_lims/c2 ! radii
-      fracbin_width = fracbin_lims(2:42) - fracbin_lims(1:41)
-      fracbin_c     = fracbin_lims(1:41) + fracbin_width/c2
+      fracbin_width = fracbin_lims(2:50) - fracbin_lims(1:49)
+      fracbin_c     = fracbin_lims(1:49) + fracbin_width/c2
  
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
@@ -967,8 +961,12 @@
       full_weight4 = filelist(12701:12800)
       full_weight5 = TRANSPOSE(RESHAPE(filelist(12801:22800), (/100, 100/)))
       full_weight6 = filelist(22801:22900)
-      full_weight7 = TRANSPOSE(RESHAPE(filelist(22901:27000), (/41, 100/)))
-      full_weight8 = filelist(27001:27041)
+      full_weight7 = TRANSPOSE(RESHAPE(filelist(22901:32900), (/100, 100/)))
+      full_weight8 = filelist(32901:33000)
+      full_weight9 = TRANSPOSE(RESHAPE(filelist(33001:43000), (/100, 100/)))
+      full_weight10 = filelist(43001:43100)
+      full_weight11 = TRANSPOSE(RESHAPE(filelist(43101:48000), (/49, 100/)))
+      full_weight12 = filelist(48001:48049)
 
       y1 = MATMUL(input,full_weight1) + full_weight2
       WHERE (y1 < c0) y1 = c0
@@ -980,14 +978,20 @@
       WHERE (y3 < c0) y3 = c0
 
       y4 = MATMUL(y3, full_weight7) + full_weight8
+      WHERE (y4 < c0) y4 = c0
 
-      y4 = y4 - MAXVAL(y4)
-      y4 = EXP(y4)
-      if (SUM(y4).NE.c0) y4 = y4/SUM(y4)
+      y5 = MATMUL(y4, full_weight9) + full_weight10
+      WHERE (y5 < c0) y5 = c0
+
+      y6 = MATMUL(y5, full_weight11) + full_weight12
+
+      y6 = y6 - MAXVAL(y6)
+      y6 = EXP(y6)
+      if (SUM(y6).NE.c0) y6 = y6/SUM(y6)
 
 
       spwf_fullnet_hist(:) = c0
-      do l = 1, 41
+      do l = 1, 49
           if (y4(l).gt.puny) then
               ! cannot create fractures in largest floe size category
               do k = 1, nfsd-1
@@ -995,6 +999,7 @@
                       spwf_fullnet_hist(k) = spwf_fullnet_hist(k) + y4(l)
                   end if
               end do
+              if (fracbin_c(l).gt.floe_rad_l(nfsd)) spwf_fullnet_hist(nfsd)  = spwf_fullnet_hist(nfsd) + y4(l)
           end if
       end do
 
