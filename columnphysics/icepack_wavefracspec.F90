@@ -225,7 +225,6 @@
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave)
 
-      use icepack_fsd, only: icepack_cleanup_fsd
       use icepack_parameters, only: spwf_clss_crit 
 
 
@@ -314,11 +313,11 @@
 
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
- 
+
+   
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
          hbar = vice / aice
-
 
         if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')) then 
          ! classify input (based on neural net run offline)
@@ -347,6 +346,7 @@
         end if
 
         if (run_wave_fracture.eq. .true.) then
+ 
          ! calculate fracture histogram
          print *, 'run wave frac'
          call wave_frac(nfsd, nfreq, run_to_convergence, &
@@ -515,7 +515,6 @@
          errortol = 6.5e-4  ! tolerance in error between successive histograms
 
       real (kind=dbl_kind), dimension(nfreq) :: &
-         spec_elambda,             & ! spectrum as a function of wavelength (m^-1 s^-1)     
          lambda,                   & ! wavelengths (m)
          spec_coeff,               &
          phi, rand_array, summand
@@ -549,10 +548,9 @@
       ! spectral coefficients
       spec_coeff = sqrt(c2*spec_efreq*dwavefreq) 
 
-      ! initialize things
+      ! initialize fraclengths
       fraclengths(:) = c0
       prev_frac_local(:) = c0
-      allfraclengths(:) = c0
       fracerror = bignum
 
       ! loop while fracerror greater than error tolerance
@@ -582,26 +580,22 @@
          ! convert from diameter to radii
          fraclengths(:) = fraclengths(:)/c2
 
-         ! add to end of long array
-         allfraclengths(nx*iter+1:(iter+1)*nx) = fraclengths(1:nx)
  
-         if (ALL(allfraclengths.lt.puny)) then
+         if (ALL(fraclengths.lt.floe_rad_l(1))) then
              frac_local(:) = c0
          else
-
             frachistogram(:) = c0
 
             ! bin into FS cats
-            ! highest cat cannot be fractured into
-            do j = 1, size(allfraclengths)
-            if (allfraclengths(j).gt.puny) then
+            do j = 1, size(fraclengths)
+            if (fraclengths(j).gt.floe_rad_l(1)) then
             do k = 1, nfsd-1
-               if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
-                   (allfraclengths(j) < floe_rad_l(k+1))) then
+               if ((fraclengths(j) >= floe_rad_l(k)) .and. &
+                   (fraclengths(j) < floe_rad_l(k+1))) then
                   frachistogram(k) = frachistogram(k) + 1
                end if
             end do
-            if (allfraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
+            if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
             end if
             end do
 
@@ -615,19 +609,24 @@
          end if ! allfraclengths > 0
  
          if (run_to_convergence) then
+         ! wave fracture run to convergence
 
              ! check avg frac local against previous iteration
              fracerror = SUM(ABS(frac_local - prev_frac_local))/nfsd
 
+             if (fracerror.lt.errortol) EXIT
+
+             if (iter.gt.100) then
+               print *, 'fracerror ',fracerror
+               print *, 'before ',prev_frac_local
+               print *, 'after ',frac_local
+               stop 'wave_frac did not converge'
+             end if
+
              ! save histogram for next iteration
              prev_frac_local = frac_local
 
-             if (fracerror.lt.errortol) then
-               print *, 'finished in ',iter
-               if (iter.gt.100) stop 'not conv in wave_frac'
-               EXIT
-             end if
-         
+            
          end if
 
       END DO
@@ -657,7 +656,7 @@
       real (kind=dbl_kind), intent(inout), dimension (nx) :: &
          fraclengths      ! The distances between fracture points
                           ! Size cannot be greater than nx
-
+                          ! In practice, will be much less
 
       ! local variables
       integer (kind=int_kind) :: &
@@ -782,7 +781,10 @@
             end if
           end do
 
-          fraclengths(1:nx-1) = fracdistances(2:nx) - fracdistances(1:nx-1)
+          do j = 1, n_above
+              fraclengths(j) = fracdistances(j+1) - fracdistances(j)
+          end do
+
           fraclengths(n_above) = c0 ! the last one will be 0 - a distance,
                                       ! so reset back to zero
 
