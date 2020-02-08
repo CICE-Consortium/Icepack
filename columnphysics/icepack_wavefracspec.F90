@@ -103,8 +103,10 @@
       wave_spectrum_data(9) = 2.419401186610744e-20      
 
       do k = 1, nfreq
-         wave_spectrum_profile(k) = wave_spectrum_data(k)
+         wave_spectrum_profile(k) =100.* wave_spectrum_data(k)
       enddo
+      wave_spectrum_profile(3) = 4.0_dbl_kind
+      print *, 'warning, mult by 100'
 
       ! hardwired for wave coupling with NIWA version of Wavewatch
       ! From Wavewatch, f(n+1) = C*f(n) where C is a constant set by the user
@@ -318,6 +320,7 @@
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
          hbar = vice / aice
+         hbar = 1.5_dbl_kind
 
         if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')) then 
          ! classify input (based on neural net run offline)
@@ -345,7 +348,7 @@
 
         end if
 
-        if (run_wave_fracture.eq. .true.) then
+        if (run_wave_fracture) then
  
          ! calculate fracture histogram
          print *, 'run wave frac'
@@ -355,6 +358,7 @@
                         hbar, wave_spectrum, fracture_hist)
         end if
 
+        print *, 'fracture hist ',fracture_hist
 
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
@@ -599,6 +603,8 @@
             end if
             end do
 
+            print *, 'frac historham ',frachistogram
+
             do k = 1, nfsd
              frac_local(k) = floe_rad_c(k)*frachistogram(k)
             end do
@@ -630,6 +636,7 @@
          end if
 
       END DO
+      print *, 'iter=',iter
 
       end subroutine wave_frac
 
@@ -996,16 +1003,16 @@
               ! cannot create fractures in largest floe size category
               do k = 1, nfsd-1
                   if ((fracbin_c(l).ge.floe_rad_l(k)).and.(fracbin_c(l).lt.floe_rad_l(k+1))) then
-                      spwf_fullnet_hist(k) = spwf_fullnet_hist(k) + y4(l)
+                      spwf_fullnet_hist(k) = spwf_fullnet_hist(k) + y6(l)
                   end if
               end do
-              if (fracbin_c(l).gt.floe_rad_l(nfsd)) spwf_fullnet_hist(nfsd)  = spwf_fullnet_hist(nfsd) + y4(l)
+              if (fracbin_c(l).gt.floe_rad_l(nfsd)) spwf_fullnet_hist(nfsd)  = spwf_fullnet_hist(nfsd) + y6(l)
           end if
       end do
 
       ! normalize the fractures in 1:nfsd-1 categories
       if (SUM(spwf_fullnet_hist).gt.puny) spwf_fullnet_hist(:) = spwf_fullnet_hist(:)/SUM(spwf_fullnet_hist) 
-    
+      
 
       end subroutine spwf_fullnet
 
