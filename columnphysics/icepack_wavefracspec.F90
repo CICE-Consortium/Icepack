@@ -567,7 +567,7 @@
             ! normalize
             if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
 
- 
+         end if 
 
          ! wave fracture run to convergence
          if (trim(wave_spec_type).eq.'random') then
