@@ -478,6 +478,9 @@
       real (kind=dbl_kind), dimension(nx) :: &
          fraclengths
 
+      real (kind=dbl_kind), dimension(max_no_iter*nx) :: &
+         allfraclengths
+
       real (kind=dbl_kind), dimension(nx) :: &
          X,  &    ! spatial domain (m)
          eta      ! sea surface height field (m)
