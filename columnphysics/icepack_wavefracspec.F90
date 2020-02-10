@@ -541,19 +541,19 @@
          if (ALL(fraclengths.lt.floe_rad_l(1))) then
              frac_local(:) = c0
          else
-
             frachistogram(:) = c0
+            allfraclengths((iter-1)*nx+1:(iter)*nx) = fraclengths(1:nx)
 
             ! bin into FS cats
             do j = 1, size(fraclengths)
-            if (fraclengths(j).gt.puny) then
+            if (allfraclengths(j).gt.floe_rad_l(1)) then
             do k = 1, nfsd-1
-               if ((fraclengths(j) >= floe_rad_l(k)) .and. &
-                   (fraclengths(j) < floe_rad_l(k+1))) then
+               if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
+                   (allfraclengths(j) < floe_rad_l(k+1))) then
                   frachistogram(k) = frachistogram(k) + 1
                end if
             end do
-            if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
+            if (allfraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
             end if
             end do
 
@@ -564,8 +564,8 @@
             ! normalize
             if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
 
-         end if ! fraclengths > 0
  
+
          ! wave fracture run to convergence
          if (trim(wave_spec_type).eq.'random') then
 
@@ -739,16 +739,12 @@
             end if
           end do
 
-          do j = 1, n_above
+          do j = 1, n_above-1
               fraclengths(j) = fracdistances(j+1) - fracdistances(j)
           end do
 
-          fraclengths(n_above) = c0 ! the last one will be 0 - a distance,
-                                      ! so reset back to zero
-
 
       end if ! n_above
-
 
       end subroutine get_fraclengths
 
