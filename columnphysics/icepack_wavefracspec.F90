@@ -219,7 +219,7 @@
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave)
 
-
+      use icepack_fsd, only: icepack_cleanup_fsd
 
       character (len=char_len), intent(in) :: &
          wave_spec_type   ! type of wave spectrum forcing
@@ -281,8 +281,7 @@
          afsd_tmp     , & ! tracer array
          d_afsd_tmp       ! change
 
-      character(len=*),parameter :: &
-         subname='(icepack_step_wavefracture)'
+      character(len=*),parameter :: subname='(icepack_step_wavefracture)'
 
       !------------------------------------
 
@@ -308,7 +307,7 @@
          ! if fracture occurs
          if (MAXVAL(fracture_hist) > puny) then
             ! protect against small numerical errors
-            !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+            call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
             
             do n = 1, ncat
               
@@ -336,16 +335,21 @@
                   DO WHILE (elapsed_t < dt)
                      nsubt = nsubt + 1
 
-                     ! check in case wave fracture struggles to converge
-                     if (nsubt>100) print *, &
-                              'wave frac taking a while to converge....'
-
                      ! if all floes in smallest category already, exit
                      if (afsd_tmp(1).ge.c1-puny) EXIT 
 
                      ! calculate d_afsd using current afstd
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
                      
+                     ! check in case wave fracture struggles to converge
+                     if (nsubt>100) then
+                          print *, 'afsd_tmp ',afsd_tmp
+                          print *, 'dafsd_tmp ',d_afsd_tmp
+                          print *, 'subt ',nsubt
+                          print *, &
+                              'wave frac taking a while to converge....'
+                     end if
+ 
                      ! required timestep
                      subdt = get_subdt_fsd(nfsd, afsd_tmp, d_afsd_tmp)
                      subdt = MIN(subdt, dt)
@@ -392,7 +396,7 @@
 
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
-                  !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+                  call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
  
 
                   ! for diagnostics
