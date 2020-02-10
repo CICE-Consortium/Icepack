@@ -1118,7 +1118,6 @@
                            d_afsd_tmp(k) = -df_flx(k) + c2 * G_radialn(n) * afsd_tmp(k) &
                                        * (c1/floe_rad_c(k) - tmp)
                          end do
-                         WHERE (abs(d_afsd_tmp).lt.puny) d_afsd_tmp = c0
 
                          ! timestep required for this
                          subdt = get_subdt_fsd(nfsd, afsd_tmp(:), d_afsd_tmp(:))
@@ -1133,14 +1132,7 @@
  
                      afsdn(:,n) = afsd_tmp(:)
 
-                     if (abs(sum(afsdn(:,n))-c1) > puny) &
-                        print*,'lateral_melt E afsdn not normed',sum(df_flx), sum(afsdn(:,n))-c1
-                     if (any(afsdn < -puny)) &
-                         print*,'lateral_melt:  afsdn < 0'
-                     if (any(afsdn > c1+puny)) &
-                         print*,'lateral_melt:  afsdn > 1'
-
-
+        
                   end if ! aicen
                end if ! rside > 0, otherwise do nothing
 
@@ -1202,7 +1194,7 @@
       endif          ! flag
 
       if (tr_fsd) then
-         !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+         call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
 
          ! diagnostics
          do k = 1, nfsd

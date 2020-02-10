@@ -708,7 +708,6 @@
                             * (c1/floe_rad_c(k) - SUM(afsdn_latg(:,n)/floe_rad_c(:))) )
 
              end do
-             WHERE (abs(dafsd_tmp).lt.puny) dafsd_tmp = c0
 
             ! timestep required for this
             subdt = get_subdt_fsd(nfsd, afsdn_latg(:,n), dafsd_tmp(:)) 
