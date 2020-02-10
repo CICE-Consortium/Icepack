@@ -102,11 +102,23 @@
       wave_spectrum_data(8) = 6.815936703929992e-10 
       wave_spectrum_data(9) = 2.419401186610744e-20      
 
+
+       wave_spectrum_data(1) =    0.0022_dbl_kind
+       wave_spectrum_data(2) =    0.0158_dbl_kind
+       wave_spectrum_data(3) =    0.0390_dbl_kind
+       wave_spectrum_data(4) =    0.1481_dbl_kind
+       wave_spectrum_data(5) =    0.2005_dbl_kind
+       wave_spectrum_data(6) =    0.1531_dbl_kind
+       wave_spectrum_data(7) =    0.2262_dbl_kind
+       wave_spectrum_data(8) =    0.2262_dbl_kind
+       wave_spectrum_data(9) =    0.1838_dbl_kind
+       wave_spectrum_data(10) =    0.0190_dbl_kind
+       wave_spectrum_data(11) =    0.0002_dbl_kind
+
+
       do k = 1, nfreq
-         wave_spectrum_profile(k) =100.* wave_spectrum_data(k)
+         wave_spectrum_profile(k) =wave_spectrum_data(k)
       enddo
-      wave_spectrum_profile(3) = 4.0_dbl_kind
-      print *, 'warning, mult by 100'
 
       ! hardwired for wave coupling with NIWA version of Wavewatch
       ! From Wavewatch, f(n+1) = C*f(n) where C is a constant set by the user
@@ -320,7 +332,7 @@
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
          hbar = vice / aice
-         hbar = 1.5_dbl_kind
+         hbar = 1.1616_dbl_kind
 
         if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')) then 
          ! classify input (based on neural net run offline)
