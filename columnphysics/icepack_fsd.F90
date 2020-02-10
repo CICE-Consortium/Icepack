@@ -48,13 +48,12 @@
       use icepack_tracers, only: nt_fsd, tr_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
-      use icepack_wavefracspec, only: get_subdt_fsd
 
       implicit none
 
       private
       public :: icepack_init_fsd_bounds, icepack_init_fsd, icepack_cleanup_fsd, &
-         fsd_lateral_growth, fsd_add_new_ice, fsd_weld_thermo
+         fsd_lateral_growth, fsd_add_new_ice, fsd_weld_thermo, get_subdt_fsd
 
       real(kind=dbl_kind), dimension(:), allocatable ::  &
          floe_rad_h,         & ! fsd size higher bound in m (radius)
@@ -1011,6 +1010,44 @@
       end do    ! k
 
       end subroutine fsd_weld_thermo
+
+!=======================================================================
+!
+!  Adaptive timestepping (process agnostic)
+!  See reference: Horvat & Tziperman (2017) JGR, Appendix A
+!
+!  authors: 2018 Lettie Roach, NIWA/VUW
+!
+!
+      function get_subdt_fsd(nfsd, afsd_init, d_afsd) &
+                              result(subdt)
+
+      integer (kind=int_kind), intent(in) :: &
+         nfsd       ! number of floe size categories
+
+      real (kind=dbl_kind), dimension (nfsd), intent(in) :: &
+         afsd_init, d_afsd ! floe size distribution tracer 
+
+      ! output
+      real (kind=dbl_kind) :: &
+         subdt ! subcycle timestep (s)
+
+      ! local variables
+      real (kind=dbl_kind), dimension (nfsd) :: &
+         check_dt ! to compute subcycle timestep (s)
+
+      integer (kind=int_kind) :: k
+
+      check_dt(:) = bignum 
+      do k = 1, nfsd
+          if (d_afsd(k) >  puny) check_dt(k) = (1-afsd_init(k))/d_afsd(k)
+          if (d_afsd(k) < -puny) check_dt(k) = afsd_init(k)/ABS(d_afsd(k))
+      end do 
+
+      subdt = MINVAL(check_dt)
+
+      end function get_subdt_fsd
+
 
 !=======================================================================
 
