@@ -589,21 +589,20 @@
              frac_local(:) = c0
          else
             frachistogram(:) = c0
+            allfraclengths((iter-1)*nx+1:(iter)*nx) = fraclengths(1:nx)
 
             ! bin into FS cats
             do j = 1, size(fraclengths)
-            if (fraclengths(j).gt.floe_rad_l(1)) then
+            if (allfraclengths(j).gt.floe_rad_l(1)) then
             do k = 1, nfsd-1
-               if ((fraclengths(j) >= floe_rad_l(k)) .and. &
-                   (fraclengths(j) < floe_rad_l(k+1))) then
+               if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
+                   (allfraclengths(j) < floe_rad_l(k+1))) then
                   frachistogram(k) = frachistogram(k) + 1
                end if
             end do
-            if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
+            if (allfraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
             end if
             end do
-
-            print *, 'frac historham ',frachistogram
 
             do k = 1, nfsd
              frac_local(k) = floe_rad_c(k)*frachistogram(k)
@@ -788,12 +787,9 @@
             end if
           end do
 
-          do j = 1, n_above
+          do j = 1, n_above-1
               fraclengths(j) = fracdistances(j+1) - fracdistances(j)
           end do
-
-          fraclengths(n_above) = c0 ! the last one will be 0 - a distance,
-                                      ! so reset back to zero
 
 
       end if ! n_above
@@ -823,7 +819,6 @@
 
       real (kind=dbl_kind), dimension (:), intent (in) :: &
           wave_spectrum ! wave spectrum as a function of freq (m^s s)
-
 
       real (kind=dbl_kind), intent(out) :: &
           spwf_classifier_out
@@ -947,8 +942,8 @@
       real (kind=dbl_kind), dimension(49) :: &
           fracbin_c, fracbin_width
 
-
-      fracbin_lims  = fracbin_lims/c2 ! radii
+      ! lims are now in radii
+      !fracbin_lims  = fracbin_lims/c2 ! radii
       fracbin_width = fracbin_lims(2:50) - fracbin_lims(1:49)
       fracbin_c     = fracbin_lims(1:49) + fracbin_width/c2
  
@@ -999,7 +994,7 @@
 
       spwf_fullnet_hist(:) = c0
       do l = 1, 49
-          if (y4(l).gt.puny) then
+          if (y6(l).gt.puny) then
               ! cannot create fractures in largest floe size category
               do k = 1, nfsd-1
                   if ((fracbin_c(l).ge.floe_rad_l(k)).and.(fracbin_c(l).lt.floe_rad_l(k+1))) then
@@ -1010,8 +1005,10 @@
           end if
       end do
 
+
+      print *, 'sum wpwf fullnet hist ',SUM(spwf_fullnet_hist(:))
       ! normalize the fractures in 1:nfsd-1 categories
-      if (SUM(spwf_fullnet_hist).gt.puny) spwf_fullnet_hist(:) = spwf_fullnet_hist(:)/SUM(spwf_fullnet_hist) 
+      !if (SUM(spwf_fullnet_hist).gt.puny) spwf_fullnet_hist(:) = spwf_fullnet_hist(:)/SUM(spwf_fullnet_hist) 
       
 
       end subroutine spwf_fullnet
