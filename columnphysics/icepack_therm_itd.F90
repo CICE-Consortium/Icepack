@@ -41,7 +41,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_fsd, only: fsd_weld_thermo, icepack_cleanup_fsd
+      use icepack_fsd, only: fsd_weld_thermo, icepack_cleanup_fsd,  get_subdt_fsd    
       use icepack_itd, only: reduce_area, cleanup_itd
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
@@ -50,7 +50,6 @@
       use icepack_therm_shared, only: hi_min
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc               
-      use icepack_wavefracspec, only: get_subdt_fsd    
  
       implicit none
       
@@ -1132,14 +1131,7 @@
  
                      afsdn(:,n) = afsd_tmp(:)
 
-                     if (abs(sum(afsdn(:,n))-c1) > puny) &
-                        print*,'lateral_melt E afsdn not normed',sum(df_flx), sum(afsdn(:,n))-c1
-                     if (any(afsdn < -puny)) &
-                         print*,'lateral_melt:  afsdn < 0'
-                     if (any(afsdn > c1+puny)) &
-                         print*,'lateral_melt:  afsdn > 1'
-
-
+        
                   end if ! aicen
                end if ! rside > 0, otherwise do nothing
 
@@ -1201,7 +1193,7 @@
       endif          ! flag
 
       if (tr_fsd) then
-         !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+         call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
 
          ! diagnostics
          do k = 1, nfsd

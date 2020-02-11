@@ -33,10 +33,11 @@
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
-
+      use icepack_fsd
+ 
       implicit none
       private
-      public :: icepack_init_wave, icepack_step_wavefracture, get_subdt_fsd
+      public :: icepack_init_wave, icepack_step_wavefracture
 
       real (kind=dbl_kind), parameter  :: &
          swh_minval = 0.01_dbl_kind,  & ! minimum value of wave height (m)
@@ -117,7 +118,7 @@
 
 
       do k = 1, nfreq
-         wave_spectrum_profile(k) =wave_spectrum_data(k)
+         wave_spectrum_profile(k) = wave_spectrum_data(k)
       enddo
 
       ! hardwired for wave coupling with NIWA version of Wavewatch
@@ -187,51 +188,13 @@
       end  function get_dafsd_wave
 
 !=======================================================================
-!
-!  Adaptive timestepping (process agnostic)
-!  See reference: Horvat & Tziperman (2017) JGR, Appendix A
-!
-!  authors: 2018 Lettie Roach, NIWA/VUW
-!
-!
-      function get_subdt_fsd(nfsd, afsd_init, d_afsd) &
-                              result(subdt)
-
-      integer (kind=int_kind), intent(in) :: &
-         nfsd       ! number of floe size categories
-
-      real (kind=dbl_kind), dimension (nfsd), intent(in) :: &
-         afsd_init, d_afsd ! floe size distribution tracer 
-
-      ! output
-      real (kind=dbl_kind) :: &
-         subdt ! subcycle timestep (s)
-
-      ! local variables
-      real (kind=dbl_kind), dimension (nfsd) :: &
-         check_dt ! to compute subcycle timestep (s)
-
-      integer (kind=int_kind) :: k
-
-      check_dt(:) = bignum 
-      do k = 1, nfsd
-          if (d_afsd(k) >  puny) check_dt(k) = (1-afsd_init(k))/d_afsd(k)
-          if (d_afsd(k) < -puny) check_dt(k) = afsd_init(k)/ABS(d_afsd(k))
-      end do 
-
-      subdt = MINVAL(check_dt)
-
-      end function get_subdt_fsd
-
-!=======================================================================
 ! 
 !  Given fracture histogram computed from local wave spectrum, evolve 
 !  the floe size distribution
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
-      subroutine icepack_step_wavefracture(wave_spec_type,   &
-                  wave_solver,                               &
+      subroutine icepack_step_wavefracture(wave_solver,      &
                   dt,            ncat,            nfsd,      &
                   nfreq,                                     &
                   aice,          vice,            aicen,     &
@@ -243,7 +206,6 @@
 
 
       character (len=char_len), intent(in) :: &
-         wave_spec_type, &   ! type of wave spectrum forcing
          wave_solver         ! method of wave fracture solution
 
       integer (kind=int_kind), intent(in) :: &
@@ -269,7 +231,7 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          wave_spectrum   ! ocean surface wave spectrum as a function of frequency
-                         ! power spectral density of surface elevation, E(f) (units m^2 s)
+	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          trcrn           ! tracer array
@@ -460,7 +422,7 @@
 
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
-                  !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+                  call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
  
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
