@@ -107,7 +107,10 @@ Testing will be described in greater detail in the :ref:`testing` section.
   prints the Icepack version to the terminal and exits.
 
 ``--setvers``
-  Updates the stored value of the Icepack version in the sandbox and exits  See :ref:`version` for more information
+  Updates the stored value of the Icepack version in the sandbox and exits  See :ref:`version` for more information.
+
+``--docintfc``
+  Runs a script that updates the public interfaces in the documentation.  This script parses the source code directly.  See :ref:`docintfc` for more information.
 
 ``--case``, ``-c`` CASE
   specifies the case name.  This can be either a relative path of an absolute path.  This cannot be used with --test or --suite.  Either ``--case``, ``--test``, or ``--suite`` is required.
@@ -193,7 +196,7 @@ To add some optional settings, one might do::
 
   icepack.setup --case mycase2 --mach spirit --env intel --set debug,diag1,run1year,pondtopo
 
-Once the cases are created, users are free to modify the icepack.settings and icepack_in namelist to further modify their setup.
+Once the cases are created, users are free to modify the **icepack.settings** and **icepack_in** namelist to further modify their setup.
 
 .. _version:
 
@@ -241,6 +244,8 @@ Porting
 To port, an **env.[machine]_[environment]** and **Macros.[machine]_[environment]** file have to be added to the
 **configuration/scripts/machines/** directory and the 
 **configuration/scripts/icepack.batch.csh** file needs to be modified.
+In addition **configuration/scripts/icepack.launch.csh** may need to
+be modified if simply running the binary directly will not work.
 In general, the machine is specified in ``icepack.setup`` with ``--mach``
 and the environment (compiler) is specified with ``--env``.
  
@@ -254,6 +259,9 @@ and the environment (compiler) is specified with ``--env``.
 
 - Edit the **icepack.batch.csh** script to add a section for your machine 
   with batch settings and job launch settings
+
+- Edit the **icepack.launch.csh** script to add a section for your machine 
+  if executing the binary directly is not supported
 
 - Download and untar a forcing dataset to the location defined by 
   ``ICE_MACHINE_INPUTDATA`` in the env file

@@ -50,7 +50,7 @@ Debugging hints
 
 Icepack has a warning package (**/columnphysics/icepack_warnings.F90**) where icepack 
 stores information not set in write routines. Details about the package can be found 
-in :ref:`warning`. This package can be useful to detect an abort  
+in :ref:`aborts`. This package can be useful to detect an abort  
 
 A printing utility is available in the driver that can be helpful when debugging the
 code. Not all of these will work everywhere in the code, due to possible

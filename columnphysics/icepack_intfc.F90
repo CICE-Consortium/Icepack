@@ -1,8 +1,10 @@
 !=========================================================================
 !
-! flags and interface routines for the column package
-!
 ! authors: Elizabeth C. Hunke, LANL
+!
+
+!autodocument_start icepack_intfc.F90
+! public parameters and interface routines for the icepack columnpackage code
 
       module icepack_intfc
 
@@ -15,17 +17,17 @@
       use icepack_kinds, only: icepack_dbl_kind  => dbl_kind
       use icepack_kinds, only: icepack_r16_kind  => r16_kind
 
-      use icepack_tracers,   only: icepack_max_nbtrcr => max_nbtrcr
-      use icepack_tracers,   only: icepack_max_algae  => max_algae
-      use icepack_tracers,   only: icepack_max_dic    => max_dic
-      use icepack_tracers,   only: icepack_max_doc    => max_doc
-      use icepack_tracers,   only: icepack_max_don    => max_don
-      use icepack_tracers,   only: icepack_max_fe     => max_fe
-      use icepack_tracers,   only: icepack_max_aero   => max_aero
-      use icepack_tracers,   only: icepack_max_iso    => max_iso
-      use icepack_tracers,   only: icepack_nmodal1    => nmodal1
-      use icepack_tracers,   only: icepack_nmodal2    => nmodal2
-      use icepack_parameters, only: icepack_nspint    => nspint
+      use icepack_tracers,    only: icepack_max_nbtrcr => max_nbtrcr
+      use icepack_tracers,    only: icepack_max_algae  => max_algae
+      use icepack_tracers,    only: icepack_max_dic    => max_dic
+      use icepack_tracers,    only: icepack_max_doc    => max_doc
+      use icepack_tracers,    only: icepack_max_don    => max_don
+      use icepack_tracers,    only: icepack_max_fe     => max_fe
+      use icepack_tracers,    only: icepack_max_aero   => max_aero
+      use icepack_tracers,    only: icepack_max_iso    => max_iso
+      use icepack_tracers,    only: icepack_nmodal1    => nmodal1
+      use icepack_tracers,    only: icepack_nmodal2    => nmodal2
+      use icepack_parameters, only: icepack_nspint     => nspint
 
       use icepack_parameters, only: icepack_init_parameters
       use icepack_parameters, only: icepack_query_parameters
@@ -38,24 +40,29 @@
       use icepack_parameters, only: p15, p25, p75, p333, p666
 
       use icepack_tracers, only: icepack_compute_tracers
-      use icepack_tracers, only: icepack_query_tracer_sizes
-      use icepack_tracers, only: icepack_write_tracer_sizes
       use icepack_tracers, only: icepack_init_tracer_flags
       use icepack_tracers, only: icepack_query_tracer_flags
       use icepack_tracers, only: icepack_write_tracer_flags
       use icepack_tracers, only: icepack_init_tracer_indices
       use icepack_tracers, only: icepack_query_tracer_indices
       use icepack_tracers, only: icepack_write_tracer_indices
-      use icepack_tracers, only: icepack_init_tracer_numbers
-      use icepack_tracers, only: icepack_query_tracer_numbers
-      use icepack_tracers, only: icepack_write_tracer_numbers
+      use icepack_tracers, only: icepack_init_tracer_sizes
+      use icepack_tracers, only: icepack_query_tracer_sizes
+      use icepack_tracers, only: icepack_write_tracer_sizes
 
       use icepack_itd, only: icepack_init_itd
       use icepack_itd, only: icepack_init_itd_hist
       use icepack_itd, only: icepack_aggregate
 
+      use icepack_fsd, only: icepack_init_fsd_bounds
+      use icepack_fsd, only: icepack_init_fsd
+      use icepack_fsd, only: icepack_cleanup_fsd
+
       use icepack_mechred, only: icepack_step_ridge
       use icepack_mechred, only: icepack_ice_strength
+
+      use icepack_wavefracspec, only: icepack_init_wave
+      use icepack_wavefracspec, only: icepack_step_wavefracture
 
       use icepack_shortwave, only: icepack_prep_radiation
       use icepack_shortwave, only: icepack_step_radiation
@@ -66,8 +73,8 @@
       use icepack_zbgc , only: icepack_init_bgc
       use icepack_zbgc , only: icepack_init_zbgc
       use icepack_zbgc , only: icepack_biogeochemistry
-      use icepack_zbgc , only: icepack_init_OceanConcArray
-      use icepack_zbgc , only: icepack_init_ocean_conc
+      use icepack_zbgc , only: icepack_init_ocean_bio
+      use icepack_zbgc , only: icepack_load_ocean_bio_array
 
       use icepack_atmo , only: icepack_atm_boundary
       use icepack_ocean, only: icepack_ocn_mixed_layer
@@ -85,10 +92,16 @@
       use icepack_therm_shared  , only: icepack_init_thermo
       use icepack_therm_shared  , only: icepack_init_trcr
 
+      use icepack_mushy_physics , only: icepack_mushy_density_brine
+      use icepack_mushy_physics , only: icepack_mushy_liquid_fraction
+      use icepack_mushy_physics , only: icepack_mushy_temperature_mush
+
       use icepack_warnings, only: icepack_warnings_clear
       use icepack_warnings, only: icepack_warnings_print
       use icepack_warnings, only: icepack_warnings_flush
       use icepack_warnings, only: icepack_warnings_aborted
+
+!autodocument_end icepack_intfc.F90
 
       implicit none
 

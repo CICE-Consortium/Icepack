@@ -68,6 +68,8 @@ SYNOPSIS
 
     --setvers versno
 
+    --docintfc
+
     --case CASE -m MACH 
         [-e ENV][-p MxN][-g GRID][-s SET1,SET2][--acct ACCT]
 
@@ -84,6 +86,7 @@ DESCRIPTION
     --help, -h : help
     --version  : generates icepack version number
     --setvers  : updates the icepack version number in the sandbox
+    --docintfc : update the public interface documentation
     --case, -c : case, case directory/name (not with --test or --suite)
     --mach, -m : machine, machine name (required)
     --env,  -e : compiler(s), comma separated (default = "intel")
@@ -197,6 +200,25 @@ while (1)
        exit -1
     endif
     echo "Setting ICEPACK version to ${versno} and exiting"
+    exit -1
+  endif
+  shift argv
+end
+
+set argv = ( $initargv[*] )
+# check for --docintfc
+while (1)
+  if ($#argv < 1) break;
+  if ("$argv[1]" =~ "--docintfc" ) then
+    echo "${0}: Running docintfc"
+    echo " "
+    cd ${ICE_SANDBOX}/doc
+    ./generate_interfaces.sh
+    cd ${ICE_SANDBOX}
+    echo " "
+    echo "${0}: docintfc complete, exiting"
+    echo "${0}: remember to add and commit any updated documentation files"
+    echo " "
     exit -1
   endif
   shift argv
@@ -719,7 +741,7 @@ EOF2
 
         cat ${ICE_SCRIPTS}/options/set_env.${name} >> ${fsmods}
 
-cat >> ${fimods} << EOF2
+cat >> ${fsmods} << EOF2
 
 EOF2
         echo "adding env mods set_env.${name}"

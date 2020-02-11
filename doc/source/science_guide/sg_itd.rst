@@ -90,4 +90,90 @@ In the WMO case, the distribution used depends on the number of categories used.
    +----------------+------------+---------+--------+--------+--------+
    | 7              |            |         |        |        | 2.00   |
    +----------------+------------+---------+--------+--------+--------+
+   
+Joint floe size and thickness distribution
+=============================================
+
+Sizes of individual sea ice floes vary over an extremely broad range, from centimeters
+to hundreds of kilometers. The floe size distribution (FSD) is a probability function that
+characterizes this variability :cite:`Rothrock84`. An option to include a 
+prognostic sea ice floe size distribution is available and used if ``tr_fsd`` is set to true. 
+The scheme is based on the theoretical framework described in :cite:`Horvat15` for a
+*joint* floe size and thickness distribution (FSTD), and was implemented by :cite:`Roach18`.
+
+In this theory, individual floes are identified with a size :math:`r` and area :math:`x(r)`, where
+:math:`x(r)=4\alpha r^2` for :math:`\alpha=0.66 < \pi/4` (:cite:`Rothrock84`). The probability 
+distribution :math:`f(r,h) dr dh` is the fraction of grid surface area 
+covered by ice with thickness between :math:`h` and :math:`h + dh` and lateral floe
+size between :math:`r` and :math:`r + dr`. The FSTD integrates over all floe sizes and
+ice thicknesses to unity; over all floe sizes to the ITD; and over all thicknesses to the FSD.
+
+For implementation in CICE,  the continuous function :math:`f(r,h)` is replaced
+with a product of two discrete variables: :math:`a_{in}` as defined above and :math:`F_{in,k}`. 
+:math:`F_{in,k}` is the fraction of ice belonging to thickness category :math:`n` with lateral 
+floe size belonging to floe size class :math:`k`, giving
+:math:`\sum_{n=0}^{N_C}\sum_{k=0}^{N_f} a_{in} F_{in,k} = 1` and :math:`\sum_{k=0}^{N_f}  F_{in,k} = 1`.
+:math:`F_{in,k}` is carried as an area-weighted tracer.
+
+The FSD may be ignored when considering processes that only modify ice thickness
+(eg. vertical thermodynamics), and the ITD can be ignored when considering processes that only modify floe sizes (eg. wave fracture). For processes that affect both the ITD and the FSD, (eg. lateral melt), 
+both :math:`a_{in}` and :math:`F_{in,k}` are evolved.
+
+The FSTD evolves subject to lateral growth, lateral melt, new ice growth, floe welding and 
+wave fracture, as described in :cite:`Roach18` and with some modifications described in 
+:cite:`Roach19`. The equation for time evolution of the FSTD is (:cite:`Horvat15`),
+
+:math:`\frac{\partial f(r,h)}{\partial t} = - \nabla \cdot (f(r,h)\mathbf{v}) + \mathcal{L}_T + \mathcal{L}_M + \mathcal{L}_W`,
+
+where the terms on the right hand side represent the effects of advection, thermodynamics, mechanical 
+redistribution and wave fracture respectively. Floe sizes do not explicitly appear in the equations of sea ice motion and therefore the FSTD is advected as an area tracer. We also assume that mechanical redistribution of sea ice through ridging does not impact floe sizes. Thus it remains only to compute the thermodynamic and wave fracture tendencies.
+
+Thermodynamic changes to the FSTD are given by 
+
+:math:`\mathcal{L}_T(r,h)=-\nabla_{(r,h)} \cdot (f(r,h) \mathbf{G}) +\frac{2}{r}f(r,h)G_r  + 
+\delta(r-r_{\text{min}})\delta(h-h_{\text{min}})\dot{A}_p + \beta_{\text{weld}}.`
+
+The first two terms on the right-hand side represent growth and melt of existing floes 
+in thickness and lateral size, at a rate :math:`\mathbf{G} = (G_r,G_h)`. The third 
+term represents growth of new ice: new floes are created at a rate :math:`\dot{A}_p` 
+in the smallest thickness category and a given lateral size category. If wave forcing 
+is provided, the size of newly formed floes is determined via a tensile stress limitation 
+arising from the wave field (:cite:`Shen01`,:cite:`Roach19`); otherwise, all floes 
+are presumed to grow as pancakes in the smallest floe size category resolved. 
+To allow for the joining of individual floes to one another, we represent
+the welding together of floes in freezing conditions via the fourth term, 
+:math:`\beta_{\text{weld}}`, using a coagulation equation.
+
+To compute the impact of wave fracture of the FSD, given a local ocean surface wave 
+spectrum is provided, we generate a realization of the sea surface height field, which 
+is uniquely determined by the spectrum up to a phase. In :cite:`Horvat15` this phase is 
+randomly chosen, and multiple realizations of the resulting surface height field are used to 
+obtain convergent statistics. However this stochastic component would lead to a model that is 
+not bit-for-bit reproducible. Users can choose in the namelist (via ``wave_spec_type``)
+to run the model with the phase set to be constant to obtain bit-for-bit reproducibility, or
+to include the random phase, or to exclude wave effects completely.
+
+We calculate the number and length of fractures that would occur if waves enter a fully ice-covered 
+region defined in one dimension in the direction of propagation, and then apply
+the outcome proportionally to the ice-covered fraction in each grid cell. 
+Assuming that sea ice flexes with the sea surface height field, strains are computed
+on this sub-grid-scale 1D domain. If the strain between successive extrema exceeds
+a critical value new floes are formed with diameters equal to the distance between 
+the extrema.
+
+Floe size categories are set in *init\_fsd\_bounds* using an exponential spacing, beginning at 0.5 m with the
+largest size resolved set by choice of :math:`N_f` (``nfsd``), the number of floe size categories.  Icepack
+currently supports ``nfsd = 1, 12, 16, 24``.  Although ``nfsd = 1`` tracks the same ice floe diameter as
+is assumed when ``tr_fsd=false``, the processes acting on the floes differ.
+It is assumed that the floe size lies at the midpoint of each floe size category.
+
+If simulations begin without ice (``ice_init='none'``), the FSD can emerge without initialization. This
+is the recommended initialization for studies on the FSD itself. If simulations begin with ice cover, 
+some initial FSD must be prescribed in ``init_fsd``. The default (used for ``ice_init='default'``) 
+is a simple relationship determined from point observations by :cite:`Perovich14`, but its basin-wide 
+applicability has not been tested. In Icepack, ``ice_init='default'`` is selected for the slab
+and the full ITD cells.
+
+
+
 

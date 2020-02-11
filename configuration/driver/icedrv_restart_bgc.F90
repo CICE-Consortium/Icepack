@@ -12,7 +12,7 @@
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don
       use icepack_intfc, only: icepack_max_dic, icepack_max_aero, icepack_max_fe
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_numbers
+      use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icedrv_system, only: icedrv_system_abort
 
@@ -77,7 +77,7 @@
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(solve_zsal_out=solve_zsal)
       call icepack_query_parameters(z_tracers_out=z_tracers)
-      call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_sizes(nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, & 
          tr_bgc_Am_out=tr_bgc_Am, &
          tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_hum_out=tr_bgc_hum, &
@@ -377,7 +377,7 @@
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(solve_zsal_out=solve_zsal)
       call icepack_query_parameters(z_tracers_out=z_tracers)
-      call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_sizes(nbtrcr_out=nbtrcr)
 
 
       call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, & 

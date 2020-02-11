@@ -28,8 +28,13 @@
       use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd
       use icepack_parameters, only: phi_i_mushy
 
+<<<<<<< HEAD
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_iso, tr_pond
+=======
+      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd
+>>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers, only: n_aero
 
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
@@ -41,7 +46,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_mushy_physics, only: temperature_mush
+      use icepack_mushy_physics, only: icepack_mushy_temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
       use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
 
@@ -493,7 +498,8 @@
                                         fbot_xfer_type,     &
                                         strocnxT, strocnyT, &
                                         Tbot,     fbot,     &
-                                        rside,    Cdn_ocn)
+                                        rside,    Cdn_ocn,  &
+                                        fside)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -527,7 +533,8 @@
       real (kind=dbl_kind), intent(out) :: &
          Tbot    , & ! ice bottom surface temperature (deg C)
          fbot    , & ! heat flux to ice bottom  (W/m^2)
-         rside       ! fraction of ice that melts laterally
+         rside   , & ! fraction of ice that melts laterally
+         fside       ! lateral heat flux (W/m^2)
 
       ! local variables
 
@@ -537,7 +544,7 @@
 
       real (kind=dbl_kind) :: &
          etot    , & ! total energy in column
-         fside       ! lateral heat flux (W/m^2)
+         qavg        ! average enthalpy in column (approximate)
 
       real (kind=dbl_kind) :: &
          deltaT    , & ! SST - Tbot >= 0
@@ -567,13 +574,13 @@
       !-----------------------------------------------------------------
 
       rside = c0
+      fside = c0
       Tbot  = Tf
       fbot  = c0
-      
+      wlat  = c0
+
       if (aice > puny .and. frzmlt < c0) then ! ice can melt
          
-         fside = c0
-
       !-----------------------------------------------------------------
       ! Use boundary layer theory for fbot.
       ! See Maykut and McPhee (1995): JGR, 100, 24,691-24,703.
@@ -617,19 +624,26 @@
          do n = 1, ncat
             
             etot = c0
+            qavg = c0
             
             ! melting energy/unit area in each column, etot < 0
             
             do k = 1, nslyr
                etot = etot + qsnon(k,n) * vsnon(n)/real(nslyr,kind=dbl_kind)
+               qavg = qavg + qsnon(k,n)
             enddo
             
             do k = 1, nilyr
                etot = etot + qicen(k,n) * vicen(n)/real(nilyr,kind=dbl_kind)
+               qavg = qavg + qicen(k,n)
             enddo                  ! nilyr
             
-            ! lateral heat flux
-            fside = fside + rside*etot/dt ! fside < 0
+            ! lateral heat flux, fside < 0
+            if (tr_fsd) then ! floe size distribution
+               fside = fside + wlat*qavg
+            else             ! default floe size
+               fside = fside + rside*etot/dt
+            endif
             
          enddo                     ! n
          
@@ -641,6 +655,7 @@
          xtmp = min(xtmp, c1)
          fbot  = fbot  * xtmp
          rside = rside * xtmp
+         fside = fside * xtmp
          
       endif
 
@@ -888,7 +903,7 @@
       !-----------------------------------------------------------------
          
          if (ktherm == 2) then
-            zTin(k) = temperature_mush(zqin(k),zSin(k))
+            zTin(k) = icepack_mushy_temperature_mush(zqin(k),zSin(k))
          else
             zTin(k) = calculate_Tin_from_qin(zqin(k),Tmlts(k))
          endif
@@ -942,7 +957,7 @@
                
                if (ktherm == 2) then
                   zqin(k) = enthalpy_of_melting(zSin(k)) - c1
-                  zTin(k) = temperature_mush(zqin(k),zSin(k))
+                  zTin(k) = icepack_mushy_temperature_mush(zqin(k),zSin(k))
                   write(warnstr,*) subname, 'Corrected quantities'
                   call icepack_warnings_add(warnstr)
                   write(warnstr,*) subname, 'zqin=',zqin(k)
@@ -2009,14 +2024,18 @@
       end subroutine update_state_vthermo
 
 !=======================================================================
-
+!autodocument_start icepack_step_therm1
 ! Driver for thermodynamic changes not needed for coupling:
 ! transport in thickness space, lateral growth and melting.
 !
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
+<<<<<<< HEAD
       subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, n_iso, &
+=======
+      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
+>>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
                                     aicen_init  ,               &
                                     vicen_init  , vsnon_init  , &
                                     aice        , aicen       , &
@@ -2054,8 +2073,9 @@
                                     sss         , Tf          , &
                                     strocnxT    , strocnyT    , &
                                     fbot        ,               &
-                                    Tbot        , Tsnice       , &
+                                    Tbot        , Tsnice      , &
                                     frzmlt      , rside       , &
+                                    fside       ,               &
                                     fsnow       , frain       , &
                                     fpond       ,               &
                                     fsurf       , fsurfn      , &
@@ -2093,9 +2113,13 @@
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories
          nilyr   , & ! number of ice layers
+<<<<<<< HEAD
          nslyr   , & ! number of snow layers
          n_aero  , & ! number of aerosol tracers in use
          n_iso      ! number of isotope tracers in use
+=======
+         nslyr       ! number of snow layers
+>>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2172,10 +2196,11 @@
          fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
          frzmlt      , & ! freezing/melting potential (W/m^2)
          rside       , & ! fraction of ice that melts laterally
+         fside       , & ! lateral heat flux (W/m^2)
          sst         , & ! sea surface temperature (C)
          Tf          , & ! freezing temperature (C)
          Tbot        , & ! ice bottom surface temperature (deg C)
-         Tsnice       , & ! snow ice interface temperature (deg C)
+         Tsnice      , & ! snow ice interface temperature (deg C)
          sss         , & ! sea surface salinity (ppt)
          meltt       , & ! top ice melt             (m/step-->cm/day)
          melts       , & ! snow melt                (m/step-->cm/day)
@@ -2244,9 +2269,13 @@
          aerosno    , &  ! snow aerosol tracer (kg/m^2)
          aeroice         ! ice aerosol tracer (kg/m^2)
 
+<<<<<<< HEAD
       real (kind=dbl_kind), dimension(:,:,:), intent(inout) :: &
          isosno    , &  ! snow isotope tracer (kg/m^2)
          isoice         ! ice isotope tracer (kg/m^2)
+=======
+!autodocument_end
+>>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
 
       ! local variables
 
@@ -2302,7 +2331,9 @@
                                   fbot_xfer_type,       &
                                   strocnxT,  strocnyT,  &
                                   Tbot,      fbot,      &
-                                  rside,     Cdn_ocn)
+                                  rside,     Cdn_ocn,   &
+                                  fside)
+
       if (icepack_warnings_aborted(subname)) return
       
       !-----------------------------------------------------------------

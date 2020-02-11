@@ -1591,7 +1591,7 @@
       end subroutine ridge_shift
 
 !=======================================================================
-
+!autodocument_start icepack_ice_strength
 ! Compute the strength of the ice pack, defined as the energy (J m-2)
 ! dissipated per unit area removed from the ice pack under compression,
 ! and assumed proportional to the change in potential energy caused
@@ -1626,6 +1626,8 @@
 
       real (kind=dbl_kind), intent(inout) :: &
          strength   ! ice strength (N/m)
+
+!autodocument_end
 
       ! local variables
 
@@ -1721,7 +1723,7 @@
       end subroutine icepack_ice_strength
 
 !=======================================================================
-!
+!autodocument_start icepack_step_ridge
 ! Computes sea ice mechanical deformation
 !
 ! authors: William H. Lipscomb, LANL
@@ -1827,6 +1829,8 @@
 
       logical (kind=log_kind), dimension(:), intent(inout) :: &
          first_ice    ! true until ice forms
+
+!autodocument_end
 
       ! local variables
 

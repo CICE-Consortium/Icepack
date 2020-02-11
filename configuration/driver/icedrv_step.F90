@@ -6,17 +6,16 @@
 
       module icedrv_step
 
-      use icedrv_constants, only: c0, nu_diag
+      use icedrv_constants, only: c0, nu_diag, c4
       use icedrv_kinds
 !      use icedrv_calendar, only: istep1
       use icedrv_forcing, only: ocn_data_type
       use icedrv_system, only: icedrv_system_abort
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_flags
       use icepack_intfc, only: icepack_query_tracer_indices
-      use icepack_intfc, only: icepack_query_tracer_numbers
+      use icepack_intfc, only: icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_parameters
 
       implicit none
@@ -24,7 +23,7 @@
 
       public :: step_therm1, step_therm2, step_dyn_ridge, &
                 prep_radiation, step_radiation, ocean_mixed_layer, &
-                update_state, biogeochemistry
+                update_state, biogeochemistry, step_dyn_wave
 
 !=======================================================================
 
@@ -104,7 +103,8 @@
       use icedrv_arrays_column, only: fswsfcn, fswintn, fswthrun, Sswabsn, Iswabsn
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nx
-      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fbot, Tbot, Tsnice
+      use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fside, &
+                             fbot, Tbot, Tsnice
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
       use icedrv_flux, only: wind, rhoa, potT, Qa, Qa_iso, zlvl, strax, stray, flatn
       use icedrv_flux, only: fsensn, fsurfn, fcondtopn, fcondbotn
@@ -165,7 +165,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call icepack_query_tracer_numbers( &
+      call icepack_query_tracer_sizes( &
            ntrcr_out=ntrcr)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -297,7 +297,7 @@
             strocnxT = strocnxT(i),   strocnyT  = strocnyT(i),    &
             fbot     = fbot(i),       frzmlt    = frzmlt(i),      &
             Tbot     = Tbot(i),       Tsnice    = Tsnice(i),      &
-            rside    = rside(i),                                  &
+            rside    = rside(i),      fside     = fside(i),       &
             fsnow    = fsnow(i),      frain     = frain(i),       &
             fpond    = fpond(i),                                  &
             fsurf    = fsurf(i),      fsurfn    = fsurfn(i,:),    &
@@ -380,14 +380,18 @@
 
       subroutine step_therm2 (dt)
 
-      use icedrv_arrays_column, only: hin_max, fzsal, ocean_bio
+      use icedrv_arrays_column, only: hin_max, fzsal, ocean_bio, &
+                                      wave_sig_ht, wave_spectrum, &
+                                      wavefreq, dwavefreq,        &
+                                      floe_rad_c, floe_binwidth,  &
+                               d_afsd_latg, d_afsd_newi, d_afsd_latm, d_afsd_weld
       use icedrv_arrays_column, only: first_ice, bgrid, cgrid, igrid
       use icedrv_calendar, only: yday
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nblyr, nltrcr, nx
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nblyr, &
+                                    nltrcr, nx, nfsd
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
-      use icedrv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside
-      use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn
-      use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
+      use icedrv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside, fside
+      use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn 
       use icedrv_init, only: tmask
       use icedrv_state, only: aice, aicen, aice0, trcr_depend
       use icedrv_state, only: aicen_init, vicen_init, trcrn, vicen, vsnon
@@ -402,10 +406,13 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         i               ! horizontal indices
+         i       ! horizontal index
 
       integer (kind=int_kind) :: &
          ntrcr, nbtrcr
+
+      logical (kind=log_kind) :: &
+         tr_fsd  ! floe size distribution tracers
 
       character(len=*), parameter :: subname='(step_therm2)'
 
@@ -413,7 +420,8 @@
       ! query icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -423,8 +431,10 @@
       do i = 1, nx
 
          if (tmask(i)) then
+            ! wave_sig_ht - compute here to pass to add new ice
+            if (tr_fsd) &
+            wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
-<<<<<<< HEAD
             call icepack_step_therm2(dt, ncat, n_aero, n_iso, nltrcr,      &
                            nilyr,                  nslyr,                  &
                            hin_max   (:),          nblyr,                  &   
@@ -453,6 +463,9 @@
                            H2_16O_ocn(i), H2_18O_ocn(i))
 =======
             call icepack_step_therm2(dt=dt, ncat=ncat, n_aero=n_aero, &
+=======
+            call icepack_step_therm2(dt=dt, ncat=ncat,                &
+>>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
                          nltrcr=nltrcr, nilyr=nilyr, nslyr=nslyr,     &
                          hin_max=hin_max(:), nblyr=nblyr,             &   
                          aicen=aicen(i,:),                            &
@@ -468,7 +481,7 @@
                          n_trcr_strata=n_trcr_strata(1:ntrcr),        &
                          nt_strata=nt_strata(1:ntrcr,:),              &
                          Tf=Tf(i), sss=sss(i),                        &
-                         salinz=salinz(i,:),                          &
+                         salinz=salinz(i,:), fside=fside(i),          &
                          rside=rside(i),   meltl=meltl(i),            &
                          frzmlt=frzmlt(i), frazil=frazil(i),          &
                          frain=frain(i),   fpond=fpond(i),            &
@@ -482,7 +495,17 @@
                          ocean_bio=ocean_bio(i,1:nbtrcr),             &
                          frazil_diag=frazil_diag(i),                  &
                          frz_onset=frz_onset(i),                      &
-                         yday=yday)
+                         yday=yday,                                   &
+                         nfsd=nfsd,   wave_sig_ht=wave_sig_ht(i),     &
+                         wave_spectrum=wave_spectrum(i,:),            &
+                         wavefreq=wavefreq(:),                        &
+                         dwavefreq=dwavefreq(:),                      &
+                         d_afsd_latg=d_afsd_latg(i,:),                &
+                         d_afsd_newi=d_afsd_newi(i,:),                &
+                         d_afsd_latm=d_afsd_latm(i,:),                &
+                         d_afsd_weld=d_afsd_weld(i,:),                &
+                         floe_rad_c=floe_rad_c(:),                    &
+                         floe_binwidth=floe_binwidth(:))
 
          endif ! tmask
 
@@ -525,7 +548,7 @@
          nt_iage  !
 
       logical (kind=log_kind) :: &
-         tr_iage  !
+         tr_iage  ! ice age tracer
 
       character(len=*), parameter :: subname='(update_state)'
 
@@ -533,7 +556,7 @@
       ! query icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_tracer_numbers(ntrcr_out=ntrcr)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -596,6 +619,62 @@
 
 !=======================================================================
 !
+! Run one time step of wave-fracturing the floe size distribution
+!
+! authors: Lettie Roach, NIWA
+!          Elizabeth C. Hunke, LANL
+
+      subroutine step_dyn_wave (dt)
+
+      use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
+          d_afsd_wave, floe_rad_l, floe_rad_c, wavefreq, dwavefreq
+      use icedrv_domain_size, only: ncat, nfsd, nfreq, nx
+      use icedrv_state, only: trcrn, aicen, aice, vice
+      use icepack_intfc, only: icepack_step_wavefracture
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt      ! time step
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         i, j,            & ! horizontal indices
+         ntrcr,           & !
+         nbtrcr             !
+
+      character (len=char_len) :: wave_spec_type
+
+      character(len=*), parameter :: subname = '(step_dyn_wave)'
+
+      call icepack_query_parameters(wave_spec_type_out=wave_spec_type)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
+
+      do i = 1, nx
+           d_afsd_wave(i,:) = c0
+           call icepack_step_wavefracture (wave_spec_type=wave_spec_type, &
+                        dt=dt, ncat=ncat, nfsd=nfsd, nfreq=nfreq, &
+                        aice          = aice         (i),      &
+                        vice          = vice         (i),      &
+                        aicen         = aicen        (i,:),    &
+                        floe_rad_l    = floe_rad_l     (:),    &
+                        floe_rad_c    = floe_rad_c     (:),    &
+                        wave_spectrum = wave_spectrum(i,:),    &
+                        wavefreq      = wavefreq       (:),    &
+                        dwavefreq     = dwavefreq      (:),    &
+                        trcrn         = trcrn        (i,:,:),  &
+                        d_afsd_wave   = d_afsd_wave  (i,:))
+      end do ! i
+
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
+
+      end subroutine step_dyn_wave
+
+!=======================================================================
+!
 ! Run one time step of ridging.
 !
 ! authors: William H. Lipscomb, LANL
@@ -636,7 +715,7 @@
       ! query icepack values
       !-----------------------------------------------------------------
 
-         call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+         call icepack_query_tracer_sizes(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
@@ -771,12 +850,12 @@
          i, n,   k ! horizontal indices
 
       integer (kind=int_kind) :: &
-         max_aero, nt_Tsfc, nt_alvl, &
+         max_aero, max_algae, nt_Tsfc, nt_alvl, &
          nt_apnd, nt_hpnd, nt_ipnd, nt_aero, nlt_chl_sw, &
          ntrcr, nbtrcr_sw, nt_fbri
 
       integer (kind=int_kind), dimension(:), allocatable :: &
-         nlt_zaero_sw, nt_zaero
+         nlt_zaero_sw, nt_zaero, nt_bgc_N
 
       logical (kind=log_kind) :: &
          tr_bgc_N, tr_zaero, tr_brine, dEdd_algae, modal_aero
@@ -785,7 +864,6 @@
          fbri                 ! brine height to ice thickness
 
       real(kind= dbl_kind), dimension(:,:), allocatable :: &
-         ztrcr    , &
          ztrcr_sw
 
       logical (kind=log_kind) :: &
@@ -798,14 +876,15 @@
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_sizes( &
-           max_aero_out=max_aero)
+           max_aero_out=max_aero, max_algae_out=max_algae)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
       allocate(nlt_zaero_sw(max_aero))
       allocate(nt_zaero(max_aero))
+      allocate(nt_bgc_N(max_algae))
 
-      call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_sw_out=nbtrcr_sw)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr, nbtrcr_sw_out=nbtrcr_sw)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -817,10 +896,10 @@
           file=__FILE__,line= __LINE__)
 
       call icepack_query_tracer_indices( &
-           nt_Tsfc_out=nt_Tsfc, nt_alvl_out=nt_alvl, &
-           nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, &
+           nt_Tsfc_out=nt_Tsfc, nt_alvl_out=nt_alvl, nt_apnd_out=nt_apnd, &
+           nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, &
            nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw, &
-           nt_fbri_out=nt_fbri, nt_zaero_out=nt_zaero)
+           nt_fbri_out=nt_fbri, nt_zaero_out=nt_zaero, nt_bgc_N_out=nt_bgc_N)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -832,8 +911,7 @@
 
       !-----------------------------------------------------------------
 
-      allocate(ztrcr(ntrcr,ncat))
-      allocate(ztrcr_sw(ntrcr,ncat))
+      allocate(ztrcr_sw(nbtrcr_sw,ncat))
 
       l_print_point = .false.
 
@@ -842,21 +920,14 @@
          fbri(:) = c0
          ztrcr_sw(:,:) = c0
          do n = 1, ncat
-           do k = 1, ntrcr
-             ztrcr(k,n) = trcrn(i,k,n)
-           enddo
            if (tr_brine)  fbri(n) = trcrn(i,nt_fbri,n)
          enddo
 
          if (tmask(i)) then
 
             call icepack_step_radiation(dt=dt,      ncat=ncat,          &
-                         n_algae=n_algae,           tr_zaero=tr_zaero,  &
-                         nblyr=nblyr,               ntrcr=ntrcr,        &
-                         nbtrcr_sw=nbtrcr_sw,       nilyr=nilyr,        &
-                         nslyr=nslyr,               n_aero=n_aero,      &
-                         n_zaero=n_zaero,           dEdd_algae=dEdd_algae,        &
-                         nlt_chl_sw=nlt_chl_sw,     nlt_zaero_sw=nlt_zaero_sw(:), &
+                         nblyr=nblyr,               nilyr=nilyr,        &
+                         nslyr=nslyr,               dEdd_algae=dEdd_algae,        &
                          swgrid=swgrid(:),          igrid=igrid(:),     &
                          fbri=fbri(:),                                  &
                          aicen=aicen(i,:),          vicen=vicen(i,:),   &
@@ -867,7 +938,9 @@
                          hpndn=trcrn(i,nt_hpnd,:),                      &
                          ipndn=trcrn(i,nt_ipnd,:),                      &
                          aeron=trcrn(i,nt_aero:nt_aero+4*n_aero-1,:),   &
-                         zbion=ztrcr_sw,            trcrn=ztrcr,        &
+                         bgcNn=trcrn(i,nt_bgc_N(1):nt_bgc_N(1)+n_algae*(nblyr+3)-1,:), &
+                         zaeron=trcrn(i,nt_zaero(1):nt_zaero(1)+n_zaero*(nblyr+3)-1,:), &
+                         trcrn_bgcsw=ztrcr_sw,                          &
                          TLAT=TLAT(i),              TLON=TLON(i),       &
                          calendar_type=calendar_type,                   &
                          days_per_year=days_per_year, sec=sec,          &
@@ -905,10 +978,10 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
 
-      deallocate(ztrcr)
       deallocate(ztrcr_sw)
       deallocate(nlt_zaero_sw)
       deallocate(nt_zaero)
+      deallocate(nt_bgc_N)
 
       end subroutine step_radiation
 
@@ -1057,7 +1130,7 @@
       use icedrv_arrays_column, only: snow_bio_net, fswthrun, Rayleigh_criteria
       use icedrv_arrays_column, only: ocean_bio_all, sice_rho, fzsal, fzsal_g
       use icedrv_arrays_column, only: bgrid, igrid, icgrid, cgrid
-      use icepack_intfc, only: icepack_biogeochemistry, icepack_init_OceanConcArray
+      use icepack_intfc, only: icepack_biogeochemistry, icepack_load_ocean_bio_array
       use icedrv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat
       use icedrv_domain_size, only: n_doc, n_dic,  n_don, n_fed, n_fep, nx
       use icedrv_flux, only: meltbn, melttn, congeln, snoicen
@@ -1126,7 +1199,7 @@
 
       !-----------------------------------------------------------------
 
-      call icepack_query_tracer_numbers(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
+      call icepack_query_tracer_sizes(ntrcr_out=ntrcr, nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
       call icepack_query_tracer_indices(nlt_zaero_out=nlt_zaero)
       call icepack_query_tracer_indices(bio_index_o_out=bio_index_o)
@@ -1139,7 +1212,7 @@
       ! Define ocean concentrations for tracers used in simulation
       do i = 1, nx
 
-         call icepack_init_OceanConcArray(max_nbtrcr=max_nbtrcr, &
+         call icepack_load_ocean_bio_array(max_nbtrcr=max_nbtrcr,&
                       max_algae = max_algae, max_don  = max_don, &
                       max_doc   = max_doc,   max_dic  = max_dic, &
                       max_aero  = max_aero,  max_fe   = max_fe,  &

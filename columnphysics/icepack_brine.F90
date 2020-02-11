@@ -18,7 +18,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_mushy_physics, only: temperature_mush, liquid_fraction
+      use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
       use icepack_therm_shared, only: calculate_Tin_from_qin
 
       implicit none
@@ -260,8 +260,8 @@
       do k = 1, nblyr
          bqin (k+1) = min(c0,   trtmp_q(nt_qice+k-1))
          bSin (k+1) = max(Smin, trtmp_s(nt_sice+k-1))
-         bTin (k+1) = temperature_mush(bqin(k+1), bSin(k+1))
-         bphin(k+1) = liquid_fraction (bTin(k+1), bSin(k+1))
+         bTin (k+1) = icepack_mushy_temperature_mush(bqin(k+1), bSin(k+1))
+         bphin(k+1) = icepack_mushy_liquid_fraction (bTin(k+1), bSin(k+1))
       enddo    ! k
 
       bSin (1)       = bSin(2)
@@ -910,7 +910,7 @@
      end subroutine calculate_drho
 
 !=======================================================================
-
+!autodocument_start icepack_init_hbrine
 !  Initialize brine height tracer
 
       subroutine icepack_init_hbrine(bgrid, igrid, cgrid, &
@@ -933,6 +933,10 @@
          cgrid            , &  ! CICE vertical coordinate   
          icgrid           , &  ! interface grid for CICE (shortwave variable)
          swgrid                ! grid for ice tracers used in dEdd scheme
+
+!autodocument_end
+
+      ! local variables
 
       integer (kind=int_kind) :: &
          k                 ! vertical index
@@ -1002,11 +1006,11 @@
       end subroutine icepack_init_hbrine
 
 !=======================================================================
-
+!autodocument_start icepack_init_zsalinity
 !  Initialize zSalinity
 
       subroutine icepack_init_zsalinity(nblyr,ntrcr_o,  Rayleigh_criteria, &
-               Rayleigh_real, trcrn, nt_bgc_S, ncat, sss)
+               Rayleigh_real, trcrn_bgc, nt_bgc_S, ncat, sss)
 
       integer (kind=int_kind), intent(in) :: &
        nblyr, & ! number of biolayers
@@ -1024,7 +1028,11 @@
        sss
 
       real (kind=dbl_kind), dimension(:,:), intent(inout):: &
-       trcrn ! bgc subset of trcrn
+       trcrn_bgc ! bgc subset of trcrn
+
+!autodocument_end
+
+      ! local variables
 
       integer (kind=int_kind) :: &
         k, n
@@ -1041,7 +1049,7 @@
       Rayleigh_real     = c0
       do n = 1,ncat
          do k = 1,nblyr
-            trcrn(nt_bgc_S+k-1-ntrcr_o,n) = sss*salt_loss
+            trcrn_bgc(nt_bgc_S+k-1-ntrcr_o,n) = sss*salt_loss
          enddo   ! k
       enddo      ! n
 

@@ -13,7 +13,8 @@ Icepack Documentation
 
    intro/index.rst
    science_guide/index.rst
-   user_guide/index.rst
+   user_guide/index_standalone.rst
+   user_guide/index_withmodels.rst
    developer_guide/index.rst
    icepack_index.rst
    zreferences.rst

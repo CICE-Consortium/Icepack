@@ -20,7 +20,7 @@
       use icepack_mushy_physics, only: enthalpy_mush
       use icepack_mushy_physics, only: temperature_snow
       use icepack_mushy_physics, only: enthalpy_snow
-      use icepack_mushy_physics, only: temperature_mush
+      use icepack_mushy_physics, only: icepack_mushy_temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
     
       implicit none
@@ -215,7 +215,7 @@
       end subroutine dsurface_heat_flux_dTsf
 
 !=======================================================================
-!
+!autodocument_start icepack_init_thermo
 ! Initialize the vertical profile of ice salinity and melting temperature.
 !
 ! authors: C. M. Bitz, UW
@@ -228,6 +228,8 @@
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          sprofile                         ! vertical salinity profile
+
+!autodocument_end
 
       real (kind=dbl_kind), parameter :: &
          nsal    = 0.407_dbl_kind, &
@@ -274,7 +276,8 @@
       end subroutine icepack_init_thermo
 
 !=======================================================================
-
+!autodocument_start icepack_init_trcr
+!
       subroutine icepack_init_trcr(Tair,     Tf,       &
                                   Sprofile, Tprofile, &
                                   Tsfc,               &
@@ -299,6 +302,8 @@
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          qin, &      ! ice enthalpy profile (J/m3)
          qsn         ! snow enthalpy profile (J/m3)
+
+!autodocument_end
 
       ! local variables
 
@@ -348,11 +353,15 @@
     end subroutine icepack_init_trcr
 
 !=======================================================================
+!autodocument_start icepack_liquidus_temperature
+! compute liquidus temperature
 
       function icepack_liquidus_temperature(Sin) result(Tmlt)
 
         real(dbl_kind), intent(in) :: Sin
         real(dbl_kind) :: Tmlt
+
+!autodocument_end
 
         character(len=*),parameter :: subname='(icepack_liquidus_temperature)'
 
@@ -369,11 +378,15 @@
       end function icepack_liquidus_temperature
 
 !=======================================================================
+!autodocument_start icepack_sea_freezing_temperature
+! compute ocean freezing temperature
 
       function icepack_sea_freezing_temperature(sss) result(Tf)
 
         real(dbl_kind), intent(in) :: sss
         real(dbl_kind) :: Tf
+
+!autodocument_end
 
         character(len=*),parameter :: subname='(icepack_sea_freezing_temperature)'
 
@@ -394,11 +407,15 @@
       end function icepack_sea_freezing_temperature
 
 !=======================================================================
+!autodocument_start icepack_ice_temperature
+! compute ice temperature
 
       function icepack_ice_temperature(qin, Sin) result(Tin)
 
         real(kind=dbl_kind), intent(in) :: qin, Sin
         real(kind=dbl_kind) :: Tin
+
+!autodocument_end
 
         real(kind=dbl_kind) :: Tmlts
 
@@ -406,7 +423,7 @@
 
         if (ktherm == 2) then
 
-           Tin = temperature_mush(qin, Sin)
+           Tin = icepack_mushy_temperature_mush(qin, Sin)
 
         else
 
@@ -418,11 +435,15 @@
       end function icepack_ice_temperature
 
 !=======================================================================
+!autodocument_start icepack_snow_temperature
+! compute snow temperature
 
       function icepack_snow_temperature(qin) result(Tsn)
 
         real(kind=dbl_kind), intent(in) :: qin
         real(kind=dbl_kind) :: Tsn
+
+!autodocument_end
 
         character(len=*),parameter :: subname='(icepack_snow_temperature)'
 
@@ -439,11 +460,15 @@
       end function icepack_snow_temperature
 
 !=======================================================================
+!autodocument_start icepack_enthalpy_snow
+! compute snow enthalpy
 
       function icepack_enthalpy_snow(zTsn) result(qsn)
 
         real(kind=dbl_kind), intent(in) :: zTsn
         real(kind=dbl_kind) :: qsn
+
+!autodocument_end
 
         character(len=*),parameter :: subname='(icepack_enthalpy_snow)'
 

@@ -14,7 +14,8 @@
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
-      use icepack_intfc, only: icepack_sea_freezing_temperature
+      use icepack_intfc, only: icepack_sea_freezing_temperature 
+      use icepack_intfc, only: icepack_init_wave
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
@@ -22,7 +23,8 @@
 
       implicit none
       private
-      public :: init_forcing, get_forcing, interp_coeff, interp_coeff_monthly
+      public :: init_forcing, get_forcing, interp_coeff, &
+                interp_coeff_monthly, get_wave_spec
 
       integer (kind=int_kind), parameter :: &
          ntime = 8760        ! number of data points in time
@@ -1121,6 +1123,36 @@
       enddo
 
     end subroutine ice_open_clos
+
+!=======================================================================
+
+      subroutine get_wave_spec
+  
+      use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
+                                   dwavefreq, wavefreq
+      use icedrv_domain_size, only: nfreq
+
+      ! local variables
+      integer (kind=int_kind) :: &
+         k
+
+      real(kind=dbl_kind), dimension(nfreq) :: &
+         wave_spectrum_profile  ! wave spectrum
+
+       wave_spectrum(:,:) = c0
+
+      ! wave spectrum and frequencies
+      ! get hardwired frequency bin info and a dummy wave spectrum profile
+      call icepack_init_wave(nfreq=nfreq,                 &
+                             wave_spectrum_profile=wave_spectrum_profile, &
+                             wavefreq=wavefreq, dwavefreq=dwavefreq)
+
+      do k = 1, nfreq
+          wave_spectrum(:,k) = wave_spectrum_profile(k)
+      enddo
+
+      end subroutine get_wave_spec
+
 
 !=======================================================================
 

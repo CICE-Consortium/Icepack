@@ -56,6 +56,7 @@ to support the CICE model.
    "NICELYR", " ", "number of vertical layers in the ice", "7"
    "NSNWLYR", " ", "number of vertical layers in the snow", "1"
    "NICECAT", " ", "number of ice thickness categories", "5"
+   "NFSDCAT", " ", "number of floe size categories", "12"
    "TRAGE", "0,1", "ice age tracer", "1"
    "TRFY", "0,1", "first-year ice area tracer", "1"
    "TRLVL", "0,1", "deformed ice tracer", "1"
@@ -129,6 +130,7 @@ column physics.
    "``tr_pond_topo``", "true/false", "topo melt ponds", ""
    "``tr_pond_lvl``", "true/false", "level-ice melt ponds", ""
    "``tr_aero``", "true/false", "aerosols", ""
+   "``tr_fsd``", "true/false", "floe size distribution", ""
    "", "", "", ""
    "*thermo_nml*", "", "", ""
    "", "", "**Thermodynamics**", ""
@@ -227,6 +229,9 @@ column physics.
    "``l_mpond_fresh``", "true", "retain (topo) pond water until ponds drain", ""
    "", "false", "release (topo) pond water immediately to ocean", ""
    "``oceanmixed_ice``", "true/false", "active ocean mixed layer calculation", "``.true.`` (if uncoupled)"
+   "``wave_spec_type``", "``none``", "no ocean wave spectrum data - no wave-ice interactions",""
+   "", "``constant``", "ocean wave spectrum data present*, sea surface height field generated using constant phase, for testing FSD", ""
+   "", "``random``", "ocean wave spectrum data present*, sea surface height field generated using random phase", ""
    "``ocn_data_type``", "``default``", "constant values defined in the code", ""
    "", "``ISPOL``", "ISPOL experiment data  (see :ref:`force`)", ""
    "", "``NICE``", "N-ICE experiment data  (see :ref:`force`)", ""
@@ -396,6 +401,7 @@ column physics.
 ..   "", "``NICE``", "N-ICE experiment data", ""
 ..   "", "``NICE``", "N-ICE experiment data", ""
 
+* = If Icepack is run stand-alone and wave_spec_type is not set to none, then a fixed wave spectrum is defined in the code to use for testing. As with other input data, this spectrum should not be used for production runs or publications.
   
 .. _tuning:
 

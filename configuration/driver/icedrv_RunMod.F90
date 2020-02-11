@@ -12,7 +12,7 @@
       use icepack_intfc, only: icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags
-      use icepack_intfc, only: icepack_query_tracer_numbers
+      use icepack_intfc, only: icepack_query_tracer_sizes
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -32,11 +32,12 @@
       subroutine icedrv_run
 
       use icedrv_calendar, only: istep, istep1, time, dt, stop_now, calendar
-      use icedrv_forcing, only: get_forcing
+      use icedrv_forcing, only: get_forcing, get_wave_spec
       use icedrv_forcing_bgc, only: faero_default, get_forcing_bgc
       use icedrv_flux, only: init_flux_atm_ocn
 
-      logical (kind=log_kind) :: skl_bgc, z_tracers, tr_aero, tr_zaero
+      logical (kind=log_kind) :: skl_bgc, z_tracers, tr_aero, tr_zaero, &
+                                 wave_spec, tr_fsd
 
       character(len=*), parameter :: subname='(icedrv_run)'
 
@@ -44,7 +45,8 @@
    ! timestep loop
    !--------------------------------------------------------------------
 
-      call icepack_query_tracer_flags(tr_aero_out=tr_aero, tr_zaero_out=tr_zaero)
+      call icepack_query_tracer_flags(tr_aero_out=tr_aero, tr_zaero_out=tr_zaero, &
+                                      tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -61,15 +63,17 @@
 
          if (stop_now >= 1) exit timeLoop
 
+         call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers,&
+                                       wave_spec_out=wave_spec)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
+
+         if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
          call get_forcing(istep1)  ! get forcing from data arrays
 
          ! aerosols
          if (tr_aero .or. tr_zaero)  call faero_default    ! default values
-
-         call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
-         call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-             file=__FILE__,line= __LINE__)
 
          if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 
@@ -97,13 +101,14 @@
       use icedrv_restart_bgc, only: write_restart_bgc
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_radiation, &
-          biogeochemistry
+          biogeochemistry, step_dyn_wave
 
       integer (kind=int_kind) :: &
          k               ! dynamics supercycling index
 
       logical (kind=log_kind) :: &
-         calc_Tsfc, skl_bgc, solve_zsal, z_tracers, tr_brine  ! from icepack
+         calc_Tsfc, skl_bgc, solve_zsal, z_tracers, tr_brine, &  ! from icepack
+         tr_fsd, wave_spec
 
       real (kind=dbl_kind) :: &
          offset          ! d(age)/dt time offset
@@ -117,8 +122,10 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
-      call icepack_query_parameters(solve_zsal_out=solve_zsal, calc_Tsfc_out=calc_Tsfc)
-      call icepack_query_tracer_flags(tr_brine_out=tr_brine)
+      call icepack_query_parameters(solve_zsal_out=solve_zsal, & 
+                                    calc_Tsfc_out=calc_Tsfc, &
+                                    wave_spec_out=wave_spec)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine,tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -159,6 +166,10 @@
       
       call init_history_dyn
       
+      ! wave fracture of the floe size distribution
+      ! note this is called outside of the dynamics subcycling loop
+      if (tr_fsd .and. wave_spec) call step_dyn_wave(dt)
+
       do k = 1, ndtd
         
         ! ridging
@@ -251,7 +262,7 @@
       !-----------------------------------------------------------------
 
          call icepack_query_parameters(puny_out=puny, rhofresh_out=rhofresh)
-         call icepack_query_tracer_numbers(nbtrcr_out=nbtrcr)
+         call icepack_query_tracer_sizes(nbtrcr_out=nbtrcr)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)

@@ -170,7 +170,6 @@ if ( $fbuild != "" || $frun != "" || $ftest != "" ) then
   if (${tchkpass} == 1) then
      @ tpass = $tpass + 1
   else
-  else
     if (${tchkpass} == 2) then
        @ tunkn = $tunkn + 1
     else

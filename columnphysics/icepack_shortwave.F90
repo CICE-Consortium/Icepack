@@ -49,10 +49,12 @@
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
+      use icepack_tracers,    only: ntrcr, nbtrcr_sw
       use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_tracers,    only: tr_bgc_N, tr_aero
       use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
+      use icepack_tracers,    only: n_algae, n_aero, n_zaero
       use icepack_warnings,   only: warnstr, icepack_warnings_add
       use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -707,22 +709,15 @@
 ! 2011 ECH modified for melt pond tracers
 ! 2013 ECH merged with NCAR version
 
-      subroutine run_dEdd(dt,       tr_aero,   &
-                          tr_pond_cesm,        &
-                          tr_pond_lvl,         &
-                          tr_pond_topo,        &
-                          ncat,     n_aero,    &
-                          n_zaero,  dEdd_algae,&
-                          nlt_chl_sw,          &
-                          nlt_zaero_sw,        &
-                          tr_bgc_N, tr_zaero,  &
+      subroutine run_dEdd(dt,       ncat,      &
+                          dEdd_algae,          &
                           nilyr,    nslyr,     &
                           aicen,    vicen,     &
                           vsnon,    Tsfcn,     &
                           alvln,    apndn,     &
                           hpndn,    ipndn,     &
                           aeron,    kalg,      &
-                          zbion,               &
+                          trcrn_bgcsw,         &
                           heat_capacity,       &
                           tlat,     tlon,      & 
                           calendar_type,       &
@@ -758,23 +753,11 @@
       integer (kind=int_kind), intent(in) :: &
          ncat   , & ! number of ice thickness categories
          nilyr  , & ! number of ice layers
-         nslyr  , & ! number of snow layers
-         n_aero , & ! number of aerosol tracers
-         n_zaero, & ! number of zaerosol tracers 
-         nlt_chl_sw ! index for chla
-
-      integer (kind=int_kind), dimension(:), intent(in) :: &
-        nlt_zaero_sw   ! index for zaerosols
+         nslyr      ! number of snow layers
 
       logical(kind=log_kind), intent(in) :: &
          heat_capacity,& ! if true, ice has nonzero heat capacity
-         tr_aero     , & ! if .true., use aerosol tracers
-         tr_pond_cesm, & ! if .true., use explicit topography-based ponds
-         tr_pond_lvl , & ! if .true., use explicit topography-based ponds
-         tr_pond_topo, & ! if .true., use explicit topography-based ponds
          dEdd_algae,   & ! .true. use prognostic chla in dEdd
-         tr_bgc_N,     & ! .true. active bgc (skl or z)
-         tr_zaero,     & ! .true. use zaerosols
          modal_aero      ! .true. use modal aerosol treatment
 
       ! dEdd tuning parameters, set in namelist
@@ -836,7 +819,7 @@
 
       real(kind=dbl_kind), dimension(:,:), intent(in) :: &
            aeron, & ! aerosols (kg/m^3)
-           zbion    ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
+           trcrn_bgcsw ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
            ffracn,& ! fraction of fsurfn used to melt ipond
@@ -1044,7 +1027,7 @@
             else
                fpn = c0
                hpn = c0
-               call shortwave_dEdd_set_pond(Tsfcn(n), &
+               call shortwave_dEdd_set_pond(Tsfcn(n),   &
                                             fsn, fpn,   &
                                             hpn)
                if (icepack_warnings_aborted(subname)) return
@@ -1056,17 +1039,14 @@
             
          snowfracn(n) = fsn ! for history
 
-         call shortwave_dEdd(n_aero,        n_zaero,        &
-                             dEdd_algae,    nlt_chl_sw,     &
-                             nlt_zaero_sw(:),               &
-                             tr_bgc_N,      tr_zaero,       &
+         call shortwave_dEdd(dEdd_algae,                    &
                              nslyr,         nilyr,          &
                              coszen,        heat_capacity,  &
                              aicen(n),      vicen(n),       &
                              hsn,           fsn,            &
                              rhosnwn,       rsnwn,          &
                              fpn,           hpn,            &
-                             aeron(:,n),    tr_aero,        &
+                             aeron(:,n),                    &
                              R_ice,         R_pnd,          &
                              kaer_tab,      waer_tab,       &
                              gaer_tab,                      &
@@ -1085,7 +1065,8 @@
                              Iswabsn(:,n),                  &
                              albicen(n),                    &
                              albsnon(n),    albpndn(n),     &
-                             fswpenln(:,n), zbion(:,n),     &
+                             fswpenln(:,n),                 &
+                             trcrn_bgcsw(:,n),              &
                              l_print_point)
          if (icepack_warnings_aborted(subname)) return
 
@@ -1123,18 +1104,14 @@
 ! author:  Bruce P. Briegleb, NCAR 
 !   2013:  E Hunke merged with NCAR version
 !
-      subroutine shortwave_dEdd  (n_aero,   n_zaero,     &
-                                  dEdd_algae,            &
-                                  nlt_chl_sw,            &
-                                  nlt_zaero_sw,          &
-                                  tr_bgc_N, tr_zaero,    &
+      subroutine shortwave_dEdd  (dEdd_algae,            &
                                   nslyr,    nilyr,       &
                                   coszen,   heat_capacity,&
                                   aice,     vice,        &
                                   hs,       fs,          & 
                                   rhosnw,   rsnw,        &
                                   fp,       hp,          &
-                                  aero,     tr_aero,     &
+                                  aero,                  &
                                   R_ice,    R_pnd,       &
                                   kaer_tab, waer_tab,    &
                                   gaer_tab,              &
@@ -1156,20 +1133,11 @@
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
-         nslyr   , & ! number of snow layers
-         n_aero  , & ! number of aerosol tracers in use
-         n_zaero , & ! number of zaerosol tracers in use
-         nlt_chl_sw  ! index for chla
-
-      integer (kind=int_kind), dimension(:), intent(in) :: &
-        nlt_zaero_sw   ! index for zaerosols
+         nslyr       ! number of snow layers
 
       logical (kind=log_kind), intent(in) :: &
          heat_capacity, & ! if true, ice has nonzero heat capacity
-         tr_aero,       & ! if .true., use aerosol tracers
          dEdd_algae,    & ! .true. use prognostic chla in dEdd
-         tr_bgc_N,      & ! .true. active bgc (skl or z)
-         tr_zaero,      & ! .true. use zaerosols
          modal_aero       ! .true. use modal aerosol treatment
  
       real (kind=dbl_kind), dimension(:,:), intent(in) :: & ! Modal aerosol treatment
@@ -1307,8 +1275,13 @@
       
          aero_mp(:) = c0
          if( tr_aero ) then
-            ! assume 4 layers for each aerosol, a snow SSL, snow below SSL,
+            ! check 4 layers for each aerosol, a snow SSL, snow below SSL,
             ! sea ice SSL, and sea ice below SSL, in that order.
+            if (size(aero) < 4*n_aero) then
+               call icepack_warnings_add(subname//' ERROR: size(aero) too small')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            endif
             do na = 1, 4*n_aero, 4
                vsno = hs * aice
                netsw = swvdr + swidr + swvdf + swidf
@@ -1337,12 +1310,10 @@
 
                srftyp = 0
                call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   & 
-                      n_zaero,   zbio,        dEdd_algae,               &
-                      nlt_chl_sw,nlt_zaero_sw,         tr_bgc_N,        &
-                      tr_zaero,                                         &
+                      zbio,      dEdd_algae,                            &
                       heat_capacity,          fnidr,   coszen,          &
-                      n_aero,    tr_aero,     R_ice,   R_pnd,           &
-                      kaer_tab,  waer_tab,    gaer_tab,                 &
+                      R_ice,     R_pnd,                                 &
+                      kaer_tab,    waer_tab,    gaer_tab,               &
                       kaer_bc_tab, waer_bc_tab, gaer_bc_tab,            &
                       bcenh,     modal_aero,  kalg,                     &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
@@ -1375,12 +1346,10 @@
 
                srftyp = 1
                call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   & 
-                      n_zaero,   zbio,        dEdd_algae,               &
-                      nlt_chl_sw,nlt_zaero_sw,         tr_bgc_N,        &
-                      tr_zaero,                                         &
+                      zbio,      dEdd_algae,                            &
                       heat_capacity,          fnidr,   coszen,          &
-                      n_aero,    tr_aero,     R_ice,   R_pnd,           &
-                      kaer_tab,  waer_tab,    gaer_tab,                 &
+                      R_ice,     R_pnd,                                 &
+                      kaer_tab,    waer_tab,    gaer_tab,               &
                       kaer_bc_tab, waer_bc_tab, gaer_bc_tab,            &
                       bcenh,     modal_aero,  kalg,                     &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
@@ -1418,12 +1387,10 @@
 
                srftyp = 2
                call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   & 
-                      n_zaero,   zbio,        dEdd_algae,               &
-                      nlt_chl_sw,nlt_zaero_sw,         tr_bgc_N,        &
-                      tr_zaero,                                         &
+                      zbio,      dEdd_algae,                            &
                       heat_capacity,          fnidr,   coszen,          &
-                      n_aero,    tr_aero,     R_ice,   R_pnd,           &
-                      kaer_tab,  waer_tab,    gaer_tab,                 &
+                      R_ice,     R_pnd,                                 &
+                      kaer_tab,    waer_tab,    gaer_tab,               &
                       kaer_bc_tab, waer_bc_tab, gaer_bc_tab,            &
                       bcenh,     modal_aero,  kalg,                     &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  & 
@@ -1534,12 +1501,10 @@
 !   2013:  E Hunke merged with NCAR version
 
       subroutine compute_dEdd (nilyr,    nslyr,    klev,  klevp,  &
-                    n_zaero,   zbio,     dEdd_algae,              &
-                    nlt_chl_sw,nlt_zaero_sw,       tr_bgc_N,      &
-                    tr_zaero,                                     &
+                    zbio,     dEdd_algae,                         &
                     heat_capacity,       fnidr,    coszen,        &
-                    n_aero,    tr_aero,  R_ice,    R_pnd,         &
-                    kaer_tab,  waer_tab,           gaer_tab,      &
+                    R_ice,     R_pnd,                             &
+                    kaer_tab,    waer_tab,         gaer_tab,      &
                     kaer_bc_tab, waer_bc_tab,      gaer_bc_tab,   &
                     bcenh,     modal_aero,         kalg,          &
                     swvdr,     swvdf,    swidr,    swidf, srftyp, &
@@ -1553,22 +1518,13 @@
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
          nslyr , & ! number of snow layers
-         n_aero, & ! number of aerosol tracers
-         n_zaero , & ! number of zaerosol tracers in use
-         nlt_chl_sw, &! index for chla
          klev  , & ! number of radiation layers - 1
          klevp     ! number of radiation interfaces - 1
                    ! (0 layer is included also)
  
-      integer (kind=int_kind), dimension(:), intent(in) :: &
-        nlt_zaero_sw   ! index for zaerosols
-
       logical (kind=log_kind), intent(in) :: &
          heat_capacity,& ! if true, ice has nonzero heat capacity
-         tr_aero,      & ! if .true., use aerosol tracers
          dEdd_algae,   & ! .true. use prognostic chla in dEdd
-         tr_bgc_N,     & ! .true. active bgc (skl or z)
-         tr_zaero,     & ! .true. use zaerosols
          modal_aero      ! .true. use modal aerosol treatment
  
       real (kind=dbl_kind), dimension(:,:), intent(in) :: & ! Modal aerosol treatment
@@ -3586,43 +3542,40 @@
 !
 ! authors     Nicole Jeffery, LANL
 
-      subroutine compute_shortwave_trcr(n_algae,  nslyr,  &
-                                    trcrn,        trcrn_sw,  &
+      subroutine compute_shortwave_trcr(nslyr,               &
+                                    bgcN,         zaero,     &
+                                    trcrn_bgcsw,             &
                                     sw_grid,      hin,       &
-                                    hbri,         ntrcr,     &
+                                    hbri,                    &
                                     nilyr,        nblyr,     &
                                     i_grid,                  &
-                                    nbtrcr_sw,    n_zaero,   &
                                     skl_bgc,      z_tracers  )
       
       integer (kind=int_kind), intent(in) :: &
-         nslyr, & ! number of snow layers
-         n_zaero    , & ! number of cells with aicen > puny 
-         nbtrcr_sw, n_algae, & ! nilyr+nslyr+2 for chlorophyll
-         ntrcr
+         nslyr          ! number of snow layers
 
       integer (kind=int_kind), intent(in) :: &
          nblyr      , & ! number of bio layers
          nilyr          ! number of ice layers 
 
-      real (kind=dbl_kind), dimension (ntrcr), intent(in) ::       &
-         trcrn          ! aerosol or chlorophyll
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         bgcN       , & ! Nit tracer
+         zaero          ! zaero tracer
 
-      real (kind=dbl_kind), dimension (nbtrcr_sw), &
-         intent(out) ::    &
-         trcrn_sw       ! ice on shortwave grid tracers
+      real (kind=dbl_kind), dimension (:), intent(out):: &
+         trcrn_bgcsw    ! ice on shortwave grid tracers
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          sw_grid     , & ! 
-         i_grid          ! CICE bio grid 
+         i_grid          ! CICE bio grid
          
       real(kind=dbl_kind), intent(in) :: &
-         hin          , & ! CICE ice thickness
-         hbri             ! brine height 
+         hin         , & ! CICE ice thickness
+         hbri            ! brine height
 
       logical (kind=log_kind), intent(in) :: &
-         skl_bgc, & ! skeletal layer bgc  
-         z_tracers  ! zbgc   
+         skl_bgc     , & ! skeletal layer bgc
+         z_tracers       ! zbgc
 
       !  local variables
 
@@ -3647,7 +3600,7 @@
 
       trtmp0(:) = c0
       trtmp(:) = c0
-      trcrn_sw(:) = c0
+      trcrn_bgcsw(:) = c0
 
       do k = 1,nilyr+1
          icegrid(k) = sw_grid(k)
@@ -3658,10 +3611,16 @@
 
       if (z_tracers) then
       if (tr_bgc_N)  then
+         if (size(bgcN) < n_algae*(nblyr+3)) then
+            call icepack_warnings_add(subname//' ERROR: size(bgcN) too small')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+
          do k = 1, nblyr+1
             do n = 1, n_algae
                trtmp0(nt_bgc_N(1) + k-1) = trtmp0(nt_bgc_N(1) + k-1) + &
-                                R_chl2N(n)*F_abs_chl(n)*trcrn(nt_bgc_N(n)+k-1)
+                                R_chl2N(n)*F_abs_chl(n)*bgcN(nt_bgc_N(n)-nt_bgc_N(1)+1 + k-1)
             enddo ! n
          enddo    ! k
  
@@ -3677,28 +3636,34 @@
          if (icepack_warnings_aborted(subname)) return
 
          do k = 1, nilyr+1
-            trcrn_sw(nlt_chl_sw+nslyr+k) = trtmp(nt_bgc_N(1) + k-1)
+            trcrn_bgcsw(nlt_chl_sw+nslyr+k) = trtmp(nt_bgc_N(1) + k-1)
          enddo       ! k
 
          do n = 1, n_algae   ! snow contribution
-            trcrn_sw(nlt_chl_sw)= trcrn_sw(nlt_chl_sw) &
-                     + R_chl2N(n)*F_abs_chl(n)*trcrn(nt_bgc_N(n)+nblyr+1) 
+            trcrn_bgcsw(nlt_chl_sw)= trcrn_bgcsw(nlt_chl_sw) &
+                     + R_chl2N(n)*F_abs_chl(n)*bgcN(nt_bgc_N(n)-nt_bgc_N(1)+1+nblyr+1)
                               ! snow surface layer
-            trcrn_sw(nlt_chl_sw+1:nlt_chl_sw+nslyr) = &
-                     trcrn_sw(nlt_chl_sw+1:nlt_chl_sw+nslyr) &
-                     + R_chl2N(n)*F_abs_chl(n)*trcrn(nt_bgc_N(n)+nblyr+2) 
+            trcrn_bgcsw(nlt_chl_sw+1:nlt_chl_sw+nslyr) = &
+                     trcrn_bgcsw(nlt_chl_sw+1:nlt_chl_sw+nslyr) &
+                     + R_chl2N(n)*F_abs_chl(n)*bgcN(nt_bgc_N(n)-nt_bgc_N(1)+1+nblyr+2)
                               ! only 1 snow layer in zaero
          enddo ! n
       endif    ! tr_bgc_N
 
       if (tr_zaero) then
+         if (size(zaero) < n_zaero*(nblyr+3)) then
+            call icepack_warnings_add(subname//' ERROR: size(zaero) too small')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+
          do n = 1, n_zaero
 
             trtmp0(:) = c0
             trtmp(:) = c0
 
             do k = 1, nblyr+1
-               trtmp0(nt_zaero(n) + k-1) = trcrn(nt_zaero(n)+k-1)
+               trtmp0(nt_zaero(n) + k-1) = zaero(nt_zaero(n)-nt_zaero(1)+1+k-1)
             enddo
 
             top_conc = trtmp0(nt_zaero(n))*min_bgc
@@ -3713,18 +3678,18 @@
             if (icepack_warnings_aborted(subname)) return
 
             do k = 1,nilyr+1
-               trcrn_sw(nlt_zaero_sw(n)+nslyr+k) = trtmp(nt_zaero(n) + k-1)
+               trcrn_bgcsw(nlt_zaero_sw(n)+nslyr+k) = trtmp(nt_zaero(n) + k-1)
             enddo
-            trcrn_sw(nlt_zaero_sw(n))= trcrn(nt_zaero(n)+nblyr+1) !snow ssl
-            trcrn_sw(nlt_zaero_sw(n)+1:nlt_zaero_sw(n)+nslyr)= trcrn(nt_zaero(n)+nblyr+2)
+            trcrn_bgcsw(nlt_zaero_sw(n))= zaero(nt_zaero(n)-nt_zaero(1)+1+nblyr+1) !snow ssl
+            trcrn_bgcsw(nlt_zaero_sw(n)+1:nlt_zaero_sw(n)+nslyr)= zaero(nt_zaero(n)-nt_zaero(1)+1+nblyr+2)
          enddo ! n
       endif    ! tr_zaero
       elseif (skl_bgc) then
 
          do nn = 1,n_algae
-            trcrn_sw(nbtrcr_sw) = trcrn_sw(nbtrcr_sw) &
+            trcrn_bgcsw(nbtrcr_sw) = trcrn_bgcsw(nbtrcr_sw) &
                                 + F_abs_chl(nn)*R_chl2N(nn) &
-                                * trcrn(nt_bgc_N(nn))*sk_l/hin &
+                                * bgcN(nt_bgc_N(nn)-nt_bgc_N(1)+1)*sk_l/hin &
                                 * real(nilyr,kind=dbl_kind)
          enddo 
 
@@ -3732,12 +3697,12 @@
       end subroutine compute_shortwave_trcr
 
 !=======================================================================
-!
+!autodocument_start icepack_prep_radiation
 ! Scales radiation fields computed on the previous time step.
 !
 ! authors: Elizabeth Hunke, LANL
 
-      subroutine icepack_prep_radiation (ncat, nilyr, nslyr,    &
+      subroutine icepack_prep_radiation (ncat, nilyr, nslyr,   &
                                         aice,        aicen,    &
                                         swvdr,       swvdf,    &
                                         swidr,       swidf,    &
@@ -3780,6 +3745,8 @@
          fswpenln    , & ! visible SW entering ice layers (W m-2)
          Iswabsn     , & ! SW radiation absorbed in ice layers (W m-2)
          Sswabsn         ! SW radiation absorbed in snow layers (W m-2)
+
+!autodocument_end
 
       ! local variables
 
@@ -3832,7 +3799,7 @@
       end subroutine icepack_prep_radiation
 
 !=======================================================================
-!
+!autodocument_start icepack_step_radiation
 ! Computes radiation fields
 !
 ! authors: William H. Lipscomb, LANL
@@ -3840,14 +3807,9 @@
 !          Elizabeth C. Hunke, LANL
 
       subroutine icepack_step_radiation (dt,       ncat,     &
-                                        n_algae,  tr_zaero,  &
-                                        nblyr,    ntrcr,     &
-                                        nbtrcr_sw,           &
+                                        nblyr,               &
                                         nilyr,    nslyr,     &
-                                        n_aero,   n_zaero,   &
                                         dEdd_algae,          &
-                                        nlt_chl_sw,          &
-                                        nlt_zaero_sw,        &
                                         swgrid,   igrid,     &
                                         fbri,                &
                                         aicen,    vicen,     &
@@ -3855,8 +3817,8 @@
                                         alvln,    apndn,     &
                                         hpndn,    ipndn,     &
                                         aeron,               &
-                                        zbion,               &
-                                        trcrn,               &
+                                        bgcNn,    zaeron,    &
+                                        trcrn_bgcsw,         &
                                         TLAT,     TLON,      &
                                         calendar_type,       &
                                         days_per_year,       &
@@ -3888,16 +3850,7 @@
          ncat      , & ! number of ice thickness categories
          nilyr     , & ! number of ice layers
          nslyr     , & ! number of snow layers
-         n_aero    , & ! number of aerosols
-         n_zaero   , & ! number of zaerosols 
-         nlt_chl_sw, & ! index for chla
-         nblyr     , &
-         ntrcr     , &
-         nbtrcr_sw , &
-         n_algae
-
-      integer (kind=int_kind), dimension(:), intent(in) :: &
-        nlt_zaero_sw   ! index for zaerosols
+         nblyr         ! number of bgc layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt        , & ! time step (s)
@@ -3954,10 +3907,11 @@
 
       real(kind=dbl_kind), dimension(:,:), intent(in) :: &
          aeron     , & ! aerosols (kg/m^3)
-         trcrn         ! tracers
+         bgcNn     , & ! bgc Nit tracers
+         zaeron        ! bgcz aero tracers
 
       real(kind=dbl_kind), dimension(:,:), intent(inout) :: &
-         zbion         ! zaerosols (kg/m^3) and chla (mg/m^3)
+         trcrn_bgcsw   ! zaerosols (kg/m^3) and chla (mg/m^3)
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          alvdrn    , & ! visible, direct  albedo (fraction)
@@ -3984,11 +3938,12 @@
       logical (kind=log_kind), intent(in) :: &
          l_print_point, & ! flag for printing diagnostics
          dEdd_algae   , & ! .true. use prognostic chla in dEdd
-         modal_aero   , & ! .true. use modal aerosol optical treatment
-         tr_zaero
+         modal_aero       ! .true. use modal aerosol optical treatment
 
       logical (kind=log_kind), optional :: &
          initonly         ! flag to indicate init only, default is false
+
+!autodocument_end
 
       ! local variables
 
@@ -4024,7 +3979,7 @@
          fswpenln (:,:) = c0
          Iswabsn  (:,:) = c0
          Sswabsn  (:,:) = c0
-         zbion(:,:) = c0
+         trcrn_bgcsw(:,:) = c0
 
          ! Interpolate z-shortwave tracers to shortwave grid
          if (dEdd_algae) then
@@ -4032,14 +3987,14 @@
               if (aicen(n) .gt. puny) then
                  hin = vicen(n)/aicen(n)
                  hbri= fbri(n)*hin
-                 call compute_shortwave_trcr(n_algae, nslyr,  &
-                                     trcrn(1:ntrcr,n),        &
-                                     zbion(1:nbtrcr_sw,n),    &
+                 call compute_shortwave_trcr(nslyr,           &
+                                     bgcNn(:,n),              &
+                                     zaeron(:,n),             &
+                                     trcrn_bgcsw(:,n),        &
                                      swgrid,       hin,       &
-                                     hbri,         ntrcr,     &
+                                     hbri,                    &
                                      nilyr,        nblyr,     &
                                      igrid,                   &
-                                     nbtrcr_sw,    n_zaero,   &
                                      skl_bgc,      z_tracers  )
                  if (icepack_warnings_aborted(subname)) return
               endif
@@ -4049,21 +4004,15 @@
          if (calc_Tsfc) then
          if (trim(shortwave) == 'dEdd') then ! delta Eddington
             
-            call run_dEdd(dt,           tr_aero,        &
-                          tr_pond_cesm,                 &
-                          tr_pond_lvl,                  &
-                          tr_pond_topo,                 &
-                          ncat,         n_aero,         &
-                          n_zaero,      dEdd_algae,     &
-                          nlt_chl_sw,   nlt_zaero_sw,   &
-                          tr_bgc_N,     tr_zaero,       &
+            call run_dEdd(dt,           ncat,           &
+                          dEdd_algae,                   &
                           nilyr,        nslyr,          &
                           aicen,        vicen,          &
                           vsnon,        Tsfcn,          &
                           alvln,        apndn,          &
                           hpndn,        ipndn,          &
                           aeron,        kalg,           &
-                          zbion,                        &
+                          trcrn_bgcsw,                  &
                           heat_capacity,                &
                           TLAT,         TLON,           &
                           calendar_type,days_per_year,  &

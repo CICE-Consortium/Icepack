@@ -1660,7 +1660,7 @@ bulk salinity, the resulting temperature may be changed to be greater
 than the limit allowed in the thermodynamics routines. If this situation
 is detected, the code corrects the enthalpy so the temperature is below
 the limiting value. Conservation of energy is ensured by placing the
-excess energy in the ocean, and the code writes a warning (see :ref:`warning`) 
+excess energy in the ocean, and the code writes a warning (see :ref:`aborts`) 
 that this has
 occurred to the diagnostics file. This situation only occurs with the
 mushy thermodynamics, and it should only occur very infrequently and
@@ -1716,6 +1716,34 @@ to a specified minimum thickness; if the open water area is nearly zero
 or if there is more new ice than will fit into the thinnest ice
 category, then the new ice is spread over the entire cell.
 
+If ``tr_fsd=true``, a floe size must be assigned to the new frazil ice.
+If spectral ocean surface wave forcing is provided (and set using the 
+namelist option ``wave_spec_type``), this will be used
+to calculate a tensile stress on new floes that determines their maximum
+possible size :cite:`Shen01,Roach19`. If no ocean surface wave forcing
+is provided, all floes are assumed to grow as pancakes, at the smallest
+possible floe size. 
+
+If ``tr_fsd=true``, lateral growth at the edges of exisiting floes may
+also occur, calculated using the prognostic floe size distribution as 
+described in :cite:`Horvat15` and :cite:`Roach18`. The lateral growth
+that occurs is a portion of the total new ice growth, depending on the 
+area of open water close to floe edges. Lateral growth 
+modifies the ITD and the FSD. 
+
+If ``tr_fsd=true``, floes may weld together thermodynamically during 
+freezing conditions according to the probability that they overlap,
+assuming they are replaced randomly on the domain. Evolution of the 
+FSD is described using a coagulation equation. The total number of floes 
+that weld with another, per square meter, per unit time, in the 
+case of a fully covered ice surface was estimated from observations in 
+:cite:`Roach18b`. In its original model implementation, with 12 floe size categories,
+the tendency term for floe welding was divided by a 
+constant equal to the area of the largest floe, (approx 2 km^2), with this choice made  
+as the product of sensitivity studies to balance the climatological tendencies of 
+wave fracture and welding. So that results do not vary as the number or range of 
+floe size categories varies, we fix this scaling coefficient, c_weld.
+
 If the latent heat flux is negative (i.e., latent heat is transferred
 from the ice to the atmosphere), snow or snow-free ice sublimates at the
 top surface. If the latent heat flux is positive, vapor from the
@@ -1749,10 +1777,15 @@ old and new layers, respectively. The enthalpies of the new layers are
 .. math:: 
    q_k = \frac{1}{\Delta h_i} \sum_{m=1}^{N_i} \eta_{km} q_m.
 
-Lateral melting is accomplished by multiplying the state variables by
+If ``tr_fsd=false``, lateral melting is accomplished by multiplying the state variables by
 :math:`1-r_{side}`, where :math:`r_{side}` is the fraction of ice melted
 laterally :cite:`Maykut87,Steele92`, and adjusting the ice
 energy and fluxes as appropriate. We assume a floe diameter of 300 m.
+
+If ``tr_fsd=true``, lateral melting is accomplished using the :cite:`Maykut87`
+lateral heat flux, but applied to the ice using the prognostic floe size distribution
+as described in :cite:`Horvat15` and :cite:`Roach18`. Lateral melt modifies
+the ITD and the FSD.
 
 Snow-ice formation
 ------------------
@@ -1805,3 +1838,5 @@ into equal thicknesses while conserving energy and salt.
    calculations, unlike Bitz99, which does include it. This extra heat is
    returned to the ocean (or the atmosphere, in the case of evaporation)
    with the melt water.
+
+

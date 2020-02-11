@@ -39,6 +39,7 @@
 
 !=======================================================================
 
+!autodocument_start icepack_init_orbit
 ! Compute orbital parameters for the specified date.
 
       subroutine icepack_init_orbit(iyear_AD_in, eccen_in, obliqr_in, &
@@ -57,6 +58,8 @@
       real(kind=dbl_kind), optional, intent(in) :: decln_in  ! solar declination angle in radians
       real(kind=dbl_kind), optional, intent(in) :: eccf_in   ! earth orbit eccentricity factor
       logical(kind=log_kind), optional, intent(in) :: log_print_in ! Flags print of status/error
+
+!autodocument_end
 
       character(len=*),parameter :: subname='(icepack_init_orbit)'
 
@@ -85,6 +88,7 @@
  
 !=======================================================================
 
+!autodocument_start icepack_query_orbit
 ! Compute orbital parameters for the specified date.
 
       subroutine icepack_query_orbit(iyear_AD_out, eccen_out, obliqr_out, &
@@ -103,6 +107,8 @@
       real(kind=dbl_kind), optional, intent(out) :: decln_out  ! solar declination angle in radians
       real(kind=dbl_kind), optional, intent(out) :: eccf_out   ! earth orbit eccentricity factor
       logical(kind=log_kind), optional, intent(out) :: log_print_out ! Flags print of status/error
+
+!autodocument_end
 
       character(len=*),parameter :: subname='(icepack_query_orbit)'
 
