@@ -104,17 +104,17 @@
       wave_spectrum_data(9) = 2.419401186610744e-20      
 
 
-       wave_spectrum_data(1) =    0.0022_dbl_kind
-       wave_spectrum_data(2) =    0.0158_dbl_kind
-       wave_spectrum_data(3) =    0.0390_dbl_kind
-       wave_spectrum_data(4) =    0.1481_dbl_kind
-       wave_spectrum_data(5) =    0.2005_dbl_kind
-       wave_spectrum_data(6) =    0.1531_dbl_kind
-       wave_spectrum_data(7) =    0.2262_dbl_kind
-       wave_spectrum_data(8) =    0.2262_dbl_kind
-       wave_spectrum_data(9) =    0.1838_dbl_kind
-       wave_spectrum_data(10) =    0.0190_dbl_kind
-       wave_spectrum_data(11) =    0.0002_dbl_kind
+!       wave_spectrum_data(1) =    0.0022_dbl_kind
+!       wave_spectrum_data(2) =    0.0158_dbl_kind
+!       wave_spectrum_data(3) =    0.0390_dbl_kind
+!       wave_spectrum_data(4) =    0.1481_dbl_kind
+!       wave_spectrum_data(5) =    0.2005_dbl_kind
+!       wave_spectrum_data(6) =    0.1531_dbl_kind
+!       wave_spectrum_data(7) =    0.2262_dbl_kind
+!       wave_spectrum_data(8) =    0.2262_dbl_kind
+!       wave_spectrum_data(9) =    0.1838_dbl_kind
+!       wave_spectrum_data(10) =    0.0190_dbl_kind
+!       wave_spectrum_data(11) =    0.0002_dbl_kind
 
 
       do k = 1, nfreq
@@ -294,7 +294,6 @@
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
          hbar = vice / aice
-         hbar = 1.1616_dbl_kind
 
         if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')) then 
          ! classify input (based on neural net run offline)
