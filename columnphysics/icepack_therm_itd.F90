@@ -30,20 +30,12 @@
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
-<<<<<<< HEAD
       use icepack_tracers, only: nt_apnd, nt_hpnd, nt_aero, nt_iso
-      use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY
-      use icepack_tracers, only: nt_alvl, nt_vlvl
-      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine, tr_iso
-=======
-      use icepack_tracers, only: nt_apnd, nt_hpnd, nt_aero
       use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_fsd
       use icepack_tracers, only: nt_alvl, nt_vlvl
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine, tr_fsd
-      use icepack_tracers, only: n_aero
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
+      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_iso, tr_brine, tr_fsd
+      use icepack_tracers, only: n_aero, n_iso
       use icepack_tracers, only: bio_index
 
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -1247,16 +1239,10 @@
 !          Adrian Turner, LANL
 !          Lettie Roach, NIWA/VUW
 !
-<<<<<<< HEAD
-      subroutine add_new_ice (ncat,      nilyr,    nblyr,  &
-                              n_aero,    n_iso,    dt,     &
-                              ntrcr,     nltrcr,           &
-=======
       subroutine add_new_ice (ncat,      nilyr,      &
                               nfsd,      nblyr,      &
-                              n_aero,    dt,         &
+                              n_aero,    n_iso, dt,  &
                               ntrcr,     nltrcr,     &
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
                               hin_max,   ktherm,     &
                               aicen,     trcrn,      &
                               vicen,     vsnon1,     &
@@ -1272,11 +1258,9 @@
                               nbtrcr,    flux_bio,   &
                               ocean_bio, fzsal,      &
                               frazil_diag,           &
-<<<<<<< HEAD
                               fiso_ocn,              &
                               HDO_ocn, H2_16O_ocn,   &
-                              H2_18O_ocn )
-=======
+                              H2_18O_ocn,            &
                               wave_sig_ht,           &
                               wave_spectrum,         &
                               wavefreq,              &
@@ -1286,7 +1270,6 @@
                               floe_rad_c, floe_binwidth)
 
       use icepack_fsd, only: fsd_lateral_growth, fsd_add_new_ice
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1364,7 +1347,6 @@
       real (kind=dbl_kind),  intent(inout) :: &
          fzsal      ! salt flux to ocean from zsalinity (kg/m^2/s)
 
-<<<<<<< HEAD
       ! water isotopes
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
@@ -1374,7 +1356,7 @@
          HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
          H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
          H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
-=======
+
       ! floe size distribution
       real (kind=dbl_kind), intent(in) :: &
          wave_sig_ht    ! significant height of waves globally (m)
@@ -1399,7 +1381,6 @@
                             ! change in thickness distribution (area)
          d_afsd_latg    , & ! due to fsd lateral growth
          d_afsd_newi        ! new ice formation
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
 
       ! local variables
 
@@ -1943,11 +1924,7 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-<<<<<<< HEAD
-      subroutine icepack_step_therm2 (dt, ncat, n_aero, n_iso, nltrcr, &
-=======
       subroutine icepack_step_therm2 (dt, ncat, nltrcr,           &
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
                                      nilyr,        nslyr,         &
                                      hin_max,      nblyr,         &
                                      aicen,                       &
@@ -1972,10 +1949,8 @@
                                      flux_bio,     ocean_bio,     &
                                      frazil_diag,                 &
                                      frz_onset,    yday,          &
-<<<<<<< HEAD
                                      fiso_ocn,     HDO_ocn,       &
-                                     H2_16O_ocn,   H2_18O_ocn)
-=======
+                                     H2_16O_ocn,   H2_18O_ocn,    &
                                      nfsd,         wave_sig_ht,   &
                                      wave_spectrum,               &
                                      wavefreq,                    &
@@ -1983,7 +1958,6 @@
                                      d_afsd_latg,  d_afsd_newi,   &
                                      d_afsd_latm,  d_afsd_weld,   &
                                      floe_rad_c,   floe_binwidth)
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
 
       integer (kind=int_kind), intent(in) :: &
          ncat     , & ! number of thickness categories
@@ -1991,13 +1965,7 @@
          nltrcr   , & ! number of zbgc tracers
          nblyr    , & ! number of bio layers
          nilyr    , & ! number of ice layers
-<<<<<<< HEAD
-         nslyr    , & ! number of snow layers
-         n_aero   , & ! number of aerosol tracers
-         n_iso       ! number of isotope tracers
-=======
          nslyr        ! number of snow layers
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
 
       logical (kind=log_kind), intent(in) :: &
          update_ocn_f     ! if true, update fresh water and salt fluxes
@@ -2090,7 +2058,6 @@
       real (kind=dbl_kind), intent(in), optional :: &
          yday         ! day of year
 
-<<<<<<< HEAD
       ! water isotopes
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
@@ -2099,9 +2066,7 @@
          HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
          H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
          H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
-=======
 !autodocument_end
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
 
       character(len=*),parameter :: subname='(icepack_step_therm2)'
 
@@ -2164,13 +2129,8 @@
       ! identify ice-ocean cells
 
          call add_new_ice (ncat,          nilyr,        &
-<<<<<<< HEAD
-                           nblyr,                       &
-                           n_aero,        n_iso, dt,    &
-=======
                            nfsd,          nblyr,        &
-                           n_aero,        dt,           &
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
+                           n_aero,        n_iso, dt,    &
                            ntrcr,         nltrcr,       &
                            hin_max,       ktherm,       &
                            aicen,         trcrn,        &
@@ -2186,19 +2146,15 @@
                            cgrid,         igrid,        &
                            nbtrcr,        flux_bio,     &
                            ocean_bio,     fzsal,        &
-<<<<<<< HEAD
                            frazil_diag,   fiso_ocn,     &
                            HDO_ocn,       H2_16O_ocn,   &
-                           H2_18O_ocn)
-
-=======
-                           frazil_diag,                 &
+                           H2_18O_ocn,                  &
                            wave_sig_ht,                 &
                            wave_spectrum,               &
                            wavefreq,      dwavefreq,    &
                            d_afsd_latg,   d_afsd_newi,  &
                            floe_rad_c, floe_binwidth)
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
+
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------

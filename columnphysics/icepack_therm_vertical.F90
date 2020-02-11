@@ -28,13 +28,9 @@
       use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd
       use icepack_parameters, only: phi_i_mushy
 
-<<<<<<< HEAD
-      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_iso, tr_pond
-=======
-      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
+      use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_iso, tr_pond, tr_fsd
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-      use icepack_tracers, only: n_aero
+      use icepack_tracers, only: n_aero, n_iso
 
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
@@ -2031,11 +2027,7 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-<<<<<<< HEAD
-      subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr, n_aero, n_iso, &
-=======
       subroutine icepack_step_therm1(dt, ncat, nilyr, nslyr,    &
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
                                     aicen_init  ,               &
                                     vicen_init  , vsnon_init  , &
                                     aice        , aicen       , &
@@ -2113,13 +2105,7 @@
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories
          nilyr   , & ! number of ice layers
-<<<<<<< HEAD
-         nslyr   , & ! number of snow layers
-         n_aero  , & ! number of aerosol tracers in use
-         n_iso      ! number of isotope tracers in use
-=======
          nslyr       ! number of snow layers
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2269,13 +2255,10 @@
          aerosno    , &  ! snow aerosol tracer (kg/m^2)
          aeroice         ! ice aerosol tracer (kg/m^2)
 
-<<<<<<< HEAD
       real (kind=dbl_kind), dimension(:,:,:), intent(inout) :: &
          isosno    , &  ! snow isotope tracer (kg/m^2)
          isoice         ! ice isotope tracer (kg/m^2)
-=======
 !autodocument_end
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
 
       ! local variables
 

@@ -754,20 +754,8 @@
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
            nfsd_in=nfsd)
       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
-<<<<<<< HEAD
-         tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
-         tr_iso_in=tr_iso, &
-         tr_pond_in=tr_pond, tr_pond_cesm_in=tr_pond_cesm, &
-         tr_pond_lvl_in=tr_pond_lvl, &
-         tr_pond_topo_in=tr_pond_topo)
-      call icepack_init_tracer_indices(nt_Tsfc_in=nt_Tsfc, &
-         nt_sice_in=nt_sice, nt_qice_in=nt_qice, &
-         nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, &
-         nt_fy_in=nt_fy, nt_alvl_in=nt_alvl, nt_vlvl_in=nt_vlvl, &
-         nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, nt_ipnd_in=nt_ipnd, &
-         nt_aero_in=nt_aero, nt_iso_in=nt_iso)
-=======
            tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
+           tr_iso_in=tr_iso, &
            tr_pond_in=tr_pond, tr_pond_cesm_in=tr_pond_cesm, &
            tr_pond_lvl_in=tr_pond_lvl, &
            tr_pond_topo_in=tr_pond_topo, tr_fsd_in=tr_fsd)
@@ -776,12 +764,7 @@
            nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, &
            nt_fy_in=nt_fy, nt_alvl_in=nt_alvl, nt_vlvl_in=nt_vlvl, &
            nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, nt_ipnd_in=nt_ipnd, &
-<<<<<<< HEAD
-           nt_aero_in=nt_aero)
->>>>>>> 68bc397d7b879e70a60a964415016e5e86cac1f4
-=======
-           nt_aero_in=nt_aero, nt_fsd_in=nt_fsd)
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
+           nt_aero_in=nt_aero, nt_iso_in=nt_iso, nt_fsd_in=nt_fsd)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -848,11 +831,7 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-<<<<<<< HEAD
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, max_ntrcr, n_aero, n_iso
-=======
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, max_ntrcr, n_aero, nfsd
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, max_ntrcr, n_aero, n_iso, nfsd
       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
       use icedrv_state, only: aice0, aice, vice, vsno, trcr, aice_init
@@ -867,18 +846,11 @@
          heat_capacity   ! from icepack
 
       integer (kind=int_kind) :: ntrcr
-<<<<<<< HEAD
-      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_iso
-      logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-      integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
-      integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, nt_iso
-=======
-      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_fsd
+      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_iso, tr_fsd
       logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, &
-                                 nt_ipnd, nt_aero, nt_fsd
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
+                                 nt_ipnd, nt_aero, nt_iso, nt_fsd
 
       character(len=*), parameter :: subname='(init_state)'
 
@@ -889,19 +861,7 @@
          call icepack_query_parameters(heat_capacity_out=heat_capacity)
          call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
          call icepack_query_tracer_flags(tr_iage_out=tr_iage, &
-<<<<<<< HEAD
-            tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
-            tr_iso_out=tr_iso, &
-            tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, &
-            tr_pond_topo_out=tr_pond_topo)
-         call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, &
-            nt_sice_out=nt_sice, nt_qice_out=nt_qice, &
-            nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, nt_fy_out=nt_fy, &
-            nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
-            nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
-            nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, nt_iso_out=nt_iso)
-=======
-              tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
+              tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
               tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, &
               tr_pond_topo_out=tr_pond_topo, tr_fsd_out=tr_fsd)
          call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, &
@@ -909,12 +869,7 @@
               nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, nt_fy_out=nt_fy, &
               nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
               nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
-<<<<<<< HEAD
-              nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero)
->>>>>>> 68bc397d7b879e70a60a964415016e5e86cac1f4
-=======
-              nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, nt_fsd_out=nt_fsd)
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
+              nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, nt_iso_out=nt_iso, nt_fsd_out=nt_fsd)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
