@@ -1118,7 +1118,6 @@
                            d_afsd_tmp(k) = -df_flx(k) + c2 * G_radialn(n) * afsd_tmp(k) &
                                        * (c1/floe_rad_c(k) - tmp)
                          end do
-                         WHERE (abs(d_afsd_tmp).lt.puny) d_afsd_tmp = c0
 
                          ! timestep required for this
                          subdt = get_subdt_fsd(nfsd, afsd_tmp(:), d_afsd_tmp(:))
