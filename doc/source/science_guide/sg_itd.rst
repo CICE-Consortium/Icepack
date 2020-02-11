@@ -150,8 +150,10 @@ is uniquely determined by the spectrum up to a phase. In :cite:`Horvat15` this p
 randomly chosen, and multiple realizations of the resulting surface height field are used to 
 obtain convergent statistics. However this stochastic component would lead to a model that is 
 not bit-for-bit reproducible. Users can choose in the namelist (via ``wave_spec_type``)
-to run the model with the phase set to be constant to obtain bit-for-bit reproducibility, or
-to include the random phase, or to exclude wave effects completely.
+to run the model with the phase set to be constant to obtain bit-for-bit reproducibility 
+(in which case the fracture code is not run to convergence), or to include the random phase 
+(in which case the fracture code is run to convergence), or to exclude wave effects completely 
+(not recommended when using the FSD).
 
 We calculate the number and length of fractures that would occur if waves enter a fully ice-covered 
 region defined in one dimension in the direction of propagation, and then apply
