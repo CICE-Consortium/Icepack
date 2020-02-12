@@ -151,8 +151,10 @@ randomly chosen, and multiple realizations of the resulting surface height field
 obtain convergent statistics. However this stochastic component would lead to a model that is 
 not bit-for-bit reproducible. Users can choose in the namelist (via ``wave_spec_type``)
 to run the model with the phase set to be constant to obtain bit-for-bit reproducibility 
-(in which case the fracture code is not run to convergence), or to include the random phase 
-(in which case the fracture code is run to convergence), or to exclude wave effects completely 
+(in which case the fracture code is not run to convergence); or to include the random phase 
+(in which case the fracture code is run to convergence, by generating multiple realizations
+of sea surface height and adding the resulting fractures to a histogram, until successive 
+histograms are the same to within some small error tolerance); or to exclude wave effects completely 
 (not recommended when using the FSD).
 
 We calculate the number and length of fractures that would occur if waves enter a fully ice-covered 
