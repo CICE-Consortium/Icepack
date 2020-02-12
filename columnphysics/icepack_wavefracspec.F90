@@ -638,6 +638,7 @@
          is_triplet       ! or triplet of extrema
 
       real (kind=dbl_kind) :: &
+         denominator,   & ! denominator in strain equation
          delta,         & ! difference in x between current and prev extrema
          delta_pos        ! difference in x between next and current extrema
 
@@ -716,12 +717,16 @@
                delta     = X(j    ) - X(j_neg)
 
 
-               ! NB differs from HT2015 - factor 2 in numerator
-               ! and eta(j_pos)
-               strain(j) = ABS(hbar*(eta(j_neg)* delta_pos &
+               ! This equation differs from HT2015 by a factor 2 in numerator
+               ! and eta(j_pos). This is the correct form of the equation.
+	       
+	       denominator = delta*delta_pos*(delta+delta_pos)
+	       
+	       if (denominator.ne.c0) &
+                   strain(j) = ABS(hbar*(eta(j_neg)* delta_pos &
                                 - eta(j    )*(delta_pos+delta) &
                                 + eta(j_pos)*           delta) &
-                                / (delta*delta_pos*(delta+delta_pos)))
+                                / denominator)
 
             end if ! is triplet
          end if ! is extremum
