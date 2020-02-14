@@ -349,8 +349,11 @@
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
                      
                      ! check in case wave fracture struggles to converge
-                     if (nsubt>100) print *, &
-                              'warning: step_wavefracture struggling to converge'
+                     if (nsubt>100) then
+                        write(warnstr,*) subname, 'warning: step_wavefracture struggling to converge'
+                        call icepack_warnings_add(warnstr)
+                     endif
+
  
                      ! required timestep
                      subdt = get_subdt_wave(nfsd, afsd_tmp, d_afsd_tmp)
@@ -483,6 +486,10 @@
       real (kind=dbl_kind), dimension(nfsd) :: &
          frachistogram, & ! histogram
          prev_frac_local  ! previous histogram
+	 
+	 character(len=*),parameter :: &
+         subname='(wave_frac)'
+
 
 
       if (trim(wave_spec_type).eq.'random') then
@@ -572,7 +579,10 @@
 
              if (fracerror.lt.errortol) EXIT
 
-             if (iter.gt.100) print *, 'warning: wave_frac struggling to converge'
+             if (iter.gt.100) then
+                 write(warnstr,*) subname, 'warning: wave_frac struggling to converge'
+                 call icepack_warnings_add(warnstr)
+             endif
 
              ! save histogram for next iteration
              prev_frac_local = frac_local
