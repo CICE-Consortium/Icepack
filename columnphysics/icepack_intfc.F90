@@ -61,6 +61,7 @@
       use icepack_mechred, only: icepack_ice_strength
 
       use icepack_wavefracspec, only: icepack_init_wave
+      use icepack_wavefracspec, only: icepack_init_spwf_fullnet
       use icepack_wavefracspec, only: icepack_step_wavefracture
 
       use icepack_shortwave, only: icepack_prep_radiation
