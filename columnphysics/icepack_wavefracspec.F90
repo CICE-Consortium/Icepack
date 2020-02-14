@@ -33,7 +33,8 @@
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd
       use icepack_warnings, only: warnstr, icepack_warnings_add
-
+      use icepack_fsd
+ 
       implicit none
       private
       public :: icepack_init_wave, icepack_step_wavefracture
@@ -168,43 +169,6 @@
       end  function get_dafsd_wave
 
 !=======================================================================
-!
-!  Adaptive timestepping for wave fracture
-!  See reference: Horvat & Tziperman (2017) JGR, Appendix A
-!
-!  authors: 2018 Lettie Roach, NIWA/VUW
-!
-!
-     function get_subdt_wave(nfsd, afsd_init, d_afsd) &
-                              result(subdt)
-
-      integer (kind=int_kind), intent(in) :: &
-         nfsd       ! number of floe size categories
-
-      real (kind=dbl_kind), dimension (nfsd), intent(in) :: &
-         afsd_init, d_afsd ! floe size distribution tracer 
-
-      ! output
-      real (kind=dbl_kind) :: &
-         subdt ! subcycle timestep (s)
-
-      ! local variables
-      real (kind=dbl_kind), dimension (nfsd) :: &
-         check_dt ! to compute subcycle timestep (s)
-
-      integer (kind=int_kind) :: k
-
-      check_dt(:) = bignum 
-      do k = 1, nfsd
-          if (d_afsd(k) >  puny) check_dt(k) = (1-afsd_init(k))/d_afsd(k)
-          if (d_afsd(k) < -puny) check_dt(k) = afsd_init(k)/ABS(d_afsd(k))
-      end do 
-
-      subdt = MINVAL(check_dt)
-
-      end function get_subdt_wave
-
-!=======================================================================
 ! 
 !  Given fracture histogram computed from local wave spectrum, evolve 
 !  the floe size distribution
@@ -219,7 +183,6 @@
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave)
 
-      use icepack_fsd, only: icepack_cleanup_fsd
 
       character (len=char_len), intent(in) :: &
          wave_spec_type   ! type of wave spectrum forcing
@@ -351,7 +314,7 @@
                      end if
  
                      ! required timestep
-                     subdt = get_subdt_wave(nfsd, afsd_tmp, d_afsd_tmp)
+                     subdt = get_subdt_fsd(nfsd, afsd_tmp, d_afsd_tmp)
                      subdt = MIN(subdt, dt)
 
                      ! update afsd
