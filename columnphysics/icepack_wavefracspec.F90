@@ -349,13 +349,8 @@
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
                      
                      ! check in case wave fracture struggles to converge
-                     if (nsubt>100) then
-                          print *, 'afsd_tmp ',afsd_tmp
-                          print *, 'dafsd_tmp ',d_afsd_tmp
-                          print *, 'subt ',nsubt
-                          print *, &
-                              'wave frac taking a while to converge....'
-                     end if
+                     if (nsubt>100) print *, &
+                              'warning: step_wavefracture struggling to converge'
  
                      ! required timestep
                      subdt = get_subdt_wave(nfsd, afsd_tmp, d_afsd_tmp)
@@ -577,12 +572,7 @@
 
              if (fracerror.lt.errortol) EXIT
 
-             if (iter.gt.100) then
-               print *, 'fracerror ',fracerror
-               print *, 'before ',prev_frac_local
-               print *, 'after ',frac_local
-               stop 'wave_frac did not converge'
-             end if
+             if (iter.gt.100) print *, 'warning: wave_frac struggling to converge'
 
              ! save histogram for next iteration
              prev_frac_local = frac_local
