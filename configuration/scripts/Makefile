@@ -110,10 +110,6 @@ db_flags:
 # the needed macros
 #-------------------------------------------------------------------------------
 
-ifndef $(CFLAGS_HOST)
-  CFLAGS_HOST :=
-endif
-
 $(DEPGEN): $(ICE_CASEDIR)/makdep.c
 	$(SCC) -o $@ $(CFLAGS_HOST) $<
 
