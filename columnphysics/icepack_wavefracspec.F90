@@ -37,7 +37,8 @@
  
       implicit none
       private
-      public :: icepack_init_wave, icepack_step_wavefracture, icepack_init_spwf_fullnet
+      public :: icepack_init_wave, icepack_step_wavefracture,&
+                icepack_init_spwf_fullnet, icepack_init_spwf_class
 
       real (kind=dbl_kind), parameter  :: &
          swh_minval = 0.01_dbl_kind,  & ! minimum value of wave height (m)
@@ -72,6 +73,13 @@
       real (kind=dbl_kind), dimension(49)      :: full_weight12
       real (kind=dbl_kind), dimension(49) :: &
           fracbin_c
+      real (kind=dbl_kind), dimension(26,100)  :: class_weight1
+      real (kind=dbl_kind), dimension(100)     :: class_weight2
+      real (kind=dbl_kind), dimension(100,100) :: class_weight3
+      real (kind=dbl_kind), dimension(100)     :: class_weight4
+      real (kind=dbl_kind), dimension(100,2)   :: class_weight5
+      real (kind=dbl_kind), dimension(2)       :: class_weight6
+
 
 !=======================================================================
 
@@ -309,7 +317,8 @@
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
          hbar = vice / aice
 
-        if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')) then 
+        if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')&
+             .OR.(trim(wave_solver).eq.'mlfullnet')) then 
          ! classify input (based on neural net run offline)
          ! input = wave spectrum (25 freq) and ice thickness
          ! output: spwf_classifier_out between 0 and 1
@@ -319,19 +328,22 @@
                               spwf_classifier_out)
 
 
-             if (spwf_classifier_out.lt.spwf_clss_crit) then
-                run_wave_fracture = .false.
-             end if
+             if (spwf_classifier_out.lt.spwf_clss_crit) run_wave_fracture = .false.
+            
+        end if
+        if (trim(wave_solver).eq.'mlfullnet') then
 
-        else if (trim(wave_solver).eq.'mlfullnet') then
-             run_wave_fracture = .false.
-
-             call spwf_fullnet(nfsd, floe_rad_l, wave_spectrum, hbar, &
+             if (run_wave_fracture) then
+                 call spwf_fullnet(nfsd, floe_rad_l, wave_spectrum, hbar, &
                                spwf_fullnet_hist)
 
-             fracture_hist(:) = spwf_fullnet_hist(:)
+                 fracture_hist(:) = spwf_fullnet_hist(:)
+             end if
+             run_wave_fracture = .false.
+
 
         end if
+
 
         if (run_wave_fracture) then
  
@@ -343,6 +355,10 @@
         end if
 
         ! sanity checks
+        ! if fracture occurs, evolve FSD with adaptive subtimestep
+        if (MAXVAL(fracture_hist) > puny) then
+
+        ! remove after testing 
         if (ANY(fracture_hist.ne.fracture_hist)) &
             stop 'NaN fracture_hist'
         if (ANY(fracture_hist.lt.c0)) &
@@ -350,9 +366,7 @@
         if (ABS(SUM(fracture_hist)-c1).gt.puny) &
             stop 'not norm fracture_hist'
 
-        ! if fracture occurs, evolve FSD with adaptive subtimestep
-        if (MAXVAL(fracture_hist) > puny) then
-            ! protect against small numerical errors
+           ! protect against small numerical errors
             call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
             
             do n = 1, ncat
@@ -421,9 +435,6 @@
                   ! category to reduce, which is not physically allowed
                   ! to happen. So we adjust here
                   cons_error = SUM(afsd_tmp) - c1
-
-
-                  print *, 'cons_err ',cons_error
 
                   ! area loss: add to first category
                   if (cons_error.lt.c0) then
@@ -792,6 +803,40 @@
 
 !===========================================================================
 !
+!
+!  authors: 2020 Lettie Roach, UW
+!
+
+      subroutine icepack_init_spwf_class
+
+
+
+      ! local variables
+
+      character(char_len_long) :: wave_class_file
+
+
+      real (kind=dbl_kind), dimension(13002)   :: filelist
+ 
+      wave_class_file = &
+       trim('/glade/u/home/lettier/wavefrac_nn_classifier.txt')
+
+      open (unit = 1, file = wave_class_file)
+      read (1, *) filelist
+      close(1)
+
+      class_weight1 = TRANSPOSE(RESHAPE(filelist(1:2600), (/100, 26/)))
+      class_weight2 = filelist(2601:2700)
+      class_weight3 = TRANSPOSE(RESHAPE(filelist(2701:12700), (/100, 100/)))
+      class_weight4 = filelist(12701:12800)
+      class_weight5 = TRANSPOSE(RESHAPE(filelist(12801:13000), (/2, 100/)))
+      class_weight6 = filelist(13001:13002)
+
+     
+      end subroutine icepack_init_spwf_class
+
+!===========================================================================
+!
 ! See ref XXX for details
 !
 ! This routine contains the results of a pattern recognition network
@@ -838,20 +883,6 @@
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
 
-      wave_class_file = &
-       trim('/glade/u/home/lettier/wavefrac_nn_classifier.txt')
-
-      open (unit = 1, file = wave_class_file)
-      read (1, *) filelist
-      close(1)
-
-      class_weight1 = TRANSPOSE(RESHAPE(filelist(1:2600), (/100, 26/)))
-      class_weight2 = filelist(2601:2700)
-      class_weight3 = TRANSPOSE(RESHAPE(filelist(2701:12700), (/100, 100/)))
-      class_weight4 = filelist(12701:12800)
-      class_weight5 = TRANSPOSE(RESHAPE(filelist(12801:13000), (/2, 100/)))
-      class_weight6 = filelist(13001:13002)
-
 
       y1 = MATMUL(input,class_weight1) + class_weight2
       WHERE (y1 < c0) y1 = c0
@@ -876,30 +907,7 @@
 !  authors: 2019 Lettie Roach, UW
 !
 
-      subroutine icepack_init_spwf_fullnet()!wfracbin_c,&
-          !full_weight1, full_weight2,  &
-          !full_weight3, full_weight4,  &
-          !full_weight5, full_weight6,  &
-          !full_weight7, full_weight8,  &
-          !full_weight9, full_weight10, &
-          !full_weight11,full_weight12 )
-
-!      real (kind=dbl_kind), dimension (:), intent(inout) :: &
-!          wfracbin_c, &
-!          full_weight2, &
-!          full_weight4, &
-!          full_weight6, &
-!          full_weight8, &
-!          full_weight10, &
-!          full_weight12
-! 
-!      real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
-!          full_weight1, &
-!          full_weight3, &
-!          full_weight5, &
-!          full_weight7, &
-!          full_weight9, &
-!          full_weight11
+      subroutine icepack_init_spwf_fullnet
  
       ! local variables
       character(char_len_long) :: wave_fullnet_file
@@ -953,13 +961,6 @@
 !
 
       subroutine spwf_fullnet(nfsd, floe_rad_l, wave_spectrum, hbar, &
-!          wfracbin_c, &
-!          full_weight1, full_weight2,  &
-!          full_weight3, full_weight4,  &
-!          full_weight5, full_weight6,  &
-!          full_weight7, full_weight8,  &
-!          full_weight9, full_weight10, &
-!          full_weight11,full_weight12, &                               
           spwf_fullnet_hist)
 
 
@@ -976,23 +977,6 @@
       real (kind=dbl_kind), dimension (nfsd), intent (in) :: &
           floe_rad_l ! FSD categories, lower limit, radius (m)
 
-!      real (kind=dbl_kind), dimension (:), intent(in) :: &
-!          wfracbin_c, &
-!          full_weight2, &
-!          full_weight4, &
-!          full_weight6, &
-!          full_weight8, &
-!          full_weight10, &
-!          full_weight12
- 
-!      real (kind=dbl_kind), dimension (:,:), intent(in) :: &
-!          full_weight1, &
-!          full_weight3, &
-!          full_weight5, &
-!          full_weight7, &
-!          full_weight9, &
-!          full_weight11
- 
       real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
           spwf_fullnet_hist
 
@@ -1044,8 +1028,11 @@
           end if
       end do
 
-      if (SUM(spwf_fullnet_hist).gt.c0) & 
+      if (SUM(spwf_fullnet_hist).gt.puny) then
         spwf_fullnet_hist = spwf_fullnet_hist/SUM(spwf_fullnet_hist)
+      else
+        spwf_fullnet_hist(:) = c0
+      end if
 
       end subroutine spwf_fullnet
 
