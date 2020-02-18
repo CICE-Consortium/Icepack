@@ -32,7 +32,7 @@
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd
-      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: warnstr, icepack_warnings_add,  icepack_warnings_aborted
 
       implicit none
       private
@@ -166,6 +166,7 @@
       if (SUM(d_afsd(:)) > puny) then
          write(warnstr,*) subname, 'area not conserved, waves'
          call icepack_warnings_add(warnstr)
+         if (icepack_warnings_aborted(subname)) return
       endif
 
       WHERE (ABS(d_afsd).lt.puny) d_afsd = c0
@@ -311,11 +312,14 @@
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
 
+         if (icepack_warnings_aborted(subname)) return
+
          ! if fracture occurs
          if (MAXVAL(fracture_hist) > puny) then
             ! protect against small numerical errors
             call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
-            
+            if (icepack_warnings_aborted(subname)) return
+   
             do n = 1, ncat
               
               afsd_init(:) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
@@ -350,9 +354,11 @@
                      
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
-                        write(warnstr,*) subname, 'warning: step_wavefracture struggling to converge'
+                        write(warnstr,*) subname, &
+                    'warning: step_wavefracture struggling to converge'
                         call icepack_warnings_add(warnstr)
-                     endif
+                        if (icepack_warnings_aborted(subname)) return 
+                    endif
 
  
                      ! required timestep
@@ -366,10 +372,12 @@
                      if (MINVAL(afsd_tmp) < -puny) then
                         write(warnstr,*) subname, 'wb, <0 loop'
                         call icepack_warnings_add(warnstr)
+                        if (icepack_warnings_aborted(subname)) return
                      endif
                      if (MAXVAL(afsd_tmp) > c1+puny) then
-                         write(warnstr,*) subname, 'wb, >1 loop'
+                        write(warnstr,*) subname, 'wb, >1 loop'
                         call icepack_warnings_add(warnstr)
+                        if (icepack_warnings_aborted(subname)) return
                      endif
 
                      ! update time
@@ -402,7 +410,8 @@
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
                   call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
- 
+                   if (icepack_warnings_aborted(subname)) return
+
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
                   d_afsd_wave (:)   = d_afsd_wave(:) + aicen(n)*d_afsdn_wave(:,n)
@@ -523,6 +532,7 @@
          ! See documentation for discussion
          if (trim(wave_spec_type).eq.'random') then
              call RANDOM_NUMBER(rand_array)
+             if (icepack_warnings_aborted(subname)) return
          else
              rand_array(:) = p5
          endif
@@ -537,6 +547,7 @@
          fraclengths(:) = c0 
          if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
             call get_fraclengths(X, eta, fraclengths, hbar)
+            if (icepack_warnings_aborted(subname)) return
          end if
 
          ! convert from diameter to radii
@@ -580,8 +591,10 @@
              if (fracerror.lt.errortol) EXIT
 
              if (iter.gt.100) then
-                 write(warnstr,*) subname, 'warning: wave_frac struggling to converge'
+                 write(warnstr,*) subname, &
+                   'warning: wave_frac struggling to converge'
                  call icepack_warnings_add(warnstr)
+                 if (icepack_warnings_aborted(subname)) return
              endif
 
              ! save histogram for next iteration
@@ -719,10 +732,10 @@
 
                ! This equation differs from HT2015 by a factor 2 in numerator
                ! and eta(j_pos). This is the correct form of the equation.
-	       
-	       denominator = delta*delta_pos*(delta+delta_pos)
-	       
-	       if (denominator.ne.c0) &
+       
+               denominator = delta*delta_pos*(delta+delta_pos)
+       
+               if (denominator.ne.c0) &
                    strain(j) = ABS(hbar*(eta(j_neg)* delta_pos &
                                 - eta(j    )*(delta_pos+delta) &
                                 + eta(j_pos)*           delta) &

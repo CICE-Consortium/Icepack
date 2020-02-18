@@ -976,6 +976,8 @@
 
       if (tr_fsd) then
          call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:)) 
+         if (icepack_warnings_aborted(subname)) return
+         
          afsdn = trcrn(nt_fsd:nt_fsd+nfsd-1,:)
          aicen_init = aicen
          afsdn_init = afsdn ! for diagnostics
@@ -1008,8 +1010,6 @@
             endif
 
             if (qin(n) < -puny) G_radialn(n) = -fside/qin(n) ! negative
-
-!            if (G_radialn(n) > puny) stop 'G_radial positive'
 
             if (G_radialn(n) < -puny) then
 
@@ -1048,17 +1048,8 @@
 
       if (flag) then ! grid cells with lateral melting.
 
-         ! LR is this necessary?
-         !tmp = SUM(rsiden(:))
          do n = 1, ncat
 
-            !if (tr_fsd) then
-            !   if (tmp > c0) then
-            !      rsiden(n) = rsiden(n)/tmp
-            !   else
-            !      rsiden(n) = c0
-            !   end if
-            !end if
 
       !-----------------------------------------------------------------
       ! Melt the ice and increment fluxes.
@@ -1116,13 +1107,6 @@
                          print*,'lateral_melt:  afsdn < 0'
                      if (any(afsdn > c1+puny)) &
                          print*,'lateral_melt:  afsdn > 1'
-
-
-                     !trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn(:,n)
-
-                  !else ! aicen = 0
-
-                   !  trcrn(nt_fsd:nt_fsd+nfsd-1,n) = c0
 
                   end if ! aicen
                end if ! rside > 0, otherwise do nothing
@@ -1186,6 +1170,7 @@
 
       if (tr_fsd) then
          !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+         !if (icepack_warnings_aborted(subname)) return
 
          ! diagnostics
          do k = 1, nfsd
@@ -1448,6 +1433,7 @@
 
       if (tr_fsd) then
          call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:))
+         if (icepack_warnings_aborted(subname)) return
       endif
 
       do n = 1, ncat
@@ -1460,7 +1446,6 @@
             enddo
          endif
       enddo
-!      if (any(afsdn < c0)) print*,'add_new B afsdn < 0'
 
       if (l_conservation_check) then
 
@@ -1569,6 +1554,8 @@
                                   lead_area,  latsurf_area, &
                                   G_radial,   d_an_latg,    &
                                   tot_latg)
+
+         if (icepack_warnings_aborted(subname)) return
 
          ai0mod = aice0
          ! separate frazil ice growth from lateral ice growth
@@ -1737,7 +1724,9 @@
                                   d_afsd_newi,               &
                                   afsdn,      aicen_init,    &
                                   aicen,      trcrn)
-      
+
+         if (icepack_warnings_aborted(subname)) return     
+ 
          if (vicen(n) > puny) then
             if (tr_iage) &
                trcrn(nt_iage,n) = (trcrn(nt_iage,n)*vice1 + dt*vin0new(n))/vicen(n)
