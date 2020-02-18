@@ -1311,6 +1311,7 @@
       nt_bgc_DMS    = 0
       nt_bgc_PON    = 0
       nt_bgc_hum    = 0
+      nt_zbgc_frac  = 0
 
       !-----------------------------------------------------------------
       ! Define array parameters
@@ -1700,7 +1701,6 @@
          endif      ! tr_zaero
 
 !echmod keep trcr indices etc here but move zbgc_frac_init, zbgc_init_frac, tau_ret, tau_rel to icepack
-         nt_zbgc_frac = 0
          if (nbtrcr > 0) then
             nt_zbgc_frac = ntrcr + 1
             ntrcr = ntrcr + nbtrcr
