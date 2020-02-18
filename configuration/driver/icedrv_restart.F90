@@ -22,8 +22,7 @@
           write_restart_lvl,       read_restart_lvl, & 
           write_restart_pond_cesm, read_restart_pond_cesm, & 
           write_restart_pond_lvl,  read_restart_pond_lvl, &
-          write_restart_aero,      read_restart_aero, &
-          write_restart_iso,       read_restart_iso
+          write_restart_iso,       read_restart_iso, &
           write_restart_fsd,       read_restart_fsd, &
           write_restart_aero,      read_restart_aero
 

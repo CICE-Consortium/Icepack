@@ -245,7 +245,6 @@
         endif ! tr_iso
         
         call icepack_step_therm1(dt=dt, ncat=ncat, nilyr=nilyr, nslyr=nslyr, &
-            n_aero=n_aero, n_iso=n_iso, &
             aicen_init = aicen_init(i,:), &
             vicen_init = vicen_init(i,:), &
             vsnon_init = vsnon_init(i,:), &
@@ -275,7 +274,6 @@
             Tair = Tair(i), Tref = Tref(i),  &
             Qref = Qref(i), Uref = Uref(i),  &
             Qref_iso = Qref_iso(i,:),        &
-            Tair = Tair(i), Tref = Tref(i),  &
             Cdn_atm_ratio = Cdn_atm_ratio(i),&
             Cdn_ocn       = Cdn_ocn(i),      &
             Cdn_ocn_skin  = Cdn_ocn_skin(i), &
@@ -392,6 +390,7 @@
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
       use icedrv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside, fside
       use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn 
+      use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
       use icedrv_init, only: tmask
       use icedrv_state, only: aice, aicen, aice0, trcr_depend
       use icedrv_state, only: aicen_init, vicen_init, trcrn, vicen, vsnon
@@ -435,37 +434,7 @@
             if (tr_fsd) &
             wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
-            call icepack_step_therm2(dt, ncat, n_aero, n_iso, nltrcr,      &
-                           nilyr,                  nslyr,                  &
-                           hin_max   (:),          nblyr,                  &   
-                           aicen     (i,:),                         &
-                           vicen     (i,:), vsnon     (i,:), &
-                           aicen_init(i,:), vicen_init(i,:), &
-                           trcrn     (i,1:ntrcr,:),                 &
-                           aice0     (i), aice      (i), &
-                           trcr_depend(1:ntrcr),   trcr_base(1:ntrcr,:),   &
-                           n_trcr_strata(1:ntrcr), nt_strata(1:ntrcr,:),   &
-                           Tf        (i), sss       (i), &
-                           salinz    (i,:),                         &
-                           rside     (i), meltl     (i), &
-                           frzmlt    (i), frazil    (i), &
-                           frain     (i), fpond     (i), &
-                           fresh     (i), fsalt     (i), &
-                           fhocn     (i), update_ocn_f,           &
-                           bgrid,                  cgrid,                  &
-                           igrid,                  faero_ocn (i,:), &
-                           first_ice (i,:), fzsal     (i), &
-                           flux_bio  (i,1:nbtrcr),                  &
-                           ocean_bio (i,1:nbtrcr),                  &
-                           frazil_diag(i),                         &
-                           frz_onset (i), yday, &
-                           fiso_ocn(i,:), HDO_ocn(i), &
-                           H2_16O_ocn(i), H2_18O_ocn(i))
-=======
-            call icepack_step_therm2(dt=dt, ncat=ncat, n_aero=n_aero, &
-=======
             call icepack_step_therm2(dt=dt, ncat=ncat,                &
->>>>>>> 74839d21286a7b02bc2b29ea49a06cdc013b8683
                          nltrcr=nltrcr, nilyr=nilyr, nslyr=nslyr,     &
                          hin_max=hin_max(:), nblyr=nblyr,             &   
                          aicen=aicen(i,:),                            &
@@ -496,6 +465,10 @@
                          frazil_diag=frazil_diag(i),                  &
                          frz_onset=frz_onset(i),                      &
                          yday=yday,                                   &
+                         fiso_ocn=fiso_ocn(i,:),                      &
+                         HDO_ocn=HDO_ocn(i),                          &
+                         H2_16O_ocn=H2_16O_ocn(i),                    &
+                         H2_18O_ocn=H2_18O_ocn(i),                    &
                          nfsd=nfsd,   wave_sig_ht=wave_sig_ht(i),     &
                          wave_spectrum=wave_spectrum(i,:),            &
                          wavefreq=wavefreq(:),                        &
@@ -795,7 +768,7 @@
                          fpond=fpond(i),                                     &
                          fresh=fresh(i),           fhocn=fhocn(i),           &
                          n_aero=n_aero,            n_iso=n_iso,              &
-                         faero_ocn=faero_ocn(i,:), fiso_ocn=fiso_ocn(i,:)    &
+                         faero_ocn=faero_ocn(i,:), fiso_ocn=fiso_ocn(i,:),   &
                          aparticn=aparticn(i,:),   krdgn=krdgn(i,:),         &
                          aredistn=aredistn(i,:),   vredistn=vredistn(i,:),   &
                          dardg1ndt=dardg1ndt(i,:), dardg2ndt=dardg2ndt(i,:), &
