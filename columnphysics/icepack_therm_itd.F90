@@ -41,7 +41,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_fsd, only: fsd_weld_thermo, icepack_cleanup_fsd
+      use icepack_fsd, only: fsd_weld_thermo, icepack_cleanup_fsd,  get_subdt_fsd    
       use icepack_itd, only: reduce_area, cleanup_itd
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
@@ -51,7 +51,7 @@
       use icepack_therm_shared, only: hi_min
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc               
-     
+ 
       implicit none
       
       private
@@ -922,7 +922,8 @@
 
       integer (kind=int_kind) :: &
          n           , & ! thickness category index
-         k               ! layer index
+         k           , & ! layer index
+         nsubt           ! sub timesteps for FSD tendency
 
       real (kind=dbl_kind) :: &
          dfhocn  , & ! change in fhocn
@@ -949,7 +950,8 @@
          afsdn_init    ! initial value
 
       real (kind=dbl_kind), dimension (nfsd) :: &
-         df_flx        ! finite difference for G_r * areal mFSTD tilda
+         df_flx, &        ! finite difference for FSD
+         afsd_tmp, d_afsd_tmp
 
       real (kind=dbl_kind), dimension(nfsd+1) :: &
          f_flx         !
@@ -958,7 +960,9 @@
       real (kind=dbl_kind), intent(in) :: &
          sss
       real (kind=dbl_kind) :: &
-         Ti, Si0, qi0
+         Ti, Si0, qi0, &
+         elapsed_t,    & ! FSD subcycling
+         subdt           ! FSD timestep (s)
 
       character(len=*), parameter :: subname='(lateral_melt)'
 
@@ -1016,8 +1020,6 @@
 
             if (qin(n) < -puny) G_radialn(n) = -fside/qin(n) ! negative
 
-!            if (G_radialn(n) > puny) stop 'G_radial positive'
-
             if (G_radialn(n) < -puny) then
 
                
@@ -1039,7 +1041,7 @@
                if (delta_an(n) > c0) print*,'ERROR delta_an > 0', delta_an(n)
  
                ! following original code, not necessary for fsd
-               if (aicen(n) > c0) rsiden(n) = -delta_an(n)/aicen(n)
+               if (aicen(n) > c0) rsiden(n) = MIN(-delta_an(n)/aicen(n),c1)
 
                if (rsiden(n) < c0) print*,'ERROR rsiden < 0', rsiden(n)
 
@@ -1055,17 +1057,7 @@
 
       if (flag) then ! grid cells with lateral melting.
 
-         ! LR is this necessary?
-         !tmp = SUM(rsiden(:))
          do n = 1, ncat
-
-            !if (tr_fsd) then
-            !   if (tmp > c0) then
-            !      rsiden(n) = rsiden(n)/tmp
-            !   else
-            !      rsiden(n) = c0
-            !   end if
-            !end if
 
       !-----------------------------------------------------------------
       ! Melt the ice and increment fluxes.
@@ -1097,40 +1089,56 @@
             if (tr_fsd) then
                if (rsiden(n) > puny) then
                   if (aicen(n) > puny) then
-                     df_flx(:) = c0
-                     f_flx (:) = c0
-                     do k = 2, nfsd
-                        f_flx(k) =  G_radialn(n) * afsdn_init(k,n) / floe_binwidth(k)
-                     end do
 
-                     do k = 1, nfsd
-                        df_flx(k)   = f_flx(k+1) - f_flx(k) 
-                     end do
+                     ! adaptive subtimestep
+                     elapsed_t = c0
+                     afsd_tmp(:) = afsdn_init(:,n)
+                     d_afsd_tmp(:) = c0
+                     nsubt = 0
 
-                     if (abs(sum(df_flx(:))) > puny) &
-                         print*,'sum(df_flx)/=0'
+                     DO WHILE (elapsed_t.lt.dt)
 
-                     tmp = SUM(afsdn_init(:,n)/floe_rad_c(:))
-                     do k = 1, nfsd
-                       afsdn (k,n) = afsdn_init(k,n) &
-                           + dt * (-df_flx(k) + c2 * G_radialn(n) * afsdn_init(k,n) &
-                                * (c1/floe_rad_c(k) - tmp))
-                     end do
+                         nsubt = nsubt + 1
+                         if (nsubt.gt.100) &
+                           print *, 'latm not converging'
+                     
+                         ! finite differences
+                         df_flx(:) = c0
+                         f_flx (:) = c0
+                         do k = 2, nfsd
+                           f_flx(k) =  G_radialn(n) * afsd_tmp(k) / floe_binwidth(k)
+                         end do
 
-                     if (abs(sum(afsdn(:,n))-c1) > puny) &
-                        print*,'lateral_melt E afsdn not normed',sum(df_flx), sum(afsdn(:,n))-c1
-                     if (any(afsdn < -puny)) &
-                         print*,'lateral_melt:  afsdn < 0'
-                     if (any(afsdn > c1+puny)) &
-                         print*,'lateral_melt:  afsdn > 1'
+                         do k = 1, nfsd
+                          df_flx(k)   = f_flx(k+1) - f_flx(k) 
+                         end do
+
+                         if (abs(sum(df_flx(:))) > puny) &
+                           print*,'sum(df_flx)/=0'
+
+                         ! this term ensures area conservation
+                         tmp = SUM(afsd_tmp(:)/floe_rad_c(:))
+                        
+                         ! fsd tendency
+                         do k = 1, nfsd
+                           d_afsd_tmp(k) = -df_flx(k) + c2 * G_radialn(n) * afsd_tmp(k) &
+                                       * (c1/floe_rad_c(k) - tmp)
+                         end do
+
+                         ! timestep required for this
+                         subdt = get_subdt_fsd(nfsd, afsd_tmp(:), d_afsd_tmp(:))
+                         subdt = MIN(subdt, dt)
+
+                        ! update fsd and elapsed time
+                        afsd_tmp(:) = afsd_tmp(:) + subdt*d_afsd_tmp(:)
+                        elapsed_t = elapsed_t + subdt
 
 
-                     !trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn(:,n)
+                      END DO
+ 
+                     afsdn(:,n) = afsd_tmp(:)
 
-                  !else ! aicen = 0
-
-                   !  trcrn(nt_fsd:nt_fsd+nfsd-1,n) = c0
-
+        
                   end if ! aicen
                end if ! rside > 0, otherwise do nothing
 
@@ -1204,7 +1212,7 @@
       endif          ! flag
 
       if (tr_fsd) then
-         !call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+         call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
 
          ! diagnostics
          do k = 1, nfsd

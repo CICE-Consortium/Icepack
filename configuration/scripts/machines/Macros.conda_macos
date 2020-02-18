@@ -1,0 +1,38 @@
+#==============================================================================
+# Makefile macros for conda environment, macOS systems
+#==============================================================================
+
+# Preprocessor macros
+CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
+
+# Flags for the C compiler
+CFLAGS     := -c -O2
+
+# Flags for the Fortran compiler
+FREEFLAGS  := -ffree-form
+FFLAGS     := -fconvert=big-endian -fbacktrace -ffree-line-length-none
+
+# Additional flags for the Fortran compiler when compiling in debug mode
+ifeq ($(ICE_BLDDEBUG), true)
+  FFLAGS   += -O0 -g -fcheck=bounds -finit-real=nan -fimplicit-none -ffpe-trap=invalid,zero,overflow
+else
+  FFLAGS   += -O2
+endif
+
+# C and Fortran compilers
+SCC   := clang
+SFC   := gfortran
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
+
+# Location of the system C header files (required on recent macOS to compile makdep)
+CFLAGS_HOST = -isysroot$(shell xcrun --show-sdk-path)
+
+# Necessary flag to compile with OpenMP support
+ifeq ($(ICE_THREADED), true)
+   LDFLAGS += -fopenmp
+   CFLAGS  += -fopenmp
+   FFLAGS  += -fopenmp
+endif
+

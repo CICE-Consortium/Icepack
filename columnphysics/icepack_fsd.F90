@@ -53,7 +53,7 @@
 
       private
       public :: icepack_init_fsd_bounds, icepack_init_fsd, icepack_cleanup_fsd, &
-         fsd_lateral_growth, fsd_add_new_ice, fsd_weld_thermo
+         fsd_lateral_growth, fsd_add_new_ice, fsd_weld_thermo, get_subdt_fsd
 
       real(kind=dbl_kind), dimension(:), allocatable ::  &
          floe_rad_h,         & ! fsd size higher bound in m (radius)
@@ -565,6 +565,13 @@
                             + c2*aicen(n)*afsdn(k,n)*G_radial*dt/floe_rad_c(k)
             end do
          end do ! n
+         
+         ! cannot expand ice laterally beyond lead region
+         if (SUM(d_an_latg(:)).ge.lead_area) then
+             d_an_latg(:) = d_an_latg(:)/SUM(d_an_latg(:))
+             d_an_latg(:) = d_an_latg(:)*lead_area
+         end if
+
       endif ! vi0new_lat > 0
 
       ! Use remaining ice volume as in standard model,
@@ -649,20 +656,23 @@
          d_afsd_newi    ! new ice formation
 
       integer (kind=int_kind) :: &
-         k              ! floe size category index
+         k, &              ! floe size category index
+         new_size, &       ! index for floe size of new ice
+         nsubt             ! number of subtimesteps
+
+      real (kind=dbl_kind) :: &
+         elapsed_t, subdt  ! elapsed time, subtimestep (s)
 
       real (kind=dbl_kind), dimension (nfsd,ncat) :: &
          afsdn_latg     ! fsd after lateral growth
 
       real (kind=dbl_kind), dimension (nfsd) :: &
-         df_flx     , & ! finite differences for G_r*tilda(L)
+         dafsd_tmp,  &  ! tmp FSD
+         df_flx     , & ! finite differences for fsd
          afsd_ni        ! fsd after new ice added
 
       real (kind=dbl_kind), dimension(nfsd+1) :: &
          f_flx          ! finite differences in floe size
-
-      integer (kind=int_kind) :: &
-         new_size       ! index for floe size of new ice
 
       character(len=*),parameter :: subname='(fsd_add_new_ice)'
 
@@ -670,23 +680,43 @@
 
       if (d_an_latg(n) > puny) then ! lateral growth
 
-         df_flx(:) = c0 ! NB could stay zero if all in largest FS cat
-         f_flx (:) = c0
-         do k = 2, nfsd
-            f_flx(k) = G_radial * afsdn(k-1,n) / floe_binwidth(k-1)
-         end do
-         do k = 1, nfsd
-            df_flx(k) = f_flx(k+1) - f_flx(k)
-         end do
+         ! adaptive timestep
+         elapsed_t = c0
+         nsubt = 0
+
+         DO WHILE (elapsed_t.lt.dt)
+        
+             nsubt = nsubt + 1
+             if (nsubt.gt.100) print *, 'latg not converging'
+ 
+             ! finite differences
+             df_flx(:) = c0 ! NB could stay zero if all in largest FS cat
+             f_flx (:) = c0
+             do k = 2, nfsd
+                f_flx(k) = G_radial * afsdn_latg(k-1,n) / floe_binwidth(k-1)
+             end do
+             do k = 1, nfsd
+                df_flx(k) = f_flx(k+1) - f_flx(k)
+             end do
 
 !         if (abs(sum(df_flx)) > puny) print*,'fsd_add_new ERROR df_flx /= 0'
 
-         afsdn_latg(:,n) = c0
-         do k = 1, nfsd
-            afsdn_latg(k,n) = afsdn(k,n) &
-                            + dt * (-df_flx(k) + c2 * G_radial * afsdn(k,n) &
-                            * (c1/floe_rad_c(k) - SUM(afsdn(:,n)/floe_rad_c(:))) )
-         end do
+             dafsd_tmp(:) = c0
+             do k = 1, nfsd
+                dafsd_tmp(k) = (-df_flx(k) + c2 * G_radial * afsdn_latg(k,n) &
+                            * (c1/floe_rad_c(k) - SUM(afsdn_latg(:,n)/floe_rad_c(:))) )
+
+             end do
+
+            ! timestep required for this
+            subdt = get_subdt_fsd(nfsd, afsdn_latg(:,n), dafsd_tmp(:)) 
+            subdt = MIN(subdt, dt)
+ 
+            ! update fsd and elapsed time
+            afsdn_latg(:,n) = afsdn_latg(:,n) + subdt*dafsd_tmp(:)
+            elapsed_t = elapsed_t + subdt
+
+         END DO
 
          call icepack_cleanup_fsdn (nfsd, afsdn_latg(:,n))
          trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:,n)
@@ -980,6 +1010,44 @@
       end do    ! k
 
       end subroutine fsd_weld_thermo
+
+!=======================================================================
+!
+!  Adaptive timestepping (process agnostic)
+!  See reference: Horvat & Tziperman (2017) JGR, Appendix A
+!
+!  authors: 2018 Lettie Roach, NIWA/VUW
+!
+!
+      function get_subdt_fsd(nfsd, afsd_init, d_afsd) &
+                              result(subdt)
+
+      integer (kind=int_kind), intent(in) :: &
+         nfsd       ! number of floe size categories
+
+      real (kind=dbl_kind), dimension (nfsd), intent(in) :: &
+         afsd_init, d_afsd ! floe size distribution tracer 
+
+      ! output
+      real (kind=dbl_kind) :: &
+         subdt ! subcycle timestep (s)
+
+      ! local variables
+      real (kind=dbl_kind), dimension (nfsd) :: &
+         check_dt ! to compute subcycle timestep (s)
+
+      integer (kind=int_kind) :: k
+
+      check_dt(:) = bignum 
+      do k = 1, nfsd
+          if (d_afsd(k) >  puny) check_dt(k) = (1-afsd_init(k))/d_afsd(k)
+          if (d_afsd(k) < -puny) check_dt(k) = afsd_init(k)/ABS(d_afsd(k))
+      end do 
+
+      subdt = MINVAL(check_dt)
+
+      end function get_subdt_fsd
+
 
 !=======================================================================
 

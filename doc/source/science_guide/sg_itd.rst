@@ -161,6 +161,9 @@ on this sub-grid-scale 1D domain. If the strain between successive extrema excee
 a critical value new floes are formed with diameters equal to the distance between 
 the extrema.
 
+Note that tendencies in the FSD are computed using adaptive timestepping to ensure that 
+the FSD is bounded by zero and one (see :cite:`Horvat17`).
+
 Floe size categories are set in *init\_fsd\_bounds* using an exponential spacing, beginning at 0.5 m with the
 largest size resolved set by choice of :math:`N_f` (``nfsd``), the number of floe size categories.  Icepack
 currently supports ``nfsd = 1, 12, 16, 24``.  Although ``nfsd = 1`` tracks the same ice floe diameter as

@@ -558,7 +558,7 @@ foreach compiler ( $ncompilers )
     end
 
     cd ${casedir}
-    source ./env.${machcomp} || exit 2
+    source ./env.${machcomp} -nomodules || exit 2
 
     set quietmode = false
     if ($?ICE_MACHINE_QUIETMODE) then
@@ -763,14 +763,14 @@ EOF2
     ${casescr}/parse_settings.sh icepack.settings ${fsmods}
     ${casescr}/parse_namelist.sh icepack_in ${fimods}
     source ./icepack.settings
-    source ./env.${machcomp} || exit 2
+    source ./env.${machcomp} -nomodules || exit 2
     ${casescr}/parse_namelist_from_settings.sh icepack_in icepack.settings
 
     #------------------------------------------------------------
     # Generate run script
 
     source ./icepack.settings
-    source ./env.${machcomp} || exit 2
+    source ./env.${machcomp} -nomodules || exit 2
 
     ${casescr}/icepack.run.setup.csh
     if ($status != 0) then
