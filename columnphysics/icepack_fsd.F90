@@ -216,17 +216,13 @@
 
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
-         if (icepack_warnings_aborted(subname)) return
          write(warnstr,*) subname
          call icepack_warnings_add(warnstr)
-         if (icepack_warnings_aborted(subname)) return
          write(warnstr,*) 'floe_rad(n-1) < fsd Cat n < floe_rad(n)'
          call icepack_warnings_add(warnstr)
-         if (icepack_warnings_aborted(subname)) return
          do n = 1, nfsd
             write(warnstr,*) floe_rad(n-1),' < fsd Cat ',n, ' < ',floe_rad(n)
             call icepack_warnings_add(warnstr)
-            if (icepack_warnings_aborted(subname)) return
             ! Write integer n to character string
             write (c_nf, '(i2)') n    
 
@@ -240,7 +236,7 @@
 
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
-         if (icepack_warnings_aborted(subname)) return
+
       end subroutine icepack_init_fsd_bounds
 
 !=======================================================================

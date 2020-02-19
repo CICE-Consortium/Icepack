@@ -335,12 +335,10 @@
                      if (MINVAL(afsd_tmp) < -puny) then
                         write(warnstr,*) subname, 'wb, <0 loop'
                         call icepack_warnings_add(warnstr)
-                        if (icepack_warnings_aborted(subname)) return
                      endif
                      if (MAXVAL(afsd_tmp) > c1+puny) then
                         write(warnstr,*) subname, 'wb, >1 loop'
                         call icepack_warnings_add(warnstr)
-                        if (icepack_warnings_aborted(subname)) return
                      endif
 
                      ! update time
