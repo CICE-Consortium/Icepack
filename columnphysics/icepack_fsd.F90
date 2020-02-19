@@ -63,8 +63,8 @@
          floe_area_binwidth    ! floe area bin width (m^2)
 
       integer(kind=int_kind), dimension(:,:), allocatable, public ::  &
-         iweld			! floe size categories that can combine
-	 			! during welding (dimensionless)
+         iweld                 ! floe size categories that can combine
+                               ! during welding (dimensionless)
 
 !=======================================================================
 
@@ -819,9 +819,9 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          local_wave_spec ! ocean surface wave spectrum as a function of frequency
-	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
-	 		 ! dimension set in ice_forcing
-	 		
+                         ! power spectral density of surface elevation, E(f) (units m^2 s)
+                         ! dimension set in ice_forcing
+
       real(kind=dbl_kind), dimension(:), intent(in) :: &
          wavefreq,     & ! wave frequencies (s^-1)
          dwavefreq       ! wave frequency bin widths (s^-1)
@@ -832,7 +832,7 @@
       ! local variables
       real (kind=dbl_kind), parameter :: &
          tensile_param = 0.167_dbl_kind ! tensile mode parameter (kg m^-1 s^-2)
-	 				! value from Roach, Smith & Dean (2018)
+                                        ! value from Roach, Smith & Dean (2018)
 
       real (kind=dbl_kind)  :: &
          w_amp,       & ! wave amplitude (m)
