@@ -78,7 +78,7 @@
 
       real(kind=dbl_kind), dimension(:), intent(out) :: &
          wave_spectrum_profile, & ! ocean surface wave spectrum as a function of frequency
-	 		                ! power spectral density of surface elevation, E(f) (units m^2 s)
+                                  ! power spectral density of surface elevation, E(f) (units m^2 s)
          wavefreq,              & ! wave frequencies (s^-1)
          dwavefreq                ! wave frequency bin widths (s^-1)
 
@@ -167,7 +167,6 @@
       if (SUM(d_afsd(:)) > puny) then
          write(warnstr,*) subname, 'area not conserved, waves'
          call icepack_warnings_add(warnstr)
-         if (icepack_warnings_aborted(subname)) return
       endif
 
       WHERE (ABS(d_afsd).lt.puny) d_afsd = c0
@@ -216,7 +215,7 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          wave_spectrum   ! ocean surface wave spectrum as a function of frequency
-	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
+                         ! power spectral density of surface elevation, E(f) (units m^2 s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          trcrn           ! tracer array
@@ -318,9 +317,8 @@
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
                         write(warnstr,*) subname, &
-                    'warning: step_wavefracture struggling to converge'
+                          'warning: step_wavefracture struggling to converge'
                         call icepack_warnings_add(warnstr)
-                        if (icepack_warnings_aborted(subname)) return 
                     endif
 
  
@@ -371,7 +369,7 @@
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
                   call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
-                   if (icepack_warnings_aborted(subname)) return
+                  if (icepack_warnings_aborted(subname)) return
 
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
@@ -456,10 +454,9 @@
       real (kind=dbl_kind), dimension(nfsd) :: &
          frachistogram, & ! histogram
          prev_frac_local  ! previous histogram
-	 
-	 character(len=*),parameter :: &
-         subname='(wave_frac)'
 
+      character(len=*),parameter :: &
+         subname='(wave_frac)'
 
 
       if (trim(wave_spec_type).eq.'random') then
@@ -555,7 +552,6 @@
                  write(warnstr,*) subname, &
                    'warning: wave_frac struggling to converge'
                  call icepack_warnings_add(warnstr)
-                 if (icepack_warnings_aborted(subname)) return
              endif
 
              ! save histogram for next iteration
