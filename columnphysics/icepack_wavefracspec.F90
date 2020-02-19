@@ -32,7 +32,7 @@
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd
-      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: warnstr, icepack_warnings_add,  icepack_warnings_aborted
       use icepack_fsd
  
       implicit none
@@ -50,9 +50,14 @@
                                         ! of 10m on both sides, based on the 
                                         ! observations of Toyota et al. (2011) who 
                                         ! find this to be the order of the smallest 
-                                        ! floe size affected by wave fracture 
-      integer (kind=int_kind) :: &
-         nx = 10000                     ! number of points in domain
+                                        ! floe size affected by wave fracture
+ 
+      integer (kind=int_kind), parameter :: &
+         nx = 10000         ! number of points in domain
+
+      integer (kind=int_kind), parameter :: &
+         max_no_iter = 100 ! max no of iterations to compute wave fracture
+
 
 !=======================================================================
 
@@ -162,6 +167,7 @@
       if (SUM(d_afsd(:)) > puny) then
          write(warnstr,*) subname, 'area not conserved, waves'
          call icepack_warnings_add(warnstr)
+         if (icepack_warnings_aborted(subname)) return
       endif
 
       WHERE (ABS(d_afsd).lt.puny) d_afsd = c0
@@ -244,7 +250,8 @@
          afsd_tmp     , & ! tracer array
          d_afsd_tmp       ! change
 
-      character(len=*),parameter :: subname='(icepack_step_wavefracture)'
+      character(len=*),parameter :: &
+         subname='(icepack_step_wavefracture)'
 
       !------------------------------------
 
@@ -255,23 +262,27 @@
 
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
- 
+
+   
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
 
          hbar = vice / aice
-
+ 
          ! calculate fracture histogram
          call wave_frac(nfsd, nfreq, wave_spec_type, &
                         floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
 
+         if (icepack_warnings_aborted(subname)) return
+
          ! if fracture occurs
          if (MAXVAL(fracture_hist) > puny) then
             ! protect against small numerical errors
             call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
-            
+            if (icepack_warnings_aborted(subname)) return
+   
             do n = 1, ncat
               
               afsd_init(:) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
@@ -306,12 +317,12 @@
                      
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
-                          print *, 'afsd_tmp ',afsd_tmp
-                          print *, 'dafsd_tmp ',d_afsd_tmp
-                          print *, 'subt ',nsubt
-                          print *, &
-                              'wave frac taking a while to converge....'
-                     end if
+                        write(warnstr,*) subname, &
+                    'warning: step_wavefracture struggling to converge'
+                        call icepack_warnings_add(warnstr)
+                        if (icepack_warnings_aborted(subname)) return 
+                    endif
+
  
                      ! required timestep
                      subdt = get_subdt_fsd(nfsd, afsd_tmp, d_afsd_tmp)
@@ -326,7 +337,7 @@
                         call icepack_warnings_add(warnstr)
                      endif
                      if (MAXVAL(afsd_tmp) > c1+puny) then
-                         write(warnstr,*) subname, 'wb, >1 loop'
+                        write(warnstr,*) subname, 'wb, >1 loop'
                         call icepack_warnings_add(warnstr)
                      endif
 
@@ -360,20 +371,19 @@
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
                   call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
- 
+                   if (icepack_warnings_aborted(subname)) return
 
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
                   d_afsd_wave (:)   = d_afsd_wave(:) + aicen(n)*d_afsdn_wave(:,n)
-
                endif ! aicen > puny
             enddo    ! n
-         endif       ! fracture occurs
+        endif ! fracture hist > 0
 
       endif          ! aice > p01
-      end if         ! all small floes
+      endif         ! all small floes
 
-     end subroutine icepack_step_wavefracture
+      end subroutine icepack_step_wavefracture
 
 !=======================================================================
 !
@@ -420,66 +430,72 @@
 
       ! local variables
 
-      integer (kind=int_kind) :: i, j, k
+      integer (kind=int_kind) :: i, j, k, iter, loop_max_iter
 
-      integer, parameter :: &
-         loopcts = 1  ! number of SSH realizations
+      real (kind=dbl_kind) :: &
+         fracerror ! difference between successive histograms
+
+      real (kind=dbl_kind), parameter :: &
+         errortol = 6.5e-4  ! tolerance in error between successive histograms
 
       real (kind=dbl_kind), dimension(nfreq) :: &
-         spec_elambda,             & ! spectrum as a function of wavelength (m^-1 s^-1)     
-         reverse_spec_elambda,     & ! reversed
-         reverse_lambda, lambda,   & ! wavelengths (m)
-         reverse_dlambda, dlambda, & ! wavelength bin spacing (m)
+         lambda,                   & ! wavelengths (m)
          spec_coeff,               &
          phi, rand_array, summand
 
-      real (kind=dbl_kind), dimension(2*nx) :: &
+      real (kind=dbl_kind), dimension(nx) :: &
          fraclengths
+
+      real (kind=dbl_kind), dimension(max_no_iter*nx) :: &
+         allfraclengths
 
       real (kind=dbl_kind), dimension(nx) :: &
          X,  &    ! spatial domain (m)
          eta      ! sea surface height field (m)
 
       real (kind=dbl_kind), dimension(nfsd) :: &
-         frachistogram 
+         frachistogram, & ! histogram
+         prev_frac_local  ! previous histogram
+	 
+	 character(len=*),parameter :: &
+         subname='(wave_frac)'
 
-      logical (kind=log_kind) :: &
-         e_stop        ! if true, stop and return zero omega and fsdformed
 
-      e_stop = .false. ! if true, aborts fracture calc
-  
+
+      if (trim(wave_spec_type).eq.'random') then
+          ! run wave fracture to convergence
+          loop_max_iter = max_no_iter
+      else
+          loop_max_iter = 1
+      end if
+ 
       ! spatial domain
       do j = 1, nx
          X(j)= j*dx
       end do
 
       ! dispersion relation
-      reverse_lambda (:) = gravit/(c2*pi*wavefreq (:)**2)
-      reverse_dlambda(:) = gravit/(c2*pi*dwavefreq(:)**2)
-      ! convert to lambda spectrum
-      reverse_spec_elambda(:) = spec_efreq(:) &
-                   *(p5 * (gravit/(c2*pi*reverse_lambda(:)**3) )**p5)
-      ! reverse lambda
-      lambda (:) = reverse_lambda (nfreq:1:-1)
-      dlambda(:) = reverse_dlambda(nfreq:1:-1)
-      spec_elambda(:) = reverse_spec_elambda(nfreq:1:-1) 
- 
-      ! spectral coefficients
-      spec_coeff = sqrt(c2*spec_elambda*dlambda) 
+      lambda (:) = gravit/(c2*pi*wavefreq (:)**2)
 
-      ! initialize fracture lengths
+      ! spectral coefficients
+      spec_coeff = sqrt(c2*spec_efreq*dwavefreq) 
+
+      ! initialize frac lengths
       fraclengths(:) = c0
-     
-      ! loop over n. realizations of SSH
-      do i = 1, loopcts
+      prev_frac_local(:) = c0
+      fracerror = bignum
+
+      ! loop while fracerror greater than error tolerance
+      DO iter = 1, loop_max_iter
 
          ! Phase for each Fourier component may be constant or
          ! a random phase that varies in each i loop
          ! See documentation for discussion
-         if (trim(wave_spec_type)=='random') then
-            call RANDOM_NUMBER(rand_array)
+         if (trim(wave_spec_type).eq.'random') then
+             call RANDOM_NUMBER(rand_array)
+             if (icepack_warnings_aborted(subname)) return
          else
-            rand_array(:) = p5
+             rand_array(:) = p5
          endif
          phi = c2*pi*rand_array
  
@@ -488,38 +504,67 @@
             summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
             eta(j)  = SUM(summand)
          end do
- 
-         if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
-            call get_fraclengths(X, eta, fraclengths, hbar, e_stop)
-         end if
-      end do
- 
-      frachistogram(:) = c0
 
-      if (.not. e_stop) then
+         fraclengths(:) = c0 
+         if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
+            call get_fraclengths(X, eta, fraclengths, hbar)
+            if (icepack_warnings_aborted(subname)) return
+         end if
 
          ! convert from diameter to radii
          fraclengths(:) = fraclengths(:)/c2
 
-         ! bin into FS cats
-         ! highest cat cannot be fractured into
-         do j = 1, size(fraclengths)
+ 
+         if (ALL(fraclengths.lt.floe_rad_l(1))) then
+             frac_local(:) = c0
+         else
+            frachistogram(:) = c0
+            allfraclengths((iter-1)*nx+1:(iter)*nx) = fraclengths(1:nx)
+
+            ! bin into FS cats
+            do j = 1, size(fraclengths)
+            if (allfraclengths(j).gt.floe_rad_l(1)) then
             do k = 1, nfsd-1
-               if ((fraclengths(j) >= floe_rad_l(k)) .and. &
-                   (fraclengths(j) < floe_rad_l(k+1))) then
+               if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
+                   (allfraclengths(j) < floe_rad_l(k+1))) then
                   frachistogram(k) = frachistogram(k) + 1
                end if
             end do
+            if (allfraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
+            end if
+            end do
 
-         end do
-      end if
+            do k = 1, nfsd
+             frac_local(k) = floe_rad_c(k)*frachistogram(k)
+            end do
 
-      do k = 1, nfsd
-         frac_local(k) = floe_rad_c(k)*frachistogram(k)
-      end do
+            ! normalize
+            if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
 
-      ! normalize
-      if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
+         end if 
+
+         ! wave fracture run to convergence
+         if (trim(wave_spec_type).eq.'random') then
+
+             ! check avg frac local against previous iteration
+             fracerror = SUM(ABS(frac_local - prev_frac_local))/nfsd
+
+             if (fracerror.lt.errortol) EXIT
+
+             if (iter.gt.100) then
+                 write(warnstr,*) subname, &
+                   'warning: wave_frac struggling to converge'
+                 call icepack_warnings_add(warnstr)
+                 if (icepack_warnings_aborted(subname)) return
+             endif
+
+             ! save histogram for next iteration
+             prev_frac_local = frac_local
+
+            
+         end if
+
+      END DO
 
       end subroutine wave_frac
 
@@ -534,7 +579,7 @@
 !
 !  authors: 2016 Lettie Roach, NIWA/VUW
 !
-      subroutine get_fraclengths(X, eta, fraclengths, hbar, e_stop)
+      subroutine get_fraclengths(X, eta, fraclengths, hbar)
 
       real (kind=dbl_kind) :: &
          hbar             ! mean thickness (m)
@@ -543,14 +588,10 @@
          X, &              ! spatial domain (m)
          eta               ! sea surface height field (m)
 
-      real (kind=dbl_kind), intent(inout), dimension (2*nx) :: &
-         fraclengths      ! the biggest number of fraclengths we could have is
-                          ! two floe pieces created at each subgridpoint ie. 2*nx
-                          ! This will never actually happen - most of the array
-                          ! will be zeros
-
-      logical (kind=log_kind), intent(inout) :: &
-         e_stop           ! if true, stop and return zero omega and fsdformed
+      real (kind=dbl_kind), intent(inout), dimension (nx) :: &
+         fraclengths      ! The distances between fracture points
+                          ! Size cannot be greater than nx.
+                          ! In practice, will be much less
 
       ! local variables
       integer (kind=int_kind) :: &
@@ -562,9 +603,8 @@
          n_above          ! number of points where strain is above critical
 
       real (kind=dbl_kind), dimension(nx) :: &
-         strain,        & ! the strain between triplets of extrema
-         frac_size_one, & !
-         frac_size_two
+         fracdistances, & ! distances in space where fracture has occurred 
+         strain           ! the strain between triplets of extrema
 
       logical (kind=log_kind), dimension(nx) :: &
          is_max, is_min,& ! arrays to hold whether each point is a local max or min
@@ -572,6 +612,7 @@
          is_triplet       ! or triplet of extrema
 
       real (kind=dbl_kind) :: &
+         denominator,   & ! denominator in strain equation
          delta,         & ! difference in x between current and prev extrema
          delta_pos        ! difference in x between next and current extrema
 
@@ -587,8 +628,6 @@
       is_extremum = .false.
       is_triplet = .false.
       strain = c0
-      frac_size_one = c0
-      frac_size_two = c0
       j_neg = 0
       j_pos = 0      
       fraclengths(:) = c0
@@ -598,30 +637,24 @@
 
       do j = 1, nx
 
+         ! indices within which to search for local max and min
          first = MAX(1,j-spcing)
          last  = MIN(nx,j+spcing)
 
+         ! location of max and min within spacing
          maxj = MAXLOC(eta(first:last))
          minj = MINLOC(eta(first:last))
 
-!         if (COUNT(eta(first:last) == MAXVAL(eta(first:last))) > 1) &
-!                       stop 'more than one max'
-!         if (COUNT(eta(first:last) == MINVAL(eta(first:last))) > 1) &
-!                        stop 'more than one min'
-
+         ! current j is the max or the min, save it
          if (maxj(1)+first-1 == j) is_max(j) = .true.
          if (minj(1)+first-1 == j) is_min(j) = .true.
 
-!         if (is_min(j).and.is_max(j)) then
-!            print *, 'X ',X
-!            print *, 'eta ',eta
-!            print *, 'frst last' ,first, last
-!            print *, 'maxj, minj ',maxj,minj
-!            stop     'error in extrema'
-!         end if
+         ! save whether max or min in one array
          if (is_min(j).or.is_max(j)) is_extremum(j) = .true.
       end do
 
+      ! loop over points
+      ! nothing can happen at the first or last
       do j = 2, nx-1
          if (is_extremum(j)) then
             if (j == 2) then
@@ -641,7 +674,8 @@
                   EXIT
                end if
             end do
-                       
+
+            ! find triplets of max and min                       
             if ((j_neg > 0).and.(j_pos > 0)) then 
                if (is_max(j_neg).and.is_min(j).and.is_max(j_pos)) &
                   is_triplet(j) = .true.
@@ -651,29 +685,48 @@
 
             ! calculate strain
             if (is_triplet(j)) then
+
+               ! finite differences
                delta_pos = X(j_pos) - X(j    )
                delta     = X(j    ) - X(j_neg)
 
-               strain(j) = p5*hbar*(eta(j_neg) - eta(j)) &
-                                  / (delta*(delta+delta_pos))
 
-               if (strain(j) > straincrit) then
-                  frac_size_one(j) = X(j_pos) - X(j    )
-                  frac_size_two(j) = X(j    ) - X(j_neg)
-               end if
-            end if
-         end if
+               ! This equation differs from HT2015 by a factor 2 in numerator
+               ! and eta(j_pos). This is the correct form of the equation.
+       
+               denominator = delta*delta_pos*(delta+delta_pos)
+       
+               if (denominator.ne.c0) &
+                   strain(j) = ABS(hbar*(eta(j_neg)* delta_pos &
+                                - eta(j    )*(delta_pos+delta) &
+                                + eta(j_pos)*           delta) &
+                                / denominator)
 
-      end do
+            end if ! is triplet
+         end if ! is extremum
+
+      end do ! loop over j
 
       n_above = COUNT(strain > straincrit)
-      if (n_above > 0) then
-         fraclengths(1:nx)      = frac_size_one(:)
-         fraclengths(nx+1:2*nx) = frac_size_two(:)
-         e_stop = .false.
-      else
-         e_stop = .true.
-      end if
+      fracdistances(:) = c0
+
+      ! only do if we have some strains exceeding strain crit
+      if (n_above>0) then
+
+          k = 0
+          do j = 1, nx
+            if (strain(j) > straincrit) then
+              k = k + 1
+              fracdistances(k) = X(j)
+            end if
+          end do
+
+          do j = 1, n_above-1
+              fraclengths(j) = fracdistances(j+1) - fracdistances(j)
+          end do
+
+
+      end if ! n_above
 
       end subroutine get_fraclengths
 
