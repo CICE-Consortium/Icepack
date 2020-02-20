@@ -32,7 +32,7 @@
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd
-      use icepack_warnings, only: warnstr, icepack_warnings_add
+      use icepack_warnings, only: warnstr, icepack_warnings_add,  icepack_warnings_aborted
       use icepack_fsd
  
       implicit none
@@ -253,7 +253,7 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          wave_spectrum   ! ocean surface wave spectrum as a function of frequency
-	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
+                         ! power spectral density of surface elevation, E(f) (units m^2 s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          trcrn           ! tracer array
@@ -352,23 +352,27 @@
                         floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
-        end if
+ 
+         if (icepack_warnings_aborted(subname)) return
+
+       end if
 
         ! sanity checks
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
 
-        ! remove after testing 
-        if (ANY(fracture_hist.ne.fracture_hist)) &
-            stop 'NaN fracture_hist'
-        if (ANY(fracture_hist.lt.c0)) &
-            stop 'neg fracture_hist'
-        if (ABS(SUM(fracture_hist)-c1).gt.puny) &
-            stop 'not norm fracture_hist'
+            ! remove after testing 
+            if (ANY(fracture_hist.ne.fracture_hist)) &
+              stop 'NaN fracture_hist'
+            if (ANY(fracture_hist.lt.c0)) &
+              stop 'neg fracture_hist'
+            if (ABS(SUM(fracture_hist)-c1).gt.puny) &
+              stop 'not norm fracture_hist'
 
-           ! protect against small numerical errors
+            ! protect against small numerical errors
             call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
-            
+            if (icepack_warnings_aborted(subname)) return
+   
             do n = 1, ncat
               
               afsd_init(:) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
@@ -395,16 +399,19 @@
                   DO WHILE (elapsed_t < dt)
                      nsubt = nsubt + 1
 
-                     ! check in case wave fracture struggles to converge
-                     if (nsubt>100) print *, &
-                              'wave frac taking a while to converge....'
-
                      ! if all floes in smallest category already, exit
                      if (afsd_tmp(1).ge.c1-puny) EXIT 
 
                      ! calculate d_afsd using current afstd
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
                      
+                     ! check in case wave fracture struggles to converge
+                     if (nsubt>100) then
+                        write(warnstr,*) subname, &
+                          'warning: step_wavefracture struggling to converge'
+                        call icepack_warnings_add(warnstr)
+                     endif
+
                      ! required timestep
                      subdt = get_subdt_fsd(nfsd, afsd_tmp, d_afsd_tmp)
                      subdt = MIN(subdt, dt)
@@ -418,7 +425,7 @@
                         call icepack_warnings_add(warnstr)
                      endif
                      if (MAXVAL(afsd_tmp) > c1+puny) then
-                         write(warnstr,*) subname, 'wb, >1 loop'
+                        write(warnstr,*) subname, 'wb, >1 loop'
                         call icepack_warnings_add(warnstr)
                      endif
 
@@ -454,7 +461,9 @@
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp
                   call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
- 
+                  
+                  if (icepack_warnings_aborted(subname)) return
+
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
                   d_afsd_wave (:)   = d_afsd_wave(:) + aicen(n)*d_afsdn_wave(:,n)
@@ -542,6 +551,9 @@
          frachistogram, & ! histogram
          prev_frac_local  ! previous histogram
 
+      character(len=*),parameter :: &
+         subname='(wave_frac)'
+
 
       loop_max_iter = max_no_iter
       if (.NOT. run_to_convergence) loop_max_iter = 1
@@ -557,7 +569,7 @@
       ! spectral coefficients
       spec_coeff = sqrt(c2*spec_efreq*dwavefreq) 
 
-      ! initialize fraclengths
+      ! initialize frac lengths
       fraclengths(:) = c0
       prev_frac_local(:) = c0
       fracerror = bignum
@@ -570,6 +582,7 @@
          ! See documentation for discussion
          if (run_to_convergence) then
              call RANDOM_NUMBER(rand_array)
+             if (icepack_warnings_aborted(subname)) return
          else
              rand_array(:) = p5
          endif
@@ -584,6 +597,7 @@
          fraclengths(:) = c0 
          if ((SUM(ABS(eta)) > puny).and.(hbar > puny)) then 
             call get_fraclengths(X, eta, fraclengths, hbar)
+            if (icepack_warnings_aborted(subname)) return
          end if
 
          ! convert from diameter to radii
@@ -627,11 +641,10 @@
              if (fracerror.lt.errortol) EXIT
 
              if (iter.gt.100) then
-               print *, 'fracerror ',fracerror
-               print *, 'before ',prev_frac_local
-               print *, 'after ',frac_local
-               stop 'wave_frac did not converge'
-             end if
+                 write(warnstr,*) subname, &
+                   'warning: wave_frac struggling to converge'
+                 call icepack_warnings_add(warnstr)
+             endif
 
              ! save histogram for next iteration
              prev_frac_local = frac_local
@@ -665,7 +678,7 @@
 
       real (kind=dbl_kind), intent(inout), dimension (nx) :: &
          fraclengths      ! The distances between fracture points
-                          ! Size cannot be greater than nx
+                          ! Size cannot be greater than nx.
                           ! In practice, will be much less
 
       ! local variables
@@ -687,6 +700,7 @@
          is_triplet       ! or triplet of extrema
 
       real (kind=dbl_kind) :: &
+         denominator,   & ! denominator in strain equation
          delta,         & ! difference in x between current and prev extrema
          delta_pos        ! difference in x between next and current extrema
 
@@ -764,13 +778,16 @@
                delta_pos = X(j_pos) - X(j    )
                delta     = X(j    ) - X(j_neg)
 
-
-               ! NB differs from HT2015 - factor 2 in numerator
-               ! and eta(j_pos)
-               strain(j) = ABS(hbar*(eta(j_neg)* delta_pos &
+               ! This equation differs from HT2015 by a factor 2 in numerator
+               ! and eta(j_pos). This is the correct form of the equation.
+       
+               denominator = delta*delta_pos*(delta+delta_pos)
+       
+               if (denominator.ne.c0) &
+                   strain(j) = ABS(hbar*(eta(j_neg)* delta_pos &
                                 - eta(j    )*(delta_pos+delta) &
                                 + eta(j_pos)*           delta) &
-                                / (delta*delta_pos*(delta+delta_pos)))
+                                / denominator)
 
             end if ! is triplet
          end if ! is extremum

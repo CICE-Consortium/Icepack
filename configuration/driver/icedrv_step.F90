@@ -577,8 +577,7 @@
 
       do i = 1, nx
            d_afsd_wave(i,:) = c0
-           call icepack_step_wavefracture (wave_spec_type=wave_spec_type, &
-                        wave_solver = wave_solver, &
+           call icepack_step_wavefracture (wave_solver = wave_solver, &
                         dt=dt, ncat=ncat, nfsd=nfsd, nfreq=nfreq, &
                         aice          = aice         (i),      &
                         vice          = vice         (i),      &
