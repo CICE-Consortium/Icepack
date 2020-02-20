@@ -63,8 +63,8 @@
          floe_area_binwidth    ! floe area bin width (m^2)
 
       integer(kind=int_kind), dimension(:,:), allocatable, public ::  &
-         iweld			! floe size categories that can combine
-	 			! during welding (dimensionless)
+         iweld                 ! floe size categories that can combine
+                               ! during welding (dimensionless)
 
 !=======================================================================
 
@@ -324,10 +324,14 @@
       integer (kind=int_kind) :: &
          n                  ! thickness category index
 
+      character(len=*), parameter :: subname='(icepack_cleanup_fsd)'
+
+
       if (tr_fsd) then
 
          do n = 1, ncat
             call icepack_cleanup_fsdn(nfsd, afsdn(:,n))
+            if (icepack_warnings_aborted(subname)) return
          enddo
 
       endif ! tr_fsd
@@ -546,6 +550,7 @@
                            aicen,      vicen,     &
                            afsdn,      lead_area, &
                            latsurf_area)
+      if (icepack_warnings_aborted(subname)) return
 
       vi0new_lat = c0
       if (latsurf_area > puny) then
@@ -719,6 +724,7 @@
          END DO
 
          call icepack_cleanup_fsdn (nfsd, afsdn_latg(:,n))
+         if (icepack_warnings_aborted(subname)) return
          trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsdn_latg(:,n)
 
       end if ! lat growth
@@ -733,11 +739,13 @@
             if (SUM(afsdn_latg(:,n)) > puny) then ! fsd exists
 
                if (wave_spec) then
-                  if (wave_sig_ht > puny) &
+                  if (wave_sig_ht > puny) then
                      call wave_dep_growth (nfsd, wave_spectrum, &
                                            wavefreq, dwavefreq, &
                                            new_size)
-               
+                     if (icepack_warnings_aborted(subname)) return
+                  end if
+
                   ! grow in new_size category
                   afsd_ni(new_size) = (afsdn_latg(new_size,n)*area2(n) + ai0new) &
                                                           / (area2(n) + ai0new)
@@ -759,10 +767,13 @@
             else ! no fsd, so entirely new ice
 
                if (wave_spec) then
-                  if (wave_sig_ht > puny) &
+                  if (wave_sig_ht > puny) then
                      call wave_dep_growth (nfsd, wave_spectrum, &
                                            wavefreq, dwavefreq, &
                                            new_size)
+                     if (icepack_warnings_aborted(subname)) return
+                  end if
+
                   afsd_ni(new_size) = c1
                else
                   afsd_ni(1) = c1
@@ -772,7 +783,7 @@
 
             trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_ni(:)
             call icepack_cleanup_fsdn (nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,n))
-
+            if (icepack_warnings_aborted(subname)) return
          endif ! d_an_newi > puny
       endif    ! n = 1
 
@@ -808,9 +819,9 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          local_wave_spec ! ocean surface wave spectrum as a function of frequency
-	 		 ! power spectral density of surface elevation, E(f) (units m^2 s)
-	 		 ! dimension set in ice_forcing
-	 		
+                         ! power spectral density of surface elevation, E(f) (units m^2 s)
+                         ! dimension set in ice_forcing
+
       real(kind=dbl_kind), dimension(:), intent(in) :: &
          wavefreq,     & ! wave frequencies (s^-1)
          dwavefreq       ! wave frequency bin widths (s^-1)
@@ -821,7 +832,7 @@
       ! local variables
       real (kind=dbl_kind), parameter :: &
          tensile_param = 0.167_dbl_kind ! tensile mode parameter (kg m^-1 s^-2)
-	 				! value from Roach, Smith & Dean (2018)
+                                        ! value from Roach, Smith & Dean (2018)
 
       real (kind=dbl_kind)  :: &
          w_amp,       & ! wave amplitude (m)
@@ -919,6 +930,9 @@
          subdt      , & ! subcycling time step for stability (s)
          elapsed_t      ! elapsed subcycling time
 
+      character(len=*), parameter :: subname='(fsd_weld_thermo)'
+
+
       afsdn  (:,:) = c0
       afsd_init(:) = c0
       stability    = c0
@@ -930,6 +944,7 @@
          d_afsdn_weld(:,n) = c0
          afsdn(:,n) = trcrn(nt_fsd:nt_fsd+nfsd-1,n)
          call icepack_cleanup_fsdn (nfsd, afsdn(:,n))
+         if (icepack_warnings_aborted(subname)) return
 
          ! If there is some ice in the lower (nfsd-1) categories
          ! and there is freezing potential
@@ -991,6 +1006,7 @@
             END DO ! time
 
             call icepack_cleanup_fsdn (nfsd, afsdn(:,n))
+            if (icepack_warnings_aborted(subname)) return
 
             do k = 1, nfsd
                afsdn(k,n) = afsd_tmp(k)
