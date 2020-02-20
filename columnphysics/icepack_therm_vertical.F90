@@ -2521,8 +2521,6 @@
                                     HDO_ocn=HDO_ocn,H2_16O_ocn=H2_16O_ocn,    &
                                     H2_18O_ocn=H2_18O_ocn)
 
-              print *,'fiso_evap',fiso_evapn(1),fiso_evapn(2),fiso_evapn(3)
-
             endif
          endif   ! aicen_init
 
