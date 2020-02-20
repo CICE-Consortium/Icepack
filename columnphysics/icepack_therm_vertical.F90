@@ -2503,23 +2503,25 @@
             endif
 
             if (tr_iso) then
-               call update_isotope (dt, &
-                                    nilyr, nslyr, n_iso, &
-                                    melttn(n),     meltsn(n),     &
-                                    meltbn(n),     congeln(n),    &
-                                    snoicen(n),    evapn,         & 
-                                    fsnow,         Tsfc(n),       &
-                                    Qrefn_iso(:),                 &
-                                    isosno(:,:,n), isoice(:,:,n), &
-                                    aicen_init(n), vicen_init(n), &
-                                    vsnon_init(n),                &
-                                    vicen(n),      vsnon(n),      &
-                                    aicen(n),                     &
-                                    fiso_atm(:),                  &
-                                    fiso_evapn(:),                &
-                                    fiso_ocnn(:),                 &
-                                    HDO_ocn,       H2_16O_ocn,    &
-                                    H2_18O_ocn)
+               call update_isotope (dt = dt, &
+                                    nilyr = nilyr, nslyr = nslyr, n_iso = n_iso, &
+                                    meltt = melttn(n),melts = meltsn(n),     &
+                                    meltb = meltbn(n),congel=congeln(n),    &
+                                    snoice=snoicen(n),evap=evapn,         & 
+                                    fsnow=fsnow,      Tsfc=Tsfc(n),       &
+                                    Qref_iso=Qrefn_iso(:),                 &
+                                    isosno=isosno(:,:,n),isoice=isoice(:,:,n), &
+                                    aice_old=aicen_init(n),vice_old=vicen_init(n), &
+                                    vsno_old=vsnon_init(n),                &
+                                    vicen=vicen(n),vsnon=vsnon(n),      &
+                                    aicen=aicen(n),                     &
+                                    fiso_atm=fiso_atm(:),                  &
+                                    fiso_evapn=fiso_evapn(:),                &
+                                    fiso_ocnn=fiso_ocnn(:),                 &
+                                    HDO_ocn=HDO_ocn,H2_16O_ocn=H2_16O_ocn,    &
+                                    H2_18O_ocn=H2_18O_ocn)
+
+              print *,'fiso_evap',fiso_evapn(1),fiso_evapn(2),fiso_evapn(3)
 
             endif
          endif   ! aicen_init

@@ -43,7 +43,7 @@
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
       use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
-      use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
+      use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc 
       use icedrv_restart_shared, only: restart
       use icedrv_init, only: input_data, init_state, init_grid2, init_fsd
       use icedrv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
@@ -143,6 +143,7 @@
       ! if (tr_aero)  call faero_data                   ! data file
       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
       if (tr_aero .or. tr_zaero)  call faero_default    ! default values
+      if (tr_iso)  call fiso_default    ! default values
       if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 
       if (.not. restart) &

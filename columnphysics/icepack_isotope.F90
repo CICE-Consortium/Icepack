@@ -196,6 +196,7 @@
       evaps = hs-(hs_old-melts-dhs_snoice+&
           fsnow/rhos*dt)
       evapi = hi-(hi_old-meltt-meltb+congel+snoice)
+      print *,'evaps,evapi',evaps,evapi,n_iso
 
 ! condensation of vapor onto snow and ice
 
@@ -290,6 +291,7 @@
 !           if (isosno(k,2) < c0) then
 !              write(nu_diag,*) 'Neg isosno(k,2)',isosno(k,2),sloss2
 !           endif
+            print *,'sloss1,sloss2,dzssl,dzint',sloss1,sloss2,dzssl,dzint
             fiso_evapn(k) = fiso_evapn(k)-(sloss1+sloss2)/dt
          enddo
 
@@ -336,6 +338,7 @@
                sloss2 = isoice(k,2)
                isoice(k,2) = c0
             endif
+            print *,'sloss1,sloss2,dzssli,dzinti',sloss1,sloss2,dzssli,dzinti
             fiso_evapn(k) = fiso_evapn(k)-(sloss1+sloss2)/dt
          enddo
 

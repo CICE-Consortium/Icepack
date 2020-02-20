@@ -752,7 +752,7 @@
            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec)
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
-           nfsd_in=nfsd)
+           nfsd_in=nfsd, n_aero_in=n_aero, n_iso_in=n_iso)
       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
            tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
            tr_iso_in=tr_iso, &

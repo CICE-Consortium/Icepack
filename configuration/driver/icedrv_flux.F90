@@ -588,6 +588,7 @@
       fswabs  (:) = c0
       flwout  (:) = c0
       evap    (:) = c0
+      fiso_evap(:,:) = c0        ! isotope evaporation rate (kg/m2/s)
       evaps   (:) = c0
       evapi   (:) = c0
       Tref    (:) = c0

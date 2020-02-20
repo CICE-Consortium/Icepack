@@ -978,7 +978,7 @@
 
       subroutine icepack_init_tracer_sizes(&
          ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in  , &
-         n_algae_in, n_DOC_in, n_aero_in, &
+         n_algae_in, n_DOC_in, n_aero_in, n_iso_in, &
          n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
          ntrcr_in, ntrcr_o_in, nbtrcr_in, nbtrcr_sw_in)
 
@@ -996,6 +996,7 @@
          n_fep_in  , & ! 
          n_zaero_in, & !
          n_aero_in , & !
+         n_iso_in , & !
          ntrcr_in  , & ! number of tracers in use
          ntrcr_o_in, & ! number of non-bio tracers in use
          nbtrcr_in , & ! number of bio tracers in use
@@ -1019,6 +1020,7 @@
         if (present(n_fep_in)    ) n_fep     = n_fep_in
         if (present(n_zaero_in)  ) n_zaero   = n_zaero_in
         if (present(n_aero_in)   ) n_aero    = n_aero_in
+        if (present(n_iso_in)    ) n_iso     = n_iso_in
 
         if (present(ntrcr_in)    ) ntrcr     = ntrcr_in
         if (present(ntrcr_o_in)  ) ntrcr_o   = ntrcr_o_in
@@ -1036,7 +1038,7 @@
          max_don_out    , max_fe_out     , nmodal1_out      , &
          nmodal2_out    , max_aero_out   , max_nbtrcr_out   , &
          ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
-         n_algae_out, n_DOC_out, n_aero_out, &
+         n_algae_out, n_DOC_out, n_aero_out, n_iso_out, &
          n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
          ntrcr_out, ntrcr_o_out, nbtrcr_out, nbtrcr_sw_out)
 
@@ -1065,6 +1067,7 @@
          n_fep_out  , & ! 
          n_zaero_out, & !
          n_aero_out , & !
+         n_iso_out  , & !
          ntrcr_out  , & ! number of tracers in use
          ntrcr_o_out, & ! number of non-bio tracers in use
          nbtrcr_out , & ! number of bio tracers in use
@@ -1098,6 +1101,7 @@
         if (present(n_fep_out)    ) n_fep_out     = n_fep
         if (present(n_zaero_out)  ) n_zaero_out   = n_zaero
         if (present(n_aero_out)   ) n_aero_out    = n_aero
+        if (present(n_iso_out)    ) n_iso_out     = n_iso
 
         if (present(ntrcr_out)    ) ntrcr_out     = ntrcr
         if (present(ntrcr_o_out)  ) ntrcr_o_out   = ntrcr_o
@@ -1128,6 +1132,7 @@
         write(iounit,*) "  nmodal1_out   =", nmodal1
         write(iounit,*) "  nmodal2_out   =", nmodal2
         write(iounit,*) "  max_aero_out  =", max_aero
+        write(iounit,*) "  max_iso_out   =", max_iso
         write(iounit,*) "  max_nbtrcr_out=", max_nbtrcr
 
         write(iounit,*) "  model defined parameters: "
@@ -1144,6 +1149,7 @@
         write(iounit,*) "  n_fep     = ",n_fep
         write(iounit,*) "  n_zaero   = ",n_zaero
         write(iounit,*) "  n_aero    = ",n_aero
+        write(iounit,*) "  n_iso     = ",n_iso
         write(iounit,*) "  ntrcr     = ",ntrcr
         write(iounit,*) "  ntrcr_o   = ",ntrcr_o
         write(iounit,*) "  nbtrcr    = ",nbtrcr
