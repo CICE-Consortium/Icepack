@@ -308,10 +308,8 @@
       if ((trim(wave_solver).eq.'std-conv') &
           .OR.(trim(wave_solver).eq.'mlclass-conv')) run_to_convergence = .true.
 
-
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
-
    
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
@@ -327,10 +325,9 @@
              call spwf_classifier(wave_spectrum, hbar,  &
                               spwf_classifier_out)
 
-
              if (spwf_classifier_out.lt.spwf_clss_crit) run_wave_fracture = .false.
-            
         end if
+ 
         if (trim(wave_solver).eq.'mlfullnet') then
 
              if (run_wave_fracture) then
@@ -339,11 +336,10 @@
 
                  fracture_hist(:) = spwf_fullnet_hist(:)
              end if
+
              run_wave_fracture = .false.
 
-
         end if
-
 
         if (run_wave_fracture) then
  
@@ -355,7 +351,7 @@
  
          if (icepack_warnings_aborted(subname)) return
 
-       end if
+        end if
 
         ! sanity checks
         ! if fracture occurs, evolve FSD with adaptive subtimestep
@@ -408,7 +404,7 @@
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
                         write(warnstr,*) subname, &
-                          'warning: step_wavefracture struggling to converge'
+                     'warning: step_wavefracture struggling to converge'
                         call icepack_warnings_add(warnstr)
                      endif
 
@@ -455,8 +451,6 @@
                      end if
                   end do
                   end if
-
-                  if (ALL(afsd_tmp.lt.puny)) print *, aicen(n),'fsd ',afsd_tmp
 
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp
@@ -885,22 +879,13 @@
 
       real (kind=dbl_kind), dimension(26) :: input
 
-      real (kind=dbl_kind), dimension(13002)   :: filelist
- 
-      real (kind=dbl_kind), dimension(26,100)  :: class_weight1
-      real (kind=dbl_kind), dimension(100)     :: class_weight2
-      real (kind=dbl_kind), dimension(100,100) :: class_weight3
-      real (kind=dbl_kind), dimension(100)     :: class_weight4
-      real (kind=dbl_kind), dimension(100,2)   :: class_weight5
-      real (kind=dbl_kind), dimension(2)       :: class_weight6
-
       real (kind=dbl_kind), dimension(100)    :: y1, y2
       real (kind=dbl_kind), dimension(2)     :: y3
 
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
 
-
+ 
       y1 = MATMUL(input,class_weight1) + class_weight2
       WHERE (y1 < c0) y1 = c0
 
