@@ -690,6 +690,7 @@
          write(nu_diag,1020) 'nslyr   = ', nslyr
          write(nu_diag,1020) 'nblyr   = ', nblyr
          write(nu_diag,1020) 'nfsd    = ', nfsd
+         write(nu_diag,1020) 'n_aero  = ', n_aero
          write(nu_diag,*)' '
          write(nu_diag,1020) 'nx      = ', nx
          write(nu_diag,*)' '
