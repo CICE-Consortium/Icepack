@@ -45,7 +45,7 @@
       use icepack_itd, only: reduce_area, cleanup_itd
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
-!FIX      use icepack_isotope, only: isoice_alpha, frac
+      use icepack_isotope, only: isoice_alpha, frac
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
       use icepack_therm_shared, only: hfrazilmin
       use icepack_therm_shared, only: hi_min
@@ -1701,12 +1701,12 @@
            frazil_conc = c0
            if (tr_iso .and. vtmp > puny) then
              do it=1,n_iso
-!FIX               if (it==1)   &
-!                  frazil_conc = isoice_alpha(c0,'HDO'   ,frac)*HDO_ocn
-!               if (it==2)   &
-!                  frazil_conc = isoice_alpha(c0,'H2_16O',frac)*H2_16O_ocn
-!               if (it==3)   &
-!                  frazil_conc = isoice_alpha(c0,'H2_18O',frac)*H2_18O_ocn
+               if (it==1)   &
+                  frazil_conc = isoice_alpha(c0,'HDO'   ,frac)*HDO_ocn
+               if (it==2)   &
+                  frazil_conc = isoice_alpha(c0,'H2_16O',frac)*H2_16O_ocn
+               if (it==3)   &
+                  frazil_conc = isoice_alpha(c0,'H2_18O',frac)*H2_18O_ocn
 
                ! dilution and uptake in the ice
                trcrn(nt_isoice+it-1,n)  &
@@ -1823,12 +1823,12 @@
            frazil_conc = c0
            if (tr_iso) then
               do it=1,n_iso
-!FIX               if (it==1)   &
-!                  frazil_conc = isoice_alpha(c0,'HDO'   ,frac)*HDO_ocn
-!               if (it==2)   &
-!                  frazil_conc = isoice_alpha(c0,'H2_16O',frac)*H2_16O_ocn
-!               if (it==3)   &
-!                  frazil_conc = isoice_alpha(c0,'H2_18O',frac)*H2_18O_ocn
+               if (it==1)   &
+                  frazil_conc = isoice_alpha(c0,'HDO'   ,frac)*HDO_ocn
+               if (it==2)   &
+                  frazil_conc = isoice_alpha(c0,'H2_16O',frac)*H2_16O_ocn
+               if (it==3)   &
+                  frazil_conc = isoice_alpha(c0,'H2_18O',frac)*H2_18O_ocn
 
                 trcrn(nt_isoice+it-1,1) &
                   = (trcrn(nt_isoice+it-1,1)*vice1) &

@@ -47,7 +47,7 @@
       use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
 
       use icepack_aerosol, only: update_aerosol
-!FIX      use icepack_isotope, only: update_isotope
+      use icepack_isotope, only: update_isotope
       use icepack_atmo, only: neutral_drag_coeffs, icepack_atm_boundary
       use icepack_age, only: increment_age
       use icepack_firstyear, only: update_FYarea
@@ -2504,23 +2504,23 @@
             endif
 
             if (tr_iso) then
-!FIX               call update_isotope (dt = dt, &
-!                                    nilyr = nilyr, nslyr = nslyr, n_iso = n_iso, &
-!                                    meltt = melttn(n),melts = meltsn(n),     &
-!                                    meltb = meltbn(n),congel=congeln(n),    &
-!                                    snoice=snoicen(n),evap=evapn,         & 
-!                                    fsnow=fsnow,      Tsfc=Tsfc(n),       &
-!                                    Qref_iso=Qrefn_iso(:),                 &
-!                                    isosno=isosno(:,n),isoice=isoice(:,n), &
-!                                    aice_old=aicen_init(n),vice_old=vicen_init(n), &
-!                                    vsno_old=vsnon_init(n),                &
-!                                    vicen=vicen(n),vsnon=vsnon(n),      &
-!                                    aicen=aicen(n),                     &
-!                                    fiso_atm=fiso_atm(:),                  &
-!                                    fiso_evapn=fiso_evapn(:),                &
-!                                    fiso_ocnn=fiso_ocnn(:),                 &
-!                                    HDO_ocn=HDO_ocn,H2_16O_ocn=H2_16O_ocn,    &
-!                                    H2_18O_ocn=H2_18O_ocn)
+               call update_isotope (dt = dt, &
+                                    nilyr = nilyr, nslyr = nslyr, n_iso = n_iso, &
+                                    meltt = melttn(n),melts = meltsn(n),     &
+                                    meltb = meltbn(n),congel=congeln(n),    &
+                                    snoice=snoicen(n),evap=evapn,         & 
+                                    fsnow=fsnow,      Tsfc=Tsfc(n),       &
+                                    Qref_iso=Qrefn_iso(:),                 &
+                                    isosno=isosno(:,n),isoice=isoice(:,n), &
+                                    aice_old=aicen_init(n),vice_old=vicen_init(n), &
+                                    vsno_old=vsnon_init(n),                &
+                                    vicen=vicen(n),vsnon=vsnon(n),      &
+                                    aicen=aicen(n),                     &
+                                    fiso_atm=fiso_atm(:),                  &
+                                    fiso_evapn=fiso_evapn(:),                &
+                                    fiso_ocnn=fiso_ocnn(:),                 &
+                                    HDO_ocn=HDO_ocn,H2_16O_ocn=H2_16O_ocn,    &
+                                    H2_18O_ocn=H2_18O_ocn)
             endif
          endif   ! aicen_init
 
