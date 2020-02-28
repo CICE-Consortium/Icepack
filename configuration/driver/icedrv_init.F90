@@ -663,10 +663,10 @@
          nt_isosno = max_ntrcr
          nt_isoice = max_ntrcr
          if (tr_iso) then             ! isotopes
+             nt_isosno = ntrcr + 1
              ntrcr = ntrcr + n_iso    ! n_iso species in snow
-             nt_isosno = ntrcr
+             nt_isoice = ntrcr + 1
              ntrcr = ntrcr + n_iso    ! n_iso species in ice
-             nt_isoice = ntrcr
          end if
 
          nt_aero = max_ntrcr - 4*n_aero
