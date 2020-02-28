@@ -30,12 +30,12 @@
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
-      use icepack_tracers, only: nt_apnd, nt_hpnd, nt_aero
+      use icepack_tracers, only: nt_apnd, nt_hpnd, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_fsd
       use icepack_tracers, only: nt_alvl, nt_vlvl
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine, tr_fsd
-      use icepack_tracers, only: n_aero
+      use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_iso, tr_brine, tr_fsd
+      use icepack_tracers, only: n_aero, n_iso
       use icepack_tracers, only: bio_index
 
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -45,6 +45,7 @@
       use icepack_itd, only: reduce_area, cleanup_itd
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
+!FIX      use icepack_isotope, only: isoice_alpha, frac
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
       use icepack_therm_shared, only: hfrazilmin
       use icepack_therm_shared, only: hi_min
@@ -853,9 +854,11 @@
 !
       subroutine lateral_melt (dt,         ncat,       &
                                nilyr,      nslyr,      &
-                               n_aero,     fpond,      &
+                               n_aero,     n_iso,      &
+                               fpond,      &
                                fresh,      fsalt,      &
                                fhocn,      faero_ocn,  &
+                               fiso_ocn,               &
                                rside,      meltl,      &
                                fside,      sss,        &
                                aicen,      vicen,      &
@@ -875,6 +878,7 @@
          nblyr   , & ! number of bio layers
          nslyr   , & ! number of snow layers
          n_aero  , & ! number of aerosol tracers
+         n_iso  , & ! number of isotope tracers
          nbtrcr      ! number of bio tracers
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
@@ -910,6 +914,9 @@
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          faero_ocn     ! aerosol flux to ocean (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         fiso_ocn     ! isotope flux to ocean (kg/m^2/s)
 
       ! local variables
 
@@ -1167,6 +1174,15 @@
                enddo ! k
             endif    ! tr_aero
 
+            if (tr_iso) then
+               do k = 1, n_iso
+                  fiso_ocn(k) = fiso_ocn(k) &
+                              + (vsnon(n)*trcrn(nt_isosno+k-1,n) &
+                              +  vicen(n)*trcrn(nt_isoice+k-1,n)) &
+                              * rside / dt
+               enddo ! k
+            endif    ! tr_iso
+
       !-----------------------------------------------------------------
       ! Biogeochemistry
       !-----------------------------------------------------------------     
@@ -1234,7 +1250,7 @@
 !
       subroutine add_new_ice (ncat,      nilyr,      &
                               nfsd,      nblyr,      &
-                              n_aero,    dt,         &
+                              n_aero,    n_iso, dt,  &
                               ntrcr,     nltrcr,     &
                               hin_max,   ktherm,     &
                               aicen,     trcrn,      &
@@ -1251,6 +1267,9 @@
                               nbtrcr,    flux_bio,   &
                               ocean_bio, fzsal,      &
                               frazil_diag,           &
+                              fiso_ocn,              &
+                              HDO_ocn, H2_16O_ocn,   &
+                              H2_18O_ocn,            &
                               wave_sig_ht,           &
                               wave_spectrum,         &
                               wavefreq,              &
@@ -1269,6 +1288,7 @@
          ntrcr , & ! number of tracers
          nltrcr, & ! number of zbgc tracers
          n_aero, & ! number of aerosol tracers
+         n_iso, & ! number of isotope tracers
          ktherm    ! type of thermodynamics (0 0-layer, 1 BL99, 2 mushy)
 
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
@@ -1336,6 +1356,16 @@
       real (kind=dbl_kind),  intent(inout) :: &
          fzsal      ! salt flux to ocean from zsalinity (kg/m^2/s)
 
+      ! water isotopes
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
+
+      real (kind=dbl_kind), intent(in) :: &
+         HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
+         H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
+         H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
+
       ! floe size distribution
       real (kind=dbl_kind), intent(in) :: &
          wave_sig_ht    ! significant height of waves globally (m)
@@ -1391,6 +1421,8 @@
          vice1        , & ! starting volume of existing ice
          vice_init, vice_final, & ! ice volume summed over categories
          eice_init, eice_final    ! ice energy summed over categories
+
+      real (kind=dbl_kind) :: frazil_conc
 
       real (kind=dbl_kind), dimension (nilyr) :: &
          Sprofile         ! salinity profile used for new ice additions
@@ -1666,6 +1698,27 @@
                enddo
             endif
 
+           frazil_conc = c0
+           if (tr_iso .and. vtmp > puny) then
+             do it=1,n_iso
+!FIX               if (it==1)   &
+!                  frazil_conc = isoice_alpha(c0,'HDO'   ,frac)*HDO_ocn
+!               if (it==2)   &
+!                  frazil_conc = isoice_alpha(c0,'H2_16O',frac)*H2_16O_ocn
+!               if (it==3)   &
+!                  frazil_conc = isoice_alpha(c0,'H2_18O',frac)*H2_18O_ocn
+
+               ! dilution and uptake in the ice
+               trcrn(nt_isoice+it-1,n)  &
+                   = (trcrn(nt_isoice+it-1,n)*vicen(n) &
+                   + frazil_conc*rhoi*vsurp) &
+                   / vtmp
+
+               fiso_ocn(it) = fiso_ocn(it) &
+                            - frazil_conc*rhoi*vsurp/dt
+             enddo
+            endif
+
             ! update category volumes
             vicen(n) = vtmp
 
@@ -1766,6 +1819,25 @@
                   trcrn(nt_aero+3+4*(it-1),n)*vice1/vicen(n)
                enddo
             endif
+
+           frazil_conc = c0
+           if (tr_iso) then
+              do it=1,n_iso
+!FIX               if (it==1)   &
+!                  frazil_conc = isoice_alpha(c0,'HDO'   ,frac)*HDO_ocn
+!               if (it==2)   &
+!                  frazil_conc = isoice_alpha(c0,'H2_16O',frac)*H2_16O_ocn
+!               if (it==3)   &
+!                  frazil_conc = isoice_alpha(c0,'H2_18O',frac)*H2_18O_ocn
+
+                trcrn(nt_isoice+it-1,1) &
+                  = (trcrn(nt_isoice+it-1,1)*vice1) &
+                  + frazil_conc*rhoi*vi0new/vicen(1)
+
+                fiso_ocn(it) = fiso_ocn(it) &
+                             - frazil_conc*rhoi*vi0new/dt
+              enddo
+           endif
 
             if (tr_lvl) then
                 alvl = trcrn(nt_alvl,n)
@@ -1880,6 +1952,8 @@
                                      flux_bio,     ocean_bio,     &
                                      frazil_diag,                 &
                                      frz_onset,    yday,          &
+                                     fiso_ocn,     HDO_ocn,       &
+                                     H2_16O_ocn,   H2_18O_ocn,    &
                                      nfsd,         wave_sig_ht,   &
                                      wave_spectrum,               &
                                      wavefreq,                    &
@@ -1987,6 +2061,14 @@
       real (kind=dbl_kind), intent(in), optional :: &
          yday         ! day of year
 
+      ! water isotopes
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
+
+      real (kind=dbl_kind), intent(in) :: &
+         HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
+         H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
+         H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_step_therm2)'
@@ -2051,7 +2133,7 @@
 
          call add_new_ice (ncat,          nilyr,        &
                            nfsd,          nblyr,        &
-                           n_aero,        dt,           &
+                           n_aero,        n_iso, dt,    &
                            ntrcr,         nltrcr,       &
                            hin_max,       ktherm,       &
                            aicen,         trcrn,        &
@@ -2067,12 +2149,15 @@
                            cgrid,         igrid,        &
                            nbtrcr,        flux_bio,     &
                            ocean_bio,     fzsal,        &
-                           frazil_diag,                 &
+                           frazil_diag,   fiso_ocn,     &
+                           HDO_ocn,       H2_16O_ocn,   &
+                           H2_18O_ocn,                  &
                            wave_sig_ht,                 &
                            wave_spectrum,               &
                            wavefreq,      dwavefreq,    &
                            d_afsd_latg,   d_afsd_newi,  &
                            floe_rad_c, floe_binwidth)
+
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -2081,9 +2166,11 @@
 
       call lateral_melt (dt,        ncat,          &
                          nilyr,     nslyr,         &
-                         n_aero,    fpond,         &
+                         n_aero,    n_iso,         &
+                         fpond,         &
                          fresh,     fsalt,         &
                          fhocn,     faero_ocn,     &
+                         fiso_ocn,                 &
                          rside,     meltl,         &
                          fside,     sss,           &
                          aicen,     vicen,         &
@@ -2126,17 +2213,17 @@
                         aicen,                trcrn(1:ntrcr,:), &
                         vicen,                vsnon,            &
                         aice0,                aice,             & 
-                        n_aero,                                 &
+                        n_aero,               n_iso,            &
                         nbtrcr,               nblyr,            &
-                        tr_aero,                                &
+                        tr_aero,              tr_iso,           &
                         tr_pond_topo,         heat_capacity,    &
                         first_ice,                              &
                         trcr_depend,          trcr_base,        &
                         n_trcr_strata,        nt_strata,        &
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
-                        faero_ocn,            fzsal,            &
-                        flux_bio)   
+                        faero_ocn,            fiso_ocn,         &
+                        fzsal,                flux_bio)   
       if (icepack_warnings_aborted(subname)) return
 
       end subroutine icepack_step_therm2

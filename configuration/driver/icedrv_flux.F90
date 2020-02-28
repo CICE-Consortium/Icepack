@@ -12,7 +12,8 @@
       use icedrv_domain_size, only: ncat, nilyr, nx
       use icedrv_constants, only: c0, c1, c5, c10, c20, c180
       use icedrv_constants, only: nu_diag
-      use icepack_intfc, only: icepack_max_aero, icepack_max_nbtrcr, icepack_max_fe
+      use icepack_intfc, only: icepack_max_iso, icepack_max_aero
+      use icepack_intfc, only: icepack_max_nbtrcr, icepack_max_fe
       use icepack_intfc, only: icepack_max_algae, icepack_max_doc, icepack_max_don
       use icepack_intfc, only: icepack_max_dic
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -129,8 +130,11 @@
          qdp     , & ! deep ocean heat flux (W/m^2), negative upward
          hmix        ! mixed layer depth (m)
 
-       ! out to atmosphere (if calc_Tsfc)
-       ! note Tsfc is in ice_state.F
+      ! water isotopes
+      real (kind=dbl_kind), dimension (nx), public :: &
+         HDO_ocn    , & ! seawater concentration of HDO (kg/kg)
+         H2_16O_ocn , & ! seawater concentration of H2_16O (kg/kg)
+         H2_18O_ocn     ! seawater concentration of H2_18O (kg/kg)
 
       real (kind=dbl_kind), dimension (nx), public :: &
          fsens   , & ! sensible heat flux (W/m^2)
@@ -175,6 +179,10 @@
          fsalt   , & ! salt flux to ocean (kg/m^2/s)
          fhocn   , & ! net heat flux to ocean (W/m^2)
          fswthru     ! shortwave penetrating to ocean (W/m^2)
+
+      real (kind=dbl_kind), dimension (nx,icepack_max_iso), public :: &
+         Qa_iso      , & ! isotope specific humidity (kg/kg)
+         Qref_iso        ! 2m atm reference isotope spec humidity (kg/kg)
 
        ! internal
 
@@ -282,9 +290,14 @@
 
       ! in from atmosphere
 
-      real (kind=dbl_kind), &   !coupling variable for both tr_aero and tr_zaero
+      real (kind=dbl_kind), &   ! coupling variable for both tr_aero and tr_zaero
          dimension (nx,icepack_max_aero), public :: &
          faero_atm   ! aerosol deposition rate (kg/m^2 s)   
+
+      real (kind=dbl_kind), &   ! coupling variable for tr_iso
+         dimension (nx,icepack_max_iso), public :: &
+         fiso_atm  , & ! isotope deposition rate (kg/m^2 s)   
+         fiso_evap     ! isotope evaporation rate (kg/m^2 s)   
 
       real (kind=dbl_kind), &
          dimension (nx,icepack_max_nbtrcr), public :: &
@@ -295,6 +308,10 @@
       real (kind=dbl_kind), &
          dimension (nx,icepack_max_aero), public :: &
          faero_ocn   ! aerosol flux to ocean  (kg/m^2/s)
+
+      real (kind=dbl_kind), &
+         dimension (nx,icepack_max_iso), public :: &
+         fiso_ocn    ! isotope flux to ocean  (kg/m^2/s)
 
       ! out to ocean 
 
@@ -459,6 +476,8 @@
          fsensn_f   (:,:) =  c0           ! sensible heat flux (W/m^2)
       endif !     l_winter
 
+      fiso_atm     (:,:) = c0        ! isotope deposition rate (kg/m2/s)
+      fiso_evap    (:,:) = c0        ! isotope evaporation rate (kg/m2/s)
       faero_atm    (:,:) = c0        ! aerosol deposition rate (kg/m2/s)
       flux_bio_atm (:,:) = c0        ! zaero and bio deposition rate (kg/m2/s)
 
@@ -472,6 +491,11 @@
       sss    (:) = 34.0_dbl_kind   ! sea surface salinity (ppt)
       sst    (:) = -1.8_dbl_kind   ! sea surface temperature (C)
       sstdat (:) = sst(:)          ! sea surface temperature (C)
+
+      ! water isotopes from ocean
+      HDO_ocn   (:) = c0
+      H2_16O_ocn(:) = c0
+      H2_18O_ocn(:) = c0
 
       do i = 1, nx
          Tf (i) = icepack_liquidus_temperature(sss(i)) ! freezing temp (C)
@@ -570,6 +594,7 @@
       Tref    (:) = c0
       Qref    (:) = c0
       Uref    (:) = c0
+      fiso_evap(:,:) = c0   ! isotope evaporation rate (kg/m2/s)
 
       !-----------------------------------------------------------------
       ! fluxes sent to ocean
@@ -579,6 +604,7 @@
       fsalt    (:)   = c0
       fhocn    (:)   = c0
       fswthru  (:)   = c0
+      fiso_ocn (:,:) = c0
       faero_ocn(:,:) = c0
 
       end subroutine init_flux_atm_ocn

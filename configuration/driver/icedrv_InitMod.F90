@@ -43,7 +43,7 @@
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
       use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
-      use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
+      use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc 
       use icedrv_restart_shared, only: restart
       use icedrv_init, only: input_data, init_state, init_grid2, init_fsd
       use icedrv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
@@ -53,6 +53,7 @@
          skl_bgc, &    ! from icepack
          z_tracers, &  ! from icepack
          tr_aero, &    ! from icepack
+         tr_iso, &     ! from icepack
          tr_zaero, &   ! from icepack
          tr_fsd, wave_spec
 
@@ -127,6 +128,7 @@
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_parameters(wave_spec_out=wave_spec)
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
+      call icepack_query_tracer_flags(tr_iso_out=tr_iso)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -138,6 +140,7 @@
       call get_forcing(istep1)       ! get forcing from data arrays
 
       ! aerosols
+      if (tr_iso)     call fiso_default                 ! default values
       ! if (tr_aero)  call faero_data                   ! data file
       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
       if (tr_aero .or. tr_zaero)  call faero_default    ! default values

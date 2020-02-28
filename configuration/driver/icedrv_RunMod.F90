@@ -33,11 +33,11 @@
 
       use icedrv_calendar, only: istep, istep1, time, dt, stop_now, calendar
       use icedrv_forcing, only: get_forcing, get_wave_spec
-      use icedrv_forcing_bgc, only: faero_default, get_forcing_bgc
+      use icedrv_forcing_bgc, only: faero_default, fiso_default, get_forcing_bgc
       use icedrv_flux, only: init_flux_atm_ocn
 
       logical (kind=log_kind) :: skl_bgc, z_tracers, tr_aero, tr_zaero, &
-                                 wave_spec, tr_fsd
+                                 wave_spec, tr_fsd, tr_iso
 
       character(len=*), parameter :: subname='(icedrv_run)'
 
@@ -46,7 +46,7 @@
    !--------------------------------------------------------------------
 
       call icepack_query_tracer_flags(tr_aero_out=tr_aero, tr_zaero_out=tr_zaero, &
-                                      tr_fsd_out=tr_fsd)
+                                      tr_fsd_out=tr_fsd, tr_iso_out=tr_iso)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -72,9 +72,9 @@
          if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
          call get_forcing(istep1)  ! get forcing from data arrays
 
-         ! aerosols
+         ! biogeochemistry forcing
+         if (tr_iso)                 call fiso_default     ! default values
          if (tr_aero .or. tr_zaero)  call faero_default    ! default values
-
          if (skl_bgc .or. z_tracers) call get_forcing_bgc  ! biogeochemistry
 
          call init_flux_atm_ocn ! initialize atmosphere, ocean fluxes
