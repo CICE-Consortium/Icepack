@@ -23,6 +23,7 @@
           write_restart_pond_cesm, read_restart_pond_cesm, & 
           write_restart_pond_lvl,  read_restart_pond_lvl, &
           write_restart_fsd,       read_restart_fsd, &
+          write_restart_iso,       read_restart_iso, &
           write_restart_aero,      read_restart_aero
 
       public :: dumpfile, restartfile, final_restart, &
@@ -61,7 +62,7 @@
          nt_Tsfc, nt_sice, nt_qice, nt_qsno
 
       logical (kind=log_kind) :: &
-         tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine, &
+         tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
          tr_pond_topo, tr_pond_cesm, tr_pond_lvl, tr_fsd
 !         solve_zsal, skl_bgc, z_tracers
 
@@ -79,7 +80,8 @@
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
            nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+           tr_brine_out=tr_brine, &
            tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
            tr_pond_lvl_out=tr_pond_lvl,tr_fsd_out=tr_fsd)
 !      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
@@ -136,7 +138,8 @@
       if (tr_pond_cesm) call write_restart_pond_cesm() ! CESM melt ponds
       if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
       if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
-      if (tr_aero)      call write_restart_aero()      ! ice aerosol
+      if (tr_iso)       call write_restart_iso()       ! ice isotopes
+      if (tr_aero)      call write_restart_aero()      ! ice aerosols
       if (tr_brine)     call write_restart_hbrine()    ! brine height
       if (tr_fsd)       call write_restart_fsd()       ! floe size distribution
 ! called in icedrv_RunMod.F90 to prevent circular dependencies
@@ -175,7 +178,7 @@
          nt_Tsfc, nt_sice, nt_qice, nt_qsno
 
       logical (kind=log_kind) :: &
-         tr_iage, tr_FY, tr_lvl, tr_aero, tr_brine, &
+         tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
          tr_pond_topo, tr_pond_cesm, tr_pond_lvl, tr_fsd
 
       character(len=char_len_long) :: filename
@@ -196,7 +199,8 @@
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
            nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_brine_out=tr_brine, &
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+           tr_brine_out=tr_brine, &
            tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
            tr_pond_lvl_out=tr_pond_lvl,tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
@@ -261,7 +265,8 @@
       if (tr_pond_cesm) call read_restart_pond_cesm() ! CESM melt ponds
       if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
       if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
-      if (tr_aero)      call read_restart_aero()      ! ice aerosol
+      if (tr_iso)       call read_restart_iso()       ! ice isotopes
+      if (tr_aero)      call read_restart_aero()      ! ice aerosols
       if (tr_brine)     call read_restart_hbrine      ! brine height
       if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
       !-----------------------------------------------------------------
@@ -834,6 +839,80 @@
       enddo
 
       end subroutine read_restart_aero
+
+!=======================================================================
+
+! Dumps all values needed for restarting
+!
+! authors Elizabeth Hunke, LANL
+!         David Bailey, NCAR
+!         Marika Holland, NCAR
+
+      subroutine write_restart_iso()
+
+      use icedrv_domain_size, only: n_iso
+      use icedrv_state, only: trcrn
+      use icedrv_domain_size, only: ncat
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         k                    ! loop indices
+      integer (kind=int_kind) :: nt_isosno, nt_isoice
+      character(len=*), parameter :: subname='(write_restart_iso)'
+    
+      call icepack_query_tracer_indices(nt_isosno_out=nt_isosno)
+      call icepack_query_tracer_indices(nt_isoice_out=nt_isoice)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
+      write(nu_diag,*) 'write_restart_iso (isotopes)'
+
+      do k = 1, n_iso
+         call write_restart_field(nu_dump, trcrn(:,nt_isosno+(k-1),:), ncat)
+         call write_restart_field(nu_dump, trcrn(:,nt_isoice+(k-1),:), ncat)
+      enddo
+
+      end subroutine write_restart_iso
+
+!=======================================================================
+
+! Reads all values needed for an ice isotope restart
+!
+! authors Elizabeth Hunke, LANL
+!         David Bailey, NCAR
+!         Marika Holland, NCAR
+
+      subroutine read_restart_iso()
+
+      use icedrv_domain_size, only: n_iso
+      use icedrv_state, only: trcrn
+      use icedrv_domain_size, only: ncat
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         k                    ! loop indices
+      integer (kind=int_kind) :: nt_isosno, nt_isoice
+      character(len=*), parameter :: subname='(read_restart_iso)'
+
+      !-----------------------------------------------------------------
+
+      call icepack_query_tracer_indices(nt_isosno_out=nt_isosno)
+      call icepack_query_tracer_indices(nt_isoice_out=nt_isoice)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
+      write(nu_diag,*) 'read_restart_iso (isotopes)'
+
+      do k = 1, n_iso
+         call read_restart_field(nu_dump, trcrn(:,nt_isosno+(k-1),:), ncat)
+         call read_restart_field(nu_dump, trcrn(:,nt_isoice+(k-1),:), ncat)
+      enddo
+
+      end subroutine read_restart_iso
 
 !=======================================================================
 

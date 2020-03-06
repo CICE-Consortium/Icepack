@@ -19,6 +19,7 @@
         ncat      = NICECAT   , & ! number of categories
         nilyr     = NICELYR   , & ! number of ice layers per category
         nslyr     = NSNWLYR   , & ! number of snow layers per category
+        n_iso     = NTRISO    , & ! number of aerosols in use
         n_aero    = NTRAERO   , & ! number of aerosols in use
         n_zaero   = TRZAERO   , & ! number of z aerosols in use 
         n_algae   = TRALG     , & ! number of algae in use 
@@ -47,6 +48,7 @@
                   + TRFY        & ! first-year area
                   + TRLVL*2     & ! level/deformed ice
                   + TRPND*3     & ! ponds
+                  + n_iso*2     & ! number of isotopes (in ice and snow)
                   + n_aero*4    & ! number of aerosols * 4 aero layers
                   + TRBRI       & ! brine height 
                   + TRBGCS*n_bgc           & ! skeletal layer BGC 

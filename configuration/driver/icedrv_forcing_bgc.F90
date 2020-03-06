@@ -19,7 +19,7 @@
 
       implicit none
       private
-      public :: get_forcing_bgc, faero_default, init_forcing_bgc 
+      public :: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc 
 
       real (kind=dbl_kind), dimension(365) :: & ! hardwired for now
          sil_data, nit_data
@@ -165,6 +165,23 @@
         
       end subroutine faero_default
       
+!=======================================================================
+
+! constant values for atmospheric water isotopes
+!
+! authors: Elizabeth Hunke, LANL
+
+      subroutine fiso_default
+
+      use icedrv_flux, only: fiso_atm
+      character(len=*), parameter :: subname='(fiso_default)'
+
+      fiso_atm(:,1) = 1.e-12_dbl_kind ! kg/m^2 s
+      fiso_atm(:,2) = 1.e-13_dbl_kind
+      fiso_atm(:,3) = 1.e-14_dbl_kind
+
+      end subroutine fiso_default
+
 !=======================================================================
 
       end module icedrv_forcing_bgc
