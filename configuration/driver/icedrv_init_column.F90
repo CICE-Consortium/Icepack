@@ -175,8 +175,6 @@
          Iswabsn(:,:,:) = c0
          Sswabsn(:,:,:) = c0
 
-      !$OMP PARALLEL DO PRIVATE(i,n, &
-      !$OMP                     l_print_point)
          do i = 1, nx
 
             l_print_point = .false.
@@ -287,11 +285,14 @@
                enddo
             endif
 
+         enddo
+
       !-----------------------------------------------------------------
       ! Aggregate albedos 
       !-----------------------------------------------------------------
 
-            do n = 1, ncat
+         do n = 1, ncat
+            do i = 1, nx
                
                if (aicen(i,n) > puny) then
                   
@@ -311,8 +312,10 @@
                   snowfrac(i) = snowfrac(i) + snowfracn(i,n)*aicen(i,n)
                
                endif ! aicen > puny
+            enddo  ! i
+         enddo   ! ncat
 
-            enddo  ! ncat
+         do i = 1, nx
 
       !----------------------------------------------------------------
       ! Store grid box mean albedos and fluxes before scaling by aice
@@ -1238,6 +1241,7 @@
       ntd = 0                    ! if nt_fbri /= 0 then use fbri dependency
       if (nt_fbri == 0) ntd = -1 ! otherwise make tracers depend on ice volume
 
+      nt_bgc_S = 0
       if (solve_zsal) then       ! .true. only if tr_brine = .true.
           nt_bgc_S = ntrcr + 1
           ntrcr = ntrcr + nblyr
