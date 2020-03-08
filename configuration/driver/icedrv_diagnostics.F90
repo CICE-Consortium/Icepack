@@ -216,16 +216,17 @@
         
         if (tr_iso) then
           do k = 1, n_iso
-             write(nu_diag_out+n-1,900) 'isotopic precip      = ',fiso_atm(n,k)*dt
-             write(nu_diag_out+n-1,900) 'isotopic evap/cond   = ',fiso_evap(n,k)*dt
-             write(nu_diag_out+n-1,900) 'isotopic loss to ocn = ',fiso_ocn(n,k)*dt
-             write(nu_diag_out+n-1,900) 'isotopic gain/loss   = ',(fiso_atm(n,k)-fiso_ocn(n,k)+fiso_evap(n,k))*dt
-             write(nu_diag_out+n-1,900) 'isotopic conc chg    = ',pdiso(n,k)
+             write(nu_diag_out+n-1,901) 'isotopic precip      = ',fiso_atm(n,k)*dt,k
+             write(nu_diag_out+n-1,901) 'isotopic evap/cond   = ',fiso_evap(n,k)*dt,k
+             write(nu_diag_out+n-1,901) 'isotopic loss to ocn = ',fiso_ocn(n,k)*dt,k
+             write(nu_diag_out+n-1,901) 'isotopic gain/loss   = ',(fiso_atm(n,k)-fiso_ocn(n,k)+fiso_evap(n,k))*dt,k
+             write(nu_diag_out+n-1,901) 'isotopic conc chg    = ',pdiso(n,k),k
           enddo
         endif
       end do
 899   format (43x,a24)
 900   format (a25,2x,f24.17)
+901   format (a25,2x,f24.17,i6)
 
       end subroutine runtime_diags
 

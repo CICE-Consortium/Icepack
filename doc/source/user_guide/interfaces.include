@@ -7,7 +7,7 @@ icepack_atm_boundary
 
   ! 
   
-        subroutine icepack_atm_boundary(sfctype,                    &
+        subroutine icepack_atm_boundary(sfctype,                   &
                                        Tsf,         potT,          &
                                        uatm,        vatm,          &
                                        wind,        zlvl,          &
@@ -18,6 +18,7 @@ icepack_atm_boundary
                                        lhcoef,      shcoef,        &
                                        Cdn_atm,                    &
                                        Cdn_atm_ratio_n,            &
+                                       Qa_iso,      Qref_iso,      &
                                        uvel,        vvel,          &
                                        Uref)
   
@@ -50,6 +51,12 @@ icepack_atm_boundary
            delq     , & ! humidity difference      (kg/kg)
            shcoef   , & ! transfer coefficient for sensible heat
            lhcoef       ! transfer coefficient for latent heat
+  
+        real (kind=dbl_kind), intent(in), optional, dimension(:) :: &
+           Qa_iso       ! specific isotopic humidity (kg/kg)
+  
+        real (kind=dbl_kind), intent(inout), optional, dimension(:) :: &
+           Qref_iso     ! reference specific isotopic humidity (kg/kg)
   
         real (kind=dbl_kind), optional, intent(in) :: &
            uvel     , & ! x-direction ice speed (m/s)
@@ -148,6 +155,7 @@ icepack_intfc.F90
         use icepack_tracers,    only: icepack_max_don    => max_don
         use icepack_tracers,    only: icepack_max_fe     => max_fe
         use icepack_tracers,    only: icepack_max_aero   => max_aero
+        use icepack_tracers,    only: icepack_max_iso    => max_iso
         use icepack_tracers,    only: icepack_nmodal1    => nmodal1
         use icepack_tracers,    only: icepack_nmodal2    => nmodal2
         use icepack_parameters, only: icepack_nspint     => nspint
@@ -398,7 +406,7 @@ icepack_step_ridge
                                       fpond,                       &
                                       fresh,        fhocn,         &
                                       n_aero,                      &
-                                      faero_ocn,                   &
+                                      faero_ocn,    fiso_ocn,      &
                                       aparticn,     krdgn,         &
                                       aredistn,     vredistn,      &
                                       dardg1ndt,    dardg2ndt,     &
@@ -466,6 +474,9 @@ icepack_step_ridge
            vredistn , & ! redistribution function: fraction of new ridge volume
            faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
            flux_bio     ! all bio fluxes to ocean
+  
+        real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+           fiso_ocn     ! isotope flux to ocean  (kg/m^2/s)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
            trcrn        ! tracers
@@ -1533,6 +1544,8 @@ icepack_step_therm2
                                        flux_bio,     ocean_bio,     &
                                        frazil_diag,                 &
                                        frz_onset,    yday,          &
+                                       fiso_ocn,     HDO_ocn,       &
+                                       H2_16O_ocn,   H2_18O_ocn,    &
                                        nfsd,         wave_sig_ht,   &
                                        wave_spectrum,               &
                                        wavefreq,                    &
@@ -1640,6 +1653,14 @@ icepack_step_therm2
         real (kind=dbl_kind), intent(in), optional :: &
            yday         ! day of year
   
+        ! water isotopes
+        real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+           fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
+  
+        real (kind=dbl_kind), optional, intent(in) :: &
+           HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
+           H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
+           H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
  
 
 .. _icepack_init_thermo:
@@ -1798,11 +1819,14 @@ icepack_step_therm1
                                       ipnd        ,               &
                                       iage        , FY          , &
                                       aerosno     , aeroice     , &
+                                      isosno      , isoice      , &
                                       uatm        , vatm        , &
                                       wind        , zlvl        , &
                                       Qa          , rhoa        , &
+                                      Qa_iso      , &
                                       Tair        , Tref        , &
                                       Qref        , Uref        , &
+                                      Qref_iso    , &
                                       Cdn_atm_ratio,              &
                                       Cdn_ocn     , Cdn_ocn_skin, &
                                       Cdn_ocn_floe, Cdn_ocn_keel, &
@@ -1841,6 +1865,10 @@ icepack_step_therm1
                                       flatn_f     , fsensn_f    , &
                                       fsurfn_f    , fcondtopn_f , &
                                       faero_atm   , faero_ocn   , &
+                                      fiso_atm    , fiso_ocn    , &
+                                      fiso_evap   , &
+                                      HDO_ocn     , H2_16O_ocn  , &
+                                      H2_18O_ocn  ,  &
                                       dhsn        , ffracn      , &
                                       meltt       , melttn      , &
                                       meltb       , meltbn      , &
@@ -1944,6 +1972,18 @@ icepack_step_therm1
            mlt_onset   , & ! day of year that sfc melting begins
            frz_onset       ! day of year that freezing begins (congel or frazil)
   
+        real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+           Qa_iso      , & ! isotope specific humidity (kg/kg)
+           Qref_iso    , & ! isotope 2m atm reference spec humidity (kg/kg)
+           fiso_atm    , & ! isotope deposition rate (kg/m^2 s)
+           fiso_ocn    , & ! isotope flux to ocean  (kg/m^2/s)
+           fiso_evap       ! isotope evaporation (kg/m^2/s)
+  
+        real (kind=dbl_kind), optional, intent(in) :: &
+           HDO_ocn     , & ! ocean concentration of HDO (kg/kg)
+           H2_16O_ocn  , & ! ocean concentration of H2_16O (kg/kg)
+           H2_18O_ocn      ! ocean concentration of H2_18O (kg/kg)
+  
         real (kind=dbl_kind), dimension(:), intent(inout) :: &
            aicen_init  , & ! fractional area of ice
            vicen_init  , & ! volume per unit area of ice (m)
@@ -1993,6 +2033,9 @@ icepack_step_therm1
            aerosno    , &  ! snow aerosol tracer (kg/m^2)
            aeroice         ! ice aerosol tracer (kg/m^2)
   
+        real (kind=dbl_kind), dimension(:,:), optional, intent(inout) :: &
+           isosno     , &  ! snow isotope tracer (kg/m^2)
+           isoice          ! ice isotope tracer (kg/m^2)
  
 
 .. _icepack_init_tracer_flags:
@@ -2006,7 +2049,7 @@ icepack_init_tracer_flags
         subroutine icepack_init_tracer_flags(&
              tr_iage_in, tr_FY_in, tr_lvl_in, &
              tr_pond_in, tr_pond_cesm_in, tr_pond_lvl_in, tr_pond_topo_in, &
-             tr_fsd_in, tr_aero_in, tr_brine_in, tr_zaero_in, &
+             tr_fsd_in, tr_aero_in, tr_iso_in, tr_brine_in, tr_zaero_in, &
              tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
              tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
              tr_bgc_PON_in)
@@ -2020,6 +2063,7 @@ icepack_init_tracer_flags
                tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
                tr_fsd_in       , & ! if .true., use floe size distribution tracers
+               tr_iso_in       , & ! if .true., use isotope tracers
                tr_aero_in      , & ! if .true., use aerosol tracers
                tr_brine_in     , & ! if .true., brine height differs from ice thickness
                tr_zaero_in     , & ! if .true., black carbon is tracers  (n_zaero)
@@ -2048,7 +2092,7 @@ icepack_query_tracer_flags
         subroutine icepack_query_tracer_flags(&
              tr_iage_out, tr_FY_out, tr_lvl_out, &
              tr_pond_out, tr_pond_cesm_out, tr_pond_lvl_out, tr_pond_topo_out, &
-             tr_fsd_out, tr_aero_out, tr_brine_out, tr_zaero_out, &
+             tr_fsd_out, tr_aero_out, tr_iso_out, tr_brine_out, tr_zaero_out, &
              tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
              tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
              tr_bgc_PON_out)
@@ -2062,6 +2106,7 @@ icepack_query_tracer_flags
                tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
                tr_fsd_out       , & ! if .true., use floe size distribution
+               tr_iso_out       , & ! if .true., use isotope tracers
                tr_aero_out      , & ! if .true., use aerosol tracers
                tr_brine_out     , & ! if .true., brine height differs from ice thickness
                tr_zaero_out     , & ! if .true., black carbon is tracers  (n_zaero)
@@ -2105,7 +2150,8 @@ icepack_init_tracer_indices
              nt_Tsfc_in, nt_qice_in, nt_qsno_in, nt_sice_in, &
              nt_fbri_in, nt_iage_in, nt_FY_in, & 
              nt_alvl_in, nt_vlvl_in, nt_apnd_in, nt_hpnd_in, nt_ipnd_in, &
-             nt_fsd_in, nt_aero_in, nt_zaero_in, nt_bgc_C_in, &
+             nt_fsd_in, nt_isosno_in, nt_isoice_in, &
+             nt_aero_in, nt_zaero_in, nt_bgc_C_in, &
              nt_bgc_N_in, nt_bgc_chl_in, nt_bgc_DOC_in, nt_bgc_DON_in, &
              nt_bgc_DIC_in, nt_bgc_Fed_in, nt_bgc_Fep_in, nt_bgc_Nit_in, nt_bgc_Am_in, &
              nt_bgc_Sil_in, nt_bgc_DMSPp_in, nt_bgc_DMSPd_in, nt_bgc_DMS_in, nt_bgc_hum_in, &
@@ -2131,7 +2177,9 @@ icepack_init_tracer_indices
                nt_hpnd_in, & ! melt pond depth
                nt_ipnd_in, & ! melt pond refrozen lid thickness
                nt_fsd_in,  & ! floe size distribution
-               nt_aero_in, & ! starting index for aerosols in ice
+               nt_isosno_in,  & ! starting index for isotopes in snow
+               nt_isoice_in,  & ! starting index for isotopes in ice
+               nt_aero_in,    & ! starting index for aerosols in ice
                nt_bgc_Nit_in, & ! nutrients  
                nt_bgc_Am_in,  & ! 
                nt_bgc_Sil_in, & !
@@ -2201,7 +2249,8 @@ icepack_query_tracer_indices
              nt_Tsfc_out, nt_qice_out, nt_qsno_out, nt_sice_out, &
              nt_fbri_out, nt_iage_out, nt_FY_out, & 
              nt_alvl_out, nt_vlvl_out, nt_apnd_out, nt_hpnd_out, nt_ipnd_out, &
-             nt_fsd_out, nt_aero_out, nt_zaero_out, nt_bgc_C_out, &
+             nt_fsd_out, nt_isosno_out, nt_isoice_out, &
+             nt_aero_out, nt_zaero_out, nt_bgc_C_out, &
              nt_bgc_N_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
              nt_bgc_DIC_out, nt_bgc_Fed_out, nt_bgc_Fep_out, nt_bgc_Nit_out, nt_bgc_Am_out, &
              nt_bgc_Sil_out, nt_bgc_DMSPp_out, nt_bgc_DMSPd_out, nt_bgc_DMS_out, nt_bgc_hum_out, &
@@ -2227,7 +2276,9 @@ icepack_query_tracer_indices
                nt_hpnd_out, & ! melt pond depth
                nt_ipnd_out, & ! melt pond refrozen lid thickness
                nt_fsd_out,  & ! floe size distribution
-               nt_aero_out, & ! starting index for aerosols in ice
+               nt_isosno_out,  & ! starting index for isotopes in snow
+               nt_isoice_out,  & ! starting index for isotopes in ice
+               nt_aero_out,    & ! starting index for aerosols in ice
                nt_bgc_Nit_out, & ! nutrients  
                nt_bgc_Am_out,  & ! 
                nt_bgc_Sil_out, & !
@@ -2309,7 +2360,7 @@ icepack_init_tracer_sizes
   
         subroutine icepack_init_tracer_sizes(&
            ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in  , &
-           n_algae_in, n_DOC_in, n_aero_in, &
+           n_algae_in, n_DOC_in, n_aero_in, n_iso_in, &
            n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
            ntrcr_in, ntrcr_o_in, nbtrcr_in, nbtrcr_sw_in)
   
@@ -2326,6 +2377,7 @@ icepack_init_tracer_sizes
            n_fed_in  , & !
            n_fep_in  , & ! 
            n_zaero_in, & !
+           n_iso_in  , & !
            n_aero_in , & !
            ntrcr_in  , & ! number of tracers in use
            ntrcr_o_in, & ! number of non-bio tracers in use
@@ -2347,7 +2399,7 @@ icepack_query_tracer_sizes
            max_don_out    , max_fe_out     , nmodal1_out      , &
            nmodal2_out    , max_aero_out   , max_nbtrcr_out   , &
            ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
-           n_algae_out, n_DOC_out, n_aero_out, &
+           n_algae_out, n_DOC_out, n_aero_out, n_iso_out, &
            n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
            ntrcr_out, ntrcr_o_out, nbtrcr_out, nbtrcr_sw_out)
   
@@ -2375,6 +2427,7 @@ icepack_query_tracer_sizes
            n_fed_out  , & !
            n_fep_out  , & ! 
            n_zaero_out, & !
+           n_iso_out  , & !
            n_aero_out , & !
            ntrcr_out  , & ! number of tracers in use
            ntrcr_o_out, & ! number of non-bio tracers in use

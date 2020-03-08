@@ -908,8 +908,8 @@
       write(nu_diag,*) 'read_restart_iso (isotopes)'
 
       do k = 1, n_iso
-         call read_restart_field(nu_dump, trcrn(:,nt_isosno+(k-1),:), ncat)
-         call read_restart_field(nu_dump, trcrn(:,nt_isoice+(k-1),:), ncat)
+         call read_restart_field(nu_restart, trcrn(:,nt_isosno+(k-1),:), ncat)
+         call read_restart_field(nu_restart, trcrn(:,nt_isoice+(k-1),:), ncat)
       enddo
 
       end subroutine read_restart_iso
