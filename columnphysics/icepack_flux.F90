@@ -12,6 +12,7 @@
       use icepack_parameters, only: c1, emissivity
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+      use icepack_tracers, only: tr_iso
 
       implicit none
       private
@@ -162,14 +163,16 @@
       Qref       = Qref     + Qrefn     * aicen
 
       ! Isotopes
-      if (present(Qrefn_iso) .and. present(Qref_iso)) then
-         Qref_iso (:) = Qref_iso (:) + Qrefn_iso (:) * aicen
-      endif
-      if (present(fiso_ocnn) .and. present(fiso_ocn)) then
-         fiso_ocn (:) = fiso_ocn (:) + fiso_ocnn (:) * aicen
-      endif
-      if (present(fiso_evapn) .and. present(fiso_evap)) then
-         fiso_evap(:) = fiso_evap(:) + fiso_evapn(:) * aicen
+      if (tr_iso) then
+         if (present(Qrefn_iso) .and. present(Qref_iso)) then
+            Qref_iso (:) = Qref_iso (:) + Qrefn_iso (:) * aicen
+         endif
+         if (present(fiso_ocnn) .and. present(fiso_ocn)) then
+            fiso_ocn (:) = fiso_ocn (:) + fiso_ocnn (:) * aicen
+         endif
+         if (present(fiso_evapn) .and. present(fiso_evap)) then
+            fiso_evap(:) = fiso_evap(:) + fiso_evapn(:) * aicen
+         endif
       endif
 
       ! ocean fluxes

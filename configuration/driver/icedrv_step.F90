@@ -721,7 +721,7 @@
                          dvirdgdt=dvirdgdt(i),     opening=opening(i),       &
                          fpond=fpond(i),                                     &
                          fresh=fresh(i),           fhocn=fhocn(i),           &
-                         n_aero=n_aero,            n_iso=n_iso,              &
+                         n_aero=n_aero,                                      &
                          faero_ocn=faero_ocn(i,:), fiso_ocn=fiso_ocn(i,:),   &
                          aparticn=aparticn(i,:),   krdgn=krdgn(i,:),         &
                          aredistn=aredistn(i,:),   vredistn=vredistn(i,:),   &
@@ -764,7 +764,7 @@
                          dvirdgdt=dvirdgdt(i),     opening=opening(i),       &
                          fpond=fpond(i),                                     &
                          fresh=fresh(i),           fhocn=fhocn(i),           &
-                         n_aero=n_aero,            n_iso=n_iso,              &
+                         n_aero=n_aero,                                      &
                          faero_ocn=faero_ocn(i,:), fiso_ocn=fiso_ocn(i,:),   &
                          aparticn=aparticn(i,:),   krdgn=krdgn(i,:),         &
                          aredistn=aredistn(i,:),   vredistn=vredistn(i,:),   &

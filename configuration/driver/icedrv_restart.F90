@@ -333,7 +333,7 @@
          work2              ! input array (real, 8-byte)
 
       real (kind=dbl_kind) :: &
-        minw, maxw          ! diagnostics
+        minw, maxw, sumw    ! diagnostics
 
       character(len=*), parameter :: subname='(read_restart_field)'
 
@@ -344,7 +344,8 @@
 
       minw = minval(work)
       maxw = maxval(work)
-      write(nu_diag,*) minw, maxw
+      sumw = sum(work)
+      write(nu_diag,*) subname, minw, maxw, sumw
       
       end subroutine read_restart_field
       
@@ -372,12 +373,20 @@
       real (kind=dbl_kind), dimension(nx) :: &
          work2             ! input array (real, 8-byte)
       
+      real (kind=dbl_kind) :: &
+        minw, maxw, sumw    ! diagnostics
+
       character(len=*), parameter :: subname='(write_restart_field)'
 
       do n = 1, ndim
         work2(:) = work(:,n)
         write(nu) (work2(i), i=1,nx)
       enddo
+      
+      minw = minval(work)
+      maxw = maxval(work)
+      sumw = sum(work)
+      write(nu_diag,*) subname, minw, maxw, sumw
       
       end subroutine write_restart_field
 
@@ -899,8 +908,8 @@
       write(nu_diag,*) 'read_restart_iso (isotopes)'
 
       do k = 1, n_iso
-         call read_restart_field(nu_dump, trcrn(:,nt_isosno+(k-1),:), ncat)
-         call read_restart_field(nu_dump, trcrn(:,nt_isoice+(k-1),:), ncat)
+         call read_restart_field(nu_restart, trcrn(:,nt_isosno+(k-1),:), ncat)
+         call read_restart_field(nu_restart, trcrn(:,nt_isoice+(k-1),:), ncat)
       enddo
 
       end subroutine read_restart_iso

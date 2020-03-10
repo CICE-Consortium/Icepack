@@ -13,14 +13,20 @@
 
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p001, p1, p5, puny
+      use icepack_tracers, only: n_iso
+      use icepack_warnings, only: icepack_warnings_add, icepack_warnings_setabort
 
       implicit none
+      private
 
-      character(len=5), parameter ::    &
-         frac = 'cfrac'   ! fractionation coefficient calculation method
-                          !  cfrac, constant fractionation
-                          !  nfrac, nonfractionation
-                          !  gfrac, growth-rate dependent for H2_18O
+      public :: update_isotope, &
+                isoice_alpha
+
+      character(len=5), parameter, public ::    &
+         isotope_frac_method = 'cfrac'   ! fractionation coefficient calculation method
+                                         !  cfrac, constant fractionation
+                                         !  nfrac, nonfractionation
+                                         !  gfrac, growth-rate dependent for H2_18O
 
       ! Species indicies - public so thay can be seen by water_tracers
       integer, parameter, public  :: ispundef = 0 ! Undefined
@@ -41,7 +47,6 @@
 !
       subroutine update_isotope (dt,                  &
                                 nilyr,    nslyr,      &
-                                n_iso,                &
                                 meltt,    melts,      &
                                 meltb,    congel,     &
                                 snoice,   evap,       &
@@ -59,7 +64,7 @@
       use icepack_parameters, only: ktherm, rhoi, rhos, Tffresh
 
       integer (kind=int_kind), intent(in) :: &
-        nilyr, nslyr, n_iso
+        nilyr, nslyr
 
       real (kind=dbl_kind), intent(in) :: &
         dt                     ! time step
@@ -118,6 +123,8 @@
 
       integer (kind=int_kind) :: k
 
+      character(len=*),parameter :: subname='(update_isotope)'
+
       ! initialize
 
       hs_old=vsno_old/aice_old
@@ -156,12 +163,12 @@
          do k = 1, n_iso         
             ratio = c1   ! ratio between 18O(HDO) and 16O in humidity
             alphai = c1  ! fractionation coefficient
-            if (frac.ne.'nfrac' .and. Qref_iso(2)>puny) &
+            if (isotope_frac_method.ne.'nfrac' .and. Qref_iso(2)>puny) &
                ratio = Qref_iso(k)/Qref_iso(2)
             if (Qref_iso(2) <= puny) ratio = c0
-            if (frac.ne.'nfrac' .and. k==1) alphai = wiso_alpi(3,TsfK)
-            if (frac.ne.'nfrac' .and. k==2) alphai = wiso_alpi(2,TsfK)
-            if (frac.ne.'nfrac' .and. k==3) alphai = wiso_alpi(4,TsfK)
+            if (isotope_frac_method.ne.'nfrac' .and. k==1) alphai = wiso_alpi(3,TsfK)
+            if (isotope_frac_method.ne.'nfrac' .and. k==2) alphai = wiso_alpi(2,TsfK)
+            if (isotope_frac_method.ne.'nfrac' .and. k==3) alphai = wiso_alpi(4,TsfK)
             work = alphai*ratio*rhos*evaps*aicen
             fiso_evapn(k) = fiso_evapn(k) + work/dt
             isosno(k) = isosno(k) + work
@@ -173,12 +180,12 @@
          do k = 1, n_iso         
             ratio = c1 ! ratio between 18O(HDO) and 16O in ref humidity
             alphai = c1  ! fractionation coefficient
-            if (frac.ne.'nfrac' .and. Qref_iso(2)>puny) &
+            if (isotope_frac_method.ne.'nfrac' .and. Qref_iso(2)>puny) &
                ratio = Qref_iso(k)/Qref_iso(2)
             if (Qref_iso(2) <= puny) ratio = c0
-            if (frac.ne.'nfrac' .and. k==1) alphai = wiso_alpi(3,TsfK)
-            if (frac.ne.'nfrac' .and. k==2) alphai = wiso_alpi(2,TsfK)
-            if (frac.ne.'nfrac' .and. k==3) alphai = wiso_alpi(4,TsfK)
+            if (isotope_frac_method.ne.'nfrac' .and. k==1) alphai = wiso_alpi(3,TsfK)
+            if (isotope_frac_method.ne.'nfrac' .and. k==2) alphai = wiso_alpi(2,TsfK)
+            if (isotope_frac_method.ne.'nfrac' .and. k==3) alphai = wiso_alpi(4,TsfK)
             work = alphai*ratio*rhoi*evapi*aicen
             fiso_evapn(k) = fiso_evapn(k) + work/dt
             isoice(k) = isoice(k) + work
@@ -188,25 +195,25 @@
 
 !     basal ice growth and isotope uptake
 
-!ECH:  this needs to be recoded in case n_iso < 3
       if (congel > c0) then
-         k = 1
-         alpha = isoice_alpha(congel/dt,'HDO',frac)
-         work = alpha*HDO_ocn*rhoi*congel*aicen
-         isoice(k) = isoice(k) + work
-         fiso_ocnn(k) = fiso_ocnn(k) - work/dt
-
-         k = 2
-         alpha = isoice_alpha(congel/dt,'H2_16O',frac)
-         work = alpha*H2_16O_ocn*rhoi*congel*aicen
-         isoice(k) = isoice(k) + work
-         fiso_ocnn(k) = fiso_ocnn(k) - work/dt
-
-         k = 3
-         alpha = isoice_alpha(congel/dt,'H2_18O',frac)
-         work = alpha*H2_18O_ocn*rhoi*congel*aicen
-         isoice(k) = isoice(k)+work
-         fiso_ocnn(k) = fiso_ocnn(k)-work/dt
+         do k = 1,n_iso
+           if (k == 1) then
+              alpha = isoice_alpha(congel/dt,'HDO',isotope_frac_method)
+              work = alpha*HDO_ocn*rhoi*congel*aicen
+           elseif (k == 2) then
+              alpha = isoice_alpha(congel/dt,'H2_16O',isotope_frac_method)
+              work = alpha*H2_16O_ocn*rhoi*congel*aicen
+           elseif (k == 3) then
+              alpha = isoice_alpha(congel/dt,'H2_18O',isotope_frac_method)
+              work = alpha*H2_18O_ocn*rhoi*congel*aicen
+           else
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+              call icepack_warnings_add(subname//' ERROR: n_iso > 3')
+              return
+           endif
+           isoice(k) = isoice(k) + work
+           fiso_ocnn(k) = fiso_ocnn(k) - work/dt
+         enddo
 
          dzice = dzice + congel
       endif
@@ -419,6 +426,8 @@
       real (kind=dbl_kind) ::   &
          isoice_alpha                    ! return fractionation
 
+      character(len=*),parameter :: subname='(isoice_alpha)'
+
       if (frac == 'nfrac') isoice_alpha = c1
       if (sp == 'H2_16O')  isoice_alpha = c1
 
@@ -456,6 +465,8 @@
       integer , intent(in)        :: isp  ! species indes
       real(kind=dbl_kind), intent(in)        :: tk   ! temperature (k)
       real(kind=dbl_kind) :: wiso_alpi               ! return fractionation
+
+      character(len=*),parameter :: subname='(wiso_alpi)'
 
 !From Merlivat & Nief,1967 for HDO, and Majoube, 1971b for H218O:
       real(kind=dbl_kind), parameter, dimension(pwtspec) :: &  ! ice/vapour
