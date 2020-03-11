@@ -319,9 +319,8 @@
                         write(warnstr,*) subname, &
                           'warning: step_wavefracture struggling to converge'
                         call icepack_warnings_add(warnstr)
-                    endif
+                     endif
 
- 
                      ! required timestep
                      subdt = get_subdt_fsd(nfsd, afsd_tmp, d_afsd_tmp)
                      subdt = MIN(subdt, dt)
@@ -444,9 +443,6 @@
       real (kind=dbl_kind), dimension(nx) :: &
          fraclengths
 
-      real (kind=dbl_kind), dimension(max_no_iter*nx) :: &
-         allfraclengths
-
       real (kind=dbl_kind), dimension(nx) :: &
          X,  &    ! spatial domain (m)
          eta      ! sea surface height field (m)
@@ -480,19 +476,22 @@
       ! initialize frac lengths
       fraclengths(:) = c0
       prev_frac_local(:) = c0
+      frachistogram(:) = c0
       fracerror = bignum
 
       ! loop while fracerror greater than error tolerance
-      DO iter = 1, loop_max_iter
+      iter = 0
+      do while (iter < loop_max_iter .and. fracerror > errortol)
+         iter = iter + 1
 
          ! Phase for each Fourier component may be constant or
          ! a random phase that varies in each i loop
          ! See documentation for discussion
          if (trim(wave_spec_type).eq.'random') then
-             call RANDOM_NUMBER(rand_array)
-             if (icepack_warnings_aborted(subname)) return
+            call RANDOM_NUMBER(rand_array)
+            if (icepack_warnings_aborted(subname)) return
          else
-             rand_array(:) = p5
+            rand_array(:) = p5
          endif
          phi = c2*pi*rand_array
  
@@ -510,29 +509,26 @@
 
          ! convert from diameter to radii
          fraclengths(:) = fraclengths(:)/c2
-
  
          if (ALL(fraclengths.lt.floe_rad_l(1))) then
-             frac_local(:) = c0
+            frac_local(:) = c0
          else
-            frachistogram(:) = c0
-            allfraclengths((iter-1)*nx+1:(iter)*nx) = fraclengths(1:nx)
-
             ! bin into FS cats
+            ! accumulate the frac histogram each iteration
             do j = 1, size(fraclengths)
-            if (allfraclengths(j).gt.floe_rad_l(1)) then
-            do k = 1, nfsd-1
-               if ((allfraclengths(j) >= floe_rad_l(k)) .and. &
-                   (allfraclengths(j) < floe_rad_l(k+1))) then
-                  frachistogram(k) = frachistogram(k) + 1
+               if (fraclengths(j).gt.floe_rad_l(1)) then
+                  do k = 1, nfsd-1
+                     if ((fraclengths(j) >= floe_rad_l(k)) .and. &
+                         (fraclengths(j) < floe_rad_l(k+1))) then
+                        frachistogram(k) = frachistogram(k) + 1
+                     end if
+                  end do
+               if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
                end if
-            end do
-            if (allfraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
-            end if
             end do
 
             do k = 1, nfsd
-             frac_local(k) = floe_rad_c(k)*frachistogram(k)
+               frac_local(k) = floe_rad_c(k)*frachistogram(k)
             end do
 
             ! normalize
@@ -546,21 +542,17 @@
              ! check avg frac local against previous iteration
              fracerror = SUM(ABS(frac_local - prev_frac_local))/nfsd
 
-             if (fracerror.lt.errortol) EXIT
-
-             if (iter.gt.100) then
-                 write(warnstr,*) subname, &
-                   'warning: wave_frac struggling to converge'
-                 call icepack_warnings_add(warnstr)
-             endif
-
              ! save histogram for next iteration
              prev_frac_local = frac_local
-
             
          end if
 
       END DO
+
+      if (iter >= max_no_iter) then
+         write(warnstr,*) subname,'warning: wave_frac struggling to converge'
+         call icepack_warnings_add(warnstr)
+      endif
 
       end subroutine wave_frac
 
@@ -577,7 +569,7 @@
 !
       subroutine get_fraclengths(X, eta, fraclengths, hbar)
 
-      real (kind=dbl_kind) :: &
+      real (kind=dbl_kind), intent(in) :: &
          hbar             ! mean thickness (m)
 
       real (kind=dbl_kind), intent(in), dimension (nx) :: &
@@ -685,7 +677,6 @@
                ! finite differences
                delta_pos = X(j_pos) - X(j    )
                delta     = X(j    ) - X(j_neg)
-
 
                ! This equation differs from HT2015 by a factor 2 in numerator
                ! and eta(j_pos). This is the correct form of the equation.
