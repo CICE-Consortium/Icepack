@@ -101,9 +101,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
        ./icepack.setup --docintfc
 
-    .. note::
-
-       See also :ref:`docintfc` for more information about the docintfc option.
+    See also :ref:`docintfc` for more information about the docintfc option.
 
   * The icepack_warnings package should be used to cache log messages and set the abort flag.  To add a log message, use icepack_warnings_add like
 
@@ -111,17 +109,13 @@ Overall, columnphysics changes in the Icepack model should include the following
 
        call icepack_warnings_add(subname//' algorithm did not converge')
 
-    .. note::
-
-        To formally set the abort flag, use
+    To formally set the abort flag, use
 
     .. code-block:: fortran
 
        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
 
-    .. note::
-
-       See also :ref:`aborts` for more information about how the external calling program will write those message and check whether Icepack aborted.
+    See also :ref:`aborts` for more information about how the external calling program will write those message and check whether Icepack aborted.
 
   * Every interface call within the columnphysics should be followed by
 
@@ -129,9 +123,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
        if (icepack_warnings_aborted(subname)) return
 
-    .. note::
-
-       to support errors backing up the call tree to the external program
+    to support errors backing up the call tree to the external program
 
   * Variables defined in icepack_kinds, icepack_tracers, icepack_parameters, and icepack_orbital should be accessed within Icepack by Fortran use statements.  It's also possible to access some of those variables thru methods that query for the value, but this tends to be a little more cumbersome, so Fortran use statements are recommended within columnphysics.  From the icepack driver or other external programs, the columnphysics variables should ALWAYS be access thru the interface methods and icepack_intfc (see also :ref:`calling`).
 
