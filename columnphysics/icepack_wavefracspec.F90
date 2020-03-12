@@ -64,7 +64,7 @@
       contains
 
 !=======================================================================
-!
+!autodocument_start icepack_init_wave
 !  Initialize the wave spectrum and frequencies for the FSD
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
@@ -82,6 +82,7 @@
          wavefreq,              & ! wave frequencies (s^-1)
          dwavefreq                ! wave frequency bin widths (s^-1)
 
+!autodocument_end
       ! local variables
       integer (kind=int_kind) :: k
 
@@ -174,6 +175,7 @@
       end  function get_dafsd_wave
 
 !=======================================================================
+!autodocument_start icepack_step_wavefracture
 ! 
 !  Given fracture histogram computed from local wave spectrum, evolve 
 !  the floe size distribution
@@ -226,6 +228,7 @@
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          d_afsdn_wave    ! change in fsd due to waves, per category
 
+!autodocument_end
       ! local variables
       integer (kind=int_kind) :: &  
          n, k, t, &
