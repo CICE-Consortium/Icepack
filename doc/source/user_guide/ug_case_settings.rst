@@ -229,6 +229,7 @@ column physics.
    "``l_mpond_fresh``", "true", "retain (topo) pond water until ponds drain", ""
    "", "false", "release (topo) pond water immediately to ocean", ""
    "``oceanmixed_ice``", "true/false", "active ocean mixed layer calculation", "``.true.`` (if uncoupled)"
+   "``wave_spec_file``", "filename", "file containing wave spectrum data for interaction with fsd",""
    "``wave_spec_type``", "``none``", "no ocean wave spectrum data - no wave-ice interactions (not recommended with tr_fsd=.true.",""
    "", "``constant``", "ocean wave spectrum data present*, sea surface height field generated using constant phase, fracture code not run to convergence, for testing FSD", ""
    "", "``random``", "ocean wave spectrum data present*, sea surface height field generated using random phase, fracture code is run to convergence", ""
