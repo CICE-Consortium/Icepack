@@ -172,17 +172,13 @@
          alvdf_init, & ! visible, diffuse  (fraction)
          alidf_init    ! near-ir, diffuse  (fraction)
 
-       ! out to ocean 
+       ! out to ocean
       real (kind=dbl_kind), dimension (nx), public :: &
          fpond   , & ! fresh water flux to ponds (kg/m^2/s)
          fresh   , & ! fresh water flux to ocean (kg/m^2/s)
          fsalt   , & ! salt flux to ocean (kg/m^2/s)
          fhocn   , & ! net heat flux to ocean (W/m^2)
          fswthru     ! shortwave penetrating to ocean (W/m^2)
-
-      real (kind=dbl_kind), dimension (nx,icepack_max_iso), public :: &
-         Qa_iso      , & ! isotope specific humidity (kg/kg)
-         Qref_iso        ! 2m atm reference isotope spec humidity (kg/kg)
 
        ! internal
 
@@ -303,7 +299,11 @@
          dimension (nx,icepack_max_nbtrcr), public :: &
          flux_bio_atm  ! all bio fluxes to ice from atmosphere
 
-      ! in from ocean
+      real (kind=dbl_kind), dimension (nx,icepack_max_iso), public :: &
+         Qa_iso      , & ! isotope specific humidity (kg/kg)
+         Qref_iso        ! 2m atm reference isotope spec humidity (kg/kg)
+
+      ! out to ocean
 
       real (kind=dbl_kind), &
          dimension (nx,icepack_max_aero), public :: &
@@ -312,8 +312,6 @@
       real (kind=dbl_kind), &
          dimension (nx,icepack_max_iso), public :: &
          fiso_ocn    ! isotope flux to ocean  (kg/m^2/s)
-
-      ! out to ocean 
 
       real (kind=dbl_kind), &
          dimension (nx,icepack_max_nbtrcr), public :: &

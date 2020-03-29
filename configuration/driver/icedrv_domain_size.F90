@@ -19,7 +19,7 @@
         ncat      = NICECAT   , & ! number of categories
         nilyr     = NICELYR   , & ! number of ice layers per category
         nslyr     = NSNWLYR   , & ! number of snow layers per category
-        n_iso     = NTRISO    , & ! number of aerosols in use
+        n_iso     = NTRISO    , & ! number of isotopes in use
         n_aero    = NTRAERO   , & ! number of aerosols in use
         n_zaero   = TRZAERO   , & ! number of z aerosols in use 
         n_algae   = TRALG     , & ! number of algae in use 
