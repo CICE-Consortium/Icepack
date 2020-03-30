@@ -19,8 +19,8 @@ addons:
 
 install:
   # Fetch Icepack-specific dataset
-  - "wget ftp://ftp.cgd.ucar.edu/archive/Model-Data/CICE/Icepack_data.tar.gz &&
-    tar xvfz Icepack_data.tar.gz -C ~"
+  - "wget https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz &&
+    tar xvfz Icepack_data-20200326.tar.gz -C ~"
 
   # Mirror entire data folder
   #- "lftp ftp://anonymous:travis@travis-ci.org@ftp.cgd.ucar.edu 
