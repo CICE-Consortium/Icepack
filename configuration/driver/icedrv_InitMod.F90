@@ -140,8 +140,8 @@
       if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
 
-      ! aerosols
       if (tr_iso)     call fiso_default                 ! default values
+      ! aerosols
       ! if (tr_aero)  call faero_data                   ! data file
       ! if (tr_zaero) call fzaero_data                  ! data file (gx1)
       if (tr_aero .or. tr_zaero)  call faero_default    ! default values
