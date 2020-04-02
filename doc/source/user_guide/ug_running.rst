@@ -524,7 +524,7 @@ If you prefer that some or all of the Icepack directories be located somewhere e
 
 Note: if you wish, you can also create a complete machine port for your computer by leveraging the conda configuration as a starting point. See :ref:`porting`.
 
-Next, create the "icepack" conda environment from the ``environment.yml`` file:
+Next, create the "icepack" conda environment from the ``environment.yml`` file in the Icepack source code repository.  You will need to clone Icepack to run the following command:
 
 .. code-block:: bash
 
