@@ -96,13 +96,10 @@ must equal ’dEdd’ and ``dEdd_algae`` must be true in **icepack\_in**.
 Water Isotope
 -------------
 
-Basic Water Isotopes
-~~~~~~~~~~~~~~~~~~~~
-
-Water isotopes may be deposited on the ice and gradually work their way
+Water isotopes may be deposited on the ice from above or below, and gradually work their way
 through it until the ice melts and they are passed into the ocean. They
 are defined as ice and snow volume tracers (Eq. 15 and 16 in CICE.v5
-documentation), with the snow and ice each having one tracers for each
+documentation), with the snow and ice each having one tracer for each
 water isotope species.
 
 Rather than updating water isotopes for each change to ice/snow thickness due
@@ -112,10 +109,11 @@ diagnostic variables (melts, meltb, snoice, etc) in
 **icepack\_isotope.F90**. The water isotopes follow the "real" water in the
 sense that all of the mass budget changes that impact fresh water equally
 affect the water isotopes. The sources of water isotopes are precipitation
-(snow accumulation), condensation, and sea ice growth, both frazil and 
-congelation that take from the ocean. The sinks are evaporation, snow and 
-sea ice melt. There water isotopes each have a fractionation associated with
-them in which H2_16O (regular water) is treated differently than H2_18O and HDO.
+(snow accumulation), condensation, and sea ice growth, including both frazil and
+congelation formation that take up water isotopes from the ocean. The sinks are
+evaporation and melting snow and
+sea ice. Isotopic fractionation occurs for vapor condensation and new sea ice growth,
+in which H2_16O (regular water, ${H_2}O$) is treated differently than H2_18O and HDO.
 
 More information can be found in :cite:`Brady19`.
 

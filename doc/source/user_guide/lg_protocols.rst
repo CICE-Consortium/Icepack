@@ -141,9 +141,9 @@ tracers understood by Icepack and lists some of their properties.  See also :ref
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
    | fsd        | optional | tr_fsd        | 1       | nfsd    | floe size distribution                                                            |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
-   | aero       | optional | tr_aero       | n_aero* | 4       | aerosols (snow SSL, snow below SSL, sea ice SSL, sea ice below SSL in that order) |
+   | iso        | optional | tr_iso        | n_iso   | 2       | water isotopes (snow, sea ice)                                                    |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
-   | iso        | optional | tr_iso        | n_iso*  | 2       | water isotopes (snow, sea ice in that order)                                      |
+   | aero       | optional | tr_aero       | n_aero* | 4       | aerosols (snow SSL, snow below SSL, sea ice SSL, sea ice below SSL in that order) |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
    | fbri       | optional | tr_brine      | 1       | 1       |                                                                                   |
    +------------+----------+---------------+---------+---------+-----------------------------------------------------------------------------------+
