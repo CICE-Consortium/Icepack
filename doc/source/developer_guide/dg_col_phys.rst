@@ -184,4 +184,3 @@ Overall, columnphysics changes in the Icepack model should include the following
          return
          end subroutine
 
-
