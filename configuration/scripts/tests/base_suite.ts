@@ -22,6 +22,7 @@ restart        col     1x1        pondtopo
 restart        col     1x1        bgcISPOL
 restart        col     1x1        thermo1
 restart        col     1x1        swccsm3
+restart        col     1x1        isotope
 restart        col     1x1        alt01
 restart        col     1x1        alt02
 restart        col     1x1        alt03

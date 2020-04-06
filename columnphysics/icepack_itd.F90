@@ -26,19 +26,20 @@
       module icepack_itd
 
       use icepack_kinds
-      use icepack_parameters,  only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
-      use icepack_parameters,  only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
-      use icepack_parameters,  only: rhosi, sk_l, hs_ssl, min_salin
-      use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero
+      use icepack_parameters, only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
+      use icepack_parameters, only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
+      use icepack_parameters, only: rhosi, sk_l, hs_ssl, min_salin
+      use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
+      use icepack_tracers,    only: n_iso
+      use icepack_tracers,    only: tr_iso
+      use icepack_tracers,    only: icepack_compute_tracers
       use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers
       use icepack_parameters, only: kcatbound, kitd
       use icepack_therm_shared, only: Tmin, hi_min
-      use icepack_warnings, only: warnstr, icepack_warnings_add
-      use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
-
-      use icepack_zbgc_shared, only: zap_small_bgc
-      use icepack_tracers, only: icepack_compute_tracers
+      use icepack_warnings,   only: warnstr, icepack_warnings_add
+      use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
+      use icepack_zbgc_shared,only: zap_small_bgc
 
       implicit none
 
@@ -770,7 +771,8 @@
                               n_trcr_strata,nt_strata, &
                               fpond,       fresh,      &
                               fsalt,       fhocn,      &
-                              faero_ocn,   fzsal,      &
+                              faero_ocn,   fiso_ocn,   &
+                              fzsal,                   &
                               flux_bio,    limit_aice_in)
 
       integer (kind=int_kind), intent(in) :: & 
@@ -834,6 +836,9 @@
       real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          faero_ocn    ! aerosol flux to ocean     (kg/m^2/s)
 
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+         fiso_ocn     ! isotope flux to ocean     (kg/m^2/s)
+
       logical (kind=log_kind), intent(in), optional ::   &
          limit_aice_in      ! if false, allow aice to be out of bounds
                             ! may want to allow this for unit tests
@@ -853,6 +858,9 @@
 
       real (kind=dbl_kind), dimension (n_aero) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension (n_iso) :: &
+         dfiso_ocn    ! zapped isotope flux   (kg/m^2/s)
 
       real (kind=dbl_kind), dimension (ntrcr) :: &
          dflux_bio    ! zapped biology flux  (mmol/m^2/s)
@@ -877,7 +885,8 @@
       dfsalt = c0
       dfhocn = c0
       dfaero_ocn(:) = c0
-      dflux_bio(:) = c0
+      dfiso_ocn (:) = c0
+      dflux_bio (:) = c0
       dfzsal = c0
 
       !-----------------------------------------------------------------
@@ -931,7 +940,8 @@
 
       if (limit_aice) then
          call zap_small_areas (dt,           ntrcr,         &
-                               ncat,         n_aero,        &
+                               ncat,                        &         
+                               n_aero,                      &
                                nblyr,                       &
                                nilyr,        nslyr,         &
                                aice,         aice0,         &
@@ -939,8 +949,10 @@
                                vicen,        vsnon,         &
                                dfpond,                      &
                                dfresh,       dfsalt,        &
-                               dfhocn,       dfaero_ocn,    &
-                               tr_aero,      tr_pond_topo,  &
+                               dfhocn, &     
+                               dfaero_ocn,   dfiso_ocn,     &
+                               tr_aero,                     &
+                               tr_pond_topo,                &
                                first_ice,    nbtrcr,        &
                                dfzsal,       dflux_bio      )
 
@@ -966,6 +978,7 @@
                                 trcrn,         vsnon,    &
                                 dfresh,        dfhocn,   &
                                 dfaero_ocn,    tr_aero,  &
+                                dfiso_ocn,               &
                                 dflux_bio,     nbtrcr,   &
                                 n_aero)
       if (icepack_warnings_aborted(subname)) return
@@ -985,6 +998,11 @@
       if (present(faero_ocn)) then
          do it = 1, n_aero
            faero_ocn(it) = faero_ocn(it) + dfaero_ocn(it)
+         enddo
+      endif
+      if (tr_iso) then
+         do it = 1, n_iso
+           fiso_ocn(it) = fiso_ocn(it) + dfiso_ocn(it)
          enddo
       endif
       if (present(flux_bio)) then
@@ -1018,7 +1036,8 @@
 ! author: William H. Lipscomb, LANL
 
       subroutine zap_small_areas (dt,        ntrcr,        &
-                                  ncat,      n_aero,       &
+                                  ncat,                    &
+                                  n_aero,                  &
                                   nblyr,                   &
                                   nilyr,     nslyr,        &
                                   aice,      aice0,        &
@@ -1026,8 +1045,10 @@
                                   vicen,     vsnon,        &
                                   dfpond,                  &
                                   dfresh,    dfsalt,       &
-                                  dfhocn,    dfaero_ocn,   &
-                                  tr_aero,   tr_pond_topo, &
+                                  dfhocn,                  &
+                                  dfaero_ocn, dfiso_ocn,   &
+                                  tr_aero,                 &
+                                  tr_pond_topo, &
                                   first_ice, nbtrcr,       &
                                   dfzsal,    dflux_bio     )
 
@@ -1064,6 +1085,9 @@
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+         dfiso_ocn    ! zapped isotope flux   (kg/m^2/s)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dflux_bio     ! zapped bio tracer flux from biology (mmol/m^2/s)
@@ -1123,16 +1147,23 @@
                enddo
             endif
 
-           if (solve_zsal) then
+            if (tr_iso) then
+               do it = 1, n_iso
+                  xtmp = vicen(n)*trcrn(nt_isoice+it-1,n)/dt
+                  dfiso_ocn(it) = dfiso_ocn(it) + xtmp
+               enddo
+            endif
+
+            if (solve_zsal) then
                do it = 1, nblyr
                   xtmp = rhosi*trcrn(nt_fbri,n)*vicen(n)*p001&
                         *trcrn(nt_bgc_S+it-1,n)/ &
                          real(nblyr,kind=dbl_kind)/dt
                   dfzsal = dfzsal + xtmp
                enddo                 ! n
-           endif
+            endif
 
-         if (skl_bgc .and. nbtrcr > 0) then
+            if (skl_bgc .and. nbtrcr > 0) then
                blevels = 1
                bvol(1) =  aicen(n)*sk_l
                it = 1
@@ -1142,7 +1173,7 @@
                        dt, bvol(1:blevels), trcr_skl(blevels))
                   if (icepack_warnings_aborted(subname)) return
                enddo
-         elseif (z_tracers .and. nbtrcr > 0) then
+            elseif (z_tracers .and. nbtrcr > 0) then
                blevels = nblyr + 1
                bvol(:) = vicen(n)/real(nblyr,kind=dbl_kind)*trcrn(nt_fbri,n)
                bvol(1) = p5*bvol(1)
@@ -1152,7 +1183,7 @@
                        dt, bvol(1:blevels),trcrn(bio_index(it):bio_index(it)+blevels-1,n))
                   if (icepack_warnings_aborted(subname)) return
                enddo
-         endif
+            endif
 
       !-----------------------------------------------------------------
       ! Zap ice energy and use ocean heat to melt ice
@@ -1187,8 +1218,9 @@
                           trcrn(:,n),    vsnon(n), &
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
+                          dfiso_ocn,               &
                           dflux_bio,     nbtrcr,   &
-                          n_aero, &
+                          n_aero,                  &
                           aicen(n),      nblyr)
             if (icepack_warnings_aborted(subname)) return
 
@@ -1242,6 +1274,15 @@
                                   + trcrn(nt_aero+3+4*(it-1),n)))   &
                        * (aice-c1)/aice / dt
                   dfaero_ocn(it) = dfaero_ocn(it) + xtmp
+               enddo               ! it
+            endif
+
+            if (tr_iso) then
+               do it = 1, n_iso
+                  xtmp = (vsnon(n)*trcrn(nt_isosno+it-1,n)     &
+                       +  vicen(n)*trcrn(nt_isoice+it-1,n))    &
+                       * (aice-c1)/aice / dt
+                  dfiso_ocn(it) = dfiso_ocn(it) + xtmp
                enddo               ! it
             endif
 
@@ -1319,8 +1360,9 @@
                           trcrn,      vsnon,    &
                           dfresh,     dfhocn,   &
                           dfaero_ocn, tr_aero,  &
+                          dfiso_ocn,            &
                           dflux_bio,  nbtrcr,   &
-                          n_aero, &      
+                          n_aero,               &
                           aicen,      nblyr)
 
       integer (kind=int_kind), intent(in) :: &
@@ -1346,8 +1388,11 @@
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
 
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+         dfiso_ocn    ! zapped isotope flux   (kg/m^2/s)
+
      real (kind=dbl_kind), dimension (:), intent(inout) :: &
-         dflux_bio     ! zapped bio tracer flux from biology (mmol/m^2/s)
+         dflux_bio    ! zapped bio tracer flux from biology (mmol/m^2/s)
 
       logical (kind=log_kind), intent(in) :: &
          tr_aero      ! aerosol flag
@@ -1369,6 +1414,14 @@
             dfaero_ocn(it) = dfaero_ocn(it) + xtmp
          enddo                 ! it
       endif ! tr_aero
+
+      ! isotopes
+      if (tr_iso) then
+         do it = 1, n_iso
+            xtmp = vsnon*trcrn(nt_isosno+it-1)/dt
+            dfiso_ocn(it) = dfiso_ocn(it) + xtmp
+         enddo                 ! it
+      endif ! tr_iso
 
       if (z_tracers) then
             dvssl  = min(p5*vsnon, hs_ssl*aicen)   !snow surface layer
@@ -1406,8 +1459,9 @@
                                       trcrn,      vsnon,    &
                                       dfresh,     dfhocn,   &
                                       dfaero_ocn, tr_aero,  &
+                                      dfiso_ocn,            &
                                       dflux_bio,  nbtrcr,   &
-                                      n_aero)
+                                      n_aero )
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1439,6 +1493,9 @@
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
+         dfiso_ocn    ! zapped isotope flux   (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension (:),intent(inout) :: &
          dflux_bio    ! zapped biology flux  (mmol/m^2/s)
 
       logical (kind=log_kind), intent(in) :: &
@@ -1521,8 +1578,9 @@
                           trcrn(:,n),    vsnon(n), &
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
+                          dfiso_ocn,               &
                           dflux_bio,     nbtrcr,   &
-                          n_aero, &
+                          n_aero,                  &
                           aicen(n),      nblyr)
             if (icepack_warnings_aborted(subname)) return
 
