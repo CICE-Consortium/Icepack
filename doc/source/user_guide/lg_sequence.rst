@@ -42,6 +42,7 @@ icepack_kinds module::
 icepack_tracers defines a handful of parameters that provide information
 about maximum array sizes for static dimensioning::
 
+      use icepack_tracers,   only: icepack_max_iso    => max_iso
       use icepack_tracers,   only: icepack_max_nbtrcr => max_nbtrcr
       use icepack_tracers,   only: icepack_max_algae  => max_algae
       use icepack_tracers,   only: icepack_max_dic    => max_dic

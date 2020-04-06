@@ -12,6 +12,7 @@
       use icepack_parameters, only: c1, emissivity
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+      use icepack_tracers, only: tr_iso
 
       implicit none
       private
@@ -55,7 +56,10 @@
                                meltt,  melts,        &
                                meltb,                &
                                congel,  snoice,      &
-                               Uref,     Urefn       )
+                               Uref,     Urefn,      &
+                               Qref_iso, Qrefn_iso,  &
+                               fiso_ocn, fiso_ocnn,  &
+                               fiso_evap, fiso_evapn)
 
       ! single category fluxes
       real (kind=dbl_kind), intent(in) :: &
@@ -119,6 +123,16 @@
       real (kind=dbl_kind), optional, intent(inout):: &
           Uref        ! air speed reference level       (m/s)
 
+      real (kind=dbl_kind), optional, dimension(:), intent(inout):: &
+          Qref_iso, & ! isotope air sp hum reference level (kg/kg)
+          fiso_ocn, & ! isotope fluxes to ocean (kg/m2/s)
+          fiso_evap   ! isotope evaporation (kg/m2/s)
+
+      real (kind=dbl_kind), optional, dimension(:), intent(in):: &
+          Qrefn_iso, & ! isotope air sp hum reference level (kg/kg)
+          fiso_ocnn, & ! isotope fluxes to ocean (kg/m2/s)
+          fiso_evapn   ! isotope evaporation (kg/m2/s)
+
       character(len=*),parameter :: subname='(merge_fluxes)'
 
       !-----------------------------------------------------------------
@@ -147,6 +161,19 @@
       evapi      = evapi    + evapin    * aicen
       Tref       = Tref     + Trefn     * aicen
       Qref       = Qref     + Qrefn     * aicen
+
+      ! Isotopes
+      if (tr_iso) then
+         if (present(Qrefn_iso) .and. present(Qref_iso)) then
+            Qref_iso (:) = Qref_iso (:) + Qrefn_iso (:) * aicen
+         endif
+         if (present(fiso_ocnn) .and. present(fiso_ocn)) then
+            fiso_ocn (:) = fiso_ocn (:) + fiso_ocnn (:) * aicen
+         endif
+         if (present(fiso_evapn) .and. present(fiso_evap)) then
+            fiso_evap(:) = fiso_evap(:) + fiso_evapn(:) * aicen
+         endif
+      endif
 
       ! ocean fluxes
       if (present(Urefn) .and. present(Uref)) then
