@@ -42,6 +42,7 @@
       use icepack_tracers,    only: icepack_max_don    => max_don
       use icepack_tracers,    only: icepack_max_fe     => max_fe
       use icepack_tracers,    only: icepack_max_aero   => max_aero
+      use icepack_tracers,    only: icepack_max_iso    => max_iso
       use icepack_tracers,    only: icepack_nmodal1    => nmodal1
       use icepack_tracers,    only: icepack_nmodal2    => nmodal2
       use icepack_parameters, only: icepack_nspint     => nspint

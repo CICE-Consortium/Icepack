@@ -9,6 +9,7 @@
       use icedrv_kinds
       use icedrv_constants, only: nu_diag, nu_diag_out
       use icedrv_domain_size, only: nx
+      use icedrv_domain_size, only: ncat, nfsd, n_iso
       use icepack_intfc, only: c0
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
@@ -41,6 +42,9 @@
          pdhs             , & ! change in mean snow thickness (m)
          pde                  ! change in ice and snow energy (W m-2)
 
+      real (kind=dbl_kind), dimension(nx,n_iso) :: &
+         pdiso                ! change in mean isotope concentration
+
 !=======================================================================
 
       contains
@@ -56,10 +60,9 @@
       subroutine runtime_diags (dt)
 
       use icedrv_arrays_column, only: floe_rad_c
-      use icedrv_domain_size, only: ncat, nfsd
       use icedrv_flux, only: evap, fsnow, frazil
       use icedrv_flux, only: fswabs, flw, flwout, fsens, fsurf, flat
-      use icedrv_flux, only: frain
+      use icedrv_flux, only: frain, fiso_evap, fiso_ocn, fiso_atm
       use icedrv_flux, only: Tair, Qa, fsw, fcondtop
       use icedrv_flux, only: meltt, meltb, meltl, snoice
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
@@ -74,7 +77,7 @@
          n, nc, k
 
       logical (kind=log_kind) :: &
-         calc_Tsfc, tr_fsd
+         calc_Tsfc, tr_fsd, tr_iso
 
       ! fields at diagnostic points
       real (kind=dbl_kind) :: & 
@@ -83,13 +86,13 @@
          pevap, pfhocn, fsdavg
 
       real (kind=dbl_kind), dimension (nx) :: &
-         work1, work2
+         work1, work2, work3
 
       real (kind=dbl_kind) :: &
          Tffresh, rhos, rhow, rhoi
 
       logical (kind=log_kind) :: tr_brine
-      integer (kind=int_kind) :: nt_fbri, nt_Tsfc, nt_fsd
+      integer (kind=int_kind) :: nt_fbri, nt_Tsfc, nt_fsd, nt_isosno, nt_isoice
 
       character(len=*), parameter :: subname='(runtime_diags)'
 
@@ -98,9 +101,10 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
-      call icepack_query_tracer_flags(tr_brine_out=tr_brine,tr_fsd_out=tr_fsd)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine, &
+           tr_fsd_out=tr_fsd,tr_iso_out=tr_iso)
       call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, nt_Tsfc_out=nt_Tsfc,&
-                                        nt_fsd_out=nt_fsd)
+           nt_fsd_out=nt_fsd, nt_isosno_out=nt_isosno, nt_isoice_out=nt_isoice)
       call icepack_query_parameters(Tffresh_out=Tffresh, rhos_out=rhos, &
            rhow_out=rhow, rhoi_out=rhoi)
       call icepack_warnings_flush(nu_diag)
@@ -148,6 +152,14 @@
         pde(n) =-(work1(n)- pde(n))/dt ! ice/snow energy change
         pfhocn = -fhocn(n)        ! ocean heat used by ice
         
+        work3(:) = c0
+
+        do k = 1, n_iso
+           work3 (n)  =  (trcr(n,nt_isosno+k-1)*vsno(n) &
+                         +trcr(n,nt_isoice+k-1)*vice(n))
+           pdiso(n,k) = work3(n) - pdiso(n,k)
+        enddo
+
         !-----------------------------------------------------------------
         ! start spewing
         !-----------------------------------------------------------------
@@ -202,9 +214,19 @@
         write(nu_diag_out+n-1,900) 'freezing temp (C)      = ',Tf(n)   ! freezing temperature
         write(nu_diag_out+n-1,900) 'heat used (W/m^2)      = ',pfhocn  ! ocean heat used by ice
         
+        if (tr_iso) then
+          do k = 1, n_iso
+             write(nu_diag_out+n-1,901) 'isotopic precip      = ',fiso_atm(n,k)*dt,k
+             write(nu_diag_out+n-1,901) 'isotopic evap/cond   = ',fiso_evap(n,k)*dt,k
+             write(nu_diag_out+n-1,901) 'isotopic loss to ocn = ',fiso_ocn(n,k)*dt,k
+             write(nu_diag_out+n-1,901) 'isotopic gain/loss   = ',(fiso_atm(n,k)-fiso_ocn(n,k)+fiso_evap(n,k))*dt,k
+             write(nu_diag_out+n-1,901) 'isotopic conc chg    = ',pdiso(n,k),k
+          enddo
+        endif
       end do
 899   format (43x,a24)
 900   format (a25,2x,f24.17)
+901   format (a25,2x,f24.17,i6)
 
       end subroutine runtime_diags
 
@@ -216,20 +238,26 @@
 
       subroutine init_mass_diags
 
-      use icedrv_domain_size, only: nx
-      use icedrv_state, only: vice, vsno
+      use icedrv_state, only: vice, vsno, trcr
 
-      integer (kind=int_kind) :: i
+      integer (kind=int_kind) :: i, k, nt_isosno, nt_isoice
 
       real (kind=dbl_kind), dimension (nx) :: work1
 
       character(len=*), parameter :: subname='(init_mass_diags)'
+
+      call icepack_query_tracer_indices(nt_isosno_out=nt_isosno)
+      call icepack_query_tracer_indices(nt_isoice_out=nt_isoice)
 
       call total_energy (work1)
       do i = 1, nx
          pdhi(i) = vice (i)
          pdhs(i) = vsno (i)
          pde (i) = work1(i)
+         do k = 1, n_iso
+            pdiso(i,k) = (trcr(i,nt_isosno+k-1)*vsno(i) &
+                         +trcr(i,nt_isoice+k-1)*vice(i))
+         enddo
       enddo
 
       end subroutine init_mass_diags
@@ -242,7 +270,7 @@
 
       subroutine total_energy (work)
 
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, nx
+      use icedrv_domain_size, only: ncat, nilyr, nslyr
       use icedrv_state, only: vicen, vsnon, trcrn
 
       real (kind=dbl_kind), dimension (nx), intent(out) :: &
@@ -303,7 +331,7 @@
 
       subroutine total_salt (work)
 
-      use icedrv_domain_size, only: ncat, nilyr, nx
+      use icedrv_domain_size, only: ncat, nilyr
       use icedrv_state, only: vicen, trcrn
 
       real (kind=dbl_kind), dimension (nx),  &
@@ -390,7 +418,7 @@
       subroutine print_state(plabel,i)
 
       use icedrv_calendar,  only: istep1, time
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, nfsd
+      use icedrv_domain_size, only: nilyr, nslyr
       use icedrv_state, only: aice0, aicen, vicen, vsnon, uvel, vvel, trcrn
       use icedrv_flux, only: uatm, vatm, potT, Tair, Qa, flw, frain, fsnow
       use icedrv_flux, only: fsens, flat, evap, flwout
