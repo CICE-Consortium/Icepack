@@ -98,7 +98,7 @@ else if (${ICE_MACHINE} =~ cori*) then
 @ nthrds2 = ${nthrds} * 2
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
-###SBATCH -A ${acct}
+#SBATCH -A ${acct}
 #SBATCH --qos shared
 #SBATCH --ntasks ${ncores}
 #SBATCH --time ${ICE_RUNLENGTH}
