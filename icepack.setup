@@ -941,9 +941,9 @@ EOF
 cat >> ${tsdir}/report_codecov.csh << EOF
 
 if ( \${use_curl} == 1 ) then
-  bash -c "bash <(curl -s https://codecov.io/bash) -n '\${report_name}' "
+  bash -c "bash <(curl -s https://codecov.io/bash) -n '\${report_name} -y ./codecov.yml' "
 else
-  bash -c "bash <(wget -O - https://codecov.io/bash) -n '\${report_name}' "
+  bash -c "bash <(wget -O - https://codecov.io/bash) -n '\${report_name} -y ./codecov.yml' "
 endif
 
 sleep 10
