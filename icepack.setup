@@ -958,13 +958,13 @@ EOF
     echo "Reporting results"
     ./poll_queue.csh
     ./results.csh
-    cp report_results.csh ../
-    cd ..
     ./report_results.csh
   endif
   if ($codecov == 1) then
     echo "Generating codecov reports"
     ./poll_queue.csh
+    cp ./report_codecov.csh ../
+    cd ../
     ./report_codecov.csh
   endif
   cd ${ICE_SANDBOX}
