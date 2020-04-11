@@ -1,6 +1,7 @@
 # do not comment with code coverage metrics in github pull requests
 comment: false
 coverage:
-  range: 20..100
+  range: "20...100"
   round: down
   precision: 2
+
