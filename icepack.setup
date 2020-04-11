@@ -853,8 +853,8 @@ EOF
 
 cat >> ${tsdir}/report_codecov.csh << EOF
 
-mkdir ${testname_base}/codecov
-cp ${rundir}/compile/*.{gcno,gcda} ${testname_base}/codecov/
+mkdir ${testname_base}/codecov_output
+cp ${rundir}/compile/*.{gcno,gcda} ${testname_base}/codecov_output/
 
 EOF
 
@@ -941,10 +941,13 @@ EOF
 cat >> ${tsdir}/report_codecov.csh << EOF
 
 if ( \${use_curl} == 1 ) then
-  bash -c "bash <(curl -s https://codecov.io/bash) -n '\${report_name}'"
+  bash -c "bash <(curl -s https://codecov.io/bash) -n '\${report_name}' -y .codecov.yml"
 else
-  bash -c "bash <(wget -O - https://codecov.io/bash) -n '\${report_name}'"
+  bash -c "bash <(wget -O - https://codecov.io/bash) -n '\${report_name}' -y .codecov.yml"
 endif
+
+sleep 10
+rm -r -f ./*/codecov_output
 
 EOF
 
