@@ -958,6 +958,8 @@ EOF
     echo "Reporting results"
     ./poll_queue.csh
     ./results.csh
+    cp report_results.csh ../
+    cd ..
     ./report_results.csh
   endif
   if ($codecov == 1) then
