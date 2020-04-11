@@ -940,7 +940,7 @@ EOF
 
 cat >> ${tsdir}/report_codecov.csh << EOF
 
-cd ../
+#cd ../
 
 if ( \${use_curl} == 1 ) then
   bash -c "bash <(curl -s https://codecov.io/bash) -n '\${report_name} -y ./codecov.yml' "
@@ -949,7 +949,7 @@ else
 endif
 
 sleep 10
-rm -r -f ./*/*/codecov_output
+rm -r -f ./*/codecov_output
 
 EOF
 
