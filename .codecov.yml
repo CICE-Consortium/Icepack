@@ -1,6 +1,6 @@
-
 coverage:
-  range: "40...70"
+  range: "20...100"
   round: down
   precision: 2
 
+comment: false
