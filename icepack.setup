@@ -458,8 +458,8 @@ EOF0
 cat >! ${tsdir}/report_codecov.csh << EOF0
 #!/bin/csh -f
 
-#setenv CODECOV_TOKEN "df12b574-8dce-439d-8d3b-ed7428d7598a"
-setenv CODECOV_TOKEN "0b3feb13-0110-4618-821e-248c2f1f7cf3"
+#setenv CODECOV_TOKEN "df12b574-8dce-439d-8d3b-ed7428d7598a"  # consortium icepack
+setenv CODECOV_TOKEN "0b3feb13-0110-4618-821e-248c2f1f7cf3"  # apcraig icepack
 set report_name = "${shhash}:${branch}:${machine} ${testsuite}"
 
 set use_curl = 1
