@@ -26,7 +26,6 @@ install:
   #- "lftp ftp://anonymous:travis@travis-ci.org@ftp.cgd.ucar.edu 
   #-e 'mirror /archive/Model-Data/CICE/ ~/ICEPACK_INPUTDATA; quit'"
 
-
 script:
   - "./icepack.setup --suite travis_suite --testid travisCItest 
     --mach travisCI --env gnu &&

@@ -82,7 +82,7 @@ SYNOPSIS
 
     --suite SUITE[,SUITE2] -m MACH --testid ID 
         [-e ENV1,ENV2][--acct ACCT][--bdir DIR][--bgen DIR]
-        [--bcmp DIR][--tdir PATH][--report][--codecov]
+        [--bcmp DIR][--tdir PATH][--report || --codecov]
 
 DESCRIPTION
     --help, -h : help
@@ -458,8 +458,8 @@ EOF0
 cat >! ${tsdir}/report_codecov.csh << EOF0
 #!/bin/csh -f
 
-#setenv CODECOV_TOKEN "df12b574-8dce-439d-8d3b-ed7428d7598a"
-setenv CODECOV_TOKEN "0b3feb13-0110-4618-821e-248c2f1f7cf3"
+#setenv CODECOV_TOKEN "df12b574-8dce-439d-8d3b-ed7428d7598a"  # cice-consortium icepack
+setenv CODECOV_TOKEN "0b3feb13-0110-4618-821e-248c2f1f7cf3"   ! apcraig icepack
 set report_name = "${shhash}:${branch}:${machine} ${testsuite}"
 
 set use_curl = 1
@@ -852,7 +852,6 @@ cat ${testname_base}/test_output >> results.log
 EOF
 
 cat >> ${tsdir}/report_codecov.csh << EOF
-
 mkdir ${testname_base}/codecov_output
 cp ${rundir}/compile/*.{gcno,gcda} ${testname_base}/codecov_output/
 
@@ -939,9 +938,6 @@ exit \$failures
 EOF
 
 cat >> ${tsdir}/report_codecov.csh << EOF
-
-#cd ../
-
 if ( \${use_curl} == 1 ) then
   bash -c "bash <(curl -s https://codecov.io/bash) -n '\${report_name}' -y ./codecov.yml "
 else

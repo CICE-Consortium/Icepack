@@ -4,7 +4,7 @@
 
 CPP        := ftn -E
 CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
-CFLAGS     := -c -O2 -ffloat-store -march=native
+CFLAGS     := -c -ffloat-store -march=native
 
 FIXEDFLAGS := -ffixed-line-length-132
 FREEFLAGS  := -ffree-form
@@ -12,9 +12,21 @@ FFLAGS     := -ffloat-store -fconvert=swap -fbacktrace -march=native -ffree-line
 FFLAGS_NOOPT:= -O0
 
 ifeq ($(ICE_BLDDEBUG), true)
-  FFLAGS     += -O0 -g -Wuninitialized -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow
-else
-  FFLAGS     += -O2
+   FFLAGS  += -O0 -g -Wuninitialized -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow
+   CFLAGS  += -O0
+endif
+
+ifeq ($(ICE_CODECOV), true) 
+   FFLAGS  += -O0 -g -fprofile-arcs -ftest-coverage
+   CFLAGS  += -O0 -g -coverage
+   LDFLAGS += -g -ftest-coverage -fprofile-arcs
+endif
+
+ifneq ($(ICE_BLDDEBUG), true) 
+ifneq ($(ICE_CODECOV), true) 
+   FFLAGS  += -O2
+   CFLAGS  += -O2
+endif
 endif
 
 SCC := cc
