@@ -938,6 +938,8 @@ exit \$failures
 EOF
 
 cat >> ${tsdir}/report_codecov.csh << EOF
+source ${ICE_SCRIPTS}/machines/env.${machcomp} 
+
 if ( \${use_curl} == 1 ) then
   bash -c "bash <(curl -s https://codecov.io/bash) -n '\${report_name}' -y ./codecov.yml "
 else
