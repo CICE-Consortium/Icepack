@@ -27,6 +27,10 @@ install:
   #-e 'mirror /archive/Model-Data/CICE/ ~/ICEPACK_INPUTDATA; quit'"
 
 script:
+  # verify icepack.setup --case and icepack.setup --test don't error then run test suite
+  - "./icepack.setup --case trcase --mach travisCI --env gnu --pes 1x1 -s diag1"
+  - "./icepack.setup --test smoke --testid trtest --mach travisCI --env gnu 
+    --pes 1x1 -s diag1"
   - "./icepack.setup --suite travis_suite --testid travisCItest 
     --mach travisCI --env gnu &&
     cd testsuite.travisCItest &&
