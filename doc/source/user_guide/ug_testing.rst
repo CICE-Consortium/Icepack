@@ -305,7 +305,7 @@ following options are valid for suites,
   This is only used by ``--suite`` and when set, invokes a script that sends the test results to the results page when all tests are complete.  Please see :ref:`testreporting` for more information.
 
 ``--codecov``
-  When invoked, code coverage diagnostics are run.  This includes modifications to the build, including reduced optimization.  The results will be uploaded to the **codecov.io** website automaticaly via the **report_codecov.csh** script.  Please see :ref:`codecoverage` for more information.
+  When invoked, code coverage diagnostics are generated.  This will modify the build and reduce optimization.  The results will be uploaded to the **codecov.io** website via the **report_codecov.csh** script.  General use is not recommended, this is mainly used as a diagnostic to periodically assess test coverage.  Please see :ref:`codecoverage` for more information.
 
 Please see :ref:`case_options` and :ref:`indtests` for more details about how these options are used.
 
@@ -553,17 +553,21 @@ This plotting script can be used to plot the following variables:
 .. _codecoverage:
 
 Code Coverage Testing
----------------
+------------------------
 
 The ``--codecov`` feature in **icepack.setup** provides a method to diagnose code coverage.
-This argument turns on special compiler flags including reduced optimization.
+This argument turns on special compiler flags including reduced optimization and then
+invokes the gcov tool.
 This option is currently only available with the gnu compiler and on a few systems.
-To use, submit a full test suite with the gnu compiler and the ``--codecov`` argument.
-The test suite will run and a report will be generated and uploaded to 
-the `codecov.io site <https://codecov.io/gh/CICE-Consortium/Icepack>`_ by the **report_codecov.csh** script.  
-This is just a diagnostic test
-and should not be treated as a test of the model due to changes in the compiler
-settings.  A sample job submission would look like ::
+To use, submit a full test suite using a version of Icepack on the Consortium master
+and the gnu compiler with the ``--codecov`` argument to **icepack.setup**.
+The test suite will run and then a report will be generated and uploaded to 
+the `codecov.io site <https://codecov.io/gh/CICE-Consortium/Icepack>`_ by the 
+**report_codecov.csh** script.  
+This is a special diagnostic test and does not constitute proper model testing.
+General use is not recommended, this is mainly used as a diagnostic to periodically 
+assess test coverage.  In addition, the interaction with codecov.io is not always robust.
+A sample job submission would look like ::
 
 $ ./icepack.setup -m conrad -e gnu --suite base_suite,travis_suite,quick_suite --testid cc01 --codecov
 
