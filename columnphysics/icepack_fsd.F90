@@ -59,8 +59,7 @@
          floe_rad_h,         & ! fsd size higher bound in m (radius)
          floe_area_l,        & ! fsd area at lower bound (m^2)
          floe_area_h,        & ! fsd area at higher bound (m^2)
-         floe_area_c,        & ! fsd area at bin centre (m^2)
-         floe_area_binwidth    ! floe area bin width (m^2)
+         floe_area_c           ! fsd area at bin centre (m^2)
 
       integer(kind=int_kind), dimension(:,:), allocatable, public ::  &
          iweld                 ! floe size categories that can combine
@@ -113,9 +112,6 @@
       integer (kind=int_kind) :: ierr
 
       real (kind=dbl_kind) :: test
-
-      real (kind=dbl_kind), dimension (nfsd+1) :: &
-         area_lims, area_lims_scaled
 
       real (kind=dbl_kind), dimension (0:nfsd) :: &
          floe_rad
@@ -186,7 +182,6 @@
          floe_area_l         (nfsd), & ! fsd area at lower bound (m^2)
          floe_area_h         (nfsd), & ! fsd area at higher bound (m^2)
          floe_area_c         (nfsd), & ! fsd area at bin centre (m^2)
-         floe_area_binwidth  (nfsd), & ! floe area bin width (m^2)
          iweld         (nfsd, nfsd), & ! fsd categories that can weld
          stat=ierr)
       if (ierr/=0) then
@@ -205,7 +200,6 @@
 
       floe_binwidth = floe_rad_h - floe_rad_l
 
-      floe_area_binwidth = floe_area_h - floe_area_l
       
       ! floe size categories that can combine during welding
       iweld(:,:) = -999
@@ -708,6 +702,8 @@
          DO WHILE (elapsed_t.lt.dt)
         
              nsubt = nsubt + 1
+
+             ! LR need to do this properly
              if (nsubt.gt.100) print *, 'latg not converging'
  
              ! finite differences
@@ -750,7 +746,7 @@
          ! add new frazil ice to smallest thickness
          if (d_an_newi(n) > puny) then
 
-             afsd_ni(:) = c0
+            afsd_ni(:) = c0
 
             if (SUM(afsdn_latg(:,n)) > puny) then ! fsd exists
 
