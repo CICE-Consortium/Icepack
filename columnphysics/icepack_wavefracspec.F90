@@ -356,8 +356,17 @@
 
         end if
 
+        ! sanity checks
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
+
+            ! remove after testing 
+            if (ANY(fracture_hist.ne.fracture_hist)) &
+              stop 'NaN fracture_hist'
+            if (ANY(fracture_hist.lt.c0)) &
+              stop 'neg fracture_hist'
+            if (ABS(SUM(fracture_hist)-c1).gt.puny) &
+              stop 'not norm fracture_hist'
 
             ! protect against small numerical errors
             call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
@@ -526,13 +535,7 @@
          phi, rand_array, summand
 
       real (kind=dbl_kind), dimension(nx) :: &
-<<<<<<< HEAD
          fraclengths, &
-=======
-         fraclengths
-
-      real (kind=dbl_kind), dimension(nx) :: &
->>>>>>> master
          X,  &    ! spatial domain (m)
          eta      ! sea surface height field (m)
 
@@ -572,15 +575,9 @@
          ! Phase for each Fourier component may be constant or
          ! a random phase that varies in each i loop
          ! See documentation for discussion
-<<<<<<< HEAD
          if (run_to_convergence) then
              call RANDOM_NUMBER(rand_array)
              if (icepack_warnings_aborted(subname)) return
-=======
-         if (trim(wave_spec_type).eq.'random') then
-            call RANDOM_NUMBER(rand_array)
-            if (icepack_warnings_aborted(subname)) return
->>>>>>> master
          else
             rand_array(:) = p5
          endif
@@ -604,25 +601,9 @@
          if (ALL(fraclengths.lt.floe_rad_l(1))) then
             frac_local(:) = c0
          else
-<<<<<<< HEAD
-
-=======
->>>>>>> master
             ! bin into FS cats
             ! accumulate the frac histogram each iteration
             do j = 1, size(fraclengths)
-<<<<<<< HEAD
-            if (fraclengths(j).gt.floe_rad_l(1)) then
-            do k = 1, nfsd-1
-               if ((fraclengths(j) >= floe_rad_l(k)) .and. &
-                   (fraclengths(j) < floe_rad_l(k+1))) then
-                  frachistogram(k) = frachistogram(k) + 1
-               end if
-            end do
-            if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
-            end if
-            end do
-=======
                if (fraclengths(j).gt.floe_rad_l(1)) then
                   do k = 1, nfsd-1
                      if ((fraclengths(j) >= floe_rad_l(k)) .and. &
@@ -633,7 +614,6 @@
                if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
                end if
             end do
->>>>>>> master
 
             do k = 1, nfsd
                frac_local(k) = floe_rad_c(k)*frachistogram(k)
@@ -662,10 +642,6 @@
          call icepack_warnings_add(warnstr)
       endif
 
-<<<<<<< HEAD
-
-=======
->>>>>>> master
       end subroutine wave_frac
 
 !===========================================================================
@@ -681,11 +657,7 @@
 !
       subroutine get_fraclengths(X, eta, fraclengths, hbar)
 
-<<<<<<< HEAD
       real (kind=dbl_kind), intent (in) :: &
-=======
-      real (kind=dbl_kind), intent(in) :: &
->>>>>>> master
          hbar             ! mean thickness (m)
 
       real (kind=dbl_kind), intent(in), dimension (nx) :: &

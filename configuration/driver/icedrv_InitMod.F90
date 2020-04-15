@@ -43,12 +43,9 @@
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
       use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
-<<<<<<< HEAD
       use icepack_intfc, only: icepack_init_spwf_fullnet, icepack_init_spwf_class
       use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
-=======
       use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc 
->>>>>>> master
       use icedrv_restart_shared, only: restart
       use icedrv_init, only: input_data, init_state, init_grid2, init_fsd
       use icedrv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
