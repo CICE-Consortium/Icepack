@@ -1102,7 +1102,7 @@
                          nsubt = nsubt + 1
                          if (nsubt.gt.100) &
                            print *, 'latm not converging'
-                     
+
                          ! finite differences
                          df_flx(:) = c0
                          f_flx (:) = c0
@@ -1139,7 +1139,6 @@
  
                      afsdn(:,n) = afsd_tmp(:)
 
-      
                   end if ! aicen
                end if ! rside > 0, otherwise do nothing
 
@@ -1379,13 +1378,8 @@
          floe_rad_c     , & ! fsd size bin centre in m (radius)
          floe_binwidth      ! fsd size bin width in m (radius)
 
-      real (kind=dbl_kind), dimension(ncat) :: &  ! for now
-                            ! change in thickness distribution (area)
-         d_an_latg      , & ! due to fsd lateral growth
-         d_an_newi          ! new ice formation
-
       real (kind=dbl_kind), dimension(:), intent(out) :: &
-                            ! change in thickness distribution (area)
+                            ! change in floe size distribution (area)
          d_afsd_latg    , & ! due to fsd lateral growth
          d_afsd_newi        ! new ice formation
 
@@ -1400,7 +1394,6 @@
       real (kind=dbl_kind) :: &
          ai0new       , & ! area of new ice added to cat 1
          vi0new       , & ! volume of new ice added to cat 1
-         vi0new_lat   , & ! volume of new ice added laterally to fsd
          hsurp        , & ! thickness of new ice added to each cat
          fnew         , & ! heat flx to open water for new ice (W/m^2)
          hi0new       , & ! thickness of new ice
@@ -1429,16 +1422,18 @@
          fieldid           ! field identifier
 
       real (kind=dbl_kind), dimension (ncat) :: &
-         eicen, &     ! energy of melting for each ice layer (J/m^2)
+         eicen, &         ! energy of melting for each ice layer (J/m^2)
          aicen_init, &    ! fractional area of ice
          vicen_init       ! volume per unit area of ice (m)
 
       ! floe size distribution
-      real (kind=dbl_kind), dimension (nfsd,ncat) :: &
-         afsdn          ! floe size distribution tracer (originally areal_mfstd_init)
+      real (kind=dbl_kind), dimension(ncat) :: &  ! for now
+                            ! change in thickness distribution (area)
+         d_an_latg      , & ! due to fsd lateral growth
+         d_an_newi          ! new ice formation
 
-!      real (kind=dbl_kind), dimension (nfsd) :: &
-!         afsd      , & ! fsd tracer for each thickness category
+     real (kind=dbl_kind), dimension (nfsd,ncat) :: &
+         afsdn              ! floe size distribution tracer 
 
       real (kind=dbl_kind), dimension (ncat) :: &
          d_an_tot, & ! change in the ITD due to lateral growth and new ice
@@ -1446,9 +1441,6 @@
 
       real (kind=dbl_kind), dimension (ncat) :: &
          vin0new          ! volume of new ice added to any thickness cat
-
-      real (kind=dbl_kind), dimension (nfsd) :: &
-         afsd_ni      ! areal mFSTD after new ice added
 
       real (kind=dbl_kind) :: &
          tmp, &

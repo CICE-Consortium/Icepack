@@ -37,7 +37,8 @@
  
       implicit none
       private
-      public :: icepack_init_wave, icepack_step_wavefracture
+      public :: icepack_init_wave, icepack_step_wavefracture,&
+                icepack_init_spwf_fullnet, icepack_init_spwf_class
 
       real (kind=dbl_kind), parameter  :: &
          swh_minval = 0.01_dbl_kind,  & ! minimum value of wave height (m)
@@ -57,6 +58,27 @@
 
       integer (kind=int_kind), parameter :: &
          max_no_iter = 100 ! max no of iterations to compute wave fracture
+
+      real (kind=dbl_kind), dimension(26,100)  :: full_weight1
+      real (kind=dbl_kind), dimension(100)     :: full_weight2
+      real (kind=dbl_kind), dimension(100,100) :: full_weight3
+      real (kind=dbl_kind), dimension(100)     :: full_weight4
+      real (kind=dbl_kind), dimension(100,100) :: full_weight5
+      real (kind=dbl_kind), dimension(100)     :: full_weight6
+      real (kind=dbl_kind), dimension(100,100) :: full_weight7
+      real (kind=dbl_kind), dimension(100)     :: full_weight8
+      real (kind=dbl_kind), dimension(100,100) :: full_weight9
+      real (kind=dbl_kind), dimension(100)     :: full_weight10
+      real (kind=dbl_kind), dimension(100,49)  :: full_weight11
+      real (kind=dbl_kind), dimension(49)      :: full_weight12
+      real (kind=dbl_kind), dimension(49) :: &
+          fracbin_c
+      real (kind=dbl_kind), dimension(26,100)  :: class_weight1
+      real (kind=dbl_kind), dimension(100)     :: class_weight2
+      real (kind=dbl_kind), dimension(100,100) :: class_weight3
+      real (kind=dbl_kind), dimension(100)     :: class_weight4
+      real (kind=dbl_kind), dimension(100,2)   :: class_weight5
+      real (kind=dbl_kind), dimension(2)       :: class_weight6
 
 
 !=======================================================================
@@ -103,6 +125,20 @@
       wave_spectrum_data(7) = 3.326293881400488e-05 
       wave_spectrum_data(8) = 6.815936703929992e-10 
       wave_spectrum_data(9) = 2.419401186610744e-20      
+
+
+!       wave_spectrum_data(1) =    0.0022_dbl_kind
+!       wave_spectrum_data(2) =    0.0158_dbl_kind
+!       wave_spectrum_data(3) =    0.0390_dbl_kind
+!       wave_spectrum_data(4) =    0.1481_dbl_kind
+!       wave_spectrum_data(5) =    0.2005_dbl_kind
+!       wave_spectrum_data(6) =    0.1531_dbl_kind
+!       wave_spectrum_data(7) =    0.2262_dbl_kind
+!       wave_spectrum_data(8) =    0.2262_dbl_kind
+!       wave_spectrum_data(9) =    0.1838_dbl_kind
+!       wave_spectrum_data(10) =    0.0190_dbl_kind
+!       wave_spectrum_data(11) =    0.0002_dbl_kind
+
 
       do k = 1, nfreq
          wave_spectrum_profile(k) = wave_spectrum_data(k)
@@ -182,7 +218,7 @@
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
-      subroutine icepack_step_wavefracture(wave_spec_type,   &
+      subroutine icepack_step_wavefracture(wave_solver,      &
                   dt,            ncat,            nfsd,      &
                   nfreq,                                     &
                   aice,          vice,            aicen,     &
@@ -190,9 +226,11 @@
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave)
 
+      use icepack_parameters, only: spwf_clss_crit 
+
 
       character (len=char_len), intent(in) :: &
-         wave_spec_type   ! type of wave spectrum forcing
+         wave_solver         ! method of wave fracture solution
 
       integer (kind=int_kind), intent(in) :: &
          nfreq,        & ! number of wave frequency categories
@@ -232,7 +270,10 @@
       ! local variables
       integer (kind=int_kind) :: &  
          n, k, t, &
-         nsubt ! number of subcycles 
+         nsubt ! number of subcycles
+
+      logical (kind=log_kind) :: &
+         run_wave_fracture, run_to_convergence 
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          afsdn           ! floe size and thickness distribution
@@ -241,12 +282,14 @@
          frac    
 
       real (kind=dbl_kind) :: &
+         spwf_classifier_out, & ! classifier output
          hbar         , & ! mean ice thickness
          elapsed_t    , & ! elapsed subcycling time
          subdt        , & ! subcycling time step
          cons_error       ! area conservation error
 
       real (kind=dbl_kind), dimension (nfsd) :: &
+         spwf_fullnet_hist, & !
          fracture_hist, & ! fracture histogram
          afsd_init    , & ! tracer array
          afsd_tmp     , & ! tracer array
@@ -261,26 +304,61 @@
       d_afsd_wave    (:)   = c0
       d_afsdn_wave   (:,:) = c0
       fracture_hist  (:)   = c0
+      run_wave_fracture    = .true.
+
+      ! should be moved to ice_init
+      run_to_convergence = .false.
+      if ((trim(wave_solver).eq.'std-conv') &
+          .OR.(trim(wave_solver).eq.'mlclass-conv')) run_to_convergence = .true.
 
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
-
    
       ! do not try to fracture for minimal ice concentration or zero wave spectrum
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
-
          hbar = vice / aice
+
+        if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')&
+             .OR.(trim(wave_solver).eq.'mlfullnet')) then 
+         ! classify input (based on neural net run offline)
+         ! input = wave spectrum (25 freq) and ice thickness
+         ! output: spwf_classifier_out between 0 and 1
+         ! if greater than some critical value, run wave fracture
+ 
+             call spwf_classifier(wave_spectrum, hbar,  &
+                              spwf_classifier_out)
+
+             if (spwf_classifier_out.lt.spwf_clss_crit) run_wave_fracture = .false.
+        end if
+ 
+        if (trim(wave_solver).eq.'mlfullnet') then
+
+             if (run_wave_fracture) then
+                 call spwf_fullnet(nfsd, floe_rad_l, wave_spectrum, hbar, &
+                               spwf_fullnet_hist)
+
+                 fracture_hist(:) = spwf_fullnet_hist(:)
+             end if
+
+             run_wave_fracture = .false.
+
+        end if
+
+        if (run_wave_fracture) then
  
          ! calculate fracture histogram
-         call wave_frac(nfsd, nfreq, wave_spec_type, &
+         call wave_frac(nfsd, nfreq, run_to_convergence, &
                         floe_rad_l, floe_rad_c, &
                         wavefreq, dwavefreq, &
                         hbar, wave_spectrum, fracture_hist)
-
+ 
          if (icepack_warnings_aborted(subname)) return
 
-         ! if fracture occurs
-         if (MAXVAL(fracture_hist) > puny) then
+        end if
+
+        ! if fracture occurs, evolve FSD with adaptive subtimestep
+        if (MAXVAL(fracture_hist) > puny) then
+
             ! protect against small numerical errors
             call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
             if (icepack_warnings_aborted(subname)) return
@@ -316,11 +394,11 @@
 
                      ! calculate d_afsd using current afstd
                      d_afsd_tmp = get_dafsd_wave(nfsd, afsd_tmp, fracture_hist, frac)
-                     
+                    
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
                         write(warnstr,*) subname, &
-                          'warning: step_wavefracture struggling to converge'
+                     'warning: step_wavefracture struggling to converge'
                         call icepack_warnings_add(warnstr)
                      endif
 
@@ -369,8 +447,9 @@
                   end if
 
                   ! update trcrn
-                  trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp/SUM(afsd_tmp)
+                  trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp
                   call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
+                  
                   if (icepack_warnings_aborted(subname)) return
 
                   ! for diagnostics
@@ -401,7 +480,7 @@
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 
-      subroutine wave_frac(nfsd, nfreq, wave_spec_type, &
+      subroutine wave_frac(nfsd, nfreq, run_to_convergence, &
                            floe_rad_l, floe_rad_c, &
                            wavefreq, dwavefreq, &
                            hbar, spec_efreq, frac_local)
@@ -410,8 +489,11 @@
          nfsd, &       ! number of floe size categories
          nfreq         ! number of wave frequency categories
 
-      character (len=char_len), intent(in) :: &
-        wave_spec_type ! type of wave spectrum forcing
+      logical (kind=log_kind), intent(in) :: &
+        run_to_convergence ! whether to iterate the wave fracture code
+                           ! over random SSH phases until convergence
+                           ! (not bit for bit), or do one iteration
+                           ! with a fixed phase (bit for bit)
 
       real (kind=dbl_kind),  intent(in) :: &
          hbar          ! mean ice thickness (m)
@@ -444,9 +526,13 @@
          phi, rand_array, summand
 
       real (kind=dbl_kind), dimension(nx) :: &
+<<<<<<< HEAD
+         fraclengths, &
+=======
          fraclengths
 
       real (kind=dbl_kind), dimension(nx) :: &
+>>>>>>> master
          X,  &    ! spatial domain (m)
          eta      ! sea surface height field (m)
 
@@ -458,13 +544,9 @@
          subname='(wave_frac)'
 
 
-      if (trim(wave_spec_type).eq.'random') then
-          ! run wave fracture to convergence
-          loop_max_iter = max_no_iter
-      else
-          loop_max_iter = 1
-      end if
- 
+      loop_max_iter = max_no_iter
+      if (.NOT. run_to_convergence) loop_max_iter = 1
+  
       ! spatial domain
       do j = 1, nx
          X(j)= j*dx
@@ -490,9 +572,15 @@
          ! Phase for each Fourier component may be constant or
          ! a random phase that varies in each i loop
          ! See documentation for discussion
+<<<<<<< HEAD
+         if (run_to_convergence) then
+             call RANDOM_NUMBER(rand_array)
+             if (icepack_warnings_aborted(subname)) return
+=======
          if (trim(wave_spec_type).eq.'random') then
             call RANDOM_NUMBER(rand_array)
             if (icepack_warnings_aborted(subname)) return
+>>>>>>> master
          else
             rand_array(:) = p5
          endif
@@ -516,9 +604,25 @@
          if (ALL(fraclengths.lt.floe_rad_l(1))) then
             frac_local(:) = c0
          else
+<<<<<<< HEAD
+
+=======
+>>>>>>> master
             ! bin into FS cats
             ! accumulate the frac histogram each iteration
             do j = 1, size(fraclengths)
+<<<<<<< HEAD
+            if (fraclengths(j).gt.floe_rad_l(1)) then
+            do k = 1, nfsd-1
+               if ((fraclengths(j) >= floe_rad_l(k)) .and. &
+                   (fraclengths(j) < floe_rad_l(k+1))) then
+                  frachistogram(k) = frachistogram(k) + 1
+               end if
+            end do
+            if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
+            end if
+            end do
+=======
                if (fraclengths(j).gt.floe_rad_l(1)) then
                   do k = 1, nfsd-1
                      if ((fraclengths(j) >= floe_rad_l(k)) .and. &
@@ -529,6 +633,7 @@
                if (fraclengths(j)>floe_rad_l(nfsd)) frachistogram(nfsd) = frachistogram(nfsd) + 1
                end if
             end do
+>>>>>>> master
 
             do k = 1, nfsd
                frac_local(k) = floe_rad_c(k)*frachistogram(k)
@@ -537,10 +642,10 @@
             ! normalize
             if (SUM(frac_local) /= c0) frac_local(:) = frac_local(:) / SUM(frac_local(:))
 
-         end if 
-
+         end if ! fraclengths > 0
+ 
+         if (run_to_convergence) then
          ! wave fracture run to convergence
-         if (trim(wave_spec_type).eq.'random') then
 
              ! check avg frac local against previous iteration
              fracerror = SUM(ABS(frac_local - prev_frac_local))/nfsd
@@ -557,6 +662,10 @@
          call icepack_warnings_add(warnstr)
       endif
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> master
       end subroutine wave_frac
 
 !===========================================================================
@@ -572,7 +681,11 @@
 !
       subroutine get_fraclengths(X, eta, fraclengths, hbar)
 
+<<<<<<< HEAD
+      real (kind=dbl_kind), intent (in) :: &
+=======
       real (kind=dbl_kind), intent(in) :: &
+>>>>>>> master
          hbar             ! mean thickness (m)
 
       real (kind=dbl_kind), intent(in), dimension (nx) :: &
@@ -719,6 +832,234 @@
       end if ! n_above
 
       end subroutine get_fraclengths
+
+
+!===========================================================================
+!
+!
+!  authors: 2020 Lettie Roach, UW
+!
+
+      subroutine icepack_init_spwf_class
+
+
+
+      ! local variables
+
+      character(char_len_long) :: wave_class_file
+
+
+      real (kind=dbl_kind), dimension(13002)   :: filelist
+ 
+      wave_class_file = &
+       trim('/glade/u/home/lettier/wavefrac_nn_classifier.txt')
+
+      open (unit = 1, file = wave_class_file)
+      read (1, *) filelist
+      close(1)
+
+      class_weight1 = TRANSPOSE(RESHAPE(filelist(1:2600), (/100, 26/)))
+      class_weight2 = filelist(2601:2700)
+      class_weight3 = TRANSPOSE(RESHAPE(filelist(2701:12700), (/100, 100/)))
+      class_weight4 = filelist(12701:12800)
+      class_weight5 = TRANSPOSE(RESHAPE(filelist(12801:13000), (/2, 100/)))
+      class_weight6 = filelist(13001:13002)
+
+     
+      end subroutine icepack_init_spwf_class
+
+!===========================================================================
+!
+! See ref XXX for details
+!
+! This routine contains the results of a pattern recognition network
+! (trained offline). The network classifies whether or not wave fracture occurs 
+! based on the 25-dim wave spectrum and ice thickness.
+! The output is an integer between 0 and 1.
+!
+!  authors: 2019 Lettie Roach, UW
+!                Chris Horvat, Brown University
+!
+
+      subroutine spwf_classifier(wave_spectrum, hbar, &
+                                 spwf_classifier_out)
+
+
+      real (kind=dbl_kind), intent (in) :: &
+          hbar  ! ice thickness (m)
+
+      real (kind=dbl_kind), dimension (:), intent (in) :: &
+          wave_spectrum ! wave spectrum as a function of freq (m^s s)
+
+      real (kind=dbl_kind), intent(out) :: &
+          spwf_classifier_out
+
+
+      ! local variables
+
+      character(char_len_long) :: wave_class_file
+
+      real (kind=dbl_kind), dimension(26) :: input
+
+      real (kind=dbl_kind), dimension(100)    :: y1, y2
+      real (kind=dbl_kind), dimension(2)     :: y3
+
+      input(1:25) = wave_spectrum(1:25)
+      input(26)   = hbar
+
+ 
+      y1 = MATMUL(input,class_weight1) + class_weight2
+      WHERE (y1 < c0) y1 = c0
+
+      y2 = MATMUL(y1,class_weight3) + class_weight4
+      WHERE (y2 < c0) y2 = c0
+
+      y3 = MATMUL(y2, class_weight5) + class_weight6
+
+      y3 = y3 - MAXVAL(y3)
+      y3 = EXP(y3)
+      if (SUM(y3).NE.c0) y3 = y3/SUM(y3)
+
+      spwf_classifier_out = y3(2) 
+      
+      end subroutine spwf_classifier
+
+!===========================================================================
+!
+!  Read in coefficients for machine learning wave fracture 
+!
+!  authors: 2019 Lettie Roach, UW
+!
+
+      subroutine icepack_init_spwf_fullnet
+ 
+      ! local variables
+      character(char_len_long) :: wave_fullnet_file
+
+      real (kind=dbl_kind), dimension(48049)   :: filelist
+
+      real (kind=dbl_kind), dimension(50) :: &
+          fracbin_lims = (/0.0665000000001815, 2.40835589141913, 5.31030847002807, 9.16027653259012, 14.2865861000647, 20.7575631647743, 29.0576686001186, 39.3897615767871, 52.4122136001970, 68.2905949590838, 87.8691405003101, 111.282357408793, 139.518470000468, 172.613187564468, 211.635752000678, 256.427284528097, 308.037274000949, 365.995660133244, 431.203059001283, 501.395164857144, 581.277225001814, 669.934308094615, 755.141047002274, 832.798401621684, 945.812834003182, 1123.23314281921, 1343.54446000417, 1570.56710572412, 1822.65364000582, 2119.13318486551, 2472.61361000779, 2877.73619338566, 3354.34988001061, 3903.52982771199, 4550.51413001439, 5295.53214922787, 6173.23164001952, 7183.92376577288, 8374.61170002648, 9745.71756262409, 11361.0059000359, 13221.0493617961, 15412.3510000487, 17960.1337125977, 20908.4095000636, 24289.3244672200, 28364.3675000829, 33174.1399761146, 38479.1270001050, 43762.3390910769/)
+
+      real (kind=dbl_kind), dimension(49) :: &
+          fracbin_width
+
+      ! lims are in radii
+      fracbin_width = fracbin_lims(2:50) - fracbin_lims(1:49)
+      fracbin_c     = fracbin_lims(1:49) + fracbin_width/c2
+ 
+
+      wave_fullnet_file = &
+       trim('/glade/u/home/lettier/wavefrac_nn_fullnet.txt')
+
+      open (unit = 2, file = wave_fullnet_file)
+      read (2, *) filelist
+      close(2)
+
+      full_weight1 = TRANSPOSE(RESHAPE(filelist(1:2600), (/100, 26/)))
+      full_weight2 = filelist(2601:2700)
+      full_weight3 = TRANSPOSE(RESHAPE(filelist(2701:12700), (/100, 100/)))
+      full_weight4 = filelist(12701:12800)
+      full_weight5 = TRANSPOSE(RESHAPE(filelist(12801:22800), (/100, 100/)))
+      full_weight6 = filelist(22801:22900)
+      full_weight7 = TRANSPOSE(RESHAPE(filelist(22901:32900), (/100, 100/)))
+      full_weight8 = filelist(32901:33000)
+      full_weight9 = TRANSPOSE(RESHAPE(filelist(33001:43000), (/100, 100/)))
+      full_weight10 = filelist(43001:43100)
+      full_weight11 = TRANSPOSE(RESHAPE(filelist(43101:48000), (/49, 100/)))
+      full_weight12 = filelist(48001:48049)
+
+      end subroutine icepack_init_spwf_fullnet
+
+!===========================================================================
+!
+! See ref XXX for details
+!
+! This routine contains the results of a pattern recognition network
+! (trained offline). The network emulates the full wave fracture code
+! based on the 25-dim wave spectrum and ice thickness.
+! The output is the fracture histogram, binned into our floe size categories
+!
+!  authors: 2019 Lettie Roach, UW
+!                Chris Horvat, Brown University
+!
+
+      subroutine spwf_fullnet(nfsd, floe_rad_l, wave_spectrum, hbar, &
+          spwf_fullnet_hist)
+
+
+         
+      integer (kind=int_kind), intent(in) :: &
+          nfsd
+ 
+      real (kind=dbl_kind), intent (in) :: &
+          hbar  ! ice thickness (m)
+
+      real (kind=dbl_kind), dimension (:), intent (in) :: &
+          wave_spectrum ! wave spectrum as a function of freq (m^s s)
+
+      real (kind=dbl_kind), dimension (nfsd), intent (in) :: &
+          floe_rad_l ! FSD categories, lower limit, radius (m)
+
+      real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
+          spwf_fullnet_hist
+
+      ! local variables
+      integer (kind=int_kind) :: &
+          k, l
+
+
+      real (kind=dbl_kind), dimension(26)     :: input
+      real (kind=dbl_kind), dimension(100)    :: y1, y2, y3, y4, y5
+      real (kind=dbl_kind), dimension(49)     :: y6
+
+
+      input(1:25) = wave_spectrum(1:25)
+      input(26)   = hbar
+
+      y1 = MATMUL(input,full_weight1) + full_weight2
+      WHERE (y1 < c0) y1 = c0
+
+      y2 = MATMUL(y1, full_weight3) + full_weight4
+      WHERE (y2 < c0) y2 = c0
+
+      y3 = MATMUL(y2, full_weight5) + full_weight6
+      WHERE (y3 < c0) y3 = c0
+
+      y4 = MATMUL(y3, full_weight7) + full_weight8
+      WHERE (y4 < c0) y4 = c0
+
+      y5 = MATMUL(y4, full_weight9) + full_weight10
+      WHERE (y5 < c0) y5 = c0
+
+      y6 = MATMUL(y5, full_weight11) + full_weight12
+
+      y6 = y6 - MAXVAL(y6)
+      y6 = EXP(y6)
+      if (SUM(y6).NE.c0) y6 = y6/SUM(y6)
+
+
+      spwf_fullnet_hist(:) = c0
+      do l = 1, 49
+          if (y6(l).gt.puny) then
+              ! cannot create fractures in largest floe size category
+              do k = 1, nfsd-1
+                  if ((fracbin_c(l).ge.floe_rad_l(k)).and.(fracbin_c(l).lt.floe_rad_l(k+1))) then
+                      spwf_fullnet_hist(k) = spwf_fullnet_hist(k) + y6(l)
+                  end if
+              end do
+              if (fracbin_c(l).gt.floe_rad_l(nfsd)) spwf_fullnet_hist(nfsd)  = spwf_fullnet_hist(nfsd) + y6(l)
+          end if
+      end do
+
+      if (SUM(spwf_fullnet_hist).gt.puny) then
+        spwf_fullnet_hist = spwf_fullnet_hist/SUM(spwf_fullnet_hist)
+      else
+        spwf_fullnet_hist(:) = c0
+      end if
+
+      end subroutine spwf_fullnet
+
 
 !=======================================================================
      

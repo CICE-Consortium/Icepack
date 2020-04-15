@@ -94,7 +94,7 @@
          natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
-         tfrz_option, frzpnd, atmbndy, wave_spec_type
+         tfrz_option, frzpnd, atmbndy, wave_spec_type, wave_solver
 
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
 
@@ -149,6 +149,7 @@
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
         tfrz_option,     default_season,  wave_spec_type,  &
+        wave_solver,                                       &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
@@ -196,7 +197,7 @@
            phi_i_mushy_out=phi_i_mushy, &
            tfrz_option_out=tfrz_option, kalg_out=kalg, &
            fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
-           wave_spec_type_out=wave_spec_type)
+           wave_spec_type_out=wave_spec_type, wave_solver_out=wave_solver)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -235,6 +236,7 @@
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       wave_spec_type  = 'none'    ! type of wave spectrum forcing
+      wave_solver     = '1'       ! method of solving wave fracture
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default' ! source of ocean forcing data
       ocn_data_file   = ' '       ! ocean forcing data file
@@ -582,6 +584,7 @@
          write(nu_diag,1010) ' wave_spec                 = ', wave_spec
          if (wave_spec) &
          write(nu_diag,*)    ' wave_spec_type            = ', wave_spec_type
+         write(nu_diag,*)    ' wave_solver               = ', wave_solver
          write(nu_diag,1010) ' l_mpond_fresh             = ', l_mpond_fresh
          write(nu_diag,1005) ' ustar_min                 = ', ustar_min
          write(nu_diag,*)    ' fbot_xfer_type            = ', &
@@ -755,7 +758,8 @@
            phi_i_mushy_in=phi_i_mushy, &
            tfrz_option_in=tfrz_option, kalg_in=kalg, &
            fbot_xfer_type_in=fbot_xfer_type, &
-           wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec)
+           wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec,&
+           wave_solver_in=wave_solver)
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
            nfsd_in=nfsd, n_iso_in=n_iso, n_aero_in=n_aero)
