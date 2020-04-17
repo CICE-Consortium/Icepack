@@ -91,14 +91,28 @@ Test scripts
 -------------
 
 Under **configuration/scripts/tests** are several files including the scripts to 
-setup the smoke and restart tests (**test_smoke.script**, **test_restart.script*).
-A baseline test script (**baseline.script**) is also there to setup the regression
+setup the various tests, such as smoke and restart tests (**test_smoke.script**, 
+**test_restart.script**).
+and the files that describe which options files are needed for each test 
+(ie. **test_smoke.files**, **test_restart.files**).
+A baseline test script (**baseline.script**) is also there to setup the general regression
 and comparison testing.  That directory also contains the preset test suites 
 (ie. **base_suite.ts**) and a file that supports post-processing on the model
-output (**timeseries.csh**).  
+output (**timeseries.csh**).  There is also a script **report_results.csh** that 
+pushes results from test suites back to the CICE-Consortium test results wiki page.
 
-To add a new test, a file associated with that test will need to be added to the
-**configuration/scripts/tests** directory similar to **test_smoke.script** 
-and **test_restart.script**.  In addition, some new options files in 
-**configuration/scripts/options** may need to be added similar to **test_nml.restart1**,
-**test_nml.restart2**, and **set_nml.restart**.  
+To add a new test (for example newtest), several files may be needed,
+
+- **configuration/scripts/tests/test_newtest.script** defines how to run the test.  This chunk
+  of script will be incorporated into the case test script
+- **configuration/scripts/tests/test_newtest.files** list the set of options files found in
+  **configuration/scripts/options/** needed to
+  run this test.  Those files will be copied into the test directory when the test is invoked
+  so they are available for the **test_newtest.script** to use.
+- some new files may be needed in **configuration/scripts/options/**.  These could be 
+  relatively generic **set_nml** or **set_env** files, or they could be test specific files 
+  typically carrying a prefix of **test_nml**.
+
+Generating a new test, particularly the **test_newtest.script** usually takes some iteration 
+before it's working properly.
+

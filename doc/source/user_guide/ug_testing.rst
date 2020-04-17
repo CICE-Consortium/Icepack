@@ -304,6 +304,9 @@ following options are valid for suites,
 ``--report``
   This is only used by ``--suite`` and when set, invokes a script that sends the test results to the results page when all tests are complete.  Please see :ref:`testreporting` for more information.
 
+``--codecov``
+  When invoked, code coverage diagnostics are generated.  This will modify the build and reduce optimization.  The results will be uploaded to the **codecov.io** website via the **report_codecov.csh** script.  General use is not recommended, this is mainly used as a diagnostic to periodically assess test coverage.  Please see :ref:`codecoverage` for more information.
+
 Please see :ref:`case_options` and :ref:`indtests` for more details about how these options are used.
 
 
@@ -493,6 +496,39 @@ The reporting can also be automated in a test suite by adding ``--report`` to ``
 With ``--report``, the suite will create all the tests, build and submit them,
 wait for all runs to be complete, and run the results and report_results scripts.
 
+.. _codecoverage:
+
+Code Coverage Testing
+------------------------
+
+The ``--codecov`` feature in **icepack.setup** provides a method to diagnose code coverage.
+This argument turns on special compiler flags including reduced optimization and then
+invokes the gcov tool.
+This option is currently only available with the gnu compiler and on a few systems.
+To use, submit a full test suite using a version of Icepack on the Consortium master
+and the gnu compiler with the ``--codecov`` argument.
+The test suite will run and then a report will be generated and uploaded to 
+the `codecov.io site <https://codecov.io/gh/CICE-Consortium/Icepack>`_ by the 
+**report_codecov.csh** script.  
+
+This is a special diagnostic test and does not constitute proper model testing.
+General use is not recommended, this is mainly used as a diagnostic to periodically 
+assess test coverage.  The interaction with codecov.io is not always robust and
+can be tricky to manage.  Some constraints are that the output generated at runtime
+is copied into the directory where compilation took place.  That means each
+test should be compiled separately.  Tests that invoke multiple runs
+(such as exact restart) will only save coverage information
+for the last run, so some coverage information may be lost.  The gcov tool can
+be a little slow to run on large test suites, and the codecov.io bash uploader
+(that runs gcov and uploads the data to codecov.io) is constantly evolving.
+Finally, gcov requires that the diagnostic output be copied into the git sandbox for
+analysis.  These constraints are handled by the current scripts, but may change
+in the future.
+
+A sample job submission would look like ::
+
+$ ./icepack.setup -m conrad -e gnu --suite base_suite,travis_suite,quick_suite --testid cc01 --codecov
+
 .. _testplotting:
 
 Test Plotting
@@ -546,3 +582,4 @@ This plotting script can be used to plot the following variables:
   - congelation (m)
   - snow-ice (m)
   - initial energy change (:math:`W/m^2`)
+
