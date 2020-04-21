@@ -509,7 +509,10 @@ To use, submit a full test suite using a version of Icepack on the Consortium ma
 and the gnu compiler with the ``--codecov`` argument.
 The test suite will run and then a report will be generated and uploaded to 
 the `codecov.io site <https://codecov.io/gh/CICE-Consortium/Icepack>`_ by the 
-**report_codecov.csh** script.  
+**report_codecov.csh** script.  The env variable CODECOV_TOKEN needs to be defined
+either in the environment or in a file named **~/.codecov_icepack_token**.  That
+token provides write permission to the Icepack codecov.io site and is available
+by contacting the Consortium team directly.
 
 This is a special diagnostic test and does not constitute proper model testing.
 General use is not recommended, this is mainly used as a diagnostic to periodically 
