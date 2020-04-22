@@ -44,6 +44,7 @@ mv ${rstfile} ${rstfile}.orig
 for file in ${inpfiles}; do
 
 filename=`basename $file`
+firstfileintfc=0
 
   while IFS= read -r line; do
     if [[ $line =~ .*$endline.* ]]; then
@@ -68,11 +69,17 @@ filename=`basename $file`
          exit -9
       fi
       echo "$filename $title"
+      if [ $firstfileintfc = 0 ]; then
+         firstfileintfc=1
+         echo "" >> $rstfile
+         echo "${filename}" >> $rstfile
+         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" >> $rstfile
+      fi
       echo "" >> $rstfile
       echo ".. _${title}:" >> $rstfile
       echo "" >> $rstfile
       echo "${title}" >> $rstfile
-      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" >> $rstfile
+      echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" >> $rstfile
       echo ".. code-block:: fortran" >> $rstfile
       echo "" >> $rstfile
     fi

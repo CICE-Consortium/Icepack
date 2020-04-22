@@ -57,7 +57,8 @@
       subroutine input_data
 
       use icedrv_diagnostics, only: diag_file, nx_names
-      use icedrv_domain_size, only: nilyr, nslyr, nblyr, max_ntrcr, ncat, n_aero, nfsd
+      use icedrv_domain_size, only: nilyr, nslyr, nblyr, max_ntrcr, ncat
+      use icedrv_domain_size, only: n_iso, n_aero, nfsd
       use icedrv_calendar, only: year_init, istep0
       use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
@@ -84,7 +85,7 @@
       character (len=char_len) :: diag_file_names
 
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
-         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
+         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, &
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity
@@ -98,11 +99,12 @@
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
 
       integer (kind=int_kind) :: ntrcr
-      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_aero, tr_fsd
+      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond
+      logical (kind=log_kind) :: tr_iso, tr_aero, tr_fsd
       logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, wave_spec
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY
       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, &
-                                 nt_aero, nt_fsd
+                                 nt_aero, nt_fsd, nt_isosno, nt_isoice
 
       real (kind=real_kind) :: rpcesm, rplvl, rptopo 
       real (kind=dbl_kind) :: Cf, puny
@@ -122,7 +124,7 @@
         kcatbound
 
       namelist /thermo_nml/ &
-        kitd,           ktherm,          conduct,                       &
+        kitd,           ktherm,          ksno,     conduct,             &
         a_rapid_mode,   Rac_rapid_mode,  aspect_rapid_mode,             &
         dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy
 
@@ -162,14 +164,15 @@
         tr_pond_lvl,  &
         tr_pond_topo, &
         tr_aero,      &
-        tr_fsd
+        tr_fsd,       &
+        tr_iso
 
       !-----------------------------------------------------------------
       ! query Icepack values
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(ustar_min_out=ustar_min, Cf_out=Cf, &
-           albicev_out=albicev, albicei_out=albicei, &
+           albicev_out=albicev, albicei_out=albicei, ksno_out = ksno,   &
            albsnowv_out=albsnowv, albsnowi_out=albsnowi, &
            natmiter_out=natmiter, ahmax_out=ahmax, shortwave_out=shortwave, &
            albedo_type_out=albedo_type, R_ice_out=R_ice, R_pnd_out=R_pnd, &
@@ -252,6 +255,7 @@
       tr_pond_topo = .false. ! explicit melt ponds (topographic)
       tr_aero      = .false. ! aerosols
       tr_fsd       = .false. ! floe size distribution
+      tr_iso       = .false. ! isotopes
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -383,6 +387,13 @@
          shortwave = 'dEdd'
       endif
 
+      if (tr_iso .and. n_iso==0) then
+         write (nu_diag,*) 'WARNING: isotopes activated but'
+         write (nu_diag,*) 'WARNING: not allocated in tracer array.'
+         write (nu_diag,*) 'WARNING: Activate in compilation script.'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
       if (tr_aero .and. n_aero==0) then
          write (nu_diag,*) 'WARNING: aerosols activated but'
          write (nu_diag,*) 'WARNING: not allocated in tracer array.'
@@ -490,6 +501,7 @@
          write(nu_diag,1000) ' mu_rdg                    = ', mu_rdg
          if (kstrength == 1) &
          write(nu_diag,1000) ' Cf                        = ', Cf
+         write(nu_diag,1000) ' ksno                      = ', ksno
          write(nu_diag,1030) ' shortwave                 = ', &
                                trim(shortwave)
          if (cpl_bgc) then
@@ -649,6 +661,15 @@
              ntrcr = ntrcr + nfsd
          end if
 
+         nt_isosno = max_ntrcr
+         nt_isoice = max_ntrcr
+         if (tr_iso) then             ! isotopes
+             nt_isosno = ntrcr + 1
+             ntrcr = ntrcr + n_iso    ! n_iso species in snow
+             nt_isoice = ntrcr + 1
+             ntrcr = ntrcr + n_iso    ! n_iso species in ice
+         end if
+
          nt_aero = max_ntrcr - 4*n_aero
          if (tr_aero) then
              nt_aero = ntrcr + 1
@@ -674,6 +695,7 @@
          write(nu_diag,1020) 'nslyr   = ', nslyr
          write(nu_diag,1020) 'nblyr   = ', nblyr
          write(nu_diag,1020) 'nfsd    = ', nfsd
+         write(nu_diag,1020) 'n_iso   = ', n_iso
          write(nu_diag,1020) 'n_aero  = ', n_aero
          write(nu_diag,*)' '
          write(nu_diag,1020) 'nx      = ', nx
@@ -711,7 +733,7 @@
       !-----------------------------------------------------------------
 
       call icepack_init_parameters(ustar_min_in=ustar_min, Cf_in=Cf, &
-           albicev_in=albicev, albicei_in=albicei, &
+           albicev_in=albicev, albicei_in=albicei, ksno_in=ksno, &
            albsnowv_in=albsnowv, albsnowi_in=albsnowi, &
            natmiter_in=natmiter, ahmax_in=ahmax, shortwave_in=shortwave, &
            albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &
@@ -737,9 +759,10 @@
            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec)
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
-           nfsd_in=nfsd, n_aero_in=n_aero)
+           nfsd_in=nfsd, n_iso_in=n_iso, n_aero_in=n_aero)
       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
            tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
+           tr_iso_in=tr_iso, &
            tr_pond_in=tr_pond, tr_pond_cesm_in=tr_pond_cesm, &
            tr_pond_lvl_in=tr_pond_lvl, &
            tr_pond_topo_in=tr_pond_topo, tr_fsd_in=tr_fsd)
@@ -748,7 +771,8 @@
            nt_qsno_in=nt_qsno, nt_iage_in=nt_iage, &
            nt_fy_in=nt_fy, nt_alvl_in=nt_alvl, nt_vlvl_in=nt_vlvl, &
            nt_apnd_in=nt_apnd, nt_hpnd_in=nt_hpnd, nt_ipnd_in=nt_ipnd, &
-           nt_aero_in=nt_aero, nt_fsd_in=nt_fsd)
+           nt_aero_in=nt_aero, nt_fsd_in=nt_fsd, &
+           nt_isosno_in=nt_isosno, nt_isoice_in=nt_isoice)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -815,7 +839,8 @@
       subroutine init_state
 
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, max_ntrcr, n_aero, nfsd
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, nblyr, max_ntrcr
+      use icedrv_domain_size, only: n_iso, n_aero, nfsd
       use icedrv_flux, only: sst, Tf, Tair, salinz, Tmltz
       use icedrv_state, only: trcr_depend, aicen, trcrn, vicen, vsnon
       use icedrv_state, only: aice0, aice, vice, vsno, trcr, aice_init
@@ -830,11 +855,11 @@
          heat_capacity   ! from icepack
 
       integer (kind=int_kind) :: ntrcr
-      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_fsd
+      logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_fsd, tr_iso
       logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, &
-                                 nt_ipnd, nt_aero, nt_fsd
+                                 nt_ipnd, nt_aero, nt_fsd, nt_isosno, nt_isoice
 
       character(len=*), parameter :: subname='(init_state)'
 
@@ -846,6 +871,7 @@
          call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
          call icepack_query_tracer_flags(tr_iage_out=tr_iage, &
               tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
+              tr_iso_out=tr_iso, &
               tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, &
               tr_pond_topo_out=tr_pond_topo, tr_fsd_out=tr_fsd)
          call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, &
@@ -853,7 +879,9 @@
               nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, nt_fy_out=nt_fy, &
               nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
               nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
-              nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, nt_fsd_out=nt_fsd)
+              nt_ipnd_out=nt_ipnd, &
+              nt_isosno_out=nt_isosno, nt_isoice_out=nt_isoice, &
+              nt_aero_out=nt_aero, nt_fsd_out=nt_fsd)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
@@ -926,6 +954,12 @@
       if (tr_fsd) then
          do it = 1, nfsd
             trcr_depend(nt_fsd + it - 1) = 0    ! area-weighted floe size distribution
+         enddo
+      endif
+      if (tr_iso) then  ! isotopes
+         do it = 1, n_iso
+            trcr_depend(nt_isosno) = 2          ! snow
+            trcr_depend(nt_isoice) = 1          ! ice
          enddo
       endif
       if (tr_aero) then ! volume-weighted aerosols

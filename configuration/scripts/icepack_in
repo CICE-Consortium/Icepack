@@ -29,11 +29,13 @@
     tr_pond_lvl  = .true.
     tr_aero      = .false.
     tr_fsd       = .false.
+    tr_iso       = .false.
 /
 
 &thermo_nml
     kitd              = 1
     ktherm            = 2
+    ksno              = 0.3d0
     conduct           = 'bubbly'
     a_rapid_mode      =  0.5e-3
     Rac_rapid_mode    =    10.0

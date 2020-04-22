@@ -71,24 +71,25 @@
       contains
 
 !=======================================================================
-!
-!  Initialize ice fsd bounds (call whether or not restarting)
-!  Define the bounds, midpoints and widths of floe size
-!  categories in area and radius
-!
 !  Note that radius widths cannot be larger than twice previous
 !  category width or floe welding will not have an effect
 !
 !  Note also that the bound of the lowest floe size category is used
 !  to define the lead region width and the domain spacing for wave fracture
 !
-!  authors: Lettie Roach, NIWA/VUW and C. M. Bitz, UW
+!autodocument_start icepack_init_fsd_bounds
+!  Initialize ice fsd bounds (call whether or not restarting)
+!  Define the bounds, midpoints and widths of floe size
+!  categories in area and radius
 !
+!  authors: Lettie Roach, NIWA/VUW and C. M. Bitz, UW
+
       subroutine icepack_init_fsd_bounds(nfsd, &
          floe_rad_l,    &  ! fsd size lower bound in m (radius)
          floe_rad_c,    &  ! fsd size bin centre in m (radius)
          floe_binwidth, &  ! fsd size bin width in m (radius)
-         c_fsd_range)      ! string for history output
+         c_fsd_range,   &  ! string for history output
+         write_diags    )  ! flag for writing diagnostics
 
       integer (kind=int_kind), intent(in) :: &
          nfsd              ! number of floe size categories
@@ -99,7 +100,12 @@
          floe_binwidth     ! fsd size bin width in m (radius)
 
       character (len=35), intent(out) :: &
-           c_fsd_range(nfsd) ! string for history output
+         c_fsd_range(nfsd) ! string for history output
+
+      logical (kind=log_kind), intent(in), optional :: &
+         write_diags       ! write diags flag
+
+!autodocument_end
 
       ! local variables
 
@@ -117,9 +123,17 @@
       real (kind=dbl_kind), dimension(:), allocatable :: &
          lims
 
+      logical (kind=log_kind) :: &
+         l_write_diags  ! local write diags
+
       character(len=8) :: c_fsd1,c_fsd2
       character(len=2) :: c_nf
-      character(len=*), parameter :: subname='(init_fsd_bounds)'
+      character(len=*), parameter :: subname='(icepack_init_fsd_bounds)'
+
+      l_write_diags = .true.
+      if (present(write_diags)) then
+         l_write_diags = write_diags
+      endif
 
       if (nfsd.eq.24) then
 
@@ -212,8 +226,14 @@
       floe_rad(0) = floe_rad_l(1)
       do n = 1, nfsd
          floe_rad(n) = floe_rad_h(n)
+         ! Save character string to write to history file
+         write (c_nf, '(i2)') n    
+         write (c_fsd1, '(f6.3)') floe_rad(n-1)
+         write (c_fsd2, '(f6.3)') floe_rad(n)
+         c_fsd_range(n)=c_fsd1//'m < fsd Cat '//c_nf//' < '//c_fsd2//'m'
       enddo
 
+      if (l_write_diags) then
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname
@@ -223,26 +243,14 @@
          do n = 1, nfsd
             write(warnstr,*) floe_rad(n-1),' < fsd Cat ',n, ' < ',floe_rad(n)
             call icepack_warnings_add(warnstr)
-            ! Write integer n to character string
-            write (c_nf, '(i2)') n    
-
-            ! Write floe_rad to character string
-            write (c_fsd1, '(f6.3)') floe_rad(n-1)
-            write (c_fsd2, '(f6.3)') floe_rad(n)
-
-            ! Save character string to write to history file
-            c_fsd_range(n)=c_fsd1//'m < fsd Cat '//c_nf//' < '//c_fsd2//'m'
          enddo
-
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
+      endif
 
       end subroutine icepack_init_fsd_bounds
 
 !=======================================================================
-!
-!  Initialize the FSD 
-!
 !  When growing from no-ice conditions, initialize to zero.
 !  This allows the FSD to emerge, as described in Roach, Horvat et al. (2018)
 !
@@ -253,6 +261,10 @@
 !  Perovich, D. K., & Jones, K. F. (2014). The seasonal evolution of 
 !  sea ice floe size distribution. Journal of Geophysical Research: Oceans,
 !  119(12), 8767–8777. doi:10.1002/2014JC010136
+!
+!autodocument_start icepack_init_fsd
+!
+!  Initialize the FSD 
 !
 !  authors: Lettie Roach, NIWA/VUW
 
@@ -273,6 +285,8 @@
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          afsd              ! floe size tracer: fraction distribution of floes
+
+!autodocument_end
 
       ! local variables
 
@@ -305,6 +319,7 @@
       end subroutine icepack_init_fsd
 
 !=======================================================================
+!autodocument_start icepack_cleanup_fsd
 !
 !  Clean up small values and renormalize
 !
@@ -319,6 +334,7 @@
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          afsdn              ! floe size distribution tracer
 
+!autodocument_end
       ! local variables
 
       integer (kind=int_kind) :: &

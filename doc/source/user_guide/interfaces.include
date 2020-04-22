@@ -1,13 +1,16 @@
 
+icepack_atmo.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_atm_boundary:
 
 icepack_atm_boundary
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! 
   
-        subroutine icepack_atm_boundary(sfctype,                    &
+        subroutine icepack_atm_boundary(sfctype,                   &
                                        Tsf,         potT,          &
                                        uatm,        vatm,          &
                                        wind,        zlvl,          &
@@ -18,6 +21,7 @@ icepack_atm_boundary
                                        lhcoef,      shcoef,        &
                                        Cdn_atm,                    &
                                        Cdn_atm_ratio_n,            &
+                                       Qa_iso,      Qref_iso,      &
                                        uvel,        vvel,          &
                                        Uref)
   
@@ -51,6 +55,12 @@ icepack_atm_boundary
            shcoef   , & ! transfer coefficient for sensible heat
            lhcoef       ! transfer coefficient for latent heat
   
+        real (kind=dbl_kind), intent(in), optional, dimension(:) :: &
+           Qa_iso       ! specific isotopic humidity (kg/kg)
+  
+        real (kind=dbl_kind), intent(inout), optional, dimension(:) :: &
+           Qref_iso     ! reference specific isotopic humidity (kg/kg)
+  
         real (kind=dbl_kind), optional, intent(in) :: &
            uvel     , & ! x-direction ice speed (m/s)
            vvel         ! y-direction ice speed (m/s)
@@ -60,10 +70,13 @@ icepack_atm_boundary
   
  
 
+icepack_brine.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_init_hbrine:
 
 icepack_init_hbrine
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   !  Initialize brine height tracer
@@ -94,7 +107,7 @@ icepack_init_hbrine
 .. _icepack_init_zsalinity:
 
 icepack_init_zsalinity
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   !  Initialize zSalinity
@@ -122,10 +135,104 @@ icepack_init_zsalinity
   
  
 
-.. _icepack_intfc.F90:
+icepack_fsd.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _icepack_init_fsd_bounds:
+
+icepack_init_fsd_bounds
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  !  Initialize ice fsd bounds (call whether or not restarting)
+  !  Define the bounds, midpoints and widths of floe size
+  !  categories in area and radius
+  !
+  !  authors: Lettie Roach, NIWA/VUW and C. M. Bitz, UW
+  
+        subroutine icepack_init_fsd_bounds(nfsd, &
+           floe_rad_l,    &  ! fsd size lower bound in m (radius)
+           floe_rad_c,    &  ! fsd size bin centre in m (radius)
+           floe_binwidth, &  ! fsd size bin width in m (radius)
+           c_fsd_range,   &  ! string for history output
+           write_diags    )  ! flag for writing diagnostics
+  
+        integer (kind=int_kind), intent(in) :: &
+           nfsd              ! number of floe size categories
+  
+        real(kind=dbl_kind), dimension(:), intent(inout) ::  &
+           floe_rad_l,    &  ! fsd size lower bound in m (radius)
+           floe_rad_c,    &  ! fsd size bin centre in m (radius)
+           floe_binwidth     ! fsd size bin width in m (radius)
+  
+        character (len=35), intent(out) :: &
+           c_fsd_range(nfsd) ! string for history output
+  
+        logical (kind=log_kind), intent(in), optional :: &
+           write_diags       ! write diags flag
+  
+ 
+
+.. _icepack_init_fsd:
+
+icepack_init_fsd
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  !
+  !  Initialize the FSD 
+  !
+  !  authors: Lettie Roach, NIWA/VUW
+  
+        subroutine icepack_init_fsd(nfsd, ice_ic, &
+           floe_rad_c,    &  ! fsd size bin centre in m (radius)
+           floe_binwidth, &  ! fsd size bin width in m (radius)
+           afsd)             ! floe size distribution tracer
+  
+        integer(kind=int_kind), intent(in) :: &
+           nfsd
+  
+        character(len=char_len_long), intent(in) :: &
+           ice_ic            ! method of ice cover initialization
+  
+        real(kind=dbl_kind), dimension(:), intent(inout) ::  &
+           floe_rad_c,    &  ! fsd size bin centre in m (radius)
+           floe_binwidth     ! fsd size bin width in m (radius)
+  
+        real (kind=dbl_kind), dimension (:), intent(inout) :: &
+           afsd              ! floe size tracer: fraction distribution of floes
+  
+ 
+
+.. _icepack_cleanup_fsd:
+
+icepack_cleanup_fsd
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  !
+  !  Clean up small values and renormalize
+  !
+  !  authors:  Elizabeth Hunke, LANL
+  !
+        subroutine icepack_cleanup_fsd (ncat, nfsd, afsdn)
+  
+        integer (kind=int_kind), intent(in) :: &
+           ncat           , & ! number of thickness categories
+           nfsd               ! number of floe size categories
+  
+        real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+           afsdn              ! floe size distribution tracer
+  
+ 
 
 icepack_intfc.F90
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _icepack_intfc.F90:
+
+icepack_intfc.F90
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! public parameters and interface routines for the icepack columnpackage code
@@ -148,6 +255,7 @@ icepack_intfc.F90
         use icepack_tracers,    only: icepack_max_don    => max_don
         use icepack_tracers,    only: icepack_max_fe     => max_fe
         use icepack_tracers,    only: icepack_max_aero   => max_aero
+        use icepack_tracers,    only: icepack_max_iso    => max_iso
         use icepack_tracers,    only: icepack_nmodal1    => nmodal1
         use icepack_tracers,    only: icepack_nmodal2    => nmodal2
         use icepack_parameters, only: icepack_nspint     => nspint
@@ -226,10 +334,13 @@ icepack_intfc.F90
   
  
 
+icepack_itd.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_init_itd:
 
 icepack_init_itd
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Initialize area fraction and thickness boundaries for the itd model
@@ -250,7 +361,7 @@ icepack_init_itd
 .. _icepack_init_itd_hist:
 
 icepack_init_itd_hist
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Initialize area fraction and thickness boundaries for the itd model
@@ -274,7 +385,7 @@ icepack_init_itd_hist
 .. _icepack_aggregate:
 
 icepack_aggregate
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Aggregate ice state variables over thickness categories.
@@ -328,10 +439,13 @@ icepack_aggregate
   
  
 
+icepack_mechred.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_ice_strength:
 
 icepack_ice_strength
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Compute the strength of the ice pack, defined as the energy (J m-2)
@@ -374,7 +488,7 @@ icepack_ice_strength
 .. _icepack_step_ridge:
 
 icepack_step_ridge
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Computes sea ice mechanical deformation
@@ -398,7 +512,7 @@ icepack_step_ridge
                                       fpond,                       &
                                       fresh,        fhocn,         &
                                       n_aero,                      &
-                                      faero_ocn,                   &
+                                      faero_ocn,    fiso_ocn,      &
                                       aparticn,     krdgn,         &
                                       aredistn,     vredistn,      &
                                       dardg1ndt,    dardg2ndt,     &
@@ -467,6 +581,9 @@ icepack_step_ridge
            faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
            flux_bio     ! all bio fluxes to ocean
   
+        real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+           fiso_ocn     ! isotope flux to ocean  (kg/m^2/s)
+  
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
            trcrn        ! tracers
   
@@ -481,10 +598,13 @@ icepack_step_ridge
   
  
 
+icepack_ocean.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_ocn_mixed_layer:
 
 icepack_ocn_mixed_layer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Compute the mixed layer heat balance and update the SST.
@@ -538,10 +658,13 @@ icepack_ocn_mixed_layer
   
  
 
+icepack_orbital.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_init_orbit:
 
 icepack_init_orbit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Compute orbital parameters for the specified date.
@@ -568,7 +691,7 @@ icepack_init_orbit
 .. _icepack_query_orbit:
 
 icepack_query_orbit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Compute orbital parameters for the specified date.
@@ -592,10 +715,13 @@ icepack_query_orbit
   
  
 
+icepack_parameters.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_init_parameters:
 
 icepack_init_parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! subroutine to set the column package internal parameters
@@ -923,7 +1049,7 @@ icepack_init_parameters
 .. _icepack_query_parameters:
 
 icepack_query_parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! subroutine to query the column package internal parameters
@@ -1265,7 +1391,7 @@ icepack_query_parameters
 .. _icepack_write_parameters:
 
 icepack_write_parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! subroutine to write the column package internal parameters
@@ -1280,7 +1406,7 @@ icepack_write_parameters
 .. _icepack_recompute_constants:
 
 icepack_recompute_constants
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! subroutine to reinitialize some derived constants
@@ -1289,10 +1415,13 @@ icepack_recompute_constants
   
  
 
+icepack_shortwave.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_prep_radiation:
 
 icepack_prep_radiation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Scales radiation fields computed on the previous time step.
@@ -1348,7 +1477,7 @@ icepack_prep_radiation
 .. _icepack_step_radiation:
 
 icepack_step_radiation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Computes radiation fields
@@ -1496,10 +1625,13 @@ icepack_step_radiation
   
  
 
+icepack_therm_itd.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_step_therm2:
 
 icepack_step_therm2
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Driver for thermodynamic changes not needed for coupling:
@@ -1533,6 +1665,8 @@ icepack_step_therm2
                                        flux_bio,     ocean_bio,     &
                                        frazil_diag,                 &
                                        frz_onset,    yday,          &
+                                       fiso_ocn,     HDO_ocn,       &
+                                       H2_16O_ocn,   H2_18O_ocn,    &
                                        nfsd,         wave_sig_ht,   &
                                        wave_spectrum,               &
                                        wavefreq,                    &
@@ -1640,12 +1774,23 @@ icepack_step_therm2
         real (kind=dbl_kind), intent(in), optional :: &
            yday         ! day of year
   
+        ! water isotopes
+        real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+           fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
+  
+        real (kind=dbl_kind), optional, intent(in) :: &
+           HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
+           H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
+           H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
  
+
+icepack_therm_shared.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _icepack_init_thermo:
 
 icepack_init_thermo
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Initialize the vertical profile of ice salinity and melting temperature.
@@ -1666,7 +1811,7 @@ icepack_init_thermo
 .. _icepack_init_trcr:
 
 icepack_init_trcr
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   !
@@ -1700,7 +1845,7 @@ icepack_init_trcr
 .. _icepack_liquidus_temperature:
 
 icepack_liquidus_temperature
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! compute liquidus temperature
@@ -1715,7 +1860,7 @@ icepack_liquidus_temperature
 .. _icepack_sea_freezing_temperature:
 
 icepack_sea_freezing_temperature
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! compute ocean freezing temperature
@@ -1730,7 +1875,7 @@ icepack_sea_freezing_temperature
 .. _icepack_ice_temperature:
 
 icepack_ice_temperature
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! compute ice temperature
@@ -1745,7 +1890,7 @@ icepack_ice_temperature
 .. _icepack_snow_temperature:
 
 icepack_snow_temperature
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! compute snow temperature
@@ -1760,7 +1905,7 @@ icepack_snow_temperature
 .. _icepack_enthalpy_snow:
 
 icepack_enthalpy_snow
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! compute snow enthalpy
@@ -1772,10 +1917,13 @@ icepack_enthalpy_snow
   
  
 
+icepack_therm_vertical.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_step_therm1:
 
 icepack_step_therm1
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Driver for thermodynamic changes not needed for coupling:
@@ -1798,11 +1946,14 @@ icepack_step_therm1
                                       ipnd        ,               &
                                       iage        , FY          , &
                                       aerosno     , aeroice     , &
+                                      isosno      , isoice      , &
                                       uatm        , vatm        , &
                                       wind        , zlvl        , &
                                       Qa          , rhoa        , &
+                                      Qa_iso      , &
                                       Tair        , Tref        , &
                                       Qref        , Uref        , &
+                                      Qref_iso    , &
                                       Cdn_atm_ratio,              &
                                       Cdn_ocn     , Cdn_ocn_skin, &
                                       Cdn_ocn_floe, Cdn_ocn_keel, &
@@ -1841,6 +1992,10 @@ icepack_step_therm1
                                       flatn_f     , fsensn_f    , &
                                       fsurfn_f    , fcondtopn_f , &
                                       faero_atm   , faero_ocn   , &
+                                      fiso_atm    , fiso_ocn    , &
+                                      fiso_evap   , &
+                                      HDO_ocn     , H2_16O_ocn  , &
+                                      H2_18O_ocn  ,  &
                                       dhsn        , ffracn      , &
                                       meltt       , melttn      , &
                                       meltb       , meltbn      , &
@@ -1944,6 +2099,18 @@ icepack_step_therm1
            mlt_onset   , & ! day of year that sfc melting begins
            frz_onset       ! day of year that freezing begins (congel or frazil)
   
+        real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+           Qa_iso      , & ! isotope specific humidity (kg/kg)
+           Qref_iso    , & ! isotope 2m atm reference spec humidity (kg/kg)
+           fiso_atm    , & ! isotope deposition rate (kg/m^2 s)
+           fiso_ocn    , & ! isotope flux to ocean  (kg/m^2/s)
+           fiso_evap       ! isotope evaporation (kg/m^2/s)
+  
+        real (kind=dbl_kind), optional, intent(in) :: &
+           HDO_ocn     , & ! ocean concentration of HDO (kg/kg)
+           H2_16O_ocn  , & ! ocean concentration of H2_16O (kg/kg)
+           H2_18O_ocn      ! ocean concentration of H2_18O (kg/kg)
+  
         real (kind=dbl_kind), dimension(:), intent(inout) :: &
            aicen_init  , & ! fractional area of ice
            vicen_init  , & ! volume per unit area of ice (m)
@@ -1993,12 +2160,18 @@ icepack_step_therm1
            aerosno    , &  ! snow aerosol tracer (kg/m^2)
            aeroice         ! ice aerosol tracer (kg/m^2)
   
+        real (kind=dbl_kind), dimension(:,:), optional, intent(inout) :: &
+           isosno     , &  ! snow isotope tracer (kg/m^2)
+           isoice          ! ice isotope tracer (kg/m^2)
  
+
+icepack_tracers.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _icepack_init_tracer_flags:
 
 icepack_init_tracer_flags
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! set tracer active flags
@@ -2006,7 +2179,7 @@ icepack_init_tracer_flags
         subroutine icepack_init_tracer_flags(&
              tr_iage_in, tr_FY_in, tr_lvl_in, &
              tr_pond_in, tr_pond_cesm_in, tr_pond_lvl_in, tr_pond_topo_in, &
-             tr_fsd_in, tr_aero_in, tr_brine_in, tr_zaero_in, &
+             tr_fsd_in, tr_aero_in, tr_iso_in, tr_brine_in, tr_zaero_in, &
              tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
              tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
              tr_bgc_PON_in)
@@ -2020,6 +2193,7 @@ icepack_init_tracer_flags
                tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
                tr_fsd_in       , & ! if .true., use floe size distribution tracers
+               tr_iso_in       , & ! if .true., use isotope tracers
                tr_aero_in      , & ! if .true., use aerosol tracers
                tr_brine_in     , & ! if .true., brine height differs from ice thickness
                tr_zaero_in     , & ! if .true., black carbon is tracers  (n_zaero)
@@ -2040,7 +2214,7 @@ icepack_init_tracer_flags
 .. _icepack_query_tracer_flags:
 
 icepack_query_tracer_flags
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! query tracer active flags
@@ -2048,7 +2222,7 @@ icepack_query_tracer_flags
         subroutine icepack_query_tracer_flags(&
              tr_iage_out, tr_FY_out, tr_lvl_out, &
              tr_pond_out, tr_pond_cesm_out, tr_pond_lvl_out, tr_pond_topo_out, &
-             tr_fsd_out, tr_aero_out, tr_brine_out, tr_zaero_out, &
+             tr_fsd_out, tr_aero_out, tr_iso_out, tr_brine_out, tr_zaero_out, &
              tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
              tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
              tr_bgc_PON_out)
@@ -2062,6 +2236,7 @@ icepack_query_tracer_flags
                tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
                tr_fsd_out       , & ! if .true., use floe size distribution
+               tr_iso_out       , & ! if .true., use isotope tracers
                tr_aero_out      , & ! if .true., use aerosol tracers
                tr_brine_out     , & ! if .true., brine height differs from ice thickness
                tr_zaero_out     , & ! if .true., black carbon is tracers  (n_zaero)
@@ -2082,7 +2257,7 @@ icepack_query_tracer_flags
 .. _icepack_write_tracer_flags:
 
 icepack_write_tracer_flags
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! write tracer active flags
@@ -2096,7 +2271,7 @@ icepack_write_tracer_flags
 .. _icepack_init_tracer_indices:
 
 icepack_init_tracer_indices
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! set the number of column tracer indices
@@ -2105,7 +2280,8 @@ icepack_init_tracer_indices
              nt_Tsfc_in, nt_qice_in, nt_qsno_in, nt_sice_in, &
              nt_fbri_in, nt_iage_in, nt_FY_in, & 
              nt_alvl_in, nt_vlvl_in, nt_apnd_in, nt_hpnd_in, nt_ipnd_in, &
-             nt_fsd_in, nt_aero_in, nt_zaero_in, nt_bgc_C_in, &
+             nt_fsd_in, nt_isosno_in, nt_isoice_in, &
+             nt_aero_in, nt_zaero_in, nt_bgc_C_in, &
              nt_bgc_N_in, nt_bgc_chl_in, nt_bgc_DOC_in, nt_bgc_DON_in, &
              nt_bgc_DIC_in, nt_bgc_Fed_in, nt_bgc_Fep_in, nt_bgc_Nit_in, nt_bgc_Am_in, &
              nt_bgc_Sil_in, nt_bgc_DMSPp_in, nt_bgc_DMSPd_in, nt_bgc_DMS_in, nt_bgc_hum_in, &
@@ -2131,7 +2307,9 @@ icepack_init_tracer_indices
                nt_hpnd_in, & ! melt pond depth
                nt_ipnd_in, & ! melt pond refrozen lid thickness
                nt_fsd_in,  & ! floe size distribution
-               nt_aero_in, & ! starting index for aerosols in ice
+               nt_isosno_in,  & ! starting index for isotopes in snow
+               nt_isoice_in,  & ! starting index for isotopes in ice
+               nt_aero_in,    & ! starting index for aerosols in ice
                nt_bgc_Nit_in, & ! nutrients  
                nt_bgc_Am_in,  & ! 
                nt_bgc_Sil_in, & !
@@ -2192,7 +2370,7 @@ icepack_init_tracer_indices
 .. _icepack_query_tracer_indices:
 
 icepack_query_tracer_indices
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! query the number of column tracer indices
@@ -2201,7 +2379,8 @@ icepack_query_tracer_indices
              nt_Tsfc_out, nt_qice_out, nt_qsno_out, nt_sice_out, &
              nt_fbri_out, nt_iage_out, nt_FY_out, & 
              nt_alvl_out, nt_vlvl_out, nt_apnd_out, nt_hpnd_out, nt_ipnd_out, &
-             nt_fsd_out, nt_aero_out, nt_zaero_out, nt_bgc_C_out, &
+             nt_fsd_out, nt_isosno_out, nt_isoice_out, &
+             nt_aero_out, nt_zaero_out, nt_bgc_C_out, &
              nt_bgc_N_out, nt_bgc_chl_out, nt_bgc_DOC_out, nt_bgc_DON_out, &
              nt_bgc_DIC_out, nt_bgc_Fed_out, nt_bgc_Fep_out, nt_bgc_Nit_out, nt_bgc_Am_out, &
              nt_bgc_Sil_out, nt_bgc_DMSPp_out, nt_bgc_DMSPd_out, nt_bgc_DMS_out, nt_bgc_hum_out, &
@@ -2227,7 +2406,9 @@ icepack_query_tracer_indices
                nt_hpnd_out, & ! melt pond depth
                nt_ipnd_out, & ! melt pond refrozen lid thickness
                nt_fsd_out,  & ! floe size distribution
-               nt_aero_out, & ! starting index for aerosols in ice
+               nt_isosno_out,  & ! starting index for isotopes in snow
+               nt_isoice_out,  & ! starting index for isotopes in ice
+               nt_aero_out,    & ! starting index for aerosols in ice
                nt_bgc_Nit_out, & ! nutrients  
                nt_bgc_Am_out,  & ! 
                nt_bgc_Sil_out, & !
@@ -2288,7 +2469,7 @@ icepack_query_tracer_indices
 .. _icepack_write_tracer_indices:
 
 icepack_write_tracer_indices
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! write the number of column tracer indices
@@ -2302,14 +2483,14 @@ icepack_write_tracer_indices
 .. _icepack_init_tracer_sizes:
 
 icepack_init_tracer_sizes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! set the number of column tracers
   
         subroutine icepack_init_tracer_sizes(&
            ncat_in, nilyr_in, nslyr_in, nblyr_in, nfsd_in  , &
-           n_algae_in, n_DOC_in, n_aero_in, &
+           n_algae_in, n_DOC_in, n_aero_in, n_iso_in, &
            n_DON_in, n_DIC_in, n_fed_in, n_fep_in, n_zaero_in, &
            ntrcr_in, ntrcr_o_in, nbtrcr_in, nbtrcr_sw_in)
   
@@ -2326,6 +2507,7 @@ icepack_init_tracer_sizes
            n_fed_in  , & !
            n_fep_in  , & ! 
            n_zaero_in, & !
+           n_iso_in  , & !
            n_aero_in , & !
            ntrcr_in  , & ! number of tracers in use
            ntrcr_o_in, & ! number of non-bio tracers in use
@@ -2337,7 +2519,7 @@ icepack_init_tracer_sizes
 .. _icepack_query_tracer_sizes:
 
 icepack_query_tracer_sizes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! query the number of column tracers
@@ -2347,7 +2529,7 @@ icepack_query_tracer_sizes
            max_don_out    , max_fe_out     , nmodal1_out      , &
            nmodal2_out    , max_aero_out   , max_nbtrcr_out   , &
            ncat_out, nilyr_out, nslyr_out, nblyr_out, nfsd_out, &
-           n_algae_out, n_DOC_out, n_aero_out, &
+           n_algae_out, n_DOC_out, n_aero_out, n_iso_out, &
            n_DON_out, n_DIC_out, n_fed_out, n_fep_out, n_zaero_out, &
            ntrcr_out, ntrcr_o_out, nbtrcr_out, nbtrcr_sw_out)
   
@@ -2375,6 +2557,7 @@ icepack_query_tracer_sizes
            n_fed_out  , & !
            n_fep_out  , & ! 
            n_zaero_out, & !
+           n_iso_out  , & !
            n_aero_out , & !
            ntrcr_out  , & ! number of tracers in use
            ntrcr_o_out, & ! number of non-bio tracers in use
@@ -2386,7 +2569,7 @@ icepack_query_tracer_sizes
 .. _icepack_write_tracer_sizes:
 
 icepack_write_tracer_sizes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! write the number of column tracers
@@ -2400,7 +2583,7 @@ icepack_write_tracer_sizes
 .. _icepack_compute_tracers:
 
 icepack_compute_tracers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! Compute tracer fields.
@@ -2439,10 +2622,13 @@ icepack_compute_tracers
   
  
 
+icepack_warnings.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_warnings_aborted:
 
 icepack_warnings_aborted
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! turn on the abort flag in the icepack warnings package
@@ -2457,7 +2643,7 @@ icepack_warnings_aborted
 .. _icepack_warnings_clear:
 
 icepack_warnings_clear
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! clear all warning messages from the icepack warning buffer
@@ -2469,7 +2655,7 @@ icepack_warnings_clear
 .. _icepack_warnings_print:
 
 icepack_warnings_print
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! print all warning messages from the icepack warning buffer
@@ -2483,7 +2669,7 @@ icepack_warnings_print
 .. _icepack_warnings_flush:
 
 icepack_warnings_flush
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! print and clear all warning messages from the icepack warning buffer
@@ -2494,10 +2680,101 @@ icepack_warnings_flush
   
  
 
+icepack_wavefracspec.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _icepack_init_wave:
+
+icepack_init_wave
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  !  Initialize the wave spectrum and frequencies for the FSD
+  !
+  !  authors: 2018 Lettie Roach, NIWA/VUW
+  
+        subroutine icepack_init_wave(nfreq,                 &
+                                     wave_spectrum_profile, &
+                                     wavefreq, dwavefreq)
+  
+        integer(kind=int_kind), intent(in) :: &
+           nfreq                    ! number of wave frequencies
+  
+        real(kind=dbl_kind), dimension(:), intent(out) :: &
+           wave_spectrum_profile, & ! ocean surface wave spectrum as a function of frequency
+                                    ! power spectral density of surface elevation, E(f) (units m^2 s)
+           wavefreq,              & ! wave frequencies (s^-1)
+           dwavefreq                ! wave frequency bin widths (s^-1)
+  
+ 
+
+.. _icepack_step_wavefracture:
+
+icepack_step_wavefracture
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! 
+  !  Given fracture histogram computed from local wave spectrum, evolve 
+  !  the floe size distribution
+  !
+  !  authors: 2018 Lettie Roach, NIWA/VUW
+  !
+        subroutine icepack_step_wavefracture(wave_spec_type,   &
+                    dt,            ncat,            nfsd,      &
+                    nfreq,                                     &
+                    aice,          vice,            aicen,     &
+                    floe_rad_l,    floe_rad_c,                 &
+                    wave_spectrum, wavefreq,        dwavefreq, &
+                    trcrn,         d_afsd_wave)
+  
+  
+        character (len=char_len), intent(in) :: &
+           wave_spec_type   ! type of wave spectrum forcing
+  
+        integer (kind=int_kind), intent(in) :: &
+           nfreq,        & ! number of wave frequency categories
+           ncat,         & ! number of thickness categories
+           nfsd            ! number of floe size categories
+  
+        real (kind=dbl_kind), intent(in) :: &
+           dt,           & ! time step
+           aice,         & ! ice area fraction
+           vice            ! ice volume per unit area
+  
+        real (kind=dbl_kind), dimension(ncat), intent(in) :: &
+           aicen           ! ice area fraction (categories)
+  
+        real(kind=dbl_kind), dimension(:), intent(in) ::  &
+           floe_rad_l,   & ! fsd size lower bound in m (radius)
+           floe_rad_c      ! fsd size bin centre in m (radius)
+  
+        real (kind=dbl_kind), dimension (:), intent(in) :: &
+           wavefreq,     & ! wave frequencies (s^-1)
+           dwavefreq       ! wave frequency bin widths (s^-1)
+  
+        real (kind=dbl_kind), dimension(:), intent(in) :: &
+           wave_spectrum   ! ocean surface wave spectrum as a function of frequency
+                           ! power spectral density of surface elevation, E(f) (units m^2 s)
+  
+        real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+           trcrn           ! tracer array
+  
+        real (kind=dbl_kind), dimension(:), intent(out) :: &
+           d_afsd_wave     ! change in fsd due to waves
+  
+        real (kind=dbl_kind), dimension(nfsd,ncat) :: &
+           d_afsdn_wave    ! change in fsd due to waves, per category
+  
+ 
+
+icepack_zbgc.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _icepack_init_bgc:
 
 icepack_init_bgc
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   !
@@ -2537,7 +2814,7 @@ icepack_init_bgc
 .. _icepack_init_zbgc:
 
 icepack_init_zbgc
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   !
@@ -2618,7 +2895,7 @@ icepack_init_zbgc
 .. _icepack_biogeochemistry:
 
 icepack_biogeochemistry
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   !
@@ -2732,7 +3009,7 @@ icepack_biogeochemistry
 .. _icepack_load_ocean_bio_array:
 
 icepack_load_ocean_bio_array
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   ! basic initialization for ocean_bio_all
@@ -2785,7 +3062,7 @@ icepack_load_ocean_bio_array
 .. _icepack_init_ocean_bio:
 
 icepack_init_ocean_bio
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
   !  Initialize ocean concentration

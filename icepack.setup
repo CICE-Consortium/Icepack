@@ -34,6 +34,8 @@ set stime = `date -u "+%H%M%S"`
 set docase = 0
 set dotest = 0
 set dosuite = 0
+set codecov = 0       # code coverage measurement and reporting
+set codecovflag = false
 
 if ($#argv < 1) then
   set helpheader = 1
@@ -80,7 +82,7 @@ SYNOPSIS
 
     --suite SUITE[,SUITE2] -m MACH --testid ID 
         [-e ENV1,ENV2][--acct ACCT][--bdir DIR][--bgen DIR]
-        [--bcmp DIR][--tdir PATH][--report]
+        [--bcmp DIR][--tdir PATH][--report || --codecov]
 
 DESCRIPTION
     --help, -h : help
@@ -107,6 +109,8 @@ DESCRIPTION
     --testid   : test ID, user-defined id for testing (REQUIRED with --test or --suite)
     --diff     : generate comparison against another case
     --report   : automatically post results when tests are complete
+    --codecov  : generate and report test coverage metrics when tests are complete,
+                 requires GNU compiler (--env gnu)
 
 EXAMPLES
     icepack.setup -c caseB -m gordon -e cray -s diag1,debug
@@ -235,15 +239,20 @@ while (1)
     set report = 1
     shift argv
 
+  else if ("$option" == "--codecov") then
+    set codecov = 1
+    set codecovflag = true
+    shift argv
+
 # arguments with settings
   else
     shift argv
     if ( $#argv < 1 ) then
-      echo "${0}: ERROR1 in $option"
+      echo "${0}: ERROR in $option, unsupported or missing an argument"
       exit -1
     endif
-    if ($argv[1] =~ $dash* ) then
-      echo "${0}: ERROR2 in $option"
+    if ("$argv[1]" =~ "$dash*" ) then
+      echo "${0}: ERROR in $option, possibly missing an argument"
       exit -1
     endif
 
@@ -308,7 +317,30 @@ if (${dosum} > 1) then
   exit -1
 endif
 
+if ($codecov == 1 && $report == 1) then
+  echo "${0}: ERROR in arguments, not recommmended to set both --codecov and --report"
+  exit -1
+endif
+
+if ($codecov == 1 && "$compilers" != "gnu") then
+  echo "${0}: ERROR in arguments, must use --env gnu with --codecov"
+  exit -1
+endif
+
+if ($codecov == 1 && `where curl` == "" && `where wget` == "") then
+  echo "${0}: ERROR 'curl' or 'wget' is required for --codecov"
+  exit -1
+endif
+
 if (${dosuite} == 0) then
+  if ($report == 1) then
+    echo "${0}: ERROR in arguments, must use --suite with --report"
+    exit -1
+  endif
+  if ($codecov == 1) then
+    echo "${0}: ERROR in arguments, must use --suite with --codecov"
+    exit -1
+  endif
   if ("$compilers" =~ "*,*") then
     echo "${0}: ERROR in arguments, cannot set multiple compilers without --suite"
     exit -1
@@ -342,7 +374,7 @@ endif
 if ( ${tdir} != ${spval} ) then
   set tsdir = ${tdir}
 endif
-if (-e $tsfile) then
+if (-e ${tsfile}) then
   echo "${0}: ERROR in tsfile, this should never happen"
   exit -1
 endif
@@ -388,10 +420,7 @@ else
   endif
   cp -f ${ICE_SCRIPTS}/tests/report_results.csh ${tsdir}
   cp -f ${ICE_SCRIPTS}/tests/timeseries.csh ${tsdir}
-
-  if ($report == 1) then
-    cp -f ${ICE_SCRIPTS}/tests/poll_queue.csh ${tsdir}
-  endif
+  cp -f ${ICE_SCRIPTS}/tests/poll_queue.csh ${tsdir}
 
 cat >! ${tsdir}/suite.run << EOF0
 #!/bin/csh -f
@@ -417,6 +446,7 @@ echo "#hash = ${hash}" >> results.log
 echo "#hshs = ${shhash}" >> results.log
 echo "#hshu = ${hashuser}" >> results.log
 echo "#hshd = ${hashdate}" >> results.log
+echo "#suit = ${testsuite}" >> results.log
 echo "#date = ${cdate}" >> results.log
 echo "#time = ${ctime}" >> results.log
 echo "#mach = ${machine}" >> results.log
@@ -425,8 +455,20 @@ echo "#vers = ${vers}" >> results.log
 echo "#------- " >> results.log
 EOF0
 
+cat >! ${tsdir}/report_codecov.csh << EOF0
+#!/bin/csh -f
+
+setenv CODECOV_TOKEN "df12b574-8dce-439d-8d3b-ed7428d7598a"  # consortium icepack
+#setenv CODECOV_TOKEN "0b3feb13-0110-4618-821e-248c2f1f7cf3"  # apcraig icepack
+set report_name = "${shhash}:${branch}:${machine} ${testsuite}"
+
+set use_curl = 1
+
+EOF0
+
   chmod +x ${tsdir}/suite.run
   chmod +x ${tsdir}/results.csh
+  chmod +x ${tsdir}/report_codecov.csh
 
 endif
 
@@ -581,6 +623,8 @@ foreach compiler ( $ncompilers )
       endif
     endif
 
+    set rundir = ${ICE_MACHINE_WKDIR}/${casename}
+
     #------------------------------------------------------------
     # Compute a default blocksize
 
@@ -613,6 +657,7 @@ foreach compiler ( $ncompilers )
     echo "ICE_CASEDIR  = ${casedir}"
     echo "ICE_MACHINE  = ${machine}"
     echo "ICE_COMPILER = ${compiler}"
+    echo "ICE_RUNDIR   = ${rundir}"
 
     #------------------------------------------------------------
     # Copy in and update icepack.settings and icepack_in files
@@ -658,7 +703,7 @@ setenv ICE_CASEDIR  ${casedir}
 setenv ICE_MACHINE  ${machine}
 setenv ICE_COMPILER ${compiler}
 setenv ICE_MACHCOMP ${machcomp}
-setenv ICE_RUNDIR   ${ICE_MACHINE_WKDIR}/${casename}
+setenv ICE_RUNDIR   ${rundir}
 setenv ICE_GRID     ${grid}
 setenv ICE_NXGLOB   ${ICE_DECOMP_NXGLOB}
 setenv ICE_NTASKS   ${task}
@@ -673,6 +718,7 @@ setenv ICE_TESTNAME ${testname_noid}
 setenv ICE_BFBCOMP  ${fbfbcomp}
 setenv ICE_ACCOUNT  ${acct}
 setenv ICE_QUEUE    ${queue}
+setenv ICE_CODECOV  ${codecovflag}
 EOF1
 
     if (${sets} != "") then
@@ -792,10 +838,6 @@ EOF2
         exit -1
       endif
 
-      # Initial test_output file
-      echo "#---" >! test_output
-      echo "PEND ${testname_noid} " >> test_output
-
     endif
 
     #------------------------------------------------------------
@@ -807,6 +849,12 @@ EOF2
 
 cat >> ${tsdir}/results.csh << EOF
 cat ${testname_base}/test_output >> results.log
+EOF
+
+cat >> ${tsdir}/report_codecov.csh << EOF
+mkdir ${testname_base}/codecov_output
+cp ${rundir}/compile/*.{gcno,gcda} ${testname_base}/codecov_output/
+
 EOF
 
 cat >> ${tsdir}/suite.run << EOF
@@ -837,25 +885,70 @@ if ( ${dosuite} == 1 ) then
   # Add code to results.csh to count the number of failures
 cat >> ${tsdir}/results.csh << EOF
 cat ./results.log
-set pends = \`cat ./results.log | grep PEND | wc -l\`
-set failures = \`cat ./results.log | grep FAIL | wc -l\`
-set success = \`cat ./results.log | grep PASS | wc -l\`
-set comments = \`cat ./results.log | grep "#" | wc -l\`
-set alltotal = \`cat ./results.log | wc -l\`
+set pends     = \`cat ./results.log | grep PEND | wc -l\`
+set misses    = \`cat ./results.log | grep MISS | wc -l\`
+set failures  = \`cat ./results.log | grep FAIL | wc -l\`
+set failbuild = \`cat ./results.log | grep FAIL | grep " build " | wc -l\`
+set failrun   = \`cat ./results.log | grep FAIL | grep " run " | wc -l\`
+set failtest  = \`cat ./results.log | grep FAIL | grep " test " | wc -l\`
+set failcomp  = \`cat ./results.log | grep FAIL | grep " compare " | wc -l\`
+set failbfbc  = \`cat ./results.log | grep FAIL | grep " bfbcomp " | wc -l\`
+set failgen   = \`cat ./results.log | grep FAIL | grep " generate " | wc -l\`
+set success   = \`cat ./results.log | grep 'PASS\|COPY' | wc -l\`
+set comments  = \`cat ./results.log | grep "#" | wc -l\`
+set alltotal  = \`cat ./results.log | wc -l\`
 @ total = \$alltotal - \$comments
+@ chkcnt = \$pends + \$misses + \$failures + \$success
 
 echo "#------- " >> results.log
 echo " " >> results.log
-echo "#totl = \$total" >> results.log
+echo "#totl = \$total total" >> results.log
+echo "#chkd = \$chkcnt checked" >> results.log
 echo "#pass = \$success" >> results.log
-echo "#fail = \$failures" >> results.log
 echo "#pend = \$pends" >> results.log
+echo "#miss = \$misses" >> results.log
+echo "#fail = \$failures" >> results.log
+echo "    #failbuild = \$failbuild" >> results.log
+echo "    #failrun   = \$failrun" >> results.log
+echo "    #failtest  = \$failtest" >> results.log
+echo "    #failcomp  = \$failcomp" >> results.log
+echo "    #failbfbc  = \$failbfbc" >> results.log
+echo "    #failgen   = \$failgen" >> results.log
 
 echo ""
-echo "\$success of \$total tests PASSED"
-echo "\$failures of \$total tests FAILED"
-echo "\$pends of \$total tests PENDING"
+echo "Descriptors:"
+echo " PASS - successful completion"
+echo " COPY - previously compiled code was copied for new test"
+echo " MISS - comparison data is missing"
+echo " PEND - status is undertermined; test may still be queued, running, or timed out"
+echo " FAIL - test failed"
+echo ""
+echo "\$chkcnt measured results of \$total total results"
+echo "\$success of \$chkcnt tests PASSED"
+echo "\$pends of \$chkcnt tests PENDING"
+echo "\$misses of \$chkcnt tests MISSING data"
+echo "\$failures of \$chkcnt tests FAILED"
+#echo "  \$failbuild of \$failures FAILED build"
+#echo "  \$failrun of \$failures FAILED run"
+#echo "  \$failtest of \$failures FAILED test"
+#echo "  \$failcomp of \$failures FAILED compare"
+#echo "  \$failbfbc of \$failures FAILED bfbcomp"
+#echo "  \$failgen of \$failures FAILED generate"
 exit \$failures
+EOF
+
+cat >> ${tsdir}/report_codecov.csh << EOF
+source ${ICE_SCRIPTS}/machines/env.${machcomp} 
+
+if ( \${use_curl} == 1 ) then
+  bash -c "bash <(curl -s https://codecov.io/bash) -n '\${report_name}' -y ./codecov.yml "
+else
+  bash -c "bash <(wget -O - https://codecov.io/bash) -n '\${report_name}' -y ./codecov.yml "
+endif
+
+sleep 10
+rm -r -f ./*/codecov_output
+
 EOF
 
   # build and submit tests
@@ -866,6 +959,11 @@ EOF
     ./poll_queue.csh
     ./results.csh
     ./report_results.csh
+  endif
+  if ($codecov == 1) then
+    echo "Generating codecov reports"
+    ./poll_queue.csh
+    ./report_codecov.csh
   endif
   cd ${ICE_SANDBOX}
 

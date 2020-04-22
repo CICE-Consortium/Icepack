@@ -19,15 +19,18 @@ addons:
 
 install:
   # Fetch Icepack-specific dataset
-  - "wget ftp://ftp.cgd.ucar.edu/archive/Model-Data/CICE/Icepack_data.tar.gz &&
-    tar xvfz Icepack_data.tar.gz -C ~"
+  - "wget https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz &&
+    tar xvfz Icepack_data-20200326.tar.gz -C ~"
 
   # Mirror entire data folder
   #- "lftp ftp://anonymous:travis@travis-ci.org@ftp.cgd.ucar.edu 
   #-e 'mirror /archive/Model-Data/CICE/ ~/ICEPACK_INPUTDATA; quit'"
 
-
 script:
+  # verify icepack.setup --case and icepack.setup --test don't error then run test suite
+  - "./icepack.setup --case trcase --mach travisCI --env gnu --pes 1x1 -s diag1 && sleep 4"
+  - "./icepack.setup --test smoke --testid trtest --mach travisCI --env gnu 
+    --pes 1x1 -s diag1 && sleep 4"
   - "./icepack.setup --suite travis_suite --testid travisCItest 
     --mach travisCI --env gnu &&
     cd testsuite.travisCItest &&
