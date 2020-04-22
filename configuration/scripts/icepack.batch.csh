@@ -67,7 +67,9 @@ cat >> ${jobfile} << EOFB
 #PBS -q ${ICE_MACHINE_QUEUE}
 #PBS -N ${ICE_CASENAME}
 #PBS -l nodes=1:ppn=48
-#PBS -l walltime=${ICE_RUNLENGTH}
+###PBS -l walltime=${ICE_RUNLENGTH}
+### Give izumi a little more time for tests.
+#PBS -l walltime=00:50:00
 EOFB
 
 else if (${ICE_MACHINE} =~ thunder* || ${ICE_MACHINE} =~ gordon* || ${ICE_MACHINE} =~ conrad* || ${ICE_MACHINE} =~ gaffney* || ${ICE_MACHINE} =~ koehr*) then

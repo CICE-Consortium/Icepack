@@ -96,6 +96,14 @@
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
          tfrz_option, frzpnd, atmbndy, wave_spec_type
 
+      ! Flux convergence tolerance
+      real (kind=dbl_kind) :: flux_convergence_tolerance
+
+      ! Cold air outbreak (Marht and Sun 1995)
+      logical (kind=log_kind) :: use_coldair_outbreak_mod
+
+      real (kind=dbl_kind) :: alpha_coa, maxscl_coa, td0_coa
+
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
 
       integer (kind=int_kind) :: ntrcr
@@ -148,6 +156,9 @@
         update_ocn_f,    l_mpond_fresh,   ustar_min,       &
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
+        flux_convergence_tolerance,                        &
+        use_coldair_outbreak_mod,                          &
+        alpha_coa,       maxscl_coa,      td0_coa,         &
         tfrz_option,     default_season,  wave_spec_type,  &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
@@ -175,6 +186,9 @@
            albicev_out=albicev, albicei_out=albicei, ksno_out = ksno,   &
            albsnowv_out=albsnowv, albsnowi_out=albsnowi, &
            natmiter_out=natmiter, ahmax_out=ahmax, shortwave_out=shortwave, &
+           flux_convergence_tolerance_out = flux_convergence_tolerance, &
+           use_coldair_outbreak_mod_out = use_coldair_outbreak_mod, &
+           alpha_coa_out=alpha_coa, maxscl_coa_out=maxscl_coa, td0_coa_out=td0_coa, &
            albedo_type_out=albedo_type, R_ice_out=R_ice, R_pnd_out=R_pnd, &
            R_snw_out=R_snw, dT_mlt_out=dT_mlt, rsnw_mlt_out=rsnw_mlt, &
            kstrength_out=kstrength, krdg_partic_out=krdg_partic, &
@@ -557,6 +571,11 @@
          write(nu_diag,1010) ' formdrag                  = ', formdrag
          write(nu_diag,1010) ' highfreq                  = ', highfreq
          write(nu_diag,1020) ' natmiter                  = ', natmiter
+         write(nu_diag,1005) ' flux_convergence_tolerance= ', flux_convergence_tolerance
+         write(nu_diag,1010) ' use_coldair_outbreak_mod  = ', use_coldair_outbreak_mod
+         write(nu_diag,1005) ' alpha_coa                 = ', alpha_coa
+         write(nu_diag,1005) ' maxscl_coa                = ', maxscl_coa
+         write(nu_diag,1005) ' td0_coa                   = ', td0_coa
          write(nu_diag,1010) ' calc_strair               = ', calc_strair
          write(nu_diag,1010) ' calc_Tsfc                 = ', calc_Tsfc
 
@@ -702,7 +721,7 @@
          write(nu_diag,*)' '
 
  1000    format (a30,2x,f9.2)  ! a30 to align formatted, unformatted statements
- 1005    format (a30,2x,f9.6)  ! float
+ 1005    format (a30,2x,f10.6)  ! float
  1010    format (a30,2x,l6)    ! logical
  1020    format (a30,2x,i6)    ! integer
  1030    format (a30,   a8)    ! character
@@ -736,6 +755,9 @@
            albicev_in=albicev, albicei_in=albicei, ksno_in=ksno, &
            albsnowv_in=albsnowv, albsnowi_in=albsnowi, &
            natmiter_in=natmiter, ahmax_in=ahmax, shortwave_in=shortwave, &
+           flux_convergence_tolerance_in = flux_convergence_tolerance, &
+           use_coldair_outbreak_mod_in = use_coldair_outbreak_mod, &
+           alpha_coa_in=alpha_coa, maxscl_coa_in=maxscl_coa, td0_coa_in=td0_coa, &
            albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &
            R_snw_in=R_snw, dT_mlt_in=dT_mlt, rsnw_mlt_in=rsnw_mlt, &
            kstrength_in=kstrength, krdg_partic_in=krdg_partic, &

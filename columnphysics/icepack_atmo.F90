@@ -19,7 +19,6 @@
       use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
       use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
       use icepack_parameters, only: atmbndy, calc_strair, formdrag
-      use icepack_parameters, only: highfreq, natmiter
       use icepack_tracers, only: n_iso
       use icepack_tracers, only: tr_iso
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -28,9 +27,7 @@
       implicit none
 
       private
-      public :: atmo_boundary_layer, &
-                atmo_boundary_const, &
-                neutral_drag_coeffs, &
+      public :: neutral_drag_coeffs, &
                 icepack_atm_boundary
 
 !=======================================================================
@@ -52,7 +49,6 @@
 
       subroutine atmo_boundary_layer (sfctype,            &
                                       calc_strair, formdrag, &
-                                      highfreq, natmiter, &
                                       Tsf,      potT,     &
                                       uatm,     vatm,     &  
                                       wind,     zlvl,     &  
@@ -68,16 +64,15 @@
                                       uvel,     vvel,     &
                                       Uref                )     
 
+      use icepack_parameters, only: highfreq, natmiter, flux_convergence_tolerance
+      use icepack_parameters, only: use_coldair_outbreak_mod, alpha_coa, maxscl_coa, td0_coa
+
       character (len=3), intent(in) :: &
          sfctype      ! ice or ocean
 
       logical (kind=log_kind), intent(in) :: &
          calc_strair, &  ! if true, calculate wind stress components
-         formdrag,    &  ! if true, calculate form drag
-         highfreq        ! if true, use high frequency coupling
-
-      integer (kind=int_kind), intent(in) :: &
-         natmiter        ! number of iterations for boundary layer calculations
+         formdrag        ! if true, calculate form drag
 
       real (kind=dbl_kind), intent(in) :: &
          Tsf      , & ! surface temperature of ice or ocean
@@ -147,6 +142,8 @@
 
       real (kind=dbl_kind) :: &
          ustar , & ! ustar (m/s)
+         ustar_prev , & ! ustar_prev (m/s)
+         vscl  , & ! vscl
          tstar , & ! tstar
          qstar , & ! qstar
          ratio , & ! ratio
@@ -245,11 +242,22 @@
       !------------------------------------------------------------
 
       TsfK = Tsf + Tffresh     ! surface temp (K)
+      delt = potT - TsfK       ! pot temp diff (K)
+
+      if (use_coldair_outbreak_mod) then
+         ! Mahrt and Sun adjustment
+         delt = potT - TsfK
+
+         if (delt.lt.td0_coa) then
+            vscl=min((c1+alpha_coa*(abs(delt-td0_coa)**p5/abs(vmag))),maxscl_coa)
+            vmag=vmag*vscl
+         endif
+      endif
+
       qsat = qqq * exp(-TTT/TsfK)   ! saturation humidity (kg/m^3)
       ssq  = qsat / rhoa       ! sat surf hum (kg/kg)
       
       thva = potT * (c1 + zvir * Qa) ! virtual pot temp (K)
-      delt = potT - TsfK       ! pot temp diff (K)
       delq = Qa - ssq          ! spec hum dif (kg/kg)
       alz  = log(zlvl/zref)
       cp   = cp_air*(c1 + cpvir*ssq)
@@ -271,37 +279,43 @@
       ! iterate to converge on Z/L, ustar, tstar and qstar
       !------------------------------------------------------------
 
+      ustar_prev = c2 * ustar
+
       do k = 1, natmiter
 
-         ! compute stability & evaluate all stability functions
-         hol = vonkar * gravit * zlvl &
-                 * (tstar/thva &
-                 + qstar/(c1/zvir+Qa)) &
-                 / ustar**2
-         hol    = sign( min(abs(hol),c10), hol )
-         stable = p5 + sign(p5 , hol)
-         xqq    = max(sqrt(abs(c1 - c16*hol)) , c1)
-         xqq    = sqrt(xqq)
+         if (.not. (flux_convergence_tolerance > c0 .and. &
+                 abs(ustar - ustar_prev)/ustar <= flux_convergence_tolerance)) then
 
-         ! Jordan et al 1999
-         psimhs = -(0.7_dbl_kind*hol &
-                + 0.75_dbl_kind*(hol-14.3_dbl_kind) &
-                * exp(-0.35_dbl_kind*hol) + 10.7_dbl_kind)
-         psimh  = psimhs*stable &
-                + (c1 - stable)*psimhu(xqq)
-         psixh  = psimhs*stable &
-                + (c1 - stable)*psixhu(xqq)
+            ! compute stability & evaluate all stability functions
+            hol = vonkar * gravit * zlvl &
+                    * (tstar/thva &
+                    + qstar/(c1/zvir+Qa)) &
+                    / ustar**2
+            hol    = sign( min(abs(hol),c10), hol )
+            stable = p5 + sign(p5 , hol)
+            xqq    = max(sqrt(abs(c1 - c16*hol)) , c1)
+            xqq    = sqrt(xqq)
 
-         ! shift all coeffs to measurement height and stability
-         rd = rdn / (c1+rdn/vonkar*(alz-psimh))
-         rh = rhn / (c1+rhn/vonkar*(alz-psixh))
-         re = ren / (c1+ren/vonkar*(alz-psixh))
+            ! Jordan et al 1999
+            psimhs = -(0.7_dbl_kind*hol &
+                   + 0.75_dbl_kind*(hol-14.3_dbl_kind) &
+                   * exp(-0.35_dbl_kind*hol) + 10.7_dbl_kind)
+            psimh  = psimhs*stable &
+                   + (c1 - stable)*psimhu(xqq)
+            psixh  = psimhs*stable &
+                   + (c1 - stable)*psixhu(xqq)
+
+            ! shift all coeffs to measurement height and stability
+            rd = rdn / (c1+rdn/vonkar*(alz-psimh))
+            rh = rhn / (c1+rhn/vonkar*(alz-psixh))
+            re = ren / (c1+ren/vonkar*(alz-psixh))
          
-         ! update ustar, tstar, qstar using updated, shifted coeffs
-         ustar = rd * vmag
-         tstar = rh * delt
-         qstar = re * delq
+            ! update ustar, tstar, qstar using updated, shifted coeffs
+            ustar = rd * vmag
+            tstar = rh * delt
+            qstar = re * delq
 
+         endif                  ! flux_convergence_tolerance
       enddo                     ! end iteration
 
       if (calc_strair) then
@@ -950,7 +964,6 @@
       else ! default
          call atmo_boundary_layer (sfctype,                 &
                                    calc_strair, formdrag,   &
-                                   highfreq, natmiter,      &
                                    Tsf,      potT,          &
                                    uatm,     vatm,          &
                                    wind,     zlvl,          &

@@ -79,6 +79,11 @@
     calc_Tsfc       = .true.
     highfreq        = .false.
     natmiter        = 5
+    flux_convergence_tolerance = 0.0d0
+    use_coldair_outbreak_mod = .false.
+    alpha_coa       = 1.4d0
+    maxscl_coa      = 2.0d0
+    td0_coa         = -10.0d0
     ustar_min       = 0.0005
     emissivity      = 0.95
     fbot_xfer_type  = 'constant'

@@ -253,6 +253,16 @@
       integer (kind=int_kind), public :: &
          natmiter        = 5 ! number of iterations for atm boundary layer calcs
 
+      ! Flux convergence tolerance
+      real (kind=dbl_kind), public :: flux_convergence_tolerance = c0
+
+      ! Cold air outbreak (Marht and Sun 1995)
+      logical (kind=log_kind), public :: use_coldair_outbreak_mod = .false.
+
+      real (kind=dbl_kind), public    :: alpha_coa = 1.4_dbl_kind
+      real (kind=dbl_kind), public    :: maxscl_coa = c2  ! maximum wind scaling for flux
+      real (kind=dbl_kind), public    :: td0_coa = -c10   ! start t-ts for scaling
+
 !-----------------------------------------------------------------------
 ! Parameters for the ice thickness distribution
 !-----------------------------------------------------------------------
@@ -384,6 +394,8 @@
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
          kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
+         flux_convergence_tolerance_in, use_coldair_outbreak_mod_in, &
+         alpha_coa_in, maxscl_coa_in, td0_coa_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
          floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
          dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
@@ -571,6 +583,16 @@
       integer (kind=int_kind), intent(in), optional :: &
          natmiter_in        ! number of iterations for boundary layer calculations
         
+      ! Flux convergence tolerance
+      real (kind=dbl_kind), intent(in), optional :: flux_convergence_tolerance_in
+
+      ! Cold air outbreak (Marht and Sun 1995)
+      logical (kind=log_kind), intent(in), optional :: use_coldair_outbreak_mod_in
+
+      real (kind=dbl_kind), intent(in), optional    :: alpha_coa_in
+      real (kind=dbl_kind), intent(in), optional    :: maxscl_coa_in
+      real (kind=dbl_kind), intent(in), optional    :: td0_coa_in
+
 !-----------------------------------------------------------------------
 ! Parameters for the ice thickness distribution
 !-----------------------------------------------------------------------
@@ -775,6 +797,13 @@
       if (present(formdrag_in)          ) formdrag         = formdrag_in
       if (present(highfreq_in)          ) highfreq         = highfreq_in
       if (present(natmiter_in)          ) natmiter         = natmiter_in
+      if (present(flux_convergence_tolerance_in)) &
+         flux_convergence_tolerance = flux_convergence_tolerance_in
+      if (present(use_coldair_outbreak_mod_in)) &
+         use_coldair_outbreak_mod = use_coldair_outbreak_mod_in
+      if (present(alpha_coa_in)         ) alpha_coa        = alpha_coa_in
+      if (present(maxscl_coa_in)        ) maxscl_coa       = maxscl_coa_in
+      if (present(td0_coa_in)           ) td0_coa          = td0_coa_in
       if (present(tfrz_option_in)       ) tfrz_option      = tfrz_option_in
       if (present(kitd_in)              ) kitd             = kitd_in
       if (present(kcatbound_in)         ) kcatbound        = kcatbound_in
@@ -864,6 +893,8 @@
          rsnw_mlt_out, dEdd_algae_out, &
          kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
+         flux_convergence_tolerance_out, use_coldair_outbreak_mod_out, &
+         alpha_coa_out, maxscl_coa_out, td0_coa_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
          floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
          dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
@@ -1060,6 +1091,16 @@
       integer (kind=int_kind), intent(out), optional :: &
          natmiter_out        ! number of iterations for boundary layer calculations
         
+      ! Flux convergence tolerance
+      real (kind=dbl_kind), intent(out), optional :: flux_convergence_tolerance_out
+
+      ! Cold air outbreak (Marht and Sun 1995)
+      logical (kind=log_kind), intent(out), optional :: use_coldair_outbreak_mod_out
+
+      real (kind=dbl_kind), intent(out), optional    :: alpha_coa_out
+      real (kind=dbl_kind), intent(out), optional    :: maxscl_coa_out
+      real (kind=dbl_kind), intent(out), optional    :: td0_coa_out
+
 !-----------------------------------------------------------------------
 ! Parameters for the ice thickness distribution
 !-----------------------------------------------------------------------
@@ -1305,6 +1346,13 @@
       if (present(formdrag_out)          ) formdrag_out     = formdrag
       if (present(highfreq_out)          ) highfreq_out     = highfreq
       if (present(natmiter_out)          ) natmiter_out     = natmiter
+      if (present(flux_convergence_tolerance_out)) &
+         flux_convergence_tolerance_out = flux_convergence_tolerance
+      if (present(use_coldair_outbreak_mod_out)) &
+         use_coldair_outbreak_mod_out = use_coldair_outbreak_mod
+      if (present(alpha_coa_out)         ) alpha_coa_out    = alpha_coa
+      if (present(maxscl_coa_out)        ) maxscl_coa_out   = maxscl_coa
+      if (present(td0_coa_out)           ) td0_coa_out      = td0_coa
       if (present(tfrz_option_out)       ) tfrz_option_out  = tfrz_option
       if (present(kitd_out)              ) kitd_out         = kitd
       if (present(kcatbound_out)         ) kcatbound_out    = kcatbound
@@ -1478,7 +1526,12 @@
         write(iounit,*) "  formdrag      = ", formdrag
         write(iounit,*) "  highfreq      = ", highfreq
         write(iounit,*) "  natmiter      = ", natmiter
+        write(iounit,*) "  flux_convergence_tolerance = ", flux_convergence_tolerance
+        write(iounit,*) "  use_coldair_outbreak_mod = ", use_coldair_outbreak_mod
         write(iounit,*) "  tfrz_option   = ", tfrz_option
+        write(iounit,*) "  alpha_coa     = ", alpha_coa
+        write(iounit,*) "  maxscl_coa    = ", maxscl_coa
+        write(iounit,*) "  td0_coa       = ", td0_coa
         write(iounit,*) "  kitd          = ", kitd
         write(iounit,*) "  kcatbound     = ", kcatbound
         write(iounit,*) "  floeshape     = ", floeshape
