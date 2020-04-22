@@ -166,7 +166,8 @@ Neglecting form drag, the exchange coefficients :math:`c_u`,
 and updated during a short iteration, as they depend upon the turbulent
 scales. The number of iterations is set by the namelist variable
 ``natmiter``, nominally set to five but sometimes increased by users employing the ``highfreq`` option.
-Here, :math:`z_{ref}` is a reference height of 10m and
+A convergence tolerance ``flux_convergence_tolerance`` on ``ustar`` can be set to exit the ``natmiter``
+loop early if desired.  Here, :math:`z_{ref}` is a reference height of 10m and
 :math:`z_{ice}` is the roughness length scale for the given
 sea ice category. :math:`\Upsilon` is constrained to have magnitude less
 than 10. Further, defining
@@ -220,6 +221,10 @@ of air and :math:`c_p` is its specific heat. Again following
 heat flux coefficient in order to allow some heat to pass between the
 atmosphere and the ice surface in stable, calm conditions. 
 For the atmospheric stress term in :eq:`coeff2`, we make the assumption in :eq:`lowfreq` when ``highfreq`` =.false..
+
+An additional modification for stable environments can be made using the ``use_coldair_outbreak_mod`` namelist
+parameter. This follows the cold air outbreaks ideas of :cite:`mahrt95` and was primarily introduced for
+Labrador Sea issues in the CESM2 :cite:`danabasoglu20`.
 
 The atmospheric reference temperature :math:`T_a^{ref}` is computed from
 :math:`T_a` and :math:`T_{sfc}` using the coefficients
