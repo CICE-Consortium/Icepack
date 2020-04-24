@@ -7,14 +7,6 @@ cp icepack_in icepack_in.0
 ${ICE_CASEDIR}/casescripts/parse_namelist.sh icepack_in ${ICE_CASEDIR}/casescripts/test_nml.restart1
 cp icepack_in icepack_in.1
 
-mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
-cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} run" >! ${ICE_CASEDIR}/test_output
-mv -f ${ICE_CASEDIR}/test_output ${ICE_CASEDIR}/test_output.prev
-cat ${ICE_CASEDIR}/test_output.prev | grep -iv "${ICE_TESTNAME} test" >! ${ICE_CASEDIR}/test_output
-rm -f ${ICE_CASEDIR}/test_output.prev
-echo "RUN  ${ICE_TESTNAME} run " >> ${ICE_CASEDIR}/test_output
-echo "PEND ${ICE_TESTNAME} test " >> ${ICE_CASEDIR}/test_output
-
 ./icepack.run
 set res="$?"
 

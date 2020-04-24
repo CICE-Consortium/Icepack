@@ -143,6 +143,7 @@ column physics.
    "", "``2``", "mushy-layer thermodynamic model", ""
    "``conduct``", "``Maykut71``", "conductivity :cite:`Maykut71`", ""
    "", "``bubbly``", "conductivity :cite:`Pringle07`", ""
+   "``ksno``", "real", "Thermal conductivity of snow", "0.3 W/m/deg"
    "``a_rapid_mode``", "real", "brine channel diameter", "0.5x10 :math:`^{-3}` m"
    "``Rac_rapid_mode``", "real", "critical Rayleigh number", "10"
    "``aspect_rapid_mode``", "real", "brine convection aspect ratio", "1"
