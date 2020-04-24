@@ -85,7 +85,7 @@
       character (len=char_len) :: diag_file_names
 
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
-         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, &
+         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, &
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity
@@ -124,7 +124,7 @@
         kcatbound
 
       namelist /thermo_nml/ &
-        kitd,           ktherm,          conduct,                       &
+        kitd,           ktherm,          ksno,     conduct,             &
         a_rapid_mode,   Rac_rapid_mode,  aspect_rapid_mode,             &
         dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy
 
@@ -173,7 +173,7 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(ustar_min_out=ustar_min, Cf_out=Cf, &
-           albicev_out=albicev, albicei_out=albicei, &
+           albicev_out=albicev, albicei_out=albicei, ksno_out = ksno,   &
            albsnowv_out=albsnowv, albsnowi_out=albsnowi, &
            natmiter_out=natmiter, ahmax_out=ahmax, shortwave_out=shortwave, &
            albedo_type_out=albedo_type, R_ice_out=R_ice, R_pnd_out=R_pnd, &
@@ -503,6 +503,7 @@
          write(nu_diag,1000) ' mu_rdg                    = ', mu_rdg
          if (kstrength == 1) &
          write(nu_diag,1000) ' Cf                        = ', Cf
+         write(nu_diag,1000) ' ksno                      = ', ksno
          write(nu_diag,1030) ' shortwave                 = ', &
                                trim(shortwave)
          if (cpl_bgc) then
@@ -735,7 +736,7 @@
       !-----------------------------------------------------------------
 
       call icepack_init_parameters(ustar_min_in=ustar_min, Cf_in=Cf, &
-           albicev_in=albicev, albicei_in=albicei, &
+           albicev_in=albicev, albicei_in=albicei, ksno_in=ksno, &
            albsnowv_in=albsnowv, albsnowi_in=albsnowi, &
            natmiter_in=natmiter, ahmax_in=ahmax, shortwave_in=shortwave, &
            albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &

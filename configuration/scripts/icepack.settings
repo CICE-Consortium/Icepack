@@ -77,5 +77,6 @@ setenv TRFED     0         # number of dissolved iron tracers
 
 ### Specialty code
 setenv ICE_BLDDEBUG  false  # build debug flags
+setenv ICE_CODECOV  false   # code coverage flag
 
 
