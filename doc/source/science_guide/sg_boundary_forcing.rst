@@ -166,7 +166,7 @@ Neglecting form drag, the exchange coefficients :math:`c_u`,
 and updated during a short iteration, as they depend upon the turbulent
 scales. The number of iterations is set by the namelist variable
 ``natmiter``, nominally set to five but sometimes increased by users employing the ``highfreq`` option.
-A convergence tolerance ``flux_convergence_tolerance`` on ``ustar`` can be set to exit the ``natmiter``
+A convergence tolerance ``natmiter_conv`` on ``ustar`` can be set to exit the ``natmiter``
 loop early if desired.  Here, :math:`z_{ref}` is a reference height of 10m and
 :math:`z_{ice}` is the roughness length scale for the given
 sea ice category. :math:`\Upsilon` is constrained to have magnitude less
