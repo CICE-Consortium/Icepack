@@ -222,10 +222,6 @@ heat flux coefficient in order to allow some heat to pass between the
 atmosphere and the ice surface in stable, calm conditions. 
 For the atmospheric stress term in :eq:`coeff2`, we make the assumption in :eq:`lowfreq` when ``highfreq`` =.false..
 
-An additional modification for stable environments can be made using the ``use_coldair_outbreak_mod`` namelist
-parameter. This follows the cold air outbreaks ideas of :cite:`mahrt95` and was primarily introduced for
-Labrador Sea issues in the CESM2 :cite:`danabasoglu20`.
-
 The atmospheric reference temperature :math:`T_a^{ref}` is computed from
 :math:`T_a` and :math:`T_{sfc}` using the coefficients
 :math:`c_u`, :math:`c_\theta` and :math:`c_q`. Although the sea ice

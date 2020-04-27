@@ -65,7 +65,6 @@
                                       Uref                )     
 
       use icepack_parameters, only: highfreq, natmiter, flux_convergence_tolerance
-      use icepack_parameters, only: use_coldair_outbreak_mod, alpha_coa, maxscl_coa, td0_coa
 
       character (len=3), intent(in) :: &
          sfctype      ! ice or ocean
@@ -243,17 +242,6 @@
 
       TsfK = Tsf + Tffresh     ! surface temp (K)
       delt = potT - TsfK       ! pot temp diff (K)
-
-      if (use_coldair_outbreak_mod) then
-         ! Mahrt and Sun adjustment
-         delt = potT - TsfK
-
-         if (delt.lt.td0_coa) then
-            vscl=min((c1+alpha_coa*(abs(delt-td0_coa)**p5/abs(vmag))),maxscl_coa)
-            vmag=vmag*vscl
-         endif
-      endif
-
       qsat = qqq * exp(-TTT/TsfK)   ! saturation humidity (kg/m^3)
       ssq  = qsat / rhoa       ! sat surf hum (kg/kg)
       
