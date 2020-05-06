@@ -127,6 +127,10 @@
       wave_spectrum_data(9) = 2.419401186610744e-20      
 
 
+     ! LR remove
+      wave_spectrum_data = 100.*wave_spectrum_data
+
+
 !       wave_spectrum_data(1) =    0.0022_dbl_kind
 !       wave_spectrum_data(2) =    0.0158_dbl_kind
 !       wave_spectrum_data(3) =    0.0390_dbl_kind
@@ -222,7 +226,7 @@
                   dt,            ncat,            nfsd,      &
                   nfreq,                                     &
                   aice,          vice,            aicen,     &
-                  floe_rad_l,    floe_rad_c,                 &
+                  floe_rad_l,    floe_rad_c,      floe_binwidth,           &
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave)
 
@@ -247,7 +251,8 @@
 
       real(kind=dbl_kind), dimension(:), intent(in) ::  &
          floe_rad_l,   & ! fsd size lower bound in m (radius)
-         floe_rad_c      ! fsd size bin centre in m (radius)
+         floe_rad_c,   & ! fsd size bin centre in m (radius)
+         floe_binwidth   ! floe size bin with in m (radius)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          wavefreq,     & ! wave frequencies (s^-1)
@@ -334,7 +339,7 @@
         if (trim(wave_solver).eq.'mlfullnet') then
 
              if (run_wave_fracture) then
-                 call spwf_fullnet(nfsd, floe_rad_l, wave_spectrum, hbar, &
+                 call spwf_fullnet(nfsd, floe_rad_l, floe_binwidth, wave_spectrum, hbar, &
                                spwf_fullnet_hist)
 
                  fracture_hist(:) = spwf_fullnet_hist(:)
@@ -345,7 +350,8 @@
         end if
 
         if (run_wave_fracture) then
- 
+
+
          ! calculate fracture histogram
          call wave_frac(nfsd, nfreq, run_to_convergence, &
                         floe_rad_l, floe_rad_c, &
@@ -355,7 +361,8 @@
          if (icepack_warnings_aborted(subname)) return
 
         end if
-
+         print *, 'input ',hbar, wave_spectrum
+         print *, 'fracture hist ',fracture_hist 
         ! sanity checks
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
@@ -460,11 +467,11 @@
                   call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
                   
                   if (icepack_warnings_aborted(subname)) return
-
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
                   d_afsd_wave (:)   = d_afsd_wave(:) + aicen(n)*d_afsdn_wave(:,n)
-               endif ! aicen > puny
+ 
+              endif ! aicen > puny
             enddo    ! n
         endif ! fracture hist > 0
 
@@ -956,7 +963,7 @@
 !                Chris Horvat, Brown University
 !
 
-      subroutine spwf_fullnet(nfsd, floe_rad_l, wave_spectrum, hbar, &
+      subroutine spwf_fullnet(nfsd, floe_rad_l, floe_binwidth, wave_spectrum, hbar, &
           spwf_fullnet_hist)
 
 
@@ -971,7 +978,7 @@
           wave_spectrum ! wave spectrum as a function of freq (m^s s)
 
       real (kind=dbl_kind), dimension (nfsd), intent (in) :: &
-          floe_rad_l ! FSD categories, lower limit, radius (m)
+          floe_rad_l, floe_binwidth ! FSD categories, lower limit, radius (m)
 
       real (kind=dbl_kind), dimension(nfsd), intent(out) :: &
           spwf_fullnet_hist
@@ -1020,7 +1027,7 @@
                       spwf_fullnet_hist(k) = spwf_fullnet_hist(k) + y6(l)
                   end if
               end do
-              if (fracbin_c(l).gt.floe_rad_l(nfsd)) spwf_fullnet_hist(nfsd)  = spwf_fullnet_hist(nfsd) + y6(l)
+              if ((fracbin_c(l).gt.floe_rad_l(nfsd)).and.(fracbin_c(l).le.floe_rad_l(nfsd)+floe_binwidth(nfsd))) spwf_fullnet_hist(nfsd)  = spwf_fullnet_hist(nfsd) + y6(l)
           end if
       end do
 

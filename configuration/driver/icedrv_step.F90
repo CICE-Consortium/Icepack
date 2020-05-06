@@ -597,7 +597,7 @@
       subroutine step_dyn_wave (dt)
 
       use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
-          d_afsd_wave, floe_rad_l, floe_rad_c, wavefreq, dwavefreq
+          d_afsd_wave, floe_rad_l, floe_binwidth, floe_rad_c, wavefreq, dwavefreq
       use icedrv_domain_size, only: ncat, nfsd, nfreq, nx
       use icedrv_state, only: trcrn, aicen, aice, vice
       use icepack_intfc, only: icepack_step_wavefracture
@@ -631,6 +631,7 @@
                         aicen         = aicen        (i,:),    &
                         floe_rad_l    = floe_rad_l     (:),    &
                         floe_rad_c    = floe_rad_c     (:),    &
+                        floe_binwidth = floe_binwidth  (:),    &
                         wave_spectrum = wave_spectrum(i,:),    &
                         wavefreq      = wavefreq       (:),    &
                         dwavefreq     = dwavefreq      (:),    &
