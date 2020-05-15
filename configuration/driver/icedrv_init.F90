@@ -97,7 +97,7 @@
          tfrz_option, frzpnd, atmbndy, wave_spec_type
 
       ! Flux convergence tolerance
-      real (kind=dbl_kind) :: natmiter_conv
+      real (kind=dbl_kind) :: atmiter_conv
 
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
 
@@ -151,7 +151,7 @@
         update_ocn_f,    l_mpond_fresh,   ustar_min,       &
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
-        natmiter_conv,                        &
+        atmiter_conv,                        &
         tfrz_option,     default_season,  wave_spec_type,  &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
@@ -179,7 +179,7 @@
            albicev_out=albicev, albicei_out=albicei, ksno_out = ksno,   &
            albsnowv_out=albsnowv, albsnowi_out=albsnowi, &
            natmiter_out=natmiter, ahmax_out=ahmax, shortwave_out=shortwave, &
-           natmiter_conv_out = natmiter_conv, &
+           atmiter_conv_out = atmiter_conv, &
            albedo_type_out=albedo_type, R_ice_out=R_ice, R_pnd_out=R_pnd, &
            R_snw_out=R_snw, dT_mlt_out=dT_mlt, rsnw_mlt_out=rsnw_mlt, &
            kstrength_out=kstrength, krdg_partic_out=krdg_partic, &
@@ -562,7 +562,7 @@
          write(nu_diag,1010) ' formdrag                  = ', formdrag
          write(nu_diag,1010) ' highfreq                  = ', highfreq
          write(nu_diag,1020) ' natmiter                  = ', natmiter
-         write(nu_diag,1005) ' natmiter_conv= ', natmiter_conv
+         write(nu_diag,1005) ' atmiter_conv              = ', atmiter_conv
          write(nu_diag,1010) ' calc_strair               = ', calc_strair
          write(nu_diag,1010) ' calc_Tsfc                 = ', calc_Tsfc
 
@@ -742,7 +742,7 @@
            albicev_in=albicev, albicei_in=albicei, ksno_in=ksno, &
            albsnowv_in=albsnowv, albsnowi_in=albsnowi, &
            natmiter_in=natmiter, ahmax_in=ahmax, shortwave_in=shortwave, &
-           natmiter_conv_in = natmiter_conv, &
+           atmiter_conv_in = atmiter_conv, &
            albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &
            R_snw_in=R_snw, dT_mlt_in=dT_mlt, rsnw_mlt_in=rsnw_mlt, &
            kstrength_in=kstrength, krdg_partic_in=krdg_partic, &

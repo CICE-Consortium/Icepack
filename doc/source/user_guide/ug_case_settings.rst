@@ -213,7 +213,7 @@ column physics.
    "", "false", "read wind stress and speed from files", ""
    "``highfreq``", "true/false", "high-frequency atmo coupling", ""
    "``natmiter``", "integer", "number of atmo boundary layer iterations", ""
-   "``natmiter_conv``", "real", "set a tolerance for convergence of ustar", "0.0d0"
+   "``atmiter_conv``", "real", "set a tolerance for convergence of ustar", "0.0d0"
    "``calc_Tsfc``", "true/false", "calculate surface temperature", "``.true.``"
    "``precip_units``", "``mks``", "liquid precipitation data units", ""
    "", "``mm_per_month``", "", ""

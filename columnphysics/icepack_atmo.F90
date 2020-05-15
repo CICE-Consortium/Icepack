@@ -64,7 +64,7 @@
                                       uvel,     vvel,     &
                                       Uref                )     
 
-      use icepack_parameters, only: highfreq, natmiter, natmiter_conv
+      use icepack_parameters, only: highfreq, natmiter, atmiter_conv
 
       character (len=3), intent(in) :: &
          sfctype      ! ice or ocean
@@ -271,8 +271,7 @@
 
       do k = 1, natmiter
 
-         if (.not. (natmiter_conv > c0 .and. &
-                 abs(ustar - ustar_prev)/ustar <= natmiter_conv)) then
+         if (abs(ustar - ustar_prev)/ustar > atmiter_conv) then
 
             ! compute stability & evaluate all stability functions
             hol = vonkar * gravit * zlvl &
@@ -303,7 +302,7 @@
             tstar = rh * delt
             qstar = re * delq
 
-         endif                  ! natmiter_conv
+         endif                  ! atmiter_conv
       enddo                     ! end iteration
 
       if (calc_strair) then
