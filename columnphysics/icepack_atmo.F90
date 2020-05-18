@@ -269,40 +269,39 @@
 
       ustar_prev = c2 * ustar
 
-      do k = 1, natmiter
+      k = 1
+      do while (abs(ustar - ustar_prev)/ustar > atmiter_conv .and. k <= natmiter)
 
-         if (abs(ustar - ustar_prev)/ustar > atmiter_conv) then
+         ! compute stability & evaluate all stability functions
+         hol = vonkar * gravit * zlvl &
+                 * (tstar/thva &
+                 + qstar/(c1/zvir+Qa)) &
+                 / ustar**2
+         hol    = sign( min(abs(hol),c10), hol )
+         stable = p5 + sign(p5 , hol)
+         xqq    = max(sqrt(abs(c1 - c16*hol)) , c1)
+         xqq    = sqrt(xqq)
 
-            ! compute stability & evaluate all stability functions
-            hol = vonkar * gravit * zlvl &
-                    * (tstar/thva &
-                    + qstar/(c1/zvir+Qa)) &
-                    / ustar**2
-            hol    = sign( min(abs(hol),c10), hol )
-            stable = p5 + sign(p5 , hol)
-            xqq    = max(sqrt(abs(c1 - c16*hol)) , c1)
-            xqq    = sqrt(xqq)
+         ! Jordan et al 1999
+         psimhs = -(0.7_dbl_kind*hol &
+                + 0.75_dbl_kind*(hol-14.3_dbl_kind) &
+                * exp(-0.35_dbl_kind*hol) + 10.7_dbl_kind)
+         psimh  = psimhs*stable &
+                + (c1 - stable)*psimhu(xqq)
+         psixh  = psimhs*stable &
+                + (c1 - stable)*psixhu(xqq)
 
-            ! Jordan et al 1999
-            psimhs = -(0.7_dbl_kind*hol &
-                   + 0.75_dbl_kind*(hol-14.3_dbl_kind) &
-                   * exp(-0.35_dbl_kind*hol) + 10.7_dbl_kind)
-            psimh  = psimhs*stable &
-                   + (c1 - stable)*psimhu(xqq)
-            psixh  = psimhs*stable &
-                   + (c1 - stable)*psixhu(xqq)
+         ! shift all coeffs to measurement height and stability
+         rd = rdn / (c1+rdn/vonkar*(alz-psimh))
+         rh = rhn / (c1+rhn/vonkar*(alz-psixh))
+         re = ren / (c1+ren/vonkar*(alz-psixh))
+      
+         ! update ustar, tstar, qstar using updated, shifted coeffs
+         ustar = rd * vmag
+         tstar = rh * delt
+         qstar = re * delq
 
-            ! shift all coeffs to measurement height and stability
-            rd = rdn / (c1+rdn/vonkar*(alz-psimh))
-            rh = rhn / (c1+rhn/vonkar*(alz-psixh))
-            re = ren / (c1+ren/vonkar*(alz-psixh))
-         
-            ! update ustar, tstar, qstar using updated, shifted coeffs
-            ustar = rd * vmag
-            tstar = rh * delt
-            qstar = re * delq
-
-         endif                  ! atmiter_conv
+         k = k + 1
       enddo                     ! end iteration
 
       if (calc_strair) then
