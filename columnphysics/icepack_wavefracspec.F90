@@ -126,9 +126,14 @@
       wave_spectrum_data(8) = 6.815936703929992e-10 
       wave_spectrum_data(9) = 2.419401186610744e-20      
 
+!       wave_spectrum_data(1:25) = (/ 0.02123415,  0.02482174,  0.0980323 ,  0.27436727,  0.75850695,&
+!         2.53789496,  4.89640093, 10.65719509, 13.2855072 ,  7.61272764,&
+!         4.676548  ,  3.55079412,  3.11678171,  2.53346729,  1.7185868 ,&
+!         1.08966577,  0.72712338,  0.49745849,  0.33925959,  0.22613701,&
+!         0.14782953,  0.09411122,  0.06035572,  0.03885347,  0.02412495/)
 
-     ! LR remove
-      wave_spectrum_data = 100.*wave_spectrum_data
+!     ! LR remove
+!      wave_spectrum_data = 100.*wave_spectrum_data
 
 
 !       wave_spectrum_data(1) =    0.0022_dbl_kind
@@ -159,6 +164,7 @@
 
       ! boundaries of bin n are at f(n)*sqrt(1/C) and f(n)*sqrt(C) 
       dwavefreq(:) = wavefreq(:)*(SQRT(1.1_dbl_kind) - SQRT(c1/1.1_dbl_kind))
+
 
       end subroutine icepack_init_wave
 
@@ -323,6 +329,9 @@
       if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
          hbar = vice / aice
 
+         ! LR remove
+         !hbar = 0.5463925
+
         if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')&
              .OR.(trim(wave_solver).eq.'mlfullnet')) then 
          ! classify input (based on neural net run offline)
@@ -361,8 +370,6 @@
          if (icepack_warnings_aborted(subname)) return
 
         end if
-         print *, 'input ',hbar, wave_spectrum
-         print *, 'fracture hist ',fracture_hist 
         ! sanity checks
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
@@ -929,11 +936,12 @@
  
 
       wave_fullnet_file = &
-       trim('/glade/u/home/lettier/wavefrac_nn_fullnet.txt')
+       trim('/glade/u/home/lettier/wavefrac_nn_fullnet_v3.txt')
 
       open (unit = 2, file = wave_fullnet_file)
       read (2, *) filelist
       close(2)
+
 
       full_weight1 = TRANSPOSE(RESHAPE(filelist(1:2600), (/100, 26/)))
       full_weight2 = filelist(2601:2700)
@@ -947,6 +955,7 @@
       full_weight10 = filelist(43001:43100)
       full_weight11 = TRANSPOSE(RESHAPE(filelist(43101:48000), (/49, 100/)))
       full_weight12 = filelist(48001:48049)
+
 
       end subroutine icepack_init_spwf_fullnet
 
@@ -1018,6 +1027,7 @@
       if (SUM(y6).NE.c0) y6 = y6/SUM(y6)
 
 
+      print *, 'MAX y6 ',MAXVAL(y6)
       spwf_fullnet_hist(:) = c0
       do l = 1, 49
           if (y6(l).gt.puny) then
@@ -1030,6 +1040,7 @@
               if ((fracbin_c(l).gt.floe_rad_l(nfsd)).and.(fracbin_c(l).le.floe_rad_l(nfsd)+floe_binwidth(nfsd))) spwf_fullnet_hist(nfsd)  = spwf_fullnet_hist(nfsd) + y6(l)
           end if
       end do
+      print *, 'MAX spwf fullnet ',MAXVAL(spwf_fullnet_hist)
 
       if (SUM(spwf_fullnet_hist).gt.puny) then
         spwf_fullnet_hist = spwf_fullnet_hist/SUM(spwf_fullnet_hist)
