@@ -234,7 +234,7 @@
                   aice,          vice,            aicen,     &
                   floe_rad_l,    floe_rad_c,      floe_binwidth,           &
                   wave_spectrum, wavefreq,        dwavefreq, &
-                  trcrn,         d_afsd_wave)
+                  trcrn,         d_afsd_wave, fracture_hist)
 
       use icepack_parameters, only: spwf_clss_crit 
 
@@ -272,8 +272,9 @@
          trcrn           ! tracer array
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
-         d_afsd_wave     ! change in fsd due to waves
-
+         d_afsd_wave, &     ! change in fsd due to waves
+         fracture_hist      ! fracture histogram
+ 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          d_afsdn_wave    ! change in fsd due to waves, per category
 
@@ -301,8 +302,7 @@
 
       real (kind=dbl_kind), dimension (nfsd) :: &
          spwf_fullnet_hist, & !
-         fracture_hist, & ! fracture histogram
-         afsd_init    , & ! tracer array
+        afsd_init    , & ! tracer array
          afsd_tmp     , & ! tracer array
          d_afsd_tmp       ! change
 
