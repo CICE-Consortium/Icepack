@@ -200,7 +200,7 @@
            aspect_rapid_mode_out=aspect_rapid_mode, &
            dSdt_slow_mode_out=dSdt_slow_mode, &
            phi_c_slow_mode_out=phi_c_slow_mode, &
-           phi_i_mushy_out=phi_i_mushy, &
+           phi_i_mushy_out=phi_i_mushy, conserv_check_out=conserv_check, &
            tfrz_option_out=tfrz_option, kalg_out=kalg, &
            fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
            wave_spec_type_out=wave_spec_type)
@@ -229,7 +229,6 @@
       restart_file = 'iced'  ! restart file name prefix
       ice_ic       = 'default'      ! initial conditions are specified in the code
                                     ! otherwise, the filename for reading restarts
-      conserv_check = .false.! if true, run conservation checks in columnphysics
       ndtd = 1               ! dynamic time steps per thermodynamic time step
       l_mpond_fresh = .false.     ! logical switch for including meltpond freshwater
                                   ! flux feedback to ocean model
