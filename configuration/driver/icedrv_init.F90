@@ -100,6 +100,7 @@
       real (kind=dbl_kind) :: atmiter_conv
 
       logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair
+      logical (kind=log_kind) :: conserv_check
 
       integer (kind=int_kind) :: ntrcr
       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond
@@ -121,7 +122,8 @@
         days_per_year,  use_leap_years, year_init,       istep0,        &
         dt,             npt,            ndtd,            dump_last,     &
         ice_ic,         restart,        restart_dir,     restart_file,  &
-        dumpfreq,       diagfreq,       diag_file,       cpl_bgc
+        dumpfreq,       diagfreq,       diag_file,       cpl_bgc,       &
+        conserv_check
 
       namelist /grid_nml/ &
         kcatbound
@@ -227,6 +229,7 @@
       restart_file = 'iced'  ! restart file name prefix
       ice_ic       = 'default'      ! initial conditions are specified in the code
                                     ! otherwise, the filename for reading restarts
+      conserv_check = .false.! if true, run conservation checks in columnphysics
       ndtd = 1               ! dynamic time steps per thermodynamic time step
       l_mpond_fresh = .false.     ! logical switch for including meltpond freshwater
                                   ! flux feedback to ocean model
@@ -493,6 +496,7 @@
                                trim(restart_file)
          write(nu_diag,*)    ' ice_ic                    = ', &
                                trim(ice_ic)
+         write(nu_diag,1010) ' conserv_check             = ', conserv_check
          write(nu_diag,1020) ' kitd                      = ', kitd
          write(nu_diag,1020) ' kcatbound                 = ', &
                                kcatbound
@@ -760,7 +764,7 @@
            aspect_rapid_mode_in=aspect_rapid_mode, &
            dSdt_slow_mode_in=dSdt_slow_mode, &
            phi_c_slow_mode_in=phi_c_slow_mode, &
-           phi_i_mushy_in=phi_i_mushy, &
+           phi_i_mushy_in=phi_i_mushy, conserv_check_in=conserv_check, &
            tfrz_option_in=tfrz_option, kalg_in=kalg, &
            fbot_xfer_type_in=fbot_xfer_type, &
            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec)

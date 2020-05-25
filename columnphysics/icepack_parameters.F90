@@ -151,8 +151,9 @@
                                   ! atmos-ice fluxes are provided to CICE
          update_ocn_f = .false. ,&! include fresh water and salt fluxes for frazil
          solve_zsal   = .false. ,&! if true, update salinity profile from solve_S_dt
-         modal_aero   = .false.   ! if true, use modal aerosal optical properties
+         modal_aero   = .false. ,&! if true, use modal aerosal optical properties
                                   ! only for use with tr_aero or tr_zaero
+         conserv_check = .false.  ! if true, do conservations checks and abort
 
       character(len=char_len), public :: &
          tfrz_option  = 'mushy'   ! form of ocean freezing temperature
@@ -398,7 +399,7 @@
          fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
          op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
          fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
-         max_dfe_doc1_in, fr_resp_s_in, &
+         max_dfe_doc1_in, fr_resp_s_in, conserv_check_in, &
          y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in)
 
       !-----------------------------------------------------------------
@@ -620,7 +621,8 @@
          scale_bgc_in,      & ! if .true., initialize bgc tracers proportionally with salinity
          solve_zbgc_in,     & ! if .true., solve vertical biochemistry portion of code
          dEdd_algae_in,     & ! if .true., algal absorptionof Shortwave is computed in the
-         modal_aero_in        ! if .true., use modal aerosol formulation in shortwave
+         modal_aero_in,     & ! if .true., use modal aerosol formulation in shortwave
+         conserv_check_in     ! if .true., run conservation checks and abort if checks fail
         
       logical (kind=log_kind), intent(in), optional :: & 
          skl_bgc_in,        &   ! if true, solve skeletal biochemistry
@@ -804,6 +806,7 @@
       if (present(solve_zbgc_in)        ) solve_zbgc       = solve_zbgc_in
       if (present(dEdd_algae_in)        ) dEdd_algae       = dEdd_algae_in
       if (present(modal_aero_in)        ) modal_aero       = modal_aero_in
+      if (present(conserv_check_in)     ) conserv_check    = conserv_check_in
       if (present(skl_bgc_in)           ) skl_bgc          = skl_bgc_in
       if (present(solve_zsal_in)        ) solve_zsal       = solve_zsal_in
       if (present(grid_o_in)            ) grid_o           = grid_o_in
@@ -879,7 +882,7 @@
          bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
          modal_aero_out, skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
          initbio_frac_out, grid_oS_out, l_skS_out, &
-         phi_snow_out, heat_capacity_out, &
+         phi_snow_out, heat_capacity_out, conserv_check_out, &
          fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &
          T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
          fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
@@ -1114,7 +1117,8 @@
          scale_bgc_out,      & ! if .true., initialize bgc tracers proportionally with salinity
          solve_zbgc_out,     & ! if .true., solve vertical biochemistry portion of code
          dEdd_algae_out,     & ! if .true., algal absorptionof Shortwave is computed in the
-         modal_aero_out        ! if .true., use modal aerosol formulation in shortwave
+         modal_aero_out,     & ! if .true., use modal aerosol formulation in shortwave
+         conserv_check_out     ! if .true., run conservation checks and abort if checks fail
         
       logical (kind=log_kind), intent(out), optional :: & 
          skl_bgc_out,        &   ! if true, solve skeletal biochemistry
@@ -1339,6 +1343,7 @@
       if (present(solve_zbgc_out)        ) solve_zbgc_out   = solve_zbgc
       if (present(dEdd_algae_out)        ) dEdd_algae_out   = dEdd_algae
       if (present(modal_aero_out)        ) modal_aero_out   = modal_aero
+      if (present(conserv_check_out)     ) conserv_check_out= conserv_check
       if (present(skl_bgc_out)           ) skl_bgc_out      = skl_bgc
       if (present(solve_zsal_out)        ) solve_zsal_out   = solve_zsal
       if (present(grid_o_out)            ) grid_o_out       = grid_o
@@ -1513,6 +1518,7 @@
         write(iounit,*) "  solve_zbgc    = ", solve_zbgc
         write(iounit,*) "  dEdd_algae    = ", dEdd_algae
         write(iounit,*) "  modal_aero    = ", modal_aero
+        write(iounit,*) "  conserv_check = ", conserv_check
         write(iounit,*) "  skl_bgc       = ", skl_bgc
         write(iounit,*) "  solve_zsal    = ", solve_zsal
         write(iounit,*) "  grid_o        = ", grid_o
