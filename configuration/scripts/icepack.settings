@@ -16,6 +16,7 @@ setenv ICE_RSTPFILE   undefined
 setenv ICE_DRVOPT     icepack
 setenv ICE_IOTYPE     none    # set to none if netcdf library is unavailable
 setenv ICE_CLEANBUILD true
+setenv ICE_CPPDEFS    ""
 setenv ICE_QUIETMODE  false
 setenv ICE_GRID       col
 setenv ICE_NXGLOB     4

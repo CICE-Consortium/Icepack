@@ -78,8 +78,13 @@ Some hints:
 
 - To change namelist, manually edit the **icepack_in** file
 - To change batch settings, manually edit the top of the **icepack.run** or **icepack.test** (if running a test) file
+- When the run scripts are submitted, the current **icepack_in**, **icepack.settings**, and **env.[machine]** files are copied from the case directory into the run directory.  Users should generally not edit files in the run directory as these are overwritten when following the standard workflow.  **icepack.settings** can be sourced to establish the case values in the login shell.  An alias like the following can be established to quickly switch between case and run directories::
+
+    alias  cdrun 'cd `\grep "setenv ICE_RUNDIR"  icepack.settings | awk "{print "\$"NF}"`'
+    alias cdcase 'cd `\grep "setenv ICE_CASEDIR" icepack.settings | awk "{print "\$"NF}"`'
+
 - To turn on the debug compiler flags, set ``ICE_BLDDEBUG`` in **icepack.setttings** to true
-- To change compiler options, manually edit the Macros file
+- To change compiler options, manually edit the Macros file.  To add user define CPP build flags, users can modify ``ICE_CPPDEFS`` in **icepack.settings**.
 - To clean the build before each compile, set ``ICE_CLEANBUILD`` in **icepack.settings** to true.  To not clean before the build, set ``ICE_CLEANBUILD`` in **icepack.settings** to false
 
 To build and run::
@@ -693,7 +698,11 @@ Run Directories
 
 The **icepack.setup** script creates a case directory.  However, the model 
 is actually built and run under the ``ICE_OBJDIR`` and ``ICE_RUNDIR`` directories
-as defined in the **icepack.settings** file.
+as defined in the **icepack.settings** file.  It's important to note that when the
+run scripts are submitted, the current **icepack_in**, **icepack.settings**, and **env.[machine]**
+files are copied from the case directory into the run directory.  Users should 
+generally not edit files in the run directory as these are overwritten when following
+the standard workflow.
 
 Build and run logs will be copied from the run directory into the case **logs/** 
 directory when complete.
