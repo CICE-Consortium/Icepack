@@ -84,7 +84,7 @@ Some hints:
     alias cdcase 'cd `\grep "setenv ICE_CASEDIR" icepack.settings | awk "{print "\$"NF}"`'
 
 - To turn on the debug compiler flags, set ``ICE_BLDDEBUG`` in **icepack.setttings** to true
-- To change compiler options, manually edit the Macros file.  To add user defined preprocessor macros, modify ``ICE_CPPDEFS`` in **icepack.settings**.
+- To change compiler options, manually edit the Macros file.  To add user defined preprocessor macros, modify ``ICE_CPPDEFS`` in **icepack.settings** using the syntax ``-DCICE_MACRO``.
 - To clean the build before each compile, set ``ICE_CLEANBUILD`` in **icepack.settings** to true.  To not clean before the build, set ``ICE_CLEANBUILD`` in **icepack.settings** to false
 
 To build and run::
