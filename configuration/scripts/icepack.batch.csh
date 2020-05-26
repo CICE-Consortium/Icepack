@@ -1,9 +1,9 @@
 #! /bin/csh -f
 
 if ( $1 != "" ) then
-  echo ${0:t} ${1}
+  echo "running icepack.batch.csh (creating ${1})"
 else
-  echo ${0:t}
+  echo "running icepack.batch.csh"
 endif
 
 source ./icepack.settings
