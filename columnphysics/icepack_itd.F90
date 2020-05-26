@@ -734,11 +734,11 @@
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Conservation error: ', trim(fieldid)
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'Initial value =', x1
+         write(warnstr,*) subname, '  Initial value = ', x1
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'Final value =',   x2
+         write(warnstr,*) subname, '  Final value   = ', x2
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'Difference =', x2 - x1
+         write(warnstr,*) subname, '  Difference    = ', x2 - x1
          call icepack_warnings_add(warnstr)
       endif
 

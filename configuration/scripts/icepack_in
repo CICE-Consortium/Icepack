@@ -14,6 +14,7 @@
     diagfreq       = 24
     diag_file      = 'ice_diag'
     cpl_bgc        = .false.
+    conserv_check  = .false.
 /
 
 &grid_nml

@@ -5,6 +5,7 @@
     ktherm            = 1
     tfrz_option       = 'linear_salt'
     conduct           = 'bubbly'
+    conserv_check   = .true.
     restore_ocn     = .true.
     trestore        = 0
     atm_data_type   = 'default'

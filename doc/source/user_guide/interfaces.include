@@ -750,6 +750,7 @@ icepack_init_parameters
            ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
            kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
            atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
+           atmiter_conv_in, &
            tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
            floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
            dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
@@ -760,7 +761,7 @@ icepack_init_parameters
            fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
            op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
            fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
-           max_dfe_doc1_in, fr_resp_s_in, &
+           max_dfe_doc1_in, fr_resp_s_in, conserv_check_in, &
            y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in)
   
         !-----------------------------------------------------------------
@@ -937,6 +938,9 @@ icepack_init_parameters
         integer (kind=int_kind), intent(in), optional :: &
            natmiter_in        ! number of iterations for boundary layer calculations
           
+        ! Flux convergence tolerance
+        real (kind=dbl_kind), intent(in), optional :: atmiter_conv_in
+  
   !-----------------------------------------------------------------------
   ! Parameters for the ice thickness distribution
   !-----------------------------------------------------------------------
@@ -979,7 +983,8 @@ icepack_init_parameters
            scale_bgc_in,      & ! if .true., initialize bgc tracers proportionally with salinity
            solve_zbgc_in,     & ! if .true., solve vertical biochemistry portion of code
            dEdd_algae_in,     & ! if .true., algal absorptionof Shortwave is computed in the
-           modal_aero_in        ! if .true., use modal aerosol formulation in shortwave
+           modal_aero_in,     & ! if .true., use modal aerosol formulation in shortwave
+           conserv_check_in     ! if .true., run conservation checks and abort if checks fail
           
         logical (kind=log_kind), intent(in), optional :: & 
            skl_bgc_in,        &   ! if true, solve skeletal biochemistry
@@ -1083,13 +1088,14 @@ icepack_query_parameters
            rsnw_mlt_out, dEdd_algae_out, &
            kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
            atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
+           atmiter_conv_out, &
            tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
            floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
            dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
            bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
            modal_aero_out, skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
            initbio_frac_out, grid_oS_out, l_skS_out, &
-           phi_snow_out, heat_capacity_out, &
+           phi_snow_out, heat_capacity_out, conserv_check_out, &
            fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &
            T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
            fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
@@ -1279,6 +1285,9 @@ icepack_query_parameters
         integer (kind=int_kind), intent(out), optional :: &
            natmiter_out        ! number of iterations for boundary layer calculations
           
+        ! Flux convergence tolerance
+        real (kind=dbl_kind), intent(out), optional :: atmiter_conv_out
+  
   !-----------------------------------------------------------------------
   ! Parameters for the ice thickness distribution
   !-----------------------------------------------------------------------
@@ -1321,7 +1330,8 @@ icepack_query_parameters
            scale_bgc_out,      & ! if .true., initialize bgc tracers proportionally with salinity
            solve_zbgc_out,     & ! if .true., solve vertical biochemistry portion of code
            dEdd_algae_out,     & ! if .true., algal absorptionof Shortwave is computed in the
-           modal_aero_out        ! if .true., use modal aerosol formulation in shortwave
+           modal_aero_out,     & ! if .true., use modal aerosol formulation in shortwave
+           conserv_check_out     ! if .true., run conservation checks and abort if checks fail
           
         logical (kind=log_kind), intent(out), optional :: & 
            skl_bgc_out,        &   ! if true, solve skeletal biochemistry

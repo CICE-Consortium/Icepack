@@ -16,7 +16,7 @@
       use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
       use icepack_parameters, only: fr_resp_s, y_sk_DMS, t_sk_conv, t_sk_ox
       use icepack_parameters, only: scale_bgc, ktherm, skl_bgc, solve_zsal
-      use icepack_parameters, only: z_tracers, fsal
+      use icepack_parameters, only: z_tracers, fsal, conserv_check
 
       use icepack_tracers, only: nt_sice, nt_bgc_S, bio_index 
       use icepack_tracers, only: tr_brine, nt_fbri, nt_qice, nt_Tsfc
@@ -74,7 +74,7 @@
                                   vi0new,                           &
                                   ntrcr,      trcrn,      nbtrcr,   &
                                   sss,        ocean_bio,  flux_bio, &
-                                  hsurp,      l_conservation_check)
+                                  hsurp)
 
       integer (kind=int_kind), intent(in) :: &
          nblyr   , & ! number of bio layers
@@ -127,9 +127,6 @@
       real (kind=dbl_kind), dimension (:), &
          intent(in) :: &
          ocean_bio       ! ocean concentration of biological tracer
-
-      logical (kind=log_kind), intent(in) :: &
-         l_conservation_check
 
 ! local
 
@@ -264,17 +261,17 @@
          endif           ! nltrcr > 0
       endif              ! vi0new > 0
 
-      if (tr_brine .and. l_conservation_check) then
+      if (tr_brine .and. conserv_check) then
          call column_sum (ncat,   vbrin,  vbri_final)
          if (icepack_warnings_aborted(subname)) return
 
-         fieldid = 'vbrin, add_new_ice_bgc'
+         fieldid = subname//':vbrin'
          call column_conservation_check (fieldid,                  &
                                          vbri_init, vbri_final,    &
                                          puny)
          if (icepack_warnings_aborted(subname)) return
 
-      endif   ! l_conservation_check
+      endif   ! conserv_check
 
       end subroutine add_new_ice_bgc
 

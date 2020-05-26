@@ -251,6 +251,7 @@ column physics.
    "``restart_hbrine``", "true/false", "restart the brine height tracer (automatically turned on if restart = .true.)", "``.false.``"
    "``tr_zaero``", "true/false", "turns on black carbon and dust aerosols", "``.false.``"
    "``modal_aero``", "true/false", "turns on a modal aerosol option", "``.false.``"
+   "``conserv_check``", "true/false", "turns on conservation checks in the columnphysics", "``.false.``"
    "``skl_bgc``", "true/false", "turns on a single bottom layer biogeochemistry. z_tracers and solve_zbgc must be false", "``.false.``"
    "``z_tracers``", "true/false", "turns on a vertically resolved transport", "``.true.``"
    "``dEdd_algae``", "true/false", "Include radiative impact of algae and aerosols in the delta-Eddington shortwave scheme. Requires shortwave = 'dEdd'.", "``.false.``"

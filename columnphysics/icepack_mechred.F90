@@ -39,7 +39,7 @@
       use icepack_parameters,  only: puny, Lfresh, rhoi, rhos
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
-      use icepack_parameters, only: heat_capacity
+      use icepack_parameters, only: heat_capacity, conserv_check
 
       use icepack_tracers, only: tr_pond_topo, tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -78,10 +78,6 @@
          Hstar  = c25         ! determines mean thickness of ridged ice (m) 
                               ! (krdg_redist = 0) 
                               ! Flato & Hibler (1995) have Hstar = 100 
-
-      logical (kind=log_kind), parameter :: &
-         l_conservation_check = .false.  ! if true, check conservation
-                                         ! (useful for debugging)
 
 !=======================================================================
 
@@ -322,7 +318,7 @@
       ! Compute initial values of conserved quantities. 
       !-----------------------------------------------------------------
 
-      if (l_conservation_check) then
+      if (conserv_check) then
 
          do n = 1, ncat
          eicen(n) = c0
@@ -459,7 +455,7 @@
       ! Check for conservation (allowing for snow thrown into ocean).
       !-----------------------------------------------------------------
 
-      if (l_conservation_check) then
+      if (conserv_check) then
 
          do n = 1, ncat
          eicen(n) = c0
@@ -503,38 +499,38 @@
          vsno_final = vsno_final + msnow_mlt/rhos
          esno_final = esno_final + esnow_mlt
 
-         fieldid = 'vice, ridging'
+         fieldid = subname//':vice'
          call column_conservation_check (fieldid,               &
                                          vice_init, vice_final, &
                                          puny)
          if (icepack_warnings_aborted(subname)) return
-         fieldid = 'vsno, ridging'
+         fieldid = subname//':vsno'
          call column_conservation_check (fieldid,               &
                                          vsno_init, vsno_final, &
                                          puny)
          if (icepack_warnings_aborted(subname)) return
-         fieldid = 'eice, ridging'
+         fieldid = subname//':eice'
          call column_conservation_check (fieldid,               &
                                          eice_init, eice_final, &
                                          puny*Lfresh*rhoi)
          if (icepack_warnings_aborted(subname)) return
-         fieldid = 'esno, ridging'
+         fieldid = subname//':esno'
          call column_conservation_check (fieldid,               &
                                          esno_init, esno_final, &
                                          puny*Lfresh*rhos)
          if (icepack_warnings_aborted(subname)) return
-         fieldid = 'sice, ridging'
+         fieldid = subname//':sice'
          call column_conservation_check (fieldid,               &
                                          sice_init, sice_final, &
                                          puny)
          if (icepack_warnings_aborted(subname)) return
-         fieldid = 'vbrin, ridging'
+         fieldid = subname//':vbrin'
          call column_conservation_check (fieldid,               &
                                          vbri_init, vbri_final, &
                                          puny*c10)
          if (icepack_warnings_aborted(subname)) return
 
-      endif                     ! l_conservation_check            
+      endif                     ! conserv_check            
 
       !-----------------------------------------------------------------
       ! Compute ridging diagnostics.
