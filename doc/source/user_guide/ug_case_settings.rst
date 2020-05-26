@@ -39,7 +39,7 @@ to support the CICE model.
    "ICE_DRVOPT", " ", "unused", "icepack"
    "ICE_IOTYPE", " ", "unused", "none"
    "ICE_CLEANBUILD", "true,false", "automatically clean before building", "true"
-   "ICE_CPPDEFS", " ", "user defined cppdefs for build", "null"
+   "ICE_CPPDEFS", " ", "user defined preprocessor macros for build", "null"
    "ICE_QUIETMODE", "true, false", "reduce build output to the screen", "false"
    "ICE_GRID", "col", "grid", "col"
    "ICE_NXGLOB", "4", "number of gridcells", "4"
