@@ -41,6 +41,8 @@
                                Trefn,    Qrefn,      &
                                freshn,   fsaltn,     &
                                fhocnn,   fswthrun,   &
+                               fswthrunvdr, fswthrunvdf,&
+                               fswthrunidr, fswthrunidf,&
                                strairxT, strairyT,   &  
                                Cdn_atm_ratio,        &
                                fsurf,    fcondtop,   &
@@ -52,6 +54,8 @@
                                Tref,     Qref,       &
                                fresh,    fsalt,      & 
                                fhocn,    fswthru,    &
+                               fswthruvdr, fswthruvdf,&
+                               fswthruidr, fswthruidf,&
                                melttn, meltsn, meltbn, congeln, snoicen, &
                                meltt,  melts,        &
                                meltb,                &
@@ -84,6 +88,10 @@
           fsaltn  , & ! salt flux to ocean              (kg/m2/s)
           fhocnn  , & ! actual ocn/ice heat flx         (W/m**2)
           fswthrun, & ! sw radiation through ice bot    (W/m**2)
+          fswthrunvdr, & ! vis dir sw radiation through ice bot    (W/m**2)
+          fswthrunvdf, & ! vis dif sw radiation through ice bot    (W/m**2)
+          fswthrunidr, & ! nir dir sw radiation through ice bot    (W/m**2)
+          fswthrunidf, & ! nir dif sw radiation through ice bot    (W/m**2)
           melttn  , & ! top ice melt                    (m)
           meltbn  , & ! bottom ice melt                 (m)
           meltsn  , & ! snow melt                       (m)
@@ -114,6 +122,10 @@
           fsalt   , & ! salt flux to ocean              (kg/m2/s)
           fhocn   , & ! actual ocn/ice heat flx         (W/m**2)
           fswthru , & ! sw radiation through ice bot    (W/m**2)
+          fswthruvdr , & ! vis dir sw radiation through ice bot    (W/m**2)
+          fswthruvdf , & ! vis dif sw radiation through ice bot    (W/m**2)
+          fswthruidr , & ! nir dir sw radiation through ice bot    (W/m**2)
+          fswthruidf , & ! nir dif sw radiation through ice bot    (W/m**2)
           meltt   , & ! top ice melt                    (m)
           meltb   , & ! bottom ice melt                 (m)
           melts   , & ! snow melt                       (m)
@@ -184,6 +196,10 @@
       fsalt     = fsalt     + fsaltn    * aicen
       fhocn     = fhocn     + fhocnn    * aicen
       fswthru   = fswthru   + fswthrun  * aicen
+      fswthruvdr   = fswthruvdr   + fswthrunvdr  * aicen
+      fswthruvdf   = fswthruvdf   + fswthrunvdf  * aicen
+      fswthruidr   = fswthruidr   + fswthrunidr  * aicen
+      fswthruidf   = fswthruidf   + fswthrunidf  * aicen
 
       ! ice/snow thickness
 

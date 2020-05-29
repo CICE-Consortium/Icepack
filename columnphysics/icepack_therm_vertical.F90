@@ -2074,7 +2074,12 @@
                                     fcondtop    , fcondtopn   , &
                                     fcondbot    , fcondbotn   , &
                                     fswsfcn     , fswintn     , &
-                                    fswthrun    , fswabs      , &
+                                    fswthrun    ,               & 
+                                    fswthrunvdr ,               & 
+                                    fswthrunvdf ,               & 
+                                    fswthrunidr ,               & 
+                                    fswthrunidf ,               & 
+                                    fswabs      ,               &
                                     flwout      ,               &
                                     Sswabsn     , Iswabsn     , &
                                     flw         , & 
@@ -2083,7 +2088,12 @@
                                     evap        ,               &
                                     evaps       , evapi       , &
                                     fresh       , fsalt       , &
-                                    fhocn       , fswthru     , &
+                                    fhocn       ,               &
+                                    fswthru     ,               &
+                                    fswthruvdr  ,               &
+                                    fswthruvdf  ,               &
+                                    fswthruidr  ,               &
+                                    fswthruidf  ,               &
                                     flatn_f     , fsensn_f    , &
                                     fsurfn_f    , fcondtopn_f , &
                                     faero_atm   , faero_ocn   , &
@@ -2141,6 +2151,10 @@
          fsalt       , & ! salt flux to ocean (kg/m^2/s)
          fhocn       , & ! net heat flux to ocean (W/m^2)
          fswthru     , & ! shortwave penetrating to ocean (W/m^2)
+         fswthruvdr  , & ! vis dir shortwave penetrating to ocean (W/m^2)
+         fswthruvdf  , & ! vis dif shortwave penetrating to ocean (W/m^2)
+         fswthruidr  , & ! nir dir shortwave penetrating to ocean (W/m^2)
+         fswthruidf  , & ! nir dif shortwave penetrating to ocean (W/m^2)
          fsurf       , & ! net surface heat flux (excluding fcondtop)(W/m^2)
          fcondtop    , & ! top surface conductive flux        (W/m^2)
          fcondbot    , & ! bottom surface conductive flux     (W/m^2)
@@ -2232,6 +2246,10 @@
          fsensn_f    , & ! sensible heat flux (W m-2)
          fswsfcn     , & ! SW absorbed at ice/snow surface (W m-2)
          fswthrun    , & ! SW through ice to ocean            (W/m^2)
+         fswthrunvdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         fswthrunvdf , & ! vis dif SW through ice to ocean            (W/m^2)
+         fswthrunidr , & ! nir dir SW through ice to ocean            (W/m^2)
+         fswthrunidf , & ! nir dif SW through ice to ocean            (W/m^2)
          fswintn     , & ! SW absorbed in ice interior, below surface (W m-2)
          faero_atm   , & ! aerosol deposition rate (kg/m^2 s)
          faero_ocn   , & ! aerosol flux to ocean  (kg/m^2/s)
@@ -2678,36 +2696,46 @@
       !-----------------------------------------------------------------
 
          if (aicen_init(n) > puny) &
-            call merge_fluxes (aicen_init(n),            &
-                               flw, & 
-                               strairxn,   strairyn,     &
-                               Cdn_atm_ratio_n,          &
-                               fsurfn(n),  fcondtopn(n), &
-                               fcondbotn(n),             &
-                               fsensn(n),  flatn(n),     &
-                               fswabsn,    flwoutn,      &
-                               evapn,                    &
-                               evapsn,     evapin,       &
-                               Trefn,      Qrefn,        &
-                               freshn,     fsaltn,       &
-                               fhocnn,     fswthrun(n),  &
-                               strairxT,   strairyT,     &
-                               Cdn_atm_ratio,            &
-                               fsurf,      fcondtop,     &
-                               fcondbot,                 &
-                               fsens,      flat,         &
-                               fswabs,     flwout,       &
-                               evap,                     &
-                               evaps,      evapi,        &
-                               Tref,       Qref,         &
-                               fresh,      fsalt,        &
-                               fhocn,      fswthru,      &
-                               melttn (n), meltsn(n),    &
-                               meltbn (n), congeln(n),   &
-                               snoicen(n),               &
-                               meltt,      melts,        &
-                               meltb,      congel,       &
-                               snoice,                   &
+            call merge_fluxes (aicen=aicen_init(n),            &
+                               flw=flw, & 
+                               strairxn=strairxn, strairyn=strairyn,&
+                               Cdn_atm_ratio_n=Cdn_atm_ratio_n,     &
+                               fsurfn=fsurfn(n), fcondtopn=fcondtopn(n),&
+                               fcondbotn=fcondbotn(n),              &
+                               fsensn=fsensn(n),  flatn=flatn(n),   &
+                               fswabsn=fswabsn,   flwoutn=flwoutn,  &
+                               evapn=evapn,                         &
+                               evapsn=evapsn,     evapin=evapin,    &
+                               Trefn=Trefn,       Qrefn=Qrefn,      &
+                               freshn=freshn,     fsaltn=fsaltn,    &
+                               fhocnn=fhocnn,                       &
+                               fswthrun=fswthrun(n),                &
+                               fswthrunvdr=fswthrunvdr(n),          &
+                               fswthrunvdf=fswthrunvdf(n),          &
+                               fswthrunidr=fswthrunidr(n),          &
+                               fswthrunidf=fswthrunidf(n),          &
+                               strairxT=strairxT, strairyT=strairyT,&
+                               Cdn_atm_ratio=Cdn_atm_ratio,         &
+                               fsurf=fsurf,       fcondtop=fcondtop,&
+                               fcondbot=fcondbot,                   &
+                               fsens=fsens,       flat=flat,        &
+                               fswabs=fswabs,     flwout=flwout,    &
+                               evap=evap,                           &
+                               evaps=evaps,       evapi=evapi,      &
+                               Tref=Tref,         Qref=Qref,        &
+                               fresh=fresh,       fsalt=fsalt,      &
+                               fhocn=fhocn,                         &
+                               fswthru=fswthru,                     &
+                               fswthruvdr=fswthruvdr,               &
+                               fswthruvdf=fswthruvdf,               &
+                               fswthruidr=fswthruidr,               &
+                               fswthruidf=fswthruidf,               &
+                               melttn=melttn (n), meltsn=meltsn(n), &
+                               meltbn=meltbn (n), congeln=congeln(n),&
+                               snoicen=snoicen(n),                  &
+                               meltt=meltt,       melts=melts,      &
+                               meltb=meltb,       congel=congel,    &
+                               snoice=snoice,                       &
                                Uref=Uref,  Urefn=Urefn,  &
                                Qref_iso=l_Qref_iso,      &
                                Qrefn_iso=Qrefn_iso,      &

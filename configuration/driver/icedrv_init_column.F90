@@ -96,7 +96,8 @@
 
       use icedrv_arrays_column, only: fswpenln, Iswabsn, Sswabsn, albicen
       use icedrv_arrays_column, only: albsnon, alvdrn, alidrn, alvdfn, alidfn
-      use icedrv_arrays_column, only: fswsfcn, fswthrun, ffracn, snowfracn
+      use icedrv_arrays_column, only: fswsfcn, ffracn, snowfracn
+      use icedrv_arrays_column, only: fswthrun, fswthrunvdr, fswthrunvdf, fswthrunidr, fswthrunidf
       use icedrv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn
       use icedrv_arrays_column, only: kaer_tab, waer_tab, gaer_tab
       use icedrv_arrays_column, only: kaer_bc_tab, waer_bc_tab, gaer_bc_tab
@@ -201,6 +202,10 @@
                fswsfcn(i,n) = c0
                fswintn(i,n) = c0
                fswthrun(i,n) = c0
+               fswthrunvdr(i,n) = c0
+               fswthrunvdf(i,n) = c0
+               fswthrunidr(i,n) = c0
+               fswthrunidf(i,n) = c0
             enddo   ! ncat
 
          enddo
@@ -260,7 +265,12 @@
                          alvdrn=alvdrn(i,:),     alvdfn=alvdfn(i,:),       &
                          alidrn=alidrn(i,:),     alidfn=alidfn(i,:),       &
                          fswsfcn=fswsfcn(i,:),   fswintn=fswintn(i,:),     &
-                         fswthrun=fswthrun(i,:), fswpenln=fswpenln(i,:,:), &
+                         fswthrun=fswthrun(i,:),                           &
+                         fswthrunvdr=fswthrunvdr(i,:),                     &
+                         fswthrunvdf=fswthrunvdf(i,:),                     &
+                         fswthrunidr=fswthrunidr(i,:),                     &
+                         fswthrunidf=fswthrunidf(i,:),                     &
+                         fswpenln=fswpenln(i,:,:),                         &
                          Sswabsn=Sswabsn(i,:,:), Iswabsn=Iswabsn(i,:,:),   &
                          albicen=albicen(i,:),   albsnon=albsnon(i,:),     &
                          albpndn=albpndn(i,:),   apeffn=apeffn(i,:),       &
