@@ -1,5 +1,5 @@
 #==============================================================================
-# Makefile macros for NCAR cheyenne, intel compiler
+# Makefile macros for NCAR hobart, intel compiler
 #==============================================================================
 
 CPP        := fpp

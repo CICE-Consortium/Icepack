@@ -14,6 +14,7 @@
     diagfreq       = 24
     diag_file      = 'ice_diag'
     cpl_bgc        = .false.
+    conserv_check  = .false.
 /
 
 &grid_nml
@@ -79,6 +80,7 @@
     calc_Tsfc       = .true.
     highfreq        = .false.
     natmiter        = 5
+    atmiter_conv    = 0.0d0
     ustar_min       = 0.0005
     emissivity      = 0.95
     fbot_xfer_type  = 'constant'

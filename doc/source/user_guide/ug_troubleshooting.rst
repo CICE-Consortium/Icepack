@@ -56,6 +56,9 @@ A printing utility is available in the driver that can be helpful when debugging
 code. Not all of these will work everywhere in the code, due to possible
 conflicts in module dependencies.
 
+`conserv\_check` = true (**ice\_in**)
+    Diagnoses conservation in various icepack algorithms.
+
 *debug\_icepack* (**configuration/driver/ice\_diagnostics.F90**)
     A wrapper for *print\_state* that is easily called from numerous
     points during initialization and the timestepping loop

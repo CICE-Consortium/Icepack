@@ -39,6 +39,8 @@ to support the CICE model.
    "ICE_DRVOPT", " ", "unused", "icepack"
    "ICE_IOTYPE", " ", "unused", "none"
    "ICE_CLEANBUILD", "true,false", "automatically clean before building", "true"
+   "ICE_CPPDEFS", " ", "user defined preprocessor macros for build", "null"
+   "ICE_QUIETMODE", "true, false", "reduce build output to the screen", "false"
    "ICE_GRID", "col", "grid", "col"
    "ICE_NXGLOB", "4", "number of gridcells", "4"
    "ICE_NTASKS", "1", "number of tasks, must be set to 1", "1"
@@ -52,6 +54,7 @@ to support the CICE model.
    "ICE_SPVAL", " ", "unused", "UnDeFiNeD"
    "ICE_RUNLENGTH", " ", "batch run length default", "  00:10:00"
    "ICE_ACCOUNT", " ", "batch account number", "set by icepack.setup or by default"
+   "ICE_QUEUE", "string", "batch queue name", "set by cice.setup or by default"
    "ICE_THREADED", "true,false", "force threading in compile, will always compile threaded if NTHRDS is gt 1", "false"
    "NICELYR", " ", "number of vertical layers in the ice", "7"
    "NSNWLYR", " ", "number of vertical layers in the snow", "1"
@@ -76,6 +79,7 @@ to support the CICE model.
    "TRFEP", "0,1,2", "number of particulate iron tracers", "0"
    "TRFED", "0,1,2", "number of dissolved iron tracers", "0"
    "ICE_BLDDEBUG", "true,false", "turn on compile debug flags", "false"
+   "ICE_CODECOV", "true,false", "turn on code coverage flags", "false"
 
 
 .. _tabnamelist:
@@ -213,6 +217,7 @@ column physics.
    "", "false", "read wind stress and speed from files", ""
    "``highfreq``", "true/false", "high-frequency atmo coupling", ""
    "``natmiter``", "integer", "number of atmo boundary layer iterations", ""
+   "``atmiter_conv``", "real", "set a tolerance for convergence of ustar", "0.0d0"
    "``calc_Tsfc``", "true/false", "calculate surface temperature", "``.true.``"
    "``precip_units``", "``mks``", "liquid precipitation data units", ""
    "", "``mm_per_month``", "", ""
@@ -250,6 +255,7 @@ column physics.
    "``restart_hbrine``", "true/false", "restart the brine height tracer (automatically turned on if restart = .true.)", "``.false.``"
    "``tr_zaero``", "true/false", "turns on black carbon and dust aerosols", "``.false.``"
    "``modal_aero``", "true/false", "turns on a modal aerosol option", "``.false.``"
+   "``conserv_check``", "true/false", "turns on conservation checks in the columnphysics", "``.false.``"
    "``skl_bgc``", "true/false", "turns on a single bottom layer biogeochemistry. z_tracers and solve_zbgc must be false", "``.false.``"
    "``z_tracers``", "true/false", "turns on a vertically resolved transport", "``.true.``"
    "``dEdd_algae``", "true/false", "Include radiative impact of algae and aerosols in the delta-Eddington shortwave scheme. Requires shortwave = 'dEdd'.", "``.false.``"
