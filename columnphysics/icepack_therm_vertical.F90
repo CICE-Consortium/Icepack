@@ -2151,10 +2151,6 @@
          fsalt       , & ! salt flux to ocean (kg/m^2/s)
          fhocn       , & ! net heat flux to ocean (W/m^2)
          fswthru     , & ! shortwave penetrating to ocean (W/m^2)
-         fswthruvdr  , & ! vis dir shortwave penetrating to ocean (W/m^2)
-         fswthruvdf  , & ! vis dif shortwave penetrating to ocean (W/m^2)
-         fswthruidr  , & ! nir dir shortwave penetrating to ocean (W/m^2)
-         fswthruidf  , & ! nir dif shortwave penetrating to ocean (W/m^2)
          fsurf       , & ! net surface heat flux (excluding fcondtop)(W/m^2)
          fcondtop    , & ! top surface conductive flux        (W/m^2)
          fcondbot    , & ! bottom surface conductive flux     (W/m^2)
@@ -2207,6 +2203,12 @@
          meltb       , & ! basal ice melt           (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+         fswthruvdr  , & ! vis dir shortwave penetrating to ocean (W/m^2)
+         fswthruvdf  , & ! vis dif shortwave penetrating to ocean (W/m^2)
+         fswthruidr  , & ! nir dir shortwave penetrating to ocean (W/m^2)
+         fswthruidf      ! nir dif shortwave penetrating to ocean (W/m^2)
 
       real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
          Qa_iso      , & ! isotope specific humidity (kg/kg)

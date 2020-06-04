@@ -148,12 +148,14 @@
          fswsfc   , & ! SW absorbed at ice/snow surface (W m-2)
          fswint   , & ! SW absorbed in ice interior, below surface (W m-2)
          fswthru  , & ! SW through ice to ocean (W m-2)
+         albin    , & ! bare ice albedo
+         albsn        ! snow albedo
+
+      real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          fswthruvdr  , & ! vis dir SW through ice to ocean (W m-2)
          fswthruvdf  , & ! vis dif SW through ice to ocean (W m-2)
          fswthruidr  , & ! nir dir SW through ice to ocean (W m-2)
-         fswthruidf  , & ! nir dif SW through ice to ocean (W m-2)
-         albin    , & ! bare ice albedo
-         albsn        ! snow albedo
+         fswthruidf      ! nir dif SW through ice to ocean (W m-2)
 
       real (kind=dbl_kind), intent(inout) :: &
          coszen       ! cosine(zenith angle)
@@ -214,10 +216,10 @@
       fswsfc(n)  = c0
       fswint(n)  = c0
       fswthru(n) = c0
-      fswthruvdr(n) = c0
-      fswthruvdf(n) = c0
-      fswthruidr(n) = c0
-      fswthruidf(n) = c0
+      if(present(fswthruvdr)) fswthruvdr(n) = c0
+      if(present(fswthruvdf)) fswthruvdf(n) = c0
+      if(present(fswthruidr)) fswthruidr(n) = c0
+      if(present(fswthruidf)) fswthruidf(n) = c0
       fswpenl(:,n)  = c0
       Iswabs (:,n) = c0
 
@@ -589,7 +591,9 @@
       real (kind=dbl_kind), intent(out):: &
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
          fswint      , & ! SW absorbed in ice interior, below surface (W m-2)
-         fswthru     , & ! SW through ice to ocean (W m-2)
+         fswthru         ! SW through ice to ocean (W m-2)
+
+      real (kind=dbl_kind), intent(out), optional :: &
          fswthruvdr  , & ! vis dir SW through ice to ocean (W m-2)
          fswthruvdf  , & ! vis dif SW through ice to ocean (W m-2)
          fswthruidr  , & ! nir dir SW through ice to ocean (W m-2)
@@ -702,10 +706,10 @@
 
          ! SW penetrating thru ice into ocean
          fswthru = fswpen * tranbot
-         fswthruvdr = fswpenvdr * tranbot
-         fswthruvdf = fswpenvdf * tranbot
-         fswthruidr = c0
-         fswthruidf = c0
+         if(present(fswthruvdr)) fswthruvdr = fswpenvdr * tranbot
+         if(present(fswthruvdf)) fswthruvdf = fswpenvdf * tranbot
+         if(present(fswthruidr)) fswthruidr = c0
+         if(present(fswthruidf)) fswthruidf = c0
 
          ! SW absorbed in ice interior
          fswint  = fswpen - fswthru
@@ -1232,7 +1236,9 @@
          alidf   , & ! near-ir, diffuse, albedo (fraction) 
          fswsfc  , & ! SW absorbed at snow/bare ice/pondedi ice surface (W m-2)
          fswint  , & ! SW interior absorption (below surface, above ocean,W m-2)
-         fswthru , & ! SW through snow/bare ice/ponded ice into ocean (W m-2)
+         fswthru     ! SW through snow/bare ice/ponded ice into ocean (W m-2)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
          fswthruvdr , & ! vis dir SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthruvdf , & ! vis dif SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthruidr , & ! nir dir SW through snow/bare ice/ponded ice into ocean (W m-2)
@@ -1311,10 +1317,10 @@
       fswsfc   = c0
       fswint   = c0
       fswthru  = c0
-      fswthruvdr  = c0
-      fswthruvdf  = c0
-      fswthruidr  = c0
-      fswthruidf  = c0
+      if(present(fswthruvdr)) fswthruvdr  = c0
+      if(present(fswthruvdf)) fswthruvdf  = c0
+      if(present(fswthruidr)) fswthruidr  = c0
+      if(present(fswthruidf)) fswthruidf  = c0
       ! compute fraction of nir down direct to total over all points:
       fnidr = c0
       if( swidr + swidf > puny ) then
@@ -1654,7 +1660,9 @@
          alidf   , & ! near-ir, diffuse, albedo (fraction) 
          fswsfc  , & ! SW absorbed at snow/bare ice/pondedi ice surface (W m-2)
          fswint  , & ! SW interior absorption (below surface, above ocean,W m-2)
-         fswthru , & ! SW through snow/bare ice/ponded ice into ocean (W m-2)
+         fswthru     ! SW through snow/bare ice/ponded ice into ocean (W m-2)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
          fswthruvdr , & ! vis dir SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthruvdf , & ! vis dif SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthruidr , & ! nir dir SW through snow/bare ice/ponded ice into ocean (W m-2)
@@ -3008,10 +3016,10 @@
       fswsfc  = fswsfc  + fsfc *fi
       fswint  = fswint  + fint *fi
       fswthru = fswthru + fthru*fi
-      fswthruvdr = fswthruvdr + fthruvdr*fi
-      fswthruvdf = fswthruvdf + fthruvdf*fi
-      fswthruidr = fswthruidr + fthruidr*fi
-      fswthruidf = fswthruidf + fthruidf*fi
+      if(present(fswthruvdr)) fswthruvdr = fswthruvdr + fthruvdr*fi
+      if(present(fswthruvdf)) fswthruvdf = fswthruvdf + fthruvdf*fi
+      if(present(fswthruidr)) fswthruidr = fswthruidr + fthruidr*fi
+      if(present(fswthruidf)) fswthruidf = fswthruidf + fthruidf*fi
 
       do k = 1, nslyr
          Sswabs(k) = Sswabs(k) + Sabs(k)*fi

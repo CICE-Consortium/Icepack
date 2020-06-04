@@ -122,15 +122,17 @@
           fsalt   , & ! salt flux to ocean              (kg/m2/s)
           fhocn   , & ! actual ocn/ice heat flx         (W/m**2)
           fswthru , & ! sw radiation through ice bot    (W/m**2)
-          fswthruvdr , & ! vis dir sw radiation through ice bot    (W/m**2)
-          fswthruvdf , & ! vis dif sw radiation through ice bot    (W/m**2)
-          fswthruidr , & ! nir dir sw radiation through ice bot    (W/m**2)
-          fswthruidf , & ! nir dif sw radiation through ice bot    (W/m**2)
           meltt   , & ! top ice melt                    (m)
           meltb   , & ! bottom ice melt                 (m)
           melts   , & ! snow melt                       (m)
           congel  , & ! congelation ice growth          (m)
           snoice      ! snow-ice growth                 (m)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+          fswthruvdr , & ! vis dir sw radiation through ice bot    (W/m**2)
+          fswthruvdf , & ! vis dif sw radiation through ice bot    (W/m**2)
+          fswthruidr , & ! nir dir sw radiation through ice bot    (W/m**2)
+          fswthruidf     ! nir dif sw radiation through ice bot    (W/m**2)
 
       real (kind=dbl_kind), optional, intent(inout):: &
           Uref        ! air speed reference level       (m/s)
@@ -196,10 +198,14 @@
       fsalt     = fsalt     + fsaltn    * aicen
       fhocn     = fhocn     + fhocnn    * aicen
       fswthru   = fswthru   + fswthrun  * aicen
-      fswthruvdr   = fswthruvdr   + fswthrunvdr  * aicen
-      fswthruvdf   = fswthruvdf   + fswthrunvdf  * aicen
-      fswthruidr   = fswthruidr   + fswthrunidr  * aicen
-      fswthruidf   = fswthruidf   + fswthrunidf  * aicen
+      if (present(fswthruvdr)) &
+         fswthruvdr   = fswthruvdr   + fswthrunvdr  * aicen
+      if (present(fswthruvdf)) &
+         fswthruvdf   = fswthruvdf   + fswthrunvdf  * aicen
+      if (present(fswthruidr)) &
+         fswthruidr   = fswthruidr   + fswthrunidr  * aicen
+      if (present(fswthruidf)) &
+         fswthruidf   = fswthruidf   + fswthrunidf  * aicen
 
       ! ice/snow thickness
 
