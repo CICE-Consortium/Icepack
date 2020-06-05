@@ -16,3 +16,4 @@ Developer Guide
    dg_driver.rst
    dg_scripts.rst
    dg_adding_tracers.rst
+   dg_other.rst
