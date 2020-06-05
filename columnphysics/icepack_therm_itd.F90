@@ -1467,6 +1467,7 @@
       d_an_latg(:) = c0
       d_an_tot(:) = c0
       d_an_newi(:) = c0
+      vin0new(:) = c0
 
       if (tr_fsd) then
           d_afsd_latg(:) = c0    ! diagnostics
@@ -1635,7 +1636,6 @@
          endif               ! aice0 > puny
 
          ! volume added to each category from lateral growth
-         vin0new(:) = c0
          do n = 1, ncat
             if (aicen(n) > c0) vin0new(n) = d_an_latg(n) * vicen(n)/aicen(n)
          end do
