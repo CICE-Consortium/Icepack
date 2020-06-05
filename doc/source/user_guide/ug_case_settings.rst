@@ -20,8 +20,8 @@ configuration, file system, run, and build settings.  Several variables are set
 by the **icepack.setup** script.  This file is created on a case by case basis and
 can be modified as needed.
 
-.. csv-table:: *Icepack settings*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **Icepack settings**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 25, 20
 
    "ICE_CASENAME", "string", "case name", "set by icepack.setup"
@@ -97,8 +97,8 @@ in the table are not necessarily the recommended production values.
 setup_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. csv-table:: *setup_nml namelist options*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **setup_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
@@ -128,8 +128,8 @@ setup_nml
 grid_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. csv-table:: *grid_nml namelist options*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **grid_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
@@ -143,8 +143,8 @@ grid_nml
 tracer_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. csv-table:: *tracer_nml namelist options*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **tracer_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
@@ -162,8 +162,8 @@ tracer_nml
 thermo_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. csv-table:: *thermo_nml namelist options*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **thermo_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
@@ -187,8 +187,8 @@ thermo_nml
 dynamics_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. csv-table:: *dynamics_nml namelist options*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **dynamics_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
@@ -205,8 +205,8 @@ dynamics_nml
 shortwave_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. csv-table:: *shortwave_nml namelist options*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **shortwave_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
@@ -230,8 +230,8 @@ shortwave_nml
 ponds_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. csv-table:: *ponds_nml namelist options*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **ponds_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
@@ -249,8 +249,8 @@ ponds_nml
 forcing_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. csv-table:: *forcing_nml namelist options*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **forcing_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
@@ -314,8 +314,8 @@ forcing_nml
 zbgc_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. csv-table:: *zbgc_nml namelist options*
-   :header: "variable", "options/format", "description", "recommended value"
+.. csv-table:: **zbgc_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
