@@ -55,7 +55,7 @@ can be modified as needed.
    "ICE_SPVAL", "string", "unused", "UnDeFiNeD"
    "ICE_RUNLENGTH", "string", "batch run length default", "  00:10:00"
    "ICE_ACCOUNT", "string", "batch account number", "set by icepack.setup or by default"
-   "ICE_QUEUE", "string", "batch queue name", "set by cice.setup or by default"
+   "ICE_QUEUE", "string", "batch queue name", "set by icepack.setup or by default"
    "ICE_THREADED", "true,false", "force threading in compile, will always compile threaded if NTHRDS is gt 1", "false"
    "NICELYR", "integer", "number of vertical layers in the ice", "7"
    "NSNWLYR", "integer", "number of vertical layers in the snow", "1"
@@ -91,7 +91,7 @@ Table of Namelist Inputs
 The Icepack driver reads a namelist input file, **icepack_in**, consisting of several namelist groups.  The tables below
 summarize the different groups and the variables in each group.  The variables are organized alphabetically 
 and the default values listed are the values defined in the source code.  Those values will be 
-used unless overridden by the CICE namelist file, **icepack_in**.  The source code default values as listed 
+used unless overridden by the Icepack namelist file, **icepack_in**.  The source code default values as listed 
 in the table are not necessarily the recommended production values.
 
 setup_nml
