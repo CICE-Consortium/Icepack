@@ -216,10 +216,10 @@
       fswsfc(n)  = c0
       fswint(n)  = c0
       fswthru(n) = c0
-      if(present(fswthruvdr)) fswthruvdr(n) = c0
-      if(present(fswthruvdf)) fswthruvdf(n) = c0
-      if(present(fswthruidr)) fswthruidr(n) = c0
-      if(present(fswthruidf)) fswthruidf(n) = c0
+      fswthruvdr(n) = c0
+      fswthruvdf(n) = c0
+      fswthruidr(n) = c0
+      fswthruidf(n) = c0
       fswpenl(:,n)  = c0
       Iswabs (:,n) = c0
 
@@ -593,7 +593,7 @@
          fswint      , & ! SW absorbed in ice interior, below surface (W m-2)
          fswthru         ! SW through ice to ocean (W m-2)
 
-      real (kind=dbl_kind), intent(out), optional :: &
+      real (kind=dbl_kind), intent(out) :: &
          fswthruvdr  , & ! vis dir SW through ice to ocean (W m-2)
          fswthruvdf  , & ! vis dif SW through ice to ocean (W m-2)
          fswthruidr  , & ! nir dir SW through ice to ocean (W m-2)
@@ -706,10 +706,10 @@
 
          ! SW penetrating thru ice into ocean
          fswthru = fswpen * tranbot
-         if(present(fswthruvdr)) fswthruvdr = fswpenvdr * tranbot
-         if(present(fswthruvdf)) fswthruvdf = fswpenvdf * tranbot
-         if(present(fswthruidr)) fswthruidr = c0
-         if(present(fswthruidf)) fswthruidf = c0
+         fswthruvdr = fswpenvdr * tranbot
+         fswthruvdf = fswpenvdf * tranbot
+         fswthruidr = c0
+         fswthruidf = c0
 
          ! SW absorbed in ice interior
          fswint  = fswpen - fswthru

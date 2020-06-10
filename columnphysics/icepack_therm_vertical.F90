@@ -2248,10 +2248,6 @@
          fsensn_f    , & ! sensible heat flux (W m-2)
          fswsfcn     , & ! SW absorbed at ice/snow surface (W m-2)
          fswthrun    , & ! SW through ice to ocean            (W/m^2)
-         fswthrunvdr , & ! vis dir SW through ice to ocean            (W/m^2)
-         fswthrunvdf , & ! vis dif SW through ice to ocean            (W/m^2)
-         fswthrunidr , & ! nir dir SW through ice to ocean            (W/m^2)
-         fswthrunidf , & ! nir dif SW through ice to ocean            (W/m^2)
          fswintn     , & ! SW absorbed in ice interior, below surface (W m-2)
          faero_atm   , & ! aerosol deposition rate (kg/m^2 s)
          faero_ocn   , & ! aerosol flux to ocean  (kg/m^2/s)
@@ -2263,6 +2259,12 @@
          congeln     , & ! congelation ice growth          (m)
          snoicen     , & ! snow-ice growth                 (m)
          dsnown          ! change in snow thickness (m/step-->cm/day)
+
+      real (kind=dbl_kind), optional, dimension(:), intent(inout) :: &
+         fswthrunvdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         fswthrunvdf , & ! vis dif SW through ice to ocean            (W/m^2)
+         fswthrunidr , & ! nir dir SW through ice to ocean            (W/m^2)
+         fswthrunidf     ! nir dif SW through ice to ocean            (W/m^2)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy (J m-3)
@@ -2329,6 +2331,18 @@
          l_H2_16O_ocn, & ! local ocean concentration of H2_16O (kg/kg)
          l_H2_18O_ocn    ! local ocean concentration of H2_18O (kg/kg)
 
+      real (kind=dbl_kind)  :: &
+         l_fswthruvdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthruvdf , & ! vis dif SW through ice to ocean            (W/m^2)
+         l_fswthruidr , & ! nir dir SW through ice to ocean            (W/m^2)
+         l_fswthruidf     ! nir dif SW through ice to ocean            (W/m^2)
+
+      real (kind=dbl_kind), dimension(:), allocatable :: &
+         l_fswthrunvdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthrunvdf , & ! vis dif SW through ice to ocean            (W/m^2)
+         l_fswthrunidr , & ! nir dir SW through ice to ocean            (W/m^2)
+         l_fswthrunidf     ! nir dif SW through ice to ocean            (W/m^2)
+
       real (kind=dbl_kind) :: &
          pond            ! water retained in ponds (m)
 
@@ -2394,6 +2408,38 @@
          l_fiso_evap   = c0
       endif
 
+      if (present(fswthrunvdr)  ) then
+         allocate(l_fswthrunvdr(size(fswthrunvdr)))
+         l_fswthrunvdr = fswthrunvdr
+      else
+         allocate(l_fswthrunvdr(1))
+         l_fswthrunvdr   = c0
+      endif
+
+      if (present(fswthrunvdf)  ) then
+         allocate(l_fswthrunvdf(size(fswthrunvdf)))
+         l_fswthrunvdf = fswthrunvdf
+      else
+         allocate(l_fswthrunvdf(1))
+         l_fswthrunvdf   = c0
+      endif
+
+      if (present(fswthrunidr)  ) then
+         allocate(l_fswthrunidr(size(fswthrunidr)))
+         l_fswthrunidr = fswthrunidr
+      else
+         allocate(l_fswthrunidr(1))
+         l_fswthrunidr   = c0
+      endif
+
+      if (present(fswthrunidf)  ) then
+         allocate(l_fswthrunidf(size(fswthrunidf)))
+         l_fswthrunidf = fswthrunidf
+      else
+         allocate(l_fswthrunidf(1))
+         l_fswthrunidf   = c0
+      endif
+
       l_HDO_ocn    = c0
       if (present(HDO_ocn)   ) l_HDO_ocn    = HDO_ocn
 
@@ -2402,6 +2448,18 @@
 
       l_H2_18O_ocn = c0
       if (present(H2_18O_ocn)) l_H2_18O_ocn = H2_18O_ocn
+
+      l_fswthruvdr    = c0
+      if (present(fswthruvdr)   ) l_fswthruvdr    = fswthruvdr
+
+      l_fswthruvdf    = c0
+      if (present(fswthruvdf)   ) l_fswthruvdf    = fswthruvdf
+
+      l_fswthruidr    = c0
+      if (present(fswthruidr)   ) l_fswthruidr    = fswthruidr
+
+      l_fswthruidf    = c0
+      if (present(fswthruidf)   ) l_fswthruidf    = fswthruidf
 
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
@@ -2621,8 +2679,8 @@
                                     vicen=vicen(n),vsnon=vsnon(n),      &
                                     aicen=aicen(n),                     &
                                     fiso_atm=l_fiso_atm(:),                  &
-                                    fiso_evapn=fiso_evapn(:),                &
-                                    fiso_ocnn=fiso_ocnn(:),                 &
+                                    fiso_evapn=l_fiso_evapn(:),                &
+                                    fiso_ocnn=l_fiso_ocnn(:),                 &
                                     HDO_ocn=l_HDO_ocn,H2_16O_ocn=l_H2_16O_ocn,    &
                                     H2_18O_ocn=l_H2_18O_ocn)
                if (icepack_warnings_aborted(subname)) return
@@ -2712,10 +2770,10 @@
                                freshn=freshn,     fsaltn=fsaltn,    &
                                fhocnn=fhocnn,                       &
                                fswthrun=fswthrun(n),                &
-                               fswthrunvdr=fswthrunvdr(n),          &
-                               fswthrunvdf=fswthrunvdf(n),          &
-                               fswthrunidr=fswthrunidr(n),          &
-                               fswthrunidf=fswthrunidf(n),          &
+                               fswthrunvdr=l_fswthrunvdr(n),          &
+                               fswthrunvdf=l_fswthrunvdf(n),          &
+                               fswthrunidr=l_fswthrunidr(n),          &
+                               fswthrunidf=l_fswthrunidf(n),          &
                                strairxT=strairxT, strairyT=strairyT,&
                                Cdn_atm_ratio=Cdn_atm_ratio,         &
                                fsurf=fsurf,       fcondtop=fcondtop,&
@@ -2728,10 +2786,10 @@
                                fresh=fresh,       fsalt=fsalt,      &
                                fhocn=fhocn,                         &
                                fswthru=fswthru,                     &
-                               fswthruvdr=fswthruvdr,               &
-                               fswthruvdf=fswthruvdf,               &
-                               fswthruidr=fswthruidr,               &
-                               fswthruidf=fswthruidf,               &
+                               fswthruvdr=l_fswthruvdr,               &
+                               fswthruvdf=l_fswthruvdf,               &
+                               fswthruidr=l_fswthruidr,               &
+                               fswthruidf=l_fswthruidf,               &
                                melttn=melttn (n), meltsn=meltsn(n), &
                                meltbn=meltbn (n), congeln=congeln(n),&
                                snoicen=snoicen(n),                  &
@@ -2757,6 +2815,14 @@
       if (present(fiso_atm) ) fiso_atm = l_fiso_atm
       if (present(fiso_ocn) ) fiso_ocn = l_fiso_ocn
       if (present(fiso_evap)) fiso_evap= l_fiso_evap
+      if (present(fswthrunvdr)) fswthrunvdr= l_fswthrunvdr
+      if (present(fswthrunvdf)) fswthrunvdf= l_fswthrunvdf
+      if (present(fswthrunidr)) fswthrunidr= l_fswthrunidr
+      if (present(fswthrunidf)) fswthrunidf= l_fswthrunidf
+      if (present(fswthruvdr)) fswthruvdr= l_fswthruvdr
+      if (present(fswthruvdf)) fswthruvdf= l_fswthruvdf
+      if (present(fswthruidr)) fswthruidr= l_fswthruidr
+      if (present(fswthruidf)) fswthruidf= l_fswthruidf
       deallocate(l_isosno)
       deallocate(l_isoice)
       deallocate(l_Qa_iso)
@@ -2764,6 +2830,10 @@
       deallocate(l_fiso_atm)
       deallocate(l_fiso_ocn)
       deallocate(l_fiso_evap)
+      deallocate(l_fswthrunvdr)
+      deallocate(l_fswthrunvdf)
+      deallocate(l_fswthrunidr)
+      deallocate(l_fswthrunidf)
 
       !-----------------------------------------------------------------
       ! Calculate ponds from the topographic scheme
