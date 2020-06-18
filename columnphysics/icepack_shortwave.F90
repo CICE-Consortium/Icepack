@@ -182,6 +182,12 @@
          alvdfns, & ! visible, diffuse, snow  (fraction)
          alidfns    ! near-ir, diffuse, snow  (fraction)
 
+      real (kind=dbl_kind), dimension :: &
+         l_fswthruvdr  , & ! vis dir SW through ice to ocean (W m-2)
+         l_fswthruvdf  , & ! vis dif SW through ice to ocean (W m-2)
+         l_fswthruidr  , & ! nir dir SW through ice to ocean (W m-2)
+         l_fswthruidf      ! nir dif SW through ice to ocean (W m-2)
+
       character(len=*),parameter :: subname='(shortwave_ccsm3)'
 
       !-----------------------------------------------------------------
@@ -216,10 +222,6 @@
       fswsfc(n)  = c0
       fswint(n)  = c0
       fswthru(n) = c0
-      fswthruvdr(n) = c0
-      fswthruvdf(n) = c0
-      fswthruidr(n) = c0
-      fswthruidf(n) = c0
       fswpenl(:,n)  = c0
       Iswabs (:,n) = c0
 
@@ -293,12 +295,18 @@
                                fswsfc(n),            &
                                fswint(n),            &
                                fswthru(n),           &
-                               fswthruvdr(n),           &
-                               fswthruvdf(n),           &
-                               fswthruidr(n),           &
-                               fswthruidf(n),           &
+                               fswthruvdr=l_fswthrunvdr,&
+                               fswthruvdf=l_fswthrunvdf,&
+                               fswthruidr=l_fswthrunidr,&
+                               fswthruidf=l_fswthrunidf,&
                                fswpenl(:,n),         &
                                Iswabs(:,n))
+
+         if(present(fswthrunvdr)) fswthrunvdr(n) = l_fswthrunvdr
+         if(present(fswthrunvdf)) fswthrunvdf(n) = l_fswthrunvdf
+         if(present(fswthrunidr)) fswthrunidr(n) = l_fswthrunidr
+         if(present(fswthrunidf)) fswthrunidf(n) = l_fswthrunidf
+
          if (icepack_warnings_aborted(subname)) return
 
       endif ! aicen > puny
@@ -875,15 +883,17 @@
            fswsfcn,  & ! SW absorbed at ice/snow surface (W m-2)
            fswintn,  & ! SW absorbed in ice interior, below surface (W m-2)
            fswthrun, & ! SW through ice to ocean (W/m^2) 
-           fswthrunvdr, & ! vis dir SW through ice to ocean (W/m^2) 
-           fswthrunvdf, & ! vis dif SW through ice to ocean (W/m^2) 
-           fswthrunidr, & ! nir dir SW through ice to ocean (W/m^2) 
-           fswthrunidf, & ! nir dif SW through ice to ocean (W/m^2) 
            albicen,  & ! albedo bare ice 
            albsnon,  & ! albedo snow 
            albpndn,  & ! albedo pond 
            apeffn,   & ! effective pond area used for radiation calculation
            snowfracn   ! snow fraction on each category used for radiation
+
+      real(kind=dbl_kind), dimension(:), intent(inout), optional :: &
+           fswthrunvdr, & ! vis dir SW through ice to ocean (W/m^2) 
+           fswthrunvdf, & ! vis dif SW through ice to ocean (W/m^2) 
+           fswthrunidr, & ! nir dir SW through ice to ocean (W/m^2) 
+           fswthrunidf    ! nir dif SW through ice to ocean (W/m^2) 
 
       real(kind=dbl_kind), dimension(:,:), intent(inout) :: &
            Sswabsn , & ! SW radiation absorbed in snow layers (W m-2)
@@ -929,6 +939,12 @@
 
       logical (kind=log_kind) :: &
          linitonly       ! local initonly value
+
+      real (kind=dbl_kind), dimension :: &
+         l_fswthruvdr  , & ! vis dir SW through ice to ocean (W m-2)
+         l_fswthruvdf  , & ! vis dif SW through ice to ocean (W m-2)
+         l_fswthruidr  , & ! nir dir SW through ice to ocean (W m-2)
+         l_fswthruidf      ! nir dif SW through ice to ocean (W m-2)
 
       character(len=*),parameter :: subname='(run_dEdd)'
 
@@ -1317,10 +1333,10 @@
       fswsfc   = c0
       fswint   = c0
       fswthru  = c0
-      if(present(fswthruvdr)) fswthruvdr  = c0
-      if(present(fswthruvdf)) fswthruvdf  = c0
-      if(present(fswthruidr)) fswthruidr  = c0
-      if(present(fswthruidf)) fswthruidf  = c0
+      fswthruvdr  = c0
+      fswthruvdf  = c0
+      fswthruidr  = c0
+      fswthruidf  = c0
       ! compute fraction of nir down direct to total over all points:
       fnidr = c0
       if( swidr + swidf > puny ) then
@@ -1384,10 +1400,10 @@
                       aidrl,     aidfl,                                 &
                       fswsfc,    fswint,                                &
                       fswthru,                                          &
-                      fswthruvdr,                                       &
-                      fswthruvdf,                                       &
-                      fswthruidr,                                       &
-                      fswthruidf,                                       &
+                      fswthruvdr=l_fswthrunvdr,                         &
+                      fswthruvdf=l_fswthrunvdf,                         &
+                      fswthruidr=l_fswthrunidr,                         &
+                      fswthruidf=l_fswthrunidf,                         &
                       Sswabs,                                           &
                       Iswabs,    fswpenl)
                if (icepack_warnings_aborted(subname)) return
@@ -1425,10 +1441,10 @@
                       aidrl,     aidfl,                                 &
                       fswsfc,    fswint,                                &
                       fswthru,                                          &
-                      fswthruvdr,                                       &
-                      fswthruvdf,                                       &
-                      fswthruidr,                                       &
-                      fswthruidf,                                       &
+                      fswthruvdr=l_fswthrunvdr,                         &
+                      fswthruvdf=l_fswthrunvdf,                         &
+                      fswthruidr=l_fswthrunidr,                         &
+                      fswthruidf=l_fswthrunidf,                         &
                       Sswabs,                                           &
                       Iswabs,    fswpenl)
                if (icepack_warnings_aborted(subname)) return
@@ -1471,10 +1487,10 @@
                       aidrl,     aidfl,                                 &
                       fswsfc,    fswint,                                &
                       fswthru,                                          &
-                      fswthruvdr,                                       &
-                      fswthruvdf,                                       &
-                      fswthruidr,                                       &
-                      fswthruidf,                                       &
+                      fswthruvdr=l_fswthrunvdr,                         &
+                      fswthruvdf=l_fswthrunvdf,                         &
+                      fswthruidr=l_fswthrunidr,                         &
+                      fswthruidf=l_fswthrunidf,                         &
                       Sswabs,                                           &
                       Iswabs,    fswpenl)
                if (icepack_warnings_aborted(subname)) return
@@ -1662,7 +1678,7 @@
          fswint  , & ! SW interior absorption (below surface, above ocean,W m-2)
          fswthru     ! SW through snow/bare ice/ponded ice into ocean (W m-2)
 
-      real (kind=dbl_kind), intent(inout), optional :: &
+      real (kind=dbl_kind), intent(inout) :: &
          fswthruvdr , & ! vis dir SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthruvdf , & ! vis dif SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthruidr , & ! nir dir SW through snow/bare ice/ponded ice into ocean (W m-2)
@@ -3016,10 +3032,10 @@
       fswsfc  = fswsfc  + fsfc *fi
       fswint  = fswint  + fint *fi
       fswthru = fswthru + fthru*fi
-      if(present(fswthruvdr)) fswthruvdr = fswthruvdr + fthruvdr*fi
-      if(present(fswthruvdf)) fswthruvdf = fswthruvdf + fthruvdf*fi
-      if(present(fswthruidr)) fswthruidr = fswthruidr + fthruidr*fi
-      if(present(fswthruidf)) fswthruidf = fswthruidf + fthruidf*fi
+      fswthruvdr = fswthruvdr + fthruvdr*fi
+      fswthruvdf = fswthruvdf + fthruvdf*fi
+      fswthruidr = fswthruidr + fthruidr*fi
+      fswthruidf = fswthruidf + fthruidf*fi
 
       do k = 1, nslyr
          Sswabs(k) = Sswabs(k) + Sabs(k)*fi
@@ -3848,7 +3864,9 @@
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          fswsfcn     , & ! SW absorbed at ice/snow surface (W m-2)
          fswintn     , & ! SW absorbed in ice interior, below surface (W m-2)
-         fswthrun    , & ! SW through ice to ocean (W/m^2)
+         fswthrun        ! SW through ice to ocean (W/m^2)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fswthrunvdr , & ! vis dir SW through ice to ocean (W/m^2)
          fswthrunvdf , & ! vis dif SW through ice to ocean (W/m^2)
          fswthrunidr , & ! nir dir SW through ice to ocean (W/m^2)
@@ -3896,10 +3914,10 @@
                fswsfcn(n)  = scale_factor*fswsfcn (n)
                fswintn(n)  = scale_factor*fswintn (n)
                fswthrun(n) = scale_factor*fswthrun(n)
-               fswthrunvdr(n) = scale_factor*fswthrunvdr(n)
-               fswthrunvdf(n) = scale_factor*fswthrunvdf(n)
-               fswthrunidr(n) = scale_factor*fswthrunidr(n)
-               fswthrunidf(n) = scale_factor*fswthrunidf(n)
+               if (present(fswthrunvdr)) fswthrunvdr(n) = scale_factor*fswthrunvdr(n)
+               if (present(fswthrunvdf)) fswthrunvdf(n) = scale_factor*fswthrunvdf(n)
+               if (present(fswthrunidr)) fswthrunidr(n) = scale_factor*fswthrunidr(n)
+               if (present(fswthrunidf)) fswthrunidf(n) = scale_factor*fswthrunidf(n)
                do k = 1,nilyr+1
                   fswpenln(k,n) = scale_factor*fswpenln(k,n)
                enddo       !k
@@ -4043,10 +4061,6 @@
          fswsfcn   , & ! SW absorbed at ice/snow surface (W m-2)
          fswintn   , & ! SW absorbed in ice interior, below surface (W m-2)
          fswthrun  , & ! SW through ice to ocean (W/m^2)
-         fswthrunvdr, & ! vis dir SW through ice to ocean (W/m^2)
-         fswthrunvdf, & ! vis dif SW through ice to ocean (W/m^2)
-         fswthrunidr, & ! nir dir SW through ice to ocean (W/m^2)
-         fswthrunidf, & ! nir dif SW through ice to ocean (W/m^2)
          snowfracn , & ! snow fraction on each category
          dhsn      , & ! depth difference for snow on sea ice and pond ice
          ffracn    , & ! fraction of fsurfn used to melt ipond
@@ -4055,6 +4069,12 @@
          albsnon   , & ! snow 
          albpndn   , & ! pond 
          apeffn        ! effective pond area used for radiation calculation
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         fswthrunvdr , & ! vis dir SW through ice to ocean (W/m^2)
+         fswthrunvdf , & ! vis dif SW through ice to ocean (W/m^2)
+         fswthrunidr , & ! nir dir SW through ice to ocean (W/m^2)
+         fswthrunidf     ! nir dif SW through ice to ocean (W/m^2)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          fswpenln  , & ! visible SW entering ice layers (W m-2)
@@ -4083,7 +4103,45 @@
         hin,         & ! Ice thickness (m)
         hbri           ! brine thickness (m)
 
+      real (kind=dbl_kind), dimension(:) :: &
+         l_fswthrunvdr , & ! vis dir SW through ice to ocean (W/m^2)
+         l_fswthrunvdf , & ! vis dif SW through ice to ocean (W/m^2)
+         l_fswthrunidr , & ! nir dir SW through ice to ocean (W/m^2)
+         l_fswthrunidf     ! nir dif SW through ice to ocean (W/m^2)
+
       character(len=*),parameter :: subname='(icepack_step_radiation)'
+
+      if (present(fswthrunvdr)  ) then
+         allocate(l_fswthrunvdr(size(fswthrunvdr)))
+         l_fswthrunvdr = fswthrunvdr
+      else
+         allocate(l_fswthrunvdr(1))
+         l_fswthrunvdr   = c0
+      endif
+
+      if (present(fswthrunvdf)  ) then
+         allocate(l_fswthrunvdf(size(fswthrunvdf)))
+         l_fswthrunvdf = fswthrunvdf
+      else
+         allocate(l_fswthrunvdf(1))
+         l_fswthrunvdf   = c0
+      endif
+
+      if (present(fswthrunidr)  ) then
+         allocate(l_fswthrunidr(size(fswthrunidr)))
+         l_fswthrunidr = fswthrunidr
+      else
+         allocate(l_fswthrunidr(1))
+         l_fswthrunidr   = c0
+      endif
+
+      if (present(fswthrunidf)  ) then
+         allocate(l_fswthrunidf(size(fswthrunidf)))
+         l_fswthrunidf = fswthrunidf
+      else
+         allocate(l_fswthrunidf(1))
+         l_fswthrunidf   = c0
+      endif
 
         hin = c0
         hbri = c0
@@ -4101,11 +4159,11 @@
             fswsfcn (n) = c0
             fswintn (n) = c0
             fswthrun(n) = c0
-            fswthrunvdr(n) = c0
-            fswthrunvdf(n) = c0
-            fswthrunidr(n) = c0
-            fswthrunidf(n) = c0
          enddo   ! ncat
+         l_fswthrunvdr(:) = c0
+         l_fswthrunvdf(:) = c0
+         l_fswthrunidr(:) = c0
+         l_fswthrunidf(:) = c0
          fswpenln (:,:) = c0
          Iswabsn  (:,:) = c0
          Sswabsn  (:,:) = c0
@@ -4166,10 +4224,10 @@
                           alidrn,       alidfn,         &
                           fswsfcn,      fswintn,        &
                           fswthrun,                     &
-                          fswthrunvdr,                  &
-                          fswthrunvdf,                  &
-                          fswthrunidr,                  &
-                          fswthrunidf,                  &
+                          fswthrunvdr=l_fswthrunvdr,    &
+                          fswthrunvdf=l_fswthrunvdf,    &
+                          fswthrunidr=l_fswthrunidr,    &
+                          fswthrunidf=l_fswthrunidf,    &
                           fswpenln,                     &
                           Sswabsn,      Iswabsn,        &
                           albicen,      albsnon,        &
@@ -4196,10 +4254,10 @@
                                  alvdfn,     alidfn,     &
                                  fswsfcn,    fswintn,    &
                                  fswthrun,               &
-                                 fswthrunvdr,            &
-                                 fswthrunvdf,            &
-                                 fswthrunidr,            &
-                                 fswthrunidf,            &
+                                 fswthrunvdr=l_fswthrunvdr,&
+                                 fswthrunvdf=l_fswthrunvdf,&
+                                 fswthrunidr=l_fswthrunidr,&
+                                 fswthrunidf=l_fswthrunidf,&
                                  fswpenln,               &
                                  Iswabsn,                &
                                  Sswabsn,                &
@@ -4245,15 +4303,26 @@
             fswsfcn(n) = c0
             fswintn(n) = c0
             fswthrun(n) = c0
-            fswthrunvdr(n) = c0
-            fswthrunvdf(n) = c0
-            fswthrunidr(n) = c0
-            fswthrunidf(n) = c0
          enddo   ! ncat
+         l_fswthrunvdr(:) = c0
+         l_fswthrunvdf(:) = c0
+         l_fswthrunidr(:) = c0
+         l_fswthrunidf(:) = c0
+         fswth
          Iswabsn(:,:) = c0
          Sswabsn(:,:) = c0
 
       endif    ! calc_Tsfc
+
+      fswthrunvdr(:) = l_fswthrunvdr(:)
+      fswthrunvdf(:) = l_fswthrunvdf(:)
+      fswthrunidr(:) = l_fswthrunidr(:)
+      fswthrunidf(:) = l_fswthrunidf(:)
+
+      deallocate(l_fswthrunvdr)
+      deallocate(l_fswthrunvdf)
+      deallocate(l_fswthrunidr)
+      deallocate(l_fswthrunidf)
 
       end subroutine icepack_step_radiation
 
