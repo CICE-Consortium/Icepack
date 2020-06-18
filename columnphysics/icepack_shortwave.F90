@@ -222,10 +222,6 @@
       fswsfc(n)  = c0
       fswint(n)  = c0
       fswthru(n) = c0
-      l_fswthruvdr = c0
-      l_fswthruvdf = c0
-      l_fswthruidr = c0
-      l_fswthruidf = c0
       fswpenl(:,n)  = c0
       Iswabs (:,n) = c0
 
@@ -296,20 +292,20 @@
                                alidrni,    alidfni,  &
                                alvdrns,    alvdfns,  &
                                alidrns,    alidfns,  &
-                               fswsfc(n),            &
-                               fswint(n),            &
-                               fswthru(n),           &
-                               fswthruvdr=l_fswthrunvdr,&
-                               fswthruvdf=l_fswthrunvdf,&
-                               fswthruidr=l_fswthrunidr,&
-                               fswthruidf=l_fswthrunidf,&
-                               fswpenl(:,n),         &
-                               Iswabs(:,n))
+                               fswsfc=fswsfc(n),     &
+                               fswint=fswint(n),     &
+                               fswthru=fswthru(n),   &
+                               fswthruvdr=l_fswthruvdr,&
+                               fswthruvdf=l_fswthruvdf,&
+                               fswthruidr=l_fswthruidr,&
+                               fswthruidf=l_fswthruidf,&
+                               fswpenl=fswpenl(:,n), &
+                               Iswabs=Iswabs(:,n))
 
-         if(present(fswthrunvdr)) fswthrunvdr(n) = l_fswthrunvdr
-         if(present(fswthrunvdf)) fswthrunvdf(n) = l_fswthrunvdf
-         if(present(fswthrunidr)) fswthrunidr(n) = l_fswthrunidr
-         if(present(fswthrunidf)) fswthrunidf(n) = l_fswthrunidf
+         if(present(fswthruvdr)) fswthruvdr(n) = l_fswthruvdr
+         if(present(fswthruvdf)) fswthruvdf(n) = l_fswthruvdf
+         if(present(fswthruidr)) fswthruidr(n) = l_fswthruidr
+         if(present(fswthruidf)) fswthruidf(n) = l_fswthruidf
 
          if (icepack_warnings_aborted(subname)) return
 
@@ -945,10 +941,10 @@
          linitonly       ! local initonly value
 
       real (kind=dbl_kind) :: &
-         l_fswthruvdr  , & ! vis dir SW through ice to ocean (W m-2)
-         l_fswthruvdf  , & ! vis dif SW through ice to ocean (W m-2)
-         l_fswthruidr  , & ! nir dir SW through ice to ocean (W m-2)
-         l_fswthruidf      ! nir dif SW through ice to ocean (W m-2)
+         l_fswthrunvdr  , & ! vis dir SW through ice to ocean (W m-2)
+         l_fswthrunvdf  , & ! vis dif SW through ice to ocean (W m-2)
+         l_fswthrunidr  , & ! nir dir SW through ice to ocean (W m-2)
+         l_fswthrunidf      ! nir dif SW through ice to ocean (W m-2)
 
       character(len=*),parameter :: subname='(run_dEdd)'
 
@@ -980,11 +976,6 @@
          rsnwn(:)   = c0
          apeffn(n)    = c0 ! for history
          snowfracn(n) = c0 ! for history
-
-         l_fswthruvdr = c0
-         l_fswthruvdf = c0
-         l_fswthruidr = c0
-         l_fswthruidf = c0
 
          if (aicen(n) > puny) then
 
@@ -1128,18 +1119,19 @@
                              alvdrn(n),     alvdfn(n),      &
                              alidrn(n),     alidfn(n),      &
                              fswsfcn(n),    fswintn(n),     &
-                             fswthrun(n),                   &
-                             fswthrunvdr=l_fswthrunvdr,     &
-                             fswthrunvdf=l_fswthrunvdf,     &
-                             fswthrunidr=l_fswthrunidr,     &
-                             fswthrunidf=l_fswthrunidf,     &
-                             Sswabsn(:,n),                  &
-                             Iswabsn(:,n),                  &
-                             albicen(n),                    &
-                             albsnon(n),    albpndn(n),     &
-                             fswpenln(:,n),                 &
-                             trcrn_bgcsw(:,n),              &
-                             l_print_point)
+                             fswthru=fswthrun(n),           &
+                             fswthruvdr=l_fswthrunvdr,      &
+                             fswthruvdf=l_fswthrunvdf,      &
+                             fswthruidr=l_fswthrunidr,      &
+                             fswthruidf=l_fswthrunidf,      &
+                             Sswabs=Sswabsn(:,n),           &
+                             Iswabs=Iswabsn(:,n),           &
+                             albice=albicen(n),             &
+                             albsno=albsnon(n),             &
+                             albpnd=albpndn(n),             &
+                             fswpenl=fswpenln(:,n),         &
+                             zbio=trcrn_bgcsw(:,n),         &
+                             l_print_point=l_print_point)
 
             if(present(fswthrunvdr)) fswthrunvdr(n) = l_fswthrunvdr
             if(present(fswthrunvdf)) fswthrunvdf(n) = l_fswthrunvdf
@@ -4085,7 +4077,7 @@
          albpndn   , & ! pond 
          apeffn        ! effective pond area used for radiation calculation
 
-      real (kind=dbl_kind), dimension(:), intent(out), optional :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fswthrunvdr , & ! vis dir SW through ice to ocean (W/m^2)
          fswthrunvdf , & ! vis dif SW through ice to ocean (W/m^2)
          fswthrunidr , & ! nir dir SW through ice to ocean (W/m^2)
@@ -4118,7 +4110,7 @@
         hin,         & ! Ice thickness (m)
         hbri           ! brine thickness (m)
 
-      real (kind=dbl_kind), dimension(:) :: &
+      real (kind=dbl_kind), dimension(:), allocatable :: &
          l_fswthrunvdr , & ! vis dir SW through ice to ocean (W/m^2)
          l_fswthrunvdf , & ! vis dif SW through ice to ocean (W/m^2)
          l_fswthrunidr , & ! nir dir SW through ice to ocean (W/m^2)
@@ -4167,10 +4159,6 @@
             fswintn (n) = c0
             fswthrun(n) = c0
          enddo   ! ncat
-         l_fswthrunvdr(:) = c0
-         l_fswthrunvdf(:) = c0
-         l_fswthrunidr(:) = c0
-         l_fswthrunidf(:) = c0
          fswpenln (:,:) = c0
          Iswabsn  (:,:) = c0
          Sswabsn  (:,:) = c0
@@ -4230,19 +4218,23 @@
                           alvdrn,       alvdfn,         &
                           alidrn,       alidfn,         &
                           fswsfcn,      fswintn,        &
-                          fswthrun,                     &
+                          fswthrun=fswthrun,            &
                           fswthrunvdr=l_fswthrunvdr,    &
                           fswthrunvdf=l_fswthrunvdf,    &
                           fswthrunidr=l_fswthrunidr,    &
                           fswthrunidf=l_fswthrunidf,    &
-                          fswpenln,                     &
-                          Sswabsn,      Iswabsn,        &
-                          albicen,      albsnon,        &
-                          albpndn,      apeffn,         &
-                          snowfracn,                    &
-                          dhsn,         ffracn,         &
-                          l_print_point,                &
-                          linitonly)
+                          fswpenln=fswpenln,            &
+                          Sswabsn=Sswabsn,              &
+                          Iswabsn=Iswabsn,              &
+                          albicen=albicen,              &
+                          albsnon=albsnon,              &
+                          albpndn=albpndn,              &
+                          apeffn=apeffn,                &
+                          snowfracn=snowfracn,          &
+                          dhsn=dhsn,                    &
+                          ffracn=ffracn,                &
+                          l_print_point=l_print_point,  &
+                          initonly=linitonly)
             if (icepack_warnings_aborted(subname)) return
  
          elseif (trim(shortwave) == 'ccsm3') then
@@ -4260,17 +4252,19 @@
                                  alvdrn,     alidrn,     &
                                  alvdfn,     alidfn,     &
                                  fswsfcn,    fswintn,    &
-                                 fswthrun,               &
-                                 fswthrunvdr=l_fswthrunvdr,&
-                                 fswthrunvdf=l_fswthrunvdf,&
-                                 fswthrunidr=l_fswthrunidr,&
-                                 fswthrunidf=l_fswthrunidf,&
-                                 fswpenln,               &
-                                 Iswabsn,                &
-                                 Sswabsn,                &
-                                 albicen,    albsnon,    &
-                                 coszen,     ncat,       &
-                                 nilyr)
+                                 fswthru=fswthrun,       &
+                                 fswthruvdr=l_fswthrunvdr,&
+                                 fswthruvdf=l_fswthrunvdf,&
+                                 fswthruidr=l_fswthrunidr,&
+                                 fswthruidf=l_fswthrunidf,&
+                                 fswpenl=fswpenln,       &
+                                 Iswabs=Iswabsn,         &
+                                 Sswabs=Sswabsn,         &
+                                 albin=albicen,          &
+                                 albsn=albsnon,          &
+                                 coszen=coszen,          &
+                                 ncat=ncat,              &
+                                 nilyr=nilyr)
             if (icepack_warnings_aborted(subname)) return
 
          else
@@ -4311,7 +4305,6 @@
             fswintn(n) = c0
             fswthrun(n) = c0
          enddo   ! ncat
-         fswth
          Iswabsn(:,:) = c0
          Sswabsn(:,:) = c0
 

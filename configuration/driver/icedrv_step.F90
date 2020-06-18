@@ -671,7 +671,7 @@
       subroutine step_dyn_ridge (dt, ndtd)
 
       use icedrv_arrays_column, only: hin_max, fzsal, first_ice
-      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nblyr, nx
+      use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
       use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
       use icedrv_flux, only: dvirdgdt, opening, closing, fpond, fresh, fhocn
       use icedrv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt

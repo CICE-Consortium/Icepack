@@ -2679,8 +2679,8 @@
                                     vicen=vicen(n),vsnon=vsnon(n),      &
                                     aicen=aicen(n),                     &
                                     fiso_atm=l_fiso_atm(:),                  &
-                                    fiso_evapn=l_fiso_evapn(:),                &
-                                    fiso_ocnn=l_fiso_ocnn(:),                 &
+                                    fiso_evapn=fiso_evapn(:),                &
+                                    fiso_ocnn=fiso_ocnn(:),                 &
                                     HDO_ocn=l_HDO_ocn,H2_16O_ocn=l_H2_16O_ocn,    &
                                     H2_18O_ocn=l_H2_18O_ocn)
                if (icepack_warnings_aborted(subname)) return
