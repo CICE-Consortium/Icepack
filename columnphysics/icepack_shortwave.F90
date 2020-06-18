@@ -151,7 +151,7 @@
          albin    , & ! bare ice albedo
          albsn        ! snow albedo
 
-      real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
+      real (kind=dbl_kind), dimension (:), intent(out), optional :: &
          fswthruvdr  , & ! vis dir SW through ice to ocean (W m-2)
          fswthruvdf  , & ! vis dif SW through ice to ocean (W m-2)
          fswthruidr  , & ! nir dir SW through ice to ocean (W m-2)
@@ -182,7 +182,7 @@
          alvdfns, & ! visible, diffuse, snow  (fraction)
          alidfns    ! near-ir, diffuse, snow  (fraction)
 
-      real (kind=dbl_kind), dimension :: &
+      real (kind=dbl_kind) :: &
          l_fswthruvdr  , & ! vis dir SW through ice to ocean (W m-2)
          l_fswthruvdf  , & ! vis dif SW through ice to ocean (W m-2)
          l_fswthruidr  , & ! nir dir SW through ice to ocean (W m-2)
@@ -222,6 +222,10 @@
       fswsfc(n)  = c0
       fswint(n)  = c0
       fswthru(n) = c0
+      l_fswthruvdr = c0
+      l_fswthruvdf = c0
+      l_fswthruidr = c0
+      l_fswthruidf = c0
       fswpenl(:,n)  = c0
       Iswabs (:,n) = c0
 
@@ -889,7 +893,7 @@
            apeffn,   & ! effective pond area used for radiation calculation
            snowfracn   ! snow fraction on each category used for radiation
 
-      real(kind=dbl_kind), dimension(:), intent(inout), optional :: &
+      real(kind=dbl_kind), dimension(:), intent(out), optional :: &
            fswthrunvdr, & ! vis dir SW through ice to ocean (W/m^2) 
            fswthrunvdf, & ! vis dif SW through ice to ocean (W/m^2) 
            fswthrunidr, & ! nir dir SW through ice to ocean (W/m^2) 
@@ -940,7 +944,7 @@
       logical (kind=log_kind) :: &
          linitonly       ! local initonly value
 
-      real (kind=dbl_kind), dimension :: &
+      real (kind=dbl_kind) :: &
          l_fswthruvdr  , & ! vis dir SW through ice to ocean (W m-2)
          l_fswthruvdf  , & ! vis dif SW through ice to ocean (W m-2)
          l_fswthruidr  , & ! nir dir SW through ice to ocean (W m-2)
@@ -976,6 +980,11 @@
          rsnwn(:)   = c0
          apeffn(n)    = c0 ! for history
          snowfracn(n) = c0 ! for history
+
+         l_fswthruvdr = c0
+         l_fswthruvdf = c0
+         l_fswthruidr = c0
+         l_fswthruidf = c0
 
          if (aicen(n) > puny) then
 
@@ -1120,10 +1129,10 @@
                              alidrn(n),     alidfn(n),      &
                              fswsfcn(n),    fswintn(n),     &
                              fswthrun(n),                   &
-                             fswthrunvdr(n),                &
-                             fswthrunvdf(n),                &
-                             fswthrunidr(n),                &
-                             fswthrunidf(n),                &
+                             fswthrunvdr=l_fswthrunvdr,     &
+                             fswthrunvdf=l_fswthrunvdf,     &
+                             fswthrunidr=l_fswthrunidr,     &
+                             fswthrunidf=l_fswthrunidf,     &
                              Sswabsn(:,n),                  &
                              Iswabsn(:,n),                  &
                              albicen(n),                    &
@@ -1131,7 +1140,13 @@
                              fswpenln(:,n),                 &
                              trcrn_bgcsw(:,n),              &
                              l_print_point)
-         if (icepack_warnings_aborted(subname)) return
+
+            if(present(fswthrunvdr)) fswthrunvdr(n) = l_fswthrunvdr
+            if(present(fswthrunvdf)) fswthrunvdf(n) = l_fswthrunvdf
+            if(present(fswthrunidr)) fswthrunidr(n) = l_fswthrunidr
+            if(present(fswthrunidf)) fswthrunidf(n) = l_fswthrunidf
+
+            if (icepack_warnings_aborted(subname)) return
 
          endif ! aicen > puny
 
@@ -1254,7 +1269,7 @@
          fswint  , & ! SW interior absorption (below surface, above ocean,W m-2)
          fswthru     ! SW through snow/bare ice/ponded ice into ocean (W m-2)
 
-      real (kind=dbl_kind), intent(inout), optional :: &
+      real (kind=dbl_kind), intent(out) :: &
          fswthruvdr , & ! vis dir SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthruvdf , & ! vis dif SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthruidr , & ! nir dir SW through snow/bare ice/ponded ice into ocean (W m-2)
@@ -1400,10 +1415,10 @@
                       aidrl,     aidfl,                                 &
                       fswsfc,    fswint,                                &
                       fswthru,                                          &
-                      fswthruvdr=l_fswthrunvdr,                         &
-                      fswthruvdf=l_fswthrunvdf,                         &
-                      fswthruidr=l_fswthrunidr,                         &
-                      fswthruidf=l_fswthrunidf,                         &
+                      fswthruvdr,                                       &
+                      fswthruvdf,                                       &
+                      fswthruidr,                                       &
+                      fswthruidf,                                       &
                       Sswabs,                                           &
                       Iswabs,    fswpenl)
                if (icepack_warnings_aborted(subname)) return
@@ -1441,10 +1456,10 @@
                       aidrl,     aidfl,                                 &
                       fswsfc,    fswint,                                &
                       fswthru,                                          &
-                      fswthruvdr=l_fswthrunvdr,                         &
-                      fswthruvdf=l_fswthrunvdf,                         &
-                      fswthruidr=l_fswthrunidr,                         &
-                      fswthruidf=l_fswthrunidf,                         &
+                      fswthruvdr,                                       &
+                      fswthruvdf,                                       &
+                      fswthruidr,                                       &
+                      fswthruidf,                                       &
                       Sswabs,                                           &
                       Iswabs,    fswpenl)
                if (icepack_warnings_aborted(subname)) return
@@ -1487,10 +1502,10 @@
                       aidrl,     aidfl,                                 &
                       fswsfc,    fswint,                                &
                       fswthru,                                          &
-                      fswthruvdr=l_fswthrunvdr,                         &
-                      fswthruvdf=l_fswthrunvdf,                         &
-                      fswthruidr=l_fswthrunidr,                         &
-                      fswthruidf=l_fswthrunidf,                         &
+                      fswthruvdr,                                       &
+                      fswthruvdf,                                       &
+                      fswthruidr,                                       &
+                      fswthruidf,                                       &
                       Sswabs,                                           &
                       Iswabs,    fswpenl)
                if (icepack_warnings_aborted(subname)) return
@@ -4070,7 +4085,7 @@
          albpndn   , & ! pond 
          apeffn        ! effective pond area used for radiation calculation
 
-      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+      real (kind=dbl_kind), dimension(:), intent(out), optional :: &
          fswthrunvdr , & ! vis dir SW through ice to ocean (W/m^2)
          fswthrunvdf , & ! vis dif SW through ice to ocean (W/m^2)
          fswthrunidr , & ! nir dir SW through ice to ocean (W/m^2)
@@ -4113,34 +4128,26 @@
 
       if (present(fswthrunvdr)  ) then
          allocate(l_fswthrunvdr(size(fswthrunvdr)))
-         l_fswthrunvdr = fswthrunvdr
       else
          allocate(l_fswthrunvdr(1))
-         l_fswthrunvdr   = c0
       endif
 
       if (present(fswthrunvdf)  ) then
          allocate(l_fswthrunvdf(size(fswthrunvdf)))
-         l_fswthrunvdf = fswthrunvdf
       else
          allocate(l_fswthrunvdf(1))
-         l_fswthrunvdf   = c0
       endif
 
       if (present(fswthrunidr)  ) then
          allocate(l_fswthrunidr(size(fswthrunidr)))
-         l_fswthrunidr = fswthrunidr
       else
          allocate(l_fswthrunidr(1))
-         l_fswthrunidr   = c0
       endif
 
       if (present(fswthrunidf)  ) then
          allocate(l_fswthrunidf(size(fswthrunidf)))
-         l_fswthrunidf = fswthrunidf
       else
          allocate(l_fswthrunidf(1))
-         l_fswthrunidf   = c0
       endif
 
         hin = c0
@@ -4304,10 +4311,6 @@
             fswintn(n) = c0
             fswthrun(n) = c0
          enddo   ! ncat
-         l_fswthrunvdr(:) = c0
-         l_fswthrunvdf(:) = c0
-         l_fswthrunidr(:) = c0
-         l_fswthrunidf(:) = c0
          fswth
          Iswabsn(:,:) = c0
          Sswabsn(:,:) = c0
