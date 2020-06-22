@@ -13,7 +13,7 @@ set dash = "-"
 set spval = "UnDeFiNeD"
 set machcomp = ${spval}
 set machine = ${spval}
-set compilers = intel
+set envnames = intel
 set case = ${spval}
 set test = ${spval}
 set grid = col
@@ -91,7 +91,7 @@ DESCRIPTION
     --docintfc : update the public interface documentation
     --case, -c : case, case directory/name (not with --test or --suite)
     --mach, -m : machine, machine name (required)
-    --env,  -e : compiler(s), comma separated (default = "intel")
+    --env,  -e : envname(s), comma separated (default = "intel")
     --pes,  -p : tasks x threads or "m"x"n" (default is 1x1)
     --queue    : queue name for batch submission
     --acct     : account number for the batch submission
@@ -110,7 +110,7 @@ DESCRIPTION
     --diff     : generate comparison against another case
     --report   : automatically post results when tests are complete
     --codecov  : generate and report test coverage metrics when tests are complete,
-                 requires GNU compiler (--env gnu)
+                 requires GNU envname (--env gnu)
 
 EXAMPLES
     icepack.setup -c caseB -m gordon -e cray -s diag1,debug
@@ -262,7 +262,7 @@ while (1)
     else if ("$option" =~ --mach* || "$option" == "-m") then
       set machine = $argv[1]
     else if ("$option" =~ --env* || "$option" == "-e") then
-      set compilers = $argv[1]
+      set envnames = $argv[1]
     else if ("$option" == "--test") then
       set test = $argv[1]
       set dotest = 1
@@ -322,7 +322,7 @@ if ($codecov == 1 && $report == 1) then
   exit -1
 endif
 
-if ($codecov == 1 && "$compilers" != "gnu") then
+if ($codecov == 1 && "$envnames" != "gnu") then
   echo "${0}: ERROR in arguments, must use --env gnu with --codecov"
   exit -1
 endif
@@ -341,12 +341,12 @@ if (${dosuite} == 0) then
     echo "${0}: ERROR in arguments, must use --suite with --codecov"
     exit -1
   endif
-  if ("$compilers" =~ "*,*") then
-    echo "${0}: ERROR in arguments, cannot set multiple compilers without --suite"
+  if ("$envnames" =~ "*,*") then
+    echo "${0}: ERROR in arguments, cannot set multiple envnames without --suite"
     exit -1
   else
-    set compiler = ${compilers}
-    set machcomp = ${machine}_${compiler}
+    set envname = ${envnames}
+    set machcomp = ${machine}_${envname}
   endif
 endif
 
@@ -483,12 +483,12 @@ endif
 #-------------------------------------------------------------------
 # Loop over cases/tests
 
-set ncompilers = "`echo $compilers | sed -e 's/,/ /g'`"
+set nenvnames = "`echo $envnames | sed -e 's/,/ /g'`"
 
-# check that machines and compilers are valid before starting big loop
+# check that machines and envnames are valid before starting big loop
 set doabort = false
-foreach compiler ( $ncompilers )
-  set machcomp = ${machine}_${compiler}
+foreach envname ( $nenvnames )
+  set machcomp = ${machine}_${envname}
   foreach file (env.${machcomp} Macros.${machcomp})
     if !(-e ${ICE_SCRIPTS}/machines/$file) then
       echo "${0}: ERROR, ${ICE_SCRIPTS}/machines/$file not found"
@@ -502,14 +502,25 @@ endif
 
 set sets_base = "${sets}"
 set bfbcomp_base = "$bfbcomp"
-foreach compiler ( $ncompilers )
-  set machcomp = ${machine}_${compiler}
+foreach envname ( $nenvnames )
+  set machcomp = ${machine}_${envname}
   foreach line ( "`cat $tsfile`" )
     # Check if line is a comment line
     if ( $line:q =~ '#'* || $line:q =~ '$'* || $line:q =~ '!'* ) then
       echo "skipping line: $line"
       continue
     endif
+
+    # unset env variables that might not exist in env machine file
+    # to avoid any carry over during multi envname suites
+    unsetenv ICE_MACHINE_MAXTHREADS
+    unsetenv ICE_MACHINE_MAXPES
+    unsetenv ICE_MACHINE_QUIETMODE
+    unsetenv ICE_MACHINE_CPPDEFS
+    unsetenv ICE_MACHINE_QSTAT
+    unsetenv ICE_MACHINE_MACHINFO
+    unsetenv ICE_MACHINE_ENVINFO
+
     # Obtain the test name, sets, grid, and PE information from .ts file
     set test = `echo $line | cut -d' ' -f1`
     set grid = `echo $line | cut -d' ' -f2`
@@ -664,7 +675,7 @@ foreach compiler ( $ncompilers )
     echo "ICE_CASENAME = ${casename}"
     echo "ICE_CASEDIR  = ${casedir}"
     echo "ICE_MACHINE  = ${machine}"
-    echo "ICE_COMPILER = ${compiler}"
+    echo "ICE_ENVNAME  = ${envname}"
     echo "ICE_RUNDIR   = ${rundir}"
 
     #------------------------------------------------------------
@@ -709,7 +720,7 @@ setenv ICE_SCRIPTS  ${ICE_SCRIPTS}
 setenv ICE_CASENAME ${casename}
 setenv ICE_CASEDIR  ${casedir}
 setenv ICE_MACHINE  ${machine}
-setenv ICE_COMPILER ${compiler}
+setenv ICE_ENVNAME  ${envname}
 setenv ICE_MACHCOMP ${machcomp}
 setenv ICE_RUNDIR   ${rundir}
 setenv ICE_GRID     ${grid}
@@ -882,7 +893,7 @@ EOF
 
   # This is the foreach end for the testsuite
   end
-# This is the foreach end for the compilers
+# This is the foreach end for the envnames
 end
 
 #-----------------------------------------------------
@@ -892,7 +903,7 @@ if ( ${dosuite} == 1 ) then
 
   # Add code to results.csh to count the number of failures
 cat >> ${tsdir}/results.csh << EOF
-cat ./results.log
+cat ./results.log | grep -iv "#machinfo" | grep -iv "#envinfo"
 set pends     = \`cat ./results.log | grep PEND | wc -l\`
 set misses    = \`cat ./results.log | grep MISS | wc -l\`
 set failures  = \`cat ./results.log | grep FAIL | wc -l\`

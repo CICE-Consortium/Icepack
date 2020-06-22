@@ -259,7 +259,7 @@ and the environment (compiler) is specified with ``--env``.
 
 - Copy an existing env and a Macros file to new names for your new machine
 
-- Edit your env and Macros files
+- Edit your env and Macros files, update as needed
 
 - cd .. to **configuration/scripts/**
 
@@ -280,10 +280,40 @@ directory back to **configuration/scripts/machines/** and update
 the **configuration/scripts/icepack.batch.csh** file, retest, 
 and then add and commit the updated machine files to the repository.
 
+.. _machvars: 
+
+Machine variables
+~~~~~~~~~~~~~~~~~~~~~
+
+There are several machine specific variables defined in the **env.$[machine]**.  These
+variables are used to generate working cases for a given machine, compiler, and batch
+system.  Some variables are optional.
+
+.. csv-table:: *Machine Settings*
+   :header: "variable", "format", "description"
+   :widths: 15, 15, 25
+
+   "ICE_MACHINE_MACHNAME", "string", "machine name"
+   "ICE_MACHINE_MACHINFO", "string", "machine information"
+   "ICE_MACHINE_ENVNAME", "string", "env/compiler name"
+   "ICE_MACHINE_ENVINFO", "string", "env/compiler information"
+   "ICE_MACHINE_MAKE", "string", "make command"
+   "ICE_MACHINE_WKDIR", "string", "root work directory"
+   "ICE_MACHINE_INPUTDATA", "string", "root input data directory"
+   "ICE_MACHINE_BASELINE", "string", "root regression baseline directory"
+   "ICE_MACHINE_SUBMIT", "string", "batch job submission command"
+   "ICE_MACHINE_TPNODE", "integer", "machine maximum MPI tasks per node"
+   "ICE_MACHINE_ACCT", "string", "batch default account"
+   "ICE_MACHINE_QUEUE", "string", "batch default queue"
+   "ICE_MACHINE_BLDTHRDS", "integer", "number of threads used during build"
+   "ICE_MACHINE_QSTAT", "string", "batch job status command (optional)"
+   "ICE_MACHINE_QUIETMODE", "true/false", "flag to reduce build output (optional)"
+
 .. _cross_compiling:
 
 Cross-compiling
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
 It can happen that the model must be built on a platform and run on another, for example when the run environment is only available in a batch queue. The program **makdep** (see :ref:`overview`), however, is both compiled and run as part of the build process.
 
 In order to support this, the Makefile uses a variable ``CFLAGS_HOST`` that can hold compiler flags specfic to the build machine for the compilation of makdep. If this feature is needed, add the variable ``CFLAGS_HOST`` to the **Macros.[machine]_[environment]** file. For example : ::
