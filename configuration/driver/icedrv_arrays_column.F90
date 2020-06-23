@@ -101,10 +101,10 @@
          public :: &
          fswsfcn    , & ! SW absorbed at ice/snow surface (W m-2)
          fswthrun   , & ! SW through ice to ocean            (W/m^2)
-         fswthrunvdr, & ! vis dir SW through ice to ocean            (W/m^2)
-         fswthrunvdf, & ! vis dif SW through ice to ocean            (W/m^2)
-         fswthrunidr, & ! nir dir SW through ice to ocean            (W/m^2)
-         fswthrunidf, & ! dir dif SW through ice to ocean            (W/m^2)
+         fswthrun_vdr, & ! vis dir SW through ice to ocean            (W/m^2)
+         fswthrun_vdf, & ! vis dif SW through ice to ocean            (W/m^2)
+         fswthrun_idr, & ! nir dir SW through ice to ocean            (W/m^2)
+         fswthrun_idf, & ! dir dif SW through ice to ocean            (W/m^2)
          fswintn        ! SW absorbed in ice interior, below surface (W m-2)
 
       real (kind=dbl_kind), dimension (nx,nilyr+1,ncat), &

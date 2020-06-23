@@ -179,10 +179,10 @@
          fsalt   , & ! salt flux to ocean (kg/m^2/s)
          fhocn   , & ! net heat flux to ocean (W/m^2)
          fswthru , & ! shortwave penetrating to ocean (W/m^2)
-         fswthruvdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
-         fswthruvdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
-         fswthruidr , & ! nir dir shortwave penetrating to ocean (W/m^2)
-         fswthruidf     ! nir dif shortwave penetrating to ocean (W/m^2)
+         fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
+         fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
+         fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
+         fswthru_idf     ! nir dif shortwave penetrating to ocean (W/m^2)
 
        ! internal
 
@@ -542,10 +542,10 @@
       fsalt   (:) = c0
       fhocn   (:) = c0
       fswthru (:) = c0
-      fswthruvdr (:) = c0
-      fswthruvdf (:) = c0
-      fswthruidr (:) = c0
-      fswthruidf (:) = c0
+      fswthru_vdr (:) = c0
+      fswthru_vdf (:) = c0
+      fswthru_idr (:) = c0
+      fswthru_idf (:) = c0
       flux_bio(:,:) = c0 ! bgc
       fnit    (:) = c0
       fsil    (:) = c0
@@ -610,10 +610,10 @@
       fsalt    (:)   = c0
       fhocn    (:)   = c0
       fswthru  (:)   = c0
-      fswthruvdr  (:)   = c0
-      fswthruvdf  (:)   = c0
-      fswthruidr  (:)   = c0
-      fswthruidf  (:)   = c0
+      fswthru_vdr  (:)   = c0
+      fswthru_vdf  (:)   = c0
+      fswthru_idr  (:)   = c0
+      fswthru_idf  (:)   = c0
       fiso_ocn (:,:) = c0
       faero_ocn(:,:) = c0
 

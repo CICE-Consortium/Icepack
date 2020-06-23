@@ -97,7 +97,7 @@
       use icedrv_arrays_column, only: fswpenln, Iswabsn, Sswabsn, albicen
       use icedrv_arrays_column, only: albsnon, alvdrn, alidrn, alvdfn, alidfn
       use icedrv_arrays_column, only: fswsfcn, ffracn, snowfracn
-      use icedrv_arrays_column, only: fswthrun, fswthrunvdr, fswthrunvdf, fswthrunidr, fswthrunidf
+      use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn
       use icedrv_arrays_column, only: kaer_tab, waer_tab, gaer_tab
       use icedrv_arrays_column, only: kaer_bc_tab, waer_bc_tab, gaer_bc_tab
@@ -202,10 +202,10 @@
                fswsfcn(i,n) = c0
                fswintn(i,n) = c0
                fswthrun(i,n) = c0
-               fswthrunvdr(i,n) = c0
-               fswthrunvdf(i,n) = c0
-               fswthrunidr(i,n) = c0
-               fswthrunidf(i,n) = c0
+               fswthrun_vdr(i,n) = c0
+               fswthrun_vdf(i,n) = c0
+               fswthrun_idr(i,n) = c0
+               fswthrun_idf(i,n) = c0
             enddo   ! ncat
 
          enddo
@@ -266,10 +266,10 @@
                          alidrn=alidrn(i,:),     alidfn=alidfn(i,:),       &
                          fswsfcn=fswsfcn(i,:),   fswintn=fswintn(i,:),     &
                          fswthrun=fswthrun(i,:),                           &
-                         fswthrunvdr=fswthrunvdr(i,:),                     &
-                         fswthrunvdf=fswthrunvdf(i,:),                     &
-                         fswthrunidr=fswthrunidr(i,:),                     &
-                         fswthrunidf=fswthrunidf(i,:),                     &
+                         fswthrun_vdr=fswthrun_vdr(i,:),                   &
+                         fswthrun_vdf=fswthrun_vdf(i,:),                   &
+                         fswthrun_idr=fswthrun_idr(i,:),                   &
+                         fswthrun_idf=fswthrun_idf(i,:),                   &
                          fswpenln=fswpenln(i,:,:),                         &
                          Sswabsn=Sswabsn(i,:,:), Iswabsn=Iswabsn(i,:,:),   &
                          albicen=albicen(i,:),   albsnon=albsnon(i,:),     &

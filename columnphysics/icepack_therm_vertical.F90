@@ -2075,10 +2075,10 @@
                                     fcondbot    , fcondbotn   , &
                                     fswsfcn     , fswintn     , &
                                     fswthrun    ,               & 
-                                    fswthrunvdr ,               & 
-                                    fswthrunvdf ,               & 
-                                    fswthrunidr ,               & 
-                                    fswthrunidf ,               & 
+                                    fswthrun_vdr,               & 
+                                    fswthrun_vdf,               & 
+                                    fswthrun_idr,               & 
+                                    fswthrun_idf,               & 
                                     fswabs      ,               &
                                     flwout      ,               &
                                     Sswabsn     , Iswabsn     , &
@@ -2090,10 +2090,10 @@
                                     fresh       , fsalt       , &
                                     fhocn       ,               &
                                     fswthru     ,               &
-                                    fswthruvdr  ,               &
-                                    fswthruvdf  ,               &
-                                    fswthruidr  ,               &
-                                    fswthruidf  ,               &
+                                    fswthru_vdr ,               &
+                                    fswthru_vdf ,               &
+                                    fswthru_idr ,               &
+                                    fswthru_idf ,               &
                                     flatn_f     , fsensn_f    , &
                                     fsurfn_f    , fcondtopn_f , &
                                     faero_atm   , faero_ocn   , &
@@ -2205,10 +2205,10 @@
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
       real (kind=dbl_kind), intent(inout), optional :: &
-         fswthruvdr  , & ! vis dir shortwave penetrating to ocean (W/m^2)
-         fswthruvdf  , & ! vis dif shortwave penetrating to ocean (W/m^2)
-         fswthruidr  , & ! nir dir shortwave penetrating to ocean (W/m^2)
-         fswthruidf      ! nir dif shortwave penetrating to ocean (W/m^2)
+         fswthru_vdr  , & ! vis dir shortwave penetrating to ocean (W/m^2)
+         fswthru_vdf  , & ! vis dif shortwave penetrating to ocean (W/m^2)
+         fswthru_idr  , & ! nir dir shortwave penetrating to ocean (W/m^2)
+         fswthru_idf      ! nir dif shortwave penetrating to ocean (W/m^2)
 
       real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
          Qa_iso      , & ! isotope specific humidity (kg/kg)
@@ -2261,10 +2261,10 @@
          dsnown          ! change in snow thickness (m/step-->cm/day)
 
       real (kind=dbl_kind), optional, dimension(:), intent(inout) :: &
-         fswthrunvdr , & ! vis dir SW through ice to ocean            (W/m^2)
-         fswthrunvdf , & ! vis dif SW through ice to ocean            (W/m^2)
-         fswthrunidr , & ! nir dir SW through ice to ocean            (W/m^2)
-         fswthrunidf     ! nir dif SW through ice to ocean            (W/m^2)
+         fswthrun_vdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         fswthrun_vdf , & ! vis dif SW through ice to ocean            (W/m^2)
+         fswthrun_idr , & ! nir dir SW through ice to ocean            (W/m^2)
+         fswthrun_idf     ! nir dif SW through ice to ocean            (W/m^2)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy (J m-3)
@@ -2332,16 +2332,16 @@
          l_H2_18O_ocn    ! local ocean concentration of H2_18O (kg/kg)
 
       real (kind=dbl_kind)  :: &
-         l_fswthruvdr , & ! vis dir SW through ice to ocean            (W/m^2)
-         l_fswthruvdf , & ! vis dif SW through ice to ocean            (W/m^2)
-         l_fswthruidr , & ! nir dir SW through ice to ocean            (W/m^2)
-         l_fswthruidf     ! nir dif SW through ice to ocean            (W/m^2)
+         l_fswthru_vdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthru_vdf , & ! vis dif SW through ice to ocean            (W/m^2)
+         l_fswthru_idr , & ! nir dir SW through ice to ocean            (W/m^2)
+         l_fswthru_idf     ! nir dif SW through ice to ocean            (W/m^2)
 
       real (kind=dbl_kind), dimension(:), allocatable :: &
-         l_fswthrunvdr , & ! vis dir SW through ice to ocean            (W/m^2)
-         l_fswthrunvdf , & ! vis dif SW through ice to ocean            (W/m^2)
-         l_fswthrunidr , & ! nir dir SW through ice to ocean            (W/m^2)
-         l_fswthrunidf     ! nir dif SW through ice to ocean            (W/m^2)
+         l_fswthrun_vdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthrun_vdf , & ! vis dif SW through ice to ocean            (W/m^2)
+         l_fswthrun_idr , & ! nir dir SW through ice to ocean            (W/m^2)
+         l_fswthrun_idf     ! nir dif SW through ice to ocean            (W/m^2)
 
       real (kind=dbl_kind) :: &
          pond            ! water retained in ponds (m)
@@ -2408,36 +2408,36 @@
          l_fiso_evap   = c0
       endif
 
-      if (present(fswthrunvdr)  ) then
-         allocate(l_fswthrunvdr(size(fswthrunvdr)))
-         l_fswthrunvdr = fswthrunvdr
+      if (present(fswthrun_vdr)  ) then
+         allocate(l_fswthrun_vdr(size(fswthrun_vdr)))
+         l_fswthrun_vdr = fswthrun_vdr
       else
-         allocate(l_fswthrunvdr(1))
-         l_fswthrunvdr   = c0
+         allocate(l_fswthrun_vdr(1))
+         l_fswthrun_vdr   = c0
       endif
 
-      if (present(fswthrunvdf)  ) then
-         allocate(l_fswthrunvdf(size(fswthrunvdf)))
-         l_fswthrunvdf = fswthrunvdf
+      if (present(fswthrun_vdf)  ) then
+         allocate(l_fswthrun_vdf(size(fswthrun_vdf)))
+         l_fswthrun_vdf = fswthrun_vdf
       else
-         allocate(l_fswthrunvdf(1))
-         l_fswthrunvdf   = c0
+         allocate(l_fswthrun_vdf(1))
+         l_fswthrun_vdf   = c0
       endif
 
-      if (present(fswthrunidr)  ) then
-         allocate(l_fswthrunidr(size(fswthrunidr)))
-         l_fswthrunidr = fswthrunidr
+      if (present(fswthrun_idr)  ) then
+         allocate(l_fswthrun_idr(size(fswthrun_idr)))
+         l_fswthrun_idr = fswthrun_idr
       else
-         allocate(l_fswthrunidr(1))
-         l_fswthrunidr   = c0
+         allocate(l_fswthrun_idr(1))
+         l_fswthrun_idr   = c0
       endif
 
-      if (present(fswthrunidf)  ) then
-         allocate(l_fswthrunidf(size(fswthrunidf)))
-         l_fswthrunidf = fswthrunidf
+      if (present(fswthrun_idf)  ) then
+         allocate(l_fswthrun_idf(size(fswthrun_idf)))
+         l_fswthrun_idf = fswthrun_idf
       else
-         allocate(l_fswthrunidf(1))
-         l_fswthrunidf   = c0
+         allocate(l_fswthrun_idf(1))
+         l_fswthrun_idf   = c0
       endif
 
       l_HDO_ocn    = c0
@@ -2449,17 +2449,17 @@
       l_H2_18O_ocn = c0
       if (present(H2_18O_ocn)) l_H2_18O_ocn = H2_18O_ocn
 
-      l_fswthruvdr    = c0
-      if (present(fswthruvdr)   ) l_fswthruvdr    = fswthruvdr
+      l_fswthru_vdr    = c0
+      if (present(fswthru_vdr)   ) l_fswthru_vdr    = fswthru_vdr
 
-      l_fswthruvdf    = c0
-      if (present(fswthruvdf)   ) l_fswthruvdf    = fswthruvdf
+      l_fswthru_vdf    = c0
+      if (present(fswthru_vdf)   ) l_fswthru_vdf    = fswthru_vdf
 
-      l_fswthruidr    = c0
-      if (present(fswthruidr)   ) l_fswthruidr    = fswthruidr
+      l_fswthru_idr    = c0
+      if (present(fswthru_idr)   ) l_fswthru_idr    = fswthru_idr
 
-      l_fswthruidf    = c0
-      if (present(fswthruidf)   ) l_fswthruidf    = fswthruidf
+      l_fswthru_idf    = c0
+      if (present(fswthru_idf)   ) l_fswthru_idf    = fswthru_idf
 
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
@@ -2770,10 +2770,10 @@
                                freshn=freshn,     fsaltn=fsaltn,    &
                                fhocnn=fhocnn,                       &
                                fswthrun=fswthrun(n),                &
-                               fswthrunvdr=l_fswthrunvdr(n),          &
-                               fswthrunvdf=l_fswthrunvdf(n),          &
-                               fswthrunidr=l_fswthrunidr(n),          &
-                               fswthrunidf=l_fswthrunidf(n),          &
+                               fswthrun_vdr=l_fswthrun_vdr(n),      &
+                               fswthrun_vdf=l_fswthrun_vdf(n),      &
+                               fswthrun_idr=l_fswthrun_idr(n),      &
+                               fswthrun_idf=l_fswthrun_idf(n),      &
                                strairxT=strairxT, strairyT=strairyT,&
                                Cdn_atm_ratio=Cdn_atm_ratio,         &
                                fsurf=fsurf,       fcondtop=fcondtop,&
@@ -2786,10 +2786,10 @@
                                fresh=fresh,       fsalt=fsalt,      &
                                fhocn=fhocn,                         &
                                fswthru=fswthru,                     &
-                               fswthruvdr=l_fswthruvdr,               &
-                               fswthruvdf=l_fswthruvdf,               &
-                               fswthruidr=l_fswthruidr,               &
-                               fswthruidf=l_fswthruidf,               &
+                               fswthru_vdr=l_fswthru_vdr,           &
+                               fswthru_vdf=l_fswthru_vdf,           &
+                               fswthru_idr=l_fswthru_idr,           &
+                               fswthru_idf=l_fswthru_idf,           &
                                melttn=melttn (n), meltsn=meltsn(n), &
                                meltbn=meltbn (n), congeln=congeln(n),&
                                snoicen=snoicen(n),                  &
@@ -2815,14 +2815,14 @@
       if (present(fiso_atm) ) fiso_atm = l_fiso_atm
       if (present(fiso_ocn) ) fiso_ocn = l_fiso_ocn
       if (present(fiso_evap)) fiso_evap= l_fiso_evap
-      if (present(fswthrunvdr)) fswthrunvdr= l_fswthrunvdr
-      if (present(fswthrunvdf)) fswthrunvdf= l_fswthrunvdf
-      if (present(fswthrunidr)) fswthrunidr= l_fswthrunidr
-      if (present(fswthrunidf)) fswthrunidf= l_fswthrunidf
-      if (present(fswthruvdr)) fswthruvdr= l_fswthruvdr
-      if (present(fswthruvdf)) fswthruvdf= l_fswthruvdf
-      if (present(fswthruidr)) fswthruidr= l_fswthruidr
-      if (present(fswthruidf)) fswthruidf= l_fswthruidf
+      if (present(fswthrun_vdr)) fswthrun_vdr= l_fswthrun_vdr
+      if (present(fswthrun_vdf)) fswthrun_vdf= l_fswthrun_vdf
+      if (present(fswthrun_idr)) fswthrun_idr= l_fswthrun_idr
+      if (present(fswthrun_idf)) fswthrun_idf= l_fswthrun_idf
+      if (present(fswthru_vdr)) fswthru_vdr= l_fswthru_vdr
+      if (present(fswthru_vdf)) fswthru_vdf= l_fswthru_vdf
+      if (present(fswthru_idr)) fswthru_idr= l_fswthru_idr
+      if (present(fswthru_idf)) fswthru_idf= l_fswthru_idf
       deallocate(l_isosno)
       deallocate(l_isoice)
       deallocate(l_Qa_iso)
@@ -2830,10 +2830,10 @@
       deallocate(l_fiso_atm)
       deallocate(l_fiso_ocn)
       deallocate(l_fiso_evap)
-      deallocate(l_fswthrunvdr)
-      deallocate(l_fswthrunvdf)
-      deallocate(l_fswthrunidr)
-      deallocate(l_fswthrunidf)
+      deallocate(l_fswthrun_vdr)
+      deallocate(l_fswthrun_vdf)
+      deallocate(l_fswthrun_idr)
+      deallocate(l_fswthrun_idf)
 
       !-----------------------------------------------------------------
       ! Calculate ponds from the topographic scheme
