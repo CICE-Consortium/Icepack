@@ -27,7 +27,7 @@ can be modified as needed.
    "ICE_CASENAME", "string", "case name", "set by icepack.setup"
    "ICE_SANDBOX", "string", "sandbox directory", "set by icepack.setup"
    "ICE_MACHINE", "string", "machine name", "set by icepack.setup"
-   "ICE_COMPILER", "string", "environment name", "set by icepack.setup"
+   "ICE_ENVNAME", "string", "compilation environment", "set by icepack.setup"
    "ICE_MACHCOMP", "string", "machine_environment name", "set by icepack.setup"
    "ICE_SCRIPTS", "string", "scripts directory", "set by icepack.setup"
    "ICE_CASEDIR", "string", "case directory", "set by icepack.setup"
