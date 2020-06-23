@@ -50,10 +50,10 @@ To create a case, run **icepack.setup**::
 
 Once a case/test is created, several files are placed in the case directory
 
-- **env.[machine]** defines the environment
+- **env.[machine]_[env]** defines the machine environment
 - **icepack.settings** defines many variables associated with building and running the model
 - **makdep.c** is a tool that will automatically generate the make dependencies
-- **Macros.[machine]** defines the Makefile macros
+- **Macros.[machine]_[env]** defines the Makefile macros
 - **Makefile** is the makefile used to build the model
 - **icepack.build** is a script that builds and compiles the model
 - **icepack\_in** is the namelist input file
@@ -70,8 +70,7 @@ The **casescripts/** directory holds scripts used to create the case and can
 largely be ignored.  Once a case is created, the **icepack.build** script should be run
 interactively and then the case should be submitted by executing the 
 **icepack.submit** script interactively.  The **icepack.submit** script
-simply submits the **icepack.run script**.  
-You can also submit the **icepack.run** script on the command line.
+submits the **icepack.run** or **icepack.test** script.  
 
 Some hints:
 
