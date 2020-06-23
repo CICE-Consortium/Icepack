@@ -182,7 +182,7 @@
          alvdfns, & ! visible, diffuse, snow  (fraction)
          alidfns    ! near-ir, diffuse, snow  (fraction)
 
-      real (kind=dbl_kind) :: &
+      real (kind=dbl_kind), dimension(:), allocatable :: &
          l_fswthru_vdr  , & ! vis dir SW through ice to ocean (W m-2)
          l_fswthru_vdf  , & ! vis dif SW through ice to ocean (W m-2)
          l_fswthru_idr  , & ! nir dir SW through ice to ocean (W m-2)
@@ -193,6 +193,11 @@
       !-----------------------------------------------------------------
       ! Solar radiation: albedo and absorbed shortwave
       !-----------------------------------------------------------------
+
+      allocate(l_fswthru_vdr(ncat))
+      allocate(l_fswthru_vdf(ncat))
+      allocate(l_fswthru_idr(ncat))
+      allocate(l_fswthru_idf(ncat))
 
       ! For basic shortwave, set coszen to a constant between 0 and 1.
       coszen = p5 ! sun above the horizon
@@ -295,23 +300,28 @@
                                fswsfc=fswsfc(n),     &
                                fswint=fswint(n),     &
                                fswthru=fswthru(n),   &
-                               fswthru_vdr=l_fswthru_vdr,&
-                               fswthru_vdf=l_fswthru_vdf,&
-                               fswthru_idr=l_fswthru_idr,&
-                               fswthru_idf=l_fswthru_idf,&
+                               fswthru_vdr=l_fswthru_vdr(n),&
+                               fswthru_vdf=l_fswthru_vdf(n),&
+                               fswthru_idr=l_fswthru_idr(n),&
+                               fswthru_idf=l_fswthru_idf(n),&
                                fswpenl=fswpenl(:,n), &
                                Iswabs=Iswabs(:,n))
-
-         if(present(fswthru_vdr)) fswthru_vdr(n) = l_fswthru_vdr
-         if(present(fswthru_vdf)) fswthru_vdf(n) = l_fswthru_vdf
-         if(present(fswthru_idr)) fswthru_idr(n) = l_fswthru_idr
-         if(present(fswthru_idf)) fswthru_idf(n) = l_fswthru_idf
 
          if (icepack_warnings_aborted(subname)) return
 
       endif ! aicen > puny
 
       enddo                  ! ncat
+
+      if(present(fswthru_vdr)) fswthru_vdr = l_fswthru_vdr
+      if(present(fswthru_vdf)) fswthru_vdf = l_fswthru_vdf
+      if(present(fswthru_idr)) fswthru_idr = l_fswthru_idr
+      if(present(fswthru_idf)) fswthru_idf = l_fswthru_idf
+
+      deallocate(l_fswthru_vdr)
+      deallocate(l_fswthru_vdf)
+      deallocate(l_fswthru_idr)
+      deallocate(l_fswthru_idf)
 
       end subroutine shortwave_ccsm3
 
@@ -940,13 +950,18 @@
       logical (kind=log_kind) :: &
          linitonly       ! local initonly value
 
-      real (kind=dbl_kind) :: &
+      real (kind=dbl_kind), dimension(:), allocatable :: &
          l_fswthrun_vdr  , & ! vis dir SW through ice to ocean (W m-2)
          l_fswthrun_vdf  , & ! vis dif SW through ice to ocean (W m-2)
          l_fswthrun_idr  , & ! nir dir SW through ice to ocean (W m-2)
          l_fswthrun_idf      ! nir dif SW through ice to ocean (W m-2)
 
       character(len=*),parameter :: subname='(run_dEdd)'
+
+      allocate(l_fswthrun_vdr(ncat))
+      allocate(l_fswthrun_vdf(ncat))
+      allocate(l_fswthrun_idr(ncat))
+      allocate(l_fswthrun_idf(ncat))
 
       linitonly = .false.
       if (present(initonly)) then
@@ -1120,10 +1135,10 @@
                              alidrn(n),     alidfn(n),      &
                              fswsfcn(n),    fswintn(n),     &
                              fswthru=fswthrun(n),           &
-                             fswthru_vdr=l_fswthrun_vdr,    &
-                             fswthru_vdf=l_fswthrun_vdf,    &
-                             fswthru_idr=l_fswthrun_idr,    &
-                             fswthru_idf=l_fswthrun_idf,    &
+                             fswthru_vdr=l_fswthrun_vdr(n),    &
+                             fswthru_vdf=l_fswthrun_vdf(n),    &
+                             fswthru_idr=l_fswthrun_idr(n),    &
+                             fswthru_idf=l_fswthrun_idf(n),    &
                              Sswabs=Sswabsn(:,n),           &
                              Iswabs=Iswabsn(:,n),           &
                              albice=albicen(n),             &
@@ -1133,16 +1148,21 @@
                              zbio=trcrn_bgcsw(:,n),         &
                              l_print_point=l_print_point)
 
-            if(present(fswthrun_vdr)) fswthrun_vdr(n) = l_fswthrun_vdr
-            if(present(fswthrun_vdf)) fswthrun_vdf(n) = l_fswthrun_vdf
-            if(present(fswthrun_idr)) fswthrun_idr(n) = l_fswthrun_idr
-            if(present(fswthrun_idf)) fswthrun_idf(n) = l_fswthrun_idf
-
             if (icepack_warnings_aborted(subname)) return
 
          endif ! aicen > puny
 
       enddo  ! ncat
+
+      if(present(fswthrun_vdr)) fswthrun_vdr = l_fswthrun_vdr
+      if(present(fswthrun_vdf)) fswthrun_vdf = l_fswthrun_vdf
+      if(present(fswthrun_idr)) fswthrun_idr = l_fswthrun_idr
+      if(present(fswthrun_idf)) fswthrun_idf = l_fswthrun_idf
+
+      deallocate(l_fswthrun_vdr)
+      deallocate(l_fswthrun_vdf)
+      deallocate(l_fswthrun_idr)
+      deallocate(l_fswthrun_idf)
 
       end subroutine run_dEdd
  
@@ -4118,29 +4138,10 @@
 
       character(len=*),parameter :: subname='(icepack_step_radiation)'
 
-      if (present(fswthrun_vdr)  ) then
-         allocate(l_fswthrun_vdr(size(fswthrun_vdr)))
-      else
-         allocate(l_fswthrun_vdr(1))
-      endif
-
-      if (present(fswthrun_vdf)  ) then
-         allocate(l_fswthrun_vdf(size(fswthrun_vdf)))
-      else
-         allocate(l_fswthrun_vdf(1))
-      endif
-
-      if (present(fswthrun_idr)  ) then
-         allocate(l_fswthrun_idr(size(fswthrun_idr)))
-      else
-         allocate(l_fswthrun_idr(1))
-      endif
-
-      if (present(fswthrun_idf)  ) then
-         allocate(l_fswthrun_idf(size(fswthrun_idf)))
-      else
-         allocate(l_fswthrun_idf(1))
-      endif
+      allocate(l_fswthrun_vdr(ncat))
+      allocate(l_fswthrun_vdf(ncat))
+      allocate(l_fswthrun_idr(ncat))
+      allocate(l_fswthrun_idf(ncat))
 
         hin = c0
         hbri = c0
@@ -4310,10 +4311,10 @@
 
       endif    ! calc_Tsfc
 
-      fswthrun_vdr(:) = l_fswthrun_vdr(:)
-      fswthrun_vdf(:) = l_fswthrun_vdf(:)
-      fswthrun_idr(:) = l_fswthrun_idr(:)
-      fswthrun_idf(:) = l_fswthrun_idf(:)
+      if (present(fswthrun_vdr)) fswthrun_vdr = l_fswthrun_vdr
+      if (present(fswthrun_vdf)) fswthrun_vdf = l_fswthrun_vdf
+      if (present(fswthrun_idr)) fswthrun_idr = l_fswthrun_idr
+      if (present(fswthrun_idf)) fswthrun_idf = l_fswthrun_idf
 
       deallocate(l_fswthrun_vdr)
       deallocate(l_fswthrun_vdf)

@@ -2408,38 +2408,6 @@
          l_fiso_evap   = c0
       endif
 
-      if (present(fswthrun_vdr)  ) then
-         allocate(l_fswthrun_vdr(size(fswthrun_vdr)))
-         l_fswthrun_vdr = fswthrun_vdr
-      else
-         allocate(l_fswthrun_vdr(1))
-         l_fswthrun_vdr   = c0
-      endif
-
-      if (present(fswthrun_vdf)  ) then
-         allocate(l_fswthrun_vdf(size(fswthrun_vdf)))
-         l_fswthrun_vdf = fswthrun_vdf
-      else
-         allocate(l_fswthrun_vdf(1))
-         l_fswthrun_vdf   = c0
-      endif
-
-      if (present(fswthrun_idr)  ) then
-         allocate(l_fswthrun_idr(size(fswthrun_idr)))
-         l_fswthrun_idr = fswthrun_idr
-      else
-         allocate(l_fswthrun_idr(1))
-         l_fswthrun_idr   = c0
-      endif
-
-      if (present(fswthrun_idf)  ) then
-         allocate(l_fswthrun_idf(size(fswthrun_idf)))
-         l_fswthrun_idf = fswthrun_idf
-      else
-         allocate(l_fswthrun_idf(1))
-         l_fswthrun_idf   = c0
-      endif
-
       l_HDO_ocn    = c0
       if (present(HDO_ocn)   ) l_HDO_ocn    = HDO_ocn
 
@@ -2460,6 +2428,23 @@
 
       l_fswthru_idf    = c0
       if (present(fswthru_idf)   ) l_fswthru_idf    = fswthru_idf
+
+      allocate(l_fswthrun_vdr(ncat))
+      allocate(l_fswthrun_vdf(ncat))
+      allocate(l_fswthrun_idr(ncat))
+      allocate(l_fswthrun_idf(ncat))
+
+      l_fswthrun_vdr    = c0
+      if (present(fswthrun_vdr)   ) l_fswthrun_vdr    = fswthrun_vdr
+
+      l_fswthrun_vdf    = c0
+      if (present(fswthrun_vdf)   ) l_fswthrun_vdf    = fswthrun_vdf
+
+      l_fswthrun_idr    = c0
+      if (present(fswthrun_idr)   ) l_fswthrun_idr    = fswthrun_idr
+
+      l_fswthrun_idf    = c0
+      if (present(fswthrun_idf)   ) l_fswthrun_idf    = fswthrun_idf
 
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
