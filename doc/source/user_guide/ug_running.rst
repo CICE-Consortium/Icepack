@@ -35,11 +35,9 @@ There are three usage modes,
 
 * ``--case`` or ``-c`` creates individual stand alone cases.
 * ``--test`` creates individual tests.  Tests are just cases that have some extra automation in order to carry out particular tests such as exact restart.
-* ``--suite`` creates a test suite.  Test suites are predefined sets of tests and ``--suite`` provides the ability to quick setup, build, and run a full suite of tests.
+* ``--suite`` creates a test suite.  Test suites are predefined sets of tests and ``--suite`` provides the ability to quickly setup, build, and run a full suite of tests.
 
-All modes will require use of ``--mach`` or ``-m`` to specify the machine and case and test modes 
-can use ``--set`` or ``-s`` to define specific options.  ``--test`` and ``--suite`` will require ``--testid`` to be set 
-and both of the test modes can use ``--bdir``, ``--bgen``, ``--bcmp``, and ``--diff`` to generate (save) results and compare results with prior results as well as ``--tdir`` to specify the location of the test directory.
+All modes will require use of ``--mach`` or ``-m`` to specify the machine.  Use of ``--env`` is also recommended to specify the compilation environment.  ``--case`` and ``--test`` modes can use ``--set`` or ``-s`` which will turn on various model options.  ``--test`` and ``--suite`` will require ``--testid`` to be set and can use ``--bdir``, ``--bgen``, ``--bcmp``, and ``--diff`` to generate (save) results for regression testing (comparison with prior results). ``--tdir`` will specify the location of the test directory.
 Testing will be described in greater detail in the :ref:`testing` section.
 
 Again, ``icepack.setup --help`` will show the latest usage information including 
@@ -47,7 +45,7 @@ the available ``--set`` options, the current ported machines, and the test choic
 
 To create a case, run **icepack.setup**::
 
-  icepack.setup -c mycase -m machine
+  icepack.setup -c mycase -m machine -e intel
   cd mycase
 
 Once a case/test is created, several files are placed in the case directory
@@ -93,7 +91,7 @@ To build and run::
   ./icepack.build
   ./icepack.submit
 
-The build and run log files will be copied into the logs directory in the case directory.
+The build and run log files will be copied into the logs subdirectory in the case directory.
 Other model output will be in the run directory.  The run directory is set in **icepack.settings**
 via the **ICE_RUNDIR** variable.  To modify the case setup, changes should be made in the
 case directory, NOT the run directory.
@@ -122,10 +120,10 @@ Testing will be described in greater detail in the :ref:`testing` section.
   specifies the case name.  This can be either a relative path of an absolute path.  This cannot be used with --test or --suite.  Either ``--case``, ``--test``, or ``--suite`` is required.
 
 ``--mach``, ``-m`` MACHINE
-  specifies the machine name.  This should be consistent with the name defined in the Macros and env files in **configurations/scripts/machines**.  This is required in all modes.
+  specifies the machine name.  This should be consistent with the name defined in the Macros and env files in **configurations/scripts/machines**.  This is required in all modes and is paired with ``--env`` to define the compilation environment.
 
 ``--env``,  ``-e`` ENVIRONMENT1,ENVIRONMENT2,ENVIRONMENT3
-  specifies the environment or compiler associated with the machine.  This should be consistent with the name defined in the Macros and env files in **configurations/scripts/machines**.  Each machine can have multiple supported environments including support for different compilers or other system setups.  When used with ``--suite`` or ``--test``, the ENVIRONMENT can be a set of comma deliminated values with no spaces and the tests will then be run for all of those environments.  With ``--case``, only one ENVIRONMENT should be specified. (default is intel)
+  specifies the compilation environment associated with the machine.  This should be consistent with the name defined in the Macros and env files in **configurations/scripts/machines**.  Each machine can have multiple supported environments including support for different compilers, different compiler versions, different mpi libraries, or other system settigs.  When used with ``--suite`` or ``--test``, the ENVIRONMENT can be a set of comma deliminated values with no spaces and the tests will then be run for all of those environments.  With ``--case``, only one ENVIRONMENT should be specified. (default is intel)
   
 ``--pes``,  ``-p`` MxN
   specifies the number of tasks and threads the case should be run on.  This only works with ``--case``.  The format is tasks x threads or "M"x"N" where M is tasks and N is threads and both are integers. The current icepack driver is purely serial so setting multiple tasks or multiple threads will have no impact.  (default is 1x1)
@@ -165,7 +163,7 @@ files **configuration/scripts/icepack_in** and
 preset setting (option), the set_env.setting and set_nml.setting will be used to 
 change the defaults.  This is done as part of the ``icepack.setup`` and the
 modifications are resolved in the **icepack.settings** and **icepack_in** file placed in 
-the case directory.  If multiple options are chosen and then conflict, then the last
+the case directory.  If multiple options are chosen that conflict, then the last
 option chosen takes precedent.  Not all options are compatible with each other.
 
 Some of the options are
@@ -253,8 +251,11 @@ To port, an **env.[machine]_[environment]** and **Macros.[machine]_[environment]
 In addition **configuration/scripts/icepack.launch.csh** may need to
 be modified if simply running the binary directly will not work.
 In general, the machine is specified in ``icepack.setup`` with ``--mach``
-and the environment (compiler) is specified with ``--env``.
- 
+and the environment (compiler) is specified with ``--env``.  mach and env 
+in combination define the compiler, compiler version, supporting libaries,
+and batch information.  Multiple compilation environments can be created for
+a single machine by choosing unique env names.
+
 - cd to **configuration/scripts/machines/**
 
 - Copy an existing env and a Macros file to new names for your new machine

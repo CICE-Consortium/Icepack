@@ -91,7 +91,7 @@ DESCRIPTION
     --docintfc : update the public interface documentation
     --case, -c : case, case directory/name (not with --test or --suite)
     --mach, -m : machine, machine name (required)
-    --env,  -e : envname(s), comma separated (default = "intel")
+    --env,  -e : compilation environment name(s), comma separated (default = "intel")
     --pes,  -p : tasks x threads or "m"x"n" (default is 1x1)
     --queue    : queue name for batch submission
     --acct     : account number for the batch submission
