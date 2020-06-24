@@ -1,4 +1,4 @@
-#! /bin/csh -f
+#!/bin/csh -f
 
 source ./icepack.settings
 source ${ICE_CASEDIR}/env.${ICE_MACHCOMP} -nomodules || exit 2
