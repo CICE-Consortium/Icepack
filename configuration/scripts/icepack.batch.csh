@@ -72,7 +72,7 @@ cat >> ${jobfile} << EOFB
 #PBS -l walltime=00:50:00
 EOFB
 
-else if (${ICE_MACHINE} =~ thunder* || ${ICE_MACHINE} =~ gordon* || ${ICE_MACHINE} =~ conrad* || ${ICE_MACHINE} =~ gaffney* || ${ICE_MACHINE} =~ koehr*) then
+else if (${ICE_MACHINE} =~ gordon* || ${ICE_MACHINE} =~ conrad* || ${ICE_MACHINE} =~ gaffney* || ${ICE_MACHINE} =~ koehr*) then
 cat >> ${jobfile} << EOFB
 #PBS -N ${shortcase}
 #PBS -q ${ICE_MACHINE_QUEUE}
@@ -123,11 +123,6 @@ cat >> ${jobfile} << EOFB
 ###SBATCH --mail-type END,FAIL
 ###SBATCH --mail-user=eclare@lanl.gov
 #SBATCH --qos=standby
-EOFB
-
-else if (${ICE_MACHINE} =~ loft*) then
-cat >> ${jobfile} << EOFB
-# nothing to do
 EOFB
 
 else if (${ICE_MACHINE} =~ high_Sierra*) then
