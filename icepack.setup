@@ -483,7 +483,6 @@ if !(\$?CODECOV_TOKEN) then
 endif
 
 #for lcov
-setenv PERL5LIB ~/usr/lib/perl5/site_perl/5.18.2/x86_64-linux-thread-multi/
 set lcovalist = ""
 
 EOF0
@@ -625,12 +624,21 @@ foreach envname ( $nenvnames )
     end
 
     # from basic script dir to casescr
-    foreach file (parse_namelist.sh parse_settings.sh parse_namelist_from_settings.sh icepack_decomp.csh icepack.run.setup.csh icepack.test.setup.csh icepack.results.csh icepack.codecov.csh icepack.lcov.csh)
+    foreach file (parse_namelist.sh parse_settings.sh parse_namelist_from_settings.sh icepack_decomp.csh icepack.run.setup.csh icepack.test.setup.csh)
       if !(-e ${ICE_SCRIPTS}/$file) then
         echo "${0}: ERROR, ${ICE_SCRIPTS}/$file not found"
         exit -1
       endif
       cp -f -p ${ICE_SCRIPTS}/$file ${casescr}/
+    end
+
+    # from test dir to casescr
+    foreach file (icepack.results.csh icepack.codecov.csh icepack.lcov.csh)
+      if !(-e ${ICE_SCRIPTS}/tests/$file) then
+        echo "${0}: ERROR, ${ICE_SCRIPTS}/$file not found"
+        exit -1
+      endif
+      cp -f -p ${ICE_SCRIPTS}/tests/$file ${casescr}/
     end
 
     cd ${casedir}

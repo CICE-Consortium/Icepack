@@ -8,6 +8,7 @@ set lcovrepo = apcraig.github.io
 set lcovhtmldir = lcov_icepack_${report_name}
 genhtml -o ./${lcovhtmldir} --precision 2 -t "${report_name}" total.info
 
+rm -r -f ${lcovrepo}
 git clone https://github.com/apcraig/${lcovrepo}
 cp -p -r ${lcovhtmldir} ${lcovrepo}/
 
