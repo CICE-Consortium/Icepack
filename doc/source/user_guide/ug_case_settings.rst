@@ -80,7 +80,7 @@ can be modified as needed.
    "TRFEP", "0,1,2", "number of particulate iron tracers", "0"
    "TRFED", "0,1,2", "number of dissolved iron tracers", "0"
    "ICE_BLDDEBUG", "true,false", "turn on compile debug flags", "false"
-   "ICE_CODECOV", "true,false", "turn on code coverage flags", "false"
+   "ICE_COVERAGE", "true,false", "turn on code coverage flags", "false"
 
 
 .. _tabnamelist:
