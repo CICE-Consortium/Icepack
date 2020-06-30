@@ -352,7 +352,7 @@ either Celsius or Kelvin units).
    "PP_net", "total primary productivity per grid cell", "mg C/m\ :math:`^2`/s"
    "precip_units", ":math:`\bullet` liquid precipitation data units", ""
    "print_points", ":math:`\bullet` if true, print point data", "F"
-   "Pstar", "ice strength parameter", "2.75\ :math:`\times`\ 10\ :math:`^4`\ N/m"
+   "Pstar", "ice strength parameter", "2.75\ :math:`\times`\ 10\ :math:`^4`\ N/m\ :math:`^2`"
    "puny", "a small positive number", "1\ :math:`\times`\ 10\ :math:`^{-11}`" 
    "**Q**", "", ""
    "Qa", "specific humidity at 10 m", "kg/kg"
