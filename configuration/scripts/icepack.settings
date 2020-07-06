@@ -1,4 +1,4 @@
-#! /bin/csh -f
+#!/bin/csh -f
 
 setenv ICE_CASENAME   undefined
 setenv ICE_SANDBOX    undefined
@@ -78,6 +78,6 @@ setenv TRFED     0         # number of dissolved iron tracers
 
 ### Specialty code
 setenv ICE_BLDDEBUG  false  # build debug flags
-setenv ICE_CODECOV  false   # code coverage flag
+setenv ICE_COVERAGE  false   # code coverage flag
 
 

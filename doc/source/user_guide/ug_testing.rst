@@ -304,8 +304,8 @@ following options are valid for suites,
 ``--report``
   This is only used by ``--suite`` and when set, invokes a script that sends the test results to the results page when all tests are complete.  Please see :ref:`testreporting` for more information.
 
-``--codecov``
-  When invoked, code coverage diagnostics are generated.  This will modify the build and reduce optimization.  The results will be uploaded to the **codecov.io** website via the **report_codecov.csh** script.  General use is not recommended, this is mainly used as a diagnostic to periodically assess test coverage.  Please see :ref:`codecoverage` for more information.
+``--coverage``
+  When invoked, code coverage diagnostics are generated.  This will modify the build and reduce optimization and generate coverage reports using lcov or codecov tools.  General use is not recommended, this is mainly used as a diagnostic to periodically assess test coverage.  Please see :ref:`codecoverage` for more information.
 
 Please see :ref:`case_options` and :ref:`indtests` for more details about how these options are used.
 
@@ -501,36 +501,34 @@ wait for all runs to be complete, and run the results and report_results scripts
 Code Coverage Testing
 ------------------------
 
-The ``--codecov`` feature in **icepack.setup** provides a method to diagnose code coverage.
+The ``--coverage`` feature in **icepack.setup** provides a method to diagnose code coverage.
 This argument turns on special compiler flags including reduced optimization and then
-invokes the gcov tool.
-This option is currently only available with the gnu compiler and on a few systems.
-To use, submit a full test suite using a version of Icepack on the Consortium master
-and the gnu compiler with the ``--codecov`` argument.
-The test suite will run and then a report will be generated and uploaded to 
-the `codecov.io site <https://codecov.io/gh/CICE-Consortium/Icepack>`_ by the 
-**report_codecov.csh** script.  The env variable CODECOV_TOKEN needs to be defined
-either in the environment or in a file named **~/.codecov_icepack_token**.  That
-token provides write permission to the Icepack codecov.io site and is available
-by contacting the Consortium team directly.
+invokes the gcov tool.  Once runs are complete, either lcov or codecov can be used
+to analyze the results.
+This option is currently only available with the gnu compiler and on a few systems
+with modified Macros files.
 
-This is a special diagnostic test and does not constitute proper model testing.
-General use is not recommended, this is mainly used as a diagnostic to periodically 
-assess test coverage.  The interaction with codecov.io is not always robust and
-can be tricky to manage.  Some constraints are that the output generated at runtime
-is copied into the directory where compilation took place.  That means each
-test should be compiled separately.  Tests that invoke multiple runs
-(such as exact restart) will only save coverage information
-for the last run, so some coverage information may be lost.  The gcov tool can
-be a little slow to run on large test suites, and the codecov.io bash uploader
-(that runs gcov and uploads the data to codecov.io) is constantly evolving.
-Finally, gcov requires that the diagnostic output be copied into the git sandbox for
-analysis.  These constraints are handled by the current scripts, but may change
-in the future.
+At the present time, the ``--coverage`` flag invokes the lcov analysis automatically
+by running the **report_lcov.csh** script in the test suite directory.  The output 
+will show up at the `CICE-Consortium code coverage website <https://apcraig.github.io>`__.  To
+use the tool, you should have write permission for that repository.  The lcov tool
+should be run on a full multi-suite test suite, and it can 
+take several hours to process the data once the test runs are complete.  A typical
+instantiation would be
+::
 
-A sample job submission would look like ::
+  ./icepack.setup --suite base_suite,travis_suite,quick_suite --mach cheyenne --env gnu --testid cc01 --coverage
 
-$ ./icepack.setup -m conrad -e gnu --suite base_suite,travis_suite,quick_suite --testid cc01 --codecov
+Alternatively, codecov analysis can be carried out by manually running the **report_codecov.csh**
+script from the test suite directory, but there are several ongoing problems with this approach and
+it is not generally recommended.  The codecov
+analysis is largely identical to the analysis performed by lcov, codecov just provides a nicer 
+web experience to view the output.
+
+This is a special diagnostic test and is not part of the standard model testing.
+General use is not recommended, this is mainly used as a diagnostic to periodically
+assess test coverage.  
+
 
 .. _testplotting:
 
