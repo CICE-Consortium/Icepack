@@ -41,6 +41,8 @@
                                Trefn,    Qrefn,      &
                                freshn,   fsaltn,     &
                                fhocnn,   fswthrun,   &
+                               fswthrun_vdr, fswthrun_vdf,&
+                               fswthrun_idr, fswthrun_idf,&
                                strairxT, strairyT,   &  
                                Cdn_atm_ratio,        &
                                fsurf,    fcondtop,   &
@@ -52,6 +54,8 @@
                                Tref,     Qref,       &
                                fresh,    fsalt,      & 
                                fhocn,    fswthru,    &
+                               fswthru_vdr, fswthru_vdf,&
+                               fswthru_idr, fswthru_idf,&
                                melttn, meltsn, meltbn, congeln, snoicen, &
                                meltt,  melts,        &
                                meltb,                &
@@ -84,6 +88,10 @@
           fsaltn  , & ! salt flux to ocean              (kg/m2/s)
           fhocnn  , & ! actual ocn/ice heat flx         (W/m**2)
           fswthrun, & ! sw radiation through ice bot    (W/m**2)
+          fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
+          fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
+          fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
+          fswthrun_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
           melttn  , & ! top ice melt                    (m)
           meltbn  , & ! bottom ice melt                 (m)
           meltsn  , & ! snow melt                       (m)
@@ -119,6 +127,12 @@
           melts   , & ! snow melt                       (m)
           congel  , & ! congelation ice growth          (m)
           snoice      ! snow-ice growth                 (m)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+          fswthru_vdr , & ! vis dir sw radiation through ice bot    (W/m**2)
+          fswthru_vdf , & ! vis dif sw radiation through ice bot    (W/m**2)
+          fswthru_idr , & ! nir dir sw radiation through ice bot    (W/m**2)
+          fswthru_idf     ! nir dif sw radiation through ice bot    (W/m**2)
 
       real (kind=dbl_kind), optional, intent(inout):: &
           Uref        ! air speed reference level       (m/s)
@@ -184,6 +198,14 @@
       fsalt     = fsalt     + fsaltn    * aicen
       fhocn     = fhocn     + fhocnn    * aicen
       fswthru   = fswthru   + fswthrun  * aicen
+      if (present(fswthru_vdr)) &
+         fswthru_vdr   = fswthru_vdr   + fswthrun_vdr  * aicen
+      if (present(fswthru_vdf)) &
+         fswthru_vdf   = fswthru_vdf   + fswthrun_vdf  * aicen
+      if (present(fswthru_idr)) &
+         fswthru_idr   = fswthru_idr   + fswthrun_idr  * aicen
+      if (present(fswthru_idf)) &
+         fswthru_idf   = fswthru_idf   + fswthrun_idf  * aicen
 
       ! ice/snow thickness
 
