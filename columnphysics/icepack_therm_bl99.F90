@@ -18,6 +18,7 @@
 #endif
       use icepack_parameters, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
       use icepack_parameters, only: conduct, calc_Tsfc, solve_zsal
+      use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -201,8 +202,7 @@
          Iswabs_tmp  , & ! energy to melt through fraction frac of layer
          Sswabs_tmp  , & ! same for snow
          dswabs      , & ! difference in swabs and swabs_tmp
-         frac        , & ! fraction of layer that can be melted through
-         dTemp           ! minimum temperature difference for absorption
+         frac         
 
       logical (kind=log_kind) :: &
          converged       ! = true when local solution has converged
@@ -272,26 +272,22 @@
       !-----------------------------------------------------------------
 !mclaren: Should there be an if calc_Tsfc statement here then?? 
 
-#ifdef CESMCOUPLED
-      frac = c1
-      dTemp = p01
-#else
-      frac = 0.9_dbl_kind
-      dTemp = 0.02_dbl_kind
-#endif
-      if (solve_zsal) dTemp = p1  ! lower tolerance with dynamic salinity
+      if (sw_redist) then
+
+      if (solve_zsal) sw_dtemp = p1  ! lower tolerance with dynamic salinity
+
       do k = 1, nilyr
 
          Iswabs_tmp = c0 ! all Iswabs is moved into fswsfc
-         if (Tin_init(k) <= Tmlts(k) - dTemp) then
+         if (Tin_init(k) <= Tmlts(k) - sw_dtemp) then
             if (l_brine) then
                ci = cp_ice - Lfresh * Tmlts(k) / (Tin_init(k)**2)
                Iswabs_tmp = min(Iswabs(k), &
-                                frac*(Tmlts(k)-Tin_init(k))*ci/dt_rhoi_hlyr)
+                                sw_frac*(Tmlts(k)-Tin_init(k))*ci/dt_rhoi_hlyr)
             else
                ci = cp_ice
                Iswabs_tmp = min(Iswabs(k), &
-                                frac*(-Tin_init(k))*ci/dt_rhoi_hlyr)
+                                sw_frac*(-Tin_init(k))*ci/dt_rhoi_hlyr)
             endif
          endif
          if (Iswabs_tmp < puny) Iswabs_tmp = c0
@@ -304,16 +300,13 @@
 
       enddo
 
-#ifdef CESMCOUPLED
-      frac = 0.9_dbl_kind
-#endif
       do k = 1, nslyr
          if (l_snow) then
 
             Sswabs_tmp = c0
-            if (Tsn_init(k) <= -dTemp) then
+            if (Tsn_init(k) <= -sw_dtemp) then
                Sswabs_tmp = min(Sswabs(k), &
-                                -frac*Tsn_init(k)/etas(k))
+                                -sw_frac*Tsn_init(k)/etas(k))
             endif
             if (Sswabs_tmp < puny) Sswabs_tmp = c0
 
@@ -325,6 +318,8 @@
 
          endif
       enddo
+
+      endif
 
       !-----------------------------------------------------------------
       ! Solve for new temperatures.

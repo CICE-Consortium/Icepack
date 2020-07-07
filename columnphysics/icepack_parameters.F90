@@ -355,6 +355,18 @@
          t_sk_conv    = 3.0_dbl_kind    , & ! Stefels conversion time (d)
          t_sk_ox      = 10.0_dbl_kind       ! DMS oxidation time (d)
 
+
+!-----------------------------------------------------------------------
+! Parameters for shortwave redistribution
+!-----------------------------------------------------------------------
+
+      logical (kind=log_kind), public :: &
+         sw_redist     = .false.
+
+      real (kind=dbl_kind), public :: & 
+         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
+
 !=======================================================================
 
       contains
@@ -400,7 +412,8 @@
          op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
          fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
          max_dfe_doc1_in, fr_resp_s_in, conserv_check_in, &
-         y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in)
+         y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
+         sw_redist_in, sw_frac_in, sw_dtemp_in)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -526,6 +539,13 @@
                          ! radius change (C)
          rsnw_mlt_in , & ! maximum melting snow grain radius (10^-6 m)
          kalg_in         ! algae absorption coefficient for 0.5 m thick layer
+
+      logical (kind=log_kind), intent(in), optional :: &
+         sw_redist_in    ! redistribute shortwave
+
+      real (kind=dbl_kind), intent(in), optional :: & 
+         sw_frac_in  , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp_in     ! temperature difference from melting
 
 !-----------------------------------------------------------------------
 ! Parameters for dynamics
@@ -835,6 +855,9 @@
       if (present(t_sk_conv_in)         ) t_sk_conv        = t_sk_conv_in
       if (present(t_sk_ox_in)           ) t_sk_ox          = t_sk_ox_in
       if (present(frazil_scav_in)       ) frazil_scav      = frazil_scav_in
+      if (present(sw_redist_in)         ) sw_redist        = sw_redist_in
+      if (present(sw_frac_in)           ) sw_frac          = sw_frac_in
+      if (present(sw_dtemp_in)          ) sw_dtemp         = sw_dtemp_in
 
       call icepack_recompute_constants()
       if (icepack_warnings_aborted(subname)) return
@@ -887,7 +910,8 @@
          T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
          fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
          k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, &
-         y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out)
+         y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
+         sw_redist_out, sw_frac_out, sw_dtemp_out)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -1022,6 +1046,13 @@
                           ! radius change (C)
          rsnw_mlt_out , & ! maximum melting snow grain radius (10^-6 m)
          kalg_out         ! algae absorption coefficient for 0.5 m thick layer
+
+      logical (kind=log_kind), intent(out), optional :: &
+         sw_redist_out    ! redistribute shortwave
+
+      real (kind=dbl_kind), intent(out), optional :: & 
+         sw_frac_out  , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp_out     ! temperature difference from melting
 
 !-----------------------------------------------------------------------
 ! Parameters for dynamics
@@ -1375,6 +1406,9 @@
       if (present(Lfresh_out)            ) Lfresh_out       = Lfresh
       if (present(cprho_out)             ) cprho_out        = cprho
       if (present(Cp_out)                ) Cp_out           = Cp
+      if (present(sw_redist_out)         ) sw_redist_out    = sw_redist
+      if (present(sw_frac_out)           ) sw_frac_out      = sw_frac
+      if (present(sw_dtemp_out)          ) sw_dtemp_out     = sw_dtemp
 
       call icepack_recompute_constants()
       if (icepack_warnings_aborted(subname)) return
@@ -1547,6 +1581,9 @@
         write(iounit,*) "  t_sk_conv     = ", t_sk_conv
         write(iounit,*) "  t_sk_ox       = ", t_sk_ox
         write(iounit,*) "  frazil_scav   = ", frazil_scav
+        write(iounit,*) "  sw_redist     = ", sw_redist
+        write(iounit,*) "  sw_frac       = ", sw_frac
+        write(iounit,*) "  sw_dtemp      = ", sw_dtemp
 
       end subroutine icepack_write_parameters
 
