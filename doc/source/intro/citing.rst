@@ -9,8 +9,8 @@ Each individual release has its own Digital Object Identifier (DOI),
 e.g. Icepack v1.2.2 has DOI 10.5281/zenodo.3888633. All versions of
 this lineage (e.g. Icepack v1) can be cited by using the DOI
 10.5281/zenodo.1213462 (https://zenodo.org/record/1213462). This DOI
-represents all versions, and will always resolve to the latest one.
-More information can be found by following the DOI links to zenodo.
+represents all v1 releases, and will always resolve to the latest one.
+More information can be found by following the DOI link to zenodo.
 
 
 If you use Icepack, please cite the version number of the code you
