@@ -12,16 +12,15 @@ this lineage (e.g. Icepack v1) can be cited by using the DOI
 represents all v1 releases, and will always resolve to the latest one.
 More information can be found by following the DOI link to zenodo.
 
-
 If you use Icepack, please cite the version number of the code you
 are using or modifying.
 
-If using code from the repository master that includes modifications
+If using code from the CICE-Consortium repository ``master`` branch
+that includes modifications
 that have not yet been released with a version number, then in
 addition to the most recent version number, the hash at time of
-download can be cited, determined by executing the command ‘git log’
-in your clone. The last 7 digits are generally sufficient to identify
-the latest commit.
+download can be cited, determined by executing the command ``git log``
+in your clone.
 
 A hash can also be cited for your own modifications, once they have
 been committed to a repository branch.
