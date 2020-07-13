@@ -5,14 +5,27 @@
 Citing the Icepack code
 =======================
 
-If you use the Icepack code, please cite the version you are using 
-with the Icepack Digital Object Identifier (DOI):
+Each individual release has its own Digital Object Identifier (DOI),
+e.g. Icepack v1.2.2 has DOI 10.5281/zenodo.3888633. All versions of
+this lineage (e.g. Icepack v1) can be cited by using the DOI
+10.5281/zenodo.1213462 (https://zenodo.org/record/1213462). This DOI
+represents all versions, and will always resolve to the latest one.
+More information can be found by following the DOI links to zenodo.
 
-DOI:10.5281/zenodo.1213462 (https://zenodo.org/record/1213462) 
 
-This DOI can be used to cite all Icepack versions and the URL will default to the most recent version. 
-However, each released version of Icepack will also receive its own, unique DOI that can be 
-used for citations as well.
+If you use Icepack, please cite the version number of the code you
+are using or modifying.
 
-Please also make the CICE Consortium aware of any publications and model use.
+If using code from the repository master that includes modifications
+that have not yet been released with a version number, then in
+addition to the most recent version number, the hash at time of
+download can be cited, determined by executing the command ‘git log’
+in your clone. The last 7 digits are generally sufficient to identify
+the latest commit.
+
+A hash can also be cited for your own modifications, once they have
+been committed to a repository branch.
+
+Please also make the CICE Consortium aware of any publications and
+model use.
 
