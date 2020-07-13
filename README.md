@@ -30,7 +30,7 @@ Head over to our [Contribution guide][contributing] to learn more about how you 
 
    Information about the Icepack model
 
-* **Icepack Version Index**: https://github.com/CICE-Consortium/Icepack/wiki/Icepack-Version-Index
+* **Icepack Release Table**: https://github.com/CICE-Consortium/Icepack/wiki/Icepack-Release-Table
 
    Numbered Icepack releases with associated documentation and DOIs. 
    
