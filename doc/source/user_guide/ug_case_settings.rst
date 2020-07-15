@@ -182,6 +182,9 @@ thermo_nml
    "``phi_c_slow_mode``", ":math:`0<\phi_c < 1`", "critical liquid fraction", "0.05"
    "``phi_i_mushy``", ":math:`0<\phi_i < 1`", "solid fraction at lower boundary", "0.85"
    "``Rac_rapid_mode``", "real", "critical Rayleigh number", "10.0"
+   "``sw_redist``", "logical", "shortwave redistribution", ".false."
+   "``sw_frac``", "real", "fraction of shortwave redistribution", "0.9"
+   "``sw_dtemp``", "real", "temperature from melt for sw_redist", "0.02"
    "", "", "", ""
 
 dynamics_nml

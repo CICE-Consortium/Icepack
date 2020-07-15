@@ -50,6 +50,12 @@ the :ref:`thermo-growth` section. We begin by describing the melt ponds and sur
 forcing parameterizations, which are closely related to the ice and snow
 surface temperatures.
 
+Sometimes instabilities can arise when the temperature is close to the melt point in
+the snow and sea ice and there is abundant internal shorwave absorbed. One can choose 
+to "move" the excess internal shortwave in this case up to the top surface to be reabsorbed.
+The namelist parameters for this option are ``sw_redist``, ``sw_frac``, and ``sw_dtemp``.
+By default, ``sw_redist`` is set to ``.false.``
+
 .. _ponds:
 
 Melt ponds
