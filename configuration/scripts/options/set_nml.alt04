@@ -6,6 +6,9 @@
     tr_pond_cesm = .false.
     frzpnd          = 'cesm'
     ktherm            = 1
+    sw_redist         = .true.
+    sw_frac           = 0.9d0
+    sw_dtemp          = 0.02d0
     tfrz_option       = 'linear_salt'
     conduct           = 'bubbly'
     krdg_partic     = 0

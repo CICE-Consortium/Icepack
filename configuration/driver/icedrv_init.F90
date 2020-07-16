@@ -96,6 +96,9 @@
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
          tfrz_option, frzpnd, atmbndy, wave_spec_type
 
+      logical (kind=log_kind) :: sw_redist
+      real (kind=dbl_kind)     :: sw_frac, sw_dtemp
+
       ! Flux convergence tolerance
       real (kind=dbl_kind) :: atmiter_conv
 
@@ -131,7 +134,8 @@
       namelist /thermo_nml/ &
         kitd,           ktherm,          ksno,     conduct,             &
         a_rapid_mode,   Rac_rapid_mode,  aspect_rapid_mode,             &
-        dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy
+        dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy,                   &
+        sw_redist,      sw_frac,         sw_dtemp
 
       namelist /dynamics_nml/ &
         kstrength,      krdg_partic,    krdg_redist,    mu_rdg,         &
@@ -203,7 +207,8 @@
            phi_i_mushy_out=phi_i_mushy, conserv_check_out=conserv_check, &
            tfrz_option_out=tfrz_option, kalg_out=kalg, &
            fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
-           wave_spec_type_out=wave_spec_type)
+           wave_spec_type_out=wave_spec_type, &
+           sw_redist_out=sw_redist, sw_frac_out=sw_frac, sw_dtemp_out=sw_dtemp)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -559,6 +564,9 @@
          write(nu_diag,1005) ' phi_c_slow_mode           = ', phi_c_slow_mode
          write(nu_diag,1005) ' phi_i_mushy               = ', phi_i_mushy
          endif
+         write(nu_diag,1010) ' sw_redist                 = ', sw_redist
+         write(nu_diag,1005) ' sw_frac                   = ', sw_frac
+         write(nu_diag,1005) ' sw_dtemp                  = ', sw_dtemp
 
          write(nu_diag,1030) ' atmbndy                   = ', &
                                trim(atmbndy)
@@ -766,7 +774,8 @@
            phi_i_mushy_in=phi_i_mushy, conserv_check_in=conserv_check, &
            tfrz_option_in=tfrz_option, kalg_in=kalg, &
            fbot_xfer_type_in=fbot_xfer_type, &
-           wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec)
+           wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec, &
+           sw_redist_in=sw_redist, sw_frac_in=sw_frac, sw_dtemp_in=sw_dtemp)
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
            nfsd_in=nfsd, n_iso_in=n_iso, n_aero_in=n_aero)
