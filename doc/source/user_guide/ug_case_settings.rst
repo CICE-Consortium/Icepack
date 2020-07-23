@@ -13,7 +13,7 @@ the first table documents available C Preprocessor Directives.
 
 .. _tabcpps:
 
-Table of CICE C Preprocessor (CPP) Directives
+Table of C Preprocessor (CPP) Directives
 ---------------------------------------------------
 
 The Icepack model supports a few C Preprocessor (CPP) Directives.  These
