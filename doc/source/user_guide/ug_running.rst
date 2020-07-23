@@ -201,6 +201,25 @@ To add some optional settings, one might do::
 
 Once the cases are created, users are free to modify the **icepack.settings** and **icepack_in** namelist to further modify their setup.
 
+
+.. _cicecpps:
+
+C Preprocessing (CPP) Directives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are a few C Preprocessing Directives supported in the Icepack model.  These
+support certain coding features to be excluded or included during the compile.  They
+exist in part to support the CICE model and other applications that use Icepack.
+
+For standalone Icepack, The CPPs are defined by the `CPPDEFS` variable in the Icepack
+Makefile.  They are defined
+by passing the -D[CPP] to the C and Fortran compilers (ie. -DNO_I8) and this
+is what needs to be set in the `CPPDEFS` variable.  The value of `ICE_CPPDEFS` in
+**icepack.settings** is copied into the Makefile `CPPDEFS` variable as are settings
+hardwired into the **Macros.[machine]_[environment]** file.
+
+A list of available CPPs can be found in :ref:`tabcpps`.
+
 .. _version:
 
 Model Version Control
