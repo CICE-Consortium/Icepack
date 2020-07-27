@@ -29,7 +29,6 @@ can be found in :ref:`cicecpps`.  The following CPPs are available.
 
    "",""
    "**General Directives**", ""
-   "NOFRAC", "Overrides return fractionation with value of 1.0 in icepack_isotope.F90"
    "NO_I8", "Converts integer*8 to integer*4."
    "NO_R16", "Converts real*16 to real*8."
    "",""
