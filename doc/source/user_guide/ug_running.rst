@@ -163,7 +163,7 @@ preset setting (option), the set_env.setting and set_nml.setting will be used to
 change the defaults.  This is done as part of the ``icepack.setup`` and the
 modifications are resolved in the **icepack.settings** and **icepack_in** file placed in 
 the case directory.  If multiple options are chosen that conflict, then the last
-option chosen takes precedent.  Not all options are compatible with each other.
+option chosen takes precedence.  Not all options are compatible with each other.
 
 Some of the options are
 
@@ -349,7 +349,7 @@ the **env.[machine]** file.  The easiest way to change a user's default is to
 create a file in your home directory called **.cice\_proj** and add your 
 preferred account name to the first line.  
 There is also an option (``--acct``) in **icepack.setup** to define the account number.  
-The order of precedent is **icepack.setup** command line option, 
+The order of precedence is **icepack.setup** command line option, 
 **.cice\_proj** setting, and then value in the **env.[machine]** file.
 
 .. _queue:
@@ -362,7 +362,7 @@ the **env.[machine]** file.  The easiest way to change a user's default is to
 create a file in your home directory called **.cice\_queue** and add your 
 preferred account name to the first line.  
 There is also an option (``--queue``) in **icepack.setup** to define the queue name on a case basis.
-The order of precedent is **icepack.setup** command line option, 
+The order of precedence is **icepack.setup** command line option, 
 **.cice\_queue** setting, and then value in the **env.[machine]** file.
 
 .. _laptops:
