@@ -1431,6 +1431,9 @@
          ebot_mlt = ebot_mlt - dhs*zqsn(k)
          ebot_mlt = max(ebot_mlt, c0)
 
+         ! Add this to the snow melt (J. Zhu)
+         melts = melts - dhs
+
       enddo                     ! nslyr
 
       !-----------------------------------------------------------------
