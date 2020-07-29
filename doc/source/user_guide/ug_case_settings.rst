@@ -9,30 +9,30 @@ There are two important files that define the case, **icepack.settings** and
 **icepack_in**.  **icepack.settings** is a list of env variables that define many
 values used to setup, build and run the case.  **icepack_in** is the input namelist file
 for the icepack driver.  Variables in both files are described below.  In addition,
-the first table documents available C Preprocessor Directives.
+the first table documents available C Preprocessor Macros.
 
 .. _tabcpps:
 
-Table of C Preprocessor (CPP) Directives
+Table of C Preprocessor (CPP) Macros
 ---------------------------------------------------
 
-The Icepack model supports a few C Preprocessor (CPP) Directives.  These
+The Icepack model supports a few C Preprocessor (CPP) Macros.  These
 can be turned on during compilation to activate different pieces of source
 code.  The main purpose is to introduce build-time code modifications to
 include or exclude certain libraries or Fortran language features, in part to
 support CICE or other applications.  More information
 can be found in :ref:`cicecpps`.  The following CPPs are available.
 
-.. csv-table:: **CPP directives**
+.. csv-table:: **CPP Macros**
    :header: "CPP name", "description"
    :widths: 15, 60
 
    "",""
-   "**General Directives**", ""
+   "**General Macros**", ""
    "NO_I8", "Converts integer*8 to integer*4."
    "NO_R16", "Converts real*16 to real*8."
    "",""
-   "**Application Directives**", ""
+   "**Application Macros**", ""
    "CESMCOUPLED", "Turns on code changes for the CESM coupled application                          "
    "CICE_IN_NEMO", "Turns on code changes for coupling in the NEMO ocean model"
 
