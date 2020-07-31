@@ -207,7 +207,7 @@ Once the cases are created, users are free to modify the **icepack.settings** an
 C Preprocessor (CPP) Macros
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are a few C Preprocessing Macros supported in the Icepack model.  These
+There are a few C Preprocessor Macros supported in the Icepack model.  These
 support certain coding features to be excluded or included during the compile.  They
 exist in part to support the CICE model and other applications that use Icepack.
 
