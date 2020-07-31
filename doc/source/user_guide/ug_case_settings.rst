@@ -29,8 +29,8 @@ can be found in :ref:`cicecpps`.  The following CPPs are available.
 
    "",""
    "**General Macros**", ""
-   "NO_I8", "Converts integer*8 to integer*4."
-   "NO_R16", "Converts real*16 to real*8."
+   "NO_I8", "Converts ``integer*8`` to ``integer*4``."
+   "NO_R16", "Converts ``real*16`` to ``real*8``."
    "",""
    "**Application Macros**", ""
    "CESMCOUPLED", "Turns on code changes for the CESM coupled application                          "
