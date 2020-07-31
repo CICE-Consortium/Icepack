@@ -214,8 +214,8 @@ exist in part to support the CICE model and other applications that use Icepack.
 For standalone Icepack, The CPPs are defined by the `CPPDEFS` variable in the Icepack
 Makefile.  They are defined
 by passing the -D[CPP] to the C and Fortran compilers (ie. -DNO_I8) and this
-is what needs to be set in the `CPPDEFS` variable.  The value of `ICE_CPPDEFS` in
-**icepack.settings** is copied into the Makefile `CPPDEFS` variable as are settings
+is what needs to be set in the ``CPPDEFS`` variable.  The value of ``ICE_CPPDEFS`` in
+**icepack.settings** is copied into the Makefile ``CPPDEFS`` variable as are settings
 hardwired into the **Macros.[machine]_[environment]** file.
 
 A list of available CPPs can be found in :ref:`tabcpps`.
