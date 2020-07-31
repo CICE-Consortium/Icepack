@@ -482,10 +482,6 @@
 
       wiso_alpi = exp(alpai(isp)/tk**2 + alpbi(isp)/tk + alpci(isp))
 
-#ifdef NOFRAC
-      wiso_alpi = c1
-#endif
-!
       return
       end function wiso_alpi
 
