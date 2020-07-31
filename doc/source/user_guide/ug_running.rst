@@ -204,7 +204,7 @@ Once the cases are created, users are free to modify the **icepack.settings** an
 
 .. _cicecpps:
 
-C Preprocessing (CPP) Macros
+C Preprocessor (CPP) Macros
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are a few C Preprocessing Macros supported in the Icepack model.  These
