@@ -163,7 +163,7 @@ preset setting (option), the set_env.setting and set_nml.setting will be used to
 change the defaults.  This is done as part of the ``icepack.setup`` and the
 modifications are resolved in the **icepack.settings** and **icepack_in** file placed in 
 the case directory.  If multiple options are chosen that conflict, then the last
-option chosen takes precedent.  Not all options are compatible with each other.
+option chosen takes precedence.  Not all options are compatible with each other.
 
 Some of the options are
 
@@ -200,6 +200,25 @@ To add some optional settings, one might do::
   icepack.setup --case mycase2 --mach spirit --env intel --set debug,diag1,run1year,pondtopo
 
 Once the cases are created, users are free to modify the **icepack.settings** and **icepack_in** namelist to further modify their setup.
+
+
+.. _cicecpps:
+
+C Preprocessor (CPP) Macros
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are a few C Preprocessor Macros supported in the Icepack model.  These
+support certain coding features to be excluded or included during the compile.  They
+exist in part to support the CICE model and other applications that use Icepack.
+
+For standalone Icepack, The CPPs are defined by the `CPPDEFS` variable in the Icepack
+Makefile.  They are defined
+by passing the -D[CPP] to the C and Fortran compilers (ie. -DNO_I8) and this
+is what needs to be set in the ``CPPDEFS`` variable.  The value of ``ICE_CPPDEFS`` in
+**icepack.settings** is copied into the Makefile ``CPPDEFS`` variable as are settings
+hardwired into the **Macros.[machine]_[environment]** file.
+
+A list of available CPPs can be found in :ref:`tabcpps`.
 
 .. _version:
 
@@ -330,7 +349,7 @@ the **env.[machine]** file.  The easiest way to change a user's default is to
 create a file in your home directory called **.cice\_proj** and add your 
 preferred account name to the first line.  
 There is also an option (``--acct``) in **icepack.setup** to define the account number.  
-The order of precedent is **icepack.setup** command line option, 
+The order of precedence is **icepack.setup** command line option, 
 **.cice\_proj** setting, and then value in the **env.[machine]** file.
 
 .. _queue:
@@ -343,7 +362,7 @@ the **env.[machine]** file.  The easiest way to change a user's default is to
 create a file in your home directory called **.cice\_queue** and add your 
 preferred account name to the first line.  
 There is also an option (``--queue``) in **icepack.setup** to define the queue name on a case basis.
-The order of precedent is **icepack.setup** command line option, 
+The order of precedence is **icepack.setup** command line option, 
 **.cice\_queue** setting, and then value in the **env.[machine]** file.
 
 .. _laptops:
