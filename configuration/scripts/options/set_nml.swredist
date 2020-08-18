@@ -1,0 +1,7 @@
+    tr_pond_lvl  = .true.
+    tr_pond_topo = .false.
+    tr_pond_cesm = .false.
+    ktherm            = 2
+    sw_redist         = .true.
+    sw_frac           = 0.9d0
+    sw_dtemp          = 0.02d0
