@@ -145,6 +145,7 @@
 
       real (kind=dbl_kind) :: &
          slope        , & ! rate of change of dhice with hice
+         denom        , & ! denominator in hbnew calculation
          dh0          , & ! change in ice thickness at h = 0
          da0          , & ! area melting from category 1
          damax        , & ! max allowed reduction in category 1 area
@@ -307,8 +308,8 @@
          if (hicen_init(n)   > puny .and. &
              hicen_init(n+1) > puny) then
              ! interpolate between adjacent category growth rates
-             slope = (dhicen(n+1) - dhicen(n)) / &
-                 (hicen_init(n+1) - hicen_init(n))
+             denom = max(puny,hicen_init(n+1) - hicen_init(n))
+             slope = (dhicen(n+1) - dhicen(n)) / denom
              hbnew(n) = hin_max(n) + dhicen(n) &
                       + slope * (hin_max(n) - hicen_init(n))
          elseif (hicen_init(n) > puny) then ! hicen_init(n+1)=0
