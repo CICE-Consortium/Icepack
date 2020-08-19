@@ -219,6 +219,8 @@ contains
 
     if (sw_redist) then
 
+    dt_rhoi_hlyr = dt / (rhoi*hilyr)
+
     do k = 1, nilyr
 
        Iswabs_tmp = c0 ! all Iswabs is moved into fswsfc
