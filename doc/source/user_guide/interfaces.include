@@ -762,7 +762,8 @@ icepack_init_parameters
            op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
            fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
            max_dfe_doc1_in, fr_resp_s_in, conserv_check_in, &
-           y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in)
+           y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
+           sw_redist_in, sw_frac_in, sw_dtemp_in)
   
         !-----------------------------------------------------------------
         ! parameter constants
@@ -888,6 +889,13 @@ icepack_init_parameters
                            ! radius change (C)
            rsnw_mlt_in , & ! maximum melting snow grain radius (10^-6 m)
            kalg_in         ! algae absorption coefficient for 0.5 m thick layer
+  
+        logical (kind=log_kind), intent(in), optional :: &
+           sw_redist_in    ! redistribute shortwave
+  
+        real (kind=dbl_kind), intent(in), optional :: & 
+           sw_frac_in  , & ! Fraction of internal shortwave moved to surface
+           sw_dtemp_in     ! temperature difference from melting
   
   !-----------------------------------------------------------------------
   ! Parameters for dynamics
@@ -1100,7 +1108,8 @@ icepack_query_parameters
            T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
            fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
            k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, &
-           y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out)
+           y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
+           sw_redist_out, sw_frac_out, sw_dtemp_out)
   
         !-----------------------------------------------------------------
         ! parameter constants
@@ -1235,6 +1244,13 @@ icepack_query_parameters
                             ! radius change (C)
            rsnw_mlt_out , & ! maximum melting snow grain radius (10^-6 m)
            kalg_out         ! algae absorption coefficient for 0.5 m thick layer
+  
+        logical (kind=log_kind), intent(out), optional :: &
+           sw_redist_out    ! redistribute shortwave
+  
+        real (kind=dbl_kind), intent(out), optional :: & 
+           sw_frac_out  , & ! Fraction of internal shortwave moved to surface
+           sw_dtemp_out     ! temperature difference from melting
   
   !-----------------------------------------------------------------------
   ! Parameters for dynamics
@@ -1446,7 +1462,12 @@ icepack_prep_radiation
                                           alidr_ai,    alidf_ai, &
                                           scale_factor,          &
                                           fswsfcn,     fswintn,  &
-                                          fswthrun,    fswpenln, &
+                                          fswthrun,              &
+                                          fswthrun_vdr,          &
+                                          fswthrun_vdf,          &
+                                          fswthrun_idr,          &
+                                          fswthrun_idf,          &
+                                          fswpenln,              &
                                           Sswabsn,     Iswabsn)
   
         integer (kind=int_kind), intent(in) :: &
@@ -1476,6 +1497,12 @@ icepack_prep_radiation
            fswsfcn     , & ! SW absorbed at ice/snow surface (W m-2)
            fswintn     , & ! SW absorbed in ice interior, below surface (W m-2)
            fswthrun        ! SW through ice to ocean (W/m^2)
+  
+        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+           fswthrun_vdr , & ! vis dir SW through ice to ocean (W/m^2)
+           fswthrun_vdf , & ! vis dif SW through ice to ocean (W/m^2)
+           fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
+           fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
            fswpenln    , & ! visible SW entering ice layers (W m-2)
@@ -1527,7 +1554,12 @@ icepack_step_radiation
                                           alvdrn,   alvdfn,    &
                                           alidrn,   alidfn,    &
                                           fswsfcn,  fswintn,   &
-                                          fswthrun, fswpenln,  &
+                                          fswthrun,            &
+                                          fswthrun_vdr,        &
+                                          fswthrun_vdf,        &
+                                          fswthrun_idr,        &
+                                          fswthrun_idf,        &
+                                          fswpenln,            &
                                           Sswabsn,  Iswabsn,   &
                                           albicen,  albsnon,   &
                                           albpndn,  apeffn,    &
@@ -1619,6 +1651,12 @@ icepack_step_radiation
            albsnon   , & ! snow 
            albpndn   , & ! pond 
            apeffn        ! effective pond area used for radiation calculation
+  
+        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+           fswthrun_vdr , & ! vis dir SW through ice to ocean (W/m^2)
+           fswthrun_vdf , & ! vis dif SW through ice to ocean (W/m^2)
+           fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
+           fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
            fswpenln  , & ! visible SW entering ice layers (W m-2)
@@ -1989,7 +2027,12 @@ icepack_step_therm1
                                       fcondtop    , fcondtopn   , &
                                       fcondbot    , fcondbotn   , &
                                       fswsfcn     , fswintn     , &
-                                      fswthrun    , fswabs      , &
+                                      fswthrun    ,               & 
+                                      fswthrun_vdr,               & 
+                                      fswthrun_vdf,               & 
+                                      fswthrun_idr,               & 
+                                      fswthrun_idf,               & 
+                                      fswabs      ,               &
                                       flwout      ,               &
                                       Sswabsn     , Iswabsn     , &
                                       flw         , & 
@@ -1998,7 +2041,12 @@ icepack_step_therm1
                                       evap        ,               &
                                       evaps       , evapi       , &
                                       fresh       , fsalt       , &
-                                      fhocn       , fswthru     , &
+                                      fhocn       ,               &
+                                      fswthru     ,               &
+                                      fswthru_vdr ,               &
+                                      fswthru_vdf ,               &
+                                      fswthru_idr ,               &
+                                      fswthru_idf ,               &
                                       flatn_f     , fsensn_f    , &
                                       fsurfn_f    , fcondtopn_f , &
                                       faero_atm   , faero_ocn   , &
@@ -2109,6 +2157,12 @@ icepack_step_therm1
            mlt_onset   , & ! day of year that sfc melting begins
            frz_onset       ! day of year that freezing begins (congel or frazil)
   
+        real (kind=dbl_kind), intent(inout), optional :: &
+           fswthru_vdr  , & ! vis dir shortwave penetrating to ocean (W/m^2)
+           fswthru_vdf  , & ! vis dif shortwave penetrating to ocean (W/m^2)
+           fswthru_idr  , & ! nir dir shortwave penetrating to ocean (W/m^2)
+           fswthru_idf      ! nir dif shortwave penetrating to ocean (W/m^2)
+  
         real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
            Qa_iso      , & ! isotope specific humidity (kg/kg)
            Qref_iso    , & ! isotope 2m atm reference spec humidity (kg/kg)
@@ -2158,6 +2212,12 @@ icepack_step_therm1
            congeln     , & ! congelation ice growth          (m)
            snoicen     , & ! snow-ice growth                 (m)
            dsnown          ! change in snow thickness (m/step-->cm/day)
+  
+        real (kind=dbl_kind), optional, dimension(:), intent(inout) :: &
+           fswthrun_vdr , & ! vis dir SW through ice to ocean            (W/m^2)
+           fswthrun_vdf , & ! vis dif SW through ice to ocean            (W/m^2)
+           fswthrun_idr , & ! nir dir SW through ice to ocean            (W/m^2)
+           fswthrun_idf     ! nir dif SW through ice to ocean            (W/m^2)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
            zqsn        , & ! snow layer enthalpy (J m-3)
