@@ -48,6 +48,7 @@
                   + TRFY        & ! first-year area
                   + TRLVL*2     & ! level/deformed ice
                   + TRPND*3     & ! ponds
+                  + TRSNOW*4    & ! snow
                   + n_iso*2     & ! number of isotopes (in ice and snow)
                   + n_aero*4    & ! number of aerosols * 4 aero layers
                   + TRBRI       & ! brine height 

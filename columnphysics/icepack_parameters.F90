@@ -309,6 +309,24 @@
          hp1       = 0.01_dbl_kind    ! critical pond lid thickness for topo ponds
 
 !-----------------------------------------------------------------------
+! Parameters for snow redistribution, metamorphosis
+!-----------------------------------------------------------------------
+
+      character (len=char_len), public :: &
+         snwredist  = 'none'             ! type of snow redistribution
+
+      logical (kind=log_kind), public :: &
+         use_smliq_pnd = .false.         ! use liquid in snow for ponds
+
+      real (kind=dbl_kind), public :: &
+         rsnw_fall  = 54.526_dbl_kind, & ! radius of new snow (10^-6 m)
+         rsnw_tmax  = 1500.0_dbl_kind, & ! maximum snow radius (10^-6 m)
+         rhosnew    =  100.0_dbl_kind, & ! new snow density (kg/m^3)
+         rhosmax    =  450.0_dbl_kind, & ! maximum snow density (kg/m^3)
+         windmin    =   10.0_dbl_kind, & ! minimum wind speed to compact snow (m/s)
+         drhosdwind =   27.3_dbl_kind    ! wind compaction factor (kg s/m^4)
+
+!-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
@@ -413,7 +431,9 @@
          fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
          max_dfe_doc1_in, fr_resp_s_in, conserv_check_in, &
          y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
-         sw_redist_in, sw_frac_in, sw_dtemp_in)
+         sw_redist_in, sw_frac_in, sw_dtemp_in, &
+         snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
+         rhosnew_in, rhosmax_in, windmin_in, drhosdwind_in)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -707,6 +727,24 @@
       real (kind=dbl_kind), intent(in), optional :: &
          hp1_in             ! critical parameter for pond ice thickness
 
+!-----------------------------------------------------------------------
+! Parameters for snow redistribution, metamorphosis
+!-----------------------------------------------------------------------
+
+      character (len=char_len), intent(in), optional :: &
+         snwredist_in       ! type of snow redistribution
+
+      logical (kind=log_kind), intent(in), optional :: &
+         use_smliq_pnd_in   ! use liquid in snow for ponds
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         rsnw_fall_in, &    ! radius of new snow (10^-6 m)
+         rsnw_tmax_in, &    ! maximum snow radius (10^-6 m)
+         rhosnew_in, &      ! new snow density (kg/m^3)
+         rhosmax_in, &      ! maximum snow density (kg/m^3)
+         windmin_in, &      ! minimum wind speed to compact snow (m/s)
+         drhosdwind_in      ! wind compaction factor (kg s/m^4)
+
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_init_parameters)'
@@ -820,6 +858,14 @@
       if (present(pndaspect_in)         ) pndaspect        = pndaspect_in
       if (present(hs1_in)               ) hs1              = hs1_in
       if (present(hp1_in)               ) hp1              = hp1_in
+      if (present(snwredist_in)         ) snwredist        = snwredist_in
+      if (present(use_smliq_pnd_in)     ) use_smliq_pnd    = use_smliq_pnd_in
+      if (present(rsnw_fall_in)         ) rsnw_fall        = rsnw_fall_in
+      if (present(rsnw_tmax_in)         ) rsnw_tmax        = rsnw_tmax_in
+      if (present(rhosnew_in)           ) rhosnew          = rhosnew_in
+      if (present(rhosmax_in)           ) rhosmax          = rhosmax_in
+      if (present(windmin_in)           ) windmin          = windmin_in
+      if (present(drhosdwind_in)        ) drhosdwind       = drhosdwind_in
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
       if (present(z_tracers_in)         ) z_tracers        = z_tracers_in
       if (present(scale_bgc_in)         ) scale_bgc        = scale_bgc_in
@@ -911,7 +957,9 @@
          fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
          k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, &
          y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
-         sw_redist_out, sw_frac_out, sw_dtemp_out)
+         sw_redist_out, sw_frac_out, sw_dtemp_out, &
+         snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
+         rhosnew_out, rhosmax_out, windmin_out, drhosdwind_out)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -1214,6 +1262,24 @@
       real (kind=dbl_kind), intent(out), optional :: &
          hp1_out             ! critical parameter for pond ice thickness
 
+!-----------------------------------------------------------------------
+! Parameters for snow redistribution, metamorphosis
+!-----------------------------------------------------------------------
+
+      character (len=char_len), intent(out), optional :: &
+         snwredist_out       ! type of snow redistribution
+
+      logical (kind=log_kind), intent(out), optional :: &
+         use_smliq_pnd_out  ! use liquid in snow for ponds
+
+      real (kind=dbl_kind), intent(out), optional :: &
+         rsnw_fall_out, &    ! radius of new snow (10^-6 m)
+         rsnw_tmax_out, &    ! maximum snow radius (10^-6 m)
+         rhosnew_out, &      ! new snow density (kg/m^3)
+         rhosmax_out, &      ! maximum snow density (kg/m^3)
+         windmin_out, &      ! minimum wind speed to compact snow (m/s)
+         drhosdwind_out      ! wind compaction factor (kg s/m^4)
+
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_query_parameters)'
@@ -1368,6 +1434,14 @@
       if (present(pndaspect_out)         ) pndaspect_out    = pndaspect
       if (present(hs1_out)               ) hs1_out          = hs1
       if (present(hp1_out)               ) hp1_out          = hp1
+      if (present(snwredist_out)         ) snwredist_out    = snwredist
+      if (present(use_smliq_pnd_out)     ) use_smliq_pnd_out= use_smliq_pnd
+      if (present(rsnw_fall_out)         ) rsnw_fall_out    = rsnw_fall
+      if (present(rsnw_tmax_out)         ) rsnw_tmax_out    = rsnw_tmax
+      if (present(rhosnew_out)           ) rhosnew_out      = rhosnew
+      if (present(rhosmax_out)           ) rhosmax_out      = rhosmax
+      if (present(windmin_out)           ) windmin_out      = windmin
+      if (present(drhosdwind_out)        ) drhosdwind_out   = drhosdwind
       if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
       if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
       if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
@@ -1546,6 +1620,14 @@
         write(iounit,*) "  pndaspect     = ", pndaspect
         write(iounit,*) "  hs1           = ", hs1
         write(iounit,*) "  hp1           = ", hp1
+        write(iounit,*) "  snwredist     = ", snwredist
+        write(iounit,*) "  use_smliq_pnd = ", use_smliq_pnd
+        write(iounit,*) "  rsnw_fall     = ", rsnw_fall
+        write(iounit,*) "  rsnw_tmax     = ", rsnw_tmax
+        write(iounit,*) "  rhosnew       = ", rhosnew
+        write(iounit,*) "  rhosmax       = ", rhosmax
+        write(iounit,*) "  windmin       = ", windmin
+        write(iounit,*) "  drhosdwind    = ", drhosdwind
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
         write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc

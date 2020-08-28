@@ -49,6 +49,7 @@ setenv TRAGE     1         # set to 1 for ice age tracer
 setenv TRFY      1         # set to 1 for first-year ice area tracer
 setenv TRLVL     1         # set to 1 for level and deformed ice tracers
 setenv TRPND     1         # set to 1 for melt pond tracers
+setenv TRSNOW    1         # set to 1 for snow metamorphism tracers
 setenv NTRAERO   1         # number of aerosol tracers 
                            # (up to max_aero in ice_domain_size.F90) 
                            # CESM uses 3 aerosol tracers
