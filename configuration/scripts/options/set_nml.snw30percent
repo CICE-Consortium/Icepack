@@ -1,2 +1,5 @@
-snwredist  = '30percentsw'
+tr_snow = .true.
+snwredist  = 'bulk'
+snwlvlfac  = 0.3
+
 

@@ -89,8 +89,8 @@
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity, &
-         rsnw_fall, rsnw_tmax, rhosnew, rhosmax, &
-         windmin, drhosdwind
+         rsnw_fall, rsnw_tmax, rhosnew, rhosmin, rhosmax, &
+         windmin, drhosdwind, snwlvlfac
 
       integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, &
          natmiter, kitd, kcatbound
@@ -157,7 +157,8 @@
 
       namelist /snow_nml/ &
         snwredist,      use_smliq_pnd,  rsnw_fall,     rsnw_tmax,      &
-        rhosnew,        rhosmax,         windmin,       drhosdwind
+        rhosnew,        rhosmin,        rhosmax,       snwlvlfac,      &
+        windmin,        drhosdwind
 
       namelist /forcing_nml/ &
         atmbndy,         calc_strair,     calc_Tsfc,       &
@@ -219,8 +220,8 @@
            sw_redist_out=sw_redist, sw_frac_out=sw_frac, sw_dtemp_out=sw_dtemp, &
            snwredist_out=snwredist, use_smliq_pnd_out=use_smliq_pnd, &
            rsnw_fall_out=rsnw_fall, rsnw_tmax_out=rsnw_tmax, &
-           rhosnew_out=rhosnew, rhosmax_out=rhosmax, &
-           windmin_out=windmin, drhosdwind_out=drhosdwind)
+           rhosnew_out=rhosnew, rhosmin_out = rhosmin, rhosmax_out=rhosmax, &
+           windmin_out=windmin, drhosdwind_out=drhosdwind, snwlvlfac_out=snwlvlfac)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -600,9 +601,11 @@
          write(nu_diag,1000) ' rsnw_fall                 = ', rsnw_fall
          write(nu_diag,1000) ' rsnw_tmax                 = ', rsnw_tmax
          write(nu_diag,1000) ' rhosnew                   = ', rhosnew
+         write(nu_diag,1000) ' rhosmin                   = ', rhosmin
          write(nu_diag,1000) ' rhosmax                   = ', rhosmax
          write(nu_diag,1000) ' windmin                   = ', windmin
          write(nu_diag,1000) ' drhosdwind                = ', drhosdwind
+         write(nu_diag,1000) ' snwlvlfac                 = ', snwlvlfac
          endif
 
          write(nu_diag,1020) ' ktherm                    = ', ktherm
@@ -843,8 +846,8 @@
            sw_redist_in=sw_redist, sw_frac_in=sw_frac, sw_dtemp_in=sw_dtemp, &
            snwredist_in=snwredist, use_smliq_pnd_in=use_smliq_pnd, &
            rsnw_fall_in=rsnw_fall, rsnw_tmax_in=rsnw_tmax, &
-           rhosnew_in=rhosnew, rhosmax_in=rhosmax, &
-           windmin_in=windmin, drhosdwind_in=drhosdwind)
+           rhosnew_in=rhosnew, rhosmin_in=rhosmin, rhosmax_in=rhosmax, &
+           windmin_in=windmin, drhosdwind_in=drhosdwind, snwlvlfac_in=snwlvlfac)
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
            nfsd_in=nfsd, n_iso_in=n_iso, n_aero_in=n_aero)

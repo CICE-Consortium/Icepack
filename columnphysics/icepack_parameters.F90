@@ -322,9 +322,12 @@
          rsnw_fall  = 54.526_dbl_kind, & ! radius of new snow (10^-6 m)
          rsnw_tmax  = 1500.0_dbl_kind, & ! maximum snow radius (10^-6 m)
          rhosnew    =  100.0_dbl_kind, & ! new snow density (kg/m^3)
+         rhosmin    =  100.0_dbl_kind, & ! minimum snow density (kg/m^3)
          rhosmax    =  450.0_dbl_kind, & ! maximum snow density (kg/m^3)
          windmin    =   10.0_dbl_kind, & ! minimum wind speed to compact snow (m/s)
-         drhosdwind =   27.3_dbl_kind    ! wind compaction factor (kg s/m^4)
+         drhosdwind =   27.3_dbl_kind, & ! wind compaction factor for snow (kg s/m^4)
+         snwlvlfac  =    0.3_dbl_kind    ! fractional increase in snow
+                                         ! depth for bulk redistribution
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
@@ -433,7 +436,8 @@
          y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
          sw_redist_in, sw_frac_in, sw_dtemp_in, &
          snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
-         rhosnew_in, rhosmax_in, windmin_in, drhosdwind_in)
+         rhosnew_in, rhosmin_in, rhosmax_in, windmin_in, drhosdwind_in, &
+         snwlvlfac_in)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -741,9 +745,11 @@
          rsnw_fall_in, &    ! radius of new snow (10^-6 m)
          rsnw_tmax_in, &    ! maximum snow radius (10^-6 m)
          rhosnew_in, &      ! new snow density (kg/m^3)
+         rhosmin_in, &      ! minimum snow density (kg/m^3)
          rhosmax_in, &      ! maximum snow density (kg/m^3)
          windmin_in, &      ! minimum wind speed to compact snow (m/s)
-         drhosdwind_in      ! wind compaction factor (kg s/m^4)
+         drhosdwind_in, &   ! wind compaction factor (kg s/m^4)
+         snwlvlfac_in       ! fractional increase in snow depth
 
 !autodocument_end
 
@@ -863,9 +869,11 @@
       if (present(rsnw_fall_in)         ) rsnw_fall        = rsnw_fall_in
       if (present(rsnw_tmax_in)         ) rsnw_tmax        = rsnw_tmax_in
       if (present(rhosnew_in)           ) rhosnew          = rhosnew_in
+      if (present(rhosmin_in)           ) rhosmin          = rhosmin_in
       if (present(rhosmax_in)           ) rhosmax          = rhosmax_in
       if (present(windmin_in)           ) windmin          = windmin_in
       if (present(drhosdwind_in)        ) drhosdwind       = drhosdwind_in
+      if (present(snwlvlfac_in)         ) snwlvlfac        = snwlvlfac_in
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
       if (present(z_tracers_in)         ) z_tracers        = z_tracers_in
       if (present(scale_bgc_in)         ) scale_bgc        = scale_bgc_in
@@ -959,7 +967,8 @@
          y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
          sw_redist_out, sw_frac_out, sw_dtemp_out, &
          snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
-         rhosnew_out, rhosmax_out, windmin_out, drhosdwind_out)
+         rhosnew_out, rhosmin_out, rhosmax_out, windmin_out, drhosdwind_out, &
+         snwlvlfac_out)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -1276,10 +1285,11 @@
          rsnw_fall_out, &    ! radius of new snow (10^-6 m)
          rsnw_tmax_out, &    ! maximum snow radius (10^-6 m)
          rhosnew_out, &      ! new snow density (kg/m^3)
+         rhosmin_out, &      ! minimum snow density (kg/m^3)
          rhosmax_out, &      ! maximum snow density (kg/m^3)
          windmin_out, &      ! minimum wind speed to compact snow (m/s)
-         drhosdwind_out      ! wind compaction factor (kg s/m^4)
-
+         drhosdwind_out, &   ! wind compaction factor (kg s/m^4)
+         snwlvlfac_out       ! fractional increase in snow depth
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_query_parameters)'
@@ -1439,9 +1449,11 @@
       if (present(rsnw_fall_out)         ) rsnw_fall_out    = rsnw_fall
       if (present(rsnw_tmax_out)         ) rsnw_tmax_out    = rsnw_tmax
       if (present(rhosnew_out)           ) rhosnew_out      = rhosnew
+      if (present(rhosmin_out)           ) rhosmin_out      = rhosmin
       if (present(rhosmax_out)           ) rhosmax_out      = rhosmax
       if (present(windmin_out)           ) windmin_out      = windmin
       if (present(drhosdwind_out)        ) drhosdwind_out   = drhosdwind
+      if (present(snwlvlfac_out)         ) snwlvlfac_out    = snwlvlfac
       if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
       if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
       if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
@@ -1625,9 +1637,11 @@
         write(iounit,*) "  rsnw_fall     = ", rsnw_fall
         write(iounit,*) "  rsnw_tmax     = ", rsnw_tmax
         write(iounit,*) "  rhosnew       = ", rhosnew
+        write(iounit,*) "  rhosmin       = ", rhosmin
         write(iounit,*) "  rhosmax       = ", rhosmax
         write(iounit,*) "  windmin       = ", windmin
         write(iounit,*) "  drhosdwind    = ", drhosdwind
+        write(iounit,*) "  snwlvlfac     = ", snwlvlfac
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
         write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc
