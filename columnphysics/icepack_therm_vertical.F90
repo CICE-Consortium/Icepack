@@ -61,7 +61,8 @@
       private
       public :: frzmlt_bottom_lateral, &
                 thermo_vertical, &
-                icepack_step_therm1
+                icepack_step_therm1, &
+                adjust_enthalpy
 
 !=======================================================================
 
