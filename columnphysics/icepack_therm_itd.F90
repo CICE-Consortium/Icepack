@@ -305,11 +305,24 @@
 
          if (hicen_init(n)   > puny .and. &
              hicen_init(n+1) > puny) then
-             ! interpolate between adjacent category growth rates
-             slope = (dhicen(n+1) - dhicen(n)) / &
+
+            if (hicen_init(n+1) - hicen_init(n))>0
+
+              ! interpolate between adjacent category growth rates
+              slope = (dhicen(n+1) - dhicen(n)) / &
                  (hicen_init(n+1) - hicen_init(n))
-             hbnew(n) = hin_max(n) + dhicen(n) &
+              hbnew(n) = hin_max(n) + dhicen(n) &
                       + slope * (hin_max(n) - hicen_init(n))
+
+            else
+
+              write(warnstr,*) subname,...
+                 'ITD Thermodynamics: hicen_init(n+1) <= hicen_init(n)'
+              call icepack_warnings_setabort(.true.)
+              call icepack_warnings_add(warnstr)
+
+            endif
+
          elseif (hicen_init(n) > puny) then ! hicen_init(n+1)=0
              hbnew(n) = hin_max(n) + dhicen(n)
          elseif (hicen_init(n+1) > puny) then ! hicen_init(n)=0
