@@ -8,7 +8,7 @@
 
       use icepack_kinds
 
-      use icepack_parameters, only: c0, c1, c2, c4, p5, pi
+      use icepack_parameters, only: c0, c1, c2, c4, p5, pi, puny
       use icepack_parameters, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
       use icepack_parameters, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
       use icepack_parameters, only: saltmax, min_salin, depressT
@@ -35,7 +35,8 @@
                 icepack_snow_temperature, &
                 icepack_liquidus_temperature, &
                 icepack_sea_freezing_temperature, &
-                icepack_enthalpy_snow
+                icepack_enthalpy_snow, &
+                adjust_enthalpy
 
       real (kind=dbl_kind), parameter, public :: &
          ferrmax = 1.0e-3_dbl_kind    ! max allowed energy flux error (W m-2)
@@ -475,6 +476,89 @@
         qsn = enthalpy_snow(zTsn)
 
       end function icepack_enthalpy_snow
+
+!=======================================================================
+!
+! Conserving energy, compute the new enthalpy of equal-thickness ice
+! or snow layers.
+!
+! authors William H. Lipscomb, LANL
+!         C. M. Bitz, UW
+
+      subroutine adjust_enthalpy (nlyr,               &
+                                  z1,       z2,       &
+                                  hlyr,     hn,       &
+                                  qn)
+
+      integer (kind=int_kind), intent(in) :: &
+         nlyr            ! number of layers (nilyr or nslyr)
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         z1          , & ! interface depth for old, unequal layers (m)
+         z2              ! interface depth for new, equal layers (m)
+
+      real (kind=dbl_kind), intent(in) :: &
+         hlyr            ! new layer thickness (m)
+
+      real (kind=dbl_kind), intent(in) :: &
+         hn              ! total thickness (m)
+
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+         qn              ! layer quantity (enthalpy, salinity...)
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         k, k1, k2       ! vertical indices
+
+      real (kind=dbl_kind) :: &
+         hovlp           ! overlap between old and new layers (m)
+
+      real (kind=dbl_kind) :: &
+         rhlyr           ! 1./hlyr
+
+      real (kind=dbl_kind), dimension (nlyr) :: &
+         hq              ! h * q for a layer
+
+      character(len=*),parameter :: subname='(adjust_enthalpy)'
+
+      !-----------------------------------------------------------------
+      ! Compute reciprocal layer thickness.
+      !-----------------------------------------------------------------
+
+      rhlyr = c0
+      if (hn > puny) rhlyr = c1 / hlyr
+
+      !-----------------------------------------------------------------
+      ! Compute h*q for new layers (k2) given overlap with old layers (k1)
+      !-----------------------------------------------------------------
+
+      do k2 = 1, nlyr
+         hq(k2) = c0
+      enddo                     ! k
+      k1 = 1
+      k2 = 1
+      do while (k1 <= nlyr .and. k2 <= nlyr)
+         hovlp = min (z1(k1+1), z2(k2+1)) &
+               - max (z1(k1),   z2(k2))
+         hovlp = max (hovlp, c0)
+         hq(k2) = hq(k2) + hovlp*qn(k1)
+         if (z1(k1+1) > z2(k2+1)) then
+            k2 = k2 + 1
+         else
+            k1 = k1 + 1
+         endif
+      enddo                  ! while
+
+      !-----------------------------------------------------------------
+      ! Compute new enthalpies.
+      !-----------------------------------------------------------------
+
+      do k = 1, nlyr
+         qn(k) = hq(k) * rhlyr
+      enddo                     ! k
+
+      end subroutine adjust_enthalpy
 
 !=======================================================================
 

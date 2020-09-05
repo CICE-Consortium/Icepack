@@ -9,27 +9,175 @@
 
       use icepack_kinds
       use icepack_parameters, only: puny, p1, p5, c0, c1, c4, c10, c100, pi
-      use icepack_parameters, only: rhos, rhow, rhoi, rhofresh, rhosmin
+      use icepack_parameters, only: rhos, rhow, rhoi, rhofresh
       use icepack_parameters, only: snwlvlfac, Tffresh, cp_ice, Lfresh
+      use icepack_parameters, only: snwredist, rsnw_fall, rsnw_tmax, rhosnew
+      use icepack_parameters, only: rhosmin, rhosmax, windmin, drhosdwind
+      use icepack_parameters, only: isnw_T, isnw_Tgrd, isnw_rhos
+      use icepack_parameters, only: snowage_tau, snowage_kappa, snowage_drdt0
 
       use icepack_warnings, only: icepack_warnings_add, icepack_warnings_setabort
 
       implicit none
       private
 
-!      public :: snow_effective_density, update_snow_radius, snow_redist, &
-!                drain_snow
+      public :: drain_snow
 
       real (kind=dbl_kind), parameter, public :: &
          S_r  = 0.033_dbl_kind, & ! irreducible saturation (Anderson 1976)
          S_wet= 0.422_dbl_kind  ! (um^3/s) wet metamorphism parameters
 
-!      character(len=5), parameter, public ::    &
-!         snwredist = 'ITDrdg'   ! 
-
 !=======================================================================
 
       contains
+
+!=======================================================================
+!
+! Updates snow tracers
+!
+! authors: Elizabeth C. Hunke, LANL
+!          Nicole Jeffery, LANL
+
+      subroutine icepack_step_snow(dt,        wind,     &
+                                   nilyr,               &
+                                   nslyr,     ncat,     &
+                                   aice,      aicen,    &
+                                   vicen,     vsnon,    &
+                                   alvl,      vlvl,     &
+                                   smice,     smliq,    &
+                                   rhos_effn, rhos_eff, &
+                                   rhos_cmpn, rhos_cmp, &
+                                   rsnw,      zTin1,    &
+                                   Tsfc,      zqsn,     &
+                                   fresh,     fhocn,    &
+                                   fsloss,    fsnow)
+
+      integer (kind=int_kind), intent(in) :: &
+         nslyr, & ! number of snow layers
+         nilyr, & ! number of ice  layers
+         ncat     ! number of thickness categories
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt     , & ! time step
+         wind   , & ! wind speed (m/s)
+         fsnow  , & ! snowfall rate (kg m-2 s-1)
+         aice       ! ice area fraction
+
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         aicen, & ! ice area fraction
+         vicen, & ! ice volume (m)
+         Tsfc , & ! surface temperature (C)
+         zTin1, & ! ice upper layer temperature
+         alvl,  & ! level ice area tracer
+         vlvl     ! level ice volume tracer
+
+      real (kind=dbl_kind), intent(inout) :: &
+         fresh    , & ! fresh water flux to ocean (kg/m^2/s)
+         fhocn    , & ! net heat flux to ocean (W/m^2)
+         fsloss       ! snow loss to leads (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         vsnon    ! snow volume (m)
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+         zqsn     , & ! snow enthalpy (J/m^3)
+         smice    , & ! mass of ice in snow (kg/m^3)
+         smliq    , & ! mass of liquid in snow (kg/m^3)
+         rsnw     , & ! snow grain radius (10^-6 m)
+         rhos_effn, & ! effective snow density: content (kg/m^3)
+         rhos_cmpn    ! effective snow density: compaction (kg/m^3)
+
+      real (kind=dbl_kind), intent(inout) :: &
+         rhos_eff , & ! mean effective snow density: content (kg/m^3)
+         rhos_cmp     ! mean effective snow density: compaction (kg/m^3)
+
+      ! local temporary variables
+
+      integer (kind=int_kind) :: n
+
+      real (kind=dbl_kind), dimension(ncat) :: &
+         zTin,  & ! ice upper layer temperature (oC)
+         hsn ,  & ! snow thickness (m)
+         hin      ! ice thickness
+
+      real (kind=dbl_kind) :: &
+         vsno,  & ! snow volume (m)
+         tmp1, tmp2
+
+      character (len=*),parameter :: subname='(icepack_step_snow)'
+
+      !-----------------------------------------------------------------
+      ! Compute effective density of snow
+      !-----------------------------------------------------------------
+
+      vsno = c0
+      do n = 1, ncat
+         vsno = vsno + vsnon(n)
+      enddo
+
+      call snow_effective_density(nslyr,     ncat,     &
+                                  vsnon,     vsno,     &
+                                  smice,     smliq,    &
+                                  rhos_effn, rhos_eff, &
+                                  rhos_cmpn, rhos_cmp)
+
+      !-----------------------------------------------------------------
+      ! Redistribute snow based on wind
+      !-----------------------------------------------------------------
+
+      tmp1 = rhos*vsno + fresh*dt
+
+      if (snwredist(1:3) == 'ITD' .and. aice > puny) then
+         call snow_redist(dt,                  &
+                          nslyr,    ncat,      &
+                          wind,     aicen(:),  &
+                          vicen(:), vsnon(:),  &
+                          zqsn(:,:),           &
+                          alvl(:),  vlvl(:),   &
+                          fresh,    fhocn,     &
+                          fsloss,   rhos_cmpn, &
+                          fsnow)
+      endif
+
+      vsno = c0
+      do n = 1, ncat
+         vsno = vsno + vsnon(n)
+      enddo
+      tmp2 = rhos*vsno + fresh*dt
+
+      ! check conservation
+!      if (abs(tmp1-tmp2)>puny) then
+!        write(warning,*) ' '
+!        call add_warning(warning)
+!        write(warning,*)'tmp1 ne tmp2',tmp1, tmp2
+!        call add_warning(warning)
+!        stop_label ='snow redistribution error'
+!        l_stop = .true.
+!      endif
+
+      !-----------------------------------------------------------------
+      ! Adjust snow grain radius
+      !-----------------------------------------------------------------
+
+      do n = 1, ncat
+         zTin(n)= c0
+         hsn(n) = c0
+         hin(n) = c0
+         if (aicen(n) > puny) then
+!ech move up              zTin(n)  = colpkg_ice_temperature(zqin1(n),zSin1(n))
+             hsn(n)   = vsnon(n)/aicen(n)
+             hin(n)   = vicen(n)/aicen(n)
+         endif
+      enddo
+
+      call update_snow_radius (dt,         ncat,  &
+                               nslyr,      nilyr, &
+                               rsnw,       hin,   &
+                               Tsfc,       zTin,  &
+                               hsn,        zqsn,  &
+                               smice,      smliq)
+
+      end subroutine icepack_step_snow
 
 !=======================================================================
 
@@ -38,7 +186,6 @@
       subroutine snow_effective_density(nslyr,     ncat,     &
                                         vsnon,     vsno,     &
                                         smice,     smliq,    &
-                                        rhosnew,             &
                                         rhos_effn, rhos_eff, &
                                         rhos_cmpn, rhos_cmp)
 
@@ -50,8 +197,7 @@
          vsnon    ! snow volume (m)
 
       real (kind=dbl_kind), intent(in) :: &
-         vsno , & ! total snow volume (m)
-         rhosnew  ! new snow density (kg/m^3)
+         vsno     ! total snow volume (m)
 
       real (kind=dbl_kind), dimension(:,:), &
          intent(inout) :: &
@@ -125,10 +271,9 @@
 ! thickness does not
 
       subroutine snow_redist(dt, nslyr, ncat, wind, ain, vin, vsn, zqsn, &
-         snwredist, alvl, vlvl, fresh, fhocn, fsloss, rhos_cmpn, &
-         fsnow, rhosmax, windmin, drhosdwind)
+         alvl, vlvl, fresh, fhocn, fsloss, rhos_cmpn, fsnow)
 
-      use icepack_therm_vertical, only: adjust_enthalpy
+      use icepack_therm_shared, only: adjust_enthalpy
 
       integer (kind=int_kind), intent(in) :: &
          nslyr     , & ! number of snow layers
@@ -137,10 +282,7 @@
       real (kind=dbl_kind), intent(in) :: &
          dt        , & ! time step (s)
          wind      , & ! wind speed (m/s)
-         fsnow     , & ! snowfall rate (kg m-2 s-1)
-         rhosmax   , & ! maximum snow density (kg/m^3)
-         windmin   , & ! minimum wind speed to compact snow (m/s)
-         drhosdwind    ! wind compaction factor (kg s/m^4)
+         fsnow         ! snowfall rate (kg m-2 s-1)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          ain       , & ! ice area fraction
@@ -159,9 +301,6 @@
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn      , & ! snow enthalpy (J/m^3)
          rhos_cmpn     ! effective snow density: compaction (kg/m^3)
-
-      character(len=char_len), intent(in) :: &
-         snwredist                ! type of snow redistribution
 
       ! local variables
 
@@ -555,26 +694,15 @@
 
 !=======================================================================
 
-!  Snow grain metamorphism driver
+!  Snow grain metamorphism
 
       subroutine update_snow_radius (dt, ncat, nslyr, nilyr, rsnw, hin, &
-                                     Tsfc, zTin,  &
-                                     hsn, zqsn, smice, smliq, &
-                                     rsnw_fall, rsnw_tmax, &
-                                     snowage_tau, &
-                                     snowage_kappa, &
-                                     snowage_drdt0, &
-                                     idx_T_max, &
-                                     idx_Tgrd_max, &
-                                     idx_rhos_max)
+                                     Tsfc, zTin, hsn, zqsn, smice, smliq)
 
       integer (kind=int_kind), intent(in) :: &
          ncat,   & ! number of categories
          nslyr,  & ! number of snow layers
-         nilyr, &  ! number of ice layers
-         idx_T_max, & ! dimensions of snow parameter matrix
-         idx_Tgrd_max, &
-         idx_rhos_max
+         nilyr     ! number of ice layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt          ! time step
@@ -589,22 +717,11 @@
          zqsn            ! enthalpy of snow (J m-3)
 
       real (kind=dbl_kind), dimension(nslyr,ncat), intent(inout) :: &
-         rsnw
+         rsnw            ! snow grain radius
 
-      real (kind=dbl_kind), dimension(nslyr,ncat), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension(nslyr,ncat), intent(inout) :: &
          smice, & ! mass of ice in snow (kg/m^2)
          smliq    ! mass of liquid in snow (kg/m^2)
-
-      real (kind=dbl_kind), intent(in) :: &
-         rsnw_fall, & ! radius of newly fallen snow (10^-6 m)
-         rsnw_tmax    ! maximum grain radius from dry metamorphism (10^-6 m)
-
-      ! dry snow aging parameters
-      real (kind=dbl_kind), dimension(idx_rhos_max,idx_Tgrd_max,idx_T_max), intent(in) :: &
-         snowage_tau,   & ! (10^-6 m)
-         snowage_kappa, & !
-         snowage_drdt0    ! (10^-6 m/hr)
 
       ! local temporary variables
 
@@ -626,12 +743,11 @@
       !-----------------------------------------------------------------
       ! dry metamorphism
       !-----------------------------------------------------------------
-            call snow_dry_metamorph (nslyr, nilyr, dt, rsnw(:,n), &
-                                     drsnw_dry, zqsn(:,n), Tsfc(n), &
-                                     zTin(n), hsn(n), hin(n), &
-                                     smice(:,n), smliq(:,n), rsnw_fall, &
-                                     snowage_tau, snowage_kappa, snowage_drdt0, &
-                                     idx_T_max, idx_Tgrd_max, idx_rhos_max)
+!echmod - data for table can not be read by Icepack
+!            call snow_dry_metamorph (nslyr, nilyr, dt, rsnw(:,n), &
+!                                     drsnw_dry, zqsn(:,n), Tsfc(n), &
+!                                     zTin(n), hsn(n), hin(n), &
+!                                     smice(:,n), smliq(:,n))
 
       !-----------------------------------------------------------------
       ! wet metamorphism
@@ -644,8 +760,8 @@
 
          else
             do k = 1,nslyr
-               !  rsnw_fall < rsnw < rsnw_tmax
-               rsnw(k,n) = max(rsnw_fall,min(rsnw_tmax, rsnw(k,n)))
+               ! rsnw_fall < rsnw < rsnw_tmax
+               rsnw (k,n) = max(rsnw_fall, min(rsnw_tmax, rsnw(k,n)))
                smice(k,n) = rhos
                smliq(k,n) = c0
             enddo
@@ -659,11 +775,9 @@
 !  Snow grain metamorphism
 
       subroutine snow_dry_metamorph (nslyr,nilyr, dt, rsnw, drsnw_dry, zqsn, &
-                                     Tsfc, zTin1, hsn, hin, smice, smliq, rsnw_fall, &
-                                     snowage_tau, snowage_kappa, snowage_drdt0, &
-                                     idx_T_max, idx_Tgrd_max, idx_rhos_max)
+                                     Tsfc, zTin1, hsn, hin, smice, smliq)
 
-    ! Vapor redistribution: Method is to retrieve 3 best-bit parameters that
+    ! Vapor redistribution: Method is to retrieve 3 best-fit parameters that
     ! depend on snow temperature, temperature gradient, and density,
     ! that are derived from the microphysical model described in:
     ! Flanner and Zender (2006), Linking snowpack microphysics and albedo
@@ -674,14 +788,11 @@
     !   tau and kappa are best-fit parameters,
     !   drdt_0 is the initial rate of change of effective radius, and
     !   dr_fresh is the difference between the current and fresh snow states
-    !  (r_current - r_fresh).
+    !   (r_current - r_fresh).
 
       integer (kind=int_kind), intent(in) :: &
          nslyr,  & ! number of snow layers
-         nilyr, &  ! number of ice layers
-         idx_T_max, & ! dimensions of snow parameter matrix
-         idx_Tgrd_max, &
-         idx_rhos_max
+         nilyr     ! number of ice layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt                    ! time step (s)
@@ -698,31 +809,24 @@
          drsnw_dry ! change due to snow aging (10^-6 m)
 
       real (kind=dbl_kind), intent(in) :: &
-         Tsfc,   & ! surface temperature (oC)
-         zTin1,  & ! top ice layer temperature (oC)
+         Tsfc,   & ! surface temperature (C)
+         zTin1,  & ! top ice layer temperature (C)
          hsn,    & ! snow thickness (m)
-         hin,    & ! ice thickness (m)
-         rsnw_fall
-
-      ! dry snow aging parameters
-      real (kind=dbl_kind), dimension(idx_rhos_max,idx_Tgrd_max,idx_T_max), intent(in) :: &
-         snowage_tau,   & ! (10^-6 m)
-         snowage_kappa, & !
-         snowage_drdt0    ! (10^-6 m/hr)
+         hin       ! ice thickness (m)
 
       ! local temporary variables
 
       integer (kind=int_kind) :: k
 
       integer (kind=int_kind) :: &
-          T_idx,    & ! temperature index
-          Tgrd_idx, & ! temperature gradient index
-          rhos_idx    ! density index
+         T_idx,    & ! temperature index
+         Tgrd_idx, & ! temperature gradient index
+         rhos_idx    ! density index
 
       real (kind=dbl_kind), dimension(nslyr):: &
          zrhos,   & ! snow density (kg/m^3)  ! for variable snow density
          zdTdz,   & ! temperature gradient (K/s)
-         zTsn       ! snow temperature (oC)
+         zTsn       ! snow temperature (C)
 
       real (kind=dbl_kind) :: &
          bst_tau,   & ! snow aging parameter retrieved from lookup table [hour]
@@ -730,7 +834,8 @@
          bst_drdt0, & ! snow aging parameter retrieved from lookup table [um hr-1]
          dr_fresh,  & ! change in snow radius from fresh (10^-6 m)
          dzs,       & ! snow layer thickness (m)
-         dzi          ! ice layer thickness (m)
+         dzi,       & ! ice layer thickness (m)
+         dz           ! dzs + dzi (m)
 
       character (len=*),parameter :: subname='(snow_dry_metamorph)'
 
@@ -744,28 +849,31 @@
 
       dzs = hsn/real(nslyr,kind=dbl_kind)
       dzi = hin/real(nilyr,kind=dbl_kind)
+      dz  = dzs + dzi
 
       zTsn(1)  = (Lfresh + zqsn(1)/rhos)/cp_ice
       if (nslyr == 1) then
-         zdTdz(1) = min(c10*idx_Tgrd_max, &
-            abs((zTsn(1)*dzi+zTin1*dzs)/(dzs+dzi+puny) - Tsfc)/(hsn+puny))
+
+         zdTdz(1) = min(c10*isnw_Tgrd, &
+!ech refactored            abs((zTsn(1)*dzi+zTin1*dzs)/(dzs+dzi+puny) - Tsfc)/(hsn+puny))
+            abs(zTsn(1)*dzi + zTin1*dzs - Tsfc*dz)/(dz*hsn+puny))
       else
-              zTsn(1)  =(Lfresh + zqsn(1)/rhos)/cp_ice
-!ech fix this loop - remove if/else/endif
-              do k = 2, nslyr
-                 zTsn(k) = (Lfresh + zqsn(k)/rhos)/cp_ice
-                 if (k == 2) then
-                    zdTdz(k-1) = abs((zTsn(k-1)+zTsn(k))*p5 - Tsfc)/(dzs+puny)
-                    zdTdz(k-1) = min(c10*idx_Tgrd_max,zdTdz(k-1))
-                 else
-                    zdTdz(k-1) = abs(zTsn(k-2)-zTsn(k))*p5/(dzs+puny)
-                    zdTdz(k-1) = min(c10*idx_Tgrd_max,zdTdz(k-1))
-                 endif
-              enddo
-         zdTdz(nslyr) = abs((zTsn(nslyr)*dzi + zTin1*dzs)/(dzs + dzi+puny) &
-                          - (zTsn(nslyr) + zTsn(nslyr-1))*p5) / (dzs+puny)
-         zdTdz(nslyr) = min(c10*idx_Tgrd_max, zdTdz(nslyr))
+         do k = 2, nslyr
+            zTsn(k) = (Lfresh + zqsn(k)/rhos)/cp_ice
+            if (k == 2) then
+               zdTdz(k-1) = abs((zTsn(k-1)+zTsn(k))*p5 - Tsfc)/(dzs+puny)
+            else
+               zdTdz(k-1) = abs (zTsn(k-2)-zTsn(k))*p5        /(dzs+puny)
+            endif
+            zdTdz(k-1) = min(c10*isnw_Tgrd,zdTdz(k-1))
+         enddo
+!ech refactored         zdTdz(nslyr) = abs((zTsn(nslyr)*dzi + zTin1*dzs)/(dzs + dzi+puny) &
+!ech refactored                          - (zTsn(nslyr) + zTsn(nslyr-1))*p5) / (dzs+puny)
+         zdTdz(nslyr) = p5*abs((zTin1-zTsn(nslyr))/(dz+puny) - zTsn(nslyr-1)/(dzs+puny))
+         zdTdz(nslyr) = min(c10*isnw_Tgrd, zdTdz(nslyr))
       endif
+
+!echmod - table will not be available in Icepack standalone (netcdf)
 
          ! best-fit parameters are read from a table
          !  11 temperatures from 225 to 273 K
@@ -776,18 +884,18 @@
          do k = 1, nslyr
           zrhos(k) = smice(k) + smliq(k)
 
-          ! best-fit table indecies:
+          ! best-fit table indices:
           T_idx    = nint(abs(zTsn(k)+ Tffresh - 223.0_dbl_kind) / 5.0_dbl_kind, kind=int_kind)
           Tgrd_idx = nint(zdTdz(k) / 10.0_dbl_kind, kind=int_kind)
           !rhos_idx = nint(zrhos(k)-50.0_dbl_kind) / 50.0_dbl_kind, kind=int_kind)   ! variable density
           rhos_idx = nint((rhos-50.0_dbl_kind) / 50.0_dbl_kind, kind=int_kind)        ! fixed density
 
           ! boundary check:
-          T_idx = min(idx_T_max, max(1,T_idx+1))!min(idx_T_max, max(idx_T_min,T_idx))
-          Tgrd_idx = min(idx_Tgrd_max, max(1,Tgrd_idx+1))!min(idx_Tgrd_max, max(idx_Tgrd_min,Tgrd_idx))
-          rhos_idx = min(idx_rhos_max, max(1,rhos_idx+1)) !min(idx_rhos_max, max(idx_rhos_min,rhos_idx))
+          T_idx = min(isnw_T, max(1,T_idx+1))
+          Tgrd_idx = min(isnw_Tgrd, max(1,Tgrd_idx+1))
+          rhos_idx = min(isnw_rhos, max(1,rhos_idx+1))
 
-          bst_tau   = snowage_tau(rhos_idx,Tgrd_idx,T_idx)
+          bst_tau   = snowage_tau  (rhos_idx,Tgrd_idx,T_idx)
           bst_kappa = snowage_kappa(rhos_idx,Tgrd_idx,T_idx)
           bst_drdt0 = snowage_drdt0(rhos_idx,Tgrd_idx,T_idx)
 

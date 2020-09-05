@@ -26,7 +26,7 @@
       use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd
-      use icepack_parameters, only: phi_i_mushy
+      use icepack_parameters, only: phi_i_mushy, use_smliq_pnd
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
@@ -35,6 +35,7 @@
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
       use icepack_therm_shared, only: hi_min
+      use icepack_therm_shared, only: adjust_enthalpy
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_0layer, only: zerolayer_temperature
       use icepack_therm_mushy,  only: temperature_changes_salinity
@@ -55,14 +56,14 @@
       use icepack_meltpond_cesm, only: compute_ponds_cesm
       use icepack_meltpond_lvl, only: compute_ponds_lvl
       use icepack_meltpond_topo, only: compute_ponds_topo
+      use icepack_snow, only: drain_snow
 
       implicit none
 
       private
       public :: frzmlt_bottom_lateral, &
                 thermo_vertical, &
-                icepack_step_therm1, &
-                adjust_enthalpy
+                icepack_step_therm1
 
 !=======================================================================
 
@@ -1749,89 +1750,6 @@
 
 !=======================================================================
 !
-! Conserving energy, compute the new enthalpy of equal-thickness ice
-! or snow layers.
-!
-! authors William H. Lipscomb, LANL
-!         C. M. Bitz, UW
-
-      subroutine adjust_enthalpy (nlyr,               &
-                                  z1,       z2,       &
-                                  hlyr,     hn,       &
-                                  qn)
-
-      integer (kind=int_kind), intent(in) :: &
-         nlyr            ! number of layers (nilyr or nslyr)
-
-      real (kind=dbl_kind), dimension (:), intent(in) :: &
-         z1          , & ! interface depth for old, unequal layers (m)
-         z2              ! interface depth for new, equal layers (m)
-
-      real (kind=dbl_kind), intent(in) :: &
-         hlyr            ! new layer thickness (m)
-
-      real (kind=dbl_kind), intent(in) :: &
-         hn              ! total thickness (m)
-
-      real (kind=dbl_kind), dimension (:), intent(inout) :: &
-         qn              ! layer quantity (enthalpy, salinity...)
-
-      ! local variables
-
-      integer (kind=int_kind) :: &
-         k, k1, k2       ! vertical indices
-
-      real (kind=dbl_kind) :: &
-         hovlp           ! overlap between old and new layers (m)
-
-      real (kind=dbl_kind) :: &
-         rhlyr           ! 1./hlyr
-
-      real (kind=dbl_kind), dimension (nlyr) :: &
-         hq              ! h * q for a layer
-
-      character(len=*),parameter :: subname='(adjust_enthalpy)'
-
-      !-----------------------------------------------------------------
-      ! Compute reciprocal layer thickness.
-      !-----------------------------------------------------------------
-
-      rhlyr = c0
-      if (hn > puny) rhlyr = c1 / hlyr
-
-      !-----------------------------------------------------------------
-      ! Compute h*q for new layers (k2) given overlap with old layers (k1)
-      !-----------------------------------------------------------------
-
-      do k2 = 1, nlyr
-         hq(k2) = c0
-      enddo                     ! k
-      k1 = 1
-      k2 = 1
-      do while (k1 <= nlyr .and. k2 <= nlyr)
-         hovlp = min (z1(k1+1), z2(k2+1)) &
-               - max (z1(k1),   z2(k2))
-         hovlp = max (hovlp, c0)
-         hq(k2) = hq(k2) + hovlp*qn(k1)
-         if (z1(k1+1) > z2(k2+1)) then
-            k2 = k2 + 1
-         else
-            k1 = k1 + 1
-         endif
-      enddo                  ! while
-
-      !-----------------------------------------------------------------
-      ! Compute new enthalpies.
-      !-----------------------------------------------------------------
-
-      do k = 1, nlyr
-         qn(k) = hq(k) * rhlyr
-      enddo                     ! k
-
-      end subroutine adjust_enthalpy
-
-!=======================================================================
-!
 ! Check for energy conservation by comparing the change in energy
 ! to the net energy input.
 !
@@ -2111,7 +2029,8 @@
                                     melts       , meltsn      , &
                                     congel      , congeln     , &
                                     snoice      , snoicen     , &
-                                    dsnown      , &
+                                    dsnown      , meltsliqn   , &
+                                    smicen      , smliqn      , &
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice)
@@ -2219,7 +2138,12 @@
          Qref_iso    , & ! isotope 2m atm reference spec humidity (kg/kg)
          fiso_atm    , & ! isotope deposition rate (kg/m^2 s)
          fiso_ocn    , & ! isotope flux to ocean  (kg/m^2/s)
-         fiso_evap       ! isotope evaporation (kg/m^2/s)
+         fiso_evap   , & ! isotope evaporation (kg/m^2/s)
+         meltsliqn       ! mass of snow melt (kg/m^2)
+
+      real (kind=dbl_kind), dimension(:,:), optional, intent(inout) :: &
+         smicen      , & ! mass of ice in snow (kg/m^2)
+         smliqn          ! mass of liquid in snow (kg/m^2)
 
       real (kind=dbl_kind), optional, intent(in) :: &
          HDO_ocn     , & ! ocean concentration of HDO (kg/kg)
@@ -2328,7 +2252,12 @@
          l_Qref_iso  , & ! local isotope 2m atm reference spec humidity (kg/kg)
          l_fiso_atm  , & ! local isotope deposition rate (kg/m^2 s)
          l_fiso_ocn  , & ! local isotope flux to ocean  (kg/m^2/s)
-         l_fiso_evap     ! local isotope evaporation (kg/m^2/s)
+         l_fiso_evap , & ! local isotope evaporation (kg/m^2/s)
+         l_meltsliq      ! mass of snow melt (kg/m^2)
+
+      real (kind=dbl_kind), allocatable, dimension(:,:) :: &
+         l_smice     , & ! mass of ice in snow (kg/m^2)
+         l_smliq         ! mass of liquid in snow (kg/m^2)
 
       real (kind=dbl_kind)  :: &
          l_HDO_ocn   , & ! local ocean concentration of HDO (kg/kg)
@@ -2449,6 +2378,31 @@
 
       l_fswthrun_idf    = c0
       if (present(fswthrun_idf)   ) l_fswthrun_idf    = fswthrun_idf
+
+!echmod:  make a subroutine to do this for each array?
+      if (present(meltsliqn)  ) then
+         allocate(l_meltsliq(size(meltsliqn)))
+         l_meltsliq = meltsliqn
+      else
+         allocate(l_meltsliq(1))
+         l_meltsliq = c0
+      endif
+
+      if (present(smicen)  ) then
+         allocate(l_smice(size(smicen,dim=1),size(smicen,dim=2)))
+         l_smice = smicen
+      else
+         allocate(l_smice(1,1))
+         l_smice = c0
+      endif
+
+      if (present(smliqn)  ) then
+         allocate(l_smliq(size(smliqn,dim=1),size(smliqn,dim=2)))
+         l_smliq = smliqn
+      else
+         allocate(l_smliq(1,1))
+         l_smliq = c0
+      endif
 
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
@@ -2675,6 +2629,13 @@
                if (icepack_warnings_aborted(subname)) return
             endif
          endif   ! aicen_init
+
+         if (use_smliq_pnd) then        !echmod make sure tr_snow=T too
+            call drain_snow (dt = dt,             nslyr = nslyr, &
+                             vsnon = vsnon(n),    aicen = aicen(n), &
+                             smice = smicen(:,n), smliq = smliqn(:,n), &
+                             meltsliq = meltsliqn(n))
+         endif
 
       !-----------------------------------------------------------------
       ! Melt ponds

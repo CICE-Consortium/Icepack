@@ -329,13 +329,26 @@
          snwlvlfac  =    0.3_dbl_kind    ! fractional increase in snow
                                          ! depth for bulk redistribution
 
+      ! indices for aging lookup table [idx]
+      integer (kind=int_kind), public :: &
+         isnw_T     = 11  , & ! maxiumum temperature index
+         isnw_Tgrd  = 31  , & ! maxiumum temperature gradient index
+         isnw_rhos  = 8       ! maxiumum snow density index
+
+      ! dry snow aging parameters
+!      real (kind=dbl_kind), dimension(isnw_T,isnw_Tgrd,isnw_rhos), public :: &
+      real (kind=dbl_kind), dimension(11,31,8), public :: &
+         snowage_tau,   & ! (10^-6 m)
+         snowage_kappa, & !
+         snowage_drdt0    ! (10^-6 m/hr)
+
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
       character(char_len), public :: &          
       ! skl biology parameters
-         bgc_flux_type = 'Jin2006'  ! type of ocean-ice poston velocity (or 'constant')
+         bgc_flux_type = 'Jin2006'  ! type of ocean-ice piston velocity (or 'constant')
 
       logical (kind=log_kind), public :: &
          z_tracers  = .false.,    & ! if .true., bgc or aerosol tracers are vertically resolved
@@ -437,7 +450,8 @@
          sw_redist_in, sw_frac_in, sw_dtemp_in, &
          snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
          rhosnew_in, rhosmin_in, rhosmax_in, windmin_in, drhosdwind_in, &
-         snwlvlfac_in)
+         snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
+         snowage_tau_in, snowage_kappa_in, snowage_drdt0_in)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -749,7 +763,15 @@
          rhosmax_in, &      ! maximum snow density (kg/m^3)
          windmin_in, &      ! minimum wind speed to compact snow (m/s)
          drhosdwind_in, &   ! wind compaction factor (kg s/m^4)
-         snwlvlfac_in       ! fractional increase in snow depth
+         snwlvlfac_in, &    ! fractional increase in snow depth
+         isnw_T_in, &       ! maxiumum temperature index
+         isnw_Tgrd_in, &    ! maxiumum temperature gradient index
+         isnw_rhos_in       ! maxiumum snow density index
+
+      real (kind=dbl_kind), dimension(:,:,:), intent(in), optional :: &
+         snowage_tau_in, &  ! (10^-6 m)
+         snowage_kappa_in, &!
+         snowage_drdt0_in   ! (10^-6 m/hr)
 
 !autodocument_end
 
@@ -874,6 +896,12 @@
       if (present(windmin_in)           ) windmin          = windmin_in
       if (present(drhosdwind_in)        ) drhosdwind       = drhosdwind_in
       if (present(snwlvlfac_in)         ) snwlvlfac        = snwlvlfac_in
+      if (present(isnw_T_in)            ) isnw_T           = isnw_T_in
+      if (present(isnw_Tgrd_in)         ) isnw_Tgrd        = isnw_Tgrd_in
+      if (present(isnw_rhos_in)         ) isnw_rhos        = isnw_rhos_in
+      if (present(snowage_tau_in)       ) snowage_tau      = snowage_tau_in
+      if (present(snowage_kappa_in)     ) snowage_kappa    = snowage_kappa_in
+      if (present(snowage_drdt0_in)     ) snowage_drdt0    = snowage_drdt0_in
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
       if (present(z_tracers_in)         ) z_tracers        = z_tracers_in
       if (present(scale_bgc_in)         ) scale_bgc        = scale_bgc_in
@@ -968,7 +996,8 @@
          sw_redist_out, sw_frac_out, sw_dtemp_out, &
          snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
          rhosnew_out, rhosmin_out, rhosmax_out, windmin_out, drhosdwind_out, &
-         snwlvlfac_out)
+         snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
+         snowage_tau_out, snowage_kappa_out, snowage_drdt0_out)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -1289,7 +1318,15 @@
          rhosmax_out, &      ! maximum snow density (kg/m^3)
          windmin_out, &      ! minimum wind speed to compact snow (m/s)
          drhosdwind_out, &   ! wind compaction factor (kg s/m^4)
-         snwlvlfac_out       ! fractional increase in snow depth
+         snwlvlfac_out, &    ! fractional increase in snow depth
+         isnw_T_out, &       ! maxiumum temperature index
+         isnw_Tgrd_out, &    ! maxiumum temperature gradient index
+         isnw_rhos_out       ! maxiumum snow density index
+
+      real (kind=dbl_kind), dimension(:,:,:), intent(out), optional :: &
+         snowage_tau_out, &  ! (10^-6 m)
+         snowage_kappa_out, &!
+         snowage_drdt0_out   ! (10^-6 m/hr)
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_query_parameters)'
@@ -1454,6 +1491,12 @@
       if (present(windmin_out)           ) windmin_out      = windmin
       if (present(drhosdwind_out)        ) drhosdwind_out   = drhosdwind
       if (present(snwlvlfac_out)         ) snwlvlfac_out    = snwlvlfac
+      if (present(isnw_T_out)            ) isnw_T_out       = isnw_T
+      if (present(isnw_Tgrd_out)         ) isnw_Tgrd_out    = isnw_Tgrd
+      if (present(isnw_rhos_out)         ) isnw_rhos_out    = isnw_rhos
+      if (present(snowage_tau_out)       ) snowage_tau_out  = snowage_tau
+      if (present(snowage_kappa_out)     ) snowage_kappa_out= snowage_kappa
+      if (present(snowage_drdt0_out)     ) snowage_drdt0_out= snowage_drdt0
       if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
       if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
       if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
@@ -1642,6 +1685,12 @@
         write(iounit,*) "  windmin       = ", windmin
         write(iounit,*) "  drhosdwind    = ", drhosdwind
         write(iounit,*) "  snwlvlfac     = ", snwlvlfac
+        write(iounit,*) "  isnw_T        = ", isnw_T
+        write(iounit,*) "  isnw_Tgrd     = ", isnw_Tgrd
+        write(iounit,*) "  isnw_rhos     = ", isnw_rhos
+        write(iounit,*) "  snowage_tau   = ", snowage_tau
+        write(iounit,*) "  snowage_kappa = ", snowage_kappa
+        write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
         write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc
