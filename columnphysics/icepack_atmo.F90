@@ -271,6 +271,8 @@
 
       k = 1
       do while (abs(ustar - ustar_prev)/ustar > atmiter_conv .and. k <= natmiter)
+         k = k + 1
+         ustar_prev = ustar
 
          ! compute stability & evaluate all stability functions
          hol = vonkar * gravit * zlvl &
@@ -301,7 +303,6 @@
          tstar = rh * delt
          qstar = re * delq
 
-         k = k + 1
       enddo                     ! end iteration
 
       if (calc_strair) then
