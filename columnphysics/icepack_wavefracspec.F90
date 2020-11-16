@@ -69,8 +69,8 @@
       real (kind=dbl_kind), dimension(100)     :: full_weight8
       real (kind=dbl_kind), dimension(100,100) :: full_weight9
       real (kind=dbl_kind), dimension(100)     :: full_weight10
-      real (kind=dbl_kind), dimension(100,49)  :: full_weight11
-      real (kind=dbl_kind), dimension(49)      :: full_weight12
+      real (kind=dbl_kind), dimension(100,12)  :: full_weight11
+      real (kind=dbl_kind), dimension(12)      :: full_weight12
       real (kind=dbl_kind), dimension(49) :: &
           fracbin_c
       real (kind=dbl_kind), dimension(26,100)  :: class_weight1
@@ -152,6 +152,7 @@
       do k = 1, nfreq
          wave_spectrum_profile(k) = wave_spectrum_data(k)
       enddo
+      print *, 'wave_spec ',wave_spectrum_profile
 
       ! hardwired for wave coupling with NIWA version of Wavewatch
       ! From Wavewatch, f(n+1) = C*f(n) where C is a constant set by the user
@@ -272,9 +273,9 @@
          trcrn           ! tracer array
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
-         d_afsd_wave, &     ! change in fsd due to waves
-         fracture_hist      ! fracture histogram
- 
+         fracture_hist, &
+         d_afsd_wave     ! change in fsd due to waves
+
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          d_afsdn_wave    ! change in fsd due to waves, per category
 
@@ -301,6 +302,7 @@
          cons_error       ! area conservation error
 
       real (kind=dbl_kind), dimension (nfsd) :: &
+          !fracture_hist , &     ! fracture histogram
          spwf_fullnet_hist, & !
         afsd_init    , & ! tracer array
          afsd_tmp     , & ! tracer array
@@ -373,6 +375,8 @@
         ! sanity checks
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
+
+            print *, 'fracture_hist ',fracture_hist
 
             ! remove after testing 
             if (ANY(fracture_hist.ne.fracture_hist)) &
@@ -922,7 +926,7 @@
       ! local variables
       character(char_len_long) :: wave_fullnet_file
 
-      real (kind=dbl_kind), dimension(48049)   :: filelist
+      real (kind=dbl_kind), dimension(44312)   :: filelist
 
       real (kind=dbl_kind), dimension(50) :: &
           fracbin_lims = (/0.0665000000001815, 2.40835589141913, 5.31030847002807, 9.16027653259012, 14.2865861000647, 20.7575631647743, 29.0576686001186, 39.3897615767871, 52.4122136001970, 68.2905949590838, 87.8691405003101, 111.282357408793, 139.518470000468, 172.613187564468, 211.635752000678, 256.427284528097, 308.037274000949, 365.995660133244, 431.203059001283, 501.395164857144, 581.277225001814, 669.934308094615, 755.141047002274, 832.798401621684, 945.812834003182, 1123.23314281921, 1343.54446000417, 1570.56710572412, 1822.65364000582, 2119.13318486551, 2472.61361000779, 2877.73619338566, 3354.34988001061, 3903.52982771199, 4550.51413001439, 5295.53214922787, 6173.23164001952, 7183.92376577288, 8374.61170002648, 9745.71756262409, 11361.0059000359, 13221.0493617961, 15412.3510000487, 17960.1337125977, 20908.4095000636, 24289.3244672200, 28364.3675000829, 33174.1399761146, 38479.1270001050, 43762.3390910769/)
@@ -936,7 +940,7 @@
  
 
       wave_fullnet_file = &
-       trim('/glade/u/home/lettier/wavefrac_nn_fullnet_v3.txt')
+       trim('/glade/u/home/lettier/wavefrac_nn_fullnet_v4.txt')
 
       open (unit = 2, file = wave_fullnet_file)
       read (2, *) filelist
@@ -953,8 +957,8 @@
       full_weight8 = filelist(32901:33000)
       full_weight9 = TRANSPOSE(RESHAPE(filelist(33001:43000), (/100, 100/)))
       full_weight10 = filelist(43001:43100)
-      full_weight11 = TRANSPOSE(RESHAPE(filelist(43101:48000), (/49, 100/)))
-      full_weight12 = filelist(48001:48049)
+      full_weight11 = TRANSPOSE(RESHAPE(filelist(43101:44300), (/12, 100/)))
+      full_weight12 = filelist(44301:44312)
 
 
       end subroutine icepack_init_spwf_fullnet
@@ -999,7 +1003,7 @@
 
       real (kind=dbl_kind), dimension(26)     :: input
       real (kind=dbl_kind), dimension(100)    :: y1, y2, y3, y4, y5
-      real (kind=dbl_kind), dimension(49)     :: y6
+      real (kind=dbl_kind), dimension(12)     :: y6
 
 
       input(1:25) = wave_spectrum(1:25)
@@ -1026,27 +1030,7 @@
       y6 = EXP(y6)
       if (SUM(y6).NE.c0) y6 = y6/SUM(y6)
 
-
-      print *, 'MAX y6 ',MAXVAL(y6)
-      spwf_fullnet_hist(:) = c0
-      do l = 1, 49
-          if (y6(l).gt.puny) then
-              ! cannot create fractures in largest floe size category
-              do k = 1, nfsd-1
-                  if ((fracbin_c(l).ge.floe_rad_l(k)).and.(fracbin_c(l).lt.floe_rad_l(k+1))) then
-                      spwf_fullnet_hist(k) = spwf_fullnet_hist(k) + y6(l)
-                  end if
-              end do
-              if ((fracbin_c(l).gt.floe_rad_l(nfsd)).and.(fracbin_c(l).le.floe_rad_l(nfsd)+floe_binwidth(nfsd))) spwf_fullnet_hist(nfsd)  = spwf_fullnet_hist(nfsd) + y6(l)
-          end if
-      end do
-      print *, 'MAX spwf fullnet ',MAXVAL(spwf_fullnet_hist)
-
-      if (SUM(spwf_fullnet_hist).gt.puny) then
-        spwf_fullnet_hist = spwf_fullnet_hist/SUM(spwf_fullnet_hist)
-      else
-        spwf_fullnet_hist(:) = c0
-      end if
+      spwf_fullnet_hist = y6
 
       end subroutine spwf_fullnet
 
