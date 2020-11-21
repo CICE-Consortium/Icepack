@@ -96,6 +96,8 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
+         floediam  = 300.0_dbl_kind   ,&! effective floe diameter for lateral melt (m)
+         hfrazilmin = 0.05_dbl_kind   ,&! min thickness of new frazil ice (m)
          cp_ice    = 2106._dbl_kind   ,&! specific heat of fresh ice (J/kg/K)
          cp_ocn    = 4218._dbl_kind   ,&! specific heat of ocn    (J/kg/K)
                                         ! freshwater value needed for enthalpy
@@ -131,7 +133,6 @@
          dSdt_slow_mode    = -1.5e-7_dbl_kind,&! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode   =    0.05_dbl_kind,&! critical liquid fraction porosity cutoff
          phi_i_mushy       =    0.85_dbl_kind  ! liquid fraction of congelation ice
-
 
       integer (kind=int_kind), public :: &
          ktherm = 1      ! type of thermodynamics
@@ -379,7 +380,7 @@
       subroutine icepack_init_parameters(   &
          puny_in, bignum_in, pi_in, secday_in, &
          rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
-         cp_ice_in, cp_ocn_in, &
+         cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
          depressT_in, dragio_in, albocn_in, gravit_in, viscosity_dyn_in, &
          Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
          stefan_boltzmann_in, ice_ref_salinity_in, &
@@ -441,6 +442,8 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), intent(in), optional :: &
+         floediam_in,   & ! effective floe diameter for lateral melt (m)
+         hfrazilmin_in, & ! min thickness of new frazil ice (m)
          cp_ice_in,     & ! specific heat of fresh ice (J/kg/K)
          cp_ocn_in,     & ! specific heat of ocn    (J/kg/K)
          depressT_in,   & ! Tf:brine salinity ratio (C/ppt)
@@ -716,6 +719,8 @@
       if (present(rhow_in)              ) rhow             = rhow_in
       if (present(cp_air_in)            ) cp_air           = cp_air_in
       if (present(emissivity_in)        ) emissivity       = emissivity_in
+      if (present(floediam_in)          ) floediam         = floediam_in
+      if (present(hfrazilmin_in)        ) hfrazilmin       = hfrazilmin_in
       if (present(cp_ice_in)            ) cp_ice           = cp_ice_in
       if (present(cp_ocn_in)            ) cp_ocn           = cp_ocn_in
       if (present(depressT_in)          ) depressT         = depressT_in
@@ -877,7 +882,7 @@
          p2_out, p4_out, p5_out, p6_out, p05_out, p15_out, p25_out, p75_out, &
          p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
          rhos_out, rhoi_out, rhow_out, cp_air_out, emissivity_out, &
-         cp_ice_out, cp_ocn_out, &
+         cp_ice_out, cp_ocn_out, hfrazilmin_out, floediam_out, &
          depressT_out, dragio_out, albocn_out, gravit_out, viscosity_dyn_out, &
          Tocnfrz_out, rhofresh_out, zvir_out, vonkar_out, cp_wv_out, &
          stefan_boltzmann_out, ice_ref_salinity_out, &
@@ -948,6 +953,8 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), intent(out), optional :: &
+         floediam_out,   & ! effective floe diameter for lateral melt (m)
+         hfrazilmin_out, & ! min thickness of new frazil ice (m)
          cp_ice_out,     & ! specific heat of fresh ice (J/kg/K)
          cp_ocn_out,     & ! specific heat of ocn    (J/kg/K)
          depressT_out,   & ! Tf:brine salinity ratio (C/ppt)
@@ -1264,6 +1271,8 @@
       if (present(rhow_out)              ) rhow_out         = rhow
       if (present(cp_air_out)            ) cp_air_out       = cp_air
       if (present(emissivity_out)        ) emissivity_out   = emissivity
+      if (present(floediam_out)          ) floediam_out     = floediam
+      if (present(hfrazilmin_out)        ) hfrazilmin_out   = hfrazilmin
       if (present(cp_ice_out)            ) cp_ice_out       = cp_ice
       if (present(cp_ocn_out)            ) cp_ocn_out       = cp_ocn
       if (present(depressT_out)          ) depressT_out     = depressT
@@ -1435,6 +1444,8 @@
         write(iounit,*) "  rhow   = ",rhow
         write(iounit,*) "  cp_air = ",cp_air
         write(iounit,*) "  emissivity = ",emissivity
+        write(iounit,*) "  floediam   = ",floediam
+        write(iounit,*) "  hfrazilmin = ",hfrazilmin
         write(iounit,*) "  cp_ice = ",cp_ice
         write(iounit,*) "  cp_ocn = ",cp_ocn
         write(iounit,*) "  depressT = ",depressT
