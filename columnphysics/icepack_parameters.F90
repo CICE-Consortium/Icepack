@@ -96,7 +96,6 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
-         floediam  = 300.0_dbl_kind   ,&! effective floe diameter for lateral melt (m)
          hfrazilmin = 0.05_dbl_kind   ,&! min thickness of new frazil ice (m)
          cp_ice    = 2106._dbl_kind   ,&! specific heat of fresh ice (J/kg/K)
          cp_ocn    = 4218._dbl_kind   ,&! specific heat of ocn    (J/kg/K)
@@ -280,6 +279,9 @@
 
       real (kind=dbl_kind), public :: &
          floeshape = 0.666_dbl_kind   ! constant from Steele (unitless)
+
+      real (kind=dbl_kind), public :: &
+         floediam  = 300.0_dbl_kind   ,&! effective floe diameter for lateral melt (m)
 
       logical (kind=log_kind), public :: &
          wave_spec = .false.          ! if true, use wave forcing
