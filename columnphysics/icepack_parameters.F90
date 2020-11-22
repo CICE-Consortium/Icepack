@@ -281,7 +281,7 @@
          floeshape = 0.666_dbl_kind   ! constant from Steele (unitless)
 
       real (kind=dbl_kind), public :: &
-         floediam  = 300.0_dbl_kind   ,&! effective floe diameter for lateral melt (m)
+         floediam  = 300.0_dbl_kind   ! effective floe diameter for lateral melt (m)
 
       logical (kind=log_kind), public :: &
          wave_spec = .false.          ! if true, use wave forcing
