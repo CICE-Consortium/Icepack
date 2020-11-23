@@ -791,7 +791,7 @@ icepack_init_parameters
   !-----------------------------------------------------------------------
   
         real (kind=dbl_kind), intent(in), optional :: &
-           floediam_in,   & ! effective floe diameter (m)
+           floediam_in,   & ! effective floe diameter for lateral melt (m)
            hfrazilmin_in, & ! min thickness of new frazil ice (m)
            cp_ice_in,     & ! specific heat of fresh ice (J/kg/K)
            cp_ocn_in,     & ! specific heat of ocn    (J/kg/K)
@@ -1148,7 +1148,7 @@ icepack_query_parameters
   !-----------------------------------------------------------------------
   
         real (kind=dbl_kind), intent(out), optional :: &
-           floediam_out,   & ! effective floe diameter (m)
+           floediam_out,   & ! effective floe diameter for lateral melt (m)
            hfrazilmin_out, & ! min thickness of new frazil ice (m)
            cp_ice_out,     & ! specific heat of fresh ice (J/kg/K)
            cp_ocn_out,     & ! specific heat of ocn    (J/kg/K)

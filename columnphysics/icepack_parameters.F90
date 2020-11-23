@@ -278,7 +278,7 @@
          nfreq = 25                   ! number of frequencies
 
       real (kind=dbl_kind), public :: &
-         floeshape = 0.666_dbl_kind   ! constant from Steele (unitless)
+         floeshape = 0.66_dbl_kind    ! constant from Steele (unitless)
 
       real (kind=dbl_kind), public :: &
          floediam  = 300.0_dbl_kind   ! effective floe diameter for lateral melt (m)
