@@ -26,7 +26,7 @@
       use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd
-      use icepack_parameters, only: phi_i_mushy
+      use icepack_parameters, only: phi_i_mushy, floeshape, floediam
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
@@ -556,8 +556,6 @@
       ! Parameters for lateral melting
 
       real (kind=dbl_kind), parameter :: &
-         floediam = 300.0_dbl_kind, & ! effective floe diameter (m)
-         floeshape = 0.66_dbl_kind , & ! constant from Steele (unitless)
          m1 = 1.6e-6_dbl_kind     , & ! constant from Maykut & Perovich
                                       ! (m/s/deg^(-m2))
          m2 = 1.36_dbl_kind           ! constant from Maykut & Perovich
