@@ -88,7 +88,7 @@
          ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, &
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
-         phi_c_slow_mode, phi_i_mushy, kalg, emissivity
+         phi_c_slow_mode, phi_i_mushy, kalg, emissivity, floediam, hfrazilmin
 
       integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, &
          natmiter, kitd, kcatbound
@@ -135,7 +135,8 @@
         kitd,           ktherm,          ksno,     conduct,             &
         a_rapid_mode,   Rac_rapid_mode,  aspect_rapid_mode,             &
         dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy,                   &
-        sw_redist,      sw_frac,         sw_dtemp
+        sw_redist,      sw_frac,         sw_dtemp,                      &
+        floediam,       hfrazilmin
 
       namelist /dynamics_nml/ &
         kstrength,      krdg_partic,    krdg_redist,    mu_rdg,         &
@@ -198,6 +199,7 @@
            rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
            pndaspect_out=pndaspect, hs1_out=hs1, hp1_out=hp1, &
            ktherm_out=ktherm, calc_Tsfc_out=calc_Tsfc, &
+           floediam_out=floediam, hfrazilmin_out=hfrazilmin, &
            update_ocn_f_out = update_ocn_f, &
            conduct_out=conduct, a_rapid_mode_out=a_rapid_mode, &
            Rac_rapid_mode_out=Rac_rapid_mode, &
@@ -576,6 +578,8 @@
          write(nu_diag,1005) ' atmiter_conv              = ', atmiter_conv
          write(nu_diag,1010) ' calc_strair               = ', calc_strair
          write(nu_diag,1010) ' calc_Tsfc                 = ', calc_Tsfc
+         write(nu_diag,1005) ' floediam                  = ', floediam
+         write(nu_diag,1005) ' hfrazilmin                = ', hfrazilmin
 
          write(nu_diag,*)    ' atm_data_type             = ', &
                                trim(atm_data_type)
@@ -765,6 +769,7 @@
            dpscale_in=dpscale, frzpnd_in=frzpnd, &
            rfracmin_in=rfracmin, rfracmax_in=rfracmax, &
            pndaspect_in=pndaspect, hs1_in=hs1, hp1_in=hp1, &
+           floediam_in=floediam, hfrazilmin_in=hfrazilmin, &
            ktherm_in=ktherm, calc_Tsfc_in=calc_Tsfc, &
            conduct_in=conduct, a_rapid_mode_in=a_rapid_mode, &
            Rac_rapid_mode_in=Rac_rapid_mode, &
