@@ -135,7 +135,6 @@
         kitd,           ktherm,          ksno,     conduct,             &
         a_rapid_mode,   Rac_rapid_mode,  aspect_rapid_mode,             &
         dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy,                   &
-        sw_redist,      sw_frac,         sw_dtemp,                      &
         floediam,       hfrazilmin
 
       namelist /dynamics_nml/ &
@@ -146,6 +145,7 @@
         shortwave,      albedo_type,                                    &
         albicev,        albicei,         albsnowv,      albsnowi,       &
         ahmax,          R_ice,           R_pnd,         R_snw,          &
+        sw_redist,      sw_frac,         sw_dtemp,                      &
         dT_mlt,         rsnw_mlt,        kalg
 
       namelist /ponds_nml/ &
@@ -543,6 +543,9 @@
          write(nu_diag,1000) ' albsnowi                  = ', albsnowi
          write(nu_diag,1000) ' ahmax                     = ', ahmax
          endif
+         write(nu_diag,1010) ' sw_redist                 = ', sw_redist
+         write(nu_diag,1005) ' sw_frac                   = ', sw_frac
+         write(nu_diag,1005) ' sw_dtemp                  = ', sw_dtemp
 
          write(nu_diag,1000) ' rfracmin                  = ', rfracmin
          write(nu_diag,1000) ' rfracmax                  = ', rfracmax
@@ -566,9 +569,6 @@
          write(nu_diag,1005) ' phi_c_slow_mode           = ', phi_c_slow_mode
          write(nu_diag,1005) ' phi_i_mushy               = ', phi_i_mushy
          endif
-         write(nu_diag,1010) ' sw_redist                 = ', sw_redist
-         write(nu_diag,1005) ' sw_frac                   = ', sw_frac
-         write(nu_diag,1005) ' sw_dtemp                  = ', sw_dtemp
 
          write(nu_diag,1030) ' atmbndy                   = ', &
                                trim(atmbndy)
