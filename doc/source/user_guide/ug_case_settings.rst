@@ -254,9 +254,9 @@ shortwave_nml
    "``R_snw``", "real", "tuning parameter for snow (broadband albedo) from Delta-Eddington shortwave", "1.5"
    "``shortwave``", "``ccsm3``", "NCAR CCSM3 shortwave distribution method", "``dEdd``"
    "", "``dEdd``", "Delta-Eddington method", ""
-   "``sw_redist``", "logical", "shortwave redistribution", ".false."
-   "``sw_frac``", "real", "fraction of shortwave redistribution", "0.9"
    "``sw_dtemp``", "real", "temperature from melt for sw_redist", "0.02"
+   "``sw_frac``", "real", "fraction of shortwave redistribution", "0.9"
+   "``sw_redist``", "logical", "shortwave redistribution", ".false."
    "", "", "", ""
 
 ponds_nml
