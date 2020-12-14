@@ -5,12 +5,18 @@
 Adding diagnostics
 ==================
 
-Icepack only produces ASCII (text) log output for four points (full model with ITD, an initially ice free point, a land point, and a case with a slab ocean). Each of these files contains the state information for that point. Sometimes additional variables are required in this output. The procedure for adding diagnostic variables is outlined here.
+Icepack only produces ASCII (text) log output for four points (full model with ITD, an initially ice free point, a land point, and a case with a slab ocean) designated by the variable ``n`` here. Each of these files contains the state information for that point. Sometimes additional variables are required in this output. The procedure for adding diagnostic variables is outlined here.
 
 #. For non-BGC variables, one should edit **icedrv\_diagnostics.F90**:
 
    -  If the variable is already defined within the code, then add it to a "use" statement in the subroutine
       ``runtime_diags``.
+
+   -  Note that if the variable is not readily accessible through a use statement, then a global variable needs to
+      be defined. This might be in **icedrv\_state.F90** or **icedrv\_flux.F90** for example.
+
+   -  Additionally, if the variable is a derived quantity, then one needs to include the variables from a use statement
+      to calculate the new quantity. For example, see how ``hiavg`` and ``hsavg`` are computed.
 
    -  If the variable is just a scalar, then follow the example of "aice". Copy the write statement for Qa to
       a place in the output list where it is most appropriate. The format "900" is appropriate for most scalars.
@@ -24,7 +30,7 @@ Icepack only produces ASCII (text) log output for four points (full model with I
 
    -  If the variable is an array, say depending on ncat, then follow the example of fiso_evap. This just requires
       adding a loop for the print statement. Make sure ncat and a counter, nc are available. Say for example, 
-      the category ice area, aicen.
+      the category ice area, aicen. The variable ncat is the number of subgridscale categories.
 
     .. code-block:: fortran
 
@@ -51,7 +57,7 @@ Icepack only produces ASCII (text) log output for four points (full model with I
    -  If the variable is already defined within the code, then add it to a "use" statement in the subroutine
       ``hbrine_diags`` or ``bgc_diags`` or ``zsal_diags``. The similar procedure for state variables is used here.
 
-   -  Note that the BGC needs to be activited and the particular tracer turned on. 
+   -  Note that the BGC needs to be activated and the particular tracer turned on. 
 
 In general, try to format the output statements to line up with the surrounding print messages. This may require a couple of tries to get it to compile and run.
 
