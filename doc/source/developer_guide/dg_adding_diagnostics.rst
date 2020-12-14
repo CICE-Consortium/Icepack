@@ -57,7 +57,7 @@ Icepack only produces ASCII (text) log output for four points (full model with I
    -  If the variable is already defined within the code, then add it to a "use" statement in the subroutine
       ``hbrine_diags`` or ``bgc_diags`` or ``zsal_diags``. The similar procedure for state variables is used here.
 
-   -  Note that the BGC needs to be activated and and the particular tracer turned on. 
+   -  Note that the BGC needs to be activated and the particular tracer turned on. 
 
 In general, try to format the output statements to line up with the surrounding print messages. This may require a couple of tries to get it to compile and run.
 
