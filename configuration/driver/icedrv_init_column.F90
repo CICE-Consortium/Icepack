@@ -480,15 +480,6 @@
 
       do i = 1, nx
 
-         do n = 1, ncat
-            do k = 1, nilyr
-               sicen(k,n) = trcrn(i,nt_sice+k-1,n)
-            enddo
-            do k = ntrcr_o+1, ntrcr
-               trcrn_bgc(k-ntrcr_o,n) = trcrn(i,k,n)
-            enddo
-         enddo
-
          call icepack_load_ocean_bio_array(max_nbtrcr=max_nbtrcr,             &
                       max_algae=max_algae, max_don=max_don,  max_doc=max_doc, &
                       max_aero =max_aero,  max_dic=max_dic,  max_fe =max_fe,  &
@@ -504,6 +495,16 @@
       enddo  ! i
 
       do i = 1, nx
+
+         do n = 1, ncat
+            do k = 1, nilyr
+               sicen(k,n) = trcrn(i,nt_sice+k-1,n)
+            enddo
+            do k = ntrcr_o+1, ntrcr
+               trcrn_bgc(k-ntrcr_o,n) = trcrn(i,k,n)
+            enddo
+         enddo
+
          call icepack_init_bgc(ncat=ncat, nblyr=nblyr, nilyr=nilyr, ntrcr_o=ntrcr_o, &
                       cgrid=cgrid, igrid=igrid, ntrcr=ntrcr, nbtrcr=nbtrcr,          &
                       sicen=sicen(:,:), trcrn=trcrn_bgc(:,:),                        &
