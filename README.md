@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/CICE-Consortium/Icepack.svg?branch=master)](https://travis-ci.org/CICE-Consortium/Icepack)
+[![Build Status](https://travis-ci.com/CICE-Consortium/Icepack.svg?branch=master)](https://travis-ci.com/CICE-Consortium/Icepack)
+![GithubActionsIcepackTesting](https://github.com/apcraig/Icepack/workflows/GithubActionsIcepackTesting/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/cice-consortium-icepack/badge/?version=master)](http://cice-consortium-icepack.readthedocs.io/en/master/?badge=master)
 [![lcov](https://img.shields.io/endpoint?url=https://apcraig.github.io/coverage_icepack.json)](https://apcraig.github.io)
 
