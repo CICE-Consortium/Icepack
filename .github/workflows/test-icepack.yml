@@ -3,7 +3,7 @@ name: GithubActionsIcepackTesting
 on:
   push:
     branches:
-      - main
+      - master
       - 'Icepack*'
       - 'ghactions*'
   pull_request:
@@ -74,15 +74,14 @@ jobs:
         run: |
           cd $HOME && mkdir -p icepack-dirs/runs icepack-dirs/baseline icepack-dirs/input
           source $HOME/miniconda/bin/activate
-          conda init zsh
           conda init tcsh
           cd $HOME/icepack
           conda env create -f configuration/scripts/machines/environment.yml
       - name: check conda env
         run: |
-          conda activate icepack && type clang && type gfortran && type make
-          gfortran --version
-          clang --version
+          conda activate icepack && which mpicc && which mpifort && which make
+          mpifort --version
+          mpicc --version
           make --version
       - name: check setup case
         run: |
