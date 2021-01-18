@@ -1,4 +1,4 @@
-name: GithubActionsIcepackTesting
+name: GHActions
 # This workflow is triggered on pushes, pull-requeust, and releases
 on:
   push:
@@ -21,16 +21,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-#        os: [macos-latest, ubuntu-latest]
-        os: [macos-latest]
+        os: [macos-latest, ubuntu-latest]
+#        os: [macos-latest]
 #        os: [ubuntu-latest]
         include: 
           - os: macos-latest
             envdef: macos
             minicond: Miniconda3-latest-MacOSX-x86_64.sh
-#          - os: ubuntu-latest
-#            envdef: linux
-#            minicond: Miniconda3-latest-Linux-x86_64.sh
+          - os: ubuntu-latest
+            envdef: linux
+            minicond: Miniconda3-latest-Linux-x86_64.sh
     steps:
       - name: reset macos toolchain to commandlinetools
         shell: /bin/bash {0}
