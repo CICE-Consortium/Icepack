@@ -98,7 +98,7 @@ can be modified as needed.
    "TRZS", "0,1", "zsalinity tracer, needs TRBRI=1", "0"
    "TRBGCS", "0,1", "skeletal layer tracer, needs TRBGCZ=0", "0"
    "TRBGCZ", "0,1", "zbgc tracers, needs TRBGCS=0 and TRBRI=1", "0"
-   "NBGCLYR", "integer", "number of zbgc layers", "7"
+   "NBGCLYR", "integer", "number of zbgc layers", "1"
    "TRZAERO", "0-6", "number of z aerosol tracers", "0"
    "TRALG", "0,1,2,3", "number of algal tracers", "0"
    "TRDOC", "0,1,2,3", "number of dissolved organic carbon", "0"
@@ -199,6 +199,8 @@ thermo_nml
    "``conduct``", "``bubbly``", "conductivity scheme :cite:`Pringle07`", "``bubbly``"
    "", "``MU71``", "conductivity :cite:`Maykut71`", ""
    "``dSdt_slow_mode``", "real", "slow drainage strength parameter m/s/K", "-1.5e-7"
+   "``floediam``", "real", "effective floe diameter for lateral melt in m", "300.0"
+   "``hfrazilmin``", "real", "min thickness of new frazil ice in m", "0.05"
    "``kitd``", "``0``", "delta function ITD approximation", "1"
    "", "``1``", "linear remapping ITD approximation", ""
    "``ksno``", "real", "snow thermal conductivity", "0.3"
@@ -209,9 +211,6 @@ thermo_nml
    "``phi_c_slow_mode``", ":math:`0<\phi_c < 1`", "critical liquid fraction", "0.05"
    "``phi_i_mushy``", ":math:`0<\phi_i < 1`", "solid fraction at lower boundary", "0.85"
    "``Rac_rapid_mode``", "real", "critical Rayleigh number", "10.0"
-   "``sw_redist``", "logical", "shortwave redistribution", ".false."
-   "``sw_frac``", "real", "fraction of shortwave redistribution", "0.9"
-   "``sw_dtemp``", "real", "temperature from melt for sw_redist", "0.02"
    "", "", "", ""
 
 dynamics_nml
@@ -255,6 +254,9 @@ shortwave_nml
    "``R_snw``", "real", "tuning parameter for snow (broadband albedo) from Delta-Eddington shortwave", "1.5"
    "``shortwave``", "``ccsm3``", "NCAR CCSM3 shortwave distribution method", "``dEdd``"
    "", "``dEdd``", "Delta-Eddington method", ""
+   "``sw_dtemp``", "real", "temperature from melt for sw_redist", "0.02"
+   "``sw_frac``", "real", "fraction of shortwave redistribution", "0.9"
+   "``sw_redist``", "logical", "shortwave redistribution", ".false."
    "", "", "", ""
 
 ponds_nml
@@ -305,7 +307,7 @@ forcing_nml
    "``data_dir``", "string", "path to forcing data directory", "' '"
    "``default_season``", "``summer``", "forcing initial summer values", "``winter``"
    "", "``winter``", "forcing initial winter values", ""
-   "``emissivity``", "real", "emissivity of snow and ice", "0.95"
+   "``emissivity``", "real", "emissivity of snow and ice", "0.985"
    "``fbot_xfer_type``", "``Cdn_ocn``", "variabler ocean heat transfer coefficient scheme", "``constant``"
    "", "``constant``", "constant ocean heat transfer coefficient", ""
    "``formdrag``", "logical", "calculate form drag", "``.false.``"

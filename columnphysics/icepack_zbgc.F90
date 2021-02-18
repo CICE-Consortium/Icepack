@@ -78,9 +78,9 @@
 
       integer (kind=int_kind), intent(in) :: &
          nblyr   , & ! number of bio layers
-         ncat     , & ! number of thickness categories
-         nilyr    , & ! number of ice layers
-         nltrcr, & ! number of zbgc tracers
+         ncat    , & ! number of thickness categories
+         nilyr   , & ! number of ice layers
+         nltrcr  , & ! number of zbgc tracers
          nbtrcr  , & ! number of biology tracers
          ntrcr       ! number of tracers in use
 
@@ -525,7 +525,7 @@
             do k = 1, nilyr
                trcrn(nt_sice+k-1) = trtmp(nt_sice+k-1)   
             enddo        !k
-         endif   ! solve_zsal
+         endif  ! solve_zsal
 
       endif     ! location
 
@@ -534,7 +534,6 @@
 !=======================================================================
 !autodocument_start icepack_init_bgc
 !
-
       subroutine icepack_init_bgc(ncat, nblyr, nilyr, ntrcr_o, &
          cgrid, igrid, ntrcr, nbtrcr, &
          sicen, trcrn, sss, ocean_bio_all)
