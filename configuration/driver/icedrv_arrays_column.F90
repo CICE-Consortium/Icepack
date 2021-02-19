@@ -62,6 +62,12 @@
 
       character (len=35), public :: c_hi_range(ncat)
 
+      ! icepack_snow.F90
+      real (kind=dbl_kind), public, &
+         dimension (nx) :: &
+         rhos_eff , & ! mean effective snow density: content (kg/m^3)
+         rhos_cmp     ! mean effective snow density: compaction (kg/m^3)
+
       ! icepack_meltpond_lvl.F90
       real (kind=dbl_kind), public, &
          dimension (nx, ncat) :: &

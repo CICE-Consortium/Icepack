@@ -23,7 +23,7 @@
 
       public :: step_therm1, step_therm2, step_dyn_ridge, &
                 prep_radiation, step_radiation, ocean_mixed_layer, &
-                update_state, biogeochemistry, step_dyn_wave
+                update_state, biogeochemistry, step_dyn_wave, step_snow
 
 !=======================================================================
 
@@ -803,6 +803,82 @@
              file=__FILE__, line=__LINE__)
 
       end subroutine step_dyn_ridge
+
+!=======================================================================
+!
+! Updates snow tracers
+!
+! authors: Elizabeth C. Hunke, LANL
+!          Nicole Jeffery, LANL
+
+      subroutine step_snow (dt)
+
+      use icedrv_arrays_column, only: rhos_eff, rhos_cmp
+      use icedrv_domain_size, only: ncat, nslyr, nilyr, nx
+      use icedrv_flux, only: wind, fresh, fhocn, fsloss, fsnow
+      use icedrv_state, only: trcrn, vsno, vsnon, vicen, aicen, aice
+      use icepack_intfc, only: icepack_step_snow
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt                 ! time step
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         nt_smice, nt_smliq, nt_rsnw, &
+         nt_Tsfc, nt_qice, nt_sice, nt_qsno, &
+         nt_alvl, nt_vlvl, nt_rhos
+
+      integer (kind=int_kind) :: &
+         i,               & ! horizontal index
+         n                  ! category index
+
+      real (kind=dbl_kind), dimension(nslyr,ncat) :: &
+         rhos_effn          ! snow effective density: content (kg/m^3)
+
+      character(len=*), parameter :: subname='(step_snow)'
+
+      !-----------------------------------------------------------------
+      ! query icepack values
+      !-----------------------------------------------------------------
+
+      call icepack_query_tracer_indices( &
+         nt_smice_out=nt_smice, nt_smliq_out=nt_smliq, &
+         nt_rsnw_out=nt_rsnw, nt_Tsfc_out=nt_Tsfc, &
+         nt_qice_out=nt_qice, nt_sice_out=nt_sice, nt_qsno_out=nt_qsno, &
+         nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, nt_rhos_out=nt_rhos)
+      call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+             file=__FILE__,line= __LINE__)
+
+      !-----------------------------------------------------------------
+      ! Snow redistribution and metamorphosis
+      !-----------------------------------------------------------------
+
+      do i = 1, nx
+
+         rhos_effn(:,:) = c0
+
+         call icepack_step_snow (dt,     nilyr,              &
+                     nslyr,              ncat,               &
+                     wind (i),           aice  (i),          &
+                     aicen(i,:),         vicen (i,:),        &
+                     vsnon(i,:),         trcrn(i,nt_Tsfc,:), &
+                     trcrn(i,nt_qice,:),    & ! top layer only
+                     trcrn(i,nt_sice,:),    & ! top layer only
+                     trcrn(i,nt_qsno:nt_qsno+nslyr-1,:),     &
+                     trcrn(i,nt_alvl,:), trcrn(i,nt_vlvl,:), &
+                     trcrn(i,nt_smice:nt_smice+nslyr-1,:),   &
+                     trcrn(i,nt_smliq:nt_smliq+nslyr-1,:),   &
+                     trcrn(i,nt_rhos:nt_rhos+nslyr-1,:),     &
+                     trcrn(i,nt_rsnw:nt_rsnw+nslyr-1,:),     &
+                     rhos_eff (i),       rhos_effn(:,:),     &
+                     rhos_cmp (i),                           &
+                     fresh    (i),       fhocn (i),          &
+                     fsloss   (i),       fsnow (i))
+      enddo
+
+      end subroutine step_snow
 
 !=======================================================================
 !

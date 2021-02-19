@@ -21,7 +21,7 @@
       implicit none
       private
 
-      public :: drain_snow
+      public :: icepack_step_snow, drain_snow
 
       real (kind=dbl_kind), parameter, public :: &
          S_r  = 0.033_dbl_kind, & ! irreducible saturation (Anderson 1976)
@@ -32,25 +32,28 @@
       contains
 
 !=======================================================================
-!
+!autodocument_start icepack_step_snow
 ! Updates snow tracers
 !
 ! authors: Elizabeth C. Hunke, LANL
 !          Nicole Jeffery, LANL
 
-      subroutine icepack_step_snow(dt,        wind,     &
-                                   nilyr,               &
-                                   nslyr,     ncat,     &
-                                   aice,      aicen,    &
-                                   vicen,     vsnon,    &
-                                   alvl,      vlvl,     &
-                                   smice,     smliq,    &
-                                   rhos_effn, rhos_eff, &
-                                   rhos_cmpn, rhos_cmp, &
-                                   rsnw,      zTin1,    &
-                                   Tsfc,      zqsn,     &
-                                   fresh,     fhocn,    &
+      subroutine icepack_step_snow(dt,        nilyr,     &
+                                   nslyr,     ncat,      &
+                                   wind,      aice,      &
+                                   aicen,     vicen,     &
+                                   vsnon,     Tsfc,      &
+                                   zqin1,     zSin1,     &
+                                   zqsn,                 &
+                                   alvl,      vlvl,      &
+                                   smice,     smliq,     &
+                                   rhos_cmpn, rsnw,      &
+                                   rhos_eff,  rhos_effn, &
+                                   rhos_cmp,             &
+                                   fresh,     fhocn,     &
                                    fsloss,    fsnow)
+
+      use icepack_therm_shared, only: icepack_ice_temperature
 
       integer (kind=int_kind), intent(in) :: &
          nslyr, & ! number of snow layers
@@ -67,7 +70,8 @@
          aicen, & ! ice area fraction
          vicen, & ! ice volume (m)
          Tsfc , & ! surface temperature (C)
-         zTin1, & ! ice upper layer temperature
+         zqin1, & ! ice upper layer enthalpy
+         zSin1, & ! ice upper layer salinity
          alvl,  & ! level ice area tracer
          vlvl     ! level ice volume tracer
 
@@ -91,13 +95,15 @@
          rhos_eff , & ! mean effective snow density: content (kg/m^3)
          rhos_cmp     ! mean effective snow density: compaction (kg/m^3)
 
-      ! local temporary variables
+!autodocument_end
+
+      ! local variables
 
       integer (kind=int_kind) :: n
 
       real (kind=dbl_kind), dimension(ncat) :: &
-         zTin,  & ! ice upper layer temperature (oC)
-         hsn ,  & ! snow thickness (m)
+         zTin1, & ! ice upper layer temperature (C)
+         hsn  , & ! snow thickness (m)
          hin      ! ice thickness
 
       real (kind=dbl_kind) :: &
@@ -160,20 +166,20 @@
       !-----------------------------------------------------------------
 
       do n = 1, ncat
-         zTin(n)= c0
-         hsn(n) = c0
-         hin(n) = c0
+         zTin1(n) = c0
+         hsn  (n) = c0
+         hin  (n) = c0
          if (aicen(n) > puny) then
-!ech move up              zTin(n)  = colpkg_ice_temperature(zqin1(n),zSin1(n))
-             hsn(n)   = vsnon(n)/aicen(n)
-             hin(n)   = vicen(n)/aicen(n)
+            zTin1(n) = icepack_ice_temperature(zqin1(n), zSin1(n))
+            hsn(n)   = vsnon(n)/aicen(n)
+            hin(n)   = vicen(n)/aicen(n)
          endif
       enddo
 
       call update_snow_radius (dt,         ncat,  &
                                nslyr,      nilyr, &
                                rsnw,       hin,   &
-                               Tsfc,       zTin,  &
+                               Tsfc,       zTin1, &
                                hsn,        zqsn,  &
                                smice,      smliq)
 

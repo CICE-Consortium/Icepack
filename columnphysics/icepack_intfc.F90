@@ -82,6 +82,8 @@
       use icepack_wavefracspec, only: icepack_init_wave
       use icepack_wavefracspec, only: icepack_step_wavefracture
 
+      use icepack_snow, only: icepack_step_snow
+
       use icepack_shortwave, only: icepack_prep_radiation
       use icepack_shortwave, only: icepack_step_radiation
 

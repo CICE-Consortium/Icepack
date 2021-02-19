@@ -2754,7 +2754,7 @@
                                fiso_ocnn=fiso_ocnn,      &
                                fiso_evap=l_fiso_evap,    &
                                fiso_evapn=fiso_evapn)
-if (snoice > puny) print*,'snoice',snoice
+
          if (icepack_warnings_aborted(subname)) return
 
       enddo                  ! ncat
