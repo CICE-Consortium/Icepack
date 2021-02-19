@@ -2027,7 +2027,8 @@
                                     melts       , meltsn      , &
                                     congel      , congeln     , &
                                     snoice      , snoicen     , &
-                                    dsnown      , meltsliqn   , &
+                                    dsnow       , dsnown      , &
+                                    meltsliqn   , &
                                     smicen      , smliqn      , &
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
@@ -2122,6 +2123,7 @@
          meltt       , & ! top ice melt             (m/step-->cm/day)
          melts       , & ! snow melt                (m/step-->cm/day)
          meltb       , & ! basal ice melt           (m/step-->cm/day)
+         dsnow       , & ! change in snow depth     (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
@@ -2740,9 +2742,10 @@
                                fswthru_idf=l_fswthru_idf,           &
                                melttn=melttn (n), meltsn=meltsn(n), &
                                meltbn=meltbn (n), congeln=congeln(n),&
-                               snoicen=snoicen(n),                  &
                                meltt=meltt,       melts=melts,      &
-                               meltb=meltb,       congel=congel,    &
+                               meltb=meltb,       snoicen=snoicen(n),&
+                               dsnow=dsnow,       dsnown=dsnown(n), &
+                               congel=congel,    &
                                snoice=snoice,                       &
                                Uref=Uref,  Urefn=Urefn,  &
                                Qref_iso=l_Qref_iso,      &
@@ -2751,7 +2754,7 @@
                                fiso_ocnn=fiso_ocnn,      &
                                fiso_evap=l_fiso_evap,    &
                                fiso_evapn=fiso_evapn)
-
+if (snoice > puny) print*,'snoice',snoice
          if (icepack_warnings_aborted(subname)) return
 
       enddo                  ! ncat

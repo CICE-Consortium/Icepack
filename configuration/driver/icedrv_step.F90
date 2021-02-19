@@ -123,7 +123,7 @@
       use icedrv_flux, only: meltt, melts, meltb, congel, snoice
       use icedrv_flux, only: fswthru, fswthru_vdr, fswthru_vdf, fswthru_idr, fswthru_idf
       use icedrv_flux, only: flatn_f, fsensn_f, fsurfn_f, fcondtopn_f
-      use icedrv_flux, only: dsnown, faero_atm, faero_ocn
+      use icedrv_flux, only: dsnow, dsnown, faero_atm, faero_ocn
       use icedrv_flux, only: fiso_atm, fiso_ocn, fiso_evap
       use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
       use icedrv_init, only: lmask_n, lmask_s
@@ -346,7 +346,7 @@
             melts    = melts(i),      meltsn    = meltsn(i,:),    &
             congel   = congel(i),     congeln   = congeln(i,:),   &
             snoice   = snoice(i),     snoicen   = snoicen(i,:),   &
-            dsnown   = dsnown(i,:),                               &
+            dsnow    = dsnow(i),      dsnown    = dsnown(i,:),    &
             lmask_n  = lmask_n(i),    lmask_s   = lmask_s(i),     &
             mlt_onset=mlt_onset(i),   frz_onset = frz_onset(i),   &
             yday = yday,  prescribed_ice = prescribed_ice)

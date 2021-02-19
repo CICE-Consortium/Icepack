@@ -58,7 +58,7 @@
                                fswthru_idr, fswthru_idf,&
                                melttn, meltsn, meltbn, congeln, snoicen, &
                                meltt,  melts,        &
-                               meltb,                &
+                               meltb,  dsnow, dsnown,&
                                congel,  snoice,      &
                                Uref,     Urefn,      &
                                Qref_iso, Qrefn_iso,  &
@@ -95,6 +95,7 @@
           melttn  , & ! top ice melt                    (m)
           meltbn  , & ! bottom ice melt                 (m)
           meltsn  , & ! snow melt                       (m)
+          dsnown  , & ! change in snow depth            (m)
           congeln , & ! congelation ice growth          (m)
           snoicen     ! snow-ice growth                 (m)
            
@@ -125,6 +126,7 @@
           meltt   , & ! top ice melt                    (m)
           meltb   , & ! bottom ice melt                 (m)
           melts   , & ! snow melt                       (m)
+          dsnow   , & ! change in snow depth            (m)
           congel  , & ! congelation ice growth          (m)
           snoice      ! snow-ice growth                 (m)
 
@@ -212,6 +214,7 @@
       meltt     = meltt     + melttn    * aicen
       meltb     = meltb     + meltbn    * aicen
       melts     = melts     + meltsn    * aicen
+      dsnow     = dsnow     + dsnown    * aicen
       congel    = congel    + congeln   * aicen
       snoice    = snoice    + snoicen   * aicen
       
