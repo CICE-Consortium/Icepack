@@ -188,7 +188,10 @@
       ! snow redistribution and metamorphosis
       !-----------------------------------------------------------------
 
-      if (tr_snow) call step_snow (dt)
+      if (tr_snow) then
+         call step_snow    (dt)
+         call update_state (dt) ! clean up
+      endif
 
 !      call icedrv_diagnostics_debug ('post snow redistribution')
 

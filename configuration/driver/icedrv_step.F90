@@ -522,13 +522,15 @@
       use icepack_intfc, only: icepack_aggregate
 
       real (kind=dbl_kind), intent(in) :: &
-         dt    , & ! time step
-         offset    ! d(age)/dt time offset = dt for thermo, 0 for dyn
+         dt       ! time step
 
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          daidt, & ! change in ice area per time step
          dvidt, & ! change in ice volume per time step
          dagedt   ! change in ice age per time step
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         offset    ! d(age)/dt time offset = dt for thermo, 0 for dyn
 
       integer (kind=int_kind) :: & 
          i,     & ! horizontal indices
@@ -580,6 +582,8 @@
                          nt_strata=nt_strata        (1:ntrcr,:))
          endif
 
+         if (present(offset)) then
+
       !-----------------------------------------------------------------
       ! Compute thermodynamic area and volume tendencies.
       !-----------------------------------------------------------------
@@ -595,7 +599,8 @@
                dagedt(i) = (trcr(i,nt_iage) &
                                 - dagedt(i)) / dt
             endif
-         endif
+         endif ! tr_iage
+         endif ! present(offset)
 
       enddo ! i
       !$OMP END PARALLEL DO
