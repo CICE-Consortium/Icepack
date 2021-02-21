@@ -16,7 +16,7 @@ module icepack_therm_mushy
   use icepack_mushy_physics, only: temperature_snow, temperature_mush_liquid_fraction
   use icepack_mushy_physics, only: liquidus_brine_salinity_mush, liquidus_temperature_mush
   use icepack_mushy_physics, only: conductivity_mush_array, conductivity_snow_array
-  use icepack_tracers, only: tr_pond
+  use icepack_tracers, only: tr_pond, tr_snow
   use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
   use icepack_therm_shared, only: ferrmax
   use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -56,7 +56,8 @@ contains
                                           fsensn,   flatn,    &
                                           flwoutn,  fsurfn,   &
                                           fcondtop, fcondbot, &
-                                          fadvheat, snoice)
+                                          fadvheat, snoice,   &
+                                          smice,    smliq)
 
     ! solve the enthalpy and bulk salinity of the ice for a single column
 
@@ -89,7 +90,9 @@ contains
 
     real (kind=dbl_kind), dimension (:), intent(inout) :: &
          Sswabs      , & ! SW radiation absorbed in snow layers (W m-2)
-         Iswabs          ! SW radiation absorbed in ice layers (W m-2)
+         Iswabs      , & ! SW radiation absorbed in ice layers (W m-2)
+         smice       , & ! ice mass tracer in snow (kg/m^3)
+         smliq           ! liquid water mass tracer in snow (kg/m^3)
     
     real (kind=dbl_kind), intent(inout):: &
          fsurfn      , & ! net flux to top surface, excluding fcondtopn
@@ -348,6 +351,7 @@ contains
                    phi,        dt,       &
                    zSin,       Sbr,      &
                    sss,        qocn,     &
+                   smice,      smliq,    &
                    snoice,     fadvheat)
     if (icepack_warnings_aborted(subname)) return
 
@@ -3204,6 +3208,7 @@ contains
                        phi,    dt,       &
                        zSin,   Sbr,      &
                        sss,    qocn,     &
+                       smice,  smliq,    &
                        snoice, fadvheat)
 
     ! given upwards flushing brine flow calculate amount of snow ice and
@@ -3224,7 +3229,9 @@ contains
          zqsn              , & ! snow layer enthalpy (J m-2)
          zqin              , & ! ice layer enthalpy (J m-2)
          zSin              , & ! ice layer bulk salinity (ppt)
-         phi                   ! ice liquid fraction
+         phi               , & ! ice liquid fraction
+         smice             , & ! ice mass tracer in snow (kg/m^3)
+         smliq                 ! liquid water mass tracer in snow (kg/m^3)
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
          Sbr                   ! ice layer brine salinity (ppt)
@@ -3252,6 +3259,7 @@ contains
          zqsn_snowice      , & ! snow enthalpy of snow thats becoming snowice (J m-2)
          freeboard_density , & ! negative of ice surface freeboard times the ocean density (kg m-2)
          ice_mass          , & ! mass of the ice (kg m-2)
+         snow_mass         , & ! mass of the ice (kg m-2)
          rho_ocn           , & ! density of the ocean (kg m-3)
          ice_density       , & ! density of ice layer (kg m-3)
          hadded            , & ! thickness rate of water used from ocean (m/s)
@@ -3281,23 +3289,42 @@ contains
        enddo ! k
        ice_mass = ice_mass * hilyr
 
-       ! negative freeboard times ocean density
-       freeboard_density = max(ice_mass + hsn * rhos - hin * rho_ocn, c0)
+! for now, do not use variable snow density
+!       snow_mass = c0
+!       if (tr_snow) then
+!          do k = 1,nslyr
+!             snow_mass = snow_mass + (smice(k) + smliq(k)) * hslyr
+!          enddo
 
-       ! check if have flooded ice
-       if (freeboard_density > c0) then
+!          ! negative freeboard times ocean density
+!          freeboard_density = max(ice_mass + snow_mass - hin * rho_ocn, c0) ! may not be BFB
 
-          ! sea ice fraction of newly formed snow ice
-          phi_snowice = (c1 - rhos / rhoi)
+!          if (freeboard_density > c0) then ! ice is flooded
+!             phi_snowice = (c1 - snow_mass / hsn / rhoi) ! sea ice fraction of newly formed snow-ice
+!             ! density of newly formed snowice
+!             ! use rhos instead of (c1-phi_snowice)*rhoi to conserve ice and liquid
+!             ! snow tracers when rhos = smice + smliq
+!             rho_snowice = phi_snowice * rho_ocn + (c1 - phi_snowice) * rhoi
+!          endif
+!       else
+          ! snow_mass = rhos * hsn
+          ! negative freeboard times ocean density
+          freeboard_density = max(ice_mass + hsn * rhos - hin * rho_ocn, c0)
 
-          ! density of newly formed snowice
-          rho_snowice = phi_snowice * rho_ocn + (c1 - phi_snowice) * rhoi
+          if (freeboard_density > c0) then ! ice is flooded
+             phi_snowice = (c1 - rhos / rhoi) ! sea ice fraction of newly formed snow-ice
+             ! density of newly formed snow-ice
+             rho_snowice = phi_snowice * rho_ocn + (c1 - phi_snowice) * rhoi
+          endif ! freeboard_density > c0
+!       endif ! tr_snow
+
+       if (freeboard_density > c0) then ! ice is flooded
 
           ! calculate thickness of new ice added
           dh = freeboard_density / (rho_ocn - rho_snowice + rhos)
           dh = max(min(dh,hsn),c0)
 
-          ! enthalpy of snow that becomes snowice
+          ! enthalpy of snow that becomes snow-ice
           call enthalpy_snow_snowice(nslyr, dh, hsn, zqsn, zqsn_snowice)
           if (icepack_warnings_aborted(subname)) return
 
@@ -3315,6 +3342,12 @@ contains
           ! change snow properties
           call update_vertical_tracers_snow(nslyr, zqsn, hslyr, hslyr2)
           if (icepack_warnings_aborted(subname)) return
+
+          if (tr_snow .and. hslyr2 > puny) then
+             call update_vertical_tracers_snow(nslyr, smice, hslyr, hslyr2)
+             call update_vertical_tracers_snow(nslyr, smliq, hslyr, hslyr2)
+             if (icepack_warnings_aborted(subname)) return
+          endif
 
           ! change ice properties
           call update_vertical_tracers_ice(nilyr, zqin, hilyr, hilyr2, &

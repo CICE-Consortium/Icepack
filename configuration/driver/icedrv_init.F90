@@ -424,24 +424,20 @@
 
       if (snwredist(1:4) /= 'none' .and. .not. tr_snow) then
          write (nu_diag,*) 'WARNING: snwredist on but tr_snow=F'
-         write (nu_diag,*) 'WARNING: Setting snwredist=none'
-         snwredist = 'none'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (snwredist(1:9) == '30percent' .and. .not. tr_lvl) then
          write (nu_diag,*) 'WARNING: snwredist=30percent but tr_lvl=F'
-         write (nu_diag,*) 'WARNING: Setting tr_lvl=T'
-         tr_lvl = .true.
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (snwredist(1:6) == 'ITDrdg' .and. .not. tr_lvl) then
          write (nu_diag,*) 'WARNING: snwredist=ITDrdg but tr_lvl=F'
-         write (nu_diag,*) 'WARNING: Setting tr_lvl=T'
-         tr_lvl = .true.
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (use_smliq_pnd .and. .not. tr_snow) then
          write (nu_diag,*) 'WARNING: use_smliq_pnd = T but'
          write (nu_diag,*) 'WARNING: snow tracers are not active'
-         write (nu_diag,*) 'WARNING: Setting use_smliq_pnd = F'
-         use_smliq_pnd = .false.
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
       if (tr_iso .and. n_iso==0) then

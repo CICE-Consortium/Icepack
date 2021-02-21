@@ -108,6 +108,7 @@
       use icedrv_arrays_column, only: hkeel, dkeel, lfloe, dfloe
       use icedrv_arrays_column, only: fswsfcn, fswintn, Sswabsn, Iswabsn
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
+      use icedrv_arrays_column, only: meltsliqn, meltsliq
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, n_iso, nx
       use icedrv_flux, only: frzmlt, sst, Tf, strocnxT, strocnyT, rside, fside, &
@@ -149,7 +150,7 @@
       integer (kind=int_kind) :: &
          ntrcr, nt_apnd, nt_hpnd, nt_ipnd, nt_alvl, nt_vlvl, nt_Tsfc, &
          nt_iage, nt_FY, nt_qice, nt_sice, nt_qsno, &
-         nt_aero, nt_isosno, nt_isoice
+         nt_aero, nt_isosno, nt_isoice, nt_rsnw, nt_smice, nt_smliq
 
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_aero, tr_iso, tr_pond, tr_pond_cesm, &
@@ -197,6 +198,7 @@
          nt_iage_out=nt_iage, nt_FY_out=nt_FY, &
          nt_qice_out=nt_qice, nt_sice_out=nt_sice, &
          nt_aero_out=nt_aero, nt_qsno_out=nt_qsno, &
+         nt_rsnw_out=nt_rsnw, nt_smice_out=nt_smice, nt_smliq_out=nt_smliq, &
          nt_isosno_out=nt_isosno, nt_isoice_out=nt_isoice)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -272,6 +274,9 @@
             ipnd = trcrn(i,nt_ipnd,:),                 & 
             iage = trcrn(i,nt_iage,:),                 &
             FY   = trcrn(i,nt_FY,:),                   & 
+            rsnwn  = trcrn(i,nt_rsnw :nt_rsnw +nslyr-1,:), &
+            smicen = trcrn(i,nt_smice:nt_smice+nslyr-1,:), &
+            smliqn = trcrn(i,nt_smliq:nt_smliq+nslyr-1,:), &
             aerosno = aerosno(:,:,:),        &
             aeroice = aeroice(:,:,:),        &
             isosno  = isosno(:,:),           &
@@ -347,6 +352,7 @@
             congel   = congel(i),     congeln   = congeln(i,:),   &
             snoice   = snoice(i),     snoicen   = snoicen(i,:),   &
             dsnow    = dsnow(i),      dsnown    = dsnown(i,:),    &
+            meltsliqn=meltsliqn(i,:), &
             lmask_n  = lmask_n(i),    lmask_s   = lmask_s(i),     &
             mlt_onset=mlt_onset(i),   frz_onset = frz_onset(i),   &
             yday = yday,  prescribed_ice = prescribed_ice)
