@@ -461,6 +461,11 @@
          shortwave = 'dEdd'
       endif
 
+      if (tr_snow .and. trim(shortwave) /= 'dEdd') then
+         write (nu_diag,*) 'WARNING: snow grain radius activated but'
+         write (nu_diag,*) 'WARNING: dEdd shortwave is not.'
+      endif
+
       rfracmin = min(max(rfracmin,c0),c1)
       rfracmax = min(max(rfracmax,c0),c1)
 

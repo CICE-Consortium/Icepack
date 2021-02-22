@@ -44,13 +44,13 @@
       use icepack_parameters, only: c0, c1, c1p5, c2, c3, c4, c10
       use icepack_parameters, only: p01, p1, p15, p25, p5, p75, puny
       use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
-      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint
-      use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l
+      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint, rsnw_fall, snwredist
+      use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l, snwlvlfac
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
-      use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow
       use icepack_tracers,    only: tr_bgc_N, tr_aero
       use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
@@ -804,6 +804,8 @@
                           albpndn,  apeffn,    &
                           snowfracn,           &
                           dhsn,     ffracn,    &
+                          rsnow,               &
+                          rsnw_dEddn,          &
                           l_print_point,       &
                           initonly)
 
@@ -875,10 +877,12 @@
            ipndn    ! pond refrozen lid thickness (m)
 
       real(kind=dbl_kind), dimension(:,:), intent(in) :: &
+           rsnow, & ! snow grain radius tracer (10^-6 m)
            aeron, & ! aerosols (kg/m^3)
            trcrn_bgcsw ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
+           rsnw_dEddn, & ! snow grain radius if .not. tr_rsnw (10^-6 m)
            ffracn,& ! fraction of fsurfn used to melt ipond
            dhsn     ! depth difference for snow on sea ice and pond ice
 
@@ -922,7 +926,10 @@
       ! snow variables for Delta-Eddington shortwave
       real (kind=dbl_kind) :: &
          fsn         , & ! snow horizontal fraction
-         hsn             ! snow depth (m)
+         hsn         , & ! snow depth (m)
+         hsnlvl      , & ! snow depth over level ice (m)
+         vsn         , & ! snow volume
+         alvl            ! area fraction of level ice
 
       real (kind=dbl_kind), dimension (nslyr) :: &
          rhosnwn     , & ! snow density (kg/m3)
@@ -934,7 +941,8 @@
          hpn             ! actual pond depth (m)
 
       integer (kind=int_kind) :: &
-         n               ! thickness category index
+         n           , & ! thickness category index
+         k               ! snow layer index
 
       real (kind=dbl_kind) :: &
          ipn         , & ! refrozen pond ice thickness (m), mean over ice fraction
@@ -945,6 +953,7 @@
          hmx         , & ! maximum available snow infiltration equivalent depth
          dhs         , & ! local difference in snow depth on sea ice and pond ice
          spn         , & ! snow depth on refrozen pond (m)
+         rnslyr      , & ! 1/nslyr
          tmp             ! 0 or 1
 
       logical (kind=log_kind) :: &
@@ -989,8 +998,9 @@
          hsn        = c0
          rhosnwn(:) = c0
          rsnwn(:)   = c0
-         apeffn(n)    = c0 ! for history
-         snowfracn(n) = c0 ! for history
+         apeffn(n)     = c0 ! for history
+         snowfracn(n)  = c0 ! for history
+         rsnw_dEddn(n) = c0 ! for history
 
          if (aicen(n) > puny) then
 
@@ -999,7 +1009,8 @@
                                          aicen(n),   vsnon(n), &
                                          Tsfcn(n),   fsn,      &
                                          hs0,        hsn,      &
-                                         rhosnwn,    rsnwn)    
+                                         rhosnwn,    rsnwn,    &
+                                         rsnow(:,n))
             if (icepack_warnings_aborted(subname)) return
 
             ! set pond properties
@@ -1019,6 +1030,28 @@
                fsn = min(fsn, c1-fpn)
                apeffn(n) = fpn ! for history
             elseif (tr_pond_lvl) then
+
+               hsnlvl = hsn ! initialize
+               if (trim(snwredist) == '30percentsw') then
+                  hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
+                  ! snow volume over level ice
+                  alvl = aicen(n) * alvln(n)
+                  if (alvl > puny) then
+                     vsn = hsnlvl * alvl
+                  else
+                     vsn = vsnon(n)
+                     alvl = aicen(n)
+                  endif
+                  ! set snow properties over level ice
+                  call shortwave_dEdd_set_snow(nslyr,      R_snw,    &
+                                               dT_mlt,     rsnw_mlt, &
+                                               alvl,       vsn,      &
+                                               Tsfcn(n),   fsn,      &
+                                               hs0,        hsnlvl,   &
+                                               rhosnwn(:), rsnwn(:), &
+                                               rsnow(:,n))
+               endif ! snwredist
+
                fpn = c0  ! fraction of ice covered in pond
                hpn = c0  ! pond depth over fpn
                ! refrozen pond lid thickness avg over ice
@@ -1027,8 +1060,8 @@
                dhs = dhsn(n) ! snow depth difference, sea ice - pond
                if (.not. linitonly .and. ipn > puny .and. &
                     dhs < puny .and. fsnow*dt > hs_min) &
-                    dhs = hsn - fsnow*dt ! initialize dhs>0
-               spn = hsn - dhs   ! snow depth on pond ice
+                    dhs = hsnlvl - fsnow*dt ! initialize dhs>0
+               spn = hsnlvl - dhs   ! snow depth on pond ice
                if (.not. linitonly .and. ipn*spn < puny) dhs = c0
                dhsn(n) = dhs ! save: constant until reset to 0
                   
@@ -1053,7 +1086,7 @@
                ! infiltrate snow
                hp = hpn
                if (hp > puny) then
-                  hs = hsn
+                  hs = hsnlvl
                   rp = rhofresh*hp/(rhofresh*hp + rhos*hs)
                   if (rp < p15) then
                      fpn = c0
@@ -1063,7 +1096,7 @@
                      tmp = max(c0, sign(c1, hp-hmx)) ! 1 if hp>=hmx, else 0
                      hp = (rhofresh*hp + rhos*hs*tmp) &
                           / (rhofresh    - rhos*(c1-tmp))
-                     hsn = hs - hp*fpn*(c1-tmp)
+                     hsn = hsn - hp*fpn*(c1-tmp)
                      hpn = hp * tmp
                      fpn = fpn * tmp
                   endif
@@ -1135,10 +1168,10 @@
                              alidrn(n),     alidfn(n),      &
                              fswsfcn(n),    fswintn(n),     &
                              fswthru=fswthrun(n),           &
-                             fswthru_vdr=l_fswthrun_vdr(n),    &
-                             fswthru_vdf=l_fswthrun_vdf(n),    &
-                             fswthru_idr=l_fswthrun_idr(n),    &
-                             fswthru_idf=l_fswthrun_idf(n),    &
+                             fswthru_vdr=l_fswthrun_vdr(n), &
+                             fswthru_vdf=l_fswthrun_vdf(n), &
+                             fswthru_idr=l_fswthrun_idr(n), &
+                             fswthru_idf=l_fswthrun_idf(n), &
                              Sswabs=Sswabsn(:,n),           &
                              Iswabs=Iswabsn(:,n),           &
                              albice=albicen(n),             &
@@ -1149,6 +1182,13 @@
                              l_print_point=l_print_point)
 
             if (icepack_warnings_aborted(subname)) return
+
+            if (.not. tr_snow) then
+               rnslyr = c1/max(c1,(real(nslyr,kind=dbl_kind)))
+               do k = 1,nslyr
+                  rsnw_dEddn(n) = rsnw_dEddn(n) + rsnwn(k)*rnslyr
+               enddo
+            endif
 
          endif ! aicen > puny
 
@@ -3569,7 +3609,8 @@
                                          aice,     vsno,     &
                                          Tsfc,     fs,       &
                                          hs0,      hs,       &
-                                         rhosnw,   rsnw)
+                                         rhosnw,   rsnw,     &
+                                         rsnow)
 
       integer (kind=int_kind), intent(in) :: & 
          nslyr      ! number of snow layers
@@ -3588,6 +3629,9 @@
      real (kind=dbl_kind), intent(inout) :: &
          fs     , & ! horizontal coverage of snow
          hs         ! snow depth
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         rsnow      ! snow grain radius tracer (micro-meters)
 
       real (kind=dbl_kind), dimension (:), intent(out) :: &
          rhosnw , & ! density in snow layer (kg/m3)
@@ -3621,6 +3665,15 @@
          if (hs0 > puny) fs = min(hs/hs0, c1)
       endif
       
+      if (tr_snow) then  ! use snow grain tracer
+
+          do ks = 1, nslyr
+            rsnw(ks)   = max(rsnw_fall,rsnow(ks))
+            rhosnw(ks) = rhos
+          enddo
+
+      else
+
       ! bare ice, temperature dependence
       dTs = Timelt - Tsfc
       fT  = -min(dTs/dT_mlt-c1,c0)
@@ -3637,7 +3690,9 @@
          rsnw(ks) = rsnw_nm + (rsnw_mlt-rsnw_nm)*fT
          rsnw(ks) = max(rsnw(ks), rsnw_fresh)
          rsnw(ks) = min(rsnw(ks), rsnw_mlt)
-      enddo        ! ks
+      enddo ! ks
+
+      endif ! tr_snow
 
       end subroutine shortwave_dEdd_set_snow
 
@@ -4010,6 +4065,7 @@
                                         albpndn,  apeffn,    &
                                         snowfracn,           &
                                         dhsn,     ffracn,    &
+                                        rsnow,    rsnw_dEddn,&
                                         l_print_point, &
                                         initonly)
 
@@ -4113,6 +4169,12 @@
          dEdd_algae   , & ! .true. use prognostic chla in dEdd
          modal_aero       ! .true. use modal aerosol optical treatment
 
+      real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
+         rsnow       ! snow grain radius tracer (10^-6 m)
+
+      real(kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         rsnw_dEddn  ! snow grain radius if .not. tr_snow (10^-6 m)
+
       logical (kind=log_kind), optional :: &
          initonly         ! flag to indicate init only, default is false
 
@@ -4134,7 +4196,11 @@
          l_fswthrun_vdr , & ! vis dir SW through ice to ocean (W/m^2)
          l_fswthrun_vdf , & ! vis dif SW through ice to ocean (W/m^2)
          l_fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
-         l_fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
+         l_fswthrun_idf , & ! nir dif SW through ice to ocean (W/m^2)
+         l_rsnw_dEddn       ! snow grain radius if .not. tr_snow (10^-6 m)
+
+      real (kind=dbl_kind), dimension(:,:), allocatable :: &
+         l_rsnow            ! snow grain radius tracer (10^-6 m)
 
       character(len=*),parameter :: subname='(icepack_step_radiation)'
 
@@ -4143,12 +4209,20 @@
       allocate(l_fswthrun_idr(ncat))
       allocate(l_fswthrun_idf(ncat))
 
-        hin = c0
-        hbri = c0
-        linitonly = .false.
-        if (present(initonly)) then
-           linitonly = initonly
-        endif
+      hin = c0
+      hbri = c0
+      linitonly = .false.
+      if (present(initonly)) then
+         linitonly = initonly
+      endif
+
+      allocate(l_rsnow (nslyr,ncat))
+      l_rsnow = c0
+      if (present(rsnow)) l_rsnow = rsnow
+
+      allocate(l_rsnw_dEddn (ncat))
+      l_rsnw_dEddn = c0
+      if (present(rsnw_dEddn)) l_rsnw_dEddn = rsnw_dEddn
 
          ! Initialize
          do n = 1, ncat
@@ -4234,6 +4308,8 @@
                           snowfracn=snowfracn,          &
                           dhsn=dhsn,                    &
                           ffracn=ffracn,                &
+                          rsnow=l_rsnow,                  &
+                          rsnw_dEddn=l_rsnw_dEddn,        &
                           l_print_point=l_print_point,  &
                           initonly=linitonly)
             if (icepack_warnings_aborted(subname)) return
@@ -4321,7 +4397,14 @@
       deallocate(l_fswthrun_idr)
       deallocate(l_fswthrun_idf)
 
+      if (present(rsnw_dEddn)) rsnw_dEddn = l_rsnw_dEddn
+
+      deallocate(l_rsnow)
+      deallocate(l_rsnw_dEddn)
+
       end subroutine icepack_step_radiation
+
+!=======================================================================
 
       ! Delta-Eddington solution expressions
 
