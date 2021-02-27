@@ -98,7 +98,7 @@
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
          tfrz_option, frzpnd, atmbndy, wave_spec_type, snwredist
 
-      logical (kind=log_kind) :: sw_redist, use_smliq_pnd
+      logical (kind=log_kind) :: sw_redist, use_smliq_pnd, snwgrain
       real (kind=dbl_kind)     :: sw_frac, sw_dtemp
 
       ! Flux convergence tolerance
@@ -157,9 +157,9 @@
         hp1
 
       namelist /snow_nml/ &
-        snwredist,      use_smliq_pnd,  rsnw_fall,     rsnw_tmax,      &
+        snwredist,      snwgrain,       rsnw_fall,     rsnw_tmax,      &
         rhosnew,        rhosmin,        rhosmax,       snwlvlfac,      &
-        windmin,        drhosdwind
+        windmin,        drhosdwind,     use_smliq_pnd
 
       namelist /forcing_nml/ &
         atmbndy,         calc_strair,     calc_Tsfc,       &
@@ -221,7 +221,7 @@
            wave_spec_type_out=wave_spec_type, &
            sw_redist_out=sw_redist, sw_frac_out=sw_frac, sw_dtemp_out=sw_dtemp, &
            snwredist_out=snwredist, use_smliq_pnd_out=use_smliq_pnd, &
-           rsnw_fall_out=rsnw_fall, rsnw_tmax_out=rsnw_tmax, &
+           snwgrain_out=snwgrain, rsnw_fall_out=rsnw_fall, rsnw_tmax_out=rsnw_tmax, &
            rhosnew_out=rhosnew, rhosmin_out = rhosmin, rhosmax_out=rhosmax, &
            windmin_out=windmin, drhosdwind_out=drhosdwind, snwlvlfac_out=snwlvlfac)
 
@@ -439,6 +439,10 @@
          write (nu_diag,*) 'WARNING: snow tracers are not active'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
+      if (snwgrain .and. .not. tr_snow) then
+         write (nu_diag,*) 'WARNING: snwgrain=T but tr_snow=F'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
 
       if (tr_iso .and. n_iso==0) then
          write (nu_diag,*) 'WARNING: isotopes activated but'
@@ -603,6 +607,7 @@
 
          if (tr_snow) then
          write(nu_diag,1030) ' snwredist                 = ', snwredist
+         write(nu_diag,1010) ' snwgrain                  = ', snwgrain
          write(nu_diag,1010) ' use_smliq_pnd             = ', use_smliq_pnd
          write(nu_diag,1000) ' rsnw_fall                 = ', rsnw_fall
          write(nu_diag,1000) ' rsnw_tmax                 = ', rsnw_tmax
@@ -851,7 +856,7 @@
            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec, &
            sw_redist_in=sw_redist, sw_frac_in=sw_frac, sw_dtemp_in=sw_dtemp, &
            snwredist_in=snwredist, use_smliq_pnd_in=use_smliq_pnd, &
-           rsnw_fall_in=rsnw_fall, rsnw_tmax_in=rsnw_tmax, &
+           snwgrain_in=snwgrain, rsnw_fall_in=rsnw_fall, rsnw_tmax_in=rsnw_tmax, &
            rhosnew_in=rhosnew, rhosmin_in=rhosmin, rhosmax_in=rhosmax, &
            windmin_in=windmin, drhosdwind_in=drhosdwind, snwlvlfac_in=snwlvlfac)
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &

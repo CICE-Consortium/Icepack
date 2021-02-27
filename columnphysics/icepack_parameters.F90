@@ -319,7 +319,8 @@
          snwredist  = 'none'             ! type of snow redistribution
 
       logical (kind=log_kind), public :: &
-         use_smliq_pnd = .false.         ! use liquid in snow for ponds
+         use_smliq_pnd = .false.     , & ! use liquid in snow for ponds
+         snwgrain      = .false.         ! snow metamorphosis
 
       real (kind=dbl_kind), public :: &
          rsnw_fall  = 54.526_dbl_kind, & ! radius of new snow (10^-6 m)
@@ -450,7 +451,7 @@
          fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
          max_dfe_doc1_in, fr_resp_s_in, conserv_check_in, &
          y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
-         sw_redist_in, sw_frac_in, sw_dtemp_in, &
+         sw_redist_in, sw_frac_in, sw_dtemp_in, snwgrain_in, &
          snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
          rhosnew_in, rhosmin_in, rhosmax_in, windmin_in, drhosdwind_in, &
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
@@ -758,7 +759,8 @@
          snwredist_in       ! type of snow redistribution
 
       logical (kind=log_kind), intent(in), optional :: &
-         use_smliq_pnd_in   ! use liquid in snow for ponds
+         use_smliq_pnd_in, &! use liquid in snow for ponds
+         snwgrain_in        ! snow metamorphosis
 
       real (kind=dbl_kind), intent(in), optional :: &
          rsnw_fall_in, &    ! radius of new snow (10^-6 m)
@@ -894,6 +896,7 @@
       if (present(hs1_in)               ) hs1              = hs1_in
       if (present(hp1_in)               ) hp1              = hp1_in
       if (present(snwredist_in)         ) snwredist        = snwredist_in
+      if (present(snwgrain_in)          ) snwgrain         = snwgrain_in
       if (present(use_smliq_pnd_in)     ) use_smliq_pnd    = use_smliq_pnd_in
       if (present(rsnw_fall_in)         ) rsnw_fall        = rsnw_fall_in
       if (present(rsnw_tmax_in)         ) rsnw_tmax        = rsnw_tmax_in
@@ -1000,7 +1003,7 @@
          fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
          k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, &
          y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
-         sw_redist_out, sw_frac_out, sw_dtemp_out, &
+         sw_redist_out, sw_frac_out, sw_dtemp_out, snwgrain_out, &
          snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
          rhosnew_out, rhosmin_out, rhosmax_out, windmin_out, drhosdwind_out, &
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
@@ -1317,7 +1320,8 @@
          snwredist_out       ! type of snow redistribution
 
       logical (kind=log_kind), intent(out), optional :: &
-         use_smliq_pnd_out  ! use liquid in snow for ponds
+         use_smliq_pnd_out, &! use liquid in snow for ponds
+         snwgrain_out        ! snow metamorphosis
 
       real (kind=dbl_kind), intent(out), optional :: &
          rsnw_fall_out, &    ! radius of new snow (10^-6 m)
@@ -1493,6 +1497,7 @@
       if (present(hs1_out)               ) hs1_out          = hs1
       if (present(hp1_out)               ) hp1_out          = hp1
       if (present(snwredist_out)         ) snwredist_out    = snwredist
+      if (present(snwgrain_out)          ) snwgrain_out     = snwgrain
       if (present(use_smliq_pnd_out)     ) use_smliq_pnd_out= use_smliq_pnd
       if (present(rsnw_fall_out)         ) rsnw_fall_out    = rsnw_fall
       if (present(rsnw_tmax_out)         ) rsnw_tmax_out    = rsnw_tmax
@@ -1689,6 +1694,7 @@
         write(iounit,*) "  hs1           = ", hs1
         write(iounit,*) "  hp1           = ", hp1
         write(iounit,*) "  snwredist     = ", snwredist
+        write(iounit,*) "  snwgrain      = ", snwgrain
         write(iounit,*) "  use_smliq_pnd = ", use_smliq_pnd
         write(iounit,*) "  rsnw_fall     = ", rsnw_fall
         write(iounit,*) "  rsnw_tmax     = ", rsnw_tmax

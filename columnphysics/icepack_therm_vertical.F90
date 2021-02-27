@@ -25,7 +25,7 @@
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
       use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc, rsnw_fall, rsnw_tmax
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
-      use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd
+      use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
@@ -1514,7 +1514,7 @@
                     + hsn_new * zqsnew) / hstot
             zqsn(1) = min(zqsn(1), zqsnew) ! avoid roundoff errors
 
-            if (tr_snow) then
+            if (tr_snow) then                       !echmod - is tr_snow needed?
                ! ice mass in snow due to snowfall
                ! new snow density = rhos for now    !echmod - fix this
                smicetot(1) = smicetot(1) + hsn_new * rhos ! kg/m^2
@@ -1549,7 +1549,7 @@
     ! Incorporate new snow for snow grain radius
     !-------------------------------------------------------------------
 
-      if (tr_snow .and. hsn_new > c0) then
+      if (snwgrain .and. hsn_new > c0) then
          tmp1 = max(c0, dzs(1) - hsn_new)
          rsnw(1) =    (rsnw_fall * hsn_new + rsnw(1) * tmp1) &
                  / max(            hsn_new +           tmp1, puny)
@@ -1678,11 +1678,12 @@
                                zs1,      zs2,      &
                                hslyr,    hsn,      &
                                zqsn)   
-         if (tr_snow) then
+         if (snwgrain) &
             call adjust_enthalpy (nslyr,              &
                                   zs1(:),   zs2(:),   &
                                   hslyr,    hsn,      &
                                   rsnw(:))
+         if (tr_snow) then
             call adjust_enthalpy (nslyr,              &
                                   zs1(:),   zs2(:),   &
                                   hslyr,    hsn,      &
@@ -1706,11 +1707,11 @@
                fhocnn = fhocnn &
                       + zqsn(k)*hsn/(real(nslyr,kind=dbl_kind)*dt)
                zqsn(k) = -rhos*Lfresh
-
-               meltsliq = meltsliq + smicetot(k)  ! add to meltponds
-               smice(k) = c0
-               smliq(k) = c0
-
+               if (tr_snow) then
+                  meltsliq = meltsliq + smicetot(k)  ! add to meltponds
+                  smice(k) = c0
+                  smliq(k) = c0
+               endif
                hslyr = c0
             endif
          enddo

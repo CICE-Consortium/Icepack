@@ -45,12 +45,12 @@
       use icepack_parameters, only: p01, p1, p15, p25, p5, p75, puny
       use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
       use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint, rsnw_fall, snwredist
-      use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l, snwlvlfac
+      use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l, snwlvlfac, snwgrain
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
-      use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow
+      use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_tracers,    only: tr_bgc_N, tr_aero
       use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
@@ -882,7 +882,7 @@
            trcrn_bgcsw ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
-           rsnw_dEddn, & ! snow grain radius if .not. tr_rsnw (10^-6 m)
+           rsnw_dEddn, & ! constant snow grain radius (10^-6 m)
            ffracn,& ! fraction of fsurfn used to melt ipond
            dhsn     ! depth difference for snow on sea ice and pond ice
 
@@ -1183,7 +1183,7 @@
 
             if (icepack_warnings_aborted(subname)) return
 
-            if (.not. tr_snow) then
+            if (.not. snwgrain) then
                rnslyr = c1/max(c1,(real(nslyr,kind=dbl_kind)))
                do k = 1,nslyr
                   rsnw_dEddn(n) = rsnw_dEddn(n) + rsnwn(k)*rnslyr
@@ -3665,7 +3665,7 @@
          if (hs0 > puny) fs = min(hs/hs0, c1)
       endif
       
-      if (tr_snow) then  ! use snow grain tracer
+      if (snwgrain) then  ! use snow grain tracer
 
           do ks = 1, nslyr
             rsnw(ks)   = max(rsnw_fall,rsnow(ks))
@@ -3692,7 +3692,7 @@
          rsnw(ks) = min(rsnw(ks), rsnw_mlt)
       enddo ! ks
 
-      endif ! tr_snow
+      endif ! snwgrain
 
       end subroutine shortwave_dEdd_set_snow
 
@@ -4173,7 +4173,7 @@
          rsnow       ! snow grain radius tracer (10^-6 m)
 
       real(kind=dbl_kind), dimension(:), intent(inout), optional :: &
-         rsnw_dEddn  ! snow grain radius if .not. tr_snow (10^-6 m)
+         rsnw_dEddn  ! constant snow grain radius (10^-6 m)
 
       logical (kind=log_kind), optional :: &
          initonly         ! flag to indicate init only, default is false
@@ -4197,7 +4197,7 @@
          l_fswthrun_vdf , & ! vis dif SW through ice to ocean (W/m^2)
          l_fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
          l_fswthrun_idf , & ! nir dif SW through ice to ocean (W/m^2)
-         l_rsnw_dEddn       ! snow grain radius if .not. tr_snow (10^-6 m)
+         l_rsnw_dEddn       ! constant snow grain radius (10^-6 m)
 
       real (kind=dbl_kind), dimension(:,:), allocatable :: &
          l_rsnow            ! snow grain radius tracer (10^-6 m)

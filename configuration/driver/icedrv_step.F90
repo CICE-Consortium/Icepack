@@ -231,6 +231,7 @@
       enddo ! i
 
       do i = 1, nx
+!echmod            do i = 3,3
         if (tr_aero) then
           ! trcrn(nt_aero) has units kg/m^3
           do n=1,ncat
@@ -254,7 +255,7 @@
             enddo
           enddo
         endif ! tr_iso
-        
+!print*,' driver i', i        
         call icepack_step_therm1(dt=dt, ncat=ncat, nilyr=nilyr, nslyr=nslyr, &
             aicen_init = aicen_init(i,:), &
             vicen_init = vicen_init(i,:), &

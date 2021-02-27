@@ -81,6 +81,7 @@
 
 &snow_nml
     snwredist       = 'none'
+    snwgrain        = .false.
     use_smliq_pnd   = .false.
     rsnw_fall       = 54.526
     rsnw_tmax       = 1500.0

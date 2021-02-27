@@ -9,7 +9,7 @@
 
       use icepack_kinds
       use icepack_parameters, only: puny, p1, p5, c0, c1, c4, c10, c100, pi
-      use icepack_parameters, only: rhos, rhow, rhoi, rhofresh
+      use icepack_parameters, only: rhos, rhow, rhoi, rhofresh, snwgrain
       use icepack_parameters, only: snwlvlfac, Tffresh, cp_ice, Lfresh
       use icepack_parameters, only: snwredist, rsnw_fall, rsnw_tmax, rhosnew
       use icepack_parameters, only: rhosmin, rhosmax, windmin, drhosdwind
@@ -126,7 +126,7 @@
                                   smice,     smliq,    &
                                   rhos_effn, rhos_eff, &
                                   rhos_cmpn, rhos_cmp)
-
+print*,'A smliq',smliq
       !-----------------------------------------------------------------
       ! Redistribute snow based on wind
       !-----------------------------------------------------------------
@@ -161,23 +161,26 @@
       ! Adjust snow grain radius
       !-----------------------------------------------------------------
 
-      do n = 1, ncat
-         zTin1(n) = c0
-         hsn  (n) = c0
-         hin  (n) = c0
-         if (aicen(n) > puny) then
-            zTin1(n) = icepack_ice_temperature(zqin1(n), zSin1(n))
-            hsn(n)   = vsnon(n)/aicen(n)
-            hin(n)   = vicen(n)/aicen(n)
-         endif
-      enddo
+      if (snwgrain) then
+         do n = 1, ncat
+            zTin1(n) = c0
+            hsn  (n) = c0
+            hin  (n) = c0
+            if (aicen(n) > puny) then
+               zTin1(n) = icepack_ice_temperature(zqin1(n), zSin1(n))
+               hsn(n)   = vsnon(n)/aicen(n)
+               hin(n)   = vicen(n)/aicen(n)
+            endif
+         enddo
 
-      call update_snow_radius (dt,         ncat,  &
-                               nslyr,      nilyr, &
-                               rsnw,       hin,   &
-                               Tsfc,       zTin1, &
-                               hsn,        zqsn,  &
-                               smice,      smliq)
+         call update_snow_radius (dt,         ncat,  &
+                                  nslyr,      nilyr, &
+                                  rsnw,       hin,   &
+                                  Tsfc,       zTin1, &
+                                  hsn,        zqsn,  &
+                                  smice,      smliq)
+print*,'B smliq',smliq
+      endif
 
       end subroutine icepack_step_snow
 
