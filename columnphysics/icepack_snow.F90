@@ -152,14 +152,10 @@
       tmp2 = rhos*vsno + fresh*dt
 
       ! check conservation
-!      if (abs(tmp1-tmp2)>puny) then
-!        write(warning,*) ' '
-!        call add_warning(warning)
-!        write(warning,*)'tmp1 ne tmp2',tmp1, tmp2
-!        call add_warning(warning)
-!        stop_label ='snow redistribution error'
-!        l_stop = .true.
-!      endif
+      if (abs(tmp1-tmp2)>puny) then
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//'ERROR: snow redistribution')
+      endif
 
       !-----------------------------------------------------------------
       ! Adjust snow grain radius

@@ -25,7 +25,7 @@
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
       use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc, rsnw_fall, rsnw_tmax
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
-      use icepack_parameters, only: rfracmin, rfracmax, pndaspect, dpscale, frzpnd
+      use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
@@ -248,8 +248,8 @@
 
       flwoutn = c0
       evapn   = c0
-      evapsn   = c0
-      evapin   = c0
+      evapsn  = c0
+      evapin  = c0
       freshn  = c0
       fsaltn  = c0
       fhocnn  = c0
@@ -263,6 +263,7 @@
       dsnow   = c0
       zTsn(:) = c0
       zTin(:) = c0
+      meltsliq= c0
 
       if (calc_Tsfc) then
          fsensn  = c0
@@ -1192,8 +1193,10 @@
          dzs(k) = hslyr
          smicetot(k) = c0
          smliqtot(k) = c0
-         smicetot(k) = dzs(k) * smice(k)
-         smliqtot(k) = dzs(k) * smliq(k)
+         if (tr_snow) then
+            smicetot(k) = dzs(k) * smice(k)
+            smliqtot(k) = dzs(k) * smliq(k)
+         endif
       enddo
 
       do k = 1, nilyr
@@ -1509,18 +1512,19 @@
          if (hstot > c0) then
             zqsn(1) = (dzs(1) * zqsn(1) &
                     + hsn_new * zqsnew) / hstot
-            zqsn(1) = min(zqsn(1), -rhos*Lfresh) ! avoid roundoff errors
+            zqsn(1) = min(zqsn(1), zqsnew) ! avoid roundoff errors
 
-            ! ice mass in snow due to snowfall
-            ! new snow density = rhos for now    !echmod - fix this
-            smicetot(1) = smicetot(1) + hsn_new * rhos ! kg/m^2
-
+            if (tr_snow) then
+               ! ice mass in snow due to snowfall
+               ! new snow density = rhos for now    !echmod - fix this
+               smicetot(1) = smicetot(1) + hsn_new * rhos ! kg/m^2
+            endif
             dzs(1) = hstot
          endif
       endif
 
 !---!-----------------------------------------------------------------
-!---! Add rain  at top surface (only to liquid tracer)
+!---! Add rain at top surface (only to liquid tracer)
 !---!-----------------------------------------------------------------
 
       smliqtot(1) = smliqtot(1) + frain*dt
@@ -2560,6 +2564,7 @@
          congeln(n) = c0
          snoicen(n) = c0
          dsnown (n) = c0
+         meltsliqn(n) = c0
 
          Trefn  = c0
          Qrefn  = c0
@@ -2682,7 +2687,7 @@
                                  yday=yday,           dsnow=dsnown   (n),     &
                                  prescribed_ice=prescribed_ice)
 
-        if (icepack_warnings_aborted(subname)) then
+            if (icepack_warnings_aborted(subname)) then
                call icepack_warnings_add(subname//' ice: Vertical thermo error: ')
                return
             endif
@@ -2734,7 +2739,7 @@
             endif
          endif   ! aicen_init
 
-         if (tr_snow .and. use_smliq_pnd) then
+         if (use_smliq_pnd) then
             call drain_snow (dt = dt,               nslyr = nslyr, &
                              vsnon = vsnon(n),      aicen = aicen(n), &
                              smice = l_smice(:,n), smliq = l_smliq(:,n), &
@@ -2753,32 +2758,47 @@
                
             if (tr_pond_cesm) then
                rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n) 
-               call compute_ponds_cesm(dt,        hi_min,    &
-                                       pndaspect, rfrac,     &
-                                       melttn(n), meltsn(n), &
-                                       frain,                &
-                                       aicen (n), vicen (n), &
-                                       Tsfc  (n), &
-                                       apnd  (n), hpnd  (n))
+               call compute_ponds_cesm(dt=dt,           &
+                                       hi_min=hi_min,   &
+                                       rfrac=rfrac,     &
+                                       meltt=melttn(n), &
+                                       melts=meltsn(n), &
+                                       frain=frain,     &
+                                       aicen=aicen (n), &
+                                       vicen=vicen (n), &
+                                       Tsfcn=Tsfc  (n), &
+                                       apnd=apnd   (n), &
+                                       hpnd=hpnd   (n), &
+                                       meltsliqn=l_meltsliq(n))
                if (icepack_warnings_aborted(subname)) return
                   
             elseif (tr_pond_lvl) then
                rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
-               call compute_ponds_lvl(dt,        nilyr,     &
-                                      ktherm,               &
-                                      hi_min,               &
-                                      dpscale,   frzpnd,    &
-                                      pndaspect, rfrac,     &
-                                      melttn(n), meltsn(n), &
-                                      frain,     Tair,      &
-                                      fsurfn(n),            &
-                                      dhsn  (n), ffracn(n), &
-                                      aicen (n), vicen (n), &
-                                      vsnon (n),            &
-                                      zqin(:,n), zSin(:,n), &
-                                      Tsfc  (n), alvl  (n), &
-                                      apnd  (n), hpnd  (n), &
-                                      ipnd  (n))
+               call compute_ponds_lvl (dt=dt,            &
+                                       nilyr=nilyr,      &
+                                       ktherm=ktherm,    &
+                                       hi_min=hi_min,    &
+                                       dpscale=dpscale,  &
+                                       frzpnd=frzpnd,    &
+                                       rfrac=rfrac,      &
+                                       meltt=melttn (n), &
+                                       melts=meltsn (n), &
+                                       frain=frain,      &
+                                       Tair=Tair,        &
+                                       fsurfn=fsurfn(n), &
+                                       dhs=dhsn     (n), &
+                                       ffrac=ffracn (n), &
+                                       aicen=aicen  (n), &
+                                       vicen=vicen  (n), &
+                                       vsnon=vsnon  (n), &
+                                       qicen=zqin (:,n), &
+                                       sicen=zSin (:,n), &
+                                       Tsfcn=Tsfc   (n), &
+                                       alvl=alvl    (n), &
+                                       apnd=apnd    (n), &
+                                       hpnd=hpnd    (n), &
+                                       ipnd=ipnd    (n), &
+                                       meltsliqn=l_meltsliq(n))
                if (icepack_warnings_aborted(subname)) return
                   
             elseif (tr_pond_topo) then
@@ -2787,9 +2807,14 @@
                   ! collect liquid water in ponds
                   ! assume salt still runs off
                   rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
-                  pond = rfrac/rhofresh * (melttn(n)*rhoi &
-                       +                   meltsn(n)*rhos &
-                       +                   frain *dt)
+                  if (use_smliq_pnd) then
+                     pond = rfrac/rhofresh * (melttn(n)*rhoi &
+                          +                 l_meltsliq(n))
+                  else
+                     pond = rfrac/rhofresh * (melttn(n)*rhoi &
+                          +                   meltsn(n)*rhos &
+                          +                   frain *dt)
+                  endif
 
                   ! if pond does not exist, create new pond over full ice area
                   ! otherwise increase pond depth without changing pond area

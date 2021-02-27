@@ -17,7 +17,7 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, c10, p01, p5, puny
       use icepack_parameters, only: viscosity_dyn, rhoi, rhos, rhow, Timelt, Tffresh, Lfresh
-      use icepack_parameters, only: gravit, depressT, rhofresh, kice
+      use icepack_parameters, only: gravit, depressT, rhofresh, kice, pndaspect, use_smliq_pnd
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -35,14 +35,15 @@
       subroutine compute_ponds_lvl(dt,     nilyr,        &
                                    ktherm,               &
                                    hi_min, dpscale,      &
-                                   frzpnd, pndaspect,    &
+                                   frzpnd,               &
                                    rfrac,  meltt, melts, &
                                    frain,  Tair,  fsurfn,&
                                    dhs,    ffrac,        &
                                    aicen,  vicen, vsnon, &
                                    qicen,  sicen,        &
                                    Tsfcn,  alvl,         &
-                                   apnd,   hpnd,  ipnd)
+                                   apnd,   hpnd,  ipnd,  &
+                                   meltsliqn)
 
       integer (kind=int_kind), intent(in) :: &
          nilyr, &    ! number of ice layers
@@ -51,8 +52,7 @@
       real (kind=dbl_kind), intent(in) :: &
          dt,       & ! time step (s)  
          hi_min,   & ! minimum ice thickness allowed for thermo (m)
-         dpscale,  & ! alter e-folding time scale for flushing 
-         pndaspect   ! ratio of pond depth to pond fraction
+         dpscale     ! alter e-folding time scale for flushing
 
       character (len=char_len), intent(in) :: &
          frzpnd      ! pond refreezing parameterization
@@ -69,7 +69,8 @@
          fsurfn,&    ! atm-ice surface heat flux  (W/m2)
          aicen, &    ! ice area fraction
          vicen, &    ! ice volume (m)
-         vsnon       ! snow volume (m)
+         vsnon, &    ! snow volume (m)
+         meltsliqn   ! liquid contribution to meltponds in dt (kg/m^2)
 
       real (kind=dbl_kind), &
          intent(inout) :: &
@@ -154,9 +155,14 @@
             ! update pond volume
             !-----------------------------------------------------------
             ! add melt water
-            dvn = rfrac/rhofresh*(meltt*rhoi &
-                +                 melts*rhos &
-                +                 frain*  dt)*aicen
+            if (use_smliq_pnd) then
+               dvn = rfrac/rhofresh*(meltt*rhoi &
+                   +                 meltsliqn)*aicen
+            else
+               dvn = rfrac/rhofresh*(meltt*rhoi &
+                   +                 melts*rhos &
+                   +                 frain*  dt)*aicen
+            endif
 
             ! shrink pond volume under freezing conditions
             if (trim(frzpnd) == 'cesm') then
