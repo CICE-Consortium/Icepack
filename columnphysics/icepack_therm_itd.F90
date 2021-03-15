@@ -316,7 +316,7 @@
 
             else
 
-              write(warnstr,*) subname,...
+              write(warnstr,*) subname, &
                  'ITD Thermodynamics: hicen_init(n+1) <= hicen_init(n)'
               call icepack_warnings_setabort(.true.)
               call icepack_warnings_add(warnstr)
