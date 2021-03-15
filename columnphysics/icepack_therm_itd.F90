@@ -306,7 +306,7 @@
          if (hicen_init(n)   > puny .and. &
              hicen_init(n+1) > puny) then
 
-            if (hicen_init(n+1) - hicen_init(n))>0
+            if ((hicen_init(n+1) - hicen_init(n))>0) then
 
               ! interpolate between adjacent category growth rates
               slope = (dhicen(n+1) - dhicen(n)) / &
