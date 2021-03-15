@@ -25,7 +25,7 @@
 
       real (kind=dbl_kind), parameter, public :: &
          S_r  = 0.033_dbl_kind, & ! irreducible saturation (Anderson 1976)
-         S_wet= 0.422_dbl_kind  ! (um^3/s) wet metamorphism parameters
+         S_wet= 4.22e-5_dbl_kind  ! (um^3/s) wet metamorphism parameters
 
 !=======================================================================
 
