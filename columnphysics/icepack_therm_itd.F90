@@ -26,7 +26,7 @@
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
       use icepack_parameters, only: rhosi, conserv_check
       use icepack_parameters, only: kitd, ktherm, heat_capacity
-      use icepack_parameters, only: z_tracers, solve_zsal
+      use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -47,7 +47,6 @@
       use icepack_itd, only: column_sum, column_conservation_check
       use icepack_isotope, only: isoice_alpha, isotope_frac_method
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
-      use icepack_therm_shared, only: hfrazilmin
       use icepack_therm_shared, only: hi_min
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc               

@@ -133,7 +133,7 @@ either Celsius or Kelvin units).
    "dwavefreq", "widths of wave freqency bins", "1/s"
    "**E**", "", ""                       
    "eice(n)", "energy of melting of ice per unit area (in category n)", "J/m\ :math:`^2`"
-   "emissivity", "emissivity of snow and ice", "0.95"
+   "emissivity", "emissivity of snow and ice", "0.985"
    "eps13", "a small number", "10\ :math:`^{-13}`"
    "eps16", "a small number", "10\ :math:`^{-16}`"
    "esno(n)", "energy of melting of snow per unit area (in category n)", "J/m\ :math:`^2`"

@@ -806,7 +806,7 @@ While incoming shortwave and longwave radiation are obtained from the
 atmosphere, outgoing longwave radiation and the turbulent heat fluxes
 are derived quantities. Outgoing longwave takes the standard blackbody
 form, :math:`F_{L\uparrow}=\epsilon\sigma
-\left(T_{sf}^{K}\right)^4`, where :math:`\epsilon=0.95` is the
+\left(T_{sf}^{K}\right)^4`, where :math:`\epsilon=0.985` is the
 emissivity of snow or ice, :math:`\sigma` is the Stefan-Boltzmann
 constant and :math:`T_{sf}^{K}` is the surface temperature in
 Kelvin. (The longwave fluxes are partitioned such that

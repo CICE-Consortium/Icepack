@@ -44,9 +44,8 @@
     dSdt_slow_mode    = -5.0e-8
     phi_c_slow_mode   =    0.05
     phi_i_mushy       =    0.85
-    sw_redist         = .false.
-    sw_frac           = 0.9d0
-    sw_dtemp          = 0.02d0
+    floediam          = 300.0d0
+    hfrazilmin        = 0.05d0
 /
 
 &shortwave_nml
@@ -63,6 +62,9 @@
     dT_mlt          = 1.5
     rsnw_mlt        = 1500.
     kalg            = 0.6
+    sw_redist       = .false.
+    sw_frac         = 0.9d0
+    sw_dtemp        = 0.02d0
 /
 
 &ponds_nml
@@ -85,7 +87,7 @@
     natmiter        = 5
     atmiter_conv    = 0.0d0
     ustar_min       = 0.0005
-    emissivity      = 0.95
+    emissivity      = 0.985
     fbot_xfer_type  = 'constant'
     update_ocn_f    = .false.
     l_mpond_fresh   = .false.

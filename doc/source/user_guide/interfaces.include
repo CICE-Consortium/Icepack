@@ -729,7 +729,7 @@ icepack_init_parameters
         subroutine icepack_init_parameters(   &
            puny_in, bignum_in, pi_in, secday_in, &
            rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
-           cp_ice_in, cp_ocn_in, &
+           cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
            depressT_in, dragio_in, albocn_in, gravit_in, viscosity_dyn_in, &
            Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
            stefan_boltzmann_in, ice_ref_salinity_in, &
@@ -791,6 +791,8 @@ icepack_init_parameters
   !-----------------------------------------------------------------------
   
         real (kind=dbl_kind), intent(in), optional :: &
+           floediam_in,   & ! effective floe diameter for lateral melt (m)
+           hfrazilmin_in, & ! min thickness of new frazil ice (m)
            cp_ice_in,     & ! specific heat of fresh ice (J/kg/K)
            cp_ocn_in,     & ! specific heat of ocn    (J/kg/K)
            depressT_in,   & ! Tf:brine salinity ratio (C/ppt)
@@ -1075,7 +1077,7 @@ icepack_query_parameters
            p2_out, p4_out, p5_out, p6_out, p05_out, p15_out, p25_out, p75_out, &
            p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
            rhos_out, rhoi_out, rhow_out, cp_air_out, emissivity_out, &
-           cp_ice_out, cp_ocn_out, &
+           cp_ice_out, cp_ocn_out, hfrazilmin_out, floediam_out, &
            depressT_out, dragio_out, albocn_out, gravit_out, viscosity_dyn_out, &
            Tocnfrz_out, rhofresh_out, zvir_out, vonkar_out, cp_wv_out, &
            stefan_boltzmann_out, ice_ref_salinity_out, &
@@ -1146,6 +1148,8 @@ icepack_query_parameters
   !-----------------------------------------------------------------------
   
         real (kind=dbl_kind), intent(out), optional :: &
+           floediam_out,   & ! effective floe diameter for lateral melt (m)
+           hfrazilmin_out, & ! min thickness of new frazil ice (m)
            cp_ice_out,     & ! specific heat of fresh ice (J/kg/K)
            cp_ocn_out,     & ! specific heat of ocn    (J/kg/K)
            depressT_out,   & ! Tf:brine salinity ratio (C/ppt)
