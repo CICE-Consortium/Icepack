@@ -597,7 +597,8 @@
       subroutine step_dyn_wave (dt)
 
       use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
-          d_afsd_wave, floe_rad_l, floe_binwidth, floe_rad_c, wavefreq, dwavefreq
+          d_afsd_wave, floe_rad_l, floe_binwidth, floe_rad_c, &
+          fracture_hist, wavefreq, dwavefreq
       use icedrv_domain_size, only: ncat, nfsd, nfreq, nx
       use icedrv_state, only: trcrn, aicen, aice, vice
       use icepack_intfc, only: icepack_step_wavefracture
@@ -636,7 +637,8 @@
                         wavefreq      = wavefreq       (:),    &
                         dwavefreq     = dwavefreq      (:),    &
                         trcrn         = trcrn        (i,:,:),  &
-                        d_afsd_wave   = d_afsd_wave  (i,:))
+                        d_afsd_wave   = d_afsd_wave  (i,:),    & 
+                        fracture_hist = fracture_hist(i,:))
       end do ! i
 
       call icepack_warnings_flush(nu_diag)

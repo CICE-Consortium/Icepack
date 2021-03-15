@@ -272,7 +272,8 @@
 
       real (kind=dbl_kind), dimension (nx,nfsd), public :: & 
          ! change in floe size distribution due to processes
-         d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
+         d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld, &
+         fracture_hist
 
       character (len=35), public, dimension(nfsd) :: &
          c_fsd_range ! fsd floe_rad bounds (m)

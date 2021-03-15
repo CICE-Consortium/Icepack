@@ -294,6 +294,7 @@
       if (trim(ice_ic) == 'none') then
 
          afsd(:) = c0
+         !afsd(nfsd) = c1 ! LR must remove
 
       else            ! Perovich (2014)
  
@@ -307,6 +308,12 @@
             totfrac = totfrac + afsd(k)
          enddo
          afsd = afsd/totfrac                    ! normalize
+
+ 
+         ! LR must remove
+         print *, 'starting with large floes'
+         afsd(:) = c0
+         afsd(nfsd) = c1
 
       endif ! ice_ic
 

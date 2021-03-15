@@ -132,8 +132,8 @@
 !         1.08966577,  0.72712338,  0.49745849,  0.33925959,  0.22613701,&
 !         0.14782953,  0.09411122,  0.06035572,  0.03885347,  0.02412495/)
 
-!     ! LR remove
-!      wave_spectrum_data = 100.*wave_spectrum_data
+     ! LR remove
+      !wave_spectrum_data = 100.*wave_spectrum_data
 
 
 !       wave_spectrum_data(1) =    0.0022_dbl_kind
@@ -152,7 +152,7 @@
       do k = 1, nfreq
          wave_spectrum_profile(k) = wave_spectrum_data(k)
       enddo
-      print *, 'wave_spec ',wave_spectrum_profile
+      !print *, 'wave_spec ',wave_spectrum_profile
 
       ! hardwired for wave coupling with NIWA version of Wavewatch
       ! From Wavewatch, f(n+1) = C*f(n) where C is a constant set by the user
@@ -313,6 +313,8 @@
 
       !------------------------------------
 
+
+
       ! initialize 
       d_afsd_wave    (:)   = c0
       d_afsdn_wave   (:,:) = c0
@@ -376,7 +378,6 @@
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
 
-            print *, 'fracture_hist ',fracture_hist
 
             ! remove after testing 
             if (ANY(fracture_hist.ne.fracture_hist)) &
@@ -542,7 +543,7 @@
       integer (kind=int_kind) :: i, j, k, iter, loop_max_iter
 
       real (kind=dbl_kind) :: &
-         fracerror ! difference between successive histograms
+         fracerror, myrand ! difference between successive histograms
 
       real (kind=dbl_kind), parameter :: &
          errortol = 6.5e-4  ! tolerance in error between successive histograms
@@ -564,6 +565,12 @@
       character(len=*),parameter :: &
          subname='(wave_frac)'
 
+      integer (kind=int_kind), allocatable :: seed(:)
+      integer (kind=int_kind):: xn
+
+      call random_seed(size = xn)
+      allocate(seed(xn))
+      call random_seed(put=seed)
 
       loop_max_iter = max_no_iter
       if (.NOT. run_to_convergence) loop_max_iter = 1
@@ -585,6 +592,7 @@
       frachistogram(:) = c0
       fracerror = bignum
 
+
       ! loop while fracerror greater than error tolerance
       iter = 0
       do while (iter < loop_max_iter .and. fracerror > errortol)
@@ -598,9 +606,11 @@
              if (icepack_warnings_aborted(subname)) return
          else
             rand_array(:) = p5
+            call RANDOM_NUMBER(rand_array) ! LR tmp add must remove!!!
          endif
+         !print *, iter ,'rand ',rand_array(1)
          phi = c2*pi*rand_array
- 
+
          do j = 1, nx
             ! SSH field in space (sum over wavelengths, no attenuation)
             summand = spec_coeff*COS(2*pi*X(j)/lambda+phi)
@@ -654,6 +664,8 @@
          end if
 
       END DO
+
+
 
       if (iter >= max_no_iter) then
          write(warnstr,*) subname,'warning: wave_frac struggling to converge'
