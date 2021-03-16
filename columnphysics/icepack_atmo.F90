@@ -19,7 +19,6 @@
       use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
       use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
       use icepack_parameters, only: atmbndy, calc_strair, formdrag
-      use icepack_parameters, only: highfreq, natmiter
       use icepack_tracers, only: n_iso
       use icepack_tracers, only: tr_iso
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -28,9 +27,7 @@
       implicit none
 
       private
-      public :: atmo_boundary_layer, &
-                atmo_boundary_const, &
-                neutral_drag_coeffs, &
+      public :: neutral_drag_coeffs, &
                 icepack_atm_boundary
 
 !=======================================================================
@@ -52,7 +49,6 @@
 
       subroutine atmo_boundary_layer (sfctype,            &
                                       calc_strair, formdrag, &
-                                      highfreq, natmiter, &
                                       Tsf,      potT,     &
                                       uatm,     vatm,     &  
                                       wind,     zlvl,     &  
@@ -68,16 +64,14 @@
                                       uvel,     vvel,     &
                                       Uref                )     
 
+      use icepack_parameters, only: highfreq, natmiter, atmiter_conv
+
       character (len=3), intent(in) :: &
          sfctype      ! ice or ocean
 
       logical (kind=log_kind), intent(in) :: &
          calc_strair, &  ! if true, calculate wind stress components
-         formdrag,    &  ! if true, calculate form drag
-         highfreq        ! if true, use high frequency coupling
-
-      integer (kind=int_kind), intent(in) :: &
-         natmiter        ! number of iterations for boundary layer calculations
+         formdrag        ! if true, calculate form drag
 
       real (kind=dbl_kind), intent(in) :: &
          Tsf      , & ! surface temperature of ice or ocean
@@ -147,6 +141,8 @@
 
       real (kind=dbl_kind) :: &
          ustar , & ! ustar (m/s)
+         ustar_prev , & ! ustar_prev (m/s)
+         vscl  , & ! vscl
          tstar , & ! tstar
          qstar , & ! qstar
          ratio , & ! ratio
@@ -245,11 +241,11 @@
       !------------------------------------------------------------
 
       TsfK = Tsf + Tffresh     ! surface temp (K)
+      delt = potT - TsfK       ! pot temp diff (K)
       qsat = qqq * exp(-TTT/TsfK)   ! saturation humidity (kg/m^3)
       ssq  = qsat / rhoa       ! sat surf hum (kg/kg)
       
       thva = potT * (c1 + zvir * Qa) ! virtual pot temp (K)
-      delt = potT - TsfK       ! pot temp diff (K)
       delq = Qa - ssq          ! spec hum dif (kg/kg)
       alz  = log(zlvl/zref)
       cp   = cp_air*(c1 + cpvir*ssq)
@@ -271,7 +267,12 @@
       ! iterate to converge on Z/L, ustar, tstar and qstar
       !------------------------------------------------------------
 
-      do k = 1, natmiter
+      ustar_prev = c2 * ustar
+
+      k = 1
+      do while (abs(ustar - ustar_prev)/ustar > atmiter_conv .and. k <= natmiter)
+         k = k + 1
+         ustar_prev = ustar
 
          ! compute stability & evaluate all stability functions
          hol = vonkar * gravit * zlvl &
@@ -296,7 +297,7 @@
          rd = rdn / (c1+rdn/vonkar*(alz-psimh))
          rh = rhn / (c1+rhn/vonkar*(alz-psixh))
          re = ren / (c1+ren/vonkar*(alz-psixh))
-         
+      
          ! update ustar, tstar, qstar using updated, shifted coeffs
          ustar = rd * vmag
          tstar = rh * delt
@@ -950,7 +951,6 @@
       else ! default
          call atmo_boundary_layer (sfctype,                 &
                                    calc_strair, formdrag,   &
-                                   highfreq, natmiter,      &
                                    Tsf,      potT,          &
                                    uatm,     vatm,          &
                                    wind,     zlvl,          &
