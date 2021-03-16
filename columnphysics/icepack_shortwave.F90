@@ -4159,6 +4159,11 @@
             fswsfcn (n) = c0
             fswintn (n) = c0
             fswthrun(n) = c0
+            albicen (n) = c0
+            albsnon (n) = c0
+            albpndn (n) = c0
+            apeffn  (n) = c0
+            snowfracn(n)  = c0
          enddo   ! ncat
          fswpenln (:,:) = c0
          Iswabsn  (:,:) = c0
