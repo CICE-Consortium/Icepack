@@ -128,7 +128,6 @@ cat >> ${jobfile} << EOFB
 EOFB
 
 else if (${ICE_MACHINE} =~ badger*) then
-else if (${ICE_MACHINE} =~ badger*) then
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
 #SBATCH -t ${ICE_RUNLENGTH}
