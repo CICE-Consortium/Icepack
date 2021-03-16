@@ -112,6 +112,22 @@ cat >> ${jobfile} << EOFB
 ###SBATCH --mail-user username@domain.com
 EOFB
 
+else if (${ICE_MACHINE} =~ compy*) then
+@ nthrds2 = ${nthrds} * 2
+cat >> ${jobfile} << EOFB
+#SBATCH -J ${ICE_CASENAME}
+#SBATCH -A ${acct}
+#SBATCH --qos shared
+#SBATCH --ntasks ${ncores}
+#SBATCH --time ${ICE_RUNLENGTH}
+#SBATCH --cpus-per-task ${nthrds2}
+###SBATCH -e filename
+###SBATCH -o filename
+###SBATCH --mail-type FAIL
+###SBATCH --mail-user username@domain.com
+EOFB
+
+else if (${ICE_MACHINE} =~ badger*) then
 else if (${ICE_MACHINE} =~ badger*) then
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
