@@ -9,6 +9,7 @@ module icepack_therm_mushy
   use icepack_parameters, only: hs_min
   use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode
   use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
+  use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
   use icepack_mushy_physics, only: icepack_mushy_density_brine, enthalpy_brine, enthalpy_snow
   use icepack_mushy_physics, only: enthalpy_mush_liquid_fraction
   use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
@@ -141,6 +142,8 @@ contains
          qpond       , & ! melt pond brine enthalpy (J m-3)
          Spond           ! melt pond salinity (ppt)
 
+    real(kind=dbl_kind) :: Tmlt, Iswabs_tmp, dt_rhoi_hlyr, ci, dswabs
+
     integer(kind=int_kind) :: &
          k               ! ice/snow layer index
 
@@ -200,6 +203,46 @@ contains
     ! calculate the conductivities
     call conductivity_mush_array(nilyr, zqin0, zSin0, km)
     if (icepack_warnings_aborted(subname)) return
+
+    !-----------------------------------------------------------------
+    ! Check for excessive absorbed solar radiation that may result in
+    ! temperature overshoots. Convergence is particularly difficult
+    ! if the starting temperature is already very close to the melting 
+    ! temperature and extra energy is added.   In that case, or if the
+    ! amount of energy absorbed is greater than the amount needed to
+    ! melt through a given fraction of a layer, we put the extra 
+    ! energy into the surface.
+    ! NOTE: This option is not available if the atmosphere model
+    !       has already computed fsurf.  (Unless we adjust fsurf here)
+    !-----------------------------------------------------------------
+!mclaren: Should there be an if calc_Tsfc statement here then?? 
+
+    if (sw_redist) then
+
+    dt_rhoi_hlyr = dt / (rhoi*hilyr)
+
+    do k = 1, nilyr
+
+       Iswabs_tmp = c0 ! all Iswabs is moved into fswsfc
+
+       Tmlt = liquidus_temperature_mush(zSin(k))
+
+       if (zTin(k) <= Tmlt - sw_dtemp) then
+          ci = cp_ice - Lfresh * Tmlt / (zTin(k)**2)
+          Iswabs_tmp = min(Iswabs(k), &
+                           sw_frac*(Tmlt-zTin(k))*ci/dt_rhoi_hlyr)
+       endif
+       if (Iswabs_tmp < puny) Iswabs_tmp = c0
+
+       dswabs = min(Iswabs(k) - Iswabs_tmp, fswint)
+
+       fswsfc   = fswsfc + dswabs
+       fswint   = fswint - dswabs
+       Iswabs(k) = Iswabs_tmp
+
+    enddo
+
+    endif
 
     if (lsnow) then
        ! case with snow

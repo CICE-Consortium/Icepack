@@ -24,9 +24,9 @@
       use icepack_parameters, only: p001, p1, p333, p5, p666, puny, bignum
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
-      use icepack_parameters, only: rhosi
+      use icepack_parameters, only: rhosi, conserv_check
       use icepack_parameters, only: kitd, ktherm, heat_capacity
-      use icepack_parameters, only: z_tracers, solve_zsal
+      use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -47,7 +47,6 @@
       use icepack_itd, only: column_sum, column_conservation_check
       use icepack_isotope, only: isoice_alpha, isotope_frac_method
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
-      use icepack_therm_shared, only: hfrazilmin
       use icepack_therm_shared, only: hi_min
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc               
@@ -59,10 +58,6 @@
                 add_new_ice, &
                 lateral_melt, &
                 icepack_step_therm2
-
-      logical (kind=log_kind), parameter, public :: &
-         l_conservation_check = .false.   ! if true, check conservation
-                                          ! (useful for debugging)
 
 !=======================================================================
 
@@ -221,7 +216,7 @@
       !  conserve.
       !-----------------------------------------------------------------
 
-      if (l_conservation_check) then
+      if (conserv_check) then
 
       do n = 1, ncat
 
@@ -264,7 +259,7 @@
       call column_sum (ncat, vbrin, vbri_init)
       if (icepack_warnings_aborted(subname)) return
 
-      endif ! l_conservation_check
+      endif ! conserv_check
 
       !-----------------------------------------------------------------
       ! Initialize remapping flag.
@@ -608,7 +603,7 @@
       ! Check volume and energy conservation.
       !-----------------------------------------------------------------
 
-      if (l_conservation_check) then
+      if (conserv_check) then
 
       do n = 1, ncat
 
@@ -651,32 +646,32 @@
       call column_sum (ncat, vbrin, vbri_final)
       if (icepack_warnings_aborted(subname)) return
 
-      fieldid = 'vice, ITD remap'
+      fieldid = subname//':vice'
       call column_conservation_check (fieldid,               &
                                       vice_init, vice_final, &
                                       puny)
       if (icepack_warnings_aborted(subname)) return
-      fieldid = 'vsno, ITD remap'
+      fieldid = subname//':vsno'
       call column_conservation_check (fieldid,               &
                                       vsno_init, vsno_final, &
                                       puny)
       if (icepack_warnings_aborted(subname)) return
-      fieldid = 'eice, ITD remap'
+      fieldid = subname//':eice'
       call column_conservation_check (fieldid,               &
                                       eice_init, eice_final, &
                                       puny*Lfresh*rhoi)
       if (icepack_warnings_aborted(subname)) return
-      fieldid = 'esno, ITD remap'
+      fieldid = subname//':esno'
       call column_conservation_check (fieldid,               &
                                       esno_init, esno_final, &
                                       puny*Lfresh*rhos)
       if (icepack_warnings_aborted(subname)) return
-      fieldid = 'sicen, ITD remap'
+      fieldid = subname//':sicen'
       call column_conservation_check (fieldid,               &
                                       sice_init, sice_final, &
                                       puny)
       if (icepack_warnings_aborted(subname)) return
-      fieldid = 'vbrin, ITD remap'
+      fieldid = subname//':vbrin'
       call column_conservation_check (fieldid,               &
                                       vbri_init, vbri_final, &
                                       puny*c10)
@@ -1463,6 +1458,7 @@
       d_an_latg(:) = c0
       d_an_tot(:) = c0
       d_an_newi(:) = c0
+      vin0new(:) = c0
 
       if (tr_fsd) then
           d_afsd_latg(:) = c0    ! diagnostics
@@ -1496,7 +1492,7 @@
          endif
       enddo
 
-      if (l_conservation_check) then
+      if (conserv_check) then
 
          do n = 1, ncat
          do k = 1, nilyr
@@ -1509,7 +1505,7 @@
          call column_sum (ncat, eicen, eice_init)
          if (icepack_warnings_aborted(subname)) return
 
-      endif ! l_conservation_check
+      endif ! conserv_check
 
       !-----------------------------------------------------------------
       ! Compute average enthalpy of new ice.
@@ -1546,7 +1542,7 @@
       vi0_init = vi0new          ! for bgc
 
       ! increment ice volume and energy
-      if (l_conservation_check) then
+      if (conserv_check) then
          vice_init = vice_init + vi0new
          eice_init = eice_init + vi0new*qi0new
       endif
@@ -1631,7 +1627,6 @@
          endif               ! aice0 > puny
 
          ! volume added to each category from lateral growth
-         vin0new(:) = c0
          do n = 1, ncat
             if (aicen(n) > c0) vin0new(n) = d_an_latg(n) * vicen(n)/aicen(n)
          end do
@@ -1865,7 +1860,7 @@
 
       enddo ! ncats
 
-      if (l_conservation_check) then
+      if (conserv_check) then
 
          do n = 1, ncat
             eicen(n) = c0
@@ -1879,18 +1874,18 @@
          call column_sum (ncat, eicen, eice_final)
          if (icepack_warnings_aborted(subname)) return
 
-         fieldid = 'vice, add_new_ice'
+         fieldid = subname//':vice'
          call column_conservation_check (fieldid,               &
                                          vice_init, vice_final, &
                                          puny)
          if (icepack_warnings_aborted(subname)) return
-         fieldid = 'eice, add_new_ice'
+         fieldid = subname//':eice'
          call column_conservation_check (fieldid,               &
                                          eice_init, eice_final, &
                                          puny*Lfresh*rhoi)
          if (icepack_warnings_aborted(subname)) return
 
-      endif ! l_conservation_check
+      endif ! conserv_check
 
       !-----------------------------------------------------------------
       ! Biogeochemistry
@@ -1903,8 +1898,7 @@
                               aicen,      vicen,      vsnon1,   &
                               vi0new,     ntrcr,      trcrn,    &
                               nbtrcr,     sss,        ocean_bio,&
-                              flux_bio,   hsurp,                &
-                              l_conservation_check)
+                              flux_bio,   hsurp)
          if (icepack_warnings_aborted(subname)) return
 
       end subroutine add_new_ice

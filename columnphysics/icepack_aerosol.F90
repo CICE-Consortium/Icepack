@@ -124,25 +124,19 @@
       
       if (aicen > c0) then
          ar = c1/aicen
-         hs = vsnon*ar
-         hi = vicen*ar
-         dhs_melts  = -melts*ar
-         dhi_snoice = snoice*ar
-         dhs_snoice = dhi_snoice*rhoi/rhos
-         dhi_meltt  = -meltt*ar
-         dhi_meltb  = -meltb*ar
-         dhi_congel = congel*ar
       else ! ice disappeared during time step
-         hs = vsnon/aice_old
-         hi = vicen/aice_old
-         dhs_melts  = -melts/aice_old
-         dhi_snoice = snoice/aice_old
-         dhs_snoice = dhi_snoice*rhoi/rhos
-         dhi_meltt  = -meltt/aice_old
-         dhi_meltb  = -meltb/aice_old
-         dhi_congel = congel/aice_old
+         ar = c1/aice_old
       endif
-      
+
+      hs = vsnon*ar
+      hi = vicen*ar
+      dhs_melts  = -melts
+      dhi_snoice = snoice
+      dhs_snoice = dhi_snoice*rhoi/rhos
+      dhi_meltt  = -meltt
+      dhi_meltb  = -meltb
+      dhi_congel = congel
+
       dhs_evap = hs - (hs_old + dhs_melts - dhs_snoice &
                               + fsnow/rhos*dt)
       dhi_evap = hi - (hi_old + dhi_meltt + dhi_meltb &

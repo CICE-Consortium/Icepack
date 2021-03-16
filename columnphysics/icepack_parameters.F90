@@ -96,6 +96,7 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
+         hfrazilmin = 0.05_dbl_kind   ,&! min thickness of new frazil ice (m)
          cp_ice    = 2106._dbl_kind   ,&! specific heat of fresh ice (J/kg/K)
          cp_ocn    = 4218._dbl_kind   ,&! specific heat of ocn    (J/kg/K)
                                         ! freshwater value needed for enthalpy
@@ -132,7 +133,6 @@
          phi_c_slow_mode   =    0.05_dbl_kind,&! critical liquid fraction porosity cutoff
          phi_i_mushy       =    0.85_dbl_kind  ! liquid fraction of congelation ice
 
-
       integer (kind=int_kind), public :: &
          ktherm = 1      ! type of thermodynamics
                          ! 0 = 0-layer approximation
@@ -151,8 +151,9 @@
                                   ! atmos-ice fluxes are provided to CICE
          update_ocn_f = .false. ,&! include fresh water and salt fluxes for frazil
          solve_zsal   = .false. ,&! if true, update salinity profile from solve_S_dt
-         modal_aero   = .false.   ! if true, use modal aerosal optical properties
+         modal_aero   = .false. ,&! if true, use modal aerosal optical properties
                                   ! only for use with tr_aero or tr_zaero
+         conserv_check = .false.  ! if true, do conservations checks and abort
 
       character(len=char_len), public :: &
          tfrz_option  = 'mushy'   ! form of ocean freezing temperature
@@ -166,7 +167,7 @@
 
       real (kind=dbl_kind), public :: &
          ! (Briegleb JGR 97 11475-11485  July 1992)
-         emissivity = 0.95_dbl_kind ,&! emissivity of snow and ice
+         emissivity = 0.985_dbl_kind,&! emissivity of snow and ice
          albocn     = 0.06_dbl_kind ,&! ocean albedo
          vonkar     = 0.4_dbl_kind  ,&! von Karman constant
          stefan_boltzmann = 567.0e-10_dbl_kind,&!  W/m^2/K^4
@@ -253,6 +254,9 @@
       integer (kind=int_kind), public :: &
          natmiter        = 5 ! number of iterations for atm boundary layer calcs
 
+      ! Flux convergence tolerance
+      real (kind=dbl_kind), public :: atmiter_conv = c0
+
 !-----------------------------------------------------------------------
 ! Parameters for the ice thickness distribution
 !-----------------------------------------------------------------------
@@ -274,7 +278,10 @@
          nfreq = 25                   ! number of frequencies
 
       real (kind=dbl_kind), public :: &
-         floeshape = 0.666_dbl_kind   ! constant from Steele (unitless)
+         floeshape = 0.66_dbl_kind    ! constant from Steele (unitless)
+
+      real (kind=dbl_kind), public :: &
+         floediam  = 300.0_dbl_kind   ! effective floe diameter for lateral melt (m)
 
       real (kind=dbl_kind), public :: &
          spwf_clss_crit = 0.08_dbl_kind
@@ -358,6 +365,18 @@
          t_sk_conv    = 3.0_dbl_kind    , & ! Stefels conversion time (d)
          t_sk_ox      = 10.0_dbl_kind       ! DMS oxidation time (d)
 
+
+!-----------------------------------------------------------------------
+! Parameters for shortwave redistribution
+!-----------------------------------------------------------------------
+
+      logical (kind=log_kind), public :: &
+         sw_redist     = .false.
+
+      real (kind=dbl_kind), public :: & 
+         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
+
 !=======================================================================
 
       contains
@@ -370,7 +389,7 @@
       subroutine icepack_init_parameters(   &
          puny_in, bignum_in, pi_in, secday_in, &
          rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
-         cp_ice_in, cp_ocn_in, &
+         cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
          depressT_in, dragio_in, albocn_in, gravit_in, viscosity_dyn_in, &
          Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
          stefan_boltzmann_in, ice_ref_salinity_in, &
@@ -391,6 +410,7 @@
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
          kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
+         atmiter_conv_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
          floeshape_in, spwf_clss_crit_in, wave_spec_in, &
          wave_spec_type_in, wave_solver_in, nfreq_in, &
@@ -402,8 +422,9 @@
          fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
          op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
          fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
-         max_dfe_doc1_in, fr_resp_s_in, &
-         y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in)
+         max_dfe_doc1_in, fr_resp_s_in, conserv_check_in, &
+         y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
+         sw_redist_in, sw_frac_in, sw_dtemp_in)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -431,6 +452,8 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), intent(in), optional :: &
+         floediam_in,   & ! effective floe diameter for lateral melt (m)
+         hfrazilmin_in, & ! min thickness of new frazil ice (m)
          cp_ice_in,     & ! specific heat of fresh ice (J/kg/K)
          cp_ocn_in,     & ! specific heat of ocn    (J/kg/K)
          depressT_in,   & ! Tf:brine salinity ratio (C/ppt)
@@ -530,6 +553,13 @@
          rsnw_mlt_in , & ! maximum melting snow grain radius (10^-6 m)
          kalg_in         ! algae absorption coefficient for 0.5 m thick layer
 
+      logical (kind=log_kind), intent(in), optional :: &
+         sw_redist_in    ! redistribute shortwave
+
+      real (kind=dbl_kind), intent(in), optional :: & 
+         sw_frac_in  , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp_in     ! temperature difference from melting
+
 !-----------------------------------------------------------------------
 ! Parameters for dynamics
 !-----------------------------------------------------------------------
@@ -579,6 +609,9 @@
       integer (kind=int_kind), intent(in), optional :: &
          natmiter_in        ! number of iterations for boundary layer calculations
         
+      ! Flux convergence tolerance
+      real (kind=dbl_kind), intent(in), optional :: atmiter_conv_in
+
 !-----------------------------------------------------------------------
 ! Parameters for the ice thickness distribution
 !-----------------------------------------------------------------------
@@ -628,7 +661,8 @@
          scale_bgc_in,      & ! if .true., initialize bgc tracers proportionally with salinity
          solve_zbgc_in,     & ! if .true., solve vertical biochemistry portion of code
          dEdd_algae_in,     & ! if .true., algal absorptionof Shortwave is computed in the
-         modal_aero_in        ! if .true., use modal aerosol formulation in shortwave
+         modal_aero_in,     & ! if .true., use modal aerosol formulation in shortwave
+         conserv_check_in     ! if .true., run conservation checks and abort if checks fail
         
       logical (kind=log_kind), intent(in), optional :: & 
          skl_bgc_in,        &   ! if true, solve skeletal biochemistry
@@ -702,6 +736,8 @@
       if (present(rhow_in)              ) rhow             = rhow_in
       if (present(cp_air_in)            ) cp_air           = cp_air_in
       if (present(emissivity_in)        ) emissivity       = emissivity_in
+      if (present(floediam_in)          ) floediam         = floediam_in
+      if (present(hfrazilmin_in)        ) hfrazilmin       = hfrazilmin_in
       if (present(cp_ice_in)            ) cp_ice           = cp_ice_in
       if (present(cp_ocn_in)            ) cp_ocn           = cp_ocn_in
       if (present(depressT_in)          ) depressT         = depressT_in
@@ -790,6 +826,7 @@
       if (present(formdrag_in)          ) formdrag         = formdrag_in
       if (present(highfreq_in)          ) highfreq         = highfreq_in
       if (present(natmiter_in)          ) natmiter         = natmiter_in
+      if (present(atmiter_conv_in)      ) atmiter_conv     = atmiter_conv_in
       if (present(tfrz_option_in)       ) tfrz_option      = tfrz_option_in
       if (present(kitd_in)              ) kitd             = kitd_in
       if (present(kcatbound_in)         ) kcatbound        = kcatbound_in
@@ -813,6 +850,7 @@
       if (present(solve_zbgc_in)        ) solve_zbgc       = solve_zbgc_in
       if (present(dEdd_algae_in)        ) dEdd_algae       = dEdd_algae_in
       if (present(modal_aero_in)        ) modal_aero       = modal_aero_in
+      if (present(conserv_check_in)     ) conserv_check    = conserv_check_in
       if (present(skl_bgc_in)           ) skl_bgc          = skl_bgc_in
       if (present(solve_zsal_in)        ) solve_zsal       = solve_zsal_in
       if (present(grid_o_in)            ) grid_o           = grid_o_in
@@ -841,6 +879,9 @@
       if (present(t_sk_conv_in)         ) t_sk_conv        = t_sk_conv_in
       if (present(t_sk_ox_in)           ) t_sk_ox          = t_sk_ox_in
       if (present(frazil_scav_in)       ) frazil_scav      = frazil_scav_in
+      if (present(sw_redist_in)         ) sw_redist        = sw_redist_in
+      if (present(sw_frac_in)           ) sw_frac          = sw_frac_in
+      if (present(sw_dtemp_in)          ) sw_dtemp         = sw_dtemp_in
 
       call icepack_recompute_constants()
       if (icepack_warnings_aborted(subname)) return
@@ -860,7 +901,7 @@
          p2_out, p4_out, p5_out, p6_out, p05_out, p15_out, p25_out, p75_out, &
          p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
          rhos_out, rhoi_out, rhow_out, cp_air_out, emissivity_out, &
-         cp_ice_out, cp_ocn_out, &
+         cp_ice_out, cp_ocn_out, hfrazilmin_out, floediam_out, &
          depressT_out, dragio_out, albocn_out, gravit_out, viscosity_dyn_out, &
          Tocnfrz_out, rhofresh_out, zvir_out, vonkar_out, cp_wv_out, &
          stefan_boltzmann_out, ice_ref_salinity_out, &
@@ -881,6 +922,7 @@
          rsnw_mlt_out, dEdd_algae_out, &
          kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
+         atmiter_conv_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
          floeshape_out, spwf_clss_crit_out, wave_spec_out, &
          wave_spec_type_out, wave_solver_out, nfreq_out, &
@@ -888,12 +930,13 @@
          bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
          modal_aero_out, skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
          initbio_frac_out, grid_oS_out, l_skS_out, &
-         phi_snow_out, heat_capacity_out, &
+         phi_snow_out, heat_capacity_out, conserv_check_out, &
          fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &
          T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
          fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
          k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, &
-         y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out)
+         y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
+         sw_redist_out, sw_frac_out, sw_dtemp_out)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -930,6 +973,8 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), intent(out), optional :: &
+         floediam_out,   & ! effective floe diameter for lateral melt (m)
+         hfrazilmin_out, & ! min thickness of new frazil ice (m)
          cp_ice_out,     & ! specific heat of fresh ice (J/kg/K)
          cp_ocn_out,     & ! specific heat of ocn    (J/kg/K)
          depressT_out,   & ! Tf:brine salinity ratio (C/ppt)
@@ -1029,6 +1074,13 @@
          rsnw_mlt_out , & ! maximum melting snow grain radius (10^-6 m)
          kalg_out         ! algae absorption coefficient for 0.5 m thick layer
 
+      logical (kind=log_kind), intent(out), optional :: &
+         sw_redist_out    ! redistribute shortwave
+
+      real (kind=dbl_kind), intent(out), optional :: & 
+         sw_frac_out  , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp_out     ! temperature difference from melting
+
 !-----------------------------------------------------------------------
 ! Parameters for dynamics
 !-----------------------------------------------------------------------
@@ -1078,6 +1130,9 @@
       integer (kind=int_kind), intent(out), optional :: &
          natmiter_out        ! number of iterations for boundary layer calculations
         
+      ! Flux convergence tolerance
+      real (kind=dbl_kind), intent(out), optional :: atmiter_conv_out
+
 !-----------------------------------------------------------------------
 ! Parameters for the ice thickness distribution
 !-----------------------------------------------------------------------
@@ -1127,7 +1182,8 @@
          scale_bgc_out,      & ! if .true., initialize bgc tracers proportionally with salinity
          solve_zbgc_out,     & ! if .true., solve vertical biochemistry portion of code
          dEdd_algae_out,     & ! if .true., algal absorptionof Shortwave is computed in the
-         modal_aero_out        ! if .true., use modal aerosol formulation in shortwave
+         modal_aero_out,     & ! if .true., use modal aerosol formulation in shortwave
+         conserv_check_out     ! if .true., run conservation checks and abort if checks fail
         
       logical (kind=log_kind), intent(out), optional :: & 
          skl_bgc_out,        &   ! if true, solve skeletal biochemistry
@@ -1242,6 +1298,8 @@
       if (present(rhow_out)              ) rhow_out         = rhow
       if (present(cp_air_out)            ) cp_air_out       = cp_air
       if (present(emissivity_out)        ) emissivity_out   = emissivity
+      if (present(floediam_out)          ) floediam_out     = floediam
+      if (present(hfrazilmin_out)        ) hfrazilmin_out   = hfrazilmin
       if (present(cp_ice_out)            ) cp_ice_out       = cp_ice
       if (present(cp_ocn_out)            ) cp_ocn_out       = cp_ocn
       if (present(depressT_out)          ) depressT_out     = depressT
@@ -1330,6 +1388,7 @@
       if (present(formdrag_out)          ) formdrag_out     = formdrag
       if (present(highfreq_out)          ) highfreq_out     = highfreq
       if (present(natmiter_out)          ) natmiter_out     = natmiter
+      if (present(atmiter_conv_out)      ) atmiter_conv_out = atmiter_conv
       if (present(tfrz_option_out)       ) tfrz_option_out  = tfrz_option
       if (present(kitd_out)              ) kitd_out         = kitd
       if (present(kcatbound_out)         ) kcatbound_out    = kcatbound
@@ -1353,6 +1412,7 @@
       if (present(solve_zbgc_out)        ) solve_zbgc_out   = solve_zbgc
       if (present(dEdd_algae_out)        ) dEdd_algae_out   = dEdd_algae
       if (present(modal_aero_out)        ) modal_aero_out   = modal_aero
+      if (present(conserv_check_out)     ) conserv_check_out= conserv_check
       if (present(skl_bgc_out)           ) skl_bgc_out      = skl_bgc
       if (present(solve_zsal_out)        ) solve_zsal_out   = solve_zsal
       if (present(grid_o_out)            ) grid_o_out       = grid_o
@@ -1384,6 +1444,9 @@
       if (present(Lfresh_out)            ) Lfresh_out       = Lfresh
       if (present(cprho_out)             ) cprho_out        = cprho
       if (present(Cp_out)                ) Cp_out           = Cp
+      if (present(sw_redist_out)         ) sw_redist_out    = sw_redist
+      if (present(sw_frac_out)           ) sw_frac_out      = sw_frac
+      if (present(sw_dtemp_out)          ) sw_dtemp_out     = sw_dtemp
 
       call icepack_recompute_constants()
       if (icepack_warnings_aborted(subname)) return
@@ -1410,6 +1473,8 @@
         write(iounit,*) "  rhow   = ",rhow
         write(iounit,*) "  cp_air = ",cp_air
         write(iounit,*) "  emissivity = ",emissivity
+        write(iounit,*) "  floediam   = ",floediam
+        write(iounit,*) "  hfrazilmin = ",hfrazilmin
         write(iounit,*) "  cp_ice = ",cp_ice
         write(iounit,*) "  cp_ocn = ",cp_ocn
         write(iounit,*) "  depressT = ",depressT
@@ -1505,6 +1570,7 @@
         write(iounit,*) "  formdrag      = ", formdrag
         write(iounit,*) "  highfreq      = ", highfreq
         write(iounit,*) "  natmiter      = ", natmiter
+        write(iounit,*) "  atmiter_conv  = ", atmiter_conv
         write(iounit,*) "  tfrz_option   = ", tfrz_option
         write(iounit,*) "  kitd          = ", kitd
         write(iounit,*) "  kcatbound     = ", kcatbound
@@ -1528,6 +1594,7 @@
         write(iounit,*) "  solve_zbgc    = ", solve_zbgc
         write(iounit,*) "  dEdd_algae    = ", dEdd_algae
         write(iounit,*) "  modal_aero    = ", modal_aero
+        write(iounit,*) "  conserv_check = ", conserv_check
         write(iounit,*) "  skl_bgc       = ", skl_bgc
         write(iounit,*) "  solve_zsal    = ", solve_zsal
         write(iounit,*) "  grid_o        = ", grid_o
@@ -1556,6 +1623,9 @@
         write(iounit,*) "  t_sk_conv     = ", t_sk_conv
         write(iounit,*) "  t_sk_ox       = ", t_sk_ox
         write(iounit,*) "  frazil_scav   = ", frazil_scav
+        write(iounit,*) "  sw_redist     = ", sw_redist
+        write(iounit,*) "  sw_frac       = ", sw_frac
+        write(iounit,*) "  sw_dtemp      = ", sw_dtemp
 
       end subroutine icepack_write_parameters
 

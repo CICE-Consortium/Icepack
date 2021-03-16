@@ -1,4 +1,4 @@
-#! /bin/csh -f
+#!/bin/csh -f
 
 #echo ${0}
 echo "running icepack.run.setup.csh"
@@ -46,6 +46,8 @@ cd \${ICE_RUNDIR}
 setenv OMP_NUM_THREADS ${nthrds}
 
 cp -f \${ICE_CASEDIR}/icepack_in \${ICE_RUNDIR}
+cp -f \${ICE_CASEDIR}/env.\${ICE_MACHCOMP} \${ICE_RUNDIR}
+cp -f \${ICE_CASEDIR}/icepack.settings \${ICE_RUNDIR}
 echo " "
 echo "ICEPACK rundir is \${ICE_RUNDIR}"
 echo "ICEPACK log file is \${ICE_RUNLOG_FILE}"

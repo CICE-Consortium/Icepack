@@ -2,7 +2,7 @@
 
 #--- inputs ---
 
-echo "${0:t}  input ICE_DECOMP_GRID  = $ICE_DECOMP_GRID"
+#echo "${0:t}  input ICE_DECOMP_GRID  = $ICE_DECOMP_GRID"
 
 set grid = $ICE_DECOMP_GRID
 
@@ -19,6 +19,6 @@ endif
 
 setenv ICE_DECOMP_NXGLOB $nxglob
 
-echo "${0:t} output ICE_DECOMP_NXGLOB   = $ICE_DECOMP_NXGLOB"
+#echo "${0:t} output ICE_DECOMP_NXGLOB   = $ICE_DECOMP_NXGLOB"
 
 exit 0

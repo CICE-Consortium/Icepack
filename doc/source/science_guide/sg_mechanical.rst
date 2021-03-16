@@ -252,7 +252,7 @@ namelist parameter ``kstrength`` = 0, we use the strength formula from
    P = P^* h \exp[-C(1-a_i)],
    :label: hib-strength
 
-where :math:`P^* = 27,500 \, \mathrm {N/m}` and :math:`C = 20` are
+where :math:`P^* = 27,500 \, \mathrm {N/m^2}` and :math:`C = 20` are
 empirical constants, and :math:`h` is the mean ice thickness.
 Alternatively, setting ``kstrength`` = 1 gives an ice strength closely
 related to the ridging scheme. Following
