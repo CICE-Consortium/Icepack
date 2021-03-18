@@ -25,8 +25,8 @@
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
       use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc, rsnw_fall, rsnw_tmax
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
-      use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain
-      use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd
+      use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
+      use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow
@@ -932,65 +932,53 @@
       !-----------------------------------------------------------------
 
          if (tice_high .and. heat_capacity) then
-
-            if (l_brine) then
-               Tmax = Tmlts(k)
-            else             ! fresh ice
-               Tmax = -zqin(k)*puny/(rhos*cp_ice*vicen)
-            endif
-
-            if (zTin(k) > Tmax) then
-               write(warnstr,*) ' '
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'Starting thermo, T > Tmax, layer', k
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'k:', k
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'zTin =',zTin(k),', Tmax=',Tmax
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'zSin =',zSin(k)
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'hin =',hin
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'zqin =',zqin(k)
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'qmlt=',enthalpy_of_melting(zSin(k))
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'Tmlt=',Tmlts(k)
-               call icepack_warnings_add(warnstr)
+            write(warnstr,*) ' '
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'Starting thermo, zTin > Tmax, layer', k
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'k:', k
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'zTin =',zTin(k),', Tmax=',Tmax
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'zSin =',zSin(k)
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'hin =',hin
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'zqin =',zqin(k)
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'qmlt=',enthalpy_of_melting(zSin(k))
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'Tmlt=',Tmlts(k)
+            call icepack_warnings_add(warnstr)
                
-               if (ktherm == 2) then
-                  zqin(k) = enthalpy_of_melting(zSin(k)) - c1
-                  zTin(k) = icepack_mushy_temperature_mush(zqin(k),zSin(k))
-                  write(warnstr,*) subname, 'Corrected quantities'
-                  call icepack_warnings_add(warnstr)
-                  write(warnstr,*) subname, 'zqin=',zqin(k)
-                  call icepack_warnings_add(warnstr)
-                  write(warnstr,*) subname, 'zTin=',zTin(k)
-                  call icepack_warnings_add(warnstr)
-               else
-                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-                  call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, T > Tmax, layer" ) 
-                  return
-               endif
+            if (ktherm == 2) then
+               zqin(k) = enthalpy_of_melting(zSin(k)) - c1
+               zTin(k) = icepack_mushy_temperature_mush(zqin(k),zSin(k))
+               write(warnstr,*) subname, 'Corrected quantities'
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zqin=',zqin(k)
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, 'zTin=',zTin(k)
+               call icepack_warnings_add(warnstr)
+            else
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTin > Tmax, layer" )
+               return
             endif
          endif                  ! tice_high
 
          if (tice_low .and. heat_capacity) then
-
-            if (zTin(k) < Tmin) then
-               write(warnstr,*) ' '
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'Starting thermo T < Tmin, layer', k
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'zTin =', zTin(k)
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, 'Tmin =', Tmin
-               call icepack_warnings_add(warnstr)
-               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, T < Tmin, layer" ) 
-               return
-            endif
+            write(warnstr,*) ' '
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'Starting thermo T < Tmin, layer', k
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'zTin =', zTin(k)
+            call icepack_warnings_add(warnstr)
+            write(warnstr,*) subname, 'Tmin =', Tmin
+            call icepack_warnings_add(warnstr)
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTin < Tmin, layer" )
+            return
          endif                  ! tice_low
 
       !-----------------------------------------------------------------
@@ -1191,12 +1179,8 @@
 
       do k = 1, nslyr
          dzs(k) = hslyr
-         smicetot(k) = c0
-         smliqtot(k) = c0
-         if (tr_snow) then
-            smicetot(k) = dzs(k) * smice(k)
-            smliqtot(k) = dzs(k) * smliq(k)
-         endif
+         smicetot(k) = dzs(k) * smice(k)
+         smliqtot(k) = dzs(k) * smliq(k)
       enddo
 
       do k = 1, nilyr
@@ -1222,12 +1206,10 @@
             Ts = (Lfresh + zqsn(k)/rhos) / cp_ice
             if (Ts > c0) then
                dhs = cp_ice*Ts*dzs(k) / Lfresh
-
                smice_fsnow = c0
                if (abs(dzs(k)) > puny) smice_fsnow = smicetot(k)/dzs(k) * dhs
                smicetot(k) = smicetot(k) - smice_fsnow ! dhs << dzs
                smliqtot(k) = smliqtot(k) + smice_fsnow
-
                dzs(k) = dzs(k) - dhs
                zqsn(k) = -rhos*Lfresh
             endif
@@ -1358,12 +1340,10 @@
 
             dhs = max(-dzs(k), &
                 -((zqsn(k) + rhos*Lfresh) / (rhos*Lfresh)) * dzs(k))
-
             smice_fsnow = c0
             if (abs(dzs(k)) > puny) smice_fsnow = smicetot(k)/dzs(k) * dhs
             smicetot(k) = smicetot(k) + smice_fsnow ! -dhs <= dzs
             smliqtot(k) = smliqtot(k) - smice_fsnow
-
             dzs(k) = dzs(k) + dhs
             zqsn(k) = -rhos * Lfresh
             melts = melts - dhs
@@ -1546,7 +1526,7 @@
       enddo                     ! k
 
     !-------------------------------------------------------------------
-    ! Incorporate new snow for snow grain radius
+    ! Incorporate new snow for snow grain radius in upper layer
     !-------------------------------------------------------------------
 
       if (snwgrain .and. hsn_new > c0) then
@@ -1574,7 +1554,7 @@
     !-------------------------------------------------------------------
     ! Update snow mass tracers, smice and smliq, for uneven layers
     !-------------------------------------------------------------------
-       if (tr_snow) then
+       if (snwgrain) then
          do k = 1, nslyr
             meltsliq = meltsliq + smliqtot(k)  ! total liquid (in case all snow melted)
             if (dzs(k) > c0) then
@@ -1678,12 +1658,12 @@
                                zs1,      zs2,      &
                                hslyr,    hsn,      &
                                zqsn)   
-         if (snwgrain) &
+
+         if (snwgrain) then
             call adjust_enthalpy (nslyr,              &
                                   zs1(:),   zs2(:),   &
                                   hslyr,    hsn,      &
                                   rsnw(:))
-         if (tr_snow) then
             call adjust_enthalpy (nslyr,              &
                                   zs1(:),   zs2(:),   &
                                   hslyr,    hsn,      &
@@ -1707,7 +1687,7 @@
                fhocnn = fhocnn &
                       + zqsn(k)*hsn/(real(nslyr,kind=dbl_kind)*dt)
                zqsn(k) = -rhos*Lfresh
-               if (tr_snow) then
+               if (snwgrain) then
                   meltsliq = meltsliq + smicetot(k)  ! add to meltponds
                   smice(k) = c0
                   smliq(k) = c0
@@ -2105,7 +2085,7 @@
                                     frzmlt      , rside       , &
                                     fside       ,               &
                                     fsnow       , frain       , &
-                                    fpond       ,               &
+                                    fpond       , fsloss      , &
                                     fsurf       , fsurfn      , &
                                     fcondtop    , fcondtopn   , &
                                     fcondbot    , fcondbotn   , &
@@ -2244,10 +2224,11 @@
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
       real (kind=dbl_kind), intent(inout), optional :: &
-         fswthru_vdr  , & ! vis dir shortwave penetrating to ocean (W/m^2)
-         fswthru_vdf  , & ! vis dif shortwave penetrating to ocean (W/m^2)
-         fswthru_idr  , & ! nir dir shortwave penetrating to ocean (W/m^2)
-         fswthru_idf      ! nir dif shortwave penetrating to ocean (W/m^2)
+         fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
+         fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
+         fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
+         fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
+         fsloss          ! fraction of snow lost to leads
 
       real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
          Qa_iso      , & ! isotope specific humidity (kg/kg)
@@ -2378,6 +2359,7 @@
          l_smliq         ! mass of liquid in snow (kg/m^2)
 
       real (kind=dbl_kind)  :: &
+         l_fsloss    , & ! fraction of snow lost to leads
          l_HDO_ocn   , & ! local ocean concentration of HDO (kg/kg)
          l_H2_16O_ocn, & ! local ocean concentration of H2_16O (kg/kg)
          l_H2_18O_ocn    ! local ocean concentration of H2_18O (kg/kg)
@@ -2459,6 +2441,9 @@
          l_fiso_evap   = c0
       endif
 
+      l_fsloss     = c0
+      if (present(fsloss)    ) l_fsloss     = fsloss
+
       l_HDO_ocn    = c0
       if (present(HDO_ocn)   ) l_HDO_ocn    = HDO_ocn
 
@@ -2501,7 +2486,7 @@
       if (present(meltsliqn)) l_meltsliq = meltsliqn
 
       allocate(l_rsnw(nslyr,ncat))
-      l_rsnw = c0  ! echmod: this should be the default radius
+      l_rsnw = rsnw_fall
       if (present(rsnwn)) l_rsnw = rsnwn
 
       allocate(l_smice(nslyr,ncat))
@@ -2511,6 +2496,26 @@
       allocate(l_smliq(nslyr,ncat))
       l_smliq = c0
       if (present(smliqn)) l_smliq = smliqn
+
+      !-----------------------------------------------------------------
+      ! Initialize rate of snow loss to leads
+      !-----------------------------------------------------------------
+
+      l_fsloss = fsnow * (c1 - aice)
+
+      !-----------------------------------------------------------------
+      ! snow redistribution using snwlvlfac:  precip factor
+      !-----------------------------------------------------------------
+
+      if (trim(snwredist) == 'bulk') then
+         worka = c0
+         do n = 1, ncat
+            worka = worka + alvl(n)
+         enddo
+         worka  = worka * snwlvlfac/(c1+snwlvlfac)
+         l_fsloss = l_fsloss + fsnow*(c1-worka)
+         fsnow    =            fsnow*    worka
+      endif ! snwredist
 
       !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
@@ -2740,7 +2745,7 @@
             endif
          endif   ! aicen_init
 
-         if (use_smliq_pnd) then
+         if (snwgrain .and. use_smliq_pnd) then
             call drain_snow (dt = dt,               nslyr = nslyr, &
                              vsnon = vsnon(n),      aicen = aicen(n), &
                              smice = l_smice(:,n), smliq = l_smliq(:,n), &
@@ -2808,7 +2813,7 @@
                   ! collect liquid water in ponds
                   ! assume salt still runs off
                   rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
-                  if (use_smliq_pnd) then
+                  if (snwgrain .and. use_smliq_pnd) then
                      pond = rfrac/rhofresh * (melttn(n)*rhoi &
                           +                 l_meltsliq(n))
                   else
@@ -2889,6 +2894,7 @@
 
       enddo                  ! ncat
 
+      if (present(fsloss      )) fsloss       = l_fsloss
       if (present(isosno      )) isosno       = l_isosno
       if (present(isoice      )) isoice       = l_isoice
       if (present(Qa_iso      )) Qa_iso       = l_Qa_iso

@@ -6,7 +6,7 @@ module icepack_therm_mushy
   use icepack_parameters, only: c0, c1, c2, c8, c10
   use icepack_parameters, only: p01, p05, p1, p2, p5, pi, bignum, puny
   use icepack_parameters, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
-  use icepack_parameters, only: hs_min
+  use icepack_parameters, only: hs_min, snwgrain
   use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode
   use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
   use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
@@ -16,7 +16,7 @@ module icepack_therm_mushy
   use icepack_mushy_physics, only: temperature_snow, temperature_mush_liquid_fraction
   use icepack_mushy_physics, only: liquidus_brine_salinity_mush, liquidus_temperature_mush
   use icepack_mushy_physics, only: conductivity_mush_array, conductivity_snow_array
-  use icepack_tracers, only: tr_pond, tr_snow
+  use icepack_tracers, only: tr_pond
   use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
   use icepack_therm_shared, only: ferrmax
   use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -3343,7 +3343,7 @@ contains
           call update_vertical_tracers_snow(nslyr, zqsn, hslyr, hslyr2)
           if (icepack_warnings_aborted(subname)) return
 
-          if (tr_snow .and. hslyr2 > puny) then
+          if (snwgrain .and. hslyr2 > puny) then
              call update_vertical_tracers_snow(nslyr, smice, hslyr, hslyr2)
              call update_vertical_tracers_snow(nslyr, smliq, hslyr, hslyr2)
              if (icepack_warnings_aborted(subname)) return

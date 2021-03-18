@@ -116,7 +116,7 @@
       use icedrv_flux, only: meltsn, melttn, meltbn, congeln, snoicen, uatm, vatm
       use icedrv_flux, only: wind, rhoa, potT, Qa, Qa_iso, zlvl, strax, stray, flatn
       use icedrv_flux, only: fsensn, fsurfn, fcondtopn, fcondbotn
-      use icedrv_flux, only: flw, fsnow, fpond, sss, mlt_onset, frz_onset
+      use icedrv_flux, only: flw, fsnow, fpond, sss, mlt_onset, frz_onset, fsloss
       use icedrv_flux, only: frain, Tair, strairxT, strairyT, fsurf
       use icedrv_flux, only: fcondtop, fcondbot, fsens, fresh, fsalt, fhocn
       use icedrv_flux, only: flat, fswabs, flwout, evap, evaps, evapi
@@ -312,7 +312,7 @@
             Tbot     = Tbot(i),       Tsnice    = Tsnice(i),      &
             rside    = rside(i),      fside     = fside(i),       &
             fsnow    = fsnow(i),      frain     = frain(i),       &
-            fpond    = fpond(i),                                  &
+            fpond    = fpond(i),      fsloss    = fsloss(i),      &
             fsurf    = fsurf(i),      fsurfn    = fsurfn(i,:),    &
             fcondtop = fcondtop(i),   fcondtopn = fcondtopn(i,:), &
             fcondbot = fcondbot(i),   fcondbotn = fcondbotn(i,:), &

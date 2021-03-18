@@ -426,12 +426,17 @@
          write (nu_diag,*) 'WARNING: snwredist on but tr_snow=F'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
-      if (snwredist(1:9) == '30percent' .and. .not. tr_lvl) then
-         write (nu_diag,*) 'WARNING: snwredist=30percent but tr_lvl=F'
+      if (snwredist(1:4) == 'bulk' .and. .not. tr_lvl) then
+         write (nu_diag,*) 'WARNING: snwredist=bulk but tr_lvl=F'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (snwredist(1:6) == 'ITDrdg' .and. .not. tr_lvl) then
          write (nu_diag,*) 'WARNING: snwredist=ITDrdg but tr_lvl=F'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+      if (use_smliq_pnd .and. .not. snwgrain) then
+         write (nu_diag,*) 'WARNING: use_smliq_pnd = T but'
+         write (nu_diag,*) 'WARNING: snow metamorphosis not used'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       if (use_smliq_pnd .and. .not. tr_snow) then
@@ -1197,7 +1202,6 @@
       use icedrv_domain_size, only: nilyr, nslyr, max_ntrcr, ncat, nfsd
       use icedrv_arrays_column, only: floe_rad_c, floe_binwidth
 
-
       integer (kind=int_kind), intent(in) :: &
          nx          ! number of grid cells
 
@@ -1235,7 +1239,7 @@
 
       real (kind=dbl_kind) :: &
          Tsfc, sum, hbar, &
-         rhos, Lfresh, puny
+         rhos, Lfresh, puny, rsnw_fall
 
       real (kind=dbl_kind), dimension(ncat) :: &
          ainit, hinit    ! initial area, thickness
@@ -1249,9 +1253,10 @@
       real (kind=dbl_kind), parameter :: &
          hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
 
-      logical (kind=log_kind) :: tr_brine, tr_lvl, tr_fsd
+      logical (kind=log_kind) :: tr_brine, tr_lvl, tr_fsd, tr_snow
       integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_sice, nt_fsd
       integer (kind=int_kind) :: nt_fbri, nt_alvl, nt_vlvl
+      integer (kind=int_kind) :: nt_rhos, nt_rsnw, nt_smice, nt_smliq
 
       character(len=*), parameter :: subname='(set_state_var)'
 
@@ -1260,11 +1265,14 @@
       !-----------------------------------------------------------------
 
       call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_lvl_out=tr_lvl, &
-        tr_fsd_out=tr_fsd)
-      call icepack_query_tracer_indices( nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
+           tr_fsd_out=tr_fsd, tr_snow_out=tr_snow)
+      call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_qice_out=nt_qice, &
            nt_qsno_out=nt_qsno, nt_sice_out=nt_sice, nt_fsd_out=nt_fsd, &
-           nt_fbri_out=nt_fbri, nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl)
-      call icepack_query_parameters(rhos_out=rhos, Lfresh_out=Lfresh, puny_out=puny)
+           nt_fbri_out=nt_fbri, nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
+           nt_rsnw_out=nt_rsnw, nt_rhos_out=nt_rhos, &
+           nt_smice_out=nt_smice, nt_smliq_out=nt_smliq)
+      call icepack_query_parameters(rhos_out=rhos, Lfresh_out=Lfresh, puny_out=puny, &
+           rsnw_fall_out=rsnw_fall)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
          file=__FILE__,line= __LINE__)
@@ -1352,6 +1360,15 @@
          enddo               ! nslyr
          ! brine fraction
          if (tr_brine) trcrn(i,nt_fbri,n) = c1
+         ! snow radius, effective density, ice and liquid mass content
+         if (tr_snow) then
+            do k = 1, nslyr
+               trcrn(i,nt_rsnw +k-1,n) = rsnw_fall
+               trcrn(i,nt_rhos +k-1,n) = rhos
+               trcrn(i,nt_smice+k-1,n) = rhos
+               trcrn(i,nt_smliq+k-1,n) = c0
+            enddo               ! nslyr
+         endif
       enddo                  ! ncat
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -1413,11 +1430,20 @@
          enddo               ! nslyr
          ! brine fraction
          if (tr_brine) trcrn(i,nt_fbri,n) = c1
+         ! snow radius, effective density, ice and liquid mass content
+         if (tr_snow) then
+            do k = 1, nslyr
+               trcrn(i,nt_rsnw +k-1,n) = rsnw_fall
+               trcrn(i,nt_rhos +k-1,n) = rhos
+               trcrn(i,nt_smice+k-1,n) = rhos
+               trcrn(i,nt_smliq+k-1,n) = c0
+            enddo               ! nslyr
+         endif
       enddo                  ! ncat
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
-      
+
       !-----------------------------------------------------------------
       
       ! land

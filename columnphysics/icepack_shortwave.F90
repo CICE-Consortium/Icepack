@@ -1032,7 +1032,7 @@
             elseif (tr_pond_lvl) then
 
                hsnlvl = hsn ! initialize
-               if (trim(snwredist) == '30percentsw') then
+               if (trim(snwredist) == 'bulk') then
                   hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
                   ! snow volume over level ice
                   alvl = aicen(n) * alvln(n)
@@ -1184,7 +1184,7 @@
             if (icepack_warnings_aborted(subname)) return
 
             if (.not. snwgrain) then
-               rnslyr = c1/max(c1,(real(nslyr,kind=dbl_kind)))
+               rnslyr = c1/min(c1,(real(nslyr,kind=dbl_kind)))
                do k = 1,nslyr
                   rsnw_dEddn(n) = rsnw_dEddn(n) + rsnwn(k)*rnslyr
                enddo

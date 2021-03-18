@@ -126,7 +126,7 @@
                                   smice,     smliq,    &
                                   rhos_effn, rhos_eff, &
                                   rhos_cmpn, rhos_cmp)
-print*,'A smliq',smliq
+
       !-----------------------------------------------------------------
       ! Redistribute snow based on wind
       !-----------------------------------------------------------------
@@ -179,7 +179,6 @@ print*,'A smliq',smliq
                                   Tsfc,       zTin1, &
                                   hsn,        zqsn,  &
                                   smice,      smliq)
-print*,'B smliq',smliq
       endif
 
       end subroutine icepack_step_snow
@@ -231,11 +230,15 @@ print*,'B smliq',smliq
       ! Initialize effective snow density (compaction) for new snow
       !-----------------------------------------------------------------
 
-         do n = 1, ncat
-            do k = 1, nslyr
-               if (rhos_cmpn(k,n) < rhosmin) rhos_cmpn(k,n) = rhosnew
+         if (trim(snwredist) /= 'none') then
+            do n = 1, ncat
+               do k = 1, nslyr
+                  if (rhos_cmpn(k,n) < rhosmin) rhos_cmpn(k,n) = rhosnew
+               enddo
             enddo
-         enddo
+         else
+            rhos_cmpn(:,:) = rhos
+         endif
 
       !-----------------------------------------------------------------
       ! Compute average effective density of snow
@@ -252,6 +255,11 @@ print*,'B smliq',smliq
          enddo
          rhos_eff = rhos_eff/(vsno*real(nslyr,kind=dbl_kind))
          rhos_cmp = rhos_cmp/(vsno*real(nslyr,kind=dbl_kind))
+
+      else
+
+         rhos_eff = rhos ! default to standard value
+         rhos_cmp = rhos
 
       endif ! vsno
 
