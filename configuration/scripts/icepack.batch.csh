@@ -113,14 +113,14 @@ cat >> ${jobfile} << EOFB
 EOFB
 
 else if (${ICE_MACHINE} =~ compy*) then
-@ nthrds2 = ${nthrds} * 2
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
 #SBATCH -A ${acct}
-#SBATCH --qos shared
-#SBATCH --ntasks ${ncores}
+#SBATCH --qos ${ICE_MACHINE_QUEUE}
 #SBATCH --time ${ICE_RUNLENGTH}
-#SBATCH --cpus-per-task ${nthrds2}
+#SBATCH --nodes ${nnodes}
+#SBATCH --ntasks ${ntasks}
+#SBATCH --cpus-per-task ${nthrds}
 ###SBATCH -e filename
 ###SBATCH -o filename
 ###SBATCH --mail-type FAIL
