@@ -794,7 +794,7 @@
       !-----------------------------------------------------------------
       ! NOTE these are computed for the last timestep only (not avg)
 
-         do n = 1, nx
+      do n = 1, nx
             pfzsal    = fzsal(n)
             pfzsal_g  = fzsal_g(n)
             phinS     = c0
@@ -850,7 +850,6 @@
             do k = 1,nilyr
                pSice(k) = trcr(n,nt_sice+k-1)
             enddo
-         enddo                  ! nx
 
       !-----------------------------------------------------------------
       ! start spewing
@@ -858,17 +857,17 @@
 
         write(nu_diag_out+n-1,*) '                         '
         write(nu_diag_out+n-1,*) '      Brine height       '
-        write(nu_diag_out+n-1,900) 'hbrin                   = ',phinS
-        write(nu_diag_out+n-1,900) 'hbrin cat 1             = ',phinS1
-        write(nu_diag_out+n-1,900) 'Freeboard               = ',phbrn
-        write(nu_diag_out+n-1,900) 'dhbrin cat 1 top        = ',pdh_top1
-        write(nu_diag_out+n-1,900) 'dhbrin cat 1 bottom     = ',pdh_bot1
+        write(nu_diag_out+n-1,900) 'hbrin                   = ',phinS(n)
+        write(nu_diag_out+n-1,900) 'hbrin cat 1             = ',phinS1(n)
+        write(nu_diag_out+n-1,900) 'Freeboard               = ',phbrn(n)
+        write(nu_diag_out+n-1,900) 'dhbrin cat 1 top        = ',pdh_top1(n)
+        write(nu_diag_out+n-1,900) 'dhbrin cat 1 bottom     = ',pdh_bot1(n)
         write(nu_diag_out+n-1,*) '                         '
         write(nu_diag_out+n-1,*) '     zSalinity         '
-        write(nu_diag_out+n-1,900) 'Avg density (kg/m^3)   = ',psice_rho
-        write(nu_diag_out+n-1,900) 'Salt flux (kg/m^2/s)   = ',pfzsal
-        write(nu_diag_out+n-1,900) 'Grav. Drain. Salt flux = ',pfzsal_g
-        write(nu_diag_out+n-1,900) 'Darcy V cat 1 (m/s)    = ',pdarcy_V1
+        write(nu_diag_out+n-1,900) 'Avg density (kg/m^3)   = ',psice_rho(n)
+        write(nu_diag_out+n-1,900) 'Salt flux (kg/m^2/s)   = ',pfzsal(n)
+        write(nu_diag_out+n-1,900) 'Grav. Drain. Salt flux = ',pfzsal_g(n)
+        write(nu_diag_out+n-1,900) 'Darcy V cat 1 (m/s)    = ',pdarcy_V1(n)
         write(nu_diag_out+n-1,*) '                         '
         write(nu_diag_out+n-1,*) ' Top down bgc Layer Model'
         write(nu_diag_out+n-1,*) '                         '
@@ -900,6 +899,8 @@
         write(nu_diag_out+n-1,*) '---------------------------------------------------'
         write(nu_diag_out+n-1,802) (pSice(k), k = 1,nilyr)
         write(nu_diag_out+n-1,*) '                         '
+
+      enddo                  ! nx
 
 802   format (f24.17,2x)
 803   format (a25,2x)

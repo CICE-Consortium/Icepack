@@ -1887,7 +1887,7 @@
            - fsnow*Lfresh - fadvocn) * dt
       ferr = abs(efinal-einit-einp) / dt
 
-      if (ferr > ferrmax) then
+      if (ferr > 1.1_dbl_kind*ferrmax) then
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          call icepack_warnings_add(subname//" conservation_check_vthermo: Thermo energy conservation error" ) 
 
