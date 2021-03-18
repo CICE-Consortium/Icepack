@@ -2219,7 +2219,6 @@
          meltt       , & ! top ice melt             (m/step-->cm/day)
          melts       , & ! snow melt                (m/step-->cm/day)
          meltb       , & ! basal ice melt           (m/step-->cm/day)
-         dsnow       , & ! change in snow depth     (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
@@ -2228,6 +2227,7 @@
          fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
+         dsnow       , & ! change in snow depth     (m/step-->cm/day)
          fsloss          ! fraction of snow lost to leads
 
       real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
