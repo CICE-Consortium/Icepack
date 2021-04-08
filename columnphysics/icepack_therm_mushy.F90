@@ -217,32 +217,28 @@ contains
     !-----------------------------------------------------------------
 !mclaren: Should there be an if calc_Tsfc statement here then?? 
 
+    dswabs = c0
     if (sw_redist) then
+       dt_rhoi_hlyr = dt / (rhoi*hilyr)
+       do k = 1, nilyr
+          Iswabs_tmp = c0 ! all Iswabs is moved into fswsfc
+          Tmlt = liquidus_temperature_mush(zSin(k))
 
-    dt_rhoi_hlyr = dt / (rhoi*hilyr)
-
-    do k = 1, nilyr
-
-       Iswabs_tmp = c0 ! all Iswabs is moved into fswsfc
-
-       Tmlt = liquidus_temperature_mush(zSin(k))
-
-       if (zTin(k) <= Tmlt - sw_dtemp) then
-          ci = cp_ice - Lfresh * Tmlt / (zTin(k)**2)
-          Iswabs_tmp = min(Iswabs(k), &
-                           sw_frac*(Tmlt-zTin(k))*ci/dt_rhoi_hlyr)
-       endif
-       if (Iswabs_tmp < puny) Iswabs_tmp = c0
-
-       dswabs = min(Iswabs(k) - Iswabs_tmp, fswint)
-
-       fswsfc   = fswsfc + dswabs
-       fswint   = fswint - dswabs
-       Iswabs(k) = Iswabs_tmp
-
-    enddo
-
+          if (zTin(k) <= Tmlt - sw_dtemp) then
+             ci = cp_ice - Lfresh * Tmlt / (zTin(k)**2)
+             Iswabs_tmp = min(Iswabs(k), &
+                              sw_frac*(Tmlt-zTin(k))*ci/dt_rhoi_hlyr)
+          endif
+          if (Iswabs_tmp < puny) Iswabs_tmp = c0
+          dswabs = dswabs + min(Iswabs(k) - Iswabs_tmp, fswint)
+          Iswabs(k) = Iswabs_tmp
+       enddo
     endif
+    if (.not. lsnow) then ! hs <= hs_min
+       dswabs = dswabs + sum(Sswabs(:))
+    endif
+    fswsfc = fswsfc + dswabs
+    fswint = fswint - dswabs
 
     if (lsnow) then
        ! case with snow

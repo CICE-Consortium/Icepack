@@ -480,15 +480,6 @@
 
       do i = 1, nx
 
-         do n = 1, ncat
-            do k = 1, nilyr
-               sicen(k,n) = trcrn(i,nt_sice+k-1,n)
-            enddo
-            do k = ntrcr_o+1, ntrcr
-               trcrn_bgc(k-ntrcr_o,n) = trcrn(i,k,n)
-            enddo
-         enddo
-
          call icepack_load_ocean_bio_array(max_nbtrcr=max_nbtrcr,             &
                       max_algae=max_algae, max_don=max_don,  max_doc=max_doc, &
                       max_aero =max_aero,  max_dic=max_dic,  max_fe =max_fe,  &
@@ -504,6 +495,16 @@
       enddo  ! i
 
       do i = 1, nx
+
+         do n = 1, ncat
+            do k = 1, nilyr
+               sicen(k,n) = trcrn(i,nt_sice+k-1,n)
+            enddo
+            do k = ntrcr_o+1, ntrcr
+               trcrn_bgc(k-ntrcr_o,n) = trcrn(i,k,n)
+            enddo
+         enddo
+
          call icepack_init_bgc(ncat=ncat, nblyr=nblyr, nilyr=nilyr, ntrcr_o=ntrcr_o, &
                       cgrid=cgrid, igrid=igrid, ntrcr=ntrcr, nbtrcr=nbtrcr,          &
                       sicen=sicen(:,:), trcrn=trcrn_bgc(:,:),                        &
@@ -1225,7 +1226,7 @@
            fr_dFe_in=fr_dFe, k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, &
            max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, fr_resp_in=fr_resp, &
            fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, t_sk_conv_in=t_sk_conv, &
-           t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero)
+           t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero, solve_zsal_in=solve_zsal)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)

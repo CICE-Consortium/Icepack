@@ -743,9 +743,9 @@ Climate System Model (CCSM3), the albedo depends on the temperature and
 thickness of ice and snow and on the spectral distribution of the
 incoming solar radiation. Albedo parameters have been chosen to fit
 observations from the SHEBA field experiment. For
-:math:`T_{sf} < -1^{\circ}C` and :math:`h_i > `\ ``ahmax``, the bare ice
-albedo is 0.78 for visible wavelengths (:math:`<700`\ nm) and 0.36 for
-near IR wavelengths (:math:`>700`\ nm). As :math:`h_i` decreases from
+:math:`T_{sf} < -1^{\circ}C` and :math:`h_i >` \ `ahmax`, the bare ice
+albedo is 0.78 for visible wavelengths (:math:`<700` \ nm) and 0.36 for
+near IR wavelengths (:math:`>700` \ nm). As :math:`h_i` decreases from
 ahmax to zero, the ice albedo decreases smoothly (using an arctangent
 function) to the ocean albedo, 0.06. The ice albedo in both spectral
 bands decreases by 0.075 as :math:`T_{sf}` rises from
@@ -806,7 +806,7 @@ While incoming shortwave and longwave radiation are obtained from the
 atmosphere, outgoing longwave radiation and the turbulent heat fluxes
 are derived quantities. Outgoing longwave takes the standard blackbody
 form, :math:`F_{L\uparrow}=\epsilon\sigma
-\left(T_{sf}^{K}\right)^4`, where :math:`\epsilon=0.95` is the
+\left(T_{sf}^{K}\right)^4`, where :math:`\epsilon=0.985` is the
 emissivity of snow or ice, :math:`\sigma` is the Stefan-Boltzmann
 constant and :math:`T_{sf}^{K}` is the surface temperature in
 Kelvin. (The longwave fluxes are partitioned such that
