@@ -32,6 +32,7 @@ ifeq ($(strip $(SDKPATH)),)
   CFLAGS_HOST := 
 else
   CFLAGS_HOST = -isysroot $(SDKPATH)
+  LD += -L$(SDKPATH)/usr/lib
 endif
 
 # Necessary flag to compile with OpenMP support

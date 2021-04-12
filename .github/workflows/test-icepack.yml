@@ -17,7 +17,7 @@ on:
 
 defaults:
   run:
-    shell: /bin/csh {0}
+    shell: /bin/csh -e {0}
 
 jobs:
   build:
@@ -83,9 +83,9 @@ jobs:
           conda env create -f configuration/scripts/machines/environment.yml
       - name: check conda env
         run: |
-          conda activate icepack && which mpicc && which mpifort && which make
-          mpifort --version
-          mpicc --version
+          conda activate icepack && which clang && which gfortran && which make
+          gfortran --version
+          clang --version
           make --version
       - name: check setup case
         run: |
@@ -104,7 +104,7 @@ jobs:
       - name: download input data
         run: |
           cd $HOME/icepack-dirs/input
-          wget https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz && tar xvfz ICEPACK_data-20200326.tar.gz
+          wget --progress=dot:giga https://zenodo.org/record/3728287/files/Icepack_data-20200326.tar.gz && tar xvfz ICEPACK_data-20200326.tar.gz
           pwd
           ls -alR
 #      - name: run case
