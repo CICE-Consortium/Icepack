@@ -96,10 +96,10 @@
          natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
-         tfrz_option, frzpnd, atmbndy, wave_spec_type, snwredist
+         tfrz_option, frzpnd, atmbndy, wave_spec_type, snwredist, snw_aging_table
 
       logical (kind=log_kind) :: sw_redist, use_smliq_pnd, snwgrain
-      real (kind=dbl_kind)     :: sw_frac, sw_dtemp
+      real (kind=dbl_kind)    :: sw_frac, sw_dtemp
 
       ! Flux convergence tolerance
       real (kind=dbl_kind) :: atmiter_conv
@@ -155,11 +155,10 @@
         hs0,            dpscale,         frzpnd,                        &
         rfracmin,       rfracmax,        pndaspect,     hs1,            &
         hp1
-
       namelist /snow_nml/ &
         snwredist,      snwgrain,       rsnw_fall,     rsnw_tmax,      &
         rhosnew,        rhosmin,        rhosmax,       snwlvlfac,      &
-        windmin,        drhosdwind,     use_smliq_pnd
+        windmin,        drhosdwind,     use_smliq_pnd, snw_aging_table
 
       namelist /forcing_nml/ &
         atmbndy,         calc_strair,     calc_Tsfc,       &
@@ -223,7 +222,8 @@
            snwredist_out=snwredist, use_smliq_pnd_out=use_smliq_pnd, &
            snwgrain_out=snwgrain, rsnw_fall_out=rsnw_fall, rsnw_tmax_out=rsnw_tmax, &
            rhosnew_out=rhosnew, rhosmin_out = rhosmin, rhosmax_out=rhosmax, &
-           windmin_out=windmin, drhosdwind_out=drhosdwind, snwlvlfac_out=snwlvlfac)
+           windmin_out=windmin, drhosdwind_out=drhosdwind, snwlvlfac_out=snwlvlfac, &
+           snw_aging_table_out=snw_aging_table)
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -448,6 +448,11 @@
          write (nu_diag,*) 'WARNING: snwgrain=T but tr_snow=F'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
+      if (trim(snw_aging_table) /= 'test') then
+         write (nu_diag,*) 'WARNING: snw_aging_table /= test'
+         write (nu_diag,*) 'WARNING: netcdf not available'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
 
       if (tr_iso .and. n_iso==0) then
          write (nu_diag,*) 'WARNING: isotopes activated but'
@@ -614,6 +619,7 @@
          write(nu_diag,1030) ' snwredist                 = ', snwredist
          write(nu_diag,1010) ' snwgrain                  = ', snwgrain
          write(nu_diag,1010) ' use_smliq_pnd             = ', use_smliq_pnd
+         write(nu_diag,1030) ' snw_aging_table           = ', snw_aging_table
          write(nu_diag,1000) ' rsnw_fall                 = ', rsnw_fall
          write(nu_diag,1000) ' rsnw_tmax                 = ', rsnw_tmax
          write(nu_diag,1000) ' rhosnew                   = ', rhosnew
@@ -861,6 +867,7 @@
            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec, &
            sw_redist_in=sw_redist, sw_frac_in=sw_frac, sw_dtemp_in=sw_dtemp, &
            snwredist_in=snwredist, use_smliq_pnd_in=use_smliq_pnd, &
+           snw_aging_table_in=snw_aging_table, &
            snwgrain_in=snwgrain, rsnw_fall_in=rsnw_fall, rsnw_tmax_in=rsnw_tmax, &
            rhosnew_in=rhosnew, rhosmin_in=rhosmin, rhosmax_in=rhosmax, &
            windmin_in=windmin, drhosdwind_in=drhosdwind, snwlvlfac_in=snwlvlfac)

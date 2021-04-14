@@ -15,21 +15,102 @@
       use icepack_parameters, only: rhosmin, rhosmax, windmin, drhosdwind
       use icepack_parameters, only: isnw_T, isnw_Tgrd, isnw_rhos
       use icepack_parameters, only: snowage_tau, snowage_kappa, snowage_drdt0
+      use icepack_parameters, only: snw_aging_table
 
       use icepack_warnings, only: icepack_warnings_add, icepack_warnings_setabort
 
       implicit none
       private
 
-      public :: icepack_step_snow, drain_snow
+      public :: icepack_step_snow, drain_snow, icepack_init_snow
 
       real (kind=dbl_kind), parameter, public :: &
          S_r  = 0.033_dbl_kind, & ! irreducible saturation (Anderson 1976)
          S_wet= 4.22e-5_dbl_kind  ! (um^3/s) wet metamorphism parameters
 
+      ! shift in indices for aging test table
+      integer (kind=int_kind) :: &
+         iT_shift,    & ! shift in maximum temperature index
+         iTgrd_shift, & ! shift in maximum temperature gradient index
+         irhos_shift    ! shift in maximum snow density index
+
 !=======================================================================
 
       contains
+
+!=======================================================================
+!autodocument_start icepack_init_snow
+! Updates snow tracers
+!
+! authors: Elizabeth C. Hunke, LANL
+!          Nicole Jeffery, LANL
+
+      subroutine icepack_init_snow
+
+!autodocument_end
+
+      ! local variables
+
+      character (len=*),parameter :: subname='(icepack_init_snow)'
+
+      !-----------------------------------------------------------------
+      ! Snow metamorphism lookup table
+      !-----------------------------------------------------------------
+
+      if (snwgrain) then
+         if (trim(snw_aging_table) == 'snicar') then ! read netcdf file
+            isnw_T     = 11   ! maxiumum temperature index
+            isnw_Tgrd  = 31   ! maxiumum temperature gradient index
+            isnw_rhos  =  8   ! maxiumum snow density index
+            allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
+            allocate (snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
+            allocate (snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
+            iT_shift   =  0   ! use entire table
+            iTgrd_shift = 0   !
+            irhos_shift = 0   !
+         elseif (trim(snw_aging_table) == 'test') then
+            isnw_T     =  5   ! maxiumum temperature index
+            isnw_Tgrd  =  5   ! maxiumum temperature gradient index
+            isnw_rhos  =  1   ! maxiumum snow density index
+            allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
+            allocate (snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
+            allocate (snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
+            iT_shift   =  4   ! index adjustments for subset of table
+            iTgrd_shift = 0   !
+            irhos_shift = 5   !
+
+            ! Subset of dry snow aging parameters
+            snowage_tau = reshape((/ &
+            3.34947394_dbl_kind, 4.02124159_dbl_kind,    4.03328223_dbl_kind, &
+            3.02686921_dbl_kind, 2.14125851_dbl_kind,    3.97008737_dbl_kind, &
+            4.72725821_dbl_kind, 3.65313459_dbl_kind,    2.41198936_dbl_kind,  &
+            2.53065623e-1_dbl_kind, 4.60286630_dbl_kind, 4.99721440_dbl_kind, &
+            3.29168191_dbl_kind, 2.66426779e-1_dbl_kind, 9.15830596e-5_dbl_kind, &
+            5.33186128_dbl_kind, 4.90833452_dbl_kind,    1.55269141_dbl_kind, &
+            1.31225526e-3_dbl_kind,  9.36078196e-4_dbl_kind, 6.25428631_dbl_kind, &
+            5.04394794_dbl_kind, 2.92857366e-3_dbl_kind, 9.01488751e-3_dbl_kind,  &
+            1.19037046e-2_dbl_kind/), &
+            (/isnw_rhos,isnw_Tgrd,isnw_T/))
+
+            snowage_kappa = reshape((/ &
+            0.60824438, 0.56442972, 0.5527807,  0.64299537, 0.77672359, &
+            0.57105932, 0.52791041, 0.59868076, 0.7487191,  1.57946877, &
+            0.54236508, 0.52458285, 0.65520877, 1.52356017, 4.37789838, &
+            0.51449138, 0.54494334, 0.91628508, 3.28847035, 3.64418487, &
+            0.48538708, 0.55386601, 2.81247103, 2.72445522, 2.8230216/), &
+            (/isnw_rhos,isnw_Tgrd,isnw_T/))
+
+            snowage_drdt0 = reshape((/ &
+            1.26597871, 1.26602416, 1.26613263, 1.26620414, 1.26629424, &
+            1.92418877, 1.92430063, 1.92445964, 1.92451557, 1.92469806, &
+            2.79086547, 2.79147315, 2.79137562, 2.79150846, 2.79216439, &
+            3.85605846, 3.85668001, 3.85844559, 3.86073682, 3.863199, &
+            5.0861907,  5.08765668, 5.09200195, 5.09665276, 5.10079895/), &
+            (/isnw_rhos,isnw_Tgrd,isnw_T/))
+         endif
+      endif
+
+      end subroutine icepack_init_snow
 
 !=======================================================================
 !autodocument_start icepack_step_snow
@@ -756,11 +837,10 @@
       !-----------------------------------------------------------------
       ! dry metamorphism
       !-----------------------------------------------------------------
-!echmod - data for table can not be read by Icepack
-!            call snow_dry_metamorph (nslyr, nilyr, dt, rsnw(:,n), &
-!                                     drsnw_dry, zqsn(:,n), Tsfc(n), &
-!                                     zTin(n), hsn(n), hin(n), &
-!                                     smice(:,n), smliq(:,n))
+            call snow_dry_metamorph (nslyr, nilyr, dt, rsnw(:,n), &
+                                     drsnw_dry, zqsn(:,n), Tsfc(n), &
+                                     zTin(n), hsn(n), hin(n), &
+                                     smice(:,n), smliq(:,n))
 
       !-----------------------------------------------------------------
       ! wet metamorphism
@@ -771,14 +851,14 @@
                rsnw(k,n) = min(rsnw_tmax, rsnw(k,n) + drsnw_dry(k) + drsnw_wet(k))
             enddo
 
-         else
+         else ! hsn or hin < puny
             do k = 1,nslyr
                ! rsnw_fall < rsnw < rsnw_tmax
                rsnw (k,n) = max(rsnw_fall, min(rsnw_tmax, rsnw(k,n)))
                smice(k,n) = rhos
                smliq(k,n) = c0
             enddo
-         endif
+         endif ! hsn, hin
       enddo
 
       end subroutine update_snow_radius
@@ -866,7 +946,6 @@
 
       zTsn(1)  = (Lfresh + zqsn(1)/rhos)/cp_ice
       if (nslyr == 1) then
-
          zdTdz(1) = min(c10*isnw_Tgrd, &
 !ech refactored            abs((zTsn(1)*dzi+zTin1*dzs)/(dzs+dzi+puny) - Tsfc)/(hsn+puny))
             abs(zTsn(1)*dzi + zTin1*dzs - Tsfc*dz)/(dz*hsn+puny))
@@ -882,26 +961,33 @@
          enddo
 !ech refactored         zdTdz(nslyr) = abs((zTsn(nslyr)*dzi + zTin1*dzs)/(dzs + dzi+puny) &
 !ech refactored                          - (zTsn(nslyr) + zTsn(nslyr-1))*p5) / (dzs+puny)
-         zdTdz(nslyr) = p5*abs((zTin1-zTsn(nslyr))/(dz+puny) - zTsn(nslyr-1)/(dzs+puny))
+         zdTdz(nslyr) = abs((zTsn(nslyr)*dzi + zTin1*dzs) &
+                          - (zTsn(nslyr) + zTsn(nslyr-1))*p5*dz) / (dz*dzs+puny)
          zdTdz(nslyr) = min(c10*isnw_Tgrd, zdTdz(nslyr))
       endif
 
-!echmod - table will not be available in Icepack standalone (netcdf)
+      ! if snw_aging_table = 'snicar'
+      ! best-fit parameters are read from a table (netcdf)
+      ! snowage_tau, snowage_kappa, snowage_drdt0
+      !  11 temperatures from 225 to 273 K
+      !  31 temperature gradients from 0 to 300 K/m
+      !   8 snow densities from 0 to 350 kg/m3
 
-         ! best-fit parameters are read from a table
-         !  11 temperatures from 225 to 273 K
-         !  31 temperature gradients from 0 to 300 K/m
-         !   8 snow densities from 0 to 350 kg/m3
-         ! pointer snowage_tau, snowage_kappa, snowage_drdt0
+      ! if snw_aging_table = 'test'
+      ! for testing Icepack without netcdf,
+      ! use a subsampled, hard-coded table
+      !   5 temperatures
+      !   5 temperature gradients
+      !   1 snow density
 
-         do k = 1, nslyr
+      do k = 1, nslyr
           zrhos(k) = smice(k) + smliq(k)
 
           ! best-fit table indices:
-          T_idx    = nint(abs(zTsn(k)+ Tffresh - 223.0_dbl_kind) / 5.0_dbl_kind, kind=int_kind)
-          Tgrd_idx = nint(zdTdz(k) / 10.0_dbl_kind, kind=int_kind)
-          !rhos_idx = nint(zrhos(k)-50.0_dbl_kind) / 50.0_dbl_kind, kind=int_kind)   ! variable density
-          rhos_idx = nint((rhos-50.0_dbl_kind) / 50.0_dbl_kind, kind=int_kind)        ! fixed density
+          T_idx    = nint(abs(zTsn(k)+ Tffresh - 223.0_dbl_kind) / 5.0_dbl_kind, kind=int_kind) - iT_shift
+          Tgrd_idx = nint(zdTdz(k) / 10.0_dbl_kind, kind=int_kind) - iTgrd_shift
+          !rhos_idx = nint(zrhos(k)-50.0_dbl_kind) / 50.0_dbl_kind, kind=int_kind) - irhos_shift ! variable density
+          rhos_idx = nint((rhos-50.0_dbl_kind) / 50.0_dbl_kind, kind=int_kind) - irhos_shift    ! fixed density
 
           ! boundary check:
           T_idx = min(isnw_T, max(1,T_idx+1))

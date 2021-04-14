@@ -116,6 +116,8 @@
       use icepack_mushy_physics , only: icepack_mushy_liquid_fraction
       use icepack_mushy_physics , only: icepack_mushy_temperature_mush
 
+      use icepack_snow, only: icepack_init_snow
+
       use icepack_warnings, only: icepack_warnings_clear
       use icepack_warnings, only: icepack_warnings_print
       use icepack_warnings, only: icepack_warnings_flush

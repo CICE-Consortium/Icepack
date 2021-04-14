@@ -316,7 +316,8 @@
 !-----------------------------------------------------------------------
 
       character (len=char_len), public :: &
-         snwredist  = 'none'             ! type of snow redistribution
+         snwredist       = 'none', &     ! type of snow redistribution
+         snw_aging_table = 'test'        ! lookup table: 'snicar' or 'test'
 
       logical (kind=log_kind), public :: &
          use_smliq_pnd = .false.     , & ! use liquid in snow for ponds
@@ -332,16 +333,14 @@
          drhosdwind =   27.3_dbl_kind, & ! wind compaction factor for snow (kg s/m^4)
          snwlvlfac  =    0.3_dbl_kind    ! fractional increase in snow
                                          ! depth for bulk redistribution
-
-      ! indices for aging lookup table [idx]
+      ! indices for aging lookup table
       integer (kind=int_kind), public :: &
-         isnw_T     = 11  , & ! maxiumum temperature index
-         isnw_Tgrd  = 31  , & ! maxiumum temperature gradient index
-         isnw_rhos  = 8       ! maxiumum snow density index
+         isnw_T,    & ! maximum temperature index
+         isnw_Tgrd, & ! maximum temperature gradient index
+         isnw_rhos    ! maximum snow density index
 
       ! dry snow aging parameters
-!      real (kind=dbl_kind), dimension(isnw_T,isnw_Tgrd,isnw_rhos), public :: &
-      real (kind=dbl_kind), dimension(11,31,8), public :: &
+      real (kind=dbl_kind), dimension(:,:,:), allocatable, public :: &
          snowage_tau,   & ! (10^-6 m)
          snowage_kappa, & !
          snowage_drdt0    ! (10^-6 m/hr)
@@ -455,7 +454,8 @@
          snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
          rhosnew_in, rhosmin_in, rhosmax_in, windmin_in, drhosdwind_in, &
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
-         snowage_tau_in, snowage_kappa_in, snowage_drdt0_in)
+         snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
+         snw_aging_table_in)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -756,7 +756,8 @@
 !-----------------------------------------------------------------------
 
       character (len=char_len), intent(in), optional :: &
-         snwredist_in       ! type of snow redistribution
+         snwredist_in, &    ! type of snow redistribution
+         snw_aging_table_in ! snow aging lookup table
 
       logical (kind=log_kind), intent(in), optional :: &
          use_smliq_pnd_in, &! use liquid in snow for ponds
@@ -896,6 +897,7 @@
       if (present(hs1_in)               ) hs1              = hs1_in
       if (present(hp1_in)               ) hp1              = hp1_in
       if (present(snwredist_in)         ) snwredist        = snwredist_in
+      if (present(snw_aging_table_in)   ) snw_aging_table  = snw_aging_table_in
       if (present(snwgrain_in)          ) snwgrain         = snwgrain_in
       if (present(use_smliq_pnd_in)     ) use_smliq_pnd    = use_smliq_pnd_in
       if (present(rsnw_fall_in)         ) rsnw_fall        = rsnw_fall_in
@@ -1007,7 +1009,8 @@
          snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
          rhosnew_out, rhosmin_out, rhosmax_out, windmin_out, drhosdwind_out, &
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
-         snowage_tau_out, snowage_kappa_out, snowage_drdt0_out)
+         snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
+         snw_aging_table_out)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -1317,7 +1320,8 @@
 !-----------------------------------------------------------------------
 
       character (len=char_len), intent(out), optional :: &
-         snwredist_out       ! type of snow redistribution
+         snwredist_out, &    ! type of snow redistribution
+         snw_aging_table_out ! snow aging lookup table
 
       logical (kind=log_kind), intent(out), optional :: &
          use_smliq_pnd_out, &! use liquid in snow for ponds
@@ -1497,6 +1501,7 @@
       if (present(hs1_out)               ) hs1_out          = hs1
       if (present(hp1_out)               ) hp1_out          = hp1
       if (present(snwredist_out)         ) snwredist_out    = snwredist
+      if (present(snw_aging_table_out)   ) snw_aging_table_out = snw_aging_table
       if (present(snwgrain_out)          ) snwgrain_out     = snwgrain
       if (present(use_smliq_pnd_out)     ) use_smliq_pnd_out= use_smliq_pnd
       if (present(rsnw_fall_out)         ) rsnw_fall_out    = rsnw_fall
@@ -1694,6 +1699,7 @@
         write(iounit,*) "  hs1           = ", hs1
         write(iounit,*) "  hp1           = ", hp1
         write(iounit,*) "  snwredist     = ", snwredist
+        write(iounit,*) "  snw_aging_table = ", snw_aging_table
         write(iounit,*) "  snwgrain      = ", snwgrain
         write(iounit,*) "  use_smliq_pnd = ", use_smliq_pnd
         write(iounit,*) "  rsnw_fall     = ", rsnw_fall
