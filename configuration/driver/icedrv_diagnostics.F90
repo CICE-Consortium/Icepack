@@ -165,7 +165,7 @@
                        smliqtot = smliqtot + trcrn(n,nt_smliq+k-1,nc) * vsnon(n,nc)
                     end do
                  endif
-                 smtot    = smtot + rhos * vsnon(n,nc) ! mass of ice in standard density snow
+                 smtot = smtot + rhos * vsnon(n,nc) ! mass of ice in standard density snow
               end do
               rsnwavg  = rsnwavg  / real(nslyr*ncat,kind=dbl_kind) ! snow grain radius
               rhosavg  = rhosavg  / real(nslyr*ncat,kind=dbl_kind) ! compacted snow density
