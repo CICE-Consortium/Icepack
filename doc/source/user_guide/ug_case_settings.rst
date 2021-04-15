@@ -184,6 +184,7 @@ tracer_nml
    "``tr_pond_cesm``", "logical", "CESM melt ponds", "``.false.``"
    "``tr_pond_lvl``", "logical", "level-ice melt ponds", "``.false.``"
    "``tr_pond_topo``", "logical", "topo melt ponds", "``.false.``"
+   "``tr_snow``", "logical", "advanced snow physics", "``.false.``"
    "", "", "", ""
 
 thermo_nml
@@ -276,6 +277,31 @@ ponds_nml
    "``pndaspect``", "real", "aspect ratio of pond changes (depth:area)", "0.8"
    "``rfracmax``", ":math:`0 \le r_{max} \le 1`", "maximum melt water added to ponds", "0.85"
    "``rfracmin``", ":math:`0 \le r_{min} \le 1`", "minimum melt water added to ponds", "0.15"
+   "", "", "", ""
+
+snow_nml
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. csv-table:: **snow_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
+   :widths: 15, 15, 30, 15 
+
+   "", "", "", ""
+   "``drhosdwind``", "real", "wind compaction factor for snow", "27.3"
+   "``rhosmin``", "real", "minimum snow density", "100.0"
+   "``rhosmax``", "real", "minimum snow density", "450.0"
+   "``rhosnew``", "real", "new snow density", "100.0"
+   "``rsnw_fall``", "real", "radius of new snow (um)", "54.526"
+   "``rsnw_tmax``", "real", "max snow radius (um)", "1500.0"
+   "``snw_aging_table``", "test", "snow aging lookup table", "test"
+   "", "snicar", "(not available in Icepack)", ""
+   "``snwgrain``",  "logical", "snow grain metamorphosis", ".true."
+   "``snwlvlfac``", "real", "fraction bulk snow depth incr.", "0.3"
+   "``snwredist``", "``snwITDrdg``", "snow redistribution, ITD/ridges", "snwITDrdg"
+   "", "``bulk``", "bulk snow redistribution", ""
+   "", "``none``", "no snow redistribution", ""
+   "``use_smliq_pnd``", "logical", "use liquid in snow for ponds", ".true."
+   "``windmin``",  "real", "min wind speed to compact snow", "10.0"
    "", "", "", ""
 
 forcing_nml
