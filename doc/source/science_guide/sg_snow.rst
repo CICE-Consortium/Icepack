@@ -43,7 +43,7 @@ ECH CHECK WHAT IS DONE IN THE CODE
 When ``snwredist`` = ``bulk``, snow loss to leads is accomplished simply by reducing the volume of snowfall reaching the ice:
 
 .. math::
-   f_{s}^\prime = f_s a_{lvl} \left({1\over{1+p}}}\right),
+   f_{s}^\prime = {f_s a_{lvl} \left({1\over{1+p}}\right)},
 
 where :math:`f_s` is the snowfall rate, :math:`a_{lvl}` is the level-ice tracer value, and primed quantities represent their modified values.
 
@@ -62,22 +62,22 @@ In the shortwave module for level-ice ponds, we create a new variable :math:`h_{
 Snow redistribution by wind
 ---------------------------
 
-Following :cite:`Lecomte15`, we parameterize the amount of snow lost into the ocean through leads or redistributed to other thickness categories by defining the redistribution function :math:`Phi` for snow mass as the sum of an erosion rate :math:`Phi_E` and a redeposition rate :math:`Phi_R` for each category of thickness :math:`h_i`:
+Following :cite:`Lecomte15`, we parameterize the amount of snow lost into the ocean through leads or redistributed to other thickness categories by defining the redistribution function :math:`\Phi` for snow mass as the sum of an erosion rate :math:`\Phi_E` and a redeposition rate :math:`\Phi_R` for each category of thickness :math:`h_i`:
 
 .. math::
    \Phi_E = \left({\partial m \over \partial t}\right)_{erosion} = -{\gamma \over \sigma_{ITD}} \left(V-V^*\right){\rho_{max} - \rho_s \over \rho_{max}}
 
 where :math:`\rho_s` and :math:`\rho_{max}` are the effective snow density and the maximum snow density in the model, respectively. For now, we take :math:`\rho_s` to be the wind-compacted snow density computed at the end of the snow model time step.
 
-:math:`Phi_E \Delta t` represents the maximum snow mass per unit area that may be suspended from each category, subject to the total mass (per unit area) available on each category.
+:math:`\Phi_E \Delta t` represents the maximum snow mass per unit area that may be suspended from each category, subject to the total mass (per unit area) available on each category.
 
 Erosion begins when the instantaneous wind speed :math:`V` exceeds the seasonal wind speed required to compact the snow to a density :math:`\rho_s`, :math:`V^* = (\rho_s − \beta)/\alpha`. :math:`\sigma_{ITD}` is the standard deviation of the ice thicknesses from the thickness distribution :math:`g` within the grid cell. :math:`\gamma` is a tuning coefficient for
-the eroded mass, which :cite:`Lecomte15` set to :math:`10^{-5}` kg m :math:`^{-2}`. From :cite:`Lecomte13`, :math:`\rho_s = 44.6V^* + 174` kg m :math:`^{−3}` for seasonal mean wind speed :math:`V` ,i.e. :math:`\alpha=174` kg m :math:`^{-3}` and :math:`\beta=44.6` kg s m :math:`^{-4}`.
+the eroded mass, which :cite:`Lecomte15` set to :math:`10^{-5}` kg m :math:`^{-2}`. From :cite:`Lecomte13`, :math:`\rho_s = 44.6V^* + 174` kg m :math:`^{−3}` for seasonal mean wind speed :math:`V`, i.e. :math:`\alpha=174` kg m :math:`^{-3}` and :math:`\beta=44.6` kg s m :math:`^{-4}`.
 
 In :cite:`Lecomte15`, the fraction of this suspended snow lost in leads is
 
 .. math::
-   f = \left(1-a_i\right) \exp({\sigma_{ITD}\over\sigma_{ref}}),
+   f = \left(1-a_i\right) \exp\left({\sigma_{ITD}\over\sigma_{ref}}\right),
 
 where the scale factor :math:`\sigma_{ref}=1` m and :math:`a_i` is the total ice area fraction within the grid cell.  That is, the snow mass that is redistribution on the ice (i.e., not lost in leads) is 
 
@@ -87,9 +87,9 @@ where the scale factor :math:`\sigma_{ref}=1` m and :math:`a_i` is the total ice
 We extend this approach by using the level and ridged ice thicknesses to compute the standard deviation of ice thickness across all categories.  That is,
 
 .. math::
-   \sigma_{ITD}^2 = \sum_{n=1}^N a_{in} a_{lvln} \left(h_{ilvln}-\sum_{k=1}^N a_{ik}h_{ik}\right)^2 + a_{in}a_{rdgn} \left(h_{irdgn - \sum_{k=1}^N a_{ik}h_{ik}\right)^2.
+   \sigma_{ITD}^2 = \sum_{n=1}^N a_{in} a_{lvln} \left(h_{ilvln}-\sum_{k=1}^N a_{ik}h_{ik}\right)^2 + a_{in} a_{rdgn} \left(h_{irdgn} - \sum_{k=1}^N a_{ik} h_{ik} \right)^2.
 
-When considering snow over ridged and level ice for the redistribution, we reapportion the fraction of snow on level ice as :math:`a_slvl = 1-(1+p)a_{rdg}` and note that with
+When considering snow over ridged and level ice for the redistribution, we reapportion the fraction of snow on level ice as :math:`a_{slvl} = 1-(1+p)a_{rdg}` and note that with the average expression
 
 .. math::
    a_{slvl} = {\sum_{n=1}^N a_{in}\left(a_{lvln} - p a_{rdgn}\right)  \over \sum_{n=1}^N a_{in}}
@@ -108,7 +108,7 @@ The snow volume and energy state variables are updated in two steps, first for e
 Snow compaction by wind
 -----------------------
 
-High wind speeds compact the upper portion of a snow pack into ``wind slab," a dense and more conductive medium that resists further drifting. An effective snow density is computed based on wind speed, which is then used to limit snow erosion of denser snow.
+High wind speeds compact the upper portion of a snow pack into "wind slab," a dense and more conductive medium that resists further drifting. An effective snow density is computed based on wind speed, which is then used to limit snow erosion of denser snow.
 
 :cite:`Lecomte15` note that once snow is deposited, its density changes very little. During deposition, the density primarily falls into one of two types, wind slab for wind velocities greater than about 10 m/s, and loose snow for lighter winds. Their table 3 indicates densities for a variety of snow types. "Hard slab," deposited at :math:`V` = 13 m/s, has a density of :math:`\rho_s` = 403 kg m :math:`^{−3}` and "soft slab" is :math:`\rho_s` = 321 kg m :math:`^{−3}`, deposited at :math:`V` = 10 m/s. Linearly interpolating between these values, we have :math:`\rho_s = 27.3V + 47.7`.
 For simplicity, we assign a minimum snow density of :math:`\rho_s^{min}` = 100 kg m :math:`^{−3}` s
