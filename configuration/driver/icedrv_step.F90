@@ -154,13 +154,16 @@
 
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_aero, tr_iso, tr_pond, tr_pond_cesm, &
-         tr_pond_lvl, tr_pond_topo, calc_Tsfc
+         tr_pond_lvl, tr_pond_topo, calc_Tsfc, tr_snow
 
       real (kind=dbl_kind), dimension(n_aero,2,ncat) :: &
          aerosno,  aeroice    ! kg/m^2
 
       real (kind=dbl_kind), dimension(n_iso,ncat) :: &
          isosno,  isoice    ! kg/m^2
+
+      real (kind=dbl_kind), dimension(nslyr,ncat) :: &
+         rsnwn, smicen, smliqn
 
       real (kind=dbl_kind) :: &
          puny
@@ -185,7 +188,7 @@
 
       call icepack_query_tracer_flags( &
          tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+         tr_aero_out=tr_aero, tr_iso_out=tr_iso, tr_snow_out=tr_snow, &
          tr_pond_out=tr_pond, tr_pond_cesm_out=tr_pond_cesm, &
          tr_pond_lvl_out=tr_pond_lvl, tr_pond_topo_out=tr_pond_topo)
       call icepack_warnings_flush(nu_diag)
@@ -211,6 +214,9 @@
       aeroice(:,:,:) = c0
       isosno (:,:)   = c0
       isoice (:,:)   = c0
+      rsnwn  (:,:)   = c0
+      smicen (:,:)   = c0
+      smliqn (:,:)   = c0
 
       do i = 1, nx
 
@@ -234,8 +240,8 @@
 !echmod            do i = 3,3
         if (tr_aero) then
           ! trcrn(nt_aero) has units kg/m^3
-          do n=1,ncat
-            do k=1,n_aero
+          do n = 1, ncat
+            do k = 1, n_aero
               aerosno (k,:,n) = &
                   trcrn(i,nt_aero+(k-1)*4  :nt_aero+(k-1)*4+1,n) &
                   * vsnon_init(i,n)
@@ -248,14 +254,24 @@
         
         if (tr_iso) then
           ! trcrn(nt_isosno/ice) has units kg/m^3
-          do n=1,ncat
-            do k=1,n_iso
+          do n = 1, ncat
+            do k = 1, n_iso
               isosno(k,n) = trcrn(i,nt_isosno+k-1,n) * vsnon_init(i,n)
               isoice(k,n) = trcrn(i,nt_isoice+k-1,n) * vicen_init(i,n)
             enddo
           enddo
         endif ! tr_iso
-!print*,' driver i', i        
+
+        if (tr_snow) then
+          do n = 1, ncat
+            do k = 1, nslyr
+               rsnwn (k,n) = trcrn(i,nt_rsnw +k-1,n)
+               smicen(k,n) = trcrn(i,nt_smice+k-1,n)
+               smliqn(k,n) = trcrn(i,nt_smliq+k-1,n)
+            enddo
+          enddo
+        endif ! tr_snow
+
         call icepack_step_therm1(dt=dt, ncat=ncat, nilyr=nilyr, nslyr=nslyr, &
             aicen_init = aicen_init(i,:), &
             vicen_init = vicen_init(i,:), &
@@ -275,9 +291,9 @@
             ipnd = trcrn(i,nt_ipnd,:),                 & 
             iage = trcrn(i,nt_iage,:),                 &
             FY   = trcrn(i,nt_FY,:),                   & 
-            rsnwn  = trcrn(i,nt_rsnw :nt_rsnw +nslyr-1,:), &
-            smicen = trcrn(i,nt_smice:nt_smice+nslyr-1,:), &
-            smliqn = trcrn(i,nt_smliq:nt_smliq+nslyr-1,:), &
+            rsnwn  = rsnwn (:,:),            &
+            smicen = smicen(:,:),            &
+            smliqn = smliqn(:,:),            &
             aerosno = aerosno(:,:,:),        &
             aeroice = aeroice(:,:,:),        &
             isosno  = isosno(:,:),           &
@@ -353,7 +369,7 @@
             congel   = congel(i),     congeln   = congeln(i,:),   &
             snoice   = snoice(i),     snoicen   = snoicen(i,:),   &
             dsnow    = dsnow(i),      dsnown    = dsnown(i,:),    &
-            meltsliqn=meltsliqn(i,:), &
+            meltsliqn= meltsliqn(i,:), &
             lmask_n  = lmask_n(i),    lmask_s   = lmask_s(i),     &
             mlt_onset=mlt_onset(i),   frz_onset = frz_onset(i),   &
             yday = yday,  prescribed_ice = prescribed_ice)
