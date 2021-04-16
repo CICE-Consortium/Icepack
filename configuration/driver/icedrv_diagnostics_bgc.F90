@@ -764,15 +764,17 @@
       ! vertical  fields of category 1 at diagnostic points for bgc layer model
       real (kind=dbl_kind), dimension(nblyr+2) :: &
          pphin, pphin1
+      real (kind=dbl_kind), dimension(nilyr) :: &
+         pSice
       real (kind=dbl_kind), dimension(nblyr) :: &
-         pSin, pSice, pSin1
+         pSin, pSin1
       real (kind=dbl_kind), dimension(nblyr+1) :: &
          pbTiz, piDin
 
       real (kind=dbl_kind) :: &
          rhosi, rhow, rhos
 
-      logical (kind=log_kind) :: tr_brine
+      logical (kind=log_kind) :: tr_brine, solve_zsal
       integer (kind=int_kind) :: nt_fbri, nt_bgc_S, nt_sice
 
       character(len=*), parameter :: subname='(zsal_diags)'
@@ -781,7 +783,8 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-         call icepack_query_parameters(rhosi_out=rhosi, rhow_out=rhow, rhos_out=rhos)
+         call icepack_query_parameters(rhosi_out=rhosi, rhow_out=rhow, rhos_out=rhos, &
+             solve_zsal_out=solve_zsal)
          call icepack_query_tracer_flags(tr_brine_out=tr_brine)
          call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, &
              nt_bgc_S_out=nt_bgc_S, nt_sice_out=nt_sice)
@@ -804,22 +807,24 @@
             pdh_top1  = c0
             pdh_bot1  = c0
             pdarcy_V1 = c0
+
             do nn = 1, ncat
                psice_rho = psice_rho(n) + sice_rho(n,nn)*aicen(n,nn)
             enddo
             if (aice(n) > c0) psice_rho = psice_rho/aice(n)
-            if (tr_brine .and. aice(n) > c0) &
+
+            if (tr_brine .and. aice(n) > c0) then
                phinS = trcr(n,nt_fbri)*vice(n)/aice(n)
-            if (aicen(n,1) > c0) then
-               if (tr_brine) phinS1 = trcrn(n,nt_fbri,1) &
-                                    * vicen(n,1)/aicen(n,1)
+               phbrn = (c1 - rhosi/rhow)*vice(n)/aice(n) &
+                           - rhos /rhow *vsno(n)/aice(n)
+            endif
+            if (tr_brine .and. aicen(n,1) > c0) then
+               phinS1 = trcrn(n,nt_fbri,1)*vicen(n,1)/aicen(n,1)
                pdh_top1  = dhbr_top(n,1)
                pdh_bot1  = dhbr_bot(n,1)
                pdarcy_V1 = darcy_V(n,1)
             endif
-            if (tr_brine .AND. aice(n) > c0) &
-               phbrn = (c1 - rhosi/rhow)*vice(n)/aice(n) &
-                           - rhos /rhow *vsno(n)/aice(n)
+
             do k = 1, nblyr+1
                pbTiz(k) = c0
                piDin(k) = c0
@@ -847,6 +852,7 @@
                pSin (k) = trcr(n,nt_bgc_S+k-1)
                if (aicen(n,1) > c0) pSin1(k) = trcrn(n,nt_bgc_S+k-1,1)
             enddo
+
             do k = 1,nilyr
                pSice(k) = trcr(n,nt_sice+k-1)
             enddo

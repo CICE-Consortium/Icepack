@@ -400,6 +400,16 @@
           enddo
         endif ! tr_iso
         
+        if (tr_snow) then
+          do n = 1, ncat
+            do k = 1, nslyr
+               trcrn(i,nt_rsnw +k-1,n) = rsnwn (k,n)
+               trcrn(i,nt_smice+k-1,n) = smicen(k,n)
+               trcrn(i,nt_smliq+k-1,n) = smliqn(k,n)
+            enddo
+          enddo
+        endif ! tr_snow
+
       enddo ! i
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
