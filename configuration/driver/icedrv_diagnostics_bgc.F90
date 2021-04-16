@@ -783,8 +783,7 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-         call icepack_query_parameters(rhosi_out=rhosi, rhow_out=rhow, rhos_out=rhos, &
-             solve_zsal_out=solve_zsal)
+         call icepack_query_parameters(rhosi_out=rhosi, rhow_out=rhow, rhos_out=rhos)
          call icepack_query_tracer_flags(tr_brine_out=tr_brine)
          call icepack_query_tracer_indices(nt_fbri_out=nt_fbri, &
              nt_bgc_S_out=nt_bgc_S, nt_sice_out=nt_sice)
