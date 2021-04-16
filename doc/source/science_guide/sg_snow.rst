@@ -29,6 +29,8 @@ Because the thermodynamic schemes in CICE assume a uniform snow depth over each 
 
 Two basic approaches are available for snow redistribution by wind, ``snwredist`` = ``bulk``, for which a user-defined parameter :math:`p` (``snwlvlfac``) determines the ratio of snow on ridges to that on level ice, and ``snwITDrdg``, in which snow can be compacted by the wind or eroded and redeposited on other thickness categories. For both, nonlocal redistribution of snow (i.e., between grid cells) is neglected, assuming that the difference between snow mass blowing into a grid cell and that blowing out is negligible, but snow can be blown into nearby leads and open water.
 
+
+
 .. _snow_bulk:
 
 Bulk snow redistribution
@@ -79,12 +81,24 @@ In :cite:`Lecomte15`, the fraction of this suspended snow lost in leads is
 .. math::
    f = \left(1-a_i\right) \exp\left({\sigma_{ITD}\over\sigma_{ref}}\right),
 
-where the scale factor :math:`\sigma_{ref}=1` m and :math:`a_i` is the total ice area fraction within the grid cell.  That is, the snow mass that is redistribution on the ice (i.e., not lost in leads) is 
+where the scale factor :math:`\sigma_{ref}=1` m and :math:`a_i` is the total ice area fraction within the grid cell.
+
+DELETE?
+We also allow blowing snow to be caught in melt ponds,
+
+.. math::
+   f = \left(1 - a_i - a_p a_{lvl} a_i\right) \exp\left({\sigma_{ITD}\over\sigma_{ref}}\right).
+
+If the ponds are frozen, the snow blown into them will accumulate on top of the pond ice; otherwise the new snow will contribute to any existing snow within the pond area.
+END DELETE? [also 'or ponds' in the next line]
+
+
+Thus, the snow mass that is redistribution on the ice (i.e., not lost in leads[DELETE? or ponds]) is
 
 .. math::
    \Phi_R \Delta t = a_i \left(1-f\right) \Phi_E \Delta t.
 
-We extend this approach by using the level and ridged ice thicknesses to compute the standard deviation of ice thickness across all categories.  That is,
+We [DELETE? further] extend this approach by using the level and ridged ice thicknesses to compute the standard deviation of ice thickness across all categories.  That is,
 
 .. math::
    \sigma_{ITD}^2 = \sum_{n=1}^N a_{in} a_{lvln} \left(h_{ilvln}-\sum_{k=1}^N a_{ik}h_{ik}\right)^2 + a_{in} a_{rdgn} \left(h_{irdgn} - \sum_{k=1}^N a_{ik} h_{ik} \right)^2.
@@ -115,15 +129,34 @@ For simplicity, we assign a minimum snow density of :math:`\rho_s^{min}` = 100 k
 and add to it the gradient associated with wind speed from :cite:`Lecomte15` for wind speeds greater than 10 m/s:  :math:`\rho_s^{new} = \rho_s^{min} + 27.3 \max \left(V-10, 0\right)`.
 This density is merged with preexisting layer densities only if new snow falls. The thickness of the wind slab is the larger of the depth of newly fallen snow or the thickness of snow redeposited by the wind. Following the [6] suggestion, density does not evolve further, other than by transport, unless additional snow falls at high enough wind speeds to compact the snow.
    
+.. _snow_liquid:
+
+Ice and liquid water mass in snow
+---------------------------------
+
+The advanced snow physics option calculates ice and liquid water mass and effective snow grain radius, enabling them to interact with the radiation calculation.  The mass of ice and liquid water in snow are implemented as tracers on snow volume layers and used for the snow grain metamorphism.
+Together with snow volume, they also can be used to determine effective snow density as :math:`\rho_s^{eff} = m_{ice}+m_{liq} / h_s`. Note that :math:`m_{ice}+m_{liq}` (kg/m :math:`^2`) is the snow water equivalent.
+
+Sources of :math:`m_{ice}` are snowfall, condensation, and freezing of liquid water within the snowpack; sinks are sublimation and melting. All of the sources and sinks of mice:math:`m_{ice}` are already computed in the code except for freezing of liquid water within the snow pack.
+
+Sources of :math:`m_{liq}` are rain and snow melt; freezing of liquid water within the snowpack and runoff are sinks. Runoff and meltwater entering a snow layer (i.e., runoff from the layer above) are associated with vertical flow through the snow column. As in :cite:`Oleson10`, when the liquid water within a snow layer exceeds the layer’s holding capacity, the excess water is added to the underlying layer, limited by the effective porosity of the layer. The flow of water is assumed to be zero if the effective porosity of either of the two layers is less than 0.05, the water-impermeable volumetric water content. [IS THIS TRUE?  CHECK CONSERVATION] Excess water is supplied to the melt pond parameterization, which puts a fraction of it into the pond volume and allows the rest to run off into the ocean.
+
+The snow mass fractions of precipitation, [CHECK] refrozen ice and old ice are saved for metamorphosing the snow grain radius.
+
+[CHECK]Code users will be able to choose whether heat and fresh water associated with liquid water in snow (or ponds) is held according to physical processes in the model or immediately fluxed to the ocean. The model will conserve both heat and water in either case.
+
 .. _snow_metamorphosis:
 
 Metamorphosis of snow grains
 ----------------------------
 
-:cite:`Oleson10`
+Dynamic, effective snow radius, a snow volume tracer, evolves analytically as a function of snow temperature, temperature gradient, and density for radiative calculations using the delta-Eddington radiation scheme.
+Wet metamorphism changes both density (through volume change) and effective grain size; here we only consider changes in grain radius.
+In the formation of depth hoar, dry snow kinetic metamorphism (TG metamorphism) also increases the snow grain radius.
+
+The tracers :math:`m_{liq}` and :math:`m_{ice}` characterize the snow in each snow layer, for each ice category and horizontal grid cell. The model's meltpond volume covers a fraction of the grid cell and represents liquid in excess of :math:`m_{liq}`. The radiative effects of snow grain radius in the fraction of ice covered by pond volume are only calculated when the pond volume has not yet saturated the snow pack; otherwise, delta-Eddington transfer uses meltpond properties. Therefore, modelled changes in snow grain radii from metamorphism are designed specifically for the fraction without exposed (i.e. effective) melt ponds.
+
+Following :cite:`Oleson10`, the new snow grain radius is computed as a weighted function of existing, new (freshly fallen)[CHECK, and refrozen] snow grain radii, using parameters from a look-up table that depends on snow temperature, temperature gradient and (effective) density.
 
 
-      Dynamic effective snow grain radius (snow pack has memory). Adds 3 snow tracers
-– Temperature gradient metamorphism (depth hoar formation, same as land model snow)
-– Snow ages (grain size increases) with liquid content from rain and melt
 

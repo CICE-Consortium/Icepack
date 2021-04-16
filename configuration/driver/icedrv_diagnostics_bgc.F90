@@ -774,7 +774,7 @@
       real (kind=dbl_kind) :: &
          rhosi, rhow, rhos
 
-      logical (kind=log_kind) :: tr_brine, solve_zsal
+      logical (kind=log_kind) :: tr_brine
       integer (kind=int_kind) :: nt_fbri, nt_bgc_S, nt_sice
 
       character(len=*), parameter :: subname='(zsal_diags)'
