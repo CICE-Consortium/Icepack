@@ -750,6 +750,10 @@
              endif
          endif
 
+         nt_smice = max_ntrcr
+         nt_smliq = max_ntrcr
+         nt_rhos  = max_ntrcr
+         nt_rsnw  = max_ntrcr
          if (tr_snow) then
             nt_smice = ntrcr + 1
             ntrcr = ntrcr + nslyr     ! mass of ice in nslyr snow layers

@@ -127,7 +127,7 @@ High wind speeds compact the upper portion of a snow pack into "wind slab," a de
 :cite:`Lecomte15` note that once snow is deposited, its density changes very little. During deposition, the density primarily falls into one of two types, wind slab for wind velocities greater than about 10 m/s, and loose snow for lighter winds. Their table 3 indicates densities for a variety of snow types. "Hard slab," deposited at :math:`V` = 13 m/s, has a density of :math:`\rho_s` = 403 kg m :math:`^{−3}` and "soft slab" is :math:`\rho_s` = 321 kg m :math:`^{−3}`, deposited at :math:`V` = 10 m/s. Linearly interpolating between these values, we have :math:`\rho_s = 27.3V + 47.7`.
 For simplicity, we assign a minimum snow density of :math:`\rho_s^{min}` = 100 kg m :math:`^{−3}` s
 and add to it the gradient associated with wind speed from :cite:`Lecomte15` for wind speeds greater than 10 m/s:  :math:`\rho_s^{new} = \rho_s^{min} + 27.3 \max \left(V-10, 0\right)`.
-This density is merged with preexisting layer densities only if new snow falls. The thickness of the wind slab is the larger of the depth of newly fallen snow or the thickness of snow redeposited by the wind. Following the [6] suggestion, density does not evolve further, other than by transport, unless additional snow falls at high enough wind speeds to compact the snow.
+This density is merged with preexisting layer densities only if new snow falls. The thickness of the wind slab is the larger of the depth of newly fallen snow or the thickness of snow redeposited by the wind. Following :cite:`Sturm02`, density does not evolve further, other than by transport, unless additional snow falls at high enough wind speeds to compact the snow.
    
 .. _snow_liquid:
 
@@ -139,9 +139,9 @@ Together with snow volume, they also can be used to determine effective snow den
 
 Sources of :math:`m_{ice}` are snowfall, condensation, and freezing of liquid water within the snowpack; sinks are sublimation and melting. All of the sources and sinks of mice:math:`m_{ice}` are already computed in the code except for freezing of liquid water within the snow pack.
 
-Sources of :math:`m_{liq}` are rain and snow melt; freezing of liquid water within the snowpack and runoff are sinks. Runoff and meltwater entering a snow layer (i.e., runoff from the layer above) are associated with vertical flow through the snow column. As in :cite:`Oleson10`, when the liquid water within a snow layer exceeds the layer’s holding capacity, the excess water is added to the underlying layer, limited by the effective porosity of the layer. The flow of water is assumed to be zero if the effective porosity of either of the two layers is less than 0.05, the water-impermeable volumetric water content. [IS THIS TRUE?  CHECK CONSERVATION] Excess water is supplied to the melt pond parameterization, which puts a fraction of it into the pond volume and allows the rest to run off into the ocean.
+Sources of :math:`m_{liq}` are rain and snow melt; freezing of liquid water within the snowpack and runoff are sinks. Runoff and meltwater entering a snow layer (i.e., runoff from the layer above) are associated with vertical flow through the snow column. As in :cite:`Oleson10`, when the liquid water within a snow layer exceeds the layer’s holding capacity, the excess water is added to the underlying layer, limited by the effective porosity of the layer. The flow of water is assumed to be zero if the effective porosity of either of the two layers is less than the water-impermeable volumetric water content. [IS THIS TRUE?  CHECK CONSERVATION] Excess water is supplied to the melt pond parameterization, which puts a fraction of it into the pond volume and allows the rest to run off into the ocean.
 
-The snow mass fractions of precipitation, [CHECK] refrozen ice and old ice are saved for metamorphosing the snow grain radius.
+The snow mass fractions of precipitation and old ice are saved for metamorphosing the snow grain radius.
 
 [CHECK]Code users will be able to choose whether heat and fresh water associated with liquid water in snow (or ponds) is held according to physical processes in the model or immediately fluxed to the ocean. The model will conserve both heat and water in either case.
 
@@ -156,7 +156,7 @@ In the formation of depth hoar, dry snow kinetic metamorphism (TG metamorphism) 
 
 The tracers :math:`m_{liq}` and :math:`m_{ice}` characterize the snow in each snow layer, for each ice category and horizontal grid cell. The model's meltpond volume covers a fraction of the grid cell and represents liquid in excess of :math:`m_{liq}`. The radiative effects of snow grain radius in the fraction of ice covered by pond volume are only calculated when the pond volume has not yet saturated the snow pack; otherwise, delta-Eddington transfer uses meltpond properties. Therefore, modelled changes in snow grain radii from metamorphism are designed specifically for the fraction without exposed (i.e. effective) melt ponds.
 
-Following :cite:`Oleson10`, the new snow grain radius is computed as a weighted function of existing, new (freshly fallen)[CHECK, and refrozen] snow grain radii, using parameters from a look-up table that depends on snow temperature, temperature gradient and (effective) density.
+Following :cite:`Oleson10`, the new snow grain radius is computed as a weighted function of existing and new (freshly fallen) snow grain radii, using parameters from a look-up table that depends on snow temperature, temperature gradient and (effective) density.
 
 
 
