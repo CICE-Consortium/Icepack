@@ -284,7 +284,7 @@
          floediam  = 300.0_dbl_kind   ! effective floe diameter for lateral melt (m)
 
       real (kind=dbl_kind), public :: &
-         spwf_clss_crit = 0.08_dbl_kind
+         spwf_clss_crit = 0.63_dbl_kind
 
       logical (kind=log_kind), public :: &
          wave_spec = .false.          ! if true, use wave forcing

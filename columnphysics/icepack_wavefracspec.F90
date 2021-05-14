@@ -59,7 +59,7 @@
       integer (kind=int_kind), parameter :: &
          max_no_iter = 100 ! max no of iterations to compute wave fracture
 
-      real (kind=dbl_kind), dimension(26,100)  :: full_weight1
+      real (kind=dbl_kind), dimension(27,100)  :: full_weight1
       real (kind=dbl_kind), dimension(100)     :: full_weight2
       real (kind=dbl_kind), dimension(100,100) :: full_weight3
       real (kind=dbl_kind), dimension(100)     :: full_weight4
@@ -73,7 +73,7 @@
       real (kind=dbl_kind), dimension(12)      :: full_weight12
       real (kind=dbl_kind), dimension(49) :: &
           fracbin_c
-      real (kind=dbl_kind), dimension(26,100)  :: class_weight1
+      real (kind=dbl_kind), dimension(27,100)  :: class_weight1
       real (kind=dbl_kind), dimension(100)     :: class_weight2
       real (kind=dbl_kind), dimension(100,100) :: class_weight3
       real (kind=dbl_kind), dimension(100)     :: class_weight4
@@ -126,33 +126,78 @@
       wave_spectrum_data(8) = 6.815936703929992e-10 
       wave_spectrum_data(9) = 2.419401186610744e-20      
 
-!       wave_spectrum_data(1:25) = (/ 0.02123415,  0.02482174,  0.0980323 ,  0.27436727,  0.75850695,&
-!         2.53789496,  4.89640093, 10.65719509, 13.2855072 ,  7.61272764,&
-!         4.676548  ,  3.55079412,  3.11678171,  2.53346729,  1.7185868 ,&
-!         1.08966577,  0.72712338,  0.49745849,  0.33925959,  0.22613701,&
-!         0.14782953,  0.09411122,  0.06035572,  0.03885347,  0.02412495/)
+      !print *, 'for Vince, obs swell 1'
+      wave_spectrum_data(1:25) = (/0.00000000e+00, 5.04560162e-05, 6.58474437e-04, 1.32729470e-03, &
+                                   1.40058874e-03, 1.11589602e-03, 1.03603651e-03, 1.06729719e-03, &
+                                   1.34132555e-03, 3.29527514e-03, 1.29378458e-02, 5.73763625e-02, &
+                                   1.68019785e-01, 1.83574378e-01, 1.32013512e-01, 4.89844659e-02, &
+                                   3.73525629e-02, 1.15745788e-02, 1.91892511e-03, 7.90826869e-04, &
+                                   6.26544236e-04, 7.10412008e-04, 7.46334170e-04, 5.89641692e-04, &
+                                   6.58372446e-04/)
 
-     ! LR remove
-      !wave_spectrum_data = 100.*wave_spectrum_data
+
+      !print *, 'for Vince, obs swell 2'
+      wave_spectrum_data(1:25) = (/0.00000000e+00, 4.04810852e-05, 5.28296956e-04, 1.06489441e-03, &
+                                   1.24974182e-03, 1.22949175e-03, 1.08090394e-03, 8.63555978e-04, &
+                                   9.83769164e-04, 1.17674624e-03, 2.02777526e-03, 4.14778352e-03, &
+                                   8.44204694e-03, 3.56377745e-02, 5.80550121e-02, 2.72953373e-02, &
+                                   7.66384466e-03, 1.65881744e-03, 7.88340091e-04, 4.55128482e-04, &
+                                   4.68931756e-04, 9.28050680e-04, 5.24015159e-04, 5.42109005e-04, &
+                                   5.02455773e-04/)
 
 
-!       wave_spectrum_data(1) =    0.0022_dbl_kind
-!       wave_spectrum_data(2) =    0.0158_dbl_kind
-!       wave_spectrum_data(3) =    0.0390_dbl_kind
-!       wave_spectrum_data(4) =    0.1481_dbl_kind
-!       wave_spectrum_data(5) =    0.2005_dbl_kind
-!       wave_spectrum_data(6) =    0.1531_dbl_kind
-!       wave_spectrum_data(7) =    0.2262_dbl_kind
-!       wave_spectrum_data(8) =    0.2262_dbl_kind
-!       wave_spectrum_data(9) =    0.1838_dbl_kind
-!       wave_spectrum_data(10) =    0.0190_dbl_kind
-!       wave_spectrum_data(11) =    0.0002_dbl_kind
+      !print *, 'for Vince, obs 3'
+      wave_spectrum_data(1:25) = (/0.00000000e+00, 9.22681237e-05, 1.20414185e-03, 2.42720295e-03, &
+                                   2.70786899e-03, 2.42942224e-03, 2.11071220e-03, 1.76642988e-03, &
+                                   1.95894003e-03, 1.87701716e-03, 1.93156986e-03, 2.44944914e-03, &
+                                   1.98753388e-03, 2.28428492e-03, 2.38058196e-03, 2.51620746e-03, &
+                                   2.58323482e-03, 1.56974054e-03, 2.88495090e-03, 1.31945608e-02, &
+                                   4.73990038e-02, 1.08020521e-01, 8.61869264e-02, 2.97637043e-02, &
+                                   2.00059902e-02/)
+ 
+      !print *, 'for Vince, model swell 2'
+      wave_spectrum_data(1:25) = (/7.7856661e-13, 1.7677632e-11, 2.4869320e-09, 4.5015184e-07, 4.0965049e-05, &
+                                   1.4845364e-03, 1.4818455e-02, 5.7088893e-02, 1.8547985e-01, 3.1134617e-01, &
+                                   2.1304139e-01, 6.3751951e-02, 7.3963632e-03, 2.4327665e-04, 6.6969756e-07, &
+                                   3.9138446e-11, 9.9271070e-18, 7.1889179e-27, 0.0000000e+00, 0.0000000e+00, &
+                                   0.0000000e+00, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00/)
+
+
+
+      !print *, 'for Vince, model swell 3'
+      wave_spectrum_data(1:25) =(/1.6451709e-09, 1.0462002e-06, 7.6995995e-05, 1.6766425e-03, 2.6239142e-02, &
+                                  2.5322798e-01, 6.1921138e-01, 9.1037482e-01, 8.6340237e-01, 2.1465920e-01, &
+                                  1.9810501e-02, 2.1280642e-03, 2.5882121e-04, 1.8057892e-05, 3.0177353e-07, &
+                                  4.6096880e-11, 2.3858112e-16, 5.7334183e-22, 1.2664887e-31, 0.0000000e+00, &
+                                  0.0000000e+00, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00/)
+
+
+      !print *, 'for Vince, model swell 4'
+      wave_spectrum_data(1:25) = (/1.2355949e-07, 1.6781869e-05, 8.0923573e-04, 1.8837532e-02, 2.3571920e-01, &
+                                   7.5591671e-01, 1.6964251e+00, 2.0662296e+00, 9.4373631e-01, 2.1783328e-01, &
+                                   2.8119581e-02, 5.4319510e-03, 1.2619548e-03, 1.7056045e-04, 6.6715893e-06, &
+                                   1.0947704e-08, 1.6939318e-12, 9.0990079e-16, 7.1910808e-22, 5.6149115e-31, &
+                                   0.0000000e+00, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00 /)
+
+
+      !print *, 'for Vince, model swell 1'
+      wave_spectrum_data(1:25) = (/9.6428504e-11, 2.7890945e-09, 1.5282145e-08, 1.2872729e-07, 9.7454522e-06, &
+                             3.5899351e-04, 5.5087809e-03, 3.1532198e-02, 9.9247061e-02, 1.8405457e-01, &
+                             1.4034103e-01, 6.1818391e-02, 1.5820269e-02, 1.2064063e-03, 5.6838639e-05, &
+                             1.5401743e-06, 8.7184615e-09, 1.0073912e-10, 1.9751108e-15, 7.1031626e-22, &
+                             6.2675328e-30, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00/)
+
+
+
+
+
+
+     
 
 
       do k = 1, nfreq
          wave_spectrum_profile(k) = wave_spectrum_data(k)
       enddo
-      !print *, 'wave_spec ',wave_spectrum_profile
 
       ! hardwired for wave coupling with NIWA version of Wavewatch
       ! From Wavewatch, f(n+1) = C*f(n) where C is a constant set by the user
@@ -295,6 +340,7 @@
          frac    
 
       real (kind=dbl_kind) :: &
+         wave_energy, & !
          spwf_classifier_out, & ! classifier output
          hbar         , & ! mean ice thickness
          elapsed_t    , & ! elapsed subcycling time
@@ -321,6 +367,7 @@
       fracture_hist  (:)   = c0
       run_wave_fracture    = .true.
 
+
       ! should be moved to ice_init
       run_to_convergence = .false.
       if ((trim(wave_solver).eq.'std-conv') &
@@ -329,12 +376,12 @@
       ! if all ice is not in first floe size category
       if (.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)) then
    
-      ! do not try to fracture for minimal ice concentration or zero wave spectrum
-      if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
-         hbar = vice / aice
+       wave_energy = SUM(wave_spectrum(:)*dwavefreq)
 
-         ! LR remove
-         !hbar = 0.5463925
+      ! do not try to fracture for minimal ice concentration or zero wave spectrum
+      if ((aice > p01).and.(wave_energy.gt.0.000625)) then
+      !if ((aice > p01).and.(MAXVAL(wave_spectrum(:)) > puny)) then
+         hbar = vice / aice
 
         if ((trim(wave_solver).eq.'mlclass-conv').OR.(trim(wave_solver).eq.'mlclass-1iter')&
              .OR.(trim(wave_solver).eq.'mlfullnet')) then 
@@ -343,17 +390,17 @@
          ! output: spwf_classifier_out between 0 and 1
          ! if greater than some critical value, run wave fracture
  
-             call spwf_classifier(wave_spectrum, hbar,  &
+             call spwf_classifier(wave_spectrum, hbar, aice, &
                               spwf_classifier_out)
 
-             if (spwf_classifier_out.lt.spwf_clss_crit) run_wave_fracture = .false.
+             !if (spwf_classifier_out.lt.spwf_clss_crit) run_wave_fracture = .false.
         end if
  
         if (trim(wave_solver).eq.'mlfullnet') then
 
              if (run_wave_fracture) then
                  call spwf_fullnet(nfsd, floe_rad_l, floe_binwidth, wave_spectrum, hbar, &
-                               spwf_fullnet_hist)
+                               aice, spwf_fullnet_hist)
 
                  fracture_hist(:) = spwf_fullnet_hist(:)
              end if
@@ -364,7 +411,6 @@
 
         if (run_wave_fracture) then
 
-
          ! calculate fracture histogram
          call wave_frac(nfsd, nfreq, run_to_convergence, &
                         floe_rad_l, floe_rad_c, &
@@ -372,12 +418,10 @@
                         hbar, wave_spectrum, fracture_hist)
  
          if (icepack_warnings_aborted(subname)) return
-
         end if
         ! sanity checks
         ! if fracture occurs, evolve FSD with adaptive subtimestep
         if (MAXVAL(fracture_hist) > puny) then
-
 
             ! remove after testing 
             if (ANY(fracture_hist.ne.fracture_hist)) &
@@ -414,7 +458,7 @@
                   elapsed_t = c0
                   cons_error = c0
                   nsubt = 0
-                  DO WHILE (elapsed_t < dt)
+                  DO WHILE (elapsed_t < dt .and. nsubt <max_no_iter)
                      nsubt = nsubt + 1
 
                      ! if all floes in smallest category already, exit
@@ -425,6 +469,7 @@
                     
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
+                       print *, 'step_wavefracture struggling to converge'
                         write(warnstr,*) subname, &
                      'warning: step_wavefracture struggling to converge'
                         call icepack_warnings_add(warnstr)
@@ -433,6 +478,7 @@
                      ! required timestep
                      subdt = get_subdt_fsd(nfsd, afsd_tmp, d_afsd_tmp)
                      subdt = MIN(subdt, dt)
+
 
                      ! update afsd
                      afsd_tmp = afsd_tmp + subdt * d_afsd_tmp(:) 
@@ -851,21 +897,21 @@
       character(char_len_long) :: wave_class_file
 
 
-      real (kind=dbl_kind), dimension(13002)   :: filelist
+      real (kind=dbl_kind), dimension(11002)   :: filelist
  
       wave_class_file = &
-       trim('/glade/u/home/lettier/wavefrac_nn_classifier.txt')
+       trim('/glade/u/home/lettier/wavefrac_nn_classifier_v8.txt')
 
       open (unit = 1, file = wave_class_file)
       read (1, *) filelist
       close(1)
 
-      class_weight1 = TRANSPOSE(RESHAPE(filelist(1:2600), (/100, 26/)))
-      class_weight2 = filelist(2601:2700)
-      class_weight3 = TRANSPOSE(RESHAPE(filelist(2701:12700), (/100, 100/)))
-      class_weight4 = filelist(12701:12800)
-      class_weight5 = TRANSPOSE(RESHAPE(filelist(12801:13000), (/2, 100/)))
-      class_weight6 = filelist(13001:13002)
+      class_weight1 = TRANSPOSE(RESHAPE(filelist(1:2700), (/100, 27/)))
+      class_weight2 = filelist(2701:2800)
+      class_weight3 = TRANSPOSE(RESHAPE(filelist(2801:12800), (/100, 100/)))
+      class_weight4 = filelist(12801:12900)
+      class_weight5 = TRANSPOSE(RESHAPE(filelist(12901:13100), (/2, 100/)))
+      class_weight6 = filelist(13101:13102)
 
      
       end subroutine icepack_init_spwf_class
@@ -883,12 +929,12 @@
 !                Chris Horvat, Brown University
 !
 
-      subroutine spwf_classifier(wave_spectrum, hbar, &
+      subroutine spwf_classifier(wave_spectrum, hbar, aice, &
                                  spwf_classifier_out)
 
 
       real (kind=dbl_kind), intent (in) :: &
-          hbar  ! ice thickness (m)
+          hbar, aice  ! ice thickness (m), ice concentration
 
       real (kind=dbl_kind), dimension (:), intent (in) :: &
           wave_spectrum ! wave spectrum as a function of freq (m^s s)
@@ -901,13 +947,14 @@
 
       character(char_len_long) :: wave_class_file
 
-      real (kind=dbl_kind), dimension(26) :: input
+      real (kind=dbl_kind), dimension(27) :: input
 
       real (kind=dbl_kind), dimension(100)    :: y1, y2
       real (kind=dbl_kind), dimension(2)     :: y3
 
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
+      input(27)   = aice
 
  
       y1 = MATMUL(input,class_weight1) + class_weight2
@@ -938,7 +985,7 @@
       ! local variables
       character(char_len_long) :: wave_fullnet_file
 
-      real (kind=dbl_kind), dimension(44312)   :: filelist
+      real (kind=dbl_kind), dimension(44412)   :: filelist
 
       real (kind=dbl_kind), dimension(50) :: &
           fracbin_lims = (/0.0665000000001815, 2.40835589141913, 5.31030847002807, 9.16027653259012, 14.2865861000647, 20.7575631647743, 29.0576686001186, 39.3897615767871, 52.4122136001970, 68.2905949590838, 87.8691405003101, 111.282357408793, 139.518470000468, 172.613187564468, 211.635752000678, 256.427284528097, 308.037274000949, 365.995660133244, 431.203059001283, 501.395164857144, 581.277225001814, 669.934308094615, 755.141047002274, 832.798401621684, 945.812834003182, 1123.23314281921, 1343.54446000417, 1570.56710572412, 1822.65364000582, 2119.13318486551, 2472.61361000779, 2877.73619338566, 3354.34988001061, 3903.52982771199, 4550.51413001439, 5295.53214922787, 6173.23164001952, 7183.92376577288, 8374.61170002648, 9745.71756262409, 11361.0059000359, 13221.0493617961, 15412.3510000487, 17960.1337125977, 20908.4095000636, 24289.3244672200, 28364.3675000829, 33174.1399761146, 38479.1270001050, 43762.3390910769/)
@@ -952,25 +999,25 @@
  
 
       wave_fullnet_file = &
-       trim('/glade/u/home/lettier/wavefrac_nn_fullnet_v4.txt')
+       trim('/glade/u/home/lettier/wavefrac_nn_fullnet_v8.txt')
 
       open (unit = 2, file = wave_fullnet_file)
       read (2, *) filelist
       close(2)
 
 
-      full_weight1 = TRANSPOSE(RESHAPE(filelist(1:2600), (/100, 26/)))
-      full_weight2 = filelist(2601:2700)
-      full_weight3 = TRANSPOSE(RESHAPE(filelist(2701:12700), (/100, 100/)))
-      full_weight4 = filelist(12701:12800)
-      full_weight5 = TRANSPOSE(RESHAPE(filelist(12801:22800), (/100, 100/)))
-      full_weight6 = filelist(22801:22900)
-      full_weight7 = TRANSPOSE(RESHAPE(filelist(22901:32900), (/100, 100/)))
-      full_weight8 = filelist(32901:33000)
-      full_weight9 = TRANSPOSE(RESHAPE(filelist(33001:43000), (/100, 100/)))
-      full_weight10 = filelist(43001:43100)
-      full_weight11 = TRANSPOSE(RESHAPE(filelist(43101:44300), (/12, 100/)))
-      full_weight12 = filelist(44301:44312)
+      full_weight1 = TRANSPOSE(RESHAPE(filelist(1:2700), (/100, 27/)))
+      full_weight2 = filelist(2701:2800)
+      full_weight3 = TRANSPOSE(RESHAPE(filelist(2801:12800), (/100, 100/)))
+      full_weight4 = filelist(12801:12900)
+      full_weight5 = TRANSPOSE(RESHAPE(filelist(12901:22900), (/100, 100/)))
+      full_weight6 = filelist(22901:23000)
+      full_weight7 = TRANSPOSE(RESHAPE(filelist(23001:33000), (/100, 100/)))
+      full_weight8 = filelist(33001:33100)
+      full_weight9 = TRANSPOSE(RESHAPE(filelist(33101:43100), (/100, 100/)))
+      full_weight10 = filelist(43101:43200)
+      full_weight11 = TRANSPOSE(RESHAPE(filelist(43201:44400), (/12, 100/)))
+      full_weight12 = filelist(44401:44412)
 
 
       end subroutine icepack_init_spwf_fullnet
@@ -989,7 +1036,7 @@
 !
 
       subroutine spwf_fullnet(nfsd, floe_rad_l, floe_binwidth, wave_spectrum, hbar, &
-          spwf_fullnet_hist)
+          aice, spwf_fullnet_hist)
 
 
          
@@ -997,7 +1044,7 @@
           nfsd
  
       real (kind=dbl_kind), intent (in) :: &
-          hbar  ! ice thickness (m)
+          hbar, aice  ! ice thickness (m), concentration
 
       real (kind=dbl_kind), dimension (:), intent (in) :: &
           wave_spectrum ! wave spectrum as a function of freq (m^s s)
@@ -1013,13 +1060,14 @@
           k, l
 
 
-      real (kind=dbl_kind), dimension(26)     :: input
+      real (kind=dbl_kind), dimension(27)     :: input
       real (kind=dbl_kind), dimension(100)    :: y1, y2, y3, y4, y5
       real (kind=dbl_kind), dimension(12)     :: y6
 
 
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
+      input(27) = aice
 
       y1 = MATMUL(input,full_weight1) + full_weight2
       WHERE (y1 < c0) y1 = c0
