@@ -1009,6 +1009,45 @@
 
 !=======================================================================
 
+      real(kind=dbl_kind) function psi_momentum_unstable(hol)
+
+      real(kind=dbl_kind), intent(in) :: hol
+
+      real(kind=dbl_kind) :: xd
+
+      xd = capital_X(hol)
+
+      psi_momentum_unstable = log((c1+xd*(c2+xd))*(c1+xd*xd)/c8) &
+                              - c2*atan(xd) + pih
+
+      end function psi_momentum_unstable
+
+!=======================================================================
+
+      real(kind=dbl_kind) function psi_scalar_unstable(hol)
+
+      real(kind=dbl_kind), intent(in) :: hol
+
+      real(kind=dbl_kind) :: xd
+
+      xd = capital_X(hol)
+
+      psi_scalar_unstable =  c2 * log((c1 + xd*xd)/c2)
+
+      end function psi_scalar_unstable
+
+!=======================================================================
+
+      real(kind=dbl_kind) function capital_X(hol)
+
+      real(kind=dbl_kind), intent(in) :: hol
+
+      capital_X =  sqrt(max(sqrt(abs(c1 - c16*hol)) , c1))
+
+      end function capital_X
+
+!=======================================================================
+
       end module icepack_atmo
 
 !=======================================================================
