@@ -125,7 +125,6 @@
 
       real (kind=dbl_kind) :: &
          TsfK  , & ! surface temperature in Kelvin (K)
-         xqq   , & ! temporary variable
          psimh , & ! stability function at zlvl   (momentum)
          tau   , & ! stress at zlvl
          fac   , & ! interpolation factor
@@ -281,17 +280,15 @@
                  / ustar**2
          hol    = sign( min(abs(hol),c10), hol )
          stable = p5 + sign(p5 , hol)
-         xqq    = max(sqrt(abs(c1 - c16*hol)) , c1)
-         xqq    = sqrt(xqq)
 
          ! Jordan et al 1999
          psimhs = -(0.7_dbl_kind*hol &
                 + 0.75_dbl_kind*(hol-14.3_dbl_kind) &
                 * exp(-0.35_dbl_kind*hol) + 10.7_dbl_kind)
          psimh  = psimhs*stable &
-                + (c1 - stable)*psimhu(xqq)
+                + (c1 - stable)*psi_momentum_unstable(hol)
          psixh  = psimhs*stable &
-                + (c1 - stable)*psixhu(xqq)
+                + (c1 - stable)*psi_scalar_unstable(hol)
 
          ! shift all coeffs to measurement height and stability
          rd = rdn / (c1+rdn/vonkar*(alz-psimh))
@@ -362,9 +359,7 @@
       !------------------------------------------------------------
 
       hol   = hol*zTrf/zlvl
-      xqq   = max( c1, sqrt(abs(c1-c16*hol)) )
-      xqq   = sqrt(xqq)
-      psix2 = -c5*hol*stable + (c1-stable)*psixhu(xqq)
+      psix2 = -c5*hol*stable + (c1-stable)*psi_scalar_unstable(hol)
       fac   = (rh/vonkar) &
             * (alz + al2 - psixh + psix2)
       Tref  = potT - delt*fac
@@ -984,28 +979,6 @@
 !------------------------------------------------------------
 ! Define functions
 !------------------------------------------------------------
-
-!=======================================================================
-
-      real(kind=dbl_kind) function psimhu(xd)
-
-      real(kind=dbl_kind), intent(in) :: xd
-
-      psimhu = log((c1+xd*(c2+xd))*(c1+xd*xd)/c8) &
-             - c2*atan(xd) + pih
-!ech         - c2*atan(xd) + 1.571_dbl_kind
-
-      end function psimhu
-
-!=======================================================================
-
-      real(kind=dbl_kind) function psixhu(xd)
-
-      real(kind=dbl_kind), intent(in) :: xd
-
-      psixhu =  c2 * log((c1 + xd*xd)/c2)
-
-      end function psixhu
 
 !=======================================================================
 
