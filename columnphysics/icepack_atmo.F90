@@ -274,21 +274,11 @@
          ustar_prev = ustar
 
          ! compute stability & evaluate all stability functions
-         hol = vonkar * gravit * zlvl &
-                 * (tstar/thva &
-                 + qstar/(c1/zvir+Qa)) &
-                 / ustar**2
-         hol    = sign( min(abs(hol),c10), hol )
-         stable = p5 + sign(p5 , hol)
-
-         ! Jordan et al 1999
-         psimhs = -(0.7_dbl_kind*hol &
-                + 0.75_dbl_kind*(hol-14.3_dbl_kind) &
-                * exp(-0.35_dbl_kind*hol) + 10.7_dbl_kind)
-         psimh  = psimhs*stable &
-                + (c1 - stable)*psi_momentum_unstable(hol)
-         psixh  = psimhs*stable &
-                + (c1 - stable)*psi_scalar_unstable(hol)
+         hol = compute_stability_parameter(zlvl , thva , &
+                                           ustar, tstar, &
+                                           qstar, Qa)
+         call compute_stability_function('momentum', hol, stable, psimh)
+         call compute_stability_function('scalar'  , hol, stable, psixh)
 
          ! shift all coeffs to measurement height and stability
          rd = rdn / (c1+rdn/vonkar*(alz-psimh))
@@ -975,6 +965,75 @@
       deallocate(l_Qa_iso,l_Qref_iso)
 
       end subroutine icepack_atm_boundary
+
+!=======================================================================
+
+      function compute_stability_parameter(zlvl , thva , &
+                                           ustar, tstar, &
+                                           qstar, Qa)    &
+                                           result(hol)
+
+      real (kind=dbl_kind), intent(in) :: &
+         zlvl     , & ! atm level height (m)
+         thva     , & ! virtual temperature      (K)
+         ustar    , & ! turbulent scale for momentum
+         tstar    , & ! turbulent scale for temperature
+         qstar    , & ! turbulent scale for humidity
+         Qa           ! specific humidity (kg/kg)
+
+      real (kind=dbl_kind) :: &
+         hol          ! H (at zlvl) over L
+
+      character(len=*),parameter :: subname='(compute_stability_parameter)'
+
+      hol = vonkar * gravit * zlvl &
+               * (tstar/thva &
+               + qstar/(c1/zvir+Qa)) &
+               / ustar**2
+      hol    = sign( min(abs(hol),c10), hol)
+
+      end function compute_stability_parameter
+
+!=======================================================================
+
+      subroutine compute_stability_function(qty, hol, stable, psi)
+
+      character (len=*), intent(in) :: &
+         qty          ! 'momentum' or 'scalar'
+
+      real (kind=dbl_kind), intent(in) :: &
+         hol          ! H over L
+
+      real (kind=dbl_kind), intent(out) :: &
+         psi          , & ! stability function at hol
+         stable           ! unit step function at hol
+
+      ! local variables
+
+      real (kind=dbl_kind) :: &
+         psi_stable   , & ! stable stability funcion at hol
+         psi_unstable     ! unstable stability funcion at hol
+
+      character(len=*),parameter :: subname='(compute_stability_function)'
+
+      stable = p5 + sign(p5 , hol)
+
+      psi_stable = -(0.7_dbl_kind*hol &
+                 + 0.75_dbl_kind*(hol-14.3_dbl_kind) &
+                 * exp(-0.35_dbl_kind*hol) + 10.7_dbl_kind)
+
+      if(trim(qty) == 'momentum') then
+         psi_unstable = psi_momentum_unstable(hol)
+      elseif(trim(qty) == 'scalar') then
+         psi_unstable = psi_scalar_unstable(hol)
+      else
+         call icepack_warnings_add(subname//' incorrect qty: ' // qty)
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+      endif
+
+      psi = psi_stable*stable + (c1 - stable)*psi_unstable
+
+   end subroutine compute_stability_function
 
 !------------------------------------------------------------
 ! Define functions
