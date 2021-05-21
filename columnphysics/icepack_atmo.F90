@@ -62,7 +62,7 @@
                                       Qa_iso,   Qref_iso, &
                                       iso_flag,           &
                                       uvel,     vvel,     &
-                                      Uref                )     
+                                      Uref,     zlvs      )     
 
       use icepack_parameters, only: highfreq, natmiter, atmiter_conv
 
@@ -118,6 +118,9 @@
       real (kind=dbl_kind), intent(out) :: &
          Uref         ! reference height wind speed (m/s)
 
+      real (kind=dbl_kind), intent(in), optional :: &
+         zlvs        ! atm level height (scalar quantities) (m)
+
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -152,13 +155,15 @@
          re    , & ! sqrt of exchange coefficient (water)
          rh    , & ! sqrt of exchange coefficient (heat)
          vmag  , & ! surface wind magnitude   (m/s)
-         alz   , & ! ln(zlvl  /z10)
+         alzm  , & ! ln(zlvl  /z10)
+         alzs  , & ! ln(zlvs  /z10) (if zlvs present)
          thva  , & ! virtual temperature      (K)
          cp    , & ! specific heat of moist air
-         hol   , & ! H (at zlvl  ) over L
+         holm  , & ! H (at zlvl  ) over L
+         hols  , & ! H (at zlvs  ) over L (if zlvs present)
          stable, & ! stability factor
          cpvir , & ! defined as cp_wv/cp_air - 1.
-         psixh     ! stability function at zlvl   (heat and water)
+         psixh     ! stability function at zlvl (at zlvs if present) (heat and water)
 
       real (kind=dbl_kind), parameter :: &
          zTrf  = c2     ! reference height for air temp (m)
@@ -246,7 +251,12 @@
       
       thva = potT * (c1 + zvir * Qa) ! virtual pot temp (K)
       delq = Qa - ssq          ! spec hum dif (kg/kg)
-      alz  = log(zlvl/zref)
+      alzm = log(zlvl/zref)
+      if (present(zlvs)) then
+         alzs = log(zlvs/zref)
+      else
+         alzs = alzm
+      endif
       cp   = cp_air*(c1 + cpvir*ssq)
       
       !------------------------------------------------------------
@@ -274,16 +284,24 @@
          ustar_prev = ustar
 
          ! compute stability & evaluate all stability functions
-         hol = compute_stability_parameter(zlvl , thva , &
+         holm = compute_stability_parameter(zlvl , thva , &
                                            ustar, tstar, &
                                            qstar, Qa)
-         call compute_stability_function('momentum', hol, stable, psimh)
-         call compute_stability_function('scalar'  , hol, stable, psixh)
+         if (present(zlvs)) then
+            hols = compute_stability_parameter(zlvs , thva , &
+                                               ustar, tstar, &
+                                               qstar, Qa)
+         else
+            hols = holm
+         endif
+
+         call compute_stability_function('momentum', holm, stable, psimh)
+         call compute_stability_function('scalar'  , hols, stable, psixh)
 
          ! shift all coeffs to measurement height and stability
-         rd = rdn / (c1+rdn/vonkar*(alz-psimh))
-         rh = rhn / (c1+rhn/vonkar*(alz-psixh))
-         re = ren / (c1+ren/vonkar*(alz-psixh))
+         rd = rdn / (c1+rdn/vonkar*(alzm-psimh))
+         rh = rhn / (c1+rhn/vonkar*(alzs-psixh))
+         re = ren / (c1+ren/vonkar*(alzs-psixh))
       
          ! update ustar, tstar, qstar using updated, shifted coeffs
          ustar = rd * vmag
@@ -348,14 +366,14 @@
       ! Compute diagnostics: 2m ref T, Q, U
       !------------------------------------------------------------
 
-      hol   = hol*zTrf/zlvl
-      psix2 = -c5*hol*stable + (c1-stable)*psi_scalar_unstable(hol)
+      hols  = hols*zTrf/zlvl
+      psix2 = -c5*hols*stable + (c1-stable)*psi_scalar_unstable(hols)
       fac   = (rh/vonkar) &
-            * (alz + al2 - psixh + psix2)
+            * (alzs + al2 - psixh + psix2)
       Tref  = potT - delt*fac
       Tref  = Tref - p01*zTrf ! pot temp to temp correction
       fac   = (re/vonkar) &
-            * (alz + al2 - psixh + psix2)
+            * (alzs + al2 - psixh + psix2)
       Qref  = Qa - delq*fac
 
       if (highfreq .and. sfctype(1:3)=='ice') then
@@ -838,7 +856,7 @@
                                      Cdn_atm_ratio_n,            &
                                      Qa_iso,      Qref_iso,      &
                                      uvel,        vvel,          &
-                                     Uref)
+                                     Uref,        zlvs)
 
       character (len=3), intent(in) :: &
          sfctype      ! ice or ocean
@@ -849,7 +867,7 @@
          uatm     , & ! x-direction wind speed (m/s)
          vatm     , & ! y-direction wind speed (m/s)
          wind     , & ! wind speed (m/s)
-         zlvl     , & ! atm level height (m)
+         zlvl     , & ! atm level height for momentum (and scalars if zlvs is not present) (m)
          Qa       , & ! specific humidity (kg/kg)
          rhoa         ! air density (kg/m^3)
 
@@ -878,7 +896,8 @@
 
       real (kind=dbl_kind), optional, intent(in) :: &
          uvel     , & ! x-direction ice speed (m/s)
-         vvel         ! y-direction ice speed (m/s)
+         vvel     , & ! y-direction ice speed (m/s)
+         zlvs         ! atm level height for scalars (if different than zlvl) (m)
 
       real (kind=dbl_kind), optional, intent(out) :: &
          Uref         ! reference height wind speed (m/s)
@@ -950,7 +969,7 @@
                                    Qa_iso=l_Qa_iso,         &
                                    Qref_iso=l_Qref_iso,     &
                                    uvel=l_uvel, vvel=l_vvel,  &
-                                   Uref=l_Uref)
+                                   Uref=l_Uref, zlvs=zlvs)
          if (icepack_warnings_aborted(subname)) return
       endif ! atmbndy
 
