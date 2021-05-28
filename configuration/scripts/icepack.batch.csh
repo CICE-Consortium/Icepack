@@ -140,6 +140,15 @@ cat >> ${jobfile} << EOFB
 #SBATCH --qos=standby
 EOFB
 
+else if (${ICE_MACHINE} =~ daley* || ${ICE_MACHINE} =~ banting* ) then
+cat >> ${jobfile} << EOFB
+#PBS -N ${ICE_CASENAME}
+#PBS -j oe
+#PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
+#PBS -l walltime=${ICE_RUNLENGTH}
+#PBS -W umask=022
+EOFB
+
 else if (${ICE_MACHINE} =~ high_Sierra*) then
 cat >> ${jobfile} << EOFB
 # nothing to do

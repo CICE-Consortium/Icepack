@@ -2128,7 +2128,8 @@
                                     smicen      , smliqn      , &
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
-                                    yday        , prescribed_ice)
+                                    yday        , prescribed_ice, &
+                                    zlvs)
 
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories
@@ -2154,7 +2155,7 @@
          aice        , & ! sea ice concentration
          vice        , & ! volume per unit area of ice          (m)
          vsno        , & ! volume per unit area of snow         (m)
-         zlvl        , & ! atm level height (m)
+         zlvl        , & ! atm level height for momentum (and scalars if zlvs is not present) (m)
          uatm        , & ! wind velocity components (m/s)
          vatm        , &
          wind        , & ! wind speed (m/s)
@@ -2246,7 +2247,8 @@
       real (kind=dbl_kind), optional, intent(in) :: &
          HDO_ocn     , & ! ocean concentration of HDO (kg/kg)
          H2_16O_ocn  , & ! ocean concentration of H2_16O (kg/kg)
-         H2_18O_ocn      ! ocean concentration of H2_18O (kg/kg)
+         H2_18O_ocn  , & ! ocean concentration of H2_18O (kg/kg)
+         zlvs            ! atm level height for scalars (if different than zlvl) (m)
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          aicen_init  , & ! fractional area of ice
@@ -2610,7 +2612,7 @@
                                         Qa_iso=l_Qa_iso,           &
                                         Qref_iso=Qrefn_iso,      &
                                         uvel=uvel, vvel=vvel,    &
-                                        Uref=Urefn)
+                                        Uref=Urefn, zlvs=zlvs)
                if (icepack_warnings_aborted(subname)) return
 
             endif   ! calc_Tsfc or calc_strair

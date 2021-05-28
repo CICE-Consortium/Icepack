@@ -212,7 +212,7 @@
 
 #ifndef CESMCOUPLED
 SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
-           &               obliqr   , lambm0, mvelpp, log_print)
+                           obliqr   , lambm0, mvelpp, log_print)
 
 !-------------------------------------------------------------------------------
 !
@@ -261,176 +261,176 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    ! rate (arc seconds/year), phase (degrees).
  
    real   (dbl_kind), parameter :: obamp(poblen) =  & ! amplitudes for obliquity cos series
-   &      (/   -2462.2214466_dbl_kind, -857.3232075_dbl_kind, -629.3231835_dbl_kind,   &
-   &            -414.2804924_dbl_kind, -311.7632587_dbl_kind,  308.9408604_dbl_kind,   &
-   &            -162.5533601_dbl_kind, -116.1077911_dbl_kind,  101.1189923_dbl_kind,   &
-   &             -67.6856209_dbl_kind,   24.9079067_dbl_kind,   22.5811241_dbl_kind,   &
-   &             -21.1648355_dbl_kind,  -15.6549876_dbl_kind,   15.3936813_dbl_kind,   &
-   &              14.6660938_dbl_kind,  -11.7273029_dbl_kind,   10.2742696_dbl_kind,   &
-   &               6.4914588_dbl_kind,    5.8539148_dbl_kind,   -5.4872205_dbl_kind,   &
-   &              -5.4290191_dbl_kind,    5.1609570_dbl_kind,    5.0786314_dbl_kind,   &
-   &              -4.0735782_dbl_kind,    3.7227167_dbl_kind,    3.3971932_dbl_kind,   &
-   &              -2.8347004_dbl_kind,   -2.6550721_dbl_kind,   -2.5717867_dbl_kind,   &
-   &              -2.4712188_dbl_kind,    2.4625410_dbl_kind,    2.2464112_dbl_kind,   &
-   &              -2.0755511_dbl_kind,   -1.9713669_dbl_kind,   -1.8813061_dbl_kind,   &
-   &              -1.8468785_dbl_kind,    1.8186742_dbl_kind,    1.7601888_dbl_kind,   &
-   &              -1.5428851_dbl_kind,    1.4738838_dbl_kind,   -1.4593669_dbl_kind,   &
-   &               1.4192259_dbl_kind,   -1.1818980_dbl_kind,    1.1756474_dbl_kind,   &
-   &              -1.1316126_dbl_kind,    1.0896928_dbl_kind/)
+          (/   -2462.2214466_dbl_kind, -857.3232075_dbl_kind, -629.3231835_dbl_kind,   &
+                -414.2804924_dbl_kind, -311.7632587_dbl_kind,  308.9408604_dbl_kind,   &
+                -162.5533601_dbl_kind, -116.1077911_dbl_kind,  101.1189923_dbl_kind,   &
+                 -67.6856209_dbl_kind,   24.9079067_dbl_kind,   22.5811241_dbl_kind,   &
+                 -21.1648355_dbl_kind,  -15.6549876_dbl_kind,   15.3936813_dbl_kind,   &
+                  14.6660938_dbl_kind,  -11.7273029_dbl_kind,   10.2742696_dbl_kind,   &
+                   6.4914588_dbl_kind,    5.8539148_dbl_kind,   -5.4872205_dbl_kind,   &
+                  -5.4290191_dbl_kind,    5.1609570_dbl_kind,    5.0786314_dbl_kind,   &
+                  -4.0735782_dbl_kind,    3.7227167_dbl_kind,    3.3971932_dbl_kind,   &
+                  -2.8347004_dbl_kind,   -2.6550721_dbl_kind,   -2.5717867_dbl_kind,   &
+                  -2.4712188_dbl_kind,    2.4625410_dbl_kind,    2.2464112_dbl_kind,   &
+                  -2.0755511_dbl_kind,   -1.9713669_dbl_kind,   -1.8813061_dbl_kind,   &
+                  -1.8468785_dbl_kind,    1.8186742_dbl_kind,    1.7601888_dbl_kind,   &
+                  -1.5428851_dbl_kind,    1.4738838_dbl_kind,   -1.4593669_dbl_kind,   &
+                   1.4192259_dbl_kind,   -1.1818980_dbl_kind,    1.1756474_dbl_kind,   &
+                  -1.1316126_dbl_kind,    1.0896928_dbl_kind/)
  
    real   (dbl_kind), parameter :: obrate(poblen) = & ! rates for obliquity cosine series
-   &        (/  31.609974_dbl_kind, 32.620504_dbl_kind, 24.172203_dbl_kind,   &
-   &            31.983787_dbl_kind, 44.828336_dbl_kind, 30.973257_dbl_kind,   &
-   &            43.668246_dbl_kind, 32.246691_dbl_kind, 30.599444_dbl_kind,   &
-   &            42.681324_dbl_kind, 43.836462_dbl_kind, 47.439436_dbl_kind,   &
-   &            63.219948_dbl_kind, 64.230478_dbl_kind,  1.010530_dbl_kind,   &
-   &             7.437771_dbl_kind, 55.782177_dbl_kind,  0.373813_dbl_kind,   &
-   &            13.218362_dbl_kind, 62.583231_dbl_kind, 63.593761_dbl_kind,   &
-   &            76.438310_dbl_kind, 45.815258_dbl_kind,  8.448301_dbl_kind,   &
-   &            56.792707_dbl_kind, 49.747842_dbl_kind, 12.058272_dbl_kind,   &
-   &            75.278220_dbl_kind, 65.241008_dbl_kind, 64.604291_dbl_kind,   &
-   &             1.647247_dbl_kind,  7.811584_dbl_kind, 12.207832_dbl_kind,   &
-   &            63.856665_dbl_kind, 56.155990_dbl_kind, 77.448840_dbl_kind,   &
-   &             6.801054_dbl_kind, 62.209418_dbl_kind, 20.656133_dbl_kind,   &
-   &            48.344406_dbl_kind, 55.145460_dbl_kind, 69.000539_dbl_kind,   &
-   &            11.071350_dbl_kind, 74.291298_dbl_kind, 11.047742_dbl_kind,   &
-   &             0.636717_dbl_kind, 12.844549_dbl_kind/)
+            (/  31.609974_dbl_kind, 32.620504_dbl_kind, 24.172203_dbl_kind,   &
+                31.983787_dbl_kind, 44.828336_dbl_kind, 30.973257_dbl_kind,   &
+                43.668246_dbl_kind, 32.246691_dbl_kind, 30.599444_dbl_kind,   &
+                42.681324_dbl_kind, 43.836462_dbl_kind, 47.439436_dbl_kind,   &
+                63.219948_dbl_kind, 64.230478_dbl_kind,  1.010530_dbl_kind,   &
+                 7.437771_dbl_kind, 55.782177_dbl_kind,  0.373813_dbl_kind,   &
+                13.218362_dbl_kind, 62.583231_dbl_kind, 63.593761_dbl_kind,   &
+                76.438310_dbl_kind, 45.815258_dbl_kind,  8.448301_dbl_kind,   &
+                56.792707_dbl_kind, 49.747842_dbl_kind, 12.058272_dbl_kind,   &
+                75.278220_dbl_kind, 65.241008_dbl_kind, 64.604291_dbl_kind,   &
+                 1.647247_dbl_kind,  7.811584_dbl_kind, 12.207832_dbl_kind,   &
+                63.856665_dbl_kind, 56.155990_dbl_kind, 77.448840_dbl_kind,   &
+                 6.801054_dbl_kind, 62.209418_dbl_kind, 20.656133_dbl_kind,   &
+                48.344406_dbl_kind, 55.145460_dbl_kind, 69.000539_dbl_kind,   &
+                11.071350_dbl_kind, 74.291298_dbl_kind, 11.047742_dbl_kind,   &
+                 0.636717_dbl_kind, 12.844549_dbl_kind/)
  
    real   (dbl_kind), parameter :: obphas(poblen) = & ! phases for obliquity cosine series
-   &      (/    251.9025_dbl_kind, 280.8325_dbl_kind, 128.3057_dbl_kind,   &
-   &            292.7252_dbl_kind,  15.3747_dbl_kind, 263.7951_dbl_kind,   &
-   &            308.4258_dbl_kind, 240.0099_dbl_kind, 222.9725_dbl_kind,   &
-   &            268.7809_dbl_kind, 316.7998_dbl_kind, 319.6024_dbl_kind,   &
-   &            143.8050_dbl_kind, 172.7351_dbl_kind,  28.9300_dbl_kind,   &
-   &            123.5968_dbl_kind,  20.2082_dbl_kind,  40.8226_dbl_kind,   &
-   &            123.4722_dbl_kind, 155.6977_dbl_kind, 184.6277_dbl_kind,   &
-   &            267.2772_dbl_kind,  55.0196_dbl_kind, 152.5268_dbl_kind,   &
-   &             49.1382_dbl_kind, 204.6609_dbl_kind,  56.5233_dbl_kind,   &
-   &            200.3284_dbl_kind, 201.6651_dbl_kind, 213.5577_dbl_kind,   &
-   &             17.0374_dbl_kind, 164.4194_dbl_kind,  94.5422_dbl_kind,   &
-   &            131.9124_dbl_kind,  61.0309_dbl_kind, 296.2073_dbl_kind,   &
-   &            135.4894_dbl_kind, 114.8750_dbl_kind, 247.0691_dbl_kind,   &
-   &            256.6114_dbl_kind,  32.1008_dbl_kind, 143.6804_dbl_kind,   &
-   &             16.8784_dbl_kind, 160.6835_dbl_kind,  27.5932_dbl_kind,   &
-   &            348.1074_dbl_kind,  82.6496_dbl_kind/)
+          (/    251.9025_dbl_kind, 280.8325_dbl_kind, 128.3057_dbl_kind,   &
+                292.7252_dbl_kind,  15.3747_dbl_kind, 263.7951_dbl_kind,   &
+                308.4258_dbl_kind, 240.0099_dbl_kind, 222.9725_dbl_kind,   &
+                268.7809_dbl_kind, 316.7998_dbl_kind, 319.6024_dbl_kind,   &
+                143.8050_dbl_kind, 172.7351_dbl_kind,  28.9300_dbl_kind,   &
+                123.5968_dbl_kind,  20.2082_dbl_kind,  40.8226_dbl_kind,   &
+                123.4722_dbl_kind, 155.6977_dbl_kind, 184.6277_dbl_kind,   &
+                267.2772_dbl_kind,  55.0196_dbl_kind, 152.5268_dbl_kind,   &
+                 49.1382_dbl_kind, 204.6609_dbl_kind,  56.5233_dbl_kind,   &
+                200.3284_dbl_kind, 201.6651_dbl_kind, 213.5577_dbl_kind,   &
+                 17.0374_dbl_kind, 164.4194_dbl_kind,  94.5422_dbl_kind,   &
+                131.9124_dbl_kind,  61.0309_dbl_kind, 296.2073_dbl_kind,   &
+                135.4894_dbl_kind, 114.8750_dbl_kind, 247.0691_dbl_kind,   &
+                256.6114_dbl_kind,  32.1008_dbl_kind, 143.6804_dbl_kind,   &
+                 16.8784_dbl_kind, 160.6835_dbl_kind,  27.5932_dbl_kind,   &
+                348.1074_dbl_kind,  82.6496_dbl_kind/)
  
    ! Cosine/sine series data for computation of eccentricity and fixed vernal 
    ! equinox longitude of perihelion (fvelp): amplitude, 
    ! rate (arc seconds/year), phase (degrees).
  
    real   (dbl_kind), parameter :: ecamp (pecclen) = & ! ampl for eccen/fvelp cos/sin series
-   &      (/   0.01860798_dbl_kind,  0.01627522_dbl_kind, -0.01300660_dbl_kind,   &
-   &           0.00988829_dbl_kind, -0.00336700_dbl_kind,  0.00333077_dbl_kind,   &
-   &          -0.00235400_dbl_kind,  0.00140015_dbl_kind,  0.00100700_dbl_kind,   &
-   &           0.00085700_dbl_kind,  0.00064990_dbl_kind,  0.00059900_dbl_kind,   &
-   &           0.00037800_dbl_kind, -0.00033700_dbl_kind,  0.00027600_dbl_kind,   &
-   &           0.00018200_dbl_kind, -0.00017400_dbl_kind, -0.00012400_dbl_kind,   &
-   &           0.00001250_dbl_kind/)
+          (/   0.01860798_dbl_kind,  0.01627522_dbl_kind, -0.01300660_dbl_kind,   &
+               0.00988829_dbl_kind, -0.00336700_dbl_kind,  0.00333077_dbl_kind,   &
+              -0.00235400_dbl_kind,  0.00140015_dbl_kind,  0.00100700_dbl_kind,   &
+               0.00085700_dbl_kind,  0.00064990_dbl_kind,  0.00059900_dbl_kind,   &
+               0.00037800_dbl_kind, -0.00033700_dbl_kind,  0.00027600_dbl_kind,   &
+               0.00018200_dbl_kind, -0.00017400_dbl_kind, -0.00012400_dbl_kind,   &
+               0.00001250_dbl_kind/)
  
    real   (dbl_kind), parameter :: ecrate(pecclen) = & ! rates for eccen/fvelp cos/sin series
-   &      (/    4.2072050_dbl_kind,  7.3460910_dbl_kind, 17.8572630_dbl_kind,  &
-   &           17.2205460_dbl_kind, 16.8467330_dbl_kind,  5.1990790_dbl_kind,  &
-   &           18.2310760_dbl_kind, 26.2167580_dbl_kind,  6.3591690_dbl_kind,  &
-   &           16.2100160_dbl_kind,  3.0651810_dbl_kind, 16.5838290_dbl_kind,  &
-   &           18.4939800_dbl_kind,  6.1909530_dbl_kind, 18.8677930_dbl_kind,  &
-   &           17.4255670_dbl_kind,  6.1860010_dbl_kind, 18.4174410_dbl_kind,  &
-   &            0.6678630_dbl_kind/)
+          (/    4.2072050_dbl_kind,  7.3460910_dbl_kind, 17.8572630_dbl_kind,  &
+               17.2205460_dbl_kind, 16.8467330_dbl_kind,  5.1990790_dbl_kind,  &
+               18.2310760_dbl_kind, 26.2167580_dbl_kind,  6.3591690_dbl_kind,  &
+               16.2100160_dbl_kind,  3.0651810_dbl_kind, 16.5838290_dbl_kind,  &
+               18.4939800_dbl_kind,  6.1909530_dbl_kind, 18.8677930_dbl_kind,  &
+               17.4255670_dbl_kind,  6.1860010_dbl_kind, 18.4174410_dbl_kind,  &
+                0.6678630_dbl_kind/)
  
    real   (dbl_kind), parameter :: ecphas(pecclen) = & ! phases for eccen/fvelp cos/sin series
-   &      (/    28.620089_dbl_kind, 193.788772_dbl_kind, 308.307024_dbl_kind,  &
-   &           320.199637_dbl_kind, 279.376984_dbl_kind,  87.195000_dbl_kind,  &
-   &           349.129677_dbl_kind, 128.443387_dbl_kind, 154.143880_dbl_kind,  &
-   &           291.269597_dbl_kind, 114.860583_dbl_kind, 332.092251_dbl_kind,  &
-   &           296.414411_dbl_kind, 145.769910_dbl_kind, 337.237063_dbl_kind,  &
-   &           152.092288_dbl_kind, 126.839891_dbl_kind, 210.667199_dbl_kind,  &
-   &            72.108838_dbl_kind/)
+          (/    28.620089_dbl_kind, 193.788772_dbl_kind, 308.307024_dbl_kind,  &
+               320.199637_dbl_kind, 279.376984_dbl_kind,  87.195000_dbl_kind,  &
+               349.129677_dbl_kind, 128.443387_dbl_kind, 154.143880_dbl_kind,  &
+               291.269597_dbl_kind, 114.860583_dbl_kind, 332.092251_dbl_kind,  &
+               296.414411_dbl_kind, 145.769910_dbl_kind, 337.237063_dbl_kind,  &
+               152.092288_dbl_kind, 126.839891_dbl_kind, 210.667199_dbl_kind,  &
+                72.108838_dbl_kind/)
  
    ! Sine series data for computation of moving vernal equinox longitude of 
    ! perihelion: amplitude (arc seconds), rate (arc sec/year), phase (degrees).      
  
    real   (dbl_kind), parameter :: mvamp (pmvelen) = & ! amplitudes for mvelp sine series 
-   &      (/   7391.0225890_dbl_kind, 2555.1526947_dbl_kind, 2022.7629188_dbl_kind,  &
-   &          -1973.6517951_dbl_kind, 1240.2321818_dbl_kind,  953.8679112_dbl_kind,  &
-   &           -931.7537108_dbl_kind,  872.3795383_dbl_kind,  606.3544732_dbl_kind,  &
-   &           -496.0274038_dbl_kind,  456.9608039_dbl_kind,  346.9462320_dbl_kind,  &
-   &           -305.8412902_dbl_kind,  249.6173246_dbl_kind, -199.1027200_dbl_kind,  &
-   &            191.0560889_dbl_kind, -175.2936572_dbl_kind,  165.9068833_dbl_kind,  &
-   &            161.1285917_dbl_kind,  139.7878093_dbl_kind, -133.5228399_dbl_kind,  &
-   &            117.0673811_dbl_kind,  104.6907281_dbl_kind,   95.3227476_dbl_kind,  &
-   &             86.7824524_dbl_kind,   86.0857729_dbl_kind,   70.5893698_dbl_kind,  &
-   &            -69.9719343_dbl_kind,  -62.5817473_dbl_kind,   61.5450059_dbl_kind,  &
-   &            -57.9364011_dbl_kind,   57.1899832_dbl_kind,  -57.0236109_dbl_kind,  &
-   &            -54.2119253_dbl_kind,   53.2834147_dbl_kind,   52.1223575_dbl_kind,  &
-   &            -49.0059908_dbl_kind,  -48.3118757_dbl_kind,  -45.4191685_dbl_kind,  &
-   &            -42.2357920_dbl_kind,  -34.7971099_dbl_kind,   34.4623613_dbl_kind,  &
-   &            -33.8356643_dbl_kind,   33.6689362_dbl_kind,  -31.2521586_dbl_kind,  &
-   &            -30.8798701_dbl_kind,   28.4640769_dbl_kind,  -27.1960802_dbl_kind,  &
-   &             27.0860736_dbl_kind,  -26.3437456_dbl_kind,   24.7253740_dbl_kind,  &
-   &             24.6732126_dbl_kind,   24.4272733_dbl_kind,   24.0127327_dbl_kind,  &
-   &             21.7150294_dbl_kind,  -21.5375347_dbl_kind,   18.1148363_dbl_kind,  &
-   &            -16.9603104_dbl_kind,  -16.1765215_dbl_kind,   15.5567653_dbl_kind,  &
-   &             15.4846529_dbl_kind,   15.2150632_dbl_kind,   14.5047426_dbl_kind,  &
-   &            -14.3873316_dbl_kind,   13.1351419_dbl_kind,   12.8776311_dbl_kind,  &
-   &             11.9867234_dbl_kind,   11.9385578_dbl_kind,   11.7030822_dbl_kind,  &
-   &             11.6018181_dbl_kind,  -11.2617293_dbl_kind,  -10.4664199_dbl_kind,  &
-   &             10.4333970_dbl_kind,  -10.2377466_dbl_kind,   10.1934446_dbl_kind,  &
-   &            -10.1280191_dbl_kind,   10.0289441_dbl_kind,  -10.0034259_dbl_kind/)
+          (/   7391.0225890_dbl_kind, 2555.1526947_dbl_kind, 2022.7629188_dbl_kind,  &
+              -1973.6517951_dbl_kind, 1240.2321818_dbl_kind,  953.8679112_dbl_kind,  &
+               -931.7537108_dbl_kind,  872.3795383_dbl_kind,  606.3544732_dbl_kind,  &
+               -496.0274038_dbl_kind,  456.9608039_dbl_kind,  346.9462320_dbl_kind,  &
+               -305.8412902_dbl_kind,  249.6173246_dbl_kind, -199.1027200_dbl_kind,  &
+                191.0560889_dbl_kind, -175.2936572_dbl_kind,  165.9068833_dbl_kind,  &
+                161.1285917_dbl_kind,  139.7878093_dbl_kind, -133.5228399_dbl_kind,  &
+                117.0673811_dbl_kind,  104.6907281_dbl_kind,   95.3227476_dbl_kind,  &
+                 86.7824524_dbl_kind,   86.0857729_dbl_kind,   70.5893698_dbl_kind,  &
+                -69.9719343_dbl_kind,  -62.5817473_dbl_kind,   61.5450059_dbl_kind,  &
+                -57.9364011_dbl_kind,   57.1899832_dbl_kind,  -57.0236109_dbl_kind,  &
+                -54.2119253_dbl_kind,   53.2834147_dbl_kind,   52.1223575_dbl_kind,  &
+                -49.0059908_dbl_kind,  -48.3118757_dbl_kind,  -45.4191685_dbl_kind,  &
+                -42.2357920_dbl_kind,  -34.7971099_dbl_kind,   34.4623613_dbl_kind,  &
+                -33.8356643_dbl_kind,   33.6689362_dbl_kind,  -31.2521586_dbl_kind,  &
+                -30.8798701_dbl_kind,   28.4640769_dbl_kind,  -27.1960802_dbl_kind,  &
+                 27.0860736_dbl_kind,  -26.3437456_dbl_kind,   24.7253740_dbl_kind,  &
+                 24.6732126_dbl_kind,   24.4272733_dbl_kind,   24.0127327_dbl_kind,  &
+                 21.7150294_dbl_kind,  -21.5375347_dbl_kind,   18.1148363_dbl_kind,  &
+                -16.9603104_dbl_kind,  -16.1765215_dbl_kind,   15.5567653_dbl_kind,  &
+                 15.4846529_dbl_kind,   15.2150632_dbl_kind,   14.5047426_dbl_kind,  &
+                -14.3873316_dbl_kind,   13.1351419_dbl_kind,   12.8776311_dbl_kind,  &
+                 11.9867234_dbl_kind,   11.9385578_dbl_kind,   11.7030822_dbl_kind,  &
+                 11.6018181_dbl_kind,  -11.2617293_dbl_kind,  -10.4664199_dbl_kind,  &
+                 10.4333970_dbl_kind,  -10.2377466_dbl_kind,   10.1934446_dbl_kind,  &
+                -10.1280191_dbl_kind,   10.0289441_dbl_kind,  -10.0034259_dbl_kind/)
  
    real   (dbl_kind), parameter :: mvrate(pmvelen) = & ! rates for mvelp sine series 
-   &      (/    31.609974_dbl_kind, 32.620504_dbl_kind, 24.172203_dbl_kind,   &
-   &             0.636717_dbl_kind, 31.983787_dbl_kind,  3.138886_dbl_kind,   &
-   &            30.973257_dbl_kind, 44.828336_dbl_kind,  0.991874_dbl_kind,   &
-   &             0.373813_dbl_kind, 43.668246_dbl_kind, 32.246691_dbl_kind,   &
-   &            30.599444_dbl_kind,  2.147012_dbl_kind, 10.511172_dbl_kind,   &
-   &            42.681324_dbl_kind, 13.650058_dbl_kind,  0.986922_dbl_kind,   &
-   &             9.874455_dbl_kind, 13.013341_dbl_kind,  0.262904_dbl_kind,   &
-   &             0.004952_dbl_kind,  1.142024_dbl_kind, 63.219948_dbl_kind,   &
-   &             0.205021_dbl_kind,  2.151964_dbl_kind, 64.230478_dbl_kind,   &
-   &            43.836462_dbl_kind, 47.439436_dbl_kind,  1.384343_dbl_kind,   &
-   &             7.437771_dbl_kind, 18.829299_dbl_kind,  9.500642_dbl_kind,   &
-   &             0.431696_dbl_kind,  1.160090_dbl_kind, 55.782177_dbl_kind,   &
-   &            12.639528_dbl_kind,  1.155138_dbl_kind,  0.168216_dbl_kind,   &
-   &             1.647247_dbl_kind, 10.884985_dbl_kind,  5.610937_dbl_kind,   &
-   &            12.658184_dbl_kind,  1.010530_dbl_kind,  1.983748_dbl_kind,   &
-   &            14.023871_dbl_kind,  0.560178_dbl_kind,  1.273434_dbl_kind,   &
-   &            12.021467_dbl_kind, 62.583231_dbl_kind, 63.593761_dbl_kind,   &
-   &            76.438310_dbl_kind,  4.280910_dbl_kind, 13.218362_dbl_kind,   &
-   &            17.818769_dbl_kind,  8.359495_dbl_kind, 56.792707_dbl_kind,   &
-   &            8.448301_dbl_kind,  1.978796_dbl_kind,  8.863925_dbl_kind,   &
-   &             0.186365_dbl_kind,  8.996212_dbl_kind,  6.771027_dbl_kind,   &
-   &            45.815258_dbl_kind, 12.002811_dbl_kind, 75.278220_dbl_kind,   &
-   &            65.241008_dbl_kind, 18.870667_dbl_kind, 22.009553_dbl_kind,   &
-   &            64.604291_dbl_kind, 11.498094_dbl_kind,  0.578834_dbl_kind,   &
-   &             9.237738_dbl_kind, 49.747842_dbl_kind,  2.147012_dbl_kind,   &
-   &             1.196895_dbl_kind,  2.133898_dbl_kind,  0.173168_dbl_kind/)
+          (/    31.609974_dbl_kind, 32.620504_dbl_kind, 24.172203_dbl_kind,   &
+                 0.636717_dbl_kind, 31.983787_dbl_kind,  3.138886_dbl_kind,   &
+                30.973257_dbl_kind, 44.828336_dbl_kind,  0.991874_dbl_kind,   &
+                 0.373813_dbl_kind, 43.668246_dbl_kind, 32.246691_dbl_kind,   &
+                30.599444_dbl_kind,  2.147012_dbl_kind, 10.511172_dbl_kind,   &
+                42.681324_dbl_kind, 13.650058_dbl_kind,  0.986922_dbl_kind,   &
+                 9.874455_dbl_kind, 13.013341_dbl_kind,  0.262904_dbl_kind,   &
+                 0.004952_dbl_kind,  1.142024_dbl_kind, 63.219948_dbl_kind,   &
+                 0.205021_dbl_kind,  2.151964_dbl_kind, 64.230478_dbl_kind,   &
+                43.836462_dbl_kind, 47.439436_dbl_kind,  1.384343_dbl_kind,   &
+                 7.437771_dbl_kind, 18.829299_dbl_kind,  9.500642_dbl_kind,   &
+                 0.431696_dbl_kind,  1.160090_dbl_kind, 55.782177_dbl_kind,   &
+                12.639528_dbl_kind,  1.155138_dbl_kind,  0.168216_dbl_kind,   &
+                 1.647247_dbl_kind, 10.884985_dbl_kind,  5.610937_dbl_kind,   &
+                12.658184_dbl_kind,  1.010530_dbl_kind,  1.983748_dbl_kind,   &
+                14.023871_dbl_kind,  0.560178_dbl_kind,  1.273434_dbl_kind,   &
+                12.021467_dbl_kind, 62.583231_dbl_kind, 63.593761_dbl_kind,   &
+                76.438310_dbl_kind,  4.280910_dbl_kind, 13.218362_dbl_kind,   &
+                17.818769_dbl_kind,  8.359495_dbl_kind, 56.792707_dbl_kind,   &
+                 8.448301_dbl_kind,  1.978796_dbl_kind,  8.863925_dbl_kind,   &
+                 0.186365_dbl_kind,  8.996212_dbl_kind,  6.771027_dbl_kind,   &
+                45.815258_dbl_kind, 12.002811_dbl_kind, 75.278220_dbl_kind,   &
+                65.241008_dbl_kind, 18.870667_dbl_kind, 22.009553_dbl_kind,   &
+                64.604291_dbl_kind, 11.498094_dbl_kind,  0.578834_dbl_kind,   &
+                 9.237738_dbl_kind, 49.747842_dbl_kind,  2.147012_dbl_kind,   &
+                 1.196895_dbl_kind,  2.133898_dbl_kind,  0.173168_dbl_kind/)
 
    real   (dbl_kind), parameter :: mvphas(pmvelen) = & ! phases for mvelp sine series
-   &      (/    251.9025_dbl_kind, 280.8325_dbl_kind, 128.3057_dbl_kind,   &
-   &            348.1074_dbl_kind, 292.7252_dbl_kind, 165.1686_dbl_kind,   &
-   &            263.7951_dbl_kind,  15.3747_dbl_kind,  58.5749_dbl_kind,   &
-   &             40.8226_dbl_kind, 308.4258_dbl_kind, 240.0099_dbl_kind,   &
-   &            222.9725_dbl_kind, 106.5937_dbl_kind, 114.5182_dbl_kind,   &
-   &            268.7809_dbl_kind, 279.6869_dbl_kind,  39.6448_dbl_kind,   &
-   &            126.4108_dbl_kind, 291.5795_dbl_kind, 307.2848_dbl_kind,   &
-   &             18.9300_dbl_kind, 273.7596_dbl_kind, 143.8050_dbl_kind,   &
-   &            191.8927_dbl_kind, 125.5237_dbl_kind, 172.7351_dbl_kind,   &
-   &            316.7998_dbl_kind, 319.6024_dbl_kind,  69.7526_dbl_kind,   &
-   &            123.5968_dbl_kind, 217.6432_dbl_kind,  85.5882_dbl_kind,   &
-   &            156.2147_dbl_kind,  66.9489_dbl_kind,  20.2082_dbl_kind,   &
-   &            250.7568_dbl_kind,  48.0188_dbl_kind,   8.3739_dbl_kind,   &
-   &             17.0374_dbl_kind, 155.3409_dbl_kind,  94.1709_dbl_kind,   &
-   &            221.1120_dbl_kind,  28.9300_dbl_kind, 117.1498_dbl_kind,   &
-   &            320.5095_dbl_kind, 262.3602_dbl_kind, 336.2148_dbl_kind,   &
-   &            233.0046_dbl_kind, 155.6977_dbl_kind, 184.6277_dbl_kind,   &
-   &            267.2772_dbl_kind,  78.9281_dbl_kind, 123.4722_dbl_kind,   &
-   &            188.7132_dbl_kind, 180.1364_dbl_kind,  49.1382_dbl_kind,   &
-   &            152.5268_dbl_kind,  98.2198_dbl_kind,  97.4808_dbl_kind,   &
-   &            221.5376_dbl_kind, 168.2438_dbl_kind, 161.1199_dbl_kind,   &
-   &             55.0196_dbl_kind, 262.6495_dbl_kind, 200.3284_dbl_kind,   &
-   &            201.6651_dbl_kind, 294.6547_dbl_kind,  99.8233_dbl_kind,   &
-   &            213.5577_dbl_kind, 154.1631_dbl_kind, 232.7153_dbl_kind,   &
-   &            138.3034_dbl_kind, 204.6609_dbl_kind, 106.5938_dbl_kind,   &
-   &            250.4676_dbl_kind, 332.3345_dbl_kind,  27.3039_dbl_kind/)
+          (/    251.9025_dbl_kind, 280.8325_dbl_kind, 128.3057_dbl_kind,   &
+                348.1074_dbl_kind, 292.7252_dbl_kind, 165.1686_dbl_kind,   &
+                263.7951_dbl_kind,  15.3747_dbl_kind,  58.5749_dbl_kind,   &
+                 40.8226_dbl_kind, 308.4258_dbl_kind, 240.0099_dbl_kind,   &
+                222.9725_dbl_kind, 106.5937_dbl_kind, 114.5182_dbl_kind,   &
+                268.7809_dbl_kind, 279.6869_dbl_kind,  39.6448_dbl_kind,   &
+                126.4108_dbl_kind, 291.5795_dbl_kind, 307.2848_dbl_kind,   &
+                 18.9300_dbl_kind, 273.7596_dbl_kind, 143.8050_dbl_kind,   &
+                191.8927_dbl_kind, 125.5237_dbl_kind, 172.7351_dbl_kind,   &
+                316.7998_dbl_kind, 319.6024_dbl_kind,  69.7526_dbl_kind,   &
+                123.5968_dbl_kind, 217.6432_dbl_kind,  85.5882_dbl_kind,   &
+                156.2147_dbl_kind,  66.9489_dbl_kind,  20.2082_dbl_kind,   &
+                250.7568_dbl_kind,  48.0188_dbl_kind,   8.3739_dbl_kind,   &
+                 17.0374_dbl_kind, 155.3409_dbl_kind,  94.1709_dbl_kind,   &
+                221.1120_dbl_kind,  28.9300_dbl_kind, 117.1498_dbl_kind,   &
+                320.5095_dbl_kind, 262.3602_dbl_kind, 336.2148_dbl_kind,   &
+                233.0046_dbl_kind, 155.6977_dbl_kind, 184.6277_dbl_kind,   &
+                267.2772_dbl_kind,  78.9281_dbl_kind, 123.4722_dbl_kind,   &
+                188.7132_dbl_kind, 180.1364_dbl_kind,  49.1382_dbl_kind,   &
+                152.5268_dbl_kind,  98.2198_dbl_kind,  97.4808_dbl_kind,   &
+                221.5376_dbl_kind, 168.2438_dbl_kind, 161.1199_dbl_kind,   &
+                 55.0196_dbl_kind, 262.6495_dbl_kind, 200.3284_dbl_kind,   &
+                201.6651_dbl_kind, 294.6547_dbl_kind,  99.8233_dbl_kind,   &
+                213.5577_dbl_kind, 154.1631_dbl_kind, 232.7153_dbl_kind,   &
+                138.3034_dbl_kind, 204.6609_dbl_kind, 106.5938_dbl_kind,   &
+                250.4676_dbl_kind, 332.3345_dbl_kind,  27.3039_dbl_kind/)
  
    !---------------------------Local variables----------------------------------
    integer(int_kind) :: i       ! Index for series summations
@@ -571,7 +571,7 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
       obsum = 0.0_dbl_kind
       do i = 1, poblen
          obsum = obsum + obamp(i)*psecdeg*cos((obrate(i)*psecdeg*years + &
-         &       obphas(i))*degrad)
+                 obphas(i))*degrad)
       end do
       obliq = 23.320556_dbl_kind + obsum
  
@@ -629,7 +629,7 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
       mvsum = 0.0_dbl_kind
       do i = 1, pmvelen
         mvsum = mvsum + mvamp(i)*psecdeg*sin((mvrate(i)*psecdeg*years + &
-        &       mvphas(i))*degrad)
+                mvphas(i))*degrad)
       end do
       mvelp = fvelp/degrad + 50.439273_dbl_kind*psecdeg*years + 3.392506_dbl_kind + mvsum
  
@@ -670,8 +670,8 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    ! 1978) is 0.
 
    lambm0 = 2._dbl_kind*((.5_dbl_kind*eccen + .125_dbl_kind*eccen3)*(1._dbl_kind + beta)*sin(mvelpp)  &
-   &      - .250_dbl_kind*eccen2*(.5_dbl_kind    + beta)*sin(2._dbl_kind*mvelpp)            &
-   &      + .125_dbl_kind*eccen3*(1._dbl_kind/3._dbl_kind + beta)*sin(3._dbl_kind*mvelpp))
+          - .250_dbl_kind*eccen2*(.5_dbl_kind    + beta)*sin(2._dbl_kind*mvelpp)            &
+          + .125_dbl_kind*eccen3*(1._dbl_kind/3._dbl_kind + beta)*sin(3._dbl_kind*mvelpp))
  
    if ( log_print ) then
      write(warnstr,F03) subname//'------ Computed Orbital Parameters ------'
@@ -759,7 +759,7 @@ SUBROUTINE shr_orb_decl(calday ,eccen ,mvelpp ,lambm0 ,obliqr ,delta ,eccf)
  
    sinl  = sin(lmm)
    lamb  = lambm  + eccen*(2._dbl_kind*sinl + eccen*(1.25_dbl_kind*sin(2._dbl_kind*lmm)  &
-   &     + eccen*((13.0_dbl_kind/12.0_dbl_kind)*sin(3._dbl_kind*lmm) - 0.25_dbl_kind*sinl)))
+         + eccen*((13.0_dbl_kind/12.0_dbl_kind)*sin(3._dbl_kind*lmm) - 0.25_dbl_kind*sinl)))
  
    ! Using the obliquity, eccentricity, moving vernal equinox longitude of
    ! perihelion (plus), and earths true longitude, the declination (delta)
