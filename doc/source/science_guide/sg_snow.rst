@@ -108,9 +108,9 @@ The snow volume and energy state variables are updated in two steps, first for e
 
 High wind speeds compact the upper portion of a snow pack into "wind slab," a dense and more conductive medium that resists further drifting. An effective snow density is computed based on wind speed, which is then used to limit snow erosion of denser snow.
 
-:cite:`Lecomte15` note that once snow is deposited, its density changes very little. During deposition, the density primarily falls into one of two types, wind slab for wind velocities greater than about 10 m/s, and loose snow for lighter winds. Their table 3 indicates densities for a variety of snow types. "Hard slab," deposited at :math:`V` = 13 m/s, has a density of :math:`\rho_s` = 403 kg m :math:`^{-3}` and "soft slab" is :math:`\rho_s` = 321 kg m :math:`^{-3}`, deposited at :math:`V` = 10 m/s. Linearly interpolating between these values, we have :math:`\rho_s = 27.3V + 47.7`.
-For simplicity, we assign a minimum snow density of :math:`\rho_s^{min}` = 100 kg m :math:`^{-3}` s
-and add to it the gradient associated with wind speed from :cite:`Lecomte15` for wind speeds greater than 10 m/s:  :math:`\rho_{s}^{new} = \rho_{s}^{min} + 27.3 \max \left(V-10, 0\right)`.
+:cite:`Lecomte15` note that once snow is deposited, its density changes very little. During deposition, the density primarily falls into one of two types, wind slab for wind velocities greater than about 10 m/s, and loose snow for lighter winds. Their table 3 indicates densities for a variety of snow types. "Hard slab," deposited at :math:`V` = 13 m/s, has a density of :math:`\rho_s` = 403 kg m :math:`^{-3}` and "soft slab" is :math:`\rho_s` = 321 kg m :math:`^{-3}`, deposited at :math:`V` = 10 m/s. Linearly interpolating between these values, we have :math:`\rho_s = 27.3V + 47.7`.  The slope is an adjustable namelist parameter, ``drhosdwind``.
+For simplicity, we assign a minimum snow density of :math:`\rho_s^{min}` = 100 kg m :math:`^{-3}` s (``rhosmin``)
+and add to it the gradient associated with wind speed from :cite:`Lecomte15` for wind speeds greater than 10 m/s:  :math:`\rho_{s}^{new} = \rho_{s}^{min} + 27.3 \max \left(V-10, 0\right)`.  The minimum wind speed to compact snow ``windmin`` is adjustable, and the maximum snow density is also a namelist parameter, ``rhosmax``.
 This density is merged with preexisting layer densities only if new snow falls. The thickness of the wind slab is the larger of the depth of newly fallen snow or the thickness of snow redeposited by the wind. Following :cite:`Sturm02`, density does not evolve further, other than by transport, unless additional snow falls at high enough wind speeds to compact the snow.
    
 .. _snow_liquid:
@@ -134,13 +134,13 @@ Except for the topo melt pond scheme, melt water and heat in ponds (which may be
 Metamorphosis of snow grains
 ----------------------------
 
-Dynamic, effective snow radius, a snow volume tracer, evolves analytically as a function of snow temperature, temperature gradient, and density for radiative calculations using the delta-Eddington radiation scheme.
+When ``snwgrain`` = ``.true.``, dynamic, effective snow radius, a snow volume tracer, evolves analytically as a function of snow temperature, temperature gradient, and density for radiative calculations using the delta-Eddington radiation scheme.
 Wet metamorphism changes both density (through volume change) and effective grain size; here we only consider changes in grain radius.
 In the formation of depth hoar, dry snow kinetic metamorphism (TG metamorphism) also increases the snow grain radius.
 
 The tracers :math:`m_{liq}` and :math:`m_{ice}` characterize the snow in each snow layer, for each ice category and horizontal grid cell. The model's meltpond volume covers a fraction of the grid cell and represents liquid in excess of :math:`m_{liq}`. The radiative effects of snow grain radius in the fraction of ice covered by pond volume are only calculated when the pond volume has not yet saturated the snow pack; otherwise, delta-Eddington transfer uses meltpond properties. Therefore, modelled changes in snow grain radii from metamorphism are designed specifically for the fraction without exposed (i.e. effective) melt ponds.
 
-Following :cite:`Oleson10`, the new snow grain radius is computed as a weighted function of existing and new (freshly fallen) snow grain radii, using parameters from a look-up table that depends on snow temperature, temperature gradient and (effective) density.
+Following :cite:`Oleson10`, the new snow grain radius is computed as a weighted function of existing and new (freshly fallen, ``rsnw_fall``) snow grain radii, using parameters from a look-up table that depends on snow temperature, temperature gradient and (effective) density.  The maximum snow radius is a namelist option, ``rsnw_tmax``.
 
 
 
