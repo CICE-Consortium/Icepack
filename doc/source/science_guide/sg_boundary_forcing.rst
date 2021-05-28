@@ -12,6 +12,7 @@ Atmosphere and ocean boundary forcing
    :widths: 10, 25, 25
      
    ":math:`z_o`", "Atmosphere level height", "From *atmosphere model* to *sea ice model*"
+   ":math:`z_{o,s}`", "Atmosphere level height (scalar quantities) (optional)", "From *atmosphere model* to *sea ice model*"
    ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model* to *sea ice model*"
    ":math:`Q_a`", "Specific humidity", "From *atmosphere model* to *sea ice model*"
    ":math:`\rho_a`", "Air density", "From *atmosphere model* to *sea ice model*"
@@ -94,7 +95,7 @@ Atmosphere
 ----------
 
 The wind velocity, specific humidity, air density and potential
-temperature at the given level height :math:`z_\circ` are used to
+temperature at the given level height :math:`z_\circ` (optionally :math:`z_{\circ,s}`, see below) are used to
 compute transfer coefficients used in formulas for the surface wind
 stress and turbulent heat fluxes :math:`\vec\tau_a`, :math:`F_s`, and
 :math:`F_l`, as described below. The sensible and latent heat fluxes,
@@ -121,7 +122,7 @@ turbulent heat fluxes are computed in subroutine
 The resulting equations are provided here.
 
 The wind stress and turbulent heat flux calculation accounts for both
-stable and unstable atmosphere–ice boundary layers. Define the
+stable and unstable atmosphere–ice boundary layers. We first define the
 "stability"
 
 .. math::
@@ -133,7 +134,7 @@ stable and unstable atmosphere–ice boundary layers. Define the
 where :math:`\kappa` is the von Karman constant, :math:`g` is
 gravitational acceleration, and :math:`u^*`, :math:`\Theta^*` and
 :math:`Q^*` are turbulent scales for velocity difference, temperature, and humidity,
-respectively, given the ice velocity :math:`\vec{U}_i`:
+respectively, computed as (given the ice velocity :math:`\vec{U}_i`):
 
 .. math::
    \begin{aligned}
@@ -142,6 +143,10 @@ respectively, given the ice velocity :math:`\vec{U}_i`:
    Q^*&=&c_q\left(Q_a-Q_{sfc}\right).
    \end{aligned}
    :label: stars
+
+
+Note that *atmo_boundary_layer* also accepts an optional argument, ``zlvs``, to support staggered atmospheric levels, i.e. receiving scalar quantities from the atmospheric model (humidity and temperature)
+at a different vertical level than the winds. In that case a separate stability :math:`\Upsilon_s` is computed using the same formula as above but substituting :math:`z_o` by :math:`z_{o,s}`.
 
 Within the :math:`u^*` expression, :math:`U_{\Delta\textrm{min}}` is the minimum allowable value of :math:`|\vec{U}_{a} - \vec{U}_{i}|` , which is set to of 0.5 m/s for high frequency coupling (``highfreq`` =.true.). 
 When high frequency coupling is turned off (``highfreq`` =.false.), it is assumed in equation :eq:`stars` that:
@@ -197,11 +202,11 @@ The coefficients are then updated as
 .. math::
    \begin{aligned}
    c_u^\prime&=&{c_u\over 1+c_u\left(\lambda-\psi_m\right)/\kappa} \\
-   c_\theta^\prime&=& {c_\theta\over 1+c_\theta\left(\lambda-\psi_s\right)/\kappa}\\
+   c_\theta^\prime&=& {c_\theta\over 1+c_\theta\left(\lambda_s-\psi_s\right)/\kappa}\\
    c_q^\prime&=&c_\theta^\prime\end{aligned}
    :label: coeff1
 
-where :math:`\lambda = \ln\left(z_\circ/z_{ref}\right)`. The
+where :math:`\lambda = \ln\left(z_\circ/z_{ref}\right)` and :math:`\lambda_s = \ln\left(z_{\circ,s}/z_{ref}\right)` if staggered atmospheric levels are used, else :math:`\lambda_s=\lambda`. The
 first iteration ends with new turbulent scales from
 equations :eq:`stars`. After ``natmiter`` iterations the latent and sensible
 heat flux coefficients are computed, along with the wind stress:

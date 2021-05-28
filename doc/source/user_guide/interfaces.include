@@ -23,7 +23,7 @@ icepack_atm_boundary
                                        Cdn_atm_ratio_n,            &
                                        Qa_iso,      Qref_iso,      &
                                        uvel,        vvel,          &
-                                       Uref)
+                                       Uref,        zlvs)
   
         character (len=3), intent(in) :: &
            sfctype      ! ice or ocean
@@ -34,7 +34,7 @@ icepack_atm_boundary
            uatm     , & ! x-direction wind speed (m/s)
            vatm     , & ! y-direction wind speed (m/s)
            wind     , & ! wind speed (m/s)
-           zlvl     , & ! atm level height (m)
+           zlvl     , & ! atm level height for momentum (and scalars if zlvs is not present) (m)
            Qa       , & ! specific humidity (kg/kg)
            rhoa         ! air density (kg/m^3)
   
@@ -63,7 +63,8 @@ icepack_atm_boundary
   
         real (kind=dbl_kind), optional, intent(in) :: &
            uvel     , & ! x-direction ice speed (m/s)
-           vvel         ! y-direction ice speed (m/s)
+           vvel     , & ! y-direction ice speed (m/s)
+           zlvs         ! atm level height for scalars (if different than zlvl) (m)
   
         real (kind=dbl_kind), optional, intent(out) :: &
            Uref         ! reference height wind speed (m/s)
@@ -2067,7 +2068,8 @@ icepack_step_therm1
                                       dsnown      , &
                                       lmask_n     , lmask_s     , &
                                       mlt_onset   , frz_onset   , &
-                                      yday        , prescribed_ice)
+                                      yday        , prescribed_ice, &
+                                      zlvs)
   
         integer (kind=int_kind), intent(in) :: &
            ncat    , & ! number of thickness categories
@@ -2093,7 +2095,7 @@ icepack_step_therm1
            aice        , & ! sea ice concentration
            vice        , & ! volume per unit area of ice          (m)
            vsno        , & ! volume per unit area of snow         (m)
-           zlvl        , & ! atm level height (m)
+           zlvl        , & ! atm level height for momentum (and scalars if zlvs is not present) (m)
            uatm        , & ! wind velocity components (m/s)
            vatm        , &
            wind        , & ! wind speed (m/s)
@@ -2177,7 +2179,8 @@ icepack_step_therm1
         real (kind=dbl_kind), optional, intent(in) :: &
            HDO_ocn     , & ! ocean concentration of HDO (kg/kg)
            H2_16O_ocn  , & ! ocean concentration of H2_16O (kg/kg)
-           H2_18O_ocn      ! ocean concentration of H2_18O (kg/kg)
+           H2_18O_ocn  , & ! ocean concentration of H2_18O (kg/kg)
+           zlvs            ! atm level height for scalars (if different than zlvl) (m)
   
         real (kind=dbl_kind), dimension(:), intent(inout) :: &
            aicen_init  , & ! fractional area of ice
