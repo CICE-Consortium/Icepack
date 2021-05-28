@@ -517,10 +517,10 @@
       write(nu_diag,*) 'min/max snow metamorphosis tracers'
 
       do k=1,nslyr
-         call write_restart_field(nu_restart,trcrn(:,nt_smice+k-1,:),ncat)
-         call write_restart_field(nu_restart,trcrn(:,nt_smliq+k-1,:),ncat)
-         call write_restart_field(nu_restart,trcrn(:,nt_rhos +k-1,:),ncat)
-         call write_restart_field(nu_restart,trcrn(:,nt_rsnw +k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_smice+k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_smliq+k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_rhos +k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_rsnw +k-1,:),ncat)
       enddo
 
       end subroutine read_restart_snow

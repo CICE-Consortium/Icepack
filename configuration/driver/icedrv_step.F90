@@ -153,8 +153,7 @@
          nt_aero, nt_isosno, nt_isoice, nt_rsnw, nt_smice, nt_smliq
 
       logical (kind=log_kind) :: &
-         tr_iage, tr_FY, tr_aero, tr_iso, tr_pond, tr_pond_cesm, &
-         tr_pond_lvl, tr_pond_topo, calc_Tsfc, tr_snow
+         tr_iage, tr_FY, tr_aero, tr_iso, calc_Tsfc, tr_snow
 
       real (kind=dbl_kind), dimension(n_aero,2,ncat) :: &
          aerosno,  aeroice    ! kg/m^2
@@ -188,9 +187,7 @@
 
       call icepack_query_tracer_flags( &
          tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_aero_out=tr_aero, tr_iso_out=tr_iso, tr_snow_out=tr_snow, &
-         tr_pond_out=tr_pond, tr_pond_cesm_out=tr_pond_cesm, &
-         tr_pond_lvl_out=tr_pond_lvl, tr_pond_topo_out=tr_pond_topo)
+         tr_aero_out=tr_aero, tr_iso_out=tr_iso, tr_snow_out=tr_snow)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
