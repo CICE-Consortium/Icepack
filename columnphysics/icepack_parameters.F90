@@ -7,7 +7,8 @@
       module icepack_parameters
 
       use icepack_kinds
-      use icepack_warnings, only: icepack_warnings_aborted
+      use icepack_warnings, only: icepack_warnings_aborted, &
+          icepack_warnings_add, icepack_warnings_setabort
 
       implicit none
       private
@@ -317,7 +318,7 @@
 
       character (len=char_len), public :: &
          snwredist       = 'none', &     ! type of snow redistribution
-         snw_aging_table = 'test'        ! lookup table: 'snicar' or 'test'
+         snw_aging_table = 'test'        ! lookup table: 'snicar' or 'test' or 'file'
 
       logical (kind=log_kind), public :: &
          use_smliq_pnd = .false.     , & ! use liquid in snow for ponds
@@ -340,10 +341,14 @@
          isnw_rhos    ! maximum snow density index
 
       ! dry snow aging parameters
+      real (kind=dbl_kind), dimension(:), allocatable, public :: &
+         snowage_rhos,  & ! snowage table dimension data for rhos (kg/m^3)
+         snowage_Tgrd,  & ! snowage table dimension data for temp gradient (deg K/m)
+         snowage_T        ! snowage table dimension data for temperature (deg K)
       real (kind=dbl_kind), dimension(:,:,:), allocatable, public :: &
-         snowage_tau,   & ! (10^-6 m)
-         snowage_kappa, & !
-         snowage_drdt0    ! (10^-6 m/hr)
+         snowage_tau,   & ! snowage table 3D data for tau (10^-6 m)
+         snowage_kappa, & ! snowage table 3D data for kappa (10^-6 m)
+         snowage_drdt0    ! snowage table 3D data for drdt0 (10^-6 m/hr)
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
@@ -454,6 +459,7 @@
          snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
          rhosnew_in, rhosmin_in, rhosmax_in, windmin_in, drhosdwind_in, &
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
+         snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
          snw_aging_table_in)
 
@@ -513,7 +519,7 @@
                             ! 1 = Bitz and Lipscomb 1999
                             ! 2 = mushy layer theory
 
-      character (char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          conduct_in, &      ! 'MU71' or 'bubbly'
          fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
         
@@ -538,7 +544,7 @@
          phi_c_slow_mode_in   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_in           ! liquid fraction of congelation ice
         
-        character(len=char_len), intent(in), optional :: &
+        character(len=*), intent(in), optional :: &
              tfrz_option_in              ! form of ocean freezing temperature
                                          ! 'minus1p8' = -1.8 C
                                          ! 'linear_salt' = -depressT * sss
@@ -561,7 +567,7 @@
          awtvdf_in,     & ! visible, diffuse
          awtidf_in        ! near IR, diffuse
 
-      character (len=char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd'
          albedo_type_in  ! albedo parameterization, 'ccsm3' or 'constant'
                          ! shortwave='dEdd' overrides this parameter
@@ -629,7 +635,7 @@
          qqqocn_in,     & ! for qsat over ocn
          TTTocn_in        ! for qsat over ocn
 
-      character (len=char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          atmbndy_in ! atmo boundary method, 'default' ('ccsm3') or 'constant'
         
       logical (kind=log_kind), intent(in), optional :: &
@@ -669,14 +675,14 @@
       logical (kind=log_kind), intent(in), optional :: &
          wave_spec_in       ! if true, use wave forcing
 
-      character (len=char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          wave_spec_type_in  ! type of wave spectrum forcing 
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
-     character(char_len), intent(in), optional :: &     
+     character (len=*), intent(in), optional :: &     
         bgc_flux_type_in    ! type of ocean-ice piston velocity 
                             ! 'constant', 'Jin2006'      
 
@@ -737,7 +743,7 @@
          hs0_in             ! snow depth for transition to bare sea ice (m)
         
       ! level-ice ponds
-      character (len=char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          frzpnd_in          ! pond refreezing parameterization
         
       real (kind=dbl_kind), intent(in), optional :: &
@@ -755,7 +761,7 @@
 ! Parameters for snow redistribution, metamorphosis
 !-----------------------------------------------------------------------
 
-      character (len=char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          snwredist_in, &    ! type of snow redistribution
          snw_aging_table_in ! snow aging lookup table
 
@@ -771,10 +777,17 @@
          rhosmax_in, &      ! maximum snow density (kg/m^3)
          windmin_in, &      ! minimum wind speed to compact snow (m/s)
          drhosdwind_in, &   ! wind compaction factor (kg s/m^4)
-         snwlvlfac_in, &    ! fractional increase in snow depth
+         snwlvlfac_in       ! fractional increase in snow depth
+
+      integer (kind=int_kind), intent(in), optional :: &
          isnw_T_in, &       ! maxiumum temperature index
          isnw_Tgrd_in, &    ! maxiumum temperature gradient index
          isnw_rhos_in       ! maxiumum snow density index
+
+      real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+         snowage_rhos_in, & ! snowage dimension data
+         snowage_Tgrd_in, & !
+         snowage_T_in       !
 
       real (kind=dbl_kind), dimension(:,:,:), intent(in), optional :: &
          snowage_tau_in, &  ! (10^-6 m)
@@ -911,9 +924,109 @@
       if (present(isnw_T_in)            ) isnw_T           = isnw_T_in
       if (present(isnw_Tgrd_in)         ) isnw_Tgrd        = isnw_Tgrd_in
       if (present(isnw_rhos_in)         ) isnw_rhos        = isnw_rhos_in
-      if (present(snowage_tau_in)       ) snowage_tau      = snowage_tau_in
-      if (present(snowage_kappa_in)     ) snowage_kappa    = snowage_kappa_in
-      if (present(snowage_drdt0_in)     ) snowage_drdt0    = snowage_drdt0_in
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_rhos_in)       ) then
+         if (size(snowage_rhos_in) /= isnw_rhos) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_rhos_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_rhos)) then
+            allocate(snowage_rhos(isnw_rhos))
+            snowage_rhos      = snowage_rhos_in
+         elseif (size(snowage_rhos) /= isnw_rhos) then
+            deallocate(snowage_rhos)
+            allocate(snowage_rhos(isnw_rhos))
+            snowage_rhos      = snowage_rhos_in
+         else
+            snowage_rhos      = snowage_rhos_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_Tgrd_in)       ) then
+         if (size(snowage_Tgrd_in) /= isnw_Tgrd) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_Tgrd_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_Tgrd)) then
+            allocate(snowage_Tgrd(isnw_Tgrd))
+            snowage_Tgrd      = snowage_Tgrd_in
+         elseif (size(snowage_Tgrd) /= isnw_Tgrd) then
+            deallocate(snowage_Tgrd)
+            allocate(snowage_Tgrd(isnw_Tgrd))
+            snowage_Tgrd      = snowage_Tgrd_in
+         else
+            snowage_Tgrd      = snowage_Tgrd_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_T_in)       ) then
+         if (size(snowage_T_in) /= isnw_T) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_T_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_T)) then
+            allocate(snowage_T(isnw_T))
+            snowage_T      = snowage_T_in
+         elseif (size(snowage_T) /= isnw_T) then
+            deallocate(snowage_T)
+            allocate(snowage_T(isnw_T))
+            snowage_T      = snowage_T_in
+         else
+            snowage_T      = snowage_T_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_tau_in)       ) then
+         if (size(snowage_tau_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_tau_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_tau)) then
+            allocate(snowage_tau(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_tau      = snowage_tau_in
+         elseif (size(snowage_tau) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            deallocate(snowage_tau)
+            allocate(snowage_tau(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_tau      = snowage_tau_in
+         else
+            snowage_tau      = snowage_tau_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_kappa_in)       ) then
+         if (size(snowage_kappa_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_kappa_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_kappa)) then
+            allocate(snowage_kappa(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_kappa      = snowage_kappa_in
+         elseif (size(snowage_kappa) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            deallocate(snowage_kappa)
+            allocate(snowage_kappa(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_kappa      = snowage_kappa_in
+         else
+            snowage_kappa      = snowage_kappa_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_drdt0_in)       ) then
+         if (size(snowage_drdt0_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_drdt0_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_drdt0)) then
+            allocate(snowage_drdt0(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_drdt0      = snowage_drdt0_in
+         elseif (size(snowage_drdt0) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            deallocate(snowage_drdt0)
+            allocate(snowage_drdt0(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_drdt0      = snowage_drdt0_in
+         else
+            snowage_drdt0      = snowage_drdt0_in
+         endif
+      endif
+
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
       if (present(z_tracers_in)         ) z_tracers        = z_tracers_in
       if (present(scale_bgc_in)         ) scale_bgc        = scale_bgc_in
@@ -1009,6 +1122,7 @@
          snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
          rhosnew_out, rhosmin_out, rhosmax_out, windmin_out, drhosdwind_out, &
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
+         snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
          snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
          snw_aging_table_out)
 
@@ -1077,7 +1191,7 @@
                             ! 1 = Bitz and Lipscomb 1999
                             ! 2 = mushy layer theory
 
-      character (char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          conduct_out, &     ! 'MU71' or 'bubbly'
          fbot_xfer_type_out ! transfer coefficient type for ice-ocean heat flux
         
@@ -1102,7 +1216,7 @@
          phi_c_slow_mode_out   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_out           ! liquid fraction of congelation ice
         
-      character(len=char_len), intent(out), optional :: &
+      character(len=*), intent(out), optional :: &
          tfrz_option_out              ! form of ocean freezing temperature
                                       ! 'minus1p8' = -1.8 C
                                       ! 'linear_salt' = -depressT * sss
@@ -1125,7 +1239,7 @@
          awtvdf_out,     & ! visible, diffuse
          awtidf_out        ! near IR, diffuse
 
-      character (len=char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd'
          albedo_type_out  ! albedo parameterization, 'ccsm3' or 'constant'
                              ! shortwave='dEdd' overrides this parameter
@@ -1193,7 +1307,7 @@
          qqqocn_out,     & ! for qsat over ocn
          TTTocn_out        ! for qsat over ocn
 
-      character (len=char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          atmbndy_out ! atmo boundary method, 'default' ('ccsm3') or 'constant'
         
       logical (kind=log_kind), intent(out), optional :: &
@@ -1233,15 +1347,15 @@
       logical (kind=log_kind), intent(out), optional :: &
          wave_spec_out      ! if true, use wave forcing
 
-      character (len=char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          wave_spec_type_out ! type of wave spectrum forcing
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
-      character(char_len), intent(out), optional :: &     
-         bgc_flux_type_out    ! type of ocean-ice piston velocity 
+      character (len=*), intent(out), optional :: &
+         bgc_flux_type_out    ! type of ocean-ice piston velocity
                               ! 'constant', 'Jin2006'      
 
       logical (kind=log_kind), intent(out), optional :: &
@@ -1301,7 +1415,7 @@
          hs0_out             ! snow depth for transition to bare sea ice (m)
         
       ! level-ice ponds
-      character (len=char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          frzpnd_out          ! pond refreezing parameterization
         
       real (kind=dbl_kind), intent(out), optional :: &
@@ -1319,7 +1433,7 @@
 ! Parameters for snow redistribution, metamorphosis
 !-----------------------------------------------------------------------
 
-      character (len=char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          snwredist_out, &    ! type of snow redistribution
          snw_aging_table_out ! snow aging lookup table
 
@@ -1335,10 +1449,17 @@
          rhosmax_out, &      ! maximum snow density (kg/m^3)
          windmin_out, &      ! minimum wind speed to compact snow (m/s)
          drhosdwind_out, &   ! wind compaction factor (kg s/m^4)
-         snwlvlfac_out, &    ! fractional increase in snow depth
+         snwlvlfac_out       ! fractional increase in snow depth
+
+      integer (kind=int_kind), intent(out), optional :: &
          isnw_T_out, &       ! maxiumum temperature index
          isnw_Tgrd_out, &    ! maxiumum temperature gradient index
          isnw_rhos_out       ! maxiumum snow density index
+
+      real (kind=dbl_kind), dimension(:), intent(out), optional :: &
+         snowage_rhos_out, & ! snowage dimension data
+         snowage_Tgrd_out, & !
+         snowage_T_out       !
 
       real (kind=dbl_kind), dimension(:,:,:), intent(out), optional :: &
          snowage_tau_out, &  ! (10^-6 m)
@@ -1515,6 +1636,9 @@
       if (present(isnw_T_out)            ) isnw_T_out       = isnw_T
       if (present(isnw_Tgrd_out)         ) isnw_Tgrd_out    = isnw_Tgrd
       if (present(isnw_rhos_out)         ) isnw_rhos_out    = isnw_rhos
+      if (present(snowage_rhos_out)      ) snowage_rhos_out = snowage_rhos
+      if (present(snowage_Tgrd_out)      ) snowage_Tgrd_out = snowage_Tgrd
+      if (present(snowage_T_out)         ) snowage_T_out    = snowage_T
       if (present(snowage_tau_out)       ) snowage_tau_out  = snowage_tau
       if (present(snowage_kappa_out)     ) snowage_kappa_out= snowage_kappa
       if (present(snowage_drdt0_out)     ) snowage_drdt0_out= snowage_drdt0
@@ -1713,9 +1837,12 @@
         write(iounit,*) "  isnw_T        = ", isnw_T
         write(iounit,*) "  isnw_Tgrd     = ", isnw_Tgrd
         write(iounit,*) "  isnw_rhos     = ", isnw_rhos
-        write(iounit,*) "  snowage_tau   = ", snowage_tau
-        write(iounit,*) "  snowage_kappa = ", snowage_kappa
-        write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0
+        write(iounit,*) "  snowage_rhos  = ", snowage_rhos(1)
+        write(iounit,*) "  snowage_Tgrd  = ", snowage_Tgrd(1)
+        write(iounit,*) "  snowage_T     = ", snowage_T(1)
+        write(iounit,*) "  snowage_tau   = ", snowage_tau(1,1,1)
+        write(iounit,*) "  snowage_kappa = ", snowage_kappa(1,1,1)
+        write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0(1,1,1)
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
         write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc
