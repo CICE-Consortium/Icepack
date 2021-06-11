@@ -14,10 +14,12 @@
       use icepack_parameters, only: snwredist, rsnw_fall, rsnw_tmax, rhosnew
       use icepack_parameters, only: rhosmin, rhosmax, windmin, drhosdwind
       use icepack_parameters, only: isnw_T, isnw_Tgrd, isnw_rhos
+      use icepack_parameters, only: snowage_rhos, snowage_Tgrd, snowage_T
       use icepack_parameters, only: snowage_tau, snowage_kappa, snowage_drdt0
       use icepack_parameters, only: snw_aging_table
 
       use icepack_warnings, only: icepack_warnings_add, icepack_warnings_setabort
+      use icepack_warnings, only: icepack_warnings_aborted
 
       implicit none
       private
@@ -28,11 +30,18 @@
          S_r  = 0.033_dbl_kind, & ! irreducible saturation (Anderson 1976)
          S_wet= 4.22e-5_dbl_kind  ! (um^3/s) wet metamorphism parameters
 
-      ! shift in indices for aging test table
-      integer (kind=int_kind) :: &
-         iT_shift,    & ! shift in maximum temperature index
-         iTgrd_shift, & ! shift in maximum temperature gradient index
-         irhos_shift    ! shift in maximum snow density index
+      real (kind=dbl_kind) :: &
+         min_rhos, &   ! snowtable axis data, assumes linear data
+         del_rhos, &
+         min_Tgrd, &
+         del_Tgrd, &
+         min_T   , &
+         del_T
+
+      logical (kind=log_kind) :: &
+         lin_rhos = .false., &  ! flag to specify whether the snowtable dimensions are linear
+         lin_Tgrd = .false., &  ! this will allow quick lookup
+         lin_T    = .false.
 
 !=======================================================================
 
@@ -51,33 +60,96 @@
 
       ! local variables
 
+      integer (kind=int_kind) :: n
+
       character (len=*),parameter :: subname='(icepack_init_snow)'
 
       !-----------------------------------------------------------------
       ! Snow metamorphism lookup table
       !-----------------------------------------------------------------
 
+      ! if snw_aging_table = 'snicar'
+      ! best-fit parameters are read from a table (netcdf)
+      ! snowage_tau, snowage_kappa, snowage_drdt0
+      !  11 temperatures from 223.15 to 273.15 K by 5.0
+      !  31 temperature gradients from 0 to 300 K/m by 10
+      !   8 snow densities from 50 to 400 kg/m3 by 50
+
+      ! if snw_aging_table = 'test'
+      ! for testing Icepack without netcdf,
+      ! use a subsampled, hard-coded table
+      !   5 temperatures from 243.15 by 5.0 K
+      !   5 temperature gradients from 0 to 40 K/m by 10
+      !   1 snow density at 300 kg/m3
+
+      ! if snw_aging_table = 'file'
+      ! all data has to be passed into icepack_parameters
+
+      ! tcraig, should be 223.15 and 243.15 below
+
       if (snwgrain) then
          if (trim(snw_aging_table) == 'snicar') then ! read netcdf file
-            isnw_T     = 11   ! maxiumum temperature index
-            isnw_Tgrd  = 31   ! maxiumum temperature gradient index
             isnw_rhos  =  8   ! maxiumum snow density index
+            isnw_Tgrd  = 31   ! maxiumum temperature gradient index
+            isnw_T     = 11   ! maxiumum temperature index
+            min_rhos   =  50.0_dbl_kind  ! snowtable dimension data
+            del_rhos   =  50.0_dbl_kind
+            lin_rhos   = .true.
+            min_Tgrd   =   0.0_dbl_kind
+            del_Tgrd   =  10.0_dbl_kind
+            lin_Tgrd   = .true.
+            min_T      = 223.0_dbl_kind
+            del_T      =   5.0_dbl_kind
+            lin_T      = .true.
             allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
             allocate (snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
             allocate (snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
-            iT_shift   =  0   ! use entire table
-            iTgrd_shift = 0   !
-            irhos_shift = 0   !
+            allocate (snowage_rhos (isnw_rhos))
+            allocate (snowage_Tgrd (isnw_Tgrd))
+            allocate (snowage_T    (isnw_T))
+            do n = 1, isnw_rhos
+               snowage_rhos(n) = min_rhos + real((n-1),dbl_kind)*del_rhos
+            enddo
+            do n = 1, isnw_Tgrd
+               snowage_Tgrd(n) = min_Tgrd + real((n-1),dbl_kind)*del_Tgrd
+            enddo
+            do n = 1, isnw_T
+               snowage_T(n) = min_T + real((n-1),dbl_kind)*del_T
+            enddo
+
+         elseif (trim(snw_aging_table) == 'file') then
+            isnw_rhos  =  -1  ! maxiumum snow density index
+            isnw_Tgrd  =  -1  ! maxiumum temperature gradient index
+            isnw_T     =  -1  ! maxiumum temperature index
+
          elseif (trim(snw_aging_table) == 'test') then
-            isnw_T     =  5   ! maxiumum temperature index
-            isnw_Tgrd  =  5   ! maxiumum temperature gradient index
             isnw_rhos  =  1   ! maxiumum snow density index
+            isnw_Tgrd  =  5   ! maxiumum temperature gradient index
+            isnw_T     =  5   ! maxiumum temperature index
+            min_rhos   = 300.0_dbl_kind  ! snowtable dimension data
+            del_rhos   =  50.0_dbl_kind
+            lin_rhos   = .true.
+            min_Tgrd   =   0.0_dbl_kind
+            del_Tgrd   =  10.0_dbl_kind
+            lin_Tgrd   = .true.
+            min_T      = 243.0_dbl_kind
+            del_T      =   5.0_dbl_kind
+            lin_T      = .true.
             allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
             allocate (snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
             allocate (snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
-            iT_shift   =  4   ! index adjustments for subset of table
-            iTgrd_shift = 0   !
-            irhos_shift = 5   !
+            allocate (snowage_rhos (isnw_rhos))
+            allocate (snowage_Tgrd (isnw_Tgrd))
+            allocate (snowage_T    (isnw_T))
+            do n = 1, isnw_rhos
+               snowage_rhos(n) = min_rhos + real((n-1),dbl_kind)*del_rhos
+            enddo
+            do n = 1, isnw_Tgrd
+               snowage_Tgrd(n) = min_Tgrd + real((n-1),dbl_kind)*del_Tgrd
+            enddo
+            do n = 1, isnw_T
+               snowage_T(n) = min_T + real((n-1),dbl_kind)*del_T
+            enddo
 
             ! Subset of dry snow aging parameters
             snowage_tau = reshape((/ &
@@ -107,6 +179,10 @@
             3.85605846, 3.85668001, 3.85844559, 3.86073682, 3.863199, &
             5.0861907,  5.08765668, 5.09200195, 5.09665276, 5.10079895/), &
             (/isnw_rhos,isnw_Tgrd,isnw_T/))
+         else
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//'ERROR: snw_aging_table value')
+            return
          endif
       endif
 
@@ -207,6 +283,7 @@
                                   smice,     smliq,    &
                                   rhos_effn, rhos_eff, &
                                   rhos_cmpn, rhos_cmp)
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Redistribute snow based on wind
@@ -224,6 +301,7 @@
                           fresh,    fhocn,     &
                           fsloss,   rhos_cmpn, &
                           fsnow)
+         if (icepack_warnings_aborted(subname)) return
       endif
 
       vsno = c0
@@ -260,6 +338,7 @@
                                   Tsfc,       zTin1, &
                                   hsn,        zqsn,  &
                                   smice,      smliq)
+         if (icepack_warnings_aborted(subname)) return
       endif
 
       end subroutine icepack_step_snow
@@ -655,6 +734,7 @@
                                         zs1(:),   zs2(:),     &
                                         hslyr,    hsn_new(n), &
                                         zqsn(:,n))
+                  if (icepack_warnings_aborted(subname)) return
                endif   ! nslyr > 1
             endif      ! |dhsn| > puny
          endif         ! ain > puny
@@ -841,6 +921,7 @@
                                      drsnw_dry, zqsn(:,n), Tsfc(n), &
                                      zTin(n), hsn(n), hin(n), &
                                      smice(:,n), smliq(:,n))
+            if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! wet metamorphism
@@ -848,6 +929,7 @@
             do k = 1,nslyr
                call snow_wet_metamorph (dt, drsnw_wet(k), rsnw(k,n), &
                                         smice(k,n), smliq(k,n))
+               if (icepack_warnings_aborted(subname)) return
                rsnw(k,n) = min(rsnw_tmax, rsnw(k,n) + drsnw_dry(k) + drsnw_wet(k))
             enddo
 
@@ -870,18 +952,18 @@
       subroutine snow_dry_metamorph (nslyr,nilyr, dt, rsnw, drsnw_dry, zqsn, &
                                      Tsfc, zTin1, hsn, hin, smice, smliq)
 
-    ! Vapor redistribution: Method is to retrieve 3 best-fit parameters that
-    ! depend on snow temperature, temperature gradient, and density,
-    ! that are derived from the microphysical model described in:
-    ! Flanner and Zender (2006), Linking snowpack microphysics and albedo
-    ! evolution, J. Geophys. Res., 111, D12208, doi:10.1029/2005JD006834.
-    ! The parametric equation has the form:
-    ! dr/dt = drdt_0*(tau/(dr_fresh+tau))^(1/kappa), where:
-    !   r is the effective radius,
-    !   tau and kappa are best-fit parameters,
-    !   drdt_0 is the initial rate of change of effective radius, and
-    !   dr_fresh is the difference between the current and fresh snow states
-    !   (r_current - r_fresh).
+      ! Vapor redistribution: Method is to retrieve 3 best-fit parameters that
+      ! depend on snow temperature, temperature gradient, and density,
+      ! that are derived from the microphysical model described in:
+      ! Flanner and Zender (2006), Linking snowpack microphysics and albedo
+      ! evolution, J. Geophys. Res., 111, D12208, doi:10.1029/2005JD006834.
+      ! The parametric equation has the form:
+      ! dr/dt = drdt_0*(tau/(dr_fresh+tau))^(1/kappa), where:
+      !   r is the effective radius,
+      !   tau and kappa are best-fit parameters,
+      !   drdt_0 is the initial rate of change of effective radius, and
+      !   dr_fresh is the difference between the current and fresh snow states
+      !   (r_current - r_fresh).
 
       integer (kind=int_kind), intent(in) :: &
          nslyr,  & ! number of snow layers
@@ -930,10 +1012,51 @@
          dzi,       & ! ice layer thickness (m)
          dz           ! dzs + dzi (m)
 
+      logical (kind=log_kind) :: &
+         first_call = .true.   ! first call flag
+
+      character (char_len) :: &
+         string                ! generic string for writing messages
+
       character (len=*),parameter :: subname='(snow_dry_metamorph)'
 
-! Needed for variable snow density not currently modeled
-! calculate density based on liquid and ice content of snow
+      !-----------------------------------------------------------------
+      ! On the first call, check that the table is setup properly
+      ! Check sizes of 1D and 3D data
+      ! Check that the 1D data is regularly spaced and set min, del, and lin values
+      ! for each 1D variable.  This info will be used later for the table lookup.
+      !-----------------------------------------------------------------
+
+      if (first_call) then
+         if (isnw_rhos < 1 .or. isnw_Tgrd < 1 .or. isnw_T < 1 .or. &
+             size(snowage_rhos)  /= isnw_rhos .or. &
+             size(snowage_Tgrd)  /= isnw_Tgrd .or. &
+             size(snowage_T)     /= isnw_T    .or. &
+             size(snowage_tau)   /= isnw_rhos*isnw_Tgrd*isnw_T .or. &
+             size(snowage_kappa) /= isnw_rhos*isnw_Tgrd*isnw_T .or. &
+             size(snowage_drdt0) /= isnw_rhos*isnw_Tgrd*isnw_T) then
+            write(string,'(a,3i4)') subname//' snowtable size1 = ',isnw_rhos, isnw_Tgrd, isnw_T
+            call icepack_warnings_add(string)
+            write(string,'(a,3i4)') subname//' snowtable size2 = ',size(snowage_rhos),size(snowage_Tgrd),size(snowage_T)
+            call icepack_warnings_add(string)
+            write(string,'(a,3i9)') subname//' snowtable size3 = ',size(snowage_tau),size(snowage_kappa),size(snowage_drdt0)
+            call icepack_warnings_add(string)
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//'ERROR: arrays sizes error')
+            return
+         endif
+         call snowtable_check_dimension(snowage_rhos, min_rhos, del_rhos, lin_rhos)
+         if (icepack_warnings_aborted(subname)) return
+         call snowtable_check_dimension(snowage_Tgrd, min_Tgrd, del_Tgrd, lin_Tgrd)
+         if (icepack_warnings_aborted(subname)) return
+         call snowtable_check_dimension(snowage_T   , min_T   , del_T   , lin_T   )
+         if (icepack_warnings_aborted(subname)) return
+      endif
+
+      !-----------------------------------------------------------------
+      ! Needed for variable snow density not currently modeled
+      ! calculate density based on liquid and ice content of snow
+      !-----------------------------------------------------------------
 
       drsnw_dry(:) = c0
       zTsn(:) = c0
@@ -966,43 +1089,56 @@
          zdTdz(nslyr) = min(c10*isnw_Tgrd, zdTdz(nslyr))
       endif
 
-      ! if snw_aging_table = 'snicar'
-      ! best-fit parameters are read from a table (netcdf)
-      ! snowage_tau, snowage_kappa, snowage_drdt0
-      !  11 temperatures from 225 to 273 K
-      !  31 temperature gradients from 0 to 300 K/m
-      !   8 snow densities from 0 to 350 kg/m3
-
-      ! if snw_aging_table = 'test'
-      ! for testing Icepack without netcdf,
-      ! use a subsampled, hard-coded table
-      !   5 temperatures
-      !   5 temperature gradients
-      !   1 snow density
-
       do k = 1, nslyr
-          zrhos(k) = smice(k) + smliq(k)
+         zrhos(k) = smice(k) + smliq(k)
 
-          ! best-fit table indices:
-          T_idx    = nint(abs(zTsn(k)+ Tffresh - 223.0_dbl_kind) / 5.0_dbl_kind, kind=int_kind) - iT_shift
-          Tgrd_idx = nint(zdTdz(k) / 10.0_dbl_kind, kind=int_kind) - iTgrd_shift
-          !rhos_idx = nint(zrhos(k)-50.0_dbl_kind) / 50.0_dbl_kind, kind=int_kind) - irhos_shift ! variable density
-          rhos_idx = nint((rhos-50.0_dbl_kind) / 50.0_dbl_kind, kind=int_kind) - irhos_shift    ! fixed density
+         !-----------------------------------------------------------------
+         ! best-fit table indices:
+         ! Will abort if 1D data is not regularly spaced (lin_* flag must be true)
+         ! Leave option for doing a search into non regularly spaced 1D data in the future
+         ! via a binary search or similar.
+         !-----------------------------------------------------------------
 
-          ! boundary check:
-          T_idx = min(isnw_T, max(1,T_idx+1))
-          Tgrd_idx = min(isnw_Tgrd, max(1,Tgrd_idx+1))
-          rhos_idx = min(isnw_rhos, max(1,rhos_idx+1))
+         if (lin_rhos) then
+            rhos_idx = nint(   (rhos             - min_rhos) / del_rhos, kind=int_kind) + 1
+         else
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//'ERROR: nonlinear lookup table for rhos not supported yet')
+            return
+         endif
 
-          bst_tau   = snowage_tau  (rhos_idx,Tgrd_idx,T_idx)
-          bst_kappa = snowage_kappa(rhos_idx,Tgrd_idx,T_idx)
-          bst_drdt0 = snowage_drdt0(rhos_idx,Tgrd_idx,T_idx)
+         if (lin_Tgrd) then
+            Tgrd_idx = nint(   (zdTdz(k)         - min_Tgrd) / del_Tgrd, kind=int_kind) + 1
+         else
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//'ERROR: nonlinear lookup table for Tgrd not supported yet')
+            return
+         endif
 
-          ! change in snow effective radius, using best-fit parameters
-          dr_fresh = max(c0,rsnw(k)-rsnw_fall)
-          drsnw_dry(k) = (bst_drdt0*(bst_tau/(dr_fresh+bst_tau))**(1/bst_kappa))&
-                     * (dt/3600.0_dbl_kind)
-         enddo
+         if (lin_T) then
+            T_idx    = nint(abs(zTsn(k)+ Tffresh - min_T   ) / del_T   , kind=int_kind) + 1
+         else
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//'ERROR: nonlinear lookup table for T not supported yet')
+            return
+         endif
+
+         ! boundary check:
+         rhos_idx = min(isnw_rhos, max(1,rhos_idx))
+         Tgrd_idx = min(isnw_Tgrd, max(1,Tgrd_idx))
+         T_idx    = min(isnw_T   , max(1,T_idx   ))
+
+         bst_tau   = snowage_tau  (rhos_idx,Tgrd_idx,T_idx)
+         bst_kappa = snowage_kappa(rhos_idx,Tgrd_idx,T_idx)
+         bst_drdt0 = snowage_drdt0(rhos_idx,Tgrd_idx,T_idx)
+
+         ! change in snow effective radius, using best-fit parameters
+         dr_fresh = max(c0,rsnw(k)-rsnw_fall)
+         drsnw_dry(k) = (bst_drdt0*(bst_tau/(dr_fresh+bst_tau))**(1/bst_kappa))&
+                      * (dt/3600.0_dbl_kind)
+      enddo
+
+      first_call = .false.
 
       end subroutine snow_dry_metamorph
 
@@ -1044,6 +1180,50 @@
       endif
 
       end subroutine snow_wet_metamorph
+
+!=======================================================================
+
+!  Analyze 1D array for regular spacing for snow table lookup
+!  and set the min, del, and lin values.
+!  Tolerance for regular spacing set at 1.0e-8 * typical array value
+
+      subroutine snowtable_check_dimension(array, min_fld, del_fld, lin_fld)
+
+      real (kind=dbl_kind), intent(in), dimension(:) :: &
+         array      ! array to check
+
+      real (kind=dbl_kind), intent(inout) :: &
+         min_fld, & ! min value if linear
+         del_fld    ! delta value if linear
+
+      logical (kind=log_kind), intent(inout) :: &
+         lin_fld    ! linear flag
+
+      ! local temporary variables
+
+      integer (kind=int_kind) :: n, asize
+
+      real (kind=dbl_kind) :: tolerance   ! tolerance for linear checking
+
+      character (len=*),parameter :: subname='(snowtable_check_dimension)'
+
+      asize = size(array)
+
+      if (asize == 1) then
+         min_fld = array(1)
+         del_fld = array(1)  ! arbitrary
+         lin_fld = .true.
+      else
+         lin_fld = .true.
+         min_fld = array(1)
+         del_fld = array(2) - array(1)
+         tolerance = 1.0e-08_dbl_kind * max(abs(array(1)),abs(array(2)))  ! relative to typical value
+         do n = 3,asize
+            if (abs(array(n) - array(n-1) - del_fld) > tolerance) lin_fld = .false.
+         enddo
+      endif
+
+      end subroutine snowtable_check_dimension
 
 !=======================================================================
 

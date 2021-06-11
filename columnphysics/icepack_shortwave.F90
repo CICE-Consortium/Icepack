@@ -1050,6 +1050,7 @@
                                                hs0,        hsnlvl,   &
                                                rhosnwn(:), rsnwn(:), &
                                                rsnow(:,n))
+                  if (icepack_warnings_aborted(subname)) return
                endif ! snwredist
 
                fpn = c0  ! fraction of ice covered in pond

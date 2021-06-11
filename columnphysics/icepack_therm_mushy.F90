@@ -485,7 +485,6 @@ contains
                           Spond,    sss,      &
                           q,        dSdt,     &
                           w                   )
-       if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
        if (icepack_warnings_aborted(subname)) return
@@ -531,7 +530,6 @@ contains
                              Spond,    sss,      &
                              q,        dSdt,     &
                              w                   )
-          if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
           if (icepack_warnings_aborted(subname)) return
@@ -586,7 +584,6 @@ contains
                           q,        dSdt,     &
                           w                   )
 
-       if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
        if (icepack_warnings_aborted(subname)) return
@@ -635,7 +632,6 @@ contains
                              Spond,    sss,      &
                              q,        dSdt,     &
                              w                   )
-          if (icepack_warnings_aborted(subname)) return
 
           ! halt if solver failed
           if (icepack_warnings_aborted(subname)) return
@@ -798,7 +794,6 @@ contains
                           Spond,    sss,      &
                           q,        dSdt,     &
                           w                   )
-       if (icepack_warnings_aborted(subname)) return
 
        ! halt if solver failed
        if (icepack_warnings_aborted(subname)) return
