@@ -16,7 +16,7 @@
 
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p01, puny
-      use icepack_parameters, only: rhofresh, rhoi, rhos, Timelt
+      use icepack_parameters, only: rhofresh, rhoi, rhos, Timelt, pndaspect, use_smliq_pnd
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -32,19 +32,19 @@
 !=======================================================================
 
       subroutine compute_ponds_cesm(dt,    hi_min,       &
-                                    pndaspect,           &
                                     rfrac, meltt,        &
                                     melts, frain,        &
-                                    aicen, vicen, &
-                                    Tsfcn, apnd,  hpnd)
+                                    aicen, vicen,        &
+                                    Tsfcn, apnd,  hpnd,  &
+                                    meltsliqn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt,       & ! time step (s)
-         hi_min,   & ! minimum ice thickness allowed for thermo (m)
-         pndaspect   ! ratio of pond depth to pond fraction
+         hi_min      ! minimum ice thickness allowed for thermo (m)
 
       real (kind=dbl_kind), intent(in) :: &
-         rfrac, &    ! water fraction retained for melt ponds
+         meltsliqn, & ! liquid input from snow liquid tracer
+         rfrac, &     ! water fraction retained for melt ponds
          meltt, &
          melts, &
          frain, &
@@ -104,11 +104,18 @@
             !-----------------------------------------------------------
             ! Update pond volume
             !-----------------------------------------------------------
-            volpn = volpn &
-                  + rfrac/rhofresh*(meltt*rhoi &
-                  +                 melts*rhos &
-                  +                 frain*  dt)&
-                  * aicen
+            if (use_smliq_pnd) then
+               volpn = volpn &
+                     + rfrac/rhofresh*(meltt*rhoi &
+                     +                 meltsliqn) &
+                     * aicen
+            else
+               volpn = volpn &
+                     + rfrac/rhofresh*(meltt*rhoi &
+                     +                 melts*rhos &
+                     +                 frain*  dt)&
+                     * aicen
+            endif
 
             !-----------------------------------------------------------
             ! Shrink pond volume under freezing conditions

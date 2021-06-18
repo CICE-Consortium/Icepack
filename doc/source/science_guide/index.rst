@@ -17,5 +17,6 @@ Science Guide
    sg_transport.rst
    sg_mechanical.rst
    sg_thermo.rst
+   sg_snow.rst
    sg_bgc.rst
 

@@ -37,6 +37,7 @@
           init_calendar, calendar
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
       use icepack_intfc, only: icepack_init_fsd_bounds
+      use icepack_intfc, only: icepack_init_snow
       use icepack_intfc, only: icepack_warnings_flush
       use icedrv_domain_size, only: ncat, nfsd
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
@@ -52,6 +53,7 @@
       logical (kind=log_kind) :: &
          skl_bgc, &    ! from icepack
          z_tracers, &  ! from icepack
+         tr_snow, &    ! from icepack
          tr_aero, &    ! from icepack
          tr_iso, &     ! from icepack
          tr_zaero, &   ! from icepack
@@ -128,6 +130,7 @@
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_parameters(wave_spec_out=wave_spec)
+      call icepack_query_tracer_flags(tr_snow_out=tr_snow)
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
       call icepack_query_tracer_flags(tr_iso_out=tr_iso)
       call icepack_query_tracer_flags(tr_zaero_out=tr_zaero)
@@ -140,6 +143,7 @@
       if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
 
+      if (tr_snow)    call icepack_init_snow            ! snow aging table
       if (tr_iso)     call fiso_default                 ! default values
       ! aerosols
       ! if (tr_aero)  call faero_data                   ! data file

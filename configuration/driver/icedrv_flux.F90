@@ -178,6 +178,7 @@
          fresh   , & ! fresh water flux to ocean (kg/m^2/s)
          fsalt   , & ! salt flux to ocean (kg/m^2/s)
          fhocn   , & ! net heat flux to ocean (W/m^2)
+         fsloss  , & ! snow loss to ocean due to wind redistribution (kg/m^2 s)
          fswthru , & ! shortwave penetrating to ocean (W/m^2)
          fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
          fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)

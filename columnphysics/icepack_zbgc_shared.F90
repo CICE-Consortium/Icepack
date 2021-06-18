@@ -553,6 +553,7 @@
 ! for z layer biogeochemistry
 !
       subroutine merge_bgc_fluxes (dt,       nblyr,      &
+                               nslyr,                    &
                                bio_index,    n_algae,    &
                                nbtrcr,       aicen,      &    
                                vicen,        vsnon,      &
@@ -571,8 +572,9 @@
          dt             ! timestep (s)
 
       integer (kind=int_kind), intent(in) :: &
-         nblyr, &
-         n_algae, &     !
+         nblyr      , & ! number of bio layers
+         nslyr      , & ! number of snow layers
+         n_algae    , & ! number of algal tracers
          nbtrcr         ! number of biology tracer tracers
 
       integer (kind=int_kind), dimension(:), intent(in) :: &
@@ -647,7 +649,7 @@
       !-----------------------------------------------------------------
       ! Merge fluxes
       !-----------------------------------------------------------------
-         dvssl  = min(p5*vsnon, hs_ssl*aicen) ! snow surface layer
+         dvssl  = min(p5*vsnon/real(nslyr,kind=dbl_kind), hs_ssl*aicen) ! snow surface layer
          dvint  = vsnon - dvssl               ! snow interior
          snow_bio_net(mm) = snow_bio_net(mm) &
                           + trcrn(bio_index(mm)+nblyr+1)*dvssl &

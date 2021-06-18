@@ -16,12 +16,14 @@
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
-      private :: write_restart_pond_topo, read_restart_pond_topo, &
+      private :: &
           write_restart_age,       read_restart_age, &
           write_restart_FY,        read_restart_FY, &  
           write_restart_lvl,       read_restart_lvl, & 
           write_restart_pond_cesm, read_restart_pond_cesm, & 
           write_restart_pond_lvl,  read_restart_pond_lvl, &
+          write_restart_pond_topo, read_restart_pond_topo, &
+          write_restart_snow,      read_restart_snow, &
           write_restart_fsd,       read_restart_fsd, &
           write_restart_iso,       read_restart_iso, &
           write_restart_aero,      read_restart_aero
@@ -63,7 +65,7 @@
 
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
-         tr_pond_topo, tr_pond_cesm, tr_pond_lvl, tr_fsd
+         tr_pond_topo, tr_pond_cesm, tr_pond_lvl, tr_snow, tr_fsd
 !         solve_zsal, skl_bgc, z_tracers
 
       character(len=char_len_long) :: filename
@@ -83,7 +85,7 @@
            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
            tr_brine_out=tr_brine, &
            tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
-           tr_pond_lvl_out=tr_pond_lvl,tr_fsd_out=tr_fsd)
+           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
 !      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
 !         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
       call icepack_warnings_flush(nu_diag)
@@ -138,6 +140,7 @@
       if (tr_pond_cesm) call write_restart_pond_cesm() ! CESM melt ponds
       if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
       if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
+      if (tr_snow)      call write_restart_snow()      ! snow metamorphosis tracers
       if (tr_iso)       call write_restart_iso()       ! ice isotopes
       if (tr_aero)      call write_restart_aero()      ! ice aerosols
       if (tr_brine)     call write_restart_hbrine()    ! brine height
@@ -179,7 +182,7 @@
 
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
-         tr_pond_topo, tr_pond_cesm, tr_pond_lvl, tr_fsd
+         tr_pond_topo, tr_pond_cesm, tr_pond_lvl, tr_snow, tr_fsd
 
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(restartfile)'
@@ -202,7 +205,7 @@
            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
            tr_brine_out=tr_brine, &
            tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
-           tr_pond_lvl_out=tr_pond_lvl,tr_fsd_out=tr_fsd)
+           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -265,6 +268,7 @@
       if (tr_pond_cesm) call read_restart_pond_cesm() ! CESM melt ponds
       if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
       if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
+      if (tr_snow)      call read_restart_snow()      ! snow metamorphosis tracers
       if (tr_iso)       call read_restart_iso()       ! ice isotopes
       if (tr_aero)      call read_restart_aero()      ! ice aerosols
       if (tr_brine)     call read_restart_hbrine      ! brine height
@@ -460,6 +464,66 @@
       call read_restart_field(nu_restart,trcrn(:,nt_ipnd,:),ncat)
 
       end subroutine read_restart_pond_topo
+
+!=======================================================================
+
+! Dumps values needed to restart snow redistribution/metamorphism tracers
+!
+! authors Elizabeth C. Hunke, LANL
+
+      subroutine write_restart_snow()
+
+      use icedrv_state, only: trcrn
+      use icedrv_domain_size, only: nslyr, ncat
+
+      integer (kind=int_kind) :: nt_smice, nt_smliq, nt_rhos, nt_rsnw, k
+      character(len=*), parameter :: subname='(write_restart_snow)'
+
+      call icepack_query_tracer_indices(nt_smice_out=nt_smice, &
+           nt_smliq_out=nt_smliq, nt_rhos_out=nt_rhos, nt_rsnw_out=nt_rsnw)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
+      do k=1,nslyr
+         call write_restart_field(nu_dump,trcrn(:,nt_smice+k-1,:),ncat)
+         call write_restart_field(nu_dump,trcrn(:,nt_smliq+k-1,:),ncat)
+         call write_restart_field(nu_dump,trcrn(:,nt_rhos +k-1,:),ncat)
+         call write_restart_field(nu_dump,trcrn(:,nt_rsnw +k-1,:),ncat)
+      enddo
+
+      end subroutine write_restart_snow
+
+!=======================================================================
+
+! Reads all values needed to restart snow redistribution/metamorphism 
+!
+! authors Elizabeth C. Hunke, LANL
+
+      subroutine read_restart_snow()
+
+      use icedrv_state, only: trcrn
+      use icedrv_domain_size, only: nslyr, ncat
+
+      integer (kind=int_kind) :: nt_smice, nt_smliq, nt_rhos, nt_rsnw, k
+      character(len=*), parameter :: subname='(read_restart_snow)'
+
+      call icepack_query_tracer_indices(nt_smice_out=nt_smice, &
+           nt_smliq_out=nt_smliq, nt_rhos_out=nt_rhos, nt_rsnw_out=nt_rsnw)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
+
+      write(nu_diag,*) 'min/max snow metamorphosis tracers'
+
+      do k=1,nslyr
+         call read_restart_field(nu_restart,trcrn(:,nt_smice+k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_smliq+k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_rhos +k-1,:),ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_rsnw +k-1,:),ncat)
+      enddo
+
+      end subroutine read_restart_snow
 
 !=======================================================================
 
