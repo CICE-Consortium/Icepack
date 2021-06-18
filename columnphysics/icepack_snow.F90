@@ -85,8 +85,6 @@
       ! if snw_aging_table = 'file'
       ! all data has to be passed into icepack_parameters
 
-      ! tcraig, should be 223.15 and 243.15 below
-
       if (snwgrain) then
          if (trim(snw_aging_table) == 'snicar') then ! read netcdf file
             isnw_rhos  =  8   ! maxiumum snow density index
@@ -98,7 +96,7 @@
             min_Tgrd   =   0.0_dbl_kind
             del_Tgrd   =  10.0_dbl_kind
             lin_Tgrd   = .true.
-            min_T      = 223.0_dbl_kind
+            min_T      = 223.15_dbl_kind
             del_T      =   5.0_dbl_kind
             lin_T      = .true.
             allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
@@ -132,7 +130,7 @@
             min_Tgrd   =   0.0_dbl_kind
             del_Tgrd   =  10.0_dbl_kind
             lin_Tgrd   = .true.
-            min_T      = 243.0_dbl_kind
+            min_T      = 243.15_dbl_kind
             del_T      =   5.0_dbl_kind
             lin_T      = .true.
             allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
