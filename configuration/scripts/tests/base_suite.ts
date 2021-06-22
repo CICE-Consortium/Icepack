@@ -16,6 +16,7 @@ smoke          col     1x1        debug,run1year,leap,dt30min
 smoke          col     1x1        debug,run1year,dyn
 smoke          col     1x1        debug,run1year,fsd12
 smoke          col     1x1        debug,run1year,fsd1
+smoke          col     1x1        debug,run1year,calcdragio
 restart        col     1x1        debug
 restart        col     1x1        diag1
 restart        col     1x1        pondcesm

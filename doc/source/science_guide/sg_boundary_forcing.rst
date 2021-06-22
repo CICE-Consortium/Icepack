@@ -26,6 +26,7 @@ Atmosphere and ocean boundary forcing
    ":math:`T_w`", "Sea surface temperature", "From *ocean model* to *sea ice model*"
    ":math:`S`", "Sea surface salinity", "From *ocean model* to *sea ice model*"
    ":math:`\nabla H_o`", "Sea surface slope", "From *ocean model* via flux coupler to *sea ice model*"
+   ":math:`h_1`", "Thickness of first ocean level (optional)", "From *ocean model* to *sea ice model*"
    ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model* to *sea ice model* (available in Icepack driver, not used directly in column physics)"
    ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model* to *atmosphere model*"
    ":math:`F_s`", "Sensible heat flux", "From *sea ice model* to *atmosphere model*"
@@ -300,6 +301,22 @@ and longwave radiation, including that passing through the sea ice into
 the ocean. If the resulting sea surface temperature falls below the
 salinity-dependent freezing point, then new ice (frazil) forms.
 Otherwise, heat is made available for melting the ice.
+
+The ice-ocean drag coefficient, :math:`c_w`, can optionally be computed from the thickness of the first ocean level, :math:`h_1`, and an under-ice roughness length, :math:`z_{io}`.
+The computation follows :cite:`Roy15` :
+
+.. math::
+   c_w = c_w^* \lambda^2
+   :label: dragio
+
+where
+
+.. math::
+   \begin{aligned}
+   c_w^* &= \frac{\kappa^2} {\ln^2\left( h_1 /  z_{io} \right)}, \\
+   \lambda &= \frac{h_1 - z_{io}} {h_1 \left[ \sqrt{c_w^*} \kappa^{-1} \left( \ln(2) - 1 +  z_{io} / h_1 \right) + 1 \right] }
+   \end{aligned}
+   :label: dragio-defs
 
 .. _formdrag:
 

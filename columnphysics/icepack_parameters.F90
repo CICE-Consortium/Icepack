@@ -224,9 +224,14 @@
          Cstar    = 20._dbl_kind     ,&! constant in Hibler strength formula
                                        ! (kstrength = 0)
          dragio   = 0.00536_dbl_kind ,&! ice-ocn drag coefficient
+         thickness_ocn_layer1 = 2.0_dbl_kind,&! thickness of first ocean level (m)
+         iceruf_ocn = 0.03_dbl_kind  ,&! under-ice roughness (m)
          gravit   = 9.80616_dbl_kind ,&! gravitational acceleration (m/s^2)
          mu_rdg = 3.0_dbl_kind ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
                                        ! (krdg_redist = 1)
+
+      logical (kind=log_kind), public :: &
+         calc_dragio     = .false.     ! if true, calculate dragio from iceruf_ocn and thickness_ocn_layer1
 
 !-----------------------------------------------------------------------
 ! Parameters for atmosphere
@@ -383,7 +388,7 @@
          puny_in, bignum_in, pi_in, secday_in, &
          rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
          cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
-         depressT_in, dragio_in, albocn_in, gravit_in, viscosity_dyn_in, &
+         depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, albocn_in, gravit_in, viscosity_dyn_in, &
          Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
          stefan_boltzmann_in, ice_ref_salinity_in, &
          Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
@@ -403,7 +408,7 @@
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
          kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
-         atmiter_conv_in, &
+         atmiter_conv_in, calc_dragio_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
          floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
          dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
@@ -561,6 +566,8 @@
          Pstar_in,      & ! constant in Hibler strength formula 
          Cstar_in,      & ! constant in Hibler strength formula 
          dragio_in,     & ! ice-ocn drag coefficient
+         thickness_ocn_layer1_in, & ! thickness of first ocean level (m)
+         iceruf_ocn_in, & ! under-ice roughness (m)
          gravit_in,     & ! gravitational acceleration (m/s^2)
          iceruf_in        ! ice surface roughness (m)
 
@@ -575,6 +582,9 @@
       real (kind=dbl_kind), intent(in), optional :: &  
          mu_rdg_in         ! gives e-folding scale of ridged ice (m^.5) 
                            ! (krdg_redist = 1) 
+
+      logical (kind=log_kind), intent(in), optional :: &
+         calc_dragio_in    ! if true, calculate dragio from iceruf_ocn and thickness_ocn_layer1
 
 !-----------------------------------------------------------------------
 ! Parameters for atmosphere
@@ -727,6 +737,9 @@
       if (present(cp_ocn_in)            ) cp_ocn           = cp_ocn_in
       if (present(depressT_in)          ) depressT         = depressT_in
       if (present(dragio_in)            ) dragio           = dragio_in
+      if (present(iceruf_ocn_in)        ) iceruf_ocn       = iceruf_ocn_in
+      if (present(thickness_ocn_layer1_in) ) thickness_ocn_layer1 = thickness_ocn_layer1_in
+      if (present(calc_dragio_in)       ) calc_dragio      = calc_dragio_in
       if (present(albocn_in)            ) albocn           = albocn_in
       if (present(gravit_in)            ) gravit           = gravit_in
       if (present(viscosity_dyn_in)     ) viscosity_dyn    = viscosity_dyn_in
@@ -885,7 +898,7 @@
          p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
          rhos_out, rhoi_out, rhow_out, cp_air_out, emissivity_out, &
          cp_ice_out, cp_ocn_out, hfrazilmin_out, floediam_out, &
-         depressT_out, dragio_out, albocn_out, gravit_out, viscosity_dyn_out, &
+         depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, albocn_out, gravit_out, viscosity_dyn_out, &
          Tocnfrz_out, rhofresh_out, zvir_out, vonkar_out, cp_wv_out, &
          stefan_boltzmann_out, ice_ref_salinity_out, &
          Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
@@ -905,7 +918,7 @@
          rsnw_mlt_out, dEdd_algae_out, &
          kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
-         atmiter_conv_out, &
+         atmiter_conv_out, calc_dragio_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
          floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
          dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
@@ -1072,6 +1085,8 @@
          Pstar_out,      & ! constant in Hibler strength formula 
          Cstar_out,      & ! constant in Hibler strength formula 
          dragio_out,     & ! ice-ocn drag coefficient
+         thickness_ocn_layer1_out, & ! thickness of first ocean level (m)
+         iceruf_ocn_out, & ! under-ice roughness (m)
          gravit_out,     & ! gravitational acceleration (m/s^2)
          iceruf_out        ! ice surface roughness (m)
 
@@ -1086,6 +1101,9 @@
       real (kind=dbl_kind), intent(out), optional :: &  
          mu_rdg_out         ! gives e-folding scale of ridged ice (m^.5) 
                             ! (krdg_redist = 1) 
+
+      logical (kind=log_kind), intent(out), optional :: &
+         calc_dragio_out    ! if true, compute dragio from iceruf_ocn and thickness_ocn_layer1
 
 !-----------------------------------------------------------------------
 ! Parameters for atmosphere
@@ -1279,6 +1297,9 @@
       if (present(cp_ocn_out)            ) cp_ocn_out       = cp_ocn
       if (present(depressT_out)          ) depressT_out     = depressT
       if (present(dragio_out)            ) dragio_out       = dragio
+      if (present(iceruf_ocn_out)        ) iceruf_ocn_out   = iceruf_ocn
+      if (present(thickness_ocn_layer1_out) ) thickness_ocn_layer1_out = thickness_ocn_layer1
+      if (present(calc_dragio_out)       ) calc_dragio_out  = calc_dragio
       if (present(albocn_out)            ) albocn_out       = albocn
       if (present(gravit_out)            ) gravit_out       = gravit
       if (present(viscosity_dyn_out)     ) viscosity_dyn_out= viscosity_dyn
@@ -1452,6 +1473,9 @@
         write(iounit,*) "  cp_ocn = ",cp_ocn
         write(iounit,*) "  depressT = ",depressT
         write(iounit,*) "  dragio = ",dragio
+        write(iounit,*) "  calc_dragio = ",calc_dragio
+        write(iounit,*) "  iceruf_ocn = ",iceruf_ocn
+        write(iounit,*) "  thickness_ocn_layer1 = ",thickness_ocn_layer1
         write(iounit,*) "  albocn = ",albocn
         write(iounit,*) "  gravit = ",gravit
         write(iounit,*) "  viscosity_dyn = ",viscosity_dyn
@@ -1609,6 +1633,8 @@
 
 !autodocument_end
 
+      real (kind=dbl_kind) :: lambda
+
       character(len=*),parameter :: subname='(icepack_recompute_constants)'
 
         cprho  = cp_ocn*rhow
@@ -1618,6 +1644,13 @@
         piq    = p5*p5*pi
         pi2    = c2*pi
         rad_to_deg = c180/pi
+
+        if (calc_dragio) then
+           dragio = (vonkar/log(p5 * thickness_ocn_layer1/iceruf_ocn))**2 ! dragio at half first layer
+           lambda = (thickness_ocn_layer1 - iceruf_ocn) / &
+                    (thickness_ocn_layer1*(sqrt(dragio)/vonkar*(log(c2) - c1 + iceruf_ocn/thickness_ocn_layer1) + c1))
+           dragio = dragio*lambda**2
+        endif
 
       end subroutine icepack_recompute_constants
 
