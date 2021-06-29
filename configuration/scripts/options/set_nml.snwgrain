@@ -1,2 +1,4 @@
 tr_snow = .true.
 snwgrain = .true.
+use_smliq_pnd = .true.
+
