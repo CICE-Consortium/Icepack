@@ -1424,14 +1424,14 @@
       endif ! tr_iso
 
       if (z_tracers) then
-            dvssl  = min(p5*vsnon, hs_ssl*aicen)   !snow surface layer
-            dvint  = vsnon- dvssl                  !snow interior
+         dvssl = min(p5*vsnon/real(nslyr,kind=dbl_kind), hs_ssl*aicen) ! snow surface layer
+         dvint = vsnon - dvssl                                         ! snow interior
 
-            do it = 1, nbtrcr
-               xtmp = (trcrn(bio_index(it)+nblyr+1)*dvssl + &
-                       trcrn(bio_index(it)+nblyr+2)*dvint)/dt
-               dflux_bio(it) = dflux_bio(it) + xtmp
-            enddo                 ! it
+         do it = 1, nbtrcr
+            xtmp = (trcrn(bio_index(it)+nblyr+1)*dvssl + &
+                    trcrn(bio_index(it)+nblyr+2)*dvint)/dt
+            dflux_bio(it) = dflux_bio(it) + xtmp
+         enddo                 ! it
 
       endif ! z_tracers
 

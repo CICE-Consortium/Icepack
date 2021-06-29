@@ -136,7 +136,7 @@
 
       logical (kind=log_kind) :: tr_brine, tr_zaero, tr_bgc_N
       integer (kind=int_kind) :: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, &
-         nt_fbri, nt_tsfc, ntrcr, nbtrcr_sw, nlt_chl_sw
+         nt_fbri, nt_tsfc, nt_rsnw, ntrcr, nbtrcr_sw, nlt_chl_sw
       integer (kind=int_kind), dimension(icepack_max_aero) :: nlt_zaero_sw
       integer (kind=int_kind), dimension(icepack_max_aero) :: nt_zaero
       integer (kind=int_kind), dimension(icepack_max_algae) :: nt_bgc_N
@@ -160,6 +160,7 @@
               nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
               nt_ipnd_out=nt_ipnd, nt_aero_out=nt_aero, &
               nt_fbri_out=nt_fbri, nt_tsfc_out=nt_tsfc, &
+              nt_rsnw_out=nt_rsnw, &
               nt_bgc_N_out=nt_bgc_N, nt_zaero_out=nt_zaero, &
               nlt_chl_sw_out=nlt_chl_sw, nlt_zaero_sw_out=nlt_zaero_sw)
          call icepack_warnings_flush(nu_diag)
@@ -276,6 +277,8 @@
                          albpndn=albpndn(i,:),   apeffn=apeffn(i,:),       &
                          snowfracn=snowfracn(i,:),                         &
                          dhsn=dhsn(i,:),         ffracn=ffracn(i,:),       &
+                         rsnow=trcrn(i,nt_rsnw:nt_rsnw+nslyr-1,:),            &
+!history                         rsnw_dEddn=rsnw_dEddn(i,:), &
                          l_print_point=l_print_point,                      &
                          initonly = .true.)
             endif

@@ -44,7 +44,7 @@
       use icepack_parameters, only: c0, c1, c1p5, c2, c3, c4, c10
       use icepack_parameters, only: p01, p1, p15, p25, p5, p75, puny
       use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
-      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint, rsnw_fall, snwredist
+      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint, rsnw_fall, snwredist, rsnw_tmax
       use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l, snwlvlfac, snwgrain
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
@@ -3670,6 +3670,7 @@
 
           do ks = 1, nslyr
             rsnw(ks)   = max(rsnw_fall,rsnow(ks))
+            rsnw(ks)   = min(rsnw_tmax,rsnow(ks))
             rhosnw(ks) = rhos
           enddo
 
