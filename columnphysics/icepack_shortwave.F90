@@ -4220,7 +4220,7 @@
 
       allocate(l_rsnow (nslyr,ncat))
       l_rsnow = c0
-      if (present(rsnow)) l_rsnow = rsnow
+      if (snwgrain .and. present(rsnow)) l_rsnow = rsnow
 
       allocate(l_rsnw_dEddn (ncat))
       l_rsnw_dEddn = c0

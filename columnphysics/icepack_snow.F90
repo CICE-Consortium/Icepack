@@ -240,8 +240,8 @@
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn     , & ! snow enthalpy (J/m^3)
-         smice    , & ! mass of ice in snow (kg/m^3)
-         smliq    , & ! mass of liquid in snow (kg/m^3)
+         smice    , & ! tracer for mass of ice in snow (kg/m^3)
+         smliq    , & ! tracer for mass of liquid in snow (kg/m^3)
          rsnw     , & ! snow grain radius (10^-6 m)
          rhos_effn, & ! effective snow density: content (kg/m^3)
          rhos_cmpn    ! effective snow density: compaction (kg/m^3)
@@ -363,8 +363,8 @@
 
       real (kind=dbl_kind), dimension(:,:), &
          intent(inout) :: &
-         smice    , & ! mass of ice in snow (kg/m^3)
-         smliq    , & ! mass of liquid in snow (kg/m^3)
+         smice    , & ! tracer for mass of ice in snow (kg/m^3)
+         smliq    , & ! tracer for mass of liquid in snow (kg/m^3)
          rhos_effn, & ! effective snow density: content (kg/m^3)
          rhos_cmpn    ! effective snow density: compaction (kg/m^3)
 
@@ -405,7 +405,7 @@
          do n = 1, ncat
             if (vsnon(n) > c0) then
                do k = 1, nslyr
-                  rhos_effn(k,n) = rhos_effn(k,n) + smice(k,n) + smliq(k,n)
+                  rhos_effn(k,n) = smice(k,n) + smliq(k,n)
                   rhos_eff       = rhos_eff + vsnon(n)*rhos_effn(k,n)
                   rhos_cmp       = rhos_cmp + vsnon(n)*rhos_cmpn(k,n)
                enddo
@@ -872,36 +872,36 @@
                                      Tsfc, zTin, hsn, zqsn, smice, smliq)
 
       integer (kind=int_kind), intent(in) :: &
-         ncat,   & ! number of categories
-         nslyr,  & ! number of snow layers
-         nilyr     ! number of ice layers
+         ncat     , & ! number of categories
+         nslyr    , & ! number of snow layers
+         nilyr        ! number of ice layers
 
       real (kind=dbl_kind), intent(in) :: &
-         dt          ! time step
+         dt           ! time step
 
       real (kind=dbl_kind), dimension(ncat), intent(in) :: &
-         zTin        , & ! surface ice temperature (oC)
-         Tsfc        , & ! surface temperature (oC)
-         hin         , & ! ice thickness (m)
-         hsn             ! snow thickness (m)
+         zTin     , & ! surface ice temperature (oC)
+         Tsfc     , & ! surface temperature (oC)
+         hin      , & ! ice thickness (m)
+         hsn          ! snow thickness (m)
 
       real (kind=dbl_kind), dimension(nslyr,ncat), intent(in) :: &
-         zqsn            ! enthalpy of snow (J m-3)
+         zqsn         ! enthalpy of snow (J m-3)
 
       real (kind=dbl_kind), dimension(nslyr,ncat), intent(inout) :: &
-         rsnw            ! snow grain radius
+         rsnw         ! snow grain radius
 
       real (kind=dbl_kind), dimension(nslyr,ncat), intent(inout) :: &
-         smice, & ! mass of ice in snow (kg/m^2)
-         smliq    ! mass of liquid in snow (kg/m^2)
+         smice    , & ! tracer for mass of ice in snow (kg/m^3)
+         smliq        ! tracer for mass of liquid in snow (kg/m^3)
 
       ! local temporary variables
 
       integer (kind=int_kind) :: k, n
 
       real (kind=dbl_kind), dimension(nslyr) :: &
-         drsnw_wet,    & ! wet metamorphism (10^-6 m)
-         drsnw_dry       ! dry (temperature gradient) metamorphism (10^-6 m)
+         drsnw_wet, & ! wet metamorphism (10^-6 m)
+         drsnw_dry    ! dry (temperature gradient) metamorphism (10^-6 m)
 
       character (len=*),parameter :: subname='(update_snow_radius)'
 
@@ -972,8 +972,8 @@
 
       real (kind=dbl_kind), dimension(nslyr), &
          intent(in) :: &
-         smice , & ! mass of ice in snow (kg/m^3)
-         smliq , & ! mass of liquid in snow (kg/m^3)
+         smice , & ! tracer for mass of ice in snow (kg/m^3)
+         smliq , & ! tracer for mass of liquid in snow (kg/m^3)
          rsnw,   & ! snow grain radius (10^-6 m)
          zqsn      ! snow enthalpy  (J m-3)
 
@@ -1243,11 +1243,11 @@
 
       real (kind=dbl_kind), dimension(nslyr), &
          intent(in) :: &
-         smice    ! mass of ice in snow (kg/m^2)
+         smice     ! tracer for mass of ice in snow (kg/m^3)
 
       real (kind=dbl_kind), dimension(nslyr), &
          intent(inout) :: &
-         smliq    ! mass of liquid in snow (kg/m^2)
+         smliq     ! tracer for mass of liquid in snow (kg/m^3)
 
       ! local temporary variables
 
@@ -1274,12 +1274,12 @@
          hslyr    = hsn / real(nslyr,kind=dbl_kind)
          meltsliq = c0
          do k = 1,nslyr
-            smliq(k)   = smliq(k)  + dlin(k) / hslyr   ! liquid in from above layer
+            smliq(k)   = smliq(k) + dlin(k) / hslyr   ! liquid in from layer above
             phi_ice(k) = min(c1, smice(k) / rhoi)
-            phi_liq(k) = smliq(k)/rhofresh
+            phi_liq(k) = smliq(k) / rhofresh
             w_drain(k) = max(c0, (phi_liq(k) - S_r*(c1-phi_ice(k))) / dt * rhofresh * hslyr)
             dlout(k)   = w_drain(k) * dt
-            smliq(k)   = smliq(k) - dlout(k)/ hslyr
+            smliq(k)   = smliq(k) - dlout(k) / hslyr
             if (k < nslyr) then
                dlin(k+1) = dlout(k)
             else

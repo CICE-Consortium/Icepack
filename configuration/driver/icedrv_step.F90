@@ -892,6 +892,8 @@
 
       do i = 1, nx
 
+         ! the effective snow density is not currently used outside of
+         ! the snow model, but is made available here for future use
          rhos_effn(:,:) = c0
 
          call icepack_step_snow (dt,     nilyr,              &
