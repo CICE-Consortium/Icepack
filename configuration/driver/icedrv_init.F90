@@ -250,7 +250,7 @@
                                   ! 'mm_per_sec' = 'mks' = kg/m^2 s
       oceanmixed_ice  = .false.   ! if true, use internal ocean mixed layer
       wave_spec_type  = 'none'    ! type of wave spectrum forcing
-      wave_solver     = '1'       ! method of solving wave fracture
+      wave_solver     = 'ml'       ! method of solving wave fracture
       ocn_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       ocn_data_type   = 'default' ! source of ocean forcing data
       ocn_data_file   = ' '       ! ocean forcing data file
@@ -785,7 +785,6 @@
            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec,&
            wave_solver_in=wave_solver, &
            sw_redist_in=sw_redist, sw_frac_in=sw_frac, sw_dtemp_in=sw_dtemp)
-      
       call icepack_init_tracer_sizes(ntrcr_in=ntrcr, &
            ncat_in=ncat, nilyr_in=nilyr, nslyr_in=nslyr, nblyr_in=nblyr, &
            nfsd_in=nfsd, n_iso_in=n_iso, n_aero_in=n_aero)

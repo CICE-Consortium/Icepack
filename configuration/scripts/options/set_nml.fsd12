@@ -1,3 +1,3 @@
 tr_fsd = .true.
 wave_spec_type = 'profile'
-wave_solver = 'std-1iter'
+wave_solver = 'ml'

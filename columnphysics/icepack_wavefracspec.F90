@@ -126,7 +126,6 @@
       wave_spectrum_data(8) = 6.815936703929992e-10 
       wave_spectrum_data(9) = 2.419401186610744e-20      
 
-     
       do k = 1, nfreq
          wave_spectrum_profile(k) = wave_spectrum_data(k)
       enddo
@@ -142,7 +141,6 @@
 
       ! boundaries of bin n are at f(n)*sqrt(1/C) and f(n)*sqrt(C) 
       dwavefreq(:) = wavefreq(:)*(SQRT(1.1_dbl_kind) - SQRT(c1/1.1_dbl_kind))
-
 
       end subroutine icepack_init_wave
 
@@ -279,7 +277,6 @@
          cons_error       ! area conservation error
 
       real (kind=dbl_kind), dimension (nfsd) :: &
-         spwf_fullnet_hist, & !
          afsd_init    , & ! tracer array
          afsd_tmp     , & ! tracer array
          d_afsd_tmp       ! change
@@ -295,7 +292,6 @@
       d_afsd_wave    (:)   = c0
       d_afsdn_wave   (:,:) = c0
       fracture_hist  (:)   = c0
-      fracture_hist_ml  (:)   = c0
 
 
       wave_sig_ht = 4.0_dbl_kind*SQRT(SUM(wave_spectrum(:)*dwavefreq))
@@ -321,7 +317,7 @@
                               spwf_classifier_out)
 
               if (spwf_classifier_out.lt.spwf_clss_crit) then
-                  fracture_hist_ml(:) = c0
+                  fracture_hist(:) = c0
               else
                   call spwf_fullnet(nfsd, floe_rad_l, floe_binwidth, wave_spectrum, &
                           hbar, aice, &
@@ -382,7 +378,6 @@
                     
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
-                       print *, 'step_wavefracture struggling to converge'
                         write(warnstr,*) subname, &
                      'warning: step_wavefracture struggling to converge'
                         call icepack_warnings_add(warnstr)
@@ -391,7 +386,6 @@
                      ! required timestep
                      subdt = get_subdt_fsd(nfsd, afsd_tmp, d_afsd_tmp)
                      subdt = MIN(subdt, dt)
-
 
                      ! update afsd
                      afsd_tmp = afsd_tmp + subdt * d_afsd_tmp(:) 
@@ -436,7 +430,6 @@
                   ! update trcrn
                   trcrn(nt_fsd:nt_fsd+nfsd-1,n) = afsd_tmp
                   call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
-                  
                   if (icepack_warnings_aborted(subname)) return
                   ! for diagnostics
                   d_afsdn_wave(:,n) = afsd_tmp(:) - afsd_init(:)  
@@ -501,7 +494,7 @@
       integer (kind=int_kind) :: i, j, k, iter, loop_max_iter
 
       real (kind=dbl_kind) :: &
-         fracerror, myrand ! difference between successive histograms
+         fracerror ! difference between successive histograms
 
       real (kind=dbl_kind), parameter :: &
          errortol = 6.5e-4  ! tolerance in error between successive histograms
@@ -550,7 +543,6 @@
       frachistogram(:) = c0
       fracerror = bignum
 
-
       ! loop while fracerror greater than error tolerance
       iter = 0
       do while (iter < loop_max_iter .and. fracerror > errortol)
@@ -565,7 +557,6 @@
          else
             rand_array(:) = p5
          endif
-         !print *, iter ,'rand ',rand_array(1)
          phi = c2*pi*rand_array
 
          do j = 1, nx
@@ -621,8 +612,6 @@
          end if
 
       END DO
-
-
 
       if (iter >= max_no_iter) then
          write(warnstr,*) subname,'warning: wave_frac struggling to converge'

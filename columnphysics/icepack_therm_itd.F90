@@ -1134,6 +1134,7 @@
  
                      afsdn(:,n) = afsd_tmp(:)
 
+      
                   end if ! aicen
                end if ! rside > 0, otherwise do nothing
 
