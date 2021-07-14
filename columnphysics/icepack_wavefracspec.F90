@@ -32,7 +32,6 @@
       use icepack_parameters, only: p01, p5, c0, c1, c2, c3, c4, c10
       use icepack_parameters, only: bignum, puny, gravit, pi
       use icepack_tracers, only: nt_fsd
-      use icepack_parameters, only: spwf_clss_crit 
       use icepack_warnings, only: warnstr, icepack_warnings_add,  icepack_warnings_aborted
       use icepack_fsd
  
@@ -42,6 +41,7 @@
                 icepack_init_spwf_fullnet, icepack_init_spwf_class
 
       real (kind=dbl_kind), parameter  :: &
+         spwf_clss_crit = 0.54_dbl_kind, & ! critical value for wave fracture
          swh_minval = 0.01_dbl_kind,  & ! minimum value of wave height (m)
          straincrit = 3.e-5_dbl_kind, & ! critical strain
          D          = 1.e4_dbl_kind,  & ! domain size
@@ -143,7 +143,6 @@
       ! boundaries of bin n are at f(n)*sqrt(1/C) and f(n)*sqrt(C) 
       dwavefreq(:) = wavefreq(:)*(SQRT(1.1_dbl_kind) - SQRT(c1/1.1_dbl_kind))
 
-      print *, 'spwf_clss_crit= ',spwf_clss_crit
 
       end subroutine icepack_init_wave
 
@@ -280,7 +279,6 @@
          cons_error       ! area conservation error
 
       real (kind=dbl_kind), dimension (nfsd) :: &
-         fracture_hist_ml , &     ! fracture histogram
          spwf_fullnet_hist, & !
          afsd_init    , & ! tracer array
          afsd_tmp     , & ! tracer array
@@ -300,11 +298,11 @@
       fracture_hist_ml  (:)   = c0
 
 
-      wave_energy = SUM(wave_spectrum(:)*dwavefreq)
+      wave_sig_ht = 4.0_dbl_kind*SQRT(SUM(wave_spectrum(:)*dwavefreq))
       
       ! do not try to fracture for minimal ice concentration or Hs < 0.1m
       ! or if all ice is in first floe size category
-      if ((.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)).and.((aice > p01).and.(wave_energy.gt.0.000625))) then
+      if ((.NOT. ALL(trcrn(nt_fsd,:).ge.c1-puny)).and.((aice > p01).and.(wave_sig_ht.gt.0.1))) then
          
           hbar = vice / aice
 
@@ -327,7 +325,7 @@
               else
                   call spwf_fullnet(nfsd, floe_rad_l, floe_binwidth, wave_spectrum, &
                           hbar, aice, &
-                          fracture_hist_ml(:))
+                          fracture_hist)
               end if
           else ! not ML
               run_to_convergence = .false. ! default (std1iter)
@@ -343,28 +341,8 @@
           end if ! ML occurs
 
 
-          !if ((SUM(fracture_hist(:)).gt.(c1-puny)).and.(SUM(fracture_hist_ml(:)).lt.puny)) then
-          !    print *, 'FALSE NEGATIVE'
-          !else if ((SUM(fracture_hist(:)).lt.puny).and.(SUM(fracture_hist_ml(:)).gt.(c1-puny))) then
-          !    print *, 'FALSE POSITIVE'
-          !else if ((SUM(fracture_hist(:)).lt.puny).and.(SUM(fracture_hist_ml(:)).lt.puny)) then
-          !    print *, 'TRUE NEGATIVE'
-          !else if ((SUM(fracture_hist(:)).gt.(c1-puny)).and.(SUM(fracture_hist_ml(:)).gt.(c1-puny))) then
-          !    print *, 'TRUE POSITIVE'
-          !end if
-
-          if (trim(wave_solver).eq.'ml') fracture_hist(:) = fracture_hist_ml(:)
-
           ! if fracture occurs, evolve FSD with adaptive subtimestep
           if ((MAXVAL(fracture_hist) > puny)) then 
-
-            ! remove after testing 
-            if (ANY(fracture_hist.ne.fracture_hist)) &
-              stop 'NaN fracture_hist'
-            if (ANY(fracture_hist.lt.c0)) &
-              stop 'neg fracture_hist'
-            if (ABS(SUM(fracture_hist)-c1).gt.puny) &
-              stop 'not norm fracture_hist'
 
             ! protect against small numerical errors
             call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
