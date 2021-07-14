@@ -641,6 +641,8 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
              file=__FILE__,line= __LINE__)
 
+      if (wave_spec_type .ne. 'none') then
+
       do i = 1, nx
            d_afsd_wave(i,:) = c0
            call icepack_step_wavefracture (wave_solver = wave_solver, &
@@ -658,6 +660,7 @@
                         d_afsd_wave   = d_afsd_wave  (i,:),    & 
                         fracture_hist = fracture_hist(i,:))
       end do ! i
+      end if
 
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

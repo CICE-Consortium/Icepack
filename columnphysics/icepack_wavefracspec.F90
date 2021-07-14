@@ -269,7 +269,7 @@
          frac    
 
       real (kind=dbl_kind) :: &
-         wave_energy, & !
+         wave_sig_ht, & !
          spwf_classifier_out, & ! classifier output
          hbar         , & ! mean ice thickness
          elapsed_t    , & ! elapsed subcycling time
