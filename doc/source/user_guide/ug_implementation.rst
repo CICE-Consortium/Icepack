@@ -194,7 +194,7 @@ extend the implementation and are encouraged to share any updates with the Conso
 
 The default configuration of Icepack does not require NetCDF.  If history files are
 written, the USE_NETCDF C preprocessor directive must be set during compilation.  This
-is done by setting ``ICE_IOTYPE`` to ``netcdf`` in **icepack.settings.  In addition,
+is done by setting ``ICE_IOTYPE`` to ``netcdf`` in **icepack.settings**.  In addition,
 the machine env and Macros files must include support for compilation with NetCDF.  The
 ``icepack.setup -s`` option ``ionetcdf`` will set the ICE_IOTYPE to netcdf, which turns on 
 the USE_NETCDF C preprocessor.  ``ionetcdf`` also sets the ``history_cdf`` flag to true.
