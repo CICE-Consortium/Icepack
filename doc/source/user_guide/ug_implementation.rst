@@ -150,9 +150,9 @@ default in this distribution, this is not a stringent limitation:
 Model output
 ------------
 
-History output from Icepack is not currently supported in the Icepack driver, except
-in restart files.
-The sea ice model `CICE <https://github.com/CICE-Consortium/CICE>`_ provides extensive 
+The Icepack model provides diagnostic output files, binary restart files, and a primitive
+netcdf history file capability.
+The sea ice model `CICE <https://github.com/CICE-Consortium/CICE>`_ provides more extensive 
 options for model output, including many derived output variables.
 
 Diagnostic files
@@ -175,6 +175,30 @@ pointer to the filename from which the restart data is to be read and
 the namelist option ``restart`` must be set to ``.true.`` to use the file.
 ``dump_last`` namelist can also be set to true to trigger restarts automatically
 at then end of runs.
+
+History files
+~~~~~~~~~~~~~
+
+Icepack has a primitive netcdf history capability that is turned on with the
+``history_cdf`` namelist.  When ``history_cdf`` is set to true, history files
+are created for each run with a naming convention of **icepack.h.yyyymmdd.nc**
+in the run directory history directory.  The yyyymmdd is the start date for each run.
+
+When Icepack history files are turned on, data for a set of fixed fields is written 
+to the history file for each column at every timestep without ability to control
+fields, frequencies, or temporal averaging.  All output fields are hardwired into
+the implementation in **configuration/driver/icedrv_history.F90** file.  The netcdf file 
+does NOT meet NetCDF CF conventions and is provided as an amenity in the standalone
+Icepack model.  Users are free to modify the output fields or
+extend the implementation and are encouraged to share any updates with the Consortium.
+
+The default configuration of Icepack does not require NetCDF.  If history files are
+written, the USE_NETCDF C preprocessor directive must be set during compilation.  This
+is done by setting ``ICE_IOTYPE`` to ``netcdf`` in **icepack.settings.  In addition,
+the machine env and Macros files must include support for compilation with NetCDF.  The
+``icepack.setup -s`` option ``ionetcdf`` will set the ICE_IOTYPE to netcdf, which turns on 
+the USE_NETCDF C preprocessor.  ``ionetcdf`` also sets the ``history_cdf`` flag to true.
+
 
 .. _bgc-hist:
 
