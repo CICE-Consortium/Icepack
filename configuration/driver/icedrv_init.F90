@@ -62,6 +62,7 @@
       use icedrv_calendar, only: year_init, istep0
       use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
+      use icedrv_history, only: history_cdf
       use icedrv_restart_shared, only: restart, restart_dir, restart_file
       use icedrv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
       use icedrv_flux, only: default_season
@@ -126,7 +127,7 @@
         dt,             npt,            ndtd,            dump_last,     &
         ice_ic,         restart,        restart_dir,     restart_file,  &
         dumpfreq,       diagfreq,       diag_file,       cpl_bgc,       &
-        conserv_check
+        conserv_check,  history_cdf
 
       namelist /grid_nml/ &
         kcatbound
@@ -234,6 +235,7 @@
       restart = .false.      ! if true, read restart files for initialization
       restart_dir  = './'    ! write to executable dir for default
       restart_file = 'iced'  ! restart file name prefix
+      history_cdf = .false.  ! history netcdf file flag
       ice_ic       = 'default'      ! initial conditions are specified in the code
                                     ! otherwise, the filename for reading restarts
       ndtd = 1               ! dynamic time steps per thermodynamic time step
@@ -500,6 +502,7 @@
                                trim(restart_dir)
          write(nu_diag,*)    ' restart_file              = ', &
                                trim(restart_file)
+         write(nu_diag,1010) ' history_cdf               = ', history_cdf
          write(nu_diag,*)    ' ice_ic                    = ', &
                                trim(ice_ic)
          write(nu_diag,1010) ' conserv_check             = ', conserv_check

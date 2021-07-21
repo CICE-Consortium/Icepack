@@ -13,6 +13,7 @@
     dump_last      = .false.
     diagfreq       = 24
     diag_file      = 'ice_diag'
+    history_cdf    = .false.
     cpl_bgc        = .false.
     conserv_check  = .false.
 /

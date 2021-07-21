@@ -210,6 +210,7 @@ either Celsius or Kelvin units).
    "highfreq", ":math:`\bullet` high-frequency atmo coupling", "F"
    "hin_old", "ice thickness prior to growth/melt", "m"
    "hin_max", "category thickness limits", "m"
+   "history_cdf", "flag to turn on netcdf history output", "F"
    "hmix", "ocean mixed layer depth", "20. m"
    "hour", "hour of the year", ""
    "hp0", "pond depth at which shortwave transition to bare ice occurs", "0.2 m"

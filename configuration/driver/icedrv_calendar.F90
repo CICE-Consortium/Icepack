@@ -72,6 +72,7 @@
       real (kind=dbl_kind), public :: &
          dt             , & ! thermodynamics timestep (s)
          dt_dyn         , & ! dynamics/transport/ridging timestep (s)
+         time0          , & ! total elapsed time at istep0 for idate0 (s)
          time           , & ! total elapsed time (s)
          time_forc      , & ! time of last forcing update (s)
          yday           , & ! day of the year
@@ -123,6 +124,7 @@
       !-----------------------------------------------------------------
 
       istep = 0         ! local timestep number
+      time0=istep0*dt   ! start time
       time=istep0*dt    ! s
       yday=c0           ! absolute day number
       mday=0            ! day of the month
