@@ -917,8 +917,7 @@
       !-----------------------------------------------------------------
             call snow_dry_metamorph (nslyr, nilyr, dt, rsnw(:,n), &
                                      drsnw_dry, zqsn(:,n), Tsfc(n), &
-                                     zTin(n), hsn(n), hin(n), &
-                                     smice(:,n), smliq(:,n))
+                                     zTin(n), hsn(n), hin(n))
             if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -948,7 +947,7 @@
 !  Snow grain metamorphism
 
       subroutine snow_dry_metamorph (nslyr,nilyr, dt, rsnw, drsnw_dry, zqsn, &
-                                     Tsfc, zTin1, hsn, hin, smice, smliq)
+                                     Tsfc, zTin1, hsn, hin)
 
       ! Vapor redistribution: Method is to retrieve 3 best-fit parameters that
       ! depend on snow temperature, temperature gradient, and density,
@@ -972,8 +971,6 @@
 
       real (kind=dbl_kind), dimension(nslyr), &
          intent(in) :: &
-         smice , & ! tracer for mass of ice in snow (kg/m^3)
-         smliq , & ! tracer for mass of liquid in snow (kg/m^3)
          rsnw,   & ! snow grain radius (10^-6 m)
          zqsn      ! snow enthalpy  (J m-3)
 
@@ -997,7 +994,6 @@
          rhos_idx    ! density index
 
       real (kind=dbl_kind), dimension(nslyr):: &
-         zrhos,   & ! snow density (kg/m^3)  ! for variable snow density
          zdTdz,   & ! temperature gradient (K/s)
          zTsn       ! snow temperature (C)
 
@@ -1059,7 +1055,6 @@
       drsnw_dry(:) = c0
       zTsn(:) = c0
       zdTdz(:) = c0
-      zrhos(:) = rhos
 
       dzs = hsn/real(nslyr,kind=dbl_kind)
       dzi = hin/real(nilyr,kind=dbl_kind)
@@ -1088,7 +1083,6 @@
       endif
 
       do k = 1, nslyr
-         zrhos(k) = smice(k) + smliq(k)
 
          !-----------------------------------------------------------------
          ! best-fit table indices:
@@ -1227,27 +1221,26 @@
 
 !  Conversions between ice mass, liquid water mass in snow
 
-      subroutine drain_snow (dt, nslyr, vsnon, aicen, &
-                             smice, smliq, meltsliq)
+      subroutine drain_snow (nslyr, vsnon, aicen, &
+                             massice, massliq, meltsliq)
 
       integer (kind=int_kind), intent(in) :: &
-         nslyr    ! number of snow layers
+         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
-         dt,     & ! time step
          vsnon,  & ! snow volume (m)
-         aicen     ! aice area
+         aicen     ! aice area fraction
 
       real (kind=dbl_kind), intent(inout) :: &
-         meltsliq  ! total liquid content
+         meltsliq  ! total liquid content (kg/m^2)
 
       real (kind=dbl_kind), dimension(nslyr), &
          intent(in) :: &
-         smice     ! tracer for mass of ice in snow (kg/m^3)
+         massice   ! mass of ice in snow (kg/m^2)
 
       real (kind=dbl_kind), dimension(nslyr), &
          intent(inout) :: &
-         smliq     ! tracer for mass of liquid in snow (kg/m^3)
+         massliq   ! mass of liquid in snow (kg/m^2)
 
       ! local temporary variables
 
@@ -1258,32 +1251,30 @@
          hsn       ! snow thickness (m)
 
       real (kind=dbl_kind), dimension(nslyr) :: &
-         dlin    , & ! liquid into the layer from above (kg/m^2)
-         dlout   , & ! liquid out of the layer (kg/m^2)
+         dlin    , & ! liquid mass into the layer from above (kg/m^2)
+         dlout   , & ! liquid mass out of the layer (kg/m^2)
          phi_liq , & ! volumetric liquid fraction
-         phi_ice , & ! volumetric ice fraction
-         w_drain    ! flow between layers
+         phi_ice     ! volumetric ice fraction
 
-      character (len=*),parameter :: subname='(drain_snow)'
+      character (len=*), parameter :: subname='(drain_snow)'
 
       hsn = c0
       if (aicen > c0) hsn = vsnon/aicen
       if (hsn > puny) then
-         dlin(:) = c0
+         dlin (:) = c0
          dlout(:) = c0
          hslyr    = hsn / real(nslyr,kind=dbl_kind)
          meltsliq = c0
-         do k = 1,nslyr
-            smliq(k)   = smliq(k) + dlin(k) / hslyr   ! liquid in from layer above
-            phi_ice(k) = min(c1, smice(k) / rhoi)
-            phi_liq(k) = smliq(k) / rhofresh
-            w_drain(k) = max(c0, (phi_liq(k) - S_r*(c1-phi_ice(k))) / dt * rhofresh * hslyr)
-            dlout(k)   = w_drain(k) * dt
-            smliq(k)   = smliq(k) - dlout(k) / hslyr
+         do k = 1, nslyr
+            massliq(k) = massliq(k) + dlin(k)   ! add liquid in from layer above
+            phi_ice(k) = min(c1, massice(k) / (rhoi    *hslyr))
+            phi_liq(k) =         massliq(k) / (rhofresh*hslyr)
+            dlout(k)   = max(c0, (phi_liq(k) - S_r*(c1-phi_ice(k))) / rhofresh*hslyr)
+            massliq(k) = massliq(k) - dlout(k)
             if (k < nslyr) then
                dlin(k+1) = dlout(k)
             else
-               meltsliq = dlout(nslyr)
+               meltsliq = dlout(nslyr) ! this (re)initializes meltsliq
             endif
          enddo
       else

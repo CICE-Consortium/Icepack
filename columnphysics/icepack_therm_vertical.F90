@@ -101,7 +101,8 @@
                                   fhocnn,      frain,     &
                                   meltt,       melts,     &
                                   meltb,       meltsliq,  &
-                                  smice,       smliq,     &
+                                  smice,       massice,   &
+                                  smliq,       massliq,   &
                                   congel,      snoice,    &
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
@@ -136,8 +137,10 @@
          zqin    , & ! ice layer enthalpy, zqin < 0 (J m-3)
          zSin    , & ! internal ice layer salinities
          rsnw    , & ! snow grain radius (10^-6 m)
-         smice   , & ! liquid water mass tracer in snow (kg/m^3)
-         smliq       ! ice mass tracer in snow (kg/m^3)
+         smice   , & ! ice mass tracer in snow (kg/m^3)
+         smliq   , & ! liquid water mass tracer in snow (kg/m^3)
+         massice , & ! ice mass in snow (kg/m^2)
+         massliq     ! liquid water mass in snow (kg/m^2)
 
       ! input from atmosphere
       real (kind=dbl_kind), &
@@ -321,6 +324,12 @@
                                               smice,     smliq)
             if (icepack_warnings_aborted(subname)) return
 
+            ! reinitialize mass in case of snow-ice formation
+            if (snwgrain) then
+               massice(:) = smice(:) * hslyr
+               massliq(:) = smliq(:) * hslyr
+            endif
+
          else ! ktherm
 
             call temperature_changes(dt,                   &  
@@ -405,16 +414,17 @@
                              hin,         hilyr,     &
                              hsn,         hslyr,     &
                              zqin,        zqsn,      &
-                             smice,       smliq,     &
+                             smice,       massice,   &
+                             smliq,       massliq,   &
                              fbot,        Tbot,      &
                              flatn,       fsurfn,    &
-                             fcondtopn,   fcondbotn,  &
+                             fcondtopn,   fcondbotn, &
                              fsnow,       hsn_new,   &
                              fhocnn,      evapn,     &
                              evapsn,      evapin,    &
                              meltt,       melts,     &
-                             meltsliq,    frain,    &
-                             meltb,       &
+                             meltsliq,    frain,     &
+                             meltb,                  &
                              congel,      snoice,    &
                              mlt_onset,   frz_onset, &
                              zSin,        sss,       &
@@ -478,10 +488,6 @@
                                 aicen,            &
                                 vicen,   vsnon)
       if (icepack_warnings_aborted(subname)) return
-
-      !-----------------------------------------------------------------
-      ! Reload passive tracer array
-      !-----------------------------------------------------------------
 
     end subroutine thermo_vertical
 
@@ -1026,7 +1032,8 @@
                                     hin,       hilyr,    &
                                     hsn,       hslyr,    &
                                     zqin,      zqsn,     &
-                                    smice,     smliq,    &
+                                    smice,     massice,  &
+                                    smliq,     massliq,  &
                                     fbot,      Tbot,     &
                                     flatn,     fsurfn,   &
                                     fcondtopn, fcondbotn, &
@@ -1066,7 +1073,9 @@
          zqsn        , & ! snow layer enthalpy (J m-3)
          rsnw        , & ! snow grain radius (10^-6 m)
          smice       , & ! ice mass tracer in snow (kg/m^3)
-         smliq           ! liquid water mass tracer in snow (kg/m^3)
+         smliq       , & ! liquid water mass tracer in snow (kg/m^3)
+         massice     , & ! ice mass in snow (kg/m^2)
+         massliq         ! liquid water mass in snow (kg/m^2)
 
       real (kind=dbl_kind), intent(inout) :: &
          hilyr       , & ! ice layer thickness (m)
@@ -1134,7 +1143,7 @@
          wk1         , & ! temporary variable
          zqsnew      , & ! enthalpy of new snow (J m-3)
          hstot       , & ! snow thickness including new snow (m)
-         Tmlts           ! melting temperature
+         Tmlts           ! melting temperature (deg C)
 
       real (kind=dbl_kind), dimension (nilyr+1) :: &
          zi1         , & ! depth of ice layer boundaries (m)
@@ -1145,12 +1154,10 @@
          zs2             ! adjusted depths, with equal hslyr (m)
 
       real (kind=dbl_kind), dimension (nilyr) :: &
-         dzi             ! ice layer thickness after growth/melting
+         dzi             ! ice layer thickness after growth/melting (m)
 
       real (kind=dbl_kind), dimension (nslyr) :: &
-         dzs         , & ! snow layer thickness after growth/melting
-         smicetot    , & ! total ice mass of snow in each layer (kg/m^2)
-         smliqtot        ! total liquid mass of snow in each layer (kg/m^2)
+         dzs             ! snow layer thickness after growth/melting (m)
 
       real (kind=dbl_kind), dimension (nilyr) :: &
          qm          , & ! energy of melting (J m-3) = zqin in BL99 formulation
@@ -1160,7 +1167,8 @@
          qbotm       , &
          qbotp       , &
          qbot0       , &
-         mass        , &
+         mass        , & ! total  mass from snow density tracers (kg/m^2)
+         massi       , & ! ice mass change factor
          tmp1            ! temporary scalar
 
       character(len=*),parameter :: subname='(thickness_changes)'
@@ -1178,9 +1186,7 @@
       enddo
 
       do k = 1, nslyr
-         dzs      (k) = hslyr
-         smicetot (k) = dzs(k) * smice(k)
-         smliqtot (k) = dzs(k) * smliq(k)
+         dzs(k) = hslyr
       enddo
 
       do k = 1, nilyr
@@ -1206,12 +1212,16 @@
             Ts = (Lfresh + zqsn(k)/rhos) / cp_ice
             if (Ts > c0) then
                dhs = cp_ice*Ts*dzs(k) / Lfresh
+
+               mass = massice(k) + massliq(k)
+               massi = c0
+               if (dzs(k) > puny) massi = max(c0, c1 - dhs/dzs(k))
+               massice(k) = massice(k) * massi
+               massliq(k) = mass - massice(k) ! conserve mass
+
                dzs(k) = dzs(k) - dhs  ! dhs > 0
                melts = melts + dhs
                zqsn(k) = -rhos*Lfresh
-               mass = smicetot(k) + smliqtot(k)
-               smicetot(k) = smice(k)*dzs(k)
-               smliqtot(k) = mass - smicetot(k)
             endif
          enddo
 
@@ -1255,10 +1265,16 @@
 
       if (hsn > puny) then    ! add snow with enthalpy zqsn(1)
          dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
+
+         mass  = massice(1) + massliq(1)
+         massi = c0
+         if (dzs(1) > puny) massi = c1 + dhs/dzs(1)
+         massice(1) = massice(1) * massi
+         massliq(1) = max(c0, mass + rhos*dhs - massice(1)) ! conserve new total mass
+
          dzs(1) = dzs(1) + dhs
          evapn = evapn + dhs*rhos
          evapsn = evapsn + dhs*rhos
-         smicetot(1) = smice(1)*dzs(1) ! no change to smliqtot
       else                        ! add ice with enthalpy zqin(1)
          dhi = econ / (qm(1) - rhoi*Lvap) ! econ < 0, dhi > 0
          dzi(1) = dzi(1) + dhi
@@ -1344,13 +1360,17 @@
          if (ktherm == 2 .and. zqsn(k) > -rhos * Lfresh) then
             dhs = max(-dzs(k), &
                 -((zqsn(k) + rhos*Lfresh) / (rhos*Lfresh)) * dzs(k))
+
+            mass = massice(k) + massliq(k)
+            massi = c0
+            if (dzs(k) > puny) massi = max(c0, c1 + dhs/dzs(k))
+            massice(k) = massice(k) * massi
+            massliq(k) = mass - massice(k) ! conserve mass
+
             dzs(k) = dzs(k) + dhs      ! dhs < 0
             zqsn(k) = -rhos * Lfresh
             melts = melts - dhs
             ! delta E = zqsn(k) + rhos * Lfresh
-            mass = smicetot(k) + smliqtot(k)
-            smicetot(k) = smice(k)*dzs(k)
-            smliqtot(k) = mass - smicetot(k)
          endif
 
          !--------------------------------------------------------------
@@ -1359,25 +1379,34 @@
 
          qsub = zqsn(k) - rhos*Lvap ! qsub < 0
          dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
+
+         mass  = massice(1) + massliq(1)
+         massi = c0
+         if (dzs(k) > puny) massi = c1 + dhs/dzs(k)
+         massice(k) = massice(k) * massi
+         massliq(k) = max(c0, mass + rhos*dhs - massice(k)) ! conserve new total mass
+
          dzs(k) = dzs(k) + dhs
          esub = esub - dhs*qsub
          esub = max(esub, c0)   ! in case of roundoff error
          evapn  = evapn  + dhs*rhos
          evapsn = evapsn + dhs*rhos
-         smicetot(k) = smice(k)*dzs(k) ! assume both ice and
-         smliqtot(k) = smliq(k)*dzs(k) ! liquid sublimate
 
          !--------------------------------------------------------------
          ! Melt snow (top)
          !--------------------------------------------------------------
 
          dhs = max(-dzs(k), etop_mlt/zqsn(k))
+
+         mass = massice(k) + massliq(k)
+         massi = c0
+         if (dzs(k) > puny) massi = max(c0, c1 + dhs/dzs(k))
+         massice(k) = massice(k) * massi
+         massliq(k) = mass - massice(k) ! conserve mass
+
          dzs(k) = dzs(k) + dhs         ! zqsn < 0, dhs < 0
          etop_mlt = etop_mlt - dhs*zqsn(k)
          etop_mlt = max(etop_mlt, c0) ! in case of roundoff error
-         mass = smicetot(k) + smliqtot(k)
-         smicetot(k) = smice(k)*dzs(k)
-         smliqtot(k) = mass - smicetot(k)
 
          ! history diagnostics
          if (dhs < -puny .and. mlt_onset < puny) &
@@ -1452,14 +1481,17 @@
          !--------------------------------------------------------------
          
          dhs = max(-dzs(k), ebot_mlt/zqsn(k))
+
+         mass = massice(k) + massliq(k)
+         massi = c0
+         if (dzs(k) > puny) massi = max(c0, c1 + dhs/dzs(k))
+         massice(k) = massice(k) * massi
+         massliq(k) = mass - massice(k) ! conserve mass
+
          dzs(k) = dzs(k) + dhs         ! zqsn < 0, dhs < 0
          ebot_mlt = ebot_mlt - dhs*zqsn(k)
          ebot_mlt = max(ebot_mlt, c0)
          melts = melts - dhs
-         mass = smicetot(k) + smliqtot(k)
-         smicetot(k) = smice(k)*dzs(k)
-         smliqtot(k) = mass - smicetot(k)
-
       enddo                     ! nslyr
 
       !-----------------------------------------------------------------
@@ -1470,18 +1502,15 @@
       fhocnn = fbot &
              + (esub + etop_mlt + ebot_mlt)/dt
 
-!---!-----------------------------------------------------------------
-!---! Add new snowfall at top surface.
-!---!-----------------------------------------------------------------
-
-      !----------------------------------------------------------------
+    !-----------------------------------------------------------------
+    ! Add new snowfall at top surface
+    !----------------------------------------------------------------
       ! NOTE: If heat flux diagnostics are to work, new snow should
       !       have T = 0 (i.e. q = -rhos*Lfresh) and should not be
       !       converted to rain.
       !----------------------------------------------------------------
 
       if (fsnow > c0) then
-
          hsn_new = fsnow/rhos * dt
          zqsnew = -rhos*Lfresh
          hstot = dzs(1) + hsn_new
@@ -1491,15 +1520,15 @@
                     + hsn_new * zqsnew) / hstot
             zqsn(1) = min(zqsn(1), zqsnew) ! avoid roundoff errors
             dzs(1) = hstot
-            smicetot(1) = smice(1)*dzs(1) ! no change to smliqtot
+            massice(1) = massice(1) + fsnow*dt
          endif
       endif
 
-!---!-----------------------------------------------------------------
-!---! Add rain at top surface (only to liquid tracer)
-!---!-----------------------------------------------------------------
+    !-----------------------------------------------------------------
+    ! Add rain at top surface (only to liquid tracer)
+    !-----------------------------------------------------------------
 
-      smliqtot(1) = smliqtot(1) + frain*dt
+      massliq(1) = massliq(1) + frain*dt
 
     !-----------------------------------------------------------------
     ! Find the new ice and snow thicknesses.
@@ -1538,26 +1567,26 @@
                          zqin,     zqsn,         &
                          dzi,      dzs,          &
                          dsnow,                  &
-                         smice,    smliq,        &
-                         smicetot, smliqtot)
+                         smice,    massice,      &
+                         smliq,    massliq)
          if (icepack_warnings_aborted(subname)) return
 
     !-------------------------------------------------------------------
-    ! Update snow mass tracers, smice and smliq, for uneven layers
+    ! Update snow mass tracers for uneven layers
     !-------------------------------------------------------------------
 
       if (snwgrain) then
 
          do k = 1, nslyr
-            meltsliq    = meltsliq + smliqtot(k)  ! total liquid (in case all snow melted)
-            if (dzs(k) > c0) then
-               smice(k) = smicetot(k) / dzs(k)
-               smliq(k) = smliqtot(k) / dzs(k)
+            meltsliq   = meltsliq + massliq(k) ! used in drain_snow when all snow has melted
+            if (dzs(k) > puny) then
+               smice(k) = massice(k) / dzs(k)
+               smliq(k) = massliq(k) / dzs(k)
             else
-               smicetot(k) = c0
-               smliqtot(k) = c0
                smice(k) = c0
                smliq(k) = c0
+               massice(k) = c0
+               massliq(k) = c0
             endif
          enddo
 
@@ -1566,32 +1595,38 @@
     !-------------------------------------------------------------------
 
          do k = 1, nslyr
-            if (smicetot(k) < -puny) then
-               if (smicetot(k) > -puny) then
-                  smicetot(k) = c0
-                  smice(k) = c0
+            if (massice(k) < c0) then
+               if (massice(k) > -puny) then
+                   massice(k) = c0
                else
                   call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                   call icepack_warnings_add(subname//" Snow: ice mass tracer error" )
-                  write(warnstr,*) subname, ' negative smicetot', k,smicetot(k)
+                  write(warnstr,*) subname, ' negative massice', k,massice(k)
                   call icepack_warnings_add(warnstr)
                   write(warnstr,*) subname, ' dzs, smice', k,dzs(k), smice(k)
                   call icepack_warnings_add(warnstr)
                endif
             endif
-            if (smliqtot(k) < c0) then
-               if (smliqtot(k) > -puny) then
-                  smliqtot(k) = c0
-                  smliq(k) = c0
+            if (massliq(k) < c0) then
+               if (massliq(k) > -puny) then
+                   massliq(k) = c0
                else
                   call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                   call icepack_warnings_add(subname//" Snow: liquid mass tracer error" )
-                  write(warnstr,*) subname, ' negative smliqtot', k,smliqtot(k)
+                  write(warnstr,*) subname, ' negative massliq', k,massliq(k)
                   call icepack_warnings_add(warnstr)
                   write(warnstr,*) subname, ' dzs, smliq', k,dzs(k), smliq(k)
                   call icepack_warnings_add(warnstr)
                endif
             endif
+            if (smice(k) > rhofresh) then
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//" Snow: large density " )
+                  write(warnstr,*) subname, ' large massice', k,massice(k)
+                  call icepack_warnings_add(warnstr)
+                  write(warnstr,*) subname, ' dzs, smice', k,dzs(k), smice(k)
+                  call icepack_warnings_add(warnstr)
+               endif
          enddo
 
       endif ! snwgrain
@@ -1693,16 +1728,27 @@
                                   zs1(:),   zs2(:),   &
                                   hslyr,    hsn,      &
                                   rsnw(:))
-            call adjust_enthalpy (nslyr,              &
-                                  zs1(:),   zs2(:),   &
+            call adjust_enthalpy (nslyr,              & ! need a routine to adjust
+                                  zs1(:),   zs2(:),   & ! mass instead of tracer
                                   hslyr,    hsn,      &
                                   smice(:))
             call adjust_enthalpy (nslyr,              &
                                   zs1(:),   zs2(:),   &
                                   hslyr,    hsn,      &
                                   smliq(:))
-        endif
-        if (icepack_warnings_aborted(subname)) return
+         endif
+         if (icepack_warnings_aborted(subname)) return
+
+      !-------------------------------------------------------------------
+      ! Update snow mass
+      !-------------------------------------------------------------------
+
+         if (snwgrain) then
+            do k = 1, nslyr
+               massice(k) = smice(k) * hslyr
+               massliq(k) = smliq(k) * hslyr
+            enddo
+         endif
 
       endif   ! nslyr > 1
 
@@ -1711,19 +1757,19 @@
       !-----------------------------------------------------------------
 
       if (ktherm == 2) then
-         do k = 1, nslyr
-            if (hsn <= puny) then
+         if (hsn <= puny) then
+            do k = 1, nslyr
                fhocnn = fhocnn &
                       + zqsn(k)*hsn/(real(nslyr,kind=dbl_kind)*dt)
                zqsn(k) = -rhos*Lfresh
                if (snwgrain) then
-                  meltsliq = meltsliq + smicetot(k)  ! add to meltponds
+                  meltsliq = meltsliq + massice(k)  ! add to meltponds
                   smice(k) = c0
                   smliq(k) = c0
                endif
-               hslyr = c0
-            endif
-         enddo
+            enddo
+            hslyr = c0
+         endif
       endif
 
       !-----------------------------------------------------------------
@@ -1770,8 +1816,8 @@
                             zqin,     zqsn,     &
                             dzi,      dzs,      &
                             dsnow,              &
-                            smice,    smliq,    &
-                            smicetot, smliqtot)
+                            smice,    massice,  &
+                            smliq,    massliq)
 
       integer (kind=int_kind), intent(in) :: &
          nslyr     ! number of snow layers
@@ -1799,8 +1845,8 @@
          zqin     , & ! ice layer enthalpy (J m-3)
          dzi      , & ! ice layer thicknesses (m)
          dzs      , & ! snow layer thicknesses (m)
-         smicetot , & ! total ice mass of snow in each layer (kg/m^2)
-         smliqtot     ! total liquid mass of snow in each layer (kg/m^2)
+         massice  , & ! total ice mass of snow in each layer (kg/m^2)
+         massliq      ! total liquid mass of snow in each layer (kg/m^2)
 
       ! local variables
 
@@ -1814,7 +1860,9 @@
 
       real (kind=dbl_kind) :: &
          wk1         , & ! temporary variable
-         dhs             ! snow to remove from layer (m)
+         dhs         , & ! snow to remove from layer (m)
+         mass        , & ! total snow mass from tracers (kg/m^2)
+         massi           ! mass change factor
 
       character(len=*),parameter :: subname='(freeboard)'
 
@@ -1843,13 +1891,20 @@
             dhs = min(dhsn, dzs(k)) ! snow to remove from layer
             hsn = hsn - dhs
             dsnow = dsnow - dhs   ! new snow
+
+            ! remove both ice and liquid from snow to add to ice
+            mass = massice(k) + massliq(k)
+            massi = c0
+            if (dzs(k) > puny) massi = max(c0, c1 - dhs/dzs(k))
+            massice(k) = massice(k) * massi
+            massliq(k) = massliq(k) * massi
+!            massice(k) = max(c0, massice(k)) ! for roundoff
+!            massliq(k) = max(c0, massliq(k)) ! for roundoff
+
             dzs(k) = dzs(k) - dhs
             dhsn = dhsn - dhs
             dhsn = max(dhsn,c0)
             hqs = hqs + dhs * zqsn(k)
-            ! remove both ice and liquid from snow to add to ice
-            smicetot(k) = smice(k)*dzs(k)
-            smliqtot(k) = smliq(k)*dzs(k)
          endif               ! dhin > puny
       enddo
 
@@ -2344,9 +2399,11 @@
       ! local variables
 
       integer (kind=int_kind) :: &
+         k           , & ! layer index
          n               ! category index
 
       real (kind=dbl_kind) :: &
+         rnslyr      , & ! 1 / nslyr
          worka, workb    ! temporary variables
 
       ! 2D coupler variables (computed for each category, then aggregated)
@@ -2368,6 +2425,10 @@
          shcoef      , & ! transfer coefficient for sensible heat
          lhcoef      , & ! transfer coefficient for latent heat
          rfrac           ! water fraction retained for melt ponds
+
+      real (kind=dbl_kind), dimension(nslyr,ncat) :: &
+         massicen    , & ! mass of ice in snow (kg/m^2)
+         massliqn        ! mass of liquid in snow (kg/m^2)
 
       real (kind=dbl_kind), dimension(n_iso) :: &
          Qrefn_iso  , & ! isotope air sp hum reference level         (kg/kg)
@@ -2551,6 +2612,22 @@
       endif ! snwredist
 
       !-----------------------------------------------------------------
+      ! solid and liquid components of snow mass
+      !-----------------------------------------------------------------
+
+      massicen(:,:) = c0
+      massliqn(:,:) = c0
+      if (tr_snow) then
+         rnslyr = c1 / real(nslyr, dbl_kind)
+         do n = 1, ncat
+            do k = 1, nslyr
+               massicen(k,n) = l_smice(k,n) * vsnon(n) * rnslyr ! kg/m^2
+               massliqn(k,n) = l_smliq(k,n) * vsnon(n) * rnslyr
+            enddo
+         enddo
+      endif
+
+      !-----------------------------------------------------------------
       ! Adjust frzmlt to account for ice-ocean heat fluxes since last
       !  call to coupler.
       ! Compute lateral and bottom heat fluxes.
@@ -2596,7 +2673,6 @@
       endif
 
       do n = 1, ncat
-
          meltsn (n) = c0
          melttn (n) = c0
          meltbn (n) = c0
@@ -2720,14 +2796,16 @@
                                  fhocnn=fhocnn,       frain=frain,            &
                                  meltt=melttn    (n), melts=meltsn   (n),     &
                                  meltb=meltbn    (n), meltsliq=l_meltsliq(n), &
-                                 smice=l_smice (:,n), smliq=l_smliq (:,n),    &
+                                 smice=l_smice (:,n), massice=massicen(:,n),  &
+                                 smliq=l_smliq (:,n), massliq=massliqn(:,n),  &
                                  congel=congeln  (n), snoice=snoicen  (n),    &
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,    &
                                  yday=yday,           dsnow=dsnown   (n),     &
                                  prescribed_ice=prescribed_ice)
 
             if (icepack_warnings_aborted(subname)) then
-               call icepack_warnings_add(subname//' ice: Vertical thermo error: ')
+               write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
+               call icepack_warnings_add(warnstr)
                return
             endif
 
@@ -2776,13 +2854,17 @@
                                     H2_18O_ocn=l_H2_18O_ocn)
                if (icepack_warnings_aborted(subname)) return
             endif
+
          endif   ! aicen_init
 
          if (snwgrain .and. use_smliq_pnd) then
-            call drain_snow (dt = dt,               nslyr = nslyr, &
-                             vsnon = vsnon(n),      aicen = aicen(n), &
-                             smice = l_smice(:,n), smliq = l_smliq(:,n), &
+            call drain_snow (nslyr = nslyr, &
+                             vsnon = vsnon(n), &
+                             aicen = aicen(n), &
+                             massice = massicen(:,n), &
+                             massliq = massliqn(:,n), &
                              meltsliq = l_meltsliq(n))
+            if (icepack_warnings_aborted(subname)) return
          endif
 
       !-----------------------------------------------------------------
@@ -2926,6 +3008,31 @@
          if (icepack_warnings_aborted(subname)) return
 
       enddo                  ! ncat
+
+      !-----------------------------------------------------------------
+      ! reload snow mass tracers
+      !-----------------------------------------------------------------
+
+      if (tr_snow) then
+         do n = 1, ncat
+            if (vsnon(n) > puny) then
+               do k = 1, nslyr
+                  l_smice(k,n) = massicen(k,n) / (vsnon(n) * rnslyr)
+                  l_smliq(k,n) = massliqn(k,n) / (vsnon(n) * rnslyr)
+                  worka = l_smice(k,n) + l_smliq(k,n)
+                  if (worka > puny) then
+                     l_smice(k,n) = rhos * l_smice(k,n) / worka
+                     l_smliq(k,n) = rhos * l_smliq(k,n) / worka
+                  endif
+               enddo
+            else ! reset to default values
+               do k = 1, nslyr
+                  l_smice(k,n) = rhos
+                  l_smliq(k,n) = c0
+               enddo
+            endif
+         enddo
+      endif
 
       if (present(fsloss      )) fsloss       = l_fsloss
       if (present(isosno      )) isosno       = l_isosno
