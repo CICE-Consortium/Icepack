@@ -122,17 +122,19 @@
 
       logical (kind=log_kind) :: &
          l_print_point, & ! flag to print designated grid point diagnostics
-         dEdd_algae,    & ! from icepack
-         modal_aero       ! from icepack
+         dEdd_algae,    & ! BGC - radiation interactions
+         modal_aero,    & ! modal aerosol optical properties
+         snwgrain         ! use variable snow grain size
 
       character (len=char_len) :: &
-         shortwave        ! from icepack
+         shortwave        ! shortwave formulation
 
       real (kind=dbl_kind), dimension(ncat) :: &
          fbri             ! brine height to ice thickness
 
       real (kind=dbl_kind), allocatable, dimension(:,:) :: &
-         ztrcr_sw
+         rsnow        , & ! snow grain radius
+         ztrcr_sw         ! BGC tracers affecting radiation
 
       logical (kind=log_kind) :: tr_brine, tr_zaero, tr_bgc_N
       integer (kind=int_kind) :: nt_alvl, nt_apnd, nt_hpnd, nt_ipnd, nt_aero, &
@@ -152,6 +154,7 @@
          call icepack_query_parameters(shortwave_out=shortwave)
          call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
          call icepack_query_parameters(modal_aero_out=modal_aero)
+         call icepack_query_parameters(snwgrain_out=snwgrain)
          call icepack_query_tracer_sizes(ntrcr_out=ntrcr, &
               nbtrcr_sw_out=nbtrcr_sw)
          call icepack_query_tracer_flags(tr_brine_out=tr_brine, &
@@ -171,6 +174,7 @@
       ! Initialize
       !-----------------------------------------------------------------
 
+         allocate(rsnow(nslyr,ncat))
          allocate(ztrcr_sw(nbtrcr_sw, ncat))
 
          fswpenln(:,:,:) = c0
@@ -224,10 +228,12 @@
                   call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
             endif
 
-            fbri(:) = c0
-            ztrcr_sw(:,:) = c0
+            fbri       (:) = c0
+            rsnow    (:,:) = c0
+            ztrcr_sw (:,:) = c0
             do n = 1, ncat
-               if (tr_brine)  fbri(n) = trcrn(i,nt_fbri,n)
+              if (tr_brine) fbri    (n) = trcrn(i,nt_fbri,n)
+              if (snwgrain) rsnow (:,n) = trcrn(i,nt_rsnw:nt_rsnw+nslyr-1,n)
             enddo
 
             if (tmask(i)) then
@@ -277,7 +283,7 @@
                          albpndn=albpndn(i,:),   apeffn=apeffn(i,:),       &
                          snowfracn=snowfracn(i,:),                         &
                          dhsn=dhsn(i,:),         ffracn=ffracn(i,:),       &
-                         rsnow=trcrn(i,nt_rsnw:nt_rsnw+nslyr-1,:),            &
+                         rsnow=rsnow(:,:),                                 &
 !history                         rsnw_dEddn=rsnw_dEddn(i,:), &
                          l_print_point=l_print_point,                      &
                          initonly = .true.)
@@ -352,6 +358,7 @@
 
          enddo ! i
 
+         deallocate(rsnow)
          deallocate(ztrcr_sw)
 
       end subroutine init_shortwave

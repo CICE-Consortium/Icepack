@@ -960,13 +960,14 @@
          nlt_zaero_sw, nt_zaero, nt_bgc_N
 
       logical (kind=log_kind) :: &
-         tr_bgc_N, tr_zaero, tr_brine, dEdd_algae, modal_aero
+         tr_bgc_N, tr_zaero, tr_brine, dEdd_algae, modal_aero, snwgrain
 
       real (kind=dbl_kind), dimension(ncat) :: &
-         fbri                 ! brine height to ice thickness
+         fbri               ! brine height to ice thickness
 
       real(kind= dbl_kind), dimension(:,:), allocatable :: &
-         ztrcr_sw
+         rsnow          , & ! snow grain radius
+         ztrcr_sw           ! BGC tracers affecting radiation
 
       logical (kind=log_kind) :: &
          l_print_point      ! flag for printing debugging information
@@ -1007,23 +1008,27 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call icepack_query_parameters(dEdd_algae_out=dEdd_algae, modal_aero_out=modal_aero)
+      call icepack_query_parameters(dEdd_algae_out=dEdd_algae, modal_aero_out=modal_aero, &
+           snwgrain_out=snwgrain)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
       !-----------------------------------------------------------------
 
+      allocate(rsnow(nslyr,ncat))
       allocate(ztrcr_sw(nbtrcr_sw,ncat))
 
       l_print_point = .false.
 
       do i = 1, nx
 
-         fbri(:) = c0
-         ztrcr_sw(:,:) = c0
+         fbri       (:) = c0
+         rsnow    (:,:) = c0
+         ztrcr_sw (:,:) = c0
          do n = 1, ncat
-           if (tr_brine)  fbri(n) = trcrn(i,nt_fbri,n)
+           if (tr_brine) fbri    (n) = trcrn(i,nt_fbri,n)
+           if (snwgrain) rsnow (:,n) = trcrn(i,nt_rsnw:nt_rsnw+nslyr-1,n)
          enddo
 
          if (tmask(i)) then
@@ -1069,7 +1074,7 @@
                          albpndn=albpndn(i,:),      apeffn=apeffn(i,:),       &
                          snowfracn=snowfracn(i,:),                            &
                          dhsn=dhsn(i,:),            ffracn=ffracn(i,:),       &
-                         rsnow=trcrn(i,nt_rsnw:nt_rsnw+nslyr-1,:),            &
+                         rsnow=rsnow(:,:),                                    &
 !history                         rsnw_dEddn=rsnw_dEddn(i,:), &
                          l_print_point=l_print_point)
 
@@ -1088,6 +1093,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
 
+      deallocate(rsnow)
       deallocate(ztrcr_sw)
       deallocate(nlt_zaero_sw)
       deallocate(nt_zaero)
