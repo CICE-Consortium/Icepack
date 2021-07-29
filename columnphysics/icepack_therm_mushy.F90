@@ -1,6 +1,6 @@
 !=======================================================================
 
-module icepack_therm_mushy
+  module icepack_therm_mushy
 
   use icepack_kinds
   use icepack_parameters, only: c0, c1, c2, c8, c10
@@ -35,7 +35,7 @@ module icepack_therm_mushy
 
 !=======================================================================
 
-contains
+  contains
 
 !=======================================================================
 
@@ -3282,7 +3282,7 @@ contains
 
 ! for now, do not use variable snow density
 !       snow_mass = c0
-!       if (tr_snow) then
+!       if (snwgrain) then
 !          do k = 1,nslyr
 !             snow_mass = snow_mass + (smice(k) + smliq(k)) * hslyr
 !          enddo
@@ -3569,6 +3569,6 @@ contains
 
 !=======================================================================
 
-end module icepack_therm_mushy
+  end module icepack_therm_mushy
 
 !=======================================================================

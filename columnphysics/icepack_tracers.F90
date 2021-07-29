@@ -7,7 +7,7 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, puny, Tocnfrz
+      use icepack_parameters, only: c0, c1, puny, Tocnfrz, rhos, rsnw_fall
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -1204,10 +1204,10 @@
 ! Given atrcrn = aicen*trcrn (or vicen*trcrn, vsnon*trcrn), compute trcrn.
 
       subroutine icepack_compute_tracers (ntrcr,     trcr_depend,    &
-                                         atrcrn,    aicen,          &
-                                         vicen,     vsnon,          &
-                                         trcr_base, n_trcr_strata,  &
-                                         nt_strata, trcrn)
+                                          atrcrn,    aicen,          &
+                                          vicen,     vsnon,          &
+                                          trcr_base, n_trcr_strata,  &
+                                          nt_strata, trcrn)
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr                 ! number of tracers in use
@@ -1288,13 +1288,18 @@
                   endif
                enddo
             endif
-            if (vicen <= c0 .and. it == nt_fbri) trcrn(it) = c1
 
          endif ! trcr_depend=0
 
       enddo
 
-    end subroutine icepack_compute_tracers
+      if (vicen <= c0 .and. tr_brine) trcrn(nt_fbri) = c1
+      if (vsnon <= c0 .and. tr_snow) then
+         trcrn(nt_rsnw :nt_rsnw +nslyr-1) = rsnw_fall
+         trcrn(nt_smice:nt_smice+nslyr-1) = rhos
+      endif
+
+      end subroutine icepack_compute_tracers
 
 !=======================================================================
 

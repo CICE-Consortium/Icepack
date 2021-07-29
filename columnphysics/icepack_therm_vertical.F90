@@ -1567,8 +1567,7 @@
                          zqin,     zqsn,         &
                          dzi,      dzs,          &
                          dsnow,                  &
-                         smice,    massice,      &
-                         smliq,    massliq)
+                         massice,  massliq)
          if (icepack_warnings_aborted(subname)) return
 
     !-------------------------------------------------------------------
@@ -1583,7 +1582,7 @@
                smice(k) = massice(k) / dzs(k)
                smliq(k) = massliq(k) / dzs(k)
             else
-               smice(k) = c0
+               smice(k) = c0 ! reset to rhos below
                smliq(k) = c0
                massice(k) = c0
                massliq(k) = c0
@@ -1736,19 +1735,13 @@
                                   zs1(:),   zs2(:),   &
                                   hslyr,    hsn,      &
                                   smliq(:))
-         endif
-         if (icepack_warnings_aborted(subname)) return
-
-      !-------------------------------------------------------------------
-      ! Update snow mass
-      !-------------------------------------------------------------------
-
-         if (snwgrain) then
+            ! Update snow mass
             do k = 1, nslyr
                massice(k) = smice(k) * hslyr
                massliq(k) = smliq(k) * hslyr
             enddo
          endif
+         if (icepack_warnings_aborted(subname)) return
 
       endif   ! nslyr > 1
 
@@ -1764,7 +1757,7 @@
                zqsn(k) = -rhos*Lfresh
                if (snwgrain) then
                   meltsliq = meltsliq + massice(k)  ! add to meltponds
-                  smice(k) = c0
+                  smice(k) = rhos
                   smliq(k) = c0
                endif
             enddo
@@ -1816,8 +1809,7 @@
                             zqin,     zqsn,     &
                             dzi,      dzs,      &
                             dsnow,              &
-                            smice,    massice,  &
-                            smliq,    massliq)
+                            massice,  massliq)
 
       integer (kind=int_kind), intent(in) :: &
          nslyr     ! number of snow layers
@@ -1837,9 +1829,7 @@
          hsn         ! snow thickness (m)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         zqsn    , & ! snow layer enthalpy (J m-3)
-         smice   , & ! liquid water mass tracer in snow (kg/m^3)
-         smliq       ! ice mass tracer in snow (kg/m^3)
+         zqsn        ! snow layer enthalpy (J m-3)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          zqin     , & ! ice layer enthalpy (J m-3)
@@ -1874,7 +1864,7 @@
       dhsn = c0
       hqs  = c0
 
-      wk1 = hsn - hin*(rhow-rhoi)/rhos  ! not yet consistent with smice/smliq !echmod - fix this
+      wk1 = hsn - hin*(rhow-rhoi)/rhos  ! not yet consistent with smice/smliq
 
       if (wk1 > puny .and. hsn > puny) then  ! snow below freeboard
          dhsn = min(wk1*rhoi/rhow, hsn) ! snow to remove
@@ -2617,7 +2607,7 @@
 
       massicen(:,:) = c0
       massliqn(:,:) = c0
-      if (tr_snow) then
+      if (snwgrain) then
          rnslyr = c1 / real(nslyr, dbl_kind)
          do n = 1, ncat
             do k = 1, nslyr
@@ -3013,7 +3003,7 @@
       ! reload snow mass tracers
       !-----------------------------------------------------------------
 
-      if (tr_snow) then
+      if (snwgrain) then
          do n = 1, ncat
             if (vsnon(n) > puny) then
                do k = 1, nslyr
