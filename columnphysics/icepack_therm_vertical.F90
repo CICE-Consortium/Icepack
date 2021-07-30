@@ -2597,8 +2597,8 @@
             worka = worka + alvl(n)
          enddo
          worka  = worka * snwlvlfac/(c1+snwlvlfac)
-         l_fsloss = l_fsloss + fsnow*(c1-worka)
-         fsnow    =            fsnow*    worka
+         l_fsloss = l_fsloss + fsnow*    worka
+         fsnow    =            fsnow*(c1-worka)
       endif ! snwredist
 
       !-----------------------------------------------------------------
