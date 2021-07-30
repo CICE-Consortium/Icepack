@@ -1030,33 +1030,27 @@
                fsn = min(fsn, c1-fpn)
                apeffn(n) = fpn ! for history
             elseif (tr_pond_lvl) then
-
                hsnlvl = hsn ! initialize
-!               if (trim(snwredist) == 'bulksw') then
-!                  ! This option is here for testing purposes only.
-!                  ! It assumes a fraction of the snow is moved from level ice to ridges,
-!                  ! but only the snow depth over the level ice is used for the radiative calculation.
-!                  ! Since the deeper snow on the ridged area is not accounted for, this option is
-!                  ! internally inconsistent.
-!                  hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
-!                  ! snow volume over level ice
-!                  alvl = aicen(n) * alvln(n)
-!                  if (alvl > puny) then
-!                     vsn = hsnlvl * alvl
-!                  else
-!                     vsn = vsnon(n)
-!                     alvl = aicen(n)
-!                  endif
-!                  ! set snow properties over level ice
-!                  call shortwave_dEdd_set_snow(nslyr,      R_snw,    &
-!                                               dT_mlt,     rsnw_mlt, &
-!                                               alvl,       vsn,      &
-!                                               Tsfcn(n),   fsn,      &
-!                                               hs0,        hsnlvl,   &
-!                                               rhosnwn(:), rsnwn(:), &
-!                                               rsnow(:,n))
-!                  if (icepack_warnings_aborted(subname)) return
-!               endif ! snwredist
+               if (trim(snwredist) == 'bulk') then
+                  hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
+                  ! snow volume over level ice
+                  alvl = aicen(n) * alvln(n)
+                  if (alvl > puny) then
+                     vsn = hsnlvl * alvl
+                  else
+                     vsn = vsnon(n)
+                     alvl = aicen(n)
+                  endif
+                  ! set snow properties over level ice
+                  call shortwave_dEdd_set_snow(nslyr,      R_snw,    &
+                                               dT_mlt,     rsnw_mlt, &
+                                               alvl,       vsn,      &
+                                               Tsfcn(n),   fsn,      &
+                                               hs0,        hsnlvl,   &
+                                               rhosnwn(:), rsnwn(:), &
+                                               rsnow(:,n))
+                  if (icepack_warnings_aborted(subname)) return
+               endif ! snwredist
 
                fpn = c0  ! fraction of ice covered in pond
                hpn = c0  ! pond depth over fpn

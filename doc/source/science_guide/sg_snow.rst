@@ -40,14 +40,14 @@ Bulk snow redistribution
 
 :cite:`Sturm02` noted that on average during the SHEBA experiment, snow near ridged ice was 30% deeper than snow on undeformed ice. Using this rule of thumb, we can reduce the amount of snow on level ice in the model by reducing the snowfall rate over the sea ice and assuming the removed snow volume passes into the ocean through leads, instantaneously. This approach takes into account the area of open water available, as in the original code, by employing a precipitation flux in units of kg m :math:`^{-2}` s :math:`^{-1}`, which accumulates snow only on the ice-covered area of the grid cell.
       
-There are two levels of sophistication at which this approach can be accomplished: (1) assuming the snow removed from the level ice area is deposited into leads, and (2) assuming the snow removed from the level ice area is deposited onto ridges. Case (1) affects both the radiative and thermodynamic calculations by reducing the total amount of snow on the ice. Case (2) affects the radiative calculation directly, by possibly exposing more bare ice or melt ponds, but it affects the thermodynamic (conduction) calculation only through the altered radiative absorption, since the snow is always assumed to be equally deep over both level and deformed ice for the thermodynamic calculation.
+This approach affects the simulation in two ways: (1) the snow removed from the level ice area is deposited into leads, and (2) using the snow remaining on the level ice area to adjust the effective melt pond and bare ice areas. Case (1) affects both the radiative and thermodynamic calculations by reducing the total amount of snow on the ice. Case (2) affects the radiative calculation directly, by possibly exposing more bare ice or melt ponds, but it affects the thermodynamic (conduction) calculation only through the altered radiative absorption, since the snow is always assumed to be equally deep over both level and deformed ice for the thermodynamic calculation.
 
 When ``snwredist`` = ``bulk``, snow loss to leads is accomplished simply by reducing the volume of snowfall reaching the ice:
 
 .. math::
-   f_{s}^\prime = {f_s a_{lvl} \left({p\over{1+p}}\right)},
+   f_{s}^\prime = {f_s \left[ a_{lvl} \left({p\over{1+p}}\right)\right]},
 
-where :math:`f_s` is the snowfall rate, :math:`a_{lvl}` is the level-ice tracer value, and primed quantities represent their modified values.
+where :math:`f_s` is the snowfall rate, :math:`a_{lvl}` is the average level-ice tracer value, and primed quantities represent their modified values.
 
 Snow is redistributed between level and ridged ice within a single thickness category by solving a pair of equations for the modified level- and ridged-ice snow depths in terms of the original snow depth:
 

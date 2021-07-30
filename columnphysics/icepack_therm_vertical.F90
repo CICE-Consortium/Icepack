@@ -2305,7 +2305,7 @@
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
          dsnow       , & ! change in snow depth     (m/step-->cm/day)
-         fsloss          ! fraction of snow lost to leads
+         fsloss          ! rate of snow loss to leads (kg/m^2/s)
 
       real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
          Qa_iso      , & ! isotope specific humidity (kg/kg)
@@ -2443,7 +2443,7 @@
          l_smliq         ! tracer for mass of liquid in snow (kg/m^3)
 
       real (kind=dbl_kind)  :: &
-         l_fsloss    , & ! fraction of snow lost to leads
+         l_fsloss    , & ! rate of snow loss to leads (kg/m^2/s)
          l_HDO_ocn   , & ! local ocean concentration of HDO (kg/kg)
          l_H2_16O_ocn, & ! local ocean concentration of H2_16O (kg/kg)
          l_H2_18O_ocn    ! local ocean concentration of H2_18O (kg/kg)
@@ -2593,10 +2593,12 @@
 
       if (trim(snwredist) == 'bulk') then
          worka = c0
-         do n = 1, ncat
-            worka = worka + alvl(n)
-         enddo
-         worka  = worka * snwlvlfac/(c1+snwlvlfac)
+         if (aice > puny) then
+            do n = 1, ncat
+               worka = worka + alvl(n)*aicen(n)
+            enddo
+            worka  = worka * (snwlvlfac/(c1+snwlvlfac)) / aice
+         endif
          l_fsloss = l_fsloss + fsnow*    worka
          fsnow    =            fsnow*(c1-worka)
       endif ! snwredist
