@@ -510,9 +510,9 @@
          de        , & ! change in energy (J/m^2)
          al, ar    , & ! areas of level and ridged ice
          hlvl, hrdg, & ! thicknesses of level and ridged ice
-         tmp1, tmp2, &          ! temporary values
-         tmp3, tmp4, &          ! temporary values
-         tmp5      , &          ! temporary values
+         tmp1, tmp2, & ! temporary values
+         tmp3, tmp4, & ! temporary values
+         tmp5      , & ! temporary values
          work          ! temporary value
 
       real (kind=dbl_kind), dimension(ncat) :: &
@@ -615,7 +615,7 @@
       !-----------------------------------------------------------------
 
       flost = (c1 - suma) * exp(-ITDsd/refsd)
-!echmod      flost = c0
+!      flost = c0 ! echmod for testing
       alost =  c1 - suma  * (c1-flost)
 
       !-----------------------------------------------------------------

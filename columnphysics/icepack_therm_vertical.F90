@@ -29,7 +29,7 @@
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
-      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow
+      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
       use icepack_tracers, only: n_aero, n_iso
 
       use icepack_therm_shared, only: ferrmax, l_brine

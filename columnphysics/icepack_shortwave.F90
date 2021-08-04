@@ -990,7 +990,7 @@
 
       do n = 1, ncat
 
-      ! note that rhoswn, rsnw, fp, hp and Sswabs ARE NOT dimensioned with ncat
+      ! note that rhosnwn, rsnw, fp, hp and Sswabs ARE NOT dimensioned with ncat
       ! BPB 19 Dec 2006
 
          ! set snow properties
@@ -3667,31 +3667,31 @@
       
       if (snwgrain) then  ! use snow grain tracer
 
-          do ks = 1, nslyr
+         do ks = 1, nslyr
             rsnw(ks)   = max(rsnw_fall,rsnow(ks))
             rsnw(ks)   = min(rsnw_tmax,rsnow(ks))
             rhosnw(ks) = rhos
-          enddo
+         enddo
 
       else
 
-      ! bare ice, temperature dependence
-      dTs = Timelt - Tsfc
-      fT  = -min(dTs/dT_mlt-c1,c0)
-      ! tune nonmelt snow grain radius if desired: note that
-      ! the sign is negative so that if R_snw is 1, then the
-      ! snow grain radius is reduced and thus albedo increased.
-      rsnw_nm = rsnw_nonmelt - R_snw*rsnw_sig
-      rsnw_nm = max(rsnw_nm, rsnw_fresh)
-      rsnw_nm = min(rsnw_nm, rsnw_mlt) 
-      do ks = 1, nslyr
-         ! snow density ccsm3 constant value
-         rhosnw(ks) = rhos
-         ! snow grain radius between rsnw_nonmelt and rsnw_mlt
-         rsnw(ks) = rsnw_nm + (rsnw_mlt-rsnw_nm)*fT
-         rsnw(ks) = max(rsnw(ks), rsnw_fresh)
-         rsnw(ks) = min(rsnw(ks), rsnw_mlt)
-      enddo ! ks
+         ! bare ice, temperature dependence
+         dTs = Timelt - Tsfc
+         fT  = -min(dTs/dT_mlt-c1,c0)
+         ! tune nonmelt snow grain radius if desired: note that
+         ! the sign is negative so that if R_snw is 1, then the
+         ! snow grain radius is reduced and thus albedo increased.
+         rsnw_nm = rsnw_nonmelt - R_snw*rsnw_sig
+         rsnw_nm = max(rsnw_nm, rsnw_fresh)
+         rsnw_nm = min(rsnw_nm, rsnw_mlt)
+         do ks = 1, nslyr
+            ! snow density ccsm3 constant value
+            rhosnw(ks) = rhos
+            ! snow grain radius between rsnw_nonmelt and rsnw_mlt
+            rsnw(ks) = rsnw_nm + (rsnw_mlt-rsnw_nm)*fT
+            rsnw(ks) = max(rsnw(ks), rsnw_fresh)
+            rsnw(ks) = min(rsnw(ks), rsnw_mlt)
+         enddo ! ks
 
       endif ! snwgrain
 
