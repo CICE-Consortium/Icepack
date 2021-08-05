@@ -83,7 +83,7 @@
     snwredist       = 'none'
     snwgrain        = .false.
     use_smliq_pnd   = .false.
-    rsnw_fall       = 54.526
+    rsnw_fall       =  100.0
     rsnw_tmax       = 1500.0
     rhosnew         =  100.0
     rhosmin         =  100.0

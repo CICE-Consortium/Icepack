@@ -284,7 +284,6 @@
                          snowfracn=snowfracn(i,:),                         &
                          dhsn=dhsn(i,:),         ffracn=ffracn(i,:),       &
                          rsnow=rsnow(:,:),                                 &
-!history                         rsnw_dEddn=rsnw_dEddn(i,:), &
                          l_print_point=l_print_point,                      &
                          initonly = .true.)
             endif

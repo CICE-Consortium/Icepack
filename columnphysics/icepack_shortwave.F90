@@ -805,7 +805,6 @@
                           snowfracn,           &
                           dhsn,     ffracn,    &
                           rsnow,               &
-                          rsnw_dEddn,          &
                           l_print_point,       &
                           initonly)
 
@@ -877,12 +876,10 @@
            ipndn    ! pond refrozen lid thickness (m)
 
       real(kind=dbl_kind), dimension(:,:), intent(in) :: &
-           rsnow, & ! snow grain radius tracer (10^-6 m)
            aeron, & ! aerosols (kg/m^3)
            trcrn_bgcsw ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
-           rsnw_dEddn, & ! constant snow grain radius (10^-6 m)
            ffracn,& ! fraction of fsurfn used to melt ipond
            dhsn     ! depth difference for snow on sea ice and pond ice
 
@@ -910,6 +907,7 @@
            fswthrun_idf    ! nir dif SW through ice to ocean (W/m^2) 
 
       real(kind=dbl_kind), dimension(:,:), intent(inout) :: &
+           rsnow   , & ! snow grain radius tracer (10^-6 m)
            Sswabsn , & ! SW radiation absorbed in snow layers (W m-2)
            Iswabsn , & ! SW radiation absorbed in ice layers (W m-2) 
            fswpenln    ! visible SW entering ice layers (W m-2)
@@ -1000,7 +998,6 @@
          rsnwn(:)   = c0
          apeffn(n)     = c0 ! for history
          snowfracn(n)  = c0 ! for history
-         rsnw_dEddn(n) = c0 ! for history
 
          if (aicen(n) > puny) then
 
@@ -1184,9 +1181,8 @@
             if (icepack_warnings_aborted(subname)) return
 
             if (.not. snwgrain) then
-               rnslyr = c1/min(c1,(real(nslyr,kind=dbl_kind)))
                do k = 1,nslyr
-                  rsnw_dEddn(n) = rsnw_dEddn(n) + rsnwn(k)*rnslyr
+                  rsnow(k,n) = rsnwn(k) ! for history
                enddo
             endif
 
@@ -3649,7 +3645,6 @@
 
       real (kind=dbl_kind), parameter :: &
          ! units for the following are 1.e-6 m (micro-meters)
-         rsnw_fresh    =  100._dbl_kind, & ! freshly-fallen snow grain radius 
          rsnw_nonmelt  =  500._dbl_kind, & ! nonmelt snow grain radius
          rsnw_sig      =  250._dbl_kind    ! assumed sigma for snow grain radius
 
@@ -3682,14 +3677,14 @@
          ! the sign is negative so that if R_snw is 1, then the
          ! snow grain radius is reduced and thus albedo increased.
          rsnw_nm = rsnw_nonmelt - R_snw*rsnw_sig
-         rsnw_nm = max(rsnw_nm, rsnw_fresh)
+         rsnw_nm = max(rsnw_nm, rsnw_fall)
          rsnw_nm = min(rsnw_nm, rsnw_mlt)
          do ks = 1, nslyr
             ! snow density ccsm3 constant value
             rhosnw(ks) = rhos
             ! snow grain radius between rsnw_nonmelt and rsnw_mlt
             rsnw(ks) = rsnw_nm + (rsnw_mlt-rsnw_nm)*fT
-            rsnw(ks) = max(rsnw(ks), rsnw_fresh)
+            rsnw(ks) = max(rsnw(ks), rsnw_fall)
             rsnw(ks) = min(rsnw(ks), rsnw_mlt)
          enddo ! ks
 
@@ -4066,8 +4061,8 @@
                                         albpndn,  apeffn,    &
                                         snowfracn,           &
                                         dhsn,     ffracn,    &
-                                        rsnow,    rsnw_dEddn,&
-                                        l_print_point, &
+                                        rsnow,               &
+                                        l_print_point,       &
                                         initonly)
 
       integer (kind=int_kind), intent(in) :: &
@@ -4170,11 +4165,8 @@
          dEdd_algae   , & ! .true. use prognostic chla in dEdd
          modal_aero       ! .true. use modal aerosol optical treatment
 
-      real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
-         rsnow       ! snow grain radius tracer (10^-6 m)
-
-      real(kind=dbl_kind), dimension(:), intent(inout), optional :: &
-         rsnw_dEddn  ! constant snow grain radius (10^-6 m)
+      real (kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
+         rsnow            ! snow grain radius tracer (10^-6 m)
 
       logical (kind=log_kind), optional :: &
          initonly         ! flag to indicate init only, default is false
@@ -4197,8 +4189,7 @@
          l_fswthrun_vdr , & ! vis dir SW through ice to ocean (W/m^2)
          l_fswthrun_vdf , & ! vis dif SW through ice to ocean (W/m^2)
          l_fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
-         l_fswthrun_idf , & ! nir dif SW through ice to ocean (W/m^2)
-         l_rsnw_dEddn       ! constant snow grain radius (10^-6 m)
+         l_fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
 
       real (kind=dbl_kind), dimension(:,:), allocatable :: &
          l_rsnow            ! snow grain radius tracer (10^-6 m)
@@ -4219,11 +4210,7 @@
 
       allocate(l_rsnow (nslyr,ncat))
       l_rsnow = c0
-      if (snwgrain .and. present(rsnow)) l_rsnow = rsnow
-
-      allocate(l_rsnw_dEddn (ncat))
-      l_rsnw_dEddn = c0
-      if (present(rsnw_dEddn)) l_rsnw_dEddn = rsnw_dEddn
+      if (present(rsnow)) l_rsnow = rsnow
 
          ! Initialize
          do n = 1, ncat
@@ -4310,7 +4297,6 @@
                           dhsn=dhsn,                    &
                           ffracn=ffracn,                &
                           rsnow=l_rsnow,                  &
-                          rsnw_dEddn=l_rsnw_dEddn,        &
                           l_print_point=l_print_point,  &
                           initonly=linitonly)
             if (icepack_warnings_aborted(subname)) return
@@ -4397,11 +4383,7 @@
       deallocate(l_fswthrun_vdf)
       deallocate(l_fswthrun_idr)
       deallocate(l_fswthrun_idf)
-
-      if (present(rsnw_dEddn)) rsnw_dEddn = l_rsnw_dEddn
-
       deallocate(l_rsnow)
-      deallocate(l_rsnw_dEddn)
 
       end subroutine icepack_step_radiation
 
