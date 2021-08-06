@@ -65,8 +65,6 @@
       ! icepack_snow.F90
       real (kind=dbl_kind), public, &
          dimension (nx) :: &
-         rhos_eff , & ! mean effective snow density: content (kg/m^3)
-         rhos_cmp , & ! mean effective snow density: compaction (kg/m^3)
          meltsliq     ! snow melt mass (kg/m^2/step-->kg/m^2/day)
 
       real (kind=dbl_kind), &

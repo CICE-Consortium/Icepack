@@ -202,9 +202,7 @@
                                    zqsn,                 &
                                    alvl,      vlvl,      &
                                    smice,     smliq,     &
-                                   rhos_cmpn, rsnw,      &
-                                   rhos_eff,  rhos_effn, &
-                                   rhos_cmp,             &
+                                   rsnw,      rhos_cmpn, &
                                    fresh,     fhocn,     &
                                    fsloss,    fsnow)
 
@@ -243,18 +241,13 @@
          smice    , & ! tracer for mass of ice in snow (kg/m^3)
          smliq    , & ! tracer for mass of liquid in snow (kg/m^3)
          rsnw     , & ! snow grain radius (10^-6 m)
-         rhos_effn, & ! effective snow density: content (kg/m^3)
          rhos_cmpn    ! effective snow density: compaction (kg/m^3)
-
-      real (kind=dbl_kind), intent(inout) :: &
-         rhos_eff , & ! mean effective snow density: content (kg/m^3)
-         rhos_cmp     ! mean effective snow density: compaction (kg/m^3)
 
 !autodocument_end
 
       ! local variables
 
-      integer (kind=int_kind) :: n
+      integer (kind=int_kind) :: k, n
 
       real (kind=dbl_kind), dimension(ncat) :: &
          zTin1, & ! ice upper layer temperature (C)
@@ -268,25 +261,27 @@
       character (len=*),parameter :: subname='(icepack_step_snow)'
 
       !-----------------------------------------------------------------
-      ! Compute effective density of snow
+      ! Initialize effective snow density (compaction) for new snow
+      !-----------------------------------------------------------------
+
+      if (trim(snwredist) /= 'none') then
+         do n = 1, ncat
+            do k = 1, nslyr
+               if (rhos_cmpn(k,n) < rhosmin) rhos_cmpn(k,n) = rhosnew
+            enddo
+         enddo
+      else
+         rhos_cmpn(:,:) = rhos
+      endif
+
+      !-----------------------------------------------------------------
+      ! Redistribute snow based on wind
       !-----------------------------------------------------------------
 
       vsno = c0
       do n = 1, ncat
          vsno = vsno + vsnon(n)
       enddo
-
-      call snow_effective_density(nslyr,     ncat,     &
-                                  vsnon,     vsno,     &
-                                  smice,     smliq,    &
-                                  rhos_effn, rhos_eff, &
-                                  rhos_cmpn, rhos_cmp)
-      if (icepack_warnings_aborted(subname)) return
-
-      !-----------------------------------------------------------------
-      ! Redistribute snow based on wind
-      !-----------------------------------------------------------------
-
       tmp1 = rhos*vsno + fresh*dt
 
       if (snwredist(1:3) == 'ITD' .and. aice > puny) then
@@ -340,88 +335,6 @@
       endif
 
       end subroutine icepack_step_snow
-
-!=======================================================================
-
-! Compute effective density of snow layers from ice, liquid water mass
-
-      subroutine snow_effective_density(nslyr,     ncat,     &
-                                        vsnon,     vsno,     &
-                                        smice,     smliq,    &
-                                        rhos_effn, rhos_eff, &
-                                        rhos_cmpn, rhos_cmp)
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr, & ! number of snow layers
-         ncat     ! number of thickness categories
-
-      real (kind=dbl_kind), dimension(:), intent(in) :: &
-         vsnon    ! snow volume (m)
-
-      real (kind=dbl_kind), intent(in) :: &
-         vsno     ! total snow volume (m)
-
-      real (kind=dbl_kind), dimension(:,:), &
-         intent(inout) :: &
-         smice    , & ! tracer for mass of ice in snow (kg/m^3)
-         smliq    , & ! tracer for mass of liquid in snow (kg/m^3)
-         rhos_effn, & ! effective snow density: content (kg/m^3)
-         rhos_cmpn    ! effective snow density: compaction (kg/m^3)
-
-      real (kind=dbl_kind), intent(inout) :: &
-         rhos_eff , & ! mean effective snow density: content (kg/m^3)
-         rhos_cmp     ! mean effective snow density: compaction (kg/m^3)
-
-      integer (kind=int_kind) :: &
-         k    , & ! snow layer index
-         n    , & ! ice thickness category index
-         cnt      ! counter for snow presence
-
-      character (len=*),parameter :: subname='(snow_effective_density)'
-
-      rhos_eff = c0
-      rhos_cmp = c0
-
-      if (vsno > puny) then
-
-      !-----------------------------------------------------------------
-      ! Initialize effective snow density (compaction) for new snow
-      !-----------------------------------------------------------------
-
-         if (trim(snwredist) /= 'none') then
-            do n = 1, ncat
-               do k = 1, nslyr
-                  if (rhos_cmpn(k,n) < rhosmin) rhos_cmpn(k,n) = rhosnew
-               enddo
-            enddo
-         else
-            rhos_cmpn(:,:) = rhos
-         endif
-
-      !-----------------------------------------------------------------
-      ! Compute average effective density of snow
-      !-----------------------------------------------------------------
-
-         do n = 1, ncat
-            if (vsnon(n) > c0) then
-               do k = 1, nslyr
-                  rhos_effn(k,n) = smice(k,n) + smliq(k,n)
-                  rhos_eff       = rhos_eff + vsnon(n)*rhos_effn(k,n)
-                  rhos_cmp       = rhos_cmp + vsnon(n)*rhos_cmpn(k,n)
-               enddo
-            endif
-         enddo
-         rhos_eff = rhos_eff/(vsno*real(nslyr,kind=dbl_kind))
-         rhos_cmp = rhos_cmp/(vsno*real(nslyr,kind=dbl_kind))
-
-      else
-
-         rhos_eff = rhos ! default to standard value
-         rhos_cmp = rhos
-
-      endif ! vsno
-
-      end subroutine snow_effective_density
 
 !=======================================================================
 

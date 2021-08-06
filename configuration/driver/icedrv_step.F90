@@ -848,7 +848,6 @@
 
       subroutine step_snow (dt)
 
-      use icedrv_arrays_column, only: rhos_eff, rhos_cmp
       use icedrv_domain_size, only: ncat, nslyr, nilyr, nx
       use icedrv_flux, only: wind, fresh, fhocn, fsloss, fsnow
       use icedrv_state, only: trcrn, vsno, vsnon, vicen, aicen, aice
@@ -867,9 +866,6 @@
       integer (kind=int_kind) :: &
          i,               & ! horizontal index
          n                  ! category index
-
-      real (kind=dbl_kind), dimension(nslyr,ncat) :: &
-         rhos_effn          ! snow effective density: content (kg/m^3)
 
       character(len=*), parameter :: subname='(step_snow)'
 
@@ -892,10 +888,6 @@
 
       do i = 1, nx
 
-         ! the effective snow density is not currently used outside of
-         ! the snow model, but is made available here for future use
-         rhos_effn(:,:) = c0
-
          call icepack_step_snow (dt,     nilyr,              &
                      nslyr,              ncat,               &
                      wind (i),           aice  (i),          &
@@ -907,10 +899,8 @@
                      trcrn(i,nt_alvl,:), trcrn(i,nt_vlvl,:), &
                      trcrn(i,nt_smice:nt_smice+nslyr-1,:),   &
                      trcrn(i,nt_smliq:nt_smliq+nslyr-1,:),   &
-                     trcrn(i,nt_rhos:nt_rhos+nslyr-1,:),     &
                      trcrn(i,nt_rsnw:nt_rsnw+nslyr-1,:),     &
-                     rhos_eff (i),       rhos_effn(:,:),     &
-                     rhos_cmp (i),                           &
+                     trcrn(i,nt_rhos:nt_rhos+nslyr-1,:),     &
                      fresh    (i),       fhocn (i),          &
                      fsloss   (i),       fsnow (i))
       enddo
