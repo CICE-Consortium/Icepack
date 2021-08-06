@@ -60,6 +60,7 @@
                                meltt,  melts,        &
                                meltb,  dsnow, dsnown,&
                                congel,  snoice,      &
+                               meltsliq, meltsliqn,  &
                                Uref,     Urefn,      &
                                Qref_iso, Qrefn_iso,  &
                                fiso_ocn, fiso_ocnn,  &
@@ -95,6 +96,7 @@
           melttn  , & ! top ice melt                    (m)
           meltbn  , & ! bottom ice melt                 (m)
           meltsn  , & ! snow melt                       (m)
+          meltsliqn,& ! mass of snow melt               (kg/m^2)
           dsnown  , & ! change in snow depth            (m)
           congeln , & ! congelation ice growth          (m)
           snoicen     ! snow-ice growth                 (m)
@@ -126,6 +128,7 @@
           meltt   , & ! top ice melt                    (m)
           meltb   , & ! bottom ice melt                 (m)
           melts   , & ! snow melt                       (m)
+          meltsliq, & ! mass of snow melt               (kg/m^2)
           dsnow   , & ! change in snow depth            (m)
           congel  , & ! congelation ice growth          (m)
           snoice      ! snow-ice growth                 (m)
@@ -214,6 +217,7 @@
       meltt     = meltt     + melttn    * aicen
       meltb     = meltb     + meltbn    * aicen
       melts     = melts     + meltsn    * aicen
+      meltsliq  = meltsliq  + meltsliqn * aicen
       dsnow     = dsnow     + dsnown    * aicen
       congel    = congel    + congeln   * aicen
       snoice    = snoice    + snoicen   * aicen

@@ -31,7 +31,7 @@
       use icepack_parameters, only: rhosi, sk_l, hs_ssl, min_salin, rsnw_fall
       use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
-      use icepack_tracers,    only: n_iso, tr_iso, tr_snow, nt_smice, nt_rsnw
+      use icepack_tracers,    only: n_iso, tr_iso, tr_snow, nt_smice, nt_rsnw, nt_rhos
       use icepack_tracers,    only: icepack_compute_tracers
       use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers
       use icepack_parameters, only: kcatbound, kitd
@@ -1235,6 +1235,7 @@
             if (tr_brine) trcrn(nt_fbri,n) = c1
             if (tr_snow) then
                do k = 1, nslyr
+                  trcrn(nt_rhos +k-1,n) = rhos
                   trcrn(nt_smice+k-1,n) = rhos
                   trcrn(nt_rsnw +k-1,n) = rsnw_fall
                enddo

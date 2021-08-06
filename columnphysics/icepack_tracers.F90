@@ -1297,6 +1297,7 @@
       if (vsnon <= c0 .and. tr_snow) then
          trcrn(nt_rsnw :nt_rsnw +nslyr-1) = rsnw_fall
          trcrn(nt_smice:nt_smice+nslyr-1) = rhos
+         trcrn(nt_rhos :nt_rhos +nslyr-1) = rhos
       endif
 
       end subroutine icepack_compute_tracers

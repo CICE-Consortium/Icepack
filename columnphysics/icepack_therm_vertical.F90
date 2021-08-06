@@ -2200,7 +2200,8 @@
                                     congel      , congeln     , &
                                     snoice      , snoicen     , &
                                     dsnow       , dsnown      , &
-                                    meltsliqn   , rsnwn       , &
+                                    meltsliq    , meltsliqn   , &
+                                    rsnwn       , &
                                     smicen      , smliqn      , &
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
@@ -2305,6 +2306,7 @@
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
          dsnow       , & ! change in snow depth     (m/step-->cm/day)
+         meltsliq    , & ! mass of snow melt (kg/m^2)
          fsloss          ! rate of snow loss to leads (kg/m^2/s)
 
       real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
@@ -2435,7 +2437,7 @@
          l_fiso_atm  , & ! local isotope deposition rate (kg/m^2 s)
          l_fiso_ocn  , & ! local isotope flux to ocean  (kg/m^2/s)
          l_fiso_evap , & ! local isotope evaporation (kg/m^2/s)
-         l_meltsliq      ! mass of snow melt (kg/m^2)
+         l_meltsliqn     ! mass of snow melt (kg/m^2)
 
       real (kind=dbl_kind), allocatable, dimension(:,:) :: &
          l_rsnw      , & ! snow grain radius (10^-6 m)
@@ -2444,6 +2446,7 @@
 
       real (kind=dbl_kind)  :: &
          l_fsloss    , & ! rate of snow loss to leads (kg/m^2/s)
+         l_meltsliq  , & ! mass of snow melt (kg/m^2)
          l_HDO_ocn   , & ! local ocean concentration of HDO (kg/kg)
          l_H2_16O_ocn, & ! local ocean concentration of H2_16O (kg/kg)
          l_H2_18O_ocn    ! local ocean concentration of H2_18O (kg/kg)
@@ -2565,9 +2568,11 @@
       l_fswthrun_idf = c0
       if (present(fswthrun_idf)) l_fswthrun_idf = fswthrun_idf
 
-      allocate(l_meltsliq(ncat))
-      l_meltsliq = c0
-      if (present(meltsliqn)) l_meltsliq = meltsliqn
+      allocate(l_meltsliqn(ncat))
+      l_meltsliqn = c0
+      if (present(meltsliqn)) l_meltsliqn = meltsliqn
+      l_meltsliq  = c0
+      if (present(meltsliq )) l_meltsliq  = meltsliq
 
       allocate(l_rsnw(nslyr,ncat))
       l_rsnw = rsnw_fall
@@ -2787,7 +2792,7 @@
                                  freshn=freshn,       fsaltn=fsaltn,          &
                                  fhocnn=fhocnn,       frain=frain,            &
                                  meltt=melttn    (n), melts=meltsn   (n),     &
-                                 meltb=meltbn    (n), meltsliq=l_meltsliq(n), &
+                                 meltb=meltbn    (n), meltsliq=l_meltsliqn(n),&
                                  smice=l_smice (:,n), massice=massicen(:,n),  &
                                  smliq=l_smliq (:,n), massliq=massliqn(:,n),  &
                                  congel=congeln  (n), snoice=snoicen  (n),    &
@@ -2855,7 +2860,7 @@
                              aicen = aicen(n), &
                              massice = massicen(:,n), &
                              massliq = massliqn(:,n), &
-                             meltsliq = l_meltsliq(n))
+                             meltsliq = l_meltsliqn(n))
             if (icepack_warnings_aborted(subname)) return
          endif
 
@@ -2882,7 +2887,7 @@
                                        Tsfcn=Tsfc  (n), &
                                        apnd=apnd   (n), &
                                        hpnd=hpnd   (n), &
-                                       meltsliqn=l_meltsliq(n))
+                                       meltsliqn=l_meltsliqn(n))
                if (icepack_warnings_aborted(subname)) return
                   
             elseif (tr_pond_lvl) then
@@ -2911,7 +2916,7 @@
                                        apnd=apnd    (n), &
                                        hpnd=hpnd    (n), &
                                        ipnd=ipnd    (n), &
-                                       meltsliqn=l_meltsliq(n))
+                                       meltsliqn=l_meltsliqn(n))
                if (icepack_warnings_aborted(subname)) return
                   
             elseif (tr_pond_topo) then
@@ -2922,7 +2927,7 @@
                   rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
                   if (snwgrain .and. use_smliq_pnd) then
                      pond = rfrac/rhofresh * (melttn(n)*rhoi &
-                          +                 l_meltsliq(n))
+                          +                 l_meltsliqn(n))
                   else
                      pond = rfrac/rhofresh * (melttn(n)*rhoi &
                           +                   meltsn(n)*rhos &
@@ -2987,8 +2992,9 @@
                                meltt=meltt,       melts=melts,      &
                                meltb=meltb,       snoicen=snoicen(n),&
                                dsnow=dsnow,       dsnown=dsnown(n), &
-                               congel=congel,    &
-                               snoice=snoice,                       &
+                               congel=congel,     snoice=snoice,    &
+                               meltsliq=l_meltsliq,      &
+                               meltsliqn=l_meltsliqn(n), &
                                Uref=Uref,  Urefn=Urefn,  &
                                Qref_iso=l_Qref_iso,      &
                                Qrefn_iso=Qrefn_iso,      &
@@ -3026,7 +3032,6 @@
          enddo
       endif
 
-      if (present(fsloss      )) fsloss       = l_fsloss
       if (present(isosno      )) isosno       = l_isosno
       if (present(isoice      )) isoice       = l_isoice
       if (present(Qa_iso      )) Qa_iso       = l_Qa_iso
@@ -3042,7 +3047,9 @@
       if (present(fswthru_vdf )) fswthru_vdf  = l_fswthru_vdf
       if (present(fswthru_idr )) fswthru_idr  = l_fswthru_idr
       if (present(fswthru_idf )) fswthru_idf  = l_fswthru_idf
-      if (present(meltsliqn   )) meltsliqn    = l_meltsliq
+      if (present(fsloss      )) fsloss       = l_fsloss
+      if (present(meltsliqn   )) meltsliqn    = l_meltsliqn
+      if (present(meltsliq    )) meltsliq     = l_meltsliq
       if (present(rsnwn       )) rsnwn        = l_rsnw
       if (present(smicen      )) smicen       = l_smice
       if (present(smliqn      )) smliqn       = l_smliq
@@ -3057,7 +3064,7 @@
       deallocate(l_fswthrun_vdf)
       deallocate(l_fswthrun_idr)
       deallocate(l_fswthrun_idf)
-      deallocate(l_meltsliq)
+      deallocate(l_meltsliqn)
       deallocate(l_rsnw)
       deallocate(l_smice)
       deallocate(l_smliq)
