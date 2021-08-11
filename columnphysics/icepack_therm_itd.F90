@@ -24,16 +24,16 @@
       use icepack_parameters, only: p001, p1, p333, p5, p666, puny, bignum
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
-      use icepack_parameters, only: rhosi, conserv_check
+      use icepack_parameters, only: rhosi, conserv_check, rhosmin
       use icepack_parameters, only: kitd, ktherm, heat_capacity
       use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
       use icepack_tracers, only: nt_apnd, nt_hpnd, nt_aero, nt_isosno, nt_isoice
-      use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_fsd
+      use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_fsd, nt_rhos
       use icepack_tracers, only: nt_alvl, nt_vlvl
-      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow
       use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_iso, tr_brine, tr_fsd
       use icepack_tracers, only: n_aero, n_iso
       use icepack_tracers, only: bio_index
@@ -569,6 +569,15 @@
                trcrn(k,n) = trcrn(k,n) + rhos*Lfresh
             enddo
          enddo
+         ! maintain rhos_cmp positive definiteness
+         if (tr_snow) then
+            do n = 1, ncat
+               do k = nt_rhos, nt_rhos+nslyr-1
+                  trcrn(k,n) = max(trcrn(k,n)-rhosmin, c0)
+!                  trcrn(k,n) = trcrn(k,n) - rhosmin
+               enddo
+            enddo
+         endif
  
          call shift_ice (ntrcr,    ncat,        &
                          trcr_depend,           &
@@ -587,6 +596,14 @@
                trcrn(k,n) = trcrn(k,n) - rhos*Lfresh
             enddo
          enddo
+         ! maintain rhos_cmp positive definiteness
+         if (tr_snow) then
+            do n = 1, ncat
+               do k = nt_rhos, nt_rhos+nslyr-1
+                  trcrn(k,n) = trcrn(k,n) + rhosmin
+               enddo
+            enddo
+         endif
 
       !-----------------------------------------------------------------
       ! Make sure hice(1) >= minimum ice thickness hi_min.
@@ -1195,8 +1212,8 @@
       !-----------------------------------------------------------------     
 
             if (z_tracers) then   ! snow tracers
-               dvssl  = min(p5*vsnon(n), hs_ssl*aicen(n))       !snow surface layer
-               dvint  = vsnon(n)- dvssl                         !snow interior
+               dvssl = min(p5*vsnon(n)/real(nslyr,kind=dbl_kind), hs_ssl*aicen(n)) ! snow surface layer
+               dvint = vsnon(n) - dvssl                                            ! snow interior
                do k = 1, nbtrcr
                   flux_bio(k) = flux_bio(k) &
                               + (trcrn(bio_index(k)+nblyr+1,n)*dvssl  &

@@ -100,7 +100,7 @@
       use icedrv_restart, only: dumpfile, final_restart
       use icedrv_restart_bgc, only: write_restart_bgc
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
-          update_state, step_dyn_ridge, step_radiation, &
+          update_state, step_dyn_ridge, step_snow, step_radiation, &
           biogeochemistry, step_dyn_wave
 
       integer (kind=int_kind) :: &
@@ -108,7 +108,7 @@
 
       logical (kind=log_kind) :: &
          calc_Tsfc, skl_bgc, solve_zsal, z_tracers, tr_brine, &  ! from icepack
-         tr_fsd, wave_spec
+         tr_fsd, wave_spec, tr_snow
 
       real (kind=dbl_kind) :: &
          offset          ! d(age)/dt time offset
@@ -125,7 +125,8 @@
       call icepack_query_parameters(solve_zsal_out=solve_zsal, & 
                                     calc_Tsfc_out=calc_Tsfc, &
                                     wave_spec_out=wave_spec)
-      call icepack_query_tracer_flags(tr_brine_out=tr_brine,tr_fsd_out=tr_fsd)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine,tr_fsd_out=tr_fsd, &
+                                      tr_snow_out=tr_snow)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -183,6 +184,17 @@
 
 !      call icedrv_diagnostics_debug ('post dynamics')
       
+      !-----------------------------------------------------------------
+      ! snow redistribution and metamorphosis
+      !-----------------------------------------------------------------
+
+      if (tr_snow) then
+         call step_snow    (dt)
+         call update_state (dt) ! clean up
+      endif
+
+!      call icedrv_diagnostics_debug ('post snow redistribution')
+
       !-----------------------------------------------------------------
       ! albedo, shortwave radiation
       !-----------------------------------------------------------------

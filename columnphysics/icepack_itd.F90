@@ -28,11 +28,10 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
       use icepack_parameters, only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
-      use icepack_parameters, only: rhosi, sk_l, hs_ssl, min_salin
+      use icepack_parameters, only: rhosi, sk_l, hs_ssl, min_salin, rsnw_fall
       use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
-      use icepack_tracers,    only: n_iso
-      use icepack_tracers,    only: tr_iso
+      use icepack_tracers,    only: n_iso, tr_iso, tr_snow, nt_smice, nt_rsnw, nt_rhos
       use icepack_tracers,    only: icepack_compute_tracers
       use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers
       use icepack_parameters, only: kcatbound, kitd
@@ -1230,11 +1229,15 @@
          
             if (ntrcr >= 2) then
                do it = 2, ntrcr
-                  if (tr_brine .and. it == nt_fbri) then
-                     trcrn(it,n) = c1
-                  else
-                     trcrn(it,n) = c0
-                  endif
+                  trcrn(it,n) = c0
+               enddo
+            endif
+            if (tr_brine) trcrn(nt_fbri,n) = c1
+            if (tr_snow) then
+               do k = 1, nslyr
+                  trcrn(nt_rhos +k-1,n) = rhos
+                  trcrn(nt_smice+k-1,n) = rhos
+                  trcrn(nt_rsnw +k-1,n) = rsnw_fall
                enddo
             endif
             first_ice(n) = .true.
@@ -1424,14 +1427,14 @@
       endif ! tr_iso
 
       if (z_tracers) then
-            dvssl  = min(p5*vsnon, hs_ssl*aicen)   !snow surface layer
-            dvint  = vsnon- dvssl                  !snow interior
+         dvssl = min(p5*vsnon/real(nslyr,kind=dbl_kind), hs_ssl*aicen) ! snow surface layer
+         dvint = vsnon - dvssl                                         ! snow interior
 
-            do it = 1, nbtrcr
-               xtmp = (trcrn(bio_index(it)+nblyr+1)*dvssl + &
-                       trcrn(bio_index(it)+nblyr+2)*dvint)/dt
-               dflux_bio(it) = dflux_bio(it) + xtmp
-            enddo                 ! it
+         do it = 1, nbtrcr
+            xtmp = (trcrn(bio_index(it)+nblyr+1)*dvssl + &
+                    trcrn(bio_index(it)+nblyr+2)*dvint)/dt
+            dflux_bio(it) = dflux_bio(it) + xtmp
+         enddo                 ! it
 
       endif ! z_tracers
 

@@ -62,6 +62,15 @@
 
       character (len=35), public :: c_hi_range(ncat)
 
+      ! icepack_snow.F90
+      real (kind=dbl_kind), public, &
+         dimension (nx) :: &
+         meltsliq     ! snow melt mass (kg/m^2/step-->kg/m^2/day)
+
+      real (kind=dbl_kind), &
+         dimension (nx,ncat), public, save :: &
+         meltsliqn    ! snow melt mass in category n (kg/m^2)
+
       ! icepack_meltpond_lvl.F90
       real (kind=dbl_kind), public, &
          dimension (nx, ncat) :: &

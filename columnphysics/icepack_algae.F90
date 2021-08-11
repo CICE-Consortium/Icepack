@@ -332,6 +332,7 @@
       if (icepack_warnings_aborted(subname)) return
 
       call merge_bgc_fluxes   (dt,           nblyr,      &
+                               nslyr,                    &
                                bio_index,    n_algae,    &
                                nbtrcr,       aicen,      &    
                                vicen,        vsnon,      &

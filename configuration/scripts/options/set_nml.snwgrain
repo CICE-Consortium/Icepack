@@ -1,0 +1,6 @@
+tr_snow = .true.
+snwgrain = .true.
+use_smliq_pnd = .true.
+rsnw_fall       = 54.526
+rsnw_tmax       = 1500.0
+

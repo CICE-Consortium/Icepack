@@ -28,6 +28,7 @@
     tr_pond_cesm = .false.
     tr_pond_topo = .false.
     tr_pond_lvl  = .true.
+    tr_snow      = .false.
     tr_aero      = .false.
     tr_fsd       = .false.
     tr_iso       = .false.
@@ -76,6 +77,21 @@
     rfracmin        = 0.15
     rfracmax        = 1.
     pndaspect       = 0.8
+/
+
+&snow_nml
+    snwredist       = 'none'
+    snwgrain        = .false.
+    use_smliq_pnd   = .false.
+    rsnw_fall       =  100.0
+    rsnw_tmax       = 1500.0
+    rhosnew         =  100.0
+    rhosmin         =  100.0
+    rhosmax         =  450.0
+    windmin         =   10.0
+    drhosdwind      =   27.3
+    snwlvlfac       =    0.3
+    snw_aging_table = 'test'
 /
 
 &forcing_nml
