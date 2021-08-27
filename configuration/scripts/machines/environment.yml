@@ -5,6 +5,8 @@ channels:
 dependencies:
 # Build dependencies
   - compilers
+  - netcdf-fortran
+  - netcdf4
   - make
 # Python dependencies for building the HTML documentation
   - sphinx
