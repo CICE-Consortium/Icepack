@@ -68,6 +68,7 @@ OBJS  := $(addsuffix .o, $(sort $(basename $(notdir $(SRCS)))))
 DEPS  := $(addsuffix .d, $(sort $(basename $(notdir $(SRCS)))))
 INCS  := $(patsubst %,-I%, $(VPATH) )
 RM    := rm
+MODDIR:= -I.
 
 .SUFFIXES:
 .SUFFIXES: .F90 .F .c .o
@@ -95,15 +96,16 @@ db_files:
 	@echo "* VPATH   := $(VPATH)"
 	@echo "* SRCFILE := $(SRCFILE)"
 	@echo "* INCS    := $(INCS)"
+	@echo "* MODDIR  := $(MODDIR)"
 	@echo "* SRCS    := $(SRCS)"
 	@echo "* OBJS    := $(OBJS)"
 	@echo "* DEPS    := $(DEPS)"
 db_flags:
 	@echo " "
-	@echo "* cpp     := $(CPP) $(CPPFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR)"
-	@echo "* cc      := cc -c $(CFLAGS) $(INCS) $(INCLDIR)"
-	@echo "* .F.o    := $(FC) -c $(FFLAGS) $(FIXEDFLAGS) $(INCS) $(INCLDIR)"
-	@echo "* .F90.o  := $(FC) -c $(FFLAGS) $(FREEFLAGS) $(INCS) $(INCLDIR)"
+	@echo "* cpp     := $(CPP) $(CPPFLAGS) $(CPPDEFS) $(INCLDIR)"
+	@echo "* cc      := $(CC) -c $(CFLAGS) $(INCLDIR)"
+	@echo "* .F.o    := $(FC) -c $(FFLAGS) $(FIXEDFLAGS) $(INCLDIR)"
+	@echo "* .F90.o  := $(FC) -c $(FFLAGS) $(FREEFLAGS) $(MODDIR) $(INCLDIR)"
 
 #-------------------------------------------------------------------------------
 # build rule for makdep: MACFILE, cmd-line, or env vars must provide
@@ -121,13 +123,13 @@ $(EXEC): $(OBJS)
 	$(LD) -o $(EXEC) $(LDFLAGS) $(OBJS) $(ULIBS) $(SLIBS)
 
 .c.o:
-	cc $(CFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $<
+	$(CC) $(CFLAGS) $(CPPDEFS) $(INCLDIR) $<
 
 .F.o:
-	$(FC) -c $(FFLAGS) $(FIXEDFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $<
+	$(FC) -c $(FFLAGS) $(FIXEDFLAGS) $(CPPDEFS) $(INCLDIR) $<
 
 .F90.o:
-	$(FC) -c $(FFLAGS) $(FREEFLAGS) $(CPPDEFS) $(INCS) $(INCLDIR) $<
+	$(FC) -c $(FFLAGS) $(FREEFLAGS) $(CPPDEFS) $(MODDIR) $(INCLDIR) $<
 
 mostlyclean:
 	$(RM) -f *.f *.f90 
