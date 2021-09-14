@@ -18,7 +18,7 @@
       use icepack_parameters,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
       use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
       use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
-      use icepack_parameters, only: atmbndy, calc_strair, formdrag
+      use icepack_parameters, only: atmbndy, heatflux_linear, calc_strair, formdrag
       use icepack_tracers, only: n_iso
       use icepack_tracers, only: tr_iso
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -359,8 +359,16 @@
       ! as in Jordan et al (JGR, 1999)
       !------------------------------------------------------------
 
-      shcoef = rhoa * ustar * cp * rh + c1
-      lhcoef = rhoa * ustar * Lheat  * re
+      if (heatflux_linear) then
+         !- Use constant coefficients for sensible and latent heat fluxes
+         !    similar to atmo_boundary_const but using (wind-Vice) instead of wind-only
+         shcoef = (1.20e-3_dbl_kind)*cp_air*rhoa*vmag
+         lhcoef = (1.50e-3_dbl_kind)*Lheat *rhoa*vmag
+      else
+         !- Use Jordan et al (JGR, 1999) formulation
+         shcoef = rhoa * ustar * cp * rh + c1
+         lhcoef = rhoa * ustar * Lheat  * re
+      endif
 
       !------------------------------------------------------------
       ! Compute diagnostics: 2m ref T, Q, U
