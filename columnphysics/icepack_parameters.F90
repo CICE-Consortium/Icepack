@@ -1329,13 +1329,13 @@
          TTTocn_out        ! for qsat over ocn
 
       character (len=*), intent(out), optional :: &
-         atmbndy_out,        & ! atmo boundary method, 'default' ('ccsm3') or 'constant'
-         heatflux_linear_out   ! if true, calculate sensible+latent heatfluxes using traditional linear bulk formula
+         atmbndy_out     & ! atmo boundary method, 'default' ('ccsm3') or 'constant'
         
       logical (kind=log_kind), intent(out), optional :: &
-         calc_strair_out, &  ! if true, calculate wind stress components
-         formdrag_out,    &  ! if true, calculate form drag
-         highfreq_out        ! if true, use high frequency coupling
+         calc_strair_out,     & ! if true, calculate wind stress components
+         formdrag_out,        & ! if true, calculate form drag
+         heatflux_linear_out, & ! if true, calculate sensible+latent heatfluxes using traditional linear bulk formula
+         highfreq_out           ! if true, use high frequency coupling
         
       integer (kind=int_kind), intent(out), optional :: &
          natmiter_out        ! number of iterations for boundary layer calculations
