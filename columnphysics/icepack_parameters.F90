@@ -1329,7 +1329,7 @@
          TTTocn_out        ! for qsat over ocn
 
       character (len=*), intent(out), optional :: &
-         atmbndy_out     & ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+         atmbndy_out   ! atmo boundary method, 'default' ('ccsm3') or 'constant'
         
       logical (kind=log_kind), intent(out), optional :: &
          calc_strair_out,     & ! if true, calculate wind stress components
