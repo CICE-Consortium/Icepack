@@ -105,8 +105,7 @@
       ! Flux convergence tolerance
       real (kind=dbl_kind) :: atmiter_conv
 
-      logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair, calc_dragio, &
-                                 heatflux_linear
+      logical (kind=log_kind) :: calc_Tsfc, formdrag, highfreq, calc_strair, calc_dragio
       logical (kind=log_kind) :: conserv_check
 
       integer (kind=int_kind) :: ntrcr
@@ -167,7 +166,7 @@
         update_ocn_f,    l_mpond_fresh,   ustar_min,       &
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
-        atmiter_conv,    calc_dragio,     heatflux_linear, &
+        atmiter_conv,    calc_dragio,                      &
         tfrz_option,     default_season,  wave_spec_type,  &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
@@ -201,7 +200,7 @@
            R_snw_out=R_snw, dT_mlt_out=dT_mlt, rsnw_mlt_out=rsnw_mlt, &
            kstrength_out=kstrength, krdg_partic_out=krdg_partic, &
            krdg_redist_out=krdg_redist, mu_rdg_out=mu_rdg, &
-           atmbndy_out=atmbndy, heatflux_linear_out=heatflux_linear, calc_strair_out=calc_strair, &
+           atmbndy_out=atmbndy, calc_strair_out=calc_strair, &
            formdrag_out=formdrag, highfreq_out=highfreq, &
            emissivity_out=emissivity, &
            kitd_out=kitd, kcatbound_out=kcatbound, hs0_out=hs0, & 
@@ -564,8 +563,8 @@
       if (formdrag) then
       if (trim(atmbndy) == 'constant') then
          write (nu_diag,*) 'WARNING: atmbndy = constant not allowed with formdrag'
-         write (nu_diag,*) 'WARNING: Setting atmbndy = default'
-         atmbndy = 'default'
+         write (nu_diag,*) 'WARNING: Setting atmbndy = similarity'
+         atmbndy = 'similarity'
       endif
 
       if (.not. calc_strair) then
@@ -705,7 +704,6 @@
 
          write(nu_diag,1030) ' atmbndy                   = ', &
                                trim(atmbndy)
-         write(nu_diag,1010) ' heatflux_linear           = ', heatflux_linear
          write(nu_diag,1010) ' formdrag                  = ', formdrag
          write(nu_diag,1010) ' highfreq                  = ', highfreq
          write(nu_diag,1020) ' natmiter                  = ', natmiter
@@ -913,7 +911,7 @@
            R_snw_in=R_snw, dT_mlt_in=dT_mlt, rsnw_mlt_in=rsnw_mlt, &
            kstrength_in=kstrength, krdg_partic_in=krdg_partic, &
            krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
-           atmbndy_in=atmbndy, heatflux_linear_in=heatflux_linear, calc_strair_in=calc_strair, &
+           atmbndy_in=atmbndy, calc_strair_in=calc_strair, &
            formdrag_in=formdrag, highfreq_in=highfreq, &
            emissivity_in=emissivity, &
            kitd_in=kitd, kcatbound_in=kcatbound, hs0_in=hs0, &

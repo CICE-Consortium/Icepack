@@ -18,7 +18,7 @@
       use icepack_parameters,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
       use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
       use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
-      use icepack_parameters, only: atmbndy, heatflux_linear, calc_strair, formdrag
+      use icepack_parameters, only: atmbndy, calc_strair, formdrag
       use icepack_tracers, only: n_iso
       use icepack_tracers, only: tr_iso
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -359,13 +359,13 @@
       ! as in Jordan et al (JGR, 1999)
       !------------------------------------------------------------
 
-      if (heatflux_linear) then
+      if (trim(atmbndy) == 'mixed') then
          !- Use constant coefficients for sensible and latent heat fluxes
-         !    similar to atmo_boundary_const but using (wind-Vice) instead of wind-only
+         !    similar to atmo_boundary_const but using vmag instead of wind
          shcoef = (1.20e-3_dbl_kind)*cp_air*rhoa*vmag
          lhcoef = (1.50e-3_dbl_kind)*Lheat *rhoa*vmag
-      else
-         !- Use Jordan et al (JGR, 1999) formulation
+      else ! 'similarity'
+         !- Monin-Obukhov similarity theory for boundary layer
          shcoef = rhoa * ustar * cp * rh + c1
          lhcoef = rhoa * ustar * Lheat  * re
       endif
@@ -960,7 +960,7 @@
                                    delt,     delq,     &
                                    lhcoef,   shcoef    )
          if (icepack_warnings_aborted(subname)) return
-      else ! default
+      else ! 'similarity' or 'mixed'
          call atmo_boundary_layer (sfctype,                 &
                                    calc_strair, formdrag,   &
                                    Tsf,      potT,          &

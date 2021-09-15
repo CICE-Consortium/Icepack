@@ -250,12 +250,11 @@
          TTTocn = 5107.4_dbl_kind      ! for qsat over ocn
 
       character (len=char_len), public :: &
-         atmbndy = 'default'           ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+         atmbndy = 'similarity'        ! atmo boundary method, 'similarity' ('ccsm3'), 'constant' or 'mixed'
 
       logical (kind=log_kind), public :: &
          calc_strair     = .true.  , & ! if true, calculate wind stress
          formdrag        = .false. , & ! if true, calculate form drag
-         heatflux_linear = .false. , & ! if true, calculate sensible+latent heatfluxes using traditional linear bulk formula
          highfreq        = .false.     ! if true, calculate high frequency coupling
 
       integer (kind=int_kind), public :: &
@@ -447,7 +446,7 @@
          albicev_in, albicei_in, albsnowv_in, &
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
          kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
-         atmbndy_in, heatflux_linear_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
+         atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
          atmiter_conv_in, calc_dragio_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
          floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
@@ -652,7 +651,6 @@
       logical (kind=log_kind), intent(in), optional :: &
          calc_strair_in,     & ! if true, calculate wind stress components
          formdrag_in,        & ! if true, calculate form drag
-         heatflux_linear_in, & ! if true, calculate sensible+latent heatfluxes using traditional linear bulk formula
          highfreq_in           ! if true, use high frequency coupling
         
       integer (kind=int_kind), intent(in), optional :: &
@@ -904,7 +902,6 @@
       if (present(krdg_redist_in)       ) krdg_redist      = krdg_redist_in
       if (present(mu_rdg_in)            ) mu_rdg           = mu_rdg_in
       if (present(atmbndy_in)           ) atmbndy          = atmbndy_in
-      if (present(heatflux_linear_in)   ) heatflux_linear  = heatflux_linear_in
       if (present(calc_strair_in)       ) calc_strair      = calc_strair_in
       if (present(formdrag_in)          ) formdrag         = formdrag_in
       if (present(highfreq_in)          ) highfreq         = highfreq_in
@@ -1120,7 +1117,7 @@
          albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
          rsnw_mlt_out, dEdd_algae_out, &
          kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
-         atmbndy_out, heatflux_linear_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
+         atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
          atmiter_conv_out, calc_dragio_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
          floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
@@ -1334,7 +1331,6 @@
       logical (kind=log_kind), intent(out), optional :: &
          calc_strair_out,     & ! if true, calculate wind stress components
          formdrag_out,        & ! if true, calculate form drag
-         heatflux_linear_out, & ! if true, calculate sensible+latent heatfluxes using traditional linear bulk formula
          highfreq_out           ! if true, use high frequency coupling
         
       integer (kind=int_kind), intent(out), optional :: &
@@ -1626,7 +1622,6 @@
       if (present(krdg_redist_out)       ) krdg_redist_out  = krdg_redist
       if (present(mu_rdg_out)            ) mu_rdg_out       = mu_rdg
       if (present(atmbndy_out)           ) atmbndy_out      = atmbndy
-      if (present(heatflux_linear_out)   ) heatflux_linear  = heatflux_linear
       if (present(calc_strair_out)       ) calc_strair_out  = calc_strair
       if (present(formdrag_out)          ) formdrag_out     = formdrag
       if (present(highfreq_out)          ) highfreq_out     = highfreq
@@ -1831,7 +1826,6 @@
         write(iounit,*) "  krdg_redist   = ", krdg_redist
         write(iounit,*) "  mu_rdg        = ", mu_rdg
         write(iounit,*) "  atmbndy       = ", atmbndy
-        write(iounit,*) "  heatflux_linear = ", heatflux_linear
         write(iounit,*) "  calc_strair   = ", calc_strair
         write(iounit,*) "  formdrag      = ", formdrag
         write(iounit,*) "  highfreq      = ", highfreq
