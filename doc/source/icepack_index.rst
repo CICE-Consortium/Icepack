@@ -52,7 +52,7 @@ either Celsius or Kelvin units).
    "atmiter_conv", ":math:`\bullet` convergence criteria for ustar", "0.0"
    "atm_data_format", ":math:`\bullet` format of atmospheric forcing files", ""
    "atm_data_type", ":math:`\bullet` type of atmospheric forcing", ""
-   "atmbndy", ":math:`\bullet` atmo boundary layer parameterization (‘default’ or ‘constant’)", ""
+   "atmbndy", ":math:`\bullet` atmo boundary layer parameterization (‘similarity’,‘constant’ or 'mixed')", ""
    "awtidf", "weighting factor for near-ir, diffuse albedo", "0.36218"
    "awtidr", "weighting factor for near-ir, direct albedo", "0.00182"
    "awtvdf", "weighting factor for visible, diffuse albedo", "0.63282"

@@ -944,7 +944,7 @@ icepack_init_parameters
            TTTocn_in        ! for qsat over ocn
   
         character (len=char_len), intent(in), optional :: &
-           atmbndy_in ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+           atmbndy_in ! atmo boundary method, 'similarity' ('ccsm3') 'constant' or 'mixed'
           
         logical (kind=log_kind), intent(in), optional :: &
            calc_strair_in, &  ! if true, calculate wind stress components
@@ -1306,7 +1306,7 @@ icepack_query_parameters
            TTTocn_out        ! for qsat over ocn
   
         character (len=char_len), intent(out), optional :: &
-           atmbndy_out ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+           atmbndy_out ! atmo boundary method, 'similarity' ('ccsm3'), 'constant' or 'mixed'
           
         logical (kind=log_kind), intent(out), optional :: &
            calc_strair_out, &  ! if true, calculate wind stress components
