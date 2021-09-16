@@ -121,10 +121,10 @@ Wind stress and transfer coefficients for the
 turbulent heat fluxes are computed in subroutine
 *atmo\_boundary\_layer* following :cite:`Kauffman02`, with additions and changes as detailed in Appendix A of :cite:`Roberts15` for high frequency coupling (namelist variable ``highfreq``).
 The resulting equations are provided here for the default boundary layer 
-scheme, which is based on Monin-Obukhov theory (``atmbndy`` = ‘stability’). 
-Alternatively, ``atmbndy`` = ‘constant’ provides constant coefficients for
+scheme, which is based on Monin-Obukhov theory (``atmbndy = 'stability'``). 
+Alternatively, ``atmbndy = 'constant'`` provides constant coefficients for
 wind stress, sensible heat and latent heat calculations (computed in subroutine
-*atmo\_boundary\_const*); ``atmbndy`` = ‘mixed’ uses the stability based 
+*atmo\_boundary\_const*); ``atmbndy = 'mixed'`` uses the stability based 
 calculation for wind stress and constant coefficients for sensible and latent heat fluxes.
 
 The wind stress and turbulent heat flux calculation accounts for both
