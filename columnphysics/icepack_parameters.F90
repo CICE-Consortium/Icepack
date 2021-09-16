@@ -250,7 +250,7 @@
          TTTocn = 5107.4_dbl_kind      ! for qsat over ocn
 
       character (len=char_len), public :: &
-         atmbndy = 'similarity'        ! atmo boundary method, 'similarity' ('ccsm3'), 'constant' or 'mixed'
+         atmbndy = 'similarity'        ! atmo boundary method, 'similarity', 'constant' or 'mixed'
 
       logical (kind=log_kind), public :: &
          calc_strair     = .true.  , & ! if true, calculate wind stress
@@ -646,7 +646,7 @@
          TTTocn_in        ! for qsat over ocn
 
       character (len=*), intent(in), optional :: &
-         atmbndy_in   ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+         atmbndy_in   ! atmo boundary method, 'similarity', 'constant' or 'mixed'
         
       logical (kind=log_kind), intent(in), optional :: &
          calc_strair_in,     & ! if true, calculate wind stress components
@@ -1326,7 +1326,7 @@
          TTTocn_out        ! for qsat over ocn
 
       character (len=*), intent(out), optional :: &
-         atmbndy_out   ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+         atmbndy_out   ! atmo boundary method, 'similarity', 'constant' or 'mixed'
         
       logical (kind=log_kind), intent(out), optional :: &
          calc_strair_out,     & ! if true, calculate wind stress components
