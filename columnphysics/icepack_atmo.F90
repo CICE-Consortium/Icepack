@@ -950,10 +950,6 @@
 
       Cdn_atm_ratio_n = c1
 
-      if (trim(atmbndy) == 'default') then
-         atmbndy = 'similarity' ! For backward compability only ...
-      endif
-
       if (trim(atmbndy) == 'constant') then
          call atmo_boundary_const (sfctype,  calc_strair, &
                                    uatm,     vatm,     &
@@ -964,8 +960,7 @@
                                    delt,     delq,     &
                                    lhcoef,   shcoef    )
          if (icepack_warnings_aborted(subname)) return
-      elseif (trim(atmbndy) == 'similarity' .or. &
-              trim(atmbndy) == 'mixed') then
+      else
          call atmo_boundary_layer (sfctype,                 &
                                    calc_strair, formdrag,   &
                                    Tsf,      potT,          &
@@ -984,10 +979,6 @@
                                    uvel=l_uvel, vvel=l_vvel,  &
                                    Uref=l_Uref, zlvs=zlvs)
          if (icepack_warnings_aborted(subname)) return
-      else
-         call icepack_warnings_add( &
-            subname//' atmbndy = '//trim(atmbndy)//' : unknown value')
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif ! atmbndy
 
       if (present(Uref)) then
