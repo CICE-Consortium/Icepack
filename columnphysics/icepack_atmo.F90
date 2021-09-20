@@ -15,7 +15,7 @@
       use icepack_kinds
       use icepack_parameters,  only: c0, c1, c2, c4, c5, c8, c10
       use icepack_parameters,  only: c16, c20, p001, p01, p2, p4, p5, p75, puny
-      use icepack_parameters,  only: p001, p0012
+      use icepack_parameters,  only: p0012, p0015
       use icepack_parameters,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
       use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
       use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
