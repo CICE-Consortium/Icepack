@@ -54,6 +54,8 @@
          p15  = 0.15_dbl_kind, &
          p25  = 0.25_dbl_kind, &
          p75  = 0.75_dbl_kind, &
+         p0012= 0.0012_dbl_kind, &
+         p0015= 0.0015_dbl_kind, &
          p333 = c1/c3, &
          p666 = c2/c3, &
          spval_const= -1.0e36_dbl_kind

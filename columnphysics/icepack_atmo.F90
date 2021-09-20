@@ -15,6 +15,7 @@
       use icepack_kinds
       use icepack_parameters,  only: c0, c1, c2, c4, c5, c8, c10
       use icepack_parameters,  only: c16, c20, p001, p01, p2, p4, p5, p75, puny
+      use icepack_parameters,  only: p001, p0012
       use icepack_parameters,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
       use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
       use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
@@ -362,8 +363,8 @@
       if (trim(atmbndy) == 'mixed') then
          !- Use constant coefficients for sensible and latent heat fluxes
          !    similar to atmo_boundary_const but using vmag instead of wind
-         shcoef = (1.20e-3_dbl_kind)*cp_air*rhoa*vmag
-         lhcoef = (1.50e-3_dbl_kind)*Lheat *rhoa*vmag
+         shcoef = p0012*cp_air*rhoa*vmag
+         lhcoef = p0015*Lheat *rhoa*vmag
       else ! 'similarity'
          !- Monin-Obukhov similarity theory for boundary layer
          shcoef = rhoa * ustar * cp * rh + c1
@@ -511,8 +512,8 @@
       ! coefficients for turbulent flux calculation
       !------------------------------------------------------------
 
-      shcoef = (1.20e-3_dbl_kind)*cp_air*rhoa*wind
-      lhcoef = (1.50e-3_dbl_kind)*Lheat *rhoa*wind
+      shcoef = p0012*cp_air*rhoa*wind
+      lhcoef = p0015*Lheat *rhoa*wind
 
       end subroutine atmo_boundary_const
 
