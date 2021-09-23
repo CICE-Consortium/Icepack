@@ -247,10 +247,12 @@
          qqqice = 11637800._dbl_kind ,&! for qsat over ice
          TTTice = 5897.8_dbl_kind    ,&! for qsat over ice
          qqqocn = 627572.4_dbl_kind  ,&! for qsat over ocn
-         TTTocn = 5107.4_dbl_kind      ! for qsat over ocn
+         TTTocn = 5107.4_dbl_kind    ,&! for qsat over ocn
+         senscoef= 0.0012_dbl_kind   ,&! Sensible heat flux coefficient for constant-based boundary layer
+         latncoef= 0.0015_dbl_kind     ! Latent heat flux coefficient for constant-based boundary layer
 
       character (len=char_len), public :: &
-         atmbndy = 'default' ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+         atmbndy = 'similarity'        ! atmo boundary method, 'similarity', 'constant' or 'mixed'
 
       logical (kind=log_kind), public :: &
          calc_strair     = .true.  , & ! if true, calculate wind stress
@@ -646,12 +648,12 @@
          TTTocn_in        ! for qsat over ocn
 
       character (len=*), intent(in), optional :: &
-         atmbndy_in ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+         atmbndy_in   ! atmo boundary method, 'similarity', 'constant' or 'mixed'
         
       logical (kind=log_kind), intent(in), optional :: &
-         calc_strair_in, &  ! if true, calculate wind stress components
-         formdrag_in,    &  ! if true, calculate form drag
-         highfreq_in        ! if true, use high frequency coupling
+         calc_strair_in,     & ! if true, calculate wind stress components
+         formdrag_in,        & ! if true, calculate form drag
+         highfreq_in           ! if true, use high frequency coupling
         
       integer (kind=int_kind), intent(in), optional :: &
          natmiter_in        ! number of iterations for boundary layer calculations
@@ -1326,12 +1328,12 @@
          TTTocn_out        ! for qsat over ocn
 
       character (len=*), intent(out), optional :: &
-         atmbndy_out ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+         atmbndy_out   ! atmo boundary method, 'similarity', 'constant' or 'mixed'
         
       logical (kind=log_kind), intent(out), optional :: &
-         calc_strair_out, &  ! if true, calculate wind stress components
-         formdrag_out,    &  ! if true, calculate form drag
-         highfreq_out        ! if true, use high frequency coupling
+         calc_strair_out,     & ! if true, calculate wind stress components
+         formdrag_out,        & ! if true, calculate form drag
+         highfreq_out           ! if true, use high frequency coupling
         
       integer (kind=int_kind), intent(out), optional :: &
          natmiter_out        ! number of iterations for boundary layer calculations

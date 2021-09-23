@@ -97,7 +97,7 @@
 
 &forcing_nml
     formdrag        = .false.
-    atmbndy         = 'default'
+    atmbndy         = 'similarity'
     calc_strair     = .true.
     calc_Tsfc       = .true.
     highfreq        = .false.

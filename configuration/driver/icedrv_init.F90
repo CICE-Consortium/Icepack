@@ -563,8 +563,8 @@
       if (formdrag) then
       if (trim(atmbndy) == 'constant') then
          write (nu_diag,*) 'WARNING: atmbndy = constant not allowed with formdrag'
-         write (nu_diag,*) 'WARNING: Setting atmbndy = default'
-         atmbndy = 'default'
+         write (nu_diag,*) 'WARNING: Setting atmbndy = similarity'
+         atmbndy = 'similarity'
       endif
 
       if (.not. calc_strair) then

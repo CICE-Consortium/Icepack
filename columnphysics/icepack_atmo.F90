@@ -15,6 +15,7 @@
       use icepack_kinds
       use icepack_parameters,  only: c0, c1, c2, c4, c5, c8, c10
       use icepack_parameters,  only: c16, c20, p001, p01, p2, p4, p5, p75, puny
+      use icepack_parameters,  only: senscoef, latncoef
       use icepack_parameters,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
       use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
       use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
@@ -359,8 +360,16 @@
       ! as in Jordan et al (JGR, 1999)
       !------------------------------------------------------------
 
-      shcoef = rhoa * ustar * cp * rh + c1
-      lhcoef = rhoa * ustar * Lheat  * re
+      if (trim(atmbndy) == 'mixed') then
+         !- Use constant coefficients for sensible and latent heat fluxes
+         !    similar to atmo_boundary_const but using vmag instead of wind
+         shcoef = senscoef*cp_air*rhoa*vmag
+         lhcoef = latncoef*Lheat *rhoa*vmag
+      else ! 'similarity'
+         !- Monin-Obukhov similarity theory for boundary layer
+         shcoef = rhoa * ustar * cp * rh + c1
+         lhcoef = rhoa * ustar * Lheat  * re
+      endif
 
       !------------------------------------------------------------
       ! Compute diagnostics: 2m ref T, Q, U
@@ -503,8 +512,8 @@
       ! coefficients for turbulent flux calculation
       !------------------------------------------------------------
 
-      shcoef = (1.20e-3_dbl_kind)*cp_air*rhoa*wind
-      lhcoef = (1.50e-3_dbl_kind)*Lheat *rhoa*wind
+      shcoef = senscoef*cp_air*rhoa*wind
+      lhcoef = latncoef*Lheat *rhoa*wind
 
       end subroutine atmo_boundary_const
 
@@ -952,7 +961,7 @@
                                    delt,     delq,     &
                                    lhcoef,   shcoef    )
          if (icepack_warnings_aborted(subname)) return
-      else ! default
+      else
          call atmo_boundary_layer (sfctype,                 &
                                    calc_strair, formdrag,   &
                                    Tsf,      potT,          &
