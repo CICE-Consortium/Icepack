@@ -249,7 +249,7 @@
          qqqocn = 627572.4_dbl_kind  ,&! for qsat over ocn
          TTTocn = 5107.4_dbl_kind    ,&! for qsat over ocn
          senscoef= 0.0012_dbl_kind   ,&! Sensible heat flux coefficient for constant-based boundary layer
-         latncoef= 0.0015_dbl_kind   , ! Latent heat flux coefficient for constant-based boundary layer
+         latncoef= 0.0015_dbl_kind     ! Latent heat flux coefficient for constant-based boundary layer
 
       character (len=char_len), public :: &
          atmbndy = 'similarity'        ! atmo boundary method, 'similarity', 'constant' or 'mixed'
