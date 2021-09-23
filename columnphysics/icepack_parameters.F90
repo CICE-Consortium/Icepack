@@ -54,8 +54,6 @@
          p15  = 0.15_dbl_kind, &
          p25  = 0.25_dbl_kind, &
          p75  = 0.75_dbl_kind, &
-         p0012= 0.0012_dbl_kind, &
-         p0015= 0.0015_dbl_kind, &
          p333 = c1/c3, &
          p666 = c2/c3, &
          spval_const= -1.0e36_dbl_kind
@@ -249,7 +247,9 @@
          qqqice = 11637800._dbl_kind ,&! for qsat over ice
          TTTice = 5897.8_dbl_kind    ,&! for qsat over ice
          qqqocn = 627572.4_dbl_kind  ,&! for qsat over ocn
-         TTTocn = 5107.4_dbl_kind      ! for qsat over ocn
+         TTTocn = 5107.4_dbl_kind    ,&! for qsat over ocn
+         senscoef= 0.0012_dbl_kind   ,&! Sensible heat flux coefficient for constant-based boundary layer
+         latncoef= 0.0015_dbl_kind   , ! Latent heat flux coefficient for constant-based boundary layer
 
       character (len=char_len), public :: &
          atmbndy = 'similarity'        ! atmo boundary method, 'similarity', 'constant' or 'mixed'
