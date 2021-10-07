@@ -420,7 +420,7 @@ either Celsius or Kelvin units).
    "snowage_T", "snowage table dimension data for temperature (deg K)", ""
    "snowage_tau", "snowage table 3D data for tau (10^-6 m)", ""
    "snowage_Tgrd", "snowage table dimension data for temp gradient (deg K/m)", ""
-   "snoice"", "snow-ice formation", "m""
+   "snoice", "snow-ice formation", "m"
    "snowpatch", "length scale for parameterizing nonuniform snow coverage", "0.02 m"
    "skl_bgc", ":math:`\bullet` biogeochemistry on/off", ""
    "spval", "special value (single precision)", ":math:`10^{30}`", ""
