@@ -12,7 +12,7 @@
       use icepack_parameters, only: c1, emissivity
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
-      use icepack_tracers, only: tr_iso
+      use icepack_tracers, only: tr_iso, tr_snow
 
       implicit none
       private
@@ -217,7 +217,9 @@
       meltt     = meltt     + melttn    * aicen
       meltb     = meltb     + meltbn    * aicen
       melts     = melts     + meltsn    * aicen
-      meltsliq  = meltsliq  + meltsliqn * aicen
+      if (tr_snow) then
+         meltsliq  = meltsliq  + meltsliqn * aicen
+      endif
       dsnow     = dsnow     + dsnown    * aicen
       congel    = congel    + congeln   * aicen
       snoice    = snoice    + snoicen   * aicen
