@@ -796,6 +796,8 @@
         ntd      , & ! for tracer dependency calculation
         nk       , & !
         nt_depend
+      
+      character(len=char_len_long) :: tmpstr2 ! for namelist errors
 
       character(len=*), parameter :: subname='(init_zbgc)'
 
@@ -1016,9 +1018,14 @@
       print*,'Reading zbgc_nml'
       do while (nml_error > 0)
          read(nu_nml, nml=zbgc_nml,iostat=nml_error)
+         if (nml_error /= 0) exit
       end do
       if (nml_error /= 0) then
-         print*,'error reading zbgc namelist'
+         ! backspace, re-read erroneous line, then print
+         backspace(nu_nml)
+         read(nu_nml,fmt='(A)') tmpstr2
+
+         print*,'error reading zbgc namelist' // trim(tmpstr2)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
