@@ -1025,7 +1025,7 @@
          backspace(nu_nml)
          read(nu_nml,fmt='(A)') tmpstr2
 
-         print*,'error reading zbgc namelist' // trim(tmpstr2)
+         print*,'ERROR: reading zbgc namelist ' // trim(tmpstr2)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)

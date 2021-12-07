@@ -314,7 +314,7 @@
          ! backspace, re-read erroneous line, then print
          backspace(nu_nml)
          read(nu_nml,fmt='(A)') tmpstr2
-         write(ice_stdout,*) 'error reading namelist ' // trim(tmpstr2)
+         write(ice_stdout,*) 'ERROR: reading namelist ' // trim(tmpstr2)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
@@ -330,7 +330,7 @@
          ! backspace, re-read erroneous line, then print
          backspace(nu_nml)
          read(nu_nml,fmt='(A)') tmpstr2
-         write(ice_stdout,*) 'error reading namelist ' // trim(tmpstr2)
+         write(ice_stdout,*) 'ERROR: reading namelist ' // trim(tmpstr2)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
@@ -346,7 +346,7 @@
          ! backspace, re-read erroneous line, then print
          backspace(nu_nml)
          read(nu_nml,fmt='(A)') tmpstr2
-         write(ice_stdout,*) 'error reading namelist ' // trim(tmpstr2)
+         write(ice_stdout,*) 'ERROR: reading namelist ' // trim(tmpstr2)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
@@ -362,7 +362,7 @@
          ! backspace, re-read erroneous line, then print
          backspace(nu_nml)
          read(nu_nml,fmt='(A)') tmpstr2
-         write(ice_stdout,*) 'error reading namelist ' // trim(tmpstr2)
+         write(ice_stdout,*) 'ERROR: reading namelist ' // trim(tmpstr2)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
@@ -378,7 +378,7 @@
          ! backspace, re-read erroneous line, then print
          backspace(nu_nml)
          read(nu_nml,fmt='(A)') tmpstr2
-         write(ice_stdout,*) 'error reading namelist ' // trim(tmpstr2)
+         write(ice_stdout,*) 'ERROR: reading namelist ' // trim(tmpstr2)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
@@ -394,7 +394,7 @@
          ! backspace, re-read erroneous line, then print
          backspace(nu_nml)
          read(nu_nml,fmt='(A)') tmpstr2
-         write(ice_stdout,*) 'error reading namelist ' // trim(tmpstr2)
+         write(ice_stdout,*) 'ERROR: reading namelist ' // trim(tmpstr2)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
@@ -411,7 +411,7 @@
             ! backspace, re-read erroneous line, then print
             backspace(nu_nml)
             read(nu_nml,fmt='(A)') tmpstr2
-            write(ice_stdout,*) 'error reading namelist ' // trim(tmpstr2)
+            write(ice_stdout,*) 'ERROR: reading namelist ' // trim(tmpstr2)
             call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif
          close(nu_nml)
@@ -428,7 +428,7 @@
          ! backspace, re-read erroneous line, then print
          backspace(nu_nml)
          read(nu_nml,fmt='(A)') tmpstr2
-         write(ice_stdout,*) 'error reading namelist ' // trim(tmpstr2)
+         write(ice_stdout,*) 'ERROR: reading namelist ' // trim(tmpstr2)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
       close(nu_nml)
