@@ -23,6 +23,12 @@
 !  sub-grid-scale 1D domain. If the strain between successive extrema exceeds a critical
 !  value new floes are formed with diameters equal to the distance between the extrema.
 !
+!  We also include a machine-learning-based emulation of the wave fracture process, described in:
+!
+!    Horvat, C. and Roach, L. A. (2022). WIFF1.0: A hybrid machine-learning-based 
+!    parameterization of Wave-Induced sea-ice Floe Fracture, Geosci. Model Dev. Discuss.
+!    https://doi.org/10.5194/gmd-2021-281, (accepted).
+!
 !  authors: 2016-8 Lettie Roach, NIWA/VUW
 !          
 !
@@ -614,7 +620,7 @@
       END DO
 
       if (iter >= max_no_iter) then
-         write(warnstr,*) subname,'warning: wave_frac struggling to converge'
+         write(warnstr,*) subname,'warning: wave_frac convergence'
          call icepack_warnings_add(warnstr)
       endif
 
@@ -784,6 +790,7 @@
 
 !===========================================================================
 !
+!  Read in coefficients for the classifier for machine learning wave fracture
 !
 !  authors: 2020 Lettie Roach, UW
 !
@@ -818,7 +825,6 @@
 
 !===========================================================================
 !
-! See ref XXX for details
 !
 ! This routine contains the results of a pattern recognition network
 ! (trained offline). The network classifies whether or not wave fracture occurs 
@@ -875,7 +881,7 @@
 
 !===========================================================================
 !
-!  Read in coefficients for machine learning wave fracture 
+!  Read in coefficients for machine learning wave fracture for the full network
 !
 !  authors: 2019 Lettie Roach, UW
 !
@@ -912,8 +918,6 @@
       end subroutine icepack_init_spwf_fullnet
 
 !===========================================================================
-!
-! See ref XXX for details
 !
 ! This routine contains the results of a pattern recognition network
 ! (trained offline). The network emulates the full wave fracture code
