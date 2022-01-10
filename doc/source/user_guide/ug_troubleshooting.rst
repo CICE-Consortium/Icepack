@@ -87,7 +87,7 @@ Known bugs and other issues
     Development of a new, variational approach for ridging is underway 
     that will generate ridge shapes differently from
     the current parameterization, and is expected to alleviate the reported
-    problem (Roberts, A., et al, in prep. 2018). 
+    problem (:cite:`Roberts19`). 
 
 Interpretation of albedos
 -------------------------

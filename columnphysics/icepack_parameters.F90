@@ -7,7 +7,8 @@
       module icepack_parameters
 
       use icepack_kinds
-      use icepack_warnings, only: icepack_warnings_aborted
+      use icepack_warnings, only: icepack_warnings_aborted, &
+          icepack_warnings_add, icepack_warnings_setabort
 
       implicit none
       private
@@ -224,9 +225,14 @@
          Cstar    = 20._dbl_kind     ,&! constant in Hibler strength formula
                                        ! (kstrength = 0)
          dragio   = 0.00536_dbl_kind ,&! ice-ocn drag coefficient
+         thickness_ocn_layer1 = 2.0_dbl_kind,&! thickness of first ocean level (m)
+         iceruf_ocn = 0.03_dbl_kind  ,&! under-ice roughness (m)
          gravit   = 9.80616_dbl_kind ,&! gravitational acceleration (m/s^2)
          mu_rdg = 3.0_dbl_kind ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
                                        ! (krdg_redist = 1)
+
+      logical (kind=log_kind), public :: &
+         calc_dragio     = .false.     ! if true, calculate dragio from iceruf_ocn and thickness_ocn_layer1
 
 !-----------------------------------------------------------------------
 ! Parameters for atmosphere
@@ -241,10 +247,12 @@
          qqqice = 11637800._dbl_kind ,&! for qsat over ice
          TTTice = 5897.8_dbl_kind    ,&! for qsat over ice
          qqqocn = 627572.4_dbl_kind  ,&! for qsat over ocn
-         TTTocn = 5107.4_dbl_kind      ! for qsat over ocn
+         TTTocn = 5107.4_dbl_kind    ,&! for qsat over ocn
+         senscoef= 0.0012_dbl_kind   ,&! Sensible heat flux coefficient for constant-based boundary layer
+         latncoef= 0.0015_dbl_kind     ! Latent heat flux coefficient for constant-based boundary layer
 
       character (len=char_len), public :: &
-         atmbndy = 'default' ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+         atmbndy = 'similarity'        ! atmo boundary method, 'similarity', 'constant' or 'mixed'
 
       logical (kind=log_kind), public :: &
          calc_strair     = .true.  , & ! if true, calculate wind stress
@@ -316,12 +324,50 @@
          hp1       = 0.01_dbl_kind    ! critical pond lid thickness for topo ponds
 
 !-----------------------------------------------------------------------
+! Parameters for snow redistribution, metamorphosis
+!-----------------------------------------------------------------------
+
+      character (len=char_len), public :: &
+         snwredist       = 'none', &     ! type of snow redistribution
+         snw_aging_table = 'test'        ! lookup table: 'snicar' or 'test' or 'file'
+
+      logical (kind=log_kind), public :: &
+         use_smliq_pnd = .false.     , & ! use liquid in snow for ponds
+         snwgrain      = .false.         ! snow metamorphosis
+
+      real (kind=dbl_kind), public :: &
+         rsnw_fall  = 54.526_dbl_kind, & ! radius of new snow (10^-6 m)
+         rsnw_tmax  = 1500.0_dbl_kind, & ! maximum snow radius (10^-6 m)
+         rhosnew    =  100.0_dbl_kind, & ! new snow density (kg/m^3)
+         rhosmin    =  100.0_dbl_kind, & ! minimum snow density (kg/m^3)
+         rhosmax    =  450.0_dbl_kind, & ! maximum snow density (kg/m^3)
+         windmin    =   10.0_dbl_kind, & ! minimum wind speed to compact snow (m/s)
+         drhosdwind =   27.3_dbl_kind, & ! wind compaction factor for snow (kg s/m^4)
+         snwlvlfac  =    0.3_dbl_kind    ! fractional increase in snow
+                                         ! depth for bulk redistribution
+      ! indices for aging lookup table
+      integer (kind=int_kind), public :: &
+         isnw_T,    & ! maximum temperature index
+         isnw_Tgrd, & ! maximum temperature gradient index
+         isnw_rhos    ! maximum snow density index
+
+      ! dry snow aging parameters
+      real (kind=dbl_kind), dimension(:), allocatable, public :: &
+         snowage_rhos,  & ! snowage table dimension data for rhos (kg/m^3)
+         snowage_Tgrd,  & ! snowage table dimension data for temp gradient (deg K/m)
+         snowage_T        ! snowage table dimension data for temperature (deg K)
+      real (kind=dbl_kind), dimension(:,:,:), allocatable, public :: &
+         snowage_tau,   & ! snowage table 3D data for tau (10^-6 m)
+         snowage_kappa, & ! snowage table 3D data for kappa (10^-6 m)
+         snowage_drdt0    ! snowage table 3D data for drdt0 (10^-6 m/hr)
+
+!-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
       character(char_len), public :: &          
       ! skl biology parameters
-         bgc_flux_type = 'Jin2006'  ! type of ocean-ice poston velocity (or 'constant')
+         bgc_flux_type = 'Jin2006'  ! type of ocean-ice piston velocity (or 'constant')
 
       logical (kind=log_kind), public :: &
          z_tracers  = .false.,    & ! if .true., bgc or aerosol tracers are vertically resolved
@@ -387,7 +433,7 @@
          puny_in, bignum_in, pi_in, secday_in, &
          rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
          cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
-         depressT_in, dragio_in, albocn_in, gravit_in, viscosity_dyn_in, &
+         depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, albocn_in, gravit_in, viscosity_dyn_in, &
          Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
          stefan_boltzmann_in, ice_ref_salinity_in, &
          Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
@@ -407,7 +453,7 @@
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
          kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
-         atmiter_conv_in, &
+         atmiter_conv_in, calc_dragio_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
          floeshape_in, wave_spec_in, &
          wave_spec_type_in, wave_solver_in, nfreq_in, &
@@ -421,7 +467,13 @@
          fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
          max_dfe_doc1_in, fr_resp_s_in, conserv_check_in, &
          y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, frazil_scav_in, &
-         sw_redist_in, sw_frac_in, sw_dtemp_in)
+         sw_redist_in, sw_frac_in, sw_dtemp_in, snwgrain_in, &
+         snwredist_in, use_smliq_pnd_in, rsnw_fall_in, rsnw_tmax_in, &
+         rhosnew_in, rhosmin_in, rhosmax_in, windmin_in, drhosdwind_in, &
+         snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
+         snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
+         snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
+         snw_aging_table_in)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -479,7 +531,7 @@
                             ! 1 = Bitz and Lipscomb 1999
                             ! 2 = mushy layer theory
 
-      character (char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          conduct_in, &      ! 'MU71' or 'bubbly'
          fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
         
@@ -504,7 +556,7 @@
          phi_c_slow_mode_in   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_in           ! liquid fraction of congelation ice
         
-        character(len=char_len), intent(in), optional :: &
+        character(len=*), intent(in), optional :: &
              tfrz_option_in              ! form of ocean freezing temperature
                                          ! 'minus1p8' = -1.8 C
                                          ! 'linear_salt' = -depressT * sss
@@ -527,7 +579,7 @@
          awtvdf_in,     & ! visible, diffuse
          awtidf_in        ! near IR, diffuse
 
-      character (len=char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd'
          albedo_type_in  ! albedo parameterization, 'ccsm3' or 'constant'
                          ! shortwave='dEdd' overrides this parameter
@@ -566,6 +618,8 @@
          Pstar_in,      & ! constant in Hibler strength formula 
          Cstar_in,      & ! constant in Hibler strength formula 
          dragio_in,     & ! ice-ocn drag coefficient
+         thickness_ocn_layer1_in, & ! thickness of first ocean level (m)
+         iceruf_ocn_in, & ! under-ice roughness (m)
          gravit_in,     & ! gravitational acceleration (m/s^2)
          iceruf_in        ! ice surface roughness (m)
 
@@ -581,6 +635,9 @@
          mu_rdg_in         ! gives e-folding scale of ridged ice (m^.5) 
                            ! (krdg_redist = 1) 
 
+      logical (kind=log_kind), intent(in), optional :: &
+         calc_dragio_in    ! if true, calculate dragio from iceruf_ocn and thickness_ocn_layer1
+
 !-----------------------------------------------------------------------
 ! Parameters for atmosphere
 !-----------------------------------------------------------------------
@@ -595,13 +652,13 @@
          qqqocn_in,     & ! for qsat over ocn
          TTTocn_in        ! for qsat over ocn
 
-      character (len=char_len), intent(in), optional :: &
-         atmbndy_in ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+      character (len=*), intent(in), optional :: &
+         atmbndy_in   ! atmo boundary method, 'similarity', 'constant' or 'mixed'
         
       logical (kind=log_kind), intent(in), optional :: &
-         calc_strair_in, &  ! if true, calculate wind stress components
-         formdrag_in,    &  ! if true, calculate form drag
-         highfreq_in        ! if true, use high frequency coupling
+         calc_strair_in,     & ! if true, calculate wind stress components
+         formdrag_in,        & ! if true, calculate form drag
+         highfreq_in           ! if true, use high frequency coupling
         
       integer (kind=int_kind), intent(in), optional :: &
          natmiter_in        ! number of iterations for boundary layer calculations
@@ -635,7 +692,7 @@
       logical (kind=log_kind), intent(in), optional :: &
          wave_spec_in       ! if true, use wave forcing
 
-      character (len=char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          wave_spec_type_in  ! type of wave spectrum forcing 
 
       character (len=char_len), intent(in), optional :: &
@@ -646,7 +703,7 @@
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
-     character(char_len), intent(in), optional :: &     
+     character (len=*), intent(in), optional :: &     
         bgc_flux_type_in    ! type of ocean-ice piston velocity 
                             ! 'constant', 'Jin2006'      
 
@@ -707,7 +764,7 @@
          hs0_in             ! snow depth for transition to bare sea ice (m)
         
       ! level-ice ponds
-      character (len=char_len), intent(in), optional :: &
+      character (len=*), intent(in), optional :: &
          frzpnd_in          ! pond refreezing parameterization
         
       real (kind=dbl_kind), intent(in), optional :: &
@@ -720,6 +777,43 @@
       ! topo ponds
       real (kind=dbl_kind), intent(in), optional :: &
          hp1_in             ! critical parameter for pond ice thickness
+
+!-----------------------------------------------------------------------
+! Parameters for snow redistribution, metamorphosis
+!-----------------------------------------------------------------------
+
+      character (len=*), intent(in), optional :: &
+         snwredist_in, &    ! type of snow redistribution
+         snw_aging_table_in ! snow aging lookup table
+
+      logical (kind=log_kind), intent(in), optional :: &
+         use_smliq_pnd_in, &! use liquid in snow for ponds
+         snwgrain_in        ! snow metamorphosis
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         rsnw_fall_in, &    ! radius of new snow (10^-6 m)
+         rsnw_tmax_in, &    ! maximum snow radius (10^-6 m)
+         rhosnew_in, &      ! new snow density (kg/m^3)
+         rhosmin_in, &      ! minimum snow density (kg/m^3)
+         rhosmax_in, &      ! maximum snow density (kg/m^3)
+         windmin_in, &      ! minimum wind speed to compact snow (m/s)
+         drhosdwind_in, &   ! wind compaction factor (kg s/m^4)
+         snwlvlfac_in       ! fractional increase in snow depth
+
+      integer (kind=int_kind), intent(in), optional :: &
+         isnw_T_in, &       ! maxiumum temperature index
+         isnw_Tgrd_in, &    ! maxiumum temperature gradient index
+         isnw_rhos_in       ! maxiumum snow density index
+
+      real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+         snowage_rhos_in, & ! snowage dimension data
+         snowage_Tgrd_in, & !
+         snowage_T_in       !
+
+      real (kind=dbl_kind), dimension(:,:,:), intent(in), optional :: &
+         snowage_tau_in, &  ! (10^-6 m)
+         snowage_kappa_in, &!
+         snowage_drdt0_in   ! (10^-6 m/hr)
 
 !autodocument_end
 
@@ -736,6 +830,9 @@
       if (present(cp_ocn_in)            ) cp_ocn           = cp_ocn_in
       if (present(depressT_in)          ) depressT         = depressT_in
       if (present(dragio_in)            ) dragio           = dragio_in
+      if (present(iceruf_ocn_in)        ) iceruf_ocn       = iceruf_ocn_in
+      if (present(thickness_ocn_layer1_in) ) thickness_ocn_layer1 = thickness_ocn_layer1_in
+      if (present(calc_dragio_in)       ) calc_dragio      = calc_dragio_in
       if (present(albocn_in)            ) albocn           = albocn_in
       if (present(gravit_in)            ) gravit           = gravit_in
       if (present(viscosity_dyn_in)     ) viscosity_dyn    = viscosity_dyn_in
@@ -837,6 +934,124 @@
       if (present(pndaspect_in)         ) pndaspect        = pndaspect_in
       if (present(hs1_in)               ) hs1              = hs1_in
       if (present(hp1_in)               ) hp1              = hp1_in
+      if (present(snwredist_in)         ) snwredist        = snwredist_in
+      if (present(snw_aging_table_in)   ) snw_aging_table  = snw_aging_table_in
+      if (present(snwgrain_in)          ) snwgrain         = snwgrain_in
+      if (present(use_smliq_pnd_in)     ) use_smliq_pnd    = use_smliq_pnd_in
+      if (present(rsnw_fall_in)         ) rsnw_fall        = rsnw_fall_in
+      if (present(rsnw_tmax_in)         ) rsnw_tmax        = rsnw_tmax_in
+      if (present(rhosnew_in)           ) rhosnew          = rhosnew_in
+      if (present(rhosmin_in)           ) rhosmin          = rhosmin_in
+      if (present(rhosmax_in)           ) rhosmax          = rhosmax_in
+      if (present(windmin_in)           ) windmin          = windmin_in
+      if (present(drhosdwind_in)        ) drhosdwind       = drhosdwind_in
+      if (present(snwlvlfac_in)         ) snwlvlfac        = snwlvlfac_in
+      if (present(isnw_T_in)            ) isnw_T           = isnw_T_in
+      if (present(isnw_Tgrd_in)         ) isnw_Tgrd        = isnw_Tgrd_in
+      if (present(isnw_rhos_in)         ) isnw_rhos        = isnw_rhos_in
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_rhos_in)       ) then
+         if (size(snowage_rhos_in) /= isnw_rhos) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_rhos_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_rhos)) then
+            allocate(snowage_rhos(isnw_rhos))
+            snowage_rhos      = snowage_rhos_in
+         elseif (size(snowage_rhos) /= isnw_rhos) then
+            deallocate(snowage_rhos)
+            allocate(snowage_rhos(isnw_rhos))
+            snowage_rhos      = snowage_rhos_in
+         else
+            snowage_rhos      = snowage_rhos_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_Tgrd_in)       ) then
+         if (size(snowage_Tgrd_in) /= isnw_Tgrd) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_Tgrd_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_Tgrd)) then
+            allocate(snowage_Tgrd(isnw_Tgrd))
+            snowage_Tgrd      = snowage_Tgrd_in
+         elseif (size(snowage_Tgrd) /= isnw_Tgrd) then
+            deallocate(snowage_Tgrd)
+            allocate(snowage_Tgrd(isnw_Tgrd))
+            snowage_Tgrd      = snowage_Tgrd_in
+         else
+            snowage_Tgrd      = snowage_Tgrd_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_T_in)       ) then
+         if (size(snowage_T_in) /= isnw_T) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_T_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_T)) then
+            allocate(snowage_T(isnw_T))
+            snowage_T      = snowage_T_in
+         elseif (size(snowage_T) /= isnw_T) then
+            deallocate(snowage_T)
+            allocate(snowage_T(isnw_T))
+            snowage_T      = snowage_T_in
+         else
+            snowage_T      = snowage_T_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_tau_in)       ) then
+         if (size(snowage_tau_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_tau_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_tau)) then
+            allocate(snowage_tau(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_tau      = snowage_tau_in
+         elseif (size(snowage_tau) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            deallocate(snowage_tau)
+            allocate(snowage_tau(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_tau      = snowage_tau_in
+         else
+            snowage_tau      = snowage_tau_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_kappa_in)       ) then
+         if (size(snowage_kappa_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_kappa_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_kappa)) then
+            allocate(snowage_kappa(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_kappa      = snowage_kappa_in
+         elseif (size(snowage_kappa) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            deallocate(snowage_kappa)
+            allocate(snowage_kappa(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_kappa      = snowage_kappa_in
+         else
+            snowage_kappa      = snowage_kappa_in
+         endif
+      endif
+
+      ! check array sizes and re/allocate if necessary
+      if (present(snowage_drdt0_in)       ) then
+         if (size(snowage_drdt0_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            call icepack_warnings_add(subname//' incorrect size of snowage_drdt0_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         elseif (.not.allocated(snowage_drdt0)) then
+            allocate(snowage_drdt0(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_drdt0      = snowage_drdt0_in
+         elseif (size(snowage_drdt0) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+            deallocate(snowage_drdt0)
+            allocate(snowage_drdt0(isnw_T,isnw_Tgrd,isnw_rhos))
+            snowage_drdt0      = snowage_drdt0_in
+         else
+            snowage_drdt0      = snowage_drdt0_in
+         endif
+      endif
+
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
       if (present(z_tracers_in)         ) z_tracers        = z_tracers_in
       if (present(scale_bgc_in)         ) scale_bgc        = scale_bgc_in
@@ -895,7 +1110,7 @@
          p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
          rhos_out, rhoi_out, rhow_out, cp_air_out, emissivity_out, &
          cp_ice_out, cp_ocn_out, hfrazilmin_out, floediam_out, &
-         depressT_out, dragio_out, albocn_out, gravit_out, viscosity_dyn_out, &
+         depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, albocn_out, gravit_out, viscosity_dyn_out, &
          Tocnfrz_out, rhofresh_out, zvir_out, vonkar_out, cp_wv_out, &
          stefan_boltzmann_out, ice_ref_salinity_out, &
          Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
@@ -915,7 +1130,7 @@
          rsnw_mlt_out, dEdd_algae_out, &
          kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
-         atmiter_conv_out, &
+         atmiter_conv_out, calc_dragio_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
          floeshape_out, wave_spec_out, &
          wave_spec_type_out, wave_solver_out, nfreq_out, &
@@ -929,7 +1144,13 @@
          fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
          k_nitrif_out, t_iron_conv_out, max_loss_out, max_dfe_doc1_out, &
          y_sk_DMS_out, t_sk_conv_out, t_sk_ox_out, frazil_scav_out, &
-         sw_redist_out, sw_frac_out, sw_dtemp_out)
+         sw_redist_out, sw_frac_out, sw_dtemp_out, snwgrain_out, &
+         snwredist_out, use_smliq_pnd_out, rsnw_fall_out, rsnw_tmax_out, &
+         rhosnew_out, rhosmin_out, rhosmax_out, windmin_out, drhosdwind_out, &
+         snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
+         snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
+         snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
+         snw_aging_table_out)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -996,7 +1217,7 @@
                             ! 1 = Bitz and Lipscomb 1999
                             ! 2 = mushy layer theory
 
-      character (char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          conduct_out, &     ! 'MU71' or 'bubbly'
          fbot_xfer_type_out ! transfer coefficient type for ice-ocean heat flux
         
@@ -1021,7 +1242,7 @@
          phi_c_slow_mode_out   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_out           ! liquid fraction of congelation ice
         
-      character(len=char_len), intent(out), optional :: &
+      character(len=*), intent(out), optional :: &
          tfrz_option_out              ! form of ocean freezing temperature
                                       ! 'minus1p8' = -1.8 C
                                       ! 'linear_salt' = -depressT * sss
@@ -1044,7 +1265,7 @@
          awtvdf_out,     & ! visible, diffuse
          awtidf_out        ! near IR, diffuse
 
-      character (len=char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd'
          albedo_type_out  ! albedo parameterization, 'ccsm3' or 'constant'
                              ! shortwave='dEdd' overrides this parameter
@@ -1083,6 +1304,8 @@
          Pstar_out,      & ! constant in Hibler strength formula 
          Cstar_out,      & ! constant in Hibler strength formula 
          dragio_out,     & ! ice-ocn drag coefficient
+         thickness_ocn_layer1_out, & ! thickness of first ocean level (m)
+         iceruf_ocn_out, & ! under-ice roughness (m)
          gravit_out,     & ! gravitational acceleration (m/s^2)
          iceruf_out        ! ice surface roughness (m)
 
@@ -1098,6 +1321,9 @@
          mu_rdg_out         ! gives e-folding scale of ridged ice (m^.5) 
                             ! (krdg_redist = 1) 
 
+      logical (kind=log_kind), intent(out), optional :: &
+         calc_dragio_out    ! if true, compute dragio from iceruf_ocn and thickness_ocn_layer1
+
 !-----------------------------------------------------------------------
 ! Parameters for atmosphere
 !-----------------------------------------------------------------------
@@ -1112,13 +1338,13 @@
          qqqocn_out,     & ! for qsat over ocn
          TTTocn_out        ! for qsat over ocn
 
-      character (len=char_len), intent(out), optional :: &
-         atmbndy_out ! atmo boundary method, 'default' ('ccsm3') or 'constant'
+      character (len=*), intent(out), optional :: &
+         atmbndy_out   ! atmo boundary method, 'similarity', 'constant' or 'mixed'
         
       logical (kind=log_kind), intent(out), optional :: &
-         calc_strair_out, &  ! if true, calculate wind stress components
-         formdrag_out,    &  ! if true, calculate form drag
-         highfreq_out        ! if true, use high frequency coupling
+         calc_strair_out,     & ! if true, calculate wind stress components
+         formdrag_out,        & ! if true, calculate form drag
+         highfreq_out           ! if true, use high frequency coupling
         
       integer (kind=int_kind), intent(out), optional :: &
          natmiter_out        ! number of iterations for boundary layer calculations
@@ -1152,7 +1378,7 @@
       logical (kind=log_kind), intent(out), optional :: &
          wave_spec_out      ! if true, use wave forcing
 
-      character (len=char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          wave_spec_type_out ! type of wave spectrum forcing
 
       character (len=char_len), intent(out), optional :: &
@@ -1163,8 +1389,8 @@
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
-      character(char_len), intent(out), optional :: &     
-         bgc_flux_type_out    ! type of ocean-ice piston velocity 
+      character (len=*), intent(out), optional :: &
+         bgc_flux_type_out    ! type of ocean-ice piston velocity
                               ! 'constant', 'Jin2006'      
 
       logical (kind=log_kind), intent(out), optional :: &
@@ -1224,7 +1450,7 @@
          hs0_out             ! snow depth for transition to bare sea ice (m)
         
       ! level-ice ponds
-      character (len=char_len), intent(out), optional :: &
+      character (len=*), intent(out), optional :: &
          frzpnd_out          ! pond refreezing parameterization
         
       real (kind=dbl_kind), intent(out), optional :: &
@@ -1238,6 +1464,42 @@
       real (kind=dbl_kind), intent(out), optional :: &
          hp1_out             ! critical parameter for pond ice thickness
 
+!-----------------------------------------------------------------------
+! Parameters for snow redistribution, metamorphosis
+!-----------------------------------------------------------------------
+
+      character (len=*), intent(out), optional :: &
+         snwredist_out, &    ! type of snow redistribution
+         snw_aging_table_out ! snow aging lookup table
+
+      logical (kind=log_kind), intent(out), optional :: &
+         use_smliq_pnd_out, &! use liquid in snow for ponds
+         snwgrain_out        ! snow metamorphosis
+
+      real (kind=dbl_kind), intent(out), optional :: &
+         rsnw_fall_out, &    ! radius of new snow (10^-6 m)
+         rsnw_tmax_out, &    ! maximum snow radius (10^-6 m)
+         rhosnew_out, &      ! new snow density (kg/m^3)
+         rhosmin_out, &      ! minimum snow density (kg/m^3)
+         rhosmax_out, &      ! maximum snow density (kg/m^3)
+         windmin_out, &      ! minimum wind speed to compact snow (m/s)
+         drhosdwind_out, &   ! wind compaction factor (kg s/m^4)
+         snwlvlfac_out       ! fractional increase in snow depth
+
+      integer (kind=int_kind), intent(out), optional :: &
+         isnw_T_out, &       ! maxiumum temperature index
+         isnw_Tgrd_out, &    ! maxiumum temperature gradient index
+         isnw_rhos_out       ! maxiumum snow density index
+
+      real (kind=dbl_kind), dimension(:), intent(out), optional :: &
+         snowage_rhos_out, & ! snowage dimension data
+         snowage_Tgrd_out, & !
+         snowage_T_out       !
+
+      real (kind=dbl_kind), dimension(:,:,:), intent(out), optional :: &
+         snowage_tau_out, &  ! (10^-6 m)
+         snowage_kappa_out, &!
+         snowage_drdt0_out   ! (10^-6 m/hr)
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_query_parameters)'
@@ -1294,6 +1556,9 @@
       if (present(cp_ocn_out)            ) cp_ocn_out       = cp_ocn
       if (present(depressT_out)          ) depressT_out     = depressT
       if (present(dragio_out)            ) dragio_out       = dragio
+      if (present(iceruf_ocn_out)        ) iceruf_ocn_out   = iceruf_ocn
+      if (present(thickness_ocn_layer1_out) ) thickness_ocn_layer1_out = thickness_ocn_layer1
+      if (present(calc_dragio_out)       ) calc_dragio_out  = calc_dragio
       if (present(albocn_out)            ) albocn_out       = albocn
       if (present(gravit_out)            ) gravit_out       = gravit
       if (present(viscosity_dyn_out)     ) viscosity_dyn_out= viscosity_dyn
@@ -1395,6 +1660,27 @@
       if (present(pndaspect_out)         ) pndaspect_out    = pndaspect
       if (present(hs1_out)               ) hs1_out          = hs1
       if (present(hp1_out)               ) hp1_out          = hp1
+      if (present(snwredist_out)         ) snwredist_out    = snwredist
+      if (present(snw_aging_table_out)   ) snw_aging_table_out = snw_aging_table
+      if (present(snwgrain_out)          ) snwgrain_out     = snwgrain
+      if (present(use_smliq_pnd_out)     ) use_smliq_pnd_out= use_smliq_pnd
+      if (present(rsnw_fall_out)         ) rsnw_fall_out    = rsnw_fall
+      if (present(rsnw_tmax_out)         ) rsnw_tmax_out    = rsnw_tmax
+      if (present(rhosnew_out)           ) rhosnew_out      = rhosnew
+      if (present(rhosmin_out)           ) rhosmin_out      = rhosmin
+      if (present(rhosmax_out)           ) rhosmax_out      = rhosmax
+      if (present(windmin_out)           ) windmin_out      = windmin
+      if (present(drhosdwind_out)        ) drhosdwind_out   = drhosdwind
+      if (present(snwlvlfac_out)         ) snwlvlfac_out    = snwlvlfac
+      if (present(isnw_T_out)            ) isnw_T_out       = isnw_T
+      if (present(isnw_Tgrd_out)         ) isnw_Tgrd_out    = isnw_Tgrd
+      if (present(isnw_rhos_out)         ) isnw_rhos_out    = isnw_rhos
+      if (present(snowage_rhos_out)      ) snowage_rhos_out = snowage_rhos
+      if (present(snowage_Tgrd_out)      ) snowage_Tgrd_out = snowage_Tgrd
+      if (present(snowage_T_out)         ) snowage_T_out    = snowage_T
+      if (present(snowage_tau_out)       ) snowage_tau_out  = snowage_tau
+      if (present(snowage_kappa_out)     ) snowage_kappa_out= snowage_kappa
+      if (present(snowage_drdt0_out)     ) snowage_drdt0_out= snowage_drdt0
       if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
       if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
       if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
@@ -1468,6 +1754,9 @@
         write(iounit,*) "  cp_ocn = ",cp_ocn
         write(iounit,*) "  depressT = ",depressT
         write(iounit,*) "  dragio = ",dragio
+        write(iounit,*) "  calc_dragio = ",calc_dragio
+        write(iounit,*) "  iceruf_ocn = ",iceruf_ocn
+        write(iounit,*) "  thickness_ocn_layer1 = ",thickness_ocn_layer1
         write(iounit,*) "  albocn = ",albocn
         write(iounit,*) "  gravit = ",gravit
         write(iounit,*) "  viscosity_dyn = ",viscosity_dyn
@@ -1576,6 +1865,27 @@
         write(iounit,*) "  pndaspect     = ", pndaspect
         write(iounit,*) "  hs1           = ", hs1
         write(iounit,*) "  hp1           = ", hp1
+        write(iounit,*) "  snwredist     = ", snwredist
+        write(iounit,*) "  snw_aging_table = ", snw_aging_table
+        write(iounit,*) "  snwgrain      = ", snwgrain
+        write(iounit,*) "  use_smliq_pnd = ", use_smliq_pnd
+        write(iounit,*) "  rsnw_fall     = ", rsnw_fall
+        write(iounit,*) "  rsnw_tmax     = ", rsnw_tmax
+        write(iounit,*) "  rhosnew       = ", rhosnew
+        write(iounit,*) "  rhosmin       = ", rhosmin
+        write(iounit,*) "  rhosmax       = ", rhosmax
+        write(iounit,*) "  windmin       = ", windmin
+        write(iounit,*) "  drhosdwind    = ", drhosdwind
+        write(iounit,*) "  snwlvlfac     = ", snwlvlfac
+        write(iounit,*) "  isnw_T        = ", isnw_T
+        write(iounit,*) "  isnw_Tgrd     = ", isnw_Tgrd
+        write(iounit,*) "  isnw_rhos     = ", isnw_rhos
+        write(iounit,*) "  snowage_rhos  = ", snowage_rhos(1)
+        write(iounit,*) "  snowage_Tgrd  = ", snowage_Tgrd(1)
+        write(iounit,*) "  snowage_T     = ", snowage_T(1)
+        write(iounit,*) "  snowage_tau   = ", snowage_tau(1,1,1)
+        write(iounit,*) "  snowage_kappa = ", snowage_kappa(1,1,1)
+        write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0(1,1,1)
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
         write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc
@@ -1626,6 +1936,8 @@
 
 !autodocument_end
 
+      real (kind=dbl_kind) :: lambda
+
       character(len=*),parameter :: subname='(icepack_recompute_constants)'
 
         cprho  = cp_ocn*rhow
@@ -1635,6 +1947,13 @@
         piq    = p5*p5*pi
         pi2    = c2*pi
         rad_to_deg = c180/pi
+
+        if (calc_dragio) then
+           dragio = (vonkar/log(p5 * thickness_ocn_layer1/iceruf_ocn))**2 ! dragio at half first layer
+           lambda = (thickness_ocn_layer1 - iceruf_ocn) / &
+                    (thickness_ocn_layer1*(sqrt(dragio)/vonkar*(log(c2) - c1 + iceruf_ocn/thickness_ocn_layer1) + c1))
+           dragio = dragio*lambda**2
+        endif
 
       end subroutine icepack_recompute_constants
 

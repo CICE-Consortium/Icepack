@@ -585,7 +585,12 @@ Next, create the "icepack" conda environment from the ``environment.yml`` file i
 
   conda env create -f configuration/scripts/machines/environment.yml
 
-This step needs to be done only once.
+This step needs to be done only once.  If you ever need to update the conda environment
+because the required packages change or packages are out of date, do
+
+.. code-block:: bash
+
+  conda env update -f configuration/scripts/machines/environment.yml
 
 .. _using_conda_env:
 

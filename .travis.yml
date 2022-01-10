@@ -31,7 +31,7 @@ script:
   - "./icepack.setup --case trcase --mach travisCI --env gnu --pes 1x1 -s diag1 && sleep 4"
   - "./icepack.setup --test smoke --testid trtest --mach travisCI --env gnu 
     --pes 1x1 -s diag1 && sleep 4"
-  - "./icepack.setup --suite travis_suite --testid travisCItest 
+  - "./icepack.setup --suite travis_suite,io_suite --testid travisCItest 
     --mach travisCI --env gnu &&
     cd testsuite.travisCItest &&
     ./results.csh"

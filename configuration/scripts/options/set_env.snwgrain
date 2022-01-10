@@ -1,0 +1,3 @@
+setenv NSNWLYR   5         # number of vertical layers in the snow
+setenv TRSNOW    1         # set to 1 for advanced snow physics tracers
+

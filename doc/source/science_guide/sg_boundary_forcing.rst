@@ -12,6 +12,7 @@ Atmosphere and ocean boundary forcing
    :widths: 10, 25, 25
      
    ":math:`z_o`", "Atmosphere level height", "From *atmosphere model* to *sea ice model*"
+   ":math:`z_{o,s}`", "Atmosphere level height (scalar quantities) (optional)", "From *atmosphere model* to *sea ice model*"
    ":math:`\vec{U}_a`", "Wind velocity", "From *atmosphere model* to *sea ice model*"
    ":math:`Q_a`", "Specific humidity", "From *atmosphere model* to *sea ice model*"
    ":math:`\rho_a`", "Air density", "From *atmosphere model* to *sea ice model*"
@@ -25,6 +26,7 @@ Atmosphere and ocean boundary forcing
    ":math:`T_w`", "Sea surface temperature", "From *ocean model* to *sea ice model*"
    ":math:`S`", "Sea surface salinity", "From *ocean model* to *sea ice model*"
    ":math:`\nabla H_o`", "Sea surface slope", "From *ocean model* via flux coupler to *sea ice model*"
+   ":math:`h_1`", "Thickness of first ocean level (optional)", "From *ocean model* to *sea ice model*"
    ":math:`\vec{U}_w`", "Surface ocean currents", "From *ocean model* to *sea ice model* (available in Icepack driver, not used directly in column physics)"
    ":math:`\vec{\tau}_a`", "Wind stress", "From *sea ice model* to *atmosphere model*"
    ":math:`F_s`", "Sensible heat flux", "From *sea ice model* to *atmosphere model*"
@@ -94,7 +96,7 @@ Atmosphere
 ----------
 
 The wind velocity, specific humidity, air density and potential
-temperature at the given level height :math:`z_\circ` are used to
+temperature at the given level height :math:`z_\circ` (optionally :math:`z_{\circ,s}`, see below) are used to
 compute transfer coefficients used in formulas for the surface wind
 stress and turbulent heat fluxes :math:`\vec\tau_a`, :math:`F_s`, and
 :math:`F_l`, as described below. The sensible and latent heat fluxes,
@@ -118,10 +120,15 @@ parameterizations. Rain and all melted snow end up in the ocean.
 Wind stress and transfer coefficients for the
 turbulent heat fluxes are computed in subroutine
 *atmo\_boundary\_layer* following :cite:`Kauffman02`, with additions and changes as detailed in Appendix A of :cite:`Roberts15` for high frequency coupling (namelist variable ``highfreq``).
-The resulting equations are provided here.
+The resulting equations are provided here for the default boundary layer 
+scheme, which is based on Monin-Obukhov theory (``atmbndy = ‘stability’``). 
+Alternatively, ``atmbndy = ‘constant’`` provides constant coefficients for
+wind stress, sensible heat and latent heat calculations (computed in subroutine
+*atmo\_boundary\_const*); ``atmbndy = ‘mixed’`` uses the stability based 
+calculation for wind stress and constant coefficients for sensible and latent heat fluxes.
 
 The wind stress and turbulent heat flux calculation accounts for both
-stable and unstable atmosphere–ice boundary layers. Define the
+stable and unstable atmosphere–ice boundary layers. We first define the
 "stability"
 
 .. math::
@@ -133,7 +140,7 @@ stable and unstable atmosphere–ice boundary layers. Define the
 where :math:`\kappa` is the von Karman constant, :math:`g` is
 gravitational acceleration, and :math:`u^*`, :math:`\Theta^*` and
 :math:`Q^*` are turbulent scales for velocity difference, temperature, and humidity,
-respectively, given the ice velocity :math:`\vec{U}_i`:
+respectively, computed as (given the ice velocity :math:`\vec{U}_i`):
 
 .. math::
    \begin{aligned}
@@ -142,6 +149,10 @@ respectively, given the ice velocity :math:`\vec{U}_i`:
    Q^*&=&c_q\left(Q_a-Q_{sfc}\right).
    \end{aligned}
    :label: stars
+
+
+Note that *atmo_boundary_layer* also accepts an optional argument, ``zlvs``, to support staggered atmospheric levels, i.e. receiving scalar quantities from the atmospheric model (humidity and temperature)
+at a different vertical level than the winds. In that case a separate stability :math:`\Upsilon_s` is computed using the same formula as above but substituting :math:`z_o` by :math:`z_{o,s}`.
 
 Within the :math:`u^*` expression, :math:`U_{\Delta\textrm{min}}` is the minimum allowable value of :math:`|\vec{U}_{a} - \vec{U}_{i}|` , which is set to of 0.5 m/s for high frequency coupling (``highfreq`` =.true.). 
 When high frequency coupling is turned off (``highfreq`` =.false.), it is assumed in equation :eq:`stars` that:
@@ -197,11 +208,11 @@ The coefficients are then updated as
 .. math::
    \begin{aligned}
    c_u^\prime&=&{c_u\over 1+c_u\left(\lambda-\psi_m\right)/\kappa} \\
-   c_\theta^\prime&=& {c_\theta\over 1+c_\theta\left(\lambda-\psi_s\right)/\kappa}\\
+   c_\theta^\prime&=& {c_\theta\over 1+c_\theta\left(\lambda_s-\psi_s\right)/\kappa}\\
    c_q^\prime&=&c_\theta^\prime\end{aligned}
    :label: coeff1
 
-where :math:`\lambda = \ln\left(z_\circ/z_{ref}\right)`. The
+where :math:`\lambda = \ln\left(z_\circ/z_{ref}\right)` and :math:`\lambda_s = \ln\left(z_{\circ,s}/z_{ref}\right)` if staggered atmospheric levels are used, else :math:`\lambda_s=\lambda`. The
 first iteration ends with new turbulent scales from
 equations :eq:`stars`. After ``natmiter`` iterations the latent and sensible
 heat flux coefficients are computed, along with the wind stress:
@@ -295,6 +306,22 @@ and longwave radiation, including that passing through the sea ice into
 the ocean. If the resulting sea surface temperature falls below the
 salinity-dependent freezing point, then new ice (frazil) forms.
 Otherwise, heat is made available for melting the ice.
+
+The ice-ocean drag coefficient, :math:`c_w`, can optionally be computed from the thickness of the first ocean level, :math:`h_1`, and an under-ice roughness length, :math:`z_{io}`.
+The computation follows :cite:`Roy15` :
+
+.. math::
+   c_w = c_w^* \lambda^2
+   :label: dragio
+
+where
+
+.. math::
+   \begin{aligned}
+   c_w^* &= \frac{\kappa^2} {\ln^2\left( h_1 /  z_{io} \right)}, \\
+   \lambda &= \frac{h_1 - z_{io}} {h_1 \left[ \sqrt{c_w^*} \kappa^{-1} \left( \ln(2) - 1 +  z_{io} / h_1 \right) + 1 \right] }
+   \end{aligned}
+   :label: dragio-defs
 
 .. _formdrag:
 

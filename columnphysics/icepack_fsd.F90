@@ -222,8 +222,8 @@
          floe_rad(n) = floe_rad_h(n)
          ! Save character string to write to history file
          write (c_nf, '(i2)') n    
-         write (c_fsd1, '(f6.3)') floe_rad(n-1)
-         write (c_fsd2, '(f6.3)') floe_rad(n)
+         write (c_fsd1, '(f7.3)') floe_rad(n-1)
+         write (c_fsd2, '(f7.3)') floe_rad(n)
          c_fsd_range(n)=c_fsd1//'m < fsd Cat '//c_nf//' < '//c_fsd2//'m'
       enddo
 

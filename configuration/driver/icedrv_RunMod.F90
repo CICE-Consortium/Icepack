@@ -35,6 +35,7 @@
       use icedrv_forcing, only: get_forcing, get_wave_spec
       use icedrv_forcing_bgc, only: faero_default, fiso_default, get_forcing_bgc
       use icedrv_flux, only: init_flux_atm_ocn
+      use icedrv_history, only: history_cdf, history_close
 
       logical (kind=log_kind) :: skl_bgc, z_tracers, tr_aero, tr_zaero, &
                                  wave_spec, tr_fsd, tr_iso
@@ -61,7 +62,10 @@
 
          call calendar(time)    ! at the end of the timestep
 
-         if (stop_now >= 1) exit timeLoop
+         if (stop_now >= 1) then
+            if (history_cdf) call history_close()
+            exit timeLoop
+         endif
 
          call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers,&
                                        wave_spec_out=wave_spec)
@@ -97,10 +101,11 @@
       use icedrv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
       use icedrv_flux, only: init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
+      use icedrv_history, only: history_cdf, history_write
       use icedrv_restart, only: dumpfile, final_restart
       use icedrv_restart_bgc, only: write_restart_bgc
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
-          update_state, step_dyn_ridge, step_radiation, &
+          update_state, step_dyn_ridge, step_snow, step_radiation, &
           biogeochemistry, step_dyn_wave
 
       integer (kind=int_kind) :: &
@@ -108,7 +113,7 @@
 
       logical (kind=log_kind) :: &
          calc_Tsfc, skl_bgc, solve_zsal, z_tracers, tr_brine, &  ! from icepack
-         tr_fsd, wave_spec
+         tr_fsd, wave_spec, tr_snow
 
       real (kind=dbl_kind) :: &
          offset          ! d(age)/dt time offset
@@ -125,7 +130,8 @@
       call icepack_query_parameters(solve_zsal_out=solve_zsal, & 
                                     calc_Tsfc_out=calc_Tsfc, &
                                     wave_spec_out=wave_spec)
-      call icepack_query_tracer_flags(tr_brine_out=tr_brine,tr_fsd_out=tr_fsd)
+      call icepack_query_tracer_flags(tr_brine_out=tr_brine,tr_fsd_out=tr_fsd, &
+                                      tr_snow_out=tr_snow)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -184,6 +190,17 @@
 !      call icedrv_diagnostics_debug ('post dynamics')
       
       !-----------------------------------------------------------------
+      ! snow redistribution and metamorphosis
+      !-----------------------------------------------------------------
+
+      if (tr_snow) then
+         call step_snow    (dt)
+         call update_state (dt) ! clean up
+      endif
+
+!      call icedrv_diagnostics_debug ('post snow redistribution')
+
+      !-----------------------------------------------------------------
       ! albedo, shortwave radiation
       !-----------------------------------------------------------------
       
@@ -206,6 +223,10 @@
          if (solve_zsal)              call zsal_diags
          if (skl_bgc .or. z_tracers)  call bgc_diags
          if (tr_brine)                call hbrine_diags
+      endif
+
+      if (history_cdf) then
+         call history_write()
       endif
       
       if (write_restart == 1) then

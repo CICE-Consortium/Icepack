@@ -112,6 +112,21 @@ cat >> ${jobfile} << EOFB
 ###SBATCH --mail-user username@domain.com
 EOFB
 
+else if (${ICE_MACHINE} =~ compy*) then
+cat >> ${jobfile} << EOFB
+#SBATCH -J ${ICE_CASENAME}
+#SBATCH -A ${acct}
+#SBATCH --qos ${ICE_MACHINE_QUEUE}
+#SBATCH --time ${ICE_RUNLENGTH}
+#SBATCH --nodes ${nnodes}
+#SBATCH --ntasks ${ntasks}
+#SBATCH --cpus-per-task ${nthrds}
+###SBATCH -e filename
+###SBATCH -o filename
+###SBATCH --mail-type FAIL
+###SBATCH --mail-user username@domain.com
+EOFB
+
 else if (${ICE_MACHINE} =~ badger*) then
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
@@ -123,6 +138,15 @@ cat >> ${jobfile} << EOFB
 ###SBATCH --mail-type END,FAIL
 ###SBATCH --mail-user=eclare@lanl.gov
 #SBATCH --qos=standby
+EOFB
+
+else if (${ICE_MACHINE} =~ daley* || ${ICE_MACHINE} =~ banting* ) then
+cat >> ${jobfile} << EOFB
+#PBS -N ${ICE_CASENAME}
+#PBS -j oe
+#PBS -l select=${nnodes}:ncpus=${corespernode}:mpiprocs=${taskpernodelimit}:ompthreads=${nthrds}
+#PBS -l walltime=${ICE_RUNLENGTH}
+#PBS -W umask=022
 EOFB
 
 else if (${ICE_MACHINE} =~ high_Sierra*) then

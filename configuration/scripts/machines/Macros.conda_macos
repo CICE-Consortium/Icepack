@@ -26,13 +26,20 @@ CC := $(SCC)
 FC := $(SFC)
 LD := $(FC)
 
+# Location of the compiled Fortran modules (NetCDF)
+MODDIR  += -I$(CONDA_PREFIX)/include
+
 # Location of the system C header files (required on recent macOS to compile makdep)
 SDKPATH = $(shell xcrun --show-sdk-path)
 ifeq ($(strip $(SDKPATH)),)
   CFLAGS_HOST := 
 else
   CFLAGS_HOST = -isysroot $(SDKPATH)
+  LD += -L$(SDKPATH)/usr/lib
 endif
+
+# Libraries to be passed to the linker
+SLIBS   := -L$(CONDA_PREFIX)/lib -lnetcdf -lnetcdff
 
 # Necessary flag to compile with OpenMP support
 ifeq ($(ICE_THREADED), true)

@@ -31,6 +31,7 @@ can be found in :ref:`cicecpps`.  The following CPPs are available.
    "**General Macros**", ""
    "NO_I8", "Converts ``integer*8`` to ``integer*4``."
    "NO_R16", "Converts ``real*16`` to ``real*8``."
+   "USE_NETCDF", "Turns on netcdf capabilities in Icepack.  By default and generally, Icepack does not need netcdf."
    "",""
    "**Application Macros**", ""
    "CESMCOUPLED", "Turns on code changes for the CESM coupled application                          "
@@ -65,7 +66,7 @@ can be modified as needed.
    "ICE_LOGDIR", "string", "log directory", "${ICE_CASEDIR}/logs"
    "ICE_RSTPFILE", "string", "unused", "undefined"
    "ICE_DRVOPT", "string", "unused", "icepack"
-   "ICE_IOTYPE", "string", "unused", "none"
+   "ICE_IOTYPE", "none,netcdf", "IO options", "none"
    "ICE_CLEANBUILD", "true,false", "automatically clean before building", "true"
    "ICE_CPPDEFS", "string", "user defined preprocessor macros for build", "null"
    "ICE_QUIETMODE", "true, false", "reduce build output to the screen", "false"
@@ -139,6 +140,7 @@ setup_nml
    "", "``y``", "write restart every ``dumpfreq_n`` years", ""
    "``dump_last``", "true/false", "write restart at end of run", "false"
    "``dt``", "seconds", "thermodynamics time step length", "3600."
+   "``history_cdf``", "logical", "netcdf history output", "``.false.``"
    "``ice_ic``", "``default``", "latitude and sst dependent initial condition", "``default``"
    "", "``none``", "no ice", ""
    "", "'path/file'", "restart file name", ""
@@ -184,6 +186,7 @@ tracer_nml
    "``tr_pond_cesm``", "logical", "CESM melt ponds", "``.false.``"
    "``tr_pond_lvl``", "logical", "level-ice melt ponds", "``.false.``"
    "``tr_pond_topo``", "logical", "topo melt ponds", "``.false.``"
+   "``tr_snow``", "logical", "advanced snow physics", "``.false.``"
    "", "", "", ""
 
 thermo_nml
@@ -278,6 +281,31 @@ ponds_nml
    "``rfracmin``", ":math:`0 \le r_{min} \le 1`", "minimum melt water added to ponds", "0.15"
    "", "", "", ""
 
+snow_nml
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. csv-table:: **snow_nml namelist options**
+   :header: "variable", "options/format", "description", "default value"
+   :widths: 15, 15, 30, 15 
+
+   "", "", "", ""
+   "``drhosdwind``", "real", "wind compaction factor for snow", "27.3"
+   "``rhosmin``", "real", "minimum snow density", "100.0"
+   "``rhosmax``", "real", "maximum snow density", "450.0"
+   "``rhosnew``", "real", "new snow density", "100.0"
+   "``rsnw_fall``", "real", "radius of new snow (um)", "54.526"
+   "``rsnw_tmax``", "real", "maximum snow radius (um)", "1500.0"
+   "``snw_aging_table``", "test", "snow aging lookup table", "test"
+   "", "snicar", "(not available in Icepack)", ""
+   "``snwgrain``",  "logical", "snow grain metamorphosis", ".true."
+   "``snwlvlfac``", "real", "fraction increase in bulk snow redistribution", "0.3"
+   "``snwredist``", "``snwITDrdg``", "snow redistribution using ITD/ridges", "snwITDrdg"
+   "", "``bulk``", "bulk snow redistribution", ""
+   "", "``none``", "no snow redistribution", ""
+   "``use_smliq_pnd``", "logical", "use liquid in snow for ponds", ".true."
+   "``windmin``",  "real", "minimum wind speed to compact snow", "10.0"
+   "", "", "", ""
+
 forcing_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -286,8 +314,10 @@ forcing_nml
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
-   "``atmbndy``", "``constant``", "bulk transfer coefficients", "``default``"
-   "", "``default``", "stability-based boundary layer", ""
+   "``atmbndy``", "string", "bulk transfer coefficients", "``similarity``"
+   "", "``similarity``", "stability-based boundary layer", ""
+   "", "``constant``", "constant-based boundary layer", ""
+   "", "``mixed``", "stability-based, but constant for sensible+latent heatfluxes", ""
    "``atmiter_conv``", "real", "convergence criteria for ustar", "0.0"
    "``atm_data_file``", "string", "file containing atmospheric data", "' '"
    "``atm_data_format``", "``bin``", "read direct access binary forcing files", "``bin``"
