@@ -294,11 +294,21 @@
       logical (kind=log_kind), public :: &
          wave_spec = .false.          ! if true, use wave forcing
 
-      character (len=char_len), public :: &
-         wave_spec_type = 'constant'  ! 'none', 'constant', or 'random'
+      character (len=char_len), public :: & ! options for wave input
+         wave_spec_type = 'constant'  ! 'none', 'profile', 'constant_file',  or 'forcing_file'
 
-      character (len=char_len), public :: &
+      character (len=char_len), public :: & ! options for solving wave fracture
          wave_solver = 'ml'  ! 'ml', 'std-1iter', 'std-conv'
+
+      ! neural network coefficients
+      real (kind=dbl_kind), dimension(:), allocatable, public :: & 
+          full_weight2, full_weight4, full_weight6, full_weight8, &
+          full_weight10, full_weight12, class_weight2, class_weight4, class_weight6
+
+      real (kind=dbl_kind), dimension(:,:), allocatable, public :: & 
+          full_weight1, full_weight3, full_weight5, full_weight7, &
+          full_weight9, full_weight11, class_weight1, class_weight3, class_weight5
+
 
 
 !-----------------------------------------------------------------------
@@ -473,7 +483,13 @@
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
-         snw_aging_table_in)
+         snw_aging_table_in, &
+         class_weight1_in, class_weight2_in, class_weight3_in, &
+         class_weight4_in, class_weight5_in, class_weight6_in, &
+         full_weight1_in, full_weight2_in, full_weight3_in, &
+         full_weight4_in, full_weight5_in, full_weight6_in, &
+         full_weight7_in, full_weight8_in, full_weight9_in, &
+         full_weight10_in, full_weight11_in, full_weight12_in)
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -697,6 +713,15 @@
 
       character (len=char_len), intent(in), optional :: &
          wave_solver_in  ! method of wave fracture solution 
+
+      ! neural network coefficients
+      real (kind=dbl_kind), dimension(:), intent(in), optional :: & 
+         full_weight2_in, full_weight4_in, full_weight6_in, full_weight8_in, &
+         full_weight10_in, full_weight12_in, class_weight2_in, class_weight4_in, class_weight6_in
+
+      real (kind=dbl_kind), dimension(:,:), intent(in), optional :: & 
+         full_weight1_in, full_weight3_in, full_weight5_in, full_weight7_in, &
+         full_weight9_in, full_weight11_in, class_weight1_in, class_weight3_in, class_weight5_in
 
 
 !-----------------------------------------------------------------------
@@ -1150,7 +1175,14 @@
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
          snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
          snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
-         snw_aging_table_out)
+         snw_aging_table_out, &
+         class_weight1_out, class_weight2_out, class_weight3_out, &
+         class_weight4_out, class_weight5_out, class_weight6_out, &
+         full_weight1_out, full_weight2_out, full_weight3_out, &
+         full_weight4_out, full_weight5_out, full_weight6_out, &
+         full_weight7_out, full_weight8_out, full_weight9_out, &
+         full_weight10_out, full_weight11_out, full_weight12_out)
+
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -1383,6 +1415,16 @@
 
       character (len=char_len), intent(out), optional :: &
          wave_solver_out ! method of wave fracture solution
+
+      ! neural network coefficients
+      real (kind=dbl_kind), dimension(:), intent(out), optional :: & 
+         full_weight2_out, full_weight4_out, full_weight6_out, full_weight8_out, &
+         full_weight10_out, full_weight12_out, class_weight2_out, class_weight4_out, class_weight6_out
+
+      real (kind=dbl_kind), dimension(:,:), intent(out), optional :: & 
+         full_weight1_out, full_weight3_out, full_weight5_out, full_weight7_out, &
+         full_weight9_out, full_weight11_out, class_weight1_out, class_weight3_out, class_weight5_out
+
 
 
 !-----------------------------------------------------------------------
@@ -1652,6 +1694,24 @@
       if (present(wave_spec_type_out)    ) wave_spec_type_out = wave_spec_type
       if (present(wave_solver_out)       ) wave_solver_out  = wave_solver
       if (present(nfreq_out)             ) nfreq_out        = nfreq
+      if (present(class_weight1_out)     ) class_weight1_out = class_weight1
+      if (present(class_weight2_out)     ) class_weight2_out = class_weight2
+      if (present(class_weight3_out)     ) class_weight3_out = class_weight3
+      if (present(class_weight4_out)     ) class_weight4_out = class_weight4
+      if (present(class_weight5_out)     ) class_weight5_out = class_weight5
+      if (present(class_weight6_out)     ) class_weight6_out = class_weight6
+      if (present(full_weight1_out)      ) full_weight1_out  = full_weight1
+      if (present(full_weight2_out)      ) full_weight2_out  = full_weight2
+      if (present(full_weight3_out)      ) full_weight3_out  = full_weight3
+      if (present(full_weight4_out)      ) full_weight4_out  = full_weight4
+      if (present(full_weight5_out)      ) full_weight5_out  = full_weight5
+      if (present(full_weight6_out)      ) full_weight6_out  = full_weight6
+      if (present(full_weight7_out)      ) full_weight7_out  = full_weight7
+      if (present(full_weight8_out)      ) full_weight8_out  = full_weight8
+      if (present(full_weight9_out)      ) full_weight9_out  = full_weight9
+      if (present(full_weight10_out)     ) full_weight10_out = full_weight10
+      if (present(full_weight11_out)     ) full_weight11_out = full_weight11
+      if (present(full_weight12_out)     ) full_weight12_out = full_weight12
       if (present(hs0_out)               ) hs0_out          = hs0
       if (present(frzpnd_out)            ) frzpnd_out       = frzpnd
       if (present(dpscale_out)           ) dpscale_out      = dpscale

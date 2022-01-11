@@ -13,7 +13,7 @@
       use icedrv_constants, only: nu_diag, nu_forcing, nu_open_clos
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_query_parameters, icepack_init_parameters
       use icepack_intfc, only: icepack_sea_freezing_temperature 
       use icepack_intfc, only: icepack_init_wave
       use icedrv_system, only: icedrv_system_abort
@@ -24,7 +24,7 @@
       implicit none
       private
       public :: init_forcing, get_forcing, interp_coeff, &
-                interp_coeff_monthly, get_wave_spec
+                interp_coeff_monthly, get_wave_spec, init_wave_solver
 
       integer (kind=int_kind), parameter :: &
          ntime = 8760        ! number of data points in time
@@ -1152,6 +1152,136 @@
       enddo
 
       end subroutine get_wave_spec
+
+
+!=======================================================================
+!
+!   Read in neural network coefficients (computed offline) for wave fracture
+!   For both the classifier and the full network
+!
+!   Author: Lettie Roach, 2021
+!
+      subroutine init_wave_solver
+
+      ! local variables
+
+      character(char_len_long) :: wave_class_file, wave_fullnet_file
+      real (kind=dbl_kind), dimension(13102)   :: filelist
+      real (kind=dbl_kind), dimension(44412)   :: filelist_full
+
+      ! neural network coefficients
+      real (kind=dbl_kind), dimension(:), allocatable :: & 
+          full_weight2, full_weight4, full_weight6, full_weight8, &
+          full_weight10, full_weight12, class_weight2, class_weight4, class_weight6
+
+      real (kind=dbl_kind), dimension(:,:), allocatable :: & 
+          full_weight1, full_weight3, full_weight5, full_weight7, &
+          full_weight9, full_weight11, class_weight1, class_weight3, class_weight5
+
+
+      ! allocate arrays
+      allocate(class_weight1(27,100))
+      allocate(class_weight2(100))
+      allocate(class_weight3(100,100))
+      allocate(class_weight4(100))
+      allocate(class_weight5(100,2))
+      allocate(class_weight6(2))
+
+      allocate(full_weight1(27,100))
+      allocate(full_weight2(100))
+      allocate(full_weight3(100,100))
+      allocate(full_weight4(100))
+      allocate(full_weight5(100,100))
+      allocate(full_weight6(100))
+      allocate(full_weight7(100,100))
+      allocate(full_weight8(100))      
+      allocate(full_weight9(100,100))
+      allocate(full_weight10(100))
+      allocate(full_weight11(100,12))
+      allocate(full_weight12(12))
+ 
+     
+      ! read in coefficients from text files
+      wave_class_file = &
+       trim(data_dir)//'/'//trim('wavefrac_nn_classifier_202201.txt')
+
+      open (unit = 1, file = wave_class_file)
+      read (1, *) filelist
+      close(1)
+
+      class_weight1 = TRANSPOSE(RESHAPE(filelist(1:2700), (/100, 27/)))
+      class_weight2 = filelist(2701:2800)
+      class_weight3 = TRANSPOSE(RESHAPE(filelist(2801:12800), (/100, 100/)))
+      class_weight4 = filelist(12801:12900)
+      class_weight5 = TRANSPOSE(RESHAPE(filelist(12901:13100), (/2, 100/)))
+      class_weight6 = filelist(13101:13102)
+
+      wave_fullnet_file = &
+       trim(data_dir)//'/'//trim('wavefrac_nn_fullnet_202201.txt')
+
+      open (unit = 2, file = wave_fullnet_file)
+      read (2, *) filelist_full
+      close(2)
+
+      full_weight1 = TRANSPOSE(RESHAPE(filelist(1:2700), (/100, 27/)))
+      full_weight2 = filelist(2701:2800)
+      full_weight3 = TRANSPOSE(RESHAPE(filelist(2801:12800), (/100, 100/)))
+      full_weight4 = filelist(12801:12900)
+      full_weight5 = TRANSPOSE(RESHAPE(filelist(12901:22900), (/100, 100/)))
+      full_weight6 = filelist(22901:23000)
+      full_weight7 = TRANSPOSE(RESHAPE(filelist(23001:33000), (/100, 100/)))
+      full_weight8 = filelist(33001:33100)
+      full_weight9 = TRANSPOSE(RESHAPE(filelist(33101:43100), (/100, 100/)))
+      full_weight10 = filelist(43101:43200)
+      full_weight11 = TRANSPOSE(RESHAPE(filelist(43201:44400), (/12, 100/)))
+      full_weight12 = filelist(44401:44412)
+
+      ! set icepack parameters
+         call icepack_init_parameters(        &
+            class_weight1_in = class_weight1, &
+            class_weight2_in = class_weight2, &
+            class_weight3_in = class_weight3, &
+            class_weight4_in = class_weight4, &
+            class_weight5_in = class_weight5, &
+            class_weight6_in = class_weight6, &
+            full_weight1_in  = full_weight1, &
+            full_weight2_in  = full_weight2, &
+            full_weight3_in  = full_weight3, &
+            full_weight4_in  = full_weight4, &
+            full_weight5_in  = full_weight5, &
+            full_weight6_in  = full_weight6, &
+            full_weight7_in  = full_weight7, &
+            full_weight8_in  = full_weight8, &
+            full_weight9_in  = full_weight9, &
+            full_weight10_in  = full_weight10, &
+            full_weight11_in  = full_weight11, &
+            full_weight12_in  = full_weight12 )
+
+      ! deallocate arrays
+      deallocate(class_weight1)
+      deallocate(class_weight2)
+      deallocate(class_weight3)
+      deallocate(class_weight4)
+      deallocate(class_weight5)
+      deallocate(class_weight6)
+
+      deallocate(full_weight1)
+      deallocate(full_weight2)
+      deallocate(full_weight3)
+      deallocate(full_weight4)
+      deallocate(full_weight5)
+      deallocate(full_weight6)
+      deallocate(full_weight7)
+      deallocate(full_weight8)      
+      deallocate(full_weight9)
+      deallocate(full_weight10)
+      deallocate(full_weight11)
+      deallocate(full_weight12)
+ 
+
+      end subroutine init_wave_solver
+
+
 
 
 !=======================================================================

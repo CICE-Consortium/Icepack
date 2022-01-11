@@ -43,8 +43,7 @@
  
       implicit none
       private
-      public :: icepack_init_wave, icepack_step_wavefracture,&
-                icepack_init_spwf_fullnet, icepack_init_spwf_class
+      public :: icepack_init_wave, icepack_step_wavefracture
 
       real (kind=dbl_kind), parameter  :: &
          spwf_clss_crit = 0.54_dbl_kind, & ! critical value for wave fracture
@@ -65,26 +64,6 @@
 
       integer (kind=int_kind), parameter :: &
          max_no_iter = 100 ! max no of iterations to compute wave fracture
-
-      real (kind=dbl_kind), dimension(27,100)  :: full_weight1
-      real (kind=dbl_kind), dimension(100)     :: full_weight2
-      real (kind=dbl_kind), dimension(100,100) :: full_weight3
-      real (kind=dbl_kind), dimension(100)     :: full_weight4
-      real (kind=dbl_kind), dimension(100,100) :: full_weight5
-      real (kind=dbl_kind), dimension(100)     :: full_weight6
-      real (kind=dbl_kind), dimension(100,100) :: full_weight7
-      real (kind=dbl_kind), dimension(100)     :: full_weight8
-      real (kind=dbl_kind), dimension(100,100) :: full_weight9
-      real (kind=dbl_kind), dimension(100)     :: full_weight10
-      real (kind=dbl_kind), dimension(100,12)  :: full_weight11
-      real (kind=dbl_kind), dimension(12)      :: full_weight12
-      
-      real (kind=dbl_kind), dimension(27,100)  :: class_weight1
-      real (kind=dbl_kind), dimension(100)     :: class_weight2
-      real (kind=dbl_kind), dimension(100,100) :: class_weight3
-      real (kind=dbl_kind), dimension(100)     :: class_weight4
-      real (kind=dbl_kind), dimension(100,2)   :: class_weight5
-      real (kind=dbl_kind), dimension(2)       :: class_weight6
 
 
 !=======================================================================
@@ -790,41 +769,6 @@
 
 !===========================================================================
 !
-!  Read in coefficients for the classifier for machine learning wave fracture
-!
-!  authors: 2020 Lettie Roach, UW
-!
-
-      subroutine icepack_init_spwf_class
-
-
-
-      ! local variables
-
-      character(char_len_long) :: wave_class_file
-
-
-      real (kind=dbl_kind), dimension(13102)   :: filelist
- 
-      wave_class_file = &
-       trim('/glade/u/home/lettier/wavefrac_nn_classifier_v9.txt')
-
-      open (unit = 1, file = wave_class_file)
-      read (1, *) filelist
-      close(1)
-
-      class_weight1 = TRANSPOSE(RESHAPE(filelist(1:2700), (/100, 27/)))
-      class_weight2 = filelist(2701:2800)
-      class_weight3 = TRANSPOSE(RESHAPE(filelist(2801:12800), (/100, 100/)))
-      class_weight4 = filelist(12801:12900)
-      class_weight5 = TRANSPOSE(RESHAPE(filelist(12901:13100), (/2, 100/)))
-      class_weight6 = filelist(13101:13102)
-
-     
-      end subroutine icepack_init_spwf_class
-
-!===========================================================================
-!
 !
 ! This routine contains the results of a pattern recognition network
 ! (trained offline). The network classifies whether or not wave fracture occurs 
@@ -837,6 +781,11 @@
 
       subroutine spwf_classifier(wave_spectrum, hbar, aice, &
                                  spwf_classifier_out)
+
+
+      use icepack_parameters, only:  class_weight1, class_weight2, &
+                                    class_weight3, class_weight4, &
+                                    class_weight5, class_weight6
 
 
       real (kind=dbl_kind), intent (in) :: &
@@ -852,15 +801,24 @@
       ! local variables
 
       character(char_len_long) :: wave_class_file
+      
+!      real (kind=dbl_kind), dimension(27,100)  :: class_weight1
+!      real (kind=dbl_kind), dimension(100)     :: class_weight2
+!      real (kind=dbl_kind), dimension(100,100) :: class_weight3
+!      real (kind=dbl_kind), dimension(100)     :: class_weight4
+!      real (kind=dbl_kind), dimension(100,2)   :: class_weight5
+!      real (kind=dbl_kind), dimension(2)       :: class_weight6
 
       real (kind=dbl_kind), dimension(27) :: input
-
       real (kind=dbl_kind), dimension(100)    :: y1, y2
       real (kind=dbl_kind), dimension(2)     :: y3
+
+      character(len=*), parameter :: subname = '(spwf_classifier)'
 
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
       input(27)   = aice
+
 
  
       y1 = MATMUL(input,class_weight1) + class_weight2
@@ -881,44 +839,6 @@
 
 !===========================================================================
 !
-!  Read in coefficients for machine learning wave fracture for the full network
-!
-!  authors: 2019 Lettie Roach, UW
-!
-
-      subroutine icepack_init_spwf_fullnet
- 
-      ! local variables
-      character(char_len_long) :: wave_fullnet_file
-
-      real (kind=dbl_kind), dimension(44412)   :: filelist
-
-      wave_fullnet_file = &
-       trim('/glade/u/home/lettier/wavefrac_nn_fullnet_v8.txt')
-
-      open (unit = 2, file = wave_fullnet_file)
-      read (2, *) filelist
-      close(2)
-
-
-      full_weight1 = TRANSPOSE(RESHAPE(filelist(1:2700), (/100, 27/)))
-      full_weight2 = filelist(2701:2800)
-      full_weight3 = TRANSPOSE(RESHAPE(filelist(2801:12800), (/100, 100/)))
-      full_weight4 = filelist(12801:12900)
-      full_weight5 = TRANSPOSE(RESHAPE(filelist(12901:22900), (/100, 100/)))
-      full_weight6 = filelist(22901:23000)
-      full_weight7 = TRANSPOSE(RESHAPE(filelist(23001:33000), (/100, 100/)))
-      full_weight8 = filelist(33001:33100)
-      full_weight9 = TRANSPOSE(RESHAPE(filelist(33101:43100), (/100, 100/)))
-      full_weight10 = filelist(43101:43200)
-      full_weight11 = TRANSPOSE(RESHAPE(filelist(43201:44400), (/12, 100/)))
-      full_weight12 = filelist(44401:44412)
-
-
-      end subroutine icepack_init_spwf_fullnet
-
-!===========================================================================
-!
 ! This routine contains the results of a pattern recognition network
 ! (trained offline). The network emulates the full wave fracture code
 ! based on the 25-dim wave spectrum and ice thickness.
@@ -931,6 +851,12 @@
       subroutine spwf_fullnet(nfsd, floe_rad_l, floe_binwidth, wave_spectrum, hbar, &
           aice, spwf_fullnet_hist)
 
+      use icepack_parameters, only:  full_weight1, full_weight2, &
+                                    full_weight3, full_weight4, &
+                                    full_weight5, full_weight6, &
+                                    full_weight7, full_weight8, &
+                                    full_weight9, full_weight10, &
+                                    full_weight11, full_weight12
 
          
       integer (kind=int_kind), intent(in) :: &
@@ -952,11 +878,43 @@
       integer (kind=int_kind) :: &
           k, l
 
+!      real (kind=dbl_kind), dimension(27,100)  :: full_weight1
+!      real (kind=dbl_kind), dimension(100)     :: full_weight2
+!      real (kind=dbl_kind), dimension(100,100) :: full_weight3
+!      real (kind=dbl_kind), dimension(100)     :: full_weight4
+!      real (kind=dbl_kind), dimension(100,100) :: full_weight5
+!      real (kind=dbl_kind), dimension(100)     :: full_weight6
+!      real (kind=dbl_kind), dimension(100,100) :: full_weight7
+!      real (kind=dbl_kind), dimension(100)     :: full_weight8
+!      real (kind=dbl_kind), dimension(100,100) :: full_weight9
+!      real (kind=dbl_kind), dimension(100)     :: full_weight10
+!      real (kind=dbl_kind), dimension(100,12)  :: full_weight11
+!      real (kind=dbl_kind), dimension(12)      :: full_weight12
 
       real (kind=dbl_kind), dimension(27)     :: input
       real (kind=dbl_kind), dimension(100)    :: y1, y2, y3, y4, y5
       real (kind=dbl_kind), dimension(12)     :: y6
 
+      character(len=*), parameter :: subname = '(spwf_fullnet)'
+
+!      call icepack_query_parameters(full_weight1_out = full_weight1, &
+!                                    full_weight2_out = full_weight2, &
+!                                    full_weight3_out = full_weight3, &
+!                                    full_weight4_out = full_weight4, &
+!                                    full_weight5_out = full_weight5, &
+!                                    full_weight6_out = full_weight6, &
+!                                    full_weight7_out = full_weight7, &
+!                                    full_weight8_out = full_weight8, &
+!                                    full_weight9_out = full_weight9, &
+!                                    full_weight10_out = full_weight10, &
+!                                    full_weight11_out = full_weight11, &
+!                                    full_weight12_out = full_weight12)
+!
+!
+!      call icepack_warnings_flush(nu_diag)
+!      if (icepack_warnings_aborted()) call abort_ice(error_message=subname, &
+!         file=__FILE__, line=__LINE__)
+!
 
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar

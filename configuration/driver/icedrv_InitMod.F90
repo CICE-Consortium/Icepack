@@ -43,8 +43,8 @@
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
-      use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
-      use icepack_intfc, only: icepack_init_spwf_fullnet, icepack_init_spwf_class
+      use icedrv_forcing, only: init_forcing, get_forcing, &
+                                init_wave_solver, get_wave_spec
       use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, init_forcing_bgc 
       use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc 
       use icedrv_restart_shared, only: restart
@@ -61,6 +61,7 @@
          tr_zaero, &   ! from icepack
          tr_fsd, wave_spec
 
+      character(len=char_len) :: wave_solver 
       character(len=*), parameter :: subname='(icedrv_initialize)'
 
       call icepack_configure()  ! initialize icepack
@@ -132,6 +133,7 @@
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_parameters(wave_spec_out=wave_spec)
+      call icepack_query_parameters(wave_solver_out=wave_solver)
       call icepack_query_tracer_flags(tr_snow_out=tr_snow)
       call icepack_query_tracer_flags(tr_aero_out=tr_aero)
       call icepack_query_tracer_flags(tr_iso_out=tr_iso)
@@ -142,9 +144,10 @@
 
       call init_forcing      ! initialize forcing (standalone)     
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
-      if (tr_fsd .and. wave_spec) call icepack_init_spwf_fullnet
-      if (tr_fsd .and. wave_spec) call icepack_init_spwf_class
-      if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
+      if (tr_fsd .and. wave_spec) then
+          call get_wave_spec ! wave spectrum in ice
+          if (trim(wave_solver) == 'ml') call init_wave_solver ! read in neural network coefficients for wave fracture 
+      end if
       call get_forcing(istep1)       ! get forcing from data arrays
 
       if (tr_snow)    call icepack_init_snow            ! snow aging table
