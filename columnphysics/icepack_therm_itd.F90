@@ -1049,9 +1049,6 @@
             if (G_radialn(n) < -puny) then
 
                
-               if (any(afsdn(:,n) < c0)) print*,&
-                 'lateral_melt B afsd < 0',n
-
                cat1_arealoss = -trcrn(nt_fsd+1-1,n) * aicen(n) * dt &
                              * G_radialn(n) / floe_binwidth(1)
 
@@ -1064,12 +1061,8 @@
                ! add negative area loss from fsd
                delta_an(n) = delta_an(n) - cat1_arealoss
 
-               if (delta_an(n) > c0) print*,'ERROR delta_an > 0', delta_an(n)
- 
                ! following original code, not necessary for fsd
                if (aicen(n) > c0) rsiden(n) = MIN(-delta_an(n)/aicen(n),c1)
-
-               if (rsiden(n) < c0) print*,'ERROR rsiden < 0', rsiden(n)
 
             end if ! G_radialn
          enddo ! ncat
@@ -1126,7 +1119,9 @@
 
                          nsubt = nsubt + 1
                          if (nsubt.gt.100) &
-                           print *, 'latm not converging'
+                             write(warnstr,*) subname, &
+                             ‘warning: fsd lateral melt nonconvergence’
+                             call icepack_warnings_add(warnstr)
 
                          ! finite differences
                          df_flx(:) = c0
@@ -1138,9 +1133,6 @@
                          do k = 1, nfsd
                           df_flx(k)   = f_flx(k+1) - f_flx(k) 
                          end do
-
-                         if (abs(sum(df_flx(:))) > puny) &
-                           print*,'sum(df_flx)/=0'
 
                          ! this term ensures area conservation
                          tmp = SUM(afsd_tmp(:)/floe_rad_c(:))

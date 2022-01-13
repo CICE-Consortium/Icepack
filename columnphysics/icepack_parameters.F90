@@ -309,8 +309,6 @@
           full_weight1, full_weight3, full_weight5, full_weight7, &
           full_weight9, full_weight11, class_weight1, class_weight3, class_weight5
 
-
-
 !-----------------------------------------------------------------------
 ! Parameters for melt ponds
 !-----------------------------------------------------------------------
@@ -722,7 +720,6 @@
       real (kind=dbl_kind), dimension(:,:), intent(in), optional :: & 
          full_weight1_in, full_weight3_in, full_weight5_in, full_weight7_in, &
          full_weight9_in, full_weight11_in, class_weight1_in, class_weight3_in, class_weight5_in
-
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
@@ -1183,7 +1180,6 @@
          full_weight7_out, full_weight8_out, full_weight9_out, &
          full_weight10_out, full_weight11_out, full_weight12_out)
 
-
       !-----------------------------------------------------------------
       ! parameter constants
       !-----------------------------------------------------------------
@@ -1424,8 +1420,6 @@
       real (kind=dbl_kind), dimension(:,:), intent(out), optional :: & 
          full_weight1_out, full_weight3_out, full_weight5_out, full_weight7_out, &
          full_weight9_out, full_weight11_out, class_weight1_out, class_weight3_out, class_weight5_out
-
-
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry

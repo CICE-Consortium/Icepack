@@ -197,8 +197,6 @@
                   wave_spectrum, wavefreq,        dwavefreq, &
                   trcrn,         d_afsd_wave, fracture_hist)
 
-
-
       character (len=char_len), intent(in) :: &
          wave_solver         ! method of wave fracture solution
 
@@ -270,8 +268,6 @@
          subname='(icepack_step_wavefracture)'
 
       !------------------------------------
-
-
 
       ! initialize 
       d_afsd_wave    (:)   = c0
@@ -364,7 +360,7 @@
                      ! check in case wave fracture struggles to converge
                      if (nsubt>100) then
                         write(warnstr,*) subname, &
-                     'warning: step_wavefracture struggling to converge'
+                     'warning: step_wavefracture nonconvergence'
                         call icepack_warnings_add(warnstr)
                      endif
 
@@ -599,7 +595,7 @@
       END DO
 
       if (iter >= max_no_iter) then
-         write(warnstr,*) subname,'warning: wave_frac convergence'
+         write(warnstr,*) subname,'warning: wave_frac nonconvergence'
          call icepack_warnings_add(warnstr)
       endif
 
@@ -766,9 +762,7 @@
 
       end subroutine get_fraclengths
 
-
 !===========================================================================
-!
 !
 ! This routine contains the results of a pattern recognition network
 ! (trained offline). The network classifies whether or not wave fracture occurs 
@@ -778,7 +772,6 @@
 !  authors: 2019 Lettie Roach, UW
 !                Chris Horvat, Brown University
 !
-
       subroutine spwf_classifier(wave_spectrum, hbar, aice, &
                                  spwf_classifier_out)
 
@@ -786,7 +779,6 @@
       use icepack_parameters, only:  class_weight1, class_weight2, &
                                     class_weight3, class_weight4, &
                                     class_weight5, class_weight6
-
 
       real (kind=dbl_kind), intent (in) :: &
           hbar, aice  ! ice thickness (m), ice concentration
@@ -797,18 +789,10 @@
       real (kind=dbl_kind), intent(out) :: &
           spwf_classifier_out
 
-
       ! local variables
 
       character(char_len_long) :: wave_class_file
       
-!      real (kind=dbl_kind), dimension(27,100)  :: class_weight1
-!      real (kind=dbl_kind), dimension(100)     :: class_weight2
-!      real (kind=dbl_kind), dimension(100,100) :: class_weight3
-!      real (kind=dbl_kind), dimension(100)     :: class_weight4
-!      real (kind=dbl_kind), dimension(100,2)   :: class_weight5
-!      real (kind=dbl_kind), dimension(2)       :: class_weight6
-
       real (kind=dbl_kind), dimension(27) :: input
       real (kind=dbl_kind), dimension(100)    :: y1, y2
       real (kind=dbl_kind), dimension(2)     :: y3
@@ -818,14 +802,12 @@
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
       input(27)   = aice
-
-
  
       y1 = MATMUL(input,class_weight1) + class_weight2
-      WHERE (y1 < c0) y1 = c0
+      y1 = MAXVAL(y1, c0)
 
       y2 = MATMUL(y1,class_weight3) + class_weight4
-      WHERE (y2 < c0) y2 = c0
+      y2 = MAXVAL(y2, c0)
 
       y3 = MATMUL(y2, class_weight5) + class_weight6
 
@@ -847,17 +829,15 @@
 !  authors: 2019 Lettie Roach, UW
 !                Chris Horvat, Brown University
 !
-
       subroutine spwf_fullnet(nfsd, floe_rad_l, floe_binwidth, wave_spectrum, hbar, &
           aice, spwf_fullnet_hist)
 
-      use icepack_parameters, only:  full_weight1, full_weight2, &
+      use icepack_parameters, only: full_weight1, full_weight2, &
                                     full_weight3, full_weight4, &
                                     full_weight5, full_weight6, &
                                     full_weight7, full_weight8, &
                                     full_weight9, full_weight10, &
                                     full_weight11, full_weight12
-
          
       integer (kind=int_kind), intent(in) :: &
           nfsd
@@ -878,62 +858,30 @@
       integer (kind=int_kind) :: &
           k, l
 
-!      real (kind=dbl_kind), dimension(27,100)  :: full_weight1
-!      real (kind=dbl_kind), dimension(100)     :: full_weight2
-!      real (kind=dbl_kind), dimension(100,100) :: full_weight3
-!      real (kind=dbl_kind), dimension(100)     :: full_weight4
-!      real (kind=dbl_kind), dimension(100,100) :: full_weight5
-!      real (kind=dbl_kind), dimension(100)     :: full_weight6
-!      real (kind=dbl_kind), dimension(100,100) :: full_weight7
-!      real (kind=dbl_kind), dimension(100)     :: full_weight8
-!      real (kind=dbl_kind), dimension(100,100) :: full_weight9
-!      real (kind=dbl_kind), dimension(100)     :: full_weight10
-!      real (kind=dbl_kind), dimension(100,12)  :: full_weight11
-!      real (kind=dbl_kind), dimension(12)      :: full_weight12
-
       real (kind=dbl_kind), dimension(27)     :: input
       real (kind=dbl_kind), dimension(100)    :: y1, y2, y3, y4, y5
       real (kind=dbl_kind), dimension(12)     :: y6
 
       character(len=*), parameter :: subname = '(spwf_fullnet)'
 
-!      call icepack_query_parameters(full_weight1_out = full_weight1, &
-!                                    full_weight2_out = full_weight2, &
-!                                    full_weight3_out = full_weight3, &
-!                                    full_weight4_out = full_weight4, &
-!                                    full_weight5_out = full_weight5, &
-!                                    full_weight6_out = full_weight6, &
-!                                    full_weight7_out = full_weight7, &
-!                                    full_weight8_out = full_weight8, &
-!                                    full_weight9_out = full_weight9, &
-!                                    full_weight10_out = full_weight10, &
-!                                    full_weight11_out = full_weight11, &
-!                                    full_weight12_out = full_weight12)
-!
-!
-!      call icepack_warnings_flush(nu_diag)
-!      if (icepack_warnings_aborted()) call abort_ice(error_message=subname, &
-!         file=__FILE__, line=__LINE__)
-!
-
       input(1:25) = wave_spectrum(1:25)
       input(26)   = hbar
       input(27) = aice
 
       y1 = MATMUL(input,full_weight1) + full_weight2
-      WHERE (y1 < c0) y1 = c0
+      y1 = MAXVAL(y1, c0)
 
       y2 = MATMUL(y1, full_weight3) + full_weight4
-      WHERE (y2 < c0) y2 = c0
+      y2 = MAXVAL(y2, c0)
 
       y3 = MATMUL(y2, full_weight5) + full_weight6
-      WHERE (y3 < c0) y3 = c0
+      y3 = MAXVAL(y3, c0)
 
       y4 = MATMUL(y3, full_weight7) + full_weight8
-      WHERE (y4 < c0) y4 = c0
+      y4 = MAXVAL(y4, c0)
 
       y5 = MATMUL(y4, full_weight9) + full_weight10
-      WHERE (y5 < c0) y5 = c0
+      y5 = MAXVAL(y5, c0)
 
       y6 = MATMUL(y5, full_weight11) + full_weight12
 
@@ -944,7 +892,6 @@
       spwf_fullnet_hist = y6
 
       end subroutine spwf_fullnet
-
 
 !=======================================================================
      

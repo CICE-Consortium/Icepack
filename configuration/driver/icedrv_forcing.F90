@@ -1153,7 +1153,6 @@
 
       end subroutine get_wave_spec
 
-
 !=======================================================================
 !
 !   Read in neural network coefficients (computed offline) for wave fracture
@@ -1178,7 +1177,6 @@
           full_weight1, full_weight3, full_weight5, full_weight7, &
           full_weight9, full_weight11, class_weight1, class_weight3, class_weight5
 
-
       ! allocate arrays
       allocate(class_weight1(27,100))
       allocate(class_weight2(100))
@@ -1200,7 +1198,6 @@
       allocate(full_weight11(100,12))
       allocate(full_weight12(12))
  
-     
       ! read in coefficients from text files
       wave_class_file = &
        trim(data_dir)//'/'//trim('wavefrac_nn_classifier_202201.txt')
@@ -1278,11 +1275,7 @@
       deallocate(full_weight11)
       deallocate(full_weight12)
  
-
       end subroutine init_wave_solver
-
-
-
 
 !=======================================================================
 
