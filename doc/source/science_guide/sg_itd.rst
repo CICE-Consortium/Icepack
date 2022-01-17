@@ -108,7 +108,7 @@ covered by ice with thickness between :math:`h` and :math:`h + dh` and lateral f
 size between :math:`r` and :math:`r + dr`. The FSTD integrates over all floe sizes and
 ice thicknesses to unity; over all floe sizes to the ITD; and over all thicknesses to the FSD.
 
-For implementation in CICE,  the continuous function :math:`f(r,h)` is replaced
+For implementation in CICE,  the continuous function :math:`f(r,h) dr` is replaced
 with a product of two discrete variables: :math:`a_{in}` as defined above and :math:`F_{in,k}`. 
 :math:`F_{in,k}` is the fraction of ice belonging to thickness category :math:`n` with lateral 
 floe size belonging to floe size class :math:`k`, giving

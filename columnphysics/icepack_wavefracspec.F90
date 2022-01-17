@@ -185,7 +185,8 @@
 !autodocument_start icepack_step_wavefracture
 ! 
 !  Given fracture histogram computed from local wave spectrum, evolve 
-!  the floe size distribution
+!  the floe size distribution. Note that wave fracture is applied 
+!  equally to all ice thickness categories within a given grid cell.
 !
 !  authors: 2018 Lettie Roach, NIWA/VUW
 !
@@ -369,6 +370,9 @@
                      subdt = MIN(subdt, dt)
 
                      ! update afsd
+                     ! The factor (c_g/D) from HT2015 and Roach et al (2018) 
+                     ! is not required in the case of an interactive wave
+                     ! model (which we assume here)
                      afsd_tmp = afsd_tmp + subdt * d_afsd_tmp(:) 
 
                      ! check conservation and negatives
@@ -725,7 +729,8 @@
 
                ! This equation differs from HT2015 by a factor 2 in numerator
                ! and eta(j_pos). This is the correct form of the equation.
-       
+               ! There was a typo in HT2015.      
+ 
                denominator = delta*delta_pos*(delta+delta_pos)
        
                if (denominator.ne.c0) &
@@ -792,7 +797,7 @@
       ! local variables
 
       character(char_len_long) :: wave_class_file
-      
+
       real (kind=dbl_kind), dimension(27) :: input
       real (kind=dbl_kind), dimension(100)    :: y1, y2
       real (kind=dbl_kind), dimension(2)     :: y3
@@ -804,10 +809,10 @@
       input(27)   = aice
  
       y1 = MATMUL(input,class_weight1) + class_weight2
-      y1 = MAXVAL(y1, c0)
+      WHERE (y1 < c0) y1 = c0
 
       y2 = MATMUL(y1,class_weight3) + class_weight4
-      y2 = MAXVAL(y2, c0)
+      WHERE (y2 < c0) y2 = c0
 
       y3 = MATMUL(y2, class_weight5) + class_weight6
 
@@ -869,19 +874,19 @@
       input(27) = aice
 
       y1 = MATMUL(input,full_weight1) + full_weight2
-      y1 = MAXVAL(y1, c0)
+      WHERE (y1 < c0) y1 = c0
 
       y2 = MATMUL(y1, full_weight3) + full_weight4
-      y2 = MAXVAL(y2, c0)
+      WHERE (y2 < c0) y2 = c0
 
       y3 = MATMUL(y2, full_weight5) + full_weight6
-      y3 = MAXVAL(y3, c0)
+      WHERE (y3 < c0) y3 = c0
 
       y4 = MATMUL(y3, full_weight7) + full_weight8
-      y4 = MAXVAL(y4, c0)
+      WHERE (y4 < c0) y4 = c0
 
       y5 = MATMUL(y4, full_weight9) + full_weight10
-      y5 = MAXVAL(y5, c0)
+      WHERE (y5 < c0) y5 = c0
 
       y6 = MATMUL(y5, full_weight11) + full_weight12
 
