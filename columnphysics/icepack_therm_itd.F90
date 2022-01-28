@@ -1120,7 +1120,7 @@
                          nsubt = nsubt + 1
                          if (nsubt.gt.100) &
                              write(warnstr,*) subname, &
-                             ‘warning: fsd lateral melt nonconvergence’
+                             'warning: fsd lateral melt nonconvergence'
                              call icepack_warnings_add(warnstr)
 
                          ! finite differences
