@@ -1118,10 +1118,11 @@
                      DO WHILE (elapsed_t.lt.dt)
 
                          nsubt = nsubt + 1
-                         if (nsubt.gt.100) &
+                         if (nsubt.gt.100) then
                              write(warnstr,*) subname, &
                              'warning: fsd lateral melt nonconvergence'
                              call icepack_warnings_add(warnstr)
+                         end if
 
                          ! finite differences
                          df_flx(:) = c0

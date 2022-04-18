@@ -702,9 +702,11 @@
          DO WHILE (elapsed_t.lt.dt)
         
              nsubt = nsubt + 1
-             if (nsubt.gt.100) print *, 'latg not converging'
-             call icepack_warnings_add(subname//&
-                  ' fsd lateral growth nonconvergence')
+             if (nsubt.gt.100) then
+                 write(warnstr,*) subname, &
+                   'warning: fsd lateral growth nonconvergence'
+                 call icepack_warnings_add(warnstr)
+             end if
 
              ! finite differences
              df_flx(:) = c0 ! NB could stay zero if all in largest FS cat
