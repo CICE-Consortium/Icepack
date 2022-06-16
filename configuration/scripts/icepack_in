@@ -109,6 +109,7 @@
     update_ocn_f    = .false.
     l_mpond_fresh   = .false.
     tfrz_option     = 'mushy'
+    saltflux_option = '4psu'
     oceanmixed_ice  = .true.
     wave_spec_type  = 'none'
     restore_ocn     = .false.

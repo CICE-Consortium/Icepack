@@ -97,7 +97,7 @@
          natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
-         tfrz_option, frzpnd, atmbndy, wave_spec_type, snwredist, snw_aging_table
+         tfrz_option, saltflux_option, frzpnd, atmbndy, wave_spec_type, snwredist, snw_aging_table
 
       logical (kind=log_kind) :: sw_redist, use_smliq_pnd, snwgrain
       real (kind=dbl_kind)    :: sw_frac, sw_dtemp
@@ -168,7 +168,7 @@
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
         atmiter_conv,    calc_dragio,                      &
-        tfrz_option,     default_season,  wave_spec_type,  &
+        tfrz_option,     saltflux_option, default_season,  wave_spec_type,  &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
@@ -216,7 +216,7 @@
            dSdt_slow_mode_out=dSdt_slow_mode, &
            phi_c_slow_mode_out=phi_c_slow_mode, &
            phi_i_mushy_out=phi_i_mushy, conserv_check_out=conserv_check, &
-           tfrz_option_out=tfrz_option, kalg_out=kalg, &
+           tfrz_option_out=tfrz_option, saltflux_option_out=saltflux_option, kalg_out=kalg, &
            fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
            wave_spec_type_out=wave_spec_type, &
            sw_redist_out=sw_redist, sw_frac_out=sw_frac, sw_dtemp_out=sw_dtemp, &
@@ -761,6 +761,8 @@
          write(nu_diag,1010) ' oceanmixed_ice            = ', oceanmixed_ice
          write(nu_diag,*)    ' tfrz_option               = ', &
                                trim(tfrz_option)
+         write(nu_diag,*)    ' saltflux_option           = ', &
+                               trim(saltflux_option)
          write(nu_diag,1010) ' restore_ocn               = ', restore_ocn
          if (restore_ocn) &
          write(nu_diag,1005) ' trestore                  = ', trestore
@@ -942,7 +944,7 @@
            dSdt_slow_mode_in=dSdt_slow_mode, &
            phi_c_slow_mode_in=phi_c_slow_mode, &
            phi_i_mushy_in=phi_i_mushy, conserv_check_in=conserv_check, &
-           tfrz_option_in=tfrz_option, kalg_in=kalg, &
+           tfrz_option_in=tfrz_option, saltflux_option_in=saltflux_option, kalg_in=kalg, &
            fbot_xfer_type_in=fbot_xfer_type, &
            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec, &
            sw_redist_in=sw_redist, sw_frac_in=sw_frac, sw_dtemp_in=sw_dtemp, &
