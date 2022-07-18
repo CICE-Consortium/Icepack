@@ -476,7 +476,7 @@ either Celsius or Kelvin units).
    "tr_lvl", ":math:`\bullet` if true, use level ice area and volume tracers", ""
 
 .. comment We are deprecating this feature.
-   "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""
+.. "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""
 
    "tr_pond_cesm", "DEPRECATED", ""
    "tr_pond_lvl", ":math:`\bullet` if true, use level-ice melt pond scheme", ""
