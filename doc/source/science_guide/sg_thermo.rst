@@ -128,7 +128,7 @@ and thickness are computed according to the assumed pond shape, and the
 pond area is then reduced in the presence of snow for the radiation
 calculation. Ponds are allowed only on ice at least 1 cm thick. This
 formulation differs slightly from that documented in
-:cite:`Holland12`.
+:cite:`Holland12`. *Note that the CESM pond option has been deprecated.*
 
 Topographic formulation (``tr_pond_topo`` = true)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

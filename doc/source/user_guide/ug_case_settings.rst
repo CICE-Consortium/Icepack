@@ -183,7 +183,11 @@ tracer_nml
    "``tr_iage``", "logical", "ice age", "``.false.``"
    "``tr_iso``", "logical", "isotopes", "``.false.``"
    "``tr_lvl``", "logical", "level ice area and volume", "``.false.``"
+
+.. comment Note that this has been deprecated.
    "``tr_pond_cesm``", "logical", "CESM melt ponds", "``.false.``"
+
+   "``tr_pond_cesm``", "logical", "DEPRECATED", "``.false.``"
    "``tr_pond_lvl``", "logical", "level-ice melt ponds", "``.false.``"
    "``tr_pond_topo``", "logical", "topo melt ponds", "``.false.``"
    "``tr_snow``", "logical", "advanced snow physics", "``.false.``"

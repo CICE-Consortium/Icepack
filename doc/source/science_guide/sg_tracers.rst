@@ -78,7 +78,7 @@ the grid cell. These quantities are illustrated in Figure :ref:`fig-tracers`.
 The graphic on the right illustrates the *grid cell* fraction of ponds or 
 level ice as defined by the tracers. The chart on the left provides 
 corresponding ice thickness and pond depth averages over the grid cell, 
-sea ice and pond area fractions. 
+sea ice and pond area fractions. *Note that the cesm pond option has been deprecated.*
 
 .. _fig-tracers:
 

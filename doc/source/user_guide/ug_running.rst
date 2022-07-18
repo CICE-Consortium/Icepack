@@ -175,7 +175,7 @@ Some of the options are
 
 ``leap`` which turns on the leap year
 
-``pondcesm``, ``pondlvl``, ``pondtopo`` which turn on the various pond schemes
+``pondlvl``, ``pondtopo`` which turn on the various pond schemes
 
 ``run10day``, ``run1year``, etc which specifies a run length
 

@@ -474,7 +474,11 @@ either Celsius or Kelvin units).
    "tr_FY", ":math:`\bullet` if true, use first-year area tracer", ""
    "tr_iage", ":math:`\bullet` if true, use ice age tracer", ""
    "tr_lvl", ":math:`\bullet` if true, use level ice area and volume tracers", ""
+
+.. comment We are deprecating this feature.
    "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""
+
+   "tr_pond_cesm", "DEPRECATED", ""
    "tr_pond_lvl", ":math:`\bullet` if true, use level-ice melt pond scheme", ""
    "tr_pond_topo", ":math:`\bullet` if true, use topo melt pond scheme", ""
    "trcr", "ice tracers", ""
