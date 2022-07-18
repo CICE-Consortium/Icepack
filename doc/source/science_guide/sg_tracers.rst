@@ -45,6 +45,8 @@ is discussed in :cite:`Armour11`.
 Tracers that depend on other tracers 
 ------------------------------------
 
+*Note that the cesm pond option is being deprecated.*
+
 Tracers may be defined that depend on other tracers. Melt pond tracers
 provide an example (these equations pertain to cesm and topo tracers;
 level-ice tracers are similar with an extra factor of :math:`a_{lvl}`,
@@ -78,7 +80,7 @@ the grid cell. These quantities are illustrated in Figure :ref:`fig-tracers`.
 The graphic on the right illustrates the *grid cell* fraction of ponds or 
 level ice as defined by the tracers. The chart on the left provides 
 corresponding ice thickness and pond depth averages over the grid cell, 
-sea ice and pond area fractions. *Note that the cesm pond option has been deprecated.*
+sea ice and pond area fractions. 
 
 .. _fig-tracers:
 
