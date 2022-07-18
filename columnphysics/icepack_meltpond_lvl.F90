@@ -47,8 +47,11 @@
 
       integer (kind=int_kind), intent(in) :: &
          nilyr, &    ! number of ice layers
+#ifdef UNDEPRECATE_0LAYER
          ktherm      ! type of thermodynamics (0 0-layer, 1 BL99, 2 mushy)
-
+#else
+         ktherm      ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
+#endif
       real (kind=dbl_kind), intent(in) :: &
          dt,       & ! time step (s)  
          hi_min,   & ! minimum ice thickness allowed for thermo (m)

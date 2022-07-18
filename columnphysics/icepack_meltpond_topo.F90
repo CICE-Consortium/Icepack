@@ -39,7 +39,11 @@
 !=======================================================================
 
       subroutine compute_ponds_topo(dt,    ncat, nilyr, &
+#ifdef UNDEPRECATE_0LAYER
                                     ktherm, heat_capacity, &
+#else
+                                    ktherm,             &
+#endif
                                     aice,  aicen,       &
                                     vice,  vicen,       &
                                     vsno,  vsnon,       &
@@ -54,10 +58,11 @@
          nilyr, &   ! number of ice layers
          ktherm     ! type of thermodynamics (0 0-layer, 1 BL99, 2 mushy)
 
+#ifdef UNDEPRECATE_0LAYER
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if true, ice has nonzero heat capacity
                          ! if false, use zero-layer thermodynamics
-
+#endif
       real (kind=dbl_kind), intent(in) :: &
          dt ! time step (s)
 
@@ -164,7 +169,11 @@
          ! calculate pond area and depth
          !--------------------------------------------------------------
          call pond_area(dt,         ncat,     nilyr,    &
+#ifdef UNDEPRECATE_0LAYER
                         ktherm,     heat_capacity,      &
+#else
+                        ktherm,                         &
+#endif
                         aice,       vice,     vsno,     &
                         aicen,      vicen,    vsnon,    &
                         qicen,      sicen,              &
@@ -297,7 +306,11 @@
 ! Computes melt pond area, pond depth and melting rates
 
       subroutine pond_area(dt,    ncat,  nilyr,&
+#ifdef UNDEPRECATE_0LAYER
                            ktherm, heat_capacity, &
+#else
+                           ktherm,             &
+#endif
                            aice,  vice,  vsno, &
                            aicen, vicen, vsnon,& 
                            qicen, sicen,       &
@@ -308,12 +321,17 @@
       integer (kind=int_kind), intent(in) :: &
          ncat , & ! number of thickness categories
          nilyr, & ! number of ice layers
+#ifdef UNDEPRECATE_0LAYER
          ktherm   ! type of thermodynamics (0 0-layer, 1 BL99, 2 mushy)
+#else
+         ktherm   ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
+#endif
 
+#ifdef UNDEPRECATE_0LAYER
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if true, ice has nonzero heat capacity
                          ! if false, use zero-layer thermodynamics
-
+#endif
       real (kind=dbl_kind), intent(in) :: &
          dt, aice, vice, vsno, Tf
 
@@ -505,9 +523,12 @@
       if (ktherm /= 2 .and. pressure_head > c0) then
       do n = 1, ncat-1
          if (hicen(n) > c0) then
+#ifdef UNDEPRECATE_0LAYER
             call permeability_phi(heat_capacity, nilyr, &
-                                  qicen(:,n), sicen(:,n), Tsfcn(n), Tf, &
-                                  perm)
+#else
+            call permeability_phi(nilyr, &
+#endif
+                                  qicen(:,n), sicen(:,n), Tsfcn(n), Tf, perm)
             if (icepack_warnings_aborted(subname)) return
             if (perm > c0) permflag = 1
             drain = perm*apondn(n)*pressure_head*dt / (viscosity_dyn*hicen(n))
@@ -746,14 +767,18 @@
 
 ! determine the liquid fraction of brine in the ice and the permeability
 
+#ifdef UNDEPRECATE_0LAYER
       subroutine permeability_phi(heat_capacity, nilyr, &
-                                  qicen, sicen, Tsfcn, Tf, &
-                                  perm)
+#else
+      subroutine permeability_phi(nilyr, &
+#endif
+                                  qicen, sicen, Tsfcn, Tf, perm)
 
+#ifdef UNDEPRECATE_0LAYER
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if true, ice has nonzero heat capacity
                          ! if false, use zero-layer thermodynamics
-
+#endif
       integer (kind=int_kind), intent(in) :: &
          nilyr       ! number of ice layers
 
@@ -787,14 +812,18 @@
       ! NOTE this assumes Tmlt = Si * depressT
       !-----------------------------------------------------------------
 
+#ifdef UNDEPRECATE_0LAYER
       if (heat_capacity) then
+#endif
         do k = 1,nilyr
            Tmlt = -sicen(k) * depressT
            Tin(k) = calculate_Tin_from_qin(qicen(k),Tmlt)
         enddo
+#ifdef UNDEPRECATE_0LAYER
       else
         Tin(1) = (Tsfcn + Tf) / c2
-      endif  
+      endif
+#endif
 
       !-----------------------------------------------------------------
       ! brine salinity and liquid fraction
@@ -808,11 +837,15 @@
                   -21.8_dbl_kind     * Tin(k)    &
                   - 0.919_dbl_kind   * Tin(k)**2 &
                   - 0.01878_dbl_kind * Tin(k)**3
+#ifdef UNDEPRECATE_0LAYER
             if (heat_capacity) then
+#endif
               phi(k) = sicen(k)/Sbr ! liquid fraction
+#ifdef UNDEPRECATE_0LAYER
             else
               phi(k) = ice_ref_salinity / Sbr ! liquid fraction
             endif
+#endif
          enddo ! k
        
       else
@@ -827,12 +860,15 @@
                call icepack_warnings_add(subname//' topo ponds: zero brine salinity in permeability')
                return
             endif
+#ifdef UNDEPRECATE_0LAYER
             if (heat_capacity) then
+#endif
               phi(k) = sicen(k) / Sbr         ! liquid fraction
+#ifdef UNDEPRECATE_0LAYER
             else
               phi(k) = ice_ref_salinity / Sbr ! liquid fraction
             endif
-
+#endif
          enddo
 
       endif

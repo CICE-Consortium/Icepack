@@ -25,7 +25,11 @@
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
       use icepack_parameters, only: rhosi, conserv_check, rhosmin
+#ifdef UNDEPRECATE_0LAYER
       use icepack_parameters, only: kitd, ktherm, heat_capacity
+#else
+      use icepack_parameters, only: kitd, ktherm
+#endif
       use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
 
       use icepack_tracers, only: ntrcr, nbtrcr
@@ -1312,7 +1316,11 @@
          ntrcr , & ! number of tracers
          nltrcr, & ! number of zbgc tracers
          n_aero, & ! number of aerosol tracers
+#ifdef UNDEPRECATE_0LAYER
          ktherm    ! type of thermodynamics (0 0-layer, 1 BL99, 2 mushy)
+#else
+         ktherm    ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
+#endif
 
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max      ! category boundaries (m)
@@ -2265,7 +2273,11 @@
                         n_aero,                                 &
                         nbtrcr,               nblyr,            &
                         tr_aero,                                &
+#ifdef UNDEPRECATE_0LAYER
                         tr_pond_topo,         heat_capacity,    &
+#else
+                        tr_pond_topo,                           &
+#endif
                         first_ice,                              &
                         trcr_depend,          trcr_base,        &
                         n_trcr_strata,        nt_strata,        &

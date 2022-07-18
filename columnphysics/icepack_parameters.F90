@@ -113,8 +113,10 @@
          ice_ref_salinity =4._dbl_kind,&! (ppt)
                                         ! kice is not used for mushy thermo
          kice      = 2.03_dbl_kind    ,&! thermal conductivity of fresh ice(W/m/deg)
+#ifdef UNDEPRECATE_0LAYER
                                         ! kseaice is used only for zero-layer thermo
          kseaice   = 2.00_dbl_kind    ,&! thermal conductivity of sea ice (W/m/deg)
+#endif
          ksno      = 0.30_dbl_kind    ,&! thermal conductivity of snow  (W/m/deg)
          hs_min    = 1.e-4_dbl_kind   ,&! min snow thickness for computing zTsn (m)
          snowpatch = 0.02_dbl_kind    ,&! parameter for fractional snow area (m)
@@ -136,7 +138,11 @@
 
       integer (kind=int_kind), public :: &
          ktherm = 1      ! type of thermodynamics
+#ifdef UNDEPRECATE_0LAYER
                          ! 0 = 0-layer approximation
+#else
+                         ! -1 none
+#endif
                          ! 1 = Bitz and Lipscomb 1999
                          ! 2 = mushy layer theory
 
@@ -145,8 +151,10 @@
          fbot_xfer_type = 'constant' ! transfer coefficient type for ice-ocean heat flux
 
       logical (kind=log_kind), public :: &
+#ifdef UNDEPRECATE_0LAYER
          heat_capacity = .true. ,&! if true, ice has nonzero heat capacity
                                   ! if false, use zero-layer thermodynamics
+#endif
          calc_Tsfc     = .true. ,&! if true, calculate surface temperature
                                   ! if false, Tsfc is computed elsewhere and
                                   ! atmos-ice fluxes are provided to CICE
@@ -434,7 +442,11 @@
          stefan_boltzmann_in, ice_ref_salinity_in, &
          Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
          iceruf_in, Cf_in, Pstar_in, Cstar_in, kappav_in, &
+#ifdef UNDEPRECATE_0LAYER
          kice_in, kseaice_in, ksno_in, &
+#else
+         kice_in, ksno_in, &
+#endif
          zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
          saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
          min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, &
@@ -456,7 +468,11 @@
          bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
          modal_aero_in, skl_bgc_in, solve_zsal_in, grid_o_in, l_sk_in, &
          initbio_frac_in, grid_oS_in, l_skS_in,  dEdd_algae_in, &
+#ifdef UNDEPRECATE_0LAYER
          phi_snow_in, heat_capacity_in, T_max_in, fsal_in, &
+#else
+         phi_snow_in, T_max_in, fsal_in, &
+#endif
          fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
          op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
          fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
@@ -510,7 +526,9 @@
          Tsmelt_in,     & ! melting temperature, snow top surface (C)
          ice_ref_salinity_in, & ! (ppt)
          kice_in,       & ! thermal conductivity of fresh ice(W/m/deg)
+#ifdef UNDEPRECATE_0LAYER
          kseaice_in,    & ! thermal conductivity of sea ice (W/m/deg)
+#endif
          ksno_in,       & ! thermal conductivity of snow  (W/m/deg)
          hs_min_in,     & ! min snow thickness for computing zTsn (m)
          snowpatch_in,  & ! parameter for fractional snow area (m)
@@ -522,7 +540,11 @@
 
       integer (kind=int_kind), intent(in), optional :: &
          ktherm_in          ! type of thermodynamics
+#ifdef UNDEPRECATE_0LAYER
                             ! 0 = 0-layer approximation
+#else
+                            ! -1 none
+#endif
                             ! 1 = Bitz and Lipscomb 1999
                             ! 2 = mushy layer theory
 
@@ -531,8 +553,10 @@
          fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
         
       logical (kind=log_kind), intent(in), optional :: &
+#ifdef UNDEPRECATE_0LAYER
          heat_capacity_in, &! if true, ice has nonzero heat capacity
                             ! if false, use zero-layer thermodynamics
+#endif
          calc_Tsfc_in    , &! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
@@ -845,7 +869,9 @@
       if (present(Cstar_in)             ) Cstar            = Cstar_in
       if (present(kappav_in)            ) kappav           = kappav_in
       if (present(kice_in)              ) kice             = kice_in
+#ifdef UNDEPRECATE_0LAYER
       if (present(kseaice_in)           ) kseaice          = kseaice_in
+#endif
       if (present(ksno_in)              ) ksno             = ksno_in
       if (present(zref_in)              ) zref             = zref_in
       if (present(hs_min_in)            ) hs_min           = hs_min_in
@@ -875,7 +901,9 @@
       if (present(ktherm_in)            ) ktherm           = ktherm_in
       if (present(conduct_in)           ) conduct          = conduct_in
       if (present(fbot_xfer_type_in)    ) fbot_xfer_type   = fbot_xfer_type_in
+#ifdef UNDEPRECATE_0LAYER
       if (present(heat_capacity_in)     ) heat_capacity    = heat_capacity_in
+#endif
       if (present(calc_Tsfc_in)         ) calc_Tsfc        = calc_Tsfc_in
       if (present(update_ocn_f_in)      ) update_ocn_f     = update_ocn_f_in
       if (present(dts_b_in)             ) dts_b            = dts_b_in
@@ -1105,7 +1133,11 @@
          stefan_boltzmann_out, ice_ref_salinity_out, &
          Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
          iceruf_out, Cf_out, Pstar_out, Cstar_out, kappav_out, &
+#ifdef UNDEPRECATE_0LAYER
          kice_out, kseaice_out, ksno_out, &
+#else
+         kice_out, ksno_out, &
+#endif
          zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
          saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
          min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
@@ -1127,7 +1159,11 @@
          bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
          modal_aero_out, skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
          initbio_frac_out, grid_oS_out, l_skS_out, &
+#ifdef UNDEPRECATE_0LAYER
          phi_snow_out, heat_capacity_out, conserv_check_out, &
+#else
+         phi_snow_out, conserv_check_out, &
+#endif
          fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &
          T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
          fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
@@ -1190,7 +1226,9 @@
          Tsmelt_out,     & ! melting temperature, snow top surface (C)
          ice_ref_salinity_out, & ! (ppt)
          kice_out,       & ! thermal conductivity of fresh ice(W/m/deg)
+#ifdef UNDEPRECATE_0LAYER
          kseaice_out,    & ! thermal conductivity of sea ice (W/m/deg)
+#endif
          ksno_out,       & ! thermal conductivity of snow  (W/m/deg)
          hs_min_out,     & ! min snow thickness for computing zTsn (m)
          snowpatch_out,  & ! parameter for fractional snow area (m)
@@ -1202,7 +1240,11 @@
 
       integer (kind=int_kind), intent(out), optional :: &
          ktherm_out         ! type of thermodynamics
+#ifdef UNDEPRECATE_0LAYER
                             ! 0 = 0-layer approximation
+#else
+                            ! -1 none
+#endif
                             ! 1 = Bitz and Lipscomb 1999
                             ! 2 = mushy layer theory
 
@@ -1211,8 +1253,10 @@
          fbot_xfer_type_out ! transfer coefficient type for ice-ocean heat flux
         
       logical (kind=log_kind), intent(out), optional :: &
+#ifdef UNDEPRECATE_0LAYER
          heat_capacity_out,&! if true, ice has nonzero heat capacity
                             ! if false, use zero-layer thermodynamics
+#endif
          calc_Tsfc_out    ,&! if true, calculate surface temperature
                             ! if false, Tsfc is computed elsewhere and
                             ! atmos-ice fluxes are provided to CICE
@@ -1565,7 +1609,9 @@
       if (present(Cstar_out)             ) Cstar_out        = Cstar
       if (present(kappav_out)            ) kappav_out       = kappav
       if (present(kice_out)              ) kice_out         = kice
+#ifdef UNDEPRECATE_0LAYER
       if (present(kseaice_out)           ) kseaice_out      = kseaice
+#endif
       if (present(ksno_out)              ) ksno_out         = ksno
       if (present(zref_out)              ) zref_out         = zref
       if (present(hs_min_out)            ) hs_min_out       = hs_min
@@ -1595,7 +1641,9 @@
       if (present(ktherm_out)            ) ktherm_out       = ktherm
       if (present(conduct_out)           ) conduct_out      = conduct
       if (present(fbot_xfer_type_out)    ) fbot_xfer_type_out = fbot_xfer_type
+#ifdef UNDEPRECATE_0LAYER
       if (present(heat_capacity_out)     ) heat_capacity_out= heat_capacity
+#endif
       if (present(calc_Tsfc_out)         ) calc_Tsfc_out    = calc_Tsfc
       if (present(update_ocn_f_out)      ) update_ocn_f_out = update_ocn_f
       if (present(dts_b_out)             ) dts_b_out        = dts_b
@@ -1762,7 +1810,9 @@
         write(iounit,*) "  Cstar  = ",Cstar
         write(iounit,*) "  kappav = ",kappav
         write(iounit,*) "  kice   = ",kice
+#ifdef UNDEPRECATE_0LAYER
         write(iounit,*) "  kseaice = ",kseaice
+#endif
         write(iounit,*) "  ksno   = ",ksno
         write(iounit,*) "  zref   = ",zref
         write(iounit,*) "  hs_min = ",hs_min
@@ -1799,7 +1849,9 @@
         write(iounit,*) "  ktherm        = ", ktherm
         write(iounit,*) "  conduct       = ", conduct
         write(iounit,*) "  fbot_xfer_type    = ", fbot_xfer_type
+#ifdef UNDEPRECATE_0LAYER
         write(iounit,*) "  heat_capacity     = ", heat_capacity
+#endif
         write(iounit,*) "  calc_Tsfc         = ", calc_Tsfc
         write(iounit,*) "  update_ocn_f      = ", update_ocn_f
         write(iounit,*) "  dts_b             = ", dts_b

@@ -10,6 +10,7 @@
 
       module icepack_therm_0layer
 
+#ifdef UNDEPRECATE_0LAYER
       use icepack_kinds
       use icepack_parameters, only: c0, c1, p5, puny
       use icepack_parameters, only: kseaice, ksno
@@ -334,6 +335,7 @@
 
       end subroutine zerolayer_temperature
 
+#endif
 !=======================================================================
 
       end module icepack_therm_0layer

@@ -39,8 +39,11 @@
       use icepack_parameters,  only: puny, Lfresh, rhoi, rhos
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
+#ifdef UNDEPRECATE_0LAYER
       use icepack_parameters, only: heat_capacity, conserv_check
-
+#else
+      use icepack_parameters, only: conserv_check
+#endif
       use icepack_tracers, only: tr_pond_topo, tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
       use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, nt_isosno, nt_isoice
@@ -1815,7 +1818,9 @@
          !tr_pond_topo,& ! if .true., use explicit topography-based ponds
          !tr_aero     ,& ! if .true., use aerosol tracers
          !tr_brine    !,& ! if .true., brine height differs from ice thickness
+#ifdef UNDEPRECATE_0LAYER
          !heat_capacity  ! if true, ice has nonzero heat capacity
+#endif
 
       logical (kind=log_kind), dimension(:), intent(inout) :: &
          first_ice    ! true until ice forms
@@ -1906,7 +1911,11 @@
                         n_aero,                                 &
                         nbtrcr,               nblyr,            &
                         tr_aero,                                &
+#ifdef UNDEPRECATE_0LAYER
                         tr_pond_topo,         heat_capacity,    &  
+#else
+                        tr_pond_topo,                           &
+#endif
                         first_ice,                              &                
                         trcr_depend,          trcr_base,        &
                         n_trcr_strata,        nt_strata,        &
