@@ -583,6 +583,12 @@
          'WARNING: For consistency, set tfrz_option = mushy'
       endif
 
+      if (ktherm == 0) then
+         write (nu_diag,*) 'WARNING: ktherm = 0 zero-layer thermodynamics'
+         write (nu_diag,*) 'WARNING: has been deprecated'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
       if (formdrag) then
       if (trim(atmbndy) == 'constant') then
          write (nu_diag,*) 'WARNING: atmbndy = constant not allowed with formdrag'
