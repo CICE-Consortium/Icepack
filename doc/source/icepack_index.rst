@@ -7,7 +7,7 @@ Index of primary variables and parameters
 
 This index defines many of the symbols used frequently in the ice model
 code. Values appearing in this list are fixed or recommended; most
-namelist parameters are indicated ( :math:`E_\circ`) with their default
+namelist parameters are indicated ( :math:`\bullet`) with their default
 values. For other namelist options, see Section :ref:`tabnamelist`. All
 quantities in the code are expressed in MKS units (temperatures may take
 either Celsius or Kelvin units).  

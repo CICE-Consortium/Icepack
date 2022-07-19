@@ -1303,7 +1303,8 @@ contains salt, it usually will be fully melted at a temperature below
 :math:`0^{\circ}C`.
 Equations :eq:`ice-enthalpy` and :eq:`enth-def` are
 equivalent except for the density used in the term representing the
-energy required to bring the melt water temperature to (:math:`\rho_i`
+energy required to bring the melt water temperature to :math:`0^{\circ}C`
+(:math:`\rho_i`
 and :math:`\rho_w` in equations :eq:`ice-enthalpy` and
 :eq:`enth-def`, respectively).
 
