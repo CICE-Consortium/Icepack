@@ -219,13 +219,17 @@
 !-----------------------------------------------------------------------
 
       integer (kind=int_kind), public :: & ! defined in namelist 
+#ifdef UNDEPRECATE_KRDG0
          kstrength   = 1, & ! 0 for simple Hibler (1979) formulation
                             ! 1 for Rothrock (1975) pressure formulation
          krdg_partic = 1, & ! 0 for Thorndike et al. (1975) formulation
                             ! 1 for exponential participation function
          krdg_redist = 1    ! 0 for Hibler (1980) formulation
                             ! 1 for exponential redistribution function
-
+#else
+         kstrength   = 1    ! 0 for simple Hibler (1979) formulation
+                            ! 1 for Rothrock (1975) pressure formulation
+#endif
       real (kind=dbl_kind), public :: &  
          Cf       = 17._dbl_kind     ,&! ratio of ridging work to PE change in ridging
          Pstar    = 2.75e4_dbl_kind  ,&! constant in Hibler strength formula
@@ -236,9 +240,12 @@
          thickness_ocn_layer1 = 2.0_dbl_kind,&! thickness of first ocean level (m)
          iceruf_ocn = 0.03_dbl_kind  ,&! under-ice roughness (m)
          gravit   = 9.80616_dbl_kind ,&! gravitational acceleration (m/s^2)
+#ifdef UNDEPRECATE_KRDG0
          mu_rdg = 3.0_dbl_kind ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
                                        ! (krdg_redist = 1)
-
+#else
+         mu_rdg = 3.0_dbl_kind         ! e-folding scale of ridged ice (m^0.5)
+#endif
       logical (kind=log_kind), public :: &
          calc_dragio     = .false.     ! if true, calculate dragio from iceruf_ocn and thickness_ocn_layer1
 
@@ -459,7 +466,11 @@
          phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
          albicev_in, albicei_in, albsnowv_in, &
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
+#ifdef UNDEPRECATE_KRDG0
          kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
+#else
+         kalg_in, kstrength_in, mu_rdg_in, &
+#endif
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
          atmiter_conv_in, calc_dragio_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
@@ -633,9 +644,9 @@
 !-----------------------------------------------------------------------
 
       real(kind=dbl_kind), intent(in), optional :: &
-         Cf_in,         & ! ratio of ridging work to PE change in ridging 
-         Pstar_in,      & ! constant in Hibler strength formula 
-         Cstar_in,      & ! constant in Hibler strength formula 
+         Cf_in,         & ! ratio of ridging work to PE change in ridging
+         Pstar_in,      & ! constant in Hibler strength formula
+         Cstar_in,      & ! constant in Hibler strength formula
          dragio_in,     & ! ice-ocn drag coefficient
          thickness_ocn_layer1_in, & ! thickness of first ocean level (m)
          iceruf_ocn_in, & ! under-ice roughness (m)
@@ -643,16 +654,23 @@
          iceruf_in        ! ice surface roughness (m)
 
       integer (kind=int_kind), intent(in), optional :: & ! defined in namelist 
-         kstrength_in  , & ! 0 for simple Hibler (1979) formulation 
-                           ! 1 for Rothrock (1975) pressure formulation 
-         krdg_partic_in, & ! 0 for Thorndike et al. (1975) formulation 
-                           ! 1 for exponential participation function 
-         krdg_redist_in    ! 0 for Hibler (1980) formulation 
-                           ! 1 for exponential redistribution function 
+#ifdef UNDEPRECATE_KRDG0
+         kstrength_in  , & ! 0 for simple Hibler (1979) formulation
+                           ! 1 for Rothrock (1975) pressure formulation
+         krdg_partic_in, & ! 0 for Thorndike et al. (1975) formulation
+                           ! 1 for exponential participation function
+         krdg_redist_in    ! 0 for Hibler (1980) formulation
+                           ! 1 for exponential redistribution function
+#else
+         kstrength_in      ! 0 for simple Hibler (1979) formulation
+                           ! 1 for Rothrock (1975) pressure formulation
+#endif
  
       real (kind=dbl_kind), intent(in), optional :: &  
-         mu_rdg_in         ! gives e-folding scale of ridged ice (m^.5) 
-                           ! (krdg_redist = 1) 
+         mu_rdg_in         ! gives e-folding scale of ridged ice (m^.5)
+#ifdef UNDEPRECATE_KRDG0
+                           ! (krdg_redist = 1)
+#endif
 
       logical (kind=log_kind), intent(in), optional :: &
          calc_dragio_in    ! if true, calculate dragio from iceruf_ocn and thickness_ocn_layer1
@@ -928,8 +946,10 @@
       if (present(rsnw_mlt_in)          ) rsnw_mlt         = rsnw_mlt_in
       if (present(kalg_in)              ) kalg             = kalg_in
       if (present(kstrength_in)         ) kstrength        = kstrength_in
+#ifdef UNDEPRECATE_KRDG0
       if (present(krdg_partic_in)       ) krdg_partic      = krdg_partic_in
       if (present(krdg_redist_in)       ) krdg_redist      = krdg_redist_in
+#endif
       if (present(mu_rdg_in)            ) mu_rdg           = mu_rdg_in
       if (present(atmbndy_in)           ) atmbndy          = atmbndy_in
       if (present(calc_strair_in)       ) calc_strair      = calc_strair_in
@@ -1150,7 +1170,11 @@
          albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
          albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
          rsnw_mlt_out, dEdd_algae_out, &
+#ifdef UNDEPRECATE_KRDG0
          kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
+#else
+         kalg_out, kstrength_out, mu_rdg_out, &
+#endif
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
          atmiter_conv_out, calc_dragio_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
@@ -1333,9 +1357,9 @@
 !-----------------------------------------------------------------------
 
       real(kind=dbl_kind), intent(out), optional :: &
-         Cf_out,         & ! ratio of ridging work to PE change in ridging 
-         Pstar_out,      & ! constant in Hibler strength formula 
-         Cstar_out,      & ! constant in Hibler strength formula 
+         Cf_out,         & ! ratio of ridging work to PE change in ridging
+         Pstar_out,      & ! constant in Hibler strength formula
+         Cstar_out,      & ! constant in Hibler strength formula
          dragio_out,     & ! ice-ocn drag coefficient
          thickness_ocn_layer1_out, & ! thickness of first ocean level (m)
          iceruf_ocn_out, & ! under-ice roughness (m)
@@ -1343,16 +1367,23 @@
          iceruf_out        ! ice surface roughness (m)
 
       integer (kind=int_kind), intent(out), optional :: & ! defined in namelist 
-         kstrength_out  , & ! 0 for simple Hibler (1979) formulation 
-                            ! 1 for Rothrock (1975) pressure formulation 
-         krdg_partic_out, & ! 0 for Thorndike et al. (1975) formulation 
-                            ! 1 for exponential participation function 
-         krdg_redist_out    ! 0 for Hibler (1980) formulation 
-                            ! 1 for exponential redistribution function 
+#ifdef UNDEPRECATE_KRDG0
+         kstrength_out  , & ! 0 for simple Hibler (1979) formulation
+                            ! 1 for Rothrock (1975) pressure formulation
+         krdg_partic_out, & ! 0 for Thorndike et al. (1975) formulation
+                            ! 1 for exponential participation function
+         krdg_redist_out    ! 0 for Hibler (1980) formulation
+                            ! 1 for exponential redistribution function
+#else
+         kstrength_out      ! 0 for simple Hibler (1979) formulation
+                            ! 1 for Rothrock (1975) pressure formulation
+#endif
  
       real (kind=dbl_kind), intent(out), optional :: &  
-         mu_rdg_out         ! gives e-folding scale of ridged ice (m^.5) 
-                            ! (krdg_redist = 1) 
+         mu_rdg_out         ! gives e-folding scale of ridged ice (m^.5)
+#ifdef UNDEPRECATE_KRDG0
+                            ! (krdg_redist = 1)
+#endif
 
       logical (kind=log_kind), intent(out), optional :: &
          calc_dragio_out    ! if true, compute dragio from iceruf_ocn and thickness_ocn_layer1
@@ -1668,8 +1699,10 @@
       if (present(rsnw_mlt_out)          ) rsnw_mlt_out     = rsnw_mlt
       if (present(kalg_out)              ) kalg_out         = kalg
       if (present(kstrength_out)         ) kstrength_out    = kstrength
+#ifdef UNDEPRECATE_KRDG0
       if (present(krdg_partic_out)       ) krdg_partic_out  = krdg_partic
       if (present(krdg_redist_out)       ) krdg_redist_out  = krdg_redist
+#endif
       if (present(mu_rdg_out)            ) mu_rdg_out       = mu_rdg
       if (present(atmbndy_out)           ) atmbndy_out      = atmbndy
       if (present(calc_strair_out)       ) calc_strair_out  = calc_strair
@@ -1876,8 +1909,10 @@
         write(iounit,*) "  rsnw_mlt      = ", rsnw_mlt
         write(iounit,*) "  kalg          = ", kalg
         write(iounit,*) "  kstrength     = ", kstrength
+#ifdef UNDEPRECATE_KRDG0
         write(iounit,*) "  krdg_partic   = ", krdg_partic
         write(iounit,*) "  krdg_redist   = ", krdg_redist
+#endif
         write(iounit,*) "  mu_rdg        = ", mu_rdg
         write(iounit,*) "  atmbndy       = ", atmbndy
         write(iounit,*) "  calc_strair   = ", calc_strair

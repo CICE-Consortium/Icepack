@@ -197,7 +197,7 @@ either Celsius or Kelvin units).
    "**G**", "", ""
    "gravit", "gravitational acceleration", "9.80616 m/s\ :math:`^2`"
    "grow_net", "specific biogeochemistry growth rate per grid cell", "s :math:`^{-1}`"
-   "Gstar", "piecewise-linear ridging participation function parameter", "0.15"
+   "Gstar", "DEPRECATED", ""
    "**H**", "", ""
    "H2_16O_ocn", "concentration of H2_16O isotope in ocean", "kg/kg"
    "H2_18O_ocn", "concentration of H2_18O isotope in ocean", "kg/kg"
@@ -221,7 +221,7 @@ either Celsius or Kelvin units).
    "hs0", ":math:`\bullet` snow depth at which transition to ice occurs (dEdd)", "0.03 m"
    "hs1", ":math:`\bullet` snow depth of transition to pond ice", "0.03 m"
    "hs_ssl", "snow surface scattering layer thickness", "0.04 m"
-   "Hstar", "determines mean thickness of ridged ice", "25. m"
+   "Hstar", "DEPRECATED", ""
    "**I**", "", ""
    "i0vis","fraction of penetrating visible solar radiation", "0.70"
    "ice_ic", ":math:`\bullet` choice of initial conditions", ""
@@ -247,8 +247,8 @@ either Celsius or Kelvin units).
    "kg_to_g", "kg to g conversion factor", "1000."
    "kice", "thermal conductivity of fresh ice (:cite:`Bitz99`)", "2.03 W/m/deg"
    "kitd", ":math:`\bullet` type of itd conversions (0 = delta function, 1 = linear remap)", "1"
-   "krdg_partic", ":math:`\bullet` ridging participation function", "1"
-   "krdg_redist", ":math:`\bullet` ridging redistribution function", "1"
+   "krdg_partic", "DEPRECATED", ""
+   "krdg_redist", "DEPRECATED", ""
    "krdgn", "mean ridge thickness per thickness of ridging ice", ""
    "kseaice", "DEPRECATED", ""
    "ksno", "thermal conductivity of snow", "0.30 W/m/deg"
@@ -533,6 +533,10 @@ either Celsius or Kelvin units).
    "heat_capacity", ":math:`\bullet` if true, use salinity-dependent thermodynamics", "T"
    "kseaice", "thermal conductivity of ice for zero-layer thermodynamics", "2.0 W/m/deg"
    "ktherm", ":math:`\bullet` thermodynamic formulation (0 = zero-layer, 1 = :cite:`Bitz99`, 2 = mushy)", ""
-
+   old ridging participation and redistribution functions are being deprecated
+   "krdg_partic", ":math:`\bullet` ridging participation function", "1"
+   "krdg_redist", ":math:`\bullet` ridging redistribution function", "1"
+   "Gstar", "piecewise-linear ridging participation function parameter", "0.15"
+   "Hstar", "determines mean thickness of ridged ice", "25. m"
 
 

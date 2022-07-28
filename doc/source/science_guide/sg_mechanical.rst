@@ -16,6 +16,8 @@ ice and is applied after horizontal transport. When the ice is
 converging, enough ice ridges to ensure that the ice area does not
 exceed the grid cell area.
 
+*Note that the older ridging and participation functions (``krdg_partic`` = 0 and ``krdg_redist`` = 0) have been deprecated.*
+
 First we specify the participation function: the thickness distribution
 :math:`a_P(h) = b(h) \, g(h)` of the ice participating in ridging. (We
 use "ridging" as shorthand for all forms of mechanical redistribution,
