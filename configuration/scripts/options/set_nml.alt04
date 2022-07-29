@@ -11,6 +11,8 @@
     sw_dtemp          = 0.02d0
     tfrz_option       = 'linear_salt'
     conduct           = 'bubbly'
+    krdg_partic     = 0
+    krdg_redist     = 0
     calc_Tsfc       = .true.
     highfreq        = .true.
     update_ocn_f    = .true.

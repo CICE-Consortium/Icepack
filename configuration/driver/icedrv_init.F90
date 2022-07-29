@@ -93,11 +93,7 @@
          rsnw_fall, rsnw_tmax, rhosnew, rhosmin, rhosmax, &
          windmin, drhosdwind, snwlvlfac
 
-#ifdef UNDEPRECATE_KRDG0
       integer (kind=int_kind) :: ktherm, kstrength, krdg_partic, krdg_redist, &
-#else
-      integer (kind=int_kind) :: ktherm, kstrength, &
-#endif
          natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
@@ -147,12 +143,8 @@
         floediam,       hfrazilmin
 
       namelist /dynamics_nml/ &
-#ifdef UNDEPRECATE_KRDG0
         kstrength,      krdg_partic,    krdg_redist,    mu_rdg,         &
         Cf
-#else
-        kstrength,      mu_rdg,         Cf
-#endif
 
       namelist /shortwave_nml/ &
         shortwave,      albedo_type,                                    &
@@ -207,12 +199,8 @@
            atmiter_conv_out = atmiter_conv, calc_dragio_out=calc_dragio, &
            albedo_type_out=albedo_type, R_ice_out=R_ice, R_pnd_out=R_pnd, &
            R_snw_out=R_snw, dT_mlt_out=dT_mlt, rsnw_mlt_out=rsnw_mlt, &
-#ifdef UNDEPRECATE_KRDG0
            kstrength_out=kstrength, krdg_partic_out=krdg_partic, &
            krdg_redist_out=krdg_redist, mu_rdg_out=mu_rdg, &
-#else
-           kstrength_out=kstrength, mu_rdg_out=mu_rdg, &
-#endif
            atmbndy_out=atmbndy, calc_strair_out=calc_strair, &
            formdrag_out=formdrag, highfreq_out=highfreq, &
            emissivity_out=emissivity, &
@@ -666,13 +654,11 @@
                                kcatbound
          write(nu_diag,1020) ' ndtd                      = ', ndtd
          write(nu_diag,1020) ' kstrength                 = ', kstrength
-#ifdef UNDEPRECATE_KRDG0
          write(nu_diag,1020) ' krdg_partic               = ', &
                                krdg_partic
          write(nu_diag,1020) ' krdg_redist               = ', &
                                krdg_redist
          if (krdg_redist == 1) &
-#endif
          write(nu_diag,1000) ' mu_rdg                    = ', mu_rdg
          if (kstrength == 1) &
          write(nu_diag,1000) ' Cf                        = ', Cf
@@ -952,12 +938,8 @@
            atmiter_conv_in = atmiter_conv, calc_dragio_in=calc_dragio, &
            albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &
            R_snw_in=R_snw, dT_mlt_in=dT_mlt, rsnw_mlt_in=rsnw_mlt, &
-#ifdef UNDEPRECATE_KRDG0
            kstrength_in=kstrength, krdg_partic_in=krdg_partic, &
            krdg_redist_in=krdg_redist, mu_rdg_in=mu_rdg, &
-#else
-           kstrength_in=kstrength, mu_rdg_in=mu_rdg, &
-#endif
            atmbndy_in=atmbndy, calc_strair_in=calc_strair, &
            formdrag_in=formdrag, highfreq_in=highfreq, &
            emissivity_in=emissivity, &

@@ -38,11 +38,7 @@
       use icepack_parameters,  only: p05, p15, p25, p333, p5
       use icepack_parameters,  only: puny, Lfresh, rhoi, rhos
 
-#ifdef UNDEPRECATE_KRDG0
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
-#else
-      use icepack_parameters, only: kstrength, mu_rdg
-#endif
 #ifdef UNDEPRECATE_0LAYER
       use icepack_parameters, only: heat_capacity, conserv_check
 #else
@@ -75,24 +71,16 @@
          exp_argmax = 100.0_dbl_kind, &    ! maximum argument of exponential for underflow
          Cs = p25         , & ! fraction of shear energy contrbtng to ridging 
          fsnowrdg = p5    , & ! snow fraction that survives in ridging 
-#ifdef UNDEPRECATE_KRDG0
-         Gstar  = p15     , & ! max value of G(h) that participates
-                              ! (krdg_partic = 0)
-         astar  = p05     , & ! e-folding scale for G(h) participation
-!echmod         astar  = p1        , & ! e-folding scale for G(h) participation
-                              ! (krdg_partic = 1)
-         maxraft= c1      , & ! max value of hrmin - hi = max thickness
-                              ! of ice that rafts (m)
-         Hstar  = c25         ! determines mean thickness of ridged ice (m)
-                              ! (krdg_redist = 0)
-                              ! Flato & Hibler (1995) have Hstar = 100
-#else
-         astar  = p05     , & ! e-folding scale for G(h) participation
-!echmod         astar  = p1        , & ! e-folding scale for G(h) participation
-                              ! (krdg_partic = 1)
-         maxraft= c1          ! max value of hrmin - hi = max thickness
-                              ! of ice that rafts (m)
-#endif
+         Gstar  = p15     , & ! max value of G(h) that participates 
+                              ! (krdg_partic = 0) 
+         astar  = p05     , & ! e-folding scale for G(h) participation 
+!echmod         astar  = p1        , & ! e-folding scale for G(h) participation 
+                              ! (krdg_partic = 1) 
+         maxraft= c1      , & ! max value of hrmin - hi = max thickness 
+                              ! of ice that rafts (m) 
+         Hstar  = c25         ! determines mean thickness of ridged ice (m) 
+                              ! (krdg_redist = 0) 
+                              ! Flato & Hibler (1995) have Hstar = 100 
 
 !=======================================================================
 
@@ -116,9 +104,7 @@
                             trcr_depend, trcr_base,  &
                             n_trcr_strata,           &
                             nt_strata,               &
-#ifdef UNDEPRECATE_KRDG0
                             krdg_partic, krdg_redist,&
-#endif
                             mu_rdg,      tr_brine,   &
                             dardg1dt,    dardg2dt,   &
                             dvirdgdt,    opening,    &
@@ -173,11 +159,10 @@
       integer (kind=int_kind), dimension (:,:), intent(in) :: &
          nt_strata      ! indices of underlying tracer layers
 
-#ifdef UNDEPRECATE_KRDG0
       integer (kind=int_kind), intent(in) :: &
          krdg_partic, & ! selects participation function
          krdg_redist    ! selects redistribution function
-#endif
+
       logical (kind=log_kind), intent(in) :: &
          closing_flag, &! flag if closing is valid
          tr_brine       ! if .true., brine height differs from ice thickness
@@ -249,12 +234,8 @@
 
       real (kind=dbl_kind), dimension (ncat) :: &
          hrmin      , & ! minimum ridge thickness
-#ifdef UNDEPRECATE_KRDG0
          hrmax      , & ! maximum ridge thickness (krdg_redist = 0)
-         hrexp      , & ! ridge e-folding thickness (krdg_redist = 1)
-#else
-         hrexp      , & ! ridge e-folding thickness
-#endif
+         hrexp      , & ! ridge e-folding thickness (krdg_redist = 1) 
          krdg       , & ! mean ridge thickness/thickness of ridging ice
          ardg1n     , & ! area of ice ridged
          ardg2n     , & ! area of new ridges
@@ -381,7 +362,7 @@
                           vbrin, vbri_init)
          if (icepack_warnings_aborted(subname)) return
 
-      endif
+      endif            
 
       rdg_iteration: do niter = 1, nitermax
 
@@ -392,15 +373,10 @@
 
          call ridge_itd (ncat,        aice0,      &
                          aicen,       vicen,      &
-#ifdef UNDEPRECATE_KRDG0
                          krdg_partic, krdg_redist, &
                          mu_rdg,                   &
                          aksum,       apartic,    &
                          hrmin,       hrmax,      &
-#else
-                         mu_rdg,      aksum,      &
-                         apartic,     hrmin,      &
-#endif
                          hrexp,       krdg,       &
                          aparticn,    krdgn,      &
                          mraftn)    
@@ -416,14 +392,9 @@
                            vicen,       vsnon,       &
                            aice0,       trcr_depend, &
                            trcr_base,   n_trcr_strata,&
-#ifdef UNDEPRECATE_KRDG0
                            nt_strata,   krdg_redist, &
                            aksum,       apartic,     &
                            hrmin,       hrmax,       &
-#else
-                           nt_strata,   aksum,       &
-                           apartic,     hrmin,       &
-#endif
                            hrexp,       krdg,        &
                            closing_net, opning,      &
                            ardg1,       ardg2,       &
@@ -798,20 +769,12 @@
 ! Compute the thickness distribution of the ice and open water
 ! participating in ridging and of the resulting ridges.
 !
-#ifdef UNDEPRECATE_KRDG0
 ! This version includes new options for ridging participation and
 !  redistribution.
 ! The new participation scheme (krdg_partic = 1) improves stability
 !  by increasing the time scale for large changes in ice strength.
-! The new exponential redistribution function (krdg_redist = 1) improves
-!  agreement between ITDs of modeled and observed ridges.
-#else
-! This version uses a participation function that improves stability
-! by increasing the time scale for large changes in ice strength, and
-! an exponential redistribution function that improves the
-! agreement between ITDs of modeled and observed ridges, following
-! Lipscomb et al., JGR 2007.
-#endif
+! The new exponential redistribution function (krdg_redist = 1) improves 
+!  agreement between ITDs of modeled and observed ridges.   
 !
 ! author: William H. Lipscomb, LANL
 !
@@ -820,15 +783,10 @@
 
       subroutine ridge_itd (ncat,        aice0,           &
                             aicen,       vicen,           &
-#ifdef UNDEPRECATE_KRDG0
                             krdg_partic, krdg_redist,     &
                             mu_rdg,                       &
                             aksum,       apartic,         &
                             hrmin,       hrmax,           &
-#else
-                            mu_rdg,      aksum,           &
-                            apartic,     hrmin,           &
-#endif
                             hrexp,       krdg,            &
                             aparticn,    krdgn,           &
                             mraft)
@@ -844,11 +802,10 @@
          aicen   , & ! concentration of ice
          vicen       ! volume per unit area of ice (m)
 
-#ifdef UNDEPRECATE_KRDG0
       integer (kind=int_kind), intent(in) :: &
          krdg_partic  , & ! selects participation function
          krdg_redist      ! selects redistribution function
-#endif
+
       real (kind=dbl_kind), intent(out):: &
          aksum       ! ratio of area removed to area ridged
 
@@ -858,12 +815,8 @@
 
       real (kind=dbl_kind), dimension (:), intent(out) :: &
          hrmin   , & ! minimum ridge thickness
-#ifdef UNDEPRECATE_KRDG0
          hrmax   , & ! maximum ridge thickness (krdg_redist = 0)
          hrexp   , & ! ridge e-folding thickness (krdg_redist = 1) 
-#else
-         hrexp   , & ! ridge e-folding thickness
-#endif
          krdg        ! mean ridge thickness/thickness of ridging ice
 
       ! diagnostic, category values
@@ -880,9 +833,7 @@
          n           ! thickness category index
 
       real (kind=dbl_kind), parameter :: &
-#ifdef UNDEPRECATE_KRDG0
          Gstari   = c1/Gstar, &
-#endif
          astari   = c1/astar
 
       real (kind=dbl_kind), dimension(-1:ncat) :: &
@@ -915,9 +866,7 @@
       do n = 1, ncat
          apartic(n) = c0
          hrmin  (n) = c0
-#ifdef UNDEPRECATE_KRDG0
          hrmax  (n) = c0
-#endif
          hrexp  (n) = c0
          krdg   (n) = c1
 
@@ -957,7 +906,6 @@
       !
       !-----------------------------------------------------------------
 
-#ifdef UNDEPRECATE_KRDG0
       if (krdg_partic == 0) then  ! Thornike et al. 1975 formulation
 
       !-----------------------------------------------------------------
@@ -977,7 +925,7 @@
          enddo                  ! n
 
       elseif (krdg_partic==1) then   ! exponential dependence on G(h)
-#endif
+
       !-----------------------------------------------------------------
       ! b(h) = exp(-G(h)/astar)
       ! apartic(n) = [exp(-G(n-1)/astar - exp(-G(n)/astar] / [1-exp(-1/astar)]. 
@@ -993,24 +941,17 @@
             apartic(n) = Gsum(n-1) - Gsum(n)
          enddo                  ! n
 
-#ifdef UNDEPRECATE_KRDG0
       endif                     ! krdg_partic
-#endif
 
       !-----------------------------------------------------------------
       ! Compute variables related to ITD of ridged ice:
       ! 
       ! krdg   = mean ridge thickness / thickness of ridging ice
       ! hrmin  = min ridge thickness
-#ifdef UNDEPRECATE_KRDG0
       ! hrmax  = max ridge thickness (krdg_redist = 0)
       ! hrexp  = ridge e-folding scale (krdg_redist = 1)
-#else
-      ! hrexp  = ridge e-folding scale
-#endif
       !----------------------------------------------------------------
 
-#ifdef UNDEPRECATE_KRDG0
       if (krdg_redist == 0) then  ! Hibler 1980 formulation
 
       !-----------------------------------------------------------------
@@ -1038,8 +979,8 @@
             endif 
          enddo                  ! n
 
-      else               ! krdg_redist = 1; exponential redistribution #endif
-#endif
+      else               ! krdg_redist = 1; exponential redistribution
+ 
       !----------------------------------------------------------------- 
       ! The ridge ITD is a negative exponential: 
       ! 
@@ -1055,7 +996,6 @@
       ! Also, assume that hrexp = mu_rdg*sqrt(hi).
       ! The parameter mu_rdg is tuned to give e-folding scales mostly
       !  in the range 2-4 m as observed by upward-looking sonar.
-#ifdef UNDEPRECATE_KRDG0
       !
       ! Values of mu_rdg in the right column give ice strengths
       !  roughly equal to values of Hstar in the left column
@@ -1067,7 +1007,6 @@
       !     50        4.0
       !     75        5.0
       !    100        6.0
-#endif
       !----------------------------------------------------------------- 
 
          do n = 1, ncat
@@ -1088,9 +1027,7 @@
             endif
          enddo
 
-#ifdef UNDEPRECATE_KRDG0
       endif                     ! krdg_redist
-#endif
 
       !----------------------------------------------------------------
       ! Compute aksum = net ice area removed / total area participating.
@@ -1142,14 +1079,9 @@
                               vicen,       vsnon,           &
                               aice0,       trcr_depend,     &   
                               trcr_base,   n_trcr_strata,   &
-#ifdef UNDEPRECATE_KRDG0
                               nt_strata,   krdg_redist,     &
                               aksum,       apartic,         &
                               hrmin,       hrmax,           &
-#else
-                              nt_strata,   aksum,           &
-                              apartic,     hrmin,           &
-#endif
                               hrexp,       krdg,            &
                               closing_net, opning,          &
                               ardg1,       ardg2,           &
@@ -1166,12 +1098,8 @@
          ncat  , & ! number of thickness categories
          nslyr , & ! number of snow layers
          ntrcr , & ! number of tracers in use
-#ifdef UNDEPRECATE_KRDG0
          n_aero, & ! number of aerosol tracers
          krdg_redist      ! selects redistribution function
-#else
-         n_aero    ! number of aerosol tracers
-#endif
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! time step (s)
@@ -1210,12 +1138,8 @@
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          hrmin      , & ! minimum ridge thickness
-#ifdef UNDEPRECATE_KRDG0
          hrmax      , & ! maximum ridge thickness (krdg_redist = 0)
-         hrexp      , & ! ridge e-folding thickness (krdg_redist = 1)
-#else
-         hrexp      , & ! ridge e-folding thickness
-#endif
+         hrexp      , & ! ridge e-folding thickness (krdg_redist = 1) 
          krdg           ! mean ridge thickness/thickness of ridging ice
 
       real (kind=dbl_kind), intent(inout) :: &
@@ -1280,10 +1204,8 @@
          ardg2n     , & ! area of new ridges
          virdgn     , & ! ridging ice volume
          vsrdgn     , & ! ridging snow volume 
-#ifdef UNDEPRECATE_KRDG0
          dhr        , & ! hrmax - hrmin
          dhr2       , & ! hrmax^2 - hrmin^2
-#endif
          farea      , & ! fraction of new ridge area going to nr
          fvol           ! fraction of new ridge volume going to nr
 
@@ -1472,7 +1394,6 @@
                                       * trcrn(nt_hpnd,n)
             endif
 
-#ifdef UNDEPRECATE_KRDG0
       !-----------------------------------------------------------------
       ! Compute quantities used to apportion ice among categories
       ! in the nr loop below
@@ -1480,7 +1401,7 @@
 
             dhr  = hrmax(n) - hrmin(n)
             dhr2 = hrmax(n) * hrmax(n) - hrmin(n) * hrmin(n)
-#endif
+
       !-----------------------------------------------------------------
       ! Increment energy needed to melt snow in ocean.
       ! Note that esnow_mlt < 0; the ocean must cool to melt snow.
@@ -1522,7 +1443,6 @@
 
             do nr = 1, ncat
 
-#ifdef UNDEPRECATE_KRDG0
                if (krdg_redist == 0) then ! Hibler 1980 formulation
 
       !-----------------------------------------------------------------
@@ -1543,7 +1463,7 @@
                   fvol  = (hR*hR - hL*hL) / dhr2
 
                else         ! krdg_redist = 1; 2005 exponential formulation
-#endif
+
       !-----------------------------------------------------------------
       ! Compute the fraction of ridged ice area and volume going to
       !  thickness category nr.
@@ -1592,9 +1512,7 @@
                      endif
                   endif
 
-#ifdef UNDEPRECATE_KRDG0
                endif               ! krdg_redist
-#endif
 
       !-----------------------------------------------------------------
       ! Transfer ice area, ice volume, and snow volume to category nr.
@@ -1717,12 +1635,8 @@
 
       real (kind=dbl_kind), dimension (ncat) :: &
          hrmin  , & ! minimum ridge thickness
-#ifdef UNDEPRECATE_KRDG0
          hrmax  , & ! maximum ridge thickness (krdg_redist = 0)
-         hrexp  , & ! ridge e-folding thickness (krdg_redist = 1)
-#else
-         hrexp  , & ! ridge e-folding thickness
-#endif
+         hrexp  , & ! ridge e-folding thickness (krdg_redist = 1) 
          krdg       ! mean ridge thickness/thickness of ridging ice
 
       integer (kind=int_kind) :: &
@@ -1747,15 +1661,10 @@
 
          call ridge_itd (ncat,     aice0,      &
                          aicen,    vicen,      &
-#ifdef UNDEPRECATE_KRDG0
                          krdg_partic, krdg_redist, &
                          mu_rdg,                   &
                          aksum,    apartic,    &
                          hrmin,    hrmax,      &
-#else
-                         mu_rdg,   aksum,      &
-                         apartic,  hrmin,      &
-#endif
                          hrexp,    krdg)   
          if (icepack_warnings_aborted(subname)) return
 
@@ -1764,7 +1673,6 @@
       ! as in Rothrock (1975)
       !-----------------------------------------------------------------
 
-#ifdef UNDEPRECATE_KRDG0
          if (krdg_redist==0) then ! Hibler 1980 formulation
 
             do n = 1, ncat
@@ -1778,7 +1686,7 @@
             enddo               ! n
 
          elseif (krdg_redist==1) then ! exponential formulation
-#endif
+
             do n = 1, ncat
                if (aicen(n) > puny .and. apartic(n) > c0) then
                   hi = vicen(n) / aicen(n)
@@ -1790,9 +1698,7 @@
                endif
             enddo               ! n
 
-#ifdef UNDEPRECATE_KRDG0
          endif                  ! krdg_redist
-#endif
 
          strength = Cf * Cp * strength / aksum
                        ! Cp = (g/2)*(rhow-rhoi)*(rhoi/rhow)
@@ -1974,9 +1880,7 @@
                       trcr_base,                    &
                       n_trcr_strata,                &
                       nt_strata,                    &
-#ifdef UNDEPRECATE_KRDG0
                       krdg_partic,  krdg_redist,    &
-#endif
                       mu_rdg,       tr_brine,       &
                       dardg1dt,     dardg2dt,       &
                       dvirdgdt,     opening,        &

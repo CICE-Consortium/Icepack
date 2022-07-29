@@ -230,16 +230,12 @@ dynamics_nml
    "``Cf``", "real", "ratio of ridging work to PE change in ridging", "17.0"
    "``kstrength``", "``0``", "ice strength formulation :cite:`Hibler79`", "1"
    "", "``1``", "ice strength formulation :cite:`Rothrock75`", ""
-   "``mu_rdg``", "real", "e-folding scale of ridged ice in m^0.5", "3.0"
-   "", "", "", ""
-
-..
-   krdg_partic=0 and krdg_redist=0 are being deprecated.
-   Both flags are being removed using their values = 1 as the default.
    "``krdg_partic``", "``0``", "old ridging participation function", "1"
    "", "``1``", "new ridging participation function", ""
    "``krdg_redist``", "``0``", "old ridging redistribution function", "1"
    "", "``1``", "new ridging redistribution function", ""
+   "``mu_rdg``", "real", "e-folding scale of ridged ice for ``krdg_partic`` = 1 in m^0.5", "3.0"
+   "", "", "", ""
 
 shortwave_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~

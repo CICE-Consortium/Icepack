@@ -133,6 +133,8 @@
 
 &dynamics_nml
     kstrength       = 1
+    krdg_partic     = 1
+    krdg_redist     = 1
     mu_rdg          = 3
     Cf              = 17.
 /
