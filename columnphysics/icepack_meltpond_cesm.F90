@@ -14,6 +14,7 @@
 
       module icepack_meltpond_cesm
 
+#ifdef UNDEPRECATE_CESMPONDS
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p01, puny
       use icepack_parameters, only: rhofresh, rhoi, rhos, Timelt, pndaspect, use_smliq_pnd
@@ -148,6 +149,7 @@
 
       end subroutine compute_ponds_cesm
 
+#endif
 !=======================================================================
 
       end module icepack_meltpond_cesm

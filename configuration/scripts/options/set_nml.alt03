@@ -1,7 +1,6 @@
     kcatbound    = 2
     tr_pond_lvl  = .false.
     tr_pond_topo = .true.
-    tr_pond_cesm = .false.
     ktherm            = 1
     sw_redist         = .true.
     sw_frac           = 0.9d0

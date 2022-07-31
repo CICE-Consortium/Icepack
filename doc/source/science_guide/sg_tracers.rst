@@ -45,6 +45,8 @@ is discussed in :cite:`Armour11`.
 Tracers that depend on other tracers 
 ------------------------------------
 
+*Note that the cesm pond option is being deprecated.*
+
 Tracers may be defined that depend on other tracers. Melt pond tracers
 provide an example (these equations pertain to cesm and topo tracers;
 level-ice tracers are similar with an extra factor of :math:`a_{lvl}`,

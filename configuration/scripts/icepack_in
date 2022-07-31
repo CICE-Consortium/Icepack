@@ -26,7 +26,6 @@
     tr_iage      = .false.
     tr_FY        = .false.
     tr_lvl       = .true.
-    tr_pond_cesm = .false.
     tr_pond_topo = .false.
     tr_pond_lvl  = .true.
     tr_snow      = .false.

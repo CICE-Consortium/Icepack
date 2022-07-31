@@ -110,6 +110,8 @@ the :ref:`tracers` section.
 CESM formulation (``tr_pond_cesm`` = true)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+*Note that the CESM pond option is being deprecated.*
+
 Melt pond area and thickness tracers are carried on each ice thickness
 category as in the :ref:`tracers` section. Defined simply as the product
 of pond area, :math:`a_p`, and depth, :math:`h_p`, the melt pond volume,
@@ -133,7 +135,7 @@ and thickness are computed according to the assumed pond shape, and the
 pond area is then reduced in the presence of snow for the radiation
 calculation. Ponds are allowed only on ice at least 1 cm thick. This
 formulation differs slightly from that documented in
-:cite:`Holland12`.
+:cite:`Holland12`. 
 
 Topographic formulation (``tr_pond_topo`` = true)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -33,7 +33,11 @@
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
+#ifdef UNDEPRECATE_CESMPONDS
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+#else
+      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
+#endif
       use icepack_tracers, only: n_aero, n_iso
 
       use icepack_therm_shared, only: ferrmax, l_brine
@@ -59,7 +63,9 @@
       use icepack_age, only: increment_age
       use icepack_firstyear, only: update_FYarea
       use icepack_flux, only: set_sfcflux, merge_fluxes
+#ifdef UNDEPRECATE_CESMPONDS
       use icepack_meltpond_cesm, only: compute_ponds_cesm
+#endif
       use icepack_meltpond_lvl, only: compute_ponds_lvl
       use icepack_meltpond_topo, only: compute_ponds_topo
       use icepack_snow, only: drain_snow
@@ -2904,7 +2910,9 @@
 
       !-----------------------------------------------------------------
       ! Melt ponds
+#ifdef UNDEPRECATE_CESMPONDS
       ! If using tr_pond_cesm, the full calculation is performed here.
+#endif
       ! If using tr_pond_topo, the rest of the calculation is done after
       ! the surface fluxes are merged, below.
       !-----------------------------------------------------------------
@@ -2912,6 +2920,7 @@
          !call ice_timer_start(timer_ponds)
          if (tr_pond) then
                
+#ifdef UNDEPRECATE_CESMPONDS
             if (tr_pond_cesm) then
                rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n) 
                call compute_ponds_cesm(dt=dt,           &
@@ -2929,6 +2938,9 @@
                if (icepack_warnings_aborted(subname)) return
                   
             elseif (tr_pond_lvl) then
+#else
+            if (tr_pond_lvl) then
+#endif
                rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
                call compute_ponds_lvl (dt=dt,            &
                                        nilyr=nilyr,      &

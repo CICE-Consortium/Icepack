@@ -20,7 +20,9 @@
           write_restart_age,       read_restart_age, &
           write_restart_FY,        read_restart_FY, &  
           write_restart_lvl,       read_restart_lvl, & 
+#ifdef UNDEPRECATE_CESMPONDS
           write_restart_pond_cesm, read_restart_pond_cesm, & 
+#endif
           write_restart_pond_lvl,  read_restart_pond_lvl, &
           write_restart_pond_topo, read_restart_pond_topo, &
           write_restart_snow,      read_restart_snow, &
@@ -65,7 +67,11 @@
 
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
+#ifdef UNDEPRECATE_CESMPONDS
          tr_pond_topo, tr_pond_cesm, tr_pond_lvl, tr_snow, tr_fsd
+#else
+         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
+#endif
 !         solve_zsal, skl_bgc, z_tracers
 
       character(len=char_len_long) :: filename
@@ -84,7 +90,11 @@
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
            tr_brine_out=tr_brine, &
+#ifdef UNDEPRECATE_CESMPONDS
            tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
+#else
+           tr_pond_topo_out=tr_pond_topo, &
+#endif
            tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
 !      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
 !         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
@@ -137,7 +147,9 @@
       if (tr_iage)      call write_restart_age()       ! ice age tracer
       if (tr_FY)        call write_restart_FY()        ! first-year area tracer
       if (tr_lvl)       call write_restart_lvl()       ! level ice tracer
+#ifdef UNDEPRECATE_CESMPONDS
       if (tr_pond_cesm) call write_restart_pond_cesm() ! CESM melt ponds
+#endif
       if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
       if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
       if (tr_snow)      call write_restart_snow()      ! snow metamorphosis tracers
@@ -182,7 +194,11 @@
 
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
+#ifdef UNDEPRECATE_CESMPONDS
          tr_pond_topo, tr_pond_cesm, tr_pond_lvl, tr_snow, tr_fsd
+#else
+         tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
+#endif
 
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(restartfile)'
@@ -204,7 +220,11 @@
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
            tr_brine_out=tr_brine, &
+#ifdef UNDEPRECATE_CESMPONDS
            tr_pond_topo_out=tr_pond_topo, tr_pond_cesm_out=tr_pond_cesm, &
+#else
+           tr_pond_topo_out=tr_pond_topo, &
+#endif
            tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -265,7 +285,9 @@
       if (tr_iage)      call read_restart_age()       ! ice age tracer
       if (tr_FY)        call read_restart_FY()        ! first-year area tracer
       if (tr_lvl)       call read_restart_lvl()       ! level ice tracer
+#ifdef UNDEPRECATE_CESMPONDS
       if (tr_pond_cesm) call read_restart_pond_cesm() ! CESM melt ponds
+#endif
       if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
       if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
       if (tr_snow)      call read_restart_snow()      ! snow metamorphosis tracers
@@ -716,6 +738,7 @@
 
       end subroutine read_restart_lvl
 
+#ifdef UNDEPRECATE_CESMPONDS
 !=======================================================================!
 
 ! Dumps all values needed for restarting
@@ -765,7 +788,7 @@
       call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat)
 
       end subroutine read_restart_pond_cesm
-
+#endif
 !=======================================================================
 !
 ! Dumps all values needed for restarting
