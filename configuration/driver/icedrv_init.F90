@@ -111,13 +111,21 @@
       integer (kind=int_kind) :: ntrcr
       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_pond, tr_snow
       logical (kind=log_kind) :: tr_iso, tr_aero, tr_fsd
+#ifdef UNDEPRECATE_CESMPONDS
       logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, wave_spec
+#else
+      logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, wave_spec
+#endif
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_FY
       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, &
                                  nt_smice, nt_smliq, nt_rhos, nt_rsnw, &
                                  nt_aero, nt_fsd, nt_isosno, nt_isoice
-
+ 
+#ifdef UNDEPRECATE_CESMPONDS
       real (kind=real_kind) :: rpcesm, rplvl, rptopo 
+#else
+      real (kind=real_kind) :: rplvl, rptopo 
+#endif
       real (kind=dbl_kind) :: Cf, puny
 
       character(len=*), parameter :: subname='(input_data)'
@@ -180,7 +188,9 @@
         tr_iage,      &
         tr_FY,        &
         tr_lvl,       &
+#ifdef UNDEPRECATE_CESMPONDS
         tr_pond_cesm, &
+#endif
         tr_pond_lvl,  &
         tr_pond_topo, &
         tr_snow,      &
@@ -281,7 +291,9 @@
       tr_iage      = .false. ! ice age
       tr_FY        = .false. ! ice age
       tr_lvl       = .false. ! level ice 
+#ifdef UNDEPRECATE_CESMPONDS
       tr_pond_cesm = .false. ! CESM melt ponds
+#endif
       tr_pond_lvl  = .false. ! level-ice melt ponds
       tr_pond_topo = .false. ! topographic melt ponds
       tr_snow      = .false. ! snow tracers (wind redistribution, metamorphosis)
@@ -463,17 +475,29 @@
          kcatbound = 0
       endif
 
+#ifdef UNDEPRECATE_CESMPONDS
       rpcesm = c0
+#endif
       rplvl  = c0
       rptopo = c0
+#ifdef UNDEPRECATE_CESMPONDS
       if (tr_pond_cesm) rpcesm = c1
+#endif
       if (tr_pond_lvl ) rplvl  = c1
       if (tr_pond_topo) rptopo = c1
 
       tr_pond = .false. ! explicit melt ponds
+#ifdef UNDEPRECATE_CESMPONDS
       if (rpcesm + rplvl + rptopo > puny) tr_pond = .true.
+#else
+      if (rplvl + rptopo > puny) tr_pond = .true.
+#endif
 
+#ifdef UNDEPRECATE_CESMPONDS
       if (rpcesm + rplvl + rptopo > c1 + puny) then
+#else
+      if (rplvl + rptopo > c1 + puny) then
+#endif
          write (nu_diag,*) 'WARNING: Must use only one melt pond scheme'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
@@ -490,11 +514,13 @@
          hs0 = c0
       endif
 
+#ifdef UNDEPRECATE_CESMPONDS
       if (tr_pond_cesm .and. trim(frzpnd) /= 'cesm') then
          write (nu_diag,*) 'WARNING: tr_pond_cesm=T'
          write (nu_diag,*) 'WARNING: frzpnd, dpscale not used'
          frzpnd = 'cesm'
       endif
+#endif
 
       if (trim(shortwave) /= 'dEdd' .and. tr_pond .and. calc_tsfc) then
          write (nu_diag,*) 'WARNING: Must use dEdd shortwave'
@@ -596,10 +622,12 @@
          calc_strair = .true.
       endif
 
+#ifdef UNDEPRECATE_CESMPONDS
       if (tr_pond_cesm) then
          write (nu_diag,*) 'ERROR: formdrag=T but frzpnd=cesm' 
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
+#endif
 
       if (.not. tr_lvl) then
          write (nu_diag,*) 'WARNING: formdrag=T but tr_lvl=F'
@@ -775,7 +803,9 @@
          write(nu_diag,1010) ' tr_iage                   = ', tr_iage
          write(nu_diag,1010) ' tr_FY                     = ', tr_FY
          write(nu_diag,1010) ' tr_lvl                    = ', tr_lvl
+#ifdef UNDEPRECATE_CESMPONDS
          write(nu_diag,1010) ' tr_pond_cesm              = ', tr_pond_cesm
+#endif
          write(nu_diag,1010) ' tr_pond_lvl               = ', tr_pond_lvl
          write(nu_diag,1010) ' tr_pond_topo              = ', tr_pond_topo
          write(nu_diag,1010) ' tr_snow                   = ', tr_snow
@@ -964,7 +994,11 @@
       call icepack_init_tracer_flags(tr_iage_in=tr_iage, &
            tr_FY_in=tr_FY, tr_lvl_in=tr_lvl, tr_aero_in=tr_aero, &
            tr_iso_in=tr_iso, tr_snow_in=tr_snow, &
+#ifdef UNDEPRECATE_CESMPONDS
            tr_pond_in=tr_pond, tr_pond_cesm_in=tr_pond_cesm, &
+#else
+           tr_pond_in=tr_pond, &
+#endif
            tr_pond_lvl_in=tr_pond_lvl, &
            tr_pond_topo_in=tr_pond_topo, tr_fsd_in=tr_fsd)
       call icepack_init_tracer_indices(nt_Tsfc_in=nt_Tsfc, &
@@ -1059,7 +1093,11 @@
 
       integer (kind=int_kind) :: ntrcr
       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_fsd, tr_iso
+#ifdef UNDEPRECATE_CESMPONDS
       logical (kind=log_kind) :: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow
+#else
+      logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, tr_snow
+#endif
       integer (kind=int_kind) :: nt_Tsfc, nt_sice, nt_qice, nt_qsno, nt_iage, nt_fy
       integer (kind=int_kind) :: nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, &
                                  nt_smice, nt_smliq, nt_rhos, nt_rsnw, &
@@ -1076,7 +1114,11 @@
          call icepack_query_tracer_flags(tr_iage_out=tr_iage, &
               tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
               tr_iso_out=tr_iso, tr_snow_out=tr_snow, &
+#ifdef UNDEPRECATE_CESMPONDS
               tr_pond_cesm_out=tr_pond_cesm, tr_pond_lvl_out=tr_pond_lvl, &
+#else
+              tr_pond_lvl_out=tr_pond_lvl, &
+#endif
               tr_pond_topo_out=tr_pond_topo, tr_fsd_out=tr_fsd)
          call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, &
               nt_sice_out=nt_sice, nt_qice_out=nt_qice, &
@@ -1143,10 +1185,12 @@
       if (tr_FY)   trcr_depend(nt_FY)    = 0   ! area-weighted first-year ice area
       if (tr_lvl)  trcr_depend(nt_alvl)  = 0   ! level ice area
       if (tr_lvl)  trcr_depend(nt_vlvl)  = 1   ! level ice volume
+#ifdef UNDEPRECATE_CESMPONDS
       if (tr_pond_cesm) then
                    trcr_depend(nt_apnd)  = 0           ! melt pond area
                    trcr_depend(nt_hpnd)  = 2+nt_apnd   ! melt pond depth
       endif
+#endif
       if (tr_pond_lvl) then
                    trcr_depend(nt_apnd)  = 2+nt_alvl   ! melt pond area
                    trcr_depend(nt_hpnd)  = 2+nt_apnd   ! melt pond depth
@@ -1206,10 +1250,12 @@
          nt_strata   (it,2) = 0
       enddo
 
+#ifdef UNDEPRECATE_CESMPONDS
       if (tr_pond_cesm) then
          n_trcr_strata(nt_hpnd)   = 1       ! melt pond depth
          nt_strata    (nt_hpnd,1) = nt_apnd ! on melt pond area
       endif
+#endif
       if (tr_pond_lvl) then
          n_trcr_strata(nt_apnd)   = 1       ! melt pond area
          nt_strata    (nt_apnd,1) = nt_alvl ! on level ice area

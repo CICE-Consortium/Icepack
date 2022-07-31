@@ -474,7 +474,7 @@ either Celsius or Kelvin units).
    "tr_FY", ":math:`\bullet` if true, use first-year area tracer", ""
    "tr_iage", ":math:`\bullet` if true, use ice age tracer", ""
    "tr_lvl", ":math:`\bullet` if true, use level ice area and volume tracers", ""
-   "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""
+   "tr_pond_cesm", "DEPRECATED", ""
    "tr_pond_lvl", ":math:`\bullet` if true, use level-ice melt pond scheme", ""
    "tr_pond_topo", ":math:`\bullet` if true, use topo melt pond scheme", ""
    "trcr", "ice tracers", ""
@@ -524,3 +524,7 @@ either Celsius or Kelvin units).
    "zref", "reference height for stability", "10. m"
    "zTrf", "reference height for :math:`T_{ref}`, :math:`Q_{ref}`, :math:`U_{ref}`", "2. m"
    "zvir", "gas constant (water vapor)/gas constant (air) - 1", "0.606"
+
+.. 
+   comment tr_pond_cesm is being deprecated
+   "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""

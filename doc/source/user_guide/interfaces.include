@@ -2265,7 +2265,7 @@ icepack_init_tracer_flags
   
         subroutine icepack_init_tracer_flags(&
              tr_iage_in, tr_FY_in, tr_lvl_in, &
-             tr_pond_in, tr_pond_cesm_in, tr_pond_lvl_in, tr_pond_topo_in, &
+             tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, &
              tr_fsd_in, tr_aero_in, tr_iso_in, tr_brine_in, tr_zaero_in, &
              tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
              tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
@@ -2276,7 +2276,6 @@ icepack_init_tracer_flags
                tr_FY_in        , & ! if .true., use first-year area tracer
                tr_lvl_in       , & ! if .true., use level ice tracer
                tr_pond_in      , & ! if .true., use melt pond tracer
-               tr_pond_cesm_in , & ! if .true., use cesm pond tracer
                tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
                tr_fsd_in       , & ! if .true., use floe size distribution tracers
@@ -2308,7 +2307,7 @@ icepack_query_tracer_flags
   
         subroutine icepack_query_tracer_flags(&
              tr_iage_out, tr_FY_out, tr_lvl_out, &
-             tr_pond_out, tr_pond_cesm_out, tr_pond_lvl_out, tr_pond_topo_out, &
+             tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, &
              tr_fsd_out, tr_aero_out, tr_iso_out, tr_brine_out, tr_zaero_out, &
              tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
              tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
@@ -2319,7 +2318,6 @@ icepack_query_tracer_flags
                tr_FY_out        , & ! if .true., use first-year area tracer
                tr_lvl_out       , & ! if .true., use level ice tracer
                tr_pond_out      , & ! if .true., use melt pond tracer
-               tr_pond_cesm_out , & ! if .true., use cesm pond tracer
                tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
                tr_fsd_out       , & ! if .true., use floe size distribution

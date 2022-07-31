@@ -50,7 +50,11 @@
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
+#ifdef UNDEPRECATE_CESMPONDS
       use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+#else
+      use icepack_tracers,    only: tr_pond_lvl, tr_pond_topo
+#endif
       use icepack_tracers,    only: tr_bgc_N, tr_aero
       use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
@@ -1011,6 +1015,7 @@
             if (icepack_warnings_aborted(subname)) return
 
             ! set pond properties
+#ifdef UNDEPRECATE_CESMPONDS
             if (tr_pond_cesm) then
                ! fraction of ice area
                fpn = apndn(n)
@@ -1027,6 +1032,9 @@
                fsn = min(fsn, c1-fpn)
                apeffn(n) = fpn ! for history
             elseif (tr_pond_lvl) then
+#else
+            if (tr_pond_lvl) then
+#endif
                hsnlvl = hsn ! initialize
                if (trim(snwredist) == 'bulk') then
                   hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
