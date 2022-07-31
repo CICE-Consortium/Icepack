@@ -12,7 +12,11 @@
       use icepack_parameters, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
       use icepack_parameters, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
       use icepack_parameters, only: saltmax, min_salin, depressT
+#ifdef UNDEPRECATE_0LAYER
       use icepack_parameters, only: ktherm, heat_capacity, tfrz_option
+#else
+      use icepack_parameters, only: ktherm, tfrz_option
+#endif
       use icepack_parameters, only: calc_Tsfc
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -245,12 +249,16 @@
       ! Set l_brine to false for zero layer thermodynamics
       !-----------------------------------------------------------------
 
+#ifdef UNDEPRECATE_0LAYER
       heat_capacity = .true.      
       if (ktherm == 0) heat_capacity = .false. ! 0-layer thermodynamics
 
       l_brine = .false.
       if (saltmax > min_salin .and. heat_capacity) l_brine = .true.
-
+#else
+      l_brine = .false.
+      if (saltmax > min_salin) l_brine = .true.
+#endif
       !-----------------------------------------------------------------
       ! Prescibe vertical profile of salinity and melting temperature.
       ! Note this profile is only used for BL99 thermodynamics.
@@ -316,7 +324,9 @@
       Tsfc = Tf ! default
       if (calc_Tsfc) Tsfc = min(Tsmelt, Tair - Tffresh) ! deg C
       
+#ifdef UNDEPRECATE_0LAYER
       if (heat_capacity) then
+#endif
         
         ! ice enthalpy
         do k = 1, nilyr
@@ -338,6 +348,7 @@
           qsn(k) = -rhos*(Lfresh - cp_ice*Ti)
         enddo               ! nslyr
         
+#ifdef UNDEPRECATE_0LAYER
       else  ! one layer with zero heat capacity
         
         ! ice energy
@@ -347,7 +358,7 @@
         qsn(1) = -rhos * Lfresh 
         
       endif               ! heat_capacity
-      
+#endif      
     end subroutine icepack_init_trcr
 
 !=======================================================================

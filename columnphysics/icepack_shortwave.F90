@@ -46,7 +46,11 @@
       use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
       use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint, rsnw_fall, snwredist, rsnw_tmax
       use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l, snwlvlfac, snwgrain
+#ifdef UNDEPRECATE_0LAYER
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
+#else
+      use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg
+#endif
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
@@ -95,7 +99,9 @@
                                   vsnon,    Tsfcn,    &
                                   swvdr,    swvdf,    &
                                   swidr,    swidf,    &
+#ifdef UNDEPRECATE_0LAYER
                                   heat_capacity,      &
+#endif
                                   albedo_type,        &
                                   albicev,  albicei,  &
                                   albsnowv, albsnowi, &
@@ -138,9 +144,10 @@
          albsnowi, & ! cold snow albedo, near IR
          ahmax       ! thickness above which ice albedo is constant (m)
 
+#ifdef UNDEPRECATE_0LAYER
       logical(kind=log_kind), intent(in) :: &
          heat_capacity! if true, ice has nonzero heat capacity
-
+#endif
       character (len=char_len), intent(in) :: &
          albedo_type  ! albedo parameterization, 'ccsm3' or 'constant'
 
@@ -290,8 +297,12 @@
       ! Compute solar radiation absorbed in ice and penetrating to ocean.
       !-----------------------------------------------------------------
 
+#ifdef UNDEPRECATE_0LAYER
          call absorbed_solar  (heat_capacity,        &
                                nilyr,                &
+#else
+         call absorbed_solar  (nilyr,                &
+#endif
                                aicen(n),             &
                                vicen(n),             &
                                vsnon(n),             &
@@ -569,8 +580,12 @@
 ! authors William H. Lipscomb, LANL
 !         C. M. Bitz, UW
 
+#ifdef UNDEPRECATE_0LAYER
       subroutine absorbed_solar (heat_capacity,      &
                                  nilyr,    aicen,    &
+#else
+      subroutine absorbed_solar (nilyr,    aicen,    &
+#endif
                                  vicen,    vsnon,    &
                                  swvdr,    swvdf,    &
                                  swidr,    swidf,    &
@@ -587,9 +602,10 @@
                                  fswpenl,            &
                                  Iswabs)
 
+#ifdef UNDEPRECATE_0LAYER
       logical(kind=log_kind), intent(in) :: &
          heat_capacity   ! if true, ice has nonzero heat capacity
-
+#endif
       integer (kind=int_kind), intent(in) :: & 
          nilyr           ! number of ice layers
 
@@ -736,6 +752,7 @@
          ! SW absorbed in ice interior
          fswint  = fswpen - fswthru
 
+#ifdef UNDEPRECATE_0LAYER
       !----------------------------------------------------------------
       ! if zero-layer model (no heat capacity), no SW is absorbed in ice
       ! interior, so add to surface absorption
@@ -751,7 +768,7 @@
             Iswabs(1) = c0
 
          endif                       ! heat_capacity
-
+#endif
       end subroutine absorbed_solar
 
 ! End ccsm3 shortwave method
@@ -774,7 +791,9 @@
                           hpndn,    ipndn,     &
                           aeron,    kalg,      &
                           trcrn_bgcsw,         &
+#ifdef UNDEPRECATE_0LAYER
                           heat_capacity,       &
+#endif
                           tlat,     tlon,      & 
                           calendar_type,       &
                           days_per_year,       &
@@ -818,7 +837,9 @@
          nslyr      ! number of snow layers
 
       logical(kind=log_kind), intent(in) :: &
+#ifdef UNDEPRECATE_0LAYER
          heat_capacity,& ! if true, ice has nonzero heat capacity
+#endif
          dEdd_algae,   & ! .true. use prognostic chla in dEdd
          modal_aero      ! .true. use modal aerosol treatment
 
@@ -1153,7 +1174,11 @@
 
          call shortwave_dEdd(dEdd_algae,                    &
                              nslyr,         nilyr,          &
+#ifdef UNDEPRECATE_0LAYER
                              coszen,        heat_capacity,  &
+#else
+                             coszen,                        &
+#endif
                              aicen(n),      vicen(n),       &
                              hsn,           fsn,            &
                              rhosnwn,       rsnwn,          &
@@ -1240,7 +1265,11 @@
 !
       subroutine shortwave_dEdd  (dEdd_algae,            &
                                   nslyr,    nilyr,       &
+#ifdef UNDEPRECATE_0LAYER
                                   coszen,   heat_capacity,&
+#else
+                                  coszen,                &
+#endif
                                   aice,     vice,        &
                                   hs,       fs,          & 
                                   rhosnw,   rsnw,        &
@@ -1275,7 +1304,9 @@
          nslyr       ! number of snow layers
 
       logical (kind=log_kind), intent(in) :: &
+#ifdef UNDEPRECATE_0LAYER
          heat_capacity, & ! if true, ice has nonzero heat capacity
+#endif
          dEdd_algae,    & ! .true. use prognostic chla in dEdd
          modal_aero       ! .true. use modal aerosol treatment
  
@@ -1460,7 +1491,11 @@
                srftyp = 0
                call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   & 
                       zbio,      dEdd_algae,                            &
+#ifdef UNDEPRECATE_0LAYER
                       heat_capacity,          fnidr,   coszen,          &
+#else
+                      fnidr,     coszen,                                &
+#endif
                       R_ice,     R_pnd,                                 &
                       kaer_tab,    waer_tab,    gaer_tab,               &
                       kaer_bc_tab, waer_bc_tab, gaer_bc_tab,            &
@@ -1501,7 +1536,11 @@
                srftyp = 1
                call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   & 
                       zbio,      dEdd_algae,                            &
+#ifdef UNDEPRECATE_0LAYER
                       heat_capacity,          fnidr,   coszen,          &
+#else
+                      fnidr,     coszen,                                &
+#endif
                       R_ice,     R_pnd,                                 &
                       kaer_tab,    waer_tab,    gaer_tab,               &
                       kaer_bc_tab, waer_bc_tab, gaer_bc_tab,            &
@@ -1547,7 +1586,11 @@
                srftyp = 2
                call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   & 
                       zbio,      dEdd_algae,                            &
+#ifdef UNDEPRECATE_0LAYER
                       heat_capacity,          fnidr,   coszen,          &
+#else
+                      fnidr,     coszen,                                &
+#endif
                       R_ice,     R_pnd,                                 &
                       kaer_tab,    waer_tab,    gaer_tab,               &
                       kaer_bc_tab, waer_bc_tab, gaer_bc_tab,            &
@@ -1666,7 +1709,11 @@
 
       subroutine compute_dEdd (nilyr,    nslyr,    klev,  klevp,  &
                     zbio,     dEdd_algae,                         &
+#ifdef UNDEPRECATE_0LAYER
                     heat_capacity,       fnidr,    coszen,        &
+#else
+                    fnidr,     coszen,                            &
+#endif
                     R_ice,     R_pnd,                             &
                     kaer_tab,    waer_tab,         gaer_tab,      &
                     kaer_bc_tab, waer_bc_tab,      gaer_bc_tab,   &
@@ -1692,7 +1739,9 @@
                    ! (0 layer is included also)
  
       logical (kind=log_kind), intent(in) :: &
+#ifdef UNDEPRECATE_0LAYER
          heat_capacity,& ! if true, ice has nonzero heat capacity
+#endif
          dEdd_algae,   & ! .true. use prognostic chla in dEdd
          modal_aero      ! .true. use modal aerosol treatment
  
@@ -3122,6 +3171,7 @@
          endif
       enddo                     ! k
       
+#ifdef UNDEPRECATE_0LAYER
       !----------------------------------------------------------------
       ! if ice has zero heat capacity, no SW can be absorbed 
       ! in the ice/snow interior, so add to surface absorption.
@@ -3139,7 +3189,7 @@
          Sswabs(1) = c0
 
       endif                       ! heat_capacity
-
+#endif
       end subroutine compute_dEdd
 
 !=======================================================================
@@ -4267,7 +4317,9 @@
                           hpndn,        ipndn,          &
                           aeron,        kalg,           &
                           trcrn_bgcsw,                  &
+#ifdef UNDEPRECATE_0LAYER
                           heat_capacity,                &
+#endif
                           TLAT,         TLON,           &
                           calendar_type,days_per_year,  &
                           nextsw_cday,  yday,           &
@@ -4316,7 +4368,9 @@
                                  Tsfcn,                  &
                                  swvdr,      swvdf,      &
                                  swidr,      swidf,      &
+#ifdef UNDEPRECATE_0LAYER
                                  heat_capacity,          &
+#endif
                                  albedo_type,            &
                                  albicev,    albicei,    &
                                  albsnowv,   albsnowi,   &

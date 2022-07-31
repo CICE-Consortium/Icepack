@@ -1,6 +1,6 @@
 kcatbound = 1
 kitd    = 1
-ktherm  = 0
+ktherm  = 1
 conduct = 'bubbly'
 shortwave = 'ccsm3'
 albedo_type = 'constant'

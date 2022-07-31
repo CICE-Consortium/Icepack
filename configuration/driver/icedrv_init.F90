@@ -609,6 +609,12 @@
          'WARNING: For consistency, set tfrz_option = mushy'
       endif
 
+      if (ktherm == 0) then
+         write (nu_diag,*) 'WARNING: ktherm = 0 zero-layer thermodynamics'
+         write (nu_diag,*) 'WARNING: has been deprecated'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
       if (formdrag) then
       if (trim(atmbndy) == 'constant') then
          write (nu_diag,*) 'WARNING: atmbndy = constant not allowed with formdrag'
@@ -1088,8 +1094,10 @@
          k           , & ! vertical index
          it              ! tracer index
 
+#ifdef UNDEPRECATE_0LAYER
       logical (kind=log_kind) :: &
          heat_capacity   ! from icepack
+#endif
 
       integer (kind=int_kind) :: ntrcr
       logical (kind=log_kind) :: tr_iage, tr_FY, tr_lvl, tr_aero, tr_fsd, tr_iso
@@ -1109,7 +1117,9 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
+#ifdef UNDEPRECATE_0LAYER
          call icepack_query_parameters(heat_capacity_out=heat_capacity)
+#endif
          call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
          call icepack_query_tracer_flags(tr_iage_out=tr_iage, &
               tr_FY_out=tr_FY, tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, &
@@ -1149,6 +1159,7 @@
             call icedrv_system_abort(file=__FILE__,line=__LINE__)
          endif
 
+#ifdef UNDEPRECATE_0LAYER
          if (.not.heat_capacity) then
 
             write (nu_diag,*) 'WARNING - Zero-layer thermodynamics'
@@ -1168,7 +1179,7 @@
             endif
 
          endif   ! heat_capacity = F
-
+#endif
       !-----------------------------------------------------------------
       ! Set tracer types
       !-----------------------------------------------------------------

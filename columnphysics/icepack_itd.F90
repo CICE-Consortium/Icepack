@@ -764,7 +764,9 @@
                               nbtrcr,      nblyr,      &
                               tr_aero,                 &
                               tr_pond_topo,            &
+#ifdef UNDEPRECATE_0LAYER
                               heat_capacity,           & 
+#endif
                               first_ice,               &
                               trcr_depend, trcr_base,  &
                               n_trcr_strata,nt_strata, &
@@ -814,8 +816,12 @@
 
       logical (kind=log_kind), intent(in) :: &
          tr_aero,      & ! aerosol flag
+#ifdef UNDEPRECATE_0LAYER
          tr_pond_topo, & ! topo pond flag
          heat_capacity   ! if false, ice and snow have zero heat capacity
+#else
+         tr_pond_topo    ! topo pond flag
+#endif
 
       logical (kind=log_kind), dimension(ncat), intent(inout) :: &
          first_ice   ! For bgc and S tracers. set to true if zapping ice.
@@ -972,7 +978,11 @@
     !-------------------------------------------------------------------
 
       call zap_snow_temperature(dt,            ncat,     &
+#ifdef UNDEPRECATE_0LAYER
                                 heat_capacity, nblyr,    &
+#else
+                                nblyr,                   &
+#endif
                                 nslyr,         aicen,    &
                                 trcrn,         vsnon,    &
                                 dfresh,        dfhocn,   &
@@ -1012,6 +1022,7 @@
       if (present(fzsal)) &
            fzsal        = fzsal         + dfzsal     
 
+#ifdef UNDEPRECATE_0LAYER
       !----------------------------------------------------------------
       ! If using zero-layer model (no heat capacity), check that the 
       ! energy of snow and ice is correct. 
@@ -1024,6 +1035,7 @@
                                trcrn)
          if (icepack_warnings_aborted(subname)) return
       endif
+#endif
 
       end subroutine cleanup_itd
 
@@ -1456,7 +1468,9 @@
 !=======================================================================
    
       subroutine zap_snow_temperature(dt,         ncat,     &
+#ifdef UNDEPRECATE_0LAYER
                                       heat_capacity,        &
+#endif
                                       nblyr,                &
                                       nslyr,      aicen,    &
                                       trcrn,      vsnon,    &
@@ -1476,9 +1490,10 @@
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
 
+#ifdef UNDEPRECATE_0LAYER
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if false, ice and snow have zero heat capacity
-
+#endif
       real (kind=dbl_kind), dimension (:), intent(in) :: & 
          aicen        ! concentration of ice 
 
@@ -1540,7 +1555,11 @@
          do k = 1, nslyr
 
             ! snow enthalpy and max temperature
+#ifdef UNDEPRECATE_0LAYER
             if (hsn > hs_min .and. heat_capacity) then
+#else
+            if (hsn > hs_min) then
+#endif
                ! zqsn < 0              
                zqsn = trcrn(nt_qsno+k-1,n)
                Tmax = -zqsn*puny*rnslyr / (rhos*cp_ice*vsnon(n))
@@ -1591,6 +1610,7 @@
 
       end subroutine zap_snow_temperature
 
+#ifdef UNDEPRECATE_0LAYER
 !=======================================================================
 ! Checks that the snow and ice energy in the zero layer thermodynamics
 ! model still agrees with the snow and ice volume.
@@ -1728,7 +1748,7 @@
       enddo  ! ncat
 
       end subroutine zerolayer_check
-
+#endif
 !=======================================================================
 !autodocument_start icepack_init_itd
 ! Initialize area fraction and thickness boundaries for the itd model

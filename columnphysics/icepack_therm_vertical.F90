@@ -23,7 +23,11 @@
       use icepack_parameters, only: c0, c1, p001, p5, puny
       use icepack_parameters, only: pi, depressT, Lvap, hs_min, cp_ice, min_salin
       use icepack_parameters, only: cp_ocn, rhow, rhoi, rhos, Lfresh, rhofresh, ice_ref_salinity
+#ifdef UNDEPRECATE_0LAYER
       use icepack_parameters, only: ktherm, heat_capacity, calc_Tsfc, rsnw_fall, rsnw_tmax
+#else
+      use icepack_parameters, only: ktherm, calc_Tsfc, rsnw_fall, rsnw_tmax
+#endif
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
@@ -41,7 +45,9 @@
       use icepack_therm_shared, only: hi_min
       use icepack_therm_shared, only: adjust_enthalpy
       use icepack_therm_bl99,   only: temperature_changes
+#ifdef UNDEPRECATE_0LAYER
       use icepack_therm_0layer, only: zerolayer_temperature
+#endif
       use icepack_therm_mushy,  only: temperature_changes_salinity
 
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -305,8 +311,9 @@
       !  temperatures.
       !-----------------------------------------------------------------
 
+#ifdef UNDEPRECATE_0LAYER
       if (heat_capacity) then   ! usual case
-
+#endif
          if (ktherm == 2) then
 
             call temperature_changes_salinity(dt,                   & 
@@ -358,6 +365,7 @@
 
          endif ! ktherm
             
+#ifdef UNDEPRECATE_0LAYER
       else
 
          if (calc_Tsfc) then       
@@ -386,7 +394,7 @@
          endif      ! calc_Tsfc
 
       endif         ! heat_capacity
-
+#endif
       ! intermediate energy for error check
       
       einter = c0
@@ -770,8 +778,10 @@
 
       !-----------------------------------------------------------------
       ! Snow enthalpy and maximum allowed snow temperature
+#ifdef UNDEPRECATE_0LAYER
       ! If heat_capacity = F, zqsn and zTsn are used only for checking
       ! conservation.
+#endif
       !-----------------------------------------------------------------
 
       do k = 1, nslyr
@@ -783,7 +793,11 @@
       ! where 'd' denotes an error due to roundoff.
       !-----------------------------------------------------------------
 
+#ifdef UNDEPRECATE_0LAYER
          if (hslyr > hs_min/rnslyr .and. heat_capacity) then
+#else
+         if (hslyr > hs_min/rnslyr) then
+#endif
             ! zqsn < 0              
             Tmax = -zqsn(k)*puny*rnslyr / &
                  (rhos*cp_ice*vsnon)
@@ -813,7 +827,11 @@
       ! If zTsn is out of bounds, print diagnostics and exit.
       !-----------------------------------------------------------------
 
+#ifdef UNDEPRECATE_0LAYER
       if (tsno_high .and. heat_capacity) then
+#else
+      if (tsno_high) then
+#endif
          do k = 1, nslyr
 
             if (hslyr > hs_min/rnslyr) then
@@ -842,7 +860,11 @@
          enddo                  ! nslyr
       endif                     ! tsno_high
 
+#ifdef UNDEPRECATE_0LAYER
       if (tsno_low .and. heat_capacity) then
+#else
+      if (tsno_low) then
+#endif
          do k = 1, nslyr
 
             if (zTsn(k) < Tmin) then ! allowing for roundoff error
@@ -910,8 +932,10 @@
 
       !-----------------------------------------------------------------
       ! Compute ice enthalpy
+#ifdef UNDEPRECATE_0LAYER
       ! If heat_capacity = F, zqin and zTin are used only for checking
       ! conservation.
+#endif
       !-----------------------------------------------------------------
 
       !-----------------------------------------------------------------
@@ -943,7 +967,11 @@
       ! If zTin is out of bounds, print diagnostics and exit.
       !-----------------------------------------------------------------
 
+#ifdef UNDEPRECATE_0LAYER
          if (tice_high .and. heat_capacity) then
+#else
+         if (tice_high) then
+#endif
             write(warnstr,*) ' '
             call icepack_warnings_add(warnstr)
             write(warnstr,*) subname, 'Starting thermo, zTin > Tmax, layer', k
@@ -979,7 +1007,11 @@
             endif
          endif                  ! tice_high
 
+#ifdef UNDEPRECATE_0LAYER
          if (tice_low .and. heat_capacity) then
+#else
+         if (tice_low) then
+#endif
             write(warnstr,*) ' '
             call icepack_warnings_add(warnstr)
             write(warnstr,*) subname, 'Starting thermo T < Tmin, layer', k
@@ -1311,7 +1343,9 @@
          Tmlts = -zSin(nilyr) * depressT 
 
          ! enthalpy of new ice growing at bottom surface
+#ifdef UNDEPRECATE_0LAYER
          if (heat_capacity) then
+#endif
             if (l_brine) then
                qbotmax = -p5*rhoi*Lfresh  ! max enthalpy of ice growing at bottom
                qbot = -rhoi * (cp_ice * (Tmlts-Tbot) &
@@ -1321,10 +1355,11 @@
             else
                qbot = -rhoi * (-cp_ice * Tbot + Lfresh)
             endif
+#ifdef UNDEPRECATE_0LAYER
          else   ! zero layer
             qbot = -rhoi * Lfresh
          endif
-
+#endif
          dhi = ebot_gro / qbot     ! dhi > 0
 
          hqtot = dzi(nilyr)*zqin(nilyr) + dhi*qbot
@@ -1669,8 +1704,9 @@
       zi2(1) = c0
       zi2(1+nilyr) = hin
 
+#ifdef UNDEPRECATE_0LAYER
       if (heat_capacity) then
-
+#endif
          do k = 1, nilyr-1
             zi1(k+1) = zi1(k) + dzi(k)
             zi2(k+1) = zi2(k) + hilyr
@@ -1693,13 +1729,14 @@
                                     zSin)   
          if (icepack_warnings_aborted(subname)) return
 
+#ifdef UNDEPRECATE_0LAYER
       else ! zero layer (nilyr=1)
 
          zqin(1) = -rhoi * Lfresh
          zqsn(1) = -rhos * Lfresh
        
       endif
-
+#endif
       if (nslyr > 1) then
 
       !-----------------------------------------------------------------
@@ -3088,7 +3125,11 @@
       !call ice_timer_start(timer_ponds)
       if (tr_pond_topo) then
          call compute_ponds_topo(dt,       ncat,      nilyr,     &
+#ifdef UNDEPRECATE_0LAYER
                                  ktherm,   heat_capacity,        &
+#else
+                                 ktherm,                         &
+#endif
                                  aice,     aicen,                &
                                  vice,     vicen,                &
                                  vsno,     vsnon,                &

@@ -5,9 +5,14 @@
 Thermodynamics
 ==============
 
-The current Icepack version includes three thermodynamics
-options, the "zero-layer" thermodynamics of :cite:`Semtner76`
-(``ktherm`` = 0), the Bitz and Lipscomb model :cite:`Bitz99`
+.. 
+   ktherm=0 (zero-layer thermodynamics) is being deprecated
+   The current Icepack version includes three thermodynamics
+   options, the "zero-layer" thermodynamics of :cite:`Semtner76`
+   (``ktherm`` = 0), the Bitz and Lipscomb model :cite:`Bitz99`
+
+The current Icepack version includes two thermodynamics
+options, the Bitz and Lipscomb model :cite:`Bitz99`
 (``ktherm`` = 1) that assumes a fixed salinity profile, and a "mushy"
 formulation (``ktherm`` = 2) in which salinity evolves
 :cite:`Turner13`. For each thickness category, Icepack computes
@@ -866,15 +871,16 @@ that :math:`F_{bot} + F_{side} \ge F_{frzmlt}` in the case that
 New temperatures
 ----------------
 
-Zero-layer thermodynamics (``ktherm`` = 0)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. comment: ktherm=0 (zero-layer thermo) is being deprecated
+.. Zero-layer thermodynamics (``ktherm`` = 0)
+.. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An option for zero-layer thermodynamics :cite:`Semtner76` is
-available in this version of Icepack by setting the namelist parameter
-``ktherm`` to 0 and changing the number of ice layers, nilyr, in
-**icedrv\_domain\_size.F90** to 1. In the zero-layer case, the ice is
-fresh and the thermodynamic calculations are much simpler than in the
-other configurations, which we describe here.
+.. An option for zero-layer thermodynamics :cite:`Semtner76` is
+.. available in this version of Icepack by setting the namelist parameter
+.. ``ktherm`` to 0 and changing the number of ice layers, nilyr, in
+.. **icedrv\_domain\_size.F90** to 1. In the zero-layer case, the ice is
+.. fresh and the thermodynamic calculations are much simpler than in the
+.. other configurations, which we describe here.
 
 Bitz and Lipscomb thermodynamics (``ktherm`` = 1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1299,7 +1305,8 @@ contains salt, it usually will be fully melted at a temperature below
 :math:`0^{\circ}C`.
 Equations :eq:`ice-enthalpy` and :eq:`enth-def` are
 equivalent except for the density used in the term representing the
-energy required to bring the melt water temperature to (:math:`\rho_i`
+energy required to bring the melt water temperature to :math:`0^{\circ}C`
+(:math:`\rho_i`
 and :math:`\rho_w` in equations :eq:`ice-enthalpy` and
 :eq:`enth-def`, respectively).
 

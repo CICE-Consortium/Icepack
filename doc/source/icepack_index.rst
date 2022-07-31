@@ -7,7 +7,7 @@ Index of primary variables and parameters
 
 This index defines many of the symbols used frequently in the ice model
 code. Values appearing in this list are fixed or recommended; most
-namelist parameters are indicated ( :math:`E_\circ`) with their default
+namelist parameters are indicated ( :math:`\bullet`) with their default
 values. For other namelist options, see Section :ref:`tabnamelist`. All
 quantities in the code are expressed in MKS units (temperatures may take
 either Celsius or Kelvin units).  
@@ -202,7 +202,7 @@ either Celsius or Kelvin units).
    "H2_16O_ocn", "concentration of H2_16O isotope in ocean", "kg/kg"
    "H2_18O_ocn", "concentration of H2_18O isotope in ocean", "kg/kg"
    "HDO_ocn", "concentration of HDO isotope in ocean", "kg/kg"
-   "heat_capacity", ":math:`\bullet` if true, use salinity-dependent thermodynamics", "T"
+   "heat_capacity", "DEPRECATED", ""
    "hfrazilmin", "minimum thickness of new frazil ice", "0.05 m"
    "hi_min", "minimum ice thickness for thinnest ice category", "0.01 m"
    "hi_ssl", "ice surface scattering layer thickness", "0.05 m"
@@ -250,10 +250,10 @@ either Celsius or Kelvin units).
    "krdg_partic", ":math:`\bullet` ridging participation function", "1"
    "krdg_redist", ":math:`\bullet` ridging redistribution function", "1"
    "krdgn", "mean ridge thickness per thickness of ridging ice", ""
-   "kseaice", "thermal conductivity of ice for zero-layer thermodynamics", "2.0 W/m/deg"
+   "kseaice", "DEPRECATED", ""
    "ksno", "thermal conductivity of snow", "0.30 W/m/deg"
    "kstrength", ":math:`\bullet` ice stength formulation (1= :cite:`Rothrock75`, 0 = :cite:`Hibler79`)", "1"
-   "ktherm", ":math:`\bullet` thermodynamic formulation (0 = zero-layer, 1 = :cite:`Bitz99`, 2 = mushy)", ""        
+   "ktherm", ":math:`\bullet` thermodynamic formulation (-1 none, 1 = :cite:`Bitz99`, 2 = mushy)", ""
    "**L**", "", ""
    "l_brine", "flag for brine pocket effects", ""
    "l_mpond_fresh", ":math:`\bullet` if true, retain (topo) pond water until ponds drain", ""
@@ -525,6 +525,17 @@ either Celsius or Kelvin units).
    "zTrf", "reference height for :math:`T_{ref}`, :math:`Q_{ref}`, :math:`U_{ref}`", "2. m"
    "zvir", "gas constant (water vapor)/gas constant (air) - 1", "0.606"
 
+
+.. 
+   deprecation comments
+   ktherm=0 (zero-layer thermodynamics) is being deprecated
+   heat_capacity is being deprecated as part of ktherm=0 (zero-layer thermo) deprecation
+   "heat_capacity", ":math:`\bullet` if true, use salinity-dependent thermodynamics", "T"
+   "kseaice", "thermal conductivity of ice for zero-layer thermodynamics", "2.0 W/m/deg"
+   "ktherm", ":math:`\bullet` thermodynamic formulation (0 = zero-layer, 1 = :cite:`Bitz99`, 2 = mushy)", ""
+
+
 .. 
    comment tr_pond_cesm is being deprecated
    "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""
+
