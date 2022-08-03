@@ -18,6 +18,9 @@
       use icepack_parameters, only: snowage_tau, snowage_kappa, snowage_drdt0
       use icepack_parameters, only: snw_aging_table
 
+      use icepack_therm_shared, only: icepack_ice_temperature
+      use icepack_therm_shared, only: adjust_enthalpy
+
       use icepack_warnings, only: icepack_warnings_add, icepack_warnings_setabort
       use icepack_warnings, only: icepack_warnings_aborted
 
@@ -206,8 +209,6 @@
                                    fresh,     fhocn,     &
                                    fsloss,    fsnow)
 
-      use icepack_therm_shared, only: icepack_ice_temperature
-
       integer (kind=int_kind), intent(in) :: &
          nslyr, & ! number of snow layers
          nilyr, & ! number of ice  layers
@@ -356,8 +357,6 @@
 
       subroutine snow_redist(dt, nslyr, ncat, wind, ain, vin, vsn, zqsn, &
          alvl, vlvl, fresh, fhocn, fsloss, rhos_cmpn, fsnow)
-
-      use icepack_therm_shared, only: adjust_enthalpy
 
       integer (kind=int_kind), intent(in) :: &
          nslyr     , & ! number of snow layers
