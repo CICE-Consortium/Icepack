@@ -129,7 +129,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
   * Variables defined in icepack_kinds, icepack_tracers, icepack_parameters, and icepack_orbital should be accessed within Icepack by Fortran use statements.  It's also possible to access some of those variables thru methods that query for the value, but this tends to be a little more cumbersome, so Fortran use statements are recommended within columnphysics.  From the icepack driver or other external programs, the columnphysics variables should ALWAYS be access thru the interface methods and icepack_intfc (see also :ref:`calling`).
 
-  * Optional arguments are encouraged in the public Icepack interfaces but should generally be avoided in interfaces within the columnphysics.  There are several reasons for taking this approach.  There is a desire to support backwards compatible Icepack public interfaces as much as possible, so optional arguments will be used for some future extensions.  There is also a desire to allow users to pass only the data thru the Icepack interfaces that is needed.  To support optional tracers and features, optional arguments are needed.  There are several ways optional arguments can be passed down the calling tree in Icepack.  Two options, copying into local data or copying into module data are viable.  But the recommended approach is to
+  * Optional arguments are encouraged in the public Icepack interfaces.  They allow for easier backwards compatible Icepack public interfaces and support future extensions.  There is also a desire to allow users to pass only the data thru the Icepack interfaces that is needed.  There are several ways optional arguments can be passed down the calling tree in Icepack.  Two options, copying into local data or copying into module data are viable.  But the recommended approach is to
 
     * Use universal flags and parameters to turn on/off features.
 
@@ -145,12 +145,12 @@ Overall, columnphysics changes in the Icepack model should include the following
 
          use icepack_parameters, only: flag_arg2, flag_arg3
 
-         subroutine icepack_example_interface(arg1, arg2, arg3, ...)
+         subroutine icepack_public_interface(arg1, arg2, arg3, ...)
          real (kind=dbl_kind), intent(inout) :: arg1
          real (kind=dbl_kind), optional, dimension(:), intent(inout) :: arg2
          real (kind=dbl_kind), optional, intent(inout) :: arg3
 
-         character(len=*), parameter :: subname = '(icepack_example_interface)'
+         character(len=*), parameter :: subname = '(icepack_public_interface)'
 
          if (flag_arg2) then
             if (.not.present(arg2)) then
@@ -205,7 +205,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
     * If optional arguments are passed but not needed, this is NOT an error.
 
-    * If checking and implementation is done properly, optional arguments that are not passed into the public interfaces will never be needed in lower subroutines.
+    * If checking and implementation are done properly, optional arguments that are not needed will never be referenced anywhere in Icepack at that timestep
 
     * There is a unit test in CICE to verify robustness of this approach.
 
@@ -213,4 +213,5 @@ Overall, columnphysics changes in the Icepack model should include the following
 
     * An argcheck parameter will control when to do the checks, 'none', 'first', or 'all' may be possible settings 
 
+    * Icepack is a simple serial code.  Global flags and parameters should be set identically on all tasks/threads that call into Icepack.  Icepack has no ability to reconcile or identify inconsistencies between different tasks/threads.
 
