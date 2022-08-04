@@ -922,8 +922,8 @@
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: albicen, albsnon, albpndn
       use icedrv_arrays_column, only: alvdrn, alidrn, alvdfn, alidfn, apeffn, trcrn_sw, snowfracn
-      use icedrv_arrays_column, only: kaer_tab, waer_tab, gaer_tab, kaer_bc_tab, waer_bc_tab
-      use icedrv_arrays_column, only: gaer_bc_tab, bcenh, swgrid, igrid
+      use icedrv_arrays_column, only: kaer_3bd, waer_3bd, gaer_3bd, kaer_bc_3bd, waer_bc_3bd
+      use icedrv_arrays_column, only: gaer_bc_3bd, bcenh_3bd, swgrid, igrid
       use icedrv_calendar, only: calendar_type, days_per_year, nextsw_cday, yday, sec
       use icedrv_domain_size, only: ncat, n_aero, nilyr, nslyr, n_zaero, n_algae, nblyr, nx
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, coszen, fsnow
@@ -1043,10 +1043,10 @@
                          calendar_type=calendar_type,                   &
                          days_per_year=days_per_year, sec=sec,          &
                          nextsw_cday=nextsw_cday,   yday=yday,          &
-                         kaer_tab=kaer_tab,         kaer_bc_tab=kaer_bc_tab(:,:), &
-                         waer_tab=waer_tab,         waer_bc_tab=waer_bc_tab(:,:), &
-                         gaer_tab=gaer_tab,         gaer_bc_tab=gaer_bc_tab(:,:), &
-                         bcenh=bcenh(:,:,:),        modal_aero=modal_aero,    &
+                         kaer_3bd=kaer_3bd,         kaer_bc_3bd=kaer_bc_3bd(:,:), &
+                         waer_3bd=waer_3bd,         waer_bc_3bd=waer_bc_3bd(:,:), &
+                         gaer_3bd=gaer_3bd,         gaer_bc_3bd=gaer_bc_3bd(:,:), &
+                         bcenh_3bd=bcenh_3bd(:,:,:),        modal_aero=modal_aero,    &
                          swvdr=swvdr(i),            swvdf=swvdf(i),           &
                          swidr=swidr(i),            swidf=swidf(i),           &
                          coszen=coszen(i),          fsnow=fsnow(i),           &

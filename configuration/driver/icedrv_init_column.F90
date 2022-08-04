@@ -99,9 +99,11 @@
       use icedrv_arrays_column, only: fswsfcn, ffracn, snowfracn
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn
-      use icedrv_arrays_column, only: kaer_tab, waer_tab, gaer_tab
-      use icedrv_arrays_column, only: kaer_bc_tab, waer_bc_tab, gaer_bc_tab
-      use icedrv_arrays_column, only: swgrid, igrid, bcenh
+      use icedrv_arrays_column, only: kaer_3bd, waer_3bd, gaer_3bd
+      use icedrv_arrays_column, only: kaer_bc_3bd, waer_bc_3bd, gaer_bc_3bd
+      use icedrv_arrays_column, only: kaer_5bd, waer_5bd, gaer_5bd
+      use icedrv_arrays_column, only: kaer_bc_5bd, waer_bc_5bd, gaer_bc_5bd
+      use icedrv_arrays_column, only: swgrid, igrid, bcenh_3bd, bcenh_5bd
       use icedrv_calendar, only: istep1, dt, calendar_type
       use icedrv_calendar, only:    days_per_year, nextsw_cday, yday, sec
       use icedrv_system, only: icedrv_system_abort
@@ -261,10 +263,10 @@
                          calendar_type=calendar_type,          &
                          days_per_year=days_per_year,          &
                          nextsw_cday=nextsw_cday, yday=yday, sec=sec,      &
-                         kaer_tab=kaer_tab, kaer_bc_tab=kaer_bc_tab(:,:),  &
-                         waer_tab=waer_tab, waer_bc_tab=waer_bc_tab(:,:),  &
-                         gaer_tab=gaer_tab, gaer_bc_tab=gaer_bc_tab(:,:),  &
-                         bcenh=bcenh(:,:,:),                               &
+                         kaer_3bd=kaer_3bd, kaer_bc_3bd=kaer_bc_3bd(:,:),  &
+                         waer_3bd=waer_3bd, waer_bc_3bd=waer_bc_3bd(:,:),  &
+                         gaer_3bd=gaer_3bd, gaer_bc_3bd=gaer_bc_3bd(:,:),  &
+                         bcenh_3bd=bcenh_3bd(:,:,:),                       &
                          modal_aero=modal_aero,                            &
                          swvdr=swvdr(i),         swvdf=swvdf(i),           &
                          swidr=swidr(i),         swidf=swidf(i),           &

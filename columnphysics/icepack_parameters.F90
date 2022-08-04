@@ -22,9 +22,6 @@
       ! parameter constants
       !-----------------------------------------------------------------
 
-      integer (kind=int_kind), parameter, public :: & 
-         nspint = 3                ! number of solar spectral intervals
-
       real (kind=dbl_kind), parameter, public :: &
          c0   = 0.0_dbl_kind, &
          c1   = 1.0_dbl_kind, &
@@ -174,6 +171,10 @@
 ! Parameters for radiation
 !-----------------------------------------------------------------------
 
+      integer (kind=int_kind), parameter, public :: &
+         nspint_3bd = 3, & ! number of solar spectral bands
+         nspint_5bd = 5    ! number of solar spectral bands
+
       real (kind=dbl_kind), public :: &
          ! (Briegleb JGR 97 11475-11485  July 1992)
          emissivity = 0.985_dbl_kind,&! emissivity of snow and ice
@@ -210,7 +211,7 @@
          awtidf = 0.36218_dbl_kind   ! near IR, diffuse
 
       character (len=char_len), public :: &
-         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar'
          albedo_type = 'ccsm3'   ! albedo parameterization, 'ccsm3' or 'constant'
                                  ! shortwave='dEdd' overrides this parameter
 
