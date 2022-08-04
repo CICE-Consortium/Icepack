@@ -82,6 +82,7 @@
       use icepack_wavefracspec, only: icepack_init_wave
       use icepack_wavefracspec, only: icepack_step_wavefracture
 
+      use icepack_snow, only: icepack_init_snow
       use icepack_snow, only: icepack_step_snow
 
       use icepack_shortwave, only: icepack_prep_radiation
@@ -115,8 +116,6 @@
       use icepack_mushy_physics , only: icepack_mushy_density_brine
       use icepack_mushy_physics , only: icepack_mushy_liquid_fraction
       use icepack_mushy_physics , only: icepack_mushy_temperature_mush
-
-      use icepack_snow, only: icepack_init_snow
 
       use icepack_warnings, only: icepack_warnings_clear
       use icepack_warnings, only: icepack_warnings_print

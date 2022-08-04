@@ -19,6 +19,7 @@ The column physics source code contains the following files
 |    **icepack_firstyear.F90**     handles most work associated with the first-year ice area tracer
 |    **icepack_flux.F90**          fluxes needed/produced by the model
 |    **icepack_fsd.F90**           supports floe size distribution
+|    **icepack_isotope.F90**       handles isotopes
 |    **icepack_intfc.F90**         interface routines for linking Icepack with a host sea ice model
 |    **icepack_itd.F90**           utilities for managing ice thickness distribution
 |    **icepack_kinds.F90**         basic definitions of reals, integers, etc.
@@ -31,6 +32,7 @@ The column physics source code contains the following files
 |    **icepack_orbital.F90**       orbital parameters for Delta-Eddington shortwave parameterization
 |    **icepack_parameters.F90**    basic model parameters including physical and numerical constants requried for column package
 |    **icepack_shortwave.F90**     shortwave and albedo parameterizations
+|    **icepack_snow.F90**          snow physics
 |    **icepack_therm_0layer.F90**  zero-layer thermodynamics of :cite:`Semtner76`
 |    **icepack_therm_bl99.F90**    multilayer thermodynamics of :cite:`Bitz99`
 |    **icepack_therm_itd.F90**     thermodynamic changes mostly related to ice thickness distribution
@@ -127,60 +129,89 @@ Overall, columnphysics changes in the Icepack model should include the following
 
   * Variables defined in icepack_kinds, icepack_tracers, icepack_parameters, and icepack_orbital should be accessed within Icepack by Fortran use statements.  It's also possible to access some of those variables thru methods that query for the value, but this tends to be a little more cumbersome, so Fortran use statements are recommended within columnphysics.  From the icepack driver or other external programs, the columnphysics variables should ALWAYS be access thru the interface methods and icepack_intfc (see also :ref:`calling`).
 
-  * Optional arguments are encouraged in the public Icepack interfaces but should generally be avoided in interfaces within the columnphysics.  There are several reasons for taking this approach.  There is a desire to support backwards compatible Icepack public interfaces as much as possible, so optional arguments will be used for some future extensions.  There is also a desire to allow users to pass only the data thru the Icepack interfaces that is needed.  To support optional tracers and features, optional arguments are needed.  Within the internal columnphysics calling tree, optional arguments are discouraged because they tend to add complexity to deep calling trees and often lead to implementations with many calls to the same interface that only vary by which arguments are passed.  In the long term, that approach is not sustainable.  As a result, a scheme has been developed to support optional arguments in the public interfaces while minimizing optional arguments within the columphysics.  Within the columnphysics, we suggest optional arguments available thru the public interfaces should generally be treated as follows
+  * Optional arguments are encouraged in the public Icepack interfaces.  They allow for easier backwards compatible Icepack public interfaces and support future extensions.  There is also a desire to allow users to pass only the data thru the Icepack interfaces that is needed.  There are several ways optional arguments can be passed down the calling tree in Icepack.  Two options, copying into local data or copying into module data are viable.  But the recommended approach is to
 
-    * Check whether optional arguments are passed and create temporary data to store the values
+    * Use universal flags and parameters to turn on/off features.
 
-    * The temporary data should be locally name l_${argument_name}
+    * Have all optional features trigger from the flags and parameters.
 
-    * The temporary data should be allocated at runtime if it's not a scalar based on the size of the incoming argument
+    * Verify that the optional arguments required for any feature are passed in at the top level of each Icepack interface.  If not, then abort.
 
-    * The optional argument values should be copied into the temporary data
-
-    * The temporary data should be passed thru other columnphysics subroutines
-
-    * The temporary data should be deallocated at the end of the method if it was allocated
-
-    * The temporary data should be copied back to the argument if the argument intent is out or inout
-
-    * If optional arguments are not passed, temporary data should be created of size 1 with values of c0, and they should be passed thru other columnphysics subroutines
-
-    * A logical can be instantiated and passed down the columnphysics interface to manage any logic related to whether valid or fake data is being passed down the calling tree.  See **closing_flag** and **iso_flag** within the columnphysics as examples.  There may also be externally set logicals that can be used to control how the optional features are handles.  See **tr_iso** within the columnphysics as an example.
+    * Pass all optional arguments down the calling tree as optional arguments.
 
     * An example of how this might look is
 
       .. code-block:: fortran
 
-         subroutine icepack_example_interface(arg1, arg2, ...)
+         use icepack_parameters, only: flag_arg2, flag_arg3
+
+         subroutine icepack_public_interface(arg1, arg2, arg3, ...)
          real (kind=dbl_kind), intent(inout) :: arg1
          real (kind=dbl_kind), optional, dimension(:), intent(inout) :: arg2
-         !
-         real (kind=dbl_kind), allocatable, dimension(:) :: l_arg2
-         logical :: arg2_flag
+         real (kind=dbl_kind), optional, intent(inout) :: arg3
 
-         character(len=*), parameter :: subname = '(icepack_example_interface)'
+         character(len=*), parameter :: subname = '(icepack_public_interface)'
 
-         if (present(arg2)) then
-            arg2_flag = .true.
-            allocate(l_arg2(size(arg2)))
-            l_arg2 = arg2
-         else
-            arg2_flag = .false.
-            allocate(l_arg2(1))
-            l_arg2 = c0
+         if (flag_arg2) then
+            if (.not.present(arg2)) then
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' flag_arg2 set but arg2 not passed')
+            endif
          endif
+         if (flag_arg3) then
+            if (.not.present(arg3)) then
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               call icepack_warnings_add(subname//' flag_arg3 set but arg3 not passed')
+            endif
+         endif
+         if (icepack_warnings_aborted(subname)) return
 
          ...
-
-         call some_columnphysics_subroutine(arg1, l_arg2, arg2_flag, ...)
-
+         call some_columnphysics_subroutine(arg1, arg2, arg3, ...)
          ...
 
-         if (present(arg2)) then
-            arg2 = l_arg2
-         endif
-         deallocate(l_arg2)
-
-         return
          end subroutine
+
+         !------------
+
+         subroutine some_columnphysics_subroutine(arg1, arg2, arg3, ...)
+
+         real (kind=dbl_kind), intent(inout) :: arg1
+         real (kind=dbl_kind), optional, dimension(:), intent(inout) :: arg2
+         real (kind=dbl_kind), optional, intent(inout) :: arg3
+
+         if (flag_arg2) then
+            arg2(:) = ...
+         endif
+
+         if (flag_arg3) then
+            call someother_columnphysics_subroutine(arg3)
+         endif
+
+         end subroutine
+
+         !------------
+
+         subroutine someother_columnphysics_subroutine(arg3)
+
+         real (kind=dbl_kind), optional, intent(inout) :: arg3
+
+         arg3 = ...
+
+         end subroutine
+
+
+    Some notes
+
+    * If optional arguments are passed but not needed, this is NOT an error.
+
+    * If checking and implementation are done properly, optional arguments that are not needed will never be referenced anywhere in Icepack at that timestep
+
+    * There is a unit test in CICE to verify robustness of this approach.
+
+    * We recommend doing all checks for optional arguments for an interface before returning just for completeness (as shown above)
+
+    * An argcheck parameter will control when to do the checks, 'none', 'first', or 'all' may be possible settings 
+
+    * Icepack is a simple serial code.  Global flags and parameters should be set identically on all tasks/threads that call into Icepack.  Icepack has no ability to reconcile or identify inconsistencies between different tasks/threads.
 
