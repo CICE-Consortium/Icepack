@@ -4766,6 +4766,7 @@
                           ffracn=ffracn,                &
                           rsnow=l_rsnow,                &
                           l_print_point=l_print_point,  &
+!echmod: all routines have access to module data above so maybe use_snicar need not be passed through
                           l_use_snicar=use_snicar,      &
                           initonly=linitonly)
             if (icepack_warnings_aborted(subname)) return

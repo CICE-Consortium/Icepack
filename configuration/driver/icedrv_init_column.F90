@@ -124,6 +124,7 @@
 
       logical (kind=log_kind) :: &
          l_print_point, & ! flag to print designated grid point diagnostics
+         use_snicar,    & ! use 5-band SNICAR radiation scheme for snow
          dEdd_algae,    & ! BGC - radiation interactions
          modal_aero,    & ! modal aerosol optical properties
          snwgrain         ! use variable snow grain size
@@ -219,7 +220,7 @@
 
          do i = 1, nx
 
-            if (trim(shortwave) == 'dEdd') then ! delta Eddington
+            if (trim(shortwave(1:4)) == 'dEdd') then ! delta Eddington
 
                ! initialize orbital parameters
                ! These come from the driver in the coupled model.
@@ -228,7 +229,16 @@
                call icepack_warnings_flush(nu_diag)
                if (icepack_warnings_aborted()) &
                   call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
-            endif
+
+               if (trim(shortwave) == 'dEdd_snicar') then
+                  use_snicar = .true. ! 5-band SNICAR scheme for snow cover
+                  call icepack_init_parameters(use_snicar_in=use_snicar)
+                  call icepack_warnings_flush(nu_diag)
+                  if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                      file=__FILE__,line= __LINE__)
+               endif
+
+            endif ! dEdd
 
             fbri       (:) = c0
             rsnow    (:,:) = c0
@@ -1108,13 +1118,13 @@
          tr_zaero = .false.
       endif
 
-      if (dEdd_algae .AND. trim(shortwave) /= 'dEdd') then 
+      if (dEdd_algae .AND. trim(shortwave(1:4)) /= 'dEdd') then
          write(nu_diag,*) 'WARNING: dEdd_algae = T but shortwave /= dEdd'
          write(nu_diag,*) 'WARNING: setting dEdd_algae = F'
          dEdd_algae = .false.
       endif
 
-      if (dEdd_algae .AND. (.NOT. tr_bgc_N) .AND. (.NOT. tr_zaero)) then 
+      if (dEdd_algae .AND. (.NOT. tr_bgc_N) .AND. (.NOT. tr_zaero)) then
          write(nu_diag,*) 'WARNING: need tr_bgc_N or tr_zaero for dEdd_algae'
          write(nu_diag,*) 'WARNING: setting dEdd_algae = F'
          dEdd_algae = .false.
@@ -1124,7 +1134,7 @@
          modal_aero = .false.
       endif
          
-      if (modal_aero .AND. trim(shortwave) /= 'dEdd') then 
+      if (modal_aero .AND. trim(shortwave(1:4)) /= 'dEdd') then
          write(nu_diag,*) 'WARNING: modal_aero = T but shortwave /= dEdd'
          write(nu_diag,*) 'WARNING: setting modal_aero = F'
          modal_aero = .false.

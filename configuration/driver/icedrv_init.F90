@@ -522,7 +522,7 @@
       endif
 #endif
 
-      if (trim(shortwave) /= 'dEdd' .and. tr_pond .and. calc_tsfc) then
+      if (trim(shortwave(1:4)) /= 'dEdd' .and. tr_pond .and. calc_tsfc) then
          write (nu_diag,*) 'WARNING: Must use dEdd shortwave'
          write (nu_diag,*) 'WARNING: with tr_pond and calc_tsfc=T.'
          write (nu_diag,*) 'WARNING: Setting shortwave = dEdd'
@@ -575,14 +575,14 @@
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
-      if (tr_aero .and. trim(shortwave) /= 'dEdd') then
+      if (tr_aero .and. trim(shortwave(1:4)) /= 'dEdd') then
          write (nu_diag,*) 'WARNING: aerosols activated but dEdd'
          write (nu_diag,*) 'WARNING: shortwave is not.'
          write (nu_diag,*) 'WARNING: Setting shortwave = dEdd'
          shortwave = 'dEdd'
       endif
 
-      if (tr_snow .and. trim(shortwave) /= 'dEdd') then
+      if (tr_snow .and. trim(shortwave(1:4)) /= 'dEdd') then
          write (nu_diag,*) 'WARNING: snow grain radius activated but'
          write (nu_diag,*) 'WARNING: dEdd shortwave is not.'
       endif
@@ -699,7 +699,7 @@
              write(nu_diag,1000) ' BGC coupling is switched OFF'
          endif
 
-         if (trim(shortwave) == 'dEdd') then
+         if (trim(shortwave(1:4)) == 'dEdd') then
          write(nu_diag,1000) ' R_ice                     = ', R_ice
          write(nu_diag,1000) ' R_pnd                     = ', R_pnd
          write(nu_diag,1000) ' R_snw                     = ', R_snw
