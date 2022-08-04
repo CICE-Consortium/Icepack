@@ -171,9 +171,12 @@
 ! Parameters for radiation
 !-----------------------------------------------------------------------
 
+      logical (kind=log_kind), public :: &
+         use_snicar = .false.     ! .true. use 5-band SNICAR-AD approach
+
       integer (kind=int_kind), parameter, public :: &
          nspint_3bd = 3, & ! number of solar spectral bands
-         nspint_5bd = 5    ! number of solar spectral bands
+         nspint_5bd = 5    ! number of solar spectral bands (snicar snow)
 
       real (kind=dbl_kind), public :: &
          ! (Briegleb JGR 97 11475-11485  July 1992)
@@ -214,6 +217,14 @@
          shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar'
          albedo_type = 'ccsm3'   ! albedo parameterization, 'ccsm3' or 'constant'
                                  ! shortwave='dEdd' overrides this parameter
+
+      ! Parameters for shortwave redistribution
+      logical (kind=log_kind), public :: &
+         sw_redist     = .false.
+
+      real (kind=dbl_kind), public :: &
+         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
 
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
@@ -413,18 +424,6 @@
          t_sk_conv    = 3.0_dbl_kind    , & ! Stefels conversion time (d)
          t_sk_ox      = 10.0_dbl_kind       ! DMS oxidation time (d)
 
-
-!-----------------------------------------------------------------------
-! Parameters for shortwave redistribution
-!-----------------------------------------------------------------------
-
-      logical (kind=log_kind), public :: &
-         sw_redist     = .false.
-
-      real (kind=dbl_kind), public :: & 
-         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
-         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
-
 !=======================================================================
 
       contains
@@ -457,7 +456,7 @@
          update_ocn_f_in, ustar_min_in, a_rapid_mode_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
-         phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
+         phi_i_mushy_in, shortwave_in, use_snicar_in, albedo_type_in, albsnowi_in, &
          albicev_in, albicei_in, albsnowv_in, &
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
          kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
@@ -600,7 +599,7 @@
          awtidf_in        ! near IR, diffuse
 
       character (len=*), intent(in), optional :: &
-         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar'
          albedo_type_in  ! albedo parameterization, 'ccsm3' or 'constant'
                          ! shortwave='dEdd' overrides this parameter
 
@@ -623,6 +622,7 @@
          kalg_in         ! algae absorption coefficient for 0.5 m thick layer
 
       logical (kind=log_kind), intent(in), optional :: &
+         use_snicar_in,& ! snicar adjustments to dEdd radiation for snow
          sw_redist_in    ! redistribute shortwave
 
       real (kind=dbl_kind), intent(in), optional :: & 
@@ -916,6 +916,7 @@
       if (present(phi_c_slow_mode_in)   ) phi_c_slow_mode  = phi_c_slow_mode_in
       if (present(phi_i_mushy_in)       ) phi_i_mushy      = phi_i_mushy_in
       if (present(shortwave_in)         ) shortwave        = shortwave_in
+      if (present(use_snicar_in)        ) use_snicar       = use_snicar_in
       if (present(albedo_type_in)       ) albedo_type      = albedo_type_in
       if (present(albicev_in)           ) albicev          = albicev_in
       if (present(albicei_in)           ) albicei          = albicei_in
@@ -1147,7 +1148,7 @@
          Lfresh_out, cprho_out, Cp_out, ustar_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
          Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
-         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
+         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, use_snicar_out, &
          albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
          albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
          rsnw_mlt_out, dEdd_algae_out, &
@@ -1300,7 +1301,7 @@
          awtidf_out        ! near IR, diffuse
 
       character (len=*), intent(out), optional :: &
-         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar'
          albedo_type_out  ! albedo parameterization, 'ccsm3' or 'constant'
                              ! shortwave='dEdd' overrides this parameter
 
@@ -1323,6 +1324,7 @@
          kalg_out         ! algae absorption coefficient for 0.5 m thick layer
 
       logical (kind=log_kind), intent(out), optional :: &
+         use_snicar_out,& ! snicar adjustments to dEdd radiation for snow
          sw_redist_out    ! redistribute shortwave
 
       real (kind=dbl_kind), intent(out), optional :: & 
@@ -1656,6 +1658,7 @@
       if (present(phi_c_slow_mode_out)   ) phi_c_slow_mode_out = phi_c_slow_mode
       if (present(phi_i_mushy_out)       ) phi_i_mushy_out  = phi_i_mushy
       if (present(shortwave_out)         ) shortwave_out    = shortwave
+      if (present(use_snicar_out)        ) use_snicar_out   = use_snicar
       if (present(albedo_type_out)       ) albedo_type_out  = albedo_type
       if (present(albicev_out)           ) albicev_out      = albicev
       if (present(albicei_out)           ) albicei_out      = albicei
@@ -1864,6 +1867,7 @@
         write(iounit,*) "  phi_c_slow_mode   = ", phi_c_slow_mode
         write(iounit,*) "  phi_i_mushy       = ", phi_i_mushy
         write(iounit,*) "  shortwave     = ", shortwave
+        write(iounit,*) "  use_snicar    = ", use_snicar
         write(iounit,*) "  albedo_type   = ", albedo_type
         write(iounit,*) "  albicev       = ", albicev
         write(iounit,*) "  albicei       = ", albicei
