@@ -886,7 +886,7 @@
          gaer_bc_5bd    ! aerosol asymmetry parameter (cos(theta))
 
 !echmod      real (kind=dbl_kind), dimension(:,:,:), intent(in) :: & ! Modal aerosol treatment
-      real (kind=dbl_kind), dimension(nspint_5bd,1471) :: &
+      real (kind=dbl_kind), dimension(nspint_5bd,10,8) :: &
          bcenh_5bd         ! BC absorption enhancement factor
 
       ! SNICAR snow grain single-scattering properties (SSP) for
@@ -1252,7 +1252,19 @@
                              fswpenl=fswpenln(:,n),         &
                              zbio=trcrn_bgcsw(:,n),         &
                              l_use_snicar=l_use_snicar,     &
-!echmod add _5bd
+                             asm_prm_ice_drc=asm_prm_ice_drc,       &
+                             asm_prm_ice_dfs=asm_prm_ice_dfs,       &
+                             ss_alb_ice_drc=ss_alb_ice_drc,        &
+                             ss_alb_ice_dfs=ss_alb_ice_dfs,        &
+                             ext_cff_mss_ice_drc=ext_cff_mss_ice_drc,   &
+                             ext_cff_mss_ice_dfs=ext_cff_mss_ice_dfs,   &
+                             kaer_5bd=kaer_5bd,          &
+                             waer_5bd=waer_5bd,          &
+                             gaer_5bd=gaer_5bd,          &
+                             kaer_bc_5bd=kaer_bc_5bd,          &
+                             waer_bc_5bd=waer_bc_5bd,          &
+                             gaer_bc_5bd=gaer_bc_5bd,          &
+                             bcenh_5bd=bcenh_5bd, &
                              l_print_point=l_print_point)
 
             if (icepack_warnings_aborted(subname)) return
@@ -1646,7 +1658,10 @@
                       fswthru_idf,                                      &
                       Sswabs,                                           &
                       Iswabs,    fswpenl,                               &
-                      l_use_snicar)
+                      l_use_snicar, &
+                      asm_prm_ice_drc, asm_prm_ice_dfs,                 &
+                      ss_alb_ice_drc, ss_alb_ice_dfs,                   &
+                      ext_cff_mss_ice_drc, ext_cff_mss_ice_dfs)
                else
                   nspint = nspint_3bd
                   call compute_dEdd(nilyr,       nslyr,   nspint,       &
