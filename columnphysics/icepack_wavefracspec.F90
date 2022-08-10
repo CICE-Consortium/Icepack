@@ -231,11 +231,8 @@
 !autodocument_end
       ! local variables
       integer (kind=int_kind) :: &  
-         n, k, t, &
+         n, k,  &
          nsubt ! number of subcycles 
-
-      real (kind=dbl_kind), dimension(nfsd,ncat) :: &
-         afsdn           ! floe size and thickness distribution
 
       real (kind=dbl_kind), dimension (nfsd, nfsd) :: &
          frac    
@@ -430,7 +427,7 @@
 
       ! local variables
 
-      integer (kind=int_kind) :: i, j, k, iter, loop_max_iter
+      integer (kind=int_kind) :: j, k, iter, loop_max_iter
 
       real (kind=dbl_kind) :: &
          fracerror ! difference between successive histograms

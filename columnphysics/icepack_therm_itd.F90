@@ -1437,7 +1437,6 @@
       real (kind=dbl_kind) :: &
          ai0new       , & ! area of new ice added to cat 1
          vi0new       , & ! volume of new ice added to cat 1
-         vi0new_lat   , & ! volume of new ice added laterally to fsd
          hsurp        , & ! thickness of new ice added to each cat
          fnew         , & ! heat flx to open water for new ice (W/m^2)
          hi0new       , & ! thickness of new ice
@@ -1484,11 +1483,7 @@
       real (kind=dbl_kind), dimension (ncat) :: &
          vin0new          ! volume of new ice added to any thickness cat
 
-      real (kind=dbl_kind), dimension (nfsd) :: &
-         afsd_ni      ! areal mFSTD after new ice added
-
       real (kind=dbl_kind) :: &
-         tmp, &
          latsurf_area, & ! fractional area of ice on sides of floes
          lead_area   , & ! fractional area of ice in lead region
          G_radial    , & ! lateral melt rate (m/s)

@@ -110,11 +110,11 @@
         hi,        &
         hs
 
-      real (kind=dbl_kind), dimension(n_iso) :: &
-        isotot, isotot0         ! for diagnostics 
+!      real (kind=dbl_kind), dimension(n_iso) :: &
+!        isotot, isotot0         ! for diagnostics 
 
       real (kind=dbl_kind) :: &
-        hs_old, hi_old, dhs, dhi, sloss1, &
+        hs_old, hi_old, sloss1, &
         TsfK,      &           ! snow/ice temperature (K)
         alphai,    &           ! ice/vapour fractionation coefficient
         ratio,     &           ! isotopic ratio

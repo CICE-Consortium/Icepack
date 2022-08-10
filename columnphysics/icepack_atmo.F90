@@ -134,7 +134,6 @@
          fac   , & ! interpolation factor
          al2   , & ! ln(z10   /zTrf)
          psix2 , & ! stability function at zTrf   (heat and water)
-         psimhs, & ! stable profile
          ssq   , & ! sat surface humidity     (kg/kg)
          qqq   , & ! for qsat, dqsfcdt
          TTT   , & ! for qsat, dqsfcdt
@@ -145,7 +144,6 @@
       real (kind=dbl_kind) :: &
          ustar , & ! ustar (m/s)
          ustar_prev , & ! ustar_prev (m/s)
-         vscl  , & ! vscl
          tstar , & ! tstar
          qstar , & ! qstar
          ratio , & ! ratio
@@ -545,7 +543,7 @@
                                       dkeel,    lfloe,           &
                                       dfloe,    ncat)
 
-      use icepack_tracers, only: tr_pond, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers, only: tr_pond
 
       integer (kind=int_kind), intent(in) :: &
          ncat

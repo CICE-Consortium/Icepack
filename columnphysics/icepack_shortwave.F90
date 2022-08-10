@@ -976,7 +976,6 @@
          hmx         , & ! maximum available snow infiltration equivalent depth
          dhs         , & ! local difference in snow depth on sea ice and pond ice
          spn         , & ! snow depth on refrozen pond (m)
-         rnslyr      , & ! 1/nslyr
          tmp             ! 0 or 1
 
       logical (kind=log_kind) :: &

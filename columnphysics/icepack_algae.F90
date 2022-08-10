@@ -1392,15 +1392,6 @@
          enddo        ! k
       enddo        ! m   
    
-770 format (I6,D16.6)        
-781 format (I6,I6,I6)
-790 format (I6,I6)
-791 format (f24.17)
-792 format (2D16.6)
-793 format (3D16.6)
-794 format (4D15.5)
-800 format (F10.4)
-
       end subroutine z_biogeochemistry
 
 !=======================================================================

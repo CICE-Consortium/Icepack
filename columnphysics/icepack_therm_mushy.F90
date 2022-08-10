@@ -3250,7 +3250,7 @@
          zqsn_snowice      , & ! snow enthalpy of snow thats becoming snowice (J m-2)
          freeboard_density , & ! negative of ice surface freeboard times the ocean density (kg m-2)
          ice_mass          , & ! mass of the ice (kg m-2)
-         snow_mass         , & ! mass of the ice (kg m-2)
+!        snow_mass         , & ! mass of the ice (kg m-2)
          rho_ocn           , & ! density of the ocean (kg m-3)
          ice_density       , & ! density of ice layer (kg m-3)
          hadded            , & ! thickness rate of water used from ocean (m/s)

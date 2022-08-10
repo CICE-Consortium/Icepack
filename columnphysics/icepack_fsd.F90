@@ -114,9 +114,6 @@
 
       real (kind=dbl_kind) :: test
 
-      real (kind=dbl_kind), dimension (nfsd+1) :: &
-         area_lims, area_lims_scaled
-
       real (kind=dbl_kind), dimension (0:nfsd) :: &
          floe_rad
                                               
@@ -923,9 +920,8 @@
                         ! units m^-2 s^-1, see documentation for details
 
       integer (kind=int_kind) :: &
-        nt          , & ! time step index
         n           , & ! thickness category index
-        k, kx, ky, i, j ! floe size category indices
+        k, i, j         ! floe size category indices
 
       real (kind=dbl_kind), dimension(nfsd,ncat) :: &
          afsdn          ! floe size distribution tracer

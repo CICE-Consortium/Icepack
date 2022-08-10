@@ -524,11 +524,10 @@
       do n = 1, ncat-1
          if (hicen(n) > c0) then
 #ifdef UNDEPRECATE_0LAYER
-            call permeability_phi(heat_capacity, nilyr, &
+            call permeability_phi(heat_capacity, nilyr, qicen(:,n), sicen(:,n), Tsfcn(n), Tf, perm)
 #else
-            call permeability_phi(nilyr, &
+            call permeability_phi(nilyr, qicen(:,n), sicen(:,n), perm)
 #endif
-                                  qicen(:,n), sicen(:,n), Tsfcn(n), Tf, perm)
             if (icepack_warnings_aborted(subname)) return
             if (perm > c0) permflag = 1
             drain = perm*apondn(n)*pressure_head*dt / (viscosity_dyn*hicen(n))
@@ -768,11 +767,10 @@
 ! determine the liquid fraction of brine in the ice and the permeability
 
 #ifdef UNDEPRECATE_0LAYER
-      subroutine permeability_phi(heat_capacity, nilyr, &
+      subroutine permeability_phi(heat_capacity, nilyr, qicen, sicen, Tsfcn, Tf, perm)
 #else
-      subroutine permeability_phi(nilyr, &
+      subroutine permeability_phi(nilyr, qicen, sicen, perm)
 #endif
-                                  qicen, sicen, Tsfcn, Tf, perm)
 
 #ifdef UNDEPRECATE_0LAYER
       logical (kind=log_kind), intent(in) :: &
@@ -786,9 +784,11 @@
          qicen, &  ! energy of melting for each ice layer (J/m2)
          sicen     ! salinity (ppt)   
     
+#ifdef UNDEPRECATE_0LAYER
       real (kind=dbl_kind), intent(in) :: &
          Tsfcn, &  ! sea ice surface skin temperature (degC)     
          Tf     ! ocean freezing temperature [= ice bottom temperature] (degC) 
+#endif
     
       real (kind=dbl_kind), intent(out) :: &
          perm      ! permeability
