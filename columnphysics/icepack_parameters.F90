@@ -22,7 +22,7 @@
       ! parameter constants
       !-----------------------------------------------------------------
 
-      integer (kind=int_kind), parameter, public :: & 
+      integer (kind=int_kind), parameter, public :: &
          nspint = 3                ! number of solar spectral intervals
 
       real (kind=dbl_kind), parameter, public :: &
@@ -68,7 +68,7 @@
       ! derived physical constants
       !    Lfresh = Lsub-Lvap     ,&! latent heat of melting of fresh ice (J/kg)
       !    cprho  = cp_ocn*rhow   ,&! for ocean mixed layer (J kg / K m^3)
-      !    Cp     = 0.5_dbl_kind*gravit*(rhow-rhoi)*rhoi/rhow ,&! proport const for PE 
+      !    Cp     = 0.5_dbl_kind*gravit*(rhow-rhoi)*rhoi/rhow ,&! proport const for PE
       !-----------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
@@ -78,7 +78,7 @@
          rad_to_deg = spval_const     ,&! conversion factor, radians to degrees
          Lfresh     = spval_const     ,&! latent heat of melting of fresh ice (J/kg)
          cprho      = spval_const     ,&! for ocean mixed layer (J kg / K m^3)
-         Cp         = spval_const       ! proport const for PE 
+         Cp         = spval_const       ! proport const for PE
 
       !-----------------------------------------------------------------
       ! Densities
@@ -194,12 +194,12 @@
          R_ice      = c0   ,&! sea ice tuning parameter; +1 > 1sig increase in albedo
          R_pnd      = c0   ,&! ponded ice tuning parameter; +1 > 1sig increase in albedo
          R_snw      = c1p5 ,&! snow tuning parameter; +1 > ~.01 change in broadband albedo
-         dT_mlt     = c1p5 ,&! change in temp for non-melt to melt snow grain 
+         dT_mlt     = c1p5 ,&! change in temp for non-melt to melt snow grain
                              ! radius change (C)
          rsnw_mlt   = 1500._dbl_kind,&! maximum melting snow grain radius (10^-6 m)
          kalg       = 0.60_dbl_kind   ! algae absorption coefficient for 0.5 m thick layer
                                       ! 0.5 m path of 75 mg Chl a / m2
-      ! weights for albedos 
+      ! weights for albedos
       ! 4 Jan 2007 BPB  Following are appropriate for complete cloud
       ! in a summer polar atmosphere with 1.5m bare sea ice surface:
       ! .636/.364 vis/nir with only 0.5% direct for each band.
@@ -218,7 +218,7 @@
 ! Parameters for dynamics, including ridging and strength
 !-----------------------------------------------------------------------
 
-      integer (kind=int_kind), public :: & ! defined in namelist 
+      integer (kind=int_kind), public :: & ! defined in namelist
          kstrength   = 1, & ! 0 for simple Hibler (1979) formulation
                             ! 1 for Rothrock (1975) pressure formulation
          krdg_partic = 1, & ! 0 for Thorndike et al. (1975) formulation
@@ -226,7 +226,7 @@
          krdg_redist = 1    ! 0 for Hibler (1980) formulation
                             ! 1 for exponential redistribution function
 
-      real (kind=dbl_kind), public :: &  
+      real (kind=dbl_kind), public :: &
          Cf       = 17._dbl_kind     ,&! ratio of ridging work to PE change in ridging
          Pstar    = 2.75e4_dbl_kind  ,&! constant in Hibler strength formula
                                        ! (kstrength = 0)
@@ -317,7 +317,7 @@
          frzpnd    = 'cesm'           ! pond refreezing parameterization
 
       real (kind=dbl_kind), public :: &
-         dpscale   = c1, &            ! alter e-folding time scale for flushing 
+         dpscale   = c1, &            ! alter e-folding time scale for flushing
          rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
          rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
          pndaspect = 0.8_dbl_kind, &  ! ratio of pond depth to area fraction
@@ -369,7 +369,7 @@
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
-      character(char_len), public :: &          
+      character(char_len), public :: &
       ! skl biology parameters
          bgc_flux_type = 'Jin2006'  ! type of ocean-ice piston velocity (or 'constant')
 
@@ -380,7 +380,7 @@
          dEdd_algae = .false.,    & ! if .true., algal absorption of shortwave is computed in the
          skl_bgc    = .false.       ! if true, solve skeletal biochemistry
 
-      real (kind=dbl_kind), public :: & 
+      real (kind=dbl_kind), public :: &
          phi_snow     = p5              , & ! snow porosity
          grid_o       = c5              , & ! for bottom flux
          initbio_frac = c1              , & ! fraction of ocean trcr concentration in bio trcrs
@@ -420,7 +420,7 @@
       logical (kind=log_kind), public :: &
          sw_redist     = .false.
 
-      real (kind=dbl_kind), public :: & 
+      real (kind=dbl_kind), public :: &
          sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
          sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
 
@@ -551,7 +551,7 @@
       character (len=*), intent(in), optional :: &
          conduct_in, &      ! 'MU71' or 'bubbly'
          fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
-        
+
       logical (kind=log_kind), intent(in), optional :: &
 #ifdef UNDEPRECATE_0LAYER
          heat_capacity_in, &! if true, ice has nonzero heat capacity
@@ -565,7 +565,7 @@
       real (kind=dbl_kind), intent(in), optional :: &
          dts_b_in,   &      ! zsalinity timestep
          ustar_min_in       ! minimum friction velocity for ice-ocean heat flux
- 
+
       ! mushy thermo
       real(kind=dbl_kind), intent(in), optional :: &
          a_rapid_mode_in      , & ! channel radius for rapid drainage mode (m)
@@ -574,7 +574,7 @@
          dSdt_slow_mode_in    , & ! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode_in   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_in           ! liquid fraction of congelation ice
-        
+
         character(len=*), intent(in), optional :: &
              tfrz_option_in              ! form of ocean freezing temperature
                                          ! 'minus1p8' = -1.8 C
@@ -592,7 +592,7 @@
          stefan_boltzmann_in, & !  W/m^2/K^4
          kappav_in,     & ! vis extnctn coef in ice, wvlngth<700nm (1/m)
          hi_ssl_in,     & ! ice surface scattering layer thickness (m)
-         hs_ssl_in,     & ! visible, direct 
+         hs_ssl_in,     & ! visible, direct
          awtvdr_in,     & ! visible, direct  ! for history and
          awtidr_in,     & ! near IR, direct  ! diagnostics
          awtvdf_in,     & ! visible, diffuse
@@ -610,7 +610,7 @@
          albsnowv_in , & ! cold snow albedo, visible
          albsnowi_in , & ! cold snow albedo, near IR
          ahmax_in        ! thickness above which ice albedo is constant (m)
-        
+
       ! dEdd tuning parameters, set in namelist
       real (kind=dbl_kind), intent(in), optional :: &
          R_ice_in    , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
@@ -624,7 +624,7 @@
       logical (kind=log_kind), intent(in), optional :: &
          sw_redist_in    ! redistribute shortwave
 
-      real (kind=dbl_kind), intent(in), optional :: & 
+      real (kind=dbl_kind), intent(in), optional :: &
          sw_frac_in  , & ! Fraction of internal shortwave moved to surface
          sw_dtemp_in     ! temperature difference from melting
 
@@ -633,26 +633,26 @@
 !-----------------------------------------------------------------------
 
       real(kind=dbl_kind), intent(in), optional :: &
-         Cf_in,         & ! ratio of ridging work to PE change in ridging 
-         Pstar_in,      & ! constant in Hibler strength formula 
-         Cstar_in,      & ! constant in Hibler strength formula 
+         Cf_in,         & ! ratio of ridging work to PE change in ridging
+         Pstar_in,      & ! constant in Hibler strength formula
+         Cstar_in,      & ! constant in Hibler strength formula
          dragio_in,     & ! ice-ocn drag coefficient
          thickness_ocn_layer1_in, & ! thickness of first ocean level (m)
          iceruf_ocn_in, & ! under-ice roughness (m)
          gravit_in,     & ! gravitational acceleration (m/s^2)
          iceruf_in        ! ice surface roughness (m)
 
-      integer (kind=int_kind), intent(in), optional :: & ! defined in namelist 
-         kstrength_in  , & ! 0 for simple Hibler (1979) formulation 
-                           ! 1 for Rothrock (1975) pressure formulation 
-         krdg_partic_in, & ! 0 for Thorndike et al. (1975) formulation 
-                           ! 1 for exponential participation function 
-         krdg_redist_in    ! 0 for Hibler (1980) formulation 
-                           ! 1 for exponential redistribution function 
- 
-      real (kind=dbl_kind), intent(in), optional :: &  
-         mu_rdg_in         ! gives e-folding scale of ridged ice (m^.5) 
-                           ! (krdg_redist = 1) 
+      integer (kind=int_kind), intent(in), optional :: & ! defined in namelist
+         kstrength_in  , & ! 0 for simple Hibler (1979) formulation
+                           ! 1 for Rothrock (1975) pressure formulation
+         krdg_partic_in, & ! 0 for Thorndike et al. (1975) formulation
+                           ! 1 for exponential participation function
+         krdg_redist_in    ! 0 for Hibler (1980) formulation
+                           ! 1 for exponential redistribution function
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         mu_rdg_in         ! gives e-folding scale of ridged ice (m^.5)
+                           ! (krdg_redist = 1)
 
       logical (kind=log_kind), intent(in), optional :: &
          calc_dragio_in    ! if true, calculate dragio from iceruf_ocn and thickness_ocn_layer1
@@ -661,7 +661,7 @@
 ! Parameters for atmosphere
 !-----------------------------------------------------------------------
 
-      real (kind=dbl_kind), intent(in), optional :: &  
+      real (kind=dbl_kind), intent(in), optional :: &
          cp_air_in,     & ! specific heat of air (J/kg/K)
          cp_wv_in,      & ! specific heat of water vapor (J/kg/K)
          zvir_in,       & ! rh2o/rair - 1.0
@@ -673,15 +673,15 @@
 
       character (len=*), intent(in), optional :: &
          atmbndy_in   ! atmo boundary method, 'similarity', 'constant' or 'mixed'
-        
+
       logical (kind=log_kind), intent(in), optional :: &
          calc_strair_in,     & ! if true, calculate wind stress components
          formdrag_in,        & ! if true, calculate form drag
          highfreq_in           ! if true, use high frequency coupling
-        
+
       integer (kind=int_kind), intent(in), optional :: &
          natmiter_in        ! number of iterations for boundary layer calculations
-        
+
       ! Flux convergence tolerance
       real (kind=dbl_kind), intent(in), optional :: atmiter_conv_in
 
@@ -712,15 +712,15 @@
          wave_spec_in       ! if true, use wave forcing
 
       character (len=*), intent(in), optional :: &
-         wave_spec_type_in  ! type of wave spectrum forcing 
+         wave_spec_type_in  ! type of wave spectrum forcing
 
 !-----------------------------------------------------------------------
 ! Parameters for biogeochemistry
 !-----------------------------------------------------------------------
 
-     character (len=*), intent(in), optional :: &     
-        bgc_flux_type_in    ! type of ocean-ice piston velocity 
-                            ! 'constant', 'Jin2006'      
+     character (len=*), intent(in), optional :: &
+        bgc_flux_type_in    ! type of ocean-ice piston velocity
+                            ! 'constant', 'Jin2006'
 
       logical (kind=log_kind), intent(in), optional :: &
          z_tracers_in,      & ! if .true., bgc or aerosol tracers are vertically resolved
@@ -729,18 +729,18 @@
          dEdd_algae_in,     & ! if .true., algal absorptionof Shortwave is computed in the
          modal_aero_in,     & ! if .true., use modal aerosol formulation in shortwave
          conserv_check_in     ! if .true., run conservation checks and abort if checks fail
-        
-      logical (kind=log_kind), intent(in), optional :: & 
+
+      logical (kind=log_kind), intent(in), optional :: &
          skl_bgc_in,        &   ! if true, solve skeletal biochemistry
          solve_zsal_in          ! if true, update salinity profile from solve_S_dt
 
-      real (kind=dbl_kind), intent(in), optional :: & 
-         grid_o_in      , & ! for bottom flux        
+      real (kind=dbl_kind), intent(in), optional :: &
+         grid_o_in      , & ! for bottom flux
          l_sk_in        , & ! characteristic diffusive scale (zsalinity) (m)
-         initbio_frac_in, & ! fraction of ocean tracer concentration used to initialize tracer 
-         phi_snow_in        ! snow porosity at the ice/snow interface 
+         initbio_frac_in, & ! fraction of ocean tracer concentration used to initialize tracer
+         phi_snow_in        ! snow porosity at the ice/snow interface
 
-      real (kind=dbl_kind), intent(in), optional :: & 
+      real (kind=dbl_kind), intent(in), optional :: &
          grid_oS_in     , & ! for bottom flux (zsalinity)
          l_skS_in           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
       real (kind=dbl_kind), intent(in), optional :: &
@@ -752,15 +752,15 @@
          fsal_in             , & ! Salinity limitation (ppt)
          op_dep_min_in       , & ! Light attenuates for optical depths exceeding min
          fr_graze_s_in       , & ! fraction of grazing spilled or slopped
-         fr_graze_e_in       , & ! fraction of assimilation excreted 
+         fr_graze_e_in       , & ! fraction of assimilation excreted
          fr_mort2min_in      , & ! fractionation of mortality to Am
-         fr_dFe_in           , & ! fraction of remineralized nitrogen 
+         fr_dFe_in           , & ! fraction of remineralized nitrogen
                                     ! (in units of algal iron)
-         k_nitrif_in         , & ! nitrification rate (1/day)            
+         k_nitrif_in         , & ! nitrification rate (1/day)
          t_iron_conv_in      , & ! desorption loss pFe to dFe (day)
-         max_loss_in         , & ! restrict uptake to % of remaining value 
-         max_dfe_doc1_in     , & ! max ratio of dFe to saccharides in the ice 
-                                    ! (nM Fe/muM C)    
+         max_loss_in         , & ! restrict uptake to % of remaining value
+         max_dfe_doc1_in     , & ! max ratio of dFe to saccharides in the ice
+                                    ! (nM Fe/muM C)
          fr_resp_s_in        , & ! DMSPd fraction of respiration loss as DMSPd
          y_sk_DMS_in         , & ! fraction conversion given high yield
          t_sk_conv_in        , & ! Stefels conversion time (d)
@@ -777,18 +777,18 @@
 
       real (kind=dbl_kind), intent(in), optional :: &
          hs0_in             ! snow depth for transition to bare sea ice (m)
-        
+
       ! level-ice ponds
       character (len=*), intent(in), optional :: &
          frzpnd_in          ! pond refreezing parameterization
-        
+
       real (kind=dbl_kind), intent(in), optional :: &
-         dpscale_in, &      ! alter e-folding time scale for flushing 
+         dpscale_in, &      ! alter e-folding time scale for flushing
          rfracmin_in, &     ! minimum retained fraction of meltwater
          rfracmax_in, &     ! maximum retained fraction of meltwater
          pndaspect_in, &    ! ratio of pond depth to pond fraction
          hs1_in             ! tapering parameter for snow on pond ice
-        
+
       ! topo ponds
       real (kind=dbl_kind), intent(in), optional :: &
          hp1_in             ! critical parameter for pond ice thickness
@@ -1194,7 +1194,7 @@
          rad_to_deg_out, & ! conversion factor from radians to degrees
          Lfresh_out,     & ! latent heat of melting of fresh ice (J/kg)
          cprho_out,      & ! for ocean mixed layer (J kg / K m^3)
-         Cp_out            ! proport const for PE 
+         Cp_out            ! proport const for PE
 
       !-----------------------------------------------------------------
       ! densities
@@ -1251,7 +1251,7 @@
       character (len=*), intent(out), optional :: &
          conduct_out, &     ! 'MU71' or 'bubbly'
          fbot_xfer_type_out ! transfer coefficient type for ice-ocean heat flux
-        
+
       logical (kind=log_kind), intent(out), optional :: &
 #ifdef UNDEPRECATE_0LAYER
          heat_capacity_out,&! if true, ice has nonzero heat capacity
@@ -1265,7 +1265,7 @@
       real (kind=dbl_kind), intent(out), optional :: &
          dts_b_out,   &      ! zsalinity timestep
          ustar_min_out       ! minimum friction velocity for ice-ocean heat flux
- 
+
       ! mushy thermo
       real(kind=dbl_kind), intent(out), optional :: &
          a_rapid_mode_out      , & ! channel radius for rapid drainage mode (m)
@@ -1274,7 +1274,7 @@
          dSdt_slow_mode_out    , & ! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode_out   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_out           ! liquid fraction of congelation ice
-        
+
       character(len=*), intent(out), optional :: &
          tfrz_option_out              ! form of ocean freezing temperature
                                       ! 'minus1p8' = -1.8 C
@@ -1292,7 +1292,7 @@
          stefan_boltzmann_out, & !  W/m^2/K^4
          kappav_out,     & ! vis extnctn coef in ice, wvlngth<700nm (1/m)
          hi_ssl_out,     & ! ice surface scattering layer thickness (m)
-         hs_ssl_out,     & ! visible, direct 
+         hs_ssl_out,     & ! visible, direct
          awtvdr_out,     & ! visible, direct  ! for history and
          awtidr_out,     & ! near IR, direct  ! diagnostics
          awtvdf_out,     & ! visible, diffuse
@@ -1310,13 +1310,13 @@
          albsnowv_out , & ! cold snow albedo, visible
          albsnowi_out , & ! cold snow albedo, near IR
          ahmax_out        ! thickness above which ice albedo is constant (m)
-        
+
       ! dEdd tuning parameters, set in namelist
       real (kind=dbl_kind), intent(out), optional :: &
          R_ice_out    , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
          R_pnd_out    , & ! ponded ice tuning parameter; +1 > 1sig increase in albedo
          R_snw_out    , & ! snow tuning parameter; +1 > ~.01 change in broadband albedo
-         dT_mlt_out   , & ! change in temp for non-melt to melt snow grain 
+         dT_mlt_out   , & ! change in temp for non-melt to melt snow grain
                           ! radius change (C)
          rsnw_mlt_out , & ! maximum melting snow grain radius (10^-6 m)
          kalg_out         ! algae absorption coefficient for 0.5 m thick layer
@@ -1324,7 +1324,7 @@
       logical (kind=log_kind), intent(out), optional :: &
          sw_redist_out    ! redistribute shortwave
 
-      real (kind=dbl_kind), intent(out), optional :: & 
+      real (kind=dbl_kind), intent(out), optional :: &
          sw_frac_out  , & ! Fraction of internal shortwave moved to surface
          sw_dtemp_out     ! temperature difference from melting
 
@@ -1333,26 +1333,26 @@
 !-----------------------------------------------------------------------
 
       real(kind=dbl_kind), intent(out), optional :: &
-         Cf_out,         & ! ratio of ridging work to PE change in ridging 
-         Pstar_out,      & ! constant in Hibler strength formula 
-         Cstar_out,      & ! constant in Hibler strength formula 
+         Cf_out,         & ! ratio of ridging work to PE change in ridging
+         Pstar_out,      & ! constant in Hibler strength formula
+         Cstar_out,      & ! constant in Hibler strength formula
          dragio_out,     & ! ice-ocn drag coefficient
          thickness_ocn_layer1_out, & ! thickness of first ocean level (m)
          iceruf_ocn_out, & ! under-ice roughness (m)
          gravit_out,     & ! gravitational acceleration (m/s^2)
          iceruf_out        ! ice surface roughness (m)
 
-      integer (kind=int_kind), intent(out), optional :: & ! defined in namelist 
-         kstrength_out  , & ! 0 for simple Hibler (1979) formulation 
-                            ! 1 for Rothrock (1975) pressure formulation 
-         krdg_partic_out, & ! 0 for Thorndike et al. (1975) formulation 
-                            ! 1 for exponential participation function 
-         krdg_redist_out    ! 0 for Hibler (1980) formulation 
-                            ! 1 for exponential redistribution function 
- 
-      real (kind=dbl_kind), intent(out), optional :: &  
-         mu_rdg_out         ! gives e-folding scale of ridged ice (m^.5) 
-                            ! (krdg_redist = 1) 
+      integer (kind=int_kind), intent(out), optional :: & ! defined in namelist
+         kstrength_out  , & ! 0 for simple Hibler (1979) formulation
+                            ! 1 for Rothrock (1975) pressure formulation
+         krdg_partic_out, & ! 0 for Thorndike et al. (1975) formulation
+                            ! 1 for exponential participation function
+         krdg_redist_out    ! 0 for Hibler (1980) formulation
+                            ! 1 for exponential redistribution function
+
+      real (kind=dbl_kind), intent(out), optional :: &
+         mu_rdg_out         ! gives e-folding scale of ridged ice (m^.5)
+                            ! (krdg_redist = 1)
 
       logical (kind=log_kind), intent(out), optional :: &
          calc_dragio_out    ! if true, compute dragio from iceruf_ocn and thickness_ocn_layer1
@@ -1361,7 +1361,7 @@
 ! Parameters for atmosphere
 !-----------------------------------------------------------------------
 
-      real (kind=dbl_kind), intent(out), optional :: &  
+      real (kind=dbl_kind), intent(out), optional :: &
          cp_air_out,     & ! specific heat of air (J/kg/K)
          cp_wv_out,      & ! specific heat of water vapor (J/kg/K)
          zvir_out,       & ! rh2o/rair - 1.0
@@ -1373,15 +1373,15 @@
 
       character (len=*), intent(out), optional :: &
          atmbndy_out   ! atmo boundary method, 'similarity', 'constant' or 'mixed'
-        
+
       logical (kind=log_kind), intent(out), optional :: &
          calc_strair_out,     & ! if true, calculate wind stress components
          formdrag_out,        & ! if true, calculate form drag
          highfreq_out           ! if true, use high frequency coupling
-        
+
       integer (kind=int_kind), intent(out), optional :: &
          natmiter_out        ! number of iterations for boundary layer calculations
-        
+
       ! Flux convergence tolerance
       real (kind=dbl_kind), intent(out), optional :: atmiter_conv_out
 
@@ -1420,7 +1420,7 @@
 
       character (len=*), intent(out), optional :: &
          bgc_flux_type_out    ! type of ocean-ice piston velocity
-                              ! 'constant', 'Jin2006'      
+                              ! 'constant', 'Jin2006'
 
       logical (kind=log_kind), intent(out), optional :: &
          z_tracers_out,      & ! if .true., bgc or aerosol tracers are vertically resolved
@@ -1429,18 +1429,18 @@
          dEdd_algae_out,     & ! if .true., algal absorptionof Shortwave is computed in the
          modal_aero_out,     & ! if .true., use modal aerosol formulation in shortwave
          conserv_check_out     ! if .true., run conservation checks and abort if checks fail
-        
-      logical (kind=log_kind), intent(out), optional :: & 
+
+      logical (kind=log_kind), intent(out), optional :: &
          skl_bgc_out,        &   ! if true, solve skeletal biochemistry
          solve_zsal_out          ! if true, update salinity profile from solve_S_dt
 
-      real (kind=dbl_kind), intent(out), optional :: & 
-         grid_o_out      , & ! for bottom flux        
+      real (kind=dbl_kind), intent(out), optional :: &
+         grid_o_out      , & ! for bottom flux
          l_sk_out        , & ! characteristic diffusive scale (zsalinity) (m)
-         initbio_frac_out, & ! fraction of ocean tracer concentration used to initialize tracer 
-         phi_snow_out        ! snow porosity at the ice/snow interface 
+         initbio_frac_out, & ! fraction of ocean tracer concentration used to initialize tracer
+         phi_snow_out        ! snow porosity at the ice/snow interface
 
-      real (kind=dbl_kind), intent(out), optional :: & 
+      real (kind=dbl_kind), intent(out), optional :: &
          grid_oS_out     , & ! for bottom flux (zsalinity)
          l_skS_out           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
       real (kind=dbl_kind), intent(out), optional :: &
@@ -1452,15 +1452,15 @@
          fsal_out             , & ! Salinity limitation (ppt)
          op_dep_min_out       , & ! Light attenuates for optical depths exceeding min
          fr_graze_s_out       , & ! fraction of grazing spilled or slopped
-         fr_graze_e_out       , & ! fraction of assimilation excreted 
+         fr_graze_e_out       , & ! fraction of assimilation excreted
          fr_mort2min_out      , & ! fractionation of mortality to Am
-         fr_dFe_out           , & ! fraction of remineralized nitrogen 
+         fr_dFe_out           , & ! fraction of remineralized nitrogen
                                     ! (in units of algal iron)
-         k_nitrif_out         , & ! nitrification rate (1/day)            
+         k_nitrif_out         , & ! nitrification rate (1/day)
          t_iron_conv_out      , & ! desorption loss pFe to dFe (day)
-         max_loss_out         , & ! restrict uptake to % of remaining value 
-         max_dfe_doc1_out     , & ! max ratio of dFe to saccharides in the ice 
-                                    ! (nM Fe/muM C)    
+         max_loss_out         , & ! restrict uptake to % of remaining value
+         max_dfe_doc1_out     , & ! max ratio of dFe to saccharides in the ice
+                                    ! (nM Fe/muM C)
          fr_resp_s_out        , & ! DMSPd fraction of respiration loss as DMSPd
          y_sk_DMS_out         , & ! fraction conversion given high yield
          t_sk_conv_out        , & ! Stefels conversion time (d)
@@ -1477,18 +1477,18 @@
 
       real (kind=dbl_kind), intent(out), optional :: &
          hs0_out             ! snow depth for transition to bare sea ice (m)
-        
+
       ! level-ice ponds
       character (len=*), intent(out), optional :: &
          frzpnd_out          ! pond refreezing parameterization
-        
+
       real (kind=dbl_kind), intent(out), optional :: &
-         dpscale_out, &      ! alter e-folding time scale for flushing 
+         dpscale_out, &      ! alter e-folding time scale for flushing
          rfracmin_out, &     ! minimum retained fraction of meltwater
          rfracmax_out, &     ! maximum retained fraction of meltwater
          pndaspect_out, &    ! ratio of pond depth to pond fraction
          hs1_out             ! tapering parameter for snow on pond ice
-        
+
       ! topo ponds
       real (kind=dbl_kind), intent(out), optional :: &
          hp1_out             ! critical parameter for pond ice thickness

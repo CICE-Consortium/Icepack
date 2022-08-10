@@ -14,7 +14,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_zbgc_shared, only: kscavz 
+      use icepack_zbgc_shared, only: kscavz
 
       implicit none
 
@@ -59,7 +59,7 @@
          aicen,    & ! ice area fraction
          aice_old, & ! values prior to thermodynamic changes
          vice_old, &
-         vsno_old 
+         vsno_old
 
       real (kind=dbl_kind), dimension(:), &
          intent(in) :: &
@@ -101,9 +101,9 @@
 
       ! echmod:  this assumes max_aero=6
       data kscav   / .03_dbl_kind, .20_dbl_kind, .02_dbl_kind, &
-                     .02_dbl_kind, .01_dbl_kind, .01_dbl_kind / 
+                     .02_dbl_kind, .01_dbl_kind, .01_dbl_kind /
       data kscavsi / .03_dbl_kind, .20_dbl_kind, .02_dbl_kind, &
-                     .02_dbl_kind, .01_dbl_kind, .01_dbl_kind / 
+                     .02_dbl_kind, .01_dbl_kind, .01_dbl_kind /
 
      character(len=*),parameter :: subname='(update_aerosol)'
 
@@ -111,17 +111,17 @@
     ! initialize
     !-------------------------------------------------------------------
       focn_old(:) = faero_ocn(:)
-      
+
       hs_old    = vsno_old/aice_old
       hi_old    = vice_old/aice_old
       hslyr_old = hs_old/real(nslyr,kind=dbl_kind)
       hilyr_old = hi_old/real(nilyr,kind=dbl_kind)
-      
+
       dzssl  = min(hslyr_old/c2, hs_ssl)
       dzssli = min(hilyr_old/c2, hi_ssl)
       dzint  = hs_old - dzssl
       dzinti = hi_old - dzssli
-      
+
       if (aicen > c0) then
          ar = c1/aicen
       else ! ice disappeared during time step
@@ -146,7 +146,7 @@
          aerotot0(k) = aerosno(k,2) + aerosno(k,1) &
                      + aeroice(k,2) + aeroice(k,1)
       enddo
-      
+
     !-------------------------------------------------------------------
     ! evaporation
     !-------------------------------------------------------------------
@@ -212,7 +212,7 @@
             aeroice(k,2) = aeroice(k,2) - sloss2
             faero_ocn(k) = faero_ocn(k) + (sloss1+sloss2)/dt
          enddo
-         
+
          dzinti = dzinti + min(dzssli+dhi_meltt, c0)
          dzssli = max(dzssli+dhi_meltt, c0)
          if (dzssli <= puny) then   ! ssl ice melts away
@@ -251,7 +251,7 @@
          enddo
 
          dzssli = dzssli + min(dzinti+dhi_meltb, c0)
-         dzinti = max(dzinti+dhi_meltb, c0)           
+         dzinti = max(dzinti+dhi_meltb, c0)
       endif
 
     !-------------------------------------------------------------------
@@ -292,7 +292,7 @@
       else
          hs = c0
       endif
-      if (hs > hs_min) then    ! should this really be hs_min or 0? 
+      if (hs > hs_min) then    ! should this really be hs_min or 0?
          ! should use same hs_min value as in radiation
          do k=1,n_aero
             aerosno(k,1) = aerosno(k,1) &
@@ -333,7 +333,7 @@
             aeroice(k,1) = c0
          enddo
       endif
-      
+
       if (dzinti <= puny) then  ! nothing in Ice INT
          do k = 1, n_aero
             faero_ocn(k) = faero_ocn(k) &
@@ -341,7 +341,7 @@
             aeroice(k,:)=c0
          enddo
       endif
-      
+
       hslyr      = hs/real(nslyr,kind=dbl_kind)
       hilyr      = hi/real(nilyr,kind=dbl_kind)
       dzssl_new  = min(hslyr/c2, hs_ssl)
@@ -356,7 +356,7 @@
             dznew = max(dzssl_new-dzssl, c0)
             if (dzint > puny) &
                  sloss1 = sloss1 + aerosno(k,2)*dznew/dzint
-            aerosno(k,1) = aerosno(k,1) + sloss1 
+            aerosno(k,1) = aerosno(k,1) + sloss1
             aerosno(k,2) = aerosno(k,2) - sloss1
          enddo
       else
@@ -364,24 +364,24 @@
                       + aerosno(:,1) + aerosno(:,2)
          aerosno(:,:) = c0
       endif
-      
+
       if (vicen > puny) then ! may want a limit on hi instead?
          do k = 1, n_aero
             sloss2 = c0
             dznew = min(dzssli_new-dzssli, c0)
-            if (dzssli > puny) & 
+            if (dzssli > puny) &
                  sloss2 = dznew*aeroice(k,1)/dzssli
             dznew = max(dzssli_new-dzssli, c0)
-            if (dzinti > puny) & 
+            if (dzinti > puny) &
                  sloss2 = sloss2 + aeroice(k,2)*dznew/dzinti
-            aeroice(k,1) = aeroice(k,1) + sloss2 
+            aeroice(k,1) = aeroice(k,1) + sloss2
             aeroice(k,2) = aeroice(k,2) - sloss2
          enddo
       else
          faero_ocn(:) = faero_ocn(:) + (aeroice(:,1)+aeroice(:,2))/dt
          aeroice(:,:) = c0
       endif
-      
+
     !-------------------------------------------------------------------
     ! check conservation
     !-------------------------------------------------------------------
@@ -406,7 +406,7 @@
     ! check for negative values
     !-------------------------------------------------------------------
 
-!echmod:  note that this does not test or fix all aero tracers         
+!echmod:  note that this does not test or fix all aero tracers
       if (aeroice(1,1) < -puny .or. &
           aeroice(1,2) < -puny .or. &
           aerosno(1,1) < -puny .or. &
@@ -449,7 +449,7 @@
          ntrcr                 ! number of tracers
 
       integer (kind=int_kind), dimension (nbtrcr), intent(in) :: &
-         bio_index       
+         bio_index
 
       real (kind=dbl_kind), intent(in) :: &
          dt                    ! time step
@@ -466,7 +466,7 @@
          aicen,    & ! ice area fraction
          aice_old, & ! values prior to thermodynamic changes
          vice_old, &
-         vsno_old 
+         vsno_old
 
       real (kind=dbl_kind),dimension(nbtrcr), intent(inout) :: &
          zbgc_snow, & ! aerosol contribution from snow to ice
@@ -547,21 +547,21 @@
          do k=1,nbtrcr
             flux_bio(k) = flux_bio(k) +  &
                          (trcrn(bio_index(k)+ nblyr+1)*dzssl+ &
-                          trcrn(bio_index(k)+ nblyr+2)*dzint)/dt  
+                          trcrn(bio_index(k)+ nblyr+2)*dzint)/dt
             trcrn(bio_index(k) + nblyr+1) = c0
             trcrn(bio_index(k) + nblyr+2) = c0
             zbgc_atm(k) = zbgc_atm(k) &
-                                + flux_bio_atm(k)*dt 
+                                + flux_bio_atm(k)*dt
          enddo
 
-      else 
-         
+      else
+
          do k=1,nbtrcr
             flux_bio_o(k) = flux_bio(k)
             aerosno (k,1) = trcrn(bio_index(k)+ nblyr+1) * dzssl
             aerosno (k,2) = trcrn(bio_index(k)+ nblyr+2) * dzint
             aerosno0(k,:) = aerosno(k,:)
-            aerotot0(k)   = aerosno(k,2) + aerosno(k,1) 
+            aerotot0(k)   = aerosno(k,2) + aerosno(k,1)
          enddo
 
     !-------------------------------------------------------------------
@@ -586,7 +586,7 @@
                                     *max(-dhs_melts-dzssl,c0)/dzint
                aerosno(k,2) = aerosno(k,2) - sloss2
                zbgc_snow(k) = zbgc_snow(k) + (sloss1+sloss2)
-            enddo  ! 
+            enddo  !
 
             ! update snow thickness
             dzint=dzint+min(dzssl+dhs_melts, c0)
@@ -608,7 +608,7 @@
     !-------------------------------------------------------------------
     ! snowfall
     !-------------------------------------------------------------------
-         if (fsnow > c0) dzssl = dzssl + fsnow/rhos*dt 
+         if (fsnow > c0) dzssl = dzssl + fsnow/rhos*dt
 
     !-------------------------------------------------------------------
     ! snow-ice formation
@@ -640,13 +640,13 @@
          else
             hs = c0
          endif
-         if (hs >= hs_min)  then !should this really be hs_min or 0? 
+         if (hs >= hs_min)  then !should this really be hs_min or 0?
                                   ! should use same hs_min value as in radiation
             do k=1,nbtrcr
                aerosno(k,1) = aerosno(k,1) &
                                 + flux_bio_atm(k)*dt
             enddo
-         else  
+         else
             do k=1,nbtrcr
                zbgc_atm(k) = zbgc_atm(k) &
                                 + flux_bio_atm(k)*dt
@@ -678,7 +678,7 @@
          dzssl_new  = min(hslyr/c2, hs_ssl)
          dzint_new  = hs - dzssl_new
 
-         if (hs > hs_min) then !should this really be hs_min or 0? 
+         if (hs > hs_min) then !should this really be hs_min or 0?
             do k = 1, nbtrcr
                dznew = min(dzssl_new-dzssl, c0)
                sloss1 = c0
@@ -687,7 +687,7 @@
                   dznew = max(dzssl_new-dzssl, c0)
                if (dzint > puny) &
                   sloss1 = sloss1 + aerosno(k,2)*dznew/dzint
-               aerosno(k,1) = aerosno(k,1) + sloss1 
+               aerosno(k,1) = aerosno(k,1) + sloss1
                aerosno(k,2) = aerosno(k,2) - sloss1
             enddo
          else
@@ -701,11 +701,11 @@
     !-------------------------------------------------------------------
          do k = 1, nbtrcr
             aerotot(k) = aerosno(k,2) + aerosno(k,1) &
-                       + zbgc_snow(k) + zbgc_atm(k) 
+                       + zbgc_snow(k) + zbgc_atm(k)
             aero_cons(k) = aerotot(k)-aerotot0(k) &
-                          - (    flux_bio_atm(k) & 
+                          - (    flux_bio_atm(k) &
                           - (flux_bio(k)-flux_bio_o(k))) * dt
-            if (aero_cons(k)  > puny .or. zbgc_snow(k) + zbgc_atm(k) < c0) then             
+            if (aero_cons(k)  > puny .or. zbgc_snow(k) + zbgc_atm(k) < c0) then
                write(warnstr,*) subname, 'Conservation failure: aerosols in snow'
                call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'test aerosol 1'
@@ -735,7 +735,7 @@
     !-------------------------------------------------------------------
          if (vsnon > puny) then
          do k = 1,nbtrcr
-             trcrn(bio_index(k)+nblyr+1)=aerosno(k,1)/dzssl_new 
+             trcrn(bio_index(k)+nblyr+1)=aerosno(k,1)/dzssl_new
              trcrn(bio_index(k)+nblyr+2)=aerosno(k,2)/dzint_new
          enddo
          else

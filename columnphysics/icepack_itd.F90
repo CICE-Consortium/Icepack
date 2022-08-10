@@ -19,7 +19,7 @@
 !
 ! 2004 WHL: Added multiple snow layers, block structure, cleanup_itd
 ! 2006 ECH: Added WMO standard ice thickness categories as kcatbound=2
-!           Streamlined for efficiency 
+!           Streamlined for efficiency
 !           Converted to free source form (F90)
 ! 2014 ECH: Converted to column package
 
@@ -59,7 +59,7 @@
 
 !=======================================================================
 
-! Aggregate ice area (but not other state variables) over thickness 
+! Aggregate ice area (but not other state variables) over thickness
 ! categories.
 !
 ! authors: William H. Lipscomb, LANL
@@ -387,7 +387,7 @@
          trcrn     ! ice tracers
 
       ! NOTE: Third index of donor, daice, dvice should be ncat-1,
-      !       except that compilers would have trouble when ncat = 1 
+      !       except that compilers would have trouble when ncat = 1
       integer (kind=int_kind), dimension(:), intent(in) :: &
          donor             ! donor category index
 
@@ -407,7 +407,7 @@
          itl               ! loop index
 
       real (kind=dbl_kind), dimension(ntrcr,ncat) :: &
-         atrcrn            ! aicen*trcrn   
+         atrcrn            ! aicen*trcrn
 
       real (kind=dbl_kind) :: &
          dvsnow        , & ! snow volume transferred
@@ -476,9 +476,9 @@
                      daice_negative = .true.
                   endif
                endif
-         
+
                if (dvice(n) < c0) then
-                  if (dvice(n) > -puny*vicen(nd)) then   
+                  if (dvice(n) > -puny*vicen(nd)) then
                      daice(n) = c0 ! shift no ice
                      dvice(n) = c0
                   else
@@ -493,7 +493,7 @@
                   else
                      daice_greater_aicen = .true.
                   endif
-               endif    
+               endif
 
                if (dvice(n) > vicen(nd)*(c1-puny)) then
                   if (dvice(n) < vicen(nd)*(c1+puny)) then
@@ -638,7 +638,7 @@
 
                atrcrn(it,nd) = atrcrn(it,nd) - datrcr
                atrcrn(it,nr) = atrcrn(it,nr) + datrcr
-            
+
             enddo ! ntrcr
          endif    ! daice
       enddo       ! boundaries, 1 to ncat-1
@@ -650,7 +650,7 @@
       do n = 1, ncat
 
          if (aicen(n) > puny) then
-            hicen(n) = vicen (n) / aicen(n)                
+            hicen(n) = vicen (n) / aicen(n)
          else
             hicen(n) = c0
          endif
@@ -746,10 +746,10 @@
 !=======================================================================
 
 ! Cleanup subroutine that rebins thickness categories if necessary,
-!  eliminates very small ice areas while conserving mass and energy, 
-!  aggregates state variables, and does a boundary call.  
+!  eliminates very small ice areas while conserving mass and energy,
+!  aggregates state variables, and does a boundary call.
 ! It is a good idea to call this subroutine after the thermodynamics
-!  (thermo_vertical/thermo_itd) and again after the dynamics 
+!  (thermo_vertical/thermo_itd) and again after the dynamics
 !  (evp/transport/ridging).
 !
 ! author: William H. Lipscomb, LANL
@@ -759,13 +759,13 @@
                               ncat,        hin_max,    &
                               aicen,       trcrn,      &
                               vicen,       vsnon,      &
-                              aice0,       aice,       &   
+                              aice0,       aice,       &
                               n_aero,                  &
                               nbtrcr,      nblyr,      &
                               tr_aero,                 &
                               tr_pond_topo,            &
 #ifdef UNDEPRECATE_0LAYER
-                              heat_capacity,           & 
+                              heat_capacity,           &
 #endif
                               first_ice,               &
                               trcr_depend, trcr_base,  &
@@ -776,7 +776,7 @@
                               fzsal,                   &
                               flux_bio,    limit_aice_in)
 
-      integer (kind=int_kind), intent(in) :: & 
+      integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
          nilyr , & ! number of ice layers
          nblyr , & ! number of bio layers
@@ -784,25 +784,25 @@
          ntrcr , & ! number of tracers in use
          nbtrcr, & ! number of bio tracers in use
          n_aero    ! number of aerosol tracers
- 
-      real (kind=dbl_kind), intent(in) :: & 
-         dt        ! time step 
- 
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt        ! time step
+
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max   ! category boundaries (m)
 
-      real (kind=dbl_kind), dimension (:), intent(inout) :: & 
-         aicen , & ! concentration of ice 
-         vicen , & ! volume per unit area of ice          (m) 
-         vsnon     ! volume per unit area of snow         (m) 
- 
-      real (kind=dbl_kind), dimension (:,:), intent(inout) :: & 
-         trcrn     ! ice tracers 
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+         aicen , & ! concentration of ice
+         vicen , & ! volume per unit area of ice          (m)
+         vsnon     ! volume per unit area of snow         (m)
 
-      real (kind=dbl_kind), intent(inout) :: & 
+      real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
+         trcrn     ! ice tracers
+
+      real (kind=dbl_kind), intent(inout) :: &
          aice  , & ! total ice concentration
-         aice0     ! concentration of open water 
-     
+         aice0     ! concentration of open water
+
       integer (kind=int_kind), dimension (:), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
          n_trcr_strata  ! number of underlying tracer layers
@@ -945,7 +945,7 @@
 
       if (limit_aice) then
          call zap_small_areas (dt,           ntrcr,         &
-                               ncat,                        &         
+                               ncat,                        &
                                n_aero,                      &
                                nblyr,                       &
                                nilyr,        nslyr,         &
@@ -954,7 +954,7 @@
                                vicen,        vsnon,         &
                                dfpond,                      &
                                dfresh,       dfsalt,        &
-                               dfhocn, &     
+                               dfhocn, &
                                dfaero_ocn,   dfiso_ocn,     &
                                tr_aero,                     &
                                tr_pond_topo,                &
@@ -997,9 +997,9 @@
     !-------------------------------------------------------------------
 
       if (present(fpond)) &
-           fpond        = fpond        + dfpond 
+           fpond        = fpond        + dfpond
       if (present(fresh)) &
-           fresh        = fresh        + dfresh 
+           fresh        = fresh        + dfresh
       if (present(fsalt)) &
            fsalt        = fsalt        + dfsalt
       if (present(fhocn)) &
@@ -1020,12 +1020,12 @@
          enddo
       endif
       if (present(fzsal)) &
-           fzsal        = fzsal         + dfzsal     
+           fzsal        = fzsal         + dfzsal
 
 #ifdef UNDEPRECATE_0LAYER
       !----------------------------------------------------------------
-      ! If using zero-layer model (no heat capacity), check that the 
-      ! energy of snow and ice is correct. 
+      ! If using zero-layer model (no heat capacity), check that the
+      ! energy of snow and ice is correct.
       !----------------------------------------------------------------
 
       if ((.not. heat_capacity) .and. aice > puny) then
@@ -1092,7 +1092,7 @@
          dfresh   , & ! zapped fresh water flux (kg/m^2/s)
          dfsalt   , & ! zapped salt flux   (kg/m^2/s)
          dfhocn   , & ! zapped energy flux ( W/m^2)
-         dfzsal       ! zapped salt flux from zsalinity(kg/m^2/s) 
+         dfzsal       ! zapped salt flux from zsalinity(kg/m^2/s)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
@@ -1108,7 +1108,7 @@
          tr_pond_topo ! pond flag
 
       logical (kind=log_kind), dimension (:), intent(inout) :: &
-         first_ice    ! For bgc tracers.  Set to true if zapping ice 
+         first_ice    ! For bgc tracers.  Set to true if zapping ice
 
       ! local variables
 
@@ -1117,8 +1117,8 @@
          blevels
 
       real (kind=dbl_kind) :: xtmp      ! temporary variables
-      real (kind=dbl_kind) , dimension (1):: trcr_skl    
-      real (kind=dbl_kind) , dimension (nblyr+1):: bvol     
+      real (kind=dbl_kind) , dimension (1):: trcr_skl
+      real (kind=dbl_kind) , dimension (nblyr+1):: bvol
 
       character(len=*),parameter :: subname='(zap_small_areas)'
 
@@ -1126,7 +1126,7 @@
       ! I. Zap categories with very small areas.
       !-----------------------------------------------------------------
       dfzsal = c0
-      
+
       do n = 1, ncat
 
       !-----------------------------------------------------------------
@@ -1238,7 +1238,7 @@
       !-----------------------------------------------------------------
       ! Zap tracers
       !-----------------------------------------------------------------
-         
+
             if (ntrcr >= 2) then
                do it = 2, ntrcr
                   trcrn(it,n) = c0
@@ -1301,40 +1301,40 @@
                enddo               ! it
             endif
 
-      !----------------------------------------------------------------- 
-      ! Zap ice energy and use ocean heat to melt ice 
-      !----------------------------------------------------------------- 
-       
-            do k = 1, nilyr 
+      !-----------------------------------------------------------------
+      ! Zap ice energy and use ocean heat to melt ice
+      !-----------------------------------------------------------------
+
+            do k = 1, nilyr
                xtmp = trcrn(nt_qice+k-1,n) &
                     * vicen(n)/real(nilyr,kind=dbl_kind) &
-                    * (aice-c1)/aice / dt ! < 0 
-               dfhocn = dfhocn + xtmp 
-            enddo                  ! k 
- 
-      !----------------------------------------------------------------- 
-      ! Zap snow energy and use ocean heat to melt snow 
-      !----------------------------------------------------------------- 
- 
-            do k = 1, nslyr 
+                    * (aice-c1)/aice / dt ! < 0
+               dfhocn = dfhocn + xtmp
+            enddo                  ! k
+
+      !-----------------------------------------------------------------
+      ! Zap snow energy and use ocean heat to melt snow
+      !-----------------------------------------------------------------
+
+            do k = 1, nslyr
                xtmp = trcrn(nt_qsno+k-1,n) &
                     * vsnon(n)/real(nslyr,kind=dbl_kind) &
-                    * (aice-c1)/aice / dt ! < 0 
-               dfhocn = dfhocn + xtmp 
+                    * (aice-c1)/aice / dt ! < 0
+               dfhocn = dfhocn + xtmp
             enddo                  ! k
- 
+
       !-----------------------------------------------------------------
       ! Zap ice and snow volume, add water and salt to ocean
       !-----------------------------------------------------------------
 
             xtmp = (rhoi*vicen(n) + rhos*vsnon(n)) &
-                 * (aice-c1)/aice / dt 
-            dfresh = dfresh + xtmp 
- 
+                 * (aice-c1)/aice / dt
+            dfresh = dfresh + xtmp
+
             xtmp = rhoi*vicen(n)*ice_ref_salinity*p001 &
                  * (aice-c1)/aice / dt
-            dfsalt = dfsalt + xtmp 
- 
+            dfsalt = dfsalt + xtmp
+
             if (solve_zsal) then
             do k = 1,nblyr
                xtmp = rhosi*trcrn(nt_fbri,n)*vicen(n)*p001&
@@ -1350,10 +1350,10 @@
             endif
             endif ! solve_zsal
 
-            aicen(n) = aicen(n) * (c1/aice) 
-            vicen(n) = vicen(n) * (c1/aice) 
+            aicen(n) = aicen(n) * (c1/aice)
+            vicen(n) = vicen(n) * (c1/aice)
             vsnon(n) = vsnon(n) * (c1/aice)
- 
+
       ! Note: Tracers are unchanged.
 
          enddo                     ! n
@@ -1385,7 +1385,7 @@
          n_aero   , & ! number of aerosol tracers
          nblyr    , & ! number of bio  layers
          nbtrcr
- 
+
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
 
@@ -1451,7 +1451,7 @@
       endif ! z_tracers
 
       ! snow enthalpy tracer
-      do k = 1, nslyr 
+      do k = 1, nslyr
          xtmp = trcrn(nt_qsno+k-1) / dt &
               * vsnon/real(nslyr,kind=dbl_kind) ! < 0
          dfhocn = dfhocn + xtmp
@@ -1466,7 +1466,7 @@
       end subroutine zap_snow
 
 !=======================================================================
-   
+
       subroutine zap_snow_temperature(dt,         ncat,     &
 #ifdef UNDEPRECATE_0LAYER
                                       heat_capacity,        &
@@ -1494,8 +1494,8 @@
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if false, ice and snow have zero heat capacity
 #endif
-      real (kind=dbl_kind), dimension (:), intent(in) :: & 
-         aicen        ! concentration of ice 
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         aicen        ! concentration of ice
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          vsnon        ! volume per unit area of snow         (m)
@@ -1537,7 +1537,7 @@
       character(len=*),parameter :: subname='(zap_snow_temperature)'
 
       rnslyr = real(nslyr,kind=dbl_kind)
-      
+
       do n = 1, ncat
 
       !-----------------------------------------------------------------
@@ -1560,14 +1560,14 @@
 #else
             if (hsn > hs_min) then
 #endif
-               ! zqsn < 0              
+               ! zqsn < 0
                zqsn = trcrn(nt_qsno+k-1,n)
                Tmax = -zqsn*puny*rnslyr / (rhos*cp_ice*vsnon(n))
             else
                zqsn = -rhos * Lfresh
                Tmax = puny
             endif
-                     
+
             ! snow temperature
             zTsn = (Lfresh + zqsn/rhos)/cp_ice
 
@@ -1618,8 +1618,8 @@
 ! This subroutine is only called if heat_capacity = .false.
 !
 ! author: Alison McLaren, Met Office
-!         May 2010:  ECH replaced eicen, esnon with trcrn but did not test 
-! the changes.  The loop below runs over n=1,ncat and I added loops 
+!         May 2010:  ECH replaced eicen, esnon with trcrn but did not test
+! the changes.  The loop below runs over n=1,ncat and I added loops
 ! over k, making the test more stringent.
 
       subroutine zerolayer_check (ncat,        nilyr,      &
@@ -1627,19 +1627,19 @@
                                   vicen,       vsnon,      &
                                   trcrn)
 
-      integer (kind=int_kind), intent(in) :: & 
+      integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
 
-      real (kind=dbl_kind), dimension (:), intent(inout) :: & 
-         aicen , & ! concentration of ice 
-         vicen , & ! volume per unit area of ice          (m) 
-         vsnon     ! volume per unit area of snow         (m) 
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+         aicen , & ! concentration of ice
+         vicen , & ! volume per unit area of ice          (m)
+         vsnon     ! volume per unit area of snow         (m)
 
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn     ! ice tracers
-      
+
       ! local variables
 
       integer (kind=int_kind) :: &
@@ -1651,10 +1651,10 @@
                    ! (so max volume error = puny)
 
       real (kind=dbl_kind), dimension (ncat) :: &
-         eicen     ! energy of melting for each ice layer (J/m^2) 
- 
+         eicen     ! energy of melting for each ice layer (J/m^2)
+
       real (kind=dbl_kind), dimension (ncat) :: &
-         esnon     ! energy of melting for each snow layer (J/m^2) 
+         esnon     ! energy of melting for each snow layer (J/m^2)
 
       logical (kind=log_kind) :: &
          ice_energy_correct  , & ! zero layer ice energy check
@@ -1802,7 +1802,7 @@
 !                1.20_dbl_kind, 2.00_dbl_kind,  &
 !                4.56729_dbl_kind, &
 !                 999._dbl_kind /
-      ! all thickness categories 
+      ! all thickness categories
       data wmo7 / 0.10_dbl_kind, 0.15_dbl_kind, &
                   0.30_dbl_kind, 0.70_dbl_kind,  &
                   1.20_dbl_kind, 2.00_dbl_kind,  &
@@ -1821,23 +1821,23 @@
       !-----------------------------------------------------------------
       ! Choose category boundaries based on one of four options.
       !
-      ! The first formula (kcatbound = 0) was used in Lipscomb (2001) 
+      ! The first formula (kcatbound = 0) was used in Lipscomb (2001)
       !  and in CICE versions 3.0 and 3.1.
       !
       ! The second formula is more user-friendly in the sense that it
       !  is easy to obtain round numbers for category boundaries:
       !
-      !    H(n) = n * [d1 + d2*(n-1)] 
-      ! 
+      !    H(n) = n * [d1 + d2*(n-1)]
+      !
       ! Default values are d1 = 300/ncat, d2 = 50/ncat.
-      ! For ncat = 5, boundaries in cm are 60, 140, 240, 360, which are 
+      ! For ncat = 5, boundaries in cm are 60, 140, 240, 360, which are
       !  close to the standard values given by the first formula.
       ! For ncat = 10, boundaries in cm are 30, 70, 120, 180, 250, 330,
-      !  420, 520, 630.    
+      !  420, 520, 630.
       !
       ! The third option provides support for World Meteorological
       !  Organization classification based on thickness.  The full
-      !  WMO thickness distribution is used if ncat = 7;  if ncat=5 
+      !  WMO thickness distribution is used if ncat = 7;  if ncat=5
       !  or ncat = 6, some of the thinner categories are combined.
       ! For ncat = 5,  boundaries are         30, 70, 120, 200, >200 cm.
       ! For ncat = 6,  boundaries are     15, 30, 70, 120, 200, >200 cm.
@@ -1914,7 +1914,7 @@
          enddo
        else
          call icepack_warnings_add(subname//' kcatbound=2 (WMO) must have ncat=5, 6 or 7')
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__) 
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          return
        endif
 
@@ -1970,7 +1970,7 @@
             write(warnstr,*) hin_max(n-1),' < Cat ',n, ' < ',hin_max(n)
             call icepack_warnings_add(warnstr)
             ! Write integer n to character string
-            write (c_nc, '(i2)') n    
+            write (c_nc, '(i2)') n
 
             ! Write hin_max to character string
             write (c_hinmax1, '(f7.3)') hin_max(n-1)
@@ -2000,7 +2000,7 @@
                                    aice0,              &
                                    ntrcr,              &
                                    trcr_depend,        &
-                                   trcr_base,          & 
+                                   trcr_base,          &
                                    n_trcr_strata,      &
                                    nt_strata)
 
@@ -2097,7 +2097,7 @@
                                    atrcr,     aice,          &
                                    vice ,     vsno,          &
                                    trcr_base, n_trcr_strata, &
-                                   nt_strata, trcr)   
+                                   nt_strata, trcr)
       if (icepack_warnings_aborted(subname)) return
 
       deallocate (atrcr)

@@ -53,7 +53,7 @@
          ktherm      ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
 #endif
       real (kind=dbl_kind), intent(in) :: &
-         dt,       & ! time step (s)  
+         dt,       & ! time step (s)
          hi_min,   & ! minimum ice thickness allowed for thermo (m)
          dpscale     ! alter e-folding time scale for flushing
 
@@ -81,7 +81,7 @@
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          qicen, &  ! ice layer enthalpy (J m-3)
-         sicen     ! salinity (ppt)   
+         sicen     ! salinity (ppt)
 
       real (kind=dbl_kind), &
          intent(in) :: &
@@ -105,7 +105,7 @@
          dTs                    , & ! surface temperature diff for freeze-up (C)
          Tp                     , & ! pond freezing temperature (C)
          Ts                     , & ! surface air temperature (C)
-         apondn                 , & ! local pond area 
+         apondn                 , & ! local pond area
          hpondn                 , & ! local pond depth (m)
          dvn                    , & ! change in pond volume (m)
          hlid, alid             , & ! refrozen lid thickness, area
@@ -121,7 +121,7 @@
       character(len=*),parameter :: subname='(compute_ponds_lvl)'
 
       !-----------------------------------------------------------------
-      ! Initialize 
+      ! Initialize
       !-----------------------------------------------------------------
 
       volpn = hpnd * aicen * alvl * apnd
@@ -132,7 +132,7 @@
       !-----------------------------------------------------------------
 
       if (aicen*alvl > puny**2) then
-         
+
          hi = vicen/aicen
          hs = vsnon/aicen
          alvl_tmp = alvl
@@ -173,7 +173,7 @@
                dTs = max(Tp - Tsfcn,c0)
                dvn = dvn - volpn * (c1 - exp(rexp*dTs/Tp))
 
-            else 
+            else
                ! trim(frzpnd) == 'hlid' Stefan approximation
                ! assumes pond is fresh (freezing temperature = 0 C)
                ! and ice grows from existing pond ice
@@ -225,7 +225,7 @@
                apondn = min (sqrt(volpn/(pndaspect*aicen)), alvl_tmp)
                hpondn = pndaspect * apondn
 
-            else           ! melt water runs off deformed ice      
+            else           ! melt water runs off deformed ice
                apondn = c0
                hpondn = c0
             endif
@@ -296,9 +296,9 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          qicen, &  ! enthalpy for each ice layer (J m-3)
-         salin, &  ! salinity (ppt)   
+         salin, &  ! salinity (ppt)
          Tmlt      ! melting temperature (C)
-    
+
       real (kind=dbl_kind), intent(out) :: &
          perm      ! permeability (m^2)
 
@@ -312,7 +312,7 @@
          phi       ! liquid fraction
 
       integer (kind=int_kind) :: k
-    
+
       character(len=*),parameter :: subname='(brine_permeability)'
 
       !-----------------------------------------------------------------
@@ -338,9 +338,9 @@
       !-----------------------------------------------------------------
 
       perm = 3.0e-8_dbl_kind * (minval(phi))**3
-    
+
       end subroutine brine_permeability
-  
+
 !=======================================================================
 
       end module icepack_meltpond_lvl
