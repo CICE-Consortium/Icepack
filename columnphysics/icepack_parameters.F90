@@ -19,6 +19,13 @@
       public :: icepack_recompute_constants
 
       !-----------------------------------------------------------------
+      ! control options
+      !-----------------------------------------------------------------
+
+      character (char_len), public :: &
+         argcheck = 'first'      !  optional argument checks, 'never','first','always'
+
+      !-----------------------------------------------------------------
       ! parameter constants
       !-----------------------------------------------------------------
 
@@ -434,7 +441,7 @@
 ! subroutine to set the column package internal parameters
 
       subroutine icepack_init_parameters(   &
-         puny_in, bignum_in, pi_in, secday_in, &
+         argcheck_in, puny_in, bignum_in, pi_in, secday_in, &
          rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
          cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
          depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, albocn_in, gravit_in, viscosity_dyn_in, &
@@ -485,6 +492,13 @@
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
          snw_aging_table_in)
+
+      !-----------------------------------------------------------------
+      ! control settings
+      !-----------------------------------------------------------------
+
+      character(len=*), intent(in), optional :: &
+         argcheck_in      ! optional argument checking, never, first, or always
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -834,6 +848,11 @@
 
       character(len=*),parameter :: subname='(icepack_init_parameters)'
 
+      if (present(argcheck_in)          ) argcheck         = argcheck_in
+      if (present(puny_in)              ) puny             = puny_in
+      if (present(bignum_in)            ) bignum           = bignum_in
+      if (present(pi_in)                ) pi               = pi_in
+
       if (present(rhos_in)              ) rhos             = rhos_in
       if (present(rhoi_in)              ) rhoi             = rhoi_in
       if (present(rhow_in)              ) rhow             = rhow_in
@@ -894,9 +913,6 @@
       if (present(TTTice_in)            ) TTTice           = TTTice_in
       if (present(qqqocn_in)            ) qqqocn           = qqqocn_in
       if (present(TTTocn_in)            ) TTTocn           = TTTocn_in
-      if (present(puny_in)              ) puny             = puny_in
-      if (present(bignum_in)            ) bignum           = bignum_in
-      if (present(pi_in)                ) pi               = pi_in
       if (present(secday_in)            ) secday           = secday_in
       if (present(ktherm_in)            ) ktherm           = ktherm_in
       if (present(conduct_in)           ) conduct          = conduct_in
@@ -1109,6 +1125,13 @@
       if (present(sw_frac_in)           ) sw_frac          = sw_frac_in
       if (present(sw_dtemp_in)          ) sw_dtemp         = sw_dtemp_in
 
+      ! check settings
+
+      if (argcheck /= 'never' .and. argcheck /= 'first' .and. argcheck /= 'always') then
+         call icepack_warnings_add(subname//' argcheck must be never, first, or always')
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+      endif
+
       call icepack_recompute_constants()
       if (icepack_warnings_aborted(subname)) return
 
@@ -1120,7 +1143,7 @@
 ! subroutine to query the column package internal parameters
 
       subroutine icepack_query_parameters(   &
-         puny_out, bignum_out, pi_out, rad_to_deg_out,&
+         argcheck_out, puny_out, bignum_out, pi_out, rad_to_deg_out,&
          secday_out, c0_out, c1_out, c1p5_out, c2_out, c3_out, c4_out, &
          c5_out, c6_out, c8_out, c10_out, c15_out, c16_out, c20_out, &
          c25_out, c100_out, c180_out, c1000_out, p001_out, p01_out, p1_out, &
@@ -1176,6 +1199,13 @@
          snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
          snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
          snw_aging_table_out)
+
+      !-----------------------------------------------------------------
+      ! control settings
+      !-----------------------------------------------------------------
+
+      character(len=*), intent(out), optional :: &
+         argcheck_out     ! optional argument checking
 
       !-----------------------------------------------------------------
       ! parameter constants
@@ -1533,6 +1563,7 @@
 
       character(len=*),parameter :: subname='(icepack_query_parameters)'
 
+      if (present(argcheck_out)          ) argcheck_out     = argcheck
       if (present(puny_out)              ) puny_out         = puny
       if (present(bignum_out)            ) bignum_out       = bignum
       if (present(pi_out)                ) pi_out           = pi
@@ -1634,9 +1665,6 @@
       if (present(TTTice_out)            ) TTTice_out       = TTTice
       if (present(qqqocn_out)            ) qqqocn_out       = qqqocn
       if (present(TTTocn_out)            ) TTTocn_out       = TTTocn
-      if (present(puny_out)              ) puny_out         = puny
-      if (present(bignum_out)            ) bignum_out       = bignum
-      if (present(pi_out)                ) pi_out           = pi
       if (present(secday_out)            ) secday_out       = secday
       if (present(ktherm_out)            ) ktherm_out       = ktherm
       if (present(conduct_out)           ) conduct_out      = conduct
@@ -1835,6 +1863,7 @@
         write(iounit,*) "  TTTice = ",TTTice
         write(iounit,*) "  qqqocn = ",qqqocn
         write(iounit,*) "  TTTocn = ",TTTocn
+        write(iounit,*) "  argcheck  = ",argcheck
         write(iounit,*) "  puny   = ",puny
         write(iounit,*) "  bignum = ",bignum
         write(iounit,*) "  secday = ",secday

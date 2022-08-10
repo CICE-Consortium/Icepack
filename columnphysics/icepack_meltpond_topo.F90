@@ -178,7 +178,9 @@
                         aicen,      vicen,    vsnon,    &
                         qicen,      sicen,              &
                         volpn,      volp,               &
+#ifdef UNDEPRECATE_0LAYER
                         Tsfcn,      Tf,                 &
+#endif
                         apondn,     hpondn,    dvn      )
          if (icepack_warnings_aborted(subname)) return
 
@@ -315,7 +317,9 @@
                            aicen, vicen, vsnon,&
                            qicen, sicen,       &
                            volpn, volp,        &
+#ifdef UNDEPRECATE_0LAYER
                            Tsfcn,  Tf,         &
+#endif
                            apondn,hpondn,dvolp )
 
       integer (kind=int_kind), intent(in) :: &
@@ -331,12 +335,17 @@
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if true, ice has nonzero heat capacity
                          ! if false, use zero-layer thermodynamics
-#endif
       real (kind=dbl_kind), intent(in) :: &
          dt, aice, vice, vsno, Tf
-
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen, vicen, vsnon, Tsfcn
+#else
+      real (kind=dbl_kind), intent(in) :: &
+         dt, aice, vice, vsno
+
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         aicen, vicen, vsnon
+#endif
 
       real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          qicen, &
