@@ -4,8 +4,8 @@
 ! the ice thickness distribution.  This code is based on (but differs
 ! from) that described in
 !
-! Flocco, D. and D. L. Feltham, 2007.  A continuum model of melt pond 
-! evolution on Arctic sea ice.  J. Geophys. Res. 112, C08016, doi: 
+! Flocco, D. and D. L. Feltham, 2007.  A continuum model of melt pond
+! evolution on Arctic sea ice.  J. Geophys. Res. 112, C08016, doi:
 ! 10.1029/2006JC003836.
 !
 ! Flocco, D., D. L. Feltham and A. K. Turner, 2010.  Incorporation of a
@@ -69,7 +69,7 @@
       real (kind=dbl_kind), intent(in) :: &
          aice, &    ! total ice area fraction
          vsno, &    ! total snow volume (m)
-         Tf   ! ocean freezing temperature [= ice bottom temperature] (degC) 
+         Tf   ! ocean freezing temperature [= ice bottom temperature] (degC)
 
       real (kind=dbl_kind), intent(inout) :: &
          vice, &    ! total ice volume (m)
@@ -102,7 +102,7 @@
 
       real (kind=dbl_kind), dimension (ncat) :: &
          volpn, & ! pond volume per unit area, per category (m)
-         vuin     ! water-equivalent volume of ice lid on melt pond ('upper ice', m) 
+         vuin     ! water-equivalent volume of ice lid on melt pond ('upper ice', m)
 
       real (kind=dbl_kind), dimension (ncat) :: &
          apondn,& ! pond area fraction, per category
@@ -125,7 +125,7 @@
       integer (kind=int_kind) :: n ! loop indices
 
       real (kind=dbl_kind), parameter :: &
-         hicemin = p1           , & ! minimum ice thickness with ponds (m) 
+         hicemin = p1           , & ! minimum ice thickness with ponds (m)
          Td      = p15          , & ! temperature difference for freeze-up (C)
          min_volp = 1.e-4_dbl_kind  ! minimum pond volume (m)
 
@@ -134,7 +134,7 @@
       !---------------------------------------------------------------
       ! initialize
       !---------------------------------------------------------------
-   
+
       volp = c0
       rhoi_L  = Lfresh * rhoi   ! (J/m^3)
 
@@ -151,7 +151,7 @@
 
       ! The freezing temperature for meltponds is assumed slightly below 0C,
       ! as if meltponds had a little salt in them.  The salt budget is not
-      ! altered for meltponds, but if it were then an actual pond freezing 
+      ! altered for meltponds, but if it were then an actual pond freezing
       ! temperature could be computed.
 
       Tp = Timelt - Td
@@ -178,23 +178,25 @@
                         aicen,      vicen,    vsnon,    &
                         qicen,      sicen,              &
                         volpn,      volp,               &
-                        Tsfcn,      Tf,                 & 
+#ifdef UNDEPRECATE_0LAYER
+                        Tsfcn,      Tf,                 &
+#endif
                         apondn,     hpondn,    dvn      )
          if (icepack_warnings_aborted(subname)) return
 
          fpond = fpond - dvn
-         
+
          ! mean surface temperature
          Tavg = c0
          do n = 1, ncat
             Tavg = Tavg + Tsfcn(n)*aicen(n)
          enddo
          Tavg = Tavg / aice
-         
+
          do n = 1, ncat-1
-            
+
             if (vuin(n) > puny) then
-               
+
          !----------------------------------------------------------------
          ! melting: floating upper ice layer melts in whole or part
          !----------------------------------------------------------------
@@ -207,7 +209,7 @@
                      volpn(n) = volpn(n) + dvice
                      volp     = volp     + dvice
                      fpond    = fpond    + dvice
-                     
+
                      if (vuin(n) < puny .and. volpn(n) > puny) then
                         ! ice lid melted and category is pond covered
                         volpn(n) = volpn(n) + vuin(n)
@@ -216,7 +218,7 @@
                      endif
                      hpondn(n) = volpn(n) / apondn(n)
                   endif
-                  
+
          !----------------------------------------------------------------
          ! freezing: existing upper ice layer grows
          !----------------------------------------------------------------
@@ -224,12 +226,12 @@
                else if (volpn(n) > puny) then ! Tsfcn(i,j,n) <= Tp
 
                   ! differential growth of base of surface floating ice layer
-                  dTice = max(-Tsfcn(n)-Td, c0) ! > 0   
+                  dTice = max(-Tsfcn(n)-Td, c0) ! > 0
                   omega = kice*DTice/rhoi_L
                   dHui = sqrt(c2*omega*dt + (vuin(n)/aicen(n))**2) &
                                            - vuin(n)/aicen(n)
 
-                  dvice = min(dHui*apondn(n), volpn(n))   
+                  dvice = min(dHui*apondn(n), volpn(n))
                   if (dvice > puny) then
                      vuin (n) = vuin (n) + dvice
                      volpn(n) = volpn(n) - dvice
@@ -237,7 +239,7 @@
                      fpond    = fpond    - dvice
                      hpondn(n) = volpn(n) / apondn(n)
                   endif
-                  
+
                endif ! Tsfcn(i,j,n)
 
          !----------------------------------------------------------------
@@ -245,13 +247,13 @@
          ! note: albedo does not change
          !----------------------------------------------------------------
             else ! vuin < puny
-                    
+
                ! thickness of newly formed ice
                ! the surface temperature of a meltpond is the same as that
-               ! of the ice underneath (0C), and the thermodynamic surface 
+               ! of the ice underneath (0C), and the thermodynamic surface
                ! flux is the same
                dHui = max(-fsurf*dt/rhoi_L, c0)
-               dvice = min(dHui*apondn(n), volpn(n))  
+               dvice = min(dHui*apondn(n), volpn(n))
                if (dvice > puny) then
                   vuin (n) = dvice
                   volpn(n) = volpn(n) - dvice
@@ -259,16 +261,16 @@
                   fpond    = fpond    - dvice
                   hpondn(n)= volpn(n) / apondn(n)
                endif
-               
+
             endif  ! vuin
-            
+
          enddo ! ncat
 
       else  ! remove ponds on thin ice
          fpond = fpond - volp
          volpn(:) = c0
          vuin (:) = c0
-         volp = c0         
+         volp = c0
       endif
 
       !---------------------------------------------------------------
@@ -312,10 +314,12 @@
                            ktherm,             &
 #endif
                            aice,  vice,  vsno, &
-                           aicen, vicen, vsnon,& 
+                           aicen, vicen, vsnon,&
                            qicen, sicen,       &
                            volpn, volp,        &
+#ifdef UNDEPRECATE_0LAYER
                            Tsfcn,  Tf,         &
+#endif
                            apondn,hpondn,dvolp )
 
       integer (kind=int_kind), intent(in) :: &
@@ -331,12 +335,17 @@
       logical (kind=log_kind), intent(in) :: &
          heat_capacity   ! if true, ice has nonzero heat capacity
                          ! if false, use zero-layer thermodynamics
-#endif
       real (kind=dbl_kind), intent(in) :: &
          dt, aice, vice, vsno, Tf
-
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen, vicen, vsnon, Tsfcn
+#else
+      real (kind=dbl_kind), intent(in) :: &
+         dt, aice, vice, vsno
+
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         aicen, vicen, vsnon
+#endif
 
       real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          qicen, &
@@ -365,7 +374,7 @@
          alfan, &
          betan, &
          cum_max_vol, &
-         reduced_aicen        
+         reduced_aicen
 
       real (kind=dbl_kind), dimension(0:ncat) :: &
          cum_max_vol_tmp
@@ -403,7 +412,7 @@
  !           |-----------|
  !           |
  !-----------|
-    
+
       !-------------------------------------------------------------------
       ! initialize
       !-------------------------------------------------------------------
@@ -414,7 +423,7 @@
          hpondn(n) = c0
 
          if (aicen(n) < puny)  then
-            hicen(n) =  c0 
+            hicen(n) =  c0
             hsnon(n) = c0
             reduced_aicen(n) = c0
             asnon(n) = c0
@@ -424,7 +433,7 @@
             reduced_aicen(n) = c1 ! n=ncat
             if (n < ncat) reduced_aicen(n) = aicen(n) &
                 * max(0.2_dbl_kind,(-0.024_dbl_kind*hicen(n) + 0.832_dbl_kind))
-            asnon(n) = reduced_aicen(n) 
+            asnon(n) = reduced_aicen(n)
          endif
 
 ! This choice for alfa and beta ignores hydrostatic equilibium of categories.
@@ -432,41 +441,41 @@
 ! a surface topography implied by alfa=0.6 and beta=0.4, and rigidity across all
 ! categories.  alfa and beta partition the ITD - they are areas not thicknesses!
 ! Multiplying by hicen, alfan and betan (below) are thus volumes per unit area.
-! Here, alfa = 60% of the ice area (and since hice is constant in a category, 
-! alfan = 60% of the ice volume) in each category lies above the reference line, 
+! Here, alfa = 60% of the ice area (and since hice is constant in a category,
+! alfan = 60% of the ice volume) in each category lies above the reference line,
 ! and 40% below. Note: p6 is an arbitrary choice, but alfa+beta=1 is required.
 
          alfan(n) = p6 * hicen(n)
          betan(n) = p4 * hicen(n)
-       
+
          cum_max_vol(n)     = c0
          cum_max_vol_tmp(n) = c0
-    
+
       enddo ! ncat
 
       cum_max_vol_tmp(0) = c0
       drain = c0
       dvolp = c0
-    
+
       !--------------------------------------------------------------------------
       ! the maximum amount of water that can be contained up to each ice category
       !--------------------------------------------------------------------------
-    
+
       do n = 1, ncat-1 ! last category can not hold any volume
 
          if (alfan(n+1) >= alfan(n) .and. alfan(n+1) > c0) then
 
             ! total volume in level including snow
             cum_max_vol_tmp(n) = cum_max_vol_tmp(n-1) + &
-               (alfan(n+1) - alfan(n)) * sum(reduced_aicen(1:n)) 
+               (alfan(n+1) - alfan(n)) * sum(reduced_aicen(1:n))
 
 
             ! subtract snow solid volumes from lower categories in current level
-            do ns = 1, n 
+            do ns = 1, n
                cum_max_vol_tmp(n) = cum_max_vol_tmp(n) &
                   - rhos/rhow  * &    ! fraction of snow that is occupied by solid
                     asnon(ns)  * &    ! area of snow from that category
-                    max(min(hsnon(ns)+alfan(ns)-alfan(n), alfan(n+1)-alfan(n)), c0)  
+                    max(min(hsnon(ns)+alfan(ns)-alfan(n), alfan(n+1)-alfan(n)), c0)
                                       ! thickness of snow from ns layer in n layer
             enddo
 
@@ -481,7 +490,7 @@
       enddo
       cum_max_vol_tmp(ncat) = cum_max_vol_tmp(ncat-1)  ! last category holds no volume
       cum_max_vol  (1:ncat) = cum_max_vol_tmp(1:ncat)
-    
+
       !----------------------------------------------------------------
       ! is there more meltwater than can be held in the floe?
       !----------------------------------------------------------------
@@ -494,41 +503,40 @@
             volp = c0
          endif
       endif
-    
+
       ! height and area corresponding to the remaining volume
 
       call calc_hpond(ncat, reduced_aicen, asnon, hsnon, &
                       alfan, volp, cum_max_vol, hpond, m_index)
       if (icepack_warnings_aborted(subname)) return
-    
+
       do n=1, m_index
          hpondn(n) = max((hpond - alfan(n) + alfan(1)), c0)
-         apondn(n) = reduced_aicen(n) 
+         apondn(n) = reduced_aicen(n)
       enddo
-    
+
       !------------------------------------------------------------------------
       ! drainage due to ice permeability - Darcy's law
       !------------------------------------------------------------------------
-    
-      ! sea water level 
+
+      ! sea water level
       floe_weight = (vsno*rhos + rhoi*vice + rhow*volp) / aice
       hsl_rel = floe_weight / rhow &
               - ((sum(betan(:)*aicen(:))/aice) + alfan(1))
-    
+
       deltah = hpond - hsl_rel
       pressure_head = gravit * rhow * max(deltah, c0)
 
-      ! drain if ice is permeable    
+      ! drain if ice is permeable
       permflag = 0
       if (ktherm /= 2 .and. pressure_head > c0) then
       do n = 1, ncat-1
          if (hicen(n) > c0) then
 #ifdef UNDEPRECATE_0LAYER
-            call permeability_phi(heat_capacity, nilyr, &
+            call permeability_phi(heat_capacity, nilyr, qicen(:,n), sicen(:,n), Tsfcn(n), Tf, perm)
 #else
-            call permeability_phi(nilyr, &
+            call permeability_phi(nilyr, qicen(:,n), sicen(:,n), perm)
 #endif
-                                  qicen(:,n), sicen(:,n), Tsfcn(n), Tf, perm)
             if (icepack_warnings_aborted(subname)) return
             if (perm > c0) permflag = 1
             drain = perm*apondn(n)*pressure_head*dt / (viscosity_dyn*hicen(n))
@@ -540,16 +548,16 @@
             endif
          endif
       enddo
- 
+
       ! adjust melt pond dimensions
       if (permflag > 0) then
-         ! recompute pond depth    
+         ! recompute pond depth
          call calc_hpond(ncat, reduced_aicen, asnon, hsnon, &
                          alfan, volp, cum_max_vol, hpond, m_index)
          if (icepack_warnings_aborted(subname)) return
          do n=1, m_index
             hpondn(n) = hpond - alfan(n) + alfan(1)
-            apondn(n) = reduced_aicen(n) 
+            apondn(n) = reduced_aicen(n)
          enddo
       endif
       endif ! pressure_head
@@ -574,9 +582,9 @@
           volpn(m_index) = c0
           hpondn(m_index) = c0
           apondn(m_index) = c0
-          ! If remaining pond volume is negative reduce pond volume of 
+          ! If remaining pond volume is negative reduce pond volume of
           ! lower category
-          if (volp+puny < sum(volpn(1:m_index-1))) & 
+          if (volp+puny < sum(volpn(1:m_index-1))) &
             volpn(m_index-1) = volpn(m_index-1) - sum(volpn(1:m_index-1)) + &
                                volp
         endif
@@ -599,12 +607,12 @@
       enddo
 
       end subroutine pond_area
-  
+
 !=======================================================================
-  
+
   subroutine calc_hpond(ncat, aicen, asnon, hsnon, &
                         alfan, volp, cum_max_vol, hpond, m_index)
-    
+
       integer (kind=int_kind), intent(in) :: &
          ncat       ! number of thickness categories
 
@@ -614,43 +622,43 @@
          hsnon, &
          alfan, &
          cum_max_vol
-    
+
     real (kind=dbl_kind), intent(in) :: &
          volp
-    
+
     real (kind=dbl_kind), intent(out) :: &
          hpond
-    
+
     integer (kind=int_kind), intent(out) :: &
          m_index
-    
+
     integer :: n, ns
-    
+
     real (kind=dbl_kind), dimension(0:ncat+1) :: &
          hitl, &
          aicetl
-    
+
     real (kind=dbl_kind) :: &
          rem_vol, &
          area, &
          vol, &
          tmp
-    
+
     character(len=*),parameter :: subname='(calc_hpond)'
 
     !----------------------------------------------------------------
-    ! hpond is zero if volp is zero - have we fully drained? 
+    ! hpond is zero if volp is zero - have we fully drained?
     !----------------------------------------------------------------
-    
+
     if (volp < puny) then
        hpond = c0
        m_index = 0
     else
-       
+
        !----------------------------------------------------------------
-       ! Calculate the category where water fills up to 
+       ! Calculate the category where water fills up to
        !----------------------------------------------------------------
-       
+
        !----------|
        !          |
        !          |
@@ -665,7 +673,7 @@
        !          |          |          |          |---v-----|
        !          |          | m_index  |          |         |
        !-------------------------------------------------------------
-       
+
        m_index = 0  ! 1:m_index categories have water in them
        do n = 1, ncat
           if (volp <= cum_max_vol(n)) then
@@ -679,11 +687,11 @@
           endif
        enddo
        m_index = min(ncat-1, m_index)
-       
+
        !----------------------------------------------------------------
        ! semi-filled layer may have m_index different snows in it
        !----------------------------------------------------------------
-       
+
        !-----------------------------------------------------------  ^
        !                                                             |  alfan(m_index+1)
        !                                                             |
@@ -692,27 +700,27 @@
        !hitl(1)-->     |----------|* * * * * * |* * * * * |          |
        !hitl(0)-->-------------------------------------------------  |  ^
        !                various snows from lower categories          |  |alfa(m_index)
-       
+
        ! hitl - heights of the snow layers from thinner and current categories
        ! aicetl - area of each snow depth in this layer
-       
+
        hitl(:) = c0
        aicetl(:) = c0
        do n = 1, m_index
           hitl(n)   = max(min(hsnon(n) + alfan(n) - alfan(m_index), &
                                  alfan(m_index+1) - alfan(m_index)), c0)
           aicetl(n) = asnon(n)
-          
+
           aicetl(0) = aicetl(0) + (aicen(n) - asnon(n))
        enddo
        hitl(m_index+1) = alfan(m_index+1) - alfan(m_index)
        aicetl(m_index+1) = c0
-       
+
        !----------------------------------------------------------------
-       ! reorder array according to hitl 
+       ! reorder array according to hitl
        ! snow heights not necessarily in height order
        !----------------------------------------------------------------
-       
+
        do ns = 1, m_index+1
           do n = 0, m_index - ns + 1
              if (hitl(n) > hitl(n+1)) then ! swap order
@@ -725,54 +733,53 @@
              endif
           enddo
        enddo
-       
+
        !----------------------------------------------------------------
        ! divide semi-filled layer into set of sublayers each vertically homogenous
        !----------------------------------------------------------------
-       
+
        !hitl(3)----------------------------------------------------------------
-       !                                                       | * * * * * * * *  
-       !                                                       |* * * * * * * * * 
+       !                                                       | * * * * * * * *
+       !                                                       |* * * * * * * * *
        !hitl(2)----------------------------------------------------------------
-       !                                    | * * * * * * * *  | * * * * * * * *  
-       !                                    |* * * * * * * * * |* * * * * * * * * 
+       !                                    | * * * * * * * *  | * * * * * * * *
+       !                                    |* * * * * * * * * |* * * * * * * * *
        !hitl(1)----------------------------------------------------------------
-       !                 | * * * * * * * *  | * * * * * * * *  | * * * * * * * *  
-       !                 |* * * * * * * * * |* * * * * * * * * |* * * * * * * * * 
+       !                 | * * * * * * * *  | * * * * * * * *  | * * * * * * * *
+       !                 |* * * * * * * * * |* * * * * * * * * |* * * * * * * * *
        !hitl(0)----------------------------------------------------------------
-       !    aicetl(0)         aicetl(1)           aicetl(2)          aicetl(3)            
-       
+       !    aicetl(0)         aicetl(1)           aicetl(2)          aicetl(3)
+
        ! move up over layers incrementing volume
        do n = 1, m_index+1
-          
+
           area = sum(aicetl(:)) - &                 ! total area of sub-layer
                (rhos/rhow) * sum(aicetl(n:ncat+1)) ! area of sub-layer occupied by snow
-          
+
           vol = (hitl(n) - hitl(n-1)) * area      ! thickness of sub-layer times area
-          
+
           if (vol >= rem_vol) then  ! have reached the sub-layer with the depth within
              hpond = rem_vol / area + hitl(n-1) + alfan(m_index) - alfan(1)
              exit
           else  ! still in sub-layer below the sub-layer with the depth
              rem_vol = rem_vol - vol
           endif
-          
+
        enddo
-       
+
     endif
-    
+
   end subroutine calc_hpond
-  
+
 !=======================================================================
 
 ! determine the liquid fraction of brine in the ice and the permeability
 
 #ifdef UNDEPRECATE_0LAYER
-      subroutine permeability_phi(heat_capacity, nilyr, &
+      subroutine permeability_phi(heat_capacity, nilyr, qicen, sicen, Tsfcn, Tf, perm)
 #else
-      subroutine permeability_phi(nilyr, &
+      subroutine permeability_phi(nilyr, qicen, sicen, perm)
 #endif
-                                  qicen, sicen, Tsfcn, Tf, perm)
 
 #ifdef UNDEPRECATE_0LAYER
       logical (kind=log_kind), intent(in) :: &
@@ -784,19 +791,21 @@
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          qicen, &  ! energy of melting for each ice layer (J/m2)
-         sicen     ! salinity (ppt)   
-    
+         sicen     ! salinity (ppt)
+
+#ifdef UNDEPRECATE_0LAYER
       real (kind=dbl_kind), intent(in) :: &
-         Tsfcn, &  ! sea ice surface skin temperature (degC)     
-         Tf     ! ocean freezing temperature [= ice bottom temperature] (degC) 
-    
+         Tsfcn, &  ! sea ice surface skin temperature (degC)
+         Tf     ! ocean freezing temperature [= ice bottom temperature] (degC)
+#endif
+
       real (kind=dbl_kind), intent(out) :: &
          perm      ! permeability
 
       ! local variables
 
       real (kind=dbl_kind) ::   &
-         Tmlt, &   ! melting temperature 
+         Tmlt, &   ! melting temperature
          Sbr       ! brine salinity
 
       real (kind=dbl_kind), dimension(nilyr) ::   &
@@ -804,7 +813,7 @@
          phi       ! liquid fraction
 
       integer (kind=int_kind) :: k
-    
+
       character(len=*),parameter :: subname='(permeability_phi)'
 
       !-----------------------------------------------------------------
@@ -847,7 +856,7 @@
             endif
 #endif
          enddo ! k
-       
+
       else
 
          ! Notz 2005 thesis eq. 3.2
@@ -878,7 +887,7 @@
       !-----------------------------------------------------------------
 
       perm = 3.0e-08_dbl_kind * (minval(phi))**3
-    
+
       end subroutine permeability_phi
 
 !=======================================================================

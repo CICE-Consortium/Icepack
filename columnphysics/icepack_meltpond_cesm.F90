@@ -69,7 +69,7 @@
          dTs                    , & ! surface temperature diff for freeze-up (C)
          Tp                     , & ! pond freezing temperature (C)
          apondn, &
-         hpondn   
+         hpondn
 
       real (kind=dbl_kind), parameter :: &
          Td       = c2          , & ! temperature difference for freeze-up (C)
@@ -79,7 +79,7 @@
       character(len=*),parameter :: subname='(compute_ponds_cesm)'
 
       !-----------------------------------------------------------------
-      ! Initialize 
+      ! Initialize
       !-----------------------------------------------------------------
       volpn = hpnd * apnd * aicen
 
