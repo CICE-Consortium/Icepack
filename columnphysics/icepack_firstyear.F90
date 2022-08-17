@@ -2,7 +2,7 @@
 !
 ! First year concentration tracer for sea ice
 !
-! see 
+! see
 ! Armour, K. C., C. M. Bitz, L. Thompson and E. C. Hunke (2011). Controls
 ! on Arctic sea ice from first-year and multi-year ice survivability.
 ! J. Climate, 24, 23782390. doi: 10.1175/2010JCLI3823.1.
@@ -30,7 +30,7 @@
 !=======================================================================
 
 !  Zero ice FY tracer on fixed day of year. Zeroing FY ice tracer promotes
-!  ice to MY ice. Unfortunately some frazil ice may grow before the 
+!  ice to MY ice. Unfortunately some frazil ice may grow before the
 !  zeroing date and thus get promoted to MY ice too soon.
 !  Bummer.
 

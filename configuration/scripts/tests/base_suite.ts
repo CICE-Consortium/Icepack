@@ -1,9 +1,9 @@
 # Test         Grid    PEs        Sets    BFB-compare
 smoke          col     1x1        diag1,run1year
 smoke          col     1x1        debug,run1year
-smoke          col     1x1        debug,bgcISPOL
-smoke          col     1x1        debug,bgcNICE
-smoke          col     1x1        debug,bgcsklNICE
+smoke          col     1x1        debug,bgcispol
+smoke          col     1x1        debug,bgcnice
+smoke          col     1x1        debug,bgcsklnice
 smoke          col     1x1        debug,run1year,zsal
 smoke          col     1x1        debug,run1year,thermo1
 smoke          col     1x1        debug,run1year,swredist
@@ -17,13 +17,13 @@ smoke          col     1x1        debug,run1year,dyn
 smoke          col     1x1        debug,run1year,fsd12
 smoke          col     1x1        debug,run1year,fsd1
 smoke          col     1x1        debug,run1year,snw30percent,snwgrain
-smoke          col     1x1        debug,run1year,snwITDrdg
+smoke          col     1x1        debug,run1year,snwitdrdg
 smoke          col     1x1        debug,run1year,calcdragio
 restart        col     1x1        debug
 restart        col     1x1        diag1
 restart        col     1x1        pondlvl
 restart        col     1x1        pondtopo
-restart        col     1x1        bgcISPOL
+restart        col     1x1        bgcispol
 restart        col     1x1        zsal
 restart        col     1x1        thermo1
 restart        col     1x1        swccsm3
@@ -34,5 +34,5 @@ restart        col     1x1        alt03
 restart        col     1x1        alt04
 restart        col     1x1        dyn
 restart        col     1x1        fsd12
-restart        col     1x1        snwITDrdg,snwgrain
+restart        col     1x1        snwitdrdg,snwgrain
 

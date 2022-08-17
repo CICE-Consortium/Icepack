@@ -55,7 +55,7 @@
 ! authors William H. Lipscomb, LANL
 !         C. M. Bitz, UW
 
-      subroutine temperature_changes (dt,                 & 
+      subroutine temperature_changes (dt,                 &
                                       nilyr,    nslyr,    &
                                       rhoa,     flw,      &
                                       potT,     Qa,       &
@@ -65,7 +65,7 @@
                                       hilyr,    hslyr,    &
                                       zqin,     zTin,     &
                                       zqsn,     zTsn,     &
-                                      zSin,               & 
+                                      zSin,               &
                                       Tsf,      Tbot,     &
                                       fsensn,   flatn,    &
                                       flwoutn,  fsurfn,   &
@@ -202,7 +202,7 @@
          Iswabs_tmp  , & ! energy to melt through fraction frac of layer
          Sswabs_tmp  , & ! same for snow
          dswabs      , & ! difference in swabs and swabs_tmp
-         frac         
+         frac
 
       logical (kind=log_kind) :: &
          converged       ! = true when local solution has converged
@@ -224,7 +224,7 @@
       dTi1_prev  = c0
       dfsens_dT  = c0
       dflat_dT   = c0
-      dflwout_dT = c0  
+      dflwout_dT = c0
       einex      = c0
       dt_rhoi_hlyr = dt / (rhoi*hilyr)  ! hilyr > 0
       if (hslyr > hs_min/real(nslyr,kind=dbl_kind)) &
@@ -256,21 +256,21 @@
       call conductivity (l_snow,                    &
                          nilyr,    nslyr,           &
                          hilyr,    hslyr,           &
-                         zTin,     kh,      zSin)    
+                         zTin,     kh,      zSin)
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Check for excessive absorbed solar radiation that may result in
       ! temperature overshoots. Convergence is particularly difficult
-      ! if the starting temperature is already very close to the melting 
+      ! if the starting temperature is already very close to the melting
       ! temperature and extra energy is added.   In that case, or if the
       ! amount of energy absorbed is greater than the amount needed to
-      ! melt through a given fraction of a layer, we put the extra 
+      ! melt through a given fraction of a layer, we put the extra
       ! energy into the surface.
       ! NOTE: This option is not available if the atmosphere model
       !       has already computed fsurf.  (Unless we adjust fsurf here)
       !-----------------------------------------------------------------
-!mclaren: Should there be an if calc_Tsfc statement here then?? 
+!mclaren: Should there be an if calc_Tsfc statement here then??
 
       if (sw_redist) then
 
@@ -381,7 +381,7 @@
                if (icepack_warnings_aborted(subname)) return
 
                ! derivative of heat flux with respect to surface temperature
-               call dsurface_heat_flux_dTsf(Tsf      , rhoa      , & 
+               call dsurface_heat_flux_dTsf(Tsf      , rhoa      , &
                                             shcoef   , lhcoef    , &
                                             dfsurf_dT, dflwout_dT, &
                                             dfsens_dT, dflat_dT  )
@@ -392,7 +392,7 @@
       ! If fsurfn < fcondtopn and Tsf = 0, then reset Tsf to slightly less
       !  than zero (but not less than -puny).
       !-----------------------------------------------------------------
-               
+
                if (l_snow) then
                   fcondtopn = kh(1) * (Tsf - zTsn(1))
                else
@@ -405,7 +405,7 @@
       !-----------------------------------------------------------------
       ! Save surface temperature at start of iteration
       !-----------------------------------------------------------------
-               
+
                Tsf_start = Tsf
 
                if (Tsf < c0) then
@@ -417,7 +417,7 @@
       !-----------------------------------------------------------------
       ! Compute elements of tridiagonal matrix.
       !-----------------------------------------------------------------
-               
+
                call get_matrix_elements_calc_Tsfc (nilyr, nslyr, &
                                    l_snow,      l_cold,      &
                                    Tsf,         Tbot,        &
@@ -427,11 +427,11 @@
                                    Iswabs,                   &
                                    etai,        etas,        &
                                    sbdiag,      diag,        &
-                                   spdiag,      rhs)   
+                                   spdiag,      rhs)
                if (icepack_warnings_aborted(subname)) return
 
             else
-               
+
                call get_matrix_elements_know_Tsfc (nilyr, nslyr, &
                                    l_snow,      Tbot,        &
                                    Tin_init,    Tsn_init,    &
@@ -464,22 +464,22 @@
       !    (2) Tsf is not oscillating; i.e., if both dTsf(niter) and
       !        dTsf(niter-1) have magnitudes greater than puny, then
       !        dTsf(niter)/dTsf(niter-1) cannot be a negative number
-      !        with magnitude greater than 0.5.  
+      !        with magnitude greater than 0.5.
       !    (3) abs(dTsf) < Tsf_errmax
-      !    (4) If Tsf = 0 C, then the downward turbulent/radiative 
+      !    (4) If Tsf = 0 C, then the downward turbulent/radiative
       !        flux, fsurfn, must be greater than or equal to the downward
       !        conductive flux, fcondtopn.
-      !    (5) The net energy added to the ice per unit time must equal 
+      !    (5) The net energy added to the ice per unit time must equal
       !        the net change in internal ice energy per unit time,
       !        withinic the prescribed error ferrmax.
       !
       ! For briny ice (the standard case), zTsn and zTin are limited
       !  to prevent them from exceeding their melting temperatures.
       !  (Note that the specific heat formula for briny ice assumes
-      !  that T < Tmlt.)  
+      !  that T < Tmlt.)
       ! For fresh ice there is no limiting, since there are cases
       !  when the only convergent solution has zTsn > 0 and/or zTin > 0.
-      !  Above-zero temperatures are then reset to zero (with melting 
+      !  Above-zero temperatures are then reset to zero (with melting
       !  to conserve energy) in the thickness_changes subroutine.
       !-----------------------------------------------------------------
 
@@ -505,7 +505,7 @@
       ! Average only if test 1 or 2 fails.
       ! Initialize energy.
       !-----------------------------------------------------------------
-               
+
                dTsf = Tsf - Tsf_start
                avg_Tsf  = c0
 
@@ -533,7 +533,7 @@
                     .and. -dTsf/(dTsf_prev+puny*puny) > p5) then
 
                   if (l_brine) then ! average with starting temp
-                     avg_Tsf  = c1    
+                     avg_Tsf  = c1
                      avg_Tsi = c1
                   endif
                   dTsf = p5 * dTsf
@@ -611,7 +611,7 @@
                if (k==1 .and. .not.calc_Tsfc) then
                   dTi1 = zTin(k) - Tin_start(k)
 
-                  if (niter > 1 &                    ! condition 2b    
+                  if (niter > 1 &                    ! condition 2b
                       .and. abs(dTi1) > puny &
                       .and. abs(dTi1_prev) > puny &
                       .and. -dTi1/(dTi1_prev+puny*puny) > p5) then
@@ -652,7 +652,7 @@
       !-----------------------------------------------------------------
       ! Condition 3: check for large change in Tsf
       !-----------------------------------------------------------------
-               
+
                if (abs(dTsf) > Tsf_errmax) then
                   converged = .false.
                endif
@@ -660,7 +660,7 @@
       !-----------------------------------------------------------------
       ! Condition 4: check for fsurfn < fcondtopn with Tsf >= 0
       !-----------------------------------------------------------------
-               
+
                fsurfn = fsurfn + dTsf*dfsurf_dT
                if (l_snow) then
                   fcondtopn = kh(1) * (Tsf-zTsn(1))
@@ -685,7 +685,7 @@
                        (zTin(nilyr) - Tbot)
 
             ! Flux extra energy out of the ice
-            fcondbot = fcondbot + einex/dt 
+            fcondbot = fcondbot + einex/dt
 
             ferr = abs( (enew-einit)/dt &
                  - (fcondtopn - fcondbot + fswint) )
@@ -705,7 +705,7 @@
                   endif
                enddo
 
-            endif               ! ferr 
+            endif               ! ferr
 
          endif ! convergence
 
@@ -788,7 +788,7 @@
          write(warnstr,*) subname, (zSin(k),k=1,nilyr)
          call icepack_warnings_add(warnstr)
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         call icepack_warnings_add(subname//" temperature_changes: Thermo iteration does not converge" ) 
+         call icepack_warnings_add(subname//" temperature_changes: Thermo iteration does not converge" )
          return
       endif
 
@@ -821,7 +821,7 @@
       logical (kind=log_kind), intent(in) :: &
          l_snow          ! true if snow temperatures are computed
 
-      integer (kind=int_kind), intent(in) :: & 
+      integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
 
@@ -984,7 +984,7 @@
 !         C. M. Bitz, UW
 !
 ! March 2004 by William H. Lipscomb for multiple snow layers
-! April 2008 by E. C. Hunke, divided into two routines based on calc_Tsfc 
+! April 2008 by E. C. Hunke, divided into two routines based on calc_Tsfc
 
       subroutine get_matrix_elements_calc_Tsfc (nilyr, nslyr, &
                                       l_snow,   l_cold,           &
@@ -997,7 +997,7 @@
                                       sbdiag,   diag,             &
                                       spdiag,   rhs)
 
-      integer (kind=int_kind), intent(in) :: & 
+      integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
 
@@ -1056,7 +1056,7 @@
          spdiag(k) = c0
          rhs   (k) = c0
       enddo
-            
+
       !-----------------------------------------------------------------
       ! Compute matrix elements
       !
@@ -1165,7 +1165,7 @@
          ki = nilyr
          k  = ki + nslyr
          kr = k + 1
- 
+
          sbdiag(kr) = -etai(ki) * kh(k)
          spdiag(kr) = c0
          diag  (kr) = c1  &
@@ -1173,7 +1173,7 @@
          rhs   (kr) = Tin_init(ki) &
                     + etai(ki)*Iswabs(ki) &
                     + etai(ki)*kh(k+1)*Tbot
-      
+
       else         ! nilyr = 1
 
       !-----------------------------------------------------------------
@@ -1202,7 +1202,7 @@
                        + etai(ki) * kh(k)*Tsf &
                        + etai(ki) * kh(k+1)*Tbot
          endif
- 
+
       endif        ! nilyr > 1
 
       !-----------------------------------------------------------------
@@ -1210,7 +1210,7 @@
       !-----------------------------------------------------------------
 
       do ki = 2, nilyr-1
-           
+
          k  = ki + nslyr
          kr = k + 1
 
@@ -1234,7 +1234,7 @@
 !         C. M. Bitz, UW
 !
 ! March 2004 by William H. Lipscomb for multiple snow layers
-! April 2008 by E. C. Hunke, divided into two routines based on calc_Tsfc 
+! April 2008 by E. C. Hunke, divided into two routines based on calc_Tsfc
 
       subroutine get_matrix_elements_know_Tsfc (nilyr, nslyr, &
                                       l_snow,   Tbot,             &
@@ -1246,7 +1246,7 @@
                                       spdiag,   rhs,              &
                                       fcondtopn)
 
-      integer (kind=int_kind), intent(in) :: & 
+      integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
 
@@ -1301,7 +1301,7 @@
          spdiag(k) = c0
          rhs   (k) = c0
       enddo
-            
+
       !-----------------------------------------------------------------
       ! Compute matrix elements
       !
@@ -1368,7 +1368,7 @@
                        + etai(ki) * (kh(k) + kh(k+1))
             rhs   (kr) = Tin_init(ki) &
                        + etai(ki) * Iswabs(ki)
-         else                  
+         else
             sbdiag(kr) = c0
             spdiag(kr) = -etai(ki) * kh(k+1)
             diag  (kr) = c1 &
@@ -1385,7 +1385,7 @@
          ki = nilyr
          k  = ki + nslyr
          kr = k + 1
-      
+
          sbdiag(kr) = -etai(ki) * kh(k)
          spdiag(kr) = c0
          diag  (kr) = c1  &
@@ -1393,7 +1393,7 @@
          rhs   (kr) = Tin_init(ki) &
                     + etai(ki)*Iswabs(ki) &
                     + etai(ki)*kh(k+1)*Tbot
-      
+
       else         ! nilyr = 1
 
       !-----------------------------------------------------------------
@@ -1430,7 +1430,7 @@
       !-----------------------------------------------------------------
 
       do ki = 2, nilyr-1
-           
+
          k  = ki + nslyr
          kr = k + 1
 

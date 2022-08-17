@@ -47,6 +47,7 @@ either Celsius or Kelvin units).
    "apondn", "area concentration of melt ponds", ""
    "araftn", "area fraction of rafted ice", ""
    "ardgn", "fractional area of ridged ice", ""
+   "argcheck", "optional argument setting", "first"
    "aspect_rapid_mode", ":math:`\bullet` brine convection aspect ratio", "1"
    "astar", "e-folding scale for participation function", "0.05"
    "atmiter_conv", ":math:`\bullet` convergence criteria for ustar", "0.0"

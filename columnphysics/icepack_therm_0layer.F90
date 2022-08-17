@@ -131,7 +131,7 @@
       fcondbot = c0
 
       converged = .false.
-      
+
       dTsf_prev = c0
 
       !-----------------------------------------------------------------
@@ -143,12 +143,12 @@
       do niter = 1, nitermax
 
          if (.not. converged) then
-            
+
       !-----------------------------------------------------------------
       ! Update radiative and turbulent fluxes and their derivatives
       ! with respect to Tsf.
       !-----------------------------------------------------------------
-            
+
             call surface_fluxes (Tsf,        fswsfc,            &
                                  rhoa,       flw,               &
                                  potT,       Qa,                &
@@ -160,12 +160,12 @@
             if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
-      ! Compute effective ice thickness (includes snow) and thermal 
-      ! conductivity 
+      ! Compute effective ice thickness (includes snow) and thermal
+      ! conductivity
       !-----------------------------------------------------------------
 
             kratio = kseaice/ksno
-   
+
             heff = hilyr + kratio * hslyr
             kh = kseaice / heff
 
@@ -176,10 +176,10 @@
       !-----------------------------------------------------------------
 
             fcondtopn = kh * (Tsf - Tbot)
-            
+
             if (fsurfn < fcondtopn) &
                  Tsf = min (Tsf, -puny)
-            
+
       !-----------------------------------------------------------------
       ! Save surface temperature at start of iteration
       !-----------------------------------------------------------------
@@ -203,9 +203,9 @@
       !    (2) Tsf is not oscillating; i.e., if both dTsf(niter) and
       !        dTsf(niter-1) have magnitudes greater than puny, then
       !        dTsf(niter)/dTsf(niter-1) cannot be a negative number
-      !        with magnitude greater than 0.5.  
+      !        with magnitude greater than 0.5.
       !    (3) abs(dTsf) < Tsf_errmax
-      !    (4) If Tsf = 0 C, then the downward turbulent/radiative 
+      !    (4) If Tsf = 0 C, then the downward turbulent/radiative
       !        flux, fsurfn, must be greater than or equal to the downward
       !        conductive flux, fcondtopn.
       !-----------------------------------------------------------------
@@ -242,7 +242,7 @@
               .and. abs(dTsf_prev) > puny &
               .and. -dTsf/(dTsf_prev+puny*puny) > p5) then
 
-               avg_Tsf  = c1  ! average with starting temp  
+               avg_Tsf  = c1  ! average with starting temp
                dTsf = p5 * dTsf
                converged = .false.
             endif
@@ -302,7 +302,7 @@
                           fcondtopn, fcondbot
          call icepack_warnings_add(warnstr)
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         call icepack_warnings_add(subname//" zerolayer_temperature: Thermo iteration does not converge" ) 
+         call icepack_warnings_add(subname//" zerolayer_temperature: Thermo iteration does not converge" )
          return
       endif
 
@@ -311,7 +311,7 @@
       !-----------------------------------------------------------------
 
       if (l_zerolayerchecks) then
-         if (Tsf < c0 .and. & 
+         if (Tsf < c0 .and. &
               abs(fcondtopn-fsurfn) > puny) then
 
             write(warnstr,*) subname, 'fcondtopn does not equal fsurfn,'
@@ -323,7 +323,7 @@
             write(warnstr,*) subname, 'fsurfn=',fsurfn
             call icepack_warnings_add(warnstr)
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-            call icepack_warnings_add(subname//" zerolayer_temperature: fcondtopn /= fsurfn" ) 
+            call icepack_warnings_add(subname//" zerolayer_temperature: fcondtopn /= fsurfn" )
             return
          endif
       endif                     ! l_zerolayerchecks
