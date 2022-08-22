@@ -871,7 +871,7 @@
          bcenh_3bd      ! BC absorption enhancement factor
 
       logical (kind=log_kind), intent(in) :: &
-         l_use_snicar   ! .true. use 5-band SNICAR-AD approach
+         l_use_snicar   ! .true. use 5-band SNICAR-AD approach for snow
 
 !echmod      real (kind=dbl_kind), dimension(:,:), intent(in) :: &
       real (kind=dbl_kind), dimension(nspint_5bd,1471) :: &
@@ -1394,7 +1394,7 @@
          bcenh_3bd      ! BC absorption enhancement factor
 
       logical (kind=log_kind), intent(in), optional :: &
-         l_use_snicar             ! .true. use 5-band SNICAR-AD approach
+         l_use_snicar             ! .true. use 5-band SNICAR-AD approach for snow
 
       ! SNICAR snow grain single-scattering properties (SSP) for
       ! direct (drc) and diffuse (dfs) shortwave incidents
@@ -2670,6 +2670,8 @@
         enddo
       endif          ! adjust ice iops
 
+      if (nspint == nspint_3bd) then
+
       ! adjust ponded ice iops with tuning parameters
       if( R_pnd >= c0 ) then
         do ns = 1, nspint
@@ -2699,13 +2701,19 @@
         enddo
       endif            ! adjust ponded ice iops
 
+      endif ! nspint
+
       ! use srftyp to determine interface index of surface absorption
       if (srftyp == 1) then
          ! snow covered sea ice
          ksrf = 1
       else
          ! bare sea ice or ponded ice
-         ksrf = nslyr + 2 
+         ksrf = nslyr + 2
+         if (l_use_snicar .and. nspint == nspint_5bd) then
+            call icepack_warnings_add(subname//' ERROR: snicar used for srftyp /= snow')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         endif
       endif
 
       if (tr_bgc_N .and. dEdd_algae) then ! compute kabs_chl for chlorophyll
@@ -3130,7 +3138,7 @@
                ! of kalg*0.50m, independent of actual layer thickness
                kabs = kabs + kabs_chl(ns,k) 
             endif
-            sig        = ki_int(ns)*wi_int(ns)
+            sig    = ki_int(ns)*wi_int(ns)
             tau(k) = (kabs+sig)*dzk(k)
             w0(k)  = (sig/(sig+kabs))
             g(k)   = gi_int(ns)
@@ -3422,7 +3430,7 @@
                            - (dfdir(kp)*swdr + dfdif(kp)*swdf)
                enddo       ! k
             endif
-            
+
             ! complex indexing to insure proper absorptions for sea ice
             ki = 0
             do k=nslyr+2,nslyr+1+nilyr
@@ -3468,8 +3476,48 @@
             tmp_ks = tmp_ks * wghtns(ns)
             tmp_kl = tmp_kl * wghtns(ns)
 
+            fsfc  = fsfc  + tmp_0  - tmp_ks
+            fint  = fint  + tmp_ks - tmp_kl
+            fthru = fthru + tmp_kl
             fthruidr = fthruidr + dfdir(klevp)*swdr*wghtns(ns)
             fthruidf = fthruidf + dfdif(klevp)*swdf*wghtns(ns)
+
+            ! if snow covered ice, set snow internal absorption; else, Sabs=0
+            if( srftyp == 1 ) then
+               ki = 0
+               do k=1,nslyr
+                  ! skip snow SSL, since SSL absorption included in the surface
+                  ! absorption fsfc above
+                  km  = k
+                  kp  = km + 1
+                  ki  = ki + 1
+                  Sabs(ki) = Sabs(ki) &
+                           + (dfdir(km)*swdr + dfdif(km)*swdf   &
+                           - (dfdir(kp)*swdr + dfdif(kp)*swdf)) &
+                           * wghtns(ns)
+               enddo       ! k
+            endif
+
+            ! complex indexing to insure proper absorptions for sea ice
+            ki = 0
+            do k=nslyr+2,nslyr+1+nilyr
+               ! for bare ice, DL absorption for sea ice layer 1
+               km = k
+               kp = km + 1
+               ! modify for top sea ice layer for snow over sea ice
+               if( srftyp == 1 ) then
+                  ! must add SSL and DL absorption for sea ice layer 1
+                  if( k == nslyr+2 ) then
+                     km = k  - 1
+                     kp = km + 2
+                  endif
+               endif
+               ki = ki + 1
+               Iabs(ki) = Iabs(ki) &
+                        + (dfdir(km)*swdr + dfdif(km)*swdf &
+                        - (dfdir(kp)*swdr + dfdif(kp)*swdf)) &
+                        * wghtns(ns)
+            enddo       ! k
 
             elseif (l_use_snicar .and. nspint == nspint_5bd) then
 
@@ -3493,16 +3541,13 @@
             tmp_kl =   dfdir(klevp)*swdr*wghtns_5bd_drc(ns) &
                      + dfdif(klevp)*swdf*wghtns_5bd_dfs(ns)
 
+            fsfc  = fsfc  + tmp_0  - tmp_ks
+            fint  = fint  + tmp_ks - tmp_kl
+            fthru = fthru + tmp_kl
             fthruidr = fthruidr &
                      + dfdir(klevp)*swdr*wghtns_5bd_drc(ns)
             fthruidf = fthruidf &
                      + dfdif(klevp)*swdf*wghtns_5bd_dfs(ns)
-
-            endif ! nspint
-
-            fsfc  = fsfc  + tmp_0  - tmp_ks
-            fint  = fint  + tmp_ks - tmp_kl
-            fthru = fthru + tmp_kl
 
             ! if snow covered ice, set snow internal absorption; else, Sabs=0
             if( srftyp == 1 ) then
@@ -3514,9 +3559,8 @@
                   kp  = km + 1
                   ki  = ki + 1
                   Sabs(ki) = Sabs(ki) &
-                           + (dfdir(km)*swdr + dfdif(km)*swdf   &
-                           - (dfdir(kp)*swdr + dfdif(kp)*swdf)) & 
-                           * wghtns(ns)
+                           + (dfdir(km)-dfdir(kp))*swdr*wghtns_5bd_drc(ns) &
+                           + (dfdif(km)-dfdir(kp))*swdf*wghtns_5bd_dfs(ns)
                enddo       ! k
             endif
             
@@ -3524,7 +3568,7 @@
             ki = 0
             do k=nslyr+2,nslyr+1+nilyr
                ! for bare ice, DL absorption for sea ice layer 1
-               km = k  
+               km = k
                kp = km + 1
                ! modify for top sea ice layer for snow over sea ice
                if( srftyp == 1 ) then
@@ -3536,11 +3580,12 @@
                endif
                ki = ki + 1
                Iabs(ki) = Iabs(ki) &
-                        + (dfdir(km)*swdr + dfdif(km)*swdf &
-                        - (dfdir(kp)*swdr + dfdif(kp)*swdf)) &
-                        * wghtns(ns)
+                        + (dfdir(km)-dfdir(kp))*swdr*wghtns_5bd_drc(ns) &
+                        + (dfdif(km)-dfdir(kp))*swdf*wghtns_5bd_dfs(ns)
             enddo       ! k
-            
+
+            endif ! nspint
+
          endif        ! ns = 1, ns > 1
          
       enddo         ! end spectral loop  ns
@@ -3548,7 +3593,7 @@
       ! solar zenith angle parameterization
       ! calculate the scaling factor for NIR direct albedo if SZA>75 degree
       sza_factor = c1
-      if (srftyp == 1 .and. l_use_snicar .and. nspint == nspint_5bd) then
+      if (l_use_snicar .and. nspint == nspint_5bd) then
          mu0  = max(coszen,p01)
          if (mu0 < mu_75) then
             sza_c1 = sza_a0 + sza_a1 * mu0 + sza_a2 * mu0**2
