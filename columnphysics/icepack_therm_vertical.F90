@@ -158,9 +158,9 @@
       real (kind=dbl_kind), &
          intent(in) :: &
          flw     , & ! incoming longwave radiation (W/m^2)
-         potT    , & ! air potential temperature  (K) 
-         Qa      , & ! specific humidity (kg/kg) 
-         rhoa    , & ! air density (kg/m^3) 
+         potT    , & ! air potential temperature  (K)
+         Qa      , & ! specific humidity (kg/kg)
+         rhoa    , & ! air density (kg/m^3)
          fsnow   , & ! snowfall rate (kg m-2 s-1)
          shcoef  , & ! transfer coefficient for sensible heat
          lhcoef      ! transfer coefficient for latent heat
@@ -183,15 +183,15 @@
 
       ! coupler fluxes to atmosphere
       real (kind=dbl_kind), intent(out):: &
-         flwoutn , & ! outgoing longwave radiation (W/m^2) 
-         evapn   , & ! evaporative water flux (kg/m^2/s) 
-         evapsn  , & ! evaporative water flux over snow (kg/m^2/s) 
-         evapin      ! evaporative water flux over ice (kg/m^2/s) 
+         flwoutn , & ! outgoing longwave radiation (W/m^2)
+         evapn   , & ! evaporative water flux (kg/m^2/s)
+         evapsn  , & ! evaporative water flux over snow (kg/m^2/s)
+         evapin      ! evaporative water flux over ice (kg/m^2/s)
 
       ! Note: these are intent out if calc_Tsfc = T, otherwise intent in
       real (kind=dbl_kind), intent(inout):: &
-         fsensn   , & ! sensible heat flux (W/m^2) 
-         flatn    , & ! latent heat flux   (W/m^2) 
+         fsensn   , & ! sensible heat flux (W/m^2)
+         flatn    , & ! latent heat flux   (W/m^2)
          fsurfn   , & ! net flux to top surface, excluding fcondtopn
          fcondtopn, & ! downward cond flux at top surface (W m-2)
          fcondbotn    ! downward cond flux at bottom surface (W m-2)
@@ -200,21 +200,21 @@
       real (kind=dbl_kind), intent(out):: &
          freshn  , & ! fresh water flux to ocean (kg/m^2/s)
          fsaltn  , & ! salt flux to ocean (kg/m^2/s)
-         fhocnn      ! net heat flux to ocean (W/m^2) 
+         fhocnn      ! net heat flux to ocean (W/m^2)
 
       ! diagnostic fields
       real (kind=dbl_kind), &
          intent(inout):: &
          Tsnice   , & ! snow ice interface temperature (deg C)
-         meltt    , & ! top ice melt             (m/step-->cm/day) 
-         melts    , & ! snow melt                (m/step-->cm/day) 
+         meltt    , & ! top ice melt             (m/step-->cm/day)
+         melts    , & ! snow melt                (m/step-->cm/day)
          meltsliq , & ! snow melt mass           (kg/m^2/step-->kg/m^2/day)
-         meltb    , & ! basal ice melt           (m/step-->cm/day) 
-         congel   , & ! basal ice growth         (m/step-->cm/day) 
-         snoice   , & ! snow-ice formation       (m/step-->cm/day) 
-         dsnow    , & ! change in snow thickness (m/step-->cm/day) 
-         mlt_onset, & ! day of year that sfc melting begins 
-         frz_onset    ! day of year that freezing begins (congel or frazil) 
+         meltb    , & ! basal ice melt           (m/step-->cm/day)
+         congel   , & ! basal ice growth         (m/step-->cm/day)
+         snoice   , & ! snow-ice formation       (m/step-->cm/day)
+         dsnow    , & ! change in snow thickness (m/step-->cm/day)
+         mlt_onset, & ! day of year that sfc melting begins
+         frz_onset    ! day of year that freezing begins (congel or frazil)
 
       real (kind=dbl_kind), intent(in) :: &
          yday         ! day of year
@@ -316,7 +316,7 @@
 #endif
          if (ktherm == 2) then
 
-            call temperature_changes_salinity(dt,                   & 
+            call temperature_changes_salinity(dt,                   &
                                               nilyr,     nslyr,     &
                                               rhoa,      flw,       &
                                               potT,      Qa,        &
@@ -345,7 +345,7 @@
 
          else ! ktherm
 
-            call temperature_changes(dt,                   &  
+            call temperature_changes(dt,                   &
                                      nilyr,     nslyr,     &
                                      rhoa,      flw,       &
                                      potT,      Qa,        &
@@ -364,11 +364,11 @@
             if (icepack_warnings_aborted(subname)) return
 
          endif ! ktherm
-            
+
 #ifdef UNDEPRECATE_0LAYER
       else
 
-         if (calc_Tsfc) then       
+         if (calc_Tsfc) then
 
             call zerolayer_temperature(nilyr,     nslyr,    &
                                        rhoa,      flw,      &
@@ -389,14 +389,14 @@
             ! fcondtop is set in call to set_sfcflux in step_therm1
             !------------------------------------------------------------
 
-            fcondbotn  = fcondtopn   ! zero layer         
-      
+            fcondbotn  = fcondtopn   ! zero layer
+
          endif      ! calc_Tsfc
 
       endif         ! heat_capacity
 #endif
       ! intermediate energy for error check
-      
+
       einter = c0
       do k = 1, nslyr
          einter = einter + hslyr * zqsn(k)
@@ -420,7 +420,7 @@
       ! Compute growth and/or melting at the top and bottom surfaces.
       ! Add new snowfall.
       ! Repartition ice into equal-thickness layers, conserving energy.
-      !----------------------------------------------------------------- 
+      !-----------------------------------------------------------------
 
       call thickness_changes(nilyr,       nslyr,     &
                              dt,          yday,      &
@@ -477,25 +477,25 @@
       ! evapn < 0 => sublimation, evapn > 0 => condensation
       ! aerosol flux is accounted for in icepack_aerosol.F90
       !-----------------------------------------------------------------
-            
+
       dhi = hin - worki
       dhs = hsn - works - hsn_new
-      
+
       freshn = freshn + evapn - (rhoi*dhi + rhos*dhs) / dt
       fsaltn = fsaltn - rhoi*dhi*ice_ref_salinity*p001/dt
-      fhocnn = fhocnn + fadvocn ! for ktherm=2 
+      fhocnn = fhocnn + fadvocn ! for ktherm=2
 
       if (hin == c0) then
          if (tr_pond_topo) fpond = fpond - aicen * apond * hpond
       endif
 
       !-----------------------------------------------------------------
-      !  Given the vertical thermo state variables, compute the new ice 
+      !  Given the vertical thermo state variables, compute the new ice
       !   state variables.
       !-----------------------------------------------------------------
 
       call update_state_vthermo(nilyr,   nslyr,   &
-                                Tbot,    Tsf,     &     
+                                Tbot,    Tsf,     &
                                 hin,     hsn,     &
                                 zqin,    zSin,    &
                                 zqsn,             &
@@ -519,7 +519,7 @@
                                         aice,     frzmlt,   &
                                         vicen,    vsnon,    &
                                         qicen,    qsnon,    &
-                                        sst,      Tf,       & 
+                                        sst,      Tf,       &
                                         ustar_min,          &
                                         fbot_xfer_type,     &
                                         strocnxT, strocnyT, &
@@ -604,20 +604,20 @@
       wlat  = c0
 
       if (aice > puny .and. frzmlt < c0) then ! ice can melt
-         
+
       !-----------------------------------------------------------------
       ! Use boundary layer theory for fbot.
       ! See Maykut and McPhee (1995): JGR, 100, 24,691-24,703.
       !-----------------------------------------------------------------
 
          deltaT = max((sst-Tbot),c0)
-         
+
          ! strocnx has units N/m^2 so strocnx/rho has units m^2/s^2
          ustar = sqrt (sqrt(strocnxT**2+strocnyT**2)/rhow)
          ustar = max (ustar,ustar_min)
 
          if (trim(fbot_xfer_type) == 'Cdn_ocn') then
-            ! Note: Cdn_ocn has already been used for calculating ustar 
+            ! Note: Cdn_ocn has already been used for calculating ustar
             ! (formdrag only) --- David Schroeder (CPOM)
             cpchr = -cp_ocn*rhow*Cdn_ocn
          else ! fbot_xfer_type == 'constant'
@@ -627,7 +627,7 @@
 
          fbot = cpchr * deltaT * ustar ! < 0
          fbot = max (fbot, frzmlt) ! frzmlt < fbot < 0
-            
+
 !!! uncomment to use all frzmlt for standalone runs
    !     fbot = min (c0, frzmlt)
 
@@ -646,41 +646,41 @@
       !-----------------------------------------------------------------
 
          do n = 1, ncat
-            
+
             etot = c0
             qavg = c0
-            
+
             ! melting energy/unit area in each column, etot < 0
-            
+
             do k = 1, nslyr
                etot = etot + qsnon(k,n) * vsnon(n)/real(nslyr,kind=dbl_kind)
                qavg = qavg + qsnon(k,n)
             enddo
-            
+
             do k = 1, nilyr
                etot = etot + qicen(k,n) * vicen(n)/real(nilyr,kind=dbl_kind)
                qavg = qavg + qicen(k,n)
             enddo                  ! nilyr
-            
+
             ! lateral heat flux, fside < 0
             if (tr_fsd) then ! floe size distribution
                fside = fside + wlat*qavg
             else             ! default floe size
                fside = fside + rside*etot/dt
             endif
-            
+
          enddo                     ! n
-         
+
       !-----------------------------------------------------------------
       ! Limit bottom and lateral heat fluxes if necessary.
       !-----------------------------------------------------------------
-            
-         xtmp = frzmlt/(fbot + fside + puny) 
+
+         xtmp = frzmlt/(fbot + fside + puny)
          xtmp = min(xtmp, c1)
          fbot  = fbot  * xtmp
          rside = rside * xtmp
          fside = fside * xtmp
-         
+
       endif
 
       end subroutine frzmlt_bottom_lateral
@@ -712,12 +712,12 @@
          aicen , & ! concentration of ice
          vicen , & ! volume per unit area of ice          (m)
          vsnon     ! volume per unit area of snow         (m)
- 
+
       real (kind=dbl_kind), intent(out):: &
          hilyr       , & ! ice layer thickness
          hslyr       , & ! snow layer thickness
          einit           ! initial energy of melting (J m-2)
- 
+
       real (kind=dbl_kind), intent(out):: &
          hin         , & ! ice thickness (m)
          hsn             ! snow thickness (m)
@@ -728,7 +728,7 @@
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          zSin            ! internal ice layer salinities
-        
+
       real (kind=dbl_kind), dimension (:), &
          intent(inout) :: &
          zqsn        , & ! snow enthalpy
@@ -765,7 +765,7 @@
       tice_low  = .false.
 
       einit = c0
- 
+
       !-----------------------------------------------------------------
       ! Surface temperature, ice and snow thickness
       ! Initialize internal energy
@@ -798,7 +798,7 @@
 #else
          if (hslyr > hs_min/rnslyr) then
 #endif
-            ! zqsn < 0              
+            ! zqsn < 0
             Tmax = -zqsn(k)*puny*rnslyr / &
                  (rhos*cp_ice*vsnon)
          else
@@ -853,7 +853,7 @@
                write(warnstr,*) subname, 'zqsn',zqsn(k),-Lfresh*rhos,zqsn(k)+Lfresh*rhos
                call icepack_warnings_add(warnstr)
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTsn > Tmax" ) 
+               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTsn > Tmax" )
                return
             endif
 
@@ -883,7 +883,7 @@
                write(warnstr,*) subname, hsn
                call icepack_warnings_add(warnstr)
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTsn < Tmin" ) 
+               call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTsn < Tmin" )
                return
             endif
 
@@ -920,10 +920,10 @@
             write(warnstr,*) subname, 'min_salin =', min_salin
             call icepack_warnings_add(warnstr)
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-            call icepack_warnings_add(subname//" init_vertical_profile: Starting zSin < min_salin, layer" ) 
+            call icepack_warnings_add(subname//" init_vertical_profile: Starting zSin < min_salin, layer" )
             return
          endif
-         
+
          if (ktherm == 2) then
             Tmlts(k) = liquidus_temperature_mush(zSin(k))
          else
@@ -941,7 +941,7 @@
       !-----------------------------------------------------------------
       ! Compute ice temperatures from enthalpies using quadratic formula
       !-----------------------------------------------------------------
-         
+
          if (ktherm == 2) then
             zTin(k) = icepack_mushy_temperature_mush(zqin(k),zSin(k))
          else
@@ -990,7 +990,7 @@
             call icepack_warnings_add(warnstr)
             write(warnstr,*) subname, 'Tmlt=',Tmlts(k)
             call icepack_warnings_add(warnstr)
-               
+
             if (ktherm == 2) then
                zqin(k) = enthalpy_of_melting(zSin(k)) - c1
                zTin(k) = icepack_mushy_temperature_mush(zqin(k),zSin(k))
@@ -1050,7 +1050,7 @@
       ! initial energy per unit area of ice/snow, relative to 0 C
       !-----------------------------------------------------------------
 
-         einit = einit + hilyr*zqin(k) 
+         einit = einit + hilyr*zqin(k)
 
       enddo                     ! nilyr
 
@@ -1066,7 +1066,7 @@
 
       subroutine thickness_changes (nilyr,     nslyr,    &
                                     dt,        yday,     &
-                                    efinal,              & 
+                                    efinal,              &
                                     hin,       hilyr,    &
                                     hsn,       hslyr,    &
                                     zqin,      zqsn,     &
@@ -1081,7 +1081,7 @@
                                     meltt,     melts,    &
                                     meltsliq,  frain,    &
                                     meltb,     &
-                                    congel,    snoice,   &  
+                                    congel,    snoice,   &
                                     mlt_onset, frz_onset,&
                                     zSin,      sss,      &
                                     dsnow,     rsnw)
@@ -1153,7 +1153,7 @@
          zSin            ! ice layer salinity (ppt)
 
       real (kind=dbl_kind), intent(in) :: &
-         sss             ! ocean salinity (PSU) 
+         sss             ! ocean salinity (PSU)
 
       ! local variables
 
@@ -1244,7 +1244,7 @@
       ! For l_brine = true, this should not be necessary.
       !-----------------------------------------------------------------
 
-      if (.not. l_brine) then 
+      if (.not. l_brine) then
 
          do k = 1, nslyr
             Ts = (Lfresh + zqsn(k)/rhos) / cp_ice
@@ -1319,7 +1319,7 @@
          evapn = evapn + dhi*rhoi
          evapin = evapin + dhi*rhoi
          ! enthalpy of melt water
-         emlt_atm = emlt_atm - qmlt(1) * dhi 
+         emlt_atm = emlt_atm - qmlt(1) * dhi
       endif
 
       !--------------------------------------------------------------
@@ -1340,7 +1340,7 @@
 
       else
 
-         Tmlts = -zSin(nilyr) * depressT 
+         Tmlts = -zSin(nilyr) * depressT
 
          ! enthalpy of new ice growing at bottom surface
 #ifdef UNDEPRECATE_0LAYER
@@ -1390,9 +1390,9 @@
       do k = 1, nslyr
 
          !--------------------------------------------------------------
-         ! Remove internal snow melt 
+         ! Remove internal snow melt
          !--------------------------------------------------------------
-         
+
 !  more efficient formulation using Ts, dhs > 0 (not BFB)
 !         Ts = (Lfresh + zqsn(k)/rhos) / cp_ice
 !         if (ktherm == 2 .and. Ts > c0) then
@@ -1469,12 +1469,12 @@
          esub = max(esub, c0)
          evapn = evapn + dhi*rhoi
          evapin = evapin + dhi*rhoi
-         emlt_ocn = emlt_ocn - qmlt(k) * dhi 
+         emlt_ocn = emlt_ocn - qmlt(k) * dhi
 
          !--------------------------------------------------------------
          ! Melt ice (top)
          !--------------------------------------------------------------
-   
+
          if (qm(k) < c0) then
             dhi = max(-dzi(k), etop_mlt/qm(k))
          else
@@ -1510,7 +1510,7 @@
          dzi(k) = dzi(k) + dhi         ! zqin < 0, dhi < 0
          ebot_mlt = max(ebot_mlt - dhi*qm(k), c0)
 
-         ! history diagnostics 
+         ! history diagnostics
          meltb = meltb -dhi
 
       enddo                     ! nilyr
@@ -1520,7 +1520,7 @@
          !--------------------------------------------------------------
          ! Melt snow (only if all the ice has melted)
          !--------------------------------------------------------------
-         
+
          dhs = max(-dzs(k), ebot_mlt/zqsn(k))
 
          mass = massice(k) + massliq(k)
@@ -1679,7 +1679,7 @@
       !-----------------------------------------------------------------
       ! Compute desired layer thicknesses.
       !-----------------------------------------------------------------
- 
+
       if (hin > c0) then
          hilyr = hin / real(nilyr,kind=dbl_kind)
       else
@@ -1715,18 +1715,18 @@
         !-----------------------------------------------------------------
         ! Conserving energy, compute the enthalpy of the new equal layers.
         !-----------------------------------------------------------------
-            
+
          call adjust_enthalpy (nilyr,              &
                                zi1,      zi2,      &
                                hilyr,    hin,      &
-                               zqin)   
+                               zqin)
          if (icepack_warnings_aborted(subname)) return
 
          if (ktherm == 2) &
               call adjust_enthalpy (nilyr,              &
                                     zi1,      zi2,      &
                                     hilyr,    hin,      &
-                                    zSin)   
+                                    zSin)
          if (icepack_warnings_aborted(subname)) return
 
 #ifdef UNDEPRECATE_0LAYER
@@ -1734,7 +1734,7 @@
 
          zqin(1) = -rhoi * Lfresh
          zqsn(1) = -rhos * Lfresh
-       
+
       endif
 #endif
       if (nslyr > 1) then
@@ -1746,10 +1746,10 @@
 
          zs1(1) = c0
          zs1(1+nslyr) = hsn
-         
+
          zs2(1) = c0
          zs2(1+nslyr) = hsn
-         
+
          do k = 1, nslyr-1
             zs1(k+1) = zs1(k) + dzs(k)
             zs2(k+1) = zs2(k) + hslyr
@@ -1763,7 +1763,7 @@
          call adjust_enthalpy (nslyr,              &
                                zs1,      zs2,      &
                                hslyr,    hsn,      &
-                               zqsn)   
+                               zqsn)
 
          if (snwgrain) then
             call adjust_enthalpy (nslyr,              &
@@ -1902,7 +1902,7 @@
       !-----------------------------------------------------------------
       ! Determine whether snow lies below freeboard.
       !-----------------------------------------------------------------
-      
+
       dhin = c0
       dhsn = c0
       hqs  = c0
@@ -1949,7 +1949,7 @@
          ! update ice age due to freezing (new ice age = dt)
          !            if (tr_iage) &
          !               iage = (iage*hin+dt*dhin)/(hin+dhin)
-         
+
          wk1 = dzi(1) + dhin
          hin = hin + dhin
          zqin(1) = (dzi(1)*zqin(1) + hqs) / wk1
@@ -1990,7 +1990,7 @@
          fsnow       , & ! snowfall rate (kg m-2 s-1)
          fcondtopn   , &
          fadvocn     , &
-         fbot           
+         fbot
 
       real (kind=dbl_kind), intent(in) :: &
          einit       , & ! initial energy of melting (J m-2)
@@ -2016,14 +2016,14 @@
       ! is the energy change in the system ice + vapor, and the latent
       ! heat lost by the ice is equal to that gained by the vapor.
       !-----------------------------------------------------------------
-       
+
       einp = (fsurfn - flatn + fswint - fhocnn &
            - fsnow*Lfresh - fadvocn) * dt
       ferr = abs(efinal-einit-einp) / dt
 
       if (ferr > 1.1_dbl_kind*ferrmax) then
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         call icepack_warnings_add(subname//" conservation_check_vthermo: Thermo energy conservation error" ) 
+         call icepack_warnings_add(subname//" conservation_check_vthermo: Thermo energy conservation error" )
 
          write(warnstr,*) subname, 'Thermo energy conservation error'
          call icepack_warnings_add(warnstr)
@@ -2069,7 +2069,7 @@
 
          !         write(warnstr,*) subname, fsurfn,flatn,fswint,fhocnn
          !         call icepack_warnings_add(warnstr)
-         
+
          write(warnstr,*) subname, 'dt*(fsurfn, flatn, fswint, fhocn, fsnow*Lfresh, fadvocn):'
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, fsurfn*dt, flatn*dt, &
@@ -2151,7 +2151,7 @@
          vicen = aicen * hin
          vsnon = aicen * hsn
       endif
-      
+
       end subroutine update_state_vthermo
 
 !=======================================================================
@@ -2209,15 +2209,15 @@
                                     fcondtop    , fcondtopn   , &
                                     fcondbot    , fcondbotn   , &
                                     fswsfcn     , fswintn     , &
-                                    fswthrun    ,               & 
-                                    fswthrun_vdr,               & 
-                                    fswthrun_vdf,               & 
-                                    fswthrun_idr,               & 
-                                    fswthrun_idf,               & 
+                                    fswthrun    ,               &
+                                    fswthrun_vdr,               &
+                                    fswthrun_vdf,               &
+                                    fswthrun_idr,               &
+                                    fswthrun_idf,               &
                                     fswabs      ,               &
                                     flwout      ,               &
                                     Sswabsn     , Iswabsn     , &
-                                    flw         , & 
+                                    flw         , &
                                     fsens       , fsensn      , &
                                     flat        , flatn       , &
                                     evap        ,               &
@@ -2261,7 +2261,7 @@
          uvel        , & ! x-component of velocity (m/s)
          vvel        , & ! y-component of velocity (m/s)
          strax       , & ! wind stress components (N/m^2)
-         stray       , & ! 
+         stray       , & !
          yday            ! day of year
 
       logical (kind=log_kind), intent(in) :: &
@@ -2735,13 +2735,13 @@
 
          if (aicen_init(n) > puny) then
 
-            if (calc_Tsfc .or. calc_strair) then 
+            if (calc_Tsfc .or. calc_strair) then
 
       !-----------------------------------------------------------------
       ! Atmosphere boundary layer calculation; compute coefficients
       ! for sensible and latent heat fluxes.
       !
-      ! NOTE: The wind stress is computed here for later use if 
+      ! NOTE: The wind stress is computed here for later use if
       !       calc_strair = .true.   Otherwise, the wind stress
       !       components are set to the data values.
       !-----------------------------------------------------------------
@@ -2771,7 +2771,7 @@
                strairxn = strax
                strairyn = stray
 #else
-               ! NEMO wind stress is supplied on u grid, multipied 
+               ! NEMO wind stress is supplied on u grid, multipied
                ! by ice concentration and set directly in evp, so
                ! strairxT/yT = 0. Zero u-components here for safety.
                strairxn = c0
@@ -2794,14 +2794,14 @@
 
       !-----------------------------------------------------------------
       ! Vertical thermodynamics: Heat conduction, growth and melting.
-      !----------------------------------------------------------------- 
+      !-----------------------------------------------------------------
 
             if (.not.(calc_Tsfc)) then
 
-               ! If not calculating surface temperature and fluxes, set 
-               ! surface fluxes (flatn, fsurfn, and fcondtopn) to be used 
+               ! If not calculating surface temperature and fluxes, set
+               ! surface fluxes (flatn, fsurfn, and fcondtopn) to be used
                ! in thickness_changes
- 
+
                ! hadgem routine sets fluxes to default values in ice-only mode
                call set_sfcflux(aicen      (n),                 &
                                 flatn_f    (n), fsensn_f   (n), &
@@ -2880,7 +2880,7 @@
                                     nilyr = nilyr, nslyr = nslyr, &
                                     meltt = melttn(n),melts = meltsn(n),     &
                                     meltb = meltbn(n),congel=congeln(n),    &
-                                    snoice=snoicen(n),evap=evapn,         & 
+                                    snoice=snoicen(n),evap=evapn,         &
                                     fsnow=fsnow,      Tsfc=Tsfc(n),       &
                                     Qref_iso=Qrefn_iso(:),                 &
                                     isosno=l_isosno(:,n),isoice=l_isoice(:,n), &
@@ -2919,10 +2919,10 @@
 
          !call ice_timer_start(timer_ponds)
          if (tr_pond) then
-               
+
 #ifdef UNDEPRECATE_CESMPONDS
             if (tr_pond_cesm) then
-               rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n) 
+               rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
                call compute_ponds_cesm(dt=dt,           &
                                        hi_min=hi_min,   &
                                        rfrac=rfrac,     &
@@ -2936,7 +2936,7 @@
                                        hpnd=hpnd   (n), &
                                        meltsliqn=l_meltsliqn(n))
                if (icepack_warnings_aborted(subname)) return
-                  
+
             elseif (tr_pond_lvl) then
 #else
             if (tr_pond_lvl) then
@@ -2968,10 +2968,10 @@
                                        ipnd=ipnd    (n), &
                                        meltsliqn=l_meltsliqn(n))
                if (icepack_warnings_aborted(subname)) return
-                  
+
             elseif (tr_pond_topo) then
                if (aicen_init(n) > puny) then
-                     
+
                   ! collect liquid water in ponds
                   ! assume salt still runs off
                   rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
@@ -3004,7 +3004,7 @@
 
          if (aicen_init(n) > puny) &
             call merge_fluxes (aicen=aicen_init(n),            &
-                               flw=flw, & 
+                               flw=flw, &
                                strairxn=strairxn, strairyn=strairyn,&
                                Cdn_atm_ratio_n=Cdn_atm_ratio_n,     &
                                fsurfn=fsurfn(n), fcondtopn=fcondtopn(n),&
