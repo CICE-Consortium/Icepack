@@ -54,6 +54,10 @@
 #endif
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
+      use icepack_parameters, only: ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr
+      use icepack_parameters, only: ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf
+      use icepack_parameters, only: snw_ssp_table, nsnw_radius
+
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
 #ifdef UNDEPRECATE_CESMPONDS
       use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
@@ -77,6 +81,7 @@
       public :: run_dEdd, &
                 shortwave_ccsm3, &
                 compute_shortwave_trcr, &
+                icepack_init_radiation, &
                 icepack_prep_radiation, &
                 icepack_step_radiation
 
@@ -90,6 +95,119 @@
 !=======================================================================
 
       contains
+
+!=======================================================================
+!autodocument_start icepack_init_snow
+! Initialize data needed for shortwave radiation calculations
+
+      subroutine icepack_init_radiation
+
+!autodocument_end
+
+      ! local variables
+
+      integer (kind=int_kind) :: n
+
+      character (len=*),parameter :: subname='(icepack_init_radiation)'
+
+      !-----------------------------------------------------------------
+      ! Snow single-scattering properties
+      !-----------------------------------------------------------------
+
+      ! if snw_ssp_table = 'snicar'
+      ! best-fit parameters are read from a table (netcdf)
+      !   1471 snow grain radii
+      !   5 spectral intervals
+
+      ! if snw_ssp_table = 'test'
+      ! for testing Icepack without netcdf,
+      ! use a subsampled, hard-coded table
+      !   5 snow grain radii
+      !   5 spectral intervals
+
+      ! if snw_aging_table = 'file'
+      ! all data has to be passed into icepack_parameters
+
+      if (use_snicar) then
+         if (trim(snw_ssp_table) == 'snicar') then ! read netcdf file
+            nsnw_radius = 1471 ! maximum snow grain radius index
+
+            allocate(ssp_snwextdr(nspint_5bd,nsnw_radius)) ! extinction coefficient, direct
+            allocate(ssp_snwextdf(nspint_5bd,nsnw_radius)) ! extinction coefficient, diffuse
+            allocate(ssp_snwalbdr(nspint_5bd,nsnw_radius)) ! single-scattering albedo, direct
+            allocate(ssp_snwalbdf(nspint_5bd,nsnw_radius)) ! single-scattering albedo, diffuse
+            allocate(ssp_sasymmdr(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, direct
+            allocate(ssp_sasymmdf(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, diffuse
+
+         elseif (trim(snw_ssp_table) == 'file') then
+            nsnw_radius = -1 ! maximum snow grain radius index
+
+         elseif (trim(snw_ssp_table) == 'test') then ! 5x5 table
+            nsnw_radius = 5 ! maximum snow grain radius index
+
+            allocate(ssp_snwextdr(nspint_5bd,nsnw_radius)) ! extinction coefficient, direct
+            allocate(ssp_snwextdf(nspint_5bd,nsnw_radius)) ! extinction coefficient, diffuse
+            allocate(ssp_snwalbdr(nspint_5bd,nsnw_radius)) ! single-scattering albedo, direct
+            allocate(ssp_snwalbdf(nspint_5bd,nsnw_radius)) ! single-scattering albedo, diffuse
+            allocate(ssp_sasymmdr(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, direct
+            allocate(ssp_sasymmdf(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, diffuse
+
+         ssp_snwextdr = reshape((/ &
+            46.27374983, 24.70286257, 6.54918455, 2.6035624,  1.196168,   &
+            46.56827715, 24.81790668, 6.56181227, 2.60604155, 1.19682614, &
+            46.76114033, 24.90468677, 6.56950323, 2.60780948, 1.19737512, &
+            46.9753992,  24.9495155,  6.57687695, 2.60937383, 1.19774008, &
+            47.48598349, 25.14100194, 6.59708024, 2.61372576, 1.19897351 /), &
+            (/nspint_5bd,nsnw_radius/))
+
+         ssp_snwextdf = reshape((/ &
+            46.26936158, 24.70165487, 6.54903637, 2.60353051, 1.19615825, &
+            46.56628244, 24.81707286, 6.56164279, 2.60601584, 1.1968169,  &
+            46.75501968, 24.90175807, 6.5693214,  2.60775795, 1.19736237, &
+            46.95368476, 24.94497414, 6.57612007, 2.60924059, 1.19770981, &
+            47.29620774, 25.0713585,  6.5891698,  2.61198929, 1.19850197 /), &
+            (/nspint_5bd,nsnw_radius/))
+
+         ssp_snwalbdr = reshape((/ &
+            0.99999581, 0.99999231, 0.99997215, 0.99993093, 0.99985157, &
+            0.99987892, 0.99978212, 0.99923115, 0.99817946, 0.99628374, &
+            0.99909682, 0.99835523, 0.99418008, 0.98592085, 0.97062632, &
+            0.99308867, 0.98972448, 0.97261528, 0.93947995, 0.88207117, &
+            0.93322249, 0.89645776, 0.75765643, 0.6272883,  0.55435033 /), &
+            (/nspint_5bd,nsnw_radius/))
+
+         ssp_snwalbdf = reshape((/ &
+            0.99999586, 0.9999924,  0.99997249, 0.99993178, 0.9998534,  &
+            0.99988441, 0.99979202, 0.99926745, 0.99826865, 0.99647135, &
+            0.99910997, 0.99837683, 0.99426171, 0.98610431, 0.97097643, &
+            0.99476731, 0.9916114,  0.97441209, 0.94127464, 0.88440735, &
+            0.9419837,  0.90613207, 0.77042376, 0.63887161, 0.5566098  /), &
+            (/nspint_5bd,nsnw_radius/))
+
+         ssp_sasymmdr = reshape((/ &
+            0.88503036, 0.88778473, 0.89049023, 0.89112501, 0.89136157, &
+            0.88495225, 0.88905367, 0.89315385, 0.89433673, 0.8950027,  &
+            0.88440201, 0.88928256, 0.89503166, 0.89762648, 0.90045378, &
+            0.88590371, 0.89350221, 0.90525156, 0.91314567, 0.92157748, &
+            0.9033537,  0.91778261, 0.94615574, 0.96323447, 0.97167644 /), &
+            (/nspint_5bd,nsnw_radius/))
+
+         ssp_sasymmdf = reshape((/ &
+            0.88500571, 0.88773868, 0.89042496, 0.8910553,  0.89128949, &
+            0.88495225, 0.88905367, 0.89315385, 0.89433673, 0.8950027 , &
+            0.88441433, 0.88929133, 0.89500611, 0.89756091, 0.90035504, &
+            0.88495554, 0.89201556, 0.90204619, 0.90914885, 0.91769988, &
+            0.89620237, 0.90998944, 0.94126152, 0.96209938, 0.9726631  /), &
+            (/nspint_5bd,nsnw_radius/))
+
+         else
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//'ERROR: snw_ssp_table value')
+            return
+         endif
+      endif
+
+      end subroutine icepack_init_radiation
 
 !=======================================================================
 !

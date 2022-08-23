@@ -233,6 +233,21 @@
          sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
          sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
 
+      ! Parameters for dEdd_snicar
+      character (len=char_len), public :: &
+         snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test' or 'file'
+
+      integer (kind=int_kind), public :: &
+         nsnw_radius  ! maximum snow radius index
+
+      real (kind=dbl_kind), allocatable, public :: &
+         ssp_snwextdr(:,:), &  ! snow mass extinction cross section (m2/kg), direct
+         ssp_snwextdf(:,:), &  ! snow mass extinction cross section (m2/kg), diffuse
+         ssp_snwalbdr(:,:), &  ! snow single scatter albedo (fraction), direct
+         ssp_snwalbdf(:,:), &  ! snow single scatter albedo (fraction), diffuse
+         ssp_sasymmdr(:,:), &  ! snow asymmetry factor (cos(theta)), direct
+         ssp_sasymmdf(:,:)     ! snow asymmetry factor (cos(theta)), diffuse
+
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
 !-----------------------------------------------------------------------
