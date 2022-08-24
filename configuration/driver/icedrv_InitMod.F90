@@ -38,6 +38,7 @@
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
       use icepack_intfc, only: icepack_init_fsd_bounds
       use icepack_intfc, only: icepack_init_snow
+      use icepack_intfc, only: icepack_init_radiation
       use icepack_intfc, only: icepack_warnings_flush
       use icedrv_domain_size, only: ncat, nfsd
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
@@ -143,6 +144,7 @@
       if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
 
+      call icepack_init_radiation()                     ! radiation data
       if (tr_snow)    call icepack_init_snow            ! snow aging table
       if (tr_iso)     call fiso_default                 ! default values
       ! aerosols

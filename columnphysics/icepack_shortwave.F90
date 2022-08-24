@@ -101,6 +101,13 @@
          rsnw_snicar_max, & ! maximum snow radius - integer value used for indexing
          rsnw_snicar_min    ! minimum snow radius - integer value used for indexing
 
+      ! Snow table data
+      integer (kind=int_kind) :: nmbrad  ! number of snow grain radii in tables
+      real (kind=dbl_kind), dimension(:)  , allocatable :: rsnw_tab ! snow grain radii (micro-meters) for table
+      real (kind=dbl_kind), dimension(:,:), allocatable :: Qs_tab   ! snow extinction efficiency (unitless)
+      real (kind=dbl_kind), dimension(:,:), allocatable :: ws_tab   ! snow single scattering albedo (unitless)
+      real (kind=dbl_kind), dimension(:,:), allocatable :: gs_tab   ! snow asymmetry parameter (unitless)
+
 !=======================================================================
 
       contains
@@ -118,6 +125,12 @@
       integer (kind=int_kind) :: n
 
       character (len=*),parameter :: subname='(icepack_init_radiation)'
+
+      !-----------------------------------------------------------------
+      ! Snow table initialization
+      !-----------------------------------------------------------------
+
+      call data_dEdd_3band()
 
       !-----------------------------------------------------------------
       ! Snow single-scattering properties
@@ -922,6 +935,143 @@
       end subroutine absorbed_solar
 
 ! End ccsm3 shortwave method
+!=======================================================================
+
+      subroutine data_dEdd_3band
+
+      ! local variables
+
+      integer (kind=int_kind) :: n
+
+      character (len=*),parameter :: subname='(data_dEdd_3band)'
+
+      nmbrad = 32 ! number of snow grain radii in tables
+      allocate(rsnw_tab(nmbrad))
+      allocate(Qs_tab(nspint_3bd,nmbrad))
+      allocate(ws_tab(nspint_3bd,nmbrad))
+      allocate(gs_tab(nspint_3bd,nmbrad))
+
+      ! snow grain radii (micro-meters) for table
+      rsnw_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
+          5._dbl_kind,    7._dbl_kind,   10._dbl_kind,   15._dbl_kind, &
+         20._dbl_kind,   30._dbl_kind,   40._dbl_kind,   50._dbl_kind, &
+         65._dbl_kind,   80._dbl_kind,  100._dbl_kind,  120._dbl_kind, &
+        140._dbl_kind,  170._dbl_kind,  200._dbl_kind,  240._dbl_kind, &
+        290._dbl_kind,  350._dbl_kind,  420._dbl_kind,  500._dbl_kind, &
+        570._dbl_kind,  660._dbl_kind,  760._dbl_kind,  870._dbl_kind, &
+       1000._dbl_kind, 1100._dbl_kind, 1250._dbl_kind, 1400._dbl_kind, &
+       1600._dbl_kind, 1800._dbl_kind, 2000._dbl_kind, 2500._dbl_kind/)
+
+      ! snow extinction efficiency (unitless)
+      Qs_tab = reshape((/ &
+          2.131798_dbl_kind,  2.187756_dbl_kind,  2.267358_dbl_kind, &
+          2.104499_dbl_kind,  2.148345_dbl_kind,  2.236078_dbl_kind, &
+          2.081580_dbl_kind,  2.116885_dbl_kind,  2.175067_dbl_kind, &
+          2.062595_dbl_kind,  2.088937_dbl_kind,  2.130242_dbl_kind, &
+          2.051403_dbl_kind,  2.072422_dbl_kind,  2.106610_dbl_kind, &
+          2.039223_dbl_kind,  2.055389_dbl_kind,  2.080586_dbl_kind, &
+          2.032383_dbl_kind,  2.045751_dbl_kind,  2.066394_dbl_kind, &
+          2.027920_dbl_kind,  2.039388_dbl_kind,  2.057224_dbl_kind, &
+          2.023444_dbl_kind,  2.033137_dbl_kind,  2.048055_dbl_kind, &
+          2.020412_dbl_kind,  2.028840_dbl_kind,  2.041874_dbl_kind, &
+          2.017608_dbl_kind,  2.024863_dbl_kind,  2.036046_dbl_kind, &
+          2.015592_dbl_kind,  2.022021_dbl_kind,  2.031954_dbl_kind, &
+          2.014083_dbl_kind,  2.019887_dbl_kind,  2.028853_dbl_kind, &
+          2.012368_dbl_kind,  2.017471_dbl_kind,  2.025353_dbl_kind, &
+          2.011092_dbl_kind,  2.015675_dbl_kind,  2.022759_dbl_kind, &
+          2.009837_dbl_kind,  2.013897_dbl_kind,  2.020168_dbl_kind, &
+          2.008668_dbl_kind,  2.012252_dbl_kind,  2.017781_dbl_kind, &
+          2.007627_dbl_kind,  2.010813_dbl_kind,  2.015678_dbl_kind, &
+          2.006764_dbl_kind,  2.009577_dbl_kind,  2.013880_dbl_kind, &
+          2.006037_dbl_kind,  2.008520_dbl_kind,  2.012382_dbl_kind, &
+          2.005528_dbl_kind,  2.007807_dbl_kind,  2.011307_dbl_kind, &
+          2.005025_dbl_kind,  2.007079_dbl_kind,  2.010280_dbl_kind, &
+          2.004562_dbl_kind,  2.006440_dbl_kind,  2.009333_dbl_kind, &
+          2.004155_dbl_kind,  2.005898_dbl_kind,  2.008523_dbl_kind, &
+          2.003794_dbl_kind,  2.005379_dbl_kind,  2.007795_dbl_kind, &
+          2.003555_dbl_kind,  2.005041_dbl_kind,  2.007329_dbl_kind, &
+          2.003264_dbl_kind,  2.004624_dbl_kind,  2.006729_dbl_kind, &
+          2.003037_dbl_kind,  2.004291_dbl_kind,  2.006230_dbl_kind, &
+          2.002776_dbl_kind,  2.003929_dbl_kind,  2.005700_dbl_kind, &
+          2.002590_dbl_kind,  2.003627_dbl_kind,  2.005276_dbl_kind, &
+          2.002395_dbl_kind,  2.003391_dbl_kind,  2.004904_dbl_kind, &
+          2.002071_dbl_kind,  2.002922_dbl_kind,  2.004241_dbl_kind/), &
+          (/nspint_3bd,nmbrad/))
+
+      ! snow single scattering albedo (unitless)
+      ws_tab = reshape((/ &
+         0.9999994_dbl_kind,  0.9999673_dbl_kind,  0.9954589_dbl_kind, &
+         0.9999992_dbl_kind,  0.9999547_dbl_kind,  0.9938576_dbl_kind, &
+         0.9999990_dbl_kind,  0.9999382_dbl_kind,  0.9917989_dbl_kind, &
+         0.9999985_dbl_kind,  0.9999123_dbl_kind,  0.9889724_dbl_kind, &
+         0.9999979_dbl_kind,  0.9998844_dbl_kind,  0.9866190_dbl_kind, &
+         0.9999970_dbl_kind,  0.9998317_dbl_kind,  0.9823021_dbl_kind, &
+         0.9999960_dbl_kind,  0.9997800_dbl_kind,  0.9785269_dbl_kind, &
+         0.9999951_dbl_kind,  0.9997288_dbl_kind,  0.9751601_dbl_kind, &
+         0.9999936_dbl_kind,  0.9996531_dbl_kind,  0.9706974_dbl_kind, &
+         0.9999922_dbl_kind,  0.9995783_dbl_kind,  0.9667577_dbl_kind, &
+         0.9999903_dbl_kind,  0.9994798_dbl_kind,  0.9621007_dbl_kind, &
+         0.9999885_dbl_kind,  0.9993825_dbl_kind,  0.9579541_dbl_kind, &
+         0.9999866_dbl_kind,  0.9992862_dbl_kind,  0.9541924_dbl_kind, &
+         0.9999838_dbl_kind,  0.9991434_dbl_kind,  0.9490959_dbl_kind, &
+         0.9999810_dbl_kind,  0.9990025_dbl_kind,  0.9444940_dbl_kind, &
+         0.9999772_dbl_kind,  0.9988171_dbl_kind,  0.9389141_dbl_kind, &
+         0.9999726_dbl_kind,  0.9985890_dbl_kind,  0.9325819_dbl_kind, &
+         0.9999670_dbl_kind,  0.9983199_dbl_kind,  0.9256405_dbl_kind, &
+         0.9999605_dbl_kind,  0.9980117_dbl_kind,  0.9181533_dbl_kind, &
+         0.9999530_dbl_kind,  0.9976663_dbl_kind,  0.9101540_dbl_kind, &
+         0.9999465_dbl_kind,  0.9973693_dbl_kind,  0.9035031_dbl_kind, &
+         0.9999382_dbl_kind,  0.9969939_dbl_kind,  0.8953134_dbl_kind, &
+         0.9999289_dbl_kind,  0.9965848_dbl_kind,  0.8865789_dbl_kind, &
+         0.9999188_dbl_kind,  0.9961434_dbl_kind,  0.8773350_dbl_kind, &
+         0.9999068_dbl_kind,  0.9956323_dbl_kind,  0.8668233_dbl_kind, &
+         0.9998975_dbl_kind,  0.9952464_dbl_kind,  0.8589990_dbl_kind, &
+         0.9998837_dbl_kind,  0.9946782_dbl_kind,  0.8476493_dbl_kind, &
+         0.9998699_dbl_kind,  0.9941218_dbl_kind,  0.8367318_dbl_kind, &
+         0.9998515_dbl_kind,  0.9933966_dbl_kind,  0.8227881_dbl_kind, &
+         0.9998332_dbl_kind,  0.9926888_dbl_kind,  0.8095131_dbl_kind, &
+         0.9998148_dbl_kind,  0.9919968_dbl_kind,  0.7968620_dbl_kind, &
+         0.9997691_dbl_kind,  0.9903277_dbl_kind,  0.7677887_dbl_kind/), &
+         (/nspint_3bd,nmbrad/))
+
+      ! snow asymmetry parameter (unitless)
+      gs_tab = reshape((/ &
+          0.859913_dbl_kind,  0.848003_dbl_kind,  0.824415_dbl_kind, &
+          0.867130_dbl_kind,  0.858150_dbl_kind,  0.848445_dbl_kind, &
+          0.873381_dbl_kind,  0.867221_dbl_kind,  0.861714_dbl_kind, &
+          0.878368_dbl_kind,  0.874879_dbl_kind,  0.874036_dbl_kind, &
+          0.881462_dbl_kind,  0.879661_dbl_kind,  0.881299_dbl_kind, &
+          0.884361_dbl_kind,  0.883903_dbl_kind,  0.890184_dbl_kind, &
+          0.885937_dbl_kind,  0.886256_dbl_kind,  0.895393_dbl_kind, &
+          0.886931_dbl_kind,  0.887769_dbl_kind,  0.899072_dbl_kind, &
+          0.887894_dbl_kind,  0.889255_dbl_kind,  0.903285_dbl_kind, &
+          0.888515_dbl_kind,  0.890236_dbl_kind,  0.906588_dbl_kind, &
+          0.889073_dbl_kind,  0.891127_dbl_kind,  0.910152_dbl_kind, &
+          0.889452_dbl_kind,  0.891750_dbl_kind,  0.913100_dbl_kind, &
+          0.889730_dbl_kind,  0.892213_dbl_kind,  0.915621_dbl_kind, &
+          0.890026_dbl_kind,  0.892723_dbl_kind,  0.918831_dbl_kind, &
+          0.890238_dbl_kind,  0.893099_dbl_kind,  0.921540_dbl_kind, &
+          0.890441_dbl_kind,  0.893474_dbl_kind,  0.924581_dbl_kind, &
+          0.890618_dbl_kind,  0.893816_dbl_kind,  0.927701_dbl_kind, &
+          0.890762_dbl_kind,  0.894123_dbl_kind,  0.930737_dbl_kind, &
+          0.890881_dbl_kind,  0.894397_dbl_kind,  0.933568_dbl_kind, &
+          0.890975_dbl_kind,  0.894645_dbl_kind,  0.936148_dbl_kind, &
+          0.891035_dbl_kind,  0.894822_dbl_kind,  0.937989_dbl_kind, &
+          0.891097_dbl_kind,  0.895020_dbl_kind,  0.939949_dbl_kind, &
+          0.891147_dbl_kind,  0.895212_dbl_kind,  0.941727_dbl_kind, &
+          0.891189_dbl_kind,  0.895399_dbl_kind,  0.943339_dbl_kind, &
+          0.891225_dbl_kind,  0.895601_dbl_kind,  0.944915_dbl_kind, &
+          0.891248_dbl_kind,  0.895745_dbl_kind,  0.945950_dbl_kind, &
+          0.891277_dbl_kind,  0.895951_dbl_kind,  0.947288_dbl_kind, &
+          0.891299_dbl_kind,  0.896142_dbl_kind,  0.948438_dbl_kind, &
+          0.891323_dbl_kind,  0.896388_dbl_kind,  0.949762_dbl_kind, &
+          0.891340_dbl_kind,  0.896623_dbl_kind,  0.950916_dbl_kind, &
+          0.891356_dbl_kind,  0.896851_dbl_kind,  0.951945_dbl_kind, &
+          0.891386_dbl_kind,  0.897399_dbl_kind,  0.954156_dbl_kind/), &
+          (/nspint_3bd,nmbrad/))
+
+      end subroutine data_dEdd_3band
+
 !=======================================================================
 ! Begin Delta-Eddington shortwave method
 
@@ -2243,9 +2393,6 @@
          ksnow   , & ! level index for snow density and grain size
          kii         ! level starting index for sea ice (nslyr+1)
 
-      integer (kind=int_kind), parameter :: &
-         nmbrad = 32 ! number of snow grain radii in tables
-
       real (kind=dbl_kind) :: &
          avdr    , & ! visible albedo, direct   (fraction)
          avdf    , & ! visible albedo, diffuse  (fraction)
@@ -2389,129 +2536,6 @@
 
       real(kind=dbl_kind)::  &
          tmp_gs, tmp1               ! temp variables
-
-      ! snow grain radii (micro-meters) for table
-      real (kind=dbl_kind), dimension(nmbrad), parameter :: &
-         rsnw_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
-          5._dbl_kind,    7._dbl_kind,   10._dbl_kind,   15._dbl_kind, &
-         20._dbl_kind,   30._dbl_kind,   40._dbl_kind,   50._dbl_kind, &
-         65._dbl_kind,   80._dbl_kind,  100._dbl_kind,  120._dbl_kind, &
-        140._dbl_kind,  170._dbl_kind,  200._dbl_kind,  240._dbl_kind, &
-        290._dbl_kind,  350._dbl_kind,  420._dbl_kind,  500._dbl_kind, &
-        570._dbl_kind,  660._dbl_kind,  760._dbl_kind,  870._dbl_kind, &
-       1000._dbl_kind, 1100._dbl_kind, 1250._dbl_kind, 1400._dbl_kind, &
-       1600._dbl_kind, 1800._dbl_kind, 2000._dbl_kind, 2500._dbl_kind/)
-
-      ! snow extinction efficiency (unitless)
-      real (kind=dbl_kind), dimension (nspint_3bd,nmbrad), parameter :: &
-         Qs_tab = reshape((/ &
-          2.131798_dbl_kind,  2.187756_dbl_kind,  2.267358_dbl_kind, &
-          2.104499_dbl_kind,  2.148345_dbl_kind,  2.236078_dbl_kind, &
-          2.081580_dbl_kind,  2.116885_dbl_kind,  2.175067_dbl_kind, &
-          2.062595_dbl_kind,  2.088937_dbl_kind,  2.130242_dbl_kind, &
-          2.051403_dbl_kind,  2.072422_dbl_kind,  2.106610_dbl_kind, &
-          2.039223_dbl_kind,  2.055389_dbl_kind,  2.080586_dbl_kind, &
-          2.032383_dbl_kind,  2.045751_dbl_kind,  2.066394_dbl_kind, &
-          2.027920_dbl_kind,  2.039388_dbl_kind,  2.057224_dbl_kind, &
-          2.023444_dbl_kind,  2.033137_dbl_kind,  2.048055_dbl_kind, &
-          2.020412_dbl_kind,  2.028840_dbl_kind,  2.041874_dbl_kind, &
-          2.017608_dbl_kind,  2.024863_dbl_kind,  2.036046_dbl_kind, &
-          2.015592_dbl_kind,  2.022021_dbl_kind,  2.031954_dbl_kind, &
-          2.014083_dbl_kind,  2.019887_dbl_kind,  2.028853_dbl_kind, &
-          2.012368_dbl_kind,  2.017471_dbl_kind,  2.025353_dbl_kind, &
-          2.011092_dbl_kind,  2.015675_dbl_kind,  2.022759_dbl_kind, &
-          2.009837_dbl_kind,  2.013897_dbl_kind,  2.020168_dbl_kind, &
-          2.008668_dbl_kind,  2.012252_dbl_kind,  2.017781_dbl_kind, &
-          2.007627_dbl_kind,  2.010813_dbl_kind,  2.015678_dbl_kind, &
-          2.006764_dbl_kind,  2.009577_dbl_kind,  2.013880_dbl_kind, &
-          2.006037_dbl_kind,  2.008520_dbl_kind,  2.012382_dbl_kind, &
-          2.005528_dbl_kind,  2.007807_dbl_kind,  2.011307_dbl_kind, &
-          2.005025_dbl_kind,  2.007079_dbl_kind,  2.010280_dbl_kind, &
-          2.004562_dbl_kind,  2.006440_dbl_kind,  2.009333_dbl_kind, &
-          2.004155_dbl_kind,  2.005898_dbl_kind,  2.008523_dbl_kind, &
-          2.003794_dbl_kind,  2.005379_dbl_kind,  2.007795_dbl_kind, &
-          2.003555_dbl_kind,  2.005041_dbl_kind,  2.007329_dbl_kind, &
-          2.003264_dbl_kind,  2.004624_dbl_kind,  2.006729_dbl_kind, &
-          2.003037_dbl_kind,  2.004291_dbl_kind,  2.006230_dbl_kind, &
-          2.002776_dbl_kind,  2.003929_dbl_kind,  2.005700_dbl_kind, &
-          2.002590_dbl_kind,  2.003627_dbl_kind,  2.005276_dbl_kind, &
-          2.002395_dbl_kind,  2.003391_dbl_kind,  2.004904_dbl_kind, &
-          2.002071_dbl_kind,  2.002922_dbl_kind,  2.004241_dbl_kind/), &
-          (/nspint_3bd,nmbrad/))
-
-      ! snow single scattering albedo (unitless)
-      real (kind=dbl_kind), dimension (nspint_3bd,nmbrad), parameter :: &
-        ws_tab = reshape((/ &
-         0.9999994_dbl_kind,  0.9999673_dbl_kind,  0.9954589_dbl_kind, &
-         0.9999992_dbl_kind,  0.9999547_dbl_kind,  0.9938576_dbl_kind, &
-         0.9999990_dbl_kind,  0.9999382_dbl_kind,  0.9917989_dbl_kind, &
-         0.9999985_dbl_kind,  0.9999123_dbl_kind,  0.9889724_dbl_kind, &
-         0.9999979_dbl_kind,  0.9998844_dbl_kind,  0.9866190_dbl_kind, &
-         0.9999970_dbl_kind,  0.9998317_dbl_kind,  0.9823021_dbl_kind, &
-         0.9999960_dbl_kind,  0.9997800_dbl_kind,  0.9785269_dbl_kind, &
-         0.9999951_dbl_kind,  0.9997288_dbl_kind,  0.9751601_dbl_kind, &
-         0.9999936_dbl_kind,  0.9996531_dbl_kind,  0.9706974_dbl_kind, &
-         0.9999922_dbl_kind,  0.9995783_dbl_kind,  0.9667577_dbl_kind, &
-         0.9999903_dbl_kind,  0.9994798_dbl_kind,  0.9621007_dbl_kind, &
-         0.9999885_dbl_kind,  0.9993825_dbl_kind,  0.9579541_dbl_kind, &
-         0.9999866_dbl_kind,  0.9992862_dbl_kind,  0.9541924_dbl_kind, &
-         0.9999838_dbl_kind,  0.9991434_dbl_kind,  0.9490959_dbl_kind, &
-         0.9999810_dbl_kind,  0.9990025_dbl_kind,  0.9444940_dbl_kind, &
-         0.9999772_dbl_kind,  0.9988171_dbl_kind,  0.9389141_dbl_kind, &
-         0.9999726_dbl_kind,  0.9985890_dbl_kind,  0.9325819_dbl_kind, &
-         0.9999670_dbl_kind,  0.9983199_dbl_kind,  0.9256405_dbl_kind, &
-         0.9999605_dbl_kind,  0.9980117_dbl_kind,  0.9181533_dbl_kind, &
-         0.9999530_dbl_kind,  0.9976663_dbl_kind,  0.9101540_dbl_kind, &
-         0.9999465_dbl_kind,  0.9973693_dbl_kind,  0.9035031_dbl_kind, &
-         0.9999382_dbl_kind,  0.9969939_dbl_kind,  0.8953134_dbl_kind, &
-         0.9999289_dbl_kind,  0.9965848_dbl_kind,  0.8865789_dbl_kind, &
-         0.9999188_dbl_kind,  0.9961434_dbl_kind,  0.8773350_dbl_kind, &
-         0.9999068_dbl_kind,  0.9956323_dbl_kind,  0.8668233_dbl_kind, &
-         0.9998975_dbl_kind,  0.9952464_dbl_kind,  0.8589990_dbl_kind, &
-         0.9998837_dbl_kind,  0.9946782_dbl_kind,  0.8476493_dbl_kind, &
-         0.9998699_dbl_kind,  0.9941218_dbl_kind,  0.8367318_dbl_kind, &
-         0.9998515_dbl_kind,  0.9933966_dbl_kind,  0.8227881_dbl_kind, &
-         0.9998332_dbl_kind,  0.9926888_dbl_kind,  0.8095131_dbl_kind, &
-         0.9998148_dbl_kind,  0.9919968_dbl_kind,  0.7968620_dbl_kind, &
-         0.9997691_dbl_kind,  0.9903277_dbl_kind,  0.7677887_dbl_kind/), &
-         (/nspint_3bd,nmbrad/))
-
-      ! snow asymmetry parameter (unitless)
-      real (kind=dbl_kind), dimension (nspint_3bd,nmbrad), parameter :: &
-         gs_tab = reshape((/ &
-          0.859913_dbl_kind,  0.848003_dbl_kind,  0.824415_dbl_kind, &
-          0.867130_dbl_kind,  0.858150_dbl_kind,  0.848445_dbl_kind, &
-          0.873381_dbl_kind,  0.867221_dbl_kind,  0.861714_dbl_kind, &
-          0.878368_dbl_kind,  0.874879_dbl_kind,  0.874036_dbl_kind, &
-          0.881462_dbl_kind,  0.879661_dbl_kind,  0.881299_dbl_kind, &
-          0.884361_dbl_kind,  0.883903_dbl_kind,  0.890184_dbl_kind, &
-          0.885937_dbl_kind,  0.886256_dbl_kind,  0.895393_dbl_kind, &
-          0.886931_dbl_kind,  0.887769_dbl_kind,  0.899072_dbl_kind, &
-          0.887894_dbl_kind,  0.889255_dbl_kind,  0.903285_dbl_kind, &
-          0.888515_dbl_kind,  0.890236_dbl_kind,  0.906588_dbl_kind, &
-          0.889073_dbl_kind,  0.891127_dbl_kind,  0.910152_dbl_kind, &
-          0.889452_dbl_kind,  0.891750_dbl_kind,  0.913100_dbl_kind, &
-          0.889730_dbl_kind,  0.892213_dbl_kind,  0.915621_dbl_kind, &
-          0.890026_dbl_kind,  0.892723_dbl_kind,  0.918831_dbl_kind, &
-          0.890238_dbl_kind,  0.893099_dbl_kind,  0.921540_dbl_kind, &
-          0.890441_dbl_kind,  0.893474_dbl_kind,  0.924581_dbl_kind, &
-          0.890618_dbl_kind,  0.893816_dbl_kind,  0.927701_dbl_kind, &
-          0.890762_dbl_kind,  0.894123_dbl_kind,  0.930737_dbl_kind, &
-          0.890881_dbl_kind,  0.894397_dbl_kind,  0.933568_dbl_kind, &
-          0.890975_dbl_kind,  0.894645_dbl_kind,  0.936148_dbl_kind, &
-          0.891035_dbl_kind,  0.894822_dbl_kind,  0.937989_dbl_kind, &
-          0.891097_dbl_kind,  0.895020_dbl_kind,  0.939949_dbl_kind, &
-          0.891147_dbl_kind,  0.895212_dbl_kind,  0.941727_dbl_kind, &
-          0.891189_dbl_kind,  0.895399_dbl_kind,  0.943339_dbl_kind, &
-          0.891225_dbl_kind,  0.895601_dbl_kind,  0.944915_dbl_kind, &
-          0.891248_dbl_kind,  0.895745_dbl_kind,  0.945950_dbl_kind, &
-          0.891277_dbl_kind,  0.895951_dbl_kind,  0.947288_dbl_kind, &
-          0.891299_dbl_kind,  0.896142_dbl_kind,  0.948438_dbl_kind, &
-          0.891323_dbl_kind,  0.896388_dbl_kind,  0.949762_dbl_kind, &
-          0.891340_dbl_kind,  0.896623_dbl_kind,  0.950916_dbl_kind, &
-          0.891356_dbl_kind,  0.896851_dbl_kind,  0.951945_dbl_kind, &
-          0.891386_dbl_kind,  0.897399_dbl_kind,  0.954156_dbl_kind/), &
-          (/nspint_3bd,nmbrad/))
 
       ! inherent optical property (iop) arrays for ice and ponded ice
       ! mn = specified mean (or base) value
