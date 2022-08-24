@@ -56,7 +56,7 @@
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_parameters, only: ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr
       use icepack_parameters, only: ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf
-      use icepack_parameters, only: snw_ssp_table, nsnw_radius
+      use icepack_parameters, only: snw_ssp_table
 
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
 #ifdef UNDEPRECATE_CESMPONDS
@@ -92,21 +92,23 @@
       real (kind=dbl_kind), parameter :: &
          exp_argmax = c10    ! maximum argument of exponential
 
+
 !echmod - temporary module data - change names later to icepack parameters - fix!
       integer (kind=int_kind), dimension(:), allocatable :: &
          rsnw_snicar_tab    ! vector of snow grain radii values assumed in SNICAR snow iops table
-
-      integer (kind=int_kind) :: &
          nmbrad_snicar  , & ! number of snow grain radii in SNICAR snow iops table
-         rsnw_snicar_max, & ! maximum snow radius - integer value used for indexing
-         rsnw_snicar_min    ! minimum snow radius - integer value used for indexing
 
       ! Snow table data
-      integer (kind=int_kind) :: nmbrad  ! number of snow grain radii in tables
+      integer (kind=int_kind) :: nmbrad_snicar          ! number of snow grain radii in tables
+      integer (kind=int_kind) :: rsnw_snicar_max ! maximum snow radius - integer value used for indexing
+      integer (kind=int_kind) :: rsnw_snicar_min ! minimum snow radius - integer value used for indexing
       real (kind=dbl_kind), dimension(:)  , allocatable :: rsnw_tab ! snow grain radii (micro-meters) for table
       real (kind=dbl_kind), dimension(:,:), allocatable :: Qs_tab   ! snow extinction efficiency (unitless)
       real (kind=dbl_kind), dimension(:,:), allocatable :: ws_tab   ! snow single scattering albedo (unitless)
       real (kind=dbl_kind), dimension(:,:), allocatable :: gs_tab   ! snow asymmetry parameter (unitless)
+
+      ! SSP snicar
+      integer (kind=int_kind) :: nsnw_radius  ! maximum snow radius index
 
 !=======================================================================
 
@@ -115,6 +117,7 @@
 !=======================================================================
 !autodocument_start icepack_init_radiation
 ! Initialize data needed for shortwave radiation calculations
+! This should be called after values are set via icepack_init_parameters
 
       subroutine icepack_init_radiation
 
@@ -131,6 +134,7 @@
       !-----------------------------------------------------------------
 
       call data_dEdd_3band()
+      if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
       ! Snow single-scattering properties
@@ -151,22 +155,9 @@
       ! all data has to be passed into icepack_parameters
 
       if (use_snicar) then
-         if (trim(snw_ssp_table) == 'snicar') then ! read netcdf file
+         if (trim(snw_ssp_table) == 'snicar') then
+            ! table passed in, hardwired 1471 x 5 table
             nsnw_radius = 1471 ! maximum snow grain radius index
-
-!echmod - temporary module data - fix!
-            nmbrad_snicar   = nsnw_radius ! number of snow grain radii in snow iops table
-!echmod - these min/max values should be read in from the file, but they are not available there
-            rsnw_snicar_max = 1500 ! maximum snow radius - integer value used for indexing
-            rsnw_snicar_min = 30   ! minimum snow radius - integer value used for indexing
-
-            allocate(rsnw_snicar_tab(nsnw_radius))         ! snow grain radii
-            allocate(ssp_snwextdr(nspint_5bd,nsnw_radius)) ! extinction coefficient, direct
-            allocate(ssp_snwextdf(nspint_5bd,nsnw_radius)) ! extinction coefficient, diffuse
-            allocate(ssp_snwalbdr(nspint_5bd,nsnw_radius)) ! single-scattering albedo, direct
-            allocate(ssp_snwalbdf(nspint_5bd,nsnw_radius)) ! single-scattering albedo, diffuse
-            allocate(ssp_sasymmdr(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, direct
-            allocate(ssp_sasymmdf(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, diffuse
 
 !echmod - this might not be needed
             rsnw_snicar_tab(1) = real(rsnw_snicar_min,dbl_kind)
@@ -175,18 +166,20 @@
             enddo
 
          elseif (trim(snw_ssp_table) == 'file') then
-            nsnw_radius = -1 ! maximum snow grain radius index
+            ! table passed in, table lookup + interpolate, not yet supported
+            nsnw_radius = size(ssp_snwextdr,dim=2)  ! maximum snow grain radius index
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table)//' not supported')
+            return
 
          elseif (trim(snw_ssp_table) == 'test') then ! 5x5 table
             nsnw_radius = 5 ! maximum snow grain radius index
-
 !echmod - temporary module data - fix!
             nmbrad_snicar   = nsnw_radius ! number of snow grain radii in snow iops table
 !echmod - these min/max values should be set from the data array
             rsnw_snicar_max = 1340 ! maximum snow radius - integer value used for indexing
             rsnw_snicar_min = 6    ! minimum snow radius - integer value used for indexing
 
-            allocate(rsnw_snicar_tab(nsnw_radius))         ! snow grain radii
             allocate(ssp_snwextdr(nspint_5bd,nsnw_radius)) ! extinction coefficient, direct
             allocate(ssp_snwextdf(nspint_5bd,nsnw_radius)) ! extinction coefficient, diffuse
             allocate(ssp_snwalbdr(nspint_5bd,nsnw_radius)) ! single-scattering albedo, direct
@@ -194,9 +187,12 @@
             allocate(ssp_sasymmdr(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, direct
             allocate(ssp_sasymmdf(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, diffuse
 
-         rsnw_snicar_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
-            6._dbl_kind, 37._dbl_kind, 221._dbl_kind, 600._dbl_kind, 1340._dbl_kind/)
+            allocate(rsnw_snicar_tab(nsnw_radius))         ! snow grain radii
+            rsnw_snicar_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
+               6._dbl_kind, 37._dbl_kind, 221._dbl_kind, 600._dbl_kind, 1340._dbl_kind/)
 
+
+! tcx, should shift over 3 spaces for alignment
          ssp_snwextdr = reshape((/ &
             46.27374983, 24.70286257, 6.54918455, 2.6035624,  1.196168,   &
             46.56827715, 24.81790668, 6.56181227, 2.60604155, 1.19682614, &
@@ -247,7 +243,19 @@
 
          else
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-            call icepack_warnings_add(subname//'ERROR: snw_ssp_table value')
+            call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table)//' not supported')
+            return
+         endif
+
+         if ((size(ssp_snwextdr,dim=2) /= nsnw_radius) .or. &
+             (size(ssp_snwextdf,dim=2) /= nsnw_radius) .or. &
+             (size(ssp_snwalbdr,dim=2) /= nsnw_radius) .or. &
+             (size(ssp_snwalbdf,dim=2) /= nsnw_radius) .or. &
+             (size(ssp_sasymmdr,dim=2) /= nsnw_radius) .or. &
+             (size(ssp_sasymmdf,dim=2) /= nsnw_radius)) then
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table))
+            call icepack_warnings_add(subname//'ERROR: snw_ssp_table array size error')
             return
          endif
       endif
@@ -945,11 +953,11 @@
 
       character (len=*),parameter :: subname='(data_dEdd_3band)'
 
-      nmbrad = 32 ! number of snow grain radii in tables
-      allocate(rsnw_tab(nmbrad))
-      allocate(Qs_tab(nspint_3bd,nmbrad))
-      allocate(ws_tab(nspint_3bd,nmbrad))
-      allocate(gs_tab(nspint_3bd,nmbrad))
+      nmbrad_snicar = 32 ! number of snow grain radii in tables
+      allocate(rsnw_tab(nmbrad_snicar))
+      allocate(Qs_tab(nspint_3bd,nmbrad_snicar))
+      allocate(ws_tab(nspint_3bd,nmbrad_snicar))
+      allocate(gs_tab(nspint_3bd,nmbrad_snicar))
 
       ! snow grain radii (micro-meters) for table
       rsnw_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
@@ -996,7 +1004,7 @@
           2.002590_dbl_kind,  2.003627_dbl_kind,  2.005276_dbl_kind, &
           2.002395_dbl_kind,  2.003391_dbl_kind,  2.004904_dbl_kind, &
           2.002071_dbl_kind,  2.002922_dbl_kind,  2.004241_dbl_kind/), &
-          (/nspint_3bd,nmbrad/))
+          (/nspint_3bd,nmbrad_snicar/))
 
       ! snow single scattering albedo (unitless)
       ws_tab = reshape((/ &
@@ -1032,7 +1040,7 @@
          0.9998332_dbl_kind,  0.9926888_dbl_kind,  0.8095131_dbl_kind, &
          0.9998148_dbl_kind,  0.9919968_dbl_kind,  0.7968620_dbl_kind, &
          0.9997691_dbl_kind,  0.9903277_dbl_kind,  0.7677887_dbl_kind/), &
-         (/nspint_3bd,nmbrad/))
+         (/nspint_3bd,nmbrad_snicar/))
 
       ! snow asymmetry parameter (unitless)
       gs_tab = reshape((/ &
@@ -1068,7 +1076,7 @@
           0.891340_dbl_kind,  0.896623_dbl_kind,  0.950916_dbl_kind, &
           0.891356_dbl_kind,  0.896851_dbl_kind,  0.951945_dbl_kind, &
           0.891386_dbl_kind,  0.897399_dbl_kind,  0.954156_dbl_kind/), &
-          (/nspint_3bd,nmbrad/))
+          (/nspint_3bd,nmbrad_snicar/))
 
       end subroutine data_dEdd_3band
 
@@ -3038,13 +3046,13 @@
                   Qs     = Qs_tab(ns,1)
                   ws     = ws_tab(ns,1)
                   gs     = gs_tab(ns,1)
-               else if( frsnw(ksnow) >= rsnw_tab(nmbrad) ) then
-                  Qs     = Qs_tab(ns,nmbrad)
-                  ws     = ws_tab(ns,nmbrad)
-                  gs     = gs_tab(ns,nmbrad)
+               else if( frsnw(ksnow) >= rsnw_tab(nmbrad_snicar) ) then
+                  Qs     = Qs_tab(ns,nmbrad_snicar)
+                  ws     = ws_tab(ns,nmbrad_snicar)
+                  gs     = gs_tab(ns,nmbrad_snicar)
                else
                   ! linear interpolation in rsnw
-                  do nr=2,nmbrad
+                  do nr=2,nmbrad_snicar
                      if( rsnw_tab(nr-1) <= frsnw(ksnow) .and. &
                          frsnw(ksnow) < rsnw_tab(nr)) then
                         delr = (frsnw(ksnow) - rsnw_tab(nr-1)) / &

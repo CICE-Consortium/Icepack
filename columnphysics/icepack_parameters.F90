@@ -237,9 +237,6 @@
       character (len=char_len), public :: &
          snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test' or 'file'
 
-      integer (kind=int_kind), public :: &
-         nsnw_radius  ! maximum snow radius index
-
       real (kind=dbl_kind), allocatable, public :: &
          ssp_snwextdr(:,:), &  ! snow mass extinction cross section (m2/kg), direct
          ssp_snwextdf(:,:), &  ! snow mass extinction cross section (m2/kg), diffuse
@@ -506,7 +503,10 @@
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
-         snw_aging_table_in)
+         snw_aging_table_in, snw_ssp_table_in, &
+         ssp_snwextdr_in, ssp_snwextdf_in, &
+         ssp_snwalbdr_in, ssp_snwalbdf_in, &
+         ssp_sasymmdr_in, ssp_sasymmdf_in  )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -860,7 +860,24 @@
          snowage_kappa_in, &!
          snowage_drdt0_in   ! (10^-6 m/hr)
 
+      ! Parameters for dEdd_snicar
+      character (len=char_len), intent(in), optional :: &
+         snw_ssp_table_in   ! lookup table: 'snicar' or 'test' or 'file'
+
+      real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
+         ssp_snwextdr_in, & ! snow mass extinction cross section (m2/kg), direct
+         ssp_snwextdf_in, & ! snow mass extinction cross section (m2/kg), diffuse
+         ssp_snwalbdr_in, & ! snow single scatter albedo (fraction), direct
+         ssp_snwalbdf_in, & ! snow single scatter albedo (fraction), diffuse
+         ssp_sasymmdr_in, & ! snow asymmetry factor (cos(theta)), direct
+         ssp_sasymmdf_in    ! snow asymmetry factor (cos(theta)), diffuse
+
 !autodocument_end
+
+      ! local data
+
+      integer (kind=int_kind) :: &
+         dim1, dim2         ! array dimension sizes
 
       character(len=*),parameter :: subname='(icepack_init_parameters)'
 
@@ -997,6 +1014,10 @@
       if (present(windmin_in)           ) windmin          = windmin_in
       if (present(drhosdwind_in)        ) drhosdwind       = drhosdwind_in
       if (present(snwlvlfac_in)         ) snwlvlfac        = snwlvlfac_in
+
+      !-------------------
+      ! SNOW table
+      !-------------------
       if (present(isnw_T_in)            ) isnw_T           = isnw_T_in
       if (present(isnw_Tgrd_in)         ) isnw_Tgrd        = isnw_Tgrd_in
       if (present(isnw_rhos_in)         ) isnw_rhos        = isnw_rhos_in
@@ -1018,7 +1039,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_Tgrd_in)       ) then
          if (size(snowage_Tgrd_in) /= isnw_Tgrd) then
             call icepack_warnings_add(subname//' incorrect size of snowage_Tgrd_in')
@@ -1035,7 +1055,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_T_in)       ) then
          if (size(snowage_T_in) /= isnw_T) then
             call icepack_warnings_add(subname//' incorrect size of snowage_T_in')
@@ -1052,7 +1071,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_tau_in)       ) then
          if (size(snowage_tau_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
             call icepack_warnings_add(subname//' incorrect size of snowage_tau_in')
@@ -1069,7 +1087,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_kappa_in)       ) then
          if (size(snowage_kappa_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
             call icepack_warnings_add(subname//' incorrect size of snowage_kappa_in')
@@ -1086,7 +1103,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_drdt0_in)       ) then
          if (size(snowage_drdt0_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
             call icepack_warnings_add(subname//' incorrect size of snowage_drdt0_in')
@@ -1101,6 +1117,60 @@
          else
             snowage_drdt0      = snowage_drdt0_in
          endif
+      endif
+
+      !-------------------
+      ! SNICAR SSP table
+      !-------------------
+      if (present(snw_ssp_table_in)     )  snw_ssp_table    = snw_ssp_table_in
+
+      ! allocate and copy SNICAR SSP table data
+      if (present(ssp_snwextdr_in)      ) then
+         if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
+         dim1 = size(ssp_snwextdr_in,dim=1)
+         dim2 = size(ssp_snwextdr_in,dim=2)
+         allocate(ssp_snwextdr(dim1,dim2))
+         ssp_snwextdr     = ssp_snwextdr_in
+      endif
+
+      if (present(ssp_snwextdf_in)      ) then
+         if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
+         dim1 = size(ssp_snwextdf_in,dim=1)
+         dim2 = size(ssp_snwextdf_in,dim=2)
+         allocate(ssp_snwextdf(dim1,dim2))
+         ssp_snwextdf     = ssp_snwextdf_in
+      endif
+
+      if (present(ssp_snwalbdr_in)      ) then
+         if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
+         dim1 = size(ssp_snwalbdr_in,dim=1)
+         dim2 = size(ssp_snwalbdr_in,dim=2)
+         allocate(ssp_snwalbdr(dim1,dim2))
+         ssp_snwalbdr     = ssp_snwalbdr_in
+      endif
+
+      if (present(ssp_snwalbdf_in)      ) then
+         if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
+         dim1 = size(ssp_snwalbdf_in,dim=1)
+         dim2 = size(ssp_snwalbdf_in,dim=2)
+         allocate(ssp_snwalbdf(dim1,dim2))
+         ssp_snwalbdf     = ssp_snwalbdf_in
+      endif
+
+      if (present(ssp_sasymmdr_in)      ) then
+         if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
+         dim1 = size(ssp_sasymmdr_in,dim=1)
+         dim2 = size(ssp_sasymmdr_in,dim=2)
+         allocate(ssp_sasymmdr(dim1,dim2))
+         ssp_sasymmdr     = ssp_sasymmdr_in
+      endif
+
+      if (present(ssp_sasymmdf_in)      ) then
+         if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
+         dim1 = size(ssp_sasymmdf_in,dim=1)
+         dim2 = size(ssp_sasymmdf_in,dim=2)
+         allocate(ssp_sasymmdf(dim1,dim2))
+         ssp_sasymmdf     = ssp_sasymmdf_in
       endif
 
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
@@ -1215,7 +1285,10 @@
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
          snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
          snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
-         snw_aging_table_out)
+         snw_aging_table_out, snw_ssp_table_out, &
+         ssp_snwextdr_out, ssp_snwextdf_out, &
+         ssp_snwalbdr_out, ssp_snwalbdf_out, &
+         ssp_sasymmdr_out, ssp_sasymmdf_out  )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -1577,6 +1650,19 @@
          snowage_tau_out, &  ! (10^-6 m)
          snowage_kappa_out, &!
          snowage_drdt0_out   ! (10^-6 m/hr)
+
+      ! Parameters for dEdd_snicar
+      character (len=char_len), intent(out), optional :: &
+         snw_ssp_table_out   ! lookup table: 'snicar' or 'test' or 'file'
+
+      real (kind=dbl_kind), dimension(:,:), intent(out), optional :: &
+         ssp_snwextdr_out, & ! snow mass extinction cross section (m2/kg), direct
+         ssp_snwextdf_out, & ! snow mass extinction cross section (m2/kg), diffuse
+         ssp_snwalbdr_out, & ! snow single scatter albedo (fraction), direct
+         ssp_snwalbdf_out, & ! snow single scatter albedo (fraction), diffuse
+         ssp_sasymmdr_out, & ! snow asymmetry factor (cos(theta)), direct
+         ssp_sasymmdf_out    ! snow asymmetry factor (cos(theta)), diffuse
+
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_query_parameters)'
@@ -1760,6 +1846,13 @@
       if (present(snowage_tau_out)       ) snowage_tau_out  = snowage_tau
       if (present(snowage_kappa_out)     ) snowage_kappa_out= snowage_kappa
       if (present(snowage_drdt0_out)     ) snowage_drdt0_out= snowage_drdt0
+      if (present(snw_ssp_table_out)     ) snw_ssp_table_out= snw_ssp_table
+      if (present(ssp_snwextdr_out)      ) ssp_snwextdr_out = ssp_snwextdr
+      if (present(ssp_snwextdf_out)      ) ssp_snwextdf_out = ssp_snwextdf
+      if (present(ssp_snwalbdr_out)      ) ssp_snwalbdr_out = ssp_snwalbdr
+      if (present(ssp_snwalbdf_out)      ) ssp_snwalbdf_out = ssp_snwalbdf
+      if (present(ssp_sasymmdr_out)      ) ssp_sasymmdr_out = ssp_sasymmdr
+      if (present(ssp_sasymmdf_out)      ) ssp_sasymmdf_out = ssp_sasymmdf
       if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
       if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
       if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
@@ -1970,6 +2063,13 @@
         write(iounit,*) "  snowage_tau   = ", snowage_tau(1,1,1)
         write(iounit,*) "  snowage_kappa = ", snowage_kappa(1,1,1)
         write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0(1,1,1)
+        write(iounit,*) "  snw_ssp_table = ", trim(snw_ssp_table)
+        write(iounit,*) "  ssp_snwextdr  = ", ssp_snwextdr(1,1)
+        write(iounit,*) "  ssp_snwextdf  = ", ssp_snwextdf(1,1)
+        write(iounit,*) "  ssp_snwalbdr  = ", ssp_snwalbdr(1,1)
+        write(iounit,*) "  ssp_snwalbdf  = ", ssp_snwalbdf(1,1)
+        write(iounit,*) "  ssp_sasymmdr  = ", ssp_sasymmdr(1,1)
+        write(iounit,*) "  ssp_sasymmdf  = ", ssp_sasymmdf(1,1)
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
         write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc

@@ -145,7 +145,19 @@
       call get_forcing(istep1)       ! get forcing from data arrays
 
       call icepack_init_radiation()                     ! radiation data
-      if (tr_snow)    call icepack_init_snow            ! snow aging table
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted(subname)) then
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
+      if (tr_snow) then
+         call icepack_init_snow            ! snow aging table
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted(subname)) then
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
+         endif
+      endif
+
       if (tr_iso)     call fiso_default                 ! default values
       ! aerosols
       ! if (tr_aero)  call faero_data                   ! data file
