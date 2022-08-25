@@ -66,6 +66,16 @@
     sw_redist       = .false.
     sw_frac         = 0.9d0
     sw_dtemp        = 0.02d0
+    snw_ssp_table      = 'test'
+    ssp_filename       = 'unknown'
+    ssp_nsrad_fname    = 'unknown'
+    ssp_nspint_fname   = 'unknown'
+    ssp_snwextdr_fname = 'unknown'
+    ssp_snwextdf_fname = 'unknown'
+    ssp_snwalbdr_fname = 'unknown'
+    ssp_snwalbdf_fname = 'unknown'
+    ssp_sasymmdr_fname = 'unknown'
+    ssp_sasymmdf_fname = 'unknown'
 /
 
 &ponds_nml

@@ -86,6 +86,7 @@
       use icepack_snow, only: icepack_init_snow
       use icepack_snow, only: icepack_step_snow
 
+      use icepack_shortwave, only: icepack_init_radiation
       use icepack_shortwave, only: icepack_prep_radiation
       use icepack_shortwave, only: icepack_step_radiation
 

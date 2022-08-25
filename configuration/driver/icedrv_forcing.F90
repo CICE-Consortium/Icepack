@@ -13,7 +13,7 @@
       use icedrv_constants, only: nu_diag, nu_forcing, nu_open_clos
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_init_parameters, icepack_query_parameters
       use icepack_intfc, only: icepack_sea_freezing_temperature 
       use icepack_intfc, only: icepack_init_wave
       use icedrv_system, only: icedrv_system_abort
@@ -24,7 +24,8 @@
       implicit none
       private
       public :: init_forcing, get_forcing, interp_coeff, &
-                interp_coeff_monthly, get_wave_spec
+                interp_coeff_monthly, get_wave_spec, &
+                init_snicarssptable
 
       integer (kind=int_kind), parameter :: &
          ntime = 8760        ! number of data points in time
@@ -99,6 +100,23 @@
       real (kind=dbl_kind), public :: & 
          trest, &                  ! restoring time scale (sec)
          trestore                  ! restoring time scale (days)
+
+      ! SNICAR snow grain single-scattering properties (SSP) for
+      ! direct (dr) and diffuse (df) shortwave incidents
+
+      character (len=char_len_long), public :: &
+         snw_ssp_table,      &  ! snow table type 'test', 'snicar', 'file'
+         ssp_filename           ! filename for snicar snow and aerosol lookup table
+
+      character (char_len), public :: &
+         ssp_nsrad_fname,    &  ! snow grain radius field name
+         ssp_nspint_fname,   &  ! spectral intervals field name
+         ssp_snwextdr_fname, &  ! snow mass extinction cross section (m2/kg) field name
+         ssp_snwextdf_fname, &  ! snow mass extinction cross section (m2/kg) field name
+         ssp_snwalbdr_fname, &  ! snow single scatter albedo (fraction) field name
+         ssp_snwalbdf_fname, &  ! snow single scatter albedo (fraction) field name
+         ssp_sasymmdr_fname, &  ! snow asymmetry factor (cos(theta)) field name
+         ssp_sasymmdf_fname     ! snow asymmetry factor (cos(theta)) field name
 
 !=======================================================================
 
@@ -1153,6 +1171,160 @@
 
       end subroutine get_wave_spec
 
+!=======================================================================
+
+! snicar snow grain single-scattering properties lookup table
+!
+!
+     subroutine init_snicarssptable
+
+#ifdef USE_NETCDF
+      use netcdf
+#endif
+
+      integer (kind=int_kind) :: &
+         nsrad, &   ! Table dimensions
+         nspint
+      real (kind=dbl_kind), allocatable :: &
+         ssp_snwextdr(:,:), &  ! snow mass extinction cross section (m2/kg)
+         ssp_snwextdf(:,:), &  ! snow mass extinction cross section (m2/kg)
+         ssp_snwalbdr(:,:), &  ! snow single scatter albedo (fraction)
+         ssp_snwalbdf(:,:), &  ! snow single scatter albedo (fraction)
+         ssp_sasymmdr(:,:), &  ! snow asymmetry factor (cos(theta))
+         ssp_sasymmdf(:,:)     ! snow asymmetry factor (cos(theta))
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         fid, &               ! file id for netCDF file
+         dimid, &             ! dim id for netCDF file
+         varid, &             ! var id for netCDF file
+         status               ! status output for netCDF call
+
+      character (char_len) :: &
+         fieldname            ! field name in netcdf file
+
+      character(len=*), parameter :: subname = '(init_snicarssptable)'
+
+      !-----------------------------------------------------------------
+      ! read table of snicar SSP parameters
+      !-----------------------------------------------------------------
+
+      write (nu_diag,*) ' '
+      write (nu_diag,*) 'SNICAR SSP file:', trim(ssp_filename)
+
+#ifdef USE_NETCDF
+      ! read everything
+
+      status = nf90_open(ssp_filename,NF90_NOWRITE,fid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_open ')
+
+      fieldname = trim(ssp_nsrad_fname)
+      status=nf90_inq_dimid(fid,trim(fieldname),dimid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_inq_dimid '//trim(fieldname))
+      status=nf90_inquire_dimension(fid, dimid, len=nsrad)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_dim '//trim(fieldname))
+
+      fieldname = trim(ssp_nspint_fname)
+      status=nf90_inq_dimid(fid,trim(fieldname),dimid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_inq_dimid '//trim(fieldname))
+      status=nf90_inquire_dimension(fid, dimid, len=nspint)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_dim '//trim(fieldname))
+
+      if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
+      if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
+      if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
+      if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
+      if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
+      if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
+
+      allocate(ssp_snwextdr(nspint,nsrad))
+      allocate(ssp_snwextdf(nspint,nsrad))
+      allocate(ssp_snwalbdr(nspint,nsrad))
+      allocate(ssp_snwalbdf(nspint,nsrad))
+      allocate(ssp_sasymmdr(nspint,nsrad))
+      allocate(ssp_sasymmdf(nspint,nsrad))
+
+      fieldname = trim(ssp_snwextdr_fname)
+      status = nf90_inq_varid(fid, trim(fieldname), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_varid '//trim(fieldname))
+      status = nf90_get_var(fid, varid, ssp_snwextdr)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_get_var '//trim(fieldname))
+
+      fieldname = trim(ssp_snwextdf_fname)
+      status = nf90_inq_varid(fid, trim(fieldname), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_varid '//trim(fieldname))
+      status = nf90_get_var(fid, varid, ssp_snwextdf)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_get_var '//trim(fieldname))
+
+      fieldname = trim(ssp_snwalbdr_fname)
+      status = nf90_inq_varid(fid, trim(fieldname), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_varid '//trim(fieldname))
+      status = nf90_get_var(fid, varid, ssp_snwalbdr)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_get_var '//trim(fieldname))
+
+      fieldname = trim(ssp_snwalbdf_fname)
+      status = nf90_inq_varid(fid, trim(fieldname), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_varid '//trim(fieldname))
+      status = nf90_get_var(fid, varid, ssp_snwalbdf)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_get_var '//trim(fieldname))
+
+      fieldname = trim(ssp_sasymmdr_fname)
+      status = nf90_inq_varid(fid, trim(fieldname), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_varid '//trim(fieldname))
+      status = nf90_get_var(fid, varid, ssp_sasymmdr)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_get_var '//trim(fieldname))
+
+      fieldname = trim(ssp_sasymmdf_fname)
+      status = nf90_inq_varid(fid, trim(fieldname), varid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_varid '//trim(fieldname))
+      status = nf90_get_var(fid, varid, ssp_sasymmdf)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_get_var '//trim(fieldname))
+
+      status = nf90_close(fid)
+      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_close')
+
+#else
+      call icedrv_system_abort(string=subname//' ERROR: netcdf required', &
+           file=__FILE__,line= __LINE__)
+#endif
+
+      write(nu_diag,*) subname,'  '
+      write(nu_diag,*) subname,' Successfully initialized SNICAR SSP tables:'
+      write(nu_diag,*) subname,' ssp_filename         = ',trim(ssp_filename)
+      write(nu_diag,*) subname,' SSP N spectral int   = ',nspint
+      write(nu_diag,*) subname,' SSP N snow grain rad = ',nsrad
+      write(nu_diag,*) subname,' Data at first index '
+      write(nu_diag,*) subname,' ssp_snwextdr(1,1)       = ',ssp_snwextdr(1,1)
+      write(nu_diag,*) subname,' ssp_snwextdf(1,1)       = ',ssp_snwextdf(1,1)
+      write(nu_diag,*) subname,' ssp_snwalbdr(1,1)       = ',ssp_snwalbdr(1,1)
+      write(nu_diag,*) subname,' ssp_snwalbdf(1,1)       = ',ssp_snwalbdf(1,1)
+      write(nu_diag,*) subname,' ssp_sasymmdr(1,1)       = ',ssp_sasymmdr(1,1)
+      write(nu_diag,*) subname,' ssp_sasymmdf(1,1)       = ',ssp_sasymmdf(1,1)
+      write(nu_diag,*) subname,' Data at final index '
+      write(nu_diag,*) subname,' ssp_snwextdr(max,max)   = ',ssp_snwextdr(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_snwextdf(max,max)   = ',ssp_snwextdf(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_snwalbdr(max,max)   = ',ssp_snwalbdr(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_snwalbdf(max,max)   = ',ssp_snwalbdf(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_sasymmdr(max,max)   = ',ssp_sasymmdr(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_sasymmdf(max,max)   = ',ssp_sasymmdf(nspint,nsrad)
+
+      call icepack_init_parameters( &
+           ssp_snwextdr_in = ssp_snwextdr, ssp_snwextdf_in = ssp_snwextdf, &
+           ssp_snwalbdr_in = ssp_snwalbdr, ssp_snwalbdf_in = ssp_snwalbdf, &
+           ssp_sasymmdr_in = ssp_sasymmdr, ssp_sasymmdf_in = ssp_sasymmdf  )
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+           file=__FILE__,line= __LINE__)
+
+      deallocate(ssp_snwextdr)
+      deallocate(ssp_snwextdf)
+      deallocate(ssp_snwalbdr)
+      deallocate(ssp_snwalbdf)
+      deallocate(ssp_sasymmdr)
+      deallocate(ssp_sasymmdf)
+
+      end subroutine init_snicarssptable
 
 !=======================================================================
 

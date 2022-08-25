@@ -24,7 +24,7 @@
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_init_zbgc
-      use icepack_intfc, only: icepack_init_thermo
+      use icepack_intfc, only: icepack_init_thermo, icepack_init_radiation
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
       use icepack_intfc, only: icepack_init_bgc, icepack_init_zsalinity
       use icepack_intfc, only: icepack_init_ocean_bio, icepack_load_ocean_bio_array
@@ -107,6 +107,7 @@
       use icedrv_calendar, only: istep1, dt, calendar_type
       use icedrv_calendar, only:    days_per_year, nextsw_cday, yday, sec
       use icedrv_system, only: icedrv_system_abort
+      use icedrv_forcing, only: snw_ssp_table, init_snicarssptable
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr
       use icedrv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, scale_factor, snowfrac
@@ -218,27 +219,34 @@
 
          enddo
 
-         do i = 1, nx
+         if (trim(shortwave(1:4)) == 'dEdd') then ! delta Eddington
+            ! initialize orbital parameters
+            ! These come from the driver in the coupled model.
+            call icepack_warnings_flush(nu_diag)
+            call icepack_init_orbit()
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) &
+               call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
 
-            if (trim(shortwave(1:4)) == 'dEdd') then ! delta Eddington
-
-               ! initialize orbital parameters
-               ! These come from the driver in the coupled model.
+            if (trim(shortwave) == 'dEdd_snicar') then
+               use_snicar = .true. ! 5-band SNICAR scheme for snow cover
+               call icepack_init_parameters(use_snicar_in=use_snicar, snw_ssp_table_in=snw_ssp_table)
                call icepack_warnings_flush(nu_diag)
-               call icepack_init_orbit()
-               call icepack_warnings_flush(nu_diag)
-               if (icepack_warnings_aborted()) &
-                  call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
-
-               if (trim(shortwave) == 'dEdd_snicar') then
-                  use_snicar = .true. ! 5-band SNICAR scheme for snow cover
-                  call icepack_init_parameters(use_snicar_in=use_snicar)
-                  call icepack_warnings_flush(nu_diag)
-                  if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-                      file=__FILE__,line= __LINE__)
+               if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                   file=__FILE__,line= __LINE__)
+               if (trim(snw_ssp_table) /= 'test') then
+                  call init_snicarssptable()
                endif
+            endif
+         endif ! dEdd
 
-            endif ! dEdd
+         call icepack_init_radiation()
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted(subname)) then
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
+         endif
+
+         do i = 1, nx
 
             fbri       (:) = c0
             rsnow    (:,:) = c0
