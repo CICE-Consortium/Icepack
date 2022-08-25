@@ -102,7 +102,7 @@
          trestore                  ! restoring time scale (days)
 
       ! SNICAR snow grain single-scattering properties (SSP) for
-      ! direct (drc) and diffuse (dfs) shortwave incidents
+      ! direct (dr) and diffuse (df) shortwave incidents
 
       character (len=char_len_long), public :: &
          snw_ssp_table,      &  ! snow table type 'test', 'snicar', 'file'
