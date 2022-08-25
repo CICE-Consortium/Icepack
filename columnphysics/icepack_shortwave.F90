@@ -92,12 +92,21 @@
       real (kind=dbl_kind), parameter :: &
          exp_argmax = c10    ! maximum argument of exponential
 
+!echmod - temporary module data - change names later to icepack parameters - fix!
+      integer (kind=int_kind), dimension(:), allocatable :: &
+         rsnw_snicar_tab    ! vector of snow grain radii values assumed in SNICAR snow iops table
+
+      integer (kind=int_kind) :: &
+         nmbrad_snicar  , & ! number of snow grain radii in SNICAR snow iops table
+         rsnw_snicar_max, & ! maximum snow radius - integer value used for indexing
+         rsnw_snicar_min    ! minimum snow radius - integer value used for indexing
+
 !=======================================================================
 
       contains
 
 !=======================================================================
-!autodocument_start icepack_init_snow
+!autodocument_start icepack_init_radiation
 ! Initialize data needed for shortwave radiation calculations
 
       subroutine icepack_init_radiation
@@ -125,19 +134,32 @@
       !   5 snow grain radii
       !   5 spectral intervals
 
-      ! if snw_aging_table = 'file'
+      ! if snw_ssp_table = 'file'
       ! all data has to be passed into icepack_parameters
 
       if (use_snicar) then
          if (trim(snw_ssp_table) == 'snicar') then ! read netcdf file
             nsnw_radius = 1471 ! maximum snow grain radius index
 
+!echmod - temporary module data - fix!
+            nmbrad_snicar   = nsnw_radius ! number of snow grain radii in snow iops table
+!echmod - these min/max values should be read in from the file, but they are not available there
+            rsnw_snicar_max = 1500 ! maximum snow radius - integer value used for indexing
+            rsnw_snicar_min = 30   ! minimum snow radius - integer value used for indexing
+
+            allocate(rsnw_snicar_tab(nsnw_radius))         ! snow grain radii
             allocate(ssp_snwextdr(nspint_5bd,nsnw_radius)) ! extinction coefficient, direct
             allocate(ssp_snwextdf(nspint_5bd,nsnw_radius)) ! extinction coefficient, diffuse
             allocate(ssp_snwalbdr(nspint_5bd,nsnw_radius)) ! single-scattering albedo, direct
             allocate(ssp_snwalbdf(nspint_5bd,nsnw_radius)) ! single-scattering albedo, diffuse
             allocate(ssp_sasymmdr(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, direct
             allocate(ssp_sasymmdf(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, diffuse
+
+!echmod - this might not be needed
+            rsnw_snicar_tab(1) = real(rsnw_snicar_min,dbl_kind)
+            do n = 1, nsnw_radius-1
+               rsnw_snicar_tab(n+1) = rsnw_snicar_tab(n) + c1
+            enddo
 
          elseif (trim(snw_ssp_table) == 'file') then
             nsnw_radius = -1 ! maximum snow grain radius index
@@ -145,12 +167,22 @@
          elseif (trim(snw_ssp_table) == 'test') then ! 5x5 table
             nsnw_radius = 5 ! maximum snow grain radius index
 
+!echmod - temporary module data - fix!
+            nmbrad_snicar   = nsnw_radius ! number of snow grain radii in snow iops table
+!echmod - these min/max values should be set from the data array
+            rsnw_snicar_max = 1340 ! maximum snow radius - integer value used for indexing
+            rsnw_snicar_min = 6    ! minimum snow radius - integer value used for indexing
+
+            allocate(rsnw_snicar_tab(nsnw_radius))         ! snow grain radii
             allocate(ssp_snwextdr(nspint_5bd,nsnw_radius)) ! extinction coefficient, direct
             allocate(ssp_snwextdf(nspint_5bd,nsnw_radius)) ! extinction coefficient, diffuse
             allocate(ssp_snwalbdr(nspint_5bd,nsnw_radius)) ! single-scattering albedo, direct
             allocate(ssp_snwalbdf(nspint_5bd,nsnw_radius)) ! single-scattering albedo, diffuse
             allocate(ssp_sasymmdr(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, direct
             allocate(ssp_sasymmdf(nspint_5bd,nsnw_radius)) ! snow asymmetry factor, diffuse
+
+         rsnw_snicar_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
+            6._dbl_kind, 37._dbl_kind, 221._dbl_kind, 600._dbl_kind, 1340._dbl_kind/)
 
          ssp_snwextdr = reshape((/ &
             46.27374983, 24.70286257, 6.54918455, 2.6035624,  1.196168,   &
@@ -926,7 +958,7 @@
                           kaer_bc_3bd,         &
                           waer_bc_3bd,         &
                           gaer_bc_3bd,         &
-                          bcenh_3bd,               &
+                          bcenh_3bd,           &
                           modal_aero,          &
                           swvdr,    swvdf,     &
                           swidr,    swidf,     &
@@ -1781,6 +1813,7 @@
                       ss_alb_ice_drc, ss_alb_ice_dfs,                   &
                       ext_cff_mss_ice_drc, ext_cff_mss_ice_dfs)
                else
+!echmod - this can be combined with the 5bd call above, if we use module data
                   nspint = nspint_3bd
                   call compute_dEdd(nilyr,       nslyr,   nspint,       &
                       klev,      klevp,       zbio,    dEdd_algae,      &
@@ -2532,7 +2565,7 @@
          gw = (/ 0.00_dbl_kind,   0.00_dbl_kind,   0.00_dbl_kind /)
 
       real (kind=dbl_kind), parameter :: &
-         rhoi   = 917.0_dbl_kind,& ! pure ice mass density (kg/m3)
+         rhoi   = 917.0_dbl_kind,& ! pure ice mass density (kg/m3) - echmod HARDCODED! fix!
          fr_max = 1.00_dbl_kind, & ! snow grain adjustment factor max
          fr_min = 0.80_dbl_kind, & ! snow grain adjustment factor min
       ! tuning parameters
@@ -2560,8 +2593,8 @@
          wghtns_5bd_dfs, &   ! spectral weights for diffuse incident
          wghtns_5bd_drc      ! spectral weights for direct incident
 
-      integer (kind=int_kind) :: &
-         nsky         !sky = 1 (2) for direct (diffuse) downward SW incident
+!      integer (kind=int_kind) :: &
+!         nsky         !sky = 1 (2) for direct (diffuse) downward SW incident
 
       real (kind=dbl_kind), parameter :: & ! solar zenith angle parameterizations
          sza_a0 =  0.085730_dbl_kind , &
@@ -2584,6 +2617,7 @@
       ! assigned based on the 3 bands data after adjustment based on tuning parameter R_ice
       ! In the future, when 5-band sea ice IOPs are available, these data shall be updated
       ! and the sea ice layer IOPs shall be calculated based on updated 5band iops*
+!echmod - the comment above says these are not needed but they are nevertheless used below
       !
       ! The 5band data given in this section are based on CICE and SNICAR band choice:
       ! SNICAR band 1 = CICE band 1
@@ -3010,92 +3044,81 @@
             enddo       ! k
             elseif (l_use_snicar .and. nspint == nspint_5bd) then
                ! SNICAR 5-band
-!              do nsky = 1,2 ! loop for both direct beam and diffuse beam
-!                 if (nsky == 1) then ! direct incident
-               nsky = 1 ! for diagnostics
+               ! direct incident
                do k=0,nslyr
                   ksnow = k - min(k-1,0)
-                  if (rsnw(ksnow) <= rsnw_snicar_min) then
+                  if (rsnw(ksnow) <= rsnw_snicar_min) then ! change to rsnw_snicar_tab(1)
                      ks  = ext_cff_mss_ice_drc(ns,1)
-                     ws  = ss_alb_ice_drc(ns,1)
-                     gs  = asm_prm_ice_drc(ns,1)
-                  elseif (rsnw(ksnow) >= rsnw_snicar_max) then
+                     ws  = ss_alb_ice_drc     (ns,1)
+                     gs  = asm_prm_ice_drc    (ns,1)
+                  elseif (rsnw(ksnow) >= rsnw_snicar_max) then ! change to rsnw_snicar_tab(nmbrad_snicar)
                      ks  = ext_cff_mss_ice_drc(ns,nmbrad_snicar)
-                     ws  = ss_alb_ice_drc(ns,nmbrad_snicar)
-                     gs  = asm_prm_ice_drc(ns,nmbrad_snicar)
+                     ws  = ss_alb_ice_drc     (ns,nmbrad_snicar)
+                     gs  = asm_prm_ice_drc    (ns,nmbrad_snicar)
                   elseif (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
                      nr = ceiling(rsnw(ksnow)) - 30 + 1
                      ks = ext_cff_mss_ice_drc(ns,nr)
-                     ws = ss_alb_ice_drc(ns,nr)
-                     gs = asm_prm_ice_drc(ns,nr)
+                     ws = ss_alb_ice_drc     (ns,nr)
+                     gs = asm_prm_ice_drc    (ns,nr)
                   else ! linear interpolation in rsnw
                      ! radius = 30 --> nr = 1 in SNICAR table
                      nr = ceiling(rsnw(ksnow)) - 30 + 1
                      delr = (rsnw(ksnow) - floor(rsnw(ksnow))) / &
                             (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow)))
-                     ks = ext_cff_mss_ice_drc(ns,nr-1)*(delr) + &
-                          ext_cff_mss_ice_drc(ns,nr)*(c1-delr)
-                     ws = ss_alb_ice_drc(ns,nr-1)*(delr) + &
-                          ss_alb_ice_drc(ns,nr)*(c1-delr)
-                     gs = asm_prm_ice_drc(ns,nr-1)*(delr) + &
-                          asm_prm_ice_drc(ns,nr)*(c1-delr)
+                     ks = ext_cff_mss_ice_drc(ns,nr-1)*(   delr) &
+                        + ext_cff_mss_ice_drc(ns,nr  )*(c1-delr)
+                     ws = ss_alb_ice_drc     (ns,nr-1)*(   delr) &
+                        + ss_alb_ice_drc     (ns,nr  )*(c1-delr)
+                     gs = asm_prm_ice_drc    (ns,nr-1)*(   delr) &
+                        + asm_prm_ice_drc    (ns,nr  )*(c1-delr)
                   endif
-                 ! ks = Qs*((rhosnw(ksnow)/rhoi)*3._dbl_kind / &
-                 !      (4._dbl_kind*rsnw(ksnow)*1.0e-6_dbl_kind))
                  tau(k) = (ks*rhosnw(ksnow) + kabs_chl(ns,k))*dzk(k)
-                 !w0(k)  = ks/(ks + kabs_chl(ns,k))*ws
-                 w0(k) = (ks*rhosnw(ksnow))/(ks*rhosnw(ksnow) + kabs_chl(ns,k)) * ws
-                 g(k)   = gs
+                 w0 (k) = (ks*rhosnw(ksnow))/(ks*rhosnw(ksnow) + kabs_chl(ns,k)) * ws
+                 g  (k) = gs
 
-                 !write(warning, *) "sky, k, tau, w0, g =", nsky, k, tau(k), w0(k), g(k)
+                 !write(warning, *) "rsnw(ksnow)", rsnw(ksnow)
+                 !write(warning, *) "direct, k, tau, w0, g =", k, tau(k), w0(k), g(k)
                  !write(warning, *) "ns, ks, kabs_chl(ns,k), ", ns, ks, kabs_chl(ns,k)
                  !call add_warning(warning)
-                 !print *, "rsnw(ksnow)", rsnw(ksnow)
-                 !print *, "sky, k, tau, w0, g =", nsky, k, tau(k), w0(k), g(k)
-                 !print *, "ns, ks, kabs_chl(ns,k), ",ns, ks, kabs_chl(ns,k)
                enddo       ! k
-!              elseif (nsky == 2) then ! diffuse  incident
-               nsky = 2 ! for diagnostics
+               ! diffuse incident
                do k=0,nslyr
                   ! use top rsnw, rhosnw for snow ssl and rest of top layer
                   ksnow = k - min(k-1,0)
-                  if (rsnw(ksnow) < rsnw_snicar_min) then
+                  if (rsnw(ksnow) <= rsnw_snicar_min) then ! change to rsnw_snicar_tab(1)
                      ks  = ext_cff_mss_ice_dfs(ns,1)
-                     ws  = ss_alb_ice_dfs(ns,1)
-                     gs  = asm_prm_ice_dfs(ns,1)
-                  elseif (rsnw(ksnow) > rsnw_snicar_max) then
+                     ws  = ss_alb_ice_dfs     (ns,1)
+                     gs  = asm_prm_ice_dfs    (ns,1)
+                  elseif (rsnw(ksnow) >= rsnw_snicar_max) then ! change to rsnw_snicar_tab(nmbrad_snicar)
                      ks  = ext_cff_mss_ice_dfs(ns,nmbrad_snicar)
-                     ws  = ss_alb_ice_dfs(ns,nmbrad_snicar)
-                     gs  = asm_prm_ice_dfs(ns,nmbrad_snicar)
+                     ws  = ss_alb_ice_dfs     (ns,nmbrad_snicar)
+                     gs  = asm_prm_ice_dfs    (ns,nmbrad_snicar)
                   elseif (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
-                     nr  = ceiling(rsnw(ksnow)) - 30 + 1
-                     ks  = ext_cff_mss_ice_dfs(ns,nr)
-                     ws  = ss_alb_ice_dfs(ns,nr)
-                     gs  = asm_prm_ice_dfs(ns,nr)
+                     nr = ceiling(rsnw(ksnow)) - 30 + 1
+                     ks = ext_cff_mss_ice_dfs(ns,nr)
+                     ws = ss_alb_ice_dfs     (ns,nr)
+                     gs = asm_prm_ice_dfs    (ns,nr)
                   else ! linear interpolation in rsnw
                      ! radius = 30 --> nr = 1 in SNICAR table
-                     nr  = ceiling(rsnw(ksnow)) - 30 + 1
+                     nr = ceiling(rsnw(ksnow)) - 30 + 1
                      delr = (rsnw(ksnow) - floor(rsnw(ksnow))) / &
                             (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow)))
-                     ks = ext_cff_mss_ice_dfs(ns,nr-1)*(c1-delr) + &
-                          ext_cff_mss_ice_dfs(ns,nr)*delr
-                     ws = ss_alb_ice_dfs(ns,nr-1)*(c1-delr) + &
-                          ss_alb_ice_dfs(ns,nr)*delr
-                     gs = asm_prm_ice_dfs(ns,nr-1)*(c1-delr) + &
-                          asm_prm_ice_dfs(ns,nr)*delr
+                     ks = ext_cff_mss_ice_dfs(ns,nr-1)*(   delr) &
+                        + ext_cff_mss_ice_dfs(ns,nr  )*(c1-delr)
+                     ws = ss_alb_ice_dfs     (ns,nr-1)*(   delr) &
+                        + ss_alb_ice_dfs     (ns,nr  )*(c1-delr)
+                     gs = asm_prm_ice_dfs    (ns,nr-1)*(   delr) &
+                        + asm_prm_ice_dfs    (ns,nr  )*(c1-delr)
                   endif
-                 ! ks = Qs*((rhosnw(ksnow)/rhoi)*3._dbl_kind / &
-                 ! (4._dbl_kind*rsnw(ksnow)*1.0e-6_dbl_kind))
                  tau(k) = (ks*rhosnw(ksnow) + kabs_chl(ns,k))*dzk(k)
-                 !w0(k)  = ks/(ks + kabs_chl(ns,k)) *ws
-                 w0(k) = (ks*rhosnw(ksnow))/(ks*rhosnw(ksnow) + kabs_chl(ns,k)) * ws
-                 g(k)   = gs
+                 w0 (k) = (ks*rhosnw(ksnow))/(ks*rhosnw(ksnow) + kabs_chl(ns,k)) * ws
+                 g  (k) = gs
 
-                 !write(warning, *) "sky, k, tau, w0, g =", nsky, k, tau(k), w0(k), g(k)
+                 !write(warning, *) "rsnw(ksnow)", rsnw(ksnow)
+                 !write(warning, *) "diffuse, k, tau, w0, g =", k, tau(k), w0(k), g(k)
                  !write(warning, *) "ns, ks, kabs_chl(ns,k), ", ns, ks, kabs_chl(ns,k)
                  !call add_warning(warning)
                enddo       ! k
-!              endif ! end if nsky for snow IOPs assignment
 
             endif       ! nspint
 
@@ -3104,10 +3127,10 @@
                do k = 0,nslyr
                   gzaer(ns,k) = gzaer(ns,k)/(wzaer(ns,k)+puny)
                   wzaer(ns,k) = wzaer(ns,k)/(tzaer(ns,k)+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)*wzaer(ns,k)*tzaer(ns,k)) &
-                         /      (w0(k)*tau(k) +             wzaer(ns,k)*tzaer(ns,k))
-                  w0(k)  = (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k)) &
-                         /       (tau(k) +             tzaer(ns,k))
+                  g  (k) = (g (k)*w0(k)*tau(k) + gzaer(ns,k)*wzaer(ns,k)*tzaer(ns,k)) &
+                         /       (w0(k)*tau(k) +             wzaer(ns,k)*tzaer(ns,k))
+                  w0 (k) = (      w0(k)*tau(k) +             wzaer(ns,k)*tzaer(ns,k)) &
+                         /       (      tau(k) +                         tzaer(ns,k))
                   tau(k) = tau(k) + tzaer(ns,k)
                enddo
             elseif (tr_aero) then
