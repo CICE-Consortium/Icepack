@@ -180,6 +180,12 @@
             rsnw_snicar_max = 1340 ! maximum snow radius - integer value used for indexing
             rsnw_snicar_min = 6    ! minimum snow radius - integer value used for indexing
 
+            if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
+            if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
+            if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
+            if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
+            if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
+            if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
             allocate(ssp_snwextdr(nspint_5bd,nsnw_radius)) ! extinction coefficient, direct
             allocate(ssp_snwextdf(nspint_5bd,nsnw_radius)) ! extinction coefficient, diffuse
             allocate(ssp_snwalbdr(nspint_5bd,nsnw_radius)) ! single-scattering albedo, direct
@@ -258,6 +264,14 @@
             call icepack_warnings_add(subname//'ERROR: snw_ssp_table array size error')
             return
          endif
+
+         write(warnstr,*) subname, ' nsnw_radius = ',nsnw_radius
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' nspint = ',nspint_5bd
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, ' ssp_snwextdr(1,1) = ',ssp_snwextdr(1,1)
+         call icepack_warnings_add(warnstr)
+
       endif
 
       end subroutine icepack_init_radiation
@@ -954,6 +968,11 @@
       character (len=*),parameter :: subname='(data_dEdd_3band)'
 
       nmbrad_snicar = 32 ! number of snow grain radii in tables
+      if (allocated(rsnw_tab)) deallocate(rsnw_tab)
+      if (allocated(Qs_tab)  ) deallocate(Qs_tab)
+      if (allocated(ws_tab)  ) deallocate(ws_tab)
+      if (allocated(gs_tab)  ) deallocate(gs_tab)
+
       allocate(rsnw_tab(nmbrad_snicar))
       allocate(Qs_tab(nspint_3bd,nmbrad_snicar))
       allocate(ws_tab(nspint_3bd,nmbrad_snicar))

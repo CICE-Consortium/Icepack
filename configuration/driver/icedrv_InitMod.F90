@@ -38,7 +38,6 @@
       use icepack_intfc, only: icepack_init_itd, icepack_init_itd_hist
       use icepack_intfc, only: icepack_init_fsd_bounds
       use icepack_intfc, only: icepack_init_snow
-      use icepack_intfc, only: icepack_init_radiation
       use icepack_intfc, only: icepack_warnings_flush
       use icedrv_domain_size, only: ncat, nfsd
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
@@ -143,12 +142,6 @@
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
       if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
-
-      call icepack_init_radiation()                     ! radiation data
-      call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted(subname)) then
-         call icedrv_system_abort(file=__FILE__,line=__LINE__)
-      endif
 
       if (tr_snow) then
          call icepack_init_snow            ! snow aging table

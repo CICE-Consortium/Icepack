@@ -73,6 +73,10 @@
       use icedrv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icedrv_forcing, only: data_dir
       use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
+      use icedrv_forcing, only: snw_ssp_table, ssp_filename, ssp_nsrad_fname, ssp_nspint_fname
+      use icedrv_forcing, only: ssp_snwextdr_fname, ssp_snwextdf_fname
+      use icedrv_forcing, only: ssp_snwalbdr_fname, ssp_snwalbdf_fname
+      use icedrv_forcing, only: ssp_sasymmdr_fname, ssp_sasymmdf_fname
 
       ! local variables
 
@@ -159,7 +163,11 @@
         albicev,        albicei,         albsnowv,      albsnowi,       &
         ahmax,          R_ice,           R_pnd,         R_snw,          &
         sw_redist,      sw_frac,         sw_dtemp,                      &
-        dT_mlt,         rsnw_mlt,        kalg
+        dT_mlt,         rsnw_mlt,        kalg,          snw_ssp_table,  &
+        ssp_filename,   ssp_nsrad_fname, ssp_nspint_fname,              &
+        ssp_snwextdr_fname,              ssp_snwextdf_fname,            &
+        ssp_snwalbdr_fname,              ssp_snwalbdf_fname,            &
+        ssp_sasymmdr_fname,              ssp_sasymmdf_fname
 
       namelist /ponds_nml/ &
         hs0,            dpscale,         frzpnd,                        &
@@ -286,6 +294,17 @@
       data_dir    = ' '           ! root location of data files
       restore_ocn     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
+
+      snw_ssp_table      = 'test'                                 ! snow table type, test, snicar, file
+      ssp_filename       = 'snicar_optics_5bnd_snow_and_aerosols.nc' ! snicar ssp filename
+      ssp_nsrad_fname    = 'nSnowGrainRadiusSNICAR'               ! snow grain radius fieldname
+      ssp_nspint_fname   = 'nSpectralIntervalsSNICAR'             ! spectral interval fieldname
+      ssp_snwextdr_fname = 'iceMassExtinctionCrossSectionDirect'  ! snow mass extinction cross section (m2/kg)
+      ssp_snwextdf_fname = 'iceMassExtinctionCrossSectionDiffuse' ! snow mass extinction cross section (m2/kg)
+      ssp_snwalbdr_fname = 'iceSingleScatterAlbedoDirect'         ! snow single scatter albedo (fraction)
+      ssp_snwalbdf_fname = 'iceSingleScatterAlbedoDiffuse'        ! snow single scatter albedo (fraction)
+      ssp_sasymmdr_fname = 'iceAsymmetryParameterDirect'          ! snow asymmetry factor (cos(theta))
+      ssp_sasymmdf_fname = 'iceAsymmetryParameterDiffuse'         ! snow asymmetry factor (cos(theta))
 
       ! extra tracers
       tr_iage      = .false. ! ice age
@@ -665,34 +684,26 @@
          write(nu_diag,1000) ' dt                        = ', dt
          write(nu_diag,1020) ' npt                       = ', npt
          write(nu_diag,1020) ' diagfreq                  = ', diagfreq
-         write(nu_diag,1030) ' dumpfreq                  = ', &
-                               trim(dumpfreq)
+         write(nu_diag,1030) ' dumpfreq                  = ', trim(dumpfreq)
          write(nu_diag,1010) ' dump_last                 = ', dump_last
          write(nu_diag,1010) ' restart                   = ', restart
-         write(nu_diag,*)    ' restart_dir               = ', &
-                               trim(restart_dir)
-         write(nu_diag,*)    ' restart_file              = ', &
-                               trim(restart_file)
+         write(nu_diag,1030) ' restart_dir               = ', trim(restart_dir)
+         write(nu_diag,1030) ' restart_file              = ', trim(restart_file)
          write(nu_diag,1010) ' history_cdf               = ', history_cdf
-         write(nu_diag,*)    ' ice_ic                    = ', &
-                               trim(ice_ic)
+         write(nu_diag,1030) ' ice_ic                    = ', trim(ice_ic)
          write(nu_diag,1010) ' conserv_check             = ', conserv_check
          write(nu_diag,1020) ' kitd                      = ', kitd
-         write(nu_diag,1020) ' kcatbound                 = ', &
-                               kcatbound
+         write(nu_diag,1020) ' kcatbound                 = ', kcatbound
          write(nu_diag,1020) ' ndtd                      = ', ndtd
          write(nu_diag,1020) ' kstrength                 = ', kstrength
-         write(nu_diag,1020) ' krdg_partic               = ', &
-                               krdg_partic
-         write(nu_diag,1020) ' krdg_redist               = ', &
-                               krdg_redist
+         write(nu_diag,1020) ' krdg_partic               = ', krdg_partic
+         write(nu_diag,1020) ' krdg_redist               = ', krdg_redist
          if (krdg_redist == 1) &
          write(nu_diag,1000) ' mu_rdg                    = ', mu_rdg
          if (kstrength == 1) &
          write(nu_diag,1000) ' Cf                        = ', Cf
          write(nu_diag,1000) ' ksno                      = ', ksno
-         write(nu_diag,1030) ' shortwave                 = ', &
-                               trim(shortwave)
+         write(nu_diag,1030) ' shortwave                 = ', trim(shortwave)
          if (cpl_bgc) then
              write(nu_diag,1000) ' BGC coupling is switched ON'
          else
@@ -709,14 +720,29 @@
          write(nu_diag,1000) ' hp1                       = ', hp1
          write(nu_diag,1000) ' hs0                       = ', hs0
          else
-         write(nu_diag,1030) ' albedo_type               = ', &
-                               trim(albedo_type)
+         write(nu_diag,1030) ' albedo_type               = ', trim(albedo_type)
          write(nu_diag,1000) ' albicev                   = ', albicev
          write(nu_diag,1000) ' albicei                   = ', albicei
          write(nu_diag,1000) ' albsnowv                  = ', albsnowv
          write(nu_diag,1000) ' albsnowi                  = ', albsnowi
          write(nu_diag,1000) ' ahmax                     = ', ahmax
          endif
+
+         if (trim(shortwave) == 'dEdd_snicar') then
+         write(nu_diag,1030) ' snw_ssp_table             = ', trim(snw_ssp_table)
+         if (trim(snw_ssp_table) /= 'test') then
+         write(nu_diag,1030) ' ssp_filename              = ', trim(ssp_filename)
+         write(nu_diag,1030) ' ssp_nsrad_fname           = ', trim(ssp_nsrad_fname)
+         write(nu_diag,1030) ' ssp_nspint_fname          = ', trim(ssp_nspint_fname)
+         write(nu_diag,1030) ' ssp_snwextdr_fname        = ', trim(ssp_snwextdr_fname)
+         write(nu_diag,1030) ' ssp_snwextdf_fname        = ', trim(ssp_snwextdf_fname)
+         write(nu_diag,1030) ' ssp_snwalbdr_fname        = ', trim(ssp_snwalbdr_fname)
+         write(nu_diag,1030) ' ssp_snwalbdf_fname        = ', trim(ssp_snwalbdf_fname)
+         write(nu_diag,1030) ' ssp_sasymmdr_fname        = ', trim(ssp_sasymmdr_fname)
+         write(nu_diag,1030) ' ssp_sasymmdf_fname        = ', trim(ssp_sasymmdf_fname)
+         endif
+         endif
+
          write(nu_diag,1010) ' sw_redist                 = ', sw_redist
          write(nu_diag,1005) ' sw_frac                   = ', sw_frac
          write(nu_diag,1005) ' sw_dtemp                  = ', sw_dtemp
@@ -732,10 +758,10 @@
          write(nu_diag,1000) ' pndaspect                 = ', pndaspect
 
          if (tr_snow) then
-         write(nu_diag,1030) ' snwredist                 = ', snwredist
+         write(nu_diag,1030) ' snwredist                 = ', trim(snwredist)
          write(nu_diag,1010) ' snwgrain                  = ', snwgrain
          write(nu_diag,1010) ' use_smliq_pnd             = ', use_smliq_pnd
-         write(nu_diag,1030) ' snw_aging_table           = ', snw_aging_table
+         write(nu_diag,1030) ' snw_aging_table           = ', trim(snw_aging_table)
          write(nu_diag,1000) ' rsnw_fall                 = ', rsnw_fall
          write(nu_diag,1000) ' rsnw_tmax                 = ', rsnw_tmax
          write(nu_diag,1000) ' rhosnew                   = ', rhosnew
@@ -748,7 +774,7 @@
 
          write(nu_diag,1020) ' ktherm                    = ', ktherm
          if (ktherm == 1) &
-         write(nu_diag,1030) ' conduct                   = ', conduct
+         write(nu_diag,1030) ' conduct                   = ', trim(conduct)
          write(nu_diag,1005) ' emissivity                = ', emissivity
          if (ktherm == 2) then
          write(nu_diag,1005) ' a_rapid_mode              = ', a_rapid_mode
@@ -759,8 +785,7 @@
          write(nu_diag,1005) ' phi_i_mushy               = ', phi_i_mushy
          endif
 
-         write(nu_diag,1030) ' atmbndy                   = ', &
-                               trim(atmbndy)
+         write(nu_diag,1030) ' atmbndy                   = ', trim(atmbndy)
          write(nu_diag,1010) ' formdrag                  = ', formdrag
          write(nu_diag,1010) ' highfreq                  = ', highfreq
          write(nu_diag,1020) ' natmiter                  = ', natmiter
@@ -771,36 +796,27 @@
          write(nu_diag,1005) ' floediam                  = ', floediam
          write(nu_diag,1005) ' hfrazilmin                = ', hfrazilmin
 
-         write(nu_diag,*)    ' atm_data_type             = ', &
-                               trim(atm_data_type)
-         write(nu_diag,*)    ' ocn_data_type             = ', &
-                               trim(ocn_data_type)
-         write(nu_diag,*)    ' bgc_data_type             = ', &
-                               trim(bgc_data_type)
+         write(nu_diag,1030) ' atm_data_type             = ', trim(atm_data_type)
+         write(nu_diag,1030) ' ocn_data_type             = ', trim(ocn_data_type)
+         write(nu_diag,1030) ' bgc_data_type             = ', trim(bgc_data_type)
 
-         write(nu_diag,*)    ' atm_data_file             = ', &
-                               trim(atm_data_file)
-         write(nu_diag,*)    ' ocn_data_file             = ', &
-                               trim(ocn_data_file)
-         write(nu_diag,*)    ' bgc_data_file             = ', &
-                               trim(bgc_data_file)
-         write(nu_diag,*)    ' ice_data_file             = ', &
-                               trim(ice_data_file)
+         write(nu_diag,1030) ' atm_data_file             = ', trim(atm_data_file)
+         write(nu_diag,1030) ' ocn_data_file             = ', trim(ocn_data_file)
+         write(nu_diag,1030) ' bgc_data_file             = ', trim(bgc_data_file)
+         write(nu_diag,1030) ' ice_data_file             = ', trim(ice_data_file)
 
          if (trim(atm_data_type)=='default') &
-         write(nu_diag,*)    ' default_season            = ', trim(default_season)
+         write(nu_diag,1030) ' default_season            = ', trim(default_season)
 
          write(nu_diag,1010) ' update_ocn_f              = ', update_ocn_f
          write(nu_diag,1010) ' wave_spec                 = ', wave_spec
          if (wave_spec) &
-         write(nu_diag,*)    ' wave_spec_type            = ', wave_spec_type
+         write(nu_diag,1030) ' wave_spec_type            = ', trim(wave_spec_type)
          write(nu_diag,1010) ' l_mpond_fresh             = ', l_mpond_fresh
          write(nu_diag,1005) ' ustar_min                 = ', ustar_min
-         write(nu_diag,*)    ' fbot_xfer_type            = ', &
-                               trim(fbot_xfer_type)
+         write(nu_diag,1030) ' fbot_xfer_type            = ', trim(fbot_xfer_type)
          write(nu_diag,1010) ' oceanmixed_ice            = ', oceanmixed_ice
-         write(nu_diag,*)    ' tfrz_option               = ', &
-                               trim(tfrz_option)
+         write(nu_diag,1030) ' tfrz_option               = ', trim(tfrz_option)
          write(nu_diag,1010) ' restore_ocn               = ', restore_ocn
          if (restore_ocn) &
          write(nu_diag,1005) ' trestore                  = ', trestore
@@ -934,7 +950,7 @@
  1005    format (a30,2x,f10.6) ! float
  1010    format (a30,2x,l6)    ! logical
  1020    format (a30,2x,i6)    ! integer
- 1030    format (a30,   a8)    ! character
+ 1030    format (a30,    a)    ! character
  1040    format (a30,2x,6i6)   ! integer
  1050    format (a30,2x,6a6)   ! character
 
