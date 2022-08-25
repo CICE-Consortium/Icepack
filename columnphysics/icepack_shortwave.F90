@@ -260,11 +260,17 @@
             return
          endif
 
-         write(warnstr,*) subname, ' nmbrad_snicar = ',nmbrad_snicar
+         write(warnstr,'(2a,i8)') subname, ' nmbrad_snicar = ',nmbrad_snicar
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, ' nspint = ',nspint_5bd
+         write(warnstr,'(2a,i8)') subname, ' nspint = ',nspint_5bd
          call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, ' ssp_snwextdr(1,1) = ',ssp_snwextdr(1,1)
+         write(warnstr,'(2a,i5,a,i5,a,g14.7)') subname, ' ssp_snwextdr(',1,         ',',1,            ') = ',ssp_snwextdr(1,1)
+         call icepack_warnings_add(warnstr)
+         write(warnstr,'(2a,i5,a,i5,a,g14.7)') subname, ' ssp_snwextdr(',nspint_5bd,',',1,            ') = ',ssp_snwextdr(nspint_5bd,1)
+         call icepack_warnings_add(warnstr)
+         write(warnstr,'(2a,i5,a,i5,a,g14.7)') subname, ' ssp_snwextdr(',1,         ',',nmbrad_snicar,') = ',ssp_snwextdr(1,nmbrad_snicar)
+         call icepack_warnings_add(warnstr)
+         write(warnstr,'(2a,i5,a,i5,a,g14.7)') subname, ' ssp_snwextdr(',nspint_5bd,',',nmbrad_snicar,') = ',ssp_snwextdr(nspint_5bd,nmbrad_snicar)
          call icepack_warnings_add(warnstr)
 
       endif

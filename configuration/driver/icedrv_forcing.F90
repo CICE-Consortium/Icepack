@@ -1291,23 +1291,37 @@
 
       write(nu_diag,*) subname,'  '
       write(nu_diag,*) subname,' Successfully initialized SNICAR SSP tables:'
-      write(nu_diag,*) subname,' ssp_filename         = ',trim(ssp_filename)
-      write(nu_diag,*) subname,' SSP N spectral int   = ',nspint
-      write(nu_diag,*) subname,' SSP N snow grain rad = ',nsrad
+      write(nu_diag,*) subname,' ssp_filename              = ',trim(ssp_filename)
+      write(nu_diag,*) subname,' SSP N spectral int, m1    = ',nspint
+      write(nu_diag,*) subname,' SSP N snow grain rad, m2  = ',nsrad
       write(nu_diag,*) subname,' Data at first index '
-      write(nu_diag,*) subname,' ssp_snwextdr(1,1)       = ',ssp_snwextdr(1,1)
-      write(nu_diag,*) subname,' ssp_snwextdf(1,1)       = ',ssp_snwextdf(1,1)
-      write(nu_diag,*) subname,' ssp_snwalbdr(1,1)       = ',ssp_snwalbdr(1,1)
-      write(nu_diag,*) subname,' ssp_snwalbdf(1,1)       = ',ssp_snwalbdf(1,1)
-      write(nu_diag,*) subname,' ssp_sasymmdr(1,1)       = ',ssp_sasymmdr(1,1)
-      write(nu_diag,*) subname,' ssp_sasymmdf(1,1)       = ',ssp_sasymmdf(1,1)
-      write(nu_diag,*) subname,' Data at final index '
-      write(nu_diag,*) subname,' ssp_snwextdr(max,max)   = ',ssp_snwextdr(nspint,nsrad)
-      write(nu_diag,*) subname,' ssp_snwextdf(max,max)   = ',ssp_snwextdf(nspint,nsrad)
-      write(nu_diag,*) subname,' ssp_snwalbdr(max,max)   = ',ssp_snwalbdr(nspint,nsrad)
-      write(nu_diag,*) subname,' ssp_snwalbdf(max,max)   = ',ssp_snwalbdf(nspint,nsrad)
-      write(nu_diag,*) subname,' ssp_sasymmdr(max,max)   = ',ssp_sasymmdr(nspint,nsrad)
-      write(nu_diag,*) subname,' ssp_sasymmdf(max,max)   = ',ssp_sasymmdf(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_snwextdr(1,1)   = ',ssp_snwextdr(1,1)
+      write(nu_diag,*) subname,' ssp_snwextdf(1,1)   = ',ssp_snwextdf(1,1)
+      write(nu_diag,*) subname,' ssp_snwalbdr(1,1)   = ',ssp_snwalbdr(1,1)
+      write(nu_diag,*) subname,' ssp_snwalbdf(1,1)   = ',ssp_snwalbdf(1,1)
+      write(nu_diag,*) subname,' ssp_sasymmdr(1,1)   = ',ssp_sasymmdr(1,1)
+      write(nu_diag,*) subname,' ssp_sasymmdf(1,1)   = ',ssp_sasymmdf(1,1)
+      write(nu_diag,*) subname,' Data at ',nspint,',1 index '
+      write(nu_diag,*) subname,' ssp_snwextdr(m1,1)  = ',ssp_snwextdr(nspint,1)
+      write(nu_diag,*) subname,' ssp_snwextdf(m1,1)  = ',ssp_snwextdf(nspint,1)
+      write(nu_diag,*) subname,' ssp_snwalbdr(m1,1)  = ',ssp_snwalbdr(nspint,1)
+      write(nu_diag,*) subname,' ssp_snwalbdf(m1,1)  = ',ssp_snwalbdf(nspint,1)
+      write(nu_diag,*) subname,' ssp_sasymmdr(m1,1)  = ',ssp_sasymmdr(nspint,1)
+      write(nu_diag,*) subname,' ssp_sasymmdf(m1,1)  = ',ssp_sasymmdf(nspint,1)
+      write(nu_diag,*) subname,' Data at 1,',nsrad,' index '
+      write(nu_diag,*) subname,' ssp_snwextdr(1,m2)  = ',ssp_snwextdr(1,nsrad)
+      write(nu_diag,*) subname,' ssp_snwextdf(1,m2)  = ',ssp_snwextdf(1,nsrad)
+      write(nu_diag,*) subname,' ssp_snwalbdr(1,m2)  = ',ssp_snwalbdr(1,nsrad)
+      write(nu_diag,*) subname,' ssp_snwalbdf(1,m2)  = ',ssp_snwalbdf(1,nsrad)
+      write(nu_diag,*) subname,' ssp_sasymmdr(1,m2)  = ',ssp_sasymmdr(1,nsrad)
+      write(nu_diag,*) subname,' ssp_sasymmdf(1,m2)  = ',ssp_sasymmdf(1,nsrad)
+      write(nu_diag,*) subname,' Data at ',nspint,nsrad,' index '
+      write(nu_diag,*) subname,' ssp_snwextdr(m1,m2) = ',ssp_snwextdr(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_snwextdf(m1,m2) = ',ssp_snwextdf(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_snwalbdr(m1,m2) = ',ssp_snwalbdr(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_snwalbdf(m1,m2) = ',ssp_snwalbdf(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_sasymmdr(m1,m2) = ',ssp_sasymmdr(nspint,nsrad)
+      write(nu_diag,*) subname,' ssp_sasymmdf(m1,m2) = ',ssp_sasymmdf(nspint,nsrad)
 
       call icepack_init_parameters( &
            ssp_snwextdr_in = ssp_snwextdr, ssp_snwextdf_in = ssp_snwextdf, &
