@@ -1659,12 +1659,6 @@
                              albpnd=albpndn(n),             &
                              fswpenl=fswpenln(:,n),         &
                              zbio=trcrn_bgcsw(:,n),         &
-                             asm_prm_ice_drc=ssp_sasymmdr,       &  ! echmod the name changes here - fix
-                             asm_prm_ice_dfs=ssp_sasymmdf,       &
-                             ss_alb_ice_drc=ssp_snwalbdr,        &
-                             ss_alb_ice_dfs=ssp_snwalbdf,        &
-                             ext_cff_mss_ice_drc=ssp_snwextdr,   &
-                             ext_cff_mss_ice_dfs=ssp_snwextdf,   &
                              kaer_5bd=kaer_5bd,          &
                              waer_5bd=waer_5bd,          &
                              gaer_5bd=gaer_5bd,          &
@@ -1761,12 +1755,6 @@
                                   albsno,   albpnd,      &
                                   fswpenl,  zbio,        &
                                   l_print_point,         &
-                                  asm_prm_ice_drc,       &
-                                  asm_prm_ice_dfs,       &
-                                  ss_alb_ice_drc,        &
-                                  ss_alb_ice_dfs,        &
-                                  ext_cff_mss_ice_drc,   &
-                                  ext_cff_mss_ice_dfs,   &
                                   kaer_5bd,          &
                                   waer_5bd,          &
                                   gaer_5bd,          &
@@ -1798,16 +1786,6 @@
 
       real (kind=dbl_kind), dimension(:,:,:), intent(in) :: & ! Modal aerosol treatment
          bcenh_3bd      ! BC absorption enhancement factor
-
-      ! SNICAR snow grain single-scattering properties (SSP) for
-      ! direct (dr) and diffuse (df) shortwave incidents
-       real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
-         asm_prm_ice_drc      , & ! snow asymmetry factor (cos(theta))
-         asm_prm_ice_dfs      , & ! snow asymmetry factor (cos(theta))
-         ss_alb_ice_drc       , & ! snow single scatter albedo (fraction)
-         ss_alb_ice_dfs       , & ! snow single scatter albedo (fraction)
-         ext_cff_mss_ice_drc  , & ! snow mass extinction cross section (m2/kg)
-         ext_cff_mss_ice_dfs      ! snow mass extinction cross section (m2/kg)
 
       real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
          kaer_5bd, & ! aerosol mass extinction cross section (m2/kg)
@@ -2059,10 +2037,7 @@
                       fswthru_idr,                                      &
                       fswthru_idf,                                      &
                       Sswabs,                                           &
-                      Iswabs,    fswpenl,                               &
-                      asm_prm_ice_drc, asm_prm_ice_dfs,                 &
-                      ss_alb_ice_drc, ss_alb_ice_dfs,                   &
-                      ext_cff_mss_ice_drc, ext_cff_mss_ice_dfs)
+                      Iswabs,    fswpenl)
                else
 !echmod - this can be combined with the 5bd call above, if we use module data
                   nspint = nspint_3bd
@@ -2280,10 +2255,7 @@
                                fswthru_idr,             &
                                fswthru_idf,             &
                                Sswabs,                  &
-                               Iswabs,   fswpenl,       &
-                    asm_prm_ice_drc, asm_prm_ice_dfs,                 &
-                    ss_alb_ice_drc, ss_alb_ice_dfs,                   &
-                    ext_cff_mss_ice_drc, ext_cff_mss_ice_dfs)
+                               Iswabs,   fswpenl)
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -2363,16 +2335,6 @@
          fswpenl , & ! visible SW entering ice layers (W m-2)
          Sswabs  , & ! SW absorbed in snow layer (W m-2)
          Iswabs      ! SW absorbed in ice layer (W m-2)
-
-      ! SNICAR snow grain single-scattering properties (SSP) for
-      ! direct (dr) and diffuse (df) shortwave incidents
-      real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
-         asm_prm_ice_drc      , & ! snow asymmetry factor (cos(theta))
-         asm_prm_ice_dfs      , & ! snow asymmetry factor (cos(theta))
-         ss_alb_ice_drc       , & ! snow single scatter albedo (fraction)
-         ss_alb_ice_dfs       , & ! snow single scatter albedo (fraction)
-         ext_cff_mss_ice_drc  , & ! snow mass extinction cross section (m2/kg)
-         ext_cff_mss_ice_dfs      ! snow mass extinction cross section (m2/kg)
 
 !-----------------------------------------------------------------------
 !
@@ -3089,30 +3051,30 @@
                do k=0,nslyr
                   ksnow = k - min(k-1,0)
                   if (rsnw(ksnow) <= rsnw_snicar_min) then ! change to rsnw_snicar_tab(1)
-                     ks  = ext_cff_mss_ice_drc(ns,1)
-                     ws  = ss_alb_ice_drc     (ns,1)
-                     gs  = asm_prm_ice_drc    (ns,1)
+                     ks  = ssp_snwextdr(ns,1)
+                     ws  = ssp_snwalbdr(ns,1)
+                     gs  = ssp_sasymmdr(ns,1)
                   elseif (rsnw(ksnow) >= rsnw_snicar_max) then ! change to rsnw_snicar_tab(nmbrad_snicar)
-                     ks  = ext_cff_mss_ice_drc(ns,nmbrad_snicar)
-                     ws  = ss_alb_ice_drc     (ns,nmbrad_snicar)
-                     gs  = asm_prm_ice_drc    (ns,nmbrad_snicar)
+                     ks  = ssp_snwextdr(ns,nmbrad_snicar)
+                     ws  = ssp_snwalbdr(ns,nmbrad_snicar)
+                     gs  = ssp_sasymmdr(ns,nmbrad_snicar)
                   elseif (trim(snw_ssp_table) == 'snicar') then ! assume index = int(snow grain radius) - 29
                      if (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
                         nr = ceiling(rsnw(ksnow)) - 30 + 1
-                        ks = ext_cff_mss_ice_drc(ns,nr)
-                        ws = ss_alb_ice_drc     (ns,nr)
-                        gs = asm_prm_ice_drc    (ns,nr)
+                        ks  = ssp_snwextdr(ns,nr)
+                        ws  = ssp_snwalbdr(ns,nr)
+                        gs  = ssp_sasymmdr(ns,nr)
                      else ! linear interpolation in rsnw
                         ! radius = 30 --> nr = 1 in SNICAR table
                         nr = ceiling(rsnw(ksnow)) - 30 + 1
                         delr = (rsnw(ksnow) - floor(rsnw(ksnow))) / &
                                (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow)))
-                        ks = ext_cff_mss_ice_drc(ns,nr-1)*(   delr) &
-                           + ext_cff_mss_ice_drc(ns,nr  )*(c1-delr)
-                        ws = ss_alb_ice_drc     (ns,nr-1)*(   delr) &
-                           + ss_alb_ice_drc     (ns,nr  )*(c1-delr)
-                        gs = asm_prm_ice_drc    (ns,nr-1)*(   delr) &
-                           + asm_prm_ice_drc    (ns,nr  )*(c1-delr)
+                        ks = ssp_snwextdr(ns,nr-1)*(   delr) &
+                           + ssp_snwextdr(ns,nr  )*(c1-delr)
+                        ws = ssp_snwalbdr(ns,nr-1)*(   delr) &
+                           + ssp_snwalbdr(ns,nr  )*(c1-delr)
+                        gs = ssp_sasymmdr(ns,nr-1)*(   delr) &
+                           + ssp_sasymmdr(ns,nr  )*(c1-delr)
                      endif
                   else ! standard interpolation for nonuniform tabular values
                      do nr=2,nmbrad_snicar
@@ -3120,13 +3082,12 @@
                                                      rsnw(ksnow) < rsnw_snicar_tab(nr)) then
                            delr = (rsnw        (ksnow) - rsnw_snicar_tab(nr-1)) / &
                                   (rsnw_snicar_tab(nr) - rsnw_snicar_tab(nr-1))
-
-                           ks = ext_cff_mss_ice_drc(ns,nr-1)*(   delr) &
-                              + ext_cff_mss_ice_drc(ns,nr  )*(c1-delr)
-                           ws = ss_alb_ice_drc     (ns,nr-1)*(   delr) &
-                              + ss_alb_ice_drc     (ns,nr  )*(c1-delr)
-                           gs = asm_prm_ice_drc    (ns,nr-1)*(   delr) &
-                              + asm_prm_ice_drc    (ns,nr  )*(c1-delr)
+                           ks = ssp_snwextdr(ns,nr-1)*(   delr) &
+                              + ssp_snwextdr(ns,nr  )*(c1-delr)
+                           ws = ssp_snwalbdr(ns,nr-1)*(   delr) &
+                              + ssp_snwalbdr(ns,nr  )*(c1-delr)
+                           gs = ssp_sasymmdr(ns,nr-1)*(   delr) &
+                              + ssp_sasymmdr(ns,nr  )*(c1-delr)
                         endif
                      enddo       ! nr
                   endif
@@ -3144,30 +3105,30 @@
                   ! use top rsnw, rhosnw for snow ssl and rest of top layer
                   ksnow = k - min(k-1,0)
                   if (rsnw(ksnow) <= rsnw_snicar_min) then ! change to rsnw_snicar_tab(1)
-                     ks  = ext_cff_mss_ice_dfs(ns,1)
-                     ws  = ss_alb_ice_dfs     (ns,1)
-                     gs  = asm_prm_ice_dfs    (ns,1)
+                     ks  = ssp_snwextdf(ns,1)
+                     ws  = ssp_snwalbdf(ns,1)
+                     gs  = ssp_sasymmdf(ns,1)
                   elseif (rsnw(ksnow) >= rsnw_snicar_max) then ! change to rsnw_snicar_tab(nmbrad_snicar)
-                     ks  = ext_cff_mss_ice_dfs(ns,nmbrad_snicar)
-                     ws  = ss_alb_ice_dfs     (ns,nmbrad_snicar)
-                     gs  = asm_prm_ice_dfs    (ns,nmbrad_snicar)
+                     ks  = ssp_snwextdf(ns,nmbrad_snicar)
+                     ws  = ssp_snwalbdf(ns,nmbrad_snicar)
+                     gs  = ssp_sasymmdf(ns,nmbrad_snicar)
                   elseif (trim(snw_ssp_table) == 'snicar') then ! assume index = int(snow grain radius) - 29
                      if (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
                         nr = ceiling(rsnw(ksnow)) - 30 + 1
-                        ks = ext_cff_mss_ice_dfs(ns,nr)
-                        ws = ss_alb_ice_dfs     (ns,nr)
-                        gs = asm_prm_ice_dfs    (ns,nr)
+                        ks  = ssp_snwextdf(ns,nr)
+                        ws  = ssp_snwalbdf(ns,nr)
+                        gs  = ssp_sasymmdf(ns,nr)
                      else ! linear interpolation in rsnw
                         ! radius = 30 --> nr = 1 in SNICAR table
                         nr = ceiling(rsnw(ksnow)) - 30 + 1
                         delr = (rsnw(ksnow) - floor(rsnw(ksnow))) / &
                                (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow)))
-                        ks = ext_cff_mss_ice_dfs(ns,nr-1)*(   delr) &
-                           + ext_cff_mss_ice_dfs(ns,nr  )*(c1-delr)
-                        ws = ss_alb_ice_dfs     (ns,nr-1)*(   delr) &
-                           + ss_alb_ice_dfs     (ns,nr  )*(c1-delr)
-                        gs = asm_prm_ice_dfs    (ns,nr-1)*(   delr) &
-                           + asm_prm_ice_dfs    (ns,nr  )*(c1-delr)
+                        ks = ssp_snwextdf(ns,nr-1)*(   delr) &
+                           + ssp_snwextdf(ns,nr  )*(c1-delr)
+                        ws = ssp_snwalbdf(ns,nr-1)*(   delr) &
+                           + ssp_snwalbdf(ns,nr  )*(c1-delr)
+                        gs = ssp_sasymmdf(ns,nr-1)*(   delr) &
+                           + ssp_sasymmdf(ns,nr  )*(c1-delr)
                      endif
                   else ! standard interpolation for nonuniform tabular values
                      do nr=2,nmbrad_snicar
@@ -3175,13 +3136,12 @@
                                                      rsnw(ksnow) < rsnw_snicar_tab(nr)) then
                            delr = (rsnw        (ksnow) - rsnw_snicar_tab(nr-1)) / &
                                   (rsnw_snicar_tab(nr) - rsnw_snicar_tab(nr-1))
-
-                           ks = ext_cff_mss_ice_dfs(ns,nr-1)*(   delr) &
-                              + ext_cff_mss_ice_dfs(ns,nr  )*(c1-delr)
-                           ws = ss_alb_ice_dfs     (ns,nr-1)*(   delr) &
-                              + ss_alb_ice_dfs     (ns,nr  )*(c1-delr)
-                           gs = asm_prm_ice_dfs    (ns,nr-1)*(   delr) &
-                              + asm_prm_ice_dfs    (ns,nr  )*(c1-delr)
+                           ks = ssp_snwextdf(ns,nr-1)*(   delr) &
+                              + ssp_snwextdf(ns,nr  )*(c1-delr)
+                           ws = ssp_snwalbdf(ns,nr-1)*(   delr) &
+                              + ssp_snwalbdf(ns,nr  )*(c1-delr)
+                           gs = ssp_sasymmdf(ns,nr-1)*(   delr) &
+                              + ssp_sasymmdf(ns,nr  )*(c1-delr)
                         endif
                      enddo       ! nr
                   endif
