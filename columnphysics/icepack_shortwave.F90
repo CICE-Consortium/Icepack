@@ -52,7 +52,7 @@
 #else
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, use_snicar
 #endif
-      use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
+      use icepack_parameters, only: R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_parameters, only: ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr
       use icepack_parameters, only: ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf
@@ -121,6 +121,18 @@
       integer (kind=int_kind) :: rsnw_snicar_max ! maximum snow radius - integer value used for indexing
       integer (kind=int_kind) :: rsnw_snicar_min ! minimum snow radius - integer value used for indexing
       real (kind=dbl_kind), dimension(:), allocatable :: rsnw_snicar_tab ! snow grain radii (10^-6 m)
+
+      ! dEdd tuning parameters, set in namelist
+      !   R_ice     ! sea ice tuning parameter; +1 > 1sig increase in albedo
+      !   R_pnd     ! ponded ice tuning parameter; +1 > 1sig increase in albedo
+      !   R_snw     ! snow tuning parameter; +1 > ~.01 change in broadband albedo
+      !   dT_mlt    ! change in temp for non-melt to melt snow grain radius change (C)
+      !   rsnw_mlt  ! maximum melting snow grain radius (10^-6 m)
+      !   pndaspect ! ratio of pond depth to pond fraction
+      !   hs0       ! snow depth for transition to bare sea ice (m)
+      !   hs1       ! tapering parameter for snow on pond ice
+      !   hp1       ! critical parameter for pond ice thickness
+      !   kalg      ! algae absorption coefficient
 
 !=======================================================================
 
@@ -1220,7 +1232,7 @@
                           vsnon,    Tsfcn,     &
                           alvln,    apndn,     &
                           hpndn,    ipndn,     &
-                          aeron,    kalg,      &
+                          aeron,    &
                           trcrn_bgcsw,         &
 #ifdef UNDEPRECATE_0LAYER
                           heat_capacity,       &
@@ -1229,11 +1241,7 @@
                           calendar_type,       &
                           days_per_year,       &
                           nextsw_cday,   yday, &
-                          sec,      R_ice,     &
-                          R_pnd,    R_snw,     &
-                          dT_mlt,   rsnw_mlt,  &
-                          hs0,      hs1,  hp1, &
-                          pndaspect,           &
+                          sec,      &
                           kaer_3bd, waer_3bd,  &
                           gaer_3bd,            &
                           kaer_bc_3bd,         &
@@ -1279,19 +1287,6 @@
 #endif
          dEdd_algae,   & ! .true. use prognostic chla in dEdd
          modal_aero      ! .true. use modal aerosol treatment
-
-      ! dEdd tuning parameters, set in namelist
-      real (kind=dbl_kind), intent(in) :: &
-         R_ice , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
-         R_pnd , & ! ponded ice tuning parameter; +1 > 1sig increase in albedo
-         R_snw , & ! snow tuning parameter; +1 > ~.01 change in broadband albedo
-         dT_mlt, & ! change in temp for non-melt to melt snow grain radius change (C)
-         rsnw_mlt, & ! maximum melting snow grain radius (10^-6 m)
-         hs0      , & ! snow depth for transition to bare sea ice (m)
-         pndaspect, & ! ratio of pond depth to pond fraction
-         hs1      , & ! tapering parameter for snow on pond ice
-         hp1      , & ! critical parameter for pond ice thickness
-         kalg         ! algae absorption coefficient
 
       real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          kaer_3bd, & ! aerosol mass extinction cross section (m2/kg)
@@ -1452,12 +1447,10 @@
 
       ! cosine of the zenith angle
 #ifdef CESMCOUPLED
-      call compute_coszen (tlat,          tlon, &
-                           yday,  sec, coszen,  &
+      call compute_coszen (tlat, tlon, yday,  sec, coszen,  &
                            days_per_year, nextsw_cday, calendar_type)
 #else
-      call compute_coszen (tlat,          tlon, &
-                           yday,  sec, coszen)
+      call compute_coszen (tlat, tlon, yday,  sec, coszen)
 #endif
       if (icepack_warnings_aborted(subname)) return
 
@@ -1634,14 +1627,12 @@
                              rhosnwn,       rsnwn,          &
                              fpn,           hpn,            &
                              aeron(:,n),                    &
-                             R_ice,         R_pnd,          &
                              kaer_3bd,      waer_3bd,       &
                              gaer_3bd,                      &
                              kaer_bc_3bd,                   &
                              waer_bc_3bd,                   &
                              gaer_bc_3bd,                   &
                              bcenh_3bd,     modal_aero,     &
-                             kalg,                          &
                              swvdr,         swvdf,          &
                              swidr,         swidf,          &
                              alvdrn(n),     alvdfn(n),      &
@@ -1732,14 +1723,12 @@
                                   rhosnw,   rsnw,        &
                                   fp,       hp,          &
                                   aero,                  &
-                                  R_ice,    R_pnd,       &
                                   kaer_3bd, waer_3bd,    &
                                   gaer_3bd,              &
                                   kaer_bc_3bd,           &
                                   waer_bc_3bd,           &
                                   gaer_bc_3bd,           &
                                   bcenh_3bd, modal_aero, &
-                                  kalg,                  &
                                   swvdr,    swvdf,       &
                                   swidr,    swidf,       &
                                   alvdr,    alvdf,       &
@@ -1801,9 +1790,6 @@
          bcenh_5bd      ! BC absorption enhancement factor
 
       real (kind=dbl_kind), intent(in) :: &
-         kalg    , & ! algae absorption coefficient
-         R_ice , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
-         R_pnd , & ! ponded ice tuning parameter; +1 > 1sig increase in albedo
          aice    , & ! concentration of ice
          vice    , & ! volume of ice
          hs      , & ! snow depth
@@ -1975,10 +1961,9 @@
 #else
                       fnidr,     coszen,                                &
 #endif
-                      R_ice,     R_pnd,                                 &
                       kaer_3bd,  waer_3bd,    gaer_3bd,                 &
                       kaer_bc_3bd, waer_bc_3bd, gaer_bc_3bd,            &
-                      bcenh_3bd, modal_aero,  kalg,                     &
+                      bcenh_3bd, modal_aero,  &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
                       hstmp,     rhosnw,      rsnw,    hi,     hp,      &
                       fi,        aero_mp,     avdrl,   avdfl,           &
@@ -2022,10 +2007,9 @@
 #else
                       fnidr,     coszen,                                &
 #endif
-                      R_ice,     R_pnd,                                 &
                       kaer_5bd,    waer_5bd,    gaer_5bd,               &
                       kaer_bc_5bd, waer_bc_5bd, gaer_bc_5bd,            &
-                      bcenh_5bd, modal_aero,  kalg,                     &
+                      bcenh_5bd, modal_aero,  &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
                       hs,        rhosnw,      rsnw,    hi,     hp,      &
                       fs,        aero_mp,     avdrl,   avdfl,           &
@@ -2048,10 +2032,9 @@
 #else
                       fnidr,     coszen,                                &
 #endif
-                      R_ice,     R_pnd,                                 &
                       kaer_3bd,    waer_3bd,    gaer_3bd,               &
                       kaer_bc_3bd, waer_bc_3bd, gaer_bc_3bd,            &
-                      bcenh_3bd, modal_aero,  kalg,                     &
+                      bcenh_3bd, modal_aero,  &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
                       hs,        rhosnw,      rsnw,    hi,     hp,      &
                       fs,        aero_mp,     avdrl,   avdfl,           &
@@ -2100,10 +2083,9 @@
 #else
                       fnidr,     coszen,                                &
 #endif
-                      R_ice,     R_pnd,                                 &
                       kaer_3bd,    waer_3bd,    gaer_3bd,               &
                       kaer_bc_3bd, waer_bc_3bd, gaer_bc_3bd,            &
-                      bcenh_3bd, modal_aero,  kalg,                     &
+                      bcenh_3bd, modal_aero,  &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
                       hs,        rhosnw,      rsnw,    hi,     hp,      &
                       fp,        aero_mp,     avdrl,   avdfl,           &
@@ -2240,10 +2222,9 @@
 #else
                     fnidr,     coszen,                            &
 #endif
-                    R_ice,     R_pnd,                             &
                     kaer_tab,    waer_tab,         gaer_tab,      &
                     kaer_bc_tab, waer_bc_tab,      gaer_bc_tab,   &
-                    bcenh,     modal_aero,         kalg,          &
+                    bcenh,     modal_aero,         &
                     swvdr,     swvdf,    swidr,    swidf, srftyp, &
                     hs,        rhosnw,   rsnw,     hi,    hp,     &
                     fi,        aero_mp,  alvdr,    alvdf,         &
@@ -2279,18 +2260,12 @@
       real (kind=dbl_kind), dimension(:,:,:), intent(in) :: & ! Modal aerosol treatment
          bcenh          ! BC absorption enhancement factor
 
-      ! dEdd tuning parameters, set in namelist
-      real (kind=dbl_kind), intent(in) :: &
-         R_ice , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
-         R_pnd     ! ponded ice tuning parameter; +1 > 1sig increase in albedo
-
       real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          kaer_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_tab, & ! aerosol single scatter albedo (fraction)
          gaer_tab    ! aerosol asymmetry parameter (cos(theta))
 
       real (kind=dbl_kind), intent(in) :: &
-         kalg    , & ! algae absorption coefficient
          fnidr   , & ! fraction of direct to total down flux in nir
          coszen  , & ! cosine solar zenith angle
          swvdr   , & ! shortwave down at surface, visible, direct  (W/m^2)
@@ -2736,7 +2711,9 @@
          wghtns_5bd_dfs(4) = 0.10917889346386_dbl_kind
          wghtns_5bd_dfs(5) = c1-(wghtns_5bd_dfs(2)+wghtns_5bd_dfs(3)+wghtns_5bd_dfs(4))
       else
-         !echmod abort
+         call icepack_warnings_add(subname//' ERROR: mismatch in shortwave bands')
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         return
       endif
 
       ! find snow grain adjustment factor, dependent upon clear/overcast sky
@@ -4985,7 +4962,7 @@
                           vsnon,        Tsfcn,          &
                           alvln,        apndn,          &
                           hpndn,        ipndn,          &
-                          aeron,        kalg,           &
+                          aeron,        &
                           trcrn_bgcsw,                  &
 #ifdef UNDEPRECATE_0LAYER
                           heat_capacity,                &
@@ -4993,11 +4970,7 @@
                           TLAT,         TLON,           &
                           calendar_type,days_per_year,  &
                           nextsw_cday,  yday,           &
-                          sec,          R_ice,          &
-                          R_pnd,        R_snw,          &
-                          dT_mlt,       rsnw_mlt,       &
-                          hs0,          hs1,            &
-                          hp1,          pndaspect,      &
+                          sec,          &
                           kaer_3bd,     waer_3bd,       &
                           gaer_3bd,                     &
                           kaer_bc_3bd,                  &
