@@ -88,6 +88,7 @@
          n            ! loop index
 
       character (len=char_len) :: diag_file_names
+      character (len=char_len), dimension(4) :: nx_names_default
 
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
          ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, &
@@ -463,10 +464,13 @@
       do n = 1,nx
          write(nx_names(n),'(a,i2.2)') 'point_',n
       enddo      
-      nx_names(1) = 'icefree'
-      nx_names(2) = 'slab'
-      nx_names(3) = 'full_ITD'
-      nx_names(4) = 'land'
+      nx_names_default(1) = 'icefree'
+      nx_names_default(2) = 'slab'
+      nx_names_default(3) = 'full_ITD'
+      nx_names_default(4) = 'land'
+      do n = 1,nx
+         nx_names(n) = nx_names_default(n)
+      enddo
 
       do n = 1,nx
          diag_file_names=' '
@@ -1487,6 +1491,7 @@
       !-----------------------------------------------------------------
 
       i = 2  ! 2-m slab, no snow
+      if (i <= nx) then
       if (3 <= ncat) then
          n = 3
          ainit(n) = c1  ! assumes we are using the default ITD boundaries
@@ -1540,10 +1545,12 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
+      endif
       
       !-----------------------------------------------------------------
 
       i = 3  ! full thickness distribution
+      if (i <= nx) then
       ! initial category areas in cells with ice
       hbar = c3  ! initial ice thickness with greatest area
       ! Note: the resulting average ice thickness 
@@ -1610,14 +1617,17 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
+      endif
 
       !-----------------------------------------------------------------
       
       ! land
       ! already initialized above (tmask = 0)
       i = 4
+      if (i <= nx) then
       sst(i) = c0
       Tf(i) = c0
+      endif
 
       end subroutine set_state_var
 
