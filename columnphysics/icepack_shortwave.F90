@@ -56,6 +56,9 @@
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_parameters, only: ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr
       use icepack_parameters, only: ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf
+      use icepack_parameters, only: ssp_aasymmmd, ssp_aerextmd, ssp_aeralbmd, ssp_abcenhmd
+      use icepack_parameters, only: ssp_aasymm, ssp_aerext, ssp_aeralb
+      use icepack_parameters, only: ssp_bcerad, ssp_bcgrerad
       use icepack_parameters, only: snw_ssp_table
 
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
@@ -117,7 +120,10 @@
          ki_dl_mn_5bd,  wi_dl_mn_5bd,  gi_dl_mn_5bd , & ! ice drained layer (dl) iops
          ki_int_mn_5bd, wi_int_mn_5bd, gi_int_mn_5bd    ! ice interior layer (int) iops
 
-      integer (kind=int_kind) :: nmbrad_snicar   ! number of snow grain radii in tables
+      integer (kind=int_kind) :: nmbrad_snicar   ! number of snow grain radii in SNICAR SSP tables
+      integer (kind=int_kind) :: nmodal1_snicar  ! nModal1 in SNICAR SSP tables
+      integer (kind=int_kind) :: nmodal2_snicar  ! nModal2 in SNICAR SSP tables
+      integer (kind=int_kind) :: nmaeros_snicar  ! maxAerosolType in SNICAR SSP tables
       integer (kind=int_kind) :: rsnw_snicar_max ! maximum snow radius - integer value used for indexing
       integer (kind=int_kind) :: rsnw_snicar_min ! minimum snow radius - integer value used for indexing
       real (kind=dbl_kind), dimension(:), allocatable :: rsnw_snicar_tab ! snow grain radii (10^-6 m)
@@ -1041,10 +1047,13 @@
       ! all data has to be passed into icepack_parameters
 
       if (trim(snw_ssp_table) == 'snicar') then
-         ! table passed in, hardwired 1471 x 5 table
-         nmbrad_snicar = 1471 ! maximum snow grain radius index
-         rsnw_snicar_min = 30
-         rsnw_snicar_max = 1500
+         ! table passed in, hardwired 1471 x 5 table with 10/8/6/30/1500 expected
+         nmbrad_snicar   = 1471 ! snow grain radius number SNICAR SSP tables
+         nmodal1_snicar  = 10   ! nModal1 in SNICAR SSP tables
+         nmodal2_snicar  = 8    ! nModal2 in SNICAR SSP tables
+         nmaeros_snicar  = 6    ! maxAerosolType in SNICAR SSP tables
+         rsnw_snicar_min = 30   ! minimum snow grain radius
+         rsnw_snicar_max = 1500 ! maximum snow grain radius
 
 !echmod - this might not be needed
          allocate(rsnw_snicar_tab(nmbrad_snicar))         ! snow grain radii
@@ -1061,7 +1070,10 @@
          return
 
       elseif (trim(snw_ssp_table) == 'test') then ! 5x5 table
-         nmbrad_snicar = 5 ! maximum snow grain radius index
+         nmbrad_snicar  = 5   ! snow grain radius number SNICAR SSP tables
+         nmodal1_snicar = 10  ! nModal1 in SNICAR SSP tables
+         nmodal2_snicar = 8   ! nModal2 in SNICAR SSP tables
+         nmaeros_snicar = 6   ! maxAerosolType in SNICAR SSP tables
 
          allocate(rsnw_snicar_tab(nmbrad_snicar))         ! snow grain radii
          rsnw_snicar_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
@@ -1069,18 +1081,37 @@
          rsnw_snicar_min = rsnw_snicar_tab(1)             ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max = rsnw_snicar_tab(nmbrad_snicar) ! maximum snow radius - integer value used for indexing
 
+         if (allocated(ssp_bcerad  )) deallocate(ssp_bcerad  )
+         if (allocated(ssp_bcgrerad)) deallocate(ssp_bcgrerad)
          if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
          if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
          if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
          if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
          if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
          if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
-         allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, direct
-         allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, diffuse
-         allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar)) ! single-scattering albedo, direct
-         allocate(ssp_snwalbdf(nspint_5bd,nmbrad_snicar)) ! single-scattering albedo, diffuse
-         allocate(ssp_sasymmdr(nspint_5bd,nmbrad_snicar)) ! snow asymmetry factor, direct
-         allocate(ssp_sasymmdf(nspint_5bd,nmbrad_snicar)) ! snow asymmetry factor, diffuse
+         if (allocated(ssp_aasymmmd)) deallocate(ssp_aasymmmd)
+         if (allocated(ssp_aerextmd)) deallocate(ssp_aerextmd)
+         if (allocated(ssp_aeralbmd)) deallocate(ssp_aeralbmd)
+         if (allocated(ssp_aasymm  )) deallocate(ssp_aasymm  )
+         if (allocated(ssp_aerext  )) deallocate(ssp_aerext  )
+         if (allocated(ssp_aeralb  )) deallocate(ssp_aeralb  )
+         if (allocated(ssp_abcenhmd)) deallocate(ssp_abcenhmd)
+
+         allocate(ssp_bcerad  (nmodal1_snicar)) ! ?, bcEffectiveRadius
+         allocate(ssp_bcgrerad(nmodal2_snicar)) ! ?, iceGrainEffectiveRadius
+         allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, direct
+         allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, diffuse
+         allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, direct
+         allocate(ssp_snwalbdf(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, diffuse
+         allocate(ssp_sasymmdr(nspint_5bd,nmbrad_snicar )) ! snow asymmetry factor, direct
+         allocate(ssp_sasymmdf(nspint_5bd,nmbrad_snicar )) ! snow asymmetry factor, diffuse
+         allocate(ssp_aasymmmd(nspint_5bd,nmodal1_snicar)) ! gaer_bc_5bd, modalAsymmetryParameter5band
+         allocate(ssp_aerextmd(nspint_5bd,nmodal1_snicar)) ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
+         allocate(ssp_aeralbmd(nspint_5bd,nmodal1_snicar)) ! waer_bc_5bd, modalSingleScatterAlbedo5band
+         allocate(ssp_aasymm  (nspint_5bd,nmaeros_snicar)) ! gaer_5bd, aerosolAsymmetryParameter5band
+         allocate(ssp_aerext  (nspint_5bd,nmaeros_snicar)) ! kaer_5bd, aerosolMassExtinctionCrossSection5band
+         allocate(ssp_aeralb  (nspint_5bd,nmaeros_snicar)) ! waer_5bd, aerosolSingleScatterAlbedo5band
+         allocate(ssp_abcenhmd(nspint_5bd,nmodal1_snicar,nmodal2_snicar))  ! bcenh_5bd, modalBCabsorptionParameter5band
 
          ! tcraig, these data statements are not consistent with the array index order
          ! reshape from nmbrad,nspint to nspint,nmbrad with order = 2,1
@@ -1133,27 +1164,67 @@
                0.89620237, 0.90998944, 0.94126152, 0.96209938, 0.9726631  /), &
                (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
 
+         ! tcraig, what should these be set to?  TODO
+         ssp_bcerad   = c0
+         ssp_bcgrerad = c0
+         ssp_aasymmmd = c0
+         ssp_aerextmd = c0
+         ssp_aeralbmd = c0
+         ssp_aasymm   = c0
+         ssp_aerext   = c0
+         ssp_aeralb   = c0
+         ssp_abcenhmd = c0
+
       else
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table)//' not supported')
          return
       endif
 
-      if ((size(ssp_snwextdr,dim=2) /= nmbrad_snicar) .or. &
-          (size(ssp_snwextdf,dim=2) /= nmbrad_snicar) .or. &
-          (size(ssp_snwalbdr,dim=2) /= nmbrad_snicar) .or. &
-          (size(ssp_snwalbdf,dim=2) /= nmbrad_snicar) .or. &
-          (size(ssp_sasymmdr,dim=2) /= nmbrad_snicar) .or. &
-          (size(ssp_sasymmdf,dim=2) /= nmbrad_snicar)) then
+      if ((size(ssp_bcerad,dim=1)   /= nmodal1_snicar) .or. &
+          (size(ssp_bcgrerad,dim=1) /= nmodal2_snicar) .or. &
+          (size(ssp_snwextdr,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_snwextdr,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_snwextdf,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_snwextdf,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_snwalbdr,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_snwalbdr,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_snwalbdf,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_snwalbdf,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_sasymmdr,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_sasymmdr,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_sasymmdf,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_sasymmdf,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_aasymmmd,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aasymmmd,dim=2) /= nmodal1_snicar) .or. &
+          (size(ssp_aerextmd,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aerextmd,dim=2) /= nmodal1_snicar) .or. &
+          (size(ssp_aeralbmd,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aeralbmd,dim=2) /= nmodal1_snicar) .or. &
+          (size(ssp_aasymm  ,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aasymm  ,dim=2) /= nmaeros_snicar) .or. &
+          (size(ssp_aerext  ,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aerext  ,dim=2) /= nmaeros_snicar) .or. &
+          (size(ssp_aeralb  ,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aeralb  ,dim=2) /= nmaeros_snicar) .or. &
+          (size(ssp_abcenhmd,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_abcenhmd,dim=2) /= nmodal1_snicar) .or. &
+          (size(ssp_abcenhmd,dim=3) /= nmodal2_snicar)) then
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table))
          call icepack_warnings_add(subname//'ERROR: snw_ssp_table array size error')
          return
       endif
 
-      write(warnstr,'(2a,i8)') subname, ' nmbrad_snicar = ',nmbrad_snicar
+      write(warnstr,'(2a,i8)') subname, ' nmbrad_snicar  = ',nmbrad_snicar
       call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i8)') subname, ' nspint = ',nspint_5bd
+      write(warnstr,'(2a,i8)') subname, ' nspint         = ',nspint_5bd
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i8)') subname, ' nmodal1_snicar = ',nmodal1_snicar
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i8)') subname, ' nmodal2_snicar = ',nmodal2_snicar
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i8)') subname, ' nmaeros_snicar = ',nmaeros_snicar
       call icepack_warnings_add(warnstr)
       write(warnstr,'(2a,i5,a,i5,a,g14.7)') subname, ' ssp_snwextdr(',1,         ',',1,            ') = ',ssp_snwextdr(1,1)
       call icepack_warnings_add(warnstr)
