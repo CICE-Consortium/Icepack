@@ -1112,7 +1112,6 @@
       enddo
 
       tmask(:) = .true.
-      tmask(nx) = .false.  ! land in last grid cell
 
       !-----------------------------------------------------------------
       ! create hemisphere masks
@@ -1661,8 +1660,9 @@
       ! already initialized above (tmask = 0)
       i = 4
       if (i <= nx) then
-      sst(i) = c0
-      Tf(i) = c0
+         tmask(i) = .false.
+         sst(i) = c0
+         Tf(i) = c0
       endif
 
       end subroutine set_state_var
