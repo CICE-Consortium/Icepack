@@ -1923,7 +1923,6 @@
          aero_mp      ! aerosol mass path in kg/m2
 
       integer (kind=int_kind) :: &
-         nspint   , & ! number of solar spectral bands
          srftyp       ! surface type over ice: (0=air, 1=snow, 2=pond)
 
       integer (kind=int_kind) :: &
@@ -2025,7 +2024,6 @@
                ! calculate bare sea ice
 
                srftyp = 0
-               nspint = nspint_3bd
                call compute_dEdd_3bd(nilyr,       nslyr,             &
                       klev,      klevp,       zbio,    dEdd_algae,      &
 #ifdef UNDEPRECATE_0LAYER
@@ -2033,9 +2031,6 @@
 #else
                       fnidr,     coszen,                                &
 #endif
-!                      kaer_3bd,  waer_3bd,    gaer_3bd,                 &
-!                      kaer_bc_3bd, waer_bc_3bd, gaer_bc_3bd,            &
-!                      bcenh_3bd, modal_aero,  &
                       modal_aero,  &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
                       hstmp,     rhosnw,      rsnw,    hi,     hp,      &
@@ -2075,7 +2070,6 @@
 
                srftyp = 1
                if (use_snicar) then
-                  nspint = nspint_5bd
                 call compute_dEdd_5bd(nilyr, nslyr, klev, klevp,          &
                         zbio,        dEdd_algae,               &
 !!!!!!                        heat_capacity,          fnidr,   coszen,          &
@@ -2096,7 +2090,6 @@
 
                else
 !echmod - this can be combined with the 5bd call above, if we use module data
-                  nspint = nspint_3bd
                   call compute_dEdd_3bd(nilyr,       nslyr,        &
                       klev,      klevp,       zbio,    dEdd_algae,      &
 #ifdef UNDEPRECATE_0LAYER
@@ -2104,9 +2097,6 @@
 #else
                       fnidr,     coszen,                                &
 #endif
-!                      kaer_3bd,  waer_3bd,    gaer_3bd,                 &
-!                      kaer_bc_3bd, waer_bc_3bd, gaer_bc_3bd,            &
-!                      bcenh_3bd, modal_aero,  &
                       modal_aero,  &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
                       hs,        rhosnw,      rsnw,    hi,     hp,      &
@@ -2151,7 +2141,6 @@
                ! calculate ponded ice
 
                srftyp = 2
-               nspint = nspint_3bd
                call compute_dEdd_3bd(nilyr,       nslyr,            &
                       klev,      klevp,       zbio,    dEdd_algae,      &
 #ifdef UNDEPRECATE_0LAYER
@@ -2159,9 +2148,6 @@
 #else
                       fnidr,     coszen,                                &
 #endif
-!                      kaer_3bd,  waer_3bd,    gaer_3bd,                 &
-!                      kaer_bc_3bd, waer_bc_3bd, gaer_bc_3bd,            &
-!                      bcenh_3bd, modal_aero,  &
                       modal_aero,  &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
                       hs,        rhosnw,      rsnw,    hi,     hp,      &
@@ -2277,23 +2263,7 @@
 !
 ! author:  Bruce P. Briegleb, NCAR
 !   2013:  E Hunke merged with NCAR version
-!   2018:  Cheng Dang merged with SNICAR 5-band snow and aersols IOPs, UC Irvine
 !   2022:  E Hunke, T Craig moved data (now module data)
-
-! Note regarding SNICAR 5-band scheme:
-! 1. The shortwave radiative transfer properties of snow-covered sea ice are
-!    calculated for 5 bands (1 visible and 4 near-IR) defined in SNICAR
-! 2. The reflection/absorption/transmission of direct and diffuse shortwave
-!    incidents are calculated seperately to remove the snow grain adjustment
-! 3. The albedo and absorption of snow-covered sea ice are adjusted when the
-!    solar zenith angle is above 75 degrees
-! 4. The original subroutine, compute_dEdd_5bd, has been merged with this
-!    compute_dEdd subroutine.
-! For further information, see
-! Dang, C., Zender, C. S., and Flanner, M. G.: Intercomparison and improvement
-! of 2-stream shortwave radiative transfer schemes in Earth system models for
-! a unified treatment of cryospheric surfaces. The Cryosphere, 13, 2325-2343,
-! 2019. https://doi.org/10.5194/tc-13-2325-2019
 
       subroutine compute_dEdd_3bd(nilyr,       nslyr,           &
                       klev,      klevp,       zbio,    dEdd_algae,      &
@@ -2680,28 +2650,6 @@
                          ! Grenfell 1991 uses 0.004 (m^2/mg) which is (0.0078 * spectral weighting)
                          !chlorophyll mass extinction cross section (m^2/mg chla)
 
-      real (kind=dbl_kind), dimension (5) :: &
-         wghtns_5bd_dfs, &   ! spectral weights for diffuse incident
-         wghtns_5bd_drc      ! spectral weights for direct incident
-
-!      integer (kind=int_kind) :: &
-!         nsky         !sky = 1 (2) for direct (diffuse) downward SW incident
-
-      real (kind=dbl_kind), parameter :: & ! solar zenith angle parameterizations
-         sza_a0 =  0.085730_dbl_kind , &
-         sza_a1 = -0.630883_dbl_kind , &
-         sza_a2 =  1.303723_dbl_kind , &
-         sza_b0 =  1.467291_dbl_kind , &
-         sza_b1 = -3.338043_dbl_kind , &
-         sza_b2 =  6.807489_dbl_kind , &
-         mu_75  =  0.2588_dbl_kind         ! cosine(75 degrees)
-
-      real (kind=dbl_kind) :: &
-         sza_c1       , & ! parameter for high sza adjustment
-         sza_c0       , & ! parameter for high sza adjustment
-         sza_factor   , & ! parameter for high sza adjustment
-         mu0
-
       character(len=*),parameter :: subname='(compute_dEdd_3bd)'
 
 !-----------------------------------------------------------------------
@@ -2734,16 +2682,6 @@
       fthruvdf  = c0
       fthruidr  = c0
       fthruidf  = c0
-
-         ki_ssl_mn = ki_ssl_mn_3bd
-         wi_ssl_mn = wi_ssl_mn_3bd
-         gi_ssl_mn = gi_ssl_mn_3bd
-         ki_dl_mn  = ki_dl_mn_3bd
-         wi_dl_mn  = wi_dl_mn_3bd
-         gi_dl_mn  = gi_dl_mn_3bd
-         ki_int_mn = ki_int_mn_3bd
-         wi_int_mn = wi_int_mn_3bd
-         gi_int_mn = gi_int_mn_3bd
 
       ! spectral weights 2 (0.7-1.19 micro-meters) and 3 (1.19-5.0 micro-meters)
       ! are chosen based on 1D calculations using ratio of direct to total
@@ -2906,9 +2844,9 @@
                  ! CICE adjusted snow grain radius rsnw to frsnw in the original 3-band
                  ! scheme, while for SNICAR the snow grain radius is used directly.
                  ksnow = k - min(k-1,0)
-                    tmp_gs = frsnw(ksnow)
+                 tmp_gs = frsnw(ksnow)
 
-                 ! grain size index: works for 25 < snw_rds < 1625 um:
+                 ! grain size index
                  if (tmp_gs < 125._dbl_kind) then
                    tmp1 = tmp_gs/50._dbl_kind
                    k_bcini(k) = nint(tmp1)
@@ -3576,39 +3514,17 @@
                         * wghtns(ns)
             enddo       ! k
 
-            ! complex indexing to insure proper absorptions for sea ice
-            ki = 0
-            do k=nslyr+2,nslyr+1+nilyr
-               ! for bare ice, DL absorption for sea ice layer 1
-               km = k
-               kp = km + 1
-               ! modify for top sea ice layer for snow over sea ice
-               if( srftyp == 1 ) then
-                  ! must add SSL and DL absorption for sea ice layer 1
-                  if( k == nslyr+2 ) then
-                     km = k  - 1
-                     kp = km + 2
-                  endif
-               endif
-               ki = ki + 1
-               Iabs(ki) = Iabs(ki) &
-                        + (dfdir(km)-dfdir(kp))*swdr*wghtns_5bd_drc(ns) &
-                        + (dfdif(km)-dfdir(kp))*swdf*wghtns_5bd_dfs(ns)
-            enddo       ! k
-
          endif        ! ns = 1, ns > 1
 
       enddo         ! ns: end spectral loop
 
-      ! solar zenith angle parameterization
-          alidr   = aidr
-          fswsfc  = fswsfc + fsfc*fi
-
       alvdr   = avdr
       alvdf   = avdf
+      alidr   = aidr
       alidf   = aidf
 
       ! accumulate fluxes over bare sea ice
+      fswsfc  = fswsfc  + fsfc *fi
       fswint  = fswint  + fint *fi
       fswthru = fswthru + fthru*fi
       fswthru_vdr = fswthru_vdr + fthruvdr*fi
