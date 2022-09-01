@@ -234,7 +234,7 @@
                call icepack_warnings_flush(nu_diag)
                if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                    file=__FILE__,line= __LINE__)
-               if (trim(snw_ssp_table) /= 'test') then
+               if (trim(snw_ssp_table) == 'snicarfile') then
                   call init_snicarssptable()
                endif
             endif

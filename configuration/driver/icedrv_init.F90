@@ -758,7 +758,7 @@
 
          if (trim(shortwave) == 'dEdd_snicar') then
          write(nu_diag,1030) ' snw_ssp_table             = ', trim(snw_ssp_table)
-         if (trim(snw_ssp_table) /= 'test') then
+         if (trim(snw_ssp_table) == 'snicarfile') then
          write(nu_diag,1030) ' ssp_filename              = ', trim(ssp_filename)
          write(nu_diag,1030) ' ssp_nsrad_fname           = ', trim(ssp_nsrad_fname)
          write(nu_diag,1030) ' ssp_nspint_fname          = ', trim(ssp_nspint_fname)

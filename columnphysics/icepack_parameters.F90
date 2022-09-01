@@ -9,6 +9,18 @@
       use icepack_kinds
       use icepack_warnings, only: icepack_warnings_aborted, &
           icepack_warnings_add, icepack_warnings_setabort
+      use icepack_shortwave_data, only: &
+          use_snicar   ,                 &
+          nspint_3bd   , nspint_5bd  ,   &
+          snw_ssp_table,                 &
+          ssp_bcerad   , ssp_bcgrerad,   &
+          ssp_snwextdr , ssp_snwextdf,   &
+          ssp_snwalbdr , ssp_snwalbdf,   &
+          ssp_sasymmdr , ssp_sasymmdf,   &
+          ssp_aasymmmd , ssp_aerextmd,   &
+          ssp_aeralbmd , ssp_aasymm  ,   &
+          ssp_aerext   , ssp_aeralb  ,   &
+          ssp_abcenhmd
 
       implicit none
       private
@@ -178,13 +190,6 @@
 ! Parameters for radiation
 !-----------------------------------------------------------------------
 
-      logical (kind=log_kind), public :: &
-         use_snicar = .false.     ! .true. use 5-band SNICAR-AD approach
-
-      integer (kind=int_kind), parameter, public :: &
-         nspint_3bd = 3, & ! number of solar spectral bands
-         nspint_5bd = 5    ! number of solar spectral bands (snicar snow)
-
       real (kind=dbl_kind), public :: &
          ! (Briegleb JGR 97 11475-11485  July 1992)
          emissivity = 0.985_dbl_kind,&! emissivity of snow and ice
@@ -232,29 +237,6 @@
       real (kind=dbl_kind), public :: &
          sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
          sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
-
-      ! Parameters for dEdd_snicar
-      character (len=char_len), public :: &
-         snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test' or 'file'
-
-!echmod - remove ssp_bcerad*, ssp_bcgrerad*? they are not used in MPAS-SI
-
-      real (kind=dbl_kind), allocatable, public :: &
-         ssp_bcerad  (:),     &  ! ?, bcEffectiveRadius
-         ssp_bcgrerad(:),     &  ! ?, iceGrainEffectiveRadius
-         ssp_snwextdr(:,:),   &  ! snow mass extinction cross section (m2/kg), direct
-         ssp_snwextdf(:,:),   &  ! snow mass extinction cross section (m2/kg), diffuse
-         ssp_snwalbdr(:,:),   &  ! snow single scatter albedo (fraction), direct
-         ssp_snwalbdf(:,:),   &  ! snow single scatter albedo (fraction), diffuse
-         ssp_sasymmdr(:,:),   &  ! snow asymmetry factor (cos(theta)), direct
-         ssp_sasymmdf(:,:),   &  ! snow asymmetry factor (cos(theta)), diffuse
-         ssp_aasymmmd(:,:),   &  ! gaer_bc_5bd, modalAsymmetryParameter5band
-         ssp_aerextmd(:,:),   &  ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
-         ssp_aeralbmd(:,:),   &  ! waer_bc_5bd, modalSingleScatterAlbedo5band
-         ssp_aasymm  (:,:),   &  ! gaer_5bd, aerosolAsymmetryParameter5band
-         ssp_aerext  (:,:),   &  ! kaer_5bd, aerosolMassExtinctionCrossSection5band
-         ssp_aeralb  (:,:),   &  ! waer_5bd, aerosolSingleScatterAlbedo5band
-         ssp_abcenhmd(:,:,:)     ! bcenh_5bd, modalBCabsorptionParameter5band
 
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
