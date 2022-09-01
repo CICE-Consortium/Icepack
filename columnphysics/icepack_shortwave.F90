@@ -68,7 +68,7 @@
       use icepack_tracers,    only: tr_pond_lvl, tr_pond_topo
 #endif
       use icepack_tracers,    only: tr_bgc_N, tr_aero
-      use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
+      use icepack_tracers,    only: nt_bgc_N, nt_zaero
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
       use icepack_tracers,    only: n_algae, n_aero, n_zaero
       use icepack_warnings,   only: warnstr, icepack_warnings_add
@@ -160,7 +160,7 @@
       character (len=*),parameter :: subname='(icepack_init_radiation)'
 
       !-----------------------------------------------------------------
-      ! Snow table initialization
+      ! Set dEdd parameter tables
       !-----------------------------------------------------------------
 
       if (shortwave(1:4) == 'dEdd') then
@@ -2026,7 +2026,7 @@
 
                srftyp = 0
                nspint = nspint_3bd
-               call compute_dEdd_3bd(nilyr,       nslyr,   nspint,          &
+               call compute_dEdd_3bd(nilyr,       nslyr,             &
                       klev,      klevp,       zbio,    dEdd_algae,      &
 #ifdef UNDEPRECATE_0LAYER
                       heat_capacity,          fnidr,   coszen,          &
@@ -2077,18 +2077,12 @@
                if (use_snicar) then
                   nspint = nspint_5bd
                 call compute_dEdd_5bd(nilyr, nslyr, klev, klevp,          &
-                        n_zaero,   zbio,        dEdd_algae,               &
-                        nlt_chl_sw,nlt_zaero_sw,         tr_bgc_N,        &
-                        tr_zaero,                                         &
+                        zbio,        dEdd_algae,               &
 !!!!!!                        heat_capacity,          fnidr,   coszen,          &
                         fnidr,   coszen,          &
-                        n_aero,    tr_aero,     R_ice,   R_pnd,           &
-!!!!!!                        kaer_tab_5bd,  waer_tab_5bd,    gaer_tab_5bd,     &
-!!!!!!                        kaer_bc_tab_5bd, waer_bc_tab_5bd, gaer_bc_tab_5bd,&
-!!!!!!                        bcenh_5bd,     modal_aero,  kalg,                 &
                         kaer_5bd,  waer_5bd,    gaer_5bd,     &
                         kaer_bc_5bd, waer_bc_5bd, gaer_bc_5bd,&
-                        bcenh_5bd,     modal_aero, kalg, &
+                        bcenh_5bd,     modal_aero,  &
                         swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
                         hs,        rhosnw,      rsnw,    hi,     hp,      &
                         fs,        aero_mp,     avdrl,   avdfl,           &
@@ -2103,7 +2097,7 @@
                else
 !echmod - this can be combined with the 5bd call above, if we use module data
                   nspint = nspint_3bd
-                  call compute_dEdd_3bd(nilyr,       nslyr,   nspint,       &
+                  call compute_dEdd_3bd(nilyr,       nslyr,        &
                       klev,      klevp,       zbio,    dEdd_algae,      &
 #ifdef UNDEPRECATE_0LAYER
                       heat_capacity,          fnidr,   coszen,          &
@@ -2115,8 +2109,8 @@
 !                      bcenh_3bd, modal_aero,  &
                       modal_aero,  &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
-                      hstmp,     rhosnw,      rsnw,    hi,     hp,      &
-                      fi,        aero_mp,     avdrl,   avdfl,           &
+                      hs,        rhosnw,      rsnw,    hi,     hp,      &
+                      fs,        aero_mp,     avdrl,   avdfl,           &
                       aidrl,     aidfl,                                 &
                       fswsfc,    fswint,                                &
                       fswthru,                                          &
@@ -2158,7 +2152,7 @@
 
                srftyp = 2
                nspint = nspint_3bd
-               call compute_dEdd_3bd(nilyr,       nslyr,   nspint,          &
+               call compute_dEdd_3bd(nilyr,       nslyr,            &
                       klev,      klevp,       zbio,    dEdd_algae,      &
 #ifdef UNDEPRECATE_0LAYER
                       heat_capacity,          fnidr,   coszen,          &
@@ -2170,8 +2164,8 @@
 !                      bcenh_3bd, modal_aero,  &
                       modal_aero,  &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
-                      hstmp,     rhosnw,      rsnw,    hi,     hp,      &
-                      fi,        aero_mp,     avdrl,   avdfl,           &
+                      hs,        rhosnw,      rsnw,    hi,     hp,      &
+                      fp,        aero_mp,     avdrl,   avdfl,           &
                       aidrl,     aidfl,                                 &
                       fswsfc,    fswint,                                &
                       fswthru,                                          &
@@ -2301,7 +2295,7 @@
 ! a unified treatment of cryospheric surfaces. The Cryosphere, 13, 2325-2343,
 ! 2019. https://doi.org/10.5194/tc-13-2325-2019
 
-      subroutine compute_dEdd_3bd(nilyr,       nslyr,   nspint,          &
+      subroutine compute_dEdd_3bd(nilyr,       nslyr,           &
                       klev,      klevp,       zbio,    dEdd_algae,      &
 #ifdef UNDEPRECATE_0LAYER
                     heat_capacity,       fnidr,    coszen,        &
@@ -2361,7 +2355,6 @@
          swidf       ! shortwave down at surface, near IR, diffuse (W/m^2)
 
       integer (kind=int_kind), intent(in) :: &
-         nspint  , & ! number of solar spectral bands
          srftyp      ! surface type over ice: (0=air, 1=snow, 2=pond)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -2819,7 +2812,7 @@
       ! R values of -1 correspond approximately to -1 sigma changes in albedo
       ! Note: the albedo change becomes non-linear for R values > +1 or < -1
       if( R_ice >= c0 ) then
-        do ns = 1, nspint
+        do ns = 1, nspint_3bd
           sigp       = ki_ssl_mn(ns)*wi_ssl_mn(ns)*(c1+fp_ice*R_ice)
           ki_ssl(ns) = sigp+ki_ssl_mn(ns)*(c1-wi_ssl_mn(ns))
           wi_ssl(ns) = sigp/ki_ssl(ns)
@@ -2836,7 +2829,7 @@
           gi_int(ns) = gi_int_mn(ns)
         enddo
       else !if( R_ice < c0 ) then
-        do ns = 1, nspint
+        do ns = 1, nspint_3bd
           sigp       = ki_ssl_mn(ns)*wi_ssl_mn(ns)*(c1+fm_ice*R_ice)
           sigp       = max(sigp, c0)
           ki_ssl(ns) = sigp+ki_ssl_mn(ns)*(c1-wi_ssl_mn(ns))
@@ -2857,11 +2850,9 @@
         enddo
       endif          ! adjust ice iops
 
-      if (nspint == nspint_3bd) then
-
       ! adjust ponded ice iops with tuning parameters
       if( R_pnd >= c0 ) then
-        do ns = 1, nspint
+        do ns = 1, nspint_3bd
           sigp         = ki_p_ssl_mn(ns)*wi_p_ssl_mn(ns)*(c1+fp_pnd*R_pnd)
           ki_p_ssl(ns) = sigp+ki_p_ssl_mn(ns)*(c1-wi_p_ssl_mn(ns))
           wi_p_ssl(ns) = sigp/ki_p_ssl(ns)
@@ -2873,7 +2864,7 @@
           gi_p_int(ns) = gi_p_int_mn(ns)
         enddo
       else !if( R_pnd < c0 ) then
-        do ns = 1, nspint
+        do ns = 1, nspint_3bd
           sigp         = ki_p_ssl_mn(ns)*wi_p_ssl_mn(ns)*(c1+fm_pnd*R_pnd)
           sigp         = max(sigp, c0)
           ki_p_ssl(ns) = sigp+ki_p_ssl_mn(ns)*(c1-wi_p_ssl_mn(ns))
@@ -2887,8 +2878,6 @@
           gi_p_int(ns) = gi_p_int_mn(ns)
         enddo
       endif            ! adjust ponded ice iops
-
-      endif ! nspint
 
       ! use srftyp to determine interface index of surface absorption
       if (srftyp == 1) then
@@ -2955,7 +2944,7 @@
         do n = 1,n_zaero
            if (n == 1) then ! interstitial BC
             do k = 0, klev
-               do ns = 1,nspint   ! not weighted by aice
+               do ns = 1,nspint_3bd   ! not weighted by aice
                   tzaer(ns,k) = tzaer(ns,k)+kaer_bc_tab(ns,k_bcexs(k))* &
                                 zbio(nlt_zaero_sw(n)+k)*dzk(k)
                   wzaer(ns,k) = wzaer(ns,k)+kaer_bc_tab(ns,k_bcexs(k))* &
@@ -2968,7 +2957,7 @@
             enddo
            elseif (n==2) then ! within-ice BC
             do k = 0, klev
-               do ns = 1,nspint
+               do ns = 1,nspint_3bd
                   tzaer(ns,k) = tzaer(ns,k)+kaer_bc_tab(ns,k_bcins(k))  * &
                                 bcenh(ns,k_bcins(k),k_bcini(k))* &
                                 zbio(nlt_zaero_sw(n)+k)*dzk(k)
@@ -2982,7 +2971,7 @@
             enddo
            else                ! dust
             do k = 0, klev
-               do ns = 1,nspint   ! not weighted by aice
+               do ns = 1,nspint_3bd   ! not weighted by aice
                   tzaer(ns,k) = tzaer(ns,k)+kaer_tab(ns,n)* &
                                    zbio(nlt_zaero_sw(n)+k)*dzk(k)
                   wzaer(ns,k) = wzaer(ns,k)+kaer_tab(ns,n)*waer_tab(ns,n)* &
@@ -2999,7 +2988,7 @@
         if (tr_zaero .and. dEdd_algae) then ! compute kzaero for chlorophyll
         do n = 1,n_zaero          ! multiply by aice?
             do k = 0, klev
-               do ns = 1,nspint   ! not weighted by aice
+               do ns = 1,nspint_3bd   ! not weighted by aice
                   tzaer(ns,k) = tzaer(ns,k)+kaer_tab(ns,n)* &
                                    zbio(nlt_zaero_sw(n)+k)*dzk(k)
                   wzaer(ns,k) = wzaer(ns,k)+kaer_tab(ns,n)*waer_tab(ns,n)* &
@@ -5066,14 +5055,11 @@
 ! https://doi.org/10.5194/tc-2019-22, in review, 2019
 
       subroutine compute_dEdd_5bd (nilyr,    nslyr,    klev,  klevp,  &
-                    n_zaero,   zbio,     dEdd_algae,                  &
-                    nlt_chl_sw,nlt_zaero_sw,       tr_bgc_N,          &
-                    tr_zaero,                                         &
+                    zbio,     dEdd_algae,                  &
                     fnidr,    coszen,            &
-                    n_aero,    tr_aero,  R_ice,    R_pnd,             &
                     kaer_tab_5bd,  waer_tab_5bd,   gaer_tab_5bd,      &
                     kaer_bc_tab_5bd, waer_bc_tab_5bd,                 &
-                    gaer_bc_tab_5bd,  bcenh_5bd, modal_aero, kalg,    &
+                    gaer_bc_tab_5bd,  bcenh_5bd, modal_aero,     &
                     swvdr,     swvdf,    swidr,    swidf, srftyp,     &
                     hs,        rhosnw,   rsnw,     hi,    hp,         &
                     fi,        aero_mp,  alvdr,    alvdf,             &
@@ -5088,31 +5074,18 @@
       integer (kind=int_kind), intent(in) :: &
          nilyr       , & ! number of ice layers
          nslyr       , & ! number of snow layers
-         n_aero      , & ! number of aerosol tracers
-         n_zaero     , & ! number of zaerosol tracers in use
-         nlt_chl_sw  , & ! index for chla
          klev        , & ! number of radiation layers - 1
          klevp           ! number of radiation interfaces - 1
                          ! (0 layer is included also)
 
-      integer (kind=int_kind), dimension(:), intent(in) :: &
-         nlt_zaero_sw   ! index for zaerosols
-
       logical (kind=log_kind), intent(in) :: &
 !         heat_capacity , & ! if true, ice has nonzero heat capacity
-         tr_aero       , & ! if .true., use aerosol tracers
          dEdd_algae    , & ! .true. use prognostic chla in dEdd
-         tr_bgc_N      , & ! .true. active bgc (skl or z)
-         tr_zaero      , & ! .true. use zaerosols
          modal_aero        ! .true. use modal aerosol treatment
 
       ! dEdd tuning parameters, set in namelist
-      real (kind=dbl_kind), intent(in) :: &
-         R_ice   , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
-         R_pnd       ! ponded ice tuning parameter; +1 > 1sig increase in albedo
 
       real (kind=dbl_kind), intent(in) :: &
-         kalg    , & ! algae absorption coefficient
          fnidr   , & ! fraction of direct to total down flux in nir
          coszen  , & ! cosine solar zenith angle
          swvdr   , & ! shortwave down at surface, visible, direct  (W/m^2)

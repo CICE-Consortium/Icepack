@@ -237,6 +237,8 @@
       character (len=char_len), public :: &
          snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test' or 'file'
 
+!echmod - remove ssp_bcerad*, ssp_bcgrerad*? they are not used in MPAS-SI
+
       real (kind=dbl_kind), allocatable, public :: &
          ssp_bcerad  (:),     &  ! ?, bcEffectiveRadius
          ssp_bcgrerad(:),     &  ! ?, iceGrainEffectiveRadius
