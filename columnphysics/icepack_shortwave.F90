@@ -174,6 +174,7 @@
 
       if (use_snicar) then
          call icepack_shortwave_init_dEdd5band()
+         if (icepack_warnings_aborted(subname)) return
          call data_dEdd_snicar()
          if (icepack_warnings_aborted(subname)) return
 
