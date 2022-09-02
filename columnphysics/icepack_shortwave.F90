@@ -4643,7 +4643,7 @@
       asys = (gg - f)/(c1 - f)
 
       end function asys
- 
+
 !=======================================================================
 ! --- Begin 5 band dEdd subroutine ---
 ! Evaluate snow/ice/ponded ice inherent optical properties (IOPs), and
@@ -5850,7 +5850,7 @@
                   enddo ! k
                endif ! tr_aero
 ! ---------------------------------------------------------------------------
-    
+
     ! set reflectivities for ocean underlying sea ice
       ! if ns == 1 (visible), albedo is 0.1, else, albedo is zero
       rns = real(ns-1, kind=dbl_kind)

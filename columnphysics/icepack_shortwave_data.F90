@@ -9,7 +9,7 @@
 
       private
 
-      ! Parameters for dEdd_snicar                                                                                                                                                                            
+      ! Parameters for dEdd_snicar
       logical (kind=log_kind), public :: &
          use_snicar = .false.     ! .true. use 5-band SNICAR-AD approach
 
@@ -449,7 +449,7 @@
 
       character(len=*),parameter :: subname='(icepack_shortwave_init_snicar)'
 
-   !--- extracted from netcdf file  
+   !--- extracted from netcdf file
    !--- snicar_optics_5bnd_snow_and_aerosols.nc
 
    nSpectralIntervalsSNICAR = 5
@@ -1945,7 +1945,7 @@
    iceAsymmetryParameterDirect(1:5 ,1469) = (/ 0.891378154824403_dbl_kind, 0.895093364156276_dbl_kind, 0.900872585463475_dbl_kind, 0.922787612057341_dbl_kind, 0.972254768174833_dbl_kind /)
    iceAsymmetryParameterDirect(1:5 ,1470) = (/ 0.891378275007743_dbl_kind, 0.89509405048468_dbl_kind, 0.900875812139181_dbl_kind, 0.922796872772046_dbl_kind, 0.972258811876922_dbl_kind /)
    iceAsymmetryParameterDirect(1:5 ,1471) = (/ 0.891378395060407_dbl_kind, 0.895094736478766_dbl_kind, 0.900879038151421_dbl_kind, 0.922806130551648_dbl_kind, 0.972262848842506_dbl_kind /)
-   
+
    iceAsymmetryParameterDiffuse(1:5 ,1) = (/ 0.883796988056542_dbl_kind, 0.883342090644533_dbl_kind, 0.882303225047584_dbl_kind, 0.882254720448352_dbl_kind, 0.891906690982411_dbl_kind /)
    iceAsymmetryParameterDiffuse(1:5 ,2) = (/ 0.884028281638843_dbl_kind, 0.883650540642183_dbl_kind, 0.882710900566814_dbl_kind, 0.882764613086411_dbl_kind, 0.892694276417957_dbl_kind /)
    iceAsymmetryParameterDiffuse(1:5 ,3) = (/ 0.88424663334592_dbl_kind, 0.883940569462334_dbl_kind, 0.883094503579836_dbl_kind, 0.883248326043141_dbl_kind, 0.893450073209044_dbl_kind /)
@@ -3417,7 +3417,7 @@
    iceAsymmetryParameterDiffuse(1:5 ,1469) = (/ 0.891305959431592_dbl_kind, 0.895036579713415_dbl_kind, 0.900769118076048_dbl_kind, 0.918967867813943_dbl_kind, 0.973386319810258_dbl_kind /)
    iceAsymmetryParameterDiffuse(1:5 ,1470) = (/ 0.891306078762026_dbl_kind, 0.89503724421769_dbl_kind, 0.900772306975637_dbl_kind, 0.918977588947379_dbl_kind, 0.973391373612288_dbl_kind /)
    iceAsymmetryParameterDiffuse(1:5 ,1471) = (/ 0.891306197962551_dbl_kind, 0.895037908394608_dbl_kind, 0.900775495201171_dbl_kind, 0.918987307247229_dbl_kind, 0.973396418948797_dbl_kind /)
-   
+
    iceSingleScatterAlbedoDirect(1:5 ,1) = (/ 0.999996473539642_dbl_kind, 0.999897920739992_dbl_kind, 0.999240565661103_dbl_kind, 0.993823361190655_dbl_kind, 0.941294661423717_dbl_kind /)
    iceSingleScatterAlbedoDirect(1:5 ,2) = (/ 0.999996361173434_dbl_kind, 0.999894735419621_dbl_kind, 0.999216637256531_dbl_kind, 0.993697069727296_dbl_kind, 0.939921805058392_dbl_kind /)
    iceSingleScatterAlbedoDirect(1:5 ,3) = (/ 0.999996249406051_dbl_kind, 0.999891558786757_dbl_kind, 0.999192716658491_dbl_kind, 0.993572481152941_dbl_kind, 0.938560323564721_dbl_kind /)
@@ -4889,7 +4889,7 @@
    iceSingleScatterAlbedoDirect(1:5 ,1469) = (/ 0.999837987013184_dbl_kind, 0.995973431107561_dbl_kind, 0.968081763476731_dbl_kind, 0.873129073931769_dbl_kind, 0.550066138113734_dbl_kind /)
    iceSingleScatterAlbedoDirect(1:5 ,1470) = (/ 0.999837881244465_dbl_kind, 0.995971027476527_dbl_kind, 0.968062024102947_dbl_kind, 0.873060374927594_dbl_kind, 0.55003697840789_dbl_kind /)
    iceSingleScatterAlbedoDirect(1:5 ,1471) = (/ 0.999837775481967_dbl_kind, 0.995968624181001_dbl_kind, 0.968042287049291_dbl_kind, 0.872991694196043_dbl_kind, 0.550007878986191_dbl_kind /)
-   
+
    iceSingleScatterAlbedoDiffuse(1:5 ,1) = (/ 0.99999652090225_dbl_kind, 0.999902541003866_dbl_kind, 0.999252020157292_dbl_kind, 0.995412713638889_dbl_kind, 0.949846089277264_dbl_kind /)
    iceSingleScatterAlbedoDiffuse(1:5 ,2) = (/ 0.999996410054143_dbl_kind, 0.999899503226746_dbl_kind, 0.999228399618862_dbl_kind, 0.995303298087803_dbl_kind, 0.948509250075099_dbl_kind /)
    iceSingleScatterAlbedoDiffuse(1:5 ,3) = (/ 0.999996299750575_dbl_kind, 0.999896473321404_dbl_kind, 0.99920477600596_dbl_kind, 0.995194732374268_dbl_kind, 0.947183340709259_dbl_kind /)
@@ -6361,7 +6361,7 @@
    iceSingleScatterAlbedoDiffuse(1:5 ,1469) = (/ 0.999839983931828_dbl_kind, 0.996177411068779_dbl_kind, 0.968456461364212_dbl_kind, 0.875562130203211_dbl_kind, 0.551293916633764_dbl_kind /)
    iceSingleScatterAlbedoDiffuse(1:5 ,1470) = (/ 0.999839879488333_dbl_kind, 0.996175134415661_dbl_kind, 0.968436909455411_dbl_kind, 0.875494176117017_dbl_kind, 0.55125743740592_dbl_kind /)
    iceSingleScatterAlbedoDiffuse(1:5 ,1471) = (/ 0.999839775051005_dbl_kind, 0.996172858083252_dbl_kind, 0.968417359795198_dbl_kind, 0.875426240101851_dbl_kind, 0.55122102941648_dbl_kind /)
-   
+
    iceMassExtinctionCrossSectionDirect(1:5 ,1) = (/ 55.6583978509486_dbl_kind, 56.0679727369348_dbl_kind, 56.2944898958771_dbl_kind, 56.6269155829422_dbl_kind, 57.3031147376752_dbl_kind /)
    iceMassExtinctionCrossSectionDirect(1:5 ,2) = (/ 53.8394031091931_dbl_kind, 54.2246989874223_dbl_kind, 54.4449624105993_dbl_kind, 54.7538929671849_dbl_kind, 55.3959310999853_dbl_kind /)
    iceMassExtinctionCrossSectionDirect(1:5 ,3) = (/ 52.135223777981_dbl_kind, 52.4986136255096_dbl_kind, 52.7130042254717_dbl_kind, 52.9999857238108_dbl_kind, 53.6110291170098_dbl_kind /)
@@ -7833,7 +7833,7 @@
    iceMassExtinctionCrossSectionDirect(1:5 ,1469) = (/ 1.09425122970767_dbl_kind, 1.09481629729715_dbl_kind, 1.09529655189954_dbl_kind, 1.09560136446132_dbl_kind, 1.09667060166336_dbl_kind /)
    iceMassExtinctionCrossSectionDirect(1:5 ,1470) = (/ 1.0935250067174_dbl_kind, 1.09408944184459_dbl_kind, 1.09456919998148_dbl_kind, 1.09487361211646_dbl_kind, 1.09594171046346_dbl_kind /)
    iceMassExtinctionCrossSectionDirect(1:5 ,1471) = (/ 1.09279977958654_dbl_kind, 1.09336358356903_dbl_kind, 1.093842845836_dbl_kind, 1.09414685846702_dbl_kind, 1.09521381996365_dbl_kind /)
-   
+
    iceMassExtinctionCrossSectionDiffuse(1:5 ,1) = (/ 55.6524964732346_dbl_kind, 56.0653537700654_dbl_kind, 56.2866767293928_dbl_kind, 56.5956509951432_dbl_kind, 57.0420395068337_dbl_kind /)
    iceMassExtinctionCrossSectionDiffuse(1:5 ,2) = (/ 53.833774536561_dbl_kind, 54.2222733573191_dbl_kind, 54.4375490183943_dbl_kind, 54.7241079131626_dbl_kind, 55.1495188852908_dbl_kind /)
    iceMassExtinctionCrossSectionDiffuse(1:5 ,3) = (/ 52.1298603819672_dbl_kind, 52.4963322939501_dbl_kind, 52.7059338119213_dbl_kind, 52.9717745215122_dbl_kind, 53.3780039015646_dbl_kind /)
@@ -9305,7 +9305,7 @@
    iceMassExtinctionCrossSectionDiffuse(1:5 ,1469) = (/ 1.09424281512062_dbl_kind, 1.09480795348301_dbl_kind, 1.09528524993676_dbl_kind, 1.09557354028497_dbl_kind, 1.09626411965756_dbl_kind /)
    iceMassExtinctionCrossSectionDiffuse(1:5 ,1470) = (/ 1.09351660138719_dbl_kind, 1.0940811048909_dbl_kind, 1.09455790787508_dbl_kind, 1.09484580360961_dbl_kind, 1.09553567789908_dbl_kind /)
    iceMassExtinctionCrossSectionDiffuse(1:5 ,1471) = (/ 1.09279138349745_dbl_kind, 1.0933552534738_dbl_kind, 1.09383156356567_dbl_kind, 1.09411906558729_dbl_kind, 1.09480823602405_dbl_kind /)
-   
+
    modalAsymmetryParameter5band(1:5 ,1) = (/ 0.283180657713357_dbl_kind, 0.209482088735706_dbl_kind, 0.166441061642889_dbl_kind, 0.138879205492097_dbl_kind, 0.0862017497093632_dbl_kind /)
    modalAsymmetryParameter5band(1:5 ,2) = (/ 0.444732109704644_dbl_kind, 0.342651789871816_dbl_kind, 0.285303488980226_dbl_kind, 0.247698976619574_dbl_kind, 0.167948761949466_dbl_kind /)
    modalAsymmetryParameter5band(1:5 ,3) = (/ 0.547091281292997_dbl_kind, 0.433969936661441_dbl_kind, 0.368367957620211_dbl_kind, 0.324886781461864_dbl_kind, 0.229171714711908_dbl_kind /)
@@ -9316,7 +9316,7 @@
    modalAsymmetryParameter5band(1:5 ,8) = (/ 0.750549324881687_dbl_kind, 0.665849031271645_dbl_kind, 0.60016461579108_dbl_kind, 0.551378204757893_dbl_kind, 0.427376921191516_dbl_kind /)
    modalAsymmetryParameter5band(1:5 ,9) = (/ 0.766559757465102_dbl_kind, 0.689942199993075_dbl_kind, 0.627527163812553_dbl_kind, 0.580037712812519_dbl_kind, 0.455582792418271_dbl_kind /)
    modalAsymmetryParameter5band(1:5 ,10) = (/ 0.779191279240598_dbl_kind, 0.71000026362677_dbl_kind, 0.651064109101405_dbl_kind, 0.605182083087546_dbl_kind, 0.48123462598527_dbl_kind /)
-   
+
    modalMassExtinctionCrossSection5band(1:5 ,1) = (/ 12944.1191669303_dbl_kind, 6433.8546129199_dbl_kind, 4379.35815079177_dbl_kind, 3492.51850776132_dbl_kind, 2271.71785345005_dbl_kind /)
    modalMassExtinctionCrossSection5band(1:5 ,2) = (/ 12080.1397436577_dbl_kind, 7942.86489089621_dbl_kind, 5812.47284115357_dbl_kind, 4685.4656136674_dbl_kind, 2943.75841342826_dbl_kind /)
    modalMassExtinctionCrossSection5band(1:5 ,3) = (/ 9752.02484228556_dbl_kind, 7698.94532514882_dbl_kind, 6190.90781492957_dbl_kind, 5232.51964498223_dbl_kind, 3463.69216361937_dbl_kind /)
@@ -9327,7 +9327,7 @@
    modalMassExtinctionCrossSection5band(1:5 ,8) = (/ 3934.40205337053_dbl_kind, 4035.52102830084_dbl_kind, 3969.24444889817_dbl_kind, 3850.95782137369_dbl_kind, 3328.91108844436_dbl_kind /)
    modalMassExtinctionCrossSection5band(1:5 ,9) = (/ 3461.43069443711_dbl_kind, 3590.1138938721_dbl_kind, 3579.26043074527_dbl_kind, 3513.60273858667_dbl_kind, 3133.888122911_dbl_kind /)
    modalMassExtinctionCrossSection5band(1:5 ,10) = (/ 3083.24574223473_dbl_kind, 3220.83851695162_dbl_kind, 3243.02488284297_dbl_kind, 3212.5874258974_dbl_kind, 2941.20365863075_dbl_kind /)
-   
+
    modalSingleScatterAlbedo5band(1:5 ,1) = (/ 0.260958704071654_dbl_kind, 0.16805845111727_dbl_kind, 0.11411468355425_dbl_kind, 0.0845902711417414_dbl_kind, 0.0447050517464244_dbl_kind /)
    modalSingleScatterAlbedo5band(1:5 ,2) = (/ 0.375522113298175_dbl_kind, 0.31235052399053_dbl_kind, 0.26288498209907_dbl_kind, 0.22723691750397_dbl_kind, 0.159075641626696_dbl_kind /)
    modalSingleScatterAlbedo5band(1:5 ,3) = (/ 0.422185378147481_dbl_kind, 0.376555779043625_dbl_kind, 0.33936407097995_dbl_kind, 0.310215627605754_dbl_kind, 0.245905521445928_dbl_kind /)
@@ -9338,7 +9338,7 @@
    modalSingleScatterAlbedo5band(1:5 ,8) = (/ 0.494354868140575_dbl_kind, 0.4669281500285_dbl_kind, 0.451247969458627_dbl_kind, 0.43894010429319_dbl_kind, 0.40499178204751_dbl_kind /)
    modalSingleScatterAlbedo5band(1:5 ,9) = (/ 0.501264988054309_dbl_kind, 0.47412360289998_dbl_kind, 0.459551339156444_dbl_kind, 0.448519783558473_dbl_kind, 0.417901240195357_dbl_kind /)
    modalSingleScatterAlbedo5band(1:5 ,10) = (/ 0.507319636821098_dbl_kind, 0.480317417860846_dbl_kind, 0.466481312779405_dbl_kind, 0.456408044720941_dbl_kind, 0.428557864653526_dbl_kind /)
-   
+
    modalBCabsorptionParameter5band(1:5 ,1,1) = (/ 2.01085868366548_dbl_kind, 2.04133313210786_dbl_kind, 2.07508000300547_dbl_kind, 1.96633438024084_dbl_kind, 1.41689382160734_dbl_kind /)
    modalBCabsorptionParameter5band(1:5 ,2,1) = (/ 2.06240193763163_dbl_kind, 2.00779624447446_dbl_kind, 2.03535206238544_dbl_kind, 1.93696335633222_dbl_kind, 1.42085892146856_dbl_kind /)
    modalBCabsorptionParameter5band(1:5 ,3,1) = (/ 2.16245417515345_dbl_kind, 2.03367512749659_dbl_kind, 2.03217185662912_dbl_kind, 1.92216538758257_dbl_kind, 1.41057880313765_dbl_kind /)
@@ -9419,32 +9419,32 @@
    modalBCabsorptionParameter5band(1:5 ,8,8) = (/ 2.35301272208646_dbl_kind, 2.15836713295615_dbl_kind, 1.89774509946483_dbl_kind, 1.16093986738741_dbl_kind, 0.0440574325725808_dbl_kind /)
    modalBCabsorptionParameter5band(1:5 ,9,8) = (/ 2.39970609592023_dbl_kind, 2.19922606974399_dbl_kind, 1.9304940073545_dbl_kind, 1.17776068893983_dbl_kind, 0.044374386922134_dbl_kind /)
    modalBCabsorptionParameter5band(1:5 ,10,8) = (/ 2.44149053760016_dbl_kind, 2.23685927813827_dbl_kind, 1.96142401595058_dbl_kind, 1.19418484664932_dbl_kind, 0.0447083456286085_dbl_kind /)
-   
+
    bcEffectiveRadius (1:nModal1) = (/ 0.05_dbl_kind, 0.1_dbl_kind, 0.15_dbl_kind, 0.2_dbl_kind, 0.25_dbl_kind, 0.3_dbl_kind, 0.35_dbl_kind, 0.4_dbl_kind, 0.45_dbl_kind, 0.5_dbl_kind /)
-   
+
    iceGrainEffectiveRadius (1:nModal2) = (/ 50_dbl_kind, 100_dbl_kind, 250_dbl_kind, 500_dbl_kind, 750_dbl_kind, 1000_dbl_kind, 1250_dbl_kind, 1500_dbl_kind /)
-   
+
    aerosolAsymmetryParameter5band(1:5 ,1) = (/ 0.350231881885906_dbl_kind, 0.211924244128064_dbl_kind, 0.146188682542913_dbl_kind, 0.112009439045293_dbl_kind, 0.060565694843084_dbl_kind /)
    aerosolAsymmetryParameter5band(1:5 ,2) = (/ 0.521517715996158_dbl_kind, 0.34457189840306_dbl_kind, 0.244048159248401_dbl_kind, 0.188518513380877_dbl_kind, 0.103316928297739_dbl_kind /)
    aerosolAsymmetryParameter5band(1:5 ,3) = (/ 0.690908112844937_dbl_kind, 0.717759065247993_dbl_kind, 0.671511248292627_dbl_kind, 0.614225462567888_dbl_kind, 0.436682950958558_dbl_kind /)
    aerosolAsymmetryParameter5band(1:5 ,4) = (/ 0.699478684452806_dbl_kind, 0.651992387581091_dbl_kind, 0.695738438913831_dbl_kind, 0.724417176862696_dbl_kind, 0.701481090364134_dbl_kind /)
    aerosolAsymmetryParameter5band(1:5 ,5) = (/ 0.785636278417498_dbl_kind, 0.749796744517699_dbl_kind, 0.683301177698451_dbl_kind, 0.629720518882672_dbl_kind, 0.665531587501598_dbl_kind /)
    aerosolAsymmetryParameter5band(1:5 ,6) = (/ 0.829747716843613_dbl_kind, 0.785685490791679_dbl_kind, 0.772583689570701_dbl_kind, 0.757648539242581_dbl_kind, 0.728843851070574_dbl_kind /)
-   
+
    aerosolMassExtinctionCrossSection5band(1:5 ,1) = (/ 11398.4540724821_dbl_kind, 5922.76076637376_dbl_kind, 4039.88947595266_dbl_kind, 3261.62137894056_dbl_kind, 2223.60028513459_dbl_kind /)
    aerosolMassExtinctionCrossSection5band(1:5 ,2) = (/ 25368.6111954733_dbl_kind, 12520.3846877849_dbl_kind, 7738.643174918_dbl_kind, 5744.35461327268_dbl_kind, 3526.76546641382_dbl_kind /)
    aerosolMassExtinctionCrossSection5band(1:5 ,3) = (/ 2686.90326329624_dbl_kind, 2419.98140297723_dbl_kind, 1627.51690973548_dbl_kind, 1138.23252303209_dbl_kind, 466.104227277046_dbl_kind /)
    aerosolMassExtinctionCrossSection5band(1:5 ,4) = (/ 841.089434044834_dbl_kind, 987.406197502421_dbl_kind, 1183.52284776972_dbl_kind, 1267.30625580205_dbl_kind, 993.497508579304_dbl_kind /)
    aerosolMassExtinctionCrossSection5band(1:5 ,5) = (/ 387.85423560755_dbl_kind, 419.109723948302_dbl_kind, 399.559447343404_dbl_kind, 397.191283865122_dbl_kind, 503.14317519429_dbl_kind /)
    aerosolMassExtinctionCrossSection5band(1:5 ,6) = (/ 196.638063554016_dbl_kind, 202.877379461792_dbl_kind, 208.304425287341_dbl_kind, 204.723737634461_dbl_kind, 228.755667038372_dbl_kind /)
-   
+
    aerosolSingleScatterAlbedo5band(1:5 ,1) = (/ 0.287685315976181_dbl_kind, 0.186577277125224_dbl_kind, 0.123152237089201_dbl_kind, 0.0883462885905543_dbl_kind, 0.0403421562269378_dbl_kind /)
    aerosolSingleScatterAlbedo5band(1:5 ,2) = (/ 0.515945305512804_dbl_kind, 0.434313626536424_dbl_kind, 0.346103765992635_dbl_kind, 0.275522926330555_dbl_kind, 0.138576096442815_dbl_kind /)
    aerosolSingleScatterAlbedo5band(1:5 ,3) = (/ 0.97891105715305_dbl_kind, 0.994175916042451_dbl_kind, 0.993357580762207_dbl_kind, 0.992545751316266_dbl_kind, 0.953291550046772_dbl_kind /)
    aerosolSingleScatterAlbedo5band(1:5 ,4) = (/ 0.943752248802793_dbl_kind, 0.984191668599419_dbl_kind, 0.989309063917025_dbl_kind, 0.991793946836264_dbl_kind, 0.982999590668913_dbl_kind /)
    aerosolSingleScatterAlbedo5band(1:5 ,5) = (/ 0.904044530646049_dbl_kind, 0.964651629694555_dbl_kind, 0.968275809551522_dbl_kind, 0.972598419874107_dbl_kind, 0.977612418329876_dbl_kind /)
    aerosolSingleScatterAlbedo5band(1:5 ,6) = (/ 0.849818195355416_dbl_kind, 0.940460325044343_dbl_kind, 0.948316305534169_dbl_kind, 0.952841175117807_dbl_kind, 0.955379528193802_dbl_kind /)
-   
+
 ! Copy to local variables
 
       if (nSpectralIntervalsSNICAR /= nspint_5bd) then
