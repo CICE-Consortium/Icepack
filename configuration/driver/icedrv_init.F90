@@ -78,7 +78,6 @@
       use icedrv_forcing, only: ssp_snwextdr_fname, ssp_snwextdf_fname
       use icedrv_forcing, only: ssp_snwalbdr_fname, ssp_snwalbdf_fname
       use icedrv_forcing, only: ssp_sasymmdr_fname, ssp_sasymmdf_fname
-      use icedrv_forcing, only: ssp_bcerad_fname,   ssp_bcgrerad_fname
       use icedrv_forcing, only: ssp_aasymmmd_fname, ssp_aerextmd_fname
       use icedrv_forcing, only: ssp_aeralbmd_fname, ssp_aasymm_fname
       use icedrv_forcing, only: ssp_aerext_fname,   ssp_aeralb_fname
@@ -176,7 +175,6 @@
         ssp_snwextdr_fname,              ssp_snwextdf_fname,            &
         ssp_snwalbdr_fname,              ssp_snwalbdf_fname,            &
         ssp_sasymmdr_fname,              ssp_sasymmdf_fname,            &
-        ssp_bcerad_fname,                ssp_bcgrerad_fname,            &
         ssp_aasymmmd_fname,              ssp_aerextmd_fname,            &
         ssp_aeralbmd_fname,              ssp_aasymm_fname,              &
         ssp_aerext_fname,                ssp_aeralb_fname,              &
@@ -321,8 +319,6 @@
       ssp_snwalbdf_fname = 'iceSingleScatterAlbedoDiffuse'        ! snow single scatter albedo (fraction)
       ssp_sasymmdr_fname = 'iceAsymmetryParameterDirect'          ! snow asymmetry factor (cos(theta))
       ssp_sasymmdf_fname = 'iceAsymmetryParameterDiffuse'         ! snow asymmetry factor (cos(theta))
-      ssp_bcerad_fname   = 'bcEffectiveRadius'
-      ssp_bcgrerad_fname = 'iceGrainEffectiveRadius'
       ssp_aasymmmd_fname = 'modalAsymmetryParameter5band'
       ssp_aerextmd_fname = 'modalMassExtinctionCrossSection5band'
       ssp_aeralbmd_fname = 'modalSingleScatterAlbedo5band'
@@ -771,8 +767,6 @@
          write(nu_diag,1030) ' ssp_snwalbdf_fname        = ', trim(ssp_snwalbdf_fname)
          write(nu_diag,1030) ' ssp_sasymmdr_fname        = ', trim(ssp_sasymmdr_fname)
          write(nu_diag,1030) ' ssp_sasymmdf_fname        = ', trim(ssp_sasymmdf_fname)
-         write(nu_diag,1030) ' ssp_bcerad_fname          = ', trim(ssp_bcerad_fname)
-         write(nu_diag,1030) ' ssp_bcgrerad_fname        = ', trim(ssp_bcgrerad_fname)
          write(nu_diag,1030) ' ssp_aasymmmd_fname        = ', trim(ssp_aasymmmd_fname)
          write(nu_diag,1030) ' ssp_aerextmd_fname        = ', trim(ssp_aerextmd_fname)
          write(nu_diag,1030) ' ssp_aeralbmd_fname        = ', trim(ssp_aeralbmd_fname)

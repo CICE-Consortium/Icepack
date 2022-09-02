@@ -84,8 +84,7 @@
       use icepack_shortwave_data, only: &
          snw_ssp_table, ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr, &
          ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf, ssp_aasymmmd, ssp_aerextmd, &
-         ssp_aeralbmd, ssp_abcenhmd, &
-         ssp_aasymm, ssp_aerext, ssp_aeralb, ssp_bcerad, ssp_bcgrerad, &
+         ssp_aeralbmd, ssp_abcenhmd, ssp_aasymm, ssp_aerext, ssp_aeralb, &
          rsnw_snicar_tab
 
       ! dEdd 3-band data
@@ -260,9 +259,7 @@
       ! Check SNICAR SSP data
       !------------------------------
 
-      if ((size(ssp_bcerad,dim=1)   /= nmodal1_snicar) .or. &
-          (size(ssp_bcgrerad,dim=1) /= nmodal2_snicar) .or. &
-          (size(ssp_snwextdr,dim=1) /= nspint_5bd    ) .or. &
+      if ((size(ssp_snwextdr,dim=1) /= nspint_5bd    ) .or. &
           (size(ssp_snwextdr,dim=2) /= nmbrad_snicar ) .or. &
           (size(ssp_snwextdf,dim=1) /= nspint_5bd    ) .or. &
           (size(ssp_snwextdf,dim=2) /= nmbrad_snicar ) .or. &

@@ -56,8 +56,6 @@
 
       real (kind=dbl_kind), allocatable, public :: &
          rsnw_snicar_tab(:), & ! snow grain radii (10^-6 m)
-         ssp_bcerad  (:),    & ! ?, bcEffectiveRadius
-         ssp_bcgrerad(:),    & ! ?, iceGrainEffectiveRadius
          ssp_snwextdr(:,:),  & ! snow mass extinction cross section (m2/kg), direct
          ssp_snwextdf(:,:),  & ! snow mass extinction cross section (m2/kg), diffuse
          ssp_snwalbdr(:,:),  & ! snow single scatter albedo (fraction), direct
@@ -320,8 +318,6 @@
          rsnw_snicar_min = rsnw_snicar_tab(1)             ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max = rsnw_snicar_tab(nmbrad_snicar) ! maximum snow radius - integer value used for indexing
 
-         if (allocated(ssp_bcerad  )) deallocate(ssp_bcerad  )
-         if (allocated(ssp_bcgrerad)) deallocate(ssp_bcgrerad)
          if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
          if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
          if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
@@ -336,8 +332,6 @@
          if (allocated(ssp_aeralb  )) deallocate(ssp_aeralb  )
          if (allocated(ssp_abcenhmd)) deallocate(ssp_abcenhmd)
 
-         allocate(ssp_bcerad  (nmodal1_snicar)) ! ?, bcEffectiveRadius
-         allocate(ssp_bcgrerad(nmodal2_snicar)) ! ?, iceGrainEffectiveRadius
          allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, direct
          allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, diffuse
          allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, direct
@@ -404,8 +398,6 @@
                (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
 
          ! tcraig, what should these be set to?  TODO
-         ssp_bcerad   = 0._dbl_kind
-         ssp_bcgrerad = 0._dbl_kind
          ssp_aasymmmd = 0._dbl_kind
          ssp_aerextmd = 0._dbl_kind
          ssp_aeralbmd = 0._dbl_kind
@@ -9475,8 +9467,6 @@
          rsnw_snicar_tab(n+1) = rsnw_snicar_tab(n) + 1.0_dbl_kind
       enddo
 
-      if (allocated(ssp_bcerad  )) deallocate(ssp_bcerad  )
-      if (allocated(ssp_bcgrerad)) deallocate(ssp_bcgrerad)
       if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
       if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
       if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
@@ -9491,8 +9481,6 @@
       if (allocated(ssp_aeralb  )) deallocate(ssp_aeralb  )
       if (allocated(ssp_abcenhmd)) deallocate(ssp_abcenhmd)
 
-      allocate(ssp_bcerad  (nmodal1_snicar)) ! ?, bcEffectiveRadius
-      allocate(ssp_bcgrerad(nmodal2_snicar)) ! ?, iceGrainEffectiveRadius
       allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, direct
       allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, diffuse
       allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, direct
@@ -9507,8 +9495,6 @@
       allocate(ssp_aeralb  (nspint_5bd,nmaeros_snicar)) ! waer_5bd, aerosolSingleScatterAlbedo5band
       allocate(ssp_abcenhmd(nspint_5bd,nmodal1_snicar,nmodal2_snicar))  ! bcenh_5bd, modalBCabsorptionParameter5band
 
-      ssp_bcerad  (:)     = bcEffectiveRadius(:)
-      ssp_bcgrerad(:)     = iceGrainEffectiveRadius(:)
       ssp_snwextdr(:,:)   = iceMassExtinctionCrossSectionDirect(:,:)
       ssp_snwextdf(:,:)   = iceMassExtinctionCrossSectionDiffuse(:,:)
       ssp_snwalbdr(:,:)   = iceSingleScatterAlbedoDirect(:,:)

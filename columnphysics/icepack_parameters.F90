@@ -13,7 +13,6 @@
           use_snicar   ,                 &
           nspint_3bd   , nspint_5bd  ,   &
           snw_ssp_table,                 &
-          ssp_bcerad   , ssp_bcgrerad,   &
           ssp_snwextdr , ssp_snwextdf,   &
           ssp_snwalbdr , ssp_snwalbdf,   &
           ssp_sasymmdr , ssp_sasymmdf,   &
@@ -500,8 +499,7 @@
          ssp_snwextdr_in, ssp_snwextdf_in, ssp_snwalbdr_in, ssp_snwalbdf_in, &
          ssp_sasymmdr_in, ssp_sasymmdf_in, &
          ssp_aasymmmd_in, ssp_aerextmd_in, ssp_aeralbmd_in, ssp_abcenhmd_in, &
-         ssp_aasymm_in, ssp_aerext_in, ssp_aeralb_in, &
-         ssp_bcerad_in, ssp_bcgrerad_in )
+         ssp_aasymm_in, ssp_aerext_in, ssp_aeralb_in )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -859,9 +857,6 @@
       character (len=char_len), intent(in), optional :: &
          snw_ssp_table_in   ! lookup table: 'snicar' or 'test' or 'file'
 
-      real (kind=dbl_kind), dimension(:), intent(in), optional :: &
-         ssp_bcerad_in,   & ! ?, bcEffectiveRadius
-         ssp_bcgrerad_in    ! ?, iceGrainEffectiveRadius
       real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
          ssp_snwextdr_in, & ! snow mass extinction cross section (m2/kg), direct
          ssp_snwextdf_in, & ! snow mass extinction cross section (m2/kg), diffuse
@@ -1133,20 +1128,6 @@
 
       ! allocate and copy SNICAR SSP table data
 
-      if (present(ssp_bcerad_in)      ) then
-         if (allocated(ssp_bcerad)) deallocate(ssp_bcerad)
-         dim1 = size(ssp_bcerad_in,dim=1)
-         allocate(ssp_bcerad(dim1))
-         ssp_bcerad     = ssp_bcerad_in
-      endif
-
-      if (present(ssp_bcgrerad_in)      ) then
-         if (allocated(ssp_bcgrerad)) deallocate(ssp_bcgrerad)
-         dim1 = size(ssp_bcgrerad_in,dim=1)
-         allocate(ssp_bcgrerad(dim1))
-         ssp_bcgrerad     = ssp_bcgrerad_in
-      endif
-
       if (present(ssp_snwextdr_in)      ) then
          if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
          dim1 = size(ssp_snwextdr_in,dim=1)
@@ -1369,8 +1350,7 @@
          ssp_snwalbdr_out, ssp_snwalbdf_out, &
          ssp_sasymmdr_out, ssp_sasymmdf_out, &
          ssp_aasymmmd_out, ssp_aerextmd_out, ssp_aeralbmd_out, ssp_abcenhmd_out, &
-         ssp_aasymm_out, ssp_aerext_out, ssp_aeralb_out, &
-         ssp_bcerad_out, ssp_bcgrerad_out )
+         ssp_aasymm_out, ssp_aerext_out, ssp_aeralb_out )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -1737,9 +1717,6 @@
       character (len=char_len), intent(out), optional :: &
          snw_ssp_table_out   ! lookup table: 'snicar' or 'test' or 'file'
 
-      real (kind=dbl_kind), dimension(:), intent(out), optional :: &
-         ssp_bcerad_out,   & ! ?, bcEffectiveRadius
-         ssp_bcgrerad_out    ! ?, iceGrainEffectiveRadius
       real (kind=dbl_kind), dimension(:,:), intent(out), optional :: &
          ssp_snwextdr_out, & ! snow mass extinction cross section (m2/kg), direct
          ssp_snwextdf_out, & ! snow mass extinction cross section (m2/kg), diffuse
@@ -1946,8 +1923,6 @@
       if (present(ssp_snwalbdf_out)      ) ssp_snwalbdf_out = ssp_snwalbdf
       if (present(ssp_sasymmdr_out)      ) ssp_sasymmdr_out = ssp_sasymmdr
       if (present(ssp_sasymmdf_out)      ) ssp_sasymmdf_out = ssp_sasymmdf
-      if (present(ssp_bcerad_out)        ) ssp_bcerad_out   = ssp_bcerad
-      if (present(ssp_bcgrerad_out)      ) ssp_bcgrerad_out = ssp_bcgrerad
       if (present(ssp_aasymmmd_out)      ) ssp_aasymmmd_out = ssp_aasymmmd
       if (present(ssp_aerextmd_out)      ) ssp_aerextmd_out = ssp_aerextmd
       if (present(ssp_aeralbmd_out)      ) ssp_aeralbmd_out = ssp_aeralbmd
@@ -2179,8 +2154,6 @@
         write(iounit,*) "  ssp_aasymm    = ", ssp_aasymm  (1,1)
         write(iounit,*) "  ssp_aerext    = ", ssp_aerext  (1,1)
         write(iounit,*) "  ssp_aeralb    = ", ssp_aeralb  (1,1)
-        write(iounit,*) "  ssp_bcerad    = ", ssp_bcerad  (1)
-        write(iounit,*) "  ssp_bcgrerad  = ", ssp_bcgrerad(1)
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
         write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc

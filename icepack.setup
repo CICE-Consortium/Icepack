@@ -922,8 +922,11 @@ set icepsetmd5 = \` md5sum \${md5file} | cut -d " " -f 1 \`
 #rm \${md5file}
 set icepexe = "../icepexe.\${icepsetmd5}"
 ./icepack.build --exe \${icepexe}
+set bldstat = \${status}
 if !(-e \${icepexe}) cp -p \${ICE_RUNDIR}/icepack \${icepexe}
-./icepack.submit | tee -a ../suite.jobs
+if (\$bldstat == 0) then
+  ./icepack.submit | tee -a ../suite.jobs
+endif
 cd ..
 EOF
     

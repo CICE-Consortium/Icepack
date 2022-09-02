@@ -73,8 +73,6 @@
     ssp_nmodal1_fname  = 'unknown'
     ssp_nmodal2_fname  = 'unknown'
     ssp_nmaeros_fname  = 'unknown'
-    ssp_bcerad_fname   = 'unknown'
-    ssp_bcgrerad_fname = 'unknown'
     ssp_snwextdr_fname = 'unknown'
     ssp_snwextdf_fname = 'unknown'
     ssp_snwalbdr_fname = 'unknown'

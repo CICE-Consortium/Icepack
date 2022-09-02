@@ -6,8 +6,6 @@
   ssp_nmodal1_fname  = 'nModal1'
   ssp_nmodal2_fname  = 'nModal2'
   ssp_nmaeros_fname  = 'maxAerosolType'
-  ssp_bcerad_fname   = 'bcEffectiveRadius'
-  ssp_bcgrerad_fname = 'iceGrainEffectiveRadius'
   ssp_snwextdr_fname = 'iceMassExtinctionCrossSectionDirect'
   ssp_snwextdf_fname = 'iceMassExtinctionCrossSectionDiffuse'
   ssp_snwalbdr_fname = 'iceSingleScatterAlbedoDirect'
