@@ -5,5 +5,3 @@ smoke          col     1x1        diag1,run1year,snicartest
 smoke          col     1x1        debug,run1year,snicartest
 smoke          col     1x1        diag1,run1year,snicar
 smoke          col     1x1        debug,run1year,snicar
-smoke          col     1x1        diag1,run1year,snicarfile
-smoke          col     1x1        debug,run1year,snicarfile

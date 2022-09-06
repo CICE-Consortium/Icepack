@@ -1,2 +1,0 @@
-setenv ICE_IOTYPE  netcdf
-setenv ICE_NXGLOB  1
