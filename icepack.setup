@@ -924,11 +924,12 @@ if ("\${md5chk}" != "") then
   rm \${md5file}
   set icepexe = "../icepexe.\${icepsetmd5}"
   ./icepack.build --exe \${icepexe}
+  set bldstat = \${status}
+  if !(-e \${icepexe}) cp -p \${ICE_RUNDIR}/icepack \${icepexe}
 else
   ./icepack.build
+  set bldstat = \${status}
 endif
-set bldstat = \${status}
-if !(-e \${icepexe}) cp -p \${ICE_RUNDIR}/icepack \${icepexe}
 if (\$bldstat == 0) then
   ./icepack.submit | tee -a ../suite.jobs
 endif
