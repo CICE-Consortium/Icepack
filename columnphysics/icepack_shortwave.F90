@@ -54,7 +54,7 @@
 #endif
       use icepack_parameters, only: R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
-      use icepack_shortwave_data, only: nspint_3bd, nspint_5bd, use_snicar
+      use icepack_parameters, only: snw_ssp_table, use_snicar
 
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
 #ifdef UNDEPRECATE_CESMPONDS
@@ -66,6 +66,7 @@
       use icepack_tracers,    only: nt_bgc_N, nt_zaero
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
       use icepack_tracers,    only: n_algae, n_aero, n_zaero
+      use icepack_tracers,    only: nmodal1, nmodal2, max_aero
       use icepack_warnings,   only: warnstr, icepack_warnings_add
       use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -74,18 +75,11 @@
       use icepack_orbital, only: compute_coszen
 
       ! SNICAR SSP data
+      use icepack_shortwave_data, only: nspint_3bd, nspint_5bd
       use icepack_shortwave_data, only: &
          nmbrad_snicar  , & ! number of snow grain radii in SNICAR SSP tables
-         nmodal1_snicar , & ! nModal1 in SNICAR SSP tables
-         nmodal2_snicar , & ! nModal2 in SNICAR SSP tables
-         nmaeros_snicar , & ! maxAerosolType in SNICAR SSP tables
          rsnw_snicar_min, & ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max    ! maximum snow radius - integer value used for indexing
-      use icepack_shortwave_data, only: &
-         snw_ssp_table, ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr, &
-         ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf, ssp_aasymmmd, ssp_aerextmd, &
-         ssp_aeralbmd, ssp_abcenhmd, ssp_aasymm, ssp_aerext, ssp_aeralb, &
-         rsnw_snicar_tab
 
       ! dEdd 3-band data
       use icepack_shortwave_data, only: &
@@ -100,17 +94,22 @@
          ki_p_int_mn,   wi_p_int_mn,   gi_p_int_mn  , & ! ponded ice interior layer (int) iops
          kw,            ww,            gw               ! iops for pond water and underlying ocean
       use icepack_shortwave_data, only: &
-         nmbrad,   & ! number of snow grain radii in tables
-         rsnw_tab, & ! snow grain radii (micro-meters) for table
-         Qs_tab,   & ! snow extinction efficiency (unitless)
-         ws_tab,   & ! snow single scattering albedo (unitless)
-         gs_tab      ! snow asymmetry parameter (unitless)
+         nmbrad_snw, & ! number of snow grain radii in tables
+         rsnw_tab,   & ! snow grain radii (micro-meters) for table
+         Qs_tab,     & ! snow extinction efficiency (unitless)
+         ws_tab,     & ! snow single scattering albedo (unitless)
+         gs_tab        ! snow asymmetry parameter (unitless)
 
       ! dEdd 5-band data
       use icepack_shortwave_data, only: &
          ki_ssl_mn_5bd, wi_ssl_mn_5bd, gi_ssl_mn_5bd, & ! ice surface scattering layer (ssl) iops
          ki_dl_mn_5bd,  wi_dl_mn_5bd,  gi_dl_mn_5bd , & ! ice drained layer (dl) iops
          ki_int_mn_5bd, wi_int_mn_5bd, gi_int_mn_5bd    ! ice interior layer (int) iops
+      use icepack_shortwave_data, only: &
+         ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr, &
+         ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf, gaer_bc_5bd, kaer_bc_5bd, &
+         waer_bc_5bd, bcenh_5bd, gaer_5bd, kaer_5bd, waer_5bd, &
+         rsnw_snicar_tab
 
       implicit none
 
@@ -206,15 +205,6 @@
       !   1471 snow grain radii
       !   5 spectral intervals
 
-      ! if snw_ssp_table = 'snicarfile'
-      ! best-fit parameters are read from a file and passed to Icepack
-      !   1471 snow grain radii
-      !   5 spectral intervals
-
-      ! if snw_ssp_table = 'file'
-      ! all data has to be passed into icepack_parameters
-      !   not yet supported
-
       if (trim(snw_ssp_table) == 'test') then ! 5x5 table
 
          call icepack_shortwave_init_snicartest()
@@ -224,30 +214,6 @@
 
          call icepack_shortwave_init_snicar()
          if (icepack_warnings_aborted(subname)) return
-
-      elseif (trim(snw_ssp_table) == 'snicarfile') then
-         ! table passed in, hardwired 1471 x 5 table with 10/8/6/30/1500 expected
-         ! set data NOT passed in
-         nmbrad_snicar   = 1471 ! snow grain radius number SNICAR SSP tables
-         nmodal1_snicar  = 10   ! nModal1 in SNICAR SSP tables
-         nmodal2_snicar  = 8    ! nModal2 in SNICAR SSP tables
-         nmaeros_snicar  = 6    ! maxAerosolType in SNICAR SSP tables
-
-!echmod - this might not be needed
-         rsnw_snicar_min = 30   ! minimum snow grain radius
-         rsnw_snicar_max = 1500 ! maximum snow grain radius
-         allocate(rsnw_snicar_tab(nmbrad_snicar))         ! snow grain radii
-         rsnw_snicar_tab(1) = real(rsnw_snicar_min,dbl_kind)
-         do n = 1, nmbrad_snicar-1
-            rsnw_snicar_tab(n+1) = rsnw_snicar_tab(n) + c1
-         enddo
-
-      elseif (trim(snw_ssp_table) == 'file') then
-         ! table passed in, table lookup + interpolate, not yet supported
-         nmbrad_snicar = size(ssp_snwextdr,dim=2)  ! maximum snow grain radius index
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table)//' not supported')
-         return
 
       else
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
@@ -259,48 +225,15 @@
       ! Check SNICAR SSP data
       !------------------------------
 
-      if ((size(ssp_snwextdr,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_snwextdr,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_snwextdf,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_snwextdf,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_snwalbdr,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_snwalbdr,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_snwalbdf,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_snwalbdf,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_sasymmdr,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_sasymmdr,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_sasymmdf,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_sasymmdf,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_aasymmmd,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aasymmmd,dim=2) /= nmodal1_snicar) .or. &
-          (size(ssp_aerextmd,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aerextmd,dim=2) /= nmodal1_snicar) .or. &
-          (size(ssp_aeralbmd,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aeralbmd,dim=2) /= nmodal1_snicar) .or. &
-          (size(ssp_aasymm  ,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aasymm  ,dim=2) /= nmaeros_snicar) .or. &
-          (size(ssp_aerext  ,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aerext  ,dim=2) /= nmaeros_snicar) .or. &
-          (size(ssp_aeralb  ,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aeralb  ,dim=2) /= nmaeros_snicar) .or. &
-          (size(ssp_abcenhmd,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_abcenhmd,dim=2) /= nmodal1_snicar) .or. &
-          (size(ssp_abcenhmd,dim=3) /= nmodal2_snicar)) then
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table))
-         call icepack_warnings_add(subname//'ERROR: snw_ssp_table array size error')
-         return
-      endif
-
       write(warnstr,'(2a,i8)') subname, ' nmbrad_snicar  = ',nmbrad_snicar
       call icepack_warnings_add(warnstr)
       write(warnstr,'(2a,i8)') subname, ' nspint         = ',nspint_5bd
       call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i8)') subname, ' nmodal1_snicar = ',nmodal1_snicar
+      write(warnstr,'(2a,i8)') subname, ' nmodal1        = ',nmodal1
       call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i8)') subname, ' nmodal2_snicar = ',nmodal2_snicar
+      write(warnstr,'(2a,i8)') subname, ' nmodal2        = ',nmodal2
       call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i8)') subname, ' nmaeros_snicar = ',nmaeros_snicar
+      write(warnstr,'(2a,i8)') subname, ' max_aero       = ',max_aero
       call icepack_warnings_add(warnstr)
       write(warnstr,'(2a,i5,a,i5,a,g22.15)') subname, ' ssp_snwextdr(',1,         ',',1,            ') = ',ssp_snwextdr(1,1)
       call icepack_warnings_add(warnstr)
@@ -2674,13 +2607,13 @@
                   Qs     = Qs_tab(ns,1)
                   ws     = ws_tab(ns,1)
                   gs     = gs_tab(ns,1)
-               else if( frsnw(ksnow) >= rsnw_tab(nmbrad) ) then
-                  Qs     = Qs_tab(ns,nmbrad)
-                  ws     = ws_tab(ns,nmbrad)
-                  gs     = gs_tab(ns,nmbrad)
+               else if( frsnw(ksnow) >= rsnw_tab(nmbrad_snw) ) then
+                  Qs     = Qs_tab(ns,nmbrad_snw)
+                  ws     = ws_tab(ns,nmbrad_snw)
+                  gs     = gs_tab(ns,nmbrad_snw)
                else
                   ! linear interpolation in rsnw
-                  do nr=2,nmbrad
+                  do nr=2,nmbrad_snw
                      if( rsnw_tab(nr-1) <= frsnw(ksnow) .and. &
                          frsnw(ksnow) < rsnw_tab(nr)) then
                         delr = (frsnw(ksnow) - rsnw_tab(nr-1)) / &
@@ -4884,9 +4817,6 @@
          ksrf    , & ! level index for surface absorption
          ksnow   , & ! level index for snow density and grain size
          kii         ! level starting index for sea ice (nslyr+1)
-
-      integer (kind=int_kind), parameter :: &
-         nmbrad  = 32        ! number of snow grain radii in tables
 
       real (kind=dbl_kind) :: &
          avdr    , & ! visible albedo, direct   (fraction)

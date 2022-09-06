@@ -4,14 +4,13 @@
       use icepack_kinds
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+      use icepack_parameters, only: c0
+      use icepack_parameters, only: use_snicar, snw_ssp_table
+      use icepack_tracers, only: nmodal1, nmodal2, max_aero
 
       implicit none
 
       private
-
-      ! Parameters for dEdd_snicar
-      logical (kind=log_kind), public :: &
-         use_snicar = .false.     ! .true. use 5-band SNICAR-AD approach
 
       integer (kind=int_kind), parameter, public :: &
          nspint_3bd = 3, & ! number of solar spectral bands
@@ -29,7 +28,18 @@
          ki_p_ssl_mn,   wi_p_ssl_mn,   gi_p_ssl_mn  , & ! ponded ice surface scattering layer (ssl) iops
          ki_p_int_mn,   wi_p_int_mn,   gi_p_int_mn  , & ! ponded ice interior layer (int) iops
          kw,            ww,            gw               ! iops for pond water and underlying ocean
-      integer (kind=int_kind), public :: nmbrad         ! number of snow grain radii in tables
+
+      real (kind=dbl_kind), allocatable, public :: &
+         gaer_bc_3bd (:,:),  & ! gaer_bc_3bd, modalAsymmetryParameter5band
+         kaer_bc_3bd (:,:),  & ! kaer_bc_3bd, modalMassExtinctionCrossSection5band
+         waer_bc_3bd (:,:),  & ! waer_bc_3bd, modalSingleScatterAlbedo5band
+         gaer_3bd    (:,:),  & ! gaer_3bd, aerosolAsymmetryParameter5band
+         kaer_3bd    (:,:),  & ! kaer_3bd, aerosolMassExtinctionCrossSection5band
+         waer_3bd    (:,:),  & ! waer_3bd, aerosolSingleScatterAlbedo5band
+         bcenh_3bd   (:,:,:)   ! bcenh_3bd, modalBCabsorptionParameter5band
+
+      integer (kind=int_kind), public :: &
+         nmbrad_snw         ! number of snow grain radii in tables
       real (kind=dbl_kind), allocatable, public :: &
          rsnw_tab(:)  , &   ! snow grain radii (micro-meters) for table
          Qs_tab  (:,:), &   ! snow extinction efficiency (unitless)
@@ -42,15 +52,18 @@
          ki_dl_mn_5bd,  wi_dl_mn_5bd,  gi_dl_mn_5bd , & ! ice drained layer (dl) iops
          ki_int_mn_5bd, wi_int_mn_5bd, gi_int_mn_5bd    ! ice interior layer (int) iops
 
-      ! dEdd SNICAR SSP data
-      character (len=char_len), public :: &
-         snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test' or 'file'
+      real (kind=dbl_kind), allocatable, public :: &
+         gaer_bc_5bd (:,:),  & ! gaer_bc_5bd, modalAsymmetryParameter5band
+         kaer_bc_5bd (:,:),  & ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
+         waer_bc_5bd (:,:),  & ! waer_bc_5bd, modalSingleScatterAlbedo5band
+         gaer_5bd    (:,:),  & ! gaer_5bd, aerosolAsymmetryParameter5band
+         kaer_5bd    (:,:),  & ! kaer_5bd, aerosolMassExtinctionCrossSection5band
+         waer_5bd    (:,:),  & ! waer_5bd, aerosolSingleScatterAlbedo5band
+         bcenh_5bd   (:,:,:)   ! bcenh_5bd, modalBCabsorptionParameter5band
 
+      ! dEdd 5-band data SSP SNICAR
       integer (kind=int_kind), public :: &
          nmbrad_snicar  , & ! number of snow grain radii in SNICAR SSP tables
-         nmodal1_snicar , & ! nModal1 in SNICAR SSP tables
-         nmodal2_snicar , & ! nModal2 in SNICAR SSP tables
-         nmaeros_snicar , & ! maxAerosolType in SNICAR SSP tables
          rsnw_snicar_min, & ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max    ! maximum snow radius - integer value used for indexing
 
@@ -61,14 +74,9 @@
          ssp_snwalbdr(:,:),  & ! snow single scatter albedo (fraction), direct
          ssp_snwalbdf(:,:),  & ! snow single scatter albedo (fraction), diffuse
          ssp_sasymmdr(:,:),  & ! snow asymmetry factor (cos(theta)), direct
-         ssp_sasymmdf(:,:),  & ! snow asymmetry factor (cos(theta)), diffuse
-         ssp_aasymmmd(:,:),  & ! gaer_bc_5bd, modalAsymmetryParameter5band
-         ssp_aerextmd(:,:),  & ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
-         ssp_aeralbmd(:,:),  & ! waer_bc_5bd, modalSingleScatterAlbedo5band
-         ssp_aasymm  (:,:),  & ! gaer_5bd, aerosolAsymmetryParameter5band
-         ssp_aerext  (:,:),  & ! kaer_5bd, aerosolMassExtinctionCrossSection5band
-         ssp_aeralb  (:,:),  & ! waer_5bd, aerosolSingleScatterAlbedo5band
-         ssp_abcenhmd(:,:,:)   ! bcenh_5bd, modalBCabsorptionParameter5band
+         ssp_sasymmdf(:,:)     ! snow asymmetry factor (cos(theta)), diffuse
+
+      ! dEdd SNICAR SSP data 5 band
 
       public :: icepack_shortwave_init_dEdd3band
       public :: icepack_shortwave_init_dEdd5band
@@ -88,16 +96,16 @@
 
       character (len=*),parameter :: subname='(icepack_shortwave_init_dEdd3band)'
 
-      nmbrad = 32 ! number of snow grain radii in tables
+      nmbrad_snw = 32 ! number of snow grain radii in tables
       if (allocated(rsnw_tab)) deallocate(rsnw_tab)
       if (allocated(Qs_tab)  ) deallocate(Qs_tab)
       if (allocated(ws_tab)  ) deallocate(ws_tab)
       if (allocated(gs_tab)  ) deallocate(gs_tab)
 
-      allocate(rsnw_tab(           nmbrad))
-      allocate(Qs_tab  (nspint_3bd,nmbrad))
-      allocate(ws_tab  (nspint_3bd,nmbrad))
-      allocate(gs_tab  (nspint_3bd,nmbrad))
+      allocate(rsnw_tab(           nmbrad_snw))
+      allocate(Qs_tab  (nspint_3bd,nmbrad_snw))
+      allocate(ws_tab  (nspint_3bd,nmbrad_snw))
+      allocate(gs_tab  (nspint_3bd,nmbrad_snw))
 
       ! snow grain radii (micro-meters) for table
       rsnw_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
@@ -144,7 +152,7 @@
           2.002590_dbl_kind,  2.003627_dbl_kind,  2.005276_dbl_kind, &
           2.002395_dbl_kind,  2.003391_dbl_kind,  2.004904_dbl_kind, &
           2.002071_dbl_kind,  2.002922_dbl_kind,  2.004241_dbl_kind/), &
-          (/nspint_3bd,nmbrad/))
+          (/nspint_3bd,nmbrad_snw/))
 
       ! snow single scattering albedo (unitless)
       ws_tab = reshape((/ &
@@ -180,7 +188,7 @@
          0.9998332_dbl_kind,  0.9926888_dbl_kind,  0.8095131_dbl_kind, &
          0.9998148_dbl_kind,  0.9919968_dbl_kind,  0.7968620_dbl_kind, &
          0.9997691_dbl_kind,  0.9903277_dbl_kind,  0.7677887_dbl_kind/), &
-         (/nspint_3bd,nmbrad/))
+         (/nspint_3bd,nmbrad_snw/))
 
       ! snow asymmetry parameter (unitless)
       gs_tab = reshape((/ &
@@ -216,7 +224,7 @@
           0.891340_dbl_kind,  0.896623_dbl_kind,  0.950916_dbl_kind, &
           0.891356_dbl_kind,  0.896851_dbl_kind,  0.951945_dbl_kind, &
           0.891386_dbl_kind,  0.897399_dbl_kind,  0.954156_dbl_kind/), &
-          (/nspint_3bd,nmbrad/))
+          (/nspint_3bd,nmbrad_snw/))
 
       ! ice surface scattering layer (ssl) iops
       ki_ssl_mn_3bd = (/ 1000.1_dbl_kind, 1003.7_dbl_kind, 7042._dbl_kind/)
@@ -250,6 +258,151 @@
       kw = (/ 0.20_dbl_kind,   12.0_dbl_kind,   729._dbl_kind /)
       ww = (/ 0.00_dbl_kind,   0.00_dbl_kind,   0.00_dbl_kind /)
       gw = (/ 0.00_dbl_kind,   0.00_dbl_kind,   0.00_dbl_kind /)
+
+      !--- extracted from netcdf file
+      !--- snicar_optics_5bnd_mam_c140303_mpas_cice (this is actually 3 band)
+      !--- spectralIntervals = 4.5e-13, 9.45e-13, 3.095e-12 ;
+      !--- bcEffectiveRadius = 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5 ;
+      !--- iceGrainEffectiveRadius = 50, 100, 250, 500, 750, 1000, 1250, 1500 ;
+      !   gaer_bc_3bd (:,:)   = modalAsymmetryParameter(:,:)
+      !   kaer_bc_3bd (:,:)   = modalMassExtinctionCrossSection(:,:)
+      !   waer_bc_3bd (:,:)   = modalSingleScatterAlbedo(:,:)
+      !   bcenh_3bd   (:,:,:) = modalBCabsorptionParameter(:,:,:)
+
+      allocate(gaer_bc_3bd(nspint_3bd,nmodal1) )
+      allocate(kaer_bc_3bd(nspint_3bd,nmodal1) )
+      allocate(waer_bc_3bd(nspint_3bd,nmodal1) )
+      allocate(gaer_3bd   (nspint_3bd,max_aero))
+      allocate(kaer_3bd   (nspint_3bd,max_aero))
+      allocate(waer_3bd   (nspint_3bd,max_aero))
+      allocate(bcenh_3bd  (nspint_3bd,nmodal1,nmodal2))
+
+      gaer_bc_3bd (:,:)   = reshape((/ &
+       0.283282988564031_dbl_kind, 0.196444209821980_dbl_kind, 0.104976473902976_dbl_kind, &
+       0.444877326083453_dbl_kind, 0.326147707342261_dbl_kind, 0.196121968923488_dbl_kind, &
+       0.547243414035631_dbl_kind, 0.416106187964493_dbl_kind, 0.263903486903711_dbl_kind, &
+       0.617111563012282_dbl_kind, 0.484745531707601_dbl_kind, 0.319218974395050_dbl_kind, &
+       0.666728525631754_dbl_kind, 0.539228555802301_dbl_kind, 0.366323180358996_dbl_kind, &
+       0.702956870835387_dbl_kind, 0.583372441336763_dbl_kind, 0.407316408184865_dbl_kind, &
+       0.730016668453191_dbl_kind, 0.619595539349710_dbl_kind, 0.443436944107423_dbl_kind, &
+       0.750635997128011_dbl_kind, 0.649589805870541_dbl_kind, 0.475512089138887_dbl_kind, &
+       0.766634959089444_dbl_kind, 0.674609076223658_dbl_kind, 0.504145461809103_dbl_kind, &
+       0.779256641759228_dbl_kind, 0.695614224933709_dbl_kind, 0.529805346632687_dbl_kind/), &
+       (/nspint_3bd,nmodal1/))
+
+      kaer_bc_3bd (:,:)   = reshape((/ &
+       12955.4473151973_dbl_kind, 5946.89461205564_dbl_kind, 2772.33366387720_dbl_kind, &
+       12085.3066388712_dbl_kind, 7438.83131367992_dbl_kind, 3657.13084442081_dbl_kind, &
+       9753.99697536893_dbl_kind, 7342.87139082553_dbl_kind, 4187.79303607928_dbl_kind, &
+       7815.74879345131_dbl_kind, 6659.65096365965_dbl_kind, 4337.98863414228_dbl_kind, &
+       6381.28194381772_dbl_kind, 5876.78408231865_dbl_kind, 4254.65053724305_dbl_kind, &
+       5326.93163497508_dbl_kind, 5156.74531505734_dbl_kind, 4053.66581550147_dbl_kind, &
+       4538.09762614960_dbl_kind, 4538.60874501597_dbl_kind, 3804.10884202567_dbl_kind, &
+       3934.17604000777_dbl_kind, 4020.20798667897_dbl_kind, 3543.27199302277_dbl_kind, &
+       3461.20655708248_dbl_kind, 3587.80961820605_dbl_kind, 3289.98060303894_dbl_kind, &
+       3083.03396032095_dbl_kind, 3226.27231329114_dbl_kind, 3052.91440681137_dbl_kind/), &
+       (/nspint_3bd,nmodal1/))
+
+      waer_bc_3bd (:,:)   = reshape((/ &
+       0.261071919959011_dbl_kind, 0.158608047940651_dbl_kind, 0.0653546447770291_dbl_kind, &
+       0.375593873543050_dbl_kind, 0.303181671502553_dbl_kind, 0.194832290545495_dbl_kind, &
+       0.422240383488477_dbl_kind, 0.369134186611324_dbl_kind, 0.278752556671685_dbl_kind, &
+       0.447772153910671_dbl_kind, 0.405033725319593_dbl_kind, 0.330260831965086_dbl_kind, &
+       0.464443094570456_dbl_kind, 0.427439117980081_dbl_kind, 0.364256689383418_dbl_kind, &
+       0.476668995985241_dbl_kind, 0.442854173154887_dbl_kind, 0.388270470928338_dbl_kind, &
+       0.486347881475941_dbl_kind, 0.454284736567521_dbl_kind, 0.406167596922937_dbl_kind, &
+       0.494397834153785_dbl_kind, 0.463279526357470_dbl_kind, 0.420084410794128_dbl_kind, &
+       0.501307856563459_dbl_kind, 0.470696914968199_dbl_kind, 0.431284889617716_dbl_kind, &
+       0.507362336297419_dbl_kind, 0.477038272961243_dbl_kind, 0.440559363958571_dbl_kind/), &
+       (/nspint_3bd,nmodal1/))
+
+      bcenh_3bd   (:,:,:) = reshape((/ &
+       1.95264863821642_dbl_kind, 2.05550877768593_dbl_kind, 1.70240332828865_dbl_kind, &
+       1.99163464431877_dbl_kind, 2.02176016911438_dbl_kind, 1.68864818773335_dbl_kind, &
+       2.08039249602289_dbl_kind, 2.04220861750766_dbl_kind, 1.66912312377214_dbl_kind, &
+       2.16942689206486_dbl_kind, 2.08596540854892_dbl_kind, 1.66160699987308_dbl_kind, &
+       2.24943093516846_dbl_kind, 2.13660234877153_dbl_kind, 1.66384052314060_dbl_kind, &
+       2.31967028980740_dbl_kind, 2.18749561126022_dbl_kind, 1.67219028250399_dbl_kind, &
+       2.38127471771344_dbl_kind, 2.23610708358262_dbl_kind, 1.68413091787831_dbl_kind, &
+       2.43560783392705_dbl_kind, 2.28159277966039_dbl_kind, 1.69809375282139_dbl_kind, &
+       2.48387711610947_dbl_kind, 2.32381536608936_dbl_kind, 1.71312401386438_dbl_kind, &
+       2.52707191213977_dbl_kind, 2.36292350082796_dbl_kind, 1.72863990449135_dbl_kind, &
+       1.92998070985211_dbl_kind, 2.00057297786255_dbl_kind, 1.46439607292737_dbl_kind, &
+       1.96828588712172_dbl_kind, 1.96789325006899_dbl_kind, 1.45080052583184_dbl_kind, &
+       2.05617049294061_dbl_kind, 1.98793085930286_dbl_kind, 1.42948868363647_dbl_kind, &
+       2.14447875560037_dbl_kind, 2.03061959947511_dbl_kind, 1.41873460329624_dbl_kind, &
+       2.22391980172086_dbl_kind, 2.07998145729518_dbl_kind, 1.41704273834779_dbl_kind, &
+       2.29372360046412_dbl_kind, 2.12957637725258_dbl_kind, 1.42123091826813_dbl_kind, &
+       2.35498486656548_dbl_kind, 2.17693833665883_dbl_kind, 1.42900797904431_dbl_kind, &
+       2.40904101847001_dbl_kind, 2.22124880688538_dbl_kind, 1.43892088962935_dbl_kind, &
+       2.45708129191118_dbl_kind, 2.26237623779669_dbl_kind, 1.45006788911609_dbl_kind, &
+       2.50008250129713_dbl_kind, 2.30046686882928_dbl_kind, 1.46188722662250_dbl_kind, &
+       1.91329346734012_dbl_kind, 1.96543390843360_dbl_kind, 1.14194244916007_dbl_kind, &
+       1.95121371985675_dbl_kind, 1.93263565295399_dbl_kind, 1.12725592122175_dbl_kind, &
+       2.03809762910398_dbl_kind, 1.95185585527707_dbl_kind, 1.10247502663803_dbl_kind, &
+       2.12530005514579_dbl_kind, 1.99345975452191_dbl_kind, 1.08665719062047_dbl_kind, &
+       2.20367089050177_dbl_kind, 2.04169792795632_dbl_kind, 1.07921619336383_dbl_kind, &
+       2.27248123187072_dbl_kind, 2.09021776382565_dbl_kind, 1.07748810634133_dbl_kind, &
+       2.33283448215489_dbl_kind, 2.13658191370477_dbl_kind, 1.07944256077146_dbl_kind, &
+       2.38606519288941_dbl_kind, 2.17997684658703_dbl_kind, 1.08374903741219_dbl_kind, &
+       2.43335573206486_dbl_kind, 2.22026683524201_dbl_kind, 1.08955635350460_dbl_kind, &
+       2.47567508771849_dbl_kind, 2.25759085163530_dbl_kind, 1.09631629142051_dbl_kind, &
+       1.90934210233419_dbl_kind, 1.95036222309469_dbl_kind, 0.909292665461334_dbl_kind, &
+       1.94718753993654_dbl_kind, 1.91707244220432_dbl_kind, 0.894718400010399_dbl_kind, &
+       2.03413257206460_dbl_kind, 1.93555229772563_dbl_kind, 0.868918153028977_dbl_kind, &
+       2.12144970426002_dbl_kind, 1.97639279591636_dbl_kind, 0.850765821245711_dbl_kind, &
+       2.19996950008693_dbl_kind, 2.02391750274938_dbl_kind, 0.840259615891209_dbl_kind, &
+       2.26895256024478_dbl_kind, 2.07179265196092_dbl_kind, 0.835148764099313_dbl_kind, &
+       2.32949533824322_dbl_kind, 2.11758088518527_dbl_kind, 0.833634959766446_dbl_kind, &
+       2.38292734368215_dbl_kind, 2.16046235899349_dbl_kind, 0.834510361060840_dbl_kind, &
+       2.43042710618676_dbl_kind, 2.20029348070725_dbl_kind, 0.836985635757155_dbl_kind, &
+       2.47296056325651_dbl_kind, 2.23720560395594_dbl_kind, 0.840541121927357_dbl_kind, &
+       1.89949243983108_dbl_kind, 1.93683846999834_dbl_kind, 0.787365738156841_dbl_kind, &
+       1.93727235487729_dbl_kind, 1.90329555375166_dbl_kind, 0.773444742139757_dbl_kind, &
+       2.02369838860644_dbl_kind, 1.92122803438124_dbl_kind, 0.748247354378510_dbl_kind, &
+       2.11044213773949_dbl_kind, 1.96146568420286_dbl_kind, 0.729898511422122_dbl_kind, &
+       2.18840765391269_dbl_kind, 2.00841288916682_dbl_kind, 0.718628437773005_dbl_kind, &
+       2.25686720991682_dbl_kind, 2.05575959668218_dbl_kind, 0.712430381055335_dbl_kind, &
+       2.31691587317745_dbl_kind, 2.10107207746932_dbl_kind, 0.709662234578170_dbl_kind, &
+       2.36987969534290_dbl_kind, 2.14352706751582_dbl_kind, 0.709208099450235_dbl_kind, &
+       2.41693409934405_dbl_kind, 2.18297543800191_dbl_kind, 0.710331652717846_dbl_kind, &
+       2.45904265244829_dbl_kind, 2.21954279828598_dbl_kind, 0.712543468490739_dbl_kind, &
+       1.89513078257241_dbl_kind, 1.92263839595509_dbl_kind, 0.706461800324346_dbl_kind, &
+       1.93309313777527_dbl_kind, 1.88899078061693_dbl_kind, 0.693226914812576_dbl_kind, &
+       2.01957651148981_dbl_kind, 1.90645089504406_dbl_kind, 0.669064908581365_dbl_kind, &
+       2.10637427535360_dbl_kind, 1.94612617504146_dbl_kind, 0.651180172594725_dbl_kind, &
+       2.18442157999672_dbl_kind, 1.99251964154984_dbl_kind, 0.639897070268354_dbl_kind, &
+       2.25299528565588_dbl_kind, 2.03935253218284_dbl_kind, 0.633381538773347_dbl_kind, &
+       2.31318616048548_dbl_kind, 2.08419838569356_dbl_kind, 0.630113597076398_dbl_kind, &
+       2.36631356022073_dbl_kind, 2.12623247442447_dbl_kind, 0.629053974248532_dbl_kind, &
+       2.41354632072806_dbl_kind, 2.16530128719337_dbl_kind, 0.629513431452439_dbl_kind, &
+       2.45584239569185_dbl_kind, 2.20152541593779_dbl_kind, 0.631031550232408_dbl_kind, &
+       1.88966200391793_dbl_kind, 1.91138224467403_dbl_kind, 0.645037746856209_dbl_kind, &
+       1.92722145035491_dbl_kind, 1.87746007578606_dbl_kind, 0.632544812562624_dbl_kind, &
+       2.01312358620330_dbl_kind, 1.89440019770827_dbl_kind, 0.609599412746477_dbl_kind, &
+       2.09932210400679_dbl_kind, 1.93352303806653_dbl_kind, 0.592457728466318_dbl_kind, &
+       2.17678426739086_dbl_kind, 1.97939606834949_dbl_kind, 0.581485988000951_dbl_kind, &
+       2.24479350026512_dbl_kind, 2.02575746617653_dbl_kind, 0.574991121329954_dbl_kind, &
+       2.30444200946822_dbl_kind, 2.07018181146210_dbl_kind, 0.571558829839628_dbl_kind, &
+       2.35704963947562_dbl_kind, 2.11184012144586_dbl_kind, 0.570218484962620_dbl_kind, &
+       2.40378548089834_dbl_kind, 2.15057324446996_dbl_kind, 0.570324425190625_dbl_kind, &
+       2.44560753617498_dbl_kind, 2.18649621439102_dbl_kind, 0.571444075492751_dbl_kind, &
+       1.88643160779142_dbl_kind, 1.89913501159848_dbl_kind, 0.595263574413264_dbl_kind, &
+       1.92407257560116_dbl_kind, 1.86500658393517_dbl_kind, 0.583463057793767_dbl_kind, &
+       2.00998096470402_dbl_kind, 1.88145449003472_dbl_kind, 0.561733888485346_dbl_kind, &
+       2.09618177016992_dbl_kind, 1.92003164909457_dbl_kind, 0.545410325196173_dbl_kind, &
+       2.17365367623383_dbl_kind, 1.96538149140099_dbl_kind, 0.534870485223569_dbl_kind, &
+       2.24167959830890_dbl_kind, 2.01126422674813_dbl_kind, 0.528539343400941_dbl_kind, &
+       2.30134946305542_dbl_kind, 2.05525778466667_dbl_kind, 0.525094898482761_dbl_kind, &
+       2.35398116406859_dbl_kind, 2.09653013835900_dbl_kind, 0.523627801843702_dbl_kind, &
+       2.40074243898899_dbl_kind, 2.13491705468600_dbl_kind, 0.523532027540127_dbl_kind, &
+       2.44259042500067_dbl_kind, 2.17052832643712_dbl_kind, 0.524400814046362_dbl_kind/), &
+       (/nspint_3bd,nmodal1,nmodal2/))
+
+      ! TODO, what do we set these to?
+      gaer_3bd = c0
+      kaer_3bd = c0
+      waer_3bd = c0
 
       end subroutine icepack_shortwave_init_dEdd3band
 
@@ -300,6 +453,159 @@
       gi_int_mn_5bd = (/ .94_dbl_kind, .94_dbl_kind, .94_dbl_kind, &
                          .94_dbl_kind, .94_dbl_kind /)
 
+      !--- extracted from netcdf file
+      !--- snicar_optics_5bnd_snow_and_aerosols.nc
+      !   gaer_bc_5bd (:,:)   = modalAsymmetryParameter5band(:,:)
+      !   kaer_bc_5bd (:,:)   = modalMassExtinctionCrossSection5band(:,:)
+      !   waer_bc_5bd (:,:)   = modalSingleScatterAlbedo5band(:,:)
+      !   gaer_5bd    (:,:)   = aerosolAsymmetryParameter5band(:,:)
+      !   kaer_5bd    (:,:)   = aerosolMassExtinctionCrossSection5band(:,:)
+      !   waer_5bd    (:,:)   = aerosolSingleScatterAlbedo5band(:,:)
+      !   bcenh_5bd   (:,:,:) = modalBCabsorptionParameter5band(:,:,:)
+
+      allocate(gaer_bc_5bd(nspint_5bd,nmodal1) )
+      allocate(kaer_bc_5bd(nspint_5bd,nmodal1) )
+      allocate(waer_bc_5bd(nspint_5bd,nmodal1) )
+      allocate(gaer_5bd   (nspint_5bd,max_aero))
+      allocate(kaer_5bd   (nspint_5bd,max_aero))
+      allocate(waer_5bd   (nspint_5bd,max_aero))
+      allocate(bcenh_5bd  (nspint_5bd,nmodal1,nmodal2))
+
+      gaer_bc_5bd(1:5 ,1) = (/ 0.283180657713357_dbl_kind, 0.209482088735706_dbl_kind, 0.166441061642889_dbl_kind, 0.138879205492097_dbl_kind, 0.0862017497093632_dbl_kind /)
+      gaer_bc_5bd(1:5 ,2) = (/ 0.444732109704644_dbl_kind, 0.342651789871816_dbl_kind, 0.285303488980226_dbl_kind, 0.247698976619574_dbl_kind, 0.167948761949466_dbl_kind /)
+      gaer_bc_5bd(1:5 ,3) = (/ 0.547091281292997_dbl_kind, 0.433969936661441_dbl_kind, 0.368367957620211_dbl_kind, 0.324886781461864_dbl_kind, 0.229171714711908_dbl_kind /)
+      gaer_bc_5bd(1:5 ,4) = (/ 0.616967685845435_dbl_kind, 0.503089780780303_dbl_kind, 0.433284180500838_dbl_kind, 0.386200764739288_dbl_kind, 0.279644654892079_dbl_kind /)
+      gaer_bc_5bd(1:5 ,5) = (/ 0.666598670419791_dbl_kind, 0.557497118318872_dbl_kind, 0.486364162004934_dbl_kind, 0.437315965706898_dbl_kind, 0.32323402731446_dbl_kind /)
+      gaer_bc_5bd(1:5 ,6) = (/ 0.702842367361724_dbl_kind, 0.601186554981124_dbl_kind, 0.530715174055473_dbl_kind, 0.480926756372334_dbl_kind, 0.361764440902239_dbl_kind /)
+      gaer_bc_5bd(1:5 ,7) = (/ 0.729916826617441_dbl_kind, 0.636706604014777_dbl_kind, 0.568216759394959_dbl_kind, 0.5185983947025_dbl_kind, 0.396259725869959_dbl_kind /)
+      gaer_bc_5bd(1:5 ,8) = (/ 0.750549324881687_dbl_kind, 0.665849031271645_dbl_kind, 0.60016461579108_dbl_kind, 0.551378204757893_dbl_kind, 0.427376921191516_dbl_kind /)
+      gaer_bc_5bd(1:5 ,9) = (/ 0.766559757465102_dbl_kind, 0.689942199993075_dbl_kind, 0.627527163812553_dbl_kind, 0.580037712812519_dbl_kind, 0.455582792418271_dbl_kind /)
+      gaer_bc_5bd(1:5 ,10) = (/ 0.779191279240598_dbl_kind, 0.71000026362677_dbl_kind, 0.651064109101405_dbl_kind, 0.605182083087546_dbl_kind, 0.48123462598527_dbl_kind /)
+
+      kaer_bc_5bd(1:5 ,1) = (/ 12944.1191669303_dbl_kind, 6433.8546129199_dbl_kind, 4379.35815079177_dbl_kind, 3492.51850776132_dbl_kind, 2271.71785345005_dbl_kind /)
+      kaer_bc_5bd(1:5 ,2) = (/ 12080.1397436577_dbl_kind, 7942.86489089621_dbl_kind, 5812.47284115357_dbl_kind, 4685.4656136674_dbl_kind, 2943.75841342826_dbl_kind /)
+      kaer_bc_5bd(1:5 ,3) = (/ 9752.02484228556_dbl_kind, 7698.94532514882_dbl_kind, 6190.90781492957_dbl_kind, 5232.51964498223_dbl_kind, 3463.69216361937_dbl_kind /)
+      kaer_bc_5bd(1:5 ,4) = (/ 7815.10345723545_dbl_kind, 6881.58135306449_dbl_kind, 5939.77102314034_dbl_kind, 5240.81549971547_dbl_kind, 3712.12933475335_dbl_kind /)
+      kaer_bc_5bd(1:5 ,5) = (/ 6381.18061078149_dbl_kind, 6007.04138576162_dbl_kind, 5453.04529077459_dbl_kind, 4977.11342455862_dbl_kind, 3753.42937518735_dbl_kind /)
+      kaer_bc_5bd(1:5 ,6) = (/ 5327.05076509938_dbl_kind, 5229.1647601636_dbl_kind, 4920.29504756471_dbl_kind, 4609.03071475928_dbl_kind, 3667.92739329671_dbl_kind /)
+      kaer_bc_5bd(1:5 ,7) = (/ 4538.29991082855_dbl_kind, 4575.50607606948_dbl_kind, 4417.44045147505_dbl_kind, 4220.99458200724_dbl_kind, 3514.14534131843_dbl_kind /)
+      kaer_bc_5bd(1:5 ,8) = (/ 3934.40205337053_dbl_kind, 4035.52102830084_dbl_kind, 3969.24444889817_dbl_kind, 3850.95782137369_dbl_kind, 3328.91108844436_dbl_kind /)
+      kaer_bc_5bd(1:5 ,9) = (/ 3461.43069443711_dbl_kind, 3590.1138938721_dbl_kind, 3579.26043074527_dbl_kind, 3513.60273858667_dbl_kind, 3133.888122911_dbl_kind /)
+      kaer_bc_5bd(1:5 ,10) = (/ 3083.24574223473_dbl_kind, 3220.83851695162_dbl_kind, 3243.02488284297_dbl_kind, 3212.5874258974_dbl_kind, 2941.20365863075_dbl_kind /)
+
+      waer_bc_5bd(1:5 ,1) = (/ 0.260958704071654_dbl_kind, 0.16805845111727_dbl_kind, 0.11411468355425_dbl_kind, 0.0845902711417414_dbl_kind, 0.0447050517464244_dbl_kind /)
+      waer_bc_5bd(1:5 ,2) = (/ 0.375522113298175_dbl_kind, 0.31235052399053_dbl_kind, 0.26288498209907_dbl_kind, 0.22723691750397_dbl_kind, 0.159075641626696_dbl_kind /)
+      waer_bc_5bd(1:5 ,3) = (/ 0.422185378147481_dbl_kind, 0.376555779043625_dbl_kind, 0.33936407097995_dbl_kind, 0.310215627605754_dbl_kind, 0.245905521445928_dbl_kind /)
+      waer_bc_5bd(1:5 ,4) = (/ 0.447724362399737_dbl_kind, 0.411125469751176_dbl_kind, 0.382216922622453_dbl_kind, 0.358710570753989_dbl_kind, 0.302535187827444_dbl_kind /)
+      waer_bc_5bd(1:5 ,5) = (/ 0.464398385288602_dbl_kind, 0.432573637322427_dbl_kind, 0.40912325097991_dbl_kind, 0.389777582190663_dbl_kind, 0.340897831337878_dbl_kind /)
+      waer_bc_5bd(1:5 ,6) = (/ 0.476625494212487_dbl_kind, 0.447308005754231_dbl_kind, 0.427510535024552_dbl_kind, 0.411226212689519_dbl_kind, 0.368348762641282_dbl_kind /)
+      waer_bc_5bd(1:5 ,7) = (/ 0.486304785993923_dbl_kind, 0.458261662359298_dbl_kind, 0.440925436651717_dbl_kind, 0.426916054656286_dbl_kind, 0.38894085673284_dbl_kind /)
+      waer_bc_5bd(1:5 ,8) = (/ 0.494354868140575_dbl_kind, 0.4669281500285_dbl_kind, 0.451247969458627_dbl_kind, 0.43894010429319_dbl_kind, 0.40499178204751_dbl_kind /)
+      waer_bc_5bd(1:5 ,9) = (/ 0.501264988054309_dbl_kind, 0.47412360289998_dbl_kind, 0.459551339156444_dbl_kind, 0.448519783558473_dbl_kind, 0.417901240195357_dbl_kind /)
+      waer_bc_5bd(1:5 ,10) = (/ 0.507319636821098_dbl_kind, 0.480317417860846_dbl_kind, 0.466481312779405_dbl_kind, 0.456408044720941_dbl_kind, 0.428557864653526_dbl_kind /)
+
+      bcenh_5bd(1:5 ,1,1) = (/ 2.01085868366548_dbl_kind, 2.04133313210786_dbl_kind, 2.07508000300547_dbl_kind, 1.96633438024084_dbl_kind, 1.41689382160734_dbl_kind /)
+      bcenh_5bd(1:5 ,2,1) = (/ 2.06240193763163_dbl_kind, 2.00779624447446_dbl_kind, 2.03535206238544_dbl_kind, 1.93696335633222_dbl_kind, 1.42085892146856_dbl_kind /)
+      bcenh_5bd(1:5 ,3,1) = (/ 2.16245417515345_dbl_kind, 2.03367512749659_dbl_kind, 2.03217185662912_dbl_kind, 1.92216538758257_dbl_kind, 1.41057880313765_dbl_kind /)
+      bcenh_5bd(1:5 ,4,1) = (/ 2.26075013581323_dbl_kind, 2.08270396815669_dbl_kind, 2.05598320187322_dbl_kind, 1.93005028646658_dbl_kind, 1.40362921606229_dbl_kind /)
+      bcenh_5bd(1:5 ,5,1) = (/ 2.34824623202129_dbl_kind, 2.13751008192628_dbl_kind, 2.09204530638863_dbl_kind, 1.95135851042228_dbl_kind, 1.4023767146298_dbl_kind /)
+      bcenh_5bd(1:5 ,6,1) = (/ 2.4245821026032_dbl_kind, 2.19151236157797_dbl_kind, 2.13262602986381_dbl_kind, 1.97935233613122_dbl_kind, 1.40560606928656_dbl_kind /)
+      bcenh_5bd(1:5 ,7,1) = (/ 2.49120967497054_dbl_kind, 2.24239779808293_dbl_kind, 2.17377807033259_dbl_kind, 2.01017733622214_dbl_kind, 1.41189694037042_dbl_kind /)
+      bcenh_5bd(1:5 ,8,1) = (/ 2.54974120400747_dbl_kind, 2.2895387842995_dbl_kind, 2.21382769032984_dbl_kind, 2.04172990500999_dbl_kind, 1.42017827052267_dbl_kind /)
+      bcenh_5bd(1:5 ,9,1) = (/ 2.60156969843265_dbl_kind, 2.33296656241086_dbl_kind, 2.25201772913892_dbl_kind, 2.07288930404508_dbl_kind, 1.42971387107226_dbl_kind /)
+      bcenh_5bd(1:5 ,10,1) = (/ 2.64782205756202_dbl_kind, 2.37295227907137_dbl_kind, 2.28808322951764_dbl_kind, 2.10308108574029_dbl_kind, 1.44000988888373_dbl_kind /)
+      bcenh_5bd(1:5 ,1,2) = (/ 1.93095248830255_dbl_kind, 2.00671847586146_dbl_kind, 2.00719477963142_dbl_kind, 1.84522141815519_dbl_kind, 1.0759084306113_dbl_kind /)
+      bcenh_5bd(1:5 ,2,2) = (/ 1.9692253934491_dbl_kind, 1.97261097531431_dbl_kind, 1.97018044809597_dbl_kind, 1.81698805576196_dbl_kind, 1.07910761278501_dbl_kind /)
+      bcenh_5bd(1:5 ,3,2) = (/ 2.0569305238012_dbl_kind, 1.99733517977522_dbl_kind, 1.96791189681145_dbl_kind, 1.80196522204901_dbl_kind, 1.07130151751929_dbl_kind /)
+      bcenh_5bd(1:5 ,4,2) = (/ 2.14496096212491_dbl_kind, 2.04502142936022_dbl_kind, 1.99149039012804_dbl_kind, 1.80835190349595_dbl_kind, 1.06588237810724_dbl_kind /)
+      bcenh_5bd(1:5 ,5,2) = (/ 2.22407771486646_dbl_kind, 2.09850387281167_dbl_kind, 2.02679018049782_dbl_kind, 1.82750693049481_dbl_kind, 1.06472566849715_dbl_kind /)
+      bcenh_5bd(1:5 ,6,2) = (/ 2.29354361051981_dbl_kind, 2.15127410474977_dbl_kind, 2.06629477010126_dbl_kind, 1.85307952087923_dbl_kind, 1.06695130591868_dbl_kind /)
+      bcenh_5bd(1:5 ,7,2) = (/ 2.35447198629787_dbl_kind, 2.20103710784166_dbl_kind, 2.10637650326798_dbl_kind, 1.88142263401342_dbl_kind, 1.07150133206641_dbl_kind /)
+      bcenh_5bd(1:5 ,8,2) = (/ 2.40820994383032_dbl_kind, 2.24716243339933_dbl_kind, 2.14535203369221_dbl_kind, 1.91053883285925_dbl_kind, 1.07757202807584_dbl_kind /)
+      bcenh_5bd(1:5 ,9,2) = (/ 2.45595109315931_dbl_kind, 2.28967140910979_dbl_kind, 2.18249764512321_dbl_kind, 1.93935882511077_dbl_kind, 1.08460855322213_dbl_kind /)
+      bcenh_5bd(1:5 ,10,2) = (/ 2.49867376345289_dbl_kind, 2.32882370197717_dbl_kind, 2.21756305829645_dbl_kind, 1.96733017018785_dbl_kind, 1.09223739315287_dbl_kind /)
+      bcenh_5bd(1:5 ,1,3) = (/ 1.91585309392631_dbl_kind, 1.96967352324366_dbl_kind, 1.96009968122517_dbl_kind, 1.68080965604958_dbl_kind, 0.59179696632248_dbl_kind /)
+      bcenh_5bd(1:5 ,2,3) = (/ 1.95350884507749_dbl_kind, 1.93742852972506_dbl_kind, 1.92365694040103_dbl_kind, 1.65420258116929_dbl_kind, 0.593740739460229_dbl_kind /)
+      bcenh_5bd(1:5 ,3,3) = (/ 2.04035073356608_dbl_kind, 1.96236202642718_dbl_kind, 1.92122593826873_dbl_kind, 1.6389418244479_dbl_kind, 0.589846868165608_dbl_kind /)
+      bcenh_5bd(1:5 ,4,3) = (/ 2.12759603009265_dbl_kind, 2.00961752368397_dbl_kind, 1.94409212769693_dbl_kind, 1.6433504376276_dbl_kind, 0.587192323341285_dbl_kind /)
+      bcenh_5bd(1:5 ,5,3) = (/ 2.20604474780993_dbl_kind, 2.06245283901475_dbl_kind, 1.97843797212714_dbl_kind, 1.65962990443543_dbl_kind, 0.586790173437158_dbl_kind /)
+      bcenh_5bd(1:5 ,6,3) = (/ 2.27494671729217_dbl_kind, 2.11452075480442_dbl_kind, 2.01700243919087_dbl_kind, 1.68195669719917_dbl_kind, 0.588180543026505_dbl_kind /)
+      bcenh_5bd(1:5 ,7,3) = (/ 2.33539514630735_dbl_kind, 2.16358888576982_dbl_kind, 2.05606743772564_dbl_kind, 1.70696657730997_dbl_kind, 0.590803092976719_dbl_kind /)
+      bcenh_5bd(1:5 ,8,3) = (/ 2.38871953142276_dbl_kind, 2.20905043144983_dbl_kind, 2.09406451723796_dbl_kind, 1.7328071260566_dbl_kind, 0.594230523360484_dbl_kind /)
+      bcenh_5bd(1:5 ,9,3) = (/ 2.43609975131583_dbl_kind, 2.25093431540464_dbl_kind, 2.1302842143625_dbl_kind, 1.75847955247898_dbl_kind, 0.598167328207445_dbl_kind /)
+      bcenh_5bd(1:5 ,10,3) = (/ 2.47850378585028_dbl_kind, 2.28950111063737_dbl_kind, 2.16448018258101_dbl_kind, 1.78346181192778_dbl_kind, 0.602414429295388_dbl_kind /)
+      bcenh_5bd(1:5 ,1,4) = (/ 1.90672644767849_dbl_kind, 1.95728818232617_dbl_kind, 1.91897760144748_dbl_kind, 1.52351339105988_dbl_kind, 0.2856750536761_dbl_kind /)
+      bcenh_5bd(1:5 ,2,4) = (/ 1.94433061417967_dbl_kind, 1.92520391124637_dbl_kind, 1.88324629837065_dbl_kind, 1.49885892176041_dbl_kind, 0.286675433333491_dbl_kind /)
+      bcenh_5bd(1:5 ,3,4) = (/ 2.03088473930652_dbl_kind, 1.94993972535292_dbl_kind, 1.88079705335263_dbl_kind, 1.4841126290055_dbl_kind, 0.285045919810642_dbl_kind /)
+      bcenh_5bd(1:5 ,4,4) = (/ 2.11781824183707_dbl_kind, 1.99686494434747_dbl_kind, 1.90313037410511_dbl_kind, 1.48729958815793_dbl_kind, 0.283994128672286_dbl_kind /)
+      bcenh_5bd(1:5 ,5,4) = (/ 2.19597517944483_dbl_kind, 2.04934129186202_dbl_kind, 1.93671708289151_dbl_kind, 1.50138740089174_dbl_kind, 0.283979887790801_dbl_kind /)
+      bcenh_5bd(1:5 ,6,4) = (/ 2.26461303017531_dbl_kind, 2.10106009736148_dbl_kind, 1.97435597077173_dbl_kind, 1.521073249671_dbl_kind, 0.284789256577519_dbl_kind /)
+      bcenh_5bd(1:5 ,7,4) = (/ 2.3248240816686_dbl_kind, 2.14980196580654_dbl_kind, 2.01256991861794_dbl_kind, 1.54328272090356_dbl_kind, 0.286162594084878_dbl_kind /)
+      bcenh_5bd(1:5 ,8,4) = (/ 2.3779349732592_dbl_kind, 2.1949631106279_dbl_kind, 2.04974391892188_dbl_kind, 1.56631751882822_dbl_kind, 0.287901980282528_dbl_kind /)
+      bcenh_5bd(1:5 ,9,4) = (/ 2.42512255483062_dbl_kind, 2.23657164478165_dbl_kind, 2.08518221689877_dbl_kind, 1.58925799258076_dbl_kind, 0.2898706320179_dbl_kind /)
+      bcenh_5bd(1:5 ,10,4) = (/ 2.46735205354131_dbl_kind, 2.274886005391_dbl_kind, 2.1186427508733_dbl_kind, 1.61162011811624_dbl_kind, 0.291976528925237_dbl_kind /)
+      bcenh_5bd(1:5 ,1,5) = (/ 1.89867647191471_dbl_kind, 1.94807456713651_dbl_kind, 1.881998255131_dbl_kind, 1.4042673172787_dbl_kind, 0.160591841632584_dbl_kind /)
+      bcenh_5bd(1:5 ,2,5) = (/ 1.93619524467095_dbl_kind, 1.91604124756277_dbl_kind, 1.84690908713309_dbl_kind, 1.38128161669944_dbl_kind, 0.161178869198082_dbl_kind /)
+      bcenh_5bd(1:5 ,3,5) = (/ 2.0223409055861_dbl_kind, 1.94057626469304_dbl_kind, 1.84443760681477_dbl_kind, 1.3673028890037_dbl_kind, 0.160360280890161_dbl_kind /)
+      bcenh_5bd(1:5 ,4,5) = (/ 2.10882091872199_dbl_kind, 1.98721817857084_dbl_kind, 1.86628271260137_dbl_kind, 1.36990699665007_dbl_kind, 0.159858752620932_dbl_kind /)
+      bcenh_5bd(1:5 ,5,5) = (/ 2.18654488079119_dbl_kind, 2.03940039330662_dbl_kind, 1.89917614160759_dbl_kind, 1.38261979356805_dbl_kind, 0.159921181308761_dbl_kind /)
+      bcenh_5bd(1:5 ,6,5) = (/ 2.25478556857455_dbl_kind, 2.09083933491043_dbl_kind, 1.93605537053396_dbl_kind, 1.40054119827002_dbl_kind, 0.160430275376893_dbl_kind /)
+      bcenh_5bd(1:5 ,7,5) = (/ 2.31463677856253_dbl_kind, 2.13932311562854_dbl_kind, 1.97350315915034_dbl_kind, 1.42082635090228_dbl_kind, 0.161244236354913_dbl_kind /)
+      bcenh_5bd(1:5 ,8,5) = (/ 2.36742266598385_dbl_kind, 2.18424880883966_dbl_kind, 2.00993636804643_dbl_kind, 1.44190170672523_dbl_kind, 0.162255036646285_dbl_kind /)
+      bcenh_5bd(1:5 ,9,5) = (/ 2.41431655157797_dbl_kind, 2.22564299805269_dbl_kind, 2.04467151274813_dbl_kind, 1.46291363103416_dbl_kind, 0.163388069865313_dbl_kind /)
+      bcenh_5bd(1:5 ,10,5) = (/ 2.45628005869902_dbl_kind, 2.26376189572524_dbl_kind, 2.07747034796467_dbl_kind, 1.48341153176869_dbl_kind, 0.164593206197625_dbl_kind /)
+      bcenh_5bd(1:5 ,1,6) = (/ 1.89418663016821_dbl_kind, 1.94091710412984_dbl_kind, 1.84622848287114_dbl_kind, 1.30255089681936_dbl_kind, 0.098483858462836_dbl_kind /)
+      bcenh_5bd(1:5 ,2,6) = (/ 1.93159232417903_dbl_kind, 1.90886115724064_dbl_kind, 1.81172529149757_dbl_kind, 1.28111548264923_dbl_kind, 0.0988562059622643_dbl_kind /)
+      bcenh_5bd(1:5 ,3,6) = (/ 2.01753914444024_dbl_kind, 1.93319311880197_dbl_kind, 1.80921451143445_dbl_kind, 1.26796068554138_dbl_kind, 0.0983978116731492_dbl_kind /)
+      bcenh_5bd(1:5 ,4,6) = (/ 2.10383351130493_dbl_kind, 1.97958216029892_dbl_kind, 1.83057653581059_dbl_kind, 1.27021211695359_dbl_kind, 0.0981299700083134_dbl_kind /)
+      bcenh_5bd(1:5 ,5,6) = (/ 2.18140322971526_dbl_kind, 2.03149297511205_dbl_kind, 1.86279162835321_dbl_kind, 1.28187019646779_dbl_kind, 0.098199185372061_dbl_kind /)
+      bcenh_5bd(1:5 ,6,6) = (/ 2.24951550749452_dbl_kind, 2.08269363694761_dbl_kind, 1.89892485058734_dbl_kind, 1.29838388707867_dbl_kind, 0.0985349399895448_dbl_kind /)
+      bcenh_5bd(1:5 ,7,6) = (/ 2.30926076563282_dbl_kind, 2.13096027537119_dbl_kind, 1.93562599960626_dbl_kind, 1.3171088717836_dbl_kind, 0.0990521610544031_dbl_kind /)
+      bcenh_5bd(1:5 ,8,6) = (/ 2.36195834728809_dbl_kind, 2.17568957538176_dbl_kind, 1.97133789840367_dbl_kind, 1.33658147936655_dbl_kind, 0.0996860550013943_dbl_kind /)
+      bcenh_5bd(1:5 ,9,6) = (/ 2.40877775516896_dbl_kind, 2.21690619911267_dbl_kind, 2.0053887500366_dbl_kind, 1.35600690986615_dbl_kind, 0.100391895795296_dbl_kind /)
+      bcenh_5bd(1:5 ,10,6) = (/ 2.45067776198751_dbl_kind, 2.25486408585975_dbl_kind, 2.03754387915688_dbl_kind, 1.37496497414564_dbl_kind, 0.101139658510172_dbl_kind /)
+      bcenh_5bd(1:5 ,1,7) = (/ 1.8898407988674_dbl_kind, 1.93349866190539_dbl_kind, 1.81165805631067_dbl_kind, 1.21086211627226_dbl_kind, 0.0639927299752619_dbl_kind /)
+      bcenh_5bd(1:5 ,2,7) = (/ 1.92726743592625_dbl_kind, 1.90143347118491_dbl_kind, 1.77772917537379_dbl_kind, 1.19106001747711_dbl_kind, 0.064241780706825_dbl_kind /)
+      bcenh_5bd(1:5 ,3,7) = (/ 2.01310466603341_dbl_kind, 1.92556961967173_dbl_kind, 1.77518652640106_dbl_kind, 1.17869634139483_dbl_kind, 0.0639657849860226_dbl_kind /)
+      bcenh_5bd(1:5 ,4,7) = (/ 2.09927399606475_dbl_kind, 1.97170510850255_dbl_kind, 1.79608613617107_dbl_kind, 1.18057464600288_dbl_kind, 0.0638113078299023_dbl_kind /)
+      bcenh_5bd(1:5 ,5,7) = (/ 2.17672489152732_dbl_kind, 2.02337778137591_dbl_kind, 1.82764917978241_dbl_kind, 1.19116266115224_dbl_kind, 0.0638713068477278_dbl_kind /)
+      bcenh_5bd(1:5 ,6,7) = (/ 2.2447323037953_dbl_kind, 2.07433923799976_dbl_kind, 1.86305867559311_dbl_kind, 1.20841096309504_dbl_kind, 0.0641007406105561_dbl_kind /)
+      bcenh_5bd(1:5 ,7,7) = (/ 2.30438425846541_dbl_kind, 2.12238686220719_dbl_kind, 1.89904000093039_dbl_kind, 1.22579100032108_dbl_kind, 0.0644452998987116_dbl_kind /)
+      bcenh_5bd(1:5 ,8,7) = (/ 2.3569984474224_dbl_kind, 2.16691740841079_dbl_kind, 1.93405621565909_dbl_kind, 1.24387586495275_dbl_kind, 0.0648636211415022_dbl_kind /)
+      bcenh_5bd(1:5 ,9,7) = (/ 2.4037427324266_dbl_kind, 2.20795386848329_dbl_kind, 1.96744690263512_dbl_kind, 1.2619237632143_dbl_kind, 0.0653271600625114_dbl_kind /)
+      bcenh_5bd(1:5 ,10,7) = (/ 2.44557448046568_dbl_kind, 2.24574805834547_dbl_kind, 1.99898089500271_dbl_kind, 1.27954213788229_dbl_kind, 0.0658167678826765_dbl_kind /)
+      bcenh_5bd(1:5 ,1,8) = (/ 1.88623754217592_dbl_kind, 1.9263648659218_dbl_kind, 1.77795918152236_dbl_kind, 1.13227177143423_dbl_kind, 0.0434147123324349_dbl_kind /)
+      bcenh_5bd(1:5 ,2,8) = (/ 1.92369424467697_dbl_kind, 1.8942558864284_dbl_kind, 1.74459158351539_dbl_kind, 1.1135113265668_dbl_kind, 0.0435893033924684_dbl_kind /)
+      bcenh_5bd(1:5 ,3,8) = (/ 2.00945846267708_dbl_kind, 1.91818299493273_dbl_kind, 1.74202123236172_dbl_kind, 1.10187775406683_dbl_kind, 0.043414854260165_dbl_kind /)
+      bcenh_5bd(1:5 ,4,8) = (/ 2.09554589746963_dbl_kind, 1.96406200367393_dbl_kind, 1.76247271743548_dbl_kind, 1.10366507349996_dbl_kind, 0.0433211088148566_dbl_kind /)
+      bcenh_5bd(1:5 ,5,8) = (/ 2.17292182481109_dbl_kind, 2.01547921320266_dbl_kind, 1.79340178912967_dbl_kind, 1.11366185926902_dbl_kind, 0.0433701544141689_dbl_kind /)
+      bcenh_5bd(1:5 ,6,8) = (/ 2.24086221282091_dbl_kind, 2.06620238481792_dbl_kind, 1.82812292792437_dbl_kind, 1.12790506098243_dbl_kind, 0.0435319637410063_dbl_kind /)
+      bcenh_5bd(1:5 ,7,8) = (/ 2.30045372513647_dbl_kind, 2.11403292203795_dbl_kind, 1.86340498643423_dbl_kind, 1.14408997199748_dbl_kind, 0.0437702684169416_dbl_kind /)
+      bcenh_5bd(1:5 ,8,8) = (/ 2.35301272208646_dbl_kind, 2.15836713295615_dbl_kind, 1.89774509946483_dbl_kind, 1.16093986738741_dbl_kind, 0.0440574325725808_dbl_kind /)
+      bcenh_5bd(1:5 ,9,8) = (/ 2.39970609592023_dbl_kind, 2.19922606974399_dbl_kind, 1.9304940073545_dbl_kind, 1.17776068893983_dbl_kind, 0.044374386922134_dbl_kind /)
+      bcenh_5bd(1:5 ,10,8) = (/ 2.44149053760016_dbl_kind, 2.23685927813827_dbl_kind, 1.96142401595058_dbl_kind, 1.19418484664932_dbl_kind, 0.0447083456286085_dbl_kind /)
+
+      gaer_5bd(1:5 ,1) = (/ 0.350231881885906_dbl_kind, 0.211924244128064_dbl_kind, 0.146188682542913_dbl_kind, 0.112009439045293_dbl_kind, 0.060565694843084_dbl_kind /)
+      gaer_5bd(1:5 ,2) = (/ 0.521517715996158_dbl_kind, 0.34457189840306_dbl_kind, 0.244048159248401_dbl_kind, 0.188518513380877_dbl_kind, 0.103316928297739_dbl_kind /)
+      gaer_5bd(1:5 ,3) = (/ 0.690908112844937_dbl_kind, 0.717759065247993_dbl_kind, 0.671511248292627_dbl_kind, 0.614225462567888_dbl_kind, 0.436682950958558_dbl_kind /)
+      gaer_5bd(1:5 ,4) = (/ 0.699478684452806_dbl_kind, 0.651992387581091_dbl_kind, 0.695738438913831_dbl_kind, 0.724417176862696_dbl_kind, 0.701481090364134_dbl_kind /)
+      gaer_5bd(1:5 ,5) = (/ 0.785636278417498_dbl_kind, 0.749796744517699_dbl_kind, 0.683301177698451_dbl_kind, 0.629720518882672_dbl_kind, 0.665531587501598_dbl_kind /)
+      gaer_5bd(1:5 ,6) = (/ 0.829747716843613_dbl_kind, 0.785685490791679_dbl_kind, 0.772583689570701_dbl_kind, 0.757648539242581_dbl_kind, 0.728843851070574_dbl_kind /)
+
+      kaer_5bd(1:5 ,1) = (/ 11398.4540724821_dbl_kind, 5922.76076637376_dbl_kind, 4039.88947595266_dbl_kind, 3261.62137894056_dbl_kind, 2223.60028513459_dbl_kind /)
+      kaer_5bd(1:5 ,2) = (/ 25368.6111954733_dbl_kind, 12520.3846877849_dbl_kind, 7738.643174918_dbl_kind, 5744.35461327268_dbl_kind, 3526.76546641382_dbl_kind /)
+      kaer_5bd(1:5 ,3) = (/ 2686.90326329624_dbl_kind, 2419.98140297723_dbl_kind, 1627.51690973548_dbl_kind, 1138.23252303209_dbl_kind, 466.104227277046_dbl_kind /)
+      kaer_5bd(1:5 ,4) = (/ 841.089434044834_dbl_kind, 987.406197502421_dbl_kind, 1183.52284776972_dbl_kind, 1267.30625580205_dbl_kind, 993.497508579304_dbl_kind /)
+      kaer_5bd(1:5 ,5) = (/ 387.85423560755_dbl_kind, 419.109723948302_dbl_kind, 399.559447343404_dbl_kind, 397.191283865122_dbl_kind, 503.14317519429_dbl_kind /)
+      kaer_5bd(1:5 ,6) = (/ 196.638063554016_dbl_kind, 202.877379461792_dbl_kind, 208.304425287341_dbl_kind, 204.723737634461_dbl_kind, 228.755667038372_dbl_kind /)
+
+      waer_5bd(1:5 ,1) = (/ 0.287685315976181_dbl_kind, 0.186577277125224_dbl_kind, 0.123152237089201_dbl_kind, 0.0883462885905543_dbl_kind, 0.0403421562269378_dbl_kind /)
+      waer_5bd(1:5 ,2) = (/ 0.515945305512804_dbl_kind, 0.434313626536424_dbl_kind, 0.346103765992635_dbl_kind, 0.275522926330555_dbl_kind, 0.138576096442815_dbl_kind /)
+      waer_5bd(1:5 ,3) = (/ 0.97891105715305_dbl_kind, 0.994175916042451_dbl_kind, 0.993357580762207_dbl_kind, 0.992545751316266_dbl_kind, 0.953291550046772_dbl_kind /)
+      waer_5bd(1:5 ,4) = (/ 0.943752248802793_dbl_kind, 0.984191668599419_dbl_kind, 0.989309063917025_dbl_kind, 0.991793946836264_dbl_kind, 0.982999590668913_dbl_kind /)
+      waer_5bd(1:5 ,5) = (/ 0.904044530646049_dbl_kind, 0.964651629694555_dbl_kind, 0.968275809551522_dbl_kind, 0.972598419874107_dbl_kind, 0.977612418329876_dbl_kind /)
+      waer_5bd(1:5 ,6) = (/ 0.849818195355416_dbl_kind, 0.940460325044343_dbl_kind, 0.948316305534169_dbl_kind, 0.952841175117807_dbl_kind, 0.955379528193802_dbl_kind /)
+
       end subroutine icepack_shortwave_init_dEdd5band
 
 !=======================================================================
@@ -308,9 +614,6 @@
       character (len=*),parameter :: subname='(icepack_shortwave_init_snicartest)'
 
          nmbrad_snicar  = 5   ! snow grain radius number SNICAR SSP tables
-         nmodal1_snicar = 10  ! nModal1 in SNICAR SSP tables
-         nmodal2_snicar = 8   ! nModal2 in SNICAR SSP tables
-         nmaeros_snicar = 6   ! maxAerosolType in SNICAR SSP tables
 
          allocate(rsnw_snicar_tab(nmbrad_snicar))         ! snow grain radii
          rsnw_snicar_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
@@ -324,27 +627,13 @@
          if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
          if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
          if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
-         if (allocated(ssp_aasymmmd)) deallocate(ssp_aasymmmd)
-         if (allocated(ssp_aerextmd)) deallocate(ssp_aerextmd)
-         if (allocated(ssp_aeralbmd)) deallocate(ssp_aeralbmd)
-         if (allocated(ssp_aasymm  )) deallocate(ssp_aasymm  )
-         if (allocated(ssp_aerext  )) deallocate(ssp_aerext  )
-         if (allocated(ssp_aeralb  )) deallocate(ssp_aeralb  )
-         if (allocated(ssp_abcenhmd)) deallocate(ssp_abcenhmd)
 
-         allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, direct
-         allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, diffuse
-         allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, direct
-         allocate(ssp_snwalbdf(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, diffuse
-         allocate(ssp_sasymmdr(nspint_5bd,nmbrad_snicar )) ! snow asymmetry factor, direct
-         allocate(ssp_sasymmdf(nspint_5bd,nmbrad_snicar )) ! snow asymmetry factor, diffuse
-         allocate(ssp_aasymmmd(nspint_5bd,nmodal1_snicar)) ! gaer_bc_5bd, modalAsymmetryParameter5band
-         allocate(ssp_aerextmd(nspint_5bd,nmodal1_snicar)) ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
-         allocate(ssp_aeralbmd(nspint_5bd,nmodal1_snicar)) ! waer_bc_5bd, modalSingleScatterAlbedo5band
-         allocate(ssp_aasymm  (nspint_5bd,nmaeros_snicar)) ! gaer_5bd, aerosolAsymmetryParameter5band
-         allocate(ssp_aerext  (nspint_5bd,nmaeros_snicar)) ! kaer_5bd, aerosolMassExtinctionCrossSection5band
-         allocate(ssp_aeralb  (nspint_5bd,nmaeros_snicar)) ! waer_5bd, aerosolSingleScatterAlbedo5band
-         allocate(ssp_abcenhmd(nspint_5bd,nmodal1_snicar,nmodal2_snicar))  ! bcenh_5bd, modalBCabsorptionParameter5band
+         allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, direct
+         allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, diffuse
+         allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar)) ! single-scattering albedo, direct
+         allocate(ssp_snwalbdf(nspint_5bd,nmbrad_snicar)) ! single-scattering albedo, diffuse
+         allocate(ssp_sasymmdr(nspint_5bd,nmbrad_snicar)) ! snow asymmetry factor, direct
+         allocate(ssp_sasymmdf(nspint_5bd,nmbrad_snicar)) ! snow asymmetry factor, diffuse
 
          ! tcraig, these data statements are not consistent with the array index order
          ! reshape from nmbrad,nspint to nspint,nmbrad with order = 2,1
@@ -397,15 +686,6 @@
                0.89620237, 0.90998944, 0.94126152, 0.96209938, 0.9726631  /), &
                (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
 
-         ! tcraig, what should these be set to?  TODO
-         ssp_aasymmmd = 0._dbl_kind
-         ssp_aerextmd = 0._dbl_kind
-         ssp_aeralbmd = 0._dbl_kind
-         ssp_aasymm   = 0._dbl_kind
-         ssp_aerext   = 0._dbl_kind
-         ssp_aeralb   = 0._dbl_kind
-         ssp_abcenhmd = 0._dbl_kind
-
       end subroutine icepack_shortwave_init_snicartest
 
 !=======================================================================
@@ -423,56 +703,30 @@
          n        ! loop counter
 
       ! data in SNICAR SSP file
-      integer (kind=int_kind) :: &
-         nSpectralIntervalsSNICAR, &
-         nSnowGrainRadiusSNICAR, &
-         nModal1, &
-         nModal2, &
-         maxAerosolType
-
-      ! data in SNICAR SSP file
    real (kind=dbl_kind), allocatable :: iceAsymmetryParameterDirect(:,:)
    real (kind=dbl_kind), allocatable :: iceAsymmetryParameterDiffuse(:,:)
    real (kind=dbl_kind), allocatable :: iceSingleScatterAlbedoDirect(:,:)
    real (kind=dbl_kind), allocatable :: iceSingleScatterAlbedoDiffuse(:,:)
    real (kind=dbl_kind), allocatable :: iceMassExtinctionCrossSectionDirect(:,:)
    real (kind=dbl_kind), allocatable :: iceMassExtinctionCrossSectionDiffuse(:,:)
-   real (kind=dbl_kind), allocatable :: modalAsymmetryParameter5band(:,:)
-   real (kind=dbl_kind), allocatable :: modalMassExtinctionCrossSection5band(:,:)
-   real (kind=dbl_kind), allocatable :: modalSingleScatterAlbedo5band(:,:)
-   real (kind=dbl_kind), allocatable :: modalBCabsorptionParameter5band(:,:,:)
    real (kind=dbl_kind), allocatable :: bcEffectiveRadius(:)
    real (kind=dbl_kind), allocatable :: iceGrainEffectiveRadius(:)
-   real (kind=dbl_kind), allocatable :: aerosolAsymmetryParameter5band(:,:)
-   real (kind=dbl_kind), allocatable :: aerosolMassExtinctionCrossSection5band(:,:)
-   real (kind=dbl_kind), allocatable :: aerosolSingleScatterAlbedo5band(:,:)
 
       character(len=*),parameter :: subname='(icepack_shortwave_init_snicar)'
 
    !--- extracted from netcdf file
    !--- snicar_optics_5bnd_snow_and_aerosols.nc
 
-   nSpectralIntervalsSNICAR = 5
-   nSnowGrainRadiusSNICAR = 1471
-   nModal1 = 10
-   nModal2 = 8
-   maxAerosolType = 6
+   nmbrad_snicar   = 1471
 
-   allocate(iceAsymmetryParameterDirect(nSpectralIntervalsSNICAR, nSnowGrainRadiusSNICAR))
-   allocate(iceAsymmetryParameterDiffuse(nSpectralIntervalsSNICAR, nSnowGrainRadiusSNICAR))
-   allocate(iceSingleScatterAlbedoDirect(nSpectralIntervalsSNICAR, nSnowGrainRadiusSNICAR))
-   allocate(iceSingleScatterAlbedoDiffuse(nSpectralIntervalsSNICAR, nSnowGrainRadiusSNICAR))
-   allocate(iceMassExtinctionCrossSectionDirect(nSpectralIntervalsSNICAR, nSnowGrainRadiusSNICAR))
-   allocate(iceMassExtinctionCrossSectionDiffuse(nSpectralIntervalsSNICAR, nSnowGrainRadiusSNICAR))
-   allocate(modalAsymmetryParameter5band(nSpectralIntervalsSNICAR, nModal1))
-   allocate(modalMassExtinctionCrossSection5band(nSpectralIntervalsSNICAR, nModal1))
-   allocate(modalSingleScatterAlbedo5band(nSpectralIntervalsSNICAR, nModal1))
-   allocate(modalBCabsorptionParameter5band(nSpectralIntervalsSNICAR, nModal1, nModal2))
-   allocate(bcEffectiveRadius(nModal1))
-   allocate(iceGrainEffectiveRadius(nModal2))
-   allocate(aerosolAsymmetryParameter5band(nSpectralIntervalsSNICAR, maxAerosolType))
-   allocate(aerosolMassExtinctionCrossSection5band(nSpectralIntervalsSNICAR, maxAerosolType))
-   allocate(aerosolSingleScatterAlbedo5band(nSpectralIntervalsSNICAR, maxAerosolType))
+   allocate(iceAsymmetryParameterDirect(nspint_5bd, nmbrad_snicar))
+   allocate(iceAsymmetryParameterDiffuse(nspint_5bd, nmbrad_snicar))
+   allocate(iceSingleScatterAlbedoDirect(nspint_5bd, nmbrad_snicar))
+   allocate(iceSingleScatterAlbedoDiffuse(nspint_5bd, nmbrad_snicar))
+   allocate(iceMassExtinctionCrossSectionDirect(nspint_5bd, nmbrad_snicar))
+   allocate(iceMassExtinctionCrossSectionDiffuse(nspint_5bd, nmbrad_snicar))
+   allocate(bcEffectiveRadius(nmodal1))
+   allocate(iceGrainEffectiveRadius(nmodal2))
 
    iceAsymmetryParameterDirect(1:5 ,1) = (/ 0.883812826619966_dbl_kind, 0.883341999504413_dbl_kind, 0.882286247177836_dbl_kind, 0.883104831607199_dbl_kind, 0.898615034787299_dbl_kind /)
    iceAsymmetryParameterDirect(1:5 ,2) = (/ 0.884045703655972_dbl_kind, 0.883651330111304_dbl_kind, 0.882694799122514_dbl_kind, 0.88363100888832_dbl_kind, 0.89949035376612_dbl_kind /)
@@ -9306,157 +9560,11 @@
    iceMassExtinctionCrossSectionDiffuse(1:5 ,1470) = (/ 1.09351660138719_dbl_kind, 1.0940811048909_dbl_kind, 1.09455790787508_dbl_kind, 1.09484580360961_dbl_kind, 1.09553567789908_dbl_kind /)
    iceMassExtinctionCrossSectionDiffuse(1:5 ,1471) = (/ 1.09279138349745_dbl_kind, 1.0933552534738_dbl_kind, 1.09383156356567_dbl_kind, 1.09411906558729_dbl_kind, 1.09480823602405_dbl_kind /)
 
-   modalAsymmetryParameter5band(1:5 ,1) = (/ 0.283180657713357_dbl_kind, 0.209482088735706_dbl_kind, 0.166441061642889_dbl_kind, 0.138879205492097_dbl_kind, 0.0862017497093632_dbl_kind /)
-   modalAsymmetryParameter5band(1:5 ,2) = (/ 0.444732109704644_dbl_kind, 0.342651789871816_dbl_kind, 0.285303488980226_dbl_kind, 0.247698976619574_dbl_kind, 0.167948761949466_dbl_kind /)
-   modalAsymmetryParameter5band(1:5 ,3) = (/ 0.547091281292997_dbl_kind, 0.433969936661441_dbl_kind, 0.368367957620211_dbl_kind, 0.324886781461864_dbl_kind, 0.229171714711908_dbl_kind /)
-   modalAsymmetryParameter5band(1:5 ,4) = (/ 0.616967685845435_dbl_kind, 0.503089780780303_dbl_kind, 0.433284180500838_dbl_kind, 0.386200764739288_dbl_kind, 0.279644654892079_dbl_kind /)
-   modalAsymmetryParameter5band(1:5 ,5) = (/ 0.666598670419791_dbl_kind, 0.557497118318872_dbl_kind, 0.486364162004934_dbl_kind, 0.437315965706898_dbl_kind, 0.32323402731446_dbl_kind /)
-   modalAsymmetryParameter5band(1:5 ,6) = (/ 0.702842367361724_dbl_kind, 0.601186554981124_dbl_kind, 0.530715174055473_dbl_kind, 0.480926756372334_dbl_kind, 0.361764440902239_dbl_kind /)
-   modalAsymmetryParameter5band(1:5 ,7) = (/ 0.729916826617441_dbl_kind, 0.636706604014777_dbl_kind, 0.568216759394959_dbl_kind, 0.5185983947025_dbl_kind, 0.396259725869959_dbl_kind /)
-   modalAsymmetryParameter5band(1:5 ,8) = (/ 0.750549324881687_dbl_kind, 0.665849031271645_dbl_kind, 0.60016461579108_dbl_kind, 0.551378204757893_dbl_kind, 0.427376921191516_dbl_kind /)
-   modalAsymmetryParameter5band(1:5 ,9) = (/ 0.766559757465102_dbl_kind, 0.689942199993075_dbl_kind, 0.627527163812553_dbl_kind, 0.580037712812519_dbl_kind, 0.455582792418271_dbl_kind /)
-   modalAsymmetryParameter5band(1:5 ,10) = (/ 0.779191279240598_dbl_kind, 0.71000026362677_dbl_kind, 0.651064109101405_dbl_kind, 0.605182083087546_dbl_kind, 0.48123462598527_dbl_kind /)
+   bcEffectiveRadius (1:nmodal1) = (/ 0.05_dbl_kind, 0.1_dbl_kind, 0.15_dbl_kind, 0.2_dbl_kind, 0.25_dbl_kind, 0.3_dbl_kind, 0.35_dbl_kind, 0.4_dbl_kind, 0.45_dbl_kind, 0.5_dbl_kind /)
 
-   modalMassExtinctionCrossSection5band(1:5 ,1) = (/ 12944.1191669303_dbl_kind, 6433.8546129199_dbl_kind, 4379.35815079177_dbl_kind, 3492.51850776132_dbl_kind, 2271.71785345005_dbl_kind /)
-   modalMassExtinctionCrossSection5band(1:5 ,2) = (/ 12080.1397436577_dbl_kind, 7942.86489089621_dbl_kind, 5812.47284115357_dbl_kind, 4685.4656136674_dbl_kind, 2943.75841342826_dbl_kind /)
-   modalMassExtinctionCrossSection5band(1:5 ,3) = (/ 9752.02484228556_dbl_kind, 7698.94532514882_dbl_kind, 6190.90781492957_dbl_kind, 5232.51964498223_dbl_kind, 3463.69216361937_dbl_kind /)
-   modalMassExtinctionCrossSection5band(1:5 ,4) = (/ 7815.10345723545_dbl_kind, 6881.58135306449_dbl_kind, 5939.77102314034_dbl_kind, 5240.81549971547_dbl_kind, 3712.12933475335_dbl_kind /)
-   modalMassExtinctionCrossSection5band(1:5 ,5) = (/ 6381.18061078149_dbl_kind, 6007.04138576162_dbl_kind, 5453.04529077459_dbl_kind, 4977.11342455862_dbl_kind, 3753.42937518735_dbl_kind /)
-   modalMassExtinctionCrossSection5band(1:5 ,6) = (/ 5327.05076509938_dbl_kind, 5229.1647601636_dbl_kind, 4920.29504756471_dbl_kind, 4609.03071475928_dbl_kind, 3667.92739329671_dbl_kind /)
-   modalMassExtinctionCrossSection5band(1:5 ,7) = (/ 4538.29991082855_dbl_kind, 4575.50607606948_dbl_kind, 4417.44045147505_dbl_kind, 4220.99458200724_dbl_kind, 3514.14534131843_dbl_kind /)
-   modalMassExtinctionCrossSection5band(1:5 ,8) = (/ 3934.40205337053_dbl_kind, 4035.52102830084_dbl_kind, 3969.24444889817_dbl_kind, 3850.95782137369_dbl_kind, 3328.91108844436_dbl_kind /)
-   modalMassExtinctionCrossSection5band(1:5 ,9) = (/ 3461.43069443711_dbl_kind, 3590.1138938721_dbl_kind, 3579.26043074527_dbl_kind, 3513.60273858667_dbl_kind, 3133.888122911_dbl_kind /)
-   modalMassExtinctionCrossSection5band(1:5 ,10) = (/ 3083.24574223473_dbl_kind, 3220.83851695162_dbl_kind, 3243.02488284297_dbl_kind, 3212.5874258974_dbl_kind, 2941.20365863075_dbl_kind /)
-
-   modalSingleScatterAlbedo5band(1:5 ,1) = (/ 0.260958704071654_dbl_kind, 0.16805845111727_dbl_kind, 0.11411468355425_dbl_kind, 0.0845902711417414_dbl_kind, 0.0447050517464244_dbl_kind /)
-   modalSingleScatterAlbedo5band(1:5 ,2) = (/ 0.375522113298175_dbl_kind, 0.31235052399053_dbl_kind, 0.26288498209907_dbl_kind, 0.22723691750397_dbl_kind, 0.159075641626696_dbl_kind /)
-   modalSingleScatterAlbedo5band(1:5 ,3) = (/ 0.422185378147481_dbl_kind, 0.376555779043625_dbl_kind, 0.33936407097995_dbl_kind, 0.310215627605754_dbl_kind, 0.245905521445928_dbl_kind /)
-   modalSingleScatterAlbedo5band(1:5 ,4) = (/ 0.447724362399737_dbl_kind, 0.411125469751176_dbl_kind, 0.382216922622453_dbl_kind, 0.358710570753989_dbl_kind, 0.302535187827444_dbl_kind /)
-   modalSingleScatterAlbedo5band(1:5 ,5) = (/ 0.464398385288602_dbl_kind, 0.432573637322427_dbl_kind, 0.40912325097991_dbl_kind, 0.389777582190663_dbl_kind, 0.340897831337878_dbl_kind /)
-   modalSingleScatterAlbedo5band(1:5 ,6) = (/ 0.476625494212487_dbl_kind, 0.447308005754231_dbl_kind, 0.427510535024552_dbl_kind, 0.411226212689519_dbl_kind, 0.368348762641282_dbl_kind /)
-   modalSingleScatterAlbedo5band(1:5 ,7) = (/ 0.486304785993923_dbl_kind, 0.458261662359298_dbl_kind, 0.440925436651717_dbl_kind, 0.426916054656286_dbl_kind, 0.38894085673284_dbl_kind /)
-   modalSingleScatterAlbedo5band(1:5 ,8) = (/ 0.494354868140575_dbl_kind, 0.4669281500285_dbl_kind, 0.451247969458627_dbl_kind, 0.43894010429319_dbl_kind, 0.40499178204751_dbl_kind /)
-   modalSingleScatterAlbedo5band(1:5 ,9) = (/ 0.501264988054309_dbl_kind, 0.47412360289998_dbl_kind, 0.459551339156444_dbl_kind, 0.448519783558473_dbl_kind, 0.417901240195357_dbl_kind /)
-   modalSingleScatterAlbedo5band(1:5 ,10) = (/ 0.507319636821098_dbl_kind, 0.480317417860846_dbl_kind, 0.466481312779405_dbl_kind, 0.456408044720941_dbl_kind, 0.428557864653526_dbl_kind /)
-
-   modalBCabsorptionParameter5band(1:5 ,1,1) = (/ 2.01085868366548_dbl_kind, 2.04133313210786_dbl_kind, 2.07508000300547_dbl_kind, 1.96633438024084_dbl_kind, 1.41689382160734_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,2,1) = (/ 2.06240193763163_dbl_kind, 2.00779624447446_dbl_kind, 2.03535206238544_dbl_kind, 1.93696335633222_dbl_kind, 1.42085892146856_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,3,1) = (/ 2.16245417515345_dbl_kind, 2.03367512749659_dbl_kind, 2.03217185662912_dbl_kind, 1.92216538758257_dbl_kind, 1.41057880313765_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,4,1) = (/ 2.26075013581323_dbl_kind, 2.08270396815669_dbl_kind, 2.05598320187322_dbl_kind, 1.93005028646658_dbl_kind, 1.40362921606229_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,5,1) = (/ 2.34824623202129_dbl_kind, 2.13751008192628_dbl_kind, 2.09204530638863_dbl_kind, 1.95135851042228_dbl_kind, 1.4023767146298_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,6,1) = (/ 2.4245821026032_dbl_kind, 2.19151236157797_dbl_kind, 2.13262602986381_dbl_kind, 1.97935233613122_dbl_kind, 1.40560606928656_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,7,1) = (/ 2.49120967497054_dbl_kind, 2.24239779808293_dbl_kind, 2.17377807033259_dbl_kind, 2.01017733622214_dbl_kind, 1.41189694037042_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,8,1) = (/ 2.54974120400747_dbl_kind, 2.2895387842995_dbl_kind, 2.21382769032984_dbl_kind, 2.04172990500999_dbl_kind, 1.42017827052267_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,9,1) = (/ 2.60156969843265_dbl_kind, 2.33296656241086_dbl_kind, 2.25201772913892_dbl_kind, 2.07288930404508_dbl_kind, 1.42971387107226_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,10,1) = (/ 2.64782205756202_dbl_kind, 2.37295227907137_dbl_kind, 2.28808322951764_dbl_kind, 2.10308108574029_dbl_kind, 1.44000988888373_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,1,2) = (/ 1.93095248830255_dbl_kind, 2.00671847586146_dbl_kind, 2.00719477963142_dbl_kind, 1.84522141815519_dbl_kind, 1.0759084306113_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,2,2) = (/ 1.9692253934491_dbl_kind, 1.97261097531431_dbl_kind, 1.97018044809597_dbl_kind, 1.81698805576196_dbl_kind, 1.07910761278501_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,3,2) = (/ 2.0569305238012_dbl_kind, 1.99733517977522_dbl_kind, 1.96791189681145_dbl_kind, 1.80196522204901_dbl_kind, 1.07130151751929_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,4,2) = (/ 2.14496096212491_dbl_kind, 2.04502142936022_dbl_kind, 1.99149039012804_dbl_kind, 1.80835190349595_dbl_kind, 1.06588237810724_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,5,2) = (/ 2.22407771486646_dbl_kind, 2.09850387281167_dbl_kind, 2.02679018049782_dbl_kind, 1.82750693049481_dbl_kind, 1.06472566849715_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,6,2) = (/ 2.29354361051981_dbl_kind, 2.15127410474977_dbl_kind, 2.06629477010126_dbl_kind, 1.85307952087923_dbl_kind, 1.06695130591868_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,7,2) = (/ 2.35447198629787_dbl_kind, 2.20103710784166_dbl_kind, 2.10637650326798_dbl_kind, 1.88142263401342_dbl_kind, 1.07150133206641_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,8,2) = (/ 2.40820994383032_dbl_kind, 2.24716243339933_dbl_kind, 2.14535203369221_dbl_kind, 1.91053883285925_dbl_kind, 1.07757202807584_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,9,2) = (/ 2.45595109315931_dbl_kind, 2.28967140910979_dbl_kind, 2.18249764512321_dbl_kind, 1.93935882511077_dbl_kind, 1.08460855322213_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,10,2) = (/ 2.49867376345289_dbl_kind, 2.32882370197717_dbl_kind, 2.21756305829645_dbl_kind, 1.96733017018785_dbl_kind, 1.09223739315287_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,1,3) = (/ 1.91585309392631_dbl_kind, 1.96967352324366_dbl_kind, 1.96009968122517_dbl_kind, 1.68080965604958_dbl_kind, 0.59179696632248_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,2,3) = (/ 1.95350884507749_dbl_kind, 1.93742852972506_dbl_kind, 1.92365694040103_dbl_kind, 1.65420258116929_dbl_kind, 0.593740739460229_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,3,3) = (/ 2.04035073356608_dbl_kind, 1.96236202642718_dbl_kind, 1.92122593826873_dbl_kind, 1.6389418244479_dbl_kind, 0.589846868165608_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,4,3) = (/ 2.12759603009265_dbl_kind, 2.00961752368397_dbl_kind, 1.94409212769693_dbl_kind, 1.6433504376276_dbl_kind, 0.587192323341285_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,5,3) = (/ 2.20604474780993_dbl_kind, 2.06245283901475_dbl_kind, 1.97843797212714_dbl_kind, 1.65962990443543_dbl_kind, 0.586790173437158_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,6,3) = (/ 2.27494671729217_dbl_kind, 2.11452075480442_dbl_kind, 2.01700243919087_dbl_kind, 1.68195669719917_dbl_kind, 0.588180543026505_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,7,3) = (/ 2.33539514630735_dbl_kind, 2.16358888576982_dbl_kind, 2.05606743772564_dbl_kind, 1.70696657730997_dbl_kind, 0.590803092976719_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,8,3) = (/ 2.38871953142276_dbl_kind, 2.20905043144983_dbl_kind, 2.09406451723796_dbl_kind, 1.7328071260566_dbl_kind, 0.594230523360484_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,9,3) = (/ 2.43609975131583_dbl_kind, 2.25093431540464_dbl_kind, 2.1302842143625_dbl_kind, 1.75847955247898_dbl_kind, 0.598167328207445_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,10,3) = (/ 2.47850378585028_dbl_kind, 2.28950111063737_dbl_kind, 2.16448018258101_dbl_kind, 1.78346181192778_dbl_kind, 0.602414429295388_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,1,4) = (/ 1.90672644767849_dbl_kind, 1.95728818232617_dbl_kind, 1.91897760144748_dbl_kind, 1.52351339105988_dbl_kind, 0.2856750536761_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,2,4) = (/ 1.94433061417967_dbl_kind, 1.92520391124637_dbl_kind, 1.88324629837065_dbl_kind, 1.49885892176041_dbl_kind, 0.286675433333491_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,3,4) = (/ 2.03088473930652_dbl_kind, 1.94993972535292_dbl_kind, 1.88079705335263_dbl_kind, 1.4841126290055_dbl_kind, 0.285045919810642_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,4,4) = (/ 2.11781824183707_dbl_kind, 1.99686494434747_dbl_kind, 1.90313037410511_dbl_kind, 1.48729958815793_dbl_kind, 0.283994128672286_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,5,4) = (/ 2.19597517944483_dbl_kind, 2.04934129186202_dbl_kind, 1.93671708289151_dbl_kind, 1.50138740089174_dbl_kind, 0.283979887790801_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,6,4) = (/ 2.26461303017531_dbl_kind, 2.10106009736148_dbl_kind, 1.97435597077173_dbl_kind, 1.521073249671_dbl_kind, 0.284789256577519_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,7,4) = (/ 2.3248240816686_dbl_kind, 2.14980196580654_dbl_kind, 2.01256991861794_dbl_kind, 1.54328272090356_dbl_kind, 0.286162594084878_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,8,4) = (/ 2.3779349732592_dbl_kind, 2.1949631106279_dbl_kind, 2.04974391892188_dbl_kind, 1.56631751882822_dbl_kind, 0.287901980282528_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,9,4) = (/ 2.42512255483062_dbl_kind, 2.23657164478165_dbl_kind, 2.08518221689877_dbl_kind, 1.58925799258076_dbl_kind, 0.2898706320179_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,10,4) = (/ 2.46735205354131_dbl_kind, 2.274886005391_dbl_kind, 2.1186427508733_dbl_kind, 1.61162011811624_dbl_kind, 0.291976528925237_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,1,5) = (/ 1.89867647191471_dbl_kind, 1.94807456713651_dbl_kind, 1.881998255131_dbl_kind, 1.4042673172787_dbl_kind, 0.160591841632584_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,2,5) = (/ 1.93619524467095_dbl_kind, 1.91604124756277_dbl_kind, 1.84690908713309_dbl_kind, 1.38128161669944_dbl_kind, 0.161178869198082_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,3,5) = (/ 2.0223409055861_dbl_kind, 1.94057626469304_dbl_kind, 1.84443760681477_dbl_kind, 1.3673028890037_dbl_kind, 0.160360280890161_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,4,5) = (/ 2.10882091872199_dbl_kind, 1.98721817857084_dbl_kind, 1.86628271260137_dbl_kind, 1.36990699665007_dbl_kind, 0.159858752620932_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,5,5) = (/ 2.18654488079119_dbl_kind, 2.03940039330662_dbl_kind, 1.89917614160759_dbl_kind, 1.38261979356805_dbl_kind, 0.159921181308761_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,6,5) = (/ 2.25478556857455_dbl_kind, 2.09083933491043_dbl_kind, 1.93605537053396_dbl_kind, 1.40054119827002_dbl_kind, 0.160430275376893_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,7,5) = (/ 2.31463677856253_dbl_kind, 2.13932311562854_dbl_kind, 1.97350315915034_dbl_kind, 1.42082635090228_dbl_kind, 0.161244236354913_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,8,5) = (/ 2.36742266598385_dbl_kind, 2.18424880883966_dbl_kind, 2.00993636804643_dbl_kind, 1.44190170672523_dbl_kind, 0.162255036646285_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,9,5) = (/ 2.41431655157797_dbl_kind, 2.22564299805269_dbl_kind, 2.04467151274813_dbl_kind, 1.46291363103416_dbl_kind, 0.163388069865313_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,10,5) = (/ 2.45628005869902_dbl_kind, 2.26376189572524_dbl_kind, 2.07747034796467_dbl_kind, 1.48341153176869_dbl_kind, 0.164593206197625_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,1,6) = (/ 1.89418663016821_dbl_kind, 1.94091710412984_dbl_kind, 1.84622848287114_dbl_kind, 1.30255089681936_dbl_kind, 0.098483858462836_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,2,6) = (/ 1.93159232417903_dbl_kind, 1.90886115724064_dbl_kind, 1.81172529149757_dbl_kind, 1.28111548264923_dbl_kind, 0.0988562059622643_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,3,6) = (/ 2.01753914444024_dbl_kind, 1.93319311880197_dbl_kind, 1.80921451143445_dbl_kind, 1.26796068554138_dbl_kind, 0.0983978116731492_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,4,6) = (/ 2.10383351130493_dbl_kind, 1.97958216029892_dbl_kind, 1.83057653581059_dbl_kind, 1.27021211695359_dbl_kind, 0.0981299700083134_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,5,6) = (/ 2.18140322971526_dbl_kind, 2.03149297511205_dbl_kind, 1.86279162835321_dbl_kind, 1.28187019646779_dbl_kind, 0.098199185372061_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,6,6) = (/ 2.24951550749452_dbl_kind, 2.08269363694761_dbl_kind, 1.89892485058734_dbl_kind, 1.29838388707867_dbl_kind, 0.0985349399895448_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,7,6) = (/ 2.30926076563282_dbl_kind, 2.13096027537119_dbl_kind, 1.93562599960626_dbl_kind, 1.3171088717836_dbl_kind, 0.0990521610544031_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,8,6) = (/ 2.36195834728809_dbl_kind, 2.17568957538176_dbl_kind, 1.97133789840367_dbl_kind, 1.33658147936655_dbl_kind, 0.0996860550013943_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,9,6) = (/ 2.40877775516896_dbl_kind, 2.21690619911267_dbl_kind, 2.0053887500366_dbl_kind, 1.35600690986615_dbl_kind, 0.100391895795296_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,10,6) = (/ 2.45067776198751_dbl_kind, 2.25486408585975_dbl_kind, 2.03754387915688_dbl_kind, 1.37496497414564_dbl_kind, 0.101139658510172_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,1,7) = (/ 1.8898407988674_dbl_kind, 1.93349866190539_dbl_kind, 1.81165805631067_dbl_kind, 1.21086211627226_dbl_kind, 0.0639927299752619_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,2,7) = (/ 1.92726743592625_dbl_kind, 1.90143347118491_dbl_kind, 1.77772917537379_dbl_kind, 1.19106001747711_dbl_kind, 0.064241780706825_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,3,7) = (/ 2.01310466603341_dbl_kind, 1.92556961967173_dbl_kind, 1.77518652640106_dbl_kind, 1.17869634139483_dbl_kind, 0.0639657849860226_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,4,7) = (/ 2.09927399606475_dbl_kind, 1.97170510850255_dbl_kind, 1.79608613617107_dbl_kind, 1.18057464600288_dbl_kind, 0.0638113078299023_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,5,7) = (/ 2.17672489152732_dbl_kind, 2.02337778137591_dbl_kind, 1.82764917978241_dbl_kind, 1.19116266115224_dbl_kind, 0.0638713068477278_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,6,7) = (/ 2.2447323037953_dbl_kind, 2.07433923799976_dbl_kind, 1.86305867559311_dbl_kind, 1.20841096309504_dbl_kind, 0.0641007406105561_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,7,7) = (/ 2.30438425846541_dbl_kind, 2.12238686220719_dbl_kind, 1.89904000093039_dbl_kind, 1.22579100032108_dbl_kind, 0.0644452998987116_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,8,7) = (/ 2.3569984474224_dbl_kind, 2.16691740841079_dbl_kind, 1.93405621565909_dbl_kind, 1.24387586495275_dbl_kind, 0.0648636211415022_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,9,7) = (/ 2.4037427324266_dbl_kind, 2.20795386848329_dbl_kind, 1.96744690263512_dbl_kind, 1.2619237632143_dbl_kind, 0.0653271600625114_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,10,7) = (/ 2.44557448046568_dbl_kind, 2.24574805834547_dbl_kind, 1.99898089500271_dbl_kind, 1.27954213788229_dbl_kind, 0.0658167678826765_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,1,8) = (/ 1.88623754217592_dbl_kind, 1.9263648659218_dbl_kind, 1.77795918152236_dbl_kind, 1.13227177143423_dbl_kind, 0.0434147123324349_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,2,8) = (/ 1.92369424467697_dbl_kind, 1.8942558864284_dbl_kind, 1.74459158351539_dbl_kind, 1.1135113265668_dbl_kind, 0.0435893033924684_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,3,8) = (/ 2.00945846267708_dbl_kind, 1.91818299493273_dbl_kind, 1.74202123236172_dbl_kind, 1.10187775406683_dbl_kind, 0.043414854260165_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,4,8) = (/ 2.09554589746963_dbl_kind, 1.96406200367393_dbl_kind, 1.76247271743548_dbl_kind, 1.10366507349996_dbl_kind, 0.0433211088148566_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,5,8) = (/ 2.17292182481109_dbl_kind, 2.01547921320266_dbl_kind, 1.79340178912967_dbl_kind, 1.11366185926902_dbl_kind, 0.0433701544141689_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,6,8) = (/ 2.24086221282091_dbl_kind, 2.06620238481792_dbl_kind, 1.82812292792437_dbl_kind, 1.12790506098243_dbl_kind, 0.0435319637410063_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,7,8) = (/ 2.30045372513647_dbl_kind, 2.11403292203795_dbl_kind, 1.86340498643423_dbl_kind, 1.14408997199748_dbl_kind, 0.0437702684169416_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,8,8) = (/ 2.35301272208646_dbl_kind, 2.15836713295615_dbl_kind, 1.89774509946483_dbl_kind, 1.16093986738741_dbl_kind, 0.0440574325725808_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,9,8) = (/ 2.39970609592023_dbl_kind, 2.19922606974399_dbl_kind, 1.9304940073545_dbl_kind, 1.17776068893983_dbl_kind, 0.044374386922134_dbl_kind /)
-   modalBCabsorptionParameter5band(1:5 ,10,8) = (/ 2.44149053760016_dbl_kind, 2.23685927813827_dbl_kind, 1.96142401595058_dbl_kind, 1.19418484664932_dbl_kind, 0.0447083456286085_dbl_kind /)
-
-   bcEffectiveRadius (1:nModal1) = (/ 0.05_dbl_kind, 0.1_dbl_kind, 0.15_dbl_kind, 0.2_dbl_kind, 0.25_dbl_kind, 0.3_dbl_kind, 0.35_dbl_kind, 0.4_dbl_kind, 0.45_dbl_kind, 0.5_dbl_kind /)
-
-   iceGrainEffectiveRadius (1:nModal2) = (/ 50_dbl_kind, 100_dbl_kind, 250_dbl_kind, 500_dbl_kind, 750_dbl_kind, 1000_dbl_kind, 1250_dbl_kind, 1500_dbl_kind /)
-
-   aerosolAsymmetryParameter5band(1:5 ,1) = (/ 0.350231881885906_dbl_kind, 0.211924244128064_dbl_kind, 0.146188682542913_dbl_kind, 0.112009439045293_dbl_kind, 0.060565694843084_dbl_kind /)
-   aerosolAsymmetryParameter5band(1:5 ,2) = (/ 0.521517715996158_dbl_kind, 0.34457189840306_dbl_kind, 0.244048159248401_dbl_kind, 0.188518513380877_dbl_kind, 0.103316928297739_dbl_kind /)
-   aerosolAsymmetryParameter5band(1:5 ,3) = (/ 0.690908112844937_dbl_kind, 0.717759065247993_dbl_kind, 0.671511248292627_dbl_kind, 0.614225462567888_dbl_kind, 0.436682950958558_dbl_kind /)
-   aerosolAsymmetryParameter5band(1:5 ,4) = (/ 0.699478684452806_dbl_kind, 0.651992387581091_dbl_kind, 0.695738438913831_dbl_kind, 0.724417176862696_dbl_kind, 0.701481090364134_dbl_kind /)
-   aerosolAsymmetryParameter5band(1:5 ,5) = (/ 0.785636278417498_dbl_kind, 0.749796744517699_dbl_kind, 0.683301177698451_dbl_kind, 0.629720518882672_dbl_kind, 0.665531587501598_dbl_kind /)
-   aerosolAsymmetryParameter5band(1:5 ,6) = (/ 0.829747716843613_dbl_kind, 0.785685490791679_dbl_kind, 0.772583689570701_dbl_kind, 0.757648539242581_dbl_kind, 0.728843851070574_dbl_kind /)
-
-   aerosolMassExtinctionCrossSection5band(1:5 ,1) = (/ 11398.4540724821_dbl_kind, 5922.76076637376_dbl_kind, 4039.88947595266_dbl_kind, 3261.62137894056_dbl_kind, 2223.60028513459_dbl_kind /)
-   aerosolMassExtinctionCrossSection5band(1:5 ,2) = (/ 25368.6111954733_dbl_kind, 12520.3846877849_dbl_kind, 7738.643174918_dbl_kind, 5744.35461327268_dbl_kind, 3526.76546641382_dbl_kind /)
-   aerosolMassExtinctionCrossSection5band(1:5 ,3) = (/ 2686.90326329624_dbl_kind, 2419.98140297723_dbl_kind, 1627.51690973548_dbl_kind, 1138.23252303209_dbl_kind, 466.104227277046_dbl_kind /)
-   aerosolMassExtinctionCrossSection5band(1:5 ,4) = (/ 841.089434044834_dbl_kind, 987.406197502421_dbl_kind, 1183.52284776972_dbl_kind, 1267.30625580205_dbl_kind, 993.497508579304_dbl_kind /)
-   aerosolMassExtinctionCrossSection5band(1:5 ,5) = (/ 387.85423560755_dbl_kind, 419.109723948302_dbl_kind, 399.559447343404_dbl_kind, 397.191283865122_dbl_kind, 503.14317519429_dbl_kind /)
-   aerosolMassExtinctionCrossSection5band(1:5 ,6) = (/ 196.638063554016_dbl_kind, 202.877379461792_dbl_kind, 208.304425287341_dbl_kind, 204.723737634461_dbl_kind, 228.755667038372_dbl_kind /)
-
-   aerosolSingleScatterAlbedo5band(1:5 ,1) = (/ 0.287685315976181_dbl_kind, 0.186577277125224_dbl_kind, 0.123152237089201_dbl_kind, 0.0883462885905543_dbl_kind, 0.0403421562269378_dbl_kind /)
-   aerosolSingleScatterAlbedo5band(1:5 ,2) = (/ 0.515945305512804_dbl_kind, 0.434313626536424_dbl_kind, 0.346103765992635_dbl_kind, 0.275522926330555_dbl_kind, 0.138576096442815_dbl_kind /)
-   aerosolSingleScatterAlbedo5band(1:5 ,3) = (/ 0.97891105715305_dbl_kind, 0.994175916042451_dbl_kind, 0.993357580762207_dbl_kind, 0.992545751316266_dbl_kind, 0.953291550046772_dbl_kind /)
-   aerosolSingleScatterAlbedo5band(1:5 ,4) = (/ 0.943752248802793_dbl_kind, 0.984191668599419_dbl_kind, 0.989309063917025_dbl_kind, 0.991793946836264_dbl_kind, 0.982999590668913_dbl_kind /)
-   aerosolSingleScatterAlbedo5band(1:5 ,5) = (/ 0.904044530646049_dbl_kind, 0.964651629694555_dbl_kind, 0.968275809551522_dbl_kind, 0.972598419874107_dbl_kind, 0.977612418329876_dbl_kind /)
-   aerosolSingleScatterAlbedo5band(1:5 ,6) = (/ 0.849818195355416_dbl_kind, 0.940460325044343_dbl_kind, 0.948316305534169_dbl_kind, 0.952841175117807_dbl_kind, 0.955379528193802_dbl_kind /)
+   iceGrainEffectiveRadius (1:nmodal2) = (/ 50_dbl_kind, 100_dbl_kind, 250_dbl_kind, 500_dbl_kind, 750_dbl_kind, 1000_dbl_kind, 1250_dbl_kind, 1500_dbl_kind /)
 
 ! Copy to local variables
-
-      if (nSpectralIntervalsSNICAR /= nspint_5bd) then
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         call icepack_warnings_add(subname//' ERROR: nSpectralIntervalsSNICAR ne nspint_5bd')
-         return
-      endif
-
-      nmbrad_snicar   = nSnowGrainRadiusSNICAR
-      nmodal1_snicar  = nModal1
-      nmodal2_snicar  = nModal2
-      nmaeros_snicar  = maxAerosolType
 
 !echmod - this might not be needed
       rsnw_snicar_min = 30   ! minimum snow grain radius
@@ -9473,27 +9581,13 @@
       if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
       if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
       if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
-      if (allocated(ssp_aasymmmd)) deallocate(ssp_aasymmmd)
-      if (allocated(ssp_aerextmd)) deallocate(ssp_aerextmd)
-      if (allocated(ssp_aeralbmd)) deallocate(ssp_aeralbmd)
-      if (allocated(ssp_aasymm  )) deallocate(ssp_aasymm  )
-      if (allocated(ssp_aerext  )) deallocate(ssp_aerext  )
-      if (allocated(ssp_aeralb  )) deallocate(ssp_aeralb  )
-      if (allocated(ssp_abcenhmd)) deallocate(ssp_abcenhmd)
 
-      allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, direct
-      allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, diffuse
-      allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, direct
-      allocate(ssp_snwalbdf(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, diffuse
-      allocate(ssp_sasymmdr(nspint_5bd,nmbrad_snicar )) ! snow asymmetry factor, direct
-      allocate(ssp_sasymmdf(nspint_5bd,nmbrad_snicar )) ! snow asymmetry factor, diffuse
-      allocate(ssp_aasymmmd(nspint_5bd,nmodal1_snicar)) ! gaer_bc_5bd, modalAsymmetryParameter5band
-      allocate(ssp_aerextmd(nspint_5bd,nmodal1_snicar)) ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
-      allocate(ssp_aeralbmd(nspint_5bd,nmodal1_snicar)) ! waer_bc_5bd, modalSingleScatterAlbedo5band
-      allocate(ssp_aasymm  (nspint_5bd,nmaeros_snicar)) ! gaer_5bd, aerosolAsymmetryParameter5band
-      allocate(ssp_aerext  (nspint_5bd,nmaeros_snicar)) ! kaer_5bd, aerosolMassExtinctionCrossSection5band
-      allocate(ssp_aeralb  (nspint_5bd,nmaeros_snicar)) ! waer_5bd, aerosolSingleScatterAlbedo5band
-      allocate(ssp_abcenhmd(nspint_5bd,nmodal1_snicar,nmodal2_snicar))  ! bcenh_5bd, modalBCabsorptionParameter5band
+      allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, direct
+      allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, diffuse
+      allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar)) ! single-scattering albedo, direct
+      allocate(ssp_snwalbdf(nspint_5bd,nmbrad_snicar)) ! single-scattering albedo, diffuse
+      allocate(ssp_sasymmdr(nspint_5bd,nmbrad_snicar)) ! snow asymmetry factor, direct
+      allocate(ssp_sasymmdf(nspint_5bd,nmbrad_snicar)) ! snow asymmetry factor, diffuse
 
       ssp_snwextdr(:,:)   = iceMassExtinctionCrossSectionDirect(:,:)
       ssp_snwextdf(:,:)   = iceMassExtinctionCrossSectionDiffuse(:,:)
@@ -9501,13 +9595,6 @@
       ssp_snwalbdf(:,:)   = iceSingleScatterAlbedoDiffuse(:,:)
       ssp_sasymmdr(:,:)   = iceAsymmetryParameterDirect(:,:)
       ssp_sasymmdf(:,:)   = iceAsymmetryParameterDiffuse(:,:)
-      ssp_aasymmmd(:,:)   = modalAsymmetryParameter5band(:,:)
-      ssp_aerextmd(:,:)   = modalMassExtinctionCrossSection5band(:,:)
-      ssp_aeralbmd(:,:)   = modalSingleScatterAlbedo5band(:,:)
-      ssp_aasymm  (:,:)   = aerosolAsymmetryParameter5band(:,:)
-      ssp_aerext  (:,:)   = aerosolMassExtinctionCrossSection5band(:,:)
-      ssp_aeralb  (:,:)   = aerosolSingleScatterAlbedo5band(:,:)
-      ssp_abcenhmd(:,:,:) = modalBCabsorptionParameter5band(:,:,:)
 
    deallocate(iceAsymmetryParameterDirect)
    deallocate(iceAsymmetryParameterDiffuse)
@@ -9515,15 +9602,8 @@
    deallocate(iceSingleScatterAlbedoDiffuse)
    deallocate(iceMassExtinctionCrossSectionDirect)
    deallocate(iceMassExtinctionCrossSectionDiffuse)
-   deallocate(modalAsymmetryParameter5band)
-   deallocate(modalMassExtinctionCrossSection5band)
-   deallocate(modalSingleScatterAlbedo5band)
-   deallocate(modalBCabsorptionParameter5band)
    deallocate(bcEffectiveRadius)
    deallocate(iceGrainEffectiveRadius)
-   deallocate(aerosolAsymmetryParameter5band)
-   deallocate(aerosolMassExtinctionCrossSection5band)
-   deallocate(aerosolSingleScatterAlbedo5band)
 #endif
 
       end subroutine icepack_shortwave_init_snicar

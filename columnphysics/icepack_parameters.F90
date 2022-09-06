@@ -9,17 +9,6 @@
       use icepack_kinds
       use icepack_warnings, only: icepack_warnings_aborted, &
           icepack_warnings_add, icepack_warnings_setabort
-      use icepack_shortwave_data, only: &
-          use_snicar   ,                 &
-          nspint_3bd   , nspint_5bd  ,   &
-          snw_ssp_table,                 &
-          ssp_snwextdr , ssp_snwextdf,   &
-          ssp_snwalbdr , ssp_snwalbdf,   &
-          ssp_sasymmdr , ssp_sasymmdf,   &
-          ssp_aasymmmd , ssp_aerextmd,   &
-          ssp_aeralbmd , ssp_aasymm  ,   &
-          ssp_aerext   , ssp_aeralb  ,   &
-          ssp_abcenhmd
 
       implicit none
       private
@@ -236,6 +225,12 @@
       real (kind=dbl_kind), public :: &
          sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
          sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
+
+      ! Parameters for dEdd_snicar
+      logical (kind=log_kind), public :: &
+         use_snicar = .false.     ! .true. use 5-band SNICAR-AD approach
+      character (len=char_len), public :: &
+         snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test'
 
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
@@ -495,11 +490,7 @@
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
-         snw_aging_table_in, snw_ssp_table_in, &
-         ssp_snwextdr_in, ssp_snwextdf_in, ssp_snwalbdr_in, ssp_snwalbdf_in, &
-         ssp_sasymmdr_in, ssp_sasymmdf_in, &
-         ssp_aasymmmd_in, ssp_aerextmd_in, ssp_aeralbmd_in, ssp_abcenhmd_in, &
-         ssp_aasymm_in, ssp_aerext_in, ssp_aeralb_in )
+         snw_aging_table_in, snw_ssp_table_in )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -853,26 +844,8 @@
          snowage_kappa_in, &!
          snowage_drdt0_in   ! (10^-6 m/hr)
 
-      ! Parameters for dEdd_snicar
       character (len=char_len), intent(in), optional :: &
-         snw_ssp_table_in   ! lookup table: 'snicar' or 'test' or 'file'
-
-      real (kind=dbl_kind), dimension(:,:), intent(in), optional :: &
-         ssp_snwextdr_in, & ! snow mass extinction cross section (m2/kg), direct
-         ssp_snwextdf_in, & ! snow mass extinction cross section (m2/kg), diffuse
-         ssp_snwalbdr_in, & ! snow single scatter albedo (fraction), direct
-         ssp_snwalbdf_in, & ! snow single scatter albedo (fraction), diffuse
-         ssp_sasymmdr_in, & ! snow asymmetry factor (cos(theta)), direct
-         ssp_sasymmdf_in, & ! snow asymmetry factor (cos(theta)), diffuse
-         ssp_aasymmmd_in, & ! gaer_bc_5bd, modalAsymmetryParameter5band
-         ssp_aerextmd_in, & ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
-         ssp_aeralbmd_in, & ! waer_bc_5bd, modalSingleScatterAlbedo5band
-         ssp_aasymm_in,   & ! gaer_5bd, aerosolAsymmetryParameter5band
-         ssp_aerext_in,   & ! kaer_5bd, aerosolMassExtinctionCrossSection5band
-         ssp_aeralb_in      ! waer_5bd, aerosolSingleScatterAlbedo5band
-      real (kind=dbl_kind), dimension(:,:,:), intent(in), optional :: &
-         ssp_abcenhmd_in    ! bcenh_5bd, modalBCabsorptionParameter5band
-
+         snw_ssp_table_in   ! lookup table: 'snicar' or 'test'
 
 !autodocument_end
 
@@ -1121,118 +1094,7 @@
          endif
       endif
 
-      !-------------------
-      ! SNICAR SSP table
-      !-------------------
-      if (present(snw_ssp_table_in)     )  snw_ssp_table    = snw_ssp_table_in
-
-      ! allocate and copy SNICAR SSP table data
-
-      if (present(ssp_snwextdr_in)      ) then
-         if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
-         dim1 = size(ssp_snwextdr_in,dim=1)
-         dim2 = size(ssp_snwextdr_in,dim=2)
-         allocate(ssp_snwextdr(dim1,dim2))
-         ssp_snwextdr     = ssp_snwextdr_in
-      endif
-
-      if (present(ssp_snwextdf_in)      ) then
-         if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
-         dim1 = size(ssp_snwextdf_in,dim=1)
-         dim2 = size(ssp_snwextdf_in,dim=2)
-         allocate(ssp_snwextdf(dim1,dim2))
-         ssp_snwextdf     = ssp_snwextdf_in
-      endif
-
-      if (present(ssp_snwalbdr_in)      ) then
-         if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
-         dim1 = size(ssp_snwalbdr_in,dim=1)
-         dim2 = size(ssp_snwalbdr_in,dim=2)
-         allocate(ssp_snwalbdr(dim1,dim2))
-         ssp_snwalbdr     = ssp_snwalbdr_in
-      endif
-
-      if (present(ssp_snwalbdf_in)      ) then
-         if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
-         dim1 = size(ssp_snwalbdf_in,dim=1)
-         dim2 = size(ssp_snwalbdf_in,dim=2)
-         allocate(ssp_snwalbdf(dim1,dim2))
-         ssp_snwalbdf     = ssp_snwalbdf_in
-      endif
-
-      if (present(ssp_sasymmdr_in)      ) then
-         if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
-         dim1 = size(ssp_sasymmdr_in,dim=1)
-         dim2 = size(ssp_sasymmdr_in,dim=2)
-         allocate(ssp_sasymmdr(dim1,dim2))
-         ssp_sasymmdr     = ssp_sasymmdr_in
-      endif
-
-      if (present(ssp_sasymmdf_in)      ) then
-         if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
-         dim1 = size(ssp_sasymmdf_in,dim=1)
-         dim2 = size(ssp_sasymmdf_in,dim=2)
-         allocate(ssp_sasymmdf(dim1,dim2))
-         ssp_sasymmdf     = ssp_sasymmdf_in
-      endif
-
-      if (present(ssp_aasymmmd_in)      ) then
-         if (allocated(ssp_aasymmmd)) deallocate(ssp_aasymmmd)
-         dim1 = size(ssp_aasymmmd_in,dim=1)
-         dim2 = size(ssp_aasymmmd_in,dim=2)
-         allocate(ssp_aasymmmd(dim1,dim2))
-         ssp_aasymmmd     = ssp_aasymmmd_in
-      endif
-
-      if (present(ssp_aerextmd_in)      ) then
-         if (allocated(ssp_aerextmd)) deallocate(ssp_aerextmd)
-         dim1 = size(ssp_aerextmd_in,dim=1)
-         dim2 = size(ssp_aerextmd_in,dim=2)
-         allocate(ssp_aerextmd(dim1,dim2))
-         ssp_aerextmd     = ssp_aerextmd_in
-      endif
-
-      if (present(ssp_aeralbmd_in)      ) then
-         if (allocated(ssp_aeralbmd)) deallocate(ssp_aeralbmd)
-         dim1 = size(ssp_aeralbmd_in,dim=1)
-         dim2 = size(ssp_aeralbmd_in,dim=2)
-         allocate(ssp_aeralbmd(dim1,dim2))
-         ssp_aeralbmd     = ssp_aeralbmd_in
-      endif
-
-      if (present(ssp_aasymm_in)      ) then
-         if (allocated(ssp_aasymm)) deallocate(ssp_aasymm)
-         dim1 = size(ssp_aasymm_in,dim=1)
-         dim2 = size(ssp_aasymm_in,dim=2)
-         allocate(ssp_aasymm(dim1,dim2))
-         ssp_aasymm     = ssp_aasymm_in
-      endif
-
-      if (present(ssp_aerext_in)      ) then
-         if (allocated(ssp_aerext)) deallocate(ssp_aerext)
-         dim1 = size(ssp_aerext_in,dim=1)
-         dim2 = size(ssp_aerext_in,dim=2)
-         allocate(ssp_aerext(dim1,dim2))
-         ssp_aerext     = ssp_aerext_in
-      endif
-
-      if (present(ssp_aeralb_in)      ) then
-         if (allocated(ssp_aeralb)) deallocate(ssp_aeralb)
-         dim1 = size(ssp_aeralb_in,dim=1)
-         dim2 = size(ssp_aeralb_in,dim=2)
-         allocate(ssp_aeralb(dim1,dim2))
-         ssp_aeralb     = ssp_aeralb_in
-      endif
-
-      if (present(ssp_abcenhmd_in)      ) then
-         if (allocated(ssp_abcenhmd)) deallocate(ssp_abcenhmd)
-         dim1 = size(ssp_abcenhmd_in,dim=1)
-         dim2 = size(ssp_abcenhmd_in,dim=2)
-         dim3 = size(ssp_abcenhmd_in,dim=3)
-         allocate(ssp_abcenhmd(dim1,dim2,dim3))
-         ssp_abcenhmd     = ssp_abcenhmd_in
-      endif
-
+      if (present(snw_ssp_table_in)     ) snw_ssp_table    = snw_ssp_table_in
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
       if (present(z_tracers_in)         ) z_tracers        = z_tracers_in
       if (present(scale_bgc_in)         ) scale_bgc        = scale_bgc_in
@@ -1345,12 +1207,7 @@
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
          snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
          snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
-         snw_aging_table_out, snw_ssp_table_out, &
-         ssp_snwextdr_out, ssp_snwextdf_out, &
-         ssp_snwalbdr_out, ssp_snwalbdf_out, &
-         ssp_sasymmdr_out, ssp_sasymmdf_out, &
-         ssp_aasymmmd_out, ssp_aerextmd_out, ssp_aeralbmd_out, ssp_abcenhmd_out, &
-         ssp_aasymm_out, ssp_aerext_out, ssp_aeralb_out )
+         snw_aging_table_out, snw_ssp_table_out )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -1713,25 +1570,8 @@
          snowage_kappa_out, &!
          snowage_drdt0_out   ! (10^-6 m/hr)
 
-      ! Parameters for dEdd_snicar
       character (len=char_len), intent(out), optional :: &
-         snw_ssp_table_out   ! lookup table: 'snicar' or 'test' or 'file'
-
-      real (kind=dbl_kind), dimension(:,:), intent(out), optional :: &
-         ssp_snwextdr_out, & ! snow mass extinction cross section (m2/kg), direct
-         ssp_snwextdf_out, & ! snow mass extinction cross section (m2/kg), diffuse
-         ssp_snwalbdr_out, & ! snow single scatter albedo (fraction), direct
-         ssp_snwalbdf_out, & ! snow single scatter albedo (fraction), diffuse
-         ssp_sasymmdr_out, & ! snow asymmetry factor (cos(theta)), direct
-         ssp_sasymmdf_out, & ! snow asymmetry factor (cos(theta)), diffuse
-         ssp_aasymmmd_out, & ! gaer_bc_5bd, modalAsymmetryParameter5band
-         ssp_aerextmd_out, & ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
-         ssp_aeralbmd_out, & ! waer_bc_5bd, modalSingleScatterAlbedo5band
-         ssp_aasymm_out,   & ! gaer_5bd, aerosolAsymmetryParameter5band
-         ssp_aerext_out,   & ! kaer_5bd, aerosolMassExtinctionCrossSection5band
-         ssp_aeralb_out      ! waer_5bd, aerosolSingleScatterAlbedo5band
-      real (kind=dbl_kind), dimension(:,:,:), intent(out), optional :: &
-         ssp_abcenhmd_out    ! bcenh_5bd, modalBCabsorptionParameter5band
+         snw_ssp_table_out   ! lookup table: 'snicar' or 'test'
 
 !autodocument_end
 
@@ -1917,19 +1757,6 @@
       if (present(snowage_kappa_out)     ) snowage_kappa_out= snowage_kappa
       if (present(snowage_drdt0_out)     ) snowage_drdt0_out= snowage_drdt0
       if (present(snw_ssp_table_out)     ) snw_ssp_table_out= snw_ssp_table
-      if (present(ssp_snwextdr_out)      ) ssp_snwextdr_out = ssp_snwextdr
-      if (present(ssp_snwextdf_out)      ) ssp_snwextdf_out = ssp_snwextdf
-      if (present(ssp_snwalbdr_out)      ) ssp_snwalbdr_out = ssp_snwalbdr
-      if (present(ssp_snwalbdf_out)      ) ssp_snwalbdf_out = ssp_snwalbdf
-      if (present(ssp_sasymmdr_out)      ) ssp_sasymmdr_out = ssp_sasymmdr
-      if (present(ssp_sasymmdf_out)      ) ssp_sasymmdf_out = ssp_sasymmdf
-      if (present(ssp_aasymmmd_out)      ) ssp_aasymmmd_out = ssp_aasymmmd
-      if (present(ssp_aerextmd_out)      ) ssp_aerextmd_out = ssp_aerextmd
-      if (present(ssp_aeralbmd_out)      ) ssp_aeralbmd_out = ssp_aeralbmd
-      if (present(ssp_aasymm_out)        ) ssp_aasymm_out   = ssp_aasymm
-      if (present(ssp_aerext_out)        ) ssp_aerext_out   = ssp_aerext
-      if (present(ssp_aeralb_out)        ) ssp_aeralb_out   = ssp_aeralb
-      if (present(ssp_abcenhmd_out)      ) ssp_abcenhmd_out = ssp_abcenhmd
       if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
       if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
       if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
@@ -2141,19 +1968,6 @@
         write(iounit,*) "  snowage_kappa = ", snowage_kappa(1,1,1)
         write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0(1,1,1)
         write(iounit,*) "  snw_ssp_table = ", trim(snw_ssp_table)
-        write(iounit,*) "  ssp_snwextdr  = ", ssp_snwextdr(1,1)
-        write(iounit,*) "  ssp_snwextdf  = ", ssp_snwextdf(1,1)
-        write(iounit,*) "  ssp_snwalbdr  = ", ssp_snwalbdr(1,1)
-        write(iounit,*) "  ssp_snwalbdf  = ", ssp_snwalbdf(1,1)
-        write(iounit,*) "  ssp_sasymmdr  = ", ssp_sasymmdr(1,1)
-        write(iounit,*) "  ssp_sasymmdf  = ", ssp_sasymmdf(1,1)
-        write(iounit,*) "  ssp_aasymmmd  = ", ssp_aasymmmd(1,1)
-        write(iounit,*) "  ssp_aerextmd  = ", ssp_aerextmd(1,1)
-        write(iounit,*) "  ssp_aeralbmd  = ", ssp_aeralbmd(1,1)
-        write(iounit,*) "  ssp_abcenhmd  = ", ssp_abcenhmd(1,1,1)
-        write(iounit,*) "  ssp_aasymm    = ", ssp_aasymm  (1,1)
-        write(iounit,*) "  ssp_aerext    = ", ssp_aerext  (1,1)
-        write(iounit,*) "  ssp_aeralb    = ", ssp_aeralb  (1,1)
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
         write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc
