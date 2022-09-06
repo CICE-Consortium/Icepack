@@ -44,22 +44,17 @@
       use icepack_parameters, only: c0, c1, c1p5, c2, c3, c4, c10
       use icepack_parameters, only: p01, p1, p15, p25, p5, p75, puny
       use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
-      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint_3bd, nspint_5bd
+      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos
       use icepack_parameters, only: rsnw_fall, snwredist, rsnw_tmax
       use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l, snwlvlfac, snwgrain
 #ifdef UNDEPRECATE_0LAYER
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
 #else
-      use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, use_snicar
+      use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg
 #endif
       use icepack_parameters, only: R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
-      use icepack_parameters, only: ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr
-      use icepack_parameters, only: ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf
-      use icepack_parameters, only: ssp_aasymmmd, ssp_aerextmd, ssp_aeralbmd, ssp_abcenhmd
-      use icepack_parameters, only: ssp_aasymm, ssp_aerext, ssp_aeralb
-!notused      use icepack_parameters, only: ssp_bcerad, ssp_bcgrerad
-      use icepack_parameters, only: snw_ssp_table
+      use icepack_shortwave_data, only: nspint_3bd, nspint_5bd, use_snicar
 
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
 #ifdef UNDEPRECATE_CESMPONDS
@@ -78,6 +73,45 @@
       use icepack_zbgc_shared,only: remap_zbgc
       use icepack_orbital, only: compute_coszen
 
+      ! SNICAR SSP data
+      use icepack_shortwave_data, only: &
+         nmbrad_snicar  , & ! number of snow grain radii in SNICAR SSP tables
+         nmodal1_snicar , & ! nModal1 in SNICAR SSP tables
+         nmodal2_snicar , & ! nModal2 in SNICAR SSP tables
+         nmaeros_snicar , & ! maxAerosolType in SNICAR SSP tables
+         rsnw_snicar_min, & ! minimum snow radius - integer value used for indexing
+         rsnw_snicar_max    ! maximum snow radius - integer value used for indexing
+      use icepack_shortwave_data, only: &
+         snw_ssp_table, ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr, &
+         ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf, ssp_aasymmmd, ssp_aerextmd, &
+         ssp_aeralbmd, ssp_abcenhmd, ssp_aasymm, ssp_aerext, ssp_aeralb, &
+         rsnw_snicar_tab
+
+      ! dEdd 3-band data
+      use icepack_shortwave_data, only: &
+         ! inherent optical properties (iop)
+         !    k = extinction coefficient (/m)
+         !    w = single scattering albedo
+         !    g = asymmetry parameter
+         ki_ssl_mn_3bd, wi_ssl_mn_3bd, gi_ssl_mn_3bd, & ! ice surface scattering layer (ssl) iops
+         ki_dl_mn_3bd,  wi_dl_mn_3bd,  gi_dl_mn_3bd , & ! ice drained layer (dl) iops
+         ki_int_mn_3bd, wi_int_mn_3bd, gi_int_mn_3bd, & ! ice interior layer (int) iops
+         ki_p_ssl_mn,   wi_p_ssl_mn,   gi_p_ssl_mn  , & ! ponded ice surface scattering layer (ssl) iops
+         ki_p_int_mn,   wi_p_int_mn,   gi_p_int_mn  , & ! ponded ice interior layer (int) iops
+         kw,            ww,            gw               ! iops for pond water and underlying ocean
+      use icepack_shortwave_data, only: &
+         nmbrad,   & ! number of snow grain radii in tables
+         rsnw_tab, & ! snow grain radii (micro-meters) for table
+         Qs_tab,   & ! snow extinction efficiency (unitless)
+         ws_tab,   & ! snow single scattering albedo (unitless)
+         gs_tab      ! snow asymmetry parameter (unitless)
+
+      ! dEdd 5-band data
+      use icepack_shortwave_data, only: &
+         ki_ssl_mn_5bd, wi_ssl_mn_5bd, gi_ssl_mn_5bd, & ! ice surface scattering layer (ssl) iops
+         ki_dl_mn_5bd,  wi_dl_mn_5bd,  gi_dl_mn_5bd , & ! ice drained layer (dl) iops
+         ki_int_mn_5bd, wi_int_mn_5bd, gi_int_mn_5bd    ! ice interior layer (int) iops
+
       implicit none
 
       private
@@ -94,39 +128,6 @@
 
       real (kind=dbl_kind), parameter :: &
          exp_argmax = c10    ! maximum argument of exponential
-
-      ! dEdd 3-band data
-      real (kind=dbl_kind), dimension (nspint_3bd) :: &
-         ! inherent optical properties (iop)
-         !    k = extinction coefficient (/m)
-         !    w = single scattering albedo
-         !    g = asymmetry parameter
-         ki_ssl_mn_3bd, wi_ssl_mn_3bd, gi_ssl_mn_3bd, & ! ice surface scattering layer (ssl) iops
-         ki_dl_mn_3bd,  wi_dl_mn_3bd,  gi_dl_mn_3bd , & ! ice drained layer (dl) iops
-         ki_int_mn_3bd, wi_int_mn_3bd, gi_int_mn_3bd, & ! ice interior layer (int) iops
-         ki_p_ssl_mn,   wi_p_ssl_mn,   gi_p_ssl_mn  , & ! ponded ice surface scattering layer (ssl) iops
-         ki_p_int_mn,   wi_p_int_mn,   gi_p_int_mn  , & ! ponded ice interior layer (int) iops
-         kw,            ww,            gw               ! iops for pond water and underlying ocean
-
-      integer (kind=int_kind) :: nmbrad          ! number of snow grain radii in tables
-      real (kind=dbl_kind), dimension(:)  , allocatable :: rsnw_tab ! snow grain radii (micro-meters) for table
-      real (kind=dbl_kind), dimension(:,:), allocatable :: Qs_tab   ! snow extinction efficiency (unitless)
-      real (kind=dbl_kind), dimension(:,:), allocatable :: ws_tab   ! snow single scattering albedo (unitless)
-      real (kind=dbl_kind), dimension(:,:), allocatable :: gs_tab   ! snow asymmetry parameter (unitless)
-
-      ! dEdd 5-band data
-      real (kind=dbl_kind), dimension (nspint_5bd) :: &
-         ki_ssl_mn_5bd, wi_ssl_mn_5bd, gi_ssl_mn_5bd, & ! ice surface scattering layer (ssl) iops
-         ki_dl_mn_5bd,  wi_dl_mn_5bd,  gi_dl_mn_5bd , & ! ice drained layer (dl) iops
-         ki_int_mn_5bd, wi_int_mn_5bd, gi_int_mn_5bd    ! ice interior layer (int) iops
-
-      integer (kind=int_kind) :: nmbrad_snicar   ! number of snow grain radii in SNICAR SSP tables
-      integer (kind=int_kind) :: nmodal1_snicar  ! nModal1 in SNICAR SSP tables
-      integer (kind=int_kind) :: nmodal2_snicar  ! nModal2 in SNICAR SSP tables
-      integer (kind=int_kind) :: nmaeros_snicar  ! maxAerosolType in SNICAR SSP tables
-      integer (kind=int_kind) :: rsnw_snicar_max ! maximum snow radius - integer value used for indexing
-      integer (kind=int_kind) :: rsnw_snicar_min ! minimum snow radius - integer value used for indexing
-      real (kind=dbl_kind), dimension(:), allocatable :: rsnw_snicar_tab ! snow grain radii (10^-6 m)
 
       ! dEdd tuning parameters, set in namelist
       !   R_ice     ! sea ice tuning parameter; +1 > 1sig increase in albedo
@@ -149,9 +150,11 @@
 ! Initialize data needed for shortwave radiation calculations
 ! This should be called after values are set via icepack_init_parameters
 
-      subroutine icepack_init_radiation
+      subroutine icepack_init_radiation()
 
 !autodocument_end
+      use icepack_shortwave_data, only: icepack_shortwave_init_dEdd3band
+      use icepack_shortwave_data, only: icepack_shortwave_init_dEdd5band
 
       ! local variables
 
@@ -164,17 +167,151 @@
       !-----------------------------------------------------------------
 
       if (shortwave(1:4) == 'dEdd') then
-         call data_dEdd_3band()
+         call icepack_shortwave_init_dEdd3band()
          if (icepack_warnings_aborted(subname)) return
       endif
 
       if (use_snicar) then
-         call data_dEdd_5band()
+         call icepack_shortwave_init_dEdd5band()
+         if (icepack_warnings_aborted(subname)) return
+         call data_dEdd_snicar()
          if (icepack_warnings_aborted(subname)) return
 
       endif
 
       end subroutine icepack_init_radiation
+
+!=======================================================================
+! Snow single-scattering properties for the 5-band dEdd_snicar option
+
+      subroutine data_dEdd_snicar
+
+      use icepack_shortwave_data, only: icepack_shortwave_init_snicar
+      use icepack_shortwave_data, only: icepack_shortwave_init_snicartest
+
+      ! local variables
+
+      integer (kind=int_kind) :: n
+
+      character (len=*),parameter :: subname='(data_dEdd_snicar)'
+
+      ! if snw_ssp_table = 'test'
+      ! for testing Icepack without netcdf,
+      ! use a subsampled, hard-coded table
+      !   5 snow grain radii
+      !   5 spectral intervals
+
+      ! if snw_ssp_table = 'snicar'
+      ! best-fit parameters are hardcoded in icepack
+      !   1471 snow grain radii
+      !   5 spectral intervals
+
+      ! if snw_ssp_table = 'snicarfile'
+      ! best-fit parameters are read from a file and passed to Icepack
+      !   1471 snow grain radii
+      !   5 spectral intervals
+
+      ! if snw_ssp_table = 'file'
+      ! all data has to be passed into icepack_parameters
+      !   not yet supported
+
+      if (trim(snw_ssp_table) == 'test') then ! 5x5 table
+
+         call icepack_shortwave_init_snicartest()
+         if (icepack_warnings_aborted(subname)) return
+
+      elseif (trim(snw_ssp_table) == 'snicar') then
+
+         call icepack_shortwave_init_snicar()
+         if (icepack_warnings_aborted(subname)) return
+
+      elseif (trim(snw_ssp_table) == 'snicarfile') then
+         ! table passed in, hardwired 1471 x 5 table with 10/8/6/30/1500 expected
+         ! set data NOT passed in
+         nmbrad_snicar   = 1471 ! snow grain radius number SNICAR SSP tables
+         nmodal1_snicar  = 10   ! nModal1 in SNICAR SSP tables
+         nmodal2_snicar  = 8    ! nModal2 in SNICAR SSP tables
+         nmaeros_snicar  = 6    ! maxAerosolType in SNICAR SSP tables
+
+!echmod - this might not be needed
+         rsnw_snicar_min = 30   ! minimum snow grain radius
+         rsnw_snicar_max = 1500 ! maximum snow grain radius
+         allocate(rsnw_snicar_tab(nmbrad_snicar))         ! snow grain radii
+         rsnw_snicar_tab(1) = real(rsnw_snicar_min,dbl_kind)
+         do n = 1, nmbrad_snicar-1
+            rsnw_snicar_tab(n+1) = rsnw_snicar_tab(n) + c1
+         enddo
+
+      elseif (trim(snw_ssp_table) == 'file') then
+         ! table passed in, table lookup + interpolate, not yet supported
+         nmbrad_snicar = size(ssp_snwextdr,dim=2)  ! maximum snow grain radius index
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table)//' not supported')
+         return
+
+      else
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table)//' not supported')
+         return
+      endif
+
+      !------------------------------
+      ! Check SNICAR SSP data
+      !------------------------------
+
+      if ((size(ssp_snwextdr,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_snwextdr,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_snwextdf,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_snwextdf,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_snwalbdr,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_snwalbdr,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_snwalbdf,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_snwalbdf,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_sasymmdr,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_sasymmdr,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_sasymmdf,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_sasymmdf,dim=2) /= nmbrad_snicar ) .or. &
+          (size(ssp_aasymmmd,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aasymmmd,dim=2) /= nmodal1_snicar) .or. &
+          (size(ssp_aerextmd,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aerextmd,dim=2) /= nmodal1_snicar) .or. &
+          (size(ssp_aeralbmd,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aeralbmd,dim=2) /= nmodal1_snicar) .or. &
+          (size(ssp_aasymm  ,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aasymm  ,dim=2) /= nmaeros_snicar) .or. &
+          (size(ssp_aerext  ,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aerext  ,dim=2) /= nmaeros_snicar) .or. &
+          (size(ssp_aeralb  ,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_aeralb  ,dim=2) /= nmaeros_snicar) .or. &
+          (size(ssp_abcenhmd,dim=1) /= nspint_5bd    ) .or. &
+          (size(ssp_abcenhmd,dim=2) /= nmodal1_snicar) .or. &
+          (size(ssp_abcenhmd,dim=3) /= nmodal2_snicar)) then
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table))
+         call icepack_warnings_add(subname//'ERROR: snw_ssp_table array size error')
+         return
+      endif
+
+      write(warnstr,'(2a,i8)') subname, ' nmbrad_snicar  = ',nmbrad_snicar
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i8)') subname, ' nspint         = ',nspint_5bd
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i8)') subname, ' nmodal1_snicar = ',nmodal1_snicar
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i8)') subname, ' nmodal2_snicar = ',nmodal2_snicar
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i8)') subname, ' nmaeros_snicar = ',nmaeros_snicar
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i5,a,i5,a,g22.15)') subname, ' ssp_snwextdr(',1,         ',',1,            ') = ',ssp_snwextdr(1,1)
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i5,a,i5,a,g22.15)') subname, ' ssp_snwextdr(',nspint_5bd,',',1,            ') = ',ssp_snwextdr(nspint_5bd,1)
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i5,a,i5,a,g22.15)') subname, ' ssp_snwextdr(',1,         ',',nmbrad_snicar,') = ',ssp_snwextdr(1,nmbrad_snicar)
+      call icepack_warnings_add(warnstr)
+      write(warnstr,'(2a,i5,a,i5,a,g22.15)') subname, ' ssp_snwextdr(',nspint_5bd,',',nmbrad_snicar,') = ',ssp_snwextdr(nspint_5bd,nmbrad_snicar)
+      call icepack_warnings_add(warnstr)
+
+      end subroutine data_dEdd_snicar
 
 !=======================================================================
 !
@@ -857,436 +994,6 @@
       end subroutine absorbed_solar
 
 ! End ccsm3 shortwave method
-!=======================================================================
-      ! tabular data needed for the original dEdd scheme
-
-      subroutine data_dEdd_3band
-
-      ! local variables
-
-      integer (kind=int_kind) :: n
-
-      character (len=*),parameter :: subname='(data_dEdd_3band)'
-
-      nmbrad = 32 ! number of snow grain radii in tables
-      if (allocated(rsnw_tab)) deallocate(rsnw_tab)
-      if (allocated(Qs_tab)  ) deallocate(Qs_tab)
-      if (allocated(ws_tab)  ) deallocate(ws_tab)
-      if (allocated(gs_tab)  ) deallocate(gs_tab)
-
-      allocate(rsnw_tab(           nmbrad))
-      allocate(Qs_tab  (nspint_3bd,nmbrad))
-      allocate(ws_tab  (nspint_3bd,nmbrad))
-      allocate(gs_tab  (nspint_3bd,nmbrad))
-
-      ! snow grain radii (micro-meters) for table
-      rsnw_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
-          5._dbl_kind,    7._dbl_kind,   10._dbl_kind,   15._dbl_kind, &
-         20._dbl_kind,   30._dbl_kind,   40._dbl_kind,   50._dbl_kind, &
-         65._dbl_kind,   80._dbl_kind,  100._dbl_kind,  120._dbl_kind, &
-        140._dbl_kind,  170._dbl_kind,  200._dbl_kind,  240._dbl_kind, &
-        290._dbl_kind,  350._dbl_kind,  420._dbl_kind,  500._dbl_kind, &
-        570._dbl_kind,  660._dbl_kind,  760._dbl_kind,  870._dbl_kind, &
-       1000._dbl_kind, 1100._dbl_kind, 1250._dbl_kind, 1400._dbl_kind, &
-       1600._dbl_kind, 1800._dbl_kind, 2000._dbl_kind, 2500._dbl_kind/)
-
-      ! snow extinction efficiency (unitless)
-      Qs_tab = reshape((/ &
-          2.131798_dbl_kind,  2.187756_dbl_kind,  2.267358_dbl_kind, &
-          2.104499_dbl_kind,  2.148345_dbl_kind,  2.236078_dbl_kind, &
-          2.081580_dbl_kind,  2.116885_dbl_kind,  2.175067_dbl_kind, &
-          2.062595_dbl_kind,  2.088937_dbl_kind,  2.130242_dbl_kind, &
-          2.051403_dbl_kind,  2.072422_dbl_kind,  2.106610_dbl_kind, &
-          2.039223_dbl_kind,  2.055389_dbl_kind,  2.080586_dbl_kind, &
-          2.032383_dbl_kind,  2.045751_dbl_kind,  2.066394_dbl_kind, &
-          2.027920_dbl_kind,  2.039388_dbl_kind,  2.057224_dbl_kind, &
-          2.023444_dbl_kind,  2.033137_dbl_kind,  2.048055_dbl_kind, &
-          2.020412_dbl_kind,  2.028840_dbl_kind,  2.041874_dbl_kind, &
-          2.017608_dbl_kind,  2.024863_dbl_kind,  2.036046_dbl_kind, &
-          2.015592_dbl_kind,  2.022021_dbl_kind,  2.031954_dbl_kind, &
-          2.014083_dbl_kind,  2.019887_dbl_kind,  2.028853_dbl_kind, &
-          2.012368_dbl_kind,  2.017471_dbl_kind,  2.025353_dbl_kind, &
-          2.011092_dbl_kind,  2.015675_dbl_kind,  2.022759_dbl_kind, &
-          2.009837_dbl_kind,  2.013897_dbl_kind,  2.020168_dbl_kind, &
-          2.008668_dbl_kind,  2.012252_dbl_kind,  2.017781_dbl_kind, &
-          2.007627_dbl_kind,  2.010813_dbl_kind,  2.015678_dbl_kind, &
-          2.006764_dbl_kind,  2.009577_dbl_kind,  2.013880_dbl_kind, &
-          2.006037_dbl_kind,  2.008520_dbl_kind,  2.012382_dbl_kind, &
-          2.005528_dbl_kind,  2.007807_dbl_kind,  2.011307_dbl_kind, &
-          2.005025_dbl_kind,  2.007079_dbl_kind,  2.010280_dbl_kind, &
-          2.004562_dbl_kind,  2.006440_dbl_kind,  2.009333_dbl_kind, &
-          2.004155_dbl_kind,  2.005898_dbl_kind,  2.008523_dbl_kind, &
-          2.003794_dbl_kind,  2.005379_dbl_kind,  2.007795_dbl_kind, &
-          2.003555_dbl_kind,  2.005041_dbl_kind,  2.007329_dbl_kind, &
-          2.003264_dbl_kind,  2.004624_dbl_kind,  2.006729_dbl_kind, &
-          2.003037_dbl_kind,  2.004291_dbl_kind,  2.006230_dbl_kind, &
-          2.002776_dbl_kind,  2.003929_dbl_kind,  2.005700_dbl_kind, &
-          2.002590_dbl_kind,  2.003627_dbl_kind,  2.005276_dbl_kind, &
-          2.002395_dbl_kind,  2.003391_dbl_kind,  2.004904_dbl_kind, &
-          2.002071_dbl_kind,  2.002922_dbl_kind,  2.004241_dbl_kind/), &
-          (/nspint_3bd,nmbrad/))
-
-      ! snow single scattering albedo (unitless)
-      ws_tab = reshape((/ &
-         0.9999994_dbl_kind,  0.9999673_dbl_kind,  0.9954589_dbl_kind, &
-         0.9999992_dbl_kind,  0.9999547_dbl_kind,  0.9938576_dbl_kind, &
-         0.9999990_dbl_kind,  0.9999382_dbl_kind,  0.9917989_dbl_kind, &
-         0.9999985_dbl_kind,  0.9999123_dbl_kind,  0.9889724_dbl_kind, &
-         0.9999979_dbl_kind,  0.9998844_dbl_kind,  0.9866190_dbl_kind, &
-         0.9999970_dbl_kind,  0.9998317_dbl_kind,  0.9823021_dbl_kind, &
-         0.9999960_dbl_kind,  0.9997800_dbl_kind,  0.9785269_dbl_kind, &
-         0.9999951_dbl_kind,  0.9997288_dbl_kind,  0.9751601_dbl_kind, &
-         0.9999936_dbl_kind,  0.9996531_dbl_kind,  0.9706974_dbl_kind, &
-         0.9999922_dbl_kind,  0.9995783_dbl_kind,  0.9667577_dbl_kind, &
-         0.9999903_dbl_kind,  0.9994798_dbl_kind,  0.9621007_dbl_kind, &
-         0.9999885_dbl_kind,  0.9993825_dbl_kind,  0.9579541_dbl_kind, &
-         0.9999866_dbl_kind,  0.9992862_dbl_kind,  0.9541924_dbl_kind, &
-         0.9999838_dbl_kind,  0.9991434_dbl_kind,  0.9490959_dbl_kind, &
-         0.9999810_dbl_kind,  0.9990025_dbl_kind,  0.9444940_dbl_kind, &
-         0.9999772_dbl_kind,  0.9988171_dbl_kind,  0.9389141_dbl_kind, &
-         0.9999726_dbl_kind,  0.9985890_dbl_kind,  0.9325819_dbl_kind, &
-         0.9999670_dbl_kind,  0.9983199_dbl_kind,  0.9256405_dbl_kind, &
-         0.9999605_dbl_kind,  0.9980117_dbl_kind,  0.9181533_dbl_kind, &
-         0.9999530_dbl_kind,  0.9976663_dbl_kind,  0.9101540_dbl_kind, &
-         0.9999465_dbl_kind,  0.9973693_dbl_kind,  0.9035031_dbl_kind, &
-         0.9999382_dbl_kind,  0.9969939_dbl_kind,  0.8953134_dbl_kind, &
-         0.9999289_dbl_kind,  0.9965848_dbl_kind,  0.8865789_dbl_kind, &
-         0.9999188_dbl_kind,  0.9961434_dbl_kind,  0.8773350_dbl_kind, &
-         0.9999068_dbl_kind,  0.9956323_dbl_kind,  0.8668233_dbl_kind, &
-         0.9998975_dbl_kind,  0.9952464_dbl_kind,  0.8589990_dbl_kind, &
-         0.9998837_dbl_kind,  0.9946782_dbl_kind,  0.8476493_dbl_kind, &
-         0.9998699_dbl_kind,  0.9941218_dbl_kind,  0.8367318_dbl_kind, &
-         0.9998515_dbl_kind,  0.9933966_dbl_kind,  0.8227881_dbl_kind, &
-         0.9998332_dbl_kind,  0.9926888_dbl_kind,  0.8095131_dbl_kind, &
-         0.9998148_dbl_kind,  0.9919968_dbl_kind,  0.7968620_dbl_kind, &
-         0.9997691_dbl_kind,  0.9903277_dbl_kind,  0.7677887_dbl_kind/), &
-         (/nspint_3bd,nmbrad/))
-
-      ! snow asymmetry parameter (unitless)
-      gs_tab = reshape((/ &
-          0.859913_dbl_kind,  0.848003_dbl_kind,  0.824415_dbl_kind, &
-          0.867130_dbl_kind,  0.858150_dbl_kind,  0.848445_dbl_kind, &
-          0.873381_dbl_kind,  0.867221_dbl_kind,  0.861714_dbl_kind, &
-          0.878368_dbl_kind,  0.874879_dbl_kind,  0.874036_dbl_kind, &
-          0.881462_dbl_kind,  0.879661_dbl_kind,  0.881299_dbl_kind, &
-          0.884361_dbl_kind,  0.883903_dbl_kind,  0.890184_dbl_kind, &
-          0.885937_dbl_kind,  0.886256_dbl_kind,  0.895393_dbl_kind, &
-          0.886931_dbl_kind,  0.887769_dbl_kind,  0.899072_dbl_kind, &
-          0.887894_dbl_kind,  0.889255_dbl_kind,  0.903285_dbl_kind, &
-          0.888515_dbl_kind,  0.890236_dbl_kind,  0.906588_dbl_kind, &
-          0.889073_dbl_kind,  0.891127_dbl_kind,  0.910152_dbl_kind, &
-          0.889452_dbl_kind,  0.891750_dbl_kind,  0.913100_dbl_kind, &
-          0.889730_dbl_kind,  0.892213_dbl_kind,  0.915621_dbl_kind, &
-          0.890026_dbl_kind,  0.892723_dbl_kind,  0.918831_dbl_kind, &
-          0.890238_dbl_kind,  0.893099_dbl_kind,  0.921540_dbl_kind, &
-          0.890441_dbl_kind,  0.893474_dbl_kind,  0.924581_dbl_kind, &
-          0.890618_dbl_kind,  0.893816_dbl_kind,  0.927701_dbl_kind, &
-          0.890762_dbl_kind,  0.894123_dbl_kind,  0.930737_dbl_kind, &
-          0.890881_dbl_kind,  0.894397_dbl_kind,  0.933568_dbl_kind, &
-          0.890975_dbl_kind,  0.894645_dbl_kind,  0.936148_dbl_kind, &
-          0.891035_dbl_kind,  0.894822_dbl_kind,  0.937989_dbl_kind, &
-          0.891097_dbl_kind,  0.895020_dbl_kind,  0.939949_dbl_kind, &
-          0.891147_dbl_kind,  0.895212_dbl_kind,  0.941727_dbl_kind, &
-          0.891189_dbl_kind,  0.895399_dbl_kind,  0.943339_dbl_kind, &
-          0.891225_dbl_kind,  0.895601_dbl_kind,  0.944915_dbl_kind, &
-          0.891248_dbl_kind,  0.895745_dbl_kind,  0.945950_dbl_kind, &
-          0.891277_dbl_kind,  0.895951_dbl_kind,  0.947288_dbl_kind, &
-          0.891299_dbl_kind,  0.896142_dbl_kind,  0.948438_dbl_kind, &
-          0.891323_dbl_kind,  0.896388_dbl_kind,  0.949762_dbl_kind, &
-          0.891340_dbl_kind,  0.896623_dbl_kind,  0.950916_dbl_kind, &
-          0.891356_dbl_kind,  0.896851_dbl_kind,  0.951945_dbl_kind, &
-          0.891386_dbl_kind,  0.897399_dbl_kind,  0.954156_dbl_kind/), &
-          (/nspint_3bd,nmbrad/))
-
-      ! ice surface scattering layer (ssl) iops
-      ki_ssl_mn_3bd = (/ 1000.1_dbl_kind, 1003.7_dbl_kind, 7042._dbl_kind/)
-      wi_ssl_mn_3bd = (/ .9999_dbl_kind,  .9963_dbl_kind,  .9088_dbl_kind/)
-      gi_ssl_mn_3bd = (/  .94_dbl_kind,     .94_dbl_kind,    .94_dbl_kind/)
-
-      ! ice drained layer (dl) iops
-      ki_dl_mn_3bd = (/ 100.2_dbl_kind, 107.7_dbl_kind,  1309._dbl_kind /)
-      wi_dl_mn_3bd = (/ .9980_dbl_kind,  .9287_dbl_kind, .0305_dbl_kind /)
-      gi_dl_mn_3bd = (/ .94_dbl_kind,     .94_dbl_kind,    .94_dbl_kind /)
-
-      ! ice interior layer (int) iops
-      ki_int_mn_3bd = (/  20.2_dbl_kind,  27.7_dbl_kind,  1445._dbl_kind /)
-      wi_int_mn_3bd = (/ .9901_dbl_kind, .7223_dbl_kind,  .0277_dbl_kind /)
-      gi_int_mn_3bd = (/ .94_dbl_kind,    .94_dbl_kind,     .94_dbl_kind /)
-
-      ! ponded ice surface scattering layer (ssl) iops
-      ki_p_ssl_mn = (/ 70.2_dbl_kind,  77.7_dbl_kind,  1309._dbl_kind/)
-      wi_p_ssl_mn = (/ .9972_dbl_kind, .9009_dbl_kind, .0305_dbl_kind/)
-      gi_p_ssl_mn = (/ .94_dbl_kind,   .94_dbl_kind,   .94_dbl_kind  /)
-
-      ! ponded ice interior layer (int) iops
-      ki_p_int_mn = (/  20.2_dbl_kind,  27.7_dbl_kind, 1445._dbl_kind/)
-      wi_p_int_mn = (/ .9901_dbl_kind, .7223_dbl_kind, .0277_dbl_kind/)
-      gi_p_int_mn = (/ .94_dbl_kind,   .94_dbl_kind,   .94_dbl_kind  /)
-
-      ! inherent optical property (iop) arrays for pond water and underlying ocean
-      ! kw = Pond water extinction coefficient (/m)
-      ! ww = Pond water single scattering albedo
-      ! gw = Pond water asymmetry parameter
-      kw = (/ 0.20_dbl_kind,   12.0_dbl_kind,   729._dbl_kind /)
-      ww = (/ 0.00_dbl_kind,   0.00_dbl_kind,   0.00_dbl_kind /)
-      gw = (/ 0.00_dbl_kind,   0.00_dbl_kind,   0.00_dbl_kind /)
-
-      end subroutine data_dEdd_3band
-
-!=======================================================================
-! Snow single-scattering properties for the 5-band dEdd_snicar option
-
-      subroutine data_dEdd_5band
-
-      ! local variables
-
-      integer (kind=int_kind) :: n
-
-      character (len=*),parameter :: subname='(data_dEdd_5band)'
-
-      ! if snw_ssp_table = 'snicar'
-      ! best-fit parameters are read from a table (netcdf)
-      !   1471 snow grain radii
-      !   5 spectral intervals
-
-      ! if snw_ssp_table = 'test'
-      ! for testing Icepack without netcdf,
-      ! use a subsampled, hard-coded table
-      !   5 snow grain radii
-      !   5 spectral intervals
-
-      ! if snw_ssp_table = 'file'
-      ! all data has to be passed into icepack_parameters
-
-      if (trim(snw_ssp_table) == 'snicar') then
-         ! table passed in, hardwired 1471 x 5 table with 10/8/6/30/1500 expected
-         nmbrad_snicar   = 1471 ! snow grain radius number SNICAR SSP tables
-         nmodal1_snicar  = 10   ! nModal1 in SNICAR SSP tables
-         nmodal2_snicar  = 8    ! nModal2 in SNICAR SSP tables
-         nmaeros_snicar  = 6    ! maxAerosolType in SNICAR SSP tables
-         rsnw_snicar_min = 30   ! minimum snow grain radius
-         rsnw_snicar_max = 1500 ! maximum snow grain radius
-
-!echmod - this might not be needed
-         allocate(rsnw_snicar_tab(nmbrad_snicar))         ! snow grain radii
-         rsnw_snicar_tab(1) = real(rsnw_snicar_min,dbl_kind)
-         do n = 1, nmbrad_snicar-1
-            rsnw_snicar_tab(n+1) = rsnw_snicar_tab(n) + c1
-         enddo
-
-      elseif (trim(snw_ssp_table) == 'file') then
-         ! table passed in, table lookup + interpolate, not yet supported
-         nmbrad_snicar = size(ssp_snwextdr,dim=2)  ! maximum snow grain radius index
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table)//' not supported')
-         return
-
-      elseif (trim(snw_ssp_table) == 'test') then ! 5x5 table
-         nmbrad_snicar  = 5   ! snow grain radius number SNICAR SSP tables
-         nmodal1_snicar = 10  ! nModal1 in SNICAR SSP tables
-         nmodal2_snicar = 8   ! nModal2 in SNICAR SSP tables
-         nmaeros_snicar = 6   ! maxAerosolType in SNICAR SSP tables
-
-         allocate(rsnw_snicar_tab(nmbrad_snicar))         ! snow grain radii
-         rsnw_snicar_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
-            6._dbl_kind, 37._dbl_kind, 221._dbl_kind, 600._dbl_kind, 1340._dbl_kind/)
-         rsnw_snicar_min = rsnw_snicar_tab(1)             ! minimum snow radius - integer value used for indexing
-         rsnw_snicar_max = rsnw_snicar_tab(nmbrad_snicar) ! maximum snow radius - integer value used for indexing
-
-!notused         if (allocated(ssp_bcerad  )) deallocate(ssp_bcerad  )
-!notused         if (allocated(ssp_bcgrerad)) deallocate(ssp_bcgrerad)
-         if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
-         if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
-         if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
-         if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
-         if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
-         if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
-         if (allocated(ssp_aasymmmd)) deallocate(ssp_aasymmmd)
-         if (allocated(ssp_aerextmd)) deallocate(ssp_aerextmd)
-         if (allocated(ssp_aeralbmd)) deallocate(ssp_aeralbmd)
-         if (allocated(ssp_aasymm  )) deallocate(ssp_aasymm  )
-         if (allocated(ssp_aerext  )) deallocate(ssp_aerext  )
-         if (allocated(ssp_aeralb  )) deallocate(ssp_aeralb  )
-         if (allocated(ssp_abcenhmd)) deallocate(ssp_abcenhmd)
-
-!notused         allocate(ssp_bcerad  (nmodal1_snicar)) ! ?, bcEffectiveRadius
-!notused         allocate(ssp_bcgrerad(nmodal2_snicar)) ! ?, iceGrainEffectiveRadius
-         allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, direct
-         allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar )) ! extinction coefficient, diffuse
-         allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, direct
-         allocate(ssp_snwalbdf(nspint_5bd,nmbrad_snicar )) ! single-scattering albedo, diffuse
-         allocate(ssp_sasymmdr(nspint_5bd,nmbrad_snicar )) ! snow asymmetry factor, direct
-         allocate(ssp_sasymmdf(nspint_5bd,nmbrad_snicar )) ! snow asymmetry factor, diffuse
-         allocate(ssp_aasymmmd(nspint_5bd,nmodal1_snicar)) ! gaer_bc_5bd, modalAsymmetryParameter5band
-         allocate(ssp_aerextmd(nspint_5bd,nmodal1_snicar)) ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
-         allocate(ssp_aeralbmd(nspint_5bd,nmodal1_snicar)) ! waer_bc_5bd, modalSingleScatterAlbedo5band
-         allocate(ssp_aasymm  (nspint_5bd,nmaeros_snicar)) ! gaer_5bd, aerosolAsymmetryParameter5band
-         allocate(ssp_aerext  (nspint_5bd,nmaeros_snicar)) ! kaer_5bd, aerosolMassExtinctionCrossSection5band
-         allocate(ssp_aeralb  (nspint_5bd,nmaeros_snicar)) ! waer_5bd, aerosolSingleScatterAlbedo5band
-         allocate(ssp_abcenhmd(nspint_5bd,nmodal1_snicar,nmodal2_snicar))  ! bcenh_5bd, modalBCabsorptionParameter5band
-
-         ! tcraig, these data statements are not consistent with the array index order
-         ! reshape from nmbrad,nspint to nspint,nmbrad with order = 2,1
-
-         ssp_snwextdr = reshape((/ &
-               46.27374983, 24.70286257, 6.54918455, 2.6035624,  1.196168,   &
-               46.56827715, 24.81790668, 6.56181227, 2.60604155, 1.19682614, &
-               46.76114033, 24.90468677, 6.56950323, 2.60780948, 1.19737512, &
-               46.9753992,  24.9495155,  6.57687695, 2.60937383, 1.19774008, &
-               47.48598349, 25.14100194, 6.59708024, 2.61372576, 1.19897351 /), &
-               (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
-
-         ssp_snwextdf = reshape((/ &
-               46.26936158, 24.70165487, 6.54903637, 2.60353051, 1.19615825, &
-               46.56628244, 24.81707286, 6.56164279, 2.60601584, 1.1968169,  &
-               46.75501968, 24.90175807, 6.5693214,  2.60775795, 1.19736237, &
-               46.95368476, 24.94497414, 6.57612007, 2.60924059, 1.19770981, &
-               47.29620774, 25.0713585,  6.5891698,  2.61198929, 1.19850197 /), &
-               (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
-
-         ssp_snwalbdr = reshape((/ &
-               0.99999581, 0.99999231, 0.99997215, 0.99993093, 0.99985157, &
-               0.99987892, 0.99978212, 0.99923115, 0.99817946, 0.99628374, &
-               0.99909682, 0.99835523, 0.99418008, 0.98592085, 0.97062632, &
-               0.99308867, 0.98972448, 0.97261528, 0.93947995, 0.88207117, &
-               0.93322249, 0.89645776, 0.75765643, 0.6272883,  0.55435033 /), &
-               (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
-
-         ssp_snwalbdf = reshape((/ &
-               0.99999586, 0.9999924,  0.99997249, 0.99993178, 0.9998534,  &
-               0.99988441, 0.99979202, 0.99926745, 0.99826865, 0.99647135, &
-               0.99910997, 0.99837683, 0.99426171, 0.98610431, 0.97097643, &
-               0.99476731, 0.9916114,  0.97441209, 0.94127464, 0.88440735, &
-               0.9419837,  0.90613207, 0.77042376, 0.63887161, 0.5566098  /), &
-               (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
-
-         ssp_sasymmdr = reshape((/ &
-               0.88503036, 0.88778473, 0.89049023, 0.89112501, 0.89136157, &
-               0.88495225, 0.88905367, 0.89315385, 0.89433673, 0.8950027,  &
-               0.88440201, 0.88928256, 0.89503166, 0.89762648, 0.90045378, &
-               0.88590371, 0.89350221, 0.90525156, 0.91314567, 0.92157748, &
-               0.9033537,  0.91778261, 0.94615574, 0.96323447, 0.97167644 /), &
-               (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
-
-         ssp_sasymmdf = reshape((/ &
-               0.88500571, 0.88773868, 0.89042496, 0.8910553,  0.89128949, &
-               0.88495225, 0.88905367, 0.89315385, 0.89433673, 0.8950027 , &
-               0.88441433, 0.88929133, 0.89500611, 0.89756091, 0.90035504, &
-               0.88495554, 0.89201556, 0.90204619, 0.90914885, 0.91769988, &
-               0.89620237, 0.90998944, 0.94126152, 0.96209938, 0.9726631  /), &
-               (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
-
-         ! tcraig, what should these be set to?  TODO
-!3-band data is in cice ice_forcing_bgc.F90, 5-band is in snicar file
-!notused         ssp_bcerad   = c0
-!notused         ssp_bcgrerad = c0
-         ssp_aasymmmd = c0
-         ssp_aerextmd = c0
-         ssp_aeralbmd = c0
-         ssp_aasymm   = c0
-         ssp_aerext   = c0
-         ssp_aeralb   = c0
-         ssp_abcenhmd = c0
-
-      else
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table)//' not supported')
-         return
-      endif
-
-      if (&!notused(size(ssp_bcerad,dim=1)   /= nmodal1_snicar) .or. &
-          !notused(size(ssp_bcgrerad,dim=1) /= nmodal2_snicar) .or. &
-          (size(ssp_snwextdr,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_snwextdr,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_snwextdf,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_snwextdf,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_snwalbdr,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_snwalbdr,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_snwalbdf,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_snwalbdf,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_sasymmdr,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_sasymmdr,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_sasymmdf,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_sasymmdf,dim=2) /= nmbrad_snicar ) .or. &
-          (size(ssp_aasymmmd,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aasymmmd,dim=2) /= nmodal1_snicar) .or. &
-          (size(ssp_aerextmd,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aerextmd,dim=2) /= nmodal1_snicar) .or. &
-          (size(ssp_aeralbmd,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aeralbmd,dim=2) /= nmodal1_snicar) .or. &
-          (size(ssp_aasymm  ,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aasymm  ,dim=2) /= nmaeros_snicar) .or. &
-          (size(ssp_aerext  ,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aerext  ,dim=2) /= nmaeros_snicar) .or. &
-          (size(ssp_aeralb  ,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_aeralb  ,dim=2) /= nmaeros_snicar) .or. &
-          (size(ssp_abcenhmd,dim=1) /= nspint_5bd    ) .or. &
-          (size(ssp_abcenhmd,dim=2) /= nmodal1_snicar) .or. &
-          (size(ssp_abcenhmd,dim=3) /= nmodal2_snicar)) then
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         call icepack_warnings_add(subname//'ERROR: snw_ssp_table = '//trim(snw_ssp_table))
-         call icepack_warnings_add(subname//'ERROR: snw_ssp_table array size error')
-         return
-      endif
-
-      write(warnstr,'(2a,i8)') subname, ' nmbrad_snicar  = ',nmbrad_snicar
-      call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i8)') subname, ' nspint         = ',nspint_5bd
-      call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i8)') subname, ' nmodal1_snicar = ',nmodal1_snicar
-      call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i8)') subname, ' nmodal2_snicar = ',nmodal2_snicar
-      call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i8)') subname, ' nmaeros_snicar = ',nmaeros_snicar
-      call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i5,a,i5,a,g14.7)') subname, ' ssp_snwextdr(',1,         ',',1,            ') = ',ssp_snwextdr(1,1)
-      call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i5,a,i5,a,g14.7)') subname, ' ssp_snwextdr(',nspint_5bd,',',1,            ') = ',ssp_snwextdr(nspint_5bd,1)
-      call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i5,a,i5,a,g14.7)') subname, ' ssp_snwextdr(',1,         ',',nmbrad_snicar,') = ',ssp_snwextdr(1,nmbrad_snicar)
-      call icepack_warnings_add(warnstr)
-      write(warnstr,'(2a,i5,a,i5,a,g14.7)') subname, ' ssp_snwextdr(',nspint_5bd,',',nmbrad_snicar,') = ',ssp_snwextdr(nspint_5bd,nmbrad_snicar)
-      call icepack_warnings_add(warnstr)
-
-      ! 5-bands ice surface scattering layer (ssl) iops to match SNICAR calculations
-      ! note by Cheng Dang:
-      ! for now these data are not needed since the sea ice layer IOPs can be directly
-      ! assigned based on the 3 bands data after adjustment based on tuning parameter R_ice
-      ! In the future, when 5-band sea ice IOPs are available, these data shall be updated
-      ! and the sea ice layer IOPs shall be calculated based on updated 5band iops*
-!echmod - the comment above says these are not needed but they are nevertheless used below
-      !
-      ! The 5band data given in this section are based on CICE and SNICAR band choice:
-      ! SNICAR band 1 = CICE band 1
-      ! SNICAR band 2 + SNICAR band 3 = CICE band 2
-      ! SNICAR band 4 + SNICAR band 5 = CICE band 3
-
-      ! ice surface scattering layer (ssl) iops
-         ki_ssl_mn_5bd = (/ 1000.1_dbl_kind, 1003.7_dbl_kind, 1003.7_dbl_kind, &
-                            7042._dbl_kind, 7042._dbl_kind /)
-         wi_ssl_mn_5bd = (/ .9999_dbl_kind, .9963_dbl_kind, .9963_dbl_kind, &
-                            .9088_dbl_kind, .9088_dbl_kind /)
-         gi_ssl_mn_5bd = (/ .94_dbl_kind, .94_dbl_kind, .94_dbl_kind, &
-                            .94_dbl_kind, .94_dbl_kind /)
-
-      ! ice drained layer (dl) iops
-         ki_dl_mn_5bd = (/ 100.2_dbl_kind, 107.7_dbl_kind, 107.7_dbl_kind, &
-                           1309._dbl_kind, 1309._dbl_kind /)
-         wi_dl_mn_5bd = (/ .9980_dbl_kind, .9287_dbl_kind, .9287_dbl_kind, &
-                           .0305_dbl_kind, .0305_dbl_kind /)
-         gi_dl_mn_5bd = (/ .94_dbl_kind, .94_dbl_kind, .94_dbl_kind, &
-                           .94_dbl_kind, .94_dbl_kind /)
-
-      ! ice interior layer (int) iops
-         ki_int_mn_5bd = (/ 20.2_dbl_kind, 27.7_dbl_kind, 27.7_dbl_kind, &
-                            1445._dbl_kind, 1445._dbl_kind/)
-         wi_int_mn_5bd = (/ .9901_dbl_kind, .7223_dbl_kind, .7223_dbl_kind, &
-                            .0277_dbl_kind, .0277_dbl_kind /)
-         gi_int_mn_5bd = (/ .94_dbl_kind, .94_dbl_kind, .94_dbl_kind, &
-                            .94_dbl_kind, .94_dbl_kind /)
-
-      end subroutine data_dEdd_5band
-
 !=======================================================================
 ! Begin Delta-Eddington shortwave method
 
@@ -4936,7 +4643,7 @@
       asys = (gg - f)/(c1 - f)
 
       end function asys
- 
+
 !=======================================================================
 ! --- Begin 5 band dEdd subroutine ---
 ! Evaluate snow/ice/ponded ice inherent optical properties (IOPs), and
@@ -6143,7 +5850,7 @@
                   enddo ! k
                endif ! tr_aero
 ! ---------------------------------------------------------------------------
-    
+
     ! set reflectivities for ocean underlying sea ice
       ! if ns == 1 (visible), albedo is 0.1, else, albedo is zero
       rns = real(ns-1, kind=dbl_kind)

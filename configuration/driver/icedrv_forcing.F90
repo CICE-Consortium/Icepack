@@ -120,8 +120,6 @@
          ssp_snwalbdf_fname, &  ! snow single scatter albedo (fraction) field name
          ssp_sasymmdr_fname, &  ! snow asymmetry factor (cos(theta)) field name
          ssp_sasymmdf_fname, &  ! snow asymmetry factor (cos(theta)) field name
-         ssp_bcerad_fname,   &  ! ?, bcEffectiveRadius
-         ssp_bcgrerad_fname, &  ! ?, iceGrainEffectiveRadius
          ssp_aasymmmd_fname, &  ! gaer_bc_5bd, modalAsymmetryParameter5band
          ssp_aerextmd_fname, &  ! kaer_bc_5bd, modalMassExtinctionCrossSection5band
          ssp_aeralbmd_fname, &  ! waer_bc_5bd, modalSingleScatterAlbedo5band
@@ -1198,8 +1196,6 @@
          nsrad, &   ! Table dimensions
          nspint, nmodal1, nmodal2, nmaeros
       real (kind=dbl_kind), allocatable :: &
-         ssp_bcerad  (:),     &  ! ?, bcEffectiveRadius
-         ssp_bcgrerad(:),     &  ! ?, iceGrainEffectiveRadius
          ssp_snwextdr(:,:),   &  ! snow mass extinction cross section (m2/kg), direct
          ssp_snwextdf(:,:),   &  ! snow mass extinction cross section (m2/kg), diffuse
          ssp_snwalbdr(:,:),   &  ! snow single scatter albedo (fraction), direct
@@ -1270,8 +1266,6 @@
       status=nf90_inquire_dimension(fid, dimid, len=nmaeros)
       if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_dim '//trim(fieldname))
 
-      if (allocated(ssp_bcerad)  ) deallocate(ssp_bcerad)
-      if (allocated(ssp_bcgrerad)) deallocate(ssp_bcgrerad)
       if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
       if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
       if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
@@ -1286,8 +1280,6 @@
       if (allocated(ssp_aeralb)  ) deallocate(ssp_aeralb)
       if (allocated(ssp_abcenhmd)) deallocate(ssp_abcenhmd)
 
-      allocate(ssp_bcerad(nmodal1))
-      allocate(ssp_bcgrerad(nmodal2))
       allocate(ssp_snwextdr(nspint,nsrad))
       allocate(ssp_snwextdf(nspint,nsrad))
       allocate(ssp_snwalbdr(nspint,nsrad))
@@ -1302,16 +1294,6 @@
       allocate(ssp_aeralb  (nspint,nmaeros))
       allocate(ssp_abcenhmd(nspint,nmodal1,nmodal2))
 
-      fieldname = trim(ssp_bcerad_fname)
-      status = nf90_inq_varid(fid, trim(fieldname), varid)
-      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_varid '//trim(fieldname))
-      status = nf90_get_var(fid, varid, ssp_bcerad)
-      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_get_var '//trim(fieldname))
-
-      fieldname = trim(ssp_bcgrerad_fname)
-      status = nf90_inq_varid(fid, trim(fieldname), varid)
-      if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_ind_varid '//trim(fieldname))
-      status = nf90_get_var(fid, varid, ssp_bcgrerad)
       if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: nf90_get_var '//trim(fieldname))
 
       fieldname = trim(ssp_snwextdr_fname)
@@ -1438,7 +1420,6 @@
       write(nu_diag,*) subname,' ssp_sasymmdf(m1,m2) = ',ssp_sasymmdf(nspint,nsrad)
 
       call icepack_init_parameters( &
-           ssp_bcerad_in   = ssp_bcerad  , ssp_bcgrerad_in = ssp_bcgrerad, &
            ssp_snwextdr_in = ssp_snwextdr, ssp_snwextdf_in = ssp_snwextdf, &
            ssp_snwalbdr_in = ssp_snwalbdr, ssp_snwalbdf_in = ssp_snwalbdf, &
            ssp_sasymmdr_in = ssp_sasymmdr, ssp_sasymmdf_in = ssp_sasymmdf, &
@@ -1450,8 +1431,6 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
            file=__FILE__,line= __LINE__)
 
-      deallocate(ssp_bcerad)
-      deallocate(ssp_bcgrerad)
       deallocate(ssp_snwextdr)
       deallocate(ssp_snwextdf)
       deallocate(ssp_snwalbdr)
