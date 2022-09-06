@@ -919,7 +919,7 @@ source ./icepack.settings
 set md5file = icepack.settings.md5
 grep -v " ICE_CASENAME " icepack.settings | grep -v " ICE_CASEDIR " | grep -v " ICE_RUNDIR " | grep -v " ICE_TESTNAME " | grep -v " ICE_TEST " >! \${md5file}
 set icepsetmd5 = \` md5sum \${md5file} | cut -d " " -f 1 \`
-#rm \${md5file}
+rm \${md5file}
 set icepexe = "../icepexe.\${icepsetmd5}"
 ./icepack.build --exe \${icepexe}
 set bldstat = \${status}

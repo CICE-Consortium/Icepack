@@ -73,15 +73,7 @@
       use icedrv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icedrv_forcing, only: data_dir
       use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
-      use icedrv_forcing, only: snw_ssp_table, ssp_filename, ssp_nsrad_fname, ssp_nspint_fname
-      use icedrv_forcing, only: ssp_nmodal1_fname, ssp_nmodal2_fname, ssp_nmaeros_fname
-      use icedrv_forcing, only: ssp_snwextdr_fname, ssp_snwextdf_fname
-      use icedrv_forcing, only: ssp_snwalbdr_fname, ssp_snwalbdf_fname
-      use icedrv_forcing, only: ssp_sasymmdr_fname, ssp_sasymmdf_fname
-      use icedrv_forcing, only: ssp_aasymmmd_fname, ssp_aerextmd_fname
-      use icedrv_forcing, only: ssp_aeralbmd_fname, ssp_aasymm_fname
-      use icedrv_forcing, only: ssp_aerext_fname,   ssp_aeralb_fname
-      use icedrv_forcing, only: ssp_abcenhmd_fname
+      use icedrv_forcing, only: snw_ssp_table
 
       ! local variables
 
@@ -169,16 +161,7 @@
         albicev,        albicei,         albsnowv,      albsnowi,       &
         ahmax,          R_ice,           R_pnd,         R_snw,          &
         sw_redist,      sw_frac,         sw_dtemp,                      &
-        dT_mlt,         rsnw_mlt,        kalg,          snw_ssp_table,  &
-        ssp_filename,   ssp_nsrad_fname, ssp_nspint_fname,              &
-        ssp_nmodal1_fname, ssp_nmodal2_fname, ssp_nmaeros_fname,        &
-        ssp_snwextdr_fname,              ssp_snwextdf_fname,            &
-        ssp_snwalbdr_fname,              ssp_snwalbdf_fname,            &
-        ssp_sasymmdr_fname,              ssp_sasymmdf_fname,            &
-        ssp_aasymmmd_fname,              ssp_aerextmd_fname,            &
-        ssp_aeralbmd_fname,              ssp_aasymm_fname,              &
-        ssp_aerext_fname,                ssp_aeralb_fname,              &
-        ssp_abcenhmd_fname
+        dT_mlt,         rsnw_mlt,        kalg,          snw_ssp_table
 
       namelist /ponds_nml/ &
         hs0,            dpscale,         frzpnd,                        &
@@ -305,27 +288,7 @@
       data_dir    = ' '           ! root location of data files
       restore_ocn     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
-
-      snw_ssp_table      = 'test'                                 ! snow table type, test, snicar, file
-      ssp_filename       = 'snicar_optics_5bnd_snow_and_aerosols.nc' ! snicar ssp filename
-      ssp_nsrad_fname    = 'nSnowGrainRadiusSNICAR'               ! snow grain radius fieldname
-      ssp_nspint_fname   = 'nSpectralIntervalsSNICAR'             ! spectral interval fieldname
-      ssp_nmodal1_fname  = 'nModal1'                              ! nModal1 fieldname
-      ssp_nmodal2_fname  = 'nModal2'                              ! nModal1 fieldname
-      ssp_nmaeros_fname  = 'maxAerosolType'                       ! maxAerosolType fieldname
-      ssp_snwextdr_fname = 'iceMassExtinctionCrossSectionDirect'  ! snow mass extinction cross section (m2/kg)
-      ssp_snwextdf_fname = 'iceMassExtinctionCrossSectionDiffuse' ! snow mass extinction cross section (m2/kg)
-      ssp_snwalbdr_fname = 'iceSingleScatterAlbedoDirect'         ! snow single scatter albedo (fraction)
-      ssp_snwalbdf_fname = 'iceSingleScatterAlbedoDiffuse'        ! snow single scatter albedo (fraction)
-      ssp_sasymmdr_fname = 'iceAsymmetryParameterDirect'          ! snow asymmetry factor (cos(theta))
-      ssp_sasymmdf_fname = 'iceAsymmetryParameterDiffuse'         ! snow asymmetry factor (cos(theta))
-      ssp_aasymmmd_fname = 'modalAsymmetryParameter5band'
-      ssp_aerextmd_fname = 'modalMassExtinctionCrossSection5band'
-      ssp_aeralbmd_fname = 'modalSingleScatterAlbedo5band'
-      ssp_aasymm_fname   = 'aerosolAsymmetryParameter5band'
-      ssp_aerext_fname   = 'aerosolMassExtinctionCrossSection5band'
-      ssp_aeralb_fname   = 'aerosolSingleScatterAlbedo5band'
-      ssp_abcenhmd_fname = 'modalBCabsorptionParameter5band'
+      snw_ssp_table   = 'test'    ! snow table type, test or snicar
 
       ! extra tracers
       tr_iage      = .false. ! ice age
@@ -754,27 +717,6 @@
 
          if (trim(shortwave) == 'dEdd_snicar') then
          write(nu_diag,1030) ' snw_ssp_table             = ', trim(snw_ssp_table)
-         if (trim(snw_ssp_table) == 'snicarfile') then
-         write(nu_diag,1030) ' ssp_filename              = ', trim(ssp_filename)
-         write(nu_diag,1030) ' ssp_nsrad_fname           = ', trim(ssp_nsrad_fname)
-         write(nu_diag,1030) ' ssp_nspint_fname          = ', trim(ssp_nspint_fname)
-         write(nu_diag,1030) ' ssp_nmodal1_fname         = ', trim(ssp_nmodal1_fname)
-         write(nu_diag,1030) ' ssp_nmodal2_fname         = ', trim(ssp_nmodal2_fname)
-         write(nu_diag,1030) ' ssp_nmaeros_fname         = ', trim(ssp_nmaeros_fname)
-         write(nu_diag,1030) ' ssp_snwextdr_fname        = ', trim(ssp_snwextdr_fname)
-         write(nu_diag,1030) ' ssp_snwextdf_fname        = ', trim(ssp_snwextdf_fname)
-         write(nu_diag,1030) ' ssp_snwalbdr_fname        = ', trim(ssp_snwalbdr_fname)
-         write(nu_diag,1030) ' ssp_snwalbdf_fname        = ', trim(ssp_snwalbdf_fname)
-         write(nu_diag,1030) ' ssp_sasymmdr_fname        = ', trim(ssp_sasymmdr_fname)
-         write(nu_diag,1030) ' ssp_sasymmdf_fname        = ', trim(ssp_sasymmdf_fname)
-         write(nu_diag,1030) ' ssp_aasymmmd_fname        = ', trim(ssp_aasymmmd_fname)
-         write(nu_diag,1030) ' ssp_aerextmd_fname        = ', trim(ssp_aerextmd_fname)
-         write(nu_diag,1030) ' ssp_aeralbmd_fname        = ', trim(ssp_aeralbmd_fname)
-         write(nu_diag,1030) ' ssp_aasymm_fname          = ', trim(ssp_aasymm_fname)
-         write(nu_diag,1030) ' ssp_aerext_fname          = ', trim(ssp_aerext_fname)
-         write(nu_diag,1030) ' ssp_aeralb_fname          = ', trim(ssp_aeralb_fname)
-         write(nu_diag,1030) ' ssp_abcenhmd_fname        = ', trim(ssp_abcenhmd_fname)
-         endif
          endif
 
          write(nu_diag,1010) ' sw_redist                 = ', sw_redist

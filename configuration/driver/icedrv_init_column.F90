@@ -107,7 +107,7 @@
       use icedrv_calendar, only: istep1, dt, calendar_type
       use icedrv_calendar, only:    days_per_year, nextsw_cday, yday, sec
       use icedrv_system, only: icedrv_system_abort
-      use icedrv_forcing, only: snw_ssp_table, init_snicarssptable
+      use icedrv_forcing, only: snw_ssp_table
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr
       use icedrv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, scale_factor, snowfrac
@@ -234,9 +234,6 @@
                call icepack_warnings_flush(nu_diag)
                if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                    file=__FILE__,line= __LINE__)
-               if (trim(snw_ssp_table) == 'snicarfile') then
-                  call init_snicarssptable()
-               endif
             endif
          endif ! dEdd
 
