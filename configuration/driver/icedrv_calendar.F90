@@ -78,7 +78,6 @@
          yday           , & ! day of the year
          tday           , & ! absolute day number
          dayyr          , & ! number of days per year
-         nextsw_cday    , & ! julian day of next shortwave calculation
          basis_seconds  , & ! Seconds since calendar zero
          secday             ! seconds per day
 

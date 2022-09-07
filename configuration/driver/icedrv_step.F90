@@ -923,7 +923,7 @@
       use icedrv_arrays_column, only: albicen, albsnon, albpndn
       use icedrv_arrays_column, only: alvdrn, alidrn, alvdfn, alidfn, apeffn, trcrn_sw, snowfracn
       use icedrv_arrays_column, only: swgrid, igrid
-      use icedrv_calendar, only: calendar_type, days_per_year, nextsw_cday, yday, sec
+      use icedrv_calendar, only: yday, sec
       use icedrv_domain_size, only: ncat, n_aero, nilyr, nslyr, n_zaero, n_algae, nblyr, nx
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, coszen, fsnow
       use icedrv_init, only: TLAT, TLON, tmask
@@ -949,7 +949,7 @@
          nlt_zaero_sw, nt_zaero, nt_bgc_N
 
       logical (kind=log_kind) :: &
-         tr_bgc_N, tr_zaero, tr_brine, dEdd_algae, modal_aero, snwgrain
+         tr_bgc_N, tr_zaero, tr_brine, dEdd_algae, snwgrain
 
       real (kind=dbl_kind), dimension(ncat) :: &
          fbri               ! brine height to ice thickness
@@ -997,8 +997,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call icepack_query_parameters(dEdd_algae_out=dEdd_algae, modal_aero_out=modal_aero, &
-           snwgrain_out=snwgrain)
+      call icepack_query_parameters(dEdd_algae_out=dEdd_algae, snwgrain_out=snwgrain)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -1024,7 +1023,7 @@
 
             call icepack_step_radiation(dt=dt,      ncat=ncat,          &
                          nblyr=nblyr,               nilyr=nilyr,        &
-                         nslyr=nslyr,               dEdd_algae=dEdd_algae,        &
+                         nslyr=nslyr,                                   &
                          swgrid=swgrid(:),          igrid=igrid(:),     &
                          fbri=fbri(:),                                  &
                          aicen=aicen(i,:),          vicen=vicen(i,:),   &
@@ -1039,10 +1038,7 @@
                          zaeron=trcrn(i,nt_zaero(1):nt_zaero(1)+n_zaero*(nblyr+3)-1,:), &
                          trcrn_bgcsw=ztrcr_sw,                          &
                          TLAT=TLAT(i),              TLON=TLON(i),       &
-                         calendar_type=calendar_type,                   &
-                         days_per_year=days_per_year, sec=sec,          &
-                         nextsw_cday=nextsw_cday,   yday=yday,          &
-                         modal_aero=modal_aero,                         &
+                         sec=sec,                   yday=yday,          &
                          swvdr=swvdr(i),            swvdf=swvdf(i),           &
                          swidr=swidr(i),            swidf=swidf(i),           &
                          coszen=coszen(i),          fsnow=fsnow(i),           &
