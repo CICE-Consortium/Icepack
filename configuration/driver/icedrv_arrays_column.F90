@@ -120,37 +120,6 @@
          public :: &
          fswpenln       ! visible SW entering ice layers (W m-2)
 
-      ! aerosol optical properties   -> band  |
-      !                                       v aerosol
-      ! for combined dust category, use category 4 properties
-      real (kind=dbl_kind), dimension(icepack_nspint_3bd,icepack_max_aero), public :: &
-         kaer_3bd   , & ! aerosol mass extinction cross section (m2/kg)
-         waer_3bd   , & ! aerosol single scatter albedo (fraction)
-         gaer_3bd       ! aerosol asymmetry parameter (cos(theta))
-
-      real (kind=dbl_kind), dimension(icepack_nspint_3bd,icepack_nmodal1), public :: &
-         kaer_bc_3bd, & ! BC mass extinction cross section (m2/kg)
-         waer_bc_3bd, & ! BC single scatter albedo (fraction)
-         gaer_bc_3bd    ! BC aerosol asymmetry parameter (cos(theta))
-
-      real (kind=dbl_kind), &
-         dimension (icepack_nspint_3bd,icepack_nmodal1,icepack_nmodal2), public :: &
-         bcenh_3bd       ! BC absorption enhancement factor
-
-      real (kind=dbl_kind), dimension(icepack_nspint_5bd,icepack_max_aero), public :: &
-         kaer_5bd   , & ! aerosol mass extinction cross section (m2/kg)
-         waer_5bd   , & ! aerosol single scatter albedo (fraction)
-         gaer_5bd       ! aerosol asymmetry parameter (cos(theta))
-
-      real (kind=dbl_kind), dimension(icepack_nspint_5bd,icepack_nmodal1), public :: &
-         kaer_bc_5bd, & ! BC mass extinction cross section (m2/kg)
-         waer_bc_5bd, & ! BC single scatter albedo (fraction)
-         gaer_bc_5bd    ! BC aerosol asymmetry parameter (cos(theta))
-
-      real (kind=dbl_kind), &
-         dimension (icepack_nspint_5bd,icepack_nmodal1,icepack_nmodal2), public :: &
-         bcenh_5bd      ! BC absorption enhancement factor
-
       ! biogeochemistry components
 
       real (kind=dbl_kind), dimension (nblyr+2), public :: &
