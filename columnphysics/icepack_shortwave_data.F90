@@ -19,6 +19,7 @@
       ! dEdd 3-band data
       real (kind=dbl_kind), dimension (nspint_3bd), public :: &
          ! inherent optical properties (iop)
+         !   mn = specified mean (or base) value
          !    k = extinction coefficient (/m)
          !    w = single scattering albedo
          !    g = asymmetry parameter
@@ -67,7 +68,10 @@
          rsnw_snicar_min, & ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max    ! maximum snow radius - integer value used for indexing
 
-      real (kind=dbl_kind), allocatable, public :: &
+      real (kind=dbl_kind), pointer, public :: &
+         ! these are pointers instead of allocatables because icepack_shortwave has local names
+         ! TODO: should make these allocatable and update icepack_shortwave names OR
+         ! maybe make all the data here pointers.
          rsnw_snicar_tab(:), & ! snow grain radii (10^-6 m)
          ssp_snwextdr(:,:),  & ! snow mass extinction cross section (m2/kg), direct
          ssp_snwextdf(:,:),  & ! snow mass extinction cross section (m2/kg), diffuse
@@ -97,10 +101,6 @@
       character (len=*),parameter :: subname='(icepack_shortwave_init_dEdd3band)'
 
       nmbrad_snw = 32 ! number of snow grain radii in tables
-      if (allocated(rsnw_tab)) deallocate(rsnw_tab)
-      if (allocated(Qs_tab)  ) deallocate(Qs_tab)
-      if (allocated(ws_tab)  ) deallocate(ws_tab)
-      if (allocated(gs_tab)  ) deallocate(gs_tab)
 
       allocate(rsnw_tab(           nmbrad_snw))
       allocate(Qs_tab  (nspint_3bd,nmbrad_snw))
@@ -261,13 +261,19 @@
 
       !--- extracted from netcdf file
       !--- snicar_optics_5bnd_mam_c140303_mpas_cice (this is actually 3 band)
+      !    gaer_bc_3bd (:,:)   = modalAsymmetryParameter(:,:)
+      !    kaer_bc_3bd (:,:)   = modalMassExtinctionCrossSection(:,:)
+      !    waer_bc_3bd (:,:)   = modalSingleScatterAlbedo(:,:)
+      !    bcenh_3bd   (:,:,:) = modalBCabsorptionParameter(:,:,:)
+      !
       !--- spectralIntervals = 4.5e-13, 9.45e-13, 3.095e-12 ;
       !--- bcEffectiveRadius = 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5 ;
       !--- iceGrainEffectiveRadius = 50, 100, 250, 500, 750, 1000, 1250, 1500 ;
-      !   gaer_bc_3bd (:,:)   = modalAsymmetryParameter(:,:)
-      !   kaer_bc_3bd (:,:)   = modalMassExtinctionCrossSection(:,:)
-      !   waer_bc_3bd (:,:)   = modalSingleScatterAlbedo(:,:)
-      !   bcenh_3bd   (:,:,:) = modalBCabsorptionParameter(:,:,:)
+      !
+      !--- extracted from CICE model, was single precision data statements
+      !    gaer_bc (:,:)
+      !    kaer_bc (:,:)
+      !    waer_bc (:,:)
 
       allocate(gaer_bc_3bd(nspint_3bd,nmodal1) )
       allocate(kaer_bc_3bd(nspint_3bd,nmodal1) )
@@ -315,6 +321,32 @@
        0.501307856563459_dbl_kind, 0.470696914968199_dbl_kind, 0.431284889617716_dbl_kind, &
        0.507362336297419_dbl_kind, 0.477038272961243_dbl_kind, 0.440559363958571_dbl_kind/), &
        (/nspint_3bd,nmodal1/))
+
+      ! tcraig, copied from CICE, promote to dbl_kind
+      kaer_3bd = reshape((/ &      ! aerosol mass extinction cross section (m2/kg)
+          11580.61872_dbl_kind,   5535.41835_dbl_kind,   2793.79690_dbl_kind, &
+          25798.96479_dbl_kind,  11536.03871_dbl_kind,   4688.24207_dbl_kind, &
+            196.49772_dbl_kind,    204.14078_dbl_kind,    214.42287_dbl_kind, &
+           2665.85867_dbl_kind,   2256.71027_dbl_kind,    820.36024_dbl_kind, &
+            840.78295_dbl_kind,   1028.24656_dbl_kind,   1163.03298_dbl_kind, &
+            387.51211_dbl_kind,    414.68808_dbl_kind,    450.29814_dbl_kind/), &
+            (/nspint_3bd,max_aero/))
+      waer_3bd = reshape((/ &      ! aerosol single scatter albedo (fraction)
+              0.29003_dbl_kind,      0.17349_dbl_kind,      0.06613_dbl_kind, &
+              0.51731_dbl_kind,      0.41609_dbl_kind,      0.21324_dbl_kind, &
+              0.84467_dbl_kind,      0.94216_dbl_kind,      0.95666_dbl_kind, &
+              0.97764_dbl_kind,      0.99402_dbl_kind,      0.98552_dbl_kind, &
+              0.94146_dbl_kind,      0.98527_dbl_kind,      0.99093_dbl_kind, &
+              0.90034_dbl_kind,      0.96543_dbl_kind,      0.97678_dbl_kind/), &
+              (/nspint_3bd,max_aero/))
+      gaer_3bd = reshape((/ &      ! aerosol asymmetry parameter (cos(theta))
+              0.35445_dbl_kind,      0.19838_dbl_kind,      0.08857_dbl_kind, &
+              0.52581_dbl_kind,      0.32384_dbl_kind,      0.14970_dbl_kind, &
+              0.83162_dbl_kind,      0.78306_dbl_kind,      0.74375_dbl_kind, &
+              0.68861_dbl_kind,      0.70836_dbl_kind,      0.54171_dbl_kind, &
+              0.70239_dbl_kind,      0.66115_dbl_kind,      0.71983_dbl_kind, &
+              0.78734_dbl_kind,      0.73580_dbl_kind,      0.64411_dbl_kind/), &
+              (/nspint_3bd,max_aero/))
 
       bcenh_3bd   (:,:,:) = reshape((/ &
        1.95264863821642_dbl_kind, 2.05550877768593_dbl_kind, 1.70240332828865_dbl_kind, &
@@ -398,11 +430,6 @@
        2.40074243898899_dbl_kind, 2.13491705468600_dbl_kind, 0.523532027540127_dbl_kind, &
        2.44259042500067_dbl_kind, 2.17052832643712_dbl_kind, 0.524400814046362_dbl_kind/), &
        (/nspint_3bd,nmodal1,nmodal2/))
-
-      ! TODO, what do we set these to?
-      gaer_3bd = c0
-      kaer_3bd = c0
-      waer_3bd = c0
 
       end subroutine icepack_shortwave_init_dEdd3band
 
@@ -621,13 +648,6 @@
          rsnw_snicar_min = rsnw_snicar_tab(1)             ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max = rsnw_snicar_tab(nmbrad_snicar) ! maximum snow radius - integer value used for indexing
 
-         if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
-         if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
-         if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
-         if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
-         if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
-         if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
-
          allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, direct
          allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, diffuse
          allocate(ssp_snwalbdr(nspint_5bd,nmbrad_snicar)) ! single-scattering albedo, direct
@@ -639,51 +659,51 @@
          ! reshape from nmbrad,nspint to nspint,nmbrad with order = 2,1
 
          ssp_snwextdr = reshape((/ &
-               46.27374983, 24.70286257, 6.54918455, 2.6035624,  1.196168,   &
-               46.56827715, 24.81790668, 6.56181227, 2.60604155, 1.19682614, &
-               46.76114033, 24.90468677, 6.56950323, 2.60780948, 1.19737512, &
-               46.9753992,  24.9495155,  6.57687695, 2.60937383, 1.19774008, &
-               47.48598349, 25.14100194, 6.59708024, 2.61372576, 1.19897351 /), &
+               46.27374983_dbl_kind, 24.70286257_dbl_kind, 6.54918455_dbl_kind, 2.60356240_dbl_kind, 1.19616800_dbl_kind,   &
+               46.56827715_dbl_kind, 24.81790668_dbl_kind, 6.56181227_dbl_kind, 2.60604155_dbl_kind, 1.19682614_dbl_kind, &
+               46.76114033_dbl_kind, 24.90468677_dbl_kind, 6.56950323_dbl_kind, 2.60780948_dbl_kind, 1.19737512_dbl_kind, &
+               46.97539920_dbl_kind, 24.94951550_dbl_kind, 6.57687695_dbl_kind, 2.60937383_dbl_kind, 1.19774008_dbl_kind, &
+               47.48598349_dbl_kind, 25.14100194_dbl_kind, 6.59708024_dbl_kind, 2.61372576_dbl_kind, 1.19897351_dbl_kind /), &
                (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
 
          ssp_snwextdf = reshape((/ &
-               46.26936158, 24.70165487, 6.54903637, 2.60353051, 1.19615825, &
-               46.56628244, 24.81707286, 6.56164279, 2.60601584, 1.1968169,  &
-               46.75501968, 24.90175807, 6.5693214,  2.60775795, 1.19736237, &
-               46.95368476, 24.94497414, 6.57612007, 2.60924059, 1.19770981, &
-               47.29620774, 25.0713585,  6.5891698,  2.61198929, 1.19850197 /), &
+               46.26936158_dbl_kind, 24.70165487_dbl_kind, 6.54903637_dbl_kind, 2.60353051_dbl_kind, 1.19615825_dbl_kind, &
+               46.56628244_dbl_kind, 24.81707286_dbl_kind, 6.56164279_dbl_kind, 2.60601584_dbl_kind, 1.19681690_dbl_kind,  &
+               46.75501968_dbl_kind, 24.90175807_dbl_kind, 6.56932140_dbl_kind, 2.60775795_dbl_kind, 1.19736237_dbl_kind, &
+               46.95368476_dbl_kind, 24.94497414_dbl_kind, 6.57612007_dbl_kind, 2.60924059_dbl_kind, 1.19770981_dbl_kind, &
+               47.29620774_dbl_kind, 25.07135850_dbl_kind, 6.58916980_dbl_kind, 2.61198929_dbl_kind, 1.19850197_dbl_kind /), &
                (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
 
          ssp_snwalbdr = reshape((/ &
-               0.99999581, 0.99999231, 0.99997215, 0.99993093, 0.99985157, &
-               0.99987892, 0.99978212, 0.99923115, 0.99817946, 0.99628374, &
-               0.99909682, 0.99835523, 0.99418008, 0.98592085, 0.97062632, &
-               0.99308867, 0.98972448, 0.97261528, 0.93947995, 0.88207117, &
-               0.93322249, 0.89645776, 0.75765643, 0.6272883,  0.55435033 /), &
+               0.99999581_dbl_kind, 0.99999231_dbl_kind, 0.99997215_dbl_kind, 0.99993093_dbl_kind, 0.99985157_dbl_kind, &
+               0.99987892_dbl_kind, 0.99978212_dbl_kind, 0.99923115_dbl_kind, 0.99817946_dbl_kind, 0.99628374_dbl_kind, &
+               0.99909682_dbl_kind, 0.99835523_dbl_kind, 0.99418008_dbl_kind, 0.98592085_dbl_kind, 0.97062632_dbl_kind, &
+               0.99308867_dbl_kind, 0.98972448_dbl_kind, 0.97261528_dbl_kind, 0.93947995_dbl_kind, 0.88207117_dbl_kind, &
+               0.93322249_dbl_kind, 0.89645776_dbl_kind, 0.75765643_dbl_kind, 0.62728830_dbl_kind, 0.55435033_dbl_kind /), &
                (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
 
          ssp_snwalbdf = reshape((/ &
-               0.99999586, 0.9999924,  0.99997249, 0.99993178, 0.9998534,  &
-               0.99988441, 0.99979202, 0.99926745, 0.99826865, 0.99647135, &
-               0.99910997, 0.99837683, 0.99426171, 0.98610431, 0.97097643, &
-               0.99476731, 0.9916114,  0.97441209, 0.94127464, 0.88440735, &
-               0.9419837,  0.90613207, 0.77042376, 0.63887161, 0.5566098  /), &
+               0.99999586_dbl_kind, 0.99999240_dbl_kind, 0.99997249_dbl_kind, 0.99993178_dbl_kind, 0.99985340_dbl_kind,  &
+               0.99988441_dbl_kind, 0.99979202_dbl_kind, 0.99926745_dbl_kind, 0.99826865_dbl_kind, 0.99647135_dbl_kind, &
+               0.99910997_dbl_kind, 0.99837683_dbl_kind, 0.99426171_dbl_kind, 0.98610431_dbl_kind, 0.97097643_dbl_kind, &
+               0.99476731_dbl_kind, 0.99161140_dbl_kind, 0.97441209_dbl_kind, 0.94127464_dbl_kind, 0.88440735_dbl_kind, &
+               0.94198370_dbl_kind, 0.90613207_dbl_kind, 0.77042376_dbl_kind, 0.63887161_dbl_kind, 0.55660980_dbl_kind /), &
                (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
 
          ssp_sasymmdr = reshape((/ &
-               0.88503036, 0.88778473, 0.89049023, 0.89112501, 0.89136157, &
-               0.88495225, 0.88905367, 0.89315385, 0.89433673, 0.8950027,  &
-               0.88440201, 0.88928256, 0.89503166, 0.89762648, 0.90045378, &
-               0.88590371, 0.89350221, 0.90525156, 0.91314567, 0.92157748, &
-               0.9033537,  0.91778261, 0.94615574, 0.96323447, 0.97167644 /), &
+               0.88503036_dbl_kind, 0.88778473_dbl_kind, 0.89049023_dbl_kind, 0.89112501_dbl_kind, 0.89136157_dbl_kind, &
+               0.88495225_dbl_kind, 0.88905367_dbl_kind, 0.89315385_dbl_kind, 0.89433673_dbl_kind, 0.89500270_dbl_kind,  &
+               0.88440201_dbl_kind, 0.88928256_dbl_kind, 0.89503166_dbl_kind, 0.89762648_dbl_kind, 0.90045378_dbl_kind, &
+               0.88590371_dbl_kind, 0.89350221_dbl_kind, 0.90525156_dbl_kind, 0.91314567_dbl_kind, 0.92157748_dbl_kind, &
+               0.90335370_dbl_kind, 0.91778261_dbl_kind, 0.94615574_dbl_kind, 0.96323447_dbl_kind, 0.97167644_dbl_kind /), &
                (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
 
          ssp_sasymmdf = reshape((/ &
-               0.88500571, 0.88773868, 0.89042496, 0.8910553,  0.89128949, &
-               0.88495225, 0.88905367, 0.89315385, 0.89433673, 0.8950027 , &
-               0.88441433, 0.88929133, 0.89500611, 0.89756091, 0.90035504, &
-               0.88495554, 0.89201556, 0.90204619, 0.90914885, 0.91769988, &
-               0.89620237, 0.90998944, 0.94126152, 0.96209938, 0.9726631  /), &
+               0.88500571_dbl_kind, 0.88773868_dbl_kind, 0.89042496_dbl_kind, 0.89105530_dbl_kind, 0.89128949_dbl_kind, &
+               0.88495225_dbl_kind, 0.88905367_dbl_kind, 0.89315385_dbl_kind, 0.89433673_dbl_kind, 0.89500270_dbl_kind, &
+               0.88441433_dbl_kind, 0.88929133_dbl_kind, 0.89500611_dbl_kind, 0.89756091_dbl_kind, 0.90035504_dbl_kind, &
+               0.88495554_dbl_kind, 0.89201556_dbl_kind, 0.90204619_dbl_kind, 0.90914885_dbl_kind, 0.91769988_dbl_kind, &
+               0.89620237_dbl_kind, 0.90998944_dbl_kind, 0.94126152_dbl_kind, 0.96209938_dbl_kind, 0.97266310_dbl_kind  /), &
                (/nmbrad_snicar,nspint_5bd/), order=(/ 2, 1 /))
 
       end subroutine icepack_shortwave_init_snicartest
@@ -9574,13 +9594,6 @@
       do n = 1, nmbrad_snicar-1
          rsnw_snicar_tab(n+1) = rsnw_snicar_tab(n) + 1.0_dbl_kind
       enddo
-
-      if (allocated(ssp_snwextdr)) deallocate(ssp_snwextdr)
-      if (allocated(ssp_snwextdf)) deallocate(ssp_snwextdf)
-      if (allocated(ssp_snwalbdr)) deallocate(ssp_snwalbdr)
-      if (allocated(ssp_snwalbdf)) deallocate(ssp_snwalbdf)
-      if (allocated(ssp_sasymmdr)) deallocate(ssp_sasymmdr)
-      if (allocated(ssp_sasymmdf)) deallocate(ssp_sasymmdf)
 
       allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, direct
       allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, diffuse
