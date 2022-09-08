@@ -100,8 +100,7 @@
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn
       use icedrv_arrays_column, only: swgrid, igrid
-      use icedrv_calendar, only: istep1, dt, calendar_type
-      use icedrv_calendar, only:    days_per_year, nextsw_cday, yday, sec
+      use icedrv_calendar, only: istep1, dt, yday, sec
       use icedrv_system, only: icedrv_system_abort
       use icedrv_forcing, only: snw_ssp_table
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr
@@ -123,7 +122,6 @@
          l_print_point, & ! flag to print designated grid point diagnostics
          use_snicar,    & ! use 5-band SNICAR radiation scheme for snow
          dEdd_algae,    & ! BGC - radiation interactions
-         modal_aero,    & ! modal aerosol optical properties
          snwgrain         ! use variable snow grain size
 
       character (len=char_len) :: &
@@ -153,7 +151,6 @@
          call icepack_query_parameters(puny_out=puny)
          call icepack_query_parameters(shortwave_out=shortwave)
          call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
-         call icepack_query_parameters(modal_aero_out=modal_aero)
          call icepack_query_parameters(snwgrain_out=snwgrain)
          call icepack_query_tracer_sizes(ntrcr_out=ntrcr, &
               nbtrcr_sw_out=nbtrcr_sw)
@@ -250,11 +247,8 @@
             enddo
 
             if (tmask(i)) then
-            call icepack_step_radiation (              &
-                         dt=dt,           ncat=ncat,           &
-                         nblyr=nblyr,                          &
-                         nilyr=nilyr,     nslyr=nslyr,         &
-                         dEdd_algae=dEdd_algae,                &
+            call icepack_step_radiation (                      &
+                         dt=dt,                                &
                          swgrid=swgrid(:),                     &
                          igrid=igrid(:),                       &
                          fbri=fbri(:),                         &
@@ -271,10 +265,7 @@
                          zaeron=trcrn(i,nt_zaero(1):nt_zaero(1)+n_zaero*(nblyr+3)-1,:), &
                          trcrn_bgcsw=ztrcr_sw,                 &
                          TLAT=TLAT(i), TLON=TLON(i),           &
-                         calendar_type=calendar_type,          &
-                         days_per_year=days_per_year,          &
-                         nextsw_cday=nextsw_cday, yday=yday, sec=sec,      &
-                         modal_aero=modal_aero,                            &
+                         yday=yday, sec=sec,                   &
                          swvdr=swvdr(i),         swvdf=swvdf(i),           &
                          swidr=swidr(i),         swidf=swidf(i),           &
                          coszen=coszen(i),       fsnow=fsnow(i),           &
