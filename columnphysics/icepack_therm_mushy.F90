@@ -1369,14 +1369,31 @@
     ! if not converged
     if (.not. lconverged) then
 
-       call picard_nonconvergence(nilyr, nslyr,&
-                                  Tsf0,  Tsf,  &
-                                  zTsn0, zTsn, &
-                                  zTin0, zTin, &
-                                  zSin0, zSin, &
-                                  zqsn0, zqsn, &
-                                  zqin0, zqin, &
-                                  phi)
+       call picard_nonconvergence(nilyr,    nslyr,    &
+                                  Tsf0,     Tsf,      &
+                                  zTsn0,    zTsn,     &
+                                  zTin0,    zTin,     &
+                                  zSin0,    zSin,     &
+                                  zqsn0,    zqsn,     &
+                                  zqin0,    phi,      &
+                                  dt,                 &
+                                  hilyr,    hslyr,    &
+                                  km,       ks,       &
+                                  Iswabs,   Sswabs,   &
+                                  Tbot,               &
+                                  fswint,   fswsfc,   &
+                                  rhoa,     flw,      &
+                                  potT,     Qa,       &
+                                  shcoef,   lhcoef,   &
+                                  fcondtop, fcondbot, &
+                                  fadvheat,           &
+                                  flwoutn,  fsensn,   &
+                                  flatn,    fsurfn,   &
+                                  qpond,    qocn,     &
+                                  Spond,    sss,      &
+                                  q,        dSdt,     &
+                                  w)
+
        if (icepack_warnings_aborted(subname)) return
        call icepack_warnings_add(subname//" picard_solver: Picard solver non-convergence" ) 
        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
@@ -1388,13 +1405,30 @@
 
 !=======================================================================
 
-  subroutine picard_nonconvergence(nilyr, nslyr,&
-                                   Tsf0,  Tsf,  &
-                                   zTsn0, zTsn, &
-                                   zTin0, zTin, &
-                                   zSin0, zSin, &
-                                   zqsn0, zqsn, &
-                                   zqin0, zqin, phi)
+  subroutine picard_nonconvergence(nilyr,    nslyr,    &
+                                   Tsf0,     Tsf,      &
+                                   zTsn0,    zTsn,     &
+                                   zTin0,    zTin,     &
+                                   zSin0,    zSin,     &
+                                   zqsn0,    zqsn,     &
+                                   zqin0,    phi,      &
+                                   dt,                 &
+                                   hilyr,    hslyr,    &
+                                   km,       ks,       &
+                                   Iswabs,   Sswabs,   &
+                                   Tbot,               &
+                                   fswint,   fswsfc,   &
+                                   rhoa,     flw,      &
+                                   potT,     Qa,       &
+                                   shcoef,   lhcoef,   &
+                                   fcondtop, fcondbot, &
+                                   fadvheat,           &
+                                   flwoutn,  fsensn,   &
+                                   flatn,    fsurfn,   &
+                                   qpond,    qocn,     &
+                                   Spond,    sss,      &
+                                   q,        dSdt,     &
+                                   w)
 
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1412,36 +1446,158 @@
          zTin0 , & ! ice layer temperature (C)
          zTin  , & ! ice layer temperature (C)
          zSin0 , & ! ice layer bulk salinity (ppt)
+
          zSin  , & ! ice layer bulk salinity (ppt)
-         zqin0 , & 
-         zqin  , & 
-         phi       ! ice layer liquid fraction
+         phi   , & ! ice layer liquid fraction
+         zqin0
+
+    real(kind=dbl_kind), intent(in) :: &
+         dt            , & ! time step (s)
+         hilyr         , & ! ice layer thickness (m)
+         hslyr         , & ! snow layer thickness (m)
+         Tbot          , & ! ice bottom surfce temperature (deg C)
+         fswint        , & ! SW absorbed in ice interior below surface (W m-2)
+         fswsfc        , & ! SW absorbed at ice/snow surface (W m-2)
+         rhoa          , & ! air density (kg/m^3)
+         flw           , & ! incoming longwave radiation (W/m^2)
+         potT          , & ! air potential temperature (K)
+         Qa            , & ! specific humidity (kg/kg)
+         shcoef        , & ! transfer coefficient for sensible heat
+         lhcoef        , & ! transfer coefficient for latent heat
+         qpond         , & ! melt pond brine enthalpy (J m-3)
+         qocn          , & ! ocean brine enthalpy (J m-3)
+         Spond         , & ! melt pond salinity (ppt)
+         sss           , & ! sea surface salinity (ppt)
+         w                 ! vertical flushing Darcy velocity (m/s)
+
+    real(kind=dbl_kind), dimension(:), intent(in) :: &
+         km            , & ! ice conductivity (W m-1 K-1)
+         Iswabs        , & ! SW radiation absorbed in ice layers (W m-2)
+         dSdt              ! gravity drainage desalination rate for slow mode (ppt s-1)
+
+    real(kind=dbl_kind), dimension(0:nilyr), intent(in) :: &
+         q                 ! upward interface vertical Darcy flow (m s-1)
+
+    real(kind=dbl_kind), dimension(:), intent(in) :: &
+         ks            , & ! snow conductivity (W m-1 K-1)
+         Sswabs            ! SW radiation absorbed in snow layers (W m-2)
+
+    real(kind=dbl_kind), intent(in) :: &
+         flwoutn       , & ! upward LW at surface (W m-2)
+         fsensn        , & ! surface downward sensible heat (W m-2)
+         flatn         , & ! surface downward latent heat (W m-2)
+         fsurfn            ! net flux to top surface, excluding fcondtop
+
+    real(kind=dbl_kind), intent(in) :: &
+         fcondtop      , & ! downward cond flux at top surface (W m-2)
+         fcondbot      , & ! downward cond flux at bottom surface (W m-2)
+         fadvheat          ! flow of heat to ocean due to advection (W m-2)
 
     integer :: &
          k        ! vertical layer index
 
-    character(len=*),parameter :: subname='(picard_nonconvergence)'
+    character(len=char_len_long) :: &
+         warning  ! warning message
 
-    write(warnstr,*) subname, "-------------------------------------"
-    call icepack_warnings_add(warnstr)
+    write(warning,*) "-------------------------------------"
+    call icepack_warnings_add(warning)
+    write(warning,*)
+    call icepack_warnings_add(warning)
 
-    write(warnstr,*) subname, "picard convergence failed!"
-    call icepack_warnings_add(warnstr)
-    write(warnstr,*) subname, 0, Tsf0, Tsf
-    call icepack_warnings_add(warnstr)
-    
+    write(warning,*) "picard convergence failed!"
+    call icepack_warnings_add(warning)
+    write(warning,*) "=========================="
+    call icepack_warnings_add(warning)
+    write(warning,*)
+    call icepack_warnings_add(warning)
+
+    write(warning,*) "Surface: Tsf0, Tsf"
+    call icepack_warnings_add(warning)
+    write(warning,*) 0, Tsf0, Tsf
+    call icepack_warnings_add(warning)
+    write(warning,*)
+    call icepack_warnings_add(warning)
+
+    write(warning,*) "Snow: zTsn0(k), zTsn(k), zqsn0(k), ks(k), Sswabs(k)"
+    call icepack_warnings_add(warning)
     do k = 1, nslyr
-       write(warnstr,*) subname, k, zTsn0(k), zTsn(k), zqsn(k), zqsn0(k)
-       call icepack_warnings_add(warnstr)
-    enddo ! k          
-    
-    do k = 1, nilyr
-       write(warnstr,*) subname, k, zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin(k), zqin0(k)
-       call icepack_warnings_add(warnstr)
+       write(warning,*) k, zTsn0(k), zTsn(k), zqsn0(k), ks(k), Sswabs(k)
+       call icepack_warnings_add(warning)
     enddo ! k
+    write(warning,*)
+    call icepack_warnings_add(warning)
 
-    write(warnstr,*) subname, "-------------------------------------"
-    call icepack_warnings_add(warnstr)
+    write(warning,*) "Ice: zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin0(k), km(k), Iswabs(k), dSdt(k)"
+    call icepack_warnings_add(warning)
+    do k = 1, nilyr
+       write(warning,*) k, zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin0(k), km(k), Iswabs(k), dSdt(k)
+       call icepack_warnings_add(warning)
+    enddo ! k
+    write(warning,*)
+    call icepack_warnings_add(warning)
+
+    write(warning,*) "Ice boundary: q(k)"
+    call icepack_warnings_add(warning)
+    do k = 0, nilyr
+       write(warning,*) k, q(k)
+       call icepack_warnings_add(warning)
+    enddo ! k
+    write(warning,*)
+    call icepack_warnings_add(warning)
+
+    write(warning,*) "dt:       ", dt
+    call icepack_warnings_add(warning)
+    write(warning,*) "hilyr:    ", hilyr
+    call icepack_warnings_add(warning)
+    write(warning,*) "hslyr:    ", hslyr
+    call icepack_warnings_add(warning)
+    write(warning,*) "Tbot:     ", Tbot
+    call icepack_warnings_add(warning)
+    write(warning,*) "fswint:   ", fswint
+    call icepack_warnings_add(warning)
+    write(warning,*) "fswsfc:   ", fswsfc
+    call icepack_warnings_add(warning)
+    write(warning,*) "rhoa:     ", rhoa
+    call icepack_warnings_add(warning)
+    write(warning,*) "flw:      ", flw
+    call icepack_warnings_add(warning)
+    write(warning,*) "potT:     ", potT
+    call icepack_warnings_add(warning)
+    write(warning,*) "Qa:       ", Qa
+    call icepack_warnings_add(warning)
+    write(warning,*) "shcoef:   ", shcoef
+    call icepack_warnings_add(warning)
+    write(warning,*) "lhcoef:   ", lhcoef
+    call icepack_warnings_add(warning)
+    write(warning,*) "qpond:    ", qpond
+    call icepack_warnings_add(warning)
+    write(warning,*) "qocn:     ", qocn
+    call icepack_warnings_add(warning)
+    write(warning,*) "Spond:    ", Spond
+    call icepack_warnings_add(warning)
+    write(warning,*) "sss:      ", sss
+    call icepack_warnings_add(warning)
+    write(warning,*) "w:        ", w
+    call icepack_warnings_add(warning)
+    write(warning,*) "flwoutn:  ", flwoutn
+    call icepack_warnings_add(warning)
+    write(warning,*) "fsensn:   ", fsensn
+    call icepack_warnings_add(warning)
+    write(warning,*) "flatn:    ", flatn
+    call icepack_warnings_add(warning)
+    write(warning,*) "fsurfn:   ", fsurfn
+    call icepack_warnings_add(warning)
+    write(warning,*) "fcondtop: ", fcondtop
+    call icepack_warnings_add(warning)
+    write(warning,*) "fcondbot: ", fcondbot
+    call icepack_warnings_add(warning)
+    write(warning,*) "fadvheat: ", fadvheat
+    call icepack_warnings_add(warning)
+    write(warning,*)
+    call icepack_warnings_add(warning)
+
+    write(warning,*) "-------------------------------------"
+    call icepack_warnings_add(warning)
 
   end subroutine picard_nonconvergence
 
