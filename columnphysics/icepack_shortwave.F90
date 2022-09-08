@@ -57,6 +57,7 @@
       use icepack_parameters, only: snw_ssp_table, use_snicar, modal_aero
       use icepack_parameters, only: dEdd_algae
 
+      use icepack_tracers,    only: ncat, nilyr, nslyr, nblyr
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
 #ifdef UNDEPRECATE_CESMPONDS
       use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
@@ -68,14 +69,12 @@
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
       use icepack_tracers,    only: n_algae, n_aero, n_zaero
       use icepack_tracers,    only: nmodal1, nmodal2, max_aero
-      use icepack_warnings,   only: warnstr, icepack_warnings_add
-      use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
-
+      use icepack_shortwave_data, only: nspint_3bd, nspint_5bd
       use icepack_zbgc_shared,only: R_chl2N, F_abs_chl
       use icepack_zbgc_shared,only: remap_zbgc
-      use icepack_orbital, only: compute_coszen
-
-      use icepack_shortwave_data, only: nspint_3bd, nspint_5bd
+      use icepack_orbital,    only: compute_coszen
+      use icepack_warnings,   only: warnstr, icepack_warnings_add
+      use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
 
       ! dEdd 3-band data
       use icepack_shortwave_data, only: &
@@ -240,12 +239,7 @@
                                   fswpenl,            &
                                   Iswabs,   SSwabs,   &
                                   albin,    albsn,    &
-                                  coszen,   ncat,     &
-                                  nilyr)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr    , & ! number of ice layers
-         ncat         ! number of ice thickness categories
+                                  coszen)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen    , & ! concentration of ice per category
@@ -412,8 +406,7 @@
       ! Compute solar radiation absorbed in ice and penetrating to ocean.
       !-----------------------------------------------------------------
 
-         call absorbed_solar  (nilyr,                &
-                               aicen(n),             &
+         call absorbed_solar  (aicen(n),             &
                                vicen(n),             &
                                vsnon(n),             &
                                swvdr,      swvdf,    &
@@ -685,7 +678,7 @@
 ! authors William H. Lipscomb, LANL
 !         C. M. Bitz, UW
 
-      subroutine absorbed_solar (nilyr,    aicen,    &
+      subroutine absorbed_solar (aicen,    &
                                  vicen,    vsnon,    &
                                  swvdr,    swvdf,    &
                                  swidr,    swidf,    &
@@ -701,9 +694,6 @@
                                  fswthru_idf,        &
                                  fswpenl,            &
                                  Iswabs)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr           ! number of ice layers
 
       real (kind=dbl_kind), intent(in) :: &
          aicen       , & ! fractional ice area
@@ -878,8 +868,7 @@
 ! 2011 ECH modified for melt pond tracers
 ! 2013 ECH merged with NCAR version
 
-      subroutine run_dEdd(dt,       ncat,      &
-                          nilyr,    nslyr,     &
+      subroutine run_dEdd(dt,                  &
                           aicen,    vicen,     &
                           vsnon,    Tsfcn,     &
                           alvln,    apndn,     &
@@ -913,11 +902,6 @@
                           initonly)
 
       integer (kind=int_kind), intent(in) :: &
-         ncat   , & ! number of ice thickness categories
-         nilyr  , & ! number of ice layers
-         nslyr      ! number of snow layers
-
-      integer (kind=int_kind), intent(in) :: &
          sec        ! elapsed seconds into date
 
       real (kind=dbl_kind), intent(in), optional :: &
@@ -933,69 +917,69 @@
          nextsw_cday         ! julian day of next shortwave calculation
 
       real(kind=dbl_kind), intent(in) :: &
-           dt,    & ! time step (s)
-           TLAT,  & ! latitude of temp pts (radians)
-           TLON,  & ! longitude of temp pts (radians)
-           swvdr, & ! sw down, visible, direct  (W/m^2)
-           swvdf, & ! sw down, visible, diffuse (W/m^2)
-           swidr, & ! sw down, near IR, direct  (W/m^2)
-           swidf, & ! sw down, near IR, diffuse (W/m^2)
-           fsnow    ! snowfall rate (kg/m^2 s)
+         dt,    & ! time step (s)
+         TLAT,  & ! latitude of temp pts (radians)
+         TLON,  & ! longitude of temp pts (radians)
+         swvdr, & ! sw down, visible, direct  (W/m^2)
+         swvdf, & ! sw down, visible, diffuse (W/m^2)
+         swidr, & ! sw down, near IR, direct  (W/m^2)
+         swidf, & ! sw down, near IR, diffuse (W/m^2)
+         fsnow    ! snowfall rate (kg/m^2 s)
 
       real(kind=dbl_kind), dimension(:), intent(in) :: &
-           aicen, & ! concentration of ice
-           vicen, & ! volume per unit area of ice (m)
-           vsnon, & ! volume per unit area of snow (m)
-           Tsfcn, & ! surface temperature (deg C)
-           alvln, & ! level-ice area fraction
-           apndn, & ! pond area fraction
-           hpndn, & ! pond depth (m)
-           ipndn    ! pond refrozen lid thickness (m)
+         aicen, & ! concentration of ice
+         vicen, & ! volume per unit area of ice (m)
+         vsnon, & ! volume per unit area of snow (m)
+         Tsfcn, & ! surface temperature (deg C)
+         alvln, & ! level-ice area fraction
+         apndn, & ! pond area fraction
+         hpndn, & ! pond depth (m)
+         ipndn    ! pond refrozen lid thickness (m)
 
       real(kind=dbl_kind), dimension(:,:), intent(in) :: &
-           aeron, & ! aerosols (kg/m^3)
-           trcrn_bgcsw ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
+         aeron, & ! aerosols (kg/m^3)
+         trcrn_bgcsw ! zaerosols (kg/m^3) + chlorophyll on shorthwave grid
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
-           ffracn,& ! fraction of fsurfn used to melt ipond
-           dhsn     ! depth difference for snow on sea ice and pond ice
+         ffracn,& ! fraction of fsurfn used to melt ipond
+         dhsn     ! depth difference for snow on sea ice and pond ice
 
       real(kind=dbl_kind), intent(inout) :: &
-           coszen   ! cosine solar zenith angle, < 0 for sun below horizon
+         coszen   ! cosine solar zenith angle, < 0 for sun below horizon
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
-           alvdrn,   & ! visible direct albedo (fraction)
-           alvdfn,   & ! near-ir direct albedo (fraction)
-           alidrn,   & ! visible diffuse albedo (fraction)
-           alidfn,   & ! near-ir diffuse albedo (fraction)
-           fswsfcn,  & ! SW absorbed at ice/snow surface (W m-2)
-           fswintn,  & ! SW absorbed in ice interior, below surface (W m-2)
-           fswthrun, & ! SW through ice to ocean (W/m^2)
-           albicen,  & ! albedo bare ice
-           albsnon,  & ! albedo snow
-           albpndn,  & ! albedo pond
-           apeffn,   & ! effective pond area used for radiation calculation
-           snowfracn   ! snow fraction on each category used for radiation
+         alvdrn,   & ! visible direct albedo (fraction)
+         alvdfn,   & ! near-ir direct albedo (fraction)
+         alidrn,   & ! visible diffuse albedo (fraction)
+         alidfn,   & ! near-ir diffuse albedo (fraction)
+         fswsfcn,  & ! SW absorbed at ice/snow surface (W m-2)
+         fswintn,  & ! SW absorbed in ice interior, below surface (W m-2)
+         fswthrun, & ! SW through ice to ocean (W/m^2)
+         albicen,  & ! albedo bare ice
+         albsnon,  & ! albedo snow
+         albpndn,  & ! albedo pond
+         apeffn,   & ! effective pond area used for radiation calculation
+         snowfracn   ! snow fraction on each category used for radiation
 
       real(kind=dbl_kind), dimension(:), intent(out), optional :: &
-           fswthrun_vdr, & ! vis dir SW through ice to ocean (W/m^2)
-           fswthrun_vdf, & ! vis dif SW through ice to ocean (W/m^2)
-           fswthrun_idr, & ! nir dir SW through ice to ocean (W/m^2)
-           fswthrun_idf    ! nir dif SW through ice to ocean (W/m^2)
+         fswthrun_vdr, & ! vis dir SW through ice to ocean (W/m^2)
+         fswthrun_vdf, & ! vis dif SW through ice to ocean (W/m^2)
+         fswthrun_idr, & ! nir dir SW through ice to ocean (W/m^2)
+         fswthrun_idf    ! nir dif SW through ice to ocean (W/m^2)
 
       real(kind=dbl_kind), dimension(:,:), intent(inout) :: &
-           Sswabsn , & ! SW radiation absorbed in snow layers (W m-2)
-           Iswabsn , & ! SW radiation absorbed in ice layers (W m-2)
-           fswpenln    ! visible SW entering ice layers (W m-2)
+         Sswabsn , & ! SW radiation absorbed in snow layers (W m-2)
+         Iswabsn , & ! SW radiation absorbed in ice layers (W m-2)
+         fswpenln    ! visible SW entering ice layers (W m-2)
 
       real(kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
-           rsnow       ! snow grain radius tracer (10^-6 m)
+         rsnow       ! snow grain radius tracer (10^-6 m)
 
       logical (kind=log_kind), intent(in) :: &
-           l_print_point
+         l_print_point
 
       logical (kind=log_kind), optional :: &
-           initonly    ! flag to indicate init only, default is false
+         initonly    ! flag to indicate init only, default is false
 
       ! local temporary variables
 
@@ -1082,7 +1066,7 @@
             if (snwgrain) then
                l_rsnows(:) = rsnow(:,n)
             endif
-            call shortwave_dEdd_set_snow(nslyr,      R_snw,    &
+            call shortwave_dEdd_set_snow(R_snw,    &
                                          dT_mlt,     rsnw_mlt, &
                                          aicen(n),   vsnon(n), &
                                          Tsfcn(n),   fsn,      &
@@ -1124,7 +1108,7 @@
                      alvl = aicen(n)
                   endif
                   ! set snow properties over level ice
-                  call shortwave_dEdd_set_snow(nslyr,      R_snw,    &
+                  call shortwave_dEdd_set_snow(R_snw,    &
                                                dT_mlt,     rsnw_mlt, &
                                                alvl,       vsn,      &
                                                Tsfcn(n),   fsn,      &
@@ -1228,7 +1212,7 @@
 
             snowfracn(n) = fsn ! for history
 
-            call shortwave_dEdd(nslyr,      nilyr,          &
+            call shortwave_dEdd(                            &
                              coszen,                        &
                              aicen(n),      vicen(n),       &
                              hsn,           fsn,            &
@@ -1301,8 +1285,7 @@
 ! author:  Bruce P. Briegleb, NCAR
 !   2013:  E Hunke merged with NCAR version
 !
-      subroutine shortwave_dEdd  (nslyr,    nilyr,       &
-                                  coszen,                &
+      subroutine shortwave_dEdd  (coszen,                &
                                   aice,     vice,        &
                                   hs,       fs,          &
                                   rhosnw,   rsnw,        &
@@ -1323,10 +1306,6 @@
                                   albsno,   albpnd,      &
                                   fswpenl,  zbio,        &
                                   l_print_point )
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr   , & ! number of ice layers
-         nslyr       ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          aice    , & ! concentration of ice
@@ -1491,7 +1470,7 @@
                ! calculate bare sea ice
 
                srftyp = 0
-               call compute_dEdd_3bd(nilyr,       nslyr,             &
+               call compute_dEdd_3bd( &
                       klev,      klevp,       zbio,                     &
                       fnidr,     coszen,                                &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
@@ -1529,7 +1508,7 @@
 
                srftyp = 1
                if (use_snicar) then
-                call compute_dEdd_5bd(nilyr, nslyr, klev, klevp,          &
+                call compute_dEdd_5bd(klev, klevp,                        &
                         zbio,                                             &
                         fnidr,     coszen,                                &
                         swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
@@ -1542,7 +1521,7 @@
 
                else
 !echmod - this can be combined with the 5bd call above, if we use module data
-                  call compute_dEdd_3bd(nilyr,       nslyr,        &
+                  call compute_dEdd_3bd( &
                       klev,      klevp,       zbio,                     &
                       fnidr,     coszen,                                &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
@@ -1585,7 +1564,7 @@
                ! calculate ponded ice
 
                srftyp = 2
-               call compute_dEdd_3bd(nilyr,       nslyr,            &
+               call compute_dEdd_3bd( &
                       klev,      klevp,       zbio,                     &
                       fnidr,     coszen,                                &
                       swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
@@ -1701,7 +1680,7 @@
 !   2013:  E Hunke merged with NCAR version
 !   2022:  E Hunke, T Craig moved data (now module data)
 
-      subroutine compute_dEdd_3bd(nilyr,       nslyr,           &
+      subroutine compute_dEdd_3bd( &
                       klev,      klevp,       zbio,               &
                     fnidr,     coszen,                            &
                     swvdr,     swvdf,    swidr,    swidf, srftyp, &
@@ -1718,8 +1697,6 @@
                                Iswabs,   fswpenl )
 
       integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr , & ! number of snow layers
          klev  , & ! number of radiation layers - 1
          klevp     ! number of radiation interfaces - 1
                    ! (0 layer is included also)
@@ -2085,9 +2062,9 @@
       ! near-infrared solar (0.7-5.0 micro-meter) which indicates clear/cloudy
       ! conditions: more cloud, the less 1.19-5.0 relative to the
       ! 0.7-1.19 micro-meter due to cloud absorption.
-         wghtns(1) = c1
-         wghtns(2) = cp67 + (cp78-cp67)*(c1-fnidr)
-         wghtns(3) = c1 - wghtns(2)
+      wghtns(1) = c1
+      wghtns(2) = cp67 + (cp78-cp67)*(c1-fnidr)
+      wghtns(3) = c1 - wghtns(2)
 
       ! find snow grain adjustment factor, dependent upon clear/overcast sky
       ! estimate. comparisons with SNICAR show better agreement with DE when
@@ -2730,7 +2707,7 @@
          ! the surface; see comments in solution_dEdd for more details.
 
          call solution_dEdd &
-               (coszen,     srftyp,     klev,       klevp,      nslyr,     &
+               (coszen,     srftyp,     klev,       klevp,                 &
                 tau,        w0,         g,          albodr,     albodf,    &
                 trndir,     trntdr,     trndif,     rupdir,     rupdif,    &
                 rdndif)
@@ -2962,7 +2939,7 @@
 ! author:  Bruce P. Briegleb, NCAR
 !   2013:  E Hunke merged with NCAR version
       subroutine solution_dEdd                                 &
-            (coszen,     srftyp,    klev,      klevp,  nslyr,  &
+            (coszen,     srftyp,    klev,      klevp,          &
              tau,        w0,        g,         albodr, albodf, &
              trndir,     trntdr,    trndif,    rupdir, rupdif, &
              rdndif)
@@ -2973,9 +2950,8 @@
       integer (kind=int_kind), intent(in) :: &
          srftyp   , & ! surface type over ice: (0=air, 1=snow, 2=pond)
          klev     , & ! number of radiation layers - 1
-         klevp    , & ! number of radiation interfaces - 1
+         klevp        ! number of radiation interfaces - 1
                       ! (0 layer is included also)
-         nslyr        ! number of snow layers
 
       real (kind=dbl_kind), dimension(0:klev), intent(in) :: &
          tau     , & ! layer extinction optical depth
@@ -3420,16 +3396,13 @@
 ! author:  Bruce P. Briegleb, NCAR
 !   2013:  E Hunke merged with NCAR version
 
-      subroutine shortwave_dEdd_set_snow(nslyr,    R_snw,    &
+      subroutine shortwave_dEdd_set_snow(R_snw,    &
                                          dT_mlt,   rsnw_mlt, &
                                          aice,     vsno,     &
                                          Tsfc,     fs,       &
                                          hs0,      hs,       &
                                          rhosnw,   rsnw,     &
                                          rsnow)
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr      ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          R_snw , & ! snow tuning parameter; +1 > ~.01 change in broadband albedo
@@ -3560,21 +3533,13 @@
 !
 ! authors     Nicole Jeffery, LANL
 
-      subroutine compute_shortwave_trcr(nslyr,               &
+      subroutine compute_shortwave_trcr(                     &
                                     bgcN,         zaero,     &
                                     trcrn_bgcsw,             &
                                     sw_grid,      hin,       &
                                     hbri,                    &
-                                    nilyr,        nblyr,     &
                                     i_grid,                  &
                                     skl_bgc,      z_tracers  )
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr          ! number of snow layers
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr      , & ! number of bio layers
-         nilyr          ! number of ice layers
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          bgcN       , & ! Nit tracer
@@ -3720,8 +3685,7 @@
 !
 ! authors: Elizabeth Hunke, LANL
 
-      subroutine icepack_prep_radiation (ncat, nilyr, nslyr,   &
-                                        aice,        aicen,    &
+      subroutine icepack_prep_radiation(aice,        aicen,    &
                                         swvdr,       swvdf,    &
                                         swidr,       swidf,    &
                                         alvdr_ai,    alvdf_ai, &
@@ -3735,11 +3699,6 @@
                                         fswthrun_idf,          &
                                         fswpenln,              &
                                         Sswabsn,     Iswabsn)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat    , & ! number of ice thickness categories
-         nilyr   , & ! number of ice layers
-         nslyr       ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          aice        , & ! ice area fraction
@@ -3839,9 +3798,7 @@
 !          David Bailey, NCAR
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_radiation (dt,       ncat,     &
-                                        nblyr,               &
-                                        nilyr,    nslyr,     &
+      subroutine icepack_step_radiation (dt,                 &
                                         swgrid,   igrid,     &
                                         fbri,                &
                                         aicen,    vicen,     &
@@ -3876,12 +3833,6 @@
                                         rsnow,               &
                                         l_print_point,       &
                                         initonly)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat      , & ! number of ice thickness categories
-         nilyr     , & ! number of ice layers
-         nslyr     , & ! number of snow layers
-         nblyr         ! number of bgc layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt        , & ! time step (s)
@@ -3983,8 +3934,8 @@
          first_call=.true.  ! first call logical
 
       real(kind=dbl_kind) :: &
-        hin,         & ! Ice thickness (m)
-        hbri           ! brine thickness (m)
+         hin,         & ! Ice thickness (m)
+         hbri           ! brine thickness (m)
 
       character(len=*),parameter :: subname='(icepack_step_radiation)'
 
@@ -4029,13 +3980,12 @@
               if (aicen(n) .gt. puny) then
                  hin = vicen(n)/aicen(n)
                  hbri= fbri(n)*hin
-                 call compute_shortwave_trcr(nslyr,           &
+                 call compute_shortwave_trcr(                 &
                                      bgcNn(:,n),              &
                                      zaeron(:,n),             &
                                      trcrn_bgcsw(:,n),        &
                                      swgrid,       hin,       &
                                      hbri,                    &
-                                     nilyr,        nblyr,     &
                                      igrid,                   &
                                      skl_bgc,      z_tracers  )
                  if (icepack_warnings_aborted(subname)) return
@@ -4046,8 +3996,7 @@
       if (calc_Tsfc) then
          if (trim(shortwave(1:4)) == 'dEdd') then ! delta Eddington
 
-            call run_dEdd(dt,           ncat,           &
-                          nilyr,        nslyr,          &
+            call run_dEdd(dt,                           &
                           aicen,        vicen,          &
                           vsnon,        Tsfcn,          &
                           alvln,        apndn,          &
@@ -4108,9 +4057,7 @@
                                  Sswabs=Sswabsn,         &
                                  albin=albicen,          &
                                  albsn=albsnon,          &
-                                 coszen=coszen,          &
-                                 ncat=ncat,              &
-                                 nilyr=nilyr)
+                                 coszen=coszen)
             if (icepack_warnings_aborted(subname)) return
 
          else
@@ -4277,7 +4224,7 @@
 ! cryospheric surfaces in ESMs, The Cryosphere Discuss.,
 ! https://doi.org/10.5194/tc-2019-22, in review, 2019
 
-      subroutine compute_dEdd_5bd (nilyr,    nslyr,    klev,  klevp, &
+      subroutine compute_dEdd_5bd (klev,  klevp, &
                     zbio,     fnidr,    coszen,                      &
                     swvdr,    swvdf,    swidr,    swidf, srftyp,     &
                     hs,       rhosnw,   rsnw,     hi,    hp,         &
@@ -4288,8 +4235,6 @@
                     Iswabs,   fswpenl  )
 
       integer (kind=int_kind), intent(in) :: &
-         nilyr       , & ! number of ice layers
-         nslyr       , & ! number of snow layers
          klev        , & ! number of radiation layers - 1
          klevp           ! number of radiation interfaces - 1
                          ! (0 layer is included also)
@@ -5332,7 +5277,7 @@
       ! underlying ocean and combine successive layers upwards to
       ! the surface; see comments in solution_dEdd for more details.
       call solution_dEdd &
-            (coszen,     srftyp,     klev,       klevp,      nslyr,     &
+            (coszen,     srftyp,     klev,       klevp,                 &
              tau,        w0,         g,          albodr,     albodf,    &
              trndir,     trntdr,     trndif,     rupdir,     rupdif,    &
              rdndif)

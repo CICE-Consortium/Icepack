@@ -247,10 +247,8 @@
             enddo
 
             if (tmask(i)) then
-            call icepack_step_radiation (              &
-                         dt=dt,           ncat=ncat,           &
-                         nblyr=nblyr,                          &
-                         nilyr=nilyr,     nslyr=nslyr,         &
+            call icepack_step_radiation (                      &
+                         dt=dt,                                &
                          swgrid=swgrid(:),                     &
                          igrid=igrid(:),                       &
                          fbri=fbri(:),                         &

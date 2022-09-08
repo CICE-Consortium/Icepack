@@ -67,7 +67,7 @@
             alidr_init(i) = alidr_ai(i)
             alidf_init(i) = alidf_ai(i)
 
-            call icepack_prep_radiation(ncat=ncat, nilyr=nilyr, nslyr=nslyr, &
+            call icepack_prep_radiation( &
                          aice=aice(i),   aicen=aicen(i,:), &
                          swvdr=swvdr(i), swvdf=swvdf(i),   &
                          swidr=swidr(i), swidf=swidf(i),   &
@@ -1021,9 +1021,7 @@
 
          if (tmask(i)) then
 
-            call icepack_step_radiation(dt=dt,      ncat=ncat,          &
-                         nblyr=nblyr,               nilyr=nilyr,        &
-                         nslyr=nslyr,                                   &
+            call icepack_step_radiation(dt=dt,                          &
                          swgrid=swgrid(:),          igrid=igrid(:),     &
                          fbri=fbri(:),                                  &
                          aicen=aicen(i,:),          vicen=vicen(i,:),   &
