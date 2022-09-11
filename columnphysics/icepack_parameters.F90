@@ -214,7 +214,7 @@
          awtidf = 0.36218_dbl_kind   ! near IR, diffuse
 
       character (len=char_len), public :: &
-         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar'
+         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type = 'ccsm3'   ! albedo parameterization, 'ccsm3' or 'constant'
                                  ! shortwave='dEdd' overrides this parameter
 
@@ -226,7 +226,7 @@
          sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
          sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
 
-      ! Parameters for dEdd_snicar
+      ! Parameters for dEdd_snicar_ad
       logical (kind=log_kind), public :: &
          use_snicar = .false.     ! .true. use 5-band SNICAR-AD approach
       character (len=char_len), public :: &
@@ -612,7 +612,7 @@
          awtidf_in        ! near IR, diffuse
 
       character (len=*), intent(in), optional :: &
-         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar'
+         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type_in  ! albedo parameterization, 'ccsm3' or 'constant'
                          ! shortwave='dEdd' overrides this parameter
 
@@ -1338,7 +1338,7 @@
          awtidf_out        ! near IR, diffuse
 
       character (len=*), intent(out), optional :: &
-         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar'
+         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type_out  ! albedo parameterization, 'ccsm3' or 'constant'
                              ! shortwave='dEdd' overrides this parameter
 

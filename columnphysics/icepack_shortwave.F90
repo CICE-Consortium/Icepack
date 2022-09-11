@@ -2362,12 +2362,10 @@
             ! aerosol in snow
             if (tr_zaero .and. dEdd_algae) then
                do k = 0,nslyr
-                  gzaer(ns,k) = gzaer(ns,k)/(wzaer(ns,k)+puny)
-                  wzaer(ns,k) = wzaer(ns,k)/(tzaer(ns,k)+puny)
-                  g  (k) = (g (k)*w0(k)*tau(k) + gzaer(ns,k)*wzaer(ns,k)*tzaer(ns,k)) &
-                         /       (w0(k)*tau(k) +             wzaer(ns,k)*tzaer(ns,k))
-                  w0 (k) = (      w0(k)*tau(k) +             wzaer(ns,k)*tzaer(ns,k)) &
-                         /       (      tau(k) +                         tzaer(ns,k))
+                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)) / &
+                                (w0(k)*tau(k) + wzaer(ns,k))
+                  w0(k)  =      (w0(k)*tau(k) + wzaer(ns,k)) / &
+                                      (tau(k) + tzaer(ns,k))
                   tau(k) = tau(k) + tzaer(ns,k)
                enddo
             elseif (tr_aero) then
@@ -2412,6 +2410,8 @@
                enddo       ! na
                gaer = gaer/(waer+puny)
                waer = waer/(taer+puny)
+
+! tcraig, why does the above section exist if taer=waer=gaer=0 below
 
                do k=1,nslyr
                   taer = c0
@@ -2462,12 +2462,10 @@
                             waer_3bd(ns,(1+(na-1)/4))*gaer_3bd(ns,(1+(na-1)/4))
                   endif       ! modal_aero
                   enddo       ! na
-                  gaer = gaer/(waer+puny)
-                  waer = waer/(taer+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                           (w0(k)*tau(k) + waer*taer)
-                  w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                           (tau(k) + taer)
+                  g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                                (w0(k)*tau(k) + waer)
+                  w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                      (tau(k) + taer)
                   tau(k) = tau(k) + taer
                enddo       ! k
             endif     ! tr_aero
@@ -2523,12 +2521,10 @@
             ! aerosol in sea ice
             if (tr_zaero .and. dEdd_algae) then
                do k = kii, klev
-                  gzaer(ns,k) = gzaer(ns,k)/(wzaer(ns,k)+puny)
-                  wzaer(ns,k) = wzaer(ns,k)/(tzaer(ns,k)+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)*wzaer(ns,k)*tzaer(ns,k)) &
-                         /      (w0(k)*tau(k) +             wzaer(ns,k)*tzaer(ns,k))
-                  w0(k)  = (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k)) &
-                         /       (tau(k) +             tzaer(ns,k))
+                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)) / &
+                                (w0(k)*tau(k) + wzaer(ns,k))
+                  w0(k)  =      (w0(k)*tau(k) + wzaer(ns,k)) / &
+                                      (tau(k) + tzaer(ns,k))
                   tau(k) = tau(k) + tzaer(ns,k)
                enddo
             elseif (tr_aero) then
@@ -2579,12 +2575,10 @@
                 endif     ! modal_aero
                enddo      ! na
 
-               gaer = gaer/(waer+puny)
-               waer = waer/(taer+puny)
-               g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                    (w0(k)*tau(k) + waer*taer)
-               w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                    (tau(k) + taer)
+               g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                             (w0(k)*tau(k) + waer)
+               w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                   (tau(k) + taer)
                tau(k) = tau(k) + taer
                do k = kii+1, klev
                   taer = c0
@@ -2632,12 +2626,10 @@
                           waer_3bd(ns,(1+(na-1)/4))*gaer_3bd(ns,(1+(na-1)/4))
                   endif       ! modal_aero
                   enddo       ! na
-                  gaer = gaer/(waer+puny)
-                  waer = waer/(taer+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                           (w0(k)*tau(k) + waer*taer)
-                  w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                           (tau(k) + taer)
+                  g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                                (w0(k)*tau(k) + waer)
+                  w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                      (tau(k) + taer)
                   tau(k) = tau(k) + taer
                enddo ! k
             endif ! tr_aero
@@ -4969,9 +4961,9 @@
           if (tr_zaero .and. dEdd_algae) then
             do k = 0,nslyr
                g(k)   = (g(k)*w0(k)*tau(k) + gzaer_5bd(ns,k)) / &
-                               (w0(k)*tau(k) + wzaer_5bd(ns,k))
-               w0(k)  = (w0(k)*tau(k) + wzaer_5bd(ns,k)) / &
-                                (tau(k) + tzaer_5bd(ns,k))
+                             (w0(k)*tau(k) + wzaer_5bd(ns,k))
+               w0(k)  =      (w0(k)*tau(k) + wzaer_5bd(ns,k)) / &
+                                   (tau(k) + tzaer_5bd(ns,k))
                tau(k) = tau(k) + tzaer_5bd(ns,k)
             enddo
           elseif (tr_aero) then
@@ -5030,6 +5022,8 @@
                gaer = gaer/(waer+puny)
                waer = waer/(taer+puny)
 
+! tcraig, again why does the above exist if taer=waer=gaer=0 below
+
                do k=1,nslyr
                   taer = c0
                   waer = c0
@@ -5083,12 +5077,10 @@
                   endif       ! modal_aero
 !mgf--
                   enddo       ! na
-                  gaer = gaer/(waer+puny)
-                  waer = waer/(taer+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                           (w0(k)*tau(k) + waer*taer)
-                  w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                           (tau(k) + taer)
+                  g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                                (w0(k)*tau(k) + waer)
+                  w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                      (tau(k) + taer)
                   tau(k) = tau(k) + taer
                enddo       ! k
             endif     ! tr_aero
@@ -5134,9 +5126,9 @@
                if (tr_zaero .and. dEdd_algae) then
                   do k = kii, klev
                      g(k)   = (g(k)*w0(k)*tau(k) + gzaer_5bd(ns,k)) / &
-                                     (w0(k)*tau(k) + wzaer_5bd(ns,k))
-                     w0(k)  = (w0(k)*tau(k) + wzaer_5bd(ns,k)) / &
-                                      (tau(k) + tzaer_5bd(ns,k))
+                                   (w0(k)*tau(k) + wzaer_5bd(ns,k))
+                     w0(k)  =      (w0(k)*tau(k) + wzaer_5bd(ns,k)) / &
+                                         (tau(k) + tzaer_5bd(ns,k))
                      tau(k) = tau(k) + tzaer_5bd(ns,k)
                   enddo
                elseif (tr_aero) then
@@ -5192,12 +5184,10 @@
    !mgf--
                   enddo      ! na
 
-                  gaer = gaer/(waer+puny)
-                  waer = waer/(taer+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                       (w0(k)*tau(k) + waer*taer)
-                  w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                       (tau(k) + taer)
+                  g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                                (w0(k)*tau(k) + waer)
+                  w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                      (tau(k) + taer)
                   tau(k) = tau(k) + taer
                   do k = kii+1, klev
                      taer = c0
@@ -5252,12 +5242,10 @@
                      endif       ! modal_aero
    !mgf--
                      enddo       ! na
-                     gaer = gaer/(waer+puny)
-                     waer = waer/(taer+puny)
-                     g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                              (w0(k)*tau(k) + waer*taer)
-                     w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                              (tau(k) + taer)
+                     g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                                   (w0(k)*tau(k) + waer)
+                     w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                         (tau(k) + taer)
                      tau(k) = tau(k) + taer
                   enddo ! k
                endif ! tr_aero

@@ -715,7 +715,7 @@
          write(nu_diag,1000) ' ahmax                     = ', ahmax
          endif
 
-         if (trim(shortwave) == 'dEdd_snicar') then
+         if (trim(shortwave) == 'dEdd_snicar_ad') then
          write(nu_diag,1030) ' snw_ssp_table             = ', trim(snw_ssp_table)
          endif
 

@@ -221,7 +221,7 @@
             if (icepack_warnings_aborted()) &
                call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
 
-            if (trim(shortwave) == 'dEdd_snicar') then
+            if (trim(shortwave) == 'dEdd_snicar_ad') then
                use_snicar = .true. ! 5-band SNICAR scheme for snow cover
                call icepack_init_parameters(use_snicar_in=use_snicar, snw_ssp_table_in=snw_ssp_table)
                call icepack_warnings_flush(nu_diag)
