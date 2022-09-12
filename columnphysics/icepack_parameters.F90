@@ -227,8 +227,6 @@
          sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
 
       ! Parameters for dEdd_snicar_ad
-      logical (kind=log_kind), public :: &
-         use_snicar = .false.     ! .true. use 5-band SNICAR-AD approach
       character (len=char_len), public :: &
          snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test'
 
@@ -462,7 +460,7 @@
          update_ocn_f_in, ustar_min_in, a_rapid_mode_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
-         phi_i_mushy_in, shortwave_in, use_snicar_in, albedo_type_in, albsnowi_in, &
+         phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
          albicev_in, albicei_in, albsnowv_in, &
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
          kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
@@ -635,7 +633,6 @@
          kalg_in         ! algae absorption coefficient for 0.5 m thick layer
 
       logical (kind=log_kind), intent(in), optional :: &
-         use_snicar_in,& ! snicar adjustments to dEdd radiation for snow
          sw_redist_in    ! redistribute shortwave
 
       real (kind=dbl_kind), intent(in), optional :: &
@@ -939,7 +936,6 @@
       if (present(phi_c_slow_mode_in)   ) phi_c_slow_mode  = phi_c_slow_mode_in
       if (present(phi_i_mushy_in)       ) phi_i_mushy      = phi_i_mushy_in
       if (present(shortwave_in)         ) shortwave        = shortwave_in
-      if (present(use_snicar_in)        ) use_snicar       = use_snicar_in
       if (present(albedo_type_in)       ) albedo_type      = albedo_type_in
       if (present(albicev_in)           ) albicev          = albicev_in
       if (present(albicei_in)           ) albicei          = albicei_in
@@ -1178,7 +1174,7 @@
          Lfresh_out, cprho_out, Cp_out, ustar_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
          Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
-         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, use_snicar_out, &
+         phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
          albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
          albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
          rsnw_mlt_out, dEdd_algae_out, &
@@ -1361,7 +1357,6 @@
          kalg_out         ! algae absorption coefficient for 0.5 m thick layer
 
       logical (kind=log_kind), intent(out), optional :: &
-         use_snicar_out,& ! snicar adjustments to dEdd radiation for snow
          sw_redist_out    ! redistribute shortwave
 
       real (kind=dbl_kind), intent(out), optional :: &
@@ -1697,7 +1692,6 @@
       if (present(phi_c_slow_mode_out)   ) phi_c_slow_mode_out = phi_c_slow_mode
       if (present(phi_i_mushy_out)       ) phi_i_mushy_out  = phi_i_mushy
       if (present(shortwave_out)         ) shortwave_out    = shortwave
-      if (present(use_snicar_out)        ) use_snicar_out   = use_snicar
       if (present(albedo_type_out)       ) albedo_type_out  = albedo_type
       if (present(albicev_out)           ) albicev_out      = albicev
       if (present(albicei_out)           ) albicei_out      = albicei
@@ -1908,7 +1902,6 @@
         write(iounit,*) "  phi_c_slow_mode   = ", phi_c_slow_mode
         write(iounit,*) "  phi_i_mushy       = ", phi_i_mushy
         write(iounit,*) "  shortwave     = ", shortwave
-        write(iounit,*) "  use_snicar    = ", use_snicar
         write(iounit,*) "  albedo_type   = ", albedo_type
         write(iounit,*) "  albicev       = ", albicev
         write(iounit,*) "  albicei       = ", albicei

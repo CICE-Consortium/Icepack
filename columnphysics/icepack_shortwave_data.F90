@@ -5,7 +5,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
       use icepack_parameters, only: c0
-      use icepack_parameters, only: use_snicar, snw_ssp_table
+      use icepack_parameters, only: snw_ssp_table
       use icepack_tracers, only: nmodal1, nmodal2, max_aero
 
       implicit none

@@ -54,7 +54,7 @@
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg
       use icepack_parameters, only: R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
-      use icepack_parameters, only: snw_ssp_table, use_snicar, modal_aero
+      use icepack_parameters, only: snw_ssp_table, modal_aero
       use icepack_parameters, only: dEdd_algae
 
       use icepack_tracers,    only: ncat, nilyr, nslyr, nblyr
@@ -173,7 +173,7 @@
          if (icepack_warnings_aborted(subname)) return
       endif
 
-      if (use_snicar) then
+      if (trim(shortwave) == 'dEdd_snicar_ad') then
          call icepack_shortwave_init_dEdd5band()
          if (icepack_warnings_aborted(subname)) return
 
@@ -1507,7 +1507,7 @@
                ! calculate snow covered sea ice
 
                srftyp = 1
-               if (use_snicar) then
+               if (trim(shortwave) == 'dEdd_snicar_ad') then
                 call compute_dEdd_5bd(klev, klevp,                        &
                         zbio,                                             &
                         fnidr,     coszen,                                &
