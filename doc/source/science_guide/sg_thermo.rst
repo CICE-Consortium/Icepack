@@ -731,10 +731,18 @@ in :cite:`Briegleb07`. Since publication of this technical paper,
 a number of improvements have been made to the Delta-Eddington scheme,
 including a surface scattering layer and internal shortwave absorption
 for snow, generalization for multiple snow layers and more than four
-layers of ice, and updated IOP values. Also, a 5-band option for snow has
+layers of ice, and updated IOP values.
+
+In addition, a 5-band option for snow has
 been added based on :cite:`Dang19` using parameters derived from the
 SNICAR snow model (``shortwave`` = ``dEdd_snicar_ad``). The 3-band
-Delta-Eddington data is still used for non-snow-covered surfaces.
+Delta-Eddington data is still used for non-snow-covered surfaces. The
+5-band option calculates snow radiative transfer properties for 1 visible and
+4 near-infrared bands, and the reflection, absorption and transmission of
+direct and diffuse shorwave incidents are computed separately, thus removing
+the snow grain adjustment used in the 3-band Delta-Eddington scheme.  Also,
+albedo and absorption of snow-covered sea ice are adjusted for solar zenith
+angles greater than 75 degrees.
 
 The namelist parameters ``R_ice`` and ``R_pnd`` adjust the albedo of bare or
 ponded ice by the product of the namelist value and one standard

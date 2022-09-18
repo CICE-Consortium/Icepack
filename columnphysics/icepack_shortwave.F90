@@ -4201,28 +4201,25 @@
 !   2018:  Cheng Dang merged with SNICAR 5-band snow and aersols IOPs, UC Irvine
 !
 ! Note by Cheng Dang 2018:
-! This subroutine kept the existing delta-eddington adding-doubling
+! This subroutine kept the existing delta-eddington adding-doubling (-ad)
 ! method, snow and sea ice layer sturcture, and most of the code structures
-! of subroutine compute_dEdd, with major changeds listed below to merge
+! of subroutine compute_dEdd_3bd, with major changes listed below to merge
 ! current snow treatments in SNICAR Model
 ! 1. The shortwave radiative transfer properties of snow-covered sea ice are
-!    calcualted for 5 bands (1 visible and 4 near-IR) defined in SNICAR
+!    calculated for 5 bands (1 visible and 4 near-IR) defined in SNICAR.
 ! 2. The reflection/absorption/transmission of direct and diffuse shortwave
-!    incidents are calculated seperately to remove the snow grain adjustment
-!    in subroutine compute_dEdd
-! 3. The albedo and absorption of snow-covered sea ice are adjusted when solar
-!    zenith angle is above 75 degree
-! 4. Comments given in subroutine compute_dEdd are all kepted in this subroutine
-!    with modifications at where above changes applies to.
-! 5. This subroutine can be modified and merged with subroutine compute_dEdd
-!    to compute shortwave properties of bare and ponded sea ice if requested.
-!    For now, these two subroutines are seperated for testing new features.
+!    incidents are calculated separately to remove the snow grain adjustment
+!    in subroutine compute_dEdd_3bd.
+! 3. The albedo and absorption of snow-covered sea ice are adjusted when the
+!    solar zenith angle is above 75 degrees.
+! 4. Comments given in subroutine compute_dEdd_3bd are all kept in this subroutine
+!    with modifications for the changes above.
 !
-! The justification and explaination for above changes can be find in paper:
-! Dang, C., Zender, C. S., and Flanner, M. G.: Inter-comparison and improvement
-! of 2-stream shortwave radiative transfer models for unified treatment of
-! cryospheric surfaces in ESMs, The Cryosphere Discuss.,
-! https://doi.org/10.5194/tc-2019-22, in review, 2019
+! Justification and explanation of these changes can be found in
+! Dang, C., Zender, C. S., and Flanner, M. G.: Intercomparison and improvement
+! of two-stream shortwave radiative transfer schemes in Earth system models
+! for a unified treatment of cryospheric surfaces, The Cryosphere, 13,
+! 2325-2343, https://doi.org/10.5194/tc-13-2325-2019, 2019.
 
       subroutine compute_dEdd_5bd (klev,  klevp, &
                     zbio,     fnidr,    coszen,                      &
