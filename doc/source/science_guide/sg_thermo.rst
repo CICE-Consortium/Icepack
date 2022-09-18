@@ -712,8 +712,10 @@ Shortwave radiation: Delta-Eddington
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Two methods for computing albedo and shortwave fluxes are available, the
-"ccsm3" method, described below, and a multiple scattering
-radiative transfer scheme that uses a Delta-Eddington approach.
+"ccsm3" method, described in the next section, and a multiple scattering
+radiative transfer scheme that uses a Delta-Eddington approach
+(``shortwave`` = ``dEdd``).
+
 "Inherent" optical properties (IOPs) for snow and sea ice, such as
 extinction coefficient and single scattering albedo, are prescribed
 based on physical measurements; reflected, absorbed and transmitted
@@ -722,12 +724,17 @@ for each snow and ice layer in a self-consistent manner. Absorptive
 effects of inclusions in the ice/snow matrix such as dust and algae can
 also be included, along with radiative treatment of melt ponds and other
 changes in physical properties, for example granularization associated
-with snow aging. The Delta-Eddington formulation is described in detail
+with snow aging.
+
+The Delta-Eddington formulation is described in detail
 in :cite:`Briegleb07`. Since publication of this technical paper,
 a number of improvements have been made to the Delta-Eddington scheme,
 including a surface scattering layer and internal shortwave absorption
 for snow, generalization for multiple snow layers and more than four
-layers of ice, and updated IOP values.
+layers of ice, and updated IOP values. Also, a 5-band option for snow has
+been added based on :cite:`Dang19` using parameters derived from the
+SNICAR snow model (``shortwave`` = ``dEdd_snicar_ad``). The 3-band
+Delta-Eddington data is still used for non-snow-covered surfaces.
 
 The namelist parameters ``R_ice`` and ``R_pnd`` adjust the albedo of bare or
 ponded ice by the product of the namelist value and one standard
