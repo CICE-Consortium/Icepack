@@ -45,7 +45,7 @@
       use icepack_parameters, only: p01, p1, p15, p25, p5, p75, puny
       use icepack_parameters, only: argcheck
       use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
-      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos
+      use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, rhoi
       use icepack_parameters, only: rsnw_fall, snwredist, rsnw_tmax
       use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l, snwlvlfac, snwgrain
 #ifdef UNDEPRECATE_0LAYER
@@ -2006,7 +2006,6 @@
          tmp_gs, tmp1               ! temp variables
 
       real (kind=dbl_kind), parameter :: &
-         rhoi   = 917.0_dbl_kind,& ! pure ice mass density (kg/m3) - echmod HARDCODED! fix!
          fr_max = 1.00_dbl_kind, & ! snow grain adjustment factor max
          fr_min = 0.80_dbl_kind, & ! snow grain adjustment factor min
       ! tuning parameters
@@ -4507,7 +4506,6 @@
           tmp_gs, tmp1               ! temp variables
 
       real (kind=dbl_kind), parameter :: &
-         rhoi   = 917.0_dbl_kind, & ! pure ice mass density (kg/m3)
          fr_max = 1.00_dbl_kind,  & ! snow grain adjustment factor max
          fr_min = 0.80_dbl_kind,  & ! snow grain adjustment factor min
       ! tuning parameters
@@ -4904,10 +4902,7 @@
                   gs = asm_prm_ice_drc(ns,nr-1)*(delr) + &
                        asm_prm_ice_drc(ns,nr)*(c1-delr)
               endif
-              ! ks = Qs*((rhosnw(ksnow)/rhoi)*3._dbl_kind / &
-              !      (4._dbl_kind*rsnw(ksnow)*1.0e-6_dbl_kind))
               tau(k) = (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k))*dzk(k)
-              !w0(k)  = ks/(ks + kabs_chl_5bd(ns,k))*ws
               w0(k) = (ks*rhosnw(ksnow))/(ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k)) * ws
               g(k)   = gs
 
@@ -4948,10 +4943,7 @@
                   gs = asm_prm_ice_dfs(ns,nr-1)*(c1-delr) + &
                        asm_prm_ice_dfs(ns,nr)*delr
               endif
-              ! ks = Qs*((rhosnw(ksnow)/rhoi)*3._dbl_kind / &
-              ! (4._dbl_kind*rsnw(ksnow)*1.0e-6_dbl_kind))
               tau(k) = (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k))*dzk(k)
-              !w0(k)  = ks/(ks + kabs_chl_5bd(ns,k)) *ws
               w0(k) = (ks*rhosnw(ksnow))/(ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k)) * ws
               g(k)   = gs
 
