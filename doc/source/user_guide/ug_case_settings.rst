@@ -107,6 +107,7 @@ can be modified as needed.
    "TRDON", "0,1", "number of dissolved organic nitrogen", "0"
    "TRFEP", "0,1,2", "number of particulate iron tracers", "0"
    "TRFED", "0,1,2", "number of dissolved iron tracers", "0"
+   "ICE_SNICARHC", "true,false", "include hardcoded (HC) snicar tables", "false"
    "ICE_BLDDEBUG", "true,false", "turn on compile debug flags", "false"
    "ICE_COVERAGE", "true,false", "turn on code coverage flags", "false"
 
@@ -249,7 +250,7 @@ shortwave_nml
 
    "", "", "", ""
    "``ahmax``", "real", "albedo is constant above this thickness in meters", "0.3"
-   "``albedo_type``", "`ccsm3``", "NCAR CCSM3 albedo implementation", "``ccsm3``"
+   "``albedo_type``", "``ccsm3``", "NCAR CCSM3 albedo implementation", "``ccsm3``"
    "", "``constant``", "four constant albedos", ""
    "``albicei``", ":math:`0<\alpha <1`", "near infrared ice albedo for thicker ice", "0.36"
    "``albicev``", ":math:`0<\alpha <1`", "visible ice albedo for thicker ice", "0.78"
@@ -262,7 +263,10 @@ shortwave_nml
    "``R_pnd``", "real", "tuning parameter for ponded sea ice albedo from Delta-Eddington shortwave", "0.0"
    "``R_snw``", "real", "tuning parameter for snow (broadband albedo) from Delta-Eddington shortwave", "1.5"
    "``shortwave``", "``ccsm3``", "NCAR CCSM3 shortwave distribution method", "``dEdd``"
-   "", "``dEdd``", "Delta-Eddington method", ""
+   "", "``dEdd``", "Delta-Eddington method (3-band)", ""
+   "", "``dEdd_snicar_ad``", "Delta-Eddington method with 5-band snow", ""
+   "``snw_ssp_table``", "``snicar``", "lookup table for `dEdd_snicar_ad`", "``snicar``"
+   "", "``test``", "reduced lookup table for `dEdd_snicar_ad` testing", ""
    "``sw_dtemp``", "real", "temperature from melt for sw_redist", "0.02"
    "``sw_frac``", "real", "fraction of shortwave redistribution", "0.9"
    "``sw_redist``", "logical", "shortwave redistribution", ".false."

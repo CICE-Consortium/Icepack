@@ -742,7 +742,11 @@ Delta-Eddington data is still used for non-snow-covered surfaces. The
 direct and diffuse shorwave incidents are computed separately, thus removing
 the snow grain adjustment used in the 3-band Delta-Eddington scheme.  Also,
 albedo and absorption of snow-covered sea ice are adjusted for solar zenith
-angles greater than 75 degrees.
+angles greater than 75 degrees.  Because the 5-band lookup tables are very
+large, they can be slow to compile.  The setting ``ICE_SNICARHC`` is false
+for simulations not using the ``dEdd_snicar_ad`` option, and must be set
+to true in order to use the hard-coded (HC) lookup tables generated from the
+SNICAR model.
 
 The namelist parameters ``R_ice`` and ``R_pnd`` adjust the albedo of bare or
 ponded ice by the product of the namelist value and one standard

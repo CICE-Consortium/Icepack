@@ -412,7 +412,7 @@ either Celsius or Kelvin units).
    "shcoef", "transfer coefficient for sensible heat", ""
    "shear", "strain rate II component", "1/s"
    "shlat", "southern latitude of artificial mask edge", "30\ :math:`^\circ`\ N"
-   "shortwave", ":math:`\bullet` flag for shortwave parameterization ('default' or 'dEdd')", ""
+   "shortwave", ":math:`\bullet` flag for shortwave parameterization ('ccsm3' or 'dEdd')", ""
    "sil", "silicate concentration", "mmol/m\ :math:`^3`"
    "sk_l", "skeletal layer thickness", "0.03 m"
    "snowage_drdt0", "snowage table 3D data for drdt0 (10^-6 m/hr)", ""
