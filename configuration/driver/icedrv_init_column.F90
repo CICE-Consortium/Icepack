@@ -120,7 +120,6 @@
 
       logical (kind=log_kind) :: &
          l_print_point, & ! flag to print designated grid point diagnostics
-         use_snicar,    & ! use 5-band SNICAR radiation scheme for snow
          dEdd_algae,    & ! BGC - radiation interactions
          snwgrain         ! use variable snow grain size
 
@@ -221,9 +220,8 @@
             if (icepack_warnings_aborted()) &
                call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
 
-            if (trim(shortwave) == 'dEdd_snicar') then
-               use_snicar = .true. ! 5-band SNICAR scheme for snow cover
-               call icepack_init_parameters(use_snicar_in=use_snicar, snw_ssp_table_in=snw_ssp_table)
+            if (trim(shortwave) == 'dEdd_snicar_ad') then
+               call icepack_init_parameters(snw_ssp_table_in=snw_ssp_table)
                call icepack_warnings_flush(nu_diag)
                if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                    file=__FILE__,line= __LINE__)
