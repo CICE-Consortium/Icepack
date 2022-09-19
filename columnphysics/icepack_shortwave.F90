@@ -2057,8 +2057,8 @@
          gaer                     , & ! total aerosol asymmetry parameter
          swdr                     , & ! shortwave down at surface, direct  (W/m^2)
          swdf                     , & ! shortwave down at surface, diffuse (W/m^2)
-         rnilyr                   , & ! real(nilyr)
-         rnslyr                   , & ! real(nslyr)
+         rnilyr                   , & ! 1. / real(nilyr)
+         rnslyr                   , & ! 1. / real(nslyr)
          rns                      , & ! real(ns)
          tmp_0, tmp_ks, tmp_kl        ! temp variables
 
@@ -2593,12 +2593,10 @@
             ! aerosol in snow
              if (tr_zaero .and. dEdd_algae) then
                do k = 0,nslyr
-                  gzaer(ns,k) = gzaer(ns,k)/(wzaer(ns,k)+puny)
-                  wzaer(ns,k) = wzaer(ns,k)/(tzaer(ns,k)+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)*wzaer(ns,k)*tzaer(ns,k)) / &
-                                  (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k))
-                  w0(k)  = (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k)) / &
-                                   (tau(k) + tzaer(ns,k))
+                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)) / &
+                                (w0(k)*tau(k) + wzaer(ns,k))
+                  w0(k)  =      (w0(k)*tau(k) + wzaer(ns,k)) / &
+                                      (tau(k) + tzaer(ns,k))
                   tau(k) = tau(k) + tzaer(ns,k)
                enddo
              elseif (tr_aero) then
@@ -2654,8 +2652,11 @@
                endif  !modal_aero
 !mgf--
                enddo       ! na
-               gaer = gaer/(waer+puny)
-               waer = waer/(taer+puny)
+               g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                             (w0(k)*tau(k) + waer)
+               w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                   (tau(k) + taer)
+               tau(k) = tau(k) + taer
 
                do k=1,nslyr
                   taer = c0
@@ -2667,34 +2668,34 @@
                     if (na==1) then
                       ! interstitial BC
                       taer = taer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcexs(k))
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcexs(k))
                       waer = waer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcexs(k))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcexs(k))* &
                            waer_bc_tab(ns,k_bcexs(k))
                       gaer = gaer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcexs(k))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcexs(k))* &
                            waer_bc_tab(ns,k_bcexs(k))*gaer_bc_tab(ns,k_bcexs(k))
                     elseif (na==5) then
                       ! within-ice BC
                       taer = taer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcins(k))*&
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcins(k))*&
                            bcenh(ns,k_bcins(k),k_bcini(k))
                       waer = waer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcins(k))* &
                            waer_bc_tab(ns,k_bcins(k))
                       gaer = gaer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcins(k))* &
                            waer_bc_tab(ns,k_bcins(k))*gaer_bc_tab(ns,k_bcins(k))
 
                     else
                       ! other species (dust)
                       taer = taer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_tab(ns,(1+(na-1)/4))
+                           (aero_mp(na+1)*rnslyr)*kaer_tab(ns,(1+(na-1)/4))
                       waer = waer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_tab(ns,(1+(na-1)/4))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_tab(ns,(1+(na-1)/4))* &
                            waer_tab(ns,(1+(na-1)/4))
                       gaer = gaer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_tab(ns,(1+(na-1)/4))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_tab(ns,(1+(na-1)/4))* &
                            waer_tab(ns,(1+(na-1)/4))*gaer_tab(ns,(1+(na-1)/4))
                     endif   !(na==1)
 
@@ -2710,12 +2711,10 @@
                   endif       ! modal_aero
 !mgf--
                   enddo       ! na
-                  gaer = gaer/(waer+puny)
-                  waer = waer/(taer+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                           (w0(k)*tau(k) + waer*taer)
-                  w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                           (tau(k) + taer)
+                  g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                                (w0(k)*tau(k) + waer)
+                  w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                      (tau(k) + taer)
                   tau(k) = tau(k) + taer
                enddo       ! k
             endif     ! tr_aero
@@ -2723,7 +2722,7 @@
             ! pond
          else !if( srftyp == 2 ) then
             ! pond water layers evenly spaced
-            dz = hp/(c1/rnslyr+c1)
+            dz = hp/(real(nslyr,kind=dbl_kind)+c1)
             do k=0,nslyr
                tau(k) = kw(ns)*dz
                w0(k)  = ww(ns)
@@ -2744,7 +2743,7 @@
             ! dl
             k = kii + 1
             ! scale dz for dl relative to 4 even-layer-thickness 1.5m case
-            fs = p25/rnilyr
+            fs = p25*real(nilyr,kind=dbl_kind)
             tau(k) = (ki_dl(ns) + kabs_chl(ns,k)) *dzk(k)*fs
             w0(k)  = ki_dl(ns)/(ki_dl(ns) + kabs_chl(ns,k)) *wi_dl(ns)
             g(k)   = gi_dl(ns)
@@ -2772,12 +2771,10 @@
             ! aerosol in sea ice
             if (tr_zaero .and. dEdd_algae) then
                do k = kii, klev
-                  gzaer(ns,k) = gzaer(ns,k)/(wzaer(ns,k)+puny)
-                  wzaer(ns,k) = wzaer(ns,k)/(tzaer(ns,k)+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)*wzaer(ns,k)*tzaer(ns,k)) / &
-                                  (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k))
-                  w0(k)  = (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k)) / &
-                                   (tau(k) + tzaer(ns,k))
+                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)) / &
+                                (w0(k)*tau(k) + wzaer(ns,k))
+                  w0(k)  =      (w0(k)*tau(k) + wzaer(ns,k)) / &
+                                      (tau(k) + tzaer(ns,k))
                   tau(k) = tau(k) + tzaer(ns,k)
                enddo
             elseif (tr_aero) then
@@ -2832,14 +2829,12 @@
                 endif     ! modal_aero
 !mgf--
                enddo      ! na
-
-               gaer = gaer/(waer+puny)
-               waer = waer/(taer+puny)
-               g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                    (w0(k)*tau(k) + waer*taer)
-               w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                    (tau(k) + taer)
+               g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                             (w0(k)*tau(k) + waer)
+               w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                   (tau(k) + taer)
                tau(k) = tau(k) + taer
+
                do k = kii+1, klev
                   taer = c0
                   waer = c0
@@ -2850,34 +2845,34 @@
                      if (na==1) then
                         ! interstitial BC
                         taer = taer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcexs(k))
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcexs(k))
                         waer = waer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcexs(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcexs(k))* &
                              waer_bc_tab(ns,k_bcexs(k))
                         gaer = gaer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcexs(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcexs(k))* &
                              waer_bc_tab(ns,k_bcexs(k))*gaer_bc_tab(ns,k_bcexs(k))
                      elseif (na==5) then
                         ! within-ice BC
                         taer = taer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
                              bcenh(ns,k_bcins(k),k_bcini(k))
                         waer = waer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
                              waer_bc_tab(ns,k_bcins(k))
                         gaer = gaer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
                              waer_bc_tab(ns,k_bcins(k))*gaer_bc_tab(ns,k_bcins(k))
 
                      else
                         ! other species (dust)
                         taer = taer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_tab(ns,(1+(na-1)/4))
+                             (aero_mp(na+3)*rnilyr)*kaer_tab(ns,(1+(na-1)/4))
                         waer = waer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_tab(ns,(1+(na-1)/4))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_tab(ns,(1+(na-1)/4))* &
                              waer_tab(ns,(1+(na-1)/4))
                         gaer = gaer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_tab(ns,(1+(na-1)/4))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_tab(ns,(1+(na-1)/4))* &
                              waer_tab(ns,(1+(na-1)/4))*gaer_tab(ns,(1+(na-1)/4))
                      endif
                   else       !bulk
@@ -2893,12 +2888,10 @@
                   endif       ! modal_aero
 !mgf--
                   enddo       ! na
-                  gaer = gaer/(waer+puny)
-                  waer = waer/(taer+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                           (w0(k)*tau(k) + waer*taer)
-                  w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                           (tau(k) + taer)
+                  g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                                (w0(k)*tau(k) + waer)
+                  w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                      (tau(k) + taer)
                   tau(k) = tau(k) + taer
                enddo ! k
             endif ! tr_aero
@@ -2932,7 +2925,7 @@
                g(k)  = gi_p_int(ns)
                k = kii + 1
                ! scale dz for dl relative to 4 even-layer-thickness 1.5m case
-               fs = p25/rnilyr
+               fs = p25*real(nilyr,kind=dbl_kind)
                sig_i      = ki_dl(ns)*wi_dl(ns)*fs
                sig_p      = ki_p_int(ns)*wi_p_int(ns)
                sig        = sig_i + (sig_p-sig_i)*(hp/hp0)
