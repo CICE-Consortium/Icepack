@@ -66,7 +66,7 @@
     sw_redist       = .false.
     sw_frac         = 0.9d0
     sw_dtemp        = 0.02d0
-    snw_ssp_table      = 'test'
+    snw_ssp_table   = 'unknown_snw_ssp_table'
 /
 
 &ponds_nml
