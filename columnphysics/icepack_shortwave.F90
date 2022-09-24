@@ -2394,10 +2394,11 @@
                                            *gaer_3bd(ns,(1+(na-1)/4))
                endif ! modal_aero
                enddo ! na
-               gaer = gaer/(waer+puny)
-               waer = waer/(taer+puny)
-
-! tcraig, why does the above section exist if taer=waer=gaer=0 below
+               g  (k) = (g(k)*w0(k)*tau(k) + gaer) / &
+                             (w0(k)*tau(k) + waer)
+               w0 (k) =      (w0(k)*tau(k) + waer) / &
+                                   (tau(k) + taer)
+               tau(k) = tau(k) + taer
 
                do k = 1, nslyr
                   taer = c0
@@ -2406,39 +2407,39 @@
                   do na = 1, 4*n_aero, 4
                   if (modal_aero) then
                      if (na==1) then     ! interstitial BC
-                        taer = taer + (aero_mp(na+1)/rnslyr) & !echmod: BUG should be *rnslyr
+                        taer = taer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_3bd(ns,k_bcexs(k))
-                        waer = waer + (aero_mp(na+1)/rnslyr) &
+                        waer = waer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_3bd(ns,k_bcexs(k)) &
                              * waer_bc_3bd(ns,k_bcexs(k))
-                        gaer = gaer + (aero_mp(na+1)/rnslyr) &
+                        gaer = gaer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_3bd(ns,k_bcexs(k)) &
                              * waer_bc_3bd(ns,k_bcexs(k)) &
                              * gaer_bc_3bd(ns,k_bcexs(k))
                      elseif (na==5) then ! within-ice BC
-                        taer = taer + (aero_mp(na+1)/rnslyr) &
+                        taer = taer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_3bd(ns,k_bcins(k)) &
                              *   bcenh_3bd(ns,k_bcins(k),k_bcini(k))
-                        waer = waer + (aero_mp(na+1)/rnslyr) &
+                        waer = waer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_3bd(ns,k_bcins(k)) &
                              * waer_bc_3bd(ns,k_bcins(k))
-                        gaer = gaer + (aero_mp(na+1)/rnslyr) &
+                        gaer = gaer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_3bd(ns,k_bcins(k)) &
                              * waer_bc_3bd(ns,k_bcins(k)) &
                              * gaer_bc_3bd(ns,k_bcins(k))
                      else                ! other species (dust)
-                        taer = taer + (aero_mp(na+1)/rnslyr) &
+                        taer = taer + (aero_mp(na+1)*rnslyr) &
                              * kaer_3bd(ns,(1+(na-1)/4))
-                        waer = waer + (aero_mp(na+1)/rnslyr) &
+                        waer = waer + (aero_mp(na+1)*rnslyr) &
                              * kaer_3bd(ns,(1+(na-1)/4)) &
                              * waer_3bd(ns,(1+(na-1)/4))
-                        gaer = gaer + (aero_mp(na+1)/rnslyr) &
+                        gaer = gaer + (aero_mp(na+1)*rnslyr) &
                              * kaer_3bd(ns,(1+(na-1)/4)) &
                              * waer_3bd(ns,(1+(na-1)/4)) &
                              * gaer_3bd(ns,(1+(na-1)/4))
                      endif   ! na
                   else
-                     taer = taer + (aero_mp(na+1)*rnslyr) & !echmod NOTE * rnslyr not /
+                     taer = taer + (aero_mp(na+1)*rnslyr) &
                           * kaer_3bd(ns,(1+(na-1)/4))
                      waer = waer + (aero_mp(na+1)*rnslyr) &
                           * kaer_3bd(ns,(1+(na-1)/4)) &
@@ -2459,7 +2460,7 @@
 
          else ! srftyp == 2
             ! pond water layers evenly spaced
-            dz = hp/(c1/rnslyr+c1)
+            dz = hp/(real(nslyr,kind=dbl_kind)+c1)
             do k=0,nslyr
                tau(k) = kw(ns)*dz
                w0 (k) = ww(ns)
@@ -2480,7 +2481,7 @@
             ! dl
             k = kii + 1
             ! scale dz for dl relative to 4 even-layer-thickness 1.5m case
-            fs = p25/rnilyr
+            fs = p25*real(nilyr,kind=dbl_kind)
             tau(k) =           (ki_dl(ns) + kabs_chl(ns,k)) * dzk(k) * fs
             w0 (k) = ki_dl(ns)/(ki_dl(ns) + kabs_chl(ns,k)) * wi_dl(ns)
             g  (k) = gi_dl(ns)
@@ -2577,39 +2578,39 @@
                   do na = 1, 4*n_aero, 4
                   if (modal_aero) then
                      if (na==1) then     ! interstitial BC
-                        taer = taer + (aero_mp(na+3)/rnilyr) & !echmod: BUG should be *rnilyr
+                        taer = taer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_3bd(ns,k_bcexs(k))
-                        waer = waer + (aero_mp(na+3)/rnilyr) &
+                        waer = waer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_3bd(ns,k_bcexs(k)) &
                              * waer_bc_3bd(ns,k_bcexs(k))
-                        gaer = gaer + (aero_mp(na+3)/rnilyr) &
+                        gaer = gaer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_3bd(ns,k_bcexs(k)) &
                              * waer_bc_3bd(ns,k_bcexs(k)) &
                              * gaer_bc_3bd(ns,k_bcexs(k))
                      elseif (na==5) then ! within-ice BC
-                        taer = taer + (aero_mp(na+3)/rnilyr) &
+                        taer = taer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_3bd(ns,k_bcins(k)) &
                              *   bcenh_3bd(ns,k_bcins(k),k_bcini(k))
-                        waer = waer + (aero_mp(na+3)/rnilyr) &
+                        waer = waer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_3bd(ns,k_bcins(k)) &
                              * waer_bc_3bd(ns,k_bcins(k))
-                        gaer = gaer + (aero_mp(na+3)/rnilyr) &
+                        gaer = gaer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_3bd(ns,k_bcins(k)) &
                              * waer_bc_3bd(ns,k_bcins(k)) &
                              * gaer_bc_3bd(ns,k_bcins(k))
                      else                ! other species (dust)
-                        taer = taer + (aero_mp(na+3)/rnilyr) &
+                        taer = taer + (aero_mp(na+3)*rnilyr) &
                              * kaer_3bd(ns,(1+(na-1)/4))
-                        waer = waer + (aero_mp(na+3)/rnilyr) &
+                        waer = waer + (aero_mp(na+3)*rnilyr) &
                              * kaer_3bd(ns,(1+(na-1)/4)) &
                              * waer_3bd(ns,(1+(na-1)/4))
-                        gaer = gaer + (aero_mp(na+3)/rnilyr) &
+                        gaer = gaer + (aero_mp(na+3)*rnilyr) &
                              * kaer_3bd(ns,(1+(na-1)/4)) &
                              * waer_3bd(ns,(1+(na-1)/4)) &
                              * gaer_3bd(ns,(1+(na-1)/4))
                      endif
                   else       ! bulk
-                     taer = taer + (aero_mp(na+3)*rnilyr) & !echmod NOTE * rnilyr, not /
+                     taer = taer + (aero_mp(na+3)*rnilyr) &
                           * kaer_3bd(ns,(1+(na-1)/4))
                      waer = waer + (aero_mp(na+3)*rnilyr) &
                           * kaer_3bd(ns,(1+(na-1)/4)) &
@@ -2657,7 +2658,7 @@
                g  (k) = gi_p_int(ns)
                k = kii + 1
                ! scale dz for dl relative to 4 even-layer-thickness 1.5m case
-               fs = p25/rnilyr
+               fs = p25*real(nilyr,kind=dbl_kind)
                sig_i  = ki_dl   (ns) * wi_dl   (ns) * fs
                sig_p  = ki_p_int(ns) * wi_p_int(ns)
                sig    = sig_i + (sig_p-sig_i) * (hp/hp0)
@@ -4884,14 +4885,14 @@
                   gs = asm_prm_ice_drc    (ns,nr)
                else ! linear interpolation in rsnw
                   nr = ceiling(rsnw(ksnow)) - 30 + 1            ! hardwired min radius = 30
-                  delr = (rsnw(ksnow) - floor(rsnw(ksnow))) & ! hardwired delta radius = 1 in table
-                       / (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow))) ! denom always = 1?
-                  ks = ext_cff_mss_ice_drc(ns,nr-1)*    delr &  ! echmod: BUG delr factors opposite 3bd case
-                     + ext_cff_mss_ice_drc(ns,nr  )*(c1-delr)   ! echmod: and nsky=2 case below
-                  ws = ss_alb_ice_drc     (ns,nr-1)*    delr &
-                     + ss_alb_ice_drc     (ns,nr  )*(c1-delr)
-                  gs = asm_prm_ice_drc    (ns,nr-1)*    delr &
-                     + asm_prm_ice_drc    (ns,nr  )*(c1-delr)
+                  delr = (rsnw(ksnow) - floor(rsnw(ksnow))) &   ! hardwired delta radius = 1 in table
+                       / (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow))) ! denom always = 1
+                  ks = ext_cff_mss_ice_drc(ns,nr-1)*(c1-delr) &
+                     + ext_cff_mss_ice_drc(ns,nr  )*    delr
+                  ws = ss_alb_ice_drc     (ns,nr-1)*(c1-delr) &
+                     + ss_alb_ice_drc     (ns,nr  )*    delr
+                  gs = asm_prm_ice_drc    (ns,nr-1)*(c1-delr) &
+                     + asm_prm_ice_drc    (ns,nr  )*    delr
                endif
                tau(k) = (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k))*dzk(k)
                w0 (k) =  ks*rhosnw(ksnow) / (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k)) * ws
@@ -4983,10 +4984,11 @@
                                            *gaer_5bd(ns,(1+(na-1)/4))
                endif ! modal_aero
                enddo ! na
-               gaer = gaer/(waer+puny)
-               waer = waer/(taer+puny)
-
-! tcraig, again why does the above exist if taer=waer=gaer=0 below
+               g  (k) = (g(k)*w0(k)*tau(k) + gaer) / &
+                             (w0(k)*tau(k) + waer)
+               w0 (k) =      (w0(k)*tau(k) + waer) / &
+                                   (tau(k) + taer)
+               tau(k) = tau(k) + taer
 
                do k = 1, nslyr
                   taer = c0
@@ -4995,39 +4997,39 @@
                   do na = 1, 4*n_aero, 4
                   if (modal_aero) then
                      if (na==1) then     ! interstitial BC
-                        taer = taer + (aero_mp(na+1)/rnslyr) & !echmod: BUG should be *rnslyr
+                        taer = taer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_5bd(ns,k_bcexs(k))
-                        waer = waer + (aero_mp(na+1)/rnslyr) &
+                        waer = waer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_5bd(ns,k_bcexs(k)) &
                              * waer_bc_5bd(ns,k_bcexs(k))
-                        gaer = gaer + (aero_mp(na+1)/rnslyr) &
+                        gaer = gaer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_5bd(ns,k_bcexs(k)) &
                              * waer_bc_5bd(ns,k_bcexs(k)) &
                              * gaer_bc_5bd(ns,k_bcexs(k))
                      elseif (na==5) then ! within-ice BC
-                        taer = taer + (aero_mp(na+1)/rnslyr) &
+                        taer = taer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_5bd(ns,k_bcins(k)) &
                              *   bcenh_5bd(ns,k_bcins(k),k_bcini(k))
-                        waer = waer + (aero_mp(na+1)/rnslyr) &
+                        waer = waer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_5bd(ns,k_bcins(k)) &
                              * waer_bc_5bd(ns,k_bcins(k))
-                        gaer = gaer + (aero_mp(na+1)/rnslyr) &
+                        gaer = gaer + (aero_mp(na+1)*rnslyr) &
                              * kaer_bc_5bd(ns,k_bcins(k)) &
                              * waer_bc_5bd(ns,k_bcins(k)) &
                              * gaer_bc_5bd(ns,k_bcins(k))
                      else                ! other species (dust)
-                        taer = taer + (aero_mp(na+1)/rnslyr) &
+                        taer = taer + (aero_mp(na+1)*rnslyr) &
                              * kaer_5bd(ns,(1+(na-1)/4))
-                        waer = waer + (aero_mp(na+1)/rnslyr) &
+                        waer = waer + (aero_mp(na+1)*rnslyr) &
                              * kaer_5bd(ns,(1+(na-1)/4)) &
                              * waer_5bd(ns,(1+(na-1)/4))
-                        gaer = gaer + (aero_mp(na+1)/rnslyr) &
+                        gaer = gaer + (aero_mp(na+1)*rnslyr) &
                              * kaer_5bd(ns,(1+(na-1)/4)) &
                              * waer_5bd(ns,(1+(na-1)/4)) &
                              * gaer_5bd(ns,(1+(na-1)/4))
                      endif   ! na
                   else
-                     taer = taer + (aero_mp(na+1)*rnslyr) & !echmod NOTE * rnslyr not /
+                     taer = taer + (aero_mp(na+1)*rnslyr) &
                           * kaer_5bd(ns,(1+(na-1)/4))
                      waer = waer + (aero_mp(na+1)*rnslyr) &
                           * kaer_5bd(ns,(1+(na-1)/4)) &
@@ -5058,7 +5060,7 @@
             ! dl
             k = kii + 1
             ! scale dz for dl relative to 4 even-layer-thickness 1.5m case
-            fs = p25/rnilyr
+            fs = p25*real(nilyr,kind=dbl_kind)
             tau(k) =               (ki_dl_5bd(ns) + kabs_chl_5bd(ns,k)) * dzk(k) * fs
             w0 (k) = ki_dl_5bd(ns)/(ki_dl_5bd(ns) + kabs_chl_5bd(ns,k)) * wi_dl_5bd(ns)
             g  (k) = gi_dl_5bd(ns)
@@ -5155,39 +5157,39 @@
                   do na = 1, 4*n_aero, 4
                   if (modal_aero) then
                      if (na==1) then     ! interstitial BC
-                        taer = taer + (aero_mp(na+3)/rnilyr) & !echmod: BUG should be *rnilyr
+                        taer = taer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_5bd(ns,k_bcexs(k))
-                        waer = waer + (aero_mp(na+3)/rnilyr) &
+                        waer = waer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_5bd(ns,k_bcexs(k)) &
                              * waer_bc_5bd(ns,k_bcexs(k))
-                        gaer = gaer + (aero_mp(na+3)/rnilyr) &
+                        gaer = gaer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_5bd(ns,k_bcexs(k)) &
                              * waer_bc_5bd(ns,k_bcexs(k)) &
                              * gaer_bc_5bd(ns,k_bcexs(k))
                      elseif (na==5) then ! within-ice BC
-                        taer = taer + (aero_mp(na+3)/rnilyr) &
+                        taer = taer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_5bd(ns,k_bcins(k)) &
                              *   bcenh_5bd(ns,k_bcins(k),k_bcini(k))
-                        waer = waer + (aero_mp(na+3)/rnilyr) &
+                        waer = waer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_5bd(ns,k_bcins(k)) &
                              * waer_bc_5bd(ns,k_bcins(k))
-                        gaer = gaer + (aero_mp(na+3)/rnilyr) &
+                        gaer = gaer + (aero_mp(na+3)*rnilyr) &
                              * kaer_bc_5bd(ns,k_bcins(k)) &
                              * waer_bc_5bd(ns,k_bcins(k)) &
                              * gaer_bc_5bd(ns,k_bcins(k))
                      else                ! other species (dust)
-                        taer = taer + (aero_mp(na+3)/rnilyr) &
+                        taer = taer + (aero_mp(na+3)*rnilyr) &
                              * kaer_5bd(ns,(1+(na-1)/4))
-                        waer = waer + (aero_mp(na+3)/rnilyr) &
+                        waer = waer + (aero_mp(na+3)*rnilyr) &
                              * kaer_5bd(ns,(1+(na-1)/4)) &
                              * waer_5bd(ns,(1+(na-1)/4))
-                        gaer = gaer + (aero_mp(na+3)/rnilyr) &
+                        gaer = gaer + (aero_mp(na+3)*rnilyr) &
                              * kaer_5bd(ns,(1+(na-1)/4)) &
                              * waer_5bd(ns,(1+(na-1)/4)) &
                              * gaer_5bd(ns,(1+(na-1)/4))
                      endif
                   else       !bulk
-                     taer = taer + (aero_mp(na+3)*rnilyr) & !echmod NOTE * rnilyr, not /
+                     taer = taer + (aero_mp(na+3)*rnilyr) &
                           * kaer_5bd(ns,(1+(na-1)/4))
                      waer = waer + (aero_mp(na+3)*rnilyr) &
                           * kaer_5bd(ns,(1+(na-1)/4)) &
