@@ -2249,7 +2249,7 @@
          fm_pnd = 0.50_dbl_kind    ! ponded ice fraction of scat coeff for - stn dev in alb
 
       real (kind=dbl_kind),  parameter :: &   !chla-specific absorption coefficient
-         kchl_tab = 0.01 !0.0023-0.0029 Perovich 1993, also 0.0067 m^2 (mg Chl)^-1
+         kchl_tab = p01  !0.0023-0.0029 Perovich 1993, also 0.0067 m^2 (mg Chl)^-1
                          ! found values of 0.006 to 0.023 m^2/ mg  (676 nm)  Neukermans 2014
                          ! and averages over the 300-700nm of 0.0075 m^2/mg in ice Fritsen (2011)
                          ! at 440nm values as high as 0.2 m^2/mg in under ice bloom (Balch 2014)
@@ -2443,13 +2443,13 @@
 
                  ! get grain size index:
                  ! works for 25 < snw_rds < 1625 um:
-                 if (tmp_gs < 125) then
-                   tmp1 = tmp_gs/50
+                 if (tmp_gs < 125._dbl_kind) then
+                   tmp1 = tmp_gs/(50._dbl_kind)
                    k_bcini(k) = nint(tmp1)
-                 elseif (tmp_gs < 175) then
+                 elseif (tmp_gs < 175._dbl_kind) then
                    k_bcini(k) = 2
                  else
-                   tmp1 = (tmp_gs/250)+2
+                   tmp1 = (tmp_gs/250._dbl_kind)+c2
                    k_bcini(k) = nint(tmp1)
                  endif
               else                  ! use the largest snow grain size for ice
@@ -2464,10 +2464,10 @@
               ! check bounds:
               if (k_bcini(k) < 1)  k_bcini(k) = 1
               if (k_bcini(k) > 8)  k_bcini(k) = 8
-              if (k_bcins(k) < 1)  k_bcins(k) = 1
-              if (k_bcins(k) > 10) k_bcins(k) = 10
-              if (k_bcexs(k) < 1)  k_bcexs(k) = 1
-              if (k_bcexs(k) > 10) k_bcexs(k) = 10
+!              if (k_bcins(k) < 1)  k_bcins(k) = 1
+!              if (k_bcins(k) > 10) k_bcins(k) = 10
+!              if (k_bcexs(k) < 1)  k_bcexs(k) = 1
+!              if (k_bcexs(k) > 10) k_bcexs(k) = 10
 
               ! print ice radius index:
               ! write(warnstr,*) subname, "MGFICE2:k, ice index= ",k,  k_bcini(k)
@@ -3158,10 +3158,8 @@
 
          ! bgc layer
          fswpenl(k) = fswpenl(k) + fthrul(k)* fi
-         if (k == nilyr) then
-            fswpenl(k+1) = fswpenl(k+1) + fthrul(k+1)*fi
-         endif
       enddo                     ! k
+      fswpenl(nilyr+1) = fswpenl(nilyr+1) + fthrul(nilyr+1)*fi
 
 #ifdef UNDEPRECATE_0LAYER
       !----------------------------------------------------------------
@@ -3868,7 +3866,7 @@
          do k = 1, nblyr+1
             do n = 1, n_algae
                trtmp0(nt_bgc_N(1) + k-1) = trtmp0(nt_bgc_N(1) + k-1) + &
-                                R_chl2N(n)*F_abs_chl(n)*bgcN(nt_bgc_N(n)-nt_bgc_N(1)+1 + k-1)
+                                R_chl2N(n)*F_abs_chl(n)*bgcN(nt_bgc_N(n)-nt_bgc_N(1)+k)
             enddo ! n
          enddo    ! k
 
