@@ -13,7 +13,7 @@
       use icedrv_constants, only: nu_diag, nu_forcing, nu_open_clos
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
-      use icepack_intfc, only: icepack_query_parameters
+      use icepack_intfc, only: icepack_init_parameters, icepack_query_parameters
       use icepack_intfc, only: icepack_sea_freezing_temperature 
       use icepack_intfc, only: icepack_init_wave
       use icedrv_system, only: icedrv_system_abort
@@ -93,12 +93,15 @@
          frcidf = 0.17_dbl_kind    ! frac of incoming sw in near IR diffuse band
 
       logical (kind=log_kind), public :: &
-         oceanmixed_ice        , & ! if true, use internal ocean mixed layer
-         restore_ocn               ! restore sst if true
+         oceanmixed_ice , & ! if true, use internal ocean mixed layer
+         restore_ocn        ! restore sst if true
 
       real (kind=dbl_kind), public :: & 
-         trest, &                  ! restoring time scale (sec)
-         trestore                  ! restoring time scale (days)
+         trest, &           ! restoring time scale (sec)
+         trestore           ! restoring time scale (days)
+
+      character (len=char_len_long), public :: &
+         snw_ssp_table      ! snow table type 'test', 'snicar'
 
 !=======================================================================
 
@@ -1152,7 +1155,6 @@
       enddo
 
       end subroutine get_wave_spec
-
 
 !=======================================================================
 

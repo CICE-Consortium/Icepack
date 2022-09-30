@@ -24,7 +24,7 @@
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_init_zbgc
-      use icepack_intfc, only: icepack_init_thermo
+      use icepack_intfc, only: icepack_init_thermo, icepack_init_radiation
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
       use icepack_intfc, only: icepack_init_bgc, icepack_init_zsalinity
       use icepack_intfc, only: icepack_init_ocean_bio, icepack_load_ocean_bio_array
@@ -99,12 +99,10 @@
       use icedrv_arrays_column, only: fswsfcn, ffracn, snowfracn
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn
-      use icedrv_arrays_column, only: kaer_tab, waer_tab, gaer_tab
-      use icedrv_arrays_column, only: kaer_bc_tab, waer_bc_tab, gaer_bc_tab
-      use icedrv_arrays_column, only: swgrid, igrid, bcenh
-      use icedrv_calendar, only: istep1, dt, calendar_type
-      use icedrv_calendar, only:    days_per_year, nextsw_cday, yday, sec
+      use icedrv_arrays_column, only: swgrid, igrid
+      use icedrv_calendar, only: istep1, dt, yday, sec
       use icedrv_system, only: icedrv_system_abort
+      use icedrv_forcing, only: snw_ssp_table
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr
       use icedrv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, scale_factor, snowfrac
@@ -123,7 +121,6 @@
       logical (kind=log_kind) :: &
          l_print_point, & ! flag to print designated grid point diagnostics
          dEdd_algae,    & ! BGC - radiation interactions
-         modal_aero,    & ! modal aerosol optical properties
          snwgrain         ! use variable snow grain size
 
       character (len=char_len) :: &
@@ -153,7 +150,6 @@
          call icepack_query_parameters(puny_out=puny)
          call icepack_query_parameters(shortwave_out=shortwave)
          call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
-         call icepack_query_parameters(modal_aero_out=modal_aero)
          call icepack_query_parameters(snwgrain_out=snwgrain)
          call icepack_query_tracer_sizes(ntrcr_out=ntrcr, &
               nbtrcr_sw_out=nbtrcr_sw)
@@ -215,18 +211,30 @@
 
          enddo
 
-         do i = 1, nx
+         if (trim(shortwave(1:4)) == 'dEdd') then ! delta Eddington
+            ! initialize orbital parameters
+            ! These come from the driver in the coupled model.
+            call icepack_warnings_flush(nu_diag)
+            call icepack_init_orbit()
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) &
+               call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
 
-            if (trim(shortwave) == 'dEdd') then ! delta Eddington
-
-               ! initialize orbital parameters
-               ! These come from the driver in the coupled model.
+            if (trim(shortwave) == 'dEdd_snicar_ad') then
+               call icepack_init_parameters(snw_ssp_table_in=snw_ssp_table)
                call icepack_warnings_flush(nu_diag)
-               call icepack_init_orbit()
-               call icepack_warnings_flush(nu_diag)
-               if (icepack_warnings_aborted()) &
-                  call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
+               if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                   file=__FILE__,line= __LINE__)
             endif
+         endif ! dEdd
+
+         call icepack_init_radiation()
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted(subname)) then
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
+         endif
+
+         do i = 1, nx
 
             fbri       (:) = c0
             rsnow    (:,:) = c0
@@ -237,11 +245,8 @@
             enddo
 
             if (tmask(i)) then
-            call icepack_step_radiation (              &
-                         dt=dt,           ncat=ncat,           &
-                         nblyr=nblyr,                          &
-                         nilyr=nilyr,     nslyr=nslyr,         &
-                         dEdd_algae=dEdd_algae,                &
+            call icepack_step_radiation (                      &
+                         dt=dt,                                &
                          swgrid=swgrid(:),                     &
                          igrid=igrid(:),                       &
                          fbri=fbri(:),                         &
@@ -258,14 +263,7 @@
                          zaeron=trcrn(i,nt_zaero(1):nt_zaero(1)+n_zaero*(nblyr+3)-1,:), &
                          trcrn_bgcsw=ztrcr_sw,                 &
                          TLAT=TLAT(i), TLON=TLON(i),           &
-                         calendar_type=calendar_type,          &
-                         days_per_year=days_per_year,          &
-                         nextsw_cday=nextsw_cday, yday=yday, sec=sec,      &
-                         kaer_tab=kaer_tab, kaer_bc_tab=kaer_bc_tab(:,:),  &
-                         waer_tab=waer_tab, waer_bc_tab=waer_bc_tab(:,:),  &
-                         gaer_tab=gaer_tab, gaer_bc_tab=gaer_bc_tab(:,:),  &
-                         bcenh=bcenh(:,:,:),                               &
-                         modal_aero=modal_aero,                            &
+                         yday=yday, sec=sec,                   &
                          swvdr=swvdr(i),         swvdf=swvdf(i),           &
                          swidr=swidr(i),         swidf=swidf(i),           &
                          coszen=coszen(i),       fsnow=fsnow(i),           &
@@ -1106,13 +1104,13 @@
          tr_zaero = .false.
       endif
 
-      if (dEdd_algae .AND. trim(shortwave) /= 'dEdd') then 
+      if (dEdd_algae .AND. trim(shortwave(1:4)) /= 'dEdd') then
          write(nu_diag,*) 'WARNING: dEdd_algae = T but shortwave /= dEdd'
          write(nu_diag,*) 'WARNING: setting dEdd_algae = F'
          dEdd_algae = .false.
       endif
 
-      if (dEdd_algae .AND. (.NOT. tr_bgc_N) .AND. (.NOT. tr_zaero)) then 
+      if (dEdd_algae .AND. (.NOT. tr_bgc_N) .AND. (.NOT. tr_zaero)) then
          write(nu_diag,*) 'WARNING: need tr_bgc_N or tr_zaero for dEdd_algae'
          write(nu_diag,*) 'WARNING: setting dEdd_algae = F'
          dEdd_algae = .false.
@@ -1122,7 +1120,7 @@
          modal_aero = .false.
       endif
          
-      if (modal_aero .AND. trim(shortwave) /= 'dEdd') then 
+      if (modal_aero .AND. trim(shortwave(1:4)) /= 'dEdd') then
          write(nu_diag,*) 'WARNING: modal_aero = T but shortwave /= dEdd'
          write(nu_diag,*) 'WARNING: setting modal_aero = F'
          modal_aero = .false.

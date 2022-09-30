@@ -19,6 +19,7 @@ module icepack_warnings
       character(len=char_len_long), public :: warnstr
 
       public :: &
+        icepack_warnings_getall,   &
         icepack_warnings_clear,    &
         icepack_warnings_print,    &
         icepack_warnings_flush,    &
@@ -27,7 +28,6 @@ module icepack_warnings
         icepack_warnings_setabort
 
       private :: &
-        icepack_warnings_getall,   &
         icepack_warnings_getone
 
 !=======================================================================

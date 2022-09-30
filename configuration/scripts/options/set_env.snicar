@@ -1,0 +1,3 @@
+setenv ICE_IOTYPE  netcdf
+setenv ICE_NXGLOB  1
+setenv ICE_SNICARHC true

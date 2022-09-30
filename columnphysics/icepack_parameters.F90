@@ -29,9 +29,6 @@
       ! parameter constants
       !-----------------------------------------------------------------
 
-      integer (kind=int_kind), parameter, public :: &
-         nspint = 3                ! number of solar spectral intervals
-
       real (kind=dbl_kind), parameter, public :: &
          c0   = 0.0_dbl_kind, &
          c1   = 1.0_dbl_kind, &
@@ -217,9 +214,21 @@
          awtidf = 0.36218_dbl_kind   ! near IR, diffuse
 
       character (len=char_len), public :: &
-         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type = 'ccsm3'   ! albedo parameterization, 'ccsm3' or 'constant'
                                  ! shortwave='dEdd' overrides this parameter
+
+      ! Parameters for shortwave redistribution
+      logical (kind=log_kind), public :: &
+         sw_redist     = .false.
+
+      real (kind=dbl_kind), public :: &
+         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
+
+      ! Parameters for dEdd_snicar_ad
+      character (len=char_len), public :: &
+         snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test'
 
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
@@ -419,18 +428,6 @@
          t_sk_conv    = 3.0_dbl_kind    , & ! Stefels conversion time (d)
          t_sk_ox      = 10.0_dbl_kind       ! DMS oxidation time (d)
 
-
-!-----------------------------------------------------------------------
-! Parameters for shortwave redistribution
-!-----------------------------------------------------------------------
-
-      logical (kind=log_kind), public :: &
-         sw_redist     = .false.
-
-      real (kind=dbl_kind), public :: &
-         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
-         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
-
 !=======================================================================
 
       contains
@@ -491,7 +488,7 @@
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
-         snw_aging_table_in)
+         snw_aging_table_in, snw_ssp_table_in )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -613,7 +610,7 @@
          awtidf_in        ! near IR, diffuse
 
       character (len=*), intent(in), optional :: &
-         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type_in  ! albedo parameterization, 'ccsm3' or 'constant'
                          ! shortwave='dEdd' overrides this parameter
 
@@ -844,7 +841,15 @@
          snowage_kappa_in, &!
          snowage_drdt0_in   ! (10^-6 m/hr)
 
+      character (len=char_len), intent(in), optional :: &
+         snw_ssp_table_in   ! lookup table: 'snicar' or 'test'
+
 !autodocument_end
+
+      ! local data
+
+      integer (kind=int_kind) :: &
+         dim1, dim2, dim3   ! array dimension sizes
 
       character(len=*),parameter :: subname='(icepack_init_parameters)'
 
@@ -980,6 +985,10 @@
       if (present(windmin_in)           ) windmin          = windmin_in
       if (present(drhosdwind_in)        ) drhosdwind       = drhosdwind_in
       if (present(snwlvlfac_in)         ) snwlvlfac        = snwlvlfac_in
+
+      !-------------------
+      ! SNOW table
+      !-------------------
       if (present(isnw_T_in)            ) isnw_T           = isnw_T_in
       if (present(isnw_Tgrd_in)         ) isnw_Tgrd        = isnw_Tgrd_in
       if (present(isnw_rhos_in)         ) isnw_rhos        = isnw_rhos_in
@@ -1001,7 +1010,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_Tgrd_in)       ) then
          if (size(snowage_Tgrd_in) /= isnw_Tgrd) then
             call icepack_warnings_add(subname//' incorrect size of snowage_Tgrd_in')
@@ -1018,7 +1026,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_T_in)       ) then
          if (size(snowage_T_in) /= isnw_T) then
             call icepack_warnings_add(subname//' incorrect size of snowage_T_in')
@@ -1035,7 +1042,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_tau_in)       ) then
          if (size(snowage_tau_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
             call icepack_warnings_add(subname//' incorrect size of snowage_tau_in')
@@ -1052,7 +1058,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_kappa_in)       ) then
          if (size(snowage_kappa_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
             call icepack_warnings_add(subname//' incorrect size of snowage_kappa_in')
@@ -1069,7 +1074,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_drdt0_in)       ) then
          if (size(snowage_drdt0_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
             call icepack_warnings_add(subname//' incorrect size of snowage_drdt0_in')
@@ -1086,6 +1090,7 @@
          endif
       endif
 
+      if (present(snw_ssp_table_in)     ) snw_ssp_table    = snw_ssp_table_in
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
       if (present(z_tracers_in)         ) z_tracers        = z_tracers_in
       if (present(scale_bgc_in)         ) scale_bgc        = scale_bgc_in
@@ -1198,7 +1203,7 @@
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
          snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
          snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
-         snw_aging_table_out)
+         snw_aging_table_out, snw_ssp_table_out )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -1329,7 +1334,7 @@
          awtidf_out        ! near IR, diffuse
 
       character (len=*), intent(out), optional :: &
-         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type_out  ! albedo parameterization, 'ccsm3' or 'constant'
                              ! shortwave='dEdd' overrides this parameter
 
@@ -1559,6 +1564,10 @@
          snowage_tau_out, &  ! (10^-6 m)
          snowage_kappa_out, &!
          snowage_drdt0_out   ! (10^-6 m/hr)
+
+      character (len=char_len), intent(out), optional :: &
+         snw_ssp_table_out   ! lookup table: 'snicar' or 'test'
+
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_query_parameters)'
@@ -1741,6 +1750,7 @@
       if (present(snowage_tau_out)       ) snowage_tau_out  = snowage_tau
       if (present(snowage_kappa_out)     ) snowage_kappa_out= snowage_kappa
       if (present(snowage_drdt0_out)     ) snowage_drdt0_out= snowage_drdt0
+      if (present(snw_ssp_table_out)     ) snw_ssp_table_out= snw_ssp_table
       if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
       if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
       if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
@@ -1950,6 +1960,7 @@
         write(iounit,*) "  snowage_tau   = ", snowage_tau(1,1,1)
         write(iounit,*) "  snowage_kappa = ", snowage_kappa(1,1,1)
         write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0(1,1,1)
+        write(iounit,*) "  snw_ssp_table = ", trim(snw_ssp_table)
         write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
         write(iounit,*) "  z_tracers     = ", z_tracers
         write(iounit,*) "  scale_bgc     = ", scale_bgc
