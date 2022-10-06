@@ -1,5 +1,3 @@
-    dt             = 3600.0
-    tr_snow        = .false.
     rsnw_tmax      = 1500.0
     kcatbound      = 0
     emissivity     = 0.95
