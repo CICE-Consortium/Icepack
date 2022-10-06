@@ -52,6 +52,7 @@
           file=__FILE__,line= __LINE__)
 
       write(ice_stdout, *) "ICEPACK COMPLETED SUCCESSFULLY "
+      close (nu_diag)
 
       end program icedrv
 
