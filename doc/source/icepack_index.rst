@@ -455,7 +455,7 @@ either Celsius or Kelvin units).
    "tday", "absolute day number", ""
    "Tf", "freezing temperature", "C"
    "Tffresh", "freezing temp of fresh ice", "273.15 K"
-   "tfrz_option", ":math:`\bullet` form of ocean freezing temperature", "mushy"
+   "tfrz_option", ":math:`\bullet` form of ocean freezing temperature", ""
    "thickness_ocn_layer1", "thickness of first ocean level", "2.0 m"
    "thinS", "minimum ice thickness for brine tracer", ""
    "time", "total elapsed time", "s"
