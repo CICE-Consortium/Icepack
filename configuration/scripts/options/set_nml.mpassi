@@ -1,0 +1,4 @@
+    rsnw_tmax      = 1500.0
+    kcatbound      = 0
+    emissivity     = 0.95
+    oceanmixed_ice = .false.
