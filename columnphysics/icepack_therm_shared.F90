@@ -8,7 +8,7 @@
 
       use icepack_kinds
 
-      use icepack_parameters, only: c0, c1, c2, c4, p5, pi, puny
+      use icepack_parameters, only: c0, c1, c2, c4, p5, pi, puny, Tocnfrz
       use icepack_parameters, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
       use icepack_parameters, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
       use icepack_parameters, only: saltmax, min_salin, depressT
@@ -409,7 +409,7 @@
 
         else
 
-           Tf = -1.8_dbl_kind
+           Tf = Tocnfrz
 
         endif
 

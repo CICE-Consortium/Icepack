@@ -1075,10 +1075,11 @@
 
       subroutine finish_ocn_forcing(sst_temp)
 
- ! Compute ocean freezing temperature Tf based on tfrz_option
- ! 'minus1p8'         Tf = -1.8 C (default)
- ! 'linear_salt'      Tf = -depressT * sss
- ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
+! Compute ocean freezing temperature Tf based on tfrz_option
+! 'minus1p8'         Tf = -1.8 C (default)
+!  'constant'         Tf = Tocnfrz from namelist
+! 'linear_salt'      Tf = -depressT * sss
+! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
 
       real (kind=dbl_kind), dimension(nx), intent(in)  :: &
           sst_temp
