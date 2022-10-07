@@ -1173,7 +1173,7 @@
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          miso           ! isotope mass added to ocean (kg m-2)
- 
+
       real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          aredistn   , & ! redistribution function: fraction of new ridge area
          vredistn       ! redistribution function: fraction of new ridge volume

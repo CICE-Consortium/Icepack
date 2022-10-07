@@ -407,9 +407,13 @@
 
            Tf = -depressT * sss ! deg C
 
-        else
+        elseif (trim(tfrz_option) == 'constant') then
 
            Tf = Tocnfrz
+
+        else
+
+           Tf = -1.8_dbl_kind
 
         endif
 
