@@ -88,7 +88,7 @@
       character (len=char_len), dimension(4) :: nx_names_default
 
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
-         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, &
+         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, hi_min, &
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity, floediam, hfrazilmin, &
@@ -177,7 +177,7 @@
         update_ocn_f,    l_mpond_fresh,   ustar_min,       &
         fbot_xfer_type,  oceanmixed_ice,  emissivity,      &
         formdrag,        highfreq,        natmiter,        &
-        atmiter_conv,    calc_dragio,                      &
+        atmiter_conv,    calc_dragio,     hi_min,          &
         tfrz_option,     default_season,  wave_spec_type,  &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
@@ -206,7 +206,7 @@
 
       call icepack_query_parameters(ustar_min_out=ustar_min, Cf_out=Cf, &
            albicev_out=albicev, albicei_out=albicei, ksno_out = ksno,   &
-           albsnowv_out=albsnowv, albsnowi_out=albsnowi, &
+           albsnowv_out=albsnowv, albsnowi_out=albsnowi, hi_min_out=hi_min, &
            natmiter_out=natmiter, ahmax_out=ahmax, shortwave_out=shortwave, &
            atmiter_conv_out = atmiter_conv, calc_dragio_out=calc_dragio, &
            albedo_type_out=albedo_type, R_ice_out=R_ice, R_pnd_out=R_pnd, &
@@ -790,6 +790,7 @@
          write(nu_diag,1030) ' wave_spec_type            = ', trim(wave_spec_type)
          write(nu_diag,1010) ' l_mpond_fresh             = ', l_mpond_fresh
          write(nu_diag,1005) ' ustar_min                 = ', ustar_min
+         write(nu_diag,1005) ' hi_min                    = ', hi_min
          write(nu_diag,1030) ' fbot_xfer_type            = ', trim(fbot_xfer_type)
          write(nu_diag,1010) ' oceanmixed_ice            = ', oceanmixed_ice
          write(nu_diag,1030) ' tfrz_option               = ', trim(tfrz_option)
@@ -955,7 +956,7 @@
 
       call icepack_init_parameters(ustar_min_in=ustar_min, Cf_in=Cf, &
            albicev_in=albicev, albicei_in=albicei, ksno_in=ksno, &
-           albsnowv_in=albsnowv, albsnowi_in=albsnowi, &
+           albsnowv_in=albsnowv, albsnowi_in=albsnowi, hi_min_in=hi_min, &
            natmiter_in=natmiter, ahmax_in=ahmax, shortwave_in=shortwave, &
            atmiter_conv_in = atmiter_conv, calc_dragio_in=calc_dragio, &
            albedo_type_in=albedo_type, R_ice_in=R_ice, R_pnd_in=R_pnd, &

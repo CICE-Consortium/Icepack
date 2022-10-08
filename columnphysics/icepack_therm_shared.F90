@@ -52,9 +52,6 @@
       logical (kind=log_kind), public :: &
          l_brine         ! if true, treat brine pocket effects
 
-      real (kind=dbl_kind), public :: &
-         hi_min          ! minimum ice thickness allowed (m)
-
 !=======================================================================
 
       contains

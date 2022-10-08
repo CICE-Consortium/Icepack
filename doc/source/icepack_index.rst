@@ -205,7 +205,7 @@ either Celsius or Kelvin units).
    "HDO_ocn", "concentration of HDO isotope in ocean", "kg/kg"
    "heat_capacity", "DEPRECATED", ""
    "hfrazilmin", "minimum thickness of new frazil ice", "0.05 m"
-   "hi_min", "minimum ice thickness for thinnest ice category", "0.01 m"
+   "hi_min", "minimum ice thickness for thinnest ice category", "m"
    "hi_ssl", "ice surface scattering layer thickness", "0.05 m"
    "hicen", "ice thickness in category n", "m"
    "highfreq", ":math:`\bullet` high-frequency atmo coupling", "F"

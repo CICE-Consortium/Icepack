@@ -31,7 +31,6 @@
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
-
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
 #ifdef UNDEPRECATE_CESMPONDS
       use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
@@ -42,7 +41,6 @@
 
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
-      use icepack_therm_shared, only: hi_min
       use icepack_therm_shared, only: adjust_enthalpy
       use icepack_therm_bl99,   only: temperature_changes
 #ifdef UNDEPRECATE_0LAYER
@@ -463,14 +461,12 @@
       ! If prescribed ice, set hi back to old values
       !-----------------------------------------------------------------
 
-#ifdef CESMCOUPLED
       if (present(prescribed_ice)) then
           if (prescribed_ice) then
             hin    = worki
             fhocnn = c0             ! for diagnostics
           endif
       endif
-#endif
 
       !-----------------------------------------------------------------
       ! Compute fluxes of water and salt from ice to ocean.
@@ -2924,7 +2920,6 @@
             if (tr_pond_cesm) then
                rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
                call compute_ponds_cesm(dt=dt,           &
-                                       hi_min=hi_min,   &
                                        rfrac=rfrac,     &
                                        meltt=melttn(n), &
                                        melts=meltsn(n), &
@@ -2943,11 +2938,6 @@
 #endif
                rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
                call compute_ponds_lvl (dt=dt,            &
-                                       nilyr=nilyr,      &
-                                       ktherm=ktherm,    &
-                                       hi_min=hi_min,    &
-                                       dpscale=dpscale,  &
-                                       frzpnd=frzpnd,    &
                                        rfrac=rfrac,      &
                                        meltt=melttn (n), &
                                        melts=meltsn (n), &
