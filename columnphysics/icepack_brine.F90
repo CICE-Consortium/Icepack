@@ -66,13 +66,13 @@
                                       hbr_old,  hin,hsn,  firstice    )
 
       real (kind=dbl_kind), intent(in) :: &
-         aicen       , & ! concentration of ice
-         vicen       , & ! volume per unit area of ice          (m)
-         vsnon       , & ! volume per unit area of snow         (m)
-         meltb       , & ! bottom ice melt                      (m)
-         meltt       , & ! top ice melt                         (m)
-         congel      , & ! bottom ice growth                    (m)
-         snoice          ! top ice growth from flooding         (m)
+         aicen        , & ! concentration of ice
+         vicen        , & ! volume per unit area of ice          (m)
+         vsnon        , & ! volume per unit area of snow         (m)
+         meltb        , & ! bottom ice melt                      (m)
+         meltt        , & ! top ice melt                         (m)
+         congel       , & ! bottom ice growth                    (m)
+         snoice           ! top ice growth from flooding         (m)
 
       real (kind=dbl_kind), intent(out) :: &
          hbr_old          ! old brine height (m)
@@ -152,22 +152,20 @@
          nblyr           ! number of bio layers
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         bgrid              ! biology nondimensional vertical grid points
+         bgrid           ! biology nondimensional vertical grid points
 
       real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         igrid              ! biology vertical interface points
+         igrid           ! biology vertical interface points
 
       real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         cgrid              ! CICE vertical coordinate
+         cgrid           ! CICE vertical coordinate
 
-      real (kind=dbl_kind), &
-         intent(in) :: &
+      real (kind=dbl_kind), intent(in) :: &
          hice_old    , & ! previous timestep ice height (m)
          sss         , & ! ocean salinity (ppt)
          sst             ! ocean temperature (C)
 
-      real (kind=dbl_kind), dimension(ntrcr), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension(ntrcr), intent(in) :: &
          trcrn
 
       real (kind=dbl_kind), intent(out) :: &
@@ -175,22 +173,19 @@
          bphi_min        ! surface porosity
 
       real (kind=dbl_kind), intent(inout) :: &
-         hbr_old           ! previous timestep brine height (m)
+         hbr_old         ! previous timestep brine height (m)
 
-      real (kind=dbl_kind), dimension (nblyr+1), &
-         intent(inout)  :: &
-         iDin           ! tracer diffusivity/h^2 (1/s) includes gravity drainage/molecular
+      real (kind=dbl_kind), dimension (nblyr+1), intent(inout)  :: &
+         iDin            ! tracer diffusivity/h^2 (1/s) includes gravity drainage/molecular
 
-      real (kind=dbl_kind), dimension (nblyr+1), &
-         intent(inout)  :: &
+      real (kind=dbl_kind), dimension (nblyr+1), intent(inout)  :: &
          iphin       , & ! porosity on the igrid
          ibrine_rho  , & ! brine rho on interface
          ibrine_sal  , & ! brine sal on interface
          iTin            ! Temperature on the igrid (oC)
 
-      real (kind=dbl_kind), dimension (nblyr+2), &
-         intent(inout)  :: &
-         bSin        , &    ! bulk salinity (ppt) on bgrid
+      real (kind=dbl_kind), dimension (nblyr+2), intent(inout)  :: &
+         bSin        , & ! bulk salinity (ppt) on bgrid
          brine_sal   , & ! equilibrium brine salinity (ppt)
          brine_rho       ! internal brine density (kg/m^3)
 
@@ -311,16 +306,14 @@
                                  i_grid,     sss)
 
       integer (kind=int_kind), intent(in) :: &
-         nblyr           ! number of bio layers
+         nblyr          ! number of bio layers
 
-      real (kind=dbl_kind), dimension (:), &
-         intent(in) :: &
-         bSin      , & ! salinity of ice layers on bio grid (ppt)
-         bTin      , & ! temperature of ice layers on bio grid for history (C)
-         i_grid        ! biology grid interface points
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         bSin       , & ! salinity of ice layers on bio grid (ppt)
+         bTin       , & ! temperature of ice layers on bio grid for history (C)
+         i_grid         ! biology grid interface points
 
-      real (kind=dbl_kind), dimension (:), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          brine_sal  , & ! equilibrium brine salinity (ppt)
          brine_rho  , & ! internal brine density (kg/m^3)
          ibrine_rho , & ! brine density on interface (kg/m^3)
@@ -342,14 +335,14 @@
       ! local variables
 
       real (kind=dbl_kind), dimension(nblyr+1) :: &
-          kin       !  permeability
+          kin           !  permeability
 
       real (kind=dbl_kind) :: &
           k_min, ktemp, &
           igrp, igrm, rigr  ! grid finite differences
 
       integer (kind=int_kind) :: &
-           k   ! layer index
+           k            ! layer index
 
       character(len=*),parameter :: subname='(prepare_hbrine)'
 
@@ -479,7 +472,7 @@
       ! local variables
 
       real (kind=dbl_kind) :: &
-         hbrmin    , & ! thinS or hin
+         hbrmin     , & ! thinS or hin
          dhbr_hin   , & ! hbr-hin
          hbrocn     , & ! brine height above sea level (m) hbr-h_ocn
          dhbr       , & ! change in brine surface
@@ -587,18 +580,18 @@
                                    ibrine_sal, sice_rho, sloss)
 
       integer (kind=int_kind), intent(in) :: &
-         n_cat       , & ! ice category
-         nilyr       , & ! number of ice layers
-         nblyr           ! number of bio layers
+         n_cat         , & ! ice category
+         nilyr         , & ! number of ice layers
+         nblyr             ! number of bio layers
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         bgrid              ! biology nondimensional vertical grid points
+         bgrid             ! biology nondimensional vertical grid points
 
       real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         igrid              ! biology vertical interface points
+         igrid             ! biology vertical interface points
 
       real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         cgrid              ! CICE vertical coordinate
+         cgrid             ! CICE vertical coordinate
 
       real (kind=dbl_kind), intent(in) :: &
          hice_old      , & ! previous timestep ice height (m)
@@ -807,22 +800,22 @@
                                  brine_rho, ibrine_rho, drho)
 
       integer (kind=int_kind), intent(in) :: &
-         nblyr          ! number of bio layers
+         nblyr        ! number of bio layers
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         b_grid         ! biology nondimensional grid layer points
+         b_grid       ! biology nondimensional grid layer points
 
       real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         i_grid         ! biology grid interface points
+         i_grid       ! biology grid interface points
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         brine_rho     ! Internal brine density (kg/m^3)
+         brine_rho    ! Internal brine density (kg/m^3)
 
       real (kind=dbl_kind), dimension (nblyr + 1), intent(in) :: &
-         ibrine_rho    ! Internal brine density (kg/m^3)
+         ibrine_rho   ! Internal brine density (kg/m^3)
 
       real (kind=dbl_kind), dimension (nblyr+1), intent(out) :: &
-         drho          ! brine difference about grid point (kg/m^3)
+         drho         ! brine difference about grid point (kg/m^3)
 
       ! local variables
 
@@ -921,7 +914,7 @@
          nblyr    ! number of bio layers
 
       real (kind=dbl_kind), intent(inout) :: &
-         phi_snow           !porosity at the ice-snow interface
+         phi_snow           ! porosity at the ice-snow interface
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(out) :: &
          bgrid              ! biology nondimensional vertical grid points
@@ -930,9 +923,9 @@
          igrid              ! biology vertical interface points
 
       real (kind=dbl_kind), dimension (nilyr+1), intent(out) :: &
-         cgrid            , &  ! CICE vertical coordinate
-         icgrid           , &  ! interface grid for CICE (shortwave variable)
-         swgrid                ! grid for ice tracers used in dEdd scheme
+         cgrid         , &  ! CICE vertical coordinate
+         icgrid        , &  ! interface grid for CICE (shortwave variable)
+         swgrid             ! grid for ice tracers used in dEdd scheme
 
 !autodocument_end
 
@@ -1013,10 +1006,10 @@
                Rayleigh_real, trcrn_bgc, nt_bgc_S, ncat, sss)
 
       integer (kind=int_kind), intent(in) :: &
-       nblyr, & ! number of biolayers
+       nblyr  , & ! number of biolayers
        ntrcr_o, & ! number of non bio tracers
-       ncat , & ! number of categories
-       nt_bgc_S ! zsalinity index
+       ncat   , & ! number of categories
+       nt_bgc_S   ! zsalinity index
 
       logical (kind=log_kind), intent(inout) :: &
        Rayleigh_criteria
@@ -1028,7 +1021,7 @@
        sss
 
       real (kind=dbl_kind), dimension(:,:), intent(inout):: &
-       trcrn_bgc ! bgc subset of trcrn
+       trcrn_bgc  ! bgc subset of trcrn
 
 !autodocument_end
 
