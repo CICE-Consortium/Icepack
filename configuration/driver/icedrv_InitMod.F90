@@ -170,6 +170,7 @@
       subroutine init_restart
 
       use icedrv_calendar, only: time, calendar
+      use icedrv_constants, only: nu_restart
       use icepack_intfc, only: icepack_aggregate
       use icedrv_domain_size, only: ncat, max_ntrcr, nx
       use icedrv_init, only: ice_ic
@@ -223,6 +224,8 @@
          call init_bgc
          if (restart) call read_restart_bgc ! complete BGC initialization
       endif
+
+      close (nu_restart)
 
       !-----------------------------------------------------------------
       ! aggregate tracers

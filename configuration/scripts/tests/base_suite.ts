@@ -19,6 +19,7 @@ smoke          col     1x1        debug,run1year,fsd1
 smoke          col     1x1        debug,run1year,snw30percent,snwgrain
 smoke          col     1x1        debug,run1year,snwitdrdg
 smoke          col     1x1        debug,run1year,calcdragio
+smoke          col     1x1        debug,run1year,modal
 restart        col     1x1        debug
 restart        col     1x1        diag1
 restart        col     1x1        pondlvl
@@ -35,4 +36,5 @@ restart        col     1x1        alt04
 restart        col     1x1        dyn
 restart        col     1x1        fsd12
 restart        col     1x1        snwitdrdg,snwgrain
+restart        col     1x1        modal
 

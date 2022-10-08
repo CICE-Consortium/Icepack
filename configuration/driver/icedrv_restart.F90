@@ -295,6 +295,7 @@
       if (tr_aero)      call read_restart_aero()      ! ice aerosols
       if (tr_brine)     call read_restart_hbrine      ! brine height
       if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
+
       !-----------------------------------------------------------------
       ! Ensure ice is binned in correct categories
       ! (should not be necessary unless restarting from a run with
