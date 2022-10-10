@@ -111,9 +111,12 @@ ice thicknesses to unity (:math:`\int_r \int_h F(r,h) dr dh =1`); over all floe 
 For implementation in CICE,  the continuous function :math:`f(r,h)dr dh` is replaced
 with a product of two discrete variables: :math:`a_{in}` as defined above and :math:`F_{in,k}`. 
 :math:`F_{in,k}` is the fraction of ice belonging to thickness category :math:`n` with lateral 
-floe size belonging to floe size class :math:`k`, giving
+floe size belonging to floe size class :math:`k` (denoted ``afsdn`` in the code).
+We then have
 :math:`\sum_{n=0}^{N_C}\sum_{k=0}^{N_f} a_{in} F_{in,k} = 1` and :math:`\sum_{k=0}^{N_f}  F_{in,k} = 1`.
-:math:`F_{in,k}` is carried as an area-weighted tracer.
+:math:`F_{in,k}` is carried as an area-weighted tracer. The FSD (continuous function :math:`f(r)dr`
+or discrete function :math:`f_{k}`, denoted ``afsd`` in the code) is recovered via 
+:math:`\sum_{n=1}^{N_C} a_{in} F_{in,k} = f_{k}`.
 
 The FSD may be ignored when considering processes that only modify ice thickness
 (eg. vertical thermodynamics), and the ITD can be ignored when considering processes that only modify floe sizes (eg. wave fracture). For processes that affect both the ITD and the FSD, (eg. lateral melt), 
