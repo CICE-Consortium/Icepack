@@ -141,7 +141,7 @@ in thickness and lateral size, at a rate :math:`\mathbf{G} = (G_r,G_h)`. The thi
 term represents growth of new ice: new floes are created at a rate :math:`\dot{A}_p` 
 in the smallest thickness category and a given lateral size category. If wave forcing 
 is provided, the size of newly formed floes is determined via a tensile stress limitation 
-arising from the wave field (:cite:`Shen01`,:cite:`Roach19`); otherwise, all floes 
+arising from the wave field (:cite:`Shen01`, :cite:`Roach19`); otherwise, all floes 
 are presumed to grow as pancakes in the smallest floe size category resolved. 
 To allow for the joining of individual floes to one another, we represent
 the welding together of floes in freezing conditions via the fourth term, 
