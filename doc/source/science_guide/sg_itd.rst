@@ -106,9 +106,9 @@ In this theory, individual floes are identified with a size :math:`r` and area :
 distribution :math:`f(r,h) dr dh` is the fraction of grid surface area 
 covered by ice with thickness between :math:`h` and :math:`h + dh` and lateral floe
 size between :math:`r` and :math:`r + dr`. The FSTD integrates over all floe sizes and
-ice thicknesses to unity; over all floe sizes to the ITD; and over all thicknesses to the FSD.
+ice thicknesses to unity (:math:`\int_r \int_h F(r,h) dr dh =1`); over all floe sizes to the ITD (:math:`\int_r  F(r,h) dr =g(h)`); and over all thicknesses to the FSD (:math:`\int_h F(r,h)dh = f(r)`).
 
-For implementation in CICE,  the continuous function :math:`f(r,h)` is replaced
+For implementation in CICE,  the continuous function :math:`f(r,h)dr dh` is replaced
 with a product of two discrete variables: :math:`a_{in}` as defined above and :math:`F_{in,k}`. 
 :math:`F_{in,k}` is the fraction of ice belonging to thickness category :math:`n` with lateral 
 floe size belonging to floe size class :math:`k`, giving
@@ -181,6 +181,6 @@ is a simple relationship determined from point observations by :cite:`Perovich14
 applicability has not been tested. In Icepack, ``ice_init='default'`` is selected for the slab
 and the full ITD cells.
 
-
+The history output includes FSD tendency terms for each of the floe-size-modifying processes. Note that the sum of these does not equal the change in the FSD, as the FSD is also modified by changes in the ITD. 
 
 
