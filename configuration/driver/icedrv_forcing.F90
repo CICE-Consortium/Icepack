@@ -1126,6 +1126,8 @@
          read(nu_open_clos,*) xtime, open_data(i), clos_data(i)
       enddo
 
+      close (nu_open_clos)
+
      end subroutine ice_open_clos
 
 !=======================================================================

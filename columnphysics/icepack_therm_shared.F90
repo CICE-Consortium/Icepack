@@ -292,7 +292,7 @@
          nslyr       ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
-         Tair, &     ! air temperature (C)
+         Tair, &     ! air temperature (K)
          Tf          ! freezing temperature (C)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &

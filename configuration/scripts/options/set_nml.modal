@@ -1,0 +1,7 @@
+tr_lvl       = .true.
+tr_pond_topo = .false.
+tr_pond_lvl  = .true.
+tr_aero      = .true.
+modal_aero   = .true.
+rfracmin     = 0.15
+rfracmax     = 1.0
