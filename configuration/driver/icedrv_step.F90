@@ -544,6 +544,7 @@
 
       use icedrv_domain_size, only: ncat, nx
       use icedrv_init, only: tmask
+      use icedrv_flux, only: Tf
       use icedrv_state, only: aicen, trcrn, vicen, vsnon
       use icedrv_state, only: aice,  trcr,  vice,  vsno, aice0, trcr_depend
       use icedrv_state, only: trcr_base, nt_strata, n_trcr_strata
@@ -609,7 +610,8 @@
                          trcr_depend=trcr_depend    (1:ntrcr),     &
                          trcr_base=trcr_base        (1:ntrcr,:),   &
                          n_trcr_strata=n_trcr_strata(1:ntrcr),     &
-                         nt_strata=nt_strata        (1:ntrcr,:))
+                         nt_strata=nt_strata        (1:ntrcr,:),   &
+                         Tf=Tf(i))
          endif
 
          if (present(offset)) then
@@ -707,7 +709,7 @@
 
       use icedrv_arrays_column, only: hin_max, fzsal, first_ice
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
-      use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
+      use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt, Tf
       use icedrv_flux, only: dvirdgdt, opening, closing, fpond, fresh, fhocn
       use icedrv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt
       use icedrv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn, fiso_ocn
@@ -784,7 +786,7 @@
                          aice=aice(i),             fsalt=fsalt(i),           &
                          first_ice=first_ice(i,:), fzsal=fzsal(i),           &
                          flux_bio=flux_bio(i,1:nbtrcr),                      &
-                         closing=closing(i) )
+                         closing=closing(i),       Tf=Tf(i) )
 
          endif ! tmask
 
@@ -826,7 +828,7 @@
                          araftn=araftn(i,:),       vraftn=vraftn(i,:),       &
                          aice=aice(i),             fsalt=fsalt(i),           &
                          first_ice=first_ice(i,:), fzsal=fzsal(i),           &
-                         flux_bio=flux_bio(i,1:nbtrcr))
+                         flux_bio=flux_bio(i,1:nbtrcr), Tf = Tf(i))
 
          endif ! tmask
 
