@@ -33,9 +33,9 @@
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
       use icepack_tracers,    only: n_iso, tr_iso, tr_snow, nt_smice, nt_rsnw, nt_rhos
       use icepack_tracers,    only: icepack_compute_tracers
-      use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers
+      use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers, hi_min
       use icepack_parameters, only: kcatbound, kitd
-      use icepack_therm_shared, only: Tmin, hi_min
+      use icepack_therm_shared, only: Tmin
       use icepack_warnings,   only: warnstr, icepack_warnings_add
       use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
       use icepack_zbgc_shared,only: zap_small_bgc
@@ -1827,9 +1827,6 @@
       b2 = c3         ! thickness for which participation function is small (m)
       b3 = max(rncat*(rncat-1), c2*b2/b1)
 
-      hi_min = p01    ! minimum ice thickness allowed (m) for thermo
-                      ! note hi_min is reset to 0.1 for kitd=0, below
-
       !-----------------------------------------------------------------
       ! Choose category boundaries based on one of four options.
       !
@@ -1881,9 +1878,6 @@
             hin_max(0) = c0     ! minimum ice thickness, m
          else
             ! delta function itd category limits
-#ifndef CESMCOUPLED
-            hi_min = p1    ! minimum ice thickness allowed (m) for thermo
-#endif
             cc1 = max(1.1_dbl_kind/rncat,hi_min)
             cc2 = c25*cc1
             cc3 = 2.25_dbl_kind
@@ -1939,6 +1933,10 @@
          enddo
 
       endif ! kcatbound
+
+      if (kitd == 1) then
+         hin_max(ncat) = 999.9_dbl_kind ! arbitrary big number
+      endif
 
       end subroutine icepack_init_itd
 

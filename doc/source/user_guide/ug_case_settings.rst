@@ -354,6 +354,7 @@ forcing_nml
    "``formdrag``", "logical", "calculate form drag", "``.false.``"
    "``fyear_init``", "integer", "first year of atmospheric forcing data", "1998"
    "``highfreq``", "logical", "high-frequency atmo coupling", "``.false.``"
+   "``hi_min``", "real", "minimum ice thickness allowed for thermo in m", "0.01"
    "``ice_data_file``", "string", "file containing ice opening, closing data", "' '"
    "``l_mpond_fresh``", "``.false.``", "release pond water immediately to ocean", "``.false.``"
    "", "``true``", "retain (topo) pond water until ponds drain", ""

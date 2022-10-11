@@ -68,8 +68,8 @@
       log_print = .false.   ! if true, write out orbital parameters
 
 #ifndef CESMCOUPLED
-      call shr_orb_params( iyear_AD, eccen , obliq , mvelp    , &
-                           obliqr  , lambm0, mvelpp, log_print)
+      call icepack_orb_params( iyear_AD, eccen , obliq , mvelp    , &
+                               obliqr  , lambm0, mvelpp, log_print)
       if (icepack_warnings_aborted(subname)) return
 #endif
 
@@ -117,8 +117,8 @@
       log_print = .false.   ! if true, write out orbital parameters
 
 #ifndef CESMCOUPLED
-      call shr_orb_params( iyear_AD, eccen , obliq , mvelp    , &
-                           obliqr  , lambm0, mvelpp, log_print)
+      call icepack_orb_params( iyear_AD, eccen , obliq , mvelp    , &
+                               obliqr  , lambm0, mvelpp, log_print)
       if (icepack_warnings_aborted(subname)) return
 #endif
 
@@ -190,28 +190,27 @@
 
       !--- update coszen when nextsw_cday valid
       if (ydayp1 > -0.5_dbl_kind) then
+         call shr_orb_decl(ydayp1, eccen, mvelpp, lambm0, &
+                           obliqr, decln, eccf)
+         coszen = sin(tlat)*sin(decln) &
+                + cos(tlat)*cos(decln) &
+                *cos((sec/secday-p5)*c2*pi + tlon) !cos(hour angle)
+      endif
 #else
       ydayp1 = yday + sec/secday
-#endif
-
-      call shr_orb_decl(ydayp1, eccen, mvelpp, lambm0, &
-                        obliqr, decln, eccf)
+      call icepack_orb_decl(ydayp1, eccen, mvelpp, lambm0, &
+                            obliqr, decln, eccf)
       if (icepack_warnings_aborted(subname)) return
-
       coszen = sin(tlat)*sin(decln) &
              + cos(tlat)*cos(decln) &
              *cos((sec/secday-p5)*c2*pi + tlon) !cos(hour angle)
-
-#ifdef CESMCOUPLED
-      endif
 #endif
 
       end subroutine compute_coszen
 
 !===============================================================================
 
-#ifndef CESMCOUPLED
-SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
+SUBROUTINE icepack_orb_params( iyear_AD , eccen , obliq , mvelp    , &
                            obliqr   , lambm0, mvelpp, log_print)
 
 !-------------------------------------------------------------------------------
@@ -445,13 +444,13 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
    real   (dbl_kind) :: eccen3  ! eccentricity cubed
    real   (dbl_kind) :: degrad  ! degrees to rad conversion
    integer (int_kind), parameter :: s_loglev    = 0
-   character(len=*),parameter :: subname='(shr_orb_params)'
+   character(len=*),parameter :: subname='(icepack_orb_params)'
 
    !-------------------------- Formats -----------------------------------------
-   character(len=*),parameter :: F00 = "('(shr_orb_params) ',4a)"
-   character(len=*),parameter :: F01 = "('(shr_orb_params) ',a,i9)"
-   character(len=*),parameter :: F02 = "('(shr_orb_params) ',a,f6.3)"
-   character(len=*),parameter :: F03 = "('(shr_orb_params) ',a,es14.6)"
+   character(len=*),parameter :: F00 = "('(icepack_orb_params) ',4a)"
+   character(len=*),parameter :: F01 = "('(icepack_orb_params) ',a,i9)"
+   character(len=*),parameter :: F02 = "('(icepack_orb_params) ',a,f6.3)"
+   character(len=*),parameter :: F03 = "('(icepack_orb_params) ',a,es14.6)"
 
    !----------------------------------------------------------------------------
    ! radinp and algorithms below will need a degree to radian conversion factor
@@ -692,11 +691,11 @@ SUBROUTINE shr_orb_params( iyear_AD , eccen , obliq , mvelp    , &
      call icepack_warnings_add(warnstr)
    end if
 
-END SUBROUTINE shr_orb_params
+END SUBROUTINE icepack_orb_params
 
 !===============================================================================
 
-SUBROUTINE shr_orb_decl(calday ,eccen ,mvelpp ,lambm0 ,obliqr ,delta ,eccf)
+SUBROUTINE icepack_orb_decl(calday ,eccen ,mvelpp ,lambm0 ,obliqr ,delta ,eccf)
 
 !-------------------------------------------------------------------------------
 !
@@ -732,7 +731,7 @@ SUBROUTINE shr_orb_decl(calday ,eccen ,mvelpp ,lambm0 ,obliqr ,delta ,eccf)
    real   (dbl_kind) ::   invrho ! Inverse normalized sun/earth distance
    real   (dbl_kind) ::   sinl   ! Sine of lmm
 
-   character(len=*),parameter :: subname='(shr_orb_decl)'
+   character(len=*),parameter :: subname='(icepack_orb_decl)'
 
    ! Compute eccentricity factor and solar declination using
    ! day value where a round day (such as 213.0) refers to 0z at
@@ -776,8 +775,7 @@ SUBROUTINE shr_orb_decl(calday ,eccen ,mvelpp ,lambm0 ,obliqr ,delta ,eccf)
 
    return
 
-END SUBROUTINE shr_orb_decl
-#endif
+END SUBROUTINE icepack_orb_decl
 
 !=======================================================================
 

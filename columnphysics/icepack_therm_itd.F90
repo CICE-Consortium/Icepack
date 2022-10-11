@@ -30,7 +30,7 @@
 #else
       use icepack_parameters, only: kitd, ktherm
 #endif
-      use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
+      use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin, hi_min
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -55,7 +55,6 @@
       use icepack_itd, only: column_sum, column_conservation_check
       use icepack_isotope, only: isoice_alpha, isotope_frac_method
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
-      use icepack_therm_shared, only: hi_min
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc
 
@@ -113,7 +112,7 @@
          nslyr   , & ! number of snow layers
          ntrcr       ! number of tracers in use
 
-      real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
+      real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max      ! category boundaries (m)
 
       integer (kind=int_kind), dimension (:), intent(in) :: &
@@ -213,8 +212,6 @@
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
-
-      hin_max(ncat) = 999.9_dbl_kind ! arbitrary big number
 
       do n = 1, ncat
          donor(n) = 0
@@ -2009,7 +2006,7 @@
       logical (kind=log_kind), intent(in) :: &
          update_ocn_f     ! if true, update fresh water and salt fluxes
 
-      real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
+      real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max      ! category boundaries (m)
 
       real (kind=dbl_kind), intent(in) :: &

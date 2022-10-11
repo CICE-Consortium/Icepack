@@ -18,6 +18,7 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p01, puny
       use icepack_parameters, only: rhofresh, rhoi, rhos, Timelt, pndaspect, use_smliq_pnd
+      use icepack_parameters, only: hi_min
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -32,7 +33,7 @@
 
 !=======================================================================
 
-      subroutine compute_ponds_cesm(dt,    hi_min,       &
+      subroutine compute_ponds_cesm(dt,                  &
                                     rfrac, meltt,        &
                                     melts, frain,        &
                                     aicen, vicen,        &
@@ -40,8 +41,7 @@
                                     meltsliqn)
 
       real (kind=dbl_kind), intent(in) :: &
-         dt,       & ! time step (s)
-         hi_min      ! minimum ice thickness allowed for thermo (m)
+         dt           ! time step (s)
 
       real (kind=dbl_kind), intent(in) :: &
          meltsliqn, & ! liquid input from snow liquid tracer
