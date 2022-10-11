@@ -8,7 +8,7 @@
 
       use icepack_kinds
 
-      use icepack_parameters, only: c0, c1, c2, c4, p5, pi, puny
+      use icepack_parameters, only: c0, c1, c2, c4, p5, pi, puny, Tocnfrz
       use icepack_parameters, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
       use icepack_parameters, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
       use icepack_parameters, only: saltmax, min_salin, depressT
@@ -51,9 +51,6 @@
 
       logical (kind=log_kind), public :: &
          l_brine         ! if true, treat brine pocket effects
-
-      real (kind=dbl_kind), public :: &
-         hi_min          ! minimum ice thickness allowed (m)
 
 !=======================================================================
 
@@ -406,6 +403,10 @@
         elseif (trim(tfrz_option) == 'linear_salt') then
 
            Tf = -depressT * sss ! deg C
+
+        elseif (trim(tfrz_option) == 'constant') then
+
+           Tf = Tocnfrz
 
         else
 

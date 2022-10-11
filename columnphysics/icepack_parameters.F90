@@ -132,6 +132,7 @@
          dSin0_frazil = c3            ,&! bulk salinity reduction of newly formed frazil
          dts_b     = 50._dbl_kind     ,&! zsalinity timestep
          ustar_min = 0.005_dbl_kind   ,&! minimum friction velocity for ocean heat flux (m/s)
+         hi_min    = p01              ,&! minimum ice thickness allowed (m) for thermo
          ! mushy thermo
          a_rapid_mode      =  0.5e-3_dbl_kind,&! channel radius for rapid drainage mode (m)
          Rac_rapid_mode    =    10.0_dbl_kind,&! critical Rayleigh number
@@ -171,6 +172,7 @@
       character(len=char_len), public :: &
          tfrz_option  = 'mushy'   ! form of ocean freezing temperature
                                   ! 'minus1p8' = -1.8 C
+                                  ! 'constant' = Tocnfrz
                                   ! 'linear_salt' = -depressT * sss
                                   ! 'mushy' conforms with ktherm=2
 
@@ -457,7 +459,7 @@
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
-         update_ocn_f_in, ustar_min_in, a_rapid_mode_in, &
+         update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
          phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
@@ -575,6 +577,7 @@
 
       real (kind=dbl_kind), intent(in), optional :: &
          dts_b_in,   &      ! zsalinity timestep
+         hi_min_in,  &      ! minimum ice thickness allowed (m) for thermo
          ustar_min_in       ! minimum friction velocity for ice-ocean heat flux
 
       ! mushy thermo
@@ -589,6 +592,7 @@
         character(len=*), intent(in), optional :: &
              tfrz_option_in              ! form of ocean freezing temperature
                                          ! 'minus1p8' = -1.8 C
+                                         ! 'constant' = Tocnfrz
                                          ! 'linear_salt' = -depressT * sss
                                          ! 'mushy' conforms with ktherm=2
 
@@ -929,6 +933,7 @@
       if (present(update_ocn_f_in)      ) update_ocn_f     = update_ocn_f_in
       if (present(dts_b_in)             ) dts_b            = dts_b_in
       if (present(ustar_min_in)         ) ustar_min        = ustar_min_in
+      if (present(hi_min_in)            ) hi_min           = hi_min_in
       if (present(a_rapid_mode_in)      ) a_rapid_mode     = a_rapid_mode_in
       if (present(Rac_rapid_mode_in)    ) Rac_rapid_mode   = Rac_rapid_mode_in
       if (present(aspect_rapid_mode_in) ) aspect_rapid_mode= aspect_rapid_mode_in
@@ -1171,7 +1176,7 @@
          min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
          awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, &
          qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
-         Lfresh_out, cprho_out, Cp_out, ustar_min_out, a_rapid_mode_out, &
+         Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
          Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
          phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
@@ -1299,6 +1304,7 @@
 
       real (kind=dbl_kind), intent(out), optional :: &
          dts_b_out,   &      ! zsalinity timestep
+         hi_min_out,  &      ! minimum ice thickness allowed (m) for thermo
          ustar_min_out       ! minimum friction velocity for ice-ocean heat flux
 
       ! mushy thermo
@@ -1313,6 +1319,7 @@
       character(len=*), intent(out), optional :: &
          tfrz_option_out              ! form of ocean freezing temperature
                                       ! 'minus1p8' = -1.8 C
+                                      ! 'constant' = Tocnfrz
                                       ! 'linear_salt' = -depressT * sss
                                       ! 'mushy' conforms with ktherm=2
 
@@ -1685,6 +1692,7 @@
       if (present(update_ocn_f_out)      ) update_ocn_f_out = update_ocn_f
       if (present(dts_b_out)             ) dts_b_out        = dts_b
       if (present(ustar_min_out)         ) ustar_min_out    = ustar_min
+      if (present(hi_min_out)            ) hi_min_out       = hi_min
       if (present(a_rapid_mode_out)      ) a_rapid_mode_out = a_rapid_mode
       if (present(Rac_rapid_mode_out)    ) Rac_rapid_mode_out = Rac_rapid_mode
       if (present(aspect_rapid_mode_out) ) aspect_rapid_mode_out = aspect_rapid_mode
@@ -1895,6 +1903,7 @@
         write(iounit,*) "  update_ocn_f      = ", update_ocn_f
         write(iounit,*) "  dts_b             = ", dts_b
         write(iounit,*) "  ustar_min         = ", ustar_min
+        write(iounit,*) "  hi_min            = ", hi_min
         write(iounit,*) "  a_rapid_mode      = ", a_rapid_mode
         write(iounit,*) "  Rac_rapid_mode    = ", Rac_rapid_mode
         write(iounit,*) "  aspect_rapid_mode = ", aspect_rapid_mode
