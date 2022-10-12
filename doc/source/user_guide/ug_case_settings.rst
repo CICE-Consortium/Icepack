@@ -373,7 +373,7 @@ forcing_nml
    "", "``true``", "include frazil water/salt fluxes in ocn fluxes", ""
    "``ustar_min``", "real", "minimum value of ocean friction velocity in m/s", "0.005"
    "``wave_spec_type``", "``constant``", "wave data file is provided, constant wave spectrum, for testing", "``none``"
-   "", "``none``", "no wave data provided, no wave-ice interactions", ""
+   "", "``none``", "no wave data provided, no wave-ice interactions (not recommended when using the FSD)", ""
    "", "``profile``", "no wave data file is provided, use fixed dummy wave spectrum, for testing", ""
    "", "``random``", "wave data file is provided, wave spectrum generated using random number", ""
    "``ycycle``", "integer", "number of years in forcing data cycle", "1"
