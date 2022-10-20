@@ -650,6 +650,9 @@
 
       wave_spec = .false.
       if (tr_fsd .and. (trim(wave_spec_type) /= 'none')) wave_spec = .true.
+      if (tr_fsd .and. (trim(wave_spec_type) == 'none')) then
+         write (nu_diag,*) 'WARNING: tr_fsd=T but wave_spec=F - not recommended' 
+      end if
 
       !-----------------------------------------------------------------
       ! spew
