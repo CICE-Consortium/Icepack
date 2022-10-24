@@ -129,6 +129,7 @@
          phi_init  = 0.75_dbl_kind    ,&! initial liquid fraction of frazil
          min_salin = p1               ,&! threshold for brine pocket treatment
          salt_loss = 0.4_dbl_kind     ,&! fraction of salt retained in zsalinity
+         Tliquidus_max = c0           ,&! maximum liquidus temperature of mush (C)
          dSin0_frazil = c3            ,&! bulk salinity reduction of newly formed frazil
          dts_b     = 50._dbl_kind     ,&! zsalinity timestep
          ustar_min = 0.005_dbl_kind   ,&! minimum friction velocity for ocean heat flux (m/s)
@@ -455,6 +456,7 @@
 #endif
          zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
          saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
+         Tliquidus_max_in, &
          min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, &
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
@@ -549,6 +551,7 @@
          phi_init_in,   & ! initial liquid fraction of frazil
          min_salin_in,  & ! threshold for brine pocket treatment
          salt_loss_in,  & ! fraction of salt retained in zsalinity
+         Tliquidus_max_in, & ! maximum liquidus temperature of mush (C)
          dSin0_frazil_in  ! bulk salinity reduction of newly formed frazil
 
       integer (kind=int_kind), intent(in), optional :: &
@@ -910,6 +913,7 @@
       if (present(phi_init_in)          ) phi_init         = phi_init_in
       if (present(min_salin_in)         ) min_salin        = min_salin_in
       if (present(salt_loss_in)         ) salt_loss        = salt_loss_in
+      if (present(Tliquidus_max_in)     ) Tliquidus_max    = Tliquidus_max_in
       if (present(min_bgc_in)           ) min_bgc          = min_bgc_in
       if (present(dSin0_frazil_in)      ) dSin0_frazil     = dSin0_frazil_in
       if (present(hi_ssl_in)            ) hi_ssl           = hi_ssl_in
@@ -1173,6 +1177,7 @@
 #endif
          zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
          saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
+         Tliquidus_max_out, &
          min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
          awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, &
          qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
@@ -1276,6 +1281,7 @@
          phi_init_out,   & ! initial liquid fraction of frazil
          min_salin_out,  & ! threshold for brine pocket treatment
          salt_loss_out,  & ! fraction of salt retained in zsalinity
+         Tliquidus_max_out, & ! maximum liquidus temperature of mush (C)
          dSin0_frazil_out  ! bulk salinity reduction of newly formed frazil
 
       integer (kind=int_kind), intent(out), optional :: &
@@ -1669,6 +1675,7 @@
       if (present(phi_init_out)          ) phi_init_out     = phi_init
       if (present(min_salin_out)         ) min_salin_out    = min_salin
       if (present(salt_loss_out)         ) salt_loss_out    = salt_loss
+      if (present(Tliquidus_max_out)     ) Tliquidus_max_out= Tliquidus_max
       if (present(min_bgc_out)           ) min_bgc_out      = min_bgc
       if (present(dSin0_frazil_out)      ) dSin0_frazil_out = dSin0_frazil
       if (present(hi_ssl_out)            ) hi_ssl_out       = hi_ssl
@@ -1869,6 +1876,7 @@
         write(iounit,*) "  phi_init  = ",phi_init
         write(iounit,*) "  min_salin = ",min_salin
         write(iounit,*) "  salt_loss = ",salt_loss
+        write(iounit,*) "  Tliquidus_max = ",Tliquidus_max
         write(iounit,*) "  min_bgc   = ",min_bgc
         write(iounit,*) "  dSin0_frazil = ",dSin0_frazil
         write(iounit,*) "  hi_ssl = ",hi_ssl

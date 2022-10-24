@@ -88,7 +88,7 @@
       character (len=char_len), dimension(4) :: nx_names_default
 
       real (kind=dbl_kind) :: ustar_min, albicev, albicei, albsnowv, albsnowi, &
-         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, hi_min, &
+         ahmax, R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, ksno, hi_min, Tliquidus_max, &
          mu_rdg, hs0, dpscale, rfracmin, rfracmax, pndaspect, hs1, hp1, &
          a_rapid_mode, Rac_rapid_mode, aspect_rapid_mode, dSdt_slow_mode, &
          phi_c_slow_mode, phi_i_mushy, kalg, emissivity, floediam, hfrazilmin, &
@@ -150,7 +150,7 @@
         kitd,           ktherm,          ksno,     conduct,             &
         a_rapid_mode,   Rac_rapid_mode,  aspect_rapid_mode,             &
         dSdt_slow_mode, phi_c_slow_mode, phi_i_mushy,                   &
-        floediam,       hfrazilmin
+        floediam,       hfrazilmin,      Tliquidus_max
 
       namelist /dynamics_nml/ &
         kstrength,      krdg_partic,    krdg_redist,    mu_rdg,         &
@@ -227,7 +227,7 @@
            Rac_rapid_mode_out=Rac_rapid_mode, &
            aspect_rapid_mode_out=aspect_rapid_mode, &
            dSdt_slow_mode_out=dSdt_slow_mode, &
-           phi_c_slow_mode_out=phi_c_slow_mode, &
+           phi_c_slow_mode_out=phi_c_slow_mode, Tliquidus_max_out=Tliquidus_max, &
            phi_i_mushy_out=phi_i_mushy, conserv_check_out=conserv_check, &
            tfrz_option_out=tfrz_option, kalg_out=kalg, &
            fbot_xfer_type_out=fbot_xfer_type, puny_out=puny, &
@@ -759,6 +759,7 @@
          write(nu_diag,1005) ' dSdt_slow_mode            = ', dSdt_slow_mode
          write(nu_diag,1005) ' phi_c_slow_mode           = ', phi_c_slow_mode
          write(nu_diag,1005) ' phi_i_mushy               = ', phi_i_mushy
+         write(nu_diag,1005) ' Tliquidus_max             = ', Tliquidus_max
          endif
 
          write(nu_diag,1030) ' atmbndy                   = ', trim(atmbndy)
@@ -976,7 +977,7 @@
            Rac_rapid_mode_in=Rac_rapid_mode, &
            aspect_rapid_mode_in=aspect_rapid_mode, &
            dSdt_slow_mode_in=dSdt_slow_mode, &
-           phi_c_slow_mode_in=phi_c_slow_mode, &
+           phi_c_slow_mode_in=phi_c_slow_mode, Tliquidus_max_in=Tliquidus_max, &
            phi_i_mushy_in=phi_i_mushy, conserv_check_in=conserv_check, &
            tfrz_option_in=tfrz_option, kalg_in=kalg, &
            fbot_xfer_type_in=fbot_xfer_type, &
