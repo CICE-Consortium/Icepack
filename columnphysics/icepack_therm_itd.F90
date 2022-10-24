@@ -24,6 +24,7 @@
       use icepack_parameters, only: p001, p1, p333, p5, p666, puny, bignum
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
+      use icepack_parameters, only: Tliquidus_max
       use icepack_parameters, only: rhosi, conserv_check, rhosmin
 #ifdef UNDEPRECATE_0LAYER
       use icepack_parameters, only: kitd, ktherm, heat_capacity
@@ -1038,7 +1039,7 @@
          else
             Si0 = sss**2 / (c4*dSin0_frazil)
          endif
-         Ti = min(liquidus_temperature_mush(Si0/phi_init), -p1)
+         Ti = min(liquidus_temperature_mush(Si0/phi_init), Tliquidus_max)
          qi0 = enthalpy_mush(Ti, Si0)
 
          do n = 1, ncat
@@ -1569,7 +1570,7 @@
          do k = 1, nilyr
             Sprofile(k) = Si0new
          enddo
-         Ti = min(liquidus_temperature_mush(Si0new/phi_init), -p1)
+         Ti = min(liquidus_temperature_mush(Si0new/phi_init), Tliquidus_max)
          qi0new = enthalpy_mush(Ti, Si0new)
       else
          do k = 1, nilyr
