@@ -14,7 +14,15 @@ restart        col     1x1        diag1
 restart        col     1x1        pondlvl
 restart        col     1x1        pondtopo
 restart        col     1x1        bgcispol
+restart        col     1x1        zsal
 restart        col     1x1        thermo1
 restart        col     1x1        swccsm3
+restart        col     1x1        isotope
 restart        col     1x1        alt01
+restart        col     1x1        alt02
+restart        col     1x1        alt03
+restart        col     1x1        alt04
 restart        col     1x1        dyn
+restart        col     1x1        fsd12
+restart        col     1x1        snwitdrdg,snwgrain
+restart        col     1x1        modal

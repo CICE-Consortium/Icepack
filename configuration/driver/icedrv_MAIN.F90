@@ -27,12 +27,14 @@
 
       use icedrv_InitMod
       use icedrv_RunMod
-      use icedrv_constants, only: ice_stdout, nu_diag
+      use icedrv_constants, only: ice_stdout, nu_diag, nu_diag_out
+      use icedrv_domain_size, only: nx
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
 
+      integer n
       character(len=*), parameter :: subname='(icedrv)'
 
       !-----------------------------------------------------------------
@@ -52,6 +54,12 @@
           file=__FILE__,line= __LINE__)
 
       write(ice_stdout, *) "ICEPACK COMPLETED SUCCESSFULLY "
+
+      close (ice_stdout)
+      close (nu_diag)
+      do n = 1, nx
+         close (nu_diag_out+n-1)
+      enddo
 
       end program icedrv
 

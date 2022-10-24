@@ -3921,7 +3921,7 @@
          if (.not.present(days_per_year) .or. &
              .not.present(nextsw_cday) .or. &
              .not.present(calendar_type)) then
-            call icepack_warnings_add(subname//' ERROR: CESMCOUPLE CPP on, need more calendar data')
+            call icepack_warnings_add(subname//' ERROR: CESMCOUPLED CPP on, need more calendar data')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif

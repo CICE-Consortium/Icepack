@@ -170,11 +170,13 @@
       subroutine init_restart
 
       use icedrv_calendar, only: time, calendar
+      use icedrv_constants, only: nu_restart
       use icepack_intfc, only: icepack_aggregate
       use icedrv_domain_size, only: ncat, max_ntrcr, nx
       use icedrv_init, only: ice_ic
       use icedrv_init, only: tmask
       use icedrv_init_column, only: init_hbrine, init_bgc
+      use icedrv_flux, only: Tf
       use icedrv_restart, only: restartfile
       use icedrv_restart_shared, only: restart
       use icedrv_restart_bgc, only: read_restart_bgc
@@ -224,6 +226,8 @@
          if (restart) call read_restart_bgc ! complete BGC initialization
       endif
 
+      close (nu_restart)
+
       !-----------------------------------------------------------------
       ! aggregate tracers
       !-----------------------------------------------------------------
@@ -243,7 +247,8 @@
                                 trcr_depend=trcr_depend, &
                                 trcr_base=trcr_base,     &
                                 n_trcr_strata=n_trcr_strata, &
-                                nt_strata=nt_strata)
+                                nt_strata=nt_strata, &
+                                Tf=Tf(i))
       enddo
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

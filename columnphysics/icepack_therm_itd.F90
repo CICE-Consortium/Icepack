@@ -31,7 +31,7 @@
 #else
       use icepack_parameters, only: kitd, ktherm
 #endif
-      use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
+      use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin, hi_min
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -56,7 +56,6 @@
       use icepack_itd, only: column_sum, column_conservation_check
       use icepack_isotope, only: isoice_alpha, isotope_frac_method
       use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
-      use icepack_therm_shared, only: hi_min
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc
 
@@ -102,11 +101,11 @@
                              ntrcr,       trcr_depend, &
                              trcr_base,   n_trcr_strata,&
                              nt_strata,                &
-                             aicen_init,  vicen_init,  &
-                             aicen,       trcrn,       &
-                             vicen,       vsnon,       &
-                             aice,        aice0,       &
-                             fpond                     )
+                             aicen_init,  vicen_init,  & 
+                             aicen,       trcrn,       & 
+                             vicen,       vsnon,       & 
+                             aice,        aice0,       & 
+                             fpond,       Tf           )
 
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories
@@ -114,7 +113,7 @@
          nslyr   , & ! number of snow layers
          ntrcr       ! number of tracers in use
 
-      real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
+      real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max      ! category boundaries (m)
 
       integer (kind=int_kind), dimension (:), intent(in) :: &
@@ -127,6 +126,9 @@
 
       integer (kind=int_kind), dimension (:,:), intent(in) :: &
          nt_strata      ! indices of underlying tracer layers
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf             ! freezing temperature
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen_init, & ! initial ice concentration (before vertical thermo)
@@ -211,8 +213,6 @@
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
-
-      hin_max(ncat) = 999.9_dbl_kind ! arbitrary big number
 
       do n = 1, ncat
          donor(n) = 0
@@ -596,7 +596,7 @@
                          aicen,    trcrn,       &
                          vicen,    vsnon,       &
                          hicen,    donor,       &
-                         daice,    dvice        )
+                         daice,    dvice, Tf    )
          if (icepack_warnings_aborted(subname)) return
 
          ! maintain qsno negative definiteness
@@ -2007,7 +2007,7 @@
       logical (kind=log_kind), intent(in) :: &
          update_ocn_f     ! if true, update fresh water and salt fluxes
 
-      real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
+      real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max      ! category boundaries (m)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -2178,7 +2178,7 @@
                              vsnon,                 &
                              aice      ,         &
                              aice0     ,         &
-                             fpond       )
+                             fpond, Tf       )
             if (icepack_warnings_aborted(subname)) return
 
          endif ! aice > puny
@@ -2288,7 +2288,7 @@
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
                         faero_ocn,            l_fiso_ocn,       &
-                        fzsal,                flux_bio)
+                        fzsal,                flux_bio, Tf)   
       if (icepack_warnings_aborted(subname)) return
 
       if (present(fiso_ocn)) then

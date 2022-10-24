@@ -125,9 +125,9 @@
       write (nu_diag,*) ' Initial forcing data year = ',fyear_init
       write (nu_diag,*) ' Final   forcing data year = ',fyear_final
 
-    !-------------------------------------------------------------------
-    ! Initialize forcing data to default values
-    !-------------------------------------------------------------------
+     !-------------------------------------------------------------------
+     ! Initialize forcing data to default values
+     !-------------------------------------------------------------------
 
       ! many default forcing values are set in init_flux_atm
       i = 1 ! use first grid box value
@@ -1069,16 +1069,17 @@
          qdp_data (i) = qdp (i)
       end do
 
-    end subroutine ocn_ISPOL
+     end subroutine ocn_ISPOL
 
 !=======================================================================
 
       subroutine finish_ocn_forcing(sst_temp)
 
- ! Compute ocean freezing temperature Tf based on tfrz_option
- ! 'minus1p8'         Tf = -1.8 C (default)
- ! 'linear_salt'      Tf = -depressT * sss
- ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
+! Compute ocean freezing temperature Tf based on tfrz_option
+! 'minus1p8'         Tf = -1.8 C 
+! 'constant'         Tf = Tocnfrz
+! 'linear_salt'      Tf = -depressT * sss
+! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
 
       real (kind=dbl_kind), dimension(nx), intent(in)  :: &
           sst_temp
@@ -1104,7 +1105,7 @@
 
 !=======================================================================
 
-    subroutine ice_open_clos
+     subroutine ice_open_clos
 
 
       integer (kind=int_kind) :: i
@@ -1125,7 +1126,9 @@
          read(nu_open_clos,*) xtime, open_data(i), clos_data(i)
       enddo
 
-    end subroutine ice_open_clos
+      close (nu_open_clos)
+
+     end subroutine ice_open_clos
 
 !=======================================================================
 
