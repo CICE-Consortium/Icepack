@@ -396,15 +396,15 @@
 
         character(len=*),parameter :: subname='(icepack_sea_freezing_temperature)'
 
-        if (trim(tfrz_option) == 'mushy') then
+        if (trim(tfrz_option(1:5)) == 'mushy') then
 
            Tf = icepack_liquidus_temperature(sss) ! deg C
 
-        elseif (trim(tfrz_option) == 'linear_salt') then
+        elseif (trim(tfrz_option(1:11)) == 'linear_salt') then
 
            Tf = -depressT * sss ! deg C
 
-        elseif (trim(tfrz_option) == 'constant') then
+        elseif (trim(tfrz_option(1:8)) == 'constant') then
 
            Tf = Tocnfrz
 
