@@ -69,6 +69,9 @@
                                       Tsf,      Tbot,     &
                                       fsensn,   flatn,    &
                                       flwoutn,  fsurfn,   &
+#ifdef GEOSCOUPLED
+                                      dfsurfdt_in,        &
+#endif
                                       fcondtopn,fcondbot, &
                                       einit               )
 
@@ -113,6 +116,11 @@
          fsensn      , & ! surface downward sensible heat (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn         ! upward LW at surface (W m-2)
+
+#ifdef GEOSCOUPLED
+      real (kind=dbl_kind), intent(in):: &
+         dfsurfdt_in    
+#endif
 
       real (kind=dbl_kind), intent(out):: &
          fcondbot        ! downward cond flux at bottom surface (W m-2)
@@ -226,6 +234,10 @@
       dflat_dT   = c0
       dflwout_dT = c0  
       einex      = c0
+#ifdef GEOSCOUPLED
+      ! derivative information is passed by GEOS 
+      dfsurf_dT = dfsurfdt_in
+#endif
       dt_rhoi_hlyr = dt / (rhoi*hilyr)  ! hilyr > 0
       if (hslyr > hs_min/real(nslyr,kind=dbl_kind)) &
            l_snow = .true.
@@ -340,7 +352,10 @@
       !-----------------------------------------------------------------
 
             converged = .true.
+#ifndef GEOSCOUPLED
+            ! derivative information is passed by GEOS 
             dfsurf_dT = c0
+#endif
             avg_Tsi   = c0
             enew      = c0
             einex     = c0
@@ -366,6 +381,7 @@
 
             if (calc_Tsfc) then
 
+#ifndef GEOSCOUPLED 
       !-----------------------------------------------------------------
       ! Update radiative and turbulent fluxes and their derivatives
       ! with respect to Tsf.
@@ -386,6 +402,8 @@
                                             dfsurf_dT, dflwout_dT, &
                                             dfsens_dT, dflat_dT  )
                if (icepack_warnings_aborted(subname)) return
+
+#endif
 
       !-----------------------------------------------------------------
       ! Compute conductive flux at top surface, fcondtopn.

@@ -93,6 +93,9 @@
                                   fswsfc,      fswint,    &
                                   Sswabs,      Iswabs,    &
                                   fsurfn,      fcondtopn, &
+#ifdef GEOSCOUPLED
+                                  dfsurfdt_in,            &
+#endif
                                   fcondbotn,              &
                                   fsensn,      flatn,     &
                                   flwoutn,     evapn,     &
@@ -183,6 +186,11 @@
          fsurfn   , & ! net flux to top surface, excluding fcondtopn
          fcondtopn, & ! downward cond flux at top surface (W m-2)
          fcondbotn    ! downward cond flux at bottom surface (W m-2)
+
+#ifdef GEOSCOUPLED
+      real (kind=dbl_kind), intent(inout):: &
+         dfsurfdt_in  
+#endif
 
       ! coupler fluxes to ocean
       real (kind=dbl_kind), intent(out):: &
@@ -346,6 +354,9 @@
                                      Tsf,       Tbot,      &
                                      fsensn,    flatn,     &
                                      flwoutn,   fsurfn,    &
+#ifdef GEOSCOUPLED
+                                     dfsurfdt_in,          &
+#endif
                                      fcondtopn, fcondbotn,  &
                                      einit                 )
             if (icepack_warnings_aborted(subname)) return
@@ -2163,6 +2174,9 @@
                                     fsnow       , frain       , &
                                     fpond       , fsloss      , &
                                     fsurf       , fsurfn      , &
+#ifdef GEOSCOUPLED
+                                    dfsurfdt_in ,               &
+#endif
                                     fcondtop    , fcondtopn   , &
                                     fcondbot    , fcondbotn   , &
                                     fswsfcn     , fswintn     , &
@@ -2786,6 +2800,9 @@
                                  fswsfc=fswsfcn  (n), fswint=fswintn  (n),    &
                                  Sswabs=Sswabsn(:,n), Iswabs=Iswabsn(:,n),    &
                                  fsurfn=fsurfn   (n), fcondtopn=fcondtopn(n), &
+#ifdef GEOSCOUPLED 
+                                 dfsurfdt_in = dfsurfdt(n),                   &
+#endif
                                  fcondbotn=fcondbotn(n),                      &
                                  fsensn=fsensn   (n), flatn=flatn    (n),     &
                                  flwoutn=flwoutn,     evapn=evapn,            &
