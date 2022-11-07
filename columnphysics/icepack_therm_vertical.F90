@@ -95,6 +95,8 @@
                                   fsurfn,      fcondtopn, &
 #ifdef GEOSCOUPLED
                                   dfsurfdt_in,            &
+                                  flatn_f,                &
+                                  dflatdt_in,             &
 #endif
                                   fcondbotn,              &
                                   fsensn,      flatn,     &
@@ -188,8 +190,10 @@
          fcondbotn    ! downward cond flux at bottom surface (W m-2)
 
 #ifdef GEOSCOUPLED
-      real (kind=dbl_kind), intent(inout):: &
-         dfsurfdt_in  
+      real (kind=dbl_kind), intent(in):: &
+         dfsurfdt_in, &
+         flatn_f,     & 
+         dflatdt_in 
 #endif
 
       ! coupler fluxes to ocean
@@ -356,6 +360,8 @@
                                      flwoutn,   fsurfn,    &
 #ifdef GEOSCOUPLED
                                      dfsurfdt_in,          &
+                                     flatn_f,              &
+                                     dflatdt_in,           &
 #endif
                                      fcondtopn, fcondbotn,  &
                                      einit                 )
@@ -2175,7 +2181,7 @@
                                     fpond       , fsloss      , &
                                     fsurf       , fsurfn      , &
 #ifdef GEOSCOUPLED
-                                    dfsurfdt_in ,               &
+                                    dfsurfdt    , dflatdt     , &
 #endif
                                     fcondtop    , fcondtopn   , &
                                     fcondbot    , fcondbotn   , &
@@ -2360,6 +2366,10 @@
          fsurfn      , & ! net flux to top surface, excluding fcondtop
          fcondtopn   , & ! downward cond flux at top surface (W m-2)
          fcondbotn   , & ! downward cond flux at bottom surface (W m-2)
+#ifdef GEOSCOUPLED
+         dfsurfdt    , & ! 
+         dflatdt     , & ! 
+#endif
          flatn       , & ! latent heat flux (W m-2)
          fsensn      , & ! sensible heat flux (W m-2)
          fsurfn_f    , & ! net flux to top surface, excluding fcondtop
@@ -2802,6 +2812,8 @@
                                  fsurfn=fsurfn   (n), fcondtopn=fcondtopn(n), &
 #ifdef GEOSCOUPLED 
                                  dfsurfdt_in = dfsurfdt(n),                   &
+                                 flatn_f     = flatn_f(n),                    &
+                                 dflatdt_in  = dflatdt(n),                    &
 #endif
                                  fcondbotn=fcondbotn(n),                      &
                                  fsensn=fsensn   (n), flatn=flatn    (n),     &

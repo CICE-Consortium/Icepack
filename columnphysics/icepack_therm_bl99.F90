@@ -71,6 +71,8 @@
                                       flwoutn,  fsurfn,   &
 #ifdef GEOSCOUPLED
                                       dfsurfdt_in,        &
+                                      flatn_f,            &
+                                      dflatdt_in,         &
 #endif
                                       fcondtopn,fcondbot, &
                                       einit               )
@@ -119,7 +121,9 @@
 
 #ifdef GEOSCOUPLED
       real (kind=dbl_kind), intent(in):: &
-         dfsurfdt_in    
+         dfsurfdt_in ,  &
+         flatn_f     ,  &
+         dflatdt_in    
 #endif
 
       real (kind=dbl_kind), intent(out):: &
@@ -237,6 +241,8 @@
 #ifdef GEOSCOUPLED
       ! derivative information is passed by GEOS 
       dfsurf_dT = dfsurfdt_in
+      dflat_dT  = dflatdt_in  
+      flatn     = flatn_f  
 #endif
       dt_rhoi_hlyr = dt / (rhoi*hilyr)  ! hilyr > 0
       if (hslyr > hs_min/real(nslyr,kind=dbl_kind)) &
@@ -402,7 +408,6 @@
                                             dfsurf_dT, dflwout_dT, &
                                             dfsens_dT, dflat_dT  )
                if (icepack_warnings_aborted(subname)) return
-
 #endif
 
       !-----------------------------------------------------------------
@@ -811,10 +816,11 @@
       endif
 
       if (calc_Tsfc) then
-
+#ifndef GEOSCOUPLED
          ! update fluxes that depend on Tsf
          flwoutn = flwoutn + dTsf_prev * dflwout_dT
          fsensn  = fsensn  + dTsf_prev * dfsens_dT
+#endif
          flatn   = flatn   + dTsf_prev * dflat_dT
 
       endif                        ! calc_Tsfc
