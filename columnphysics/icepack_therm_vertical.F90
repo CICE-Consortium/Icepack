@@ -1281,7 +1281,11 @@
       evapin = c0          ! initialize
 
       if (hsn > puny) then    ! add snow with enthalpy zqsn(1)
+#ifdef GEOSCOUPLED
+         dhs = econ / (-rhos*Lfresh - rhos*Lvap) ! econ < 0, dhs > 0
+#else
          dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
+#endif
 
          mass  = massice(1) + massliq(1)
          massi = c0
@@ -1293,7 +1297,11 @@
          evapn = evapn + dhs*rhos
          evapsn = evapsn + dhs*rhos
       else                        ! add ice with enthalpy zqin(1)
+#ifdef GEOSCOUPLED
+         dhi = econ / (-rhoi*Lfresh - rhoi*Lvap) ! econ < 0, dhi > 0
+#else
          dhi = econ / (qm(1) - rhoi*Lvap) ! econ < 0, dhi > 0
+#endif
          dzi(1) = dzi(1) + dhi
          evapn = evapn + dhi*rhoi
          evapin = evapin + dhi*rhoi
@@ -1393,8 +1401,11 @@
          !--------------------------------------------------------------
          ! Sublimation of snow (evapn < 0)
          !--------------------------------------------------------------
-
+#ifdef GEOSCOUPLED
+         qsub = -rhos*Lfresh - rhos*Lvap ! qsub < 0
+#else
          qsub = zqsn(k) - rhos*Lvap ! qsub < 0
+#endif
          dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
 
          mass  = massice(1) + massliq(1)
@@ -1438,7 +1449,11 @@
          ! Sublimation of ice (evapn < 0)
          !--------------------------------------------------------------
 
+#ifdef GEOSCOUPLED
+         qsub = -rhoi*Lfresh - rhoi*Lvap       ! qsub < 0
+#else
          qsub = qm(k) - rhoi*Lvap              ! qsub < 0
+#endif
          dhi  = max (-dzi(k), esub/qsub) ! esub < 0, dhi < 0
          dzi(k) = dzi(k) + dhi
          esub = esub - dhi*qsub
