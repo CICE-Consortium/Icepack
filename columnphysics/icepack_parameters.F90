@@ -191,6 +191,7 @@
          kappav     = 1.4_dbl_kind  ,&! vis extnctn coef in ice, wvlngth<700nm (1/m)
          hi_ssl     = 0.050_dbl_kind,&! ice surface scattering layer thickness (m)
          hs_ssl     = 0.040_dbl_kind,&! snow surface scattering layer thickness (m)
+         hs_ssl_min = 5.e-4_dbl_kind,&! minimum snow surface scattering layer thickness for aerosol (m)
          ! baseline albedos for ccsm3 shortwave, set in namelist
          albicev    = 0.78_dbl_kind ,&! visible ice albedo for h > ahmax
          albicei    = 0.36_dbl_kind ,&! near-ir ice albedo for h > ahmax
