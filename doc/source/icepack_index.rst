@@ -218,7 +218,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "hpmin", "minimum melt pond depth (shortwave)", "0.005 m"
    "hpondn", "melt pond depth", "m"
    "hs_min", "minimum thickness for which :math:`T_s` is computed", "1.\ :math:`\times`\ 10\ :math:`^{-4}` m"
-   "hs0", ":math:`\bullet` snow depth at which transition to ice occurs (dEdd)", "0.03 m"
+   "hs0", ":math:`\bullet` snow depth at which transition to ice occurs (dEdd)", ""
    "hs1", ":math:`\bullet` snow depth of transition to pond ice", "0.03 m"
    "hs_ssl", "snow surface scattering layer thickness", "0.04 m"
    "Hstar", "determines mean thickness of ridged ice", "25. m"
@@ -527,11 +527,14 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
 Deprecated options and parameters
 ==========================================
 
-The following parameters and options have been deprecated:
-   "heat_capacity", ":math:`\bullet` if true, use salinity-dependent thermodynamics", "T"
+.. csv-table:: *Deprecated parameters and options*
+   :header: " ", " ", " "
+   :widths: 15, 30, 15, 1
+
+   "heat_capacity", "if true, use salinity-dependent thermodynamics", "T"
    "kseaice", "thermal conductivity of ice for zero-layer thermodynamics", "2.0 W/m/deg"
-   "ktherm", ":math:`\bullet` thermodynamic formulation (0 = zero-layer, 1 = :cite:`Bitz99`, 2 = mushy)", ""
-   "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""
+   "ktherm", "thermodynamic formulation (0 = zero-layer, 1 = :cite:`Bitz99`, 2 = mushy)", ""
+   "tr_pond_cesm", "if true, use CESM melt pond scheme", ""
 
 .. 
    new deprecation comments

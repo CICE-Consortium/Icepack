@@ -305,7 +305,7 @@
 !-----------------------------------------------------------------------
 
       real (kind=dbl_kind), public :: &
-         hs0       = 0.03_dbl_kind    ! snow depth for transition to bare sea ice (m)
+         hs0       = 0.00_dbl_kind    ! snow depth for transition to bare sea ice (m)
 
       ! level-ice ponds
       character (len=char_len), public :: &

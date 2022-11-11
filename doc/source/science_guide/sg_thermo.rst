@@ -55,6 +55,39 @@ to "move" the excess internal shortwave in this case up to the top surface to be
 The namelist parameters for this option are ``sw_redist``, ``sw_frac``, and ``sw_dtemp``.
 By default, ``sw_redist`` is set to ``.false.``
 
+Snow fraction
+-------------
+
+In several places in the code, the snow fraction over ice (either sea ice or pond lids) varies
+as a function of snow depth.  That is, thin layers of snow are assumed to be patchy, which
+allows the shortwave flux to increase gradually as the layer thins, preventing sudden changes
+in the shortwave reaching the sea ice (which can cause the thermodynamics solver to not converge).
+For example, the parameter ``snowpatch`` is used for the CCSM3 radiation scheme, with a default
+value of 0.02:
+
+.. math::
+   f_{snow} = \frac{h_s}{h_s + h_{snowpatch}},
+
+The parameters ``hs0`` and ``hs1`` are used similarly for delta-Eddington radiation calculations with
+meltponds, with ``hs0`` over sea ice and ``hs1`` over pond ice.
+
+In the tests shown in :cite:`Hunke13`, :math:`h_{s0}=0` for all cases except with the cesm
+pond scheme; that pond scheme has now been deprecated.  :math:`h_{s0}` can be used with the topo pond
+scheme, although its impacts have not been documented.  We enforce :math:`hs0=0` for level-ice ponds
+because the infiltration of snow by pond water accomplishes the gradual radiative forcing
+transition for which the patchy-snow parameters were originally intended. When level-ice ponds
+are not used, then a typical value for hs0 is 0.03.
+
+With level-ice ponds, the pond water is allowed to infiltrate snow over the level ice area,
+invisible to the radiation scheme, until the water becomes deep enough to show through the
+snow layer. The pond fraction is computed during this process and then used to
+set the snow fraction such that :math:`f_{snow}+f_{pond}=1`. The ponds are only on the level ice
+area, and so there is still snow on the ridges even if the entire level ice area becomes filled
+with ponds.
+
+See :cite:`Hunke13` for a discussion of the impacts of varying hs1, whose default value is 0.03.
+
+
 .. _ponds:
 
 Melt ponds
