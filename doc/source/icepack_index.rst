@@ -10,7 +10,7 @@ code. Values appearing in this list are fixed or recommended; most
 namelist parameters are indicated ( :math:`\bullet`) with their default
 values. For other namelist options, see Section :ref:`tabnamelist`. All
 quantities in the code are expressed in MKS units (temperatures may take
-either Celsius or Kelvin units).  
+either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
 
 .. csv-table:: *Alphabetical Index of Icepack Variables and Parameters*
    :header: " ", " ", " "
@@ -203,7 +203,6 @@ either Celsius or Kelvin units).
    "H2_16O_ocn", "concentration of H2_16O isotope in ocean", "kg/kg"
    "H2_18O_ocn", "concentration of H2_18O isotope in ocean", "kg/kg"
    "HDO_ocn", "concentration of HDO isotope in ocean", "kg/kg"
-   "heat_capacity", "DEPRECATED", ""
    "hfrazilmin", "minimum thickness of new frazil ice", "0.05 m"
    "hi_min", "minimum ice thickness for thinnest ice category", "0.01 m"
    "hi_ssl", "ice surface scattering layer thickness", "0.05 m"
@@ -251,7 +250,6 @@ either Celsius or Kelvin units).
    "krdg_partic", ":math:`\bullet` ridging participation function", "1"
    "krdg_redist", ":math:`\bullet` ridging redistribution function", "1"
    "krdgn", "mean ridge thickness per thickness of ridging ice", ""
-   "kseaice", "DEPRECATED", ""
    "ksno", "thermal conductivity of snow", "0.30 W/m/deg"
    "kstrength", ":math:`\bullet` ice stength formulation (1= :cite:`Rothrock75`, 0 = :cite:`Hibler79`)", "1"
    "ktherm", ":math:`\bullet` thermodynamic formulation (-1 none, 1 = :cite:`Bitz99`, 2 = mushy)", ""
@@ -475,7 +473,6 @@ either Celsius or Kelvin units).
    "tr_FY", ":math:`\bullet` if true, use first-year area tracer", ""
    "tr_iage", ":math:`\bullet` if true, use ice age tracer", ""
    "tr_lvl", ":math:`\bullet` if true, use level ice area and volume tracers", ""
-   "tr_pond_cesm", "DEPRECATED", ""
    "tr_pond_lvl", ":math:`\bullet` if true, use level-ice melt pond scheme", ""
    "tr_pond_topo", ":math:`\bullet` if true, use topo melt pond scheme", ""
    "trcr", "ice tracers", ""
@@ -527,16 +524,16 @@ either Celsius or Kelvin units).
    "zvir", "gas constant (water vapor)/gas constant (air) - 1", "0.606"
 
 
-.. 
-   deprecation comments
-   ktherm=0 (zero-layer thermodynamics) is being deprecated
-   heat_capacity is being deprecated as part of ktherm=0 (zero-layer thermo) deprecation
+Deprecated options and parameters
+==========================================
+
+The following parameters and options have been deprecated:
    "heat_capacity", ":math:`\bullet` if true, use salinity-dependent thermodynamics", "T"
    "kseaice", "thermal conductivity of ice for zero-layer thermodynamics", "2.0 W/m/deg"
    "ktherm", ":math:`\bullet` thermodynamic formulation (0 = zero-layer, 1 = :cite:`Bitz99`, 2 = mushy)", ""
-
+   "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""
 
 .. 
-   comment tr_pond_cesm is being deprecated
-   "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""
+   new deprecation comments
+
 

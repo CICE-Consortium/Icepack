@@ -183,14 +183,10 @@ tracer_nml
    "``tr_iage``", "logical", "ice age", "``.false.``"
    "``tr_iso``", "logical", "isotopes", "``.false.``"
    "``tr_lvl``", "logical", "level ice area and volume", "``.false.``"
-   "``tr_pond_cesm``", "logical", "DEPRECATED", "``.false.``"
    "``tr_pond_lvl``", "logical", "level-ice melt ponds", "``.false.``"
    "``tr_pond_topo``", "logical", "topo melt ponds", "``.false.``"
    "``tr_snow``", "logical", "advanced snow physics", "``.false.``"
    "", "", "", ""
-
-.. comment tr_pond_cesm is being deprecated
-   "``tr_pond_cesm``", "logical", "CESM melt ponds", "``.false.``"
 
 thermo_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -218,9 +214,6 @@ thermo_nml
    "``Rac_rapid_mode``", "real", "critical Rayleigh number", "10.0"
    "", "", "", ""
 
-.. 
-   ktherm=0 (zero-layer thermodynamics) is being deprecated
-   "", "``0``", "zero-layer thermodynamic model", ""
 
 dynamics_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
