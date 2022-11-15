@@ -25,11 +25,7 @@
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
       use icepack_parameters, only: rhosi, conserv_check, rhosmin
-#ifdef UNDEPRECATE_0LAYER
-      use icepack_parameters, only: kitd, ktherm, heat_capacity
-#else
       use icepack_parameters, only: kitd, ktherm
-#endif
       use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
 
       use icepack_tracers, only: ntrcr, nbtrcr
@@ -37,11 +33,7 @@
       use icepack_tracers, only: nt_apnd, nt_hpnd, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_fsd, nt_rhos
       use icepack_tracers, only: nt_alvl, nt_vlvl
-#ifdef UNDEPRECATE_CESMPONDS
-      use icepack_tracers, only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo, tr_snow
-#else
       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_snow
-#endif
       use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_iso, tr_brine, tr_fsd
       use icepack_tracers, only: n_aero, n_iso
       use icepack_tracers, only: bio_index
@@ -1320,11 +1312,7 @@
          ntrcr , & ! number of tracers
          nltrcr, & ! number of zbgc tracers
          n_aero, & ! number of aerosol tracers
-#ifdef UNDEPRECATE_0LAYER
-         ktherm    ! type of thermodynamics (0 0-layer, 1 BL99, 2 mushy)
-#else
          ktherm    ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
-#endif
 
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max      ! category boundaries (m)
@@ -1877,11 +1865,7 @@
                (trcrn(nt_vlvl,n)*vice1 + vin0new(n))/vicen(n)
             endif
 
-#ifdef UNDEPRECATE_CESMPONDS
-            if (tr_pond_cesm .or. tr_pond_topo) then
-#else
             if (tr_pond_topo) then
-#endif
                trcrn(nt_apnd,n) = &
                trcrn(nt_apnd,n)*area1/aicen(n)
             elseif (tr_pond_lvl) then
@@ -2276,11 +2260,7 @@
                         n_aero,                                 &
                         nbtrcr,               nblyr,            &
                         tr_aero,                                &
-#ifdef UNDEPRECATE_0LAYER
-                        tr_pond_topo,         heat_capacity,    &
-#else
                         tr_pond_topo,                           &
-#endif
                         first_ice,                              &
                         trcr_depend,          trcr_base,        &
                         n_trcr_strata,        nt_strata,        &
