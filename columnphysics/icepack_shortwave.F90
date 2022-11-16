@@ -3712,7 +3712,7 @@
 
          do ks = 1, nslyr
             rsnw(ks)   = max(rsnw_fall,rsnow(ks))
-            rsnw(ks)   = min(rsnw_tmax,rsnow(ks))
+            rsnw(ks)   = min(rsnw_tmax,rsnw (ks))
             rhosnw(ks) = rhos
          enddo
 
