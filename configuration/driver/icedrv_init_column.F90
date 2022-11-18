@@ -1030,6 +1030,7 @@
       !-----------------------------------------------------------------
       ! zsalinity and brine
       !-----------------------------------------------------------------
+#ifdef UNDEPRECATE_ZSAL
       if (solve_zsal .and. TRZS == 0) then
          write(nu_diag,*) 'WARNING: solve_zsal=T but 0 zsalinity tracers'
          write(nu_diag,*) 'WARNING: setting solve_zsal = F'
@@ -1046,6 +1047,11 @@
          tr_brine = .true.
          ktherm = 1
       endif
+#else
+      if (solve_zsal) then
+         write(nu_diag,*) 'WARNING: zsalinity is being deprecated'
+      endif
+#endif
 
       if (tr_brine .and. TRBRI == 0 ) then
          write(nu_diag,*) &

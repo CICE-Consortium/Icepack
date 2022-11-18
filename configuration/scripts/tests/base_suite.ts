@@ -4,7 +4,6 @@ smoke          col     1x1        debug,run1year
 smoke          col     1x1        debug,bgcispol
 smoke          col     1x1        debug,bgcnice
 smoke          col     1x1        debug,bgcsklnice
-smoke          col     1x1        debug,run1year,zsal
 smoke          col     1x1        debug,run1year,thermo1
 smoke          col     1x1        debug,run1year,swredist
 smoke          col     1x1        debug,run1year,swccsm3
@@ -25,7 +24,6 @@ restart        col     1x1        diag1
 restart        col     1x1        pondlvl
 restart        col     1x1        pondtopo
 restart        col     1x1        bgcispol
-restart        col     1x1        zsal
 restart        col     1x1        thermo1
 restart        col     1x1        swccsm3
 restart        col     1x1        isotope

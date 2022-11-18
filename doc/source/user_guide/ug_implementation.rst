@@ -228,7 +228,7 @@ i.e. f\_fbio, except they are averaged by ice area.
    "f\_aero", "aerosol mass (snow and ice ssl and int)", "aerosnossl, aerosnoint,aeroicessl, aeroiceint", "kg/kg"
    "f\_fbio", "biological ice to ocean flux", "fN, fDOC, fNit, fAm,fDON,fFep\ :math:`^a`, fFed\ :math:`^a`, fSil,fhum, fPON, fDMSPd,fDMS, fDMSPp, fzaero", "mmol m\ :math:`^{-2}` s\ :math:`^{-1}`"
    "f\_zaero", "bulk z-aerosol mass fraction", "zaero", "kg/kg"
-   "f\_bgc\_S", "bulk z-salinity", "bgc\_S", "ppt"
+   "f\_bgc\_S", "DEPRECATED", "bgc\_S", "ppt"
    "f\_bgc\_N", "bulk algal N concentration", "bgc\_N", "mmol m\ :math:`^{-3}`"
    "f\_bgc\_C", "bulk algal C concentration", "bgc\_C", "mmol m\ :math:`^{-3}`"
    "f\_bgc\_DOC", "bulk DOC concentration", "bgc\_DOC", "mmol m\ :math:`^{-3}`"
@@ -267,3 +267,6 @@ i.e. f\_fbio, except they are averaged by ice area.
 :math:`^b` units are :math:`\mu`\ mol m\ :math:`^{-3}`
 
 :math:`^c` units are :math:`\mu`\ mol m\ :math:`^{-2}`
+
+.. deprecated
+.. "f\_bgc\_S", "bulk z-salinity", "bgc\_S", "ppt"
