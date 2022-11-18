@@ -15,8 +15,8 @@
 
 ! zsalinity is being deprecated
 ! Additional code cleanup will follow including removal of
-!   solve_zsal, tr_bgc_S, grid_oS, l_skS, iki, and all *zsal*
-!   Rayleigh_real, Rayleigh_criteria
+!   solve_zsal, tr_bgc_S, grid_oS, l_skS, iki, TRZS,
+!   Rayleigh_real, Rayleigh_criteria, and all *zsal*
 !   icepack_brine.F90 subroutines icepack_init_zsalinity, compute_microS
 #ifdef UNDEPRECATE_ZSAL
       use icepack_kinds
