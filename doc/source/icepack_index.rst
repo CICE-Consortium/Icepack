@@ -10,7 +10,7 @@ code. Values appearing in this list are fixed or recommended; most
 namelist parameters are indicated ( :math:`\bullet`) with their default
 values. For other namelist options, see Section :ref:`tabnamelist`. All
 quantities in the code are expressed in MKS units (temperatures may take
-either Celsius or Kelvin units).  
+either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
 
 .. csv-table:: *Alphabetical Index of Icepack Variables and Parameters*
    :header: " ", " ", " "
@@ -203,7 +203,6 @@ either Celsius or Kelvin units).
    "H2_16O_ocn", "concentration of H2_16O isotope in ocean", "kg/kg"
    "H2_18O_ocn", "concentration of H2_18O isotope in ocean", "kg/kg"
    "HDO_ocn", "concentration of HDO isotope in ocean", "kg/kg"
-   "heat_capacity", "DEPRECATED", ""
    "hfrazilmin", "minimum thickness of new frazil ice", "0.05 m"
    "hi_min", "minimum ice thickness for thinnest ice category", "m"
    "hi_ssl", "ice surface scattering layer thickness", "0.05 m"
@@ -219,7 +218,7 @@ either Celsius or Kelvin units).
    "hpmin", "minimum melt pond depth (shortwave)", "0.005 m"
    "hpondn", "melt pond depth", "m"
    "hs_min", "minimum thickness for which :math:`T_s` is computed", "1.\ :math:`\times`\ 10\ :math:`^{-4}` m"
-   "hs0", ":math:`\bullet` snow depth at which transition to ice occurs (dEdd)", "0.03 m"
+   "hs0", ":math:`\bullet` snow depth at which transition to ice occurs (dEdd)", ""
    "hs1", ":math:`\bullet` snow depth of transition to pond ice", "0.03 m"
    "hs_ssl", "snow surface scattering layer thickness", "0.04 m"
    "Hstar", "determines mean thickness of ridged ice", "25. m"
@@ -251,7 +250,6 @@ either Celsius or Kelvin units).
    "krdg_partic", ":math:`\bullet` ridging participation function", "1"
    "krdg_redist", ":math:`\bullet` ridging redistribution function", "1"
    "krdgn", "mean ridge thickness per thickness of ridging ice", ""
-   "kseaice", "DEPRECATED", ""
    "ksno", "thermal conductivity of snow", "0.30 W/m/deg"
    "kstrength", ":math:`\bullet` ice stength formulation (1= :cite:`Rothrock75`, 0 = :cite:`Hibler79`)", "1"
    "ktherm", ":math:`\bullet` thermodynamic formulation (-1 none, 1 = :cite:`Bitz99`, 2 = mushy)", ""
@@ -443,8 +441,8 @@ either Celsius or Kelvin units).
    "strocnx(y)", "ice–ocean stress in the x(y)-direction (U-cell)", "N/m\ :math:`^2`"
    "strocnx(y)T", "ice–ocean stress, x(y)-dir. (T-cell)", "N/m\ :math:`^2`"
    "strtltx(y)", "surface stress due to sea surface slope", "N/m\ :math:`^2`"
-   "swndf", "incoming shortwave radiation, near IR, diffuse", "W/m\ :math:`^2`"
-   "swndr", "incoming shortwave radiation, near IR, direct", "W/m\ :math:`^2`"
+   "swidf", "incoming shortwave radiation, near IR, diffuse", "W/m\ :math:`^2`"
+   "swidr", "incoming shortwave radiation, near IR, direct", "W/m\ :math:`^2`"
    "swvdf", "incoming shortwave radiation, visible, diffuse", "W/m\ :math:`^2`"
    "swvdr", "incoming shortwave radiation, visible, direct", "W/m\ :math:`^2`"
    "sw_redist", "option to redistribute shortwave", ".false."
@@ -476,7 +474,6 @@ either Celsius or Kelvin units).
    "tr_FY", ":math:`\bullet` if true, use first-year area tracer", ""
    "tr_iage", ":math:`\bullet` if true, use ice age tracer", ""
    "tr_lvl", ":math:`\bullet` if true, use level ice area and volume tracers", ""
-   "tr_pond_cesm", "DEPRECATED", ""
    "tr_pond_lvl", ":math:`\bullet` if true, use level-ice melt pond scheme", ""
    "tr_pond_topo", ":math:`\bullet` if true, use topo melt pond scheme", ""
    "trcr", "ice tracers", ""
@@ -526,18 +523,13 @@ either Celsius or Kelvin units).
    "zref", "reference height for stability", "10. m"
    "zTrf", "reference height for :math:`T_{ref}`, :math:`Q_{ref}`, :math:`U_{ref}`", "2. m"
    "zvir", "gas constant (water vapor)/gas constant (air) - 1", "0.606"
-
-
-.. 
-   deprecation comments
-   ktherm=0 (zero-layer thermodynamics) is being deprecated
-   heat_capacity is being deprecated as part of ktherm=0 (zero-layer thermo) deprecation
-   "heat_capacity", ":math:`\bullet` if true, use salinity-dependent thermodynamics", "T"
+   "**Deprecated options and parameters**", "", ""
+   "heat_capacity", "if true, use salinity-dependent thermodynamics", "T"
    "kseaice", "thermal conductivity of ice for zero-layer thermodynamics", "2.0 W/m/deg"
-   "ktherm", ":math:`\bullet` thermodynamic formulation (0 = zero-layer, 1 = :cite:`Bitz99`, 2 = mushy)", ""
-
+   "ktherm", "thermodynamic formulation (0 = zero-layer, 1 = :cite:`Bitz99`, 2 = mushy)", ""
+   "tr_pond_cesm", "if true, use CESM melt pond scheme", ""
 
 .. 
-   comment tr_pond_cesm is being deprecated
-   "tr_pond_cesm", ":math:`\bullet` if true, use CESM melt pond scheme", ""
+   new deprecation comments
+
 
