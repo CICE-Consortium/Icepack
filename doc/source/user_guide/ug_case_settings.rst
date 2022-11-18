@@ -97,7 +97,7 @@ can be modified as needed.
    "NTRAERO", "integer", "number of aerosol tracers", "1"
    "NTRISO", "integer", "number of water isotope tracers", "1"
    "TRBRI", "0,1", "brine height tracer", "0"
-   "TRZS", "0,1", "zsalinity tracer, needs TRBRI=1", "0"
+   "TRZS", "", "DEPRECATED", ""
    "TRBGCS", "0,1", "skeletal layer tracer, needs TRBGCZ=0", "0"
    "TRBGCZ", "0,1", "zbgc tracers, needs TRBGCS=0 and TRBRI=1", "0"
    "NBGCLYR", "integer", "number of zbgc layers", "1"
@@ -507,7 +507,7 @@ zbgc_nml
    "``silicatetype``", "real", "mobility type between stationary and mobile silicate", "-1.0"
    "``skl_bgc``", "logical", "biogeochemistry", "``.false.``"
    "``solve_zbgc``", "logical", "", "``.false.``"
-   "``solve_zsal``", "logical", "update salinity tracer profile", "``.false.``"
+   "``solve_zsal``", "logical", "DEPRECATED", "``.false.``"
    "``tau_max``", "real", "long time mobile to stationary exchanges", "1.73e-5"
    "``tau_min``", "real", "rapid module to stationary exchanges", "5200."
    "``tr_bgc_Am``", "logical", "ammonium tracer", "``.false.``"
@@ -548,6 +548,8 @@ zbgc_nml
 ..   "``restart_bgc``", "logical", "restart tracer values from file", "``.false.``"
 ..   "``restart_hbrine``", "logical", "", "``.false.``"
 ..   "``restart_zsal``", "logical", "", "``.false.``"
+..   "``solve_zsal``", "logical", "update salinity tracer profile", "``.false.``"
+..   "TRZS", "0,1", "zsalinity tracer, needs TRBRI=1", "0"
 
 * = If Icepack is run stand-alone and wave_spec_type is not set to none, then a fixed wave spectrum is defined in the code to use for testing. As with other input data, this spectrum should not be used for production runs or publications.
   

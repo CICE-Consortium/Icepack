@@ -45,7 +45,9 @@
       use icepack_algae, only: zbio, sklbio
       use icepack_therm_shared, only: calculate_Tin_from_qin
       use icepack_itd, only: column_sum, column_conservation_check
+#ifdef UNDEPRECATE_ZSAL
       use icepack_zsalinity, only: zsalinity
+#endif
 
       implicit none
 
@@ -1055,6 +1057,7 @@
 
                hbri = hbri + hbrin * aicen(n)
 
+#ifdef UNDEPRECATE_ZSAL
                if (solve_zsal) then
 
                   call zsalinity (n,             dt,                  &
@@ -1083,7 +1086,7 @@
                   if (icepack_warnings_aborted(subname)) return
 
                endif  ! solve_zsal
-
+#endif
             endif ! tr_brine
 
       !-----------------------------------------------------------------

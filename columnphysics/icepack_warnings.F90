@@ -25,7 +25,8 @@ module icepack_warnings
         icepack_warnings_flush,    &
         icepack_warnings_aborted,  &
         icepack_warnings_add,      &
-        icepack_warnings_setabort
+        icepack_warnings_setabort, &
+        icepack_warnings_getall
 
       private :: &
         icepack_warnings_getone
