@@ -13,6 +13,12 @@
 !
       module icepack_zsalinity
 
+! zsalinity is being deprecated
+! Additional code cleanup will follow including removal of
+!   solve_zsal, tr_bgc_S, grid_oS, l_skS, iki, and all *zsal*
+!   Rayleigh_real, Rayleigh_criteria
+!   icepack_brine.F90 subroutines icepack_init_zsalinity, compute_microS
+#ifdef UNDEPRECATE_ZSAL
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p001, p5, puny, rhow, depressT, gravit
       use icepack_parameters, only: rhosi, min_salin, salt_loss
@@ -1148,7 +1154,7 @@
       enddo ! k
 
       end subroutine column_sum_zsal
-
+#endif
 !=======================================================================
 
       end module icepack_zsalinity
