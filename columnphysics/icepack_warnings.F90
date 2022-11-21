@@ -19,13 +19,13 @@ module icepack_warnings
       character(len=char_len_long), public :: warnstr
 
       public :: &
-        icepack_warnings_getall,   &
         icepack_warnings_clear,    &
         icepack_warnings_print,    &
         icepack_warnings_flush,    &
         icepack_warnings_aborted,  &
         icepack_warnings_add,      &
-        icepack_warnings_setabort
+        icepack_warnings_setabort, &
+        icepack_warnings_getall
 
       private :: &
         icepack_warnings_getone

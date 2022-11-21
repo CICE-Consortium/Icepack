@@ -48,9 +48,6 @@
       use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, rhoi
       use icepack_parameters, only: rsnw_fall, snwredist, rsnw_tmax
       use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l, snwlvlfac, snwgrain
-#ifdef UNDEPRECATE_0LAYER
-      use icepack_parameters, only: heat_capacity
-#endif
       use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg
       use icepack_parameters, only: R_ice, R_pnd, R_snw, dT_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
@@ -59,11 +56,7 @@
 
       use icepack_tracers,    only: ncat, nilyr, nslyr, nblyr
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
-#ifdef UNDEPRECATE_CESMPONDS
-      use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
-#else
       use icepack_tracers,    only: tr_pond_lvl, tr_pond_topo
-#endif
       use icepack_tracers,    only: tr_bgc_N, tr_aero
       use icepack_tracers,    only: nt_bgc_N, nt_zaero
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
@@ -837,23 +830,6 @@
          ! SW absorbed in ice interior
          fswint  = fswpen - fswthru
 
-#ifdef UNDEPRECATE_0LAYER
-      !----------------------------------------------------------------
-      ! if zero-layer model (no heat capacity), no SW is absorbed in ice
-      ! interior, so add to surface absorption
-      !----------------------------------------------------------------
-
-         if (.not. heat_capacity) then
-
-            ! SW absorbed at snow/ice surface
-            fswsfc = fswsfc + fswint
-
-            ! SW absorbed in ice interior (nilyr = 1)
-            fswint    = c0
-            Iswabs(1) = c0
-
-         endif                       ! heat_capacity
-#endif
       end subroutine absorbed_solar
 
 ! End ccsm3 shortwave method
@@ -1072,26 +1048,7 @@
             if (icepack_warnings_aborted(subname)) return
 
             ! set pond properties
-#ifdef UNDEPRECATE_CESMPONDS
-            if (tr_pond_cesm) then
-               ! fraction of ice area
-               fpn = apndn(n)
-               ! pond depth over fraction fpn
-               hpn = hpndn(n)
-               ! snow infiltration
-               if (hsn >= hs_min .and. hs0 > puny) then
-                  asnow = min(hsn/hs0, c1) ! delta-Eddington formulation
-                  fpn = (c1 - asnow) * fpn
-                  hpn = pndaspect * fpn
-               endif
-               ! Zero out fraction of thin ponds for radiation only
-               if (hpn < hpmin) fpn = c0
-               fsn = min(fsn, c1-fpn)
-               apeffn(n) = fpn ! for history
-            elseif (tr_pond_lvl) then
-#else
             if (tr_pond_lvl) then
-#endif
                hsnlvl = hsn ! initialize
                if (trim(snwredist) == 'bulk') then
                   hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
@@ -2889,25 +2846,6 @@
       enddo
       fswpenl(nilyr+1) = fswpenl(nilyr+1) + fthrul(nilyr+1)*fi
 
-#ifdef UNDEPRECATE_0LAYER
-      !----------------------------------------------------------------
-      ! if ice has zero heat capacity, no SW can be absorbed
-      ! in the ice/snow interior, so add to surface absorption.
-      ! Note: nilyr = nslyr = 1 for this case
-      !----------------------------------------------------------------
-
-      if (.not. heat_capacity) then
-
-         ! SW absorbed at snow/ice surface
-         fswsfc = fswsfc + Iswabs(1) + Sswabs(1)
-
-         ! SW absorbed in ice interior
-         fswint   = c0
-         Iswabs(1) = c0
-         Sswabs(1) = c0
-
-      endif                       ! heat_capacity
-#endif
       end subroutine compute_dEdd_3bd
 
 !=======================================================================
@@ -3432,7 +3370,7 @@
 
          do ks = 1, nslyr
             rsnw(ks)   = max(rsnw_fall,rsnow(ks))
-            rsnw(ks)   = min(rsnw_tmax,rsnow(ks))
+            rsnw(ks)   = min(rsnw_tmax,rsnw(ks))
             rhosnw(ks) = rhos
          enddo
 
@@ -5460,25 +5398,6 @@
       enddo
       fswpenl(nilyr+1) = fswpenl(nilyr+1) + fthrul(nilyr+1)*fi
 
-#ifdef UNDEPRECATE_0LAYER
-      !----------------------------------------------------------------
-      ! if ice has zero heat capacity, no SW can be absorbed
-      ! in the ice/snow interior, so add to surface absorption.
-      ! Note: nilyr = nslyr = 1 for this case
-      !----------------------------------------------------------------
-
-!      if (.not. heat_capacity) then
-
-         ! SW absorbed at snow/ice surface
-!         fswsfc = fswsfc + Iswabs(1) + Sswabs(1)
-
-         ! SW absorbed in ice interior
-!         fswint   = c0
-!         Iswabs(1) = c0
-!         Sswabs(1) = c0
-
-!      endif                       ! heat_capacity
-#endif
       end subroutine compute_dEdd_5bd
 
 !=======================================================================

@@ -97,7 +97,7 @@ can be modified as needed.
    "NTRAERO", "integer", "number of aerosol tracers", "1"
    "NTRISO", "integer", "number of water isotope tracers", "1"
    "TRBRI", "0,1", "brine height tracer", "0"
-   "TRZS", "0,1", "zsalinity tracer, needs TRBRI=1", "0"
+   "TRZS", "", "DEPRECATED", ""
    "TRBGCS", "0,1", "skeletal layer tracer, needs TRBGCZ=0", "0"
    "TRBGCZ", "0,1", "zbgc tracers, needs TRBGCS=0 and TRBRI=1", "0"
    "NBGCLYR", "integer", "number of zbgc layers", "1"
@@ -185,14 +185,10 @@ tracer_nml
    "``tr_iage``", "logical", "ice age", "``.false.``"
    "``tr_iso``", "logical", "isotopes", "``.false.``"
    "``tr_lvl``", "logical", "level ice area and volume", "``.false.``"
-   "``tr_pond_cesm``", "logical", "DEPRECATED", "``.false.``"
    "``tr_pond_lvl``", "logical", "level-ice melt ponds", "``.false.``"
    "``tr_pond_topo``", "logical", "topo melt ponds", "``.false.``"
    "``tr_snow``", "logical", "advanced snow physics", "``.false.``"
    "", "", "", ""
-
-.. comment tr_pond_cesm is being deprecated
-   "``tr_pond_cesm``", "logical", "CESM melt ponds", "``.false.``"
 
 thermo_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -222,9 +218,6 @@ thermo_nml
    "``Tliquidus_max``", "real", "maximum liquidus temperature of mush (C)", "0.0"
    "", "", "", ""
 
-.. 
-   ktherm=0 (zero-layer thermodynamics) is being deprecated
-   "", "``0``", "zero-layer thermodynamic model", ""
 
 dynamics_nml
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -287,7 +280,7 @@ ponds_nml
    "``frzpnd``", "``cesm``", "CESM pond refreezing forumulation", "``cesm``"
    "", "``hlid``", "Stefan refreezing with pond ice thickness", ""
    "``hp1``", "real", "critical ice lid thickness for topo ponds in m", "0.01"
-   "``hs0``", "real", "snow depth of transition to bare sea ice in m", "0.03"
+   "``hs0``", "real", "snow depth of transition to bare sea ice in m", ""
    "``hs1``", "real", "snow depth of transition to pond ice in m", "0.03"
    "``pndaspect``", "real", "aspect ratio of pond changes (depth:area)", "0.8"
    "``rfracmax``", ":math:`0 \le r_{max} \le 1`", "maximum melt water added to ponds", "0.85"
@@ -380,10 +373,10 @@ forcing_nml
    "``update_ocn_f``", "``.false.``", "do not include frazil water/salt fluxes in ocn fluxes", "``.false.``"
    "", "``true``", "include frazil water/salt fluxes in ocn fluxes", ""
    "``ustar_min``", "real", "minimum value of ocean friction velocity in m/s", "0.005"
-   "``wave_spec_type``", "``constant``", "wave data file is provided, constant wave spectrum, for testing", "``none``"
-   "", "``none``", "no wave data provided, no wave-ice interactions", ""
-   "", "``profile``", "no wave data file is provided, use fixed dummy wave spectrum, for testing", ""
-   "", "``random``", "wave data file is provided, wave spectrum generated using random number", ""
+   "``wave_spec_type``", "``constant``", "wave data file is provided, sea surface height generated using constant phase (1 iteration of wave fracture)", "``none``"
+   "", "``none``", "no wave data provided, no wave-ice interactions (not recommended when using the FSD)", ""
+   "", "``profile``", "no wave data file is provided, use fixed dummy wave spectrum, for testing, sea surface height generated using constant phase (1 iteration of wave fracture)", ""
+   "", "``random``", "wave data file is provided, sea surface height generated using random number (multiple iterations of wave fracture)", ""
    "``ycycle``", "integer", "number of years in forcing data cycle", "1"
    "", "", "", ""
 
@@ -514,7 +507,7 @@ zbgc_nml
    "``silicatetype``", "real", "mobility type between stationary and mobile silicate", "-1.0"
    "``skl_bgc``", "logical", "biogeochemistry", "``.false.``"
    "``solve_zbgc``", "logical", "", "``.false.``"
-   "``solve_zsal``", "logical", "update salinity tracer profile", "``.false.``"
+   "``solve_zsal``", "logical", "DEPRECATED", "``.false.``"
    "``tau_max``", "real", "long time mobile to stationary exchanges", "1.73e-5"
    "``tau_min``", "real", "rapid module to stationary exchanges", "5200."
    "``tr_bgc_Am``", "logical", "ammonium tracer", "``.false.``"
@@ -555,6 +548,8 @@ zbgc_nml
 ..   "``restart_bgc``", "logical", "restart tracer values from file", "``.false.``"
 ..   "``restart_hbrine``", "logical", "", "``.false.``"
 ..   "``restart_zsal``", "logical", "", "``.false.``"
+..   "``solve_zsal``", "logical", "update salinity tracer profile", "``.false.``"
+..   "TRZS", "0,1", "zsalinity tracer, needs TRBRI=1", "0"
 
 * = If Icepack is run stand-alone and wave_spec_type is not set to none, then a fixed wave spectrum is defined in the code to use for testing. As with other input data, this spectrum should not be used for production runs or publications.
   

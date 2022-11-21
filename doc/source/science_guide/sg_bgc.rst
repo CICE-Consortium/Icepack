@@ -129,8 +129,7 @@ difference between the brine height and the equilibrium sea surface.
 Brine height motion is computed in **icepack\_brine.F90** from thermodynamic
 variables and the ice microstructural state
 deduced from internal bulk salinities and temperature. This tracer is
-required for the transport of vertically resolved biogeochemical tracers
-and is closely coupled to the z-salinity prognostic salinity model.
+required for the transport of vertically resolved biogeochemical tracers.
 
 Vertical transport processes are, generally, a result of the brine
 motion. Therefore the vertical transport equations for biogeochemical
@@ -450,10 +449,11 @@ flags in **icepack\_in** must be true: a) ``tr_brine``, b) ``z_tracers``, and c)
    This is appropriate for the black carbon and dust aerosols specified
    by ``tr_zaero`` true.
 
-In addition, a halodynamics scheme must also be used. The default
-thermo-halodynamics is mushy layer ``ktherm`` set to 2. An alternative uses
-the Bitz and Lipscomb thermodynamics ``ktherm`` set to 1 and ``solve_zsal``
-true (referred to as "zsalinity").
+.. zsalinity is being deprecated
+.. In addition, a halodynamics scheme must also be used. The default
+.. thermo-halodynamics is mushy layer ``ktherm`` set to 2. An alternative uses
+.. the Bitz and Lipscomb thermodynamics ``ktherm`` set to 1 and ``solve_zsal``
+.. true (referred to as "zsalinity").
 
 With the above flags, the default biochemistry is a simple
 algal-nitrate system: ``tr_bgc_N`` and ``tr_bgc_Nit`` are true. Options
