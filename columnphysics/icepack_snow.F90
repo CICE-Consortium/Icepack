@@ -16,7 +16,7 @@
       use icepack_parameters, only: isnw_T, isnw_Tgrd, isnw_rhos
       use icepack_parameters, only: snowage_rhos, snowage_Tgrd, snowage_T
       use icepack_parameters, only: snowage_tau, snowage_kappa, snowage_drdt0
-      use icepack_parameters, only: snw_aging_table
+      use icepack_parameters, only: snw_aging_table, use_smliq_pnd
 
       use icepack_therm_shared, only: icepack_ice_temperature
       use icepack_therm_shared, only: adjust_enthalpy
@@ -1161,7 +1161,8 @@
 
       real (kind=dbl_kind) :: &
          hslyr,  & ! snow layer thickness (m)
-         hsn       ! snow thickness (m)
+         hsn,    & ! snow thickness (m)
+         sliq      ! snow liquid content (kg/m^2)
 
       real (kind=dbl_kind), dimension(nslyr) :: &
          dlin    , & ! liquid mass into the layer from above (kg/m^2)
@@ -1172,27 +1173,29 @@
       character (len=*), parameter :: subname='(drain_snow)'
 
       hsn = c0
+      sliq = c0
       if (aicen > c0) hsn = vsnon/aicen
       if (hsn > puny) then
          dlin (:) = c0
          dlout(:) = c0
          hslyr    = hsn / real(nslyr,kind=dbl_kind)
-         meltsliq = c0
          do k = 1, nslyr
             massliq(k) = massliq(k) + dlin(k)   ! add liquid in from layer above
             phi_ice(k) = min(c1, massice(k) / (rhoi    *hslyr))
             phi_liq(k) =         massliq(k) / (rhofresh*hslyr)
-            dlout(k)   = max(c0, (phi_liq(k) - S_r*(c1-phi_ice(k))) / rhofresh*hslyr)
+            dlout(k)   = max(c0, (phi_liq(k) - S_r*(c1-phi_ice(k))) * rhofresh * hslyr)
             massliq(k) = massliq(k) - dlout(k)
             if (k < nslyr) then
                dlin(k+1) = dlout(k)
             else
-               meltsliq = dlout(nslyr) ! this (re)initializes meltsliq
+               sliq = dlout(nslyr) ! this (re)initializes meltsliq
             endif
          enddo
       else
-         meltsliq = meltsliq  ! computed in thickness_changes
+         sliq = meltsliq  ! computed in thickness_changes
       endif
+      meltsliq = meltsliq
+      if (use_smliq_pnd) meltsliq = sliq
 
       end subroutine drain_snow
 
