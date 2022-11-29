@@ -26,7 +26,7 @@
 
       module icepack_intfc
 
-      use icepack_kinds, only: icepack_char_len	 => char_len
+      use icepack_kinds, only: icepack_char_len  => char_len
       use icepack_kinds, only: icepack_char_len_long  => char_len_long
       use icepack_kinds, only: icepack_log_kind  => log_kind
       use icepack_kinds, only: icepack_int_kind  => int_kind
