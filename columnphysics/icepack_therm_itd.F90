@@ -237,7 +237,7 @@
 
          if (tr_brine) then
             vbrin(n) = vbrin(n) + trcrn(nt_fbri,n) &
-                     * vicen(n)/real(nilyr,kind=dbl_kind)
+                     * vicen(n)
          endif
 
          do k = 1, nilyr
@@ -654,7 +654,7 @@
 
          if (tr_brine) then
             vbrin(n) = vbrin(n) + trcrn(nt_fbri,n) &
-                     * vicen(n)/real(nilyr,kind=dbl_kind)
+                     * vicen(n)
          endif
 
          do k = 1, nilyr

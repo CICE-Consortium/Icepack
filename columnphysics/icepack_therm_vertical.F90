@@ -2796,7 +2796,7 @@
 
          endif   ! aicen_init
 
-         if (snwgrain .and. use_smliq_pnd) then
+         if (snwgrain) then
             call drain_snow (nslyr = nslyr, &
                              vsnon = vsnon(n), &
                              aicen = aicen(n), &
