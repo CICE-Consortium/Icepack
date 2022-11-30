@@ -73,6 +73,20 @@ jobs:
            ln -s ${GITHUB_WORKSPACE}/../Icepack ${HOME}/icepack
 #           ls -al ${HOME}/
 #           ls -al ${GITHUB_WORKSPACE}/
+      - name: check for tabs
+        run: |
+          cd $HOME/icepack
+          set cnt = 0
+          set ffiles = `find -P columnphysics configuration/driver -iname "*.f*"`
+          set cfiles = `find -P columnphysics configuration/driver -iname "*.c*"`
+          foreach file ($ffiles $cfiles)
+            set fcnt = `sed -n '/\t/p' $file | wc -l`
+            @ cnt = $cnt + $fcnt
+            if ($fcnt > 0) then
+               echo "TAB found: $fcnt $file"
+            endif
+          end
+          exit $cnt
       - name: setup conda env
         shell: /bin/bash {0}
         run: |
