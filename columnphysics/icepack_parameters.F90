@@ -166,9 +166,9 @@
                                   ! 'mushy' conforms with ktherm=2
 
       character(len=char_len), public :: &
-         saltflux_option  = '4psu'! Salt flux computation
-                                  ! '4psu' reference value of 4 psu
-                                  ! 'prognostic' prognostic salt flux
+         saltflux_option  = 'constant'! Salt flux computation
+                                      ! 'constant' reference value of ice_ref_salinity
+                                      ! 'prognostic' prognostic salt flux
 
 !-----------------------------------------------------------------------
 ! Parameters for radiation
@@ -572,7 +572,7 @@
 
       character(len=*), intent(in), optional :: &
          saltflux_option_in         ! Salt flux computation
-                                    ! '4psu' reference value of 4 psu
+                                    ! 'constant' reference value of ice_ref_salinity
                                     ! 'prognostic' prognostic salt flux
 
 !-----------------------------------------------------------------------
@@ -1279,7 +1279,7 @@
 
       character(len=*), intent(out), optional :: &
          saltflux_option_out         ! Salt flux computation
-                                     ! '4psu' reference value of 4 psu
+                                     ! 'constant' reference value of ice_ref_salinity
                                      ! 'prognostic' prognostic salt flux
 
 

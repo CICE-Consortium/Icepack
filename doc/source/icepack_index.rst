@@ -403,7 +403,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "rsnw_sig", "standard deviation of snow grain radius", "250. :math:`\times` 10\ :math:`^{-6}` m"
    "**S**", "", ""
    "salinz", "ice salinity profile", "ppt"
-   "saltflux_option", "constant (4psu) or prognostic salinity fluxes","4psu"
+   "saltflux_option", "constant or prognostic salinity fluxes","constant"
    "saltmax", "max salinity, at ice base (:cite:`Bitz99`)", "3.2 ppt"
    "scale_factor", "scaling factor for shortwave radiation components", ""
    "sec", "seconds elasped into idate", ""
