@@ -1813,8 +1813,8 @@
             write (c_nc, '(i2)') n
 
             ! Write hin_max to character string
-            write (c_hinmax1, '(f6.3)') hin_max(n-1)
-            write (c_hinmax2, '(f6.3)') hin_max(n)
+            write (c_hinmax1, '(f7.3)') hin_max(n-1)
+            write (c_hinmax2, '(f7.3)') hin_max(n)
 
             ! Save character string to write to history file
             c_hi_range(n)=c_hinmax1//'m < hi Cat '//c_nc//' < '//c_hinmax2//'m'
