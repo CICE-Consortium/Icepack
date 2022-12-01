@@ -2587,27 +2587,6 @@
       endif
 
       !-----------------------------------------------------------------
-      ! Adjust frzmlt to account for ice-ocean heat fluxes since last
-      !  call to coupler.
-      ! Compute lateral and bottom heat fluxes.
-      !-----------------------------------------------------------------
-
-      call frzmlt_bottom_lateral (dt,        ncat,      &
-                                  nilyr,     nslyr,     &
-                                  aice,      frzmlt,    &
-                                  vicen,     vsnon,     &
-                                  zqin,      zqsn,      &
-                                  sst,       Tf,        &
-                                  ustar_min,            &
-                                  fbot_xfer_type,       &
-                                  strocnxT,  strocnyT,  &
-                                  Tbot,      fbot,      &
-                                  rside,     Cdn_ocn,   &
-                                  fside)
-
-      if (icepack_warnings_aborted(subname)) return
-
-      !-----------------------------------------------------------------
       ! Update the neutral drag coefficients to account for form drag
       ! Oceanic and atmospheric drag coefficients
       !-----------------------------------------------------------------
@@ -2630,6 +2609,27 @@
                                    dfloe       , ncat)
          if (icepack_warnings_aborted(subname)) return
       endif
+
+      !-----------------------------------------------------------------
+      ! Adjust frzmlt to account for ice-ocean heat fluxes since last
+      !  call to coupler.
+      ! Compute lateral and bottom heat fluxes.
+      !-----------------------------------------------------------------
+
+      call frzmlt_bottom_lateral (dt,        ncat,      &
+                                  nilyr,     nslyr,     &
+                                  aice,      frzmlt,    &
+                                  vicen,     vsnon,     &
+                                  zqin,      zqsn,      &
+                                  sst,       Tf,        &
+                                  ustar_min,            &
+                                  fbot_xfer_type,       &
+                                  strocnxT,  strocnyT,  &
+                                  Tbot,      fbot,      &
+                                  rside,     Cdn_ocn,   &
+                                  fside)
+
+      if (icepack_warnings_aborted(subname)) return
 
       do n = 1, ncat
          meltsn (n) = c0
