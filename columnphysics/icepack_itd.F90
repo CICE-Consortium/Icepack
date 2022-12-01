@@ -1090,8 +1090,8 @@
          blevels
 
       real (kind=dbl_kind) :: xtmp, sicen      ! temporary variables
-      real (kind=dbl_kind) , dimension (1):: trcr_skl    
-      real (kind=dbl_kind) , dimension (nblyr+1):: bvol     
+      real (kind=dbl_kind) , dimension (1):: trcr_skl
+      real (kind=dbl_kind) , dimension (nblyr+1):: bvol
 
       character(len=*),parameter :: subname='(zap_small_areas)'
 
