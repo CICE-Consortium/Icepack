@@ -578,6 +578,13 @@
          'WARNING: For consistency, set tfrz_option = mushy'
       endif
 
+      if (ktherm == 1 .and. trim(saltflux_option) /= 'constant') then
+         write (nu_diag,*) &
+         'WARNING: ktherm = 1 and saltflux_option = ',trim(saltflux_option)
+         write (nu_diag,*) &
+         'WARNING: For consistency, set saltflux_option = constant'
+      endif
+
       if (ktherm == 0) then
          write (nu_diag,*) 'WARNING: ktherm = 0 zero-layer thermodynamics'
          write (nu_diag,*) 'WARNING: has been deprecated'
