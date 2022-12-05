@@ -1,2 +1,2 @@
     ktherm            = 2
-    saltflux          = 'prognostic'
+    saltflux_option   = 'prognostic'
