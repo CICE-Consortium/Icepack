@@ -31,6 +31,7 @@ restart        col     1x1        alt01
 restart        col     1x1        alt02
 restart        col     1x1        alt03
 restart        col     1x1        alt04
+restart        col     1x1        salt
 restart        col     1x1        dyn
 restart        col     1x1        fsd12,short
 restart        col     1x1        snwitdrdg,snwgrain
