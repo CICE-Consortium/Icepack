@@ -31,10 +31,10 @@
       use icepack_parameters, only: rhosi, sk_l, hs_ssl, min_salin, rsnw_fall
       use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
-      use icepack_tracers,    only: n_iso, tr_iso, tr_snow, nt_smice, nt_rsnw, nt_rhos
+      use icepack_tracers,    only: n_iso, tr_iso, tr_snow, nt_smice, nt_rsnw, nt_rhos, nt_sice
       use icepack_tracers,    only: icepack_compute_tracers
       use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers
-      use icepack_parameters, only: kcatbound, kitd
+      use icepack_parameters, only: kcatbound, kitd, saltflux_option
       use icepack_therm_shared, only: Tmin, hi_min
       use icepack_warnings,   only: warnstr, icepack_warnings_add
       use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -1089,7 +1089,7 @@
          n, k, it, & !counting indices
          blevels
 
-      real (kind=dbl_kind) :: xtmp      ! temporary variables
+      real (kind=dbl_kind) :: xtmp, sicen      ! temporary variables
       real (kind=dbl_kind) , dimension (1):: trcr_skl
       real (kind=dbl_kind) , dimension (nblyr+1):: bvol
 
@@ -1187,7 +1187,15 @@
             xtmp = (rhoi*vicen(n)) / dt
             dfresh = dfresh + xtmp
 
-            xtmp = rhoi*vicen(n)*ice_ref_salinity*p001 / dt
+            if (saltflux_option == 'prognostic') then
+               sicen = c0
+               do k=1,nilyr
+                  sicen = sicen + trcrn(nt_sice+k-1,n) / real(nilyr,kind=dbl_kind)
+               enddo
+               xtmp = rhoi*vicen(n)*sicen*p001 / dt
+            else
+               xtmp = rhoi*vicen(n)*ice_ref_salinity*p001 / dt
+            endif
             dfsalt = dfsalt + xtmp
 
             aice0 = aice0 + aicen(n)
@@ -1301,13 +1309,22 @@
       !-----------------------------------------------------------------
 
             xtmp = (rhoi*vicen(n) + rhos*vsnon(n)) &
-                 * (aice-c1)/aice / dt
-            dfresh = dfresh + xtmp
-
-            xtmp = rhoi*vicen(n)*ice_ref_salinity*p001 &
-                 * (aice-c1)/aice / dt
-            dfsalt = dfsalt + xtmp
-
+                 * (aice-c1)/aice / dt 
+            dfresh = dfresh + xtmp 
+ 
+            if (saltflux_option == 'prognostic') then
+               sicen = c0
+               do k=1,nilyr
+                  sicen = sicen + trcrn(nt_sice+k-1,n) / real(nilyr,kind=dbl_kind)
+               enddo
+               xtmp = rhoi*vicen(n)*sicen*p001 &
+                    * (aice-c1)/aice / dt
+            else
+               xtmp = rhoi*vicen(n)*ice_ref_salinity*p001 &
+                    * (aice-c1)/aice / dt
+            endif
+            dfsalt = dfsalt + xtmp 
+ 
             if (solve_zsal) then
             do k = 1,nblyr
                xtmp = rhosi*trcrn(nt_fbri,n)*vicen(n)*p001&

@@ -27,6 +27,7 @@
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
+      use icepack_parameters, only: saltflux_option
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
@@ -239,7 +240,7 @@
          einter          ! intermediate energy
 
       real (kind=dbl_kind) :: &
-         fadvocn ! advective heat flux to ocean
+         fadvocn, saltvol, dfsalt ! advective heat flux to ocean
 
       character(len=*),parameter :: subname='(thermo_vertical)'
 
@@ -291,6 +292,14 @@
       ! Save initial ice and snow thickness (for fresh and fsalt)
       worki = hin
       works = hsn
+
+      ! Save initial salt volume for prognostic flux
+      if (saltflux_option == 'prognostic') then
+         saltvol = c0
+         do k=1,nilyr
+            saltvol = saltvol + rhoi*zSin(k)*hin*p001 / real(nilyr,kind=dbl_kind)
+         enddo
+      endif
 
       !-----------------------------------------------------------------
       ! Compute new surface temperature and internal ice and snow
@@ -435,8 +444,16 @@
       dhs = hsn - works - hsn_new
 
       freshn = freshn + evapn - (rhoi*dhi + rhos*dhs) / dt
-      fsaltn = fsaltn - rhoi*dhi*ice_ref_salinity*p001/dt
-      fhocnn = fhocnn + fadvocn ! for ktherm=2
+      if (saltflux_option == 'prognostic') then
+         dfsalt = c0
+         do k=1,nilyr
+            dfsalt = dfsalt + rhoi*zSin(k)*hin*p001 / real(nilyr,kind=dbl_kind)
+         enddo
+         fsaltn = fsaltn - (dfsalt - saltvol) / dt
+      else
+         fsaltn = fsaltn - rhoi*dhi*ice_ref_salinity*p001/dt
+      endif
+      fhocnn = fhocnn + fadvocn ! for ktherm=2 
 
       if (hin == c0) then
          if (tr_pond_topo) fpond = fpond - aicen * apond * hpond
@@ -2568,7 +2585,6 @@
             enddo
          enddo
       endif
-
 
       !-----------------------------------------------------------------
       ! Update the neutral drag coefficients to account for form drag
