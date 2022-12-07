@@ -563,7 +563,7 @@
          dSdt_slow_mode_in    , & ! slow mode drainage strength (m s-1 K-1)
          phi_c_slow_mode_in   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_in           ! liquid fraction of congelation ice
-        
+
       character(len=*), intent(in), optional :: &
          tfrz_option_in              ! form of ocean freezing temperature
                                      ! 'minus1p8' = -1.8 C

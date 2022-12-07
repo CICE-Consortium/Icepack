@@ -453,7 +453,7 @@
       else
          fsaltn = fsaltn - rhoi*dhi*ice_ref_salinity*p001/dt
       endif
-      fhocnn = fhocnn + fadvocn ! for ktherm=2 
+      fhocnn = fhocnn + fadvocn ! for ktherm=2
 
       if (hin == c0) then
          if (tr_pond_topo) fpond = fpond - aicen * apond * hpond

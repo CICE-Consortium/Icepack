@@ -120,7 +120,7 @@
                                  nt_smice, nt_smliq, nt_rhos, nt_rsnw, &
                                  nt_aero, nt_fsd, nt_isosno, nt_isoice
 
-      real (kind=real_kind) :: rplvl, rptopo 
+      real (kind=real_kind) :: rplvl, rptopo
       real (kind=dbl_kind) :: Cf, puny
 
       character(len=*), parameter :: subname='(input_data)'
@@ -207,7 +207,7 @@
            atmbndy_out=atmbndy, calc_strair_out=calc_strair, &
            formdrag_out=formdrag, highfreq_out=highfreq, &
            emissivity_out=emissivity, &
-           kitd_out=kitd, kcatbound_out=kcatbound, hs0_out=hs0, & 
+           kitd_out=kitd, kcatbound_out=kcatbound, hs0_out=hs0, &
            dpscale_out=dpscale, frzpnd_out=frzpnd, &
            rfracmin_out=rfracmin, rfracmax_out=rfracmax, &
            pndaspect_out=pndaspect, hs1_out=hs1, hp1_out=hp1, &
@@ -244,11 +244,11 @@
       year_init = 0          ! initial year
       istep0 = 0             ! no. of steps taken in previous integrations,
                              ! real (dumped) or imagined (to set calendar)
-      dt = 3600.0_dbl_kind   ! time step, s      
-      npt = 99999            ! total number of time steps (dt) 
+      dt = 3600.0_dbl_kind   ! time step, s
+      npt = 99999            ! total number of time steps (dt)
       diagfreq = 24          ! how often diag output is written
       diag_file = 'ice_diag' ! history file name prefix
-      cpl_bgc = .false.      ! 
+      cpl_bgc = .false.      !
       dumpfreq='y'           ! restart frequency option
       dump_last=.false.      ! restart at end of run
       restart = .false.      ! if true, read restart files for initialization
@@ -284,7 +284,7 @@
       ! extra tracers
       tr_iage      = .false. ! ice age
       tr_FY        = .false. ! ice age
-      tr_lvl       = .false. ! level ice 
+      tr_lvl       = .false. ! level ice
       tr_pond_lvl  = .false. ! level-ice melt ponds
       tr_pond_topo = .false. ! topographic melt ponds
       tr_snow      = .false. ! snow tracers (wind redistribution, metamorphosis)
@@ -428,13 +428,13 @@
       !-----------------------------------------------------------------
       ! set up diagnostics output and resolve conflicts
       !-----------------------------------------------------------------
-      
+
       write(ice_stdout,*) 'Diagnostic output will be in files '
       write(ice_stdout,*)'    ','icepack.runlog.timestamp'
 
       do n = 1,nx
          write(nx_names(n),'(a,i2.2)') 'point_',n
-      enddo      
+      enddo
       nx_names(1) = 'icefree'
       nx_names(2) = 'slab'
       nx_names(3) = 'full_ITD'
@@ -446,7 +446,7 @@
          write(ice_stdout,*)'    ',trim(diag_file_names)
          open(nu_diag_out+n-1, file=diag_file_names, status='unknown')
       end do
-      
+
       write(nu_diag,*) '-----------------------------------'
       write(nu_diag,*) '  ICEPACK model diagnostic output  '
       write(nu_diag,*) '-----------------------------------'
@@ -620,7 +620,7 @@
       wave_spec = .false.
       if (tr_fsd .and. (trim(wave_spec_type) /= 'none')) wave_spec = .true.
       if (tr_fsd .and. (trim(wave_spec_type) == 'none')) then
-         write (nu_diag,*) 'WARNING: tr_fsd=T but wave_spec=F - not recommended' 
+         write (nu_diag,*) 'WARNING: tr_fsd=T but wave_spec=F - not recommended'
       end if
 
       !-----------------------------------------------------------------
@@ -838,7 +838,7 @@
                  nt_ipnd = ntrcr      ! on level-ice ponds (if frzpnd='hlid')
              endif
              if (tr_pond_topo) then
-                 ntrcr = ntrcr + 1    ! 
+                 ntrcr = ntrcr + 1    !
                  nt_ipnd = ntrcr      ! refrozen pond ice lid thickness
              endif
          endif
@@ -878,12 +878,12 @@
              nt_aero = ntrcr + 1
              ntrcr = ntrcr + 4*n_aero ! 4 dEdd layers, n_aero species
          endif
-              
+
          if (ntrcr > max_ntrcr-1) then
             write(nu_diag,*) 'max_ntrcr-1 < number of namelist tracers'
             write(nu_diag,*) 'max_ntrcr-1 = ',max_ntrcr-1,' ntrcr = ',ntrcr
             call icedrv_system_abort(file=__FILE__,line=__LINE__)
-         endif                               
+         endif
 
          write(nu_diag,*) ' '
          write(nu_diag,1020) 'max_ntrcr = ', max_ntrcr
@@ -1171,11 +1171,11 @@
       do it = 1, ntrcr
          ! mask for base quantity on which tracers are carried
          if (trcr_depend(it) == 0) then      ! area
-            trcr_base(it,1) = c1 
+            trcr_base(it,1) = c1
          elseif (trcr_depend(it) == 1) then  ! ice volume
-            trcr_base(it,2) = c1 
+            trcr_base(it,2) = c1
          elseif (trcr_depend(it) == 2) then  ! snow volume
-            trcr_base(it,3) = c1 
+            trcr_base(it,3) = c1
          else
             trcr_base(it,1) = c1    ! default: ice area
             trcr_base(it,2) = c0
@@ -1283,8 +1283,8 @@
 
       ! ocean values may be redefined here, unlike in CICE
       real (kind=dbl_kind), dimension (nx), intent(inout) :: &
-         Tf     , & ! freezing temperature (C) 
-         sst        ! sea surface temperature (C) 
+         Tf     , & ! freezing temperature (C)
+         sst        ! sea surface temperature (C)
 
       real (kind=dbl_kind), dimension (nx,nilyr), &
          intent(in) :: &
@@ -1360,7 +1360,7 @@
             aicen(i,n) = c0
             vicen(i,n) = c0
             vsnon(i,n) = c0
-            trcrn(i,nt_Tsfc,n) = Tf(i)  ! surface temperature 
+            trcrn(i,nt_Tsfc,n) = Tf(i)  ! surface temperature
             if (max_ntrcr >= 2) then
                do it = 2, max_ntrcr
                   trcrn(i,it,n) = c0
@@ -1388,7 +1388,7 @@
       !-----------------------------------------------------------------
 
       i = 1  ! ice-free
-             ! already initialized above 
+             ! already initialized above
 
       !-----------------------------------------------------------------
 
@@ -1422,7 +1422,7 @@
                                   afsd=trcrn(i,nt_fsd:nt_fsd+nfsd-1,n))
          ! surface temperature
          trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
-         ! ice enthalpy, salinity 
+         ! ice enthalpy, salinity
          do k = 1, nilyr
             trcrn(i,nt_qice+k-1,n) = qin(k)
             trcrn(i,nt_sice+k-1,n) = salinz(i,k)
@@ -1446,15 +1446,15 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
-      
+
       !-----------------------------------------------------------------
 
       i = 3  ! full thickness distribution
       ! initial category areas in cells with ice
       hbar = c3  ! initial ice thickness with greatest area
-      ! Note: the resulting average ice thickness 
+      ! Note: the resulting average ice thickness
       ! tends to be less than hbar due to the
-      ! nonlinear distribution of ice thicknesses 
+      ! nonlinear distribution of ice thicknesses
 
       sum = c0
       do n = 1, ncat
@@ -1470,7 +1470,7 @@
       do n = 1, ncat
          ainit(n) = ainit(n) / (sum + puny/ncat) ! normalize
       enddo
-      
+
       do n = 1, ncat
          ! ice volume, snow volume
          aicen(i,n) = ainit(n)
@@ -1492,7 +1492,7 @@
 
          ! surface temperature
          trcrn(i,nt_Tsfc,n) = Tsfc ! deg C
-         ! ice enthalpy, salinity 
+         ! ice enthalpy, salinity
          do k = 1, nilyr
             trcrn(i,nt_qice+k-1,n) = qin(k)
             trcrn(i,nt_sice+k-1,n) = salinz(i,k)
@@ -1518,7 +1518,7 @@
           file=__FILE__, line=__LINE__)
 
       !-----------------------------------------------------------------
-      
+
       ! land
       ! already initialized above (tmask = 0)
       i = 4

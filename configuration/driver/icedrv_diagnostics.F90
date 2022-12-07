@@ -83,7 +83,7 @@
          snwredist
 
       ! fields at diagnostic points
-      real (kind=dbl_kind) :: & 
+      real (kind=dbl_kind) :: &
          pTair, pfsnow, pfrain, &
          paice, hiavg, hsavg, hbravg, psalt, pTsfc, &
          pevap, pfhocn, fsdavg, &
@@ -130,18 +130,18 @@
         pTair = Tair(n) - Tffresh ! air temperature
         pfsnow = fsnow(n)*dt/rhos ! snowfall
         pfrain = frain(n)*dt/rhow ! rainfall
-        
-        paice = aice(n)           ! ice area           
+
+        paice = aice(n)           ! ice area
         hiavg = c0                ! avg ice thickness
         hsavg = c0                ! avg snow thickness
-        fsdavg = c0               ! FSD rep radius 
+        fsdavg = c0               ! FSD rep radius
         hbravg = c0               ! avg brine thickness
         rsnwavg = c0              ! avg snow grain radius
         rhosavg = c0              ! avg snow density
         smicetot = c0             ! total mass of ice in snow (kg/m2)
         smliqtot = c0             ! total mass of liquid in snow (kg/m2)
         smtot = c0                ! total mass of snow volume (kg/m2)
-        psalt = c0 
+        psalt = c0
         if (paice /= c0) then
            hiavg = vice(n)/paice
            hsavg = vsno(n)/paice
@@ -181,7 +181,7 @@
         pdhs(n) = vsno(n) - pdhs(n)  ! snow thickness change
         pde(n) =-(work1(n)- pde(n))/dt ! ice/snow energy change
         pfhocn = -fhocn(n)        ! ocean heat used by ice
-        
+
         work3(:) = c0
 
         do k = 1, n_iso
@@ -193,9 +193,9 @@
         !-----------------------------------------------------------------
         ! start spewing
         !-----------------------------------------------------------------
-        
+
         write(nu_diag_out+n-1,899) nx_names(n)
-        
+
         write(nu_diag_out+n-1,*) '                         '
         write(nu_diag_out+n-1,*) '----------atm----------'
         write(nu_diag_out+n-1,900) 'air temperature (C)    = ',pTair
@@ -218,7 +218,7 @@
         write(nu_diag_out+n-1,900) 'avg brine thickness (m)= ',hbravg
         if (tr_fsd) &
         write(nu_diag_out+n-1,900) 'avg fsd rep radius (m) = ',fsdavg
-       
+
         if (calc_Tsfc) then
           write(nu_diag_out+n-1,900) 'surface temperature(C) = ',pTsfc ! ice/snow
           write(nu_diag_out+n-1,900) 'absorbed shortwave flx = ',fswabs(n)
@@ -257,7 +257,7 @@
         write(nu_diag_out+n-1,900) 'sss (ppt)              = ',sss(n)  ! sea surface salinity
         write(nu_diag_out+n-1,900) 'freezing temp (C)      = ',Tf(n)   ! freezing temperature
         write(nu_diag_out+n-1,900) 'heat used (W/m^2)      = ',pfhocn  ! ocean heat used by ice
-        
+
         if (tr_iso) then
           do k = 1, n_iso
              write(nu_diag_out+n-1,901) 'isotopic precip      = ',fiso_atm(n,k)*dt,k
@@ -471,7 +471,7 @@
 
       character (*), intent(in) :: plabel
 
-      integer (kind=int_kind), intent(in) :: & 
+      integer (kind=int_kind), intent(in) :: &
           i              ! horizontal index
 
       ! local variables
