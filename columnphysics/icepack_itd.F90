@@ -1309,9 +1309,9 @@
       !-----------------------------------------------------------------
 
             xtmp = (rhoi*vicen(n) + rhos*vsnon(n)) &
-                 * (aice-c1)/aice / dt 
-            dfresh = dfresh + xtmp 
- 
+                 * (aice-c1)/aice / dt
+            dfresh = dfresh + xtmp
+
             if (saltflux_option == 'prognostic') then
                sicen = c0
                do k=1,nilyr
@@ -1323,8 +1323,8 @@
                xtmp = rhoi*vicen(n)*ice_ref_salinity*p001 &
                     * (aice-c1)/aice / dt
             endif
-            dfsalt = dfsalt + xtmp 
- 
+            dfsalt = dfsalt + xtmp
+
             if (solve_zsal) then
             do k = 1,nblyr
                xtmp = rhosi*trcrn(nt_fbri,n)*vicen(n)*p001&

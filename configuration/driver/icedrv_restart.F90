@@ -18,8 +18,8 @@
       implicit none
       private :: &
           write_restart_age,       read_restart_age, &
-          write_restart_FY,        read_restart_FY, &  
-          write_restart_lvl,       read_restart_lvl, & 
+          write_restart_FY,        read_restart_FY, &
+          write_restart_lvl,       read_restart_lvl, &
           write_restart_pond_lvl,  read_restart_pond_lvl, &
           write_restart_pond_topo, read_restart_pond_topo, &
           write_restart_snow,      read_restart_snow, &
@@ -72,12 +72,12 @@
 
       ! construct path/file
       iyear = nyr + year_init - 1
-      
+
       write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
          restart_dir(1:lenstr(restart_dir)), &
          restart_file(1:lenstr(restart_file)),'.', &
          iyear,'-',month,'-',mday,'-',sec
-      
+
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
            nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
@@ -94,7 +94,7 @@
       open(nu_dump,file=filename,form='unformatted')
       write(nu_dump) istep1,time,time_forc
       write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
-      
+
       !-----------------------------------------------------------------
       ! state variables
       ! Tsfc is the only tracer written to binary files.  All other
@@ -185,7 +185,7 @@
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(restartfile)'
 
-      if (present(ice_ic)) then 
+      if (present(ice_ic)) then
          filename = trim(ice_ic)
       else
          call icedrv_system_abort(string=subname//'no ice_ic present', &
@@ -226,12 +226,12 @@
       do k=1,nilyr
          call read_restart_field(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
       enddo
-      
+
       write(nu_diag,*) 'min/max qice for each layer'
       do k=1,nilyr
          call read_restart_field(nu_restart,trcrn(:,nt_qice+k-1,:),ncat)
       enddo
-      
+
       write(nu_diag,*) 'min/max qsno for each layer'
       do k=1,nslyr
          call read_restart_field(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
@@ -348,9 +348,9 @@
       maxw = maxval(work)
       sumw = sum(work)
       write(nu_diag,*) subname, minw, maxw, sumw
-      
+
       end subroutine read_restart_field
-      
+
 !=======================================================================
 
 ! Writes a single restart field.
@@ -371,10 +371,10 @@
 
       integer (kind=int_kind) :: &
          n, i              ! loop indices
-      
+
       real (kind=dbl_kind), dimension(nx) :: &
          work2             ! input array (real, 8-byte)
-      
+
       real (kind=dbl_kind) :: &
         minw, maxw, sumw    ! diagnostics
 
@@ -384,12 +384,12 @@
         work2(:) = work(:,n)
         write(nu) (work2(i), i=1,nx)
       enddo
-      
+
       minw = minval(work)
       maxw = maxval(work)
       sumw = sum(work)
       write(nu_diag,*) subname, minw, maxw, sumw
-      
+
       end subroutine write_restart_field
 
 !=======================================================================
@@ -420,7 +420,7 @@
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
 
-      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd 
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
       character(len=*), parameter :: subname='(write_restart_pond_topo)'
 
       call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
@@ -446,7 +446,7 @@
 
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
-      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd 
+      integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
       character(len=*), parameter :: subname='(read_restart_pond_topo)'
 
       call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
@@ -494,7 +494,7 @@
 
 !=======================================================================
 
-! Reads all values needed to restart snow redistribution/metamorphism 
+! Reads all values needed to restart snow redistribution/metamorphism
 !
 ! authors Elizabeth C. Hunke, LANL
 
@@ -796,7 +796,7 @@
          k                    ! loop indices
       integer (kind=int_kind) :: nt_aero
       character(len=*), parameter :: subname='(write_restart_aero)'
-    
+
       call icepack_query_tracer_indices(nt_aero_out=nt_aero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -872,7 +872,7 @@
          k                    ! loop indices
       integer (kind=int_kind) :: nt_isosno, nt_isoice
       character(len=*), parameter :: subname='(write_restart_iso)'
-    
+
       call icepack_query_tracer_indices(nt_isosno_out=nt_isosno)
       call icepack_query_tracer_indices(nt_isoice_out=nt_isoice)
       call icepack_warnings_flush(nu_diag)
@@ -949,7 +949,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-        do i = 1, nx  
+        do i = 1, nx
            do n = 1, ncat
               if (first_ice     (i,n)) then
                   first_ice_real(i,n) = c1
@@ -1000,7 +1000,7 @@
                    first_ice     (i,n) = .false.
                endif
             enddo ! ncat
-         enddo    ! i 
+         enddo    ! i
 
       end subroutine read_restart_hbrine
 

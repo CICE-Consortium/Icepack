@@ -595,9 +595,6 @@ icepack_step_ridge
            !tr_pond_topo,& ! if .true., use explicit topography-based ponds
            !tr_aero     ,& ! if .true., use aerosol tracers
            !tr_brine    !,& ! if .true., brine height differs from ice thickness
-  #ifdef UNDEPRECATE_0LAYER
-           !heat_capacity  ! if true, ice has nonzero heat capacity
-  #endif
   
         logical (kind=log_kind), dimension(:), intent(inout) :: &
            first_ice    ! true until ice forms
@@ -741,11 +738,7 @@ icepack_init_parameters
            stefan_boltzmann_in, ice_ref_salinity_in, &
            Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
            iceruf_in, Cf_in, Pstar_in, Cstar_in, kappav_in, &
-  #ifdef UNDEPRECATE_0LAYER
-           kice_in, kseaice_in, ksno_in, &
-  #else
            kice_in, ksno_in, &
-  #endif
            zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
            saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
            min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, &
@@ -762,16 +755,13 @@ icepack_init_parameters
            atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
            atmiter_conv_in, calc_dragio_in, &
            tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
+           saltflux_option_in, &
            floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
            dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
            bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
            modal_aero_in, skl_bgc_in, solve_zsal_in, grid_o_in, l_sk_in, &
            initbio_frac_in, grid_oS_in, l_skS_in,  dEdd_algae_in, &
-  #ifdef UNDEPRECATE_0LAYER
-           phi_snow_in, heat_capacity_in, T_max_in, fsal_in, &
-  #else
            phi_snow_in, T_max_in, fsal_in, &
-  #endif
            fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
            op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
            fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
@@ -790,7 +780,7 @@ icepack_init_parameters
         !-----------------------------------------------------------------
   
         character(len=*), intent(in), optional :: &
-           argcheck_in      ! optional argument checking
+           argcheck_in      ! optional argument checking, never, first, or always
   
         !-----------------------------------------------------------------
         ! parameter constants
@@ -832,9 +822,6 @@ icepack_init_parameters
            Tsmelt_in,     & ! melting temperature, snow top surface (C)
            ice_ref_salinity_in, & ! (ppt)
            kice_in,       & ! thermal conductivity of fresh ice(W/m/deg)
-  #ifdef UNDEPRECATE_0LAYER
-           kseaice_in,    & ! thermal conductivity of sea ice (W/m/deg)
-  #endif
            ksno_in,       & ! thermal conductivity of snow  (W/m/deg)
            hs_min_in,     & ! min snow thickness for computing zTsn (m)
            snowpatch_in,  & ! parameter for fractional snow area (m)
@@ -846,11 +833,7 @@ icepack_init_parameters
   
         integer (kind=int_kind), intent(in), optional :: &
            ktherm_in          ! type of thermodynamics
-  #ifdef UNDEPRECATE_0LAYER
-                              ! 0 = 0-layer approximation
-  #else
                               ! -1 none
-  #endif
                               ! 1 = Bitz and Lipscomb 1999
                               ! 2 = mushy layer theory
   
@@ -859,10 +842,6 @@ icepack_init_parameters
            fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
   
         logical (kind=log_kind), intent(in), optional :: &
-  #ifdef UNDEPRECATE_0LAYER
-           heat_capacity_in, &! if true, ice has nonzero heat capacity
-                              ! if false, use zero-layer thermodynamics
-  #endif
            calc_Tsfc_in    , &! if true, calculate surface temperature
                               ! if false, Tsfc is computed elsewhere and
                               ! atmos-ice fluxes are provided to CICE
@@ -881,11 +860,16 @@ icepack_init_parameters
            phi_c_slow_mode_in   , & ! liquid fraction porosity cutoff for slow mode
            phi_i_mushy_in           ! liquid fraction of congelation ice
   
-          character(len=*), intent(in), optional :: &
-               tfrz_option_in              ! form of ocean freezing temperature
-                                           ! 'minus1p8' = -1.8 C
-                                           ! 'linear_salt' = -depressT * sss
-                                           ! 'mushy' conforms with ktherm=2
+        character(len=*), intent(in), optional :: &
+           tfrz_option_in              ! form of ocean freezing temperature
+                                       ! 'minus1p8' = -1.8 C
+                                       ! 'linear_salt' = -depressT * sss
+                                       ! 'mushy' conforms with ktherm=2
+  
+        character(len=*), intent(in), optional :: &
+           saltflux_option_in         ! Salt flux computation
+                                      ! 'constant' reference value of ice_ref_salinity
+                                      ! 'prognostic' prognostic salt flux
   
   !-----------------------------------------------------------------------
   ! Parameters for radiation
@@ -1160,11 +1144,7 @@ icepack_query_parameters
            stefan_boltzmann_out, ice_ref_salinity_out, &
            Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
            iceruf_out, Cf_out, Pstar_out, Cstar_out, kappav_out, &
-  #ifdef UNDEPRECATE_0LAYER
-           kice_out, kseaice_out, ksno_out, &
-  #else
            kice_out, ksno_out, &
-  #endif
            zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
            saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
            min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
@@ -1181,16 +1161,13 @@ icepack_query_parameters
            atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
            atmiter_conv_out, calc_dragio_out, &
            tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
+           saltflux_option_out, &
            floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
            dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
            bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
            modal_aero_out, skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
            initbio_frac_out, grid_oS_out, l_skS_out, &
-  #ifdef UNDEPRECATE_0LAYER
-           phi_snow_out, heat_capacity_out, conserv_check_out, &
-  #else
            phi_snow_out, conserv_check_out, &
-  #endif
            fr_resp_out, algal_vel_out, R_dFe2dust_out, dustFe_sol_out, &
            T_max_out, fsal_out, op_dep_min_out, fr_graze_s_out, fr_graze_e_out, &
            fr_mort2min_out, fr_resp_s_out, fr_dFe_out, &
@@ -1260,9 +1237,6 @@ icepack_query_parameters
            Tsmelt_out,     & ! melting temperature, snow top surface (C)
            ice_ref_salinity_out, & ! (ppt)
            kice_out,       & ! thermal conductivity of fresh ice(W/m/deg)
-  #ifdef UNDEPRECATE_0LAYER
-           kseaice_out,    & ! thermal conductivity of sea ice (W/m/deg)
-  #endif
            ksno_out,       & ! thermal conductivity of snow  (W/m/deg)
            hs_min_out,     & ! min snow thickness for computing zTsn (m)
            snowpatch_out,  & ! parameter for fractional snow area (m)
@@ -1274,11 +1248,7 @@ icepack_query_parameters
   
         integer (kind=int_kind), intent(out), optional :: &
            ktherm_out         ! type of thermodynamics
-  #ifdef UNDEPRECATE_0LAYER
-                              ! 0 = 0-layer approximation
-  #else
                               ! -1 none
-  #endif
                               ! 1 = Bitz and Lipscomb 1999
                               ! 2 = mushy layer theory
   
@@ -1287,10 +1257,6 @@ icepack_query_parameters
            fbot_xfer_type_out ! transfer coefficient type for ice-ocean heat flux
   
         logical (kind=log_kind), intent(out), optional :: &
-  #ifdef UNDEPRECATE_0LAYER
-           heat_capacity_out,&! if true, ice has nonzero heat capacity
-                              ! if false, use zero-layer thermodynamics
-  #endif
            calc_Tsfc_out    ,&! if true, calculate surface temperature
                               ! if false, Tsfc is computed elsewhere and
                               ! atmos-ice fluxes are provided to CICE
@@ -1314,6 +1280,12 @@ icepack_query_parameters
                                         ! 'minus1p8' = -1.8 C
                                         ! 'linear_salt' = -depressT * sss
                                         ! 'mushy' conforms with ktherm=2
+  
+        character(len=*), intent(out), optional :: &
+           saltflux_option_out         ! Salt flux computation
+                                       ! 'constant' reference value of ice_ref_salinity
+                                       ! 'prognostic' prognostic salt flux
+  
   
   !-----------------------------------------------------------------------
   ! Parameters for radiation
@@ -2108,7 +2080,7 @@ icepack_init_trcr
            nslyr       ! number of snow layers
   
         real (kind=dbl_kind), intent(in) :: &
-           Tair, &     ! air temperature (C)
+           Tair, &     ! air temperature (K)
            Tf          ! freezing temperature (C)
   
         real (kind=dbl_kind), dimension(:), intent(in) :: &
@@ -2496,11 +2468,7 @@ icepack_init_tracer_flags
   
         subroutine icepack_init_tracer_flags(&
              tr_iage_in, tr_FY_in, tr_lvl_in, tr_snow_in, &
-  #ifdef UNDEPRECATE_CESMPONDS
-             tr_pond_in, tr_pond_cesm_in, tr_pond_lvl_in, tr_pond_topo_in, &
-  #else
              tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, &
-  #endif
              tr_fsd_in, tr_aero_in, tr_iso_in, tr_brine_in, tr_zaero_in, &
              tr_bgc_Nit_in, tr_bgc_N_in, tr_bgc_DON_in, tr_bgc_C_in, tr_bgc_chl_in, &
              tr_bgc_Am_in, tr_bgc_Sil_in, tr_bgc_DMS_in, tr_bgc_Fe_in, tr_bgc_hum_in, &
@@ -2511,9 +2479,6 @@ icepack_init_tracer_flags
                tr_FY_in        , & ! if .true., use first-year area tracer
                tr_lvl_in       , & ! if .true., use level ice tracer
                tr_pond_in      , & ! if .true., use melt pond tracer
-  #ifdef UNDEPRECATE_CESMPONDS
-               tr_pond_cesm_in , & ! if .true., use cesm pond tracer
-  #endif
                tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
                tr_snow_in      , & ! if .true., use snow metamorphosis tracers
@@ -2546,11 +2511,7 @@ icepack_query_tracer_flags
   
         subroutine icepack_query_tracer_flags(&
              tr_iage_out, tr_FY_out, tr_lvl_out, tr_snow_out, &
-  #ifdef UNDEPRECATE_CESMPONDS
-             tr_pond_out, tr_pond_cesm_out, tr_pond_lvl_out, tr_pond_topo_out, &
-  #else
              tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, &
-  #endif
              tr_fsd_out, tr_aero_out, tr_iso_out, tr_brine_out, tr_zaero_out, &
              tr_bgc_Nit_out, tr_bgc_N_out, tr_bgc_DON_out, tr_bgc_C_out, tr_bgc_chl_out, &
              tr_bgc_Am_out, tr_bgc_Sil_out, tr_bgc_DMS_out, tr_bgc_Fe_out, tr_bgc_hum_out, &
@@ -2561,9 +2522,6 @@ icepack_query_tracer_flags
                tr_FY_out        , & ! if .true., use first-year area tracer
                tr_lvl_out       , & ! if .true., use level ice tracer
                tr_pond_out      , & ! if .true., use melt pond tracer
-  #ifdef UNDEPRECATE_CESMPONDS
-               tr_pond_cesm_out , & ! if .true., use cesm pond tracer
-  #endif
                tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
                tr_snow_out      , & ! if .true., use snow metamorphosis tracers

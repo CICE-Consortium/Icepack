@@ -1605,7 +1605,7 @@
       !-----------------------------------------------------------------
 
       if (update_ocn_f) then
-         dfresh = -rhoi*vi0new/dt 
+         dfresh = -rhoi*vi0new/dt
          if (saltflux_option == 'prognostic') then
             dfsalt = Si0new*p001*dfresh
          else

@@ -148,7 +148,7 @@
 
       calendar_type = ' '
       if (use_leap_years .and. days_per_year == 365) calendar_type = 'Gregorian'
-      
+
       dayyr = real(days_per_year, kind=dbl_kind)
       if (days_per_year == 360) then
          daymo  = daymo360
@@ -161,7 +161,7 @@
       ! Get the time in seconds from calendar zero to start of initial year
       call time2sec(year_init,1,1,basis_seconds)
 
-      ! determine initial date (assumes namelist year_init, istep0 unchanged)     
+      ! determine initial date (assumes namelist year_init, istep0 unchanged)
       sec = mod(time,secday)            ! elapsed seconds into date at
                                         ! end of dt
       tday = (time-sec)/secday + c1     ! absolute day number
@@ -172,7 +172,7 @@
       yday = mday + daycal(month)  ! day of the year
       nyr = nyr - year_init + 1    ! year number
 
-      idate0 = (nyr+year_init-1)*10000 + month*100 + mday ! date (yyyymmdd) 
+      idate0 = (nyr+year_init-1)*10000 + month*100 + mday ! date (yyyymmdd)
 
       end subroutine init_calendar
 
@@ -218,10 +218,10 @@
 
       yday = mday + daycal(month)   ! day of the year
       nyr = nyr - year_init + 1     ! year number
-      
+
       hour = int((ttime)/c3600) + c1 ! hour
 
-      idate = (nyr+year_init-1)*10000 + month*100 + mday ! date (yyyymmdd) 
+      idate = (nyr+year_init-1)*10000 + month*100 + mday ! date (yyyymmdd)
 
       if (istep >= npt+1)  stop_now = 1
       if (nyr   /= nyrp)   new_year = .true.
@@ -245,7 +245,7 @@
 
         if (force_restart_now) write_restart = 1
         if (dump_last .and. istep == npt) write_restart = 1
-      
+
       endif !  istep > 1
 
       if (mod(istep,diagfreq) == 0 .and. stop_now /= 1) then
@@ -283,7 +283,7 @@
          tsec = secday * days_since_calz
 
       else
-         
+
          if (use_leap_years) then
 
             call set_calendar(year)
@@ -293,7 +293,7 @@
 
             ! Subtract a year because we only want to count whole years
             years_since_calz = year - 1
-            
+
             ! Add days from preceeding years
             days_since_calz  = days_since_calz &
                              + int(years_since_calz/c400)*days_per_4c
@@ -314,9 +314,9 @@
                              + years_since_calz*days_per_y
 
             tsec = secday * days_since_calz
-            
+
          else ! Using fixed 365-day calendar
-            
+
             days_since_calz = c365*year + daycal365(month) + day - c1
             tsec = secday * days_since_calz
 
@@ -360,7 +360,7 @@
             year = int(days_since_calz/days_per_4c)*400
             days_since_calz = days_since_calz &
                             - int(days_since_calz/days_per_4c)*days_per_4c
-            
+
             if (days_since_calz == 4*days_per_c) then
                year = year + 400
                days_since_calz = days_per_y + 1
@@ -368,11 +368,11 @@
                year = year + int(days_since_calz/days_per_c)*100
                days_since_calz = days_since_calz &
                                - int(days_since_calz/days_per_c)*days_per_c
-               
+
                year = year + int(days_since_calz/days_per_4y)*4
                days_since_calz = days_since_calz &
                                - int(days_since_calz/days_per_4y)*days_per_4y
-               
+
                if (days_since_calz == 4*days_per_y) then
                   year = year + 4
                   days_since_calz = days_per_y + 1
@@ -396,10 +396,10 @@
             day = days_since_calz - daycal(month)
 
          else ! Using fixed 365-day calendar
-            
+
             year = int(days_since_calz/c365)
             days_since_calz = days_since_calz - year*365 + 1
-      
+
             ! Calculate the month
             month = 1
             do k = 1, 12
@@ -417,7 +417,7 @@
 
 !=======================================================================
 
-! Set the "days per month", "days per year", etc variables for the 
+! Set the "days per month", "days per year", etc variables for the
 ! current year.
 !
 ! authors: Craig MacLachlan, UK Met Office
@@ -434,7 +434,7 @@
       if (mod(year,  4) == 0) isleap = .true.
       if (mod(year,100) == 0) isleap = .false.
       if (mod(year,400) == 0) isleap = .true.
-      
+
       ! Ensure the calendar is set correctly
       if (isleap) then
          daycal = daycal366
