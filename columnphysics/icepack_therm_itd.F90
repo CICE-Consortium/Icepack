@@ -28,11 +28,12 @@
       use icepack_parameters, only: rhosi, conserv_check, rhosmin
       use icepack_parameters, only: kitd, ktherm
       use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin, hi_min
+      use icepack_parameters, only: saltflux_option
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
       use icepack_tracers, only: nt_apnd, nt_hpnd, nt_aero, nt_isosno, nt_isoice
-      use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_fsd, nt_rhos
+      use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_fsd, nt_rhos, nt_sice
       use icepack_tracers, only: nt_alvl, nt_vlvl
       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_snow
       use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_iso, tr_brine, tr_fsd
@@ -985,7 +986,7 @@
       real (kind=dbl_kind), intent(in) :: &
          sss
       real (kind=dbl_kind) :: &
-         Ti, Si0, qi0, &
+         Ti, Si0, qi0, sicen, &
          elapsed_t,    & ! FSD subcycling
          subdt           ! FSD timestep (s)
 
@@ -1094,7 +1095,15 @@
             ! dfresh > 0, dfsalt > 0, dfpond > 0
 
             dfresh = (rhoi*vicen(n) + rhos*vsnon(n))      * rsiden(n) / dt
-            dfsalt =  rhoi*vicen(n)*ice_ref_salinity*p001 * rsiden(n) / dt
+            if (saltflux_option == 'prognostic') then
+               sicen = c0
+               do k=1,nilyr
+                  sicen = sicen + trcrn(nt_sice+k-1,n) / real(nilyr,kind=dbl_kind)
+               enddo
+               dfsalt = rhoi*vicen(n)*sicen*p001 * rsiden(n) / dt
+            else
+               dfsalt = rhoi*vicen(n)*ice_ref_salinity*p001 * rsiden(n) / dt
+            endif
             fresh  = fresh + dfresh
             fsalt  = fsalt + dfsalt
 
@@ -1597,18 +1606,23 @@
       !-----------------------------------------------------------------
 
       if (update_ocn_f) then
-         if (ktherm <= 1) then
-            dfresh = -rhoi*vi0new/dt
+         dfresh = -rhoi*vi0new/dt
+         if (saltflux_option == 'prognostic') then
+            dfsalt = Si0new*p001*dfresh
+         else
             dfsalt = ice_ref_salinity*p001*dfresh
-            fresh  = fresh + dfresh
-            fsalt  = fsalt + dfsalt
-         ! elseif (ktherm == 2) the fluxes are added elsewhere
          endif
+         fresh  = fresh + dfresh
+         fsalt  = fsalt + dfsalt
       else ! update_ocn_f = false
          if (ktherm == 2) then ! return mushy-layer frazil to ocean (POP)
             vi0tmp = fnew*dt / (rhoi*Lfresh)
             dfresh = -rhoi*(vi0new - vi0tmp)/dt
-            dfsalt = ice_ref_salinity*p001*dfresh
+            if (saltflux_option == 'prognostic') then
+               dfsalt = Si0new*p001*dfresh
+            else
+               dfsalt = ice_ref_salinity*p001*dfresh
+            endif
             fresh  = fresh + dfresh
             fsalt  = fsalt + dfsalt
             frazil_diag = frazil - vi0tmp

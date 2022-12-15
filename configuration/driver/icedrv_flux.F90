@@ -36,9 +36,9 @@
 
       real (kind=dbl_kind), dimension (nx), public :: &
 
-       ! in from atmos (if .not.calc_strair)  
+       ! in from atmos (if .not.calc_strair)
          strax   , & ! wind stress components (N/m^2)
-         stray   , & ! 
+         stray   , & !
 
        ! in from ocean
          uocn    , & ! ocean current, x-direction (m/s)
@@ -66,7 +66,7 @@
          closing,  & ! rate of closing due to divergence/shear (1/s)
          opening     ! rate of opening due to divergence/shear (1/s)
 
-      real (kind=dbl_kind), & 
+      real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
        ! ridging diagnostics in categories
          dardg1ndt, & ! rate of area loss by ridging ice (1/s)
@@ -77,7 +77,7 @@
          ardgn,     & ! fractional area of ridged ice
          vrdgn,     & ! volume of ridged ice
          araftn,    & ! rafting ice area
-         vraftn,    & ! rafting ice volume 
+         vraftn,    & ! rafting ice volume
          aredistn,  & ! redistribution function: fraction of new ridge area
          vredistn     ! redistribution function: fraction of new ridge volume
 
@@ -105,7 +105,7 @@
        ! in from atmosphere (if .not. calc_Tsfc)
        ! These are per ice area
 
-      real (kind=dbl_kind), & 
+      real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
          fsurfn_f   , & ! net flux to top surface, excluding fcondtop
          fcondtopn_f, & ! downward cond flux at top surface (W m-2)
@@ -205,7 +205,7 @@
          snoicen         ! snow-ice formation in category n (m)
 
       real (kind=dbl_kind), dimension (nx,ncat), public :: &
-         keffn_top       ! effective thermal conductivity of the top ice layer 
+         keffn_top       ! effective thermal conductivity of the top ice layer
                          ! on categories (W/m^2/K)
 
       ! quantities passed from ocean mixed layer to atmosphere
@@ -247,8 +247,8 @@
          mlt_onset, &! day of year that sfc melting begins
          frz_onset, &! day of year that freezing begins (congel or frazil)
          frazil_diag ! frazil ice growth diagnostic (m/step-->cm/day)
-         
-      real (kind=dbl_kind), & 
+
+      real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
          fsurfn,   & ! category fsurf
          fcondtopn,& ! category fcondtop
@@ -259,10 +259,10 @@
       ! As above but these remain grid box mean values i.e. they are not
       ! divided by aice at end of ice_dynamics.
       ! These are used for generating
-      ! ice diagnostics as these are more accurate. 
+      ! ice diagnostics as these are more accurate.
       ! (The others suffer from problem of incorrect values at grid boxes
       !  that change from an ice free state to an icy state.)
-    
+
       real (kind=dbl_kind), dimension (nx), public :: &
          fresh_ai, & ! fresh water flux to ocean (kg/m^2/s)
          fsalt_ai, & ! salt flux to ocean (kg/m^2/s)
@@ -277,12 +277,12 @@
          rside   , & ! fraction of ice that melts laterally
          fside   , & ! lateral heat flux (W/m^2)
          fsw     , & ! incoming shortwave radiation (W/m^2)
-         coszen  , & ! cosine solar zenith angle, < 0 for sun below horizon 
+         coszen  , & ! cosine solar zenith angle, < 0 for sun below horizon
          rdg_conv, & ! convergence term for ridging (1/s)
          rdg_shear   ! shear term for ridging (1/s)
- 
+
       real (kind=dbl_kind), dimension(nx,nilyr+1), public :: &
-         salinz  , & ! initial salinity  profile (ppt)   
+         salinz  , & ! initial salinity  profile (ppt)
          Tmltz       ! initial melting temperature (C)
 
       !-----------------------------------------------------------------
@@ -293,12 +293,12 @@
 
       real (kind=dbl_kind), &   ! coupling variable for both tr_aero and tr_zaero
          dimension (nx,icepack_max_aero), public :: &
-         faero_atm   ! aerosol deposition rate (kg/m^2 s)   
+         faero_atm   ! aerosol deposition rate (kg/m^2 s)
 
       real (kind=dbl_kind), &   ! coupling variable for tr_iso
          dimension (nx,icepack_max_iso), public :: &
-         fiso_atm  , & ! isotope deposition rate (kg/m^2 s)   
-         fiso_evap     ! isotope evaporation rate (kg/m^2 s)   
+         fiso_atm  , & ! isotope deposition rate (kg/m^2 s)
+         fiso_evap     ! isotope evaporation rate (kg/m^2 s)
 
       real (kind=dbl_kind), &
          dimension (nx,icepack_max_nbtrcr), public :: &
@@ -324,8 +324,8 @@
          flux_bio_ai    ! all bio fluxes to ocean, averaged over grid cell
 
       real (kind=dbl_kind), dimension (nx), public :: &
-         fzsal_ai, & ! salt flux to ocean from zsalinity (kg/m^2/s) 
-         fzsal_g_ai  ! gravity drainage salt flux to ocean (kg/m^2/s) 
+         fzsal_ai, & ! salt flux to ocean from zsalinity (kg/m^2/s)
+         fzsal_g_ai  ! gravity drainage salt flux to ocean (kg/m^2/s)
 
       ! internal
 
@@ -337,7 +337,7 @@
          dsnown          ! change in snow thickness in category n (m)
 
       real (kind=dbl_kind), dimension (nx), public :: &
-         nit        , & ! ocean nitrate (mmol/m^3)          
+         nit        , & ! ocean nitrate (mmol/m^3)
          amm        , & ! ammonia/um (mmol/m^3)
          sil        , & ! silicate (mmol/m^3)
          dmsp       , & ! dmsp (mmol/m^3)
@@ -364,15 +364,15 @@
          fdon            ! ice-ocean don flux (mmol/m^2/s) (proteins and amino acids)
 
       real (kind=dbl_kind), dimension (nx,icepack_max_dic), public :: &
-         dic         , & ! ocean dic (mmol/m^3) 
-         fdic            ! ice-ocean dic flux (mmol/m^2/s) 
+         dic         , & ! ocean dic (mmol/m^3)
+         fdic            ! ice-ocean dic flux (mmol/m^2/s)
 
       real (kind=dbl_kind), dimension (nx,icepack_max_fe), public :: &
-         fed, fep    , & ! ocean dissolved and particulate fe (nM) 
-         ffed, ffep      ! ice-ocean dissolved and particulate fe flux (umol/m^2/s) 
+         fed, fep    , & ! ocean dissolved and particulate fe (nM)
+         ffed, ffep      ! ice-ocean dissolved and particulate fe flux (umol/m^2/s)
 
       real (kind=dbl_kind), dimension (nx,icepack_max_aero), public :: &
-         zaeros          ! ocean aerosols (mmol/m^3) 
+         zaeros          ! ocean aerosols (mmol/m^3)
 
 !=======================================================================
 
@@ -520,7 +520,7 @@
       fsens   (:) = c0
       flat    (:) = c0
       fswabs  (:) = c0
-      flwout  (:) = -stefan_boltzmann*Tffresh**4   
+      flwout  (:) = -stefan_boltzmann*Tffresh**4
                      ! in case atm model diagnoses Tsfc from flwout
       evap    (:) = c0
       evaps   (:) = c0
@@ -561,7 +561,7 @@
       fdon   (:,:)= c0
       ffep   (:,:)= c0
       ffed   (:,:)= c0
-      
+
       !-----------------------------------------------------------------
       ! derived or computed fields
       !-----------------------------------------------------------------
@@ -569,7 +569,7 @@
       coszen  (:) = c0            ! Cosine of the zenith angle
 !      fsw     (:) = c0            ! shortwave radiation (W/m^2)
       fsw     (:) = swvdr(:) + swvdf(:) + swidr(:) + swidf(:)
-      scale_factor(:) = c1        ! shortwave scaling factor 
+      scale_factor(:) = c1        ! shortwave scaling factor
       wind    (:) = sqrt(uatm(:)**2 + vatm(:)**2)  ! wind speed, (m/s)
       Cdn_atm(:) = (vonkar/log(zref/iceruf)) &
                  * (vonkar/log(zref/iceruf)) ! atmo drag for RASM
@@ -695,8 +695,8 @@
       snowfrac (:) = c0
       frazil_diag (:) = c0
 
-      ! drag coefficients are computed prior to the atmo_boundary call, 
-      ! during the thermodynamics section 
+      ! drag coefficients are computed prior to the atmo_boundary call,
+      ! during the thermodynamics section
       Cdn_ocn(:) = dragio
       Cdn_atm(:) = (vonkar/log(zref/iceruf)) &
                  * (vonkar/log(zref/iceruf)) ! atmo drag for RASM
@@ -781,7 +781,7 @@
 
       use icedrv_arrays_column, only: PP_net, grow_net, hbri
       use icedrv_arrays_column, only: ice_bio_net, snow_bio_net, fbio_snoice, fbio_atmice
-      use icedrv_arrays_column, only: fzsal, fzsal_g, zfswin 
+      use icedrv_arrays_column, only: fzsal, fzsal_g, zfswin
       character(len=*), parameter :: subname='(init_history_bgc)'
 
       PP_net        (:) = c0

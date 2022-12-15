@@ -134,7 +134,7 @@
       ! column packge includes
       use icepack_intfc, only: icepack_step_therm1
 
-      logical (kind=log_kind) :: & 
+      logical (kind=log_kind) :: &
          prescribed_ice ! if .true., use prescribed ice instead of computed
 
       real (kind=dbl_kind), intent(in) :: &
@@ -248,7 +248,7 @@
             enddo
           enddo
         endif ! tr_aero
-        
+
         if (tr_iso) then
           ! trcrn(nt_isosno/ice) has units kg/m^3
           do n = 1, ncat
@@ -278,16 +278,16 @@
             vsno = vsno(i),   vsnon = vsnon(i,:), &
             uvel = uvel(i),   vvel  = vvel(i),    &
             Tsfc = trcrn(i,nt_Tsfc,:),                 &
-            zqsn = trcrn(i,nt_qsno:nt_qsno+nslyr-1,:), & 
-            zqin = trcrn(i,nt_qice:nt_qice+nilyr-1,:), & 
-            zSin = trcrn(i,nt_sice:nt_sice+nilyr-1,:), & 
-            alvl = trcrn(i,nt_alvl,:),                 & 
-            vlvl = trcrn(i,nt_vlvl,:),                 & 
-            apnd = trcrn(i,nt_apnd,:),                 & 
-            hpnd = trcrn(i,nt_hpnd,:),                 & 
-            ipnd = trcrn(i,nt_ipnd,:),                 & 
+            zqsn = trcrn(i,nt_qsno:nt_qsno+nslyr-1,:), &
+            zqin = trcrn(i,nt_qice:nt_qice+nilyr-1,:), &
+            zSin = trcrn(i,nt_sice:nt_sice+nilyr-1,:), &
+            alvl = trcrn(i,nt_alvl,:),                 &
+            vlvl = trcrn(i,nt_vlvl,:),                 &
+            apnd = trcrn(i,nt_apnd,:),                 &
+            hpnd = trcrn(i,nt_hpnd,:),                 &
+            ipnd = trcrn(i,nt_ipnd,:),                 &
             iage = trcrn(i,nt_iage,:),                 &
-            FY   = trcrn(i,nt_FY,:),                   & 
+            FY   = trcrn(i,nt_FY,:),                   &
             rsnwn  = rsnwn (:,:),            &
             smicen = smicen(:,:),            &
             smliqn = smliqn(:,:),            &
@@ -385,7 +385,7 @@
             enddo
           enddo
         endif ! tr_aero
-        
+
         if (tr_iso) then
           do n = 1, ncat
             if (vicen(i,n) > puny) isoice(:,n) = isoice(:,n)/vicen(i,n)
@@ -396,7 +396,7 @@
             enddo
           enddo
         endif ! tr_iso
-        
+
         if (tr_snow) then
           do n = 1, ncat
             do k = 1, nslyr
@@ -411,7 +411,7 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
-      
+
     end subroutine step_therm1
 
 !=======================================================================
@@ -434,7 +434,7 @@
                                     nltrcr, nx, nfsd
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
       use icedrv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside, fside
-      use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn 
+      use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn
       use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
       use icedrv_init, only: tmask
       use icedrv_state, only: aice, aicen, aice0, trcr_depend
@@ -481,7 +481,7 @@
 
             call icepack_step_therm2(dt=dt, ncat=ncat,                &
                          nltrcr=nltrcr, nilyr=nilyr, nslyr=nslyr,     &
-                         hin_max=hin_max(:), nblyr=nblyr,             &   
+                         hin_max=hin_max(:), nblyr=nblyr,             &
                          aicen=aicen(i,:),                            &
                          vicen=vicen(i,:),                            &
                          vsnon=vsnon(i,:),                            &
@@ -531,7 +531,7 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
-         
+
       end subroutine step_therm2
 
 !=======================================================================
@@ -563,7 +563,7 @@
       real (kind=dbl_kind), intent(in), optional :: &
          offset    ! d(age)/dt time offset = dt for thermo, 0 for dyn
 
-      integer (kind=int_kind) :: & 
+      integer (kind=int_kind) :: &
          i,     & ! horizontal indices
          ntrcr, & !
          nt_iage  !
@@ -596,9 +596,9 @@
       do i = 1, nx
 
       !-----------------------------------------------------------------
-      ! Aggregate the updated state variables (includes ghost cells). 
-      !----------------------------------------------------------------- 
- 
+      ! Aggregate the updated state variables (includes ghost cells).
+      !-----------------------------------------------------------------
+
          if (tmask(i)) then
             call icepack_aggregate (ncat=ncat,                     &
                          aicen=aicen(i,:), trcrn=trcrn(i,1:ntrcr,:), &
@@ -729,7 +729,7 @@
 
       ! local variables
 
-      integer (kind=int_kind) :: & 
+      integer (kind=int_kind) :: &
          i,            & ! horizontal indices
          ntrcr,        & !
          nbtrcr          !
@@ -1148,7 +1148,7 @@
              endif
          enddo                  ! i
 
-      !----------------------------------------------------------------- 
+      !-----------------------------------------------------------------
       ! Compute boundary layer quantities
       !-----------------------------------------------------------------
 
@@ -1157,22 +1157,22 @@
                   call icepack_atm_boundary(sfctype = 'ocn',          &
                                             Tsf     = sst(i),         &
                                             potT    = potT(i),        &
-                                            uatm    = uatm(i),        &   
-                                            vatm    = vatm(i),        &   
-                                            wind    = wind(i),        &   
-                                            zlvl    = zlvl(i),        &   
-                                            Qa      = Qa(i),          &     
+                                            uatm    = uatm(i),        &
+                                            vatm    = vatm(i),        &
+                                            wind    = wind(i),        &
+                                            zlvl    = zlvl(i),        &
+                                            Qa      = Qa(i),          &
                                             rhoa    = rhoa(i),        &
-                                            strx    = strairx_ocn(i), & 
-                                            stry    = strairy_ocn(i), & 
-                                            Tref    = Tref_ocn(i),    & 
-                                            Qref    = Qref_ocn(i),    & 
-                                            delt    = delt(i),        &    
+                                            strx    = strairx_ocn(i), &
+                                            stry    = strairy_ocn(i), &
+                                            Tref    = Tref_ocn(i),    &
+                                            Qref    = Qref_ocn(i),    &
+                                            delt    = delt(i),        &
                                             delq    = delq(i),        &
                                             lhcoef  = lhcoef(i),      &
                                             shcoef  = shcoef(i),      &
-                                            Cdn_atm = Cdn_atm(i),     & 
-                                            Cdn_atm_ratio_n = Cdn_atm_ratio(i))    
+                                            Cdn_atm = Cdn_atm(i),     &
+                                            Cdn_atm_ratio_n = Cdn_atm_ratio(i))
                endif
             enddo ! i
             call icepack_warnings_flush(nu_diag)
@@ -1235,7 +1235,7 @@
       use icedrv_flux, only: hin_old, flux_bio, flux_bio_atm, faero_atm
       use icedrv_flux, only: nit, amm, sil, dmsp, dms, algalN, doc, don, dic, fed, fep, zaeros, hum
       use icedrv_state, only: aicen_init, vicen_init, aicen, vicen, vsnon
-      use icedrv_state, only: trcrn, vsnon_init, aice0                    
+      use icedrv_state, only: trcrn, vsnon_init, aice0
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -1324,10 +1324,10 @@
 !         call icepack_warnings_flush(nu_diag)
 !         if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
 !             file=__FILE__,line= __LINE__)
-        
+
          do mm = 1,nbtrcr
-            ocean_bio(i,mm) = ocean_bio_all(i,bio_index_o(mm))  
-         enddo  ! mm    
+            ocean_bio(i,mm) = ocean_bio_all(i,bio_index_o(mm))
+         enddo  ! mm
          if (tr_zaero) then
             do mm = 1, n_zaero  ! update aerosols
                flux_bio_atm(i,nlt_zaero(mm)) = faero_atm(i,mm)
@@ -1391,7 +1391,7 @@
 !         call icepack_warnings_flush(nu_diag)
 !         if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
 !             __FILE__, __LINE__)
-         
+
       enddo               ! i
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
