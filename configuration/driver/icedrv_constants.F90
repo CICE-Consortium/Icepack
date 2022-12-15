@@ -1,7 +1,7 @@
 !=======================================================================
 !
 ! This module defines a variety of physical and numerical constants
-! used throughout the ice model 
+! used throughout the ice model
 !
 ! author Elizabeth C. Hunke, LANL
 

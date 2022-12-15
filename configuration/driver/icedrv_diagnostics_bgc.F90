@@ -34,7 +34,7 @@
 ! authors: Nicole Jeffery, LANL
 
       subroutine hbrine_diags ()
-              
+
       use icedrv_arrays_column, only: darcy_V
       use icedrv_diagnostics, only: nx_names
       use icedrv_domain_size, only: nilyr
@@ -93,13 +93,13 @@
       !-----------------------------------------------------------------
 
          write(nu_diag_out+n-1,899) nx_names(n)
-        
+
          write(nu_diag_out+n-1,*) '------ hbrine ------'
          write(nu_diag_out+n-1,900) 'hbrine, (m)        = ',phinS
          write(nu_diag_out+n-1,900) 'fbri, cat1 (m)     = ',pfbri
          write(nu_diag_out+n-1,900) 'hbrine cat1, (m)   = ',phinS1
          write(nu_diag_out+n-1,900) 'darcy_V cat1, (m/s)= ',pdarcy_V
-         if (ktherm == 2) then          
+         if (ktherm == 2) then
             write(nu_diag_out+n-1,*) '                         '
             write(nu_diag_out+n-1,*) '------ Thermosaline Salinity ------'
             write(nu_diag_out+n-1,803) 'Sice1 cat1 S (ppt)'
@@ -168,7 +168,7 @@
       integer (kind=int_kind), dimension(icepack_max_doc) :: &
          nt_bgc_doc, nlt_bgc_DOC
       integer (kind=int_kind), dimension(icepack_max_don) :: &
-         nt_bgc_don, nlt_bgc_DON 
+         nt_bgc_don, nlt_bgc_DON
       integer (kind=int_kind), dimension(icepack_max_aero) :: &
          nt_zaero, nlt_zaero, nlt_zaero_sw
       integer (kind=int_kind), dimension(icepack_max_fe) :: &
@@ -181,7 +181,7 @@
       real (kind=dbl_kind), dimension(icepack_max_don) :: &
          pDON_ac, pDON_sk
       real (kind=dbl_kind), dimension(icepack_max_fe ) :: &
-         pFed_ac,  pFed_sk, pFep_ac, pFep_sk 
+         pFed_ac,  pFed_sk, pFep_ac, pFep_sk
       real (kind=dbl_kind), dimension(icepack_max_aero) :: &
         pflux_zaero, pflux_snow_zaero, pflux_atm_zaero, &
         pflux_atm_zaero_s
@@ -196,7 +196,7 @@
       real (kind=dbl_kind), dimension(2,icepack_max_don) :: &
          pDONs
       real (kind=dbl_kind), dimension(2,icepack_max_fe ) :: &
-         pFeds, pFeps 
+         pFeds, pFeps
       real (kind=dbl_kind), dimension(2,icepack_max_aero) :: &
          pzaeros
       real (kind=dbl_kind), dimension(nblyr+1) :: &
@@ -210,8 +210,8 @@
       real (kind=dbl_kind), dimension(nblyr+1,icepack_max_don) :: &
          pDON
       real (kind=dbl_kind), dimension(nblyr+1,icepack_max_fe ) :: &
-         pFed, pFep 
-      real (kind=dbl_kind), dimension (nblyr+1) :: & 
+         pFed, pFep
+      real (kind=dbl_kind), dimension (nblyr+1) :: &
          zspace
       real (kind=dbl_kind), dimension (nslyr+nilyr+2) :: &
          pchlsw
@@ -288,15 +288,15 @@
             if (tr_bgc_DON) then
                do k = 1,n_don
                   pDON_ac(k)    = ocean_bio(n,nlt_bgc_DON(k))
-               enddo 
+               enddo
             endif
             if (tr_bgc_Fe ) then
-               do k = 1,n_fed 
+               do k = 1,n_fed
                   pFed_ac (k)   = ocean_bio(n,nlt_bgc_Fed (k))
-               enddo 
-               do k = 1,n_fep 
+               enddo
+               do k = 1,n_fep
                   pFep_ac (k)   = ocean_bio(n,nlt_bgc_Fep (k))
-               enddo 
+               enddo
             endif
             if (tr_bgc_Nit) pNit_ac  = ocean_bio(n,nlt_bgc_Nit)
             if (tr_bgc_Am)  pAm_ac   = ocean_bio(n,nlt_bgc_Am)

@@ -165,6 +165,11 @@
                                   ! 'linear_salt' = -depressT * sss
                                   ! 'mushy' conforms with ktherm=2
 
+      character(len=char_len), public :: &
+         saltflux_option  = 'constant'! Salt flux computation
+                                      ! 'constant' reference value of ice_ref_salinity
+                                      ! 'prognostic' prognostic salt flux
+
 !-----------------------------------------------------------------------
 ! Parameters for radiation
 !-----------------------------------------------------------------------
@@ -455,6 +460,7 @@
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
          atmiter_conv_in, calc_dragio_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
+         saltflux_option_in, &
          floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
          dpscale_in, rfracmin_in, rfracmax_in, pndaspect_in, hs1_in, hp1_in, &
          bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
@@ -561,12 +567,16 @@
          phi_c_slow_mode_in   , & ! liquid fraction porosity cutoff for slow mode
          phi_i_mushy_in           ! liquid fraction of congelation ice
 
-        character(len=*), intent(in), optional :: &
-             tfrz_option_in              ! form of ocean freezing temperature
-                                         ! 'minus1p8' = -1.8 C
-                                         ! 'constant' = Tocnfrz
-                                         ! 'linear_salt' = -depressT * sss
-                                         ! 'mushy' conforms with ktherm=2
+      character(len=*), intent(in), optional :: &
+         tfrz_option_in              ! form of ocean freezing temperature
+                                     ! 'minus1p8' = -1.8 C
+                                     ! 'linear_salt' = -depressT * sss
+                                     ! 'mushy' conforms with ktherm=2
+
+      character(len=*), intent(in), optional :: &
+         saltflux_option_in         ! Salt flux computation
+                                    ! 'constant' reference value of ice_ref_salinity
+                                    ! 'prognostic' prognostic salt flux
 
 !-----------------------------------------------------------------------
 ! Parameters for radiation
@@ -931,6 +941,7 @@
       if (present(natmiter_in)          ) natmiter         = natmiter_in
       if (present(atmiter_conv_in)      ) atmiter_conv     = atmiter_conv_in
       if (present(tfrz_option_in)       ) tfrz_option      = tfrz_option_in
+      if (present(saltflux_option_in)   ) saltflux_option  = saltflux_option_in
       if (present(kitd_in)              ) kitd             = kitd_in
       if (present(kcatbound_in)         ) kcatbound        = kcatbound_in
       if (present(floeshape_in)         ) floeshape        = floeshape_in
@@ -1160,6 +1171,7 @@
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
          atmiter_conv_out, calc_dragio_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
+         saltflux_option_out, &
          floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
          dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
          bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
@@ -1281,6 +1293,12 @@
                                       ! 'constant' = Tocnfrz
                                       ! 'linear_salt' = -depressT * sss
                                       ! 'mushy' conforms with ktherm=2
+
+      character(len=*), intent(out), optional :: &
+         saltflux_option_out         ! Salt flux computation
+                                     ! 'constant' reference value of ice_ref_salinity
+                                     ! 'prognostic' prognostic salt flux
+
 
 !-----------------------------------------------------------------------
 ! Parameters for radiation
@@ -1677,6 +1695,7 @@
       if (present(natmiter_out)          ) natmiter_out     = natmiter
       if (present(atmiter_conv_out)      ) atmiter_conv_out = atmiter_conv
       if (present(tfrz_option_out)       ) tfrz_option_out  = tfrz_option
+      if (present(saltflux_option_out)   ) saltflux_option_out = saltflux_option
       if (present(kitd_out)              ) kitd_out         = kitd
       if (present(kcatbound_out)         ) kcatbound_out    = kcatbound
       if (present(floeshape_out)         ) floeshape_out    = floeshape
@@ -1883,6 +1902,7 @@
         write(iounit,*) "  natmiter      = ", natmiter
         write(iounit,*) "  atmiter_conv  = ", atmiter_conv
         write(iounit,*) "  tfrz_option   = ", tfrz_option
+        write(iounit,*) "  saltflux_option = ", saltflux_option
         write(iounit,*) "  kitd          = ", kitd
         write(iounit,*) "  kcatbound     = ", kcatbound
         write(iounit,*) "  floeshape     = ", floeshape

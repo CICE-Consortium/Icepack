@@ -10,7 +10,7 @@
 ! aicen(i,n)         aice(i)           ---
 ! vicen(i,n)         vice(i)           m
 ! vsnon(i,n)         vsno(i)           m
-! trcrn(i,it,n)      trcr(i,it)        
+! trcrn(i,it,n)      trcr(i,it)
 !
 ! Area is dimensionless because aice is the fractional area
 ! (normalized so that the sum over all categories, including open
@@ -104,7 +104,7 @@
          strength     ! ice strength (N/m)
 
       !-----------------------------------------------------------------
-      ! ice state at start of time step, saved for later in the step 
+      ! ice state at start of time step, saved for later in the step
       !-----------------------------------------------------------------
 
       real (kind=dbl_kind), dimension(nx), &
@@ -115,7 +115,7 @@
          dimension(nx,ncat), public :: &
          aicen_init  , & ! initial ice concentration, for linear ITD
          vicen_init  , & ! initial ice volume (m), for linear ITD
-         vsnon_init      ! initial snow volume (m), for aerosol 
+         vsnon_init      ! initial snow volume (m), for aerosol
 
 !=======================================================================
 

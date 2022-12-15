@@ -127,7 +127,7 @@
 
       real (kind=dbl_kind), dimension (nblyr+1), public :: &
          igrid          ! biology vertical interface points
- 
+
       real (kind=dbl_kind), dimension (nilyr+1), public :: &
          cgrid     , &  ! CICE vertical coordinate
          icgrid    , &  ! interface grid for CICE (shortwave variable)
@@ -180,12 +180,12 @@
       integer (kind=int_kind), dimension(nx,icepack_max_algae), public :: &
          algal_peak     ! vertical location of algal maximum, 0 if no maximum
 
-      real (kind=dbl_kind), & 
+      real (kind=dbl_kind), &
          dimension (nx,nblyr+1,ncat), public :: &
          Zoo            ! N losses accumulated in timestep (ie. zooplankton/bacteria)
                         ! (mmol/m^3)
 
-      real (kind=dbl_kind), &  
+      real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
          dhbr_top   , & ! brine top change
          dhbr_bot       ! brine bottom change
@@ -211,18 +211,18 @@
          NO_net         ! Total nitrate per grid cell
 
       logical (kind=log_kind), dimension (nx), public :: &
-         Rayleigh_criteria    ! .true. means Ra_c was reached   
+         Rayleigh_criteria    ! .true. means Ra_c was reached
 
       real (kind=dbl_kind), dimension (nx), public :: &
          Rayleigh_real        ! .true. = c1, .false. = c0
 
-      real (kind=dbl_kind), & 
+      real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
          sice_rho       ! avg sea ice density  (kg/m^3)  ! ech: diagnostic only?
 
-      real (kind=dbl_kind), & 
+      real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
-         fzsaln     , & ! category fzsal(kg/m^2/s) 
+         fzsaln     , & ! category fzsal(kg/m^2/s)
          fzsaln_g       ! salt flux from gravity drainage only
 
       real (kind=dbl_kind), dimension (nx), public :: &
@@ -239,7 +239,7 @@
       real (kind=dbl_kind), dimension (nx), public :: &
          upNO       , & ! nitrate uptake rate (mmol/m^2/d) times aice
          upNH           ! ammonium uptake rate (mmol/m^2/d) times aice
-        
+
       real (kind=dbl_kind), &
          dimension(nx,max_ntrcr,ncat), public :: &
          trcrn_sw       ! bgc tracers active in the delta-Eddington shortwave
@@ -266,7 +266,7 @@
       real (kind=dbl_kind), dimension (nx,nfreq), public :: &
          wave_spectrum     ! wave spectrum
 
-      real (kind=dbl_kind), dimension (nx,nfsd), public :: & 
+      real (kind=dbl_kind), dimension (nx,nfsd), public :: &
          ! change in floe size distribution due to processes
          d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
 

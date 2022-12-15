@@ -365,6 +365,8 @@ forcing_nml
    "", "``mm_per_sec``", "(same as MKS units)", ""
    "", "``m_per_sec``", "", ""
    "``restore_ocn``", "logical", "restore sst to data", "``.false.``"
+   "``saltflux_option``", "``constant``","salt flux is referenced to a constant salinity","``constant``"
+   "","``prognostic``","use actual sea ice bulk salinity in flux"
    "``tfrz_option``","``constant``", "constant ocean freezing temperature (Tocnfrz)","``mushy``"
    "", "``linear_salt``", "linear function of salinity (ktherm=1)", ""
    "", "``minus1p8``", "constant ocean freezing temperature (:math:`-1.8^{\circ} C`)", ""
