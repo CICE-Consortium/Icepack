@@ -252,6 +252,7 @@
          efinal      , & ! final energy of melting (J m-2)
          einter          ! intermediate energy
 
+
       real (kind=dbl_kind) :: &
          fadvocn ! advective heat flux to ocean
 
@@ -1180,6 +1181,11 @@
          qm          , & ! energy of melting (J m-3) = zqin in BL99 formulation
          qmlt            ! enthalpy of melted ice (J m-3) = zero in BL99 formulation
 
+#ifdef GEOSCOUPLED
+      real (kind=dbl_kind) :: &
+         sblx   ! flux error due to cond/sub inconsistency     
+#endif
+
       real (kind=dbl_kind) :: &
          qbotm       , &
          qbotp       , &
@@ -1197,6 +1203,10 @@
       dhi = c0
       dhs = c0
       hsn_new  = c0
+
+#ifdef GEOSCOUPLED
+      sblx = c0 
+#endif
 
       do k = 1, nilyr
          dzi(k) = hilyr
@@ -1292,7 +1302,17 @@
          if (dzs(1) > puny) massi = c1 + dhs/dzs(1)
          massice(1) = massice(1) * massi
          massliq(1) = max(c0, mass + rhos*dhs - massice(1)) ! conserve new total mass
-
+#ifdef GEOSCOUPLED
+         hstot = dzs(1) + dhs
+         ! adjust top layer snow enthalpy b.c. we added them at 0C
+         zqsnew = -rhos*Lfresh
+         if (hstot > puny) then
+            zqsn(1) =  (dzs(1) * zqsn(1) &
+                          + dhs * zqsnew) / hstot
+               ! avoid roundoff errors
+            zqsn(1) = min(zqsn(1), -rhos*Lfresh)
+         endif
+#endif
          dzs(1) = dzs(1) + dhs
          evapn = evapn + dhs*rhos
          evapsn = evapsn + dhs*rhos
@@ -1302,7 +1322,18 @@
 #else
          dhi = econ / (qm(1) - rhoi*Lvap) ! econ < 0, dhi > 0
 #endif
+
+#ifdef GEOSCOUPLED
+         ! adjust top layer ice enthalpy b.c. we added them at 0C
+         zqsnew = -rhoi*Lfresh
+         hqtot = dzi(1)*qm(1) + dhi*zqsnew
+#endif
+
          dzi(1) = dzi(1) + dhi
+#ifdef GEOSCOUPLED
+         if (dzi(1) > puny) &
+                zqin(1) = hqtot / dzi(1) ! need to revisit for kterm = 2
+#endif
          evapn = evapn + dhi*rhoi
          evapin = evapin + dhi*rhoi
          ! enthalpy of melt water
@@ -1408,6 +1439,10 @@
 #endif
          dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
 
+#ifdef GEOSCOUPLED
+         sblx = sblx + (-dhs)*min(zqsn(k) - (-rhos*Lfresh), c0) ! sblx < 0 (J m-2)
+#endif
+
          mass  = massice(1) + massliq(1)
          massi = c0
          if (dzs(k) > puny) massi = c1 + dhs/dzs(k)
@@ -1455,6 +1490,11 @@
          qsub = qm(k) - rhoi*Lvap              ! qsub < 0
 #endif
          dhi  = max (-dzi(k), esub/qsub) ! esub < 0, dhi < 0
+
+#ifdef GEOSCOUPLED
+         sblx = sblx + (-dhi)*(qm(k) - (-rhoi*Lfresh)) ! sblx can be v+- (J m-2)
+#endif
+
          dzi(k) = dzi(k) + dhi
          esub = esub - dhi*qsub
          esub = max(esub, c0)
@@ -1802,7 +1842,11 @@
       !  sublimated/condensed ice.
       !-----------------------------------------------------------------
 
+#ifdef GEOSCOUPLED
+      efinal = -evapn*Lvap + sblx
+#else
       efinal = -evapn*Lvap
+#endif
       evapn =  evapn/dt
       evapsn =  evapsn/dt
       evapin =  evapin/dt

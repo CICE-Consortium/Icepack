@@ -339,6 +339,10 @@
 
       endif
 
+#ifdef GEOSCOUPLED
+      fsurfn = fsurfn + fswsfc ! this is the total heat flux 
+#endif
+
       !-----------------------------------------------------------------
       ! Solve for new temperatures.
       ! Iterate until temperatures converge with minimal energy error.
@@ -750,6 +754,14 @@
          write(warnstr,*) subname, 'Tsf:', Tsf
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fsurf:', fsurfn
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'dfsurf_dT:', dfsurf_dT
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'enew:', enew
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'einit:', einit
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'dt:', dt
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fcondtop, fcondbot, fswint', &
               fcondtopn, fcondbot, fswint
