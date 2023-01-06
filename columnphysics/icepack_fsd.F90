@@ -937,7 +937,6 @@
          gain, loss     ! welding tendencies
 
       real(kind=dbl_kind) :: &
-         prefac     , & ! multiplies kernel
          kern       , & ! kernel
          subdt      , & ! subcycling time step for stability (s)
          elapsed_t      ! elapsed subcycling time
@@ -948,7 +947,6 @@
       afsdn  (:,:) = c0
       afsd_init(:) = c0
       stability    = c0
-      prefac       = p5
 
       do n = 1, ncat
 
@@ -992,8 +990,7 @@
                    if (k > i) then
                        kern = c_weld * floe_area_c(i) * aicen(n)
                        loss(i) = loss(i) + kern*afsd_tmp(i)*afsd_tmp(j)
-                       if (i.eq.j) prefac = c1 ! otherwise 0.5
-                       gain(k) = gain(k) + prefac*kern*afsd_tmp(i)*afsd_tmp(j)
+                       gain(k) = gain(k) + kern*afsd_tmp(i)*afsd_tmp(j)
                    end if
                end do
                end do

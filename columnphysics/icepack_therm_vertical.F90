@@ -495,7 +495,7 @@
                                         strocnxT, strocnyT, &
                                         Tbot,     fbot,     &
                                         rside,    Cdn_ocn,  &
-                                        fside)
+                                        fside,    wlat)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -529,6 +529,7 @@
       real (kind=dbl_kind), intent(out) :: &
          Tbot    , & ! ice bottom surface temperature (deg C)
          fbot    , & ! heat flux to ice bottom  (W/m^2)
+         wlat    , & ! lateral melt rate (m/s)
          rside   , & ! fraction of ice that melts laterally
          fside       ! lateral heat flux (W/m^2)
 
@@ -545,7 +546,6 @@
       real (kind=dbl_kind) :: &
          deltaT    , & ! SST - Tbot >= 0
          ustar     , & ! skin friction velocity for fbot (m/s)
-         wlat      , & ! lateral melt rate (m/s)
          xtmp          ! temporary variable
 
       ! Parameters for bottom melting
@@ -618,31 +618,24 @@
          do n = 1, ncat
 
             etot = c0
-            qavg = c0
-
             ! melting energy/unit area in each column, etot < 0
 
             do k = 1, nslyr
                etot = etot + qsnon(k,n) * vsnon(n)/real(nslyr,kind=dbl_kind)
-               qavg = qavg + qsnon(k,n)
             enddo
 
             do k = 1, nilyr
                etot = etot + qicen(k,n) * vicen(n)/real(nilyr,kind=dbl_kind)
-               qavg = qavg + qicen(k,n)
             enddo                  ! nilyr
 
             ! lateral heat flux, fside < 0
-            if (tr_fsd) then ! floe size distribution
-               fside = fside + wlat*qavg
-            else             ! default floe size
-               fside = fside + rside*etot/dt
-            endif
+            fside = fside + rside*etot/dt
 
          enddo                     ! n
 
       !-----------------------------------------------------------------
       ! Limit bottom and lateral heat fluxes if necessary.
+      ! FYI: fside is not yet correct for fsd, may need to adjust fbot further
       !-----------------------------------------------------------------
 
          xtmp = frzmlt/(fbot + fside + puny)
@@ -2121,7 +2114,7 @@
                                     fbot        ,               &
                                     Tbot        , Tsnice      , &
                                     frzmlt      , rside       , &
-                                    fside       ,               &
+                                    fside       , wlat        , &
                                     fsnow       , frain       , &
                                     fpond       , fsloss      , &
                                     fsurf       , fsurfn      , &
@@ -2251,6 +2244,7 @@
          frzmlt      , & ! freezing/melting potential (W/m^2)
          rside       , & ! fraction of ice that melts laterally
          fside       , & ! lateral heat flux (W/m^2)
+         wlat        , & ! lateral melt rate (m/s)
          sst         , & ! sea surface temperature (C)
          Tf          , & ! freezing temperature (C)
          Tbot        , & ! ice bottom surface temperature (deg C)
@@ -2627,7 +2621,7 @@
                                   strocnxT,  strocnyT,  &
                                   Tbot,      fbot,      &
                                   rside,     Cdn_ocn,   &
-                                  fside)
+                                  fside,     wlat)
 
       if (icepack_warnings_aborted(subname)) return
 
