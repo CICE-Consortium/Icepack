@@ -984,6 +984,7 @@
          f_flx         !
 
       real (kind=dbl_kind) :: &
+         sicen,        & 
          etot,         & ! column energy per itd cat, for FSD code
          elapsed_t,    & ! FSD subcycling
          subdt           ! FSD timestep (s)
