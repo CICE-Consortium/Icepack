@@ -1014,11 +1014,11 @@
 
             END DO ! time
 
+            afsdn(:,n) = afsd_tmp(:)
             call icepack_cleanup_fsdn (nfsd, afsdn(:,n))
             if (icepack_warnings_aborted(subname)) return
 
             do k = 1, nfsd
-               afsdn(k,n) = afsd_tmp(k)
                trcrn(nt_fsd+k-1,n) = afsdn(k,n)
                ! history/diagnostics
                d_afsdn_weld(k,n) = afsdn(k,n) - afsd_init(k)
