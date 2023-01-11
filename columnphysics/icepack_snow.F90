@@ -919,7 +919,7 @@
          dzi,       & ! ice layer thickness (m)
          dz           ! dzs + dzi (m)
 
-      logical (kind=log_kind) :: &
+      logical (kind=log_kind), save :: &
          first_call = .true.   ! first call flag
 
       character (char_len) :: &

@@ -88,7 +88,7 @@
         H2_16O_ocn, & !
         H2_18O_ocn    !
 
-      real (kind=dbl_kind), dimension(:), intent(in) ::  &
+      real (kind=dbl_kind), dimension(:), intent(in), optional ::  &
         fiso_atm,   & ! isotopic snowfall (kg/m^2/s of water)
         Qref_iso      ! isotope reference humidity
 
@@ -96,7 +96,7 @@
         fiso_ocnn,  & ! isotopic freshwater (kg/m^2/s)
         fiso_evapn    ! evaporative water flux (kg/m^2/s)
 
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
         isosno, isoice ! mass of isotopes  (kg)
 
 !  local variables

@@ -27,7 +27,7 @@
       use icepack_parameters, only: rhosi, conserv_check, rhosmin
       use icepack_parameters, only: kitd, ktherm
       use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
-      use icepack_parameters, only: saltflux_option
+      use icepack_parameters, only: saltflux_option, argcheck
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -940,7 +940,7 @@
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          faero_ocn     ! aerosol flux to ocean (kg/m^2/s)
 
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn     ! isotope flux to ocean (kg/m^2/s)
 
       ! local variables
@@ -1390,7 +1390,7 @@
 
       ! water isotopes
 
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -2093,10 +2093,10 @@
          yday         ! day of year
 
       ! water isotopes
-      real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
 
-      real (kind=dbl_kind), optional, intent(in) :: &
+      real (kind=dbl_kind), intent(in), optional :: &
          HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
          H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
          H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
@@ -2104,14 +2104,13 @@
 
       ! local variables
 
-      ! water isotopes
-      real (kind=dbl_kind), dimension(:), allocatable :: &
-         l_fiso_ocn       ! local isotope flux to ocean  (kg/m^2/s)
-
       real (kind=dbl_kind) :: &
          l_HDO_ocn    , & ! local ocean concentration of HDO (kg/kg)
          l_H2_16O_ocn , & ! local ocean concentration of H2_16O (kg/kg)
          l_H2_18O_ocn     ! local ocean concentration of H2_18O (kg/kg)
+
+      logical (kind=log_kind), save :: &
+         first_call = .true.   ! first call flag
 
       character(len=*),parameter :: subname='(icepack_step_therm2)'
 
@@ -2119,13 +2118,18 @@
       ! Check optional arguments and set local values
       !-----------------------------------------------------------------
 
-      if (present(fiso_ocn)) then
-         allocate(l_fiso_ocn(size(fiso_ocn)))
-         l_fiso_ocn(:) = fiso_ocn(:)
-      else
-         allocate(l_fiso_ocn(1))
-         l_fiso_ocn(:) = c0
+      if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call)) then
+         if (tr_iso) then
+            if (present(fiso_ocn)) then
+                ! OK
+            else
+              call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+              return
+            endif
+         endif
       endif
+
       l_HDO_ocn = c0
       l_H2_16O_ocn = c0
       l_H2_18O_ocn = c0
@@ -2208,7 +2212,7 @@
                            cgrid,         igrid,        &
                            nbtrcr,        flux_bio,     &
                            ocean_bio,     fzsal,        &
-                           frazil_diag,   l_fiso_ocn,   &
+                           frazil_diag,   fiso_ocn,     &
                            l_HDO_ocn,     l_H2_16O_ocn, &
                            l_H2_18O_ocn,                &
                            wave_sig_ht,                 &
@@ -2228,7 +2232,7 @@
                          n_aero,    fpond,         &
                          fresh,     fsalt,         &
                          fhocn,     faero_ocn,     &
-                         l_fiso_ocn,               &
+                         fiso_ocn,                 &
                          rside,     meltl,         &
                          fside,     sss,           &
                          aicen,     vicen,         &
@@ -2280,14 +2284,11 @@
                         n_trcr_strata,        nt_strata,        &
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
-                        faero_ocn,            l_fiso_ocn,       &
+                        faero_ocn,            fiso_ocn,         &
                         fzsal,                flux_bio)
       if (icepack_warnings_aborted(subname)) return
 
-      if (present(fiso_ocn)) then
-         fiso_ocn(:) = l_fiso_ocn(:)
-      endif
-      deallocate(l_fiso_ocn)
+      first_call = .false.
 
       end subroutine icepack_step_therm2
 
