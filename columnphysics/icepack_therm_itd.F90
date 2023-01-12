@@ -940,7 +940,7 @@
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          faero_ocn     ! aerosol flux to ocean (kg/m^2/s)
 
-      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
          fiso_ocn     ! isotope flux to ocean (kg/m^2/s)
 
       ! local variables
@@ -1390,7 +1390,7 @@
 
       ! water isotopes
 
-      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
          fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1733,11 +1733,12 @@
            frazil_conc = c0
            if (tr_iso .and. vtmp > puny) then
              do it=1,n_iso
-               if (it==1)   &
+               frazil_conc = c0
+               if (it==1) &
                   frazil_conc = isoice_alpha(c0,'HDO'   ,isotope_frac_method)*HDO_ocn
-               if (it==2)   &
+               if (it==2) &
                   frazil_conc = isoice_alpha(c0,'H2_16O',isotope_frac_method)*H2_16O_ocn
-               if (it==3)   &
+               if (it==3) &
                   frazil_conc = isoice_alpha(c0,'H2_18O',isotope_frac_method)*H2_18O_ocn
 
                ! dilution and uptake in the ice
@@ -1852,15 +1853,15 @@
                enddo
             endif
 
-           frazil_conc = c0
            if (tr_iso) then
               do it=1,n_iso
-               if (it==1)   &
-                  frazil_conc = isoice_alpha(c0,'HDO'   ,isotope_frac_method)*HDO_ocn
-               if (it==2)   &
-                  frazil_conc = isoice_alpha(c0,'H2_16O',isotope_frac_method)*H2_16O_ocn
-               if (it==3)   &
-                  frazil_conc = isoice_alpha(c0,'H2_18O',isotope_frac_method)*H2_18O_ocn
+                frazil_conc = c0
+                if (it==1) &
+                   frazil_conc = isoice_alpha(c0,'HDO'   ,isotope_frac_method)*HDO_ocn
+                if (it==2) &
+                   frazil_conc = isoice_alpha(c0,'H2_16O',isotope_frac_method)*H2_16O_ocn
+                if (it==3) &
+                   frazil_conc = isoice_alpha(c0,'H2_18O',isotope_frac_method)*H2_18O_ocn
 
                 trcrn(nt_isoice+it-1,1) &
                   = (trcrn(nt_isoice+it-1,1)*vice1) &
@@ -2104,11 +2105,6 @@
 
       ! local variables
 
-      real (kind=dbl_kind) :: &
-         l_HDO_ocn    , & ! local ocean concentration of HDO (kg/kg)
-         l_H2_16O_ocn , & ! local ocean concentration of H2_16O (kg/kg)
-         l_H2_18O_ocn     ! local ocean concentration of H2_18O (kg/kg)
-
       logical (kind=log_kind), save :: &
          first_call = .true.   ! first call flag
 
@@ -2118,24 +2114,18 @@
       ! Check optional arguments and set local values
       !-----------------------------------------------------------------
 
-      if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call)) then
-         if (tr_iso) then
-            if (present(fiso_ocn)) then
-                ! OK
-            else
-              call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')
-              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-              return
-            endif
-         endif
+       if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call)) then
+          if (tr_iso) then
+             if (.not.(present(fiso_ocn)   .and. &
+                       present(HDO_ocn)    .and. &
+                       present(H2_16O_ocn) .and. &
+                       present(H2_18O_ocn))) then
+                call icepack_warnings_add(subname//' error in iso arguments, tr_iso=T')
+                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                return
+             endif
+          endif
       endif
-
-      l_HDO_ocn = c0
-      l_H2_16O_ocn = c0
-      l_H2_18O_ocn = c0
-      if (present(HDO_ocn)   ) l_HDO_ocn    = HDO_ocn
-      if (present(H2_16O_ocn)) l_H2_16O_ocn = H2_16O_ocn
-      if (present(H2_18O_ocn)) l_H2_18O_ocn = H2_18O_ocn
 
       !-----------------------------------------------------------------
       ! Let rain drain through to the ocean.
@@ -2213,8 +2203,8 @@
                            nbtrcr,        flux_bio,     &
                            ocean_bio,     fzsal,        &
                            frazil_diag,   fiso_ocn,     &
-                           l_HDO_ocn,     l_H2_16O_ocn, &
-                           l_H2_18O_ocn,                &
+                           HDO_ocn,       H2_16O_ocn,   &
+                           H2_18O_ocn,                  &
                            wave_sig_ht,                 &
                            wave_spectrum,               &
                            wavefreq,      dwavefreq,    &

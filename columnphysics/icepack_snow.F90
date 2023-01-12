@@ -1194,6 +1194,7 @@
       else
          sliq = meltsliq  ! computed in thickness_changes
       endif
+!tcx??
       meltsliq = meltsliq
       if (use_smliq_pnd) meltsliq = sliq
 

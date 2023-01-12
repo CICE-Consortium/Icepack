@@ -83,21 +83,24 @@
         aicen,      & ! ice area
         aice_old,   & ! beginning values
         vice_old,   &
-        vsno_old,   &
-        HDO_ocn,    & !
-        H2_16O_ocn, & !
-        H2_18O_ocn    !
-
-      real (kind=dbl_kind), dimension(:), intent(in), optional ::  &
-        fiso_atm,   & ! isotopic snowfall (kg/m^2/s of water)
-        Qref_iso      ! isotope reference humidity
+        vsno_old
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
         fiso_ocnn,  & ! isotopic freshwater (kg/m^2/s)
         fiso_evapn    ! evaporative water flux (kg/m^2/s)
 
-      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
-        isosno, isoice ! mass of isotopes  (kg)
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+        isosno,     & ! mass of isotopes  (kg)
+        isoice
+
+      real (kind=dbl_kind), dimension(:), intent(in) ::  &
+        fiso_atm,   & ! isotopic snowfall (kg/m^2/s of water)
+        Qref_iso      ! isotope reference humidity
+
+      real (kind=dbl_kind), intent(in) :: &
+        HDO_ocn,    & ! ocean concentration of HDO (kg/kg)
+        H2_16O_ocn, & ! ocean concentration of H2_16O (kg/kg)
+        H2_18O_ocn    ! ocean concentration of H2_18O (kg/kg)
 
 !  local variables
 
@@ -197,6 +200,7 @@
 
       if (congel > c0) then
          do k = 1,n_iso
+           work = c0
            if (k == 1) then
               alpha = isoice_alpha(congel/dt,'HDO',isotope_frac_method)
               work = alpha*HDO_ocn*rhoi*congel*aicen

@@ -13,13 +13,13 @@
       module icepack_atmo
 
       use icepack_kinds
-      use icepack_parameters,  only: c0, c1, c2, c4, c5, c8, c10
-      use icepack_parameters,  only: c16, c20, p001, p01, p2, p4, p5, p75, puny
-      use icepack_parameters,  only: senscoef, latncoef
-      use icepack_parameters,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
-      use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
-      use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
-      use icepack_parameters, only: atmbndy, calc_strair, formdrag
+      use icepack_parameters, only: c0, c1, c2, c4, c5, c8, c10
+      use icepack_parameters, only: c16, c20, p001, p01, p2, p4, p5, p75, puny
+      use icepack_parameters, only: senscoef, latncoef
+      use icepack_parameters, only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
+      use icepack_parameters, only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
+      use icepack_parameters, only: pih, dragio, rhoi, rhos, rhow
+      use icepack_parameters, only: atmbndy, calc_strair, formdrag, argcheck
       use icepack_tracers, only: n_iso
       use icepack_tracers, only: tr_iso
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -377,21 +377,13 @@
          Uref = vmag * rd / rdn
       endif
 
-      if (present(Qref_iso)) then
+      if (tr_iso .and. sfctype(1:3)=='ice') then
          Qref_iso(:) = c0
-         if (tr_iso) then
-            if (present(Qa_iso)) then
-               do n = 1, n_iso
-                  ratio = c0
-                  if (Qa_iso(2) > puny) ratio = Qa_iso(n)/Qa_iso(2)
-                  Qref_iso(n) = Qa_iso(n) - ratio*delq*fac
-               enddo
-            else
-               call icepack_warnings_add(subname//' Qref_iso and Qa_iso both must be passed with tr_iso')
-               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-               return
-            endif
-         endif
+         do n = 1, n_iso
+            ratio = c0
+            if (Qa_iso(2) > puny) ratio = Qa_iso(n)/Qa_iso(2)
+            Qref_iso(n) = Qa_iso(n) - ratio*delq*fac
+         enddo
       endif
 
       end subroutine atmo_boundary_layer
@@ -904,7 +896,27 @@
       real (kind=dbl_kind) :: &
          l_uvel, l_vvel, l_Uref
 
+      logical (kind=log_kind), save :: &
+         first_call = .true.   ! first call flag
+
       character(len=*),parameter :: subname='(icepack_atm_boundary)'
+
+      !------------------------------------------------------------
+      ! Check optional arguments
+      ! This is used for ocean and ice sfctype, need to be careful
+      !------------------------------------------------------------
+
+      if (sfctype == 'ice') then
+      if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call)) then
+         if (tr_iso) then
+            if (.not.(present(Qa_iso).and.present(Qref_iso))) then
+              call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+              return
+            endif
+         endif
+      endif
+      endif
 
       l_uvel = c0
       l_vvel = c0
@@ -950,6 +962,10 @@
 
       if (present(Uref)) then
          Uref = l_Uref
+      endif
+
+      if (sfctype == 'ice') then
+         first_call = .false.
       endif
 
       end subroutine icepack_atm_boundary

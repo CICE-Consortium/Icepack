@@ -1843,9 +1843,7 @@
 
       if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call)) then
          if (tr_iso) then
-            if (present(fiso_ocn)) then
-                ! OK
-            else
+            if (.not.(present(fiso_ocn))) then
               call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')
               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
               return

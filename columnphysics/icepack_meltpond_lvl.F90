@@ -48,6 +48,7 @@
       integer (kind=int_kind), intent(in) :: &
          nilyr, &    ! number of ice layers
          ktherm      ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
+
       real (kind=dbl_kind), intent(in) :: &
          dt,       & ! time step (s)
          hi_min,   & ! minimum ice thickness allowed for thermo (m)
@@ -56,8 +57,7 @@
       character (len=char_len), intent(in) :: &
          frzpnd      ! pond refreezing parameterization
 
-      real (kind=dbl_kind), &
-         intent(in) :: &
+      real (kind=dbl_kind), intent(in) :: &
          Tsfcn, &    ! surface temperature (C)
          alvl,  &    ! fraction of level ice
          rfrac, &    ! water fraction retained for melt ponds
@@ -71,20 +71,17 @@
          vsnon, &    ! snow volume (m)
          meltsliqn   ! liquid contribution to meltponds in dt (kg/m^2)
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          apnd, hpnd, ipnd
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          qicen, &  ! ice layer enthalpy (J m-3)
          sicen     ! salinity (ppt)
 
-      real (kind=dbl_kind), &
-         intent(in) :: &
+      real (kind=dbl_kind), intent(in) :: &
          dhs       ! depth difference for snow on sea ice and pond ice
 
-      real (kind=dbl_kind), &
-         intent(out) :: &
+      real (kind=dbl_kind), intent(out) :: &
          ffrac     ! fraction of fsurfn over pond used to melt ipond
 
       ! local temporary variables
