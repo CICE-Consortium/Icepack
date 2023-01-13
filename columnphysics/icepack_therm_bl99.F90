@@ -689,6 +689,7 @@
       !-----------------------------------------------------------------
                
                fsurfn = fsurfn + dTsf*dfsurf_dT
+               flatn  = flatn  + dTsf*dflat_dT
                if (l_snow) then
                   fcondtopn = kh(1) * (Tsf-zTsn(1))
                else
@@ -832,8 +833,8 @@
          ! update fluxes that depend on Tsf
          flwoutn = flwoutn + dTsf_prev * dflwout_dT
          fsensn  = fsensn  + dTsf_prev * dfsens_dT
-#endif
          flatn   = flatn   + dTsf_prev * dflat_dT
+#endif
 
       endif                        ! calc_Tsfc
 
