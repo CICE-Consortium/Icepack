@@ -111,7 +111,8 @@
                                   congel,      snoice,    &
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
-                                  prescribed_ice)
+                                  prescribed_ice,         &
+                                  my_tsk, my_i, my_j, my_blk)
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
@@ -136,6 +137,9 @@
 
       logical (kind=log_kind), intent(in), optional :: &
          prescribed_ice  ! if .true., use prescribed ice instead of computed
+
+      integer (kind=int_kind), intent(in), optional :: &
+         my_tsk, my_i, my_j, my_blk
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          zqsn    , & ! snow layer enthalpy, zqsn < 0 (J m-3)
@@ -460,7 +464,11 @@
                                       fsnow,     einit,    &
                                       einter,    efinal,   &
                                       fcondtopn, fcondbotn, &
-                                      fadvocn,   fbot      )
+                                      fadvocn,   fbot,     &
+                                      my_tsk = my_tsk,     &
+                                      my_i = my_i,         & 
+                                      my_j = my_j,         &
+                                      my_blk = my_blk)
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1325,15 +1333,15 @@
 
 #ifdef GEOSCOUPLED
          ! adjust top layer ice enthalpy b.c. we added them at 0C
-         zqsnew = -rhoi*Lfresh
-         hqtot = dzi(1)*qm(1) + dhi*zqsnew
+         !zqsnew = -rhoi*Lfresh
+         !hqtot = dzi(1)*qm(1) + dhi*zqsnew
+         sblx = sblx + (-dhi)*(qm(1) - (-rhoi*Lfresh)) ! sblx can be v+- (J m-2)
 #endif
-
          dzi(1) = dzi(1) + dhi
-#ifdef GEOSCOUPLED
-         if (dzi(1) > puny) &
-                zqin(1) = hqtot / dzi(1) ! need to revisit for kterm = 2
-#endif
+!#ifdef GEOSCOUPLED
+        ! if (dzi(1) > puny) &
+        !        zqin(1) = hqtot / dzi(1) ! need to revisit for kterm = 2
+!#endif
          evapn = evapn + dhi*rhoi
          evapin = evapin + dhi*rhoi
          ! enthalpy of melt water
@@ -2010,7 +2018,9 @@
                                             einit,    einter,   &
                                             efinal,             &
                                             fcondtopn,fcondbotn, &
-                                            fadvocn,  fbot      )
+                                            fadvocn,  fbot,     &   
+                                            my_tsk, my_i,       &
+                                            my_j, my_blk)
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
@@ -2030,6 +2040,9 @@
          einter      , & ! intermediate energy of melting (J m-2)
          efinal      , & ! final energy of melting (J m-2)
          fcondbotn
+
+      integer(kind=int_kind), intent(in), optional :: &
+         my_tsk, my_i, my_j, my_blk
 
       ! local variables
 
@@ -2059,6 +2072,10 @@
          call icepack_warnings_add(subname//" conservation_check_vthermo: Thermo energy conservation error" ) 
 
          write(warnstr,*) subname, 'Thermo energy conservation error'
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'at task, i, j, iblk'
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, my_tsk, my_i, my_j, my_blk
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Flux error (W/m^2) =', ferr
          call icepack_warnings_add(warnstr)
@@ -2285,7 +2302,9 @@
                                     lmask_n     , lmask_s     , &
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice, &
-                                    zlvs)
+                                    zlvs        , my_tsk,      &
+                                    my_i,         my_j,        &
+                                    my_blk   )
 
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories
@@ -2306,6 +2325,9 @@
 
       logical (kind=log_kind), intent(in), optional :: &
          prescribed_ice  ! if .true., use prescribed ice instead of computed
+
+      integer (kind=int_kind), intent(in), optional :: &
+         my_tsk, my_i, my_j, my_blk
 
       real (kind=dbl_kind), intent(inout) :: &
          aice        , & ! sea ice concentration
@@ -2887,7 +2909,9 @@
                                  congel=congeln  (n), snoice=snoicen  (n),    &
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,    &
                                  yday=yday,           dsnow=dsnown   (n),     &
-                                 prescribed_ice=prescribed_ice)
+                                 prescribed_ice=prescribed_ice,               &
+                                 my_tsk = my_tsk,   my_i = my_i,              &
+                                 my_j = my_j,      my_blk = my_blk            )
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
