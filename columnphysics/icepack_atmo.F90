@@ -897,7 +897,7 @@
          l_uvel, l_vvel, l_Uref
 
       logical (kind=log_kind), save :: &
-         first_call = .true.   ! first call flag
+         first_call_ice = .true.   ! first call flag
 
       character(len=*),parameter :: subname='(icepack_atm_boundary)'
 
@@ -907,7 +907,7 @@
       !------------------------------------------------------------
 
       if (sfctype == 'ice') then
-      if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call)) then
+      if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call_ice)) then
          if (tr_iso) then
             if (.not.(present(Qa_iso).and.present(Qref_iso))) then
               call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')
@@ -965,7 +965,7 @@
       endif
 
       if (sfctype == 'ice') then
-         first_call = .false.
+         first_call_ice = .false.
       endif
 
       end subroutine icepack_atm_boundary
