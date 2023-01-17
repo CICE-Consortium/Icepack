@@ -69,13 +69,11 @@
                                       Tsf,      Tbot,     &
                                       fsensn,   flatn,    &
                                       flwoutn,  fsurfn,   &
-#ifdef GEOSCOUPLED
+                                      fcondtopn,fcondbot, &
+                                      einit,              &
                                       dfsurfdt_in,        &
                                       flatn_f,            &
-                                      dflatdt_in,         &
-#endif
-                                      fcondtopn,fcondbot, &
-                                      einit               )
+                                      dflatdt_in)
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -119,12 +117,10 @@
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn         ! upward LW at surface (W m-2)
 
-#ifdef GEOSCOUPLED
-      real (kind=dbl_kind), intent(in):: &
+      real (kind=dbl_kind), intent(in), optional:: &
          dfsurfdt_in ,  &
          flatn_f     ,  &
          dflatdt_in    
-#endif
 
       real (kind=dbl_kind), intent(out):: &
          fcondbot        ! downward cond flux at bottom surface (W m-2)
@@ -239,6 +235,21 @@
       dflwout_dT = c0  
       einex      = c0
 #ifdef GEOSCOUPLED
+      if (.not. present(dfsurfdt_in)) then  
+          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+          call icepack_warnings_add(subname//": missing dfsurfdt_in" )
+          return   
+      endif
+      if (.not. present(dflatdt_in)) then  
+          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+          call icepack_warnings_add(subname//": missing dflatdt_in" )
+          return   
+      endif
+      if (.not. present(flatn_f)) then  
+          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+          call icepack_warnings_add(subname//": missing flatn_f" )
+          return   
+      endif
       ! derivative information is passed by GEOS 
       dfsurf_dT = dfsurfdt_in
       dflat_dT  = dflatdt_in  
