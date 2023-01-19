@@ -705,7 +705,10 @@
          DO WHILE (elapsed_t.lt.dt)
 
              nsubt = nsubt + 1
-             if (nsubt.gt.100) print *, 'latg not converging'
+             if (nsubt.gt.100) then
+                write(warnstr,*) subname,'latg not converging'
+                call icepack_warnings_add(warnstr)
+             endif
 
              ! finite differences
              df_flx(:) = c0 ! NB could stay zero if all in largest FS cat
@@ -716,8 +719,6 @@
              do k = 1, nfsd
                 df_flx(k) = f_flx(k+1) - f_flx(k)
              end do
-
-!         if (abs(sum(df_flx)) > puny) print*,'fsd_add_new ERROR df_flx /= 0'
 
              dafsd_tmp(:) = c0
              do k = 1, nfsd

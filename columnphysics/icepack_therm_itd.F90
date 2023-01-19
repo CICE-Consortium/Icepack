@@ -1027,7 +1027,10 @@
 
             G_radialn(n) = -wlat ! negative
 
-            if (any(afsdn(:,n) < c0)) print*,'lateral_melt B afsd < 0',n
+            if (any(afsdn(:,n) < c0)) then
+               write(warnstr,*) subname, 'lateral_melt B afsd < 0 ',n
+               call icepack_warnings_add(warnstr)
+            endif
 
             bin1_arealoss = -trcrn(nt_fsd+1-1,n) * aicen(n) * dt &
                              * G_radialn(n) / floe_binwidth(1)
@@ -1041,25 +1044,31 @@
             ! add negative area loss from fsd
             delta_an(n) = delta_an(n) - bin1_arealoss
 
-            if (delta_an(n) > c0) print*,'ERROR delta_an > 0', delta_an(n)
+            if (delta_an(n) > c0) then
+               write(warnstr,*) subname, 'ERROR delta_an > 0 ',delta_an(n)
+               call icepack_warnings_add(warnstr)
+            endif
 
             ! following original code, not necessary for fsd
             if (aicen(n) > c0) rsiden(n) = MIN(-delta_an(n)/aicen(n),c1)
 
-            if (rsiden(n) < c0) print*,'ERROR rsiden < 0', rsiden(n)
+            if (rsiden(n) < c0) then
+               write(warnstr,*) subname, 'ERROR rsiden < 0 ',rsiden(n)
+               call icepack_warnings_add(warnstr)
+            endif
 
-               ! melting energy/unit area in each column, etot < 0
-               etot = c0
-               do k = 1, nslyr
-                  etot = etot + trcrn(nt_qsno+k-1,n) * vsnon(n)/real(nslyr,kind=dbl_kind)
-               enddo
+            ! melting energy/unit area in each column, etot < 0
+            etot = c0
+            do k = 1, nslyr
+               etot = etot + trcrn(nt_qsno+k-1,n) * vsnon(n)/real(nslyr,kind=dbl_kind)
+            enddo
 
-               do k = 1, nilyr
-                  etot = etot + trcrn(nt_qice+k-1,n) * vicen(n)/real(nilyr,kind=dbl_kind)
-               enddo                  ! nilyr
+            do k = 1, nilyr
+               etot = etot + trcrn(nt_qice+k-1,n) * vicen(n)/real(nilyr,kind=dbl_kind)
+            enddo                  ! nilyr
                
-               ! lateral heat flux, fside < 0        
-               fside = fside + rsiden(n)*etot/dt
+            ! lateral heat flux, fside < 0        
+            fside = fside + rsiden(n)*etot/dt
 
          enddo ! ncat
 
@@ -1122,8 +1131,10 @@
                      DO WHILE (elapsed_t.lt.dt)
 
                          nsubt = nsubt + 1
-                         if (nsubt.gt.100) &
-                           print *, 'latm not converging'
+                         if (nsubt.gt.100) then
+                             write(warnstr,*) subname, 'latm not converging'
+                             call icepack_warnings_add(warnstr)
+                         endif
 
                          ! finite differences
                          df_flx(:) = c0
@@ -1136,8 +1147,10 @@
                           df_flx(k)   = f_flx(k+1) - f_flx(k)
                          end do
 
-                         if (abs(sum(df_flx(:))) > puny) &
-                           print*,'sum(df_flx)/=0'
+                         if (abs(sum(df_flx(:))) > puny) then
+                             write(warnstr,*) subname, 'sum(df_flx) /= 0'
+                             call icepack_warnings_add(warnstr)
+                         endif
 
                          ! this term ensures area conservation
                          tmp = SUM(afsd_tmp(:)/floe_rad_c(:))
