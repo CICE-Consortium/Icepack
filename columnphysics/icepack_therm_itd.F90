@@ -27,7 +27,8 @@
       use icepack_parameters, only: rhosi, conserv_check, rhosmin
       use icepack_parameters, only: kitd, ktherm
       use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
-      use icepack_parameters, only: saltflux_option, argcheck
+      use icepack_parameters, only: saltflux_option
+      use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -1730,7 +1731,6 @@
                enddo
             endif
 
-           frazil_conc = c0
            if (tr_iso .and. vtmp > puny) then
              do it=1,n_iso
                frazil_conc = c0
@@ -2114,7 +2114,7 @@
       ! Check optional arguments and set local values
       !-----------------------------------------------------------------
 
-       if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call)) then
+       if (icepack_chkoptargflag(first_call)) then
           if (tr_iso) then
              if (.not.(present(fiso_ocn)   .and. &
                        present(HDO_ocn)    .and. &

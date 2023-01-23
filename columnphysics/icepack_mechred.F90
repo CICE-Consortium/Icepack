@@ -37,7 +37,7 @@
       use icepack_parameters, only: c0, c1, c2, c10, c25, Cf, Cp, Pstar, Cstar
       use icepack_parameters, only: p05, p15, p25, p333, p5
       use icepack_parameters, only: puny, Lfresh, rhoi, rhos
-      use icepack_parameters, only: argcheck
+      use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: conserv_check
@@ -1841,7 +1841,7 @@
       ! Check optional arguments
       !-----------------------------------------------------------------
 
-      if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call)) then
+      if (icepack_chkoptargflag(first_call)) then
          if (tr_iso) then
             if (.not.(present(fiso_ocn))) then
               call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')

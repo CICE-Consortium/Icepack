@@ -19,7 +19,8 @@
       use icepack_parameters, only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
       use icepack_parameters, only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
       use icepack_parameters, only: pih, dragio, rhoi, rhos, rhow
-      use icepack_parameters, only: atmbndy, calc_strair, formdrag, argcheck
+      use icepack_parameters, only: atmbndy, calc_strair, formdrag
+      use icepack_parameters, only: icepack_chkoptargflag
       use icepack_tracers, only: n_iso
       use icepack_tracers, only: tr_iso
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -903,11 +904,11 @@
 
       !------------------------------------------------------------
       ! Check optional arguments
-      ! This is used for ocean and ice sfctype, need to be careful
+      ! Need separate first_call flags for 'ice' and 'ocn' sfctype
       !------------------------------------------------------------
 
       if (sfctype == 'ice') then
-      if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call_ice)) then
+      if (icepack_chkoptargflag(first_call_ice)) then
          if (tr_iso) then
             if (.not.(present(Qa_iso).and.present(Qref_iso))) then
               call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')

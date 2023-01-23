@@ -27,7 +27,8 @@
       use icepack_parameters, only: ustar_min, fbot_xfer_type, formdrag, calc_strair
       use icepack_parameters, only: rfracmin, rfracmax, dpscale, frzpnd, snwgrain, snwlvlfac
       use icepack_parameters, only: phi_i_mushy, floeshape, floediam, use_smliq_pnd, snwredist
-      use icepack_parameters, only: saltflux_option,argcheck
+      use icepack_parameters, only: saltflux_option
+      use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_tracers, only: tr_iage, tr_FY, tr_aero, tr_pond, tr_fsd, tr_iso
       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
@@ -2417,7 +2418,7 @@
       ! check optional arguments
       !-----------------------------------------------------------------
 
-      if (argcheck == 'always' .or. (argcheck == 'first' .and. first_call)) then
+      if (icepack_chkoptargflag(first_call)) then
          if (tr_iso) then
             if (.not.(present(isosno)   .and. present(isoice)     .and. &
                       present(fiso_atm) .and. present(fiso_ocn)   .and. &
