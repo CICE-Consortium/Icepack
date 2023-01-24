@@ -919,7 +919,7 @@
          dzi,       & ! ice layer thickness (m)
          dz           ! dzs + dzi (m)
 
-      logical (kind=log_kind) :: &
+      logical (kind=log_kind), save :: &
          first_call = .true.   ! first call flag
 
       character (char_len) :: &
@@ -1194,7 +1194,6 @@
       else
          sliq = meltsliq  ! computed in thickness_changes
       endif
-      meltsliq = meltsliq
       if (use_smliq_pnd) meltsliq = sliq
 
       end subroutine drain_snow
