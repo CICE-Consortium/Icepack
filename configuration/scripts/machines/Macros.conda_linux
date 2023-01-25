@@ -26,6 +26,12 @@ CC := $(SCC)
 FC := $(SFC)
 LD := $(FC)
 
+# Location of the compiled Fortran modules (NetCDF)
+MODDIR  += -I$(CONDA_PREFIX)/include
+
+# Libraries to be passed to the linker
+SLIBS   := -L$(CONDA_PREFIX)/lib -lnetcdf -lnetcdff
+
 # Necessary flag to compile with OpenMP support
 ifeq ($(ICE_THREADED), true)
    LDFLAGS += -fopenmp

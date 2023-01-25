@@ -34,9 +34,10 @@
       module icepack_mechred
 
       use icepack_kinds
-      use icepack_parameters,  only: c0, c1, c2, c10, c25, Cf, Cp, Pstar, Cstar
-      use icepack_parameters,  only: p05, p15, p25, p333, p5
-      use icepack_parameters,  only: puny, Lfresh, rhoi, rhos
+      use icepack_parameters, only: c0, c1, c2, c10, c25, Cf, Cp, Pstar, Cstar
+      use icepack_parameters, only: p05, p15, p25, p333, p5
+      use icepack_parameters, only: puny, Lfresh, rhoi, rhos
+      use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: conserv_check
@@ -191,7 +192,7 @@
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          faero_ocn      ! aerosol flux to ocean (kg/m^2/s)
 
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn       ! isotope flux to ocean (kg/m^2/s)
 
       ! local variables
@@ -1815,7 +1816,7 @@
          faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
          flux_bio     ! all bio fluxes to ocean
 
-      real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn     ! isotope flux to ocean  (kg/m^2/s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
@@ -1836,16 +1837,31 @@
       real (kind=dbl_kind) :: &
          dtt          ! thermo time step
 
-      real (kind=dbl_kind), dimension(:), allocatable :: &
-         l_fiso_ocn     ! local isotope flux to ocean  (kg/m^2/s)
-
       real (kind=dbl_kind) :: &
          l_closing      ! local rate of closing due to divergence/shear (1/s)
 
       logical (kind=log_kind) :: &
          l_closing_flag ! flag if closing is passed
 
+      logical (kind=log_kind), save :: &
+         first_call = .true.   ! first call flag
+
       character(len=*),parameter :: subname='(icepack_step_ridge)'
+
+      !-----------------------------------------------------------------
+      ! Check optional arguments
+      !-----------------------------------------------------------------
+
+      if (icepack_chkoptargflag(first_call)) then
+         if (tr_iso) then
+            if (.not.(present(fiso_ocn))) then
+              call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+              return
+            endif
+         endif
+      endif
+
 
       !-----------------------------------------------------------------
       ! Identify ice-ocean cells.
@@ -1853,15 +1869,6 @@
       !        aice has not yet been updated since the transport (and
       !        it may be out of whack, which the ridging helps fix).-ECH
       !-----------------------------------------------------------------
-
-      if (present(fiso_ocn)) then
-         allocate(l_fiso_ocn(size(fiso_ocn)))
-         l_fiso_ocn = fiso_ocn
-      else
-         ! check tr_iso = true ???
-         allocate(l_fiso_ocn(1))
-         l_fiso_ocn = c0
-      endif
 
       if (present(closing)) then
          l_closing_flag = .true.
@@ -1890,7 +1897,7 @@
                       dvirdgdt,     opening,        &
                       fpond,                        &
                       fresh,        fhocn,          &
-                      faero_ocn,    l_fiso_ocn,     &
+                      faero_ocn,    fiso_ocn,       &
                       aparticn,     krdgn,          &
                       aredistn,     vredistn,       &
                       dardg1ndt,    dardg2ndt,      &
@@ -1921,13 +1928,12 @@
                         n_trcr_strata,        nt_strata,        &
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
-                        faero_ocn,            l_fiso_ocn,       &
-                        fzsal,                &
-                        flux_bio, Tf)
+                        faero_ocn,            fiso_ocn,         &
+                        fzsal,                                  &
+                        flux_bio,             Tf)
       if (icepack_warnings_aborted(subname)) return
 
-      if (present(fiso_ocn)) fiso_ocn = l_fiso_ocn
-      deallocate(l_fiso_ocn)
+      first_call = .false.
 
       end subroutine icepack_step_ridge
 

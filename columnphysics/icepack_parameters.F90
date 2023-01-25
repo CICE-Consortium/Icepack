@@ -17,6 +17,7 @@
       public :: icepack_query_parameters
       public :: icepack_write_parameters
       public :: icepack_recompute_constants
+      public :: icepack_chkoptargflag
 
       !-----------------------------------------------------------------
       ! control options
@@ -2011,6 +2012,22 @@
       end subroutine icepack_recompute_constants
 
 !=======================================================================
+
+      function icepack_chkoptargflag(first_call) result(chkoptargflag)
+
+        logical(kind=log_kind), intent(in) :: first_call
+
+        logical(kind=log_kind) :: chkoptargflag
+
+        character(len=*),parameter :: subname='(icepack_chkoptargflag)'
+
+        chkoptargflag = &
+           (argcheck == 'always' .or. (argcheck == 'first' .and. first_call))
+
+      end function icepack_chkoptargflag
+
+!=======================================================================
+
 
     end module icepack_parameters
 
