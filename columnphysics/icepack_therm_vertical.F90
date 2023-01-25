@@ -1868,6 +1868,7 @@
 
 #ifdef GEOSCOUPLED
       efinal = -evapn*Lvap + sblx
+      fhocnn = fhocnn + sblx/dt 
 #else
       efinal = -evapn*Lvap
 #endif
