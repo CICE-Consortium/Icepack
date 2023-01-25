@@ -68,7 +68,10 @@
          count1(1), count2(2), count3(3), count4(4), & ! cdf start/count arrays
          varid, &                        ! cdf varid
          status, &                       ! cdf status flag
-         iflag                           ! history file attributes
+         iflag, &                        ! history file attributes
+         h0, &                           ! start hour
+         m0, &                           ! start minute
+         s0                              ! start second
 
       character (len=8) :: &
          cdate                           ! date string
@@ -158,6 +161,9 @@
          endif
 
          ! time dimension
+         h0 = sec / 3600 ! Get the current hour
+         m0 = mod(sec, 3600) / 60 ! Get the current minute
+         s0 = mod(sec, 60) ! Get the current seconds
          status = nf90_def_dim(ncid,'time',NF90_UNLIMITED,timid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: def_dim time')
          status = nf90_def_var(ncid,'time',NF90_DOUBLE,timid,varid)
@@ -165,8 +171,8 @@
          status = nf90_put_att(ncid,varid,'long_name','model time')
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_att time long_name')
          write(cdate,'(i8.8)') idate0
-         write(tmpstr,'(a,a,a,a,a,a,a,a)') 'days since ', &
-            cdate(1:4),'-',cdate(5:6),'-',cdate(7:8),' 00:00:00'
+         write(tmpstr,'(a,a,a,a,a,a,a,i2.2,a,i2.2,a,i2.2)') 'days since ', &
+            cdate(1:4),'-',cdate(5:6),'-',cdate(7:8),' ',h0,':',m0,':',s0
          status = nf90_put_att(ncid,varid,'units',trim(tmpstr))
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_att time units')
          if (days_per_year == 360) then

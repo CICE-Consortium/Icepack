@@ -167,7 +167,7 @@
       tday = (time-sec)/secday + c1     ! absolute day number
 
       ! Convert the current timestep into a calendar date
-      call sec2time(nyr,month,mday,basis_seconds+sec)
+      call sec2time(nyr,month,mday,basis_seconds+time)
 
       yday = mday + daycal(month)  ! day of the year
       nyr = nyr - year_init + 1    ! year number
