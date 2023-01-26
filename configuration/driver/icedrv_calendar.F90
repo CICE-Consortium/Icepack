@@ -61,7 +61,6 @@
          year_init, & ! initial year
          nyr      , & ! year number
          idate    , & ! date (yyyymmdd)
-         idate0   , & ! initial date (yyyymmdd)
          sec      , & ! elapsed seconds into date
          npt      , & ! total number of time steps (dt)
          ndtd     , & ! number of dynamics subcycles: dt_dyn=dt/ndtd
@@ -171,8 +170,6 @@
 
       yday = mday + daycal(month)  ! day of the year
       nyr = nyr - year_init + 1    ! year number
-
-      idate0 = (nyr+year_init-1)*10000 + month*100 + mday ! date (yyyymmdd)
 
       end subroutine init_calendar
 
