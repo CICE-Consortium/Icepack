@@ -1867,11 +1867,9 @@
       !-----------------------------------------------------------------
 
 #ifdef GEOSCOUPLED
-      efinal = -evapn*Lvap + sblx
       fhocnn = fhocnn + sblx/dt 
-#else
-      efinal = -evapn*Lvap
 #endif
+      efinal = -evapn*Lvap
       evapn =  evapn/dt
       evapsn =  evapsn/dt
       evapin =  evapin/dt
