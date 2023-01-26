@@ -69,6 +69,7 @@
          varid, &                        ! cdf varid
          status, &                       ! cdf status flag
          iflag, &                        ! history file attributes
+         sec0, &                         ! number of seconds into the day at istep0
          h0, &                           ! start hour
          m0, &                           ! start minute
          s0                              ! start second
@@ -161,9 +162,10 @@
          endif
 
          ! time dimension
-         h0 = sec / 3600 ! Get the current hour
-         m0 = mod(sec, 3600) / 60 ! Get the current minute
-         s0 = mod(sec, 60) ! Get the current seconds
+         sec0 = int(mod(time0, secday))
+         h0 = sec0 / 3600 ! Get the current hour
+         m0 = mod(sec0, 3600) / 60 ! Get the current minute
+         s0 = mod(sec0, 60) ! Get the current seconds
          status = nf90_def_dim(ncid,'time',NF90_UNLIMITED,timid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: def_dim time')
          status = nf90_def_var(ncid,'time',NF90_DOUBLE,timid,varid)
