@@ -16,6 +16,9 @@
       use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
       use icepack_intfc, only: icepack_warnings_add, warnstr
+#ifdef USE_NETCDF
+      use netcdf
+#endif
 
       implicit none
       private :: &
@@ -27,8 +30,12 @@
           write_restart_snow,      read_restart_snow, &
           write_restart_fsd,       read_restart_fsd, &
           write_restart_iso,       read_restart_iso, &
-          write_restart_aero,      read_restart_aero
-
+          write_restart_aero,      read_restart_aero, &
+          define_rest_field
+      
+      integer (kind=int_kind), private :: &
+         ncid     ! ID for NetCDF file
+         
       public :: dumpfile, restartfile, final_restart, &
                 write_restart_field, read_restart_field
 
@@ -52,7 +59,7 @@
 
       use icedrv_calendar, only: sec, month, mday, nyr, istep1
       use icedrv_calendar, only: time, time_forc, year_init
-      use icedrv_domain_size, only: nilyr, nslyr, ncat
+      use icedrv_domain_size, only: nilyr, nslyr, ncat, n_aero, nfsd, nx, n_iso
       use icedrv_forcing, only: oceanmixed_ice
       use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: sst, frzmlt
@@ -74,28 +81,43 @@
 
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(dumpfile)'
+      
+      ! local variables if we're writing in NetCDF
+      integer (kind=int_kind) :: &
+      dimid_ni,   & ! netCDF identifiers
+      dimid_ncat, & !
+      dimid_aero, &
+      dimid_floe, &
+      iflag,      & ! netCDF creation flag
+      status        ! status variable from netCDF routine
 
-      ! construct path/file
+      integer (kind=int_kind), allocatable :: dims(:),dims1(:)
+
+      character (len=3) :: nchar
+
+
+      ! get year
       iyear = nyr + year_init - 1
       
+      ! query which tracers are active and their indices
+      call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
+         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+         tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+         tr_brine_out=tr_brine, &
+         tr_pond_topo_out=tr_pond_topo, &
+         tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+!      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
+!         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+         file=__FILE__,line= __LINE__)
+
       if (restart_format == 'bin') then
          write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
             restart_dir(1:lenstr(restart_dir)), &
             restart_file(1:lenstr(restart_file)),'.', &
             iyear,'-',month,'-',mday,'-',sec
-
-         call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-            nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
-         call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
-            tr_brine_out=tr_brine, &
-            tr_pond_topo_out=tr_pond_topo, &
-            tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
-   !      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
-   !         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
-         call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-            file=__FILE__,line= __LINE__)
 
          open(nu_dump,file=filename,form='unformatted')
          write(nu_dump) istep1,time,time_forc
@@ -153,7 +175,136 @@
    !      if (solve_zsal .or. skl_bgc .or. z_tracers) &
    !                        call write_restart_bgc         ! biogeochemistry
       else if (restart_format == 'nc') then
-         ! todo
+         write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
+         restart_dir(1:lenstr(restart_dir)), &
+         restart_file(1:lenstr(restart_file)),'.', &
+         iyear,'-',month,'-',mday,'-',sec
+         filename = trim(filename) // '.nc'
+
+         ! Open NetCDF restart file in define mode
+         iflag = nf90_clobber
+         status = nf90_create(trim(filename), iflag, ncid)
+            if (status /= nf90_noerr) call icedrv_system_abort(string=subname, &
+            file=__FILE__,line= __LINE__)
+         ! Set time attributes for restart file
+         status = nf90_put_att(ncid,nf90_global,'istep1',istep1)
+         status = nf90_put_att(ncid,nf90_global,'time',time)
+         status = nf90_put_att(ncid,nf90_global,'time_forc',time_forc)
+         status = nf90_put_att(ncid,nf90_global,'nyr',iyear)
+         status = nf90_put_att(ncid,nf90_global,'month',month)
+         status = nf90_put_att(ncid,nf90_global,'mday',mday)
+         status = nf90_put_att(ncid,nf90_global,'sec',sec)
+         ! Set dimensions for restart file
+         status = nf90_def_dim(ncid,'ni',nx,dimid_ni)
+         status = nf90_def_dim(ncid,'ncat',ncat,dimid_ncat)
+         !status = nf90_def_dim(ncid,'naero',n_aero,dimid_aero)
+         !status = nf90_def_dim(ncid,'nfloe',nfsd,dimid_floe) 
+
+         !-----------------------------------------------------------------
+         ! state variables field creation
+         !-----------------------------------------------------------------
+         
+         allocate(dims(2))
+         allocate(dims1(1))
+         dims(1) = dimid_ni
+         dims(2) = dimid_ncat
+         dims1(1) = dimid_ni 
+         call define_rest_field(ncid,'aicen',dims)
+         call define_rest_field(ncid,'vicen',dims)
+         call define_rest_field(ncid,'vsnon',dims)
+         call define_rest_field(ncid,'Tsfcn',dims)
+         do k=1,nilyr
+            write(nchar,'(i3.3)') k
+            call define_rest_field(ncid,'sice'//trim(nchar),dims)
+            call define_rest_field(ncid,'qice'//trim(nchar),dims)
+         enddo
+         do k=1,nslyr
+               write(nchar,'(i3.3)') k
+               call define_rest_field(ncid,'qsno'//trim(nchar),dims)
+         enddo
+
+         !-----------------------------------------------------------------
+         ! radiation fields
+         !-----------------------------------------------------------------
+         call define_rest_field(ncid,'scale_factor',dims1)
+         call define_rest_field(ncid,'swvdr',dims1)
+         call define_rest_field(ncid,'swvdf',dims1)
+         call define_rest_field(ncid,'swidr',dims1)
+         call define_rest_field(ncid,'swidf',dims1)
+         
+         !-----------------------------------------------------------------
+         ! for mixed layer model
+         !-----------------------------------------------------------------
+         if (oceanmixed_ice) then
+            call define_rest_field(ncid,'sst',dims1)
+            call define_rest_field(ncid,'frzmlt',dims1)
+         endif
+         
+         ! tracers
+         if (tr_iage)      call define_rest_field(ncid,'iage',dims)  ! ice age tracer
+         if (tr_FY) then                                             ! first-year area tracer
+            call define_rest_field(ncid,'FY',dims)
+            call define_rest_field(ncid,'frz_onset',dims1)
+         endif
+         if (tr_lvl) then                                            ! level ice tracer
+            call define_rest_field(ncid,'alvl',dims)
+            call define_rest_field(ncid,'vlvl',dims)
+         endif
+         if (tr_pond_lvl) then                                       ! level-ice melt ponds
+            call define_rest_field(ncid,'apnd',dims)
+            call define_rest_field(ncid,'hpnd',dims)
+            call define_rest_field(ncid,'ipnd',dims)
+            call define_rest_field(ncid,'dhsn',dims)
+            call define_rest_field(ncid,'ffracn',dims)
+            call define_rest_field(ncid,'fsnow',dims1)
+         endif
+         if (tr_pond_topo) then                                      ! topographic melt ponds
+            call define_rest_field(ncid,'apnd',dims)
+            call define_rest_field(ncid,'hpnd',dims)
+            call define_rest_field(ncid,'ipnd',dims)
+         endif
+         if (tr_snow) then                                           ! snow metamorphosis tracers
+            do k=1,nslyr
+               write(nchar,'(i3.3)') k
+               call define_rest_field(ncid,'smice'//trim(nchar),dims)    
+               call define_rest_field(ncid,'smliq'//trim(nchar),dims)
+               call define_rest_field(ncid,'rhos'//trim(nchar),dims)
+               call define_rest_field(ncid,'rsnw'//trim(nchar),dims)
+            enddo
+         endif
+         if (tr_iso) then                                            ! ice isotopes
+            do k=1,n_iso
+               write(nchar,'(i3.3)') k
+               call define_rest_field(ncid,'isosno'//trim(nchar),dims) 
+               call define_rest_field(ncid,'isoice'//trim(nchar),dims)
+            enddo
+         endif
+         if (tr_aero) then                                           ! ice aerosols
+            do k = 1, n_aero
+               write(nchar,'(i3.3)') k
+               call define_rest_field(ncid,'aerosnossl'//nchar,dims)
+               call define_rest_field(ncid,'aerosnoint'//nchar,dims)
+               call define_rest_field(ncid,'aeroicessl'//nchar,dims)
+               call define_rest_field(ncid,'aeroiceint'//nchar,dims)
+            enddo
+         endif
+         if (tr_brine) then                                          ! brine height
+            call define_rest_field(ncid,'fbri',dims)
+            call define_rest_field(ncid,'first_ice',dims)
+         endif
+         if (tr_fsd) then                                            ! floe size distribution
+            do k = 1, nfsd
+               write(nchar,'(i3.3)') k
+               call define_rest_field(ncid,'fsd'//nchar,dims)
+            enddo 
+         endif
+         status = nf90_enddef(ncid)
+
+         ! Populate fields in NetCDF restart file
+
+         status = nf90_close(ncid)
+         if (status /= nf90_noerr) call icedrv_system_abort(string=subname, &
+            file=__FILE__,line= __LINE__)
       else
          write(warnstr,*) subname, 'Restart format must be either "bin" or "nc", no restart file written'
          call icepack_warnings_add(warnstr)
@@ -1017,6 +1168,24 @@
 
       end subroutine read_restart_hbrine
 
+!=======================================================================
+      subroutine define_rest_field(ncid, vname, dims)
+
+! Defines a field in NetCDF restart file
+! author Chris Riedel, NCAR
+
+         character (len=*)      , intent(in)  :: vname
+         integer (kind=int_kind), intent(in)  :: dims(:)
+         integer (kind=int_kind), intent(in)  :: ncid
+   
+         integer (kind=int_kind) :: varid
+   
+         integer (kind=int_kind) :: &
+           status        ! status variable from netCDF routine
+   
+         status = nf90_def_var(ncid,trim(vname),nf90_double,dims,varid)
+   
+         end subroutine define_rest_field
 !=======================================================================
 
       end module icedrv_restart
