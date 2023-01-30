@@ -10,10 +10,12 @@
       use icedrv_constants, only: nu_diag, nu_restart, nu_dump
       use icedrv_constants, only: c0, c1, p5
       use icedrv_restart_shared, only: restart, restart_dir, restart_file, lenstr
+      use icedrv_restart_shared, only: restart_format
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
+      use icepack_intfc, only: icepack_warnings_add, warnstr
 
       implicit none
       private :: &
@@ -37,11 +39,14 @@
 !=======================================================================
 
 !=======================================================================
-!---! these subroutines write/read Fortran unformatted data files ..
+!---! these subroutines write/read restart data files ..
+!     Which can either be in unformatted Fortran format
+!     (restart_format = 'bin') or NetCDF (restart_format = 'nc')      
 !=======================================================================
 
 ! Dumps all values needed for a restart
-! author Elizabeth C. Hunke, LANL
+! authors Elizabeth C. Hunke, LANL
+!         David Clemens-Sewall, NCAR
 
       subroutine dumpfile
 
@@ -72,80 +77,88 @@
 
       ! construct path/file
       iyear = nyr + year_init - 1
+      
+      if (restart_format == 'bin') then
+         write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
+            restart_dir(1:lenstr(restart_dir)), &
+            restart_file(1:lenstr(restart_file)),'.', &
+            iyear,'-',month,'-',mday,'-',sec
 
-      write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
-         restart_dir(1:lenstr(restart_dir)), &
-         restart_file(1:lenstr(restart_file)),'.', &
-         iyear,'-',month,'-',mday,'-',sec
+         call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
+            nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+         call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+            tr_brine_out=tr_brine, &
+            tr_pond_topo_out=tr_pond_topo, &
+            tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+   !      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
+   !         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+            file=__FILE__,line= __LINE__)
 
-      call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
-      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
-           tr_brine_out=tr_brine, &
-           tr_pond_topo_out=tr_pond_topo, &
-           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
-!      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
-!         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
-      call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-          file=__FILE__,line= __LINE__)
+         open(nu_dump,file=filename,form='unformatted')
+         write(nu_dump) istep1,time,time_forc
+         write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
 
-      open(nu_dump,file=filename,form='unformatted')
-      write(nu_dump) istep1,time,time_forc
-      write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
+         !-----------------------------------------------------------------
+         ! state variables
+         ! Tsfc is the only tracer written to binary files.  All other
+         ! tracers are written to their own dump/restart binary files.
+         !-----------------------------------------------------------------
 
-      !-----------------------------------------------------------------
-      ! state variables
-      ! Tsfc is the only tracer written to binary files.  All other
-      ! tracers are written to their own dump/restart binary files.
-      !-----------------------------------------------------------------
+         call write_restart_field(nu_dump,aicen(:,:),ncat)
+         call write_restart_field(nu_dump,vicen(:,:),ncat)
+         call write_restart_field(nu_dump,vsnon(:,:),ncat)
+         call write_restart_field(nu_dump,trcrn(:,nt_Tsfc,:),ncat)
+         do k=1,nilyr
+            call write_restart_field(nu_dump,trcrn(:,nt_sice+k-1,:),ncat)
+         enddo
+         do k=1,nilyr
+            call write_restart_field(nu_dump,trcrn(:,nt_qice+k-1,:),ncat)
+         enddo
+         do k=1,nslyr
+            call write_restart_field(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat)
+         enddo
 
-      call write_restart_field(nu_dump,aicen(:,:),ncat)
-      call write_restart_field(nu_dump,vicen(:,:),ncat)
-      call write_restart_field(nu_dump,vsnon(:,:),ncat)
-      call write_restart_field(nu_dump,trcrn(:,nt_Tsfc,:),ncat)
-      do k=1,nilyr
-         call write_restart_field(nu_dump,trcrn(:,nt_sice+k-1,:),ncat)
-      enddo
-      do k=1,nilyr
-         call write_restart_field(nu_dump,trcrn(:,nt_qice+k-1,:),ncat)
-      enddo
-      do k=1,nslyr
-         call write_restart_field(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat)
-      enddo
+         !-----------------------------------------------------------------
+         ! radiation fields
+         !-----------------------------------------------------------------
+         call write_restart_field(nu_dump,scale_factor,1)
+         call write_restart_field(nu_dump,swvdr,1)
+         call write_restart_field(nu_dump,swvdf,1)
+         call write_restart_field(nu_dump,swidr,1)
+         call write_restart_field(nu_dump,swidf,1)
 
-      !-----------------------------------------------------------------
-      ! radiation fields
-      !-----------------------------------------------------------------
-      call write_restart_field(nu_dump,scale_factor,1)
-      call write_restart_field(nu_dump,swvdr,1)
-      call write_restart_field(nu_dump,swvdf,1)
-      call write_restart_field(nu_dump,swidr,1)
-      call write_restart_field(nu_dump,swidf,1)
+         !-----------------------------------------------------------------
+         ! for mixed layer model
+         !-----------------------------------------------------------------
+         if (oceanmixed_ice) then
+            call write_restart_field(nu_dump,sst,1)
+            call write_restart_field(nu_dump,frzmlt,1)
+         endif
 
-      !-----------------------------------------------------------------
-      ! for mixed layer model
-      !-----------------------------------------------------------------
-      if (oceanmixed_ice) then
-         call write_restart_field(nu_dump,sst,1)
-         call write_restart_field(nu_dump,frzmlt,1)
+         ! tracers
+         if (tr_iage)      call write_restart_age()       ! ice age tracer
+         if (tr_FY)        call write_restart_FY()        ! first-year area tracer
+         if (tr_lvl)       call write_restart_lvl()       ! level ice tracer
+         if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
+         if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
+         if (tr_snow)      call write_restart_snow()      ! snow metamorphosis tracers
+         if (tr_iso)       call write_restart_iso()       ! ice isotopes
+         if (tr_aero)      call write_restart_aero()      ! ice aerosols
+         if (tr_brine)     call write_restart_hbrine()    ! brine height
+         if (tr_fsd)       call write_restart_fsd()       ! floe size distribution
+   ! called in icedrv_RunMod.F90 to prevent circular dependencies
+   !      if (solve_zsal .or. skl_bgc .or. z_tracers) &
+   !                        call write_restart_bgc         ! biogeochemistry
+      else if (restart_format == 'nc') then
+         ! todo
+      else
+         write(warnstr,*) subname, 'Restart format must be either "bin" or "nc", no restart file written'
+         call icepack_warnings_add(warnstr)
+         call icepack_warnings_flush(nu_diag)
       endif
-
-      ! tracers
-      if (tr_iage)      call write_restart_age()       ! ice age tracer
-      if (tr_FY)        call write_restart_FY()        ! first-year area tracer
-      if (tr_lvl)       call write_restart_lvl()       ! level ice tracer
-      if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
-      if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
-      if (tr_snow)      call write_restart_snow()      ! snow metamorphosis tracers
-      if (tr_iso)       call write_restart_iso()       ! ice isotopes
-      if (tr_aero)      call write_restart_aero()      ! ice aerosols
-      if (tr_brine)     call write_restart_hbrine()    ! brine height
-      if (tr_fsd)       call write_restart_fsd()       ! floe size distribution
-! called in icedrv_RunMod.F90 to prevent circular dependencies
-!      if (solve_zsal .or. skl_bgc .or. z_tracers) &
-!                        call write_restart_bgc         ! biogeochemistry
 
       end subroutine dumpfile
 
