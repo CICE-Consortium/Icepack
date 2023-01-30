@@ -9,6 +9,7 @@
     ice_ic         = 'default'
     restart        = .false.
     restart_dir    = './restart/'
+    restart_format = 'bin'
     dumpfreq       = 'y'
     dump_last      = .false.
     diagfreq       = 24
