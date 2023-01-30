@@ -104,6 +104,10 @@
                                   fswthru_vdf,        &
                                   fswthru_idr,        &
                                   fswthru_idf,        &
+                                  fswthru_uvrdr,      &
+                                  fswthru_uvrdf,      &
+                                  fswthru_pardr,      &
+                                  fswthru_pardf,      &
                                   druvr,    dfuvr,    &
                                   drpar,    dfpar,    &
                                   fswpenl,            &
@@ -165,6 +169,12 @@
          fswthru_idr  , & ! nir dir SW through ice to ocean (W m-2)
          fswthru_idf      ! nir dif SW through ice to ocean (W m-2)
 
+      real (kind=dbl_kind), dimension(:), intent(out), optional :: &
+         fswthru_uvrdr , & ! vis dir SW through ice to ocean (W/m^2)
+         fswthru_uvrdf , & ! vis dif SW through ice to ocean (W/m^2)
+         fswthru_pardr , & ! nir dir SW through ice to ocean (W/m^2)
+         fswthru_pardf     ! nir dif SW through ice to ocean (W/m^2)
+
       real (kind=dbl_kind), intent(inout) :: &
          coszen       ! cosine(zenith angle)
 
@@ -196,30 +206,40 @@
          l_fswthru_idr  , & ! nir dir SW through ice to ocean (W m-2)
          l_fswthru_idf      ! nir dif SW through ice to ocean (W m-2)
 
+      real (kind=dbl_kind), dimension(:), allocatable :: &
+         l_fswthru_uvrdr , & ! vis uvr dir SW through ice to ocean (W/m^2)
+         l_fswthru_uvrdf , & ! vis uvr dif SW through ice to ocean (W/m^2)
+         l_fswthru_pardr , & ! vis par dir SW through ice to ocean (W/m^2)
+         l_fswthru_pardf     ! vis par dif SW through ice to ocean (W/m^2)
+
+      real(kind=dbl_kind) :: &
+         l_druvr,         & ! 
+         l_dfuvr,         & !
+         l_drpar,         & ! 
+         l_dfpar            !
+
       character(len=*),parameter :: subname='(shortwave_ccsm3)'
 
-#ifdef GEOSCOUPLED
-      if (.not. present(druvr)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing druvr" )
-          return   
-      endif
-      if (.not. present(dfuvr)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing dfuvr" )
-          return   
-      endif
-      if (.not. present(drpar)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing drpar" )
-          return   
-      endif
-      if (.not. present(dfpar)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing dfpar" )
-          return   
-      endif
-#endif
+      if (present(druvr)) then  
+         l_druvr = druvr 
+      else
+         l_druvr = c0 
+      endif  
+      if (present(dfuvr)) then  
+         l_dfuvr = dfuvr 
+      else
+         l_dfuvr = c0 
+      endif  
+      if (present(drpar)) then  
+         l_drpar = drpar 
+      else
+         l_drpar = c0 
+      endif  
+      if (present(dfpar)) then  
+         l_dfpar = dfpar 
+      else
+         l_dfpar = c0 
+      endif  
 
       !-----------------------------------------------------------------
       ! Solar radiation: albedo and absorbed shortwave
@@ -229,6 +249,16 @@
       allocate(l_fswthru_vdf(ncat))
       allocate(l_fswthru_idr(ncat))
       allocate(l_fswthru_idf(ncat))
+
+      allocate(l_fswthru_uvrdr(ncat))
+      allocate(l_fswthru_uvrdf(ncat))
+      allocate(l_fswthru_pardr(ncat))
+      allocate(l_fswthru_pardf(ncat))
+
+      l_fswthru_uvrdr = c0
+      l_fswthru_uvrdf = c0
+      l_fswthru_pardr = c0
+      l_fswthru_pardf = c0
 
       ! For basic shortwave, set coszen to a constant between 0 and 1.
       coszen = p5 ! sun above the horizon
@@ -335,12 +365,14 @@
                                fswthru_vdf=l_fswthru_vdf(n),&
                                fswthru_idr=l_fswthru_idr(n),&
                                fswthru_idf=l_fswthru_idf(n),&
-#ifdef GEOSCOUPLED
-                               druvr = druvr,        &
-                               dfuvr = dfuvr,        &
-                               drpar = drpar,        &
-                               dfpar = dfpar,        &
-#endif
+                               fswthru_uvrdr=l_fswthru_uvrdr(n),&
+                               fswthru_uvrdf=l_fswthru_uvrdf(n),&
+                               fswthru_pardr=l_fswthru_pardr(n),&
+                               fswthru_pardf=l_fswthru_pardf(n),&
+                               druvr = l_druvr,        &
+                               dfuvr = l_dfuvr,        &
+                               drpar = l_drpar,        &
+                               dfpar = l_dfpar,        &
                                fswpenl=fswpenl(:,n), &
                                Iswabs=Iswabs(:,n))
 
@@ -359,6 +391,17 @@
       deallocate(l_fswthru_vdf)
       deallocate(l_fswthru_idr)
       deallocate(l_fswthru_idf)
+
+      if (present(fswthru_uvrdr)) fswthru_uvrdr = l_fswthru_uvrdr
+      if (present(fswthru_uvrdf)) fswthru_uvrdf = l_fswthru_uvrdf
+      if (present(fswthru_pardr)) fswthru_pardr = l_fswthru_pardr
+      if (present(fswthru_pardf)) fswthru_pardf = l_fswthru_pardf
+
+      deallocate(l_fswthru_uvrdr)
+      deallocate(l_fswthru_uvrdf)
+      deallocate(l_fswthru_pardr)
+      deallocate(l_fswthru_pardf)
+
 
       end subroutine shortwave_ccsm3
 
@@ -617,6 +660,10 @@
                                  fswthru_vdf,        &
                                  fswthru_idr,        &
                                  fswthru_idf,        &
+                                 fswthru_uvrdr,      &
+                                 fswthru_uvrdf,      &
+                                 fswthru_pardr,      &
+                                 fswthru_pardf,      &
                                  druvr,    dfuvr,    &
                                  drpar,    dfpar,    &
                                  fswpenl,            &
@@ -645,7 +692,7 @@
          alvdfns     , & ! visible, diffuse albedo, snow
          alidfns         ! near-ir, diffuse albedo, snow
 
-      real (kind=dbl_kind), intent(in), optional :: &
+      real (kind=dbl_kind), intent(in) :: &
          druvr , & ! 
          dfuvr , & ! 
          drpar , & ! 
@@ -661,6 +708,12 @@
          fswthru_vdf  , & ! vis dif SW through ice to ocean (W m-2)
          fswthru_idr  , & ! nir dir SW through ice to ocean (W m-2)
          fswthru_idf      ! nir dif SW through ice to ocean (W m-2)
+
+      real (kind=dbl_kind), intent(out) :: &
+         fswthru_uvrdr , & ! vis dir SW through ice to ocean (W/m^2)
+         fswthru_uvrdf , & ! vis dif SW through ice to ocean (W/m^2)
+         fswthru_pardr , & ! nir dir SW through ice to ocean (W/m^2)
+         fswthru_pardf     ! nir dif SW through ice to ocean (W/m^2)
 
       real (kind=dbl_kind), dimension (:), intent(out) :: &
          Iswabs      , & ! SW absorbed in particular layer (W m-2)
@@ -690,43 +743,17 @@
          hilyr       , & ! ice layer thickness
          asnow           ! fractional area of snow cover
 
-#ifdef GEOSCOUPLED
       real (kind=dbl_kind) :: &
          druvrpen    , & !   
          dfuvrpen    , & !
          drparpen    , & ! 
          dfparpen        !  
-#endif
-
-
 
       character(len=*),parameter :: subname='(absorbed_solar)'
 
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
-#ifdef GEOSCOUPLED
-      if (.not. present(druvr)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing druvr" )
-          return   
-      endif
-      if (.not. present(dfuvr)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing dfuvr" )
-          return   
-      endif
-      if (.not. present(drpar)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing drpar" )
-          return   
-      endif
-      if (.not. present(dfpar)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing dfpar" )
-          return   
-      endif
-#endif
 
       trantop = c0
       tranbot = c0
@@ -765,16 +792,14 @@
          fswpenvdr = swvdr * (c1-alvdrni) * (c1-asnow) * i0vis
          fswpenvdf = swvdf * (c1-alvdfni) * (c1-asnow) * i0vis
 
-#ifdef GEOSCOUPLED
+          ! no penetrating radiation in near IR
+!         fswpenidr = swidr * (c1-alidrni) * (c1-asnow) * i0nir
+!         fswpenidf = swidf * (c1-alidfni) * (c1-asnow) * i0nir  
+
          druvrpen = druvr * (c1-alvdrni) * (c1-asnow) * i0vis
          dfuvrpen = dfuvr * (c1-alvdfni) * (c1-asnow) * i0vis
          drparpen = drpar * (c1-alvdrni) * (c1-asnow) * i0vis
          dfparpen = dfpar * (c1-alvdfni) * (c1-asnow) * i0vis
-#endif
-
-          ! no penetrating radiation in near IR
-!         fswpenidr = swidr * (c1-alidrni) * (c1-asnow) * i0nir
-!         fswpenidf = swidf * (c1-alidfni) * (c1-asnow) * i0nir  
 
          fswpen = fswpenvdr + fswpenvdf
                       
@@ -808,17 +833,14 @@
 
          ! SW penetrating thru ice into ocean
          fswthru = fswpen * tranbot
-#ifdef GEOSCOUPLED
-         fswthru_vdr = druvrpen * tranbot
-         fswthru_vdf = dfuvrpen * tranbot
-         fswthru_idr = drparpen * tranbot
-         fswthru_idf = dfparpen * tranbot
-#else
          fswthru_vdr = fswpenvdr * tranbot
          fswthru_vdf = fswpenvdf * tranbot
          fswthru_idr = c0
          fswthru_idf = c0
-#endif
+         fswthru_uvrdr = druvrpen * tranbot
+         fswthru_uvrdf = dfuvrpen * tranbot
+         fswthru_pardr = drparpen * tranbot
+         fswthru_pardf = dfparpen * tranbot
 
          ! SW absorbed in ice interior
          fswint  = fswpen - fswthru
@@ -4148,6 +4170,10 @@
                                         fswthrun_vdf,        &
                                         fswthrun_idr,        &
                                         fswthrun_idf,        &
+                                        fswthrun_uvrdr,      &
+                                        fswthrun_uvrdf,      &
+                                        fswthrun_pardr,      &
+                                        fswthrun_pardf,      &
                                         fswpenln,            &
                                         Sswabsn,  Iswabsn,   &
                                         albicen,  albsnon,   &
@@ -4248,6 +4274,12 @@
          fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
          fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
 
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         fswthrun_uvrdr , & ! vis dir SW through ice to ocean (W/m^2)
+         fswthrun_uvrdf , & ! vis dif SW through ice to ocean (W/m^2)
+         fswthrun_pardr , & ! nir dir SW through ice to ocean (W/m^2)
+         fswthrun_pardf     ! nir dif SW through ice to ocean (W/m^2)
+
       real (kind=dbl_kind), intent(in), optional :: &
          druvr , & ! 
          dfuvr , & ! 
@@ -4290,38 +4322,57 @@
          l_fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
          l_fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
 
+      real (kind=dbl_kind), dimension(:), allocatable :: &
+         l_fswthrun_uvrdr , & ! vis uvr dir SW through ice to ocean (W/m^2)
+         l_fswthrun_uvrdf , & ! vis uvr dif SW through ice to ocean (W/m^2)
+         l_fswthrun_pardr , & ! vis par dir SW through ice to ocean (W/m^2)
+         l_fswthrun_pardf     ! vis par dif SW through ice to ocean (W/m^2)
+
+      real(kind=dbl_kind) :: &
+         l_druvr,         & ! 
+         l_dfuvr,         & !
+         l_drpar,         & ! 
+         l_dfpar            !
+
       real (kind=dbl_kind), dimension(:,:), allocatable :: &
          l_rsnow            ! snow grain radius tracer (10^-6 m)
 
       character(len=*),parameter :: subname='(icepack_step_radiation)'
 
-#ifdef GEOSCOUPLED
-      if (.not. present(druvr)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing druvr" )
-          return   
-      endif
-      if (.not. present(dfuvr)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing dfuvr" )
-          return   
-      endif
-      if (.not. present(drpar)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing drpar" )
-          return   
-      endif
-      if (.not. present(dfpar)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing dfpar" )
-          return   
-      endif
-#endif
+      if (present(druvr)) then  
+         l_druvr = druvr 
+      else
+         l_druvr = c0 
+      endif  
+      if (present(dfuvr)) then  
+         l_dfuvr = dfuvr 
+      else
+         l_dfuvr = c0 
+      endif  
+      if (present(drpar)) then  
+         l_drpar = drpar 
+      else
+         l_drpar = c0 
+      endif  
+      if (present(dfpar)) then  
+         l_dfpar = dfpar 
+      else
+         l_dfpar = c0 
+      endif  
 
       allocate(l_fswthrun_vdr(ncat))
       allocate(l_fswthrun_vdf(ncat))
       allocate(l_fswthrun_idr(ncat))
       allocate(l_fswthrun_idf(ncat))
+      allocate(l_fswthrun_uvrdr(ncat))
+      allocate(l_fswthrun_uvrdf(ncat))
+      allocate(l_fswthrun_pardr(ncat))
+      allocate(l_fswthrun_pardf(ncat))
+
+      l_fswthrun_uvrdr = c0
+      l_fswthrun_uvrdf = c0
+      l_fswthrun_pardr = c0
+      l_fswthrun_pardf = c0
 
       hin = c0
       hbri = c0
@@ -4443,12 +4494,14 @@
                                  fswthru_vdf=l_fswthrun_vdf,&
                                  fswthru_idr=l_fswthrun_idr,&
                                  fswthru_idf=l_fswthrun_idf,&
-#ifdef GEOSCOUPLED
-                                 druvr = druvr,          &
-                                 dfuvr = dfuvr,          &
-                                 drpar = drpar,          &
-                                 dfpar = dfpar,          &
-#endif
+                                 fswthru_uvrdr=l_fswthrun_uvrdr,&
+                                 fswthru_uvrdf=l_fswthrun_uvrdf,&
+                                 fswthru_pardr=l_fswthrun_pardr,&
+                                 fswthru_pardf=l_fswthrun_pardf,&
+                                 druvr = l_druvr,        &
+                                 dfuvr = l_dfuvr,        &
+                                 drpar = l_drpar,        &
+                                 dfpar = l_dfpar,        &
                                  fswpenl=fswpenln,       &
                                  Iswabs=Iswabsn,         &
                                  Sswabs=Sswabsn,         &
@@ -4507,10 +4560,19 @@
       if (present(fswthrun_idr)) fswthrun_idr = l_fswthrun_idr
       if (present(fswthrun_idf)) fswthrun_idf = l_fswthrun_idf
 
+      if (present(fswthrun_uvrdr)) fswthrun_uvrdr = l_fswthrun_uvrdr
+      if (present(fswthrun_uvrdf)) fswthrun_uvrdf = l_fswthrun_uvrdf
+      if (present(fswthrun_pardr)) fswthrun_pardr = l_fswthrun_pardr
+      if (present(fswthrun_pardf)) fswthrun_pardf = l_fswthrun_pardf
+
       deallocate(l_fswthrun_vdr)
       deallocate(l_fswthrun_vdf)
       deallocate(l_fswthrun_idr)
       deallocate(l_fswthrun_idf)
+      deallocate(l_fswthrun_uvrdr)
+      deallocate(l_fswthrun_uvrdf)
+      deallocate(l_fswthrun_pardr)
+      deallocate(l_fswthrun_pardf)
       deallocate(l_rsnow)
 
       end subroutine icepack_step_radiation
