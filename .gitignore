@@ -11,3 +11,6 @@ doc/build
 # Ignore testsuite file/directories
 testsuite*
 caselist*
+
+# Ignore compiled .mod files
+*.mod
