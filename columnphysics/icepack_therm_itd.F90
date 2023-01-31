@@ -28,6 +28,7 @@
       use icepack_parameters, only: kitd, ktherm
       use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
       use icepack_parameters, only: saltflux_option
+      use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_tracers, only: ntrcr, nbtrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
@@ -1733,14 +1734,14 @@
                enddo
             endif
 
-           frazil_conc = c0
            if (tr_iso .and. vtmp > puny) then
              do it=1,n_iso
-               if (it==1)   &
+               frazil_conc = c0
+               if (it==1) &
                   frazil_conc = isoice_alpha(c0,'HDO'   ,isotope_frac_method)*HDO_ocn
-               if (it==2)   &
+               if (it==2) &
                   frazil_conc = isoice_alpha(c0,'H2_16O',isotope_frac_method)*H2_16O_ocn
-               if (it==3)   &
+               if (it==3) &
                   frazil_conc = isoice_alpha(c0,'H2_18O',isotope_frac_method)*H2_18O_ocn
 
                ! dilution and uptake in the ice
@@ -1855,15 +1856,15 @@
                enddo
             endif
 
-           frazil_conc = c0
            if (tr_iso) then
               do it=1,n_iso
-               if (it==1)   &
-                  frazil_conc = isoice_alpha(c0,'HDO'   ,isotope_frac_method)*HDO_ocn
-               if (it==2)   &
-                  frazil_conc = isoice_alpha(c0,'H2_16O',isotope_frac_method)*H2_16O_ocn
-               if (it==3)   &
-                  frazil_conc = isoice_alpha(c0,'H2_18O',isotope_frac_method)*H2_18O_ocn
+                frazil_conc = c0
+                if (it==1) &
+                   frazil_conc = isoice_alpha(c0,'HDO'   ,isotope_frac_method)*HDO_ocn
+                if (it==2) &
+                   frazil_conc = isoice_alpha(c0,'H2_16O',isotope_frac_method)*H2_16O_ocn
+                if (it==3) &
+                   frazil_conc = isoice_alpha(c0,'H2_18O',isotope_frac_method)*H2_18O_ocn
 
                 trcrn(nt_isoice+it-1,1) &
                   = (trcrn(nt_isoice+it-1,1)*vice1) &
@@ -2097,10 +2098,10 @@
          yday         ! day of year
 
       ! water isotopes
-      real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
 
-      real (kind=dbl_kind), optional, intent(in) :: &
+      real (kind=dbl_kind), intent(in), optional :: &
          HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
          H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
          H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
@@ -2108,14 +2109,8 @@
 
       ! local variables
 
-      ! water isotopes
-      real (kind=dbl_kind), dimension(:), allocatable :: &
-         l_fiso_ocn       ! local isotope flux to ocean  (kg/m^2/s)
-
-      real (kind=dbl_kind) :: &
-         l_HDO_ocn    , & ! local ocean concentration of HDO (kg/kg)
-         l_H2_16O_ocn , & ! local ocean concentration of H2_16O (kg/kg)
-         l_H2_18O_ocn     ! local ocean concentration of H2_18O (kg/kg)
+      logical (kind=log_kind), save :: &
+         first_call = .true.   ! first call flag
 
       character(len=*),parameter :: subname='(icepack_step_therm2)'
 
@@ -2123,19 +2118,18 @@
       ! Check optional arguments and set local values
       !-----------------------------------------------------------------
 
-      if (present(fiso_ocn)) then
-         allocate(l_fiso_ocn(size(fiso_ocn)))
-         l_fiso_ocn(:) = fiso_ocn(:)
-      else
-         allocate(l_fiso_ocn(1))
-         l_fiso_ocn(:) = c0
+       if (icepack_chkoptargflag(first_call)) then
+          if (tr_iso) then
+             if (.not.(present(fiso_ocn)   .and. &
+                       present(HDO_ocn)    .and. &
+                       present(H2_16O_ocn) .and. &
+                       present(H2_18O_ocn))) then
+                call icepack_warnings_add(subname//' error in iso arguments, tr_iso=T')
+                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                return
+             endif
+          endif
       endif
-      l_HDO_ocn = c0
-      l_H2_16O_ocn = c0
-      l_H2_18O_ocn = c0
-      if (present(HDO_ocn)   ) l_HDO_ocn    = HDO_ocn
-      if (present(H2_16O_ocn)) l_H2_16O_ocn = H2_16O_ocn
-      if (present(H2_18O_ocn)) l_H2_18O_ocn = H2_18O_ocn
 
       !-----------------------------------------------------------------
       ! Let rain drain through to the ocean.
@@ -2212,9 +2206,9 @@
                            cgrid,         igrid,        &
                            nbtrcr,        flux_bio,     &
                            ocean_bio,     fzsal,        &
-                           frazil_diag,   l_fiso_ocn,   &
-                           l_HDO_ocn,     l_H2_16O_ocn, &
-                           l_H2_18O_ocn,                &
+                           frazil_diag,   fiso_ocn,     &
+                           HDO_ocn,       H2_16O_ocn,   &
+                           H2_18O_ocn,                  &
                            wave_sig_ht,                 &
                            wave_spectrum,               &
                            wavefreq,      dwavefreq,    &
@@ -2232,7 +2226,7 @@
                          n_aero,    fpond,         &
                          fresh,     fsalt,         &
                          fhocn,     faero_ocn,     &
-                         l_fiso_ocn,               &
+                         fiso_ocn,                 &
                          rside,     meltl,         &
                          fside,     wlat,          &
                          aicen,     vicen,         &
@@ -2284,14 +2278,11 @@
                         n_trcr_strata,        nt_strata,        &
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
-                        faero_ocn,            l_fiso_ocn,       &
+                        faero_ocn,            fiso_ocn,         &
                         fzsal,                flux_bio)
       if (icepack_warnings_aborted(subname)) return
 
-      if (present(fiso_ocn)) then
-         fiso_ocn(:) = l_fiso_ocn(:)
-      endif
-      deallocate(l_fiso_ocn)
+      first_call = .false.
 
       end subroutine icepack_step_therm2
 
