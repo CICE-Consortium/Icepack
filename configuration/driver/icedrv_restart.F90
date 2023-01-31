@@ -444,8 +444,8 @@
 
       use icedrv_calendar, only: istep0, istep1, time, time_forc
       use icepack_intfc, only: icepack_aggregate
-      use icedrv_domain_size, only: nilyr, nslyr, ncat
-      use icedrv_domain_size, only: max_ntrcr, nx
+      use icedrv_domain_size, only: nilyr, nslyr, ncat, nfsd, nblyr
+      use icedrv_domain_size, only: max_ntrcr, nx, n_iso, n_aero
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: sst, frzmlt, scale_factor
       use icedrv_forcing, only: oceanmixed_ice
@@ -453,6 +453,10 @@
       use icedrv_state, only: trcr_depend, aice, vice, vsno, trcr
       use icedrv_state, only: aice0, aicen, vicen, vsnon, trcrn, aice_init
       use icedrv_state, only: trcr_base, nt_strata, n_trcr_strata
+      use icedrv_restart_shared, only: restart_format
+      use icedrv_arrays_column, only: dhsn, ffracn, hin_max
+      use icedrv_arrays_column, only: first_ice, first_ice_real
+      use icepack_tracers, only: ntrcr, nbtrcr
 
       character (*), optional :: ice_ic
 
@@ -471,6 +475,22 @@
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(restartfile)'
 
+      ! local variables for reading from a netcdf file
+      integer (kind=int_kind) :: &
+         status, &
+         n
+      
+      integer (kind=int_kind) :: &
+         nt_iage,nt_FY,nt_alvl,nt_vlvl,&
+         nt_apnd,nt_hpnd,nt_ipnd,nt_smice, nt_smliq, nt_rhos, nt_rsnw,&
+         nt_isosno,nt_isoice,nt_aero,nt_fbri,nt_fsd
+
+      logical (kind=log_kind) :: diag ! netCDF diagnostics flag
+
+      character (len=3) :: nchar
+
+      diag = .false.
+
       if (present(ice_ic)) then
          filename = trim(ice_ic)
       else
@@ -479,84 +499,91 @@
       endif
 
       write(nu_diag,*) 'Using restart dump=', trim(filename)
-      open(nu_restart,file=filename,form='unformatted')
-      read (nu_restart) istep0,time,time_forc
-      write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
-      call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
-      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
-           tr_brine_out=tr_brine, &
-           tr_pond_topo_out=tr_pond_topo, &
-           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
-      call icepack_warnings_flush(nu_diag)
-      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-          file=__FILE__,line= __LINE__)
+      if (restart_format == 'bin') then
+         open(nu_restart,file=filename,form='unformatted')
+         read (nu_restart) istep0,time,time_forc
+         write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
-      istep1 = istep0
+         call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
+            nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
+         call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+            tr_brine_out=tr_brine, &
+            tr_pond_topo_out=tr_pond_topo, &
+            tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+            file=__FILE__,line= __LINE__)
 
-      !-----------------------------------------------------------------
-      ! state variables
-      ! Tsfc is the only tracer read in this file.  All other
-      ! tracers are in their own dump/restart files.
-      !-----------------------------------------------------------------
-      write(nu_diag,*) 'min/max area, vol ice, vol snow, Tsfc'
+         istep1 = istep0
 
-      call read_restart_field(nu_restart,aicen,ncat)
-      call read_restart_field(nu_restart,vicen,ncat)
-      call read_restart_field(nu_restart,vsnon,ncat)
-      call read_restart_field(nu_restart,trcrn(:,nt_Tsfc,:),ncat)
+         !-----------------------------------------------------------------
+         ! state variables
+         ! Tsfc is the only tracer read in this file.  All other
+         ! tracers are in their own dump/restart files.
+         !-----------------------------------------------------------------
+         write(nu_diag,*) 'min/max area, vol ice, vol snow, Tsfc'
 
-      write(nu_diag,*) 'min/max sice for each layer'
-      do k=1,nilyr
-         call read_restart_field(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
-      enddo
+         call read_restart_field(nu_restart,aicen,ncat)
+         call read_restart_field(nu_restart,vicen,ncat)
+         call read_restart_field(nu_restart,vsnon,ncat)
+         call read_restart_field(nu_restart,trcrn(:,nt_Tsfc,:),ncat)
 
-      write(nu_diag,*) 'min/max qice for each layer'
-      do k=1,nilyr
-         call read_restart_field(nu_restart,trcrn(:,nt_qice+k-1,:),ncat)
-      enddo
+         write(nu_diag,*) 'min/max sice for each layer'
+         do k=1,nilyr
+            call read_restart_field(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
+         enddo
 
-      write(nu_diag,*) 'min/max qsno for each layer'
-      do k=1,nslyr
-         call read_restart_field(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
-      enddo
+         write(nu_diag,*) 'min/max qice for each layer'
+         do k=1,nilyr
+            call read_restart_field(nu_restart,trcrn(:,nt_qice+k-1,:),ncat)
+         enddo
 
-      !-----------------------------------------------------------------
-      ! radiation fields
-      !-----------------------------------------------------------------
+         write(nu_diag,*) 'min/max qsno for each layer'
+         do k=1,nslyr
+            call read_restart_field(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
+         enddo
 
-      write(nu_diag,*) 'min/max radiation fields'
+         !-----------------------------------------------------------------
+         ! radiation fields
+         !-----------------------------------------------------------------
 
-      call read_restart_field(nu_restart,scale_factor,1)
-      call read_restart_field(nu_restart,swvdr,1)
-      call read_restart_field(nu_restart,swvdf,1)
-      call read_restart_field(nu_restart,swidr,1)
-      call read_restart_field(nu_restart,swidf,1)
+         write(nu_diag,*) 'min/max radiation fields'
 
-      !-----------------------------------------------------------------
-      ! for mixed layer model
-      !-----------------------------------------------------------------
+         call read_restart_field(nu_restart,scale_factor,1)
+         call read_restart_field(nu_restart,swvdr,1)
+         call read_restart_field(nu_restart,swvdf,1)
+         call read_restart_field(nu_restart,swidr,1)
+         call read_restart_field(nu_restart,swidf,1)
 
-      if (oceanmixed_ice) then
-         write(nu_diag,*) 'min/max sst, frzmlt'
-         call read_restart_field(nu_restart,sst,1)
-         call read_restart_field(nu_restart,frzmlt,1)
+         !-----------------------------------------------------------------
+         ! for mixed layer model
+         !-----------------------------------------------------------------
+
+         if (oceanmixed_ice) then
+            write(nu_diag,*) 'min/max sst, frzmlt'
+            call read_restart_field(nu_restart,sst,1)
+            call read_restart_field(nu_restart,frzmlt,1)
+         endif
+
+         ! tracers
+         if (tr_iage)      call read_restart_age()       ! ice age tracer
+         if (tr_FY)        call read_restart_FY()        ! first-year area tracer
+         if (tr_lvl)       call read_restart_lvl()       ! level ice tracer
+         if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
+         if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
+         if (tr_snow)      call read_restart_snow()      ! snow metamorphosis tracers
+         if (tr_iso)       call read_restart_iso()       ! ice isotopes
+         if (tr_aero)      call read_restart_aero()      ! ice aerosols
+         if (tr_brine)     call read_restart_hbrine      ! brine height
+         if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
+      else if (restart_format == 'nc') then
+         ! todo
+      else
+         call icedrv_system_abort(string=subname//'unrecognized restart format', &
+                                  file=__FILE__,line=__LINE__)
       endif
-
-      ! tracers
-      if (tr_iage)      call read_restart_age()       ! ice age tracer
-      if (tr_FY)        call read_restart_FY()        ! first-year area tracer
-      if (tr_lvl)       call read_restart_lvl()       ! level ice tracer
-      if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
-      if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
-      if (tr_snow)      call read_restart_snow()      ! snow metamorphosis tracers
-      if (tr_iso)       call read_restart_iso()       ! ice isotopes
-      if (tr_aero)      call read_restart_aero()      ! ice aerosols
-      if (tr_brine)     call read_restart_hbrine      ! brine height
-      if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
-
       !-----------------------------------------------------------------
       ! Ensure ice is binned in correct categories
       ! (should not be necessary unless restarting from a run with
