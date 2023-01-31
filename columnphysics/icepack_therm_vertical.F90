@@ -2246,7 +2246,7 @@
          fside       , & ! lateral heat flux                  (W/m^2)
          wlat        , & ! lateral melt rate                    (m/s)
          sst         , & ! sea surface temperature                (C)
-         Tf          , & ! freezing temperature               (C)
+         Tf          , & ! freezing temperature                   (C)
          Tbot        , & ! ice bottom surface temperature     (deg C)
          Tsnice      , & ! snow ice interface temperature     (deg C)
          sss         , & ! sea surface salinity                 (ppt)
