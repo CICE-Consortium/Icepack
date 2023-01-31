@@ -3,7 +3,6 @@ restart        col     1x1        debug,ionetcdf
 restart        col     1x1        diag1,ionetcdf
 restart        col     1x1        pondlvl,ionetcdf
 restart        col     1x1        pondtopo,ionetcdf
-restart        col     1x1        bgcispol,ionetcdf
 restart        col     1x1        thermo1,ionetcdf
 restart        col     1x1        swccsm3,ionetcdf
 restart        col     1x1        isotope,ionetcdf
