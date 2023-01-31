@@ -62,13 +62,15 @@
       use icedrv_domain_size, only: nilyr, nslyr, ncat, n_aero, nfsd, nx, n_iso
       use icedrv_forcing, only: oceanmixed_ice
       use icedrv_flux, only: scale_factor, swvdr, swvdf, swidr, swidf
-      use icedrv_flux, only: sst, frzmlt
+      use icedrv_flux, only: sst, frzmlt, frz_onset, fsnow
       use icedrv_state, only: aicen, vicen, vsnon, trcrn
+      use icedrv_arrays_column, only: dhsn, ffracn
+      use icedrv_arrays_column, only: first_ice, first_ice_real
 
       ! local variables
 
       integer (kind=int_kind) :: &
-         k, &              ! counting indices
+         k,i,n, &              ! counting indices
          iyear
 
       integer (kind=int_kind) :: &
@@ -95,6 +97,12 @@
 
       character (len=3) :: nchar
 
+      logical (kind=log_kind) :: diag ! whether to write diagnostics for nc funcs
+      
+      integer (kind=int_kind) :: &
+         nt_iage,nt_FY,nt_alvl,nt_vlvl,&
+         nt_apnd,nt_hpnd,nt_ipnd,nt_smice, nt_smliq, nt_rhos, nt_rsnw,&
+         nt_isosno,nt_isoice,nt_aero,nt_fbri,nt_fsd
 
       ! get year
       iyear = nyr + year_init - 1
@@ -175,6 +183,9 @@
    !      if (solve_zsal .or. skl_bgc .or. z_tracers) &
    !                        call write_restart_bgc         ! biogeochemistry
       else if (restart_format == 'nc') then
+         ! Change this if you want diagnostic output
+         diag = .false.
+
          write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
          restart_dir(1:lenstr(restart_dir)), &
          restart_file(1:lenstr(restart_file)),'.', &
@@ -301,6 +312,117 @@
          status = nf90_enddef(ncid)
 
          ! Populate fields in NetCDF restart file
+
+         !-----------------------------------------------------------------
+         ! state variables
+         !-----------------------------------------------------------------
+         call write_restart_field_nc2D(ncid,0,aicen(:,:),'ruf8','aicen',ncat,diag)
+         call write_restart_field_nc2D(ncid,0,vicen(:,:),'ruf8','vicen',ncat,diag)
+         call write_restart_field_nc2D(ncid,0,vsnon(:,:),'ruf8','vsnon',ncat,diag) 
+         call write_restart_field_nc2D(ncid,0,trcrn(:,nt_Tsfc,:),'ruf8', &
+                                       'Tsfcn',ncat,diag)
+         do k=1,nilyr
+            write(nchar,'(i3.3)') k
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_sice+k-1,:),'ruf8', &
+                                    'sice'//trim(nchar),ncat,diag)
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_qice+k-1,:),'ruf8', &
+                                    'qice'//trim(nchar),ncat,diag)
+         enddo
+         do k=1,nslyr
+            write(nchar,'(i3.3)') k
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_qsno+k-1,:),'ruf8', &
+                                    'qsno'//trim(nchar),ncat,diag)
+         enddo
+        
+         !-----------------------------------------------------------------
+         ! radiation fields
+         !-----------------------------------------------------------------
+         call write_restart_field_nc1D(ncid,0,scale_factor,'ruf8', &
+                                    'scale_factor',1,diag)
+         call write_restart_field_nc1D(ncid,0,swvdr,'ruf8', &
+                                    'swvdr',1,diag)
+         call write_restart_field_nc1D(ncid,0,swvdf,'ruf8', &
+                                    'swvdf',1,diag)
+         call write_restart_field_nc1D(ncid,0,swidr,'ruf8', &
+                                    'swidr',1,diag)
+         call write_restart_field_nc1D(ncid,0,swidf,'ruf8', &
+                                    'swidf',1,diag) 
+
+         ! tracers
+         if (oceanmixed_ice) then
+            call write_restart_field_nc1D(ncid,0,sst,'ruf8', &
+                                    'sst',1,diag)
+            call write_restart_field_nc1D(ncid,0,frzmlt,'ruf8', &
+                                    'frzmlt',1,diag)
+         endif
+         if (tr_iage) then
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_iage,:),'ruf8','iage',ncat,diag)
+         endif
+         if (tr_FY) then
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_FY,:),'ruf8','FY',ncat,diag)
+            call write_restart_field_nc1D(ncid,0,frz_onset,'ruf8','frz_onset',1,diag)
+         endif
+         if (tr_lvl) then
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_alvl,:),'ruf8','alvl',ncat,diag)
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_vlvl,:),'ruf8','vlvl',ncat,diag)
+         endif
+         if (tr_pond_topo) then
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_apnd,:),'ruf8','apnd',ncat,diag)
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_hpnd,:),'ruf8','hpnd',ncat,diag)
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_ipnd,:),'ruf8','ipnd',ncat,diag)
+         endif
+         if (tr_pond_lvl) then
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_apnd,:),'ruf8','apnd',ncat,diag)
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_hpnd,:),'ruf8','hpnd',ncat,diag)
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_ipnd,:),'ruf8','ipnd',ncat,diag)
+            call write_restart_field_nc2D(ncid,0,dhsn,'ruf8','dhsn',ncat,diag)
+            call write_restart_field_nc2D(ncid,0,ffracn,'ruf8','ffracn',ncat,diag)
+            call write_restart_field_nc1D(ncid,0,fsnow,'ruf8','fsnow',1,diag)
+         endif 
+         if (tr_snow) then
+            do k=1,nslyr
+               write(nchar,'(i3.3)') k
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_smice+k-1,:),'ruf8','smice'//trim(nchar),ncat,diag)
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_smliq+k-1,:),'ruf8','smliq'//trim(nchar),ncat,diag)
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_rhos+k-1,:),'ruf8','rhos'//trim(nchar),ncat,diag)
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_rsnw+k-1,:),'ruf8','rsnw'//trim(nchar),ncat,diag)
+            enddo
+         endif
+         if (tr_iso) then
+            do k=1,n_iso
+               write(nchar,'(i3.3)') k
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_isosno+(k-1),:),'ruf8','isosno'//trim(nchar),ncat,diag)
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_isoice+(k-1),:),'ruf8','isoice'//trim(nchar),ncat,diag)  
+            enddo
+         endif
+         if (tr_aero) then
+            do k=1,n_aero
+               write(nchar,'(i3.3)') k
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_aero  +(k-1)*4,:),'ruf8','aerosnossl'//trim(nchar),ncat,diag)
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_aero+1+(k-1)*4,:),'ruf8','aerosnoint'//trim(nchar),ncat,diag)
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_aero+2+(k-1)*4,:),'ruf8','aeroicessl'//trim(nchar),ncat,diag)
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_aero+3+(k-1)*4,:),'ruf8','aeroiceint'//trim(nchar),ncat,diag)
+            enddo
+         endif 
+         if (tr_brine) then
+            do i = 1, nx
+            do n = 1, ncat
+               if (first_ice(i,n)) then
+                     first_ice_real(i,n) = c1
+               else
+                     first_ice_real(i,n) = c0
+               endif
+            enddo ! n
+            enddo    ! i
+            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_fbri,:),'ruf8','fbri',ncat,diag)
+            call write_restart_field_nc2D(ncid,0,first_ice_real,'ruf8','first_ice',ncat,diag)
+         endif
+         if (tr_fsd) then
+            do k = 1, nfsd
+               write(nchar,'(i3.3)') k
+               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_fsd+k-1,:),'ruf8','fsd'//trim(nchar),ncat,diag)
+            enddo
+         endif
 
          status = nf90_close(ncid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname, &
@@ -1187,7 +1309,210 @@
    
          end subroutine define_rest_field
 !=======================================================================
+      subroutine write_restart_field_nc2D(ncid,nrec,work,atype,vname,ndim3,diag)
 
+! Write a 2D field (nx, ncat) in NetCDF restart
+! author Chris Riedel, NCAR
+
+         use icedrv_domain_size, only: ncat,nx
+         !use ice_fileunits, only: nu_diag
+         !use ice_read_write, only: ice_write, ice_write_nc
+   
+         integer (kind=int_kind), intent(in) :: &
+               ncid            , & ! unit number
+               ndim3         , & ! third dimension
+               nrec              ! record number (0 for sequential access)
+            real (kind=dbl_kind), dimension(nx,ncat), &
+               intent(in) :: &
+               work              ! input array (real, 8-byte)
+         character (len=4), intent(in) :: &
+               atype             ! format for output array
+                                 ! (real/integer, 4-byte/8-byte)
+   
+         logical (kind=log_kind), intent(in) :: &
+               diag              ! if true, write diagnostic output
+   
+         character (len=*), intent(in)  :: vname
+   
+         ! local variables
+   
+         integer (kind=int_kind) :: &
+            n,     &      ! dimension counter
+            varid, &      ! variable id
+            status        ! status variable from netCDF routine
+   
+   
+         status = nf90_inq_varid(ncid,trim(vname),varid)
+         write(nu_diag,*) 'Writing out ',trim(vname)
+         call ice_write_nc2D(ncid, 1, varid, work, diag)
+   
+         end subroutine write_restart_field_nc2D
+   !=======================================================================
+         subroutine write_restart_field_nc1D(ncid,nrec,work,atype,vname,ndim3,diag)
+
+! Write a 1D field (nx) in NetCDF restart
+! author Chris Riedel, NCAR
+
+            use icedrv_domain_size, only: ncat,nx
+   
+         integer (kind=int_kind), intent(in) :: &
+               ncid            , & ! unit number
+               ndim3         , & ! third dimension
+               nrec              ! record number (0 for sequential access)
+         real (kind=dbl_kind), dimension(nx), &
+               intent(in) :: &
+               work              ! input array (real, 8-byte)
+         character (len=4), intent(in) :: &
+               atype             ! format for output array
+                                 ! (real/integer, 4-byte/8-byte)
+   
+         logical (kind=log_kind), intent(in) :: &
+               diag              ! if true, write diagnostic output
+   
+         character (len=*), intent(in)  :: vname
+   
+         ! local variables
+   
+         integer (kind=int_kind) :: &
+            n,     &      ! dimension counter
+            varid, &      ! variable id
+            status        ! status variable from netCDF routine
+   
+   
+         status = nf90_inq_varid(ncid,trim(vname),varid)
+         if (status /= 0) then
+            write(nu_diag,*) 'Writing out ',trim(vname) 
+            write(nu_diag,*) 'Erros Status ',status
+            call icedrv_system_abort(string='Write out restart', &
+               file=__FILE__,line= __LINE__)
+         else
+            write(nu_diag,*) 'Writing out ',trim(vname)
+         endif
+         call ice_write_nc1D(ncid, 1, varid, work, diag)
+   
+         end subroutine write_restart_field_nc1D
+   !=======================================================================
+         subroutine ice_write_nc2D(fid,  nrec,  varid, work,  diag)
+
+! Write a 2D field (nx, ncat) in NetCDF restart
+! author Chris Riedel, NCAR
+   
+         use icedrv_domain_size, only: ncat,nx
+   
+         integer (kind=int_kind), intent(in) :: &
+               fid           , & ! file id
+               varid         , & ! variable id
+               nrec              ! record number
+   
+         logical (kind=log_kind), intent(in) :: &
+               diag              ! if true, write diagnostic output
+   
+         real (kind=dbl_kind), dimension(nx,ncat), &
+               intent(in) :: &
+               work              ! output array (real, 8-byte)
+   
+         ! local variables
+   
+         integer (kind=int_kind) :: &
+            status,          & ! status output from netcdf routines
+            ndim, nvar,      & ! sizes of netcdf file
+            id,              & ! dimension index
+            dimlen             ! size of dimension
+         integer (kind=int_kind) :: start2(2),count2(2)
+         
+         real (kind=dbl_kind) :: &
+            amin, amax, asum   ! min, max values and sum of input array
+   
+         character (char_len) :: &
+            dimname            ! dimension name
+   
+         integer (kind=int_kind) :: ny,numDims
+   
+         ny = ncat
+         start2(1) = 1
+         count2(1) = nx
+         start2(2) = 1
+         count2(2) = ncat
+      
+         status = nf90_put_var( fid, varid, work, &
+                  start=start2, &
+                  count=count2)
+   
+         !-------------------------------------------------------------------
+         ! optional diagnostics
+         !-------------------------------------------------------------------
+   
+         if (diag) then
+            amin = minval(work)
+            amax = maxval(work)
+            !asum = sum   (work)
+            write(nu_diag,*) ' min, max =', amin, amax
+         endif
+   
+         !deallocate(work)
+   
+         end subroutine ice_write_nc2D
+   !=======================================================================
+         subroutine ice_write_nc1D(fid,  nrec,  varid, work,  diag)
+
+! Write a 1D field (nx) in NetCDF restart
+! author Chris Riedel, NCAR
+   
+         use icedrv_domain_size, only: ncat,nx
+   
+         integer (kind=int_kind), intent(in) :: &
+               fid           , & ! file id
+               varid         , & ! variable id
+               nrec              ! record number
+   
+         logical (kind=log_kind), intent(in) :: &
+               diag              ! if true, write diagnostic output
+   
+         real (kind=dbl_kind), dimension(nx), &
+               intent(in) :: &
+               work              ! output array (real, 8-byte)
+   
+         ! local variables
+   
+         integer (kind=int_kind) :: &
+            status,          & ! status output from netcdf routines
+            ndim, nvar,      & ! sizes of netcdf file
+            id,              & ! dimension index
+            dimlen             ! size of dimension
+         integer (kind=int_kind) :: start2(1),count2(1)
+   
+         real (kind=dbl_kind) :: &
+            amin, amax, asum   ! min, max values and sum of input array
+   
+         character (char_len) :: &
+            dimname            ! dimension name
+   
+         integer (kind=int_kind) :: ny,numDims
+   
+         ny = ncat
+         start2(1) = 1
+         count2(1) = nx
+   
+         status = nf90_put_var( fid, varid, work, &
+                  start=start2, &
+                  count=count2)
+   
+         !-------------------------------------------------------------------
+         ! optional diagnostics
+         !-------------------------------------------------------------------
+   
+         if (diag) then
+            amin = minval(work)
+            amax = maxval(work)
+            !asum = sum   (work)
+            write(nu_diag,*) ' min, max =', amin, amax
+         endif
+   
+         !deallocate(work)
+   
+         end subroutine ice_write_nc1D
+   !=======================================================================
+      
       end module icedrv_restart
 
 !=======================================================================
