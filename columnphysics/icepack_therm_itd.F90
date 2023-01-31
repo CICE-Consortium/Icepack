@@ -2015,7 +2015,7 @@
          Tf       , & ! freezing temperature (C)
          sss      , & ! sea surface salinity (ppt)
          rside    , & ! fraction of ice that melts laterally
-         wlat     , & ! lateral melt rate
+         wlat     , & ! lateral melt rate (m/s)
          frzmlt   , & ! freezing/melting potential (W/m^2)
          wave_sig_ht ! significant height of waves in ice (m)
 
