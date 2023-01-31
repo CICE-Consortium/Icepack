@@ -109,12 +109,18 @@
       
       ! query which tracers are active and their indices
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
-      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
-         tr_brine_out=tr_brine, &
-         tr_pond_topo_out=tr_pond_topo, &
-         tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, &
+         nt_FY_out=nt_FY,nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
+         nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, &
+         nt_smice_out=nt_smice, nt_smliq_out=nt_smliq, nt_rhos_out=nt_rhos, &
+         nt_rsnw_out=nt_rsnw,nt_isosno_out=nt_isosno,nt_isoice_out=nt_isoice, &
+         nt_aero_out=nt_aero,nt_fbri_out=nt_fbri,nt_fsd_out=nt_fsd)
+
+     call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+          tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+          tr_brine_out=tr_brine, &
+          tr_pond_topo_out=tr_pond_topo, &
+          tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
 !      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
 !         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
       call icepack_warnings_flush(nu_diag)
