@@ -2241,18 +2241,18 @@
          strocnxT    , & ! ice-ocean stress, x-direction
          strocnyT    , & ! ice-ocean stress, y-direction
          fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
-         frzmlt      , & ! freezing/melting potential     (W/m^2)
+         frzmlt      , & ! freezing/melting potential         (W/m^2)
          rside       , & ! fraction of ice that melts laterally
-         fside       , & ! lateral heat flux              (W/m^2)
-         wlat        , & ! lateral melt rate                (m/s)
-         sst         , & ! sea surface temperature            (C)
+         fside       , & ! lateral heat flux                  (W/m^2)
+         wlat        , & ! lateral melt rate                    (m/s)
+         sst         , & ! sea surface temperature                (C)
          Tf          , & ! freezing temperature               (C)
-         Tbot        , & ! ice bottom surface temperature (deg C)
-         Tsnice      , & ! snow ice interface temperature (deg C)
-         sss         , & ! sea surface salinity             (ppt)
-         meltt       , & ! top ice melt         (m/step-->cm/day)
-         melts       , & ! snow melt            (m/step-->cm/day)
-         meltb       , & ! basal ice melt       (m/step-->cm/day)
+         Tbot        , & ! ice bottom surface temperature     (deg C)
+         Tsnice      , & ! snow ice interface temperature     (deg C)
+         sss         , & ! sea surface salinity                 (ppt)
+         meltt       , & ! top ice melt             (m/step-->cm/day)
+         melts       , & ! snow melt                (m/step-->cm/day)
+         meltb       , & ! basal ice melt           (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
