@@ -603,6 +603,8 @@
          status = nf90_get_att(ncid, nf90_global, 'time_forc', time_forc)
          write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
+         istep1 = istep0
+
          !-----------------------------------------------------------------
          ! state variables
          !-----------------------------------------------------------------
