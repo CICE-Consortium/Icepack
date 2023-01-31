@@ -448,6 +448,7 @@
       use icedrv_domain_size, only: max_ntrcr, nx, n_iso, n_aero
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf
       use icedrv_flux, only: sst, frzmlt, scale_factor
+      use icedrv_flux, only: frz_onset,fsnow
       use icedrv_forcing, only: oceanmixed_ice
       use icedrv_init, only: tmask
       use icedrv_state, only: trcr_depend, aice, vice, vsno, trcr
@@ -490,6 +491,24 @@
       character (len=3) :: nchar
 
       diag = .false.
+      
+      ! Query tracers
+      call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
+          nt_qice_out=nt_qice, nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, &
+          nt_FY_out=nt_FY,nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
+          nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, &
+          nt_smice_out=nt_smice, nt_smliq_out=nt_smliq, nt_rhos_out=nt_rhos, &
+          nt_rsnw_out=nt_rsnw,nt_isosno_out=nt_isosno,nt_isoice_out=nt_isoice, &
+          nt_aero_out=nt_aero,nt_fbri_out=nt_fbri,nt_fsd_out=nt_fsd)
+
+      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
+           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
+           tr_brine_out=tr_brine, &
+           tr_pond_topo_out=tr_pond_topo, &
+           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+      call icepack_warnings_flush(nu_diag)
+      if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+          file=__FILE__,line= __LINE__)
 
       if (present(ice_ic)) then
          filename = trim(ice_ic)
@@ -504,17 +523,6 @@
          open(nu_restart,file=filename,form='unformatted')
          read (nu_restart) istep0,time,time_forc
          write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
-
-         call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-            nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
-         call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
-            tr_brine_out=tr_brine, &
-            tr_pond_topo_out=tr_pond_topo, &
-            tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
-         call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-            file=__FILE__,line= __LINE__)
 
          istep1 = istep0
 
@@ -579,7 +587,156 @@
          if (tr_brine)     call read_restart_hbrine      ! brine height
          if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
       else if (restart_format == 'nc') then
-         ! todo
+         ! Open restart files
+         status = nf90_open(trim(filename), nf90_nowrite, ncid)
+         if (status /= nf90_noerr) call icedrv_system_abort(string=subname//'Couldnt open netcdf file', &
+                                    file=__FILE__,line=__LINE__)
+
+         status = nf90_get_att(ncid, nf90_global, 'istep1', istep0)
+         status = nf90_get_att(ncid, nf90_global, 'time', time)
+         status = nf90_get_att(ncid, nf90_global, 'time_forc', time_forc)
+         write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
+
+         !-----------------------------------------------------------------
+         ! state variables
+         !-----------------------------------------------------------------
+         write(nu_diag,*) 'min/max area, vol ice, vol snow, Tsfc'
+         call read_restart_field_net2D(ncid,1,aicen,'aicen',ncat,diag) 
+         call read_restart_field_net2D(ncid,1,vicen,'vicen',ncat,diag)
+         call read_restart_field_net2D(ncid,1,vsnon,'vsnon',ncat,diag)
+         call read_restart_field_net2D(ncid,1,trcrn(:,nt_Tsfc,:), &
+         'Tsfcn',ncat,diag)
+         write(nu_diag,*) 'min/max sice and qice for each layer'
+         do k=1,nilyr
+            write(nchar,'(i3.3)') k
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_sice+k-1,:), &
+            'sice'//trim(nchar),ncat,diag)
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_qice+k-1,:), &
+            'qice'//trim(nchar),ncat,diag)
+         enddo
+         write(nu_diag,*) 'min/max qsno for each layer'
+         do k=1,nslyr
+         write(nchar,'(i3.3)') k
+         call read_restart_field_net2D(ncid,1,trcrn(:,nt_qsno+k-1,:), &
+            'qsno'//trim(nchar),ncat,diag)
+         enddo
+
+         !-----------------------------------------------------------------
+         ! radiation fields
+         !-----------------------------------------------------------------
+         write(nu_diag,*) 'min/max radiation fields'
+         call read_restart_field_net1D(ncid,1,scale_factor, &
+            'scale_factor',1,diag)
+         call read_restart_field_net1D(ncid,1,swvdr,'swvdr',1,diag)
+         call read_restart_field_net1D(ncid,1,swvdf,'swvdf',1,diag)
+         call read_restart_field_net1D(ncid,1,swidr,'swidr',1,diag)
+         call read_restart_field_net1D(ncid,1,swidf,'swidf',1,diag)
+
+         !-----------------------------------------------------------------
+         ! for mixed layer model
+         !-----------------------------------------------------------------
+         if (oceanmixed_ice) then
+            write(nu_diag,*) 'min/max sst, frzmlt'
+            call read_restart_field_net1D(ncid,1,sst,'sst',1,diag)
+            call read_restart_field_net1D(ncid,1,frzmlt,'frzmlt',1,diag)
+         endif
+
+         ! tracers
+         if (tr_iage) then          ! ice age tracer
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_iage,:), &
+               'iage',ncat,diag)
+         endif
+         if (tr_FY) then            ! first-year area tracer
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_FY,:), &
+               'FY',ncat,diag)
+            call read_restart_field_net1D(ncid,1,frz_onset, &
+               'frz_onset',1,diag)
+         endif
+         if (tr_lvl) then           ! level ice tracer
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_alvl,:), &
+               'alvl',ncat,diag)
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_vlvl,:), &
+               'vlvl',ncat,diag)
+         endif
+         if (tr_pond_topo) then     ! topographic melt ponds
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_apnd,:), &
+               'apnd',ncat,diag)
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_hpnd,:), &
+               'hpnd',ncat,diag)
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_ipnd,:), &
+               'ipnd',ncat,diag)
+         endif
+            if (tr_pond_lvl) then      ! level-ice melt ponds
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_apnd,:), &
+               'apnd',ncat,diag)
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_hpnd,:), &
+               'hpnd',ncat,diag)
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_ipnd,:), &
+               'ipnd',ncat,diag)
+            call read_restart_field_net2D(ncid,1,dhsn, &
+               'dhsn',ncat,diag)
+            call read_restart_field_net2D(ncid,1,ffracn, &
+               'ffracn',ncat,diag)
+            call read_restart_field_net1D(ncid,1,fsnow, &
+               'fsnow',1,diag)
+         endif
+         if (tr_snow) then          ! snow metamorphosis tracers
+            do k=1,nslyr
+               write(nchar,'(i3.3)') k
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_smice+k-1,:), &
+               'smice'//trim(nchar),ncat,diag)
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_smliq+k-1,:), &
+               'smliq'//trim(nchar),ncat,diag)
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_rhos+k-1,:), &
+               'rhos'//trim(nchar),ncat,diag)
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_rsnw+k-1,:), &
+               'rsnw'//trim(nchar),ncat,diag)
+            enddo
+         endif 
+         if (tr_iso) then           ! ice isotopes
+            do k=1,n_iso
+               write(nchar,'(i3.3)') k
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_isosno+(k-1),:), &
+               'isosno'//trim(nchar),ncat,diag)
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_isoice+(k-1),:), &
+               'isoice'//trim(nchar),ncat,diag)
+            enddo
+         endif
+         if (tr_aero) then          ! ice aerosols
+            do k=1,n_aero
+               write(nchar,'(i3.3)') k
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_aero  +(k-1)*4,:), &
+               'aerosnossl'//trim(nchar),ncat,diag)
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_aero+1+(k-1)*4,:), &
+               'aerosnoint'//trim(nchar),ncat,diag)
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_aero+2+(k-1)*4,:), &
+               'aeroicessl'//trim(nchar),ncat,diag)
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_aero+3+(k-1)*4,:), &
+               'aeroiceint'//trim(nchar),ncat,diag)
+            enddo
+         endif
+         if (tr_brine) then         ! brine height
+            call read_restart_field_net2D(ncid,1,trcrn(:,nt_fbri,:), &
+               'fbri',ncat,diag)
+            call read_restart_field_net2D(ncid,1,first_ice_real, &
+               'first_ice',ncat,diag)
+            do i = 1, nx
+               do n = 1, ncat
+                  if (first_ice_real(i,n) >= p5) then
+                  first_ice(i,n) = .true.
+                  else
+                  first_ice(i,n) = .false.
+                  endif
+               enddo ! ncat
+            enddo    ! i
+         endif
+         if (tr_fsd) then           ! floe size distribution
+            do k = 1, nfsd
+               write(nchar,'(i3.3)') k
+               call read_restart_field_net2D(ncid,1,trcrn(:,nt_fsd+k-1,:), &
+               'fsd'//trim(nchar),ncat,diag)
+            enddo
+         endif  
       else
          call icedrv_system_abort(string=subname//'unrecognized restart format', &
                                   file=__FILE__,line=__LINE__)
@@ -1323,223 +1480,413 @@
 ! Defines a field in NetCDF restart file
 ! author Chris Riedel, NCAR
 
-         character (len=*)      , intent(in)  :: vname
-         integer (kind=int_kind), intent(in)  :: dims(:)
-         integer (kind=int_kind), intent(in)  :: ncid
-   
-         integer (kind=int_kind) :: varid
-   
-         integer (kind=int_kind) :: &
-           status        ! status variable from netCDF routine
-   
-         status = nf90_def_var(ncid,trim(vname),nf90_double,dims,varid)
-   
-         end subroutine define_rest_field
+      character (len=*)      , intent(in)  :: vname
+      integer (kind=int_kind), intent(in)  :: dims(:)
+      integer (kind=int_kind), intent(in)  :: ncid
+
+      integer (kind=int_kind) :: varid
+
+      integer (kind=int_kind) :: &
+         status        ! status variable from netCDF routine
+
+      status = nf90_def_var(ncid,trim(vname),nf90_double,dims,varid)
+
+      end subroutine define_rest_field
 !=======================================================================
       subroutine write_restart_field_nc2D(ncid,nrec,work,atype,vname,ndim3,diag)
 
 ! Write a 2D field (nx, ncat) in NetCDF restart
 ! author Chris Riedel, NCAR
 
-         use icedrv_domain_size, only: ncat,nx
-         !use ice_fileunits, only: nu_diag
-         !use ice_read_write, only: ice_write, ice_write_nc
-   
-         integer (kind=int_kind), intent(in) :: &
-               ncid            , & ! unit number
-               ndim3         , & ! third dimension
-               nrec              ! record number (0 for sequential access)
-            real (kind=dbl_kind), dimension(nx,ncat), &
-               intent(in) :: &
-               work              ! input array (real, 8-byte)
-         character (len=4), intent(in) :: &
-               atype             ! format for output array
-                                 ! (real/integer, 4-byte/8-byte)
-   
-         logical (kind=log_kind), intent(in) :: &
-               diag              ! if true, write diagnostic output
-   
-         character (len=*), intent(in)  :: vname
-   
-         ! local variables
-   
-         integer (kind=int_kind) :: &
-            n,     &      ! dimension counter
-            varid, &      ! variable id
-            status        ! status variable from netCDF routine
-   
-   
-         status = nf90_inq_varid(ncid,trim(vname),varid)
-         write(nu_diag,*) 'Writing out ',trim(vname)
-         call ice_write_nc2D(ncid, 1, varid, work, diag)
-   
-         end subroutine write_restart_field_nc2D
-   !=======================================================================
-         subroutine write_restart_field_nc1D(ncid,nrec,work,atype,vname,ndim3,diag)
+      use icedrv_domain_size, only: ncat,nx
+      !use ice_fileunits, only: nu_diag
+      !use ice_read_write, only: ice_write, ice_write_nc
+
+      integer (kind=int_kind), intent(in) :: &
+            ncid            , & ! unit number
+            ndim3         , & ! third dimension
+            nrec              ! record number (0 for sequential access)
+         real (kind=dbl_kind), dimension(nx,ncat), &
+            intent(in) :: &
+            work              ! input array (real, 8-byte)
+      character (len=4), intent(in) :: &
+            atype             ! format for output array
+                              ! (real/integer, 4-byte/8-byte)
+
+      logical (kind=log_kind), intent(in) :: &
+            diag              ! if true, write diagnostic output
+
+      character (len=*), intent(in)  :: vname
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         n,     &      ! dimension counter
+         varid, &      ! variable id
+         status        ! status variable from netCDF routine
+
+
+      status = nf90_inq_varid(ncid,trim(vname),varid)
+      write(nu_diag,*) 'Writing out ',trim(vname)
+      call ice_write_nc2D(ncid, 1, varid, work, diag)
+
+      end subroutine write_restart_field_nc2D
+!=======================================================================
+      subroutine write_restart_field_nc1D(ncid,nrec,work,atype,vname,ndim3,diag)
 
 ! Write a 1D field (nx) in NetCDF restart
 ! author Chris Riedel, NCAR
 
-            use icedrv_domain_size, only: ncat,nx
-   
-         integer (kind=int_kind), intent(in) :: &
-               ncid            , & ! unit number
-               ndim3         , & ! third dimension
-               nrec              ! record number (0 for sequential access)
-         real (kind=dbl_kind), dimension(nx), &
-               intent(in) :: &
-               work              ! input array (real, 8-byte)
-         character (len=4), intent(in) :: &
-               atype             ! format for output array
-                                 ! (real/integer, 4-byte/8-byte)
-   
-         logical (kind=log_kind), intent(in) :: &
-               diag              ! if true, write diagnostic output
-   
-         character (len=*), intent(in)  :: vname
-   
-         ! local variables
-   
-         integer (kind=int_kind) :: &
-            n,     &      ! dimension counter
-            varid, &      ! variable id
-            status        ! status variable from netCDF routine
-   
-   
-         status = nf90_inq_varid(ncid,trim(vname),varid)
-         if (status /= 0) then
-            write(nu_diag,*) 'Writing out ',trim(vname) 
-            write(nu_diag,*) 'Erros Status ',status
-            call icedrv_system_abort(string='Write out restart', &
-               file=__FILE__,line= __LINE__)
-         else
-            write(nu_diag,*) 'Writing out ',trim(vname)
-         endif
-         call ice_write_nc1D(ncid, 1, varid, work, diag)
-   
-         end subroutine write_restart_field_nc1D
-   !=======================================================================
-         subroutine ice_write_nc2D(fid,  nrec,  varid, work,  diag)
+      use icedrv_domain_size, only: ncat,nx
+
+      integer (kind=int_kind), intent(in) :: &
+            ncid            , & ! unit number
+            ndim3         , & ! third dimension
+            nrec              ! record number (0 for sequential access)
+      real (kind=dbl_kind), dimension(nx), &
+            intent(in) :: &
+            work              ! input array (real, 8-byte)
+      character (len=4), intent(in) :: &
+            atype             ! format for output array
+                              ! (real/integer, 4-byte/8-byte)
+
+      logical (kind=log_kind), intent(in) :: &
+            diag              ! if true, write diagnostic output
+
+      character (len=*), intent(in)  :: vname
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         n,     &      ! dimension counter
+         varid, &      ! variable id
+         status        ! status variable from netCDF routine
+
+
+      status = nf90_inq_varid(ncid,trim(vname),varid)
+      if (status /= 0) then
+         write(nu_diag,*) 'Writing out ',trim(vname) 
+         write(nu_diag,*) 'Erros Status ',status
+         call icedrv_system_abort(string='Write out restart', &
+            file=__FILE__,line= __LINE__)
+      else
+         write(nu_diag,*) 'Writing out ',trim(vname)
+      endif
+      call ice_write_nc1D(ncid, 1, varid, work, diag)
+
+      end subroutine write_restart_field_nc1D
+!=======================================================================
+      subroutine ice_write_nc2D(fid,  nrec,  varid, work,  diag)
 
 ! Write a 2D field (nx, ncat) in NetCDF restart
 ! author Chris Riedel, NCAR
    
-         use icedrv_domain_size, only: ncat,nx
-   
-         integer (kind=int_kind), intent(in) :: &
-               fid           , & ! file id
-               varid         , & ! variable id
-               nrec              ! record number
-   
-         logical (kind=log_kind), intent(in) :: &
-               diag              ! if true, write diagnostic output
-   
-         real (kind=dbl_kind), dimension(nx,ncat), &
-               intent(in) :: &
-               work              ! output array (real, 8-byte)
-   
-         ! local variables
-   
-         integer (kind=int_kind) :: &
-            status,          & ! status output from netcdf routines
-            ndim, nvar,      & ! sizes of netcdf file
-            id,              & ! dimension index
-            dimlen             ! size of dimension
-         integer (kind=int_kind) :: start2(2),count2(2)
-         
-         real (kind=dbl_kind) :: &
-            amin, amax, asum   ! min, max values and sum of input array
-   
-         character (char_len) :: &
-            dimname            ! dimension name
-   
-         integer (kind=int_kind) :: ny,numDims
-   
-         ny = ncat
-         start2(1) = 1
-         count2(1) = nx
-         start2(2) = 1
-         count2(2) = ncat
+      use icedrv_domain_size, only: ncat,nx
+
+      integer (kind=int_kind), intent(in) :: &
+            fid           , & ! file id
+            varid         , & ! variable id
+            nrec              ! record number
+
+      logical (kind=log_kind), intent(in) :: &
+            diag              ! if true, write diagnostic output
+
+      real (kind=dbl_kind), dimension(nx,ncat), &
+            intent(in) :: &
+            work              ! output array (real, 8-byte)
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         status,          & ! status output from netcdf routines
+         ndim, nvar,      & ! sizes of netcdf file
+         id,              & ! dimension index
+         dimlen             ! size of dimension
+      integer (kind=int_kind) :: start2(2),count2(2)
       
-         status = nf90_put_var( fid, varid, work, &
-                  start=start2, &
-                  count=count2)
+      real (kind=dbl_kind) :: &
+         amin, amax, asum   ! min, max values and sum of input array
+
+      character (char_len) :: &
+         dimname            ! dimension name
+
+      integer (kind=int_kind) :: ny,numDims
+
+      ny = ncat
+      start2(1) = 1
+      count2(1) = nx
+      start2(2) = 1
+      count2(2) = ncat
    
-         !-------------------------------------------------------------------
-         ! optional diagnostics
-         !-------------------------------------------------------------------
-   
-         if (diag) then
-            amin = minval(work)
-            amax = maxval(work)
-            !asum = sum   (work)
-            write(nu_diag,*) ' min, max =', amin, amax
-         endif
-   
-         !deallocate(work)
-   
-         end subroutine ice_write_nc2D
-   !=======================================================================
-         subroutine ice_write_nc1D(fid,  nrec,  varid, work,  diag)
+      status = nf90_put_var( fid, varid, work, &
+               start=start2, &
+               count=count2)
+
+      !-------------------------------------------------------------------
+      ! optional diagnostics
+      !-------------------------------------------------------------------
+
+      if (diag) then
+         amin = minval(work)
+         amax = maxval(work)
+         !asum = sum   (work)
+         write(nu_diag,*) ' min, max =', amin, amax
+      endif
+
+      !deallocate(work)
+
+      end subroutine ice_write_nc2D
+!=======================================================================
+      subroutine ice_write_nc1D(fid,  nrec,  varid, work,  diag)
 
 ! Write a 1D field (nx) in NetCDF restart
 ! author Chris Riedel, NCAR
-   
-         use icedrv_domain_size, only: ncat,nx
-   
-         integer (kind=int_kind), intent(in) :: &
-               fid           , & ! file id
-               varid         , & ! variable id
-               nrec              ! record number
-   
-         logical (kind=log_kind), intent(in) :: &
-               diag              ! if true, write diagnostic output
-   
-         real (kind=dbl_kind), dimension(nx), &
-               intent(in) :: &
-               work              ! output array (real, 8-byte)
-   
-         ! local variables
-   
-         integer (kind=int_kind) :: &
-            status,          & ! status output from netcdf routines
-            ndim, nvar,      & ! sizes of netcdf file
-            id,              & ! dimension index
-            dimlen             ! size of dimension
-         integer (kind=int_kind) :: start2(1),count2(1)
-   
-         real (kind=dbl_kind) :: &
-            amin, amax, asum   ! min, max values and sum of input array
-   
-         character (char_len) :: &
-            dimname            ! dimension name
-   
-         integer (kind=int_kind) :: ny,numDims
-   
-         ny = ncat
-         start2(1) = 1
-         count2(1) = nx
-   
-         status = nf90_put_var( fid, varid, work, &
-                  start=start2, &
-                  count=count2)
-   
-         !-------------------------------------------------------------------
-         ! optional diagnostics
-         !-------------------------------------------------------------------
-   
-         if (diag) then
-            amin = minval(work)
-            amax = maxval(work)
-            !asum = sum   (work)
-            write(nu_diag,*) ' min, max =', amin, amax
-         endif
-   
-         !deallocate(work)
-   
-         end subroutine ice_write_nc1D
-   !=======================================================================
+
+      use icedrv_domain_size, only: ncat,nx
+
+      integer (kind=int_kind), intent(in) :: &
+            fid           , & ! file id
+            varid         , & ! variable id
+            nrec              ! record number
+
+      logical (kind=log_kind), intent(in) :: &
+            diag              ! if true, write diagnostic output
+
+      real (kind=dbl_kind), dimension(nx), &
+            intent(in) :: &
+            work              ! output array (real, 8-byte)
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         status,          & ! status output from netcdf routines
+         ndim, nvar,      & ! sizes of netcdf file
+         id,              & ! dimension index
+         dimlen             ! size of dimension
+      integer (kind=int_kind) :: start2(1),count2(1)
+
+      real (kind=dbl_kind) :: &
+         amin, amax, asum   ! min, max values and sum of input array
+
+      character (char_len) :: &
+         dimname            ! dimension name
+
+      integer (kind=int_kind) :: ny,numDims
+
+      ny = ncat
+      start2(1) = 1
+      count2(1) = nx
+
+      status = nf90_put_var( fid, varid, work, &
+               start=start2, &
+               count=count2)
+
+      !-------------------------------------------------------------------
+      ! optional diagnostics
+      !-------------------------------------------------------------------
+
+      if (diag) then
+         amin = minval(work)
+         amax = maxval(work)
+         !asum = sum   (work)
+         write(nu_diag,*) ' min, max =', amin, amax
+      endif
+
+      !deallocate(work)
+
+      end subroutine ice_write_nc1D
+!=======================================================================
+      subroutine read_restart_field_net2D(nu,nrec,work,vname,ndim3, &
+                     diag)
       
+! author Chris Riedel, NCAR
+
+      use icedrv_domain_size, only: ncat,nx
+
+      integer (kind=int_kind), intent(in) :: &
+      nu            , & ! unit number (not used for netcdf)
+      ndim3         , & ! third dimension
+      nrec              ! record number (0 for sequential access)
+
+      real (kind=dbl_kind), dimension(nx,ncat), &
+      intent(inout) :: &
+      work              ! input array (real, 8-byte)
+
+
+      logical (kind=log_kind), intent(in) :: &
+      diag              ! if true, write diagnostic output
+
+      character (len=*), intent(in)  :: vname
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+      n,     &      ! number of dimensions for variable
+      varid, &      ! variable id
+      status        ! status variable from netCDF routine
+
+      call ice_read_nc2D(ncid, 1, vname, work, diag)
+
+      end subroutine read_restart_field_net2D
+!=======================================================================
+      subroutine read_restart_field_net1D(nu,nrec,work,vname,ndim3, &
+                  diag)
+            
+! author Chris Riedel, NCAR
+
+      use icedrv_domain_size, only: ncat,nx
+
+      integer (kind=int_kind), intent(in) :: &
+      nu            , & ! unit number (not used for netcdf)
+      ndim3         , & ! third dimension
+      nrec              ! record number (0 for sequential access)
+
+      real (kind=dbl_kind), dimension(nx), &
+      intent(inout) :: &
+      work              ! input array (real, 8-byte)
+
+
+      logical (kind=log_kind), intent(in) :: &
+      diag              ! if true, write diagnostic output
+
+      character (len=*), intent(in)  :: vname
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+      n,     &      ! number of dimensions for variable
+      varid, &      ! variable id
+      status        ! status variable from netCDF routine
+
+      call ice_read_nc1D(ncid, 1, vname, work, diag)
+      
+      end subroutine read_restart_field_net1D
+!=======================================================================
+      subroutine ice_read_nc2D(fid,  nrec,  varname, work,  diag)
+      
+! author Chris Riedel, NCAR
+
+      use icedrv_domain_size, only: ncat,nx
+
+      integer (kind=int_kind), intent(in) :: &
+            fid           , & ! file id
+            nrec              ! record number
+
+      logical (kind=log_kind), intent(in) :: &
+            diag              ! if true, write diagnostic output
+
+      character (len=*), intent(in) :: &
+            varname           ! field name in netcdf file
+
+      real (kind=dbl_kind), dimension(nx,ncat), &
+            intent(out) :: &
+            work              ! output array (real, 8-byte)
+
+      integer (kind=int_kind) :: &
+         varid          , & ! variable id
+         status,          & ! status output from netcdf routines
+         ndim, nvar,      & ! sizes of netcdf file
+         id,              & ! dimension index
+         dimlen             ! size of dimension
+
+      real (kind=dbl_kind) :: &
+         amin, amax, asum   ! min, max values and sum of input array
+
+      character (char_len) :: &
+         dimname            ! dimension name
+
+      integer (kind=int_kind) :: start2(2),count2(2)
+
+      integer (kind=int_kind) :: ny,numDims
+
+      ny = ncat
+      start2(1) = 1
+      count2(1) = nx
+      start2(2) = 1
+      count2(2) = ncat
+
+      status = nf90_inq_varid(fid, trim(varname), varid)
+
+      if (status /= nf90_noerr) then
+         call icedrv_system_abort(string='ice_read_nc2D:Var not found '//trim(varname), &
+                                    file=__FILE__,line=__LINE__)
+      endif
+
+      status = nf90_get_var( fid, varid, work, &
+               start=start2, &
+               count=count2 )
+
+
+      if (diag) then
+         amin = minval(work)
+         amax = maxval(work)
+         asum = sum   (work)
+         write(nu_diag,*) ' min, max, sum =', amin, amax, asum
+      endif
+   
+      end subroutine ice_read_nc2D
+!=======================================================================
+      subroutine ice_read_nc1D(fid,  nrec,  varname, work,  diag)
+      
+! author Chris Riedel, NCAR
+
+      use icedrv_domain_size, only: ncat,nx
+
+      integer (kind=int_kind), intent(in) :: &
+            fid           , & ! file id
+            nrec              ! record number
+
+      logical (kind=log_kind), intent(in) :: &
+            diag              ! if true, write diagnostic output
+
+      character (len=*), intent(in) :: &
+            varname           ! field name in netcdf file
+
+      real (kind=dbl_kind), dimension(nx), &
+            intent(out) :: &
+            work              ! output array (real, 8-byte)
+
+      integer (kind=int_kind) :: &
+         varid          , & ! variable id
+         status,          & ! status output from netcdf routines
+         ndim, nvar,      & ! sizes of netcdf file
+         id,              & ! dimension index
+         dimlen             ! size of dimension
+
+      real (kind=dbl_kind) :: &
+         amin, amax, asum   ! min, max values and sum of input array
+
+      character (char_len) :: &
+         dimname            ! dimension name
+
+      integer (kind=int_kind) :: start2(1),count2(1)
+
+      integer (kind=int_kind) :: ny,numDims
+
+      ny = ncat
+      start2(1) = 1
+      count2(1) = nx
+
+      status = nf90_inq_varid(fid, trim(varname), varid)
+
+      if (status /= nf90_noerr) then
+         call icedrv_system_abort(string='ice_read_nc2D:Var not found'//trim(varname), &
+                                    file=__FILE__,line=__LINE__)
+      endif
+
+      status = nf90_get_var( fid, varid, work, &
+               start=start2, &
+               count=count2 )
+
+      if (diag) then
+         amin = minval(work)
+         amax = maxval(work)
+         asum = sum   (work)
+         write(nu_diag,*) ' min, max, sum =', amin, amax, asum
+      endif
+
+      end subroutine ice_read_nc1D
+!=======================================================================
       end module icedrv_restart
 
 !=======================================================================
