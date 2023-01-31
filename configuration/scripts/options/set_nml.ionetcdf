@@ -1,1 +1,2 @@
 history_cdf = .true.
+restart_format = 'nc'
