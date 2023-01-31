@@ -30,12 +30,19 @@
           write_restart_snow,      read_restart_snow, &
           write_restart_fsd,       read_restart_fsd, &
           write_restart_iso,       read_restart_iso, &
-          write_restart_aero,      read_restart_aero, &
-          define_rest_field
-      
+          write_restart_aero,      read_restart_aero
+#ifdef USE_NETCDF
+      private :: &
+         define_rest_field,         write_restart_field_nc2D, &
+         write_restart_field_nc1D,  ice_write_nc2D, &
+         ice_write_nc1D,            read_restart_field_net2D, &
+         read_restart_field_net1D,  ice_read_nc2D, &
+         ice_read_nc1D
+
       integer (kind=int_kind), private :: &
          ncid     ! ID for NetCDF file
-         
+#endif
+
       public :: dumpfile, restartfile, final_restart, &
                 write_restart_field, read_restart_field
 
@@ -189,6 +196,7 @@
    !      if (solve_zsal .or. skl_bgc .or. z_tracers) &
    !                        call write_restart_bgc         ! biogeochemistry
       else if (restart_format == 'nc') then
+#ifdef USE_NETCDF
          ! Change this if you want diagnostic output
          diag = .false.
 
@@ -433,6 +441,9 @@
          status = nf90_close(ncid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname, &
             file=__FILE__,line= __LINE__)
+#else
+         call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
+#endif         
       else
          write(warnstr,*) subname, 'Restart format must be either "bin" or "nc", no restart file written'
          call icepack_warnings_add(warnstr)
@@ -593,6 +604,7 @@
          if (tr_brine)     call read_restart_hbrine      ! brine height
          if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
       else if (restart_format == 'nc') then
+#ifdef USE_NETCDF
          ! Open restart files
          status = nf90_open(trim(filename), nf90_nowrite, ncid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//'Couldnt open netcdf file', &
@@ -745,6 +757,9 @@
                'fsd'//trim(nchar),ncat,diag)
             enddo
          endif  
+#else
+         call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
+#endif 
       else
          call icedrv_system_abort(string=subname//'unrecognized restart format', &
                                   file=__FILE__,line=__LINE__)
@@ -1483,6 +1498,7 @@
       end subroutine read_restart_hbrine
 
 !=======================================================================
+#ifdef USE_NETCDF
       subroutine define_rest_field(ncid, vname, dims)
 
 ! Defines a field in NetCDF restart file
@@ -1894,6 +1910,7 @@
       endif
 
       end subroutine ice_read_nc1D
+#endif
 !=======================================================================
       end module icedrv_restart
 
