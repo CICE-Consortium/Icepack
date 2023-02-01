@@ -103,15 +103,46 @@
             min_T      = 223.15_dbl_kind
             del_T      =   5.0_dbl_kind
             lin_T      = .true.
-            if (allocated(snowage_tau))   deallocate(snowage_tau)
-            if (allocated(snowage_kappa)) deallocate(snowage_kappa)
-            if (allocated(snowage_drdt0)) deallocate(snowage_drdt0)
+            ! check if these are already allocated/set, if so, make sure size is OK
+            if (allocated(snowage_tau))   then
+               if (size(snowage_tau,dim=1) /= isnw_rhos .or. &
+                   size(snowage_tau,dim=2) /= isnw_Tgrd .or. &
+                   size(snowage_tau,dim=3) /= isnw_T   ) then
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//'ERROR: snowage_tau size snw_aging_table=snicar')
+                  return
+               endif
+            else
+               allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
+            endif
+
+            if (allocated(snowage_kappa)) then
+               if (size(snowage_kappa,dim=1) /= isnw_rhos .or. &
+                   size(snowage_kappa,dim=2) /= isnw_Tgrd .or. &
+                   size(snowage_kappa,dim=3) /= isnw_T   ) then
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//'ERROR: snowage_kappa size snw_aging_table=snicar')
+                  return
+               endif
+            else
+               allocate (snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
+            endif
+
+            if (allocated(snowage_drdt0)) then
+               if (size(snowage_drdt0,dim=1) /= isnw_rhos .or. &
+                   size(snowage_drdt0,dim=2) /= isnw_Tgrd .or. &
+                   size(snowage_drdt0,dim=3) /= isnw_T   ) then
+                  call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                  call icepack_warnings_add(subname//'ERROR: snowage_drdt0 size snw_aging_table=snicar')
+                  return
+               endif
+            else
+               allocate (snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
+            endif
+
             if (allocated(snowage_rhos))  deallocate(snowage_rhos)
             if (allocated(snowage_Tgrd))  deallocate(snowage_Tgrd)
             if (allocated(snowage_T))     deallocate(snowage_T)
-            allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
-            allocate (snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
-            allocate (snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
             allocate (snowage_rhos (isnw_rhos))
             allocate (snowage_Tgrd (isnw_Tgrd))
             allocate (snowage_T    (isnw_T))
