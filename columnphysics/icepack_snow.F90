@@ -103,6 +103,12 @@
             min_T      = 223.15_dbl_kind
             del_T      =   5.0_dbl_kind
             lin_T      = .true.
+            if (allocated(snowage_tau))   deallocate(snowage_tau)
+            if (allocated(snowage_kappa)) deallocate(snowage_kappa)
+            if (allocated(snowage_drdt0)) deallocate(snowage_drdt0)
+            if (allocated(snowage_rhos))  deallocate(snowage_rhos)
+            if (allocated(snowage_Tgrd))  deallocate(snowage_Tgrd)
+            if (allocated(snowage_T))     deallocate(snowage_T)
             allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
             allocate (snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
             allocate (snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
@@ -137,6 +143,12 @@
             min_T      = 243.15_dbl_kind
             del_T      =   5.0_dbl_kind
             lin_T      = .true.
+            if (allocated(snowage_tau))   deallocate(snowage_tau)
+            if (allocated(snowage_kappa)) deallocate(snowage_kappa)
+            if (allocated(snowage_drdt0)) deallocate(snowage_drdt0)
+            if (allocated(snowage_rhos))  deallocate(snowage_rhos)
+            if (allocated(snowage_Tgrd))  deallocate(snowage_Tgrd)
+            if (allocated(snowage_T))     deallocate(snowage_T)
             allocate (snowage_tau  (isnw_rhos,isnw_Tgrd,isnw_T))
             allocate (snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
             allocate (snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
