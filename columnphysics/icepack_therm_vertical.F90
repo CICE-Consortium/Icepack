@@ -2279,6 +2279,10 @@
                                     fswthrun_vdf,               & 
                                     fswthrun_idr,               & 
                                     fswthrun_idf,               & 
+                                    fswthrun_uvrdr,             & 
+                                    fswthrun_uvrdf,             & 
+                                    fswthrun_pardr,             & 
+                                    fswthrun_pardf,             & 
                                     fswabs      ,               &
                                     flwout      ,               &
                                     Sswabsn     , Iswabsn     , &
@@ -2294,6 +2298,10 @@
                                     fswthru_vdf ,               &
                                     fswthru_idr ,               &
                                     fswthru_idf ,               &
+                                    fswthru_uvrdr ,             &
+                                    fswthru_uvrdf ,             &
+                                    fswthru_pardr ,             &
+                                    fswthru_pardf ,             &
                                     flatn_f     , fsensn_f    , &
                                     fsurfn_f    , fcondtopn_f , &
                                     faero_atm   , faero_ocn   , &
@@ -2423,6 +2431,12 @@
          meltsliq    , & ! mass of snow melt (kg/m^2)
          fsloss          ! rate of snow loss to leads (kg/m^2/s)
 
+      real (kind=dbl_kind), intent(inout), optional :: &
+         fswthru_uvrdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
+         fswthru_uvrdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
+         fswthru_pardr , & ! nir dir shortwave penetrating to ocean (W/m^2)
+         fswthru_pardf     ! nir dif shortwave penetrating to ocean (W/m^2)
+
       real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
          Qa_iso      , & ! isotope specific humidity (kg/kg)
          Qref_iso    , & ! isotope 2m atm reference spec humidity (kg/kg)
@@ -2489,6 +2503,12 @@
          fswthrun_vdf , & ! vis dif SW through ice to ocean            (W/m^2)
          fswthrun_idr , & ! nir dir SW through ice to ocean            (W/m^2)
          fswthrun_idf     ! nir dif SW through ice to ocean            (W/m^2)
+
+      real (kind=dbl_kind), optional, dimension(:), intent(inout) :: &
+         fswthrun_uvrdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         fswthrun_uvrdf , & ! vis dif SW through ice to ocean            (W/m^2)
+         fswthrun_pardr , & ! nir dir SW through ice to ocean            (W/m^2)
+         fswthrun_pardf     ! nir dif SW through ice to ocean            (W/m^2)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy (J m-3)
@@ -2575,11 +2595,23 @@
          l_fswthru_idr , & ! nir dir SW through ice to ocean            (W/m^2)
          l_fswthru_idf     ! nir dif SW through ice to ocean            (W/m^2)
 
+      real (kind=dbl_kind)  :: &
+         l_fswthru_uvrdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthru_uvrdf , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthru_pardr , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthru_pardf     ! vis dir SW through ice to ocean            (W/m^2)
+
       real (kind=dbl_kind), dimension(:), allocatable :: &
          l_fswthrun_vdr , & ! vis dir SW through ice to ocean            (W/m^2)
          l_fswthrun_vdf , & ! vis dif SW through ice to ocean            (W/m^2)
          l_fswthrun_idr , & ! nir dir SW through ice to ocean            (W/m^2)
          l_fswthrun_idf     ! nir dif SW through ice to ocean            (W/m^2)
+
+      real (kind=dbl_kind), dimension(:), allocatable :: &
+         l_fswthrun_uvrdr , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthrun_uvrdf , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthrun_pardr , & ! vis dir SW through ice to ocean            (W/m^2)
+         l_fswthrun_pardf     ! vis dir SW through ice to ocean            (W/m^2)
 
       real (kind=dbl_kind) :: &
          pond            ! water retained in ponds (m)
@@ -2701,6 +2733,26 @@
       allocate(l_fswthrun_idf(ncat))
       l_fswthrun_idf = c0
       if (present(fswthrun_idf)) l_fswthrun_idf = fswthrun_idf
+
+      allocate(l_fswthrun_vdf(ncat))
+      l_fswthrun_vdf = c0
+      if (present(fswthrun_vdf)) l_fswthrun_vdf = fswthrun_vdf
+
+      allocate(l_fswthrun_uvrdr(ncat))
+      l_fswthrun_uvrdr = c0
+      if (present(fswthrun_uvrdr)) l_fswthrun_uvrdr = fswthrun_uvrdr
+
+      allocate(l_fswthrun_uvrdf(ncat))
+      l_fswthrun_uvrdf = c0
+      if (present(fswthrun_uvrdf)) l_fswthrun_uvrdf = fswthrun_uvrdf
+
+      allocate(l_fswthrun_pardr(ncat))
+      l_fswthrun_pardr = c0
+      if (present(fswthrun_pardr)) l_fswthrun_pardr = fswthrun_pardr
+
+      allocate(l_fswthrun_pardf(ncat))
+      l_fswthrun_pardf = c0
+      if (present(fswthrun_pardf)) l_fswthrun_pardf = fswthrun_pardf
 
       allocate(l_meltsliqn(ncat))
       l_meltsliqn = c0
@@ -3113,6 +3165,10 @@
                                fswthrun_vdf=l_fswthrun_vdf(n),      &
                                fswthrun_idr=l_fswthrun_idr(n),      &
                                fswthrun_idf=l_fswthrun_idf(n),      &
+                               fswthrun_uvrdr=l_fswthrun_uvrdr(n),  &
+                               fswthrun_uvrdf=l_fswthrun_uvrdf(n),  &
+                               fswthrun_pardr=l_fswthrun_pardr(n),  &
+                               fswthrun_pardf=l_fswthrun_pardf(n),  &
                                strairxT=strairxT, strairyT=strairyT,&
                                Cdn_atm_ratio=Cdn_atm_ratio,         &
                                fsurf=fsurf,       fcondtop=fcondtop,&
@@ -3129,6 +3185,10 @@
                                fswthru_vdf=l_fswthru_vdf,           &
                                fswthru_idr=l_fswthru_idr,           &
                                fswthru_idf=l_fswthru_idf,           &
+                               fswthru_uvrdr=l_fswthru_uvrdr,       &
+                               fswthru_uvrdf=l_fswthru_uvrdf,       &
+                               fswthru_pardr=l_fswthru_pardr,       &
+                               fswthru_pardf=l_fswthru_pardf,       &
                                melttn=melttn (n), meltsn=meltsn(n), &
                                meltbn=meltbn (n), congeln=congeln(n),&
                                meltt=meltt,       melts=melts,      &
@@ -3185,10 +3245,18 @@
       if (present(fswthrun_vdf)) fswthrun_vdf = l_fswthrun_vdf
       if (present(fswthrun_idr)) fswthrun_idr = l_fswthrun_idr
       if (present(fswthrun_idf)) fswthrun_idf = l_fswthrun_idf
+      if (present(fswthrun_uvrdr)) fswthrun_uvrdr = l_fswthrun_uvrdr
+      if (present(fswthrun_uvrdf)) fswthrun_uvrdf = l_fswthrun_uvrdf
+      if (present(fswthrun_pardr)) fswthrun_pardr = l_fswthrun_pardr
+      if (present(fswthrun_pardf)) fswthrun_pardf = l_fswthrun_pardf
       if (present(fswthru_vdr )) fswthru_vdr  = l_fswthru_vdr
       if (present(fswthru_vdf )) fswthru_vdf  = l_fswthru_vdf
       if (present(fswthru_idr )) fswthru_idr  = l_fswthru_idr
       if (present(fswthru_idf )) fswthru_idf  = l_fswthru_idf
+      if (present(fswthru_uvrdr )) fswthru_uvrdr  = l_fswthru_uvrdr
+      if (present(fswthru_uvrdf )) fswthru_uvrdf  = l_fswthru_uvrdf
+      if (present(fswthru_pardr )) fswthru_pardr  = l_fswthru_pardr
+      if (present(fswthru_pardf )) fswthru_pardf  = l_fswthru_pardf
       if (present(fsloss      )) fsloss       = l_fsloss
       if (present(meltsliqn   )) meltsliqn    = l_meltsliqn
       if (present(meltsliq    )) meltsliq     = l_meltsliq
@@ -3206,6 +3274,10 @@
       deallocate(l_fswthrun_vdf)
       deallocate(l_fswthrun_idr)
       deallocate(l_fswthrun_idf)
+      deallocate(l_fswthrun_uvrdr)
+      deallocate(l_fswthrun_uvrdf)
+      deallocate(l_fswthrun_pardr)
+      deallocate(l_fswthrun_pardf)
       deallocate(l_meltsliqn)
       deallocate(l_rsnw)
       deallocate(l_smice)
