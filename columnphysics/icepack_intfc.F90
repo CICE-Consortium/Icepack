@@ -121,8 +121,6 @@
       use icepack_warnings, only: icepack_warnings_print
       use icepack_warnings, only: icepack_warnings_flush
       use icepack_warnings, only: icepack_warnings_aborted
-      use icepack_warnings, only: icepack_warnings_add
-      use icepack_warnings, only: warnstr
 
 !autodocument_end icepack_intfc.F90
 

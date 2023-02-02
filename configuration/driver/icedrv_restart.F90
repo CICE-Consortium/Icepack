@@ -15,7 +15,6 @@
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
-      use icepack_intfc, only: icepack_warnings_add, warnstr
 #ifdef USE_NETCDF
       use netcdf
 #endif
@@ -445,9 +444,7 @@
          call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
 #endif         
       else
-         write(warnstr,*) subname, 'Restart format must be either "bin" or "nc", no restart file written'
-         call icepack_warnings_add(warnstr)
-         call icepack_warnings_flush(nu_diag)
+         write (nu_diag,*) 'WARNING: Restart format must be either "bin" or "nc", no restart file written'
       endif
 
       end subroutine dumpfile
