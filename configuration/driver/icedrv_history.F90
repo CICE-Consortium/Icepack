@@ -22,7 +22,8 @@
 
       ! history output file info
 
-      logical (kind=log_kind), public :: history_cdf      ! flag to turn on cdf history files
+      character (len=char_len), public :: &
+         history_format                           ! format of history files, only supported type is 'nc'
 
       character (len=char_len_long) :: hist_file  ! hist file name
 

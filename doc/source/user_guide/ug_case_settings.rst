@@ -140,7 +140,7 @@ setup_nml
    "", "``y``", "write restart every ``dumpfreq_n`` years", ""
    "``dump_last``", "true/false", "write restart at end of run", "false"
    "``dt``", "seconds", "thermodynamics time step length", "3600."
-   "``history_cdf``", "logical", "netcdf history output", "``.false.``"
+   "``history_format``", "string", "provide netcdf history output if 'nc'", ""
    "``ice_ic``", "``default``", "latitude and sst dependent initial condition", "``default``"
    "", "``none``", "no ice", ""
    "", "'path/file'", "restart file name", ""
