@@ -68,7 +68,11 @@
          count1(1), count2(2), count3(3), count4(4), & ! cdf start/count arrays
          varid, &                        ! cdf varid
          status, &                       ! cdf status flag
-         iflag                           ! history file attributes
+         iflag, &                        ! history file attributes
+         sec0, &                         ! number of seconds into the day at istep0
+         h0, &                           ! start hour
+         m0, &                           ! start minute
+         s0                              ! start second
 
       character (len=8) :: &
          cdate                           ! date string
