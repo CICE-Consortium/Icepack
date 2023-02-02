@@ -40,6 +40,8 @@
 
       integer (kind=int_kind), private :: &
          ncid     ! ID for NetCDF file
+      
+      logical (kind=log_kind), private :: diag ! netCDF diagnostics flag
 #endif
 
       public :: dumpfile, restartfile, final_restart, &
@@ -102,8 +104,6 @@
       integer (kind=int_kind), allocatable :: dims(:),dims1(:)
 
       character (len=3) :: nchar
-
-      logical (kind=log_kind) :: diag ! whether to write diagnostics for nc funcs
       
       integer (kind=int_kind) :: &
          nt_iage,nt_FY,nt_alvl,nt_vlvl,&
@@ -500,8 +500,6 @@
          nt_apnd,nt_hpnd,nt_ipnd,nt_smice, nt_smliq, nt_rhos, nt_rsnw,&
          nt_isosno,nt_isoice,nt_aero,nt_fbri,nt_fsd
 
-      logical (kind=log_kind) :: diag ! netCDF diagnostics flag
-
       character (len=3) :: nchar
 
       diag = .false.
@@ -536,59 +534,84 @@
       if (restart_format == 'bin') then
          open(nu_restart,file=filename,form='unformatted')
          read (nu_restart) istep0,time,time_forc
-         write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
+      else if (restart_format == 'nc') then
+#ifdef USE_NETCDF
+         ! Open restart files
+         status = nf90_open(trim(filename), nf90_nowrite, ncid)
+         if (status /= nf90_noerr) call icedrv_system_abort(string=subname//'Couldnt open netcdf file', &
+                                    file=__FILE__,line=__LINE__)
 
-         istep1 = istep0
+         status = nf90_get_att(ncid, nf90_global, 'istep1', istep0)
+         status = nf90_get_att(ncid, nf90_global, 'time', time)
+         status = nf90_get_att(ncid, nf90_global, 'time_forc', time_forc)
+#else
+         call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
+#endif
+      else
+         call icedrv_system_abort(string=subname//'unrecognized restart format', &
+                                 file=__FILE__,line=__LINE__)
+      endif
 
-         !-----------------------------------------------------------------
-         ! state variables
-         ! Tsfc is the only tracer read in this file.  All other
-         ! tracers are in their own dump/restart files.
-         !-----------------------------------------------------------------
-         write(nu_diag,*) 'min/max area, vol ice, vol snow, Tsfc'
+      write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
 
-         call read_restart_field(nu_restart,aicen,ncat)
-         call read_restart_field(nu_restart,vicen,ncat)
-         call read_restart_field(nu_restart,vsnon,ncat)
-         call read_restart_field(nu_restart,trcrn(:,nt_Tsfc,:),ncat)
+      istep1 = istep0
 
-         write(nu_diag,*) 'min/max sice for each layer'
-         do k=1,nilyr
-            call read_restart_field(nu_restart,trcrn(:,nt_sice+k-1,:),ncat)
-         enddo
+      !-----------------------------------------------------------------
+      ! state variables
+      ! Tsfc is the only tracer read in this file.  All other
+      ! tracers are in their own dump/restart files.
+      !-----------------------------------------------------------------
+      write(nu_diag,*) 'min/max area, vol ice, vol snow, Tsfc'
 
-         write(nu_diag,*) 'min/max qice for each layer'
-         do k=1,nilyr
-            call read_restart_field(nu_restart,trcrn(:,nt_qice+k-1,:),ncat)
-         enddo
+      call read_restart_field(nu_restart,aicen,ncat,'aicen')
+      call read_restart_field(nu_restart,vicen,ncat,'vicen')
+      call read_restart_field(nu_restart,vsnon,ncat,'vsnon')
+      call read_restart_field(nu_restart,trcrn(:,nt_Tsfc,:),ncat,'Tsfcn')
 
-         write(nu_diag,*) 'min/max qsno for each layer'
-         do k=1,nslyr
-            call read_restart_field(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat)
-         enddo
+      write(nu_diag,*) 'min/max sice for each layer'
+      do k=1,nilyr
+         write(nchar,'(i3.3)') k
+         call read_restart_field(nu_restart,trcrn(:,nt_sice+k-1,:),ncat, &
+         'sice'//trim(nchar))
+      enddo
 
-         !-----------------------------------------------------------------
-         ! radiation fields
-         !-----------------------------------------------------------------
+      write(nu_diag,*) 'min/max qice for each layer'
+      do k=1,nilyr
+         write(nchar,'(i3.3)') k
+         call read_restart_field(nu_restart,trcrn(:,nt_qice+k-1,:),ncat, &
+         'qice'//trim(nchar))
+      enddo
 
-         write(nu_diag,*) 'min/max radiation fields'
+      write(nu_diag,*) 'min/max qsno for each layer'
+      do k=1,nslyr
+         write(nchar,'(i3.3)') k
+         call read_restart_field(nu_restart,trcrn(:,nt_qsno+k-1,:),ncat, &
+         'qsno'//trim(nchar))
+      enddo
 
-         call read_restart_field(nu_restart,scale_factor,1)
-         call read_restart_field(nu_restart,swvdr,1)
-         call read_restart_field(nu_restart,swvdf,1)
-         call read_restart_field(nu_restart,swidr,1)
-         call read_restart_field(nu_restart,swidf,1)
+      !-----------------------------------------------------------------
+      ! radiation fields
+      !-----------------------------------------------------------------
 
-         !-----------------------------------------------------------------
-         ! for mixed layer model
-         !-----------------------------------------------------------------
+      write(nu_diag,*) 'min/max radiation fields'
 
-         if (oceanmixed_ice) then
-            write(nu_diag,*) 'min/max sst, frzmlt'
-            call read_restart_field(nu_restart,sst,1)
-            call read_restart_field(nu_restart,frzmlt,1)
-         endif
+      call read_restart_field(nu_restart,scale_factor,1,'scale_factor')
+      call read_restart_field(nu_restart,swvdr,1,'swvdr')
+      call read_restart_field(nu_restart,swvdf,1,'swvdf')
+      call read_restart_field(nu_restart,swidr,1,'swidr')
+      call read_restart_field(nu_restart,swidf,1,'swidf')
 
+      !-----------------------------------------------------------------
+      ! for mixed layer model
+      !-----------------------------------------------------------------
+
+      if (oceanmixed_ice) then
+         write(nu_diag,*) 'min/max sst, frzmlt'
+         call read_restart_field(nu_restart,sst,1,'sst')
+         call read_restart_field(nu_restart,frzmlt,1,'frzmlt')
+      endif
+
+      if (restart_format == 'bin') then
          ! tracers
          if (tr_iage)      call read_restart_age()       ! ice age tracer
          if (tr_FY)        call read_restart_FY()        ! first-year area tracer
@@ -602,62 +625,6 @@
          if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
       else if (restart_format == 'nc') then
 #ifdef USE_NETCDF
-         ! Open restart files
-         status = nf90_open(trim(filename), nf90_nowrite, ncid)
-         if (status /= nf90_noerr) call icedrv_system_abort(string=subname//'Couldnt open netcdf file', &
-                                    file=__FILE__,line=__LINE__)
-
-         status = nf90_get_att(ncid, nf90_global, 'istep1', istep0)
-         status = nf90_get_att(ncid, nf90_global, 'time', time)
-         status = nf90_get_att(ncid, nf90_global, 'time_forc', time_forc)
-         write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
-
-         istep1 = istep0
-
-         !-----------------------------------------------------------------
-         ! state variables
-         !-----------------------------------------------------------------
-         write(nu_diag,*) 'min/max area, vol ice, vol snow, Tsfc'
-         call read_restart_field_net2D(ncid,1,aicen,'aicen',ncat,diag) 
-         call read_restart_field_net2D(ncid,1,vicen,'vicen',ncat,diag)
-         call read_restart_field_net2D(ncid,1,vsnon,'vsnon',ncat,diag)
-         call read_restart_field_net2D(ncid,1,trcrn(:,nt_Tsfc,:), &
-         'Tsfcn',ncat,diag)
-         write(nu_diag,*) 'min/max sice and qice for each layer'
-         do k=1,nilyr
-            write(nchar,'(i3.3)') k
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_sice+k-1,:), &
-            'sice'//trim(nchar),ncat,diag)
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_qice+k-1,:), &
-            'qice'//trim(nchar),ncat,diag)
-         enddo
-         write(nu_diag,*) 'min/max qsno for each layer'
-         do k=1,nslyr
-         write(nchar,'(i3.3)') k
-         call read_restart_field_net2D(ncid,1,trcrn(:,nt_qsno+k-1,:), &
-            'qsno'//trim(nchar),ncat,diag)
-         enddo
-
-         !-----------------------------------------------------------------
-         ! radiation fields
-         !-----------------------------------------------------------------
-         write(nu_diag,*) 'min/max radiation fields'
-         call read_restart_field_net1D(ncid,1,scale_factor, &
-            'scale_factor',1,diag)
-         call read_restart_field_net1D(ncid,1,swvdr,'swvdr',1,diag)
-         call read_restart_field_net1D(ncid,1,swvdf,'swvdf',1,diag)
-         call read_restart_field_net1D(ncid,1,swidr,'swidr',1,diag)
-         call read_restart_field_net1D(ncid,1,swidf,'swidf',1,diag)
-
-         !-----------------------------------------------------------------
-         ! for mixed layer model
-         !-----------------------------------------------------------------
-         if (oceanmixed_ice) then
-            write(nu_diag,*) 'min/max sst, frzmlt'
-            call read_restart_field_net1D(ncid,1,sst,'sst',1,diag)
-            call read_restart_field_net1D(ncid,1,frzmlt,'frzmlt',1,diag)
-         endif
-
          ! tracers
          if (tr_iage) then          ! ice age tracer
             call read_restart_field_net2D(ncid,1,trcrn(:,nt_iage,:), &
@@ -805,7 +772,7 @@
 ! Reads a single restart field
 ! author Chris Newman, LANL
 
-      subroutine read_restart_field(nu,work,ndim)
+      subroutine read_restart_field(nu,work,ndim,name)
 
       use icedrv_domain_size, only: nx
 
@@ -815,6 +782,9 @@
 
       real (kind=dbl_kind), dimension(nx,ndim), intent(inout) :: &
          work              ! input array (real, 8-byte)
+      
+      character (len=*), intent(in), optional :: &
+         name
 
       ! local variables
 
@@ -829,10 +799,25 @@
 
       character(len=*), parameter :: subname='(read_restart_field)'
 
-      do n = 1, ndim
-         read(nu) (work2(i), i=1,nx)
-         work(:,n) = work2(:)
-      enddo
+      if (restart_format == 'bin') then
+         do n = 1, ndim
+            read(nu) (work2(i), i=1,nx)
+            work(:,n) = work2(:)
+         enddo
+      else if (restart_format == 'nc') then
+#ifdef USE_NETCDF
+         if (ndim == 1) then
+            call read_restart_field_net1D(ncid,1,work,name,1,diag)
+         else
+            call read_restart_field_net2D(ncid,1,work,name,ndim,diag)
+         endif
+#else
+         call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
+#endif
+      else
+         call icedrv_system_abort(string=subname//'unrecognized restart format', &
+                                  file=__FILE__,line=__LINE__)
+      endif
 
       minw = minval(work)
       maxw = maxval(work)
