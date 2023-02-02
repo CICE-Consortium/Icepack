@@ -1013,15 +1013,20 @@
 
       ! check array sizes and re/allocate if necessary
       if (present(snowage_tau_in)       ) then
-         if (size(snowage_tau_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         if (size(snowage_tau_in,dim=1) /= isnw_rhos .or. &
+             size(snowage_tau_in,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_tau_in,dim=3) /= isnw_T   ) then
             call icepack_warnings_add(subname//' incorrect size of snowage_tau_in')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          elseif (.not.allocated(snowage_tau)) then
-            allocate(snowage_tau(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_tau(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_tau      = snowage_tau_in
-         elseif (size(snowage_tau) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         elseif &
+            (size(snowage_tau,dim=1) /= isnw_rhos .or. &
+             size(snowage_tau,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_tau,dim=3) /= isnw_T   ) then
             deallocate(snowage_tau)
-            allocate(snowage_tau(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_tau(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_tau      = snowage_tau_in
          else
             snowage_tau      = snowage_tau_in
@@ -1030,15 +1035,20 @@
 
       ! check array sizes and re/allocate if necessary
       if (present(snowage_kappa_in)       ) then
-         if (size(snowage_kappa_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         if (size(snowage_kappa_in,dim=1) /= isnw_rhos .or. &
+             size(snowage_kappa_in,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_kappa_in,dim=3) /= isnw_T   ) then
             call icepack_warnings_add(subname//' incorrect size of snowage_kappa_in')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          elseif (.not.allocated(snowage_kappa)) then
-            allocate(snowage_kappa(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_kappa      = snowage_kappa_in
-         elseif (size(snowage_kappa) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         elseif &
+            (size(snowage_kappa,dim=1) /= isnw_rhos .or. &
+             size(snowage_kappa,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_kappa,dim=3) /= isnw_T   ) then
             deallocate(snowage_kappa)
-            allocate(snowage_kappa(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_kappa      = snowage_kappa_in
          else
             snowage_kappa      = snowage_kappa_in
@@ -1047,15 +1057,20 @@
 
       ! check array sizes and re/allocate if necessary
       if (present(snowage_drdt0_in)       ) then
-         if (size(snowage_drdt0_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         if (size(snowage_drdt0_in,dim=1) /= isnw_rhos .or. &
+             size(snowage_drdt0_in,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_drdt0_in,dim=3) /= isnw_T   ) then
             call icepack_warnings_add(subname//' incorrect size of snowage_drdt0_in')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          elseif (.not.allocated(snowage_drdt0)) then
-            allocate(snowage_drdt0(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_drdt0      = snowage_drdt0_in
-         elseif (size(snowage_drdt0) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         elseif &
+            (size(snowage_drdt0,dim=1) /= isnw_rhos .or. &
+             size(snowage_drdt0,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_drdt0,dim=3) /= isnw_T   ) then
             deallocate(snowage_drdt0)
-            allocate(snowage_drdt0(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_drdt0      = snowage_drdt0_in
          else
             snowage_drdt0      = snowage_drdt0_in
