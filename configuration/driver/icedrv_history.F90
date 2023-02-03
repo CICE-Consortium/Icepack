@@ -40,7 +40,7 @@
 
       subroutine history_write()
 
-      use icedrv_calendar, only: idate0, days_per_year, use_leap_years
+      use icedrv_calendar, only: days_per_year, use_leap_years, year_init
       use icedrv_calendar, only: time, time0, secday, istep1, idate, sec
       use icedrv_state, only: aice, vice, vsno, uvel, vvel, divu, shear, strength
       use icedrv_state, only: trcr, trcrn
@@ -68,7 +68,11 @@
          count1(1), count2(2), count3(3), count4(4), & ! cdf start/count arrays
          varid, &                        ! cdf varid
          status, &                       ! cdf status flag
-         iflag                           ! history file attributes
+         iflag, &                        ! history file attributes
+         sec0, &                         ! number of seconds into the day at istep0
+         h0, &                           ! start hour
+         m0, &                           ! start minute
+         s0                              ! start second
 
       character (len=8) :: &
          cdate                           ! date string
@@ -164,9 +168,8 @@
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: def_var time')
          status = nf90_put_att(ncid,varid,'long_name','model time')
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_att time long_name')
-         write(cdate,'(i8.8)') idate0
-         write(tmpstr,'(a,a,a,a,a,a,a,a)') 'days since ', &
-            cdate(1:4),'-',cdate(5:6),'-',cdate(7:8),' 00:00:00'
+         write(tmpstr,'(a,i0,a)') 'days since ', &
+            year_init,'-01-01 00:00:00'
          status = nf90_put_att(ncid,varid,'units',trim(tmpstr))
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_att time units')
          if (days_per_year == 360) then
@@ -282,7 +285,7 @@
 
       status = nf90_inq_varid(ncid,'time',varid)
       if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//'time')
-      value = (time-time0)/secday
+      value = time/secday
       status = nf90_put_var(ncid,varid,value,start=(/timcnt/))
       if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_var '//'time')
 
