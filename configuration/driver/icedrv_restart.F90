@@ -42,6 +42,8 @@
          ncid     ! ID for NetCDF file
       
       logical (kind=log_kind), private :: diag ! netCDF diagnostics flag
+
+      character (len=3) :: nchar ! 
 #endif
 
       public :: dumpfile, restartfile, final_restart, &
@@ -490,28 +492,16 @@
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(restartfile)'
 
-      ! local variables for reading from a netcdf file
+      ! local variable for reading from a netcdf file
       integer (kind=int_kind) :: &
-         status, &
-         n
+         status
       
-      integer (kind=int_kind) :: &
-         nt_iage,nt_FY,nt_alvl,nt_vlvl,&
-         nt_apnd,nt_hpnd,nt_ipnd,nt_smice, nt_smliq, nt_rhos, nt_rsnw,&
-         nt_isosno,nt_isoice,nt_aero,nt_fbri,nt_fsd
-
-      character (len=3) :: nchar
-
+      ! set this to .true. for netcdf diagnostic output
       diag = .false.
       
       ! Query tracers
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-          nt_qice_out=nt_qice, nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, &
-          nt_FY_out=nt_FY,nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
-          nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, &
-          nt_smice_out=nt_smice, nt_smliq_out=nt_smliq, nt_rhos_out=nt_rhos, &
-          nt_rsnw_out=nt_rsnw,nt_isosno_out=nt_isosno,nt_isoice_out=nt_isoice, &
-          nt_aero_out=nt_aero,nt_fbri_out=nt_fbri,nt_fsd_out=nt_fsd)
+          nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
 
       call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
            tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
@@ -611,123 +601,18 @@
          call read_restart_field(nu_restart,frzmlt,1,'frzmlt')
       endif
 
-      if (restart_format == 'bin') then
-         ! tracers
-         if (tr_iage)      call read_restart_age()       ! ice age tracer
-         if (tr_FY)        call read_restart_FY()        ! first-year area tracer
-         if (tr_lvl)       call read_restart_lvl()       ! level ice tracer
-         if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
-         if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
-         if (tr_snow)      call read_restart_snow()      ! snow metamorphosis tracers
-         if (tr_iso)       call read_restart_iso()       ! ice isotopes
-         if (tr_aero)      call read_restart_aero()      ! ice aerosols
-         if (tr_brine)     call read_restart_hbrine      ! brine height
-         if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
-      else if (restart_format == 'nc') then
-#ifdef USE_NETCDF
-         ! tracers
-         if (tr_iage) then          ! ice age tracer
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_iage,:), &
-               'iage',ncat,diag)
-         endif
-         if (tr_FY) then            ! first-year area tracer
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_FY,:), &
-               'FY',ncat,diag)
-            call read_restart_field_net1D(ncid,1,frz_onset, &
-               'frz_onset',1,diag)
-         endif
-         if (tr_lvl) then           ! level ice tracer
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_alvl,:), &
-               'alvl',ncat,diag)
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_vlvl,:), &
-               'vlvl',ncat,diag)
-         endif
-         if (tr_pond_topo) then     ! topographic melt ponds
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_apnd,:), &
-               'apnd',ncat,diag)
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_hpnd,:), &
-               'hpnd',ncat,diag)
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_ipnd,:), &
-               'ipnd',ncat,diag)
-         endif
-            if (tr_pond_lvl) then      ! level-ice melt ponds
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_apnd,:), &
-               'apnd',ncat,diag)
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_hpnd,:), &
-               'hpnd',ncat,diag)
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_ipnd,:), &
-               'ipnd',ncat,diag)
-            call read_restart_field_net2D(ncid,1,dhsn, &
-               'dhsn',ncat,diag)
-            call read_restart_field_net2D(ncid,1,ffracn, &
-               'ffracn',ncat,diag)
-            call read_restart_field_net1D(ncid,1,fsnow, &
-               'fsnow',1,diag)
-         endif
-         if (tr_snow) then          ! snow metamorphosis tracers
-            do k=1,nslyr
-               write(nchar,'(i3.3)') k
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_smice+k-1,:), &
-               'smice'//trim(nchar),ncat,diag)
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_smliq+k-1,:), &
-               'smliq'//trim(nchar),ncat,diag)
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_rhos+k-1,:), &
-               'rhos'//trim(nchar),ncat,diag)
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_rsnw+k-1,:), &
-               'rsnw'//trim(nchar),ncat,diag)
-            enddo
-         endif 
-         if (tr_iso) then           ! ice isotopes
-            do k=1,n_iso
-               write(nchar,'(i3.3)') k
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_isosno+(k-1),:), &
-               'isosno'//trim(nchar),ncat,diag)
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_isoice+(k-1),:), &
-               'isoice'//trim(nchar),ncat,diag)
-            enddo
-         endif
-         if (tr_aero) then          ! ice aerosols
-            do k=1,n_aero
-               write(nchar,'(i3.3)') k
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_aero  +(k-1)*4,:), &
-               'aerosnossl'//trim(nchar),ncat,diag)
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_aero+1+(k-1)*4,:), &
-               'aerosnoint'//trim(nchar),ncat,diag)
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_aero+2+(k-1)*4,:), &
-               'aeroicessl'//trim(nchar),ncat,diag)
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_aero+3+(k-1)*4,:), &
-               'aeroiceint'//trim(nchar),ncat,diag)
-            enddo
-         endif
-         if (tr_brine) then         ! brine height
-            call read_restart_field_net2D(ncid,1,trcrn(:,nt_fbri,:), &
-               'fbri',ncat,diag)
-            call read_restart_field_net2D(ncid,1,first_ice_real, &
-               'first_ice',ncat,diag)
-            do i = 1, nx
-               do n = 1, ncat
-                  if (first_ice_real(i,n) >= p5) then
-                  first_ice(i,n) = .true.
-                  else
-                  first_ice(i,n) = .false.
-                  endif
-               enddo ! ncat
-            enddo    ! i
-         endif
-         if (tr_fsd) then           ! floe size distribution
-            do k = 1, nfsd
-               write(nchar,'(i3.3)') k
-               call read_restart_field_net2D(ncid,1,trcrn(:,nt_fsd+k-1,:), &
-               'fsd'//trim(nchar),ncat,diag)
-            enddo
-         endif  
-#else
-         call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
-#endif 
-      else
-         call icedrv_system_abort(string=subname//'unrecognized restart format', &
-                                  file=__FILE__,line=__LINE__)
-      endif
+      ! tracers
+      if (tr_iage)      call read_restart_age()       ! ice age tracer
+      if (tr_FY)        call read_restart_FY()        ! first-year area tracer
+      if (tr_lvl)       call read_restart_lvl()       ! level ice tracer
+      if (tr_pond_lvl)  call read_restart_pond_lvl()  ! level-ice melt ponds
+      if (tr_pond_topo) call read_restart_pond_topo() ! topographic melt ponds
+      if (tr_snow)      call read_restart_snow()      ! snow metamorphosis tracers
+      if (tr_iso)       call read_restart_iso()       ! ice isotopes
+      if (tr_aero)      call read_restart_aero()      ! ice aerosols
+      if (tr_brine)     call read_restart_hbrine      ! brine height
+      if (tr_fsd)       call read_restart_fsd()       ! floe size distribution
+
       !-----------------------------------------------------------------
       ! Ensure ice is binned in correct categories
       ! (should not be necessary unless restarting from a run with
@@ -932,9 +817,9 @@
 
       write(nu_diag,*) 'min/max topo ponds'
 
-      call read_restart_field(nu_restart,trcrn(:,nt_apnd,:),ncat)
-      call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat)
-      call read_restart_field(nu_restart,trcrn(:,nt_ipnd,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_apnd,:),ncat,'apnd')
+      call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat,'hpnd')
+      call read_restart_field(nu_restart,trcrn(:,nt_ipnd,:),ncat,'ipnd')
 
       end subroutine read_restart_pond_topo
 
@@ -990,10 +875,11 @@
       write(nu_diag,*) 'min/max snow metamorphosis tracers'
 
       do k=1,nslyr
-         call read_restart_field(nu_restart,trcrn(:,nt_smice+k-1,:),ncat)
-         call read_restart_field(nu_restart,trcrn(:,nt_smliq+k-1,:),ncat)
-         call read_restart_field(nu_restart,trcrn(:,nt_rhos +k-1,:),ncat)
-         call read_restart_field(nu_restart,trcrn(:,nt_rsnw +k-1,:),ncat)
+         write(nchar,'(i3.3)') k
+         call read_restart_field(nu_restart,trcrn(:,nt_smice+k-1,:),ncat,'smice'//trim(nchar))
+         call read_restart_field(nu_restart,trcrn(:,nt_smliq+k-1,:),ncat,'smliq'//trim(nchar))
+         call read_restart_field(nu_restart,trcrn(:,nt_rhos +k-1,:),ncat,'rhos'//trim(nchar))
+         call read_restart_field(nu_restart,trcrn(:,nt_rsnw +k-1,:),ncat,'rsnow'//trim(nchar))
       enddo
 
       end subroutine read_restart_snow
@@ -1037,8 +923,8 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
-
-      call read_restart_field(nu_restart,trcrn(:,nt_iage,:),ncat)
+      
+      call read_restart_field(nu_restart,trcrn(:,nt_iage,:),ncat,'iage')
 
       end subroutine read_restart_age
 
@@ -1085,7 +971,8 @@
           file=__FILE__,line= __LINE__)
 
       do k =1, nfsd
-          call read_restart_field(nu_restart,trcrn(:,nt_fsd+k-1,:),ncat)
+         write(nchar,'(i3.3)') k
+          call read_restart_field(nu_restart,trcrn(:,nt_fsd+k-1,:),ncat,'fsd'//trim(nchar))
       end do
 
       end subroutine read_restart_fsd
@@ -1133,11 +1020,11 @@
 
       write(nu_diag,*) 'min/max first-year ice area'
 
-      call read_restart_field(nu_restart,trcrn(:,nt_FY,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_FY,:),ncat,'FY')
 
       write(nu_diag,*) 'min/max frz_onset'
 
-      call read_restart_field(nu_restart,frz_onset,1)
+      call read_restart_field(nu_restart,frz_onset,1,'frz_onset')
 
       end subroutine read_restart_FY
 
@@ -1184,8 +1071,8 @@
 
       write(nu_diag,*) 'min/max level ice area, volume'
 
-      call read_restart_field(nu_restart,trcrn(:,nt_alvl,:),ncat)
-      call read_restart_field(nu_restart,trcrn(:,nt_vlvl,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_alvl,:),ncat,'alvl')
+      call read_restart_field(nu_restart,trcrn(:,nt_vlvl,:),ncat,'vlvl')
 
       end subroutine read_restart_lvl
 
@@ -1242,12 +1129,12 @@
 
       write(nu_diag,*) 'min/max level-ice ponds'
 
-      call read_restart_field(nu_restart,trcrn(:,nt_apnd,:),ncat)
-      call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat)
-      call read_restart_field(nu_restart,trcrn(:,nt_ipnd,:),ncat)
-      call read_restart_field(nu_restart,fsnow(:),1)
-      call read_restart_field(nu_restart,dhsn(:,:),ncat)
-      call read_restart_field(nu_restart,ffracn(:,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_apnd,:),ncat,'apnd')
+      call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat,'hpnd')
+      call read_restart_field(nu_restart,trcrn(:,nt_ipnd,:),ncat,'ipnd')
+      call read_restart_field(nu_restart,fsnow(:),1,'fsnow')
+      call read_restart_field(nu_restart,dhsn(:,:),ncat,'dhsn')
+      call read_restart_field(nu_restart,ffracn(:,:),ncat,'ffracn')
 
       end subroutine read_restart_pond_lvl
 
@@ -1319,10 +1206,11 @@
       write(nu_diag,*) 'read_restart_aero (aerosols)'
 
       do k = 1, n_aero
-         call read_restart_field(nu_restart, trcrn(:,nt_aero  +(k-1)*4,:), ncat)
-         call read_restart_field(nu_restart, trcrn(:,nt_aero+1+(k-1)*4,:), ncat)
-         call read_restart_field(nu_restart, trcrn(:,nt_aero+2+(k-1)*4,:), ncat)
-         call read_restart_field(nu_restart, trcrn(:,nt_aero+3+(k-1)*4,:), ncat)
+         write(nchar,'(i3.3)') k
+         call read_restart_field(nu_restart, trcrn(:,nt_aero  +(k-1)*4,:),ncat,'aerosnossl'//trim(nchar))
+         call read_restart_field(nu_restart, trcrn(:,nt_aero+1+(k-1)*4,:),ncat,'aerosnoint'//trim(nchar))
+         call read_restart_field(nu_restart, trcrn(:,nt_aero+2+(k-1)*4,:),ncat,'aeroicessl'//trim(nchar))
+         call read_restart_field(nu_restart, trcrn(:,nt_aero+3+(k-1)*4,:),ncat,'aeroiceint'//trim(nchar))
       enddo
 
       end subroutine read_restart_aero
@@ -1395,8 +1283,9 @@
       write(nu_diag,*) 'read_restart_iso (isotopes)'
 
       do k = 1, n_iso
-         call read_restart_field(nu_restart, trcrn(:,nt_isosno+(k-1),:), ncat)
-         call read_restart_field(nu_restart, trcrn(:,nt_isoice+(k-1),:), ncat)
+         write(nchar,'(i3.3)') k
+         call read_restart_field(nu_restart, trcrn(:,nt_isosno+(k-1),:),ncat,'isosno'//trim(nchar))
+         call read_restart_field(nu_restart, trcrn(:,nt_isoice+(k-1),:),ncat,'isoice'//trim(nchar))
       enddo
 
       end subroutine read_restart_iso
@@ -1464,8 +1353,8 @@
 
       write(nu_diag,*) 'read brine restart'
 
-      call read_restart_field(nu_restart,trcrn(:,nt_fbri,:),ncat)
-      call read_restart_field(nu_restart,first_ice_real(:,:),ncat)
+      call read_restart_field(nu_restart,trcrn(:,nt_fbri,:),ncat,'fbri')
+      call read_restart_field(nu_restart,first_ice_real(:,:),ncat,'first_ice')
 
          do i = 1, nx
             do n = 1, ncat
