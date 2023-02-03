@@ -30,6 +30,9 @@
           write_restart_fsd,       read_restart_fsd, &
           write_restart_iso,       read_restart_iso, &
           write_restart_aero,      read_restart_aero
+      
+      character (len=3), private :: nchar !
+
 #ifdef USE_NETCDF
       private :: &
          define_rest_field,         write_restart_field_nc2D, &
@@ -42,8 +45,6 @@
          ncid     ! ID for NetCDF file
       
       logical (kind=log_kind), private :: diag ! netCDF diagnostics flag
-
-      character (len=3) :: nchar ! 
 #endif
 
       public :: dumpfile, restartfile, final_restart, &
@@ -104,8 +105,6 @@
       status        ! status variable from netCDF routine
 
       integer (kind=int_kind), allocatable :: dims(:),dims1(:)
-
-      character (len=3) :: nchar
       
       integer (kind=int_kind) :: &
          nt_iage,nt_FY,nt_alvl,nt_vlvl,&
@@ -143,59 +142,6 @@
 
          open(nu_dump,file=filename,form='unformatted')
          write(nu_dump) istep1,time,time_forc
-         write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
-
-         !-----------------------------------------------------------------
-         ! state variables
-         ! Tsfc is the only tracer written to binary files.  All other
-         ! tracers are written to their own dump/restart binary files.
-         !-----------------------------------------------------------------
-
-         call write_restart_field(nu_dump,aicen(:,:),ncat)
-         call write_restart_field(nu_dump,vicen(:,:),ncat)
-         call write_restart_field(nu_dump,vsnon(:,:),ncat)
-         call write_restart_field(nu_dump,trcrn(:,nt_Tsfc,:),ncat)
-         do k=1,nilyr
-            call write_restart_field(nu_dump,trcrn(:,nt_sice+k-1,:),ncat)
-         enddo
-         do k=1,nilyr
-            call write_restart_field(nu_dump,trcrn(:,nt_qice+k-1,:),ncat)
-         enddo
-         do k=1,nslyr
-            call write_restart_field(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat)
-         enddo
-
-         !-----------------------------------------------------------------
-         ! radiation fields
-         !-----------------------------------------------------------------
-         call write_restart_field(nu_dump,scale_factor,1)
-         call write_restart_field(nu_dump,swvdr,1)
-         call write_restart_field(nu_dump,swvdf,1)
-         call write_restart_field(nu_dump,swidr,1)
-         call write_restart_field(nu_dump,swidf,1)
-
-         !-----------------------------------------------------------------
-         ! for mixed layer model
-         !-----------------------------------------------------------------
-         if (oceanmixed_ice) then
-            call write_restart_field(nu_dump,sst,1)
-            call write_restart_field(nu_dump,frzmlt,1)
-         endif
-
-         ! tracers
-         if (tr_iage)      call write_restart_age()       ! ice age tracer
-         if (tr_FY)        call write_restart_FY()        ! first-year area tracer
-         if (tr_lvl)       call write_restart_lvl()       ! level ice tracer
-         if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
-         if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
-         if (tr_snow)      call write_restart_snow()      ! snow metamorphosis tracers
-         if (tr_iso)       call write_restart_iso()       ! ice isotopes
-         if (tr_aero)      call write_restart_aero()      ! ice aerosols
-         if (tr_brine)     call write_restart_hbrine()    ! brine height
-         if (tr_fsd)       call write_restart_fsd()       ! floe size distribution
-   ! called in icedrv_RunMod.F90 to prevent circular dependencies
-   !      if (solve_zsal .or. skl_bgc .or. z_tracers) &
-   !                        call write_restart_bgc         ! biogeochemistry
       else if (restart_format == 'nc') then
 #ifdef USE_NETCDF
          ! Change this if you want diagnostic output
@@ -223,49 +169,81 @@
          ! Set dimensions for restart file
          status = nf90_def_dim(ncid,'ni',nx,dimid_ni)
          status = nf90_def_dim(ncid,'ncat',ncat,dimid_ncat)
-         !status = nf90_def_dim(ncid,'naero',n_aero,dimid_aero)
-         !status = nf90_def_dim(ncid,'nfloe',nfsd,dimid_floe) 
 
-         !-----------------------------------------------------------------
-         ! state variables field creation
-         !-----------------------------------------------------------------
-         
+         ! Get dimension IDs
          allocate(dims(2))
          allocate(dims1(1))
          dims(1) = dimid_ni
          dims(2) = dimid_ncat
-         dims1(1) = dimid_ni 
-         call define_rest_field(ncid,'aicen',dims)
-         call define_rest_field(ncid,'vicen',dims)
-         call define_rest_field(ncid,'vsnon',dims)
-         call define_rest_field(ncid,'Tsfcn',dims)
-         do k=1,nilyr
-            write(nchar,'(i3.3)') k
-            call define_rest_field(ncid,'sice'//trim(nchar),dims)
-            call define_rest_field(ncid,'qice'//trim(nchar),dims)
-         enddo
-         do k=1,nslyr
-               write(nchar,'(i3.3)') k
-               call define_rest_field(ncid,'qsno'//trim(nchar),dims)
-         enddo
+         dims1(1) = dimid_ni
+#else
+   call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
+#endif
+      endif
 
-         !-----------------------------------------------------------------
-         ! radiation fields
-         !-----------------------------------------------------------------
-         call define_rest_field(ncid,'scale_factor',dims1)
-         call define_rest_field(ncid,'swvdr',dims1)
-         call define_rest_field(ncid,'swvdf',dims1)
-         call define_rest_field(ncid,'swidr',dims1)
-         call define_rest_field(ncid,'swidf',dims1)
-         
-         !-----------------------------------------------------------------
-         ! for mixed layer model
-         !-----------------------------------------------------------------
-         if (oceanmixed_ice) then
-            call define_rest_field(ncid,'sst',dims1)
-            call define_rest_field(ncid,'frzmlt',dims1)
-         endif
-         
+      write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
+
+      !-----------------------------------------------------------------
+      ! state variables
+      ! Tsfc is the only tracer written to binary files.  All other
+      ! tracers are written to their own dump/restart binary files.
+      !-----------------------------------------------------------------
+
+      call write_restart_field(nu_dump,aicen(:,:),ncat,'aicen',dims)
+      call write_restart_field(nu_dump,vicen(:,:),ncat,'vicen',dims)
+      call write_restart_field(nu_dump,vsnon(:,:),ncat,'vsnon',dims)
+      call write_restart_field(nu_dump,trcrn(:,nt_Tsfc,:),ncat,'Tsfcn',dims)
+      do k=1,nilyr
+         write(nchar,'(i3.3)') k
+         call write_restart_field(nu_dump,trcrn(:,nt_sice+k-1,:),ncat,&
+            'sice'//trim(nchar),dims)
+      enddo
+      do k=1,nilyr
+         write(nchar,'(i3.3)') k
+         call write_restart_field(nu_dump,trcrn(:,nt_qice+k-1,:),ncat,&
+            'qice'//trim(nchar),dims)
+      enddo
+      do k=1,nslyr
+         write(nchar,'(i3.3)') k
+         call write_restart_field(nu_dump,trcrn(:,nt_qsno+k-1,:),ncat,&
+            'qsno'//trim(nchar),dims)
+      enddo
+
+      !-----------------------------------------------------------------
+      ! radiation fields
+      !-----------------------------------------------------------------
+      call write_restart_field(nu_dump,scale_factor,1,'scale_factor',dims1)
+      call write_restart_field(nu_dump,swvdr,1,'swvdr',dims1)
+      call write_restart_field(nu_dump,swvdf,1,'swvdf',dims1)
+      call write_restart_field(nu_dump,swidr,1,'swidr',dims1)
+      call write_restart_field(nu_dump,swidf,1,'swidf',dims1)
+
+      !-----------------------------------------------------------------
+      ! for mixed layer model
+      !-----------------------------------------------------------------
+      if (oceanmixed_ice) then
+         call write_restart_field(nu_dump,sst,1,'sst',dims1)
+         call write_restart_field(nu_dump,frzmlt,1,'frzmlt',dims1)
+      endif
+
+      if (restart_format == 'bin') then
+         ! tracers
+         if (tr_iage)      call write_restart_age()       ! ice age tracer
+         if (tr_FY)        call write_restart_FY()        ! first-year area tracer
+         if (tr_lvl)       call write_restart_lvl()       ! level ice tracer
+         if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
+         if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
+         if (tr_snow)      call write_restart_snow()      ! snow metamorphosis tracers
+         if (tr_iso)       call write_restart_iso()       ! ice isotopes
+         if (tr_aero)      call write_restart_aero()      ! ice aerosols
+         if (tr_brine)     call write_restart_hbrine()    ! brine height
+         if (tr_fsd)       call write_restart_fsd()       ! floe size distribution
+   ! called in icedrv_RunMod.F90 to prevent circular dependencies
+   !      if (solve_zsal .or. skl_bgc .or. z_tracers) &
+   !                        call write_restart_bgc         ! biogeochemistry
+      else if (restart_format == 'nc') then
+#ifdef USE_NETCDF
+         status = nf90_redef(ncid)
          ! tracers
          if (tr_iage)      call define_rest_field(ncid,'iage',dims)  ! ice age tracer
          if (tr_FY) then                                             ! first-year area tracer
@@ -326,50 +304,7 @@
          endif
          status = nf90_enddef(ncid)
 
-         ! Populate fields in NetCDF restart file
-
-         !-----------------------------------------------------------------
-         ! state variables
-         !-----------------------------------------------------------------
-         call write_restart_field_nc2D(ncid,0,aicen(:,:),'ruf8','aicen',ncat,diag)
-         call write_restart_field_nc2D(ncid,0,vicen(:,:),'ruf8','vicen',ncat,diag)
-         call write_restart_field_nc2D(ncid,0,vsnon(:,:),'ruf8','vsnon',ncat,diag) 
-         call write_restart_field_nc2D(ncid,0,trcrn(:,nt_Tsfc,:),'ruf8', &
-                                       'Tsfcn',ncat,diag)
-         do k=1,nilyr
-            write(nchar,'(i3.3)') k
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_sice+k-1,:),'ruf8', &
-                                    'sice'//trim(nchar),ncat,diag)
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_qice+k-1,:),'ruf8', &
-                                    'qice'//trim(nchar),ncat,diag)
-         enddo
-         do k=1,nslyr
-            write(nchar,'(i3.3)') k
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_qsno+k-1,:),'ruf8', &
-                                    'qsno'//trim(nchar),ncat,diag)
-         enddo
-        
-         !-----------------------------------------------------------------
-         ! radiation fields
-         !-----------------------------------------------------------------
-         call write_restart_field_nc1D(ncid,0,scale_factor,'ruf8', &
-                                    'scale_factor',1,diag)
-         call write_restart_field_nc1D(ncid,0,swvdr,'ruf8', &
-                                    'swvdr',1,diag)
-         call write_restart_field_nc1D(ncid,0,swvdf,'ruf8', &
-                                    'swvdf',1,diag)
-         call write_restart_field_nc1D(ncid,0,swidr,'ruf8', &
-                                    'swidr',1,diag)
-         call write_restart_field_nc1D(ncid,0,swidf,'ruf8', &
-                                    'swidf',1,diag) 
-
-         ! tracers
-         if (oceanmixed_ice) then
-            call write_restart_field_nc1D(ncid,0,sst,'ruf8', &
-                                    'sst',1,diag)
-            call write_restart_field_nc1D(ncid,0,frzmlt,'ruf8', &
-                                    'frzmlt',1,diag)
-         endif
+         ! Tracers
          if (tr_iage) then
             call write_restart_field_nc2D(ncid,0,trcrn(:,nt_iage,:),'ruf8','iage',ncat,diag)
          endif
@@ -716,7 +651,7 @@
 ! Writes a single restart field.
 ! author Chris Newman, LANL
 
-      subroutine write_restart_field(nu,work,ndim)
+      subroutine write_restart_field(nu,work,ndim,vname,dims)
 
       use icedrv_domain_size, only: nx
 
@@ -726,6 +661,12 @@
 
       real (kind=dbl_kind), dimension(nx,ndim), intent(in) :: &
          work              ! input array (real, 8-byte)
+      
+      character (len=*), intent(in), optional :: &
+         vname             ! variable name for netcdf output
+      
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
 
       ! local variables
 
@@ -740,10 +681,38 @@
 
       character(len=*), parameter :: subname='(write_restart_field)'
 
-      do n = 1, ndim
-        work2(:) = work(:,n)
-        write(nu) (work2(i), i=1,nx)
-      enddo
+#ifdef USE_NETCDF
+      ! local variables if we're writing in NetCDF
+      integer (kind=int_kind) :: &
+         status, &          ! Status variable from netCDF routine
+         varid              ! Variable ID
+#endif
+      
+      if (restart_format == 'bin') then
+         do n = 1, ndim
+         work2(:) = work(:,n)
+         write(nu) (work2(i), i=1,nx)
+         enddo
+      else if (restart_format == 'nc') then
+#ifdef USE_NETCDF
+         ! Check whether the variable already exists in the netcdf file
+         status = nf90_inq_varid(ncid,trim(vname),varid)
+         if (status == nf90_enotvar) then ! if not add it to the file
+            status = nf90_redef(ncid) ! Put file into define mode
+            status = nf90_def_var(ncid,trim(vname),nf90_double,dims,varid)
+         endif
+         status = nf90_enddef(ncid) ! put file into data mode
+         if (ndim == 1) then
+            call write_restart_field_nc1D(ncid,0,work,'ruf8',vname,1,diag)
+         else
+            call write_restart_field_nc2D(ncid,0,work,'ruf8',vname,ndim,diag)
+         endif
+#else
+   call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
+#endif
+      else
+         write (nu_diag,*) 'WARNING: Restart format must be either "bin" or "nc", no restart file written'
+      endif
 
       minw = minval(work)
       maxw = maxval(work)
