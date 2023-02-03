@@ -81,7 +81,7 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k,i,n, &              ! counting indices
+         k, &              ! counting indices
          iyear
 
       integer (kind=int_kind) :: &
@@ -92,36 +92,26 @@
          tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
 !         solve_zsal, skl_bgc, z_tracers
 
+      integer (kind=int_kind), allocatable :: dims(:),dims1(:)
+
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(dumpfile)'
       
+#ifdef USE_NETCDF
       ! local variables if we're writing in NetCDF
       integer (kind=int_kind) :: &
       dimid_ni,   & ! netCDF identifiers
       dimid_ncat, & !
-      dimid_aero, &
-      dimid_floe, &
       iflag,      & ! netCDF creation flag
       status        ! status variable from netCDF routine
-
-      integer (kind=int_kind), allocatable :: dims(:),dims1(:)
-      
-      integer (kind=int_kind) :: &
-         nt_iage,nt_FY,nt_alvl,nt_vlvl,&
-         nt_apnd,nt_hpnd,nt_ipnd,nt_smice, nt_smliq, nt_rhos, nt_rsnw,&
-         nt_isosno,nt_isoice,nt_aero,nt_fbri,nt_fsd
+#endif
 
       ! get year
       iyear = nyr + year_init - 1
       
       ! query which tracers are active and their indices
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
-         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno, nt_iage_out=nt_iage, &
-         nt_FY_out=nt_FY,nt_alvl_out=nt_alvl, nt_vlvl_out=nt_vlvl, &
-         nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd, &
-         nt_smice_out=nt_smice, nt_smliq_out=nt_smliq, nt_rhos_out=nt_rhos, &
-         nt_rsnw_out=nt_rsnw,nt_isosno_out=nt_isosno,nt_isoice_out=nt_isoice, &
-         nt_aero_out=nt_aero,nt_fbri_out=nt_fbri,nt_fsd_out=nt_fsd)
+         nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
 
      call icepack_query_tracer_flags(tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
           tr_lvl_out=tr_lvl, tr_aero_out=tr_aero, tr_iso_out=tr_iso, &
@@ -172,10 +162,8 @@
 
          ! Get dimension IDs
          allocate(dims(2))
-         allocate(dims1(1))
          dims(1) = dimid_ni
          dims(2) = dimid_ncat
-         dims1(1) = dimid_ni
 #else
    call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
 #endif
@@ -212,176 +200,42 @@
       !-----------------------------------------------------------------
       ! radiation fields
       !-----------------------------------------------------------------
-      call write_restart_field(nu_dump,scale_factor,1,'scale_factor',dims1)
-      call write_restart_field(nu_dump,swvdr,1,'swvdr',dims1)
-      call write_restart_field(nu_dump,swvdf,1,'swvdf',dims1)
-      call write_restart_field(nu_dump,swidr,1,'swidr',dims1)
-      call write_restart_field(nu_dump,swidf,1,'swidf',dims1)
+      call write_restart_field(nu_dump,scale_factor,1,'scale_factor',dims)
+      call write_restart_field(nu_dump,swvdr,1,'swvdr',dims)
+      call write_restart_field(nu_dump,swvdf,1,'swvdf',dims)
+      call write_restart_field(nu_dump,swidr,1,'swidr',dims)
+      call write_restart_field(nu_dump,swidf,1,'swidf',dims)
 
       !-----------------------------------------------------------------
       ! for mixed layer model
       !-----------------------------------------------------------------
       if (oceanmixed_ice) then
-         call write_restart_field(nu_dump,sst,1,'sst',dims1)
-         call write_restart_field(nu_dump,frzmlt,1,'frzmlt',dims1)
+         call write_restart_field(nu_dump,sst,1,'sst',dims)
+         call write_restart_field(nu_dump,frzmlt,1,'frzmlt',dims)
       endif
 
-      if (restart_format == 'bin') then
-         ! tracers
-         if (tr_iage)      call write_restart_age()       ! ice age tracer
-         if (tr_FY)        call write_restart_FY()        ! first-year area tracer
-         if (tr_lvl)       call write_restart_lvl()       ! level ice tracer
-         if (tr_pond_lvl)  call write_restart_pond_lvl()  ! level-ice melt ponds
-         if (tr_pond_topo) call write_restart_pond_topo() ! topographic melt ponds
-         if (tr_snow)      call write_restart_snow()      ! snow metamorphosis tracers
-         if (tr_iso)       call write_restart_iso()       ! ice isotopes
-         if (tr_aero)      call write_restart_aero()      ! ice aerosols
-         if (tr_brine)     call write_restart_hbrine()    ! brine height
-         if (tr_fsd)       call write_restart_fsd()       ! floe size distribution
+      ! tracers
+      if (tr_iage)      call write_restart_age(dims)       ! ice age tracer
+      if (tr_FY)        call write_restart_FY(dims)        ! first-year area tracer
+      if (tr_lvl)       call write_restart_lvl(dims)       ! level ice tracer
+      if (tr_pond_lvl)  call write_restart_pond_lvl(dims)  ! level-ice melt ponds
+      if (tr_pond_topo) call write_restart_pond_topo(dims) ! topographic melt ponds
+      if (tr_snow)      call write_restart_snow(dims)      ! snow metamorphosis tracers
+      if (tr_iso)       call write_restart_iso(dims)       ! ice isotopes
+      if (tr_aero)      call write_restart_aero(dims)      ! ice aerosols
+      if (tr_brine)     call write_restart_hbrine(dims)    ! brine height
+      if (tr_fsd)       call write_restart_fsd(dims)       ! floe size distribution
    ! called in icedrv_RunMod.F90 to prevent circular dependencies
    !      if (solve_zsal .or. skl_bgc .or. z_tracers) &
    !                        call write_restart_bgc         ! biogeochemistry
-      else if (restart_format == 'nc') then
+      
+      ! Close netcdf file
+      if (restart_format == 'nc') then
 #ifdef USE_NETCDF
-         status = nf90_redef(ncid)
-         ! tracers
-         if (tr_iage)      call define_rest_field(ncid,'iage',dims)  ! ice age tracer
-         if (tr_FY) then                                             ! first-year area tracer
-            call define_rest_field(ncid,'FY',dims)
-            call define_rest_field(ncid,'frz_onset',dims1)
-         endif
-         if (tr_lvl) then                                            ! level ice tracer
-            call define_rest_field(ncid,'alvl',dims)
-            call define_rest_field(ncid,'vlvl',dims)
-         endif
-         if (tr_pond_lvl) then                                       ! level-ice melt ponds
-            call define_rest_field(ncid,'apnd',dims)
-            call define_rest_field(ncid,'hpnd',dims)
-            call define_rest_field(ncid,'ipnd',dims)
-            call define_rest_field(ncid,'dhsn',dims)
-            call define_rest_field(ncid,'ffracn',dims)
-            call define_rest_field(ncid,'fsnow',dims1)
-         endif
-         if (tr_pond_topo) then                                      ! topographic melt ponds
-            call define_rest_field(ncid,'apnd',dims)
-            call define_rest_field(ncid,'hpnd',dims)
-            call define_rest_field(ncid,'ipnd',dims)
-         endif
-         if (tr_snow) then                                           ! snow metamorphosis tracers
-            do k=1,nslyr
-               write(nchar,'(i3.3)') k
-               call define_rest_field(ncid,'smice'//trim(nchar),dims)    
-               call define_rest_field(ncid,'smliq'//trim(nchar),dims)
-               call define_rest_field(ncid,'rhos'//trim(nchar),dims)
-               call define_rest_field(ncid,'rsnw'//trim(nchar),dims)
-            enddo
-         endif
-         if (tr_iso) then                                            ! ice isotopes
-            do k=1,n_iso
-               write(nchar,'(i3.3)') k
-               call define_rest_field(ncid,'isosno'//trim(nchar),dims) 
-               call define_rest_field(ncid,'isoice'//trim(nchar),dims)
-            enddo
-         endif
-         if (tr_aero) then                                           ! ice aerosols
-            do k = 1, n_aero
-               write(nchar,'(i3.3)') k
-               call define_rest_field(ncid,'aerosnossl'//nchar,dims)
-               call define_rest_field(ncid,'aerosnoint'//nchar,dims)
-               call define_rest_field(ncid,'aeroicessl'//nchar,dims)
-               call define_rest_field(ncid,'aeroiceint'//nchar,dims)
-            enddo
-         endif
-         if (tr_brine) then                                          ! brine height
-            call define_rest_field(ncid,'fbri',dims)
-            call define_rest_field(ncid,'first_ice',dims)
-         endif
-         if (tr_fsd) then                                            ! floe size distribution
-            do k = 1, nfsd
-               write(nchar,'(i3.3)') k
-               call define_rest_field(ncid,'fsd'//nchar,dims)
-            enddo 
-         endif
-         status = nf90_enddef(ncid)
-
-         ! Tracers
-         if (tr_iage) then
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_iage,:),'ruf8','iage',ncat,diag)
-         endif
-         if (tr_FY) then
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_FY,:),'ruf8','FY',ncat,diag)
-            call write_restart_field_nc1D(ncid,0,frz_onset,'ruf8','frz_onset',1,diag)
-         endif
-         if (tr_lvl) then
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_alvl,:),'ruf8','alvl',ncat,diag)
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_vlvl,:),'ruf8','vlvl',ncat,diag)
-         endif
-         if (tr_pond_topo) then
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_apnd,:),'ruf8','apnd',ncat,diag)
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_hpnd,:),'ruf8','hpnd',ncat,diag)
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_ipnd,:),'ruf8','ipnd',ncat,diag)
-         endif
-         if (tr_pond_lvl) then
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_apnd,:),'ruf8','apnd',ncat,diag)
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_hpnd,:),'ruf8','hpnd',ncat,diag)
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_ipnd,:),'ruf8','ipnd',ncat,diag)
-            call write_restart_field_nc2D(ncid,0,dhsn,'ruf8','dhsn',ncat,diag)
-            call write_restart_field_nc2D(ncid,0,ffracn,'ruf8','ffracn',ncat,diag)
-            call write_restart_field_nc1D(ncid,0,fsnow,'ruf8','fsnow',1,diag)
-         endif 
-         if (tr_snow) then
-            do k=1,nslyr
-               write(nchar,'(i3.3)') k
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_smice+k-1,:),'ruf8','smice'//trim(nchar),ncat,diag)
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_smliq+k-1,:),'ruf8','smliq'//trim(nchar),ncat,diag)
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_rhos+k-1,:),'ruf8','rhos'//trim(nchar),ncat,diag)
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_rsnw+k-1,:),'ruf8','rsnw'//trim(nchar),ncat,diag)
-            enddo
-         endif
-         if (tr_iso) then
-            do k=1,n_iso
-               write(nchar,'(i3.3)') k
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_isosno+(k-1),:),'ruf8','isosno'//trim(nchar),ncat,diag)
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_isoice+(k-1),:),'ruf8','isoice'//trim(nchar),ncat,diag)  
-            enddo
-         endif
-         if (tr_aero) then
-            do k=1,n_aero
-               write(nchar,'(i3.3)') k
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_aero  +(k-1)*4,:),'ruf8','aerosnossl'//trim(nchar),ncat,diag)
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_aero+1+(k-1)*4,:),'ruf8','aerosnoint'//trim(nchar),ncat,diag)
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_aero+2+(k-1)*4,:),'ruf8','aeroicessl'//trim(nchar),ncat,diag)
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_aero+3+(k-1)*4,:),'ruf8','aeroiceint'//trim(nchar),ncat,diag)
-            enddo
-         endif 
-         if (tr_brine) then
-            do i = 1, nx
-            do n = 1, ncat
-               if (first_ice(i,n)) then
-                     first_ice_real(i,n) = c1
-               else
-                     first_ice_real(i,n) = c0
-               endif
-            enddo ! n
-            enddo    ! i
-            call write_restart_field_nc2D(ncid,0,trcrn(:,nt_fbri,:),'ruf8','fbri',ncat,diag)
-            call write_restart_field_nc2D(ncid,0,first_ice_real,'ruf8','first_ice',ncat,diag)
-         endif
-         if (tr_fsd) then
-            do k = 1, nfsd
-               write(nchar,'(i3.3)') k
-               call write_restart_field_nc2D(ncid,0,trcrn(:,nt_fsd+k-1,:),'ruf8','fsd'//trim(nchar),ncat,diag)
-            enddo
-         endif
-
          status = nf90_close(ncid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname, &
             file=__FILE__,line= __LINE__)
-#else
-         call icedrv_system_abort(string=subname//' ERROR: restart_format = "nc" requires USE_NETCDF',file=__FILE__,line=__LINE__)
 #endif         
-      else
-         write (nu_diag,*) 'WARNING: Restart format must be either "bin" or "nc", no restart file written'
       endif
 
       end subroutine dumpfile
@@ -699,7 +553,12 @@
          status = nf90_inq_varid(ncid,trim(vname),varid)
          if (status == nf90_enotvar) then ! if not add it to the file
             status = nf90_redef(ncid) ! Put file into define mode
-            status = nf90_def_var(ncid,trim(vname),nf90_double,dims,varid)
+            if (ndim == 1) then
+               ! Handle 1D cases
+               status = nf90_def_var(ncid,trim(vname),nf90_double,dims(1:1),varid)
+            else
+               status = nf90_def_var(ncid,trim(vname),nf90_double,dims,varid)
+            endif
          endif
          status = nf90_enddef(ncid) ! put file into data mode
          if (ndim == 1) then
@@ -744,10 +603,13 @@
 ! authors Elizabeth C. Hunke, LANL
 !         David A. Bailey, NCAR
 
-      subroutine write_restart_pond_topo()
+      subroutine write_restart_pond_topo(dims)
 
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
+
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
 
       integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
       character(len=*), parameter :: subname='(write_restart_pond_topo)'
@@ -758,9 +620,9 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field(nu_dump,trcrn(:,nt_apnd,:),ncat)
-      call write_restart_field(nu_dump,trcrn(:,nt_hpnd,:),ncat)
-      call write_restart_field(nu_dump,trcrn(:,nt_ipnd,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_apnd,:),ncat,'apnd',dims)
+      call write_restart_field(nu_dump,trcrn(:,nt_hpnd,:),ncat,'hpnd',dims)
+      call write_restart_field(nu_dump,trcrn(:,nt_ipnd,:),ncat,'ipnd',dims)
 
       end subroutine write_restart_pond_topo
 
@@ -798,10 +660,13 @@
 !
 ! authors Elizabeth C. Hunke, LANL
 
-      subroutine write_restart_snow()
+      subroutine write_restart_snow(dims)
 
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: nslyr, ncat
+
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
 
       integer (kind=int_kind) :: nt_smice, nt_smliq, nt_rhos, nt_rsnw, k
       character(len=*), parameter :: subname='(write_restart_snow)'
@@ -813,10 +678,11 @@
           file=__FILE__,line= __LINE__)
 
       do k=1,nslyr
-         call write_restart_field(nu_dump,trcrn(:,nt_smice+k-1,:),ncat)
-         call write_restart_field(nu_dump,trcrn(:,nt_smliq+k-1,:),ncat)
-         call write_restart_field(nu_dump,trcrn(:,nt_rhos +k-1,:),ncat)
-         call write_restart_field(nu_dump,trcrn(:,nt_rsnw +k-1,:),ncat)
+         write(nchar,'(i3.3)') k
+         call write_restart_field(nu_dump,trcrn(:,nt_smice+k-1,:),ncat,'smice'//trim(nchar),dims)
+         call write_restart_field(nu_dump,trcrn(:,nt_smliq+k-1,:),ncat,'smliq'//trim(nchar),dims)
+         call write_restart_field(nu_dump,trcrn(:,nt_rhos +k-1,:),ncat,'rhos'//trim(nchar),dims)
+         call write_restart_field(nu_dump,trcrn(:,nt_rsnw +k-1,:),ncat,'rsnw'//trim(nchar),dims)
       enddo
 
       end subroutine write_restart_snow
@@ -858,10 +724,14 @@
 ! Dumps all values needed for restarting
 ! author Elizabeth C. Hunke, LANL
 
-      subroutine write_restart_age()
-
+      subroutine write_restart_age(dims)
+      
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
+      
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
+
       integer (kind=int_kind) :: nt_iage
       character(len=*), parameter :: subname='(write_restart_age)'
 
@@ -870,7 +740,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field(nu_dump,trcrn(:,nt_iage,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_iage,:),ncat,'iage',dims)
 
       end subroutine write_restart_age
 
@@ -902,10 +772,14 @@
 ! Dumps all values needed for restarting
 ! author Elizabeth C. Hunke, LANL
 
-      subroutine write_restart_fsd()
+      subroutine write_restart_fsd(dims)
 
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat, nfsd
+      
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
+
       integer (kind=int_kind) :: nt_fsd, k
       character(len=*), parameter :: subname='(write_restart_fsd)'
 
@@ -915,7 +789,9 @@
           file=__FILE__,line= __LINE__)
 
       do k = 1, nfsd
-          call write_restart_field(nu_dump,trcrn(:,nt_fsd+k-1,:),ncat)
+         write(nchar,'(i3.3)') k
+          call write_restart_field(nu_dump,trcrn(:,nt_fsd+k-1,:),ncat,&
+            'fsd'//trim(nchar),dims)
       end do
 
       end subroutine write_restart_fsd
@@ -951,11 +827,15 @@
 ! Dumps all values needed for restarting
 ! author Elizabeth C. Hunke, LANL
 
-      subroutine write_restart_FY()
+      subroutine write_restart_FY(dims)
 
       use icedrv_flux, only: frz_onset
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
+      
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
+      
       integer (kind=int_kind) :: nt_FY
       character(len=*), parameter :: subname='(write_restart_FY)'
 
@@ -964,8 +844,8 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field(nu_dump,trcrn(:,nt_FY,:),ncat)
-      call write_restart_field(nu_dump,frz_onset,1)
+      call write_restart_field(nu_dump,trcrn(:,nt_FY,:),ncat,'FY',dims)
+      call write_restart_field(nu_dump,frz_onset,1,'frz_onset',dims)
 
       end subroutine write_restart_FY
 
@@ -1003,10 +883,14 @@
 !
 ! author Elizabeth C. Hunke, LANL
 
-      subroutine write_restart_lvl()
+      subroutine write_restart_lvl(dims)
 
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
+
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
+
       integer (kind=int_kind) :: nt_alvl, nt_vlvl
       character(len=*), parameter :: subname='(write_restart_lvl)'
 
@@ -1015,8 +899,8 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field(nu_dump,trcrn(:,nt_alvl,:),ncat)
-      call write_restart_field(nu_dump,trcrn(:,nt_vlvl,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_alvl,:),ncat,'alvl',dims)
+      call write_restart_field(nu_dump,trcrn(:,nt_vlvl,:),ncat,'vlvl',dims)
 
       end subroutine write_restart_lvl
 
@@ -1051,12 +935,16 @@
 !
 ! authors Elizabeth C. Hunke, LANL
 
-      subroutine write_restart_pond_lvl()
+      subroutine write_restart_pond_lvl(dims)
 
       use icedrv_arrays_column, only: dhsn, ffracn
       use icedrv_flux, only: fsnow
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
+      
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
+
       integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
       character(len=*), parameter :: subname='(write_restart_pond_lvl)'
 
@@ -1066,12 +954,12 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call write_restart_field(nu_dump,trcrn(:,nt_apnd,:),ncat)
-      call write_restart_field(nu_dump,trcrn(:,nt_hpnd,:),ncat)
-      call write_restart_field(nu_dump,trcrn(:,nt_ipnd,:),ncat)
-      call write_restart_field(nu_dump,fsnow(:),1)
-      call write_restart_field(nu_dump,dhsn(:,:),ncat)
-      call write_restart_field(nu_dump,ffracn(:,:),ncat)
+      call write_restart_field(nu_dump,trcrn(:,nt_apnd,:),ncat,'apnd',dims)
+      call write_restart_field(nu_dump,trcrn(:,nt_hpnd,:),ncat,'hpnd',dims)
+      call write_restart_field(nu_dump,trcrn(:,nt_ipnd,:),ncat,'ipnd',dims)
+      call write_restart_field(nu_dump,fsnow(:),1,'fsnow',dims)
+      call write_restart_field(nu_dump,dhsn(:,:),ncat,'dhsn',dims)
+      call write_restart_field(nu_dump,ffracn(:,:),ncat,'ffracn',dims)
 
       end subroutine write_restart_pond_lvl
 
@@ -1115,11 +1003,14 @@
 !         David Bailey, NCAR
 !         Marika Holland, NCAR
 
-      subroutine write_restart_aero()
+      subroutine write_restart_aero(dims)
 
       use icedrv_domain_size, only: n_aero
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
+      
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
 
       ! local variables
 
@@ -1136,10 +1027,15 @@
       write(nu_diag,*) 'write_restart_aero (aerosols)'
 
       do k = 1, n_aero
-         call write_restart_field(nu_dump, trcrn(:,nt_aero  +(k-1)*4,:), ncat)
-         call write_restart_field(nu_dump, trcrn(:,nt_aero+1+(k-1)*4,:), ncat)
-         call write_restart_field(nu_dump, trcrn(:,nt_aero+2+(k-1)*4,:), ncat)
-         call write_restart_field(nu_dump, trcrn(:,nt_aero+3+(k-1)*4,:), ncat)
+         write(nchar,'(i3.3)') k
+         call write_restart_field(nu_dump, trcrn(:,nt_aero  +(k-1)*4,:),ncat,&
+            'aerosnossl'//trim(nchar),dims)
+         call write_restart_field(nu_dump, trcrn(:,nt_aero+1+(k-1)*4,:),ncat,&
+            'aerosnoint'//trim(nchar),dims)
+         call write_restart_field(nu_dump, trcrn(:,nt_aero+2+(k-1)*4,:),ncat,&
+            'aeroicessl'//trim(nchar),dims)
+         call write_restart_field(nu_dump, trcrn(:,nt_aero+3+(k-1)*4,:),ncat,&
+            'aeroiceint'//trim(nchar),dims)
       enddo
 
       end subroutine write_restart_aero
@@ -1192,11 +1088,14 @@
 !         David Bailey, NCAR
 !         Marika Holland, NCAR
 
-      subroutine write_restart_iso()
+      subroutine write_restart_iso(dims)
 
       use icedrv_domain_size, only: n_iso
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
+      
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
 
       ! local variables
 
@@ -1214,8 +1113,11 @@
       write(nu_diag,*) 'write_restart_iso (isotopes)'
 
       do k = 1, n_iso
-         call write_restart_field(nu_dump, trcrn(:,nt_isosno+(k-1),:), ncat)
-         call write_restart_field(nu_dump, trcrn(:,nt_isoice+(k-1),:), ncat)
+         write(nchar,'(i3.3)') k
+         call write_restart_field(nu_dump, trcrn(:,nt_isosno+(k-1),:),ncat,&
+            'isosno'//trim(nchar),dims)
+         call write_restart_field(nu_dump, trcrn(:,nt_isoice+(k-1),:),ncat,&
+            'isoice'//trim(nchar),dims)
       enddo
 
       end subroutine write_restart_iso
@@ -1261,7 +1163,7 @@
 
 !=======================================================================
 
-      subroutine write_restart_hbrine()
+      subroutine write_restart_hbrine(dims)
 
 ! Dumps all values needed for a hbrine restart
 ! author Elizabeth C. Hunke, LANL
@@ -1269,6 +1171,9 @@
       use icedrv_arrays_column, only: first_ice, first_ice_real
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat, nx
+
+      integer (kind=int_kind), intent(in), optional :: &
+         dims(:)           ! netcdf dimension IDs
 
       ! local variables
 
@@ -1292,8 +1197,8 @@
            enddo ! n
         enddo    ! i
 
-        call write_restart_field(nu_dump,trcrn(:,nt_fbri,:),ncat)
-        call write_restart_field(nu_dump,first_ice_real(:,:),ncat)
+        call write_restart_field(nu_dump,trcrn(:,nt_fbri,:),ncat,'fbri',dims)
+        call write_restart_field(nu_dump,first_ice_real(:,:),ncat,'first_ice',dims)
 
       end subroutine write_restart_hbrine
 
