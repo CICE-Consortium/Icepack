@@ -383,6 +383,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "restart_bgc", ":math:`\bullet` if true, read bgc restart file", ""
    "restart_dir", ":math:`\bullet` path to restart/dump files", ""
    "restart_file", ":math:`\bullet` restart file prefix", ""
+   "restart_format", "history files are read/written in binary or netcdf format if set to 'bin' or 'nc' respectively", "bin"
    "restart_[tracer]", ":math:`\bullet` if true, read tracer restart file", ""
    "restore_bgc", ":math:`\bullet` if true, restore nitrate/silicate to data", ""
    "restore_ice", ":math:`\bullet` if true, restore ice state along lateral boundaries", ""

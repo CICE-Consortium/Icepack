@@ -150,6 +150,7 @@ setup_nml
    "``restart``", "logical", "initialize using restart file", "``.false.``"
    "``restart_dir``", "string", "path to restart directory", "'./'"
    "``restart_file``", "string", "output file prefix for restart dump", "'iced'"
+   "``restart_format``", "string", "history files are read/written in binary or netcdf format if set to 'bin' or 'nc' respectively", "'bin'"
    "``use_leap_years``", "logical", "include leap days", "``.false.``"
    "``year_init``", "integer", "the initial year if not using restart", "0"
    "", "", "", ""

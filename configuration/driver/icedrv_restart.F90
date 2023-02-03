@@ -32,6 +32,8 @@
           write_restart_aero,      read_restart_aero
       
       character (len=3), private :: nchar !
+      
+      logical (kind=log_kind), private :: diag ! netCDF diagnostics flag
 
 #ifdef USE_NETCDF
       private :: &
@@ -43,8 +45,6 @@
 
       integer (kind=int_kind), private :: &
          ncid     ! ID for NetCDF file
-      
-      logical (kind=log_kind), private :: diag ! netCDF diagnostics flag
 #endif
 
       public :: dumpfile, restartfile, final_restart, &
@@ -285,9 +285,6 @@
       integer (kind=int_kind) :: &
          status
       
-      ! set this to .true. for netcdf diagnostic output
-      diag = .false.
-      
       ! Query tracers
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
@@ -315,6 +312,8 @@
          read (nu_restart) istep0,time,time_forc
       else if (restart_format == 'nc') then
 #ifdef USE_NETCDF
+         ! set this to .true. for netcdf diagnostic output
+         diag = .false.
          ! Open restart files
          status = nf90_open(trim(filename), nf90_nowrite, ncid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//'Couldnt open netcdf file', &
@@ -714,7 +713,7 @@
          call read_restart_field(nu_restart,trcrn(:,nt_smice+k-1,:),ncat,'smice'//trim(nchar))
          call read_restart_field(nu_restart,trcrn(:,nt_smliq+k-1,:),ncat,'smliq'//trim(nchar))
          call read_restart_field(nu_restart,trcrn(:,nt_rhos +k-1,:),ncat,'rhos'//trim(nchar))
-         call read_restart_field(nu_restart,trcrn(:,nt_rsnw +k-1,:),ncat,'rsnow'//trim(nchar))
+         call read_restart_field(nu_restart,trcrn(:,nt_rsnw +k-1,:),ncat,'rsnw'//trim(nchar))
       enddo
 
       end subroutine read_restart_snow
