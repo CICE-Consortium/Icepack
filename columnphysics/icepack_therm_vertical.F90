@@ -2718,6 +2718,18 @@
       l_fswthru_idf = c0
       if (present(fswthru_idf)) l_fswthru_idf = fswthru_idf
 
+      l_fswthru_uvrdr = c0
+      if (present(fswthru_uvrdr)) l_fswthru_uvrdr = fswthru_uvrdr
+
+      l_fswthru_uvrdf = c0
+      if (present(fswthru_uvrdf)) l_fswthru_uvrdf = fswthru_uvrdf
+
+      l_fswthru_pardr = c0
+      if (present(fswthru_pardr)) l_fswthru_pardr = fswthru_pardr
+
+      l_fswthru_pardf = c0
+      if (present(fswthru_pardf)) l_fswthru_pardf = fswthru_pardf
+
       allocate(l_fswthrun_vdr(ncat))
       l_fswthrun_vdr = c0
       if (present(fswthrun_vdr)) l_fswthrun_vdr = fswthrun_vdr
@@ -2733,10 +2745,6 @@
       allocate(l_fswthrun_idf(ncat))
       l_fswthrun_idf = c0
       if (present(fswthrun_idf)) l_fswthrun_idf = fswthrun_idf
-
-      allocate(l_fswthrun_vdf(ncat))
-      l_fswthrun_vdf = c0
-      if (present(fswthrun_vdf)) l_fswthrun_vdf = fswthrun_vdf
 
       allocate(l_fswthrun_uvrdr(ncat))
       l_fswthrun_uvrdr = c0
