@@ -2431,7 +2431,7 @@
          meltsliq    , & ! mass of snow melt (kg/m^2)
          fsloss          ! rate of snow loss to leads (kg/m^2/s)
 
-      real (kind=dbl_kind), intent(inout), optional :: &
+      real (kind=dbl_kind), intent(out), optional :: &
          fswthru_uvrdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
          fswthru_uvrdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
          fswthru_pardr , & ! nir dir shortwave penetrating to ocean (W/m^2)
@@ -2719,16 +2719,12 @@
       if (present(fswthru_idf)) l_fswthru_idf = fswthru_idf
 
       l_fswthru_uvrdr = c0
-      if (present(fswthru_uvrdr)) l_fswthru_uvrdr = fswthru_uvrdr
 
       l_fswthru_uvrdf = c0
-      if (present(fswthru_uvrdf)) l_fswthru_uvrdf = fswthru_uvrdf
 
       l_fswthru_pardr = c0
-      if (present(fswthru_pardr)) l_fswthru_pardr = fswthru_pardr
 
       l_fswthru_pardf = c0
-      if (present(fswthru_pardf)) l_fswthru_pardf = fswthru_pardf
 
       allocate(l_fswthrun_vdr(ncat))
       l_fswthrun_vdr = c0
