@@ -62,8 +62,8 @@
       use icedrv_calendar, only: year_init, istep0
       use icedrv_calendar, only: dumpfreq, diagfreq, dump_last
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
-      use icedrv_history, only: history_cdf
-      use icedrv_restart_shared, only: restart, restart_dir, restart_file
+      use icedrv_history, only: history_format
+      use icedrv_restart_shared, only: restart, restart_dir, restart_file, restart_format
       use icedrv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
       use icedrv_flux, only: default_season
       use icedrv_forcing, only: precip_units,    fyear_init,      ycycle
@@ -133,8 +133,9 @@
         days_per_year,  use_leap_years, year_init,       istep0,        &
         dt,             npt,            ndtd,            dump_last,     &
         ice_ic,         restart,        restart_dir,     restart_file,  &
+        restart_format, &
         dumpfreq,       diagfreq,       diag_file,       cpl_bgc,       &
-        conserv_check,  history_cdf
+        conserv_check,  history_format
 
       namelist /grid_nml/ &
         kcatbound
@@ -254,7 +255,9 @@
       restart = .false.      ! if true, read restart files for initialization
       restart_dir  = './'    ! write to executable dir for default
       restart_file = 'iced'  ! restart file name prefix
-      history_cdf = .false.  ! history netcdf file flag
+      restart_format = 'bin' ! default restart format is binary, other option 'nc'
+                             ! for NetCDF
+      history_format = ''    ! if 'nc', write history files. Otherwise do nothing
       ice_ic       = 'default'      ! initial conditions are specified in the code
                                     ! otherwise, the filename for reading restarts
       ndtd = 1               ! dynamic time steps per thermodynamic time step
@@ -645,7 +648,9 @@
                                trim(restart_dir)
          write(nu_diag,*)    ' restart_file              = ', &
                                trim(restart_file)
-         write(nu_diag,1010) ' history_cdf               = ', history_cdf
+         write(nu_diag,*)    ' restart_format            = ', &
+                               trim(restart_format)
+         write(nu_diag,1010) ' history_format               = ', trim(history_format)
          write(nu_diag,*)    ' ice_ic                    = ', &
                                trim(ice_ic)
          write(nu_diag,1010) ' conserv_check             = ', conserv_check

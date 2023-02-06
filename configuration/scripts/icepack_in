@@ -9,11 +9,12 @@
     ice_ic         = 'default'
     restart        = .false.
     restart_dir    = './restart/'
+    restart_format = 'bin'
     dumpfreq       = 'y'
     dump_last      = .false.
     diagfreq       = 24
     diag_file      = 'ice_diag'
-    history_cdf    = .false.
+    history_format = ''
     cpl_bgc        = .false.
     conserv_check  = .false.
 /
