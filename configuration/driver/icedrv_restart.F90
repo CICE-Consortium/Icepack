@@ -92,7 +92,7 @@
          tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
 !         solve_zsal, skl_bgc, z_tracers
 
-      integer (kind=int_kind), allocatable :: dims(:),dims1(:)
+      integer (kind=int_kind) :: dims(2)
 
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(dumpfile)'
@@ -124,6 +124,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
          file=__FILE__,line= __LINE__)
 
+      dims(:) = 0
       if (restart_format == 'bin') then
          write(filename,'(a,a,a,i4.4,a,i2.2,a,i2.2,a,i5.5)') &
             restart_dir(1:lenstr(restart_dir)), &
@@ -161,7 +162,6 @@
          status = nf90_def_dim(ncid,'ncat',ncat,dimid_ncat)
 
          ! Get dimension IDs
-         allocate(dims(2))
          dims(1) = dimid_ni
          dims(2) = dimid_ncat
 #else
@@ -1274,8 +1274,7 @@
             ncid            , & ! unit number
             ndim3         , & ! third dimension
             nrec              ! record number (0 for sequential access)
-         real (kind=dbl_kind), dimension(nx,ncat), &
-            intent(in) :: &
+      real (kind=dbl_kind), intent(in), dimension(nx,ncat) :: &
             work              ! input array (real, 8-byte)
       character (len=4), intent(in) :: &
             atype             ! format for output array
@@ -1311,8 +1310,7 @@
             ncid            , & ! unit number
             ndim3         , & ! third dimension
             nrec              ! record number (0 for sequential access)
-      real (kind=dbl_kind), dimension(nx), &
-            intent(in) :: &
+      real (kind=dbl_kind), intent(in), dimension(nx) :: &
             work              ! input array (real, 8-byte)
       character (len=4), intent(in) :: &
             atype             ! format for output array
@@ -1359,8 +1357,7 @@
       logical (kind=log_kind), intent(in) :: &
             diag              ! if true, write diagnostic output
 
-      real (kind=dbl_kind), dimension(nx,ncat), &
-            intent(in) :: &
+      real (kind=dbl_kind), intent(in), dimension(nx,ncat) :: &
             work              ! output array (real, 8-byte)
 
       ! local variables
@@ -1420,8 +1417,7 @@
       logical (kind=log_kind), intent(in) :: &
             diag              ! if true, write diagnostic output
 
-      real (kind=dbl_kind), dimension(nx), &
-            intent(in) :: &
+      real (kind=dbl_kind), intent(in), dimension(nx) :: &
             work              ! output array (real, 8-byte)
 
       ! local variables
@@ -1476,10 +1472,8 @@
       ndim3         , & ! third dimension
       nrec              ! record number (0 for sequential access)
 
-      real (kind=dbl_kind), dimension(nx,ncat), &
-      intent(inout) :: &
+      real (kind=dbl_kind), intent(inout), dimension(nx,ncat) :: &
       work              ! input array (real, 8-byte)
-
 
       logical (kind=log_kind), intent(in) :: &
       diag              ! if true, write diagnostic output
@@ -1509,10 +1503,8 @@
       ndim3         , & ! third dimension
       nrec              ! record number (0 for sequential access)
 
-      real (kind=dbl_kind), dimension(nx), &
-      intent(inout) :: &
+      real (kind=dbl_kind), intent(inout), dimension(nx) :: &
       work              ! input array (real, 8-byte)
-
 
       logical (kind=log_kind), intent(in) :: &
       diag              ! if true, write diagnostic output
@@ -1546,8 +1538,7 @@
       character (len=*), intent(in) :: &
             varname           ! field name in netcdf file
 
-      real (kind=dbl_kind), dimension(nx,ncat), &
-            intent(out) :: &
+      real (kind=dbl_kind), intent(out), dimension(nx,ncat) :: &
             work              ! output array (real, 8-byte)
 
       integer (kind=int_kind) :: &
@@ -1610,8 +1601,7 @@
       character (len=*), intent(in) :: &
             varname           ! field name in netcdf file
 
-      real (kind=dbl_kind), dimension(nx), &
-            intent(out) :: &
+      real (kind=dbl_kind), intent(out), dimension(nx) :: &
             work              ! output array (real, 8-byte)
 
       integer (kind=int_kind) :: &

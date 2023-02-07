@@ -648,9 +648,9 @@
                                trim(restart_dir)
          write(nu_diag,*)    ' restart_file              = ', &
                                trim(restart_file)
-         write(nu_diag,*)    ' restart_format            = ', &
+         write(nu_diag,1030) ' restart_format            = ', &
                                trim(restart_format)
-         write(nu_diag,1010) ' history_format               = ', trim(history_format)
+         write(nu_diag,1030) ' history_format            = ', trim(history_format)
          write(nu_diag,*)    ' ice_ic                    = ', &
                                trim(ice_ic)
          write(nu_diag,1010) ' conserv_check             = ', conserv_check
