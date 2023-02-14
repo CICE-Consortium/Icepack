@@ -256,10 +256,9 @@
       restart_dir  = './'    ! write to executable dir for default
       restart_file = 'iced'  ! restart file name prefix
       restart_format = 'bin' ! default restart format is binary, other option 'nc'
-                             ! for NetCDF
-      history_format = ''    ! if 'nc', write history files. Otherwise do nothing
-      ice_ic       = 'default'      ! initial conditions are specified in the code
-                                    ! otherwise, the filename for reading restarts
+      history_format = 'none'     ! if 'nc', write history files. Otherwise do nothing
+      ice_ic       = 'default'    ! initial conditions are specified in the code
+                                  ! otherwise, the filename for reading restarts
       ndtd = 1               ! dynamic time steps per thermodynamic time step
       l_mpond_fresh = .false.     ! logical switch for including meltpond freshwater
                                   ! flux feedback to ocean model
@@ -544,6 +543,16 @@
          write (nu_diag,*) 'WARNING: aerosols activated but'
          write (nu_diag,*) 'WARNING: not allocated in tracer array.'
          write (nu_diag,*) 'WARNING: Activate in compilation script.'
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
+      if (restart_format /= 'bin' .and. restart_format /= 'nc') then
+         write (nu_diag,*) 'WARNING: restart_format value unknown '//trim(restart_format)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
+      if (history_format /= 'none' .and. history_format /= 'nc') then
+         write (nu_diag,*) 'WARNING: history_format value unknown '//trim(history_format)
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
