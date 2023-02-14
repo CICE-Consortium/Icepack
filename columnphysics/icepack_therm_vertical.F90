@@ -2244,7 +2244,6 @@
          frzmlt      , & ! freezing/melting potential         (W/m^2)
          rside       , & ! fraction of ice that melts laterally
          fside       , & ! lateral heat flux                  (W/m^2)
-         wlat        , & ! lateral melt rate                    (m/s)
          sst         , & ! sea surface temperature                (C)
          Tf          , & ! freezing temperature                   (C)
          Tbot        , & ! ice bottom surface temperature     (deg C)
@@ -2255,6 +2254,9 @@
          meltb       , & ! basal ice melt           (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
+
+      real (kind=dbl_kind), intent(out), optional :: &
+         wlat        , & ! lateral melt rate                    (m/s)
 
       real (kind=dbl_kind), intent(inout), optional :: &
          fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
@@ -2440,6 +2442,13 @@
             call icepack_warnings_add(subname//' error in fswthru [iv]d[rf] arguments')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
+         endif
+         if (tr_fsd) then
+            if (.not.(present(wlat)) then
+               call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            endif
          endif
       endif
 

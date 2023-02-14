@@ -2016,9 +2016,11 @@
          Tf       , & ! freezing temperature (C)
          sss      , & ! sea surface salinity (ppt)
          rside    , & ! fraction of ice that melts laterally
-         wlat     , & ! lateral melt rate (m/s)
          frzmlt   , & ! freezing/melting potential (W/m^2)
          wave_sig_ht ! significant height of waves in ice (m)
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         wlat     , & ! lateral melt rate (m/s)
 
       real (kind=dbl_kind), dimension(:), intent(in)  :: &
          wave_spectrum  ! ocean surface wave spectrum E(f) (m^2 s)
@@ -2125,6 +2127,13 @@
                        present(H2_16O_ocn) .and. &
                        present(H2_18O_ocn))) then
                 call icepack_warnings_add(subname//' error in iso arguments, tr_iso=T')
+                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                return
+             endif
+          endif
+          if (tr_fsd) then
+             if (.not.(present(wlat)) then
+                call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
                 call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                 return
              endif
