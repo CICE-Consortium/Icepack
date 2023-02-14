@@ -120,17 +120,9 @@
       real (kind=dbl_kind), dimension(:), allocatable :: &
          lims
 
-      logical (kind=log_kind) :: &
-         l_write_diags  ! local write diags
-
       character(len=8) :: c_fsd1,c_fsd2
       character(len=2) :: c_nf
       character(len=*), parameter :: subname='(icepack_init_fsd_bounds)'
-
-      l_write_diags = .true.
-      if (present(write_diags)) then
-         l_write_diags = write_diags
-      endif
 
       if (nfsd.eq.24) then
 
@@ -230,7 +222,8 @@
          c_fsd_range(n)=c_fsd1//'m < fsd Cat '//c_nf//' < '//c_fsd2//'m'
       enddo
 
-      if (l_write_diags) then
+      if (present(write_diags)) then
+      if (write_diags) then
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname
@@ -243,6 +236,7 @@
          enddo
          write(warnstr,*) ' '
          call icepack_warnings_add(warnstr)
+      endif
       endif
 
       end subroutine icepack_init_fsd_bounds

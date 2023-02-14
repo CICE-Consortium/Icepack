@@ -61,9 +61,7 @@
       implicit none
 
       private
-      public :: frzmlt_bottom_lateral, &
-                thermo_vertical, &
-                icepack_step_therm1
+      public :: icepack_step_therm1
 
 !=======================================================================
 
@@ -2396,7 +2394,7 @@
          smice       , & ! tracer for mass of ice in snow    (kg/m^3)
          smliq           ! tracer for mass of liquid in snow (kg/m^3)
 
-      real (kind=dbl_kind), allocatable, dimension(:) :: &
+      real (kind=dbl_kind), dimension(ncat) :: &
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
@@ -2457,11 +2455,10 @@
       smice(:) = c0
       smliq(:) = c0
 
-      allocate(l_meltsliqn(ncat))
-      l_meltsliqn = c0
-      if (present(meltsliqn)) l_meltsliqn = meltsliqn
       l_meltsliq  = c0
+      l_meltsliqn = c0
       if (present(meltsliq )) l_meltsliq  = meltsliq
+      if (present(meltsliqn)) l_meltsliqn = meltsliqn
 
       !-----------------------------------------------------------------
       ! Initialize rate of snow loss to leads
@@ -2923,7 +2920,6 @@
 
       if (present(meltsliqn   )) meltsliqn    = l_meltsliqn
       if (present(meltsliq    )) meltsliq     = l_meltsliq
-      deallocate(l_meltsliqn)
 
       !-----------------------------------------------------------------
       ! Calculate ponds from the topographic scheme

@@ -56,10 +56,7 @@
       implicit none
 
       private
-      public :: linear_itd, &
-                add_new_ice, &
-                lateral_melt, &
-                icepack_step_therm2
+      public :: icepack_step_therm2
 
 !=======================================================================
 

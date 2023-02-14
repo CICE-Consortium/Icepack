@@ -58,10 +58,7 @@
       implicit none
 
       private
-      public :: ridge_ice, &
-                asum_ridging, &
-                ridge_itd, &
-                icepack_ice_strength, &
+      public :: icepack_ice_strength, &
                 icepack_step_ridge
 
       real (kind=dbl_kind), parameter :: &
@@ -113,7 +110,7 @@
                             dardg1ndt,   dardg2ndt,  &
                             dvirdgndt,               &
                             araftn,      vraftn,     &
-                            closing_flag,closing )
+                            closing )
 
       integer (kind=int_kind), intent(in) :: &
          ndtd       , & ! number of dynamics subcycles
@@ -161,7 +158,6 @@
          krdg_redist    ! selects redistribution function
 
       logical (kind=log_kind), intent(in) :: &
-         closing_flag, &! flag if closing is valid
          tr_brine       ! if .true., brine height differs from ice thickness
 
       ! optional history fields
@@ -296,7 +292,7 @@
       ! Compute the area opening and closing.
       !-----------------------------------------------------------------
 
-      if (closing_flag) then
+      if (present(opening) .and. present(closing)) then
 
          opning = opening
          closing_net = closing
@@ -595,11 +591,13 @@
             faero_ocn(it) = faero_ocn(it) + maero(it)*dti
          enddo
       endif
-      if (tr_iso) then
-         ! check size fiso_ocn vs n_iso ???
-         do it = 1, n_iso
-            fiso_ocn(it) = fiso_ocn(it) + miso(it)*dti
-         enddo
+      if (present(fiso_ocn)) then
+         if (tr_iso) then
+            ! check size fiso_ocn vs n_iso ???
+            do it = 1, n_iso
+               fiso_ocn(it) = fiso_ocn(it) + miso(it)*dti
+            enddo
+         endif
       endif
       if (present(fpond)) then
          fpond = fpond - mpond ! units change later
@@ -1826,12 +1824,6 @@
       real (kind=dbl_kind) :: &
          dtt          ! thermo time step
 
-      real (kind=dbl_kind) :: &
-         l_closing      ! local rate of closing due to divergence/shear (1/s)
-
-      logical (kind=log_kind) :: &
-         l_closing_flag ! flag if closing is passed
-
       logical (kind=log_kind), save :: &
          first_call = .true.   ! first call flag
 
@@ -1859,14 +1851,6 @@
       !        it may be out of whack, which the ridging helps fix).-ECH
       !-----------------------------------------------------------------
 
-      if (present(closing)) then
-         l_closing_flag = .true.
-         l_closing = closing
-      else
-         l_closing_flag = .false.
-         l_closing = c0
-      endif
-
       call ridge_ice (dt,           ndtd,           &
                       ncat,         n_aero,         &
                       nilyr,        nslyr,          &
@@ -1892,8 +1876,7 @@
                       dardg1ndt,    dardg2ndt,      &
                       dvirdgndt,                    &
                       araftn,       vraftn,         &
-                      l_closing_flag,               &
-                      l_closing )
+                      closing )
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------

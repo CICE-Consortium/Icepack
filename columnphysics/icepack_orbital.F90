@@ -177,11 +177,24 @@
 
       real (kind=dbl_kind) :: ydayp1 ! day of year plus one time step
 
+      logical (kind=log_kind), save :: &
+         first_call = .true.   ! first call flag
+
       character(len=*),parameter :: subname='(compute_coszen)'
 
 ! Solar declination for next time step
 
 #ifdef CESMCOUPLED
+      if (icepack_chkoptargflag(first_call)) then
+         if (.not.(present(days_per_year) .and. &
+                   present(nextsw_cday)   .and. &
+                   present(calendar_type))) then
+            call icepack_warnings_add(subname//' error in CESMCOUPLED args')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+      endif
+
       if (calendar_type == "GREGORIAN") then
          ydayp1 = min(nextsw_cday, real(days_per_year,kind=dbl_kind))
       else
@@ -205,6 +218,8 @@
 #ifdef CESMCOUPLED
       endif
 #endif
+
+      first_call = .false.
 
       end subroutine compute_coszen
 
