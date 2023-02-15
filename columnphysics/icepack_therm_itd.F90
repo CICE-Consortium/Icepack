@@ -2020,7 +2020,7 @@
          wave_sig_ht ! significant height of waves in ice (m)
 
       real (kind=dbl_kind), intent(in), optional :: &
-         wlat     , & ! lateral melt rate (m/s)
+         wlat         ! lateral melt rate (m/s)
 
       real (kind=dbl_kind), dimension(:), intent(in)  :: &
          wave_spectrum  ! ocean surface wave spectrum E(f) (m^2 s)
@@ -2132,7 +2132,7 @@
              endif
           endif
           if (tr_fsd) then
-             if (.not.(present(wlat)) then
+             if (.not.(present(wlat))) then
                 call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
                 call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                 return

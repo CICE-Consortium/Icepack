@@ -2256,7 +2256,7 @@
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
       real (kind=dbl_kind), intent(out), optional :: &
-         wlat        , & ! lateral melt rate                    (m/s)
+         wlat            ! lateral melt rate                    (m/s)
 
       real (kind=dbl_kind), intent(inout), optional :: &
          fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
@@ -2444,7 +2444,7 @@
             return
          endif
          if (tr_fsd) then
-            if (.not.(present(wlat)) then
+            if (.not.(present(wlat))) then
                call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                return
