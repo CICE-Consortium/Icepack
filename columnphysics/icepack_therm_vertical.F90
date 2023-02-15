@@ -2266,15 +2266,19 @@
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
          dsnow       , & ! change in snow depth     (m/step-->cm/day)
-         meltsliq    , & ! mass of snow melt                 (kg/m^2)
          fsloss          ! rate of snow loss to leads      (kg/m^2/s)
+
+      real (kind=dbl_kind), intent(out), optional :: &
+         meltsliq        ! mass of snow melt                 (kg/m^2)
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          Qa_iso      , & ! isotope specific humidity          (kg/kg)
          Qref_iso    , & ! isotope 2m atm ref spec humidity   (kg/kg)
          fiso_atm    , & ! isotope deposition rate         (kg/m^2 s)
          fiso_ocn    , & ! isotope flux to ocean           (kg/m^2/s)
-         fiso_evap   , & ! isotope evaporation             (kg/m^2/s)
+         fiso_evap       ! isotope evaporation             (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          meltsliqn       ! mass of snow melt                 (kg/m^2)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
@@ -2457,8 +2461,6 @@
 
       l_meltsliq  = c0
       l_meltsliqn = c0
-      if (present(meltsliq )) l_meltsliq  = meltsliq
-      if (present(meltsliqn)) l_meltsliqn = meltsliqn
 
       !-----------------------------------------------------------------
       ! Initialize rate of snow loss to leads
@@ -2552,7 +2554,6 @@
          congeln(n) = c0
          snoicen(n) = c0
          dsnown (n) = c0
-         l_meltsliqn(n) = c0
 
          Trefn  = c0
          Qrefn  = c0
