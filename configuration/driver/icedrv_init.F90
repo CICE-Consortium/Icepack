@@ -256,10 +256,9 @@
       restart_dir  = './'    ! write to executable dir for default
       restart_file = 'iced'  ! restart file name prefix
       restart_format = 'bin' ! default restart format is binary, other option 'nc'
-                             ! for NetCDF
-      history_format = ''    ! if 'nc', write history files. Otherwise do nothing
-      ice_ic       = 'default'      ! initial conditions are specified in the code
-                                    ! otherwise, the filename for reading restarts
+      history_format = 'none'     ! if 'nc', write history files. Otherwise do nothing
+      ice_ic       = 'default'    ! initial conditions are specified in the code
+                                  ! otherwise, the filename for reading restarts
       ndtd = 1               ! dynamic time steps per thermodynamic time step
       l_mpond_fresh = .false.     ! logical switch for including meltpond freshwater
                                   ! flux feedback to ocean model
@@ -547,6 +546,16 @@
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
 
+      if (restart_format /= 'bin' .and. restart_format /= 'nc') then
+         write (nu_diag,*) 'WARNING: restart_format value unknown '//trim(restart_format)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
+      if (history_format /= 'none' .and. history_format /= 'nc') then
+         write (nu_diag,*) 'WARNING: history_format value unknown '//trim(history_format)
+         call icedrv_system_abort(file=__FILE__,line=__LINE__)
+      endif
+
       if (tr_aero .and. trim(shortwave) /= 'dEdd') then
          write (nu_diag,*) 'WARNING: aerosols activated but dEdd'
          write (nu_diag,*) 'WARNING: shortwave is not.'
@@ -648,9 +657,9 @@
                                trim(restart_dir)
          write(nu_diag,*)    ' restart_file              = ', &
                                trim(restart_file)
-         write(nu_diag,*)    ' restart_format            = ', &
+         write(nu_diag,1030) ' restart_format            = ', &
                                trim(restart_format)
-         write(nu_diag,1010) ' history_format               = ', trim(history_format)
+         write(nu_diag,1030) ' history_format            = ', trim(history_format)
          write(nu_diag,*)    ' ice_ic                    = ', &
                                trim(ice_ic)
          write(nu_diag,1010) ' conserv_check             = ', conserv_check

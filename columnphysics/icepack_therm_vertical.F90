@@ -1351,7 +1351,7 @@
          qsub = zqsn(k) - rhos*Lvap ! qsub < 0
          dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
 
-         mass  = massice(1) + massliq(1)
+         mass  = massice(k) + massliq(k)
          massi = c0
          if (dzs(k) > puny) massi = c1 + dhs/dzs(k)
          massice(k) = massice(k) * massi
