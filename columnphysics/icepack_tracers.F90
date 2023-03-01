@@ -907,7 +907,7 @@
 
       subroutine icepack_write_tracer_indices(iounit)
 
-        integer, intent(in), optional :: iounit
+        integer, intent(in) :: iounit
 
 !autodocument_end
 

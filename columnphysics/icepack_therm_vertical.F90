@@ -61,9 +61,7 @@
       implicit none
 
       private
-      public :: frzmlt_bottom_lateral, &
-                thermo_vertical, &
-                icepack_step_therm1
+      public :: icepack_step_therm1
 
 !=======================================================================
 
@@ -2268,15 +2266,19 @@
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
          dsnow       , & ! change in snow depth     (m/step-->cm/day)
-         meltsliq    , & ! mass of snow melt                 (kg/m^2)
          fsloss          ! rate of snow loss to leads      (kg/m^2/s)
+
+      real (kind=dbl_kind), intent(out), optional :: &
+         meltsliq        ! mass of snow melt                 (kg/m^2)
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          Qa_iso      , & ! isotope specific humidity          (kg/kg)
          Qref_iso    , & ! isotope 2m atm ref spec humidity   (kg/kg)
          fiso_atm    , & ! isotope deposition rate         (kg/m^2 s)
          fiso_ocn    , & ! isotope flux to ocean           (kg/m^2/s)
-         fiso_evap   , & ! isotope evaporation             (kg/m^2/s)
+         fiso_evap       ! isotope evaporation             (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          meltsliqn       ! mass of snow melt                 (kg/m^2)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
@@ -2396,7 +2398,7 @@
          smice       , & ! tracer for mass of ice in snow    (kg/m^3)
          smliq           ! tracer for mass of liquid in snow (kg/m^3)
 
-      real (kind=dbl_kind), allocatable, dimension(:) :: &
+      real (kind=dbl_kind), dimension(ncat) :: &
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
@@ -2457,11 +2459,8 @@
       smice(:) = c0
       smliq(:) = c0
 
-      allocate(l_meltsliqn(ncat))
-      l_meltsliqn = c0
-      if (present(meltsliqn)) l_meltsliqn = meltsliqn
       l_meltsliq  = c0
-      if (present(meltsliq )) l_meltsliq  = meltsliq
+      l_meltsliqn = c0
 
       !-----------------------------------------------------------------
       ! Initialize rate of snow loss to leads
@@ -2555,7 +2554,6 @@
          congeln(n) = c0
          snoicen(n) = c0
          dsnown (n) = c0
-         l_meltsliqn(n) = c0
 
          Trefn  = c0
          Qrefn  = c0
@@ -2880,14 +2878,14 @@
                                meltb=meltb,       snoicen=snoicen(n),&
                                dsnow=dsnow,       dsnown=dsnown(n), &
                                congel=congel,     snoice=snoice,    &
-                               meltsliq=l_meltsliq,      &
-                               meltsliqn=l_meltsliqn(n), &
-                               Uref=Uref,  Urefn=Urefn,  &
-                               Qref_iso=Qref_iso,      &
-                               Qrefn_iso=Qrefn_iso,      &
-                               fiso_ocn=fiso_ocn,      &
-                               fiso_ocnn=fiso_ocnn,      &
-                               fiso_evap=fiso_evap,    &
+                               meltsliq=l_meltsliq,                 &
+                               meltsliqn=l_meltsliqn(n),            &
+                               Uref=Uref,         Urefn=Urefn,      &
+                               Qref_iso=Qref_iso,                   &
+                               Qrefn_iso=Qrefn_iso,                 &
+                               fiso_ocn=fiso_ocn,                   &
+                               fiso_ocnn=fiso_ocnn,                 &
+                               fiso_evap=fiso_evap,                 &
                                fiso_evapn=fiso_evapn)
 
             if (icepack_warnings_aborted(subname)) return
@@ -2923,7 +2921,6 @@
 
       if (present(meltsliqn   )) meltsliqn    = l_meltsliqn
       if (present(meltsliq    )) meltsliq     = l_meltsliq
-      deallocate(l_meltsliqn)
 
       !-----------------------------------------------------------------
       ! Calculate ponds from the topographic scheme

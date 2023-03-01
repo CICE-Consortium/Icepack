@@ -66,10 +66,7 @@
       implicit none
 
       private
-      public :: run_dEdd, &
-                shortwave_ccsm3, &
-                compute_shortwave_trcr, &
-                icepack_prep_radiation, &
+      public :: icepack_prep_radiation, &
                 icepack_step_radiation
 
       real (kind=dbl_kind), parameter :: &
@@ -178,22 +175,17 @@
          alvdfns, & ! visible, diffuse, snow  (fraction)
          alidfns    ! near-ir, diffuse, snow  (fraction)
 
-      real (kind=dbl_kind), dimension(:), allocatable :: &
-         l_fswthru_vdr  , & ! vis dir SW through ice to ocean (W m-2)
-         l_fswthru_vdf  , & ! vis dif SW through ice to ocean (W m-2)
-         l_fswthru_idr  , & ! nir dir SW through ice to ocean (W m-2)
-         l_fswthru_idf      ! nir dif SW through ice to ocean (W m-2)
+      real (kind=dbl_kind) :: &
+         l_fswthru_vdr, & ! vis dir SW through ice to ocean (W m-2)
+         l_fswthru_vdf, & ! vis dif SW through ice to ocean (W m-2)
+         l_fswthru_idr, & ! nir dir SW through ice to ocean (W m-2)
+         l_fswthru_idf    ! nir dif SW through ice to ocean (W m-2)
 
       character(len=*),parameter :: subname='(shortwave_ccsm3)'
 
       !-----------------------------------------------------------------
       ! Solar radiation: albedo and absorbed shortwave
       !-----------------------------------------------------------------
-
-      allocate(l_fswthru_vdr(ncat))
-      allocate(l_fswthru_vdf(ncat))
-      allocate(l_fswthru_idr(ncat))
-      allocate(l_fswthru_idf(ncat))
 
       ! For basic shortwave, set coszen to a constant between 0 and 1.
       coszen = p5 ! sun above the horizon
@@ -295,28 +287,23 @@
                                fswsfc=fswsfc(n),     &
                                fswint=fswint(n),     &
                                fswthru=fswthru(n),   &
-                               fswthru_vdr=l_fswthru_vdr(n),&
-                               fswthru_vdf=l_fswthru_vdf(n),&
-                               fswthru_idr=l_fswthru_idr(n),&
-                               fswthru_idf=l_fswthru_idf(n),&
+                               fswthru_vdr=l_fswthru_vdr,&
+                               fswthru_vdf=l_fswthru_vdf,&
+                               fswthru_idr=l_fswthru_idr,&
+                               fswthru_idf=l_fswthru_idf,&
                                fswpenl=fswpenl(:,n), &
                                Iswabs=Iswabs(:,n))
 
          if (icepack_warnings_aborted(subname)) return
 
+         if(present(fswthru_vdr)) fswthru_vdr(n) = l_fswthru_vdr
+         if(present(fswthru_vdf)) fswthru_vdf(n) = l_fswthru_vdf
+         if(present(fswthru_idr)) fswthru_idr(n) = l_fswthru_idr
+         if(present(fswthru_idf)) fswthru_idf(n) = l_fswthru_idf
+
       endif ! aicen > puny
 
       enddo                  ! ncat
-
-      if(present(fswthru_vdr)) fswthru_vdr = l_fswthru_vdr
-      if(present(fswthru_vdf)) fswthru_vdf = l_fswthru_vdf
-      if(present(fswthru_idr)) fswthru_idr = l_fswthru_idr
-      if(present(fswthru_idf)) fswthru_idf = l_fswthru_idf
-
-      deallocate(l_fswthru_vdr)
-      deallocate(l_fswthru_vdf)
-      deallocate(l_fswthru_idr)
-      deallocate(l_fswthru_idf)
 
       end subroutine shortwave_ccsm3
 
@@ -879,8 +866,10 @@
            fswthrun_idr, & ! nir dir SW through ice to ocean (W/m^2)
            fswthrun_idf    ! nir dif SW through ice to ocean (W/m^2)
 
+      real(kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
+           rsnow       ! snow grain radius tracer (10^-6 m)
+
       real(kind=dbl_kind), dimension(:,:), intent(inout) :: &
-           rsnow   , & ! snow grain radius tracer (10^-6 m)
            Sswabsn , & ! SW radiation absorbed in snow layers (W m-2)
            Iswabsn , & ! SW radiation absorbed in ice layers (W m-2)
            fswpenln    ! visible SW entering ice layers (W m-2)
@@ -903,6 +892,7 @@
          alvl            ! area fraction of level ice
 
       real (kind=dbl_kind), dimension (nslyr) :: &
+         l_rsnow     , & ! local array for snow grain radius tracer (10^-6 m)
          rhosnwn     , & ! snow density (kg/m3)
          rsnwn           ! snow grain radius (micrometers)
 
@@ -929,7 +919,7 @@
       logical (kind=log_kind) :: &
          linitonly       ! local initonly value
 
-      real (kind=dbl_kind), dimension(:), allocatable :: &
+      real (kind=dbl_kind) :: &
          l_fswthrun_vdr  , & ! vis dir SW through ice to ocean (W m-2)
          l_fswthrun_vdf  , & ! vis dif SW through ice to ocean (W m-2)
          l_fswthrun_idr  , & ! nir dir SW through ice to ocean (W m-2)
@@ -937,15 +927,12 @@
 
       character(len=*),parameter :: subname='(run_dEdd)'
 
-      allocate(l_fswthrun_vdr(ncat))
-      allocate(l_fswthrun_vdf(ncat))
-      allocate(l_fswthrun_idr(ncat))
-      allocate(l_fswthrun_idf(ncat))
-
       linitonly = .false.
       if (present(initonly)) then
          linitonly = initonly
       endif
+
+      l_rsnow = c0
 
       ! cosine of the zenith angle
 #ifdef CESMCOUPLED
@@ -973,13 +960,17 @@
 
          if (aicen(n) > puny) then
 
+            if (present(rsnow)) then
+               l_rsnow(:) = rsnow(:,n)
+            endif
+
             call shortwave_dEdd_set_snow(nslyr,      R_snw,    &
                                          dT_mlt,     rsnw_mlt, &
                                          aicen(n),   vsnon(n), &
                                          Tsfcn(n),   fsn,      &
                                          hs0,        hsn,      &
                                          rhosnwn,    rsnwn,    &
-                                         rsnow(:,n))
+                                         l_rsnow(:))
             if (icepack_warnings_aborted(subname)) return
 
             ! set pond properties
@@ -1002,7 +993,7 @@
                                                Tsfcn(n),   fsn,      &
                                                hs0,        hsnlvl,   &
                                                rhosnwn(:), rsnwn(:), &
-                                               rsnow(:,n))
+                                               l_rsnow(:))
                   if (icepack_warnings_aborted(subname)) return
                endif ! snwredist
 
@@ -1122,10 +1113,10 @@
                              alidrn(n),     alidfn(n),      &
                              fswsfcn(n),    fswintn(n),     &
                              fswthru=fswthrun(n),           &
-                             fswthru_vdr=l_fswthrun_vdr(n), &
-                             fswthru_vdf=l_fswthrun_vdf(n), &
-                             fswthru_idr=l_fswthrun_idr(n), &
-                             fswthru_idf=l_fswthrun_idf(n), &
+                             fswthru_vdr=l_fswthrun_vdr,    &
+                             fswthru_vdf=l_fswthrun_vdf,    &
+                             fswthru_idr=l_fswthrun_idr,    &
+                             fswthru_idf=l_fswthrun_idf,    &
                              Sswabs=Sswabsn(:,n),           &
                              Iswabs=Iswabsn(:,n),           &
                              albice=albicen(n),             &
@@ -1137,25 +1128,22 @@
 
             if (icepack_warnings_aborted(subname)) return
 
-            if (.not. snwgrain) then
-               do k = 1,nslyr
-                  rsnow(k,n) = rsnwn(k) ! for history
-               enddo
+            if(present(fswthrun_vdr)) fswthrun_vdr(n) = l_fswthrun_vdr
+            if(present(fswthrun_vdf)) fswthrun_vdf(n) = l_fswthrun_vdf
+            if(present(fswthrun_idr)) fswthrun_idr(n) = l_fswthrun_idr
+            if(present(fswthrun_idf)) fswthrun_idf(n) = l_fswthrun_idf
+
+            if (present(rsnow)) then
+               if (.not. snwgrain) then
+                  do k = 1,nslyr
+                     rsnow(k,n) = rsnwn(k) ! set rsnow for history
+                  enddo
+               endif
             endif
 
          endif ! aicen > puny
 
       enddo  ! ncat
-
-      if(present(fswthrun_vdr)) fswthrun_vdr = l_fswthrun_vdr
-      if(present(fswthrun_vdf)) fswthrun_vdf = l_fswthrun_vdf
-      if(present(fswthrun_idr)) fswthrun_idr = l_fswthrun_idr
-      if(present(fswthrun_idf)) fswthrun_idf = l_fswthrun_idf
-
-      deallocate(l_fswthrun_vdr)
-      deallocate(l_fswthrun_vdf)
-      deallocate(l_fswthrun_idr)
-      deallocate(l_fswthrun_idf)
 
       end subroutine run_dEdd
 
@@ -4106,39 +4094,14 @@
       integer (kind=int_kind) :: &
          n                  ! thickness category index
 
-      logical (kind=log_kind) :: &
-         linitonly       ! local flag for initonly
-
       real(kind=dbl_kind) :: &
         hin,         & ! Ice thickness (m)
         hbri           ! brine thickness (m)
 
-      real (kind=dbl_kind), dimension(:), allocatable :: &
-         l_fswthrun_vdr , & ! vis dir SW through ice to ocean (W/m^2)
-         l_fswthrun_vdf , & ! vis dif SW through ice to ocean (W/m^2)
-         l_fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
-         l_fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
-
-      real (kind=dbl_kind), dimension(:,:), allocatable :: &
-         l_rsnow            ! snow grain radius tracer (10^-6 m)
-
       character(len=*),parameter :: subname='(icepack_step_radiation)'
-
-      allocate(l_fswthrun_vdr(ncat))
-      allocate(l_fswthrun_vdf(ncat))
-      allocate(l_fswthrun_idr(ncat))
-      allocate(l_fswthrun_idf(ncat))
 
       hin = c0
       hbri = c0
-      linitonly = .false.
-      if (present(initonly)) then
-         linitonly = initonly
-      endif
-
-      allocate(l_rsnow (nslyr,ncat))
-      l_rsnow = c0
-      if (present(rsnow)) l_rsnow = rsnow
 
          ! Initialize
          do n = 1, ncat
@@ -4175,7 +4138,7 @@
          enddo
          endif
 
-         if (calc_Tsfc) then
+      if (calc_Tsfc) then
          if (trim(shortwave) == 'dEdd') then ! delta Eddington
 
             call run_dEdd(dt,           ncat,           &
@@ -4209,10 +4172,10 @@
                           alidrn,       alidfn,         &
                           fswsfcn,      fswintn,        &
                           fswthrun=fswthrun,            &
-                          fswthrun_vdr=l_fswthrun_vdr,  &
-                          fswthrun_vdf=l_fswthrun_vdf,  &
-                          fswthrun_idr=l_fswthrun_idr,  &
-                          fswthrun_idf=l_fswthrun_idf,  &
+                          fswthrun_vdr=fswthrun_vdr,  &
+                          fswthrun_vdf=fswthrun_vdf,  &
+                          fswthrun_idr=fswthrun_idr,  &
+                          fswthrun_idf=fswthrun_idf,  &
                           fswpenln=fswpenln,            &
                           Sswabsn=Sswabsn,              &
                           Iswabsn=Iswabsn,              &
@@ -4223,9 +4186,9 @@
                           snowfracn=snowfracn,          &
                           dhsn=dhsn,                    &
                           ffracn=ffracn,                &
-                          rsnow=l_rsnow,                  &
+                          rsnow=rsnow,                  &
                           l_print_point=l_print_point,  &
-                          initonly=linitonly)
+                          initonly=initonly)
             if (icepack_warnings_aborted(subname)) return
 
          elseif (trim(shortwave) == 'ccsm3') then
@@ -4243,10 +4206,10 @@
                                  alvdfn,     alidfn,     &
                                  fswsfcn,    fswintn,    &
                                  fswthru=fswthrun,       &
-                                 fswthru_vdr=l_fswthrun_vdr,&
-                                 fswthru_vdf=l_fswthrun_vdf,&
-                                 fswthru_idr=l_fswthrun_idr,&
-                                 fswthru_idf=l_fswthrun_idf,&
+                                 fswthru_vdr=fswthrun_vdr,&
+                                 fswthru_vdf=fswthrun_vdf,&
+                                 fswthru_idr=fswthrun_idr,&
+                                 fswthru_idf=fswthrun_idf,&
                                  fswpenl=fswpenln,       &
                                  Iswabs=Iswabsn,         &
                                  Sswabs=Sswabsn,         &
@@ -4299,17 +4262,6 @@
          Sswabsn(:,:) = c0
 
       endif    ! calc_Tsfc
-
-      if (present(fswthrun_vdr)) fswthrun_vdr = l_fswthrun_vdr
-      if (present(fswthrun_vdf)) fswthrun_vdf = l_fswthrun_vdf
-      if (present(fswthrun_idr)) fswthrun_idr = l_fswthrun_idr
-      if (present(fswthrun_idf)) fswthrun_idf = l_fswthrun_idf
-
-      deallocate(l_fswthrun_vdr)
-      deallocate(l_fswthrun_vdf)
-      deallocate(l_fswthrun_idr)
-      deallocate(l_fswthrun_idf)
-      deallocate(l_rsnow)
 
       end subroutine icepack_step_radiation
 
