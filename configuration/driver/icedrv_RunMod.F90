@@ -35,7 +35,7 @@
       use icedrv_forcing, only: get_forcing, get_wave_spec
       use icedrv_forcing_bgc, only: faero_default, fiso_default, get_forcing_bgc
       use icedrv_flux, only: init_flux_atm_ocn
-      use icedrv_history, only: history_cdf, history_close
+      use icedrv_history, only: history_format, history_close
 
       logical (kind=log_kind) :: skl_bgc, z_tracers, tr_aero, tr_zaero, &
                                  wave_spec, tr_fsd, tr_iso
@@ -63,7 +63,7 @@
          call calendar(time)    ! at the end of the timestep
 
          if (stop_now >= 1) then
-            if (history_cdf) call history_close()
+            if (history_format == 'nc') call history_close()
             exit timeLoop
          endif
 
@@ -101,7 +101,7 @@
       use icedrv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
       use icedrv_flux, only: init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
-      use icedrv_history, only: history_cdf, history_write
+      use icedrv_history, only: history_format, history_write
       use icedrv_restart, only: dumpfile, final_restart
       use icedrv_restart_bgc, only: write_restart_bgc
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
@@ -225,7 +225,7 @@
          if (tr_brine)                call hbrine_diags
       endif
 
-      if (history_cdf) then
+      if (history_format == 'nc') then
          call history_write()
       endif
 
