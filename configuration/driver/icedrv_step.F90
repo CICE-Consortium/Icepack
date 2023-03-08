@@ -785,6 +785,15 @@
                          first_ice=first_ice(i,:), fzsal=fzsal(i),           &
                          flux_bio=flux_bio(i,1:nbtrcr),                      &
                          closing=closing(i) )
+            
+            ! After a mechanical step in which there is opening and closing
+            !if (rescale_ice_area) then
+            !   divu_frc = opening(i) - closing(i)
+
+               ! if there was net closing, then the ridging step will have 
+               ! created a new open water fraction equal to the net closing
+               ! 
+            
 
          endif ! tmask
 
