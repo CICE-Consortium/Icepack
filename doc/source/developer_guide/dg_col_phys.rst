@@ -47,7 +47,6 @@ The column physics source code contains the following files
 |    **icepack_zsalinity.F90**     vertical salinity parameterization of :cite:`Jeffery11`
 
 
-
 Coding Standard
 ------------------------------------
 
