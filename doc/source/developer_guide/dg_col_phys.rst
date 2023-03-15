@@ -84,7 +84,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
   * All modules should have the following set at the top
 
-    .. code-block:: fortran
+    .. code-block::
 
        implicit none
        private
@@ -93,13 +93,13 @@ Overall, columnphysics changes in the Icepack model should include the following
 
   * All subroutines and functions should define the subname character parameter statement to match the interface name like
 
-    .. code-block:: fortran
+    .. code-block::
 
        character(len=*),parameter :: subname='(lateral_melt_bgc)'
 
   * All interfaces that are public outside the Icepack columnphysics should include autodocument_start and autodocument_end comment lines with appropriate syntax and location.  If any interfaces are added or updated, then the internal documentation should be updated via
 
-    .. code-block:: bash
+    .. code-block::
 
        ./icepack.setup --docintfc
 
@@ -107,13 +107,13 @@ Overall, columnphysics changes in the Icepack model should include the following
 
   * The icepack_warnings package should be used to cache log messages and set the abort flag.  To add a log message, use icepack_warnings_add like
 
-    .. code-block:: fortran
+    .. code-block::
 
        call icepack_warnings_add(subname//' algorithm did not converge')
 
     To formally set the abort flag, use
 
-    .. code-block:: fortran
+    .. code-block::
 
        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
 
@@ -121,7 +121,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
   * Every interface call within the columnphysics should be followed by
 
-    .. code-block:: fortran
+    .. code-block::
 
        if (icepack_warnings_aborted(subname)) return
 
@@ -141,7 +141,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
     * An example of how this might look is
 
-      .. code-block:: fortran
+      .. code-block::
 
          use icepack_parameters, only: flag_arg2, flag_arg3
 
