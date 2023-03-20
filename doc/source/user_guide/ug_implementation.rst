@@ -165,7 +165,7 @@ Icepack writes diagnostic information for each grid cell as a separate file,
 Restart files
 ~~~~~~~~~~~~~
 
-Icepack provides restart data in binary unformatted format. The restart files 
+Icepack provides restart data in binary unformatted format or netcdf. The restart files 
 created by the Icepack driver contain all of the variables needed
 for a full, exact restart. The filename begins with the character string
 ‘iced.’ and is placed in the directory specified by the namelist variable
@@ -174,13 +174,15 @@ variable ``dumpfreq``. The namelist variable ``ice_ic`` contains the
 pointer to the filename from which the restart data is to be read and 
 the namelist option ``restart`` must be set to ``.true.`` to use the file.
 ``dump_last`` namelist can also be set to true to trigger restarts automatically
-at then end of runs.
+at then end of runs. The default restart file format is binary and is set
+by setting the ``restart_format`` namelist to 'bin'. Netcdf restart files
+are set by setting ``restart_format`` namelist to 'nc'.
 
 History files
 ~~~~~~~~~~~~~
 
 Icepack has a primitive netcdf history capability that is turned on with the
-``history_cdf`` namelist.  When ``history_cdf`` is set to true, history files
+``history_format`` namelist.  When ``history_format`` is set to 'nc', history files
 are created for each run with a naming convention of **icepack.h.yyyymmdd.nc**
 in the run directory history directory.  The yyyymmdd is the start date for each run.
 
@@ -197,7 +199,8 @@ written, the USE_NETCDF C preprocessor directive must be set during compilation.
 is done by setting ``ICE_IOTYPE`` to ``netcdf`` in **icepack.settings**.  In addition,
 the machine env and Macros files must include support for compilation with NetCDF.  The
 ``icepack.setup -s`` option ``ionetcdf`` will set the ICE_IOTYPE to netcdf, which turns on 
-the USE_NETCDF C preprocessor.  ``ionetcdf`` also sets the ``history_cdf`` flag to true.
+the USE_NETCDF C preprocessor.  ``ionetcdf`` also sets the ``history_format`` and 
+``restart_format`` flags to 'nc'.
 
 
 .. _bgc-hist:

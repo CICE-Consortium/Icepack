@@ -22,7 +22,8 @@
 
       ! history output file info
 
-      logical (kind=log_kind), public :: history_cdf      ! flag to turn on cdf history files
+      character (len=char_len), public :: &
+         history_format                           ! format of history files, only supported type is 'nc'
 
       character (len=char_len_long) :: hist_file  ! hist file name
 
@@ -68,11 +69,7 @@
          count1(1), count2(2), count3(3), count4(4), & ! cdf start/count arrays
          varid, &                        ! cdf varid
          status, &                       ! cdf status flag
-         iflag, &                        ! history file attributes
-         sec0, &                         ! number of seconds into the day at istep0
-         h0, &                           ! start hour
-         m0, &                           ! start minute
-         s0                              ! start second
+         iflag                           ! history file attributes
 
       character (len=8) :: &
          cdate                           ! date string

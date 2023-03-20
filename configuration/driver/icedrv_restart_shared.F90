@@ -14,6 +14,9 @@
          restart_file  , & ! output file for restart dump
          restart_dir       ! directory name for restart dump
 
+      character (len=char_len), public :: &
+         restart_format    ! format of restart files 'nc'
+
 !=======================================================================
 
       contains
