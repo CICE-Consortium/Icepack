@@ -1959,16 +1959,12 @@
 
          ! Local variables
          real (kind=dbl_kind) :: &
-            expansion_ratio, &   ! how much the ice area will expand
-            Tsfc                 ! surface temperature
+            expansion_ratio  ! how much the ice area will expand
          
          integer (kind=int_kind) :: &
             n          , & ! ice thickness category index
             it         , & ! tracer index
             k              ! layer index
-         
-         ! integer (kind=int_kind) :: &
-         !    nt_alvl, nt_apnd, nt_fbri
          
          real (kind=dbl_kind), dimension (ntrcr) :: &
             atrcrn         !  aicen*trcrn or vicen*trcrn or vsnon*trcrn
@@ -2003,25 +1999,6 @@
                   ctrcrn(2+it) = trcrn(it,n)
                enddo
             endif
-
-            ! Volume tracers depend linearly on ice area and thus need to be
-            ! scaled up by the area expansion. Area tracers should not be
-            ! scaled. Tracers that depend on other tracers are scaled if they
-            ! depend on volume
-            ! do it = 1, ntrcr
-            !    if (trcr_depend(it) == 1) then ! depends on ice volume
-            !       trcrn(it,n) = trcrn(it,n) * expansion_ratio
-            !    elseif (trcr_depend(it) == 2) then ! depends on snow volume
-            !       trcrn(it,n) = trcrn(it,n) * expansion_ratio
-            !    elseif (trcr_depend(it) == 2+nt_fbri) then
-            !       ! These tracers depend on brine volume? would be good
-            !       ! have someone familiar with bgc tracers check
-            !       trcrn(it,n) = trcrn(it,n) * expansion_ratio
-            !    endif
-            ! enddo
-            ! That code doesn't work
-            ! Somehow modifying the tracers like this is changing the temperature within the layers
-            ! figure this out tomorrow.
 
             ! Convert tracers and scale up (i.e., the combination of the 
             ! state_to_work, and transport_upwind functions in ice_transport_driver)

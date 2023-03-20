@@ -747,6 +747,15 @@ cases.  Current filenames can be found in the options scripts in
    about 4 :math:`W/m^2` for biases in the forcings or the model. In the namelist, set ``atm_data_type = clim`` 
    to use climatological atmospheric forcing.
 
+Horizontal ice advection
+------------------------
+
+When Icepack is run in standalone (i.e., single column) mode with a dynamical forcing (e.g., ``ocn_data_type = SHEBA``),
+closing implies the advection of area into the grid cell. The default assumption 
+(in the namelist, ``ice_advc_type = uniform``) is that the simulated grid cell is surrounded by grid cells with identical
+ice properties and this uniform ice is advected in by closing. Alternatively, one may assume that the simulated grid
+cell is surrounded by open water (in the namelist, ``ice_advc_type = none``). Note, that assuming the grid cell is
+surrounded by open water means that closing (i.e. ice convergence) will produce open water in the grid cell.
 
 Run Directories
 ---------------

@@ -10,6 +10,7 @@
       use icedrv_kinds
 !      use icedrv_calendar, only: istep1
       use icedrv_forcing, only: ocn_data_type
+      use icedrv_forcing, only: ice_advc_type
       use icedrv_system, only: icedrv_system_abort
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
@@ -724,10 +725,6 @@
          integer (kind=int_kind) :: &
             i,            & ! horizontal indices
             ntrcr          !
-         
-         !real (kind=dbl_kind) :: &
-         !   closing_area, & ! fractional area closed due to ice dynamics
-         !   aice_post_advection ! ice area after advecting ice to fill in closed area
    
          character(len=*), parameter :: subname='(step_advection_scm)'
    
@@ -743,31 +740,32 @@
          !-----------------------------------------------------------------
          ! Ice advection
          !-----------------------------------------------------------------
-            ! Currently SHEBA is the only forcing that includes closing so
-            ! we only need to advect ice in this case. This will change in
-            ! the future.
-            if (trim(ocn_data_type) == "SHEBA") then
+            ! Currently only uniform (and none) advection is implemented
+            if (trim(ice_advc_type) == "uniform") then
    
-            do i = 1, nx
-   
-            if (tmask(i)) then
-   
-               call icepack_step_advection_scm(dt=dt,           ncat=ncat,       &
-                                               nilyr=nilyr,     nslyr=nslyr,     &
-                                               trcrn=trcrn(i,1:ntrcr,:),         &
-                                               trcr_depend=trcr_depend(1:ntrcr), &
-                                               n_trcr_strata=n_trcr_strata(1:ntrcr),&
-                                               nt_strata=nt_strata(1:ntrcr,:),   &
-                                               trcr_base=trcr_base(1:ntrcr,:),   &
-                                               aicen=aicen(i,:),                 &
-                                               vicen=vicen(i,:),                 &
-                                               vsnon=vsnon(i,:),                 &
-                                               aice0=aice0(i),                   &
-                                               closing=closing(i) )               
-   
-            endif ! tmask
-   
-            enddo ! i
+               do i = 1, nx
+      
+               if (tmask(i)) then
+      
+                  call icepack_step_advection_scm(dt=dt,           ncat=ncat,       &
+                                                nilyr=nilyr,     nslyr=nslyr,     &
+                                                trcrn=trcrn(i,1:ntrcr,:),         &
+                                                trcr_depend=trcr_depend(1:ntrcr), &
+                                                n_trcr_strata=n_trcr_strata(1:ntrcr),&
+                                                nt_strata=nt_strata(1:ntrcr,:),   &
+                                                trcr_base=trcr_base(1:ntrcr,:),   &
+                                                aicen=aicen(i,:),                 &
+                                                vicen=vicen(i,:),                 &
+                                                vsnon=vsnon(i,:),                 &
+                                                aice0=aice0(i),                   &
+                                                closing=closing(i) )               
+      
+               endif ! tmask
+      
+               enddo ! i
+            elseif (trim(ice_advc_type) /= "none") then
+               call icedrv_system_abort(string=subname//' ERROR: unknown ice_advc_type: '&
+                //trim(ice_advc_type),file=__FILE__,line=__LINE__)
    
             endif
             call icepack_warnings_flush(nu_diag)
@@ -843,11 +841,6 @@
 
          if (tmask(i)) then
 
-            !divu(i) = closing(i)
-            ! Compute the fraction of ice area that closing would open
-            ! if we do not advect ice in
-            !closing_area = closing(i) * dt
-
             call icepack_step_ridge(dt=dt,         ndtd=ndtd,                &
                          nilyr=nilyr,              nslyr=nslyr,              &
                          nblyr=nblyr,                                        &
@@ -876,35 +869,6 @@
                          first_ice=first_ice(i,:), fzsal=fzsal(i),           &
                          flux_bio=flux_bio(i,1:nbtrcr),                      &
                          closing=closing(i) )
-            
-            ! Assuming that this grid cell is embedded in a uniform ice cover
-            ! ice advection will fill the closed area with ice of the same
-            ! properties. Calculate the ice area after this advection
-            ! (which must be capped at 1)
-            !aice_post_advection = aice(i) + closing_area
-            !aice_post_advection = min(aice_post_advection, c1)
-            ! Rescale area and volume state variables
-            !do j = 1, ncat
-            !   aicen(i,j) = aicen(i,j) * aice_post_advection / aice(i)
-            !   vicen(i,j) = vicen(i,j) * aice_post_advection / aice(i)
-            !   vsnon(i,j) = vsnon(i,j) * aice_post_advection / aice(i)
-            !enddo
-            ! Adjust ice area and open water area
-            !aice(i) = aice_post_advection
-            !aice0(i) = c1 - aice(i)
-            ! Handle other tracers?
-
-            ! Need to store divu for history output, calculate divu in the same
-            ! way that divu_adv is calculated in icepack_mechred
-            !divu(i) = opening(i) !- closing(i)
-            ! After a mechanical step in which there is opening and closing
-            !if (rescale_ice_area) then
-            !   divu_frc = opening(i) - closing(i)
-
-               ! if there was net closing, then the ridging step will have 
-               ! created a new open water fraction equal to the net closing
-               ! 
-            
 
          endif ! tmask
 
