@@ -6,7 +6,7 @@
 
       module icedrv_step
 
-      use icedrv_constants, only: c0, nu_diag, c4
+      use icedrv_constants, only: c0, nu_diag, c4, c1
       use icedrv_kinds
 !      use icedrv_calendar, only: istep1
       use icedrv_forcing, only: ocn_data_type
@@ -23,7 +23,8 @@
 
       public :: step_therm1, step_therm2, step_dyn_ridge, &
                 prep_radiation, step_radiation, ocean_mixed_layer, &
-                update_state, biogeochemistry, step_dyn_wave, step_snow
+                update_state, biogeochemistry, step_dyn_wave, step_snow, &
+                step_advection_scm
 
 !=======================================================================
 
@@ -696,6 +697,85 @@
 
       end subroutine step_dyn_wave
 
+
+!=======================================================================
+!
+! Run one time step of horizontal advection (if there is closing)
+!
+! authors: David Clemens-Sewall, NCAR
+
+      subroutine step_advection_scm (dt)
+
+         use icedrv_domain_size, only: ncat, nx, nilyr, nslyr
+         use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
+         use icedrv_flux, only: closing
+         use icedrv_init, only: tmask
+         use icedrv_state, only: trcrn, vsnon, aicen, vicen, trcr_base
+         use icedrv_state, only: aice0, trcr_depend, n_trcr_strata, nt_strata
+   
+         ! column package includes
+         use icepack_intfc, only: icepack_step_advection_scm
+   
+         real (kind=dbl_kind), intent(in) :: &
+            dt      ! time step
+   
+         ! local variables
+   
+         integer (kind=int_kind) :: &
+            i,            & ! horizontal indices
+            ntrcr          !
+         
+         !real (kind=dbl_kind) :: &
+         !   closing_area, & ! fractional area closed due to ice dynamics
+         !   aice_post_advection ! ice area after advecting ice to fill in closed area
+   
+         character(len=*), parameter :: subname='(step_advection_scm)'
+   
+         !-----------------------------------------------------------------
+         ! query icepack values
+         !-----------------------------------------------------------------
+   
+            call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                file=__FILE__,line= __LINE__)
+   
+         !-----------------------------------------------------------------
+         ! Ice advection
+         !-----------------------------------------------------------------
+            ! Currently SHEBA is the only forcing that includes closing so
+            ! we only need to advect ice in this case. This will change in
+            ! the future.
+            if (trim(ocn_data_type) == "SHEBA") then
+   
+            do i = 1, nx
+   
+            if (tmask(i)) then
+   
+               call icepack_step_advection_scm(dt=dt,           ncat=ncat,       &
+                                               nilyr=nilyr,     nslyr=nslyr,     &
+                                               trcrn=trcrn(i,1:ntrcr,:),         &
+                                               trcr_depend=trcr_depend(1:ntrcr), &
+                                               n_trcr_strata=n_trcr_strata(1:ntrcr),&
+                                               nt_strata=nt_strata(1:ntrcr,:),   &
+                                               trcr_base=trcr_base(1:ntrcr,:),   &
+                                               aicen=aicen(i,:),                 &
+                                               vicen=vicen(i,:),                 &
+                                               vsnon=vsnon(i,:),                 &
+                                               aice0=aice0(i),                   &
+                                               closing=closing(i) )               
+   
+            endif ! tmask
+   
+            enddo ! i
+   
+            endif
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                file=__FILE__, line=__LINE__)
+   
+         end subroutine step_advection_scm
+   
 !=======================================================================
 !
 ! Run one time step of ridging.
@@ -715,6 +795,7 @@
       use icedrv_state, only: trcrn, vsnon, aicen, vicen
       use icedrv_state, only: aice, aice0, trcr_depend, n_trcr_strata
       use icedrv_state, only: trcr_base, nt_strata
+      use icedrv_state, only: divu
 
       ! column package includes
       use icepack_intfc, only: icepack_step_ridge
@@ -730,7 +811,12 @@
       integer (kind=int_kind) :: &
          i,            & ! horizontal indices
          ntrcr,        & !
-         nbtrcr          !
+         nbtrcr,       & !
+         j               ! ice category index
+      
+      real (kind=dbl_kind) :: &
+         closing_area, & ! fractional area closed due to ice dynamics
+         aice_post_advection ! ice area after advecting ice to fill in closed area
 
       character(len=*), parameter :: subname='(step_dyn_ridge)'
 
@@ -756,6 +842,11 @@
 !      if (atmp > c0) then
 
          if (tmask(i)) then
+
+            !divu(i) = closing(i)
+            ! Compute the fraction of ice area that closing would open
+            ! if we do not advect ice in
+            !closing_area = closing(i) * dt
 
             call icepack_step_ridge(dt=dt,         ndtd=ndtd,                &
                          nilyr=nilyr,              nslyr=nslyr,              &
@@ -786,6 +877,26 @@
                          flux_bio=flux_bio(i,1:nbtrcr),                      &
                          closing=closing(i) )
             
+            ! Assuming that this grid cell is embedded in a uniform ice cover
+            ! ice advection will fill the closed area with ice of the same
+            ! properties. Calculate the ice area after this advection
+            ! (which must be capped at 1)
+            !aice_post_advection = aice(i) + closing_area
+            !aice_post_advection = min(aice_post_advection, c1)
+            ! Rescale area and volume state variables
+            !do j = 1, ncat
+            !   aicen(i,j) = aicen(i,j) * aice_post_advection / aice(i)
+            !   vicen(i,j) = vicen(i,j) * aice_post_advection / aice(i)
+            !   vsnon(i,j) = vsnon(i,j) * aice_post_advection / aice(i)
+            !enddo
+            ! Adjust ice area and open water area
+            !aice(i) = aice_post_advection
+            !aice0(i) = c1 - aice(i)
+            ! Handle other tracers?
+
+            ! Need to store divu for history output, calculate divu in the same
+            ! way that divu_adv is calculated in icepack_mechred
+            !divu(i) = opening(i) !- closing(i)
             ! After a mechanical step in which there is opening and closing
             !if (rescale_ice_area) then
             !   divu_frc = opening(i) - closing(i)

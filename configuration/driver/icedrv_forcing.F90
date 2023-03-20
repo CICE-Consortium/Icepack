@@ -454,6 +454,8 @@
 
         opening(:) =   c1intp * open_data(mlast) + c2intp * open_data(mnext)
         closing(:) = -(c1intp * clos_data(mlast) + c2intp * clos_data(mnext))
+        !opening(:) = open_data(timestep)
+        !closing(:) = -1*clos_data(timestep)
 
       endif
 

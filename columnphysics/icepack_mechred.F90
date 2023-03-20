@@ -41,8 +41,9 @@
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: conserv_check
-      use icepack_tracers, only: tr_pond_topo, tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
-      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
+      use icepack_tracers, only: tr_pond_topo, tr_pond_lvl, tr_aero, tr_iso, tr_brine
+      use icepack_tracers, only: tr_pond, tr_lvl, ntrcr, nbtrcr
+      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice, nt_Tsfc
       use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers, only: nt_apnd, nt_hpnd
       use icepack_tracers, only: n_iso
@@ -59,7 +60,8 @@
 
       private
       public :: icepack_ice_strength, &
-                icepack_step_ridge
+                icepack_step_ridge, &
+                icepack_step_advection_scm
 
       real (kind=dbl_kind), parameter :: &
          exp_argmax = 100.0_dbl_kind, &    ! maximum argument of exponential for underflow
@@ -1910,6 +1912,241 @@
       end subroutine icepack_step_ridge
 
 !=======================================================================
+      subroutine icepack_step_advection_scm (dt,                     &
+                                             ncat,                   &
+                                             nilyr,     nslyr,       &
+                                             trcrn,     trcr_depend, &
+                                             n_trcr_strata,          &
+                                             nt_strata,              &
+                                             trcr_base,              &
+                                             aicen,                  &
+                                             vicen,        vsnon,    &
+                                             aice0,                  &
+                                             closing )
+      
+         integer (kind=int_kind), intent(in) :: &
+            ncat  , & ! number of thickness categories
+            nilyr , & ! number of ice layers
+            nslyr     ! number of snow layers
+            
+         integer (kind=int_kind), dimension (ntrcr), intent(in) ::     &
+            trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
+            n_trcr_strata  ! number of underlying tracer layers
+         
+         real (kind=dbl_kind), dimension (ntrcr,3), intent(in) :: &
+            trcr_base      ! = 0 or 1 depending on tracer dependency
+                           ! argument 2:  (1) aice, (2) vice, (3) vsno
+         
+         integer (kind=int_kind), dimension (ntrcr,2), intent(in) :: &
+            nt_strata      ! indices of underlying tracer layers
+
+         real (kind=dbl_kind), intent(in) :: &
+            dt             ! time step (s)
+
+         real (kind=dbl_kind), intent(inout) :: &
+            aice0          ! concentration of open water
+
+         real (kind=dbl_kind), dimension (:), intent(inout) :: &
+            aicen      , & ! concentration of ice
+            vicen      , & ! volume per unit area of ice          (m)
+            vsnon          ! volume per unit area of snow         (m)
+
+         real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
+            trcrn          ! ice tracers
+
+         real (kind=dbl_kind), intent(in) :: &
+            closing        ! rate of closing (1/s)
+
+         ! Local variables
+         real (kind=dbl_kind) :: &
+            expansion_ratio, &   ! how much the ice area will expand
+            Tsfc                 ! surface temperature
+         
+         integer (kind=int_kind) :: &
+            n          , & ! ice thickness category index
+            it         , & ! tracer index
+            k              ! layer index
+         
+         ! integer (kind=int_kind) :: &
+         !    nt_alvl, nt_apnd, nt_fbri
+         
+         real (kind=dbl_kind), dimension (ntrcr) :: &
+            atrcrn         !  aicen*trcrn or vicen*trcrn or vsnon*trcrn
+         
+         real (kind=dbl_kind), dimension (ntrcr + 2) :: &
+            ctrcrn         ! conserved quantities for conservation check
+
+         character(len=*), parameter :: subname = '(icepack_step_advection_scm)'
+
+
+         ! We assume that this single column grid cell is surrounded by
+         ! identical ice. If so, ice closing implies the advection of
+         ! this surrounding ice into the single column grid cell.
+         ! Equivalently, one can think of this step as expanding the
+         ! domain of the grid cell before the ridging step will
+         ! contract the domain.
+         expansion_ratio = c1 + closing * dt
+         aice0 = aice0 * expansion_ratio
+         do n = 1, ncat
+
+            if (conserv_check) then
+               ! Populate ctrcrn array, this advection should conserve within
+               ! each layer, ice thickness, snow thickness, tracers quantities
+
+               ! ice thickness
+               ctrcrn(1) = vicen(n)/aicen(n)
+               ! snow thickness
+               ctrcrn(2) = vsnon(n)/aicen(n)
+
+               ! Other tracers
+               do it = 1, ntrcr
+                  ctrcrn(2+it) = trcrn(it,n)
+               enddo
+            endif
+
+            ! Volume tracers depend linearly on ice area and thus need to be
+            ! scaled up by the area expansion. Area tracers should not be
+            ! scaled. Tracers that depend on other tracers are scaled if they
+            ! depend on volume
+            ! do it = 1, ntrcr
+            !    if (trcr_depend(it) == 1) then ! depends on ice volume
+            !       trcrn(it,n) = trcrn(it,n) * expansion_ratio
+            !    elseif (trcr_depend(it) == 2) then ! depends on snow volume
+            !       trcrn(it,n) = trcrn(it,n) * expansion_ratio
+            !    elseif (trcr_depend(it) == 2+nt_fbri) then
+            !       ! These tracers depend on brine volume? would be good
+            !       ! have someone familiar with bgc tracers check
+            !       trcrn(it,n) = trcrn(it,n) * expansion_ratio
+            !    endif
+            ! enddo
+            ! That code doesn't work
+            ! Somehow modifying the tracers like this is changing the temperature within the layers
+            ! figure this out tomorrow.
+
+            ! Convert tracers and scale up (i.e., the combination of the 
+            ! state_to_work, and transport_upwind functions in ice_transport_driver)
+            do it = 1, ntrcr
+               if (trcr_depend(it) == 0) then
+                  atrcrn(it) = aicen(n)*trcrn(it,n)*expansion_ratio
+               elseif (trcr_depend(it) == 1) then
+                  atrcrn(it) = vicen(n)*trcrn(it,n)*expansion_ratio
+               elseif (trcr_depend(it) == 2) then
+                  atrcrn(it) = vsnon(n)*trcrn(it,n)*expansion_ratio
+               elseif (trcr_depend(it) == 2+nt_alvl) then
+                  atrcrn(it) = aicen(n)*trcrn(nt_alvl,n)*trcrn(it,n)*expansion_ratio
+               elseif (trcr_depend(it) == 2+nt_apnd .and. &
+                       tr_pond_topo) then
+                  atrcrn(it) = aicen(n)*trcrn(nt_apnd,n)*trcrn(it,n)*expansion_ratio
+               elseif (trcr_depend(it) == 2+nt_apnd .and. &
+                       tr_pond_lvl) then
+                  atrcrn(it) = aicen(n)*trcrn(nt_alvl,n)*trcrn(nt_apnd,n)*trcrn(it,n)*expansion_ratio
+               elseif (trcr_depend(it) == 2+nt_fbri) then
+                  atrcrn(it) = vicen(n)*trcrn(nt_fbri,n)*trcrn(it,n)*expansion_ratio
+               endif
+            enddo
+
+            ! Scale up state variables (the equivalent of transport_upwind,
+            ! and work_to_state for just the state variables)
+            aicen(n) = aicen(n) * expansion_ratio
+            vicen(n) = vicen(n) * expansion_ratio
+            vsnon(n) = vsnon(n) * expansion_ratio
+
+            ! Call compute tracers (equivalent of work_to_state)
+            call icepack_compute_tracers (ntrcr,       trcr_depend,   &
+                                          atrcrn, aicen(n),      &
+                                          vicen(n),    vsnon(n),      &
+                                          trcr_base,   n_trcr_strata, &
+                                          nt_strata,   trcrn(:,n))
+            if (icepack_warnings_aborted(subname)) return
+
+            if (conserv_check) then
+               ! Check that we conserved values 
+               ! for some tracers s.t. their ratio is less than
+               ! puny (puny is 1e-11, so for large values it's less than dbl precision)
+               ! only do this if there is any ice area in this category
+               if (aicen(n) >= puny) then
+                  ! ice thickness
+                  if (abs (ctrcrn(1) - vicen(n)/aicen(n)) > puny) then
+                     call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                     call icepack_warnings_add(subname//" different ice thickness")
+                  endif
+                  ! snow thickness
+                  if (abs (ctrcrn(2) - vsnon(n)/aicen(n)) > puny) then
+                     call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                     call icepack_warnings_add(subname//" different snow thickness")
+                  endif
+                  ! ice layer enthalpy and salinity per unit area
+                  do k = 1, nilyr
+                     if (abs (1 - ctrcrn(2+nt_qice+k-1) / trcrn(nt_qice+k-1,n)) > puny) then
+                        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                        write(warnstr,*) 'orig qice: ', ctrcrn(2+nt_qice+k-1), ' new qice: ', trcrn(nt_qice+k-1,n)
+                        call icepack_warnings_add(warnstr)
+                        write(warnstr,*) 'expansion ratio: ', expansion_ratio, ' aicen: ', aicen(n)
+                        call icepack_warnings_add(warnstr)
+                        call icepack_warnings_add(subname//" different ice enthalpy")
+                     endif
+                     if (abs (ctrcrn(2+nt_sice+k-1) - trcrn(nt_sice+k-1,n)) > puny) then
+                        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                        write(warnstr,*) 'orig sice: ', ctrcrn(2+nt_sice+k-1), ' new sice: ', trcrn(nt_sice+k-1,n)
+                        call icepack_warnings_add(warnstr)
+                        write(warnstr,*) 'expansion ratio: ', expansion_ratio, ' aicen: ', aicen(n)
+                        call icepack_warnings_add(warnstr)
+                        call icepack_warnings_add(subname//" different ice salinity")
+                     endif
+                  enddo
+                  ! snow layer enthalpy
+                  if (vsnon(n) > puny) then
+                     do k = 1, nslyr
+                        if (abs (1 - ctrcrn(2+nt_qsno+k-1) / trcrn(nt_qsno+k-1,n)) > puny) then
+                           call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                           write(warnstr,*) 'orig qsno: ', ctrcrn(2+nt_qsno+k-1), ' new qsno: ', trcrn(nt_qsno+k-1,n)
+                           call icepack_warnings_add(warnstr)
+                           write(warnstr,*) 'expansion ratio: ', expansion_ratio, ' aicen: ', aicen(n), ' vsnon: ', vsnon(n)
+                           call icepack_warnings_add(warnstr)
+                           call icepack_warnings_add(subname//" different snow enthalpy")
+                        endif
+                     enddo
+                  endif
+                  ! surface temperature
+                  if (abs (ctrcrn(2+nt_Tsfc) - trcrn(nt_Tsfc,n)) > puny) then
+                     call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                     write(warnstr,*) 'orig Tsfc: ', ctrcrn(2+nt_Tsfc), ' new Tsfc: ', trcrn(nt_Tsfc,n)
+                     call icepack_warnings_add(warnstr)
+                     write(warnstr,*) 'expansion ratio: ', expansion_ratio, ' aicen: ', aicen(n)
+                     call icepack_warnings_add(warnstr)
+                     call icepack_warnings_add(subname//" different surface temperature")
+                  endif
+                  ! level ice area
+                  if (tr_lvl) then
+                     if (abs (ctrcrn(2+nt_alvl) - trcrn(nt_alvl,n)) > puny) then
+                        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                        call icepack_warnings_add(subname//" different level ice area")
+                     endif
+                  endif
+                  if (tr_pond) then
+                     ! pond area
+                     if (abs (ctrcrn(2+nt_apnd) - trcrn(nt_apnd,n)) > puny) then
+                        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                        call icepack_warnings_add(subname//" different pond area")
+                     endif
+                     ! pond depth
+                     if (abs (ctrcrn(2+nt_hpnd) - trcrn(nt_hpnd,n)) > puny) then
+                        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                        call icepack_warnings_add(subname//" different pond depth")
+                     endif
+                  endif
+                  ! brine height
+                  if (tr_brine) then
+                     if (abs (ctrcrn(2+nt_fbri) - trcrn(nt_fbri,n)) > puny) then
+                        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+                        call icepack_warnings_add(subname//" different brine height fraction")
+                     endif
+                  endif
+               endif
+            endif
+         enddo
+
+      end subroutine icepack_step_advection_scm
 
       end module icepack_mechred
 
