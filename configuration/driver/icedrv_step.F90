@@ -742,36 +742,37 @@
          !-----------------------------------------------------------------
          ! Ice advection
          !-----------------------------------------------------------------
-            ! Currently only uniform (and none) advection is implemented
-            ! Also, we only do ridging for the SHEBA ocean data type (in step_dyn_ridge)
-            if (trim(ice_advc_type) == "uniform" .and. &
-                trim(ocn_data_type) == "SHEBA") then
-   
-               do i = 1, nx
+            ! Currently we only do ridging for the SHEBA ocean data type (in step_dyn_ridge)
+            if (trim(ocn_data_type) == "SHEBA") then
+               ! Currently only uniform (and none) advection is implemented
+               if (trim(ice_advc_type) == "uniform") then
       
-               if (tmask(i)) then
-      
-                  call icepack_step_advection_scm(dt=dt,           ncat=ncat,       &
-                                                nilyr=nilyr,     nslyr=nslyr,     &
-                                                trcrn=trcrn(i,1:ntrcr,:),         &
-                                                trcr_depend=trcr_depend(1:ntrcr), &
-                                                n_trcr_strata=n_trcr_strata(1:ntrcr),&
-                                                nt_strata=nt_strata(1:ntrcr,:),   &
-                                                trcr_base=trcr_base(1:ntrcr,:),   &
-                                                aicen=aicen(i,:),                 &
-                                                vicen=vicen(i,:),                 &
-                                                vsnon=vsnon(i,:),                 &
-                                                aice0=aice0(i),                   &
-                                                closing=closing(i) )               
-      
-               endif ! tmask
-      
-               enddo ! i
-            elseif (trim(ice_advc_type) /= "none") then
-               call icedrv_system_abort(string=subname//' ERROR: unknown ice_advc_type: '&
-                //trim(ice_advc_type),file=__FILE__,line=__LINE__)
-   
+                  do i = 1, nx
+         
+                  if (tmask(i)) then
+         
+                     call icepack_step_advection_scm(dt=dt,           ncat=ncat,       &
+                                                   nilyr=nilyr,     nslyr=nslyr,     &
+                                                   trcrn=trcrn(i,1:ntrcr,:),         &
+                                                   trcr_depend=trcr_depend(1:ntrcr), &
+                                                   n_trcr_strata=n_trcr_strata(1:ntrcr),&
+                                                   nt_strata=nt_strata(1:ntrcr,:),   &
+                                                   trcr_base=trcr_base(1:ntrcr,:),   &
+                                                   aicen=aicen(i,:),                 &
+                                                   vicen=vicen(i,:),                 &
+                                                   vsnon=vsnon(i,:),                 &
+                                                   aice0=aice0(i),                   &
+                                                   closing=closing(i) )               
+         
+                  endif ! tmask
+         
+                  enddo ! i
+               elseif (trim(ice_advc_type) /= "none") then
+                  call icedrv_system_abort(string=subname//' ERROR: unknown ice_advc_type: '&
+                  //trim(ice_advc_type),file=__FILE__,line=__LINE__)
+               endif
             endif
+
             call icepack_warnings_flush(nu_diag)
             if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                 file=__FILE__, line=__LINE__)

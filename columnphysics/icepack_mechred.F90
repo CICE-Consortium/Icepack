@@ -1988,16 +1988,17 @@
             if (conserv_check) then
                ! Populate ctrcrn array, this advection should conserve within
                ! each layer, ice thickness, snow thickness, tracers quantities
+               if (aicen(n) >= puny) then
+                  ! ice thickness
+                  ctrcrn(1) = vicen(n)/aicen(n)
+                  ! snow thickness
+                  ctrcrn(2) = vsnon(n)/aicen(n)
 
-               ! ice thickness
-               ctrcrn(1) = vicen(n)/aicen(n)
-               ! snow thickness
-               ctrcrn(2) = vsnon(n)/aicen(n)
-
-               ! Other tracers
-               do it = 1, ntrcr
-                  ctrcrn(2+it) = trcrn(it,n)
-               enddo
+                  ! Other tracers
+                  do it = 1, ntrcr
+                     ctrcrn(2+it) = trcrn(it,n)
+                  enddo
+               endif
             endif
 
             ! Convert tracers and scale up (i.e., the combination of the 
