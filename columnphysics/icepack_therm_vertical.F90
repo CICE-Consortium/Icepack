@@ -302,7 +302,9 @@
       if (calc_Tsfc) then
          fsensn  = c0
          flatn     = c0
+#ifndef GEOSCOUPLED
          fsurfn    = c0
+#endif
          fcondtopn = c0
       endif
 
