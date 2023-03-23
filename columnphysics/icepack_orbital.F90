@@ -149,6 +149,7 @@
 
 #ifdef CESMCOUPLED
       use shr_orb_mod, only: shr_orb_decl
+      use icepack_parameters, only: icepack_chkoptargflag
 #endif
 
       real (kind=dbl_kind), intent(in) :: &
