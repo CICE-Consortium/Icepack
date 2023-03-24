@@ -1006,10 +1006,12 @@
            faero_ocn(it) = faero_ocn(it) + dfaero_ocn(it)
          enddo
       endif
-      if (tr_iso) then
-         do it = 1, n_iso
-           fiso_ocn(it) = fiso_ocn(it) + dfiso_ocn(it)
-         enddo
+      if (present(fiso_ocn)) then
+         if (tr_iso) then
+            do it = 1, n_iso
+              fiso_ocn(it) = fiso_ocn(it) + dfiso_ocn(it)
+            enddo
+         endif
       endif
       if (present(flux_bio)) then
          do it = 1, nbtrcr

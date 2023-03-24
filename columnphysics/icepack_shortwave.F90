@@ -111,8 +111,8 @@
       implicit none
 
       private
-      public :: icepack_init_radiation, &
-                icepack_prep_radiation, &
+      public :: icepack_prep_radiation, &
+                icepack_init_radiation, &
                 icepack_step_radiation
 
       real (kind=dbl_kind), parameter :: &

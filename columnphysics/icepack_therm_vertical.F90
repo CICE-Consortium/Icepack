@@ -60,9 +60,7 @@
       implicit none
 
       private
-      public :: frzmlt_bottom_lateral, &
-                thermo_vertical, &
-                icepack_step_therm1
+      public :: icepack_step_therm1
 
 !=======================================================================
 
@@ -492,7 +490,7 @@
                                         strocnxT, strocnyT, &
                                         Tbot,     fbot,     &
                                         rside,    Cdn_ocn,  &
-                                        fside)
+                                        fside,    wlat)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -526,6 +524,7 @@
       real (kind=dbl_kind), intent(out) :: &
          Tbot    , & ! ice bottom surface temperature (deg C)
          fbot    , & ! heat flux to ice bottom  (W/m^2)
+         wlat    , & ! lateral melt rate (m/s)
          rside   , & ! fraction of ice that melts laterally
          fside       ! lateral heat flux (W/m^2)
 
@@ -542,7 +541,6 @@
       real (kind=dbl_kind) :: &
          deltaT    , & ! SST - Tbot >= 0
          ustar     , & ! skin friction velocity for fbot (m/s)
-         wlat      , & ! lateral melt rate (m/s)
          xtmp          ! temporary variable
 
       ! Parameters for bottom melting
@@ -615,31 +613,24 @@
          do n = 1, ncat
 
             etot = c0
-            qavg = c0
-
             ! melting energy/unit area in each column, etot < 0
 
             do k = 1, nslyr
                etot = etot + qsnon(k,n) * vsnon(n)/real(nslyr,kind=dbl_kind)
-               qavg = qavg + qsnon(k,n)
             enddo
 
             do k = 1, nilyr
                etot = etot + qicen(k,n) * vicen(n)/real(nilyr,kind=dbl_kind)
-               qavg = qavg + qicen(k,n)
             enddo                  ! nilyr
 
             ! lateral heat flux, fside < 0
-            if (tr_fsd) then ! floe size distribution
-               fside = fside + wlat*qavg
-            else             ! default floe size
-               fside = fside + rside*etot/dt
-            endif
+            fside = fside + rside*etot/dt
 
          enddo                     ! n
 
       !-----------------------------------------------------------------
       ! Limit bottom and lateral heat fluxes if necessary.
+      ! FYI: fside is not yet correct for fsd, may need to adjust fbot further
       !-----------------------------------------------------------------
 
          xtmp = frzmlt/(fbot + fside + puny)
@@ -2118,7 +2109,7 @@
                                     fbot        ,               &
                                     Tbot        , Tsnice      , &
                                     frzmlt      , rside       , &
-                                    fside       ,               &
+                                    fside       , wlat        , &
                                     fsnow       , frain       , &
                                     fpond       , fsloss      , &
                                     fsurf       , fsurfn      , &
@@ -2259,21 +2250,28 @@
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset       ! day of year that freezing begins (congel or frazil)
 
+      real (kind=dbl_kind), intent(out), optional :: &
+         wlat            ! lateral melt rate                    (m/s)
+
       real (kind=dbl_kind), intent(inout), optional :: &
          fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
          fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
          dsnow       , & ! change in snow depth     (m/step-->cm/day)
-         meltsliq    , & ! mass of snow melt                 (kg/m^2)
          fsloss          ! rate of snow loss to leads      (kg/m^2/s)
+
+      real (kind=dbl_kind), intent(out), optional :: &
+         meltsliq        ! mass of snow melt                 (kg/m^2)
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          Qa_iso      , & ! isotope specific humidity          (kg/kg)
          Qref_iso    , & ! isotope 2m atm ref spec humidity   (kg/kg)
          fiso_atm    , & ! isotope deposition rate         (kg/m^2 s)
          fiso_ocn    , & ! isotope flux to ocean           (kg/m^2/s)
-         fiso_evap   , & ! isotope evaporation             (kg/m^2/s)
+         fiso_evap       ! isotope evaporation             (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          meltsliqn       ! mass of snow melt                 (kg/m^2)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
@@ -2393,7 +2391,7 @@
          smice       , & ! tracer for mass of ice in snow    (kg/m^3)
          smliq           ! tracer for mass of liquid in snow (kg/m^3)
 
-      real (kind=dbl_kind), allocatable, dimension(:) :: &
+      real (kind=dbl_kind), dimension(ncat) :: &
          l_meltsliqn     ! mass of snow melt local           (kg/m^2)
 
       real (kind=dbl_kind) :: &
@@ -2444,6 +2442,13 @@
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             return
          endif
+         if (tr_fsd) then
+            if (.not.(present(wlat))) then
+               call icepack_warnings_add(subname//' error in FSD arguments, tr_fsd=T')
+               call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+               return
+            endif
+         endif
       endif
 
       !-----------------------------------------------------------------
@@ -2454,11 +2459,8 @@
       smice(:) = c0
       smliq(:) = c0
 
-      allocate(l_meltsliqn(ncat))
-      l_meltsliqn = c0
-      if (present(meltsliqn)) l_meltsliqn = meltsliqn
       l_meltsliq  = c0
-      if (present(meltsliq )) l_meltsliq  = meltsliq
+      l_meltsliqn = c0
 
       !-----------------------------------------------------------------
       ! Initialize rate of snow loss to leads
@@ -2541,7 +2543,7 @@
                                   strocnxT,  strocnyT,  &
                                   Tbot,      fbot,      &
                                   rside,     Cdn_ocn,   &
-                                  fside)
+                                  fside,     wlat)
 
       if (icepack_warnings_aborted(subname)) return
 
@@ -2552,7 +2554,6 @@
          congeln(n) = c0
          snoicen(n) = c0
          dsnown (n) = c0
-         l_meltsliqn(n) = c0
 
          Trefn  = c0
          Qrefn  = c0
@@ -2872,14 +2873,14 @@
                                meltb=meltb,       snoicen=snoicen(n),&
                                dsnow=dsnow,       dsnown=dsnown(n), &
                                congel=congel,     snoice=snoice,    &
-                               meltsliq=l_meltsliq,      &
-                               meltsliqn=l_meltsliqn(n), &
-                               Uref=Uref,  Urefn=Urefn,  &
-                               Qref_iso=Qref_iso,      &
-                               Qrefn_iso=Qrefn_iso,      &
-                               fiso_ocn=fiso_ocn,      &
-                               fiso_ocnn=fiso_ocnn,      &
-                               fiso_evap=fiso_evap,    &
+                               meltsliq=l_meltsliq,                 &
+                               meltsliqn=l_meltsliqn(n),            &
+                               Uref=Uref,         Urefn=Urefn,      &
+                               Qref_iso=Qref_iso,                   &
+                               Qrefn_iso=Qrefn_iso,                 &
+                               fiso_ocn=fiso_ocn,                   &
+                               fiso_ocnn=fiso_ocnn,                 &
+                               fiso_evap=fiso_evap,                 &
                                fiso_evapn=fiso_evapn)
 
             if (icepack_warnings_aborted(subname)) return
@@ -2915,7 +2916,6 @@
 
       if (present(meltsliqn   )) meltsliqn    = l_meltsliqn
       if (present(meltsliq    )) meltsliq     = l_meltsliq
-      deallocate(l_meltsliqn)
 
       !-----------------------------------------------------------------
       ! Calculate ponds from the topographic scheme
