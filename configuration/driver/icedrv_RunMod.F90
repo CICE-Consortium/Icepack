@@ -178,9 +178,7 @@
 
       do k = 1, ndtd
          
-         ! horizontal advection of ice into the single column
-         ! needed if we have closing (otherwise closing produces
-         ! open water)
+         ! horizontal advection of ice or open water into the single column
          call step_advection_scm(dt_dyn)
 
          ! ridging

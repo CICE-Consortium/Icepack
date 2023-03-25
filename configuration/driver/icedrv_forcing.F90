@@ -77,7 +77,7 @@
          atm_data_type,   & ! 'default', 'clim', 'CFS'
          ocn_data_type,   & ! 'default', 'SHEBA'
          bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
-         ice_advc_type,   & ! 'uniform', 'none'
+         ice_advection_type,   & ! 'uniform_ice', 'none'
          atm_data_file,   & ! atmospheric forcing data file
          ocn_data_file,   & ! ocean forcing data file
          ice_data_file,   & ! ice forcing data file
@@ -455,8 +455,6 @@
 
         opening(:) =   c1intp * open_data(mlast) + c2intp * open_data(mnext)
         closing(:) = -(c1intp * clos_data(mlast) + c2intp * clos_data(mnext))
-        !opening(:) = open_data(timestep)
-        !closing(:) = -1*clos_data(timestep)
 
       endif
 

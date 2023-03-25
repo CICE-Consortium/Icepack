@@ -224,7 +224,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "Hstar", "determines mean thickness of ridged ice", "25. m"
    "**I**", "", ""
    "i0vis","fraction of penetrating visible solar radiation", "0.70"
-   "ice_advc_type", ":math:`\bullet` how to handle ice advection due to closing in single column mode (uniform = advect uniform ice, none = advect open water)", "uniform"
+   "ice_advection_type", ":math:`\bullet` advect ice or open water when closing", ""
    "ice_ic", ":math:`\bullet` choice of initial conditions", ""
    "ice_stdout", "unit number for standard output", ""
    "ice_stderr", "unit number for standard error output", ""

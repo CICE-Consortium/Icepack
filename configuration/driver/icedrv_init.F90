@@ -73,7 +73,7 @@
       use icedrv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icedrv_forcing, only: data_dir
       use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
-      use icedrv_forcing, only: ice_advc_type
+      use icedrv_forcing, only: ice_advection_type
 
       ! local variables
 
@@ -177,7 +177,7 @@
         default_season,  wave_spec_type,  &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
-        ice_advc_type,                                     &
+        ice_advection_type,                                &
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
         ice_data_file,                                     &
         atm_data_format, ocn_data_format, bgc_data_format, &
@@ -278,7 +278,8 @@
       ocn_data_type   = 'default' ! source of ocean forcing data
       ocn_data_file   = ' '       ! ocean forcing data file
       ice_data_file   = ' '       ! ice forcing data file (opening, closing)
-      ice_advc_type   = 'uniform' ! if 'uniform' assume closing advects in uniform ice
+      ice_advection_type   = 'uniform_ice' ! if 'uniform_ice' assume closing 
+                                           ! advects in uniform ice
       bgc_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       bgc_data_type   = 'default' ! source of BGC forcing data
       bgc_data_file   = ' '       ! biogeochemistry forcing data file
@@ -767,8 +768,8 @@
          write(nu_diag,*)    ' bgc_data_type             = ', &
                                trim(bgc_data_type)
 
-         write(nu_diag,*)    ' ice_advc_type             = ', &
-                               trim(ice_advc_type)
+         write(nu_diag,*)    ' ice_advection_type        = ', &
+                               trim(ice_advection_type)
 
          write(nu_diag,*)    ' atm_data_file             = ', &
                                trim(atm_data_file)

@@ -10,7 +10,7 @@
       use icedrv_kinds
 !      use icedrv_calendar, only: istep1
       use icedrv_forcing, only: ocn_data_type
-      use icedrv_forcing, only: ice_advc_type
+      use icedrv_forcing, only: ice_advection_type
       use icedrv_system, only: icedrv_system_abort
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
@@ -745,7 +745,7 @@
             ! Currently we only do ridging for the SHEBA ocean data type (in step_dyn_ridge)
             if (trim(ocn_data_type) == "SHEBA") then
                ! Currently only uniform (and none) advection is implemented
-               if (trim(ice_advc_type) == "uniform") then
+               if (trim(ice_advection_type) == "uniform_ice") then
       
                   do i = 1, nx
          
@@ -767,9 +767,11 @@
                   endif ! tmask
          
                   enddo ! i
-               elseif (trim(ice_advc_type) /= "none") then
-                  call icedrv_system_abort(string=subname//' ERROR: unknown ice_advc_type: '&
-                  //trim(ice_advc_type),file=__FILE__,line=__LINE__)
+               elseif (trim(ice_advection_type) == "none") then
+                  ! do nothing:  no ice will be advected in, thus ridging will increase the open water area
+               else
+                  call icedrv_system_abort(string=subname//' ERROR: unknown ice_advection_type: '&
+                  //trim(ice_advection_type),file=__FILE__,line=__LINE__)
                endif
             endif
 
@@ -798,7 +800,6 @@
       use icedrv_state, only: trcrn, vsnon, aicen, vicen
       use icedrv_state, only: aice, aice0, trcr_depend, n_trcr_strata
       use icedrv_state, only: trcr_base, nt_strata
-      use icedrv_state, only: divu
 
       ! column package includes
       use icepack_intfc, only: icepack_step_ridge
@@ -817,10 +818,6 @@
          nbtrcr,       & !
          j               ! ice category index
       
-      real (kind=dbl_kind) :: &
-         closing_area, & ! fractional area closed due to ice dynamics
-         aice_post_advection ! ice area after advecting ice to fill in closed area
-
       character(len=*), parameter :: subname='(step_dyn_ridge)'
 
       !-----------------------------------------------------------------
