@@ -751,7 +751,7 @@ Horizontal ice advection
 ------------------------
 
 When Icepack is run in standalone (i.e., single column) mode with a dynamical forcing (e.g., ``ocn_data_type = SHEBA``),
-closing implies the advection of ice or open water into the grid cell. The default assumption 
+closing implies the advection of ice or open water area into the grid cell. The default assumption 
 (in the namelist, ``ice_advection_type = uniform_ice``) is that the simulated grid cell is surrounded by grid cells with identical
 ice properties and this uniform ice is advected in by closing. Alternatively, one may assume that the simulated grid
 cell is surrounded by open water (in the namelist, ``ice_advection_type = none``). Note, that assuming the grid cell is
