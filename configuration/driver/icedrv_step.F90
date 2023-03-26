@@ -709,16 +709,11 @@
 
       subroutine step_advection_scm (dt)
 
-         use icedrv_domain_size, only: ncat, nx, nilyr, nslyr
-         use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
+         use icedrv_domain_size, only: ncat, nx
          use icedrv_flux, only: closing
          use icedrv_init, only: tmask
-         use icedrv_state, only: trcrn, vsnon, aicen, vicen, trcr_base
-         use icedrv_state, only: aice0, trcr_depend, n_trcr_strata, nt_strata
-   
-         ! column package includes
-         use icepack_intfc, only: icepack_step_advection_scm
-   
+         use icedrv_state, only: vsnon, aicen, vicen, aice0
+      
          real (kind=dbl_kind), intent(in) :: &
             dt      ! time step
    
@@ -726,15 +721,16 @@
    
          integer (kind=int_kind) :: &
             i,            & ! horizontal indices
-            ntrcr          !
-   
+            n               ! ice thickness category index         !
+         
+         real (kind=dbl_kind) :: &
+            expansion_ratio  ! how much the ice area will expand
+                  
          character(len=*), parameter :: subname='(step_advection_scm)'
    
          !-----------------------------------------------------------------
          ! query icepack values
          !-----------------------------------------------------------------
-   
-            call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
             call icepack_warnings_flush(nu_diag)
             if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                 file=__FILE__,line= __LINE__)
@@ -744,26 +740,26 @@
          !-----------------------------------------------------------------
             ! Currently we only do ridging for the SHEBA ocean data type (in step_dyn_ridge)
             if (trim(ocn_data_type) == "SHEBA") then
-               ! Currently only uniform (and none) advection is implemented
+               ! Currently only uniform_ice (and none) advection is implemented
                if (trim(ice_advection_type) == "uniform_ice") then
       
                   do i = 1, nx
          
-                  if (tmask(i)) then
-         
-                     call icepack_step_advection_scm(dt=dt,           ncat=ncat,       &
-                                                   nilyr=nilyr,     nslyr=nslyr,     &
-                                                   trcrn=trcrn(i,1:ntrcr,:),         &
-                                                   trcr_depend=trcr_depend(1:ntrcr), &
-                                                   n_trcr_strata=n_trcr_strata(1:ntrcr),&
-                                                   nt_strata=nt_strata(1:ntrcr,:),   &
-                                                   trcr_base=trcr_base(1:ntrcr,:),   &
-                                                   aicen=aicen(i,:),                 &
-                                                   vicen=vicen(i,:),                 &
-                                                   vsnon=vsnon(i,:),                 &
-                                                   aice0=aice0(i),                   &
-                                                   closing=closing(i) )               
-         
+                  if (tmask(i)) then                     
+                     ! We assume that this single column grid cell is surrounded by
+                     ! identical ice. If so, ice closing implies the advection of
+                     ! this surrounding ice into the single column grid cell.
+                     ! Equivalently, one can think of this step as expanding the
+                     ! domain of the grid cell before the ridging step will
+                     ! contract the domain.
+                     expansion_ratio = c1 + closing(i) * dt
+                     aice0(i) = aice0(i) * expansion_ratio
+                     do n = 1, ncat
+                        ! Scale up state variables
+                        aicen(i,n) = aicen(i,n) * expansion_ratio
+                        vicen(i,n) = vicen(i,n) * expansion_ratio
+                        vsnon(i,n) = vsnon(i,n) * expansion_ratio
+                     enddo ! n
                   endif ! tmask
          
                   enddo ! i
