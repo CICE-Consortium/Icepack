@@ -811,8 +811,7 @@
       integer (kind=int_kind) :: &
          i,            & ! horizontal indices
          ntrcr,        & !
-         nbtrcr,       & !
-         j               ! ice category index
+         nbtrcr       
       
       character(len=*), parameter :: subname='(step_dyn_ridge)'
 
