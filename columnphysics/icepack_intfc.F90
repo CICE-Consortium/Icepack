@@ -78,7 +78,6 @@
 
       use icepack_mechred, only: icepack_step_ridge
       use icepack_mechred, only: icepack_ice_strength
-      use icepack_mechred, only: icepack_step_advection_scm
 
       use icepack_wavefracspec, only: icepack_init_wave
       use icepack_wavefracspec, only: icepack_step_wavefracture
