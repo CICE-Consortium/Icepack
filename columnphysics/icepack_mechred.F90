@@ -41,9 +41,8 @@
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: conserv_check
-      use icepack_tracers, only: tr_pond_topo, tr_pond_lvl, tr_aero, tr_iso, tr_brine
-      use icepack_tracers, only: tr_pond, tr_lvl, ntrcr, nbtrcr
-      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice, nt_Tsfc
+      use icepack_tracers, only: tr_pond_topo, tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
+      use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
       use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers, only: nt_apnd, nt_hpnd
       use icepack_tracers, only: n_iso
@@ -1910,6 +1909,8 @@
 
       end subroutine icepack_step_ridge
 
+!=======================================================================
+      
       end module icepack_mechred
 
 !=======================================================================
