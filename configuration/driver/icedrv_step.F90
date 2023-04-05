@@ -710,7 +710,7 @@
       subroutine step_advection_scm (dt)
 
          use icedrv_domain_size, only: ncat, nx
-         use icedrv_flux, only: closing
+         use icedrv_flux, only: closing, opening
          use icedrv_init, only: tmask
          use icedrv_state, only: vsnon, aicen, vicen, aice0
       
@@ -724,7 +724,7 @@
             n               ! ice thickness category index         !
          
          real (kind=dbl_kind) :: &
-            expansion_ratio  ! how much the ice area will expand
+            expansion_ratio  ! how much the ice area will change
                   
          character(len=*), parameter :: subname='(step_advection_scm)'
    
@@ -752,7 +752,7 @@
                      ! Equivalently, one can think of this step as expanding the
                      ! domain of the grid cell before the ridging step will
                      ! contract the domain.
-                     expansion_ratio = c1 + closing(i) * dt
+                     expansion_ratio = c1 + (closing(i) - opening(i)) * dt
                      aice0(i) = aice0(i) * expansion_ratio
                      do n = 1, ncat
                         ! Scale up state variables
