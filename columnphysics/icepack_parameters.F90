@@ -1766,9 +1766,6 @@
       if (present(sw_frac_out)           ) sw_frac_out      = sw_frac
       if (present(sw_dtemp_out)          ) sw_dtemp_out     = sw_dtemp
 
-      call icepack_recompute_constants()
-      if (icepack_warnings_aborted(subname)) return
-
       end subroutine icepack_query_parameters
 
 !=======================================================================
