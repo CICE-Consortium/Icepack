@@ -4,26 +4,26 @@
 ! snow over ice, bare ice and ponded ice.
 !
 ! Presently, two methods are included:
-!   (1) CCSM3 
-!   (2) Delta-Eddington 
+!   (1) CCSM3
+!   (2) Delta-Eddington
 ! as two distinct routines.
 ! Either can be called from the ice driver.
 !
 ! The Delta-Eddington method is described here:
 !
-! Briegleb, B. P., and B. Light (2007): A Delta-Eddington Multiple 
-!    Scattering Parameterization for Solar Radiation in the Sea Ice 
-!    Component of the Community Climate System Model, NCAR Technical 
+! Briegleb, B. P., and B. Light (2007): A Delta-Eddington Multiple
+!    Scattering Parameterization for Solar Radiation in the Sea Ice
+!    Component of the Community Climate System Model, NCAR Technical
 !    Note  NCAR/TN-472+STR  February 2007
 !
 ! name: originally ice_albedo
 !
 ! authors:  Bruce P. Briegleb, NCAR
 !           Elizabeth C. Hunke and William H. Lipscomb, LANL
-! 2005, WHL: Moved absorbed_solar from icepack_therm_vertical to this 
+! 2005, WHL: Moved absorbed_solar from icepack_therm_vertical to this
 !            module and changed name from ice_albedo
 ! 2006, WHL: Added Delta Eddington routines from Bruce Briegleb
-! 2006, ECH: Changed data statements in Delta Eddington routines (no 
+! 2006, ECH: Changed data statements in Delta Eddington routines (no
 !            longer hardwired)
 !            Converted to free source form (F90)
 ! 2007, BPB: Completely updated Delta-Eddington code, so that:
@@ -46,11 +46,11 @@
       use icepack_parameters, only: albocn, Timelt, snowpatch, awtvdr, awtidr, awtvdf, awtidf
       use icepack_parameters, only: kappav, hs_min, rhofresh, rhos, nspint, rsnw_fall, snwredist, rsnw_tmax
       use icepack_parameters, only: hi_ssl, hs_ssl, min_bgc, sk_l, snwlvlfac, snwgrain
-      use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg, heat_capacity
+      use icepack_parameters, only: z_tracers, skl_bgc, calc_tsfc, shortwave, kalg
       use icepack_parameters, only: r_ice, r_pnd, r_snw, dt_mlt, rsnw_mlt, hs0, hs1, hp1
       use icepack_parameters, only: pndaspect, albedo_type, albicev, albicei, albsnowv, albsnowi, ahmax
       use icepack_tracers,    only: ntrcr, nbtrcr_sw
-      use icepack_tracers,    only: tr_pond_cesm, tr_pond_lvl, tr_pond_topo
+      use icepack_tracers,    only: tr_pond_lvl, tr_pond_topo
       use icepack_tracers,    only: tr_bgc_N, tr_aero
       use icepack_tracers,    only: nt_bgc_N, nt_zaero, tr_bgc_N
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
@@ -76,7 +76,7 @@
          hpmin  = 0.005_dbl_kind, & ! minimum allowed melt pond depth (m)
          hp0    = 0.200_dbl_kind    ! pond depth below which transition to bare ice
 
-      real (kind=dbl_kind), parameter :: & 
+      real (kind=dbl_kind), parameter :: &
          exp_argmax = c10    ! maximum argument of exponential
 
 !=======================================================================
@@ -91,7 +91,6 @@
                                   vsnon,    Tsfcn,    &
                                   swvdr,    swvdf,    &
                                   swidr,    swidf,    &
-                                  heat_capacity,      &
                                   albedo_type,        &
                                   albicev,  albicei,  &
                                   albsnowv, albsnowi, &
@@ -145,9 +144,6 @@
          albsnowv, & ! cold snow albedo, visible
          albsnowi, & ! cold snow albedo, near IR
          ahmax       ! thickness above which ice albedo is constant (m)
-
-      logical(kind=log_kind), intent(in) :: &
-         heat_capacity! if true, ice has nonzero heat capacity
 
       character (len=char_len), intent(in) :: &
          albedo_type  ! albedo parameterization, 'ccsm3' or 'constant'
@@ -271,19 +267,19 @@
       alidrni = albocn
       alvdfni = albocn
       alidfni = albocn
-      
+
       alvdrns = albocn
       alidrns = albocn
       alvdfns = albocn
       alidfns = albocn
-      
+
       alvdrn(n) = albocn
       alidrn(n) = albocn
       alvdfn(n) = albocn
       alidfn(n) = albocn
-      
+
       albin(n) = c0
-      albsn(n) = c0    
+      albsn(n) = c0
 
       fswsfc(n)  = c0
       fswint(n)  = c0
@@ -347,8 +343,7 @@
       ! Compute solar radiation absorbed in ice and penetrating to ocean.
       !-----------------------------------------------------------------
 
-         call absorbed_solar  (heat_capacity,        &
-                               nilyr,                &
+         call absorbed_solar  (nilyr,                &
                                aicen(n),             &
                                vicen(n),             &
                                vsnon(n),             &
@@ -449,13 +444,13 @@
          alidrn   , & ! near-ir, direct, avg   (fraction)
          alvdfn   , & ! visible, diffuse, avg  (fraction)
          alidfn   , & ! near-ir, diffuse, avg  (fraction)
-         albin    , & ! bare ice 
-         albsn        ! snow 
+         albin    , & ! bare ice
+         albsn        ! snow
 
       ! local variables
 
       real (kind=dbl_kind), parameter :: &
-         dT_melt    = c1          , & ! change in temp to give dalb_mlt 
+         dT_melt    = c1          , & ! change in temp to give dalb_mlt
                                      ! albedo change
          dalb_mlt  = -0.075_dbl_kind, & ! albedo change per dT_melt change
                                      ! in temp for ice
@@ -483,7 +478,7 @@
       !-----------------------------------------------------------------
 
          hi = vicen / aicen
-         hs = vsnon / aicen            
+         hs = vsnon / aicen
 
          ! bare ice, thickness dependence
          fh = min(atan(hi*c4)/fhtan,c1)
@@ -537,9 +532,9 @@
 
          ! save ice and snow albedos (for history)
          albin = awtvdr*alvdrni + awtidr*alidrni &
-               + awtvdf*alvdfni + awtidf*alidfni 
+               + awtvdf*alvdfni + awtidf*alidfni
          albsn = awtvdr*alvdrns + awtidr*alidrns &
-               + awtvdf*alvdfns + awtidf*alidfns 
+               + awtvdf*alvdfns + awtidf*alidfns
 
       end subroutine compute_albedos
 
@@ -575,8 +570,8 @@
          alidrn   , & ! near-ir, direct, avg   (fraction)
          alvdfn   , & ! visible, diffuse, avg  (fraction)
          alidfn   , & ! near-ir, diffuse, avg  (fraction)
-         albin    , & ! bare ice 
-         albsn        ! snow 
+         albin    , & ! bare ice
+         albsn        ! snow
 
       ! local variables
 
@@ -632,9 +627,9 @@
 
          ! save ice and snow albedos (for history)
          albin = awtvdr*alvdrni + awtidr*alidrni &
-               + awtvdf*alvdfni + awtidf*alidfni 
+               + awtvdf*alvdfni + awtidf*alidfni
          albsn = awtvdr*alvdrns + awtidr*alidrns &
-               + awtvdf*alvdfns + awtidf*alidfns 
+               + awtvdf*alvdfns + awtidf*alidfns
 
       end subroutine constant_albedos
 
@@ -645,8 +640,7 @@
 ! authors William H. Lipscomb, LANL
 !         C. M. Bitz, UW
 
-      subroutine absorbed_solar (heat_capacity,      &
-                                 nilyr,    aicen,    &
+      subroutine absorbed_solar (nilyr,    aicen,    &
                                  vicen,    vsnon,    &
                                  swvdr,    swvdf,    &
                                  swidr,    swidf,    &
@@ -669,10 +663,7 @@
                                  fswpenl,            &
                                  Iswabs)
 
-      logical(kind=log_kind), intent(in) :: &
-         heat_capacity   ! if true, ice has nonzero heat capacity
-
-      integer (kind=int_kind), intent(in) :: & 
+      integer (kind=int_kind), intent(in) :: &
          nilyr           ! number of ice layers
 
       real (kind=dbl_kind), intent(in) :: &
@@ -794,7 +785,7 @@
 
           ! no penetrating radiation in near IR
 !         fswpenidr = swidr * (c1-alidrni) * (c1-asnow) * i0nir
-!         fswpenidf = swidf * (c1-alidfni) * (c1-asnow) * i0nir  
+!         fswpenidf = swidf * (c1-alidfni) * (c1-asnow) * i0nir
 
          druvrpen = druvr * (c1-alvdrni) * (c1-asnow) * i0vis
          dfuvrpen = dfuvr * (c1-alvdfni) * (c1-asnow) * i0vis
@@ -802,7 +793,7 @@
          dfparpen = dfpar * (c1-alvdfni) * (c1-asnow) * i0vis
 
          fswpen = fswpenvdr + fswpenvdf
-                      
+
          fswsfc = swabs - fswpen
 
          trantop = c1  ! transmittance at top of ice
@@ -845,29 +836,13 @@
          ! SW absorbed in ice interior
          fswint  = fswpen - fswthru
 
-      !----------------------------------------------------------------
-      ! if zero-layer model (no heat capacity), no SW is absorbed in ice
-      ! interior, so add to surface absorption
-      !----------------------------------------------------------------
-         
-         if (.not. heat_capacity) then
-
-            ! SW absorbed at snow/ice surface
-            fswsfc = fswsfc + fswint
-
-            ! SW absorbed in ice interior (nilyr = 1)
-            fswint    = c0
-            Iswabs(1) = c0
-
-         endif                       ! heat_capacity
-
       end subroutine absorbed_solar
 
 ! End ccsm3 shortwave method
 !=======================================================================
 ! Begin Delta-Eddington shortwave method
 
-! Compute initial data for Delta-Eddington method, specifically, 
+! Compute initial data for Delta-Eddington method, specifically,
 ! the approximate exponential look-up table.
 !
 ! author:  Bruce P. Briegleb, NCAR
@@ -883,8 +858,7 @@
                           hpndn,    ipndn,     &
                           aeron,    kalg,      &
                           trcrn_bgcsw,         &
-                          heat_capacity,       &
-                          tlat,     tlon,      & 
+                          tlat,     tlon,      &
                           calendar_type,       &
                           days_per_year,       &
                           nextsw_cday,   yday, &
@@ -927,7 +901,6 @@
          nslyr      ! number of snow layers
 
       logical(kind=log_kind), intent(in) :: &
-         heat_capacity,& ! if true, ice has nonzero heat capacity
          dEdd_algae,   & ! .true. use prognostic chla in dEdd
          modal_aero      ! .true. use modal aerosol treatment
 
@@ -944,16 +917,16 @@
          hp1      , & ! critical parameter for pond ice thickness
          kalg         ! algae absorption coefficient
 
-      real (kind=dbl_kind), dimension(:,:), intent(in) :: & 
+      real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          kaer_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_tab, & ! aerosol single scatter albedo (fraction)
          gaer_tab    ! aerosol asymmetry parameter (cos(theta))
-   
+
       real (kind=dbl_kind), dimension(:,:), intent(in) :: & ! Modal aerosol treatment
          kaer_bc_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_bc_tab, & ! aerosol single scatter albedo (fraction)
          gaer_bc_tab    ! aerosol asymmetry parameter (cos(theta))
-   
+
       real (kind=dbl_kind), dimension(:,:,:), intent(in) :: & ! Modal aerosol treatment
          bcenh          ! BC absorption enhancement factor
 
@@ -997,7 +970,7 @@
            dhsn     ! depth difference for snow on sea ice and pond ice
 
       real(kind=dbl_kind), intent(inout) :: &
-           coszen   ! cosine solar zenith angle, < 0 for sun below horizon 
+           coszen   ! cosine solar zenith angle, < 0 for sun below horizon
 
       real(kind=dbl_kind), dimension(:), intent(inout) :: &
            alvdrn,   & ! visible direct albedo (fraction)
@@ -1006,23 +979,23 @@
            alidfn,   & ! near-ir diffuse albedo (fraction)
            fswsfcn,  & ! SW absorbed at ice/snow surface (W m-2)
            fswintn,  & ! SW absorbed in ice interior, below surface (W m-2)
-           fswthrun, & ! SW through ice to ocean (W/m^2) 
-           albicen,  & ! albedo bare ice 
-           albsnon,  & ! albedo snow 
-           albpndn,  & ! albedo pond 
+           fswthrun, & ! SW through ice to ocean (W/m^2)
+           albicen,  & ! albedo bare ice
+           albsnon,  & ! albedo snow
+           albpndn,  & ! albedo pond
            apeffn,   & ! effective pond area used for radiation calculation
            snowfracn   ! snow fraction on each category used for radiation
 
       real(kind=dbl_kind), dimension(:), intent(out), optional :: &
-           fswthrun_vdr, & ! vis dir SW through ice to ocean (W/m^2) 
-           fswthrun_vdf, & ! vis dif SW through ice to ocean (W/m^2) 
-           fswthrun_idr, & ! nir dir SW through ice to ocean (W/m^2) 
-           fswthrun_idf    ! nir dif SW through ice to ocean (W/m^2) 
+           fswthrun_vdr, & ! vis dir SW through ice to ocean (W/m^2)
+           fswthrun_vdf, & ! vis dif SW through ice to ocean (W/m^2)
+           fswthrun_idr, & ! nir dir SW through ice to ocean (W/m^2)
+           fswthrun_idf    ! nir dif SW through ice to ocean (W/m^2)
 
       real(kind=dbl_kind), dimension(:,:), intent(inout) :: &
            rsnow   , & ! snow grain radius tracer (10^-6 m)
            Sswabsn , & ! SW radiation absorbed in snow layers (W m-2)
-           Iswabsn , & ! SW radiation absorbed in ice layers (W m-2) 
+           Iswabsn , & ! SW radiation absorbed in ice layers (W m-2)
            fswpenln    ! visible SW entering ice layers (W m-2)
 
       logical (kind=log_kind), intent(in) :: &
@@ -1064,7 +1037,6 @@
          hmx         , & ! maximum available snow infiltration equivalent depth
          dhs         , & ! local difference in snow depth on sea ice and pond ice
          spn         , & ! snow depth on refrozen pond (m)
-         rnslyr      , & ! 1/nslyr
          tmp             ! 0 or 1
 
       logical (kind=log_kind) :: &
@@ -1124,22 +1096,7 @@
             if (icepack_warnings_aborted(subname)) return
 
             ! set pond properties
-            if (tr_pond_cesm) then
-               ! fraction of ice area
-               fpn = apndn(n)
-               ! pond depth over fraction fpn 
-               hpn = hpndn(n)
-               ! snow infiltration
-               if (hsn >= hs_min .and. hs0 > puny) then
-                  asnow = min(hsn/hs0, c1) ! delta-Eddington formulation
-                  fpn = (c1 - asnow) * fpn
-                  hpn = pndaspect * fpn
-               endif
-               ! Zero out fraction of thin ponds for radiation only
-               if (hpn < hpmin) fpn = c0
-               fsn = min(fsn, c1-fpn)
-               apeffn(n) = fpn ! for history
-            elseif (tr_pond_lvl) then
+            if (tr_pond_lvl) then
                hsnlvl = hsn ! initialize
                if (trim(snwredist) == 'bulk') then
                   hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
@@ -1174,25 +1131,25 @@
                spn = hsnlvl - dhs   ! snow depth on pond ice
                if (.not. linitonly .and. ipn*spn < puny) dhs = c0
                dhsn(n) = dhs ! save: constant until reset to 0
-                  
+
                ! not using ipn assumes that lid ice is perfectly clear
                ! if (ipn <= 0.3_dbl_kind) then
-               
+
                ! fraction of ice area
-               fpn = apndn(n) * alvln(n) 
+               fpn = apndn(n) * alvln(n)
                ! pond depth over fraction fpn
                hpn = hpndn(n)
-               
+
                ! reduce effective pond area absorbing surface heat flux
                ! due to flux already having been used to melt pond ice
                fpn = (c1 - ffracn(n)) * fpn
-               
+
                ! taper pond area with snow on pond ice
                if (dhs > puny .and. spn >= puny .and. hs1 > puny) then
                   asnow = min(spn/hs1, c1)
                   fpn = (c1 - asnow) * fpn
                endif
-               
+
                ! infiltrate snow
                hp = hpn
                if (hp > puny) then
@@ -1227,7 +1184,7 @@
                   fpn = c0
                endif
                if (apndn(n) > puny) then
-                  hpn = hpndn(n) 
+                  hpn = hpndn(n)
                else
                   fpn = c0
                   hpn = c0
@@ -1237,7 +1194,7 @@
                if (hpn < hpmin) fpn = c0
 
                ! If ponds are present snow fraction reduced to
-               ! non-ponded part dEdd scheme 
+               ! non-ponded part dEdd scheme
                fsn = min(fsn, c1-fpn)
 
                apeffn(n) = fpn
@@ -1248,17 +1205,17 @@
                                             fsn, fpn,   &
                                             hpn)
                if (icepack_warnings_aborted(subname)) return
-               
+
                apeffn(n) = fpn ! for history
                fpn = c0
                hpn = c0
             endif ! pond type
-            
+
          snowfracn(n) = fsn ! for history
 
          call shortwave_dEdd(dEdd_algae,                    &
                              nslyr,         nilyr,          &
-                             coszen,        heat_capacity,  &
+                             coszen,                        &
                              aicen(n),      vicen(n),       &
                              hsn,           fsn,            &
                              rhosnwn,       rsnwn,          &
@@ -1270,7 +1227,7 @@
                              kaer_bc_tab,                   &
                              waer_bc_tab,                   &
                              gaer_bc_tab,                   &
-                             bcenh,         modal_aero,     &   
+                             bcenh,         modal_aero,     &
                              kalg,                          &
                              swvdr,         swvdf,          &
                              swidr,         swidf,          &
@@ -1314,40 +1271,40 @@
       deallocate(l_fswthrun_idf)
 
       end subroutine run_dEdd
- 
+
 !=======================================================================
 !
-!   Compute snow/bare ice/ponded ice shortwave albedos, absorbed and transmitted 
+!   Compute snow/bare ice/ponded ice shortwave albedos, absorbed and transmitted
 !   flux using the Delta-Eddington solar radiation method as described in:
 !
 !   A Delta-Eddington Multiple Scattering Parameterization for Solar Radiation
 !        in the Sea Ice Component of the Community Climate System Model
 !            B.P.Briegleb and B.Light   NCAR/TN-472+STR  February 2007
 !
-!   Compute shortwave albedos and fluxes for three surface types: 
-!   snow over ice, bare ice and ponded ice. 
-!   
-!   Albedos and fluxes are output for later use by thermodynamic routines. 
-!   Invokes three calls to compute_dEdd, which sets inherent optical properties 
-!   appropriate for the surface type. Within compute_dEdd, a call to solution_dEdd 
+!   Compute shortwave albedos and fluxes for three surface types:
+!   snow over ice, bare ice and ponded ice.
+!
+!   Albedos and fluxes are output for later use by thermodynamic routines.
+!   Invokes three calls to compute_dEdd, which sets inherent optical properties
+!   appropriate for the surface type. Within compute_dEdd, a call to solution_dEdd
 !   evaluates the Delta-Eddington solution. The final albedos and fluxes are then
-!   evaluated in compute_dEdd. Albedos and fluxes are transferred to output in 
+!   evaluated in compute_dEdd. Albedos and fluxes are transferred to output in
 !   this routine.
 !
 !   NOTE regarding albedo diagnostics:  This method yields zero albedo values
 !   if there is no incoming solar and thus the albedo diagnostics are masked
-!   out when the sun is below the horizon.  To estimate albedo from the history 
+!   out when the sun is below the horizon.  To estimate albedo from the history
 !   output (post-processing), compute ice albedo using
 !   (1 - albedo)*swdn = swabs. -ECH
 !
-! author:  Bruce P. Briegleb, NCAR 
+! author:  Bruce P. Briegleb, NCAR
 !   2013:  E Hunke merged with NCAR version
 !
       subroutine shortwave_dEdd  (dEdd_algae,            &
                                   nslyr,    nilyr,       &
-                                  coszen,   heat_capacity,&
+                                  coszen,                &
                                   aice,     vice,        &
-                                  hs,       fs,          & 
+                                  hs,       fs,          &
                                   rhosnw,   rsnw,        &
                                   fp,       hp,          &
                                   aero,                  &
@@ -1357,7 +1314,7 @@
                                   kaer_bc_tab,           &
                                   waer_bc_tab,           &
                                   gaer_bc_tab,           &
-                                  bcenh,  modal_aero,    &   
+                                  bcenh,  modal_aero,    &
                                   kalg,                  &
                                   swvdr,    swvdf,       &
                                   swidr,    swidf,       &
@@ -1380,19 +1337,18 @@
          nslyr       ! number of snow layers
 
       logical (kind=log_kind), intent(in) :: &
-         heat_capacity, & ! if true, ice has nonzero heat capacity
          dEdd_algae,    & ! .true. use prognostic chla in dEdd
          modal_aero       ! .true. use modal aerosol treatment
- 
+
       real (kind=dbl_kind), dimension(:,:), intent(in) :: & ! Modal aerosol treatment
          kaer_bc_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_bc_tab, & ! aerosol single scatter albedo (fraction)
          gaer_bc_tab    ! aerosol asymmetry parameter (cos(theta))
-   
+
       real (kind=dbl_kind), dimension(:,:,:), intent(in) :: & ! Modal aerosol treatment
          bcenh          ! BC absorption enhancement factor
 
-      real (kind=dbl_kind), dimension(:,:), intent(in) :: & 
+      real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          kaer_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_tab, & ! aerosol single scatter albedo (fraction)
          gaer_tab    ! aerosol asymmetry parameter (cos(theta))
@@ -1401,8 +1357,8 @@
          kalg    , & ! algae absorption coefficient
          R_ice , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
          R_pnd , & ! ponded ice tuning parameter; +1 > 1sig increase in albedo
-         aice    , & ! concentration of ice 
-         vice    , & ! volume of ice 
+         aice    , & ! concentration of ice
+         vice    , & ! volume of ice
          hs      , & ! snow depth
          fs          ! horizontal coverage of snow
 
@@ -1413,19 +1369,19 @@
          zbio        ! shortwave tracers (zaero+chla)
 
       real (kind=dbl_kind), intent(in) :: &
-         fp      , & ! pond fractional coverage (0 to 1) 
-         hp      , & ! pond depth (m) 
+         fp      , & ! pond fractional coverage (0 to 1)
+         hp      , & ! pond depth (m)
          swvdr   , & ! sw down, visible, direct  (W/m^2)
          swvdf   , & ! sw down, visible, diffuse (W/m^2)
          swidr   , & ! sw down, near IR, direct  (W/m^2)
          swidf       ! sw down, near IR, diffuse (W/m^2)
 
       real (kind=dbl_kind), intent(inout) :: &
-         coszen  , & ! cosine of solar zenith angle 
-         alvdr   , & ! visible, direct, albedo (fraction) 
-         alvdf   , & ! visible, diffuse, albedo (fraction) 
-         alidr   , & ! near-ir, direct, albedo (fraction) 
-         alidf   , & ! near-ir, diffuse, albedo (fraction) 
+         coszen  , & ! cosine of solar zenith angle
+         alvdr   , & ! visible, direct, albedo (fraction)
+         alvdf   , & ! visible, diffuse, albedo (fraction)
+         alidr   , & ! near-ir, direct, albedo (fraction)
+         alidf   , & ! near-ir, diffuse, albedo (fraction)
          fswsfc  , & ! SW absorbed at snow/bare ice/pondedi ice surface (W m-2)
          fswint  , & ! SW interior absorption (below surface, above ocean,W m-2)
          fswthru     ! SW through snow/bare ice/ponded ice into ocean (W m-2)
@@ -1435,16 +1391,16 @@
          fswthru_vdf , & ! vis dif SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthru_idr , & ! nir dir SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthru_idf     ! nir dif SW through snow/bare ice/ponded ice into ocean (W m-2)
- 
+
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          fswpenl , & ! visible SW entering ice layers (W m-2)
          Sswabs  , & ! SW absorbed in snow layer (W m-2)
          Iswabs      ! SW absorbed in ice layer (W m-2)
 
       real (kind=dbl_kind), intent(out) :: &
-         albice  , & ! bare ice albedo, for history  
-         albsno  , & ! snow albedo, for history  
-         albpnd      ! pond albedo, for history  
+         albice  , & ! bare ice albedo, for history
+         albsno  , & ! snow albedo, for history
+         albpnd      ! pond albedo, for history
 
       logical (kind=log_kind) , intent(in) :: &
          l_print_point
@@ -1463,7 +1419,7 @@
 
       integer (kind=int_kind) :: &
          srftyp       ! surface type over ice: (0=air, 1=snow, 2=pond)
- 
+
       integer (kind=int_kind) :: &
          k        , & ! level index
          na       , & ! aerosol index
@@ -1472,7 +1428,7 @@
                       ! (0 layer is included also)
 
       real (kind=dbl_kind) :: &
-         vsno         ! volume of snow 
+         vsno         ! volume of snow
 
       real (kind=dbl_kind) :: &
          swdn  , & ! swvdr(i,j)+swvdf(i,j)+swidr(i,j)+swidf(i,j)
@@ -1481,10 +1437,10 @@
 
       ! for history
       real (kind=dbl_kind) :: &
-         avdrl   , & ! visible, direct, albedo (fraction) 
-         avdfl   , & ! visible, diffuse, albedo (fraction) 
-         aidrl   , & ! near-ir, direct, albedo (fraction) 
-         aidfl       ! near-ir, diffuse, albedo (fraction) 
+         avdrl   , & ! visible, direct, albedo (fraction)
+         avdfl   , & ! visible, diffuse, albedo (fraction)
+         aidrl   , & ! near-ir, direct, albedo (fraction)
+         aidfl       ! near-ir, diffuse, albedo (fraction)
 
       character(len=*),parameter :: subname='(shortwave_dEdd)'
 
@@ -1526,7 +1482,7 @@
       Iswabs(:)  = c0
 
       ! compute aerosol mass path
-      
+
          aero_mp(:) = c0
          if( tr_aero ) then
             ! check 4 layers for each aerosol, a snow SSL, snow below SSL,
@@ -1548,9 +1504,9 @@
             enddo      ! na
          endif      ! if aerosols
 
-         ! compute shortwave radiation accounting for snow/ice (both snow over 
+         ! compute shortwave radiation accounting for snow/ice (both snow over
          ! ice and bare ice) and ponded ice (if any):
-         
+
          ! sea ice points with sun above horizon
          netsw = swvdr + swidr + swvdf + swidf
          if (netsw > puny) then ! sun above horizon
@@ -1563,9 +1519,9 @@
                ! calculate bare sea ice
 
                srftyp = 0
-               call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   & 
+               call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   &
                       zbio,      dEdd_algae,                            &
-                      heat_capacity,          fnidr,   coszen,          &
+                      fnidr,     coszen,                                &
                       R_ice,     R_pnd,                                 &
                       kaer_tab,    waer_tab,    gaer_tab,               &
                       kaer_bc_tab, waer_bc_tab, gaer_bc_tab,            &
@@ -1583,7 +1539,7 @@
                       Sswabs,                                           &
                       Iswabs,    fswpenl)
                if (icepack_warnings_aborted(subname)) return
-               
+
                alvdr   = alvdr   + avdrl *fi
                alvdf   = alvdf   + avdfl *fi
                alidr   = alidr   + aidrl *fi
@@ -1591,10 +1547,10 @@
                ! for history
                albice = albice &
                       + awtvdr*avdrl + awtidr*aidrl &
-                      + awtvdf*avdfl + awtidf*aidfl 
+                      + awtvdf*avdfl + awtidf*aidfl
             endif
          endif
-         
+
          ! sea ice points with sun above horizon
          netsw = swvdr + swidr + swvdf + swidf
          if (netsw > puny) then ! sun above horizon
@@ -1604,9 +1560,9 @@
                ! calculate snow covered sea ice
 
                srftyp = 1
-               call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   & 
+               call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   &
                       zbio,      dEdd_algae,                            &
-                      heat_capacity,          fnidr,   coszen,          &
+                      fnidr,     coszen,                                &
                       R_ice,     R_pnd,                                 &
                       kaer_tab,    waer_tab,    gaer_tab,               &
                       kaer_bc_tab, waer_bc_tab, gaer_bc_tab,            &
@@ -1624,7 +1580,7 @@
                       Sswabs,                                           &
                       Iswabs,    fswpenl)
                if (icepack_warnings_aborted(subname)) return
-               
+
                alvdr   = alvdr   + avdrl *fs
                alvdf   = alvdf   + avdfl *fs
                alidr   = alidr   + aidrl *fs
@@ -1632,10 +1588,10 @@
                ! for history
                albsno = albsno &
                       + awtvdr*avdrl + awtidr*aidrl &
-                      + awtvdf*avdfl + awtidf*aidfl 
+                      + awtvdf*avdfl + awtidf*aidfl
             endif
          endif
-         
+
          hi = c0
 
          ! sea ice points with sun above horizon
@@ -1646,18 +1602,18 @@
             ! if nonzero pond fraction and sufficient pond depth
             ! if( fp > puny .and. hp > hpmin ) then
             if (fp > puny) then
-               
+
                ! calculate ponded ice
 
                srftyp = 2
-               call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   & 
+               call compute_dEdd(nilyr,       nslyr,   klev,   klevp,   &
                       zbio,      dEdd_algae,                            &
-                      heat_capacity,          fnidr,   coszen,          &
+                      fnidr,     coszen,                                &
                       R_ice,     R_pnd,                                 &
                       kaer_tab,    waer_tab,    gaer_tab,               &
                       kaer_bc_tab, waer_bc_tab, gaer_bc_tab,            &
                       bcenh,     modal_aero,  kalg,                     &
-                      swvdr,     swvdf,       swidr,   swidf,  srftyp,  & 
+                      swvdr,     swvdf,       swidr,   swidf,  srftyp,  &
                       hs,        rhosnw,      rsnw,    hi,     hp,      &
                       fp,        aero_mp,     avdrl,   avdfl,           &
                       aidrl,     aidfl,                                 &
@@ -1670,7 +1626,7 @@
                       Sswabs,                                           &
                       Iswabs,    fswpenl)
                if (icepack_warnings_aborted(subname)) return
-               
+
                alvdr   = alvdr   + avdrl *fp
                alvdf   = alvdf   + avdfl *fp
                alidr   = alidr   + aidrl *fp
@@ -1678,7 +1634,7 @@
                ! for history
                albpnd = albpnd &
                       + awtvdr*avdrl + awtidr*aidrl &
-                      + awtvdf*avdfl + awtidf*aidfl 
+                      + awtvdf*avdfl + awtidf*aidfl
             endif
          endif
 
@@ -1738,7 +1694,7 @@
          swab  = fswsfc+fswint+fswthru
          swalb = (1.-swab/(swdn+.0001))
          write(warnstr,*) subname, ' swdn swab swalb = ',swdn,swab,swalb
-         do k = 1, nslyr               
+         do k = 1, nslyr
             write(warnstr,*) subname, ' snow layer k    = ', k, &
                              ' rhosnw = ', &
                                rhosnw(k), &
@@ -1746,12 +1702,12 @@
                                rsnw(k)
             call icepack_warnings_add(warnstr)
          enddo
-         do k = 1, nslyr               
+         do k = 1, nslyr
             write(warnstr,*) subname, ' snow layer k    = ', k, &
                              ' Sswabs(k)       = ', Sswabs(k)
             call icepack_warnings_add(warnstr)
          enddo
-         do k = 1, nilyr               
+         do k = 1, nilyr
             write(warnstr,*) subname, ' sea ice layer k = ', k, &
                              ' Iswabs(k)       = ', Iswabs(k)
             call icepack_warnings_add(warnstr)
@@ -1763,15 +1719,15 @@
 
 !=======================================================================
 !
-! Evaluate snow/ice/ponded ice inherent optical properties (IOPs), and 
+! Evaluate snow/ice/ponded ice inherent optical properties (IOPs), and
 ! then calculate the multiple scattering solution by calling solution_dEdd.
 !
-! author:  Bruce P. Briegleb, NCAR 
+! author:  Bruce P. Briegleb, NCAR
 !   2013:  E Hunke merged with NCAR version
 
       subroutine compute_dEdd (nilyr,    nslyr,    klev,  klevp,  &
                     zbio,     dEdd_algae,                         &
-                    heat_capacity,       fnidr,    coszen,        &
+                    fnidr,     coszen,                            &
                     R_ice,     R_pnd,                             &
                     kaer_tab,    waer_tab,         gaer_tab,      &
                     kaer_bc_tab, waer_bc_tab,      gaer_bc_tab,   &
@@ -1795,17 +1751,16 @@
          klev  , & ! number of radiation layers - 1
          klevp     ! number of radiation interfaces - 1
                    ! (0 layer is included also)
- 
+
       logical (kind=log_kind), intent(in) :: &
-         heat_capacity,& ! if true, ice has nonzero heat capacity
          dEdd_algae,   & ! .true. use prognostic chla in dEdd
          modal_aero      ! .true. use modal aerosol treatment
- 
+
       real (kind=dbl_kind), dimension(:,:), intent(in) :: & ! Modal aerosol treatment
          kaer_bc_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_bc_tab, & ! aerosol single scatter albedo (fraction)
          gaer_bc_tab    ! aerosol asymmetry parameter (cos(theta))
-   
+
       real (kind=dbl_kind), dimension(:,:,:), intent(in) :: & ! Modal aerosol treatment
          bcenh          ! BC absorption enhancement factor
 
@@ -1814,11 +1769,11 @@
          R_ice , & ! sea ice tuning parameter; +1 > 1sig increase in albedo
          R_pnd     ! ponded ice tuning parameter; +1 > 1sig increase in albedo
 
-      real (kind=dbl_kind), dimension(:,:), intent(in) :: & 
+      real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          kaer_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_tab, & ! aerosol single scatter albedo (fraction)
          gaer_tab    ! aerosol asymmetry parameter (cos(theta))
-   
+
       real (kind=dbl_kind), intent(in) :: &
          kalg    , & ! algae absorption coefficient
          fnidr   , & ! fraction of direct to total down flux in nir
@@ -1827,10 +1782,10 @@
          swvdf   , & ! shortwave down at surface, visible, diffuse (W/m^2)
          swidr   , & ! shortwave down at surface, near IR, direct  (W/m^2)
          swidf       ! shortwave down at surface, near IR, diffuse (W/m^2)
- 
+
       integer (kind=int_kind), intent(in) :: &
          srftyp      ! surface type over ice: (0=air, 1=snow, 2=pond)
- 
+
       real (kind=dbl_kind), intent(in) :: &
          hs          ! snow thickness (m)
 
@@ -1844,12 +1799,12 @@
          hi      , & ! ice thickness (m)
          hp      , & ! pond depth (m)
          fi          ! snow/bare ice fractional coverage (0 to 1)
- 
+
       real (kind=dbl_kind), intent(inout) :: &
-         alvdr   , & ! visible, direct, albedo (fraction) 
-         alvdf   , & ! visible, diffuse, albedo (fraction) 
-         alidr   , & ! near-ir, direct, albedo (fraction) 
-         alidf   , & ! near-ir, diffuse, albedo (fraction) 
+         alvdr   , & ! visible, direct, albedo (fraction)
+         alvdf   , & ! visible, diffuse, albedo (fraction)
+         alidr   , & ! near-ir, direct, albedo (fraction)
+         alidf   , & ! near-ir, diffuse, albedo (fraction)
          fswsfc  , & ! SW absorbed at snow/bare ice/pondedi ice surface (W m-2)
          fswint  , & ! SW interior absorption (below surface, above ocean,W m-2)
          fswthru     ! SW through snow/bare ice/ponded ice into ocean (W m-2)
@@ -1859,7 +1814,7 @@
          fswthru_vdf , & ! vis dif SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthru_idr , & ! nir dir SW through snow/bare ice/ponded ice into ocean (W m-2)
          fswthru_idf     ! nir dif SW through snow/bare ice/ponded ice into ocean (W m-2)
- 
+
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          fswpenl , & ! visible SW entering ice layers (W m-2)
          Sswabs  , & ! SW absorbed in snow layer (W m-2)
@@ -1867,12 +1822,12 @@
 
 !-----------------------------------------------------------------------
 !
-! Set up optical property profiles, based on snow, sea ice and ponded 
+! Set up optical property profiles, based on snow, sea ice and ponded
 ! ice IOPs from:
 !
-! Briegleb, B. P., and B. Light (2007): A Delta-Eddington Multiple 
-!    Scattering Parameterization for Solar Radiation in the Sea Ice 
-!    Component of the Community Climate System Model, NCAR Technical 
+! Briegleb, B. P., and B. Light (2007): A Delta-Eddington Multiple
+!    Scattering Parameterization for Solar Radiation in the Sea Ice
+!    Component of the Community Climate System Model, NCAR Technical
 !    Note  NCAR/TN-472+STR  February 2007
 !
 ! Computes column Delta-Eddington radiation solution for specific
@@ -1881,7 +1836,7 @@
 ! Divides solar spectrum into 3 intervals: 0.2-0.7, 0.7-1.19, and
 ! 1.19-5.0 micro-meters. The latter two are added (using an assumed
 ! partition of incident shortwave in the 0.7-5.0 micro-meter band between
-! the 0.7-1.19 and 1.19-5.0 micro-meter band) to give the final output 
+! the 0.7-1.19 and 1.19-5.0 micro-meter band) to give the final output
 ! of 0.2-0.7 visible and 0.7-5.0 near-infrared albedos and fluxes.
 !
 ! Specifies vertical layer optical properties based on input snow depth,
@@ -1896,14 +1851,14 @@
 !  Please read the following; otherwise, there is 99.9% chance you
 !  will be confused about indices at some point in time........ :)
 !
-!  CICE4.0 snow treatment has one snow layer above the sea ice. This 
+!  CICE4.0 snow treatment has one snow layer above the sea ice. This
 !  snow layer has finite heat capacity, so that surface absorption must
 !  be distinguished from internal. The Delta-Eddington solar radiation
 !  thus adds extra surface scattering layers to both snow and sea ice.
 !  Note that in the following, we assume a fixed vertical layer structure
-!  for the radiation calculation. In other words, we always have the 
-!  structure shown below for one snow and four sea ice layers, but for 
-!  ponded ice the pond fills "snow" layer 1 over the sea ice, and for 
+!  for the radiation calculation. In other words, we always have the
+!  structure shown below for one snow and four sea ice layers, but for
+!  ponded ice the pond fills "snow" layer 1 over the sea ice, and for
 !  bare sea ice the top layers over sea ice are treated as transparent air.
 !
 !  SSL = surface scattering layer for either snow or sea ice
@@ -1957,7 +1912,7 @@
 ! for surface heating, and that absorbed in the sea ice DL is
 ! used for sea ice layer 1 heating.
 !
-! Basically, vertical profiles of the layer extinction optical depth (tau), 
+! Basically, vertical profiles of the layer extinction optical depth (tau),
 ! single scattering albedo (w0) and asymmetry parameter (g) are required over
 ! the klev+1 layers, where klev+1 = 2 + nslyr + nilyr. All of the surface type
 ! information and snow/ice iop properties are evaulated in this routine, so
@@ -1980,16 +1935,16 @@
          ksnow   , & ! level index for snow density and grain size
          kii         ! level starting index for sea ice (nslyr+1)
 
-      integer (kind=int_kind), parameter :: & 
+      integer (kind=int_kind), parameter :: &
          nmbrad  = 32        ! number of snow grain radii in tables
- 
-      real (kind=dbl_kind) :: & 
+
+      real (kind=dbl_kind) :: &
          avdr    , & ! visible albedo, direct   (fraction)
          avdf    , & ! visible albedo, diffuse  (fraction)
          aidr    , & ! near-ir albedo, direct   (fraction)
          aidf        ! near-ir albedo, diffuse  (fraction)
- 
-      real (kind=dbl_kind) :: & 
+
+      real (kind=dbl_kind) :: &
          fsfc    , & ! shortwave absorbed at snow/bare ice/ponded ice surface (W m-2)
          fint    , & ! shortwave absorbed in interior (W m-2)
          fthru   , & ! shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
@@ -1998,28 +1953,28 @@
          fthruidr, & ! nir dir shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
          fthruidf    ! nir dif shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
 
-      real (kind=dbl_kind), dimension(nslyr) :: & 
+      real (kind=dbl_kind), dimension(nslyr) :: &
          Sabs        ! shortwave absorbed in snow layer (W m-2)
 
-      real (kind=dbl_kind), dimension(nilyr) :: & 
+      real (kind=dbl_kind), dimension(nilyr) :: &
          Iabs        ! shortwave absorbed in ice layer (W m-2)
- 
-      real (kind=dbl_kind), dimension(nilyr+1) :: & 
+
+      real (kind=dbl_kind), dimension(nilyr+1) :: &
          fthrul      ! shortwave through to ice layers (W m-2)
 
       real (kind=dbl_kind), dimension (nspint) :: &
          wghtns              ! spectral weights
- 
-      real (kind=dbl_kind), parameter :: & 
+
+      real (kind=dbl_kind), parameter :: &
          cp67    = 0.67_dbl_kind   , & ! nir band weight parameter
          cp78    = 0.78_dbl_kind   , & ! nir band weight parameter
          cp01    = 0.01_dbl_kind       ! for ocean visible albedo
- 
+
       real (kind=dbl_kind), dimension (0:klev) :: &
          tau     , & ! layer extinction optical depth
          w0      , & ! layer single scattering albedo
          g           ! layer asymmetry parameter
- 
+
       ! following arrays are defined at model interfaces; 0 is the top of the
       ! layer above the sea ice; klevp is the sea ice/ocean interface.
       real (kind=dbl_kind), dimension (0:klevp) :: &
@@ -2029,7 +1984,7 @@
          rupdir  , & ! reflectivity to direct radiation for layers below
          rupdif  , & ! reflectivity to diffuse radiation for layers below
          rdndif      ! reflectivity to diffuse radiation for layers above
- 
+
       real (kind=dbl_kind), dimension (0:klevp) :: &
          dfdir   , & ! down-up flux at interface due to direct beam at top surface
          dfdif       ! down-up flux at interface due to diffuse beam at top surface
@@ -2043,10 +1998,10 @@
          ws      , & ! Snow single scattering albedo
          gs          ! Snow asymmetry parameter
 
-      real (kind=dbl_kind), dimension(nslyr) :: & 
+      real (kind=dbl_kind), dimension(nslyr) :: &
          frsnw       ! snow grain radius in snow layer * adjustment factor (m)
 
-      ! actual used ice and ponded ice IOPs, allowing for tuning 
+      ! actual used ice and ponded ice IOPs, allowing for tuning
       ! modifications of the above "_mn" value
       real (kind=dbl_kind), dimension (nspint) :: &
          ki_ssl       , & ! Surface-scattering-layer ice extinction coefficient (/m)
@@ -2073,7 +2028,7 @@
          dz_ssl       , & ! snow or sea ice surface scattering layer thickness
          fs               ! scaling factor to reduce (nilyr<4) or increase (nilyr>4) DL
                           ! extinction coefficient to maintain DL optical depth constant
-                          ! with changing number of sea ice layers, to approximately 
+                          ! with changing number of sea ice layers, to approximately
                           ! conserve computed albedo for constant physical depth of sea
                           ! ice when the number of sea ice layers vary
       real (kind=dbl_kind) :: &
@@ -2090,8 +2045,8 @@
       real (kind=dbl_kind) :: &
          albodr       , & ! spectral ocean albedo to direct rad
          albodf           ! spectral ocean albedo to diffuse rad
-      
-      ! for melt pond transition to bare sea ice for small pond depths 
+
+      ! for melt pond transition to bare sea ice for small pond depths
       real (kind=dbl_kind) :: &
          sig_i        , & ! ice scattering coefficient (/m)
          sig_p        , & ! pond scattering coefficient (/m)
@@ -2114,8 +2069,8 @@
          gaer                     , & ! total aerosol asymmetry parameter
          swdr                     , & ! shortwave down at surface, direct  (W/m^2)
          swdf                     , & ! shortwave down at surface, diffuse (W/m^2)
-         rnilyr                   , & ! real(nilyr)
-         rnslyr                   , & ! real(nslyr)
+         rnilyr                   , & ! 1. / real(nilyr)
+         rnslyr                   , & ! 1. / real(nslyr)
          rns                      , & ! real(ns)
          tmp_0, tmp_ks, tmp_kl        ! temp variables
 
@@ -2306,7 +2261,7 @@
          fm_pnd = 0.50_dbl_kind    ! ponded ice fraction of scat coeff for - stn dev in alb
 
       real (kind=dbl_kind),  parameter :: &   !chla-specific absorption coefficient
-         kchl_tab = 0.01 !0.0023-0.0029 Perovich 1993, also 0.0067 m^2 (mg Chl)^-1
+         kchl_tab = p01  !0.0023-0.0029 Perovich 1993, also 0.0067 m^2 (mg Chl)^-1
                          ! found values of 0.006 to 0.023 m^2/ mg  (676 nm)  Neukermans 2014
                          ! and averages over the 300-700nm of 0.0075 m^2/mg in ice Fritsen (2011)
                          ! at 440nm values as high as 0.2 m^2/mg in under ice bloom (Balch 2014)
@@ -2327,7 +2282,7 @@
       kii = nslyr + 1
 
       ! initialize albedos and fluxes to 0
-      fthrul = c0                
+      fthrul = c0
       Iabs = c0
       kabs_chl(:,:) = c0
       tzaer(:,:) = c0
@@ -2345,12 +2300,12 @@
       fthruvdf  = c0
       fthruidr  = c0
       fthruidf  = c0
- 
+
       ! spectral weights
-      ! weights 2 (0.7-1.19 micro-meters) and 3 (1.19-5.0 micro-meters) 
-      ! are chosen based on 1D calculations using ratio of direct to total 
-      ! near-infrared solar (0.7-5.0 micro-meter) which indicates clear/cloudy 
-      ! conditions: more cloud, the less 1.19-5.0 relative to the 
+      ! weights 2 (0.7-1.19 micro-meters) and 3 (1.19-5.0 micro-meters)
+      ! are chosen based on 1D calculations using ratio of direct to total
+      ! near-infrared solar (0.7-5.0 micro-meter) which indicates clear/cloudy
+      ! conditions: more cloud, the less 1.19-5.0 relative to the
       ! 0.7-1.19 micro-meter due to cloud absorption.
       wghtns(1) = c1
       wghtns(2) = cp67 + (cp78-cp67)*(c1-fnidr)
@@ -2378,7 +2333,7 @@
             dzk(k) = dz
          enddo
       endif
-      
+
       ! ice
       dz = hi*rnilyr
       ! empirical reduction in sea ice ssl thickness for ice thinner than 1.5m;
@@ -2390,7 +2345,7 @@
       ! set sea ice ssl thickness to half top layer if sea ice thin enough
 !ech: note this is highly resolution dependent!
       dz_ssl = min(dz_ssl, dz/c2)
-      
+
       dzk(kii)   = dz_ssl
       dzk(kii+1) = dz - dz_ssl
       if (kii+2 <= klev) then
@@ -2478,7 +2433,7 @@
          ksrf = 1
       else
          ! bare sea ice or ponded ice
-         ksrf = nslyr + 2 
+         ksrf = nslyr + 2
       endif
 
       if (tr_bgc_N .and. dEdd_algae) then ! compute kabs_chl for chlorophyll
@@ -2487,26 +2442,26 @@
           enddo
       else
             k = klev
-            kabs_chl(1,k) = kalg*(0.50_dbl_kind/dzk(k)) 
+            kabs_chl(1,k) = kalg*(0.50_dbl_kind/dzk(k))
       endif        ! kabs_chl
 
 !mgf++
       if (modal_aero) then
-           do k=0,klev   
+           do k=0,klev
               if (k < nslyr+1) then ! define indices for snow layer
                  ! use top rsnw, rhosnw for snow ssl and rest of top layer
                  ksnow = k - min(k-1,0)
                  tmp_gs = frsnw(ksnow)
-                
+
                  ! get grain size index:
                  ! works for 25 < snw_rds < 1625 um:
-                 if (tmp_gs < 125) then
-                   tmp1 = tmp_gs/50
+                 if (tmp_gs < 125._dbl_kind) then
+                   tmp1 = tmp_gs/(50._dbl_kind)
                    k_bcini(k) = nint(tmp1)
-                 elseif (tmp_gs < 175) then
+                 elseif (tmp_gs < 175._dbl_kind) then
                    k_bcini(k) = 2
                  else
-                   tmp1 = (tmp_gs/250)+2
+                   tmp1 = (tmp_gs/250._dbl_kind)+c2
                    k_bcini(k) = nint(tmp1)
                  endif
               else                  ! use the largest snow grain size for ice
@@ -2521,18 +2476,18 @@
               ! check bounds:
               if (k_bcini(k) < 1)  k_bcini(k) = 1
               if (k_bcini(k) > 8)  k_bcini(k) = 8
-              if (k_bcins(k) < 1)  k_bcins(k) = 1
-              if (k_bcins(k) > 10) k_bcins(k) = 10
-              if (k_bcexs(k) < 1)  k_bcexs(k) = 1
-              if (k_bcexs(k) > 10) k_bcexs(k) = 10
+!              if (k_bcins(k) < 1)  k_bcins(k) = 1
+!              if (k_bcins(k) > 10) k_bcins(k) = 10
+!              if (k_bcexs(k) < 1)  k_bcexs(k) = 1
+!              if (k_bcexs(k) > 10) k_bcexs(k) = 10
 
               ! print ice radius index:
               ! write(warnstr,*) subname, "MGFICE2:k, ice index= ",k,  k_bcini(k)
               ! call icepack_warnings_add(warnstr)
             enddo   ! k
 
-        if (tr_zaero .and. dEdd_algae) then ! compute kzaero for chlorophyll  
-        do n = 1,n_zaero        
+        if (tr_zaero .and. dEdd_algae) then ! compute kzaero for chlorophyll
+        do n = 1,n_zaero
            if (n == 1) then ! interstitial BC
             do k = 0, klev
                do ns = 1,nspint   ! not weighted by aice
@@ -2548,7 +2503,7 @@
             enddo
            elseif (n==2) then ! within-ice BC
             do k = 0, klev
-               do ns = 1,nspint  
+               do ns = 1,nspint
                   tzaer(ns,k) = tzaer(ns,k)+kaer_bc_tab(ns,k_bcins(k))  * &
                                 bcenh(ns,k_bcins(k),k_bcini(k))* &
                                 zbio(nlt_zaero_sw(n)+k)*dzk(k)
@@ -2589,19 +2544,19 @@
                enddo  ! nspint
             enddo
         enddo
-        endif  !tr_zaero  
+        endif  !tr_zaero
 
      endif  ! modal_aero
 
 !-----------------------------------------------------------------------
- 
+
       ! begin spectral loop
       do ns = 1, nspint
-         
+
          ! set optical properties of air/snow/pond overlying sea ice
          ! air
          if( srftyp == 0 ) then
-            do k=0,nslyr 
+            do k=0,nslyr
                tau(k) = c0
                w0(k)  = c0
                g(k)   = c0
@@ -2648,14 +2603,12 @@
 
 
             ! aerosol in snow
-             if (tr_zaero .and. dEdd_algae) then 
+             if (tr_zaero .and. dEdd_algae) then
                do k = 0,nslyr
-                  gzaer(ns,k) = gzaer(ns,k)/(wzaer(ns,k)+puny)
-                  wzaer(ns,k) = wzaer(ns,k)/(tzaer(ns,k)+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)*wzaer(ns,k)*tzaer(ns,k)) / &
-                                  (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k))
-                  w0(k)  = (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k)) / &
-                                   (tau(k) + tzaer(ns,k))
+                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)) / &
+                                (w0(k)*tau(k) + wzaer(ns,k))
+                  w0(k)  =      (w0(k)*tau(k) + wzaer(ns,k)) / &
+                                      (tau(k) + tzaer(ns,k))
                   tau(k) = tau(k) + tzaer(ns,k)
                enddo
              elseif (tr_aero) then
@@ -2667,7 +2620,7 @@
                do na=1,4*n_aero,4
 ! mgf++
                if (modal_aero) then
-                  if (na == 1) then  
+                  if (na == 1) then
                   !interstitial BC
                      taer = taer + &
                           aero_mp(na)*kaer_bc_tab(ns,k_bcexs(k))
@@ -2677,7 +2630,7 @@
                      gaer = gaer + &
                           aero_mp(na)*kaer_bc_tab(ns,k_bcexs(k))* &
                            waer_bc_tab(ns,k_bcexs(k))*gaer_bc_tab(ns,k_bcexs(k))
-                  elseif (na == 5)then  
+                  elseif (na == 5)then
                   !within-ice BC
                       taer = taer + &
                            aero_mp(na)*kaer_bc_tab(ns,k_bcins(k))* &
@@ -2711,8 +2664,11 @@
                endif  !modal_aero
 !mgf--
                enddo       ! na
-               gaer = gaer/(waer+puny)
-               waer = waer/(taer+puny)
+               g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                             (w0(k)*tau(k) + waer)
+               w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                   (tau(k) + taer)
+               tau(k) = tau(k) + taer
 
                do k=1,nslyr
                   taer = c0
@@ -2724,34 +2680,34 @@
                     if (na==1) then
                       ! interstitial BC
                       taer = taer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcexs(k))
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcexs(k))
                       waer = waer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcexs(k))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcexs(k))* &
                            waer_bc_tab(ns,k_bcexs(k))
                       gaer = gaer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcexs(k))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcexs(k))* &
                            waer_bc_tab(ns,k_bcexs(k))*gaer_bc_tab(ns,k_bcexs(k))
                     elseif (na==5) then
                       ! within-ice BC
                       taer = taer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcins(k))*&
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcins(k))*&
                            bcenh(ns,k_bcins(k),k_bcini(k))
                       waer = waer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcins(k))* &
                            waer_bc_tab(ns,k_bcins(k))
                       gaer = gaer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_bc_tab(ns,k_bcins(k))* &
                            waer_bc_tab(ns,k_bcins(k))*gaer_bc_tab(ns,k_bcins(k))
-                      
+
                     else
                       ! other species (dust)
                       taer = taer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_tab(ns,(1+(na-1)/4))
+                           (aero_mp(na+1)*rnslyr)*kaer_tab(ns,(1+(na-1)/4))
                       waer = waer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_tab(ns,(1+(na-1)/4))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_tab(ns,(1+(na-1)/4))* &
                            waer_tab(ns,(1+(na-1)/4))
                       gaer = gaer + &
-                           (aero_mp(na+1)/rnslyr)*kaer_tab(ns,(1+(na-1)/4))* &
+                           (aero_mp(na+1)*rnslyr)*kaer_tab(ns,(1+(na-1)/4))* &
                            waer_tab(ns,(1+(na-1)/4))*gaer_tab(ns,(1+(na-1)/4))
                     endif   !(na==1)
 
@@ -2767,12 +2723,10 @@
                   endif       ! modal_aero
 !mgf--
                   enddo       ! na
-                  gaer = gaer/(waer+puny)
-                  waer = waer/(taer+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                           (w0(k)*tau(k) + waer*taer)
-                  w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                           (tau(k) + taer)
+                  g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                                (w0(k)*tau(k) + waer)
+                  w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                      (tau(k) + taer)
                   tau(k) = tau(k) + taer
                enddo       ! k
             endif     ! tr_aero
@@ -2780,7 +2734,7 @@
             ! pond
          else !if( srftyp == 2 ) then
             ! pond water layers evenly spaced
-            dz = hp/(c1/rnslyr+c1)
+            dz = hp/(real(nslyr,kind=dbl_kind)+c1)
             do k=0,nslyr
                tau(k) = kw(ns)*dz
                w0(k)  = ww(ns)
@@ -2788,9 +2742,9 @@
                ! no aerosol in pond
             enddo       ! k
          endif        ! srftyp
-         
+
          ! set optical properties of sea ice
-         
+
          ! bare or snow-covered sea ice layers
          if( srftyp <= 1 ) then
             ! ssl
@@ -2801,7 +2755,7 @@
             ! dl
             k = kii + 1
             ! scale dz for dl relative to 4 even-layer-thickness 1.5m case
-            fs = p25/rnilyr
+            fs = p25*real(nilyr,kind=dbl_kind)
             tau(k) = (ki_dl(ns) + kabs_chl(ns,k)) *dzk(k)*fs
             w0(k)  = ki_dl(ns)/(ki_dl(ns) + kabs_chl(ns,k)) *wi_dl(ns)
             g(k)   = gi_dl(ns)
@@ -2820,7 +2774,7 @@
             if( ns == 1 ) then
                ! total layer absorption optical depth fixed at value
                ! of kalg*0.50m, independent of actual layer thickness
-               kabs = kabs + kabs_chl(ns,k) 
+               kabs = kabs + kabs_chl(ns,k)
             endif
             sig        = ki_int(ns)*wi_int(ns)
             tau(k) = (kabs+sig)*dzk(k)
@@ -2828,16 +2782,14 @@
             g(k)   = gi_int(ns)
             ! aerosol in sea ice
             if (tr_zaero .and. dEdd_algae) then
-               do k = kii, klev                  
-                  gzaer(ns,k) = gzaer(ns,k)/(wzaer(ns,k)+puny)
-                  wzaer(ns,k) = wzaer(ns,k)/(tzaer(ns,k)+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)*wzaer(ns,k)*tzaer(ns,k)) / &
-                                  (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k))
-                  w0(k)  = (w0(k)*tau(k) + wzaer(ns,k)*tzaer(ns,k)) / &
-                                   (tau(k) + tzaer(ns,k))
+               do k = kii, klev
+                  g(k)   = (g(k)*w0(k)*tau(k) + gzaer(ns,k)) / &
+                                (w0(k)*tau(k) + wzaer(ns,k))
+                  w0(k)  =      (w0(k)*tau(k) + wzaer(ns,k)) / &
+                                      (tau(k) + tzaer(ns,k))
                   tau(k) = tau(k) + tzaer(ns,k)
                enddo
-            elseif (tr_aero) then 
+            elseif (tr_aero) then
                k = kii   ! sea ice SSL
                taer = c0
                waer = c0
@@ -2865,7 +2817,7 @@
                           waer_bc_tab(ns,k_bcins(k))
                      gaer = gaer + &
                           aero_mp(na+2)*kaer_bc_tab(ns,k_bcins(k))* &
-                          waer_bc_tab(ns,k_bcins(k))*gaer_bc_tab(ns,k_bcins(k))    
+                          waer_bc_tab(ns,k_bcins(k))*gaer_bc_tab(ns,k_bcins(k))
                   else
                   ! other species (dust)
                      taer = taer + &
@@ -2889,14 +2841,12 @@
                 endif     ! modal_aero
 !mgf--
                enddo      ! na
-
-               gaer = gaer/(waer+puny)
-               waer = waer/(taer+puny)
-               g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                    (w0(k)*tau(k) + waer*taer)
-               w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                    (tau(k) + taer)
+               g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                             (w0(k)*tau(k) + waer)
+               w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                   (tau(k) + taer)
                tau(k) = tau(k) + taer
+
                do k = kii+1, klev
                   taer = c0
                   waer = c0
@@ -2907,34 +2857,34 @@
                      if (na==1) then
                         ! interstitial BC
                         taer = taer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcexs(k))
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcexs(k))
                         waer = waer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcexs(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcexs(k))* &
                              waer_bc_tab(ns,k_bcexs(k))
                         gaer = gaer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcexs(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcexs(k))* &
                              waer_bc_tab(ns,k_bcexs(k))*gaer_bc_tab(ns,k_bcexs(k))
                      elseif (na==5) then
                         ! within-ice BC
                         taer = taer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
                              bcenh(ns,k_bcins(k),k_bcini(k))
                         waer = waer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
                              waer_bc_tab(ns,k_bcins(k))
                         gaer = gaer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_bc_tab(ns,k_bcins(k))* &
                              waer_bc_tab(ns,k_bcins(k))*gaer_bc_tab(ns,k_bcins(k))
-                        
+
                      else
                         ! other species (dust)
                         taer = taer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_tab(ns,(1+(na-1)/4))
+                             (aero_mp(na+3)*rnilyr)*kaer_tab(ns,(1+(na-1)/4))
                         waer = waer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_tab(ns,(1+(na-1)/4))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_tab(ns,(1+(na-1)/4))* &
                              waer_tab(ns,(1+(na-1)/4))
                         gaer = gaer + &
-                             (aero_mp(na+3)/rnilyr)*kaer_tab(ns,(1+(na-1)/4))* &
+                             (aero_mp(na+3)*rnilyr)*kaer_tab(ns,(1+(na-1)/4))* &
                              waer_tab(ns,(1+(na-1)/4))*gaer_tab(ns,(1+(na-1)/4))
                      endif
                   else       !bulk
@@ -2950,12 +2900,10 @@
                   endif       ! modal_aero
 !mgf--
                   enddo       ! na
-                  gaer = gaer/(waer+puny)
-                  waer = waer/(taer+puny)
-                  g(k)   = (g(k)*w0(k)*tau(k) + gaer*waer*taer) / &
-                           (w0(k)*tau(k) + waer*taer)
-                  w0(k)  = (w0(k)*tau(k) + waer*taer) / &
-                           (tau(k) + taer)
+                  g(k)   = (g(k)*w0(k)*tau(k) + gaer) / &
+                                (w0(k)*tau(k) + waer)
+                  w0(k)  =      (w0(k)*tau(k) + waer) / &
+                                      (tau(k) + taer)
                   tau(k) = tau(k) + taer
                enddo ! k
             endif ! tr_aero
@@ -2989,7 +2937,7 @@
                g(k)  = gi_p_int(ns)
                k = kii + 1
                ! scale dz for dl relative to 4 even-layer-thickness 1.5m case
-               fs = p25/rnilyr
+               fs = p25*real(nilyr,kind=dbl_kind)
                sig_i      = ki_dl(ns)*wi_dl(ns)*fs
                sig_p      = ki_p_int(ns)*wi_p_int(ns)
                sig        = sig_i + (sig_p-sig_i)*(hp/hp0)
@@ -3009,40 +2957,40 @@
                   enddo       ! k
                endif
             endif        ! small pond depth transition to bare sea ice
-         endif         ! srftyp  
-         
+         endif         ! srftyp
+
          ! set reflectivities for ocean underlying sea ice
          rns = real(ns-1, kind=dbl_kind)
          albodr = cp01 * (c1 - min(rns, c1))
          albodf = cp01 * (c1 - min(rns, c1))
-         
+
          ! layer input properties now completely specified: tau, w0, g,
-         ! albodr, albodf; now compute the Delta-Eddington solution 
+         ! albodr, albodf; now compute the Delta-Eddington solution
          ! reflectivities and transmissivities for each layer; then,
          ! combine the layers going downwards accounting for multiple
-         ! scattering between layers, and finally start from the 
+         ! scattering between layers, and finally start from the
          ! underlying ocean and combine successive layers upwards to
          ! the surface; see comments in solution_dEdd for more details.
-         
+
          call solution_dEdd &
                (coszen,     srftyp,     klev,       klevp,      nslyr,     &
                 tau,        w0,         g,          albodr,     albodf,    &
                 trndir,     trntdr,     trndif,     rupdir,     rupdif,    &
-                rdndif)   
+                rdndif)
          if (icepack_warnings_aborted(subname)) return
 
          ! the interface reflectivities and transmissivities required
          ! to evaluate interface fluxes are returned from solution_dEdd;
-         ! now compute up and down fluxes for each interface, using the 
+         ! now compute up and down fluxes for each interface, using the
          ! combined layer properties at each interface:
          !
          !              layers       interface
          !
          !       ---------------------  k
          !                 k
-         !       --------------------- 
-         
-         do k = 0, klevp 
+         !       ---------------------
+
+         do k = 0, klevp
             ! interface scattering
             refk          = c1/(c1 - rdndif(k)*rupdif(k))
             ! dir tran ref from below times interface scattering, plus diff
@@ -3051,7 +2999,7 @@
             !                 (trntdr(k)-trndir(k))  &
             !                 *rupdif(k))*refk
             ! dir tran plus total diff trans times interface scattering plus
-            ! dir tran with up dir ref and down dif ref times interface scattering 
+            ! dir tran with up dir ref and down dif ref times interface scattering
             ! fdirdn(k) = trndir(k) + (trntdr(k) &
             !               - trndir(k) + trndir(k)  &
             !               *rupdir(k)*rdndif(k))*refk
@@ -3068,18 +3016,18 @@
             ! dfdif = fdifdn - fdifup
             dfdif(k) = trndif(k) * (c1 - rupdif(k)) * refk
             if (dfdif(k) < puny) dfdif(k) = c0 !echmod necessary?
-         enddo       ! k 
-         
+         enddo       ! k
+
          ! calculate final surface albedos and fluxes-
          ! all absorbed flux above ksrf is included in surface absorption
-         
+
          if( ns == 1) then      ! visible
-            
+
             swdr = swvdr
             swdf = swvdf
             avdr  = rupdir(0)
             avdf  = rupdif(0)
-            
+
             tmp_0  = dfdir(0    )*swdr + dfdif(0    )*swdf
             tmp_ks = dfdir(ksrf )*swdr + dfdif(ksrf )*swdf
             tmp_kl = dfdir(klevp)*swdr + dfdif(klevp)*swdf
@@ -3088,13 +3036,13 @@
             do k = nslyr+2, klevp ! Start at DL layer of ice after SSL scattering
                fthrul(k-nslyr-1) = dfdir(k)*swdr + dfdif(k)*swdf
             enddo
-            
+
             fsfc  = fsfc  + tmp_0  - tmp_ks
             fint  = fint  + tmp_ks - tmp_kl
             fthru = fthru + tmp_kl
             fthruvdr = fthruvdr + dfdir(klevp)*swdr
             fthruvdf = fthruvdf + dfdif(klevp)*swdf
-            
+
             ! if snow covered ice, set snow internal absorption; else, Sabs=0
             if( srftyp == 1 ) then
                ki = 0
@@ -3109,12 +3057,12 @@
                            - (dfdir(kp)*swdr + dfdif(kp)*swdf)
                enddo       ! k
             endif
-            
+
             ! complex indexing to insure proper absorptions for sea ice
             ki = 0
             do k=nslyr+2,nslyr+1+nilyr
                ! for bare ice, DL absorption for sea ice layer 1
-               km = k  
+               km = k
                kp = km + 1
                ! modify for top sea ice layer for snow over sea ice
                if( srftyp == 1 ) then
@@ -3129,9 +3077,9 @@
                         +  dfdir(km)*swdr + dfdif(km)*swdf &
                         - (dfdir(kp)*swdr + dfdif(kp)*swdf)
             enddo       ! k
-            
+
          else !if(ns > 1) then  ! near IR
-            
+
             swdr = swidr
             swdf = swidf
 
@@ -3170,16 +3118,16 @@
                   ki  = ki + 1
                   Sabs(ki) = Sabs(ki) &
                            + (dfdir(km)*swdr + dfdif(km)*swdf   &
-                           - (dfdir(kp)*swdr + dfdif(kp)*swdf)) & 
+                           - (dfdir(kp)*swdr + dfdif(kp)*swdf)) &
                            * wghtns(ns)
                enddo       ! k
             endif
-            
+
             ! complex indexing to insure proper absorptions for sea ice
             ki = 0
             do k=nslyr+2,nslyr+1+nilyr
                ! for bare ice, DL absorption for sea ice layer 1
-               km = k  
+               km = k
                kp = km + 1
                ! modify for top sea ice layer for snow over sea ice
                if( srftyp == 1 ) then
@@ -3195,9 +3143,9 @@
                         - (dfdir(kp)*swdr + dfdif(kp)*swdf)) &
                         * wghtns(ns)
             enddo       ! k
-            
+
          endif        ! ns = 1, ns > 1
-         
+
       enddo         ! end spectral loop  ns
 
       ! accumulate fluxes over bare sea ice
@@ -3216,40 +3164,20 @@
       do k = 1, nslyr
          Sswabs(k) = Sswabs(k) + Sabs(k)*fi
       enddo                     ! k
-      
+
       do k = 1, nilyr
          Iswabs(k) = Iswabs(k) + Iabs(k)*fi
-         
-         ! bgc layer 
+
+         ! bgc layer
          fswpenl(k) = fswpenl(k) + fthrul(k)* fi
-         if (k == nilyr) then
-            fswpenl(k+1) = fswpenl(k+1) + fthrul(k+1)*fi
-         endif
       enddo                     ! k
-      
-      !----------------------------------------------------------------
-      ! if ice has zero heat capacity, no SW can be absorbed 
-      ! in the ice/snow interior, so add to surface absorption.
-      ! Note: nilyr = nslyr = 1 for this case
-      !----------------------------------------------------------------
-
-      if (.not. heat_capacity) then
-         
-         ! SW absorbed at snow/ice surface
-         fswsfc = fswsfc + Iswabs(1) + Sswabs(1)
-         
-         ! SW absorbed in ice interior
-         fswint   = c0
-         Iswabs(1) = c0
-         Sswabs(1) = c0
-
-      endif                       ! heat_capacity
+      fswpenl(nilyr+1) = fswpenl(nilyr+1) + fthrul(nilyr+1)*fi
 
       end subroutine compute_dEdd
 
 !=======================================================================
 !
-! Given input vertical profiles of optical properties, evaluate the 
+! Given input vertical profiles of optical properties, evaluate the
 ! monochromatic Delta-Eddington solution.
 !
 ! author:  Bruce P. Briegleb, NCAR
@@ -3269,16 +3197,16 @@
          klevp    , & ! number of radiation interfaces - 1
                       ! (0 layer is included also)
          nslyr        ! number of snow layers
- 
+
       real (kind=dbl_kind), dimension(0:klev), intent(in) :: &
          tau     , & ! layer extinction optical depth
          w0      , & ! layer single scattering albedo
          g           ! layer asymmetry parameter
- 
+
       real (kind=dbl_kind), intent(in) :: &
          albodr  , & ! ocean albedo to direct rad
          albodf      ! ocean albedo to diffuse rad
- 
+
       ! following arrays are defined at model interfaces; 0 is the top of the
       ! layer above the sea ice; klevp is the sea ice/ocean interface.
       real (kind=dbl_kind), dimension (0:klevp), intent(out) :: &
@@ -3310,7 +3238,7 @@
 ! Assumes monochromatic (spectrally uniform) properties across a band
 ! for the input optical parameters.
 !
-! If total transmission of the direct beam to the interface above a particular 
+! If total transmission of the direct beam to the interface above a particular
 ! layer is less than trmin, then no further Delta-Eddington solutions are
 ! evaluated for layers below.
 !
@@ -3318,16 +3246,16 @@
 !
 ! First, we assume that radiation is refracted when entering either
 ! sea ice at the base of the surface scattering layer, or water (i.e. melt
-! pond); we assume that radiation does not refract when entering snow, nor 
-! upon entering sea ice from a melt pond, nor upon entering the underlying 
+! pond); we assume that radiation does not refract when entering snow, nor
+! upon entering sea ice from a melt pond, nor upon entering the underlying
 ! ocean from sea ice.
 !
 ! To handle refraction, we define a "fresnel" layer, which physically
-! is of neglible thickness and is non-absorbing, which can be combined to 
-! any sea ice layer or top of melt pond. The fresnel layer accounts for 
+! is of neglible thickness and is non-absorbing, which can be combined to
+! any sea ice layer or top of melt pond. The fresnel layer accounts for
 ! refraction of direct beam and associated reflection and transmission for
-! solar radiation. A fresnel layer is combined with the top of a melt pond 
-! or to the surface scattering layer of sea ice if no melt pond lies over it. 
+! solar radiation. A fresnel layer is combined with the top of a melt pond
+! or to the surface scattering layer of sea ice if no melt pond lies over it.
 !
 ! Some caution must be exercised for the fresnel layer, because any layer
 ! to which it is combined is no longer a homogeneous layer, as are all other
@@ -3344,11 +3272,11 @@
 
       integer (kind=int_kind) :: &
          kfrsnl      ! radiation interface index for fresnel layer
- 
+
       ! following variables are defined for each layer; 0 refers to the top
-      ! layer. In general we must distinguish directions above and below in 
+      ! layer. In general we must distinguish directions above and below in
       ! the diffuse reflectivity and transmissivity, as layers are not assumed
-      ! to be homogeneous (apart from the single layer Delta-Edd solutions); 
+      ! to be homogeneous (apart from the single layer Delta-Edd solutions);
       ! the direct is always from above.
       real (kind=dbl_kind), dimension (0:klev) :: &
          rdir    , & ! layer reflectivity to direct radiation
@@ -3359,14 +3287,14 @@
          tdif_b  , & ! layer transmission to diffuse radiation from below
          trnlay      ! solar beam transm for layer (direct beam only)
 
-      integer (kind=int_kind) :: & 
+      integer (kind=int_kind) :: &
          k           ! level index
- 
+
       real (kind=dbl_kind), parameter :: &
          trmin = 0.001_dbl_kind   ! minimum total transmission allowed
       ! total transmission is that due to the direct beam; i.e. it includes
       ! both the directly transmitted solar beam and the diffuse downwards
-      ! transmitted radiation resulting from scattering out of the direct beam 
+      ! transmitted radiation resulting from scattering out of the direct beam
       real (kind=dbl_kind) :: &
          tautot   , & ! layer optical depth
          wtot     , & ! layer single scattering albedo
@@ -3378,9 +3306,9 @@
          rintfc   , & ! reflection (multiple) at an interface
          refkp1   , & ! interface multiple scattering for k+1
          refkm1   , & ! interface multiple scattering for k-1
-         tdrrdir  , & ! direct tran times layer direct ref 
+         tdrrdir  , & ! direct tran times layer direct ref
          tdndif       ! total down diffuse = tot tran - direct tran
- 
+
       ! perpendicular and parallel relative to plane of incidence and scattering
       real (kind=dbl_kind) :: &
          R1       , & ! perpendicular polarization reflection amplitude
@@ -3393,21 +3321,21 @@
          Rf_dif_b , & ! fresnel reflection to diff radiation from below
          Tf_dif_a , & ! fresnel transmission to diff radiation from above
          Tf_dif_b     ! fresnel transmission to diff radiation from below
- 
+
       ! refractive index for sea ice, water; pre-computed, band-independent,
       ! diffuse fresnel reflectivities
-      real (kind=dbl_kind), parameter :: & 
+      real (kind=dbl_kind), parameter :: &
          refindx = 1.310_dbl_kind  , & ! refractive index of sea ice (water also)
          cp063   = 0.063_dbl_kind  , & ! diffuse fresnel reflectivity from above
          cp455   = 0.455_dbl_kind      ! diffuse fresnel reflectivity from below
- 
+
       real (kind=dbl_kind) :: &
          mu0      , & ! cosine solar zenith angle incident
          mu0nij       ! cosine solar zenith angle in medium below fresnel level
- 
+
       real (kind=dbl_kind) :: &
          mu0n         ! cosine solar zenith angle in medium
- 
+
       real (kind=dbl_kind) :: &
          alp      , & ! temporary for alpha
          gam      , & ! temporary for agamm
@@ -3453,7 +3381,7 @@
 
 !-----------------------------------------------------------------------
 
-      do k = 0, klevp 
+      do k = 0, klevp
          trndir(k) = c0
          trntdr(k) = c0
          trndif(k) = c0
@@ -3462,20 +3390,20 @@
          rdndif(k) = c0
       enddo
 
-      ! initialize top interface of top layer 
+      ! initialize top interface of top layer
       trndir(0) =   c1
       trntdr(0) =   c1
       trndif(0) =   c1
       rdndif(0) =   c0
 
-      ! mu0 is cosine solar zenith angle above the fresnel level; make 
+      ! mu0 is cosine solar zenith angle above the fresnel level; make
       ! sure mu0 is large enough for stable and meaningful radiation
       ! solution: .01 is like sun just touching horizon with its lower edge
       mu0  = max(coszen,p01)
 
       ! mu0n is cosine solar zenith angle used to compute the layer
       ! Delta-Eddington solution; it is initially computed to be the
-      ! value below the fresnel level, i.e. the cosine solar zenith 
+      ! value below the fresnel level, i.e. the cosine solar zenith
       ! angle below the fresnel level for the refracted solar beam:
       mu0nij = sqrt(c1-((c1-mu0**2)/(refindx*refindx)))
 
@@ -3486,7 +3414,7 @@
       ! at base of sea ice SSL (and top of the sea ice DL); the
       ! snow SSL counts for one, then the number of snow layers,
       ! then the sea ice SSL which also counts for one:
-      if( srftyp < 2 ) kfrsnl = nslyr + 2 
+      if( srftyp < 2 ) kfrsnl = nslyr + 2
 
       ! proceed down one layer at a time; if the total transmission to
       ! the interface just above a given layer is less than trmin, then no
@@ -3506,7 +3434,7 @@
 
          ! compute next layer Delta-eddington solution only if total transmission
          ! of radiation to the interface just above the layer exceeds trmin.
-         
+
          if (trntdr(k) > trmin ) then
 
             ! calculation over layers with penetrating radiation
@@ -3545,7 +3473,7 @@
             amg = alp - gam
             rdir(k) = apg*rdif_a(k) +  amg*(tdif_a(k)*trnlay(k) - c1)
             tdir(k) = apg*tdif_a(k) + (amg* rdif_a(k)-apg+c1)*trnlay(k)
-            
+
             ! recalculate rdif,tdif using direct angular integration over rdir,tdir,
             ! since Delta-Eddington rdif formula is not well-behaved (it is usually
             ! biased low and can even be negative); use ngmax angles and gaussian
@@ -3572,20 +3500,20 @@
             enddo      ! ng
             rdif_a(k) = smr/swt
             tdif_a(k) = smt/swt
-            
+
             ! homogeneous layer
             rdif_b(k) = rdif_a(k)
             tdif_b(k) = tdif_a(k)
 
-            ! add fresnel layer to top of desired layer if either 
-            ! air or snow overlies ice; we ignore refraction in ice 
+            ! add fresnel layer to top of desired layer if either
+            ! air or snow overlies ice; we ignore refraction in ice
             ! if a melt pond overlies it:
 
             if( k == kfrsnl ) then
                ! compute fresnel reflection and transmission amplitudes
                ! for two polarizations: 1=perpendicular and 2=parallel to
                ! the plane containing incident, reflected and refracted rays.
-               R1 = (mu0 - refindx*mu0n) / & 
+               R1 = (mu0 - refindx*mu0n) / &
                     (mu0 + refindx*mu0n)
                R2 = (refindx*mu0 - mu0n) / &
                     (refindx*mu0 + mu0n)
@@ -3611,7 +3539,7 @@
                Rf_dif_b = cp455
                Tf_dif_b = c1 - Rf_dif_b
 
-               ! the k = kfrsnl layer properties are updated to combined 
+               ! the k = kfrsnl layer properties are updated to combined
                ! the fresnel (refractive) layer, always taken to be above
                ! the present layer k (i.e. be the top interface):
 
@@ -3637,31 +3565,31 @@
             endif      ! k = kfrsnl
 
          endif ! trntdr(k) > trmin
-         
+
          ! initialize current layer properties to zero; only if total
          ! transmission to the top interface of the current layer exceeds the
          ! minimum, will these values be computed below:
          ! Calculate the solar beam transmission, total transmission, and
-         ! reflectivity for diffuse radiation from below at interface k, 
+         ! reflectivity for diffuse radiation from below at interface k,
          ! the top of the current layer k:
          !
          !              layers       interface
-         !         
-         !       ---------------------  k-1 
+         !
+         !       ---------------------  k-1
          !                k-1
          !       ---------------------  k
          !                 k
-         !       ---------------------  
+         !       ---------------------
          !       For k = klevp
          ! note that we ignore refraction between sea ice and underlying ocean:
          !
          !              layers       interface
          !
-         !       ---------------------  k-1 
+         !       ---------------------  k-1
          !                k-1
          !       ---------------------  k
          !       \\\\\\\ ocean \\\\\\\
-         
+
          trndir(k+1) = trndir(k)*trnlay(k)
          refkm1         = c1/(c1 - rdndif(k)*rdif_a(k))
          tdrrdir        = trndir(k)*rdir(k)
@@ -3674,8 +3602,8 @@
 
       enddo       ! k   end main level loop
 
-      ! compute reflectivity to direct and diffuse radiation for layers 
-      ! below by adding succesive layers starting from the underlying 
+      ! compute reflectivity to direct and diffuse radiation for layers
+      ! below by adding succesive layers starting from the underlying
       ! ocean and working upwards:
       !
       !              layers       interface
@@ -3687,7 +3615,7 @@
       !       ---------------------
 
       rupdir(klevp) = albodr
-      rupdif(klevp) = albodf 
+      rupdif(klevp) = albodf
 
       do k=klev,0,-1
          ! interface scattering
@@ -3707,10 +3635,10 @@
 
 !=======================================================================
 !
-!   Set snow horizontal coverage, density and grain radius diagnostically 
+!   Set snow horizontal coverage, density and grain radius diagnostically
 !   for the Delta-Eddington solar radiation method.
 !
-! author:  Bruce P. Briegleb, NCAR 
+! author:  Bruce P. Briegleb, NCAR
 !   2013:  E Hunke merged with NCAR version
 
       subroutine shortwave_dEdd_set_snow(nslyr,    R_snw,    &
@@ -3721,7 +3649,7 @@
                                          rhosnw,   rsnw,     &
                                          rsnow)
 
-      integer (kind=int_kind), intent(in) :: & 
+      integer (kind=int_kind), intent(in) :: &
          nslyr      ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
@@ -3732,7 +3660,7 @@
       real (kind=dbl_kind), intent(in) :: &
          aice   , & ! concentration of ice
          vsno   , & ! volume of snow
-         Tsfc   , & ! surface temperature 
+         Tsfc   , & ! surface temperature
          hs0        ! snow depth for transition to bare sea ice (m)
 
      real (kind=dbl_kind), intent(inout) :: &
@@ -3767,17 +3695,17 @@
 
       ! set snow horizontal fraction
       hs = vsno / aice
-      
+
       if (hs >= hs_min) then
          fs = c1
          if (hs0 > puny) fs = min(hs/hs0, c1)
       endif
-      
+
       if (snwgrain) then  ! use snow grain tracer
 
          do ks = 1, nslyr
             rsnw(ks)   = max(rsnw_fall,rsnow(ks))
-            rsnw(ks)   = min(rsnw_tmax,rsnow(ks))
+            rsnw(ks)   = min(rsnw_tmax,rsnw (ks))
             rhosnw(ks) = rhos
          enddo
 
@@ -3810,7 +3738,7 @@
 !   Set pond fraction and depth diagnostically for
 !   the Delta-Eddington solar radiation method.
 !
-! author:  Bruce P. Briegleb, NCAR 
+! author:  Bruce P. Briegleb, NCAR
 !   2013:  E Hunke merged with NCAR version
 
       subroutine shortwave_dEdd_set_pond(Tsfc,               &
@@ -3844,7 +3772,7 @@
       ! pond
       fp = 0.3_dbl_kind*fT*(c1-fs)
       hp = 0.3_dbl_kind*fT*(c1-fs)
-      
+
       end subroutine shortwave_dEdd_set_pond
 
 ! End Delta-Eddington shortwave method
@@ -3861,13 +3789,13 @@
                                     nilyr,        nblyr,     &
                                     i_grid,                  &
                                     skl_bgc,      z_tracers  )
-      
+
       integer (kind=int_kind), intent(in) :: &
          nslyr          ! number of snow layers
 
       integer (kind=int_kind), intent(in) :: &
          nblyr      , & ! number of bio layers
-         nilyr          ! number of ice layers 
+         nilyr          ! number of ice layers
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          bgcN       , & ! Nit tracer
@@ -3877,9 +3805,9 @@
          trcrn_bgcsw    ! ice on shortwave grid tracers
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         sw_grid     , & ! 
+         sw_grid     , & !
          i_grid          ! CICE bio grid
-         
+
       real(kind=dbl_kind), intent(in) :: &
          hin         , & ! CICE ice thickness
          hbri            ! brine height
@@ -3900,7 +3828,7 @@
          icegrid        ! correct for large ice surface layers
 
       real (kind=dbl_kind):: &
-         top_conc       ! 1% (min_bgc) of surface concentration 
+         top_conc       ! 1% (min_bgc) of surface concentration
                         ! when hin > hbri:  just used in sw calculation
 
       character(len=*),parameter :: subname='(compute_shortwave_trcr)'
@@ -3915,7 +3843,7 @@
 
       do k = 1,nilyr+1
          icegrid(k) = sw_grid(k)
-      enddo    
+      enddo
       if (sw_grid(1)*hin*c2 > hi_ssl) then
          icegrid(1) = hi_ssl/c2/hin
       endif
@@ -3931,10 +3859,10 @@
          do k = 1, nblyr+1
             do n = 1, n_algae
                trtmp0(nt_bgc_N(1) + k-1) = trtmp0(nt_bgc_N(1) + k-1) + &
-                                R_chl2N(n)*F_abs_chl(n)*bgcN(nt_bgc_N(n)-nt_bgc_N(1)+1 + k-1)
+                                R_chl2N(n)*F_abs_chl(n)*bgcN(nt_bgc_N(n)-nt_bgc_N(1)+k)
             enddo ! n
          enddo    ! k
- 
+
          top_conc = trtmp0(nt_bgc_N(1))*min_bgc
          call remap_zbgc (nilyr+1, &
                           nt_bgc_N(1),                &
@@ -3943,7 +3871,7 @@
                           1,                 nblyr+1, &
                           hin,               hbri,    &
                           icegrid(1:nilyr+1),         &
-                          i_grid(1:nblyr+1), top_conc ) 
+                          i_grid(1:nblyr+1), top_conc )
          if (icepack_warnings_aborted(subname)) return
 
          do k = 1, nilyr+1
@@ -4002,7 +3930,7 @@
                                 + F_abs_chl(nn)*R_chl2N(nn) &
                                 * bgcN(nt_bgc_N(nn)-nt_bgc_N(1)+1)*sk_l/hin &
                                 * real(nilyr,kind=dbl_kind)
-         enddo 
+         enddo
 
       endif
       end subroutine compute_shortwave_trcr
@@ -4073,10 +4001,10 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         k           , & ! vertical index       
+         k           , & ! vertical index
          n               ! thickness category index
 
-      real (kind=dbl_kind) :: netsw 
+      real (kind=dbl_kind) :: netsw
 
       character(len=*),parameter :: subname='(icepack_prep_radiation)'
 
@@ -4211,26 +4139,26 @@
          yday                ! day of the year
 
       real (kind=dbl_kind), intent(inout) :: &
-         coszen        ! cosine solar zenith angle, < 0 for sun below horizon 
+         coszen        ! cosine solar zenith angle, < 0 for sun below horizon
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          igrid              ! biology vertical interface points
- 
+
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          swgrid                ! grid for ice tracers used in dEdd scheme
-        
-      real (kind=dbl_kind), dimension(:,:), intent(in) :: & 
+
+      real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          kaer_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_tab, & ! aerosol single scatter albedo (fraction)
          gaer_tab    ! aerosol asymmetry parameter (cos(theta))
 
-      real (kind=dbl_kind), dimension(:,:), intent(in) :: & 
+      real (kind=dbl_kind), dimension(:,:), intent(in) :: &
          kaer_bc_tab, & ! aerosol mass extinction cross section (m2/kg)
          waer_bc_tab, & ! aerosol single scatter albedo (fraction)
          gaer_bc_tab    ! aerosol asymmetry parameter (cos(theta))
 
-      real (kind=dbl_kind), dimension(:,:,:), intent(in) :: & 
-         bcenh 
+      real (kind=dbl_kind), dimension(:,:,:), intent(in) :: &
+         bcenh
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen     , & ! ice area fraction in each category
@@ -4241,7 +4169,7 @@
          apndn     , & ! pond area fraction
          hpndn     , & ! pond depth (m)
          ipndn     , & ! pond refrozen lid thickness (m)
-         fbri           ! brine fraction 
+         fbri           ! brine fraction
 
       real(kind=dbl_kind), dimension(:,:), intent(in) :: &
          aeron     , & ! aerosols (kg/m^3)
@@ -4263,9 +4191,9 @@
          dhsn      , & ! depth difference for snow on sea ice and pond ice
          ffracn    , & ! fraction of fsurfn used to melt ipond
                        ! albedo components for history
-         albicen   , & ! bare ice 
-         albsnon   , & ! snow 
-         albpndn   , & ! pond 
+         albicen   , & ! bare ice
+         albsnon   , & ! snow
+         albpndn   , & ! pond
          apeffn        ! effective pond area used for radiation calculation
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
@@ -4422,7 +4350,7 @@
 
          if (calc_Tsfc) then
          if (trim(shortwave) == 'dEdd') then ! delta Eddington
-            
+
             call run_dEdd(dt,           ncat,           &
                           dEdd_algae,                   &
                           nilyr,        nslyr,          &
@@ -4432,7 +4360,6 @@
                           hpndn,        ipndn,          &
                           aeron,        kalg,           &
                           trcrn_bgcsw,                  &
-                          heat_capacity,                &
                           TLAT,         TLON,           &
                           calendar_type,days_per_year,  &
                           nextsw_cday,  yday,           &
@@ -4473,7 +4400,7 @@
                           l_print_point=l_print_point,  &
                           initonly=linitonly)
             if (icepack_warnings_aborted(subname)) return
- 
+
          elseif (trim(shortwave) == 'ccsm3') then
 
             call shortwave_ccsm3(aicen,      vicen,      &
@@ -4481,7 +4408,6 @@
                                  Tsfcn,                  &
                                  swvdr,      swvdf,      &
                                  swidr,      swidf,      &
-                                 heat_capacity,          &
                                  albedo_type,            &
                                  albicev,    albicei,    &
                                  albsnowv,   albsnowi,   &
@@ -4526,7 +4452,7 @@
 
          if (tr_pond_topo) then
             do n = 1, ncat
-               apeffn(n) = c0 
+               apeffn(n) = c0
                if (aicen(n) > puny) then
                ! Lid effective if thicker than hp1
                  if (apndn(n)*aicen(n) > puny .and. ipndn(n) < hp1) then
@@ -4537,7 +4463,7 @@
                  if (apndn(n) < puny) apeffn(n) = c0
                endif
             enddo  ! ncat
- 
+
          endif ! tr_pond_topo
 
          ! Initialize for safety
@@ -4660,7 +4586,7 @@
       asys = (gg - f)/(c1 - f)
 
       end function asys
- 
+
 !=======================================================================
 
       end module icepack_shortwave

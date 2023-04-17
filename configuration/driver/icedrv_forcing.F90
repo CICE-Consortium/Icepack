@@ -14,7 +14,7 @@
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
-      use icepack_intfc, only: icepack_sea_freezing_temperature 
+      use icepack_intfc, only: icepack_sea_freezing_temperature
       use icepack_intfc, only: icepack_init_wave
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
@@ -52,7 +52,7 @@
             flw_data, &
             qdp_data, &
             sst_data, &
-            sss_data, & 
+            sss_data, &
            uocn_data, &
            vocn_data, &
           frain_data, &
@@ -70,7 +70,7 @@
            open_data, &
            clos_data
 
-      character(char_len), public :: & 
+      character(char_len), public :: &
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
          ocn_data_format, & ! 'bin'=binary or 'nc'=netcdf
          bgc_data_format, & ! 'bin'=binary or 'nc'=netcdf
@@ -82,8 +82,8 @@
          ice_data_file,   & ! ice forcing data file
          bgc_data_file,   & ! biogeochemistry forcing data file
          precip_units       ! 'mm_per_month', 'mm_per_sec', 'mks'
- 
-      character(char_len_long), public :: & 
+
+      character(char_len_long), public :: &
          data_dir           ! top directory for forcing data
 
       real (kind=dbl_kind), parameter, public :: &
@@ -96,7 +96,7 @@
          oceanmixed_ice        , & ! if true, use internal ocean mixed layer
          restore_ocn               ! restore sst if true
 
-      real (kind=dbl_kind), public :: & 
+      real (kind=dbl_kind), public :: &
          trest, &                  ! restoring time scale (sec)
          trestore                  ! restoring time scale (days)
 
@@ -134,10 +134,10 @@
           potT_data(:) = potT (i)    ! air potential temperature  (K)
           rhoa_data(:) = rhoa (i)    ! air density (kg/m^3)
           uatm_data(:) = uatm (i)    ! wind velocity components (m/s)
-          vatm_data(:) = vatm (i)   
+          vatm_data(:) = vatm (i)
           wind_data(:) = wind (i)    ! wind speed (m/s)
          strax_data(:) = strax(i)    ! wind stress components (N/m^2)
-         stray_data(:) = stray(i)   
+         stray_data(:) = stray(i)
            fsw_data(:) = fsw  (i)    ! incoming shortwave radiation (W/m^2)
          swvdr_data(:) = swvdr(i)    ! sw down, visible, direct  (W/m^2)
          swvdf_data(:) = swvdf(i)    ! sw down, visible, diffuse (W/m^2)
@@ -625,7 +625,7 @@
       logical (kind=log_kind) :: &
          calc_strair
 
-      real (kind=dbl_kind), parameter :: &    
+      real (kind=dbl_kind), parameter :: &
          lapse_rate = 0.0065_dbl_kind      ! (K/m) lapse rate over sea level
 
       real (kind=dbl_kind) :: &
@@ -650,11 +650,11 @@
       ! convert precipitation units to kg/m^2 s
       !-----------------------------------------------------------------
       if (trim(precip_units) == 'mm_per_month') then
-         precip_factor = 12._dbl_kind/(secday*dayyr) 
+         precip_factor = 12._dbl_kind/(secday*dayyr)
       elseif (trim(precip_units) == 'mm_per_day') then
          precip_factor = c1/secday
       elseif (trim(precip_units) == 'mm_per_sec' .or. &
-              trim(precip_units) == 'mks') then 
+              trim(precip_units) == 'mks') then
          precip_factor = c1    ! mm/sec = kg/m^2 s
       endif
 
@@ -709,15 +709,15 @@
          swvdf(nt) = fsw(nt)*frcvdf        ! visible diffuse
          swidr(nt) = fsw(nt)*frcidr        ! near IR direct
          swidf(nt) = fsw(nt)*frcidf        ! near IR diffuse
-                 
+
          ! precipitation
          fsnow(nt) = fsnow(nt) * precip_factor
 
          ! determine whether precip is rain or snow
-         ! HadGEM forcing provides separate snowfall and rainfall rather 
+         ! HadGEM forcing provides separate snowfall and rainfall rather
          ! than total precipitation
 !         if (trim(atm_data_type) /= 'hadgem') then
-            frain(nt) = c0                     
+            frain(nt) = c0
             if (Tair(nt) >= Tffresh) then
                 frain(nt) = fsnow(nt)
                 fsnow(nt) = c0
@@ -840,7 +840,7 @@
       else                           ! recslot = 1
          if (dataloc==1) then        ! data located at middle of interval
             t1 = (rcnum-p5)*secint
-         else                        
+         else
             t1 = rcnum*secint        ! data located at end of interval
          endif
          t2 = t1 + secint            !  + 1 interval
@@ -986,7 +986,7 @@
          qdp      ! deep ocean heat flux
 
       character (char_len_long) filename
-      
+
       character(len=*), parameter :: subname='(ocn_NICE)'
 
 !      ocn_data_file = 'oceanmixed_daily_3.txt'
@@ -1036,7 +1036,7 @@
          qdp      ! deep ocean heat flux
 
       character (char_len_long) filename
-      
+
       character(len=*), parameter :: subname='(ocn_ISPOL)'
 
 !      ocn_data_file = 'pop_frc.gx1v3.051202_but_hblt_from_010815_ispol.txt'
@@ -1122,12 +1122,14 @@
          read(nu_open_clos,*) xtime, open_data(i), clos_data(i)
       enddo
 
+      close (nu_open_clos)
+
     end subroutine ice_open_clos
 
 !=======================================================================
 
       subroutine get_wave_spec
-  
+
       use icedrv_arrays_column, only: wave_spectrum, wave_sig_ht, &
                                    dwavefreq, wavefreq
       use icedrv_domain_size, only: nfreq

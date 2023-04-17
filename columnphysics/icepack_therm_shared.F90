@@ -12,7 +12,7 @@
       use icepack_parameters, only: cp_ocn, cp_ice, rhoi, rhos, Tffresh, TTTice, qqqice
       use icepack_parameters, only: stefan_boltzmann, emissivity, Lfresh, Tsmelt
       use icepack_parameters, only: saltmax, min_salin, depressT
-      use icepack_parameters, only: ktherm, heat_capacity, tfrz_option
+      use icepack_parameters, only: ktherm, tfrz_option
       use icepack_parameters, only: calc_Tsfc
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -22,7 +22,7 @@
       use icepack_mushy_physics, only: enthalpy_snow
       use icepack_mushy_physics, only: icepack_mushy_temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
-    
+
       implicit none
 
       private
@@ -79,7 +79,7 @@
 
       if (l_brine) then
          aa1 = cp_ice
-         bb1 = (cp_ocn-cp_ice)*Tmltk - qin/rhoi - Lfresh 
+         bb1 = (cp_ocn-cp_ice)*Tmltk - qin/rhoi - Lfresh
          cc1 = Lfresh * Tmltk
          Tin =  min((-bb1 - sqrt(bb1*bb1 - c4*aa1*cc1)) /  &
                          (c2*aa1),Tmltk)
@@ -87,7 +87,7 @@
       else                ! fresh ice
          Tin = (Lfresh + qin/rhoi) / cp_ice
       endif
- 
+
       end function calculate_Tin_from_qin
 
 !=======================================================================
@@ -95,7 +95,7 @@
 !=======================================================================
 
 ! heat flux into ice
-    
+
       subroutine surface_heat_flux(Tsf,     fswsfc, &
                                    rhoa,    flw,    &
                                    potT,    Qa,     &
@@ -106,7 +106,7 @@
       ! input surface temperature
       real(kind=dbl_kind), intent(in) :: &
          Tsf             ! ice/snow surface temperature (C)
-    
+
       ! input variables
       real(kind=dbl_kind), intent(in) :: &
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
@@ -116,14 +116,14 @@
          Qa          , & ! specific humidity (kg/kg)
          shcoef      , & ! transfer coefficient for sensible heat
          lhcoef          ! transfer coefficient for latent heat
-    
+
       ! output
       real(kind=dbl_kind), intent(out) :: &
          fsensn      , & ! surface downward sensible heat (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn     , & ! upward LW at surface (W m-2)
          fsurfn          ! net flux to top surface, excluding fcondtopn
-    
+
       ! local variables
       real(kind=dbl_kind) :: &
          TsfK        , & ! ice/snow surface temperature (K)
@@ -131,85 +131,85 @@
          qsat        , & ! the saturation humidity of air (kg/m^3)
          flwdabs     , & ! downward longwave absorbed heat flx (W/m^2)
          tmpvar          ! 1/TsfK
-    
+
       character(len=*),parameter :: subname='(surface_heat_flux)'
 
       ! ice surface temperature in Kelvin
       TsfK = Tsf + Tffresh
 !      TsfK = max(Tsf + Tffresh, c1)
       tmpvar = c1/TsfK
-    
+
       ! saturation humidity
       qsat    = qqqice * exp(-TTTice*tmpvar)
       Qsfc    = qsat / rhoa
-    
+
       ! longwave radiative flux
       flwdabs =  emissivity * flw
       flwoutn = -emissivity * stefan_boltzmann * TsfK**4
-    
+
       ! downward latent and sensible heat fluxes
       fsensn = shcoef * (potT - TsfK)
       flatn  = lhcoef * (Qa - Qsfc)
-    
+
       ! combine fluxes
       fsurfn = fswsfc + flwdabs + flwoutn + fsensn + flatn
 
       end subroutine surface_heat_flux
 
   !=======================================================================
-  
+
       subroutine dsurface_heat_flux_dTsf(Tsf,  rhoa,      &
                                          shcoef,  lhcoef, &
                                          dfsurfn_dTsf, dflwoutn_dTsf, &
                                          dfsensn_dTsf, dflatn_dTsf)
-    
+
       ! input surface temperature
       real(kind=dbl_kind), intent(in) :: &
          Tsf               ! ice/snow surface temperature (C)
-    
+
       ! input variables
       real(kind=dbl_kind), intent(in) :: &
          rhoa          , & ! air density (kg/m^3)
          shcoef        , & ! transfer coefficient for sensible heat
          lhcoef            ! transfer coefficient for latent heat
-    
+
       ! output
       real(kind=dbl_kind), intent(out) :: &
          dfsurfn_dTsf      ! derivative of net flux to top surface, excluding fcondtopn
-    
+
       real(kind=dbl_kind), intent(out) :: &
          dflwoutn_dTsf , & ! derivative of longwave flux wrt surface temperature
          dfsensn_dTsf  , & ! derivative of sensible heat flux wrt surface temperature
          dflatn_dTsf       ! derivative of latent heat flux wrt surface temperature
-    
+
       ! local variables
       real(kind=dbl_kind) :: &
          TsfK          , & ! ice/snow surface temperature (K)
          dQsfc_dTsf    , & ! saturated surface specific humidity (kg/kg)
          qsat          , & ! the saturation humidity of air (kg/m^3)
          tmpvar            ! 1/TsfK
-    
+
       character(len=*),parameter :: subname='(dsurface_heat_flux_dTsf)'
 
       ! ice surface temperature in Kelvin
 !      TsfK = max(Tsf + Tffresh, c1)
       TsfK = Tsf + Tffresh
       tmpvar = c1/TsfK
-    
+
       ! saturation humidity
       qsat          = qqqice * exp(-TTTice*tmpvar)
       dQsfc_dTsf    = TTTice * tmpvar * tmpvar * (qsat / rhoa)
-    
+
       ! longwave radiative flux
       dflwoutn_dTsf = -emissivity * stefan_boltzmann * c4*TsfK**3
-    
+
       ! downward latent and sensible heat fluxes
       dfsensn_dTsf = -shcoef
       dflatn_dTsf  = -lhcoef * dQsfc_dTsf
-    
+
       ! combine fluxes
       dfsurfn_dTsf = dflwoutn_dTsf + dfsensn_dTsf + dflatn_dTsf
-    
+
       end subroutine dsurface_heat_flux_dTsf
 
 !=======================================================================
@@ -245,11 +245,8 @@
       ! Set l_brine to false for zero layer thermodynamics
       !-----------------------------------------------------------------
 
-      heat_capacity = .true.      
-      if (ktherm == 0) heat_capacity = .false. ! 0-layer thermodynamics
-
       l_brine = .false.
-      if (saltmax > min_salin .and. heat_capacity) l_brine = .true.
+      if (saltmax > min_salin) l_brine = .true.
 
       !-----------------------------------------------------------------
       ! Prescibe vertical profile of salinity and melting temperature.
@@ -287,7 +284,7 @@
          nslyr       ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
-         Tair, &     ! air temperature (C)
+         Tair, &     ! air temperature (K)
          Tf          ! freezing temperature (C)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
@@ -315,9 +312,7 @@
       ! surface temperature
       Tsfc = Tf ! default
       if (calc_Tsfc) Tsfc = min(Tsmelt, Tair - Tffresh) ! deg C
-      
-      if (heat_capacity) then
-        
+
         ! ice enthalpy
         do k = 1, nilyr
           ! assume linear temp profile and compute enthalpy
@@ -331,23 +326,13 @@
                 + Lfresh*(c1-Tprofile(k)/Ti) - cp_ocn*Tprofile(k)))
           endif
         enddo               ! nilyr
-        
+
         ! snow enthalpy
         do k = 1, nslyr
           Ti = min(c0, Tsfc)
           qsn(k) = -rhos*(Lfresh - cp_ice*Ti)
         enddo               ! nslyr
-        
-      else  ! one layer with zero heat capacity
-        
-        ! ice energy
-        qin(1) = -rhoi * Lfresh 
-        
-        ! snow energy
-        qsn(1) = -rhos * Lfresh 
-        
-      endif               ! heat_capacity
-      
+
     end subroutine icepack_init_trcr
 
 !=======================================================================
@@ -391,7 +376,7 @@
         if (trim(tfrz_option) == 'mushy') then
 
            Tf = icepack_liquidus_temperature(sss) ! deg C
-           
+
         elseif (trim(tfrz_option) == 'linear_salt') then
 
            Tf = -depressT * sss ! deg C

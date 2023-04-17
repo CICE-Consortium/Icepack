@@ -78,7 +78,7 @@
       call icepack_query_parameters(solve_zsal_out=solve_zsal)
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_tracer_sizes(nbtrcr_out=nbtrcr)
-      call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, & 
+      call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, &
          tr_bgc_Am_out=tr_bgc_Am, &
          tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_hum_out=tr_bgc_hum, &
          tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, &
@@ -106,10 +106,10 @@
       if (solve_zsal) then
 
       do k = 1, nblyr
-        call write_restart_field(nu_dump,trcrn(:,nt_bgc_S+k-1,:),ncat) 
+        call write_restart_field(nu_dump,trcrn(:,nt_bgc_S+k-1,:),ncat)
       enddo
-    
-      call write_restart_field(nu_dump,sss,1) 
+
+      call write_restart_field(nu_dump,sss,1)
 
          do i = 1, nx
             if (Rayleigh_criteria(i)) then
@@ -119,7 +119,7 @@
             endif
          enddo
 
-      call write_restart_field(nu_dump,Rayleigh_real,1) 
+      call write_restart_field(nu_dump,Rayleigh_real,1)
 
       endif ! solve_zsal
 
@@ -129,13 +129,13 @@
 
       if (skl_bgc) then
          do k = 1, n_algae
-           call write_restart_field(nu_dump,trcrn(:,nt_bgc_N(k),:),ncat) 
+           call write_restart_field(nu_dump,trcrn(:,nt_bgc_N(k),:),ncat)
            if (tr_bgc_chl) &
-           call write_restart_field(nu_dump,trcrn(:,nt_bgc_chl(k),:),ncat) 
+           call write_restart_field(nu_dump,trcrn(:,nt_bgc_chl(k),:),ncat)
          enddo
          if (tr_bgc_C)  then
 !           do k = 1, n_algae
-!             call write_restart_field(nu_dump,trcrn(:,nt_bgc_C(k),:),ncat) 
+!             call write_restart_field(nu_dump,trcrn(:,nt_bgc_C(k),:),ncat)
 !           enddo
             do k = 1, n_doc
                call write_restart_field(nu_dump,trcrn(:,nt_bgc_DOC(k),:),ncat)
@@ -165,10 +165,10 @@
             enddo
          endif
          if (tr_bgc_Fe )  then
-            do k = 1, n_fed 
+            do k = 1, n_fed
                call write_restart_field(nu_dump,trcrn(:,nt_bgc_Fed(k),:),ncat)
             enddo
-            do k = 1, n_fep 
+            do k = 1, n_fep
                call write_restart_field(nu_dump,trcrn(:,nt_bgc_Fep(k),:),ncat)
             enddo
          endif
@@ -290,7 +290,7 @@
             do k = 1, n_dic
                call write_restart_field(nu_dump,dic(:,k),1)
             enddo  ! k
-         endif      
+         endif
          if (tr_bgc_Nit) &
              call write_restart_field(nu_dump,nit,1)
          if (tr_bgc_Am) &
@@ -380,7 +380,7 @@
       call icepack_query_tracer_sizes(nbtrcr_out=nbtrcr)
 
 
-      call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, & 
+      call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, &
          tr_bgc_Am_out=tr_bgc_Am, &
          tr_bgc_Sil_out=tr_bgc_Sil, tr_bgc_hum_out=tr_bgc_hum, &
          tr_bgc_DMS_out=tr_bgc_DMS, tr_bgc_PON_out=tr_bgc_PON, &
@@ -412,13 +412,13 @@
          do k = 1, nblyr
             call read_restart_field(nu_restart,trcrn(:,nt_bgc_S+k-1,:),ncat)
          enddo
- 
+
          write(nu_diag,*) 'min/max sea surface salinity'
          call read_restart_field(nu_restart,sss,1)
          write(nu_diag,*) 'min/max Rayleigh'
          call read_restart_field(nu_restart,Rayleigh_real,1)
 
-         do i = 1, nx  
+         do i = 1, nx
             if (Rayleigh_real     (i) .GE. c1) then
                 Rayleigh_criteria (i) = .true.
             elseif (Rayleigh_real (i) < c1) then
@@ -481,10 +481,10 @@
          endif
          if (tr_bgc_Fe) then
             write (nu_diag,*) 'min/max dFe, pFe'
-            do k = 1, n_fed 
+            do k = 1, n_fed
                call read_restart_field(nu_restart,trcrn(:,nt_bgc_Fed (k),:),ncat)
             enddo
-            do k = 1, n_fep 
+            do k = 1, n_fep
                call read_restart_field(nu_restart,trcrn(:,nt_bgc_Fep (k),:),ncat)
             enddo
          endif
@@ -662,7 +662,7 @@
          endif
 
       endif  ! skl_bgc or z_tracers
-   
+
       end subroutine read_restart_bgc
 
 !=======================================================================

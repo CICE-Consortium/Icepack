@@ -5,9 +5,8 @@
 Thermodynamics
 ==============
 
-The current Icepack version includes three thermodynamics
-options, the "zero-layer" thermodynamics of :cite:`Semtner76`
-(``ktherm`` = 0), the Bitz and Lipscomb model :cite:`Bitz99`
+The current Icepack version includes two thermodynamics
+options, the Bitz and Lipscomb model :cite:`Bitz99`
 (``ktherm`` = 1) that assumes a fixed salinity profile, and a "mushy"
 formulation (``ktherm`` = 2) in which salinity evolves
 :cite:`Turner13`. For each thickness category, Icepack computes
@@ -56,6 +55,39 @@ to "move" the excess internal shortwave in this case up to the top surface to be
 The namelist parameters for this option are ``sw_redist``, ``sw_frac``, and ``sw_dtemp``.
 By default, ``sw_redist`` is set to ``.false.``
 
+Snow fraction
+-------------
+
+In several places in the code, the snow fraction over ice (either sea ice or pond lids) varies
+as a function of snow depth.  That is, thin layers of snow are assumed to be patchy, which
+allows the shortwave flux to increase gradually as the layer thins, preventing sudden changes
+in the shortwave reaching the sea ice (which can cause the thermodynamics solver to not converge).
+For example, the parameter ``snowpatch`` is used for the CCSM3 radiation scheme, with a default
+value of 0.02:
+
+.. math::
+   f_{snow} = \frac{h_s}{h_s + h_{snowpatch}},
+
+The parameters ``hs0`` and ``hs1`` are used similarly for delta-Eddington radiation calculations with
+meltponds, with ``hs0`` over sea ice and ``hs1`` over pond ice.
+
+In the tests shown in :cite:`Hunke13`, :math:`h_{s0}=0` for all cases except with the cesm
+pond scheme; that pond scheme has now been deprecated.  :math:`h_{s0}` can be used with the topo pond
+scheme, although its impacts have not been documented.  We enforce :math:`hs0=0` for level-ice ponds
+because the infiltration of snow by pond water accomplishes the gradual radiative forcing
+transition for which the patchy-snow parameters were originally intended. When level-ice ponds
+are not used, then a typical value for hs0 is 0.03.
+
+With level-ice ponds, the pond water is allowed to infiltrate snow over the level ice area,
+invisible to the radiation scheme, until the water becomes deep enough to show through the
+snow layer. The pond fraction is computed during this process and then used to
+set the snow fraction such that :math:`f_{snow}+f_{pond}=1`. The ponds are only on the level ice
+area, and so there is still snow on the ridges even if the entire level ice area becomes filled
+with ponds.
+
+See :cite:`Hunke13` for a discussion of the impacts of varying hs1, whose default value is 0.03.
+
+
 .. _ponds:
 
 Melt ponds
@@ -101,34 +133,6 @@ calculation.
 In addition to the physical processes discussed below, tracer equations
 and definitions for melt ponds are also described in
 the :ref:`tracers` section.
-
-CESM formulation (``tr_pond_cesm`` = true)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Melt pond area and thickness tracers are carried on each ice thickness
-category as in the :ref:`tracers` section. Defined simply as the product
-of pond area, :math:`a_p`, and depth, :math:`h_p`, the melt pond volume,
-:math:`V_{p}`, grows through addition of ice or snow melt water or rain
-water, and shrinks when the ice surface temperature becomes cold,
-
-.. math::
-   \begin{aligned}
-   {\rm pond \ growth:\ } \ V_{p}^\prime &= V_{p}(t) +\Delta V_{melt} , \\
-   {\rm pond \ contraction:\ } \ V_{p}(t+\Delta t) &= V_{p}^\prime\exp\left[r_2\left( {\max\left(T_p-T_{sfc}, 0\right) \over T_p}\right)\right], \end{aligned}
-   :label: meltpond-cesm
-
-where :math:`dh_{i}` and :math:`dh_{s}` represent ice and snow melt at
-the top surface of each thickness category and :math:`r_2=0.01`. Here,
-:math:`T_p` is a reference temperature equal to :math:`-2^\circ`\ C.
-Pond depth is assumed to be a linear function of the pond fraction
-(:math:`h_p=\delta_p a_p`) and is limited by the category ice thickness
-(:math:`h_p \le 0.9 h_i`). The pond shape (``pndaspect``)
-:math:`\delta_p = 0.8` in the standard CESM pond configuration. The area
-and thickness are computed according to the assumed pond shape, and the
-pond area is then reduced in the presence of snow for the radiation
-calculation. Ponds are allowed only on ice at least 1 cm thick. This
-formulation differs slightly from that documented in
-:cite:`Holland12`.
 
 Topographic formulation (``tr_pond_topo`` = true)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -864,16 +868,6 @@ that :math:`F_{bot} + F_{side} \ge F_{frzmlt}` in the case that
 New temperatures
 ----------------
 
-Zero-layer thermodynamics (``ktherm`` = 0)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-An option for zero-layer thermodynamics :cite:`Semtner76` is
-available in this version of Icepack by setting the namelist parameter
-``ktherm`` to 0 and changing the number of ice layers, nilyr, in
-**icedrv\_domain\_size.F90** to 1. In the zero-layer case, the ice is
-fresh and the thermodynamic calculations are much simpler than in the
-other configurations, which we describe here.
-
 Bitz and Lipscomb thermodynamics (``ktherm`` = 1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1297,7 +1291,8 @@ contains salt, it usually will be fully melted at a temperature below
 :math:`0^{\circ}C`.
 Equations :eq:`ice-enthalpy` and :eq:`enth-def` are
 equivalent except for the density used in the term representing the
-energy required to bring the melt water temperature to (:math:`\rho_i`
+energy required to bring the melt water temperature to :math:`0^{\circ}C`
+(:math:`\rho_i`
 and :math:`\rho_w` in equations :eq:`ice-enthalpy` and
 :eq:`enth-def`, respectively).
 

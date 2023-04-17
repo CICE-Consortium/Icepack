@@ -290,7 +290,7 @@
             call icepack_warnings_flush(nu_diag)
             if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                file=__FILE__, line=__LINE__)
-         
+
       !-----------------------------------------------------------------
       ! Define aerosol tracer on shortwave grid
       !-----------------------------------------------------------------
@@ -306,29 +306,29 @@
          enddo
 
       !-----------------------------------------------------------------
-      ! Aggregate albedos 
+      ! Aggregate albedos
       !-----------------------------------------------------------------
 
          do n = 1, ncat
             do i = 1, nx
-               
+
                if (aicen(i,n) > puny) then
-                  
+
                   alvdf(i) = alvdf(i) + alvdfn(i,n)*aicen(i,n)
                   alidf(i) = alidf(i) + alidfn(i,n)*aicen(i,n)
                   alvdr(i) = alvdr(i) + alvdrn(i,n)*aicen(i,n)
                   alidr(i) = alidr(i) + alidrn(i,n)*aicen(i,n)
-                  
+
                   netsw = swvdr(i) + swidr(i) + swvdf(i) + swidf(i)
                   if (netsw > puny) then ! sun above horizon
                      albice(i) = albice(i) + albicen(i,n)*aicen(i,n)
                      albsno(i) = albsno(i) + albsnon(i,n)*aicen(i,n)
                      albpnd(i) = albpnd(i) + albpndn(i,n)*aicen(i,n)
                   endif
-                  
+
                   apeff_ai(i) = apeff_ai(i) + apeffn(i,n)*aicen(i,n)
                   snowfrac(i) = snowfrac(i) + snowfracn(i,n)*aicen(i,n)
-               
+
                endif ! aicen > puny
             enddo  ! i
          enddo   ! ncat
@@ -343,7 +343,7 @@
             alidf_ai  (i) = alidf  (i)
             alvdr_ai  (i) = alvdr  (i)
             alidr_ai  (i) = alidr  (i)
-            
+
       !----------------------------------------------------------------
       ! Save net shortwave for scaling factor in scale_factor
       !----------------------------------------------------------------
@@ -366,7 +366,7 @@
 
 !  Initialize vertical profile for biogeochemistry
 
-      subroutine init_bgc() 
+      subroutine init_bgc()
 
       use icedrv_arrays_column, only: zfswin, trcrn_sw
       use icedrv_arrays_column, only: ocean_bio_all, ice_bio_net, snow_bio_net
@@ -397,10 +397,10 @@
          RayleighR
 
       real(kind=dbl_kind), dimension(max_ntrcr,ncat) :: &
-         trcrn_bgc 
-      
+         trcrn_bgc
+
       real(kind=dbl_kind), dimension(nilyr,ncat) :: &
-         sicen    
+         sicen
 
       integer (kind=int_kind) :: &
          nbtrcr, ntrcr, ntrcr_o, &
@@ -410,13 +410,13 @@
 
       ! Initialize
 
-      bphi(:,:,:) = c0   ! initial porosity for no ice 
+      bphi(:,:,:) = c0   ! initial porosity for no ice
       iDi (:,:,:) = c0   ! interface diffusivity
       bTiz(:,:,:) = c0   ! initial bio grid ice temperature
       iki (:,:,:) = c0   ! permeability
 
       ocean_bio_all(:,:)   = c0
-      ice_bio_net  (:,:)   = c0 ! integrated ice tracer conc (mmol/m^2 or mg/m^2) 
+      ice_bio_net  (:,:)   = c0 ! integrated ice tracer conc (mmol/m^2 or mg/m^2)
       snow_bio_net (:,:)   = c0 ! integrated snow tracer conc (mmol/m^2 or mg/m^2)
       zfswin       (:,:,:) = c0 ! shortwave flux on bio grid
       trcrn_sw     (:,:,:) = c0 ! tracers active in the shortwave calculation
@@ -440,7 +440,7 @@
       !-----------------------------------------------------------------
       ! zsalinity initialization
       !-----------------------------------------------------------------
-      
+
       if (solve_zsal) then
          do i = 1, nx
             call icepack_init_zsalinity(ncat=ncat, nblyr=nblyr,        &
@@ -494,7 +494,7 @@
                       max_aero =max_aero,  max_dic=max_dic,  max_fe =max_fe,  &
                       nit =nit(i),   amm=amm(i),   sil   =sil(i),             &
                       dmsp=dmsp(i),  dms=dms(i),   algalN=algalN(i,:),        &
-                      doc =doc(i,:), don=don(i,:), dic   =dic(i,:),           &  
+                      doc =doc(i,:), don=don(i,:), dic   =dic(i,:),           &
                       fed =fed(i,:), fep=fep(i,:), zaeros=zaeros(i,:),        &
                       ocean_bio_all=ocean_bio_all(i,:),  hum=hum(i))
          call icepack_warnings_flush(nu_diag)
@@ -564,7 +564,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      first_ice(:,:) = .true.            
+      first_ice(:,:) = .true.
       if (tr_brine) trcrn(:,nt_fbri,:) = c1
 
       end subroutine init_hbrine
@@ -572,7 +572,7 @@
 !=======================================================================
 
 ! Namelist variables, set to default values; may be altered at run time
-! 
+!
 ! author Elizabeth C. Hunke, LANL
 !        Nicole Jeffery, LANL
 
@@ -655,7 +655,7 @@
           tr_bgc_N,      tr_bgc_C,     tr_bgc_chl,   &
           tr_bgc_DON,    tr_bgc_Fe,    tr_zaero,     &
           tr_bgc_hum,    tr_aero
- 
+
       integer (kind=int_kind) :: &
           ktherm
 
@@ -705,9 +705,9 @@
           fedtype_1          , feptype_1          , zaerotype_bc1      ,  &
           zaerotype_bc2      , zaerotype_dust1    , zaerotype_dust2    ,  &
           zaerotype_dust3    , zaerotype_dust4    , ratio_C2N_diatoms  ,  &
-          ratio_C2N_sp       , ratio_C2N_phaeo    , ratio_chl2N_diatoms,  & 
+          ratio_C2N_sp       , ratio_C2N_phaeo    , ratio_chl2N_diatoms,  &
           ratio_chl2N_sp     , ratio_chl2N_phaeo  , F_abs_chl_diatoms  ,  &
-          F_abs_chl_sp       , F_abs_chl_phaeo    , ratio_C2N_proteins 
+          F_abs_chl_sp       , F_abs_chl_phaeo    , ratio_C2N_proteins
 
       real (kind=dbl_kind), dimension(icepack_max_dic) :: &
          dictype
@@ -739,16 +739,16 @@
          R_C2N_DON
 
        real (kind=dbl_kind),  dimension(icepack_max_algae) :: &
-         R_Si2N     , & ! algal Sil to N (mole/mole) 
+         R_Si2N     , & ! algal Sil to N (mole/mole)
          R_S2N      , & ! algal S to N (mole/mole)
          ! Marchetti et al 2006, 3 umol Fe/mol C for iron limited Pseudo-nitzschia
          R_Fe2C     , & ! algal Fe to carbon (umol/mmol)
          R_Fe2N         ! algal Fe to N (umol/mmol)
 
-      real (kind=dbl_kind), dimension(icepack_max_don) :: & 
+      real (kind=dbl_kind), dimension(icepack_max_don) :: &
          R_Fe2DON       ! Fe to N of DON (nmol/umol)
 
-      real (kind=dbl_kind), dimension(icepack_max_doc) :: &  
+      real (kind=dbl_kind), dimension(icepack_max_doc) :: &
          R_Fe2DOC       ! Fe to C of DOC (nmol/umol)
 
       real (kind=dbl_kind), dimension(icepack_max_algae) :: &
@@ -761,11 +761,11 @@
          mort_pre         , & ! mortality (1/day)
          mort_Tdep        , & ! T dependence of mortality (1/C)
          k_exude          , & ! algal carbon  exudation rate (1/d)
-         K_Nit            , & ! nitrate half saturation (mmol/m^3) 
-         K_Am             , & ! ammonium half saturation (mmol/m^3) 
+         K_Nit            , & ! nitrate half saturation (mmol/m^3)
+         K_Am             , & ! ammonium half saturation (mmol/m^3)
          K_Sil            , & ! silicon half saturation (mmol/m^3)
          K_Fe                 ! iron half saturation  or micromol/m^3
-            
+
       real (kind=dbl_kind), dimension(icepack_max_DON) :: &
          f_don            , & ! fraction of spilled grazing to DON
          kn_bac           , & ! Bacterial degredation of DON (1/d)
@@ -773,13 +773,13 @@
 
       real (kind=dbl_kind), dimension(icepack_max_DOC) :: &
          f_exude          , & ! fraction of exuded carbon to each DOC pool
-         k_bac                ! Bacterial degredation of DOC (1/d)    
+         k_bac                ! Bacterial degredation of DOC (1/d)
 
       real (kind=dbl_kind), dimension(icepack_max_nbtrcr) :: &
          zbgc_frac_init,&! initializes mobile fraction
-         bgc_tracer_type ! described tracer in mobile or stationary phases      
+         bgc_tracer_type ! described tracer in mobile or stationary phases
                          ! < 0 is purely mobile (eg. nitrate)
-                         ! > 0 has timescales for transitions between 
+                         ! > 0 has timescales for transitions between
                          ! phases based on whether the ice is melting or growing
 
      real (kind=dbl_kind), dimension(icepack_max_nbtrcr) :: &
@@ -800,7 +800,7 @@
       character(len=*), parameter :: subname='(init_zbgc)'
 
       !------------------------------------------------------------
-      !        Tracers have mobile and  stationary phases. 
+      !        Tracers have mobile and  stationary phases.
       ! ice growth allows for retention, ice melt facilitates mobility
       ! bgc_tracer_type defines the exchange timescales between these phases
       ! -1 : entirely in the mobile phase, no exchange  (this is the default)
@@ -857,9 +857,9 @@
         fedtype_1          , feptype_1          , zaerotype_bc1      ,  &
         zaerotype_bc2      , zaerotype_dust1    , zaerotype_dust2    ,  &
         zaerotype_dust3    , zaerotype_dust4    , ratio_C2N_diatoms  ,  &
-        ratio_C2N_sp       , ratio_C2N_phaeo    , ratio_chl2N_diatoms,  & 
+        ratio_C2N_sp       , ratio_C2N_phaeo    , ratio_chl2N_diatoms,  &
         ratio_chl2N_sp     , ratio_chl2N_phaeo  , F_abs_chl_diatoms  ,  &
-        F_abs_chl_sp       , F_abs_chl_phaeo    , ratio_C2N_proteins 
+        F_abs_chl_sp       , F_abs_chl_phaeo    , ratio_C2N_proteins
 
       !-----------------------------------------------------------------
       ! query Icepack values
@@ -893,24 +893,24 @@
       restore_bgc     = .false.  ! restore bgc if true
       solve_zsal      = .false.  ! update salinity tracer profile from solve_S_dt
       bgc_data_type   = 'default'! source of bgc data
-      tr_bgc_PON      = .false.  !---------------------------------------------   
+      tr_bgc_PON      = .false.  !---------------------------------------------
       tr_bgc_Nit      = .false.  ! biogeochemistry (skl or zbgc)
       tr_bgc_C        = .false.  ! if skl_bgc = .true. then skl
       tr_bgc_chl      = .false.  ! if z_tracers = .true. then vertically resolved
       tr_bgc_Sil      = .false.  ! if z_tracers + solve_zbgc = .true. then
-      tr_bgc_Am       = .false.  ! vertically resolved with reactions  
+      tr_bgc_Am       = .false.  ! vertically resolved with reactions
       tr_bgc_DMS      = .false.  !------------------------------------------------
-      tr_bgc_DON      = .false.  ! 
+      tr_bgc_DON      = .false.  !
       tr_bgc_hum      = .false.  !
-      tr_bgc_Fe       = .false.  ! 
+      tr_bgc_Fe       = .false.  !
       tr_bgc_N        = .true.   !
 
-      ! z biology parameters  
-      ratio_Si2N_diatoms = 1.8_dbl_kind    ! algal Si to N (mol/mol)                       
+      ! z biology parameters
+      ratio_Si2N_diatoms = 1.8_dbl_kind    ! algal Si to N (mol/mol)
       ratio_Si2N_sp      = c0              ! diatoms, small plankton, phaeocystis
       ratio_Si2N_phaeo   = c0
       ratio_S2N_diatoms  = 0.03_dbl_kind   ! algal S  to N (mol/mol)
-      ratio_S2N_sp       = 0.03_dbl_kind 
+      ratio_S2N_sp       = 0.03_dbl_kind
       ratio_S2N_phaeo    = 0.03_dbl_kind
       ratio_Fe2C_diatoms = 0.0033_dbl_kind ! algal Fe to C  (umol/mol)
       ratio_Fe2C_sp      = 0.0033_dbl_kind
@@ -926,13 +926,13 @@
       chlabs_diatoms     = 0.03_dbl_kind   ! chl absorption (1/m/(mg/m^3))
       chlabs_sp          = 0.01_dbl_kind
       chlabs_phaeo       = 0.05_dbl_kind
-      alpha2max_low_diatoms = 0.8_dbl_kind ! light limitation (1/(W/m^2))  
+      alpha2max_low_diatoms = 0.8_dbl_kind ! light limitation (1/(W/m^2))
       alpha2max_low_sp      = 0.67_dbl_kind
       alpha2max_low_phaeo   = 0.67_dbl_kind
-      beta2max_diatoms   = 0.018_dbl_kind  ! light inhibition (1/(W/m^2))  
+      beta2max_diatoms   = 0.018_dbl_kind  ! light inhibition (1/(W/m^2))
       beta2max_sp        = 0.0025_dbl_kind
       beta2max_phaeo     = 0.01_dbl_kind
-      mu_max_diatoms     = 1.2_dbl_kind    ! maximum growth rate (1/day) 
+      mu_max_diatoms     = 1.2_dbl_kind    ! maximum growth rate (1/day)
       mu_max_sp          = 0.851_dbl_kind
       mu_max_phaeo       = 0.851_dbl_kind
       grow_Tdep_diatoms  = 0.06_dbl_kind ! Temperature dependence of growth (1/C)
@@ -962,10 +962,10 @@
       K_Fe_diatoms       = c1            ! iron half saturation (nM)
       K_Fe_sp            = 0.2_dbl_kind
       K_Fe_phaeo         = p1
-      f_don_protein      = 0.6_dbl_kind  ! fraction of spilled grazing to proteins           
-      kn_bac_protein     = 0.03_dbl_kind ! Bacterial degredation of DON (1/d)                
-      f_don_Am_protein   = 0.25_dbl_kind ! fraction of remineralized DON to ammonium         
-      f_doc_s            = 0.4_dbl_kind  ! fraction of mortality to DOC 
+      f_don_protein      = 0.6_dbl_kind  ! fraction of spilled grazing to proteins
+      kn_bac_protein     = 0.03_dbl_kind ! Bacterial degredation of DON (1/d)
+      f_don_Am_protein   = 0.25_dbl_kind ! fraction of remineralized DON to ammonium
+      f_doc_s            = 0.4_dbl_kind  ! fraction of mortality to DOC
       f_doc_l            = 0.4_dbl_kind
       f_exude_s          = c1            ! fraction of exudation to DOC
       f_exude_l          = c1
@@ -1000,7 +1000,7 @@
       F_abs_chl_diatoms  = 2.0_dbl_kind  ! scales absorbed radiation for dEdd
       F_abs_chl_sp       = 4.0_dbl_kind
       F_abs_chl_phaeo    = 5.0_dbl_kind
-      ratio_C2N_proteins = 7.0_dbl_kind  ! ratio of C to N in proteins (mol/mol)       
+      ratio_C2N_proteins = 7.0_dbl_kind  ! ratio of C to N in proteins (mol/mol)
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -1030,15 +1030,16 @@
       !-----------------------------------------------------------------
       ! zsalinity and brine
       !-----------------------------------------------------------------
+#ifdef UNDEPRECATE_ZSAL
       if (solve_zsal .and. TRZS == 0) then
          write(nu_diag,*) 'WARNING: solve_zsal=T but 0 zsalinity tracers'
          write(nu_diag,*) 'WARNING: setting solve_zsal = F'
-         solve_zsal = .false.      
+         solve_zsal = .false.
       elseif (solve_zsal .and. nblyr < 1)  then
          write(nu_diag,*) 'WARNING: solve_zsal=T but 0 zsalinity tracers'
          write(nu_diag,*) 'WARNING: setting solve_zsal = F'
-         solve_zsal = .false.     
-      endif 
+         solve_zsal = .false.
+      endif
 
       if (solve_zsal .and. ((.not. tr_brine) .or. (ktherm /= 1))) then
          write(nu_diag,*) 'WARNING: solve_zsal needs tr_brine=T and ktherm=1'
@@ -1046,6 +1047,11 @@
          tr_brine = .true.
          ktherm = 1
       endif
+#else
+      if (solve_zsal) then
+         write(nu_diag,*) 'WARNING: zsalinity is being deprecated'
+      endif
+#endif
 
       if (tr_brine .and. TRBRI == 0 ) then
          write(nu_diag,*) &
@@ -1061,7 +1067,7 @@
             'WARNING: setting solve_zsal and tr_brine = F'
          solve_zsal = .false.
          tr_brine  = .false.
-      endif 
+      endif
 
          write(nu_diag,1010) ' tr_brine                  = ', tr_brine
       if (tr_brine) then
@@ -1106,13 +1112,13 @@
          tr_zaero = .false.
       endif
 
-      if (dEdd_algae .AND. trim(shortwave) /= 'dEdd') then 
+      if (dEdd_algae .AND. trim(shortwave) /= 'dEdd') then
          write(nu_diag,*) 'WARNING: dEdd_algae = T but shortwave /= dEdd'
          write(nu_diag,*) 'WARNING: setting dEdd_algae = F'
          dEdd_algae = .false.
       endif
 
-      if (dEdd_algae .AND. (.NOT. tr_bgc_N) .AND. (.NOT. tr_zaero)) then 
+      if (dEdd_algae .AND. (.NOT. tr_bgc_N) .AND. (.NOT. tr_zaero)) then
          write(nu_diag,*) 'WARNING: need tr_bgc_N or tr_zaero for dEdd_algae'
          write(nu_diag,*) 'WARNING: setting dEdd_algae = F'
          dEdd_algae = .false.
@@ -1121,8 +1127,8 @@
       if (modal_aero .AND. (.NOT. tr_zaero) .AND. (.NOT. tr_aero)) then
          modal_aero = .false.
       endif
-         
-      if (modal_aero .AND. trim(shortwave) /= 'dEdd') then 
+
+      if (modal_aero .AND. trim(shortwave) /= 'dEdd') then
          write(nu_diag,*) 'WARNING: modal_aero = T but shortwave /= dEdd'
          write(nu_diag,*) 'WARNING: setting modal_aero = F'
          modal_aero = .false.
@@ -1194,7 +1200,7 @@
       if (n_zaero > icepack_max_aero) then
          print*, 'error:number of z aerosols exceeds icepack_max_aero'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
-      endif         
+      endif
 
       if (skl_bgc .and. n_bgc < 2) then
          write (nu_diag,*) ' '
@@ -1244,7 +1250,7 @@
 
       !-----------------------------------------------------------------
       ! initialize zbgc tracer indices
-      !----------------------------------------------------------------- 
+      !-----------------------------------------------------------------
 
       ntrcr_o = ntrcr
       nt_fbri = 0
@@ -1270,13 +1276,13 @@
           do k = 1,nblyr
              trcr_depend(nt_bgc_S + k - 1) = 2 + nt_fbri + ntd
              trcr_base  (nt_bgc_S,1) = c0  ! default: ice area
-             trcr_base  (nt_bgc_S,2) = c1 
-             trcr_base  (nt_bgc_S,3) = c0  
+             trcr_base  (nt_bgc_S,2) = c1
+             trcr_base  (nt_bgc_S,3) = c0
              n_trcr_strata(nt_bgc_S) = 1
              nt_strata(nt_bgc_S,1) = nt_fbri
              nt_strata(nt_bgc_S,2) = 0
           enddo
-      endif 
+      endif
 
       !-----------------------------------------------------------------
       ! biogeochemistry
@@ -1305,7 +1311,7 @@
       nlt_bgc_DON(:) = 0
       nt_bgc_DON(:) = 0
 
-      ! vectors of size icepack_max_fe 
+      ! vectors of size icepack_max_fe
       nlt_bgc_Fed(:) = 0
       nlt_bgc_Fep(:) = 0
       nt_bgc_Fed(:) = 0
@@ -1373,7 +1379,7 @@
 
       R_Fe2DON(1) = ratio_Fe2DON
       R_C2N_DON(1) = ratio_C2N_proteins
-     
+
       R_Fe2DOC(1) = ratio_Fe2DOC_s
       R_Fe2DOC(2) = ratio_Fe2DOC_l
       R_Fe2DOC(3) = c0
@@ -1440,14 +1446,14 @@
       k_bac(2) = k_bac_l
 
       dictype(:) = -c1
-      
+
       algaltype(1) = algaltype_diatoms
       algaltype(2) = algaltype_sp
       algaltype(3) = algaltype_phaeo
 
       doctype(1) = doctype_s
       doctype(2) = doctype_l
- 
+
       dontype(1) = dontype_protein
 
       fedtype(1) = fedtype_1
@@ -1490,16 +1496,16 @@
          nk = 1
          nt_depend = 0
 
-         if (dEdd_algae) then 
+         if (dEdd_algae) then
            nlt_chl_sw = 1
            nbtrcr_sw = nilyr+nslyr+2  ! only the bottom layer will be nonzero
-         endif  
-         
-      elseif (z_tracers) then ! defined on nblyr+1 in ice 
+         endif
+
+      elseif (z_tracers) then ! defined on nblyr+1 in ice
                               ! and 2 snow layers (snow surface + interior)
 
          nk = nblyr + 1
-         nt_depend = 2 + nt_fbri + ntd 
+         nt_depend = 2 + nt_fbri + ntd
 
          if (tr_bgc_N) then
             if (dEdd_algae) then
@@ -1514,11 +1520,11 @@
 
       !-----------------------------------------------------------------
       ! assign tracer indices and dependencies
-      ! bgc_tracer_type: < 0  purely mobile , >= 0 stationary 
+      ! bgc_tracer_type: < 0  purely mobile , >= 0 stationary
       !------------------------------------------------------------------
 
       if (tr_bgc_N) then
-         do mm = 1, n_algae      
+         do mm = 1, n_algae
             call init_bgc_trcr(nk,              nt_fbri,       &
                                nt_bgc_N(mm),    nlt_bgc_N(mm), &
                                algaltype(mm),   nt_depend,     &
@@ -1540,14 +1546,14 @@
                                nt_strata,       bio_index)
             bio_index_o(nlt_bgc_Nit) = icepack_max_algae + 1
       endif ! tr_bgc_Nit
-         
+
       if (tr_bgc_C) then
        !
        ! Algal C is not yet distinct from algal N
        ! * Reqires exudation and/or changing C:N ratios
        ! for implementation
        !
-       !  do mm = 1,n_algae      
+       !  do mm = 1,n_algae
        !     call init_bgc_trcr(nk,              nt_fbri,       &
        !                        nt_bgc_C(mm),    nlt_bgc_C(mm), &
        !                        algaltype(mm),   nt_depend,     &
@@ -1602,7 +1608,7 @@
                                trcr_base,       n_trcr_strata, &
                                nt_strata,       bio_index)
             bio_index_o(nlt_bgc_Am) = 2*icepack_max_algae + icepack_max_doc + icepack_max_dic + 2
-      endif    
+      endif
       if (tr_bgc_Sil) then
             call init_bgc_trcr(nk,              nt_fbri,       &
                                nt_bgc_Sil,      nlt_bgc_Sil,   &
@@ -1612,7 +1618,7 @@
                                trcr_base,       n_trcr_strata, &
                                nt_strata,       bio_index)
             bio_index_o(nlt_bgc_Sil) = 2*icepack_max_algae + icepack_max_doc + icepack_max_dic + 3
-      endif    
+      endif
       if (tr_bgc_DMS) then   ! all together
             call init_bgc_trcr(nk,              nt_fbri,       &
                                nt_bgc_DMSPp,    nlt_bgc_DMSPp, &
@@ -1640,7 +1646,7 @@
                                trcr_base,       n_trcr_strata, &
                                nt_strata,       bio_index)
             bio_index_o(nlt_bgc_DMS) = 2*icepack_max_algae + icepack_max_doc + icepack_max_dic + 6
-      endif    
+      endif
       if (tr_bgc_PON) then
             call init_bgc_trcr(nk,              nt_fbri,       &
                                nt_bgc_PON,      nlt_bgc_PON, &
@@ -1686,8 +1692,8 @@
             bio_index_o(nlt_bgc_Fep(mm)) = 2*icepack_max_algae + icepack_max_doc + icepack_max_dic &
                                          + icepack_max_don + icepack_max_fe + 7 + mm
          enddo   ! mm
-      endif      ! tr_bgc_Fe 
-  
+      endif      ! tr_bgc_Fe
+
       if (tr_bgc_hum) then
             call init_bgc_trcr(nk,              nt_fbri,       &
                                nt_bgc_hum,      nlt_bgc_hum,   &
@@ -1697,15 +1703,15 @@
                                trcr_base,       n_trcr_strata, &
                                nt_strata,       bio_index)
             bio_index_o(nlt_bgc_hum) =   2*icepack_max_algae + icepack_max_doc + 8 + icepack_max_dic &
-                                         + icepack_max_don + 2*icepack_max_fe + icepack_max_aero 
+                                         + icepack_max_don + 2*icepack_max_fe + icepack_max_aero
       endif
       endif  ! skl_bgc or z_tracers
 
-      if (z_tracers) then ! defined on nblyr+1 in ice 
+      if (z_tracers) then ! defined on nblyr+1 in ice
                               ! and 2 snow layers (snow surface + interior)
 
          nk = nblyr + 1
-         nt_depend = 2 + nt_fbri + ntd 
+         nt_depend = 2 + nt_fbri + ntd
 
          ! z layer aerosols
          if (tr_zaero) then
@@ -1730,15 +1736,15 @@
          if (nbtrcr > 0) then
             nt_zbgc_frac = ntrcr + 1
             ntrcr = ntrcr + nbtrcr
-            do k = 1,nbtrcr 
-               zbgc_frac_init(k) = c1   
-               trcr_depend(nt_zbgc_frac+k-1) =  2+nt_fbri 
+            do k = 1,nbtrcr
+               zbgc_frac_init(k) = c1
+               trcr_depend(nt_zbgc_frac+k-1) =  2+nt_fbri
                trcr_base(nt_zbgc_frac+ k - 1,1)  = c0
                trcr_base(nt_zbgc_frac+ k - 1,2)  = c1
                trcr_base(nt_zbgc_frac+ k - 1,3)  = c0
-               n_trcr_strata(nt_zbgc_frac+ k - 1)= 1  
+               n_trcr_strata(nt_zbgc_frac+ k - 1)= 1
                nt_strata(nt_zbgc_frac+ k - 1,1)  = nt_fbri
-               nt_strata(nt_zbgc_frac+ k - 1,2)  = 0 
+               nt_strata(nt_zbgc_frac+ k - 1,2)  = 0
                tau_ret(k) = c1
                tau_rel(k) = c1
                if (bgc_tracer_type(k) >=  c0 .and. bgc_tracer_type(k) < p5) then
@@ -1766,7 +1772,7 @@
       do k = 1, nbtrcr
          zbgc_init_frac(k) = frazil_scav
          if (bgc_tracer_type(k) < c0)  zbgc_init_frac(k) = initbio_frac
-      enddo  
+      enddo
 
       !-----------------------------------------------------------------
       ! set values in icepack
@@ -1800,7 +1806,7 @@
           file=__FILE__, line=__LINE__)
 
       call icepack_init_tracer_indices( &
-           nt_fbri_in=nt_fbri,                                                                   &  
+           nt_fbri_in=nt_fbri,                                                                   &
            nt_bgc_Nit_in=nt_bgc_Nit,   nt_bgc_Am_in=nt_bgc_Am,       nt_bgc_Sil_in=nt_bgc_Sil,   &
            nt_bgc_DMS_in=nt_bgc_DMS,   nt_bgc_PON_in=nt_bgc_PON,     nt_bgc_S_in=nt_bgc_S,       &
            nt_bgc_N_in=nt_bgc_N,       nt_bgc_chl_in=nt_bgc_chl,     nt_bgc_hum_in=nt_bgc_hum,   &
@@ -1821,7 +1827,7 @@
 
       !-----------------------------------------------------------------
       ! final consistency checks
-      !----------------------------------------------------------------- 
+      !-----------------------------------------------------------------
       if (nbtrcr > icepack_max_nbtrcr) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'nbtrcr > icepack_max_nbtrcr'
@@ -1841,7 +1847,7 @@
          write(nu_diag,*) 'max_ntrcr < number of namelist tracers'
          write(nu_diag,*) 'max_ntrcr = ',max_ntrcr,' ntrcr = ',ntrcr
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
-      endif                               
+      endif
 
       !-----------------------------------------------------------------
       ! spew
@@ -1871,14 +1877,14 @@
          write(nu_diag,1010) ' tr_bgc_DMS             = ', tr_bgc_DMS
          write(nu_diag,1010) ' tr_bgc_PON             = ', tr_bgc_PON
          write(nu_diag,1010) ' tr_bgc_DON             = ', tr_bgc_DON
-         write(nu_diag,1010) ' tr_bgc_Fe              = ', tr_bgc_Fe 
-        
+         write(nu_diag,1010) ' tr_bgc_Fe              = ', tr_bgc_Fe
+
       elseif (z_tracers) then
 
          write(nu_diag,*)    ' bgc_data_type             = ', &
                                trim(bgc_data_type)
-         write(nu_diag,1010) ' dEdd_algae                = ', dEdd_algae  
-         write(nu_diag,1010) ' modal_aero                = ', modal_aero  
+         write(nu_diag,1010) ' dEdd_algae                = ', dEdd_algae
+         write(nu_diag,1010) ' modal_aero                = ', modal_aero
          write(nu_diag,1010) ' scale_bgc                 = ', scale_bgc
          write(nu_diag,1010) ' solve_zbgc                = ', solve_zbgc
          write(nu_diag,1020) ' number of ztracers        = ', nbtrcr
@@ -1900,11 +1906,11 @@
          write(nu_diag,1010) ' tr_bgc_DMS                = ', tr_bgc_DMS
          write(nu_diag,1010) ' tr_bgc_PON                = ', tr_bgc_PON
          write(nu_diag,1010) ' tr_bgc_DON                = ', tr_bgc_DON
-         write(nu_diag,1010) ' tr_bgc_Fe                 = ', tr_bgc_Fe 
+         write(nu_diag,1010) ' tr_bgc_Fe                 = ', tr_bgc_Fe
          write(nu_diag,1000) ' grid_o                    = ', grid_o
          write(nu_diag,1005) ' l_sk                      = ', l_sk
          write(nu_diag,1000) ' initbio_frac              = ', initbio_frac
-         write(nu_diag,1000) ' frazil_scav               = ', frazil_scav  
+         write(nu_diag,1000) ' frazil_scav               = ', frazil_scav
 
       endif  ! skl_bgc or solve_bgc
 
@@ -1960,7 +1966,7 @@
       integer (kind=int_kind) :: &
          k         , & ! loop index
          n_strata  , & ! temporary values
-         nt_strata1, & ! 
+         nt_strata1, & !
          nt_strata2
 
       real (kind=dbl_kind) :: &
@@ -1972,12 +1978,12 @@
 
       !--------
 
-      nt_bgc = ntrcr + 1 
+      nt_bgc = ntrcr + 1
       nbtrcr = nbtrcr + 1
       nlt_bgc = nbtrcr
       bgc_tracer_type(nbtrcr) = bgctype
-         
-      if (nk > 1) then 
+
+      if (nk > 1) then
          ! include vertical bgc in snow
          do k = nk, nk+1
             ntrcr = ntrcr + 1
@@ -1990,10 +1996,10 @@
             nt_strata    (nt_bgc + k,2) = 0
          enddo
 
-         trcr_base1 = c0      
-         trcr_base2 = c1     
+         trcr_base1 = c0
+         trcr_base2 = c1
          trcr_base3 = c0
-         n_strata = 1    
+         n_strata = 1
          nt_strata1 = nt_fbri
          nt_strata2 = 0
       else  ! nk = 1

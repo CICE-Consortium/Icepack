@@ -44,7 +44,7 @@
       use icedrv_flux, only: init_coupler_flux, init_history_therm, &
           init_flux_atm_ocn
       use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
-      use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc 
+      use icedrv_forcing_bgc, only: get_forcing_bgc, faero_default, fiso_default, init_forcing_bgc
       use icedrv_restart_shared, only: restart
       use icedrv_init, only: input_data, init_state, init_grid2, init_fsd
       use icedrv_init_column, only: init_thermo_vertical, init_shortwave, init_zbgc
@@ -138,7 +138,7 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      call init_forcing      ! initialize forcing (standalone)     
+      call init_forcing      ! initialize forcing (standalone)
       if (skl_bgc .or. z_tracers) call init_forcing_bgc !cn
       if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
@@ -163,6 +163,7 @@
       subroutine init_restart
 
       use icedrv_calendar, only: time, calendar
+      use icedrv_constants, only: nu_restart
       use icepack_intfc, only: icepack_aggregate
       use icedrv_domain_size, only: ncat, max_ntrcr, nx
       use icedrv_init, only: ice_ic
@@ -216,6 +217,8 @@
          call init_bgc
          if (restart) call read_restart_bgc ! complete BGC initialization
       endif
+
+      close (nu_restart)
 
       !-----------------------------------------------------------------
       ! aggregate tracers

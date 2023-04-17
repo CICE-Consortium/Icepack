@@ -46,7 +46,7 @@ Tracers that depend on other tracers
 ------------------------------------
 
 Tracers may be defined that depend on other tracers. Melt pond tracers
-provide an example (these equations pertain to cesm and topo tracers;
+provide an example (these equations pertain to topo tracers;
 level-ice tracers are similar with an extra factor of :math:`a_{lvl}`,
 see Equations :eq:`transport-lvl`–:eq:`transport-ipnd-lvl`). Conservation
 equations for pond area fraction :math:`a_{pnd}a_i` and pond volume
@@ -71,7 +71,7 @@ tracer.
 
 For a generic quantity :math:`q` that represents a mean value over the
 ice fraction, :math:`q a_i` is the average value over the grid cell.
-Thus for cesm or topo melt ponds, :math:`h_{pnd}` can be considered the
+Thus for topo melt ponds, :math:`h_{pnd}` can be considered the
 actual pond depth, :math:`h_{pnd}a_{pnd}` is the mean pond depth over
 the sea ice, and :math:`h_{pnd}a_{pnd}a_i` is the mean pond depth over
 the grid cell. These quantities are illustrated in Figure :ref:`fig-tracers`.

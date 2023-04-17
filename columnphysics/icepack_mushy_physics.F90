@@ -26,7 +26,7 @@ module icepack_mushy_physics
        liquidus_temperature_mush, &
        icepack_mushy_liquid_fraction, &
        icepack_mushy_density_brine
-      
+
   !-----------------------------------------------------------------
   ! Constants for Liquidus relation from Assur (1958)
   !-----------------------------------------------------------------
@@ -52,11 +52,11 @@ module icepack_mushy_physics
        bz1p_liq = bz1_liq / c1000, &
        az2p_liq = az2_liq / c1000, &
        bz2p_liq = bz2_liq / c1000
-  
+
   !-----------------------------------------------------------------
   ! Other parameters
   !-----------------------------------------------------------------
-  
+
   real(kind=dbl_kind), parameter :: &
        ki = 2.3_dbl_kind , & ! fresh ice conductivity (W m-1 K-1)
        kb = 0.5375_dbl_kind  ! brine conductivity (W m-1 K-1)
@@ -72,30 +72,30 @@ contains
   subroutine conductivity_mush_array(nilyr, zqin, zSin, km)
 
     ! detemine the conductivity of the mush from enthalpy and salinity
-    
+
     integer (kind=int_kind), intent(in) :: &
          nilyr   ! number of ice layers
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
-         zqin, & ! ice layer enthalpy (J m-3) 
+         zqin, & ! ice layer enthalpy (J m-3)
          zSin    ! ice layer bulk salinity (ppt)
 
     real(kind=dbl_kind), dimension(:), intent(out) :: &
          km      ! ice layer conductivity (W m-1 K-1)
-    
+
     integer(kind=int_kind) :: &
          k       ! ice layer index
 
     real(kind=dbl_kind) :: Tmush
-    
+
     character(len=*),parameter :: subname='(conductivity_mush_array)'
 
     do k = 1, nilyr
-      
+
        Tmush = icepack_mushy_temperature_mush(zqin(k), zSin(k))
-       
+
        km(k) = heat_conductivity(Tmush, zSin(k))
-       
+
     enddo ! k
 
   end subroutine conductivity_mush_array
@@ -103,7 +103,7 @@ contains
 !=======================================================================
 
   function icepack_mushy_density_brine(Sbr) result(rho)
-    
+
     ! density of brine from brine salinity
 
     real(kind=dbl_kind), intent(in) :: &
@@ -111,16 +111,16 @@ contains
 
     real(kind=dbl_kind) :: &
          rho ! brine density (kg m-3)
-    
+
     real(kind=dbl_kind), parameter :: &
          a = 1000.3_dbl_kind    , & ! zeroth empirical coefficient
          b = 0.78237_dbl_kind   , & ! linear empirical coefficient
          c = 2.8008e-4_dbl_kind     ! quadratic empirical coefficient
-    
+
     character(len=*),parameter :: subname='(icepack_mushy_density_brine)'
 
     rho = a + b * Sbr + c * Sbr**2
-                
+
   end function icepack_mushy_density_brine
 
 !=======================================================================
@@ -141,31 +141,31 @@ contains
   end subroutine conductivity_snow_array
 
 !=======================================================================
-  
+
   function enthalpy_snow(zTsn) result(zqsn)
-    
+
     ! enthalpy of snow from snow temperature
 
     real(kind=dbl_kind), intent(in) :: &
          zTsn ! snow layer temperature (C)
 
     real(kind=dbl_kind) :: &
-         zqsn ! snow layer enthalpy (J m-3) 
-    
+         zqsn ! snow layer enthalpy (J m-3)
+
     character(len=*),parameter :: subname='(enthalpy_snow)'
 
     zqsn = -rhos * (-cp_ice * zTsn + Lfresh)
-    
+
   end function enthalpy_snow
 
 !=======================================================================
-  
+
   function temperature_snow(zqsn) result(zTsn)
-    
+
     ! temperature of snow from the snow enthalpy
 
     real(kind=dbl_kind), intent(in) :: &
-         zqsn ! snow layer enthalpy (J m-3) 
+         zqsn ! snow layer enthalpy (J m-3)
 
     real(kind=dbl_kind) :: &
          zTsn, & ! snow layer temperature (C)
@@ -205,11 +205,11 @@ contains
     character(len=*),parameter :: subname='(liquidus_brine_salinty_mush)'
 
     ! temperature to brine salinity
-    J1_liq = bz1_liq / az1_liq         
-    K1_liq = c1 / c1000                
-    L1_liq = (c1 + bz1p_liq) / az1_liq 
-    J2_liq = bz2_liq  / az2_liq        
-    K2_liq = c1 / c1000                
+    J1_liq = bz1_liq / az1_liq
+    K1_liq = c1 / c1000
+    L1_liq = (c1 + bz1p_liq) / az1_liq
+    J2_liq = bz2_liq  / az2_liq
+    K2_liq = c1 / c1000
     L2_liq = (c1 + bz2p_liq) / az2_liq
 
     t_high   = merge(c1, c0, (zTin > Tb_liq))
@@ -274,15 +274,15 @@ contains
          zSin    ! ice layer bulk salinity (ppt)
 
     real(kind=dbl_kind) :: &
-         zqin    ! ice layer enthalpy (J m-3) 
+         zqin    ! ice layer enthalpy (J m-3)
 
     real(kind=dbl_kind) :: &
-         phi     ! ice liquid fraction 
+         phi     ! ice liquid fraction
 
     character(len=*),parameter :: subname='(enthalpy_mush)'
 
     phi = icepack_mushy_liquid_fraction(zTin, zSin)
-    
+
     zqin = phi * (cp_ocn * rhow - cp_ice * rhoi) * zTin + &
            rhoi * cp_ice * zTin - (c1 - phi) * rhoi * Lfresh
 
@@ -299,7 +299,7 @@ contains
          phi     ! liquid fraction
 
     real(kind=dbl_kind) :: &
-         zqin    ! ice layer enthalpy (J m-3) 
+         zqin    ! ice layer enthalpy (J m-3)
 
     character(len=*),parameter :: subname='(enthalpy_mush_liquid_fraction)'
 
@@ -352,7 +352,7 @@ contains
     ! temperature of mush from mush enthalpy
 
     real(kind=dbl_kind), intent(in) :: &
-         zqin   , & ! ice enthalpy (J m-3) 
+         zqin   , & ! ice enthalpy (J m-3)
          zSin       ! ice layer bulk salinity (ppt)
 
     real(kind=dbl_kind) :: &
@@ -387,41 +387,41 @@ contains
   !--------------------------------------------------------
 
   ! quadratic constants - higher temperature region
-    AS1_liq = az1p_liq * (rhow * cp_ocn - rhoi * cp_ice)       
-    AC1_liq = rhoi * cp_ice * az1_liq                           
+    AS1_liq = az1p_liq * (rhow * cp_ocn - rhoi * cp_ice)
+    AC1_liq = rhoi * cp_ice * az1_liq
     BS1_liq = (c1 + bz1p_liq) * (rhow * cp_ocn - rhoi * cp_ice)  &
-            + rhoi * Lfresh * az1p_liq                         
-    BQ1_liq = -az1_liq                                         
+            + rhoi * Lfresh * az1p_liq
+    BQ1_liq = -az1_liq
     BC1_liq = rhoi * cp_ice * bz1_liq - rhoi * Lfresh * az1_liq
-    CS1_liq = rhoi * Lfresh * (c1 + bz1p_liq)                  
-    CQ1_liq = -bz1_liq                                         
+    CS1_liq = rhoi * Lfresh * (c1 + bz1p_liq)
+    CQ1_liq = -bz1_liq
     CC1_liq = -rhoi * Lfresh * bz1_liq
-  
+
   ! quadratic constants - lower temperature region
-    AS2_liq = az2p_liq * (rhow * cp_ocn - rhoi * cp_ice)       
-    AC2_liq = rhoi * cp_ice * az2_liq                          
+    AS2_liq = az2p_liq * (rhow * cp_ocn - rhoi * cp_ice)
+    AC2_liq = rhoi * cp_ice * az2_liq
     BS2_liq = (c1 + bz2p_liq) * (rhow * cp_ocn - rhoi * cp_ice)  &
-            + rhoi * Lfresh * az2p_liq                         
-    BQ2_liq = -az2_liq                                         
+            + rhoi * Lfresh * az2p_liq
+    BQ2_liq = -az2_liq
     BC2_liq = rhoi * cp_ice * bz2_liq - rhoi * Lfresh * az2_liq
-    CS2_liq = rhoi * Lfresh * (c1 + bz2p_liq)                  
-    CQ2_liq = -bz2_liq                                         
+    CS2_liq = rhoi * Lfresh * (c1 + bz2p_liq)
+    CQ2_liq = -bz2_liq
     CC2_liq = -rhoi * Lfresh * bz2_liq
-  
+
   ! break enthalpy constants
     D_liq = ((c1 + az1p_liq*Tb_liq + bz1p_liq) &
           / (       az1_liq*Tb_liq + bz1_liq)) &
           * ((cp_ocn*rhow - cp_ice*rhoi)*Tb_liq + Lfresh*rhoi)
     E_liq = cp_ice*rhoi*Tb_liq - Lfresh*rhoi
-  
+
   ! just fully melted enthapy constants
-    F1_liq = (  -c1000 * cp_ocn * rhow) / az1_liq 
-    G1_liq =    -c1000                            
-    H1_liq = (-bz1_liq * cp_ocn * rhow) / az1_liq 
-    F2_liq = (  -c1000 * cp_ocn * rhow) / az2_liq 
-    G2_liq =    -c1000                            
+    F1_liq = (  -c1000 * cp_ocn * rhow) / az1_liq
+    G1_liq =    -c1000
+    H1_liq = (-bz1_liq * cp_ocn * rhow) / az1_liq
+    F2_liq = (  -c1000 * cp_ocn * rhow) / az2_liq
+    G2_liq =    -c1000
     H2_liq = (-bz2_liq * cp_ocn * rhow) / az2_liq
-  
+
   ! warmer than fully melted constants
     I_liq = c1 / (cp_ocn * rhow)
 
@@ -460,7 +460,7 @@ contains
     ! temperature of mush from mush enthalpy
 
     real(kind=dbl_kind), intent(in) :: &
-         zqin   , & ! ice enthalpy (J m-3) 
+         zqin   , & ! ice enthalpy (J m-3)
          phi        ! liquid fraction
 
     real(kind=dbl_kind) :: &
@@ -476,7 +476,7 @@ contains
 !=======================================================================
 
   function heat_conductivity(zTin, zSin) result(km)
-    
+
     ! msuh heat conductivity from mush temperature and bulk salinity
 
     real(kind=dbl_kind), intent(in) :: &
@@ -485,7 +485,7 @@ contains
 
     real(kind=dbl_kind) :: &
          km                    ! ice layer conductivity (W m-1 K-1)
-    
+
     real(kind=dbl_kind) :: &
          phi                   ! liquid fraction
 
