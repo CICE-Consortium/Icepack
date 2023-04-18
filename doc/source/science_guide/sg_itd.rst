@@ -177,11 +177,11 @@ currently supports ``nfsd = 1, 12, 16, 24``.  Although ``nfsd = 1`` tracks the s
 is assumed when ``tr_fsd=false``, the processes acting on the floes differ.
 It is assumed that the floe size lies at the midpoint of each floe size category.
 
-If simulations begin without ice (``ice_init='none'``), the FSD can emerge without initialization. 
+If simulations begin without ice (``ice_ic='none'``), the FSD can emerge without initialization. 
 If simulations begin with ice cover, 
-some initial FSD must be prescribed in ``init_fsd``. The default (used for ``ice_init='default'``) 
+some initial FSD must be prescribed in ``init_fsd``. The default (used for ``ice_ic='default'``) 
 is a simple relationship determined from point observations by :cite:`Perovich14`, but its basin-wide 
-applicability has not been tested. In Icepack, ``ice_init='default'`` is selected for the slab
+applicability has not been tested. In Icepack, ``ice_ic='default'`` is selected for the slab
 and the full ITD cells.
 
 The history output includes FSD tendency terms for each of the floe-size-modifying processes. Note that the sum of these does not equal the change in the FSD, as the FSD is also modified by changes in the ITD. 

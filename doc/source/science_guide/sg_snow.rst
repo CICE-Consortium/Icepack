@@ -79,7 +79,7 @@ the eroded mass, which :cite:`Lecomte15` set to :math:`10^{-5}` kg m :math:`^{-2
 In :cite:`Lecomte15`, the fraction of this suspended snow lost in leads is
 
 .. math::
-   f = \left(1-a_i\right) \exp\left({\sigma_{ITD}\over\sigma_{ref}}\right),
+   f = \left(1-a_i\right) \exp\left({-\sigma_{ITD}\over\sigma_{ref}}\right),
 
 where the scale factor :math:`\sigma_{ref}=1` m and :math:`a_i` is the total ice area fraction within the grid cell.
 Thus, the snow mass that is redistribution on the ice (i.e., not lost in leads) is
