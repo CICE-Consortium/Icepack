@@ -12,7 +12,7 @@
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_flags
       use icepack_intfc, only: icepack_write_tracer_flags, icepack_write_tracer_indices
-      use icepack_intfc, only: icepack_write_tracer_sizes
+      use icepack_intfc, only: icepack_write_tracer_sizes, icepack_write_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -119,6 +119,8 @@
 
       if (restart) &
          call init_shortwave    ! initialize radiative transfer
+
+      call icepack_write_parameters(nu_diag)
 
       istep  = istep  + 1    ! update time step counters
       istep1 = istep1 + 1
