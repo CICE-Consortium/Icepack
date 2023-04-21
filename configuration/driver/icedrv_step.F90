@@ -764,7 +764,34 @@
          
                   enddo ! i
                elseif (trim(ice_advection_type) == "none") then
-                  ! do nothing:  no ice will be advected in, thus ridging will increase the open water area
+                  do i = 1, nx
+         
+                     if (tmask(i)) then                     
+                        ! We assume that this single column grid cell is surrounded by
+                        ! open water. If so, net ice closing implies the advection of
+                        ! this surrounding open water into the single column grid cell.
+                        ! To accomplish this without modifying the icepack 
+                        ! columnphysics code, we do nothing at this step. Within the
+                        ! ridge_ice subroutine, icepack will ridge ice by the amount
+                        ! given in the forcing. This will drop the cell area (asum)
+                        ! below 1 and then in the second ridging iteration loop
+                        ! 'opning' will be set such that it adds enough open water
+                        ! to return the cell area to 1.
+                        ! If the forcing is net opening, we still need to advect
+                        ! ice out of the grid cell as above.
+                        expansion_ratio = c1 + (closing(i) - opening(i)) * dt
+                        if (expansion_ratio < 1) then ! net opening
+                           aice0(i) = aice0(i) * expansion_ratio
+                           do n = 1, ncat
+                              ! Advect ice out of cell
+                              aicen(i,n) = aicen(i,n) * expansion_ratio
+                              vicen(i,n) = vicen(i,n) * expansion_ratio
+                              vsnon(i,n) = vsnon(i,n) * expansion_ratio
+                           enddo ! n
+                        endif ! expansion ratio < 1
+                     endif ! tmask
+            
+                     enddo ! i
                else
                   call icedrv_system_abort(string=subname//' ERROR: unknown ice_advection_type: '&
                   //trim(ice_advection_type),file=__FILE__,line=__LINE__)
