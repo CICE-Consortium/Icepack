@@ -524,9 +524,11 @@
       real (kind=dbl_kind), intent(out) :: &
          Tbot    , & ! ice bottom surface temperature (deg C)
          fbot    , & ! heat flux to ice bottom  (W/m^2)
-         wlat    , & ! lateral melt rate (m/s)
          rside   , & ! fraction of ice that melts laterally
          fside       ! lateral heat flux (W/m^2)
+
+      real (kind=dbl_kind), intent(out), optional :: &
+         wlat        ! lateral melt rate (m/s)
 
       ! local variables
 
@@ -536,6 +538,7 @@
 
       real (kind=dbl_kind) :: &
          etot    , & ! total energy in column
+         wlat_loc, & ! lateral melt rate (m/s)
          qavg        ! average enthalpy in column (approximate)
 
       real (kind=dbl_kind) :: &
@@ -566,7 +569,7 @@
       fside = c0
       Tbot  = Tf
       fbot  = c0
-      wlat  = c0
+      wlat_loc = c0
 
       if (aice > puny .and. frzmlt < c0) then ! ice can melt
 
@@ -602,8 +605,8 @@
       !    Steele (1992): JGR, 97, 17,729-17,738
       !-----------------------------------------------------------------
 
-         wlat = m1 * deltaT**m2 ! Maykut & Perovich
-         rside = wlat*dt*pi/(floeshape*floediam) ! Steele
+         wlat_loc = m1 * deltaT**m2 ! Maykut & Perovich
+         rside = wlat_loc*dt*pi/(floeshape*floediam) ! Steele
          rside = max(c0,min(rside,c1))
 
       !-----------------------------------------------------------------
@@ -640,6 +643,8 @@
          fside = fside * xtmp
 
       endif
+
+      if (present(wlat)) wlat=wlat_loc
 
       end subroutine frzmlt_bottom_lateral
 
