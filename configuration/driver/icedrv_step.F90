@@ -783,7 +783,7 @@
                         if (expansion_ratio < 1) then ! net opening
                            aice0(i) = aice0(i) * expansion_ratio
                            do n = 1, ncat
-                              ! Advect ice out of cell
+                              ! Remove ice from cell
                               aicen(i,n) = aicen(i,n) * expansion_ratio
                               vicen(i,n) = vicen(i,n) * expansion_ratio
                               vsnon(i,n) = vsnon(i,n) * expansion_ratio
@@ -838,8 +838,8 @@
       integer (kind=int_kind) :: &
          i,            & ! horizontal indices
          ntrcr,        & !
-         nbtrcr       
-      
+         nbtrcr
+
       character(len=*), parameter :: subname='(step_dyn_ridge)'
 
       !-----------------------------------------------------------------
