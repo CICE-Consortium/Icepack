@@ -121,7 +121,7 @@
     atm_data_type   = 'clim'
     ocn_data_type   = 'SHEBA'
     bgc_data_type   = 'default'
-    ice_advection_type   = 'uniform_ice'
+    lateral_flux_type   = 'uniform_ice'
     fyear_init      = 2015
     ycycle          = 1
     data_dir        = '/Users/ftuser/Desktop/CICE-Consortium/ICEPACK_DATA/'

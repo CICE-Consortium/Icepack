@@ -77,7 +77,7 @@
          atm_data_type,   & ! 'default', 'clim', 'CFS'
          ocn_data_type,   & ! 'default', 'SHEBA'
          bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
-         ice_advection_type,   & ! 'uniform_ice', 'none'
+         lateral_flux_type,   & ! 'uniform_ice', 'open_water'
          atm_data_file,   & ! atmospheric forcing data file
          ocn_data_file,   & ! ocean forcing data file
          ice_data_file,   & ! ice forcing data file

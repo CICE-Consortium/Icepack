@@ -750,12 +750,15 @@ cases.  Current filenames can be found in the options scripts in
 Horizontal ice advection
 ------------------------
 
-When Icepack is run in standalone (i.e., single column) mode with a dynamical forcing (e.g., ``ocn_data_type = SHEBA``),
-closing implies the advection of ice or open water area into the grid cell. The default assumption 
-(in the namelist, ``ice_advection_type = uniform_ice``) is that the simulated grid cell is surrounded by grid cells with identical
-ice properties and this uniform ice is advected in by closing. Alternatively, one may assume that the simulated grid
-cell is surrounded by open water (in the namelist, ``ice_advection_type = none``). Note, that assuming the grid cell is
-surrounded by open water means that closing (i.e., ice convergence) will produce open water in the grid cell.
+When Icepack is run in standalone mode with a dynamical forcing (e.g., ``ocn_data_type = SHEBA``),
+closing implies the lateral flux of ice or open water area into the grid cell. The default assumption
+(in the namelist, ``lateral_flux_type = 'uniform_ice'``) is that the active grid cell is surrounded by grid cells 
+with identical ice properties to the active grid cell, i.e. the ice is uniform across all of those cells, and 
+when the dynamical forcing is net convergence, this uniform ice is fluxed into the grid cell. Alternatively, one 
+may assume that the active grid cell is surrounded by open water (in the namelist 
+``lateral_flux_type = 'open_water'``), in which case closing (i.e., ice convergence) will produce open water in 
+the grid cell. In either case, when the forcing is net divergence, ice area and volume are removed from the grid 
+cell to accommodate the formation of open water implied by the net divergence.
 
 Run Directories
 ---------------
