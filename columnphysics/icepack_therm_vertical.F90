@@ -37,6 +37,12 @@
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
       use icepack_therm_shared, only: hi_min
       use icepack_therm_shared, only: adjust_enthalpy
+#ifdef GEOSCOUPLED
+      use icepack_therm_shared, only: dfsurfdts_cpl,      & !
+                                      dflatdts_cpl,       & !
+                                      fsurf_cpl,          & !
+                                      flat_cpl              !
+#endif
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_mushy,  only: temperature_changes_salinity
 
@@ -104,8 +110,9 @@
                                   smliq,       massliq,   &
                                   congel,      snoice,    &
                                   mlt_onset,   frz_onset, &
+                                  fsurfn_in,              &
+                                  flatn_in,               &
                                   dfsurfdt_in,            &
-                                  flatn_f,                &
                                   dflatdt_in,             &
                                   yday,        dsnow,     &
                                   prescribed_ice,         &
@@ -191,8 +198,9 @@
          fcondbotn    ! downward cond flux at bottom surface (W m-2)
 
       real (kind=dbl_kind), intent(in), optional:: &
+         fsurfn_in,   & 
+         flatn_in,    & 
          dfsurfdt_in, &
-         flatn_f,     & 
          dflatdt_in 
 
       ! coupler fluxes to ocean
@@ -291,19 +299,27 @@
           call icepack_warnings_add(subname//": missing dflatdt_in" )
           return   
       endif
-      if (.not. present(flatn_f)) then  
+      if (.not. present(flatn_in)) then  
           call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing flatn_f" )
+          call icepack_warnings_add(subname//": missing flatn_in" )
           return   
       endif
+      if (.not. present(fsurfn_in)) then  
+          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+          call icepack_warnings_add(subname//": missing fsurfn_in" )
+          return   
+      endif
+
+      dfsurfdts_cpl = dfsurfdt_in
+      dflatdts_cpl  = dflatdt_in
+      fsurf_cpl     = fsurfn_in
+      flat_cpl      = flatn_in
 #endif
 
       if (calc_Tsfc) then
          fsensn  = c0
          flatn     = c0
-#ifndef GEOSCOUPLED
          fsurfn    = c0
-#endif
          fcondtopn = c0
       endif
 
@@ -385,14 +401,7 @@
                                      fsensn,    flatn,     &
                                      flwoutn,   fsurfn,    &
                                      fcondtopn, fcondbotn, &
-#ifdef GEOSCOUPLED
-                                     einit,                & 
-                                     dfsurfdt_in = dfsurfdt_in,&
-                                     flatn_f     = flatn_f,    &
-                                     dflatdt_in  = dflatdt_in)
-#else
                                      einit                 )
-#endif
             if (icepack_warnings_aborted(subname)) return
 
          endif ! ktherm
@@ -2952,8 +2961,9 @@
                                  congel=congeln  (n), snoice=snoicen  (n),    &
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,    &
 #ifdef GEOSCOUPLED 
+                                 fsurfn_in   = fsurfn_f(n),                   &
+                                 flatn_in    = flatn_f(n),                    &
                                  dfsurfdt_in = dfsurfdt(n),                   &
-                                 flatn_f     = flatn_f(n),                    &
                                  dflatdt_in  = dflatdt(n),                    &
 #endif
                                  yday=yday,           dsnow=dsnown   (n),     &

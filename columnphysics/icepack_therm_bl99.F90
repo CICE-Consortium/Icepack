@@ -24,6 +24,12 @@
 
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
+#ifdef GEOSCOUPLED
+      use icepack_therm_shared, only: dfsurfdts_cpl,      & !
+                                      dflatdts_cpl,       & !
+                                      fsurf_cpl,          & !
+                                      flat_cpl              !
+#endif
 
       implicit none
 
@@ -70,10 +76,7 @@
                                       fsensn,   flatn,    &
                                       flwoutn,  fsurfn,   &
                                       fcondtopn,fcondbot, &
-                                      einit,              &
-                                      dfsurfdt_in,        &
-                                      flatn_f,            &
-                                      dflatdt_in)
+                                      einit               )
 
       integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -116,11 +119,6 @@
          fsensn      , & ! surface downward sensible heat (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn         ! upward LW at surface (W m-2)
-
-      real (kind=dbl_kind), intent(in), optional:: &
-         dfsurfdt_in ,  &
-         flatn_f     ,  &
-         dflatdt_in    
 
       real (kind=dbl_kind), intent(out):: &
          fcondbot        ! downward cond flux at bottom surface (W m-2)
@@ -235,25 +233,10 @@
       dflwout_dT = c0
       einex      = c0
 #ifdef GEOSCOUPLED
-      if (.not. present(dfsurfdt_in)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing dfsurfdt_in" )
-          return   
-      endif
-      if (.not. present(dflatdt_in)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing dflatdt_in" )
-          return   
-      endif
-      if (.not. present(flatn_f)) then  
-          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-          call icepack_warnings_add(subname//": missing flatn_f" )
-          return   
-      endif
-      ! derivative information is passed by GEOS 
-      dfsurf_dT = dfsurfdt_in
-      dflat_dT  = dflatdt_in  
-      flatn     = flatn_f  
+      dfsurf_dT  = dfsurfdts_cpl
+      dflat_dT   = dflatdts_cpl
+      fsurfn     = fsurf_cpl
+      flatn      = flat_cpl
 #endif
       dt_rhoi_hlyr = dt / (rhoi*hilyr)  ! hilyr > 0
       if (hslyr > hs_min/real(nslyr,kind=dbl_kind)) &
@@ -374,7 +357,6 @@
 
             converged = .true.
 #ifndef GEOSCOUPLED
-            ! derivative information is passed by GEOS 
             dfsurf_dT = c0
 #endif
             avg_Tsi   = c0
@@ -700,7 +682,9 @@
       !-----------------------------------------------------------------
 
                fsurfn = fsurfn + dTsf*dfsurf_dT
+#ifdef GEOSCOUPLED
                flatn  = flatn  + dTsf*dflat_dT
+#endif
                if (l_snow) then
                   fcondtopn = kh(1) * (Tsf-zTsn(1))
                else

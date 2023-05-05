@@ -51,6 +51,14 @@
       real (kind=dbl_kind), public :: &
          hi_min          ! minimum ice thickness allowed (m)
 
+#ifdef GEOSCOUPLED
+      real (kind=dbl_kind), public :: &
+         dfsurfdts_cpl,      & !
+         dflatdts_cpl,       & !
+         fsurf_cpl,          & !
+         flat_cpl              !
+#endif
+
 !=======================================================================
 
       contains
