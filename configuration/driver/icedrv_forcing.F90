@@ -9,7 +9,7 @@
       use icedrv_kinds
       use icedrv_domain_size, only: nx
       use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday
-      use icedrv_calendar, only: daymo, daycal, dt, yday, sec
+      use icedrv_calendar, only: daymo, daycal, dt, yday, sec, use_leap_years
       use icedrv_constants, only: nu_diag, nu_forcing, nu_open_clos
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -20,6 +20,9 @@
       use icedrv_flux, only: zlvl, Tair, potT, rhoa, uatm, vatm, wind, &
          strax, stray, fsw, swvdr, swvdf, swidr, swidf, Qa, flw, frain, &
          fsnow, sst, sss, uocn, vocn, qdp, hmix, Tf, opening, closing, sstdat
+#ifdef USE_NETCDF
+      use netcdf
+#endif
 
       implicit none
       private
@@ -74,7 +77,7 @@
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
          ocn_data_format, & ! 'bin'=binary or 'nc'=netcdf
          bgc_data_format, & ! 'bin'=binary or 'nc'=netcdf
-         atm_data_type,   & ! 'default', 'clim', 'CFS'
+         atm_data_type,   & ! 'default', 'clim', 'CFS', 'MOSAiC'
          ocn_data_type,   & ! 'default', 'SHEBA'
          bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
          atm_data_file,   & ! atmospheric forcing data file
@@ -157,6 +160,7 @@
       if (trim(atm_data_type(1:4)) == 'clim')  call atm_climatological
       if (trim(atm_data_type(1:5)) == 'ISPOL') call atm_ISPOL
       if (trim(atm_data_type(1:4)) == 'NICE')  call atm_NICE
+      if (trim(atm_data_type(1:6)) == 'MOSAiC') call atm_MOSAiC
       if (trim(ocn_data_type(1:5)) == 'SHEBA') call ice_open_clos
 
       if (restore_ocn) then
@@ -967,6 +971,101 @@
       close(nu_forcing)
 
       end subroutine atm_NICE
+
+!=======================================================================
+
+      subroutine atm_MOSAiC
+      
+      integer (kind=int_kind) :: &
+         nt,      &  ! timestep index for Icepack arrays
+         i,       &  ! index for forcing data arrays
+         dimlen,  &  ! length of the data arrays
+         ncid,    &  ! NetCDF file id
+         dimid,   &  ! NetCDF dimension id
+         status,  &  ! NetCDF status flag
+         varid       ! NetCDF variable id
+      
+      integer (kind=8), allocatable :: &
+         time01(:)   ! array for minutely time array in file
+      
+      integer (kind=8), dimension(ntime) :: &
+         model_time ! array for Icepack minutely time
+
+      real (kind=dbl_kind) :: &
+         work     ! variable for moving averaging
+      
+      real (kind=dbl_kind), allocatable :: &
+         data(:)  ! data array from file
+
+      character (char_len) :: &
+         calendar_type, &
+         varname
+      
+      character (char_len_long) :: &
+         filename
+
+
+
+      character(len=*), parameter :: subname='(atm_MOSAiC)'
+
+      filename = trim(data_dir)//'/MOSAiC/'//trim(atm_data_file)
+      
+      if (atm_data_format == 'nc') then
+#ifdef USE_NETCDF
+         ! Open forcing file
+         status = nf90_open(trim(filename), nf90_nowrite, ncid)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt open netcdf file', &
+                           file=__FILE__,line=__LINE__)
+         ! Allocate time and data arrays
+         status = nf90_inq_dimid(ncid, "time01", dimid)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get time01 dim id', &
+                           file=__FILE__,line=__LINE__)
+         status = nf90_inquire_dimension(ncid, dimid, len = dimlen)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get time01 dim length', &
+                           file=__FILE__,line=__LINE__)
+         allocate (time01(dimlen), data(dimlen))
+         ! Check that time01 variable exists and calendars match
+         status = nf90_inq_varid(ncid, "time01", varid)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get time01 var id', &
+                           file=__FILE__,line=__LINE__)
+         status = nf90_get_att(ncid, varid, "calendar", calendar_type)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get calendar attribute', &
+                           file=__FILE__,line=__LINE__)
+         ! In future this check could be replaced with a better one
+         if (calendar_type /= "standard" .or. .not. use_leap_years) then
+            call icedrv_system_abort(&
+            string=subname//'Forcing calendar not standard or not using leap years',&
+            file=__FILE__,line=__LINE__)
+         endif
+         ! Get the time array
+         !! Note, in the file the value is actually unsigned, need to make sure this
+         ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
+         status = nf90_get_var(ncid, varid, time01)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt read time01 values', &
+                           file=__FILE__,line=__LINE__)
+
+         call icedrv_system_abort(string=subname//&
+         ' Made it to the end for testing', &
+         file=__FILE__,line=__LINE__)
+
+#else
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: atm_data_format = "nc" requires USE_NETCDF', &
+         file=__FILE__,line=__LINE__)
+#endif
+      else
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: only NetCDF input implemented for atm_MOSAiC', &
+         file=__FILE__,line=__LINE__)
+      endif
+
+      end subroutine atm_MOSAiC
 
 !=======================================================================
 
