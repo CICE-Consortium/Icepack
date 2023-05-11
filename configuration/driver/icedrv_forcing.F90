@@ -245,163 +245,187 @@
 
       character(len=*), parameter :: subname='(get_forcing)'
 
-      if (trim(atm_data_type) == 'CFS') then
-         ! calculate data index corresponding to current timestep
-         i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
-         mlast = i
-         mnext = mlast
-         c1intp = c1
-         c2intp = c0
+      if (strict_forcing) then
+         ! Fill all grid boxes with same forcing data
+         Tair (:) = Tair_data(timestep)
+         Qa   (:) = Qa_data(timestep)
+         uatm (:) = uatm_data(timestep)
+         vatm (:) = vatm_data(timestep)
+         fsnow(:) = fsnow_data(timestep)
+         flw  (:) = flw_data(timestep)
+         fsw  (:) = fsw_data(timestep)
 
-         ! fill all grid boxes with the same forcing data
+         ! derived (or not otherwise set)
+         potT (:) = potT_data(timestep)
+         wind (:) = wind_data(timestep)
+         strax(:) = strax_data(timestep)
+         stray(:) = stray_data(timestep)
+         rhoa (:) = rhoa_data(timestep)
+         frain(:) = frain_data(timestep)
+         swvdr(:) = swvdr_data(timestep)
+         swvdf(:) = swvdf_data(timestep)
+         swidr(:) = swidr_data(timestep)
+         swidf(:) = swidf_data(timestep)
+
+      else
+         if (trim(atm_data_type) == 'CFS') then
+            ! calculate data index corresponding to current timestep
+            i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
+            mlast = i
+            mnext = mlast
+            c1intp = c1
+            c2intp = c0
+
+            ! fill all grid boxes with the same forcing data
+            Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+            Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+            uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+            vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+            fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+            flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+            fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+
+            ! derived (or not otherwise set)
+            potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+            wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+            strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+            stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+            rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+            frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+            swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+            swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+            swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+            swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
+         elseif (trim(atm_data_type) == 'clim') then
+            midmonth = 15  ! assume data is given on 15th of every month
+            recslot = 1                             ! latter half of month
+            if (mday < midmonth) recslot = 2        ! first half of month
+            if (recslot == 1) then
+               mlast = month
+               mnext = mod(month   ,12) + 1
+            else ! recslot = 2
+               mlast = mod(month+10,12) + 1
+               mnext = month
+            endif
+            call interp_coeff_monthly(recslot, c1intp, c2intp)
+
+            ! fill all grid boxes with the same forcing data
+            Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+            Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+            uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+            vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+            fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+            flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+            fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+
+            ! derived (or not otherwise set)
+            potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+            wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+            strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+            stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+            rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+            frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+            swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+            swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+            swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+            swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
+         elseif (trim(atm_data_type) == 'ISPOL') then
+
+         offndy = 0                              ! first data record (Julian day)
+         offset = real(offndy,dbl_kind)*secday
+         dataloc = 1                             ! data located at middle of interval
+         maxrec = 365
+         recslot = 2
+         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
+         mlast = mod(recnum+maxrec-2,maxrec) + 1
+         mnext = mod(recnum-1,       maxrec) + 1
+         call interp_coeff (recnum, recslot, secday, dataloc, &
+                              c1intp, c2intp, offset)
+
          Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
          Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
          uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
          vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
          fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+
+            ! derived (or not otherwise set)
+            potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+            wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+            strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+            stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+            rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+            frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+
+         sec6hr = secday/c4;                      ! seconds in 6 hours
+         offndy = 0
+         maxrec = 1460
+         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1 ! data begins on 16 June 2004
+         recslot = 2
+         mlast = mod(recnum+maxrec-2,maxrec) + 1
+         mnext = mod(recnum-1,       maxrec) + 1
+         call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+                              c1intp, c2intp, offset)
+
          fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
 
-         ! derived (or not otherwise set)
-         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+            ! derived
+            swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+            swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+            swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+            swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
 
-      elseif (trim(atm_data_type) == 'clim') then
-         midmonth = 15  ! assume data is given on 15th of every month
-         recslot = 1                             ! latter half of month
-         if (mday < midmonth) recslot = 2        ! first half of month
-         if (recslot == 1) then
-            mlast = month
-            mnext = mod(month   ,12) + 1
-         else ! recslot = 2
-            mlast = mod(month+10,12) + 1
-            mnext = month
+         elseif (trim(atm_data_type) == 'NICE') then
+
+         offndy = 0                              ! first data record (Julian day)
+         offset = real(offndy,dbl_kind)*secday
+         dataloc = 1                          ! data located in middle of interval
+         maxrec = 365
+         recslot = 2
+         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
+         mlast = mod(recnum+maxrec-2,maxrec) + 1
+         mnext = mod(recnum-1,       maxrec) + 1
+         call interp_coeff (recnum, recslot, secday, dataloc, &
+                              c1intp, c2intp, offset)
+
+         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+
+            ! derived (or not otherwise set)
+            potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+            wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+            strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+            stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+            rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+            frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+
+         sec6hr = secday/c4;                      ! seconds in 6 hours
+         maxrec = 1460
+         dataloc = 2                              ! data located at end of interval
+         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1
+         recslot = 2
+         mlast = mod(recnum+maxrec-2,maxrec) + 1
+         mnext = mod(recnum-1,       maxrec) + 1
+         call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+                              c1intp, c2intp, offset)
+
+         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+
+            ! derived
+            swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+            swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+            swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+            swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+
          endif
-         call interp_coeff_monthly(recslot, c1intp, c2intp)
-
-         ! fill all grid boxes with the same forcing data
-         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
-         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
-         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
-         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
-         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
-
-         ! derived (or not otherwise set)
-         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-
-      elseif (trim(atm_data_type) == 'ISPOL') then
-
-        offndy = 0                              ! first data record (Julian day)
-        offset = real(offndy,dbl_kind)*secday
-        dataloc = 1                             ! data located at middle of interval
-        maxrec = 365
-        recslot = 2
-        recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (recnum, recslot, secday, dataloc, &
-                           c1intp, c2intp, offset)
-
-        Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
-        Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
-        uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
-        vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
-        fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-
-         ! derived (or not otherwise set)
-         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-
-        sec6hr = secday/c4;                      ! seconds in 6 hours
-        offndy = 0
-        maxrec = 1460
-        recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
-        recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1 ! data begins on 16 June 2004
-        recslot = 2
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (recnum, recslot, sec6hr, dataloc, &
-                           c1intp, c2intp, offset)
-
-        fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
-        flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-
-         ! derived
-         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-
-      elseif (trim(atm_data_type) == 'NICE') then
-
-        offndy = 0                              ! first data record (Julian day)
-        offset = real(offndy,dbl_kind)*secday
-        dataloc = 1                          ! data located in middle of interval
-        maxrec = 365
-        recslot = 2
-        recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (recnum, recslot, secday, dataloc, &
-                           c1intp, c2intp, offset)
-
-        Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
-        Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
-        uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
-        vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
-        fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
-
-         ! derived (or not otherwise set)
-         potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
-         wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
-         strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
-         stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
-         rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
-         frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
-
-        sec6hr = secday/c4;                      ! seconds in 6 hours
-        maxrec = 1460
-        dataloc = 2                              ! data located at end of interval
-        recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
-        recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1
-        recslot = 2
-        mlast = mod(recnum+maxrec-2,maxrec) + 1
-        mnext = mod(recnum-1,       maxrec) + 1
-        call interp_coeff (recnum, recslot, sec6hr, dataloc, &
-                           c1intp, c2intp, offset)
-
-        fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
-        flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
-
-         ! derived
-         swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
-         swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
-         swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
-         swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
-
       endif
 
 ! possible bug:  is the ocean data also offset to the beginning of the field campaigns?
@@ -1140,10 +1164,13 @@
          ! Moving average forcing values into model arrays
          call atm_MOSAiC_average("tas", Tair_data, dimlen, ncid, &
             data_sections, model_miss_val)
+         
+         ! Linearly interpolate missing values
+         call atm_MOSAiC_interpolate(Tair_data, model_miss_val)
 
-         call icedrv_system_abort(string=subname//&
-         ' Made it to the end for testing', &
-         file=__FILE__,line=__LINE__)
+         !call icedrv_system_abort(string=subname//&
+         !' Made it to the end for testing', &
+         !file=__FILE__,line=__LINE__)
 
 #else
          call icedrv_system_abort(string=subname//&
@@ -1230,6 +1257,52 @@
 
       end subroutine atm_MOSAiC_average
 #endif
+
+!=======================================================================
+
+      subroutine atm_MOSAiC_interpolate(model_var_arr, model_miss_val)
+      
+      real (kind=dbl_kind), dimension(ntime), intent(inout) :: &
+         model_var_arr  ! array to place averaged forcing data in
+      
+      real (kind=dbl_kind), intent(in) :: &
+         model_miss_val ! for when there is no data in a time step
+
+      integer (kind=int_kind) :: &
+         mlast,         &  ! index of last present data
+         nt, m,         &  ! model timestep indices
+         count             ! counter for missing values
+      
+      character(len=*), parameter :: subname='(atm_MOSAiC_interpolate)'
+      
+      ! Check for extrapolation
+      if (model_var_arr(1) == model_miss_val) call icedrv_system_abort(&
+      string=subname//'Missing value at start of atmospheric forcing',&
+      file=__FILE__,line=__LINE__)
+      if (model_var_arr(ntime) == model_miss_val) call icedrv_system_abort(&
+      string=subname//'Missing value at end of atmospheric forcing',&
+      file=__FILE__,line=__LINE__)
+
+      ! Interpolate
+      mlast = 1
+      do nt = 2, ntime
+         if (model_var_arr(nt) == model_miss_val) then
+            ! Do nothing (i.e., allow nt to increment)
+         else if ((nt - mlast) == 1) then
+            ! No missing data, increment mlast
+            mlast = nt
+         else
+            ! Interpolate missing data
+            do m = mlast + 1, nt - 1
+               model_var_arr(m) = model_var_arr(mlast) &
+                  + (model_var_arr(nt) - model_var_arr(mlast)) &
+                  * (m - mlast) / (nt - mlast)
+            end do
+            mlast = nt
+         endif
+      end do
+
+      end subroutine atm_MOSAiC_interpolate
 
 !=======================================================================
 
