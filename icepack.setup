@@ -567,7 +567,7 @@ foreach envname ( $nenvnames )
       if (${dosuite} == 1) then
         set testname = "${tsdir}/${testname_base}"
       else
-        set testname = "${testname_base}"
+        set testname = "${tsdir}/${testname_base}"
       endif
       set case = ${testname}
     endif

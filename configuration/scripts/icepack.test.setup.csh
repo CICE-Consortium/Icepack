@@ -60,14 +60,27 @@ cat >> ${jobfile} < ${ICE_SCRIPTS}/tests/baseline.script
 
 chmod +x ${jobfile}
 
+if ($ICE_MACHINE == 'discover') then
+
 cat >! ${subfile} << EOFS
 #!/bin/csh -f 
 
-#${ICE_MACHINE_SUBMIT} ./${jobfile}
 ./${jobfile}
 echo "\`date\` \${0}: ${ICE_CASENAME} job submitted"  >> ${ICE_CASEDIR}/README.case
 
 EOFS
+
+else
+
+cat >! ${subfile} << EOFS
+#!/bin/csh -f 
+
+${ICE_MACHINE_SUBMIT} ./${jobfile}
+echo "\`date\` \${0}: ${ICE_CASENAME} job submitted"  >> ${ICE_CASEDIR}/README.case
+
+EOFS
+
+endif
 
 chmod +x ${subfile}
 exit 0
