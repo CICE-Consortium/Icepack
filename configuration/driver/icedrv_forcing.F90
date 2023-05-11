@@ -134,7 +134,8 @@
                sst_data(ntime), sss_data(ntime), uocn_data(ntime), &
                vocn_data(ntime), frain_data(ntime), swvdr_data(ntime), &
                swvdf_data(ntime), swidr_data(ntime), swidf_data(ntime), &
-               zlvl_data(ntime), hmix_data(ntime))
+               zlvl_data(ntime), hmix_data(ntime), open_data(ntime), &
+               clos_data(ntime))
 
       fyear       = fyear_init + mod(nyr-1,ycycle) ! current year
       fyear_final = fyear_init + ycycle - 1 ! last year in forcing cycle
