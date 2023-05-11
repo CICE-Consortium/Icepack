@@ -1033,7 +1033,8 @@
                         ! create the model forcing values
       
       real (kind=dbl_kind), parameter :: &
-         Gregorian_year = 365.2425 ! days in Gregorian year per cf standard
+         Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
+         model_miss_val = -9999.00     ! missing value for internal use
 
       character(len=*), parameter :: subname='(atm_MOSAiC)'
 
@@ -1136,6 +1137,10 @@
          end do
          data_sections(ntime, 2) = i
 
+         ! Moving average forcing values into model arrays
+         call atm_MOSAiC_average("tas", Tair_data, dimlen, ncid, &
+            data_sections, model_miss_val)
+
          call icedrv_system_abort(string=subname//&
          ' Made it to the end for testing', &
          file=__FILE__,line=__LINE__)
@@ -1157,9 +1162,9 @@
 
 #ifdef USE_NETCDF
       subroutine atm_MOSAiC_average(data_var_name, model_var_arr, &
-         data_var_len, ncid, model_time, data_time, model_miss_val)
+         data_var_len, ncid, data_sections, model_miss_val)
 
-      character(len=char_len), intent(in) :: &
+      character(len=*), intent(in) :: &
          data_var_name  ! Name of the variable in the MDF forcing file
       
       real (kind=dbl_kind), dimension(ntime), intent(out) :: &
@@ -1169,26 +1174,20 @@
          data_var_len, &   ! Size of data array in MDF forcing file
          ncid              ! NetCDF file id
       
-      integer (kind=8), dimension(ntime), intent(in) :: &
-         model_time     ! model time in seconds since 1970-01-01
-      
-      integer (kind=8), dimension(data_var_len), intent(in) :: &
-         data_time      ! data time in seconds since 1970-01-01
+      integer (kind=int_kind), dimension(ntime, 2) :: &
+         data_sections     ! indices for which data values to average
       
       real (kind=dbl_kind), intent(in) :: &
          model_miss_val ! for when there is no data in a time step
       
       ! Local variables
-      real (kind=dbl_kind), allocatable :: &
-         data_var_arr(:)   ! array for data from forcing file
+      real (kind=dbl_kind), dimension(data_var_len) :: &
+         data_var_arr      ! array for data from forcing file
       
       real (kind=dbl_kind) :: &
          work, &           ! variable for averaging
          data_miss_val, &  ! value of missing data
          count             ! counter for data to average
-      
-      integer (kind=8) :: &
-         lb, ub            ! bounds for moving average
       
       integer (kind=int_kind) :: &
          status, &         ! NetCDF status flag
@@ -1198,8 +1197,7 @@
       
       character(len=*), parameter :: subname='(atm_MOSAiC_average)'
       
-      ! Allocate data_var_arr and get data and missing value from file
-      allocate (data_var_arr(data_var_len))
+      ! Allocate get data and missing value from file
       status = nf90_inq_varid(ncid, trim(data_var_name), varid)
       if (status /= nf90_noerr) call icedrv_system_abort(&
             string=subname//'Couldnt get '//data_var_name//' var id', &
@@ -1213,7 +1211,22 @@
             string=subname//'Couldnt get '//data_var_name//' values', &
                            file=__FILE__,line=__LINE__)
       
-      ! Find start of 
+      ! For each model time point average non-missing data values
+      do nt = 1, ntime
+         count = 0
+         work = c0
+         do i = data_sections(nt, 1), data_sections(nt, 2)
+            if (data_var_arr(i) /= data_miss_val) then
+               work = work + data_var_arr(i)
+               count = count + 1
+            endif
+         end do
+         if (count > 0) then
+            model_var_arr(nt) = work / count
+         else
+            model_var_arr(nt) = model_miss_val
+         endif
+      end do
 
       end subroutine atm_MOSAiC_average
 #endif
