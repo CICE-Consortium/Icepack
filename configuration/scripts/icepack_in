@@ -131,6 +131,7 @@
     atm_data_format = 'bin'
     ocn_data_format = 'bin'
     bgc_data_format = 'bin'
+    strict_forcing  = .false.
 /
 
 &dynamics_nml

@@ -73,6 +73,7 @@
       use icedrv_forcing, only: atm_data_format, ocn_data_format, bgc_data_format
       use icedrv_forcing, only: data_dir
       use icedrv_forcing, only: oceanmixed_ice, restore_ocn, trestore
+      use icedrv_forcing, only: strict_forcing
 
       ! local variables
 
@@ -179,7 +180,8 @@
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
         ice_data_file,                                     &
         atm_data_format, ocn_data_format, bgc_data_format, &
-        data_dir,        trestore,        restore_ocn
+        data_dir,        trestore,        restore_ocn,     &
+        strict_forcing
 
       namelist /tracer_nml/   &
         tr_iage,      &
@@ -282,6 +284,7 @@
       data_dir    = ' '           ! root location of data files
       restore_ocn     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
+      strict_forcing  = .false.   ! if true require forcing to be present and align with time
 
       ! extra tracers
       tr_iage      = .false. ! ice age
@@ -772,6 +775,7 @@
                                trim(bgc_data_file)
          write(nu_diag,*)    ' ice_data_file             = ', &
                                trim(ice_data_file)
+         write(nu_diag,1010) ' strict_forcing            = ', strict_forcing
 
          if (trim(atm_data_type)=='default') &
          write(nu_diag,*)    ' default_season            = ', trim(default_season)

@@ -8,8 +8,9 @@
 
       use icedrv_kinds
       use icedrv_domain_size, only: nx
-      use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday, year_init
-      use icedrv_calendar, only: daymo, daycal, dt, yday, sec, use_leap_years, time0
+      use icedrv_calendar, only: time, nyr, dayyr, mday, month, secday
+      use icedrv_calendar, only: daymo, daycal, dt, yday, sec
+      use icedrv_calendar, only: npt, use_leap_years, time0, year_init
       use icedrv_constants, only: nu_diag, nu_forcing, nu_open_clos
       use icedrv_constants, only: c0, c1, c2, c10, c100, p5, c4, c24
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
@@ -30,8 +31,8 @@
       public :: init_forcing, get_forcing, interp_coeff, &
                 interp_coeff_monthly, get_wave_spec
 
-      integer (kind=int_kind), parameter :: &
-         ntime = 8760        ! number of data points in time
+      integer (kind=int_kind) :: &
+         ntime               ! number of data points in time
 
       integer (kind=int_kind), public :: &
          ycycle          , & ! number of years in forcing cycle
@@ -39,40 +40,38 @@
          fyear           , & ! current year in forcing cycle
          fyear_final         ! last year in cycle
 
-      real (kind=dbl_kind), dimension(ntime) :: &
-            fsw_data, & ! field values at temporal data points
-           cldf_data, &
-          fsnow_data, &
-           Tair_data, &
-           uatm_data, &
-           vatm_data, &
-           wind_data, &
-          strax_data, &
-          stray_data, &
-           rhum_data, &
-             Qa_data, &
-           rhoa_data, &
-           potT_data, &
-            flw_data, &
-            qdp_data, &
-            sst_data, &
-            sss_data, &
-           uocn_data, &
-           vocn_data, &
-          frain_data, &
-          swvdr_data, &
-          swvdf_data, &
-          swidr_data, &
-          swidf_data, &
-           zlvl_data, &
-           hmix_data
+      real (kind=dbl_kind), allocatable :: &
+            fsw_data(:), & ! field values at temporal data points
+           cldf_data(:), &
+          fsnow_data(:), &
+           Tair_data(:), &
+           uatm_data(:), &
+           vatm_data(:), &
+           wind_data(:), &
+          strax_data(:), &
+          stray_data(:), &
+           rhum_data(:), &
+             Qa_data(:), &
+           rhoa_data(:), &
+           potT_data(:), &
+            flw_data(:), &
+            qdp_data(:), &
+            sst_data(:), &
+            sss_data(:), &
+           uocn_data(:), &
+           vocn_data(:), &
+          frain_data(:), &
+          swvdr_data(:), &
+          swvdf_data(:), &
+          swidr_data(:), &
+          swidf_data(:), &
+           zlvl_data(:), &
+           hmix_data(:), &
+           open_data(:), &
+           clos_data(:)
 
       real (kind=dbl_kind), dimension(nx) :: &
           sst_temp
-
-      real (kind=dbl_kind), dimension(ntime) :: &
-           open_data, &
-           clos_data
 
       character(char_len), public :: &
          atm_data_format, & ! 'bin'=binary or 'nc'=netcdf
@@ -98,7 +97,8 @@
 
       logical (kind=log_kind), public :: &
          oceanmixed_ice        , & ! if true, use internal ocean mixed layer
-         restore_ocn               ! restore sst if true
+         restore_ocn           , & ! restore sst if true
+         strict_forcing            ! if true require forcing to align with time
 
       real (kind=dbl_kind), public :: &
          trest, &                  ! restoring time scale (sec)
@@ -119,6 +119,22 @@
          i                ! index
 
       character(len=*), parameter :: subname='(init_forcing)'
+      
+      ! Initialize ntime and allocate data arrays
+      if (strict_forcing) then
+         ntime = npt
+      else
+         ntime = 8760
+      endif
+      allocate(fsw_data(ntime), cldf_data(ntime), fsnow_data(ntime), &
+               Tair_data(ntime), uatm_data(ntime), vatm_data(ntime), &
+               wind_data(ntime), strax_data(ntime), stray_data(ntime), &
+               rhum_data(ntime), Qa_data(ntime), rhoa_data(ntime), &
+               potT_data(ntime), flw_data(ntime), qdp_data(ntime), &
+               sst_data(ntime), sss_data(ntime), uocn_data(ntime), &
+               vocn_data(ntime), frain_data(ntime), swvdr_data(ntime), &
+               swvdf_data(ntime), swidr_data(ntime), swidf_data(ntime), &
+               zlvl_data(ntime), hmix_data(ntime))
 
       fyear       = fyear_init + mod(nyr-1,ycycle) ! current year
       fyear_final = fyear_init + ycycle - 1 ! last year in forcing cycle
