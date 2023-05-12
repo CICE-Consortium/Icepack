@@ -248,7 +248,7 @@
       if (strict_forcing) then
          ! Fill all grid boxes with same forcing data
          Tair (:) = Tair_data(timestep)
-         Qa   (:) = Qa_data(timestep)
+         Qa   (:) = Qa_data(timestep)/1000
          uatm (:) = uatm_data(timestep)
          vatm (:) = vatm_data(timestep)
          fsnow(:) = fsnow_data(timestep)
@@ -1164,9 +1164,29 @@
          ! Moving average forcing values into model arrays
          call atm_MOSAiC_average("tas", Tair_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         
+         call atm_MOSAiC_average("hus", Qa_data, dimlen, ncid, &
+            data_sections, model_miss_val)
+         call atm_MOSAiC_average("uas", uatm_data, dimlen, ncid, &
+            data_sections, model_miss_val)
+         call atm_MOSAiC_average("vas", vatm_data, dimlen, ncid, &
+            data_sections, model_miss_val)
+         call atm_MOSAiC_average("rld", flw_data, dimlen, ncid, &
+            data_sections, model_miss_val)
+         call atm_MOSAiC_average("rsd", fsw_data, dimlen, ncid, &
+            data_sections, model_miss_val)
+
          ! Linearly interpolate missing values
          call atm_MOSAiC_interpolate(Tair_data, model_miss_val)
+         call atm_MOSAiC_interpolate(Qa_data, model_miss_val)
+         call atm_MOSAiC_interpolate(uatm_data, model_miss_val)
+         call atm_MOSAiC_interpolate(vatm_data, model_miss_val)
+         call atm_MOSAiC_interpolate(flw_data, model_miss_val)
+         call atm_MOSAiC_interpolate(fsw_data, model_miss_val)
+
+         ! hack for missing values
+         fsnow_data(:) = c0
+         frain_data(:) = c0
+         
 
          !call icedrv_system_abort(string=subname//&
          !' Made it to the end for testing', &
