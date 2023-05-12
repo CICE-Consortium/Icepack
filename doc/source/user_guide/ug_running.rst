@@ -747,6 +747,17 @@ cases.  Current filenames can be found in the options scripts in
    about 4 :math:`W/m^2` for biases in the forcings or the model. In the namelist, set ``atm_data_type = clim`` 
    to use climatological atmospheric forcing.
 
+Horizontal ice advection
+------------------------
+
+When Icepack is run in standalone mode with a dynamical forcing (e.g., ``ocn_data_type = SHEBA``),
+closing implies the lateral flux of ice or open water area into the grid cell. The default assumption
+(in the namelist, ``lateral_flux_type = 'uniform_ice'``) is that the active grid cell is surrounded by grid cells 
+with identical ice properties to the active grid cell, i.e. the ice is uniform across all of those cells, and 
+when the dynamical forcing is net convergence, this uniform ice is fluxed into the grid cell. Alternatively, one may
+assume that the active grid cell is surrounded by open water (in the namelist ``lateral_flux_type = 'open_water'``), in which case closing (i.e., ice convergence) will produce open water in 
+the grid cell. In either case, when the forcing is net divergence, ice area and volume are removed from the grid 
+cell to accommodate the formation of open water implied by the net divergence.
 
 Run Directories
 ---------------

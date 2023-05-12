@@ -345,6 +345,8 @@ forcing_nml
    "``formdrag``", "logical", "calculate form drag", "``.false.``"
    "``fyear_init``", "integer", "first year of atmospheric forcing data", "1998"
    "``highfreq``", "logical", "high-frequency atmo coupling", "``.false.``"
+   "``lateral_flux_type``", "``uniform_ice``", "flux ice with identical properties into the cell when closing (Icepack only)", ""
+   "", "``none``", "advect open water into the cell when closing (Icepack only)", ""
    "``ice_data_file``", "string", "file containing ice opening, closing data", "' '"
    "``l_mpond_fresh``", "``.false.``", "release pond water immediately to ocean", "``.false.``"
    "", "``true``", "retain (topo) pond water until ponds drain", ""

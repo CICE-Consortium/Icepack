@@ -6,10 +6,11 @@
 
       module icedrv_step
 
-      use icedrv_constants, only: c0, nu_diag, c4
+      use icedrv_constants, only: c0, nu_diag, c4, c1
       use icedrv_kinds
 !      use icedrv_calendar, only: istep1
       use icedrv_forcing, only: ocn_data_type
+      use icedrv_forcing, only: lateral_flux_type
       use icedrv_system, only: icedrv_system_abort
       use icepack_intfc, only: icepack_warnings_flush
       use icepack_intfc, only: icepack_warnings_aborted
@@ -23,7 +24,8 @@
 
       public :: step_therm1, step_therm2, step_dyn_ridge, &
                 prep_radiation, step_radiation, ocean_mixed_layer, &
-                update_state, biogeochemistry, step_dyn_wave, step_snow
+                update_state, biogeochemistry, step_dyn_wave, step_snow, &
+                step_lateral_flux_scm
 
 !=======================================================================
 
@@ -698,6 +700,110 @@
 
       end subroutine step_dyn_wave
 
+
+!=======================================================================
+!
+! Run one time step of horizontal advection (if there is closing)
+!
+! authors: David Clemens-Sewall, NCAR
+
+      subroutine step_lateral_flux_scm (dt)
+
+         use icedrv_domain_size, only: ncat, nx
+         use icedrv_flux, only: closing, opening
+         use icedrv_init, only: tmask
+         use icedrv_state, only: vsnon, aicen, vicen, aice0
+      
+         real (kind=dbl_kind), intent(in) :: &
+            dt      ! time step
+   
+         ! local variables
+   
+         integer (kind=int_kind) :: &
+            i,            & ! horizontal indices
+            n               ! ice thickness category index         !
+         
+         real (kind=dbl_kind) :: &
+            expansion_ratio  ! how much the ice area will change
+                  
+         character(len=*), parameter :: subname='(step_lateral_flux_scm)'
+   
+         !-----------------------------------------------------------------
+         ! query icepack values
+         !-----------------------------------------------------------------
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                file=__FILE__,line= __LINE__)
+   
+         !-----------------------------------------------------------------
+         ! Ice advection
+         !-----------------------------------------------------------------
+            ! Currently we only do ridging for the SHEBA ocean data type (in step_dyn_ridge)
+            if (trim(ocn_data_type) == "SHEBA") then
+               ! Currently only uniform_ice (and none) advection is implemented
+               if (trim(lateral_flux_type) == "uniform_ice") then
+      
+                  do i = 1, nx
+         
+                  if (tmask(i)) then                     
+                     ! We assume that this single column grid cell is surrounded by
+                     ! identical ice. If so, ice closing implies the flux of
+                     ! this surrounding ice into the single column grid cell.
+                     ! Equivalently, one can think of this step as expanding the
+                     ! domain of the grid cell before the ridging step will
+                     ! contract the domain.
+                     expansion_ratio = c1 + (closing(i) - opening(i)) * dt
+                     aice0(i) = aice0(i) * expansion_ratio
+                     do n = 1, ncat
+                        ! Scale up state variables
+                        aicen(i,n) = aicen(i,n) * expansion_ratio
+                        vicen(i,n) = vicen(i,n) * expansion_ratio
+                        vsnon(i,n) = vsnon(i,n) * expansion_ratio
+                     enddo ! n
+                  endif ! tmask
+         
+                  enddo ! i
+               elseif (trim(lateral_flux_type) == "open_water") then
+                  do i = 1, nx
+         
+                     if (tmask(i)) then                     
+                        ! We assume that this single column grid cell is surrounded by
+                        ! open water. If so, net ice closing implies the flux of
+                        ! this surrounding open water into the single column grid cell.
+                        ! To accomplish this without modifying the icepack 
+                        ! columnphysics code, we do nothing at this step. Within the
+                        ! ridge_ice subroutine, icepack will ridge ice by the amount
+                        ! given in the forcing. This will drop the cell area (asum)
+                        ! below 1 and then in the second ridging iteration loop
+                        ! 'opning' will be set such that it adds enough open water
+                        ! to return the cell area to 1.
+                        ! If the forcing is net opening, we still need to flux
+                        ! ice out of the grid cell as above.
+                        expansion_ratio = c1 + (closing(i) - opening(i)) * dt
+                        if (expansion_ratio < 1) then ! net opening
+                           aice0(i) = aice0(i) * expansion_ratio
+                           do n = 1, ncat
+                              ! Remove ice from cell
+                              aicen(i,n) = aicen(i,n) * expansion_ratio
+                              vicen(i,n) = vicen(i,n) * expansion_ratio
+                              vsnon(i,n) = vsnon(i,n) * expansion_ratio
+                           enddo ! n
+                        endif ! expansion ratio < 1
+                     endif ! tmask
+            
+                     enddo ! i
+               else
+                  call icedrv_system_abort(string=subname//' ERROR: unknown lateral_flux_type: '&
+                  //trim(lateral_flux_type),file=__FILE__,line=__LINE__)
+               endif
+            endif
+
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                file=__FILE__, line=__LINE__)
+   
+         end subroutine step_lateral_flux_scm
+   
 !=======================================================================
 !
 ! Run one time step of ridging.
@@ -732,7 +838,7 @@
       integer (kind=int_kind) :: &
          i,            & ! horizontal indices
          ntrcr,        & !
-         nbtrcr          !
+         nbtrcr
 
       character(len=*), parameter :: subname='(step_dyn_ridge)'
 
