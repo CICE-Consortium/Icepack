@@ -177,7 +177,7 @@
       if (tr_fsd .and. wave_spec) call step_dyn_wave(dt)
 
       do k = 1, ndtd
-         
+
          ! horizontal advection of ice or open water into the single column
          call step_lateral_flux_scm(dt_dyn)
 

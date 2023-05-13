@@ -278,7 +278,7 @@
       ocn_data_type   = 'default' ! source of ocean forcing data
       ocn_data_file   = ' '       ! ocean forcing data file
       ice_data_file   = ' '       ! ice forcing data file (opening, closing)
-      lateral_flux_type   = 'uniform_ice' ! if 'uniform_ice' assume closing 
+      lateral_flux_type   = 'uniform_ice' ! if 'uniform_ice' assume closing
                                            ! fluxes in uniform ice
       bgc_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       bgc_data_type   = 'default' ! source of BGC forcing data

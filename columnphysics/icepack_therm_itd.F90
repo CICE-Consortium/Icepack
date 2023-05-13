@@ -915,7 +915,7 @@
       real (kind=dbl_kind), intent(in) :: &
          rside   , & ! fraction of ice that melts laterally
          wlat        ! lateral melt rate (m/s)
-         
+
       real (kind=dbl_kind), intent(inout) :: &
          fside       ! lateral heat flux (W/m^2)
 
@@ -982,7 +982,7 @@
          f_flx         !
 
       real (kind=dbl_kind) :: &
-         sicen,        & 
+         sicen,        &
          etot,         & ! column energy per itd cat, for FSD code
          elapsed_t,    & ! FSD subcycling
          subdt           ! FSD timestep (s)
@@ -1064,8 +1064,8 @@
             do k = 1, nilyr
                etot = etot + trcrn(nt_qice+k-1,n) * vicen(n)/real(nilyr,kind=dbl_kind)
             enddo                  ! nilyr
-               
-            ! lateral heat flux, fside < 0        
+
+            ! lateral heat flux, fside < 0
             fside = fside + rsiden(n)*etot/dt
 
          enddo ! ncat
@@ -1245,7 +1245,7 @@
       if (tr_fsd) then
 
          trcrn(nt_fsd:nt_fsd+nfsd-1,:) =  afsdn
-         
+
          call icepack_cleanup_fsd (ncat, nfsd, trcrn(nt_fsd:nt_fsd+nfsd-1,:) )
          if (icepack_warnings_aborted(subname)) return
 
