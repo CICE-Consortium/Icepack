@@ -194,6 +194,7 @@
 
       if (trim(ocn_data_type(1:5)) == 'ISPOL') call ocn_ISPOL
       if (trim(ocn_data_type(1:4)) == 'NICE')  call ocn_NICE
+      if (trim(ocn_data_type(1:6)) == 'MOSAiC') call ocn_MOSAiC
 
       call prepare_forcing (Tair_data,     fsw_data,      &
                             cldf_data,     &
@@ -1424,6 +1425,20 @@
 
     end subroutine ocn_ISPOL
 
+!=======================================================================
+
+      subroutine ocn_MOSAiC
+      
+      ! For now this just sets constant values for testing
+      
+      sss_data(:) = 32.0_dbl_kind ! ~mixed layer salinity on Jan 1 from Kiki
+      ! we are using evolving ocean mixed layer so just initial T matters
+      sst_data(:) = icepack_sea_freezing_temperature(sss_data(1))
+      hmix_data(:) = 30.0_dbl_kind ! ~average Oct to Feb
+      qdp_data(:) = c0  ! ~ from Kiki
+
+      end subroutine ocn_MOSAiC
+      
 !=======================================================================
 
       subroutine finish_ocn_forcing(sst_temp)
