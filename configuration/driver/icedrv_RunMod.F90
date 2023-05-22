@@ -110,7 +110,7 @@
       use icedrv_restart_bgc, only: write_restart_bgc
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_snow, step_radiation, &
-          biogeochemistry, step_dyn_wave
+          biogeochemistry, step_dyn_wave, step_lateral_flux_scm
 
       integer (kind=int_kind) :: &
          k               ! dynamics supercycling index
@@ -182,12 +182,15 @@
 
       do k = 1, ndtd
 
-        ! ridging
-        call step_dyn_ridge (dt_dyn, ndtd)
+         ! horizontal advection of ice or open water into the single column
+         call step_lateral_flux_scm(dt_dyn)
 
-        ! clean up, update tendency diagnostics
-        offset = c0
-        call update_state (dt_dyn, daidtd, dvidtd, dagedtd, offset)
+         ! ridging
+         call step_dyn_ridge (dt_dyn, ndtd)
+
+         ! clean up, update tendency diagnostics
+         offset = c0
+         call update_state (dt_dyn, daidtd, dvidtd, dagedtd, offset)
 
       enddo
 

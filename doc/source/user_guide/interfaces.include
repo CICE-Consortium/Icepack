@@ -601,6 +601,65 @@ icepack_step_ridge
   
  
 
+icepack_mushy_physics.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _icepack_mushy_density_brine:
+
+icepack_mushy_density_brine
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Compute density of brine from brine salinity
+  
+    function icepack_mushy_density_brine(Sbr) result(rho)
+  
+      real(kind=dbl_kind), intent(in) :: &
+           Sbr ! brine salinity (ppt)
+  
+      real(kind=dbl_kind) :: &
+           rho ! brine density (kg m-3)
+  
+ 
+
+.. _icepack_mushy_temperature_mush:
+
+icepack_mushy_temperature_mush
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Temperature of mush from mush enthalpy and bulk salinity
+  
+    function icepack_mushy_temperature_mush(zqin, zSin) result(zTin)
+  
+      real(kind=dbl_kind), intent(in) :: &
+           zqin   , & ! ice enthalpy (J m-3)
+           zSin       ! ice layer bulk salinity (ppt)
+  
+      real(kind=dbl_kind) :: &
+           zTin       ! ice layer temperature (C)
+  
+ 
+
+.. _icepack_mushy_liquid_fraction:
+
+icepack_mushy_liquid_fraction
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Liquid fraction of mush from mush temperature and bulk salinity
+  
+    function icepack_mushy_liquid_fraction(zTin, zSin) result(phi)
+  
+      real(kind=dbl_kind), intent(in) :: &
+           zTin, & ! ice layer temperature (C)
+           zSin    ! ice layer bulk salinity (ppt)
+  
+      real(kind=dbl_kind) :: &
+           phi     ! liquid fraction
+  
+ 
+
 icepack_ocean.F90
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1908,7 +1967,7 @@ icepack_step_therm2
                                        Tf,           sss,           &
                                        salinz,                      &
                                        rside,        meltl,         &
-                                       fside,                       &
+                                       fside,        wlat,          &
                                        frzmlt,       frazil,        &
                                        frain,        fpond,         &
                                        fresh,        fsalt,         &
@@ -1948,9 +2007,11 @@ icepack_step_therm2
            Tf       , & ! freezing temperature (C)
            sss      , & ! sea surface salinity (ppt)
            rside    , & ! fraction of ice that melts laterally
-           fside    , & ! lateral heat flux (W/m^2)
            frzmlt   , & ! freezing/melting potential (W/m^2)
            wave_sig_ht ! significant height of waves in ice (m)
+  
+        real (kind=dbl_kind), intent(in), optional :: &
+           wlat         ! lateral melt rate (m/s)
   
         real (kind=dbl_kind), dimension(:), intent(in)  :: &
            wave_spectrum  ! ocean surface wave spectrum E(f) (m^2 s)
@@ -1990,6 +2051,7 @@ icepack_step_therm2
         real (kind=dbl_kind), intent(inout) :: &
            aice     , & ! sea ice concentration
            aice0    , & ! concentration of open water
+           fside    , & ! lateral heat flux (W/m^2)
            frain    , & ! rainfall rate (kg/m^2 s)
            fpond    , & ! fresh water flux to ponds (kg/m^2/s)
            fresh    , & ! fresh water flux to ocean (kg/m^2/s)
@@ -2226,7 +2288,7 @@ icepack_step_therm1
                                       fbot        ,               &
                                       Tbot        , Tsnice      , &
                                       frzmlt      , rside       , &
-                                      fside       ,               &
+                                      fside       , wlat        , &
                                       fsnow       , frain       , &
                                       fpond       , fsloss      , &
                                       fsurf       , fsurfn      , &
@@ -2367,21 +2429,28 @@ icepack_step_therm1
            mlt_onset   , & ! day of year that sfc melting begins
            frz_onset       ! day of year that freezing begins (congel or frazil)
   
+        real (kind=dbl_kind), intent(out), optional :: &
+           wlat            ! lateral melt rate                    (m/s)
+  
         real (kind=dbl_kind), intent(inout), optional :: &
            fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
            fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
            fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
            fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
            dsnow       , & ! change in snow depth     (m/step-->cm/day)
-           meltsliq    , & ! mass of snow melt                 (kg/m^2)
            fsloss          ! rate of snow loss to leads      (kg/m^2/s)
+  
+        real (kind=dbl_kind), intent(out), optional :: &
+           meltsliq        ! mass of snow melt                 (kg/m^2)
   
         real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
            Qa_iso      , & ! isotope specific humidity          (kg/kg)
            Qref_iso    , & ! isotope 2m atm ref spec humidity   (kg/kg)
            fiso_atm    , & ! isotope deposition rate         (kg/m^2 s)
            fiso_ocn    , & ! isotope flux to ocean           (kg/m^2/s)
-           fiso_evap   , & ! isotope evaporation             (kg/m^2/s)
+           fiso_evap       ! isotope evaporation             (kg/m^2/s)
+  
+        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
            meltsliqn       ! mass of snow melt                 (kg/m^2)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout), optional :: &

@@ -80,6 +80,7 @@
          atm_data_type,   & ! 'default', 'clim', 'CFS', 'MOSAiC'
          ocn_data_type,   & ! 'default', 'SHEBA'
          bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
+         lateral_flux_type,   & ! 'uniform_ice', 'open_water'
          atm_data_file,   & ! atmospheric forcing data file
          ocn_data_file,   & ! ocean forcing data file
          ice_data_file,   & ! ice forcing data file
