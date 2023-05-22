@@ -713,28 +713,28 @@
          use icedrv_flux, only: closing, opening
          use icedrv_init, only: tmask
          use icedrv_state, only: vsnon, aicen, vicen, aice0
-      
+
          real (kind=dbl_kind), intent(in) :: &
             dt      ! time step
-   
+
          ! local variables
-   
+
          integer (kind=int_kind) :: &
             i,            & ! horizontal indices
             n               ! ice thickness category index         !
-         
+
          real (kind=dbl_kind) :: &
             expansion_ratio  ! how much the ice area will change
-                  
+
          character(len=*), parameter :: subname='(step_lateral_flux_scm)'
-   
+
          !-----------------------------------------------------------------
          ! query icepack values
          !-----------------------------------------------------------------
             call icepack_warnings_flush(nu_diag)
             if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                 file=__FILE__,line= __LINE__)
-   
+
          !-----------------------------------------------------------------
          ! Ice advection
          !-----------------------------------------------------------------
@@ -742,10 +742,10 @@
             if (trim(ocn_data_type) == "SHEBA") then
                ! Currently only uniform_ice (and none) advection is implemented
                if (trim(lateral_flux_type) == "uniform_ice") then
-      
+
                   do i = 1, nx
-         
-                  if (tmask(i)) then                     
+
+                  if (tmask(i)) then
                      ! We assume that this single column grid cell is surrounded by
                      ! identical ice. If so, ice closing implies the flux of
                      ! this surrounding ice into the single column grid cell.
@@ -761,16 +761,16 @@
                         vsnon(i,n) = vsnon(i,n) * expansion_ratio
                      enddo ! n
                   endif ! tmask
-         
+
                   enddo ! i
                elseif (trim(lateral_flux_type) == "open_water") then
                   do i = 1, nx
-         
-                     if (tmask(i)) then                     
+
+                     if (tmask(i)) then
                         ! We assume that this single column grid cell is surrounded by
                         ! open water. If so, net ice closing implies the flux of
                         ! this surrounding open water into the single column grid cell.
-                        ! To accomplish this without modifying the icepack 
+                        ! To accomplish this without modifying the icepack
                         ! columnphysics code, we do nothing at this step. Within the
                         ! ridge_ice subroutine, icepack will ridge ice by the amount
                         ! given in the forcing. This will drop the cell area (asum)
@@ -790,7 +790,7 @@
                            enddo ! n
                         endif ! expansion ratio < 1
                      endif ! tmask
-            
+
                      enddo ! i
                else
                   call icedrv_system_abort(string=subname//' ERROR: unknown lateral_flux_type: '&
@@ -801,9 +801,9 @@
             call icepack_warnings_flush(nu_diag)
             if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
                 file=__FILE__, line=__LINE__)
-   
+
          end subroutine step_lateral_flux_scm
-   
+
 !=======================================================================
 !
 ! Run one time step of ridging.

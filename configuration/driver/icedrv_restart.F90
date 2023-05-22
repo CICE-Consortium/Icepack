@@ -30,9 +30,9 @@
           write_restart_fsd,       read_restart_fsd, &
           write_restart_iso,       read_restart_iso, &
           write_restart_aero,      read_restart_aero
-      
+
       character (len=3), private :: nchar !
-      
+
       logical (kind=log_kind), private :: diag ! netCDF diagnostics flag
 
 #ifdef USE_NETCDF
@@ -59,7 +59,7 @@
 !=======================================================================
 !---! these subroutines write/read restart data files ..
 !     Which can either be in unformatted Fortran format
-!     (restart_format = 'bin') or NetCDF (restart_format = 'nc')      
+!     (restart_format = 'bin') or NetCDF (restart_format = 'nc')
 !=======================================================================
 
 ! Dumps all values needed for a restart
@@ -96,7 +96,7 @@
 
       character(len=char_len_long) :: filename
       character(len=*), parameter :: subname='(dumpfile)'
-      
+
 #ifdef USE_NETCDF
       ! local variables if we're writing in NetCDF
       integer (kind=int_kind) :: &
@@ -108,7 +108,7 @@
 
       ! get year
       iyear = nyr + year_init - 1
-      
+
       ! query which tracers are active and their indices
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
          nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
@@ -228,14 +228,14 @@
    ! called in icedrv_RunMod.F90 to prevent circular dependencies
    !      if (solve_zsal .or. skl_bgc .or. z_tracers) &
    !                        call write_restart_bgc         ! biogeochemistry
-      
+
       ! Close netcdf file
       if (restart_format == 'nc') then
 #ifdef USE_NETCDF
          status = nf90_close(ncid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname, &
             file=__FILE__,line= __LINE__)
-#endif         
+#endif
       endif
 
       end subroutine dumpfile
@@ -284,7 +284,7 @@
       ! local variable for reading from a netcdf file
       integer (kind=int_kind) :: &
          status
-      
+
       ! Query tracers
       call icepack_query_tracer_indices(nt_Tsfc_out=nt_Tsfc, nt_sice_out=nt_sice, &
           nt_qice_out=nt_qice, nt_qsno_out=nt_qsno)
@@ -455,7 +455,7 @@
 
       real (kind=dbl_kind), dimension(nx,ndim), intent(inout) :: &
          work              ! input array (real, 8-byte)
-      
+
       character (len=*), intent(in), optional :: &
          name
 
@@ -514,10 +514,10 @@
 
       real (kind=dbl_kind), dimension(nx,ndim), intent(in) :: &
          work              ! input array (real, 8-byte)
-      
+
       character (len=*), intent(in), optional :: &
          vname             ! variable name for netcdf output
-      
+
       integer (kind=int_kind), intent(in), optional :: &
          dims(:)           ! netcdf dimension IDs
 
@@ -540,7 +540,7 @@
          status, &          ! Status variable from netCDF routine
          varid              ! Variable ID
 #endif
-      
+
       if (restart_format == 'bin') then
          do n = 1, ndim
          work2(:) = work(:,n)
@@ -724,10 +724,10 @@
 ! author Elizabeth C. Hunke, LANL
 
       subroutine write_restart_age(dims)
-      
+
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
-      
+
       integer (kind=int_kind), intent(in), optional :: &
          dims(:)           ! netcdf dimension IDs
 
@@ -761,7 +761,7 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
-      
+
       call read_restart_field(nu_restart,trcrn(:,nt_iage,:),ncat,'iage')
 
       end subroutine read_restart_age
@@ -775,7 +775,7 @@
 
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat, nfsd
-      
+
       integer (kind=int_kind), intent(in), optional :: &
          dims(:)           ! netcdf dimension IDs
 
@@ -831,10 +831,10 @@
       use icedrv_flux, only: frz_onset
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
-      
+
       integer (kind=int_kind), intent(in), optional :: &
          dims(:)           ! netcdf dimension IDs
-      
+
       integer (kind=int_kind) :: nt_FY
       character(len=*), parameter :: subname='(write_restart_FY)'
 
@@ -940,7 +940,7 @@
       use icedrv_flux, only: fsnow
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
-      
+
       integer (kind=int_kind), intent(in), optional :: &
          dims(:)           ! netcdf dimension IDs
 
@@ -1007,7 +1007,7 @@
       use icedrv_domain_size, only: n_aero
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
-      
+
       integer (kind=int_kind), intent(in), optional :: &
          dims(:)           ! netcdf dimension IDs
 
@@ -1092,7 +1092,7 @@
       use icedrv_domain_size, only: n_iso
       use icedrv_state, only: trcrn
       use icedrv_domain_size, only: ncat
-      
+
       integer (kind=int_kind), intent(in), optional :: &
          dims(:)           ! netcdf dimension IDs
 
@@ -1331,7 +1331,7 @@
 
       status = nf90_inq_varid(ncid,trim(vname),varid)
       if (status /= 0) then
-         write(nu_diag,*) 'Writing out ',trim(vname) 
+         write(nu_diag,*) 'Writing out ',trim(vname)
          write(nu_diag,*) 'Erros Status ',status
          call icedrv_system_abort(string='Write out restart', &
             file=__FILE__,line= __LINE__)
@@ -1346,7 +1346,7 @@
 
 ! Write a 2D field (nx, ncat) in NetCDF restart
 ! author Chris Riedel, NCAR
-   
+
       use icedrv_domain_size, only: ncat,nx
 
       integer (kind=int_kind), intent(in) :: &
@@ -1368,7 +1368,7 @@
          id,              & ! dimension index
          dimlen             ! size of dimension
       integer (kind=int_kind) :: start2(2),count2(2)
-      
+
       real (kind=dbl_kind) :: &
          amin, amax, asum   ! min, max values and sum of input array
 
@@ -1382,7 +1382,7 @@
       count2(1) = nx
       start2(2) = 1
       count2(2) = ncat
-   
+
       status = nf90_put_var( fid, varid, work, &
                start=start2, &
                count=count2)
@@ -1462,7 +1462,7 @@
 !=======================================================================
       subroutine read_restart_field_net2D(nu,nrec,work,vname,ndim3, &
                      diag)
-      
+
 ! author Chris Riedel, NCAR
 
       use icedrv_domain_size, only: ncat,nx
@@ -1493,7 +1493,7 @@
 !=======================================================================
       subroutine read_restart_field_net1D(nu,nrec,work,vname,ndim3, &
                   diag)
-            
+
 ! author Chris Riedel, NCAR
 
       use icedrv_domain_size, only: ncat,nx
@@ -1519,11 +1519,11 @@
       status        ! status variable from netCDF routine
 
       call ice_read_nc1D(ncid, 1, vname, work, diag)
-      
+
       end subroutine read_restart_field_net1D
 !=======================================================================
       subroutine ice_read_nc2D(fid,  nrec,  varname, work,  diag)
-      
+
 ! author Chris Riedel, NCAR
 
       use icedrv_domain_size, only: ncat,nx
@@ -1582,11 +1582,11 @@
          asum = sum   (work)
          write(nu_diag,*) ' min, max, sum =', amin, amax, asum
       endif
-   
+
       end subroutine ice_read_nc2D
 !=======================================================================
       subroutine ice_read_nc1D(fid,  nrec,  varname, work,  diag)
-      
+
 ! author Chris Riedel, NCAR
 
       use icedrv_domain_size, only: ncat,nx
