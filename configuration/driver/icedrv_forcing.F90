@@ -268,6 +268,13 @@
          swidr(:) = swidr_data(timestep)
          swidf(:) = swidf_data(timestep)
 
+         ! Ocean forcing
+         sst_temp(:) = sst_data(timestep)
+         sss     (:) = sss_data(timestep)
+         uocn    (:) = uocn_data(timestep)
+         vocn    (:) = vocn_data(timestep)
+         qdp     (:) = qdp_data(timestep)
+
       else
          if (trim(atm_data_type) == 'CFS') then
             ! calculate data index corresponding to current timestep
@@ -427,7 +434,6 @@
             swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
 
          endif
-      endif
 
 ! possible bug:  is the ocean data also offset to the beginning of the field campaigns?
 
@@ -484,6 +490,7 @@
          qdp     (:) = c1intp *  qdp_data(mlast) + c2intp *  qdp_data(mnext)
 
       endif
+   endif
 
       call finish_ocn_forcing(sst_temp)
 
@@ -1186,6 +1193,10 @@
 
          ! hack for missing values
          fsnow_data(:) = c0
+         ! Stakes 3 snow accumulation
+         ! 11 cm accumulation over 61 days
+         ! 0.11 m * 330 kg/m3 = 36.3 kg/m2 / 61 * 24 * 3600 s = 6.9e-6
+         fsnow_data(:) = 0.0000069_dbl_kind
          frain_data(:) = c0
          
 
@@ -1433,7 +1444,6 @@
       
       sss_data(:) = 32.0_dbl_kind ! ~mixed layer salinity on Jan 1 from Kiki
       ! we are using evolving ocean mixed layer so just initial T matters
-      sst_data(:) = icepack_sea_freezing_temperature(sss_data(1))
       hmix_data(:) = 30.0_dbl_kind ! ~average Oct to Feb
       qdp_data(:) = c0  ! ~ from Kiki
 

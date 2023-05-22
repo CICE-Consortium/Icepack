@@ -1342,7 +1342,7 @@
          qsn             ! snow enthalpy (J/m3)
 
       real (kind=dbl_kind), parameter :: &
-         hsno_init = 0.15_dbl_kind   ! initial snow thickness (m)
+         hsno_init = 0.08_dbl_kind   ! initial snow thickness (m)
 
       logical (kind=log_kind) :: tr_brine, tr_lvl, tr_fsd, tr_snow
       integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_sice, nt_fsd
@@ -1414,10 +1414,10 @@
       if (3 <= ncat) then
          n = 3
          ainit(n) = c1  ! assumes we are using the default ITD boundaries
-         hinit(n) = c1
+         hinit(n) = 0.67_dbl_kind
       else
          ainit(ncat) = c1
-         hinit(ncat) = c1
+         hinit(ncat) = 0.67_dbl_kind
       endif
       do n = 1, ncat
          ! ice volume, snow volume
@@ -1469,7 +1469,7 @@
 
       i = 3  ! full thickness distribution
       ! initial category areas in cells with ice
-      hbar = c1  ! initial ice thickness with greatest area
+      hbar = 0.67_dbl_kind  ! initial ice thickness with greatest area
       ! Note: the resulting average ice thickness
       ! tends to be less than hbar due to the
       ! nonlinear distribution of ice thicknesses
