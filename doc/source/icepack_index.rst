@@ -224,6 +224,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "Hstar", "determines mean thickness of ridged ice", "25. m"
    "**I**", "", ""
    "i0vis","fraction of penetrating visible solar radiation", "0.70"
+   "lateral_flux_type", ":math:`\bullet` laterally flux ice or open water into grid cell when closing", ""
    "ice_ic", ":math:`\bullet` choice of initial conditions", ""
    "ice_stdout", "unit number for standard output", ""
    "ice_stderr", "unit number for standard error output", ""
