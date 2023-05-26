@@ -1,3 +1,6 @@
+#ifdef CCSMCOUPLED
+#define CESMCOUPLED
+#endif
 !=======================================================================
 
 ! Defines variable precision for all common data types
