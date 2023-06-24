@@ -125,21 +125,19 @@ Overall, columnphysics changes in the Icepack model should include the following
 
     to support errors backing up the call tree to the external program
 
-  * Variables defined in icepack_kinds, icepack_tracers, icepack_parameters, and icepack_orbital should be accessed from WITHIN Icepack by Fortran use statements (even though this is not recommended for drivers).  It's also possible to use the public methods to access internal Icepack variable.  Again, from the icepack driver or other external programs, the columnphysics variables should ALWAYS be access thru the interface methods and icepack_intfc (see also :ref:`calling`).
+  * Variables defined in icepack_kinds, icepack_tracers, icepack_parameters, and icepack_orbital should be accessed from WITHIN Icepack by Fortran use statements (even though this is not recommended for drivers).  It's also possible to use the public methods to access internal Icepack variables.  Again, from the icepack driver or other external programs, the columnphysics variables should ALWAYS be access thru the interface methods and icepack_intfc (see also :ref:`calling`).
 
-    * Icepack is a simple serial code.  Global flags and parameters should be set identically on all tasks/threads that call into Icepack.  Icepack has no ability to reconcile or identify inconsistencies between different tasks/threads.  All aspects of correct parallel implementation is managed by the driver code.
+  * Icepack is a simple serial code.  Global flags and parameters should be set identically on all tasks/threads that call into Icepack.  Icepack has no ability to reconcile or identify inconsistencies between different tasks/threads.  All aspects of correct parallel implementation is managed by the driver code.
 
-  * Optional arguments are encouraged in the public Icepack interfaces.  They allow for easier backwards compatible Icepack public interfaces and support future extensions.  There is also a desire to allow users to pass only the data thru the Icepack interfaces that is needed.  There are several ways optional arguments can be passed down the calling tree in Icepack.  Two options, copying into local data or copying into module data are viable.  But the recommended approach is to
+  * Optional arguments are encouraged in the public Icepack interfaces.  They provide backwards compatibility in the public interfaces and allow future extensions.  Argument that are not always required should ultimately be made optional.  There are several ways optional arguments can be passed down the calling tree in Icepack.  Two options, copying into local data or copying into module data are viable.  But the recommended approach is to
 
     * Use universal flags and parameters to turn on/off features.  Avoid having features triggered by the presence of optional arguments.
 
-    * Have all optional features trigger from the flags and parameters, not from optional arguments.
-
     * Verify that the optional arguments required for any feature are passed in at the top level of each Icepack interface.  If not, then abort.
 
-    * Leverage the icepack subroutine ``icepack_checkoptargflags`` which controls how often to check the optional arguments.  See the namelist variable ``argcheck`` for see how to control that feature.
+    * Leverage the icepack subroutine ``icepack_checkoptargflags`` which controls how often to check the optional arguments.  The ``argcheck`` namelist setting controls when to do the checks, 'never', 'first', or 'always' are valid settings 
 
-    * Pass all optional arguments down the calling tree as needed.  Optional arguments can be passed down a calling tree as non-optional as long as they are not used unless they have been passed in above.  This is the recommended method to pass down optional arguments within Icepack.  Sometimes the optional attribute needs to be defined in lower level routines for a variable if that variable needs to be checked by Fortran's present.  That's OK, but should generally be avoided if possible.
+    * Pass all optional arguments down the calling tree as needed.  Optional arguments can be passed down a calling tree as non-optional as long as they are not used unless they have been passed in above.  This is the recommended method for optional arguments within Icepack.  Sometimes the optional attribute needs to be defined in lower level routines for a variable if that variable needs to be checked by Fortran's present.  That's OK, but should generally be avoided if possible.
 
     * An example of how this might look is
 
@@ -201,7 +199,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
          subroutine someother_columnphysics_subroutine(arg3)
 
-         real (kind=dbl_kind), optional, intent(inout) :: arg3
+         real (kind=dbl_kind), intent(inout) :: arg3
 
          arg3 = ...
 
@@ -213,8 +211,6 @@ Overall, columnphysics changes in the Icepack model should include the following
     * If optional arguments are passed but not needed, this is NOT an error.  If optional argument are not passed but needed, this is an error.
 
     * If checking and implementation are done properly, optional arguments that are not needed will never be referenced anywhere in Icepack at that timestep.  Optional arguments should be matched with the appropriate flags at the first entry into Icepack.
-
-    * The ``argcheck`` namelist setting controls when to do the checks, 'never', 'first', or 'always' are valid settings 
 
     * There is a unit test in CICE to verify robustness of this approach.
 
