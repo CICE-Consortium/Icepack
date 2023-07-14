@@ -21,23 +21,15 @@ endif
 
 SCC   := icx
 SFC   := ifort
-MPICC := mpicc
-MPIFC := mpif90
-
-ifeq ($(ICE_COMMDIR), mpi)
-  FC := $(MPIFC)
-  CC := $(MPICC)
-else
-  FC := $(SFC)
-  CC := $(SCC)
-endif
-LD:= $(FC)
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
 
 NETCDF_PATH := $(NETCDF)
 
 #PIO_CONFIG_OPTS:= --enable-filesystem-hints=gpfs
 
-PNETCDF_PATH := $(PNETCDF)
+#PNETCDF_PATH := $(PNETCDF)
 #PNETCDF_PATH := /glade/u/apps/ch/opt/pio/2.2/mpt/2.15f/intel/17.0.1/lib
 
 INCLDIR := $(INCLDIR)
@@ -53,17 +45,5 @@ ifeq ($(ICE_THREADED), true)
    LDFLAGS += -qopenmp
    CFLAGS += -qopenmp
    FFLAGS += -qopenmp
-endif
-
-#ifeq ($(ICE_IOTYPE), pio1)
-#   LIB_PIO := $(PIO_LIBDIR)
-#   SLIBS   := $(SLIBS) -L$(LIB_PIO) -lpio
-#endif
-
-ifeq ($(ICE_IOTYPE), pio2)
-#   CPPDEFS := $(CPPDEFS) -DGPTL
-#   LIB_PIO := $(PIO_LIBDIR)
-#   SLIBS   := $(SLIBS) -L$(LIB_PIO) -lpiof -lpioc -lgptl
-   SLIBS   := $(SLIBS) -lpiof -lpioc
 endif
 
