@@ -42,8 +42,7 @@ icepack_atm_boundary
            Cdn_atm  , &    ! neutral drag coefficient
            Cdn_atm_ratio_n ! ratio drag coeff / neutral drag coeff
   
-        real (kind=dbl_kind), &
-           intent(inout) :: &
+        real (kind=dbl_kind), intent(inout) :: &
            strx     , & ! x surface stress (N)
            stry         ! y surface stress (N)
   

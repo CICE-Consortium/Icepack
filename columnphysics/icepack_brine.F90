@@ -160,14 +160,12 @@
       real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
          cgrid              ! CICE vertical coordinate
 
-      real (kind=dbl_kind), &
-         intent(in) :: &
+      real (kind=dbl_kind), intent(in) :: &
          hice_old    , & ! previous timestep ice height (m)
          sss         , & ! ocean salinity (ppt)
          sst             ! ocean temperature (C)
 
-      real (kind=dbl_kind), dimension(ntrcr), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension(ntrcr), intent(in) :: &
          trcrn
 
       real (kind=dbl_kind), intent(out) :: &
@@ -177,19 +175,16 @@
       real (kind=dbl_kind), intent(inout) :: &
          hbr_old           ! previous timestep brine height (m)
 
-      real (kind=dbl_kind), dimension (nblyr+1), &
-         intent(inout)  :: &
+      real (kind=dbl_kind), dimension (nblyr+1), intent(inout)  :: &
          iDin           ! tracer diffusivity/h^2 (1/s) includes gravity drainage/molecular
 
-      real (kind=dbl_kind), dimension (nblyr+1), &
-         intent(inout)  :: &
+      real (kind=dbl_kind), dimension (nblyr+1), intent(inout)  :: &
          iphin       , & ! porosity on the igrid
          ibrine_rho  , & ! brine rho on interface
          ibrine_sal  , & ! brine sal on interface
          iTin            ! Temperature on the igrid (oC)
 
-      real (kind=dbl_kind), dimension (nblyr+2), &
-         intent(inout)  :: &
+      real (kind=dbl_kind), dimension (nblyr+2), intent(inout)  :: &
          bSin        , &    ! bulk salinity (ppt) on bgrid
          brine_sal   , & ! equilibrium brine salinity (ppt)
          brine_rho       ! internal brine density (kg/m^3)
@@ -313,14 +308,12 @@
       integer (kind=int_kind), intent(in) :: &
          nblyr           ! number of bio layers
 
-      real (kind=dbl_kind), dimension (:), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          bSin      , & ! salinity of ice layers on bio grid (ppt)
          bTin      , & ! temperature of ice layers on bio grid for history (C)
          i_grid        ! biology grid interface points
 
-      real (kind=dbl_kind), dimension (:), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          brine_sal  , & ! equilibrium brine salinity (ppt)
          brine_rho  , & ! internal brine density (kg/m^3)
          ibrine_rho , & ! brine density on interface (kg/m^3)
