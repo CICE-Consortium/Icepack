@@ -98,8 +98,7 @@
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step (s)
 
-      real (kind=dbl_kind), dimension (:), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen_init  , & ! initial concentration of ice
          vicen_init  , & ! intiial volume per unit area of ice  (m)
          aicen       , & ! concentration of ice
@@ -108,8 +107,7 @@
       real (kind=dbl_kind), intent(in) :: &
          vsnon1          ! category 1 snow volume per unit area (m)
 
-      real (kind=dbl_kind), dimension (:,:), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn           ! ice tracers
 
       real (kind=dbl_kind), intent(in) :: &
@@ -122,12 +120,10 @@
       real (kind=dbl_kind), intent(in) :: &
          hsurp           ! thickness of new ice added to each cat
 
-      real (kind=dbl_kind), dimension (:), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          flux_bio   ! tracer flux to ocean from biology (mmol/m^2/s)
 
-      real (kind=dbl_kind), dimension (:), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          ocean_bio       ! ocean concentration of biological tracer
 
 ! local
@@ -398,8 +394,7 @@
       real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
          cgrid       ! CICE grid
 
-      real (kind=dbl_kind), dimension (ntrcr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (ntrcr), intent(inout) :: &
          trcrn       ! ice tracers
 
       ! local variables

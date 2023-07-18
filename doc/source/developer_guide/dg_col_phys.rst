@@ -137,7 +137,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
     * Leverage the icepack subroutine ``icepack_checkoptargflags`` which controls how often to check the optional arguments.  The ``argcheck`` namelist setting controls when to do the checks, 'never', 'first', or 'always' are valid settings 
 
-    * Pass all optional arguments down the calling tree as needed.  Optional arguments can be passed down a calling tree as non-optional as long as they are not used unless they have been passed in above.  This is the recommended method for optional arguments within Icepack.  Sometimes the optional attribute needs to be defined in lower level routines for a variable if that variable needs to be checked by Fortran's present.  That's OK, but should generally be avoided if possible.
+    * Pass optional arguments down the calling tree within Icepack as needed.  In Fortran, the present attribute is carried down the calling tree automatically, but the ``optional`` attribute should also be defined in lower level subroutines.  This is not strictly required in cases where the subroutine is always called with the optional arguments, but it's good practice.
 
     * An example of how this might look is
 
@@ -182,8 +182,8 @@ Overall, columnphysics changes in the Icepack model should include the following
          subroutine some_columnphysics_subroutine(arg1, arg2, arg3, ...)
 
          real (kind=dbl_kind), intent(inout) :: arg1
-         real (kind=dbl_kind), dimension(:), intent(inout) :: arg2
-         real (kind=dbl_kind), intent(inout) :: arg3
+         real (kind=dbl_kind), optional, dimension(:), intent(inout) :: arg2
+         real (kind=dbl_kind), optional, intent(inout) :: arg3
 
          if (flag_arg2) then
             arg2(:) = ...
@@ -199,7 +199,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
          subroutine someother_columnphysics_subroutine(arg3)
 
-         real (kind=dbl_kind), intent(inout) :: arg3
+         real (kind=dbl_kind), optional, intent(inout) :: arg3
 
          arg3 = ...
 
@@ -210,7 +210,7 @@ Overall, columnphysics changes in the Icepack model should include the following
 
     * If optional arguments are passed but not needed, this is NOT an error.  If optional argument are not passed but needed, this is an error.
 
-    * If checking and implementation are done properly, optional arguments that are not needed will never be referenced anywhere in Icepack at that timestep.  Optional arguments should be matched with the appropriate flags at the first entry into Icepack.
+    * If checking and implementation are done properly, optional arguments that are not needed will never be referenced anywhere in Icepack at that timestep.  Optional arguments should be matched with the appropriate flags at the first entry into Icepack as much as possible.
 
-    * There is a unit test in CICE to verify robustness of this approach.
+    * There is a unit test (optarg) in CICE to verify optional argument passing.  There is also a unit test (opticep) in CICE that checks that NOT passing the optional arguments from CICE is robust.
 
