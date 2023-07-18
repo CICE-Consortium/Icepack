@@ -689,6 +689,8 @@
                                         hslyr,    hsn_new(n), &
                                         zqsn(:,n))
                   if (icepack_warnings_aborted(subname)) return
+               else
+                  hsn_new(1) = hsn_new(1) + dhsn
                endif   ! nslyr > 1
             endif      ! |dhsn| > puny
          endif         ! ain > puny
