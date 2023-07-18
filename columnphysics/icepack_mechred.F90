@@ -700,8 +700,7 @@
       real (kind=dbl_kind), intent(inout):: &
          asum           ! sum of ice and open water area
 
-      real (kind=dbl_kind), &
-         intent(out):: &
+      real (kind=dbl_kind), intent(out):: &
          closing_net, & ! net rate at which area is removed    (1/s)
          divu_adv   , & ! divu as implied by transport scheme  (1/s)
          opning         ! rate of opening due to divergence/shear
