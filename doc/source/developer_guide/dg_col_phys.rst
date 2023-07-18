@@ -129,7 +129,9 @@ Overall, columnphysics changes in the Icepack model should include the following
 
   * Icepack is a simple serial code.  Global flags and parameters should be set identically on all tasks/threads that call into Icepack.  Icepack has no ability to reconcile or identify inconsistencies between different tasks/threads.  All aspects of correct parallel implementation is managed by the driver code.
 
-  * Optional arguments are encouraged in the public Icepack interfaces.  They provide backwards compatibility in the public interfaces and allow future extensions.  Argument that are not always required should ultimately be made optional.  There are several ways optional arguments can be passed down the calling tree in Icepack.  Two options, copying into local data or copying into module data are viable.  But the recommended approach is to
+  * Optional arguments are encouraged in the public Icepack interfaces.  They provide backwards compatibility in the public interfaces and allow future extensions.  Arguments that are not always required should ultimately be made optional.  There are several ways optional arguments can be passed down the calling tree in Icepack.  Two options, copying into local data or copying into module data are viable.  But the recommended approach is to pass optional arguments down the calling tree,
+
+    * Optional arguments can be used as calls are made down the calling tree without regard to whether they are present or not.
 
     * Use universal flags and parameters to turn on/off features.  Avoid having features triggered by the presence of optional arguments.
 
