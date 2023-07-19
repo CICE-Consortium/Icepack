@@ -898,12 +898,14 @@
 
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories
-         nfsd    , & ! number of floe size categories
          nilyr   , & ! number of ice layers
          nblyr   , & ! number of bio layers
          nslyr   , & ! number of snow layers
          n_aero  , & ! number of aerosol tracers
          nbtrcr      ! number of bio tracers
+
+      integer (kind=int_kind), intent(in), optional :: &
+         nfsd        ! number of floe size categories
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          aicen   , & ! concentration of ice
@@ -914,7 +916,9 @@
          trcrn       ! tracer array
 
       real (kind=dbl_kind), intent(in) :: &
-         rside   , & ! fraction of ice that melts laterally
+         rside       ! fraction of ice that melts laterally
+
+      real (kind=dbl_kind), intent(in), optional :: &
          wlat        ! lateral melt rate (m/s)
 
       real (kind=dbl_kind), intent(inout) :: &
@@ -934,14 +938,14 @@
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          faero_ocn     ! aerosol flux to ocean (kg/m^2/s)
 
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn     ! isotope flux to ocean (kg/m^2/s)
 
-      real (kind=dbl_kind), dimension (:), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
          floe_rad_c     , & ! fsd size bin centre in m (radius)
          floe_binwidth      ! fsd size bin width in m (radius)
 
-      real (kind=dbl_kind), dimension (:), intent(out) :: &
+      real (kind=dbl_kind), dimension (:), intent(out), optional :: &
          d_afsd_latm        ! change in fsd due to lateral melt (m)
 
       ! local variables
@@ -1329,13 +1333,15 @@
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
-         nfsd  , & ! number of floe size categories
          nilyr , & ! number of ice layers
          nblyr , & ! number of bio layers
          ntrcr , & ! number of tracers
          nltrcr, & ! number of zbgc tracers
          n_aero, & ! number of aerosol tracers
          ktherm    ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
+
+      integer (kind=int_kind), intent(in), optional :: &
+         nfsd      ! number of floe size categories
 
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max      ! category boundaries (m)
@@ -1404,30 +1410,30 @@
 
       ! water isotopes
 
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
 
-      real (kind=dbl_kind), intent(in) :: &
+      real (kind=dbl_kind), intent(in), optional :: &
          HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
          H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
          H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
 
       ! floe size distribution
-      real (kind=dbl_kind), intent(in) :: &
+      real (kind=dbl_kind), intent(in), optional :: &
          wave_sig_ht    ! significant height of waves globally (m)
 
-      real (kind=dbl_kind), dimension(:), intent(in) :: &
+      real (kind=dbl_kind), dimension(:), intent(in), optional :: &
          wave_spectrum  ! ocean surface wave spectrum, E(f) (m^2 s)
 
-      real(kind=dbl_kind), dimension(:), intent(in) :: &
+      real(kind=dbl_kind), dimension(:), intent(in), optional :: &
          wavefreq,              & ! wave frequencies (s^-1)
          dwavefreq                ! wave frequency bin widths (s^-1)
 
-      real (kind=dbl_kind), dimension (:), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in), optional :: &
          floe_rad_c     , & ! fsd size bin centre in m (radius)
          floe_binwidth      ! fsd size bin width in m (radius)
 
-      real (kind=dbl_kind), dimension(:), intent(out) :: &
+      real (kind=dbl_kind), dimension(:), intent(out), optional :: &
                             ! change in thickness distribution (area)
          d_afsd_latg    , & ! due to fsd lateral growth
          d_afsd_newi        ! new ice formation

@@ -689,6 +689,8 @@
                                         hslyr,    hsn_new(n), &
                                         zqsn(:,n))
                   if (icepack_warnings_aborted(subname)) return
+               else
+                  hsn_new(1) = hsn_new(1) + dhsn
                endif   ! nslyr > 1
             endif      ! |dhsn| > puny
          endif         ! ain > puny
@@ -925,13 +927,11 @@
       real (kind=dbl_kind), intent(in) :: &
          dt                    ! time step (s)
 
-      real (kind=dbl_kind), dimension(nslyr), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension(nslyr), intent(in) :: &
          rsnw,   & ! snow grain radius (10^-6 m)
          zqsn      ! snow enthalpy  (J m-3)
 
-      real (kind=dbl_kind), dimension(nslyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension(nslyr), intent(inout) :: &
          drsnw_dry ! change due to snow aging (10^-6 m)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1190,12 +1190,10 @@
       real (kind=dbl_kind), intent(inout) :: &
          meltsliq  ! total liquid content (kg/m^2)
 
-      real (kind=dbl_kind), dimension(nslyr), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension(nslyr), intent(in) :: &
          massice   ! mass of ice in snow (kg/m^2)
 
-      real (kind=dbl_kind), dimension(nslyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension(nslyr), intent(inout) :: &
          massliq   ! mass of liquid in snow (kg/m^2)
 
       ! local temporary variables

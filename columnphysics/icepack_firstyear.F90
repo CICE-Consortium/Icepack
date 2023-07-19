@@ -42,12 +42,10 @@
          dt , &                ! time step
          yday                  ! day of the year
 
-      logical (kind=log_kind), &
-         intent(in) :: &
+      logical (kind=log_kind), intent(in) :: &
          nhmask, shmask
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          FYarea
 
       character(len=*),parameter :: subname='(update_FYarea)'

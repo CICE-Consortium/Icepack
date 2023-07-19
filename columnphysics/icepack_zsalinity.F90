@@ -119,12 +119,10 @@
          brine_sal     , & ! brine salinity (ppt)
          brine_rho         ! brine density  (kg/m^3)
 
-      real (kind=dbl_kind), dimension (nblyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nblyr), intent(inout) :: &
          trcrn_S           ! salinity tracer ppt (on bio grid)
 
-      real (kind=dbl_kind), dimension (nilyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nilyr), intent(inout) :: &
          trcrn_q       , & ! enthalpy tracer
          trcrn_Si          ! salinity on CICE grid
 
@@ -258,12 +256,10 @@
          brine_sal     , & ! brine salinity (ppt)
          brine_rho         ! brine density  (kg/m^3)
 
-      real (kind=dbl_kind), dimension (nblyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nblyr), intent(inout) :: &
          trcrn_S           ! salinity tracer ppt (on bio grid)
 
-      real (kind=dbl_kind), dimension (nilyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nilyr), intent(inout) :: &
          trcrn_q       , & ! enthalpy tracer
          trcrn_Si          ! salinity on CICE grid
 

@@ -251,8 +251,7 @@
                               fcondtopn)
 
       ! ice state variables
-      real (kind=dbl_kind), &
-         intent(in) :: &
+      real (kind=dbl_kind), intent(in) :: &
          aicen       , & ! concentration of ice
          flatn_f     , & ! latent heat flux   (W/m^2)
          fsensn_f    , & ! sensible heat flux (W/m^2)

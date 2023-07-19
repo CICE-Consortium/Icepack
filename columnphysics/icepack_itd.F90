@@ -687,8 +687,7 @@
       integer (kind=int_kind), intent(in) :: &
          nsum             ! number of categories/layers
 
-      real (kind=dbl_kind), dimension (nsum), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension (nsum), intent(in) :: &
          xin              ! input field
 
       real (kind=dbl_kind), intent(out) :: &
