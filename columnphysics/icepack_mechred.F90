@@ -426,8 +426,10 @@
       !-----------------------------------------------------------------
 
          if (iterate_ridging) then
-            write(warnstr,*) subname, 'Repeat ridging, niter =', niter
-            call icepack_warnings_add(warnstr)
+            if (niter > 1) then
+               write(warnstr,*) subname, 'Repeat ridging, niter =', niter+1
+               call icepack_warnings_add(warnstr)
+            endif
          else
             exit rdg_iteration
          endif
