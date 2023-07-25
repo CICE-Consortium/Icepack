@@ -425,12 +425,7 @@
       ! If done, exit.  If not, prepare to ridge again.
       !-----------------------------------------------------------------
 
-         if (iterate_ridging) then
-            if (niter > 1) then
-               write(warnstr,*) subname, 'Repeat ridging, niter =', niter+1
-               call icepack_warnings_add(warnstr)
-            endif
-         else
+         if (.not.iterate_ridging) then
             exit rdg_iteration
          endif
 
