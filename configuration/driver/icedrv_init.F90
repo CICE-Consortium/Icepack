@@ -567,8 +567,13 @@
          shortwave = 'dEdd'
       endif
 
-      if (tr_snow .and. trim(shortwave) /= 'dEdd') then
+      if (snwgrain .and. trim(shortwave) /= 'dEdd') then
          write (nu_diag,*) 'WARNING: snow grain radius activated but'
+         write (nu_diag,*) 'WARNING: dEdd shortwave is not.'
+      endif
+
+      if (snwredist(1:4) /= 'none' .and. trim(shortwave) /= 'dEdd') then
+         write (nu_diag,*) 'WARNING: snow redistribution activated but'
          write (nu_diag,*) 'WARNING: dEdd shortwave is not.'
       endif
 

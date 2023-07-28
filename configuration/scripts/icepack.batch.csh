@@ -142,7 +142,7 @@ cat >> ${jobfile} << EOFB
 ###SBATCH --mail-user username@domain.com
 EOFB
 
-else if (${ICE_MACHINE} =~ badger*) then
+else if (${ICE_MACHINE} =~ chicoma*) then
 cat >> ${jobfile} << EOFB
 #SBATCH -J ${ICE_CASENAME}
 #SBATCH -t ${ICE_RUNLENGTH}
@@ -152,7 +152,9 @@ cat >> ${jobfile} << EOFB
 #SBATCH -o slurm%j.out
 ###SBATCH --mail-type END,FAIL
 ###SBATCH --mail-user=eclare@lanl.gov
-#SBATCH --qos=standby
+#SBATCH --qos=debug
+##SBATCH --qos=standard
+##SBATCH --qos=standby
 EOFB
 
 else if (${ICE_MACHINE} =~ discover*) then
