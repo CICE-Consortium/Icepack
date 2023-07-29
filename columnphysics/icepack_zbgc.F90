@@ -249,10 +249,6 @@
                                        location)
             if (icepack_warnings_aborted(subname)) return
 
-!tcxzsal            if (solve_zsal .and. vsnon1 .le. c0) then
-!               Tmlts = -trcrn(nt_sice,1)*depressT
-!               trcrn(nt_Tsfc,1) =  calculate_Tin_from_qin(trcrn(nt_qice,1),Tmlts)
-!            endif        ! solve_zsal
          endif           ! nltrcr > 0
       endif              ! vi0new > 0
 
@@ -277,7 +273,6 @@
       subroutine lateral_melt_bgc (dt,                 &
                                    ncat,     nblyr,    &
                                    rside,    vicen,    &
-!tcxzsal                                   trcrn,    fzsal,    &
                                    trcrn,              &
                                    flux_bio, nbltrcr)
 
@@ -298,9 +293,6 @@
       real (kind=dbl_kind), intent(in) :: &
          rside     ! fraction of ice that melts laterally
 
-!tcxzsal      real (kind=dbl_kind), intent(inout) :: &
-!         fzsal     ! salt flux from layer Salinity (kg/m^2/s)
-
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          flux_bio  ! biology tracer flux from layer bgc (mmol/m^2/s)
 
@@ -317,16 +309,6 @@
       character(len=*),parameter :: subname='(lateral_melt_bgc)'
 
       zspace = c1/(real(nblyr,kind=dbl_kind))
-
-!tcxzsal      if (solve_zsal) then
-!         do n = 1, ncat
-!         do k = 1,nblyr
-!            fzsal = fzsal + rhosi*trcrn(nt_fbri,n) &
-!                  * vicen(n)*p001*zspace*trcrn(nt_bgc_S+k-1,n) &
-!                  * rside/dt
-!         enddo
-!         enddo
-!      endif
 
       do m = 1, nbltrcr
          do n = 1, ncat
@@ -428,22 +410,6 @@
 
          hbri     = vbrin
          hbri_old = vtmp
-!tcxzsal         if (solve_zsal) then
-!            top_conc = sss * salt_loss
-!            do k = 1, nblyr
-!               S_stationary(k) = trcrn(nt_bgc_S+k-1)* hbri_old
-!            enddo
-!            call regrid_stationary (S_stationary, hbri_old, &
-!                                    hbri,         dt,       &
-!                                    ntrcr,                  &
-!                                    nblyr-1,      top_conc, &
-!                                    bgrid(2:nblyr+1), fluxb )
-!            if (icepack_warnings_aborted(subname)) return
-!            do k = 1, nblyr
-!               trcrn(nt_bgc_S+k-1) =  S_stationary(k)/hbri
-!               trtmp0(nt_sice+k-1) = trcrn(nt_bgc_S+k-1)
-!            enddo
-!         endif  ! solve_zsal
 
          do m = 1, nbtrcr
             top_conc = ocean_bio(m)*zbgc_init_frac(m)
@@ -461,63 +427,14 @@
             enddo !k
          enddo !m
 
-!tcxzsal         if (solve_zsal) then
-!            if (aicen > c0) then
-!               hinS_new  = vbrin/aicen
-!               hin       = vicen/aicen
-!            else
-!               hinS_new  = c0
-!               hin       = c0
-!            endif                   ! aicen
-!            temp_S    = min_salin   ! bio to cice
-!            call remap_zbgc(nilyr,    &
-!                            nt_sice,                   &
-!                            trtmp0(1:ntrcr), trtmp,    &
-!                            1,               nblyr,    &
-!                            hin,             hinS_new, &
-!                            cgrid(2:nilyr+1),          &
-!                            bgrid(2:nblyr+1), temp_S   )
-!            if (icepack_warnings_aborted(subname)) return
-!            do k = 1, nilyr
-!               trcrn(nt_sice+k-1) = trtmp(nt_sice+k-1)
-!            enddo        ! k
-!         endif           ! solve_zsal
-
       elseif (vbrin > c0) then   ! add frazil throughout  location == 0 .and.
 
          do k = 1, nblyr+1
-!tcxzsal            if (solve_zsal .and. k < nblyr + 1) then
-!               trcrn(nt_bgc_S+k-1) = (trcrn(nt_bgc_S+k-1) * vtmp &
-!                                          + sss*salt_loss * vsurp) / vbrin
-!               trtmp0(nt_sice+k-1) = trcrn(nt_bgc_S+k-1)
-!            endif                    ! solve_zsal
             do m = 1, nbtrcr
                trcrn(bio_index(m) + k-1) = (trcrn(bio_index(m) + k-1) * vtmp &
                          + ocean_bio(m)*zbgc_init_frac(m) * vsurp) / vbrin
             enddo
          enddo
-
-!tcxzsal         if (solve_zsal) then
-!            if (aicen > c0) then
-!               hinS_new  = vbrin/aicen
-!               hin       = vicen/aicen
-!            else
-!               hinS_new  = c0
-!               hin       = c0
-!            endif              !aicen
-!            temp_S    = min_salin   ! bio to cice
-!            call remap_zbgc(nilyr,    &
-!                         nt_sice,                   &
-!                         trtmp0(1:ntrcr), trtmp,    &
-!                         1,               nblyr,    &
-!                         hin,             hinS_new, &
-!                         cgrid(2:nilyr+1),          &
-!                         bgrid(2:nblyr+1),temp_S    )
-!            if (icepack_warnings_aborted(subname)) return
-!            do k = 1, nilyr
-!               trcrn(nt_sice+k-1) = trtmp(nt_sice+k-1)
-!            enddo        !k
-!         endif  ! solve_zsal
 
       endif     ! location
 
@@ -593,24 +510,6 @@
 
          else   ! not skl_bgc
 
-!tcxzsal            if (scale_bgc .and. solve_zsal) then ! bulk concentration (mmol or mg per m^3)
-!               do n = 1,ncat
-!               do mm = 1,nbtrcr
-!                  do k = 2, nblyr
-!                     trcrn(bio_index(mm)+k-1-ntrcr_o,n) = &
-!                          (p5*(trcrn(nt_bgc_S+k-1-ntrcr_o,n)+ trcrn(nt_bgc_S+k-2-ntrcr_o,n)) &
-!                         / sss*ocean_bio_all(bio_index_o(mm)))
-!                  enddo  !k
-!                  trcrn(nt_zbgc_frac-1+mm-ntrcr_o,n) = zbgc_frac_init(mm)
-!                  trcrn(bio_index(mm)-ntrcr_o,n) = (trcrn(nt_bgc_S-ntrcr_o,n) &
-!                                         / sss*ocean_bio_all(bio_index_o(mm)))
-!                  trcrn(bio_index(mm)+nblyr-ntrcr_o,n) = (trcrn(nt_bgc_S+nblyr-1-ntrcr_o,n) &
-!                                               / sss*ocean_bio_all(bio_index_o(mm)))
-!                  trcrn(bio_index(mm)+nblyr+1-ntrcr_o:bio_index(mm)+nblyr+2-ntrcr_o,n) = c0 ! snow
-!               enddo ! mm
-!               enddo ! n
-!
-!            elseif (scale_bgc .and. ktherm == 2) then
             if (scale_bgc .and. ktherm == 2) then
                trtmp(:) = c0
                do n = 1,ncat
@@ -963,8 +862,6 @@
                   trcrn(nt_zbgc_frac-1+mm,n) = zbgc_frac_init(mm)
                enddo
             endif
-!            if (n == 1) Rayleigh_criteria = .false.
-!tcxzsal            if (solve_zsal) trcrn(nt_bgc_S:nt_bgc_S+nblyr-1,n) = c0
          endif
 
          if (aicen(n) > puny) then
@@ -1002,20 +899,6 @@
                                  hsn,         first_ice(n)  )
                if (icepack_warnings_aborted(subname)) return
 
-!tcxzsal               if (solve_zsal)  then
-!
-!                  call compute_microS (n,         nilyr,       nblyr,             &
-!                                bgrid,            cgrid,       igrid,             &
-!                                trcrn(1:ntrcr,n), hin_old(n),  hbr_old,           &
-!                                sss,              sst,         bTiz(:,n),         &
-!                                iTin,             bphi(:,n),   kavg,              &
-!                                bphi_o,           Rayleigh_criteria, &
-!                                first_ice(n),     bSin,        brine_sal,         &
-!                                brine_rho,        iphin,       ibrine_rho,        &
-!                                ibrine_sal,       sice_rho(n), sloss)
-!                  if (icepack_warnings_aborted(subname)) return
-!               else
-
                ! Requires the average ice permeability = kavg(:)
                ! and the surface ice porosity = zphi_o(:)
                ! computed in "compute_microS" or from "thermosaline_vertical"
@@ -1032,8 +915,6 @@
                            ibrine_rho(:), ibrine_sal(:), sice_rho(n), &
                            iDi(:,n)       )
                if (icepack_warnings_aborted(subname)) return
-
-!tcxzsal               endif ! solve_zsal
 
                call update_hbrine (melttn(n),   &
                                    meltsn  (n), dt,          &

@@ -887,7 +887,6 @@
                                fside,      wlat,       &
                                aicen,      vicen,      &
                                vsnon,      trcrn,      &
-!tcxzsal                               fzsal,      flux_bio,   &
                                flux_bio,               &
                                nbtrcr,     nblyr,      &
                                nfsd,       d_afsd_latm,&
@@ -930,7 +929,6 @@
          fsalt     , & ! salt flux to ocean (kg/m^2/s)
          fhocn     , & ! net heat flux to ocean (W/m^2)
          meltl         ! lateral ice melt         (m/step-->cm/day)
-!tcxzsal         fzsal         ! salt flux from zsalinity (kg/m2/s)
 
       real (kind=dbl_kind), dimension(nbtrcr), intent(inout) :: &
          flux_bio  ! biology tracer flux from layer bgc (mmol/m^2/s)
@@ -1240,7 +1238,6 @@
 
          enddo       ! n
 
-!tcxzsal         if (solve_zsal .or. z_tracers) &
          if (z_tracers) &
             call lateral_melt_bgc(dt,                         &
                                   ncat,        nblyr,         &
@@ -1316,7 +1313,6 @@
                               dSin0_frazil,          &
                               bgrid,      cgrid,      igrid,    &
                               nbtrcr,    flux_bio,   &
-!tcxzsal                              ocean_bio, fzsal,      &
                               ocean_bio,             &
                               frazil_diag,           &
                               fiso_ocn,              &
@@ -1404,10 +1400,6 @@
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          ocean_bio   ! ocean concentration of biological tracer
-
-!tcxzsal      ! zsalinity
-!      real (kind=dbl_kind),  intent(inout) :: &
-!         fzsal      ! salt flux to ocean from zsalinity (kg/m^2/s)
 
       ! water isotopes
 
@@ -1613,7 +1605,6 @@
 
       ! history diagnostics
       frazil = vi0new
-!tcxzsal      if (solve_zsal) fzsal = fzsal - rhosi*vi0new/dt*p001*sss*salt_loss
 
       if (present(frz_onset) .and. present(yday)) then
          if (frazil > puny .and. frz_onset < puny) frz_onset = yday
@@ -1799,7 +1790,6 @@
                      trcrn(nt_qice+k-1,n) = &
                     (trcrn(nt_qice+k-1,n)*vtmp + qi0new*vsurp) / vicen(n)
                      ! salinity
-!tcxzsal                     if (.not. solve_zsal) &
                      trcrn(nt_sice+k-1,n) = &
                     (trcrn(nt_sice+k-1,n)*vtmp + Sprofile(k)*vsurp) / vicen(n)
                   endif
@@ -1919,7 +1909,6 @@
                trcrn(nt_qice+k-1,n) = &
               (trcrn(nt_qice+k-1,n)*vice1 + qi0new*vin0new(n))/vicen(n)
                ! salinity
-!tcxzsal               if (.NOT. solve_zsal)&
                trcrn(nt_sice+k-1,n) = &
               (trcrn(nt_sice+k-1,n)*vice1 + Sprofile(k)*vin0new(n))/vicen(n)
             endif
@@ -2255,7 +2244,6 @@
                            dSin0_frazil,  bgrid,        &
                            cgrid,         igrid,        &
                            nbtrcr,        flux_bio,     &
-!tcxzsal                           ocean_bio,     fzsal,        &
                            ocean_bio,                   &
                            frazil_diag,   fiso_ocn,     &
                            HDO_ocn,       H2_16O_ocn,   &
@@ -2282,7 +2270,6 @@
                          fside,     wlat,          &
                          aicen,     vicen,         &
                          vsnon,     trcrn,         &
-!tcxzsal                         fzsal,     flux_bio,      &
                          flux_bio,                 &
                          nbtrcr,    nblyr,         &
                          nfsd,      d_afsd_latm,   &
@@ -2332,7 +2319,6 @@
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
                         faero_ocn,            fiso_ocn,         &
-!tcxzsal                        fzsal,                flux_bio)
                         flux_bio                                )
       if (icepack_warnings_aborted(subname)) return
 

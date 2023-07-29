@@ -769,7 +769,6 @@
                               fpond,       fresh,      &
                               fsalt,       fhocn,      &
                               faero_ocn,   fiso_ocn,   &
-!tcxzsal                              fzsal,                   &
                               flux_bio,    limit_aice_in)
 
       integer (kind=int_kind), intent(in) :: &
@@ -824,7 +823,6 @@
          fresh    , & ! fresh water flux to ocean (kg/m^2/s)
          fsalt    , & ! salt flux to ocean        (kg/m^2/s)
          fhocn        ! net heat flux to ocean     (W/m^2)
-!tcxzsal         fzsal        ! net salt flux to ocean from zsalinity (kg/m^2/s)
 
       real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          flux_bio     ! net tracer flux to ocean from biology (mmol/m^2/s)
@@ -850,7 +848,6 @@
          dfresh   , & ! zapped fresh water flux (kg/m^2/s)
          dfsalt   , & ! zapped salt flux   (kg/m^2/s)
          dfhocn       ! zapped energy flux ( W/m^2)
-!tcxzsal         dfzsal       ! zapped salt flux for zsalinity (kg/m^2/s)
 
       real (kind=dbl_kind), dimension (n_aero) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
@@ -883,7 +880,6 @@
       dfaero_ocn(:) = c0
       dfiso_ocn (:) = c0
       dflux_bio (:) = c0
-!tcxzsal      dfzsal = c0
 
       !-----------------------------------------------------------------
       ! Compute total ice area.
@@ -950,7 +946,6 @@
                                tr_aero,                     &
                                tr_pond_topo,                &
                                first_ice,    nbtrcr,        &
-!tcxzsal                               dfzsal,       dflux_bio      )
                                dflux_bio                    )
 
          if (icepack_warnings_aborted(subname)) then
@@ -1009,8 +1004,6 @@
            flux_bio (it) = flux_bio(it) + dflux_bio(it)
          enddo
       endif
-!tcxzsal      if (present(fzsal)) &
-!           fzsal        = fzsal         + dfzsal
 
       end subroutine cleanup_itd
 
@@ -1036,7 +1029,6 @@
                                   tr_aero,                 &
                                   tr_pond_topo,            &
                                   first_ice, nbtrcr,       &
-!tcxzsal                                  dfzsal,    dflux_bio     )
                                   dflux_bio                )
 
       integer (kind=int_kind), intent(in) :: &
@@ -1068,7 +1060,6 @@
          dfresh   , & ! zapped fresh water flux (kg/m^2/s)
          dfsalt   , & ! zapped salt flux   (kg/m^2/s)
          dfhocn       ! zapped energy flux ( W/m^2)
-!tcxzsal         dfzsal       ! zapped salt flux from zsalinity(kg/m^2/s)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dfaero_ocn   ! zapped aerosol flux   (kg/m^2/s)
@@ -1101,7 +1092,6 @@
       !-----------------------------------------------------------------
       ! I. Zap categories with very small areas.
       !-----------------------------------------------------------------
-!tcxzsal      dfzsal = c0
 
       do n = 1, ncat
 
@@ -1140,15 +1130,6 @@
                   dfiso_ocn(it) = dfiso_ocn(it) + xtmp
                enddo
             endif
-
-!tcxzsal            if (solve_zsal) then
-!               do it = 1, nblyr
-!                  xtmp = rhosi*trcrn(nt_fbri,n)*vicen(n)*p001&
-!                        *trcrn(nt_bgc_S+it-1,n)/ &
-!                         real(nblyr,kind=dbl_kind)/dt
-!                  dfzsal = dfzsal + xtmp
-!               enddo                 ! n
-!            endif
 
             if (skl_bgc .and. nbtrcr > 0) then
                blevels = 1
@@ -1331,21 +1312,6 @@
                     * (aice-c1)/aice / dt
             endif
             dfsalt = dfsalt + xtmp
-
-!tcxzsal            if (solve_zsal) then
-!            do k = 1,nblyr
-!               xtmp = rhosi*trcrn(nt_fbri,n)*vicen(n)*p001&
-!                    /real(nblyr,kind=dbl_kind)*trcrn(nt_bgc_S+k-1,n) &
-!                    * (aice-c1)/aice /dt
-!               dfzsal = dfzsal + xtmp
-!            enddo
-!
-!            if (vicen(n) > vicen(n)*trcrn(nt_fbri,n)) then
-!               xtmp = (vicen(n)-vicen(n)*trcrn(nt_fbri,n))*(aice-c1)/&
-!                      aice*p001*rhosi*min_salin/dt
-!               dfzsal = dfzsal + xtmp
-!            endif
-!            endif ! solve_zsal
 
             aicen(n) = aicen(n) * (c1/aice)
             vicen(n) = vicen(n) * (c1/aice)

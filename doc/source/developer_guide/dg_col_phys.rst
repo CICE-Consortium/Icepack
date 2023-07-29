@@ -42,7 +42,6 @@ The column physics source code contains the following files
 |    **icepack_wavefracspec.F90**  wave impact on sea ice
 |    **icepack_zbgc.F90**          driver for ice biogeochemistry and brine tracer motion
 |    **icepack_zbgc_shared.F90**   parameters and shared code for biogeochemistry and brine height
-|    **icepack_zsalinity.F90**     vertical salinity parameterization of :cite:`Jeffery11`
 
 
 Coding Standard
