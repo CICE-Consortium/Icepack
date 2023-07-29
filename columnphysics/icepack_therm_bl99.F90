@@ -17,7 +17,7 @@
       use icepack_parameters, only: p01
 #endif
       use icepack_parameters, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
-      use icepack_parameters, only: conduct, calc_Tsfc, solve_zsal
+      use icepack_parameters, only: conduct, calc_Tsfc
       use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -266,7 +266,7 @@
 
       if (sw_redist) then
 
-      if (solve_zsal) sw_dtemp = p1  ! lower tolerance with dynamic salinity
+!tcxzsal      if (solve_zsal) sw_dtemp = p1  ! lower tolerance with dynamic salinity
 
       do k = 1, nilyr
 

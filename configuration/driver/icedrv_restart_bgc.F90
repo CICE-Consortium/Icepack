@@ -34,7 +34,6 @@
 
       subroutine write_restart_bgc()
 
-      use icedrv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
       use icedrv_domain_size, only: n_algae, n_doc, n_dic
       use icedrv_domain_size, only: n_don, n_zaero, n_fed, n_fep
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
@@ -48,13 +47,13 @@
        i, k             , & ! horizontal, vertical indices
        mm                   ! n_algae
 
-      logical (kind=log_kind) :: skl_bgc, solve_zsal, z_tracers
+      logical (kind=log_kind) :: skl_bgc, z_tracers
 
       integer (kind=int_kind) :: nbtrcr
       logical (kind=log_kind) :: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
       logical (kind=log_kind) :: tr_bgc_DMS, tr_bgc_PON, tr_bgc_N, tr_bgc_C
       logical (kind=log_kind) :: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
-      integer (kind=int_kind) :: nt_bgc_S, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
+      integer (kind=int_kind) :: nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
       integer (kind=int_kind) :: nt_bgc_hum, nt_bgc_PON
       integer (kind=int_kind) :: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
       integer (kind=int_kind) :: nt_zbgc_frac
@@ -75,7 +74,6 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
-      call icepack_query_parameters(solve_zsal_out=solve_zsal)
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_tracer_sizes(nbtrcr_out=nbtrcr)
       call icepack_query_tracer_flags(tr_bgc_Nit_out=tr_bgc_Nit, &
@@ -85,7 +83,7 @@
          tr_bgc_N_out=tr_bgc_N, tr_bgc_C_out=tr_bgc_C, &
          tr_bgc_DON_out=tr_bgc_DON, tr_bgc_Fe_out=tr_bgc_Fe,  &
          tr_zaero_out=tr_zaero, tr_bgc_chl_out=tr_bgc_chl)
-      call icepack_query_tracer_indices( nt_bgc_S_out=nt_bgc_S, &
+      call icepack_query_tracer_indices( &
          nt_bgc_N_out=nt_bgc_N, nt_bgc_AM_out=nt_bgc_AM, &
          nt_bgc_chl_out=nt_bgc_chl, nt_bgc_C_out=nt_bgc_C, &
          nt_bgc_DOC_out=nt_bgc_DOC, &
@@ -99,29 +97,6 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
-
-      !-----------------------------------------------------------------
-      ! Salinity and extras
-      !-----------------------------------------------------------------
-      if (solve_zsal) then
-
-      do k = 1, nblyr
-        call write_restart_field(nu_dump,trcrn(:,nt_bgc_S+k-1,:),ncat)
-      enddo
-
-      call write_restart_field(nu_dump,sss,1)
-
-         do i = 1, nx
-            if (Rayleigh_criteria(i)) then
-                Rayleigh_real    (i) = c1
-            elseif (.NOT. Rayleigh_criteria(i)) then
-                Rayleigh_real    (i) = c0
-            endif
-         enddo
-
-      call write_restart_field(nu_dump,Rayleigh_real,1)
-
-      endif ! solve_zsal
 
       !-----------------------------------------------------------------
       ! Skeletal layer BGC
@@ -334,7 +309,6 @@
 
       subroutine read_restart_bgc()
 
-      use icedrv_arrays_column, only: Rayleigh_real, Rayleigh_criteria
       use icedrv_domain_size, only: n_algae, n_doc, n_dic
       use icedrv_domain_size, only: n_don, n_zaero, n_fed, n_fep
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN
@@ -348,13 +322,13 @@
          i, k, & ! indices
          mm      ! n_algae
 
-      logical (kind=log_kind) :: skl_bgc, solve_zsal, z_tracers
+      logical (kind=log_kind) :: skl_bgc, z_tracers
 
       integer (kind=int_kind) :: nbtrcr
       logical (kind=log_kind) :: tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_hum
       logical (kind=log_kind) :: tr_bgc_DMS, tr_bgc_PON, tr_bgc_N, tr_bgc_C
       logical (kind=log_kind) :: tr_bgc_DON, tr_bgc_Fe,  tr_zaero , tr_bgc_chl
-      integer (kind=int_kind) :: nt_bgc_S, nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
+      integer (kind=int_kind) :: nt_bgc_Nit, nt_bgc_AM, nt_bgc_Sil
       integer (kind=int_kind) :: nt_bgc_hum, nt_bgc_PON
       integer (kind=int_kind) :: nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_DMS
       integer (kind=int_kind) :: nt_zbgc_frac
@@ -375,7 +349,6 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
-      call icepack_query_parameters(solve_zsal_out=solve_zsal)
       call icepack_query_parameters(z_tracers_out=z_tracers)
       call icepack_query_tracer_sizes(nbtrcr_out=nbtrcr)
 
@@ -387,7 +360,7 @@
          tr_bgc_N_out=tr_bgc_N, tr_bgc_C_out=tr_bgc_C, &
          tr_bgc_DON_out=tr_bgc_DON, tr_bgc_Fe_out=tr_bgc_Fe,  &
          tr_zaero_out=tr_zaero, tr_bgc_chl_out=tr_bgc_chl)
-      call icepack_query_tracer_indices( nt_bgc_S_out=nt_bgc_S, &
+      call icepack_query_tracer_indices( &
          nt_bgc_N_out=nt_bgc_N, nt_bgc_AM_out=nt_bgc_AM, &
          nt_bgc_chl_out=nt_bgc_chl, nt_bgc_C_out=nt_bgc_C, &
          nt_bgc_DOC_out=nt_bgc_DOC, &
@@ -401,32 +374,6 @@
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
-
-      !-----------------------------------------------------------------
-      ! Salinity and extras
-      !-----------------------------------------------------------------
-
-      if (solve_zsal) then
-
-         write(nu_diag,*)'zSalinity restart'
-         do k = 1, nblyr
-            call read_restart_field(nu_restart,trcrn(:,nt_bgc_S+k-1,:),ncat)
-         enddo
-
-         write(nu_diag,*) 'min/max sea surface salinity'
-         call read_restart_field(nu_restart,sss,1)
-         write(nu_diag,*) 'min/max Rayleigh'
-         call read_restart_field(nu_restart,Rayleigh_real,1)
-
-         do i = 1, nx
-            if (Rayleigh_real     (i) .GE. c1) then
-                Rayleigh_criteria (i) = .true.
-            elseif (Rayleigh_real (i) < c1) then
-                Rayleigh_criteria (i) = .false.
-            endif
-         enddo
-
-      endif ! solve_zsal
 
       !-----------------------------------------------------------------
       ! Skeletal Layer BGC

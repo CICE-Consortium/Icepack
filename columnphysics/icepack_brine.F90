@@ -11,7 +11,7 @@
       use icepack_parameters, only: gravit, rhoi, rhow, rhos, depressT
       use icepack_parameters, only: salt_loss, min_salin, rhosi
       use icepack_parameters, only: dts_b, l_sk
-      use icepack_tracers, only: ntrcr, nt_qice, nt_sice, nt_bgc_S
+      use icepack_tracers, only: ntrcr, nt_qice, nt_sice
       use icepack_tracers, only: nt_Tsfc
       use icepack_zbgc_shared, only: k_o, exp_h, Dm, Ra_c, viscos_dynamic, thinS
       use icepack_zbgc_shared, only: remap_zbgc
@@ -27,10 +27,10 @@
       public :: preflushing_changes, &
                 compute_microS_mushy, &
                 update_hbrine, &
-                compute_microS, &
+!tcxzsal                compute_microS, &
                 calculate_drho, &
                 icepack_init_hbrine, &
-                icepack_init_zsalinity
+                icepack_init_zsalinity   ! deprecated
 
       real (kind=dbl_kind), parameter :: &
          maxhbr  = 1.25_dbl_kind  , & ! brine overflows if hbr > maxhbr*hin
@@ -131,7 +131,6 @@
       end subroutine preflushing_changes
 
 !=======================================================================
-
 ! Computes ice microstructural properties for updating hbrine
 !
 ! NOTE: This subroutine uses thermosaline_vertical output to compute
@@ -559,6 +558,7 @@
       end subroutine update_hbrine
 
 !=======================================================================
+#ifdef tcxzsal
 !
 ! Computes ice microstructural properties for zbgc and zsalinity
 !
@@ -790,7 +790,7 @@
       if (icepack_warnings_aborted(subname)) return
 
       end subroutine compute_microS
-
+#endif
 !==========================================================================================
 !
 ! Find density difference about interface grid points
@@ -1000,7 +1000,8 @@
 
 !=======================================================================
 !autodocument_start icepack_init_zsalinity
-!  Initialize zSalinity
+!  **DEPRECATED**, all code removed
+!  Interface provided for backwards compatibility
 
       subroutine icepack_init_zsalinity(nblyr,ntrcr_o,  Rayleigh_criteria, &
                Rayleigh_real, trcrn_bgc, nt_bgc_S, ncat, sss)
@@ -1027,27 +1028,12 @@
 
       ! local variables
 
-      integer (kind=int_kind) :: &
-        k, n
-
       character(len=*),parameter :: subname='(icepack_init_zsalinity)'
 
-      if (nblyr .LE. 7) then
-          dts_b = 300.0_dbl_kind
-      else
-          dts_b = 50.0_dbl_kind
-      endif
-
-      Rayleigh_criteria = .false.    ! no ice initial condition
-      Rayleigh_real     = c0
-      do n = 1,ncat
-         do k = 1,nblyr
-            trcrn_bgc(nt_bgc_S+k-1-ntrcr_o,n) = sss*salt_loss
-         enddo   ! k
-      enddo      ! n
+!      call icepack_warnings_add(subname//' DEPRECATED, do not use')
+!      call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
 
       end subroutine icepack_init_zsalinity
-
 !=======================================================================
 
       end module icepack_brine

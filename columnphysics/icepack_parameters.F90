@@ -1085,16 +1085,12 @@
       if (present(modal_aero_in)        ) modal_aero       = modal_aero_in
       if (present(conserv_check_in)     ) conserv_check    = conserv_check_in
       if (present(skl_bgc_in)           ) skl_bgc          = skl_bgc_in
-#ifdef UNDEPRECATE_ZSAL
-      if (present(solve_zsal_in)        ) solve_zsal       = solve_zsal_in
-#else
       if (present(solve_zsal_in)) then
          if (solve_zsal_in) then
-            call icepack_warnings_add(subname//' zsalinity is being deprecated')
+            call icepack_warnings_add(subname//' zsalinity is deprecated')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          endif
       endif
-#endif
       if (present(grid_o_in)            ) grid_o           = grid_o_in
       if (present(l_sk_in)              ) l_sk             = l_sk_in
       if (present(initbio_frac_in)      ) initbio_frac     = initbio_frac_in
