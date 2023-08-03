@@ -329,12 +329,6 @@
                                               smice,     smliq)
             if (icepack_warnings_aborted(subname)) return
 
-            !  mass of ice and liquid water in snow
-            if (snwgrain) then
-               massice(:) = smice(:) * hslyr
-               massliq(:) = smliq(:) * hslyr
-            endif
-
          else ! ktherm
 
             call temperature_changes(dt,                   &
@@ -356,6 +350,12 @@
             if (icepack_warnings_aborted(subname)) return
 
          endif ! ktherm
+
+         !  mass of ice and liquid water in snow
+         if (snwgrain) then
+            massice(:) = smice(:) * hslyr
+            massliq(:) = smliq(:) * hslyr
+         endif
 
       ! intermediate energy for error check
 

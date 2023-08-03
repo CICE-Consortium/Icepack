@@ -1227,7 +1227,7 @@
                enddo
             endif
             if (tr_brine) trcrn(nt_fbri,n) = c1
-            if (trim(snwredist) == 'ITDrdg') then
+            if (snwredist(1:3) == 'ITD') then
                do k = 1, nslyr
                   trcrn(nt_rhos +k-1,n) = rhosnew
                enddo

@@ -1290,23 +1290,13 @@
 
       if (vicen <= c0 .and. tr_brine) trcrn(nt_fbri) = c1
       if (vsnon <= c0) then
-!echmod not BFB
-!         if (trim(snwredist) == 'ITDrdg') then
-         if (trim(snwredist) /= 'none') then
+         if (snwredist(1:3) == 'ITD') then
             trcrn(nt_rhos :nt_rhos +nslyr-1) = rhos
          endif
          if (snwgrain) then
             trcrn(nt_rsnw :nt_rsnw +nslyr-1) = rsnw_fall
             trcrn(nt_smice:nt_smice+nslyr-1) = rhos
          endif
-!echmod temporary
-!BFB         if (tr_snow) then
-!BFB         if (trim(snwredist) /= 'none' .or. snwgrain) then
-!not BFB         if (trim(snwredist) == 'ITDrdg' .or. (snwgrain)) then 
-!            trcrn(nt_rhos :nt_rhos +nslyr-1) = rhos
-!            trcrn(nt_rsnw :nt_rsnw +nslyr-1) = rsnw_fall
-!            trcrn(nt_smice:nt_smice+nslyr-1) = rhos
-!         endif
       endif ! vsnon <= 0
 
       end subroutine icepack_compute_tracers

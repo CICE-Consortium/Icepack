@@ -504,7 +504,7 @@
          shortwave = 'dEdd'
       endif
 
-      if (snwredist(1:4) /= 'none' .and. .not. tr_snow) then
+      if (snwredist(1:3) == 'ITD' .and. .not. tr_snow) then
          write (nu_diag,*) 'WARNING: snwredist on but tr_snow=F'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif

@@ -569,7 +569,7 @@
             enddo
          enddo
          ! maintain rhos_cmp positive definiteness
-         if (snwredist /= 'none') then
+         if (snwredist(1:3) == 'ITD') then
             do n = 1, ncat
                do k = nt_rhos, nt_rhos+nslyr-1
                   trcrn(k,n) = max(trcrn(k,n)-rhosmin, c0)
@@ -596,7 +596,7 @@
             enddo
          enddo
          ! maintain rhos_cmp positive definiteness
-         if (snwredist /= 'none') then
+         if (snwredist(1:3) == 'ITD') then
             do n = 1, ncat
                do k = nt_rhos, nt_rhos+nslyr-1
                   trcrn(k,n) = trcrn(k,n) + rhosmin
