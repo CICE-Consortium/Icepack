@@ -7,7 +7,7 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, puny, Tocnfrz, rhos, rsnw_fall
+      use icepack_parameters, only: c0, c1, puny, Tocnfrz, rhos, rhosnew, rsnw_fall
       use icepack_parameters, only: snwredist, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -1291,7 +1291,7 @@
       if (vicen <= c0 .and. tr_brine) trcrn(nt_fbri) = c1
       if (vsnon <= c0) then
          if (snwredist(1:3) == 'ITD') then
-            trcrn(nt_rhos :nt_rhos +nslyr-1) = rhos
+            trcrn(nt_rhos :nt_rhos +nslyr-1) = rhosnew
          endif
          if (snwgrain) then
             trcrn(nt_rsnw :nt_rsnw +nslyr-1) = rsnw_fall
