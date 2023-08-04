@@ -309,14 +309,12 @@
       ! Initialize effective snow density (compaction) for new snow
       !-----------------------------------------------------------------
 
-      if (trim(snwredist) /= 'none') then
+      if (snwredist(1:3) == 'ITD') then
          do n = 1, ncat
             do k = 1, nslyr
                if (rhos_cmpn(k,n) < rhosmin) rhos_cmpn(k,n) = rhosnew
             enddo
          enddo
-      else
-         rhos_cmpn(:,:) = rhos
       endif
 
       !-----------------------------------------------------------------
