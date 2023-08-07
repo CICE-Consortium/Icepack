@@ -795,7 +795,7 @@
 
       character(len=*),parameter :: subname='(icepack_init_zsalinity)'
 
-!      call icepack_warnings_add(subname//' DEPRECATED, do not use')
+      call icepack_warnings_add(subname//' DEPRECATED, do not use')
 !      call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
 
       end subroutine icepack_init_zsalinity

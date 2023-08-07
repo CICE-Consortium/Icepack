@@ -1086,8 +1086,8 @@
       if (present(conserv_check_in)     ) conserv_check    = conserv_check_in
       if (present(skl_bgc_in)           ) skl_bgc          = skl_bgc_in
       if (present(solve_zsal_in)) then
+         call icepack_warnings_add(subname//' WARNING: zsalinity is deprecated')
          if (solve_zsal_in) then
-            call icepack_warnings_add(subname//' zsalinity is deprecated')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          endif
       endif
