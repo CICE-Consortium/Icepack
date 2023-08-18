@@ -1239,11 +1239,8 @@
       if (hsn > puny) then    ! add snow with enthalpy zqsn(1)
          dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
 
-         mass  = massice(1) + massliq(1)
-         massi = c0
-         if (dzs(1) > puny) massi = c1 + dhs/dzs(1)
-         massice(1) = massice(1) * massi
-         massliq(1) = max(c0, mass + rhos*dhs - massice(1)) ! conserve new total mass
+         ! assume all condensation becomes ice (no liquid)
+         massice(1) = massice(1) + dhs*rhos
 
          dzs(1) = dzs(1) + dhs
          evapn = evapn + dhs*rhos
