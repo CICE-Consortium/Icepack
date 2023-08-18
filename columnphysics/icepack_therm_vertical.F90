@@ -136,7 +136,9 @@
          zSin    , & ! internal ice layer salinities
          rsnw    , & ! snow grain radius (10^-6 m)
          smice   , & ! ice mass tracer in snow (kg/m^3)
-         smliq   , & ! liquid water mass tracer in snow (kg/m^3)
+         smliq       ! liquid water mass tracer in snow (kg/m^3)
+
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
          massice , & ! ice mass in snow (kg/m^2)
          massliq     ! liquid water mass in snow (kg/m^2)
 
@@ -262,6 +264,8 @@
       zTsn(:) = c0
       zTin(:) = c0
       meltsliq= c0
+      massice(:) = c0
+      massliq(:) = c0
 
       if (calc_Tsfc) then
          fsensn  = c0
@@ -325,12 +329,6 @@
                                               smice,     smliq)
             if (icepack_warnings_aborted(subname)) return
 
-            ! reinitialize mass in case of snow-ice formation
-            if (snwgrain) then
-               massice(:) = smice(:) * hslyr
-               massliq(:) = smliq(:) * hslyr
-            endif
-
          else ! ktherm
 
             call temperature_changes(dt,                   &
@@ -352,6 +350,12 @@
             if (icepack_warnings_aborted(subname)) return
 
          endif ! ktherm
+
+         !  mass of ice and liquid water in snow
+         if (snwgrain) then
+            massice(:) = smice(:) * hslyr
+            massliq(:) = smliq(:) * hslyr
+         endif
 
       ! intermediate energy for error check
 
@@ -1235,11 +1239,8 @@
       if (hsn > puny) then    ! add snow with enthalpy zqsn(1)
          dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
 
-         mass  = massice(1) + massliq(1)
-         massi = c0
-         if (dzs(1) > puny) massi = c1 + dhs/dzs(1)
-         massice(1) = massice(1) * massi
-         massliq(1) = max(c0, mass + rhos*dhs - massice(1)) ! conserve new total mass
+         ! assume all condensation becomes ice (no liquid)
+         massice(1) = massice(1) + dhs*rhos
 
          dzs(1) = dzs(1) + dhs
          evapn = evapn + dhs*rhos
@@ -2357,8 +2358,9 @@
          n               ! category index
 
       real (kind=dbl_kind) :: &
-         rnslyr      , & ! 1 / nslyr
-         worka, workb    ! temporary variables
+         worka       , &   ! temporary variables
+         workb       , &
+         workc
 
       ! 2D coupler variables (computed for each category, then aggregated)
       real (kind=dbl_kind) :: &
@@ -2465,6 +2467,10 @@
       l_meltsliq  = c0
       l_meltsliqn = c0
 
+      ! solid and liquid components of snow mass
+      massicen(:,:) = c0
+      massliqn(:,:) = c0
+
       !-----------------------------------------------------------------
       ! Initialize rate of snow loss to leads
       !-----------------------------------------------------------------
@@ -2489,21 +2495,21 @@
          fsnow    =           fsnow*(c1-worka)
       endif ! snwredist
 
+!echmod - remove all of this code - non-BFB because of values carried in tracer arrays when the snow physics options are not active 
       !-----------------------------------------------------------------
       ! solid and liquid components of snow mass
       !-----------------------------------------------------------------
-
-      massicen(:,:) = c0
-      massliqn(:,:) = c0
-      if (snwgrain) then
-         rnslyr = c1 / real(nslyr, dbl_kind)
-         do n = 1, ncat
-            do k = 1, nslyr
-               massicen(k,n) = smicen(k,n) * vsnon(n) * rnslyr ! kg/m^2
-               massliqn(k,n) = smliqn(k,n) * vsnon(n) * rnslyr
-            enddo
-         enddo
-      endif
+!      massicen(:,:) = c0
+!      massliqn(:,:) = c0
+!      if (snwgrain) then
+!         rnslyr = c1 / real(nslyr, dbl_kind)
+!         do n = 1, ncat
+!            do k = 1, nslyr
+!               massicen(k,n) = smicen(k,n) * vsnon(n) * rnslyr ! kg/m^2
+!               massliqn(k,n) = smliqn(k,n) * vsnon(n) * rnslyr
+!            enddo
+!         enddo
+!      endif
 
       !-----------------------------------------------------------------
       ! Update the neutral drag coefficients to account for form drag
@@ -2904,14 +2910,10 @@
       if (snwgrain) then
          do n = 1, ncat
             if (vsnon(n) > puny) then
+               workc = real(nslyr, dbl_kind) * aicen(n) / vsnon(n)
                do k = 1, nslyr
-                  smicen(k,n) = massicen(k,n) / (vsnon(n) * rnslyr)
-                  smliqn(k,n) = massliqn(k,n) / (vsnon(n) * rnslyr)
-                  worka = smicen(k,n) + smliqn(k,n)
-                  if (worka > puny) then
-                     smicen(k,n) = rhos * smicen(k,n) / worka
-                     smliqn(k,n) = rhos * smliqn(k,n) / worka
-                  endif
+                  smicen(k,n) = massicen(k,n) * workc
+                  smliqn(k,n) = massliqn(k,n) * workc
                enddo
             else ! reset to default values
                do k = 1, nslyr

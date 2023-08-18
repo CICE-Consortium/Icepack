@@ -7,7 +7,8 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, puny, Tocnfrz, rhos, rsnw_fall
+      use icepack_parameters, only: c0, c1, puny, Tocnfrz, rhos, rhosnew, rsnw_fall
+      use icepack_parameters, only: snwredist, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -105,7 +106,7 @@
          tr_pond      = .false., & ! if .true., use melt pond tracer
          tr_pond_lvl  = .false., & ! if .true., use level-ice pond tracer
          tr_pond_topo = .false., & ! if .true., use explicit topography-based ponds
-         tr_snow      = .false., & ! if .true., use snow metamorphosis tracers
+         tr_snow      = .false., & ! if .true., use snow redistribution or metamorphosis tracers
          tr_iso       = .false., & ! if .true., use isotope tracers
          tr_aero      = .false., & ! if .true., use aerosol tracers
          tr_brine     = .false., & ! if .true., brine height differs from ice thickness
@@ -219,7 +220,7 @@
              tr_pond_in      , & ! if .true., use melt pond tracer
              tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
              tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
-             tr_snow_in      , & ! if .true., use snow metamorphosis tracers
+             tr_snow_in      , & ! if .true., use snow redistribution or metamorphosis tracers
              tr_fsd_in       , & ! if .true., use floe size distribution tracers
              tr_iso_in       , & ! if .true., use isotope tracers
              tr_aero_in      , & ! if .true., use aerosol tracers
@@ -286,7 +287,7 @@
              tr_pond_out      , & ! if .true., use melt pond tracer
              tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
              tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
-             tr_snow_out      , & ! if .true., use snow metamorphosis tracers
+             tr_snow_out      , & ! if .true., use snow redistribution or metamorphosis tracers
              tr_fsd_out       , & ! if .true., use floe size distribution
              tr_iso_out       , & ! if .true., use isotope tracers
              tr_aero_out      , & ! if .true., use aerosol tracers
@@ -1288,11 +1289,15 @@
       enddo
 
       if (vicen <= c0 .and. tr_brine) trcrn(nt_fbri) = c1
-      if (vsnon <= c0 .and. tr_snow) then
-         trcrn(nt_rsnw :nt_rsnw +nslyr-1) = rsnw_fall
-         trcrn(nt_smice:nt_smice+nslyr-1) = rhos
-         trcrn(nt_rhos :nt_rhos +nslyr-1) = rhos
-      endif
+      if (vsnon <= c0) then
+         if (snwredist(1:3) == 'ITD') then
+            trcrn(nt_rhos :nt_rhos +nslyr-1) = rhosnew
+         endif
+         if (snwgrain) then
+            trcrn(nt_rsnw :nt_rsnw +nslyr-1) = rsnw_fall
+            trcrn(nt_smice:nt_smice+nslyr-1) = rhos
+         endif
+      endif ! vsnon <= 0
 
       end subroutine icepack_compute_tracers
 
