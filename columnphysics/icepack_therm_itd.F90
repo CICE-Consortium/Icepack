@@ -25,7 +25,7 @@
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
       use icepack_parameters, only: Tliquidus_max
-      use icepack_parameters, only: rhosi, conserv_check, rhosmin
+      use icepack_parameters, only: rhosi, conserv_check, rhosmin, snwredist
       use icepack_parameters, only: kitd, ktherm
       use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin, hi_min
       use icepack_parameters, only: saltflux_option
@@ -36,7 +36,7 @@
       use icepack_tracers, only: nt_apnd, nt_hpnd, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_fsd, nt_rhos, nt_sice
       use icepack_tracers, only: nt_alvl, nt_vlvl
-      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_snow
+      use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
       use icepack_tracers, only: tr_iage, tr_FY, tr_lvl, tr_aero, tr_iso, tr_brine, tr_fsd
       use icepack_tracers, only: n_aero, n_iso
       use icepack_tracers, only: bio_index
@@ -570,7 +570,7 @@
             enddo
          enddo
          ! maintain rhos_cmp positive definiteness
-         if (tr_snow) then
+         if (snwredist(1:3) == 'ITD') then
             do n = 1, ncat
                do k = nt_rhos, nt_rhos+nslyr-1
                   trcrn(k,n) = max(trcrn(k,n)-rhosmin, c0)
@@ -597,7 +597,7 @@
             enddo
          enddo
          ! maintain rhos_cmp positive definiteness
-         if (tr_snow) then
+         if (snwredist(1:3) == 'ITD') then
             do n = 1, ncat
                do k = nt_rhos, nt_rhos+nslyr-1
                   trcrn(k,n) = trcrn(k,n) + rhosmin

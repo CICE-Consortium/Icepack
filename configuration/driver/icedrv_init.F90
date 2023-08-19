@@ -509,7 +509,7 @@
          shortwave = 'dEdd'
       endif
 
-      if (snwredist(1:4) /= 'none' .and. .not. tr_snow) then
+      if (snwredist(1:3) == 'ITD' .and. .not. tr_snow) then
          write (nu_diag,*) 'WARNING: snwredist on but tr_snow=F'
          call icedrv_system_abort(file=__FILE__,line=__LINE__)
       endif
@@ -572,8 +572,13 @@
          shortwave = 'dEdd'
       endif
 
-      if (tr_snow .and. trim(shortwave(1:4)) /= 'dEdd') then
+      if (snwgrain .and. trim(shortwave(1:4)) /= 'dEdd') then
          write (nu_diag,*) 'WARNING: snow grain radius activated but'
+         write (nu_diag,*) 'WARNING: dEdd shortwave is not.'
+      endif
+
+      if (snwredist(1:4) /= 'none' .and. trim(shortwave(1:4)) /= 'dEdd') then
+         write (nu_diag,*) 'WARNING: snow redistribution activated but'
          write (nu_diag,*) 'WARNING: dEdd shortwave is not.'
       endif
 

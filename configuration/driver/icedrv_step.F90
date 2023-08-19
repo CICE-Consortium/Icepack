@@ -155,7 +155,7 @@
          nt_aero, nt_isosno, nt_isoice, nt_rsnw, nt_smice, nt_smliq
 
       logical (kind=log_kind) :: &
-         tr_iage, tr_FY, tr_aero, tr_iso, calc_Tsfc, tr_snow
+         tr_iage, tr_FY, tr_aero, tr_iso, calc_Tsfc, snwgrain
 
       real (kind=dbl_kind), dimension(n_aero,2,ncat) :: &
          aerosno,  aeroice    ! kg/m^2
@@ -177,6 +177,7 @@
 
       call icepack_query_parameters(puny_out=puny)
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
+      call icepack_query_parameters(snwgrain_out=snwgrain)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -189,7 +190,7 @@
 
       call icepack_query_tracer_flags( &
          tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_aero_out=tr_aero, tr_iso_out=tr_iso, tr_snow_out=tr_snow)
+         tr_aero_out=tr_aero, tr_iso_out=tr_iso)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -261,7 +262,7 @@
           enddo
         endif ! tr_iso
 
-        if (tr_snow) then
+        if (snwgrain) then
           do n = 1, ncat
             do k = 1, nslyr
                rsnwn (k,n) = trcrn(i,nt_rsnw +k-1,n)
@@ -269,7 +270,7 @@
                smliqn(k,n) = trcrn(i,nt_smliq+k-1,n)
             enddo
           enddo
-        endif ! tr_snow
+        endif ! snwgrain
 
         call icepack_step_therm1(dt=dt, ncat=ncat, nilyr=nilyr, nslyr=nslyr, &
             aicen_init = aicen_init(i,:), &
@@ -400,7 +401,7 @@
           enddo
         endif ! tr_iso
 
-        if (tr_snow) then
+        if (snwgrain) then
           do n = 1, ncat
             do k = 1, nslyr
                trcrn(i,nt_rsnw +k-1,n) = rsnwn (k,n)
@@ -408,7 +409,7 @@
                trcrn(i,nt_smliq+k-1,n) = smliqn(k,n)
             enddo
           enddo
-        endif ! tr_snow
+        endif ! snwgrain
 
       enddo ! i
       call icepack_warnings_flush(nu_diag)
