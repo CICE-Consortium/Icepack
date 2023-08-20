@@ -7,7 +7,7 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, puny, rhos, rsnw_fall, rsnwnew, Tocnfrz, tfrz_option
+      use icepack_parameters, only: c0, c1, puny, rhos, rsnw_fall, rhosnew, Tocnfrz, tfrz_option
       use icepack_parameters, only: snwredist, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted

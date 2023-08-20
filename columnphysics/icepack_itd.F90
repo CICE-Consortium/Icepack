@@ -33,9 +33,9 @@
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, nt_bgc_S, bio_index
       use icepack_tracers,    only: n_iso, tr_iso, nt_smice, nt_rsnw, nt_rhos, nt_sice
       use icepack_tracers,    only: icepack_compute_tracers
-      use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers
+      use icepack_parameters, only: solve_zsal, skl_bgc, z_tracers, hi_min
       use icepack_parameters, only: kcatbound, kitd, saltflux_option, snwgrain, snwredist
-      use icepack_therm_shared, only: Tmin, hi_min
+      use icepack_therm_shared, only: Tmin
       use icepack_warnings,   only: warnstr, icepack_warnings_add
       use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
       use icepack_zbgc_shared,only: zap_small_bgc
