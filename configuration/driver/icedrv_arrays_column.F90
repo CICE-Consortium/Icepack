@@ -223,28 +223,12 @@
          darcy_V            ! darcy velocity positive up (m/s)
 
       real (kind=dbl_kind), dimension (nx), public :: &
-         zsal_tot   , & ! Total ice salinity in per grid cell (g/m^2)
          chl_net    , & ! Total chla (mg chla/m^2) per grid cell
          NO_net         ! Total nitrate per grid cell
-
-      logical (kind=log_kind), dimension (nx), public :: &
-         Rayleigh_criteria    ! .true. means Ra_c was reached
-
-      real (kind=dbl_kind), dimension (nx), public :: &
-         Rayleigh_real        ! .true. = c1, .false. = c0
 
       real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
          sice_rho       ! avg sea ice density  (kg/m^3)  ! ech: diagnostic only?
-
-      real (kind=dbl_kind), &
-         dimension (nx,ncat), public :: &
-         fzsaln     , & ! category fzsal(kg/m^2/s)
-         fzsaln_g       ! salt flux from gravity drainage only
-
-      real (kind=dbl_kind), dimension (nx), public :: &
-         fzsal      , & ! Total flux  of salt to ocean at time step for conservation
-         fzsal_g        ! Total gravity drainage flux
 
       real (kind=dbl_kind), dimension (nx,nblyr+1,ncat), public :: &
          zfswin         ! Shortwave flux into layers interpolated on bio grid  (W/m^2)

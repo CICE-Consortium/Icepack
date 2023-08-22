@@ -97,7 +97,7 @@
          nt_bgc_PON   = 0, & ! zooplankton and detritus
          nt_bgc_hum   = 0, & ! humic material
          nt_zbgc_frac = 0, & ! fraction of tracer in the mobile phase
-         nt_bgc_S     = 0    ! Bulk salinity in fraction ice with dynamic salinity (Bio grid)
+         nt_bgc_S     = 0    ! Bulk salinity in fraction ice with dynamic salinity (Bio grid) (deprecated)
 
       logical (kind=log_kind), public :: &
          tr_iage      = .false., & ! if .true., use age tracer
@@ -434,7 +434,7 @@
              nlt_bgc_hum_in,& !
              nlt_bgc_PON_in,& ! zooplankton and detritus
              nt_zbgc_frac_in,&! fraction of tracer in the mobile phase
-             nt_bgc_S_in,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
+             nt_bgc_S_in,   & ! (deprecated, was related to zsalinity)
              nlt_chl_sw_in    ! points to total chla in trcrn_sw
 
         integer (kind=int_kind), dimension(:), intent(in), optional :: &
@@ -796,7 +796,7 @@
              nlt_bgc_hum_out,& !
              nlt_bgc_PON_out,& ! zooplankton and detritus
              nt_zbgc_frac_out,&! fraction of tracer in the mobile phase
-             nt_bgc_S_out,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
+             nt_bgc_S_out,   & ! (deprecated, was related to zsalinity)
              nlt_chl_sw_out    ! points to total chla in trcrn_sw
 
         integer (kind=int_kind), dimension(:), intent(out), optional :: &
@@ -955,7 +955,7 @@
         write(iounit,*) "  nlt_bgc_PON   = ",nlt_bgc_PON
         write(iounit,*) "  nlt_chl_sw    = ",nlt_chl_sw
         write(iounit,*) "  nt_zbgc_frac  = ",nt_zbgc_frac
-        write(iounit,*) "  nt_bgc_S      = ",nt_bgc_S
+        write(iounit,*) "  nt_bgc_S      = ",nt_bgc_S," (deprecated)"
 
         write(iounit,*) "  max_nbtrcr = ",max_nbtrcr
         do k = 1, max_nbtrcr

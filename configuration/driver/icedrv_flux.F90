@@ -324,10 +324,6 @@
          flux_bio   , & ! all bio fluxes to ocean
          flux_bio_ai    ! all bio fluxes to ocean, averaged over grid cell
 
-      real (kind=dbl_kind), dimension (nx), public :: &
-         fzsal_ai, & ! salt flux to ocean from zsalinity (kg/m^2/s)
-         fzsal_g_ai  ! gravity drainage salt flux to ocean (kg/m^2/s)
-
       ! internal
 
       logical (kind=log_kind), public :: &
@@ -782,7 +778,7 @@
 
       use icedrv_arrays_column, only: PP_net, grow_net, hbri
       use icedrv_arrays_column, only: ice_bio_net, snow_bio_net, fbio_snoice, fbio_atmice
-      use icedrv_arrays_column, only: fzsal, fzsal_g, zfswin
+      use icedrv_arrays_column, only: zfswin
       character(len=*), parameter :: subname='(init_history_bgc)'
 
       PP_net        (:) = c0
@@ -794,8 +790,6 @@
       snow_bio_net(:,:) = c0
       fbio_snoice (:,:) = c0
       fbio_atmice (:,:) = c0
-      fzsal         (:) = c0
-      fzsal_g       (:) = c0
       zfswin    (:,:,:) = c0
       fnit          (:) = c0
       fsil          (:) = c0
