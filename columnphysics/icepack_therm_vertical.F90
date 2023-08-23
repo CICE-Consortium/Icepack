@@ -1030,12 +1030,12 @@
          endif
 
 ! echmod: is this necessary?
-!         if (ktherm == 1) then
-!               if (zTin(k)>= -zSin(k)*depressT) then
-!                   zTin(k) = -zSin(k)*depressT - puny
-!                   zqin(k) = -rhoi*cp_ocn*zSin(k)*depressT
-!               endif
-!         endif
+         if (ktherm == 1) then
+               if (zTin(k)>= -zSin(k)*depressT) then
+                   zTin(k) = -zSin(k)*depressT - puny
+                   zqin(k) = -rhoi*cp_ocn*zSin(k)*depressT
+               endif
+         endif
 
       !-----------------------------------------------------------------
       ! initial energy per unit area of ice/snow, relative to 0 C
