@@ -497,7 +497,8 @@
          hovlp           ! overlap between old and new layers (m)
 
       real (kind=dbl_kind) :: &
-         rhlyr           ! 1./hlyr
+         rhlyr,        & ! 1./hlyr
+         qtot            ! total h*q in the column
 
       real (kind=dbl_kind), dimension (nlyr) :: &
          hq              ! h * q for a layer
@@ -509,36 +510,55 @@
       !-----------------------------------------------------------------
 
       rhlyr = c0
-      if (hn > puny) rhlyr = c1 / hlyr
+      if (hn > puny) then
+         rhlyr = c1 / hlyr
 
-      !-----------------------------------------------------------------
-      ! Compute h*q for new layers (k2) given overlap with old layers (k1)
-      !-----------------------------------------------------------------
+         !-----------------------------------------------------------------
+         ! Compute h*q for new layers (k2) given overlap with old layers (k1)
+         !-----------------------------------------------------------------
 
-      do k2 = 1, nlyr
-         hq(k2) = c0
-      enddo                     ! k
-      k1 = 1
-      k2 = 1
-      do while (k1 <= nlyr .and. k2 <= nlyr)
-         hovlp = min (z1(k1+1), z2(k2+1)) &
-               - max (z1(k1),   z2(k2))
-         hovlp = max (hovlp, c0)
-         hq(k2) = hq(k2) + hovlp*qn(k1)
-         if (z1(k1+1) > z2(k2+1)) then
-            k2 = k2 + 1
+         do k2 = 1, nlyr
+            hq(k2) = c0
+         enddo                     ! k
+         k1 = 1
+         k2 = 1
+         do while (k1 <= nlyr .and. k2 <= nlyr)
+            hovlp = min (z1(k1+1), z2(k2+1)) &
+                  - max (z1(k1),   z2(k2))
+            hovlp = max (hovlp, c0)
+            hq(k2) = hq(k2) + hovlp*qn(k1)
+            if (z1(k1+1) > z2(k2+1)) then
+               k2 = k2 + 1
+            else
+               k1 = k1 + 1
+            endif
+         enddo                  ! while
+
+         !-----------------------------------------------------------------
+         ! Compute new enthalpies.
+         !-----------------------------------------------------------------
+
+         do k = 1, nlyr
+            qn(k) = hq(k) * rhlyr
+         enddo                     ! k
+
+      else
+
+         qtot = c0
+         do k = 1, nlyr
+            qtot = qtot + qn(k) * (z1(k+1)-z1(k))
+         enddo
+         if (hn > c0) then
+            do k = 1, nlyr
+               qn(k) = qtot/hn
+            enddo
          else
-            k1 = k1 + 1
+            do k = 1, nlyr
+               qn(k) = c0
+            enddo
          endif
-      enddo                  ! while
 
-      !-----------------------------------------------------------------
-      ! Compute new enthalpies.
-      !-----------------------------------------------------------------
-
-      do k = 1, nlyr
-         qn(k) = hq(k) * rhlyr
-      enddo                     ! k
+      endif
 
       end subroutine adjust_enthalpy
 
