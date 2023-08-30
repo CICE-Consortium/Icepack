@@ -1706,7 +1706,7 @@
       !-----------------------------------------------------------------
 
       if (ktherm == 2) then
-         if (hsn <= puny) then
+         if (hsn <= puny .or. hin <= c0) then
             do k = 1, nslyr
                fhocnn = fhocnn &
                       + zqsn(k)*hsn/(real(nslyr,kind=dbl_kind)*dt)
@@ -1715,8 +1715,11 @@
                   meltsliq = meltsliq + massice(k)  ! add to meltponds
                   smice(k) = rhos
                   smliq(k) = c0
+                  rsnw(k) = rsnw_fall
                endif
             enddo
+            melts = melts + hsn
+            hsn = c0
             hslyr = c0
          endif
       endif
