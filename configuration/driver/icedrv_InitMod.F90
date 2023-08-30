@@ -191,7 +191,6 @@
       logical (kind=log_kind) :: &
          skl_bgc, &    ! from icepack
          z_tracers, &  ! from icepack
-         solve_zsal, & ! from icepack
          tr_brine, &   ! from icepack
          tr_fsd        ! from icepack
 
@@ -203,7 +202,6 @@
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
-      call icepack_query_parameters(solve_zsal_out=solve_zsal)
       call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -220,7 +218,7 @@
          call calendar (time)
       endif
 
-      if (solve_zsal .or. skl_bgc .or. z_tracers) then
+      if (skl_bgc .or. z_tracers) then
         if (tr_fsd) then
             write (nu_diag,*) 'FSD implementation incomplete for use with BGC'
             call icedrv_system_abort(string=subname,file=__FILE__,line=__LINE__)

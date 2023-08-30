@@ -1786,8 +1786,10 @@
          fpond    , & ! fresh water flux to ponds (kg/m^2/s)
          fresh    , & ! fresh water flux to ocean (kg/m^2/s)
          fsalt    , & ! salt flux to ocean (kg/m^2/s)
-         fhocn    , & ! net heat flux to ocean (W/m^2)
-         fzsal        ! zsalinity flux to ocean(kg/m^2/s)
+         fhocn        ! net heat flux to ocean (W/m^2)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+         fzsal        ! zsalinity flux to ocean(kg/m^2/s) (deprecated)
 
       real (kind=dbl_kind), intent(inout), optional :: &
          closing      ! rate of closing due to divergence/shear (1/s)
@@ -1906,7 +1908,6 @@
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
                         faero_ocn,            fiso_ocn,         &
-                        fzsal,                                  &
                         flux_bio,             Tf)
       if (icepack_warnings_aborted(subname)) return
 

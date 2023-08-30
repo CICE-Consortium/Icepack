@@ -55,8 +55,6 @@ setenv NTRAERO   1         # number of aerosol tracers
                            # CESM uses 3 aerosol tracers
 setenv NTRISO    0         # number of isotopes (up to max_iso)
 setenv TRBRI     0         # set to 1 for brine height tracer
-setenv TRZS      0         # set to 1 for zsalinity tracer
-                           # (needs TRBRI = 1)
 setenv TRBGCS    0         # set to 1 for skeletal layer tracers  
                            # (needs TRBGCZ = 0) 
 setenv TRBGCZ    0         # set to 1 for zbgc tracers
