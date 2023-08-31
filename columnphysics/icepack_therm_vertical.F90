@@ -40,8 +40,15 @@
 #ifdef GEOSCOUPLED
       use icepack_therm_shared, only: dfsurfdts_cpl,      & !
                                       dflatdts_cpl,       & !
+                                      flat_cpl0,          & !
+                                      fsurf_cpl0,         & !
                                       fsurf_cpl,          & !
                                       flat_cpl              !
+      use icepack_therm_shared, only: local_tsk,      & !
+                                      local_i,        & !
+                                      local_j,        & !
+                                      ismyturn,       &
+                                      local_blk
 #endif
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_mushy,  only: temperature_changes_salinity
@@ -314,6 +321,22 @@
       dflatdts_cpl  = dflatdt_in
       fsurf_cpl     = fsurfn_in
       flat_cpl      = flatn_in
+      fsurf_cpl0    = fsurfn_in
+      flat_cpl0     = flatn_in
+
+      if(present(my_tsk)) then
+          local_tsk = my_tsk
+      endif
+      if(present(my_i)) then
+          local_i = my_i
+      endif
+      if(present(my_j)) then
+          local_j = my_j
+      endif
+      if(present(my_blk)) then
+          local_blk = my_blk
+      endif
+
 #endif
 
       if (calc_Tsfc) then
@@ -995,6 +1018,7 @@
                call icepack_warnings_add(warnstr)
                write(warnstr,*) subname, 'zTin=',zTin(k)
                call icepack_warnings_add(warnstr)
+               tice_high = .false.
             else
                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
                call icepack_warnings_add(subname//" init_vertical_profile: Starting thermo, zTin > Tmax, layer" )
@@ -2973,6 +2997,14 @@
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, ' ice: Vertical thermo error, my_tsk ', my_tsk
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, ' ice: Vertical thermo error, my_i ', my_i
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, ' ice: Vertical thermo error, my_j ', my_j
+               call icepack_warnings_add(warnstr)
+               write(warnstr,*) subname, ' ice: Vertical thermo error, my_blk ', my_blk
                call icepack_warnings_add(warnstr)
                return
             endif

@@ -21,6 +21,15 @@
   use icepack_therm_shared, only: ferrmax
   use icepack_warnings, only: warnstr, icepack_warnings_add
   use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
+#ifdef GEOSCOUPLED
+  use icepack_therm_shared, only: dfsurfdts_cpl,      & !
+                                  dflatdts_cpl,       & !
+                                  flat_cpl0,          & !
+                                  fsurf_cpl0,         & !
+                                  fsurf_cpl,          & !
+                                  flat_cpl              !
+  use icepack_therm_shared, only: ismyturn
+#endif
 
   implicit none
 
@@ -866,6 +875,11 @@
     else
        ! initially melting
 
+#ifdef GEOSCOUPLED
+       fsurf_cpl = fsurf_cpl + dfsurfdts_cpl * (Tmlt - Tsf)
+       flat_cpl  = flat_cpl  + dflatdts_cpl  * (Tmlt - Tsf)
+#endif
+
        ! solve the system for melt and no snow
        Tsf = Tmlt
 
@@ -910,6 +924,11 @@
           ! assume surface is cold
           fcondtop1 = fcondtop
           fsurfn1   = fsurfn
+
+#ifdef GEOSCOUPLED
+          fsurf_cpl = fsurf_cpl0
+          flat_cpl  = flat_cpl0
+#endif
 
           ! reset the solution to initial values
           Tsf  = Tsf0
@@ -1266,9 +1285,20 @@
     zTsn_prev = zTsn
     zTin_prev = zTin
 
+#ifdef GEOSCOUPLED
+    dfsurfn_dTsf  = dfsurfdts_cpl
+    dflatn_dTsf   = dflatdts_cpl
+    fsurfn        = fsurf_cpl
+    flatn         = flat_cpl
+    fsurfn        = fsurfn + fswsfc
+    flwoutn       = c0 !prevent compiler warning
+    fsensn        = c0 !prevent compiler warning 
+#endif
+
     ! picard iteration
     picard: do nit = 1, nit_max
 
+#ifndef GEOSCOUPLED
        ! surface heat flux
        call surface_heat_flux(Tsf,     fswsfc, &
                               rhoa,    flw,    &
@@ -1284,6 +1314,7 @@
                                     dfsurfn_dTsf, dflwoutn_dTsf, &
                                     dfsensn_dTsf, dflatn_dTsf)
        if (icepack_warnings_aborted(subname)) return
+#endif
 
        ! tridiagonal solve of new temperatures
        call solve_heat_conduction(lsnow,     lcold,        &
@@ -1334,6 +1365,11 @@
                                      fadvheat_nit)
        if (icepack_warnings_aborted(subname)) return
 
+#ifdef GEOSCOUPLED
+       fsurfn = fsurfn + (Tsf - Tsf_prev)*dfsurfn_dTsf
+       flatn  = flatn  + (Tsf - Tsf_prev)*dflatn_dTsf
+#endif
+
        if (lconverged) exit
 
        Tsf_prev  = Tsf
@@ -1357,6 +1393,7 @@
                         dt,    nilyr)
     if (icepack_warnings_aborted(subname)) return
 
+#ifndef GEOSCOUPLED
     ! final surface heat flux
     call surface_heat_flux(Tsf,     fswsfc, &
                            rhoa,    flw,    &
@@ -1365,6 +1402,7 @@
                            flwoutn, fsensn, &
                            flatn,   fsurfn)
     if (icepack_warnings_aborted(subname)) return
+#endif
 
     ! if not converged
     if (.not. lconverged) then
