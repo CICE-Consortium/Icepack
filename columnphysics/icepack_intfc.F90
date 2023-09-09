@@ -1,8 +1,8 @@
 !=======================================================================
-! Copyright (c) 2022, Triad National Security, LLC
+! Copyright (c) 2023, Triad National Security, LLC
 ! All rights reserved.
 !
-! Copyright 2022. Triad National Security, LLC. This software was
+! Copyright 2023. Triad National Security, LLC. This software was
 ! produced under U.S. Government contract DE-AC52-06NA25396 for Los
 ! Alamos National Laboratory (LANL), which is operated by Triad
 ! National Security, LLC for the U.S. Department of Energy. The U.S.
@@ -89,7 +89,7 @@
       use icepack_shortwave, only: icepack_step_radiation
 
       use icepack_brine, only: icepack_init_hbrine
-      use icepack_brine, only: icepack_init_zsalinity
+      use icepack_brine, only: icepack_init_zsalinity    ! deprecated
 
       use icepack_zbgc , only: icepack_init_bgc
       use icepack_zbgc , only: icepack_init_zbgc

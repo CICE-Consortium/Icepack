@@ -155,7 +155,7 @@
          nt_aero, nt_isosno, nt_isoice, nt_rsnw, nt_smice, nt_smliq
 
       logical (kind=log_kind) :: &
-         tr_iage, tr_FY, tr_aero, tr_iso, calc_Tsfc, tr_snow
+         tr_iage, tr_FY, tr_aero, tr_iso, calc_Tsfc, snwgrain
 
       real (kind=dbl_kind), dimension(n_aero,2,ncat) :: &
          aerosno,  aeroice    ! kg/m^2
@@ -177,6 +177,7 @@
 
       call icepack_query_parameters(puny_out=puny)
       call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc)
+      call icepack_query_parameters(snwgrain_out=snwgrain)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -189,7 +190,7 @@
 
       call icepack_query_tracer_flags( &
          tr_iage_out=tr_iage, tr_FY_out=tr_FY, &
-         tr_aero_out=tr_aero, tr_iso_out=tr_iso, tr_snow_out=tr_snow)
+         tr_aero_out=tr_aero, tr_iso_out=tr_iso)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
@@ -261,7 +262,7 @@
           enddo
         endif ! tr_iso
 
-        if (tr_snow) then
+        if (snwgrain) then
           do n = 1, ncat
             do k = 1, nslyr
                rsnwn (k,n) = trcrn(i,nt_rsnw +k-1,n)
@@ -269,7 +270,7 @@
                smliqn(k,n) = trcrn(i,nt_smliq+k-1,n)
             enddo
           enddo
-        endif ! tr_snow
+        endif ! snwgrain
 
         call icepack_step_therm1(dt=dt, ncat=ncat, nilyr=nilyr, nslyr=nslyr, &
             aicen_init = aicen_init(i,:), &
@@ -400,7 +401,7 @@
           enddo
         endif ! tr_iso
 
-        if (tr_snow) then
+        if (snwgrain) then
           do n = 1, ncat
             do k = 1, nslyr
                trcrn(i,nt_rsnw +k-1,n) = rsnwn (k,n)
@@ -408,7 +409,7 @@
                trcrn(i,nt_smliq+k-1,n) = smliqn(k,n)
             enddo
           enddo
-        endif ! tr_snow
+        endif ! snwgrain
 
       enddo ! i
       call icepack_warnings_flush(nu_diag)
@@ -426,7 +427,7 @@
 
       subroutine step_therm2 (dt)
 
-      use icedrv_arrays_column, only: hin_max, fzsal, ocean_bio, &
+      use icedrv_arrays_column, only: hin_max, ocean_bio, &
                                       wave_sig_ht, wave_spectrum, &
                                       wavefreq, dwavefreq,        &
                                       floe_rad_c, floe_binwidth,  &
@@ -508,7 +509,6 @@
                          bgrid=bgrid,      cgrid=cgrid,               &
                          igrid=igrid,      faero_ocn=faero_ocn(i,:),  &
                          first_ice=first_ice(i,:),                    &
-                         fzsal=fzsal(i),                              &
                          flux_bio=flux_bio(i,1:nbtrcr),               &
                          ocean_bio=ocean_bio(i,1:nbtrcr),             &
                          frazil_diag=frazil_diag(i),                  &
@@ -813,7 +813,7 @@
 
       subroutine step_dyn_ridge (dt, ndtd)
 
-      use icedrv_arrays_column, only: hin_max, fzsal, first_ice
+      use icedrv_arrays_column, only: hin_max, first_ice
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, nx
       use icedrv_flux, only: rdg_conv, rdg_shear, dardg1dt, dardg2dt
       use icedrv_flux, only: dvirdgdt, opening, closing, fpond, fresh, fhocn
@@ -890,7 +890,7 @@
                          dvirdgndt=dvirdgndt(i,:),                           &
                          araftn=araftn(i,:),       vraftn=vraftn(i,:),       &
                          aice=aice(i),             fsalt=fsalt(i),           &
-                         first_ice=first_ice(i,:), fzsal=fzsal(i),           &
+                         first_ice=first_ice(i,:),                           &
                          flux_bio=flux_bio(i,1:nbtrcr),                      &
                          closing=closing(i) )
 
@@ -933,7 +933,7 @@
                          dvirdgndt=dvirdgndt(i,:),                           &
                          araftn=araftn(i,:),       vraftn=vraftn(i,:),       &
                          aice=aice(i),             fsalt=fsalt(i),           &
-                         first_ice=first_ice(i,:), fzsal=fzsal(i),           &
+                         first_ice=first_ice(i,:),                           &
                          flux_bio=flux_bio(i,1:nbtrcr))
 
          endif ! tmask
@@ -1336,12 +1336,12 @@
       subroutine biogeochemistry (dt)
 
       use icedrv_arrays_column, only: upNO, upNH, iDi, iki, zfswin
-      use icedrv_arrays_column, only: zsal_tot, darcy_V, grow_net
+      use icedrv_arrays_column, only: darcy_V, grow_net
       use icedrv_arrays_column, only: PP_net, hbri,dhbr_bot, dhbr_top, Zoo
       use icedrv_arrays_column, only: fbio_snoice, fbio_atmice, ocean_bio
       use icedrv_arrays_column, only: first_ice, fswpenln, bphi, bTiz, ice_bio_net
-      use icedrv_arrays_column, only: snow_bio_net, fswthrun, Rayleigh_criteria
-      use icedrv_arrays_column, only: ocean_bio_all, sice_rho, fzsal, fzsal_g
+      use icedrv_arrays_column, only: snow_bio_net, fswthrun
+      use icedrv_arrays_column, only: ocean_bio_all, sice_rho
       use icedrv_arrays_column, only: bgrid, igrid, icgrid, cgrid
       use icepack_intfc, only: icepack_biogeochemistry, icepack_load_ocean_bio_array
       use icedrv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat
@@ -1461,7 +1461,6 @@
                       iDi          = iDi(i,:,:),                &
                       iki          = iki(i,:,:),                &
                       zfswin       = zfswin(i,:,:),             &
-                      zsal_tot     = zsal_tot(i),               &
                       darcy_V      = darcy_V(i,:),              &
                       grow_net     = grow_net(i),               &
                       PP_net       = PP_net(i),                 &
@@ -1479,10 +1478,7 @@
                       ice_bio_net  = ice_bio_net(i,1:nbtrcr),   &
                       snow_bio_net = snow_bio_net(i,1:nbtrcr),  &
                       fswthrun     = fswthrun(i,:),             &
-                      Rayleigh_criteria = Rayleigh_criteria(i), &
                       sice_rho     = sice_rho(i,:),             &
-                      fzsal        = fzsal(i),                  &
-                      fzsal_g      = fzsal_g(i),                &
                       meltbn       = meltbn(i,:),               &
                       melttn       = melttn(i,:),               &
                       congeln      = congeln(i,:),              &

@@ -123,10 +123,10 @@ computation and a routine to update the radiation computation::
       use icepack_shortwave, only: icepack_prep_radiation
       use icepack_shortwave, only: icepack_step_radiation
 
-icepack_brine address brine and zsalinity computations::
+icepack_brine addresses brine computations::
 
       use icepack_brine, only: icepack_init_hbrine
-      use icepack_brine, only: icepack_init_zsalinity
+      use icepack_brine, only: icepack_init_zsalinity  ! DEPRECATED
 
 icepack_zbgc contains several public interfaces to support initialization
 and computation for the skeletal layer bgc and zbgc options::
@@ -214,7 +214,6 @@ of how to do this in practice.  The sample below does not include bgc::
     call *icepack_init_itd_hist*
     loop over gridcells
       call *icepack_step_radiation*
-      call *icepack_init_zsalinity*
     end loop over gridcells
     call *icepack_init_hbrine*
     loop over gridcells

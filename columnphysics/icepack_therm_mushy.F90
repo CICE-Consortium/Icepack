@@ -3307,7 +3307,7 @@
              ! density of newly formed snow-ice
              rho_snowice = phi_snowice * rho_ocn + (c1 - phi_snowice) * rhoi
           endif ! freeboard_density > c0
-!       endif ! tr_snow
+!       endif ! snwgrain
 
        if (freeboard_density > c0) then ! ice is flooded
 
