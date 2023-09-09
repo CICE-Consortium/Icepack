@@ -98,10 +98,10 @@
          natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
-         cpl_frazil, update_ocn_f, tfrz_option, saltflux_option, &
+         cpl_frazil, tfrz_option, saltflux_option, &
          frzpnd, atmbndy, wave_spec_type, snwredist, snw_aging_table
 
-      logical (kind=log_kind) :: sw_redist, use_smliq_pnd, snwgrain
+      logical (kind=log_kind) :: sw_redist, use_smliq_pnd, snwgrain, update_ocn_f
       real (kind=dbl_kind)    :: sw_frac, sw_dtemp
 
       ! Flux convergence tolerance
