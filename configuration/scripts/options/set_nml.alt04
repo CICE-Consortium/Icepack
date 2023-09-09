@@ -14,6 +14,7 @@
     krdg_redist     = 0
     calc_Tsfc       = .true.
     highfreq        = .true.
+    cpl_frazil      = 'internal'
     update_ocn_f    = .true.
     l_mpond_fresh   = .true.
     restore_ocn     = .true.

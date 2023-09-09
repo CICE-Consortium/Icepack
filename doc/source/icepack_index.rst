@@ -92,6 +92,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "cp_wv", "specific heat of water vapor", "1.81x\ :math:`10^3` J/kg/K"
    "cp063", "diffuse fresnel reflectivity (above)", "0.063"
    "cp455", "diffuse fresnel reflectivity (below)", "0.455"
+   "cpl_frazil", ":math:`\bullet` type of frazil ice coupling", ""
    "Cs", "fraction of shear energy contributing to ridging", "0.25"
    "Cstar", "constant in Hibler ice strength formula", "20."
    "**D**", "", ""

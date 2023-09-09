@@ -27,7 +27,7 @@
       use icepack_parameters, only: rhosi, conserv_check, rhosmin
       use icepack_parameters, only: kitd, ktherm
       use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin
-      use icepack_parameters, only: saltflux_option
+      use icepack_parameters, only: cpl_frazil, update_ocn_f, saltflux_option
       use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_tracers, only: ntrcr, nbtrcr
@@ -1307,7 +1307,6 @@
                               aice0,     aice,       &
                               frzmlt,    frazil,     &
                               frz_onset, yday,       &
-                              update_ocn_f,          &
                               fresh,     fsalt,      &
                               Tf,        sss,        &
                               salinz,    phi_init,   &
@@ -1379,9 +1378,6 @@
       real (kind=dbl_kind), intent(in) :: &
          phi_init     , & ! initial frazil liquid fraction
          dSin0_frazil     ! initial frazil bulk salinity reduction from sss
-
-      logical (kind=log_kind), intent(in) :: &
-         update_ocn_f ! if true, update fresh water and salt fluxes
 
       ! BGC
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
@@ -1623,29 +1619,29 @@
       !       is NOT included in fluxes fresh and fsalt.
       !-----------------------------------------------------------------
 
-      if (update_ocn_f) then
-         dfresh = -rhoi*vi0new/dt
+      dfresh = c0
+      dfsalt = c0
+      if (cpl_frazil == 'external') then
+         ! do nothing here, calculations are in the coupler or elsewhere
+      else
+         if (update_ocn_f) then
+            dfresh = -rhoi*vi0new/dt
+         elseif (cpl_frazil == 'fresh_ice_correction' .and. ktherm == 2) then
+            ! correct frazil fluxes for mushy
+            vi0tmp = fnew*dt / (rhoi*Lfresh) ! ocn/cpl assumes frazil volume is pure, fresh ice
+            dfresh = -rhoi*(vi0new - vi0tmp)/dt
+            frazil_diag = frazil - vi0tmp
+!        else 
+!           do nothing - other correction options could be implemented in the future             
+         endif
+
          if (saltflux_option == 'prognostic') then
             dfsalt = Si0new*p001*dfresh
          else
             dfsalt = ice_ref_salinity*p001*dfresh
          endif
          fresh  = fresh + dfresh
-         fsalt  = fsalt + dfsalt
-      else ! update_ocn_f = false
-         if (ktherm == 2) then ! return mushy-layer frazil to ocean (POP)
-            vi0tmp = fnew*dt / (rhoi*Lfresh)
-            dfresh = -rhoi*(vi0new - vi0tmp)/dt
-            if (saltflux_option == 'prognostic') then
-               dfsalt = Si0new*p001*dfresh
-            else
-               dfsalt = ice_ref_salinity*p001*dfresh
-            endif
-            fresh  = fresh + dfresh
-            fsalt  = fsalt + dfsalt
-            frazil_diag = frazil - vi0tmp
-         ! elseif ktherm==1 do nothing
-         endif
+         fsalt  = fsalt + dfsalt      
       endif
 
       !-----------------------------------------------------------------
@@ -2017,6 +2013,8 @@
                                      d_afsd_latm,  d_afsd_weld,   &
                                      floe_rad_c,   floe_binwidth)
 
+      use icepack_parameters, only: icepack_init_parameters
+
       integer (kind=int_kind), intent(in) :: &
          ncat     , & ! number of thickness categories
          nltrcr   , & ! number of zbgc tracers
@@ -2027,7 +2025,7 @@
       integer (kind=int_kind), intent(in), optional :: &
          nfsd         ! number of floe size categories
 
-      logical (kind=log_kind), intent(in) :: &
+      logical (kind=log_kind), intent(in), optional :: &
          update_ocn_f ! if true, update fresh water and salt fluxes
 
       real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
@@ -2146,6 +2144,9 @@
       !-----------------------------------------------------------------
 
        if (icepack_chkoptargflag(first_call)) then
+          if (present(update_ocn_f)) then
+             call icepack_init_parameters(update_ocn_f_in=update_ocn_f)
+          endif
           if (tr_iso) then
              if (.not.(present(fiso_ocn)   .and. &
                        present(HDO_ocn)    .and. &
@@ -2243,7 +2244,6 @@
                            aice0,         aice,         &
                            frzmlt,        frazil,       &
                            frz_onset,     yday,         &
-                           update_ocn_f,                &
                            fresh,         fsalt,        &
                            Tf,            sss,          &
                            salinz,        phi_init,     &
