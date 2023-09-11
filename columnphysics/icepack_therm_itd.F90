@@ -2137,10 +2137,10 @@
       ! Check optional arguments and set local values
       !-----------------------------------------------------------------
 
+       if (present(update_ocn_f)) then
+          call icepack_init_parameters(update_ocn_f_in=update_ocn_f)
+       endif
        if (icepack_chkoptargflag(first_call)) then
-          if (present(update_ocn_f)) then
-             call icepack_init_parameters(update_ocn_f_in=update_ocn_f)
-          endif
           if (tr_iso) then
              if (.not.(present(fiso_ocn)   .and. &
                        present(HDO_ocn)    .and. &
