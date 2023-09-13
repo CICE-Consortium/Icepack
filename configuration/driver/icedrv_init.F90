@@ -64,7 +64,7 @@
       use icedrv_calendar, only: npt, dt, ndtd, days_per_year, use_leap_years
       use icedrv_history, only: history_format
       use icedrv_restart_shared, only: restart, restart_dir, restart_file, restart_format
-      use icedrv_flux, only: update_ocn_f, l_mpond_fresh, cpl_bgc
+      use icedrv_flux, only: l_mpond_fresh, cpl_bgc
       use icedrv_flux, only: default_season
       use icedrv_forcing, only: precip_units,    fyear_init,      ycycle
       use icedrv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
@@ -98,9 +98,10 @@
          natmiter, kitd, kcatbound
 
       character (len=char_len) :: shortwave, albedo_type, conduct, fbot_xfer_type, &
-         tfrz_option, saltflux_option, frzpnd, atmbndy, wave_spec_type, snwredist, snw_aging_table
+         cpl_frazil, tfrz_option, saltflux_option, &
+         frzpnd, atmbndy, wave_spec_type, snwredist, snw_aging_table
 
-      logical (kind=log_kind) :: sw_redist, use_smliq_pnd, snwgrain
+      logical (kind=log_kind) :: sw_redist, use_smliq_pnd, snwgrain, update_ocn_f
       real (kind=dbl_kind)    :: sw_frac, sw_dtemp
 
       ! Flux convergence tolerance
@@ -174,7 +175,7 @@
         formdrag,        highfreq,        natmiter,        &
         atmiter_conv,    calc_dragio,                      &
         tfrz_option,     saltflux_option, ice_ref_salinity, &
-        default_season,  wave_spec_type,  &
+        default_season,  wave_spec_type,  cpl_frazil,      &
         precip_units,    fyear_init,      ycycle,          &
         atm_data_type,   ocn_data_type,   bgc_data_type,   &
         lateral_flux_type,                                &
@@ -216,7 +217,7 @@
            pndaspect_out=pndaspect, hs1_out=hs1, hp1_out=hp1, &
            ktherm_out=ktherm, calc_Tsfc_out=calc_Tsfc, &
            floediam_out=floediam, hfrazilmin_out=hfrazilmin, &
-           update_ocn_f_out = update_ocn_f, &
+           update_ocn_f_out = update_ocn_f, cpl_frazil_out = cpl_frazil, &
            conduct_out=conduct, a_rapid_mode_out=a_rapid_mode, &
            Rac_rapid_mode_out=Rac_rapid_mode, &
            aspect_rapid_mode_out=aspect_rapid_mode, &
@@ -788,6 +789,7 @@
          if (trim(atm_data_type)=='default') &
          write(nu_diag,*)    ' default_season            = ', trim(default_season)
 
+         write(nu_diag,1030) ' cpl_frazil                = ', trim(cpl_frazil)
          write(nu_diag,1010) ' update_ocn_f              = ', update_ocn_f
          write(nu_diag,1010) ' wave_spec                 = ', wave_spec
          if (wave_spec) &
@@ -980,6 +982,7 @@
            floediam_in=floediam, hfrazilmin_in=hfrazilmin, &
            ktherm_in=ktherm, calc_Tsfc_in=calc_Tsfc, &
            conduct_in=conduct, a_rapid_mode_in=a_rapid_mode, &
+           update_ocn_f_in=update_ocn_f, cpl_frazil_in=cpl_frazil, &
            Rac_rapid_mode_in=Rac_rapid_mode, &
            aspect_rapid_mode_in=aspect_rapid_mode, &
            dSdt_slow_mode_in=dSdt_slow_mode, &

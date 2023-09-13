@@ -437,7 +437,7 @@
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, &
                                     nltrcr, nx, nfsd
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
-      use icedrv_flux, only: update_ocn_f, fsalt, Tf, sss, salinz, fhocn, rside, fside, wlat
+      use icedrv_flux, only: fsalt, Tf, sss, salinz, fhocn, rside, fside, wlat
       use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn
       use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
       use icedrv_init, only: tmask
@@ -505,7 +505,7 @@
                          frzmlt=frzmlt(i), frazil=frazil(i),          &
                          frain=frain(i),   fpond=fpond(i),            &
                          fresh=fresh(i),   fsalt=fsalt(i),            &
-                         fhocn=fhocn(i),   update_ocn_f=update_ocn_f, &
+                         fhocn=fhocn(i),                              &
                          bgrid=bgrid,      cgrid=cgrid,               &
                          igrid=igrid,      faero_ocn=faero_ocn(i,:),  &
                          first_ice=first_ice(i,:),                    &
