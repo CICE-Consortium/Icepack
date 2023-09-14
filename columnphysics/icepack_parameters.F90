@@ -146,8 +146,9 @@
                          ! 2 = mushy layer theory
 
       character (char_len), public :: &
-         conduct = 'bubbly', &      ! 'MU71' or 'bubbly'
-         fbot_xfer_type = 'constant' ! transfer coefficient type for ice-ocean heat flux
+         conduct = 'bubbly', &          ! 'MU71' or 'bubbly'
+         fbot_xfer_type = 'constant', & ! transfer coefficient type for ice-ocean heat flux
+         cpl_frazil = 'fresh_ice_correction' ! type of coupling for frazil ice
 
       logical (kind=log_kind), public :: &
          calc_Tsfc     = .true. ,&! if true, calculate surface temperature
@@ -438,7 +439,8 @@
          argcheck_in, puny_in, bignum_in, pi_in, secday_in, &
          rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
          cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
-         depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, albocn_in, gravit_in, viscosity_dyn_in, &
+         depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, &
+         albocn_in, gravit_in, viscosity_dyn_in, &
          Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
          stefan_boltzmann_in, ice_ref_salinity_in, &
          Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
@@ -452,6 +454,7 @@
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
          update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
+         cpl_frazil_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
          phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
@@ -545,8 +548,9 @@
                             ! 2 = mushy layer theory
 
       character (len=*), intent(in), optional :: &
-         conduct_in, &      ! 'MU71' or 'bubbly'
-         fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
+         conduct_in, &        ! 'MU71' or 'bubbly'
+         fbot_xfer_type_in, & ! transfer coefficient type for ice-ocean heat flux
+         cpl_frazil_in        ! type of coupling for frazil ice
 
       logical (kind=log_kind), intent(in), optional :: &
          calc_Tsfc_in    , &! if true, calculate surface temperature
@@ -908,6 +912,7 @@
       if (present(conduct_in)           ) conduct          = conduct_in
       if (present(fbot_xfer_type_in)    ) fbot_xfer_type   = fbot_xfer_type_in
       if (present(calc_Tsfc_in)         ) calc_Tsfc        = calc_Tsfc_in
+      if (present(cpl_frazil_in)        ) cpl_frazil       = cpl_frazil_in
       if (present(update_ocn_f_in)      ) update_ocn_f     = update_ocn_f_in
       if (present(dts_b_in)             ) dts_b            = dts_b_in
       if (present(ustar_min_in)         ) ustar_min        = ustar_min_in
@@ -1170,7 +1175,7 @@
          saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
          Tliquidus_max_out, &
          min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
-         awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, &
+         awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, cpl_frazil_out, &
          qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
          Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
@@ -1276,8 +1281,9 @@
                             ! 2 = mushy layer theory
 
       character (len=*), intent(out), optional :: &
-         conduct_out, &     ! 'MU71' or 'bubbly'
-         fbot_xfer_type_out ! transfer coefficient type for ice-ocean heat flux
+         conduct_out, &        ! 'MU71' or 'bubbly'
+         fbot_xfer_type_out, & ! transfer coefficient type for ice-ocean heat flux
+         cpl_frazil_out        ! type of coupling for frazil ice
 
       logical (kind=log_kind), intent(out), optional :: &
          calc_Tsfc_out    ,&! if true, calculate surface temperature
@@ -1673,6 +1679,7 @@
       if (present(conduct_out)           ) conduct_out      = conduct
       if (present(fbot_xfer_type_out)    ) fbot_xfer_type_out = fbot_xfer_type
       if (present(calc_Tsfc_out)         ) calc_Tsfc_out    = calc_Tsfc
+      if (present(cpl_frazil_out)        ) cpl_frazil_out   = cpl_frazil
       if (present(update_ocn_f_out)      ) update_ocn_f_out = update_ocn_f
       if (present(dts_b_out)             ) dts_b_out        = dts_b
       if (present(ustar_min_out)         ) ustar_min_out    = ustar_min
@@ -1881,6 +1888,7 @@
         write(iounit,*) "  conduct    = ", trim(conduct)
         write(iounit,*) "  fbot_xfer_type = ", trim(fbot_xfer_type)
         write(iounit,*) "  calc_Tsfc  = ", calc_Tsfc
+        write(iounit,*) "  cpl_frazil = ", cpl_frazil
         write(iounit,*) "  update_ocn_f = ", update_ocn_f
         write(iounit,*) "  dts_b      = ", dts_b
         write(iounit,*) "  ustar_min  = ", ustar_min
