@@ -1,5 +1,5 @@
 #==============================================================================
-# Makefile macros for NCAR derecho, intel compiler
+# Makefile macros for NCAR derecho, inteloneapi compiler
 #==============================================================================
 
 CPP        := fpp
@@ -20,7 +20,7 @@ else
 endif
 
 SCC   := icx
-SFC   := ifort
+SFC   := ifx
 CC := $(SCC)
 FC := $(SFC)
 LD := $(FC)

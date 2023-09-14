@@ -1,26 +1,30 @@
 #==============================================================================
-# Makefile macros for NCAR derecho, intel compiler
+# Makefile macros for NCAR derecho, nvhpc compiler
 #==============================================================================
 
-CPP        := fpp
-CPPDEFS    := -DFORTRANUNDERSCORE ${ICE_CPPDEFS}
-CFLAGS     := -c -O2 -fp-model precise -march=core-avx2
+CPP        := nvc -Mcpp
+CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 ${ICE_CPPDEFS}
+CFLAGS     := -c -Kieee
 
-FIXEDFLAGS := -fixed -132
-FREEFLAGS  := -free
-FFLAGS     := -fp-model precise -convert big_endian -assume byterecl -ftz -traceback -march=core-avx2
+FIXEDFLAGS := -Mfixed
+FREEFLAGS  := -Mfree
+FFLAGS     := -Kieee -byteswapio -traceback 
 FFLAGS_NOOPT:= -O0
 
 ifeq ($(ICE_BLDDEBUG), true)
-  FFLAGS     += -O0 -g -check uninit -check bounds -check pointers -fpe0 -check noarg_temp_created -link_mpi=dbg
-#  FFLAGS     += -O0 -g -check all -fpe0 -ftrapuv -fp-model except -check noarg_temp_created -link_mpi=dbg -stand f08
-#  FFLAGS     += -O0 -g -check all -fpe0 -ftrapuv -fp-model except -check noarg_temp_created -init=snan,arrays -link_mpi=dbg
+#  FFLAGS   += -O0 -g -Ktrap=fp -Mbounds -Mchkptr
+#  FFLAGS   += -O0 -g -Ktrap=fp -Mbounds
+#  FFLAGS   += -O0 -Ktrap=fp -Mbounds -Mchkptr
+  FFLAGS   += -O0 -Ktrap=fp
+  CFLAGS   += -O0
 else
-  FFLAGS     += -O2
+#  FFLAGS   += -O2 -Mnofma -target=zen3
+  FFLAGS   += -O2
+  CFLAGS   += -O2
 endif
 
-SCC   := icx
-SFC   := ifort
+SCC   := nvc
+SFC   := nvfortran
 CC := $(SCC)
 FC := $(SFC)
 LD := $(FC)

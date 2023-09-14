@@ -19,7 +19,6 @@
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
-      use icepack_intfc, only: icepack_query_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -193,7 +192,6 @@
          scale_factor! scaling factor for shortwave components
 
       logical (kind=log_kind), public :: &
-         update_ocn_f, & ! if true, update fresh water and salt fluxes
          l_mpond_fresh   ! if true, include freshwater feedback from meltponds
                          ! when running in ice-ocean or coupled configuration
 
