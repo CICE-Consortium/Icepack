@@ -27,7 +27,7 @@
       use icepack_parameters, only: Tliquidus_max
       use icepack_parameters, only: rhosi, conserv_check, rhosmin, snwredist
       use icepack_parameters, only: kitd, ktherm
-      use icepack_parameters, only: z_tracers, solve_zsal, hfrazilmin, hi_min
+      use icepack_parameters, only: z_tracers, hfrazilmin, hi_min
       use icepack_parameters, only: saltflux_option
       use icepack_parameters, only: icepack_chkoptargflag
 
@@ -888,7 +888,7 @@
                                fside,      wlat,       &
                                aicen,      vicen,      &
                                vsnon,      trcrn,      &
-                               fzsal,      flux_bio,   &
+                               flux_bio,               &
                                nbtrcr,     nblyr,      &
                                nfsd,       d_afsd_latm,&
                                floe_rad_c, floe_binwidth)
@@ -929,8 +929,7 @@
          fresh     , & ! fresh water flux to ocean (kg/m^2/s)
          fsalt     , & ! salt flux to ocean (kg/m^2/s)
          fhocn     , & ! net heat flux to ocean (W/m^2)
-         meltl     , & ! lateral ice melt         (m/step-->cm/day)
-         fzsal         ! salt flux from zsalinity (kg/m2/s)
+         meltl         ! lateral ice melt         (m/step-->cm/day)
 
       real (kind=dbl_kind), dimension(nbtrcr), intent(inout) :: &
          flux_bio  ! biology tracer flux from layer bgc (mmol/m^2/s)
@@ -1241,11 +1240,11 @@
 
          enddo       ! n
 
-         if (solve_zsal .or. z_tracers) &
+         if (z_tracers) &
             call lateral_melt_bgc(dt,                         &
                                   ncat,        nblyr,         &
                                   rside,       vicen_init,    &  !echmod: use rsiden
-                                  trcrn,       fzsal,         &
+                                  trcrn,                      &
                                   flux_bio,    nbtrcr)
             if (icepack_warnings_aborted(subname)) return
 
@@ -1316,7 +1315,7 @@
                               dSin0_frazil,          &
                               bgrid,      cgrid,      igrid,    &
                               nbtrcr,    flux_bio,   &
-                              ocean_bio, fzsal,      &
+                              ocean_bio,             &
                               frazil_diag,           &
                               fiso_ocn,              &
                               HDO_ocn, H2_16O_ocn,   &
@@ -1403,10 +1402,6 @@
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          ocean_bio   ! ocean concentration of biological tracer
-
-      ! zsalinity
-      real (kind=dbl_kind),  intent(inout) :: &
-         fzsal      ! salt flux to ocean from zsalinity (kg/m^2/s)
 
       ! water isotopes
 
@@ -1612,7 +1607,6 @@
 
       ! history diagnostics
       frazil = vi0new
-      if (solve_zsal) fzsal = fzsal - rhosi*vi0new/dt*p001*sss*salt_loss
 
       if (present(frz_onset) .and. present(yday)) then
          if (frazil > puny .and. frz_onset < puny) frz_onset = yday
@@ -1798,7 +1792,6 @@
                      trcrn(nt_qice+k-1,n) = &
                     (trcrn(nt_qice+k-1,n)*vtmp + qi0new*vsurp) / vicen(n)
                      ! salinity
-                     if (.not. solve_zsal) &
                      trcrn(nt_sice+k-1,n) = &
                     (trcrn(nt_sice+k-1,n)*vtmp + Sprofile(k)*vsurp) / vicen(n)
                   endif
@@ -1918,7 +1911,6 @@
                trcrn(nt_qice+k-1,n) = &
               (trcrn(nt_qice+k-1,n)*vice1 + qi0new*vin0new(n))/vicen(n)
                ! salinity
-               if (.NOT. solve_zsal)&
                trcrn(nt_sice+k-1,n) = &
               (trcrn(nt_sice+k-1,n)*vice1 + Sprofile(k)*vin0new(n))/vicen(n)
             endif
@@ -2040,7 +2032,7 @@
          Tf       , & ! freezing temperature (C)
          sss      , & ! sea surface salinity (ppt)
          rside    , & ! fraction of ice that melts laterally
-         frzmlt       ! freezing/melting potential (W/m^2) 
+         frzmlt       ! freezing/melting potential (W/m^2)
 
       integer (kind=int_kind), dimension (:), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
@@ -2075,10 +2067,12 @@
          fresh    , & ! fresh water flux to ocean (kg/m^2/s)
          fsalt    , & ! salt flux to ocean (kg/m^2/s)
          fhocn    , & ! net heat flux to ocean (W/m^2)
-         fzsal    , & ! salt flux to ocean from zsalinity (kg/m^2/s)
          meltl    , & ! lateral ice melt         (m/step-->cm/day)
          frazil   , & ! frazil ice growth        (m/step-->cm/day)
          frazil_diag  ! frazil ice growth diagnostic (m/step-->cm/day)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+         fzsal        ! salt flux to ocean from zsalinity (kg/m^2/s) (deprecated)
 
       real (kind=dbl_kind), intent(in), optional :: &
          wlat         ! lateral melt rate (m/s)
@@ -2252,7 +2246,7 @@
                            dSin0_frazil,  bgrid,        &
                            cgrid,         igrid,        &
                            nbtrcr,        flux_bio,     &
-                           ocean_bio,     fzsal,        &
+                           ocean_bio,                   &
                            frazil_diag,   fiso_ocn,     &
                            HDO_ocn,       H2_16O_ocn,   &
                            H2_18O_ocn,                  &
@@ -2278,7 +2272,7 @@
                          fside,     wlat,          &
                          aicen,     vicen,         &
                          vsnon,     trcrn,         &
-                         fzsal,     flux_bio,      &
+                         flux_bio,                 &
                          nbtrcr,    nblyr,         &
                          nfsd,      d_afsd_latm,   &
                          floe_rad_c,floe_binwidth)
@@ -2327,7 +2321,7 @@
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
                         faero_ocn,            fiso_ocn,         &
-                        fzsal,                flux_bio, Tf)
+                        flux_bio,             Tf                )
       if (icepack_warnings_aborted(subname)) return
 
       first_call = .false.

@@ -90,7 +90,7 @@
       logical (kind=log_kind) :: &
          tr_iage, tr_FY, tr_lvl, tr_iso, tr_aero, tr_brine, &
          tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
-!         solve_zsal, skl_bgc, z_tracers
+!         skl_bgc, z_tracers
 
       integer (kind=int_kind) :: dims(2)
 
@@ -118,8 +118,7 @@
           tr_brine_out=tr_brine, &
           tr_pond_topo_out=tr_pond_topo, &
           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
-!      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
-!         skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
+!      call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
          file=__FILE__,line= __LINE__)
@@ -226,7 +225,7 @@
       if (tr_brine)     call write_restart_hbrine(dims)    ! brine height
       if (tr_fsd)       call write_restart_fsd(dims)       ! floe size distribution
    ! called in icedrv_RunMod.F90 to prevent circular dependencies
-   !      if (solve_zsal .or. skl_bgc .or. z_tracers) &
+   !      if (skl_bgc .or. z_tracers) &
    !                        call write_restart_bgc         ! biogeochemistry
 
       ! Close netcdf file
