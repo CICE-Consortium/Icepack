@@ -186,6 +186,7 @@
          kappav     = 1.4_dbl_kind  ,&! vis extnctn coef in ice, wvlngth<700nm (1/m)
          hi_ssl     = 0.050_dbl_kind,&! ice surface scattering layer thickness (m)
          hs_ssl     = 0.040_dbl_kind,&! snow surface scattering layer thickness (m)
+         hs_ssl_min = 5.e-4_dbl_kind,&! minimum snow surface scattering layer thickness for aerosol (m)
          ! baseline albedos for ccsm3 shortwave, set in namelist
          albicev    = 0.78_dbl_kind ,&! visible ice albedo for h > ahmax
          albicei    = 0.36_dbl_kind ,&! near-ir ice albedo for h > ahmax
@@ -449,7 +450,7 @@
          zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
          saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
          Tliquidus_max_in, &
-         min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, &
+         min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, hs_ssl_min_in, &
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
@@ -594,7 +595,8 @@
          stefan_boltzmann_in, & !  W/m^2/K^4
          kappav_in,     & ! vis extnctn coef in ice, wvlngth<700nm (1/m)
          hi_ssl_in,     & ! ice surface scattering layer thickness (m)
-         hs_ssl_in,     & ! visible, direct
+         hs_ssl_in,     & ! snow surface scattering layer thickness (m)
+         hs_ssl_min_in, & ! minimum snow surface scattering layer thickness for aerosols (m)
          awtvdr_in,     & ! visible, direct  ! for history and
          awtidr_in,     & ! near IR, direct  ! diagnostics
          awtvdf_in,     & ! visible, diffuse
@@ -899,6 +901,7 @@
       if (present(dSin0_frazil_in)      ) dSin0_frazil     = dSin0_frazil_in
       if (present(hi_ssl_in)            ) hi_ssl           = hi_ssl_in
       if (present(hs_ssl_in)            ) hs_ssl           = hs_ssl_in
+      if (present(hs_ssl_min_in)        ) hs_ssl_min       = hs_ssl_min_in
       if (present(awtvdr_in)            ) awtvdr           = awtvdr_in
       if (present(awtidr_in)            ) awtidr           = awtidr_in
       if (present(awtvdf_in)            ) awtvdf           = awtvdf_in
@@ -1174,7 +1177,7 @@
          zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
          saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
          Tliquidus_max_out, &
-         min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
+         min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, hs_ssl_min_out, &
          awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, cpl_frazil_out, &
          qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
          Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
@@ -1329,7 +1332,8 @@
          stefan_boltzmann_out, & !  W/m^2/K^4
          kappav_out,     & ! vis extnctn coef in ice, wvlngth<700nm (1/m)
          hi_ssl_out,     & ! ice surface scattering layer thickness (m)
-         hs_ssl_out,     & ! visible, direct
+         hs_ssl_out,     & ! snow surface scattering layer thickness (m)
+         hs_ssl_min_out, & ! minimum snow surface scattering layer thickness for aerosols (m)
          awtvdr_out,     & ! visible, direct  ! for history and
          awtidr_out,     & ! near IR, direct  ! diagnostics
          awtvdf_out,     & ! visible, diffuse
@@ -1666,6 +1670,7 @@
       if (present(dSin0_frazil_out)      ) dSin0_frazil_out = dSin0_frazil
       if (present(hi_ssl_out)            ) hi_ssl_out       = hi_ssl
       if (present(hs_ssl_out)            ) hs_ssl_out       = hs_ssl
+      if (present(hs_ssl_min_out)        ) hs_ssl_min_out   = hs_ssl_min
       if (present(awtvdr_out)            ) awtvdr_out       = awtvdr
       if (present(awtidr_out)            ) awtidr_out       = awtidr
       if (present(awtvdf_out)            ) awtvdf_out       = awtvdf
@@ -1864,6 +1869,7 @@
         write(iounit,*) "  dSin0_frazil = ",dSin0_frazil
         write(iounit,*) "  hi_ssl     = ",hi_ssl
         write(iounit,*) "  hs_ssl     = ",hs_ssl
+        write(iounit,*) "  hs_ssl_min = ",hs_ssl_min
         write(iounit,*) "  awtvdr     = ",awtvdr
         write(iounit,*) "  awtidr     = ",awtidr
         write(iounit,*) "  awtvdf     = ",awtvdf
