@@ -14,7 +14,7 @@ module icepack_mushy_physics
   public :: &
        conductivity_mush_array, &
        conductivity_snow_array, &
-       enthalpy_snow, &
+       icepack_enthalpy_snow, &
        enthalpy_brine, &
        icepack_enthalpy_mush, &
        enthalpy_mush_liquid_fraction, &
@@ -143,7 +143,7 @@ contains
 !=======================================================================
 ! Enthalpy of snow from snow temperature
 
-  function enthalpy_snow(zTsn) result(zqsn)
+  function icepack_enthalpy_snow(zTsn) result(zqsn)
 
     real(kind=dbl_kind), intent(in) :: &
          zTsn ! snow layer temperature (C)
@@ -151,11 +151,11 @@ contains
     real(kind=dbl_kind) :: &
          zqsn ! snow layer enthalpy (J m-3)
 
-    character(len=*),parameter :: subname='(enthalpy_snow)'
+    character(len=*),parameter :: subname='(icepack_enthalpy_snow)'
 
     zqsn = -rhos * (-cp_ice * zTsn + Lfresh)
 
-  end function enthalpy_snow
+  end function icepack_enthalpy_snow
 
 !=======================================================================
 ! Temperature of snow from the snow enthalpy
