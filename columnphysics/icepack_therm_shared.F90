@@ -17,7 +17,7 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_mushy_physics, only: enthalpy_mush
+      use icepack_mushy_physics, only: icepack_enthalpy_mush
       use icepack_mushy_physics, only: temperature_snow
       use icepack_mushy_physics, only: enthalpy_snow
       use icepack_mushy_physics, only: icepack_mushy_temperature_mush
@@ -317,7 +317,7 @@
           Ti = Tsfc + slope*(real(k,kind=dbl_kind)-p5) &
               /real(nilyr,kind=dbl_kind)
           if (ktherm == 2) then
-            qin(k) = enthalpy_mush(Ti, Sprofile(k))
+            qin(k) = icepack_enthalpy_mush(Ti, Sprofile(k))
           else
             qin(k) = -(rhoi * (cp_ice*(Tprofile(k)-Ti) &
                 + Lfresh*(c1-Tprofile(k)/Ti) - cp_ocn*Tprofile(k)))

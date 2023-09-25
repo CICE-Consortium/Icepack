@@ -49,7 +49,7 @@
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
       use icepack_isotope, only: isoice_alpha, isotope_frac_method
-      use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
+      use icepack_mushy_physics, only: liquidus_temperature_mush, icepack_enthalpy_mush
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc
 
@@ -1579,7 +1579,7 @@
             Sprofile(k) = Si0new
          enddo
          Ti = min(liquidus_temperature_mush(Si0new/phi_init), Tliquidus_max)
-         qi0new = enthalpy_mush(Ti, Si0new)
+         qi0new = icepack_enthalpy_mush(Ti, Si0new)
       else
          do k = 1, nilyr
             Sprofile(k) = salinz(k)
