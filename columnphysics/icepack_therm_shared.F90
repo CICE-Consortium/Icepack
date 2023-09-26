@@ -17,9 +17,8 @@
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
-      use icepack_mushy_physics, only: enthalpy_mush
+      use icepack_mushy_physics, only: icepack_enthalpy_mush
       use icepack_mushy_physics, only: temperature_snow
-      use icepack_mushy_physics, only: enthalpy_snow
       use icepack_mushy_physics, only: icepack_mushy_temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
 
@@ -30,12 +29,12 @@
                 surface_heat_flux, &
                 dsurface_heat_flux_dTsf, &
                 icepack_init_thermo, &
+                icepack_salinity_profile, &
                 icepack_init_trcr, &
                 icepack_ice_temperature, &
                 icepack_snow_temperature, &
                 icepack_liquidus_temperature, &
                 icepack_sea_freezing_temperature, &
-                icepack_enthalpy_snow, &
                 adjust_enthalpy
 
       real (kind=dbl_kind), parameter, public :: &
@@ -226,10 +225,6 @@
 
 !autodocument_end
 
-      real (kind=dbl_kind), parameter :: &
-         nsal    = 0.407_dbl_kind, &
-         msal    = 0.573_dbl_kind
-
       integer (kind=int_kind) :: k        ! ice layer index
       real (kind=dbl_kind)    :: zn       ! normalized ice thickness
 
@@ -254,7 +249,8 @@
          do k = 1, nilyr
             zn = (real(k,kind=dbl_kind)-p5) /  &
                   real(nilyr,kind=dbl_kind)
-            sprofile(k)=(saltmax/c2)*(c1-cos(pi*zn**(nsal/(msal+zn))))
+!            sprofile(k)=(saltmax/c2)*(c1-cos(pi*zn**(nsal/(msal+zn))))
+            sprofile(k)=icepack_salinity_profile(zn)
             sprofile(k) = max(sprofile(k), min_salin)
          enddo ! k
          sprofile(nilyr+1) = saltmax
@@ -266,6 +262,33 @@
       endif ! l_brine
 
       end subroutine icepack_init_thermo
+
+!=======================================================================
+!autodocument_start icepack_salinity_profile
+! Initial salinity profile
+!
+! authors: C. M. Bitz, UW
+!          William H. Lipscomb, LANL
+
+      function icepack_salinity_profile(zn) result(salinity)
+
+      real(kind=dbl_kind), intent(in) :: &
+         zn ! depth
+
+      real(kind=dbl_kind) :: &
+         salinity ! initial salinity profile
+
+!autodocument end
+
+      real (kind=dbl_kind), parameter :: &
+         nsal    = 0.407_dbl_kind, &
+         msal    = 0.573_dbl_kind
+
+      character(len=*),parameter :: subname='(icepack_init_thermo)'
+
+      salinity = (saltmax/c2)*(c1-cos(pi*zn**(nsal/(msal+zn))))
+
+      end function icepack_salinity_profile
 
 !=======================================================================
 !autodocument_start icepack_init_trcr
@@ -317,7 +340,7 @@
           Ti = Tsfc + slope*(real(k,kind=dbl_kind)-p5) &
               /real(nilyr,kind=dbl_kind)
           if (ktherm == 2) then
-            qin(k) = enthalpy_mush(Ti, Sprofile(k))
+            qin(k) = icepack_enthalpy_mush(Ti, Sprofile(k))
           else
             qin(k) = -(rhoi * (cp_ice*(Tprofile(k)-Ti) &
                 + Lfresh*(c1-Tprofile(k)/Ti) - cp_ocn*Tprofile(k)))
@@ -442,23 +465,6 @@
         endif
 
       end function icepack_snow_temperature
-
-!=======================================================================
-!autodocument_start icepack_enthalpy_snow
-! compute snow enthalpy
-
-      function icepack_enthalpy_snow(zTsn) result(qsn)
-
-        real(kind=dbl_kind), intent(in) :: zTsn
-        real(kind=dbl_kind) :: qsn
-
-!autodocument_end
-
-        character(len=*),parameter :: subname='(icepack_enthalpy_snow)'
-
-        qsn = enthalpy_snow(zTsn)
-
-      end function icepack_enthalpy_snow
 
 !=======================================================================
 !

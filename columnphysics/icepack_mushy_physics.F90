@@ -14,9 +14,9 @@ module icepack_mushy_physics
   public :: &
        conductivity_mush_array, &
        conductivity_snow_array, &
-       enthalpy_snow, &
+       icepack_enthalpy_snow, &
        enthalpy_brine, &
-       enthalpy_mush, &
+       icepack_enthalpy_mush, &
        enthalpy_mush_liquid_fraction, &
        enthalpy_of_melting, &
        temperature_snow, &
@@ -143,7 +143,7 @@ contains
 !=======================================================================
 ! Enthalpy of snow from snow temperature
 
-  function enthalpy_snow(zTsn) result(zqsn)
+  function icepack_enthalpy_snow(zTsn) result(zqsn)
 
     real(kind=dbl_kind), intent(in) :: &
          zTsn ! snow layer temperature (C)
@@ -151,11 +151,11 @@ contains
     real(kind=dbl_kind) :: &
          zqsn ! snow layer enthalpy (J m-3)
 
-    character(len=*),parameter :: subname='(enthalpy_snow)'
+    character(len=*),parameter :: subname='(icepack_enthalpy_snow)'
 
     zqsn = -rhos * (-cp_ice * zTsn + Lfresh)
 
-  end function enthalpy_snow
+  end function icepack_enthalpy_snow
 
 !=======================================================================
 ! Temperature of snow from the snow enthalpy
@@ -262,7 +262,7 @@ contains
 !=======================================================================
 ! Enthalpy of mush from mush temperature and bulk salinity
 
-  function enthalpy_mush(zTin, zSin) result(zqin)
+  function icepack_enthalpy_mush(zTin, zSin) result(zqin)
 
     real(kind=dbl_kind), intent(in) :: &
          zTin, & ! ice layer temperature (C)
@@ -274,14 +274,14 @@ contains
     real(kind=dbl_kind) :: &
          phi     ! ice liquid fraction
 
-    character(len=*),parameter :: subname='(enthalpy_mush)'
+    character(len=*),parameter :: subname='(icepack_enthalpy_mush)'
 
     phi = icepack_mushy_liquid_fraction(zTin, zSin)
 
     zqin = phi * (cp_ocn * rhow - cp_ice * rhoi) * zTin + &
            rhoi * cp_ice * zTin - (c1 - phi) * rhoi * Lfresh
 
-  end function enthalpy_mush
+  end function icepack_enthalpy_mush
 
 !=======================================================================
 ! Enthalpy of mush from mush temperature and liquid fraction
