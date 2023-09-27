@@ -278,7 +278,7 @@
       real(kind=dbl_kind) :: &
          salinity ! initial salinity profile
 
-!autodocument end
+!autodocument_end
 
       real (kind=dbl_kind), parameter :: &
          nsal    = 0.407_dbl_kind, &

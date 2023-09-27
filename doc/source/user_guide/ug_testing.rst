@@ -220,6 +220,8 @@ Test suites support running multiple tests specified via
 an input file or files.  When invoking the test suite option (``--suite``) with **icepack.setup**,
 all tests will be created, built, and submitted automatically under
 a directory called testsuite.[testid].[$date] as part of involing the suite.
+The test scripts provide an ability to reuse binaries between tests within
+a test suite when possible.
 Because the tests are built and submitted automatically, 
 this feature does not allow for customization of cases or tests like
 individual cases and tests do::

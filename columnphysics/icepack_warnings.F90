@@ -92,11 +92,15 @@ contains
       end subroutine icepack_warnings_clear
 
 !=======================================================================
+!autodocument_start icepack_warnings_clear
+! return an array of all the current warning messages
 
       subroutine icepack_warnings_getall(warningsOut)
 
         character(len=char_len_long), dimension(:), allocatable, intent(out) :: &
              warningsOut
+
+!autodocument_end
 
         integer :: iWarning
         character(len=*),parameter :: subname='(icepack_warnings_getall)'
