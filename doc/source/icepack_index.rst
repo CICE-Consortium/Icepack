@@ -470,7 +470,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "tmass", "total mass of ice and snow", "kg/m\ :math:`^2`"
    "Tmin", "minimum allowed internal temperature", "-100. C"
    "Tmltz", "melting temperature profile of ice", ""
-   "Tocnfrz", "temperature of constant freezing point parameterization", "-1.8 C"
+   "Tocnfrz", "temperature of constant freezing point parameterization", "C"
    "tr_aero", ":math:`\bullet` if true, use aerosol tracers", ""
    "tr_iso", ":math:`\bullet` if true, use water isotope tracers", ""
    "tr_bgc_[tracer]", ":math:`\bullet` if true, use biogeochemistry tracers", ""

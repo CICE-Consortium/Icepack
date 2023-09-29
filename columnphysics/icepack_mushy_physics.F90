@@ -141,6 +141,7 @@ contains
   end subroutine conductivity_snow_array
 
 !=======================================================================
+!autodocument_start icepack_enthalpy_snow
 ! Enthalpy of snow from snow temperature
 
   function icepack_enthalpy_snow(zTsn) result(zqsn)
@@ -150,6 +151,8 @@ contains
 
     real(kind=dbl_kind) :: &
          zqsn ! snow layer enthalpy (J m-3)
+
+!autodocument_end
 
     character(len=*),parameter :: subname='(icepack_enthalpy_snow)'
 
@@ -260,6 +263,7 @@ contains
   end function liquidus_temperature_mush
 
 !=======================================================================
+!autodocument_start icepack_enthalpy_mush
 ! Enthalpy of mush from mush temperature and bulk salinity
 
   function icepack_enthalpy_mush(zTin, zSin) result(zqin)
@@ -270,6 +274,8 @@ contains
 
     real(kind=dbl_kind) :: &
          zqin    ! ice layer enthalpy (J m-3)
+
+!autodocument_end
 
     real(kind=dbl_kind) :: &
          phi     ! ice liquid fraction

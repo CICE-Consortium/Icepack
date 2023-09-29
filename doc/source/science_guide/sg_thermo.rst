@@ -21,7 +21,10 @@ horizontally uniform column with ice thickness
 :math:`h_{sn} = v_{sn}/a_{in}`. (Henceforth we omit the category
 index \ :math:`n`.) Each column is divided into :math:`N_i` ice layers
 of thickness :math:`\Delta h_i = h_i/N_i` and :math:`N_s` snow layers of
-thickness :math:`\Delta h_s = h_s/N_s`. The surface temperature (i.e.,
+thickness :math:`\Delta h_s = h_s/N_s`.   Minimum ice and snow thickness
+is specified by namelist parameters ``hi_min`` and ``hs_min``.
+
+The surface temperature (i.e.,
 the temperature of ice or snow at the interface with the atmosphere) is
 :math:`T_{sf}`, which cannot exceed :math:`0^{\circ}C`. The temperature at the
 midpoint of the snow layer is :math:`T_s`, and the midpoint ice layer
@@ -29,6 +32,13 @@ temperatures are :math:`T_{ik}`, where :math:`k` ranges from 1 to
 :math:`N_i`. The temperature at the bottom of the ice is held at
 :math:`T_f`, the freezing temperature of the ocean mixed layer. All
 temperatures are in degrees Celsius unless stated otherwise.
+
+The ``tfrz_option`` namelist specifies the freezing temperature formulation.
+``minus1p8`` fixes the freezing temperature at -1.8C.  ``constant`` fixes
+the freeing point at whatever value is specified by the parameter ``Tocnfrz``.
+``linear_salt`` sets the freezing temperature based on salinity, 
+:math:`Tf = -depressT * sss`.  And ``mushy`` uses the mushy formulation for setting
+the freezing temperature.
 
 Each ice layer has an enthalpy :math:`q_{ik}`, defined as the negative
 of the energy required to melt a unit volume of ice and raise its
@@ -1679,7 +1689,8 @@ consistently (from a mushy physics point of view) to both enthalpy and
 bulk salinity, the resulting temperature may be changed to be greater
 than the limit allowed in the thermodynamics routines. If this situation
 is detected, the code corrects the enthalpy so the temperature is below
-the limiting value. Conservation of energy is ensured by placing the
+the limiting value. The limiting value, ``Tliquidus_max`` can be specified
+in namelist.  Conservation of energy is ensured by placing the
 excess energy in the ocean, and the code writes a warning (see :ref:`aborts`) 
 that this has
 occurred to the diagnostics file. This situation only occurs with the
