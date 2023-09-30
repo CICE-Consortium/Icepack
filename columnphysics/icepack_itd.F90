@@ -1495,7 +1495,7 @@
       real (kind=dbl_kind) :: &
          rnslyr   , & ! real(nslyr)
          hsn      , & ! snow thickness (m)
-         zqsn     , & ! snow layer enthalpy (J m-2)
+         zqsn     , & ! snow layer enthalpy (J m-3)
          zTsn     , & ! snow layer temperature (C)
          Tmax         ! maximum allowed snow temperature
 

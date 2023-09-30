@@ -7,7 +7,7 @@
   use icepack_parameters, only: p01, p05, p1, p2, p5, pi, bignum, puny
   use icepack_parameters, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
   use icepack_parameters, only: hs_min, snwgrain
-  use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode
+  use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode, tscale_pnd_drain
   use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
   use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
   use icepack_mushy_physics, only: icepack_mushy_density_brine, enthalpy_brine, icepack_enthalpy_snow
@@ -3167,8 +3167,10 @@
          hpond     ! melt pond thickness (m)
 
     real(kind=dbl_kind), parameter :: &
-         lambda_pond = c1 / (10.0_dbl_kind * 24.0_dbl_kind * 3600.0_dbl_kind), &
          hpond0 = 0.01_dbl_kind
+
+    real(kind=dbl_kind) :: &
+         lambda_pond ! 1 / macroscopic drainage time scale (s)
 
     character(len=*),parameter :: subname='(flush_pond)'
 
@@ -3181,6 +3183,7 @@
           hpond = max(hpond, c0)
 
           ! exponential decay of pond
+          lambda_pond = c1 / (tscale_pnd_drain * 24.0_dbl_kind * 3600.0_dbl_kind)
           hpond = hpond - lambda_pond * dt * (hpond + hpond0)
 
           hpond = max(hpond, c0)
@@ -3214,11 +3217,11 @@
          hsn               , & ! snow thickness (m)
          hin               , & ! ice thickness (m)
          sss               , & ! sea surface salinity (ppt)
-         qocn                  ! ocean brine enthalpy (J m-2)
+         qocn                  ! ocean brine enthalpy (J m-3)
 
     real(kind=dbl_kind), dimension(:), intent(inout) :: &
-         zqsn              , & ! snow layer enthalpy (J m-2)
-         zqin              , & ! ice layer enthalpy (J m-2)
+         zqsn              , & ! snow layer enthalpy (J m-3)
+         zqin              , & ! ice layer enthalpy (J m-3)
          zSin              , & ! ice layer bulk salinity (ppt)
          phi               , & ! ice liquid fraction
          smice             , & ! ice mass tracer in snow (kg/m^3)
@@ -3246,8 +3249,8 @@
          phi_snowice       , & ! liquid fraction of new snow ice
          rho_snowice       , & ! density of snowice (kg m-3)
          zSin_snowice      , & ! bulk salinity of new snowice (ppt)
-         zqin_snowice      , & ! ice enthalpy of new snowice (J m-2)
-         zqsn_snowice      , & ! snow enthalpy of snow thats becoming snowice (J m-2)
+         zqin_snowice      , & ! ice enthalpy of new snowice (J m-3)
+         zqsn_snowice      , & ! snow enthalpy of snow that is becoming snowice (J m-3)
          freeboard_density , & ! negative of ice surface freeboard times the ocean density (kg m-2)
          ice_mass          , & ! mass of the ice (kg m-2)
 !        snow_mass         , & ! mass of the ice (kg m-2)
@@ -3384,10 +3387,10 @@
          hsn          ! initial snow thickness
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
-         zqsn         ! snow layer enthalpy (J m-2)
+         zqsn         ! snow layer enthalpy (J m-3)
 
     real(kind=dbl_kind), intent(out) :: &
-         zqsn_snowice ! enthalpy of snow becoming snowice (J m-2)
+         zqsn_snowice ! enthalpy of snow becoming snowice (J m-3)
 
     real(kind=dbl_kind) :: &
          rnlyr        ! real value of number of snow layers turning to snowice
