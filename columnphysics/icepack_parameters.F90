@@ -111,6 +111,7 @@
                                         ! freshwater value needed for enthalpy
          depressT  = 0.054_dbl_kind   ,&! Tf:brine salinity ratio (C/ppt)
          viscosity_dyn = 1.79e-3_dbl_kind, & ! dynamic viscosity of brine (kg/m/s)
+         tscale_pnd_drain = c10       ,&! mushy macroscopic drainage timescale (days)
          Tocnfrz   = -1.8_dbl_kind    ,&! freezing temp of seawater (C),
                                         ! used as Tsfcn for open water
          Tffresh   = 273.15_dbl_kind  ,&! freezing temp of fresh ice (K)
@@ -319,7 +320,7 @@
          frzpnd    = 'cesm'           ! pond refreezing parameterization
 
       real (kind=dbl_kind), public :: &
-         dpscale   = c1, &            ! alter e-folding time scale for flushing
+         dpscale   = 0.001_dbl_kind,& ! alter e-folding time scale for flushing (ktherm=1)
          rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
          rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
          pndaspect = 0.8_dbl_kind, &  ! ratio of pond depth to area fraction
@@ -440,7 +441,7 @@
          rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
          cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
          depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, &
-         albocn_in, gravit_in, viscosity_dyn_in, &
+         albocn_in, gravit_in, viscosity_dyn_in, tscale_pnd_drain_in, &
          Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
          stefan_boltzmann_in, ice_ref_salinity_in, &
          Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
@@ -522,6 +523,7 @@
          cp_ocn_in,     & ! specific heat of ocn    (J/kg/K)
          depressT_in,   & ! Tf:brine salinity ratio (C/ppt)
          viscosity_dyn_in, & ! dynamic viscosity of brine (kg/m/s)
+         tscale_pnd_drain_in,&! mushy macroscopic drainage timescale (days)
          Tocnfrz_in,    & ! freezing temp of seawater (C)
          Tffresh_in,    & ! freezing temp of fresh ice (K)
          Lsub_in,       & ! latent heat, sublimation freshwater (J/kg)
@@ -855,6 +857,7 @@
       if (present(albocn_in)            ) albocn           = albocn_in
       if (present(gravit_in)            ) gravit           = gravit_in
       if (present(viscosity_dyn_in)     ) viscosity_dyn    = viscosity_dyn_in
+      if (present(tscale_pnd_drain_in)  ) tscale_pnd_drain = tscale_pnd_drain_in
       if (present(Tocnfrz_in)           ) Tocnfrz          = Tocnfrz_in
       if (present(rhofresh_in)          ) rhofresh         = rhofresh_in
       if (present(zvir_in)              ) zvir             = zvir_in
@@ -1152,7 +1155,8 @@
          p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
          rhos_out, rhoi_out, rhow_out, cp_air_out, emissivity_out, &
          cp_ice_out, cp_ocn_out, hfrazilmin_out, floediam_out, &
-         depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, albocn_out, gravit_out, viscosity_dyn_out, &
+         depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, &
+         albocn_out, gravit_out, viscosity_dyn_out, tscale_pnd_drain_out, &
          Tocnfrz_out, rhofresh_out, zvir_out, vonkar_out, cp_wv_out, &
          stefan_boltzmann_out, ice_ref_salinity_out, &
          Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
@@ -1242,6 +1246,7 @@
          cp_ocn_out,     & ! specific heat of ocn    (J/kg/K)
          depressT_out,   & ! Tf:brine salinity ratio (C/ppt)
          viscosity_dyn_out, & ! dynamic viscosity of brine (kg/m/s)
+         tscale_pnd_drain_out, & ! mushy macroscopic drainage timescale (days)
          Tocnfrz_out,    & ! freezing temp of seawater (C)
          Tffresh_out,    & ! freezing temp of fresh ice (K)
          Lsub_out,       & ! latent heat, sublimation freshwater (J/kg)
@@ -1612,6 +1617,7 @@
       if (present(albocn_out)            ) albocn_out       = albocn
       if (present(gravit_out)            ) gravit_out       = gravit
       if (present(viscosity_dyn_out)     ) viscosity_dyn_out= viscosity_dyn
+      if (present(tscale_pnd_drain_out)  ) tscale_pnd_drain_out = tscale_pnd_drain
       if (present(Tocnfrz_out)           ) Tocnfrz_out      = Tocnfrz
       if (present(rhofresh_out)          ) rhofresh_out     = rhofresh
       if (present(zvir_out)              ) zvir_out         = zvir
@@ -1807,6 +1813,7 @@
         write(iounit,*) "  albocn     = ",albocn
         write(iounit,*) "  gravit     = ",gravit
         write(iounit,*) "  viscosity_dyn = ",viscosity_dyn
+        write(iounit,*) "  tscale_pnd_drain = ",tscale_pnd_drain
         write(iounit,*) "  Tocnfrz    = ",Tocnfrz
         write(iounit,*) "  rhofresh   = ",rhofresh
         write(iounit,*) "  zvir       = ",zvir

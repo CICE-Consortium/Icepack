@@ -215,6 +215,7 @@ thermo_nml
    "``phi_c_slow_mode``", ":math:`0<\phi_c < 1`", "critical liquid fraction", "0.05"
    "``phi_i_mushy``", ":math:`0<\phi_i < 1`", "solid fraction at lower boundary", "0.85"
    "``Rac_rapid_mode``", "real", "critical Rayleigh number", "10.0"
+   "``tscale_pnd_drain``", "real", "mushy pond macroscopic drainage timescale in days", "10."
    "", "", "", ""
 
 
@@ -272,7 +273,7 @@ ponds_nml
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
-   "``dpscale``", "real", "time scale for flushing in permeable ice", "1.0"
+   "``dpscale``", "real", "scaling factor for flushing in permeable ice (ktherm=1)", "1.e-3"
    "``frzpnd``", "``cesm``", "CESM pond refreezing forumulation", "``cesm``"
    "", "``hlid``", "Stefan refreezing with pond ice thickness", ""
    "``hp1``", "real", "critical ice lid thickness for topo ponds in m", "0.01"
