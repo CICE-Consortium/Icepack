@@ -30,9 +30,6 @@
       ! parameter constants
       !-----------------------------------------------------------------
 
-      integer (kind=int_kind), parameter, public :: &
-         nspint = 3                ! number of solar spectral intervals
-
       real (kind=dbl_kind), parameter, public :: &
          c0   = 0.0_dbl_kind, &
          c1   = 1.0_dbl_kind, &
@@ -130,9 +127,11 @@
          phi_init  = 0.75_dbl_kind    ,&! initial liquid fraction of frazil
          min_salin = p1               ,&! threshold for brine pocket treatment
          salt_loss = 0.4_dbl_kind     ,&! fraction of salt retained in zsalinity
+         Tliquidus_max = c0           ,&! maximum liquidus temperature of mush (C)
          dSin0_frazil = c3            ,&! bulk salinity reduction of newly formed frazil
          dts_b     = 50._dbl_kind     ,&! zsalinity timestep
          ustar_min = 0.005_dbl_kind   ,&! minimum friction velocity for ocean heat flux (m/s)
+         hi_min    = p01              ,&! minimum ice thickness allowed (m) for thermo
          ! mushy thermo
          a_rapid_mode      =  0.5e-3_dbl_kind,&! channel radius for rapid drainage mode (m)
          Rac_rapid_mode    =    10.0_dbl_kind,&! critical Rayleigh number
@@ -165,6 +164,7 @@
       character(len=char_len), public :: &
          tfrz_option  = 'mushy'   ! form of ocean freezing temperature
                                   ! 'minus1p8' = -1.8 C
+                                  ! 'constant' = Tocnfrz
                                   ! 'linear_salt' = -depressT * sss
                                   ! 'mushy' conforms with ktherm=2
 
@@ -213,9 +213,21 @@
          awtidf = 0.36218_dbl_kind   ! near IR, diffuse
 
       character (len=char_len), public :: &
-         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type = 'ccsm3'   ! albedo parameterization, 'ccsm3' or 'constant'
                                  ! shortwave='dEdd' overrides this parameter
+
+      ! Parameters for shortwave redistribution
+      logical (kind=log_kind), public :: &
+         sw_redist     = .false.
+
+      real (kind=dbl_kind), public :: &
+         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
+
+      ! Parameters for dEdd_snicar_ad
+      character (len=char_len), public :: &
+         snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test'
 
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
@@ -415,18 +427,6 @@
          t_sk_conv    = 3.0_dbl_kind    , & ! Stefels conversion time (d)
          t_sk_ox      = 10.0_dbl_kind       ! DMS oxidation time (d)
 
-
-!-----------------------------------------------------------------------
-! Parameters for shortwave redistribution
-!-----------------------------------------------------------------------
-
-      logical (kind=log_kind), public :: &
-         sw_redist     = .false.
-
-      real (kind=dbl_kind), public :: &
-         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
-         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
-
 !=======================================================================
 
       contains
@@ -449,11 +449,12 @@
          kice_in, ksno_in, &
          zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
          saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
+         Tliquidus_max_in, &
          min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, &
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
-         update_ocn_f_in, ustar_min_in, a_rapid_mode_in, &
+         update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
          cpl_frazil_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
@@ -482,7 +483,7 @@
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
-         snw_aging_table_in)
+         snw_aging_table_in, snw_ssp_table_in )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -539,6 +540,7 @@
          phi_init_in,   & ! initial liquid fraction of frazil
          min_salin_in,  & ! threshold for brine pocket treatment
          salt_loss_in,  & ! fraction of salt retained in zsalinity
+         Tliquidus_max_in, & ! maximum liquidus temperature of mush (C)
          dSin0_frazil_in  ! bulk salinity reduction of newly formed frazil
 
       integer (kind=int_kind), intent(in), optional :: &
@@ -560,6 +562,7 @@
 
       real (kind=dbl_kind), intent(in), optional :: &
          dts_b_in,   &      ! zsalinity timestep
+         hi_min_in,  &      ! minimum ice thickness allowed (m) for thermo
          ustar_min_in       ! minimum friction velocity for ice-ocean heat flux
 
       ! mushy thermo
@@ -600,7 +603,7 @@
          awtidf_in        ! near IR, diffuse
 
       character (len=*), intent(in), optional :: &
-         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type_in  ! albedo parameterization, 'ccsm3' or 'constant'
                          ! shortwave='dEdd' overrides this parameter
 
@@ -831,7 +834,15 @@
          snowage_kappa_in, &!
          snowage_drdt0_in   ! (10^-6 m/hr)
 
+      character (len=char_len), intent(in), optional :: &
+         snw_ssp_table_in   ! lookup table: 'snicar' or 'test'
+
 !autodocument_end
+
+      ! local data
+
+      integer (kind=int_kind) :: &
+         dim1, dim2, dim3   ! array dimension sizes
 
       character(len=*),parameter :: subname='(icepack_init_parameters)'
 
@@ -886,6 +897,7 @@
       if (present(phi_init_in)          ) phi_init         = phi_init_in
       if (present(min_salin_in)         ) min_salin        = min_salin_in
       if (present(salt_loss_in)         ) salt_loss        = salt_loss_in
+      if (present(Tliquidus_max_in)     ) Tliquidus_max    = Tliquidus_max_in
       if (present(min_bgc_in)           ) min_bgc          = min_bgc_in
       if (present(dSin0_frazil_in)      ) dSin0_frazil     = dSin0_frazil_in
       if (present(hi_ssl_in)            ) hi_ssl           = hi_ssl_in
@@ -907,6 +919,7 @@
       if (present(update_ocn_f_in)      ) update_ocn_f     = update_ocn_f_in
       if (present(dts_b_in)             ) dts_b            = dts_b_in
       if (present(ustar_min_in)         ) ustar_min        = ustar_min_in
+      if (present(hi_min_in)            ) hi_min           = hi_min_in
       if (present(a_rapid_mode_in)      ) a_rapid_mode     = a_rapid_mode_in
       if (present(Rac_rapid_mode_in)    ) Rac_rapid_mode   = Rac_rapid_mode_in
       if (present(aspect_rapid_mode_in) ) aspect_rapid_mode= aspect_rapid_mode_in
@@ -964,6 +977,10 @@
       if (present(windmin_in)           ) windmin          = windmin_in
       if (present(drhosdwind_in)        ) drhosdwind       = drhosdwind_in
       if (present(snwlvlfac_in)         ) snwlvlfac        = snwlvlfac_in
+
+      !-------------------
+      ! SNOW table
+      !-------------------
       if (present(isnw_T_in)            ) isnw_T           = isnw_T_in
       if (present(isnw_Tgrd_in)         ) isnw_Tgrd        = isnw_Tgrd_in
       if (present(isnw_rhos_in)         ) isnw_rhos        = isnw_rhos_in
@@ -985,7 +1002,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_Tgrd_in)       ) then
          if (size(snowage_Tgrd_in) /= isnw_Tgrd) then
             call icepack_warnings_add(subname//' incorrect size of snowage_Tgrd_in')
@@ -1002,7 +1018,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_T_in)       ) then
          if (size(snowage_T_in) /= isnw_T) then
             call icepack_warnings_add(subname//' incorrect size of snowage_T_in')
@@ -1019,7 +1034,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_tau_in)       ) then
          if (size(snowage_tau_in,dim=1) /= isnw_rhos .or. &
              size(snowage_tau_in,dim=2) /= isnw_Tgrd .or. &
@@ -1041,7 +1055,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_kappa_in)       ) then
          if (size(snowage_kappa_in,dim=1) /= isnw_rhos .or. &
              size(snowage_kappa_in,dim=2) /= isnw_Tgrd .or. &
@@ -1063,7 +1076,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_drdt0_in)       ) then
          if (size(snowage_drdt0_in,dim=1) /= isnw_rhos .or. &
              size(snowage_drdt0_in,dim=2) /= isnw_Tgrd .or. &
@@ -1085,6 +1097,7 @@
          endif
       endif
 
+      if (present(snw_ssp_table_in)     ) snw_ssp_table    = snw_ssp_table_in
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
       if (present(z_tracers_in)         ) z_tracers        = z_tracers_in
       if (present(scale_bgc_in)         ) scale_bgc        = scale_bgc_in
@@ -1164,10 +1177,11 @@
          kice_out, ksno_out, &
          zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
          saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
+         Tliquidus_max_out, &
          min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
          awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, cpl_frazil_out, &
          qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
-         Lfresh_out, cprho_out, Cp_out, ustar_min_out, a_rapid_mode_out, &
+         Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
          Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
          phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
@@ -1196,7 +1210,7 @@
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
          snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
          snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
-         snw_aging_table_out)
+         snw_aging_table_out, snw_ssp_table_out )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -1262,6 +1276,7 @@
          phi_init_out,   & ! initial liquid fraction of frazil
          min_salin_out,  & ! threshold for brine pocket treatment
          salt_loss_out,  & ! fraction of salt retained in zsalinity
+         Tliquidus_max_out, & ! maximum liquidus temperature of mush (C)
          dSin0_frazil_out  ! bulk salinity reduction of newly formed frazil
 
       integer (kind=int_kind), intent(out), optional :: &
@@ -1283,6 +1298,7 @@
 
       real (kind=dbl_kind), intent(out), optional :: &
          dts_b_out,   &      ! zsalinity timestep
+         hi_min_out,  &      ! minimum ice thickness allowed (m) for thermo
          ustar_min_out       ! minimum friction velocity for ice-ocean heat flux
 
       ! mushy thermo
@@ -1297,6 +1313,7 @@
       character(len=*), intent(out), optional :: &
          tfrz_option_out              ! form of ocean freezing temperature
                                       ! 'minus1p8' = -1.8 C
+                                      ! 'constant' = Tocnfrz
                                       ! 'linear_salt' = -depressT * sss
                                       ! 'mushy' conforms with ktherm=2
 
@@ -1324,7 +1341,7 @@
          awtidf_out        ! near IR, diffuse
 
       character (len=*), intent(out), optional :: &
-         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type_out  ! albedo parameterization, 'ccsm3' or 'constant'
                              ! shortwave='dEdd' overrides this parameter
 
@@ -1554,6 +1571,10 @@
          snowage_tau_out, &  ! (10^-6 m)
          snowage_kappa_out, &!
          snowage_drdt0_out   ! (10^-6 m/hr)
+
+      character (len=char_len), intent(out), optional :: &
+         snw_ssp_table_out   ! lookup table: 'snicar' or 'test'
+
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_query_parameters)'
@@ -1646,6 +1667,7 @@
       if (present(phi_init_out)          ) phi_init_out     = phi_init
       if (present(min_salin_out)         ) min_salin_out    = min_salin
       if (present(salt_loss_out)         ) salt_loss_out    = salt_loss
+      if (present(Tliquidus_max_out)     ) Tliquidus_max_out= Tliquidus_max
       if (present(min_bgc_out)           ) min_bgc_out      = min_bgc
       if (present(dSin0_frazil_out)      ) dSin0_frazil_out = dSin0_frazil
       if (present(hi_ssl_out)            ) hi_ssl_out       = hi_ssl
@@ -1667,6 +1689,7 @@
       if (present(update_ocn_f_out)      ) update_ocn_f_out = update_ocn_f
       if (present(dts_b_out)             ) dts_b_out        = dts_b
       if (present(ustar_min_out)         ) ustar_min_out    = ustar_min
+      if (present(hi_min_out)            ) hi_min_out       = hi_min
       if (present(a_rapid_mode_out)      ) a_rapid_mode_out = a_rapid_mode
       if (present(Rac_rapid_mode_out)    ) Rac_rapid_mode_out = Rac_rapid_mode
       if (present(aspect_rapid_mode_out) ) aspect_rapid_mode_out = aspect_rapid_mode
@@ -1733,6 +1756,7 @@
       if (present(snowage_tau_out)       ) snowage_tau_out  = snowage_tau
       if (present(snowage_kappa_out)     ) snowage_kappa_out= snowage_kappa
       if (present(snowage_drdt0_out)     ) snowage_drdt0_out= snowage_drdt0
+      if (present(snw_ssp_table_out)     ) snw_ssp_table_out= snw_ssp_table
       if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
       if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
       if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
@@ -1842,6 +1866,7 @@
         write(iounit,*) "  phi_init   = ",phi_init
         write(iounit,*) "  min_salin  = ",min_salin
         write(iounit,*) "  salt_loss  = ",salt_loss
+        write(iounit,*) "  Tliquidus_max = ",Tliquidus_max
         write(iounit,*) "  min_bgc    = ",min_bgc
         write(iounit,*) "  dSin0_frazil = ",dSin0_frazil
         write(iounit,*) "  hi_ssl     = ",hi_ssl
@@ -1874,6 +1899,7 @@
         write(iounit,*) "  update_ocn_f = ", update_ocn_f
         write(iounit,*) "  dts_b      = ", dts_b
         write(iounit,*) "  ustar_min  = ", ustar_min
+        write(iounit,*) "  hi_min     = ", hi_min
         write(iounit,*) "  a_rapid_mode = ", a_rapid_mode
         write(iounit,*) "  Rac_rapid_mode = ", Rac_rapid_mode
         write(iounit,*) "  aspect_rapid_mode = ", aspect_rapid_mode
@@ -1940,6 +1966,7 @@
 !        write(iounit,*) "  snowage_tau   = ", snowage_tau(1,1,1)
 !        write(iounit,*) "  snowage_kappa = ", snowage_kappa(1,1,1)
 !        write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0(1,1,1)
+        write(iounit,*) "  snw_ssp_table = ", trim(snw_ssp_table)
         write(iounit,*) "  bgc_flux_type = ", trim(bgc_flux_type)
         write(iounit,*) "  z_tracers  = ", z_tracers
         write(iounit,*) "  scale_bgc  = ", scale_bgc

@@ -76,7 +76,8 @@ setenv TRFED     0         # number of dissolved iron tracers
                            # (up to max_fe  = 2)
 
 ### Specialty code
+setenv ICE_SNICARHC  false  # include hardcoded (HC) snicar tables
 setenv ICE_BLDDEBUG  false  # build debug flags
-setenv ICE_COVERAGE  false   # code coverage flag
+setenv ICE_COVERAGE  false  # code coverage flag
 
 

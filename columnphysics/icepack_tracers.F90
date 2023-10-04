@@ -7,7 +7,7 @@
       module icepack_tracers
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, puny, Tocnfrz, rhos, rhosnew, rsnw_fall
+      use icepack_parameters, only: c0, c1, puny, rhos, rsnw_fall, rhosnew, Tocnfrz, tfrz_option
       use icepack_parameters, only: snwredist, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -1202,7 +1202,7 @@
                                           atrcrn,    aicen,          &
                                           vicen,     vsnon,          &
                                           trcr_base, n_trcr_strata,  &
-                                          nt_strata, trcrn)
+                                          nt_strata, trcrn, Tf)
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr                 ! number of tracers in use
@@ -1228,6 +1228,9 @@
 
       real (kind=dbl_kind), dimension (ntrcr), intent(out) :: &
          trcrn     ! ice tracers
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf        ! Freezing point
 
 !autodocument_end
 
@@ -1261,7 +1264,18 @@
                trcrn(it) = atrcrn(it) / aicen
             else
                trcrn(it) = c0
-               if (it == nt_Tsfc) trcrn(it) = Tocnfrz  ! surface temperature
+               if (it == nt_Tsfc) then
+! tcraig, these old options should be deprecated
+! exist for bit-for-bit backwards compatibility in testing
+                  if (tfrz_option == "mushy_old" .or. &
+                      tfrz_option == "linear_salt_old" .or. &
+                      tfrz_option == "constant_old" .or. &
+                      tfrz_option == "minus1p8_old") then
+                     trcrn(it) = Tocnfrz  ! surface temperature
+                  else
+                     trcrn(it) = Tf  ! surface temperature
+                  endif
+               endif
             endif
 
          else

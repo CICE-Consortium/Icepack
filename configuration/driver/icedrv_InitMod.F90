@@ -146,7 +146,14 @@
       if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
 
-      if (tr_snow)    call icepack_init_snow            ! snow aging table
+      if (tr_snow) then
+         call icepack_init_snow            ! snow aging table
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted(subname)) then
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
+         endif
+      endif
+
       if (tr_iso)     call fiso_default                 ! default values
       ! aerosols
       ! if (tr_aero)  call faero_data                   ! data file
@@ -172,6 +179,7 @@
       use icedrv_init, only: ice_ic
       use icedrv_init, only: tmask
       use icedrv_init_column, only: init_hbrine, init_bgc
+      use icedrv_flux, only: Tf
       use icedrv_restart, only: restartfile
       use icedrv_restart_shared, only: restart
       use icedrv_restart_bgc, only: read_restart_bgc
@@ -240,7 +248,8 @@
                                 trcr_depend=trcr_depend, &
                                 trcr_base=trcr_base,     &
                                 n_trcr_strata=n_trcr_strata, &
-                                nt_strata=nt_strata)
+                                nt_strata=nt_strata, &
+                                Tf=Tf(i))
       enddo
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

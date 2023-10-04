@@ -12,7 +12,7 @@
       use icedrv_domain_size, only: nblyr, max_nsw , max_ntrcr
       use icepack_intfc, only: icepack_max_nbtrcr, icepack_max_algae, icepack_max_aero
       use icepack_intfc, only: icepack_nmodal1, icepack_nmodal2
-      use icepack_intfc, only: icepack_nspint
+      use icepack_intfc, only: icepack_nspint_3bd, icepack_nspint_5bd
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icedrv_system, only: icedrv_system_abort
 
@@ -119,23 +119,6 @@
       real (kind=dbl_kind), dimension (nx,nilyr+1,ncat), &
          public :: &
          fswpenln       ! visible SW entering ice layers (W m-2)
-
-      ! aerosol optical properties   -> band  |
-      !                                       v aerosol
-      ! for combined dust category, use category 4 properties
-      real (kind=dbl_kind), dimension(icepack_nspint,icepack_max_aero), public :: &
-         kaer_tab   , & ! aerosol mass extinction cross section (m2/kg)
-         waer_tab   , & ! aerosol single scatter albedo (fraction)
-         gaer_tab       ! aerosol asymmetry parameter (cos(theta))
-
-      real (kind=dbl_kind), dimension(icepack_nspint,icepack_nmodal1), public :: &
-         kaer_bc_tab, & ! BC mass extinction cross section (m2/kg)
-         waer_bc_tab, & ! BC single scatter albedo (fraction)
-         gaer_bc_tab    ! BC aerosol asymmetry parameter (cos(theta))
-
-      real (kind=dbl_kind), &
-         dimension (icepack_nspint,icepack_nmodal1,icepack_nmodal2), public :: &
-         bcenh          ! BC absorption enhancement factor
 
       ! biogeochemistry components
 

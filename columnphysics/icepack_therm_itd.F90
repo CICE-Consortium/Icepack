@@ -24,9 +24,10 @@
       use icepack_parameters, only: p001, p1, p333, p5, p666, puny, bignum
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
       use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
+      use icepack_parameters, only: Tliquidus_max
       use icepack_parameters, only: rhosi, conserv_check, rhosmin, snwredist
       use icepack_parameters, only: kitd, ktherm
-      use icepack_parameters, only: z_tracers, hfrazilmin
+      use icepack_parameters, only: z_tracers, hfrazilmin, hi_min
       use icepack_parameters, only: cpl_frazil, update_ocn_f, saltflux_option
       use icepack_parameters, only: icepack_chkoptargflag
 
@@ -48,8 +49,7 @@
       use icepack_itd, only: aggregate_area, shift_ice
       use icepack_itd, only: column_sum, column_conservation_check
       use icepack_isotope, only: isoice_alpha, isotope_frac_method
-      use icepack_mushy_physics, only: liquidus_temperature_mush, enthalpy_mush
-      use icepack_therm_shared, only: hi_min
+      use icepack_mushy_physics, only: liquidus_temperature_mush, icepack_enthalpy_mush
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc
 
@@ -92,11 +92,11 @@
                              ntrcr,       trcr_depend, &
                              trcr_base,   n_trcr_strata,&
                              nt_strata,                &
-                             aicen_init,  vicen_init,  &
-                             aicen,       trcrn,       &
-                             vicen,       vsnon,       &
-                             aice,        aice0,       &
-                             fpond                     )
+                             aicen_init,  vicen_init,  & 
+                             aicen,       trcrn,       & 
+                             vicen,       vsnon,       & 
+                             aice,        aice0,       & 
+                             fpond,       Tf           )
 
       integer (kind=int_kind), intent(in) :: &
          ncat    , & ! number of thickness categories
@@ -104,7 +104,7 @@
          nslyr   , & ! number of snow layers
          ntrcr       ! number of tracers in use
 
-      real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
+      real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max      ! category boundaries (m)
 
       integer (kind=int_kind), dimension (:), intent(in) :: &
@@ -117,6 +117,9 @@
 
       integer (kind=int_kind), dimension (:,:), intent(in) :: &
          nt_strata      ! indices of underlying tracer layers
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf             ! freezing temperature
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen_init, & ! initial ice concentration (before vertical thermo)
@@ -201,8 +204,6 @@
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
-
-      hin_max(ncat) = 999.9_dbl_kind ! arbitrary big number
 
       do n = 1, ncat
          donor(n) = 0
@@ -586,7 +587,7 @@
                          aicen,    trcrn,       &
                          vicen,    vsnon,       &
                          hicen,    donor,       &
-                         daice,    dvice        )
+                         daice,    dvice, Tf    )
          if (icepack_warnings_aborted(subname)) return
 
          ! maintain qsno negative definiteness
@@ -1025,6 +1026,7 @@
 
       if (tr_fsd .and. wlat > puny) then
          flag = .true.
+
          ! for FSD rside and fside not yet computed correctly, redo here
          fside = c0
          do n = 1, ncat
@@ -1576,8 +1578,8 @@
          do k = 1, nilyr
             Sprofile(k) = Si0new
          enddo
-         Ti = min(liquidus_temperature_mush(Si0new/phi_init), -p1)
-         qi0new = enthalpy_mush(Ti, Si0new)
+         Ti = min(liquidus_temperature_mush(Si0new/phi_init), Tliquidus_max)
+         qi0new = icepack_enthalpy_mush(Ti, Si0new)
       else
          do k = 1, nilyr
             Sprofile(k) = salinz(k)
@@ -2020,7 +2022,7 @@
       logical (kind=log_kind), intent(in), optional :: &
          update_ocn_f ! if true, update fresh water and salt fluxes
 
-      real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
+      real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max      ! category boundaries (m)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -2213,7 +2215,7 @@
                              vsnon,                 &
                              aice      ,         &
                              aice0     ,         &
-                             fpond       )
+                             fpond, Tf       )
             if (icepack_warnings_aborted(subname)) return
 
          endif ! aice > puny
@@ -2319,7 +2321,7 @@
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
                         faero_ocn,            fiso_ocn,         &
-                        flux_bio                                )
+                        flux_bio,             Tf                )
       if (icepack_warnings_aborted(subname)) return
 
       first_call = .false.

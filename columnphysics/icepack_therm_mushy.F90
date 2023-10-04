@@ -10,7 +10,7 @@
   use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode, tscale_pnd_drain
   use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
   use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
-  use icepack_mushy_physics, only: icepack_mushy_density_brine, enthalpy_brine, enthalpy_snow
+  use icepack_mushy_physics, only: icepack_mushy_density_brine, enthalpy_brine, icepack_enthalpy_snow
   use icepack_mushy_physics, only: enthalpy_mush_liquid_fraction
   use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
   use icepack_mushy_physics, only: temperature_snow, temperature_mush_liquid_fraction
@@ -1802,7 +1802,7 @@
     if (lsnow) then
 
        do k = 1, nslyr
-          zqsn(k) = enthalpy_snow(zTsn(k))
+          zqsn(k) = icepack_enthalpy_snow(zTsn(k))
        enddo ! k
 
     endif ! lsnow

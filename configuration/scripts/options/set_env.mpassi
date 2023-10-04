@@ -1,0 +1,6 @@
+setenv NICELYR   7         # number of vertical layers in the ice
+setenv NSNWLYR   5         # number of vertical layers in the snow
+setenv TRSNOW    0         # set to 1 for advanced snow physics tracers
+
+
+

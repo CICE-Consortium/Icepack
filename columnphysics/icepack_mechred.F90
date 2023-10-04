@@ -108,7 +108,7 @@
                             aparticn,    krdgn,      &
                             aredistn,    vredistn,   &
                             dardg1ndt,   dardg2ndt,  &
-                            dvirdgndt,               &
+                            dvirdgndt,   Tf,         &
                             araftn,      vraftn,     &
                             closing )
 
@@ -123,6 +123,9 @@
       real (kind=dbl_kind), intent(in) :: &
          mu_rdg , & ! gives e-folding scale of ridged ice (m^.5)
          dt             ! time step
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf             ! freezing temperature
 
       real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
          hin_max   ! category limits (m)
@@ -397,8 +400,8 @@
                            nslyr,       n_aero,      &
                            msnow_mlt,   esnow_mlt,   &
                            maero,       miso,        &
-                           mpond,       &
-                           aredistn,    vredistn)
+                           mpond,       Tf,          &
+                           aredistn,    vredistn)    
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1082,7 +1085,7 @@
                               nslyr,       n_aero,          &
                               msnow_mlt,   esnow_mlt,       &
                               maero,       miso,            &
-                              mpond,           &
+                              mpond,       Tf,              &
                               aredistn,    vredistn)
 
       integer (kind=int_kind), intent(in) :: &
@@ -1094,6 +1097,9 @@
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! time step (s)
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf             ! freezing temperature
 
       integer (kind=int_kind), dimension (:), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
@@ -1569,7 +1575,7 @@
                                        atrcrn(:,n), aicen(n),      &
                                        vicen(n),    vsnon(n),      &
                                        trcr_base,   n_trcr_strata, &
-                                       nt_strata,   trcrn(:,n))
+                                       nt_strata,   trcrn(:,n), Tf)
          if (icepack_warnings_aborted(subname)) return
       enddo
 
@@ -1738,10 +1744,13 @@
                                     araftn,       vraftn,        &
                                     aice,         fsalt,         &
                                     first_ice,    fzsal,         &
-                                    flux_bio,     closing )
+                                    flux_bio,     closing, Tf )
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf           ! freezing temperature
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1872,7 +1881,7 @@
                       aparticn,     krdgn,          &
                       aredistn,     vredistn,       &
                       dardg1ndt,    dardg2ndt,      &
-                      dvirdgndt,                    &
+                      dvirdgndt,    Tf,             &
                       araftn,       vraftn,         &
                       closing )
       if (icepack_warnings_aborted(subname)) return
@@ -1899,7 +1908,7 @@
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
                         faero_ocn,            fiso_ocn,         &
-                        flux_bio)
+                        flux_bio,             Tf)
       if (icepack_warnings_aborted(subname)) return
 
       first_call = .false.

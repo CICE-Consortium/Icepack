@@ -36,7 +36,6 @@
 
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
-      use icepack_therm_shared, only: hi_min
       use icepack_therm_shared, only: adjust_enthalpy
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_mushy,  only: temperature_changes_salinity
@@ -46,7 +45,7 @@
 
       use icepack_mushy_physics, only: icepack_mushy_temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
-      use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
+      use icepack_mushy_physics, only: icepack_enthalpy_mush, enthalpy_of_melting
 
       use icepack_aerosol, only: update_aerosol
       use icepack_isotope, only: update_isotope
@@ -425,14 +424,12 @@
       ! If prescribed ice, set hi back to old values
       !-----------------------------------------------------------------
 
-#ifdef CESMCOUPLED
       if (present(prescribed_ice)) then
           if (prescribed_ice) then
             hin    = worki
             fhocnn = c0             ! for diagnostics
           endif
       endif
-#endif
 
       !-----------------------------------------------------------------
       ! Compute fluxes of water and salt from ice to ocean.
@@ -1260,7 +1257,7 @@
 
       if (ktherm == 2) then
 
-         qbotm = enthalpy_mush(Tbot, sss)
+         qbotm = icepack_enthalpy_mush(Tbot, sss)
          qbotp = -Lfresh * rhoi * (c1 - phi_i_mushy)
          qbot0 = qbotm - qbotp
 
@@ -2780,11 +2777,6 @@
             if (tr_pond_lvl) then
                rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
                call compute_ponds_lvl (dt=dt,            &
-                                       nilyr=nilyr,      &
-                                       ktherm=ktherm,    &
-                                       hi_min=hi_min,    &
-                                       dpscale=dpscale,  &
-                                       frzpnd=frzpnd,    &
                                        rfrac=rfrac,      &
                                        meltt=melttn (n), &
                                        melts=meltsn (n), &

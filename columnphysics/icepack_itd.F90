@@ -27,15 +27,15 @@
 
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
-      use icepack_parameters, only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, Tocnfrz, rhoi
+      use icepack_parameters, only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, rhoi
       use icepack_parameters, only: rhosi, sk_l, hs_ssl, min_salin, rsnw_fall, rhosnew
       use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, bio_index
       use icepack_tracers,    only: n_iso, tr_iso, nt_smice, nt_rsnw, nt_rhos, nt_sice
       use icepack_tracers,    only: icepack_compute_tracers
-      use icepack_parameters, only: skl_bgc, z_tracers
+      use icepack_parameters, only: skl_bgc, z_tracers, hi_min
       use icepack_parameters, only: kcatbound, kitd, saltflux_option, snwgrain, snwredist
-      use icepack_therm_shared, only: Tmin, hi_min
+      use icepack_therm_shared, only: Tmin
       use icepack_warnings,   only: warnstr, icepack_warnings_add
       use icepack_warnings,   only: icepack_warnings_setabort, icepack_warnings_aborted
       use icepack_zbgc_shared,only: zap_small_bgc
@@ -108,7 +108,7 @@
                         nt_strata,                 &
                         aicen,    trcrn,           &
                         vicen,    vsnon,           &
-                        ncat,     hin_max          )
+                        ncat,     hin_max, Tf      )
 
       integer (kind=int_kind), intent(in) :: &
          ntrcr , & ! number of tracers in use
@@ -135,6 +135,9 @@
 
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max   ! category limits (m)
+ 
+      real (kind=dbl_kind), intent(in) :: &
+         Tf                ! freezing temperature
 
       ! local variables
 
@@ -221,7 +224,7 @@
                             aicen,    trcrn,      &
                             vicen,    vsnon,      &
                             hicen,    donor,      &
-                            daice,    dvice       )
+                            daice,    dvice, Tf   )
             if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -269,7 +272,7 @@
                             aicen,    trcrn,      &
                             vicen,    vsnon,      &
                             hicen,    donor,      &
-                            daice,    dvice       )
+                            daice,    dvice, Tf   )
             if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -361,7 +364,7 @@
                             aicen,    trcrn,       &
                             vicen,    vsnon,       &
                             hicen,    donor,       &
-                            daice,    dvice        )
+                            daice,    dvice, Tf    )
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -395,6 +398,9 @@
          daice         , & ! ice area transferred across boundary
          dvice         , & ! ice volume transferred across boundary
          hicen             ! ice thickness for each cat        (m)
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf                ! freezing temperature
 
       ! local variables
 
@@ -663,7 +669,7 @@
                                       atrcrn(:,n), aicen(n),    &
                                       vicen(n),    vsnon(n),    &
                                       trcr_base,   n_trcr_strata,  &
-                                      nt_strata,   trcrn(:,n))
+                                      nt_strata,   trcrn(:,n), Tf)
          if (icepack_warnings_aborted(subname)) return
 
       enddo                     ! ncat
@@ -769,7 +775,7 @@
                               fpond,       fresh,      &
                               fsalt,       fhocn,      &
                               faero_ocn,   fiso_ocn,   &
-                              flux_bio,    limit_aice_in)
+                              flux_bio,    Tf, limit_aice_in)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -779,9 +785,12 @@
          ntrcr , & ! number of tracers in use
          nbtrcr, & ! number of bio tracers in use
          n_aero    ! number of aerosol tracers
-
-      real (kind=dbl_kind), intent(in) :: &
-         dt        ! time step
+ 
+      real (kind=dbl_kind), intent(in) :: & 
+         dt        ! time step 
+ 
+      real (kind=dbl_kind), intent(in) :: & 
+         Tf        ! Freezing temperature
 
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max   ! category boundaries (m)
@@ -921,7 +930,7 @@
                      nt_strata,               &
                      aicen,      trcrn,       &
                      vicen,      vsnon,       &
-                     ncat,       hin_max      )
+                     ncat,       hin_max, Tf  )
          if (icepack_warnings_aborted(subname)) return
 
       endif ! aice > puny
@@ -946,7 +955,7 @@
                                tr_aero,                     &
                                tr_pond_topo,                &
                                first_ice,    nbtrcr,        &
-                               dflux_bio                    )
+                               dflux_bio,    Tf             )
 
          if (icepack_warnings_aborted(subname)) then
             write(warnstr,*) subname, 'aice:', aice
@@ -1029,7 +1038,7 @@
                                   tr_aero,                 &
                                   tr_pond_topo,            &
                                   first_ice, nbtrcr,       &
-                                  dflux_bio                )
+                                  dflux_bio, Tf            )
 
       integer (kind=int_kind), intent(in) :: &
          ncat     , & ! number of thickness categories
@@ -1069,6 +1078,9 @@
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          dflux_bio     ! zapped bio tracer flux from biology (mmol/m^2/s)
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf            ! Freezing temperature
 
       logical (kind=log_kind), intent(in) :: &
          tr_aero, &   ! aerosol flag
@@ -1185,7 +1197,7 @@
             aice0 = aice0 + aicen(n)
             aicen(n) = c0
             vicen(n) = c0
-            trcrn(nt_Tsfc,n) = Tocnfrz
+            trcrn(nt_Tsfc,n) = Tf
 
       !-----------------------------------------------------------------
       ! Zap snow
@@ -1628,9 +1640,6 @@
       b2 = c3         ! thickness for which participation function is small (m)
       b3 = max(rncat*(rncat-1), c2*b2/b1)
 
-      hi_min = p01    ! minimum ice thickness allowed (m) for thermo
-                      ! note hi_min is reset to 0.1 for kitd=0, below
-
       !-----------------------------------------------------------------
       ! Choose category boundaries based on one of four options.
       !
@@ -1682,9 +1691,6 @@
             hin_max(0) = c0     ! minimum ice thickness, m
          else
             ! delta function itd category limits
-#ifndef CESMCOUPLED
-            hi_min = p1    ! minimum ice thickness allowed (m) for thermo
-#endif
             cc1 = max(1.1_dbl_kind/rncat,hi_min)
             cc2 = c25*cc1
             cc3 = 2.25_dbl_kind
@@ -1740,6 +1746,10 @@
          enddo
 
       endif ! kcatbound
+
+      if (kitd == 1) then
+         hin_max(ncat) = 999.9_dbl_kind ! arbitrary big number
+      endif
 
       end subroutine icepack_init_itd
 
@@ -1815,7 +1825,7 @@
                                    trcr_depend,        &
                                    trcr_base,          &
                                    n_trcr_strata,      &
-                                   nt_strata)
+                                   nt_strata, Tf)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1848,6 +1858,9 @@
 
       real (kind=dbl_kind), dimension (:), intent(out) :: &
          trcr      ! ice tracers
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf                ! freezing temperature
 
 !autodocument_end
 
@@ -1910,7 +1923,7 @@
                                    atrcr,     aice,          &
                                    vice ,     vsno,          &
                                    trcr_base, n_trcr_strata, &
-                                   nt_strata, trcr)
+                                   nt_strata, trcr, Tf)   
       if (icepack_warnings_aborted(subname)) return
 
       deallocate (atrcr)
