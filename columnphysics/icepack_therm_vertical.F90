@@ -1344,8 +1344,10 @@
          if (hstot > puny) then
             zqsn(1) =  (dzs(1) * zqsn(1) &
                           + dhs * zqsnew) / hstot
+            if (ktherm < 2) then
                ! avoid roundoff errors
-            zqsn(1) = min(zqsn(1), -rhos*Lfresh)
+               zqsn(1) = min(zqsn(1), -rhos*Lfresh)
+            endif
          endif
 #endif
          dzs(1) = dzs(1) + dhs
