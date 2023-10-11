@@ -439,10 +439,8 @@
                                 vice_old, vsno_old,    &
                                 vicen,    vsnon,       &
                                 aicen,    flux_bio_atm,&
-                                zbgc_atm, flux_bio)
-!echmod: add bio_index_o when updating ice_algae.F90
-!                                zbgc_atm, flux_bio,    &
-!                                bio_index_o)
+                                zbgc_atm, flux_bio,    &
+                                bio_index_o)
 
       integer (kind=int_kind), intent(in) :: &
          nbtrcr,             & ! number of distinct snow tracers
@@ -451,10 +449,8 @@
          ntrcr                 ! number of tracers
 
       integer (kind=int_kind), dimension (nbtrcr), intent(in) :: &
-         bio_index
-!echmod: add bio_index_o when updating ice_algae.F90
-!         bio_index,  &
-!         bio_index_o   ! provides index of scavenging (kscavz) data array
+         bio_index,  &
+         bio_index_o   ! provides index of scavenging (kscavz) data array
 
       real (kind=dbl_kind), intent(in) :: &
          dt                    ! time step
@@ -517,13 +513,6 @@
          aerosno0    ! for diagnostic prints
 
       character(len=*),parameter :: subname='(update_snow_bgc)'
-
-!echmod: add bio_index_o to subroutine arguments when updating ice_algae.F90
-      integer (kind=int_kind), dimension (nbtrcr) :: &
-         bio_index_o   ! provides index of scavenging (kscavz) data array
-      do k = 1, nbtrcr
-         bio_index_o(k) = k ! TEMPORARY
-      enddo
 
     !-------------------------------------------------------------------
     ! initialize
