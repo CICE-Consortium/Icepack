@@ -318,7 +318,7 @@ the ocean. If the resulting sea surface temperature falls below the
 salinity-dependent freezing point, then new ice (frazil) forms.
 Otherwise, heat is made available for melting the ice.
 
-The ice-ocean drag coefficient, :math:`c_w`, can optionally be computed from the thickness of the first ocean level, :math:`h_1`, and an under-ice roughness length, :math:`z_{io}`.
+When the namelist option ``calc_dragio`` is set to true, the ice-ocean drag coefficient, :math:`c_w` (``dragio``), is computed from the thickness of the first ocean level, :math:`h_1` (``thickness_ocn_layer1``), and an under-ice roughness length, :math:`z_{io}` (``iceruf_ocn``).
 The computation follows :cite:`Roy15` :
 
 .. math::
