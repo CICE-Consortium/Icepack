@@ -3497,9 +3497,10 @@
       do k = 1,nilyr+1
          icegrid(k) = sw_grid(k)
       enddo
-      if (sw_grid(1)*hin*c2 > hi_ssl) then
+      if (sw_grid(1)*hin*c2 > hi_ssl .and. hin > puny) then
          icegrid(1) = hi_ssl/c2/hin
       endif
+      icegrid(2) = c2*sw_grid(1) + (sw_grid(2) - sw_grid(1))
 
       if (z_tracers) then
       if (tr_bgc_N)  then
