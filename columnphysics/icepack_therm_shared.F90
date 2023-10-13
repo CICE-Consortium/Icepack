@@ -393,21 +393,26 @@
 
         character(len=*),parameter :: subname='(icepack_sea_freezing_temperature)'
 
-        if (trim(tfrz_option(1:5)) == 'mushy') then
+        if (trim(tfrz_option) == 'mushy') then
 
            Tf = icepack_liquidus_temperature(sss) ! deg C
 
-        elseif (trim(tfrz_option(1:11)) == 'linear_salt') then
+        elseif (trim(tfrz_option) == 'linear_salt') then
 
            Tf = -depressT * sss ! deg C
 
-        elseif (trim(tfrz_option(1:8)) == 'constant') then
+        elseif (trim(tfrz_option) == 'constant') then
 
            Tf = Tocnfrz
 
-        else
+        elseif (trim(tfrz_option) == 'minus1p8') then
 
            Tf = -1.8_dbl_kind
+
+        else
+
+           call icepack_warnings_add(subname//' tfrz_option unsupported: '//trim(tfrz_option))
+           call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
 
         endif
 
