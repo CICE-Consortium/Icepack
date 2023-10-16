@@ -711,11 +711,12 @@
 
       subroutine icepack_shortwave_init_snicar()
 
-! USE_SNICARHC turns on big hardcoded tables but also increases compile time
-#ifndef USE_SNICARHC
+! NO_SNICARHC turns off hardcoded tables to reduce compile time
+#ifdef NO_SNICARHC
       character(len=*),parameter :: subname='(icepack_shortwave_init_snicar)'
+      call icepack_warnings_add(subname//' ERROR: large shortwave snicar tables not compiled')
+      call icepack_warnings_add(subname//' ERROR: NO_SNICARHC CPP should be turned off')
       call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-      call icepack_warnings_add(subname//' ERROR: USE_SNICARHC CPP required')
       return
 #else
       integer (kind=int_kind) :: &
