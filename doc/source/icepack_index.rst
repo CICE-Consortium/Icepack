@@ -5,12 +5,14 @@
 Index of primary variables and parameters 
 ==========================================
 
-This index defines many of the symbols used frequently in the ice model
+This index defines many (but not all) of the symbols used frequently in the ice model
 code. Values appearing in this list are fixed or recommended; most
 namelist parameters are indicated ( :math:`\bullet`) with their default
-values. For other namelist options, see Section :ref:`tabnamelist`. All
-quantities in the code are expressed in MKS units (temperatures may take
+values. All quantities in the code are expressed in MKS units (temperatures may take
 either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
+
+Namelist variables are partly included here, but they are fully documented in 
+section :ref:`tabnamelist`. 
 
 .. csv-table:: *Alphabetical Index of Icepack Variables and Parameters*
    :header: " ", " ", " "
