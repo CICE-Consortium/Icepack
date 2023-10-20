@@ -101,9 +101,8 @@
          gaer_5bd, kaer_5bd, waer_5bd
       use icepack_shortwave_data, only: &
          nmbrad_snicar  , & ! number of snow grain radii in SNICAR SSP tables
-         rsnw_snicar_min, & ! minimum snow radius - integer value used for indexing
-         rsnw_snicar_max    ! maximum snow radius - integer value used for indexing
-      use icepack_shortwave_data, only: &
+         rsnw_snicar_min, & ! minimum snow radius
+         rsnw_snicar_max, & ! maximum snow radius
          ssp_snwextdr, ssp_snwalbdr, ssp_sasymmdr, &
          ssp_snwextdf, ssp_snwalbdf, ssp_sasymmdf, &
          rsnw_snicar_tab
@@ -2135,7 +2134,7 @@
                ! Cheng: note that aerosol IOPs are related to snow grain radius.
                ! CICE adjusted snow grain radius rsnw to frsnw in the original 3-band
                ! scheme, while for SNICAR the snow grain radius is used directly.
-               ksnow = k - min(k-1,0)
+               ksnow = max(k,1)
                tmp_gs = frsnw(ksnow)
 
                ! grain size index
@@ -2268,7 +2267,7 @@
 
             do k = 0, nslyr
                ! use top rsnw, rhosnw for snow ssl and rest of top layer
-               ksnow = k - min(k-1,0)
+               ksnow = max(k,1)
                ! find snow iops using input snow density and snow grain radius:
                if (frsnw(ksnow) < rsnw_tab(1)) then
                   Qs = Qs_tab(ns,1)
@@ -2279,20 +2278,16 @@
                   ws = ws_tab(ns,nmbrad_snw)
                   gs = gs_tab(ns,nmbrad_snw)
                else
-                  ! linear interpolation in rsnw
-                  do nr = 2, nmbrad_snw
-                     if (rsnw_tab(nr-1) <= frsnw(ksnow) .and. &
-                         frsnw(ksnow) < rsnw_tab(nr)) then
-                        delr = (frsnw(ksnow) - rsnw_tab(nr-1)) / &
-                               (rsnw_tab(nr) - rsnw_tab(nr-1))
-                        Qs   = Qs_tab(ns,nr-1)*(c1-delr) + &
-                               Qs_tab(ns,nr  )*    delr
-                        ws   = ws_tab(ns,nr-1)*(c1-delr) + &
-                               ws_tab(ns,nr  )*    delr
-                        gs   = gs_tab(ns,nr-1)*(c1-delr) + &
-                               gs_tab(ns,nr  )*    delr
-                     endif
-                  enddo       ! nr
+                  call shortwave_search(frsnw(ksnow),rsnw_tab,nr)
+                  if (icepack_warnings_aborted(subname)) return
+                  delr = (frsnw(ksnow) - rsnw_tab(nr-1)) / &
+                         (rsnw_tab(nr) - rsnw_tab(nr-1))
+                  Qs   = Qs_tab(ns,nr-1)*(c1-delr) + &
+                         Qs_tab(ns,nr  )*    delr
+                  ws   = ws_tab(ns,nr-1)*(c1-delr) + &
+                         ws_tab(ns,nr  )*    delr
+                  gs   = gs_tab(ns,nr-1)*(c1-delr) + &
+                         gs_tab(ns,nr  )*    delr
                endif
                ks = Qs*((rhosnw(ksnow)/rhoi)*3._dbl_kind / &
                        (4._dbl_kind*frsnw(ksnow)*1.0e-6_dbl_kind))
@@ -4677,7 +4672,7 @@
                ! CICE adjusted snow grain radius rsnw to frsnw, while for
                ! SNICAR there is no need, the tmp_gs is therefore calculated
                ! differently from code in subroutine compute_dEdd
-               ksnow = k - min(k-1,0)
+               ksnow = max(k,1)
                tmp_gs = rsnw(ksnow)   ! use rsnw not frsnw
 
                ! grain size index
@@ -4806,7 +4801,7 @@
          if (nsky == 1) then ! direct incident
             do k = 0, nslyr
                ! use top rsnw, rhosnw for snow ssl and rest of top layer
-               ksnow = k - min(k-1,0)
+               ksnow = max(k,1)
                if (rsnw(ksnow) <= rsnw_snicar_min) then
                   ks = ext_cff_mss_ice_drc(ns,1)
                   ws = ss_alb_ice_drc     (ns,1)
@@ -4815,22 +4810,38 @@
                   ks = ext_cff_mss_ice_drc(ns,nmbrad_snicar)
                   ws = ss_alb_ice_drc     (ns,nmbrad_snicar)
                   gs = asm_prm_ice_drc    (ns,nmbrad_snicar)
-               elseif (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
-                  ! radius = 30 --> nr = 1 in SNICAR table      ! NOTE
-                  nr = ceiling(rsnw(ksnow)) - 30 + 1            ! hardwired min radius = 30
-                  ks = ext_cff_mss_ice_drc(ns,nr)
-                  ws = ss_alb_ice_drc     (ns,nr)
-                  gs = asm_prm_ice_drc    (ns,nr)
-               else ! linear interpolation in rsnw
-                  nr = ceiling(rsnw(ksnow)) - 30 + 1            ! hardwired min radius = 30
-                  delr = (rsnw(ksnow) - floor(rsnw(ksnow))) &   ! hardwired delta radius = 1 in table
-                       / (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow))) ! denom always = 1
-                  ks = ext_cff_mss_ice_drc(ns,nr-1)*(c1-delr) &
-                     + ext_cff_mss_ice_drc(ns,nr  )*    delr
-                  ws = ss_alb_ice_drc     (ns,nr-1)*(c1-delr) &
-                     + ss_alb_ice_drc     (ns,nr  )*    delr
-                  gs = asm_prm_ice_drc    (ns,nr-1)*(c1-delr) &
-                     + asm_prm_ice_drc    (ns,nr  )*    delr
+               else
+                  if (trim(snw_ssp_table) == 'snicar') then
+                     ! NOTE:  Assumes delta rsnw is 1 and rsnw are basically integers
+                     nr = ceiling(rsnw(ksnow)) - nint(rsnw_snicar_min) + 1
+                     if (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
+                        ks = ext_cff_mss_ice_drc(ns,nr)
+                        ws = ss_alb_ice_drc     (ns,nr)
+                        gs = asm_prm_ice_drc    (ns,nr)
+                     else
+                        ! linear interpolation
+                        delr = (rsnw(ksnow) - floor(rsnw(ksnow))) &   ! hardwired delta radius = 1 in table
+                             / (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow))) ! denom always = 1
+                        ks = ext_cff_mss_ice_drc(ns,nr-1)*(c1-delr) &
+                           + ext_cff_mss_ice_drc(ns,nr  )*    delr
+                        ws = ss_alb_ice_drc     (ns,nr-1)*(c1-delr) &
+                           + ss_alb_ice_drc     (ns,nr  )*    delr
+                        gs = asm_prm_ice_drc    (ns,nr-1)*(c1-delr) &
+                           + asm_prm_ice_drc    (ns,nr  )*    delr
+                     endif
+                  else
+                     ! linear interpolation
+                     call shortwave_search(rsnw(ksnow),rsnw_snicar_tab,nr)
+                     if (icepack_warnings_aborted(subname)) return
+                     delr = (rsnw(ksnow)         - rsnw_snicar_tab(nr-1)) &
+                          / (rsnw_snicar_tab(nr) - rsnw_snicar_tab(nr-1))
+                     ks = ext_cff_mss_ice_drc(ns,nr-1)*(c1-delr) &
+                        + ext_cff_mss_ice_drc(ns,nr  )*    delr
+                     ws = ss_alb_ice_drc     (ns,nr-1)*(c1-delr) &
+                        + ss_alb_ice_drc     (ns,nr  )*    delr
+                     gs = asm_prm_ice_drc    (ns,nr-1)*(c1-delr) &
+                        + asm_prm_ice_drc    (ns,nr  )*    delr
+                  endif
                endif
                tau(k) = (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k))*dzk(k)
                w0 (k) =  ks*rhosnw(ksnow) / (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k)) * ws
@@ -4839,7 +4850,7 @@
          elseif (nsky == 2) then ! diffuse  incident
             do k = 0, nslyr
                ! use top rsnw, rhosnw for snow ssl and rest of top layer
-               ksnow = k - min(k-1,0)
+               ksnow = max(k,1)
                if (rsnw(ksnow) < rsnw_snicar_min) then
                   ks = ext_cff_mss_ice_dfs(ns,1)
                   ws = ss_alb_ice_dfs     (ns,1)
@@ -4848,22 +4859,38 @@
                   ks = ext_cff_mss_ice_dfs(ns,nmbrad_snicar)
                   ws = ss_alb_ice_dfs     (ns,nmbrad_snicar)
                   gs = asm_prm_ice_dfs    (ns,nmbrad_snicar)
-               elseif (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
-                   ! radius = 30 --> nr = 1 in SNICAR table     ! NOTE
-                  nr = ceiling(rsnw(ksnow)) - 30 + 1            ! hardwired min radius = 30
-                  ks = ext_cff_mss_ice_dfs(ns,nr)
-                  ws = ss_alb_ice_dfs     (ns,nr)
-                  gs = asm_prm_ice_dfs    (ns,nr)
-              else ! linear interpolation in rsnw
-                  nr = ceiling(rsnw(ksnow)) - 30 + 1            ! hardwired min radius = 30
-                  delr = (rsnw(ksnow) - floor(rsnw(ksnow))) &   ! hardwired delta radius = 1 in table
-                       / (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow)))
-                  ks = ext_cff_mss_ice_dfs(ns,nr-1)*(c1-delr) &
-                     + ext_cff_mss_ice_dfs(ns,nr  )*    delr
-                  ws = ss_alb_ice_dfs     (ns,nr-1)*(c1-delr) &
-                     + ss_alb_ice_dfs     (ns,nr  )*    delr
-                  gs = asm_prm_ice_dfs    (ns,nr-1)*(c1-delr) &
-                     + asm_prm_ice_dfs    (ns,nr  )*    delr
+               else
+                  if (trim(snw_ssp_table) == 'snicar') then
+                     ! NOTE:  Assumes delta rsnw is 1 and rsnw are basically integers
+                     nr = ceiling(rsnw(ksnow)) - nint(rsnw_snicar_min) + 1
+                     if (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
+                        ks = ext_cff_mss_ice_dfs(ns,nr)
+                        ws = ss_alb_ice_dfs     (ns,nr)
+                        gs = asm_prm_ice_dfs    (ns,nr)
+                     else
+                        ! linear interpolation
+                        delr = (rsnw(ksnow) - floor(rsnw(ksnow))) &   ! hardwired delta radius = 1 in table
+                             / (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow))) ! denom always = 1
+                        ks = ext_cff_mss_ice_dfs(ns,nr-1)*(c1-delr) &
+                           + ext_cff_mss_ice_dfs(ns,nr  )*    delr
+                        ws = ss_alb_ice_dfs     (ns,nr-1)*(c1-delr) &
+                           + ss_alb_ice_dfs     (ns,nr  )*    delr
+                        gs = asm_prm_ice_dfs    (ns,nr-1)*(c1-delr) &
+                           + asm_prm_ice_dfs    (ns,nr  )*    delr
+                     endif
+                  else
+                     ! linear interpolation
+                     call shortwave_search(rsnw(ksnow),rsnw_snicar_tab,nr)
+                     if (icepack_warnings_aborted(subname)) return
+                     delr = (rsnw(ksnow)         - rsnw_snicar_tab(nr-1)) &
+                          / (rsnw_snicar_tab(nr) - rsnw_snicar_tab(nr-1))
+                     ks = ext_cff_mss_ice_dfs(ns,nr-1)*(c1-delr) &
+                        + ext_cff_mss_ice_dfs(ns,nr  )*    delr
+                     ws = ss_alb_ice_dfs     (ns,nr-1)*(c1-delr) &
+                        + ss_alb_ice_dfs     (ns,nr  )*    delr
+                     gs = asm_prm_ice_dfs    (ns,nr-1)*(c1-delr) &
+                        + asm_prm_ice_dfs    (ns,nr  )*    delr
+                  endif
                endif
                tau(k) = (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k))*dzk(k)
                w0 (k) =  ks*rhosnw(ksnow) / (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k)) * ws
@@ -5399,6 +5426,105 @@
       fswpenl(nilyr+1) = fswpenl(nilyr+1) + fthrul(nilyr+1)*fi
 
       end subroutine compute_dEdd_5bd
+
+!=======================================================================
+!     This subroutine searches array for val and returns nr such that
+!       array(nr-1) < val <= array(nr)
+!     If nr cannot be found, an error is thrown
+!     This does NOT check that array is sorted because it would be too expensive,
+!     but it must be sorted to work properly.
+
+      subroutine shortwave_search(val,array,nr)
+
+      real (kind=dbl_kind), intent(in) :: &
+         val           ! search value
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         array         ! sorted array
+
+      integer (kind=int_kind), intent(out) :: &
+         nr            ! index in array >= val
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         nrcnt,      & ! counter
+         nrp,        & ! prior nr
+         nrl, nru,   & ! lower and upper search indices
+         nrsize        ! size of array
+
+      logical (kind=log_kind) :: &
+         found         ! search flag
+
+      character (len=512) :: &
+         tmpstr        ! temporary string
+
+      character(len=*),parameter :: subname='(shortwave_search)'
+
+
+      nrsize = size(array)
+
+!debug write(tmpstr,*) "val = ",val
+!      call icepack_warnings_add(subname//trim(tmpstr))
+!      write(tmpstr,*) "nrsize = ",nrsize
+!      call icepack_warnings_add(subname//trim(tmpstr))
+!      write(tmpstr,*) "array1 = ",array(1)
+!      call icepack_warnings_add(subname//trim(tmpstr))
+!      write(tmpstr,*) "arrayn = ",array(nrsize)
+!      call icepack_warnings_add(subname//trim(tmpstr))
+
+      if (nrsize > 10) then
+         ! binary search
+         nrl = 1
+         nru = nrsize
+         nr = (nrl + nru) / 2
+         found = .false.
+         nrcnt = 0
+         do while (.not.found .and. nrcnt < nrsize)
+            nrcnt = nrcnt + 1
+            nrp = nr
+            if (val > array(nr)) then
+               if (val < array(nr+1)) then
+                  found = .true.
+                  nr = nr + 1
+               else
+                  nrl = nr + 1
+                  nr = (nrl + nru) / 2
+               endif
+            else
+               if (val > array(nr-1)) then
+                  found = .true.
+               else
+                  nru = nr - 1
+                  nr = (nrl + nru) / 2
+               endif
+            endif
+!debug       write(tmpstr,*) "iter = ",nrcnt,nrp,nr
+!            call icepack_warnings_add(subname//trim(tmpstr))
+!            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         enddo
+         if (.not. found) then
+            call icepack_warnings_add(subname//' ERROR: binary search failed')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+      else
+         ! linear search
+         nr = -1
+         do nrcnt = 2,nrsize
+            if (val > array(nrcnt-1) .and. val < array(nrcnt)) then
+               nr = nrcnt
+               exit
+            endif
+         enddo
+         if (nr < 1) then
+            call icepack_warnings_add(subname//' ERROR: linear search failed')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+            return
+         endif
+      endif
+
+      end subroutine shortwave_search
 
 !=======================================================================
 

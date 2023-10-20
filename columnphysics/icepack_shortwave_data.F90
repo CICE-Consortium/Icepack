@@ -63,7 +63,9 @@
 
       ! dEdd 5-band data SSP SNICAR
       integer (kind=int_kind), public :: &
-         nmbrad_snicar  , & ! number of snow grain radii in SNICAR SSP tables
+         nmbrad_snicar      ! number of snow grain radii in SNICAR SSP tables
+
+      real (kind=dbl_kind), public :: &
          rsnw_snicar_min, & ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max    ! maximum snow radius - integer value used for indexing
 
@@ -9587,10 +9589,10 @@
 ! Copy to local variables
 
 !echmod - this might not be needed
-      rsnw_snicar_min = 30   ! minimum snow grain radius
-      rsnw_snicar_max = 1500 ! maximum snow grain radius
+      rsnw_snicar_min = 30._dbl_kind   ! minimum snow grain radius
+      rsnw_snicar_max = 1500._dbl_kind ! maximum snow grain radius
       allocate(rsnw_snicar_tab(nmbrad_snicar))
-      rsnw_snicar_tab(1) = real(rsnw_snicar_min,dbl_kind)
+      rsnw_snicar_tab(1) = rsnw_snicar_min
       do n = 1, nmbrad_snicar-1
          rsnw_snicar_tab(n+1) = rsnw_snicar_tab(n) + 1.0_dbl_kind
       enddo
