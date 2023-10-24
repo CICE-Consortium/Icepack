@@ -250,7 +250,7 @@
       if (strict_forcing) then
          ! Fill all grid boxes with same forcing data
          Tair (:) = Tair_data(timestep)
-         Qa   (:) = Qa_data(timestep)/1000
+         Qa   (:) = Qa_data(timestep)
          uatm (:) = uatm_data(timestep)
          vatm (:) = vatm_data(timestep)
          fsnow(:) = fsnow_data(timestep)
@@ -1095,16 +1095,16 @@
          if (status /= nf90_noerr) call icedrv_system_abort(&
             string=subname//'Couldnt get time01 var id', &
                            file=__FILE__,line=__LINE__)
-         status = nf90_get_att(ncid, varid, "calendar", calendar_type)
-         if (status /= nf90_noerr) call icedrv_system_abort(&
-            string=subname//'Couldnt get calendar attribute', &
-                           file=__FILE__,line=__LINE__)
+         !status = nf90_get_att(ncid, varid, "calendar", calendar_type)
+         !if (status /= nf90_noerr) call icedrv_system_abort(&
+         !   string=subname//'Couldnt get calendar attribute', &
+         !                  file=__FILE__,line=__LINE__)
          ! In future this check could be replaced with a better one
-         if (calendar_type /= "standard" .or. .not. use_leap_years) then
-            call icedrv_system_abort(&
-            string=subname//'Forcing calendar not standard or not using leap years',&
-            file=__FILE__,line=__LINE__)
-         endif
+         !if (calendar_type /= "standard" .or. .not. use_leap_years) then
+         !   call icedrv_system_abort(&
+         !   string=subname//'Forcing calendar not standard or not using leap years',&
+         !   file=__FILE__,line=__LINE__)
+         !endif
          ! Get the time array
          !! Note, in the file the value is actually unsigned, need to make sure this
          ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
@@ -1197,7 +1197,13 @@
          ! Stakes 3 snow accumulation
          ! 11 cm accumulation over 61 days
          ! 0.11 m * 330 kg/m3 = 36.3 kg/m2 / 61 * 24 * 3600 s = 6.9e-6
-         fsnow_data(:) = 0.0000069_dbl_kind
+         ! That rate continues until March 8, which is julian date 68
+         do nt = 1, ntime
+            if (model_time(nt) <= (50 * Gregorian_year + 68) * 24 * 3600) then
+               fsnow_data(nt) = 0.0000069_dbl_kind
+            endif
+         enddo
+         !fsnow_data(:) = 0.0000069_dbl_kind
          frain_data(:) = c0
          
 
