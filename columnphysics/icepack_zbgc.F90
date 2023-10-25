@@ -9,19 +9,22 @@
       module icepack_zbgc
 
       use icepack_kinds
-      use icepack_parameters, only: c0, c1, c2, p001, p1, p5, puny
-      use icepack_parameters, only: depressT, rhosi, min_salin, salt_loss
-      use icepack_parameters, only: fr_resp, algal_vel, R_dFe2dust, dustFe_sol, T_max
-      use icepack_parameters, only: op_dep_min, fr_graze_s, fr_graze_e, fr_mort2min, fr_dFe
-      use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
-      use icepack_parameters, only: fr_resp_s, y_sk_DMS, t_sk_conv, t_sk_ox
-      use icepack_parameters, only: scale_bgc, ktherm, skl_bgc
-      use icepack_parameters, only: z_tracers, fsal, conserv_check
+      use icepack_parameters
 
-      use icepack_tracers, only: nt_sice, bio_index
+      !use icepack_parameters, only: c0, c1, c2, p001, p1, p5, puny
+      !use icepack_parameters, only: depressT, rhosi, min_salin, salt_loss
+      !use icepack_parameters, only: fr_resp, algal_vel, R_dFe2dust, dustFe_sol, T_max
+      !use icepack_parameters, only: op_dep_min, fr_graze_s, fr_graze_e, fr_mort2min, fr_dFe
+      !use icepack_parameters, only: k_nitrif, t_iron_conv, max_loss, max_dfe_doc1
+      !use icepack_parameters, only: fr_resp_s, y_sk_DMS, t_sk_conv, t_sk_ox
+      !use icepack_parameters, only: scale_bgc, ktherm, skl_bgc
+      !use icepack_parameters, only: z_tracers, fsal, conserv_check
+
+      use icepack_tracers, only: max_algae, max_dic, max_doc, max_don, max_fe
+      use icepack_tracers, only: max_aero, max_nbtrcr
+      use icepack_tracers, only: nt_sice, bio_index, bio_index_o
       use icepack_tracers, only: tr_brine, nt_fbri, nt_qice, nt_Tsfc
       use icepack_tracers, only: nt_zbgc_frac
-      use icepack_tracers, only: bio_index_o,  bio_index
 
       use icepack_zbgc_shared, only: zbgc_init_frac
       use icepack_zbgc_shared, only: zbgc_frac_init
@@ -35,7 +38,10 @@
       use icepack_zbgc_shared, only: f_don, kn_bac, f_don_Am, f_doc
       use icepack_zbgc_shared, only: f_exude, k_bac
       use icepack_zbgc_shared, only: tau_ret, tau_rel
-      use icepack_zbgc_shared, only: R_C2N, R_CHL2N, f_abs_chl, R_C2N_DON
+      use icepack_zbgc_shared, only: R_C2N, R_chl2N, f_abs_chl, R_C2N_DON
+      use icepack_zbgc_shared, only: doc_pool_fractions
+      use icepack_zbgc_shared, only: algaltype, doctype, dictype
+      use icepack_zbgc_shared, only: dontype, fedtype, feptype, zaerotype
 
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -445,7 +451,8 @@
 !
       subroutine icepack_init_bgc(ncat, nblyr, nilyr, ntrcr_o, &
          cgrid, igrid, ntrcr, nbtrcr, &
-         sicen, trcrn, sss, ocean_bio_all)
+         sicen, trcrn, sss, ocean_bio_all, &
+         DOCPoolFractions)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -473,6 +480,9 @@
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          ocean_bio_all   ! fixed order, all values even for tracers false
 
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
+         DOCPoolFractions   ! Fraction of DOC in polysacharids, lipids, and proteins
+
 !autodocument_end
 
       ! local variables
@@ -493,6 +503,8 @@
       !  The skeletal layer model assumes a constant
       !  layer depth (sk_l) and porosity (phi_sk)
       !-----------------------------------------------------------------------------
+      if (.not. restartbgc) then
+
          if (skl_bgc) then
 
             do  n = 1,ncat
@@ -547,6 +559,14 @@
 
             endif  ! scale_bgc
          endif     ! skl_bgc
+      endif       ! restart
+
+      DOCPoolFractions(:) = c1
+      if (.not. use_macromolecules) then
+        do mm = 1,max_doc
+           DOCPoolFractions(mm) = doc_pool_fractions(mm)
+        end do
+      end if
 
       end subroutine icepack_init_bgc
 
@@ -554,7 +574,1010 @@
 !autodocument_start icepack_init_zbgc
 !
 
-      subroutine icepack_init_zbgc ( &
+      subroutine icepack_init_zbgc ( nblyr, nilyr, nslyr, &
+                 n_algae, n_zaero, n_doc, n_dic, n_don, n_fed, n_fep, &
+                 trcr_base, trcr_depend, n_trcr_strata, nt_strata, nbtrcr_sw, &
+                 tr_brine, nt_fbri, ntrcr, nbtrcr, nt_bgc_Nit, nt_bgc_Am, &
+                 nt_bgc_Sil, nt_bgc_DMS, nt_bgc_PON, nt_bgc_S, nt_bgc_N, &
+                 nt_bgc_C, nt_bgc_chl, nt_bgc_DOC, nt_bgc_DON, nt_bgc_DIC, & 
+                 nt_zaero, nt_bgc_DMSPp, nt_bgc_DMSPd, nt_bgc_Fed, nt_bgc_Fep, &
+                 nt_zbgc_frac, tr_bgc_Nit, tr_bgc_Am, tr_bgc_Sil, tr_bgc_DMS, &
+                 tr_bgc_PON, tr_bgc_N, tr_bgc_C, tr_bgc_chl, &
+                 tr_bgc_DON, tr_bgc_Fe, tr_zaero, nlt_zaero_sw, nlt_chl_sw, &
+                 nlt_bgc_N, nlt_bgc_Nit, nlt_bgc_Am, nlt_bgc_Sil, &
+                 nlt_bgc_DMS, nlt_bgc_DMSPp, nlt_bgc_DMSPd, &
+                 nlt_bgc_C, nlt_bgc_chl, nlt_bgc_DIC, nlt_bgc_DOC, &
+                 nlt_bgc_PON, nlt_bgc_DON, nlt_bgc_Fed, nlt_bgc_Fep, &
+                 nlt_zaero, &
+                 nt_bgc_hum, nlt_bgc_hum, tr_bgc_hum, &
+                 skl_bgc, z_tracers, dEdd_algae, solve_zbgc, &
+                 bio_index_o_out, bio_index_out, ntrcr_o, &
+                 frazil_scav_in, initbio_frac_in, &
+                 max_algae_in, max_doc_in, max_dic_in, max_don_in, max_fe_in, & !optional
+                 ratio_Si2N_diatoms_in, ratio_Si2N_sp_in, ratio_Si2N_phaeo_in, &         !
+                 ratio_S2N_diatoms_in, ratio_S2N_sp_in, ratio_S2N_phaeo_in, &            !
+                 ratio_Fe2C_diatoms_in, ratio_Fe2C_sp_in, ratio_Fe2C_phaeo_in, &
+                 ratio_Fe2N_diatoms_in, ratio_Fe2N_sp_in, ratio_Fe2N_phaeo_in, &
+                 ratio_Fe2DON_in, ratio_Fe2DOC_s_in,  ratio_Fe2DOC_l_in, &
+                 chlabs_diatoms_in, chlabs_sp_in, chlabs_phaeo_in, &
+                 alpha2max_low_diatoms_in, alpha2max_low_sp_in, alpha2max_low_phaeo_in, &
+                 beta2max_diatoms_in, beta2max_sp_in, beta2max_phaeo_in, &
+                 mu_max_diatoms_in, mu_max_sp_in, mu_max_phaeo_in, &
+                 grow_Tdep_diatoms_in, grow_Tdep_sp_in, grow_Tdep_phaeo_in, &
+                 fr_graze_diatoms_in, fr_graze_sp_in, fr_graze_phaeo_in, &
+                 mort_pre_diatoms_in, mort_pre_sp_in, mort_pre_phaeo_in, &
+                 mort_Tdep_diatoms_in, mort_Tdep_sp_in, mort_Tdep_phaeo_in, &
+                 k_exude_diatoms_in, k_exude_sp_in, k_exude_phaeo_in, &
+                 K_Nit_diatoms_in, K_Nit_sp_in, K_Nit_phaeo_in, &
+                 K_Am_diatoms_in, K_Am_sp_in, K_Am_phaeo_in, &
+                 K_Sil_diatoms_in, K_Sil_sp_in, K_Sil_phaeo_in, &
+                 K_Fe_diatoms_in, K_Fe_sp_in, K_Fe_phaeo_in, &
+                 f_don_protein_in, kn_bac_protein_in, &
+                 f_don_Am_protein_in, f_doc_s_in, f_doc_l_in, &
+                 f_exude_s_in, f_exude_l_in, k_bac_s_in,  k_bac_l_in, &
+                 algaltype_diatoms_in, algaltype_sp_in, algaltype_phaeo_in, &
+                 doctype_s_in, doctype_l_in, dictype_1_in, dontype_protein_in, &
+                 fedtype_1_in, feptype_1_in, zaerotype_bc1_in, zaerotype_bc2_in, &
+                 zaerotype_dust1_in, zaerotype_dust2_in, zaerotype_dust3_in, &
+                 zaerotype_dust4_in, &
+                 ratio_C2N_diatoms_in, ratio_C2N_sp_in, ratio_C2N_phaeo_in, &
+                 ratio_chl2N_diatoms_in, ratio_chl2N_sp_in, ratio_chl2N_phaeo_in, &
+                 F_abs_chl_diatoms_in, F_abs_chl_sp_in, F_abs_chl_phaeo_in, &
+                 ratio_C2N_proteins_in, &
+                 nitratetype_in, ammoniumtype_in, dmspptype_in, dmspdtype_in, &
+                 silicatetype_in, humtype_in, tau_min_in, tau_max_in)
+
+      integer (kind=int_kind), intent(in) :: &
+         nblyr     , & ! number of bio/brine layers per category
+         nilyr     , & ! number of ice layers per category
+         nslyr         ! number of snow layers per category
+
+      integer (kind=int_kind), intent(in) ::&
+         n_zaero   , & ! number of z aerosols in use
+         n_algae   , & ! number of algae in use
+         n_doc     , & ! number of DOC pools in use
+         n_dic     , & ! number of DIC pools in use
+         n_don     , & ! number of DON pools in use
+         n_fed     , & ! number of Fe  pools in use dissolved Fe
+         n_fep         ! number of Fe  pools in use particulate Fe
+
+      integer (kind=int_kind), intent(inout) :: &
+         ntrcr_o,     & ! number of non-bio tracers in use
+         ntrcr,       & ! number of tracers
+         nbtrcr,      & ! number of bgc tracers in use
+         nbtrcr_sw      ! size of shorwave tracer vector
+
+      integer (kind=int_kind), dimension (:), intent(inout) :: &
+         trcr_depend   ! = 0 for ice area tracers
+                       ! = 1 for ice volume tracers
+                       ! = 2 for snow volume tracers
+
+      integer (kind=int_kind), dimension (:), intent(inout) :: &
+         n_trcr_strata ! number of underlying tracer layers
+
+      integer (kind=int_kind), dimension (:,:), intent(inout) :: &
+         nt_strata     ! indices of underlying tracer layers
+
+      real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
+         trcr_base     ! = 0 or 1 depending on tracer dependency
+                       ! argument 2:  (1) aice, (2) vice, (3) vsno
+
+      logical (kind=log_kind), intent(in) :: &
+         tr_brine,       & ! if .true., brine height differs from ice thickness
+         tr_zaero,       & ! if .true., black carbon is tracers  (n_zaero)
+         tr_bgc_Nit,     & ! if .true. Nitrate tracer in ice
+         tr_bgc_N,       & ! if .true., algal nitrogen tracers  (n_algae)
+         tr_bgc_DON,     & ! if .true., DON pools are tracers  (n_don)
+         tr_bgc_C,       & ! if .true., algal carbon tracers + DOC and DIC
+         tr_bgc_chl,     & ! if .true., algal chlorophyll tracers
+         tr_bgc_Am,      & ! if .true., ammonia/um as nutrient tracer
+         tr_bgc_Sil,     & ! if .true., silicon as nutrient tracer
+         tr_bgc_DMS,     & ! if .true., DMS as  tracer
+         tr_bgc_Fe,      & ! if .true., Fe as  tracer
+         tr_bgc_PON,     & ! if .true., PON as tracer
+         tr_bgc_hum,     & ! if .true., humic material as tracer
+         z_tracers,      & ! if .true., bgc or aerosol tracers are vertically resolved
+         solve_zbgc,     & ! if .true., solve vertical biochemistry portion of code
+         dEdd_algae,     & ! if .true., algal absorption of Shortwave is computed in the
+         skl_bgc           ! if true, solve skeletal biochemistry
+
+      integer (kind=int_kind), optional, intent(in) ::&
+         max_algae_in , &
+         max_doc_in   , &
+         max_dic_in   , &
+         max_don_in   , &
+         max_fe_in
+
+      real (kind=dbl_kind), optional, intent(in) :: &
+         initbio_frac_in, & ! fraction of ocean tracer concentration used to initialize tracer
+         frazil_scav_in     ! multiple of ocean tracer concentration due to frazil scavenging
+
+      real (kind=dbl_kind), optional, intent(in) :: &
+         ratio_Si2N_diatoms_in, &   ! algal Si to N (mol/mol)
+         ratio_Si2N_sp_in     , &
+         ratio_Si2N_phaeo_in  , &
+         ratio_S2N_diatoms_in , &   ! algal S  to N (mol/mol)
+         ratio_S2N_sp_in      , &
+         ratio_S2N_phaeo_in   , &
+         ratio_Fe2C_diatoms_in, &   ! algal Fe to C  (umol/mol)
+         ratio_Fe2C_sp_in     , &
+         ratio_Fe2C_phaeo_in  , &
+         ratio_Fe2N_diatoms_in, &   ! algal Fe to N  (umol/mol)
+         ratio_Fe2N_sp_in     , &
+         ratio_Fe2N_phaeo_in  , &
+         ratio_Fe2DON_in      , &   ! Fe to N of DON (nmol/umol)
+         ratio_Fe2DOC_s_in    , &   ! Fe to C of DOC (nmol/umol) saccharids
+         ratio_Fe2DOC_l_in    , &   ! Fe to C of DOC (nmol/umol) lipids
+         tau_min_in           , &   ! rapid mobile to stationary exchanges (s) = 1.5 hours
+         tau_max_in           , &   ! long time mobile to stationary exchanges (s) = 2 days
+         chlabs_diatoms_in    , & ! chl absorption (1/m/(mg/m^3))
+         chlabs_sp_in         , & !
+         chlabs_phaeo_in      , & !
+         alpha2max_low_diatoms_in , & ! light limitation (1/(W/m^2))
+         alpha2max_low_sp_in      , &
+         alpha2max_low_phaeo_in   , &
+         beta2max_diatoms_in , & ! light inhibition (1/(W/m^2))
+         beta2max_sp_in      , &
+         beta2max_phaeo_in   , &
+         mu_max_diatoms_in   , & ! maximum growth rate (1/day)
+         mu_max_sp_in        , &
+         mu_max_phaeo_in     , &
+         grow_Tdep_diatoms_in, & ! Temperature dependence of growth (1/C)
+         grow_Tdep_sp_in     , &
+         grow_Tdep_phaeo_in  , &
+         fr_graze_diatoms_in , & ! Fraction grazed
+         fr_graze_sp_in      , &
+         fr_graze_phaeo_in   , &
+         mort_pre_diatoms_in , & ! Mortality (1/day)
+         mort_pre_sp_in      , &
+         mort_pre_phaeo_in   , &
+         mort_Tdep_diatoms_in, & ! T dependence of mortality (1/C)
+         mort_Tdep_sp_in     , &
+         mort_Tdep_phaeo_in  , &
+         k_exude_diatoms_in  , & ! algal exudation (1/d)
+         k_exude_sp_in       , &
+         k_exude_phaeo_in    , &
+         K_Nit_diatoms_in    , & ! nitrate half saturation (mmol/m^3)
+         K_Nit_sp_in         , &
+         K_Nit_phaeo_in      , &
+         K_Am_diatoms_in     , & ! ammonium half saturation (mmol/m^3)
+         K_Am_sp_in          , &
+         K_Am_phaeo_in       , &
+         K_Sil_diatoms_in    , & ! silicate half saturation (mmol/m^3)
+         K_Sil_sp_in         , &
+         K_Sil_phaeo_in      , &
+         K_Fe_diatoms_in     , & ! iron half saturation (nM)
+         K_Fe_sp_in          , &
+         K_Fe_phaeo_in       , &
+         f_don_protein_in    , & ! fraction of spilled grazing to proteins
+         kn_bac_protein_in   , & ! Bacterial degredation of DON (1/d)
+         f_don_Am_protein_in , & ! fraction of remineralized DON to ammonium
+         f_doc_s_in          , & ! fraction of mortality to DOC
+         f_doc_l_in          , &
+         f_exude_s_in        , & ! fraction of exudation to DOC
+         f_exude_l_in        , &
+         k_bac_s_in          , & ! Bacterial degredation of DOC (1/d)
+         k_bac_l_in          , &
+         algaltype_diatoms_in  , & ! mobility type
+         algaltype_sp_in       , & !
+         algaltype_phaeo_in    , & !
+         nitratetype_in        , & !
+         ammoniumtype_in       , & !
+         silicatetype_in       , & !
+         dmspptype_in          , & !
+         dmspdtype_in          , & !
+         humtype_in            , & !
+         doctype_s_in          , & !
+         doctype_l_in          , & !
+         dictype_1_in          , & !
+         dontype_protein_in    , & !
+         fedtype_1_in          , & !
+         feptype_1_in          , & !
+         zaerotype_bc1_in      , & !
+         zaerotype_bc2_in      , & !
+         zaerotype_dust1_in    , & !
+         zaerotype_dust2_in    , & !
+         zaerotype_dust3_in    , & !
+         zaerotype_dust4_in    , & !
+         ratio_C2N_diatoms_in  , & ! algal C to N ratio (mol/mol)
+         ratio_C2N_sp_in       , & !
+         ratio_C2N_phaeo_in    , & !
+         ratio_chl2N_diatoms_in, & ! algal chlorophyll to N ratio (mg/mmol)
+         ratio_chl2N_sp_in     , & !
+         ratio_chl2N_phaeo_in  , & !
+         F_abs_chl_diatoms_in  , & ! scales absorbed radiation for dEdd
+         F_abs_chl_sp_in       , & !
+         F_abs_chl_phaeo_in    , & !
+         ratio_C2N_proteins_in     ! ratio of C to N in proteins (mol/mol)
+
+       integer (kind=int_kind), intent(out) :: &
+         nt_fbri,      & ! volume fraction of ice with dynamic salt (hinS/vicen*aicen)
+         nt_bgc_Nit,   & ! nutrients
+         nt_bgc_Am,    & !
+         nt_bgc_Sil,   & !
+         nt_bgc_DMSPp, & ! trace gases (skeletal layer)
+         nt_bgc_DMSPd, & !
+         nt_bgc_DMS,   & !
+         nt_bgc_PON,   & ! zooplankton and detritus
+         nt_bgc_hum,   & ! humic material
+                         ! bio layer indicess
+         nlt_bgc_Nit,  & ! nutrients
+         nlt_bgc_Am,   & !
+         nlt_bgc_Sil,  & !
+         nlt_bgc_DMSPp,& ! trace gases (skeletal layer)
+         nlt_bgc_DMSPd,& !
+         nlt_bgc_DMS,  & !
+         nlt_bgc_PON,  & ! zooplankton and detritus
+         nlt_bgc_hum,  & ! humic material
+         nlt_chl_sw,   & ! points to total chla in trcrn_sw
+         nt_zbgc_frac, & ! fraction of tracer in the mobile phase
+         nt_bgc_S        ! Bulk salinity in fraction ice with dynamic salinity (Bio grid)
+
+      integer (kind=int_kind), dimension(:), intent(out) :: &
+         nt_bgc_N , & ! diatoms, phaeocystis, pico/small
+         nt_bgc_C , & ! diatoms, phaeocystis, pico/small
+         nt_bgc_chl,& ! diatoms, phaeocystis, pico/small
+         nlt_bgc_N ,& ! diatoms, phaeocystis, pico/small
+         nlt_bgc_C ,& ! diatoms, phaeocystis, pico/small
+         nlt_bgc_chl   ! diatoms, phaeocystis, pico/small
+
+      integer (kind=int_kind), dimension(:), intent(out) :: &
+         nt_bgc_DOC,   & !  dissolved organic carbon
+         nlt_bgc_DOC     !  dissolved organic carbon
+
+      integer (kind=int_kind), dimension(:), intent(out) :: &
+         nt_bgc_DON,   & !  dissolved organic nitrogen
+         nlt_bgc_DON     !  dissolved organic nitrogen
+
+      integer (kind=int_kind), dimension(:), intent(out) :: &
+         nt_bgc_DIC,    & !  dissolved inorganic carbon
+         nlt_bgc_DIC      !  dissolved inorganic carbon
+
+      integer (kind=int_kind), dimension(:), intent(out) :: &
+         nt_bgc_Fed,     & !  dissolved iron
+         nt_bgc_Fep,     & !  particulate iron
+         nlt_bgc_Fed,    & !  dissolved iron
+         nlt_bgc_Fep       !  particulate iron
+
+      integer (kind=int_kind), dimension(:), intent(out) :: &
+         nt_zaero,    & !  black carbon and other aerosols
+         nlt_zaero,   & !  black carbon and other aerosols
+         nlt_zaero_sw
+
+      integer (kind=int_kind), dimension(:), optional, intent(out) :: &
+         bio_index_o_out , & ! nlt  to appropriate value in ocean data array
+         bio_index_out       ! nlt to nt
+
+!autodocument_end
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+        k, mm    , & ! loop index
+        ntd      , & ! for tracer dependency calculation
+        nk       , & !
+        nt_depend
+
+      character(len=*),parameter :: subname='(icepack_init_zbgc)'
+
+      !------------
+      if (present(max_algae_in)          ) then
+         if (max_algae .ne. max_algae_in) then
+            call icepack_warnings_add(subname//' incorrect dimension max_algae_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         endif
+      endif
+      if (present(max_doc_in)          ) then
+         if (max_doc .ne. max_doc_in) then
+            call icepack_warnings_add(subname//' incorrect dimension max_doc_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         endif
+      endif
+      if (present(max_dic_in)          ) then
+         if (max_dic .ne. max_dic_in) then
+            call icepack_warnings_add(subname//' incorrect dimension max_dic_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         endif
+      endif
+      if (present(max_don_in)          ) then
+         if (max_don .ne. max_don_in) then
+            call icepack_warnings_add(subname//' incorrect dimension max_don_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         endif
+      endif
+      if (present(max_fe_in)          ) then
+         if (max_fe .ne. max_fe_in) then
+            call icepack_warnings_add(subname//' incorrect dimension max_fe_in')
+            call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+         endif
+      endif
+      if (present(f_doc_l_in)            ) f_doc_l = f_doc_l_in
+      if (present(f_doc_s_in)            ) f_doc_s = f_doc_s_in
+      if (present(f_exude_l_in)          ) f_exude_l = f_exude_l_in
+      if (present(f_exude_s_in)          ) f_exude_s = f_exude_s_in
+      if (present(k_bac_l_in)            ) k_bac_l = k_bac_l_in
+      if (present(k_bac_s_in)            ) k_bac_s = k_bac_s_in
+      if (present(frazil_scav_in)        ) frazil_scav = frazil_scav_in
+      if (present(initbio_frac_in)       ) initbio_frac = initbio_frac_in
+      if (present(ratio_Si2N_diatoms_in) ) ratio_Si2N_diatoms = ratio_Si2N_diatoms_in
+      if (present(ratio_Si2N_sp_in)      ) ratio_Si2N_sp      = ratio_Si2N_sp_in
+      if (present(ratio_Si2N_phaeo_in)   ) ratio_Si2N_phaeo   = ratio_Si2N_phaeo_in
+      if (present(ratio_S2N_diatoms_in)  ) ratio_S2N_diatoms  = ratio_S2N_diatoms_in
+      if (present(ratio_S2N_sp_in )      ) ratio_S2N_sp       = ratio_S2N_sp_in
+      if (present(ratio_S2N_phaeo_in)    ) ratio_S2N_phaeo    = ratio_S2N_phaeo_in
+      if (present(ratio_Fe2C_diatoms_in) ) ratio_Fe2C_diatoms = ratio_Fe2C_diatoms_in
+      if (present(ratio_Fe2C_sp_in)      ) ratio_Fe2C_sp      = ratio_Fe2C_sp_in
+      if (present(ratio_Fe2C_phaeo_in)   ) ratio_Fe2C_phaeo   =  ratio_Fe2C_phaeo_in
+      if (present(ratio_Fe2N_diatoms_in) ) ratio_Fe2N_diatoms = ratio_Fe2N_diatoms_in
+      if (present(ratio_Fe2N_sp_in)      ) ratio_Fe2N_sp      = ratio_Fe2N_sp_in
+      if (present(ratio_Fe2N_phaeo_in)   ) ratio_Fe2N_phaeo   = ratio_Fe2N_phaeo_in
+      if (present(ratio_Fe2DON_in)       ) ratio_Fe2DON       = ratio_Fe2DON_in
+      if (present(ratio_Fe2DOC_s_in)     ) ratio_Fe2DOC_s     = ratio_Fe2DOC_s_in
+      if (present(ratio_Fe2DOC_l_in)     ) ratio_Fe2DOC_l     = ratio_Fe2DOC_l_in
+      if (present(tau_min_in)            ) tau_min            = tau_min_in
+      if (present(tau_max_in)            ) tau_max            = tau_max_in
+      if (present(chlabs_diatoms_in)     ) chlabs_diatoms     = chlabs_diatoms_in
+      if (present(chlabs_sp_in)          ) chlabs_sp          = chlabs_sp_in
+      if (present(chlabs_phaeo_in)       ) chlabs_phaeo       = chlabs_phaeo_in
+      if (present(alpha2max_low_diatoms_in)  ) alpha2max_low_diatoms   = alpha2max_low_diatoms_in
+      if (present(alpha2max_low_sp_in)       ) alpha2max_low_sp        = alpha2max_low_sp_in
+      if (present(alpha2max_low_phaeo_in)    ) alpha2max_low_phaeo     = alpha2max_low_phaeo_in
+      if (present(beta2max_diatoms_in)   ) beta2max_diatoms    = beta2max_diatoms_in
+      if (present(beta2max_sp_in)        ) beta2max_sp         = beta2max_sp_in
+      if (present(beta2max_phaeo_in)     ) beta2max_phaeo      = beta2max_phaeo_in
+      if (present(mu_max_diatoms_in)     ) mu_max_diatoms      = mu_max_diatoms_in
+      if (present(mu_max_sp_in)          ) mu_max_sp           = mu_max_sp_in
+      if (present(mu_max_phaeo_in)       ) mu_max_phaeo        = mu_max_phaeo_in
+      if (present(grow_Tdep_diatoms_in)  ) grow_Tdep_diatoms   = grow_Tdep_diatoms_in
+      if (present(grow_Tdep_sp_in)       ) grow_Tdep_sp        = grow_Tdep_sp_in
+      if (present(grow_Tdep_phaeo_in)    ) grow_Tdep_phaeo     = grow_Tdep_phaeo_in
+      if (present(fr_graze_diatoms_in)   ) fr_graze_diatoms    = fr_graze_diatoms_in
+      if (present(fr_graze_sp_in)        ) fr_graze_sp         = fr_graze_sp_in
+      if (present(fr_graze_phaeo_in)     ) fr_graze_phaeo      = fr_graze_phaeo_in
+      if (present(mort_pre_diatoms_in)   ) mort_pre_diatoms    = mort_pre_diatoms_in
+      if (present(mort_pre_sp_in)        ) mort_pre_sp         = mort_pre_sp_in
+      if (present(mort_pre_phaeo_in)     ) mort_pre_phaeo      = mort_pre_phaeo_in
+      if (present(mort_Tdep_diatoms_in)  ) mort_Tdep_diatoms   = mort_Tdep_diatoms_in
+      if (present(mort_Tdep_sp_in)       ) mort_Tdep_sp        = mort_Tdep_sp_in
+      if (present(mort_Tdep_phaeo_in)    ) mort_Tdep_phaeo     = mort_Tdep_phaeo_in
+      if (present(k_exude_diatoms_in)    ) k_exude_diatoms     = k_exude_diatoms_in
+      if (present(k_exude_sp_in)         ) k_exude_sp          = k_exude_sp_in
+      if (present(k_exude_phaeo_in)      ) k_exude_phaeo       = k_exude_phaeo_in
+      if (present(K_Nit_diatoms_in)      ) K_Nit_diatoms       = K_Nit_diatoms_in
+      if (present(K_Nit_sp_in)           ) K_Nit_sp            = K_Nit_sp_in
+      if (present(K_Nit_phaeo_in)        ) K_Nit_phaeo         = K_Nit_phaeo_in
+      if (present(K_Am_diatoms_in)       ) K_Am_diatoms        = K_Am_diatoms_in
+      if (present(K_Am_sp_in)            ) K_Am_sp             = K_Am_sp_in
+      if (present(K_Am_phaeo_in)         ) K_Am_phaeo          = K_Am_phaeo_in
+      if (present(K_Sil_diatoms_in)      ) K_Sil_diatoms       = K_Sil_diatoms_in
+      if (present(K_Sil_sp_in)           ) K_Sil_sp            = K_Sil_sp_in
+      if (present(K_Sil_phaeo_in)        ) K_Sil_phaeo         = K_Sil_phaeo_in
+      if (present(K_Fe_diatoms_in)       ) K_Fe_diatoms        = K_Fe_diatoms_in
+      if (present(K_Fe_sp_in)            ) K_Fe_sp             = K_Fe_sp_in
+      if (present(K_Fe_phaeo_in)         ) K_Fe_phaeo          = K_Fe_phaeo_in
+      if (present(algaltype_diatoms_in)  ) algaltype_diatoms   = algaltype_diatoms_in
+      if (present(algaltype_sp_in)       ) algaltype_sp        = algaltype_sp_in
+      if (present(algaltype_phaeo_in)    ) algaltype_phaeo     = algaltype_phaeo_in
+      if (present(nitratetype_in)        ) nitratetype         = nitratetype_in
+      if (present(silicatetype_in)       ) silicatetype        = silicatetype_in
+      if (present(humtype_in)            ) humtype             = humtype_in
+      if (present(dontype_protein_in)    ) dontype_protein     = dontype_protein_in
+      if (present(dmspptype_in)          ) dmspptype           = dmspptype_in
+      if (present(dmspdtype_in)          ) dmspdtype           = dmspdtype_in
+      if (present(doctype_s_in)          ) doctype_s           = doctype_s_in
+      if (present(doctype_l_in)          ) doctype_l           = doctype_l_in
+      if (present(dictype_1_in)          ) dictype_1           = dictype_1_in
+      if (present(fedtype_1_in)          ) fedtype_1           = fedtype_1_in
+      if (present(feptype_1_in)          ) feptype_1           = feptype_1_in
+      if (present(zaerotype_bc1_in)      ) zaerotype_bc1       = zaerotype_bc1_in
+      if (present(zaerotype_bc2_in)      ) zaerotype_bc2       = zaerotype_bc2_in
+      if (present(zaerotype_dust1_in)    ) zaerotype_dust1     = zaerotype_dust1_in
+      if (present(zaerotype_dust2_in)    ) zaerotype_dust2     = zaerotype_dust2_in
+      if (present(zaerotype_dust3_in)    ) zaerotype_dust3     = zaerotype_dust3_in
+      if (present(zaerotype_dust4_in)    ) zaerotype_dust4     = zaerotype_dust4_in
+      if (present(ratio_C2N_diatoms_in)  ) ratio_C2N_diatoms   = ratio_C2N_diatoms_in
+      if (present(ratio_C2N_sp_in)       ) ratio_C2N_sp        = ratio_C2N_sp_in
+      if (present(ratio_C2N_phaeo_in)    ) ratio_C2N_phaeo     = ratio_C2N_phaeo_in
+      if (present(ratio_chl2N_diatoms_in)) ratio_chl2N_diatoms = ratio_chl2N_diatoms_in
+      if (present(ratio_chl2N_sp_in)     ) ratio_chl2N_sp      = ratio_chl2N_sp_in
+      if (present(ratio_chl2N_phaeo_in)  ) ratio_chl2N_phaeo   = ratio_chl2N_phaeo_in
+      if (present(F_abs_chl_diatoms_in)  ) F_abs_chl_diatoms   = F_abs_chl_diatoms_in
+      if (present(F_abs_chl_sp_in)       ) F_abs_chl_sp        = F_abs_chl_sp_in
+      if (present(F_abs_chl_phaeo_in)    ) F_abs_chl_phaeo     = F_abs_chl_phaeo_in
+      if (present(ratio_C2N_proteins_in)    ) ratio_C2N_proteins     = ratio_C2N_proteins_in
+
+      ntrcr_o = ntrcr
+      nt_fbri = 0
+      if (tr_brine) then
+          nt_fbri = ntrcr + 1   ! ice volume fraction with salt
+          ntrcr = ntrcr + 1
+          trcr_depend(nt_fbri)   = 1   ! volume-weighted
+          trcr_base  (nt_fbri,1) = c0  ! volume-weighted
+          trcr_base  (nt_fbri,2) = c1  ! volume-weighted
+          trcr_base  (nt_fbri,3) = c0  ! volume-weighted
+          n_trcr_strata(nt_fbri) = 0
+          nt_strata  (nt_fbri,1) = 0
+          nt_strata  (nt_fbri,2) = 0
+      endif
+
+      ntd = 0                    ! if nt_fbri /= 0 then use fbri dependency
+      if (nt_fbri == 0) ntd = -1 ! otherwise make tracers depend on ice volume
+
+      !-----------------------------------------------------------------
+      ! biogeochemistry
+      !-----------------------------------------------------------------
+
+      nbtrcr = 0
+      nbtrcr_sw = 0
+
+      ! vectors of size max_algae
+      nlt_bgc_N(:) = 0
+      nlt_bgc_C(:) = 0
+      nlt_bgc_chl(:) = 0
+      nt_bgc_N(:) = 0
+      nt_bgc_C(:) = 0
+      nt_bgc_chl(:) = 0
+
+      ! vectors of size max_dic
+      nlt_bgc_DIC(:) = 0
+      nt_bgc_DIC(:) = 0
+
+      ! vectors of size max_doc
+      nlt_bgc_DOC(:) = 0
+      nt_bgc_DOC(:) = 0
+
+      ! vectors of size max_don
+      nlt_bgc_DON(:) = 0
+      nt_bgc_DON(:) = 0
+
+      ! vectors of size max_fe
+      nlt_bgc_Fed(:) = 0
+      nlt_bgc_Fep(:) = 0
+      nt_bgc_Fed(:) = 0
+      nt_bgc_Fep(:) = 0
+
+      ! vectors of size max_aero
+      nlt_zaero(:) = 0
+      nlt_zaero_sw(:) = 0
+      nt_zaero(:) = 0
+
+      nlt_bgc_Nit    = 0
+      nlt_bgc_Am     = 0
+      nlt_bgc_Sil    = 0
+      nlt_bgc_DMSPp  = 0
+      nlt_bgc_DMSPd  = 0
+      nlt_bgc_DMS    = 0
+      nlt_bgc_PON    = 0
+      nlt_bgc_hum    = 0
+      nlt_chl_sw     = 0
+      bio_index(:)   = 0
+      bio_index_o(:) = 0
+
+      nt_bgc_Nit    = 0
+      nt_bgc_Am     = 0
+      nt_bgc_Sil    = 0
+      nt_bgc_DMSPp  = 0
+      nt_bgc_DMSPd  = 0
+      nt_bgc_DMS    = 0
+      nt_bgc_PON    = 0
+      nt_bgc_hum    = 0
+
+      !-----------------------------------------------------------------
+      ! Define array parameters
+      !-----------------------------------------------------------------
+      R_Si2N(1) = ratio_Si2N_diatoms
+      R_Si2N(2) = ratio_Si2N_sp
+      R_Si2N(3) = ratio_Si2N_phaeo
+
+      R_S2N(1) = ratio_S2N_diatoms
+      R_S2N(2) = ratio_S2N_sp
+      R_S2N(3) = ratio_S2N_phaeo
+
+      R_Fe2C(1) = ratio_Fe2C_diatoms
+      R_Fe2C(2) = ratio_Fe2C_sp
+      R_Fe2C(3) = ratio_Fe2C_phaeo
+
+      R_Fe2N(1) = ratio_Fe2N_diatoms
+      R_Fe2N(2) = ratio_Fe2N_sp
+      R_Fe2N(3) = ratio_Fe2N_phaeo
+
+      R_C2N(1) = ratio_C2N_diatoms
+      R_C2N(2) = ratio_C2N_sp
+      R_C2N(3) = ratio_C2N_phaeo
+
+      R_chl2N(1) = ratio_chl2N_diatoms
+      R_chl2N(2) = ratio_chl2N_sp
+      R_chl2N(3) = ratio_chl2N_phaeo
+
+      F_abs_chl(1) = F_abs_chl_diatoms
+      F_abs_chl(2) = F_abs_chl_sp
+      F_abs_chl(3) = F_abs_chl_phaeo
+
+      R_Fe2DON(1) = ratio_Fe2DON
+      R_C2N_DON(1) = ratio_C2N_proteins
+
+      R_Fe2DOC(1) = ratio_Fe2DOC_s
+      R_Fe2DOC(2) = ratio_Fe2DOC_l
+      R_Fe2DOC(3) = c0
+
+      chlabs(1) = chlabs_diatoms
+      chlabs(2) = chlabs_sp
+      chlabs(3) = chlabs_phaeo
+
+      alpha2max_low(1) = alpha2max_low_diatoms
+      alpha2max_low(2) = alpha2max_low_sp
+      alpha2max_low(3) = alpha2max_low_phaeo
+
+      beta2max(1) = beta2max_diatoms
+      beta2max(2) = beta2max_sp
+      beta2max(3) = beta2max_phaeo
+
+      mu_max(1) = mu_max_diatoms
+      mu_max(2) = mu_max_sp
+      mu_max(3) = mu_max_phaeo
+
+      grow_Tdep(1) = grow_Tdep_diatoms
+      grow_Tdep(2) = grow_Tdep_sp
+      grow_Tdep(3) = grow_Tdep_phaeo
+
+      fr_graze(1) = fr_graze_diatoms
+      fr_graze(2) = fr_graze_sp
+      fr_graze(3) = fr_graze_phaeo
+
+      mort_pre(1) = mort_pre_diatoms
+      mort_pre(2) = mort_pre_sp
+      mort_pre(3) = mort_pre_phaeo
+
+      mort_Tdep(1) = mort_Tdep_diatoms
+      mort_Tdep(2) = mort_Tdep_sp
+      mort_Tdep(3) = mort_Tdep_phaeo
+
+      k_exude(1) = k_exude_diatoms
+      k_exude(2) = k_exude_sp
+      k_exude(3) = k_exude_phaeo
+
+      K_Nit(1) = K_Nit_diatoms
+      K_Nit(2) = K_Nit_sp
+      K_Nit(3) = K_Nit_phaeo
+
+      K_Am(1) = K_Am_diatoms
+      K_Am(2) = K_Am_sp
+      K_Am(3) = K_Am_phaeo
+
+      K_Sil(1) = K_Sil_diatoms
+      K_Sil(2) = K_Sil_sp
+      K_Sil(3) = K_Sil_phaeo
+
+      K_Fe(1) = K_Fe_diatoms
+      K_Fe(2) = K_Fe_sp
+      K_Fe(3) = K_Fe_phaeo
+
+      f_doc(1) = f_doc_s
+      f_doc(2) = f_doc_l
+
+      f_don(1) = f_don_protein
+      kn_bac(1) = kn_bac_protein
+      f_don_Am(1) = f_don_Am_protein
+
+      f_exude(1) = f_exude_s
+      f_exude(2) = f_exude_l
+      k_bac(1) = k_bac_s
+      k_bac(2) = k_bac_l
+
+      algaltype(1) = algaltype_diatoms
+      algaltype(2) = algaltype_sp
+      algaltype(3) = algaltype_phaeo
+
+      doctype(1) = doctype_s
+      doctype(2) = doctype_l
+
+      dictype(1) = dictype_1
+
+      dontype(1) = dontype_protein
+
+      fedtype(1) = fedtype_1
+      feptype(1) = feptype_1
+
+      zaerotype(1) = zaerotype_bc1
+      zaerotype(2) = zaerotype_bc2
+      zaerotype(3) = zaerotype_dust1
+      zaerotype(4) = zaerotype_dust2
+      zaerotype(5) = zaerotype_dust3
+      zaerotype(6) = zaerotype_dust4
+
+      if (skl_bgc) then
+
+         nk = 1
+         nt_depend = 0
+
+         if (dEdd_algae) then
+           nlt_chl_sw = 1
+           nbtrcr_sw = nilyr+nslyr+2  ! only the bottom layer
+                                      ! will be nonzero
+          endif
+      elseif (z_tracers) then ! defined on nblyr+1 in ice
+                              ! and 2 snow layers (snow surface + interior)
+         nk = nblyr + 1
+         nt_depend = 2 + nt_fbri + ntd
+
+         if (tr_bgc_N) then
+            if (dEdd_algae) then
+               nlt_chl_sw = 1
+               nbtrcr_sw =  nilyr+nslyr+2
+            endif
+         endif ! tr_bgc_N
+
+      endif ! skl_bgc or z_tracers
+
+
+      if (skl_bgc .or. z_tracers) then
+
+      !-----------------------------------------------------------------
+      ! assign tracer indices and dependencies
+      ! bgc_tracer_type: < 0  purely mobile , >= 0 stationary
+      !------------------------------------------------------------------
+
+      if (tr_bgc_N) then
+         do mm = 1, n_algae
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_N(mm),    nlt_bgc_N(mm), &
+                                      algaltype(mm),   nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_N(mm)) = mm
+         enddo   ! mm
+      endif ! tr_bgc_N
+
+      if (tr_bgc_Nit) then
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_Nit,      nlt_bgc_Nit,   &
+                                      nitratetype,     nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_Nit) = max_algae + 1
+      endif ! tr_bgc_Nit
+
+      if (tr_bgc_C) then
+       !
+       ! Algal C is not yet distinct from algal N
+       ! * Reqires exudation and/or changing C:N ratios
+       ! for implementation
+       !
+       !  do mm = 1,n_algae
+       !     call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+       !                               nt_bgc_C(mm),    nlt_bgc_C(mm), &
+       !                               algaltype(mm),   nt_depend,     &
+       !                               ntrcr,           nbtrcr,        &
+       !                               bgc_tracer_type, trcr_depend,   &
+       !                               trcr_base,       n_trcr_strata, &
+       !                               nt_strata,       bio_index)
+       !     bio_index_o(nlt_bgc_C(mm)) = max_algae + 1 + mm
+       !  enddo   ! mm
+
+         do mm = 1, n_doc
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_DOC(mm),  nlt_bgc_DOC(mm), &
+                                      doctype(mm),     nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_DOC(mm)) = max_algae + 1 + mm
+         enddo   ! mm
+         do mm = 1, n_dic
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_DIC(mm),  nlt_bgc_DIC(mm), &
+                                      dictype(mm),     nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_DIC(mm)) = max_algae + max_doc + 1 + mm
+         enddo   ! mm
+      endif      ! tr_bgc_C
+
+      if (tr_bgc_chl) then
+         do mm = 1, n_algae
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_chl(mm),  nlt_bgc_chl(mm), &
+                                      algaltype(mm),   nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_chl(mm)) = max_algae + 1 + max_doc + max_dic + mm
+         enddo   ! mm
+      endif      ! tr_bgc_chl
+
+      if (tr_bgc_Am) then
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_Am,       nlt_bgc_Am,    &
+                                      ammoniumtype,    nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_Am) = 2*max_algae + max_doc + max_dic + 2
+      endif
+      if (tr_bgc_Sil) then
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_Sil,      nlt_bgc_Sil,   &
+                                      silicatetype,    nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_Sil) = 2*max_algae + max_doc + max_dic + 3
+      endif
+      if (tr_bgc_DMS) then   ! all together
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_DMSPp,    nlt_bgc_DMSPp, &
+                                      dmspptype,       nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_DMSPp) = 2*max_algae + max_doc + max_dic + 4
+
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_DMSPd,    nlt_bgc_DMSPd, &
+                                      dmspdtype,       nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_DMSPd) = 2*max_algae + max_doc + max_dic + 5
+
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_DMS,      nlt_bgc_DMS,   &
+                                      dmspdtype,       nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_DMS) = 2*max_algae + max_doc + max_dic + 6
+      endif
+      if (tr_bgc_PON) then
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_PON,      nlt_bgc_PON, &
+                                      nitratetype,     nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_PON) =  2*max_algae + max_doc + max_dic + 7
+      endif
+      if (tr_bgc_DON) then
+         do mm = 1, n_don
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_DON(mm),  nlt_bgc_DON(mm), &
+                                      dontype(mm),     nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_DON(mm)) = 2*max_algae + max_doc + max_dic + 7 + mm
+         enddo   ! mm
+      endif      ! tr_bgc_DON
+      if (tr_bgc_Fe) then
+         do mm = 1, n_fed
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_Fed(mm),  nlt_bgc_Fed(mm), &
+                                      fedtype(mm),     nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_Fed(mm)) = 2*max_algae + max_doc + max_dic &
+                                         + max_don + 7 + mm
+         enddo   ! mm
+         do mm = 1, n_fep
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_Fep(mm),  nlt_bgc_Fep(mm), &
+                                      feptype(mm),     nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_Fep(mm)) = 2*max_algae + max_doc + max_dic &
+                                         + max_don + max_fe + 7 + mm
+         enddo   ! mm
+      endif      ! tr_bgc_Fe
+
+      if (tr_bgc_hum) then
+            call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc_hum,      nlt_bgc_hum,   &
+                                      humtype,         nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+            bio_index_o(nlt_bgc_hum) =   2*max_algae + max_doc + 8 + max_dic &
+                                         + max_don + 2*max_fe + max_aero
+      endif
+      endif  ! skl_bgc or z_tracers
+
+      if (z_tracers) then ! defined on nblyr+1 in ice
+                              ! and 2 snow layers (snow surface + interior)
+
+         nk = nblyr + 1
+         nt_depend = 2 + nt_fbri + ntd
+
+         ! z layer aerosols
+         if (tr_zaero) then
+            do mm = 1, n_zaero
+               if (dEdd_algae) then
+                  nlt_zaero_sw(mm) = nbtrcr_sw + 1
+                  nbtrcr_sw = nbtrcr_sw + nilyr + nslyr+2
+               endif
+               call icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                         nt_zaero(mm),    nlt_zaero(mm), &
+                                         zaerotype(mm),   nt_depend,     &
+                                         ntrcr,           nbtrcr,        &
+                                         bgc_tracer_type, trcr_depend,   &
+                                         trcr_base,       n_trcr_strata, &
+                                         nt_strata,       bio_index)
+               bio_index_o(nlt_zaero(mm)) = 2*max_algae + max_doc + max_dic &
+                                          + max_don + 2*max_fe + 7 + mm
+            enddo   ! mm
+         endif      ! tr_zaero
+
+         nt_zbgc_frac = 0
+         if (nbtrcr > 0) then
+            nt_zbgc_frac = ntrcr + 1
+            ntrcr = ntrcr + nbtrcr
+            do k = 1,nbtrcr
+               zbgc_frac_init(k) = c1
+               trcr_depend(nt_zbgc_frac+k-1) =  2+nt_fbri
+               trcr_base(nt_zbgc_frac+ k - 1,1)  = c0
+               trcr_base(nt_zbgc_frac+ k - 1,2)  = c1
+               trcr_base(nt_zbgc_frac+ k - 1,3)  = c0
+               n_trcr_strata(nt_zbgc_frac+ k - 1)= 1
+               nt_strata(nt_zbgc_frac+ k - 1,1)  = nt_fbri
+               nt_strata(nt_zbgc_frac+ k - 1,2)  = 0
+               tau_ret(k) = c1
+               tau_rel(k) = c1
+               if (bgc_tracer_type(k) >=  c0 .and. bgc_tracer_type(k) < p5) then
+                  tau_ret(k) = tau_min
+                  tau_rel(k) = tau_max
+                  zbgc_frac_init(k) = c1
+               elseif (bgc_tracer_type(k) >= p5 .and. bgc_tracer_type(k) < c1) then
+                  tau_ret(k) = tau_min
+                  tau_rel(k) = tau_min
+                  zbgc_frac_init(k) = c1
+               elseif (bgc_tracer_type(k) >= c1 .and. bgc_tracer_type(k) < c2) then
+                  tau_ret(k) = tau_max
+                  tau_rel(k) = tau_min
+                  zbgc_frac_init(k) = c1
+               elseif (bgc_tracer_type(k) >= c2 ) then
+                  tau_ret(k) = tau_max
+                  tau_rel(k) = tau_max
+                  zbgc_frac_init(k) = c1
+               endif
+            enddo
+         endif
+
+      endif ! z_tracers
+
+      do k = 1, nbtrcr
+         zbgc_init_frac(k) = frazil_scav
+         if (bgc_tracer_type(k) < c0)  zbgc_init_frac(k) = initbio_frac
+      enddo
+      if (present(bio_index_out)   ) bio_index_out = bio_index
+      if (present(bio_index_o_out) ) bio_index_o_out = bio_index_o
+
+      end subroutine icepack_init_zbgc
+
+!=======================================================================
+
+      subroutine icepack_init_bgc_trcr(nk,              nt_fbri,       &
+                                      nt_bgc,          nlt_bgc,       &
+                                      bgctype,         nt_depend,     &
+                                      ntrcr,           nbtrcr,        &
+                                      bgc_tracer_type, trcr_depend,   &
+                                      trcr_base,       n_trcr_strata, &
+                                      nt_strata,       bio_index)
+
+
+      integer (kind=int_kind), intent(in) :: &
+         nk           , & ! counter
+         nt_depend    , & ! tracer dependency index
+         nt_fbri
+
+      integer (kind=int_kind), intent(inout) :: &
+         ntrcr        , & ! number of tracers
+         nbtrcr       , & ! number of bio tracers
+         nt_bgc       , & ! tracer index
+         nlt_bgc          ! bio tracer index
+
+      integer (kind=int_kind), dimension(:), intent(inout) :: &
+         trcr_depend  , & ! tracer dependencies
+         n_trcr_strata, & ! number of underlying tracer layers
+         bio_index        !
+
+      integer (kind=int_kind), dimension(:,:), intent(inout) :: &
+         nt_strata        ! indices of underlying tracer layers
+
+      real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
+         trcr_base        ! = 0 or 1 depending on tracer dependency
+                          ! argument 2:  (1) aice, (2) vice, (3) vsno
+
+      real (kind=dbl_kind), intent(in) :: &
+         bgctype          ! bio tracer transport type (mobile vs stationary)
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         bgc_tracer_type  ! bio tracer transport type array
+
+      ! local variables
+
+      integer (kind=int_kind) :: &
+         k         , & ! loop index
+         n_strata  , & ! temporary values
+         nt_strata1, & !
+         nt_strata2
+
+      real (kind=dbl_kind) :: &
+         trcr_base1, & ! temporary values
+         trcr_base2, &
+         trcr_base3
+
+         nt_bgc = ntrcr + 1
+         nbtrcr = nbtrcr + 1
+         nlt_bgc = nbtrcr
+         bgc_tracer_type(nbtrcr) = bgctype
+
+         if (nk > 1) then
+            ! include vertical bgc in snow
+            do k = nk, nk+1
+               ntrcr = ntrcr + 1
+               trcr_depend  (nt_bgc + k  ) = 2 ! snow volume
+               trcr_base    (nt_bgc + k,1) = c0
+               trcr_base    (nt_bgc + k,2) = c0
+               trcr_base    (nt_bgc + k,3) = c1
+               n_trcr_strata(nt_bgc + k  ) = 0
+               nt_strata    (nt_bgc + k,1) = 0
+               nt_strata    (nt_bgc + k,2) = 0
+            enddo
+
+            trcr_base1 = c0
+            trcr_base2 = c1
+            trcr_base3 = c0
+            n_strata = 1
+            nt_strata1 = nt_fbri
+            nt_strata2 = 0
+         else  ! nk = 1
+            trcr_base1 = c1
+            trcr_base2 = c0
+            trcr_base3 = c0
+            n_strata = 0
+            nt_strata1 = 0
+            nt_strata2 = 0
+         endif ! nk
+
+         do k = 1, nk     !in ice
+            ntrcr = ntrcr + 1
+            trcr_depend  (nt_bgc + k - 1  ) = nt_depend
+            trcr_base    (nt_bgc + k - 1,1) = trcr_base1
+            trcr_base    (nt_bgc + k - 1,2) = trcr_base2
+            trcr_base    (nt_bgc + k - 1,3) = trcr_base3
+            n_trcr_strata(nt_bgc + k - 1  ) = n_strata
+            nt_strata    (nt_bgc + k - 1,1) = nt_strata1
+            nt_strata    (nt_bgc + k - 1,2) = nt_strata2
+         enddo
+
+         bio_index (nlt_bgc) = nt_bgc
+
+      end subroutine icepack_init_bgc_trcr
+
+!=======================================================================
+!autodocument_start icepack_init_zbgc
+!
+
+      subroutine icepack_init_zbgc_old ( &
                  R_Si2N_in, R_S2N_in, R_Fe2C_in, R_Fe2N_in, R_C2N_in, R_C2N_DON_in, &
                  R_chl2N_in, F_abs_chl_in, R_Fe2DON_in, R_Fe2DOC_in, chlabs_in, &
                  alpha2max_low_in, beta2max_in, mu_max_in, fr_graze_in, mort_pre_in, &
@@ -689,7 +1712,7 @@
       if (present(tau_rel_in)) tau_rel(:) = tau_rel_in(:)
 
 
-      end subroutine icepack_init_zbgc
+      end subroutine icepack_init_zbgc_old
 
 !=======================================================================
 !autodocument_start icepack_biogeochemistry
@@ -702,16 +1725,17 @@
                            PP_net, hbri,dhbr_bot, dhbr_top, Zoo,&
                            fbio_snoice, fbio_atmice, ocean_bio, &
                            first_ice, fswpenln, bphi, bTiz, ice_bio_net,  &
-                           snow_bio_net, fswthrun, Rayleigh_criteria, &
-                           sice_rho, fzsal, fzsal_g, &
+                           snow_bio_net, totalChla, fswthrun, Rayleigh_criteria, &
                            bgrid, igrid, icgrid, cgrid,  &
                            nblyr, nilyr, nslyr, n_algae, n_zaero, ncat, &
                            n_doc, n_dic,  n_don, n_fed, n_fep,  &
                            meltbn, melttn, congeln, snoicen, &
-                           sst, sss, fsnow, meltsn, &
+                           sst, sss, Tf, fsnow, meltsn, & !hmix, &
                            hin_old, flux_bio, flux_bio_atm, &
                            aicen_init, vicen_init, aicen, vicen, vsnon, &
-                           aice0, trcrn, vsnon_init, skl_bgc)
+                           aice0, trcrn, vsnon_init, skl_bgc, &
+                           flux_bion, bioPorosityIceCell, &
+                           bioSalinityIceCell, bioTemperatureIceCell)
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
@@ -738,7 +1762,6 @@
          dhbr_bot      , &  ! brine bottom change
          darcy_V       , &  ! darcy velocity positive up (m/s)
          hin_old       , &  ! old ice thickness
-         sice_rho      , &  ! avg sea ice density  (kg/m^3)
          ice_bio_net   , &  ! depth integrated tracer (mmol/m^2)
          snow_bio_net  , &  ! depth integrated snow tracer (mmol/m^2)
          flux_bio     ! all bio fluxes to ocean
@@ -748,6 +1771,14 @@
                         ! and reappears (e.g. transport) in a grid cell
                         ! during a single time step from ice that was
                         ! there the entire time step (true until ice forms)
+
+      real (kind=dbl_kind), dimension (:,:), intent(out) :: &
+         flux_bion      ! per categeory ice to ocean biogeochemistry flux (mmol/m2/s)
+
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+         bioPorosityIceCell, & ! category average porosity on the interface bio grid
+         bioSalinityIceCell, & ! (ppt) category average porosity on the interface bio grid
+         bioTemperatureIceCell ! (oC) category average porosity on the interface bio grid
 
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          Zoo            , & ! N losses accumulated in timestep (ie. zooplankton/bacteria)
@@ -764,14 +1795,11 @@
          PP_net         , & ! Total production (mg C/m^2/s) per grid cell
          hbri           , & ! brine height, area-averaged for comparison with hi (m)
          upNO           , & ! nitrate uptake rate (mmol/m^2/d) times aice
-         upNH               ! ammonium uptake rate (mmol/m^2/d) times aice
+         upNH           , & ! ammonium uptake rate (mmol/m^2/d) times aice
+         totalChla          ! ice integrated chla and summed over all algal groups (mg/m^2)
 
       real (kind=dbl_kind), intent(inout), optional :: &
          zsal_tot           ! Total ice salinity in per grid cell (g/m^2) (deprecated)
-
-      real (kind=dbl_kind), intent(inout), optional :: &
-         fzsal          , & ! Total flux  of salt to ocean at time step for conservation (deprecated)
-         fzsal_g            ! Total gravity drainage flux (deprecated)
 
       logical (kind=log_kind), intent(inout), optional :: &
          Rayleigh_criteria    ! .true. means Ra_c was reached (deprecated)
@@ -798,6 +1826,8 @@
          aice0   , & ! open water area fraction
          sss     , & ! sea surface salinity (ppt)
          sst     , & ! sea surface temperature (C)
+         !hmix    , & ! mixed layer depth (m)
+         Tf      , & ! basal freezing temperature (C)
          fsnow       ! snowfall rate (kg/m^2 s)
 
       logical (kind=log_kind), intent(in) :: &
@@ -831,6 +1861,7 @@
          iphin       , & ! porosity
          ibrine_sal  , & ! brine salinity  (ppt)
          ibrine_rho  , & ! brine_density (kg/m^3)
+         iSin        , & ! Salinity on the interface grid (ppt)
          iTin            ! Temperature on the interface grid (oC)
 
       real (kind=dbl_kind) :: &
@@ -842,8 +1873,18 @@
          dh_top_chl  , & ! Chlorophyll may or may not flush
          darcy_V_chl
 
+      real (kind=dbl_kind), dimension (nblyr+1) :: &
+         zspace    ! vertical grid spacing
+
       character(len=*),parameter :: subname='(icepack_biogeochemistry)'
 
+      zspace(:)       = c1/real(nblyr,kind=dbl_kind)
+      zspace(1)       = p5*zspace(1)
+      zspace(nblyr+1) = p5*zspace(nblyr+1)
+
+      bioPorosityIceCell(:) = c0
+      bioSalinityIceCell(:) = c0
+      bioTemperatureIceCell(:) = c0
 
       do n = 1, ncat
 
@@ -857,11 +1898,13 @@
          else
             first_ice(n) = .true.
             if (tr_brine) trcrn(nt_fbri,n) = c1
-            if (z_tracers) then
+            !if (z_tracers) then
                do mm = 1,nbtrcr
                   trcrn(nt_zbgc_frac-1+mm,n) = zbgc_frac_init(mm)
                enddo
-            endif
+
+            if (n == 1) Rayleigh_criteria = .false.
+            !endif
          endif
 
          if (aicen(n) > puny) then
@@ -896,7 +1939,7 @@
                                  trcrn(nt_fbri,n),          &
                                  dhbr_top(n), dhbr_bot(n),  &
                                  hbr_old,     hin,          &
-                                 hsn,         first_ice(n)  )
+                                 hsn)
                if (icepack_warnings_aborted(subname)) return
 
                ! Requires the average ice permeability = kavg(:)
@@ -912,15 +1955,14 @@
                            iTin(:),       bphi(:,n),     kavg,        &
                            bphi_o,        bSin(:),     &
                            brine_sal(:),  brine_rho(:),  iphin(:),    &
-                           ibrine_rho(:), ibrine_sal(:), sice_rho(n), &
-                           iDi(:,n)       )
+                           ibrine_rho(:), ibrine_sal(:),              &
+                           iDi(:,n)     , iSin(:))
                if (icepack_warnings_aborted(subname)) return
 
                call update_hbrine (melttn(n),   &
                                    meltsn  (n), dt,          &
                                    hin,         hsn,         &
                                    hin_old (n), hbrin,       &
-
                                    hbr_old,     &
                                    trcrn(nt_fbri,n),         &
                                    dhbr_top(n), dhbr_bot(n), &
@@ -948,7 +1990,8 @@
                           congeln(n),            snoicen(n),             &
                           nbtrcr,                fsnow,                  &
                           ntrcr,                 trcrn(1:ntrcr,n),       &
-                          bio_index(1:nbtrcr),   aicen_init(n),          &
+                          bio_index(1:nbtrcr),   bio_index_o(:),         &
+                          aicen_init(n),                                 &
                           vicen_init(n),         vsnon_init(n),          &
                           vicen(n),              vsnon(n),               &
                           aicen(n),              flux_bio_atm(1:nbtrcr), &
@@ -959,28 +2002,33 @@
                           n_zaero,               first_ice(n),           &
                           hin_old(n),            ocean_bio(1:nbtrcr),    &
                           bphi(:,n),             iphin,                  &
-                          iDi(:,n),  &
+                          iDi(:,n),                                      &
                           fswpenln(:,n),                                 &
                           dhbr_top(n),           dhbr_bot(n),            &
                           zfswin(:,n),                                   &
                           hbrin,                 hbr_old,                &
-!                         darcy_V(n),            darcy_V_chl,            &
-                          darcy_V(n),  &
-                          bgrid,   &
+                          darcy_V(n),                                    &
+                          bgrid,                                         &
                           igrid,                 icgrid,                 &
                           bphi_o,                                        &
-                          iTin,                   &
+                          iTin,                                          &
                           Zoo(:,n),                                      &
                           flux_bio(1:nbtrcr),    dh_direct,              &
                           upNO,                  upNH,                   &
                           fbio_snoice,           fbio_atmice,            &
                           PP_net,                ice_bio_net (1:nbtrcr), &
-                          snow_bio_net(1:nbtrcr),grow_net                )
+                          snow_bio_net(1:nbtrcr),grow_net,               &
+                          totalChla,                                     &
+                          flux_bion(:,n),        iSin,                   &
+                          bioPorosityIceCell(:), bioSalinityIceCell(:),  &
+                          bioTemperatureIceCell(:)                       )
+
                if (icepack_warnings_aborted(subname)) return
 
             elseif (skl_bgc) then
 
-               call sklbio (dt,                      ntrcr,               &
+               call sklbio (dt,                      Tf,                  &
+                            ntrcr,                                        &
                             nbtrcr,                  n_algae,             &
                             n_doc,               &
                             n_dic,                   n_don,               &
@@ -1007,19 +2055,9 @@
 !autodocument_start icepack_load_ocean_bio_array
 ! basic initialization for ocean_bio_all
 
-      subroutine icepack_load_ocean_bio_array(max_nbtrcr, &
-          max_algae, max_don, max_doc, max_dic, max_aero, max_fe, &
+      subroutine icepack_load_ocean_bio_array(&
           nit, amm, sil, dmsp, dms, algalN, &
           doc, don, dic, fed, fep, zaeros, ocean_bio_all, hum)
-
-      integer (kind=int_kind), intent(in) :: &
-         max_algae   , & ! maximum number of algal types
-         max_dic     , & ! maximum number of dissolved inorganic carbon types
-         max_doc     , & ! maximum number of dissolved organic carbon types
-         max_don     , & ! maximum number of dissolved organic nitrogen types
-         max_fe      , & ! maximum number of iron types
-         max_aero    , & ! maximum number of aerosols
-         max_nbtrcr      ! maximum number of bio tracers
 
       real (kind=dbl_kind), intent(in) :: &
          nit         , & ! ocean nitrate (mmol/m^3)
@@ -1029,25 +2067,25 @@
          dms         , & ! dms (mmol/m^3)
          hum             ! humic material (mmol/m^3)
 
-      real (kind=dbl_kind), dimension (max_algae), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          algalN          ! ocean algal nitrogen (mmol/m^3) (diatoms, phaeo, pico)
 
-      real (kind=dbl_kind), dimension (max_doc), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          doc             ! ocean doc (mmol/m^3)  (proteins, EPS, lipid)
 
-      real (kind=dbl_kind), dimension (max_don), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          don             ! ocean don (mmol/m^3)
 
-      real (kind=dbl_kind), dimension (max_dic), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          dic             ! ocean dic (mmol/m^3)
 
-      real (kind=dbl_kind), dimension (max_fe), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          fed, fep        ! ocean disolved and particulate fe (nM)
 
-      real (kind=dbl_kind), dimension (max_aero), intent(in) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          zaeros          ! ocean aerosols (mmol/m^3)
 
-      real (kind=dbl_kind), dimension (max_nbtrcr), intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          ocean_bio_all   ! fixed order, all values even for tracers false
 
 !autodocument_end

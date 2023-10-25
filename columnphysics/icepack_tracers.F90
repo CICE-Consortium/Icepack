@@ -31,15 +31,14 @@
       !-----------------------------------------------------------------
       integer (kind=int_kind), parameter, public :: &
          max_iso    =   3       , & ! maximum number of isotopes
+         nmodal1    =   10      , & ! dimension for modal aerosol radiation parameters
+         nmodal2    =   8       , & ! dimension for modal aerosol radiation parameters
          max_algae  =   3       , & ! maximum number of algal types
          max_dic    =   1       , & ! maximum number of dissolved inorganic carbon types
          max_doc    =   3       , & ! maximum number of dissolved organic carbon types
          max_don    =   1       , & ! maximum number of dissolved organic nitrogen types
          max_fe     =   2       , & ! maximum number of iron types
-         nmodal1    =   10      , & ! dimension for modal aerosol radiation parameters
-         nmodal2    =   8       , & ! dimension for modal aerosol radiation parameters
          max_aero   =   6       , & ! maximum number of aerosols
-
          max_nbtrcr = max_algae*2 & ! algal nitrogen and chlorophyll
                     + max_dic     & ! dissolved inorganic carbon
                     + max_doc     & ! dissolved organic carbon
