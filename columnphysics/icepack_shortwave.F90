@@ -4500,6 +4500,9 @@
          sza_factor   , & ! parameter for high sza adjustment
          mu0
 
+      character (len=char_len), save :: &
+         rsnw_snicar_chk = 'unknown'
+
       character(len=*),parameter :: subname='(compute_dEdd_5bd)'
 
 !-----------------------------------------------------------------------
@@ -4811,37 +4814,38 @@
                   ws = ss_alb_ice_drc     (ns,nmbrad_snicar)
                   gs = asm_prm_ice_drc    (ns,nmbrad_snicar)
                else
-                  if (trim(snw_ssp_table) == 'snicar') then
-                     ! NOTE:  Assumes delta rsnw is 1 and rsnw are basically integers
+                  ! check whether rsnw_snicar_chk are integers with delta of one, makes search faster
+                  if (rsnw_snicar_chk == 'unknown') then
+                     rsnw_snicar_chk = 'delta1'
+                     do n = 1,size(rsnw_snicar_tab)
+                        if (abs(rsnw_snicar_tab(n) - real(nint(rsnw_snicar_tab(n)),kind=dbl_kind)) > 1.0e-6) then
+                           rsnw_snicar_chk = 'mixed'
+                        endif
+                     enddo
+                     do n = 2,size(rsnw_snicar_tab)
+                        if (abs(rsnw_snicar_tab(n) - rsnw_snicar_tab(n-1) - c1) > 1.0e-6) then
+                           rsnw_snicar_chk = 'mixed'
+                        endif
+                     enddo
+                     call icepack_warnings_add(subname//' rsnw_snicar_chk = '//trim(rsnw_snicar_chk))
+                  endif
+                  ! linear interpolation
+                  if (trim(rsnw_snicar_chk) == 'delta1') then
+                     ! NOTE:  Assumes delta rsnw_snicar_tab is 1 and rsnw_snicar_tab are integers
+                     ! This is just for performance, could call shortwave_search
                      nr = ceiling(rsnw(ksnow)) - nint(rsnw_snicar_min) + 1
-                     if (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
-                        ks = ext_cff_mss_ice_drc(ns,nr)
-                        ws = ss_alb_ice_drc     (ns,nr)
-                        gs = asm_prm_ice_drc    (ns,nr)
-                     else
-                        ! linear interpolation
-                        delr = (rsnw(ksnow) - floor(rsnw(ksnow))) &   ! hardwired delta radius = 1 in table
-                             / (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow))) ! denom always = 1
-                        ks = ext_cff_mss_ice_drc(ns,nr-1)*(c1-delr) &
-                           + ext_cff_mss_ice_drc(ns,nr  )*    delr
-                        ws = ss_alb_ice_drc     (ns,nr-1)*(c1-delr) &
-                           + ss_alb_ice_drc     (ns,nr  )*    delr
-                        gs = asm_prm_ice_drc    (ns,nr-1)*(c1-delr) &
-                           + asm_prm_ice_drc    (ns,nr  )*    delr
-                     endif
                   else
-                     ! linear interpolation
                      call shortwave_search(rsnw(ksnow),rsnw_snicar_tab,nr)
                      if (icepack_warnings_aborted(subname)) return
-                     delr = (rsnw(ksnow)         - rsnw_snicar_tab(nr-1)) &
-                          / (rsnw_snicar_tab(nr) - rsnw_snicar_tab(nr-1))
-                     ks = ext_cff_mss_ice_drc(ns,nr-1)*(c1-delr) &
-                        + ext_cff_mss_ice_drc(ns,nr  )*    delr
-                     ws = ss_alb_ice_drc     (ns,nr-1)*(c1-delr) &
-                        + ss_alb_ice_drc     (ns,nr  )*    delr
-                     gs = asm_prm_ice_drc    (ns,nr-1)*(c1-delr) &
-                        + asm_prm_ice_drc    (ns,nr  )*    delr
                   endif
+                  delr = (rsnw(ksnow)         - rsnw_snicar_tab(nr-1)) &
+                       / (rsnw_snicar_tab(nr) - rsnw_snicar_tab(nr-1))
+                  ks = ext_cff_mss_ice_drc(ns,nr-1)*(c1-delr) &
+                     + ext_cff_mss_ice_drc(ns,nr  )*    delr
+                  ws = ss_alb_ice_drc     (ns,nr-1)*(c1-delr) &
+                     + ss_alb_ice_drc     (ns,nr  )*    delr
+                  gs = asm_prm_ice_drc    (ns,nr-1)*(c1-delr) &
+                     + asm_prm_ice_drc    (ns,nr  )*    delr
                endif
                tau(k) = (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k))*dzk(k)
                w0 (k) =  ks*rhosnw(ksnow) / (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k)) * ws
@@ -4860,37 +4864,38 @@
                   ws = ss_alb_ice_dfs     (ns,nmbrad_snicar)
                   gs = asm_prm_ice_dfs    (ns,nmbrad_snicar)
                else
-                  if (trim(snw_ssp_table) == 'snicar') then
-                     ! NOTE:  Assumes delta rsnw is 1 and rsnw are basically integers
+                  ! check whether rsnw_snicar_chk are integers with delta of one, makes search faster
+                  if (rsnw_snicar_chk == 'unknown') then
+                     rsnw_snicar_chk = 'delta1'
+                     do n = 1,size(rsnw_snicar_tab)
+                        if (abs(rsnw_snicar_tab(n) - real(nint(rsnw_snicar_tab(n)),kind=dbl_kind)) > 1.0e-6) then
+                           rsnw_snicar_chk = 'mixed'
+                        endif
+                     enddo
+                     do n = 2,size(rsnw_snicar_tab)
+                        if (abs(rsnw_snicar_tab(n) - rsnw_snicar_tab(n-1) - c1) > 1.0e-6) then
+                           rsnw_snicar_chk = 'mixed'
+                        endif
+                     enddo
+                     call icepack_warnings_add(subname//' rsnw_snicar_chk = '//trim(rsnw_snicar_chk))
+                  endif
+                  ! linear interpolation
+                  if (trim(rsnw_snicar_chk) == 'delta1') then
+                     ! NOTE:  Assumes delta rsnw_snicar_tab is 1 and rsnw_snicar_tab are integers
+                     ! This is just for performance, could call shortwave_search
                      nr = ceiling(rsnw(ksnow)) - nint(rsnw_snicar_min) + 1
-                     if (ceiling(rsnw(ksnow)) - rsnw(ksnow) < 1.0e-3_dbl_kind) then
-                        ks = ext_cff_mss_ice_dfs(ns,nr)
-                        ws = ss_alb_ice_dfs     (ns,nr)
-                        gs = asm_prm_ice_dfs    (ns,nr)
-                     else
-                        ! linear interpolation
-                        delr = (rsnw(ksnow) - floor(rsnw(ksnow))) &   ! hardwired delta radius = 1 in table
-                             / (ceiling(rsnw(ksnow)) - floor(rsnw(ksnow))) ! denom always = 1
-                        ks = ext_cff_mss_ice_dfs(ns,nr-1)*(c1-delr) &
-                           + ext_cff_mss_ice_dfs(ns,nr  )*    delr
-                        ws = ss_alb_ice_dfs     (ns,nr-1)*(c1-delr) &
-                           + ss_alb_ice_dfs     (ns,nr  )*    delr
-                        gs = asm_prm_ice_dfs    (ns,nr-1)*(c1-delr) &
-                           + asm_prm_ice_dfs    (ns,nr  )*    delr
-                     endif
                   else
-                     ! linear interpolation
                      call shortwave_search(rsnw(ksnow),rsnw_snicar_tab,nr)
                      if (icepack_warnings_aborted(subname)) return
-                     delr = (rsnw(ksnow)         - rsnw_snicar_tab(nr-1)) &
-                          / (rsnw_snicar_tab(nr) - rsnw_snicar_tab(nr-1))
-                     ks = ext_cff_mss_ice_dfs(ns,nr-1)*(c1-delr) &
-                        + ext_cff_mss_ice_dfs(ns,nr  )*    delr
-                     ws = ss_alb_ice_dfs     (ns,nr-1)*(c1-delr) &
-                        + ss_alb_ice_dfs     (ns,nr  )*    delr
-                     gs = asm_prm_ice_dfs    (ns,nr-1)*(c1-delr) &
-                        + asm_prm_ice_dfs    (ns,nr  )*    delr
                   endif
+                  delr = (rsnw(ksnow)         - rsnw_snicar_tab(nr-1)) &
+                       / (rsnw_snicar_tab(nr) - rsnw_snicar_tab(nr-1))
+                  ks = ext_cff_mss_ice_dfs(ns,nr-1)*(c1-delr) &
+                     + ext_cff_mss_ice_dfs(ns,nr  )*    delr
+                  ws = ss_alb_ice_dfs     (ns,nr-1)*(c1-delr) &
+                     + ss_alb_ice_dfs     (ns,nr  )*    delr
+                  gs = asm_prm_ice_dfs    (ns,nr-1)*(c1-delr) &
+                     + asm_prm_ice_dfs    (ns,nr  )*    delr
                endif
                tau(k) = (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k))*dzk(k)
                w0 (k) =  ks*rhosnw(ksnow) / (ks*rhosnw(ksnow) + kabs_chl_5bd(ns,k)) * ws
