@@ -4827,7 +4827,7 @@
                            rsnw_snicar_chk = 'mixed'
                         endif
                      enddo
-                     call icepack_warnings_add(subname//' rsnw_snicar_chk = '//trim(rsnw_snicar_chk))
+!                     call icepack_warnings_add(subname//' rsnw_snicar_chk = '//trim(rsnw_snicar_chk))
                   endif
                   ! linear interpolation
                   if (trim(rsnw_snicar_chk) == 'delta1') then
@@ -4877,7 +4877,7 @@
                            rsnw_snicar_chk = 'mixed'
                         endif
                      enddo
-                     call icepack_warnings_add(subname//' rsnw_snicar_chk = '//trim(rsnw_snicar_chk))
+!                     call icepack_warnings_add(subname//' rsnw_snicar_chk = '//trim(rsnw_snicar_chk))
                   endif
                   ! linear interpolation
                   if (trim(rsnw_snicar_chk) == 'delta1') then
