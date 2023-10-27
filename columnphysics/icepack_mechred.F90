@@ -401,7 +401,7 @@
                            msnow_mlt,   esnow_mlt,   &
                            maero,       miso,        &
                            mpond,       Tf,          &
-                           aredistn,    vredistn)    
+                           aredistn,    vredistn)
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------

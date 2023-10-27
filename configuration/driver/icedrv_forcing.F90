@@ -97,7 +97,7 @@
          oceanmixed_ice , & ! if true, use internal ocean mixed layer
          restore_ocn        ! restore sst if true
 
-      real (kind=dbl_kind), public :: & 
+      real (kind=dbl_kind), public :: &
          trest, &           ! restoring time scale (sec)
          trestore           ! restoring time scale (days)
 
@@ -1077,7 +1077,7 @@
       subroutine finish_ocn_forcing(sst_temp)
 
 ! Compute ocean freezing temperature Tf based on tfrz_option
-! 'minus1p8'         Tf = -1.8 C 
+! 'minus1p8'         Tf = -1.8 C
 ! 'constant'         Tf = Tocnfrz
 ! 'linear_salt'      Tf = -depressT * sss
 ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)

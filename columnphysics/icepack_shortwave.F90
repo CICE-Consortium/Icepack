@@ -4508,7 +4508,7 @@
       ! copy/point to table data for local names
       asm_prm_ice_drc => ssp_sasymmdr
       asm_prm_ice_dfs => ssp_sasymmdf
-      ss_alb_ice_drc => ssp_snwalbdr 
+      ss_alb_ice_drc => ssp_snwalbdr
       ss_alb_ice_dfs => ssp_snwalbdf
       ext_cff_mss_ice_drc => ssp_snwextdr
       ext_cff_mss_ice_dfs => ssp_snwextdf
