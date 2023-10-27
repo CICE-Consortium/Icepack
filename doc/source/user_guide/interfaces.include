@@ -844,7 +844,7 @@ icepack_init_parameters
            rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
            cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
            depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, &
-           albocn_in, gravit_in, viscosity_dyn_in, &
+           albocn_in, gravit_in, viscosity_dyn_in, tscale_pnd_drain_in, &
            Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
            stefan_boltzmann_in, ice_ref_salinity_in, &
            Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
@@ -927,6 +927,7 @@ icepack_init_parameters
            cp_ocn_in,     & ! specific heat of ocn    (J/kg/K)
            depressT_in,   & ! Tf:brine salinity ratio (C/ppt)
            viscosity_dyn_in, & ! dynamic viscosity of brine (kg/m/s)
+           tscale_pnd_drain_in,&! mushy macroscopic drainage timescale (days)
            Tocnfrz_in,    & ! freezing temp of seawater (C)
            Tffresh_in,    & ! freezing temp of fresh ice (K)
            Lsub_in,       & ! latent heat, sublimation freshwater (J/kg)
@@ -1258,7 +1259,8 @@ icepack_query_parameters
            p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
            rhos_out, rhoi_out, rhow_out, cp_air_out, emissivity_out, &
            cp_ice_out, cp_ocn_out, hfrazilmin_out, floediam_out, &
-           depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, albocn_out, gravit_out, viscosity_dyn_out, &
+           depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, &
+           albocn_out, gravit_out, viscosity_dyn_out, tscale_pnd_drain_out, &
            Tocnfrz_out, rhofresh_out, zvir_out, vonkar_out, cp_wv_out, &
            stefan_boltzmann_out, ice_ref_salinity_out, &
            Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
@@ -1349,6 +1351,7 @@ icepack_query_parameters
            cp_ocn_out,     & ! specific heat of ocn    (J/kg/K)
            depressT_out,   & ! Tf:brine salinity ratio (C/ppt)
            viscosity_dyn_out, & ! dynamic viscosity of brine (kg/m/s)
+           tscale_pnd_drain_out, & ! mushy macroscopic drainage timescale (days)
            Tocnfrz_out,    & ! freezing temp of seawater (C)
            Tffresh_out,    & ! freezing temp of fresh ice (K)
            Lsub_out,       & ! latent heat, sublimation freshwater (J/kg)

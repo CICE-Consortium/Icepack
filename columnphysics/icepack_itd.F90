@@ -135,7 +135,7 @@
 
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
          hin_max   ! category limits (m)
- 
+
       real (kind=dbl_kind), intent(in) :: &
          Tf                ! freezing temperature
 
@@ -785,11 +785,11 @@
          ntrcr , & ! number of tracers in use
          nbtrcr, & ! number of bio tracers in use
          n_aero    ! number of aerosol tracers
- 
-      real (kind=dbl_kind), intent(in) :: & 
-         dt        ! time step 
- 
-      real (kind=dbl_kind), intent(in) :: & 
+
+      real (kind=dbl_kind), intent(in) :: &
+         dt        ! time step
+
+      real (kind=dbl_kind), intent(in) :: &
          Tf        ! Freezing temperature
 
       real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
@@ -1923,7 +1923,7 @@
                                    atrcr,     aice,          &
                                    vice ,     vsno,          &
                                    trcr_base, n_trcr_strata, &
-                                   nt_strata, trcr, Tf)   
+                                   nt_strata, trcr, Tf)
       if (icepack_warnings_aborted(subname)) return
 
       deallocate (atrcr)

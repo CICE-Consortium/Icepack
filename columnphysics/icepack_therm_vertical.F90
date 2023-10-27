@@ -2495,7 +2495,7 @@
          fsnow    =           fsnow*(c1-worka)
       endif ! snwredist
 
-!echmod - remove all of this code - non-BFB because of values carried in tracer arrays when the snow physics options are not active 
+!echmod - remove all of this code - non-BFB because of values carried in tracer arrays when the snow physics options are not active
       !-----------------------------------------------------------------
       ! solid and liquid components of snow mass
       !-----------------------------------------------------------------

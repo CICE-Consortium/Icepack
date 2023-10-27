@@ -92,10 +92,10 @@
                              ntrcr,       trcr_depend, &
                              trcr_base,   n_trcr_strata,&
                              nt_strata,                &
-                             aicen_init,  vicen_init,  & 
-                             aicen,       trcrn,       & 
-                             vicen,       vsnon,       & 
-                             aice,        aice0,       & 
+                             aicen_init,  vicen_init,  &
+                             aicen,       trcrn,       &
+                             vicen,       vsnon,       &
+                             aice,        aice0,       &
                              fpond,       Tf           )
 
       integer (kind=int_kind), intent(in) :: &
@@ -1627,8 +1627,8 @@
             vi0tmp = fnew*dt / (rhoi*Lfresh) ! ocn/cpl assumes frazil volume is pure, fresh ice
             dfresh = -rhoi*(vi0new - vi0tmp)/dt
             frazil_diag = frazil - vi0tmp
-!        else 
-!           do nothing - other correction options could be implemented in the future             
+!        else
+!           do nothing - other correction options could be implemented in the future
          endif
 
          if (saltflux_option == 'prognostic') then
@@ -1637,7 +1637,7 @@
             dfsalt = ice_ref_salinity*p001*dfresh
          endif
          fresh  = fresh + dfresh
-         fsalt  = fsalt + dfsalt      
+         fsalt  = fsalt + dfsalt
       endif
 
       !-----------------------------------------------------------------
