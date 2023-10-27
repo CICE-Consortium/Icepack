@@ -62,7 +62,7 @@
       use icepack_tracers,    only: tr_zaero, nlt_chl_sw, nlt_zaero_sw
       use icepack_tracers,    only: n_algae, n_aero, n_zaero
       use icepack_tracers,    only: nmodal1, nmodal2, max_aero
-      use icepack_shortwave_data, only: nspint_3bd, nspint_5bd
+      use icepack_shortwave_data, only: nspint_3bd, nspint_5bd, rsnw_datatype
       use icepack_zbgc_shared,only: R_chl2N, F_abs_chl
       use icepack_zbgc_shared,only: remap_zbgc
       use icepack_orbital,    only: compute_coszen
@@ -4500,9 +4500,6 @@
          sza_factor   , & ! parameter for high sza adjustment
          mu0
 
-      character (len=char_len), save :: &
-         rsnw_snicar_chk = 'unknown'
-
       character(len=*),parameter :: subname='(compute_dEdd_5bd)'
 
 !-----------------------------------------------------------------------
@@ -4814,23 +4811,8 @@
                   ws = ss_alb_ice_drc     (ns,nmbrad_snicar)
                   gs = asm_prm_ice_drc    (ns,nmbrad_snicar)
                else
-                  ! check whether rsnw_snicar_chk are integers with delta of one, makes search faster
-                  if (rsnw_snicar_chk == 'unknown') then
-                     rsnw_snicar_chk = 'delta1'
-                     do n = 1,size(rsnw_snicar_tab)
-                        if (abs(rsnw_snicar_tab(n) - real(nint(rsnw_snicar_tab(n)),kind=dbl_kind)) > 1.0e-6) then
-                           rsnw_snicar_chk = 'mixed'
-                        endif
-                     enddo
-                     do n = 2,size(rsnw_snicar_tab)
-                        if (abs(rsnw_snicar_tab(n) - rsnw_snicar_tab(n-1) - c1) > 1.0e-6) then
-                           rsnw_snicar_chk = 'mixed'
-                        endif
-                     enddo
-!                     call icepack_warnings_add(subname//' rsnw_snicar_chk = '//trim(rsnw_snicar_chk))
-                  endif
                   ! linear interpolation
-                  if (trim(rsnw_snicar_chk) == 'delta1') then
+                  if (trim(rsnw_datatype) == 'sorted_idelta1') then
                      ! NOTE:  Assumes delta rsnw_snicar_tab is 1 and rsnw_snicar_tab are integers
                      ! This is just for performance, could call shortwave_search
                      nr = ceiling(rsnw(ksnow)) - nint(rsnw_snicar_min) + 1
@@ -4864,24 +4846,9 @@
                   ws = ss_alb_ice_dfs     (ns,nmbrad_snicar)
                   gs = asm_prm_ice_dfs    (ns,nmbrad_snicar)
                else
-                  ! check whether rsnw_snicar_chk are integers with delta of one, makes search faster
-                  if (rsnw_snicar_chk == 'unknown') then
-                     rsnw_snicar_chk = 'delta1'
-                     do n = 1,size(rsnw_snicar_tab)
-                        if (abs(rsnw_snicar_tab(n) - real(nint(rsnw_snicar_tab(n)),kind=dbl_kind)) > 1.0e-6) then
-                           rsnw_snicar_chk = 'mixed'
-                        endif
-                     enddo
-                     do n = 2,size(rsnw_snicar_tab)
-                        if (abs(rsnw_snicar_tab(n) - rsnw_snicar_tab(n-1) - c1) > 1.0e-6) then
-                           rsnw_snicar_chk = 'mixed'
-                        endif
-                     enddo
-!                     call icepack_warnings_add(subname//' rsnw_snicar_chk = '//trim(rsnw_snicar_chk))
-                  endif
                   ! linear interpolation
-                  if (trim(rsnw_snicar_chk) == 'delta1') then
-                     ! NOTE:  Assumes delta rsnw_snicar_tab is 1 and rsnw_snicar_tab are integers
+                  if (trim(rsnw_datatype) == 'sorted_idelta1') then
+                     ! NOTE:  delta rsnw_snicar_tab is 1 and rsnw_snicar_tab are integers
                      ! This is just for performance, could call shortwave_search
                      nr = ceiling(rsnw(ksnow)) - nint(rsnw_snicar_min) + 1
                   else
@@ -5466,6 +5433,11 @@
 
       character(len=*),parameter :: subname='(shortwave_search)'
 
+
+      if (rsnw_datatype(1:6) /= 'sorted') then
+         call icepack_warnings_add(subname//' rsnw_datatype not valid: '//trim(rsnw_datatype))
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+      endif
 
       nrsize = size(array)
 

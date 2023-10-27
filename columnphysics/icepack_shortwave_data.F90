@@ -15,6 +15,9 @@
          nspint_3bd = 3, & ! number of solar spectral bands
          nspint_5bd = 5    ! number of solar spectral bands (snicar snow)
 
+      character (len=char_len), public :: &
+         rsnw_datatype = 'unknown'
+
       ! dEdd 3-band data
       real (kind=dbl_kind), dimension (nspint_3bd), public :: &
          ! inherent optical properties (iop)
@@ -109,6 +112,7 @@
       allocate(gs_tab  (nspint_3bd,nmbrad_snw))
 
       ! snow grain radii (micro-meters) for table
+      rsnw_datatype = 'sorted'
       rsnw_tab = (/ &   ! snow grain radius for each table entry (micro-meters)
           5._dbl_kind,    7._dbl_kind,   10._dbl_kind,   15._dbl_kind, &
          20._dbl_kind,   30._dbl_kind,   40._dbl_kind,   50._dbl_kind, &
@@ -648,6 +652,7 @@
             6._dbl_kind, 37._dbl_kind, 221._dbl_kind, 600._dbl_kind, 1340._dbl_kind/)
          rsnw_snicar_min = rsnw_snicar_tab(1)             ! minimum snow radius - integer value used for indexing
          rsnw_snicar_max = rsnw_snicar_tab(nmbrad_snicar) ! maximum snow radius - integer value used for indexing
+         rsnw_datatype = 'sorted'
 
          allocate(ssp_snwextdr(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, direct
          allocate(ssp_snwextdf(nspint_5bd,nmbrad_snicar)) ! extinction coefficient, diffuse
@@ -9588,9 +9593,9 @@
 
 ! Copy to local variables
 
-!echmod - this might not be needed
       rsnw_snicar_min = 30._dbl_kind   ! minimum snow grain radius
       rsnw_snicar_max = 1500._dbl_kind ! maximum snow grain radius
+      rsnw_datatype = 'sorted_idelta1' ! sorted "integers" with constant delta 1
       allocate(rsnw_snicar_tab(nmbrad_snicar))
       rsnw_snicar_tab(1) = rsnw_snicar_min
       do n = 1, nmbrad_snicar-1
