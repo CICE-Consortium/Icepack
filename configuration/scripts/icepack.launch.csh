@@ -16,7 +16,7 @@ EOFR
 
 #==========================================
 
-elseif (${ICE_MACHINE} =~ perlmutter) then
+else if (${ICE_MACHINE} =~ perlmutter) then
 cat >> ${jobfile} << EOFR
 srun --cpu-bind=cores ./icepack >&! \$ICE_RUNLOG_FILE
 EOFR
