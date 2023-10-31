@@ -1725,7 +1725,7 @@
                            PP_net, hbri,dhbr_bot, dhbr_top, Zoo,&
                            fbio_snoice, fbio_atmice, ocean_bio, &
                            first_ice, fswpenln, bphi, bTiz, ice_bio_net,  &
-                           snow_bio_net, totalChla, fswthrun, Rayleigh_criteria, &
+                           snow_bio_net, totalChla, fswthrun, &
                            bgrid, igrid, icgrid, cgrid,  &
                            nblyr, nilyr, nslyr, n_algae, n_zaero, ncat, &
                            n_doc, n_dic,  n_don, n_fed, n_fep,  &
@@ -1801,8 +1801,8 @@
       real (kind=dbl_kind), intent(inout), optional :: &
          zsal_tot           ! Total ice salinity in per grid cell (g/m^2) (deprecated)
 
-      logical (kind=log_kind), intent(inout), optional :: &
-         Rayleigh_criteria    ! .true. means Ra_c was reached (deprecated)
+      !logical (kind=log_kind), intent(inout), optional :: &
+      !   Rayleigh_criteria    ! .true. means Ra_c was reached (deprecated)
 
       real (kind=dbl_kind), dimension (:,:), intent(in) :: &
          fswpenln        ! visible SW entering ice layers (W m-2)
@@ -1903,7 +1903,7 @@
                   trcrn(nt_zbgc_frac-1+mm,n) = zbgc_frac_init(mm)
                enddo
 
-            if (n == 1) Rayleigh_criteria = .false.
+            !if (n == 1) Rayleigh_criteria = .false. !(deprecated)
             !endif
          endif
 
