@@ -442,14 +442,6 @@
 
       character (len=*),parameter :: subname='(icepack_shortwave_init_dEdd5band)'
 
-      ! 5-bands ice surface scattering layer (ssl) iops to match SNICAR calculations
-      ! note by Cheng Dang:
-      ! for now these data are not needed since the sea ice layer IOPs can be directly
-      ! assigned based on the 3 bands data after adjustment based on tuning parameter R_ice
-      ! In the future, when 5-band sea ice IOPs are available, these data shall be updated
-      ! and the sea ice layer IOPs shall be calculated based on updated 5band iops*
-!echmod - the comment above says these are not needed but they are nevertheless used below
-      !
       ! The 5band data given in this section are based on CICE and SNICAR band choice:
       ! SNICAR band 1 = CICE band 1
       ! SNICAR band 2 + SNICAR band 3 = CICE band 2
@@ -9585,7 +9577,6 @@
 
 ! Copy to local variables
 
-!echmod - this might not be needed
       rsnw_snicar_min = 30   ! minimum snow grain radius
       rsnw_snicar_max = 1500 ! maximum snow grain radius
       allocate(rsnw_snicar_tab(nmbrad_snicar))

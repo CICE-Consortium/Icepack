@@ -2293,7 +2293,6 @@
       ! thickness, and the other half decreases the area).
       !-----------------------------------------------------------------
 
-!echmod: test this
       if (ncat==1) &
          call reduce_area (hin_max   (0),                &
                            aicen     (1), vicen     (1), &

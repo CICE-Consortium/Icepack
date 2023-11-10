@@ -68,7 +68,6 @@
          Gstar  = p15     , & ! max value of G(h) that participates
                               ! (krdg_partic = 0)
          astar  = p05     , & ! e-folding scale for G(h) participation
-!echmod         astar  = p1        , & ! e-folding scale for G(h) participation
                               ! (krdg_partic = 1)
          maxraft= c1      , & ! max value of hrmin - hi = max thickness
                               ! of ice that rafts (m)

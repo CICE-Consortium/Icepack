@@ -970,13 +970,12 @@
 
          endif
 
-! echmod: is this necessary?
-!         if (ktherm == 1) then
-!               if (zTin(k)>= -zSin(k)*depressT) then
-!                   zTin(k) = -zSin(k)*depressT - puny
-!                   zqin(k) = -rhoi*cp_ocn*zSin(k)*depressT
-!               endif
-!         endif
+         if (ktherm == 1) then
+               if (zTin(k)>= -zSin(k)*depressT) then
+                   zTin(k) = -zSin(k)*depressT - puny
+                   zqin(k) = -rhoi*cp_ocn*zSin(k)*depressT
+               endif
+         endif
 
       !-----------------------------------------------------------------
       ! initial energy per unit area of ice/snow, relative to 0 C
@@ -2494,22 +2493,6 @@
             fsloss = fsloss + fsnow*    worka
          fsnow    =           fsnow*(c1-worka)
       endif ! snwredist
-
-!echmod - remove all of this code - non-BFB because of values carried in tracer arrays when the snow physics options are not active 
-      !-----------------------------------------------------------------
-      ! solid and liquid components of snow mass
-      !-----------------------------------------------------------------
-!      massicen(:,:) = c0
-!      massliqn(:,:) = c0
-!      if (snwgrain) then
-!         rnslyr = c1 / real(nslyr, dbl_kind)
-!         do n = 1, ncat
-!            do k = 1, nslyr
-!               massicen(k,n) = smicen(k,n) * vsnon(n) * rnslyr ! kg/m^2
-!               massliqn(k,n) = smliqn(k,n) * vsnon(n) * rnslyr
-!            enddo
-!         enddo
-!      endif
 
       !-----------------------------------------------------------------
       ! Update the neutral drag coefficients to account for form drag

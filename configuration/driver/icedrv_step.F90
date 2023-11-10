@@ -237,7 +237,6 @@
       enddo ! i
 
       do i = 1, nx
-!echmod            do i = 3,3
         if (tr_aero) then
           ! trcrn(nt_aero) has units kg/m^3
           do n = 1, ncat
