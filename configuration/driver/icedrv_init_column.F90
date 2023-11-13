@@ -1066,7 +1066,7 @@
       if (modal_aero .AND. (.NOT. tr_zaero) .AND. (.NOT. tr_aero)) then
          modal_aero = .false.
       endif
-         
+
       if (modal_aero .AND. trim(shortwave(1:4)) /= 'dEdd') then
          write(nu_diag,*) 'WARNING: modal_aero = T but shortwave /= dEdd'
          write(nu_diag,*) 'WARNING: setting modal_aero = F'

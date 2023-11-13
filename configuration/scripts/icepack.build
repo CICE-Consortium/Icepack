@@ -68,8 +68,8 @@ setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DNXGLOB=${ICE_NXGLOB} -DNICELYR=${NICELYR} -
 if (${ICE_IOTYPE} == 'netcdf') then
   setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DUSE_NETCDF"
 endif
-if (${ICE_SNICARHC} == 'true') then
-  setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DUSE_SNICARHC"
+if (${ICE_SNICARHC} == 'false') then
+  setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DNO_SNICARHC"
 endif
 
 ### List of source code directories (in order of importance).

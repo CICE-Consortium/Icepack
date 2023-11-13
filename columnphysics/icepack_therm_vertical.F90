@@ -638,7 +638,7 @@
       ! FYI: fside is not yet correct for fsd, may need to adjust fbot further
       !-----------------------------------------------------------------
 
-         xtmp = frzmlt/(fbot + fside + puny)
+         xtmp = frzmlt/(fbot + fside - puny)
          xtmp = min(xtmp, c1)
          fbot  = fbot  * xtmp
          rside = rside * xtmp

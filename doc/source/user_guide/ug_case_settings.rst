@@ -2,8 +2,8 @@
 
 .. _case_settings:
 
-Case Settings
-=====================
+Case Settings, Model Namelist, and CPPs
+====================================================
 
 There are two important files that define the case, **icepack.settings** and 
 **icepack_in**.  **icepack.settings** is a list of env variables that define many
@@ -31,8 +31,8 @@ can be found in :ref:`cicecpps`.  The following CPPs are available.
    "**General Macros**", ""
    "NO_I8", "Converts ``integer*8`` to ``integer*4``."
    "NO_R16", "Converts ``real*16`` to ``real*8``."
+   "NO_SNICARHC", "Does not compile hardcoded (HC) 5 band snicar tables tables needed by ``shortwave=dEdd_snicar_ad``. May reduce compile time."
    "USE_NETCDF", "Turns on netcdf capabilities in Icepack.  By default and generally, Icepack does not need netcdf."
-   "USE_SNICARHC", "Compiles hardcoded (HC) tables needed for ``dEdd_snicar_ad``, which can lengthen the compile time considerably."
    "",""
    "**Application Macros**", ""
    "CESMCOUPLED", "Turns on code changes for the CESM coupled application                          "
@@ -115,8 +115,8 @@ can be modified as needed.
 
 .. _tabnamelist:
 
-Table of Namelist Inputs
---------------------------
+Tables of Namelist Options
+----------------------------
 
 The Icepack driver reads a namelist input file, **icepack_in**, consisting of several namelist groups.  The tables below
 summarize the different groups and the variables in each group.  The variables are organized alphabetically 
@@ -344,6 +344,9 @@ forcing_nml
    "``calc_strair``", "``.false.``", "read wind stress and speed from files", "``.true.``"
    "", "``.true.``", "calculate wind stress and speed", ""
    "``calc_Tsfc``", "logical", "calculate surface temperature", "``.true.``"
+   "``cpl_frazil``", "``external``", "frazil water/salt fluxes are handled outside of Icepack", "``fresh_ice_correction``"
+   "", "``fresh_ice_correction``", "correct fresh-ice frazil water/salt fluxes for mushy physics", ""
+   "", "``internal``", "send full frazil water/salt fluxes for mushy physics", ""
    "``data_dir``", "string", "path to forcing data directory", "' '"
    "``default_season``", "``summer``", "forcing initial summer values", "``winter``"
    "", "``winter``", "forcing initial winter values", ""
@@ -378,9 +381,6 @@ forcing_nml
    "", "``minus1p8``", "constant ocean freezing temperature (:math:`-1.8^{\circ} C`)", ""
    "", "``mushy``", "matches mushy-layer thermo (ktherm=2)", ""
    "``trestore``", "integer", "sst restoring time scale (days)", "90"
-   "``cpl_frazil``", "``external``", "frazil water/salt fluxes are handled outside of Icepack", "``fresh_ice_correction``"
-   "", "``fresh_ice_correction``", "correct fresh-ice frazil water/salt fluxes for mushy physics", ""
-   "", "``internal``", "send full frazil water/salt fluxes for mushy physics", ""
    "``update_ocn_f``", "``.false.``", "do not include frazil water/salt fluxes in ocn fluxes", "``.false.``"
    "", "``true``", "include frazil water/salt fluxes in ocn fluxes", ""
    "``ustar_min``", "real", "minimum value of ocean friction velocity in m/s", "0.005"
