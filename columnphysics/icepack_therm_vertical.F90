@@ -962,19 +962,17 @@
       !-----------------------------------------------------------------
 
          if (ktherm /= 2) then
-
             if (zTin(k) > c0) then
-               zTin(k) = c0
-               zqin(k) = -rhoi*Lfresh
+                zTin(k) = c0
+                zqin(k) = -rhoi*Lfresh
             endif
-
          endif
 
          if (ktherm == 1) then
-               if (zTin(k)>= -zSin(k)*depressT) then
-                   zTin(k) = -zSin(k)*depressT - puny
-                   zqin(k) = -rhoi*cp_ocn*zSin(k)*depressT
-               endif
+            if (zTin(k)>= -zSin(k)*depressT) then
+                zTin(k) = -zSin(k)*depressT - puny
+                zqin(k) = -zSin(k)*depressT*rhoi*cp_ocn
+            endif
          endif
 
       !-----------------------------------------------------------------
