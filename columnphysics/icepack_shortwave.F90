@@ -1844,7 +1844,7 @@
          delr    , & ! snow grain radius interpolation parameter
       ! inherent optical properties (iop) for snow
          Qs      , & ! Snow extinction efficiency
-         ks      , & ! Snow mass extinction coefficient (m^2/kg)  ! echmod - CHECK units and usage
+         ks      , & ! Snow mass extinction coefficient (1/m)
          ws      , & ! Snow single scattering albedo
          gs          ! Snow asymmetry parameter
 
