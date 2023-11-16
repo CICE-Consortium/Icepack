@@ -556,17 +556,21 @@
 
       if (dzssl_new .lt. hs_ssl_min) then ! Put atm BC/dust flux directly into the sea ice
          do k=1,nbtrcr
-            flux_bio(k) = flux_bio(k) +  &
+            flux_bio_o(k) = flux_bio(k)
+            if (hilyr .lt. hs_ssl_min) then
+               flux_bio(k) = flux_bio(k) +  &
                          (trcrn(bio_index(k)+ nblyr+1)*dzssl+ &
                           trcrn(bio_index(k)+ nblyr+2)*dzint)/dt
-            trcrn(bio_index(k) + nblyr+1) = c0
-            trcrn(bio_index(k) + nblyr+2) = c0
-            if (hilyr .lt. hs_ssl_min) then
                flux_bio(k) = flux_bio(k) + flux_bio_atm(k)
             else
+               zbgc_snow(k) = zbgc_snow(k) +  &
+                         (trcrn(bio_index(k)+ nblyr+1)*dzssl+ &
+                          trcrn(bio_index(k)+ nblyr+2)*dzint)
                zbgc_atm(k) = zbgc_atm(k) &
                                 + flux_bio_atm(k)*dt
             end if
+            trcrn(bio_index(k) + nblyr+1) = c0
+            trcrn(bio_index(k) + nblyr+2) = c0
          enddo
 
       else
@@ -592,7 +596,7 @@
          end if
          if (dzint <= puny) then
            do k = 1,nbtrcr
-              flux_bio(k) = flux_bio(k) + (aerosno(k,2) + aerosno(k,1))/dt
+              zbgc_snow(k) = zbgc_snow(k) + (aerosno(k,2) + aerosno(k,1))
               aerosno(k,2) = c0
               aerosno(k,1) = c0
            end do
@@ -621,7 +625,7 @@
          end if
          if (dzint <= puny) then
            do k = 1,nbtrcr
-              flux_bio(k) = flux_bio(k) + (aerosno(k,2) + aerosno(k,1))/dt
+              zbgc_snow(k) = zbgc_snow(k) + (aerosno(k,2) + aerosno(k,1))
               aerosno(k,2) = c0
               aerosno(k,1) = c0
            end do
@@ -642,7 +646,7 @@
                    sloss2 = kscavz(bio_index_o(k))*aerosno(k,2) &
                                      *max(-dhs_melts-dzssl,c0)/dzint
                aerosno(k,2) = max(c0,aerosno(k,2) - sloss2)
-               flux_bio(k) = flux_bio(k) + (sloss1+sloss2)/dt  ! all not scavenged ends in ocean
+               zbgc_snow(k) = zbgc_snow(k) + (sloss1+sloss2)  ! all not scavenged ends in ice
             enddo
 
             ! update snow thickness

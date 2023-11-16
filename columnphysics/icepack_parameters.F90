@@ -406,7 +406,7 @@
          l_sk         = 7.0_dbl_kind    , & ! characteristic diffusive scale (m)
          grid_oS      = c5              , & ! for bottom flux
          l_skS        = 7.0_dbl_kind    , & ! characteristic skeletal layer thickness (m) (zsalinity)
-         algal_vel    = 1.11e-8_dbl_kind, & ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
+         algal_vel    = 1.0e-7_dbl_kind,  & ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
          R_dFe2dust   = 0.035_dbl_kind  , & !  g/g (3.5% content) Tagliabue 2009
          dustFe_sol   = 0.005_dbl_kind  , & ! solubility fraction
          frazil_scav  = c1              , & ! fraction or multiple of bgc concentrated in frazil ice
