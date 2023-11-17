@@ -964,6 +964,7 @@
          bin1_arealoss, tmp !
 
       logical (kind=log_kind) :: &
+         fsd_wlat, & ! .true. if wlat present and wlat > puny
          flag        ! .true. if there could be lateral melting
 
       real (kind=dbl_kind), dimension (ncat) :: &
@@ -1024,7 +1025,14 @@
          f_flx       = c0
       end if
 
-      if (tr_fsd .and. wlat > puny) then
+      ! fsd_wlat == if (tr_fsd .and. wlat > puny)
+      ! need fsd_wlat because wlat is optional
+      fsd_wlat = .false.
+      if (tr_fsd .and. present(wlat)) then
+         if (wlat > puny) fsd_wlat = .true.
+      endif
+
+      if (fsd_wlat) then
          flag = .true.
 
          ! for FSD rside and fside not yet computed correctly, redo here
