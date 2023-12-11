@@ -1779,6 +1779,8 @@
        Fep_tot    = c0
        Fep_tot_s  = c0
        rFep(:)    = c0
+       DIC_r(:)   = c0
+       DIC_s(:)   = c0
 
        Nitin     = ltrcrn(nlt_bgc_Nit)
        op_dep = c0
