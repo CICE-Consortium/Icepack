@@ -79,6 +79,18 @@
       real (kind=dbl_kind), parameter :: &
          exp_argmax = c10    ! maximum argument of exponential
 
+#ifdef GEOSCOUPLED
+      real (kind=dbl_kind), private :: &
+         fswthru_uvrdr_out,      &
+         fswthru_uvrdf_out,      &
+         fswthru_pardr_out,      &
+         fswthru_pardf_out,      &
+         druvr_in,               &
+         dfuvr_in,               &
+         drpar_in,               &
+         dfpar_in
+#endif
+
 !=======================================================================
 
       contains
@@ -885,6 +897,10 @@
                           fswthrun_vdf,        &
                           fswthrun_idr,        &
                           fswthrun_idf,        &
+                          fswthrun_uvrdr,      &
+                          fswthrun_uvrdf,      &
+                          fswthrun_pardr,      &
+                          fswthrun_pardf,      &
                           fswpenln,            &
                           Sswabsn,  Iswabsn,   &
                           albicen,  albsnon,   &
@@ -992,6 +1008,12 @@
            fswthrun_idr, & ! nir dir SW through ice to ocean (W/m^2)
            fswthrun_idf    ! nir dif SW through ice to ocean (W/m^2)
 
+      real(kind=dbl_kind), dimension(:), intent(out), optional :: &
+           fswthrun_uvrdr, & ! uvr dir SW through ice to ocean (W/m^2)
+           fswthrun_uvrdf, & ! uvr dif SW through ice to ocean (W/m^2)
+           fswthrun_pardr, & ! par dir SW through ice to ocean (W/m^2)
+           fswthrun_pardf    ! par dif SW through ice to ocean (W/m^2)
+
       real(kind=dbl_kind), dimension(:,:), intent(inout) :: &
            rsnow   , & ! snow grain radius tracer (10^-6 m)
            Sswabsn , & ! SW radiation absorbed in snow layers (W m-2)
@@ -1061,6 +1083,10 @@
       endif
 
       ! cosine of the zenith angle
+
+#ifdef GEOSCOUPLED
+      ! coszen already computed by GEOS
+#else
 #ifdef CESMCOUPLED
       call compute_coszen (tlat,          tlon, &
                            yday,  sec, coszen,  &
@@ -1068,6 +1094,7 @@
 #else
       call compute_coszen (tlat,          tlon, &
                            yday,  sec, coszen)
+#endif
 #endif
       if (icepack_warnings_aborted(subname)) return
 
@@ -1255,6 +1282,21 @@
                   rsnow(k,n) = rsnwn(k) ! for history
                enddo
             endif
+
+#ifdef GEOSCOUPLED
+            if(present(fswthrun_uvrdr)) then
+               fswthrun_uvrdr(n) = fswthru_uvrdr_out
+            endif
+            if(present(fswthrun_uvrdf)) then
+               fswthrun_uvrdf(n) = fswthru_uvrdf_out
+            endif
+            if(present(fswthrun_pardr)) then
+               fswthrun_pardr(n) = fswthru_pardr_out
+            endif
+            if(present(fswthrun_pardf)) then
+               fswthrun_pardf(n) = fswthru_pardf_out
+            endif
+#endif
 
          endif ! aicen > puny
 
@@ -1469,6 +1511,12 @@
       fswthru_vdf  = c0
       fswthru_idr  = c0
       fswthru_idf  = c0
+#ifdef GEOSCOUPLED
+      fswthru_uvrdr_out  = c0
+      fswthru_uvrdf_out  = c0
+      fswthru_pardr_out  = c0
+      fswthru_pardf_out  = c0
+#endif
       ! compute fraction of nir down direct to total over all points:
       fnidr = c0
       if( swidr + swidf > puny ) then
@@ -1952,6 +2000,14 @@
          fthruvdf, & ! vis dif shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
          fthruidr, & ! nir dir shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
          fthruidf    ! nir dif shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
+
+#ifdef GEOSCOUPLED
+      real (kind=dbl_kind) :: &
+         fthru_uvrdr, &
+         fthru_uvrdf, &
+         fthru_pardr, &
+         fthru_pardf
+#endif
 
       real (kind=dbl_kind), dimension(nslyr) :: &
          Sabs        ! shortwave absorbed in snow layer (W m-2)
@@ -3043,6 +3099,13 @@
             fthruvdr = fthruvdr + dfdir(klevp)*swdr
             fthruvdf = fthruvdf + dfdif(klevp)*swdf
 
+#ifdef GEOSCOUPLED
+            fthru_uvrdr = dfdir(klevp)*druvr_in
+            fthru_uvrdf = dfdif(klevp)*dfuvr_in
+            fthru_pardr = dfdir(klevp)*drpar_in
+            fthru_pardf = dfdif(klevp)*dfpar_in
+#endif
+
             ! if snow covered ice, set snow internal absorption; else, Sabs=0
             if( srftyp == 1 ) then
                ki = 0
@@ -3160,6 +3223,12 @@
       fswthru_vdf = fswthru_vdf + fthruvdf*fi
       fswthru_idr = fswthru_idr + fthruidr*fi
       fswthru_idf = fswthru_idf + fthruidf*fi
+#ifdef GEOSCOUPLED
+      fswthru_uvrdr_out = fswthru_uvrdr_out + fthru_uvrdr*fi
+      fswthru_uvrdf_out = fswthru_uvrdf_out + fthru_uvrdf*fi
+      fswthru_pardr_out = fswthru_pardr_out + fthru_pardr*fi
+      fswthru_pardf_out = fswthru_pardf_out + fthru_pardf*fi
+#endif
 
       do k = 1, nslyr
          Sswabs(k) = Sswabs(k) + Sabs(k)*fi
@@ -4301,6 +4370,13 @@
       l_fswthrun_uvrdf = c0
       l_fswthrun_pardr = c0
       l_fswthrun_pardf = c0
+
+#ifdef GEOSCOUPLED
+      druvr_in = l_druvr
+      dfuvr_in = l_dfuvr
+      drpar_in = l_drpar
+      dfpar_in = l_dfpar
+#endif
 
       hin = c0
       hbri = c0
