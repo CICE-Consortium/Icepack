@@ -1183,6 +1183,8 @@
             data_sections, model_miss_val)
          call atm_MOSAiC_average("rsd", fsw_data, dimlen, ncid, &
             data_sections, model_miss_val)
+         call atm_MOSAiC_average("prsn", fsnow_data, dimlen, ncid, &
+            data_sections, model_miss_val)
 
          ! Linearly interpolate missing values
          call atm_MOSAiC_interpolate(Tair_data, model_miss_val)
@@ -1191,18 +1193,21 @@
          call atm_MOSAiC_interpolate(vatm_data, model_miss_val)
          call atm_MOSAiC_interpolate(flw_data, model_miss_val)
          call atm_MOSAiC_interpolate(fsw_data, model_miss_val)
+         call atm_MOSAiC_interpolate(fsnow_data, model_miss_val)
 
          ! hack for missing values
-         fsnow_data(:) = c0
+         !fsnow_data(:) = c0
          ! Stakes 3 snow accumulation
          ! 11 cm accumulation over 61 days
          ! 0.11 m * 330 kg/m3 = 36.3 kg/m2 / 61 * 24 * 3600 s = 6.9e-6
          ! That rate continues until March 8, which is julian date 68
-         do nt = 1, ntime
-            if (model_time(nt) <= (50 * Gregorian_year + 68) * 24 * 3600) then
-               fsnow_data(nt) = 0.0000069_dbl_kind
-            endif
-         enddo
+         ! For Ridge Ranch, have the cutoff date be Feb. 20 (JD51), but the rate 
+         ! almost douple 
+         !do nt = 1, ntime
+         !   if (model_time(nt) <= (50 * Gregorian_year + 51) * 24 * 3600) then
+         !      fsnow_data(nt) = 0.000010_dbl_kind!0.0000069_dbl_kind
+         !   endif
+         !enddo
          !fsnow_data(:) = 0.0000069_dbl_kind
          frain_data(:) = c0
          
@@ -1315,28 +1320,44 @@
       character(len=*), parameter :: subname='(atm_MOSAiC_interpolate)'
       
       ! Check for extrapolation
-      if (model_var_arr(1) == model_miss_val) call icedrv_system_abort(&
-      string=subname//'Missing value at start of atmospheric forcing',&
-      file=__FILE__,line=__LINE__)
-      if (model_var_arr(ntime) == model_miss_val) call icedrv_system_abort(&
-      string=subname//'Missing value at end of atmospheric forcing',&
-      file=__FILE__,line=__LINE__)
+      !if (model_var_arr(1) == model_miss_val) call icedrv_system_abort(&
+      !string=subname//'Missing value at start of atmospheric forcing',&
+      !file=__FILE__,line=__LINE__)
+      !if (model_var_arr(ntime) == model_miss_val) call icedrv_system_abort(&
+      !string=subname//'Missing value at end of atmospheric forcing',&
+      !file=__FILE__,line=__LINE__)
 
-      ! Interpolate
-      mlast = 1
+      ! Interpolate, extrapolate for first and last values
+      if (model_var_arr(1) == model_miss_val) then
+         mlast = 0
+      else
+         mlast = 1
+      endif
       do nt = 2, ntime
          if (model_var_arr(nt) == model_miss_val) then
-            ! Do nothing (i.e., allow nt to increment)
+            ! Do nothing (i.e., allow nt to increment) unless we're at end
+            if (nt == ntime) then
+               do m = mlast + 1, nt
+                  model_var_arr(m) = model_var_arr(mlast)
+               end do
+            endif
          else if ((nt - mlast) == 1) then
             ! No missing data, increment mlast
             mlast = nt
          else
-            ! Interpolate missing data
-            do m = mlast + 1, nt - 1
-               model_var_arr(m) = model_var_arr(mlast) &
-                  + (model_var_arr(nt) - model_var_arr(mlast)) &
-                  * (m - mlast) / (nt - mlast)
-            end do
+            ! If we're at the start extrapolate to fill
+            if (mlast==0) then
+               do m = mlast + 1, nt - 1
+                  model_var_arr(m) = model_var_arr(nt)
+               end do
+            else
+               ! Interpolate missing data
+               do m = mlast + 1, nt - 1
+                  model_var_arr(m) = model_var_arr(mlast) &
+                     + (model_var_arr(nt) - model_var_arr(mlast)) &
+                     * (m - mlast) / (nt - mlast)
+               end do
+            endif
             mlast = nt
          endif
       end do
@@ -1447,12 +1468,186 @@
 
       subroutine ocn_MOSAiC
       
+      integer (kind=int_kind) :: &
+         nt,      &  ! timestep index for Icepack arrays
+         i,       &  ! index for forcing data arrays
+         bound,   &  ! bound for subsetting data
+         dimlen,  &  ! length of the data arrays
+         ncid,    &  ! NetCDF file id
+         dimid,   &  ! NetCDF dimension id
+         status,  &  ! NetCDF status flag
+         varid       ! NetCDF variable id
+      
+      integer (kind=8), allocatable :: &
+         data_time(:)   ! array for time array in forcing data
+      
+      integer (kind=8), dimension(ntime) :: &
+         model_time ! array for Icepack minutely time
+
+      real (kind=dbl_kind) :: &
+         work, &     ! variable for moving averaging
+         model_time0
+      
+      real (kind=dbl_kind), allocatable :: &
+         data(:)  ! data array from file
+
+      character (char_len) :: &
+         calendar_type, &  ! data calendar type
+         test_1, &
+         test_2, &
+         varname
+      
+      character (char_len_long) :: &
+         filename, &
+         time_basis     ! time basis for data
+      
+      integer (kind=int_kind), dimension(ntime, 2) :: &
+         data_sections  ! 2D array for indices corresponding
+                        ! to which data values should be averaged to
+                        ! create the model forcing values
+      
+      real (kind=dbl_kind), parameter :: &
+         Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
+         model_miss_val = -9999.00     ! missing value for internal use
+
+      character(len=*), parameter :: subname='(ocn_MOSAiC)'
+
+      filename = trim(data_dir)//'/MOSAiC/'//trim(ocn_data_file)
+      
+      if (ocn_data_format == 'nc') then
+#ifdef USE_NETCDF
+         ! Open forcing file
+         status = nf90_open(trim(filename), nf90_nowrite, ncid)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt open netcdf file', &
+                           file=__FILE__,line=__LINE__)
+         ! Allocate time and data arrays
+         status = nf90_inq_dimid(ncid, "time1440", dimid)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get time1440 dim id', &
+                           file=__FILE__,line=__LINE__)
+         status = nf90_inquire_dimension(ncid, dimid, len = dimlen)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get time1440 dim length', &
+                           file=__FILE__,line=__LINE__)
+         allocate (data_time(dimlen), data(dimlen))
+         ! Check that time1440 variable exists and calendars match
+         status = nf90_inq_varid(ncid, "time1440", varid)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get time1440 var id', &
+                           file=__FILE__,line=__LINE__)
+         !status = nf90_get_att(ncid, varid, "calendar", calendar_type)
+         !if (status /= nf90_noerr) call icedrv_system_abort(&
+         !   string=subname//'Couldnt get calendar attribute', &
+         !                  file=__FILE__,line=__LINE__)
+         ! In future this check could be replaced with a better one
+         !if (calendar_type /= "standard" .or. .not. use_leap_years) then
+         !   call icedrv_system_abort(&
+         !   string=subname//'Forcing calendar not standard or not using leap years',&
+         !   file=__FILE__,line=__LINE__)
+         !endif
+         ! Get the time array
+         !! Note, in the file the value is actually unsigned, need to make sure this
+         ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
+         status = nf90_get_var(ncid, varid, data_time)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt read time1440 values', &
+                           file=__FILE__,line=__LINE__)
+         ! Convert the data time from minutes into seconds for compatability w/ icepack
+         data_time = data_time * 60
+
+         ! Create the model time array, note this depends on the format not changing
+         status = nf90_get_att(ncid, varid, "units", time_basis)
+         if (status /= nf90_noerr) call icedrv_system_abort(&
+            string=subname//'Couldnt get time01 units', &
+                           file=__FILE__,line=__LINE__)
+         if (time_basis /= "minutes since 1970-01-01 00:00:00") then
+            call icedrv_system_abort(&
+            string=subname//'Time basis is not minutes since 1970',&
+            file=__FILE__,line=__LINE__)
+         endif
+         ! CF standard calendar is Gregorian
+         ! May have strange behavior if dt is not an integer
+         model_time0 = (year_init - 1970) * Gregorian_year * 24 * 3600 + time0
+         do nt = 1, ntime
+            model_time(nt) = int(model_time0 + dt * nt, kind=8)
+         enddo
+
+         ! Check that we are not extrapolating forcing outside of time bounds
+         !if (model_time(1) < data_time(1)) call icedrv_system_abort(&
+         !string=subname//'Simulation starts before atmospheric forcing',&
+         !file=__FILE__,line=__LINE__)
+         !write (test_1,*) model_time(ntime)
+         !write (test_2,*) data_time(dimlen)
+         !if (model_time(ntime) > data_time(dimlen)) call icedrv_system_abort(&
+         !string=subname//'Simulation ends after atmospheric forcing: '//trim(test_1)//' '//trim(test_2),&
+         !file=__FILE__,line=__LINE__)
+
+         ! data_sections is a 2D array where the first dimension
+         ! is the same length as model_time. The 1D array at each index
+         ! contains the start and stop indices of the data to be averaged
+         ! into each model timestep
+         ! Get the first start index
+         bound = model_time(1) - (model_time(2) - model_time(1))/2
+         i = 1
+         do while (data_time(i) < bound)
+            i = i + 1
+         end do
+         data_sections(1, 1) = i
+         do nt = 1, ntime - 1
+            ! Bound is halfway between this time step and the next
+            bound = (model_time(nt + 1) + model_time(nt))/2
+            do while (data_time(i) < bound)
+               i = i + 1
+            end do ! i - 1 is now the last element in timestep nt
+            data_sections(nt, 2) = i - 1
+            data_sections(nt + 1, 1) = i
+         end do
+         ! Get the last index
+         bound = model_time(ntime) + (model_time(ntime) - model_time(ntime - 1))/2
+         i = dimlen
+         do while (data_time(i) > bound)
+            i = i - 1
+         end do
+         data_sections(ntime, 2) = i
+
+         ! Moving average forcing values into model arrays
+         call atm_MOSAiC_average("so", sss_data, dimlen, ncid, &
+            data_sections, model_miss_val)
+         call atm_MOSAiC_average("mlotst", hmix_data, dimlen, ncid, &
+            data_sections, model_miss_val)
+         call atm_MOSAiC_average("hfsot", qdp_data, dimlen, ncid, &
+            data_sections, model_miss_val)
+         
+         ! Linearly interpolate missing values
+         call atm_MOSAiC_interpolate(sss_data, model_miss_val)
+         call atm_MOSAiC_interpolate(hmix_data, model_miss_val)
+         call atm_MOSAiC_interpolate(qdp_data, model_miss_val)
+
+         !call icedrv_system_abort(string=subname//&
+         !' Made it to the end for testing', &
+         !file=__FILE__,line=__LINE__)
+
+#else
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: ocn_data_format = "nc" requires USE_NETCDF', &
+         file=__FILE__,line=__LINE__)
+#endif
+      else
+         call icedrv_system_abort(string=subname//&
+         ' ERROR: only NetCDF input implemented for ocn_MOSAiC', &
+         file=__FILE__,line=__LINE__)
+      endif      
+      
+      
+      
+      
       ! For now this just sets constant values for testing
       
-      sss_data(:) = 32.0_dbl_kind ! ~mixed layer salinity on Jan 1 from Kiki
+      !sss_data(:) = 32.0_dbl_kind ! ~mixed layer salinity on Jan 1 from Kiki
       ! we are using evolving ocean mixed layer so just initial T matters
-      hmix_data(:) = 30.0_dbl_kind ! ~average Oct to Feb
-      qdp_data(:) = c0  ! ~ from Kiki
+      !hmix_data(:) = 30.0_dbl_kind ! ~average Oct to Feb
+      !qdp_data(:) = c0  ! ~ from Kiki
 
       end subroutine ocn_MOSAiC
       

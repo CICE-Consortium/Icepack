@@ -1349,7 +1349,7 @@
          qsn             ! snow enthalpy (J/m3)
 
       real (kind=dbl_kind), parameter :: &
-         hsno_init = 0.08_dbl_kind   ! initial snow thickness (m)
+         hsno_init = 0.02_dbl_kind ! Ian FYI 0.175_dbl_kind ! Snow2 Nov. 6 based on Transect 0.24_dbl_kind ! Ian Sheba Nov. 28 0.18_dbl_kind ! Ian L2 syi  0.02_dbl_kind ! Ian FYI 0.1125_dbl_kind ! Ian Sheba !0.08_dbl_kind ! Ian SYI 0.04_dbl_kind ! MET stakes! stakes 30.08_dbl_kind   ! initial snow thickness (m)
 
       logical (kind=log_kind) :: tr_brine, tr_lvl, tr_fsd, tr_snow
       integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_sice, nt_fsd
@@ -1419,9 +1419,9 @@
 
       i = 2  ! 2-m slab, no snow
       if (3 <= ncat) then
-         n = 3
+         n = 1 ! use 1 instead of 3 if we're putting ice in first thickness cat
          ainit(n) = c1  ! assumes we are using the default ITD boundaries
-         hinit(n) = 0.67_dbl_kind
+         hinit(n) = 0.282 ! FYI from Ian 0.73 ! Snow2 Nov. 6 based off transect 1.76 ! sheba Nov. 18 from Ian 0.88 ! L2 SYI from Ian  1.75 ! SHEBA MYI from Ian !0.46 ! SHEBA FYI from Ian ! SYI from Ian ! 0.27 ! MET stakes on Nov. 15? ! 0.67_dbl_kind stakes 3
       else
          ainit(ncat) = c1
          hinit(ncat) = 0.67_dbl_kind
