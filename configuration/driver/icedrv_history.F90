@@ -13,6 +13,7 @@
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_sizes
       use icepack_intfc, only: icepack_query_tracer_flags, icepack_query_tracer_indices
+      use icepack_intfc, only: icepack_query_tracer_indices
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -69,7 +70,8 @@
          count1(1), count2(2), count3(3), count4(4), & ! cdf start/count arrays
          varid, &                        ! cdf varid
          status, &                       ! cdf status flag
-         iflag                           ! history file attributes
+         iflag, &                        ! history file attributes
+         nt_apnd, nt_hpnd, nt_ipnd       ! pond tracer indices
 
       character (len=8) :: &
          cdate                           ! date string
@@ -98,12 +100,19 @@
          (/ 'aicen           ', 'vicen           ', 'vsnon           ' /)
 
       logical (kind=log_kind) :: &
-         tr_fsd                          ! flag for tracing fsd
+         tr_fsd, &                        ! flag for tracing fsd
+         tr_pnd                           ! flag for tracing ponds
 
       integer (kind=dbl_kind), parameter :: num_3d_nfsd = 5
       character(len=16), parameter :: fld_3d_nfsd(num_3d_nfsd) = &
          (/ 'd_afsd_newi     ', 'd_afsd_latg     ', 'd_afsd_latm     ', &
             'd_afsd_wave     ', 'd_afsd_weld     ' /)
+      
+      integer (kind=dbl_kind), parameter :: num_3d_pond = 3
+      character(len=16), parameter :: fld_3d_pond(num_3d_ncat) = &
+         (/ 'apndn           ', 'hpndn           ', 'ipndn           ' /)
+
+         ! rfracn, flpndn, expndn fraction of water flushing, exponential decay
 
       integer (kind=dbl_kind), parameter :: num_3d_ntrcr = 1
       character(len=16), parameter :: fld_3d_ntrcr(num_3d_ntrcr) = &
@@ -119,7 +128,7 @@
 
 #ifdef USE_NETCDF
       call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
-      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
+      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd, tr_pond_out=tr_pnd)
       if (first_call) then
          timcnt = 0
          write(hist_file,'(a,i8.8,a)') './history/icepack.h.',idate,'.nc'
@@ -207,6 +216,13 @@
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_3d_ncat(n)))
          enddo
 
+         if (tr_pnd) then
+            do n = 1,num_3d_pond
+               status = nf90_def_var(ncid,trim(fld_3d_pond(n)),NF90_DOUBLE,dimid3,varid)
+               if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_3d_pond(n)))
+            enddo
+         endif ! tr_pnd
+   
          if (tr_fsd) then
             ! 3d nfsd fields
 
@@ -373,6 +389,35 @@
 
          deallocate(value3)
      enddo
+
+      ! 3d pond fields
+      if (tr_pnd) then
+         call icepack_query_tracer_indices( &
+         nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd)
+
+         start3(1) = 1
+         count3(1) = nx
+         start3(2) = 1
+         count3(2) = ncat
+         start3(3) = timcnt
+         count3(3) = 1
+
+         do n = 1,num_3d_pond
+            allocate(value3(count3(1),count3(2),1))
+
+            value3 = -9999._dbl_kind
+            if (trim(fld_3d_pond(n)) == 'apndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_apnd,1:count3(2))
+            if (trim(fld_3d_pond(n)) == 'hpndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_hpnd,1:count3(2))
+            if (trim(fld_3d_pond(n)) == 'ipndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_ipnd,1:count3(2))
+
+            status = nf90_inq_varid(ncid,trim(fld_3d_pond(n)),varid)
+            if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_3d_pond(n)))
+            status = nf90_put_var(ncid,varid,value3,start=start3,count=count3)
+            if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_var '//trim(fld_3d_pond(n)))
+
+            deallocate(value3)
+         enddo
+      endif !tr_pnd
 
      if (tr_fsd) then
         ! 3d nfsd fields
