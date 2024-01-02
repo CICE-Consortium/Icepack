@@ -50,7 +50,7 @@
       use icedrv_flux, only: evap, fsnow, frain, frazil
       use icedrv_flux, only: fswabs, flw, flwout, fsens, fsurf, flat
       use icedrv_flux, only: Tair, Qa, fsw, fcondtop
-      use icedrv_flux, only: meltt, meltb, meltl, snoice
+      use icedrv_flux, only: meltt, meltb, meltl, melts, snoice
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
       use icedrv_arrays_column, only: d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
 #ifdef USE_NETCDF
@@ -81,7 +81,7 @@
       real (kind=dbl_kind),allocatable :: &
          value1(:), value2(:,:), value3(:,:,:), value4(:,:,:,:)  ! temporary
 
-      integer (kind=dbl_kind), parameter :: num_2d = 32
+      integer (kind=dbl_kind), parameter :: num_2d = 33
       character(len=16), parameter :: fld_2d(num_2d) = &
          (/ 'aice            ', 'vice            ', 'vsno            ', &
             'uvel            ', 'vvel            ', 'divu            ', &
@@ -93,7 +93,8 @@
             'fsw             ', 'fcondtop        ', 'meltt           ', &
             'meltb           ', 'meltl           ', 'snoice          ', &
             'dsnow           ', 'congel          ', 'sst             ', &
-            'sss             ', 'Tf              ', 'fhocn           '    /)
+            'sss             ', 'Tf              ', 'fhocn           ', &
+            'melts           ' /)
             
       integer (kind=dbl_kind), parameter :: num_2d_pond = 3
       character(len=16), parameter :: fld_2d_pond(num_2d_pond) = &
@@ -360,6 +361,7 @@
          if (trim(fld_2d(n)) == 'meltt')    value2(1:count2(1),1) = meltt(1:count2(1))
          if (trim(fld_2d(n)) == 'meltb')    value2(1:count2(1),1) = meltb(1:count2(1))
          if (trim(fld_2d(n)) == 'meltl')    value2(1:count2(1),1) = meltl(1:count2(1))
+         if (trim(fld_2d(n)) == 'melts')    value2(1:count2(1),1) = melts(1:count2(1))
          if (trim(fld_2d(n)) == 'snoice')   value2(1:count2(1),1) = snoice(1:count2(1))
          if (trim(fld_2d(n)) == 'dsnow')    value2(1:count2(1),1) = dsnow(1:count2(1))
          if (trim(fld_2d(n)) == 'congel')   value2(1:count2(1),1) = congel(1:count2(1))
