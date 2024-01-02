@@ -94,7 +94,11 @@
             'meltb           ', 'meltl           ', 'snoice          ', &
             'dsnow           ', 'congel          ', 'sst             ', &
             'sss             ', 'Tf              ', 'fhocn           '    /)
-
+            
+      integer (kind=dbl_kind), parameter :: num_2d_pond = 3
+      character(len=16), parameter :: fld_2d_pond(num_2d_pond) = &
+         (/ 'apnd            ', 'hpnd            ', 'ipnd            ' /)
+            
       integer (kind=dbl_kind), parameter :: num_3d_ncat = 3
       character(len=16), parameter :: fld_3d_ncat(num_3d_ncat) = &
          (/ 'aicen           ', 'vicen           ', 'vsnon           ' /)
@@ -204,6 +208,13 @@
             status = nf90_def_var(ncid,trim(fld_2d(n)),NF90_DOUBLE,dimid2,varid)
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_2d(n)))
          enddo
+
+         if (tr_pnd) then
+            do n = 1,num_2d_pond
+               status = nf90_def_var(ncid,trim(fld_2d_pond(n)),NF90_DOUBLE,dimid2,varid)
+               if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_2d_pond(n)))
+            enddo
+         endif ! tr_pnd
 
          ! 3d ncat fields
 
@@ -364,6 +375,33 @@
 
          deallocate(value2)
      enddo
+
+     ! 2d pond fields
+      if (tr_pnd) then
+         call icepack_query_tracer_indices( &
+         nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd)
+
+         start2(1) = 1
+         count2(1) = nx
+         start2(2) = timcnt
+         count2(2) = 1
+
+         do n = 1,num_2d_pond
+            allocate(value2(count2(1),1))
+
+            value2 = -9999._dbl_kind
+            if (trim(fld_2d_pond(n)) == 'apnd') value2(1:count2(1),1) = trcr(1:count2(1),nt_apnd)
+            if (trim(fld_2d_pond(n)) == 'hpnd') value2(1:count2(1),1) = trcr(1:count2(1),nt_hpnd)
+            if (trim(fld_2d_pond(n)) == 'ipnd') value2(1:count2(1),1) = trcr(1:count2(1),nt_ipnd)
+
+            status = nf90_inq_varid(ncid,trim(fld_2d_pond(n)),varid)
+            if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_2d_pond(n)))
+            status = nf90_put_var(ncid,varid,value2,start=start2,count=count2)
+            if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_var '//trim(fld_2d_pond(n)))
+
+            deallocate(value2)
+         enddo
+      endif !tr_pnd
 
       ! 3d ncat fields
 
