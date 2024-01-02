@@ -246,7 +246,8 @@
          dagedtt,& ! ice age tendency thermo.    (s/s)
          mlt_onset, &! day of year that sfc melting begins
          frz_onset, &! day of year that freezing begins (congel or frazil)
-         frazil_diag ! frazil ice growth diagnostic (m/step-->cm/day)
+         frazil_diag, & ! frazil ice growth diagnostic (m/step-->cm/day)
+         flpnd     ! pond flushing rate due to ice permeability (m/s)
 
       real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
@@ -254,7 +255,8 @@
          fcondtopn,& ! category fcondtop
          fcondbotn,& ! category fcondbot
          fsensn,   & ! category sensible heat flux
-         flatn       ! category latent heat flux
+         flatn,    & ! category latent heat flux
+         flpndn      ! category pond flushing rate due to ice permeability (m/s)
 
       ! As above but these remain grid box mean values i.e. they are not
       ! divided by aice at end of ice_dynamics.
