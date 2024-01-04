@@ -105,7 +105,7 @@
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
                                   prescribed_ice,         &
-                                  flpnd)
+                                  flpnd,       expnd)
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
@@ -199,7 +199,8 @@
          dsnow    , & ! change in snow thickness (m/step-->cm/day)
          mlt_onset, & ! day of year that sfc melting begins
          frz_onset, & ! day of year that freezing begins (congel or frazil)
-         flpnd        ! pond flushing rate due to ice permeability (m/s)
+         flpnd    , & ! pond flushing rate due to ice permeability (m/s)
+         expnd        ! exponential pond drainage rate (m/s)
 
       real (kind=dbl_kind), intent(in) :: &
          yday         ! day of year
@@ -265,6 +266,7 @@
       zTin(:) = c0
       meltsliq= c0
       flpnd   = c0
+      expnd   = c0
 
       if (calc_Tsfc) then
          fsensn  = c0
@@ -326,7 +328,7 @@
                                               fcondtopn, fcondbotn, &
                                               fadvocn,   snoice,    &
                                               smice,     smliq,     &
-                                              flpnd)
+                                              flpnd,     expnd)
             if (icepack_warnings_aborted(subname)) return
 
             ! reinitialize mass in case of snow-ice formation
@@ -2164,7 +2166,8 @@
                                     mlt_onset   , frz_onset   , &
                                     yday        , prescribed_ice, &
                                     zlvs        , &
-                                    flpnd       , flpndn)
+                                    flpnd       , flpndn      , &
+                                    expnd       , expndn)
 
       integer (kind=int_kind), intent(in) :: &
          ncat        , & ! number of thickness categories
@@ -2257,7 +2260,8 @@
          meltb       , & ! basal ice melt           (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset   , & ! day of year that freezing begins (congel or frazil)
-         flpnd           ! pond flushing rate due to ice permeability (m/s)
+         flpnd       , & ! pond flushing rate due to ice permeability (m/s)
+         expnd           ! exponential pond drainage rate (m/s)
 
       real (kind=dbl_kind), intent(out), optional :: &
          wlat            ! lateral melt rate                    (m/s)
@@ -2330,7 +2334,8 @@
          congeln     , & ! congelation ice growth                 (m)
          snoicen     , & ! snow-ice growth                        (m)
          dsnown      , & ! change in snow thickness (m/step-->cm/day)
-         flpndn          ! category pond flushing rate          (m/s)
+         flpndn      , & ! category pond flushing rate          (m/s)
+         expndn          ! exponential pond drainage rate       (m/s)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          fswthrun        ! SW through ice to ocean            (W/m^2)
@@ -2693,7 +2698,7 @@
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,     &
                                  yday=yday,           dsnow=dsnown        (n), &
                                  prescribed_ice=prescribed_ice,                &
-                                 flpnd=flpndn    (n))
+                                 flpnd=flpndn    (n), expnd=expndn        (n))
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
