@@ -57,7 +57,7 @@
                                           fcondtop, fcondbot, &
                                           fadvheat, snoice,   &
                                           smice,    smliq,    &
-                                          flpnd)
+                                          flpnd,    expnd)
 
     ! solve the enthalpy and bulk salinity of the ice for a single column
 
@@ -113,7 +113,8 @@
          zTsn            ! internal snow layer temperatures
      
      real (kind=dbl_kind), intent(inout):: &
-         flpnd           ! pond flushing rate due to ice permeability (m/s)
+         flpnd       , & ! pond flushing rate due to ice permeability (m/s)
+         expnd           ! exponential pond drainage rate (m/s)
 
     ! local variables
     real(kind=dbl_kind), dimension(1:nilyr) :: &
@@ -332,7 +333,7 @@
     endif
 
     ! drain ponds from flushing
-    call flush_pond(w, hpond, apond, dt, flpnd)
+    call flush_pond(w, hpond, apond, dt, flpnd, expnd)
     if (icepack_warnings_aborted(subname)) return
 
     ! flood snow ice
@@ -3176,7 +3177,7 @@
 
 !=======================================================================
 
-  subroutine flush_pond(w, hpond, apond, dt, flpnd)
+  subroutine flush_pond(w, hpond, apond, dt, flpnd, expnd)
 
     ! given a flushing velocity drain the meltponds
 
@@ -3187,10 +3188,11 @@
 
     real(kind=dbl_kind), intent(inout) :: &
          hpond , & ! melt pond thickness (m)
-         flpnd     ! pond flushing rate due to ice permeability (m/s)
+         flpnd , & ! pond flushing rate due to ice permeability (m/s)
+         expnd     ! exponential pond drainage rate (m/s)
      
     real(kind=dbl_kind) :: &
-         hpond_tmp ! local variable for hpond befor flushing
+         hpond_tmp ! local variable for hpond before flushing
 
     real(kind=dbl_kind), parameter :: &
          hpond0 = 0.01_dbl_kind
@@ -3210,11 +3212,13 @@
           hpond = max(hpond, c0)
           flpnd = (hpond_tmp - hpond) / dt
 
+          hpond_tmp = hpond
           ! exponential decay of pond
           lambda_pond = c1 / (tscale_pnd_drain * 24.0_dbl_kind * 3600.0_dbl_kind)
           hpond = hpond - lambda_pond * dt * (hpond + hpond0)
 
           hpond = max(hpond, c0)
+          expnd = (hpond_tmp - hpond) / dt
 
        endif
     endif
