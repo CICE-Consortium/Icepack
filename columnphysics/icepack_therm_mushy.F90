@@ -3210,7 +3210,13 @@
           hpond = hpond - w * dt / apond
 
           hpond = max(hpond, c0)
-          flpnd = (hpond_tmp - hpond) / dt
+          ! apond here is just the pond tracer for the category, i.e. it could 
+          ! be the fraction of level ice that is ponded, not the fraction
+          ! of the category that is. Thus, flpnd is now the average height of
+          ! meltwater lost averaged over the level area. Need to adjust for
+          ! the difference between level area and category area outside of
+          ! thermo_vertical
+          flpnd = (hpond_tmp - hpond) * apond
 
           hpond_tmp = hpond
           ! exponential decay of pond
@@ -3218,7 +3224,8 @@
           hpond = hpond - lambda_pond * dt * (hpond + hpond0)
 
           hpond = max(hpond, c0)
-          expnd = (hpond_tmp - hpond) / dt
+          ! Same logic as above for flpnd
+          expnd = (hpond_tmp - hpond) * apond
 
        endif
     endif

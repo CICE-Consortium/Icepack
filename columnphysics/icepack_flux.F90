@@ -12,7 +12,7 @@
       use icepack_parameters, only: c1, emissivity, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
-      use icepack_tracers, only: tr_iso
+      use icepack_tracers, only: tr_iso, tr_pond
 
       implicit none
       private
@@ -64,7 +64,10 @@
                                Uref,     Urefn,      &
                                Qref_iso, Qrefn_iso,  &
                                fiso_ocn, fiso_ocnn,  &
-                               fiso_evap, fiso_evapn)
+                               fiso_evap, fiso_evapn,&
+                               flpnd,  flpndn,       &
+                               expnd,  expndn,       &
+                               frpnd,  frpndn)
 
       ! single category fluxes
       real (kind=dbl_kind), intent(in) :: &
@@ -98,6 +101,14 @@
           dsnown  , & ! change in snow depth            (m)
           congeln , & ! congelation ice growth          (m)
           snoicen , & ! snow-ice growth                 (m)
+<<<<<<< HEAD
+=======
+          flpndn  , & ! pond flushing rate due to ice permeability (m/step)
+          expndn  , & ! exponential pond drainage rate (m/step)
+          frpndn      ! pond drainage rate due to freeboard constraint (m/step)
+
+      real (kind=dbl_kind), optional, intent(in):: &
+>>>>>>> df2b57c (runs with per-category freshwater fluxes)
           fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
           fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
@@ -131,10 +142,24 @@
           meltsliq, & ! mass of snow melt               (kg/m^2)
           congel  , & ! congelation ice growth          (m)
           snoice  , & ! snow-ice growth                 (m)
+<<<<<<< HEAD
           fswthru_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
           fswthru_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
           fswthru_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
           fswthru_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
+=======
+          flpnd   , & ! pond flushing rate due to ice permeability (m/step)
+          expnd   , & ! exponential pond drainage rate (m/step)
+          frpnd       ! pond drainage rate due to freeboard constraint (m/step)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+          fswthru_vdr , & ! vis dir sw radiation through ice bot    (W/m**2)
+          fswthru_vdf , & ! vis dif sw radiation through ice bot    (W/m**2)
+          fswthru_idr , & ! nir dir sw radiation through ice bot    (W/m**2)
+          fswthru_idf     ! nir dif sw radiation through ice bot    (W/m**2)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+>>>>>>> df2b57c (runs with per-category freshwater fluxes)
           dsnow,    & ! change in snow depth            (m)
           Uref        ! air speed reference level       (m/s)
 
@@ -247,6 +272,13 @@
          congel    = congel    + congeln   * aicen
       if (present(snoicen) .and. present(snoice)) &
          snoice    = snoice    + snoicen   * aicen
+
+      ! Meltwater fluxes
+      if (tr_pond) then
+         flpnd     = flpnd     + flpndn    * aicen
+         expnd     = expnd     + expndn    * aicen
+         frpnd     = frpnd     + frpndn    * aicen
+      endif
 
       end subroutine merge_fluxes
 

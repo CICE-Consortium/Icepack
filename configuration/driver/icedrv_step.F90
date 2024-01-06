@@ -129,8 +129,8 @@
       use icedrv_flux, only: dsnow, dsnown, faero_atm, faero_ocn
       use icedrv_flux, only: fiso_atm, fiso_ocn, fiso_evap
       use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
-      use icedrv_flux, only: flpndn, expndn
-      use icedrv_flux, only: flpnd, expnd
+      use icedrv_flux, only: flpndn, expndn, frpndn
+      use icedrv_flux, only: flpnd, expnd, frpnd
       use icedrv_init, only: lmask_n, lmask_s
       use icedrv_state, only: aice, aicen, aice_init, aicen_init, vicen_init
       use icedrv_state, only: vice, vicen, vsno, vsnon, trcrn, uvel, vvel, vsnon_init
@@ -376,7 +376,8 @@
             mlt_onset=mlt_onset(i),   frz_onset = frz_onset(i),   &
             yday = yday,  prescribed_ice = prescribed_ice,        &
             flpnd    = flpnd(i),      flpndn    = flpndn(i,:),    &
-            expnd    = expnd(i),      expndn    = expndn(i,:))
+            expnd    = expnd(i),      expndn    = expndn(i,:),    &
+            frpnd    = frpnd(i),      frpndn   = frpndn(i,:))
 
         if (tr_aero) then
           do n = 1, ncat

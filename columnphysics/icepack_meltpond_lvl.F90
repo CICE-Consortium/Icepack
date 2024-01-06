@@ -42,7 +42,7 @@
                                    qicen,  sicen,        &
                                    Tsfcn,  alvl,         &
                                    apnd,   hpnd,  ipnd,  &
-                                   meltsliqn)
+                                   meltsliqn, frpndn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          ! time step (s)
@@ -62,7 +62,8 @@
          meltsliqn   ! liquid contribution to meltponds in dt (kg/m^2)
 
       real (kind=dbl_kind), intent(inout) :: &
-         apnd, hpnd, ipnd
+         apnd, hpnd, ipnd, &
+         frpndn      ! pond drainage rate due to freeboard constraint (m/s)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          qicen, &  ! ice layer enthalpy (J m-3)
@@ -77,7 +78,8 @@
       ! local temporary variables
 
       real (kind=dbl_kind) :: &
-         volpn     ! pond volume per unit area (m)
+         volpn, &  ! pond volume per unit area (m)
+         hpond_tmp ! local variable for hpond before flushing
 
       real (kind=dbl_kind), dimension (nilyr) :: &
          Tmlt      ! melting temperature (C)
@@ -215,7 +217,15 @@
             apondn = max(apondn, c0)
 
             ! limit pond depth to maintain nonnegative freeboard
+            hpond_tmp = hpondn
             hpondn = min(hpondn, ((rhow-rhoi)*hi - rhos*hs)/rhofresh)
+            ! The way apondn is used is very confusing but at this point
+            ! apondn is the fraction of the entire category (level + deformed)
+            ! with ponds on it. Thus, multiplying the change in hpondn (i.e.,
+            ! the meltwater lost from the ponded area) by apondn here yields
+            ! the meltwater height lost averaged over the category area
+            ! analogous to how melttn is defined.
+            frpndn = (hpond_tmp - hpondn) * apondn
 
             ! fraction of grid cell covered by ponds
             apondn = apondn * aicen

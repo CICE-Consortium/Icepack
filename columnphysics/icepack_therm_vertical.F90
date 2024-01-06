@@ -2145,7 +2145,8 @@
                                     yday        , prescribed_ice, &
                                     zlvs        , &
                                     flpnd       , flpndn      , &
-                                    expnd       , expndn)
+                                    expnd       , expndn      , &
+                                    frpnd       , frpndn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2233,8 +2234,9 @@
          meltb       , & ! basal ice melt           (m/step-->cm/day)
          mlt_onset   , & ! day of year that sfc melting begins
          frz_onset   , & ! day of year that freezing begins (congel or frazil)
-         flpnd       , & ! pond flushing rate due to ice permeability (m/s)
-         expnd           ! exponential pond drainage rate (m/s)
+         flpnd       , & ! pond flushing rate due to ice permeability (m/step)
+         expnd       , & ! exponential pond drainage rate (m/step)
+         frpnd           ! pond drainage rate due freeboard constraint (m/step)
 
       real (kind=dbl_kind), intent(out), optional :: &
          wlat            ! lateral melt rate                    (m/s)
@@ -2308,7 +2310,8 @@
          snoicen     , & ! snow-ice growth                        (m)
          dsnown      , & ! change in snow thickness (m/step-->cm/day)
          flpndn      , & ! category pond flushing rate          (m/s)
-         expndn          ! exponential pond drainage rate       (m/s)
+         expndn      , & ! exponential pond drainage rate       (m/s)
+         frpndn          ! pond drainage rate due to freeboard constraint (m/s)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          fswthrun        ! SW through ice to ocean            (W/m^2)
@@ -2531,6 +2534,8 @@
          snoicen(n) = c0
          dsnown (n) = c0
          flpndn (n) = c0
+         expndn (n) = c0
+         frpndn (n) = c0
 
          Trefn  = c0
          Qrefn  = c0
@@ -2659,6 +2664,13 @@
                                  yday=yday,           dsnow=dsnown        (n), &
                                  prescribed_ice=prescribed_ice,                &
                                  flpnd=flpndn    (n), expnd=expndn        (n))
+            
+            if (tr_pond_lvl) then
+               ! Account for flpndn and expndn above being measured over level
+               ! area
+               flpndn(n) = flpndn(n) * alvl(n)
+               expndn(n) = expndn(n) * alvl(n)
+            endif
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
@@ -2760,7 +2772,8 @@
                                        apnd=apnd    (n), &
                                        hpnd=hpnd    (n), &
                                        ipnd=ipnd    (n), &
-                                       meltsliqn=l_meltsliqn(n))
+                                       meltsliqn=l_meltsliqn(n), &
+                                       frpndn=frpndn(n))
                if (icepack_warnings_aborted(subname)) return
 
             elseif (tr_pond_topo) then
@@ -2855,7 +2868,10 @@
                                fiso_ocn=fiso_ocn,                   &
                                fiso_ocnn=fiso_ocnn,                 &
                                fiso_evap=fiso_evap,                 &
-                               fiso_evapn=fiso_evapn)
+                               fiso_evapn=fiso_evapn,               &
+                               flpnd=flpnd,       flpndn=flpndn(n), &
+                               expnd=expnd,       expndn=expndn(n), &
+                               frpnd=frpnd,       frpndn=frpndn(n))
 
             if (icepack_warnings_aborted(subname)) return
 
