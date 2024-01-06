@@ -12,7 +12,7 @@
       use icepack_parameters, only: c1, emissivity
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
-      use icepack_tracers, only: tr_iso, tr_snow
+      use icepack_tracers, only: tr_iso, tr_snow, tr_pond
 
       implicit none
       private
@@ -64,7 +64,10 @@
                                Uref,     Urefn,      &
                                Qref_iso, Qrefn_iso,  &
                                fiso_ocn, fiso_ocnn,  &
-                               fiso_evap, fiso_evapn)
+                               fiso_evap, fiso_evapn,&
+                               flpnd,  flpndn,       &
+                               expnd,  expndn,       &
+                               frpnd,  frpndn)
 
       ! single category fluxes
       real (kind=dbl_kind), intent(in) :: &
@@ -95,7 +98,10 @@
           meltsliqn,& ! mass of snow melt               (kg/m^2)
           dsnown  , & ! change in snow depth            (m)
           congeln , & ! congelation ice growth          (m)
-          snoicen     ! snow-ice growth                 (m)
+          snoicen , & ! snow-ice growth                 (m)
+          flpndn  , & ! pond flushing rate due to ice permeability (m/step)
+          expndn  , & ! exponential pond drainage rate (m/step)
+          frpndn      ! pond drainage rate due to freeboard constraint (m/step)
 
       real (kind=dbl_kind), optional, intent(in):: &
           fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
@@ -130,7 +136,10 @@
           melts   , & ! snow melt                       (m)
           meltsliq, & ! mass of snow melt               (kg/m^2)
           congel  , & ! congelation ice growth          (m)
-          snoice      ! snow-ice growth                 (m)
+          snoice  , & ! snow-ice growth                 (m)
+          flpnd   , & ! pond flushing rate due to ice permeability (m/step)
+          expnd   , & ! exponential pond drainage rate (m/step)
+          frpnd       ! pond drainage rate due to freeboard constraint (m/step)
 
       real (kind=dbl_kind), intent(inout), optional :: &
           fswthru_vdr , & ! vis dir sw radiation through ice bot    (W/m**2)
@@ -225,6 +234,13 @@
       endif
       congel    = congel    + congeln   * aicen
       snoice    = snoice    + snoicen   * aicen
+
+      ! Meltwater fluxes
+      if (tr_pond) then
+         flpnd     = flpnd     + flpndn    * aicen
+         expnd     = expnd     + expndn    * aicen
+         frpnd     = frpnd     + frpndn    * aicen
+      endif
 
       end subroutine merge_fluxes
 

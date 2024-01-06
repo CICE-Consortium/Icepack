@@ -51,7 +51,7 @@
       use icedrv_flux, only: fswabs, flw, flwout, fsens, fsurf, flat
       use icedrv_flux, only: Tair, Qa, fsw, fcondtop
       use icedrv_flux, only: meltt, meltb, meltl, melts, snoice
-      use icedrv_flux, only: flpndn, expndn
+      use icedrv_flux, only: flpndn, expndn, frpndn
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
       use icedrv_arrays_column, only: d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
 #ifdef USE_NETCDF
@@ -114,10 +114,10 @@
          (/ 'd_afsd_newi     ', 'd_afsd_latg     ', 'd_afsd_latm     ', &
             'd_afsd_wave     ', 'd_afsd_weld     ' /)
       
-      integer (kind=dbl_kind), parameter :: num_3d_pond = 5
+      integer (kind=dbl_kind), parameter :: num_3d_pond = 6
       character(len=16), parameter :: fld_3d_pond(num_3d_pond) = &
          (/ 'apndn           ', 'hpndn           ', 'ipndn           ', &
-            'flpndn          ', 'expndn          ' /)
+            'flpndn          ', 'expndn          ', 'frpndn          ' /)
 
          ! rfracn, fpndn, epndn fraction of water flushing, exponential decay
 
@@ -453,6 +453,7 @@
             if (trim(fld_3d_pond(n)) == 'ipndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_ipnd,1:count3(2))
             if (trim(fld_3d_pond(n)) == 'flpndn') value3(1:count3(1),1:count3(2),1) = flpndn(1:count3(1),1:count3(2))
             if (trim(fld_3d_pond(n)) == 'expndn') value3(1:count3(1),1:count3(2),1) = expndn(1:count3(1),1:count3(2))
+            if (trim(fld_3d_pond(n)) == 'frpndn') value3(1:count3(1),1:count3(2),1) = frpndn(1:count3(1),1:count3(2))
 
             status = nf90_inq_varid(ncid,trim(fld_3d_pond(n)),varid)
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_3d_pond(n)))

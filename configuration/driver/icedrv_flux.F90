@@ -247,8 +247,9 @@
          mlt_onset, &! day of year that sfc melting begins
          frz_onset, &! day of year that freezing begins (congel or frazil)
          frazil_diag, & ! frazil ice growth diagnostic (m/step-->cm/day)
-         flpnd,  & ! pond flushing rate due to ice permeability (m/s)
-         expnd     ! exponential pond drainage rate (m/s)
+         flpnd,  & ! pond flushing rate due to ice permeability (m/step)
+         expnd,  & ! exponential pond drainage rate (m/step)
+         frpnd     ! pond drainage rate due to freeboard constraint (m/step)
 
       real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
@@ -257,8 +258,10 @@
          fcondbotn,& ! category fcondbot
          fsensn,   & ! category sensible heat flux
          flatn,    & ! category latent heat flux
-         flpndn,   & ! category pond flushing rate due to ice permeability (m/s)
-         expndn      ! category exponential pond drainage rate (m/s)
+         ! Like melttn these are defined as volume per unit category area
+         flpndn,   & ! category pond flushing rate due to ice permeability
+         expndn,   & ! category exponential pond drainage rate
+         frpndn      ! category pond drainage rate due to freeboard constraint
 
       ! As above but these remain grid box mean values i.e. they are not
       ! divided by aice at end of ice_dynamics.
