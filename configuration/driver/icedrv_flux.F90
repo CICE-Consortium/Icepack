@@ -702,6 +702,9 @@
       apeff_ai (:) = c0
       snowfrac (:) = c0
       frazil_diag (:) = c0
+      flpnd (:) = c0
+      expnd (:) = c0
+      frpnd (:) = c0
 
       ! drag coefficients are computed prior to the atmo_boundary call,
       ! during the thermodynamics section
