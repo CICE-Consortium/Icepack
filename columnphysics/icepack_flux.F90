@@ -67,7 +67,8 @@
                                fiso_evap, fiso_evapn,&
                                flpnd,  flpndn,       &
                                expnd,  expndn,       &
-                               frpnd,  frpndn)
+                               frpnd,  frpndn,       &
+                               rfpnd,  rfpndn)
 
       ! single category fluxes
       real (kind=dbl_kind), intent(in) :: &
@@ -101,7 +102,8 @@
           snoicen , & ! snow-ice growth                 (m)
           flpndn  , & ! pond flushing rate due to ice permeability (m/step)
           expndn  , & ! exponential pond drainage rate (m/step)
-          frpndn      ! pond drainage rate due to freeboard constraint (m/step)
+          frpndn  , & ! pond drainage rate due to freeboard constraint (m/step)
+          rfpndn      ! runoff rate due to rfrac (m/step)
 
       real (kind=dbl_kind), optional, intent(in):: &
           fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
@@ -139,7 +141,8 @@
           snoice  , & ! snow-ice growth                 (m)
           flpnd   , & ! pond flushing rate due to ice permeability (m/step)
           expnd   , & ! exponential pond drainage rate (m/step)
-          frpnd       ! pond drainage rate due to freeboard constraint (m/step)
+          frpnd   , & ! pond drainage rate due to freeboard constraint (m/step)
+          rfpnd       ! runoff rate due to rfrac (m/step)
 
       real (kind=dbl_kind), intent(inout), optional :: &
           fswthru_vdr , & ! vis dir sw radiation through ice bot    (W/m**2)
@@ -240,6 +243,7 @@
          flpnd     = flpnd     + flpndn    * aicen
          expnd     = expnd     + expndn    * aicen
          frpnd     = frpnd     + frpndn    * aicen
+         rfpnd     = rfpnd     + rfpndn    * aicen
       endif
 
       end subroutine merge_fluxes
