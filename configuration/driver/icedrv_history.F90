@@ -51,7 +51,7 @@
       use icedrv_flux, only: fswabs, flw, flwout, fsens, fsurf, flat
       use icedrv_flux, only: Tair, Qa, fsw, fcondtop
       use icedrv_flux, only: meltt, meltb, meltl, melts, snoice
-      use icedrv_flux, only: flpndn, expndn, frpndn, flpnd, expnd, frpnd
+      use icedrv_flux, only: flpndn, expndn, frpndn, rfpndn, flpnd, expnd, frpnd, rfpnd
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
       use icedrv_arrays_column, only: d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
 #ifdef USE_NETCDF
@@ -97,10 +97,11 @@
             'sss             ', 'Tf              ', 'fhocn           ', &
             'melts           ' /)
             
-      integer (kind=dbl_kind), parameter :: num_2d_pond = 6
+      integer (kind=dbl_kind), parameter :: num_2d_pond = 7
       character(len=16), parameter :: fld_2d_pond(num_2d_pond) = &
          (/ 'apnd            ', 'hpnd            ', 'ipnd            ', &
-            'flpnd           ', 'expnd           ', 'frpnd           '  /)
+            'flpnd           ', 'expnd           ', 'frpnd           ', &
+            'rfpnd           '  /)
             
       integer (kind=dbl_kind), parameter :: num_3d_ncat = 3
       character(len=16), parameter :: fld_3d_ncat(num_3d_ncat) = &
@@ -115,12 +116,11 @@
          (/ 'd_afsd_newi     ', 'd_afsd_latg     ', 'd_afsd_latm     ', &
             'd_afsd_wave     ', 'd_afsd_weld     ' /)
       
-      integer (kind=dbl_kind), parameter :: num_3d_pond = 6
+      integer (kind=dbl_kind), parameter :: num_3d_pond = 7
       character(len=16), parameter :: fld_3d_pond(num_3d_pond) = &
          (/ 'apndn           ', 'hpndn           ', 'ipndn           ', &
-            'flpndn          ', 'expndn          ', 'frpndn          ' /)
-
-         ! rfracn, fpndn, epndn fraction of water flushing, exponential decay
+            'flpndn          ', 'expndn          ', 'frpndn          ', &
+            'rfpndn          ' /)
 
       integer (kind=dbl_kind), parameter :: num_3d_ntrcr = 1
       character(len=16), parameter :: fld_3d_ntrcr(num_3d_ntrcr) = &
@@ -401,6 +401,7 @@
             if (trim(fld_2d_pond(n)) == 'flpnd') value2(1:count2(1),1) = flpnd(1:count2(1))
             if (trim(fld_2d_pond(n)) == 'expnd') value2(1:count2(1),1) = expnd(1:count2(1))
             if (trim(fld_2d_pond(n)) == 'frpnd') value2(1:count2(1),1) = frpnd(1:count2(1))
+            if (trim(fld_2d_pond(n)) == 'rfpnd') value2(1:count2(1),1) = rfpnd(1:count2(1))
 
             status = nf90_inq_varid(ncid,trim(fld_2d_pond(n)),varid)
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_2d_pond(n)))
@@ -458,6 +459,7 @@
             if (trim(fld_3d_pond(n)) == 'flpndn') value3(1:count3(1),1:count3(2),1) = flpndn(1:count3(1),1:count3(2))
             if (trim(fld_3d_pond(n)) == 'expndn') value3(1:count3(1),1:count3(2),1) = expndn(1:count3(1),1:count3(2))
             if (trim(fld_3d_pond(n)) == 'frpndn') value3(1:count3(1),1:count3(2),1) = frpndn(1:count3(1),1:count3(2))
+            if (trim(fld_3d_pond(n)) == 'rfpndn') value3(1:count3(1),1:count3(2),1) = rfpndn(1:count3(1),1:count3(2))
 
             status = nf90_inq_varid(ncid,trim(fld_3d_pond(n)),varid)
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_3d_pond(n)))
