@@ -44,7 +44,7 @@
                                    Tsfcn,  alvl,         &
                                    apnd,   hpnd,  ipnd,  &
                                    meltsliqn, frpndn,    &
-                                   rfpndn)
+                                   rfpndn, ilpndn)
 
       integer (kind=int_kind), intent(in) :: &
          nilyr, &    ! number of ice layers
@@ -75,7 +75,8 @@
       real (kind=dbl_kind), intent(inout) :: &
          apnd, hpnd, ipnd, &
          frpndn, &   ! pond drainage rate due to freeboard constraint (m/step)
-         rfpndn      ! runoff rate due to rfrac (m/step)
+         rfpndn, &   ! runoff rate due to rfrac (m/step)
+         ilpndn      ! pond loss/gain due to ice lid (m/step)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          qicen, &  ! ice layer enthalpy (J m-3)
@@ -90,8 +91,9 @@
       ! local temporary variables
 
       real (kind=dbl_kind) :: &
-         volpn, &  ! pond volume per unit area (m)
-         hpond_tmp ! local variable for hpond before flushing
+         volpn, &     ! pond volume per unit area (m)
+         hpond_tmp, & ! local variable for hpond before flushing
+         dvn_temp     ! local variable for change in volume due to rfrac
 
       real (kind=dbl_kind), dimension (nilyr) :: &
          Tmlt      ! melting temperature (C)
@@ -168,6 +170,7 @@
             ! loss over entire area. And divide by aicen to get loss per unit
             ! category area (for consistency with melttn, frpndn, etc)
             rfpndn = dvn * (1-rfrac) / (rfrac * aicen)
+            dvn_temp = dvn
 
             ! shrink pond volume under freezing conditions
             if (trim(frzpnd) == 'cesm') then
@@ -207,6 +210,9 @@
             endif
 
             volpn = volpn + dvn
+            ! Track lost/gained meltwater per unit category area from pond 
+            ! lid freezing/melting. Note sign flip relative to dvn convention
+            ilpndn = (dvn_temp - dvn) / aicen
 
             !-----------------------------------------------------------
             ! update pond area and depth
@@ -248,6 +254,8 @@
             apondn = apondn * aicen
 
             volpn = hpondn*apondn
+            ! note, this implies that if ponds fully drain or freeze their
+            ! depressions cease to exist and the lid ice also ceases to exist
             if (volpn <= c0) then
                volpn = c0
                apondn = c0
