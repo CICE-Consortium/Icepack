@@ -2146,7 +2146,8 @@
                                     zlvs        , &
                                     flpnd       , flpndn      , &
                                     expnd       , expndn      , &
-                                    frpnd       , frpndn)
+                                    frpnd       , frpndn      , &
+                                    rfpnd       , rfpndn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          , & ! time step
@@ -2236,7 +2237,8 @@
          frz_onset   , & ! day of year that freezing begins (congel or frazil)
          flpnd       , & ! pond flushing rate due to ice permeability (m/step)
          expnd       , & ! exponential pond drainage rate (m/step)
-         frpnd           ! pond drainage rate due freeboard constraint (m/step)
+         frpnd       , & ! pond drainage rate due freeboard constraint (m/step)
+         rfpnd           ! runoff rate due to rfrac (m/step)
 
       real (kind=dbl_kind), intent(out), optional :: &
          wlat            ! lateral melt rate                    (m/s)
@@ -2309,9 +2311,10 @@
          congeln     , & ! congelation ice growth                 (m)
          snoicen     , & ! snow-ice growth                        (m)
          dsnown      , & ! change in snow thickness (m/step-->cm/day)
-         flpndn      , & ! category pond flushing rate          (m/s)
-         expndn      , & ! exponential pond drainage rate       (m/s)
-         frpndn          ! pond drainage rate due to freeboard constraint (m/s)
+         flpndn      , & ! category pond flushing rate          (m/step)
+         expndn      , & ! exponential pond drainage rate       (m/step)
+         frpndn      , & ! pond drainage rate due to freeboard  (m/step)
+         rfpndn          ! runoff rate due to rfrac (m/step)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          fswthrun        ! SW through ice to ocean            (W/m^2)
@@ -2536,6 +2539,7 @@
          flpndn (n) = c0
          expndn (n) = c0
          frpndn (n) = c0
+         rfpndn (n) = c0
 
          Trefn  = c0
          Qrefn  = c0
@@ -2773,7 +2777,8 @@
                                        hpnd=hpnd    (n), &
                                        ipnd=ipnd    (n), &
                                        meltsliqn=l_meltsliqn(n), &
-                                       frpndn=frpndn(n))
+                                       frpndn=frpndn(n), &
+                                       rfpndn=rfpndn(n))
                if (icepack_warnings_aborted(subname)) return
 
             elseif (tr_pond_topo) then
@@ -2871,7 +2876,8 @@
                                fiso_evapn=fiso_evapn,               &
                                flpnd=flpnd,       flpndn=flpndn(n), &
                                expnd=expnd,       expndn=expndn(n), &
-                               frpnd=frpnd,       frpndn=frpndn(n))
+                               frpnd=frpnd,       frpndn=frpndn(n), &
+                               rfpnd=rfpnd,       rfpndn=rfpndn(n))
 
             if (icepack_warnings_aborted(subname)) return
 

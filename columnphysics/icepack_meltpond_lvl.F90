@@ -42,7 +42,8 @@
                                    qicen,  sicen,        &
                                    Tsfcn,  alvl,         &
                                    apnd,   hpnd,  ipnd,  &
-                                   meltsliqn, frpndn)
+                                   meltsliqn, frpndn,    &
+                                   rfpndn)
 
       real (kind=dbl_kind), intent(in) :: &
          dt          ! time step (s)
@@ -63,7 +64,8 @@
 
       real (kind=dbl_kind), intent(inout) :: &
          apnd, hpnd, ipnd, &
-         frpndn      ! pond drainage rate due to freeboard constraint (m/s)
+         frpndn, &   ! pond drainage rate due to freeboard constraint (m/step)
+         rfpndn      ! runoff rate due to rfrac (m/step)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          qicen, &  ! ice layer enthalpy (J m-3)
@@ -151,6 +153,11 @@
                    +                 melts*rhos &
                    +                 frain*  dt)*aicen
             endif
+            ! Track lost meltwater dvn is volume of meltwater (m3/m2) captured
+            ! over entire grid cell area. Multiply by (1-rfrac)/rfrac to get
+            ! loss over entire area. And divide by aicen to get loss per unit
+            ! category area (for consistency with melttn, frpndn, etc)
+            rfpndn = dvn * (1-rfrac) / (rfrac * aicen)
 
             ! shrink pond volume under freezing conditions
             if (trim(frzpnd) == 'cesm') then
