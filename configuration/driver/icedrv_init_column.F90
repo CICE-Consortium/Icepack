@@ -24,9 +24,9 @@
       use icepack_intfc, only: icepack_query_tracer_indices
       use icepack_intfc, only: icepack_query_parameters
       use icepack_intfc, only: icepack_init_zbgc
-      use icepack_intfc, only: icepack_init_thermo
+      use icepack_intfc, only: icepack_init_thermo, icepack_init_radiation
       use icepack_intfc, only: icepack_step_radiation, icepack_init_orbit
-      use icepack_intfc, only: icepack_init_bgc, icepack_init_zsalinity
+      use icepack_intfc, only: icepack_init_bgc
       use icepack_intfc, only: icepack_init_ocean_bio, icepack_load_ocean_bio_array
       use icepack_intfc, only: icepack_init_hbrine
       use icedrv_system, only: icedrv_system_abort
@@ -99,12 +99,10 @@
       use icedrv_arrays_column, only: fswsfcn, ffracn, snowfracn
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn
-      use icedrv_arrays_column, only: kaer_tab, waer_tab, gaer_tab
-      use icedrv_arrays_column, only: kaer_bc_tab, waer_bc_tab, gaer_bc_tab
-      use icedrv_arrays_column, only: swgrid, igrid, bcenh
-      use icedrv_calendar, only: istep1, dt, calendar_type
-      use icedrv_calendar, only:    days_per_year, nextsw_cday, yday, sec
+      use icedrv_arrays_column, only: swgrid, igrid
+      use icedrv_calendar, only: istep1, dt, yday, sec
       use icedrv_system, only: icedrv_system_abort
+      use icedrv_forcing, only: snw_ssp_table
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr
       use icedrv_flux, only: alvdr_ai, alidr_ai, alvdf_ai, alidf_ai
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, scale_factor, snowfrac
@@ -123,7 +121,6 @@
       logical (kind=log_kind) :: &
          l_print_point, & ! flag to print designated grid point diagnostics
          dEdd_algae,    & ! BGC - radiation interactions
-         modal_aero,    & ! modal aerosol optical properties
          snwgrain         ! use variable snow grain size
 
       character (len=char_len) :: &
@@ -153,7 +150,6 @@
          call icepack_query_parameters(puny_out=puny)
          call icepack_query_parameters(shortwave_out=shortwave)
          call icepack_query_parameters(dEdd_algae_out=dEdd_algae)
-         call icepack_query_parameters(modal_aero_out=modal_aero)
          call icepack_query_parameters(snwgrain_out=snwgrain)
          call icepack_query_tracer_sizes(ntrcr_out=ntrcr, &
               nbtrcr_sw_out=nbtrcr_sw)
@@ -215,18 +211,30 @@
 
          enddo
 
-         do i = 1, nx
+         if (trim(shortwave(1:4)) == 'dEdd') then ! delta Eddington
+            ! initialize orbital parameters
+            ! These come from the driver in the coupled model.
+            call icepack_warnings_flush(nu_diag)
+            call icepack_init_orbit()
+            call icepack_warnings_flush(nu_diag)
+            if (icepack_warnings_aborted()) &
+               call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
 
-            if (trim(shortwave) == 'dEdd') then ! delta Eddington
-
-               ! initialize orbital parameters
-               ! These come from the driver in the coupled model.
+            if (trim(shortwave) == 'dEdd_snicar_ad') then
+               call icepack_init_parameters(snw_ssp_table_in=snw_ssp_table)
                call icepack_warnings_flush(nu_diag)
-               call icepack_init_orbit()
-               call icepack_warnings_flush(nu_diag)
-               if (icepack_warnings_aborted()) &
-                  call icedrv_system_abort(i, istep1, subname, __FILE__, __LINE__)
+               if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+                   file=__FILE__,line= __LINE__)
             endif
+         endif ! dEdd
+
+         call icepack_init_radiation()
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted(subname)) then
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
+         endif
+
+         do i = 1, nx
 
             fbri       (:) = c0
             rsnow    (:,:) = c0
@@ -237,11 +245,8 @@
             enddo
 
             if (tmask(i)) then
-            call icepack_step_radiation (              &
-                         dt=dt,           ncat=ncat,           &
-                         nblyr=nblyr,                          &
-                         nilyr=nilyr,     nslyr=nslyr,         &
-                         dEdd_algae=dEdd_algae,                &
+            call icepack_step_radiation (                      &
+                         dt=dt,                                &
                          swgrid=swgrid(:),                     &
                          igrid=igrid(:),                       &
                          fbri=fbri(:),                         &
@@ -258,14 +263,7 @@
                          zaeron=trcrn(i,nt_zaero(1):nt_zaero(1)+n_zaero*(nblyr+3)-1,:), &
                          trcrn_bgcsw=ztrcr_sw,                 &
                          TLAT=TLAT(i), TLON=TLON(i),           &
-                         calendar_type=calendar_type,          &
-                         days_per_year=days_per_year,          &
-                         nextsw_cday=nextsw_cday, yday=yday, sec=sec,      &
-                         kaer_tab=kaer_tab, kaer_bc_tab=kaer_bc_tab(:,:),  &
-                         waer_tab=waer_tab, waer_bc_tab=waer_bc_tab(:,:),  &
-                         gaer_tab=gaer_tab, gaer_bc_tab=gaer_bc_tab(:,:),  &
-                         bcenh=bcenh(:,:,:),                               &
-                         modal_aero=modal_aero,                            &
+                         yday=yday, sec=sec,                   &
                          swvdr=swvdr(i),         swvdf=swvdf(i),           &
                          swidr=swidr(i),         swidf=swidf(i),           &
                          coszen=coszen(i),       fsnow=fsnow(i),           &
@@ -371,7 +369,6 @@
       use icedrv_arrays_column, only: zfswin, trcrn_sw
       use icedrv_arrays_column, only: ocean_bio_all, ice_bio_net, snow_bio_net
       use icedrv_arrays_column, only: cgrid, igrid, bphi, iDi, bTiz, iki
-      use icedrv_arrays_column, only: Rayleigh_criteria, Rayleigh_real
       use icedrv_calendar,  only: istep1
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
@@ -389,13 +386,6 @@
       integer (kind=int_kind) :: &
          max_nbtrcr, max_algae, max_don, max_doc, max_dic, max_aero, max_fe
 
-      logical (kind=log_kind) :: &
-         RayleighC, &
-         solve_zsal
-
-      real(kind=dbl_kind) :: &
-         RayleighR
-
       real(kind=dbl_kind), dimension(max_ntrcr,ncat) :: &
          trcrn_bgc
 
@@ -403,8 +393,7 @@
          sicen
 
       integer (kind=int_kind) :: &
-         nbtrcr, ntrcr, ntrcr_o, &
-         nt_sice, nt_bgc_S
+         nbtrcr, ntrcr, ntrcr_o, nt_sice
 
       character(len=*), parameter :: subname='(init_bgc)'
 
@@ -426,42 +415,15 @@
       ! query Icepack values
       !-----------------------------------------------------------------
 
-      call icepack_query_parameters(solve_zsal_out=solve_zsal)
       call icepack_query_tracer_sizes(max_nbtrcr_out=max_nbtrcr, &
            max_algae_out=max_algae, max_don_out=max_don, max_doc_out=max_doc, &
            max_dic_out=max_dic, max_aero_out=max_aero, max_fe_out=max_fe)
       call icepack_query_tracer_sizes(nbtrcr_out=nbtrcr, ntrcr_out=ntrcr, &
            ntrcr_o_out=ntrcr_o)
-      call icepack_query_tracer_indices(nt_sice_out=nt_sice, nt_bgc_S_out=nt_bgc_S)
+      call icepack_query_tracer_indices(nt_sice_out=nt_sice)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
-
-      !-----------------------------------------------------------------
-      ! zsalinity initialization
-      !-----------------------------------------------------------------
-
-      if (solve_zsal) then
-         do i = 1, nx
-            call icepack_init_zsalinity(ncat=ncat, nblyr=nblyr,        &
-                                        ntrcr_o           = ntrcr_o,   &
-                                        Rayleigh_criteria = RayleighC, &
-                                        Rayleigh_real     = RayleighR, &
-                                        trcrn_bgc         = trcrn_bgc, &
-                                        nt_bgc_S          = nt_bgc_S,  &
-                                        sss               = sss(i))
-            Rayleigh_real    (i) = RayleighR
-            Rayleigh_criteria(i) = RayleighC
-            do n = 1,ncat
-               do k  = 1, nblyr
-                  trcrn(i,nt_bgc_S+k-1,n) = trcrn_bgc(nt_bgc_S-1+k-ntrcr_o,n)
-               enddo
-            enddo
-         enddo      ! i
-         call icepack_warnings_flush(nu_diag)
-         if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
-             file=__FILE__, line=__LINE__)
-      endif ! solve_zsal
 
       !-----------------------------------------------------------------
       ! biogeochemistry initialization
@@ -589,7 +551,7 @@
          ntrcr,         nbtrcr,       nbtrcr_sw,    &
          ntrcr_o,       nt_fbri,      &
          nt_bgc_Nit,    nt_bgc_Am,    nt_bgc_Sil,   &
-         nt_bgc_DMS,    nt_bgc_PON,   nt_bgc_S,     &
+         nt_bgc_DMS,    nt_bgc_PON,   &
          nt_bgc_DMSPp,  nt_bgc_DMSPd, &
          nt_zbgc_frac,  nlt_chl_sw,   &
          nlt_bgc_Nit,   nlt_bgc_Am,   nlt_bgc_Sil,  &
@@ -1028,55 +990,32 @@
       !-----------------------------------------------------------------
       ! resolve conflicts
       !-----------------------------------------------------------------
+
+      !-----------------------------------------------------------------
       ! zsalinity and brine
       !-----------------------------------------------------------------
-#ifdef UNDEPRECATE_ZSAL
-      if (solve_zsal .and. TRZS == 0) then
-         write(nu_diag,*) 'WARNING: solve_zsal=T but 0 zsalinity tracers'
-         write(nu_diag,*) 'WARNING: setting solve_zsal = F'
-         solve_zsal = .false.
-      elseif (solve_zsal .and. nblyr < 1)  then
-         write(nu_diag,*) 'WARNING: solve_zsal=T but 0 zsalinity tracers'
-         write(nu_diag,*) 'WARNING: setting solve_zsal = F'
-         solve_zsal = .false.
-      endif
-
-      if (solve_zsal .and. ((.not. tr_brine) .or. (ktherm /= 1))) then
-         write(nu_diag,*) 'WARNING: solve_zsal needs tr_brine=T and ktherm=1'
-         write(nu_diag,*) 'WARNING: setting tr_brine=T and ktherm=1'
-         tr_brine = .true.
-         ktherm = 1
-      endif
-#else
       if (solve_zsal) then
-         write(nu_diag,*) 'WARNING: zsalinity is being deprecated'
+         call icedrv_system_abort(string=subname//'ERROR: zsalinity is deprecated ', &
+            file=__FILE__, line=__LINE__)
       endif
-#endif
 
       if (tr_brine .and. TRBRI == 0 ) then
          write(nu_diag,*) &
             'WARNING: tr_brine=T but no brine height compiled'
          write(nu_diag,*) &
-            'WARNING: setting solve_zsal and tr_brine = F'
-         solve_zsal = .false.
+            'WARNING: setting tr_brine = F'
          tr_brine  = .false.
       elseif (tr_brine .and. nblyr < 1 ) then
          write(nu_diag,*) &
             'WARNING: tr_brine=T but no biology layers compiled'
          write(nu_diag,*) &
-            'WARNING: setting solve_zsal and tr_brine = F'
-         solve_zsal = .false.
+            'WARNING: setting tr_brine = F'
          tr_brine  = .false.
       endif
 
          write(nu_diag,1010) ' tr_brine                  = ', tr_brine
       if (tr_brine) then
          write(nu_diag,1005) ' phi_snow                  = ', phi_snow
-      endif
-      if (solve_zsal) then
-         write(nu_diag,1010) ' solve_zsal                = ', solve_zsal
-         write(nu_diag,1000) ' grid_oS                   = ', grid_oS
-         write(nu_diag,1005) ' l_skS                     = ', l_skS
       endif
 
       !-----------------------------------------------------------------
@@ -1112,7 +1051,7 @@
          tr_zaero = .false.
       endif
 
-      if (dEdd_algae .AND. trim(shortwave) /= 'dEdd') then
+      if (dEdd_algae .AND. trim(shortwave(1:4)) /= 'dEdd') then
          write(nu_diag,*) 'WARNING: dEdd_algae = T but shortwave /= dEdd'
          write(nu_diag,*) 'WARNING: setting dEdd_algae = F'
          dEdd_algae = .false.
@@ -1128,7 +1067,7 @@
          modal_aero = .false.
       endif
 
-      if (modal_aero .AND. trim(shortwave) /= 'dEdd') then
+      if (modal_aero .AND. trim(shortwave(1:4)) /= 'dEdd') then
          write(nu_diag,*) 'WARNING: modal_aero = T but shortwave /= dEdd'
          write(nu_diag,*) 'WARNING: setting modal_aero = F'
          modal_aero = .false.
@@ -1243,7 +1182,7 @@
            fr_dFe_in=fr_dFe, k_nitrif_in=k_nitrif, t_iron_conv_in=t_iron_conv, &
            max_loss_in=max_loss, max_dfe_doc1_in=max_dfe_doc1, fr_resp_in=fr_resp, &
            fr_resp_s_in=fr_resp_s, y_sk_DMS_in=y_sk_DMS, t_sk_conv_in=t_sk_conv, &
-           t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero, solve_zsal_in=solve_zsal)
+           t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -1268,21 +1207,6 @@
 
       ntd = 0                    ! if nt_fbri /= 0 then use fbri dependency
       if (nt_fbri == 0) ntd = -1 ! otherwise make tracers depend on ice volume
-
-      nt_bgc_S = 0
-      if (solve_zsal) then       ! .true. only if tr_brine = .true.
-          nt_bgc_S = ntrcr + 1
-          ntrcr = ntrcr + nblyr
-          do k = 1,nblyr
-             trcr_depend(nt_bgc_S + k - 1) = 2 + nt_fbri + ntd
-             trcr_base  (nt_bgc_S,1) = c0  ! default: ice area
-             trcr_base  (nt_bgc_S,2) = c1
-             trcr_base  (nt_bgc_S,3) = c0
-             n_trcr_strata(nt_bgc_S) = 1
-             nt_strata(nt_bgc_S,1) = nt_fbri
-             nt_strata(nt_bgc_S,2) = 0
-          enddo
-      endif
 
       !-----------------------------------------------------------------
       ! biogeochemistry
@@ -1808,7 +1732,7 @@
       call icepack_init_tracer_indices( &
            nt_fbri_in=nt_fbri,                                                                   &
            nt_bgc_Nit_in=nt_bgc_Nit,   nt_bgc_Am_in=nt_bgc_Am,       nt_bgc_Sil_in=nt_bgc_Sil,   &
-           nt_bgc_DMS_in=nt_bgc_DMS,   nt_bgc_PON_in=nt_bgc_PON,     nt_bgc_S_in=nt_bgc_S,       &
+           nt_bgc_DMS_in=nt_bgc_DMS,   nt_bgc_PON_in=nt_bgc_PON,                                 &
            nt_bgc_N_in=nt_bgc_N,       nt_bgc_chl_in=nt_bgc_chl,     nt_bgc_hum_in=nt_bgc_hum,   &
            nt_bgc_DOC_in=nt_bgc_DOC,   nt_bgc_DON_in=nt_bgc_DON,     nt_bgc_DIC_in=nt_bgc_DIC,   &
            nt_zaero_in=nt_zaero,       nt_bgc_DMSPp_in=nt_bgc_DMSPp, nt_bgc_DMSPd_in=nt_bgc_DMSPd, &

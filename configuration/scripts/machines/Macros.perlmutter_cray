@@ -1,0 +1,38 @@
+#==============================================================================
+# Makefile macros for NERSC perlmutter, cray compiler
+#==============================================================================
+
+CPP        := ftn -e P
+CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 ${ICE_CPPDEFS}
+CFLAGS     := -c -O2
+
+FIXEDFLAGS := -132
+FREEFLAGS  := 
+FFLAGS     := -hbyteswapio
+FFLAGS_NOOPT:= -O0
+
+ifeq ($(ICE_BLDDEBUG), true)
+  FFLAGS     += -O0 -hfp0 -g -Rbcdps -Ktrap=fp
+else
+  FFLAGS     += -O2 -hfp0   # -eo
+endif
+
+SCC   := cc
+SFC   := ftn
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
+
+NETCDF_PATH := $(NETCDF_DIR)
+
+INCLDIR := $(INCLDIR)
+
+LIB_NETCDF := $(NETCDF_PATH)/lib
+SLIBS   := -L$(LIB_NETCDF) -lnetcdf -lnetcdff
+
+ifeq ($(ICE_THREADED), true)
+   LDFLAGS += -fopenmp
+   CFLAGS += -fopenmp
+   FFLAGS += -fopenmp
+endif
+

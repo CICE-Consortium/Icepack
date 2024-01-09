@@ -1,5 +1,44 @@
 #!/bin/csh -f
 
+#====================================
+# If the icepack binary is passed via the --exe argument and the file exists,
+# copy it into the run directory and don't build the model.
+
+set icepexe = "UnDEFineD"
+if ($#argv == 0) then
+  # continue, standard way to build
+else
+  if ("$1" == "--exe") then
+    if ($#argv > 2) then
+      echo "${0}: ERROR: --exe icepackexe without other arguments is required"
+      exit -99
+    endif
+    set icepexe = $2
+    echo "${0}: icepexe = ${icepexe}"
+    if (-e ${icepexe}) then
+
+      source ./icepack.settings
+      source ${ICE_CASEDIR}/env.${ICE_MACHCOMP} -nomodules || exit 2
+      if !(-d ${ICE_RUNDIR}) mkdir -p ${ICE_RUNDIR}
+      cp -p ${icepexe} ${ICE_RUNDIR}/icepack
+
+      echo "`date` ${0}:${ICE_CASENAME} build copied ${icepexe}"  >> ${ICE_CASEDIR}/README.case
+      if ( ${ICE_TEST} != ${ICE_SPVAL} ) then
+        echo "#---" >! ${ICE_CASEDIR}/test_output
+        echo "COPY ${ICE_TESTNAME} build" >> ${ICE_CASEDIR}/test_output
+        echo "PEND ${ICE_TESTNAME} run" >> ${ICE_CASEDIR}/test_output
+      endif
+
+      exit 0
+    endif
+  else
+    echo "${0}: ERROR: invalid arguments"
+    exit -99
+  endif
+endif
+
+#====================================
+
 source ./icepack.settings
 source ${ICE_CASEDIR}/env.${ICE_MACHCOMP} || exit 2
 
@@ -24,10 +63,13 @@ endif
 if !(-d ${ICE_OBJDIR}) mkdir -p ${ICE_OBJDIR}
 cd ${ICE_OBJDIR}
 
-setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DNXGLOB=${ICE_NXGLOB} -DNICELYR=${NICELYR} -DNSNWLYR=${NSNWLYR} -DNICECAT=${NICECAT} -DNFSDCAT=${NFSDCAT} -DTRAGE=${TRAGE} -DTRFY=${TRFY} -DTRLVL=${TRLVL} -DTRPND=${TRPND} -DTRSNOW=${TRSNOW} -DTRBRI=${TRBRI} -DNTRISO=${NTRISO} -DNTRAERO=${NTRAERO}  -DTRZS=${TRZS} -DNBGCLYR=${NBGCLYR} -DTRALG=${TRALG} -DTRBGCZ=${TRBGCZ} -DTRDOC=${TRDOC} -DTRDOC=${TRDOC} -DTRDIC=${TRDIC} -DTRDON=${TRDON} -DTRFED=${TRFED} -DTRFEP=${TRFEP} -DTRZAERO=${TRZAERO} -DTRBGCS=${TRBGCS} "
+setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DNXGLOB=${ICE_NXGLOB} -DNICELYR=${NICELYR} -DNSNWLYR=${NSNWLYR} -DNICECAT=${NICECAT} -DNFSDCAT=${NFSDCAT} -DTRAGE=${TRAGE} -DTRFY=${TRFY} -DTRLVL=${TRLVL} -DTRPND=${TRPND} -DTRSNOW=${TRSNOW} -DTRBRI=${TRBRI} -DNTRISO=${NTRISO} -DNTRAERO=${NTRAERO} -DNBGCLYR=${NBGCLYR} -DTRALG=${TRALG} -DTRBGCZ=${TRBGCZ} -DTRDOC=${TRDOC} -DTRDOC=${TRDOC} -DTRDIC=${TRDIC} -DTRDON=${TRDON} -DTRFED=${TRFED} -DTRFEP=${TRFEP} -DTRZAERO=${TRZAERO} -DTRBGCS=${TRBGCS} "
 
 if (${ICE_IOTYPE} == 'netcdf') then
   setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DUSE_NETCDF"
+endif
+if (${ICE_SNICARHC} == 'false') then
+  setenv ICE_CPPDEFS "${ICE_CPPDEFS} -DNO_SNICARHC"
 endif
 
 ### List of source code directories (in order of importance).

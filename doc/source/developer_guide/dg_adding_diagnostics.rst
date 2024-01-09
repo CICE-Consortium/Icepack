@@ -55,7 +55,7 @@ Icepack produces separate ASCII (text) log output for four cells, each with a di
 #. For BGC variables, edit **icedrv\_diagnostics\_bgc.F90**:
 
    -  If the variable is already defined within the code, then add it to a "use" statement in the subroutine
-      ``hbrine_diags`` or ``bgc_diags`` or ``zsal_diags`` and follow a similar procedure for state variables as above.
+      ``hbrine_diags`` or ``bgc_diags`` and follow a similar procedure for state variables as above.
 
    -  Note that the BGC needs to be activated and the particular tracer turned on. 
 

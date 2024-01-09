@@ -12,8 +12,6 @@ setenv NTRAERO   0         # number of aerosol tracers
                            # (up to max_aero in ice_domain_size.F90) 
                            # CESM uses 3 aerosol tracers
 setenv TRBRI     1         # set to 1 for brine height tracer
-setenv TRZS      0         # set to 1 for zsalinity tracer
-                           # (needs TRBRI = 1)
 setenv TRBGCS    1         # set to 1 for skeletal layer tracers  
                            # (needs TRBGCZ = 0) 
 setenv TRBGCZ    0         # set to 1 for zbgc tracers

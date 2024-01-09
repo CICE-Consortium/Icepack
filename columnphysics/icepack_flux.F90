@@ -9,10 +9,10 @@
       module icepack_flux
 
       use icepack_kinds
-      use icepack_parameters, only: c1, emissivity
+      use icepack_parameters, only: c1, emissivity, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
-      use icepack_tracers, only: tr_iso, tr_snow, tr_pond
+      use icepack_tracers, only: tr_iso, tr_pond
 
       implicit none
       private
@@ -232,7 +232,7 @@
       meltt     = meltt     + melttn    * aicen
       meltb     = meltb     + meltbn    * aicen
       melts     = melts     + meltsn    * aicen
-      if (tr_snow) then
+      if (snwgrain) then
          meltsliq  = meltsliq  + meltsliqn * aicen
       endif
       if (present(dsnow)) then
