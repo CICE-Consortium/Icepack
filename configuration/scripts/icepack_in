@@ -7,6 +7,10 @@
     npt            = 8760
     ndtd           = 1
     ice_ic         = 'default'
+    hi_init_slab   = 2.0
+    hsno_init_slab = 0.0
+    hbar_init_itd  = 3.0
+    hsno_init_itd  = 0.25
     restart        = .false.
     restart_dir    = './restart/'
     restart_format = 'bin'
