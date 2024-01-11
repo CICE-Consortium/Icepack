@@ -1489,7 +1489,7 @@
       i = 3  ! full thickness distribution
       if (i <= nx) then
       ! initial category areas in cells with ice
-      hbar = c3  ! initial ice thickness with greatest area
+      hbar = hbar_init_itd  ! initial ice thickness with greatest area
       ! Note: the resulting average ice thickness
       ! tends to be less than hbar due to the
       ! nonlinear distribution of ice thicknesses
