@@ -11,6 +11,7 @@
     hsno_init_slab = 0.0
     hbar_init_itd  = 3.0
     hsno_init_itd  = 0.25
+    sst_init       = -1.8
     restart        = .false.
     restart_dir    = './restart/'
     restart_format = 'bin'

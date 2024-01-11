@@ -47,7 +47,8 @@
          hi_init_slab,   & ! initial ice thickness for slab cell (nx=2)
          hsno_init_slab, & ! initial snow thickness for slab cell (nx=2)
          hbar_init_itd,  & ! hbar for ice thickness for itd cell (nx=3)
-         hsno_init_itd     ! initial snow thickness for itd cell (nx=3)
+         hsno_init_itd,  & ! initial snow thickness for itd cell (nx=3)
+         sst_init          ! initial sea surface temperature (C)
 
 !=======================================================================
 
@@ -145,7 +146,8 @@
         restart_format, &
         dumpfreq,       diagfreq,       diag_file,       cpl_bgc,       &
         conserv_check,  history_format,                                 &
-        hi_init_slab,   hsno_init_slab, hbar_init_itd,   hsno_init_itd
+        hi_init_slab,   hsno_init_slab, hbar_init_itd,   hsno_init_itd, &
+        sst_init
 
       namelist /grid_nml/ &
         kcatbound
@@ -274,6 +276,7 @@
       hsno_init_slab = c0            ! initial snow thickness for slab cell (nx=2)
       hbar_init_itd  = c3            ! hbar for ice thickness for itd cell (nx=3)
       hsno_init_itd  = 0.25_dbl_kind ! initial snow thickness for itd cell (nx=3)
+      sst_init       = -1.8_dbl_kind ! initial mixed layer temperature (all cells)
       ndtd = 1               ! dynamic time steps per thermodynamic time step
       l_mpond_fresh = .false.     ! logical switch for including meltpond freshwater
                                   ! flux feedback to ocean model
@@ -687,6 +690,7 @@
          write(nu_diag,1005) ' hsno_init_slab            = ', hsno_init_slab
          write(nu_diag,1005) ' hbar_init_itd             = ', hbar_init_itd
          write(nu_diag,1005) ' hsno_init_itd             = ', hsno_init_itd
+         write(nu_diag,1005) ' sst_init                  = ', sst_init
          write(nu_diag,1010) ' conserv_check             = ', conserv_check
          write(nu_diag,1020) ' kitd                      = ', kitd
          write(nu_diag,1020) ' kcatbound                 = ', kcatbound
@@ -1421,11 +1425,15 @@
 
       i = 1  ! ice-free
              ! already initialized above
+      if (i <= nx) then ! need to set ocean parameters
+         sst(i) = sst_init
+      endif
 
       !-----------------------------------------------------------------
 
       i = 2  ! 100% ice concentration slab, thickness and snow from namelist
       if (i <= nx) then
+         sst(i) = sst_init ! initial ocean temperature
          do n = 1, ncat
             if (hi_init_slab <= hin_max(n)) then
                ainit(n) = c1
@@ -1488,6 +1496,7 @@
 
       i = 3  ! full thickness distribution
       if (i <= nx) then
+      sst(i) = sst_init
       ! initial category areas in cells with ice
       hbar = hbar_init_itd  ! initial ice thickness with greatest area
       ! Note: the resulting average ice thickness
