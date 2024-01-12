@@ -73,6 +73,7 @@
       use icedrv_restart_shared, only: restart, restart_dir, restart_file, restart_format
       use icedrv_flux, only: l_mpond_fresh, cpl_bgc
       use icedrv_flux, only: default_season
+      use icedrv_flux, only: sss_fixed, qdp_fixed, hmix_fixed
       use icedrv_forcing, only: precip_units,    fyear_init,      ycycle
       use icedrv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
       use icedrv_forcing, only: atm_data_file,   ocn_data_file,   bgc_data_file
@@ -192,7 +193,8 @@
         atm_data_file,   ocn_data_file,   bgc_data_file,   &
         ice_data_file,                                     &
         atm_data_format, ocn_data_format, bgc_data_format, &
-        data_dir,        trestore,        restore_ocn
+        data_dir,        trestore,        restore_ocn,     &
+        sss_fixed,       qdp_fixed,       hmix_fixed
 
       namelist /tracer_nml/   &
         tr_iage,      &
