@@ -7,6 +7,11 @@
     npt            = 8760
     ndtd           = 1
     ice_ic         = 'default'
+    hi_init_slab   = 2.0
+    hsno_init_slab = 0.0
+    hbar_init_itd  = 3.0
+    hsno_init_itd  = 0.25
+    sst_init       = -1.8
     restart        = .false.
     restart_dir    = './restart/'
     restart_format = 'bin'
@@ -120,6 +125,9 @@
     wave_spec_type  = 'none'
     restore_ocn     = .false.
     trestore        = 90
+    sss_fixed       = 34.0
+    qdp_fixed       = -6.0
+    hmix_fixed      = 20.0
     precip_units    = 'mks'
     default_season  = 'spring'
     atm_data_type   = 'clim'

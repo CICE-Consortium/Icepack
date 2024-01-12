@@ -42,6 +42,13 @@
          tmask  , & ! land/boundary mask, thickness (T-cell)
          lmask_n, & ! northern hemisphere mask
          lmask_s    ! southern hemisphere mask
+      
+      real (kind=dbl_kind), public :: &
+         hi_init_slab,   & ! initial ice thickness for slab cell (nx=2)
+         hsno_init_slab, & ! initial snow thickness for slab cell (nx=2)
+         hbar_init_itd,  & ! hbar for ice thickness for itd cell (nx=3)
+         hsno_init_itd,  & ! initial snow thickness for itd cell (nx=3)
+         sst_init          ! initial sea surface temperature (C)
 
 !=======================================================================
 
@@ -66,6 +73,7 @@
       use icedrv_restart_shared, only: restart, restart_dir, restart_file, restart_format
       use icedrv_flux, only: l_mpond_fresh, cpl_bgc
       use icedrv_flux, only: default_season
+      use icedrv_flux, only: sss_fixed, qdp_fixed, hmix_fixed
       use icedrv_forcing, only: precip_units,    fyear_init,      ycycle
       use icedrv_forcing, only: atm_data_type,   ocn_data_type,   bgc_data_type
       use icedrv_forcing, only: atm_data_file,   ocn_data_file,   bgc_data_file
@@ -139,7 +147,9 @@
         ice_ic,         restart,        restart_dir,     restart_file,  &
         restart_format, &
         dumpfreq,       diagfreq,       diag_file,       cpl_bgc,       &
-        conserv_check,  history_format
+        conserv_check,  history_format,                                 &
+        hi_init_slab,   hsno_init_slab, hbar_init_itd,   hsno_init_itd, &
+        sst_init
 
       namelist /grid_nml/ &
         kcatbound
@@ -185,6 +195,7 @@
         ice_data_file,                                     &
         atm_data_format, ocn_data_format, bgc_data_format, &
         data_dir,        trestore,        restore_ocn,     &
+        sss_fixed,       qdp_fixed,       hmix_fixed,     &
         strict_forcing
 
       namelist /tracer_nml/   &
@@ -265,6 +276,11 @@
       history_format = 'none'     ! if 'nc', write history files. Otherwise do nothing
       ice_ic       = 'default'    ! initial conditions are specified in the code
                                   ! otherwise, the filename for reading restarts
+      hi_init_slab   = c2            ! initial ice thickness for slab cell (nx=2)
+      hsno_init_slab = c0            ! initial snow thickness for slab cell (nx=2)
+      hbar_init_itd  = c3            ! hbar for ice thickness for itd cell (nx=3)
+      hsno_init_itd  = 0.25_dbl_kind ! initial snow thickness for itd cell (nx=3)
+      sst_init       = -1.8_dbl_kind ! initial mixed layer temperature (all cells)
       ndtd = 1               ! dynamic time steps per thermodynamic time step
       l_mpond_fresh = .false.     ! logical switch for including meltpond freshwater
                                   ! flux feedback to ocean model
@@ -675,6 +691,11 @@
          write(nu_diag,1030) ' restart_format            = ', trim(restart_format)
          write(nu_diag,1030) ' history_format            = ', trim(history_format)
          write(nu_diag,1030) ' ice_ic                    = ', trim(ice_ic)
+         write(nu_diag,1005) ' hi_init_slab              = ', hi_init_slab
+         write(nu_diag,1005) ' hsno_init_slab            = ', hsno_init_slab
+         write(nu_diag,1005) ' hbar_init_itd             = ', hbar_init_itd
+         write(nu_diag,1005) ' hsno_init_itd             = ', hsno_init_itd
+         write(nu_diag,1005) ' sst_init                  = ', sst_init
          write(nu_diag,1010) ' conserv_check             = ', conserv_check
          write(nu_diag,1020) ' kitd                      = ', kitd
          write(nu_diag,1020) ' kcatbound                 = ', kcatbound
@@ -1347,9 +1368,6 @@
       real (kind=dbl_kind), dimension(nslyr) :: &
          qsn             ! snow enthalpy (J/m3)
 
-      real (kind=dbl_kind), parameter :: &
-         hsno_init = 0.02_dbl_kind ! Ian FYI 0.175_dbl_kind ! Snow2 Nov. 6 based on Transect 0.24_dbl_kind ! Ian Sheba Nov. 28 0.18_dbl_kind ! Ian L2 syi  0.02_dbl_kind ! Ian FYI 0.1125_dbl_kind ! Ian Sheba !0.08_dbl_kind ! Ian SYI 0.04_dbl_kind ! MET stakes! stakes 30.08_dbl_kind   ! initial snow thickness (m)
-
       logical (kind=log_kind) :: tr_brine, tr_lvl, tr_fsd, tr_snow
       integer (kind=int_kind) :: nt_Tsfc, nt_qice, nt_qsno, nt_sice, nt_fsd
       integer (kind=int_kind) :: nt_fbri, nt_alvl, nt_vlvl
@@ -1413,24 +1431,31 @@
 
       i = 1  ! ice-free
              ! already initialized above
+      if (i <= nx) then ! need to set ocean parameters
+         sst(i) = sst_init
+      endif
 
       !-----------------------------------------------------------------
 
-      i = 2  ! 2-m slab, no snow
+      i = 2  ! 100% ice concentration slab, thickness and snow from namelist
       if (i <= nx) then
-      if (3 <= ncat) then
-         n = 1 ! use 1 instead of 3 if we're putting ice in first thickness cat
-         ainit(n) = c1  ! assumes we are using the default ITD boundaries
-         hinit(n) = 0.282 ! FYI from Ian 0.73 ! Snow2 Nov. 6 based off transect 1.76 ! sheba Nov. 18 from Ian 0.88 ! L2 SYI from Ian  1.75 ! SHEBA MYI from Ian !0.46 ! SHEBA FYI from Ian ! SYI from Ian ! 0.27 ! MET stakes on Nov. 15? ! 0.67_dbl_kind stakes 3
-      else
-         ainit(ncat) = c1
-         hinit(ncat) = 0.67_dbl_kind
-      endif
+         sst(i) = sst_init ! initial ocean temperature
+         do n = 1, ncat
+            if (hi_init_slab <= hin_max(n)) then
+               ainit(n) = c1
+               hinit(n) = hi_init_slab
+               exit
+            endif
+         enddo
+         if (hi_init_slab > hin_max(ncat)) then
+            ainit(ncat) = c1
+            hinit(ncat) = hi_init_slab
+         endif
       do n = 1, ncat
          ! ice volume, snow volume
          aicen(i,n) = ainit(n)
          vicen(i,n) = hinit(n) * ainit(n) ! m
-         vsnon(i,n) = hsno_init * ainit(n)
+         vsnon(i,n) = hsno_init_slab * ainit(n)
          ! tracers
          call icepack_init_trcr(Tair     = Tair(i),     &
                                 Tf       = Tf(i),       &
@@ -1477,8 +1502,9 @@
 
       i = 3  ! full thickness distribution
       if (i <= nx) then
+      sst(i) = sst_init
       ! initial category areas in cells with ice
-      hbar = 0.67_dbl_kind  ! initial ice thickness with greatest area
+      hbar = hbar_init_itd  ! initial ice thickness with greatest area
       ! Note: the resulting average ice thickness
       ! tends to be less than hbar due to the
       ! nonlinear distribution of ice thicknesses
@@ -1502,7 +1528,7 @@
          ! ice volume, snow volume
          aicen(i,n) = ainit(n)
          vicen(i,n) = hinit(n) * ainit(n) ! m
-         vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
+         vsnon(i,n) = min(aicen(i,n)*hsno_init_itd,p2*vicen(i,n))
          ! tracers
          call icepack_init_trcr(Tair     = Tair(i),     &
                                 Tf       = Tf(i),       &

@@ -174,6 +174,7 @@
          fsnow_data(:) = fsnow(i)    ! snowfall rate (kg/m^2 s)
            qdp_data(:) = qdp  (i)    ! deep ocean heat flux (W/m^2)
            sss_data(:) = sss  (i)    ! sea surface salinity
+           hmix_data(:)= hmix (i)    ! ocean mixed layer depth (m)
           uocn_data(:) = uocn (i)    ! ocean current components (m/s)
           vocn_data(:) = vocn (i)
           cldf_data(:) = c0          ! cloud fraction
@@ -585,8 +586,10 @@
       fsnow_data(1:12) = rhos*fsnow_clim(1:12) ! convert vol -> mass flux
       frain_data(1:12) = c0
 
+      ! DCS: I propose we remove this and set the default value of
+      ! qdp_fixed to -6.0 to be more transparent about forcing
       ! 6 W/m2 warming of mixed layer from deep ocean
-        qdp_data(:) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
+        !qdp_data(:) = -6.0 ! 2 W/m2 from deep + 4 W/m2 counteracting larger
                               ! SH+LH with bulk transfer than in MU 71
 
       end subroutine atm_climatological

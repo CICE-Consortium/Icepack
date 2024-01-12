@@ -183,6 +183,12 @@
          fswthru_vdf , & ! vis dif shortwave penetrating to ocean (W/m^2)
          fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
          fswthru_idf     ! nir dif shortwave penetrating to ocean (W/m^2)
+      
+      ! fixed ocean mixed layer properties (are overwritten by forcing data)
+      real (kind=dbl_kind), public :: &
+         sss_fixed   , & ! Sea surface salinity (PSU)
+         qdp_fixed   , & ! Deep ocean heat flux (negative upward, W/m^2)
+         hmix_fixed      ! Mixed layer depth (m)
 
        ! internal
 
@@ -486,8 +492,7 @@
       uocn   (:) = c0              ! surface ocean currents (m/s)
       vocn   (:) = c0
       frzmlt (:) = c0              ! freezing/melting potential (W/m^2)
-      sss    (:) = 34.0_dbl_kind   ! sea surface salinity (ppt)
-      sst    (:) = -1.8_dbl_kind   ! sea surface temperature (C)
+      sss    (:) = sss_fixed       ! sea surface salinity (ppt)
       sstdat (:) = sst(:)          ! sea surface temperature (C)
 
       ! water isotopes from ocean
@@ -502,8 +507,8 @@
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__,line= __LINE__)
 
-      qdp     (:) = c0             ! deep ocean heat flux (W/m^2)
-      hmix    (:) = c20            ! ocean mixed layer depth
+      qdp     (:) = qdp_fixed      ! deep ocean heat flux (W/m^2)
+      hmix    (:) = hmix_fixed     ! ocean mixed layer depth
 
       !-----------------------------------------------------------------
       ! fluxes sent to atmosphere
