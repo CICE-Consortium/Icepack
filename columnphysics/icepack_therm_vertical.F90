@@ -36,7 +36,6 @@
 
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: calculate_tin_from_qin, Tmin
-      use icepack_therm_shared, only: hi_min
       use icepack_therm_shared, only: adjust_enthalpy
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_mushy,  only: temperature_changes_salinity
@@ -46,7 +45,7 @@
 
       use icepack_mushy_physics, only: icepack_mushy_temperature_mush
       use icepack_mushy_physics, only: liquidus_temperature_mush
-      use icepack_mushy_physics, only: enthalpy_mush, enthalpy_of_melting
+      use icepack_mushy_physics, only: icepack_enthalpy_mush, enthalpy_of_melting
 
       use icepack_aerosol, only: update_aerosol
       use icepack_isotope, only: update_isotope
@@ -136,13 +135,14 @@
          zSin    , & ! internal ice layer salinities
          rsnw    , & ! snow grain radius (10^-6 m)
          smice   , & ! ice mass tracer in snow (kg/m^3)
-         smliq   , & ! liquid water mass tracer in snow (kg/m^3)
+         smliq       ! liquid water mass tracer in snow (kg/m^3)
+
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
          massice , & ! ice mass in snow (kg/m^2)
          massliq     ! liquid water mass in snow (kg/m^2)
 
       ! input from atmosphere
-      real (kind=dbl_kind), &
-         intent(in) :: &
+      real (kind=dbl_kind), intent(in) :: &
          flw     , & ! incoming longwave radiation (W/m^2)
          potT    , & ! air potential temperature  (K)
          Qa      , & ! specific humidity (kg/kg)
@@ -151,8 +151,7 @@
          shcoef  , & ! transfer coefficient for sensible heat
          lhcoef      ! transfer coefficient for latent heat
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          fswsfc  , & ! SW absorbed at ice/snow surface (W m-2)
          fswint  , & ! SW absorbed in ice interior, below surface (W m-2)
          fpond       ! fresh water flux to ponds (kg/m^2/s)
@@ -264,6 +263,8 @@
       zTsn(:) = c0
       zTin(:) = c0
       meltsliq= c0
+      massice(:) = c0
+      massliq(:) = c0
 
       if (calc_Tsfc) then
          fsensn  = c0
@@ -327,12 +328,6 @@
                                               smice,     smliq)
             if (icepack_warnings_aborted(subname)) return
 
-            ! reinitialize mass in case of snow-ice formation
-            if (snwgrain) then
-               massice(:) = smice(:) * hslyr
-               massliq(:) = smliq(:) * hslyr
-            endif
-
          else ! ktherm
 
             call temperature_changes(dt,                   &
@@ -354,6 +349,12 @@
             if (icepack_warnings_aborted(subname)) return
 
          endif ! ktherm
+
+         !  mass of ice and liquid water in snow
+         if (snwgrain) then
+            massice(:) = smice(:) * hslyr
+            massliq(:) = smliq(:) * hslyr
+         endif
 
       ! intermediate energy for error check
 
@@ -423,14 +424,12 @@
       ! If prescribed ice, set hi back to old values
       !-----------------------------------------------------------------
 
-#ifdef CESMCOUPLED
       if (present(prescribed_ice)) then
           if (prescribed_ice) then
             hin    = worki
             fhocnn = c0             ! for diagnostics
           endif
       endif
-#endif
 
       !-----------------------------------------------------------------
       ! Compute fluxes of water and salt from ice to ocean.
@@ -639,7 +638,7 @@
       ! FYI: fside is not yet correct for fsd, may need to adjust fbot further
       !-----------------------------------------------------------------
 
-         xtmp = frzmlt/(fbot + fside + puny)
+         xtmp = frzmlt/(fbot + fside - puny)
          xtmp = min(xtmp, c1)
          fbot  = fbot  * xtmp
          rside = rside * xtmp
@@ -695,8 +694,7 @@
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          zSin            ! internal ice layer salinities
 
-      real (kind=dbl_kind), dimension (:), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(inout) :: &
          zqsn        , & ! snow enthalpy
          zTsn            ! snow temperature
 
@@ -964,21 +962,18 @@
       !-----------------------------------------------------------------
 
          if (ktherm /= 2) then
-
             if (zTin(k) > c0) then
-               zTin(k) = c0
-               zqin(k) = -rhoi*Lfresh
+                zTin(k) = c0
+                zqin(k) = -rhoi*Lfresh
             endif
-
          endif
 
-! echmod: is this necessary?
-!         if (ktherm == 1) then
-!               if (zTin(k)>= -zSin(k)*depressT) then
-!                   zTin(k) = -zSin(k)*depressT - puny
-!                   zqin(k) = -rhoi*cp_ocn*zSin(k)*depressT
-!               endif
-!         endif
+         if (ktherm == 1) then
+            if (zTin(k)>= -zSin(k)*depressT) then
+                zTin(k) = -zSin(k)*depressT - puny
+                zqin(k) = -zSin(k)*depressT*rhoi*cp_ocn
+            endif
+         endif
 
       !-----------------------------------------------------------------
       ! initial energy per unit area of ice/snow, relative to 0 C
@@ -1238,11 +1233,8 @@
       if (hsn > puny) then    ! add snow with enthalpy zqsn(1)
          dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
 
-         mass  = massice(1) + massliq(1)
-         massi = c0
-         if (dzs(1) > puny) massi = c1 + dhs/dzs(1)
-         massice(1) = massice(1) * massi
-         massliq(1) = max(c0, mass + rhos*dhs - massice(1)) ! conserve new total mass
+         ! assume all condensation becomes ice (no liquid)
+         massice(1) = massice(1) + dhs*rhos
 
          dzs(1) = dzs(1) + dhs
          evapn = evapn + dhs*rhos
@@ -1262,7 +1254,7 @@
 
       if (ktherm == 2) then
 
-         qbotm = enthalpy_mush(Tbot, sss)
+         qbotm = icepack_enthalpy_mush(Tbot, sss)
          qbotp = -Lfresh * rhoi * (c1 - phi_i_mushy)
          qbot0 = qbotm - qbotp
 
@@ -1708,7 +1700,7 @@
       !-----------------------------------------------------------------
 
       if (ktherm == 2) then
-         if (hsn <= puny) then
+         if (hsn <= puny .or. hin <= c0) then
             do k = 1, nslyr
                fhocnn = fhocnn &
                       + zqsn(k)*hsn/(real(nslyr,kind=dbl_kind)*dt)
@@ -1717,8 +1709,11 @@
                   meltsliq = meltsliq + massice(k)  ! add to meltponds
                   smice(k) = rhos
                   smliq(k) = c0
+                  rsnw(k) = rsnw_fall
                endif
             enddo
+            melts = melts + hsn
+            hsn = c0
             hslyr = c0
          endif
       endif
@@ -1775,14 +1770,12 @@
 !     real (kind=dbl_kind), intent(in) :: &
 !        dt      ! time step
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          snoice  , & ! snow-ice formation       (m/step-->cm/day)
          dsnow       ! change in snow thickness after snow-ice formation (m)
 !        iage        ! ice age (s)
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          hin     , & ! ice thickness (m)
          hsn         ! snow thickness (m)
 
@@ -2362,8 +2355,9 @@
          n               ! category index
 
       real (kind=dbl_kind) :: &
-         rnslyr      , & ! 1 / nslyr
-         worka, workb    ! temporary variables
+         worka       , &   ! temporary variables
+         workb       , &
+         workc
 
       ! 2D coupler variables (computed for each category, then aggregated)
       real (kind=dbl_kind) :: &
@@ -2470,6 +2464,10 @@
       l_meltsliq  = c0
       l_meltsliqn = c0
 
+      ! solid and liquid components of snow mass
+      massicen(:,:) = c0
+      massliqn(:,:) = c0
+
       !-----------------------------------------------------------------
       ! Initialize rate of snow loss to leads
       !-----------------------------------------------------------------
@@ -2493,22 +2491,6 @@
             fsloss = fsloss + fsnow*    worka
          fsnow    =           fsnow*(c1-worka)
       endif ! snwredist
-
-      !-----------------------------------------------------------------
-      ! solid and liquid components of snow mass
-      !-----------------------------------------------------------------
-
-      massicen(:,:) = c0
-      massliqn(:,:) = c0
-      if (snwgrain) then
-         rnslyr = c1 / real(nslyr, dbl_kind)
-         do n = 1, ncat
-            do k = 1, nslyr
-               massicen(k,n) = smicen(k,n) * vsnon(n) * rnslyr ! kg/m^2
-               massliqn(k,n) = smliqn(k,n) * vsnon(n) * rnslyr
-            enddo
-         enddo
-      endif
 
       !-----------------------------------------------------------------
       ! Update the neutral drag coefficients to account for form drag
@@ -2776,11 +2758,6 @@
             if (tr_pond_lvl) then
                rfrac = rfracmin + (rfracmax-rfracmin) * aicen(n)
                call compute_ponds_lvl (dt=dt,            &
-                                       nilyr=nilyr,      &
-                                       ktherm=ktherm,    &
-                                       hi_min=hi_min,    &
-                                       dpscale=dpscale,  &
-                                       frzpnd=frzpnd,    &
                                        rfrac=rfrac,      &
                                        meltt=melttn (n), &
                                        melts=meltsn (n), &
@@ -2909,14 +2886,10 @@
       if (snwgrain) then
          do n = 1, ncat
             if (vsnon(n) > puny) then
+               workc = real(nslyr, dbl_kind) * aicen(n) / vsnon(n)
                do k = 1, nslyr
-                  smicen(k,n) = massicen(k,n) / (vsnon(n) * rnslyr)
-                  smliqn(k,n) = massliqn(k,n) / (vsnon(n) * rnslyr)
-                  worka = smicen(k,n) + smliqn(k,n)
-                  if (worka > puny) then
-                     smicen(k,n) = rhos * smicen(k,n) / worka
-                     smliqn(k,n) = rhos * smliqn(k,n) / worka
-                  endif
+                  smicen(k,n) = massicen(k,n) * workc
+                  smliqn(k,n) = massliqn(k,n) * workc
                enddo
             else ! reset to default values
                do k = 1, nslyr

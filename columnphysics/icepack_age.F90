@@ -26,8 +26,7 @@
       real (kind=dbl_kind), intent(in) :: &
          dt                    ! time step
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          iage
 
       character(len=*),parameter :: subname='(increment_age)'

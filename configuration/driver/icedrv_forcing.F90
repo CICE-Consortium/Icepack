@@ -102,8 +102,11 @@
          strict_forcing            ! if true require forcing to align with time
 
       real (kind=dbl_kind), public :: &
-         trest, &                  ! restoring time scale (sec)
-         trestore                  ! restoring time scale (days)
+         trest, &           ! restoring time scale (sec)
+         trestore           ! restoring time scale (days)
+
+      character (len=char_len_long), public :: &
+         snw_ssp_table      ! snow table type 'test', 'snicar'
 
 !=======================================================================
 
@@ -144,9 +147,9 @@
       write (nu_diag,*) ' Initial forcing data year = ',fyear_init
       write (nu_diag,*) ' Final   forcing data year = ',fyear_final
 
-    !-------------------------------------------------------------------
-    ! Initialize forcing data to default values
-    !-------------------------------------------------------------------
+     !-------------------------------------------------------------------
+     ! Initialize forcing data to default values
+     !-------------------------------------------------------------------
 
       ! many default forcing values are set in init_flux_atm
       i = 1 ! use first grid box value
@@ -1655,10 +1658,11 @@
 
       subroutine finish_ocn_forcing(sst_temp)
 
- ! Compute ocean freezing temperature Tf based on tfrz_option
- ! 'minus1p8'         Tf = -1.8 C (default)
- ! 'linear_salt'      Tf = -depressT * sss
- ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
+! Compute ocean freezing temperature Tf based on tfrz_option
+! 'minus1p8'         Tf = -1.8 C
+! 'constant'         Tf = Tocnfrz
+! 'linear_salt'      Tf = -depressT * sss
+! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
 
       real (kind=dbl_kind), dimension(nx), intent(in)  :: &
           sst_temp
@@ -1684,7 +1688,7 @@
 
 !=======================================================================
 
-    subroutine ice_open_clos
+     subroutine ice_open_clos
 
 
       integer (kind=int_kind) :: i
@@ -1707,7 +1711,7 @@
 
       close (nu_open_clos)
 
-    end subroutine ice_open_clos
+     end subroutine ice_open_clos
 
 !=======================================================================
 
@@ -1737,7 +1741,6 @@
       enddo
 
       end subroutine get_wave_spec
-
 
 !=======================================================================
 

@@ -21,7 +21,10 @@ horizontally uniform column with ice thickness
 :math:`h_{sn} = v_{sn}/a_{in}`. (Henceforth we omit the category
 index \ :math:`n`.) Each column is divided into :math:`N_i` ice layers
 of thickness :math:`\Delta h_i = h_i/N_i` and :math:`N_s` snow layers of
-thickness :math:`\Delta h_s = h_s/N_s`. The surface temperature (i.e.,
+thickness :math:`\Delta h_s = h_s/N_s`.   Minimum ice and snow thickness
+is specified by namelist parameters ``hi_min`` and ``hs_min``.
+
+The surface temperature (i.e.,
 the temperature of ice or snow at the interface with the atmosphere) is
 :math:`T_{sf}`, which cannot exceed :math:`0^{\circ}C`. The temperature at the
 midpoint of the snow layer is :math:`T_s`, and the midpoint ice layer
@@ -29,6 +32,13 @@ temperatures are :math:`T_{ik}`, where :math:`k` ranges from 1 to
 :math:`N_i`. The temperature at the bottom of the ice is held at
 :math:`T_f`, the freezing temperature of the ocean mixed layer. All
 temperatures are in degrees Celsius unless stated otherwise.
+
+The ``tfrz_option`` namelist specifies the freezing temperature formulation.
+``minus1p8`` fixes the freezing temperature at -1.8C.  ``constant`` fixes
+the freeing point at whatever value is specified by the parameter ``Tocnfrz``.
+``linear_salt`` sets the freezing temperature based on salinity, 
+:math:`Tf = -depressT * sss`.  And ``mushy`` uses the mushy formulation for setting
+the freezing temperature.
 
 Each ice layer has an enthalpy :math:`q_{ik}`, defined as the negative
 of the energy required to melt a unit volume of ice and raise its
@@ -709,8 +719,10 @@ Shortwave radiation: Delta-Eddington
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Two methods for computing albedo and shortwave fluxes are available, the
-"ccsm3" method, described below, and a multiple scattering
-radiative transfer scheme that uses a Delta-Eddington approach.
+"ccsm3" method, described in the next section, and a multiple scattering
+radiative transfer scheme that uses a Delta-Eddington approach
+(``shortwave`` = ``dEdd``).
+
 "Inherent" optical properties (IOPs) for snow and sea ice, such as
 extinction coefficient and single scattering albedo, are prescribed
 based on physical measurements; reflected, absorbed and transmitted
@@ -719,12 +731,29 @@ for each snow and ice layer in a self-consistent manner. Absorptive
 effects of inclusions in the ice/snow matrix such as dust and algae can
 also be included, along with radiative treatment of melt ponds and other
 changes in physical properties, for example granularization associated
-with snow aging. The Delta-Eddington formulation is described in detail
+with snow aging.
+
+The Delta-Eddington formulation is described in detail
 in :cite:`Briegleb07`. Since publication of this technical paper,
 a number of improvements have been made to the Delta-Eddington scheme,
 including a surface scattering layer and internal shortwave absorption
 for snow, generalization for multiple snow layers and more than four
 layers of ice, and updated IOP values.
+
+In addition, a 5-band option for snow has
+been added based on :cite:`Dang19` using parameters derived from the
+SNICAR snow model (``shortwave`` = ``dEdd_snicar_ad``). The 3-band
+Delta-Eddington data is still used for non-snow-covered surfaces. The
+5-band option calculates snow radiative transfer properties for 1 visible and
+4 near-infrared bands, and the reflection, absorption and transmission of
+direct and diffuse shorwave incidents are computed separately, thus removing
+the snow grain adjustment used in the 3-band Delta-Eddington scheme.  Also,
+albedo and absorption of snow-covered sea ice are adjusted for solar zenith
+angles greater than 75 degrees.  Because the 5-band lookup tables are very
+large, they can be slow to compile.  The setting ``ICE_SNICARHC`` is false
+for simulations not using the ``dEdd_snicar_ad`` option, and must be set
+to true in order to use the hard-coded (HC) lookup tables generated from the
+SNICAR model.
 
 The namelist parameters ``R_ice`` and ``R_pnd`` adjust the albedo of bare or
 ponded ice by the product of the namelist value and one standard
@@ -1660,7 +1689,8 @@ consistently (from a mushy physics point of view) to both enthalpy and
 bulk salinity, the resulting temperature may be changed to be greater
 than the limit allowed in the thermodynamics routines. If this situation
 is detected, the code corrects the enthalpy so the temperature is below
-the limiting value. Conservation of energy is ensured by placing the
+the limiting value. The limiting value, ``Tliquidus_max`` can be specified
+in namelist.  Conservation of energy is ensured by placing the
 excess energy in the ocean, and the code writes a warning (see :ref:`aborts`) 
 that this has
 occurred to the diagnostics file. This situation only occurs with the

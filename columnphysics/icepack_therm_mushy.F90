@@ -7,10 +7,10 @@
   use icepack_parameters, only: p01, p05, p1, p2, p5, pi, bignum, puny
   use icepack_parameters, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
   use icepack_parameters, only: hs_min, snwgrain
-  use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode
+  use icepack_parameters, only: a_rapid_mode, Rac_rapid_mode, tscale_pnd_drain
   use icepack_parameters, only: aspect_rapid_mode, dSdt_slow_mode, phi_c_slow_mode
   use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
-  use icepack_mushy_physics, only: icepack_mushy_density_brine, enthalpy_brine, enthalpy_snow
+  use icepack_mushy_physics, only: icepack_mushy_density_brine, enthalpy_brine, icepack_enthalpy_snow
   use icepack_mushy_physics, only: enthalpy_mush_liquid_fraction
   use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
   use icepack_mushy_physics, only: temperature_snow, temperature_mush_liquid_fraction
@@ -1369,14 +1369,31 @@
     ! if not converged
     if (.not. lconverged) then
 
-       call picard_nonconvergence(nilyr, nslyr,&
-                                  Tsf0,  Tsf,  &
-                                  zTsn0, zTsn, &
-                                  zTin0, zTin, &
-                                  zSin0, zSin, &
-                                  zqsn0, zqsn, &
-                                  zqin0, zqin, &
-                                  phi)
+       call picard_nonconvergence(nilyr,    nslyr,    &
+                                  Tsf0,     Tsf,      &
+                                  zTsn0,    zTsn,     &
+                                  zTin0,    zTin,     &
+                                  zSin0,    zSin,     &
+                                  zqsn0,    zqsn,     &
+                                  zqin0,    phi,      &
+                                  dt,                 &
+                                  hilyr,    hslyr,    &
+                                  km,       ks,       &
+                                  Iswabs,   Sswabs,   &
+                                  Tbot,               &
+                                  fswint,   fswsfc,   &
+                                  rhoa,     flw,      &
+                                  potT,     Qa,       &
+                                  shcoef,   lhcoef,   &
+                                  fcondtop, fcondbot, &
+                                  fadvheat,           &
+                                  flwoutn,  fsensn,   &
+                                  flatn,    fsurfn,   &
+                                  qpond,    qocn,     &
+                                  Spond,    sss,      &
+                                  q,        dSdt,     &
+                                  w)
+
        if (icepack_warnings_aborted(subname)) return
        call icepack_warnings_add(subname//" picard_solver: Picard solver non-convergence" )
        call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
@@ -1388,13 +1405,30 @@
 
 !=======================================================================
 
-  subroutine picard_nonconvergence(nilyr, nslyr,&
-                                   Tsf0,  Tsf,  &
-                                   zTsn0, zTsn, &
-                                   zTin0, zTin, &
-                                   zSin0, zSin, &
-                                   zqsn0, zqsn, &
-                                   zqin0, zqin, phi)
+  subroutine picard_nonconvergence(nilyr,    nslyr,    &
+                                   Tsf0,     Tsf,      &
+                                   zTsn0,    zTsn,     &
+                                   zTin0,    zTin,     &
+                                   zSin0,    zSin,     &
+                                   zqsn0,    zqsn,     &
+                                   zqin0,    phi,      &
+                                   dt,                 &
+                                   hilyr,    hslyr,    &
+                                   km,       ks,       &
+                                   Iswabs,   Sswabs,   &
+                                   Tbot,               &
+                                   fswint,   fswsfc,   &
+                                   rhoa,     flw,      &
+                                   potT,     Qa,       &
+                                   shcoef,   lhcoef,   &
+                                   fcondtop, fcondbot, &
+                                   fadvheat,           &
+                                   flwoutn,  fsensn,   &
+                                   flatn,    fsurfn,   &
+                                   qpond,    qocn,     &
+                                   Spond,    sss,      &
+                                   q,        dSdt,     &
+                                   w)
 
     integer (kind=int_kind), intent(in) :: &
          nilyr , & ! number of ice layers
@@ -1414,34 +1448,157 @@
          zSin0 , & ! ice layer bulk salinity (ppt)
          zSin  , & ! ice layer bulk salinity (ppt)
          zqin0 , &
-         zqin  , &
          phi       ! ice layer liquid fraction
+
+    real(kind=dbl_kind), intent(in) :: &
+         dt            , & ! time step (s)
+         hilyr         , & ! ice layer thickness (m)
+         hslyr         , & ! snow layer thickness (m)
+         Tbot          , & ! ice bottom surfce temperature (deg C)
+         fswint        , & ! SW absorbed in ice interior below surface (W m-2)
+         fswsfc        , & ! SW absorbed at ice/snow surface (W m-2)
+         rhoa          , & ! air density (kg/m^3)
+         flw           , & ! incoming longwave radiation (W/m^2)
+         potT          , & ! air potential temperature (K)
+         Qa            , & ! specific humidity (kg/kg)
+         shcoef        , & ! transfer coefficient for sensible heat
+         lhcoef        , & ! transfer coefficient for latent heat
+         qpond         , & ! melt pond brine enthalpy (J m-3)
+         qocn          , & ! ocean brine enthalpy (J m-3)
+         Spond         , & ! melt pond salinity (ppt)
+         sss           , & ! sea surface salinity (ppt)
+         w                 ! vertical flushing Darcy velocity (m/s)
+
+    real(kind=dbl_kind), dimension(:), intent(in) :: &
+         km            , & ! ice conductivity (W m-1 K-1)
+         Iswabs        , & ! SW radiation absorbed in ice layers (W m-2)
+         dSdt              ! gravity drainage desalination rate for slow mode (ppt s-1)
+
+    real(kind=dbl_kind), dimension(0:nilyr), intent(in) :: &
+         q                 ! upward interface vertical Darcy flow (m s-1)
+
+    real(kind=dbl_kind), dimension(:), intent(in) :: &
+         ks            , & ! snow conductivity (W m-1 K-1)
+         Sswabs            ! SW radiation absorbed in snow layers (W m-2)
+
+    real(kind=dbl_kind), intent(in) :: &
+         flwoutn       , & ! upward LW at surface (W m-2)
+         fsensn        , & ! surface downward sensible heat (W m-2)
+         flatn         , & ! surface downward latent heat (W m-2)
+         fsurfn            ! net flux to top surface, excluding fcondtop
+
+    real(kind=dbl_kind), intent(in) :: &
+         fcondtop      , & ! downward cond flux at top surface (W m-2)
+         fcondbot      , & ! downward cond flux at bottom surface (W m-2)
+         fadvheat          ! flow of heat to ocean due to advection (W m-2)
 
     integer :: &
          k        ! vertical layer index
 
+    character(len=char_len_long) :: &
+         warning  ! warning message
+
     character(len=*),parameter :: subname='(picard_nonconvergence)'
 
-    write(warnstr,*) subname, "-------------------------------------"
-    call icepack_warnings_add(warnstr)
+    write(warning,*) "-------------------------------------"
+    call icepack_warnings_add(warning)
+    write(warning,*)
+    call icepack_warnings_add(warning)
 
-    write(warnstr,*) subname, "picard convergence failed!"
-    call icepack_warnings_add(warnstr)
-    write(warnstr,*) subname, 0, Tsf0, Tsf
-    call icepack_warnings_add(warnstr)
+    write(warning,*) trim(subname)//":picard convergence failed!"
+    call icepack_warnings_add(warning)
+    write(warning,*) "=========================="
+    call icepack_warnings_add(warning)
+    write(warning,*)
+    call icepack_warnings_add(warning)
 
+    write(warning,*) "Surface: Tsf0, Tsf"
+    call icepack_warnings_add(warning)
+    write(warning,*) 0, Tsf0, Tsf
+    call icepack_warnings_add(warning)
+    write(warning,*)
+    call icepack_warnings_add(warning)
+
+    write(warning,*) "Snow: zTsn0(k), zTsn(k), zqsn0(k), ks(k), Sswabs(k)"
+    call icepack_warnings_add(warning)
     do k = 1, nslyr
-       write(warnstr,*) subname, k, zTsn0(k), zTsn(k), zqsn(k), zqsn0(k)
-       call icepack_warnings_add(warnstr)
+       write(warning,*) k, zTsn0(k), zTsn(k), zqsn0(k), ks(k), Sswabs(k)
+       call icepack_warnings_add(warning)
     enddo ! k
+    write(warning,*)
+    call icepack_warnings_add(warning)
 
+    write(warning,*) "Ice: zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin0(k), km(k), Iswabs(k), dSdt(k)"
+    call icepack_warnings_add(warning)
     do k = 1, nilyr
-       write(warnstr,*) subname, k, zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin(k), zqin0(k)
-       call icepack_warnings_add(warnstr)
+       write(warning,*) k, zTin0(k), zTin(k), zSin0(k), zSin(k), phi(k), zqin0(k), km(k), Iswabs(k), dSdt(k)
+       call icepack_warnings_add(warning)
     enddo ! k
+    write(warning,*)
+    call icepack_warnings_add(warning)
 
-    write(warnstr,*) subname, "-------------------------------------"
-    call icepack_warnings_add(warnstr)
+    write(warning,*) "Ice boundary: q(k)"
+    call icepack_warnings_add(warning)
+    do k = 0, nilyr
+       write(warning,*) k, q(k)
+       call icepack_warnings_add(warning)
+    enddo ! k
+    write(warning,*)
+    call icepack_warnings_add(warning)
+
+    write(warning,*) "dt:       ", dt
+    call icepack_warnings_add(warning)
+    write(warning,*) "hilyr:    ", hilyr
+    call icepack_warnings_add(warning)
+    write(warning,*) "hslyr:    ", hslyr
+    call icepack_warnings_add(warning)
+    write(warning,*) "Tbot:     ", Tbot
+    call icepack_warnings_add(warning)
+    write(warning,*) "fswint:   ", fswint
+    call icepack_warnings_add(warning)
+    write(warning,*) "fswsfc:   ", fswsfc
+    call icepack_warnings_add(warning)
+    write(warning,*) "rhoa:     ", rhoa
+    call icepack_warnings_add(warning)
+    write(warning,*) "flw:      ", flw
+    call icepack_warnings_add(warning)
+    write(warning,*) "potT:     ", potT
+    call icepack_warnings_add(warning)
+    write(warning,*) "Qa:       ", Qa
+    call icepack_warnings_add(warning)
+    write(warning,*) "shcoef:   ", shcoef
+    call icepack_warnings_add(warning)
+    write(warning,*) "lhcoef:   ", lhcoef
+    call icepack_warnings_add(warning)
+    write(warning,*) "qpond:    ", qpond
+    call icepack_warnings_add(warning)
+    write(warning,*) "qocn:     ", qocn
+    call icepack_warnings_add(warning)
+    write(warning,*) "Spond:    ", Spond
+    call icepack_warnings_add(warning)
+    write(warning,*) "sss:      ", sss
+    call icepack_warnings_add(warning)
+    write(warning,*) "w:        ", w
+    call icepack_warnings_add(warning)
+    write(warning,*) "flwoutn:  ", flwoutn
+    call icepack_warnings_add(warning)
+    write(warning,*) "fsensn:   ", fsensn
+    call icepack_warnings_add(warning)
+    write(warning,*) "flatn:    ", flatn
+    call icepack_warnings_add(warning)
+    write(warning,*) "fsurfn:   ", fsurfn
+    call icepack_warnings_add(warning)
+    write(warning,*) "fcondtop: ", fcondtop
+    call icepack_warnings_add(warning)
+    write(warning,*) "fcondbot: ", fcondbot
+    call icepack_warnings_add(warning)
+    write(warning,*) "fadvheat: ", fadvheat
+    call icepack_warnings_add(warning)
+    write(warning,*)
+    call icepack_warnings_add(warning)
+
+    write(warning,*) "-------------------------------------"
+    call icepack_warnings_add(warning)
 
   end subroutine picard_nonconvergence
 
@@ -1802,7 +1959,7 @@
     if (lsnow) then
 
        do k = 1, nslyr
-          zqsn(k) = enthalpy_snow(zTsn(k))
+          zqsn(k) = icepack_enthalpy_snow(zTsn(k))
        enddo ! k
 
     endif ! lsnow
@@ -3167,8 +3324,10 @@
          hpond     ! melt pond thickness (m)
 
     real(kind=dbl_kind), parameter :: &
-         lambda_pond = c1 / (10.0_dbl_kind * 24.0_dbl_kind * 3600.0_dbl_kind), &
          hpond0 = 0.01_dbl_kind
+
+    real(kind=dbl_kind) :: &
+         lambda_pond ! 1 / macroscopic drainage time scale (s)
 
     character(len=*),parameter :: subname='(flush_pond)'
 
@@ -3181,6 +3340,7 @@
           hpond = max(hpond, c0)
 
           ! exponential decay of pond
+          lambda_pond = c1 / (tscale_pnd_drain * 24.0_dbl_kind * 3600.0_dbl_kind)
           hpond = hpond - lambda_pond * dt * (hpond + hpond0)
 
           hpond = max(hpond, c0)
@@ -3214,11 +3374,11 @@
          hsn               , & ! snow thickness (m)
          hin               , & ! ice thickness (m)
          sss               , & ! sea surface salinity (ppt)
-         qocn                  ! ocean brine enthalpy (J m-2)
+         qocn                  ! ocean brine enthalpy (J m-3)
 
     real(kind=dbl_kind), dimension(:), intent(inout) :: &
-         zqsn              , & ! snow layer enthalpy (J m-2)
-         zqin              , & ! ice layer enthalpy (J m-2)
+         zqsn              , & ! snow layer enthalpy (J m-3)
+         zqin              , & ! ice layer enthalpy (J m-3)
          zSin              , & ! ice layer bulk salinity (ppt)
          phi               , & ! ice liquid fraction
          smice             , & ! ice mass tracer in snow (kg/m^3)
@@ -3246,8 +3406,8 @@
          phi_snowice       , & ! liquid fraction of new snow ice
          rho_snowice       , & ! density of snowice (kg m-3)
          zSin_snowice      , & ! bulk salinity of new snowice (ppt)
-         zqin_snowice      , & ! ice enthalpy of new snowice (J m-2)
-         zqsn_snowice      , & ! snow enthalpy of snow thats becoming snowice (J m-2)
+         zqin_snowice      , & ! ice enthalpy of new snowice (J m-3)
+         zqsn_snowice      , & ! snow enthalpy of snow that is becoming snowice (J m-3)
          freeboard_density , & ! negative of ice surface freeboard times the ocean density (kg m-2)
          ice_mass          , & ! mass of the ice (kg m-2)
 !        snow_mass         , & ! mass of the ice (kg m-2)
@@ -3307,7 +3467,7 @@
              ! density of newly formed snow-ice
              rho_snowice = phi_snowice * rho_ocn + (c1 - phi_snowice) * rhoi
           endif ! freeboard_density > c0
-!       endif ! tr_snow
+!       endif ! snwgrain
 
        if (freeboard_density > c0) then ! ice is flooded
 
@@ -3384,10 +3544,10 @@
          hsn          ! initial snow thickness
 
     real(kind=dbl_kind), dimension(:), intent(in) :: &
-         zqsn         ! snow layer enthalpy (J m-2)
+         zqsn         ! snow layer enthalpy (J m-3)
 
     real(kind=dbl_kind), intent(out) :: &
-         zqsn_snowice ! enthalpy of snow becoming snowice (J m-2)
+         zqsn_snowice ! enthalpy of snow becoming snowice (J m-3)
 
     real(kind=dbl_kind) :: &
          rnlyr        ! real value of number of snow layers turning to snowice

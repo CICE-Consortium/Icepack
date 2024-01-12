@@ -158,13 +158,6 @@
       real (kind=dbl_kind), parameter, public :: &
          bphimin = 0.03_dbl_kind      ! minimum porosity for zbgc only
 
-#ifdef UNDEPRECATE_ZSAL
-! these parameters are used more generally for zbgc
-!-----------------------------------------------------------------------
-! Parameters for zsalinity
-!-----------------------------------------------------------------------
-#endif
-
       real (kind=dbl_kind), parameter, public :: &
          viscos_dynamic = 2.2_dbl_kind   , & ! 1.8e-3_dbl_kind (pure water at 0^oC) (kg/m/s)
          Dm             = 1.0e-9_dbl_kind, & ! molecular diffusion (m^2/s)

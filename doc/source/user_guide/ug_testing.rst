@@ -8,7 +8,7 @@ Testing Icepack
 This section documents primarily how to use the Icepack scripts to carry 
 out icepack testing.  Exactly what to test is a separate question and
 depends on the kinds of code changes being made.  Prior to merging
-changes to the CICE Consortium master, changes will be reviewed and
+changes to the CICE Consortium main branch, changes will be reviewed and
 developers will need to provide a summary of the tests carried out.
 
 There is a base suite of tests provided by default with Icepack and this
@@ -220,6 +220,8 @@ Test suites support running multiple tests specified via
 an input file or files.  When invoking the test suite option (``--suite``) with **icepack.setup**,
 all tests will be created, built, and submitted automatically under
 a directory called testsuite.[testid].[$date] as part of involing the suite.
+The test scripts provide an ability to reuse binaries between tests within
+a test suite when possible.
 Because the tests are built and submitted automatically, 
 this feature does not allow for customization of cases or tests like
 individual cases and tests do::
@@ -424,7 +426,7 @@ Test Suite Examples
         set mydate = `date -u "+%Y%m%d"`
         git clone https://github.com/myfork/icepack icepack.$mydate
         cd icepack.$mydate
-        ./icepack.setup --suite base_suite --mach conrad --env cray,gnu,intel,pgi --testid $mydate --bcmp default --bgen default --bdir /tmp/work/user/ICEPACK_BASELINES_MASTER
+        ./icepack.setup --suite base_suite --mach conrad --env cray,gnu,intel,pgi --testid $mydate --bcmp default --bgen default --bdir /tmp/work/user/ICEPACK_BASELINES_MAIN
 
       When this is invoked, a new set of baselines will be generated and compared to the prior
       results each time without having to change the arguments.

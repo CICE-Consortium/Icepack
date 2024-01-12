@@ -90,8 +90,7 @@
       real (kind=dbl_kind), intent(inout) :: &
          Cdn_atm_ratio_n ! ratio drag coeff / neutral drag coeff
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          strx     , & ! x surface stress (N)
          stry         ! y surface stress (N)
 
@@ -545,8 +544,7 @@
          aicen    , & ! concentration of ice
          vicen        ! volume per unit area of ice (m)
 
-      real (kind=dbl_kind), &
-         intent(out) :: &
+      real (kind=dbl_kind), intent(out) :: &
          hfreebd      , & ! freeboard (m)
          hdraft       , & ! draught of ice + snow column (Stoessel1993)
          hridge       , & ! ridge height
@@ -863,8 +861,7 @@
          Cdn_atm  , &    ! neutral drag coefficient
          Cdn_atm_ratio_n ! ratio drag coeff / neutral drag coeff
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          strx     , & ! x surface stress (N)
          stry         ! y surface stress (N)
 

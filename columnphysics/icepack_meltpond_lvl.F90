@@ -18,6 +18,8 @@
       use icepack_parameters, only: c0, c1, c2, c10, p01, p5, puny
       use icepack_parameters, only: viscosity_dyn, rhoi, rhos, rhow, Timelt, Tffresh, Lfresh
       use icepack_parameters, only: gravit, depressT, rhofresh, kice, pndaspect, use_smliq_pnd
+      use icepack_parameters, only: ktherm, frzpnd, dpscale, hi_min
+      use icepack_tracers,    only: nilyr
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -32,10 +34,7 @@
 
 !=======================================================================
 
-      subroutine compute_ponds_lvl(dt,     nilyr,        &
-                                   ktherm,               &
-                                   hi_min, dpscale,      &
-                                   frzpnd,               &
+      subroutine compute_ponds_lvl(dt,                   &
                                    rfrac,  meltt, melts, &
                                    frain,  Tair,  fsurfn,&
                                    dhs,    ffrac,        &
@@ -45,17 +44,8 @@
                                    apnd,   hpnd,  ipnd,  &
                                    meltsliqn)
 
-      integer (kind=int_kind), intent(in) :: &
-         nilyr, &    ! number of ice layers
-         ktherm      ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
-
       real (kind=dbl_kind), intent(in) :: &
-         dt,       & ! time step (s)
-         hi_min,   & ! minimum ice thickness allowed for thermo (m)
-         dpscale     ! alter e-folding time scale for flushing
-
-      character (len=char_len), intent(in) :: &
-         frzpnd      ! pond refreezing parameterization
+         dt          ! time step (s)
 
       real (kind=dbl_kind), intent(in) :: &
          Tsfcn, &    ! surface temperature (C)
@@ -249,7 +239,7 @@
                deltah = hpondn + hi - draft
                pressure_head = gravit * rhow * max(deltah, c0)
                Tmlt(:) = -sicen(:) * depressT
-               call brine_permeability(nilyr, qicen, &
+               call brine_permeability(qicen, &
                     sicen, Tmlt, perm)
                if (icepack_warnings_aborted(subname)) return
                drain = perm*pressure_head*dt / (viscosity_dyn*hi) * dpscale
@@ -280,12 +270,9 @@
 
 ! determine the liquid fraction of brine in the ice and the permeability
 
-      subroutine brine_permeability(nilyr, qicen, salin, Tmlt, perm)
+      subroutine brine_permeability(qicen, salin, Tmlt, perm)
 
       use icepack_therm_shared, only: calculate_Tin_from_qin
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr     ! number of ice layers
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          qicen, &  ! enthalpy for each ice layer (J m-3)

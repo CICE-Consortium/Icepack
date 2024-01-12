@@ -9,10 +9,10 @@
       module icepack_flux
 
       use icepack_kinds
-      use icepack_parameters, only: c1, emissivity
+      use icepack_parameters, only: c1, emissivity, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
-      use icepack_tracers, only: tr_iso, tr_snow
+      use icepack_tracers, only: tr_iso
 
       implicit none
       private
@@ -217,7 +217,7 @@
       meltt     = meltt     + melttn    * aicen
       meltb     = meltb     + meltbn    * aicen
       melts     = melts     + meltsn    * aicen
-      if (tr_snow) then
+      if (snwgrain) then
          meltsliq  = meltsliq  + meltsliqn * aicen
       endif
       if (present(dsnow)) then
@@ -251,8 +251,7 @@
                               fcondtopn)
 
       ! ice state variables
-      real (kind=dbl_kind), &
-         intent(in) :: &
+      real (kind=dbl_kind), intent(in) :: &
          aicen       , & ! concentration of ice
          flatn_f     , & ! latent heat flux   (W/m^2)
          fsensn_f    , & ! sensible heat flux (W/m^2)

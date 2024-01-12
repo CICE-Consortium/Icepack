@@ -1,2 +1,3 @@
 tr_fsd = .true.
 wave_spec_type = 'constant'
+tfrz_option    = 'mushy'
