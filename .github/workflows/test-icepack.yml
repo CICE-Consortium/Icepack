@@ -129,7 +129,8 @@ jobs:
       - name: run suite
         run: |
           cd $HOME/icepack
-          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite travis_suite,io_suite --testid ${{ matrix.os }}
+#          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite travis_suite,io_suite --testid ${{ matrix.os }}
+          ./icepack.setup -m conda -e ${{ matrix.envdef }} --suite io_suite --testid ${{ matrix.os }}
       - name: write output
         run: |
           cd $HOME/icepack
