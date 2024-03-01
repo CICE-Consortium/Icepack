@@ -8,7 +8,7 @@ dependencies:
   - netcdf-fortran
   - netcdf4
   - make
-# Plotting
+# Plotting dependencies
   - gnuplot
 # Python dependencies for building the HTML documentation
   - sphinx
