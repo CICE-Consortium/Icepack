@@ -9,7 +9,7 @@ dependencies:
   - netcdf4
   - make
 # Plotting dependencies
-# - gnuplot
+  - gnuplot
 # Python dependencies for building the HTML documentation
   - sphinx
   - sphinxcontrib-bibtex
