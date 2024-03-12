@@ -531,7 +531,7 @@
          end if
          hslyr_old = hs_old/real(nslyr,kind=dbl_kind)
 
-         dzssl  = min(hslyr_old/c2, hs_ssl)
+         dzssl  = hslyr_old/c2
          dzint  = hs_old - dzssl
 
          if (aicen > c0) then
@@ -546,7 +546,7 @@
          endif
          hilyr = hi/real(nblyr,kind=dbl_kind)
          hslyr = hs/real(nslyr,kind=dbl_kind)
-         dzssl_new  = min(hslyr/c2, hs_ssl)
+         dzssl_new  = hslyr/c2
          dhs_melts  = -melts
          dhs_snoice = snoice*rhoi/rhos
          dhs_evap = hs - (hs_old + dhs_melts - dhs_snoice &
@@ -738,7 +738,7 @@
          endif
 
          hslyr      = hs/real(nslyr,kind=dbl_kind)
-         dzssl_new  = min(hslyr/c2, hs_ssl)
+         dzssl_new  = hslyr/c2
          dzint_new  = max(c0,hs - dzssl_new)
 
          if (hs > hs_min) then

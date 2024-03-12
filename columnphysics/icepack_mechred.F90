@@ -45,7 +45,7 @@
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
       use icepack_tracers, only: nt_alvl, nt_vlvl, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers, only: nt_apnd, nt_hpnd
-      use icepack_tracers, only: n_iso
+      use icepack_tracers, only: n_iso, nblyr, bio_index
       use icepack_tracers, only: icepack_compute_tracers
 
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -102,7 +102,7 @@
                             mu_rdg,      tr_brine,   &
                             dardg1dt,    dardg2dt,   &
                             dvirdgdt,    opening,    &
-                            fpond,                   &
+                            fpond,       flux_bio,   &
                             fresh,       fhocn,      &
                             faero_ocn,   fiso_ocn,   &
                             aparticn,    krdgn,      &
@@ -189,6 +189,9 @@
          faero_ocn      ! aerosol flux to ocean (kg/m^2/s)
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         flux_bio       ! biological and zaerosol flux to ocean (kg/m^2/s)
+
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn       ! isotope flux to ocean (kg/m^2/s)
 
       ! local variables
@@ -220,6 +223,9 @@
 
       real (kind=dbl_kind), dimension (n_aero) :: &
          maero          ! aerosol mass added to ocean (kg m-2)
+
+      real (kind=dbl_kind), dimension (nbtrcr) :: &
+         mbio           ! bio mass added to ocean (mmol or kg m-2)
 
       real (kind=dbl_kind), dimension (n_iso) :: &
          miso          ! isotope mass added to ocean (kg m-2)
@@ -273,6 +279,7 @@
       msnow_mlt = c0
       esnow_mlt = c0
       maero (:) = c0
+      mbio  (:) = c0
       miso  (:) = c0
       mpond     = c0
       ardg1     = c0
@@ -401,7 +408,8 @@
                            msnow_mlt,   esnow_mlt,   &
                            maero,       miso,        &
                            mpond,       Tf,          &
-                           aredistn,    vredistn)    
+                           aredistn,    vredistn,    &
+                           mbio)
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -589,6 +597,11 @@
       if (present(faero_ocn)) then
          do it = 1, n_aero
             faero_ocn(it) = faero_ocn(it) + maero(it)*dti
+         enddo
+      endif
+      if (present(flux_bio)) then
+         do it = 1, nbtrcr
+            flux_bio(it) = flux_bio(it) + mbio(it)*dti
          enddo
       endif
       if (present(fiso_ocn)) then
@@ -1086,7 +1099,8 @@
                               msnow_mlt,   esnow_mlt,       &
                               maero,       miso,            &
                               mpond,       Tf,              &
-                              aredistn,    vredistn)
+                              aredistn,    vredistn,        &
+                              mbio)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1163,6 +1177,9 @@
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          miso           ! isotope mass added to ocean (kg m-2)
 
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+         mbio           ! biology and zaerosol  mass added to ocean (kg m-2)
+
       real (kind=dbl_kind), dimension (:), intent(inout), optional :: &
          aredistn   , & ! redistribution function: fraction of new ridge area
          vredistn       ! redistribution function: fraction of new ridge volume
@@ -1215,7 +1232,9 @@
          hL, hR     , & ! left and right limits of integration
          expL, expR , & ! exponentials involving hL, hR
          tmpfac     , & ! factor by which opening/closing rates are cut
-         wk1            ! work variable
+         wk1        , & ! work variable
+         dzssl      , & ! fraction of snow surface biotracers
+         dzint          ! fraction of interior snow biotracers
 
       character(len=*),parameter :: subname='(ridge_shift)'
 
@@ -1383,6 +1402,16 @@
                   miso(it) = miso(it) + vsrdgn*(c1-fsnowrdg) &
                            * (trcrn(nt_isosno+it-1,n) &
                             + trcrn(nt_isoice+it-1,n))
+               enddo
+            endif
+
+            if (nbtrcr > 0) then
+               dzssl = p5/real(nslyr,kind=dbl_kind)
+               dzint = c1-dzssl
+               do it = 1, nbtrcr
+                  mbio(it) = mbio(it) + vsrdgn*(c1-fsnowrdg) &
+                           * (trcrn(bio_index(it) + nblyr + 1,n) * dzssl &
+                            + trcrn(bio_index(it) + nblyr + 2,n) * dzint)
                enddo
             endif
 
@@ -1875,7 +1904,7 @@
                       mu_rdg,       tr_brine,       &
                       dardg1dt,     dardg2dt,       &
                       dvirdgdt,     opening,        &
-                      fpond,                        &
+                      fpond,        flux_bio,       &
                       fresh,        fhocn,          &
                       faero_ocn,    fiso_ocn,       &
                       aparticn,     krdgn,          &

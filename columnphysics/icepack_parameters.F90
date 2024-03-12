@@ -201,8 +201,9 @@
          dT_mlt     = c1p5 ,&! change in temp for non-melt to melt snow grain
                              ! radius change (C)
          rsnw_mlt   = 1500._dbl_kind,&! maximum melting snow grain radius (10^-6 m)
-         kalg       = 0.60_dbl_kind   ! algae absorption coefficient for 0.5 m thick layer
+         kalg       = 0.60_dbl_kind, &! algae absorption coefficient for 0.5 m thick layer
                                       ! 0.5 m path of 75 mg Chl a / m2
+         R_gC2molC  = 12.0107_dbl_kind! g carbon per mol carbon
       ! weights for albedos
       ! 4 Jan 2007 BPB  Following are appropriate for complete cloud
       ! in a summer polar atmosphere with 1.5m bare sea ice surface:
@@ -561,7 +562,7 @@
          phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
          albicev_in, albicei_in, albsnowv_in, &
          ahmax_in, R_ice_in, R_pnd_in, R_snw_in, dT_mlt_in, rsnw_mlt_in, &
-         kalg_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
+         kalg_in, R_gC2molC_in, kstrength_in, krdg_partic_in, krdg_redist_in, mu_rdg_in, &
          atmbndy_in, calc_strair_in, formdrag_in, highfreq_in, natmiter_in, &
          atmiter_conv_in, calc_dragio_in, &
          tfrz_option_in, kitd_in, kcatbound_in, hs0_in, frzpnd_in, &
@@ -571,7 +572,7 @@
          bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
          modal_aero_in, use_macromolecules_in, restartbgc_in, skl_bgc_in, &
          solve_zsal_in, grid_o_in, l_sk_in, &
-         initbio_frac_in, grid_oS_in, l_skS_in,  dEdd_algae_in, &
+         grid_oS_in, l_skS_in,  dEdd_algae_in, &
          phi_snow_in, T_max_in, fsal_in, &
          fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
          op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
@@ -758,7 +759,8 @@
          dT_mlt_in   , & ! change in temp for non-melt to melt snow grain
                          ! radius change (C)
          rsnw_mlt_in , & ! maximum melting snow grain radius (10^-6 m)
-         kalg_in         ! algae absorption coefficient for 0.5 m thick layer
+         kalg_in     , & ! algae absorption coefficient for 0.5 m thick layer
+         R_gC2molC_in    ! g carbon per mol
 
       logical (kind=log_kind), intent(in), optional :: &
          sw_redist_in    ! redistribute shortwave
@@ -880,7 +882,6 @@
          grid_o_in      , & ! for bottom flux
          l_sk_in        , & ! characteristic diffusive scale (zsalinity) (m)
          grid_o_t_in    , & ! top grid point length scale
-         initbio_frac_in, & ! fraction of ocean tracer concentration used to initialize tracer
          phi_snow_in        ! snow porosity at the ice/snow interface
 
       real (kind=dbl_kind), intent(in), optional :: &
@@ -1178,6 +1179,7 @@
       if (present(dT_mlt_in)            ) dT_mlt           = dT_mlt_in
       if (present(rsnw_mlt_in)          ) rsnw_mlt         = rsnw_mlt_in
       if (present(kalg_in)              ) kalg             = kalg_in
+      if (present(R_gC2molC_in)         ) R_gC2molC        = R_gC2molC_in
       if (present(kstrength_in)         ) kstrength        = kstrength_in
       if (present(krdg_partic_in)       ) krdg_partic      = krdg_partic_in
       if (present(krdg_redist_in)       ) krdg_redist      = krdg_redist_in
@@ -1356,7 +1358,6 @@
       if (present(grid_o_in)            ) grid_o           = grid_o_in
       if (present(l_sk_in)              ) l_sk             = l_sk_in
       if (present(grid_o_t_in)          ) grid_o_t         = grid_o_t_in
-      if (present(initbio_frac_in)      ) initbio_frac     = initbio_frac_in
       if (present(frazil_scav_in)       ) frazil_scav      = frazil_scav_in
       if (present(grid_oS_in)           ) grid_oS          = grid_oS_in
       if (present(l_skS_in)             ) l_skS            = l_skS_in
@@ -1527,7 +1528,7 @@
          albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
          albsnowi_out, ahmax_out, R_ice_out, R_pnd_out, R_snw_out, dT_mlt_out, &
          rsnw_mlt_out, dEdd_algae_out, &
-         kalg_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
+         kalg_out, R_gC2molC_out, kstrength_out, krdg_partic_out, krdg_redist_out, mu_rdg_out, &
          atmbndy_out, calc_strair_out, formdrag_out, highfreq_out, natmiter_out, &
          atmiter_conv_out, calc_dragio_out, &
          tfrz_option_out, kitd_out, kcatbound_out, hs0_out, frzpnd_out, &
@@ -1732,7 +1733,8 @@
          dT_mlt_out   , & ! change in temp for non-melt to melt snow grain
                           ! radius change (C)
          rsnw_mlt_out , & ! maximum melting snow grain radius (10^-6 m)
-         kalg_out         ! algae absorption coefficient for 0.5 m thick layer
+         kalg_out     , & ! algae absorption coefficient for 0.5 m thick layer
+         R_gC2molC_out    ! grams carbon per mol
 
       logical (kind=log_kind), intent(out), optional :: &
          sw_redist_out    ! redistribute shortwave
@@ -2184,6 +2186,7 @@
       if (present(dT_mlt_out)            ) dT_mlt_out       = dT_mlt
       if (present(rsnw_mlt_out)          ) rsnw_mlt_out     = rsnw_mlt
       if (present(kalg_out)              ) kalg_out         = kalg
+      if (present(R_gC2molC_out)         ) R_gC2molC_out    = R_gC2molC
       if (present(kstrength_out)         ) kstrength_out    = kstrength
       if (present(krdg_partic_out)       ) krdg_partic_out  = krdg_partic
       if (present(krdg_redist_out)       ) krdg_redist_out  = krdg_redist
@@ -2494,6 +2497,7 @@
         write(iounit,*) "  dT_mlt     = ", dT_mlt
         write(iounit,*) "  rsnw_mlt   = ", rsnw_mlt
         write(iounit,*) "  kalg       = ", kalg
+        write(iounit,*) "  R_gC2molC  = ", R_gC2molC
         write(iounit,*) "  kstrength  = ", kstrength
         write(iounit,*) "  krdg_partic= ", krdg_partic
         write(iounit,*) "  krdg_redist= ", krdg_redist

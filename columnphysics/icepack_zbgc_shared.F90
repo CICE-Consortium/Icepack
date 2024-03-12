@@ -687,8 +687,8 @@
       !-----------------------------------------------------------------
       ! Merge fluxes
       !-----------------------------------------------------------------
-         dvssl  = min(p5*vsnon/real(nslyr,kind=dbl_kind), hs_ssl*aicen) ! snow surface layer
-         dvint  = vsnon - dvssl               ! snow interior
+         dvssl  = p5*vsnon/real(nslyr,kind=dbl_kind) !snow surface layer
+         dvint  = vsnon - dvssl                      ! snow interior
          snow_bio_net(mm) = snow_bio_net(mm) &
                           + trcrn(bio_index(mm)+nblyr+1)*dvssl &
                           + trcrn(bio_index(mm)+nblyr+2)*dvint

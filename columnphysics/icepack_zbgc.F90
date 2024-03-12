@@ -86,23 +86,21 @@
 
 ! Adjust biogeochemical tracers when new frazil ice forms
 
-      subroutine add_new_ice_bgc (dt,         nblyr,                &
-                                  ncat,       nilyr,      nltrcr,   &
+      subroutine add_new_ice_bgc (dt,         nblyr,      ncats,    &
+                                  ncat,       nilyr,                &
                                   bgrid,      cgrid,      igrid,    &
                                   aicen_init, vicen_init, vi0_init, &
-                                  aicen,      vicen,      vsnon1,   &
-                                  vi0new,                           &
+                                  aicen,      vicen,      vin0new,  &
                                   ntrcr,      trcrn,      nbtrcr,   &
-                                  sss,        ocean_bio,  flux_bio, &
-                                  hsurp)
+                                  ocean_bio,  flux_bio,   hsurp)
 
       integer (kind=int_kind), intent(in) :: &
          nblyr   , & ! number of bio layers
          ncat    , & ! number of thickness categories
          nilyr   , & ! number of ice layers
-         nltrcr  , & ! number of zbgc tracers
          nbtrcr  , & ! number of biology tracers
-         ntrcr       ! number of tracers in use
+         ntrcr   , & ! number of tracers in use
+         ncats       ! 1 without floe size distribution or ncat
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
          bgrid              ! biology nondimensional vertical grid points
@@ -118,22 +116,18 @@
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen_init  , & ! initial concentration of ice
-         vicen_init  , & ! intiial volume per unit area of ice  (m)
+         vicen_init  , & ! initial volume per unit area of ice  (m)
          aicen       , & ! concentration of ice
          vicen           ! volume per unit area of ice          (m)
-
-      real (kind=dbl_kind), intent(in) :: &
-         vsnon1          ! category 1 snow volume per unit area (m)
 
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn           ! ice tracers
 
-      real (kind=dbl_kind), intent(in) :: &
-         sss              !sea surface salinity (ppt)
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         vin0new          ! ice tracers
 
       real (kind=dbl_kind), intent(in) :: &
-         vi0_init    , & ! volume of new ice added to cat 1 (intial)
-         vi0new          ! volume of new ice added to cat 1
+         vi0_init        ! volume of new ice added to cat 1 (intial)
 
       real (kind=dbl_kind), intent(in) :: &
          hsurp           ! thickness of new ice added to each cat
@@ -148,8 +142,10 @@
 
       integer (kind=int_kind) :: &
          location    , & ! 1 (add frazil to bottom), 0 (add frazil throughout)
+         m           , & ! bio index
          n           , & ! ice category index
-         k               ! ice layer index
+         k           , & ! ice layer index
+         nbiolayer
 
       real (kind=dbl_kind) :: &
          vbri1       , & ! starting volume of existing brine
@@ -164,7 +160,8 @@
          vbrin           ! trcrn(nt_fbri,n)*vicen(n)
 
       real (kind=dbl_kind) :: &
-         vice_new        ! vicen_init + vsurp
+         vice_new    , & ! vicen_init + vsurp
+         bio0new         ! ocean_bio * zbgc_init_fac
 
       real (kind=dbl_kind) :: &
          Tmlts       ! melting temperature (oC)
@@ -174,9 +171,15 @@
 
       character(len=*),parameter :: subname='(add_new_ice_bgc)'
 
+      real (kind=dbl_kind), dimension (nblyr+1) :: &
+         zspace    ! vertical grid spacing
       !-----------------------------------------------------------------
       ! brine
       !-----------------------------------------------------------------
+
+      zspace(:)  = c1/real(nblyr,kind=dbl_kind)
+      zspace(1) = p5*zspace(2)
+      zspace(nblyr+1) = zspace(1)
       vbrin(:) = c0
       do n = 1, ncat
          vbrin(n) = vicen_init(n)
@@ -211,67 +214,57 @@
          vsurp = hsurp * aicen_init(n)
          vbrin(n) = vbrin(n) + vsurp
          vice_new = vicen_init(n) + vsurp
-         if (tr_brine .and. vicen(n) > c0) then
-            trcrn(nt_fbri,n) = vbrin(n)/vicen(n)
-         elseif (tr_brine .and. vicen(n) <= c0) then
+
+         if (tr_brine .and. vice_new > c0) then
+            trcrn(nt_fbri,n) = vbrin(n)/vice_new
+         elseif (tr_brine .and. vice_new <= c0) then
             trcrn(nt_fbri,n) = c1
          endif
 
-         if (nltrcr > 0) then
-            location = 1
-            call adjust_tracer_profile(nbtrcr,   dt, ntrcr, &
-                                       aicen_init(n),       &
-                                       vbrin(n),            &
-                                       vice_new,            &
-                                       trcrn(:,n),          &
-                                       vtmp,                &
-                                       vsurp,        sss,   &
-                                       nilyr,        nblyr, &
-                                       bgrid,               &
-                                       cgrid,               &
-                                       ocean_bio,    igrid, &
-                                       location)
+         if (nbtrcr > 0) then
+            do m = 1, nbtrcr
+               bio0new = ocean_bio(m)*zbgc_init_frac(m)
+               nbiolayer = nblyr+1
+               call update_vertical_bio_tracers(nbiolayer, trcrn(bio_index(m):bio_index(m) + nblyr,n), &
+                    vtmp, vbrin(n), bio0new,zspace(:))
+            enddo !nbtrcr
             if (icepack_warnings_aborted(subname)) return
-         endif       ! nltrcr
+         endif       ! nbtrcr
       endif          ! hsurp > 0
       enddo          ! n
 
       !-----------------------------------------------------------------
       ! Combine bgc in new ice grown in open water with category 1 ice.
       !-----------------------------------------------------------------
+      do n = 1, ncats
+      if (vin0new(n) > c0) then
 
-      if (vi0new > c0) then
-
-         vbri1    = vbrin(1)
-         vbrin(1) = vbrin(1) + vi0new
-         if (tr_brine .and. vicen(1) > c0) then
-            trcrn(nt_fbri,1) = vbrin(1)/vicen(1)
-         elseif (tr_brine .and. vicen(1) <= c0) then
-            trcrn(nt_fbri,1) = c1
+         vbri1    = vbrin(n)
+         vbrin(n) = vbrin(n) + vin0new(n)
+         if (tr_brine .and. vicen(n) > c0) then
+            trcrn(nt_fbri,n) = vbrin(n)/vicen(n)
+         elseif (tr_brine .and. vicen(n) <= c0) then
+            trcrn(nt_fbri,n) = c1
          endif
 
       ! Diffuse_bio handles concentration changes from ice growth/melt
       ! ice area changes
       ! add salt throughout, location = 0
 
-         if (nltrcr > 0) then
-            location = 0
-            call adjust_tracer_profile(nbtrcr,  dt,     ntrcr,  &
-                                       aicen(1),                &
-                                       vbrin(1),                &
-                                       vicen(1),                &
-                                       trcrn(:,1),              &
-                                       vbri1,                   &
-                                       vi0new,          sss,    &
-                                       nilyr,           nblyr,  &
-                                       bgrid,                   &
-                                       cgrid,                   &
-                                       ocean_bio,       igrid,  &
-                                       location)
+         if (nbtrcr > 0 .and. vbrin(n) > c0) then
+            do m = 1, nbtrcr
+               bio0new = ocean_bio(m)*zbgc_init_frac(m)
+               do k = 1, nblyr+1
+                  trcrn(bio_index(m) + k-1,n) = &
+                       (trcrn(bio_index(m) + k-1,n)*vbri1 + bio0new * vin0new(n))/vbrin(n)
+               enddo
+            enddo
+
             if (icepack_warnings_aborted(subname)) return
 
-         endif           ! nltrcr > 0
-      endif              ! vi0new > 0
+         endif           ! nbtrcr > 0
+      endif              ! vin0new(n) > 0
+      enddo              ! n = 1,ncats
 
       if (tr_brine .and. conserv_check) then
          call column_sum (ncat,   vbrin,  vbri_final)
@@ -291,11 +284,11 @@
 
 ! When sea ice melts laterally, flux bgc to ocean
 
-      subroutine lateral_melt_bgc (dt,                 &
-                                   ncat,     nblyr,    &
-                                   rside,    vicen,    &
-                                   trcrn,              &
-                                   flux_bio, nbltrcr)
+      subroutine lateral_melt_bgc (dt,                  &
+                                   ncat,     nblyr,     &
+                                   rsiden,   vicen_init,&
+                                   trcrn,    flux_bio,  &
+                                   nbltrcr)
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -306,37 +299,43 @@
          dt        ! time step (s)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
-         vicen     ! volume per unit area of ice          (m)
+         vicen_init! volume per unit area of ice          (m)
 
       real (kind=dbl_kind), dimension (:,:), intent(in) :: &
          trcrn     ! tracer array
 
-      real (kind=dbl_kind), intent(in) :: &
-         rside     ! fraction of ice that melts laterally
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
+         rsiden     ! fraction of ice that melts laterally
 
       real (kind=dbl_kind), dimension(:), intent(inout) :: &
          flux_bio  ! biology tracer flux from layer bgc (mmol/m^2/s)
 
       ! local variables
 
+      real (kind=dbl_kind) :: &
+         total_bio_initial, & ! initial column tracer concentration (mmol/m2)
+         total_bio_final      ! final column tracer concentration (mmol/m20
+
       integer (kind=int_kind) :: &
          k     , & ! layer index
          m     , & !
          n         ! category index
 
-      real (kind=dbl_kind) :: &
-         zspace    ! bio grid spacing
+      real (kind=dbl_kind), dimension (nblyr+1) :: &
+         zspace    ! vertical grid spacing
 
       character(len=*),parameter :: subname='(lateral_melt_bgc)'
 
-      zspace = c1/(real(nblyr,kind=dbl_kind))
+      zspace(:)       = c1/real(nblyr,kind=dbl_kind)
+      zspace(1)       = p5*zspace(2)
+      zspace(nblyr+1) = zspace(1)
 
       do m = 1, nbltrcr
          do n = 1, ncat
          do k = 1, nblyr+1
             flux_bio(m) = flux_bio(m) + trcrn(nt_fbri,n) &
-                        * vicen(n)*zspace*trcrn(bio_index(m)+k-1,n) &
-                        * rside/dt
+                        * vicen_init(n)*zspace(k)*trcrn(bio_index(m)+k-1,n) &
+                        * rsiden(n)/dt
          enddo
          enddo
       enddo
@@ -349,117 +348,107 @@
 !
 ! author: Nicole Jeffery, LANL
 
-      subroutine adjust_tracer_profile (nbtrcr, dt, ntrcr, &
-                                        aicen,      vbrin, &
-                                        vicen,      trcrn, &
-                                        vtmp,              &
-                                        vsurp,      sss,   &
-                                        nilyr,      nblyr, &
-                                        bgrid,             &
-                                        cgrid,      ocean_bio, &
-                                        igrid,      location)
+!      subroutine adjust_tracer_profile (nbtrcr, dt, ntrcr, &
+!                                        aicen,      vbrin, &
+!                                        vicen,      trcrn, &
+!                                        vtmp,              &
+!                                        vsurp,             &
+!                                        nilyr,      nblyr, &
+!                                        bgrid,             &
+!                                        cgrid,      ocean_bio, &
+!                                        igrid,      location)!!!
 
-      integer (kind=int_kind), intent(in) :: &
-         location          , & ! 1 (add frazil to bottom), 0 (add frazil throughout)
-         ntrcr             , & ! number of tracers in use
-         nilyr             , & ! number of ice layers
-         nbtrcr            , & ! number of biology tracers
-         nblyr                 ! number of biology layers
+!      integer (kind=int_kind), intent(in) :: &
+!         location          , & ! 1 (add frazil to bottom), 0 (add frazil throughout)
+!         ntrcr             , & ! number of tracers in use
+!         nilyr             , & ! number of ice layers
+!         nbtrcr            , & ! number of biology tracers
+!         nblyr                 ! number of biology layers
 
-      real (kind=dbl_kind), intent(in) :: &
-         dt              ! timestep (s)
+!      real (kind=dbl_kind), intent(in) :: &
+!         dt              ! timestep (s)!
 
-      real (kind=dbl_kind), intent(in) :: &
-         aicen   , & ! concentration of ice
-         vicen   , & ! volume of ice
-         sss     , & ! ocean salinity (ppt)
-       ! hsurp   , & ! flags new ice added to each cat
-         vsurp   , & ! volume of new ice added to each cat
-         vtmp        ! total volume of new and old ice
+!      real (kind=dbl_kind), intent(in) :: &
+!         aicen   , & ! concentration of ice
+!         vicen   , & ! volume of ice
+!         vsurp   , & ! volume of new ice added to each cat
+!         vtmp        ! total volume of new and old ice
 
-      real (kind=dbl_kind), dimension (nbtrcr), intent(in) :: &
-         ocean_bio
+!      real (kind=dbl_kind), dimension (nbtrcr), intent(in) :: &
+!         ocean_bio
 
-      real (kind=dbl_kind), intent(in) :: &
-         vbrin       ! fbri*volume per unit area of ice  (m)
+!      real (kind=dbl_kind), intent(in) :: &
+!         vbrin       ! fbri*volume per unit area of ice  (m)
 
-      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         igrid       ! zbio grid
+!      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
+!         igrid       ! zbio grid
 
-      real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         bgrid       ! zsal grid
+!      real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
+!         bgrid       ! zsal grid
 
-      real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         cgrid       ! CICE grid
+!      real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
+!         cgrid       ! CICE grid
 
-      real (kind=dbl_kind), dimension (ntrcr), intent(inout) :: &
-         trcrn       ! ice tracers
+!      real (kind=dbl_kind), dimension (ntrcr), intent(inout) :: &
+!         trcrn       ! ice tracers
 
       ! local variables
 
-      real (kind=dbl_kind), dimension (ntrcr+2) :: &
-         trtmp0, &      ! temporary, remapped tracers
-         trtmp          ! temporary, remapped tracers
+!      real (kind=dbl_kind), dimension (ntrcr+2) :: &
+!         trtmp0, &      ! temporary, remapped tracers
+!         trtmp          ! temporary, remapped tracers
 
-      real (kind=dbl_kind) :: &
-         hin     , & ! ice height
-         hinS_new, & ! brine height
-         temp_S
+!      integer (kind=int_kind) :: &
+!         k, m
 
-      integer (kind=int_kind) :: &
-         k, m
+!      real (kind=dbl_kind), dimension (nblyr+1) ::  &
+!         C_stationary      ! stationary bulk concentration*h (mmol/m^2)
 
-      real (kind=dbl_kind), dimension (nblyr+1) ::  &
-         C_stationary      ! stationary bulk concentration*h (mmol/m^2)
+!      real(kind=dbl_kind) :: &
+!         top_conc     , & ! salinity or bgc ocean concentration of frazil
+!         fluxb        , & ! needed for regrid (set to zero here)
+!         hbri_old     , & ! previous timestep brine height
+!         hbri             ! brine height
 
-      real (kind=dbl_kind), dimension (nblyr) ::  &
-         S_stationary      ! stationary bulk concentration*h (ppt*m)
+!      character(len=*),parameter :: subname='(adjust_tracer_profile)'
 
-      real(kind=dbl_kind) :: &
-         top_conc     , & ! salinity or bgc ocean concentration of frazil
-         fluxb        , & ! needed for regrid (set to zero here)
-         hbri_old     , & ! previous timestep brine height
-         hbri             ! brine height
+!      trtmp0(:) = c0
+!      trtmp(:) = c0
+!      fluxb = c0
 
-      character(len=*),parameter :: subname='(adjust_tracer_profile)'
+ !     if (location == 1 .and. vbrin > c0) then  ! add frazil to bottom
 
-      trtmp0(:) = c0
-      trtmp(:) = c0
-      fluxb = c0
+!         hbri     = vbrin
+!         hbri_old = vtmp
 
-      if (location == 1 .and. vbrin > c0) then  ! add frazil to bottom
+!         do m = 1, nbtrcr
+!            top_conc = ocean_bio(m)*zbgc_init_frac(m)
+!            do k = 1, nblyr+1
+!               C_stationary(k) = trcrn(bio_index(m) + k-1)* hbri_old
+!            enddo !k
+!            call regrid_stationary (C_stationary, hbri_old, &
+!                                    hbri,         dt,       &
+!                                    ntrcr,                  &
+!                                    nblyr,        top_conc, &
+!                                    igrid,        fluxb )
+!            if (icepack_warnings_aborted(subname)) return
+!            do k = 1, nblyr+1
+!               trcrn(bio_index(m) + k-1) =  C_stationary(k)/hbri
+!            enddo !k
+!         enddo !m
 
-         hbri     = vbrin
-         hbri_old = vtmp
+!      elseif (vbrin > c0) then   ! add frazil throughout  location == 0 .and.
 
-         do m = 1, nbtrcr
-            top_conc = ocean_bio(m)*zbgc_init_frac(m)
-            do k = 1, nblyr+1
-               C_stationary(k) = trcrn(bio_index(m) + k-1)* hbri_old
-            enddo !k
-            call regrid_stationary (C_stationary, hbri_old, &
-                                    hbri,         dt,       &
-                                    ntrcr,                  &
-                                    nblyr,        top_conc, &
-                                    igrid,        fluxb )
-            if (icepack_warnings_aborted(subname)) return
-            do k = 1, nblyr+1
-               trcrn(bio_index(m) + k-1) =  C_stationary(k)/hbri
-            enddo !k
-         enddo !m
+!         do k = 1, nblyr+1
+ !           do m = 1, nbtrcr
+!               trcrn(bio_index(m) + k-1) = (trcrn(bio_index(m) + k-1) * vtmp &
+!                         + ocean_bio(m)*zbgc_init_frac(m) * vsurp) / vbrin
+!            enddo
+!         enddo
 
-      elseif (vbrin > c0) then   ! add frazil throughout  location == 0 .and.
+!      endif     ! location
 
-         do k = 1, nblyr+1
-            do m = 1, nbtrcr
-               trcrn(bio_index(m) + k-1) = (trcrn(bio_index(m) + k-1) * vtmp &
-                         + ocean_bio(m)*zbgc_init_frac(m) * vsurp) / vbrin
-            enddo
-         enddo
-
-      endif     ! location
-
-      end subroutine adjust_tracer_profile
+!      end subroutine adjust_tracer_profile
 
 !=======================================================================
 !autodocument_start icepack_init_bgc
@@ -488,7 +477,7 @@
       real (kind=dbl_kind), intent(in) :: &
          sss       ! sea surface salinity (ppt)
 
-      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
          ocean_bio_all   ! fixed order, all values even for tracers false
 
       real (kind=dbl_kind), dimension (:), intent(out) :: &
@@ -1626,6 +1615,8 @@
          trcr_base2, &
          trcr_base3
 
+      character(len=*),parameter :: subname='(icepack_init_bgc_trcr)'
+
          nt_bgc = ntrcr + 1
          nbtrcr = nbtrcr + 1
          nlt_bgc = nbtrcr
@@ -1682,7 +1673,7 @@
                            upNO, upNH, iDi, iki, zfswin, &
                            darcy_V, grow_net,  &
                            PP_net, hbri,dhbr_bot, dhbr_top, Zoo,&
-                           fbio_snoice, fbio_atmice, ocean_bio, &
+                           fbio_snoice, fbio_atmice, ocean_bio_dh, ocean_bio, &
                            first_ice, fswpenln, bphi, bTiz, ice_bio_net,  &
                            snow_bio_net, totalChla, fswthrun, &
                            bgrid, igrid, icgrid, cgrid,  &
@@ -1709,7 +1700,6 @@
          igrid         , &  ! biology vertical interface points
          cgrid         , &  ! CICE vertical coordinate
          icgrid        , &  ! interface grid for CICE (shortwave variable)
-         ocean_bio     , &  ! contains all the ocean bgc tracer concentrations
          fbio_snoice   , &  ! fluxes from snow to ice
          fbio_atmice   , &  ! fluxes from atm to ice
          dhbr_top      , &  ! brine top change
@@ -1718,7 +1708,13 @@
          hin_old       , &  ! old ice thickness
          ice_bio_net   , &  ! depth integrated tracer (mmol/m^2)
          snow_bio_net  , &  ! depth integrated snow tracer (mmol/m^2)
-         flux_bio     ! all bio fluxes to ocean
+         flux_bio           ! all bio fluxes to ocean
+
+      real (kind=dbl_kind), dimension (:), intent(in) :: &
+         ocean_bio          ! contains the ocean bgc tracer concentrations in use (mmol/m^3)
+
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
+         ocean_bio_dh       ! The ocean bgc tracer concentrations in use * brine thickness * phi (mmol/m^2)
 
       logical (kind=log_kind), dimension (:), intent(inout) :: &
          first_ice      ! distinguishes ice that disappears (e.g. melts)
@@ -1783,7 +1779,8 @@
       ! local variables
 
       integer (kind=int_kind) :: &
-         n, mm              ! thickness category index
+         k           , & ! vertical index
+         n, mm           ! thickness category index
 
       real (kind=dbl_kind) :: &
          hin         , & ! new ice thickness
@@ -1824,8 +1821,8 @@
       character(len=*),parameter :: subname='(icepack_biogeochemistry)'
 
       zspace(:)       = c1/real(nblyr,kind=dbl_kind)
-      zspace(1)       = p5*zspace(1)
-      zspace(nblyr+1) = p5*zspace(nblyr+1)
+      zspace(1)       = p5*zspace(2)
+      zspace(nblyr+1) = zspace(1)
 
       bioPorosityIceCell(:) = c0
       bioSalinityIceCell(:) = c0
@@ -1836,6 +1833,7 @@
       !-----------------------------------------------------------------
       ! initialize
       !-----------------------------------------------------------------
+         flux_bion(:,n) = c0
          hin_old(n) = c0
          if (aicen_init(n) > puny) then
             hin_old(n) = vicen_init(n) &
@@ -1943,6 +1941,7 @@
                           n_fed,                 n_fep,                  &
                           n_zaero,               first_ice(n),           &
                           hin_old(n),            ocean_bio(1:nbtrcr),    &
+                          ocean_bio_dh(1:nbtrcr), &
                           bphi(:,n),             iphin,                  &
                           iDi(:,n),                                      &
                           fswpenln(:,n),                                 &
@@ -1988,6 +1987,16 @@
 
             first_ice(n) = .false.
 
+         else
+            do mm = 1, nbtrcr
+               do k  = 1, nblyr+1
+                  flux_bion(mm,n) = flux_bion(mm,n) + trcrn(bio_index(mm) + k-1,n) *  &
+                     hin_old(n) * zspace(k)/dt * trcrn(nt_fbri,n)
+                  flux_bio(mm) = flux_bio(mm) + trcrn(bio_index(mm) + k-1,n) * &
+                     vicen_init(n) * zspace(k)/dt * trcrn(nt_fbri,n)
+                  trcrn(bio_index(mm) + k-1,n) = c0
+                enddo
+            enddo
          endif             ! aicen > puny
       enddo                ! ncat
 
@@ -2177,6 +2186,93 @@
 
 
       end subroutine icepack_init_ocean_bio
+!
+!=======================================================================
+!
+! Given some added new ice to the base of the existing ice, recalculate
+! vertical bio tracer so that new grid cells are all the same size.
+!
+! author: N. Jeffery, LANL
+! date  : Mar 3, 2024
+!
+! Based on update_vertical_tracers modified for vertical biogeochemistry
+!
+      subroutine update_vertical_bio_tracers(nbiolyr, trc, h1, h2, trc0, zspace)
+
+      integer (kind=int_kind), intent(in) :: &
+         nbiolyr ! number of bio layers nblyr+1
+
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+           trc ! vertical tracer
+
+      real (kind=dbl_kind), intent(in) :: &
+         h1, & ! old thickness
+         h2, & ! new thickness
+         trc0  ! tracer value of added ice on ice bottom
+
+      real (kind=dbl_kind), dimension(nbiolyr), intent(in) :: &
+         zspace
+
+      ! local variables
+
+      real(kind=dbl_kind), dimension(nbiolyr) :: trc2 ! updated tracer temporary
+
+      ! vertical indices for old and new grid
+      integer :: k1, k2
+
+      real (kind=dbl_kind) :: &
+         z1a, z1b, & ! upper, lower boundary of old cell/added new ice at bottom
+         z2a, z2b, & ! upper, lower boundary of new cell
+         overlap , & ! overlap between old and new cell
+         rnilyr
+
+        !rnilyr = real(nilyr,dbl_kind)
+        z2a = c0
+        z2b = c0
+        ! loop over new grid cells
+        do k2 = 1, nbiolyr
+
+           ! initialize new tracer
+           trc2(k2) = c0
+
+           ! calculate upper and lower boundary of new cell
+           z2a = z2b  !((k2 - 1) * h2) * zspace(k2)+z2b ! / rnilyr
+           z2b = z2b + h2 * zspace(k2) !(k2       * h2) * zspace(k2)+z2a !/ rnilyr
+
+           z1a = c0
+           z1b = c0
+           ! loop over old grid cells
+           do k1 = 1, nbiolyr
+
+              ! calculate upper and lower boundary of old cell
+              z1a = z1b !((k1 - 1) * h1) * zspace(k1)+z1b !/ rnilyr
+              z1b = z1b + h1 * zspace(k1) !(k1       * h1) * zspace(k1)+z1a !/ rnilyr
+
+              ! calculate overlap between old and new cell
+              overlap = max(min(z1b, z2b) - max(z1a, z2a), c0)
+
+              ! aggregate old grid cell contribution to new cell
+              trc2(k2) = trc2(k2) + overlap * trc(k1)
+
+           enddo ! k1
+
+           ! calculate upper and lower boundary of added new ice at bottom
+           z1a = h1
+           z1b = h2
+
+           ! calculate overlap between added ice and new cell
+           overlap = max(min(z1b, z2b) - max(z1a, z2a), c0)
+           ! aggregate added ice contribution to new cell
+           trc2(k2) = trc2(k2) + overlap * trc0
+           ! renormalize new grid cell
+           trc2(k2) = trc2(k2)/zspace(k2)/h2 !(rnilyr * trc2(k2)) / h2
+
+        enddo ! k2
+
+        ! update vertical tracer array with the adjusted tracer
+        trc = trc2
+
+      end subroutine update_vertical_bio_tracers
 
 !=======================================================================
 

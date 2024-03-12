@@ -93,6 +93,7 @@
                          n_fed,        n_fep,       &
                          n_zaero,      first_ice,   &
                          hice_old,     ocean_bio,   &
+                         ocean_bio_dh,              &
                          bphin,        iphin,       &
                          iDin,                      &
                          fswthrul,                  &
@@ -162,7 +163,7 @@
          flux_bio,    & ! total ocean tracer flux (mmol/m^2/s)
          flux_bion      ! category ocean tracer flux (mmol/m^2/s)
 
-      real (kind=dbl_kind), intent(inout) :: &
+      real (kind=dbl_kind), intent(in) :: &
          hbri_old       ! brine height  (m)
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(inout) :: &
@@ -195,6 +196,10 @@
       real (kind=dbl_kind), dimension (nbtrcr), intent(in) :: &
          !change to  inout when updating ocean fields
          ocean_bio      ! ocean concentrations (mmol/m^3)
+
+      real (kind=dbl_kind), dimension (nbtrcr), intent(out) :: &
+         !change to  inout when updating ocean fields
+         ocean_bio_dh   ! ocean concentrations * hbrine * phi (mmol/m^2)
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
          bphin          ! Porosity on the bgrid
@@ -264,17 +269,15 @@
 
       call bgc_carbon_sum(nblyr, hbri_old, trcrn(:), carbonInitial,n_doc,n_dic,n_algae,n_don)
 
-      if (write_flux_diag) then
-         if (aice_old > c0) then
-            hsnow_i = vsno_old/aice_old
-            do  mm = 1,nbtrcr
-               call bgc_column_sum (nblyr, nslyr, hsnow_i, hbri_old, &
+       if (aice_old > c0) then
+          hsnow_i = vsno_old/aice_old
+          do  mm = 1,nbtrcr
+             call bgc_column_sum (nblyr, nslyr, hsnow_i, hbri_old, &
                               trcrn(bio_index(mm):bio_index(mm)+nblyr+2), &
                               Tot_BGC_i(mm))
-               if (icepack_warnings_aborted(subname)) return
-            enddo
-         endif
-      endif
+             if (icepack_warnings_aborted(subname)) return
+          enddo
+       endif
 
       call update_snow_bgc     (dt,        nblyr,        &
                                 nslyr,                   &
@@ -301,6 +304,7 @@
                                 n_zaero,      first_ice, &
                                 aicen,        vicen,     &
                                 hice_old,     ocean_bio, &
+                                ocean_bio_dh,            &
                                 flux_bion,    bphin,     &
                                 iphin,        trcrn,     &
                                 iDin,                    &
@@ -847,6 +851,7 @@
                                     n_zaero,      first_ice, &
                                     aicen,        vicen,     &
                                     hice_old,     ocean_bio, &
+                                    ocean_bio_dh,            &
                                     flux_bio,     bphin,     &
                                     iphin,        trcrn,     &
                                     iDin,                    &
@@ -908,7 +913,10 @@
          ocean_bio  , & ! ocean concentrations (mmol/m^3)
          bphin          ! Porosity on the bgrid
 
-      real (kind=dbl_kind), intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
+         ocean_bio_dh   ! ocean concentrations * hbrine * phi (mmol/m^2)
+
+      real (kind=dbl_kind), intent(in) :: &
          hbri_old       ! brine height  (m)
 
       real (kind=dbl_kind), dimension (:,:), intent(out) :: &
@@ -1013,7 +1021,7 @@
          V_alg          ! volume of algae (um^3)
 
       real (kind=dbl_kind), dimension(nbtrcr) :: &
-         mobile           ! c1 if mobile, c0 otherwise
+         mobile         ! c1 if mobile, c0 otherwise
 
       ! local parameters
 
@@ -1048,6 +1056,8 @@
       dhbot = c0
       darcyV = c0
       C_top(:) = c0
+      C_bot(:) = c0
+      ocean_bio_dh(:) = c0
       mobile(:) = c0
       conserve_C(:) = .true.
       nitrification(:) = c0
@@ -1060,13 +1070,7 @@
             iphin_N(k) = iphin(k)
             bphin_N(1) = bphi_min
 
-            if (abs(trcrn(bio_index(m) + k-1)) < accuracy) then
-               flux_bio(m) = flux_bio(m) + trcrn(bio_index(m) + k-1)* hbri_old * dz(k)/dt
-               trcrn(bio_index(m) + k-1) = c0
-               in_init_cons(k,m) = c0
-            else
-               in_init_cons(k,m) = trcrn(bio_index(m) + k-1)* hbri_old
-            endif
+            in_init_cons(k,m) = trcrn(bio_index(m) + k-1)* hbri_old
 
             if (trcrn(bio_index(m) + k-1) < c0  ) then
                write(warnstr,*) subname,'zbgc initialization error, first ice = ', first_ice
@@ -1170,6 +1174,7 @@
          endif
 
          C_bot(m) = ocean_bio(m)*hbri_old*iphin_N(nblyr+1)
+         ocean_bio_dh(m) = C_bot(m)
 
       enddo             ! m
 
@@ -1324,8 +1329,8 @@
             trcrn(nt_zbgc_frac+mm-1) = zbgc_frac_init(mm)
             if (sum_tot > c0) trcrn(nt_zbgc_frac+mm-1) = sum_new/sum_tot
 
-            if (abs(sum_initial-sum_tot-flux_bio(mm)*dt + source(mm)) > accuracy*max(sum_initial,sum_tot) .or. &
-                minval(biocons(:)) < c0  .or. minval(initcons_stationary(:)) < c0 &
+            if ((abs((sum_initial-sum_tot+source(mm))/dt-flux_bio(mm)) > max(accuracy, accuracy*abs(flux_bio(mm)))) &
+                .or. (minval(biocons(:)) < c0)  .or. (minval(initcons_stationary(:)) < c0)  &
                 .or. icepack_warnings_aborted()) then
                 write(warnstr,*) subname,'zbgc FCT tracer solution failed, mm:', mm
                 call icepack_warnings_add(warnstr)
@@ -1333,9 +1338,9 @@
                 call icepack_warnings_add(warnstr)
                 write(warnstr,*)sum_new,sum_tot,sum_initial,flux_bio(mm),source(mm)
                 call icepack_warnings_add(warnstr)
-                write(warnstr,*)'error = sum_initial-sum_tot-flux_bio(mm)*dt+source(mm)'
+                write(warnstr,*)'error = (sum_initial-sum_tot+source(mm))/dt-flux_bio(mm)'
                 call icepack_warnings_add(warnstr)
-                write(warnstr,*)sum_initial-sum_tot-flux_bio(mm)*dt+source(mm)
+                write(warnstr,*)(sum_initial-sum_tot+source(mm))/dt-flux_bio(mm)
                 call icepack_warnings_add(warnstr)
                 write(warnstr,*) subname,'sum_new,sum_old:',sum_new,sum_old
                 call icepack_warnings_add(warnstr)
@@ -1472,7 +1477,6 @@
                 write(warnstr,*) subname,  react(k,m),iphin_N(k),biomat_brine(k,m)
                 call icepack_warnings_add(warnstr)
                 call icepack_warnings_add(subname//' very large bgc value')
-                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
             elseif (bio_tmp < c0) then
                 write(warnstr,*) subname, 'negative bgc'
                 call icepack_warnings_add(warnstr)
@@ -2782,7 +2786,8 @@
          C_init_tot  , &
          C_new_tot   , &
          zspace      , &  !1/nblyr
-         accuracyC         ! centered difference is Order(zspace^2)
+         accuracyC   , &  ! centered difference is Order(zspace^2)
+         var_tmp          ! temporary variable
 
       character(len=*),parameter :: subname='(check_conservation_FCT)'
 
@@ -2802,8 +2807,8 @@
          C_low(k) = C_new(k)
       enddo
 
-      accuracyC = accuracy*max(c1, C_init_tot, C_new_tot)
-      fluxbio = (C_init_tot - C_new_tot + source)/dt
+      accuracyC = 1.0e-11_dbl_kind*max(c1, C_init_tot, C_new_tot)
+      fluxbio = fluxbio + (C_init_tot - C_new_tot + source)/dt
       diff_dt =C_new_tot - C_init_tot - (S_top+S_bot+L_bot*C_new(nblyr+1)+L_top*C_new(1))*dt
 
       if (minval(C_low) < c0) then
@@ -2812,23 +2817,42 @@
       endif
 
       if (abs(diff_dt) > accuracyC ) then
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         write(warnstr,*) subname, 'Conservation of zbgc low order solution failed: diff_dt:',&
-                        diff_dt
-         write(warnstr,*) subname, 'Total initial tracer', C_init_tot
-         write(warnstr,*) subname, 'Total final1  tracer', C_new_tot
-         write(warnstr,*) subname, 'bottom final tracer', C_new(nblyr+1)
-         write(warnstr,*) subname, 'top final tracer', C_new(1)
-         write(warnstr,*) subname, 'Near bottom final tracer', C_new(nblyr)
-         write(warnstr,*) subname, 'Near top final tracer', C_new(2)
-         write(warnstr,*) subname, 'Top flux*dt into ice:', S_top*dt
-         write(warnstr,*) subname, 'Bottom flux*dt into ice:', S_bot*dt
-         write(warnstr,*) subname, 'Remaining bot flux*dt into ice:', L_bot*C_new(nblyr+1)*dt
+         write(warnstr,*) subname, ''
+         write(warnstr,*) subname, 'Conservation of zbgc low order solution failed: diff_dt:'
+         write(warnstr,*) subname, diff_dt
+         write(warnstr,*) subname, 'Total initial tracer'
+         write(warnstr,*) subname, C_init_tot
+         write(warnstr,*) subname, 'Total final1  tracer'
+         write(warnstr,*) subname, C_new_tot
+         write(warnstr,*) subname, 'bottom final tracer'
+         write(warnstr,*) subname, C_new(nblyr+1)
+         write(warnstr,*) subname, 'top final tracer'
+         write(warnstr,*) subname, C_new(1)
+         write(warnstr,*) subname, 'Near bottom final tracer'
+         write(warnstr,*) subname, C_new(nblyr)
+         write(warnstr,*) subname, 'Near top final tracer'
+         write(warnstr,*) subname, C_new(2)
+         write(warnstr,*) subname, 'Top flux*dt into ice:'
+         var_tmp = S_top*dt
+         write(warnstr,*) subname, var_tmp
+         write(warnstr,*) subname, 'Bottom flux*dt into ice:'
+         var_tmp = S_bot*dt
+         write(warnstr,*) subname, var_tmp
+         write(warnstr,*) subname, 'Remaining bot flux*dt into ice:'
+         var_tmp = L_bot*C_new(nblyr+1)*dt
+         write(warnstr,*) subname, var_tmp
          write(warnstr,*) subname, 'S_bot*dt + L_bot*C_new(nblyr+1)*dt'
-         write(warnstr,*) subname,  S_bot*dt + L_bot*C_new(nblyr+1)*dt
-         write(warnstr,*) subname, 'fluxbio*dt:', fluxbio*dt
-         write(warnstr,*) subname, 'fluxbio:', fluxbio
-         write(warnstr,*) subname, 'Remaining top flux*dt into ice:', L_top*C_new(1)*dt
+         var_tmp = S_bot*dt + L_bot*C_new(nblyr+1)*dt
+         write(warnstr,*) subname,  var_tmp
+         write(warnstr,*) subname, 'fluxbio*dt:'
+         var_tmp = fluxbio*dt
+         write(warnstr,*) subname, var_tmp
+         write(warnstr,*) subname, 'fluxbio:'
+         write(warnstr,*) subname, fluxbio
+         write(warnstr,*) subname, 'Remaining top flux*dt into ice:'
+         var_tmp = L_top*C_new(1)*dt
+         write(warnstr,*) subname, var_tmp
+         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
 
       end subroutine check_conservation_FCT
@@ -2869,7 +2893,7 @@
       character(len=*),parameter :: subname='(bgc_column_sum)'
 
       hslyr      = hsnow/real(nslyr,kind=dbl_kind)
-      dzssl      = min(hslyr*p5, hs_ssl)
+      dzssl      = hslyr*p5
       dzint      = max(c0,hsnow - dzssl)
       zspace     = c1/real(nblyr,kind=dbl_kind)
 
@@ -2891,7 +2915,6 @@
 
       subroutine bgc_carbon_sum (nblyr, hbrine, xin, xout, n_doc, n_dic, n_algae, n_don)
 
-      
       integer (kind=int_kind), intent(in) :: &
          nblyr, &         ! number of ice layers
          n_doc, n_dic, n_algae, n_don
@@ -2912,6 +2935,8 @@
 
       integer (kind=int_kind) :: &
          n, m, iBioCount, iLayer, nBGC        ! category/layer index
+
+      character(len=*),parameter :: subname='(bgc_carbon_sum)'
 
       zspace(:)  = c1/real(nblyr,kind=dbl_kind)
       zspace(1) = p5*zspace(1)
@@ -2993,6 +3018,8 @@
       ! local variables
       integer (kind=int_kind) :: &
          m        ! biology index
+
+      character(len=*),parameter :: subname='(bgc_carbon_flux)'
 
       Tot_Carbon_flux = c0
 

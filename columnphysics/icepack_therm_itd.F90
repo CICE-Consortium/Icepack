@@ -23,7 +23,7 @@
       use icepack_parameters, only: c0, c1, c2, c3, c4, c6, c10
       use icepack_parameters, only: p001, p1, p333, p5, p666, puny, bignum
       use icepack_parameters, only: rhos, rhoi, Lfresh, ice_ref_salinity
-      use icepack_parameters, only: phi_init, dsin0_frazil, hs_ssl, salt_loss
+      use icepack_parameters, only: phi_init, dsin0_frazil, salt_loss
       use icepack_parameters, only: Tliquidus_max
       use icepack_parameters, only: rhosi, conserv_check, rhosmin, snwredist
       use icepack_parameters, only: kitd, ktherm
@@ -31,7 +31,7 @@
       use icepack_parameters, only: cpl_frazil, update_ocn_f, saltflux_option
       use icepack_parameters, only: icepack_chkoptargflag
 
-      use icepack_tracers, only: ntrcr, nbtrcr
+      use icepack_tracers, only: ntrcr
       use icepack_tracers, only: nt_qice, nt_qsno, nt_fbri, nt_sice
       use icepack_tracers, only: nt_apnd, nt_hpnd, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers, only: nt_Tsfc, nt_iage, nt_FY, nt_fsd, nt_rhos, nt_sice
@@ -969,6 +969,7 @@
       real (kind=dbl_kind), dimension (ncat) :: &
          aicen_init, & ! initial area fraction
          vicen_init, & ! volume per unit area of ice (m)
+         vsnon_init, & ! initial volume of snow (m)
          G_radialn , & ! rate of lateral melt (m/s)
          delta_an  , & ! change in the ITD
          rsiden        ! delta_an/aicen
@@ -1000,7 +1001,7 @@
       dvint    = c0
       bin1_arealoss  = c0
       tmp  = c0
-      vicen_init = c0
+      vicen_init = vicen(:)
       G_radialn  = c0
       delta_an   = c0
       rsiden     = c0
@@ -1119,6 +1120,7 @@
 
             ! state variables
             vicen_init(n) = vicen(n)
+            vsnon_init(n) = vsnon(n)
             aicen(n) = aicen(n) * (c1 - rsiden(n))
             vicen(n) = vicen(n) * (c1 - rsiden(n))
             vsnon(n) = vsnon(n) * (c1 - rsiden(n))
@@ -1228,8 +1230,8 @@
       !-----------------------------------------------------------------
 
             if (z_tracers) then   ! snow tracers
-               dvssl = min(p5*vsnon(n)/real(nslyr,kind=dbl_kind), hs_ssl*aicen(n)) ! snow surface layer
-               dvint = vsnon(n) - dvssl                                            ! snow interior
+               dvssl = p5*vsnon_init(n)/real(nslyr,kind=dbl_kind) ! snow surface layer
+               dvint = vsnon_init(n) - dvssl                      ! snow interior
                do k = 1, nbtrcr
                   flux_bio(k) = flux_bio(k) &
                               + (trcrn(bio_index(k)+nblyr+1,n)*dvssl  &
@@ -1243,9 +1245,9 @@
          if (z_tracers) &
             call lateral_melt_bgc(dt,                         &
                                   ncat,        nblyr,         &
-                                  rside,       vicen_init,    &  !echmod: use rsiden
-                                  trcrn,                      &
-                                  flux_bio,    nbtrcr)
+                                  rsiden,      vicen_init,    &
+                                  trcrn,       flux_bio,      &
+                                  nbtrcr)
             if (icepack_warnings_aborted(subname)) return
 
       endif          ! flag
@@ -1301,10 +1303,10 @@
       subroutine add_new_ice (ncat,      nilyr,      &
                               nfsd,      nblyr,      &
                               n_aero,    dt,         &
-                              ntrcr,     nltrcr,     &
+                              ntrcr,                 &
                               hin_max,   ktherm,     &
                               aicen,     trcrn,      &
-                              vicen,     vsnon1,     &
+                              vicen,                 &
                               aice0,     aice,       &
                               frzmlt,    frazil,     &
                               frz_onset, yday,       &
@@ -1312,7 +1314,8 @@
                               Tf,        sss,        &
                               salinz,    phi_init,   &
                               dSin0_frazil,          &
-                              bgrid,      cgrid,      igrid,    &
+                              bgrid,      cgrid,     &
+                              igrid,                 &
                               nbtrcr,    flux_bio,   &
                               ocean_bio,             &
                               frazil_diag,           &
@@ -1334,7 +1337,7 @@
          nilyr , & ! number of ice layers
          nblyr , & ! number of bio layers
          ntrcr , & ! number of tracers
-         nltrcr, & ! number of zbgc tracers
+         nbtrcr, & ! number of zbgc tracers
          n_aero, & ! number of aerosol tracers
          ktherm    ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
 
@@ -1349,8 +1352,7 @@
          aice  , & ! total concentration of ice
          frzmlt, & ! freezing/melting potential (W/m^2)
          Tf    , & ! freezing temperature (C)
-         sss   , & ! sea surface salinity (ppt)
-         vsnon1    ! category 1 snow volume per ice area (m)
+         sss       ! sea surface salinity (ppt)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          aicen , & ! concentration of ice
@@ -1389,9 +1391,6 @@
 
       real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
          cgrid              ! CICE vertical coordinate
-
-      integer (kind=int_kind), intent(in) :: &
-         nbtrcr          ! number of biology tracers
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          flux_bio   ! tracer flux to ocean from biology (mmol/m^2/s)
@@ -1810,7 +1809,6 @@
       ncats = 1                  ! add new ice to category 1 by default
       if (tr_fsd) ncats = ncat   ! add new ice laterally to all categories
 
-
       do n = 1, ncats
 
       if (d_an_tot(n) > c0 .and. vin0new(n) > c0) then  ! add ice to category n
@@ -1879,7 +1877,7 @@
                 fiso_ocn(it) = fiso_ocn(it) &
                              - frazil_conc*rhoi*vi0new/dt
               enddo
-           endif
+           endif  ! if iso
 
             if (tr_lvl) then
                 alvl = trcrn(nt_alvl,n)
@@ -1898,7 +1896,7 @@
                   trcrn(nt_apnd,n) * alvl*area1 / (trcrn(nt_alvl,n)*aicen(n))
                endif
             endif
-         endif
+         endif ! vicen > 0
 
          do k = 1, nilyr
             if (vicen(n) > c0) then
@@ -1910,11 +1908,9 @@
                trcrn(nt_sice+k-1,n) = &
               (trcrn(nt_sice+k-1,n)*vice1 + Sprofile(k)*vin0new(n))/vicen(n)
             endif
-         enddo
-
-      endif ! vi0new > 0
-
-      enddo ! ncats
+         enddo ! nilyr
+      endif ! vin0new > c0
+      enddo ! n
 
       if (conserv_check) then
 
@@ -1947,14 +1943,13 @@
       ! Biogeochemistry
       !-----------------------------------------------------------------
       if (tr_brine .or. nbtrcr > 0) then
-         call add_new_ice_bgc(dt,         nblyr,                &
-                              ncat, nilyr, nltrcr, &
+         call add_new_ice_bgc(dt,         nblyr,      ncats,    &
+                              ncat,       nilyr,                &
                               bgrid,      cgrid,      igrid,    &
                               aicen_init, vicen_init, vi0_init, &
-                              aicen,      vicen,      vsnon1,   &
-                              vi0new,     ntrcr,      trcrn,    &
-                              nbtrcr,     sss,        ocean_bio,&
-                              flux_bio,   hsurp)
+                              aicen,      vicen,      vin0new,  &
+                              ntrcr,      trcrn,      nbtrcr,   &
+                              ocean_bio,  flux_bio,   hsurp)
          if (icepack_warnings_aborted(subname)) return
       endif
 
@@ -1972,10 +1967,10 @@
 ! authors: William H. Lipscomb, LANL
 !          Elizabeth C. Hunke, LANL
 
-      subroutine icepack_step_therm2 (dt, ncat, nltrcr,           &
+      subroutine icepack_step_therm2 (dt,          ncat,          &
                                      nilyr,        nslyr,         &
                                      hin_max,      nblyr,         &
-                                     aicen,                       &
+                                     aicen,        nbtrcr,        &
                                      vicen,        vsnon,         &
                                      aicen_init,   vicen_init,    &
                                      trcrn,                       &
@@ -2011,8 +2006,8 @@
 
       integer (kind=int_kind), intent(in) :: &
          ncat     , & ! number of thickness categories
-         nltrcr   , & ! number of zbgc tracers
          nblyr    , & ! number of bio layers
+         nbtrcr   , & ! number of bio tracers
          nilyr    , & ! number of ice layers
          nslyr        ! number of snow layers
 
@@ -2190,6 +2185,8 @@
       ! Compute fractional ice area in each grid cell.
       !-----------------------------------------------------------------
 
+      flux_bio(:) = c0
+
       call aggregate_area (ncat, aicen, aice, aice0)
       if (icepack_warnings_aborted(subname)) return
 
@@ -2233,10 +2230,10 @@
          call add_new_ice (ncat,          nilyr,        &
                            nfsd,          nblyr,        &
                            n_aero,        dt,           &
-                           ntrcr,         nltrcr,       &
+                           ntrcr,                       &
                            hin_max,       ktherm,       &
                            aicen,         trcrn,        &
-                           vicen,         vsnon(1),     &
+                           vicen,                       &
                            aice0,         aice,         &
                            frzmlt,        frazil,       &
                            frz_onset,     yday,         &
