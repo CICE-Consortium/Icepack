@@ -104,7 +104,8 @@
                                   mlt_onset,   frz_onset, &
                                   yday,        dsnow,     &
                                   prescribed_ice,         &
-                                  flpnd,       expnd)
+                                  flpnd,       expnd,     &
+                                  alvl)
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
@@ -124,7 +125,8 @@
       real (kind=dbl_kind), intent(inout) :: &
          Tsf     , & ! ice/snow top surface temp, same as Tsfcn (deg C)
          apond   , & ! melt pond area fraction
-         hpond       ! melt pond depth (m)
+         hpond   , & ! melt pond depth (m)
+         alvl        ! level ice fraction
 !        iage        ! ice age (s)
 
       logical (kind=log_kind), intent(in), optional :: &
@@ -331,7 +333,8 @@
                                               fcondtopn, fcondbotn, &
                                               fadvocn,   snoice,    &
                                               smice,     smliq,     &
-                                              flpnd,     expnd)
+                                              flpnd,     expnd,    &
+                                              alvl)
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
@@ -2698,14 +2701,8 @@
                                  mlt_onset=mlt_onset, frz_onset=frz_onset,     &
                                  yday=yday,           dsnow=dsnown        (n), &
                                  prescribed_ice=prescribed_ice,                &
-                                 flpnd=flpndn    (n), expnd=expndn        (n))
-            
-            if (tr_pond_lvl) then
-               ! Account for flpndn and expndn above being measured over level
-               ! area
-               flpndn(n) = flpndn(n) * alvl(n)
-               expndn(n) = expndn(n) * alvl(n)
-            endif
+                                 flpnd=flpndn    (n), expnd=expndn        (n), &
+                                 alvl=alvl       (n))
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n

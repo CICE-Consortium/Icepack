@@ -159,7 +159,7 @@
             ! over entire grid cell area. Multiply by (1-rfrac)/rfrac to get
             ! loss over entire area. And divide by aicen to get loss per unit
             ! category area (for consistency with melttn, frpndn, etc)
-            rfpndn = dvn * (1-rfrac) / (rfrac * aicen)
+            rfpndn = dvn * (c1-rfrac) / (rfrac * aicen)
             dvn_temp = dvn
 
             ! shrink pond volume under freezing conditions
