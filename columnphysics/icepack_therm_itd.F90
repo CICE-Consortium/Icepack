@@ -471,10 +471,10 @@
                                           * trcrn(nt_hpnd,1))
                   if (tr_pond) then
                      if (tr_pond_lvl) then
-                        mipnd = da0 * trcrn(nt_apnd,1) * trcrn(nt_hpnd,1) &
-                                  * trcrn(nt_alvl,1)
+                        mipnd = mipnd + da0 * trcrn(nt_apnd,1)  & 
+                                 * trcrn(nt_hpnd,1) * trcrn(nt_alvl,1)
                      else
-                        mipnd = da0 * trcrn(nt_apnd,1) * trcrn(nt_hpnd,1)
+                        mipnd = mipnd + da0*trcrn(nt_apnd,1)*trcrn(nt_hpnd,1)
                      endif
                   endif
 
@@ -2330,7 +2330,8 @@
       if (ncat==1) &
          call reduce_area (hin_max   (0),                &
                            aicen     (1), vicen     (1), &
-                           aicen_init(1), vicen_init(1))
+                           aicen_init(1), vicen_init(1), &
+                           mipnd,         trcrn)
          if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
