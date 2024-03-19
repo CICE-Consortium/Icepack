@@ -221,11 +221,11 @@
 
             elseif (alvl_tmp*aicen > c10*puny) then ! new ponds
                apondn = min (sqrt(volpn/(pndaspect*aicen)), alvl_tmp)
-               hpondn = pndaspect * apondn
+               hpondn = pndaspect * apondn ! Possible loss of meltwater if apondn == alvl_tmp
 
             else           ! melt water runs off deformed ice
                apondn = c0
-               hpondn = c0
+               hpondn = c0 ! Loss of meltwater for very deformed ice
             endif
             apondn = max(apondn, c0)
 
