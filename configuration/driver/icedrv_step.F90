@@ -446,6 +446,7 @@
       use icedrv_flux, only: fsalt, Tf, sss, salinz, fhocn, rside, fside, wlat
       use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn
       use icedrv_flux, only: HDO_ocn, H2_16O_ocn, H2_18O_ocn
+      use icedrv_flux, only: mipnd
       use icedrv_init, only: tmask
       use icedrv_state, only: aice, aicen, aice0, trcr_depend
       use icedrv_state, only: aicen_init, vicen_init, trcrn, vicen, vsnon
@@ -533,7 +534,8 @@
                          d_afsd_latm=d_afsd_latm(i,:),                &
                          d_afsd_weld=d_afsd_weld(i,:),                &
                          floe_rad_c=floe_rad_c(:),                    &
-                         floe_binwidth=floe_binwidth(:))
+                         floe_binwidth=floe_binwidth(:),              &
+                         mipnd=mipnd(i))
 
          endif ! tmask
 

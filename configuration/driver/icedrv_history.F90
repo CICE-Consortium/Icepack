@@ -52,7 +52,7 @@
       use icedrv_flux, only: Tair, Qa, fsw, fcondtop
       use icedrv_flux, only: meltt, meltb, meltl, melts, snoice
       use icedrv_flux, only: flpndn, expndn, frpndn, rfpndn, ilpndn
-      use icedrv_flux, only: flpnd, expnd, frpnd, rfpnd, ilpnd
+      use icedrv_flux, only: flpnd, expnd, frpnd, rfpnd, ilpnd, mipnd
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
       use icedrv_arrays_column, only: d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
 #ifdef USE_NETCDF
@@ -98,11 +98,11 @@
             'sss             ', 'Tf              ', 'fhocn           ', &
             'melts           ' /)
             
-      integer (kind=dbl_kind), parameter :: num_2d_pond = 8
+      integer (kind=dbl_kind), parameter :: num_2d_pond = 9
       character(len=16), parameter :: fld_2d_pond(num_2d_pond) = &
          (/ 'apnd            ', 'hpnd            ', 'ipnd            ', &
             'flpnd           ', 'expnd           ', 'frpnd           ', &
-            'rfpnd           ', 'ilpnd           '  /)
+            'rfpnd           ', 'ilpnd           ', 'mipnd           '  /)
             
       integer (kind=dbl_kind), parameter :: num_3d_ncat = 3
       character(len=16), parameter :: fld_3d_ncat(num_3d_ncat) = &
@@ -404,6 +404,7 @@
             if (trim(fld_2d_pond(n)) == 'frpnd') value2(1:count2(1),1) = frpnd(1:count2(1))
             if (trim(fld_2d_pond(n)) == 'rfpnd') value2(1:count2(1),1) = rfpnd(1:count2(1))
             if (trim(fld_2d_pond(n)) == 'ilpnd') value2(1:count2(1),1) = ilpnd(1:count2(1))
+            if (trim(fld_2d_pond(n)) == 'mipnd') value2(1:count2(1),1) = mipnd(1:count2(1))
 
             status = nf90_inq_varid(ncid,trim(fld_2d_pond(n)),varid)
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_2d_pond(n)))
