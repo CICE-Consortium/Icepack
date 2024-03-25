@@ -1096,6 +1096,7 @@
          blevels
 
       real (kind=dbl_kind) :: xtmp, sicen      ! temporary variables
+      real (kind=dbl_kind) :: dvssl, dvint     ! temporary variables
       real (kind=dbl_kind) , dimension (1):: trcr_skl
       real (kind=dbl_kind) , dimension (nblyr+1):: bvol
 
@@ -1146,7 +1147,6 @@
             if (skl_bgc .and. nbtrcr > 0) then
                blevels = 1
                bvol(1) =  aicen(n)*sk_l
-               it = 1
                do it = 1, nbtrcr
                   trcr_skl(1) = trcrn(bio_index(it),n)
                   call zap_small_bgc(blevels, dflux_bio(it), &
@@ -1271,6 +1271,36 @@
                        * (aice-c1)/aice / dt
                   dfaero_ocn(it) = dfaero_ocn(it) + xtmp
                enddo               ! it
+            endif
+
+            if (skl_bgc .and. nbtrcr > 0) then
+               blevels = 1
+               bvol(1) = (aice-c1)/aice * sk_l
+               do it = 1, nbtrcr
+                  trcr_skl(1) = trcrn(bio_index(it),n)
+                  call zap_small_bgc(blevels, dflux_bio(it), &
+                       dt, bvol(1:blevels), trcr_skl(blevels))
+               enddo
+            elseif (z_tracers .and. nbtrcr > 0) then
+               blevels = nblyr + 1
+               bvol(:) = (aice-c1)/aice*vicen(n)/real(nblyr,kind=dbl_kind)*trcrn(nt_fbri,n)
+               bvol(1) = p5*bvol(1)
+               bvol(blevels) = p5*bvol(blevels)
+               do it = 1, nbtrcr
+                  call zap_small_bgc(blevels, dflux_bio(it), &
+                       dt, bvol(1:blevels),trcrn(bio_index(it):bio_index(it)+blevels-1,n))
+                  if (icepack_warnings_aborted(subname)) return
+               enddo
+               ! zap snow zaerosols
+               dvssl = p5*vsnon(n)/real(nslyr,kind=dbl_kind) ! snow surface layer
+               dvint = vsnon(n) - dvssl                      ! snow interior
+
+               do it = 1, nbtrcr
+                  xtmp = (trcrn(bio_index(it)+nblyr+1,n)*dvssl + &
+                       trcrn(bio_index(it)+nblyr+2,n)*dvint)*(aice-c1)/aice/dt
+                  dflux_bio(it) = dflux_bio(it) + xtmp
+               enddo                 ! it
+
             endif
 
             if (tr_iso) then

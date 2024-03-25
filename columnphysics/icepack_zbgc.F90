@@ -92,7 +92,8 @@
                                   aicen_init, vicen_init, vi0_init, &
                                   aicen,      vicen,      vin0new,  &
                                   ntrcr,      trcrn,      nbtrcr,   &
-                                  ocean_bio,  flux_bio,   hsurp)
+                                  ocean_bio,  flux_bio,   hsurp,    &
+                                  d_an_tot)
 
       integer (kind=int_kind), intent(in) :: &
          nblyr   , & ! number of bio layers
@@ -118,7 +119,8 @@
          aicen_init  , & ! initial concentration of ice
          vicen_init  , & ! initial volume per unit area of ice  (m)
          aicen       , & ! concentration of ice
-         vicen           ! volume per unit area of ice          (m)
+         vicen       , & ! volume per unit area of ice          (m)
+         d_an_tot
 
       real (kind=dbl_kind), dimension (:,:), intent(inout) :: &
          trcrn           ! ice tracers
@@ -215,9 +217,9 @@
          vbrin(n) = vbrin(n) + vsurp
          vice_new = vicen_init(n) + vsurp
 
-         if (tr_brine .and. vice_new > c0) then
+         if (tr_brine .and. vice_new > puny) then !c0) then
             trcrn(nt_fbri,n) = vbrin(n)/vice_new
-         elseif (tr_brine .and. vice_new <= c0) then
+         elseif (tr_brine .and. vicen(n) <= c0) then
             trcrn(nt_fbri,n) = c1
          endif
 
@@ -237,13 +239,13 @@
       ! Combine bgc in new ice grown in open water with category 1 ice.
       !-----------------------------------------------------------------
       do n = 1, ncats
-      if (vin0new(n) > c0) then
+      if (vin0new(n) > c0 .and. d_an_tot(n) > c0) then
 
          vbri1    = vbrin(n)
          vbrin(n) = vbrin(n) + vin0new(n)
-         if (tr_brine .and. vicen(n) > c0) then
+         if (tr_brine .and. vicen(n) > puny) then
             trcrn(nt_fbri,n) = vbrin(n)/vicen(n)
-         elseif (tr_brine .and. vicen(n) <= c0) then
+         elseif (tr_brine .and. vicen(n) <= puny) then
             trcrn(nt_fbri,n) = c1
          endif
 
@@ -251,7 +253,7 @@
       ! ice area changes
       ! add salt throughout, location = 0
 
-         if (nbtrcr > 0 .and. vbrin(n) > c0) then
+         if (nbtrcr > 0 .and. vbrin(n) > puny) then
             do m = 1, nbtrcr
                bio0new = ocean_bio(m)*zbgc_init_frac(m)
                do k = 1, nblyr+1
@@ -2229,6 +2231,7 @@
         !rnilyr = real(nilyr,dbl_kind)
         z2a = c0
         z2b = c0
+        if (h2 > c0) then
         ! loop over new grid cells
         do k2 = 1, nbiolyr
 
@@ -2268,7 +2271,9 @@
            trc2(k2) = trc2(k2)/zspace(k2)/h2 !(rnilyr * trc2(k2)) / h2
 
         enddo ! k2
-
+     else
+        trc2 = trc
+     endif
         ! update vertical tracer array with the adjusted tracer
         trc = trc2
 

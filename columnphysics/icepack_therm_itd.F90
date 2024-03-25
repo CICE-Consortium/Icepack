@@ -92,10 +92,10 @@
                              ntrcr,       trcr_depend, &
                              trcr_base,   n_trcr_strata,&
                              nt_strata,                &
-                             aicen_init,  vicen_init,  & 
-                             aicen,       trcrn,       & 
-                             vicen,       vsnon,       & 
-                             aice,        aice0,       & 
+                             aicen_init,  vicen_init,  &
+                             aicen,       trcrn,       &
+                             vicen,       vsnon,       &
+                             aice,        aice0,       &
                              fpond,       Tf           )
 
       integer (kind=int_kind), intent(in) :: &
@@ -1949,7 +1949,8 @@
                               aicen_init, vicen_init, vi0_init, &
                               aicen,      vicen,      vin0new,  &
                               ntrcr,      trcrn,      nbtrcr,   &
-                              ocean_bio,  flux_bio,   hsurp)
+                              ocean_bio,  flux_bio,   hsurp,    &
+                              d_an_tot)
          if (icepack_warnings_aborted(subname)) return
       endif
 
