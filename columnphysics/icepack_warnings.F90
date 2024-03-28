@@ -68,9 +68,15 @@ contains
 
         if (abortflag) then
           write(warnstr,*) subname,abortflag
-          if (present(file)) write(warnstr,*) trim(warnstr)//' :file '//trim(file)
-          if (present(line)) write(warnstr,*) trim(warnstr)//' :line ',line
           call icepack_warnings_add(warnstr)
+          if (present(file)) then
+             write(warnstr,*) trim(warnstr)//' :file '//trim(file)
+             call icepack_warnings_add(warnstr)
+          endif
+          if (present(line)) then
+             write(warnstr,*) trim(warnstr)//' :line ',line
+             call icepack_warnings_add(warnstr)
+          endif
         endif
 
         warning_abort = abortflag

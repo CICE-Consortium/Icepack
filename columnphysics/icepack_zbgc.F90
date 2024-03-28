@@ -2231,7 +2231,7 @@
         !rnilyr = real(nilyr,dbl_kind)
         z2a = c0
         z2b = c0
-        if (h2 > c0) then
+        if (h2 > puny) then
         ! loop over new grid cells
         do k2 = 1, nbiolyr
 
