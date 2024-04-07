@@ -250,7 +250,8 @@
          frpnd,  & ! pond drainage rate due to freeboard constraint (m/step)
          rfpnd,  & ! runoff rate due to rfrac (m/step)
          ilpnd,  & ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
-         mipnd     ! pond 'drainage' due to ice melting (m / step)
+         mipnd,  & ! pond 'drainage' due to ice melting (m / step)
+         rdpnd     ! pond drainage due to ridging (m / step)
 
       real (kind=dbl_kind), &
          dimension (nx,ncat), public :: &
@@ -707,6 +708,7 @@
       rfpnd (:) = c0
       ilpnd (:) = c0
       mipnd (:) = c0
+      rdpnd (:) = c0
 
       ! drag coefficients are computed prior to the atmo_boundary call,
       ! during the thermodynamics section

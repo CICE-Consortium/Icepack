@@ -826,6 +826,7 @@
       use icedrv_flux, only: dvirdgdt, opening, closing, fpond, fresh, fhocn
       use icedrv_flux, only: aparticn, krdgn, aredistn, vredistn, dardg1ndt, dardg2ndt
       use icedrv_flux, only: dvirdgndt, araftn, vraftn, fsalt, flux_bio, faero_ocn, fiso_ocn
+      use icedrv_flux, only: rdpnd
       use icedrv_init, only: tmask
       use icedrv_state, only: trcrn, vsnon, aicen, vicen
       use icedrv_state, only: aice, aice0, trcr_depend, n_trcr_strata
@@ -896,7 +897,8 @@
                          aice=aice(i),             fsalt=fsalt(i),           &
                          first_ice=first_ice(i,:),                           &
                          flux_bio=flux_bio(i,1:nbtrcr),                      &
-                         closing=closing(i),       Tf=Tf(i) )
+                         closing=closing(i),       Tf=Tf(i),                 &
+                         rdpnd=rdpnd(i))
 
          endif ! tmask
 
@@ -935,7 +937,8 @@
                          araftn=araftn(i,:),       vraftn=vraftn(i,:),       &
                          aice=aice(i),             fsalt=fsalt(i),           &
                          first_ice=first_ice(i,:),                           &
-                         flux_bio=flux_bio(i,1:nbtrcr), Tf = Tf(i))
+                         flux_bio=flux_bio(i,1:nbtrcr), Tf = Tf(i),          &
+                         rdpnd=rdpnd(i))
 
          endif ! tmask
 
