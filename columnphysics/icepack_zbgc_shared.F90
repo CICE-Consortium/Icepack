@@ -641,7 +641,9 @@
          zbgc_snow  , & ! bio flux from snow to ice per cat (mmol/m^2/s)
          zbgc_atm   , & ! bio flux from atm to ice per cat (mmol/m^2/s)
          ice_bio_net, & ! integrated ice tracers mmol or mg/m^2)
-         snow_bio_net, &! integrated snow tracers mmol or mg/m^2)
+         snow_bio_net   ! integrated snow tracers mmol or mg/m^2)
+
+      real (kind=dbl_kind), optional, dimension(:), intent(inout):: &
          bioPorosityIceCell, & ! average cell porosity on interface points
          bioSalinityIceCell, & ! average cell salinity on interface points (ppt)
          bioTemperatureIceCell ! average cell temperature on interface points (oC)
@@ -651,7 +653,10 @@
          PP_net     , & ! net PP (mg C/m^2/d)  times aice
          grow_net   , & ! net specific growth (m/d) times vice
          upNO       , & ! tot nitrate uptake rate (mmol/m^2/d) times aice
-         upNH       , & ! tot ammonium uptake rate (mmol/m^2/d) times aice
+         upNH           ! tot ammonium uptake rate (mmol/m^2/d) times aice
+
+      ! cumulative variables and rates
+      real (kind=dbl_kind), optional, intent(inout):: &
          totalChla      ! total Chla (mg chla/m^2)
 
       ! local variables
@@ -699,13 +704,13 @@
       enddo     ! mm
       ! diagnostics : mean cell bio interface grid profiles
       do k = 1, nblyr+1
-         bioPorosityIceCell(k) = bioPorosityIceCell(k) + iphin(k)*vicen
-         bioSalinityIceCell(k) = bioSalinityIceCell(k) + iSin(k)*vicen
-         bioTemperatureIceCell(k) = bioTemperatureIceCell(k) + iTin(k)*vicen
+         if (present(bioPorosityIceCell)) bioPorosityIceCell(k) = bioPorosityIceCell(k) + iphin(k)*vicen
+         if (present(bioSalinityIceCell)) bioSalinityIceCell(k) = bioSalinityIceCell(k) + iSin(k)*vicen
+         if (present(bioTemperatureIceCell)) bioTemperatureIceCell(k) = bioTemperatureIceCell(k) + iTin(k)*vicen
       end do
       if (solve_zbgc) then
          do mm = 1, n_algae
-            totalChla   = totalChla + ice_bio_net(nlt_bgc_N(mm))*R_chl2N(mm)
+            if (present(totalChla)) totalChla = totalChla + ice_bio_net(nlt_bgc_N(mm))*R_chl2N(mm)
             do k = 1, nblyr+1
                tmp      = iphin(k)*trcrn(nt_fbri)*vicen*zspace(k)*secday
                PP_net   = PP_net   + grow_alg(k,mm)*tmp &

@@ -197,7 +197,7 @@
          !change to  inout when updating ocean fields
          ocean_bio      ! ocean concentrations (mmol/m^3)
 
-      real (kind=dbl_kind), dimension (nbtrcr), intent(out) :: &
+      real (kind=dbl_kind), optional, dimension (:), intent(out) :: &
          !change to  inout when updating ocean fields
          ocean_bio_dh   ! ocean concentrations * hbrine * phi (mmol/m^2)
 
@@ -208,13 +208,15 @@
          PP_net     , & ! net PP (mg C/m^2/d)  times aice
          grow_net   , & ! net specific growth (m/d) times vice
          upNO       , & ! tot nitrate uptake rate (mmol/m^2/d) times aice
-         upNH       , & ! tot ammonium uptake rate (mmol/m^2/d) times aice
+         upNH           ! tot ammonium uptake rate (mmol/m^2/d) times aice
+
+      real (kind=dbl_kind), optional, intent(inout):: &
          totalChla      ! total chla (mg chla/m^2)
 
-      real (kind=dbl_kind), dimension (nblyr+1), intent(inout):: &  ! diagnostics
-          bioPorosityIceCell , & ! porosity on vertical interface points
-          bioSalinityIceCell , & ! salinity on vertical interface points (ppt)
-          bioTemperatureIceCell  ! temperature on vertical interface points (oC)
+      real (kind=dbl_kind), optional, dimension (nblyr+1), intent(inout):: &  ! diagnostics
+         bioPorosityIceCell , & ! porosity on vertical interface points
+         bioSalinityIceCell , & ! salinity on vertical interface points (ppt)
+         bioTemperatureIceCell  ! temperature on vertical interface points (oC)
 
       logical (kind=log_kind), intent(in) :: &
          first_ice      ! initialized values should be used
@@ -265,6 +267,7 @@
       write_flux_diag = .false.
 
       call bgc_carbon_sum(nblyr, hbri_old, trcrn(:), carbonInitial,n_doc,n_dic,n_algae,n_don)
+      if (icepack_warnings_aborted(subname)) return
 
       if (aice_old > puny) then
           hsnow_i = vsno_old/aice_old
@@ -324,7 +327,9 @@
       enddo
 
       call bgc_carbon_sum(nblyr, hbri, trcrn(:), carbonFinal,n_doc,n_dic,n_algae,n_don)
+      if (icepack_warnings_aborted(subname)) return
       call bgc_carbon_flux(flux_bio_atm,flux_bion,n_doc,n_dic,n_algae,n_don,carbonFlux)
+      if (icepack_warnings_aborted(subname)) return
 
       carbonError = carbonInitial-carbonFlux*dt-carbonFinal
 
@@ -379,7 +384,6 @@
          !call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          call icepack_warnings_add(subname//" zbio: Carbon conservation failure after z_biogeochemistry")
       endif
-
       if (icepack_warnings_aborted(subname)) return
 
       if (write_flux_diag) then
@@ -408,7 +412,6 @@
             enddo
          endif
       endif
-
       if (icepack_warnings_aborted(subname)) return
 
       call merge_bgc_fluxes   (dt,           nblyr,      &
@@ -450,6 +453,7 @@
             enddo
          endif
       endif
+      if (icepack_warnings_aborted(subname)) return
 
       end subroutine zbio
 
@@ -645,6 +649,7 @@
       rphi_sk    = c1/phi_sk
       PVt        = c0
       iTin       = Tf
+      ice_growth = (congel-meltb)/dt
 
       do nn = 1, nbtrcr
          cinit     (nn) = c0
@@ -666,7 +671,6 @@
             cling (nn) = c1
          endif
 
-         ice_growth = (congel-meltb)/dt
          cinit  (nn) = trcrn(bio_index(nn)) * sk_l * rphi_sk
          cinit_v(nn) = cinit(nn)/sk_l
          if (cinit(nn) < c0) then
@@ -908,7 +912,7 @@
          ocean_bio  , & ! ocean concentrations (mmol/m^3)
          bphin          ! Porosity on the bgrid
 
-      real (kind=dbl_kind), dimension (:), intent(out) :: &
+      real (kind=dbl_kind), optional, dimension (:), intent(out) :: &
          ocean_bio_dh   ! ocean concentrations * hbrine * phi (mmol/m^2)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1053,7 +1057,7 @@
       darcyV = c0
       C_top(:) = c0
       C_bot(:) = c0
-      ocean_bio_dh(:) = c0
+      if (present(ocean_bio_dh)) ocean_bio_dh(:) = c0
       mobile(:) = c0
       conserve_C(:) = .true.
       nitrification(:) = c0
@@ -1177,7 +1181,7 @@
          endif
 
          C_bot(m) = ocean_bio(m)*hbri_old*iphin_N(nblyr+1)
-         ocean_bio_dh(m) = C_bot(m)
+         if (present(ocean_bio_dh)) ocean_bio_dh(m) = C_bot(m)
 
       enddo             ! m
 

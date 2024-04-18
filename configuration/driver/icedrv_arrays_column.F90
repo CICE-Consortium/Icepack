@@ -209,10 +209,6 @@
          chl_net    , & ! Total chla (mg chla/m^2) per grid cell
          NO_net         ! Total nitrate per grid cell
 
-      real (kind=dbl_kind), &
-         dimension (nx,ncat), public :: &
-         sice_rho       ! avg sea ice density  (kg/m^3)  ! ech: diagnostic only?
-
       real (kind=dbl_kind), dimension (nx,nblyr+1,ncat), public :: &
          zfswin         ! Shortwave flux into layers interpolated on bio grid  (W/m^2)
 

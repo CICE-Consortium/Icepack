@@ -572,7 +572,7 @@
          bgc_flux_type_in, z_tracers_in, scale_bgc_in, solve_zbgc_in, &
          modal_aero_in, use_macromolecules_in, restartbgc_in, skl_bgc_in, &
          solve_zsal_in, grid_o_in, l_sk_in, &
-         grid_oS_in, l_skS_in,  dEdd_algae_in, &
+         initbio_frac_in, grid_oS_in, l_skS_in,  dEdd_algae_in, &
          phi_snow_in, T_max_in, fsal_in, &
          fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
          op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
@@ -882,6 +882,7 @@
          grid_o_in      , & ! for bottom flux
          l_sk_in        , & ! characteristic diffusive scale (zsalinity) (m)
          grid_o_t_in    , & ! top grid point length scale
+         initbio_frac_in, & ! fraction of ocean tracer concentration used to initialize tracer
          phi_snow_in        ! snow porosity at the ice/snow interface
 
       real (kind=dbl_kind), intent(in), optional :: &
@@ -1359,6 +1360,7 @@
       if (present(l_sk_in)              ) l_sk             = l_sk_in
       if (present(grid_o_t_in)          ) grid_o_t         = grid_o_t_in
       if (present(frazil_scav_in)       ) frazil_scav      = frazil_scav_in
+      if (present(initbio_frac_in)      ) initbio_frac     = initbio_frac_in
       if (present(grid_oS_in)           ) grid_oS          = grid_oS_in
       if (present(l_skS_in)             ) l_skS            = l_skS_in
       if (present(phi_snow_in)          ) phi_snow         = phi_snow_in

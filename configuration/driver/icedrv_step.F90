@@ -435,7 +435,7 @@
       use icedrv_arrays_column, only: first_ice, bgrid, cgrid, igrid
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, &
-                                    nltrcr, nx, nfsd
+                                    nx, nfsd
       use icedrv_flux, only: fresh, frain, fpond, frzmlt, frazil, frz_onset
       use icedrv_flux, only: fsalt, Tf, sss, salinz, fhocn, rside, fside, wlat
       use icedrv_flux, only: meltl, frazil_diag, flux_bio, faero_ocn, fiso_ocn
@@ -484,7 +484,7 @@
             wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
             call icepack_step_therm2(dt=dt, ncat=ncat,                &
-                         nltrcr=nltrcr, nilyr=nilyr, nslyr=nslyr,     &
+                         nilyr=nilyr, nslyr=nslyr, nbtrcr=nbtrcr,     &
                          hin_max=hin_max(:), nblyr=nblyr,             &
                          aicen=aicen(i,:),                            &
                          vicen=vicen(i,:),                            &
@@ -1333,13 +1333,13 @@
       use icedrv_arrays_column, only: fbio_snoice, fbio_atmice, ocean_bio
       use icedrv_arrays_column, only: first_ice, fswpenln, bphi, bTiz, ice_bio_net
       use icedrv_arrays_column, only: snow_bio_net, fswthrun
-      use icedrv_arrays_column, only: ocean_bio_all, sice_rho
+      use icedrv_arrays_column, only: ocean_bio_all
       use icedrv_arrays_column, only: bgrid, igrid, icgrid, cgrid
       use icepack_intfc, only: icepack_biogeochemistry, icepack_load_ocean_bio_array
       use icedrv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat
       use icedrv_domain_size, only: n_doc, n_dic,  n_don, n_fed, n_fep, nx
       use icedrv_flux, only: meltbn, melttn, congeln, snoicen
-      use icedrv_flux, only: sst, sss, fsnow, meltsn
+      use icedrv_flux, only: sst, sss, Tf, fsnow, meltsn
       use icedrv_flux, only: hin_old, flux_bio, flux_bio_atm, faero_atm
       use icedrv_flux, only: nit, amm, sil, dmsp, dms, algalN, doc, don, dic, fed, fep, zaeros, hum
       use icedrv_state, only: aicen_init, vicen_init, aicen, vicen, vsnon
@@ -1417,10 +1417,7 @@
       ! Define ocean concentrations for tracers used in simulation
       do i = 1, nx
 
-         call icepack_load_ocean_bio_array(max_nbtrcr=max_nbtrcr,&
-                      max_algae = max_algae, max_don  = max_don, &
-                      max_doc   = max_doc,   max_dic  = max_dic, &
-                      max_aero  = max_aero,  max_fe   = max_fe,  &
+         call icepack_load_ocean_bio_array(                 &
                       nit = nit(i),   amm    = amm(i),      &
                       sil = sil(i),   dmsp   = dmsp(i),     &
                       dms = dms(i),   algalN = algalN(i,:), &
@@ -1429,6 +1426,7 @@
                       fep = fep(i,:), zaeros = zaeros(i,:), &
                       ocean_bio_all=ocean_bio_all(i,:),     &
                       hum=hum(i))
+! handled below
 !         call icepack_warnings_flush(nu_diag)
 !         if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
 !             file=__FILE__,line= __LINE__)
@@ -1442,11 +1440,8 @@
             enddo  ! mm
          endif
 
-         call icepack_biogeochemistry(dt=dt, ntrcr=ntrcr, nbtrcr=nbtrcr,    &
+         call icepack_biogeochemistry(dt=dt,                    &
                       ncat=ncat, nblyr=nblyr, nilyr=nilyr, nslyr=nslyr,     &
-                      n_algae=n_algae, n_zaero=n_zaero,                     &
-                      n_doc=n_doc, n_dic=n_dic, n_don=n_don,                &
-                      n_fed=n_fed, n_fep=n_fep,                             &
                       bgrid=bgrid, igrid=igrid, icgrid=icgrid, cgrid=cgrid, &
                       upNO         = upNO(i),                   &
                       upNH         = upNH(i),                   &
@@ -1470,13 +1465,13 @@
                       ice_bio_net  = ice_bio_net(i,1:nbtrcr),   &
                       snow_bio_net = snow_bio_net(i,1:nbtrcr),  &
                       fswthrun     = fswthrun(i,:),             &
-                      sice_rho     = sice_rho(i,:),             &
                       meltbn       = meltbn(i,:),               &
                       melttn       = melttn(i,:),               &
                       congeln      = congeln(i,:),              &
                       snoicen      = snoicen(i,:),              &
                       sst          = sst(i),                    &
                       sss          = sss(i),                    &
+                      Tf           = Tf(i),                     &
                       fsnow        = fsnow(i),                  &
                       meltsn       = meltsn(i,:),               &
                       hin_old      = hin_old(i,:),              &
@@ -1489,9 +1484,8 @@
                       vsnon        = vsnon(i,:),                &
                       aice0        = aice0(i),                  &
                       trcrn        = trcrn(i,1:ntrcr,:),        &
-                      vsnon_init   = vsnon_init(i,:),           &
-                      skl_bgc      = skl_bgc)
-
+                      vsnon_init   = vsnon_init(i,:))
+! handled below
 !         call icepack_warnings_flush(nu_diag)
 !         if (icepack_warnings_aborted()) call icedrv_system_abort(i, istep1, subname, &
 !             __FILE__, __LINE__)
