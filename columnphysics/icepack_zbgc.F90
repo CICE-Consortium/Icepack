@@ -576,6 +576,7 @@
       end subroutine icepack_init_bgc
 
 !=======================================================================
+#ifdef NEWINITZBGC
 !autodocument_start icepack_init_zbgc
 !
 
@@ -1294,6 +1295,149 @@
          bio_index (nlt_bgc) = nt_bgc
 
       end subroutine icepack_init_bgc_trcr
+#else
+!=======================================================================
+!autodocument_start icepack_init_zbgc
+!
+
+      subroutine icepack_init_zbgc ( &
+                 R_Si2N_in, R_S2N_in, R_Fe2C_in, R_Fe2N_in, R_C2N_in, R_C2N_DON_in, &
+                 R_chl2N_in, F_abs_chl_in, R_Fe2DON_in, R_Fe2DOC_in, chlabs_in, &
+                 alpha2max_low_in, beta2max_in, mu_max_in, fr_graze_in, mort_pre_in, &
+                 mort_Tdep_in, k_exude_in, K_Nit_in, K_Am_in, K_sil_in, K_Fe_in, &
+                 f_don_in, kn_bac_in, f_don_Am_in, f_doc_in, f_exude_in, k_bac_in, &
+                 grow_Tdep_in, zbgc_frac_init_in, &
+                 zbgc_init_frac_in, tau_ret_in, tau_rel_in, bgc_tracer_type_in, &
+                 fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, T_max_in, &
+                 op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, fr_dFe_in, &
+                 k_nitrif_in, t_iron_conv_in, max_loss_in, max_dfe_doc1_in, &
+                 fr_resp_s_in, y_sk_DMS_in, t_sk_conv_in, t_sk_ox_in, fsal_in)
+
+      real (kind=dbl_kind), optional :: R_C2N_in(:)        ! algal C to N (mole/mole)
+      real (kind=dbl_kind), optional :: R_chl2N_in(:)      ! 3 algal chlorophyll to N (mg/mmol)
+      real (kind=dbl_kind), optional :: F_abs_chl_in(:)    ! to scale absorption in Dedd
+      real (kind=dbl_kind), optional :: R_C2N_DON_in(:)    ! increase compare to algal R_Fe2C
+      real (kind=dbl_kind), optional :: R_Si2N_in(:)       ! algal Sil to N (mole/mole)
+      real (kind=dbl_kind), optional :: R_S2N_in(:)        ! algal S to N (mole/mole)
+      real (kind=dbl_kind), optional :: R_Fe2C_in(:)       ! algal Fe to carbon (umol/mmol)
+      real (kind=dbl_kind), optional :: R_Fe2N_in(:)       ! algal Fe to N (umol/mmol)
+      real (kind=dbl_kind), optional :: R_Fe2DON_in(:)     ! Fe to N of DON (nmol/umol)
+      real (kind=dbl_kind), optional :: R_Fe2DOC_in(:)     ! Fe to C of DOC (nmol/umol)
+
+      real (kind=dbl_kind), optional :: fr_resp_in         ! frac of algal growth lost due to respiration
+      real (kind=dbl_kind), optional :: algal_vel_in       ! 0.5 cm/d(m/s) Lavoie 2005  1.5 cm/day
+      real (kind=dbl_kind), optional :: R_dFe2dust_in      ! g/g (3.5% content) Tagliabue 2009
+      real (kind=dbl_kind), optional :: dustFe_sol_in      ! solubility fraction
+      real (kind=dbl_kind), optional :: T_max_in           ! maximum temperature (C)
+      real (kind=dbl_kind), optional :: op_dep_min_in      ! Light attenuates for optical depths exceeding min
+      real (kind=dbl_kind), optional :: fr_graze_s_in      ! fraction of grazing spilled or slopped
+      real (kind=dbl_kind), optional :: fr_graze_e_in      ! fraction of assimilation excreted
+      real (kind=dbl_kind), optional :: fr_mort2min_in     ! fractionation of mortality to Am
+      real (kind=dbl_kind), optional :: fr_dFe_in          ! fraction of remineralized nitrogen
+                                                           ! (in units of algal iron)
+      real (kind=dbl_kind), optional :: k_nitrif_in        ! nitrification rate (1/day)
+      real (kind=dbl_kind), optional :: t_iron_conv_in     ! desorption loss pFe to dFe (day)
+      real (kind=dbl_kind), optional :: max_loss_in        ! restrict uptake to % of remaining value
+      real (kind=dbl_kind), optional :: max_dfe_doc1_in    ! max ratio of dFe to saccharides in the ice (nM Fe/muM C)
+      real (kind=dbl_kind), optional :: fr_resp_s_in       ! DMSPd fraction of respiration loss as DMSPd
+      real (kind=dbl_kind), optional :: y_sk_DMS_in        ! fraction conversion given high yield
+      real (kind=dbl_kind), optional :: t_sk_conv_in       ! Stefels conversion time (d)
+      real (kind=dbl_kind), optional :: t_sk_ox_in         ! DMS oxidation time (d)
+      real (kind=dbl_kind), optional :: fsal_in            ! salinity limitation factor (1)
+
+      real (kind=dbl_kind), optional :: chlabs_in(:)       ! chla absorption 1/m/(mg/m^3)
+      real (kind=dbl_kind), optional :: alpha2max_low_in(:)  ! light limitation (1/(W/m^2))
+      real (kind=dbl_kind), optional :: beta2max_in(:)     ! light inhibition (1/(W/m^2))
+      real (kind=dbl_kind), optional :: mu_max_in(:)       ! maximum growth rate (1/d)
+      real (kind=dbl_kind), optional :: grow_Tdep_in(:)    ! T dependence of growth (1/C)
+      real (kind=dbl_kind), optional :: fr_graze_in(:)     ! fraction of algae grazed
+      real (kind=dbl_kind), optional :: mort_pre_in(:)     ! mortality (1/day)
+      real (kind=dbl_kind), optional :: mort_Tdep_in(:)    ! T dependence of mortality (1/C)
+      real (kind=dbl_kind), optional :: k_exude_in(:)      ! algal carbon  exudation rate (1/d)
+      real (kind=dbl_kind), optional :: K_Nit_in(:)        ! nitrate half saturation (mmol/m^3)
+      real (kind=dbl_kind), optional :: K_Am_in(:)         ! ammonium half saturation (mmol/m^3)
+      real (kind=dbl_kind), optional :: K_Sil_in(:)        ! silicon half saturation (mmol/m^3)
+      real (kind=dbl_kind), optional :: K_Fe_in(:)         ! iron half saturation  or micromol/m^3
+      real (kind=dbl_kind), optional :: f_don_in(:)        ! fraction of spilled grazing to DON
+      real (kind=dbl_kind), optional :: kn_bac_in(:)       ! Bacterial degredation of DON (1/d)
+      real (kind=dbl_kind), optional :: f_don_Am_in(:)     ! fraction of remineralized DON to Am
+      real (kind=dbl_kind), optional :: f_doc_in(:)        ! fraction of mort_N that goes to each doc pool
+      real (kind=dbl_kind), optional :: f_exude_in(:)      ! fraction of exuded carbon to each DOC pool
+      real (kind=dbl_kind), optional :: k_bac_in(:)        ! Bacterial degredation of DOC (1/d)
+
+      real (kind=dbl_kind), optional :: zbgc_frac_init_in(:)  ! initializes mobile fraction
+      real (kind=dbl_kind), optional :: bgc_tracer_type_in(:) ! described tracer in mobile or stationary phases
+      real (kind=dbl_kind), optional :: zbgc_init_frac_in(:)  ! fraction of ocean tracer  concentration in new ice
+      real (kind=dbl_kind), optional :: tau_ret_in(:)         ! retention timescale  (s), mobile to stationary phase
+      real (kind=dbl_kind), optional :: tau_rel_in(:)         ! release timescale    (s), stationary to mobile phase
+
+!autodocument_end
+
+      character(len=*),parameter :: subname='(icepack_init_zbgc)'
+
+      !--------
+
+      if (present(R_C2N_in))     R_C2N(:)     = R_C2N_in(:)
+      if (present(R_chl2N_in))   R_chl2N(:)   = R_chl2N_in(:)
+      if (present(F_abs_chl_in)) F_abs_chl(:) = F_abs_chl_in(:)
+      if (present(R_C2N_DON_in)) R_C2N_DON(:) = R_C2N_DON_in(:)
+      if (present(R_Si2N_in))    R_Si2N(:)    = R_Si2N_in(:)
+      if (present(R_S2N_in))     R_S2N(:)     = R_S2N_in(:)
+      if (present(R_Fe2C_in))    R_Fe2C(:)    = R_Fe2C_in(:)
+      if (present(R_Fe2N_in))    R_Fe2N(:)    = R_Fe2N_in(:)
+      if (present(R_Fe2DON_in))  R_Fe2DON(:)  = R_Fe2DON_in(:)
+      if (present(R_Fe2DOC_in))  R_Fe2DOC(:)  = R_Fe2DOC_in(:)
+
+      if (present(fr_resp_in))      fr_resp      = fr_resp_in
+      if (present(algal_vel_in))    algal_vel    = algal_vel_in
+      if (present(R_dFe2dust_in))   R_dFe2dust   = R_dFe2dust_in
+      if (present(dustFe_sol_in))   dustFe_sol   = dustFe_sol_in
+      if (present(T_max_in))        T_max        = T_max_in
+      if (present(op_dep_min_in))   op_dep_min   = op_dep_min_in
+      if (present(fr_graze_s_in))   fr_graze_s   = fr_graze_s_in
+      if (present(fr_graze_e_in))   fr_graze_e   = fr_graze_e_in
+      if (present(fr_mort2min_in))  fr_mort2min  = fr_mort2min_in
+      if (present(fr_dFe_in))       fr_dFe       = fr_dFe_in
+      if (present(k_nitrif_in))     k_nitrif     = k_nitrif_in
+      if (present(t_iron_conv_in))  t_iron_conv  = t_iron_conv_in
+      if (present(max_loss_in))     max_loss     = max_loss_in
+      if (present(max_dfe_doc1_in)) max_dfe_doc1 = max_dfe_doc1_in
+      if (present(fr_resp_s_in))    fr_resp_s    = fr_resp_s_in
+      if (present(y_sk_DMS_in))     y_sk_DMS     = y_sk_DMS_in
+      if (present(t_sk_conv_in))    t_sk_conv    = t_sk_conv_in
+      if (present(t_sk_ox_in))      t_sk_ox      = t_sk_ox_in
+      if (present(fsal_in))         fsal         = fsal_in
+
+      if (present(chlabs_in))    chlabs(:)    = chlabs_in(:)
+      if (present(alpha2max_low_in)) alpha2max_low(:) = alpha2max_low_in(:)
+      if (present(beta2max_in))  beta2max(:)  = beta2max_in(:)
+      if (present(mu_max_in))    mu_max(:)    = mu_max_in(:)
+      if (present(grow_Tdep_in)) grow_Tdep(:) = grow_Tdep_in(:)
+      if (present(fr_graze_in))  fr_graze(:)  = fr_graze_in(:)
+      if (present(mort_pre_in))  mort_pre(:)  = mort_pre_in(:)
+      if (present(mort_Tdep_in)) mort_Tdep(:) = mort_Tdep_in(:)
+      if (present(k_exude_in))   k_exude(:)   = k_exude_in(:)
+      if (present(K_Nit_in))     K_Nit(:)     = K_Nit_in(:)
+      if (present(K_Am_in))      K_Am(:)      = K_Am_in(:)
+      if (present(K_Sil_in))     K_Sil(:)     = K_Sil_in(:)
+      if (present(K_Fe_in))      K_Fe(:)      = K_Fe_in(:)
+      if (present(f_don_in))     f_don(:)     = f_don_in(:)
+      if (present(kn_bac_in))    kn_bac(:)    = kn_bac_in(:)
+      if (present(f_don_Am_in))  f_don_Am(:)  = f_don_Am_in(:)
+      if (present(f_doc_in))     f_doc(:)     = f_doc_in(:)
+      if (present(f_exude_in))   f_exude(:)   = f_exude_in(:)
+      if (present(k_bac_in))     k_bac(:)     = k_bac_in(:)
+
+      if (present(zbgc_frac_init_in))  zbgc_frac_init(:)  = zbgc_frac_init_in(:)
+      if (present(bgc_tracer_type_in)) bgc_tracer_type(:) = bgc_tracer_type_in(:)
+      if (present(zbgc_init_frac_in))  zbgc_init_frac(:)  =  zbgc_init_frac_in(:)
+      if (present(tau_ret_in)) tau_ret(:) = tau_ret_in(:)
+      if (present(tau_rel_in)) tau_rel(:) = tau_rel_in(:)
+
+
+      end subroutine icepack_init_zbgc
+
+#endif
 
 !=======================================================================
 !autodocument_start icepack_biogeochemistry
@@ -1480,6 +1624,7 @@
                do mm = 1,nbtrcr
                   trcrn(nt_zbgc_frac-1+mm,n) = zbgc_frac_init(mm)
                enddo
+            !endif
          endif
 
          if (aicen(n) > puny) then
