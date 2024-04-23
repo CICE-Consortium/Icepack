@@ -9,11 +9,12 @@
     ice_ic         = 'default'
     restart        = .false.
     restart_dir    = './restart/'
+    restart_format = 'bin'
     dumpfreq       = 'y'
     dump_last      = .false.
     diagfreq       = 24
     diag_file      = 'ice_diag'
-    history_cdf    = .false.
+    history_format = 'none'
     cpl_bgc        = .false.
     conserv_check  = .false.
 /
@@ -37,6 +38,7 @@
 &thermo_nml
     kitd              = 1
     ktherm            = 2
+    hi_min            = 0.01
     ksno              = 0.3d0
     conduct           = 'bubbly'
     a_rapid_mode      =  0.5e-3
@@ -45,6 +47,7 @@
     dSdt_slow_mode    = -5.0e-8
     phi_c_slow_mode   =    0.05
     phi_i_mushy       =    0.85
+    Tliquidus_max     = -0.1d0
     floediam          = 300.0d0
     hfrazilmin        = 0.05d0
 /
@@ -66,6 +69,7 @@
     sw_redist       = .false.
     sw_frac         = 0.9d0
     sw_dtemp        = 0.02d0
+    snw_ssp_table   = 'unknown_snw_ssp_table'
 /
 
 &ponds_nml
@@ -106,6 +110,7 @@
     calc_dragio     = .false.
     emissivity      = 0.985
     fbot_xfer_type  = 'constant'
+    cpl_frazil      = 'fresh_ice_correction'
     update_ocn_f    = .false.
     l_mpond_fresh   = .false.
     tfrz_option     = 'mushy'
@@ -120,6 +125,7 @@
     atm_data_type   = 'clim'
     ocn_data_type   = 'SHEBA'
     bgc_data_type   = 'default'
+    lateral_flux_type   = 'uniform_ice'
     fyear_init      = 2015
     ycycle          = 1
     data_dir        = '/Users/ftuser/Desktop/CICE-Consortium/ICEPACK_DATA/'

@@ -2,8 +2,8 @@
 
 .. _case_settings:
 
-Case Settings
-=====================
+Case Settings, Model Namelist, and CPPs
+====================================================
 
 There are two important files that define the case, **icepack.settings** and 
 **icepack_in**.  **icepack.settings** is a list of env variables that define many
@@ -31,6 +31,7 @@ can be found in :ref:`cicecpps`.  The following CPPs are available.
    "**General Macros**", ""
    "NO_I8", "Converts ``integer*8`` to ``integer*4``."
    "NO_R16", "Converts ``real*16`` to ``real*8``."
+   "NO_SNICARHC", "Does not compile hardcoded (HC) 5 band snicar tables tables needed by ``shortwave=dEdd_snicar_ad``. May reduce compile time."
    "USE_NETCDF", "Turns on netcdf capabilities in Icepack.  By default and generally, Icepack does not need netcdf."
    "",""
    "**Application Macros**", ""
@@ -107,14 +108,15 @@ can be modified as needed.
    "TRDON", "0,1", "number of dissolved organic nitrogen", "0"
    "TRFEP", "0,1,2", "number of particulate iron tracers", "0"
    "TRFED", "0,1,2", "number of dissolved iron tracers", "0"
+   "ICE_SNICARHC", "true,false", "include hardcoded (HC) snicar tables", "false"
    "ICE_BLDDEBUG", "true,false", "turn on compile debug flags", "false"
    "ICE_COVERAGE", "true,false", "turn on code coverage flags", "false"
 
 
 .. _tabnamelist:
 
-Table of Namelist Inputs
---------------------------
+Tables of Namelist Options
+----------------------------
 
 The Icepack driver reads a namelist input file, **icepack_in**, consisting of several namelist groups.  The tables below
 summarize the different groups and the variables in each group.  The variables are organized alphabetically 
@@ -140,7 +142,8 @@ setup_nml
    "", "``y``", "write restart every ``dumpfreq_n`` years", ""
    "``dump_last``", "true/false", "write restart at end of run", "false"
    "``dt``", "seconds", "thermodynamics time step length", "3600."
-   "``history_cdf``", "logical", "netcdf history output", "``.false.``"
+   "``history_format``", "``cdf``", "history file output in netcdf format", "``none``"
+   "","``none``","no history output",""
    "``ice_ic``", "``default``", "latitude and sst dependent initial condition", "``default``"
    "", "``none``", "no ice", ""
    "", "'path/file'", "restart file name", ""
@@ -150,6 +153,8 @@ setup_nml
    "``restart``", "logical", "initialize using restart file", "``.false.``"
    "``restart_dir``", "string", "path to restart directory", "'./'"
    "``restart_file``", "string", "output file prefix for restart dump", "'iced'"
+   "``restart_format``", "``bin``", "restart file output in binary format", "``bin``"
+   "","``cdf``","restart file output in netcdf format",""
    "``use_leap_years``", "logical", "include leap days", "``.false.``"
    "``year_init``", "integer", "the initial year if not using restart", "0"
    "", "", "", ""
@@ -203,6 +208,7 @@ thermo_nml
    "``dSdt_slow_mode``", "real", "slow drainage strength parameter m/s/K", "-1.5e-7"
    "``floediam``", "real", "effective floe diameter for lateral melt in m", "300.0"
    "``hfrazilmin``", "real", "min thickness of new frazil ice in m", "0.05"
+   "``hi_min``", "real", "minimum ice thickness allowed for thermo in m", "0.01"
    "``kitd``", "``0``", "delta function ITD approximation", "1"
    "", "``1``", "linear remapping ITD approximation", ""
    "``ksno``", "real", "snow thermal conductivity", "0.3"
@@ -212,6 +218,8 @@ thermo_nml
    "``phi_c_slow_mode``", ":math:`0<\phi_c < 1`", "critical liquid fraction", "0.05"
    "``phi_i_mushy``", ":math:`0<\phi_i < 1`", "solid fraction at lower boundary", "0.85"
    "``Rac_rapid_mode``", "real", "critical Rayleigh number", "10.0"
+   "``Tliquidus_max``", "real", "maximum liquidus temperature of mush (C)", "0.0"
+   "``tscale_pnd_drain``", "real", "mushy pond macroscopic drainage timescale in days", "10."
    "", "", "", ""
 
 
@@ -242,7 +250,7 @@ shortwave_nml
 
    "", "", "", ""
    "``ahmax``", "real", "albedo is constant above this thickness in meters", "0.3"
-   "``albedo_type``", "`ccsm3``", "NCAR CCSM3 albedo implementation", "``ccsm3``"
+   "``albedo_type``", "``ccsm3``", "NCAR CCSM3 albedo implementation", "``ccsm3``"
    "", "``constant``", "four constant albedos", ""
    "``albicei``", ":math:`0<\alpha <1`", "near infrared ice albedo for thicker ice", "0.36"
    "``albicev``", ":math:`0<\alpha <1`", "visible ice albedo for thicker ice", "0.78"
@@ -255,7 +263,10 @@ shortwave_nml
    "``R_pnd``", "real", "tuning parameter for ponded sea ice albedo from Delta-Eddington shortwave", "0.0"
    "``R_snw``", "real", "tuning parameter for snow (broadband albedo) from Delta-Eddington shortwave", "1.5"
    "``shortwave``", "``ccsm3``", "NCAR CCSM3 shortwave distribution method", "``dEdd``"
-   "", "``dEdd``", "Delta-Eddington method", ""
+   "", "``dEdd``", "Delta-Eddington method (3-band)", ""
+   "", "``dEdd_snicar_ad``", "Delta-Eddington method with 5-band snow", ""
+   "``snw_ssp_table``", "``snicar``", "lookup table for `dEdd_snicar_ad`", ""
+   "", "``test``", "reduced lookup table for `dEdd_snicar_ad` testing", ""
    "``sw_dtemp``", "real", "temperature from melt for sw_redist", "0.02"
    "``sw_frac``", "real", "fraction of shortwave redistribution", "0.9"
    "``sw_redist``", "logical", "shortwave redistribution", ".false."
@@ -269,7 +280,7 @@ ponds_nml
    :widths: 15, 15, 30, 15 
 
    "", "", "", ""
-   "``dpscale``", "real", "time scale for flushing in permeable ice", "1.0"
+   "``dpscale``", "real", "scaling factor for flushing in permeable ice (ktherm=1)", "1.e-3"
    "``frzpnd``", "``cesm``", "CESM pond refreezing forumulation", "``cesm``"
    "", "``hlid``", "Stefan refreezing with pond ice thickness", ""
    "``hp1``", "real", "critical ice lid thickness for topo ponds in m", "0.01"
@@ -333,6 +344,9 @@ forcing_nml
    "``calc_strair``", "``.false.``", "read wind stress and speed from files", "``.true.``"
    "", "``.true.``", "calculate wind stress and speed", ""
    "``calc_Tsfc``", "logical", "calculate surface temperature", "``.true.``"
+   "``cpl_frazil``", "``external``", "frazil water/salt fluxes are handled outside of Icepack", "``fresh_ice_correction``"
+   "", "``fresh_ice_correction``", "correct fresh-ice frazil water/salt fluxes for mushy physics", ""
+   "", "``internal``", "send full frazil water/salt fluxes for mushy physics", ""
    "``data_dir``", "string", "path to forcing data directory", "' '"
    "``default_season``", "``summer``", "forcing initial summer values", "``winter``"
    "", "``winter``", "forcing initial winter values", ""
@@ -342,6 +356,8 @@ forcing_nml
    "``formdrag``", "logical", "calculate form drag", "``.false.``"
    "``fyear_init``", "integer", "first year of atmospheric forcing data", "1998"
    "``highfreq``", "logical", "high-frequency atmo coupling", "``.false.``"
+   "``lateral_flux_type``", "``uniform_ice``", "flux ice with identical properties into the cell when closing (Icepack only)", ""
+   "", "``none``", "advect open water into the cell when closing (Icepack only)", ""
    "``ice_data_file``", "string", "file containing ice opening, closing data", "' '"
    "``l_mpond_fresh``", "``.false.``", "release pond water immediately to ocean", "``.false.``"
    "", "``true``", "retain (topo) pond water until ponds drain", ""
@@ -360,7 +376,8 @@ forcing_nml
    "``restore_ocn``", "logical", "restore sst to data", "``.false.``"
    "``saltflux_option``", "``constant``","salt flux is referenced to a constant salinity","``constant``"
    "","``prognostic``","use actual sea ice bulk salinity in flux"
-   "``tfrz_option``", "``linear_salt``", "linear function of salinity (ktherm=1)", "``mushy``"
+   "``tfrz_option``","``constant``", "constant ocean freezing temperature (Tocnfrz)","``mushy``"
+   "", "``linear_salt``", "linear function of salinity (ktherm=1)", ""
    "", "``minus1p8``", "constant ocean freezing temperature (:math:`-1.8^{\circ} C`)", ""
    "", "``mushy``", "matches mushy-layer thermo (ktherm=2)", ""
    "``trestore``", "integer", "sst restoring time scale (days)", "90"
@@ -431,7 +448,7 @@ zbgc_nml
    "``f_exude_l``", "real", "fraction of exudation to DOC lipids", "1.0"
    "``f_exude_s``", "real", "fraction of exudation to DOC saccharids", "1.0"
    "``grid_o``", "real", "z biology for bottom flux", "5.0"
-   "``grid_oS``", "real", "z salinity for bottom flux", "5.0"
+   "``grid_oS``", "real", "DEPRECATED", ""
    "``grow_Tdep_diatoms``", "real", "temperature dependence growth diatoms per degC", "0.06"
    "``grow_Tdep_phaeo``", "real", "temperature dependence growth phaeocystis per degC", "0.06"
    "``grow_Tdep_sp``", "real", "temperature dependence growth small plankton per degC", "0.06"
@@ -457,7 +474,7 @@ zbgc_nml
    "``K_Sil_sp``", "real", "silicate half saturation small plankton mmol/m^3", "0.0"
    "``kn_bac_protein``", "real", "bacterial degradation of DON per day", "0.03"
    "``l_sk``", "real", "characteristic diffusive scale in m", "7.0"
-   "``l_skS``", "real", "z salinity characteristic diffusive scale in m", "7.0"
+   "``l_skS``", "real", "DEPRECATED", ""
    "``max_dfe_doc1``", "real", "max ratio of dFe to saccharides in the ice in nm Fe / muM C", "0.2"
    "``max_loss``", "real", "restrict uptake to percent of remaining value", "0.9"
    "``modal_aero``", "logical", "modal aersols", "``.false.``"
@@ -541,7 +558,6 @@ zbgc_nml
 ..   "``grid_o_t``", "real", "z biology for top flux", "5.0"
 ..   "``restart_bgc``", "logical", "restart tracer values from file", "``.false.``"
 ..   "``restart_hbrine``", "logical", "", "``.false.``"
-..   "``restart_zsal``", "logical", "", "``.false.``"
 ..   "``solve_zsal``", "logical", "update salinity tracer profile", "``.false.``"
 ..   "TRZS", "0,1", "zsalinity tracer, needs TRBRI=1", "0"
 

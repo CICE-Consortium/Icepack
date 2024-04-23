@@ -13,11 +13,8 @@
 
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p1, p5, puny
-#ifdef CESMCOUPLED
-      use icepack_parameters, only: p01
-#endif
       use icepack_parameters, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
-      use icepack_parameters, only: conduct, calc_Tsfc, solve_zsal
+      use icepack_parameters, only: conduct, calc_Tsfc
       use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
@@ -34,7 +31,7 @@
       implicit none
 
       private
-      public :: surface_fluxes, temperature_changes
+      public :: temperature_changes
 
       real (kind=dbl_kind), parameter :: &
          betak   = 0.13_dbl_kind, & ! constant in formula for k (W m-1 ppt-1)
@@ -85,8 +82,7 @@
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
 
-      real (kind=dbl_kind), &
-         intent(in) :: &
+      real (kind=dbl_kind), intent(in) :: &
          rhoa        , & ! air density (kg/m^3)
          flw         , & ! incoming longwave radiation (W/m^2)
          potT        , & ! air potential temperature  (K)
@@ -95,8 +91,7 @@
          lhcoef      , & ! transfer coefficient for latent heat
          Tbot            ! ice bottom surface temperature (deg C)
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
          fswint          ! SW absorbed in ice interior below surface (W m-2)
 
@@ -105,12 +100,10 @@
          hslyr       , & ! snow layer thickness (m)
          einit           ! initial energy of melting (J m-2)
 
-      real (kind=dbl_kind), dimension (nslyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nslyr), intent(inout) :: &
          Sswabs          ! SW radiation absorbed in snow layers (W m-2)
 
-      real (kind=dbl_kind), dimension (nilyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nilyr), intent(inout) :: &
          Iswabs          ! SW radiation absorbed in ice layers (W m-2)
 
       real (kind=dbl_kind), intent(inout):: &
@@ -123,21 +116,17 @@
       real (kind=dbl_kind), intent(out):: &
          fcondbot        ! downward cond flux at bottom surface (W m-2)
 
-      real (kind=dbl_kind), &
-         intent(inout):: &
+      real (kind=dbl_kind), intent(inout):: &
          Tsf             ! ice/snow surface temperature, Tsfcn
 
-      real (kind=dbl_kind), dimension (nilyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nilyr), intent(inout) :: &
          zqin        , & ! ice layer enthalpy (J m-3)
          zTin            ! internal ice layer temperatures
 
-      real (kind=dbl_kind), dimension (nilyr), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension (nilyr), intent(in) :: &
          zSin            ! internal ice layer salinities
 
-      real (kind=dbl_kind), dimension (nslyr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nslyr), intent(inout) :: &
          zqsn        , & ! snow layer enthalpy (J m-3)
          zTsn            ! internal snow layer temperatures
 
@@ -285,8 +274,6 @@
 !mclaren: Should there be an if calc_Tsfc statement here then??
 
       if (sw_redist) then
-
-      if (solve_zsal) sw_dtemp = p1  ! lower tolerance with dynamic salinity
 
       do k = 1, nilyr
 
@@ -865,8 +852,7 @@
          zTin         , & ! internal ice layer temperatures
          zSin             ! internal ice layer salinities
 
-      real (kind=dbl_kind), dimension (nilyr+nslyr+1), &
-         intent(out) :: &
+      real (kind=dbl_kind), dimension (nilyr+nslyr+1), intent(out) :: &
          kh              ! effective conductivity at interfaces (W m-2 deg-1)
 
       ! local variables
@@ -969,21 +955,18 @@
          shcoef      , & ! transfer coefficient for sensible heat
          lhcoef          ! transfer coefficient for latent heat
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          fsensn      , & ! surface downward sensible heat (W m-2)
          flatn       , & ! surface downward latent heat (W m-2)
          flwoutn     , & ! upward LW at surface (W m-2)
          fsurfn          ! net flux to top surface, excluding fcondtopn
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          dfsens_dT   , & ! deriv of fsens wrt Tsf (W m-2 deg-1)
          dflat_dT    , & ! deriv of flat wrt Tsf (W m-2 deg-1)
          dflwout_dT      ! deriv of flwout wrt Tsf (W m-2 deg-1)
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          dfsurf_dT       ! derivative of fsurfn wrt Tsf
 
       character(len=*),parameter :: subname='(surface_fluxes)'
@@ -1033,8 +1016,7 @@
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
 
-      logical (kind=log_kind), &
-         intent(in) :: &
+      logical (kind=log_kind), intent(in) :: &
          l_snow      , & ! true if snow temperatures are computed
          l_cold          ! true if surface temperature is computed
 
@@ -1057,12 +1039,10 @@
          Tsn_init        ! snow temp at beginning of time step
                          ! Note: no absorbed SW in snow layers
 
-      real (kind=dbl_kind), dimension (nslyr+nilyr+1), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension (nslyr+nilyr+1), intent(in) :: &
          kh              ! effective conductivity at layer interfaces
 
-      real (kind=dbl_kind), dimension (nslyr+nilyr+1), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nslyr+nilyr+1), intent(inout) :: &
          sbdiag      , & ! sub-diagonal matrix elements
          diag        , & ! diagonal matrix elements
          spdiag      , & ! super-diagonal matrix elements
@@ -1282,8 +1262,7 @@
          nilyr , & ! number of ice layers
          nslyr     ! number of snow layers
 
-      logical (kind=log_kind), &
-         intent(in) :: &
+      logical (kind=log_kind), intent(in) :: &
          l_snow          ! true if snow temperatures are computed
 
       real (kind=dbl_kind), intent(in) :: &
@@ -1298,19 +1277,16 @@
          Tsn_init        ! snow temp at beginning of time step
                          ! Note: no absorbed SW in snow layers
 
-      real (kind=dbl_kind), dimension (nslyr+nilyr+1), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension (nslyr+nilyr+1), intent(in) :: &
          kh              ! effective conductivity at layer interfaces
 
-      real (kind=dbl_kind), dimension (nslyr+nilyr+1), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension (nslyr+nilyr+1), intent(inout) :: &
          sbdiag      , & ! sub-diagonal matrix elements
          diag        , & ! diagonal matrix elements
          spdiag      , & ! super-diagonal matrix elements
          rhs             ! rhs of tri-diagonal matrix eqn.
 
-      real (kind=dbl_kind), intent(in),  &
-         optional :: &
+      real (kind=dbl_kind), intent(in) :: &
          fcondtopn       ! conductive flux at top sfc, positive down (W/m^2)
 
       ! local variables

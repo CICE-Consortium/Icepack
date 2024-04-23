@@ -34,9 +34,10 @@
       module icepack_mechred
 
       use icepack_kinds
-      use icepack_parameters,  only: c0, c1, c2, c10, c25, Cf, Cp, Pstar, Cstar
-      use icepack_parameters,  only: p05, p15, p25, p333, p5
-      use icepack_parameters,  only: puny, Lfresh, rhoi, rhos
+      use icepack_parameters, only: c0, c1, c2, c10, c25, Cf, Cp, Pstar, Cstar
+      use icepack_parameters, only: p05, p15, p25, p333, p5
+      use icepack_parameters, only: puny, Lfresh, rhoi, rhos
+      use icepack_parameters, only: icepack_chkoptargflag
 
       use icepack_parameters, only: kstrength, krdg_partic, krdg_redist, mu_rdg
       use icepack_parameters, only: conserv_check
@@ -57,10 +58,7 @@
       implicit none
 
       private
-      public :: ridge_ice, &
-                asum_ridging, &
-                ridge_itd, &
-                icepack_ice_strength, &
+      public :: icepack_ice_strength, &
                 icepack_step_ridge
 
       real (kind=dbl_kind), parameter :: &
@@ -70,7 +68,6 @@
          Gstar  = p15     , & ! max value of G(h) that participates
                               ! (krdg_partic = 0)
          astar  = p05     , & ! e-folding scale for G(h) participation
-!echmod         astar  = p1        , & ! e-folding scale for G(h) participation
                               ! (krdg_partic = 1)
          maxraft= c1      , & ! max value of hrmin - hi = max thickness
                               ! of ice that rafts (m)
@@ -110,9 +107,9 @@
                             aparticn,    krdgn,      &
                             aredistn,    vredistn,   &
                             dardg1ndt,   dardg2ndt,  &
-                            dvirdgndt,               &
+                            dvirdgndt,   Tf,         &
                             araftn,      vraftn,     &
-                            closing_flag,closing )
+                            closing )
 
       integer (kind=int_kind), intent(in) :: &
          ndtd       , & ! number of dynamics subcycles
@@ -125,6 +122,9 @@
       real (kind=dbl_kind), intent(in) :: &
          mu_rdg , & ! gives e-folding scale of ridged ice (m^.5)
          dt             ! time step
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf             ! freezing temperature
 
       real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
          hin_max   ! category limits (m)
@@ -160,7 +160,6 @@
          krdg_redist    ! selects redistribution function
 
       logical (kind=log_kind), intent(in) :: &
-         closing_flag, &! flag if closing is valid
          tr_brine       ! if .true., brine height differs from ice thickness
 
       ! optional history fields
@@ -188,7 +187,7 @@
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          faero_ocn      ! aerosol flux to ocean (kg/m^2/s)
 
-      real (kind=dbl_kind), dimension(:), intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn       ! isotope flux to ocean (kg/m^2/s)
 
       ! local variables
@@ -295,7 +294,7 @@
       ! Compute the area opening and closing.
       !-----------------------------------------------------------------
 
-      if (closing_flag) then
+      if (present(opening) .and. present(closing)) then
 
          opning = opening
          closing_net = closing
@@ -400,7 +399,7 @@
                            nslyr,       n_aero,      &
                            msnow_mlt,   esnow_mlt,   &
                            maero,       miso,        &
-                           mpond,       &
+                           mpond,       Tf,          &
                            aredistn,    vredistn)
          if (icepack_warnings_aborted(subname)) return
 
@@ -428,10 +427,7 @@
       ! If done, exit.  If not, prepare to ridge again.
       !-----------------------------------------------------------------
 
-         if (iterate_ridging) then
-            write(warnstr,*) subname, 'Repeat ridging, niter =', niter
-            call icepack_warnings_add(warnstr)
-         else
+         if (.not.iterate_ridging) then
             exit rdg_iteration
          endif
 
@@ -594,11 +590,13 @@
             faero_ocn(it) = faero_ocn(it) + maero(it)*dti
          enddo
       endif
-      if (tr_iso) then
-         ! check size fiso_ocn vs n_iso ???
-         do it = 1, n_iso
-            fiso_ocn(it) = fiso_ocn(it) + miso(it)*dti
-         enddo
+      if (present(fiso_ocn)) then
+         if (tr_iso) then
+            ! check size fiso_ocn vs n_iso ???
+            do it = 1, n_iso
+               fiso_ocn(it) = fiso_ocn(it) + miso(it)*dti
+            enddo
+         endif
       endif
       if (present(fpond)) then
          fpond = fpond - mpond ! units change later
@@ -696,8 +694,7 @@
       real (kind=dbl_kind), intent(inout):: &
          asum           ! sum of ice and open water area
 
-      real (kind=dbl_kind), &
-         intent(out):: &
+      real (kind=dbl_kind), intent(out):: &
          closing_net, & ! net rate at which area is removed    (1/s)
          divu_adv   , & ! divu as implied by transport scheme  (1/s)
          opning         ! rate of opening due to divergence/shear
@@ -1087,7 +1084,7 @@
                               nslyr,       n_aero,          &
                               msnow_mlt,   esnow_mlt,       &
                               maero,       miso,            &
-                              mpond,           &
+                              mpond,       Tf,              &
                               aredistn,    vredistn)
 
       integer (kind=int_kind), intent(in) :: &
@@ -1099,6 +1096,9 @@
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! time step (s)
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf             ! freezing temperature
 
       integer (kind=int_kind), dimension (:), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
@@ -1574,7 +1574,7 @@
                                        atrcrn(:,n), aicen(n),      &
                                        vicen(n),    vsnon(n),      &
                                        trcr_base,   n_trcr_strata, &
-                                       nt_strata,   trcrn(:,n))
+                                       nt_strata,   trcrn(:,n), Tf)
          if (icepack_warnings_aborted(subname)) return
       enddo
 
@@ -1743,10 +1743,13 @@
                                     araftn,       vraftn,        &
                                     aice,         fsalt,         &
                                     first_ice,    fzsal,         &
-                                    flux_bio,     closing )
+                                    flux_bio,     closing, Tf )
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
+
+      real (kind=dbl_kind), intent(in) :: &
+         Tf           ! freezing temperature
 
       integer (kind=int_kind), intent(in) :: &
          ncat  , & ! number of thickness categories
@@ -1782,8 +1785,10 @@
          fpond    , & ! fresh water flux to ponds (kg/m^2/s)
          fresh    , & ! fresh water flux to ocean (kg/m^2/s)
          fsalt    , & ! salt flux to ocean (kg/m^2/s)
-         fhocn    , & ! net heat flux to ocean (W/m^2)
-         fzsal        ! zsalinity flux to ocean(kg/m^2/s)
+         fhocn        ! net heat flux to ocean (W/m^2)
+
+      real (kind=dbl_kind), intent(inout), optional :: &
+         fzsal        ! zsalinity flux to ocean(kg/m^2/s) (deprecated)
 
       real (kind=dbl_kind), intent(inout), optional :: &
          closing      ! rate of closing due to divergence/shear (1/s)
@@ -1804,7 +1809,7 @@
          faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
          flux_bio     ! all bio fluxes to ocean
 
-      real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
          fiso_ocn     ! isotope flux to ocean  (kg/m^2/s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
@@ -1825,16 +1830,25 @@
       real (kind=dbl_kind) :: &
          dtt          ! thermo time step
 
-      real (kind=dbl_kind), dimension(:), allocatable :: &
-         l_fiso_ocn     ! local isotope flux to ocean  (kg/m^2/s)
-
-      real (kind=dbl_kind) :: &
-         l_closing      ! local rate of closing due to divergence/shear (1/s)
-
-      logical (kind=log_kind) :: &
-         l_closing_flag ! flag if closing is passed
+      logical (kind=log_kind), save :: &
+         first_call = .true.   ! first call flag
 
       character(len=*),parameter :: subname='(icepack_step_ridge)'
+
+      !-----------------------------------------------------------------
+      ! Check optional arguments
+      !-----------------------------------------------------------------
+
+      if (icepack_chkoptargflag(first_call)) then
+         if (tr_iso) then
+            if (.not.(present(fiso_ocn))) then
+              call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+              return
+            endif
+         endif
+      endif
+
 
       !-----------------------------------------------------------------
       ! Identify ice-ocean cells.
@@ -1842,23 +1856,6 @@
       !        aice has not yet been updated since the transport (and
       !        it may be out of whack, which the ridging helps fix).-ECH
       !-----------------------------------------------------------------
-
-      if (present(fiso_ocn)) then
-         allocate(l_fiso_ocn(size(fiso_ocn)))
-         l_fiso_ocn = fiso_ocn
-      else
-         ! check tr_iso = true ???
-         allocate(l_fiso_ocn(1))
-         l_fiso_ocn = c0
-      endif
-
-      if (present(closing)) then
-         l_closing_flag = .true.
-         l_closing = closing
-      else
-         l_closing_flag = .false.
-         l_closing = c0
-      endif
 
       call ridge_ice (dt,           ndtd,           &
                       ncat,         n_aero,         &
@@ -1879,14 +1876,13 @@
                       dvirdgdt,     opening,        &
                       fpond,                        &
                       fresh,        fhocn,          &
-                      faero_ocn,    l_fiso_ocn,     &
+                      faero_ocn,    fiso_ocn,       &
                       aparticn,     krdgn,          &
                       aredistn,     vredistn,       &
                       dardg1ndt,    dardg2ndt,      &
-                      dvirdgndt,                    &
+                      dvirdgndt,    Tf,             &
                       araftn,       vraftn,         &
-                      l_closing_flag,               &
-                      l_closing )
+                      closing )
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1910,13 +1906,11 @@
                         n_trcr_strata,        nt_strata,        &
                         fpond,                fresh,            &
                         fsalt,                fhocn,            &
-                        faero_ocn,            l_fiso_ocn,       &
-                        fzsal,            &
-                        flux_bio)
+                        faero_ocn,            fiso_ocn,         &
+                        flux_bio,             Tf)
       if (icepack_warnings_aborted(subname)) return
 
-      if (present(fiso_ocn)) fiso_ocn = l_fiso_ocn
-      deallocate(l_fiso_ocn)
+      first_call = .false.
 
       end subroutine icepack_step_ridge
 

@@ -22,3 +22,4 @@ year_init	 = 2015
  tr_bgc_hum      = .true.
  tr_bgc_DON      = .true.
  tr_bgc_Fe       = .true.
+ tfrz_option     = 'mushy'

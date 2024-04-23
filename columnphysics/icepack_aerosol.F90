@@ -61,12 +61,10 @@
          vice_old, &
          vsno_old
 
-      real (kind=dbl_kind), dimension(:), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension(:), intent(in) :: &
          faero_atm   ! aerosol deposition rate (W/m^2 s)
 
-      real (kind=dbl_kind), dimension(:), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension(:), intent(inout) :: &
          faero_ocn   ! aerosol flux to ocean (W/m^2 s)
 
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
@@ -473,12 +471,10 @@
          zbgc_atm,  & ! and atm to ice concentration * volume (kg or mmol/m^3*m)
          flux_bio     ! total ocean tracer flux (mmol/m^2/s)
 
-      real (kind=dbl_kind), dimension(nbtrcr), &
-         intent(in) :: &
+      real (kind=dbl_kind), dimension(nbtrcr), intent(in) :: &
          flux_bio_atm   ! aerosol deposition rate (kg or mmol/m^2 s)
 
-      real (kind=dbl_kind), dimension(ntrcr), &
-         intent(inout) :: &
+      real (kind=dbl_kind), dimension(ntrcr), intent(inout) :: &
          trcrn       ! ice/snow tracer array
 
       !  local variables

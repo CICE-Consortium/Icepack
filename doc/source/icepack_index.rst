@@ -5,12 +5,14 @@
 Index of primary variables and parameters 
 ==========================================
 
-This index defines many of the symbols used frequently in the ice model
+This index defines many (but not all) of the symbols used frequently in the ice model
 code. Values appearing in this list are fixed or recommended; most
 namelist parameters are indicated ( :math:`\bullet`) with their default
-values. For other namelist options, see Section :ref:`tabnamelist`. All
-quantities in the code are expressed in MKS units (temperatures may take
+values. All quantities in the code are expressed in MKS units (temperatures may take
 either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
+
+Namelist variables are partly included here, but they are fully documented in 
+section :ref:`tabnamelist`. 
 
 .. csv-table:: *Alphabetical Index of Icepack Variables and Parameters*
    :header: " ", " ", " "
@@ -92,6 +94,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "cp_wv", "specific heat of water vapor", "1.81x\ :math:`10^3` J/kg/K"
    "cp063", "diffuse fresnel reflectivity (above)", "0.063"
    "cp455", "diffuse fresnel reflectivity (below)", "0.455"
+   "cpl_frazil", ":math:`\bullet` type of frazil ice coupling", ""
    "Cs", "fraction of shear energy contributing to ridging", "0.25"
    "Cstar", "constant in Hibler ice strength formula", "20."
    "**D**", "", ""
@@ -120,7 +123,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "divu_adv", "divergence associated with advection", "1/s"
    "dms", "dimethyl sulfide concentration", "mmol/m\ :math:`^3`"
    "dmsp", "dimethyl sulfoniopropionate concentration", "mmol/m\ :math:`^3`"
-   "dpscale", ":math:`\bullet` time scale for flushing in permeable ice", ":math:`1\times 10^{-3}`"
+   "dpscale", ":math:`\bullet` scaling factor for flushing in permeable ice (ktherm=1)", ":math:`1\times 10^{-3}`"
    "dragio", "drag coefficient for water on ice", "0.00536"
    "dSdt_slow_mode", ":math:`\bullet` drainage strength parameter", ""
    "dsnow", "change in snow thickness", "m"
@@ -204,13 +207,13 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "H2_18O_ocn", "concentration of H2_18O isotope in ocean", "kg/kg"
    "HDO_ocn", "concentration of HDO isotope in ocean", "kg/kg"
    "hfrazilmin", "minimum thickness of new frazil ice", "0.05 m"
-   "hi_min", "minimum ice thickness for thinnest ice category", "0.01 m"
+   "hi_min", "minimum ice thickness for thinnest ice category", "m"
    "hi_ssl", "ice surface scattering layer thickness", "0.05 m"
    "hicen", "ice thickness in category n", "m"
    "highfreq", ":math:`\bullet` high-frequency atmo coupling", "F"
    "hin_old", "ice thickness prior to growth/melt", "m"
    "hin_max", "category thickness limits", "m"
-   "history_cdf", "flag to turn on netcdf history output", "F"
+   "history_format", "turns on netcdf history output if set to 'nc'", ""
    "hmix", "ocean mixed layer depth", "20. m"
    "hour", "hour of the year", ""
    "hp0", "pond depth at which shortwave transition to bare ice occurs", "0.2 m"
@@ -224,6 +227,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "Hstar", "determines mean thickness of ridged ice", "25. m"
    "**I**", "", ""
    "i0vis","fraction of penetrating visible solar radiation", "0.70"
+   "lateral_flux_type", ":math:`\bullet` laterally flux ice or open water into grid cell when closing", ""
    "ice_ic", ":math:`\bullet` choice of initial conditions", ""
    "ice_stdout", "unit number for standard output", ""
    "ice_stderr", "unit number for standard error output", ""
@@ -383,6 +387,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "restart_bgc", ":math:`\bullet` if true, read bgc restart file", ""
    "restart_dir", ":math:`\bullet` path to restart/dump files", ""
    "restart_file", ":math:`\bullet` restart file prefix", ""
+   "restart_format", "history files are read/written in binary or netcdf format if set to 'bin' or 'nc' respectively", "bin"
    "restart_[tracer]", ":math:`\bullet` if true, read tracer restart file", ""
    "restore_bgc", ":math:`\bullet` if true, restore nitrate/silicate to data", ""
    "restore_ice", ":math:`\bullet` if true, restore ice state along lateral boundaries", ""
@@ -411,7 +416,7 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "shcoef", "transfer coefficient for sensible heat", ""
    "shear", "strain rate II component", "1/s"
    "shlat", "southern latitude of artificial mask edge", "30\ :math:`^\circ`\ N"
-   "shortwave", ":math:`\bullet` flag for shortwave parameterization ('default' or 'dEdd')", ""
+   "shortwave", ":math:`\bullet` flag for shortwave parameterization ('ccsm3' or 'dEdd')", ""
    "sil", "silicate concentration", "mmol/m\ :math:`^3`"
    "sk_l", "skeletal layer thickness", "0.03 m"
    "snowage_drdt0", "snowage table 3D data for drdt0 (10^-6 m/hr)", ""
@@ -460,13 +465,15 @@ either Celsius or Kelvin units).  Deprecated parameters are listed at the end.
    "time", "total elapsed time", "s"
    "time_forc", "time of last forcing update", "s"
    "Timelt", "melting temperature of ice top surface", "0. C"
+   "tscale_pnd_drain", "mushy pond macroscopic drainage timescale", "10 days"
    "TLAT", "latitude of cell center", "radians"
+   "Tliquidus_max", "maximum liquidus temperature of mush", "0. C"
    "TLON", "longitude of cell center", "radians"
    "tmask", "land/boundary mask, thickness (T-cell)", ""
    "tmass", "total mass of ice and snow", "kg/m\ :math:`^2`"
    "Tmin", "minimum allowed internal temperature", "-100. C"
    "Tmltz", "melting temperature profile of ice", ""
-   "Tocnfrz", "temperature of constant freezing point parameterization", "-1.8 C"
+   "Tocnfrz", "temperature of constant freezing point parameterization", "C"
    "tr_aero", ":math:`\bullet` if true, use aerosol tracers", ""
    "tr_iso", ":math:`\bullet` if true, use water isotope tracers", ""
    "tr_bgc_[tracer]", ":math:`\bullet` if true, use biogeochemistry tracers", ""

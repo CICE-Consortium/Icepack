@@ -35,7 +35,7 @@
       use icedrv_forcing, only: get_forcing, get_wave_spec
       use icedrv_forcing_bgc, only: faero_default, fiso_default, get_forcing_bgc
       use icedrv_flux, only: init_flux_atm_ocn
-      use icedrv_history, only: history_cdf, history_close
+      use icedrv_history, only: history_format, history_close
 
       logical (kind=log_kind) :: skl_bgc, z_tracers, tr_aero, tr_zaero, &
                                  wave_spec, tr_fsd, tr_iso
@@ -63,7 +63,7 @@
          call calendar(time)    ! at the end of the timestep
 
          if (stop_now >= 1) then
-            if (history_cdf) call history_close()
+            if (history_format == 'nc') call history_close()
             exit timeLoop
          endif
 
@@ -98,21 +98,21 @@
       use icedrv_calendar, only: dt, dt_dyn, ndtd, diagfreq, write_restart, istep
       use icedrv_diagnostics, only: runtime_diags, init_mass_diags
 !     use icedrv_diagnostics, only: icedrv_diagnostics_debug
-      use icedrv_diagnostics_bgc, only: hbrine_diags, zsal_diags, bgc_diags
+      use icedrv_diagnostics_bgc, only: hbrine_diags, bgc_diags
       use icedrv_flux, only: init_history_therm, init_history_bgc, &
           daidtt, daidtd, dvidtt, dvidtd, dagedtt, dagedtd, init_history_dyn
-      use icedrv_history, only: history_cdf, history_write
+      use icedrv_history, only: history_format, history_write
       use icedrv_restart, only: dumpfile, final_restart
       use icedrv_restart_bgc, only: write_restart_bgc
       use icedrv_step, only: prep_radiation, step_therm1, step_therm2, &
           update_state, step_dyn_ridge, step_snow, step_radiation, &
-          biogeochemistry, step_dyn_wave
+          biogeochemistry, step_dyn_wave, step_lateral_flux_scm
 
       integer (kind=int_kind) :: &
          k               ! dynamics supercycling index
 
       logical (kind=log_kind) :: &
-         calc_Tsfc, skl_bgc, solve_zsal, z_tracers, tr_brine, &  ! from icepack
+         calc_Tsfc, skl_bgc, z_tracers, tr_brine, &  ! from icepack
          tr_fsd, wave_spec, tr_snow
 
       real (kind=dbl_kind) :: &
@@ -127,8 +127,7 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc, z_tracers_out=z_tracers)
-      call icepack_query_parameters(solve_zsal_out=solve_zsal, &
-                                    calc_Tsfc_out=calc_Tsfc, &
+      call icepack_query_parameters(calc_Tsfc_out=calc_Tsfc, &
                                     wave_spec_out=wave_spec)
       call icepack_query_tracer_flags(tr_brine_out=tr_brine,tr_fsd_out=tr_fsd, &
                                       tr_snow_out=tr_snow)
@@ -178,12 +177,15 @@
 
       do k = 1, ndtd
 
-        ! ridging
-        call step_dyn_ridge (dt_dyn, ndtd)
+         ! horizontal advection of ice or open water into the single column
+         call step_lateral_flux_scm(dt_dyn)
 
-        ! clean up, update tendency diagnostics
-        offset = c0
-        call update_state (dt_dyn, daidtd, dvidtd, dagedtd, offset)
+         ! ridging
+         call step_dyn_ridge (dt_dyn, ndtd)
+
+         ! clean up, update tendency diagnostics
+         offset = c0
+         call update_state (dt_dyn, daidtd, dvidtd, dagedtd, offset)
 
       enddo
 
@@ -220,18 +222,17 @@
 
       if (mod(istep,diagfreq) == 0) then
          call runtime_diags(dt)       ! log file
-         if (solve_zsal)              call zsal_diags
          if (skl_bgc .or. z_tracers)  call bgc_diags
          if (tr_brine)                call hbrine_diags
       endif
 
-      if (history_cdf) then
+      if (history_format == 'nc') then
          call history_write()
       endif
 
       if (write_restart == 1) then
          call dumpfile     ! core variables for restarting
-         if (solve_zsal .or. skl_bgc .or. z_tracers) &
+         if (skl_bgc .or. z_tracers) &
             call write_restart_bgc         ! biogeochemistry
          call final_restart
       endif
@@ -247,7 +248,7 @@
       subroutine coupling_prep
 
       use icedrv_arrays_column, only: alvdfn, alidfn, alvdrn, alidrn, &
-          albicen, albsnon, albpndn, apeffn, fzsal_g, fzsal, snowfracn
+          albicen, albsnon, albpndn, apeffn, snowfracn
       use icedrv_calendar, only: dt
       use icedrv_domain_size, only: ncat, nx
       use icedrv_flux, only: alvdf, alidf, alvdr, alidr, albice, albsno, &
@@ -257,7 +258,7 @@
           fswthru_ai, fhocn, fswthru, scale_factor, snowfrac, &
           swvdr, swidr, swvdf, swidf, &
           frzmlt_init, frzmlt, &
-          fzsal_ai, fzsal_g_ai, flux_bio, flux_bio_ai
+          flux_bio, flux_bio_ai
       use icedrv_forcing, only: oceanmixed_ice
       use icedrv_state, only: aicen
       use icedrv_step, only: ocean_mixed_layer
@@ -357,8 +358,6 @@
             fsalt_ai  (i) = fsalt  (i)
             fhocn_ai  (i) = fhocn  (i)
             fswthru_ai(i) = fswthru(i)
-            fzsal_ai  (i) = fzsal  (i)
-            fzsal_g_ai(i) = fzsal_g(i)
 
             if (nbtrcr > 0) then
             do k = 1, nbtrcr

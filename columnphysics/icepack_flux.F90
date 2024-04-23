@@ -9,10 +9,10 @@
       module icepack_flux
 
       use icepack_kinds
-      use icepack_parameters, only: c1, emissivity
+      use icepack_parameters, only: c1, emissivity, snwgrain
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
-      use icepack_tracers, only: tr_iso, tr_snow
+      use icepack_tracers, only: tr_iso
 
       implicit none
       private
@@ -110,6 +110,10 @@
           snoicen     ! snow-ice growth                 (m)
 
       real (kind=dbl_kind), optional, intent(in):: &
+          fswthrun_vdr, & ! vis dir sw radiation through ice bot    (W/m**2)
+          fswthrun_vdf, & ! vis dif sw radiation through ice bot    (W/m**2)
+          fswthrun_idr, & ! nir dir sw radiation through ice bot    (W/m**2)
+          fswthrun_idf, & ! nir dif sw radiation through ice bot    (W/m**2)
           Urefn       ! air speed reference level       (m/s)
 
       ! cumulative fluxes
@@ -137,7 +141,6 @@
           meltb   , & ! bottom ice melt                 (m)
           melts   , & ! snow melt                       (m)
           meltsliq, & ! mass of snow melt               (kg/m^2)
-          dsnow   , & ! change in snow depth            (m)
           congel  , & ! congelation ice growth          (m)
           snoice      ! snow-ice growth                 (m)
 
@@ -154,17 +157,18 @@
           fswthru_pardf     ! nir dif sw radiation through ice bot    (W/m**2)
 
       real (kind=dbl_kind), optional, intent(inout):: &
+          dsnow,    & ! change in snow depth            (m)
           Uref        ! air speed reference level       (m/s)
 
-      real (kind=dbl_kind), optional, dimension(:), intent(inout):: &
-          Qref_iso, & ! isotope air sp hum reference level (kg/kg)
-          fiso_ocn, & ! isotope fluxes to ocean (kg/m2/s)
-          fiso_evap   ! isotope evaporation (kg/m2/s)
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+          Qref_iso, & ! isotope air sp hum ref level    (kg/kg)
+          fiso_ocn, & ! isotope fluxes to ocean         (kg/m2/s)
+          fiso_evap   ! isotope evaporation             (kg/m2/s)
 
-      real (kind=dbl_kind), optional, dimension(:), intent(in):: &
-          Qrefn_iso, & ! isotope air sp hum reference level (kg/kg)
-          fiso_ocnn, & ! isotope fluxes to ocean (kg/m2/s)
-          fiso_evapn   ! isotope evaporation (kg/m2/s)
+      real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+          Qrefn_iso, & ! isotope air sp hum ref level   (kg/kg)
+          fiso_ocnn, & ! isotope fluxes to ocean        (kg/m2/s)
+          fiso_evapn   ! isotope evaporation            (kg/m2/s)
 
       character(len=*),parameter :: subname='(merge_fluxes)'
 
@@ -240,10 +244,12 @@
       meltt     = meltt     + melttn    * aicen
       meltb     = meltb     + meltbn    * aicen
       melts     = melts     + meltsn    * aicen
-      if (tr_snow) then
+      if (snwgrain) then
          meltsliq  = meltsliq  + meltsliqn * aicen
       endif
-      dsnow     = dsnow     + dsnown    * aicen
+      if (present(dsnow)) then
+         dsnow     = dsnow     + dsnown    * aicen
+      endif
       congel    = congel    + congeln   * aicen
       snoice    = snoice    + snoicen   * aicen
 
@@ -272,8 +278,7 @@
                               fcondtopn)
 
       ! ice state variables
-      real (kind=dbl_kind), &
-         intent(in) :: &
+      real (kind=dbl_kind), intent(in) :: &
          aicen       , & ! concentration of ice
          flatn_f     , & ! latent heat flux   (W/m^2)
          fsensn_f    , & ! sensible heat flux (W/m^2)

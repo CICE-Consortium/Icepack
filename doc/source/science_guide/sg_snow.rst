@@ -73,13 +73,13 @@ where :math:`\rho_s` and :math:`\rho_{max}` are the effective snow density and t
 
 :math:`\Phi_E \Delta t` represents the maximum snow mass per unit area that may be suspended from each category, subject to the total mass (per unit area) available on each category.
 
-Erosion begins when the instantaneous wind speed :math:`V` exceeds the seasonal wind speed required to compact the snow to a density :math:`\rho_s`, :math:`V^* = (\rho_s − \beta)/\alpha`. :math:`\sigma_{ITD}` is the standard deviation of the ice thicknesses from the thickness distribution :math:`g` within the grid cell. :math:`\gamma` is a tuning coefficient for
-the eroded mass, which :cite:`Lecomte15` set to :math:`10^{-5}` kg m :math:`^{-2}`. From :cite:`Lecomte13`, :math:`\rho_s = 44.6V^* + 174` kg m :math:`^{−3}` for seasonal mean wind speed :math:`V`, i.e. :math:`\alpha=174` kg m :math:`^{-3}` and :math:`\beta=44.6` kg s m :math:`^{-4}`.
+Erosion begins when the instantaneous wind speed :math:`V` exceeds the seasonal wind speed required to compact the snow to a density :math:`\rho_s`, :math:`V^* = (\rho_s - \beta)/\alpha`. :math:`\sigma_{ITD}` is the standard deviation of the ice thicknesses from the thickness distribution :math:`g` within the grid cell. :math:`\gamma` is a tuning coefficient for
+the eroded mass, which :cite:`Lecomte15` set to :math:`10^{-5}` kg m :math:`^{-2}`. From :cite:`Lecomte13`, :math:`\rho_s = 44.6V^* + 174` kg m :math:`^{-3}` for seasonal mean wind speed :math:`V`, i.e. :math:`\alpha=174` kg m :math:`^{-3}` and :math:`\beta=44.6` kg s m :math:`^{-4}`.
 
 In :cite:`Lecomte15`, the fraction of this suspended snow lost in leads is
 
 .. math::
-   f = \left(1-a_i\right) \exp\left({\sigma_{ITD}\over\sigma_{ref}}\right),
+   f = \left(1-a_i\right) \exp\left({-\sigma_{ITD}\over\sigma_{ref}}\right),
 
 where the scale factor :math:`\sigma_{ref}=1` m and :math:`a_i` is the total ice area fraction within the grid cell.
 Thus, the snow mass that is redistribution on the ice (i.e., not lost in leads) is

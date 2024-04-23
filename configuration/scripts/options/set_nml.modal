@@ -5,3 +5,5 @@ tr_aero      = .true.
 modal_aero   = .true.
 rfracmin     = 0.15
 rfracmax     = 1.0
+tfrz_option  = 'mushy'
+

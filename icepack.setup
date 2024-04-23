@@ -429,6 +429,9 @@ else
 
 cat >! ${tsdir}/suite.run << EOF0
 #!/bin/csh -f
+
+set nonomatch && rm -f icepexe.* && unset nonomatch
+
 EOF0
 
   set remote = `git remote -v | grep -i origin | grep -i push | sed "s|.*\(https.*\)\s.*|\1|g"`
@@ -908,9 +911,28 @@ endif
 EOF
 
 cat >> ${tsdir}/suite.run << EOF
+
+echo "-------test--------------"
+echo "${testname_base}"
 cd ${testname_base}
-./icepack.build
-./icepack.submit | tee -a ../suite.jobs
+source ./icepack.settings
+set md5chk = \`where md5sum\`
+if ("\${md5chk}" != "") then
+  set md5file = icepack.settings.md5
+  grep -v " ICE_CASENAME " icepack.settings | grep -v " ICE_CASEDIR " | grep -v " ICE_RUNDIR " | grep -v " ICE_TESTNAME " | grep -v " ICE_TEST " >! \${md5file}
+  set icepsetmd5 = \` md5sum \${md5file} | cut -d " " -f 1 \`
+  rm \${md5file}
+  set icepexe = "../icepexe.\${icepsetmd5}"
+  ./icepack.build --exe \${icepexe}
+  set bldstat = \${status}
+  if !(-e \${icepexe}) cp -p \${ICE_RUNDIR}/icepack \${icepexe}
+else
+  ./icepack.build
+  set bldstat = \${status}
+endif
+if (\$bldstat == 0) then
+  ./icepack.submit | tee -a ../suite.jobs
+endif
 cd ..
 EOF
     
@@ -931,6 +953,13 @@ end
 # more testsuite stuff
 
 if ( ${dosuite} == 1 ) then
+
+  # Delete reused icepexe files at the end to save space
+  cat >> ${tsdir}/suite.run << EOF0
+
+set nonomatch && rm -f icepexe.* && unset nonomatch
+
+EOF0
 
    # Add code to post processing scripts
 

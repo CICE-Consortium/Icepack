@@ -17,6 +17,7 @@
       public :: icepack_query_parameters
       public :: icepack_write_parameters
       public :: icepack_recompute_constants
+      public :: icepack_chkoptargflag
 
       !-----------------------------------------------------------------
       ! control options
@@ -28,9 +29,6 @@
       !-----------------------------------------------------------------
       ! parameter constants
       !-----------------------------------------------------------------
-
-      integer (kind=int_kind), parameter, public :: &
-         nspint = 3                ! number of solar spectral intervals
 
       real (kind=dbl_kind), parameter, public :: &
          c0   = 0.0_dbl_kind, &
@@ -110,6 +108,7 @@
                                         ! freshwater value needed for enthalpy
          depressT  = 0.054_dbl_kind   ,&! Tf:brine salinity ratio (C/ppt)
          viscosity_dyn = 1.79e-3_dbl_kind, & ! dynamic viscosity of brine (kg/m/s)
+         tscale_pnd_drain = c10       ,&! mushy macroscopic drainage timescale (days)
          Tocnfrz   = -1.8_dbl_kind    ,&! freezing temp of seawater (C),
                                         ! used as Tsfcn for open water
          Tffresh   = 273.15_dbl_kind  ,&! freezing temp of fresh ice (K)
@@ -128,9 +127,11 @@
          phi_init  = 0.75_dbl_kind    ,&! initial liquid fraction of frazil
          min_salin = p1               ,&! threshold for brine pocket treatment
          salt_loss = 0.4_dbl_kind     ,&! fraction of salt retained in zsalinity
+         Tliquidus_max = c0           ,&! maximum liquidus temperature of mush (C)
          dSin0_frazil = c3            ,&! bulk salinity reduction of newly formed frazil
          dts_b     = 50._dbl_kind     ,&! zsalinity timestep
          ustar_min = 0.005_dbl_kind   ,&! minimum friction velocity for ocean heat flux (m/s)
+         hi_min    = p01              ,&! minimum ice thickness allowed (m) for thermo
          ! mushy thermo
          a_rapid_mode      =  0.5e-3_dbl_kind,&! channel radius for rapid drainage mode (m)
          Rac_rapid_mode    =    10.0_dbl_kind,&! critical Rayleigh number
@@ -146,8 +147,9 @@
                          ! 2 = mushy layer theory
 
       character (char_len), public :: &
-         conduct = 'bubbly', &      ! 'MU71' or 'bubbly'
-         fbot_xfer_type = 'constant' ! transfer coefficient type for ice-ocean heat flux
+         conduct = 'bubbly', &          ! 'MU71' or 'bubbly'
+         fbot_xfer_type = 'constant', & ! transfer coefficient type for ice-ocean heat flux
+         cpl_frazil = 'fresh_ice_correction' ! type of coupling for frazil ice
 
       logical (kind=log_kind), public :: &
          calc_Tsfc     = .true. ,&! if true, calculate surface temperature
@@ -162,6 +164,7 @@
       character(len=char_len), public :: &
          tfrz_option  = 'mushy'   ! form of ocean freezing temperature
                                   ! 'minus1p8' = -1.8 C
+                                  ! 'constant' = Tocnfrz
                                   ! 'linear_salt' = -depressT * sss
                                   ! 'mushy' conforms with ktherm=2
 
@@ -210,9 +213,21 @@
          awtidf = 0.36218_dbl_kind   ! near IR, diffuse
 
       character (len=char_len), public :: &
-         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave   = 'dEdd', & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type = 'ccsm3'   ! albedo parameterization, 'ccsm3' or 'constant'
                                  ! shortwave='dEdd' overrides this parameter
+
+      ! Parameters for shortwave redistribution
+      logical (kind=log_kind), public :: &
+         sw_redist     = .false.
+
+      real (kind=dbl_kind), public :: &
+         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
+         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
+
+      ! Parameters for dEdd_snicar_ad
+      character (len=char_len), public :: &
+         snw_ssp_table = 'test'   ! lookup table: 'snicar' or 'test'
 
 !-----------------------------------------------------------------------
 ! Parameters for dynamics, including ridging and strength
@@ -317,7 +332,7 @@
          frzpnd    = 'cesm'           ! pond refreezing parameterization
 
       real (kind=dbl_kind), public :: &
-         dpscale   = c1, &            ! alter e-folding time scale for flushing
+         dpscale   = 0.001_dbl_kind,& ! alter e-folding time scale for flushing (ktherm=1)
          rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
          rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
          pndaspect = 0.8_dbl_kind, &  ! ratio of pond depth to area fraction
@@ -412,18 +427,6 @@
          t_sk_conv    = 3.0_dbl_kind    , & ! Stefels conversion time (d)
          t_sk_ox      = 10.0_dbl_kind       ! DMS oxidation time (d)
 
-
-!-----------------------------------------------------------------------
-! Parameters for shortwave redistribution
-!-----------------------------------------------------------------------
-
-      logical (kind=log_kind), public :: &
-         sw_redist     = .false.
-
-      real (kind=dbl_kind), public :: &
-         sw_frac      = 0.9_dbl_kind    , & ! Fraction of internal shortwave moved to surface
-         sw_dtemp     = 0.02_dbl_kind       ! temperature difference from melting
-
 !=======================================================================
 
       contains
@@ -437,7 +440,8 @@
          argcheck_in, puny_in, bignum_in, pi_in, secday_in, &
          rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
          cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
-         depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, albocn_in, gravit_in, viscosity_dyn_in, &
+         depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, &
+         albocn_in, gravit_in, viscosity_dyn_in, tscale_pnd_drain_in, &
          Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
          stefan_boltzmann_in, ice_ref_salinity_in, &
          Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
@@ -445,11 +449,13 @@
          kice_in, ksno_in, &
          zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
          saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
+         Tliquidus_max_in, &
          min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, &
          awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
          qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
-         update_ocn_f_in, ustar_min_in, a_rapid_mode_in, &
+         update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
+         cpl_frazil_in, &
          Rac_rapid_mode_in, aspect_rapid_mode_in, &
          dSdt_slow_mode_in, phi_c_slow_mode_in, &
          phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
@@ -477,7 +483,7 @@
          snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
-         snw_aging_table_in)
+         snw_aging_table_in, snw_ssp_table_in )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -518,6 +524,7 @@
          cp_ocn_in,     & ! specific heat of ocn    (J/kg/K)
          depressT_in,   & ! Tf:brine salinity ratio (C/ppt)
          viscosity_dyn_in, & ! dynamic viscosity of brine (kg/m/s)
+         tscale_pnd_drain_in,&! mushy macroscopic drainage timescale (days)
          Tocnfrz_in,    & ! freezing temp of seawater (C)
          Tffresh_in,    & ! freezing temp of fresh ice (K)
          Lsub_in,       & ! latent heat, sublimation freshwater (J/kg)
@@ -533,6 +540,7 @@
          phi_init_in,   & ! initial liquid fraction of frazil
          min_salin_in,  & ! threshold for brine pocket treatment
          salt_loss_in,  & ! fraction of salt retained in zsalinity
+         Tliquidus_max_in, & ! maximum liquidus temperature of mush (C)
          dSin0_frazil_in  ! bulk salinity reduction of newly formed frazil
 
       integer (kind=int_kind), intent(in), optional :: &
@@ -542,8 +550,9 @@
                             ! 2 = mushy layer theory
 
       character (len=*), intent(in), optional :: &
-         conduct_in, &      ! 'MU71' or 'bubbly'
-         fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
+         conduct_in, &        ! 'MU71' or 'bubbly'
+         fbot_xfer_type_in, & ! transfer coefficient type for ice-ocean heat flux
+         cpl_frazil_in        ! type of coupling for frazil ice
 
       logical (kind=log_kind), intent(in), optional :: &
          calc_Tsfc_in    , &! if true, calculate surface temperature
@@ -553,6 +562,7 @@
 
       real (kind=dbl_kind), intent(in), optional :: &
          dts_b_in,   &      ! zsalinity timestep
+         hi_min_in,  &      ! minimum ice thickness allowed (m) for thermo
          ustar_min_in       ! minimum friction velocity for ice-ocean heat flux
 
       ! mushy thermo
@@ -593,7 +603,7 @@
          awtidf_in        ! near IR, diffuse
 
       character (len=*), intent(in), optional :: &
-         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type_in  ! albedo parameterization, 'ccsm3' or 'constant'
                          ! shortwave='dEdd' overrides this parameter
 
@@ -824,7 +834,15 @@
          snowage_kappa_in, &!
          snowage_drdt0_in   ! (10^-6 m/hr)
 
+      character (len=char_len), intent(in), optional :: &
+         snw_ssp_table_in   ! lookup table: 'snicar' or 'test'
+
 !autodocument_end
+
+      ! local data
+
+      integer (kind=int_kind) :: &
+         dim1, dim2, dim3   ! array dimension sizes
 
       character(len=*),parameter :: subname='(icepack_init_parameters)'
 
@@ -850,6 +868,7 @@
       if (present(albocn_in)            ) albocn           = albocn_in
       if (present(gravit_in)            ) gravit           = gravit_in
       if (present(viscosity_dyn_in)     ) viscosity_dyn    = viscosity_dyn_in
+      if (present(tscale_pnd_drain_in)  ) tscale_pnd_drain = tscale_pnd_drain_in
       if (present(Tocnfrz_in)           ) Tocnfrz          = Tocnfrz_in
       if (present(rhofresh_in)          ) rhofresh         = rhofresh_in
       if (present(zvir_in)              ) zvir             = zvir_in
@@ -878,6 +897,7 @@
       if (present(phi_init_in)          ) phi_init         = phi_init_in
       if (present(min_salin_in)         ) min_salin        = min_salin_in
       if (present(salt_loss_in)         ) salt_loss        = salt_loss_in
+      if (present(Tliquidus_max_in)     ) Tliquidus_max    = Tliquidus_max_in
       if (present(min_bgc_in)           ) min_bgc          = min_bgc_in
       if (present(dSin0_frazil_in)      ) dSin0_frazil     = dSin0_frazil_in
       if (present(hi_ssl_in)            ) hi_ssl           = hi_ssl_in
@@ -895,9 +915,11 @@
       if (present(conduct_in)           ) conduct          = conduct_in
       if (present(fbot_xfer_type_in)    ) fbot_xfer_type   = fbot_xfer_type_in
       if (present(calc_Tsfc_in)         ) calc_Tsfc        = calc_Tsfc_in
+      if (present(cpl_frazil_in)        ) cpl_frazil       = cpl_frazil_in
       if (present(update_ocn_f_in)      ) update_ocn_f     = update_ocn_f_in
       if (present(dts_b_in)             ) dts_b            = dts_b_in
       if (present(ustar_min_in)         ) ustar_min        = ustar_min_in
+      if (present(hi_min_in)            ) hi_min           = hi_min_in
       if (present(a_rapid_mode_in)      ) a_rapid_mode     = a_rapid_mode_in
       if (present(Rac_rapid_mode_in)    ) Rac_rapid_mode   = Rac_rapid_mode_in
       if (present(aspect_rapid_mode_in) ) aspect_rapid_mode= aspect_rapid_mode_in
@@ -955,6 +977,10 @@
       if (present(windmin_in)           ) windmin          = windmin_in
       if (present(drhosdwind_in)        ) drhosdwind       = drhosdwind_in
       if (present(snwlvlfac_in)         ) snwlvlfac        = snwlvlfac_in
+
+      !-------------------
+      ! SNOW table
+      !-------------------
       if (present(isnw_T_in)            ) isnw_T           = isnw_T_in
       if (present(isnw_Tgrd_in)         ) isnw_Tgrd        = isnw_Tgrd_in
       if (present(isnw_rhos_in)         ) isnw_rhos        = isnw_rhos_in
@@ -976,7 +1002,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_Tgrd_in)       ) then
          if (size(snowage_Tgrd_in) /= isnw_Tgrd) then
             call icepack_warnings_add(subname//' incorrect size of snowage_Tgrd_in')
@@ -993,7 +1018,6 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_T_in)       ) then
          if (size(snowage_T_in) /= isnw_T) then
             call icepack_warnings_add(subname//' incorrect size of snowage_T_in')
@@ -1010,57 +1034,70 @@
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_tau_in)       ) then
-         if (size(snowage_tau_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         if (size(snowage_tau_in,dim=1) /= isnw_rhos .or. &
+             size(snowage_tau_in,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_tau_in,dim=3) /= isnw_T   ) then
             call icepack_warnings_add(subname//' incorrect size of snowage_tau_in')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          elseif (.not.allocated(snowage_tau)) then
-            allocate(snowage_tau(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_tau(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_tau      = snowage_tau_in
-         elseif (size(snowage_tau) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         elseif &
+            (size(snowage_tau,dim=1) /= isnw_rhos .or. &
+             size(snowage_tau,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_tau,dim=3) /= isnw_T   ) then
             deallocate(snowage_tau)
-            allocate(snowage_tau(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_tau(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_tau      = snowage_tau_in
          else
             snowage_tau      = snowage_tau_in
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_kappa_in)       ) then
-         if (size(snowage_kappa_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         if (size(snowage_kappa_in,dim=1) /= isnw_rhos .or. &
+             size(snowage_kappa_in,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_kappa_in,dim=3) /= isnw_T   ) then
             call icepack_warnings_add(subname//' incorrect size of snowage_kappa_in')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          elseif (.not.allocated(snowage_kappa)) then
-            allocate(snowage_kappa(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_kappa      = snowage_kappa_in
-         elseif (size(snowage_kappa) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         elseif &
+            (size(snowage_kappa,dim=1) /= isnw_rhos .or. &
+             size(snowage_kappa,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_kappa,dim=3) /= isnw_T   ) then
             deallocate(snowage_kappa)
-            allocate(snowage_kappa(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_kappa(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_kappa      = snowage_kappa_in
          else
             snowage_kappa      = snowage_kappa_in
          endif
       endif
 
-      ! check array sizes and re/allocate if necessary
       if (present(snowage_drdt0_in)       ) then
-         if (size(snowage_drdt0_in) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         if (size(snowage_drdt0_in,dim=1) /= isnw_rhos .or. &
+             size(snowage_drdt0_in,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_drdt0_in,dim=3) /= isnw_T   ) then
             call icepack_warnings_add(subname//' incorrect size of snowage_drdt0_in')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          elseif (.not.allocated(snowage_drdt0)) then
-            allocate(snowage_drdt0(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_drdt0      = snowage_drdt0_in
-         elseif (size(snowage_drdt0) /= isnw_T*isnw_Tgrd*isnw_rhos) then
+         elseif &
+            (size(snowage_drdt0,dim=1) /= isnw_rhos .or. &
+             size(snowage_drdt0,dim=2) /= isnw_Tgrd .or. &
+             size(snowage_drdt0,dim=3) /= isnw_T   ) then
             deallocate(snowage_drdt0)
-            allocate(snowage_drdt0(isnw_T,isnw_Tgrd,isnw_rhos))
+            allocate(snowage_drdt0(isnw_rhos,isnw_Tgrd,isnw_T))
             snowage_drdt0      = snowage_drdt0_in
          else
             snowage_drdt0      = snowage_drdt0_in
          endif
       endif
 
+      if (present(snw_ssp_table_in)     ) snw_ssp_table    = snw_ssp_table_in
       if (present(bgc_flux_type_in)     ) bgc_flux_type    = bgc_flux_type_in
       if (present(z_tracers_in)         ) z_tracers        = z_tracers_in
       if (present(scale_bgc_in)         ) scale_bgc        = scale_bgc_in
@@ -1069,16 +1106,12 @@
       if (present(modal_aero_in)        ) modal_aero       = modal_aero_in
       if (present(conserv_check_in)     ) conserv_check    = conserv_check_in
       if (present(skl_bgc_in)           ) skl_bgc          = skl_bgc_in
-#ifdef UNDEPRECATE_ZSAL
-      if (present(solve_zsal_in)        ) solve_zsal       = solve_zsal_in
-#else
       if (present(solve_zsal_in)) then
+         call icepack_warnings_add(subname//' WARNING: zsalinity is deprecated')
          if (solve_zsal_in) then
-            call icepack_warnings_add(subname//' zsalinity is being deprecated')
             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
          endif
       endif
-#endif
       if (present(grid_o_in)            ) grid_o           = grid_o_in
       if (present(l_sk_in)              ) l_sk             = l_sk_in
       if (present(initbio_frac_in)      ) initbio_frac     = initbio_frac_in
@@ -1135,7 +1168,8 @@
          p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
          rhos_out, rhoi_out, rhow_out, cp_air_out, emissivity_out, &
          cp_ice_out, cp_ocn_out, hfrazilmin_out, floediam_out, &
-         depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, albocn_out, gravit_out, viscosity_dyn_out, &
+         depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, &
+         albocn_out, gravit_out, viscosity_dyn_out, tscale_pnd_drain_out, &
          Tocnfrz_out, rhofresh_out, zvir_out, vonkar_out, cp_wv_out, &
          stefan_boltzmann_out, ice_ref_salinity_out, &
          Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
@@ -1143,10 +1177,11 @@
          kice_out, ksno_out, &
          zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
          saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
+         Tliquidus_max_out, &
          min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
-         awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, &
+         awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, cpl_frazil_out, &
          qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
-         Lfresh_out, cprho_out, Cp_out, ustar_min_out, a_rapid_mode_out, &
+         Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
          Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
          phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
@@ -1175,7 +1210,7 @@
          snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
          snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
          snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
-         snw_aging_table_out)
+         snw_aging_table_out, snw_ssp_table_out )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -1225,6 +1260,7 @@
          cp_ocn_out,     & ! specific heat of ocn    (J/kg/K)
          depressT_out,   & ! Tf:brine salinity ratio (C/ppt)
          viscosity_dyn_out, & ! dynamic viscosity of brine (kg/m/s)
+         tscale_pnd_drain_out, & ! mushy macroscopic drainage timescale (days)
          Tocnfrz_out,    & ! freezing temp of seawater (C)
          Tffresh_out,    & ! freezing temp of fresh ice (K)
          Lsub_out,       & ! latent heat, sublimation freshwater (J/kg)
@@ -1240,6 +1276,7 @@
          phi_init_out,   & ! initial liquid fraction of frazil
          min_salin_out,  & ! threshold for brine pocket treatment
          salt_loss_out,  & ! fraction of salt retained in zsalinity
+         Tliquidus_max_out, & ! maximum liquidus temperature of mush (C)
          dSin0_frazil_out  ! bulk salinity reduction of newly formed frazil
 
       integer (kind=int_kind), intent(out), optional :: &
@@ -1249,8 +1286,9 @@
                             ! 2 = mushy layer theory
 
       character (len=*), intent(out), optional :: &
-         conduct_out, &     ! 'MU71' or 'bubbly'
-         fbot_xfer_type_out ! transfer coefficient type for ice-ocean heat flux
+         conduct_out, &        ! 'MU71' or 'bubbly'
+         fbot_xfer_type_out, & ! transfer coefficient type for ice-ocean heat flux
+         cpl_frazil_out        ! type of coupling for frazil ice
 
       logical (kind=log_kind), intent(out), optional :: &
          calc_Tsfc_out    ,&! if true, calculate surface temperature
@@ -1260,6 +1298,7 @@
 
       real (kind=dbl_kind), intent(out), optional :: &
          dts_b_out,   &      ! zsalinity timestep
+         hi_min_out,  &      ! minimum ice thickness allowed (m) for thermo
          ustar_min_out       ! minimum friction velocity for ice-ocean heat flux
 
       ! mushy thermo
@@ -1274,6 +1313,7 @@
       character(len=*), intent(out), optional :: &
          tfrz_option_out              ! form of ocean freezing temperature
                                       ! 'minus1p8' = -1.8 C
+                                      ! 'constant' = Tocnfrz
                                       ! 'linear_salt' = -depressT * sss
                                       ! 'mushy' conforms with ktherm=2
 
@@ -1301,7 +1341,7 @@
          awtidf_out        ! near IR, diffuse
 
       character (len=*), intent(out), optional :: &
-         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd'
+         shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
          albedo_type_out  ! albedo parameterization, 'ccsm3' or 'constant'
                              ! shortwave='dEdd' overrides this parameter
 
@@ -1531,6 +1571,10 @@
          snowage_tau_out, &  ! (10^-6 m)
          snowage_kappa_out, &!
          snowage_drdt0_out   ! (10^-6 m/hr)
+
+      character (len=char_len), intent(out), optional :: &
+         snw_ssp_table_out   ! lookup table: 'snicar' or 'test'
+
 !autodocument_end
 
       character(len=*),parameter :: subname='(icepack_query_parameters)'
@@ -1594,6 +1638,7 @@
       if (present(albocn_out)            ) albocn_out       = albocn
       if (present(gravit_out)            ) gravit_out       = gravit
       if (present(viscosity_dyn_out)     ) viscosity_dyn_out= viscosity_dyn
+      if (present(tscale_pnd_drain_out)  ) tscale_pnd_drain_out = tscale_pnd_drain
       if (present(Tocnfrz_out)           ) Tocnfrz_out      = Tocnfrz
       if (present(rhofresh_out)          ) rhofresh_out     = rhofresh
       if (present(zvir_out)              ) zvir_out         = zvir
@@ -1622,6 +1667,7 @@
       if (present(phi_init_out)          ) phi_init_out     = phi_init
       if (present(min_salin_out)         ) min_salin_out    = min_salin
       if (present(salt_loss_out)         ) salt_loss_out    = salt_loss
+      if (present(Tliquidus_max_out)     ) Tliquidus_max_out= Tliquidus_max
       if (present(min_bgc_out)           ) min_bgc_out      = min_bgc
       if (present(dSin0_frazil_out)      ) dSin0_frazil_out = dSin0_frazil
       if (present(hi_ssl_out)            ) hi_ssl_out       = hi_ssl
@@ -1639,9 +1685,11 @@
       if (present(conduct_out)           ) conduct_out      = conduct
       if (present(fbot_xfer_type_out)    ) fbot_xfer_type_out = fbot_xfer_type
       if (present(calc_Tsfc_out)         ) calc_Tsfc_out    = calc_Tsfc
+      if (present(cpl_frazil_out)        ) cpl_frazil_out   = cpl_frazil
       if (present(update_ocn_f_out)      ) update_ocn_f_out = update_ocn_f
       if (present(dts_b_out)             ) dts_b_out        = dts_b
       if (present(ustar_min_out)         ) ustar_min_out    = ustar_min
+      if (present(hi_min_out)            ) hi_min_out       = hi_min
       if (present(a_rapid_mode_out)      ) a_rapid_mode_out = a_rapid_mode
       if (present(Rac_rapid_mode_out)    ) Rac_rapid_mode_out = Rac_rapid_mode
       if (present(aspect_rapid_mode_out) ) aspect_rapid_mode_out = aspect_rapid_mode
@@ -1708,6 +1756,7 @@
       if (present(snowage_tau_out)       ) snowage_tau_out  = snowage_tau
       if (present(snowage_kappa_out)     ) snowage_kappa_out= snowage_kappa
       if (present(snowage_drdt0_out)     ) snowage_drdt0_out= snowage_drdt0
+      if (present(snw_ssp_table_out)     ) snw_ssp_table_out= snw_ssp_table
       if (present(bgc_flux_type_out)     ) bgc_flux_type_out= bgc_flux_type
       if (present(z_tracers_out)         ) z_tracers_out    = z_tracers
       if (present(scale_bgc_out)         ) scale_bgc_out    = scale_bgc
@@ -1750,9 +1799,6 @@
       if (present(sw_frac_out)           ) sw_frac_out      = sw_frac
       if (present(sw_dtemp_out)          ) sw_dtemp_out     = sw_dtemp
 
-      call icepack_recompute_constants()
-      if (icepack_warnings_aborted(subname)) return
-
       end subroutine icepack_query_parameters
 
 !=======================================================================
@@ -1769,187 +1815,194 @@
 
         character(len=*),parameter :: subname='(icepack_write_parameters)'
 
+        write(iounit,*) ""
         write(iounit,*) subname
-        write(iounit,*) "  rhos   = ",rhos
-        write(iounit,*) "  rhoi   = ",rhoi
-        write(iounit,*) "  rhow   = ",rhow
-        write(iounit,*) "  cp_air = ",cp_air
+        write(iounit,*) "  rhos       = ",rhos
+        write(iounit,*) "  rhoi       = ",rhoi
+        write(iounit,*) "  rhow       = ",rhow
+        write(iounit,*) "  cp_air     = ",cp_air
         write(iounit,*) "  emissivity = ",emissivity
         write(iounit,*) "  floediam   = ",floediam
         write(iounit,*) "  hfrazilmin = ",hfrazilmin
-        write(iounit,*) "  cp_ice = ",cp_ice
-        write(iounit,*) "  cp_ocn = ",cp_ocn
-        write(iounit,*) "  depressT = ",depressT
-        write(iounit,*) "  dragio = ",dragio
-        write(iounit,*) "  calc_dragio = ",calc_dragio
+        write(iounit,*) "  cp_ice     = ",cp_ice
+        write(iounit,*) "  cp_ocn     = ",cp_ocn
+        write(iounit,*) "  depressT   = ",depressT
+        write(iounit,*) "  dragio     = ",dragio
+        write(iounit,*) "  calc_dragio= ",calc_dragio
         write(iounit,*) "  iceruf_ocn = ",iceruf_ocn
         write(iounit,*) "  thickness_ocn_layer1 = ",thickness_ocn_layer1
-        write(iounit,*) "  albocn = ",albocn
-        write(iounit,*) "  gravit = ",gravit
+        write(iounit,*) "  albocn     = ",albocn
+        write(iounit,*) "  gravit     = ",gravit
         write(iounit,*) "  viscosity_dyn = ",viscosity_dyn
-        write(iounit,*) "  Tocnfrz = ",Tocnfrz
-        write(iounit,*) "  rhofresh = ",rhofresh
-        write(iounit,*) "  zvir   = ",zvir
-        write(iounit,*) "  vonkar = ",vonkar
-        write(iounit,*) "  cp_wv  = ",cp_wv
+        write(iounit,*) "  tscale_pnd_drain = ",tscale_pnd_drain
+        write(iounit,*) "  Tocnfrz    = ",Tocnfrz
+        write(iounit,*) "  rhofresh   = ",rhofresh
+        write(iounit,*) "  zvir       = ",zvir
+        write(iounit,*) "  vonkar     = ",vonkar
+        write(iounit,*) "  cp_wv      = ",cp_wv
         write(iounit,*) "  stefan_boltzmann = ",stefan_boltzmann
-        write(iounit,*) "  Tffresh = ",Tffresh
-        write(iounit,*) "  Lsub   = ",Lsub
-        write(iounit,*) "  Lvap   = ",Lvap
-        write(iounit,*) "  Timelt = ",Timelt
-        write(iounit,*) "  Tsmelt = ",Tsmelt
+        write(iounit,*) "  Tffresh    = ",Tffresh
+        write(iounit,*) "  Lsub       = ",Lsub
+        write(iounit,*) "  Lvap       = ",Lvap
+        write(iounit,*) "  Timelt     = ",Timelt
+        write(iounit,*) "  Tsmelt     = ",Tsmelt
         write(iounit,*) "  ice_ref_salinity = ",ice_ref_salinity
-        write(iounit,*) "  iceruf = ",iceruf
-        write(iounit,*) "  Cf     = ",Cf
-        write(iounit,*) "  Pstar  = ",Pstar
-        write(iounit,*) "  Cstar  = ",Cstar
-        write(iounit,*) "  kappav = ",kappav
-        write(iounit,*) "  kice   = ",kice
-        write(iounit,*) "  ksno   = ",ksno
-        write(iounit,*) "  zref   = ",zref
-        write(iounit,*) "  hs_min = ",hs_min
-        write(iounit,*) "  snowpatch = ",snowpatch
-        write(iounit,*) "  rhosi  = ",rhosi
-        write(iounit,*) "  sk_l   = ",sk_l
-        write(iounit,*) "  saltmax   = ",saltmax
-        write(iounit,*) "  phi_init  = ",phi_init
-        write(iounit,*) "  min_salin = ",min_salin
-        write(iounit,*) "  salt_loss = ",salt_loss
-        write(iounit,*) "  min_bgc   = ",min_bgc
+        write(iounit,*) "  iceruf     = ",iceruf
+        write(iounit,*) "  Cf         = ",Cf
+        write(iounit,*) "  Pstar      = ",Pstar
+        write(iounit,*) "  Cstar      = ",Cstar
+        write(iounit,*) "  kappav     = ",kappav
+        write(iounit,*) "  kice       = ",kice
+        write(iounit,*) "  ksno       = ",ksno
+        write(iounit,*) "  zref       = ",zref
+        write(iounit,*) "  hs_min     = ",hs_min
+        write(iounit,*) "  snowpatch  = ",snowpatch
+        write(iounit,*) "  rhosi      = ",rhosi
+        write(iounit,*) "  sk_l       = ",sk_l
+        write(iounit,*) "  saltmax    = ",saltmax
+        write(iounit,*) "  phi_init   = ",phi_init
+        write(iounit,*) "  min_salin  = ",min_salin
+        write(iounit,*) "  salt_loss  = ",salt_loss
+        write(iounit,*) "  Tliquidus_max = ",Tliquidus_max
+        write(iounit,*) "  min_bgc    = ",min_bgc
         write(iounit,*) "  dSin0_frazil = ",dSin0_frazil
-        write(iounit,*) "  hi_ssl = ",hi_ssl
-        write(iounit,*) "  hs_ssl = ",hs_ssl
-        write(iounit,*) "  awtvdr = ",awtvdr
-        write(iounit,*) "  awtidr = ",awtidr
-        write(iounit,*) "  awtvdf = ",awtvdf
-        write(iounit,*) "  awtidf = ",awtidf
-        write(iounit,*) "  qqqice = ",qqqice
-        write(iounit,*) "  TTTice = ",TTTice
-        write(iounit,*) "  qqqocn = ",qqqocn
-        write(iounit,*) "  TTTocn = ",TTTocn
-        write(iounit,*) "  argcheck  = ",argcheck
-        write(iounit,*) "  puny   = ",puny
-        write(iounit,*) "  bignum = ",bignum
-        write(iounit,*) "  secday = ",secday
-        write(iounit,*) "  pi     = ",pi
-        write(iounit,*) "  pih    = ",pih
-        write(iounit,*) "  piq    = ",piq
-        write(iounit,*) "  pi2    = ",pi2
+        write(iounit,*) "  hi_ssl     = ",hi_ssl
+        write(iounit,*) "  hs_ssl     = ",hs_ssl
+        write(iounit,*) "  awtvdr     = ",awtvdr
+        write(iounit,*) "  awtidr     = ",awtidr
+        write(iounit,*) "  awtvdf     = ",awtvdf
+        write(iounit,*) "  awtidf     = ",awtidf
+        write(iounit,*) "  qqqice     = ",qqqice
+        write(iounit,*) "  TTTice     = ",TTTice
+        write(iounit,*) "  qqqocn     = ",qqqocn
+        write(iounit,*) "  TTTocn     = ",TTTocn
+        write(iounit,*) "  argcheck   = ",trim(argcheck)
+        write(iounit,*) "  puny       = ",puny
+        write(iounit,*) "  bignum     = ",bignum
+        write(iounit,*) "  secday     = ",secday
+        write(iounit,*) "  pi         = ",pi
+        write(iounit,*) "  pih        = ",pih
+        write(iounit,*) "  piq        = ",piq
+        write(iounit,*) "  pi2        = ",pi2
         write(iounit,*) "  rad_to_deg = ",rad_to_deg
-        write(iounit,*) "  Lfresh = ",Lfresh
-        write(iounit,*) "  cprho  = ",cprho
-        write(iounit,*) "  Cp     = ",Cp
-        write(iounit,*) "  ktherm        = ", ktherm
-        write(iounit,*) "  conduct       = ", conduct
-        write(iounit,*) "  fbot_xfer_type    = ", fbot_xfer_type
-        write(iounit,*) "  calc_Tsfc         = ", calc_Tsfc
-        write(iounit,*) "  update_ocn_f      = ", update_ocn_f
-        write(iounit,*) "  dts_b             = ", dts_b
-        write(iounit,*) "  ustar_min         = ", ustar_min
-        write(iounit,*) "  a_rapid_mode      = ", a_rapid_mode
-        write(iounit,*) "  Rac_rapid_mode    = ", Rac_rapid_mode
+        write(iounit,*) "  Lfresh     = ",Lfresh
+        write(iounit,*) "  cprho      = ",cprho
+        write(iounit,*) "  Cp         = ",Cp
+        write(iounit,*) "  ktherm     = ", ktherm
+        write(iounit,*) "  conduct    = ", trim(conduct)
+        write(iounit,*) "  fbot_xfer_type = ", trim(fbot_xfer_type)
+        write(iounit,*) "  calc_Tsfc  = ", calc_Tsfc
+        write(iounit,*) "  cpl_frazil = ", cpl_frazil
+        write(iounit,*) "  update_ocn_f = ", update_ocn_f
+        write(iounit,*) "  dts_b      = ", dts_b
+        write(iounit,*) "  ustar_min  = ", ustar_min
+        write(iounit,*) "  hi_min     = ", hi_min
+        write(iounit,*) "  a_rapid_mode = ", a_rapid_mode
+        write(iounit,*) "  Rac_rapid_mode = ", Rac_rapid_mode
         write(iounit,*) "  aspect_rapid_mode = ", aspect_rapid_mode
-        write(iounit,*) "  dSdt_slow_mode    = ", dSdt_slow_mode
-        write(iounit,*) "  phi_c_slow_mode   = ", phi_c_slow_mode
-        write(iounit,*) "  phi_i_mushy       = ", phi_i_mushy
-        write(iounit,*) "  shortwave     = ", shortwave
-        write(iounit,*) "  albedo_type   = ", albedo_type
-        write(iounit,*) "  albicev       = ", albicev
-        write(iounit,*) "  albicei       = ", albicei
-        write(iounit,*) "  albsnowv      = ", albsnowv
-        write(iounit,*) "  albsnowi      = ", albsnowi
-        write(iounit,*) "  ahmax         = ", ahmax
-        write(iounit,*) "  R_ice         = ", R_ice
-        write(iounit,*) "  R_pnd         = ", R_pnd
-        write(iounit,*) "  R_snw         = ", R_snw
-        write(iounit,*) "  dT_mlt        = ", dT_mlt
-        write(iounit,*) "  rsnw_mlt      = ", rsnw_mlt
-        write(iounit,*) "  kalg          = ", kalg
-        write(iounit,*) "  kstrength     = ", kstrength
-        write(iounit,*) "  krdg_partic   = ", krdg_partic
-        write(iounit,*) "  krdg_redist   = ", krdg_redist
-        write(iounit,*) "  mu_rdg        = ", mu_rdg
-        write(iounit,*) "  atmbndy       = ", atmbndy
-        write(iounit,*) "  calc_strair   = ", calc_strair
-        write(iounit,*) "  formdrag      = ", formdrag
-        write(iounit,*) "  highfreq      = ", highfreq
-        write(iounit,*) "  natmiter      = ", natmiter
-        write(iounit,*) "  atmiter_conv  = ", atmiter_conv
-        write(iounit,*) "  tfrz_option   = ", tfrz_option
-        write(iounit,*) "  saltflux_option = ", saltflux_option
-        write(iounit,*) "  kitd          = ", kitd
-        write(iounit,*) "  kcatbound     = ", kcatbound
-        write(iounit,*) "  floeshape     = ", floeshape
-        write(iounit,*) "  wave_spec     = ", wave_spec
-        write(iounit,*) "  wave_spec_type= ", wave_spec_type
-        write(iounit,*) "  nfreq         = ", nfreq
-        write(iounit,*) "  hs0           = ", hs0
-        write(iounit,*) "  frzpnd        = ", frzpnd
-        write(iounit,*) "  dpscale       = ", dpscale
-        write(iounit,*) "  rfracmin      = ", rfracmin
-        write(iounit,*) "  rfracmax      = ", rfracmax
-        write(iounit,*) "  pndaspect     = ", pndaspect
-        write(iounit,*) "  hs1           = ", hs1
-        write(iounit,*) "  hp1           = ", hp1
-        write(iounit,*) "  snwredist     = ", snwredist
-        write(iounit,*) "  snw_aging_table = ", snw_aging_table
-        write(iounit,*) "  snwgrain      = ", snwgrain
+        write(iounit,*) "  dSdt_slow_mode = ", dSdt_slow_mode
+        write(iounit,*) "  phi_c_slow_mode = ", phi_c_slow_mode
+        write(iounit,*) "  phi_i_mushy= ", phi_i_mushy
+        write(iounit,*) "  shortwave  = ", trim(shortwave)
+        write(iounit,*) "  albedo_type= ", trim(albedo_type)
+        write(iounit,*) "  albicev    = ", albicev
+        write(iounit,*) "  albicei    = ", albicei
+        write(iounit,*) "  albsnowv   = ", albsnowv
+        write(iounit,*) "  albsnowi   = ", albsnowi
+        write(iounit,*) "  ahmax      = ", ahmax
+        write(iounit,*) "  R_ice      = ", R_ice
+        write(iounit,*) "  R_pnd      = ", R_pnd
+        write(iounit,*) "  R_snw      = ", R_snw
+        write(iounit,*) "  dT_mlt     = ", dT_mlt
+        write(iounit,*) "  rsnw_mlt   = ", rsnw_mlt
+        write(iounit,*) "  kalg       = ", kalg
+        write(iounit,*) "  kstrength  = ", kstrength
+        write(iounit,*) "  krdg_partic= ", krdg_partic
+        write(iounit,*) "  krdg_redist= ", krdg_redist
+        write(iounit,*) "  mu_rdg     = ", mu_rdg
+        write(iounit,*) "  atmbndy    = ", trim(atmbndy)
+        write(iounit,*) "  calc_strair= ", calc_strair
+        write(iounit,*) "  formdrag   = ", formdrag
+        write(iounit,*) "  highfreq   = ", highfreq
+        write(iounit,*) "  natmiter   = ", natmiter
+        write(iounit,*) "  atmiter_conv = ", atmiter_conv
+        write(iounit,*) "  tfrz_option= ", trim(tfrz_option)
+        write(iounit,*) "  saltflux_option = ", trim(saltflux_option)
+        write(iounit,*) "  kitd       = ", kitd
+        write(iounit,*) "  kcatbound  = ", kcatbound
+        write(iounit,*) "  floeshape  = ", floeshape
+        write(iounit,*) "  wave_spec  = ", wave_spec
+        write(iounit,*) "  wave_spec_type = ", trim(wave_spec_type)
+        write(iounit,*) "  nfreq      = ", nfreq
+        write(iounit,*) "  hs0        = ", hs0
+        write(iounit,*) "  frzpnd     = ", trim(frzpnd)
+        write(iounit,*) "  dpscale    = ", dpscale
+        write(iounit,*) "  rfracmin   = ", rfracmin
+        write(iounit,*) "  rfracmax   = ", rfracmax
+        write(iounit,*) "  pndaspect  = ", pndaspect
+        write(iounit,*) "  hs1        = ", hs1
+        write(iounit,*) "  hp1        = ", hp1
+        write(iounit,*) "  snwredist  = ", trim(snwredist)
+        write(iounit,*) "  snw_aging_table = ", trim(snw_aging_table)
+        write(iounit,*) "  snwgrain   = ", snwgrain
         write(iounit,*) "  use_smliq_pnd = ", use_smliq_pnd
-        write(iounit,*) "  rsnw_fall     = ", rsnw_fall
-        write(iounit,*) "  rsnw_tmax     = ", rsnw_tmax
-        write(iounit,*) "  rhosnew       = ", rhosnew
-        write(iounit,*) "  rhosmin       = ", rhosmin
-        write(iounit,*) "  rhosmax       = ", rhosmax
-        write(iounit,*) "  windmin       = ", windmin
-        write(iounit,*) "  drhosdwind    = ", drhosdwind
-        write(iounit,*) "  snwlvlfac     = ", snwlvlfac
-        write(iounit,*) "  isnw_T        = ", isnw_T
-        write(iounit,*) "  isnw_Tgrd     = ", isnw_Tgrd
-        write(iounit,*) "  isnw_rhos     = ", isnw_rhos
-        write(iounit,*) "  snowage_rhos  = ", snowage_rhos(1)
-        write(iounit,*) "  snowage_Tgrd  = ", snowage_Tgrd(1)
-        write(iounit,*) "  snowage_T     = ", snowage_T(1)
-        write(iounit,*) "  snowage_tau   = ", snowage_tau(1,1,1)
-        write(iounit,*) "  snowage_kappa = ", snowage_kappa(1,1,1)
-        write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0(1,1,1)
-        write(iounit,*) "  bgc_flux_type = ", bgc_flux_type
-        write(iounit,*) "  z_tracers     = ", z_tracers
-        write(iounit,*) "  scale_bgc     = ", scale_bgc
-        write(iounit,*) "  solve_zbgc    = ", solve_zbgc
-        write(iounit,*) "  dEdd_algae    = ", dEdd_algae
-        write(iounit,*) "  modal_aero    = ", modal_aero
+        write(iounit,*) "  rsnw_fall  = ", rsnw_fall
+        write(iounit,*) "  rsnw_tmax  = ", rsnw_tmax
+        write(iounit,*) "  rhosnew    = ", rhosnew
+        write(iounit,*) "  rhosmin    = ", rhosmin
+        write(iounit,*) "  rhosmax    = ", rhosmax
+        write(iounit,*) "  windmin    = ", windmin
+        write(iounit,*) "  drhosdwind = ", drhosdwind
+        write(iounit,*) "  snwlvlfac  = ", snwlvlfac
+        write(iounit,*) "  isnw_T     = ", isnw_T
+        write(iounit,*) "  isnw_Tgrd  = ", isnw_Tgrd
+        write(iounit,*) "  isnw_rhos  = ", isnw_rhos
+!        write(iounit,*) "  snowage_rhos  = ", snowage_rhos(1)
+!        write(iounit,*) "  snowage_Tgrd  = ", snowage_Tgrd(1)
+!        write(iounit,*) "  snowage_T     = ", snowage_T(1)
+!        write(iounit,*) "  snowage_tau   = ", snowage_tau(1,1,1)
+!        write(iounit,*) "  snowage_kappa = ", snowage_kappa(1,1,1)
+!        write(iounit,*) "  snowage_drdt0 = ", snowage_drdt0(1,1,1)
+        write(iounit,*) "  snw_ssp_table = ", trim(snw_ssp_table)
+        write(iounit,*) "  bgc_flux_type = ", trim(bgc_flux_type)
+        write(iounit,*) "  z_tracers  = ", z_tracers
+        write(iounit,*) "  scale_bgc  = ", scale_bgc
+        write(iounit,*) "  solve_zbgc = ", solve_zbgc
+        write(iounit,*) "  dEdd_algae = ", dEdd_algae
+        write(iounit,*) "  modal_aero = ", modal_aero
         write(iounit,*) "  conserv_check = ", conserv_check
-        write(iounit,*) "  skl_bgc       = ", skl_bgc
-        write(iounit,*) "  solve_zsal    = ", solve_zsal
-        write(iounit,*) "  grid_o        = ", grid_o
-        write(iounit,*) "  l_sk          = ", l_sk
-        write(iounit,*) "  initbio_frac  = ", initbio_frac
-        write(iounit,*) "  grid_oS       = ", grid_oS
-        write(iounit,*) "  l_skS         = ", l_skS
-        write(iounit,*) "  phi_snow      = ", phi_snow
-        write(iounit,*) "  fr_resp       = ", fr_resp
-        write(iounit,*) "  algal_vel     = ", algal_vel
-        write(iounit,*) "  R_dFe2dust    = ", R_dFe2dust
-        write(iounit,*) "  dustFe_sol    = ", dustFe_sol
-        write(iounit,*) "  T_max         = ", T_max
-        write(iounit,*) "  fsal          = ", fsal
-        write(iounit,*) "  op_dep_min    = ", op_dep_min
-        write(iounit,*) "  fr_graze_s    = ", fr_graze_s
-        write(iounit,*) "  fr_graze_e    = ", fr_graze_e
-        write(iounit,*) "  fr_mort2min   = ", fr_mort2min
-        write(iounit,*) "  fr_dFe        = ", fr_dFe
-        write(iounit,*) "  k_nitrif      = ", k_nitrif
-        write(iounit,*) "  t_iron_conv   = ", t_iron_conv
-        write(iounit,*) "  max_loss      = ", max_loss
-        write(iounit,*) "  max_dfe_doc1  = ", max_dfe_doc1
-        write(iounit,*) "  fr_resp_s     = ", fr_resp_s
-        write(iounit,*) "  y_sk_DMS      = ", y_sk_DMS
-        write(iounit,*) "  t_sk_conv     = ", t_sk_conv
-        write(iounit,*) "  t_sk_ox       = ", t_sk_ox
-        write(iounit,*) "  frazil_scav   = ", frazil_scav
-        write(iounit,*) "  sw_redist     = ", sw_redist
-        write(iounit,*) "  sw_frac       = ", sw_frac
-        write(iounit,*) "  sw_dtemp      = ", sw_dtemp
+        write(iounit,*) "  skl_bgc    = ", skl_bgc
+        write(iounit,*) "  solve_zsal = ", solve_zsal
+        write(iounit,*) "  grid_o     = ", grid_o
+        write(iounit,*) "  l_sk       = ", l_sk
+        write(iounit,*) "  initbio_frac = ", initbio_frac
+        write(iounit,*) "  grid_oS    = ", grid_oS
+        write(iounit,*) "  l_skS      = ", l_skS
+        write(iounit,*) "  phi_snow   = ", phi_snow
+        write(iounit,*) "  fr_resp    = ", fr_resp
+        write(iounit,*) "  algal_vel  = ", algal_vel
+        write(iounit,*) "  R_dFe2dust = ", R_dFe2dust
+        write(iounit,*) "  dustFe_sol = ", dustFe_sol
+        write(iounit,*) "  T_max      = ", T_max
+        write(iounit,*) "  fsal       = ", fsal
+        write(iounit,*) "  op_dep_min = ", op_dep_min
+        write(iounit,*) "  fr_graze_s = ", fr_graze_s
+        write(iounit,*) "  fr_graze_e = ", fr_graze_e
+        write(iounit,*) "  fr_mort2min= ", fr_mort2min
+        write(iounit,*) "  fr_dFe     = ", fr_dFe
+        write(iounit,*) "  k_nitrif   = ", k_nitrif
+        write(iounit,*) "  t_iron_conv= ", t_iron_conv
+        write(iounit,*) "  max_loss   = ", max_loss
+        write(iounit,*) "  max_dfe_doc1 = ", max_dfe_doc1
+        write(iounit,*) "  fr_resp_s  = ", fr_resp_s
+        write(iounit,*) "  y_sk_DMS   = ", y_sk_DMS
+        write(iounit,*) "  t_sk_conv  = ", t_sk_conv
+        write(iounit,*) "  t_sk_ox    = ", t_sk_ox
+        write(iounit,*) "  frazil_scav= ", frazil_scav
+        write(iounit,*) "  sw_redist  = ", sw_redist
+        write(iounit,*) "  sw_frac    = ", sw_frac
+        write(iounit,*) "  sw_dtemp   = ", sw_dtemp
+        write(iounit,*) ""
 
       end subroutine icepack_write_parameters
 
@@ -1984,6 +2037,22 @@
       end subroutine icepack_recompute_constants
 
 !=======================================================================
+
+      function icepack_chkoptargflag(first_call) result(chkoptargflag)
+
+        logical(kind=log_kind), intent(in) :: first_call
+
+        logical(kind=log_kind) :: chkoptargflag
+
+        character(len=*),parameter :: subname='(icepack_chkoptargflag)'
+
+        chkoptargflag = &
+           (argcheck == 'always' .or. (argcheck == 'first' .and. first_call))
+
+      end function icepack_chkoptargflag
+
+!=======================================================================
+
 
     end module icepack_parameters
 

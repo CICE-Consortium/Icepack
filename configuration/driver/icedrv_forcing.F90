@@ -77,6 +77,7 @@
          atm_data_type,   & ! 'default', 'clim', 'CFS'
          ocn_data_type,   & ! 'default', 'SHEBA'
          bgc_data_type,   & ! 'default', 'ISPOL', 'NICE'
+         lateral_flux_type,   & ! 'uniform_ice', 'open_water'
          atm_data_file,   & ! atmospheric forcing data file
          ocn_data_file,   & ! ocean forcing data file
          ice_data_file,   & ! ice forcing data file
@@ -93,12 +94,15 @@
          frcidf = 0.17_dbl_kind    ! frac of incoming sw in near IR diffuse band
 
       logical (kind=log_kind), public :: &
-         oceanmixed_ice        , & ! if true, use internal ocean mixed layer
-         restore_ocn               ! restore sst if true
+         oceanmixed_ice , & ! if true, use internal ocean mixed layer
+         restore_ocn        ! restore sst if true
 
       real (kind=dbl_kind), public :: &
-         trest, &                  ! restoring time scale (sec)
-         trestore                  ! restoring time scale (days)
+         trest, &           ! restoring time scale (sec)
+         trestore           ! restoring time scale (days)
+
+      character (len=char_len_long), public :: &
+         snw_ssp_table      ! snow table type 'test', 'snicar'
 
 !=======================================================================
 
@@ -122,9 +126,9 @@
       write (nu_diag,*) ' Initial forcing data year = ',fyear_init
       write (nu_diag,*) ' Final   forcing data year = ',fyear_final
 
-    !-------------------------------------------------------------------
-    ! Initialize forcing data to default values
-    !-------------------------------------------------------------------
+     !-------------------------------------------------------------------
+     ! Initialize forcing data to default values
+     !-------------------------------------------------------------------
 
       ! many default forcing values are set in init_flux_atm
       i = 1 ! use first grid box value
@@ -1066,16 +1070,17 @@
          qdp_data (i) = qdp (i)
       end do
 
-    end subroutine ocn_ISPOL
+     end subroutine ocn_ISPOL
 
 !=======================================================================
 
       subroutine finish_ocn_forcing(sst_temp)
 
- ! Compute ocean freezing temperature Tf based on tfrz_option
- ! 'minus1p8'         Tf = -1.8 C (default)
- ! 'linear_salt'      Tf = -depressT * sss
- ! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
+! Compute ocean freezing temperature Tf based on tfrz_option
+! 'minus1p8'         Tf = -1.8 C
+! 'constant'         Tf = Tocnfrz
+! 'linear_salt'      Tf = -depressT * sss
+! 'mushy'            Tf conforms with mushy layer thermo (ktherm=2)
 
       real (kind=dbl_kind), dimension(nx), intent(in)  :: &
           sst_temp
@@ -1101,7 +1106,7 @@
 
 !=======================================================================
 
-    subroutine ice_open_clos
+     subroutine ice_open_clos
 
 
       integer (kind=int_kind) :: i
@@ -1124,7 +1129,7 @@
 
       close (nu_open_clos)
 
-    end subroutine ice_open_clos
+     end subroutine ice_open_clos
 
 !=======================================================================
 
@@ -1154,7 +1159,6 @@
       enddo
 
       end subroutine get_wave_spec
-
 
 !=======================================================================
 

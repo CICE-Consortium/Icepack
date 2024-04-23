@@ -13,13 +13,14 @@
       module icepack_atmo
 
       use icepack_kinds
-      use icepack_parameters,  only: c0, c1, c2, c4, c5, c8, c10
-      use icepack_parameters,  only: c16, c20, p001, p01, p2, p4, p5, p75, puny
-      use icepack_parameters,  only: senscoef, latncoef
-      use icepack_parameters,  only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
-      use icepack_parameters,  only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
-      use icepack_parameters,  only: pih, dragio, rhoi, rhos, rhow
+      use icepack_parameters, only: c0, c1, c2, c4, c5, c8, c10
+      use icepack_parameters, only: c16, c20, p001, p01, p2, p4, p5, p75, puny
+      use icepack_parameters, only: senscoef, latncoef
+      use icepack_parameters, only: cp_wv, cp_air, iceruf, zref, qqqice, TTTice, qqqocn, TTTocn
+      use icepack_parameters, only: Lsub, Lvap, vonkar, Tffresh, zvir, gravit
+      use icepack_parameters, only: pih, dragio, rhoi, rhos, rhow
       use icepack_parameters, only: atmbndy, calc_strair, formdrag
+      use icepack_parameters, only: icepack_chkoptargflag
       use icepack_tracers, only: n_iso
       use icepack_tracers, only: tr_iso
       use icepack_warnings, only: warnstr, icepack_warnings_add
@@ -61,7 +62,6 @@
                                       Cdn_atm,            &
                                       Cdn_atm_ratio_n,    &
                                       Qa_iso,   Qref_iso, &
-                                      iso_flag,           &
                                       uvel,     vvel,     &
                                       Uref,     zlvs      )
 
@@ -90,8 +90,7 @@
       real (kind=dbl_kind), intent(inout) :: &
          Cdn_atm_ratio_n ! ratio drag coeff / neutral drag coeff
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          strx     , & ! x surface stress (N)
          stry         ! y surface stress (N)
 
@@ -103,13 +102,10 @@
          shcoef   , & ! transfer coefficient for sensible heat
          lhcoef       ! transfer coefficient for latent heat
 
-      logical (kind=log_kind), intent(in), optional :: &
-         iso_flag     ! flag to trigger iso calculations
-
-      real (kind=dbl_kind), intent(in), optional, dimension(:) :: &
+      real (kind=dbl_kind), intent(in), dimension(:), optional :: &
          Qa_iso       ! specific isotopic humidity (kg/kg)
 
-      real (kind=dbl_kind), intent(inout), optional, dimension(:) :: &
+      real (kind=dbl_kind), intent(inout), dimension(:), optional :: &
          Qref_iso     ! reference specific isotopic humidity (kg/kg)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -167,15 +163,7 @@
       real (kind=dbl_kind), parameter :: &
          zTrf  = c2     ! reference height for air temp (m)
 
-      logical (kind=log_kind) :: &
-         l_iso_flag     ! local flag to trigger iso calculations
-
       character(len=*),parameter :: subname='(atmo_boundary_layer)'
-
-      l_iso_flag = .false.
-      if (present(iso_flag)) then
-        l_iso_flag = iso_flag
-      endif
 
       al2 = log(zref/zTrf)
 
@@ -389,21 +377,13 @@
          Uref = vmag * rd / rdn
       endif
 
-      if (l_iso_flag) then
-       if (present(Qref_iso) .and. present(Qa_iso)) then
+      if (tr_iso .and. sfctype(1:3)=='ice') then
          Qref_iso(:) = c0
-         if (tr_iso) then
-            do n = 1, n_iso
-               ratio = c0
-               if (Qa_iso(2) > puny) ratio = Qa_iso(n)/Qa_iso(2)
-               Qref_iso(n) = Qa_iso(n) - ratio*delq*fac
-            enddo
-         endif
-       else
-         call icepack_warnings_add(subname//' l_iso_flag true but optional arrays missing')
-         call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
-         return
-       endif
+         do n = 1, n_iso
+            ratio = c0
+            if (Qa_iso(2) > puny) ratio = Qa_iso(n)/Qa_iso(2)
+            Qref_iso(n) = Qa_iso(n) - ratio*delq*fac
+         enddo
       endif
 
       end subroutine atmo_boundary_layer
@@ -564,8 +544,7 @@
          aicen    , & ! concentration of ice
          vicen        ! volume per unit area of ice (m)
 
-      real (kind=dbl_kind), &
-         intent(out) :: &
+      real (kind=dbl_kind), intent(out) :: &
          hfreebd      , & ! freeboard (m)
          hdraft       , & ! draught of ice + snow column (Stoessel1993)
          hridge       , & ! ridge height
@@ -882,8 +861,7 @@
          Cdn_atm  , &    ! neutral drag coefficient
          Cdn_atm_ratio_n ! ratio drag coeff / neutral drag coeff
 
-      real (kind=dbl_kind), &
-         intent(inout) :: &
+      real (kind=dbl_kind), intent(inout) :: &
          strx     , & ! x surface stress (N)
          stry         ! y surface stress (N)
 
@@ -895,18 +873,18 @@
          shcoef   , & ! transfer coefficient for sensible heat
          lhcoef       ! transfer coefficient for latent heat
 
-      real (kind=dbl_kind), intent(in), optional, dimension(:) :: &
+      real (kind=dbl_kind), intent(in), dimension(:), optional :: &
          Qa_iso       ! specific isotopic humidity (kg/kg)
 
-      real (kind=dbl_kind), intent(inout), optional, dimension(:) :: &
+      real (kind=dbl_kind), intent(inout), dimension(:), optional :: &
          Qref_iso     ! reference specific isotopic humidity (kg/kg)
 
-      real (kind=dbl_kind), optional, intent(in) :: &
+      real (kind=dbl_kind), intent(in), optional :: &
          uvel     , & ! x-direction ice speed (m/s)
          vvel     , & ! y-direction ice speed (m/s)
          zlvs         ! atm level height for scalars (if different than zlvl) (m)
 
-      real (kind=dbl_kind), optional, intent(out) :: &
+      real (kind=dbl_kind), intent(out), optional :: &
          Uref         ! reference height wind speed (m/s)
 
 !autodocument_end
@@ -916,13 +894,27 @@
       real (kind=dbl_kind) :: &
          l_uvel, l_vvel, l_Uref
 
-      real (kind=dbl_kind), dimension(:), allocatable :: &
-         l_Qa_iso, l_Qref_iso   ! local copies of Qa_iso, Qref_iso
-
-      logical (kind=log_kind) :: &
-         iso_flag  ! flag to turn on iso calcs in other subroutines
+      logical (kind=log_kind), save :: &
+         first_call_ice = .true.   ! first call flag
 
       character(len=*),parameter :: subname='(icepack_atm_boundary)'
+
+      !------------------------------------------------------------
+      ! Check optional arguments
+      ! Need separate first_call flags for 'ice' and 'ocn' sfctype
+      !------------------------------------------------------------
+
+      if (sfctype == 'ice') then
+      if (icepack_chkoptargflag(first_call_ice)) then
+         if (tr_iso) then
+            if (.not.(present(Qa_iso).and.present(Qref_iso))) then
+              call icepack_warnings_add(subname//' error in fiso_ocn argument, tr_iso=T')
+              call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+              return
+            endif
+         endif
+      endif
+      endif
 
       l_uvel = c0
       l_vvel = c0
@@ -932,19 +924,6 @@
       endif
       if (present(vvel)) then
          l_vvel = vvel
-      endif
-      if (present(Qa_iso) .and. present(Qref_iso)) then
-         iso_flag = .true.
-         allocate(l_Qa_iso(size(Qa_iso,dim=1)))
-         allocate(l_Qref_iso(size(Qref_iso,dim=1)))
-         l_Qa_iso = Qa_iso
-         l_Qref_iso = Qref_iso
-      else
-         iso_flag = .false.
-         allocate(l_Qa_iso(1))
-         allocate(l_Qref_iso(1))
-         l_Qa_iso = c0
-         l_Qref_iso = c0
       endif
 
       Cdn_atm_ratio_n = c1
@@ -972,11 +951,10 @@
                                    lhcoef,   shcoef,        &
                                    Cdn_atm,                 &
                                    Cdn_atm_ratio_n,         &
-                                   iso_flag = iso_flag,     &
-                                   Qa_iso=l_Qa_iso,         &
-                                   Qref_iso=l_Qref_iso,     &
-                                   uvel=l_uvel, vvel=l_vvel,  &
-                                   Uref=l_Uref, zlvs=zlvs)
+                                   Qa_iso=Qa_iso,           &
+                                   Qref_iso=Qref_iso,       &
+                                   uvel=l_uvel, vvel=l_vvel,&
+                                   Uref=l_Uref, zlvs=zlvs   )
          if (icepack_warnings_aborted(subname)) return
       endif ! atmbndy
 
@@ -984,11 +962,9 @@
          Uref = l_Uref
       endif
 
-      if (present(Qref_iso)) then
-         Qref_iso = l_Qref_iso
+      if (sfctype == 'ice') then
+         first_call_ice = .false.
       endif
-
-      deallocate(l_Qa_iso,l_Qref_iso)
 
       end subroutine icepack_atm_boundary
 
