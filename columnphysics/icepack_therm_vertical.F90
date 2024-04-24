@@ -1337,6 +1337,7 @@
                zqsn(1) = min(zqsn(1), -rhos*Lfresh)
             endif
          endif
+#endif
 
          dzs(1) = dzs(1) + dhs
          evapn = evapn + dhs*rhos
