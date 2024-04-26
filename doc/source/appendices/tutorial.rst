@@ -10,7 +10,7 @@ Icepack Tutorial
 Learning Goals
 ----------------
 
-In this activity you will clone the Icepack model code from the Consortium GitHub repository to run standalone Icepack simulations. You will also make namelist changes and code modifications for experiments and make some basic plots. If you run into issues, contact dbailey@ucar.edu
+In this activity you will clone the Icepack model code from the Consortium GitHub repository to run standalone Icepack simulations. You will also make namelist changes and code modifications for experiments and make some basic plots. If you run into issues, contact dbailey@ucar.edu.
 
 Notes:
 
@@ -20,7 +20,7 @@ Notes:
 
   * Icepack User Guide, https://cice-consortium-icepack.readthedocs.io/en/latest/index.html
   * CICE-Consortium GitHub Usage Guide, https://github.com/CICE-Consortium/About-Us/wiki/Git-Workflow-Guide
-  * CICE Resources, https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index
+  * CICE and Icepack Resources, https://github.com/CICE-Consortium/About-Us/wiki/Resource-Index
 
 
 Github One-time Configuration
@@ -50,7 +50,7 @@ Move to the Icepack directory and check which branch you are using. This should 
   cd Icepack
   git status
 
-Take a minute to orient yourself to the big picture structure of the directories and files in Icepack. The documentation has information about the Icepack Directory Structure (:ref:`dirstructure`).
+Take a minute to orient yourself to the big picture structure of the directories and files in Icepack. The documentation has information about the Icepack :ref:`dirstructure`.
 
 Make sure your main is up to date and create a branch. You can also update your fork directly in github by clicking the Sync fork button. If your code is already up to date, you can skip this step::
 
@@ -82,7 +82,7 @@ Before you can run Icepack, you have to set up a directory structure and downloa
 You can also run Icepack on an external machine that is supported by the Consortium or to which you have ported the code. In this case, you do not need to port to your laptop.
 
 
-Setup an Icepack Simulation
+Set Up an Icepack Simulation
 -----------------------------
 
 Use the online Icepack documentation and in particular the :ref:`quickstart` and :ref:`running_icepack` sections as guidance and for details on the command line settings::
@@ -111,13 +111,13 @@ Build the code::
 
 The build script basically runs gmake under the covers, but there are a number of other tasks that are handled by the script to make the build more robust.  If the build is successful you will see the message “COMPILE SUCCESSFUL” at the bottom of the screen. You can also check the README.case file to check the status.
 
-Submit the job. The submit script just submits the run scripts. Look at both **icepack.run** and **icepack.submit** files to see more details. The out of the box run has default settings for the physics and other options. You can have a look at **icepack_in** and **icepack.settings** to review those settings::
+Submit the job. The submit script just submits the run scripts. Look at both **icepack.run** and **icepack.submit** files to see more details. The out-of-the-box run has default settings for the physics and other options. You can have a look at **icepack_in** and **icepack.settings** to review those settings. Then::
 
   ./icepack.submit
 
-If the run is successful, you will see the message “ICEPACK COMPLETED SUCCESSFULLY” in the icepack run log file. Note that this job runs quickly - you are just running a single column!
+If the run is successful, you will see the message “ICEPACK COMPLETED SUCCESSFULLY” in the icepack run log file. Note that this job runs quickly - you are running a column model with four grid cells!
 
-Look at the output!  Go to the ICE_RUNDIR where output was created. A successful model integration will create ice_diag.* files and a file in the “restart” directory called “iced.2016-01-01-00000”. The Icepack documentation has more information about “Model output” (:ref:`history`).
+Look at the output!  Go to the ICE_RUNDIR where output was created. A successful model integration will create ice_diag.* files and a file in the “restart” directory called “iced.2016-01-01-00000”. The Icepack documentation has more information about :ref:`history`.
 
 Follow the documentation to create some plots of the output using the tools provided with Icepack (:ref:`testplotting`). The conda icepack environment must be activated, if it isn’t already::
  
@@ -145,14 +145,14 @@ Take a step back and think about all the directories and files you have created.
 * There is a particular run directory for each case. This is where the model is run and big files are found.
 
 
-Setup a Longer Run
+Set Up a Longer Run
 ---------------------
 
-Once you have had success with the previous step, you should run another, longer experiment to practice some basic changes for Icepack. Go back to your Icepack directory::
+Once you have had success with the previous step, you can run another, longer experiment to practice some basic changes for Icepack. Go back to your Icepack directory::
 
   cd ~/icepack-dirs/Icepack/
 
-You need to set up a new out-of-the-box case (icepack_test1), but with a different option in **icepack.setup**. What is the change below? What are the other options for this value?::
+You need to set up a new out-of-the-box case (icepack_test1)::
 
   ./icepack.setup --case ~/icepack-dirs/cases/icepack_test1 --mach <machine> --env <myenv>
 
