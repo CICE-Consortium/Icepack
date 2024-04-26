@@ -16,7 +16,7 @@ Icepack Documentation
    user_guide/index_standalone.rst
    user_guide/index_withmodels.rst
    developer_guide/index.rst
-   icepack_index.rst
+   appendices/index.rst
    zreferences.rst
 
 * :ref:`search`
