@@ -32,9 +32,7 @@ For information about how to set up a GitHub account for the Icepack repository,
 
 Note: 
 
-* The workflow guide is oriented toward setting up CICE rather than Icepack, which is normally installed as a submodule in CICE.  Icepack can be set up and run as an independent model by cloning it directly, e.g.::
-	
-    git clone https://github.com/<github-user>/Icepack
+* The workflow guide is oriented toward setting up CICE rather than Icepack, but the same workflow applies to Icepack standalone.  Icepack can be set up and run as an independent model following the same workflow.
 
 
 Clone Icepack
@@ -53,7 +51,7 @@ Move to the Icepack directory and check which branch you are using. This should 
   cd Icepack
   git status
 
-Take a minute to orient yourself to the big picture structure of the directories and files in Icepack. The documentation has information about the Icepack Directory Structure (:ref:`implementation`).
+Take a minute to orient yourself to the big picture structure of the directories and files in Icepack. The documentation has information about the Icepack Directory Structure (:ref:`dirstructure`).
 
 Make sure your main is up to date and create a branch. You can also update your fork directly in github by clicking the Sync fork button. If your code is already up to date, you can skip this step::
 
@@ -69,8 +67,7 @@ Make sure your main is up to date and create a branch. You can also update your 
 Conda and Laptop One-time Configuration
 ------------------------------------------
 
-To build and run Icepack on your laptop, you need to install software via conda.  Instructions on how to do that can be found in the Icepack user guide, :ref:`laptops`.  If you have a Windows machine, we recommend using the Ubuntu Linux application, https://ubuntu.com/desktop/wsl.  Make sure to follow the instructions for installing miniconda. Perhaps your laptop has a conda environment already installed, but we do know that the miniconda distribution works. Return here after completing section :ref:`laptops` in the documentation.  After installing miniconda, the main steps are
-The main steps here after installing miniconda are::
+To build and run Icepack on your laptop, you need to install software via conda.  Instructions on how to do that can be found in the Icepack user guide, :ref:`laptops`.  If you have a Windows machine, we recommend using the Ubuntu Linux application, https://ubuntu.com/desktop/wsl.  Make sure to follow the instructions for installing miniconda. If your laptop has a conda environment already installed, you will still need to activate the icepack environment, and you may need to do so using the recommended miniconda distribution. Return here after completing section :ref:`laptops` in the documentation.  After installing miniconda, the main steps are::
 
   cd ~/icepack-dirs/Icepack
   conda env create -f configuration/scripts/machines/environment.yml
@@ -83,13 +80,13 @@ Before you can run Icepack, you have to set up a directory structure and downloa
   curl -O https://zenodo.org/records/3728287/files/Icepack_data-20200326.tar.gz
   tar -xzf Icepack_data-20200326.tar.gz
 
-You can also run Icepack on an external machine that is supported by the Consortium or to which you have ported the code. In this case, a Consortium member has already configured Icepack to run on the supported machine and these steps are not necessary. However, we are strongly recommending that everyone use the conda environment.
+You can also run Icepack on an external machine that is supported by the Consortium or to which you have ported the code. In this case, you do not need to port to your laptop.
 
 
 Setup an Icepack Simulation
 -----------------------------
 
-Use the online Icepack documentation and in particular the “Quick Start” (:ref:`quickstart`) and “Running Icepack” (:ref:`running_icepack`) parts as guidance and for details on what each command line option sets::
+Use the online Icepack documentation and in particular the :ref:`quickstart` and :ref:`running_icepack` sections as guidance and for details on the command line settings::
 
   cd ~/icepack-dirs
   mkdir cases
@@ -107,7 +104,7 @@ Move to the new case directory and examine the settings::
 
   cd ~/icepack-dirs/cases/icepack_test0
 
-Open the icepack.settings file and look at it briefly. Note the ICE_CASEDIR (it should match this directory) and the ICE_RUNDIR (where the model will be run and output created). Now look at the default namelist settings in icepack_in.
+Open the **icepack.settings** file and look at it briefly. Note the ICE_CASEDIR (it should match this directory) and the ICE_RUNDIR (where the model will be run and output created). Now look at the default namelist settings in **icepack_in**.
 
 Build the code::
 
@@ -115,7 +112,7 @@ Build the code::
 
 The build script basically runs gmake under the covers, but there are a number of other tasks that are handled by the script to make the build more robust.  If the build is successful you will see the message “COMPILE SUCCESSFUL” at the bottom of the screen. You can also check the README.case file to check the status.
 
-Submit the job. The submit script just submits the run scripts. Look at both icepack.run and icepack.submit to see more details. The out of the box run has default settings for the physics and other options. You can have a look at icepack_in and icepack.settings to review those settings::
+Submit the job. The submit script just submits the run scripts. Look at both **icepack.run** and **icepack.submit** files to see more details. The out of the box run has default settings for the physics and other options. You can have a look at **icepack_in** and **icepack.settings** to review those settings::
 
   ./icepack.submit
 
@@ -141,7 +138,7 @@ Questions to think about while looking at the output.
 * What time period does an out-of-the-box run cover? 
 * What are the differences between the full_ITD plots and the icefree plots (or any other combination of the ice_diag.* output files)? Which fields are the same? Which are different? Why would this be?
 * What happens to ice area and ice thickness around October 1, 2015? Why do you see this signal?
-* How does your output compare to the sample output provided for this release? (hint, see the wiki!)
+* How does your output compare to the sample output provided for this release? (hint: see the wiki!)
 
 Take a step back and think about all the directories and files you have created. The Icepack “sandbox” was cloned from GitHub and has the actual Icepack code.
 
@@ -156,12 +153,12 @@ Once you have had success with the previous step, you should run another, longer
 
   cd ~/icepack-dirs/Icepack/
 
-You need to set up a new out-of-the-box case (icepack_test1), but with a different option in icepack.setup. What is the change below? What are the other options for this value?::
+You need to set up a new out-of-the-box case (icepack_test1), but with a different option in **icepack.setup**. What is the change below? What are the other options for this value?::
 
   ./icepack.setup --case ~/icepack-dirs/cases/icepack_test1 --mach <machine> --env <myenv>
 
 Go into the cases/icepack_test1 directory, and build the case.
-Change the following namelist settings in icepack_in,
+Change the following namelist settings in **icepack_in**,
 
   npt = 8760
 
@@ -184,7 +181,7 @@ Set up another case::
 
 Build the code.
 
-Change the thermodynamics option from ktherm = 2 to ktherm = 1 in icepack_in, and set sw_redist = .true.  The intent here is to change the namelist option for the current experiment in the case directory.  Think about what would happen if you change icepack_in in the source code instead (Hint: this experiment should work the same, but what about future experiments?).
+Change the thermodynamics option from ktherm = 2 to ktherm = 1 in **icepack_in**, and set sw_redist = .true.  The intent here is to change the namelist option for the current experiment in the case directory.  Think about what would happen if you changed **icepack_in** in the source code before creating the case instead (hint: this experiment should work the same, but what about future experiments?).
 
 Submit the job. Have a look at the output.
 
