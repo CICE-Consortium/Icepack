@@ -5,7 +5,6 @@
 Icepack Tutorial
 =================
 
-.. _learninggoals:
 
 
 Learning Goals
