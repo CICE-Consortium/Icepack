@@ -8,7 +8,7 @@
 
       use icedrv_kinds
       use icedrv_constants, only: nu_diag, nu_diag_out
-      use icedrv_domain_size, only: nx, ncat
+      use icedrv_domain_size, only: nx, ncat, nfsd
       use icedrv_diagnostics, only: nx_names
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_sizes
@@ -22,12 +22,13 @@
 
       ! history output file info
 
-      logical (kind=log_kind), public :: history_cdf      ! flag to turn on cdf history files
+      character (len=char_len), public :: &
+         history_format                           ! format of history files, only supported type is 'nc'
 
       character (len=char_len_long) :: hist_file  ! hist file name
 
       integer (kind=int_kind) :: ncid             ! cdf file id
-      integer (kind=int_kind) :: nxid, ncatid, ntrcrid, timid     ! cdf dim ids
+      integer (kind=int_kind) :: nxid, ncatid, ntrcrid, nfsdid, timid     ! cdf dim ids
       integer (kind=int_kind) :: timcnt           ! time counter
 
 !=======================================================================
@@ -40,7 +41,7 @@
 
       subroutine history_write()
 
-      use icedrv_calendar, only: idate0, days_per_year, use_leap_years
+      use icedrv_calendar, only: days_per_year, use_leap_years, year_init
       use icedrv_calendar, only: time, time0, secday, istep1, idate, sec
       use icedrv_state, only: aice, vice, vsno, uvel, vvel, divu, shear, strength
       use icedrv_state, only: trcr, trcrn
@@ -50,6 +51,7 @@
       use icedrv_flux, only: Tair, Qa, fsw, fcondtop
       use icedrv_flux, only: meltt, meltb, meltl, snoice
       use icedrv_flux, only: dsnow, congel, sst, sss, Tf, fhocn
+      use icedrv_arrays_column, only: d_afsd_newi, d_afsd_latg, d_afsd_latm, d_afsd_wave, d_afsd_weld
 #ifdef USE_NETCDF
       use netcdf
 #endif
@@ -95,6 +97,14 @@
       character(len=16), parameter :: fld_3d_ncat(num_3d_ncat) = &
          (/ 'aicen           ', 'vicen           ', 'vsnon           ' /)
 
+      logical (kind=log_kind) :: &
+         tr_fsd                          ! flag for tracing fsd
+
+      integer (kind=dbl_kind), parameter :: num_3d_nfsd = 5
+      character(len=16), parameter :: fld_3d_nfsd(num_3d_nfsd) = &
+         (/ 'd_afsd_newi     ', 'd_afsd_latg     ', 'd_afsd_latm     ', &
+            'd_afsd_wave     ', 'd_afsd_weld     ' /)
+
       integer (kind=dbl_kind), parameter :: num_3d_ntrcr = 1
       character(len=16), parameter :: fld_3d_ntrcr(num_3d_ntrcr) = &
          (/ 'trcr            ' /)
@@ -109,6 +119,7 @@
 
 #ifdef USE_NETCDF
       call icepack_query_tracer_sizes(ntrcr_out=ntrcr)
+      call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
       if (first_call) then
          timcnt = 0
          write(hist_file,'(a,i8.8,a)') './history/icepack.h.',idate,'.nc'
@@ -139,6 +150,14 @@
          status = nf90_def_var(ncid,'ntrcr',NF90_INT,ntrcrid,varid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: def_var ntrcr')
 
+         if (tr_fsd) then
+            ! nfsd category dimension
+            status = nf90_def_dim(ncid,'nfsd',nfsd,nfsdid)
+            if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: def_dim nfsd')
+            status = nf90_def_var(ncid,'nfsd',NF90_INT,nfsdid,varid)
+            if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: def_var nfsd')
+         endif
+
          ! time dimension
          status = nf90_def_dim(ncid,'time',NF90_UNLIMITED,timid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: def_dim time')
@@ -146,9 +165,8 @@
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: def_var time')
          status = nf90_put_att(ncid,varid,'long_name','model time')
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_att time long_name')
-         write(cdate,'(i8.8)') idate0
-         write(tmpstr,'(a,a,a,a,a,a,a,a)') 'days since ', &
-            cdate(1:4),'-',cdate(5:6),'-',cdate(7:8),' 00:00:00'
+         write(tmpstr,'(a,i0,a)') 'days since ', &
+            year_init,'-01-01 00:00:00'
          status = nf90_put_att(ncid,varid,'units',trim(tmpstr))
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_att time units')
          if (days_per_year == 360) then
@@ -189,6 +207,19 @@
             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_3d_ncat(n)))
          enddo
 
+         if (tr_fsd) then
+            ! 3d nfsd fields
+
+            dimid3(1) = nxid
+            dimid3(2) = nfsdid
+            dimid3(3) = timid
+
+            do n = 1,num_3d_nfsd
+               status = nf90_def_var(ncid,trim(fld_3d_nfsd(n)),NF90_DOUBLE,dimid3,varid)
+               if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_3d_nfsd(n)))
+            enddo
+         endif
+
          ! 3d ntrcr fields
 
          dimid3(1) = nxid
@@ -203,8 +234,8 @@
          ! 4d ncat ntrcr fields
 
          dimid4(1) = nxid
-         dimid4(2) = ncatid
-         dimid4(3) = ntrcrid
+         dimid4(2) = ntrcrid
+         dimid4(3) = ncatid
          dimid4(4) = timid
 
          do n = 1,num_4d_ncat_ntrcr
@@ -234,6 +265,13 @@
          status = nf90_put_var(ncid,varid,(/(n,n=1,ntrcr)/))
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_var '//'ntrcr')
 
+         if (tr_fsd) then
+            status = nf90_inq_varid(ncid,'nfsd',varid)
+            if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//'nfsd')
+            status = nf90_put_var(ncid,varid,(/(n,n=1,nfsd)/))
+            if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_var '//'nfsd')
+         endif
+
       endif
 
       first_call = .false.
@@ -244,7 +282,7 @@
 
       status = nf90_inq_varid(ncid,'time',varid)
       if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//'time')
-      value = (time-time0)/secday
+      value = time/secday
       status = nf90_put_var(ncid,varid,value,start=(/timcnt/))
       if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_var '//'time')
 
@@ -336,6 +374,35 @@
          deallocate(value3)
      enddo
 
+     if (tr_fsd) then
+        ! 3d nfsd fields
+
+        start3(1) = 1
+        count3(1) = nx
+        start3(2) = 1
+        count3(2) = nfsd
+        start3(3) = timcnt
+        count3(3) = 1
+
+        do n = 1,num_3d_nfsd
+           allocate(value3(count3(1),count3(2),1))
+
+           value3 = -9999._dbl_kind
+           if (trim(fld_3d_nfsd(n)) == 'd_afsd_newi') value3(1:count3(1),1:count3(2),1) = d_afsd_newi(1:count3(1),1:count3(2))
+           if (trim(fld_3d_nfsd(n)) == 'd_afsd_latg') value3(1:count3(1),1:count3(2),1) = d_afsd_latg(1:count3(1),1:count3(2))
+           if (trim(fld_3d_nfsd(n)) == 'd_afsd_latm') value3(1:count3(1),1:count3(2),1) = d_afsd_latm(1:count3(1),1:count3(2))
+           if (trim(fld_3d_nfsd(n)) == 'd_afsd_wave') value3(1:count3(1),1:count3(2),1) = d_afsd_wave(1:count3(1),1:count3(2))
+           if (trim(fld_3d_nfsd(n)) == 'd_afsd_weld') value3(1:count3(1),1:count3(2),1) = d_afsd_weld(1:count3(1),1:count3(2))
+
+           status = nf90_inq_varid(ncid,trim(fld_3d_nfsd(n)),varid)
+           if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_3d_nfsd(n)))
+           status = nf90_put_var(ncid,varid,value3,start=start3,count=count3)
+           if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_var '//trim(fld_3d_nfsd(n)))
+
+           deallocate(value3)
+        enddo
+     endif
+
       ! 3d ntrcr fields
 
       start3(1) = 1
@@ -364,9 +431,9 @@
       start4(1) = 1
       count4(1) = nx
       start4(2) = 1
-      count4(2) = ncat
+      count4(2) = ntrcr
       start4(3) = 1
-      count4(3) = ntrcr
+      count4(3) = ncat
       start4(4) = timcnt
       count4(4) = 1
 
@@ -374,7 +441,7 @@
          allocate(value4(count4(1),count4(2),count4(3),1))
 
          value4 = -9999._dbl_kind
-         if (trim(fld_4d_ncat_ntrcr(n)) == 'trcr') value4(1:count4(1),1:count4(2),1:count4(3),1) = trcrn(1:count4(1),1:count4(2),1:count4(3))
+         if (trim(fld_4d_ncat_ntrcr(n)) == 'trcrn') value4(1:count4(1),1:count4(2),1:count4(3),1) = trcrn(1:count4(1),1:count4(2),1:count4(3))
 
          status = nf90_inq_varid(ncid,trim(fld_4d_ncat_ntrcr(n)),varid)
          if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_4d_ncat_ntrcr(n)))

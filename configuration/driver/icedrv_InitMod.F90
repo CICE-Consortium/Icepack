@@ -12,7 +12,7 @@
       use icepack_intfc, only: icepack_warnings_flush, icepack_warnings_aborted
       use icepack_intfc, only: icepack_query_parameters, icepack_query_tracer_flags
       use icepack_intfc, only: icepack_write_tracer_flags, icepack_write_tracer_indices
-      use icepack_intfc, only: icepack_write_tracer_sizes
+      use icepack_intfc, only: icepack_write_tracer_sizes, icepack_write_parameters
       use icedrv_system, only: icedrv_system_abort
 
       implicit none
@@ -102,7 +102,8 @@
             floe_rad_l=floe_rad_l,       &  ! fsd size lower bound in m (radius)
             floe_rad_c=floe_rad_c,       &  ! fsd size bin centre in m (radius)
             floe_binwidth=floe_binwidth, &  ! fsd size bin width in m (radius)
-            c_fsd_range=c_fsd_range)        ! string for history output
+            c_fsd_range=c_fsd_range    , &  ! string for history output
+            write_diags=.true.)
          call icepack_warnings_flush(nu_diag)
          if (icepack_warnings_aborted(subname)) then
             call icedrv_system_abort(file=__FILE__,line=__LINE__)
@@ -118,6 +119,8 @@
 
       if (restart) &
          call init_shortwave    ! initialize radiative transfer
+
+      call icepack_write_parameters(nu_diag)
 
       istep  = istep  + 1    ! update time step counters
       istep1 = istep1 + 1
@@ -143,7 +146,14 @@
       if (tr_fsd .and. wave_spec) call get_wave_spec ! wave spectrum in ice
       call get_forcing(istep1)       ! get forcing from data arrays
 
-      if (tr_snow)    call icepack_init_snow            ! snow aging table
+      if (tr_snow) then
+         call icepack_init_snow            ! snow aging table
+         call icepack_warnings_flush(nu_diag)
+         if (icepack_warnings_aborted(subname)) then
+            call icedrv_system_abort(file=__FILE__,line=__LINE__)
+         endif
+      endif
+
       if (tr_iso)     call fiso_default                 ! default values
       ! aerosols
       ! if (tr_aero)  call faero_data                   ! data file
@@ -169,6 +179,7 @@
       use icedrv_init, only: ice_ic
       use icedrv_init, only: tmask
       use icedrv_init_column, only: init_hbrine, init_bgc
+      use icedrv_flux, only: Tf
       use icedrv_restart, only: restartfile
       use icedrv_restart_shared, only: restart
       use icedrv_restart_bgc, only: read_restart_bgc
@@ -180,7 +191,6 @@
       logical (kind=log_kind) :: &
          skl_bgc, &    ! from icepack
          z_tracers, &  ! from icepack
-         solve_zsal, & ! from icepack
          tr_brine, &   ! from icepack
          tr_fsd        ! from icepack
 
@@ -192,7 +202,6 @@
 
       call icepack_query_parameters(skl_bgc_out=skl_bgc)
       call icepack_query_parameters(z_tracers_out=z_tracers)
-      call icepack_query_parameters(solve_zsal_out=solve_zsal)
       call icepack_query_tracer_flags(tr_brine_out=tr_brine, tr_fsd_out=tr_fsd)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
@@ -209,7 +218,7 @@
          call calendar (time)
       endif
 
-      if (solve_zsal .or. skl_bgc .or. z_tracers) then
+      if (skl_bgc .or. z_tracers) then
         if (tr_fsd) then
             write (nu_diag,*) 'FSD implementation incomplete for use with BGC'
             call icedrv_system_abort(string=subname,file=__FILE__,line=__LINE__)
@@ -239,7 +248,8 @@
                                 trcr_depend=trcr_depend, &
                                 trcr_base=trcr_base,     &
                                 n_trcr_strata=n_trcr_strata, &
-                                nt_strata=nt_strata)
+                                nt_strata=nt_strata, &
+                                Tf=Tf(i))
       enddo
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &

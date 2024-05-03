@@ -61,7 +61,6 @@
          year_init, & ! initial year
          nyr      , & ! year number
          idate    , & ! date (yyyymmdd)
-         idate0   , & ! initial date (yyyymmdd)
          sec      , & ! elapsed seconds into date
          npt      , & ! total number of time steps (dt)
          ndtd     , & ! number of dynamics subcycles: dt_dyn=dt/ndtd
@@ -78,7 +77,6 @@
          yday           , & ! day of the year
          tday           , & ! absolute day number
          dayyr          , & ! number of days per year
-         nextsw_cday    , & ! julian day of next shortwave calculation
          basis_seconds  , & ! Seconds since calendar zero
          secday             ! seconds per day
 
@@ -167,12 +165,10 @@
       tday = (time-sec)/secday + c1     ! absolute day number
 
       ! Convert the current timestep into a calendar date
-      call sec2time(nyr,month,mday,basis_seconds+sec)
+      call sec2time(nyr,month,mday,basis_seconds+time)
 
       yday = mday + daycal(month)  ! day of the year
       nyr = nyr - year_init + 1    ! year number
-
-      idate0 = (nyr+year_init-1)*10000 + month*100 + mday ! date (yyyymmdd)
 
       end subroutine init_calendar
 

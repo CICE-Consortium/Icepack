@@ -42,8 +42,7 @@ icepack_atm_boundary
            Cdn_atm  , &    ! neutral drag coefficient
            Cdn_atm_ratio_n ! ratio drag coeff / neutral drag coeff
   
-        real (kind=dbl_kind), &
-           intent(inout) :: &
+        real (kind=dbl_kind), intent(inout) :: &
            strx     , & ! x surface stress (N)
            stry         ! y surface stress (N)
   
@@ -55,18 +54,18 @@ icepack_atm_boundary
            shcoef   , & ! transfer coefficient for sensible heat
            lhcoef       ! transfer coefficient for latent heat
   
-        real (kind=dbl_kind), intent(in), optional, dimension(:) :: &
+        real (kind=dbl_kind), intent(in), dimension(:), optional :: &
            Qa_iso       ! specific isotopic humidity (kg/kg)
   
-        real (kind=dbl_kind), intent(inout), optional, dimension(:) :: &
+        real (kind=dbl_kind), intent(inout), dimension(:), optional :: &
            Qref_iso     ! reference specific isotopic humidity (kg/kg)
   
-        real (kind=dbl_kind), optional, intent(in) :: &
+        real (kind=dbl_kind), intent(in), optional :: &
            uvel     , & ! x-direction ice speed (m/s)
            vvel     , & ! y-direction ice speed (m/s)
            zlvs         ! atm level height for scalars (if different than zlvl) (m)
   
-        real (kind=dbl_kind), optional, intent(out) :: &
+        real (kind=dbl_kind), intent(out), optional :: &
            Uref         ! reference height wind speed (m/s)
   
  
@@ -90,7 +89,7 @@ icepack_init_hbrine
            nblyr    ! number of bio layers
   
         real (kind=dbl_kind), intent(inout) :: &
-           phi_snow           !porosity at the ice-snow interface
+           phi_snow           ! porosity at the ice-snow interface
   
         real (kind=dbl_kind), dimension (nblyr+2), intent(out) :: &
            bgrid              ! biology nondimensional vertical grid points
@@ -99,9 +98,9 @@ icepack_init_hbrine
            igrid              ! biology vertical interface points
   
         real (kind=dbl_kind), dimension (nilyr+1), intent(out) :: &
-           cgrid            , &  ! CICE vertical coordinate
-           icgrid           , &  ! interface grid for CICE (shortwave variable)
-           swgrid                ! grid for ice tracers used in dEdd scheme
+           cgrid         , &  ! CICE vertical coordinate
+           icgrid        , &  ! interface grid for CICE (shortwave variable)
+           swgrid             ! grid for ice tracers used in dEdd scheme
   
  
 
@@ -111,16 +110,17 @@ icepack_init_zsalinity
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: fortran
 
-  !  Initialize zSalinity
+  !  **DEPRECATED**, all code removed
+  !  Interface provided for backwards compatibility
   
         subroutine icepack_init_zsalinity(nblyr,ntrcr_o,  Rayleigh_criteria, &
                  Rayleigh_real, trcrn_bgc, nt_bgc_S, ncat, sss)
   
         integer (kind=int_kind), intent(in) :: &
-         nblyr, & ! number of biolayers
+         nblyr  , & ! number of biolayers
          ntrcr_o, & ! number of non bio tracers
-         ncat , & ! number of categories
-         nt_bgc_S ! zsalinity index
+         ncat   , & ! number of categories
+         nt_bgc_S   ! zsalinity index
   
         logical (kind=log_kind), intent(inout) :: &
          Rayleigh_criteria
@@ -132,7 +132,7 @@ icepack_init_zsalinity
          sss
   
         real (kind=dbl_kind), dimension(:,:), intent(inout):: &
-         trcrn_bgc ! bgc subset of trcrn
+         trcrn_bgc  ! bgc subset of trcrn
   
  
 
@@ -259,13 +259,15 @@ icepack_intfc.F90
         use icepack_tracers,    only: icepack_max_iso    => max_iso
         use icepack_tracers,    only: icepack_nmodal1    => nmodal1
         use icepack_tracers,    only: icepack_nmodal2    => nmodal2
-        use icepack_parameters, only: icepack_nspint     => nspint
+  
+        use icepack_shortwave_data, only: icepack_nspint_3bd => nspint_3bd
+        use icepack_shortwave_data, only: icepack_nspint_5bd => nspint_5bd
   
         use icepack_parameters, only: icepack_init_parameters
         use icepack_parameters, only: icepack_query_parameters
         use icepack_parameters, only: icepack_write_parameters
         use icepack_parameters, only: icepack_recompute_constants
-        use icepack_parameters, only: nspint, secday, spval_const
+        use icepack_parameters, only: secday, spval_const
         use icepack_parameters, only: c0, c1, c1p5, c2, c3, c4, c5, c6, c8
         use icepack_parameters, only: c10, c15, c16, c20, c25, c100, c1000
         use icepack_parameters, only: p001, p01, p1, p2, p4, p5, p6, p05
@@ -299,11 +301,12 @@ icepack_intfc.F90
         use icepack_snow, only: icepack_init_snow
         use icepack_snow, only: icepack_step_snow
   
+        use icepack_shortwave, only: icepack_init_radiation
         use icepack_shortwave, only: icepack_prep_radiation
         use icepack_shortwave, only: icepack_step_radiation
   
         use icepack_brine, only: icepack_init_hbrine
-        use icepack_brine, only: icepack_init_zsalinity
+        use icepack_brine, only: icepack_init_zsalinity    ! deprecated
   
         use icepack_zbgc , only: icepack_init_bgc
         use icepack_zbgc , only: icepack_init_zbgc
@@ -323,10 +326,12 @@ icepack_intfc.F90
         use icepack_therm_shared  , only: icepack_snow_temperature
         use icepack_therm_shared  , only: icepack_liquidus_temperature
         use icepack_therm_shared  , only: icepack_sea_freezing_temperature
-        use icepack_therm_shared  , only: icepack_enthalpy_snow
         use icepack_therm_shared  , only: icepack_init_thermo
+        use icepack_therm_shared  , only: icepack_salinity_profile
         use icepack_therm_shared  , only: icepack_init_trcr
   
+        use icepack_mushy_physics , only: icepack_enthalpy_snow
+        use icepack_mushy_physics , only: icepack_enthalpy_mush
         use icepack_mushy_physics , only: icepack_mushy_density_brine
         use icepack_mushy_physics , only: icepack_mushy_liquid_fraction
         use icepack_mushy_physics , only: icepack_mushy_temperature_mush
@@ -335,6 +340,7 @@ icepack_intfc.F90
         use icepack_warnings, only: icepack_warnings_print
         use icepack_warnings, only: icepack_warnings_flush
         use icepack_warnings, only: icepack_warnings_aborted
+        use icepack_warnings, only: icepack_warnings_getall
   
  
 
@@ -407,7 +413,7 @@ icepack_aggregate
                                      trcr_depend,        &
                                      trcr_base,          &
                                      n_trcr_strata,      &
-                                     nt_strata)
+                                     nt_strata, Tf)
   
         integer (kind=int_kind), intent(in) :: &
            ncat  , & ! number of thickness categories
@@ -440,6 +446,9 @@ icepack_aggregate
   
         real (kind=dbl_kind), dimension (:), intent(out) :: &
            trcr      ! ice tracers
+  
+        real (kind=dbl_kind), intent(in) :: &
+           Tf                ! freezing temperature
   
  
 
@@ -524,10 +533,13 @@ icepack_step_ridge
                                       araftn,       vraftn,        &
                                       aice,         fsalt,         &
                                       first_ice,    fzsal,         &
-                                      flux_bio,     closing )
+                                      flux_bio,     closing, Tf )
   
         real (kind=dbl_kind), intent(in) :: &
            dt           ! time step
+  
+        real (kind=dbl_kind), intent(in) :: &
+           Tf           ! freezing temperature
   
         integer (kind=int_kind), intent(in) :: &
            ncat  , & ! number of thickness categories
@@ -563,8 +575,10 @@ icepack_step_ridge
            fpond    , & ! fresh water flux to ponds (kg/m^2/s)
            fresh    , & ! fresh water flux to ocean (kg/m^2/s)
            fsalt    , & ! salt flux to ocean (kg/m^2/s)
-           fhocn    , & ! net heat flux to ocean (W/m^2)
-           fzsal        ! zsalinity flux to ocean(kg/m^2/s)
+           fhocn        ! net heat flux to ocean (W/m^2)
+  
+        real (kind=dbl_kind), intent(inout), optional :: &
+           fzsal        ! zsalinity flux to ocean(kg/m^2/s) (deprecated)
   
         real (kind=dbl_kind), intent(inout), optional :: &
            closing      ! rate of closing due to divergence/shear (1/s)
@@ -585,7 +599,7 @@ icepack_step_ridge
            faero_ocn, & ! aerosol flux to ocean  (kg/m^2/s)
            flux_bio     ! all bio fluxes to ocean
   
-        real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
+        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
            fiso_ocn     ! isotope flux to ocean  (kg/m^2/s)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
@@ -598,6 +612,102 @@ icepack_step_ridge
   
         logical (kind=log_kind), dimension(:), intent(inout) :: &
            first_ice    ! true until ice forms
+  
+ 
+
+icepack_mushy_physics.F90
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _icepack_mushy_density_brine:
+
+icepack_mushy_density_brine
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Compute density of brine from brine salinity
+  
+    function icepack_mushy_density_brine(Sbr) result(rho)
+  
+      real(kind=dbl_kind), intent(in) :: &
+           Sbr ! brine salinity (ppt)
+  
+      real(kind=dbl_kind) :: &
+           rho ! brine density (kg m-3)
+  
+ 
+
+.. _icepack_enthalpy_snow:
+
+icepack_enthalpy_snow
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Enthalpy of snow from snow temperature
+  
+    function icepack_enthalpy_snow(zTsn) result(zqsn)
+  
+      real(kind=dbl_kind), intent(in) :: &
+           zTsn ! snow layer temperature (C)
+  
+      real(kind=dbl_kind) :: &
+           zqsn ! snow layer enthalpy (J m-3)
+  
+ 
+
+.. _icepack_enthalpy_mush:
+
+icepack_enthalpy_mush
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Enthalpy of mush from mush temperature and bulk salinity
+  
+    function icepack_enthalpy_mush(zTin, zSin) result(zqin)
+  
+      real(kind=dbl_kind), intent(in) :: &
+           zTin, & ! ice layer temperature (C)
+           zSin    ! ice layer bulk salinity (ppt)
+  
+      real(kind=dbl_kind) :: &
+           zqin    ! ice layer enthalpy (J m-3)
+  
+ 
+
+.. _icepack_mushy_temperature_mush:
+
+icepack_mushy_temperature_mush
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Temperature of mush from mush enthalpy and bulk salinity
+  
+    function icepack_mushy_temperature_mush(zqin, zSin) result(zTin)
+  
+      real(kind=dbl_kind), intent(in) :: &
+           zqin   , & ! ice enthalpy (J m-3)
+           zSin       ! ice layer bulk salinity (ppt)
+  
+      real(kind=dbl_kind) :: &
+           zTin       ! ice layer temperature (C)
+  
+ 
+
+.. _icepack_mushy_liquid_fraction:
+
+icepack_mushy_liquid_fraction
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Liquid fraction of mush from mush temperature and bulk salinity
+  
+    function icepack_mushy_liquid_fraction(zTin, zSin) result(phi)
+  
+      real(kind=dbl_kind), intent(in) :: &
+           zTin, & ! ice layer temperature (C)
+           zSin    ! ice layer bulk salinity (ppt)
+  
+      real(kind=dbl_kind) :: &
+           phi     ! liquid fraction
   
  
 
@@ -733,7 +843,8 @@ icepack_init_parameters
            argcheck_in, puny_in, bignum_in, pi_in, secday_in, &
            rhos_in, rhoi_in, rhow_in, cp_air_in, emissivity_in, &
            cp_ice_in, cp_ocn_in, hfrazilmin_in, floediam_in, &
-           depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, albocn_in, gravit_in, viscosity_dyn_in, &
+           depressT_in, dragio_in, thickness_ocn_layer1_in, iceruf_ocn_in, &
+           albocn_in, gravit_in, viscosity_dyn_in, tscale_pnd_drain_in, &
            Tocnfrz_in, rhofresh_in, zvir_in, vonkar_in, cp_wv_in, &
            stefan_boltzmann_in, ice_ref_salinity_in, &
            Tffresh_in, Lsub_in, Lvap_in, Timelt_in, Tsmelt_in, &
@@ -741,11 +852,13 @@ icepack_init_parameters
            kice_in, ksno_in, &
            zref_in, hs_min_in, snowpatch_in, rhosi_in, sk_l_in, &
            saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
+           Tliquidus_max_in, &
            min_bgc_in, dSin0_frazil_in, hi_ssl_in, hs_ssl_in, &
            awtvdr_in, awtidr_in, awtvdf_in, awtidf_in, &
            qqqice_in, TTTice_in, qqqocn_in, TTTocn_in, &
            ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
-           update_ocn_f_in, ustar_min_in, a_rapid_mode_in, &
+           update_ocn_f_in, ustar_min_in, hi_min_in, a_rapid_mode_in, &
+           cpl_frazil_in, &
            Rac_rapid_mode_in, aspect_rapid_mode_in, &
            dSdt_slow_mode_in, phi_c_slow_mode_in, &
            phi_i_mushy_in, shortwave_in, albedo_type_in, albsnowi_in, &
@@ -773,7 +886,7 @@ icepack_init_parameters
            snwlvlfac_in, isnw_T_in, isnw_Tgrd_in, isnw_rhos_in, &
            snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
            snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
-           snw_aging_table_in)
+           snw_aging_table_in, snw_ssp_table_in )
   
         !-----------------------------------------------------------------
         ! control settings
@@ -814,6 +927,7 @@ icepack_init_parameters
            cp_ocn_in,     & ! specific heat of ocn    (J/kg/K)
            depressT_in,   & ! Tf:brine salinity ratio (C/ppt)
            viscosity_dyn_in, & ! dynamic viscosity of brine (kg/m/s)
+           tscale_pnd_drain_in,&! mushy macroscopic drainage timescale (days)
            Tocnfrz_in,    & ! freezing temp of seawater (C)
            Tffresh_in,    & ! freezing temp of fresh ice (K)
            Lsub_in,       & ! latent heat, sublimation freshwater (J/kg)
@@ -829,6 +943,7 @@ icepack_init_parameters
            phi_init_in,   & ! initial liquid fraction of frazil
            min_salin_in,  & ! threshold for brine pocket treatment
            salt_loss_in,  & ! fraction of salt retained in zsalinity
+           Tliquidus_max_in, & ! maximum liquidus temperature of mush (C)
            dSin0_frazil_in  ! bulk salinity reduction of newly formed frazil
   
         integer (kind=int_kind), intent(in), optional :: &
@@ -838,8 +953,9 @@ icepack_init_parameters
                               ! 2 = mushy layer theory
   
         character (len=*), intent(in), optional :: &
-           conduct_in, &      ! 'MU71' or 'bubbly'
-           fbot_xfer_type_in  ! transfer coefficient type for ice-ocean heat flux
+           conduct_in, &        ! 'MU71' or 'bubbly'
+           fbot_xfer_type_in, & ! transfer coefficient type for ice-ocean heat flux
+           cpl_frazil_in        ! type of coupling for frazil ice
   
         logical (kind=log_kind), intent(in), optional :: &
            calc_Tsfc_in    , &! if true, calculate surface temperature
@@ -849,6 +965,7 @@ icepack_init_parameters
   
         real (kind=dbl_kind), intent(in), optional :: &
            dts_b_in,   &      ! zsalinity timestep
+           hi_min_in,  &      ! minimum ice thickness allowed (m) for thermo
            ustar_min_in       ! minimum friction velocity for ice-ocean heat flux
   
         ! mushy thermo
@@ -889,7 +1006,7 @@ icepack_init_parameters
            awtidf_in        ! near IR, diffuse
   
         character (len=*), intent(in), optional :: &
-           shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd'
+           shortwave_in, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
            albedo_type_in  ! albedo parameterization, 'ccsm3' or 'constant'
                            ! shortwave='dEdd' overrides this parameter
   
@@ -1120,6 +1237,9 @@ icepack_init_parameters
            snowage_kappa_in, &!
            snowage_drdt0_in   ! (10^-6 m/hr)
   
+        character (len=char_len), intent(in), optional :: &
+           snw_ssp_table_in   ! lookup table: 'snicar' or 'test'
+  
  
 
 .. _icepack_query_parameters:
@@ -1139,7 +1259,8 @@ icepack_query_parameters
            p333_out, p666_out, spval_const_out, pih_out, piq_out, pi2_out, &
            rhos_out, rhoi_out, rhow_out, cp_air_out, emissivity_out, &
            cp_ice_out, cp_ocn_out, hfrazilmin_out, floediam_out, &
-           depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, albocn_out, gravit_out, viscosity_dyn_out, &
+           depressT_out, dragio_out, thickness_ocn_layer1_out, iceruf_ocn_out, &
+           albocn_out, gravit_out, viscosity_dyn_out, tscale_pnd_drain_out, &
            Tocnfrz_out, rhofresh_out, zvir_out, vonkar_out, cp_wv_out, &
            stefan_boltzmann_out, ice_ref_salinity_out, &
            Tffresh_out, Lsub_out, Lvap_out, Timelt_out, Tsmelt_out, &
@@ -1147,10 +1268,11 @@ icepack_query_parameters
            kice_out, ksno_out, &
            zref_out, hs_min_out, snowpatch_out, rhosi_out, sk_l_out, &
            saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
+           Tliquidus_max_out, &
            min_bgc_out, dSin0_frazil_out, hi_ssl_out, hs_ssl_out, &
-           awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, &
+           awtvdr_out, awtidr_out, awtvdf_out, awtidf_out, cpl_frazil_out, &
            qqqice_out, TTTice_out, qqqocn_out, TTTocn_out, update_ocn_f_out, &
-           Lfresh_out, cprho_out, Cp_out, ustar_min_out, a_rapid_mode_out, &
+           Lfresh_out, cprho_out, Cp_out, ustar_min_out, hi_min_out, a_rapid_mode_out, &
            ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
            Rac_rapid_mode_out, aspect_rapid_mode_out, dSdt_slow_mode_out, &
            phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
@@ -1179,7 +1301,7 @@ icepack_query_parameters
            snwlvlfac_out, isnw_T_out, isnw_Tgrd_out, isnw_rhos_out, &
            snowage_rhos_out, snowage_Tgrd_out, snowage_T_out, &
            snowage_tau_out, snowage_kappa_out, snowage_drdt0_out, &
-           snw_aging_table_out)
+           snw_aging_table_out, snw_ssp_table_out )
   
         !-----------------------------------------------------------------
         ! control settings
@@ -1229,6 +1351,7 @@ icepack_query_parameters
            cp_ocn_out,     & ! specific heat of ocn    (J/kg/K)
            depressT_out,   & ! Tf:brine salinity ratio (C/ppt)
            viscosity_dyn_out, & ! dynamic viscosity of brine (kg/m/s)
+           tscale_pnd_drain_out, & ! mushy macroscopic drainage timescale (days)
            Tocnfrz_out,    & ! freezing temp of seawater (C)
            Tffresh_out,    & ! freezing temp of fresh ice (K)
            Lsub_out,       & ! latent heat, sublimation freshwater (J/kg)
@@ -1244,6 +1367,7 @@ icepack_query_parameters
            phi_init_out,   & ! initial liquid fraction of frazil
            min_salin_out,  & ! threshold for brine pocket treatment
            salt_loss_out,  & ! fraction of salt retained in zsalinity
+           Tliquidus_max_out, & ! maximum liquidus temperature of mush (C)
            dSin0_frazil_out  ! bulk salinity reduction of newly formed frazil
   
         integer (kind=int_kind), intent(out), optional :: &
@@ -1253,8 +1377,9 @@ icepack_query_parameters
                               ! 2 = mushy layer theory
   
         character (len=*), intent(out), optional :: &
-           conduct_out, &     ! 'MU71' or 'bubbly'
-           fbot_xfer_type_out ! transfer coefficient type for ice-ocean heat flux
+           conduct_out, &        ! 'MU71' or 'bubbly'
+           fbot_xfer_type_out, & ! transfer coefficient type for ice-ocean heat flux
+           cpl_frazil_out        ! type of coupling for frazil ice
   
         logical (kind=log_kind), intent(out), optional :: &
            calc_Tsfc_out    ,&! if true, calculate surface temperature
@@ -1264,6 +1389,7 @@ icepack_query_parameters
   
         real (kind=dbl_kind), intent(out), optional :: &
            dts_b_out,   &      ! zsalinity timestep
+           hi_min_out,  &      ! minimum ice thickness allowed (m) for thermo
            ustar_min_out       ! minimum friction velocity for ice-ocean heat flux
   
         ! mushy thermo
@@ -1278,6 +1404,7 @@ icepack_query_parameters
         character(len=*), intent(out), optional :: &
            tfrz_option_out              ! form of ocean freezing temperature
                                         ! 'minus1p8' = -1.8 C
+                                        ! 'constant' = Tocnfrz
                                         ! 'linear_salt' = -depressT * sss
                                         ! 'mushy' conforms with ktherm=2
   
@@ -1305,7 +1432,7 @@ icepack_query_parameters
            awtidf_out        ! near IR, diffuse
   
         character (len=*), intent(out), optional :: &
-           shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd'
+           shortwave_out, & ! shortwave method, 'ccsm3' or 'dEdd' or 'dEdd_snicar_ad'
            albedo_type_out  ! albedo parameterization, 'ccsm3' or 'constant'
                                ! shortwave='dEdd' overrides this parameter
   
@@ -1535,6 +1662,10 @@ icepack_query_parameters
            snowage_tau_out, &  ! (10^-6 m)
            snowage_kappa_out, &!
            snowage_drdt0_out   ! (10^-6 m/hr)
+  
+        character (len=char_len), intent(out), optional :: &
+           snw_ssp_table_out   ! lookup table: 'snicar' or 'test'
+  
  
 
 .. _icepack_write_parameters:
@@ -1567,6 +1698,19 @@ icepack_recompute_constants
 icepack_shortwave.F90
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. _icepack_init_radiation:
+
+icepack_init_radiation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Initialize data needed for shortwave radiation calculations
+  ! This should be called after values are set via icepack_init_parameters
+  
+        subroutine icepack_init_radiation()
+  
+ 
+
 .. _icepack_prep_radiation:
 
 icepack_prep_radiation
@@ -1577,8 +1721,7 @@ icepack_prep_radiation
   !
   ! authors: Elizabeth Hunke, LANL
   
-        subroutine icepack_prep_radiation (ncat, nilyr, nslyr,   &
-                                          aice,        aicen,    &
+        subroutine icepack_prep_radiation(aice,        aicen,    &
                                           swvdr,       swvdf,    &
                                           swidr,       swidf,    &
                                           alvdr_ai,    alvdf_ai, &
@@ -1592,11 +1735,6 @@ icepack_prep_radiation
                                           fswthrun_idf,          &
                                           fswpenln,              &
                                           Sswabsn,     Iswabsn)
-  
-        integer (kind=int_kind), intent(in) :: &
-           ncat    , & ! number of ice thickness categories
-           nilyr   , & ! number of ice layers
-           nslyr       ! number of snow layers
   
         real (kind=dbl_kind), intent(in) :: &
            aice        , & ! ice area fraction
@@ -1646,10 +1784,7 @@ icepack_step_radiation
   !          David Bailey, NCAR
   !          Elizabeth C. Hunke, LANL
   
-        subroutine icepack_step_radiation (dt,       ncat,     &
-                                          nblyr,               &
-                                          nilyr,    nslyr,     &
-                                          dEdd_algae,          &
+        subroutine icepack_step_radiation (dt,                 &
                                           swgrid,   igrid,     &
                                           fbri,                &
                                           aicen,    vicen,     &
@@ -1664,13 +1799,6 @@ icepack_step_radiation
                                           days_per_year,       &
                                           nextsw_cday,         &
                                           yday,     sec,       &
-                                          kaer_tab, waer_tab,  &
-                                          gaer_tab,            &
-                                          kaer_bc_tab,         &
-                                          waer_bc_tab,         &
-                                          gaer_bc_tab,         &
-                                          bcenh,               &
-                                          modal_aero,          &
                                           swvdr,    swvdf,     &
                                           swidr,    swidf,     &
                                           coszen,   fsnow,     &
@@ -1692,12 +1820,6 @@ icepack_step_radiation
                                           l_print_point,       &
                                           initonly)
   
-        integer (kind=int_kind), intent(in) :: &
-           ncat      , & ! number of ice thickness categories
-           nilyr     , & ! number of ice layers
-           nslyr     , & ! number of snow layers
-           nblyr         ! number of bgc layers
-  
         real (kind=dbl_kind), intent(in) :: &
            dt        , & ! time step (s)
            swvdr     , & ! sw down, visible, direct  (W/m^2)
@@ -1707,38 +1829,29 @@ icepack_step_radiation
            fsnow     , & ! snowfall rate (kg/m^2 s)
            TLAT, TLON    ! latitude and longitude (radian)
   
-        character (len=char_len), intent(in) :: &
-           calendar_type       ! differentiates Gregorian from other calendars
-  
         integer (kind=int_kind), intent(in) :: &
-           days_per_year, &    ! number of days in one year
-           sec                 ! elapsed seconds into date
+           sec           ! elapsed seconds into date
   
         real (kind=dbl_kind), intent(in) :: &
-           nextsw_cday     , & ! julian day of next shortwave calculation
-           yday                ! day of the year
+           yday          ! day of the year
+  
+        character (len=char_len), intent(in), optional :: &
+           calendar_type ! differentiates Gregorian from other calendars
+  
+        integer (kind=int_kind), intent(in), optional :: &
+           days_per_year ! number of days in one year
+  
+        real (kind=dbl_kind), intent(in), optional :: &
+           nextsw_cday   ! julian day of next shortwave calculation
   
         real (kind=dbl_kind), intent(inout) :: &
            coszen        ! cosine solar zenith angle, < 0 for sun below horizon
   
         real (kind=dbl_kind), dimension (:), intent(in) :: &
-           igrid              ! biology vertical interface points
+           igrid         ! biology vertical interface points
   
         real (kind=dbl_kind), dimension (:), intent(in) :: &
-           swgrid                ! grid for ice tracers used in dEdd scheme
-  
-        real (kind=dbl_kind), dimension(:,:), intent(in) :: &
-           kaer_tab, & ! aerosol mass extinction cross section (m2/kg)
-           waer_tab, & ! aerosol single scatter albedo (fraction)
-           gaer_tab    ! aerosol asymmetry parameter (cos(theta))
-  
-        real (kind=dbl_kind), dimension(:,:), intent(in) :: &
-           kaer_bc_tab, & ! aerosol mass extinction cross section (m2/kg)
-           waer_bc_tab, & ! aerosol single scatter albedo (fraction)
-           gaer_bc_tab    ! aerosol asymmetry parameter (cos(theta))
-  
-        real (kind=dbl_kind), dimension(:,:,:), intent(in) :: &
-           bcenh
+           swgrid        ! grid for ice tracers used in dEdd scheme
   
         real (kind=dbl_kind), dimension(:), intent(in) :: &
            aicen     , & ! ice area fraction in each category
@@ -1788,15 +1901,13 @@ icepack_step_radiation
            Sswabsn       ! SW radiation absorbed in snow layers (W m-2)
   
         logical (kind=log_kind), intent(in) :: &
-           l_print_point, & ! flag for printing diagnostics
-           dEdd_algae   , & ! .true. use prognostic chla in dEdd
-           modal_aero       ! .true. use modal aerosol optical treatment
+           l_print_point ! flag for printing diagnostics
   
         real (kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
-           rsnow            ! snow grain radius tracer (10^-6 m)
+           rsnow         ! snow grain radius tracer (10^-6 m)
   
         logical (kind=log_kind), optional :: &
-           initonly         ! flag to indicate init only, default is false
+           initonly      ! flag to indicate init only, default is false
   
  
 
@@ -1908,7 +2019,7 @@ icepack_step_therm2
                                        Tf,           sss,           &
                                        salinz,                      &
                                        rside,        meltl,         &
-                                       fside,                       &
+                                       fside,        wlat,          &
                                        frzmlt,       frazil,        &
                                        frain,        fpond,         &
                                        fresh,        fsalt,         &
@@ -1929,18 +2040,22 @@ icepack_step_therm2
                                        d_afsd_latm,  d_afsd_weld,   &
                                        floe_rad_c,   floe_binwidth)
   
+        use icepack_parameters, only: icepack_init_parameters
+  
         integer (kind=int_kind), intent(in) :: &
            ncat     , & ! number of thickness categories
-           nfsd     , & ! number of floe size categories
            nltrcr   , & ! number of zbgc tracers
            nblyr    , & ! number of bio layers
            nilyr    , & ! number of ice layers
            nslyr        ! number of snow layers
   
-        logical (kind=log_kind), intent(in) :: &
-           update_ocn_f     ! if true, update fresh water and salt fluxes
+        integer (kind=int_kind), intent(in), optional :: &
+           nfsd         ! number of floe size categories
   
-        real (kind=dbl_kind), dimension(0:ncat), intent(inout) :: &
+        logical (kind=log_kind), intent(in), optional :: &
+           update_ocn_f ! if true, update fresh water and salt fluxes
+  
+        real (kind=dbl_kind), dimension(0:ncat), intent(in) :: &
            hin_max      ! category boundaries (m)
   
         real (kind=dbl_kind), intent(in) :: &
@@ -1948,40 +2063,27 @@ icepack_step_therm2
            Tf       , & ! freezing temperature (C)
            sss      , & ! sea surface salinity (ppt)
            rside    , & ! fraction of ice that melts laterally
-           fside    , & ! lateral heat flux (W/m^2)
-           frzmlt   , & ! freezing/melting potential (W/m^2)
-           wave_sig_ht ! significant height of waves in ice (m)
-  
-        real (kind=dbl_kind), dimension(:), intent(in)  :: &
-           wave_spectrum  ! ocean surface wave spectrum E(f) (m^2 s)
-  
-        real(kind=dbl_kind), dimension(:), intent(in) :: &
-           wavefreq,              & ! wave frequencies (s^-1)
-           dwavefreq                ! wave frequency bin widths (s^-1)
-  
-        real (kind=dbl_kind), dimension (:), intent(in) :: &
-           floe_rad_c     , & ! fsd size bin centre in m (radius)
-           floe_binwidth      ! fsd size bin width in m (radius)
+           frzmlt       ! freezing/melting potential (W/m^2)
   
         integer (kind=int_kind), dimension (:), intent(in) :: &
            trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
            n_trcr_strata  ! number of underlying tracer layers
   
         real (kind=dbl_kind), dimension (:,:), intent(in) :: &
-           trcr_base      ! = 0 or 1 depending on tracer dependency
-                          ! argument 2:  (1) aice, (2) vice, (3) vsno
+           trcr_base    ! = 0 or 1 depending on tracer dependency
+                        ! argument 2:  (1) aice, (2) vice, (3) vsno
   
         integer (kind=int_kind), dimension (:,:), intent(in) :: &
-           nt_strata      ! indices of underlying tracer layers
+           nt_strata    ! indices of underlying tracer layers
   
         real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-           bgrid              ! biology nondimensional vertical grid points
+           bgrid        ! biology nondimensional vertical grid points
   
         real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-           igrid              ! biology vertical interface points
+           igrid        ! biology vertical interface points
   
         real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-           cgrid              ! CICE vertical coordinate
+           cgrid        ! CICE vertical coordinate
   
         real (kind=dbl_kind), dimension(:), intent(in) :: &
            salinz   , & ! initial salinity profile
@@ -1990,15 +2092,21 @@ icepack_step_therm2
         real (kind=dbl_kind), intent(inout) :: &
            aice     , & ! sea ice concentration
            aice0    , & ! concentration of open water
+           fside    , & ! lateral heat flux (W/m^2)
            frain    , & ! rainfall rate (kg/m^2 s)
            fpond    , & ! fresh water flux to ponds (kg/m^2/s)
            fresh    , & ! fresh water flux to ocean (kg/m^2/s)
            fsalt    , & ! salt flux to ocean (kg/m^2/s)
            fhocn    , & ! net heat flux to ocean (W/m^2)
-           fzsal    , & ! salt flux to ocean from zsalinity (kg/m^2/s)
            meltl    , & ! lateral ice melt         (m/step-->cm/day)
            frazil   , & ! frazil ice growth        (m/step-->cm/day)
            frazil_diag  ! frazil ice growth diagnostic (m/step-->cm/day)
+  
+        real (kind=dbl_kind), intent(inout), optional :: &
+           fzsal        ! salt flux to ocean from zsalinity (kg/m^2/s) (deprecated)
+  
+        real (kind=dbl_kind), intent(in), optional :: &
+           wlat         ! lateral melt rate (m/s)
   
         real (kind=dbl_kind), dimension(:), intent(inout) :: &
            aicen_init,& ! initial concentration of ice
@@ -2013,14 +2121,7 @@ icepack_step_therm2
            trcrn        ! tracers
   
         logical (kind=log_kind), dimension(:), intent(inout) :: &
-           first_ice      ! true until ice forms
-  
-        real (kind=dbl_kind), dimension(:), intent(out) :: &
-                              ! change in floe size distribution (area)
-           d_afsd_latg    , & ! due to fsd lateral growth
-           d_afsd_newi    , & ! new ice formation
-           d_afsd_latm    , & ! lateral melt
-           d_afsd_weld        ! welding
+           first_ice    ! true until ice forms
   
         real (kind=dbl_kind), intent(inout), optional :: &
            frz_onset    ! day of year that freezing begins (congel or frazil)
@@ -2029,13 +2130,35 @@ icepack_step_therm2
            yday         ! day of year
   
         ! water isotopes
-        real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
-           fiso_ocn       ! isotope flux to ocean  (kg/m^2/s)
+        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+           fiso_ocn     ! isotope flux to ocean  (kg/m^2/s)
   
-        real (kind=dbl_kind), optional, intent(in) :: &
+        real (kind=dbl_kind), intent(in), optional :: &
            HDO_ocn    , & ! ocean concentration of HDO (kg/kg)
            H2_16O_ocn , & ! ocean concentration of H2_16O (kg/kg)
            H2_18O_ocn     ! ocean concentration of H2_18O (kg/kg)
+  
+        real (kind=dbl_kind), intent(in), optional :: &
+           wave_sig_ht    ! significant height of waves in ice (m)
+  
+        real (kind=dbl_kind), dimension(:), intent(in), optional  :: &
+           wave_spectrum  ! ocean surface wave spectrum E(f) (m^2 s)
+  
+        real(kind=dbl_kind), dimension(:), intent(in), optional :: &
+           wavefreq, &    ! wave frequencies (s^-1)
+           dwavefreq      ! wave frequency bin widths (s^-1)
+  
+        real (kind=dbl_kind), dimension(:), intent(out), optional :: &
+                          ! change in floe size distribution (area)
+           d_afsd_latg, & ! due to fsd lateral growth
+           d_afsd_newi, & ! new ice formation
+           d_afsd_latm, & ! lateral melt
+           d_afsd_weld    ! welding
+  
+        real (kind=dbl_kind), dimension (:), intent(in), optional :: &
+           floe_rad_c, &  ! fsd size bin centre in m (radius)
+           floe_binwidth  ! fsd size bin width in m (radius)
+  
  
 
 icepack_therm_shared.F90
@@ -2059,6 +2182,27 @@ icepack_init_thermo
   
         real (kind=dbl_kind), dimension(:), intent(out) :: &
            sprofile                         ! vertical salinity profile
+  
+ 
+
+.. _icepack_salinity_profile:
+
+icepack_salinity_profile
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! Initial salinity profile
+  !
+  ! authors: C. M. Bitz, UW
+  !          William H. Lipscomb, LANL
+  
+        function icepack_salinity_profile(zn) result(salinity)
+  
+        real(kind=dbl_kind), intent(in) :: &
+           zn ! depth
+  
+        real(kind=dbl_kind) :: &
+           salinity ! initial salinity profile
   
  
 
@@ -2156,21 +2300,6 @@ icepack_snow_temperature
   
  
 
-.. _icepack_enthalpy_snow:
-
-icepack_enthalpy_snow
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. code-block:: fortran
-
-  ! compute snow enthalpy
-  
-        function icepack_enthalpy_snow(zTsn) result(qsn)
-  
-          real(kind=dbl_kind), intent(in) :: zTsn
-          real(kind=dbl_kind) :: qsn
-  
- 
-
 icepack_therm_vertical.F90
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2226,7 +2355,7 @@ icepack_step_therm1
                                       fbot        ,               &
                                       Tbot        , Tsnice      , &
                                       frzmlt      , rside       , &
-                                      fside       ,               &
+                                      fside       , wlat        , &
                                       fsnow       , frain       , &
                                       fpond       , fsloss      , &
                                       fsurf       , fsurfn      , &
@@ -2276,15 +2405,15 @@ icepack_step_therm1
                                       zlvs)
   
         integer (kind=int_kind), intent(in) :: &
-           ncat    , & ! number of thickness categories
-           nilyr   , & ! number of ice layers
-           nslyr       ! number of snow layers
+           ncat        , & ! number of thickness categories
+           nilyr       , & ! number of ice layers
+           nslyr           ! number of snow layers
   
         real (kind=dbl_kind), intent(in) :: &
            dt          , & ! time step
-           uvel        , & ! x-component of velocity (m/s)
-           vvel        , & ! y-component of velocity (m/s)
-           strax       , & ! wind stress components (N/m^2)
+           uvel        , & ! x-component of velocity              (m/s)
+           vvel        , & ! y-component of velocity              (m/s)
+           strax       , & ! wind stress components             (N/m^2)
            stray       , & !
            yday            ! day of year
   
@@ -2297,42 +2426,42 @@ icepack_step_therm1
   
         real (kind=dbl_kind), intent(inout) :: &
            aice        , & ! sea ice concentration
-           vice        , & ! volume per unit area of ice          (m)
-           vsno        , & ! volume per unit area of snow         (m)
+           vice        , & ! volume per unit area of ice            (m)
+           vsno        , & ! volume per unit area of snow           (m)
            zlvl        , & ! atm level height for momentum (and scalars if zlvs is not present) (m)
-           uatm        , & ! wind velocity components (m/s)
-           vatm        , &
-           wind        , & ! wind speed (m/s)
-           potT        , & ! air potential temperature  (K)
-           Tair        , & ! air temperature  (K)
-           Qa          , & ! specific humidity (kg/kg)
-           rhoa        , & ! air density (kg/m^3)
-           frain       , & ! rainfall rate (kg/m^2 s)
-           fsnow       , & ! snowfall rate (kg/m^2 s)
-           fpond       , & ! fresh water flux to ponds (kg/m^2/s)
-           fresh       , & ! fresh water flux to ocean (kg/m^2/s)
-           fsalt       , & ! salt flux to ocean (kg/m^2/s)
-           fhocn       , & ! net heat flux to ocean (W/m^2)
-           fswthru     , & ! shortwave penetrating to ocean (W/m^2)
+           uatm        , & ! wind velocity components             (m/s)
+           vatm        , & !                                      (m/s)
+           wind        , & ! wind speed                           (m/s)
+           potT        , & ! air potential temperature              (K)
+           Tair        , & ! air temperature                        (K)
+           Qa          , & ! specific humidity                  (kg/kg)
+           rhoa        , & ! air density                       (kg/m^3)
+           frain       , & ! rainfall rate                   (kg/m^2 s)
+           fsnow       , & ! snowfall rate                   (kg/m^2 s)
+           fpond       , & ! fresh water flux to ponds       (kg/m^2/s)
+           fresh       , & ! fresh water flux to ocean       (kg/m^2/s)
+           fsalt       , & ! salt flux to ocean              (kg/m^2/s)
+           fhocn       , & ! net heat flux to ocean             (W/m^2)
+           fswthru     , & ! shortwave penetrating to ocean     (W/m^2)
            fsurf       , & ! net surface heat flux (excluding fcondtop)(W/m^2)
            fcondtop    , & ! top surface conductive flux        (W/m^2)
            fcondbot    , & ! bottom surface conductive flux     (W/m^2)
-           fsens       , & ! sensible heat flux (W/m^2)
-           flat        , & ! latent heat flux   (W/m^2)
+           fsens       , & ! sensible heat flux                 (W/m^2)
+           flat        , & ! latent heat flux                   (W/m^2)
            fswabs      , & ! shortwave flux absorbed in ice and ocean (W/m^2)
-           flw         , & ! incoming longwave radiation (W/m^2)
-           flwout      , & ! outgoing longwave radiation (W/m^2)
-           evap        , & ! evaporative water flux (kg/m^2/s)
-           evaps       , & ! evaporative water flux over snow (kg/m^2/s)
+           flw         , & ! incoming longwave radiation        (W/m^2)
+           flwout      , & ! outgoing longwave radiation        (W/m^2)
+           evap        , & ! evaporative water flux          (kg/m^2/s)
+           evaps       , & ! evaporative water flux over snow(kg/m^2/s)
            evapi       , & ! evaporative water flux over ice (kg/m^2/s)
            congel      , & ! basal ice growth         (m/step-->cm/day)
            snoice      , & ! snow-ice formation       (m/step-->cm/day)
-           Tref        , & ! 2m atm reference temperature (K)
-           Qref        , & ! 2m atm reference spec humidity (kg/kg)
-           Uref        , & ! 10m atm reference wind speed (m/s)
+           Tref        , & ! 2m atm reference temperature           (K)
+           Qref        , & ! 2m atm reference spec humidity     (kg/kg)
+           Uref        , & ! 10m atm reference wind speed         (m/s)
            Cdn_atm     , & ! atm drag coefficient
            Cdn_ocn     , & ! ocn drag coefficient
-           hfreebd     , & ! freeboard (m)
+           hfreebd     , & ! freeboard                              (m)
            hdraft      , & ! draft of ice + snow column (Stoessel1993)
            hridge      , & ! ridge height
            distrdg     , & ! distance between ridges
@@ -2353,19 +2482,22 @@ icepack_step_therm1
            strocnxT    , & ! ice-ocean stress, x-direction
            strocnyT    , & ! ice-ocean stress, y-direction
            fbot        , & ! ice-ocean heat flux at bottom surface (W/m^2)
-           frzmlt      , & ! freezing/melting potential (W/m^2)
+           frzmlt      , & ! freezing/melting potential         (W/m^2)
            rside       , & ! fraction of ice that melts laterally
-           fside       , & ! lateral heat flux (W/m^2)
-           sst         , & ! sea surface temperature (C)
-           Tf          , & ! freezing temperature (C)
-           Tbot        , & ! ice bottom surface temperature (deg C)
-           Tsnice      , & ! snow ice interface temperature (deg C)
-           sss         , & ! sea surface salinity (ppt)
+           fside       , & ! lateral heat flux                  (W/m^2)
+           sst         , & ! sea surface temperature                (C)
+           Tf          , & ! freezing temperature                   (C)
+           Tbot        , & ! ice bottom surface temperature     (deg C)
+           Tsnice      , & ! snow ice interface temperature     (deg C)
+           sss         , & ! sea surface salinity                 (ppt)
            meltt       , & ! top ice melt             (m/step-->cm/day)
            melts       , & ! snow melt                (m/step-->cm/day)
            meltb       , & ! basal ice melt           (m/step-->cm/day)
            mlt_onset   , & ! day of year that sfc melting begins
            frz_onset       ! day of year that freezing begins (congel or frazil)
+  
+        real (kind=dbl_kind), intent(out), optional :: &
+           wlat            ! lateral melt rate                    (m/s)
   
         real (kind=dbl_kind), intent(inout), optional :: &
            fswthru_vdr , & ! vis dir shortwave penetrating to ocean (W/m^2)
@@ -2373,86 +2505,92 @@ icepack_step_therm1
            fswthru_idr , & ! nir dir shortwave penetrating to ocean (W/m^2)
            fswthru_idf , & ! nir dif shortwave penetrating to ocean (W/m^2)
            dsnow       , & ! change in snow depth     (m/step-->cm/day)
-           meltsliq    , & ! mass of snow melt (kg/m^2)
-           fsloss          ! rate of snow loss to leads (kg/m^2/s)
+           fsloss          ! rate of snow loss to leads      (kg/m^2/s)
   
-        real (kind=dbl_kind), dimension(:), optional, intent(inout) :: &
-           Qa_iso      , & ! isotope specific humidity (kg/kg)
-           Qref_iso    , & ! isotope 2m atm reference spec humidity (kg/kg)
-           fiso_atm    , & ! isotope deposition rate (kg/m^2 s)
-           fiso_ocn    , & ! isotope flux to ocean  (kg/m^2/s)
-           fiso_evap   , & ! isotope evaporation (kg/m^2/s)
-           meltsliqn       ! mass of snow melt (kg/m^2)
+        real (kind=dbl_kind), intent(out), optional :: &
+           meltsliq        ! mass of snow melt                 (kg/m^2)
   
-        real (kind=dbl_kind), dimension(:,:), optional, intent(inout) :: &
-           rsnwn       , & ! snow grain radius (10^-6 m)
-           smicen      , & ! tracer for mass of ice in snow (kg/m^3)
-           smliqn          ! tracer for mass of liquid in snow (kg/m^3)
+        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+           Qa_iso      , & ! isotope specific humidity          (kg/kg)
+           Qref_iso    , & ! isotope 2m atm ref spec humidity   (kg/kg)
+           fiso_atm    , & ! isotope deposition rate         (kg/m^2 s)
+           fiso_ocn    , & ! isotope flux to ocean           (kg/m^2/s)
+           fiso_evap       ! isotope evaporation             (kg/m^2/s)
   
-        real (kind=dbl_kind), optional, intent(in) :: &
-           HDO_ocn     , & ! ocean concentration of HDO (kg/kg)
-           H2_16O_ocn  , & ! ocean concentration of H2_16O (kg/kg)
-           H2_18O_ocn  , & ! ocean concentration of H2_18O (kg/kg)
+        real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+           meltsliqn       ! mass of snow melt                 (kg/m^2)
+  
+        real (kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
+           rsnwn       , & ! snow grain radius                (10^-6 m)
+           smicen      , & ! tracer for mass of ice in snow    (kg/m^3)
+           smliqn          ! tracer for mass of liq in snow    (kg/m^3)
+  
+        real (kind=dbl_kind), intent(in), optional :: &
+           HDO_ocn     , & ! ocean concentration of HDO         (kg/kg)
+           H2_16O_ocn  , & ! ocean concentration of H2_16O      (kg/kg)
+           H2_18O_ocn  , & ! ocean concentration of H2_18O      (kg/kg)
            zlvs            ! atm level height for scalars (if different than zlvl) (m)
   
         real (kind=dbl_kind), dimension(:), intent(inout) :: &
            aicen_init  , & ! fractional area of ice
-           vicen_init  , & ! volume per unit area of ice (m)
-           vsnon_init  , & ! volume per unit area of snow (m)
+           vicen_init  , & ! volume per unit area of ice            (m)
+           vsnon_init  , & ! volume per unit area of snow           (m)
            aicen       , & ! concentration of ice
-           vicen       , & ! volume per unit area of ice          (m)
-           vsnon       , & ! volume per unit area of snow         (m)
+           vicen       , & ! volume per unit area of ice            (m)
+           vsnon       , & ! volume per unit area of snow           (m)
            Tsfc        , & ! ice/snow surface temperature, Tsfcn
            alvl        , & ! level ice area fraction
            vlvl        , & ! level ice volume fraction
            apnd        , & ! melt pond area fraction
-           hpnd        , & ! melt pond depth (m)
-           ipnd        , & ! melt pond refrozen lid thickness (m)
+           hpnd        , & ! melt pond depth                        (m)
+           ipnd        , & ! melt pond refrozen lid thickness       (m)
            iage        , & ! volume-weighted ice age
            FY          , & ! area-weighted first-year ice area
            fsurfn      , & ! net flux to top surface, excluding fcondtop
-           fcondtopn   , & ! downward cond flux at top surface (W m-2)
+           fcondtopn   , & ! downward cond flux at top surface  (W m-2)
            fcondbotn   , & ! downward cond flux at bottom surface (W m-2)
-           flatn       , & ! latent heat flux (W m-2)
-           fsensn      , & ! sensible heat flux (W m-2)
+           flatn       , & ! latent heat flux                   (W m-2)
+           fsensn      , & ! sensible heat flux                 (W m-2)
            fsurfn_f    , & ! net flux to top surface, excluding fcondtop
-           fcondtopn_f , & ! downward cond flux at top surface (W m-2)
-           flatn_f     , & ! latent heat flux (W m-2)
-           fsensn_f    , & ! sensible heat flux (W m-2)
-           fswsfcn     , & ! SW absorbed at ice/snow surface (W m-2)
-           fswthrun    , & ! SW through ice to ocean            (W/m^2)
+           fcondtopn_f , & ! downward cond flux at top surface  (W m-2)
+           flatn_f     , & ! latent heat flux                   (W m-2)
+           fsensn_f    , & ! sensible heat flux                 (W m-2)
+           fswsfcn     , & ! SW absorbed at ice/snow surface    (W m-2)
            fswintn     , & ! SW absorbed in ice interior, below surface (W m-2)
-           faero_atm   , & ! aerosol deposition rate (kg/m^2 s)
-           faero_ocn   , & ! aerosol flux to ocean  (kg/m^2/s)
+           faero_atm   , & ! aerosol deposition rate         (kg/m^2 s)
+           faero_ocn   , & ! aerosol flux to ocean           (kg/m^2/s)
            dhsn        , & ! depth difference for snow on sea ice and pond ice
            ffracn      , & ! fraction of fsurfn used to melt ipond
-           meltsn      , & ! snow melt                       (m)
-           melttn      , & ! top ice melt                    (m)
-           meltbn      , & ! bottom ice melt                 (m)
-           congeln     , & ! congelation ice growth          (m)
-           snoicen     , & ! snow-ice growth                 (m)
+           meltsn      , & ! snow melt                              (m)
+           melttn      , & ! top ice melt                           (m)
+           meltbn      , & ! bottom ice melt                        (m)
+           congeln     , & ! congelation ice growth                 (m)
+           snoicen     , & ! snow-ice growth                        (m)
            dsnown          ! change in snow thickness (m/step-->cm/day)
   
-        real (kind=dbl_kind), optional, dimension(:), intent(inout) :: &
-           fswthrun_vdr , & ! vis dir SW through ice to ocean            (W/m^2)
-           fswthrun_vdf , & ! vis dif SW through ice to ocean            (W/m^2)
-           fswthrun_idr , & ! nir dir SW through ice to ocean            (W/m^2)
-           fswthrun_idf     ! nir dif SW through ice to ocean            (W/m^2)
+        real (kind=dbl_kind), dimension(:), intent(in) :: &
+           fswthrun        ! SW through ice to ocean            (W/m^2)
+  
+        real (kind=dbl_kind), dimension(:), intent(in), optional :: &
+           fswthrun_vdr , & ! vis dir SW through ice to ocean   (W/m^2)
+           fswthrun_vdf , & ! vis dif SW through ice to ocean   (W/m^2)
+           fswthrun_idr , & ! nir dir SW through ice to ocean   (W/m^2)
+           fswthrun_idf     ! nir dif SW through ice to ocean   (W/m^2)
   
         real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
-           zqsn        , & ! snow layer enthalpy (J m-3)
-           zqin        , & ! ice layer enthalpy (J m-3)
+           zqsn        , & ! snow layer enthalpy                (J m-3)
+           zqin        , & ! ice layer enthalpy                 (J m-3)
            zSin        , & ! internal ice layer salinities
            Sswabsn     , & ! SW radiation absorbed in snow layers (W m-2)
-           Iswabsn         ! SW radiation absorbed in ice layers (W m-2)
+           Iswabsn         ! SW radiation absorbed in ice layers  (W m-2)
   
         real (kind=dbl_kind), dimension(:,:,:), intent(inout) :: &
-           aerosno    , &  ! snow aerosol tracer (kg/m^2)
-           aeroice         ! ice aerosol tracer (kg/m^2)
+           aerosno    , &  ! snow aerosol tracer               (kg/m^2)
+           aeroice         ! ice aerosol tracer                (kg/m^2)
   
-        real (kind=dbl_kind), dimension(:,:), optional, intent(inout) :: &
-           isosno     , &  ! snow isotope tracer (kg/m^2)
-           isoice          ! ice isotope tracer (kg/m^2)
+        real (kind=dbl_kind), dimension(:,:), intent(inout), optional :: &
+           isosno     , &  ! snow isotope tracer               (kg/m^2)
+           isoice          ! ice isotope tracer                (kg/m^2)
  
 
 icepack_tracers.F90
@@ -2481,7 +2619,7 @@ icepack_init_tracer_flags
                tr_pond_in      , & ! if .true., use melt pond tracer
                tr_pond_lvl_in  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_in , & ! if .true., use explicit topography-based ponds
-               tr_snow_in      , & ! if .true., use snow metamorphosis tracers
+               tr_snow_in      , & ! if .true., use snow redistribution or metamorphosis tracers
                tr_fsd_in       , & ! if .true., use floe size distribution tracers
                tr_iso_in       , & ! if .true., use isotope tracers
                tr_aero_in      , & ! if .true., use aerosol tracers
@@ -2524,7 +2662,7 @@ icepack_query_tracer_flags
                tr_pond_out      , & ! if .true., use melt pond tracer
                tr_pond_lvl_out  , & ! if .true., use level-ice pond tracer
                tr_pond_topo_out , & ! if .true., use explicit topography-based ponds
-               tr_snow_out      , & ! if .true., use snow metamorphosis tracers
+               tr_snow_out      , & ! if .true., use snow redistribution or metamorphosis tracers
                tr_fsd_out       , & ! if .true., use floe size distribution
                tr_iso_out       , & ! if .true., use isotope tracers
                tr_aero_out      , & ! if .true., use aerosol tracers
@@ -2622,7 +2760,7 @@ icepack_init_tracer_indices
                nlt_bgc_hum_in,& !
                nlt_bgc_PON_in,& ! zooplankton and detritus
                nt_zbgc_frac_in,&! fraction of tracer in the mobile phase
-               nt_bgc_S_in,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
+               nt_bgc_S_in,   & ! (deprecated, was related to zsalinity)
                nlt_chl_sw_in    ! points to total chla in trcrn_sw
   
           integer (kind=int_kind), dimension(:), intent(in), optional :: &
@@ -2726,7 +2864,7 @@ icepack_query_tracer_indices
                nlt_bgc_hum_out,& !
                nlt_bgc_PON_out,& ! zooplankton and detritus
                nt_zbgc_frac_out,&! fraction of tracer in the mobile phase
-               nt_bgc_S_out,   & ! Bulk salinity in fraction ice with dynamic salinity (Bio grid))
+               nt_bgc_S_out,   & ! (deprecated, was related to zsalinity)
                nlt_chl_sw_out    ! points to total chla in trcrn_sw
   
           integer (kind=int_kind), dimension(:), intent(out), optional :: &
@@ -2776,7 +2914,7 @@ icepack_write_tracer_indices
   
         subroutine icepack_write_tracer_indices(iounit)
   
-          integer, intent(in), optional :: iounit
+          integer, intent(in) :: iounit
   
  
 
@@ -2893,7 +3031,7 @@ icepack_compute_tracers
                                             atrcrn,    aicen,          &
                                             vicen,     vsnon,          &
                                             trcr_base, n_trcr_strata,  &
-                                            nt_strata, trcrn)
+                                            nt_strata, trcrn, Tf)
   
         integer (kind=int_kind), intent(in) :: &
            ntrcr                 ! number of tracers in use
@@ -2919,6 +3057,9 @@ icepack_compute_tracers
   
         real (kind=dbl_kind), dimension (ntrcr), intent(out) :: &
            trcrn     ! ice tracers
+  
+        real (kind=dbl_kind), intent(in) :: &
+           Tf        ! Freezing point
   
  
 
@@ -2949,6 +3090,21 @@ icepack_warnings_clear
   ! clear all warning messages from the icepack warning buffer
   
         subroutine icepack_warnings_clear()
+  
+ 
+
+.. _icepack_warnings_clear:
+
+icepack_warnings_clear
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: fortran
+
+  ! return an array of all the current warning messages
+  
+        subroutine icepack_warnings_getall(warningsOut)
+  
+          character(len=char_len_long), dimension(:), allocatable, intent(out) :: &
+               warningsOut
   
  
 
@@ -3267,14 +3423,18 @@ icepack_biogeochemistry
            grow_net       , & ! Specific growth rate (/s) per grid cell
            PP_net         , & ! Total production (mg C/m^2/s) per grid cell
            hbri           , & ! brine height, area-averaged for comparison with hi (m)
-           zsal_tot       , & ! Total ice salinity in per grid cell (g/m^2)
-           fzsal          , & ! Total flux  of salt to ocean at time step for conservation
-           fzsal_g        , & ! Total gravity drainage flux
            upNO           , & ! nitrate uptake rate (mmol/m^2/d) times aice
-           upNH         ! ammonium uptake rate (mmol/m^2/d) times aice
+           upNH               ! ammonium uptake rate (mmol/m^2/d) times aice
   
-        logical (kind=log_kind), intent(inout) :: &
-           Rayleigh_criteria    ! .true. means Ra_c was reached
+        real (kind=dbl_kind), intent(inout), optional :: &
+           zsal_tot           ! Total ice salinity in per grid cell (g/m^2) (deprecated)
+  
+        real (kind=dbl_kind), intent(inout), optional :: &
+           fzsal          , & ! Total flux  of salt to ocean at time step for conservation (deprecated)
+           fzsal_g            ! Total gravity drainage flux (deprecated)
+  
+        logical (kind=log_kind), intent(inout), optional :: &
+           Rayleigh_criteria    ! .true. means Ra_c was reached (deprecated)
   
         real (kind=dbl_kind), dimension (:,:), intent(in) :: &
            fswpenln        ! visible SW entering ice layers (W m-2)

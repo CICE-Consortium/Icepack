@@ -1,2 +1,3 @@
 days_per_year = 365
 use_leap_years = .true.
+tfrz_option    = 'mushy'

@@ -1,0 +1,53 @@
+#==============================================================================
+# Makefile macros for NCAR derecho, nvhpc compiler
+#==============================================================================
+
+CPP        := nvc -Mcpp
+CPPDEFS    := -DFORTRANUNDERSCORE -DNO_R16 ${ICE_CPPDEFS}
+CFLAGS     := -c -Kieee
+
+FIXEDFLAGS := -Mfixed
+FREEFLAGS  := -Mfree
+FFLAGS     := -Kieee -byteswapio -traceback 
+FFLAGS_NOOPT:= -O0
+
+ifeq ($(ICE_BLDDEBUG), true)
+#  FFLAGS   += -O0 -g -Ktrap=fp -Mbounds -Mchkptr
+#  FFLAGS   += -O0 -g -Ktrap=fp -Mbounds
+#  FFLAGS   += -O0 -Ktrap=fp -Mbounds -Mchkptr
+  FFLAGS   += -O0 -Ktrap=fp
+  CFLAGS   += -O0
+else
+#  FFLAGS   += -O2 -Mnofma -target=zen3
+  FFLAGS   += -O2
+  CFLAGS   += -O2
+endif
+
+SCC   := nvc
+SFC   := nvfortran
+CC := $(SCC)
+FC := $(SFC)
+LD := $(FC)
+
+NETCDF_PATH := $(NETCDF)
+
+#PIO_CONFIG_OPTS:= --enable-filesystem-hints=gpfs
+
+#PNETCDF_PATH := $(PNETCDF)
+#PNETCDF_PATH := /glade/u/apps/ch/opt/pio/2.2/mpt/2.15f/intel/17.0.1/lib
+
+INCLDIR := $(INCLDIR)
+
+LIB_NETCDF := $(NETCDF)/lib
+#LIB_PNETCDF := $(PNETCDF_PATH)/lib
+#LIB_MPI := $(IMPILIBDIR)
+
+#SLIBS   := -L$(LIB_NETCDF) -lnetcdf -lnetcdff -L$(LIB_PNETCDF) -lpnetcdf -lgptl
+SLIBS   := -L$(LIB_NETCDF) -lnetcdf -lnetcdff
+
+ifeq ($(ICE_THREADED), true)
+   LDFLAGS += -qopenmp
+   CFLAGS += -qopenmp
+   FFLAGS += -qopenmp
+endif
+

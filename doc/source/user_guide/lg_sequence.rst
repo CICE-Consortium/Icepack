@@ -42,7 +42,6 @@ icepack_kinds module::
 icepack_tracers defines a handful of parameters that provide information
 about maximum array sizes for static dimensioning::
 
-      use icepack_tracers,   only: icepack_max_iso    => max_iso
       use icepack_tracers,   only: icepack_max_nbtrcr => max_nbtrcr
       use icepack_tracers,   only: icepack_max_algae  => max_algae
       use icepack_tracers,   only: icepack_max_dic    => max_dic
@@ -50,6 +49,7 @@ about maximum array sizes for static dimensioning::
       use icepack_tracers,   only: icepack_max_don    => max_don
       use icepack_tracers,   only: icepack_max_fe     => max_fe
       use icepack_tracers,   only: icepack_max_aero   => max_aero
+      use icepack_tracers,   only: icepack_max_iso    => max_iso
       use icepack_tracers,   only: icepack_nmodal1    => nmodal1
       use icepack_tracers,   only: icepack_nmodal2    => nmodal2
       use icepack_parameters,only: icepack_nspint     => nspint
@@ -111,16 +111,22 @@ impact of waves on sea ice::
       use icepack_wavefracspec, only: icepack_init_wave
       use icepack_wavefracspec, only: icepack_step_wavefracture
 
+icepack_snow provides a routine to initialize the snow physics
+and a routine to update the snow physics::
+
+      use icepack_snow, only: icepack_init_snow
+      use icepack_snow, only: icepack_step_snow
+
 icepack_shortwave provides a routine to initialize the radiation
-computation and an routine to update the radiation computation::
+computation and a routine to update the radiation computation::
 
       use icepack_shortwave, only: icepack_prep_radiation
       use icepack_shortwave, only: icepack_step_radiation
 
-icepack_brine address brine and zsalinity computations::
+icepack_brine addresses brine computations::
 
       use icepack_brine, only: icepack_init_hbrine
-      use icepack_brine, only: icepack_init_zsalinity
+      use icepack_brine, only: icepack_init_zsalinity  ! DEPRECATED
 
 icepack_zbgc contains several public interfaces to support initialization
 and computation for the skeletal layer bgc and zbgc options::
@@ -208,7 +214,6 @@ of how to do this in practice.  The sample below does not include bgc::
     call *icepack_init_itd_hist*
     loop over gridcells
       call *icepack_step_radiation*
-      call *icepack_init_zsalinity*
     end loop over gridcells
     call *icepack_init_hbrine*
     loop over gridcells
