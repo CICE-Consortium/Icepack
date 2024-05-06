@@ -1182,7 +1182,7 @@
                           PP_net,                ice_bio_net (1:nbtrcr), &
                           snow_bio_net(1:nbtrcr),grow_net,               &
                           totalChla,                                     &
-                          flux_bion_n,           iSin,                   &
+                          flux_bion_n(1:nbtrcr), iSin,                   &
                           bioPorosityIceCell(:), bioSalinityIceCell(:),  &
                           bioTemperatureIceCell(:)                       )
 

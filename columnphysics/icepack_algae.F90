@@ -251,7 +251,8 @@
          carbonFlux       ! carbon flux (mmol/m2/s)
 
       logical (kind=log_kind) :: &
-         write_flux_diag
+         write_flux_diag, &
+         write_carbon_errors
 
       character(len=*),parameter :: subname='(zbio)'
 
@@ -265,6 +266,8 @@
       hsnow_i = c0
       hsnow_f = c0
       write_flux_diag = .false.
+      write_carbon_errors = .true.
+      if (.not. tr_bgc_C) write_carbon_errors = .false.
 
       call bgc_carbon_sum(nblyr, hbri_old, trcrn(:), carbonInitial,n_doc,n_dic,n_algae,n_don)
       if (icepack_warnings_aborted(subname)) return
@@ -333,7 +336,7 @@
 
       carbonError = carbonInitial-carbonFlux*dt-carbonFinal
 
-      if (abs(carbonError) > max(puny,accuracy * maxval ((/carbonInitial, carbonFinal/)))) then
+      if (abs(carbonError) > max(puny,accuracy * maxval ((/carbonInitial, carbonFinal/))) .and. write_carbon_errors) then
             write(warnstr,*) subname, 'carbonError:', carbonError
             call icepack_warnings_add(warnstr)
             write(warnstr,*) subname, 'carbonInitial:', carbonInitial
@@ -1042,9 +1045,15 @@
 
       character(len=*),parameter :: subname='(z_biogeochemistry)'
 
+      logical (kind=log_kind) :: &
+         write_carbon_errors
+
   !-------------------------------------
   ! Initialize
   !-----------------------------------
+
+      write_carbon_errors = .true.
+      if (.not. tr_bgc_C) write_carbon_errors = .false.
 
       zspace = c1/real(nblyr,kind=dbl_kind)
       dz(:) = zspace
@@ -1443,7 +1452,7 @@
                sum_tot = sum_tot + (initcons_mobile(k) + initcons_stationary(k))*dz(k)
 
             end if  ! m .eq. nlt_bgc_Nit
-            if (.not. conserve_C(k)) then
+            if (.not. conserve_C(k) .and. write_carbon_errors) then
                 write(warnstr,*) subname, 'C in algal_dyn not conserved'
                 call icepack_warnings_add(warnstr)
                 write(warnstr,*) subname, 'Cerror(k):', Cerror(k)
