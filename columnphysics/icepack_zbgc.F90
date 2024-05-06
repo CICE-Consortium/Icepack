@@ -1188,7 +1188,11 @@
 
                if (icepack_warnings_aborted(subname)) return
 
-               if (present(flux_bion)) flux_bion(:,n) = flux_bion_n(:)
+               if (present(flux_bion)) then
+                  do mm = 1, nbtrcr
+                     flux_bion(mm,n) = flux_bion_n(mm)
+                  enddo
+               endif
 
             elseif (skl_bgc) then
 
