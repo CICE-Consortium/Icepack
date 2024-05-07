@@ -391,8 +391,8 @@
             if (icepack_warnings_aborted(subname)) return
 
          else ! ktherm
-            fcondtopn_solve = cap_conductive_flux(nilyr, nslyr, fcondtopn, hin, zTsn, zTin, hslyr)
-            fcondtopn_extra = fcondtopn - fcondtopn_solve
+            ! fcondtopn_solve = cap_conductive_flux(nilyr, nslyr, fcondtopn, hin, zTsn, zTin, hslyr)
+            ! fcondtopn_extra = fcondtopn - fcondtopn_solve
 
             ! if (calc_Tsfc) then
             !    fcondtopn = fcondtopn_solve
@@ -411,7 +411,7 @@
                                      Tsf,       Tbot,      &
                                      fsensn,    flatn,     &
                                      flwoutn,   fsurfn,    &
-                                     fcondtopn_solve, fcondbotn,  &
+                                     fcondtopn, fcondbotn,  &
                                      einit, e_num)
             if (icepack_warnings_aborted(subname)) return
 
@@ -458,7 +458,7 @@
                              smliq,       massliq,   &
                              fbot,        Tbot,      &
                              flatn,       fsurfn,    &
-                             fcondtopn_solve,   fcondbotn, &
+                             fcondtopn,   fcondbotn, &
                              fsnow,       hsn_new,   &
                              fhocnn,      evapn,     &
                              evapsn,      evapin,    &

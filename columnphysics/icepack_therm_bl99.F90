@@ -586,12 +586,12 @@
                      if (Top_T_was_reset_last_time) then
                         fcondtopn_reduction = fcondtopn_reduction + dqmat_sn*hslyr / dt
                         Top_T_was_reset_last_time = .false.
-                        e_num = e_num + hslyr * dqmat_sn
+                        e_num = e_num + hslyr * dqmat_sn		
                      else
                         Top_T_was_reset_last_time = .true.
                      endif
                   endif
-
+                  
                   zTsn(k) = min(zTsn(k), c0)
 
                endif
@@ -730,7 +730,7 @@
                        (zTin(nilyr) - Tbot)
 
             ! Flux extra energy out of the ice
-            ! fcondbot = fcondbot + einex/dt
+            fcondbot = fcondbot + einex/dt
 
             ferr = abs( (enew-einit+e_num)/dt &
                  - (fcondtopn - fcondbot + fswint) )
