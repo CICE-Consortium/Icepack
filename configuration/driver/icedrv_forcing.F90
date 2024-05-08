@@ -1185,9 +1185,9 @@
             data_sections, model_miss_val)
          call atm_MOSAiC_average("vas", vatm_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("rld", flw_data, dimlen, ncid, &
+         call atm_MOSAiC_average("rlds", flw_data, dimlen, ncid, &
             data_sections, model_miss_val)
-         call atm_MOSAiC_average("rsd", fsw_data, dimlen, ncid, &
+         call atm_MOSAiC_average("rsds", fsw_data, dimlen, ncid, &
             data_sections, model_miss_val)
          call atm_MOSAiC_average("prsn", fsnow_data, dimlen, ncid, &
             data_sections, model_miss_val)
