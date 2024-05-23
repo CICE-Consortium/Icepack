@@ -397,7 +397,8 @@
          dEdd_algae = .false.,    & ! if .true., algal absorption of shortwave is computed in the
          skl_bgc    = .false.,    & ! if true, solve skeletal biochemistry
          use_macromolecules = .false., &  ! if true, ocean DOC already split into
-                                    ! polysaccharids, lipid and protein fractions
+         ! polysaccharids, lipid and protein fractions
+         use_atm_dust_iron = .false., & ! if .true., compute iron contribution from dust
          restartbgc = .false.
 
       real (kind=dbl_kind), public :: &
@@ -573,7 +574,7 @@
          modal_aero_in, use_macromolecules_in, restartbgc_in, skl_bgc_in, &
          solve_zsal_in, grid_o_in, l_sk_in, &
          initbio_frac_in, grid_oS_in, l_skS_in,  dEdd_algae_in, &
-         phi_snow_in, T_max_in, fsal_in, &
+         phi_snow_in, T_max_in, fsal_in, use_atm_dust_iron_in, &
          fr_resp_in, algal_vel_in, R_dFe2dust_in, dustFe_sol_in, &
          op_dep_min_in, fr_graze_s_in, fr_graze_e_in, fr_mort2min_in, &
          fr_dFe_in, k_nitrif_in, t_iron_conv_in, max_loss_in, &
@@ -871,6 +872,7 @@
          modal_aero_in,     & ! if .true., use modal aerosol formulation in shortwave
          use_macromolecules_in, & ! if .true., ocean DOC is already split into
          ! polysaccharid, lipid and protein fractions
+         use_atm_dust_iron_in, & ! if .true., compute iron contribution from dust
          restartbgc_in,     &
          conserv_check_in     ! if .true., run conservation checks and abort if checks fail
 
@@ -1347,6 +1349,7 @@
       if (present(dEdd_algae_in)        ) dEdd_algae       = dEdd_algae_in
       if (present(modal_aero_in)        ) modal_aero       = modal_aero_in
       if (present(use_macromolecules_in)) use_macromolecules = use_macromolecules_in
+      if (present(use_atm_dust_iron_in) ) use_atm_dust_iron  = use_atm_dust_iron_in
       if (present(restartbgc_in)     ) restartbgc    = restartbgc_in
       if (present(conserv_check_in)     ) conserv_check    = conserv_check_in
       if (present(skl_bgc_in)           ) skl_bgc          = skl_bgc_in
@@ -1538,7 +1541,7 @@
          floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
          dpscale_out, rfracmin_out, rfracmax_out, pndaspect_out, hs1_out, hp1_out, &
          bgc_flux_type_out, z_tracers_out, scale_bgc_out, solve_zbgc_out, &
-         modal_aero_out, use_macromolecules_out, restartbgc_out, &
+         modal_aero_out, use_macromolecules_out, restartbgc_out, use_atm_dust_iron_out, &
          skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
          initbio_frac_out, grid_oS_out, l_skS_out, &
          phi_snow_out, conserv_check_out, &
@@ -1847,6 +1850,7 @@
          modal_aero_out,     & ! if .true., use modal aerosol formulation in shortwave
          use_macromolecules_out, & ! if .true., ocean DOC is already split
          ! into polysaccharid, lipid and protein fractions
+         use_atm_dust_iron_out, &  ! if .true., compute  iron contribution from dust
          restartbgc_out,     &
          conserv_check_out     ! if .true., run conservation checks and abort if checks fail
 
@@ -2244,6 +2248,7 @@
       if (present(dEdd_algae_out)        ) dEdd_algae_out   = dEdd_algae
       if (present(modal_aero_out)        ) modal_aero_out   = modal_aero
       if (present(use_macromolecules_out)) use_macromolecules_out = use_macromolecules
+      if (present(use_atm_dust_iron_out) ) use_atm_dust_iron_out  = use_atm_dust_iron
       if (present(restartbgc_out)        ) restartbgc_out= restartbgc
       if (present(conserv_check_out)     ) conserv_check_out= conserv_check
       if (present(skl_bgc_out)           ) skl_bgc_out      = skl_bgc
@@ -2555,6 +2560,7 @@
         write(iounit,*) "  dEdd_algae = ", dEdd_algae
         write(iounit,*) "  modal_aero = ", modal_aero
         write(iounit,*) "  use_macromolecules = ", use_macromolecules
+        write(iounit,*) "  use_atm_dust_iron  = ", use_atm_dust_iron
         write(iounit,*) "  restartbgc = ", restartbgc
         write(iounit,*) "  conserv_check = ", conserv_check
         write(iounit,*) "  skl_bgc    = ", skl_bgc

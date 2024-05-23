@@ -14,7 +14,7 @@
       use icepack_parameters, only: pi, secday, puny
       use icepack_parameters, only: hs_ssl, sk_l
 
-      use icepack_parameters, only: dEdd_algae, solve_zbgc
+      use icepack_parameters, only: dEdd_algae, solve_zbgc, use_atm_dust_iron
       use icepack_parameters, only: R_dFe2dust, dustFe_sol, algal_vel
       use icepack_parameters, only: bgc_flux_type
       use icepack_parameters, only: grid_o
@@ -1133,7 +1133,7 @@
 
       dust_Fe(:) = c0
 
-      if (tr_zaero .and. n_zaero > 2 .and. tr_bgc_Fe) then
+      if (tr_zaero .and. n_zaero > 2 .and. tr_bgc_Fe .and. use_atm_dust_iron) then
        do m = 3,n_zaero
          dust_Fe(nlt_bgc_Fed(1)) = dust_Fe(nlt_bgc_Fed(1)) + &
               (zbgc_snow(nlt_zaero(m)) + zbgc_atm(nlt_zaero(m))) * &
