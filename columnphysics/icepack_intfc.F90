@@ -96,7 +96,6 @@
 
       use icepack_zbgc , only: icepack_init_bgc
       use icepack_zbgc , only: icepack_init_zbgc
-      use icepack_zbgc , only: icepack_init_zbgc_tracer_indices
       use icepack_zbgc , only: icepack_biogeochemistry
       use icepack_zbgc , only: icepack_init_ocean_bio
       use icepack_zbgc , only: icepack_load_ocean_bio_array
