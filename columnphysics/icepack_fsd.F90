@@ -541,7 +541,7 @@
       end if
 
       ! for history/diagnostics
-      frazil = vi0new - vi0new_lat
+!     frazil = vi0new - vi0new_lat
 
       ! lateral growth increment
       if (vi0new_lat > puny) then
@@ -564,7 +564,7 @@
 
       ! Use remaining ice volume as in standard model,
       ! but ice cannot grow into the area that has grown laterally
-      vi0new = vi0new - vi0new_lat
+!     vi0new = vi0new - vi0new_lat
       tot_latg = SUM(d_an_latg(:))
 
       end subroutine fsd_lateral_growth

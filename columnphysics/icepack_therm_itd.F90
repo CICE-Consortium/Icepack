@@ -1613,6 +1613,17 @@
                                   G_radial,   d_an_latg,    &
                                   tot_latg)
             if (icepack_warnings_aborted(subname)) return
+
+            ! volume added to each category from lateral growth
+            do n = 1, ncat
+               if (aicen(n) > c0) then
+                   vin0new(n) = d_an_latg(n) * vicen(n)/aicen(n)
+               endif
+            end do
+
+            vi0new = vi0new - SUM(vin0new)
+            frazil = frazil - SUM(vin0new)
+
          endif
 
          ai0mod = aice0
@@ -1640,9 +1651,9 @@
          endif               ! aice0 > puny
 
          ! volume added to each category from lateral growth
-         do n = 1, ncat
-            if (aicen(n) > c0) vin0new(n) = d_an_latg(n) * vicen(n)/aicen(n)
-         end do
+!        do n = 1, ncat
+!           if (aicen(n) > c0) vin0new(n) = d_an_latg(n) * vicen(n)/aicen(n)
+!        end do
 
          ! combine areal change from new ice growth and lateral growth
          d_an_newi(1)     = ai0new
