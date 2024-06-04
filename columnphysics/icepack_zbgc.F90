@@ -782,11 +782,11 @@
          else
             first_ice(n) = .true.
             if (tr_brine) trcrn(nt_fbri,n) = c1
-            !if (z_tracers) then
+            if (z_tracers) then
                do mm = 1,nbtrcr
                   trcrn(nt_zbgc_frac-1+mm,n) = zbgc_frac_init(mm)
                enddo
-            !endif
+            endif
          endif
 
          if (aicen(n) > puny) then

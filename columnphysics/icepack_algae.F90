@@ -1879,11 +1879,15 @@
       ! Nutrient limitation
       !-----------------------------------------------------------------------
 
-          Nit_lim(k) = Nitin/(Nitin + K_Nit(k))
+          if (Nitin + K_Nit(k) /= c0) then
+             Nit_lim(k) = Nitin/(Nitin + K_Nit(k))
+          endif
           Am_lim(k)  = c0
           N_lim(k) = Nit_lim(k)
           if (tr_bgc_Am) then
-             Am_lim(k) = Amin/(Amin + K_Am(k))
+             if (Amin + K_Am(k) /= c0) then
+                Am_lim(k) = Amin/(Amin + K_Am(k))
+             endif
              N_lim(k)  = min(c1, Nit_lim(k) + Am_lim(k))
           endif
           Sil_lim(k) = c1
@@ -1936,10 +1940,12 @@
           U_Sil(k) = U_Sil_f(k)*U_Sil_tot
           U_Fe(k)  = U_Fe_f(k)*U_Fe_tot
 
+          grow_N(k) = (U_Nit(k) + U_Am(k))
           if (R_Si2N(k) > c0) then
-             grow_N(k) = min(U_Sil(k)/R_Si2N(k),U_Nit(k) + U_Am(k), U_Fe(k)/R_Fe2N(k))
-          else
-             grow_N(k) = min(U_Nit(k) + U_Am(k),U_Fe(k)/R_Fe2N(k))
+             grow_N(k) = min(grow_N(k),U_Sil(k)/R_Si2N(k))
+          endif
+          if (R_Fe2N(k) /= c0) then
+             grow_N(k) = min(grow_N(k),U_Fe(k)/R_Fe2N(k))
           endif
 
           fr_Am(k) = c0

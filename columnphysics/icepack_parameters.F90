@@ -587,7 +587,6 @@
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
          snw_aging_table_in, snw_ssp_table_in, grid_o_t_in, tau_min_in, tau_max_in,  &
-         ! these are defined in icepack_init_zbgc
          f_don_protein_in, kn_bac_protein_in, f_don_Am_protein_in, &
          ratio_Si2N_diatoms_in, &
          ratio_Si2N_sp_in, ratio_Si2N_phaeo_in, ratio_S2N_diatoms_in, &
@@ -618,8 +617,7 @@
          ratio_C2N_diatoms_in, ratio_C2N_sp_in, ratio_C2N_phaeo_in, &
          ratio_chl2N_diatoms_in, ratio_chl2N_sp_in, ratio_chl2N_phaeo_in, &
          F_abs_chl_diatoms_in, F_abs_chl_sp_in, F_abs_chl_phaeo_in, &
-         ratio_C2N_proteins_in &
- )
+         ratio_C2N_proteins_in )
 
       !-----------------------------------------------------------------
       ! control settings
