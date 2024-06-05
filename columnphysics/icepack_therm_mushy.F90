@@ -28,7 +28,6 @@
                                   fsurf_cpl0,         & !
                                   fsurf_cpl,          & !
                                   flat_cpl              !
-  use icepack_therm_shared, only: ismyturn
 #endif
 
   implicit none

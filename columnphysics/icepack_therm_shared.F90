@@ -35,9 +35,6 @@
                 icepack_snow_temperature, &
                 icepack_liquidus_temperature, &
                 icepack_sea_freezing_temperature, &
-#ifdef GEOSCOUPLED
-                ismyturn, &
-#endif
                 adjust_enthalpy
 
       real (kind=dbl_kind), parameter, public :: &
@@ -58,9 +55,6 @@
          flat_cpl0,          & !
          fsurf_cpl,          & !
          flat_cpl              !
-
-      integer(kind=int_kind), public :: &
-         local_tsk, local_i, local_j, local_blk
 #endif
 
 !=======================================================================
@@ -589,18 +583,6 @@
       endif
 
       end subroutine adjust_enthalpy
-
-#ifdef GEOSCOUPLED
-      function ismyturn() result(ret)
-
-         logical(kind=log_kind) :: ret
-
-         ret = (local_tsk == 38 .and. local_i == 5 .and. &
-                local_j == 53 .and. local_blk == 1)
-
-      end function ismyturn
-#endif
-
 
 !=======================================================================
 

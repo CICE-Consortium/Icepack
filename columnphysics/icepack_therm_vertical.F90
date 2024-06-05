@@ -44,11 +44,6 @@
                                       fsurf_cpl0,         & !
                                       fsurf_cpl,          & !
                                       flat_cpl              !
-      use icepack_therm_shared, only: local_tsk,      & !
-                                      local_i,        & !
-                                      local_j,        & !
-                                      ismyturn,       &
-                                      local_blk
 #endif
       use icepack_therm_bl99,   only: temperature_changes
       use icepack_therm_mushy,  only: temperature_changes_salinity
@@ -120,8 +115,7 @@
                                   dfsurfdt_in,            &
                                   dflatdt_in,             &
                                   yday,        dsnow,     &
-                                  prescribed_ice,         &
-                                  my_tsk, my_i, my_j, my_blk)
+                                  prescribed_ice          )
 
       integer (kind=int_kind), intent(in) :: &
          nilyr   , & ! number of ice layers
@@ -146,9 +140,6 @@
 
       logical (kind=log_kind), intent(in), optional :: &
          prescribed_ice  ! if .true., use prescribed ice instead of computed
-
-      integer (kind=int_kind), intent(in), optional :: &
-         my_tsk, my_i, my_j, my_blk
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          zqsn    , & ! snow layer enthalpy, zqsn < 0 (J m-3)
@@ -322,20 +313,6 @@
       flat_cpl      = flatn_in
       fsurf_cpl0    = fsurfn_in
       flat_cpl0     = flatn_in
-
-      if(present(my_tsk)) then
-          local_tsk = my_tsk
-      endif
-      if(present(my_i)) then
-          local_i = my_i
-      endif
-      if(present(my_j)) then
-          local_j = my_j
-      endif
-      if(present(my_blk)) then
-          local_blk = my_blk
-      endif
-
 #endif
 
       if (calc_Tsfc) then
@@ -489,11 +466,7 @@
                                       fsnow,     einit,    &
                                       einter,    efinal,   &
                                       fcondtopn, fcondbotn, &
-                                      fadvocn,   fbot,     &
-                                      my_tsk = my_tsk,     &
-                                      my_i = my_i,         & 
-                                      my_j = my_j,         &
-                                      my_blk = my_blk)
+                                      fadvocn,   fbot      )
       if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -2022,9 +1995,7 @@
                                             einit,    einter,   &
                                             efinal,             &
                                             fcondtopn,fcondbotn, &
-                                            fadvocn,  fbot,     &   
-                                            my_tsk, my_i,       &
-                                            my_j, my_blk)
+                                            fadvocn,  fbot      )
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
@@ -2044,9 +2015,6 @@
          einter      , & ! intermediate energy of melting (J m-2)
          efinal      , & ! final energy of melting (J m-2)
          fcondbotn
-
-      integer(kind=int_kind), intent(in), optional :: &
-         my_tsk, my_i, my_j, my_blk
 
       ! local variables
 
@@ -2076,10 +2044,6 @@
          call icepack_warnings_add(subname//" conservation_check_vthermo: Thermo energy conservation error" )
 
          write(warnstr,*) subname, 'Thermo energy conservation error'
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, 'at task, i, j, iblk'
-         call icepack_warnings_add(warnstr)
-         write(warnstr,*) subname, my_tsk, my_i, my_j, my_blk
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'Flux error (W/m^2) =', ferr
          call icepack_warnings_add(warnstr)
@@ -2312,9 +2276,7 @@
                                     mlt_onset   , frz_onset   , &
                                     dfsurfdt    , dflatdt     , &
                                     yday        , prescribed_ice, &
-                                    zlvs        , my_tsk,      &
-                                    my_i,         my_j,        &
-                                    my_blk   )
+                                    zlvs                        )
 
       integer (kind=int_kind), intent(in) :: &
          ncat        , & ! number of thickness categories
@@ -2335,9 +2297,6 @@
 
       logical (kind=log_kind), intent(in), optional :: &
          prescribed_ice  ! if .true., use prescribed ice instead of computed
-
-      integer (kind=int_kind), intent(in), optional :: &
-         my_tsk, my_i, my_j, my_blk
 
       real (kind=dbl_kind), intent(inout) :: &
          aice        , & ! sea ice concentration
@@ -2904,20 +2863,10 @@
                                  dflatdt_in  = dflatdt(n),                     &
 #endif
                                  yday=yday,           dsnow=dsnown        (n), &
-                                 prescribed_ice=prescribed_ice,               &
-                                 my_tsk = my_tsk,   my_i = my_i,               &
-                                 my_j = my_j,      my_blk = my_blk            )
+                                 prescribed_ice=prescribed_ice                 )
 
             if (icepack_warnings_aborted(subname)) then
                write(warnstr,*) subname, ' ice: Vertical thermo error, cat ', n
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, ' ice: Vertical thermo error, my_tsk ', my_tsk
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, ' ice: Vertical thermo error, my_i ', my_i
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, ' ice: Vertical thermo error, my_j ', my_j
-               call icepack_warnings_add(warnstr)
-               write(warnstr,*) subname, ' ice: Vertical thermo error, my_blk ', my_blk
                call icepack_warnings_add(warnstr)
                return
             endif
