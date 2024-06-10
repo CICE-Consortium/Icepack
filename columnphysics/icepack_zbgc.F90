@@ -346,114 +346,6 @@
       end subroutine lateral_melt_bgc
 
 !=======================================================================
-!
-! Add new ice tracers to the ice bottom and adjust the vertical profile
-!
-! author: Nicole Jeffery, LANL
-
-!      subroutine adjust_tracer_profile (nbtrcr, dt, ntrcr, &
-!                                        aicen,      vbrin, &
-!                                        vicen,      trcrn, &
-!                                        vtmp,              &
-!                                        vsurp,             &
-!                                        nilyr,      nblyr, &
-!                                        bgrid,             &
-!                                        cgrid,      ocean_bio, &
-!                                        igrid,      location)!!!
-
-!      integer (kind=int_kind), intent(in) :: &
-!         location          , & ! 1 (add frazil to bottom), 0 (add frazil throughout)
-!         ntrcr             , & ! number of tracers in use
-!         nilyr             , & ! number of ice layers
-!         nbtrcr            , & ! number of biology tracers
-!         nblyr                 ! number of biology layers
-
-!      real (kind=dbl_kind), intent(in) :: &
-!         dt              ! timestep (s)!
-
-!      real (kind=dbl_kind), intent(in) :: &
-!         aicen   , & ! concentration of ice
-!         vicen   , & ! volume of ice
-!         vsurp   , & ! volume of new ice added to each cat
-!         vtmp        ! total volume of new and old ice
-
-!      real (kind=dbl_kind), dimension (nbtrcr), intent(in) :: &
-!         ocean_bio
-
-!      real (kind=dbl_kind), intent(in) :: &
-!         vbrin       ! fbri*volume per unit area of ice  (m)
-
-!      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-!         igrid       ! zbio grid
-
-!      real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-!         bgrid       ! zsal grid
-
-!      real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-!         cgrid       ! CICE grid
-
-!      real (kind=dbl_kind), dimension (ntrcr), intent(inout) :: &
-!         trcrn       ! ice tracers
-
-      ! local variables
-
-!      real (kind=dbl_kind), dimension (ntrcr+2) :: &
-!         trtmp0, &      ! temporary, remapped tracers
-!         trtmp          ! temporary, remapped tracers
-
-!      integer (kind=int_kind) :: &
-!         k, m
-
-!      real (kind=dbl_kind), dimension (nblyr+1) ::  &
-!         C_stationary      ! stationary bulk concentration*h (mmol/m^2)
-
-!      real(kind=dbl_kind) :: &
-!         top_conc     , & ! salinity or bgc ocean concentration of frazil
-!         fluxb        , & ! needed for regrid (set to zero here)
-!         hbri_old     , & ! previous timestep brine height
-!         hbri             ! brine height
-
-!      character(len=*),parameter :: subname='(adjust_tracer_profile)'
-
-!      trtmp0(:) = c0
-!      trtmp(:) = c0
-!      fluxb = c0
-
- !     if (location == 1 .and. vbrin > c0) then  ! add frazil to bottom
-
-!         hbri     = vbrin
-!         hbri_old = vtmp
-
-!         do m = 1, nbtrcr
-!            top_conc = ocean_bio(m)*zbgc_init_frac(m)
-!            do k = 1, nblyr+1
-!               C_stationary(k) = trcrn(bio_index(m) + k-1)* hbri_old
-!            enddo !k
-!            call regrid_stationary (C_stationary, hbri_old, &
-!                                    hbri,         dt,       &
-!                                    ntrcr,                  &
-!                                    nblyr,        top_conc, &
-!                                    igrid,        fluxb )
-!            if (icepack_warnings_aborted(subname)) return
-!            do k = 1, nblyr+1
-!               trcrn(bio_index(m) + k-1) =  C_stationary(k)/hbri
-!            enddo !k
-!         enddo !m
-
-!      elseif (vbrin > c0) then   ! add frazil throughout  location == 0 .and.
-
-!         do k = 1, nblyr+1
- !           do m = 1, nbtrcr
-!               trcrn(bio_index(m) + k-1) = (trcrn(bio_index(m) + k-1) * vtmp &
-!                         + ocean_bio(m)*zbgc_init_frac(m) * vsurp) / vbrin
-!            enddo
-!         enddo
-
-!      endif     ! location
-
-!      end subroutine adjust_tracer_profile
-
-!=======================================================================
 !autodocument_start icepack_init_bgc
 !
       subroutine icepack_init_bgc(ncat, nblyr, nilyr, &
@@ -599,6 +491,131 @@
       if (present(zbgc_init_frac_in))  zbgc_init_frac(:)  =  zbgc_init_frac_in(:)
       if (present(tau_ret_in)) tau_ret(:) = tau_ret_in(:)
       if (present(tau_rel_in)) tau_rel(:) = tau_rel_in(:)
+
+      R_Si2N(1) = ratio_Si2N_diatoms
+      R_Si2N(2) = ratio_Si2N_sp
+      R_Si2N(3) = ratio_Si2N_phaeo
+
+      R_S2N(1) = ratio_S2N_diatoms
+      R_S2N(2) = ratio_S2N_sp
+      R_S2N(3) = ratio_S2N_phaeo
+
+      R_Fe2C(1) = ratio_Fe2C_diatoms
+      R_Fe2C(2) = ratio_Fe2C_sp
+      R_Fe2C(3) = ratio_Fe2C_phaeo
+
+      R_Fe2N(1) = ratio_Fe2N_diatoms
+      R_Fe2N(2) = ratio_Fe2N_sp
+      R_Fe2N(3) = ratio_Fe2N_phaeo
+
+      R_C2N(1) = ratio_C2N_diatoms
+      R_C2N(2) = ratio_C2N_sp
+      R_C2N(3) = ratio_C2N_phaeo
+
+      R_chl2N(1) = ratio_chl2N_diatoms
+      R_chl2N(2) = ratio_chl2N_sp
+      R_chl2N(3) = ratio_chl2N_phaeo
+
+      F_abs_chl(1) = F_abs_chl_diatoms
+      F_abs_chl(2) = F_abs_chl_sp
+      F_abs_chl(3) = F_abs_chl_phaeo
+
+      R_Fe2DON(1) = ratio_Fe2DON
+      R_C2N_DON(1) = ratio_C2N_proteins
+
+      R_Fe2DOC(1) = ratio_Fe2DOC_s
+      R_Fe2DOC(2) = ratio_Fe2DOC_l
+      R_Fe2DOC(3) = c0
+
+      chlabs(1) = chlabs_diatoms
+      chlabs(2) = chlabs_sp
+      chlabs(3) = chlabs_phaeo
+
+      alpha2max_low(1) = alpha2max_low_diatoms
+      alpha2max_low(2) = alpha2max_low_sp
+      alpha2max_low(3) = alpha2max_low_phaeo
+
+      beta2max(1) = beta2max_diatoms
+      beta2max(2) = beta2max_sp
+      beta2max(3) = beta2max_phaeo
+
+      mu_max(1) = mu_max_diatoms
+      mu_max(2) = mu_max_sp
+      mu_max(3) = mu_max_phaeo
+
+      grow_Tdep(1) = grow_Tdep_diatoms
+      grow_Tdep(2) = grow_Tdep_sp
+      grow_Tdep(3) = grow_Tdep_phaeo
+
+      fr_graze(1) = fr_graze_diatoms
+      fr_graze(2) = fr_graze_sp
+      fr_graze(3) = fr_graze_phaeo
+
+      mort_pre(1) = mort_pre_diatoms
+      mort_pre(2) = mort_pre_sp
+      mort_pre(3) = mort_pre_phaeo
+
+      mort_Tdep(1) = mort_Tdep_diatoms
+      mort_Tdep(2) = mort_Tdep_sp
+      mort_Tdep(3) = mort_Tdep_phaeo
+
+      k_exude(1) = k_exude_diatoms
+      k_exude(2) = k_exude_sp
+      k_exude(3) = k_exude_phaeo
+
+      K_Nit(1) = K_Nit_diatoms
+      K_Nit(2) = K_Nit_sp
+      K_Nit(3) = K_Nit_phaeo
+
+      K_Am(1) = K_Am_diatoms
+      K_Am(2) = K_Am_sp
+      K_Am(3) = K_Am_phaeo
+
+      K_Sil(1) = K_Sil_diatoms
+      K_Sil(2) = K_Sil_sp
+      K_Sil(3) = K_Sil_phaeo
+
+      K_Fe(1) = K_Fe_diatoms
+      K_Fe(2) = K_Fe_sp
+      K_Fe(3) = K_Fe_phaeo
+
+      f_doc(:) = c0
+      f_doc(1) = f_doc_s
+      f_doc(2) = f_doc_l
+
+      f_don(1) = f_don_protein
+      kn_bac(1) = kn_bac_protein
+      f_don_Am(1) = f_don_Am_protein
+
+      f_exude(:) = c0
+      f_exude(1) = f_exude_s
+      f_exude(2) = f_exude_l
+
+      k_bac(:) = c0
+      k_bac(1) = k_bac_s
+      k_bac(2) = k_bac_l
+
+      algaltype(1) = algaltype_diatoms
+      algaltype(2) = algaltype_sp
+      algaltype(3) = algaltype_phaeo
+
+      doctype(:) = c0
+      doctype(1) = doctype_s
+      doctype(2) = doctype_l
+
+      dictype(:) = dictype_1
+
+      dontype(:) = dontype_protein
+
+      fedtype(:) = fedtype_1
+      feptype(:) = feptype_1
+
+      zaerotype(1) = zaerotype_bc1
+      zaerotype(2) = zaerotype_bc2
+      zaerotype(3) = zaerotype_dust1
+      zaerotype(4) = zaerotype_dust2
+      zaerotype(5) = zaerotype_dust3
+      zaerotype(6) = zaerotype_dust4
 
       end subroutine icepack_init_zbgc
 
@@ -782,11 +799,11 @@
          else
             first_ice(n) = .true.
             if (tr_brine) trcrn(nt_fbri,n) = c1
-            !if (z_tracers) then
+            if (z_tracers) then
                do mm = 1,nbtrcr
                   trcrn(nt_zbgc_frac-1+mm,n) = zbgc_frac_init(mm)
                enddo
-            !endif
+            endif
          endif
 
          if (aicen(n) > puny) then
@@ -986,7 +1003,7 @@
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          zaeros          ! ocean aerosols (mmol/m^3)
 
-      real (kind=dbl_kind), dimension (:), intent(inout) :: &
+      real (kind=dbl_kind), dimension (:), intent(out) :: &
          ocean_bio_all   ! fixed order, all values even for tracers false
 
 !autodocument_end
@@ -1061,7 +1078,7 @@
       subroutine icepack_init_ocean_bio (amm, dmsp, dms, algalN, doc, dic, don, &
              fed, fep, hum, nit, sil, zaeros,CToN, CToN_DON)
 
-      real (kind=dbl_kind), intent(out):: &
+      real (kind=dbl_kind), intent(out), optional:: &
        amm      , & ! ammonium
        dmsp     , & ! DMSPp
        dms      , & ! DMS
@@ -1069,7 +1086,7 @@
        nit      , & ! nitrate
        sil          ! silicate
 
-      real (kind=dbl_kind), dimension(:), intent(out):: &
+      real (kind=dbl_kind), dimension(:), intent(out), optional:: &
        algalN   , & ! algae
        doc      , & ! DOC
        dic      , & ! DIC
@@ -1078,7 +1095,7 @@
        fep      , & ! Particulate Iron
        zaeros       ! BC and dust
 
-      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+      real (kind=dbl_kind), dimension(:), intent(out), optional :: &
        CToN     , & ! carbon to nitrogen ratio for algae
        CToN_DON     ! nitrogen to carbon ratio for proteins
 
@@ -1092,48 +1109,61 @@
       character(len=*),parameter :: subname='(icepack_init_ocean_bio)'
 
        if (present(CToN)) then
-         CToN(1) = R_C2N(1)
-         CToN(2) = R_C2N(2)
-         CToN(3) = R_C2N(3)
+          CToN(:) = c0
+          CToN(1) = R_C2N(1)
+          CToN(2) = R_C2N(2)
+          CToN(3) = R_C2N(3)
        endif
 
        if (present(CToN_DON)) then
-         CToN_DON(1) = R_C2N_DON(1)
+          CToN_DON(:) = c0
+          CToN_DON(1) = R_C2N_DON(1)
        endif
 
-       amm  = c1 ! ISPOL < 1 mmol/m^3
-       dmsp = p1
-       dms  = p1
-       algalN(1) = c1  !0.0026_dbl_kind ! ISPOL, Lannuzel 2013(pennate)
-       algalN(2) = 0.0057_dbl_kind ! ISPOL, Lannuzel 2013(small plankton)
-       algalN(3) = 0.0027_dbl_kind ! ISPOL, Lannuzel 2013(Phaeocystis)
-                                     ! 0.024_dbl_kind ! 5% of 1 mgchl/m^3
-       doc(1) = 16.2_dbl_kind ! 18% saccharides
-       doc(2) = 9.0_dbl_kind  ! lipids
-       doc(3) = c1 !
-       do k = 1, max_dic
-            dic(k) = 1950.0_dbl_kind ! 1950-2260 mmol C/m3 (Tynan et al. 2015)
-       enddo
-       do k = 1, max_don
-            don(k) = 12.9_dbl_kind
-            ! 64.3_dbl_kind ! 72% Total DOC~90 mmolC/m^3  ISPOL with N:C of 0.2
-       enddo
-       !ki = 1
-       !if (trim(fe_data_type) == 'clim') ki = 2
-       do k = 1, max_fe ! ki, max_fe
-            fed(k) = 0.4_dbl_kind ! c1 (nM) Lannuzel2007 DFe,
-                                  ! range 0.14-2.6 (nM) van der Merwe 2011
-                                  ! Tagliabue 2012 (0.4 nM)
-            fep(k) = c2 ! (nM) van der Merwe 2011
-                        ! (0.6 to 2.9 nM ocean)
-       enddo
-       hum  = c1        ! mmol C/m^3
-       nit  = 12.0_dbl_kind
-       sil  = 25.0_dbl_kind
-       do k = 1, max_aero
-         zaeros(k) = c0
-       enddo
-
+       if (present(amm)) &
+          amm  = c1 ! ISPOL < 1 mmol/m^3
+       if (present(dmsp)) &
+          dmsp = p1
+       if (present(dms)) &
+          dms  = p1
+       if (present(algalN)) then
+          algalN(:) = c0
+          algalN(1) = c1  !0.0026_dbl_kind ! ISPOL, Lannuzel 2013(pennate)
+          algalN(2) = 0.0057_dbl_kind ! ISPOL, Lannuzel 2013(small plankton)
+          algalN(3) = 0.0027_dbl_kind ! ISPOL, Lannuzel 2013(Phaeocystis)
+       endif
+       if (present(doc))then
+          doc(:) = c0
+          doc(1) = 16.2_dbl_kind ! 18% saccharides
+          doc(2) = 9.0_dbl_kind  ! lipids
+          doc(3) = c1 !
+       endif
+       if (present(dic)) then
+          dic(:) = c0
+          dic(1) = 1950.0_dbl_kind ! 1950-2260 mmol C/m3 (Tynan et al. 2015)
+       endif
+       if (present(don)) then
+          don(:) = c0
+          don(1) = 12.9_dbl_kind ! 64.3_dbl_kind ! 72% Total DOC~90 mmolC/m^3  ISPOL with N:C of 0.2
+       endif
+       if (present(fed)) then
+          fed(:) = c0
+          fed(1) = 0.4_dbl_kind ! c1 (nM) Lannuzel2007 DFe,! range 0.14-2.6 (nM) van der Merwe 2011
+           ! Tagliabue 2012 (0.4 nM)
+       endif
+       if (present(fep)) then
+          fep(:) = c0
+          fep(1) = c2 ! (nM) van der Merwe 2011
+          ! (0.6 to 2.9 nM ocean)
+       endif
+       if (present(hum)) &
+            hum  = c1        ! mmol C/m^3
+       if (present(nit)) &
+            nit  = 12.0_dbl_kind
+       if (present(sil)) &
+            sil  = 25.0_dbl_kind
+       if (present(zaeros)) &
+          zaeros(:) = c0
 
       end subroutine icepack_init_ocean_bio
 !
