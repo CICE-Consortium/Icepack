@@ -123,14 +123,14 @@
 
 #ifdef GEOSCOUPLED
       real (kind=dbl_kind), private :: &
-         fswthru_uvrdr_out,      &
-         fswthru_uvrdf_out,      &
-         fswthru_pardr_out,      &
-         fswthru_pardf_out,      &
-         druvr_in,               &
-         dfuvr_in,               &
-         drpar_in,               &
-         dfpar_in
+         fswthru_uvrdr_out,      &  ! penetrative uvr flux, direct
+         fswthru_uvrdf_out,      &  ! penetrative uvr flux, diffuse
+         fswthru_pardr_out,      &  ! penetrative par flux, direct
+         fswthru_pardf_out,      &  ! penetrative par flux, diffuse
+         druvr_in,               &  ! uvr flux, direct
+         dfuvr_in,               &  ! uvr flux, diffuse
+         drpar_in,               &  ! par flux, direct
+         dfpar_in                   ! par flux, diffuse
 #endif
       ! dEdd tuning parameters, set in namelist
       !   R_ice     ! sea ice tuning parameter; +1 > 1sig increase in albedo
@@ -297,10 +297,10 @@
          fswthrun_idf    ! nir dif SW through ice to ocean (W m-2)
 
       real (kind=dbl_kind), dimension(:), intent(out), optional :: &
-         fswthru_uvrdr , & ! vis dir SW through ice to ocean (W/m^2)
-         fswthru_uvrdf , & ! vis dif SW through ice to ocean (W/m^2)
-         fswthru_pardr , & ! nir dir SW through ice to ocean (W/m^2)
-         fswthru_pardf     ! nir dif SW through ice to ocean (W/m^2)
+         fswthru_uvrdr , & ! vis dir uvr SW through ice to ocean (W m-2)
+         fswthru_uvrdf , & ! vis dif uvr SW through ice to ocean (W m-2)
+         fswthru_pardr , & ! vis dir par SW through ice to ocean (W m-2)
+         fswthru_pardf     ! vis dif par SW through ice to ocean (W m-2)
 
       real (kind=dbl_kind), intent(inout) :: &
          coszen       ! cosine(zenith angle)
@@ -335,16 +335,16 @@
          l_fswthru_idf    ! nir dif SW through ice to ocean (W m-2)
 
       real (kind=dbl_kind) :: &
-         l_fswthru_uvrdr , & ! vis uvr dir SW through ice to ocean (W/m^2)
-         l_fswthru_uvrdf , & ! vis uvr dif SW through ice to ocean (W/m^2)
-         l_fswthru_pardr , & ! vis par dir SW through ice to ocean (W/m^2)
-         l_fswthru_pardf     ! vis par dif SW through ice to ocean (W/m^2)
+         l_fswthru_uvrdr , & ! vis uvr dir SW through ice to ocean (W m-2)
+         l_fswthru_uvrdf , & ! vis uvr dif SW through ice to ocean (W m-2)
+         l_fswthru_pardr , & ! vis par dir SW through ice to ocean (W m-2)
+         l_fswthru_pardf     ! vis par dif SW through ice to ocean (W m-2)
 
       real(kind=dbl_kind) :: &
-         l_druvr,         & ! 
-         l_dfuvr,         & !
-         l_drpar,         & ! 
-         l_dfpar            !
+         l_druvr,         & ! uvr flux, direct (W m-2)
+         l_dfuvr,         & ! uvr flux, diffuse (W m-2)
+         l_drpar,         & ! par flux, direct (W m-2)
+         l_dfpar            ! par flux, diffuse (W m-2)
 
       character(len=*),parameter :: subname='(shortwave_ccsm3)'
 
@@ -785,10 +785,10 @@
          alidfns         ! near-ir, diffuse albedo, snow
 
       real (kind=dbl_kind), intent(in) :: &
-         druvr , & ! 
-         dfuvr , & ! 
-         drpar , & ! 
-         dfpar     ! 
+         druvr , & ! uvr flux, direct (W m-2)
+         dfuvr , & ! uvr flux, diffuse (W m-2)
+         drpar , & ! par flux, direct (W m-2)
+         dfpar     ! par flux, diffuse (W m-2)
 
       real (kind=dbl_kind), intent(out):: &
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
@@ -802,10 +802,10 @@
          fswthru_idf      ! nir dif SW through ice to ocean (W m-2)
 
       real (kind=dbl_kind), intent(out) :: &
-         fswthru_uvrdr , & ! vis dir SW through ice to ocean (W/m^2)
-         fswthru_uvrdf , & ! vis dif SW through ice to ocean (W/m^2)
-         fswthru_pardr , & ! nir dir SW through ice to ocean (W/m^2)
-         fswthru_pardf     ! nir dif SW through ice to ocean (W/m^2)
+         fswthru_uvrdr , & ! vis dir uvr SW through ice to ocean (W m-2)
+         fswthru_uvrdf , & ! vis dif uvr SW through ice to ocean (W m-2)
+         fswthru_pardr , & ! vis dir par SW through ice to ocean (W m-2)
+         fswthru_pardf     ! vis dif par SW through ice to ocean (W m-2)
 
       real (kind=dbl_kind), dimension (:), intent(out) :: &
          Iswabs      , & ! SW absorbed in particular layer (W m-2)
@@ -3986,10 +3986,10 @@
          fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
 
       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
-         fswthrun_uvrdr , & ! vis dir SW through ice to ocean (W/m^2)
-         fswthrun_uvrdf , & ! vis dif SW through ice to ocean (W/m^2)
-         fswthrun_pardr , & ! nir dir SW through ice to ocean (W/m^2)
-         fswthrun_pardf     ! nir dif SW through ice to ocean (W/m^2)
+         fswthrun_uvrdr , & ! vis dir uvr SW through ice to ocean (W/m^2)
+         fswthrun_uvrdf , & ! vis dif uvr SW through ice to ocean (W/m^2)
+         fswthrun_pardr , & ! vis dir par SW through ice to ocean (W/m^2)
+         fswthrun_pardf     ! vis dif par SW through ice to ocean (W/m^2)
 
       real (kind=dbl_kind), intent(in), optional :: &
          druvr , & ! 
