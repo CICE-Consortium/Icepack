@@ -587,7 +587,6 @@
          snowage_rhos_in, snowage_Tgrd_in, snowage_T_in, &
          snowage_tau_in, snowage_kappa_in, snowage_drdt0_in, &
          snw_aging_table_in, snw_ssp_table_in, grid_o_t_in, tau_min_in, tau_max_in,  &
-         ! these are defined in icepack_init_zbgc
          f_don_protein_in, kn_bac_protein_in, f_don_Am_protein_in, &
          ratio_Si2N_diatoms_in, &
          ratio_Si2N_sp_in, ratio_Si2N_phaeo_in, ratio_S2N_diatoms_in, &
@@ -618,7 +617,7 @@
          ratio_C2N_diatoms_in, ratio_C2N_sp_in, ratio_C2N_phaeo_in, &
          ratio_chl2N_diatoms_in, ratio_chl2N_sp_in, ratio_chl2N_phaeo_in, &
          F_abs_chl_diatoms_in, F_abs_chl_sp_in, F_abs_chl_phaeo_in, &
-         ratio_C2N_proteins_in)
+         ratio_C2N_proteins_in )
 
       !-----------------------------------------------------------------
       ! control settings
@@ -1377,17 +1376,17 @@
       if (present(ratio_Fe2C_sp_in)      ) ratio_Fe2C_sp      = ratio_Fe2C_sp_in
       if (present(ratio_Fe2C_phaeo_in)   ) ratio_Fe2C_phaeo   =  ratio_Fe2C_phaeo_in
       if (present(ratio_Fe2N_diatoms_in) ) ratio_Fe2N_diatoms = ratio_Fe2N_diatoms_in
-      if ((solve_zbgc .or. skl_bgc) .and. ratio_Fe2N_diatoms .LE. c0) then
+      if ((solve_zbgc .or. skl_bgc) .and. (ratio_Fe2N_diatoms .LE. c0)) then
          call icepack_warnings_add(subname//' WARNING: ratio_Fe2N_diatoms < = 0')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
       if (present(ratio_Fe2N_sp_in)      ) ratio_Fe2N_sp      = ratio_Fe2N_sp_in
-      if ((solve_zbgc .or. skl_bgc) .and. ratio_Fe2N_sp .LE. c0) then
+      if ((solve_zbgc .or. skl_bgc) .and. (ratio_Fe2N_sp .LE. c0)) then
          call icepack_warnings_add(subname//' WARNING: ratio_Fe2N_sp < = 0')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
       if (present(ratio_Fe2N_phaeo_in)   ) ratio_Fe2N_phaeo   = ratio_Fe2N_phaeo_in
-      if ((solve_zbgc .or. skl_bgc) .and. ratio_Fe2N_phaeo .LE. c0) then
+      if ((solve_zbgc .or. skl_bgc) .and. (ratio_Fe2N_phaeo .LE. c0)) then
          call icepack_warnings_add(subname//' WARNING: ratio_Fe2N_phaeo < = 0')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
@@ -1424,32 +1423,32 @@
       if (present(k_exude_sp_in)         ) k_exude_sp          = k_exude_sp_in
       if (present(k_exude_phaeo_in)      ) k_exude_phaeo       = k_exude_phaeo_in
       if (present(K_Nit_diatoms_in)      ) K_Nit_diatoms       = K_Nit_diatoms_in
-      if ((solve_zbgc .or. skl_bgc) .and. K_Nit_diatoms_in .LE. c0) then
+      if ((solve_zbgc .or. skl_bgc) .and. (K_Nit_diatoms .LE. c0)) then
          call icepack_warnings_add(subname//' WARNING: K_Nit_diatoms < = 0')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
       if (present(K_Nit_sp_in)           ) K_Nit_sp            = K_Nit_sp_in
-      if ((solve_zbgc .or. skl_bgc) .and. K_Nit_sp .LE. c0) then
+      if ((solve_zbgc .or. skl_bgc) .and. (K_Nit_sp .LE. c0)) then
          call icepack_warnings_add(subname//' WARNING: K_Nit_sp < = 0')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
       if (present(K_Nit_phaeo_in)        ) K_Nit_phaeo         = K_Nit_phaeo_in
-      if ((solve_zbgc .or. skl_bgc) .and. K_Nit_phaeo .LE. c0) then
+      if ((solve_zbgc .or. skl_bgc) .and. (K_Nit_phaeo .LE. c0)) then
          call icepack_warnings_add(subname//' WARNING: K_Nit_phaeo < = 0')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
       if (present(K_Am_diatoms_in)       ) K_Am_diatoms        = K_Am_diatoms_in
-      if ((solve_zbgc .or. skl_bgc) .and. K_Am_diatoms .LE. c0) then
+      if ((solve_zbgc .or. skl_bgc) .and. (K_Am_diatoms .LE. c0)) then
          call icepack_warnings_add(subname//' WARNING: K_Am_diatoms < = 0')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
       if (present(K_Am_sp_in)            ) K_Am_sp             = K_Am_sp_in
-      if ((solve_zbgc .or. skl_bgc) .and. K_Am_sp .LE. c0) then
+      if ((solve_zbgc .or. skl_bgc) .and. (K_Am_sp .LE. c0)) then
          call icepack_warnings_add(subname//' WARNING: K_Am_sp < = 0')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
       if (present(K_Am_phaeo_in)         ) K_Am_phaeo          = K_Am_phaeo_in
-      if ((solve_zbgc .or. skl_bgc) .and. K_Am_phaeo .LE. c0) then
+      if ((solve_zbgc .or. skl_bgc) .and. (K_Am_phaeo .LE. c0)) then
          call icepack_warnings_add(subname//' WARNING: K_Am_phaeo < = 0')
          call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
       endif
