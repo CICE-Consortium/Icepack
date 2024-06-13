@@ -21,6 +21,12 @@
 
       use icepack_therm_shared, only: ferrmax, l_brine
       use icepack_therm_shared, only: surface_heat_flux, dsurface_heat_flux_dTsf
+#ifdef GEOSCOUPLED
+      use icepack_therm_shared, only: dfsurfdts_cpl,      & !
+                                      dflatdts_cpl,       & !
+                                      fsurf_cpl,          & !
+                                      flat_cpl              !
+#endif
 
       implicit none
 
@@ -215,6 +221,12 @@
       dflat_dT   = c0
       dflwout_dT = c0
       einex      = c0
+#ifdef GEOSCOUPLED
+      dfsurf_dT  = dfsurfdts_cpl
+      dflat_dT   = dflatdts_cpl
+      fsurfn     = fsurf_cpl
+      flatn      = flat_cpl
+#endif
       dt_rhoi_hlyr = dt / (rhoi*hilyr)  ! hilyr > 0
       if (hslyr > hs_min/real(nslyr,kind=dbl_kind)) &
            l_snow = .true.
@@ -308,6 +320,10 @@
 
       endif
 
+#ifdef GEOSCOUPLED
+      fsurfn = fsurfn + fswsfc ! this is the total heat flux 
+#endif
+
       !-----------------------------------------------------------------
       ! Solve for new temperatures.
       ! Iterate until temperatures converge with minimal energy error.
@@ -327,7 +343,9 @@
       !-----------------------------------------------------------------
 
             converged = .true.
+#ifndef GEOSCOUPLED
             dfsurf_dT = c0
+#endif
             avg_Tsi   = c0
             enew      = c0
             einex     = c0
@@ -353,6 +371,7 @@
 
             if (calc_Tsfc) then
 
+#ifndef GEOSCOUPLED 
       !-----------------------------------------------------------------
       ! Update radiative and turbulent fluxes and their derivatives
       ! with respect to Tsf.
@@ -373,6 +392,7 @@
                                             dfsurf_dT, dflwout_dT, &
                                             dfsens_dT, dflat_dT  )
                if (icepack_warnings_aborted(subname)) return
+#endif
 
       !-----------------------------------------------------------------
       ! Compute conductive flux at top surface, fcondtopn.
@@ -649,6 +669,9 @@
       !-----------------------------------------------------------------
 
                fsurfn = fsurfn + dTsf*dfsurf_dT
+#ifdef GEOSCOUPLED
+               flatn  = flatn  + dTsf*dflat_dT
+#endif
                if (l_snow) then
                   fcondtopn = kh(1) * (Tsf-zTsn(1))
                else
@@ -715,6 +738,14 @@
          call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fsurf:', fsurfn
          call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'dfsurf_dT:', dfsurf_dT
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'enew:', enew
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'einit:', einit
+         call icepack_warnings_add(warnstr)
+         write(warnstr,*) subname, 'dt:', dt
+         call icepack_warnings_add(warnstr)
          write(warnstr,*) subname, 'fcondtop, fcondbot, fswint', &
               fcondtopn, fcondbot, fswint
          call icepack_warnings_add(warnstr)
@@ -780,11 +811,12 @@
       endif
 
       if (calc_Tsfc) then
-
+#ifndef GEOSCOUPLED
          ! update fluxes that depend on Tsf
          flwoutn = flwoutn + dTsf_prev * dflwout_dT
          fsensn  = fsensn  + dTsf_prev * dfsens_dT
          flatn   = flatn   + dTsf_prev * dflat_dT
+#endif
 
       endif                        ! calc_Tsfc
 

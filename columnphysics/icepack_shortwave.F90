@@ -121,6 +121,17 @@
       real (kind=dbl_kind), parameter :: &
          exp_argmax = c10    ! maximum argument of exponential
 
+#ifdef GEOSCOUPLED
+      real (kind=dbl_kind), private :: &
+         fswthru_uvrdr_out,      &  ! penetrative uvr flux, direct
+         fswthru_uvrdf_out,      &  ! penetrative uvr flux, diffuse
+         fswthru_pardr_out,      &  ! penetrative par flux, direct
+         fswthru_pardf_out,      &  ! penetrative par flux, diffuse
+         druvr_in,               &  ! uvr flux, direct
+         dfuvr_in,               &  ! uvr flux, diffuse
+         drpar_in,               &  ! par flux, direct
+         dfpar_in                   ! par flux, diffuse
+#endif
       ! dEdd tuning parameters, set in namelist
       !   R_ice     ! sea ice tuning parameter; +1 > 1sig increase in albedo
       !   R_pnd     ! ponded ice tuning parameter; +1 > 1sig increase in albedo
@@ -223,11 +234,17 @@
                                   alvdrn,   alidrn,   &
                                   alvdfn,   alidfn,   &
                                   fswsfc,   fswint,   &
+                                  druvr,    dfuvr,    &
+                                  drpar,    dfpar,    &
                                   fswthrun,           &
                                   fswthrun_vdr,       &
                                   fswthrun_vdf,       &
                                   fswthrun_idr,       &
                                   fswthrun_idf,       &
+                                  fswthru_uvrdr,      &
+                                  fswthru_uvrdf,      &
+                                  fswthru_pardr,      &
+                                  fswthru_pardf,      &
                                   fswpenl,            &
                                   Iswabs,   SSwabs,   &
                                   albin,    albsn,    &
@@ -244,6 +261,12 @@
          swvdf    , & ! sw down, visible, diffuse (W/m^2)
          swidr    , & ! sw down, near IR, direct  (W/m^2)
          swidf        ! sw down, near IR, diffuse (W/m^2)
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         druvr , & ! 
+         dfuvr , & ! 
+         drpar , & ! 
+         dfpar     ! 
 
       ! baseline albedos for ccsm3 shortwave, set in namelist
       real (kind=dbl_kind), intent(in) :: &
@@ -272,6 +295,12 @@
          fswthrun_vdf, & ! vis dif SW through ice to ocean (W m-2)
          fswthrun_idr, & ! nir dir SW through ice to ocean (W m-2)
          fswthrun_idf    ! nir dif SW through ice to ocean (W m-2)
+
+      real (kind=dbl_kind), dimension(:), intent(out), optional :: &
+         fswthru_uvrdr , & ! vis dir uvr SW through ice to ocean (W m-2)
+         fswthru_uvrdf , & ! vis dif uvr SW through ice to ocean (W m-2)
+         fswthru_pardr , & ! vis dir par SW through ice to ocean (W m-2)
+         fswthru_pardf     ! vis dif par SW through ice to ocean (W m-2)
 
       real (kind=dbl_kind), intent(inout) :: &
          coszen       ! cosine(zenith angle)
@@ -305,11 +334,45 @@
          l_fswthru_idr, & ! nir dir SW through ice to ocean (W m-2)
          l_fswthru_idf    ! nir dif SW through ice to ocean (W m-2)
 
+      real (kind=dbl_kind) :: &
+         l_fswthru_uvrdr , & ! vis uvr dir SW through ice to ocean (W m-2)
+         l_fswthru_uvrdf , & ! vis uvr dif SW through ice to ocean (W m-2)
+         l_fswthru_pardr , & ! vis par dir SW through ice to ocean (W m-2)
+         l_fswthru_pardf     ! vis par dif SW through ice to ocean (W m-2)
+
+      real(kind=dbl_kind) :: &
+         l_druvr,         & ! uvr flux, direct (W m-2)
+         l_dfuvr,         & ! uvr flux, diffuse (W m-2)
+         l_drpar,         & ! par flux, direct (W m-2)
+         l_dfpar            ! par flux, diffuse (W m-2)
+
       character(len=*),parameter :: subname='(shortwave_ccsm3)'
+
+      if (present(druvr)) then  
+         l_druvr = druvr 
+      else
+         l_druvr = c0 
+      endif  
+      if (present(dfuvr)) then  
+         l_dfuvr = dfuvr 
+      else
+         l_dfuvr = c0 
+      endif  
+      if (present(drpar)) then  
+         l_drpar = drpar 
+      else
+         l_drpar = c0 
+      endif  
+      if (present(dfpar)) then  
+         l_dfpar = dfpar 
+      else
+         l_dfpar = c0 
+      endif  
 
       !-----------------------------------------------------------------
       ! Solar radiation: albedo and absorbed shortwave
       !-----------------------------------------------------------------
+
 
       ! For basic shortwave, set coszen to a constant between 0 and 1.
       coszen = p5 ! sun above the horizon
@@ -414,6 +477,14 @@
                                fswthru_vdf=l_fswthru_vdf, &
                                fswthru_idr=l_fswthru_idr, &
                                fswthru_idf=l_fswthru_idf, &
+                               fswthru_uvrdr=l_fswthru_uvrdr,&
+                               fswthru_uvrdf=l_fswthru_uvrdf,&
+                               fswthru_pardr=l_fswthru_pardr,&
+                               fswthru_pardf=l_fswthru_pardf,&
+                               druvr = l_druvr,      &
+                               dfuvr = l_dfuvr,      &
+                               drpar = l_drpar,      &
+                               dfpar = l_dfpar,      &
                                fswpenl=fswpenl(:,n), &
                                Iswabs=Iswabs(:,n))
 
@@ -423,6 +494,10 @@
          if (present(fswthrun_vdf)) fswthrun_vdf(n) = l_fswthru_vdf
          if (present(fswthrun_idr)) fswthrun_idr(n) = l_fswthru_idr
          if (present(fswthrun_idf)) fswthrun_idf(n) = l_fswthru_idf
+         if (present(fswthru_uvrdr)) fswthru_uvrdr(n) = l_fswthru_uvrdr
+         if (present(fswthru_uvrdf)) fswthru_uvrdf(n) = l_fswthru_uvrdf
+         if (present(fswthru_pardr)) fswthru_pardr(n) = l_fswthru_pardr
+         if (present(fswthru_pardf)) fswthru_pardf(n) = l_fswthru_pardf
 
       endif ! aicen > puny
 
@@ -683,6 +758,12 @@
                                  fswthru_vdf,        &
                                  fswthru_idr,        &
                                  fswthru_idf,        &
+                                 fswthru_uvrdr,      &
+                                 fswthru_uvrdf,      &
+                                 fswthru_pardr,      &
+                                 fswthru_pardf,      &
+                                 druvr,    dfuvr,    &
+                                 drpar,    dfpar,    &
                                  fswpenl,            &
                                  Iswabs)
 
@@ -703,6 +784,12 @@
          alvdfns     , & ! visible, diffuse albedo, snow
          alidfns         ! near-ir, diffuse albedo, snow
 
+      real (kind=dbl_kind), intent(in) :: &
+         druvr , & ! uvr flux, direct (W m-2)
+         dfuvr , & ! uvr flux, diffuse (W m-2)
+         drpar , & ! par flux, direct (W m-2)
+         dfpar     ! par flux, diffuse (W m-2)
+
       real (kind=dbl_kind), intent(out):: &
          fswsfc      , & ! SW absorbed at ice/snow surface (W m-2)
          fswint      , & ! SW absorbed in ice interior, below surface (W m-2)
@@ -713,6 +800,12 @@
          fswthru_vdf  , & ! vis dif SW through ice to ocean (W m-2)
          fswthru_idr  , & ! nir dir SW through ice to ocean (W m-2)
          fswthru_idf      ! nir dif SW through ice to ocean (W m-2)
+
+      real (kind=dbl_kind), intent(out) :: &
+         fswthru_uvrdr , & ! vis dir uvr SW through ice to ocean (W m-2)
+         fswthru_uvrdf , & ! vis dif uvr SW through ice to ocean (W m-2)
+         fswthru_pardr , & ! vis dir par SW through ice to ocean (W m-2)
+         fswthru_pardf     ! vis dif par SW through ice to ocean (W m-2)
 
       real (kind=dbl_kind), dimension (:), intent(out) :: &
          Iswabs      , & ! SW absorbed in particular layer (W m-2)
@@ -741,6 +834,12 @@
          hs          , & ! snow thickness (m)
          hilyr       , & ! ice layer thickness
          asnow           ! fractional area of snow cover
+
+      real (kind=dbl_kind) :: &
+         druvrpen    , & !   
+         dfuvrpen    , & !
+         drparpen    , & ! 
+         dfparpen        !  
 
       character(len=*),parameter :: subname='(absorbed_solar)'
 
@@ -789,6 +888,11 @@
 !         fswpenidr = swidr * (c1-alidrni) * (c1-asnow) * i0nir
 !         fswpenidf = swidf * (c1-alidfni) * (c1-asnow) * i0nir
 
+         druvrpen = druvr * (c1-alvdrni) * (c1-asnow) * i0vis
+         dfuvrpen = dfuvr * (c1-alvdfni) * (c1-asnow) * i0vis
+         drparpen = drpar * (c1-alvdrni) * (c1-asnow) * i0vis
+         dfparpen = dfpar * (c1-alvdfni) * (c1-asnow) * i0vis
+
          fswpen = fswpenvdr + fswpenvdf
 
          fswsfc = swabs - fswpen
@@ -825,6 +929,10 @@
          fswthru_vdf = fswpenvdf * tranbot
          fswthru_idr = c0
          fswthru_idf = c0
+         fswthru_uvrdr = druvrpen * tranbot
+         fswthru_uvrdf = dfuvrpen * tranbot
+         fswthru_pardr = drparpen * tranbot
+         fswthru_pardf = dfparpen * tranbot
 
          ! SW absorbed in ice interior
          fswint  = fswpen - fswthru
@@ -865,6 +973,10 @@
                           fswthrun_vdf,        &
                           fswthrun_idr,        &
                           fswthrun_idf,        &
+                          fswthrun_uvrdr,      &
+                          fswthrun_uvrdf,      &
+                          fswthrun_pardr,      &
+                          fswthrun_pardf,      &
                           fswpenln,            &
                           Sswabsn,  Iswabsn,   &
                           albicen,  albsnon,   &
@@ -941,6 +1053,12 @@
          fswthrun_idr, & ! nir dir SW through ice to ocean (W/m^2)
          fswthrun_idf    ! nir dif SW through ice to ocean (W/m^2)
 
+      real(kind=dbl_kind), dimension(:), intent(out), optional :: &
+           fswthrun_uvrdr, & ! uvr dir SW through ice to ocean (W/m^2)
+           fswthrun_uvrdf, & ! uvr dif SW through ice to ocean (W/m^2)
+           fswthrun_pardr, & ! par dir SW through ice to ocean (W/m^2)
+           fswthrun_pardf    ! par dif SW through ice to ocean (W/m^2)
+
       real(kind=dbl_kind), dimension(:,:), intent(inout) :: &
          Sswabsn , & ! SW radiation absorbed in snow layers (W m-2)
          Iswabsn , & ! SW radiation absorbed in ice layers (W m-2)
@@ -1011,11 +1129,16 @@
       l_rsnows(:) = c0
 
       ! cosine of the zenith angle
+
+#ifdef GEOSCOUPLED
+      ! coszen already computed by GEOS
+#else
 #ifdef CESMCOUPLED
       call compute_coszen (TLAT, TLON, yday,  sec, coszen,  &
                            days_per_year, nextsw_cday, calendar_type)
 #else
       call compute_coszen (TLAT, TLON, yday,  sec, coszen)
+#endif
 #endif
       if (icepack_warnings_aborted(subname)) return
 
@@ -1203,6 +1326,21 @@
                enddo
             endif
 
+#ifdef GEOSCOUPLED
+            if(present(fswthrun_uvrdr)) then
+               fswthrun_uvrdr(n) = fswthru_uvrdr_out
+            endif
+            if(present(fswthrun_uvrdf)) then
+               fswthrun_uvrdf(n) = fswthru_uvrdf_out
+            endif
+            if(present(fswthrun_pardr)) then
+               fswthrun_pardr(n) = fswthru_pardr_out
+            endif
+            if(present(fswthrun_pardf)) then
+               fswthrun_pardf(n) = fswthru_pardf_out
+            endif
+#endif
+
          endif ! aicen > puny
 
       enddo  ! ncat
@@ -1372,6 +1510,12 @@
       fswthru_vdf  = c0
       fswthru_idr  = c0
       fswthru_idf  = c0
+#ifdef GEOSCOUPLED
+      fswthru_uvrdr_out  = c0
+      fswthru_uvrdf_out  = c0
+      fswthru_pardr_out  = c0
+      fswthru_pardf_out  = c0
+#endif
       ! compute fraction of nir down direct to total over all points:
       fnidr = c0
       if( swidr + swidf > puny ) then
@@ -1802,6 +1946,14 @@
          fthruvdf, & ! vis dif shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
          fthruidr, & ! nir dir shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
          fthruidf    ! nir dif shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
+
+#ifdef GEOSCOUPLED
+      real (kind=dbl_kind) :: &
+         fthru_uvrdr, &
+         fthru_uvrdf, &
+         fthru_pardr, &
+         fthru_pardf
+#endif
 
       real (kind=dbl_kind), dimension(nslyr) :: &
          Sabs        ! shortwave absorbed in snow layer (W m-2)
@@ -2713,6 +2865,13 @@
             fthruvdr = fthruvdr + dfdir(klevp)*swdr
             fthruvdf = fthruvdf + dfdif(klevp)*swdf
 
+#ifdef GEOSCOUPLED
+            fthru_uvrdr = dfdir(klevp)*druvr_in
+            fthru_uvrdf = dfdif(klevp)*dfuvr_in
+            fthru_pardr = dfdir(klevp)*drpar_in
+            fthru_pardf = dfdif(klevp)*dfpar_in
+#endif
+
             ! if snow covered ice, set snow internal absorption; else, Sabs=0
             if (srftyp == 1) then
                ki = 0
@@ -2829,6 +2988,12 @@
       fswthru_vdf = fswthru_vdf + fthruvdf*fi
       fswthru_idr = fswthru_idr + fthruidr*fi
       fswthru_idf = fswthru_idf + fthruidf*fi
+#ifdef GEOSCOUPLED
+      fswthru_uvrdr_out = fswthru_uvrdr_out + fthru_uvrdr*fi
+      fswthru_uvrdf_out = fswthru_uvrdf_out + fthru_uvrdf*fi
+      fswthru_pardr_out = fswthru_pardr_out + fthru_pardr*fi
+      fswthru_pardf_out = fswthru_pardf_out + fthru_pardf*fi
+#endif
 
       do k = 1, nslyr
          Sswabs(k) = Sswabs(k) + Sabs(k)*fi
@@ -3720,6 +3885,8 @@
                                         yday,     sec,       &
                                         swvdr,    swvdf,     &
                                         swidr,    swidf,     &
+                                        druvr,    dfuvr,     &
+                                        drpar,    dfpar,     &
                                         coszen,   fsnow,     &
                                         alvdrn,   alvdfn,    &
                                         alidrn,   alidfn,    &
@@ -3729,6 +3896,10 @@
                                         fswthrun_vdf,        &
                                         fswthrun_idr,        &
                                         fswthrun_idf,        &
+                                        fswthrun_uvrdr,      &
+                                        fswthrun_uvrdf,      &
+                                        fswthrun_pardr,      &
+                                        fswthrun_pardf,      &
                                         fswpenln,            &
                                         Sswabsn,  Iswabsn,   &
                                         albicen,  albsnon,   &
@@ -3814,6 +3985,18 @@
          fswthrun_idr , & ! nir dir SW through ice to ocean (W/m^2)
          fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
 
+      real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+         fswthrun_uvrdr , & ! vis dir uvr SW through ice to ocean (W/m^2)
+         fswthrun_uvrdf , & ! vis dif uvr SW through ice to ocean (W/m^2)
+         fswthrun_pardr , & ! vis dir par SW through ice to ocean (W/m^2)
+         fswthrun_pardf     ! vis dif par SW through ice to ocean (W/m^2)
+
+      real (kind=dbl_kind), intent(in), optional :: &
+         druvr , & ! 
+         dfuvr , & ! 
+         drpar , & ! 
+         dfpar     ! 
+
       real (kind=dbl_kind), dimension(:,:), intent(inout) :: &
          fswpenln  , & ! visible SW entering ice layers (W m-2)
          Iswabsn   , & ! SW radiation absorbed in ice layers (W m-2)
@@ -3839,10 +4022,62 @@
          first_call=.true.  ! first call logical
 
       real(kind=dbl_kind) :: &
-         hin,         & ! Ice thickness (m)
-         hbri           ! brine thickness (m)
+        hin,         & ! Ice thickness (m)
+        hbri           ! brine thickness (m)
+
+
+      real (kind=dbl_kind), dimension(:), allocatable :: &
+         l_fswthrun_uvrdr , & ! vis uvr dir SW through ice to ocean (W/m^2)
+         l_fswthrun_uvrdf , & ! vis uvr dif SW through ice to ocean (W/m^2)
+         l_fswthrun_pardr , & ! vis par dir SW through ice to ocean (W/m^2)
+         l_fswthrun_pardf     ! vis par dif SW through ice to ocean (W/m^2)
+
+      real(kind=dbl_kind) :: &
+         l_druvr,         & ! 
+         l_dfuvr,         & !
+         l_drpar,         & ! 
+         l_dfpar            !
 
       character(len=*),parameter :: subname='(icepack_step_radiation)'
+
+      if (present(druvr)) then  
+         l_druvr = druvr 
+      else
+         l_druvr = c0 
+      endif  
+      if (present(dfuvr)) then  
+         l_dfuvr = dfuvr 
+      else
+         l_dfuvr = c0 
+      endif  
+      if (present(drpar)) then  
+         l_drpar = drpar 
+      else
+         l_drpar = c0 
+      endif  
+      if (present(dfpar)) then  
+         l_dfpar = dfpar 
+      else
+         l_dfpar = c0 
+      endif  
+
+      allocate(l_fswthrun_uvrdr(ncat))
+      allocate(l_fswthrun_uvrdf(ncat))
+      allocate(l_fswthrun_pardr(ncat))
+      allocate(l_fswthrun_pardf(ncat))
+
+      l_fswthrun_uvrdr = c0
+      l_fswthrun_uvrdf = c0
+      l_fswthrun_pardr = c0
+      l_fswthrun_pardf = c0
+
+#ifdef GEOSCOUPLED
+      druvr_in = l_druvr
+      dfuvr_in = l_dfuvr
+      drpar_in = l_drpar
+      dfpar_in = l_dfpar
+#endif
+
 
       if ((first_call .and. argcheck == 'first') .or. (argcheck == 'always')) then
          if (snwgrain .and. .not. present(rsnow)) then
@@ -3952,11 +4187,19 @@
                                  alvdrn,     alidrn,     &
                                  alvdfn,     alidfn,     &
                                  fswsfcn,    fswintn,    &
+                                 druvr = l_druvr,        &
+                                 dfuvr = l_dfuvr,        &
+                                 drpar = l_drpar,        &
+                                 dfpar = l_dfpar,        &
                                  fswthrun=fswthrun,      &
                                  fswthrun_vdr=fswthrun_vdr,&
                                  fswthrun_vdf=fswthrun_vdf,&
                                  fswthrun_idr=fswthrun_idr,&
                                  fswthrun_idf=fswthrun_idf,&
+                                 fswthru_uvrdr=l_fswthrun_uvrdr,&
+                                 fswthru_uvrdf=l_fswthrun_uvrdf,&
+                                 fswthru_pardr=l_fswthrun_pardr,&
+                                 fswthru_pardf=l_fswthrun_pardf,&
                                  fswpenl=fswpenln,       &
                                  Iswabs=Iswabsn,         &
                                  Sswabs=Sswabsn,         &
@@ -4007,6 +4250,17 @@
          Sswabsn  (:,:) = c0
 
       endif    ! calc_Tsfc
+
+
+      if (present(fswthrun_uvrdr)) fswthrun_uvrdr = l_fswthrun_uvrdr
+      if (present(fswthrun_uvrdf)) fswthrun_uvrdf = l_fswthrun_uvrdf
+      if (present(fswthrun_pardr)) fswthrun_pardr = l_fswthrun_pardr
+      if (present(fswthrun_pardf)) fswthrun_pardf = l_fswthrun_pardf
+
+      deallocate(l_fswthrun_uvrdr)
+      deallocate(l_fswthrun_uvrdf)
+      deallocate(l_fswthrun_pardr)
+      deallocate(l_fswthrun_pardf)
 
       first_call = .false.
 
