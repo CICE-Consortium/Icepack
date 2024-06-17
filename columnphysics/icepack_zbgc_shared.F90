@@ -174,6 +174,7 @@
 
       real (kind=dbl_kind),  dimension(max_aero), public :: &
          zaerotype   ! mobility type for aerosols
+
       !-----------------------------------------------------------------
       ! brine
       !-----------------------------------------------------------------
@@ -195,6 +196,13 @@
          viscos_dynamic = 2.2_dbl_kind   , & ! 1.8e-3_dbl_kind (pure water at 0^oC) (kg/m/s)
          Dm             = 1.0e-9_dbl_kind, & ! molecular diffusion (m^2/s)
          Ra_c           = 0.05_dbl_kind      ! critical Rayleigh number for bottom convection
+
+      real (kind=dbl_kind), dimension (:), allocatable, public :: &
+         bgrid     , &  ! biology nondimensional vertical grid points
+         igrid     , &  ! biology vertical interface points
+         cgrid     , &  ! CICE vertical coordinate
+         icgrid    , &  ! interface grid for CICE (shortwave variable)
+         swgrid         ! grid for ice tracers used in dEdd scheme
 
 !=======================================================================
 

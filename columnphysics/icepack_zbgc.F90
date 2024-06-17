@@ -43,6 +43,7 @@
 
       use icepack_zbgc_shared, only: zbgc_init_frac
       use icepack_zbgc_shared, only: zbgc_frac_init
+      use icepack_zbgc_shared, only: bgrid, cgrid, igrid, icgrid
       use icepack_zbgc_shared, only: bgc_tracer_type, remap_zbgc
       use icepack_zbgc_shared, only: R_S2N, R_Si2N, R_Fe2C, R_Fe2N, R_Fe2DON, R_Fe2DOC
       use icepack_zbgc_shared, only: chlabs, alpha2max_low, beta2max
@@ -86,7 +87,6 @@
 ! Adjust biogeochemical tracers when new frazil ice forms
 
       subroutine add_new_ice_bgc (dt,         ncats,                &
-                                  bgrid,      cgrid,      igrid,    &
                                   aicen_init, vicen_init, vi0_init, &
                                   aicen,      vicen,      vin0new,  &
                                   trcrn,                            &
@@ -95,15 +95,6 @@
 
       integer (kind=int_kind), intent(in) :: &
          ncats       ! 1 without floe size distribution or ncat
-
-      real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         bgrid              ! biology nondimensional vertical grid points
-
-      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         igrid              ! biology vertical interface points
-
-      real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         cgrid              ! CICE vertical coordinate
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step (s)
@@ -334,14 +325,7 @@
 !autodocument_start icepack_init_bgc
 !
       subroutine icepack_init_bgc( &
-         cgrid, igrid, sicen, trcrn, sss, ocean_bio_all, &
-         DOCPoolFractions)
-
-      real (kind=dbl_kind), dimension (nblyr+1), intent(inout) :: &
-         igrid     ! biology vertical interface points
-
-      real (kind=dbl_kind), dimension (nilyr+1), intent(inout) :: &
-         cgrid     ! CICE vertical coordinate
+         sicen, trcrn, sss, ocean_bio_all, DOCPoolFractions)
 
       real (kind=dbl_kind), dimension(nilyr, ncat), intent(in) :: &
          sicen     ! salinity on the cice grid
@@ -609,7 +593,6 @@
                            fbio_snoice, fbio_atmice, ocean_bio_dh, ocean_bio, &
                            first_ice, fswpenln, bphi, bTiz, ice_bio_net,  &
                            snow_bio_net, totalChla, fswthrun, &
-                           bgrid, igrid, icgrid, cgrid,  &
                            meltbn, melttn, congeln, snoicen, &
                            sst, sss, Tf, fsnow, meltsn, & !hmix, &
                            hin_old, flux_bio, flux_bio_atm, &
@@ -622,10 +605,6 @@
          dt      ! time step
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
-         bgrid         , &  ! biology nondimensional vertical grid points
-         igrid         , &  ! biology vertical interface points
-         cgrid         , &  ! CICE vertical coordinate
-         icgrid        , &  ! interface grid for CICE (shortwave variable)
          fbio_snoice   , &  ! fluxes from snow to ice
          fbio_atmice   , &  ! fluxes from atm to ice
          dhbr_top      , &  ! brine top change
@@ -821,7 +800,6 @@
                iDi(:,n) = c0
 
                call compute_microS_mushy ( &
-                           bgrid,         cgrid,         igrid,       &
                            trcrn(:,n),    hin_old(n),    hbr_old,     &
                            sss,           sst,           bTiz(:,n),   &
                            iTin(:),       bphi(:,n),     kavg,        &
@@ -875,8 +853,6 @@
                           zfswin(:,n),                                   &
                           hbrin,                 hbr_old,                &
                           darcy_V(n),                                    &
-                          bgrid,                                         &
-                          igrid,                 icgrid,                 &
                           bphi_o,                                        &
                           iTin,                                          &
                           Zoo(:,n),                                      &

@@ -432,7 +432,7 @@
                                       wavefreq, dwavefreq,        &
                                       floe_rad_c, floe_binwidth,  &
                                d_afsd_latg, d_afsd_newi, d_afsd_latm, d_afsd_weld
-      use icedrv_arrays_column, only: first_ice, bgrid, cgrid, igrid
+      use icedrv_arrays_column, only: first_ice
       use icedrv_calendar, only: yday
       use icedrv_domain_size, only: ncat, nilyr, nslyr, n_aero, nblyr, &
                                     nx, nfsd
@@ -505,8 +505,7 @@
                          frain=frain(i),   fpond=fpond(i),            &
                          fresh=fresh(i),   fsalt=fsalt(i),            &
                          fhocn=fhocn(i),                              &
-                         bgrid=bgrid,      cgrid=cgrid,               &
-                         igrid=igrid,      faero_ocn=faero_ocn(i,:),  &
+                         faero_ocn=faero_ocn(i,:),                    &
                          first_ice=first_ice(i,:),                    &
                          flux_bio=flux_bio(i,1:nbtrcr),               &
                          ocean_bio=ocean_bio(i,1:nbtrcr),             &
@@ -1023,7 +1022,6 @@
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: albicen, albsnon, albpndn
       use icedrv_arrays_column, only: alvdrn, alidrn, alvdfn, alidfn, apeffn, trcrn_sw, snowfracn
-      use icedrv_arrays_column, only: swgrid, igrid
       use icedrv_calendar, only: yday, sec
       use icedrv_domain_size, only: ncat, n_aero, nilyr, nslyr, n_zaero, n_algae, nblyr, nx
       use icedrv_flux, only: swvdr, swvdf, swidr, swidf, coszen, fsnow
@@ -1123,7 +1121,6 @@
          if (tmask(i)) then
 
             call icepack_step_radiation(dt=dt,                          &
-                         swgrid=swgrid(:),          igrid=igrid(:),     &
                          fbri=fbri(:),                                  &
                          aicen=aicen(i,:),          vicen=vicen(i,:),   &
                          vsnon=vsnon(i,:),                              &
@@ -1325,7 +1322,6 @@
       use icedrv_arrays_column, only: first_ice, fswpenln, bphi, bTiz, ice_bio_net
       use icedrv_arrays_column, only: snow_bio_net, fswthrun
       use icedrv_arrays_column, only: ocean_bio_all
-      use icedrv_arrays_column, only: bgrid, igrid, icgrid, cgrid
       use icepack_intfc, only: icepack_biogeochemistry, icepack_load_ocean_bio_array
       use icedrv_domain_size, only: nblyr, nilyr, nslyr, n_algae, n_zaero, ncat
       use icedrv_domain_size, only: n_doc, n_dic,  n_don, n_fed, n_fep, nx
@@ -1432,7 +1428,6 @@
          endif
 
          call icepack_biogeochemistry(dt=dt,                    &
-                      bgrid=bgrid, igrid=igrid, icgrid=icgrid, cgrid=cgrid, &
                       upNO         = upNO(i),                   &
                       upNH         = upNH(i),                   &
                       iDi          = iDi(i,:,:),                &

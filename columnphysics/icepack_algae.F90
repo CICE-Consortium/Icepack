@@ -47,6 +47,7 @@
       use icepack_zbgc_shared, only: remap_zbgc, regrid_stationary
       use icepack_zbgc_shared, only: merge_bgc_fluxes
       use icepack_zbgc_shared, only: merge_bgc_fluxes_skl
+      use icepack_zbgc_shared, only: bgrid, cgrid, igrid, icgrid
       use icepack_zbgc_shared, only: phi_sk, bgc_tracer_type
       use icepack_zbgc_shared, only: zbgc_init_frac
       use icepack_zbgc_shared, only: zbgc_frac_init
@@ -97,8 +98,6 @@
                          zfswin,                    &
                          hbri,         hbri_old,    &
                          darcy_V,                   &
-                         bgrid,                     &
-                         igrid,        icgrid,      &
                          bphi_min,                  &
                          iTin,                      &
                          Zoo,                       &
@@ -154,18 +153,13 @@
       real (kind=dbl_kind), intent(in) :: &
          hbri_old       ! brine height  (m)
 
-      real (kind=dbl_kind), dimension (nblyr+2), intent(inout) :: &
-         bgrid          ! biology nondimensional vertical grid points
-
       real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         igrid      , & ! biology vertical interface points
          iTin       , & ! salinity vertical interface points
          iphin      , & ! Porosity on the igrid
          iDin       , & ! Diffusivity/h on the igrid (1/s)
          iSin           ! Salinity on vertical interface points (ppt)
 
       real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         icgrid     , & ! CICE interface coordinate
          fswthrul       ! visible short wave radiation on icgrid (W/m^2)
 
       real (kind=dbl_kind), dimension(nbtrcr), intent(in) :: &
@@ -297,8 +291,6 @@
                                 dh_top,       dh_bot,    &
                                 zfswin,       hbri,      &
                                 hbri_old,     darcy_V,   &
-                                bgrid,                   &
-                                igrid,        icgrid,    &
                                 bphi_min,     zbgc_snown,&
                                 zbgc_atmn,               &
                                 iTin,         dh_direct, &
@@ -811,8 +803,6 @@
                                     dh_top,       dh_bot,    &
                                     zfswin,       hbri,      &
                                     hbri_old,     darcy_V,   &
-                                    bgrid,                   &
-                                    i_grid,       ic_grid,   &
                                     bphi_min,     zbgc_snow, &
                                     zbgc_atm,                &
                                     iTin,         dh_direct, &
@@ -840,7 +830,6 @@
          dh_direct      ! surface flooding or runoff (m)
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
-         bgrid      , & ! biology nondimensional vertical grid points
          flux_bio   , & ! total ocean tracer flux (mmol/m^2/s)
          zfswin     , & ! visible Short wave flux on igrid (W/m^2)
          Zoo        , & ! N losses to the system from reaction terms
@@ -848,11 +837,9 @@
          trcrn          ! bulk tracer concentration (mmol/m^3)
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
-         i_grid     , & ! biology vertical interface points
          iTin       , & ! salinity vertical interface points
          iphin      , & ! Porosity on the igrid
          iDin       , & ! Diffusivity/h on the igrid (1/s)
-         ic_grid    , & ! CICE interface coordinate
          fswthrul   , & ! visible short wave radiation on icgrid (W/m^2)
          zbgc_snow  , & ! tracer input from snow (mmol/m^3*m)
          zbgc_atm   , & ! tracer input from  atm (mmol/m^3 *m)
@@ -1158,8 +1145,8 @@
                       trtmp0(1:ntrcr),  trtmp(1:ntrcr+2), &
                       0,                nblyr+1,  &
                       hin,              hbri,     &
-                      ic_grid(1:nilyr+1),         &
-                      i_grid(1:nblyr+1),ice_conc  )
+                      icgrid(1:nilyr+1),          &
+                      igrid(1:nblyr+1),ice_conc   )
 
       if (icepack_warnings_aborted(subname)) return
 
@@ -1208,7 +1195,7 @@
 
             call compute_FCT_matrix &
                                 (initcons,sbdiagz, dt,         &
-                                diagz, spdiagz, rhsz, bgrid,   &
+                                diagz, spdiagz, rhsz,          &
                                 darcyV,    dhtop,              &
                                 dhbot,   iphin_N,              &
                                 Diff, hbri_old,                &
@@ -1252,7 +1239,7 @@
                                 (initcons_stationary,    hbri_old,    &
                                  hbri,                   dt,          &
                                  top_conc,                            &
-                                 i_grid,                 flux_bio(mm),&
+                                 igrid,                  flux_bio(mm),&
                                  meltb,                  congel)
                if (icepack_warnings_aborted(subname)) return
 
@@ -1263,7 +1250,7 @@
                                 (initcons_stationary,    hbri_old,    &
                                  hbri,                   dt,          &
                                  top_conc,                            &
-                                 i_grid,                 flux_bio(mm),&
+                                 igrid,                  flux_bio(mm),&
                                  meltb,                  congel)
                   if (icepack_warnings_aborted(subname)) return
 
@@ -2297,7 +2284,7 @@
 ! July, 2014 by N. Jeffery
 !
       subroutine compute_FCT_matrix  (C_in, sbdiag, dt,             &
-                                      diag, spdiag, rhs, bgrid,     &
+                                      diag, spdiag, rhs,            &
                                       darcyV, dhtop, dhbot,         &
                                       iphin_N, iDin, hbri_old,      &
                                       atm_add, bphin_N,             &
@@ -2307,7 +2294,7 @@
 
       real (kind=dbl_kind), dimension(nblyr+1), intent(in) :: &
          C_in            ! Initial (bulk) concentration*hbri_old (mmol/m^2)
-                         ! conserved quantity on i_grid
+                         ! conserved quantity on igrid
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
@@ -2319,8 +2306,7 @@
          iphin_N         ! Porosity with min condition on igrid
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         bphin_N, &      ! Porosity with min condition on igrid
-         bgrid
+         bphin_N         ! Porosity with min condition on igrid
 
       real (kind=dbl_kind), dimension (nblyr+1), intent(out) :: &
          sbdiag      , & ! sub-diagonal matrix elements

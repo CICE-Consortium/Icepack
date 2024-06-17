@@ -52,6 +52,7 @@
       use icepack_mushy_physics, only: liquidus_temperature_mush, icepack_enthalpy_mush
       use icepack_zbgc, only: add_new_ice_bgc
       use icepack_zbgc, only: lateral_melt_bgc
+      use icepack_zbgc_shared, only: bgrid, cgrid, igrid
 
       implicit none
 
@@ -1281,8 +1282,6 @@
                               Tf,        sss,        &
                               salinz,    phi_init,   &
                               dSin0_frazil,          &
-                              bgrid,      cgrid,     &
-                              igrid,                 &
                               flux_bio,   &
                               ocean_bio,             &
                               frazil_diag,           &
@@ -1341,14 +1340,6 @@
          dSin0_frazil     ! initial frazil bulk salinity reduction from sss
 
       ! BGC
-      real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         bgrid              ! biology nondimensional vertical grid points
-
-      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         igrid              ! biology vertical interface points
-
-      real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         cgrid              ! CICE vertical coordinate
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          flux_bio   ! tracer flux to ocean from biology (mmol/m^2/s)
@@ -1901,7 +1892,6 @@
       !-----------------------------------------------------------------
       if (tr_brine .or. nbtrcr > 0) then
          call add_new_ice_bgc(dt,         ncats,                &
-                              bgrid,      cgrid,      igrid,    &
                               aicen_init, vicen_init, vi0_init, &
                               aicen,      vicen,      vin0new,  &
                               trcrn,                            &
@@ -1941,8 +1931,7 @@
                                      frain,        fpond,         &
                                      fresh,        fsalt,         &
                                      fhocn,        update_ocn_f,  &
-                                     bgrid,        cgrid,         &
-                                     igrid,        faero_ocn,     &
+                                     faero_ocn,                   &
                                      first_ice,    fzsal,         &
                                      flux_bio,     ocean_bio,     &
                                      frazil_diag,                 &
@@ -1982,15 +1971,6 @@
 
       integer (kind=int_kind), dimension (:,:), intent(in) :: &
          nt_strata    ! indices of underlying tracer layers
-
-      real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
-         bgrid        ! biology nondimensional vertical grid points
-
-      real (kind=dbl_kind), dimension (nblyr+1), intent(in) :: &
-         igrid        ! biology vertical interface points
-
-      real (kind=dbl_kind), dimension (nilyr+1), intent(in) :: &
-         cgrid        ! CICE vertical coordinate
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          salinz   , & ! initial salinity profile
@@ -2180,8 +2160,7 @@
                            fresh,         fsalt,        &
                            Tf,            sss,          &
                            salinz,        phi_init,     &
-                           dSin0_frazil,  bgrid,        &
-                           cgrid,         igrid,        &
+                           dSin0_frazil,                &
                            flux_bio,                    &
                            ocean_bio,                   &
                            frazil_diag,   fiso_ocn,     &

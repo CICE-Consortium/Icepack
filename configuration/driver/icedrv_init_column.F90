@@ -99,7 +99,6 @@
       use icedrv_arrays_column, only: fswsfcn, ffracn, snowfracn
       use icedrv_arrays_column, only: fswthrun, fswthrun_vdr, fswthrun_vdf, fswthrun_idr, fswthrun_idf
       use icedrv_arrays_column, only: fswintn, albpndn, apeffn, trcrn_sw, dhsn
-      use icedrv_arrays_column, only: swgrid, igrid
       use icedrv_calendar, only: istep1, dt, yday, sec
       use icedrv_system, only: icedrv_system_abort
       use icedrv_forcing, only: snw_ssp_table
@@ -247,8 +246,6 @@
             if (tmask(i)) then
             call icepack_step_radiation (                      &
                          dt=dt,                                &
-                         swgrid=swgrid(:),                     &
-                         igrid=igrid(:),                       &
                          fbri=fbri(:),                         &
                          aicen=aicen(i,:),                     &
                          vicen=vicen(i,:),                     &
@@ -368,7 +365,7 @@
 
       use icedrv_arrays_column, only: zfswin, trcrn_sw
       use icedrv_arrays_column, only: ocean_bio_all, ice_bio_net, snow_bio_net
-      use icedrv_arrays_column, only: cgrid, igrid, bphi, iDi, bTiz, iki
+      use icedrv_arrays_column, only: bphi, iDi, bTiz, iki
       use icedrv_calendar,  only: istep1
       use icedrv_system, only: icedrv_system_abort
       use icedrv_flux, only: sss, nit, amm, sil, dmsp, dms, algalN, &
@@ -473,7 +470,6 @@
          enddo
 
          call icepack_init_bgc( &
-                      cgrid=cgrid, igrid=igrid,                      &
                       sicen=sicen(:,:), trcrn=trcrn_bgc(:,:),        &
                       sss=sss(i), ocean_bio_all=ocean_bio_all(i,:))
 ! optional            DOCPoolFractions=DOCPoolFractions)
@@ -490,8 +486,7 @@
 
       subroutine init_hbrine()
 
-      use icedrv_arrays_column, only: first_ice, bgrid, igrid, cgrid
-      use icedrv_arrays_column, only: icgrid, swgrid
+      use icedrv_arrays_column, only: first_ice
       use icedrv_state, only: trcrn
 
       real (kind=dbl_kind) :: phi_snow
@@ -512,8 +507,7 @@
 
       !-----------------------------------------------------------------
 
-      call icepack_init_hbrine(bgrid=bgrid, igrid=igrid, cgrid=cgrid, icgrid=icgrid, &
-           swgrid=swgrid, phi_snow=phi_snow)
+      call icepack_init_hbrine(phi_snow=phi_snow)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
