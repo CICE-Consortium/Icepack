@@ -69,7 +69,7 @@
       !-----------------------------------------------------------------
 
       call icepack_query_parameters(depressT_out=depressT)
-      call icepack_init_thermo(nilyr=nilyr, sprofile=sprofile)
+      call icepack_init_thermo(sprofile=sprofile)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)
@@ -472,7 +472,7 @@
             enddo
          enddo
 
-         call icepack_init_bgc(ncat=ncat, nblyr=nblyr, nilyr=nilyr,  &
+         call icepack_init_bgc( &
                       cgrid=cgrid, igrid=igrid,                      &
                       sicen=sicen(:,:), trcrn=trcrn_bgc(:,:),        &
                       sss=sss(i), ocean_bio_all=ocean_bio_all(i,:))
@@ -513,7 +513,7 @@
       !-----------------------------------------------------------------
 
       call icepack_init_hbrine(bgrid=bgrid, igrid=igrid, cgrid=cgrid, icgrid=icgrid, &
-           swgrid=swgrid, nblyr=nblyr, nilyr=nilyr, phi_snow=phi_snow)
+           swgrid=swgrid, phi_snow=phi_snow)
       call icepack_warnings_flush(nu_diag)
       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
           file=__FILE__, line=__LINE__)

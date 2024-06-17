@@ -14,6 +14,8 @@
       use icepack_parameters, only: rhoi, cp_ocn, cp_ice, Lfresh
       use icepack_parameters, only: solve_zbgc
       use icepack_parameters, only: fr_resp
+      use icepack_tracers, only: nbtrcr, ntrcr, nblyr, nilyr, nslyr
+      use icepack_tracers, only: n_algae
       use icepack_tracers, only: max_nbtrcr, max_algae, max_doc, max_fe
       use icepack_tracers, only: max_don, max_aero, max_dic
       use icepack_tracers, only: nt_bgc_N, nt_fbri, nlt_bgc_N
@@ -428,14 +430,9 @@
 
       subroutine regrid_stationary (C_stationary, hbri_old, &
                                     hbri,         dt,       &
-                                    ntrcr,        nblyr,    &
                                     top_conc,     igrid,    &
                                     flux_bio,               &
                                     melt_b,       con_gel)
-
-      integer (kind=int_kind), intent(in) :: &
-         ntrcr,         & ! number of tracers
-         nblyr            ! number of bio layers
 
       real (kind=dbl_kind), intent(inout) ::  &
          flux_bio         ! ocean tracer flux (mmol/m^2/s) positive into ocean
@@ -579,9 +576,9 @@
 ! Aggregate flux information from all ice thickness categories
 ! for z layer biogeochemistry
 !
-      subroutine merge_bgc_fluxes (dt,       nblyr,      &
-                               bio_index,    n_algae,    &
-                               nbtrcr,       aicen,      &
+      subroutine merge_bgc_fluxes (dt,     &
+                               bio_index,  &
+                               aicen,      &
                                vicen,        vsnon,      &
                                iphin,                    &
                                trcrn,        aice_init,  &
@@ -593,20 +590,13 @@
                                PP_net,       ice_bio_net,&
                                snow_bio_net, grow_alg,   &
                                grow_net,     totalChla,  &
-                               nslyr,        iTin,       &
-                               iSin,                     &
+                               iTin,         iSin,       &
                                bioPorosityIceCell,       &
                                bioSalinityIceCell,       &
                                bioTemperatureIceCell)
 
       real (kind=dbl_kind), intent(in) :: &
          dt             ! timestep (s)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr, &
-         nslyr, &       ! number of snow layers
-         n_algae, &     !
-         nbtrcr         ! number of biology tracer tracers
 
       integer (kind=int_kind), dimension(:), intent(in) :: &
          bio_index      ! relates bio indices, ie.  nlt_bgc_N to nt_bgc_N
@@ -732,17 +722,13 @@
 !
 ! author: Elizabeth C. Hunke and William H. Lipscomb, LANL
 
-      subroutine merge_bgc_fluxes_skl (nbtrcr, n_algae,    &
+      subroutine merge_bgc_fluxes_skl ( &
                                aicen,     trcrn,           &
                                flux_bion, flux_bio,        &
                                PP_net,    upNOn,           &
                                upNHn,     upNO,            &
                                upNH,      grow_net,        &
                                grow_alg)
-
-      integer (kind=int_kind), intent(in) :: &
-         nbtrcr  , & ! number of bgc tracers
-         n_algae     ! number of autotrophs
 
       ! single category fluxes
       real (kind=dbl_kind), intent(in):: &

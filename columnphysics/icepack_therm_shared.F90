@@ -14,6 +14,7 @@
       use icepack_parameters, only: saltmax, min_salin, depressT
       use icepack_parameters, only: ktherm, tfrz_option
       use icepack_parameters, only: calc_Tsfc
+      use icepack_tracers, only: nilyr, nslyr
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -215,10 +216,7 @@
 ! authors: C. M. Bitz, UW
 !          William H. Lipscomb, LANL
 
-      subroutine icepack_init_thermo(nilyr, sprofile)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr                            ! number of ice layers
+      subroutine icepack_init_thermo(sprofile)
 
       real (kind=dbl_kind), dimension(:), intent(out) :: &
          sprofile                         ! vertical salinity profile
@@ -296,12 +294,7 @@
       subroutine icepack_init_trcr(Tair,     Tf,       &
                                   Sprofile, Tprofile, &
                                   Tsfc,               &
-                                  nilyr,    nslyr,    &
                                   qin,      qsn)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr, &    ! number of ice layers
-         nslyr       ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          Tair, &     ! air temperature (K)

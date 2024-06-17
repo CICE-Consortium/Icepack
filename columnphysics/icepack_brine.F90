@@ -11,7 +11,7 @@
       use icepack_parameters, only: gravit, rhoi, rhow, rhos, depressT
       use icepack_parameters, only: salt_loss, min_salin, rhosi
       use icepack_parameters, only: dts_b, l_sk
-      use icepack_tracers, only: ntrcr, nt_qice, nt_sice
+      use icepack_tracers, only: nilyr, nblyr, ntrcr, nt_qice, nt_sice
       use icepack_tracers, only: nt_Tsfc
       use icepack_zbgc_shared, only: k_o, exp_h, Dm, Ra_c, viscos_dynamic, thinS
       use icepack_zbgc_shared, only: remap_zbgc
@@ -19,7 +19,6 @@
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
       use icepack_mushy_physics, only: icepack_mushy_temperature_mush, icepack_mushy_liquid_fraction
-      use icepack_therm_shared, only: calculate_Tin_from_qin
 
       implicit none
 
@@ -124,19 +123,14 @@
 ! NOTE: This subroutine uses thermosaline_vertical output to compute
 ! average ice permeability and the surface ice porosity
 
-      subroutine compute_microS_mushy (nilyr,      nblyr,      &
-                                       bgrid,    cgrid,      igrid,      &
+      subroutine compute_microS_mushy (bgrid,    cgrid,      igrid,      &
                                        trcrn,    hice_old,   hbr_old,    &
                                        sss,      sst,        bTin,       &
                                        iTin,     bphin,                  &
-                                       kperm,    bphi_min,   &
+                                       kperm,    bphi_min,               &
                                        bSin,     brine_sal,  brine_rho,  &
                                        iphin,    ibrine_rho, ibrine_sal, &
                                        iDin,     iSin)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr       , & ! number of ice layers
-         nblyr           ! number of bio layers
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
          bgrid           ! biology nondimensional vertical grid points
@@ -269,8 +263,7 @@
       ! Define ice multiphase structure
       !-----------------------------------------------------------------
 
-      call prepare_hbrine (nblyr, &
-                           bSin,          bTin,          iTin,       &
+      call prepare_hbrine (bSin,          bTin,          iTin,       &
                            brine_sal,     brine_rho,                 &
                            ibrine_sal,    ibrine_rho,                &
                            bphin,         iphin,                     &
@@ -278,7 +271,7 @@
                            igrid,         sss,           iSin)
       if (icepack_warnings_aborted(subname)) return
 
-      call calculate_drho(nblyr, igrid, bgrid,             &
+      call calculate_drho(igrid, bgrid,             &
                           brine_rho,    ibrine_rho, drho)
       if (icepack_warnings_aborted(subname)) return
 
@@ -294,16 +287,12 @@
 
 !=======================================================================
 
-      subroutine prepare_hbrine (nblyr, &
-                                 bSin,       bTin,      iTin, &
+      subroutine prepare_hbrine (bSin,       bTin,      iTin, &
                                  brine_sal,  brine_rho,       &
                                  ibrine_sal, ibrine_rho,      &
                                  bphin,      iphin,           &
                                  kperm,      bphi_min,        &
                                  i_grid,     sss,       iSin)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr          ! number of bio layers
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          bSin       , & ! salinity of ice layers on bio grid (ppt)
@@ -422,12 +411,12 @@
 ! ice.  This volume fraction may be > 1 in which case there is brine
 ! above the ice surface (ponds).
 
-      subroutine update_hbrine (meltt,       &
+      subroutine update_hbrine (meltt,                   &
                                 melts,      dt,          &
                                 hin,        hsn,         &
                                 hin_old,    hbr,         &
-                                hbr_old,    &
-                                fbri,       &
+                                hbr_old,                 &
+                                fbri,                    &
                                 dhS_top,    dhS_bottom,  &
                                 dh_top_chl, dh_bot_chl,  &
                                 kperm,      bphi_min,    &
@@ -557,11 +546,8 @@
 ! Find density difference about interface grid points
 ! for gravity drainage parameterization
 
-      subroutine calculate_drho (nblyr,     i_grid,     b_grid, &
+      subroutine calculate_drho (i_grid,     b_grid, &
                                  brine_rho, ibrine_rho, drho)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr        ! number of bio layers
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
          b_grid       ! biology nondimensional grid layer points
@@ -668,11 +654,7 @@
 !  Initialize brine height tracer
 
       subroutine icepack_init_hbrine(bgrid, igrid, cgrid, &
-          icgrid, swgrid, nblyr, nilyr, phi_snow)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr, & ! number of ice layers
-         nblyr    ! number of bio layers
+          icgrid, swgrid, phi_snow)
 
       real (kind=dbl_kind), intent(inout) :: &
          phi_snow           ! porosity at the ice-snow interface
@@ -764,14 +746,8 @@
 !  **DEPRECATED**, all code removed
 !  Interface provided for backwards compatibility
 
-      subroutine icepack_init_zsalinity(nblyr,ntrcr_o,  Rayleigh_criteria, &
-               Rayleigh_real, trcrn_bgc, nt_bgc_S, ncat, sss)
-
-      integer (kind=int_kind), intent(in) :: &
-       nblyr  , & ! number of biolayers
-       ntrcr_o, & ! number of non bio tracers
-       ncat   , & ! number of categories
-       nt_bgc_S   ! zsalinity index
+      subroutine icepack_init_zsalinity(Rayleigh_criteria, &
+               Rayleigh_real, trcrn_bgc, sss)
 
       logical (kind=log_kind), intent(inout) :: &
        Rayleigh_criteria

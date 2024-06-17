@@ -272,7 +272,7 @@
           enddo
         endif ! snwgrain
 
-        call icepack_step_therm1(dt=dt, ncat=ncat, nilyr=nilyr, nslyr=nslyr, &
+        call icepack_step_therm1(dt=dt, &
             aicen_init = aicen_init(i,:), &
             vicen_init = vicen_init(i,:), &
             vsnon_init = vsnon_init(i,:), &
@@ -483,9 +483,8 @@
             if (tr_fsd) &
             wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
 
-            call icepack_step_therm2(dt=dt, ncat=ncat,                &
-                         nilyr=nilyr, nslyr=nslyr, nbtrcr=nbtrcr,     &
-                         hin_max=hin_max(:), nblyr=nblyr,             &
+            call icepack_step_therm2(dt=dt,                           &
+                         hin_max=hin_max(:),                          &
                          aicen=aicen(i,:),                            &
                          vicen=vicen(i,:),                            &
                          vsnon=vsnon(i,:),                            &
@@ -518,7 +517,7 @@
                          HDO_ocn=HDO_ocn(i),                          &
                          H2_16O_ocn=H2_16O_ocn(i),                    &
                          H2_18O_ocn=H2_18O_ocn(i),                    &
-                         nfsd=nfsd,   wave_sig_ht=wave_sig_ht(i),     &
+                         wave_sig_ht=wave_sig_ht(i),                  &
                          wave_spectrum=wave_spectrum(i,:),            &
                          wavefreq=wavefreq(:),                        &
                          dwavefreq=dwavefreq(:),                      &
@@ -604,13 +603,12 @@
       !-----------------------------------------------------------------
 
          if (tmask(i)) then
-            call icepack_aggregate (ncat=ncat,                     &
+            call icepack_aggregate (                               &
                          aicen=aicen(i,:), trcrn=trcrn(i,1:ntrcr,:), &
                          vicen=vicen(i,:), vsnon=vsnon(i,:),       &
                          aice =aice (i),   trcr =trcr (i,1:ntrcr), &
                          vice =vice (i),   vsno =vsno (i),         &
                          aice0=aice0(i),                           &
-                         ntrcr=ntrcr,                              &
                          trcr_depend=trcr_depend    (1:ntrcr),     &
                          trcr_base=trcr_base        (1:ntrcr,:),   &
                          n_trcr_strata=n_trcr_strata(1:ntrcr),     &
@@ -683,7 +681,7 @@
       do i = 1, nx
            d_afsd_wave(i,:) = c0
            call icepack_step_wavefracture (wave_spec_type=wave_spec_type, &
-                        dt=dt, ncat=ncat, nfsd=nfsd, nfreq=nfreq, &
+                        dt=dt, nfreq=nfreq,                    &
                         aice          = aice         (i),      &
                         vice          = vice         (i),      &
                         aicen         = aicen        (i,:),    &
@@ -868,9 +866,7 @@
          if (tmask(i)) then
 
             call icepack_step_ridge(dt=dt,         ndtd=ndtd,                &
-                         nilyr=nilyr,              nslyr=nslyr,              &
-                         nblyr=nblyr,                                        &
-                         ncat=ncat,                hin_max=hin_max(:),       &
+                         hin_max=hin_max(:),                                 &
                          rdg_conv=rdg_conv(i),     rdg_shear=rdg_shear(i),   &
                          aicen=aicen(i,:),                                   &
                          trcrn=trcrn(i,1:ntrcr,:),                           &
@@ -884,7 +880,6 @@
                          dvirdgdt=dvirdgdt(i),     opening=opening(i),       &
                          fpond=fpond(i),                                     &
                          fresh=fresh(i),           fhocn=fhocn(i),           &
-                         n_aero=n_aero,                                      &
                          faero_ocn=faero_ocn(i,:), fiso_ocn=fiso_ocn(i,:),   &
                          aparticn=aparticn(i,:),   krdgn=krdgn(i,:),         &
                          aredistn=aredistn(i,:),   vredistn=vredistn(i,:),   &
@@ -911,9 +906,7 @@
          if (tmask(i)) then
 
             call icepack_step_ridge (dt=dt,        ndtd=ndtd,                &
-                         nilyr=nilyr,              nslyr=nslyr,              &
-                         nblyr=nblyr,                                        &
-                         ncat=ncat,                hin_max=hin_max(:),       &
+                         hin_max=hin_max(:),                                 &
                          rdg_conv=rdg_conv(i),     rdg_shear=rdg_shear(i),   &
                          aicen=aicen(i,:),                                   &
                          trcrn=trcrn(i,1:ntrcr,:),                           &
@@ -927,7 +920,6 @@
                          dvirdgdt=dvirdgdt(i),     opening=opening(i),       &
                          fpond=fpond(i),                                     &
                          fresh=fresh(i),           fhocn=fhocn(i),           &
-                         n_aero=n_aero,                                      &
                          faero_ocn=faero_ocn(i,:), fiso_ocn=fiso_ocn(i,:),   &
                          aparticn=aparticn(i,:),   krdgn=krdgn(i,:),         &
                          aredistn=aredistn(i,:),   vredistn=vredistn(i,:),   &
@@ -998,8 +990,7 @@
 
       do i = 1, nx
 
-         call icepack_step_snow (dt,     nilyr,              &
-                     nslyr,              ncat,               &
+         call icepack_step_snow (dt,                         &
                      wind (i),           aice  (i),          &
                      aicen(i,:),         vicen (i,:),        &
                      vsnon(i,:),         trcrn(i,nt_Tsfc,:), &
@@ -1441,7 +1432,6 @@
          endif
 
          call icepack_biogeochemistry(dt=dt,                    &
-                      ncat=ncat, nblyr=nblyr, nilyr=nilyr, nslyr=nslyr,     &
                       bgrid=bgrid, igrid=igrid, icgrid=icgrid, cgrid=cgrid, &
                       upNO         = upNO(i),                   &
                       upNH         = upNH(i),                   &

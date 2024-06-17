@@ -27,7 +27,9 @@
       use icepack_parameters, only: y_sk_DMS         , t_sk_conv
       use icepack_parameters, only: t_sk_ox
 
-      use icepack_tracers, only: ntrcr, bio_index, bio_index_o
+      use icepack_tracers, only: nblyr, nilyr, nslyr, ntrcr, nbtrcr
+      use icepack_tracers, only: n_algae, n_doc, n_dic, n_don, n_fed, n_fep, n_zaero
+      use icepack_tracers, only: bio_index, bio_index_o
       use icepack_tracers, only: nt_bgc_N, nt_fbri, nt_zbgc_frac
       use icepack_tracers, only: tr_brine
       use icepack_tracers, only: nt_bgc_DON, nt_bgc_hum, nt_bgc_DOC
@@ -76,22 +78,16 @@
 
 !=======================================================================
 
-      subroutine zbio   (dt,           nblyr,       &
-                         nslyr,        nilyr,       &
+      subroutine zbio   (dt,                        &
                          meltt,        melts,       &
                          meltb,        congel,      &
-                         snoice,       nbtrcr,      &
-                         fsnow,        ntrcr,       &
+                         snoice,       fsnow,       &
                          trcrn,        bio_index,   &
                          bio_index_o,  aice_old,    &
                          vice_old,     vsno_old,    &
                          vicen,        vsnon,       &
                          aicen,        flux_bio_atm,&
-                         n_cat,        n_algae,     &
-                         n_doc,        n_dic,       &
-                         n_don,                     &
-                         n_fed,        n_fep,       &
-                         n_zaero,      first_ice,   &
+                         n_cat,        first_ice,   &
                          hice_old,     ocean_bio,   &
                          ocean_bio_dh,              &
                          bphin,        iphin,       &
@@ -118,15 +114,7 @@
                          bioTemperatureIceCell      )
 
       integer (kind=int_kind), intent(in) :: &
-         nblyr,              & ! number of bio layers
-         nslyr,              & ! number of snow layers
-         nilyr,              & ! number of ice layers
-         nbtrcr,             & ! number of distinct bio tracers
-         n_cat,              & ! category number
-         n_algae,            & ! number of autotrophs
-         n_zaero,            & ! number of aerosols
-         n_doc, n_dic,  n_don, n_fed, n_fep, &
-         ntrcr                 ! number of tracers
+         n_cat        ! category number
 
       integer (kind=int_kind), dimension (nbtrcr), intent(in) :: &
          bio_index, & ! references index of bio tracer (nbtrcr) to tracer array (ntrcr)
@@ -269,25 +257,23 @@
       write_carbon_errors = .true.
       if (.not. tr_bgc_C) write_carbon_errors = .false.
 
-      call bgc_carbon_sum(nblyr, hbri_old, trcrn(:), carbonInitial,n_doc,n_dic,n_algae,n_don)
+      call bgc_carbon_sum(hbri_old, trcrn(:), carbonInitial)
       if (icepack_warnings_aborted(subname)) return
 
       if (aice_old > puny) then
           hsnow_i = vsno_old/aice_old
           do  mm = 1,nbtrcr
-             call bgc_column_sum (nblyr, nslyr, hsnow_i, hbri_old, &
+             call bgc_column_sum (hsnow_i, hbri_old, &
                               trcrn(bio_index(mm):bio_index(mm)+nblyr+2), &
                               Tot_BGC_i(mm))
              if (icepack_warnings_aborted(subname)) return
           enddo
        endif
 
-      call update_snow_bgc     (dt,        nblyr,        &
-                                nslyr,                   &
+      call update_snow_bgc     (dt,                      &
                                 meltt,     melts,        &
                                 meltb,     congel,       &
-                                snoice,    nbtrcr,       &
-                                fsnow,     ntrcr,        &
+                                snoice,    fsnow,        &
                                 trcrn,     bio_index,    &
                                 aice_old,  zbgc_snown,   &
                                 vice_old,  vsno_old,     &
@@ -299,12 +285,7 @@
       if (icepack_warnings_aborted(subname)) return
 
       call z_biogeochemistry   (n_cat,        dt,        &
-                                nilyr,                   &
-                                nblyr,        nbtrcr,    &
-                                n_algae,      n_doc,     &
-                                n_dic,        n_don,     &
-                                n_fed,        n_fep,     &
-                                n_zaero,      first_ice, &
+                                first_ice, &
                                 aicen,        vicen,     &
                                 hice_old,     ocean_bio, &
                                 ocean_bio_dh,            &
@@ -329,9 +310,9 @@
          flux_bion(mm) = flux_bion(mm) + flux_bio_sno(mm)
       enddo
 
-      call bgc_carbon_sum(nblyr, hbri, trcrn(:), carbonFinal,n_doc,n_dic,n_algae,n_don)
+      call bgc_carbon_sum(hbri, trcrn(:), carbonFinal)
       if (icepack_warnings_aborted(subname)) return
-      call bgc_carbon_flux(flux_bio_atm,flux_bion,n_doc,n_dic,n_algae,n_don,carbonFlux)
+      call bgc_carbon_flux(flux_bio_atm,flux_bion,carbonFlux)
       if (icepack_warnings_aborted(subname)) return
 
       carbonError = carbonInitial-carbonFlux*dt-carbonFinal
@@ -362,7 +343,7 @@
                call icepack_warnings_add(warnstr)
             end do
             do mm = 1,nbtrcr
-               call bgc_column_sum (nblyr, nslyr, hsnow_f, hbri, &
+               call bgc_column_sum (hsnow_f, hbri, &
                               trcrn(bio_index(mm):bio_index(mm)+nblyr+2), &
                               Tot_BGC_f(mm))
                write(warnstr,*) subname, 'mm, Tot_BGC_i(mm), Tot_BGC_f(mm)'
@@ -393,7 +374,7 @@
          if (aicen > c0) then
             hsnow_f = vsnon/aicen
             do mm = 1,nbtrcr
-               call bgc_column_sum (nblyr, nslyr, hsnow_f, hbri, &
+               call bgc_column_sum (hsnow_f, hbri, &
                               trcrn(bio_index(mm):bio_index(mm)+nblyr+2), &
                               Tot_BGC_f(mm))
                write(warnstr,*) subname, 'mm, Tot_BGC_i(mm), Tot_BGC_f(mm)'
@@ -417,9 +398,9 @@
       endif
       if (icepack_warnings_aborted(subname)) return
 
-      call merge_bgc_fluxes   (dt,           nblyr,      &
-                               bio_index,    n_algae,    &
-                               nbtrcr,       aicen,      &
+      call merge_bgc_fluxes   (dt,                       &
+                               bio_index,                &
+                               aicen,                    &
                                vicen,        vsnon,      &
                                iphin,                    &! ntrcr
                                trcrn,        aice_old,   &!aice_old
@@ -431,8 +412,7 @@
                                PP_net,       ice_bio_net,&
                                snow_bio_net, grow_alg,   &
                                grow_net,     totalChla,  &
-                               nslyr,        iTin,       &
-                               iSin,                     &
+                               iTin,         iSin,       &
                                bioPorosityIceCell,       &
                                bioSalinityIceCell,       &
                                bioTemperatureIceCell)
@@ -463,11 +443,6 @@
 !=======================================================================
 
       subroutine sklbio       (dt,       Tf,         &
-                               ntrcr,      &
-                               nbtrcr,   n_algae,    &
-                               n_doc,      &
-                               n_dic,    n_don,      &
-                               n_fed,    n_fep,      &
                                flux_bio, ocean_bio,  &
                                aicen,      &
                                meltb,    congel,     &
@@ -475,14 +450,6 @@
                                trcrn,  &
                                PP_net,   upNO,       &
                                upNH,     grow_net    )
-
-      integer (kind=int_kind), intent(in) :: &
-         nbtrcr,             & ! number of distinct bio tracers
-         n_algae,            & ! number of autotrophs
-         n_doc, n_dic,       & ! number of dissolved organic, inorganic carbon
-         n_don,              & ! number of dissolved organic nitrogen
-         n_fed, n_fep,       & ! number of iron
-         ntrcr                 ! number of tracers
 
       logical (kind=log_kind), intent(in) :: &
          first_ice      ! initialized values should be used
@@ -530,10 +497,6 @@
       grow_alg  (:) = c0
 
       call skl_biogeochemistry       (dt, &
-                                      n_doc,     &
-                                      n_dic,     n_don,     &
-                                      n_fed,     n_fep,     &
-                                      nbtrcr,    n_algae,   &
                                       flux_bion, ocean_bio, &
 !                                     hmix,      aicen,     &
                                       meltb,     congel,    &
@@ -543,7 +506,7 @@
                                       Tf)
       if (icepack_warnings_aborted(subname)) return
 
-      call merge_bgc_fluxes_skl    (nbtrcr,    n_algae,     &
+      call merge_bgc_fluxes_skl    ( &
                                     aicen,     trcrn,       &
                                     flux_bion, flux_bio,    &
                                     PP_net,    upNOn,       &
@@ -559,10 +522,6 @@
 ! skeletal layer biochemistry
 !
       subroutine skl_biogeochemistry (dt, &
-                                      n_doc,        &
-                                      n_dic,      n_don,        &
-                                      n_fed,      n_fep,        &
-                                      nbtrcr,     n_algae,      &
                                       flux_bio,   ocean_bio,    &
 !                                     hmix,       aicen,        &
                                       meltb,      congel,       &
@@ -570,10 +529,6 @@
                                       trcrn,      upNOn,        &
                                       upNHn,      grow_alg_skl, &
                                       Tf)
-
-      integer (kind=int_kind), intent(in) :: &
-         n_doc, n_dic,  n_don, n_fed, n_fep, &
-         nbtrcr , n_algae      ! number of bgc tracers and number algae
 
       real (kind=dbl_kind), intent(in) :: &
          dt     , & ! time step
@@ -750,12 +705,11 @@
       react(:) = c0
       grow_alg_skl(:) = c0
 
-      call algal_dyn (dt,    n_doc,   n_dic,      &
-                      n_don, n_fed, n_fep,        &
+      call algal_dyn (dt,                         &
                       dEdd_algae,                 &
                       fswthru,         react,     &
                       cinit_v,                    &
-                      grow_alg_skl(:), n_algae,   &
+                      grow_alg_skl(:),            &
                       iTin,                       &
                       upNOn(:),        upNHn(:),  &
                       Zoo_skl,                    &
@@ -845,12 +799,7 @@
 !
 
       subroutine z_biogeochemistry (n_cat,        dt,        &
-                                    nilyr,                   &
-                                    nblyr,        nbtrcr,    &
-                                    n_algae,      n_doc,     &
-                                    n_dic,        n_don,     &
-                                    n_fed,        n_fep,     &
-                                    n_zaero,      first_ice, &
+                                    first_ice, &
                                     aicen,        vicen,     &
                                     hice_old,     ocean_bio, &
                                     ocean_bio_dh,            &
@@ -871,12 +820,7 @@
                                     congel                   )
 
       integer (kind=int_kind), intent(in) :: &
-         n_cat,              & ! category number
-         nilyr,              & ! number of ice layers
-         nblyr,              & ! number of bio layers
-         nbtrcr, n_algae,    & ! number of bgc tracers, number of autotrophs
-         n_zaero,            & ! number of aerosols
-         n_doc, n_dic,  n_don, n_fed, n_fep
+         n_cat          ! category number
 
       logical (kind=log_kind), intent(in) :: &
          first_ice      ! initialized values should be used
@@ -1263,7 +1207,7 @@
             enddo
 
             call compute_FCT_matrix &
-                                (initcons,sbdiagz, dt, nblyr,  &
+                                (initcons,sbdiagz, dt,         &
                                 diagz, spdiagz, rhsz, bgrid,   &
                                 darcyV,    dhtop,              &
                                 dhbot,   iphin_N,              &
@@ -1290,13 +1234,11 @@
                                 Sink_bot(mm),          &
                                 Sink_top(mm),          &
                                 dt, flux_bio(mm),     &
-                                nblyr, &
                                 source(mm))
             if (icepack_warnings_aborted(subname)) return
 
             call compute_FCT_corr &
-                                (initcons,   &
-                                 biocons, dt, nblyr, &
+                                (initcons, biocons, dt, &
                                  D_sbdiag, D_spdiag, ML_diag)
             if (icepack_warnings_aborted(subname)) return
 
@@ -1309,8 +1251,7 @@
                call regrid_stationary &
                                 (initcons_stationary,    hbri_old,    &
                                  hbri,                   dt,          &
-                                 ntrcr,                               &
-                                 nblyr,                  top_conc,    &
+                                 top_conc,                            &
                                  i_grid,                 flux_bio(mm),&
                                  meltb,                  congel)
                if (icepack_warnings_aborted(subname)) return
@@ -1321,8 +1262,7 @@
                   call regrid_stationary &
                                 (initcons_stationary,    hbri_old,    &
                                  hbri,                   dt,          &
-                                 ntrcr,                               &
-                                 nblyr,                  top_conc,    &
+                                 top_conc,                            &
                                  i_grid,                 flux_bio(mm),&
                                  meltb,                  congel)
                   if (icepack_warnings_aborted(subname)) return
@@ -1381,7 +1321,7 @@
 
             call thin_ice_flux(hbri,hbri_old,biomat_cons(:,mm), &
                                flux_bio(mm),source(mm), &
-                               dt, nblyr,ocean_bio(mm))
+                               dt, ocean_bio(mm))
             if (icepack_warnings_aborted(subname)) return
 
          endif ! thin or not
@@ -1396,12 +1336,11 @@
 
       if (solve_zbgc) then
          do k = 1, nblyr+1
-            call algal_dyn (dt,              &
-                         n_doc, n_dic,  n_don, n_fed, n_fep, &
-                         dEdd_algae, &
+            call algal_dyn (dt,                            &
+                         dEdd_algae,                       &
                          zfswin(k),        react(k,:),     &
-                         biomat_brine(k,:), &
-                         grow_alg(k,:),    n_algae,        &
+                         biomat_brine(k,:),                &
+                         grow_alg(k,:),                    &
                          iTin(k),                          &
                          upNOn(k,:),       upNHn(k,:),     &
                          Zoo(k),                           &
@@ -1533,21 +1472,16 @@
 ! authors: Scott Elliott, LANL
 !          Nicole Jeffery, LANL
 
-      subroutine algal_dyn (dt,    n_doc, n_dic,        &
-                            n_don, n_fed, n_fep,        &
+      subroutine algal_dyn (dt,                         &
                             dEdd_algae,                 &
                             fswthru,      reactb,       &
                             ltrcrn,                     &
-                            grow_alg,     n_algae,      &
+                            grow_alg,                   &
                             T_bot,                      &
                             upNOn,        upNHn,        &
                             Zoo,                        &
                             Cerror,       conserve_C,   &
                             nitrification)
-
-      integer (kind=int_kind), intent(in) :: &
-         n_doc, n_dic,  n_don, n_fed, n_fep, &
-         n_algae    ! number of autotrophic types
 
       real (kind=dbl_kind), intent(in) :: &
          dt      , & ! time step
@@ -2300,11 +2234,7 @@
 ! authors     Nicole Jeffery, LANL
 
       subroutine thin_ice_flux (hin, hin_old, Cin, flux_o_tot, &
-                                source, dt, nblyr, &
-                                ocean_bio)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr    ! number of bio layers
+                                source, dt, ocean_bio)
 
       real (kind=dbl_kind), dimension(nblyr+1), intent(inout) :: &
          Cin               ! initial concentration*hin_old*phin
@@ -2366,17 +2296,14 @@
 !
 ! July, 2014 by N. Jeffery
 !
-      subroutine compute_FCT_matrix  (C_in, sbdiag, dt,  nblyr,     &
+      subroutine compute_FCT_matrix  (C_in, sbdiag, dt,             &
                                       diag, spdiag, rhs, bgrid,     &
-                                      darcyV, dhtop, dhbot, &
+                                      darcyV, dhtop, dhbot,         &
                                       iphin_N, iDin, hbri_old,      &
                                       atm_add, bphin_N,             &
                                       C_top, C_bot, Qbot, Qtop,     &
                                       Sink_bot, Sink_top,           &
                                       D_sbdiag, D_spdiag, ML)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr           ! number of bio layers
 
       real (kind=dbl_kind), dimension(nblyr+1), intent(in) :: &
          C_in            ! Initial (bulk) concentration*hbri_old (mmol/m^2)
@@ -2565,11 +2492,8 @@
 !
 ! July, 2014 by N. Jeffery
 !
-      subroutine compute_FCT_corr    (C_in, C_low, dt,  nblyr, &
-                                      D_sbdiag, D_spdiag, ML)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr           ! number of bio layers
+      subroutine compute_FCT_corr(C_in, C_low, dt,  &
+                                  D_sbdiag, D_spdiag, ML)
 
       real (kind=dbl_kind), dimension(nblyr+1), intent(in) :: &
          C_in            ! Initial (bulk) concentration*hbri_old (mmol/m^2)
@@ -2693,7 +2617,7 @@
 ! authors William H. Lipscomb, LANL
 !         C. M. Bitz, UW
 !
-      subroutine tridiag_solverz (nmat,     sbdiag,   &
+      subroutine tridiag_solverz(nmat,      sbdiag,   &
                                  diag,      spdiag,   &
                                  rhs,       xout)
 
@@ -2743,11 +2667,7 @@
 
       subroutine check_conservation_FCT (C_init, C_new, C_low, S_top, &
                                          S_bot, L_bot, L_top, dt,     &
-                                         fluxbio, nblyr, &
-                                         source)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr             ! number of bio layers
+                                         fluxbio, source)
 
       real (kind=dbl_kind), dimension(nblyr+1), intent(in) :: &
          C_init        , & ! initial bulk concentration * h_old (mmol/m^2)
@@ -2884,11 +2804,7 @@
 !
 ! author: Nicole Jeffery, LANL
 
-      subroutine bgc_column_sum (nblyr, nslyr, hsnow, hbrine, xin, xout)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr, &         ! number of ice layers
-         nslyr            ! number of snow layers
+      subroutine bgc_column_sum (hsnow, hbrine, xin, xout)
 
       real (kind=dbl_kind), dimension(nblyr+3), intent(in) :: &
          xin              ! input field
@@ -2934,11 +2850,7 @@
 !
 ! author: Nicole Jeffery, LANL
 
-      subroutine bgc_carbon_sum (nblyr, hbrine, xin, xout, n_doc, n_dic, n_algae, n_don)
-
-      integer (kind=int_kind), intent(in) :: &
-         nblyr, &         ! number of ice layers
-         n_doc, n_dic, n_algae, n_don
+      subroutine bgc_carbon_sum (hbrine, xin, xout)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          xin              ! input field, all tracers and column
@@ -3023,11 +2935,7 @@
 !
 ! author: Nicole Jeffery, LANL
 
-      subroutine bgc_carbon_flux (flux_bio_atm, flux_bion, n_doc, &
-                                  n_dic, n_algae, n_don, Tot_Carbon_flux)
-
-      integer (kind=int_kind), intent(in) :: &
-         n_doc, n_dic, n_algae, n_don
+      subroutine bgc_carbon_flux (flux_bio_atm, flux_bion, Tot_Carbon_flux)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          flux_bio_atm, &              ! input field, all tracers and column

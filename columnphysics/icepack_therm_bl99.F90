@@ -16,6 +16,7 @@
       use icepack_parameters, only: rhoi, rhos, hs_min, cp_ice, cp_ocn, depressT, Lfresh, ksno, kice
       use icepack_parameters, only: conduct, calc_Tsfc
       use icepack_parameters, only: sw_redist, sw_frac, sw_dtemp
+      use icepack_tracers, only: nilyr, nslyr
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -53,7 +54,6 @@
 !         C. M. Bitz, UW
 
       subroutine temperature_changes (dt,                 &
-                                      nilyr,    nslyr,    &
                                       rhoa,     flw,      &
                                       potT,     Qa,       &
                                       shcoef,   lhcoef,   &
@@ -68,10 +68,6 @@
                                       flwoutn,  fsurfn,   &
                                       fcondtopn,fcondbot, &
                                       einit               )
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          dt              ! time step
@@ -243,7 +239,6 @@
       !-----------------------------------------------------------------
 
       call conductivity (l_snow,                    &
-                         nilyr,    nslyr,           &
                          hilyr,    hslyr,           &
                          zTin,     kh,      zSin)
       if (icepack_warnings_aborted(subname)) return
@@ -405,7 +400,7 @@
       ! Compute elements of tridiagonal matrix.
       !-----------------------------------------------------------------
 
-               call get_matrix_elements_calc_Tsfc (nilyr, nslyr, &
+               call get_matrix_elements_calc_Tsfc (          &
                                    l_snow,      l_cold,      &
                                    Tsf,         Tbot,        &
                                    fsurfn,      dfsurf_dT,   &
@@ -419,7 +414,7 @@
 
             else
 
-               call get_matrix_elements_know_Tsfc (nilyr, nslyr, &
+               call get_matrix_elements_know_Tsfc (          &
                                    l_snow,      Tbot,        &
                                    Tin_init,    Tsn_init,    &
                                    kh,          Sswabs,      &
@@ -801,16 +796,11 @@
 !         C. M. Bitz, UW
 
       subroutine conductivity (l_snow,                  &
-                               nilyr,    nslyr,         &
                                hilyr,    hslyr,         &
                                zTin,     kh,       zSin)
 
       logical (kind=log_kind), intent(in) :: &
          l_snow          ! true if snow temperatures are computed
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       real (kind=dbl_kind), intent(in) :: &
          hilyr       , & ! ice layer thickness (same for all ice layers)
@@ -969,7 +959,7 @@
 ! March 2004 by William H. Lipscomb for multiple snow layers
 ! April 2008 by E. C. Hunke, divided into two routines based on calc_Tsfc
 
-      subroutine get_matrix_elements_calc_Tsfc (nilyr, nslyr, &
+      subroutine get_matrix_elements_calc_Tsfc (                  &
                                       l_snow,   l_cold,           &
                                       Tsf,      Tbot,             &
                                       fsurfn,   dfsurf_dT,        &
@@ -979,10 +969,6 @@
                                       etai,     etas,             &
                                       sbdiag,   diag,             &
                                       spdiag,   rhs)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       logical (kind=log_kind), intent(in) :: &
          l_snow      , & ! true if snow temperatures are computed
@@ -1216,7 +1202,7 @@
 ! March 2004 by William H. Lipscomb for multiple snow layers
 ! April 2008 by E. C. Hunke, divided into two routines based on calc_Tsfc
 
-      subroutine get_matrix_elements_know_Tsfc (nilyr, nslyr, &
+      subroutine get_matrix_elements_know_Tsfc (                  &
                                       l_snow,   Tbot,             &
                                       Tin_init, Tsn_init,         &
                                       kh,       Sswabs,           &
@@ -1225,10 +1211,6 @@
                                       sbdiag,   diag,             &
                                       spdiag,   rhs,              &
                                       fcondtopn)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr , & ! number of ice layers
-         nslyr     ! number of snow layers
 
       logical (kind=log_kind), intent(in) :: &
          l_snow          ! true if snow temperatures are computed

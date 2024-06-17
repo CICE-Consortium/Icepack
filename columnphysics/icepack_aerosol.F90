@@ -10,7 +10,7 @@
       use icepack_kinds
       use icepack_parameters, only: c0, c1, c2, p5, puny, rhoi, rhos, hs_min
       use icepack_parameters, only: hi_ssl, hs_ssl, hs_ssl_min
-      use icepack_tracers, only: max_aero
+      use icepack_tracers, only: max_aero, nilyr, nslyr, nblyr, ntrcr, nbtrcr, n_aero
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
 
@@ -31,8 +31,6 @@
 !  Called from icepack_step_therm1 when tr_aero=T (not used for zbgc tracers)
 
       subroutine update_aerosol(dt,                   &
-                                nilyr,    nslyr,      &
-                                n_aero,     &
                                 meltt,    melts,      &
                                 meltb,    congel,     &
                                 snoice,               &
@@ -42,9 +40,6 @@
                                 vice_old, vsno_old,   &
                                 vicen, vsnon, aicen,  &
                                 faero_atm, faero_ocn)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr, nslyr, n_aero
 
       real (kind=dbl_kind), intent(in) :: &
          dt,       & ! time step
@@ -428,12 +423,10 @@
 !  Aerosol in snow for vertical biogeochemistry with mushy thermodynamics
 !  Called from icepack_algae.F90 when z_tracers=T (replaces update_aerosol)
 
-      subroutine update_snow_bgc (dt,     nblyr,       &
-                                nslyr,                 &
+      subroutine update_snow_bgc(dt,                   &
                                 meltt,    melts,       &
                                 meltb,    congel,      &
-                                snoice,   nbtrcr,      &
-                                fsnow,    ntrcr,       &
+                                snoice,   fsnow,       &
                                 trcrn,    bio_index,   &
                                 aice_old, zbgc_snow,   &
                                 vice_old, vsno_old,    &
@@ -441,12 +434,6 @@
                                 aicen,    flux_bio_atm,&
                                 zbgc_atm, flux_bio,    &
                                 bio_index_o)
-
-      integer (kind=int_kind), intent(in) :: &
-         nbtrcr,             & ! number of distinct snow tracers
-         nblyr,              & ! number of bio layers
-         nslyr,              & ! number of snow layers
-         ntrcr                 ! number of tracers
 
       integer (kind=int_kind), dimension (nbtrcr), intent(in) :: &
          bio_index,  &

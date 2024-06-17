@@ -23,6 +23,7 @@
       use icepack_parameters, only: c0, c1, c2, p01, p1, p15, p4, p6
       use icepack_parameters, only: puny, viscosity_dyn, rhoi, rhos, rhow, Timelt, Lfresh
       use icepack_parameters, only: gravit, depressT, kice, ice_ref_salinity
+      use icepack_tracers, only: ncat, nilyr
       use icepack_warnings, only: warnstr, icepack_warnings_add
       use icepack_warnings, only: icepack_warnings_setabort, icepack_warnings_aborted
       use icepack_therm_shared, only: calculate_Tin_from_qin
@@ -38,7 +39,7 @@
 
 !=======================================================================
 
-      subroutine compute_ponds_topo(dt,    ncat, nilyr, &
+      subroutine compute_ponds_topo(dt,                 &
                                     ktherm,             &
                                     aice,  aicen,       &
                                     vice,  vicen,       &
@@ -50,8 +51,6 @@
                                     apnd,  hpnd, ipnd   )
 
       integer (kind=int_kind), intent(in) :: &
-         ncat , &   ! number of thickness categories
-         nilyr, &   ! number of ice layers
          ktherm     ! type of thermodynamics (0 0-layer, 1 BL99, 2 mushy)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -159,7 +158,7 @@
          !--------------------------------------------------------------
          ! calculate pond area and depth
          !--------------------------------------------------------------
-         call pond_area(dt,         ncat,     nilyr,    &
+         call pond_area(dt,                             &
                         ktherm,                         &
                         aice,       vice,     vsno,     &
                         aicen,      vicen,    vsnon,    &
@@ -291,7 +290,7 @@
 
 ! Computes melt pond area, pond depth and melting rates
 
-      subroutine pond_area(dt,    ncat,  nilyr,&
+      subroutine pond_area(dt,                 &
                            ktherm,             &
                            aice,  vice,  vsno, &
                            aicen, vicen, vsnon,&
@@ -300,8 +299,6 @@
                            apondn,hpondn,dvolp )
 
       integer (kind=int_kind), intent(in) :: &
-         ncat , & ! number of thickness categories
-         nilyr, & ! number of ice layers
          ktherm   ! type of thermodynamics (-1 none, 1 BL99, 2 mushy)
 
       real (kind=dbl_kind), intent(in) :: &
@@ -469,7 +466,7 @@
 
       ! height and area corresponding to the remaining volume
 
-      call calc_hpond(ncat, reduced_aicen, asnon, hsnon, &
+      call calc_hpond(reduced_aicen, asnon, hsnon, &
                       alfan, volp, cum_max_vol, hpond, m_index)
       if (icepack_warnings_aborted(subname)) return
 
@@ -495,7 +492,7 @@
       if (ktherm /= 2 .and. pressure_head > c0) then
       do n = 1, ncat-1
          if (hicen(n) > c0) then
-            call permeability_phi(nilyr, qicen(:,n), sicen(:,n), perm)
+            call permeability_phi(qicen(:,n), sicen(:,n), perm)
             if (icepack_warnings_aborted(subname)) return
             if (perm > c0) permflag = 1
             drain = perm*apondn(n)*pressure_head*dt / (viscosity_dyn*hicen(n))
@@ -511,7 +508,7 @@
       ! adjust melt pond dimensions
       if (permflag > 0) then
          ! recompute pond depth
-         call calc_hpond(ncat, reduced_aicen, asnon, hsnon, &
+         call calc_hpond(reduced_aicen, asnon, hsnon, &
                          alfan, volp, cum_max_vol, hpond, m_index)
          if (icepack_warnings_aborted(subname)) return
          do n=1, m_index
@@ -569,11 +566,8 @@
 
 !=======================================================================
 
-  subroutine calc_hpond(ncat, aicen, asnon, hsnon, &
+  subroutine calc_hpond(aicen, asnon, hsnon, &
                         alfan, volp, cum_max_vol, hpond, m_index)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat       ! number of thickness categories
 
     real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen, &
@@ -734,10 +728,7 @@
 
 ! determine the liquid fraction of brine in the ice and the permeability
 
-      subroutine permeability_phi(nilyr, qicen, sicen, perm)
-
-      integer (kind=int_kind), intent(in) :: &
-         nilyr       ! number of ice layers
+      subroutine permeability_phi(qicen, sicen, perm)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          qicen, &  ! energy of melting for each ice layer (J/m2)

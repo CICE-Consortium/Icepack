@@ -29,6 +29,7 @@
       use icepack_parameters, only: c0, c1, c2, c3, c15, c25, c100, p1, p01, p001, p5, puny
       use icepack_parameters, only: Lfresh, rhos, ice_ref_salinity, hs_min, cp_ice, rhoi
       use icepack_parameters, only: rhosi, sk_l, hs_ssl, min_salin, rsnw_fall, rhosnew
+      use icepack_tracers,    only: ncat, nilyr, nslyr, nblyr, ntrcr, nbtrcr, n_aero
       use icepack_tracers,    only: nt_Tsfc, nt_qice, nt_qsno, nt_aero, nt_isosno, nt_isoice
       use icepack_tracers,    only: nt_apnd, nt_hpnd, nt_fbri, tr_brine, bio_index
       use icepack_tracers,    only: n_iso, tr_iso, nt_smice, nt_rsnw, nt_rhos, nt_sice
@@ -64,10 +65,7 @@
 !
 ! authors: William H. Lipscomb, LANL
 
-      subroutine aggregate_area (ncat, aicen, aice, aice0)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat      ! number of thickness categories
+      subroutine aggregate_area (aicen, aice, aice0)
 
       real (kind=dbl_kind), dimension(:), intent(in) :: &
          aicen     ! concentration of ice
@@ -102,17 +100,13 @@
 !
 ! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
 
-      subroutine rebin (ntrcr,    trcr_depend,     &
+      subroutine rebin (trcr_depend,     &
                         trcr_base,                 &
                         n_trcr_strata,             &
                         nt_strata,                 &
                         aicen,    trcrn,           &
                         vicen,    vsnon,           &
-                        ncat,     hin_max, Tf      )
-
-      integer (kind=int_kind), intent(in) :: &
-         ntrcr , & ! number of tracers in use
-         ncat      ! number of thickness categories
+                        hin_max, Tf      )
 
       integer (kind=int_kind), dimension (:), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
@@ -216,8 +210,7 @@
       ! shift ice between categories
       !-----------------------------------------------------------------
 
-            call shift_ice (ntrcr,    ncat,       &
-                            trcr_depend,          &
+            call shift_ice (trcr_depend,          &
                             trcr_base,            &
                             n_trcr_strata,        &
                             nt_strata,            &
@@ -264,8 +257,7 @@
       ! shift ice between categories
       !-----------------------------------------------------------------
 
-            call shift_ice (ntrcr,    ncat,       &
-                            trcr_depend,          &
+            call shift_ice (trcr_depend,          &
                             trcr_base,            &
                             n_trcr_strata,        &
                             nt_strata,            &
@@ -356,8 +348,7 @@
 !
 ! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
 
-      subroutine shift_ice (ntrcr,    ncat,        &
-                            trcr_depend,           &
+      subroutine shift_ice (trcr_depend,           &
                             trcr_base,             &
                             n_trcr_strata,         &
                             nt_strata,             &
@@ -365,10 +356,6 @@
                             vicen,    vsnon,       &
                             hicen,    donor,       &
                             daice,    dvice, Tf    )
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         ntrcr     ! number of tracers in use
 
       integer (kind=int_kind), dimension (:), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
@@ -665,7 +652,7 @@
       ! Compute new tracers
       !-----------------------------------------------------------------
 
-         call icepack_compute_tracers (ntrcr,       trcr_depend, &
+         call icepack_compute_tracers(trcr_depend, &
                                       atrcrn(:,n), aicen(n),    &
                                       vicen(n),    vsnon(n),    &
                                       trcr_base,   n_trcr_strata,  &
@@ -759,14 +746,10 @@
 !
 ! author: William H. Lipscomb, LANL
 
-      subroutine cleanup_itd (dt,          ntrcr,      &
-                              nilyr,       nslyr,      &
-                              ncat,        hin_max,    &
+      subroutine cleanup_itd (dt,          hin_max,    &
                               aicen,       trcrn,      &
                               vicen,       vsnon,      &
                               aice0,       aice,       &
-                              n_aero,                  &
-                              nbtrcr,      nblyr,      &
                               tr_aero,                 &
                               tr_pond_topo,            &
                               first_ice,               &
@@ -777,15 +760,6 @@
                               faero_ocn,   fiso_ocn,   &
                               flux_bio,    Tf, limit_aice_in)
 
-      integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         nilyr , & ! number of ice layers
-         nblyr , & ! number of bio layers
-         nslyr , & ! number of snow layers
-         ntrcr , & ! number of tracers in use
-         nbtrcr, & ! number of bio tracers in use
-         n_aero    ! number of aerosol tracers
- 
       real (kind=dbl_kind), intent(in) :: & 
          dt        ! time step 
  
@@ -894,7 +868,7 @@
       ! Compute total ice area.
       !-----------------------------------------------------------------
 
-      call aggregate_area (ncat, aicen, aice, aice0)
+      call aggregate_area (aicen, aice, aice0)
       if (icepack_warnings_aborted(subname)) return
 
       if (limit_aice) then  ! check for aice out of bounds
@@ -924,13 +898,13 @@
       !       correctly (e.g., very fast ice growth).
       !-----------------------------------------------------------------
 
-         call rebin (ntrcr,      trcr_depend, &
+         call rebin (trcr_depend, &
                      trcr_base,               &
                      n_trcr_strata,           &
                      nt_strata,               &
                      aicen,      trcrn,       &
                      vicen,      vsnon,       &
-                     ncat,       hin_max, Tf  )
+                     hin_max, Tf  )
          if (icepack_warnings_aborted(subname)) return
 
       endif ! aice > puny
@@ -940,21 +914,17 @@
       !-----------------------------------------------------------------
 
       if (limit_aice) then
-         call zap_small_areas (dt,           ntrcr,         &
-                               ncat,                        &
-                               n_aero,                      &
-                               nblyr,                       &
-                               nilyr,        nslyr,         &
+         call zap_small_areas (dt,                          &
                                aice,         aice0,         &
                                aicen,        trcrn,         &
                                vicen,        vsnon,         &
                                dfpond,                      &
                                dfresh,       dfsalt,        &
-                               dfhocn, &
+                               dfhocn,                      &
                                dfaero_ocn,   dfiso_ocn,     &
                                tr_aero,                     &
                                tr_pond_topo,                &
-                               first_ice,    nbtrcr,        &
+                               first_ice,                   &
                                dflux_bio,    Tf             )
 
          if (icepack_warnings_aborted(subname)) then
@@ -973,15 +943,12 @@
     ! Zap snow that has out of bounds temperatures
     !-------------------------------------------------------------------
 
-      call zap_snow_temperature(dt,            ncat,     &
-                                nblyr,                   &
-                                nslyr,         aicen,    &
+      call zap_snow_temperature(dt,            aicen,    &
                                 trcrn,         vsnon,    &
                                 dfresh,        dfhocn,   &
                                 dfaero_ocn,    tr_aero,  &
                                 dfiso_ocn,               &
-                                dflux_bio,     nbtrcr,   &
-                                n_aero)
+                                dflux_bio)
       if (icepack_warnings_aborted(subname)) return
 
     !-------------------------------------------------------------------
@@ -1023,11 +990,7 @@
 !
 ! author: William H. Lipscomb, LANL
 
-      subroutine zap_small_areas (dt,        ntrcr,        &
-                                  ncat,                    &
-                                  n_aero,                  &
-                                  nblyr,                   &
-                                  nilyr,     nslyr,        &
+      subroutine zap_small_areas (dt,                      &
                                   aice,      aice0,        &
                                   aicen,     trcrn,        &
                                   vicen,     vsnon,        &
@@ -1037,17 +1000,8 @@
                                   dfaero_ocn, dfiso_ocn,   &
                                   tr_aero,                 &
                                   tr_pond_topo,            &
-                                  first_ice, nbtrcr,       &
+                                  first_ice,               &
                                   dflux_bio, Tf            )
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat     , & ! number of thickness categories
-         nilyr    , & ! number of ice layers
-         nblyr    , & ! number of bio layers
-         nslyr    , & ! number of snow layers
-         ntrcr    , & ! number of tracers in use
-         n_aero   , & ! number of aerosol tracers
-         nbtrcr       ! number of biology tracers
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -1202,14 +1156,13 @@
       !-----------------------------------------------------------------
       ! Zap snow
       !-----------------------------------------------------------------
-            call zap_snow(dt,            nslyr,    &
+            call zap_snow(dt,                      &
                           trcrn(:,n),    vsnon(n), &
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
                           dfiso_ocn,               &
-                          dflux_bio,     nbtrcr,   &
-                          n_aero,                  &
-                          aicen(n),      nblyr)
+                          dflux_bio,               &
+                          aicen(n))
             if (icepack_warnings_aborted(subname)) return
 
       !-----------------------------------------------------------------
@@ -1376,20 +1329,12 @@
 
 !=======================================================================
 
-      subroutine zap_snow(dt,         nslyr,    &
+      subroutine zap_snow(dt,                   &
                           trcrn,      vsnon,    &
                           dfresh,     dfhocn,   &
                           dfaero_ocn, tr_aero,  &
                           dfiso_ocn,            &
-                          dflux_bio,  nbtrcr,   &
-                          n_aero,               &
-                          aicen,      nblyr)
-
-      integer (kind=int_kind), intent(in) :: &
-         nslyr    , & ! number of snow layers
-         n_aero   , & ! number of aerosol tracers
-         nblyr    , & ! number of bio  layers
-         nbtrcr
+                          dflux_bio,  aicen)
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -1472,22 +1417,12 @@
 
 !=======================================================================
 
-      subroutine zap_snow_temperature(dt,         ncat,     &
-                                      nblyr,                &
-                                      nslyr,      aicen,    &
+      subroutine zap_snow_temperature(dt,         aicen,    &
                                       trcrn,      vsnon,    &
                                       dfresh,     dfhocn,   &
                                       dfaero_ocn, tr_aero,  &
                                       dfiso_ocn,            &
-                                      dflux_bio,  nbtrcr,   &
-                                      n_aero )
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         nslyr , & ! number of snow layers
-         n_aero, & ! number of aerosol tracers
-         nbtrcr, & ! number of z-tracers in use
-         nblyr     ! number of bio  layers in ice
+                                      dflux_bio)
 
       real (kind=dbl_kind), intent(in) :: &
          dt           ! time step
@@ -1590,14 +1525,13 @@
       ! Zap the cells
       !-----------------------------------------------------------------
          if (l_zap) &
-            call zap_snow(dt,            nslyr,    &
+            call zap_snow(dt,                      &
                           trcrn(:,n),    vsnon(n), &
                           dfresh,        dfhocn,   &
                           dfaero_ocn,    tr_aero,  &
                           dfiso_ocn,               &
-                          dflux_bio,     nbtrcr,   &
-                          n_aero,                  &
-                          aicen(n),      nblyr)
+                          dflux_bio,               &
+                          aicen(n))
             if (icepack_warnings_aborted(subname)) return
 
       enddo ! n
@@ -1611,10 +1545,7 @@
 ! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
 !          C. M. Bitz, UW
 
-      subroutine icepack_init_itd(ncat, hin_max)
-
-      integer (kind=int_kind), intent(in) :: &
-           ncat ! number of thickness categories
+      subroutine icepack_init_itd(hin_max)
 
       real (kind=dbl_kind), intent(out) :: &
            hin_max(0:ncat)  ! category limits (m)
@@ -1790,10 +1721,7 @@
 ! authors: William H. Lipscomb and Elizabeth C. Hunke, LANL
 !          C. M. Bitz, UW
 
-      subroutine icepack_init_itd_hist (ncat, hin_max, c_hi_range)
-
-      integer (kind=int_kind), intent(in) :: &
-           ncat ! number of thickness categories
+      subroutine icepack_init_itd_hist (hin_max, c_hi_range)
 
       real (kind=dbl_kind), intent(in) :: &
            hin_max(0:ncat)  ! category limits (m)
@@ -1845,21 +1773,15 @@
 ! authors: C. M. Bitz, UW
 !          W. H. Lipscomb, LANL
 
-      subroutine icepack_aggregate (ncat,               &
-                                   aicen,    trcrn,    &
+      subroutine icepack_aggregate(aicen,    trcrn,    &
                                    vicen,    vsnon,    &
                                    aice,     trcr,     &
                                    vice,     vsno,     &
                                    aice0,              &
-                                   ntrcr,              &
                                    trcr_depend,        &
                                    trcr_base,          &
                                    n_trcr_strata,      &
                                    nt_strata, Tf)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         ntrcr     ! number of tracers in use
 
       real (kind=dbl_kind), dimension (:), intent(in) :: &
          aicen , & ! concentration of ice
@@ -1949,7 +1871,7 @@
       aice0 = max (c1 - aice, c0)
 
       ! Tracers
-      call icepack_compute_tracers (ntrcr,     trcr_depend,   &
+      call icepack_compute_tracers(trcr_depend,   &
                                    atrcr,     aice,          &
                                    vice ,     vsno,          &
                                    trcr_base, n_trcr_strata, &

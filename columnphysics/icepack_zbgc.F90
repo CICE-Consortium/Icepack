@@ -20,16 +20,15 @@
       !use icepack_parameters, only: scale_bgc, ktherm, skl_bgc
       !use icepack_parameters, only: z_tracers, fsal, conserv_check
 
-      use icepack_tracers, only: nilyr, nslyr, nblyr
       use icepack_tracers, only: max_algae, max_dic, max_doc, max_don, max_fe
       use icepack_tracers, only: max_aero, max_nbtrcr
-      use icepack_tracers, only: nt_sice, bio_index, bio_index_o
+      use icepack_tracers, only: ncat, nilyr, nslyr, nblyr, nbtrcr, ntrcr, ntrcr_o
       use icepack_tracers, only: tr_brine, nt_fbri, nt_qice, nt_Tsfc
       use icepack_tracers, only: tr_zaero, tr_bgc_Nit, tr_bgc_N
       use icepack_tracers, only: tr_bgc_DON, tr_bgc_C, tr_bgc_chl
       use icepack_tracers, only: tr_bgc_Am, tr_bgc_Sil, tr_bgc_DMS
       use icepack_tracers, only: tr_bgc_Fe, tr_bgc_hum, tr_bgc_PON
-      use icepack_tracers, only: ntrcr, ntrcr_o, nt_bgc_Nit, nlt_bgc_Nit
+      use icepack_tracers, only: nt_bgc_Nit, nlt_bgc_Nit
       use icepack_tracers, only: nt_bgc_N, nlt_bgc_N, nt_bgc_Am, nlt_bgc_Am
       use icepack_tracers, only: nt_bgc_DMSPp, nlt_bgc_DMSPp, nt_bgc_Sil, nlt_bgc_Sil
       use icepack_tracers, only: nt_bgc_DMSPd, nlt_bgc_DMSPd, nt_bgc_DMS, nlt_bgc_DMS
@@ -37,15 +36,14 @@
       use icepack_tracers, only: nt_bgc_C, nlt_bgc_C, nt_bgc_chl, nlt_bgc_chl
       use icepack_tracers, only: nt_bgc_DOC, nlt_bgc_DOC, nt_bgc_DON, nlt_bgc_DON
       use icepack_tracers, only: nt_bgc_DIC, nlt_bgc_DIC, nt_bgc_Fed, nlt_bgc_Fed
+      use icepack_tracers, only: nt_sice, bio_index, bio_index_o
       use icepack_tracers, only: nt_zaero, nlt_zaero, nt_bgc_Fep, nlt_bgc_Fep
       use icepack_tracers, only: nlt_zaero_sw, nlt_chl_sw, nt_zbgc_frac
-      use icepack_tracers, only: ntrcr, ntrcr_o, nbtrcr, nbtrcr_sw
       use icepack_tracers, only: n_algae, n_doc, n_dic, n_don, n_fed, n_fep, n_zaero
 
       use icepack_zbgc_shared, only: zbgc_init_frac
       use icepack_zbgc_shared, only: zbgc_frac_init
       use icepack_zbgc_shared, only: bgc_tracer_type, remap_zbgc
-      use icepack_zbgc_shared, only: regrid_stationary
       use icepack_zbgc_shared, only: R_S2N, R_Si2N, R_Fe2C, R_Fe2N, R_Fe2DON, R_Fe2DOC
       use icepack_zbgc_shared, only: chlabs, alpha2max_low, beta2max
       use icepack_zbgc_shared, only: mu_max, grow_Tdep, fr_graze
@@ -87,21 +85,15 @@
 
 ! Adjust biogeochemical tracers when new frazil ice forms
 
-      subroutine add_new_ice_bgc (dt,         nblyr,      ncats,    &
-                                  ncat,       nilyr,                &
+      subroutine add_new_ice_bgc (dt,         ncats,                &
                                   bgrid,      cgrid,      igrid,    &
                                   aicen_init, vicen_init, vi0_init, &
                                   aicen,      vicen,      vin0new,  &
-                                  ntrcr,      trcrn,      nbtrcr,   &
+                                  trcrn,                            &
                                   ocean_bio,  flux_bio,   hsurp,    &
                                   d_an_tot)
 
       integer (kind=int_kind), intent(in) :: &
-         nblyr   , & ! number of bio layers
-         ncat    , & ! number of thickness categories
-         nilyr   , & ! number of ice layers
-         nbtrcr  , & ! number of biology tracers
-         ntrcr   , & ! number of tracers in use
          ncats       ! 1 without floe size distribution or ncat
 
       real (kind=dbl_kind), dimension (nblyr+2), intent(in) :: &
@@ -288,15 +280,8 @@
 ! When sea ice melts laterally, flux bgc to ocean
 
       subroutine lateral_melt_bgc (dt,                  &
-                                   ncat,     nblyr,     &
                                    rsiden,   vicen_init,&
-                                   trcrn,    flux_bio,  &
-                                   nbltrcr)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         nblyr , & ! number of bio layers
-         nbltrcr   ! number of biology tracers
+                                   trcrn,    flux_bio)
 
       real (kind=dbl_kind), intent(in) :: &
          dt        ! time step (s)
@@ -333,7 +318,7 @@
       zspace(1)       = p5*zspace(2)
       zspace(nblyr+1) = zspace(1)
 
-      do m = 1, nbltrcr
+      do m = 1, nbtrcr
          do n = 1, ncat
          do k = 1, nblyr+1
             flux_bio(m) = flux_bio(m) + trcrn(nt_fbri,n) &
@@ -348,14 +333,9 @@
 !=======================================================================
 !autodocument_start icepack_init_bgc
 !
-      subroutine icepack_init_bgc(ncat, nblyr, nilyr, &
+      subroutine icepack_init_bgc( &
          cgrid, igrid, sicen, trcrn, sss, ocean_bio_all, &
          DOCPoolFractions)
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat  , & ! number of thickness categories
-         nilyr , & ! number of ice layers
-         nblyr     ! number of bio layers
 
       real (kind=dbl_kind), dimension (nblyr+1), intent(inout) :: &
          igrid     ! biology vertical interface points
@@ -630,7 +610,6 @@
                            first_ice, fswpenln, bphi, bTiz, ice_bio_net,  &
                            snow_bio_net, totalChla, fswthrun, &
                            bgrid, igrid, icgrid, cgrid,  &
-                           nblyr, nilyr, nslyr, ncat, &
                            meltbn, melttn, congeln, snoicen, &
                            sst, sss, Tf, fsnow, meltsn, & !hmix, &
                            hin_old, flux_bio, flux_bio_atm, &
@@ -641,12 +620,6 @@
 
       real (kind=dbl_kind), intent(in) :: &
          dt      ! time step
-
-      integer (kind=int_kind), intent(in) :: &
-         ncat, &
-         nilyr, &
-         nslyr, &
-         nblyr
 
       real (kind=dbl_kind), dimension (:), intent(inout) :: &
          bgrid         , &  ! biology nondimensional vertical grid points
@@ -847,7 +820,7 @@
 
                iDi(:,n) = c0
 
-               call compute_microS_mushy (nilyr,         nblyr,       &
+               call compute_microS_mushy ( &
                            bgrid,         cgrid,         igrid,       &
                            trcrn(:,n),    hin_old(n),    hbr_old,     &
                            sss,           sst,           bTiz(:,n),   &
@@ -882,23 +855,17 @@
 
             if (z_tracers) then
 
-               call zbio (dt,                    nblyr,                  &
-                          nslyr,                 nilyr,                  &
+               call zbio (dt,                                            &
                           melttn(n),                                     &
                           meltsn(n),             meltbn  (n),            &
                           congeln(n),            snoicen(n),             &
-                          nbtrcr,                fsnow,                  &
-                          ntrcr,                 trcrn(1:ntrcr,n),       &
+                          fsnow,                 trcrn(1:ntrcr,n),       &
                           bio_index(1:nbtrcr),   bio_index_o(:),         &
                           aicen_init(n),                                 &
                           vicen_init(n),         vsnon_init(n),          &
                           vicen(n),              vsnon(n),               &
                           aicen(n),              flux_bio_atm(1:nbtrcr), &
-                          n,                     n_algae,                &
-                          n_doc,                 n_dic,                  &
-                          n_don,                                         &
-                          n_fed,                 n_fep,                  &
-                          n_zaero,               first_ice(n),           &
+                          n,                     first_ice(n),           &
                           hin_old(n),            ocean_bio(1:nbtrcr),    &
                           ocean_bio_dh,                                  &
                           bphi(:,n),             iphin,                  &
@@ -934,11 +901,6 @@
             elseif (skl_bgc) then
 
                call sklbio (dt,                      Tf,                  &
-                            ntrcr,                                        &
-                            nbtrcr,                  n_algae,             &
-                            n_doc,               &
-                            n_dic,                   n_don,               &
-                            n_fed,                   n_fep,               &
                             flux_bio (1:nbtrcr),     ocean_bio(1:nbtrcr), &
                             aicen    (n),        &
                             meltbn   (n),            congeln  (n),        &

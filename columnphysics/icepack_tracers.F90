@@ -1197,14 +1197,11 @@
 ! Compute tracer fields.
 ! Given atrcrn = aicen*trcrn (or vicen*trcrn, vsnon*trcrn), compute trcrn.
 
-      subroutine icepack_compute_tracers (ntrcr,     trcr_depend,    &
+      subroutine icepack_compute_tracers (trcr_depend,               &
                                           atrcrn,    aicen,          &
                                           vicen,     vsnon,          &
                                           trcr_base, n_trcr_strata,  &
                                           nt_strata, trcrn, Tf)
-
-      integer (kind=int_kind), intent(in) :: &
-         ntrcr                 ! number of tracers in use
 
       integer (kind=int_kind), dimension (ntrcr), intent(in) :: &
          trcr_depend, & ! = 0 for aicen tracers, 1 for vicen, 2 for vsnon
