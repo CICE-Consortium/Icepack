@@ -736,7 +736,7 @@
                  - (fcondtopn - fcondbot + fswint) )
 
             ! factor of 0.9 allows for roundoff errors later
-            if (ferr > 0.9_dbl_kind*ferrmax*0.05_dbl_kind) then         ! condition (5)
+            if (ferr > 0.9_dbl_kind*ferrmax) then         ! condition (5)
 
                converged = .false.
 
