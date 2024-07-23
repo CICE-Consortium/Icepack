@@ -43,7 +43,9 @@ To summarize the steps in greater details **assuming use of conda in a Mac or Li
 
 * Fork the Consortium Icepack repository
 
-* Clone Icepack, sync the main branch, and create a new branch from the main branch.  This will create a branch based on the lastest version of main::
+* Clone Icepack, sync the main branch, and create a new branch from the main branch.  This will create a branch based on the lastest version of main
+
+.. code-block::
 
   mkdir ~/icepack-dirs
   cd ~/icepack-dirs

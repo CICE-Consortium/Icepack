@@ -137,5 +137,5 @@ Icepack columnphyics should be similar.
 
 #. Update documentation, including **icepack_index.rst** and **ug_case_settings.rst**
 
-#. Test and validate.  Very backwards compatibility.
+#. Test and validate.  Verify backwards compatibility.
 
