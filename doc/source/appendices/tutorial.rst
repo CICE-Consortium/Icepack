@@ -43,42 +43,40 @@ To summarize the steps in greater details **assuming use of conda in a Mac or Li
 
 * Fork the Consortium Icepack repository
 
-* Clone Icepack, sync the main branch, and create a new branch from the main branch.  This will create a branch based on the lastest version of main
+* Clone Icepack, sync the main branch, and create a new branch from the main branch.  This will create a branch based on the lastest version of main::
 
-.. code-block::
-
-  mkdir ~/icepack-dirs
-  cd ~/icepack-dirs
-  git clone https://github.com/<github-user>/Icepack
-  cd Icepack
-  git status        (Branch should be main)
-  git remote --v    (Check the origin and NO upstream)
-  git remote add upstream https://github.com/CICE-Consortium/Icepack
-  git remote --v    (Check upstream has been added)
-  git pull upstream main
-  git push origin main
-  git branch <branchname>
-  git checkout <branchname>
-  git status        (Branch should be <branchname>)
+    mkdir ~/icepack-dirs
+    cd ~/icepack-dirs
+    git clone https://github.com/<github-user>/Icepack
+    cd Icepack
+    git status        (Branch should be main)
+    git remote --v    (Check the origin and NO upstream)
+    git remote add upstream https://github.com/CICE-Consortium/Icepack
+    git remote --v    (Check upstream has been added)
+    git pull upstream main
+    git push origin main
+    git branch <branchname>
+    git checkout <branchname>
+    git status        (Branch should be <branchname>)
 
 * Setup local env and download input datasets::
 
-  mkdir -p ~/icepack-dirs/runs ~/icepack-dirs/input ~/icepack-dirs/baseline
-  cd ~/icepack-dirs/input
-  curl -O https://zenodo.org/records/3728287/files/Icepack_data-20200326.tar.gz
-  tar -xzf Icepack_data-20200326.tar.gz
+    mkdir -p ~/icepack-dirs/runs ~/icepack-dirs/input ~/icepack-dirs/baseline
+    cd ~/icepack-dirs/input
+    curl -O https://zenodo.org/records/3728287/files/Icepack_data-20200326.tar.gz
+    tar -xzf Icepack_data-20200326.tar.gz
 
 * Setup the conda environment, see :ref:`laptops`::
 
-  curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o ~/Downloads/miniconda.sh
-  bash ~/Downloads/miniconda.sh
-  source $HOME/miniconda3/bin/activate
-  conda init bash
-  conda config --set auto_activate_base false
-  source $HOME/miniconda3/bin/activate
-  cd ~/icepack-dirs/Icepack
-  conda env create -f configuration/scripts/machines/environment.yml
-  conda activate icepack 
+    curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o ~/Downloads/miniconda.sh
+    bash ~/Downloads/miniconda.sh
+    source $HOME/miniconda3/bin/activate
+    conda init bash
+    conda config --set auto_activate_base false
+    source $HOME/miniconda3/bin/activate
+    cd ~/icepack-dirs/Icepack
+    conda env create -f configuration/scripts/machines/environment.yml
+    conda activate icepack 
 
 * **NOTE:**  If you have a Windows machine, we recommend using the Ubuntu Linux application, https://ubuntu.com/desktop/wsl.
 
@@ -86,11 +84,11 @@ Again, there are many options for setting up the model on hardware, see the Icep
 
 * Set Up an Icepack Simulation.  See :ref:`quickstart` and :ref:`running_icepack`::
 
-  cd ~/Icepack
-  ./icepack.setup --case icepack_test0 --mach conda --env macos -s diag1
-  cd ~/icepack-dirs/cases/icepack_test0
-  ./icepack.build
-  ./icepack.submit
+    cd ~/Icepack
+    ./icepack.setup --case icepack_test0 --mach conda --env macos -s diag1
+    cd ~/icepack-dirs/cases/icepack_test0
+    ./icepack.build
+    ./icepack.submit
 
 Several env variables are defined in **icepack.settings** and the Icepack namelist file is **icepack_in**.  Output files are copied from the run directory to a logs directory under the case.  If the run is successful, you will see the message “ICEPACK COMPLETED SUCCESSFULLY” in the icepack run log file. Note that this job runs quickly - you are running a column model with four grid cells!
 
@@ -98,9 +96,9 @@ Look at the output!  Go to the ICE_RUNDIR (defined in **icepack.settings**). A s
 
 * Plot some output, see :ref:`testplotting`. The conda icepack environment must be activated, if it isn’t already::
 
-  cd $ICE_RUNDIR
-  conda activate icepack
-  ${ICE_SANDBOX}/configurations/scripts/tests/timeseries.csh ice_diag.full_ITD
+    cd $ICE_RUNDIR
+    conda activate icepack
+    ${ICE_SANDBOX}/configurations/scripts/tests/timeseries.csh ice_diag.full_ITD
 
 Note that you can run the plotting script on any of the four ice_diag.* files.  The .png files are created in the ICE_RUNDIR directory. View the png files.
 
@@ -137,8 +135,8 @@ the fluffballs after each run.
 
 * Revert your code changes::
 
-  cd ~/Icepack
-  git status
-  git checkout columnphysics/icepack_mechred.F90
-  git status
+    cd ~/Icepack
+    git status
+    git checkout columnphysics/icepack_mechred.F90
+    git status
 
