@@ -8,7 +8,7 @@ Adding tracers
 We require that any changes made to the code be implemented in such a way that they can
 be "turned off" through namelist flags.  In most cases, code run with such changes should 
 be bit-for-bit identical with the unmodified code.  Occasionally, non-bit-for-bit changes
-are necessary, e.g. associated with an unavoidable change in the order of operations. In
+are necessary or unavoidable due to a change in the order of operations. In
 these cases, changes should be made in stages to isolate the non-bit-for-bit changes, 
 so that those that should be bit-for-bit can be tested separately.
 
@@ -46,11 +46,15 @@ the tracer dependencies (weights), which are tracked using the arrays
 underlying tracer layers), and ``nt_strata`` (indices of underlying layers). 
 See subroutine *icepack_compute_tracers* in **icepack_tracers.F90**.
 
-To add a tracer, follow these steps using one of the existing tracers as
-a pattern (e.g. age or isotopes).  Lets call the new tracer xyz.  Note that many
+To add a tracer, follow these steps using one of the existing tracers, for example 
+age or isotopes, as an example.  Lets call the new tracer xyz.  Note that many
 of the changes are defined in the Icepack driver or scripts.  For CICE or other models
 using Icepack, adding a new tracer may be done differently.  However, changes to the
-Icepack columnphyics should be similar.
+Icepack columnphyics should be similar.  As you make changes, we recommend that you
+build and run with the tracer off to ensure the code modifications are working properly.
+Changes to setup, namelist, and build files either need to be tested by generating
+a new case or by modifying the same files in an existing case before running.
+Code changes can be tested by rebuilding and rerunning an existing case.
 
 #. Define a new tracer.  First, setup the tracer cpp in **configuration/scripts/icepack.settings**
    and **configuration/scripts/icepack.build**
@@ -61,7 +65,7 @@ Icepack columnphyics should be similar.
 
    - In **icepack.build**, add::
 
-        \-DNXYZ=${NXYZ}
+        -DNXYZ=${NXYZ}
 
      to the setenv ICE_CPPDEFS line
 
@@ -97,8 +101,8 @@ Icepack columnphyics should be similar.
      configuration in **configuration/scripts/options**.
 
 #. Update the driver code to initialize the tracer flag and size.  You will also
-   define dependency here (ie. whether the variable is dependent on ice area (aice), ice
-   volume (vice), snow volume (vsno), or something else).  Edit **icedrv_init.F90**.
+   define dependency, whether the variable is dependent on ice area (aice), ice
+   volume (vice), snow volume (vsno), or something else.  Edit **icedrv_init.F90**.
 
    - Define ``tr_xyz`` and ``nt_xyz`` variables
 
@@ -117,7 +121,7 @@ Icepack columnphyics should be similar.
      gives the total content of the variable in that volume of the ice or snow.  The “total content” 
      is often a conserved quantity that can be checked during the calculation.
 
-#. If your tracer depends on ocean or atmosphere forcing (ie. see isotopes)
+#. If your tracer depends on ocean or atmosphere forcing, use isotopes as an example
 
    - Initialize the sources and sinks in **icedrv_flux.F90**
 

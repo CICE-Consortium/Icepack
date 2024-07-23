@@ -33,15 +33,17 @@ You should fork the Icepack repository and create a new branch in your fork for 
 * Clone your repository onto your machine
 * Create a branch
 * Checkout the branch
-* Port the model, verify you can run the model, run a test suite
+* Port the model and verify you can build and run the model
 
 You may be able to leverage the conda port to build and run the model, you may be working on a supported machine, or you may have to port the model to your machine.  Porting, setting up cases, building, running, and running test suites are all documented in the Icepack User Guide, https://cice-consortium-icepack.readthedocs.io/en/latest/index.html.  There are many ways to setup and run the model.
 
-* **Note:** The workflow guide is oriented toward setting up CICE rather than Icepack, but the same workflow applies to Icepack standalone.  Icepack can be set up and run as an independent model following the same workflow.
+**Note:** The workflow guide is oriented toward setting up CICE rather than Icepack, but the same workflow applies to Icepack standalone.
 
 To summarize the steps in greater details **assuming use of conda in a Mac or Linux environment**.
 
-* Fork the Consortium Icepack repository
+* Create a github account for yourself if you don't have one already
+
+* Fork the Consortium Icepack repository, go to https://github.com/CICE-Consortium/Icepack and click on the fork button
 
 * Clone Icepack, sync the main branch, and create a new branch from the main branch.  This will create a branch based on the lastest version of main::
 
@@ -78,7 +80,7 @@ To summarize the steps in greater details **assuming use of conda in a Mac or Li
     conda env create -f configuration/scripts/machines/environment.yml
     conda activate icepack 
 
-* **NOTE:**  If you have a Windows machine, we recommend using the Ubuntu Linux application, https://ubuntu.com/desktop/wsl.
+**NOTE:**  If you have a Windows machine, we recommend using the Ubuntu Linux application, https://ubuntu.com/desktop/wsl.
 
 Again, there are many options for setting up the model on hardware, see the Icepack User Guide for more details.
 
@@ -92,32 +94,31 @@ Again, there are many options for setting up the model on hardware, see the Icep
 
 Several env variables are defined in **icepack.settings** and the Icepack namelist file is **icepack_in**.  Output files are copied from the run directory to a logs directory under the case.  If the run is successful, you will see the message “ICEPACK COMPLETED SUCCESSFULLY” in the icepack run log file. Note that this job runs quickly - you are running a column model with four grid cells!
 
-Look at the output!  Go to the ICE_RUNDIR (defined in **icepack.settings**). A successful model integration will create ice_diag.* files and a file in the “restart” directory called “iced.2016-01-01-00000”. The Icepack documentation has more information about :ref:`history`.
+Look at the output.  Go to the ICE_RUNDIR (defined in **icepack.settings**). A successful model integration will create ice_diag.* files and a file in the “restart” directory called “iced.yyyy-mm-dd-sssss” where yyyy-mm-dd-sssss is a model date/time stamp. The Icepack documentation has more information about :ref:`history`.
 
-* Plot some output, see :ref:`testplotting`. The conda icepack environment must be activated, if it isn’t already::
+* Plot some output using the timeseries script provided, see :ref:`testplotting`. The conda icepack environment must be activated::
 
     cd $ICE_RUNDIR
     conda activate icepack
     ${ICE_SANDBOX}/configurations/scripts/tests/timeseries.csh ice_diag.full_ITD
 
-Note that you can run the plotting script on any of the four ice_diag.* files.  The .png files are created in the ICE_RUNDIR directory. View the png files.
+**Note:** that you can run the plotting script on any of the four ice_diag.* files.  The .png files are created in the ICE_RUNDIR directory. View the png files.
 
 * Questions to think about while looking at the output.
 
   * What time period does an out-of-the-box run cover? 
   * What are the differences between the full_ITD plots and the icefree plots (or any other combination of the ice_diag.* output files)? Which fields are the same? Which are different? Why would this be?
   * What happens to ice area and ice thickness around October 1, 2015? Why do you see this signal?
-  * How does your output compare to the sample output provided for this release? (hint: see the wiki!)
+  * How does your output compare to the sample output provided for this release?
 
 
 Add a New Tracer and Run Some Tests
 --------------------------------------
 
-Follow the documentation at :ref:`addtrcr`.  In this exercise, add a new tracer associated with fluffballs.
-Call the tracer fluff and make it depend on ice area.
-
-Add fluffballs output to the diagnostics and update the timeseries scripts to plot the fluffballs values over time.  Plots
-the fluffballs after each run.
+In this exercise, add a new tracer associated with fluffballs.
+Call the tracer fluff and make it depend on ice area.  Follow the step-by-step instructions in the :ref:`addtrcr` documentation.
+Once you have implemented the model changes, be sure to add fluffballs output to the standard output diagnostics.  The update 
+the timeseries plotting script to plot the fluffballs values over time.
 
 * First, set the initial value, physics, sources, and sinks of fluff to zero and make sure fluff values remain zero throughout the run
 
@@ -127,9 +128,9 @@ the fluffballs after each run.
 
 * Modify the physics to create some physics processes, see isotopes or aerosols for some ideas
 
-* Set Up a Longer Run.  Modify npt in icepack_in.  These are the number of timesteps run.  Details about namelist options are in the documentation (:ref:`case_settings`).
+* Set Up a Longer Run.  Modify npt in icepack_in.  npt defines the number of timesteps to run.  Details about namelist options are in the documentation (:ref:`case_settings`).
 
-* Modify a physics option.  Change the thermodynamics option from ktherm = 2 to ktherm = 1 in **icepack_in**, and set sw_redist = .true.  The intent here is to change the namelist option for the current experiment in the case directory.  What is different compared to your first run?  What happens if sw_redist = .false. with ktherm = 1?  Why?
+* Modify a physics option.  Change the thermodynamics option from ktherm=2 to ktherm=1 in **icepack_in**, and set sw_redist=.true.  The intent here is to change the namelist option for the current experiment in the case directory.  What is different compared to your first run?  What happens if sw_redist = .false. with ktherm = 1?  Why?
 
 * Change a Parameter in the Fortran Code.  Edit **icepack_mechred.F90** and set
 
