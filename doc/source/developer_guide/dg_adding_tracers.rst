@@ -55,20 +55,35 @@ Icepack columnphyics should be similar.
 #. Define a new tracer.  First, setup the tracer cpp in **configuration/scripts/icepack.settings**
    and **configuration/scripts/icepack.build**
 
-   - In **icepack.settings**, add ``setenv NXYZ 1  # number of xyz tracers``
+   - In **icepack.settings**, add::
 
-   - In **icepack.build**, add ``-DNXYZ=${NXYZ}`` to the setenv ICE_CPPDEFS line
+        setenv NXYZ 1  # number of xyz tracers
+
+   - In **icepack.build**, add::
+
+        \-DNXYZ=${NXYZ}
+
+     to the setenv ICE_CPPDEFS line
 
 #. Define the new tracer dimension in **icedrv_domain_size.F90**.  
 
-   - Add a new dimension, ``n_xyz = NXYZ, & ! number of xyz tracers``
+   - Add a new dimension::
 
-   - Update the size of ``max_ntrcr`` by adding ``+ n_xyz  & ! number of xyz tracers``
+        n_xyz = NXYZ, & ! number of xyz tracers
+
+   - Update the size of ``max_ntrcr`` by adding::
+
+        + n_xyz  & ! number of xyz tracers
 
 #. Add the new tracer to **icepack_tracers.F90**: 
 
-   - Define new variables ``tr_xyz=.false.``, ``n_xyz=0``, and ``nt_xyz=0``.  By default, these
-     should be off (false and 0).
+   - Define new variables::
+
+        tr_xyz=.false.
+        n_xyz=0
+        nt_xyz=0
+
+     By default, these are turned off.
 
    - Add the new variables to the tracer init, query, and write subroutine arguments
      (tracer_flags, tracer_sizes, and tracer_indices).  The driver of Icepack will turn
@@ -121,10 +136,13 @@ Icepack columnphyics should be similar.
    If your tracer is impacted by frazil ice growth or lateral melt, this is discussed later.
    It’s often helpful to copy and modify existing modules such as icepack_age.F90 or icepack_isotope.F90.
 
-#. Add the physics calls to Icepack or the driver.  Depending on the physics implementation, the
-   new tracer physics calls might be done in **icepack_therm_vertical**, **icedrv_step.F90**, or
-   elsewhere.  See use of subroutines ``update_aerosol``, ``update_isotope``, or ``increment_age``.
-   Always use the flag ``tr_xyz`` to determine whether to call these routines.
+#. Add the physics calls to Icepack or the driver.  
+
+   - Depending on the physics implementation, the
+     new tracer physics calls might be done in **icepack_therm_vertical**, **icedrv_step.F90**, or
+     elsewhere.  See use of subroutines ``update_aerosol``, ``update_isotope``, or ``increment_age``.
+   
+   - Always use the flag ``tr_xyz`` to determine whether to call these routines.
 
 #. Add the new tracer to the restart files.  Edit **icedrv_restart.F90**,
 
@@ -133,7 +151,7 @@ Icepack columnphyics should be similar.
    -  call routines to read and write tracer restart data
 
 #. If strict conservation is necessary, add conservation diagnostics using the 
-   topographical ponds as an example, see :ref:`ponds`
+   topographical ponds as an example, :ref:`ponds`
 
 #. Update documentation, including **icepack_index.rst** and **ug_case_settings.rst**
 

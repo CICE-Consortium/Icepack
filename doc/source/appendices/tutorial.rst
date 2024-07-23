@@ -121,7 +121,7 @@ the fluffballs after each run.
 
 * First, set the initial value, physics, sources, and sinks of fluff to zero and make sure fluff values remain zero throughout the run
 
-* Add constant some atmospheric forcing and review results
+* Add some constant atmospheric forcing and review results
 
 * Change the dependency to ice volume, how do the results change?
 
@@ -131,9 +131,13 @@ the fluffballs after each run.
 
 * Modify a physics option.  Change the thermodynamics option from ktherm = 2 to ktherm = 1 in **icepack_in**, and set sw_redist = .true.  The intent here is to change the namelist option for the current experiment in the case directory.  What is different compared to your first run?  What happens if sw_redist = .false. with ktherm = 1?  Why?
 
-* Change a Parameter in the Fortran Code.  Edit **icepack_mechred.F90** and set ``fsnowrdg = c1    , & ! snow fraction that survives in ridging``.  Rebuild the code before running.  What is different about this run?  What do you think the fsnowrdg parameter is doing here?
+* Change a Parameter in the Fortran Code.  Edit **icepack_mechred.F90** and set
 
-* Revert your code changes::
+    ``fsnowrdg = c1    , & ! snow fraction that survives in ridging``.  
+
+  Rebuild the code before running.  What is different about this run?  What do you think the fsnowrdg parameter is doing here?
+
+* Revert your latest code changes::
 
     cd ~/Icepack
     git status
